@@ -1,7 +1,7 @@
 # Implementation Plan: Cotton App Layout Configuration
 
-**Branch**: `010-cotton-layout-config` | **Date**: 2026-04-17 | **Spec**: [spec.md](spec.md)
-**Input**: Feature specification from `/specs/010-cotton-layout-config/spec.md`
+**Branch**: `001-app-components` | **Date**: 2026-04-17 | **Spec**: [spec.md](spec.md)
+**Input**: Feature specification from `/specs/001-app-components/spec.md`
 
 ## Summary
 
@@ -63,7 +63,7 @@ attributes are the sole configuration pathway.
 ### Documentation (this feature)
 
 ```text
-specs/010-cotton-layout-config/
+specs/001-app-components/
 ├── plan.md              # This file
 ├── research.md          # Phase 0: 8 research sections covering all unknowns
 ├── data-model.md        # Phase 1: Component attribute model (no Django models)

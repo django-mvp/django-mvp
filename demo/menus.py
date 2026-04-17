@@ -36,6 +36,16 @@ AppMenu.extend(
                 "icon": "box-seam",
             },
         ),
+        MenuItem(
+            name="full_shell_demo",
+            view_name="full_shell_demo",
+            extra_context={
+                "label": "Full Shell",
+                "icon": "layout-wtf",
+                "badge": "US1",
+                "badge_classes": "text-bg-success",
+            },
+        ),
         # Navbar Widgets
         MenuItem(
             name="navbar_widgets_demo",

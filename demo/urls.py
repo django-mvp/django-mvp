@@ -8,6 +8,7 @@ from .views import (
     BasicListViewDemo,
     ContactFormView,
     ExplicitRendererDemo,
+    FullShellDemoView,
     ListViewDemo,
     MinimalListViewDemo,
     MVPDemoView,
@@ -18,6 +19,7 @@ from .views import (
 urlpatterns = [
     # Main dashboard
     path("", MVPDemoView.as_view(template_name="demo/home.html"), name="home"),
+    path("shell/", FullShellDemoView.as_view(), name="full_shell_demo"),
     path("layout/", views.LayoutDemoView.as_view(), name="layout_demo"),
     path("page-layout/", views.PageLayoutDemoView.as_view(), name="page_layout_demo"),
     path("widgets/", views.NavbarWidgetsView.as_view(), name="navbar_widgets_demo"),

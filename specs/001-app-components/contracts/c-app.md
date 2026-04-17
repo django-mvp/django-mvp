@@ -1,6 +1,6 @@
 # Contract: Application Shell Component (`<c-app>`)
 
-**Version**: 1.0 | **Feature**: 010-cotton-layout-config
+**Version**: 1.0 | **Feature**: 001-app-components
 
 ## Purpose
 

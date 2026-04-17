@@ -1,6 +1,6 @@
 # Contract: Application Footer Component (`<c-app.footer>`)
 
-**Version**: 1.0 | **Feature**: 010-cotton-layout-config
+**Version**: 1.0 | **Feature**: 001-app-components
 
 ## Purpose
 

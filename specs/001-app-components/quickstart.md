@@ -1,6 +1,6 @@
 # Quickstart: Cotton App Layout Configuration
 
-**Branch**: `010-cotton-layout-config` | **Feature**: 010
+**Branch**: `001-app-components` | **Feature**: 001
 
 > Get a fully configured AdminLTE 4 application shell using Cotton component
 > attributes — no Python settings, no view context, just HTML template declarations.

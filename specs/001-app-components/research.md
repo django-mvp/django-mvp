@@ -1,6 +1,6 @@
 # Research: Cotton App Layout Configuration
 
-**Branch**: `010-cotton-layout-config` | **Date**: 2026-04-17
+**Branch**: `001-app-components` | **Date**: 2026-04-17
 
 ## 1. AdminLTE 4 Body-Class Layout System
 

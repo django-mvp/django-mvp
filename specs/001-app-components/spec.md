@@ -1,6 +1,6 @@
 # Feature Specification: Cotton App Layout Configuration
 
-**Feature Branch**: `010-cotton-layout-config`
+**Feature Branch**: `001-app-components`
 **Created**: 2026-04-17
 **Status**: Draft
 **Input**: User description: "This spec is going to supercede 001-layout-components AND 002-layout-configuration. We can use those specs as references/research aids but DO NOT refer to those specs in anyway in writing as we will eventually deleted them. Treat this as a new isolated spec. This spec will focus on the main cotton-based app layout and attribute-driven configuration. It will provide the necessary components for building the main app area, the app header, the main sidebar with menus, and the main site footer. It should support all of the various configuration parameters that are supported natively by AdminLTE4 theme but done so in a way that makes sense in the reference frame of a django-cotton based applications. When this spec is complete, as developer SHOULD know how to integrate django-mvp into their project and build/configure the basic application layout."

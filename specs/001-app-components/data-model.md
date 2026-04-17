@@ -1,6 +1,6 @@
 # Data Model: Cotton App Layout Configuration
 
-**Branch**: `010-cotton-layout-config` | **Date**: 2026-04-17
+**Branch**: `001-app-components` | **Date**: 2026-04-17
 
 > This feature has **no Django models** — all state is declarative via Cotton component
 > attributes and rendered as CSS classes. This document describes the conceptual data

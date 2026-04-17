@@ -1,6 +1,6 @@
 # Tasks: Cotton App Layout Configuration
 
-**Input**: Design documents from `/specs/010-cotton-layout-config/`
+**Input**: Design documents from `/specs/001-app-components/`
 **Prerequisites**: plan.md ✅, spec.md ✅, research.md ✅, data-model.md ✅, contracts/ ✅, quickstart.md ✅
 
 **Workflow**: Design-First — implement and verify components BEFORE writing tests.
@@ -22,7 +22,7 @@ Every phase touching Django code MUST include `python manage.py check`. Every ph
 
 **Purpose**: Understand the current state of existing component templates before refinement begins.
 
-- [ ] T001 Audit `mvp/templates/cotton/app/` — read all existing component templates (index.html, header.html, main.html, menu.html, sidebar/index.html, sidebar/header.html, sidebar/toggle.html, sidebar/menu/*.html, footer.html), consult `.github/skills/cotton-test-components/SKILL.md` and `.github/skills/django-cotton/SKILL.md` before implementation begins, and note gaps against each contract in `specs/010-cotton-layout-config/contracts/`
+- [ ] T001 Audit `mvp/templates/cotton/app/` — read all existing component templates (index.html, header.html, main.html, menu.html, sidebar/index.html, sidebar/header.html, sidebar/toggle.html, sidebar/menu/*.html, footer.html), consult `.github/skills/cotton-test-components/SKILL.md` and `.github/skills/django-cotton/SKILL.md` before implementation begins, and note gaps against each contract in `specs/001-app-components/contracts/`
 - [ ] T002 Run `python manage.py check` — confirm zero errors before any changes are made
 
 ---
@@ -66,7 +66,7 @@ Every phase touching Django code MUST include `python manage.py check`. Every ph
 ### Verification for User Story 1
 
 - [ ] T016 [US1] Verify shell renders using Playwright MCP server — navigate to demo shell page and assert: `<body>` has classes `.bg-body-tertiary` and `.sidebar-expand-lg`; `nav.app-header` is present; `aside.app-sidebar` is present; `main.app-main` is present; `footer.app-footer` is present; toggle button is first nav item in header; MUST NOT merely assert page loads
-- [ ] T017 [US1] Manual quickstart walkthrough — follow all 7 steps in `specs/010-cotton-layout-config/quickstart.md` and confirm rendered HTML matches the contract output specs in `specs/010-cotton-layout-config/contracts/`
+- [ ] T017 [US1] Manual quickstart walkthrough — follow all 7 steps in `specs/001-app-components/quickstart.md` and confirm rendered HTML matches the contract output specs in `specs/001-app-components/contracts/`
 
 ### Tests for User Story 1 (AFTER design verification)
 
@@ -136,7 +136,7 @@ Every phase touching Django code MUST include `python manage.py check`. Every ph
 ### Design & Implementation for User Story 3
 
 - [ ] T044 [P] [US3] Document supported attribute combinations, incompatible pairs, and fallback behaviour in `docs/layout-configuration.md` — write the compatibility/rules section only, including body-class mapping, valid values, defaults, known incompatibilities, and the statement that invalid attribute handling is delegated to django-cotton
-- [ ] T045 [P] [US3] Add preset configuration examples to `specs/010-cotton-layout-config/quickstart.md` Section 5 — three explicit presets: "Fixed sidebar + mini mode + starts collapsed", "Fixed header + footer + fill viewport", "Minimal (no fixed elements)"
+- [ ] T045 [P] [US3] Add preset configuration examples to `specs/001-app-components/quickstart.md` Section 5 — three explicit presets: "Fixed sidebar + mini mode + starts collapsed", "Fixed header + footer + fill viewport", "Minimal (no fixed elements)"
 - [ ] T046 [US3] Read `skills/django-mvp/SKILL.md` for current demo-app guidance, then add three preset demo views to `demo/views.py` and `demo/urls.py` for each layout preset above, accessible via demo sidebar menu, to enable Playwright verification of each combination
 - [ ] T047 [US3] Treat the `collapsed` → `.sidebar-collapse` guard as a core `<c-app>` correctness invariant while implementing `mvp/templates/cotton/app/index.html`; verify and correct it here only if T007 left the invariant incomplete
 
@@ -164,12 +164,12 @@ Every phase touching Django code MUST include `python manage.py check`. Every ph
 **Purpose**: Documentation completeness, public API discoverability, lint hygiene, and regression guard.
 
 - [ ] T054 [P] Update `docs/layout-configuration.md` with the complete per-component attribute reference for all five components — extend the document after T044's compatibility/rules section; include attribute name, type, default, effect, slot table, rendered output example, and invariants per contract
-- [ ] T055 [P] Update `docs/layout-data-models-api-contracts.md` with the component relationship diagram from `specs/010-cotton-layout-config/data-model.md` (Entity 1–6 relationship tree)
+- [ ] T055 [P] Update `docs/layout-data-models-api-contracts.md` with the component relationship diagram from `specs/001-app-components/data-model.md` (Entity 1–6 relationship tree)
 - [ ] T056 [P] Update `skills/django-mvp/SKILL.md` with `<c-app>` shell integration section — cover how to declare the shell, all attribute options, menu registration pattern, and link to quickstart
 - [ ] T057 [P] Run `ruff check mvp/ demo/` and `ruff format --check mvp/ demo/` — zero violations; fix any reported issues
 - [ ] T058 [P] Run `djlint mvp/templates/ demo/templates/ --check` — zero violations; fix any reported issues
 - [ ] T059 Verify accessibility with Playwright MCP server and targeted component tests in `tests/test_c_app.py`, `tests/test_c_app_sidebar_menu_collapse.py`, and `tests/test_e2e_layout.py` — assert keyboard reachability and relevant ARIA attributes on the header toggle, sidebar menu collapse controls, and other interactive shell navigation elements
-- [ ] T060 Validate `specs/010-cotton-layout-config/quickstart.md` end-to-end as a final regression pass by following all seven steps in the demo app after all user stories are complete — confirm produced HTML matches all contract invariants documented in `specs/010-cotton-layout-config/contracts/`
+- [ ] T060 Validate `specs/001-app-components/quickstart.md` end-to-end as a final regression pass by following all seven steps in the demo app after all user stories are complete — confirm produced HTML matches all contract invariants documented in `specs/001-app-components/contracts/`
 - [ ] T061 Run full test suite `pytest` — all pass with zero regressions introduced by this feature
 
 ---

@@ -103,6 +103,28 @@ class MVPDemoView(LayoutConfigMixin, TemplateView):
     pass
 
 
+class FullShellDemoView(LayoutConfigMixin, TemplateView):
+    """Demo page that enforces the canonical full app shell configuration.
+
+    This view provides a stable visual verification target for US1 contracts.
+    It sets the expected shell attributes unless explicitly overridden by query params.
+    """
+
+    template_name = "demo/full_shell.html"
+
+    def get_context_data(self, **kwargs):
+        """Set default shell configuration for fixed header/sidebar and collapsible nav."""
+        context = super().get_context_data(**kwargs)
+        context["fixed_sidebar"] = self.request.GET.get("fixed_sidebar", "on") == "on"
+        context["fixed_header"] = self.request.GET.get("fixed_header", "on") == "on"
+        context["sidebar_collapsible"] = (
+            self.request.GET.get("sidebar_collapsible", "on") == "on"
+        )
+        context["sidebar_expand"] = self.request.GET.get("sidebar_expand", "lg")
+        context["breakpoint"] = context["sidebar_expand"]
+        return context
+
+
 class LayoutDemoView(LayoutConfigMixin, TemplateView):
     """
     Unified layout demo view for testing all AdminLTE layout configurations.

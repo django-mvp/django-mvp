@@ -1,9 +1,9 @@
-ï»¿# django-cotton-layouts Development Guidelines
+# django-cotton-layouts Development Guidelines
 
 Auto-generated from all feature plans. Last updated: 2025-12-23
 
 ## Active Technologies
-- Python 3.10-3.12 + Django 4.2-5.x, django-cotton â‰¥2.3.1, django-cotton-bs5 ^0.5.1, Bootstrap 5.3, django-compressor ^4.5.1, django-libsass ^0.9 (002-page-layout)
+- Python 3.10-3.12 + Django 4.2-5.x, django-cotton =2.3.1, django-cotton-bs5 ^0.5.1, Bootstrap 5.3, django-compressor ^4.5.1, django-libsass ^0.9 (002-page-layout)
 - N/A (component library) (002-page-layout)
 - Python 3.11+ / Django 4.2+ + django-cotton (Cotton component system with c-vars and slots), AdminLTE 4 (CSS framework) (001-layout-components)
 - N/A (template-only refactor) (001-layout-components)
@@ -29,8 +29,8 @@ Auto-generated from all feature plans. Last updated: 2025-12-23
 - N/A (works with any Django model) (008-dash-list-view)
 - Python 3.11+ with Django 4.2+ + Django, django-cotton, django-crispy-forms (optional), django-formset (optional) (009-form-view-mixin)
 - N/A (works with any Django model for ModelFormView) (009-form-view-mixin)
-- Python 3.11+ / Django 4.2â€“5.x + django-cotton (>=2.3.1), django-cotton-bs5 (>=0.9.0), django-flex-menus (>=0.4.1), django-easy-icons (>=0.5), AdminLTE 4 (rc3, bundled locally), Bootstrap 5 (010-cotton-layout-config)
-- N/A (no database models â€” all state is declarative via template attributes) (010-cotton-layout-config)
+- Python 3.11+ / Django 4.2–5.x + django-cotton (>=2.3.1), django-cotton-bs5 (>=0.9.0), django-flex-menus (>=0.4.1), django-easy-icons (>=0.5), AdminLTE 4 (rc3, bundled locally), Bootstrap 5 (001-app-components)
+- N/A (no database models — all state is declarative via template attributes) (001-app-components)
 
 - Python 3.11 (tests target) + Django, django-cotton, django-cotton-bs5, django-flex-menus, django-easy-icons, django-compressor, django-libsass, crispy-forms/bootstrap5 (001-outer-layout-config)
 
@@ -50,7 +50,7 @@ cd src; pytest; ruff check .
 Python 3.11 (tests target): Follow standard conventions
 
 ## Recent Changes
-- 010-cotton-layout-config: Added Python 3.11+ / Django 4.2â€“5.x + django-cotton (>=2.3.1), django-cotton-bs5 (>=0.9.0), django-flex-menus (>=0.4.1), django-easy-icons (>=0.5), AdminLTE 4 (rc3, bundled locally), Bootstrap 5
+- 001-app-components: Added Python 3.11+ / Django 4.2–5.x + django-cotton (>=2.3.1), django-cotton-bs5 (>=0.9.0), django-flex-menus (>=0.4.1), django-easy-icons (>=0.5), AdminLTE 4 (rc3, bundled locally), Bootstrap 5
 - 009-form-view-mixin: Added Python 3.11+ with Django 4.2+ + Django, django-cotton, django-crispy-forms (optional), django-formset (optional)
 - 008-dash-list-view: Added Python 3.11+ with Django 4.2+ + Django, django-cotton, django-filter (optional), crispy-forms
 
