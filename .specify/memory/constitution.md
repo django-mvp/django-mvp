@@ -1,22 +1,32 @@
 <!--
 Sync Impact Report
-- Version change: 3.3.0 → 3.4.0
-- Change type: MINOR — Added Principle XI: Dual-Audience User Stories. Because
-  django-mvp is a 3rd-party package, every feature MUST be specified from both the
-  developer (integrator) perspective and the end-user perspective. The spec-template
-  user story section has been updated to reinforce this mandate.
-- Modified sections: none (existing principles unchanged)
-- Added sections:
-  - Principle XI: Dual-Audience User Stories (new)
+- Version change: 3.4.0 → 3.5.0
+- Change type: MINOR — Materially expanded Cotton component testing policy to
+  require predictable grouped test modules under tests/test_components, organized
+  by top-level cotton directory plus a shared top-level module for single-file
+  top-level components.
+- Modified principles:
+  - I. Design-First, Verify Implementation — expanded Testing Requirements with
+    Cotton component test module topology and anti-sprawl constraints
+  - IX. Template Component Reuse Discipline — replaced per-component test-file
+    requirement with grouped module strategy by top-level cotton directory
+- Added sections: none
 - Removed sections: none
 - Templates requiring updates:
-  - .specify/templates/spec-template.md  ✅ Updated (user story section guidance
-    expanded with dual-audience requirement)
-  - .specify/templates/plan-template.md  ✅ Updated (new Principle XI check row)
-  - .specify/templates/tasks-template.md ✅ No change required
-- Runtime guidance docs:
-  - .github/instructions/copilot.instructions.md ✅ No change required
-- Deferred items (unchanged):
+  - .specify/templates/plan-template.md ✅ Updated (Constitution Check enforces
+    grouped Cotton component test module planning)
+  - .specify/templates/spec-template.md ✅ Updated (Independent Test guidance for
+    Cotton component stories includes grouped-module requirement)
+  - .specify/templates/tasks-template.md ✅ Updated (workflow and path conventions
+    enforce tests/test_components grouped-module structure)
+  - .specify/templates/checklist-template.md ✅ Updated (default checklist notes
+    include Cotton test-module organization checks)
+- Skills/runtime guidance:
+  - .github/skills/cotton-test-components/SKILL.md ✅ Updated (repository-specific
+    layout and naming guidance added)
+  - .specify/templates/commands/*.md ⚠ Pending (directory not present in repo;
+    no command templates to update)
+- Deferred items:
   - CONTRIBUTING.md manual update (chrome-devtools-mcp → playwright-mcp ref)
 -->
 
@@ -70,6 +80,16 @@ All behavior changes MUST follow a design-verify-test workflow to ensure alignme
   The skill MUST be consulted before writing any Cotton component test. Use
   `cotton_render` / `cotton_render_soup` / `cotton_render_string` / `cotton_render_string_soup`
   from `django-cotton-bs5` as appropriate (NOT `Template()` or `render_to_string`).
+- Cotton component tests MUST live under `tests/test_components/` and MUST be grouped
+  by top-level Cotton directory to keep discovery predictable: all
+  `templates/cotton/app/**` components in one shared module, all
+  `templates/cotton/forms/**` components in one shared module, and the same pattern
+  for every additional top-level directory under `templates/cotton/`.
+- Single-file top-level Cotton components (for example `templates/cotton/grid.html`
+  and `templates/cotton/icon.html`) MUST be grouped into one shared top-level module
+  rather than split into one file per tiny component.
+- One-test-module-per-tiny-component sprawl is prohibited unless a strong, explicit
+  exception is documented in the related spec/plan/tasks artifact.
 - Test structure MUST mirror the `mvp/` source tree (e.g., `mvp/views.py` → `tests/test_views.py`; `mvp/context_processors.py` → `tests/test_context_processors.py`).
 - Fixture factories MUST use factory-boy (`DjangoModelFactory`) for reusable test data; ad-hoc inline model creation is only acceptable for truly one-off fixtures with no reuse potential.
 - Performance tests MUST NOT use wall-clock timing assertions; use deterministic guards (e.g., `django_assert_num_queries`) instead.
@@ -202,12 +222,18 @@ for reusable template segments.
   (`.github/skills/django-cotton-bs5/SKILL.md`) and, where custom components are
   required, the `django-cotton` skill (`.github/skills/django-cotton/SKILL.md`), before
   implementation begins.
-- **Testing mandate**: Every custom Cotton component MUST have a dedicated test file
-  exercising its rendering, attributes, slots, and edge-case behaviour. Tests MUST be
-  written following the `cotton-test-components` skill
+- **Testing mandate**: Every custom Cotton component MUST be covered by tests that
+  exercise rendering, attributes, slots, and edge-case behaviour. Tests MUST be written
+  following the `cotton-test-components` skill
   (`.github/skills/cotton-test-components/SKILL.md`), which MUST be consulted before
-  any Cotton component test is authored or reviewed. Untested custom Cotton components
-  are a defect and MUST be treated as failing acceptance criteria.
+  any Cotton component test is authored or reviewed.
+- **Test module topology mandate**: Cotton component tests MUST be organized under
+  `tests/test_components/` by top-level Cotton directory (`app`, `forms`, etc.), with
+  one module per top-level directory. Single-file top-level components MUST be grouped
+  in one shared top-level module. Creating one test module per tiny component is
+  prohibited unless the exception is documented and justified.
+- **Rationale**: This structure reduces test sprawl, simplifies navigation, speeds
+  maintenance, and keeps component test discovery predictable.
 
 ### VIII. End-to-End Testing (pytest-playwright)
 
@@ -313,4 +339,4 @@ This constitution defines non-negotiable project rules and supersedes local conv
 - MINOR: Adds a principle/section or materially expands guidance.
 - PATCH: Clarifies wording or fixes typos without changing intent.
 
-**Version**: 3.4.0 | **Ratified**: 2026-01-05 | **Last Amended**: 2026-04-17
+**Version**: 3.5.0 | **Ratified**: 2026-01-05 | **Last Amended**: 2026-04-17

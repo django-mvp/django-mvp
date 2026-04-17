@@ -1,5 +1,5 @@
 ---
-name: test-cotton-components
+name: cotton-test-components
 description: 'Guide AI agents on testing Django Cotton components using django-cotton-bs5 pytest fixtures. Covers when to use cotton_render vs cotton_render_soup vs cotton_render_string vs cotton_render_string_soup, best practices for component testing, DOM assertions, context handling, and multi-component testing patterns. Use when writing or reviewing Cotton component tests.'
 ---
 
@@ -20,6 +20,20 @@ A comprehensive guide for AI agents on effectively using django-cotton-bs5 pytes
 - Project has `django-cotton-bs5` installed (provides pytest fixtures automatically)
 - Django and pytest configured in the project
 - Basic understanding of Django templates and Cotton component syntax
+
+## Repository Test Module Layout (django-mvp)
+
+Use this project-specific layout for Cotton component tests:
+
+- All Cotton component tests MUST live under `tests/test_components/`.
+- Group tests by top-level directory under `templates/cotton/`:
+    - `templates/cotton/app/**` -> one shared module (for example `tests/test_components/test_app_components.py`)
+    - `templates/cotton/forms/**` -> one shared module (for example `tests/test_components/test_forms_components.py`)
+    - Apply the same one-module rule for each other top-level cotton directory.
+- Single-file top-level components in `templates/cotton/` (for example `grid.html`, `icon.html`) MUST be grouped in one shared module (for example `tests/test_components/test_top_level_components.py`).
+- Avoid creating one module per tiny component unless there is a strong, documented exception.
+
+Rationale: reduce test sprawl, simplify navigation, speed maintenance, and keep test discovery predictable.
 
 ## Available Fixtures
 

@@ -8,7 +8,7 @@ description: "Task list template for feature implementation"
 **Input**: Design documents from `/specs/[###-feature-name]/`
 **Prerequisites**: plan.md (required), spec.md (required for user stories), research.md, data-model.md, contracts/
 
-**Workflow**: Following Design-First approach - implement and verify design BEFORE writing tests. Tests are REQUIRED for behavior changes but come AFTER design verification. Use pytest + pytest-django for backend/integration and pytest-playwright for UI behavior. End-to-end tests with playwright are REQUIRED for all features. UI changes MUST be verified using the Playwright MCP server DURING implementation. Use context7 for up-to-date library documentation. Every phase that modifies Django code MUST include a validation task running `python manage.py check` AND the pytest suite for the touched area. Every phase that modifies UI MUST include a Playwright MCP server verification task asserting specific UX behaviour from the user story acceptance criteria.
+**Workflow**: Following Design-First approach - implement and verify design BEFORE writing tests. Tests are REQUIRED for behavior changes but come AFTER design verification. Use pytest + pytest-django for backend/integration and pytest-playwright for UI behavior. End-to-end tests with playwright are REQUIRED for all features. UI changes MUST be verified using the Playwright MCP server DURING implementation. Use context7 for up-to-date library documentation. Every phase that modifies Django code MUST include a validation task running `python manage.py check` AND the pytest suite for the touched area. Every phase that modifies UI MUST include a Playwright MCP server verification task asserting specific UX behaviour from the user story acceptance criteria. When the work touches Cotton components, tests MUST be placed under `tests/test_components/`, grouped by top-level `templates/cotton/` directory (one module for `app`, one for `forms`, etc.), and top-level single-file components (for example `grid.html`, `icon.html`) MUST be grouped into one shared top-level module.
 
 **Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story. Each story follows: Design → Implement → Verify → Test.
 
@@ -23,6 +23,7 @@ description: "Task list template for feature implementation"
 - **Single project**: `src/`, `tests/` at repository root
 - **Web app**: `backend/src/`, `frontend/src/`
 - **Mobile**: `api/src/`, `ios/src/` or `android/src/`
+- **Cotton components tests**: all component tests live in `tests/test_components/`; use one module per top-level `templates/cotton/<dir>/` directory (for example `test_app_components.py`, `test_forms_components.py`) plus one shared module for top-level single-file components (for example `test_top_level_components.py`)
 - Paths shown below assume single project - adjust based on plan.md structure
 
 <!--

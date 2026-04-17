@@ -31,6 +31,9 @@
   - Assign priorities (P1, P2, …) to each story; P1 = most critical.
   - Each story must be INDEPENDENTLY TESTABLE — implementing it alone delivers value.
   - Stories can be developed, tested, deployed, and demonstrated independently.
+  - If a story modifies Cotton components, its Independent Test and acceptance planning
+    MUST reference grouped test modules under tests/test_components/ (one module per
+    top-level cotton directory, plus one shared top-level single-file components module).
 -->
 
 ### User Story 1 - [Brief Title] (Priority: P1) [Developer]

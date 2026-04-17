@@ -71,19 +71,19 @@ Every phase touching Django code MUST include `python manage.py check`. Every ph
 ### Tests for User Story 1 (AFTER design verification)
 
 - [ ] T018 [P] [US1] Contract tests for `<c-app>` attribute→body-class mappings in `tests/test_c_app.py` using `cotton_render_soup` fixture — cover: no attributes (defaults), each boolean attribute individually, `sidebar-expand` variants, combined `sidebar-collapsible + collapsed`, `fill` on wrapper
-- [ ] T019 [P] [US1] Contract tests for `<c-app.header>` rendering in `tests/test_c_app_header.py` using `cotton_render_soup` — cover: default class, custom class, `border=False`, left/right/tray slot content, toggle presence
-- [ ] T020 [P] [US1] Contract tests for `<c-app.sidebar>` rendering in `tests/test_c_app_sidebar.py` using `cotton_render_soup` — cover: default brand text, custom brand attributes, slot override vs auto-menu render, `.app-sidebar.shadow` invariants, overlay div
-- [ ] T021 [P] [US1] Contract tests for `<c-app.main>` rendering in `tests/test_c_app_main.py` using `cotton_render_soup` — cover: `.app-main.pb-0` invariants, default slot content rendered
-- [ ] T022 [P] [US1] Contract tests for `<c-app.footer>` rendering in `tests/test_c_app_footer.py` using `cotton_render_soup` — cover: default `text` attribute, slot override, right slot in `.float-end`, custom class attribute
-- [ ] T023 [P] [US1] Dedicated component tests for `<c-app.sidebar.toggle>` in `tests/test_c_app_sidebar_toggle.py` using `cotton_render_soup` — cover `data-lte-toggle` attribute, nav-item structure, optional `class` pass-through, and accessible label/ARIA attributes
-- [ ] T024 [P] [US1] Dedicated component tests for `<c-app.sidebar.header>` in `tests/test_c_app_sidebar_header.py` using `cotton_render_soup` — cover default text, custom `logo`, `icon`, `text`, and `link` attribute output; verify `logo-switch` class applied only when both logo and icon provided
-- [ ] T024a [P] [US1] Dedicated component tests for `<c-app.menu>` in `tests/test_c_app_menu.py` using `cotton_render_soup` — cover that `render_menu "Site Navigation"` call is present in rendered output
+- [ ] T019 [P] [US1] Contract tests for `<c-app.header>` rendering in `tests/test_c_app.py` using `cotton_render_soup` — cover: default class, custom class, `border=False`, left/right/tray slot content, toggle presence
+- [ ] T020 [P] [US1] Contract tests for `<c-app.sidebar>` rendering in `tests/test_c_app.py` using `cotton_render_soup` — cover: default brand text, custom brand attributes, slot override vs auto-menu render, `.app-sidebar.shadow` invariants, overlay div
+- [ ] T021 [P] [US1] Contract tests for `<c-app.main>` rendering in `tests/test_c_app.py` using `cotton_render_soup` — cover: `.app-main.pb-0` invariants, default slot content rendered
+- [ ] T022 [P] [US1] Contract tests for `<c-app.footer>` rendering in `tests/test_c_app.py` using `cotton_render_soup` — cover: default `text` attribute, slot override, right slot in `.float-end`, custom class attribute
+- [ ] T023 [P] [US1] Dedicated component tests for `<c-app.sidebar.toggle>` in `tests/test_c_app.py` using `cotton_render_soup` — cover `data-lte-toggle` attribute, nav-item structure, optional `class` pass-through, and accessible label/ARIA attributes
+- [ ] T024 [P] [US1] Dedicated component tests for `<c-app.sidebar.header>` in `tests/test_c_app.py` using `cotton_render_soup` — cover default text, custom `logo`, `icon`, `text`, and `link` attribute output; verify `logo-switch` class applied only when both logo and icon provided
+- [ ] T024a [P] [US1] Dedicated component tests for `<c-app.menu>` in `tests/test_c_app.py` using `cotton_render_soup` — cover that `render_menu "Site Navigation"` call is present in rendered output
 - [ ] T025 [US1] E2E Playwright test for base shell rendering in `tests/test_e2e_layout.py` — verify initial shell page renders correct body classes, all four layout regions, and functional header toggle before any navigation interactions
 
 ### Story 1 Validation (REQUIRED)
 
 - [ ] T026 [US1] Run `python manage.py check` — zero errors MUST be reported
-- [ ] T027 [US1] Run `pytest tests/test_c_app.py tests/test_c_app_header.py tests/test_c_app_sidebar.py tests/test_c_app_main.py tests/test_c_app_footer.py tests/test_c_app_sidebar_toggle.py tests/test_c_app_sidebar_header.py tests/test_c_app_menu.py tests/test_e2e_layout.py` — all pass
+- [ ] T027 [US1] Run `pytest tests/test_c_app.py tests/test_e2e_layout.py` — all pass
 
 **Checkpoint**: User Story 1 fully functional, verified visually, and independently tested. Demo app shows working layout shell.
 
@@ -111,7 +111,7 @@ Every phase touching Django code MUST include `python manage.py check`. Every ph
 
 ### Tests for User Story 2 (AFTER design verification)
 
-- [ ] T036 [P] [US2] Add AdminLTE menu rendering tests to `tests/test_c_app_sidebar.py` — cover: `AppMenu` with `MenuItem`, `MenuGroup`, `MenuCollapse`; rendered HTML has correct classes and link hrefs; nested items appear under collapse parent
+- [ ] T036 [P] [US2] Add AdminLTE menu rendering tests to `tests/test_c_app.py` — cover: `AppMenu` with `MenuItem`, `MenuGroup`, `MenuCollapse`; rendered HTML has correct classes and link hrefs; nested items appear under collapse parent
 - [ ] T037 [P] [US2] Dedicated component tests for `<c-app.sidebar.menu>` in `tests/test_c_app_sidebar_menu.py` using `cotton_render_soup` — cover wrapper classes, child rendering, and empty/menu-present states
 - [ ] T038 [P] [US2] Dedicated component tests for `<c-app.sidebar.menu.item>` in `tests/test_c_app_sidebar_menu_item.py` using `cotton_render_soup` — cover icon, label, badge, href, and active-state output
 - [ ] T039 [P] [US2] Dedicated component tests for `<c-app.sidebar.menu.group>` in `tests/test_c_app_sidebar_menu_group.py` using `cotton_render_soup` — cover section header rendering and expected `.nav-header` output
@@ -121,7 +121,7 @@ Every phase touching Django code MUST include `python manage.py check`. Every ph
 ### Story 2 Validation (REQUIRED)
 
 - [ ] T042 [US2] Run `python manage.py check` — zero errors MUST be reported
-- [ ] T043 [US2] Run `pytest tests/test_c_app_sidebar.py tests/test_c_app_sidebar_menu.py tests/test_c_app_sidebar_menu_item.py tests/test_c_app_sidebar_menu_group.py tests/test_c_app_sidebar_menu_collapse.py tests/test_e2e_layout.py` — all pass
+- [ ] T043 [US2] Run `pytest tests/test_c_app.py tests/test_c_app_sidebar_menu.py tests/test_c_app_sidebar_menu_item.py tests/test_c_app_sidebar_menu_group.py tests/test_c_app_sidebar_menu_collapse.py tests/test_e2e_layout.py` — all pass
 
 **Checkpoint**: User Stories 1 and 2 are both independently functional and tested. App is navigable.
 
@@ -168,7 +168,7 @@ Every phase touching Django code MUST include `python manage.py check`. Every ph
 - [ ] T056 [P] Update `skills/django-mvp/SKILL.md` with `<c-app>` shell integration section — cover how to declare the shell, all attribute options, menu registration pattern, and link to quickstart
 - [ ] T057 [P] Run `ruff check mvp/ demo/` and `ruff format --check mvp/ demo/` — zero violations; fix any reported issues
 - [ ] T058 [P] Run `djlint mvp/templates/ demo/templates/ --check` — zero violations; fix any reported issues
-- [ ] T059 Verify accessibility with Playwright MCP server and targeted component tests in `tests/test_c_app_sidebar_toggle.py`, `tests/test_c_app_sidebar_menu_collapse.py`, and `tests/test_e2e_layout.py` — assert keyboard reachability and relevant ARIA attributes on the header toggle, sidebar menu collapse controls, and other interactive shell navigation elements
+- [ ] T059 Verify accessibility with Playwright MCP server and targeted component tests in `tests/test_c_app.py`, `tests/test_c_app_sidebar_menu_collapse.py`, and `tests/test_e2e_layout.py` — assert keyboard reachability and relevant ARIA attributes on the header toggle, sidebar menu collapse controls, and other interactive shell navigation elements
 - [ ] T060 Validate `specs/010-cotton-layout-config/quickstart.md` end-to-end as a final regression pass by following all seven steps in the demo app after all user stories are complete — confirm produced HTML matches all contract invariants documented in `specs/010-cotton-layout-config/contracts/`
 - [ ] T061 Run full test suite `pytest` — all pass with zero regressions introduced by this feature
 
@@ -227,15 +227,15 @@ T013   mvp/templates/cotton/app/footer.html
 ### Within User Story 1 tests:
 
 ```
-# These US1 test files can be authored in parallel:
-T018   tests/test_c_app.py
-T019   tests/test_c_app_header.py
-T020   tests/test_c_app_sidebar.py
-T021   tests/test_c_app_main.py
-T022   tests/test_c_app_footer.py
-T023   tests/test_c_app_sidebar_toggle.py
-T024   tests/test_c_app_sidebar_header.py
-T024a  tests/test_c_app_menu.py
+# These US1 test scopes are consolidated in one module:
+T018   tests/test_c_app.py  (<c-app>)
+T019   tests/test_c_app.py  (<c-app.header>)
+T020   tests/test_c_app.py  (<c-app.sidebar>)
+T021   tests/test_c_app.py  (<c-app.main>)
+T022   tests/test_c_app.py  (<c-app.footer>)
+T023   tests/test_c_app.py  (<c-app.sidebar.toggle>)
+T024   tests/test_c_app.py  (<c-app.sidebar.header>)
+T024a  tests/test_c_app.py  (<c-app.menu>)
 # T025 (tests/test_e2e_layout.py) depends on demo integration tasks completing first
 ```
 

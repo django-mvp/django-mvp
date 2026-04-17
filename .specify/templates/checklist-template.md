@@ -38,3 +38,7 @@
 - Add comments or findings inline
 - Link to relevant resources or documentation
 - Items are numbered sequentially for easy reference
+- When checklist scope includes Cotton component work, include explicit checks that:
+  all component tests live under `tests/test_components/`, tests are grouped by
+  top-level `templates/cotton/` directory, and top-level single-file components are
+  covered in one shared top-level components module.

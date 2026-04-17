@@ -46,6 +46,8 @@
 - Custom Cotton components used instead of `{% include %}` partials for reusable segments (Principle IX)
 - django-cotton-bs5 skill and django-cotton skill consulted before authoring new templates
 - cotton-test-components skill consulted for any custom Cotton component tests (Principle IX)
+- Cotton component tests are planned under `tests/test_components/` and grouped by top-level cotton directory (e.g., one `app` module, one `forms` module, etc.)
+- Single-file top-level cotton components are planned in one shared top-level components test module (no one-module-per-tiny-component sprawl without explicit exception)
 - If this feature touches the public API, skills/django-mvp/SKILL.md update is planned (Principle X)
 - skills/django-mvp/SKILL.md is only referenced for example-app work, not core mvp/ development (Principle X)
 - Spec includes at least one [Developer] story and one [End User] story (Principle XI)
