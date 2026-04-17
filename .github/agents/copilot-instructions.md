@@ -29,6 +29,8 @@ Auto-generated from all feature plans. Last updated: 2025-12-23
 - N/A (works with any Django model) (008-dash-list-view)
 - Python 3.11+ with Django 4.2+ + Django, django-cotton, django-crispy-forms (optional), django-formset (optional) (009-form-view-mixin)
 - N/A (works with any Django model for ModelFormView) (009-form-view-mixin)
+- Python 3.11+ / Django 4.2–5.x + django-cotton (>=2.3.1), django-cotton-bs5 (>=0.9.0), django-flex-menus (>=0.4.1), django-easy-icons (>=0.5), AdminLTE 4 (rc3, bundled locally), Bootstrap 5 (010-cotton-layout-config)
+- N/A (no database models — all state is declarative via template attributes) (010-cotton-layout-config)
 
 - Python 3.11 (tests target) + Django, django-cotton, django-cotton-bs5, django-flex-menus, django-easy-icons, django-compressor, django-libsass, crispy-forms/bootstrap5 (001-outer-layout-config)
 
@@ -48,9 +50,9 @@ cd src; pytest; ruff check .
 Python 3.11 (tests target): Follow standard conventions
 
 ## Recent Changes
+- 010-cotton-layout-config: Added Python 3.11+ / Django 4.2–5.x + django-cotton (>=2.3.1), django-cotton-bs5 (>=0.9.0), django-flex-menus (>=0.4.1), django-easy-icons (>=0.5), AdminLTE 4 (rc3, bundled locally), Bootstrap 5
 - 009-form-view-mixin: Added Python 3.11+ with Django 4.2+ + Django, django-cotton, django-crispy-forms (optional), django-formset (optional)
 - 008-dash-list-view: Added Python 3.11+ with Django 4.2+ + Django, django-cotton, django-filter (optional), crispy-forms
-- 007-datatables-integration: Added Python 3.10+ (project supports 3.10, 3.11, 3.12) + Django 4.2-5.x, django-tables2 2.x, django-cotton 2.3.1+, django-cotton-bs5, Bootstrap 5, AdminLTE 4
 
 
 <!-- MANUAL ADDITIONS START -->
