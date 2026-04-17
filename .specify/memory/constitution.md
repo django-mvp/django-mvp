@@ -1,5 +1,27 @@
 <!--
 Sync Impact Report
+- Version change: 3.3.0 → 3.4.0
+- Change type: MINOR — Added Principle XI: Dual-Audience User Stories. Because
+  django-mvp is a 3rd-party package, every feature MUST be specified from both the
+  developer (integrator) perspective and the end-user perspective. The spec-template
+  user story section has been updated to reinforce this mandate.
+- Modified sections: none (existing principles unchanged)
+- Added sections:
+  - Principle XI: Dual-Audience User Stories (new)
+- Removed sections: none
+- Templates requiring updates:
+  - .specify/templates/spec-template.md  ✅ Updated (user story section guidance
+    expanded with dual-audience requirement)
+  - .specify/templates/plan-template.md  ✅ Updated (new Principle XI check row)
+  - .specify/templates/tasks-template.md ✅ No change required
+- Runtime guidance docs:
+  - .github/instructions/copilot.instructions.md ✅ No change required
+- Deferred items (unchanged):
+  - CONTRIBUTING.md manual update (chrome-devtools-mcp → playwright-mcp ref)
+-->
+
+<!--
+Prior sync report (3.0.0 from 2.0.0)
 - Version change: 2.0.0 → 3.0.0
 - Modified principles:
   - I. Design-First, Verify Implementation — expanded with story-level validation mandates
@@ -41,12 +63,19 @@ All behavior changes MUST follow a design-verify-test workflow to ensure alignme
 
 **Testing Requirements** (after design verification):
 
-- All new or changed Python behavior MUST have pytest coverage
-- Django integration behavior MUST have pytest-django coverage
-- Cotton component tests MUST use `django_cotton.cotton_render()` with pytest-django's `rf` fixture (NOT Template() or render_to_string)
-- User-visible/UI behavior MUST have pytest-playwright coverage when the change affects rendered output, interactions, or accessibility
-- Pull requests MUST NOT be merged with failing tests, or without new/updated tests for behavior changes
-- The only acceptable exception is a docs-only change (no runtime behavior impact)
+- All new or changed Python behavior MUST have pytest coverage.
+- Django integration behavior MUST have pytest-django coverage.
+- Cotton component tests MUST use the fixtures and patterns defined in the
+  `cotton-test-components` skill (`.github/skills/cotton-test-components/SKILL.md`).
+  The skill MUST be consulted before writing any Cotton component test. Use
+  `cotton_render` / `cotton_render_soup` / `cotton_render_string` / `cotton_render_string_soup`
+  from `django-cotton-bs5` as appropriate (NOT `Template()` or `render_to_string`).
+- Test structure MUST mirror the `mvp/` source tree (e.g., `mvp/views.py` → `tests/test_views.py`; `mvp/context_processors.py` → `tests/test_context_processors.py`).
+- Fixture factories MUST use factory-boy (`DjangoModelFactory`) for reusable test data; ad-hoc inline model creation is only acceptable for truly one-off fixtures with no reuse potential.
+- Performance tests MUST NOT use wall-clock timing assertions; use deterministic guards (e.g., `django_assert_num_queries`) instead.
+- User-visible/UI behavior MUST have pytest-playwright coverage when the change affects rendered output, interactions, or accessibility.
+- Pull requests MUST NOT be merged with failing tests, or without new/updated tests for behavior changes.
+- The only acceptable exception is a docs-only change (no runtime behavior impact).
 
 **Story-Level Validation (NON-NEGOTIABLE)**:
 
@@ -107,6 +136,9 @@ The project uses consistent tooling to keep quality high and contributions smoot
 
 - Project commands MUST run through Poetry (e.g., `poetry run pytest`).
 - Code MUST satisfy linting/formatting and any configured static checks before merge.
+- Static analysis: Ruff (lint + format) for Python; djlint for templates. Both MUST be
+  configured in `pyproject.toml` and MUST pass in CI. Template files MUST NOT be
+  committed with djlint violations.
 - Keep changes minimal and focused; avoid incidental refactors.
 
 ### VI. UI Verification (playwright-mcp)
@@ -137,6 +169,46 @@ Agents MUST use current documentation when working with dependencies.
 - This ensures that code follows current API patterns and best practices rather than outdated examples.
 - Context7 MUST be consulted before implementing features that rely on external libraries (Django, Cotton, Bootstrap, etc.).
 
+### IX. Template Component Reuse Discipline (NON-NEGOTIABLE)
+
+Template markup is a first-class authoring surface. Inconsistent use of raw HTML,
+ad-hoc `{% include %}` partials, and duplicate markup fragments undermines the
+Bootstrap 5 design language and makes the UI harder to maintain. Cotton components —
+both prebuilt (django-cotton-bs5) and custom — are the single canonical abstraction
+for reusable template segments.
+
+- **Prebuilt-first mandate**: Any work adding or modifying templates MUST first
+  consider whether a prebuilt `django-cotton-bs5` component already satisfies the
+  need. The `django-cotton-bs5` skill (`.github/skills/django-cotton-bs5/SKILL.md`)
+  MUST be consulted before authoring new template markup that could be served by an
+  existing component. Reproducing functionality already available in `django-cotton-bs5`
+  via raw HTML or custom markup is a defect.
+- **Custom Cotton component fallback**: If no suitable prebuilt component exists AND the
+  template segment appears in more than one location or is conceptually reusable,
+  developers MUST create a custom Cotton component (following the `django-cotton` skill
+  at `.github/skills/django-cotton/SKILL.md`) rather than an `{% include %}`-based
+  partial. Django template partials used solely via `{% include %}` MUST NOT be
+  introduced for reusable content.
+- **Exemption**: Genuinely one-off, non-reusable markup unique to a single view and
+  with no reasonable extraction path is exempt from the custom-component mandate.
+  However, even within exempt fragments, prebuilt `django-cotton-bs5` components MUST
+  still be used wherever they apply.
+- **Component placement**: Custom Cotton component files MUST be placed under the
+  `templates/cotton/` directory (or an appropriate app-scoped subdirectory) and named
+  using lowercase-kebab convention (e.g., `my-widget.html`). Component files MUST NOT
+  be placed alongside view templates or nested arbitrarily.
+- **Skill consultation mandate**: Any agent (AI-assisted or human contributor) creating,
+  modifying, or reviewing template files MUST consult the `django-cotton-bs5` skill
+  (`.github/skills/django-cotton-bs5/SKILL.md`) and, where custom components are
+  required, the `django-cotton` skill (`.github/skills/django-cotton/SKILL.md`), before
+  implementation begins.
+- **Testing mandate**: Every custom Cotton component MUST have a dedicated test file
+  exercising its rendering, attributes, slots, and edge-case behaviour. Tests MUST be
+  written following the `cotton-test-components` skill
+  (`.github/skills/cotton-test-components/SKILL.md`), which MUST be consulted before
+  any Cotton component test is authored or reviewed. Untested custom Cotton components
+  are a defect and MUST be treated as failing acceptance criteria.
+
 ### VIII. End-to-End Testing (pytest-playwright)
 
 Features MUST include comprehensive end-to-end test coverage using pytest-playwright.
@@ -152,6 +224,56 @@ Features MUST include comprehensive end-to-end test coverage using pytest-playwr
   inline interactive verification step performed by agents during implementation;
   pytest-playwright tests (this principle) are the formal regression suite that persists
   in the repository and runs in CI.
+
+### X. django-mvp Skill Currency
+
+This project maintains a first-party usage skill at `skills/django-mvp/SKILL.md`. The
+skill documents the public API of the `django-mvp` package — its components, template
+tags, configuration options, and usage patterns — for consumption by agents and
+contributors building applications on top of it.
+
+- **Maintenance mandate**: Any change that adds, modifies, or removes publicly visible
+  functionality (components, template tags, context processors, settings, Cotton
+  component attributes, or documented behaviour) MUST include a corresponding update to
+  `skills/django-mvp/SKILL.md` in the same pull request. A PR that changes the public
+  API without updating the skill is incomplete and MUST NOT be merged.
+- **Scope — example app only**: The `skills/django-mvp/SKILL.md` skill MUST be
+  consulted when creating or modifying pages in the `example/` app (views, templates,
+  menus, URLs). It MUST NOT be consulted during development of the underlying `mvp/`
+  codebase itself — doing so risks circular reasoning where the skill describes
+  behaviour being actively changed. Core codebase work MUST refer to source code,
+  tests, and docstrings directly.
+- **Location**: The skill file lives at `skills/django-mvp/SKILL.md` (project root
+  `skills/` directory, NOT under `.github/`). This path MUST be used in all references.
+- **Currency guard**: Before authoring new example-app pages, agents MUST read
+  `skills/django-mvp/SKILL.md` to confirm it reflects the current package state. If
+  the skill appears stale relative to the codebase, the agent MUST update it before
+  proceeding with example-app work.
+
+### XI. Dual-Audience User Stories (NON-NEGOTIABLE)
+
+`django-mvp` is a reusable Django package consumed by two distinct audiences:
+**developers** who integrate and configure it, and **end users** who interact with
+the resulting UI at runtime. Both audiences MUST be represented in every feature
+specification.
+
+- **Developer stories** describe the integrator experience: configuring components via
+  Cotton attributes, wiring views, consulting quickstart documentation, overriding
+  defaults, and understanding the public API. Example: *"As a developer, I want to
+  configure the sidebar layout via a Cotton attribute so I can set it up without
+  writing custom Python."*
+- **End-user stories** describe the runtime experience of visitors to an application
+  built with `django-mvp`. Example: *"As a consumer of the list view, I want search
+  to submit automatically when I finish typing, so I can filter results without
+  clicking a button."*
+- Every feature specification (`spec.md`) MUST include at least one developer story
+  AND at least one end-user story before the spec is considered complete. A spec with
+  only one audience represented MUST be treated as a failing acceptance criterion.
+- Developer stories and end-user stories MUST be clearly labelled (e.g.,
+  `[Developer]` / `[End User]` tag on the story heading or as a **Audience** field).
+- Prioritisation (P1, P2 …) applies independently within each audience group; a P1
+  developer story and a P1 end-user story may coexist and SHOULD be implemented
+  together where they describe two sides of the same feature.
 
 ## Quality Gates
 
@@ -191,4 +313,4 @@ This constitution defines non-negotiable project rules and supersedes local conv
 - MINOR: Adds a principle/section or materially expands guidance.
 - PATCH: Clarifies wording or fixes typos without changing intent.
 
-**Version**: 3.0.0 | **Ratified**: 2026-01-05 | **Last Amended**: 2026-04-14
+**Version**: 3.4.0 | **Ratified**: 2026-01-05 | **Last Amended**: 2026-04-17

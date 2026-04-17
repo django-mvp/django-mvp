@@ -8,39 +8,66 @@
 ## User Scenarios & Testing *(mandatory)*
 
 <!--
-  IMPORTANT: User stories should be PRIORITIZED as user journeys ordered by importance.
-  Each user story/journey must be INDEPENDENTLY TESTABLE - meaning if you implement just ONE of them,
-  you should still have a viable MVP (Minimum Viable Product) that delivers value.
+  IMPORTANT: django-mvp serves TWO audiences — developers who integrate the package
+  and end users who interact with the resulting UI. BOTH audiences MUST be represented.
 
-  Assign priorities (P1, P2, P3, etc.) to each story, where P1 is the most critical.
-  Think of each story as a standalone slice of functionality that can be:
-  - Developed independently
-  - Tested independently
-  - Deployed independently
-  - Demonstrated to users independently
+  DEVELOPER stories describe the integrator experience:
+  - Configuring components via Cotton attributes or Django settings
+  - Wiring views, overriding defaults, reading quickstart docs
+  - Public API discoverability and ease-of-use
+  Example: "As a developer, I want to configure the sidebar via a Cotton attribute
+  so I can set up the layout without writing custom Python."
+
+  END-USER stories describe the runtime experience of visitors to an app built with
+  django-mvp:
+  - Searching, filtering, navigating, submitting forms
+  - Responsiveness, accessibility, feedback
+  Example: "As a consumer of the list view, I want search to submit automatically
+  when I finish typing, so I can filter results without clicking a button."
+
+  RULES:
+  - Every spec MUST have at least one [Developer] story AND one [End User] story.
+  - Label each story with its audience: [Developer] or [End User].
+  - Assign priorities (P1, P2, …) to each story; P1 = most critical.
+  - Each story must be INDEPENDENTLY TESTABLE — implementing it alone delivers value.
+  - Stories can be developed, tested, deployed, and demonstrated independently.
 -->
 
-### User Story 1 - [Brief Title] (Priority: P1)
+### User Story 1 - [Brief Title] (Priority: P1) [Developer]
 
-[Describe this user journey in plain language]
+[Describe the developer integration journey in plain language]
 
+**Audience**: Developer (integrator)
 **Why this priority**: [Explain the value and why it has this priority level]
-
-**Independent Test**: [Describe how this can be tested independently - e.g., "Can be fully tested by [specific action] and delivers [specific value]"]
+**Independent Test**: [How this can be verified independently]
 
 **Acceptance Scenarios**:
 
-1. **Given** [initial state], **When** [action], **Then** [expected outcome]
-2. **Given** [initial state], **When** [action], **Then** [expected outcome]
+1. **Given** [initial state], **When** [developer action], **Then** [expected outcome]
+2. **Given** [initial state], **When** [developer action], **Then** [expected outcome]
 
 ---
 
-### User Story 2 - [Brief Title] (Priority: P2)
+### User Story 2 - [Brief Title] (Priority: P1) [End User]
 
-[Describe this user journey in plain language]
+[Describe the end-user runtime journey in plain language]
 
+**Audience**: End User
 **Why this priority**: [Explain the value and why it has this priority level]
+**Independent Test**: [How this can be verified independently]
 
+**Acceptance Scenarios**:
+
+1. **Given** [initial state], **When** [user action], **Then** [expected outcome]
+
+---
+
+### User Story 3 - [Brief Title] (Priority: P2) [Developer or End User]
+
+[Describe this journey in plain language]
+
+**Audience**: [Developer / End User]
+**Why this priority**: [Explain the value and why it has this priority level]
 **Independent Test**: [Describe how this can be tested independently]
 
 **Acceptance Scenarios**:
@@ -49,21 +76,8 @@
 
 ---
 
-### User Story 3 - [Brief Title] (Priority: P3)
-
-[Describe this user journey in plain language]
-
-**Why this priority**: [Explain the value and why it has this priority level]
-
-**Independent Test**: [Describe how this can be tested independently]
-
-**Acceptance Scenarios**:
-
-1. **Given** [initial state], **When** [action], **Then** [expected outcome]
-
----
-
-[Add more user stories as needed, each with an assigned priority]
+[Add more user stories as needed. Maintain the [Developer] / [End User] label on each.
+Every spec MUST contain at least one story of each audience type before it is complete.]
 
 ### Edge Cases
 

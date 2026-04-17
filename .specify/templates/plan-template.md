@@ -42,6 +42,13 @@
 - Every phase touching Django code includes `python manage.py check` validation task
 - Every phase touching UI includes a Playwright MCP server verification task with specific acceptance criteria assertions
 - UI configuration uses Cotton components and template overrides only (no Python-level UI config)
+- Template work considered prebuilt django-cotton-bs5 components first (Principle IX)
+- Custom Cotton components used instead of `{% include %}` partials for reusable segments (Principle IX)
+- django-cotton-bs5 skill and django-cotton skill consulted before authoring new templates
+- cotton-test-components skill consulted for any custom Cotton component tests (Principle IX)
+- If this feature touches the public API, skills/django-mvp/SKILL.md update is planned (Principle X)
+- skills/django-mvp/SKILL.md is only referenced for example-app work, not core mvp/ development (Principle X)
+- Spec includes at least one [Developer] story and one [End User] story (Principle XI)
 
 ## Project Structure
 
