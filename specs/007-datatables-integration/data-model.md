@@ -6,7 +6,7 @@
 
 ## Purpose
 
-Define the data structures required for the django-tables2 demo. This integration leverages the existing **Product model** from example/models.py to showcase table capabilities without creating new models.
+Define the data structures required for the django-tables2 demo. This integration leverages the existing **Product model** from demo/models.py to showcase table capabilities without creating new models.
 
 ## Entities
 
@@ -14,7 +14,7 @@ Define the data structures required for the django-tables2 demo. This integratio
 
 **Purpose**: Demonstration model containing sufficient data to showcase horizontal and vertical scrolling in fill mode.
 
-**Location**: `example/models.py` (lines 34-80) - **ALREADY EXISTS**
+**Location**: `demo/models.py` (lines 34-80) - **ALREADY EXISTS**
 
 #### Fields
 
@@ -103,7 +103,7 @@ PRIORITY_CHOICES = [
 
 **Purpose**: Table definition specifying column configuration, styling, and behavior for rendering Product model data.
 
-**Location**: `example/tables.py` (NEW FILE)
+**Location**: `demo/tables.py` (NEW FILE)
 
 #### Configuration
 
@@ -232,7 +232,7 @@ Displayed when queryset returns zero results. Styled by django-tables2 template.
 
 **Purpose**: View for rendering the Product table using django-tables2's SingleTableView.
 
-**Location**: `example/views.py`
+**Location**: `demo/views.py`
 
 **Base Class**: `django_tables2.SingleTableView`
 
@@ -242,7 +242,7 @@ Displayed when queryset returns zero results. Styled by django-tables2 template.
 class DataTablesView(SingleTableView):
     model = Product
     table_class = ProductTable
-    template_name = "example/datatables_demo.html"
+    template_name = "demo/datatables_demo.html"
     paginate_by = 25  # Items per page (FR-009)
 
     def get_context_data(self, **kwargs):
@@ -418,7 +418,7 @@ Demo template extends `mvp/base.html` and uses these blocks:
 
 **Command**: `generate_dummy_data`
 
-**Location**: `example/management/commands/generate_dummy_data.py` - **ALREADY EXISTS**
+**Location**: `demo/management/commands/generate_dummy_data.py` - **ALREADY EXISTS**
 
 **Usage**:
 
@@ -443,9 +443,9 @@ poetry run python manage.py generate_dummy_data
 
 **Consumed By**:
 
-- `ProductTable` (example/tables.py) - Defines table structure
-- `DataTablesView` (example/views.py) - Provides queryset to view
-- Templates (example/templates/example/datatables_demo.html) - Renders table
+- `ProductTable` (demo/tables.py) - Defines table structure
+- `DataTablesView` (demo/views.py) - Provides queryset to view
+- Templates (demo/templates/demo/datatables_demo.html) - Renders table
 
 **Depends On**:
 
@@ -503,9 +503,9 @@ poetry run python manage.py generate_dummy_data
 
 **New Components**:
 
-1. `ProductTable` class in `example/tables.py`
-2. `DataTablesView` class in `example/views.py`
-3. Demo template in `example/templates/example/datatables_demo.html`
+1. `ProductTable` class in `demo/tables.py`
+2. `DataTablesView` class in `demo/views.py`
+3. Demo template in `demo/templates/demo/datatables_demo.html`
 
 **Data Source**: Existing `generate_dummy_data` management command
 
@@ -529,9 +529,9 @@ poetry run python manage.py generate_dummy_data
 
 **Consumed By**:
 
-- `ProductTable` (example/tables.py) - Defines table structure
-- `DataTablesView` (example/views.py) - Provides queryset to view
-- Templates (example/templates/example/datatables_demo.html) - Renders table
+- `ProductTable` (demo/tables.py) - Defines table structure
+- `DataTablesView` (demo/views.py) - Provides queryset to view
+- Templates (demo/templates/demo/datatables_demo.html) - Renders table
 
 **Depends On**:
 

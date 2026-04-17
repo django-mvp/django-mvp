@@ -136,10 +136,10 @@
 
 > **NOTE: CSS already implemented (lines 323-347 in page-layout.scss)**. Need to add form controls and verify behavior.
 
-- [X] T070 [US3.5] Add fill checkbox to layout demo form in `example/templates/example/layout_demo.html`
-- [X] T071 [US3.5] Update layout demo view in `example/views.py` to handle fill query parameter (read from request.GET, pass to template context)
+- [X] T070 [US3.5] Add fill checkbox to layout demo form in `demo/templates/demo/layout_demo.html`
+- [X] T071 [US3.5] Update layout demo view in `demo/views.py` to handle fill query parameter (read from request.GET, pass to template context)
 - [X] T072 [US3.5] Update help text in layout demo template to explain fill mode use cases (data tables, maps, dashboards)
-- [X] T073 [US3.5] Add visual indicator showing when fill is active in current configuration section of `example/templates/example/layout.html`
+- [X] T073 [US3.5] Add visual indicator showing when fill is active in current configuration section of `demo/templates/demo/layout.html`
 
 ### Verification for US3.5 (Visual + Manual Testing)
 
@@ -247,13 +247,13 @@
 
 ### Implementation for US4 (Make Tests Pass)
 
-- [x] T044 [US4] Create `layout_demo` view function in `example/views.py` to parse query parameters and render demo
-- [x] T045 [US4] Add URL route `/layout/` in `example/urls.py` mapping to layout_demo view
-- [x] T046 [US4] Create `example/templates/example/layout_demo.html` template with two-column layout
+- [x] T044 [US4] Create `layout_demo` view function in `demo/views.py` to parse query parameters and render demo
+- [x] T045 [US4] Add URL route `/layout/` in `demo/urls.py` mapping to layout_demo view
+- [x] T046 [US4] Create `demo/templates/demo/layout_demo.html` template with two-column layout
 - [x] T047 [US4] Implement main content area (left column) with scrollable demo content in layout_demo.html
 - [x] T048 [US4] Implement configuration sidebar (right column) with form controls in layout_demo.html
 - [x] T049 [US4] Add configuration form with checkboxes for fixed options and breakpoint dropdown
-- [x] T050 [US4] Add "Layout Demo" menu item in `example/menus.py` below Dashboard link
+- [x] T050 [US4] Add "Layout Demo" menu item in `demo/menus.py` below Dashboard link
 - [x] T051 [US4] Add helper text and visual indicators showing current configuration state
 - [x] T052 [US4] Verify all US4 tests pass after implementation
 
@@ -281,7 +281,7 @@
 - [x] T060 Run `poetry run pytest` - ensure all tests pass (Test-First principle)
 - [x] T061 Run `poetry run ruff check .` - ensure all linting passes for new code
 - [x] T062 Run `poetry run ruff format .` - apply code formatting for new code
-- [x] T063 Run djlint on template files in `mvp/templates/` and `example/templates/`
+- [x] T063 Run djlint on template files in `mvp/templates/` and `demo/templates/`
 
 ### Manual Validation (Success Criteria)
 

@@ -1,17 +1,17 @@
-"""Example app configuration."""
+"""Demo app configuration."""
 
 from django.apps import AppConfig
 
 
-class ExampleConfig(AppConfig):
-    """Example application configuration.
+class DemoConfig(AppConfig):
+    """Demo app configuration.
 
     Automatically loads menu definitions on app startup to populate
-    the navigation menu with example items.
+    the navigation menu with demo items.
     """
 
     default_auto_field = "django.db.models.BigAutoField"
-    name = "example"
+    name = "demo"
 
     def ready(self):
         """Initialize the app when Django starts.
@@ -27,4 +27,4 @@ class ExampleConfig(AppConfig):
         with contextlib.suppress(ImportError):
             from . import menus  # noqa: F401
 
-    verbose_name = "Example"
+    verbose_name = "Demo"

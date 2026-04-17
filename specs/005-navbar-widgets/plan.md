@@ -366,7 +366,7 @@ Navbar Widget Structure:
 
 ### Integration & Examples
 
-- [ ] T104 [P] Update example/ app with all widget types
+- [ ] T104 [P] Update demo/ app with all widget types
 - [ ] T105 [P] Verify required icon aliases exist in EASY_ICONS
 - [ ] T106 [P] Test widgets in development server
 - [ ] T107 [P] Verify mobile responsiveness in browser

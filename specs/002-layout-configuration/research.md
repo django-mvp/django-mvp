@@ -313,17 +313,17 @@ All functionality uses existing Cotton component patterns.
 
 ### Decision 4: Demo View Architecture
 
-**Location**: `example/` app within django-mvp package
+**Location**: `demo/` app within django-mvp package
 
 **Rationale**:
 
 - Keeps demo code separate from production package
-- The `example/` app already exists and is designed for this purpose
+- The `demo/` app already exists and is designed for this purpose
 - Makes it clear these are reference implementations, not required components
 
 ### Decision 5: Demo View Content Strategy
 
-**Fixed Properties Demo** (`/example/layout-fixed/`):
+**Fixed Properties Demo** (`/demo/layout-fixed/`):
 
 - Form with 3 checkboxes (fixed_header, fixed_sidebar, fixed_footer)
 - Submits via GET request to same page with query parameters
@@ -332,7 +332,7 @@ All functionality uses existing Cotton component patterns.
 - Minimal helper text explaining what to test
 - Visual indicators showing current configuration state
 
-**Responsive Breakpoint Demo** (`/example/layout-responsive/`):
+**Responsive Breakpoint Demo** (`/demo/layout-responsive/`):
 
 - Dropdown selector listing all breakpoints (sm, md, lg, xl, xxl)
 - Submits GET request with `breakpoint` query parameter
@@ -358,7 +358,7 @@ def layout_fixed_demo(request):
     fixed_sidebar = request.GET.get('fixed_sidebar') == 'on'
     fixed_header = request.GET.get('fixed_header') == 'on'
     fixed_footer = request.GET.get('fixed_footer') == 'on'
-    return render(request, 'example/layout_fixed.html', {
+    return render(request, 'demo/layout_fixed.html', {
         'fixed_sidebar': fixed_sidebar,
         'fixed_header': fixed_header,
         'fixed_footer': fixed_footer,
@@ -368,7 +368,7 @@ def layout_responsive_demo(request):
     breakpoint = request.GET.get('breakpoint', 'lg')
     if breakpoint not in ['sm', 'md', 'lg', 'xl', 'xxl']:
         breakpoint = 'lg'
-    return render(request, 'example/layout_responsive.html', {
+    return render(request, 'demo/layout_responsive.html', {
         'breakpoint': breakpoint,
         'breakpoints': ['sm', 'md', 'lg', 'xl', 'xxl'],
     })

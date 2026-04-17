@@ -1,5 +1,5 @@
 """
-Context processor for example app navbar widgets.
+Context processor for Demo App navbar widgets.
 
 Provides sample notification data for demonstration purposes.
 """
@@ -7,7 +7,7 @@ Provides sample notification data for demonstration purposes.
 
 def navbar_widgets(request):
     """
-    Provide sample navbar widget data for all example app pages.
+    Provide sample navbar widget data for all Demo App pages.
 
     This ensures navbar widgets have demo data even when views don't
     explicitly provide it.

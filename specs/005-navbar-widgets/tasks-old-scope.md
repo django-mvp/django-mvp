@@ -16,7 +16,7 @@ description: "Task list for Main Navbar Widgets feature implementation"
 **Unit Tests**: 178 passing (173 passing including navbar widgets, 40 pre-existing failures) ✅
 **Code Quality**: ruff formatted, djlint applied ✅
 **Documentation**: README.md updated, comprehensive navbar-widgets.md created ✅
-**Example Integration**: All 6 widgets integrated into example app ✅
+**Example Integration**: All 6 widgets integrated into Demo App ✅
 
 **Remaining Tasks**:
 
@@ -352,12 +352,12 @@ description: "Task list for Main Navbar Widgets feature implementation"
 
 ### Integration & Examples
 
-- [X] T122 [P] Update example app with all widget types in `example/templates/`
-- [X] T123 [P] Create example views for widget data in `example/views.py`
+- [X] T122 [P] Update Demo App with all widget types in `demo/templates/`
+- [X] T123 [P] Create example views for widget data in `demo/views.py`
 - [X] T124 [P] Test widgets in development server
 - [X] T125 [P] Verify mobile responsiveness in browser
-- [X] T126 [P] Add navbar widgets demo to AppNavigation menu in `example/menus.py`
-- [X] T127 [P] Create example base template with default navbar widgets in `example/templates/base.html`
+- [X] T126 [P] Add navbar widgets demo to AppNavigation menu in `demo/menus.py`
+- [X] T127 [P] Create example base template with default navbar widgets in `demo/templates/base.html`
 
 ---
 

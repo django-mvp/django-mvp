@@ -433,7 +433,7 @@ The inner layout works in all modern browsers:
 
 ## Examples
 
-For complete working examples, see the [demo page](/page-layout/) in the example application.
+For complete working examples, see the [demo page](/page-layout/) in the Demo Application.
 
 ## Related Documentation
 

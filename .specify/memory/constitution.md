@@ -237,8 +237,8 @@ contributors building applications on top of it.
   component attributes, or documented behaviour) MUST include a corresponding update to
   `skills/django-mvp/SKILL.md` in the same pull request. A PR that changes the public
   API without updating the skill is incomplete and MUST NOT be merged.
-- **Scope — example app only**: The `skills/django-mvp/SKILL.md` skill MUST be
-  consulted when creating or modifying pages in the `example/` app (views, templates,
+- **Scope — demo app only**: The `skills/django-mvp/SKILL.md` skill MUST be
+  consulted when creating or modifying pages in the `demo/` app (views, templates,
   menus, URLs). It MUST NOT be consulted during development of the underlying `mvp/`
   codebase itself — doing so risks circular reasoning where the skill describes
   behaviour being actively changed. Core codebase work MUST refer to source code,

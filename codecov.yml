@@ -34,7 +34,7 @@ comment:
 
 ignore:
   - "tests/**"
-  - "example/**"
+  - "demo/**"
   - "docs/**"
   - "**/migrations/**"
   - "**/__pycache__/**"

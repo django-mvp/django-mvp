@@ -17,7 +17,7 @@
 
 ### Session 2026-01-06
 
-- Q: Where should demo views for testing layout options be located? → A: In the `example/` app within django-mvp as demo views with their own URLs
+- Q: Where should demo views for testing layout options be located? → A: In the `demo/` app within django-mvp as demo views with their own URLs
 - Q: What content should demo pages display to demonstrate scrolling behavior? → A: Long-form content with multiple sections (headings, paragraphs, data tables) totaling 2-3 viewport heights. Sidebar must include several dummy menu items to test independent scrolling.
 - Q: Which breakpoint transitions should be explicitly tested/demonstrated? → A: Demo page should include a dropdown at the top listing available breakpoints (sm, md, lg, xl, xxl). When dropdown changes, submit GET request to same page with breakpoint="value" query param. View or template inspects query params to modify layout behavior.
 - Q: How should fixed properties demo view allow testing different combinations? → A: Use form with checkboxes for fixed_header, fixed_sidebar, and fixed_footer submitting via GET request with query params. No separate checkbox for "complete" - that's just the combination of all three.
@@ -110,9 +110,9 @@ A developer or QA tester wants to explore and validate different layout configur
 
 **Acceptance Scenarios**:
 
-1. **Given** a user navigates to `/layout/` in the example app, **When** the page loads, **Then** they see a layout demo page with main content on the left and a configuration form sidebar on the right
+1. **Given** a user navigates to `/layout/` in the Demo App, **When** the page loads, **Then** they see a layout demo page with main content on the left and a configuration form sidebar on the right
 2. **Given** the layout demo page is displayed, **When** user toggles layout options (fixed_header, fixed_sidebar, fixed_footer) via checkboxes and submits the form, **Then** the page reloads with query parameters reflecting the selected options and the layout updates accordingly
-3. **Given** the sidebar navigation menu, **When** viewing any page in the example app, **Then** a "Layout Demo" menu link appears just below the Dashboard link
+3. **Given** the sidebar navigation menu, **When** viewing any page in the Demo App, **Then** a "Layout Demo" menu link appears just below the Dashboard link
 4. **Given** other feature specs need to demonstrate additional layout options, **When** they extend the layout demo page, **Then** the single `/layout/` page accommodates their additional configuration controls without creating duplicate demo pages
 5. **Given** the layout demo form, **When** no options are selected, **Then** the page displays with default (non-fixed) layout and the form reflects this state
 
@@ -141,12 +141,12 @@ A developer or QA tester wants to explore and validate different layout configur
 - **FR-007**: System MUST support responsive sidebar expansion breakpoints (sm, md, lg, xl, xxl) as specified in AdminLTE
 - **FR-008**: System MUST provide sensible defaults when no layout configuration is specified (default to AdminLTE's standard non-fixed layout)
 - **FR-009**: System MUST NOT implement sidebar mini functionality (out of scope - covered in future spec)
-- **FR-010**: System MUST provide demo views in the `example/` app for testing fixed properties and responsive sidebar behavior
+- **FR-010**: System MUST provide demo views in the `demo/` app for testing fixed properties and responsive sidebar behavior
 - **FR-011**: Demo views MUST include long-form content (2-3 viewport heights) with multiple sections and several dummy sidebar menu items to demonstrate independent scrolling behavior
 - **FR-012**: Responsive behavior demo view MUST include a dropdown selector at the top of the page listing all available breakpoints (sm, md, lg, xl, xxl), which submits GET request with `breakpoint` query parameter to dynamically change sidebar expansion behavior
 - **FR-013**: Fixed properties demo view MUST include a form with checkboxes (fixed_header, fixed_sidebar, fixed_footer, fill) that submits via GET request with query parameters, allowing any combination to be tested dynamically without requiring a separate "complete" checkbox
 - **FR-014**: Demo views MUST include minimal helper text at the top explaining what to test and visual indicators showing current configuration state (active checkboxes, selected breakpoint, applied CSS classes)
-- **FR-015**: System MUST provide a SINGLE layout demo page at `/layout/` in the example app that consolidates all layout testing functionality
+- **FR-015**: System MUST provide a SINGLE layout demo page at `/layout/` in the Demo App that consolidates all layout testing functionality
 - **FR-016**: Layout demo page MUST use a two-column layout with main content on the left and configuration form sidebar on the right
 - **FR-017**: Layout demo page configuration form MUST submit via GET request with query parameters to allow bookmarkable/shareable layout configurations
 - **FR-018**: System MUST provide a "Layout Demo" navigation menu item in the sidebar positioned immediately below the Dashboard link

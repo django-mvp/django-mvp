@@ -558,10 +558,10 @@ Navigate to `/datatables-demo/` to see:
 
 **Demo Source Code**:
 
-- View: `example/views.py` → `DataTablesView`
-- Table: `example/tables.py` → `SampleDataTable`
-- Model: `example/models.py` → `SampleData`
-- Template: `example/templates/example/datatables_demo.html`
+- View: `demo/views.py` → `DataTablesView`
+- Table: `demo/tables.py` → `SampleDataTable`
+- Model: `demo/models.py` → `SampleData`
+- Template: `demo/templates/demo/datatables_demo.html`
 
 ---
 

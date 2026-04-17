@@ -1,21 +1,21 @@
 ---
 name: demo-views
-description: Guide for creating demo views in the django-mvp example app. Use when adding new demo pages to showcase components, layouts, or features — covers view creation, template structure, URL wiring, and sidebar menu registration. Emphasizes single configurable view classes with .as_view() attribute overrides instead of duplicating views.
+description: Guide for creating demo views in the django-mvp Demo App. Use when adding new demo pages to showcase components, layouts, or features — covers view creation, template structure, URL wiring, and sidebar menu registration. Emphasizes single configurable view classes with .as_view() attribute overrides instead of duplicating views.
 ---
 
-# Creating Demo Views for the Example App
+# Creating Demo Views for the Demo App
 
-The `example/` app demonstrates django-mvp features. Each demo page follows a consistent pattern: one configurable view class, a template extending `base.html`, a URL pattern (with optional `.as_view()` overrides), and a sidebar menu entry.
+The `demo/` app demonstrates django-mvp features. Each demo page follows a consistent pattern: one configurable view class, a template extending `base.html`, a URL pattern (with optional `.as_view()` overrides), and a sidebar menu entry.
 
 ## File Locations
 
 | File | Purpose |
 |---|---|
-| `example/views.py` | View classes |
-| `example/urls.py` | URL patterns |
-| `example/menus.py` | Sidebar menu items |
-| `example/templates/example/<name>.html` | Page templates |
-| `example/templates/base.html` | Project-level base (extends `mvp/base.html`) |
+| `demo/views.py` | View classes |
+| `demo/urls.py` | URL patterns |
+| `demo/menus.py` | Sidebar menu items |
+| `demo/templates/demo/<name>.html` | Page templates |
+| `demo/templates/base.html` | Project-level base (extends `mvp/base.html`) |
 
 ## Step 1: Create the View
 
@@ -25,10 +25,10 @@ Every demo view must inherit `LayoutConfigMixin` first — it reads query parame
 
 ```python
 from django.views.generic import TemplateView
-from example.views import LayoutConfigMixin
+from demo.views import LayoutConfigMixin
 
 class MyDemoView(LayoutConfigMixin, TemplateView):
-    template_name = "example/my_demo.html"
+    template_name = "demo/my_demo.html"
 ```
 
 ### One View, Many Configurations — Use .as_view() Overrides
@@ -38,7 +38,7 @@ class MyDemoView(LayoutConfigMixin, TemplateView):
 ```python
 # views.py — ONE view class
 class WidgetDemoView(LayoutConfigMixin, TemplateView):
-    template_name = "example/widget_demo.html"
+    template_name = "demo/widget_demo.html"
     variant = "default"
     show_icons = True
 ```
@@ -60,7 +60,7 @@ Only create a separate view class when it needs **different methods or significa
 
 ```python
 class MyDemoView(LayoutConfigMixin, TemplateView):
-    template_name = "example/my_demo.html"
+    template_name = "demo/my_demo.html"
 ```
 
 **ListView** — for list/grid demos; combine with `MVPListViewMixin` and `PageModifierMixin`:
@@ -108,7 +108,7 @@ from django_tables2 import SingleTableView
 class MyTableDemo(LayoutConfigMixin, SingleTableView):
     model = MyModel
     table_class = MyTable
-    template_name = "example/my_table.html"
+    template_name = "demo/my_table.html"
     paginate_by = 25
 ```
 
@@ -127,13 +127,13 @@ For static context, prefer `extra_context`:
 
 ```python
 class MyDemo(LayoutConfigMixin, TemplateView):
-    template_name = "example/my_demo.html"
+    template_name = "demo/my_demo.html"
     extra_context = {"page_title": "My Demo"}
 ```
 
 ## Step 2: Create the Template
 
-Templates live in `example/templates/example/` and extend `base.html`.
+Templates live in `demo/templates/demo/` and extend `base.html`.
 
 ### Block Hierarchy
 
@@ -205,7 +205,7 @@ Most demo templates only need two blocks:
 
 ## Step 3: Add the URL Pattern
 
-In `example/urls.py`, add the path. Import only what's needed:
+In `demo/urls.py`, add the path. Import only what's needed:
 
 ```python
 from .views import MyDemoView
@@ -227,7 +227,7 @@ urlpatterns = [
 
 ## Step 4: Add the Sidebar Menu Entry
 
-In `example/menus.py`, add items using `AppMenu.extend()` or mutate existing groups. Read the `sidebar-menu` skill for full reference.
+In `demo/menus.py`, add items using `AppMenu.extend()` or mutate existing groups. Read the `sidebar-menu` skill for full reference.
 
 ### Adding a standalone menu item
 
@@ -277,6 +277,6 @@ Before considering a demo view complete, verify:
 1. ✅ View inherits `LayoutConfigMixin` as first parent
 2. ✅ Only ONE view class exists per feature (variants use `.as_view()` overrides)
 3. ✅ Template extends `base.html` and overrides `breadcrumbs` + `content` at minimum
-4. ✅ URL pattern added in `example/urls.py` with a named route
-5. ✅ Sidebar menu entry added in `example/menus.py` (standalone or within a group)
+4. ✅ URL pattern added in `demo/urls.py` with a named route
+5. ✅ Sidebar menu entry added in `demo/menus.py` (standalone or within a group)
 6. ✅ View name in `MenuItem` matches the URL pattern name

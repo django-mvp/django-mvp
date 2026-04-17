@@ -1,8 +1,8 @@
-"""Django-tables2 table definitions for example app."""
+"""Django-tables2 table definitions for Demo App."""
 
 import django_tables2 as tables
 
-from example.models import Product
+from demo.models import Product
 
 
 class ProductTable(tables.Table):

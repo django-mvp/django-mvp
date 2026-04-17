@@ -37,7 +37,7 @@ from django_tables2.views import SingleTableView
 class DataTablesView(SingleTableView):
     table_class = ProductTable
     table_data = Product.objects.all()
-    template_name = "example/datatables_demo.html"
+    template_name = "demo/datatables_demo.html"
     paginator_class = LazyPaginator  # Optional: for performance with large datasets
 ```
 
@@ -208,7 +208,7 @@ mvp/
 
 #### Using Existing Product Model
 
-**Location**: `example/models.py` (lines 34-80)
+**Location**: `demo/models.py` (lines 34-80)
 
 **Field Count**: 18 displayable fields
 
@@ -249,7 +249,7 @@ mvp/
 
 **Decision**:
 
-- Use existing `Product` model (18 fields) from `example/models.py`
+- Use existing `Product` model (18 fields) from `demo/models.py`
 - Use existing `generate_dummy_data` management command
 - Consider increasing product count in command for better scrolling demo
 
@@ -261,7 +261,7 @@ mvp/
 
 **Findings**:
 
-#### django-flex-menus Structure (from example/menus.py)
+#### django-flex-menus Structure (from demo/menus.py)
 
 ```python
 from flex_menu import MenuItem
@@ -297,7 +297,7 @@ Menu items and groups are rendered in the order they're registered. To place "In
 **Decision**:
 
 - Use registration order approach
-- Add Integrations group early in example/menus.py
+- Add Integrations group early in demo/menus.py
 - Keep existing single items at top (Dashboard, Layout Demo, etc.)
 - Integrations group appears before Administration and other groups
 
@@ -383,7 +383,7 @@ django-tables2 = ">=2.0.0,<3.0.0"  # Dev dependency for testing
 ### View Pattern
 
 ```python
-# example/views.py
+# demo/views.py
 from django_tables2.views import SingleTableView
 from .tables import ProductTable
 from .models import Product
@@ -391,7 +391,7 @@ from .models import Product
 class DataTablesView(SingleTableView):
     """Django Tables2 demo view showcasing fill mode and responsive design."""
     table_class = ProductTable
-    template_name = "example/datatables_demo.html"
+    template_name = "demo/datatables_demo.html"
 
     def get_queryset(self):
         return Product.objects.all()
@@ -400,7 +400,7 @@ class DataTablesView(SingleTableView):
 ### Table Definition Pattern
 
 ```python
-# example/tables.py (NEW FILE)
+# demo/tables.py (NEW FILE)
 import django_tables2 as tables
 from .models import Product
 
@@ -422,7 +422,7 @@ class ProductTable(tables.Table):
 ### Template Pattern (Fill Mode)
 
 ```django
-{# example/templates/example/datatables_demo.html #}
+{# demo/templates/demo/datatables_demo.html #}
 {% extends "mvp/base.html" %}
 {% load render_table from django_tables2 %}
 
@@ -447,7 +447,7 @@ class ProductTable(tables.Table):
 **Existing Command**: `generate_dummy_data` (already creates ~27 products)
 
 ```python
-# example/management/commands/generate_dummy_data.py (EXISTING)
+# demo/management/commands/generate_dummy_data.py (EXISTING)
 # This command already generates Product instances with realistic data:
 # - 27 product names from predefined list
 # - Random prices ($9.99-$299.99), stock (0-100), ratings (3.5-5.0)

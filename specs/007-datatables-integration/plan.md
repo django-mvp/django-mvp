@@ -16,7 +16,7 @@ Integrate django-tables2 as an optional dependency for django-mvp, providing a d
 **Storage**: SQLite (development), uses existing Product model with generate_dummy_data command
 **Testing**: pytest, pytest-django (unit/integration), pytest-playwright (E2E UI testing)
 **Target Platform**: Django web application, modern browsers (no IE11)
-**Project Type**: Django application package with example/demo app
+**Project Type**: Django application package with demo/demo app
 **Performance Goals**: <1s table load time, <200ms interaction response, 60fps scrolling in fill mode
 **Constraints**: <200ms p95 for table interactions, optional dependency (no base package bloat), Bootstrap 5 w-100/h-100 layout approach, ARIA-compliant markup
 **Scale/Scope**: Demo page with sufficient data to overflow viewport in both dimensions (18 fields from Product model, 27+ existing products), single table view integration
@@ -55,7 +55,7 @@ specs/007-datatables-integration/
 ```text
 django-mvp/
 ├── pyproject.toml                        # Add optional dependency: django-tables2>=2.0.0,<3.0.0
-├── example/                              # Demo application
+├── demo/                              # Demo application
 │   ├── models.py                         # Add SampleDataModel for table demo
 │   ├── tables.py                         # NEW: django-tables2 Table class definition
 │   ├── views.py                          # Add DataTablesView (SingleTableView)
@@ -63,7 +63,7 @@ django-mvp/
 │   ├── menus.py                          # Add Integrations menu group + DataTables item
 │   ├── management/commands/
 │   │   └── generate_sample_data.py       # NEW: Management command for demo data
-│   └── templates/example/
+│   └── templates/demo/
 │       └── datatables_demo.html          # NEW: Demo page template
 ├── mvp/
 │   └── templates/
@@ -77,7 +77,7 @@ django-mvp/
 
 **Structure Decision**: This follows django-mvp's existing pattern:
 
-- `example/` app contains demo implementations for package users to reference
+- `demo/` app contains demo implementations for package users to reference
 - `mvp/` package contains reusable template overrides
 - Tests live in root `tests/` directory
 - Optional dependencies declared in `pyproject.toml` extras

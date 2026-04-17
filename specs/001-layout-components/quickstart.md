@@ -29,7 +29,7 @@ The recommended approach is to extend `mvp/base.html`, which includes all five c
 
 ### Example: Dashboard Template
 
-See `example/templates/example/dashboard.html` for a complete working example.
+See `demo/templates/demo/dashboard.html` for a complete working example.
 
 ```django
 {% extends "mvp/base.html" %}
@@ -251,6 +251,6 @@ For advanced use cases, you can use components directly without extending `mvp/b
 ## Next Steps
 
 - Review the component source files in `mvp/templates/cotton/app/`
-- See `example/templates/example/dashboard.html` for a complete example
+- See `demo/templates/demo/dashboard.html` for a complete example
 - Refer to [AdminLTE 4 documentation](https://adminlte.io/docs/4.0/) for CSS classes and JavaScript features
 - Additional layout patterns will be documented in a separate specification

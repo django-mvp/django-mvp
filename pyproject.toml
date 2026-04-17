@@ -90,7 +90,7 @@ django-compressor = ["compressor"]
 [tool.deptry.per_rule_ignores]
 # These packages are used indirectly (INSTALLED_APPS, templates, sass pipeline)
 DEP002 = ["django-cotton-bs5", "django-flex-menus", "django-easy-icons", "django-compressor", "django-libsass"]
-# django-filter is a dev dep used only in the example app, not the published package
+# django-filter is a dev dep used only in the Demo App, not the published package
 DEP001 = ["invoke"]
 DEP003 = ["invoke"]
 DEP004 = ["django_filters"]

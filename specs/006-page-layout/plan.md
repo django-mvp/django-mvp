@@ -114,23 +114,23 @@ docs/
 **Tasks**:
 
 1. **Create demo view**
-   - Add `page_layout_demo` view to `example/views.py`
+   - Add `page_layout_demo` view to `demo/views.py`
    - Follow pattern of existing `layout_demo` view
    - Support query parameters for testing configurations (toolbar_fixed, footer_fixed, sidebar_fixed, sidebar_breakpoint, sidebar_toggleable)
    - Context variables: fixed_sidebar, fixed_header, fixed_footer, breakpoint options
 
 2. **Create demo template**
-   - Add `example/templates/example/page_layout.html` (already exists, update if needed)
+   - Add `demo/templates/demo/page_layout.html` (already exists, update if needed)
    - Extend `base.html`
    - Use `<c-page>` component with configurable attributes
    - Include configuration form in sidebar (similar to layout_demo)
    - Show rich content in main area for scrolling/sticky testing
 
 3. **Add URL routing**
-   - Add route to `example/urls.py`: `path("page-layout/", views.page_layout_demo, name="page_layout_demo")`
+   - Add route to `demo/urls.py`: `path("page-layout/", views.page_layout_demo, name="page_layout_demo")`
 
 4. **Add menu item**
-   - Update `example/menus.py` to add "Inner Layout" menu item (already exists in file, verify it's active)
+   - Update `demo/menus.py` to add "Inner Layout" menu item (already exists in file, verify it's active)
    - Position: After "Navbar Widgets" menu item
    - Icon: `layout-text-sidebar`
    - Badge: "New" with `text-bg-warning` classes
