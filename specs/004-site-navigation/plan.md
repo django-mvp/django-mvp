@@ -88,7 +88,7 @@ tests/
 ├── test_custom_renderer.py            # Tests for renderer template selection
 └── test_menu_integration.py           # Tests for multi-app menu assembly, URL resolution
 
-example/
+demo/
 └── menus.py                           # Example showing how to populate AppMenu
 ```
 

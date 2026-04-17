@@ -95,7 +95,7 @@
 - [ ] T028 [US1] Document base widget props (icon, badge_count, badge_color) in docs/navbar-widgets.md
 - [ ] T029 [US1] Document base widget slots (default slot for dropdown) in docs/navbar-widgets.md
 - [ ] T030 [US1] Add usage example for custom widget in docs/navbar-widgets.md
-- [ ] T031 [US1] Add base widget example to example/templates/example/navbar_widgets.html
+- [ ] T031 [US1] Add base widget example to demo/templates/demo/navbar_widgets.html
 
 **Checkpoint**: At this point, User Story 1 should be fully functional - developers can create custom widgets using the base component
 
@@ -156,7 +156,7 @@
 - [ ] T065 [US2] Document theme switcher JavaScript API in docs/navbar-widgets.md
 - [ ] T066 [US2] Document localStorage key and data structure in docs/navbar-widgets.md
 - [ ] T067 [US2] Add theme switcher usage example to docs/navbar-widgets.md
-- [ ] T068 [US2] Add theme switcher to example/templates/example/navbar_widgets.html
+- [ ] T068 [US2] Add theme switcher to demo/templates/demo/navbar_widgets.html
 - [ ] T069 [US2] Document graceful degradation when localStorage unavailable in docs/navbar-widgets.md
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently - base widget is reusable, theme switcher is fully functional
@@ -202,7 +202,7 @@
 - [ ] T086 [US3] Document fullscreen widget in docs/navbar-widgets.md
 - [ ] T087 [US3] Document AdminLTE fullscreen plugin integration in docs/navbar-widgets.md
 - [ ] T088 [US3] Add fullscreen widget usage example to docs/navbar-widgets.md
-- [ ] T089 [US3] Add fullscreen widget to example/templates/example/navbar_widgets.html
+- [ ] T089 [US3] Add fullscreen widget to demo/templates/demo/navbar_widgets.html
 - [ ] T090 [US3] Document Fullscreen API browser compatibility in docs/navbar-widgets.md
 
 **Checkpoint**: All user stories should now be independently functional - base widget, theme switcher, and fullscreen widget all working
@@ -215,9 +215,9 @@
 
 ### Integration & Examples
 
-- [ ] T091 Add all three widgets to example app navbar in example/templates/base.html
-- [ ] T092 Create comprehensive navbar widgets demo page at example/templates/example/navbar_widgets.html
-- [ ] T093 Add navbar widgets menu item to example app navigation
+- [ ] T091 Add all three widgets to Demo App navbar in demo/templates/base.html
+- [ ] T092 Create comprehensive navbar widgets demo page at demo/templates/demo/navbar_widgets.html
+- [ ] T093 Add navbar widgets menu item to Demo App navigation
 
 ### Documentation
 

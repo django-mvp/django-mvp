@@ -24,7 +24,7 @@ Primary use cases: Full-screen data-intensive UIs (tables, maps like maplibre, d
 **Storage**: N/A (configuration-only feature, no data persistence)
 **Testing**: pytest, pytest-django (component rendering), pytest-playwright (E2E UI verification)
 **Target Platform**: Web browsers (Chrome, Firefox, Safari, Edge) - server-side rendering with client-side CSS
-**Project Type**: Django reusable app (single package with templates, static files, example app)
+**Project Type**: Django reusable app (single package with templates, static files, Demo App)
 **Performance Goals**: <50ms page load impact from fill layout CSS, 60fps scrolling performance
 **Constraints**: Must work with existing AdminLTE 4 CSS, no breaking changes to existing layout configurations
 **Scale/Scope**: Single CSS variant (fill), 1 checkbox addition to demo form, documentation updates
@@ -84,9 +84,9 @@ mvp/                                    # Django reusable app (package)
 │           └── index.html              # EXISTING: <c-app> component with fill attribute
 └── ...
 
-example/                                # Demo Django app
+demo/                                # Demo Django app
 ├── templates/
-│   └── example/
+│   └── demo/
 │       └── layout.html                 # MODIFY: Add fill checkbox to form
 ├── views.py                            # MODIFY: Handle fill query param
 └── urls.py                             # EXISTING: /layout/ route
@@ -101,7 +101,7 @@ docs/
 └── layout-configuration.md             # NEW or MODIFY: Document fill layout
 ```
 
-**Structure Decision**: Django reusable app with example app for demo/testing. Fill layout is a CSS-driven feature requiring minimal template changes.
+**Structure Decision**: Django reusable app with Demo App for demo/testing. Fill layout is a CSS-driven feature requiring minimal template changes.
 
 ## Complexity Tracking
 
@@ -135,9 +135,9 @@ docs/
    - **Compatibility**: Works alongside other layout attributes (though overrides their behavior)
 
 3. **Layout Demo Page** (EXISTING)
-   - **Route**: `/layout/` in example app
-   - **View**: `example/views.py` handles query params for layout configuration
-   - **Template**: `example/templates/example/layout.html` contains configuration form
+   - **Route**: `/layout/` in Demo App
+   - **View**: `demo/views.py` handles query params for layout configuration
+   - **Template**: `demo/templates/demo/layout.html` contains configuration form
    - **Gap**: Form doesn't include fill checkbox yet
 
 4. **Testing Approach** (PLANNED)
@@ -245,8 +245,8 @@ Parameters:
 
 1. **Cotton Component**: `<c-app>` component in `mvp/templates/cotton/app/index.html`
 2. **CSS**: `.app-wrapper.fill` selector in `mvp/static/scss/page-layout.scss`
-3. **Demo View**: `example/views.py` layout demo view handles `fill` query param
-4. **Demo Template**: `example/templates/example/layout.html` renders fill checkbox
+3. **Demo View**: `demo/views.py` layout demo view handles `fill` query param
+4. **Demo Template**: `demo/templates/demo/layout.html` renders fill checkbox
 
 ## Validation Rules
 

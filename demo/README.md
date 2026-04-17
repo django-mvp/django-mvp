@@ -1,6 +1,6 @@
-# Example App - Layout Demonstrations & Dummy Data
+# Demo App - Layout Demonstrations & Dummy Data
 
-This example app demonstrates the django-cotton-layouts system through two main features:
+This Demo App demonstrates the django-cotton-layouts system through two main features:
 
 1. **Layout Demonstrations**: Interactive views showcasing different inner layout configurations
 2. **Dummy Data Examples**: Comprehensive list/detail views with realistic content
@@ -197,7 +197,7 @@ Each model includes:
 ### Add More Products
 
 ```python
-from example.models import Product, Category
+from demo.models import Product, Category
 
 electronics = Category.objects.get(slug="electronics")
 product = Product.objects.create(
@@ -296,7 +296,7 @@ Tasks with due_date in the past and status != "done" are highlighted in red
 
 ## Next Steps
 
-1. **Customize Templates**: Modify the templates in `example/templates/example/` to match your design
+1. **Customize Templates**: Modify the templates in `demo/templates/demo/` to match your design
 2. **Add Filtering**: Extend the QuerySet filtering in views for more options
 3. **Implement Forms**: Add create/edit forms for CRUD operations
 4. **Add HTMX**: Enhance with dynamic loading and inline editing

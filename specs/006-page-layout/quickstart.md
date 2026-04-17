@@ -508,7 +508,7 @@ context = {
 
 - **Learn more**: Read the [full component documentation](../docs/page-layout.md)
 - **See API details**: Check [API contract](contracts/page_layout.md)
-- **View examples**: Browse the [example app](../../example/) for complete implementations
+- **View examples**: Browse the [Demo App](../../demo/) for complete implementations
 - **Get help**: Open an issue on [GitHub](https://github.com/SamuelJennings/django-mvp)
 
 ---

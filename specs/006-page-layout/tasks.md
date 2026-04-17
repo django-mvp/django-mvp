@@ -19,10 +19,10 @@
 
 **Purpose**: Create demo page infrastructure to enable visual monitoring of implementation progress
 
-- [x] T001 Create page_layout_demo view function in example/views.py
-- [x] T002 Add URL pattern to example/urls.py for page-layout demo
-- [x] T003 Create/update demo template at example/templates/example/page_layout.html
-- [x] T004 Verify menu item exists in example/menus.py
+- [x] T001 Create page_layout_demo view function in demo/views.py
+- [x] T002 Add URL pattern to demo/urls.py for page-layout demo
+- [x] T003 Create/update demo template at demo/templates/demo/page_layout.html
+- [x] T004 Verify menu item exists in demo/menus.py
 
 **Checkpoint**: Demo page accessible at `/page-layout/` with configuration form ✅
 
@@ -201,7 +201,7 @@
 
 - [x] T083 [US3] Add breakpoint validation logic in index.html (ensure sidebar_breakpoint is valid Bootstrap breakpoint)
 - [x] T084 [US3] Add CSS class generation based on attributes in index.html (combine toolbar_fixed, footer_fixed, sidebar_fixed, sidebar_toggleable, breakpoint classes)
-- [x] T085 [US3] Test attribute combinations in demo page example/templates/example/page_layout.html
+- [x] T085 [US3] Test attribute combinations in demo page demo/templates/demo/page_layout.html
 
 ### Verification for User Story 3
 
@@ -241,7 +241,7 @@
 - [x] T107 [P] Add inline code comments to mvp/templates/cotton/inner/index.html
 - [x] T108 [P] Add inline code comments to mvp/static/mvp/scss/page-layout.scss
 - [x] T109 [P] Add inline code comments to mvp/static/mvp/js/page-layout.js
-- [x] T110 Update demo page example/templates/example/page_layout.html with additional examples
+- [x] T110 Update demo page demo/templates/demo/page_layout.html with additional examples
 - [x] T111 Add performance metrics display to demo page
 - [x] T112 Run linting with `poetry run ruff check .`
 - [x] T113 Run formatting with `poetry run ruff format .`

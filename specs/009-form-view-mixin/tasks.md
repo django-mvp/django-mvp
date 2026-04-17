@@ -175,13 +175,13 @@
 
 > **NOTE: Implement FIRST, verify design meets expectations, THEN write tests**
 
-- [X] T072 [P] [US4] Create ContactForm in example/forms.py with name, email, message fields for plain form demo (already exists from Phase 3)
-- [X] T073 [P] [US4] Create ContactFormView in example/views.py using MVPFormView with ContactForm (already exists from Phase 3)
-- [X] T074 [P] [US4] Create ProductCreateView in example/views.py using MVPCreateView with Product model (already exists from Phase 4)
-- [X] T075 [P] [US4] Create ProductUpdateView in example/views.py using MVPUpdateView with Product model (already exists from Phase 5)
-- [X] T076 [P] [US4] Create ExplicitRendererDemo view in example/views.py with form_renderer=django override
-- [X] T077 [US4] Add URL patterns for form demos in example/urls.py (contact/, products/create/, products/int:pk/edit/, explicit-renderer/)
-- [X] T078 [US4] Add Form Views menu group in example/menus.py with links to all demo views
+- [X] T072 [P] [US4] Create ContactForm in demo/forms.py with name, email, message fields for plain form demo (already exists from Phase 3)
+- [X] T073 [P] [US4] Create ContactFormView in demo/views.py using MVPFormView with ContactForm (already exists from Phase 3)
+- [X] T074 [P] [US4] Create ProductCreateView in demo/views.py using MVPCreateView with Product model (already exists from Phase 4)
+- [X] T075 [P] [US4] Create ProductUpdateView in demo/views.py using MVPUpdateView with Product model (already exists from Phase 5)
+- [X] T076 [P] [US4] Create ExplicitRendererDemo view in demo/views.py with form_renderer=django override
+- [X] T077 [US4] Add URL patterns for form demos in demo/urls.py (contact/, products/create/, products/int:pk/edit/, explicit-renderer/)
+- [X] T078 [US4] Add Form Views menu group in demo/menus.py with links to all demo views
 - [X] T079 [US4] Add descriptive page_title attributes to each demo view explaining what they demonstrate
 - [X] T080 [US4] Add success_url for each demo view (redirect to /contact/success/ or /products/)
 

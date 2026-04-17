@@ -58,7 +58,7 @@ GET /layout/?breakpoint=sm
 
 **Content-Type**: text/html
 
-**Template**: `example/layout_demo.html`
+**Template**: `demo/layout_demo.html`
 
 **Context Variables**:
 
@@ -106,7 +106,7 @@ def layout_demo(request):
     if breakpoint not in valid_breakpoints:
         breakpoint = 'lg'  # Fallback to default for invalid values
 
-    return render(request, 'example/layout_demo.html', {
+    return render(request, 'demo/layout_demo.html', {
         'fixed_sidebar': fixed_sidebar,
         'fixed_header': fixed_header,
         'fixed_footer': fixed_footer,
@@ -230,7 +230,7 @@ GET /layout/?
 
 ### Menu Entry
 
-**Location**: `example/menus.py`
+**Location**: `demo/menus.py`
 
 **Position**: Immediately below "Dashboard" menu item
 
@@ -258,7 +258,7 @@ menu_items = [
 
 ### Requirements
 
-- Must appear in sidebar menu on all example app pages
+- Must appear in sidebar menu on all Demo App pages
 - Must be positioned directly below Dashboard link
 - Must link to `/layout/` with no query parameters (default state)
 - Must use appropriate icon (settings, tune, or similar)

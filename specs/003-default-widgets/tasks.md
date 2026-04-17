@@ -218,7 +218,7 @@ All paths relative to repository root `c:\Users\jennings\Documents\repos\django-
 - [X] T078 Run full test suite with coverage: `poetry run pytest --cov=mvp --cov-report=html`
 - [X] T079 Verify test coverage is >90% for all three component templates
 - [X] T080 Run djlint on all templates: `poetry run djlint mvp/templates/cotton/ --check`
-- [X] T081 [P] Create example dashboard page in example/templates/ demonstrating all widgets
+- [X] T081 [P] Create example dashboard page in demo/templates/ demonstrating all widgets
 - [X] T082 Run quickstart.md validation by executing all example code snippets
 - [X] T083 [P] Review contracts against implementation to ensure 100% compliance
 - [X] T084 [P] Add widget components to example project menus if applicable

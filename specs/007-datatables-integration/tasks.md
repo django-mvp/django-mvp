@@ -32,8 +32,8 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [X] T005 Verify existing Product model has adequate fields for table demo (example/models.py lines 34-80)
-- [X] T006 Verify existing generate_dummy_data command creates sufficient products (example/management/commands/generate_dummy_data.py)
+- [X] T005 Verify existing Product model has adequate fields for table demo (demo/models.py lines 34-80)
+- [X] T006 Verify existing generate_dummy_data command creates sufficient products (demo/management/commands/generate_dummy_data.py)
 - [X] T007 Run generate_dummy_data command to ensure test data exists: `poetry run python manage.py generate_dummy_data`
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
@@ -75,18 +75,18 @@
 
 ### Design & Implementation for User Story 2
 
-- [X] T013 [P] [US2] Create ProductTable class in example/tables.py with django-tables2 Table configuration
+- [X] T013 [P] [US2] Create ProductTable class in demo/tables.py with django-tables2 Table configuration
 - [X] T014 [US2] Define ProductTable.Meta: model=Product, template_name, attrs for Bootstrap 5 + ARIA
 - [X] T015 [P] [US2] Configure ProductTable columns: price (text-end), status (text-center), category (FK accessor), rating, stock, dates
 - [X] T016 [P] [US2] Set ProductTable empty_text: "No products available. Run 'poetry run python manage.py generate_dummy_data' to create sample data."
-- [X] T017 [US2] Create DataTablesView class in example/views.py extending SingleTableView
-- [X] T018 [US2] Configure DataTablesView: model=Product, table_class=ProductTable, template_name="example/datatables_demo.html", paginate_by=25
+- [X] T017 [US2] Create DataTablesView class in demo/views.py extending SingleTableView
+- [X] T018 [US2] Configure DataTablesView: model=Product, table_class=ProductTable, template_name="demo/datatables_demo.html", paginate_by=25
 - [X] T019 [US2] Override get_context_data() in DataTablesView to add page_title='Django Tables2 Demo' and breadcrumbs
-- [X] T020 [US2] Add URL pattern in example/urls.py: path('datatables-demo/', DataTablesView.as_view(), name='datatables_demo')
-- [X] T021 [US2] Create example/templates/example/datatables_demo.html extending mvp/base.html (standard mode first)
+- [X] T020 [US2] Add URL pattern in demo/urls.py: path('datatables-demo/', DataTablesView.as_view(), name='datatables_demo')
+- [X] T021 [US2] Create demo/templates/demo/datatables_demo.html extending mvp/base.html (standard mode first)
 - [X] T022 [US2] Implement datatables_demo.html blocks: page_title, breadcrumbs, content with card wrapper
 - [X] T023 [US2] Add {% load render_table from django_tables2 %} and {% render_table table %} in template content block
-- [X] T024 [US2] Register new "Integrations" MenuGroup in example/menus.py (register EARLY for correct positioning)
+- [X] T024 [US2] Register new "Integrations" MenuGroup in demo/menus.py (register EARLY for correct positioning)
 - [X] T025 [US2] Add "DataTables Demo" MenuItem under Integrations group with route='datatables_demo', icon='table', text='DataTables Demo'
 
 ### Verification for User Story 2
@@ -123,7 +123,7 @@
 
 ### Design & Implementation for User Story 3
 
-- [ ] T042 [US3] Create example/templates/example/datatables_demo_fill.html template extending mvp/base.html
+- [ ] T042 [US3] Create demo/templates/demo/datatables_demo_fill.html template extending mvp/base.html
 - [ ] T043 [US3] Implement fill mode layout in datatables_demo_fill.html using Bootstrap 5 flexbox utilities (d-flex, flex-column, h-100)
 - [ ] T044 [US3] Wrap table-responsive div with flex-grow-1 class to fill remaining vertical space
 - [ ] T045 [US3] Add overflow-auto or overflow-hidden to table container for independent scrolling
@@ -159,7 +159,7 @@
 
 ### Design & Implementation for User Story 4
 
-- [ ] T059 [US4] Verify example/templates/example/datatables_demo.html uses standard layout (content-based height)
+- [ ] T059 [US4] Verify demo/templates/demo/datatables_demo.html uses standard layout (content-based height)
 - [ ] T060 [US4] Ensure no h-100 or flex-grow-1 classes on table container in standard mode
 - [ ] T061 [US4] Verify table-responsive div allows normal page scrolling behavior
 
@@ -195,7 +195,7 @@
 - [ ] T077 [P] Update README.md with DataTables integration example (if applicable)
 - [ ] T078 [P] Verify ARIA compliance: run accessibility audit with chrome-devtools-mcp
 - [ ] T079 [P] Verify keyboard navigation: test all interactive elements with Tab key
-- [ ] T080 [P] Run djlint on all template files: `poetry run djlint mvp/templates/ example/templates/`
+- [ ] T080 [P] Run djlint on all template files: `poetry run djlint mvp/templates/ demo/templates/`
 - [ ] T081 [P] Run ruff linting: `poetry run ruff check .`
 - [ ] T082 [P] Run ruff formatting: `poetry run ruff format .`
 - [ ] T083 Run all tests: `poetry run pytest`

@@ -65,7 +65,7 @@ mvp/
 │       ├── search_widget.html         # Search widget (EXISTING)
 │       └── order_widget.html          # Order dropdown widget (EXISTING)
 
-example/
+demo/
 ├── views.py                           # Demo views (EXISTING - needs expansion)
 ├── urls.py                            # URL routing (EXISTING)
 ├── menus.py                           # Menu configuration (NEEDS UPDATE)
@@ -81,7 +81,7 @@ tests/
     └── test_list_view_e2e.py          # End-to-end tests (NEW)
 ```
 
-**Structure Decision**: Follows existing Django app structure. Core mixins in `mvp/views.py`, templates in `mvp/templates/`, demo views in `example/`.
+**Structure Decision**: Follows existing Django app structure. Core mixins in `mvp/views.py`, templates in `mvp/templates/`, demo views in `demo/`.
 
 ## Existing Implementation Analysis
 
@@ -155,7 +155,7 @@ for word in words:
 
 ### Phase 3: Create Additional Demo Views
 
-Create demo views in `example/views.py` and register in `example/urls.py` and `example/menus.py`:
+Create demo views in `demo/views.py` and register in `demo/urls.py` and `demo/menus.py`:
 
 1. **BasicListViewDemo** - ListView (no django-filter) with search + ordering
 2. **MinimalListViewDemo** - ListView with only list_item_template (no search/order)
@@ -272,7 +272,7 @@ class GridDemoResponsive(MinimalListViewDemo):
 
 ## Menu Structure
 
-Add to `example/menus.py`:
+Add to `demo/menus.py`:
 
 ```python
 MenuGroup(

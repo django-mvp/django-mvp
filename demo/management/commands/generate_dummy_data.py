@@ -8,7 +8,7 @@ from django.core.management.base import BaseCommand
 from django.utils import timezone
 from django.utils.text import slugify
 
-from example.models import Article, Category, Product, Task
+from demo.models import Article, Category, Product, Task
 
 
 class Command(BaseCommand):

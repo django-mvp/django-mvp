@@ -28,7 +28,7 @@ INSTALLED_APPS = [
     "django.contrib.humanize",
     "compressor",
     "django_browser_reload",  # Optional, commented for testing
-    "example",
+    "demo",
     "mvp",
     "easy_icons",
     "crispy_forms",
@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     "flex_menu",
     "django_cotton",
     "cotton_bs5",
+    "django_watchfiles",
 ]
 
 # Add django-tables2 if installed (optional dependency)
@@ -67,7 +68,7 @@ MIDDLEWARE = [
     "django_browser_reload.middleware.BrowserReloadMiddleware",
 ]
 
-ROOT_URLCONF = "example.urls"
+ROOT_URLCONF = "demo.urls"
 
 TEMPLATES = [
     {
@@ -80,7 +81,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "mvp.context_processors.mvp_config",
-                "example.context_processors.navbar_widgets",
+                "demo.context_processors.navbar_widgets",
             ],
         },
     },

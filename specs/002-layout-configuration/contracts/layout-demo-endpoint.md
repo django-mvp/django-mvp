@@ -183,7 +183,7 @@ X-Frame-Options: DENY
 ### URL Patterns
 
 ```python
-# example/urls.py
+# demo/urls.py
 urlpatterns = [
     path('', views.dashboard, name='dashboard'),
     path('layout/', views.layout_demo, name='layout_demo'),

@@ -12,9 +12,9 @@ from django.views.generic import ListView, TemplateView
 from django_filters.views import FilterView
 from django_tables2 import SingleTableView
 
-from example.forms import ContactForm
-from example.models import Product
-from example.tables import ProductTable
+from demo.forms import ContactForm
+from demo.models import Product
+from demo.tables import ProductTable
 from mvp.views import (
     MVPCreateView,
     MVPFormView,
@@ -115,11 +115,11 @@ class LayoutDemoView(LayoutConfigMixin, TemplateView):
         - URL-based configuration (shareable links)
         - Bootstrap responsive breakpoint testing
 
-    Template: example/layout_demo.html
+    Template: demo/layout_demo.html
     URL Pattern: /layout/
     """
 
-    template_name = "example/layout_demo.html"
+    template_name = "demo/layout_demo.html"
 
 
 class NavbarWidgetsView(LayoutConfigMixin, TemplateView):
@@ -129,11 +129,11 @@ class NavbarWidgetsView(LayoutConfigMixin, TemplateView):
     Shows all navbar widget components with usage examples and documentation.
     Widgets are displayed in the navbar header (top right).
 
-    Template: example/navbar_widgets.html
+    Template: demo/navbar_widgets.html
     URL Pattern: /widgets/
     """
 
-    template_name = "example/navbar_widgets.html"
+    template_name = "demo/navbar_widgets.html"
 
     def get_context_data(self, **kwargs):
         """Add navbar widget sample data to context."""
@@ -166,11 +166,11 @@ class PageLayoutDemoView(LayoutConfigMixin, TemplateView):
     - Initial sidebar state (collapsed)
     - Layout variants (6-char layout codes)
 
-    Template: example/page_layout.html
+    Template: demo/page_layout.html
     URL Pattern: /page-layout/
     """
 
-    template_name = "example/page_layout.html"
+    template_name = "demo/page_layout.html"
 
 
 class MinimalListViewDemo(
@@ -287,13 +287,13 @@ class DataTablesView(LayoutConfigMixin, SingleTableView):
         - Empty state message
         - Layout configuration via query parameters
 
-    Template: example/datatables_demo.html
+    Template: demo/datatables_demo.html
     URL Pattern: /datatables-demo/
     """
 
     model = Product
     table_class = ProductTable
-    template_name = "example/datatables_demo.html"
+    template_name = "demo/datatables_demo.html"
     paginate_by = 25
 
 

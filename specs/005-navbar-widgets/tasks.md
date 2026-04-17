@@ -251,7 +251,7 @@ All tasks follow this strict format:
 - [X] T106 Run poetry run djlint --reformat mvp/templates/ on all template files
 - [X] T107 Verify all playwright E2E tests pass in CI environment
 - [X] T108 Check test coverage with poetry run pytest --cov=mvp --cov-report=html (aim for >90%)
-- [X] T109 [P] Update example/ app with all three widget types in example navbar
+- [X] T109 [P] Update demo/ app with all three widget types in example navbar
 - [X] T110 [P] Verify all required icon aliases (theme_light, maximize, minimize) exist in tests/settings.py
 - [X] T111 [P] Test all widgets in development server (poetry run python manage.py runserver)
 - [X] T112 [P] Verify mobile responsiveness (320px, 768px, 1200px) in browser
@@ -267,7 +267,7 @@ All tasks follow this strict format:
 - ✅ Phase 5: Fullscreen Widget (19 tasks)
 - ✅ Phase 6: Polish & Documentation (18 tasks)
 
-All components implemented, tested, documented, and integrated into example app.
+All components implemented, tested, documented, and integrated into Demo App.
 
 ---
 

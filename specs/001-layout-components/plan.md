@@ -102,9 +102,9 @@ tests/
 ├── test_app_components.py      # Component rendering tests
 └── test_base_template.py        # Template composition integration tests
 
-example/                       # Demo app
+demo/                       # Demo app
 ├── templates/
-│   └── example/
+│   └── demo/
 │       └── dashboard.html      # Example using default layout
 └── views.py
 ```

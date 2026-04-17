@@ -60,14 +60,14 @@ mvp/                              # Main package
     └── mvp/
         └── form_view.html        # NEW: Card-based form template with renderer detection
 
-example/                          # Demo application
+demo/                          # Demo application
 ├── forms.py                      # NEW: ContactForm for MVPFormView demo
 ├── models.py                     # MODIFIED: Add Product model for create/update demos
 ├── views.py                      # MODIFIED: Add demo views (ContactFormView, ProductCreateView, ProductUpdateView)
 ├── urls.py                       # MODIFIED: Add routes for form demos
 ├── menus.py                      # MODIFIED: Add sidebar menu items for form demos
 └── templates/
-    └── example/
+    └── demo/
         ├── contact_success.html  # NEW: Success page for contact form
         ├── product_list.html     # NEW: List view to demonstrate create/update links
         └── product_success.html  # NEW: Success page for product create/update
@@ -80,7 +80,7 @@ tests/
 └── test_form_demos_e2e.py        # NEW: Playwright E2E tests for demo views
 ```
 
-**Structure Decision**: Django reusable app with single-project layout. Core implementation in `mvp/views.py` and `mvp/templates/mvp/form_view.html`. Demonstration code in `example/` app. Test suite covers unit (mixin logic), integration (view behavior), and E2E (browser-based form submission).
+**Structure Decision**: Django reusable app with single-project layout. Core implementation in `mvp/views.py` and `mvp/templates/mvp/form_view.html`. Demonstration code in `demo/` app. Test suite covers unit (mixin logic), integration (view behavior), and E2E (browser-based form submission).
 
 ## Complexity Tracking
 
@@ -276,12 +276,12 @@ class MVPUpdateView(MVPFormViewMixin, UpdateView):
 
 **Files**:
 
-- `example/forms.py` - Create `ContactForm`
-- `example/models.py` - Add `Product` model
-- `example/views.py` - Add demo views
-- `example/urls.py` - Wire up demo routes
-- `example/menus.py` - Add sidebar menu items
-- `example/templates/example/` - Success page templates, product list
+- `demo/forms.py` - Create `ContactForm`
+- `demo/models.py` - Add `Product` model
+- `demo/views.py` - Add demo views
+- `demo/urls.py` - Wire up demo routes
+- `demo/menus.py` - Add sidebar menu items
+- `demo/templates/demo/` - Success page templates, product list
 
 **Demo Views** (see tasks.md for detailed breakdown):
 

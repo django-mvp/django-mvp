@@ -78,7 +78,7 @@ description: "Task list for implementing configurable site navigation menu syste
 - [X] T016 [US3] [US4] Implement AppMenu = Menu("AppMenu", children=[]) in mvp/menus.py
 - [X] T017 [US3] Update mvp app ready() method to ensure menus module loads
 - [X] T018 [P] [US4] Document AppMenu usage in mvp/menus.py docstring
-- [X] T019 [US4] Create example/menus.py showing how to import and extend AppMenu
+- [X] T019 [US4] Create demo/menus.py showing how to import and extend AppMenu
 
 **Checkpoint**: Developers can now define menus in Python. AppMenu is empty by default.
 
@@ -194,9 +194,9 @@ description: "Task list for implementing configurable site navigation menu syste
 
 ### Implementation for Integration
 
-- [X] T062 [P] Update example/menus.py with comprehensive examples showing all features
-- [X] T063 [P] Create example/apps.py with ready() method importing menus module
-- [X] T064 [P] Add example URL patterns in example/urls.py for menu testing
+- [X] T062 [P] Update demo/menus.py with comprehensive examples showing all features
+- [X] T063 [P] Create demo/apps.py with ready() method importing menus module
+- [X] T064 [P] Add example URL patterns in demo/urls.py for menu testing
 
 ---
 
@@ -276,7 +276,7 @@ pytest tests/test_menu_definition.py::test_menuitem_creation
 # Edit mvp/menus.py
 
 # Terminal 3: Create examples
-# Edit example/menus.py
+# Edit demo/menus.py
 ```
 
 #### Phase 4 (US1) - Can run in parallel after Phase 3

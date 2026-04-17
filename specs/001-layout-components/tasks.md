@@ -82,7 +82,7 @@
 
 ### Implementation
 
-- [ ] T025 [US2] Verify dashboard.html in example/templates/example/ uses all 5 components with various configurations (validates FR-002, SC-004)
+- [ ] T025 [US2] Verify dashboard.html in demo/templates/demo/ uses all 5 components with various configurations (validates FR-002, SC-004)
 
 ---
 

@@ -210,7 +210,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `tests/settings.py`: Updated example configuration
   - `tests/test_outer_layout_config.py`: New comprehensive test suite
   - `docs/LAYOUT_CONFIGURATION.md`: Complete rewrite for new system
-  - `example/templates/layouts/base.html`: Added configuration flow comments
+  - `demo/templates/layouts/base.html`: Added configuration flow comments
 
 ### Migration Notes
 

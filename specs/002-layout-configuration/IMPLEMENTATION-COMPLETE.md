@@ -102,13 +102,13 @@ mvp/templates/cotton/app/index.html  ← Core layout component
 - `mvp/templates/base.html` - Updated to work with body tag component
 - `tests/test_app_layout.py` - Comprehensive test suite (16 tests)
 - `docs/components/app.md` - Complete documentation with troubleshooting
-- `example/views.py` - Demo page functionality
+- `demo/views.py` - Demo page functionality
 
 ### Demo System (3 files)
 
-- `example/templates/example/layout_demo.html` - Interactive demo page
-- `example/urls.py` - Demo page routing
-- `example/menus.py` - Navigation menu integration
+- `demo/templates/demo/layout_demo.html` - Interactive demo page
+- `demo/urls.py` - Demo page routing
+- `demo/menus.py` - Navigation menu integration
 
 ### Test Coverage (2 files)
 

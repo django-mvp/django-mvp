@@ -242,7 +242,7 @@ def layout_demo_view(request):
         request._layout_state = LayoutState()
     request._layout_state.query_config = query_config
 
-    return render(request, 'example/layout_demo.html', {
+    return render(request, 'demo/layout_demo.html', {
         'current_config': query_config,
         'breakpoints': list(BreakpointType)
     })

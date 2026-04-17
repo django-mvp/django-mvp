@@ -1,4 +1,4 @@
-"""Example app URL configuration."""
+"""Demo App URL configuration."""
 
 from django.conf import settings
 from django.urls import include, path
@@ -17,7 +17,7 @@ from .views import (
 
 urlpatterns = [
     # Main dashboard
-    path("", MVPDemoView.as_view(template_name="example/home.html"), name="home"),
+    path("", MVPDemoView.as_view(template_name="demo/home.html"), name="home"),
     path("layout/", views.LayoutDemoView.as_view(), name="layout_demo"),
     path("page-layout/", views.PageLayoutDemoView.as_view(), name="page_layout_demo"),
     path("widgets/", views.NavbarWidgetsView.as_view(), name="navbar_widgets_demo"),
@@ -34,7 +34,7 @@ urlpatterns = [
     path("contact/", ContactFormView.as_view(), name="contact_form"),
     path(
         "contact/success/",
-        MVPDemoView.as_view(template_name="example/contact_success.html"),
+        MVPDemoView.as_view(template_name="demo/contact_success.html"),
         name="contact_success",
     ),
     path(
@@ -46,7 +46,7 @@ urlpatterns = [
     path("products/<int:pk>/edit/", ProductUpdateView.as_view(), name="product_edit"),
     path(
         "products/",
-        MVPDemoView.as_view(template_name="example/products_list.html"),
+        MVPDemoView.as_view(template_name="demo/products_list.html"),
         name="products_list",
     ),
     # 3rd Party Integration Demos

@@ -34,7 +34,7 @@ description: "Implementation tasks for Dashboard List View Mixin feature"
 - [ ] T001 Verify all mixin classes exist in mvp/views.py (SearchMixin, OrderMixin, SearchOrderMixin, ListItemTemplateMixin, MVPListViewMixin)
 - [ ] T002 Verify list view template exists at mvp/templates/mvp/list_view.html
 - [ ] T003 [P] Verify Cotton components exist (c-grid, c-list.search-widget, c-list.order-widget, c-sidebar.filter, c-list.empty)
-- [ ] T004 [P] Verify existing demo view ListViewDemo in example/views.py with Product model
+- [ ] T004 [P] Verify existing demo view ListViewDemo in demo/views.py with Product model
 
 ---
 
@@ -65,8 +65,8 @@ description: "Implementation tasks for Dashboard List View Mixin feature"
 - [X] T008 [US1] Verify MVPListViewMixin defaults to single-column grid when grid attribute not specified in mvp/views.py get_grid_config() method (FR-013)
 - [X] T009 [US1] Verify list_view.html template renders objects using list_item_template within grid component (FR-012)
 - [X] T010 [US1] Verify pagination footer displays correctly with entry counts on left and navigation on right in mvp/templates/cotton/page/footer/pagination.html (FR-016-018)
-- [X] T011 [US1] Create MinimalListViewDemo in example/views.py with only model, template_name, list_item_template, paginate_by to demonstrate minimal configuration
-- [X] T012 [US1] Add URL route for MinimalListViewDemo in example/urls.py
+- [X] T011 [US1] Create MinimalListViewDemo in demo/views.py with only model, template_name, list_item_template, paginate_by to demonstrate minimal configuration
+- [X] T012 [US1] Add URL route for MinimalListViewDemo in demo/urls.py
 - [X] T013 [US1] Verify MinimalListViewDemo using chrome-devtools-mcp: check page title, single-column grid, pagination footer
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and verified independently
@@ -82,8 +82,8 @@ description: "Implementation tasks for Dashboard List View Mixin feature"
 ### Verification for User Story 2
 
 - [X] T014 [US2] Verify MVPListViewMixin passes grid attribute to c-grid component via get_grid_config() method in mvp/views.py (FR-015)
-- [X] T017 [P] [US2] Create GridDemo3Col in example/views.py with grid = {"cols": 1, "md": 2, "lg": 3}
-- [X] T019 [US2] Add URL routes for all grid demo views in example/urls.py
+- [X] T017 [P] [US2] Create GridDemo3Col in demo/views.py with grid = {"cols": 1, "md": 2, "lg": 3}
+- [X] T019 [US2] Add URL routes for all grid demo views in demo/urls.py
 - [X] T020 [US2] Verify grid demos using chrome-devtools-mcp at different viewport sizes (320px, 768px, 1024px, 1920px) to confirm responsive behavior (FR-032, SC-004)
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
@@ -102,8 +102,8 @@ description: "Implementation tasks for Dashboard List View Mixin feature"
 - [X] T022 [US3] Verify SearchMixin._apply_search() correctly implements multi-word OR matching (fixed in T005) in mvp/views.py (FR-020)
 - [X] T023 [US3] Verify SearchMixin adds search_query and is_searchable to template context in mvp/views.py get_context_data() (FR-019)
 - [X] T024 [US3] Verify list_view.html template conditionally displays c-list.search-widget when is_searchable is True (FR-019)
-- [X] T025 [US3] Create BasicListViewDemo in example/views.py with search_fields = ["name", "description"] and order_by fields
-- [X] T026 [US3] Add URL route for BasicListViewDemo in example/urls.py
+- [X] T025 [US3] Create BasicListViewDemo in demo/views.py with search_fields = ["name", "description"] and order_by fields
+- [X] T026 [US3] Add URL route for BasicListViewDemo in demo/urls.py
 - [X] T027 [US3] Verify BasicListViewDemo using chrome-devtools-mcp: check search bar appears, test single-word search, test multi-word OR search (FR-020)
 - [X] T028 [US3] Verify search performance with 10,000+ records meets <500ms requirement (SC-002)
 
@@ -142,7 +142,7 @@ description: "Implementation tasks for Dashboard List View Mixin feature"
 - [X] T036 [US5] Verify list_view.html template detects FilterView by checking for filter or filterset_class in context
 - [X] T037 [US5] Verify list_view.html template conditionally displays filter toggle button when filters are detected (FR-026)
 - [X] T038 [US5] Verify c-sidebar.filter component exists and renders filter form in mvp/templates/cotton/sidebar/filter.html (FR-027-028)
-- [X] T039 [US5] Verify existing ListViewDemo in example/views.py uses FilterView with django-filter integration (FR-026-030)
+- [X] T039 [US5] Verify existing ListViewDemo in demo/views.py uses FilterView with django-filter integration (FR-026-030)
 - [X] T040 [US5] Verify ListViewDemo using chrome-devtools-mcp: check filter toggle appears, test sidebar open/close, test filter application with search and ordering simultaneously (FR-030)
 
 **Checkpoint**: All user stories should now be independently functional
@@ -153,8 +153,8 @@ description: "Implementation tasks for Dashboard List View Mixin feature"
 
 **Purpose**: Update navigation menu to include all demo views
 
-- [X] T041 [P] Add "List Views" MenuGroup to example/menus.py with items for list_view_demo (Full Demo), basic_list_demo (Basic ListView), minimal_list_demo (Minimal)
-- [X] T042 [P] Add "Grid Layouts" MenuGroup to example/menus.py with items for grid_1col_demo, grid_2col_demo, grid_3col_demo, grid_responsive_demo
+- [X] T041 [P] Add "List Views" MenuGroup to demo/menus.py with items for list_view_demo (Full Demo), basic_list_demo (Basic ListView), minimal_list_demo (Minimal)
+- [X] T042 [P] Add "Grid Layouts" MenuGroup to demo/menus.py with items for grid_1col_demo, grid_2col_demo, grid_3col_demo, grid_responsive_demo
 - [X] T043 Verify all menu items link to correct views using chrome-devtools-mcp navigation test
 
 ---
