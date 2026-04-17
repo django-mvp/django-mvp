@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     "flex_menu",
     "django_cotton",
     "cotton_bs5",
+    "django_watchfiles",
 ]
 
 # Add django-tables2 if installed (optional dependency)

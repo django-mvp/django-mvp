@@ -72,6 +72,7 @@ fairdm-dev-tools = { git = "https://github.com/FAIR-DM/dev-tools", extras = [
 django-tables2 = "^2.8.0"
 beautifulsoup4 = ">=4.0"
 dj-urls-panel = "^0.2.0"
+django-watchfiles = "^1.4.0"
 
 [build-system]
 requires = ['poetry-core (>=2.0,<3.0)']
