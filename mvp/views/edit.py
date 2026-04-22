@@ -334,8 +334,13 @@ class MVPDeleteView(MVPModelFormViewMixin, DeleteView):
 
         return context
 
-    def delete(self, request, *args, **kwargs):
-        """Delete the object after optional type-to-confirm validation."""
+    def post(self, request, *args, **kwargs):
+        """Handle DELETE confirmation — validates type-to-confirm and catches ProtectedError.
+
+        Overrides ``post()`` rather than ``delete()`` because Django 5.x's
+        ``BaseDeleteView.post()`` calls ``form_valid()`` directly, bypassing
+        any ``delete()`` override in subclasses.
+        """
         from django.contrib import messages
         from django.db.models.deletion import ProtectedError
         from django.http import HttpResponseRedirect
