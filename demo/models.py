@@ -32,7 +32,7 @@ class Category(models.Model):
 
     def get_absolute_url(self):
         """Get absolute URL."""
-        return reverse("category_detail", kwargs={"slug": self.slug})
+        return reverse("category-detail", kwargs={"slug": self.slug})
 
 
 class Product(models.Model):
@@ -100,7 +100,7 @@ class Product(models.Model):
 
     def get_absolute_url(self):
         """Get absolute URL."""
-        return reverse("product_detail", kwargs={"slug": self.slug})
+        return reverse("product-update", kwargs={"pk": self.pk})
 
     @property
     def tag_list(self):
@@ -217,3 +217,24 @@ class Task(models.Model):
         if self.due_date and self.status != "done":
             return self.due_date < timezone.now().date()
         return False
+
+
+class OrderLine(models.Model):
+    """Order line — demonstrates on_delete=PROTECT on Product.
+
+    Exists solely to give MVPDeleteView tests a model that blocks deletion.
+    """
+
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.PROTECT,
+        related_name="order_lines",
+    )
+    quantity = models.PositiveIntegerField(default=1)
+
+    class Meta:
+        verbose_name = "order line"
+        verbose_name_plural = "order lines"
+
+    def __str__(self):
+        return f"Order line for {self.product.name} (qty {self.quantity})"
