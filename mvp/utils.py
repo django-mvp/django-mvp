@@ -23,6 +23,12 @@ def app_is_installed(app_name: str) -> bool:
 
 
 BS5_ICONS = {
+    "add": "bi bi-plus-lg",
+    "search": "bi bi-search",
+    "delete": "bi bi-trash",
+    "edit": "bi bi-pencil",
+    "sort-asc": "bi bi-arrow-down-short",
+    "sort-desc": "bi bi-arrow-up-short",
     "arrow-right": "bi bi-arrow-right",
     "arrow-left": "bi bi-arrow-left",
     "circle": "bi bi-circle",

@@ -81,7 +81,6 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "mvp.context_processors.mvp_config",
-                "demo.context_processors.navbar_widgets",
             ],
         },
     },
