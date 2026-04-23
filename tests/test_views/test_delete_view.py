@@ -2,6 +2,7 @@
 
 import pytest
 from django.urls import reverse
+from urllib.parse import parse_qs, urlparse
 
 from mvp.forms import DeleteConfirmForm
 
@@ -73,6 +74,39 @@ class TestMVPDeleteViewBasic:
         response = client.post(url)
         assert response.status_code == 302
         assert not Product.objects.filter(pk=product.pk).exists()
+
+
+# ---------------------------------------------------------------------------
+# back_url / next_url context keys
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+class TestMVPDeleteViewBackUrl:
+    def test_back_url_defaults_to_list_when_absent(self, client, product):
+        """No ?back param → back_url falls back to the list URL."""
+        url = reverse("product-delete", kwargs={"pk": product.pk})
+        response = client.get(url)
+        assert response.context["back_url"] == reverse("product-list")
+
+    def test_back_url_reads_from_query_param(self, client, product):
+        """?back=/products/1/edit/ → back_url is that URL."""
+        update_url = reverse("product-update", kwargs={"pk": product.pk})
+        url = reverse("product-delete", kwargs={"pk": product.pk})
+        response = client.get(url, {"back": update_url})
+        assert response.context["back_url"] == update_url
+
+    def test_back_url_rejects_external_url(self, client, product):
+        """?back=https://evil.com/ → back_url falls back to list URL (open-redirect guard)."""
+        url = reverse("product-delete", kwargs={"pk": product.pk})
+        response = client.get(url, {"back": "https://evil.com/"})
+        assert response.context["back_url"] == reverse("product-list")
+
+    def test_next_url_defaults_to_list_when_absent(self, client, product):
+        """No ?next param → next_url falls back to the list URL."""
+        url = reverse("product-delete", kwargs={"pk": product.pk})
+        response = client.get(url)
+        assert response.context["next_url"] == reverse("product-list")
 
 
 # ---------------------------------------------------------------------------
@@ -193,3 +227,39 @@ def test_mvp_delete_view_in_public_api():
     from mvp.views import MVPDeleteView  # noqa: F401 — must not raise
 
     assert MVPDeleteView is not None
+
+
+# ---------------------------------------------------------------------------
+# MVPUpdateView.get_delete_url() — back+next params
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+class TestMVPUpdateViewDeleteUrl:
+    def test_get_delete_url_contains_back_and_next_params(self, client, product):
+        """The delete link generated from the update page must carry both ?back and ?next."""
+        url = reverse("product-update", kwargs={"pk": product.pk})
+        response = client.get(url)
+        delete_url = response.context["delete_url"]
+        parsed = urlparse(delete_url)
+        qs = parse_qs(parsed.query)
+        assert "back" in qs, "delete_url must contain ?back"
+        assert "next" in qs, "delete_url must contain ?next"
+
+    def test_get_delete_url_back_points_to_update_page(self, client, product):
+        """`back` param must be the update view URL."""
+        url = reverse("product-update", kwargs={"pk": product.pk})
+        response = client.get(url)
+        delete_url = response.context["delete_url"]
+        qs = parse_qs(urlparse(delete_url).query)
+        expected_back = reverse("product-update", kwargs={"pk": product.pk})
+        assert qs["back"][0] == expected_back
+
+    def test_get_delete_url_next_points_to_list(self, client, product):
+        """`next` param must be the list URL."""
+        url = reverse("product-update", kwargs={"pk": product.pk})
+        response = client.get(url)
+        delete_url = response.context["delete_url"]
+        qs = parse_qs(urlparse(delete_url).query)
+        expected_next = reverse("product-list")
+        assert qs["next"][0] == expected_next

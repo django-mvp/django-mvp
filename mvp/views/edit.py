@@ -1,3 +1,4 @@
+from urllib.parse import urlencode
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import CreateView, DeleteView, FormView, UpdateView
@@ -211,15 +212,18 @@ class MVPUpdateView(MVPModelFormViewMixin, UpdateView):
     def get_delete_url(self):
         """Return the URL to use for the delete view link in the form header.
 
-        Appends ``?next=<current path>`` so the delete view can return the
-        user to whichever page triggered the deletion.
+        Appends ``?next=<list url>`` so the delete view redirects to the list
+        after a successful deletion rather than back to the (now-gone) object.
 
         Returns:
             str: URL for the delete view link
         """
         if delete_view_name := self._get_view_name("delete"):
             url = reverse(delete_view_name, kwargs=self.get_lookup_kwargs())
-            return f"{url}?next={self.request.path}"
+            back_url = reverse(self._get_view_name("update"), kwargs=self.get_lookup_kwargs())
+            next_url = self.get_list_url()
+            params = urlencode({"back": back_url, "next": next_url})
+            return f"{url}?{params}"
         return ""
 
 
@@ -287,22 +291,41 @@ class MVPDeleteView(MVPModelFormViewMixin, DeleteView):
                 related[model] = list(instances)
         return related, []
 
+    def get_back_url(self) -> str:
+        """Return the URL for the Go Back button.
+
+        Reads ``?back`` from the GET query string, validates it against the
+        current host, and falls back to the list URL.
+
+        Returns:
+            str: Validated back URL, or list URL as fallback.
+        """
+        from django.utils.http import url_has_allowed_host_and_scheme
+        candidate = self.request.GET.get("back")
+        if candidate and url_has_allowed_host_and_scheme(
+            url=candidate,
+            allowed_hosts={self.request.get_host()},
+            require_https=self.request.is_secure(),
+        ):
+            return candidate
+        return self.get_list_url()
+
     def get_next_url(self):
-        """Return the URL for the 'Go back' button.
+        """Return the URL for the post-delete redirect.
 
         Priority:
-        1. Validated ``next`` query parameter from the incoming GET request
-        2. Object detail URL (if ``get_absolute_url`` is defined)
-        3. List URL
+        1. Validated ``next`` query parameter from the incoming request
+        2. List URL
+
+        Note: We deliberately do NOT fall back to ``get_absolute_url()`` here.
+        That URL belongs to the object being deleted — after deletion it would
+        be a 404. The list is always a safe fallback.
 
         Returns:
             str: URL to navigate back to
         """
         if next_url := super().get_next_url():
             return next_url
-
-        if hasattr(self.object, "get_absolute_url"):
-            return self.object.get_absolute_url()
         return self.get_list_url()
 
     def get_success_url(self):
@@ -331,6 +354,7 @@ class MVPDeleteView(MVPModelFormViewMixin, DeleteView):
             context["related_objects"] = []
 
         context.setdefault("confirmation_error", kwargs.get("confirmation_error", ""))
+        context["back_url"] = self.get_back_url()
 
         return context
 
