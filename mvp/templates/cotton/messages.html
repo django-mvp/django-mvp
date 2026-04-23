@@ -1,0 +1,22 @@
+<c-vars dismissible delay=2000 animate class="opacity-75" />
+<div class="position-absolute w-100 container mt-3"
+     style="z-index: 1050">
+  {% for message in messages %}
+    <c-alert text="{{ message }}"
+             dismissible
+             animate
+             class="{{ class }}"
+             variant="{% if message.tags == 'error' %}danger{% elif message.tags == 'debug' %}secondary {% else %}{{ message.tags }}{% endif %}" />
+  {% endfor %}
+</div>
+{% if dismissible %}
+  {# djlint:off #}
+  <script>
+    document.querySelectorAll('.position-absolute .alert').forEach(function(el) {
+      setTimeout(function() {
+        bootstrap.Alert.getOrCreateInstance(el).close();
+      }, {{ delay }});
+    });
+</script>
+  {# djlint:on #}
+{% endif %}

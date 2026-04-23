@@ -1,0 +1,11 @@
+<c-vars title level=1 fs reverse class gap=1 />
+<div class="mvp-toolbar flex-sm-row align-items-sm-center {% if reverse %}mvp-toolbar--reverse{% endif %}{% if gap %} gap-{{ gap }}{% endif %} {{ class }}"
+     {{ attrs }}>
+  {% if title %}
+    {# djlint:off #}
+  <h{{level}} class="mvp-toolbar-start mb-0 fs-{{ fs|default:level }}">{{ title }}</h{{level}}>
+    {# djlint:on #}
+  {% endif %}
+  {% if start %}<div class="mvp-toolbar-start">{{ start }}</div>{% endif %}
+  {{ slot }}
+</div>

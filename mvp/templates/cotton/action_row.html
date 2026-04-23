@@ -1,0 +1,5 @@
+<c-vars :scroll="False" class hide-labels />
+<div class="mvp-action-row{% if scroll %} mvp-action-row--scroll{% endif %}{% if hide_labels %} hide-action-text{% endif %} {{ class }}"
+     {{ attrs }}>
+  {{ slot }}
+</div>
