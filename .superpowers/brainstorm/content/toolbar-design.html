@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Toolbar Design — Structure & Modes</title>
+        <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+            rel="stylesheet">
+        <style>
+  body { background: #f0f2f5; font-family: system-ui, sans-serif; padding: 24px; }
+  .section-label {
+    font-size: 11px; font-weight: 700; letter-spacing: .08em;
+    text-transform: uppercase; color: #6c757d; margin-bottom: 8px;
+  }
+  .demo-box {
+    border: 1px solid #dee2e6; border-radius: 6px; background: #fff;
+    padding: 16px; margin-bottom: 16px;
+  }
+  .demo-title { font-size: 13px; font-weight: 600; margin-bottom: 12px; color: #212529; }
+  .demo-subtitle { font-size: 11px; color: #6c757d; margin-bottom: 10px; }
+  .annotation {
+    font-size: 10px; color: #0d6efd; font-family: monospace;
+    border: 1px dashed #0d6efd; border-radius: 3px; padding: 1px 4px;
+    line-height: 1;
+  }
+  .resize-note { font-size: 11px; color: #6c757d; font-style: italic; margin-top: 6px; }
+  h2 { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+  .subtitle { color: #6c757d; font-size: 13px; margin-bottom: 24px; display: block; }
+</style>
+    </head>
+    <body>
+
+        <h2>Toolbar Design — Structure &amp; Modes</h2>
+        <span class="subtitle">How the HTML is structured and how each mode
+            behaves. Resize your browser to see responsive behavior.</span>
+
+        <!-- SECTION 1: STRUCTURE -->
+        <div class="section-label">Section 1 — HTML Structure</div>
+        <div class="demo-box">
+            <div class="demo-title">Core layout: two sections in a wrapping flex
+                row</div>
+            <div class="demo-subtitle">On desktop, start expands and end
+                shrinks. When start is too wide, end wraps below. On mobile,
+                they stack.</div>
+
+            <!-- Annotated structure diagram -->
+            <div
+                style="font-family: monospace; font-size: 12px; background: #f8f9fa; border-radius: 4px; padding: 12px; margin-bottom: 14px; line-height: 2;">
+                <span style="color:#6c757d">&lt;div</span> <span
+                    style="color:#d63384">class</span>=<span
+                    style="color:#198754">"d-flex flex-column flex-sm-row flex-wrap align-items-stretch align-items-sm-center gap-2"</span><span
+                    style="color:#6c757d">&gt;</span><br>
+                &nbsp;&nbsp;<span style="color:#6c757d">&lt;div</span> <span
+                    style="color:#d63384">class</span>=<span
+                    style="color:#198754">"flex-grow-1"</span> <span
+                    style="color:#d63384">style</span>=<span
+                    style="color:#198754">"min-width:0"</span><span
+                    style="color:#6c757d">&gt;</span> <span
+                    class="annotation">start — title, breadcrumbs, etc.</span>
+                <span style="color:#6c757d">&lt;/div&gt;</span><br>
+                &nbsp;&nbsp;<span style="color:#6c757d">&lt;div</span> <span
+                    style="color:#d63384">class</span>=<span
+                    style="color:#198754">"d-flex align-items-center gap-2 <span
+                        style="background:#fff3cd; padding:1px 3px; border-radius:2px;">flex-wrap</span>
+                    <span style="opacity:.4">OR</span> <span
+                        style="background:#cff4fc; padding:1px 3px; border-radius:2px;">flex-nowrap
+                        overflow-x-auto</span>"</span><span
+                    style="color:#6c757d">&gt;</span> <span
+                    class="annotation">end — actions</span> <span
+                    style="color:#6c757d">&lt;/div&gt;</span><br>
+                <span style="color:#6c757d">&lt;/div&gt;</span>
+            </div>
+
+            <!-- Mobile order note -->
+            <div style="font-size: 12px; color: #495057;">
+                <strong>Mobile stack order</strong> — swap
+                <code>flex-column</code> → <code>flex-column-reverse</code> to
+                put end first on mobile.
+            </div>
+        </div>
+
+        <!-- SECTION 2: LIVE DEMOS -->
+        <div class="section-label">Section 2 — Live Behavior Demos</div>
+
+        <!-- Demo A: Default (wrap mode) -->
+        <div class="demo-box">
+            <div class="demo-title">Mode: <code>wrap</code> — a moderately long
+                title</div>
+            <div
+                class="d-flex flex-column flex-sm-row flex-wrap align-items-stretch align-items-sm-center gap-2 border rounded p-2"
+                style="background:#fafafa;">
+                <div class="flex-grow-1" style="min-width:0">
+                    <span class="fw-semibold fs-5">Obsession List</span>
+                </div>
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <button
+                        class="btn btn-sm btn-outline-secondary">Filter</button>
+                    <input class="form-control form-control-sm"
+                        style="width:140px" placeholder="Search…">
+                    <button class="btn btn-sm btn-primary">+ New</button>
+                </div>
+            </div>
+            <div class="resize-note">↔ Resize browser — on mobile (&lt;576px)
+                the sections stack.</div>
+        </div>
+
+        <!-- Demo B: Long title forcing wrap -->
+        <div class="demo-box">
+            <div class="demo-title">Mode: <code>wrap</code> — very long title
+                forces end to next line</div>
+            <div
+                class="d-flex flex-column flex-sm-row flex-wrap align-items-stretch align-items-sm-center gap-2 border rounded p-2"
+                style="background:#fafafa;">
+                <div class="flex-grow-1" style="min-width:0">
+                    <span class="fw-semibold fs-5">Obsessions Related to
+                        Contamination, Illness, and Public Spaces</span>
+                </div>
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <button
+                        class="btn btn-sm btn-outline-secondary">Filter</button>
+                    <input class="form-control form-control-sm"
+                        style="width:140px" placeholder="Search…">
+                    <button class="btn btn-sm btn-primary">+ New</button>
+                </div>
+            </div>
+            <div class="resize-note">Notice end wraps below start — no overlap,
+                clean stacking.</div>
+        </div>
+
+        <!-- Demo C: Scroll mode -->
+        <div class="demo-box">
+            <div class="demo-title">Mode: <code>scroll</code> — actions stay on
+                one line, overflow scrolls</div>
+            <div
+                class="d-flex flex-column flex-sm-row flex-wrap align-items-stretch align-items-sm-center gap-2 border rounded p-2"
+                style="background:#fafafa;">
+                <div class="flex-grow-1" style="min-width:0">
+                    <span class="fw-semibold fs-5">Obsession List</span>
+                </div>
+                <div
+                    class="d-flex align-items-center gap-2 flex-nowrap overflow-x-auto"
+                    style="min-width:0">
+                    <button
+                        class="btn btn-sm btn-outline-secondary flex-shrink-0">Filter</button>
+                    <button
+                        class="btn btn-sm btn-outline-secondary flex-shrink-0">Sort</button>
+                    <button
+                        class="btn btn-sm btn-outline-secondary flex-shrink-0">Export</button>
+                    <button
+                        class="btn btn-sm btn-outline-secondary flex-shrink-0">Share</button>
+                    <input class="form-control form-control-sm flex-shrink-0"
+                        style="width:140px" placeholder="Search…">
+                    <button class="btn btn-sm btn-primary flex-shrink-0">+
+                        New</button>
+                </div>
+            </div>
+            <div class="resize-note">Narrow your browser — actions scroll
+                horizontally instead of wrapping.</div>
+        </div>
+
+        <!-- Demo D: Mobile reverse order -->
+        <div class="demo-box">
+            <div class="demo-title">Mobile order:
+                <code>flex-column-reverse</code> — end appears above start on
+                mobile</div>
+            <div
+                class="d-flex flex-column-reverse flex-sm-row flex-wrap align-items-stretch align-items-sm-center gap-2 border rounded p-2"
+                style="background:#fafafa;">
+                <div class="flex-grow-1" style="min-width:0">
+                    <span class="fw-semibold fs-5">Obsession List</span>
+                </div>
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <button
+                        class="btn btn-sm btn-outline-secondary">Filter</button>
+                    <input class="form-control form-control-sm"
+                        style="width:140px" placeholder="Search…">
+                    <button class="btn btn-sm btn-primary">+ New</button>
+                </div>
+            </div>
+            <div class="resize-note">Narrow to mobile — actions appear at top,
+                title below.</div>
+        </div>
+
+        <script
+            src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    </body>
+</html>

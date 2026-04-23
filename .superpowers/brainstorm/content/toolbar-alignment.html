@@ -1,0 +1,91 @@
+<h2>Desktop layout: how should start and end align vertically?</h2>
+<p class="subtitle">When both sections fit on one line, how should they align
+    relative to each other?</p>
+
+<div class="cards">
+    <div class="card" data-choice="center" onclick="toggleSelect(this)">
+        <div class="card-image" style="padding: 16px; background: #f8f9fa;">
+            <div
+                style="border: 1px solid #dee2e6; border-radius: 4px; background: #fff; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 12px;">
+                <div>
+                    <div
+                        style="font-weight: 700; font-size: 15px; line-height: 1.2;">Page
+                        Title</div>
+                    <div style="color: #6c757d; font-size: 11px;">Optional
+                        subtitle text</div>
+                </div>
+                <div
+                    style="display: flex; gap: 6px; flex-shrink: 0; align-items: center;">
+                    <span
+                        style="border: 1px solid #dee2e6; border-radius: 4px; padding: 3px 8px; font-size: 11px; background: white;">Filter</span>
+                    <span
+                        style="background: #0d6efd; color: white; border-radius: 4px; padding: 3px 8px; font-size: 11px;">+
+                        New</span>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <h3>A — Center aligned</h3>
+            <p>Start and end sections are vertically centered with each other.
+                Works well when the title is short and actions are compact.</p>
+        </div>
+    </div>
+
+    <div class="card" data-choice="start" onclick="toggleSelect(this)">
+        <div class="card-image" style="padding: 16px; background: #f8f9fa;">
+            <div
+                style="border: 1px solid #dee2e6; border-radius: 4px; background: #fff; padding: 10px 14px; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; font-size: 12px;">
+                <div>
+                    <div
+                        style="font-weight: 700; font-size: 15px; line-height: 1.2;">Page
+                        Title</div>
+                    <div style="color: #6c757d; font-size: 11px;">Optional
+                        subtitle text</div>
+                </div>
+                <div
+                    style="display: flex; gap: 6px; flex-shrink: 0; align-items: center; margin-top: 2px;">
+                    <span
+                        style="border: 1px solid #dee2e6; border-radius: 4px; padding: 3px 8px; font-size: 11px; background: white;">Filter</span>
+                    <span
+                        style="background: #0d6efd; color: white; border-radius: 4px; padding: 3px 8px; font-size: 11px;">+
+                        New</span>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <h3>B — Top aligned</h3>
+            <p>Both sections align to the top edge. Buttons sit at the top when
+                the title has multiple lines. Better if you want actions
+                anchored at the top.</p>
+        </div>
+    </div>
+
+    <div class="card" data-choice="end" onclick="toggleSelect(this)">
+        <div class="card-image" style="padding: 16px; background: #f8f9fa;">
+            <div
+                style="border: 1px solid #dee2e6; border-radius: 4px; background: #fff; padding: 10px 14px; display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; font-size: 12px;">
+                <div>
+                    <div
+                        style="font-weight: 700; font-size: 15px; line-height: 1.2;">Page
+                        Title</div>
+                    <div style="color: #6c757d; font-size: 11px;">Optional
+                        subtitle text</div>
+                </div>
+                <div
+                    style="display: flex; gap: 6px; flex-shrink: 0; align-items: center;">
+                    <span
+                        style="border: 1px solid #dee2e6; border-radius: 4px; padding: 3px 8px; font-size: 11px; background: white;">Filter</span>
+                    <span
+                        style="background: #0d6efd; color: white; border-radius: 4px; padding: 3px 8px; font-size: 11px;">+
+                        New</span>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <h3>C — Bottom aligned</h3>
+            <p>Both sections align to the bottom edge. Actions baseline-align
+                with the bottom of the title block. Common in admin UI
+                headers.</p>
+        </div>
+    </div>
+</div>
