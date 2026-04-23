@@ -32,6 +32,7 @@
 The `OrderLine` model has a `PROTECT` FK to `Product`. Creating an `OrderLine` for a product makes that product un-deletable, which is the fixture for all protected-scenario tests.
 
 **Files:**
+
 - Modify: `demo/models.py`
 - Auto-generate: `demo/migrations/0002_orderline.py`
 
@@ -70,6 +71,7 @@ The `OrderLine` model has a `PROTECT` FK to `Product`. Creating an `OrderLine` f
   ```
 
   Expected output:
+
   ```
   Migrations for 'demo':
     demo/migrations/0002_add_orderline.py
@@ -92,6 +94,7 @@ The `OrderLine` model has a `PROTECT` FK to `Product`. Creating an `OrderLine` f
 ## Task 2: Create `mvp/forms.py` with `DeleteConfirmForm`
 
 **Files:**
+
 - Create: `mvp/forms.py`
 - Create: `tests/test_views/__init__.py`
 - Create: `tests/test_views/test_delete_view.py` (initial)
@@ -99,6 +102,7 @@ The `OrderLine` model has a `PROTECT` FK to `Product`. Creating an `OrderLine` f
 - [ ] **Step 1: Write the failing form test**
 
   Create `tests/test_views/__init__.py` (empty):
+
   ```python
   ```
 
@@ -171,6 +175,7 @@ The `OrderLine` model has a `PROTECT` FK to `Product`. Creating an `OrderLine` f
 These tests cover the default scenario — no options enabled, object is deletable.
 
 **Files:**
+
 - Modify: `tests/test_views/test_delete_view.py`
 
 - [ ] **Step 1: Add basic-scenario tests**
@@ -403,6 +408,7 @@ These tests cover the default scenario — no options enabled, object is deletab
 ## Task 4: Related-objects summary tests + demo view
 
 **Files:**
+
 - Modify: `demo/views.py`
 - Modify: `demo/urls.py`
 - Modify: `tests/test_views/test_delete_view.py`
@@ -502,6 +508,7 @@ These tests cover the default scenario — no options enabled, object is deletab
 ## Task 5: Protected-object detection tests + demo view
 
 **Files:**
+
 - Modify: `demo/views.py`
 - Modify: `demo/urls.py`
 - Modify: `tests/test_views/test_delete_view.py`
@@ -565,6 +572,7 @@ These tests cover the default scenario — no options enabled, object is deletab
 ## Task 6: Type-to-confirm tests + demo view
 
 **Files:**
+
 - Modify: `demo/views.py`
 - Modify: `demo/urls.py`
 - Modify: `tests/test_views/test_delete_view.py`
@@ -693,6 +701,7 @@ The existing template only extends `form_view.html` and overrides `{% block acti
 We replace it entirely with a standalone template that renders all four scenarios.
 
 **Files:**
+
 - Rewrite: `mvp/templates/delete_view.html`
 
 - [ ] **Step 1: Rewrite the template**
@@ -709,7 +718,7 @@ We replace it entirely with a standalone template that renders all four scenario
   <c-page class="mb-5">
     <c-page.content class="container">
       <c-breadcrumbs class="mt-3 mb-2" :items="breadcrumbs" />
-      <c-page.header title="{{ page_title }}"
+      <c-mvp-toolbar title="{{ page_title }}"
                      icon="{{ page_icon }}"
                      class="mvp-header mb-3" />
 
@@ -856,6 +865,7 @@ We replace it entirely with a standalone template that renders all four scenario
 - [ ] **Step 3: Manually verify in the browser**
 
   Start the dev server:
+
   ```bash
   poetry run python manage.py runserver
   ```
@@ -866,6 +876,7 @@ We replace it entirely with a standalone template that renders all four scenario
   - `http://127.0.0.1:8000/products/<pk>/delete/confirm/` — type-to-confirm (button disabled until you type the product name)
 
   To test the protected scenario, create an `OrderLine` in the Django shell:
+
   ```bash
   poetry run python manage.py shell -c "
   from demo.models import Product, OrderLine
@@ -874,6 +885,7 @@ We replace it entirely with a standalone template that renders all four scenario
   print(f'OrderLine created for product pk={p.pk}')
   "
   ```
+
   Then visit `http://127.0.0.1:8000/products/<pk>/delete/` — should show the "Cannot Delete" card.
 
 - [ ] **Step 4: Commit**
@@ -888,6 +900,7 @@ We replace it entirely with a standalone template that renders all four scenario
 ## Task 8: Export `MVPDeleteView` and finalise demo wiring
 
 **Files:**
+
 - Modify: `mvp/views/__init__.py`
 - Modify: `demo/views.py` (clean up imports)
 - Modify: `demo/urls.py` (clean up imports)
@@ -949,9 +962,11 @@ We replace it entirely with a standalone template that renders all four scenario
   ```
 
   Run:
+
   ```bash
   poetry run pytest tests/test_views/test_delete_view.py::test_mvp_delete_view_in_public_api -v
   ```
+
   Expected: PASS
 
 - [ ] **Step 4: Run the full test suite**
@@ -1005,6 +1020,7 @@ No TBDs, TODOs, or "implement later" phrases found. All code is complete and run
 **Django's `Collector` behaviour:** `collector.data` is populated only after `collect()` succeeds without raising. If `ProtectedError` is raised, `collector.data` may be partially populated; we return `{}, list(exc.protected_objects)` and ignore partial data.
 
 **`RestrictedError` vs `ProtectedError`:** Django also has `RestrictedError` for `on_delete=RESTRICT`. If you want to handle `RESTRICT` as well, catch both:
+
 ```python
 from django.db.models.deletion import Collector, ProtectedError, RestrictedError
 try:
@@ -1012,6 +1028,7 @@ try:
 except (ProtectedError, RestrictedError) as exc:
     return {}, list(exc.protected_objects)
 ```
+
 This is a backlog item — only `ProtectedError` is handled in this plan.
 
 **`SuccessMessageMixin` bypass:** `DeleteView.delete()` does not call `form_valid()`, so `SuccessMessageMixin` never fires automatically. `MVPDeleteView.delete()` manually calls `messages.success()` with the resolved `success_message`.

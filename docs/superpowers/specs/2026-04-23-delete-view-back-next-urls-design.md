@@ -74,6 +74,7 @@ context["back_url"] = self.get_back_url()
 #### 3. `delete_view.html` — Go Back button
 
 Change:
+
 ```django
 <c-button text="{% trans "Go back" %}"
           href="{{ next_url }}"
@@ -81,6 +82,7 @@ Change:
 ```
 
 To:
+
 ```django
 <c-button text="{% trans "Go back" %}"
           href="{{ back_url }}"

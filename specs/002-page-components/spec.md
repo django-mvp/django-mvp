@@ -10,7 +10,7 @@
 ### Session 2026-04-18
 
 - Q: What backward-compatibility policy should govern existing `<c-page>` usage? -> A: Existing components are the baseline; modifications are allowed based on research findings, and breaking changes are permitted with clear rationale.
-- Q: Which component set is explicitly in scope for this feature? -> A: Include `<c-page>`, `<c-page.header>`, `<c-page.content>`, `<c-page.toolbar>`, `<c-page.footer>`, and `<c-page.sidebar>`, plus existing utility subcomponents tied to those regions.
+- Q: Which component set is explicitly in scope for this feature? -> A: Include `<c-page>`, `<c-mvp-toolbar>`, `<c-page.content>`, `<c-page.toolbar>`, `<c-page.footer>`, and `<c-page.sidebar>`, plus existing utility subcomponents tied to those regions.
 - Q: When research justifies a breaking change, what migration obligation is required? -> A: Breaking changes are allowed only with documented rationale, a migration guide, and test updates that define old/new behavior boundaries.
 - Q: What evidence threshold should research meet before approving a breaking page-component change? -> A: There is no measurable threshold; breaking-change determination is made by the developer with human-in-the-loop approval.
 
@@ -76,7 +76,7 @@ As a developer maintaining the design system, I can rely on test coverage and cl
 ### Functional Requirements
 
 - **FR-001**: The system MUST provide a cohesive page component family centered on `<c-page>` for use directly within `<c-app.main>`.
-- **FR-002**: The system MUST support composition using the in-scope component set: `<c-page>`, `<c-page.header>`, `<c-page.content>`, `<c-page.toolbar>`, `<c-page.footer>`, and `<c-page.sidebar>`, plus existing utility subcomponents tied to those regions.
+- **FR-002**: The system MUST support composition using the in-scope component set: `<c-page>`, `<c-mvp-toolbar>`, `<c-page.content>`, `<c-page.toolbar>`, `<c-page.footer>`, and `<c-page.sidebar>`, plus existing utility subcomponents tied to those regions.
 - **FR-003**: The system MUST define and document default behavior when optional page regions are not provided.
 - **FR-004**: The system MUST support documented configuration inputs that let developers control page layout classes and visual modifiers in a consistent, reusable way.
 - **FR-005**: The system MUST ensure page component outputs remain structurally predictable so shared page patterns can be reused across different views.
