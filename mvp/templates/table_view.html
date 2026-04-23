@@ -1,0 +1,32 @@
+{% extends "list_view.html" %}
+{% load static %}
+{% load render_table from django_tables2 %}
+{% block page.header %}
+  <c-slot name="header">
+    <c-mvp-toolbar title="{{ page_title }}"
+                   fs="4"
+                   class="container-fluid pt-2 pb-1">
+      <c-action-row hide-labels>
+        <c-list.search-widget class="mvp-action-row-grow" />
+        <c-list.order-widget />
+        {% if filter %}<c-page.toolbar.sidebar-widget icon="filter" />{% endif %}
+        {% if create_url %}
+          <c-button text="{% trans "Get started" %}"
+                    icon="add"
+                    href="{{ create_url }}" />
+        {% endif %}
+      </c-action-row>
+    </c-mvp-toolbar>
+  </c-slot>
+{% endblock page.header %}
+{% block page.content %}
+  <style>
+    td,
+    th {
+      text-wrap: nowrap;
+    }
+  </style>
+  <c-page.content tight>
+    <c-django-table2 bg-striped />
+  </c-page.content>
+{% endblock page.content %}

@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags i18n %}
+{% block title %}
+  {{ page_title }}
+{% endblock title %}
+{% block content %}
+  <c-page class="mb-5">
+    {% block page.header %}
+      <c-slot name="header">
+        <c-mvp-toolbar class="container-fluid">
+          <c-slot name="start">
+            <c-breadcrumbs class="py-1" :items="breadcrumbs" />
+          </c-slot>
+        </c-mvp-toolbar>
+      </c-slot>
+    {% endblock page.header %}
+    <c-page.content class="container mt-4 mb-5">
+      <c-mvp-toolbar title="{{ page_title }}"
+                     icon="{{ page_icon }}"
+                     class="mvp-header mb-3" />
+      <form method="post">
+        {% csrf_token %}
+        <div class="row justify-content-center">
+          <div class="col">
+            {% block form_col %}
+              <c-card.simple>
+                {{ form|crispy }}
+              </c-card.simple>
+            {% endblock form_col %}
+          </div>
+          <div class="col-12 col-md-3">
+            <div class="d-flex flex-column gap-2">
+              {% block actions %}
+                <c-button text="{% trans "Save" %}"
+                          type="submit"
+                          name="next"
+                          value="list"
+                          variant="primary" />
+                <c-button text="{% trans "Save & view" %}"
+                          type="submit"
+                          name="next"
+                          value="detail"
+                          variant="primary"
+                          outline />
+                <c-button text="{% trans "Save & add another" %}"
+                          type="submit"
+                          name="next"
+                          value="create"
+                          variant="primary"
+                          outline />
+                <c-button text="{% trans "Save & continue editing" %}"
+                          type="submit"
+                          name="next"
+                          value="update"
+                          variant="primary"
+                          outline />
+                {% if object %}
+                  <c-button text="{% trans "Delete" %}"
+                            href="{{ delete_url }}"
+                            icon="delete"
+                            variant="danger" />
+                {% endif %}
+              {% endblock actions %}
+            </div>
+          </div>
+        </div>
+      </form>
+    </c-page.content>
+  </c-page>
+  {% block extra_js %}
+  {% endblock extra_js %}
+{% endblock content %}
