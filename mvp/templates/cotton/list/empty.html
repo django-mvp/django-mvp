@@ -1,11 +1,19 @@
-<c-vars icon="bi-search"
-        title="No results found"
-        message="Try adjusting your search criteria or filters."
+<c-vars icon="search"
+        heading
+        message
         icon_class="display-1 text-muted mb-3" />
-<div class="w-100">
+<div class="w-100" {{ attrs }}>
   <div class="text-center py-5">
+    <c-icon name="{{ icon }}" class="{{ icon_class }}" />
     <i class="{{ icon }} {{ icon_class }}"></i>
-    <h3 class="text-muted">{{ title }}</h3>
+    <h3 class="text-muted">{{ heading }}</h3>
     <p class="text-muted">{{ message }}</p>
+    {% if create_url %}
+      <c-button variant="primary"
+                size="lg"
+                icon="add"
+                text="{% trans "Get started" %}"
+                href="{{ create_url }}" />
+    {% endif %}
   </div>
 </div>

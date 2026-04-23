@@ -1,16 +1,17 @@
 <c-vars placeholder="{% trans "Search" %}"
         label="{% trans "Search" %}" />
 {% if is_searchable %}
-  <div class="input-group" style="min-width: 300px;">
+  <div class="input-group mvp-action-row-grow"
+       style="min-width: 300px">
     <span class="input-group-text border-end-0">
       <c-icon name="search" />
     </span>
     <input type="text"
            name="q"
-           form="sidebarFilterForm"
+           form="filterForm"
            class="form-control border-start-0 search-field desktop-search"
            placeholder="{{ placeholder }}"
            value="{{ search_query|default:'' }}"
-           aria-label="Search" />
+           aria-label="{{ placeholder }}" />
   </div>
 {% endif %}

@@ -1,6 +1,94 @@
-{% extends "django_tables2/bootstrap5.html" %}
+{% load django_tables2 %}
+{% load i18n l10n %}
 {% block table-wrapper %}
   {% block table %}
-    {{ block.super }}
+    <style>
+      .sort-icon {
+        display: none;
+      }
+
+      .asc .sort-icon.sort-icon-asc {
+        display: inline-block;
+      }
+
+      .desc .sort-icon.sort-icon-desc {
+        display: inline-block;
+
+      }
+    </style>
+    <table {% render_attrs table.attrs class="table" %}>
+      {% block table.thead %}
+        {% if table.show_header %}
+          <thead {{ table.attrs.thead.as_html }}>
+            <tr>
+              {% for column in table.columns %}
+                <th {{ column.attrs.th.as_html }} scope="col">
+                  {% if column.orderable %}
+                    <a href="{% querystring table.prefixed_order_by_field=column.order_by_alias.next %}">
+                      {{ column.header }}
+                      <c-icon name="sort-asc" class="sort-icon sort-icon-asc" />
+                      <c-icon name="sort-desc" class="sort-icon sort-icon-desc" />
+                    </a>
+                  {% else %}
+                    {{ column.header }}
+                  {% endif %}
+                </th>
+              {% endfor %}
+            </tr>
+          </thead>
+        {% endif %}
+      {% endblock table.thead %}
+      {% block table.tbody %}
+        <tbody {{ table.attrs.tbody.as_html }}>
+          {% for row in table.paginated_rows %}
+            {% block table.tbody.row %}
+              <tr {{ row.attrs.as_html }}>
+                {% for column, cell in row.items %}
+                  <td {{ column.attrs.td.as_html }}>
+                    {% if column.localize == None %}
+                      {{ cell }}
+                    {% else %}
+                      {% if column.localize %}
+                        {{ cell|localize }}
+                      {% else %}
+                        {{ cell|unlocalize }}
+                      {% endif %}
+                    {% endif %}
+                  </td>
+                {% endfor %}
+              </tr>
+            {% endblock table.tbody.row %}
+          {% empty %}
+            {% if table.empty_text %}
+              {% block table.tbody.empty_text %}
+                <tr class="position-absolute w-100 mw-100 d-flex mt-5 pe-none">
+                  <td class="card col-12 col-md-9 col-lg-6 mx-auto bg-white text-wrap">
+                    <c-list.empty heading="{{ table.context.empty_state.heading }}"
+                                  message="{{ table.context.empty_state.message }}"
+                                  icon="{{ table.context.page_icon|default:"search" }}"
+                                  create_url="{{ table.context.create_url }}" />
+                  </td>
+                </tr>
+                {% comment %} <tr>
+                    <td colspan="{{ table.columns|length }}">{{ table.empty_text }}</td>
+                </tr> {% endcomment %}
+              {% endblock table.tbody.empty_text %}
+            {% endif %}
+          {% endfor %}
+        </tbody>
+      {% endblock table.tbody %}
+      {% block table.tfoot %}
+        {% if table.has_footer %}
+          <tfoot {{ table.attrs.tfoot.as_html }}>
+            <tr>
+              {% for column in table.columns %}
+                <td {{ column.attrs.tf.as_html }}>{{ column.footer }}
+                </td>
+              {% endfor %}
+            </tr>
+          </tfoot>
+        {% endif %}
+      {% endblock table.tfoot %}
+    </table>
   {% endblock table %}
 {% endblock table-wrapper %}

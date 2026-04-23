@@ -174,33 +174,3 @@
     </c-card>
   </c-page.content>
 {% endblock content %}
-{% block extra_js %}
-  {# djlint:off #}
-  <script>
-    // Auto-submit form when configuration inputs change
-    document.addEventListener('DOMContentLoaded', function() {
-      const form = document.getElementById('configSelect');
-      if (form) {
-        // Get all checkboxes and selects in the form
-        const inputs = form.querySelectorAll('input[type="checkbox"], select');
-
-        inputs.forEach(function(input) {
-          input.addEventListener('change', function() {
-            // Add sidebar_expand parameter when breakpoint changes
-            if (input.name === 'breakpoint') {
-              const sidebarExpandInput = document.createElement('input');
-              sidebarExpandInput.type = 'hidden';
-              sidebarExpandInput.name = 'sidebar_expand';
-              sidebarExpandInput.value = input.value;
-              form.appendChild(sidebarExpandInput);
-            }
-
-            // Submit the form automatically when any input changes
-            form.submit();
-          });
-        });
-      }
-    });
-</script>
-  {# djlint:on #}
-{% endblock extra_js %}

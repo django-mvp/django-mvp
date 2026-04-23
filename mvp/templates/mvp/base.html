@@ -3,22 +3,8 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    {# Critical inline script to prevent flash - runs before CSS loads #}
     <script>
       (function() {
-        // Apply theme immediately (AdminLTE)
-        const theme = localStorage.getItem('theme');
-        if (theme) {
-          let actualTheme = theme;
-          // Handle 'auto' theme by checking system preference
-          if (theme === 'auto') {
-            actualTheme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-          }
-          document.documentElement.setAttribute('data-bs-theme', actualTheme);
-          // Mark that theme was pre-applied
-          document.documentElement.setAttribute('data-theme-preapplied', 'true');
-        }
-
         // Apply main sidebar state immediately (AdminLTE)
         // Note: Can't access document.body yet, so set data attribute on html
         // AdminLTE JS will later move this to body classes
@@ -36,15 +22,15 @@
         }
 
 
-        // Apply inner sidebar state immediately (Django MVP)
+        // Apply theme immediately to prevent FOUC (Flash of Unstyled Content)
         try {
-          const innerSidebarCollapsed = sessionStorage.getItem('innerLayoutSidebarCollapsed');
-          if (innerSidebarCollapsed === '1') {
-            document.documentElement.setAttribute('data-page-sidebar-collapsed', 'true');
-          }
-        } catch (e) {
-          // sessionStorage may not be available
-        }
+          const _t = localStorage.getItem('theme');
+          const _dark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          document.documentElement.setAttribute(
+            'data-bs-theme',
+            _t === 'dark' ? 'dark' : _t === 'auto' ? (_dark ? 'dark' : 'light') : 'light'
+          );
+        } catch (e) {}
       })();
     </script>
     <script src="{% static 'js/navbar/theme-switcher.js' %}"></script>
@@ -85,6 +71,10 @@
             crossorigin="anonymous" />
       <link rel="stylesheet"
             href="{% static "css/adminlte.min.css" %}" />
+      <script defer
+              src="https://cdn.jsdelivr.net/npm/@alpinejs/persist@3.x.x/dist/cdn.min.js"></script>
+      <script defer
+              src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
       {% comment %} <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@4.0.0-rc3/dist/css/adminlte.min.css" crossorigin="anonymous" /> {% endcomment %}
       {# Inner Layout System Styles #}
       {% compress css %}

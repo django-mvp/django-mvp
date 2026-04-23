@@ -11,4 +11,16 @@ classes for custom styling {% endcomment %}
         sidebar_expand="lg"
         class />
 <div class="mvp-layout {{ layout }} sidebar-breakpoint-{{ sidebar_expand }}{% if fixed_header %} toolbar-fixed{% endif %}{% if fixed_footer %} footer-fixed{% endif %}{% if fixed_sidebar %} sidebar-fixed{% endif %}{% if class %} {{ class }}{% endif %}"
-     data-sidebar-breakpoint="{{ sidebar_expand }}">{{ slot }}</div>
+     data-sidebar-breakpoint="{{ sidebar_expand }}">
+  {% if header %}
+    <header class="mvp-header">
+      {{ header }}
+    </header>
+  {% endif %}
+  {{ slot }}
+  {% if footer %}
+    <footer class="mvp-footer">
+      {{ footer }}
+    </footer>
+  {% endif %}
+</div>
