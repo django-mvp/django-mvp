@@ -67,36 +67,35 @@ AppMenu.extend(
         ),
         # List View Demos
         MenuGroup(
-            name="list_views",
+            name="crud_views",
             extra_context={
-                "label": "List Views",
-                "icon": "list",
+                "label": "CRUD Views",
             },
             children=[
                 MenuItem(
-                    name="list_view_full_demo",
-                    view_name="list_view_demo",
+                    name="product-list",
+                    view_name="product-list",
                     extra_context={
-                        "label": "Full Demo",
-                        "icon": "list",
-                        "badge": "All Features",
-                        "badge_classes": "text-bg-primary",
-                    },
-                ),
-                MenuItem(
-                    name="basic_list_demo",
-                    view_name="basic_list_demo",
-                    extra_context={
-                        "label": "Basic ListView",
+                        "label": "Product List",
                         "icon": "list",
                     },
                 ),
                 MenuItem(
-                    name="minimal_list_demo",
-                    view_name="minimal_list_demo",
+                    name="datatables_demo",
+                    view_name="datatables_demo",
                     extra_context={
-                        "label": "Minimal",
-                        "icon": "list",
+                        "label": "Product Table",
+                        "icon": "table",
+                        "badge": "add-on",
+                        "badge_classes": "text-bg-info",
+                    },
+                ),
+                MenuItem(
+                    name="product_create",
+                    view_name="product-create",
+                    extra_context={
+                        "label": "Create Product",
+                        "icon": "add",
                     },
                 ),
             ],
@@ -119,45 +118,17 @@ AppMenu.extend(
                         "badge_classes": "text-bg-success",
                     },
                 ),
-                MenuItem(
-                    name="product_create",
-                    view_name="product_create",
-                    extra_context={
-                        "label": "Create Product",
-                        "icon": "add",
-                        "badge": "NEW",
-                        "badge_classes": "text-bg-info",
-                    },
-                ),
-                MenuItem(
-                    name="explicit_renderer_demo",
-                    view_name="explicit_renderer_demo",
-                    extra_context={
-                        "label": "Explicit Renderer",
-                        "icon": "code-slash",
-                        "badge": "NEW",
-                        "badge_classes": "text-bg-warning",
-                    },
-                ),
                 # Note: Edit Product would need dynamic pk - linking to products list instead
                 # MenuItem for editing will be added dynamically from product list view
             ],
         ),
         # 3rd party integration demos - shows how to link to external apps or features
-        MenuGroup(
-            name="integrations_section",
-            extra_context={"label": "INTEGRATIONS", "component_type": "menu.group"},
-            children=[
-                MenuItem(
-                    name="datatables_demo",
-                    view_name="datatables_demo",
-                    extra_context={
-                        "label": "DataTables Demo",
-                        "icon": "table",
-                    },
-                )
-            ],
-        ),
+        # MenuGroup(
+        #     name="integrations_section",
+        #     extra_context={"label": "INTEGRATIONS", "component_type": "menu.group"},
+        #     children=[
+        #     ],
+        # ),
         # Extra resources with external links to github and documentation
         MenuGroup(
             name="resources_section",

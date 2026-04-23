@@ -1,12 +1,14 @@
 """Django-tables2 table definitions for Demo App."""
 
 import django_tables2 as tables
-
+from django_tables2.utils import A  # alias for Accessor
 from demo.models import Product
 
 
 class ProductTable(tables.Table):
     """Product table with Bootstrap 5 styling and ARIA compliance."""
+
+    name = tables.LinkColumn("product-update", args=[A("pk")])
 
     # Column configurations with Bootstrap 5 alignment classes
     price = tables.Column(attrs={"td": {"class": "text-end"}})
@@ -20,8 +22,6 @@ class ProductTable(tables.Table):
     sku = tables.Column(verbose_name="SKU")
 
     class Meta:
-        """Meta configuration for ProductTable."""
-
         model = Product
         template_name = "django_tables2/bootstrap5-mvp.html"
         fields = (
@@ -42,10 +42,6 @@ class ProductTable(tables.Table):
             "created_at",
             "updated_at",
         )
-        attrs = {
-            "class": "table table-striped table-hover",
-        }
         empty_text = (
-            "No products available. Run 'poetry run python manage.py generate_dummy_data' "
-            "to create sample data."
+            "No products available. Run 'poetry run python manage.py generate_dummy_data' to create sample data."
         )
