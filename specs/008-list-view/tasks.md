@@ -33,7 +33,7 @@ description: "Implementation tasks for Dashboard List View Mixin feature"
 
 - [ ] T001 Verify all mixin classes exist in mvp/views.py (SearchMixin, OrderMixin, SearchOrderMixin, ListItemTemplateMixin, MVPListViewMixin)
 - [ ] T002 Verify list view template exists at mvp/templates/mvp/list_view.html
-- [ ] T003 [P] Verify Cotton components exist (c-grid, c-list.search-widget, c-list.order-widget, c-sidebar.filter, c-list.empty)
+- [ ] T003 [P] Verify Cotton components exist (c-row, c-list.search-widget, c-list.order-widget, c-sidebar.filter, c-list.empty)
 - [ ] T004 [P] Verify existing demo view ListViewDemo in demo/views.py with Product model
 
 ---
@@ -81,7 +81,7 @@ description: "Implementation tasks for Dashboard List View Mixin feature"
 
 ### Verification for User Story 2
 
-- [X] T014 [US2] Verify MVPListViewMixin passes grid attribute to c-grid component via get_grid_config() method in mvp/views.py (FR-015)
+- [X] T014 [US2] Verify MVPListViewMixin passes grid attribute to c-row component via get_grid_config() method in mvp/views.py (FR-015)
 - [X] T017 [P] [US2] Create GridDemo3Col in demo/views.py with grid = {"cols": 1, "md": 2, "lg": 3}
 - [X] T019 [US2] Add URL routes for all grid demo views in demo/urls.py
 - [X] T020 [US2] Verify grid demos using chrome-devtools-mcp at different viewport sizes (320px, 768px, 1024px, 1920px) to confirm responsive behavior (FR-032, SC-004)

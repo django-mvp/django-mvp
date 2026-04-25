@@ -21,7 +21,7 @@
 - Q: Should small-box use `bg` or `variant` for color attribute? → A: Changed to `variant` to maintain consistency with info-box and card components (2026-01-05 final decision)
 - Q: How should card variant styling be controlled? → A: Use `fill` attribute with values "outline" (default, applies variant to border), "header" (applies to header), "card" (applies to entire card). Only relevant when variant is not "default"
 - Q: How should info-box color styling be controlled? → A: Changed to `fill` attribute (2026-01-05 final). Values: "icon" (default, colors icon span only) or "box" (colors entire info-box). Removed separate `bg` and `gradient` attributes in favor of unified `fill` approach matching card component pattern
-- Q: How should card tools be implemented? → A: (2026-01-05 refactor) Use dedicated sub-components (`<c-card.tools.collapse />`, `<c-card.tools.maximize />`, `<c-card.tools.remove />`) controlled by boolean flags (`collapsible`, `removable`, `maximizable`). This avoids deeply nested conditionals and makes the template maintainable. The `tools` slot allows custom tools to be added.
+- Q: How should card tools be implemented? → A: (2026-01-05 refactor) Use dedicated sub-components (`<c-card.actions.collapse />`, `<c-card.actions.maximize />`, `<c-card.actions.remove />`) controlled by boolean flags (`collapsible`, `removable`, `maximizable`). This avoids deeply nested conditionals and makes the template maintainable. The `tools` slot allows custom tools to be added.
 - Q: Should card component use named slots? → A: (2026-01-05 refactor) No. Use standard Cotton slot pattern - `{{ tools }}` for tools area and `{{ slot }}` for body content. Named slots add unnecessary complexity. Footer functionality removed to keep component focused.
 - Q: How should card header always render? → A: (2026-01-05 refactor) Header always renders (even if empty) to provide consistent structure for tools. Icon and title are optional within the header.
 - Q: Why add a `compact` attribute to the card component? → A: To support zero-padding for tables, maps, and full-width content (applies `p-0` class to card-body)
@@ -82,9 +82,9 @@ Developers need to create cards for organizing content sections with headers, bo
 3. **Given** a card, **When** developer adds `variant="primary" fill="card"`, **Then** the entire card displays with primary background color
 4. **Given** a card, **When** developer adds `icon="gear-fill"` attribute, **Then** the icon displays to the left of the header text
 5. **Given** a card, **When** developer adds `collapsed` and `collapsible` attributes, **Then** the card renders in collapsed state with collapse tool button
-6. **Given** a card, **When** developer adds `collapsible` attribute, **Then** `<c-card.tools.collapse />` component renders in tools area with proper AdminLTE collapse behavior
-7. **Given** a card, **When** developer adds `removable` attribute, **Then** `<c-card.tools.remove />` component renders in tools area with proper AdminLTE remove behavior
-8. **Given** a card, **When** developer adds `maximizable` attribute, **Then** `<c-card.tools.maximize />` component renders in tools area with proper AdminLTE maximize behavior
+6. **Given** a card, **When** developer adds `collapsible` attribute, **Then** `<c-card.actions.collapse />` component renders in tools area with proper AdminLTE collapse behavior
+7. **Given** a card, **When** developer adds `removable` attribute, **Then** `<c-card.actions.remove />` component renders in tools area with proper AdminLTE remove behavior
+8. **Given** a card, **When** developer adds `maximizable` attribute, **Then** `<c-card.actions.maximize />` component renders in tools area with proper AdminLTE maximize behavior
 9. **Given** a card, **When** developer provides custom tools via `<c-slot name="tools">`, **Then** custom tools render alongside any automatic tool components
 10. **Given** a card, **When** no title or icon provided, **Then** header still renders to maintain consistent structure for tools
 11. **Given** a card with table content, **When** developer adds `compact` attribute, **Then** card-body has zero padding (`p-0` class) allowing table to extend to edges

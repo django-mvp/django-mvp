@@ -191,8 +191,8 @@ class ContactFormView(MVPFormView):
         return super().form_valid(form)
 
 
-
 # ======== CRUD Views for Product model ========
+
 
 class ProductCreateView(MVPCreateView):
     """
@@ -217,6 +217,7 @@ class ProductUpdateView(MVPUpdateView):
     model = Product
     fields = ["name", "slug", "category", "description", "price", "stock", "status"]
     page_title = "Edit Product"
+
 
 class ProductDeleteView(MVPDeleteView):
     """

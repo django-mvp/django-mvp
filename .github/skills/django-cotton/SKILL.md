@@ -390,8 +390,8 @@ Found 42 Cotton components:
   <c-button />
 
 forms:
-  <c-forms.django />
-  <c-forms.bootstrap />
+  <c-form.django />
+  <c-form.bootstrap />
 
 adminlte:
   <c-adminlte.small-box />

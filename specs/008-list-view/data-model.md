@@ -165,7 +165,7 @@
 
 ## Grid Configuration Schema
 
-The `grid` attribute is passed directly to the `c-grid` Cotton component.
+The `grid` attribute is passed directly to the `c-row` Cotton component.
 
 **Properties**:
 

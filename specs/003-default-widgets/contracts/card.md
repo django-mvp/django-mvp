@@ -17,7 +17,7 @@ The card component was completely refactored to eliminate deep conditional nesti
 
 **Solutions in v2.0:**
 - **11-line template** - Reduced from 82 lines by using single-expression class construction
-- **Dedicated tool components** - `<c-card.tools.collapse />`, `<c-card.tools.maximize />`, `<c-card.tools.remove />`
+- **Dedicated tool components** - `<c-card.actions.collapse />`, `<c-card.actions.maximize />`, `<c-card.actions.remove />`
 - **Boolean control flags** - `collapsible`, `removable`, `maximizable` replace manual button construction
 - **Standard Cotton slots** - Uses `{{ tools }}` and `{{ slot }}` instead of named slots
 - **Always-render header** - Provides consistent structure, simplifies conditionals
@@ -581,7 +581,7 @@ Without AdminLTE JS, collapse button renders but does nothing.
   - Removed `fill="header"` option (only outline and card remain)
   - Changed from named slots (`tools`, `footer`) to standard Cotton slots
   - Removed footer slot entirely (simplified to header + body only)
-  - Added dedicated tool sub-components: `<c-card.tools.collapse />`, `<c-card.tools.maximize />`, `<c-card.tools.remove />`
+  - Added dedicated tool sub-components: `<c-card.actions.collapse />`, `<c-card.actions.maximize />`, `<c-card.actions.remove />`
   - Added boolean flags: `collapsible`, `removable`, `maximizable` control automatic tool rendering
   - Changed `class_` to `class` (proper Cotton parameter naming)
   - Header now always renders (provides consistent structure for tools)

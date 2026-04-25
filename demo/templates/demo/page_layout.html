@@ -48,7 +48,7 @@
         </div>
       </div>
     </c-card>
-    <c-grid cols=2 gap=2>
+    <c-row cols=2 gap=2>
       {% for i in "123456789012" %}
         <div class="col">
           <c-card title="Content Card {{ forloop.counter }}">
@@ -60,6 +60,6 @@
           </c-card>
         </div>
       {% endfor %}
-    </c-grid>
+    </c-row>
   </c-page.content>
 {% endblock content %}

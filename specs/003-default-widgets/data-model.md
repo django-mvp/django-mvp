@@ -193,9 +193,9 @@
         </div>
         <div class="card-tools ms-auto">
             {{ tools }}
-            {% if collapsible %}<c-card.tools.collapse />{% endif %}
-            {% if removable %}<c-card.tools.remove />{% endif %}
-            {% if maximizable %}<c-card.tools.maximize />{% endif %}
+            {% if collapsible %}<c-card.actions.collapse />{% endif %}
+            {% if removable %}<c-card.actions.remove />{% endif %}
+            {% if maximizable %}<c-card.actions.maximize />{% endif %}
         </div>
     </div>
     <div class="card-body {% if compact %}p-0{% endif %}">
@@ -229,7 +229,7 @@ variant="default" → "" (no variant classes)
 - `title` is optional (header always renders)
 - `icon` requires `title` for proper layout
 - `compact` useful for tables, maps, and full-width content
-- Tool sub-components: `<c-card.tools.collapse />`, `<c-card.tools.maximize />`, `<c-card.tools.remove />`
+- Tool sub-components: `<c-card.actions.collapse />`, `<c-card.actions.maximize />`, `<c-card.actions.remove />`
 
 ## Entity Relationships
 

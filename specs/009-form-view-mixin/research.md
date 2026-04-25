@@ -159,7 +159,7 @@ Use card component (header/body/footer) wrapped in a page component, matching `l
 - AdminLTE 4 uses card-based layouts for content sections
 - `c-page` provides page title and breadcrumb support
 - Card header for form title, body for the form, footer for submit/cancel actions
-- Consistent with `list_view.html` which uses `c-page` + `c-grid` pattern
+- Consistent with `list_view.html` which uses `c-page` + `c-row` pattern
 
 ### Layout Skeleton
 

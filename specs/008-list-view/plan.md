@@ -95,7 +95,7 @@ tests/
 | `ListItemTemplateMixin` | ✅ Complete | Provides `list_item_template`, `get_list_item_template()`, auto-generates template path |
 | `MVPListViewMixin` | ✅ Complete | Combines SearchOrderMixin + ListItemTemplateMixin, adds `grid`, `page_title`, `get_grid_config()`, `get_page_title()` |
 | `list_view.html` | ✅ Complete | Template with page header, grid, pagination footer, filter sidebar |
-| `c-grid` | ✅ Complete | Grid component with responsive breakpoints |
+| `c-row` | ✅ Complete | Grid component with responsive breakpoints |
 | `c-list.search-widget` | ✅ Complete | Search input widget |
 | `c-list.order-widget` | ✅ Complete | Order dropdown menu |
 | `c-list.empty` | ✅ Complete | Empty state component |
