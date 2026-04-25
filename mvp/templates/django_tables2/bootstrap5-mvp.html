@@ -24,7 +24,7 @@
               {% for column in table.columns %}
                 <th {{ column.attrs.th.as_html }} scope="col">
                   {% if column.orderable %}
-                    <a href="{% querystring table.prefixed_order_by_field=column.order_by_alias.next %}">
+                    <a href="{% querystring_replace table.prefixed_order_by_field=column.order_by_alias.next %}">
                       {{ column.header }}
                       <c-icon name="sort-asc" class="sort-icon sort-icon-asc" />
                       <c-icon name="sort-desc" class="sort-icon sort-icon-desc" />
@@ -65,7 +65,7 @@
                   <td class="card col-12 col-md-9 col-lg-6 mx-auto bg-white text-wrap">
                     <c-list.empty heading="{{ table.context.empty_state.heading }}"
                                   message="{{ table.context.empty_state.message }}"
-                                  icon="{{ table.context.page_icon|default:"search" }}"
+                                  icon="{{ table.context.page.icon|default:"search" }}"
                                   create_url="{{ table.context.create_url }}" />
                   </td>
                 </tr>

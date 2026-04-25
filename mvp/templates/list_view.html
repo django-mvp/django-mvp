@@ -6,14 +6,14 @@
       <c-slot name="header">
         <c-mvp-toolbar class="container-fluid">
           <c-slot name="start">
-            <c-breadcrumbs class="py-1" :items="breadcrumbs" />
+            <c-breadcrumbs class="py-1" :items="page.breadcrumbs" />
           </c-slot>
         </c-mvp-toolbar>
       </c-slot>
     {% endblock page.header %}
     {% block page.content %}
       <c-page.content class="container mt-4 mb-5">
-        <c-mvp-toolbar title="{{ page_title }}" class="mb-3">
+        <c-mvp-toolbar title="{{ page.title }}" class="mb-3">
           <c-action-row hide-labels>
             <c-list.search-widget class="mvp-action-row-grow" />
             <c-list.order-widget />
@@ -26,17 +26,18 @@
             {% if create_url %}
               <c-button text="{% trans "Get started" %}"
                         icon="add"
+                        class="show-btn-text"
                         href="{{ create_url }}" />
             {% endif %}
           </c-action-row>
         </c-mvp-toolbar>
-        <c-grid :attrs="grid_config">
+        <c-row :attrs="grid_config">
           {% for object in object_list %}
             <div class="col">{% render_list_item object list_item_template %}</div>
           {% empty %}
             <c-list.empty :attrs="empty_state" />
           {% endfor %}
-        </c-grid>
+        </c-row>
       </c-page.content>
     {% endblock page.content %}
     <c-slot name="footer">

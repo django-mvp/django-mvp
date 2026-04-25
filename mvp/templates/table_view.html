@@ -3,7 +3,7 @@
 {% load render_table from django_tables2 %}
 {% block page.header %}
   <c-slot name="header">
-    <c-mvp-toolbar title="{{ page_title }}"
+    <c-mvp-toolbar title="{{ page.title }}"
                    fs="4"
                    class="container-fluid pt-2 pb-1">
       <c-action-row hide-labels>
@@ -11,8 +11,9 @@
         <c-list.order-widget />
         {% if filter %}<c-page.toolbar.sidebar-widget icon="filter" />{% endif %}
         {% if create_url %}
-          <c-button text="{% trans "Get started" %}"
+          <c-button text="{% trans "Add new" %}"
                     icon="add"
+                    class="show-btn-text"
                     href="{{ create_url }}" />
         {% endif %}
       </c-action-row>

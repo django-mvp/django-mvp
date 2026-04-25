@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}
+  {{ page.title }}
+{% endblock title %}
+{% block content %}
+  <c-page class="{{ page_class }} mb-5">
+    {% block page.header %}
+      <c-slot name="header">
+        <c-mvp-toolbar class="container-fluid mb">
+          <c-slot name="start">
+            <c-breadcrumbs class="py-1" :items="page.breadcrumbs" />
+          </c-slot>
+        </c-mvp-toolbar>
+      </c-slot>
+    {% endblock page.header %}
+    <c-page.content class="container mt-4 mb-5">
+      {% block page.title %}
+        <c-mvp-toolbar title="{{ page.title }}"
+                       icon="{{ page.icon }}"
+                       class="mb-3"
+                       gap="3">
+          {% block page.actions %}
+          {% endblock page.actions %}
+        </c-mvp-toolbar>
+      {% endblock page.title %}
+      {% block page.content %}
+        {% trans "Coming soon..." %}
+      {% endblock page.content %}
+    </c-page.content>
+  </c-page>
+{% endblock content %}

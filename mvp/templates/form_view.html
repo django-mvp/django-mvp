@@ -1,25 +1,13 @@
-{% extends "base.html" %}
+{% extends "page_view.html" %}
 {% load crispy_forms_tags i18n %}
-{% block title %}
-  {{ page_title }}
-{% endblock title %}
-{% block content %}
-  <c-page class="mb-5">
-    {% block page.header %}
-      <c-slot name="header">
-        <c-mvp-toolbar class="container-fluid">
-          <c-slot name="start">
-            <c-breadcrumbs class="py-1" :items="breadcrumbs" />
-          </c-slot>
-        </c-mvp-toolbar>
-      </c-slot>
-    {% endblock page.header %}
-    <c-page.content class="container mt-4 mb-5">
-      <c-mvp-toolbar title="{{ page_title }}"
-                     icon="{{ page_icon }}"
-                     class="mvp-header mb-3" />
-      <form method="post">
-        {% csrf_token %}
+{% block head %}
+  {{ block.super }}
+  {{ form.media }}
+{% endblock head %}
+{% block page.content %}
+  <c-dashboard>
+    <c-section>
+      <c-form method="post">
         <div class="row justify-content-center">
           <div class="col">
             {% block form_col %}
@@ -64,9 +52,10 @@
             </div>
           </div>
         </div>
-      </form>
-    </c-page.content>
-  </c-page>
-  {% block extra_js %}
-  {% endblock extra_js %}
-{% endblock content %}
+      </c-form>
+    </c-section>
+  </c-dashboard>
+{% endblock page.content %}
+{% block extra_js %}
+  {{ form.media.js }}
+{% endblock extra_js %}
