@@ -5,7 +5,7 @@ from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import ListView
 
-from .generic import BaseTemplateNameMixin, PageMixin
+from .mixins import BaseTemplateNameMixin, PageMixin
 
 
 class SearchMixin:
@@ -291,7 +291,7 @@ class ListItemTemplateMixin:
 class MVPListViewMixin(BaseTemplateNameMixin, SearchOrderMixin, PageMixin, ListItemTemplateMixin):
     grid: dict = {}
     base_template_name = "list_view.html"
-    create_view_name: str = "{model_name}-create"
+    create_view_name: str = "{model_name}_create"
     empty_state_heading: str | None = _("There's nothing here yet")
     empty_state_message: str | None = _("You haven't added any records yet. Click the button below to get started.")
 
