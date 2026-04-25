@@ -1,11 +1,11 @@
 <c-vars card="non-existent-card-template.html" />
-<c-grid {{ attrs }}>
+<c-row {{ attrs }}>
   {% for object in object_list %}
     <div class="col">{% include card %}</div>
   {% empty %}
     <c-list.empty-state />
   {% endfor %}
-</c-grid>
+</c-row>
 {% comment %} <!-- Pagination -->
 <c-list.pagination :is_paginated="is_paginated"
                    :page_obj="page_obj"

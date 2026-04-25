@@ -1,16 +1,6 @@
-<c-vars icon title collapsible removable maximizable />
-<div class="card-header d-flex align-items-center">
-  <div class="d-inline-flex gap-2 align-items-center">
-    {% if icon %}
-      <c-icon name="{{ icon }}"
-              class="text-muted {{ icon_class }}" />
-    {% endif %}
-    {% if title %}<h3 class="card-title">{{ title }}</h3>{% endif %}
-  </div>
-  <div class="card-tools ms-auto">
-    {{ tools }}
-    {% if collapsible %}<c-card.tools.collapse />{% endif %}
-    {% if removable %}<c-card.tools.remove />{% endif %}
-    {% if maximizable %}<c-card.tools.maximize />{% endif %}
-  </div>
-</div>
+<c-vars class />
+<c-mvp-toolbar class="container-fluid py-2 border-bottom"
+               fs="4"
+               :attrs="attrs">
+  {{ slot }}
+</c-mvp-toolbar>
