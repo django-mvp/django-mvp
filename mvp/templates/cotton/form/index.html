@@ -1,0 +1,6 @@
+<form {{ attrs }}>
+  {% if method|lower == "post" %}
+    {% csrf_token %}
+  {% endif %}
+  {{ slot }}
+</form>

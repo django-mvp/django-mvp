@@ -1,0 +1,31 @@
+<c-vars form
+        method
+        action
+        renderer
+        submit_text="{% trans "Save" %}" />
+<c-modal fade center>
+  <c-form method="{{ method }}" action="{{ action }}">
+    <c-card.header title="{{ title }}"
+                   icon="obsession"
+                   :end="header_actions">
+      <c-button text="{% trans "Close modal" %}"
+                icon="x"
+                class="hide-btn-text"
+                data-bs-dismiss="modal" />
+    </c-card.header>
+    <div class="p-3">
+      {{ before_form }}
+      <c-component is="form.{{ renderer }}" :form="form" />
+      {{ after_form }}
+    </div>
+    <c-card.footer only>
+      <c-button text="{% trans "Cancel" %}"
+                icon="x"
+                variant="secondary"
+                data-bs-dismiss="modal" />
+      <c-button text="{{ submit_text }}"
+                type="submit"
+                variant="primary" />
+    </c-card.footer>
+  </c-form>
+</c-modal>

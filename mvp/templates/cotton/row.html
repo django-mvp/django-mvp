@@ -1,0 +1,6 @@
+{% load mvp %}
+<c-vars class cols gap=1 xs sm md lg xl xxl />
+<div class="row {% if cols %}row-cols-{{ cols }}{% endif %} {% responsive "row-cols" %} g-{{ gap }} {{ class }}"
+     {{ attrs }}>
+  {{ slot }}
+</div>

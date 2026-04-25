@@ -1,0 +1,16 @@
+{% load mvp %}
+<c-vars n
+        message="{% trans "Coming soon..." %}"
+        height
+        icon
+        item_class />
+<c-row :attrs="attrs">
+  {% for i in 0|nrange:n %}
+    <c-col only>
+      <c-placeholder.card :message="message"
+                          :height="height"
+                          :icon="icon"
+                          :class="item_class" />
+    </c-col>
+  {% endfor %}
+</c-row>
