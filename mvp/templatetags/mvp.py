@@ -121,16 +121,9 @@ def responsive(context, root: str):
     # If a context variable is present, the value should be added to root along with the responsive
     # name (e.g., "col-md-6").
 
-    responsive_values = {
-        responsive: context.get(responsive)
-        for responsive in ["xs", "sm", "md", "lg", "xl", "xxl"]
-    }
+    responsive_values = {responsive: context.get(responsive) for responsive in ["xs", "sm", "md", "lg", "xl", "xxl"]}
 
-    return " ".join(
-        f"{root}-{key}-{value}"
-        for key, value in responsive_values.items()
-        if value is not None
-    )
+    return " ".join(f"{root}-{key}-{value}" for key, value in responsive_values.items() if value is not None)
 
 
 @register.tag(name="show_code")
@@ -138,6 +131,18 @@ def show_code(parser, token):
     nodelist = parser.parse(("endshow_code",))
     parser.delete_first_token()
     return ShowCodeNode(nodelist)
+
+
+@register.filter
+def nrange(start, end):
+    """Generate a range of numbers for iteration in templates.
+
+    Usage:
+        {% for i in 0|nrange:5 %}
+            {{ i }}  {# Outputs 0, 1, 2, 3, 4 #}
+        {% endfor %}
+    """
+    return range(int(start), int(end))
 
 
 class ShowCodeNode(template.Node):
@@ -160,8 +165,6 @@ class ShowCodeNode(template.Node):
 
         t = template.Template(compiled)
         rendered = t.render(context)
-        return render_to_string(
-            "cotton/documentation.html", {"code": escaped, "rendered": rendered}
-        )
+        return render_to_string("cotton/documentation.html", {"code": escaped, "rendered": rendered})
         return rendered
         return mark_safe(f"<pre><code>{escaped}</code></pre>")
