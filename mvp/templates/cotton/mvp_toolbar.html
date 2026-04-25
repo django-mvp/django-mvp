@@ -1,9 +1,67 @@
-<c-vars title level=1 fs reverse class gap=1 />
-<div class="mvp-toolbar flex-sm-row align-items-sm-center {% if reverse %}mvp-toolbar--reverse{% endif %}{% if gap %} gap-{{ gap }}{% endif %} {{ class }}"
+{% comment %}
+mvp-toolbar — Horizontal toolbar layout container.
+
+A responsive horizontal bar that combines an optional heading with slotted
+content areas. By default it stacks vertically and switches to a flex row at
+the `sm` breakpoint. Behaviour is fully controlled via the `row` prop.
+
+Props:
+  title   (str)  – Optional heading text rendered on the leading edge.
+  level   (int)  – Heading level for `title` (1–6). Default: 1.
+  fs      (int)  – Bootstrap `fs-*` size override for the heading.
+                   Defaults to the value of `level`.
+  reverse (flag) – When present, applies `mvp-toolbar--reverse` to flip
+                   the layout direction.
+  gap     (int)  – Bootstrap `gap-*` spacing between toolbar children.
+                   Default: 1.
+  width   (str)  – Container width variant passed as `container-{width}`.
+                   Options:
+                    - "full": Full width, no horizontal padding
+                    - "fluid" (default): Full width, horizontal padding
+                    - "container": Width defined by responsive breakpoints
+  row     (str)  – Controls when (or whether) the toolbar switches to a
+                   horizontal flex-row layout.
+                    - "sm" (default): row from the `sm` breakpoint upward.
+                    - "md" / "lg" / "xl" / "xxl": row from that breakpoint.
+                    - "True": always a row at every breakpoint.
+                    - not set / "": always stacked (column) at every breakpoint.
+  center  (flag) – Centers children horizontally within each stacked row
+                   (`align-items-center`). Useful when `row` is a breakpoint
+                   to center items on smaller screens before the row kicks in,
+                   or when `row` is not set and the layout is always stacked.
+  vspace  (int)  – Bootstrap `py-*` value controlling vertical (y-axis)
+                   padding. Default: 2. Set to "" or "0" to remove padding.
+  class   (str)  – Additional CSS classes appended to the root element.
+  attrs          – Extra HTML attributes forwarded to the root `<div>`.
+
+Slots:
+  start   – Content placed in a `mvp-toolbar-start` div before the default
+             slot. Typically used for leading action buttons or controls.
+  (slot)  – Default slot content rendered after the start region.
+
+Usage:
+  <c-mvp-toolbar title="Page Title" gap="2">
+    <c-slot name="start"><button …>Action</button></c-slot>
+    Additional toolbar content
+  </c-mvp-toolbar>
+{% endcomment %}
+<c-vars title
+        icon
+        level="1"
+        fs
+        reverse
+        vspace="2"
+        row="sm"
+        center
+        class
+        gap="1" />
+<div class="mvp-toolbar {% if row == True %}flex-row align-items-center{% elif row %}flex-{{ row }}-row align-items-{{ row }}-center{% endif %}{% if center %} align-items-center{% endif %} {% if reverse %}mvp-toolbar--reverse{% endif %}{% if gap %} gap-{{ gap }}{% endif %} {{ class }}"
      {{ attrs }}>
   {% if title %}
     {# djlint:off #}
-  <h{{level}} class="mvp-toolbar-start mb-0 fs-{{ fs|default:level }}">{{ title }}</h{{level}}>
+    <h{{level}} class="mvp-toolbar-start mb-0 fs-{{ fs|default:level }}">
+    <c-icon name="{{ icon }}" class="me-1" />  
+    {{ title }}</h{{level}}>
     {# djlint:on #}
   {% endif %}
   {% if start %}<div class="mvp-toolbar-start">{{ start }}</div>{% endif %}
