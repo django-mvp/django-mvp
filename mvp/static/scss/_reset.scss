@@ -19,8 +19,24 @@
   margin-bottom: 0;
 }
 
+
+
 .hide-btn-text {
+  .show-btn-text {
+    .btn-text {
+      display: inline !important;
+    }
+  }
   .btn-text {
     display: none;
   }
+}
+
+.bi {
+    vertical-align: middle;
+}
+
+.bg-rating-scale {
+    --rating: 50;
+    background-color: hsl(var(--rating), 70%, 30%);
 }
