@@ -43,7 +43,6 @@ Example usage in your app's menus.py:
         ,
         children=[
             MenuItem(name="sales", view_name="reports:sales"),
-            MenuItem(name="analytics", view_name="reports:analytics"),
         ]
     )
 

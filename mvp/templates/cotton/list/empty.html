@@ -8,12 +8,12 @@
     <i class="{{ icon }} {{ icon_class }}"></i>
     <h3 class="text-muted">{{ heading }}</h3>
     <p class="text-muted">{{ message }}</p>
-    {% if create_url %}
+    {% if directory.create_url %}
       <c-button variant="primary"
                 size="lg"
                 icon="add"
-                text="{% trans "Get started" %}"
-                href="{{ create_url }}" />
+                text="{% trans "Add new" %}"
+                href="{{ directory.create_url }}" />
     {% endif %}
   </div>
 </div>

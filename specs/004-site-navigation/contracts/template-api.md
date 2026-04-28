@@ -73,7 +73,7 @@ c_id: str = "navigation"           # ID for <ul> element
 | `c_icon_set` | str | No | `"bi"` | Icon set (Bootstrap Icons by default) |
 | `c_classes` | str | No | `""` | Additional classes for `<li class="nav-item">` |
 | `c_link_classes` | str | No | `""` | Additional classes for `<a class="nav-link">` |
-| `c_is_active` | bool | No | `False` | Whether item is current page |
+| `c_archived` | bool | No | `False` | Whether item is current page |
 | `c_is_open` | bool | No | `False` | Whether parent is expanded (has active child) |
 | `c_badge` | str | No | `None` | Badge text/number |
 | `c_badge_classes` | str | No | `"text-bg-secondary"` | Badge styling classes |
@@ -84,7 +84,7 @@ c_id: str = "navigation"           # ID for <ul> element
 
 ```html
 <li class="nav-item {% if c_is_open %}menu-open{% endif %} {{ c_classes }}">
-  <a href="{{ c_url }}" class="nav-link {% if c_is_active %}active{% endif %} {{ c_link_classes }}">
+  <a href="{{ c_url }}" class="nav-link {% if c_archived %}active{% endif %} {{ c_link_classes }}">
     {% if c_icon %}
       <c-icon name="{{ c_icon }}" set="{{ c_icon_set }}" class="nav-icon" />
     {% endif %}
@@ -115,7 +115,7 @@ c_id: str = "navigation"           # ID for <ul> element
   c_label="Dashboard"
   c_url="/dashboard/"
   c_icon="speedometer"
-  c_is_active="{{ request.path == '/dashboard/' }}"
+  c_archived="{{ request.path == '/dashboard/' }}"
 />
 ```
 
@@ -272,13 +272,13 @@ The AdminLTE renderer uses **renderer templates** in `mvp/templates/menus/` that
 **Context variables**:
 
 - From `extra_context`: label, icon, icon_set, classes, link_classes
-- From renderer: url, is_active, has_icon, depth
+- From renderer: url, archived, has_icon, depth
 
 **Template**:
 
 ```django
 <li class="nav-item {{ classes }}">
-  <a href="{{ url }}" class="nav-link {% if is_active %}active{% endif %} {{ link_classes }}">
+  <a href="{{ url }}" class="nav-link {% if archived %}active{% endif %} {{ link_classes }}">
     {% if has_icon %}
       <c-icon name="{{ icon }}" set="{{ icon_set }}" class="nav-icon" />
     {% endif %}
@@ -328,7 +328,7 @@ The AdminLTE renderer uses **renderer templates** in `mvp/templates/menus/` that
 
 ```django
 <li class="nav-item {{ classes }}">
-  <a href="{{ url }}" class="nav-link {% if is_active %}active{% endif %} {{ link_classes }}">
+  <a href="{{ url }}" class="nav-link {% if archived %}active{% endif %} {{ link_classes }}">
     <i class="nav-icon bi bi-circle"></i>
     <p>{{ label }}</p>
   </a>
@@ -424,7 +424,7 @@ def test_menu_item_renders_icon():
     """Icon rendered when c_icon provided."""
 
 def test_menu_item_applies_active_class():
-    """Active class applied when c_is_active=True."""
+    """Active class applied when c_archived=True."""
 
 def test_menu_item_renders_children():
     """Parent item renders nested ul with children."""

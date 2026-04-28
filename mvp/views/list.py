@@ -5,7 +5,7 @@ from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import ListView
 
-from .mixins import BaseTemplateNameMixin, PageMixin
+from .mixins import BaseTemplateNameMixin, CRUDDirectoryMixin, PageMixin
 
 
 class SearchMixin:
@@ -288,12 +288,13 @@ class ListItemTemplateMixin:
         return context
 
 
-class MVPListViewMixin(BaseTemplateNameMixin, SearchOrderMixin, PageMixin, ListItemTemplateMixin):
+class MVPListViewMixin(BaseTemplateNameMixin, SearchOrderMixin, CRUDDirectoryMixin, PageMixin, ListItemTemplateMixin):
     grid: dict = {}
     base_template_name = "list_view.html"
-    create_view_name: str = "{model_name}_create"
+    create_view_name: str = "{model_name}-create"
     empty_state_heading: str | None = _("There's nothing here yet")
     empty_state_message: str | None = _("You haven't added any records yet. Click the button below to get started.")
+    directory = ["create"]
 
     def get_context_data(self, **kwargs):
         """Add grid configuration to the template context.
@@ -355,11 +356,10 @@ class MVPListView(MVPListViewMixin, ListView):
 
 
 try:
-    import django_filters  # noqa
+    from django_filters.views import FilterView
 except ImportError:
     pass
 else:
-    from django_filters.views import FilterView
 
     class MVPFilteredListView(MVPListViewMixin, FilterView):
         """List view class that combines MVPListView with django-filter's FilterView for advanced filtering capabilities."""

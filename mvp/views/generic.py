@@ -5,12 +5,18 @@ from django.db.models.deletion import ProtectedError
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
-from django.views.generic import CreateView, DeleteView, DetailView, FormView, UpdateView
+from django.views import generic
 
-from .mixins import BaseTemplateNameMixin, MVPFormViewMixin, MVPModelFormViewMixin, PageObjectMixin
+from .mixins import BaseTemplateNameMixin, MVPFormViewMixin, MVPModelFormViewMixin, PageMixin, PageObjectMixin
 
 
-class MVPFormView(MVPFormViewMixin, FormView):
+class MVPTemplateView(PageMixin, generic.TemplateView):
+    """TemplateView with support for page configuration features like title and breadcrumbs."""
+
+    pass
+
+
+class MVPFormView(MVPFormViewMixin, generic.FormView):
     """FormView with AdminLTE layout and auto-detected form rendering.
 
     Combines MVPFormViewMixin with Django's FormView to provide a complete
@@ -28,7 +34,7 @@ class MVPFormView(MVPFormViewMixin, FormView):
     page_class = "mvp-form-page"
 
 
-class MVPCreateView(MVPModelFormViewMixin, CreateView):
+class MVPCreateView(MVPModelFormViewMixin, generic.CreateView):
     """CreateView with AdminLTE layout and auto-detected form rendering."""
 
     page_icon = "add"
@@ -37,7 +43,7 @@ class MVPCreateView(MVPModelFormViewMixin, CreateView):
     success_message = _("%(verbose_name)s successfully created.")
 
 
-class MVPUpdateView(MVPModelFormViewMixin, UpdateView):
+class MVPUpdateView(MVPModelFormViewMixin, generic.UpdateView):
     """UpdateView with AdminLTE layout and auto-detected form rendering."""
 
     page_icon = "edit"
@@ -82,7 +88,7 @@ class MVPUpdateView(MVPModelFormViewMixin, UpdateView):
         return ""
 
 
-class MVPDeleteView(MVPModelFormViewMixin, DeleteView):
+class MVPDeleteView(MVPModelFormViewMixin, generic.DeleteView):
     """DeleteView with AdminLTE layout, enhanced for four deletion scenarios.
 
     Scenarios (all configurable via class attributes):
@@ -241,7 +247,7 @@ class MVPDeleteView(MVPModelFormViewMixin, DeleteView):
         return HttpResponseRedirect(success_url)
 
 
-class MVPDetailView(BaseTemplateNameMixin, PageObjectMixin, DetailView):
+class MVPDetailView(BaseTemplateNameMixin, PageObjectMixin, generic.DetailView):
     base_template_name = "detail_view.html"
     page_class = "mvp-detail-page"
 

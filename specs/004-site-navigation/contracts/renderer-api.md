@@ -94,7 +94,7 @@ def get_context_data(
     Returns:
         Dict with template context including:
         - All extra_context keys (label, icon, classes, etc.)
-        - is_active: bool - Whether item matches current URL
+        - archived: bool - Whether item matches current URL
         - has_children: bool - Whether item has children
         - has_icon: bool - Whether icon is specified
         - has_badge: bool - Whether badge is specified
@@ -115,7 +115,7 @@ def get_context_data(
 | `link_classes` | str | CSS classes for `<a>` | `item.extra_context.get("link_classes", "")` |
 | `badge` | str \| None | Badge text | `item.extra_context.get("badge")` |
 | `badge_classes` | str | Badge CSS classes | `item.extra_context.get("badge_classes", "text-bg-secondary")` |
-| `is_active` | bool | Current page match | Compares request URL with view_name |
+| `archived` | bool | Current page match | Compares request URL with view_name |
 | `has_children` | bool | Has nested items | `len(item.children) > 0` |
 | `has_icon` | bool | Icon specified | `"icon" in item.extra_context` |
 | `has_badge` | bool | Badge specified | `"badge" in item.extra_context` |
@@ -142,9 +142,9 @@ def get_context_data(self, item: MenuItem, **kwargs) -> Dict[str, Any]:
     if request and request.resolver_match:
         current_url_name = request.resolver_match.url_name
         item_url_name = item.view_name.split(":")[-1] if item.view_name else None
-        context["is_active"] = current_url_name == item_url_name
+        context["archived"] = current_url_name == item_url_name
     else:
-        context["is_active"] = False
+        context["archived"] = False
 
     # Check if parent contains active child
     context["is_open"] = self._has_active_descendant(item, request)
@@ -265,14 +265,14 @@ def sort_items(self, items: List[MenuItem]) -> List[MenuItem]:
 - `url`: str
 - `icon`: str | None
 - `icon_set`: str
-- `is_active`: bool
+- `archived`: bool
 - `classes`: str
 
 **Expected output**:
 
 ```html
 <li class="nav-item {{ classes }}">
-  <a href="{{ url }}" class="nav-link {% if is_active %}active{% endif %} {{ link_classes }}">
+  <a href="{{ url }}" class="nav-link {% if archived %}active{% endif %} {{ link_classes }}">
     {% if has_icon %}
       <c-icon name="{{ icon }}" set="{{ icon_set }}" class="nav-icon" />
     {% endif %}
@@ -419,7 +419,7 @@ def test_renderer_selects_correct_template():
     """Depth and type determine template."""
 
 def test_renderer_enriches_context():
-    """Context includes is_active, has_children, etc."""
+    """Context includes archived, has_children, etc."""
 
 def test_renderer_handles_group_headers():
     """Group headers rendered before parent items."""

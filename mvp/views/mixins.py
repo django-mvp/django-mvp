@@ -4,9 +4,12 @@ from typing import Any
 from django.contrib.messages.views import SuccessMessageMixin
 from django.core.exceptions import ImproperlyConfigured
 from django.urls import reverse
+from django.utils.functional import Promise
 from django.utils.http import url_has_allowed_host_and_scheme
 
 from ..config import MVP_DEFAULT_VIEW_NAMES
+
+_OBJECT_ACTIONS = frozenset({"detail", "update", "delete"})
 
 
 class BaseTemplateNameMixin:
@@ -26,7 +29,8 @@ class BaseTemplateNameMixin:
 class PageMixin:
     """Combined mixin for adding both page modifiers and breadcrumbs to the template context."""
 
-    page_title: str = ""
+    page_title: str | Promise = ""
+    page_subtitle: str | Promise = ""
     page_icon: str | None = None
     page_class = ""
     # breadcrumbs = []
@@ -50,6 +54,7 @@ class PageMixin:
         """
         return {
             "title": self.get_page_title(),
+            "subtitle": self.get_page_subtitle(),
             "icon": self.get_page_icon(),
             "class": self.get_page_class(),
             "breadcrumbs": self.get_breadcrumbs(),
@@ -62,6 +67,14 @@ class PageMixin:
             str: Page title from page_title attribute
         """
         return self.page_title
+
+    def get_page_subtitle(self):
+        """Return the page subtitle for the form.
+
+        Returns:
+            str: Page subtitle from page_subtitle attribute
+        """
+        return self.page_subtitle
 
     def get_page_icon(self) -> str | None:
         """Return the icon name for the page.
@@ -86,7 +99,7 @@ class PageMixin:
             str: CSS class name(s) for the page container
         """
 
-        return " ".join(["mvp-page", self.page_class])
+        return " ".join(filter(None, ["mvp-page", self.page_class]))
 
 
 class ModelInfoMixin:
@@ -161,10 +174,21 @@ class ModelInfoMixin:
         return context
 
 
-class PageObjectMixin(ModelInfoMixin, PageMixin):
-    object: Any
-    list_view_title = ""
+class CRUDDirectoryMixin(ModelInfoMixin):
+    """Mixin to provide URLs for related CRUD views in the template context.
+
+    This mixin assumes a standard set of CRUD view names based on the model name and action (list, detail, create, update, delete).
+    The view names can be customized via the `crud_views` attribute, which should be a dict mapping action keys to URL name patterns. The URL name patterns can include `{model_name}` and `{app_name}` placeholders that will be filled in based on the model metadata.
+    """
+
     crud_views = MVP_DEFAULT_VIEW_NAMES
+    directory = []
+    _OBJECT_ACTIONS = _OBJECT_ACTIONS
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["directory"] = self.get_directory()
+        return context
 
     def _get_view_name(self, action):
         """Helper method to get the URL name for a given CRUD action.
@@ -176,9 +200,64 @@ class PageObjectMixin(ModelInfoMixin, PageMixin):
             raise ValueError(f"Invalid action '{action}'. Must be one of: {', '.join(self.crud_views.keys())}")
         return self.crud_views[action].format(model_name=self.model_meta.model_name, app_name=self.model_meta.app_label)
 
+    def get_lookup_kwargs(self) -> dict:
+        """Return URL kwargs for reversing object-level URLs.
+
+        Returns a copy of all URL kwargs captured by the dispatcher (``self.kwargs``),
+        which is empty on views without an object in the URL (list, create).
+
+        For nested URLs (e.g. ``/projects/<project_pk>/tasks/<pk>/``), override this
+        method to remove parent resource kwargs that sibling URLs don't expect::
+
+            def get_lookup_kwargs(self):
+                return {"pk": self.kwargs["pk"]}
+        """
+        return dict(self.kwargs)
+
+    def _resolve_directory_url(self, action: str) -> str | None:
+        """Resolve the URL for a single CRUD action.
+
+        Returns ``None`` for object-level actions (detail, update, delete) when
+        no lookup kwargs are available (e.g. on list or create views).
+        """
+        print("ARE WE EVEN GETTING HERE?", action)
+        lookup_kwargs = self.get_lookup_kwargs()
+        if action in self._OBJECT_ACTIONS and not lookup_kwargs:
+            return None
+
+        url_name = self._get_view_name(action)
+
+        # Optional permission gating: has_<action>_permission = True/False or callable(user) -> bool
+        perm = getattr(self, f"has_{action}_permission", None)
+        print(perm)
+        if perm is not None:
+            allowed = perm(self.request.user) if callable(perm) else perm
+            if not allowed:
+                return None
+
+        return reverse(url_name, kwargs=lookup_kwargs)
+
+    def get_directory(self) -> dict[str, str]:
+        """Return a dict mapping ``{action}_url`` keys to resolved URLs.
+
+        Only actions listed in ``self.directory`` are included. Entries whose
+        resolved URL is ``None`` (e.g. suppressed by a ``get_{action}_url``
+        hook or missing object context) are omitted from the result.
+        """
+        result = {}
+        for action in self.directory:
+            url = self._resolve_directory_url(action)
+            if url is not None:
+                result[f"{action}_url"] = url
+        return result
+
+
+class PageObjectMixin(CRUDDirectoryMixin, ModelInfoMixin, PageMixin):
+    object: Any
+    list_view_title = ""
+
     def get_page_class(self):
-        model_details = self.get_model_info()
-        return super().get_page_class() + " " + model_details["model_name"] + "-page"
+        return " ".join(filter(None, [super().get_page_class(), self.model_meta.model_name + "-page"]))
 
     def get_list_title(self):
         """Return the title to use for the list view link in the form header.
@@ -189,14 +268,8 @@ class PageObjectMixin(ModelInfoMixin, PageMixin):
         return self.list_view_title or self.model_meta.verbose_name_plural.title()
 
     def get_list_url(self):
-        """Return the URL to use for the list view link in the form header.
-
-        Returns:
-            str: URL for the list view link
-        """
-        if list_view_name := self._get_view_name("list"):
-            return reverse(list_view_name)
-        return ""
+        """Return the URL for the list view, or an empty string if suppressed by permission gating."""
+        return self._resolve_directory_url("list") or ""
 
     def get_breadcrumbs(self):
         """Return the list of breadcrumb items for the form view.
@@ -274,26 +347,17 @@ class MVPModelFormViewMixin(MVPFormViewMixin):
         }
 
     def get_lookup_kwargs(self):
+        """Extend base lookup kwargs with a CreateView fallback.
+
+        After saving a new object ``self.kwargs`` is still empty, but
+        ``self.object`` now has a pk, so we use that to allow ``next=detail``
+        redirects after creation.
         """
-        Return kwargs for reversing URLs for this object,
-        respecting how it was looked up (pk, slug, or both).
-        """
-        kwargs = {}
-
-        # Respect configured kwarg names
-        if hasattr(self, "pk_url_kwarg") and self.kwargs.get(self.pk_url_kwarg) is not None:
-            kwargs[self.pk_url_kwarg] = self.object.pk
-
-        if hasattr(self, "slug_url_kwarg") and self.kwargs.get(self.slug_url_kwarg) is not None:
-            slug_value = getattr(self.object, self.slug_field, None)
-            if slug_value is not None:
-                kwargs[self.slug_url_kwarg] = slug_value
-
-        # Fallback for CreateView or missing kwargs
-        # if not kwargs:
-        # return {getattr(self, "pk_url_kwarg", "pk"): self.object.pk}
-
-        return kwargs
+        if lookup := super().get_lookup_kwargs():
+            return lookup
+        if obj := getattr(self, "object", None):
+            return {self.pk_url_kwarg: obj.pk}
+        return {}
 
     def get_success_url(self):
         """Determine the URL to redirect to after successful form submission.
@@ -301,17 +365,16 @@ class MVPModelFormViewMixin(MVPFormViewMixin):
         Returns:
             str: URL to redirect to
         """
-        # Check for 'next' parameter in query string
-        if next_url := self.request.GET.get("next"):
+        # Validated external 'next' URL from query string or POST data
+        if next_url := self.get_next_url():
             return next_url
 
-        # Check for 'next' field in form data
+        # 'next' as a CRUD action key in POST data (e.g. next=detail)
+        # Delegates entirely to _resolve_directory_url, which handles
+        # permission gating and object-action guarding automatically.
         next_key = self.request.POST.get("next")
         if next_key and next_key in self.crud_views:
-            url_name = self._get_view_name(next_key)
-            if next_key in ["detail", "update"]:
-                return reverse(url_name, kwargs=self.get_lookup_kwargs())
-
-            return reverse(url_name)
+            if url := self._resolve_directory_url(next_key):
+                return url
 
         return self.get_list_url()

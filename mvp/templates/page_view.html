@@ -16,10 +16,8 @@
     {% endblock page.header %}
     <c-page.content class="container mt-4 mb-5">
       {% block page.title %}
-        <c-mvp-toolbar title="{{ page.title }}"
-                       icon="{{ page.icon }}"
-                       class="mb-3"
-                       gap="3">
+        <c-page.subtitle text="{{ page.subtitle }}" icon="{{ page.icon }}" />
+        <c-mvp-toolbar title="{{ page.title }}" class="mb-3" gap="3">
           {% block page.actions %}
           {% endblock page.actions %}
         </c-mvp-toolbar>

@@ -151,7 +151,7 @@ description: "Task list for implementing configurable site navigation menu syste
 
 ### Implementation for Active State
 
-- [X] T046 [P] Implement is_active detection in get_context_data() using request.resolver_match in mvp/renderers.py
+- [X] T046 [P] Implement archived detection in get_context_data() using request.resolver_match in mvp/renderers.py
 - [X] T047 [P] Implement _has_active_descendant() helper method in mvp/renderers.py
 - [X] T048 [P] Add is_open flag for parents with active children in get_context_data() in mvp/renderers.py
 - [X] T049 [P] Update single-item.html and parent-item.html to apply active/menu-open classes

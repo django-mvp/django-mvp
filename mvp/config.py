@@ -8,10 +8,10 @@ def _get_or_default(name, default):
 MVP_DEFAULT_VIEW_NAMES = _get_or_default(
     "MVP_DEFAULT_VIEW_NAMES",
     {
-        "list": "{model_name}_list",
-        "detail": "{model_name}_detail",
-        "create": "{model_name}_create",
-        "update": "{model_name}_edit",
-        "delete": "{model_name}_delete",
+        "list": "{model_name}-list",
+        "detail": "{model_name}-detail",
+        "create": "{model_name}-create",
+        "update": "{model_name}-edit",
+        "delete": "{model_name}-delete",
     },
 )

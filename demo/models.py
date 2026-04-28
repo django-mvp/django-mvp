@@ -10,13 +10,9 @@ class Category(models.Model):
     name = models.CharField(max_length=100)
     slug = models.SlugField(unique=True)
     description = models.TextField(blank=True)
-    icon = models.CharField(
-        max_length=50, blank=True, help_text="Icon name (e.g., 'folder', 'tag')"
-    )
-    color = models.CharField(
-        max_length=20, default="primary", help_text="Bootstrap color variant"
-    )
-    is_active = models.BooleanField(default=True)
+    icon = models.CharField(max_length=50, blank=True, help_text="Icon name (e.g., 'folder', 'tag')")
+    color = models.CharField(max_length=20, default="primary", help_text="Bootstrap color variant")
+    archived = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -54,9 +50,7 @@ class Product(models.Model):
     # Basic fields
     name = models.CharField(max_length=200)
     slug = models.SlugField(unique=True)
-    category = models.ForeignKey(
-        Category, on_delete=models.CASCADE, related_name="products"
-    )
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name="products")
     description = models.TextField()
     short_description = models.CharField(max_length=300, blank=True)
 
@@ -67,9 +61,7 @@ class Product(models.Model):
 
     # Status fields
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="draft")
-    priority = models.CharField(
-        max_length=20, choices=PRIORITY_CHOICES, default="medium"
-    )
+    priority = models.CharField(max_length=20, choices=PRIORITY_CHOICES, default="medium")
     is_featured = models.BooleanField(default=False)
     is_available = models.BooleanField(default=True)
 
@@ -79,9 +71,7 @@ class Product(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     # Metadata
-    tags = models.CharField(
-        max_length=200, blank=True, help_text="Comma-separated tags"
-    )
+    tags = models.CharField(max_length=200, blank=True, help_text="Comma-separated tags")
     sku = models.CharField(max_length=50, unique=True, blank=True)
     barcode = models.CharField(max_length=100, blank=True)
 
@@ -129,16 +119,12 @@ class Article(models.Model):
     title = models.CharField(max_length=300)
     slug = models.SlugField(unique=True)
     author = models.CharField(max_length=100)
-    category = models.ForeignKey(
-        Category, on_delete=models.SET_NULL, null=True, related_name="articles"
-    )
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, related_name="articles")
     excerpt = models.TextField(max_length=500)
     content = models.TextField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="draft")
     views = models.IntegerField(default=0)
-    read_time = models.IntegerField(
-        default=5, help_text="Estimated read time in minutes"
-    )
+    read_time = models.IntegerField(default=5, help_text="Estimated read time in minutes")
     published_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -178,23 +164,15 @@ class Task(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="todo")
-    priority = models.CharField(
-        max_length=20, choices=PRIORITY_CHOICES, default="medium"
-    )
+    priority = models.CharField(max_length=20, choices=PRIORITY_CHOICES, default="medium")
     assignee = models.CharField(max_length=100, blank=True)
-    category = models.ForeignKey(
-        Category, on_delete=models.SET_NULL, null=True, blank=True, related_name="tasks"
-    )
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True, related_name="tasks")
     due_date = models.DateField(null=True, blank=True)
     completed_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    estimated_hours = models.DecimalField(
-        max_digits=5, decimal_places=2, null=True, blank=True
-    )
-    actual_hours = models.DecimalField(
-        max_digits=5, decimal_places=2, null=True, blank=True
-    )
+    estimated_hours = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    actual_hours = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
 
     class Meta:
         """Meta options."""

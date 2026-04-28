@@ -141,7 +141,7 @@ Depth 2+ (Nested items):
 
 **Context Data Enrichment**:
 
-- Adds `is_active` flag (compares current URL with item view_name)
+- Adds `archived` flag (compares current URL with item view_name)
 - Adds `has_children` boolean
 - Adds `has_icon` boolean
 - Adds `has_badge` boolean
@@ -252,13 +252,13 @@ AppMenu (root)
    → item_name = item.view_name.split(':')[-1]
    ↓
 6. Set active flag
-   → context['is_active'] = (current == item_name)
+   → context['archived'] = (current == item_name)
    ↓
 7. Check parent chain
    → If any child is active, parent.is_open = True
    ↓
 8. Templates apply classes
-   → <a class="nav-link {% if is_active %}active{% endif %}">
+   → <a class="nav-link {% if archived %}active{% endif %}">
    → <li class="nav-item {% if is_open %}menu-open{% endif %}">
 ```
 

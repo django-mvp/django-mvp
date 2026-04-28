@@ -42,7 +42,7 @@ class Migration(migrations.Migration):
                         max_length=20,
                     ),
                 ),
-                ("is_active", models.BooleanField(default=True)),
+                ("archived", models.BooleanField(default=True)),
                 ("created_at", models.DateTimeField(auto_now_add=True)),
                 ("updated_at", models.DateTimeField(auto_now=True)),
             ],

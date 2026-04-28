@@ -475,7 +475,7 @@ Or use a template tag:
     label="Products"
     href="{% url 'products:list' %}"
     icon="box"
-    {% is_active 'products:*' %}active{% endis_active %} />
+    {% archived 'products:*' %}active{% endarchived %} />
 ```
 
 ## Accessibility

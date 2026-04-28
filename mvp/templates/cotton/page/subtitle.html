@@ -1,0 +1,6 @@
+{% if text %}
+  <p class="text-muted h6 mb-1">
+    {% if icon %}<c-icon name="{{ icon }}" />{% endif %}
+    {{ text }} {{ slot }}
+  </p>
+{% endif %}

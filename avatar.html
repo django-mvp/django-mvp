@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Avatar component — design reference</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+        <style>
+            /*
+             * ============================================================
+             * This file is a static design reference for the Cotton avatar
+             * component located at:
+             *   mvp/templates/cotton/avatar.html
+             *
+             * The production CSS lives in:
+             *   mvp/static/scss/_avatar.scss
+             * imported via mvp/static/scss/mvp.scss
+             *
+             * In Django templates, use the component like this:
+             *
+             *   Photo avatar (authenticated, has profile image):
+             *     <c-avatar src="{{ user.profile.photo.url }}"
+             *               alt="{{ user.get_full_name }}"
+             *               size="md" />
+             *
+             *   Placeholder avatar (no photo / anonymous):
+             *     <c-avatar size="md" />
+             *
+             *   With status badge:
+             *     <c-avatar src="{{ user.profile.photo.url }}"
+             *               status="online"
+             *               size="sm" />
+             *
+             * Props:
+             *   src    – URL for profile photo. Omit → shows SVG icon.
+             *   alt    – img alt text (default: "User avatar")
+             *   size   – xs | sm | md | lg | xl | xxl  (default: md)
+             *   status – online | away | busy | ""  (default: no badge)
+             *   class  – extra classes on the .avatar wrapper
+             * ============================================================
+             */
+
+            /* Copy of _avatar.scss for static preview purposes only */
+
+            .avatar {
+                --avatar-size: 2.5rem;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: var(--avatar-size);
+                height: var(--avatar-size);
+                flex-shrink: 0;
+                border-radius: 50%;
+                overflow: hidden;
+                background-color: transparent;
+                vertical-align: middle;
+            }
+            .avatar-img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                display: block;
+            }
+            .avatar-svg {
+                width: 100%;
+                height: 100%;
+                display: block;
+                color: var(--bs-secondary-color, #6c757d);
+                line-height: 0;
+            }
+            .avatar-xs  { --avatar-size: 1.5rem;  }
+            .avatar-sm  { --avatar-size: 2rem;    }
+            .avatar-md  { --avatar-size: 2.5rem;  }
+            .avatar-lg  { --avatar-size: 3.5rem;  }
+            .avatar-xl  { --avatar-size: 5rem;    }
+            .avatar-xxl { --avatar-size: 7.5rem;  }
+
+            .avatar-wrap {
+                position: relative;
+                display: inline-block;
+                line-height: 0;
+            }
+            .avatar-status {
+                position: absolute;
+                bottom: 4%;
+                right: 4%;
+                width: 22%;
+                height: 22%;
+                border-radius: 50%;
+                border: 2px solid var(--bs-body-bg, #fff);
+                background-color: var(--bs-secondary-color, #adb5bd);
+            }
+            .avatar-status.online { background-color: var(--bs-success); }
+            .avatar-status.away   { background-color: var(--bs-warning); }
+            .avatar-status.busy   { background-color: var(--bs-danger);  }
+
+            /* Demo chrome */
+            .demo-section { border-bottom: 1px solid var(--bs-border-color); }
+            .demo-label   { font-size: 0.75rem; color: var(--bs-secondary-color); }
+        </style>
+    </head>
+    <body class="bg-body-tertiary">
+
+        <!--
+            ================================================================
+            COMPONENT: <c-avatar>
+            FILE:      mvp/templates/cotton/avatar.html
+            CSS:       mvp/static/scss/_avatar.scss
+            ================================================================
+
+            USAGE IN DJANGO TEMPLATES (Cotton):
+
+            Photo — authenticated user with profile image:
+              <c-avatar src="{{ user.profile.photo.url }}"
+                        alt="{{ user.get_full_name }}"
+                        size="md" />
+
+            Placeholder — no photo or anonymous:
+              <c-avatar size="md" />
+
+            With status badge:
+              <c-avatar src="{{ user.profile.photo.url }}"
+                        status="online"
+                        size="sm" />
+
+            In a navbar dropdown button:
+              <button class="btn btn-link p-0 d-flex align-items-center gap-2"
+                      data-bs-toggle="dropdown">
+                <c-avatar src="{{ user.profile.photo.url }}" size="sm" />
+                <span>{{ user.get_full_name }}</span>
+              </button>
+
+            In a card / list item:
+              <div class="d-flex align-items-center gap-3">
+                <c-avatar src="{{ user.profile.photo.url }}" size="md" />
+                <div>{{ user.get_full_name }}</div>
+              </div>
+
+            Profile page hero:
+              <c-avatar src="{{ user.profile.photo.url }}" size="xxl" />
+            ================================================================
+        -->
+
+        <div class="container py-5">
+            <h4 class="mb-1">Avatar component — static design reference</h4>
+            <p class="text-secondary mb-1 small">
+                Production component: <code>mvp/templates/cotton/avatar.html</code> &nbsp;|&nbsp;
+                CSS: <code>mvp/static/scss/_avatar.scss</code>
+            </p>
+            <p class="text-secondary mb-5 small">
+                Left column = photo avatar &nbsp;|&nbsp; Right column = SVG placeholder
+            </p>
+
+            <!-- ── Size scale ─────────────────────────────────────────── -->
+            <section class="demo-section py-4">
+                <p class="demo-label text-uppercase fw-semibold mb-3">Size scale</p>
+                <div class="d-flex align-items-end gap-4 flex-wrap">
+
+                    {% for size, px in sizes %}
+                    <!-- <c-avatar src="{{ user.photo.url }}" size="{{ size }}" /> -->
+                    <div class="text-center">
+                        <span class="avatar avatar-{{ size }}">
+                            <img class="avatar-img" src="https://randomuser.me/api/portraits/women/44.jpg" alt="Jane">
+                        </span>
+                        <div class="demo-label mt-1">{{ size }} {{ px }}</div>
+                    </div>
+                    <!-- <c-avatar size="{{ size }}" /> -->
+                    <div class="text-center">
+                        <span class="avatar avatar-{{ size }}">
+                            <svg class="avatar-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                                <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
+                                <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"/>
+                            </svg>
+                        </span>
+                        <div class="demo-label mt-1">{{ size }} {{ px }}</div>
+                    </div>
+                    {% endfor %}
+
+                    <!-- Static fallback (no Django rendering in this file) -->
+                    <div class="text-center">
+                        <span class="avatar avatar-xs"><img class="avatar-img" src="https://randomuser.me/api/portraits/women/44.jpg" alt=""></span>
+                        <div class="demo-label mt-1">xs 24px</div>
+                    </div>
+                    <div class="text-center">
+                        <span class="avatar avatar-xs"><svg class="avatar-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/><path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"/></svg></span>
+                        <div class="demo-label mt-1">xs 24px</div>
+                    </div>
+                    <div class="text-center">
+                        <span class="avatar avatar-sm"><img class="avatar-img" src="https://randomuser.me/api/portraits/women/44.jpg" alt=""></span>
+                        <div class="demo-label mt-1">sm 32px</div>
+                    </div>
+                    <div class="text-center">
+                        <span class="avatar avatar-sm"><svg class="avatar-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/><path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"/></svg></span>
+                        <div class="demo-label mt-1">sm 32px</div>
+                    </div>
+                    <div class="text-center">
+                        <span class="avatar avatar-md"><img class="avatar-img" src="https://randomuser.me/api/portraits/women/44.jpg" alt=""></span>
+                        <div class="demo-label mt-1">md 40px</div>
+                    </div>
+                    <div class="text-center">
+                        <span class="avatar avatar-md"><svg class="avatar-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/><path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"/></svg></span>
+                        <div class="demo-label mt-1">md 40px</div>
+                    </div>
+                    <div class="text-center">
+                        <span class="avatar avatar-lg"><img class="avatar-img" src="https://randomuser.me/api/portraits/women/44.jpg" alt=""></span>
+                        <div class="demo-label mt-1">lg 56px</div>
+                    </div>
+                    <div class="text-center">
+                        <span class="avatar avatar-lg"><svg class="avatar-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/><path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"/></svg></span>
+                        <div class="demo-label mt-1">lg 56px</div>
+                    </div>
+                    <div class="text-center">
+                        <span class="avatar avatar-xl"><img class="avatar-img" src="https://randomuser.me/api/portraits/women/44.jpg" alt=""></span>
+                        <div class="demo-label mt-1">xl 80px</div>
+                    </div>
+                    <div class="text-center">
+                        <span class="avatar avatar-xl"><svg class="avatar-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/><path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"/></svg></span>
+                        <div class="demo-label mt-1">xl 80px</div>
+                    </div>
+                    <div class="text-center">
+                        <span class="avatar avatar-xxl"><img class="avatar-img" src="https://randomuser.me/api/portraits/women/44.jpg" alt=""></span>
+                        <div class="demo-label mt-1">xxl 120px</div>
+                    </div>
+                    <div class="text-center">
+                        <span class="avatar avatar-xxl"><svg class="avatar-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/><path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"/></svg></span>
+                        <div class="demo-label mt-1">xxl 120px</div>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- ── Context: Navbar dropdown button ───────────────────────── -->
+            <section class="demo-section py-4">
+                <p class="demo-label text-uppercase fw-semibold mb-3">
+                    Context — Navbar dropdown button
+                    <span class="text-secondary fw-normal">
+                        (<code>&lt;c-avatar src="{{ user.photo.url }}" size="sm" /&gt;</code>)
+                    </span>
+                </p>
+                <nav class="navbar navbar-expand-lg bg-dark rounded" data-bs-theme="dark">
+                    <div class="container-fluid">
+                        <a class="navbar-brand" href="#">My Portal</a>
+                        <div class="ms-auto d-flex align-items-center gap-2">
+                            <div class="dropdown">
+                                <button class="btn btn-link p-0 border-0 d-flex align-items-center gap-2 text-decoration-none text-white"
+                                        data-bs-toggle="dropdown" aria-expanded="false">
+                                    <!-- <c-avatar src="{{ user.photo.url }}" size="sm" /> -->
+                                    <span class="avatar avatar-sm">
+                                        <img class="avatar-img" src="https://randomuser.me/api/portraits/women/44.jpg" alt="Jane Doe">
+                                    </span>
+                                    <span class="d-none d-md-inline small">Jane Doe</span>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li><a class="dropdown-item" href="#">Profile</a></li>
+                                    <li><a class="dropdown-item" href="#">Settings</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="#">Sign out</a></li>
+                                </ul>
+                            </div>
+                            <div class="dropdown">
+                                <button class="btn btn-link p-0 border-0 d-flex align-items-center gap-2 text-decoration-none text-white"
+                                        data-bs-toggle="dropdown" aria-expanded="false">
+                                    <!-- <c-avatar size="sm" /> -->
+                                    <span class="avatar avatar-sm">
+                                        <svg class="avatar-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                                            <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
+                                            <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"/>
+                                        </svg>
+                                    </span>
+                                    <span class="d-none d-md-inline small">Guest</span>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li><a class="dropdown-item" href="#">Sign in</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </nav>
+            </section>
+
+            <!-- ── Context: Card header ───────────────────────────────────── -->
+            <section class="demo-section py-4">
+                <p class="demo-label text-uppercase fw-semibold mb-3">Context — Card header</p>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-body d-flex align-items-center gap-3">
+                                <!-- <c-avatar src="{{ user.photo.url }}" alt="{{ user }}" size="md" /> -->
+                                <span class="avatar avatar-md flex-shrink-0">
+                                    <img class="avatar-img" src="https://randomuser.me/api/portraits/men/32.jpg" alt="Alex Smith">
+                                </span>
+                                <div class="overflow-hidden">
+                                    <div class="fw-semibold text-truncate">Alex Smith</div>
+                                    <div class="text-secondary small text-truncate">alex@example.com</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-body d-flex align-items-center gap-3">
+                                <!-- <c-avatar size="md" /> -->
+                                <span class="avatar avatar-md flex-shrink-0">
+                                    <svg class="avatar-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                                        <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
+                                        <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"/>
+                                    </svg>
+                                </span>
+                                <div class="overflow-hidden">
+                                    <div class="fw-semibold text-truncate">Maria Garcia</div>
+                                    <div class="text-secondary small text-truncate">maria@example.com</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ── Context: Activity list ────────────────────────────────── -->
+            <section class="demo-section py-4">
+                <p class="demo-label text-uppercase fw-semibold mb-3">Context — Activity list</p>
+                <ul class="list-unstyled d-flex flex-column gap-3 mb-0">
+                    <li class="d-flex gap-3">
+                        <!-- <c-avatar src="{{ event.user.photo.url }}" size="sm" /> -->
+                        <span class="avatar avatar-sm flex-shrink-0">
+                            <img class="avatar-img" src="https://randomuser.me/api/portraits/women/68.jpg" alt="Priya K">
+                        </span>
+                        <div class="small"><strong>Priya K.</strong> submitted a new dataset <span class="text-secondary">· 2 hours ago</span></div>
+                    </li>
+                    <li class="d-flex gap-3">
+                        <!-- <c-avatar size="sm" /> -->
+                        <span class="avatar avatar-sm flex-shrink-0">
+                            <svg class="avatar-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                                <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
+                                <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"/>
+                            </svg>
+                        </span>
+                        <div class="small"><strong>Tom Brennan</strong> left a comment <span class="text-secondary">· 5 hours ago</span></div>
+                    </li>
+                </ul>
+            </section>
+
+            <!-- ── Context: Status badge ──────────────────────────────────── -->
+            <section class="demo-section py-4">
+                <p class="demo-label text-uppercase fw-semibold mb-3">
+                    Context — Status badge
+                    <span class="text-secondary fw-normal">
+                        (<code>&lt;c-avatar status="online" size="md" /&gt;</code>)
+                    </span>
+                </p>
+                <div class="d-flex align-items-end gap-4 flex-wrap">
+                    <div class="text-center">
+                        <!-- <c-avatar src="{{ user.photo.url }}" status="online" size="md" /> -->
+                        <span class="avatar-wrap">
+                            <span class="avatar avatar-md"><img class="avatar-img" src="https://randomuser.me/api/portraits/men/22.jpg" alt=""></span>
+                            <span class="avatar-status online"></span>
+                        </span>
+                        <div class="demo-label mt-1">Online</div>
+                    </div>
+                    <div class="text-center">
+                        <!-- <c-avatar src="{{ user.photo.url }}" status="away" size="md" /> -->
+                        <span class="avatar-wrap">
+                            <span class="avatar avatar-md"><img class="avatar-img" src="https://randomuser.me/api/portraits/women/55.jpg" alt=""></span>
+                            <span class="avatar-status away"></span>
+                        </span>
+                        <div class="demo-label mt-1">Away</div>
+                    </div>
+                    <div class="text-center">
+                        <!-- <c-avatar status="busy" size="md" /> -->
+                        <span class="avatar-wrap">
+                            <span class="avatar avatar-md">
+                                <svg class="avatar-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                                    <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
+                                    <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"/>
+                                </svg>
+                            </span>
+                            <span class="avatar-status busy"></span>
+                        </span>
+                        <div class="demo-label mt-1">Busy (no photo)</div>
+                    </div>
+                    <div class="text-center">
+                        <!-- <c-avatar status="" size="md" /> -->
+                        <span class="avatar-wrap">
+                            <span class="avatar avatar-md">
+                                <svg class="avatar-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                                    <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
+                                    <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"/>
+                                </svg>
+                            </span>
+                            <span class="avatar-status"></span>
+                        </span>
+                        <div class="demo-label mt-1">Offline (no photo)</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ── Context: Profile page hero ────────────────────────────── -->
+            <section class="py-4">
+                <p class="demo-label text-uppercase fw-semibold mb-3">
+                    Context — Profile page hero
+                    <span class="text-secondary fw-normal">
+                        (<code>&lt;c-avatar src="{{ user.photo.url }}" size="xxl" /&gt;</code>)
+                    </span>
+                </p>
+                <div class="card mb-3">
+                    <div class="card-body p-4">
+                        <div class="d-flex flex-column flex-sm-row align-items-center align-items-sm-start gap-4">
+                            <!-- <c-avatar src="{{ user.photo.url }}" alt="{{ user }}" size="xxl" /> -->
+                            <span class="avatar avatar-xxl flex-shrink-0">
+                                <img class="avatar-img" src="https://randomuser.me/api/portraits/women/44.jpg" alt="Jane Doe">
+                            </span>
+                            <div>
+                                <h4 class="mb-1">Jane Doe</h4>
+                                <p class="text-secondary mb-2">Senior Researcher · University of Example</p>
+                                <p class="mb-0 small">Member since 2021. Sedimentary geochemistry and isotope analysis.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-body p-4">
+                        <div class="d-flex flex-column flex-sm-row align-items-center align-items-sm-start gap-4">
+                            <!-- <c-avatar size="xxl" /> -->
+                            <span class="avatar avatar-xxl flex-shrink-0">
+                                <svg class="avatar-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                                    <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
+                                    <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"/>
+                                </svg>
+                            </span>
+                            <div>
+                                <h4 class="mb-1">Thomas Brennan</h4>
+                                <p class="text-secondary mb-2">Technician · Institute of Geology</p>
+                                <p class="mb-0 small">No profile photo — placeholder maintains identical footprint.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    </body>
+</html>
+        <style>
+            /*
+             * ============================================================
+             * AVATAR COMPONENT
+             * ============================================================
+             *
+             * Usage:
+             *   <span class="avatar avatar-md">
+             *     <!-- authenticated user WITH profile image: -->
+             *     <img class="avatar-img" src="..." alt="Jane Doe">
+             *     <!-- OR authenticated/anonymous user WITHOUT profile image: -->
+             *     <svg class="avatar-svg" ...>...</svg>
+             *   </span>
+             *
+             * Size modifiers (add one class to the .avatar wrapper):
+             *   .avatar-xs  → 24px
+             *   .avatar-sm  → 32px
+             *   .avatar-md  → 40px  (default when no modifier given)
+             *   .avatar-lg  → 56px
+             *   .avatar-xl  → 80px
+             *   .avatar-xxl → 120px
+             *
+             * For an inline status badge (e.g. online dot), wrap the
+             * .avatar in a .avatar-wrap and add .avatar-status inside it.
+             * ============================================================
+             */
+
+            /* ── Core container ─────────────────────────────────────────── */
+            .avatar {
+                --avatar-size: 2.5rem;         /* overridden by modifier classes */
+                --avatar-color: var(--bs-secondary-color, #6c757d);
+
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: var(--avatar-size);
+                height: var(--avatar-size);
+                flex-shrink: 0;               /* never squish inside flex parents */
+                border-radius: 50%;
+                overflow: hidden;             /* clips the img to the circle */
+                background-color: transparent;
+                vertical-align: middle;
+            }
+
+            /* ── Photo avatar ───────────────────────────────────────────── */
+            .avatar-img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;            /* fills the circle, crops excess */
+                display: block;
+            }
+
+            /* ── SVG placeholder avatar ─────────────────────────────────── */
+            /*
+             * bi-person-circle already draws its own circular background
+             * so it fills the .avatar container the same way an image would.
+             * We inherit color from --avatar-color so it can be themed.
+             */
+            .avatar-svg {
+                width: 100%;
+                height: 100%;
+                display: block;
+                color: var(--avatar-color);
+                /* Negate the default line-height gap on inline SVG */
+                line-height: 0;
+            }
+
+            /* ── Size modifiers ─────────────────────────────────────────── */
+            .avatar-xs  { --avatar-size: 1.5rem;  }   /* 24px */
+            .avatar-sm  { --avatar-size: 2rem;    }   /* 32px */
+            .avatar-md  { --avatar-size: 2.5rem;  }   /* 40px — matches Bootstrap's default input height */
+            .avatar-lg  { --avatar-size: 3.5rem;  }   /* 56px */
+            .avatar-xl  { --avatar-size: 5rem;    }   /* 80px */
+            .avatar-xxl { --avatar-size: 7.5rem;  }   /* 120px */
+
+            /* ── Status badge wrapper ───────────────────────────────────── */
+            /*
+             * Wrap .avatar in .avatar-wrap, then place a .avatar-status
+             * sibling inside .avatar-wrap for an online/offline indicator.
+             */
+            .avatar-wrap {
+                position: relative;
+                display: inline-block;
+                line-height: 0;
+            }
+
+            .avatar-status {
+                position: absolute;
+                bottom: 4%;
+                right: 4%;
+                width: 22%;
+                height: 22%;
+                border-radius: 50%;
+                border: 2px solid var(--bs-body-bg, #fff);
+                background-color: var(--bs-secondary-color, #adb5bd);
+            }
+
+            .avatar-status.online  { background-color: var(--bs-success); }
+            .avatar-status.away    { background-color: var(--bs-warning); }
+            .avatar-status.busy    { background-color: var(--bs-danger);  }
+
+            /* ── Demo page chrome (not part of the component) ───────────── */
+            .demo-section { border-bottom: 1px solid var(--bs-border-color); }
+            .demo-label   { font-size: 0.75rem; color: var(--bs-secondary-color); }
+        </style>
+    </head>
+    <body class="bg-body-tertiary">
+
+        <!-- ============================================================ -->
+        <!-- SNIPPET REFERENCE                                             -->
+        <!-- ============================================================ -->
+        <!--
+            AVATAR WITH PHOTO (authenticated user with profile image)
+            ──────────────────────────────────────────────────────────
+            <span class="avatar avatar-md">
+              <img class="avatar-img" src="{{ user.profile.image.url }}" alt="{{ user.get_full_name }}">
+            </span>
+
+            AVATAR WITHOUT PHOTO (no image or anonymous)
+            ─────────────────────────────────────────────
+            <span class="avatar avatar-md">
+              <svg class="avatar-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
+                <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"/>
+              </svg>
+            </span>
+
+            WITH STATUS BADGE
+            ─────────────────
+            <span class="avatar-wrap">
+              <span class="avatar avatar-md">...</span>
+              <span class="avatar-status online"></span>
+            </span>
+        -->
+
+        <div class="container py-5">
+            <h4 class="mb-1">Avatar component</h4>
+            <p class="text-secondary mb-5 small">
+                Same markup, same sizing — works anywhere on the page.
+                <br>Left column = photo avatar &nbsp;|&nbsp; Right column = SVG placeholder.
+            </p>
+
+            <!-- ── Size scale ─────────────────────────────────────────── -->
+            <section class="demo-section py-4">
+                <p class="demo-label text-uppercase fw-semibold mb-3">Size scale</p>
+                <div class="d-flex align-items-end gap-4 flex-wrap">
+                    <!-- xs -->
+                    <div class="text-center">
+                        <span class="avatar avatar-xs">
+                            <img class="avatar-img" src="https://randomuser.me/api/portraits/women/44.jpg" alt="Jane">
+                        </span>
+                        <div class="demo-label mt-1">xs 24px</div>
+                    </div>
+                    <div class="text-center">
+                        <span class="avatar avatar-xs">
+                            <svg class="avatar-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                                <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
+                                <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"/>
+                            </svg>
+                        </span>
+                        <div class="demo-label mt-1">xs 24px</div>
+                    </div>
+
+                    <!-- sm -->
+                    <div class="text-center">
+                        <span class="avatar avatar-sm">
+                            <img class="avatar-img" src="https://randomuser.me/api/portraits/women/44.jpg" alt="Jane">
+                        </span>
+                        <div class="demo-label mt-1">sm 32px</div>
+                    </div>
+                    <div class="text-center">
+                        <span class="avatar avatar-sm">
+                            <svg class="avatar-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                                <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
+                                <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"/>
+                            </svg>
+                        </span>
+                        <div class="demo-label mt-1">sm 32px</div>
+                    </div>
+
+                    <!-- md -->
+                    <div class="text-center">
+                        <span class="avatar avatar-md">
+                            <img class="avatar-img" src="https://randomuser.me/api/portraits/women/44.jpg" alt="Jane">
+                        </span>
+                        <div class="demo-label mt-1">md 40px</div>
+                    </div>
+                    <div class="text-center">
+                        <span class="avatar avatar-md">
+                            <svg class="avatar-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                                <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
+                                <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"/>
+                            </svg>
+                        </span>
+                        <div class="demo-label mt-1">md 40px</div>
+                    </div>
+
+                    <!-- lg -->
+                    <div class="text-center">
+                        <span class="avatar avatar-lg">
+                            <img class="avatar-img" src="https://randomuser.me/api/portraits/women/44.jpg" alt="Jane">
+                        </span>
+                        <div class="demo-label mt-1">lg 56px</div>
+                    </div>
+                    <div class="text-center">
+                        <span class="avatar avatar-lg">
+                            <svg class="avatar-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                                <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
+                                <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"/>
+                            </svg>
+                        </span>
+                        <div class="demo-label mt-1">lg 56px</div>
+                    </div>
+
+                    <!-- xl -->
+                    <div class="text-center">
+                        <span class="avatar avatar-xl">
+                            <img class="avatar-img" src="https://randomuser.me/api/portraits/women/44.jpg" alt="Jane">
+                        </span>
+                        <div class="demo-label mt-1">xl 80px</div>
+                    </div>
+                    <div class="text-center">
+                        <span class="avatar avatar-xl">
+                            <svg class="avatar-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                                <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
+                                <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"/>
+                            </svg>
+                        </span>
+                        <div class="demo-label mt-1">xl 80px</div>
+                    </div>
+
+                    <!-- xxl -->
+                    <div class="text-center">
+                        <span class="avatar avatar-xxl">
+                            <img class="avatar-img" src="https://randomuser.me/api/portraits/women/44.jpg" alt="Jane">
+                        </span>
+                        <div class="demo-label mt-1">xxl 120px</div>
+                    </div>
+                    <div class="text-center">
+                        <span class="avatar avatar-xxl">
+                            <svg class="avatar-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                                <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
+                                <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"/>
+                            </svg>
+                        </span>
+                        <div class="demo-label mt-1">xxl 120px</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ── Context: Navbar dropdown button ───────────────────────── -->
+            <section class="demo-section py-4">
+                <p class="demo-label text-uppercase fw-semibold mb-3">Context — Navbar dropdown button</p>
+                <nav class="navbar navbar-expand-lg bg-dark rounded" data-bs-theme="dark">
+                    <div class="container-fluid">
+                        <a class="navbar-brand" href="#">My Portal</a>
+                        <div class="ms-auto d-flex align-items-center gap-2">
+                            <!-- Avatar in navbar: xs/sm, used as the toggle button face -->
+
+                            <!-- With image -->
+                            <div class="dropdown">
+                                <button class="btn btn-link p-0 border-0 d-flex align-items-center gap-2 text-decoration-none text-white"
+                                        data-bs-toggle="dropdown" aria-expanded="false">
+                                    <span class="avatar avatar-sm">
+                                        <img class="avatar-img" src="https://randomuser.me/api/portraits/women/44.jpg" alt="Jane Doe">
+                                    </span>
+                                    <span class="d-none d-md-inline small">Jane Doe</span>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li><a class="dropdown-item" href="#">Profile</a></li>
+                                    <li><a class="dropdown-item" href="#">Settings</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="#">Sign out</a></li>
+                                </ul>
+                            </div>
+
+                            <!-- Without image (SVG placeholder) -->
+                            <div class="dropdown">
+                                <button class="btn btn-link p-0 border-0 d-flex align-items-center gap-2 text-decoration-none text-white"
+                                        data-bs-toggle="dropdown" aria-expanded="false">
+                                    <span class="avatar avatar-sm">
+                                        <svg class="avatar-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                                            <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
+                                            <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"/>
+                                        </svg>
+                                    </span>
+                                    <span class="d-none d-md-inline small">Guest</span>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li><a class="dropdown-item" href="#">Sign in</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </nav>
+            </section>
+
+            <!-- ── Context: Card with profile header ─────────────────────── -->
+            <section class="demo-section py-4">
+                <p class="demo-label text-uppercase fw-semibold mb-3">Context — Card header (profile picture)</p>
+                <div class="row g-3">
+
+                    <!-- Card: user has image -->
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-body d-flex align-items-center gap-3">
+                                <span class="avatar avatar-md flex-shrink-0">
+                                    <img class="avatar-img" src="https://randomuser.me/api/portraits/men/32.jpg" alt="Alex Smith">
+                                </span>
+                                <div class="overflow-hidden">
+                                    <div class="fw-semibold text-truncate">Alex Smith</div>
+                                    <div class="text-secondary small text-truncate">alex@example.com</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card: user has no image -->
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-body d-flex align-items-center gap-3">
+                                <span class="avatar avatar-md flex-shrink-0">
+                                    <svg class="avatar-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                                        <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
+                                        <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"/>
+                                    </svg>
+                                </span>
+                                <div class="overflow-hidden">
+                                    <div class="fw-semibold text-truncate">Maria Garcia</div>
+                                    <div class="text-secondary small text-truncate">maria@example.com</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card: anonymous / unauthenticated -->
+                    <div class="col-md-4">
+                        <div class="card border-dashed">
+                            <div class="card-body d-flex align-items-center gap-3">
+                                <span class="avatar avatar-md flex-shrink-0">
+                                    <svg class="avatar-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" style="--avatar-color: #ced4da;">
+                                        <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
+                                        <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"/>
+                                    </svg>
+                                </span>
+                                <div>
+                                    <div class="fw-semibold text-secondary">Anonymous</div>
+                                    <div class="text-secondary small">Not signed in</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ── Context: Activity / comment list ──────────────────────── -->
+            <section class="demo-section py-4">
+                <p class="demo-label text-uppercase fw-semibold mb-3">Context — Activity / comment list</p>
+                <ul class="list-unstyled d-flex flex-column gap-3 mb-0">
+                    <li class="d-flex gap-3">
+                        <span class="avatar avatar-sm flex-shrink-0">
+                            <img class="avatar-img" src="https://randomuser.me/api/portraits/women/68.jpg" alt="Priya K">
+                        </span>
+                        <div>
+                            <div class="small"><strong>Priya K.</strong> submitted a new dataset <span class="text-secondary">· 2 hours ago</span></div>
+                        </div>
+                    </li>
+                    <li class="d-flex gap-3">
+                        <span class="avatar avatar-sm flex-shrink-0">
+                            <svg class="avatar-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                                <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
+                                <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"/>
+                            </svg>
+                        </span>
+                        <div>
+                            <div class="small"><strong>Tom Brennan</strong> left a comment <span class="text-secondary">· 5 hours ago</span></div>
+                        </div>
+                    </li>
+                    <li class="d-flex gap-3">
+                        <span class="avatar avatar-sm flex-shrink-0">
+                            <img class="avatar-img" src="https://randomuser.me/api/portraits/men/11.jpg" alt="Dr. Chen">
+                        </span>
+                        <div>
+                            <div class="small"><strong>Dr. Chen</strong> approved access <span class="text-secondary">· Yesterday</span></div>
+                        </div>
+                    </li>
+                </ul>
+            </section>
+
+            <!-- ── Context: Status badge overlay ─────────────────────────── -->
+            <section class="demo-section py-4">
+                <p class="demo-label text-uppercase fw-semibold mb-3">Context — Status badge</p>
+                <div class="d-flex align-items-end gap-4 flex-wrap">
+                    <div class="text-center">
+                        <span class="avatar-wrap">
+                            <span class="avatar avatar-md">
+                                <img class="avatar-img" src="https://randomuser.me/api/portraits/men/22.jpg" alt="User">
+                            </span>
+                            <span class="avatar-status online" title="Online"></span>
+                        </span>
+                        <div class="demo-label mt-1">Online</div>
+                    </div>
+                    <div class="text-center">
+                        <span class="avatar-wrap">
+                            <span class="avatar avatar-md">
+                                <img class="avatar-img" src="https://randomuser.me/api/portraits/women/55.jpg" alt="User">
+                            </span>
+                            <span class="avatar-status away" title="Away"></span>
+                        </span>
+                        <div class="demo-label mt-1">Away</div>
+                    </div>
+                    <div class="text-center">
+                        <span class="avatar-wrap">
+                            <span class="avatar avatar-md">
+                                <svg class="avatar-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                                    <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
+                                    <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"/>
+                                </svg>
+                            </span>
+                            <span class="avatar-status busy" title="Do not disturb"></span>
+                        </span>
+                        <div class="demo-label mt-1">Busy (no photo)</div>
+                    </div>
+                    <div class="text-center">
+                        <span class="avatar-wrap">
+                            <span class="avatar avatar-md">
+                                <svg class="avatar-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                                    <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
+                                    <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"/>
+                                </svg>
+                            </span>
+                            <span class="avatar-status" title="Offline"></span>
+                        </span>
+                        <div class="demo-label mt-1">Offline (no photo)</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ── Context: Profile page hero ────────────────────────────── -->
+            <section class="py-4">
+                <p class="demo-label text-uppercase fw-semibold mb-3">Context — Profile page hero</p>
+                <div class="card">
+                    <div class="card-body p-4">
+                        <div class="d-flex flex-column flex-sm-row align-items-center align-items-sm-start gap-4">
+                            <span class="avatar avatar-xxl flex-shrink-0">
+                                <img class="avatar-img" src="https://randomuser.me/api/portraits/women/44.jpg" alt="Jane Doe">
+                            </span>
+                            <div>
+                                <h4 class="mb-1">Jane Doe</h4>
+                                <p class="text-secondary mb-2">Senior Researcher · University of Example</p>
+                                <p class="mb-0 small">Specialises in sedimentary geochemistry and isotope analysis. Member since 2021.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Same but SVG (no photo set) -->
+                <div class="card mt-3">
+                    <div class="card-body p-4">
+                        <div class="d-flex flex-column flex-sm-row align-items-center align-items-sm-start gap-4">
+                            <span class="avatar avatar-xxl flex-shrink-0">
+                                <svg class="avatar-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                                    <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
+                                    <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"/>
+                                </svg>
+                            </span>
+                            <div>
+                                <h4 class="mb-1">Thomas Brennan</h4>
+                                <p class="text-secondary mb-2">Technician · Institute of Geology</p>
+                                <p class="mb-0 small">No profile photo set. The placeholder maintains the same footprint and layout.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </div><!-- /container -->
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    </body>
+</html>

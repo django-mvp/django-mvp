@@ -8,6 +8,14 @@
           <c-slot name="start">
             <c-breadcrumbs class="py-1" :items="page.breadcrumbs" />
           </c-slot>
+          {% if directory.create_url %}
+            <c-button text="{% trans "Add new" %}"
+                      icon="add"
+                      size="sm"
+                      variant="primary"
+                      class="show-btn-text"
+                      href="{{ directory.create_url }}" />
+          {% endif %}
         </c-mvp-toolbar>
       </c-slot>
     {% endblock page.header %}
@@ -22,12 +30,6 @@
                         icon="filter"
                         data-bs-target="#filterModal"
                         data-bs-toggle="modal" />
-            {% endif %}
-            {% if create_url %}
-              <c-button text="{% trans "Get started" %}"
-                        icon="add"
-                        class="show-btn-text"
-                        href="{{ create_url }}" />
             {% endif %}
           </c-action-row>
         </c-mvp-toolbar>

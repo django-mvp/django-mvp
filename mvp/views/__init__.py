@@ -1,4 +1,4 @@
-from .generic import MVPCreateView, MVPDeleteView, MVPDetailView, MVPFormView, MVPUpdateView
+from .generic import MVPCreateView, MVPDeleteView, MVPDetailView, MVPFormView, MVPTemplateView, MVPUpdateView
 from .list import MVPListView
 
 __all__ = [
@@ -7,5 +7,6 @@ __all__ = [
     "MVPDetailView",
     "MVPFormView",
     "MVPListView",
+    "MVPTemplateView",
     "MVPUpdateView",
 ]

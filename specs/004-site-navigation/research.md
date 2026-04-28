@@ -93,7 +93,7 @@ class AdminLTERenderer(BaseRenderer):
         """Add custom context for templates."""
         context = super().get_context_data(item, **kwargs)
         context["has_icon"] = "icon" in item.extra_context
-        context["is_active"] = self._check_active(item)
+        context["archived"] = self._check_active(item)
         return context
 ```
 
@@ -414,7 +414,7 @@ def get_context_data(self, item: MenuItem, **kwargs):
     if request:
         current_url_name = request.resolver_match.url_name
         item_url_name = item.view_name.split(':')[-1] if item.view_name else None
-        context['is_active'] = current_url_name == item_url_name
+        context['archived'] = current_url_name == item_url_name
 
     return context
 ```

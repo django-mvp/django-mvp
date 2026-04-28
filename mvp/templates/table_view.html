@@ -10,11 +10,11 @@
         <c-list.search-widget class="mvp-action-row-grow" />
         <c-list.order-widget />
         {% if filter %}<c-page.toolbar.sidebar-widget icon="filter" />{% endif %}
-        {% if create_url %}
+        {% if directory.create_url %}
           <c-button text="{% trans "Add new" %}"
                     icon="add"
                     class="show-btn-text"
-                    href="{{ create_url }}" />
+                    href="{{ directory.create_url }}" />
         {% endif %}
       </c-action-row>
     </c-mvp-toolbar>
