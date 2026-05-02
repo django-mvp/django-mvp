@@ -1,28 +1,115 @@
 from urllib.parse import urlencode
 
 from django.contrib import messages
+from django.contrib.messages.views import SuccessMessageMixin
 from django.db.models.deletion import ProtectedError
 from django.http import HttpResponseRedirect
 from django.urls import reverse
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.translation import gettext_lazy as _
 from django.views import generic
 
-from .mixins import BaseTemplateNameMixin, MVPFormViewMixin, MVPModelFormViewMixin, PageMixin, PageObjectMixin
+from .base import BaseTemplateNameMixin
+from .detail import PageObjectMixin
 
 
-class MVPTemplateView(PageMixin, generic.TemplateView):
-    """TemplateView with support for page configuration features like title and breadcrumbs."""
+class NextURLMixin:
+    """Mixin to determine the next URL to redirect to after form submission."""
 
-    pass
+    def get_next_url(self):
+        """Return a validated ``next`` URL from the current request, or ``None``.
+
+        On POST requests reads from POST data; on GET requests reads from the
+        query string. The candidate URL is validated against the current host
+        via ``url_has_allowed_host_and_scheme`` to prevent open redirects.
+
+        Returns:
+            str | None: Validated URL, or ``None`` if absent or unsafe.
+        """
+        if self.request.method == "POST":
+            candidate = self.request.POST.get("next")
+        else:
+            candidate = self.request.GET.get("next")
+
+        if candidate and url_has_allowed_host_and_scheme(
+            url=candidate,
+            allowed_hosts={self.request.get_host()},
+            require_https=self.request.is_secure(),
+        ):
+            return candidate
+        return None
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["next_url"] = self.get_next_url()
+        return context
 
 
-class MVPFormView(MVPFormViewMixin, generic.FormView):
+class MVPFormBase(SuccessMessageMixin, BaseTemplateNameMixin, NextURLMixin, PageObjectMixin):
+    """Base class for form views in AdminLTE layout with auto-detected renderer."""
+
+    base_template_name = "form_view.html"
+    page_class = "mvp-form-page"
+
+
+class MVPModelFormBase(MVPFormBase):
+    """Base class for model form views in AdminLTE layout with auto-detected renderer.
+
+    Features:
+
+        - Smart redirection after form submission based on 'next' parameter or default to list view
+        - Automatic page title generation based on model and action (Create/Edit/Delete)
+        - Breadcrumb generation with links back to list and detail views
+
+    """
+
+    def get_success_message(self, cleaned_data):
+        return self.success_message % {
+            **cleaned_data,
+            "verbose_name": self.model_meta.verbose_name,
+        }
+
+    def get_lookup_kwargs(self):
+        """Extend base lookup kwargs with a CreateView fallback.
+
+        After saving a new object ``self.kwargs`` is still empty, but
+        ``self.object`` now has a pk, so we use that to allow ``next=detail``
+        redirects after creation.
+        """
+        if lookup := super().get_lookup_kwargs():
+            return lookup
+        if obj := getattr(self, "object", None):
+            return {self.pk_url_kwarg: obj.pk}
+        return {}
+
+    def get_success_url(self):
+        """Determine the URL to redirect to after successful form submission.
+
+        Returns:
+            str: URL to redirect to
+        """
+        # Validated external 'next' URL from query string or POST data
+        if next_url := self.get_next_url():
+            return next_url
+
+        # 'next' as a CRUD action key in POST data (e.g. next=detail)
+        # Delegates entirely to _resolve_directory_url, which handles
+        # permission gating and object-action guarding automatically.
+        next_key = self.request.POST.get("next")
+        if next_key and next_key in self.crud_views:
+            if url := self._resolve_directory_url(next_key):
+                return url
+
+        return self.get_list_url()
+
+
+class MVPFormView(MVPFormBase, generic.FormView):
     """FormView with AdminLTE layout and auto-detected form rendering.
 
-    Combines MVPFormViewMixin with Django's FormView to provide a complete
+    Combines MVPFormBase with Django's FormView to provide a complete
     form view with automatic renderer detection and AdminLTE card layout.
 
-    Inherits all attributes and methods from MVPFormViewMixin and FormView.
+    Inherits all attributes and methods from MVPFormBase and FormView.
 
     Example:
         class ContactView(MVPFormView):
@@ -34,7 +121,7 @@ class MVPFormView(MVPFormViewMixin, generic.FormView):
     page_class = "mvp-form-page"
 
 
-class MVPCreateView(MVPModelFormViewMixin, generic.CreateView):
+class MVPCreateView(MVPModelFormBase, generic.CreateView):
     """CreateView with AdminLTE layout and auto-detected form rendering."""
 
     page_icon = "add"
@@ -43,7 +130,7 @@ class MVPCreateView(MVPModelFormViewMixin, generic.CreateView):
     success_message = _("%(verbose_name)s successfully created.")
 
 
-class MVPUpdateView(MVPModelFormViewMixin, generic.UpdateView):
+class MVPUpdateView(MVPModelFormBase, generic.UpdateView):
     """UpdateView with AdminLTE layout and auto-detected form rendering."""
 
     page_icon = "edit"
@@ -53,7 +140,7 @@ class MVPUpdateView(MVPModelFormViewMixin, generic.UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["delete_url"] = self.get_delete_url()
+        # context["delete_url"] = self.get_delete_url()
         return context
 
     def get_breadcrumbs(self):
@@ -88,7 +175,7 @@ class MVPUpdateView(MVPModelFormViewMixin, generic.UpdateView):
         return ""
 
 
-class MVPDeleteView(MVPModelFormViewMixin, generic.DeleteView):
+class MVPDeleteView(MVPModelFormBase, generic.DeleteView):
     """DeleteView with AdminLTE layout, enhanced for four deletion scenarios.
 
     Scenarios (all configurable via class attributes):
@@ -162,8 +249,6 @@ class MVPDeleteView(MVPModelFormViewMixin, generic.DeleteView):
         Returns:
             str: Validated back URL, or list URL as fallback.
         """
-        from django.utils.http import url_has_allowed_host_and_scheme
-
         candidate = self.request.GET.get("back")
         if candidate and url_has_allowed_host_and_scheme(
             url=candidate,
@@ -245,11 +330,3 @@ class MVPDeleteView(MVPModelFormViewMixin, generic.DeleteView):
 
         messages.success(request, self.get_success_message({}))
         return HttpResponseRedirect(success_url)
-
-
-class MVPDetailView(BaseTemplateNameMixin, PageObjectMixin, generic.DetailView):
-    base_template_name = "detail_view.html"
-    page_class = "mvp-detail-page"
-
-    def get_page_title(self):
-        return str(self.object)

@@ -1,4 +1,4 @@
-# django-cotton-layouts Development Guidelines
+ï»¿# django-cotton-layouts Development Guidelines
 
 Auto-generated from all feature plans. Last updated: 2025-12-23
 
@@ -29,8 +29,10 @@ Auto-generated from all feature plans. Last updated: 2025-12-23
 - N/A (works with any Django model) (008-dash-list-view)
 - Python 3.11+ with Django 4.2+ + Django, django-cotton, django-crispy-forms (optional), django-formset (optional) (009-form-view-mixin)
 - N/A (works with any Django model for ModelFormView) (009-form-view-mixin)
-- Python 3.11+ / Django 4.2–5.x + django-cotton (>=2.3.1), django-cotton-bs5 (>=0.9.0), django-flex-menus (>=0.4.1), django-easy-icons (>=0.5), AdminLTE 4 (rc3, bundled locally), Bootstrap 5 (001-app-components)
-- N/A (no database models — all state is declarative via template attributes) (001-app-components)
+- Python 3.11+ / Django 4.2ï¿½5.x + django-cotton (>=2.3.1), django-cotton-bs5 (>=0.9.0), django-flex-menus (>=0.4.1), django-easy-icons (>=0.5), AdminLTE 4 (rc3, bundled locally), Bootstrap 5 (001-app-components)
+- N/A (no database models ï¿½ all state is declarative via template attributes) (001-app-components)
+- Python 3.10+ + Django 4.2â€“5.x, pytest, pytest-django (003-base-mixin-classes)
+- N/A (no database models) (003-base-mixin-classes)
 
 - Python 3.11 (tests target) + Django, django-cotton, django-cotton-bs5, django-flex-menus, django-easy-icons, django-compressor, django-libsass, crispy-forms/bootstrap5 (001-outer-layout-config)
 
@@ -50,9 +52,9 @@ cd src; pytest; ruff check .
 Python 3.11 (tests target): Follow standard conventions
 
 ## Recent Changes
-- 001-app-components: Added Python 3.11+ / Django 4.2–5.x + django-cotton (>=2.3.1), django-cotton-bs5 (>=0.9.0), django-flex-menus (>=0.4.1), django-easy-icons (>=0.5), AdminLTE 4 (rc3, bundled locally), Bootstrap 5
+- 003-base-mixin-classes: Added Python 3.10+ + Django 4.2â€“5.x, pytest, pytest-django
+- 001-app-components: Added Python 3.11+ / Django 4.2ï¿½5.x + django-cotton (>=2.3.1), django-cotton-bs5 (>=0.9.0), django-flex-menus (>=0.4.1), django-easy-icons (>=0.5), AdminLTE 4 (rc3, bundled locally), Bootstrap 5
 - 009-form-view-mixin: Added Python 3.11+ with Django 4.2+ + Django, django-cotton, django-crispy-forms (optional), django-formset (optional)
-- 008-dash-list-view: Added Python 3.11+ with Django 4.2+ + Django, django-cotton, django-filter (optional), crispy-forms
 
 
 <!-- MANUAL ADDITIONS START -->

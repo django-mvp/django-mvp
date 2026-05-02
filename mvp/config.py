@@ -11,7 +11,18 @@ MVP_DEFAULT_VIEW_NAMES = _get_or_default(
         "list": "{model_name}-list",
         "detail": "{model_name}-detail",
         "create": "{model_name}-create",
-        "update": "{model_name}-edit",
+        "update": "{model_name}-update",
         "delete": "{model_name}-delete",
+    },
+)
+
+
+MVP_LANDING_PAGE_HERO = _get_or_default(
+    "MVP_LANDING_PAGE_HERO",
+    {
+        "subtitle": "Your new website",
+        "title": "Django MVP",
+        "lead": "A Django app to jumpstart your next project with a clean, modular architecture and modern design.",
+        "image": "mvp/landing_hero.png",
     },
 )

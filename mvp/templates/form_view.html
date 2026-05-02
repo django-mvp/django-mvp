@@ -4,55 +4,64 @@
   {{ block.super }}
   {{ form.media }}
 {% endblock head %}
+{% block page.title %}
+{% endblock page.title %}
 {% block page.content %}
   <c-dashboard>
     <c-section>
-      <c-form method="post">
-        <div class="row justify-content-center">
-          <div class="col">
-            {% block form_col %}
-              <c-card.simple>
-                {{ form|crispy }}
-              </c-card.simple>
-            {% endblock form_col %}
-          </div>
-          <div class="col-12 col-md-3">
-            <div class="d-flex flex-column gap-2">
-              {% block actions %}
-                <c-button text="{% trans "Save" %}"
-                          type="submit"
-                          name="next"
-                          value="list"
-                          variant="primary" />
-                <c-button text="{% trans "Save & view" %}"
-                          type="submit"
-                          name="next"
-                          value="detail"
-                          variant="primary"
-                          outline />
-                <c-button text="{% trans "Save & add another" %}"
-                          type="submit"
-                          name="next"
-                          value="create"
-                          variant="primary"
-                          outline />
-                <c-button text="{% trans "Save & continue editing" %}"
-                          type="submit"
-                          name="next"
-                          value="update"
-                          variant="primary"
-                          outline />
-                {% if object %}
-                  <c-button text="{% trans "Delete" %}"
-                            href="{{ delete_url }}"
-                            icon="delete"
-                            variant="danger" />
-                {% endif %}
-              {% endblock actions %}
+      <c-row class="justify-content-center">
+        <c-col col=12 md=9 lg=7>
+          <c-form method="post">
+            <div class="d-flex flex-column gap-3">
+              {% block form_col %}
+                <c-card title="{{ page.title }}" icon="{{ page.icon }}">
+                  {% comment %} If the form has a helper method, we MUST use the crispy tag. However, user must be sure to set form_tag = False {% endcomment %}
+                  {% if form.helper %}
+                    {% crispy form %}
+                  {% else %}
+                    {{ form|crispy }}
+                  {% endif %}
+                </c-card>
+              {% endblock form_col %}
+              <c-card class="p-1">
+                <c-action-row>
+                  {% block actions %}
+                    <c-button text="{% trans "Save entry" %}"
+                              type="submit"
+                              name="next"
+                              value="list"
+                              variant="primary" />
+                    {% comment %} <c-button text="{% trans "Save & view" %}"
+           type="submit"
+           name="next"
+           value="detail"
+           variant="primary"
+           outline /> {% endcomment %}
+                    <c-button text="{% trans "Save & add another" %}"
+                              type="submit"
+                              name="next"
+                              value="create"
+                              variant="primary"
+                              outline />
+                    <c-button text="{% trans "Save & continue editing" %}"
+                              type="submit"
+                              name="next"
+                              value="update"
+                              variant="primary"
+                              outline />
+                    {% if object %}
+                      <c-button text="{% trans "Delete" %}"
+                                href="{{ delete_url }}"
+                                icon="delete"
+                                variant="danger" />
+                    {% endif %}
+                  {% endblock actions %}
+                </c-action-row>
+              </c-card>
             </div>
-          </div>
-        </div>
-      </c-form>
+          </c-form>
+        </c-col>
+      </c-row>
     </c-section>
   </c-dashboard>
 {% endblock page.content %}

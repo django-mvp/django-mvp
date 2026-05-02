@@ -200,7 +200,63 @@ LOGIN_REQUIRED_IGNORE_VIEW_NAMES = ["home"]
 
 ---
 
-## Step 7 — Error Pages
+## Step 7 — Page Configuration (`PageMixin`)
+
+All django-mvp view classes inherit `PageMixin`, which injects a `page` dict into every
+template context. Set attributes as class-level assignments for static values, or override
+the corresponding `get_*()` method for dynamic values.
+
+### Attributes
+
+| Attribute | Type | Default | Template access |
+|-----------|------|---------|-----------------|
+| `page_title` | `str \| Promise` | `""` | `{{ page.title }}` |
+| `page_subtitle` | `str \| Promise` | `""` | `{{ page.subtitle }}` |
+| `page_icon` | `str \| None` | `None` | `{{ page.icon }}` |
+| `page_class` | `str` | `""` | `{{ page.class }}` (always prefixed with `"mvp-page"`) |
+| `breadcrumbs` | `list[dict]` | `[]` | `{% for crumb in page.breadcrumbs %}` |
+
+Each breadcrumb dict must have a `"text"` key. An optional `"href"` key makes it a link;
+omitting `"href"` renders it as the current (non-linked) page indicator.
+
+### Static configuration
+
+```python
+from mvp.views.base import MVPTemplateView
+
+class AboutView(MVPTemplateView):
+    template_name = "about.html"
+    page_title = "About Us"
+    page_subtitle = "Our mission"
+    page_icon = "info-circle"
+    page_class = "about-page"
+    breadcrumbs = [
+        {"text": "Home", "href": "/"},
+        {"text": "About"},  # no href = current page
+    ]
+```
+
+### Dynamic configuration
+
+Override the getter method when the value depends on the request, a resolved object,
+or other runtime state:
+
+```python
+class ProductDetailView(PageMixin, DetailView):
+    def get_page_title(self):
+        return self.object.name
+
+    def get_breadcrumbs(self):
+        return [
+            {"text": "Home", "href": "/"},
+            {"text": "Products", "href": "/products/"},
+            {"text": self.object.name},
+        ]
+```
+
+---
+
+## Step 8 — Error Pages
 
 **`templates/404.html`** — extends `base.html` safely (Django runs context processors
 for 404, so Cotton and menu rendering work):

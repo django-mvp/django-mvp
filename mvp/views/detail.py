@@ -1,105 +1,14 @@
 from functools import cached_property
 from typing import Any
 
-from django.contrib.messages.views import SuccessMessageMixin
 from django.core.exceptions import ImproperlyConfigured
 from django.urls import reverse
-from django.utils.functional import Promise
-from django.utils.http import url_has_allowed_host_and_scheme
+from django.views import generic
 
 from ..config import MVP_DEFAULT_VIEW_NAMES
+from .base import BaseTemplateNameMixin, PageMixin
 
 _OBJECT_ACTIONS = frozenset({"detail", "update", "delete"})
-
-
-class BaseTemplateNameMixin:
-    base_template_name = ""
-
-    def get_template_names(self):
-        """Determine the template to use for rendering the form.
-
-        Returns:
-            list[str]: List of template names to search, with the most specific first
-        """
-        template_names = super().get_template_names()
-        template_names.append(self.base_template_name)
-        return template_names
-
-
-class PageMixin:
-    """Combined mixin for adding both page modifiers and breadcrumbs to the template context."""
-
-    page_title: str | Promise = ""
-    page_subtitle: str | Promise = ""
-    page_icon: str | None = None
-    page_class = ""
-    # breadcrumbs = []
-
-    def get_context_data(self, **kwargs):
-        """Inject form renderer and page title into template context.
-
-        Returns:
-            dict: Context with form_renderer and page_title added
-        """
-        context = super().get_context_data(**kwargs)
-        context["page"] = self.get_page_context()
-        return context
-
-    def get_page_context(self):
-        """Return a dict of context variables related to page rendering.
-
-        Note: We group these together in a single 'page' dict to avoid cluttering the main context namespace and make it
-        easier to discern which context variable come from where.
-
-        """
-        return {
-            "title": self.get_page_title(),
-            "subtitle": self.get_page_subtitle(),
-            "icon": self.get_page_icon(),
-            "class": self.get_page_class(),
-            "breadcrumbs": self.get_breadcrumbs(),
-        }
-
-    def get_page_title(self):
-        """Return the page title for the form.
-
-        Returns:
-            str: Page title from page_title attribute
-        """
-        return self.page_title
-
-    def get_page_subtitle(self):
-        """Return the page subtitle for the form.
-
-        Returns:
-            str: Page subtitle from page_subtitle attribute
-        """
-        return self.page_subtitle
-
-    def get_page_icon(self) -> str | None:
-        """Return the icon name for the page.
-
-        Returns:
-            str or None: Icon name from icon attribute
-        """
-        return self.page_icon
-
-    def get_breadcrumbs(self):
-        """Return the list of breadcrumb items.
-
-        Returns:
-            list[dict]: List of breadcrumb items with 'text' and optional 'href'
-        """
-        return []
-
-    def get_page_class(self):
-        """Return the CSS class to apply to the page container.
-
-        Returns:
-            str: CSS class name(s) for the page container
-        """
-
-        return " ".join(filter(None, ["mvp-page", self.page_class]))
 
 
 class ModelInfoMixin:
@@ -220,20 +129,19 @@ class CRUDDirectoryMixin(ModelInfoMixin):
         Returns ``None`` for object-level actions (detail, update, delete) when
         no lookup kwargs are available (e.g. on list or create views).
         """
-        print("ARE WE EVEN GETTING HERE?", action)
         lookup_kwargs = self.get_lookup_kwargs()
         if action in self._OBJECT_ACTIONS and not lookup_kwargs:
             return None
 
         url_name = self._get_view_name(action)
 
-        # Optional permission gating: has_<action>_permission = True/False or callable(user) -> bool
+        # Only generate a URL if has_<action>_permission exists and returns True
         perm = getattr(self, f"has_{action}_permission", None)
-        print(perm)
-        if perm is not None:
-            allowed = perm(self.request.user) if callable(perm) else perm
-            if not allowed:
-                return None
+        if perm is None:
+            return None
+        allowed = perm(self.request.user) if callable(perm) else bool(perm)
+        if not allowed:
+            return None
 
         return reverse(url_name, kwargs=lookup_kwargs)
 
@@ -287,94 +195,9 @@ class PageObjectMixin(CRUDDirectoryMixin, ModelInfoMixin, PageMixin):
         return breadcrumbs
 
 
-class NextURLMixin:
-    """Mixin to determine the next URL to redirect to after form submission."""
+class MVPDetailView(BaseTemplateNameMixin, PageObjectMixin, generic.DetailView):
+    base_template_name = "detail_view.html"
+    page_class = "mvp-detail-page"
 
-    def get_next_url(self):
-        """Return a validated ``next`` URL from the current request, or ``None``.
-
-        On POST requests reads from POST data; on GET requests reads from the
-        query string. The candidate URL is validated against the current host
-        via ``url_has_allowed_host_and_scheme`` to prevent open redirects.
-
-        Returns:
-            str | None: Validated URL, or ``None`` if absent or unsafe.
-        """
-        if self.request.method == "POST":
-            candidate = self.request.POST.get("next")
-        else:
-            candidate = self.request.GET.get("next")
-
-        if candidate and url_has_allowed_host_and_scheme(
-            url=candidate,
-            allowed_hosts={self.request.get_host()},
-            require_https=self.request.is_secure(),
-        ):
-            return candidate
-        return None
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["next_url"] = self.get_next_url()
-        return context
-
-
-# =========== Form Mixins ===========
-
-
-class MVPFormViewMixin(SuccessMessageMixin, BaseTemplateNameMixin, NextURLMixin, PageObjectMixin):
-    """Mixin to render forms in AdminLTE layout with auto-detected renderer."""
-
-    base_template_name = "form_view.html"
-    page_class = "mvp-form-page"
-
-
-class MVPModelFormViewMixin(MVPFormViewMixin):
-    """Mixin to render model forms in AdminLTE layout with auto-detected renderer.
-
-    Features:
-
-        - Smart redirection after form submission based on 'next' parameter or default to list view
-        - Automatic page title generation based on model and action (Create/Edit/Delete)
-        - Breadcrumb generation with links back to list and detail views
-
-    """
-
-    def get_success_message(self, cleaned_data):
-        return self.success_message % {
-            **cleaned_data,
-            "verbose_name": self.model_meta.verbose_name,
-        }
-
-    def get_lookup_kwargs(self):
-        """Extend base lookup kwargs with a CreateView fallback.
-
-        After saving a new object ``self.kwargs`` is still empty, but
-        ``self.object`` now has a pk, so we use that to allow ``next=detail``
-        redirects after creation.
-        """
-        if lookup := super().get_lookup_kwargs():
-            return lookup
-        if obj := getattr(self, "object", None):
-            return {self.pk_url_kwarg: obj.pk}
-        return {}
-
-    def get_success_url(self):
-        """Determine the URL to redirect to after successful form submission.
-
-        Returns:
-            str: URL to redirect to
-        """
-        # Validated external 'next' URL from query string or POST data
-        if next_url := self.get_next_url():
-            return next_url
-
-        # 'next' as a CRUD action key in POST data (e.g. next=detail)
-        # Delegates entirely to _resolve_directory_url, which handles
-        # permission gating and object-action guarding automatically.
-        next_key = self.request.POST.get("next")
-        if next_key and next_key in self.crud_views:
-            if url := self._resolve_directory_url(next_key):
-                return url
-
-        return self.get_list_url()
+    def get_page_title(self):
+        return str(self.object)

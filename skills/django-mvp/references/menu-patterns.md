@@ -22,7 +22,7 @@ from mvp.menus import AppMenu, MenuGroup
 
 AppMenu.extend([
     MenuGroup("tracking", children=[
-        MenuItem("episodes", view_name="episode_list",
+        MenuItem("episodes", view_name="episode-list",
                  extra_context={"label": "Episodes", "icon": "journal-text"}),
         MenuItem("dashboard", view_name="home",
                  extra_context={"label": "Dashboard", "icon": "speedometer2"}),

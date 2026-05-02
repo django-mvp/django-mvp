@@ -40,3 +40,17 @@
     --rating: 50;
     background-color: hsl(var(--rating), 70%, 30%);
 }
+
+
+html[data-bs-theme="dark"] {
+  .dark-theme-only {
+    display: block;
+  }
+  
+}
+
+html[data-bs-theme="light"] {
+  .light-theme-only {
+    display: block;
+  }
+}

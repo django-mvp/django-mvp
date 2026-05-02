@@ -1,9 +1,28 @@
-<div class="px-4 py-5 my-5 text-center">
-  {{ top }}
-  <h1 class="display-5 fw-bold">{{ title }}</h1>
-  <div class="col-lg-6 mx-auto">
-    <p class="lead mb-4">{{ lead }}</p>
-    {% if actions %}<div class="d-grid gap-2 d-sm-flex justify-content-sm-center">{{ actions }}</div>{% endif %}
-    {{ slot }}
+<c-vars parallax
+        speed="0.5"
+        bg-image="https://picsum.photos/id/1018/1000/600"
+        title
+        subtitle
+        actions
+        backdrop="0.6" />
+<div class="{% if parallax %}parallax{% endif %} {{ class }}"
+     data-speed="{{ speed }}"
+     data-height="{{ height }}"
+     data-image="{{ bg_image }}">
+  <div class="position-absolute"
+       style="top: 0;
+              right: 0;
+              bottom: 0;
+              left: 0;
+              background-color: rgba(0, 0, 0, {{ backdrop }})"></div>
+  <div class="text-center p-5 position-relative">
+    {% if subtitle %}<span class="text-uppercase text-white w-bold">{{ subtitle }}</span>{% endif %}
+    <h1 class="mb-3 mt-2 fw-bold">{{ title }}</h1>
+    {% if lead %}<p class="lead">{{ lead }}</p>{% endif %}
+    {% if actions %}
+      <c-action-row class="justify-content-center pt-4">
+        {{ actions }}
+      </c-action-row>
+    {% endif %}
   </div>
 </div>

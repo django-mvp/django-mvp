@@ -1,11 +1,11 @@
 """Views and view mixins for django-mvp."""
 
 from django.db.models import Q
-from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import ListView
 
-from .mixins import BaseTemplateNameMixin, CRUDDirectoryMixin, PageMixin
+from .base import BaseTemplateNameMixin, PageMixin
+from .detail import CRUDDirectoryMixin
 
 
 class SearchMixin:
@@ -308,20 +308,7 @@ class MVPListViewMixin(BaseTemplateNameMixin, SearchOrderMixin, CRUDDirectoryMix
             "heading": self.get_empty_state_heading(),
             "message": self.get_empty_state_message(),
         }
-        context["create_url"] = self.get_create_url()
         return context
-
-    def get_create_view_name(self) -> str:
-        if not getattr(self, "model", None):
-            return ""
-        app_name, model_name = self.model._meta.app_label, self.model._meta.model_name
-        return self.create_view_name.format(app_name=app_name, model_name=model_name)
-
-    def get_create_url(self):
-        create_view_name = self.get_create_view_name()
-        if create_view_name:
-            return reverse(create_view_name)
-        return ""
 
     def get_empty_state_heading(self) -> str | None:
         return self.empty_state_heading
