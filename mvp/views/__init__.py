@@ -18,12 +18,18 @@ from .list import (
     SearchOrderMixin,
 )
 
+# Public aliases — preferred import names for developers
+PageView = MVPTemplateView
+HomeView = MVPHomeView
+
 __all__ = [
     # base
     "BaseTemplateNameMixin",
     "PageMixin",
     "MVPTemplateView",
     "MVPHomeView",
+    "PageView",
+    "HomeView",
     # detail
     "ModelInfoMixin",
     "CRUDDirectoryMixin",

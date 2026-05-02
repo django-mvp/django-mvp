@@ -1,0 +1,10 @@
+{% extends "page_view.html" %}
+{% load i18n %}
+{% block page.content %}
+  <div class="dashboard-welcome mb-5">
+    <h2>
+      {% blocktrans with name=request.user.get_full_name|default:request.user.username %}Welcome, {{ name }}{% endblocktrans %}
+    </h2>
+    <p class="text-muted">{% trans "Add your dashboard widgets here." %}</p>
+  </div>
+{% endblock page.content %}

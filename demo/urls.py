@@ -3,6 +3,8 @@
 from django.conf import settings
 from django.urls import include, path
 
+from mvp.views import HomeView, PageView
+
 from . import views
 from .views import (
     ContactFormView,
@@ -17,8 +19,27 @@ from .views import (
 )
 
 urlpatterns = [
-    # Main dashboard
-    path("", MVPDemoView.as_view(template_name="demo/home.html"), name="home"),
+    # Main home — landing for guests, dashboard for authenticated users
+    path(
+        "",
+        HomeView.as_view(
+            landing_template_name="demo/landing.html",
+            dashboard_template_name="demo/dashboard.html",
+        ),
+        name="home",
+    ),
+    # About page — PageView demo
+    path(
+        "about/",
+        PageView.as_view(
+            template_name="demo/about.html",
+            page_title="About Us",
+            page_subtitle="Learn more",
+            page_icon="info-circle",
+            breadcrumbs=[{"text": "Home", "href": "/"}, {"text": "About"}],
+        ),
+        name="about",
+    ),
     path("shell/", FullShellDemoView.as_view(), name="full_shell_demo"),
     path("layout/", views.LayoutDemoView.as_view(), name="layout_demo"),
     path("page-layout/", views.PageLayoutDemoView.as_view(), name="page_layout_demo"),
@@ -51,3 +72,6 @@ urlpatterns = [
 
 if settings.DEBUG:
     urlpatterns.append(path("__reload__/", include("django_browser_reload.urls")))
+
+# Auth URLs (provides login, logout, password change, etc.)
+urlpatterns += [path("accounts/", include("django.contrib.auth.urls"))]

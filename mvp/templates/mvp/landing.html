@@ -1,0 +1,17 @@
+{% extends "page_view.html" %}
+{% load static %}
+{% block page.content %}
+  <div class="hero-section text-center py-5">
+    {% if hero_content.image %}
+      <img src="{% static hero_content.image %}"
+           alt="{{ hero_content.title }}"
+           class="img-fluid mb-4"
+           height="200"
+           width="auto"
+           style="max-height: 200px" />
+    {% endif %}
+    <h1 class="display-4 fw-bold mb-3">{{ hero_content.title }}</h1>
+    <h2 class="h4 text-muted mb-4">{{ hero_content.subtitle }}</h2>
+    <p class="lead mb-5">{{ hero_content.lead }}</p>
+  </div>
+{% endblock page.content %}

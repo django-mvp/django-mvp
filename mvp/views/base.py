@@ -35,6 +35,7 @@ class BaseTemplateNameMixin:
         from django.views.generic import DetailView
         from mvp.views.base import BaseTemplateNameMixin
 
+
         class MyDetailView(BaseTemplateNameMixin, DetailView):
             model = MyModel
             base_template_name = "my_detail_base.html"
@@ -66,7 +67,9 @@ class BaseTemplateNameMixin:
                 base_template_name = "detail_view.html"
 
                 def get_template_names(self):
-                    names = super().get_template_names()  # ['myapp/mymodel_detail.html', 'detail_view.html']
+                    names = (
+                        super().get_template_names()
+                    )  # ['myapp/mymodel_detail.html', 'detail_view.html']
                     if self.object.is_featured:
                         names.insert(0, "myapp/featured_detail.html")
                     return names
@@ -118,6 +121,7 @@ class PageMixin:
 
         from mvp.views.base import PageMixin
         from django.views.generic import TemplateView
+
 
         class DashboardView(PageMixin, TemplateView):
             template_name = "dashboard.html"
@@ -189,6 +193,7 @@ class PageMixin:
             class ReportView(PageMixin, TemplateView):
                 page_title = "Monthly Report"
 
+
             # Dynamic title — override this method:
             class ProductDetailView(PageMixin, DetailView):
                 def get_page_title(self):
@@ -249,6 +254,7 @@ class PageMixin:
             class AboutView(PageMixin, TemplateView):
                 breadcrumbs = [{"text": "Home", "href": "/"}, {"text": "About"}]
 
+
             # Dynamic breadcrumbs — override this method:
             class ProductDetailView(PageMixin, DetailView):
                 def get_breadcrumbs(self):
@@ -292,14 +298,20 @@ class MVPHomeView(MVPTemplateView):
     """Home page view. Shows stats and recent activity for authenticated users. Landing page for unauthenticated users."""
 
     page_title = _("Home")
-    dashboard_template = "mvp/dashboard.html"
-    landing_template = "mvp/landing.html"
+    dashboard_template_name = "mvp/dashboard.html"
+    landing_template_name = "mvp/landing.html"
 
     def get_template_names(self):
         """Choose template based on authentication status."""
+        if self.landing_template_name is None:
+            raise ImproperlyConfigured(f"{self.__class__.__name__} requires `landing_template_name` to be set.")
         if self.request.user.is_authenticated:
-            return [self.dashboard_template]
-        return [self.landing_template]
+            if self.dashboard_template_name is None:
+                raise ImproperlyConfigured(
+                    f"{self.__class__.__name__} requires `dashboard_template_name` to be set for authenticated users."
+                )
+            return [self.dashboard_template_name]
+        return [self.landing_template_name]
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

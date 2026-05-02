@@ -60,7 +60,7 @@ Usage:
   {% if title %}
     {# djlint:off #}
     <h{{level}} class="mvp-toolbar-start mb-0 fs-{{ fs|default:level }}">
-    <c-icon name="{{ icon }}" class="me-1" />  
+    {% if icon %}<c-icon name="{{ icon }}" class="me-1" />{% endif %}
     {{ title }}</h{{level}}>
     {# djlint:on #}
   {% endif %}

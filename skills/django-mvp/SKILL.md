@@ -176,27 +176,78 @@ To inject custom slot content above/below the menu, use named slots:
 
 ---
 
-## Step 6 — Dual-Mode Home View
+## Step 6 — Zero-Config Views: `PageView` and `HomeView`
 
-When the root URL must serve different content for authenticated vs. unauthenticated
-users **at the same URL** (no redirect), override `get_template_names()`:
+django-mvp ships two ready-to-use view classes that require no model, form, or queryset.
+
+### `PageView` — Plain layout-aware template view
+
+Wire any informational page (About, FAQ, Terms, etc.) directly in `urls.py`:
 
 ```python
-class HomeView(View):
-    def get_template_names(self):
-        if self.request.user.is_authenticated:
-            return ["home/authenticated.html"]
-        return ["home/unauthenticated.html"]
+from mvp.views import PageView
+
+urlpatterns = [
+    path("about/", PageView.as_view(
+        template_name="myapp/about.html",
+        page_title="About Us",
+        page_subtitle="Who we are",
+        page_icon="info-circle",  # must be a registered EASY_ICONS name
+        breadcrumbs=[{"text": "Home", "href": "/"}, {"text": "About"}],
+    ), name="about"),
+]
 ```
 
-- `home/authenticated.html` — extends `base.html` (gets full AdminLTE layout)
-- `home/unauthenticated.html` — extends `mvp/base.html` directly, override `{% block app %}` to
-  provide a public layout (no sidebar), with Sign In / Sign Up links only
+Create the template extending `page_view.html`:
 
-If `login_required` middleware is active project-wide, exempt the home view:
+```django
+{# myapp/templates/myapp/about.html #}
+{% extends "page_view.html" %}
+{% block page.content %}
+  <p>Welcome to our about page.</p>
+{% endblock page.content %}
+```
+
+`PageView` is an alias for `MVPTemplateView`. Import from `mvp.views`.
+
+### `HomeView` — Landing page for guests, dashboard for authenticated users
+
+Serves different templates from the same URL with **no redirect**:
+
 ```python
-LOGIN_REQUIRED_IGNORE_VIEW_NAMES = ["home"]
+from mvp.views import HomeView
+
+urlpatterns = [
+    path("", HomeView.as_view(
+        landing_template_name="myapp/landing.html",
+        dashboard_template_name="myapp/dashboard.html",
+    ), name="home"),
+]
 ```
+
+| Attribute | Default | Description |
+|-----------|---------|-------------|
+| `landing_template_name` | `"mvp/landing.html"` | Template for anonymous visitors |
+| `dashboard_template_name` | `"mvp/dashboard.html"` | Template for authenticated users |
+
+**Bundled defaults**: omit both attributes to use the built-in `mvp/landing.html` and `mvp/dashboard.html` templates. The landing template reads from `MVP_LANDING_PAGE_HERO` in settings.
+
+**`ImproperlyConfigured` guard**: raises with a diagnostic message if `landing_template_name` is `None` (for any request), or if `dashboard_template_name` is `None` when an authenticated user requests the page.
+
+**Extending with context hooks**:
+
+```python
+class AppHomeView(HomeView):
+    landing_template_name = "myapp/landing.html"
+    dashboard_template_name = "myapp/dashboard.html"
+
+    def get_dashboard_context(self, context):
+        context = super().get_dashboard_context(context)
+        context["recent_items"] = MyModel.objects.order_by("-created")[:5]
+        return context
+```
+
+`HomeView` is an alias for `MVPHomeView`. Import from `mvp.views`.
 
 ---
 

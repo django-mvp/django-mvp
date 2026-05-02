@@ -95,6 +95,9 @@ DATABASES = {
 
 AUTH_PASSWORD_VALIDATORS = []
 
+LOGIN_REDIRECT_URL = "/"
+LOGOUT_REDIRECT_URL = "/"
+
 STATIC_URL = "/static/"
 STATIC_ROOT = str(BASE_DIR / "static")
 
@@ -202,5 +205,3 @@ FLEX_MENUS = {
     },
     "log_url_failures": DEBUG,
 }
-
-

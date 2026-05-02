@@ -301,13 +301,14 @@ class TestMVPHomeView:
         user = User.objects.create_user(username="dashuser", password="pass")
         view = self._make_view(user)
         templates = view.get_template_names()
-        assert templates == ["mvp/dashboard.html"]
+        assert templates == [view.dashboard_template_name]
 
     def test_anonymous_user_gets_landing_template(self):
         from django.contrib.auth.models import AnonymousUser
+
         view = self._make_view(AnonymousUser())
         templates = view.get_template_names()
-        assert templates == ["mvp/landing.html"]
+        assert templates == [view.landing_template_name]
 
     @pytest.mark.django_db
     def test_authenticated_context_calls_dashboard_context(self):
@@ -319,6 +320,227 @@ class TestMVPHomeView:
 
     def test_unauthenticated_context_includes_hero_content(self):
         from django.contrib.auth.models import AnonymousUser
+
         view = self._make_view(AnonymousUser())
         context = view.get_context_data()
         assert "hero_content" in context
+
+
+# ---------------------------------------------------------------------------
+# TestPageViewAlias (T016, T017 — US1)
+# ---------------------------------------------------------------------------
+
+
+class TestPageViewAlias:
+    def test_page_view_is_mvp_template_view(self):
+        import mvp.views as views_module
+        from mvp.views.base import MVPTemplateView
+
+        assert views_module.PageView is MVPTemplateView
+
+    def test_page_view_in_all(self):
+        import mvp.views as views_module
+
+        assert "PageView" in views_module.__all__
+
+    def test_page_view_as_view_returns_callable(self):
+        from mvp.views import PageView
+
+        callable_view = PageView.as_view(template_name="page_view.html")
+        assert callable(callable_view)
+
+    def test_page_view_context_has_page_title(self):
+        from mvp.views import PageView
+
+        request = RequestFactory().get("/")
+        view = PageView(template_name="page_view.html", page_title="Test Title")
+        view.request = request
+        view.kwargs = {}
+        view.args = []
+        context = view.get_context_data()
+        assert context["page"]["title"] == "Test Title"
+
+    def test_page_view_context_class_starts_with_mvp_page(self):
+        from mvp.views import PageView
+
+        request = RequestFactory().get("/")
+        view = PageView(template_name="page_view.html")
+        view.request = request
+        view.kwargs = {}
+        view.args = []
+        context = view.get_context_data()
+        assert context["page"]["class"].startswith("mvp-page")
+
+
+# ---------------------------------------------------------------------------
+# TestHomeViewAlias (T031, T032 — US2)
+# ---------------------------------------------------------------------------
+
+
+class TestHomeViewAlias:
+    def test_home_view_is_mvp_home_view(self):
+        import mvp.views as views_module
+        from mvp.views.base import MVPHomeView
+
+        assert views_module.HomeView is MVPHomeView
+
+    def test_home_view_in_all(self):
+        import mvp.views as views_module
+
+        assert "HomeView" in views_module.__all__
+
+    def test_mvp_home_view_default_landing_template_name(self):
+        from mvp.views.base import MVPHomeView
+
+        assert MVPHomeView.landing_template_name == "mvp/landing.html"
+
+    def test_mvp_home_view_default_dashboard_template_name(self):
+        from mvp.views.base import MVPHomeView
+
+        assert MVPHomeView.dashboard_template_name == "mvp/dashboard.html"
+
+    def test_mvp_home_view_default_page_title(self):
+        from django.utils.translation import gettext_lazy as _
+
+        from mvp.views.base import MVPHomeView
+
+        assert str(MVPHomeView.page_title) == str(_("Home"))
+
+    def test_landing_template_none_raises_for_anonymous(self):
+        from django.contrib.auth.models import AnonymousUser
+
+        from mvp.views.base import MVPHomeView
+
+        request = RequestFactory().get("/")
+        request.user = AnonymousUser()
+        view = MVPHomeView()
+        view.landing_template_name = None
+        view.request = request
+        with pytest.raises(ImproperlyConfigured, match="landing_template_name"):
+            view.get_template_names()
+
+    def test_landing_template_none_error_message_contains_class_name(self):
+        from django.contrib.auth.models import AnonymousUser
+
+        from mvp.views.base import MVPHomeView
+
+        request = RequestFactory().get("/")
+        request.user = AnonymousUser()
+        view = MVPHomeView()
+        view.landing_template_name = None
+        view.request = request
+        with pytest.raises(ImproperlyConfigured, match="MVPHomeView"):
+            view.get_template_names()
+
+    @pytest.mark.django_db
+    def test_dashboard_template_none_raises_for_authenticated(self):
+        user = User.objects.create_user(username="guardtest1", password="pass")
+        request = RequestFactory().get("/")
+        request.user = user
+        from mvp.views.base import MVPHomeView
+
+        view = MVPHomeView()
+        view.dashboard_template_name = None
+        view.request = request
+        with pytest.raises(ImproperlyConfigured, match="dashboard_template_name"):
+            view.get_template_names()
+
+    def test_dashboard_template_none_no_error_for_anonymous(self):
+        from django.contrib.auth.models import AnonymousUser
+
+        from mvp.views.base import MVPHomeView
+
+        request = RequestFactory().get("/")
+        request.user = AnonymousUser()
+        view = MVPHomeView()
+        view.dashboard_template_name = None
+        view.request = request
+        # Should not raise — anonymous users get the landing template
+        templates = view.get_template_names()
+        assert templates == [view.landing_template_name]
+
+    def test_both_none_anonymous_raises_on_landing_template_name(self):
+        from django.contrib.auth.models import AnonymousUser
+
+        from mvp.views.base import MVPHomeView
+
+        request = RequestFactory().get("/")
+        request.user = AnonymousUser()
+        view = MVPHomeView()
+        view.landing_template_name = None
+        view.dashboard_template_name = None
+        view.request = request
+        with pytest.raises(ImproperlyConfigured, match="landing_template_name"):
+            view.get_template_names()
+
+
+# ---------------------------------------------------------------------------
+# TestPageViewLayoutIntegration (T042 — US4)
+# Integration tests using Django test client to verify layout config attributes
+# flow through to rendered HTML.
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+class TestPageViewLayoutIntegration:
+    """Integration tests: PageView layout config attributes appear in rendered HTML."""
+
+    def test_page_title_in_rendered_html(self, client):
+        """page_title set via as_view() appears in rendered content area."""
+        response = client.get("/about/")
+        assert response.status_code == 200
+        assert b"About Us" in response.content
+
+    def test_page_subtitle_in_rendered_html(self, client):
+        """page_subtitle set via as_view() appears in rendered content."""
+        response = client.get("/about/")
+        assert response.status_code == 200
+        assert b"Learn more" in response.content
+
+    def test_breadcrumbs_in_rendered_html(self, client):
+        """breadcrumbs set via as_view() render in the breadcrumb nav."""
+        response = client.get("/about/")
+        assert response.status_code == 200
+        content = response.content.decode()
+        assert "Home" in content
+        assert "About" in content
+
+    def test_page_class_in_container_element(self):
+        """page_class value flows through get_page_class() with mvp-page prefix."""
+        from mvp.views import PageView
+
+        request = RequestFactory().get("/")
+        view = PageView(
+            template_name="page_view.html",
+            page_class="sidebar-collapse",
+        )
+        view.request = request
+        view.kwargs = {}
+        view.args = []
+        context = view.get_context_data()
+        assert "sidebar-collapse" in context["page"]["class"]
+        assert context["page"]["class"].startswith("mvp-page")
+
+    def test_all_layout_attributes_in_context(self):
+        """All page_* attributes are present in the page context dict."""
+        from mvp.views import PageView
+
+        request = RequestFactory().get("/")
+        view = PageView(
+            template_name="page_view.html",
+            page_title="T",
+            page_subtitle="S",
+            page_icon="info-circle",
+            page_class="sidebar-collapse",
+            breadcrumbs=[{"text": "Home", "href": "/"}],
+        )
+        view.request = request
+        view.kwargs = {}
+        view.args = []
+        context = view.get_context_data()
+        page = context["page"]
+        assert page["title"] == "T"
+        assert page["subtitle"] == "S"
+        assert page["icon"] == "info-circle"
+        assert "sidebar-collapse" in page["class"]
+        assert page["breadcrumbs"] == [{"text": "Home", "href": "/"}]

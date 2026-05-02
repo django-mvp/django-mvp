@@ -1,0 +1,469 @@
+/**
+ * Page Layout System - Variables
+ */
+/**
+ * Page Layout System - Main Container
+ *
+ * Provides a nested grid-based layout system for use within AdminLTE's main content area.
+ */
+.mvp-layout {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  grid-template-rows: min-content 1fr min-content;
+  grid-area: page;
+  height: 100%;
+  width: 100%;
+  gap: 0;
+  position: relative;
+  overflow: hidden;
+  --sidebar-width: 280px;
+}
+.mvp-layout.scrollable {
+  overflow: visible;
+  height: auto;
+}
+.mvp-layout.scrollable > .mvp-header {
+  z-index: 3;
+}
+.mvp-layout > .mvp-header {
+  grid-area: header;
+  z-index: 1;
+}
+.mvp-layout > .mvp-content {
+  grid-area: page;
+  position: relative;
+  min-width: 0;
+  overflow: auto;
+}
+.mvp-layout > .mvp-sidebar.sidebar-fixed {
+  height: 100vh;
+  position: sticky;
+  top: 0;
+}
+.mvp-layout > .mvp-sidebar.mvp-sidebar-left {
+  grid-area: left;
+}
+.mvp-layout > .mvp-sidebar.mvp-sidebar-right {
+  grid-area: right;
+}
+.mvp-layout > .mvp-footer {
+  grid-area: footer;
+  z-index: 1;
+}
+
+.mvp-layout.lhr-lpr-lfr {
+  grid-template-areas: "left header right" "left page right" "left footer right";
+}
+
+.mvp-layout.lhr-lpr-lff {
+  grid-template-areas: "left header right" "left page right" "left footer footer";
+}
+
+.mvp-layout.lhr-lpr-ffr {
+  grid-template-areas: "left header right" "left page right" "footer footer right";
+}
+
+.mvp-layout.lhr-lpr-fff {
+  grid-template-areas: "left header right" "left page right" "footer footer footer";
+}
+
+.mvp-layout.lhr-lpp-lfr {
+  grid-template-areas: "left header right" "left page page" "left footer right";
+}
+
+.mvp-layout.lhr-lpp-lff {
+  grid-template-areas: "left header right" "left page page" "left footer footer";
+}
+
+.mvp-layout.lhr-lpp-ffr {
+  grid-template-areas: "left header right" "left page page" "footer footer right";
+}
+
+.mvp-layout.lhr-lpp-fff {
+  grid-template-areas: "left header right" "left page page" "footer footer footer";
+}
+
+.mvp-layout.lhr-ppr-lfr {
+  grid-template-areas: "left header right" "page page right" "left footer right";
+}
+
+.mvp-layout.lhr-ppr-lff {
+  grid-template-areas: "left header right" "page page right" "left footer footer";
+}
+
+.mvp-layout.lhr-ppr-ffr {
+  grid-template-areas: "left header right" "page page right" "footer footer right";
+}
+
+.mvp-layout.lhr-ppr-fff {
+  grid-template-areas: "left header right" "page page right" "footer footer footer";
+}
+
+.mvp-layout.lhh-lpr-lfr {
+  grid-template-areas: "left header header" "left page right" "left footer right";
+}
+
+.mvp-layout.lhh-lpr-lff {
+  grid-template-areas: "left header header" "left page right" "left footer footer";
+}
+
+.mvp-layout.lhh-lpr-ffr {
+  grid-template-areas: "left header header" "left page right" "footer footer right";
+}
+
+.mvp-layout.lhh-lpr-fff {
+  grid-template-areas: "left header header" "left page right" "footer footer footer";
+}
+
+.mvp-layout.lhh-lpp-lfr {
+  grid-template-areas: "left header header" "left page page" "left footer right";
+}
+
+.mvp-layout.lhh-lpp-lff {
+  grid-template-areas: "left header header" "left page page" "left footer footer";
+}
+
+.mvp-layout.lhh-lpp-ffr {
+  grid-template-areas: "left header header" "left page page" "footer footer right";
+}
+
+.mvp-layout.lhh-lpp-fff {
+  grid-template-areas: "left header header" "left page page" "footer footer footer";
+}
+
+.mvp-layout.lhh-ppr-lfr {
+  grid-template-areas: "left header header" "page page right" "left footer right";
+}
+
+.mvp-layout.lhh-ppr-lff {
+  grid-template-areas: "left header header" "page page right" "left footer footer";
+}
+
+.mvp-layout.lhh-ppr-ffr {
+  grid-template-areas: "left header header" "page page right" "footer footer right";
+}
+
+.mvp-layout.lhh-ppr-fff {
+  grid-template-areas: "left header header" "page page right" "footer footer footer";
+}
+
+.mvp-layout.hhr-lpr-lfr {
+  grid-template-areas: "header header right" "left page right" "left footer right";
+}
+
+.mvp-layout.hhr-lpr-lff {
+  grid-template-areas: "header header right" "left page right" "left footer footer";
+}
+
+.mvp-layout.hhr-lpr-ffr {
+  grid-template-areas: "header header right" "left page right" "footer footer right";
+}
+
+.mvp-layout.hhr-lpr-fff {
+  grid-template-areas: "header header right" "left page right" "footer footer footer";
+}
+
+.mvp-layout.hhr-lpp-lfr {
+  grid-template-areas: "header header right" "left page page" "left footer right";
+}
+
+.mvp-layout.hhr-lpp-lff {
+  grid-template-areas: "header header right" "left page page" "left footer footer";
+}
+
+.mvp-layout.hhr-lpp-ffr {
+  grid-template-areas: "header header right" "left page page" "footer footer right";
+}
+
+.mvp-layout.hhr-lpp-fff {
+  grid-template-areas: "header header right" "left page page" "footer footer footer";
+}
+
+.mvp-layout.hhr-ppr-lfr {
+  grid-template-areas: "header header right" "page page right" "left footer right";
+}
+
+.mvp-layout.hhr-ppr-lff {
+  grid-template-areas: "header header right" "page page right" "left footer footer";
+}
+
+.mvp-layout.hhr-ppr-ffr {
+  grid-template-areas: "header header right" "page page right" "footer footer right";
+}
+
+.mvp-layout.hhr-ppr-fff {
+  grid-template-areas: "header header right" "page page right" "footer footer footer";
+}
+
+.mvp-layout.hhh-lpr-lfr {
+  grid-template-areas: "header header header" "left page right" "left footer right";
+}
+
+.mvp-layout.hhh-lpr-lff {
+  grid-template-areas: "header header header" "left page right" "left footer footer";
+}
+
+.mvp-layout.hhh-lpr-ffr {
+  grid-template-areas: "header header header" "left page right" "footer footer right";
+}
+
+.mvp-layout.hhh-lpr-fff {
+  grid-template-areas: "header header header" "left page right" "footer footer footer";
+}
+
+.mvp-layout.hhh-lpp-lfr {
+  grid-template-areas: "header header header" "left page page" "left footer right";
+}
+
+.mvp-layout.hhh-lpp-lff {
+  grid-template-areas: "header header header" "left page page" "left footer footer";
+}
+
+.mvp-layout.hhh-lpp-ffr {
+  grid-template-areas: "header header header" "left page page" "footer footer right";
+}
+
+.mvp-layout.hhh-lpp-fff {
+  grid-template-areas: "header header header" "left page page" "footer footer footer";
+}
+
+.mvp-layout.hhh-ppr-lfr {
+  grid-template-areas: "header header header" "page page right" "left footer right";
+}
+
+.mvp-layout.hhh-ppr-lff {
+  grid-template-areas: "header header header" "page page right" "left footer footer";
+}
+
+.mvp-layout.hhh-ppr-ffr {
+  grid-template-areas: "header header header" "page page right" "footer footer right";
+}
+
+.mvp-layout.hhh-ppr-fff {
+  grid-template-areas: "header header header" "page page right" "footer footer footer";
+}
+
+/**
+ * Page Layout System - Sidebar Area
+ */
+.mvp-sidebar {
+  overflow-y: visible;
+  overflow-x: clip;
+  z-index: 1;
+}
+.mvp-sidebar .sidebar-wrapper {
+  width: var(--sidebar-width);
+  overflow: auto;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+html[data-mvp-sidebar-collapsed=true] .mvp-sidebar {
+  margin-right: calc(var(--sidebar-width) * -1);
+  opacity: 0;
+  border-left: none !important;
+}
+
+.mvp-layout.sidebar-fixed .mvp-sidebar {
+  position: sticky;
+  top: 0;
+  max-height: 100vh;
+  z-index: 5;
+}
+
+@media (max-width: calc(576px - 1px)) {
+  .mvp-layout.sidebar-breakpoint-sm .mvp-sidebar {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1050;
+    max-height: 100vh;
+    box-shadow: -2px 0 8px rgba(0, 0, 0, 0.15);
+    margin-right: calc(var(--sidebar-width) * -1);
+    width: var(--sidebar-width) !important;
+    opacity: 1 !important;
+  }
+  .mvp-layout.sidebar-breakpoint-sm .mvp-sidebar:not(.collapsed) {
+    margin-right: 0;
+  }
+  .mvp-layout.sidebar-breakpoint-sm.sidebar-toggleable .mvp-sidebar:not(.collapsed) ~ .mvp-sidebar-overlay, .mvp-layout.sidebar-breakpoint-sm.sidebar-toggleable:has(.mvp-sidebar:not(.collapsed))::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1040;
+    background-color: rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    animation: fadeIn 0.3s both;
+  }
+}
+
+@media (max-width: calc(768px - 1px)) {
+  .mvp-layout.sidebar-breakpoint-md .mvp-sidebar {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1050;
+    max-height: 100vh;
+    box-shadow: -2px 0 8px rgba(0, 0, 0, 0.15);
+    margin-right: calc(var(--sidebar-width) * -1);
+    width: var(--sidebar-width) !important;
+    opacity: 1 !important;
+  }
+  .mvp-layout.sidebar-breakpoint-md .mvp-sidebar:not(.collapsed) {
+    margin-right: 0;
+  }
+  .mvp-layout.sidebar-breakpoint-md.sidebar-toggleable .mvp-sidebar:not(.collapsed) ~ .mvp-sidebar-overlay, .mvp-layout.sidebar-breakpoint-md.sidebar-toggleable:has(.mvp-sidebar:not(.collapsed))::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1040;
+    background-color: rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    animation: fadeIn 0.3s both;
+  }
+}
+
+@media (max-width: calc(992px - 1px)) {
+  .mvp-layout.sidebar-breakpoint-lg .mvp-sidebar {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1050;
+    max-height: 100vh;
+    box-shadow: -2px 0 8px rgba(0, 0, 0, 0.15);
+    margin-right: calc(var(--sidebar-width) * -1);
+    width: var(--sidebar-width) !important;
+    opacity: 1 !important;
+  }
+  .mvp-layout.sidebar-breakpoint-lg .mvp-sidebar:not(.collapsed) {
+    margin-right: 0;
+  }
+  .mvp-layout.sidebar-breakpoint-lg.sidebar-toggleable .mvp-sidebar:not(.collapsed) ~ .mvp-sidebar-overlay, .mvp-layout.sidebar-breakpoint-lg.sidebar-toggleable:has(.mvp-sidebar:not(.collapsed))::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1040;
+    background-color: rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    animation: fadeIn 0.3s both;
+  }
+}
+
+@media (max-width: calc(1200px - 1px)) {
+  .mvp-layout.sidebar-breakpoint-xl .mvp-sidebar {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1050;
+    max-height: 100vh;
+    box-shadow: -2px 0 8px rgba(0, 0, 0, 0.15);
+    margin-right: calc(var(--sidebar-width) * -1);
+    width: var(--sidebar-width) !important;
+    opacity: 1 !important;
+  }
+  .mvp-layout.sidebar-breakpoint-xl .mvp-sidebar:not(.collapsed) {
+    margin-right: 0;
+  }
+  .mvp-layout.sidebar-breakpoint-xl.sidebar-toggleable .mvp-sidebar:not(.collapsed) ~ .mvp-sidebar-overlay, .mvp-layout.sidebar-breakpoint-xl.sidebar-toggleable:has(.mvp-sidebar:not(.collapsed))::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1040;
+    background-color: rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    animation: fadeIn 0.3s both;
+  }
+}
+
+@media (max-width: calc(1400px - 1px)) {
+  .mvp-layout.sidebar-breakpoint-xxl .mvp-sidebar {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1050;
+    max-height: 100vh;
+    box-shadow: -2px 0 8px rgba(0, 0, 0, 0.15);
+    margin-right: calc(var(--sidebar-width) * -1);
+    width: var(--sidebar-width) !important;
+    opacity: 1 !important;
+  }
+  .mvp-layout.sidebar-breakpoint-xxl .mvp-sidebar:not(.collapsed) {
+    margin-right: 0;
+  }
+  .mvp-layout.sidebar-breakpoint-xxl.sidebar-toggleable .mvp-sidebar:not(.collapsed) ~ .mvp-sidebar-overlay, .mvp-layout.sidebar-breakpoint-xxl.sidebar-toggleable:has(.mvp-sidebar:not(.collapsed))::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1040;
+    background-color: rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    animation: fadeIn 0.3s both;
+  }
+}
+
+.mvp-sidebar-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem;
+  min-height: 2rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  transition: all 0.2s ease;
+}
+.mvp-sidebar-toggle i {
+  transition: transform 0.2s ease;
+}
+
+.mvp-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+}
+.mvp-container.compact {
+  padding-top: 0.4rem;
+  padding-bottom: 0.4rem;
+  gap: 0.5rem;
+}
+.mvp-container.compact .page-toolbar-start,
+.mvp-container.compact .page-toolbar-end {
+  gap: 0.35rem;
+}
+.mvp-container-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 0 1 auto;
+}
+.mvp-container-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+.mvp-container .btn {
+  white-space: nowrap !important;
+}/*# sourceMappingURL=mvp-layout.css.map */
