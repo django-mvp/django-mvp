@@ -23,12 +23,14 @@ User = get_user_model()
 @pytest.fixture
 def category(db):
     from demo.models import Category
+
     return Category.objects.create(name="E2E Cat", slug="e2e-cat")
 
 
 @pytest.fixture
 def product(category):
     from demo.models import Product
+
     return Product.objects.create(
         name="E2E Product",
         slug="e2e-product",
@@ -41,17 +43,13 @@ def product(category):
 
 @pytest.fixture
 def staff_user(db):
-    user = User.objects.create_user(
-        username="e2e_staff", password="pass", is_staff=True, is_active=True
-    )
+    user = User.objects.create_user(username="e2e_staff", password="pass", is_staff=True, is_active=True)
     return user
 
 
 @pytest.fixture
 def regular_user(db):
-    user = User.objects.create_user(
-        username="e2e_regular", password="pass", is_staff=False, is_active=True
-    )
+    user = User.objects.create_user(username="e2e_regular", password="pass", is_staff=False, is_active=True)
     return user
 
 
@@ -130,3 +128,48 @@ class TestUS5ReadOnlyUserHidesActionButtons:
         content = response.content.decode()
         list_url = reverse("product-list")
         assert list_url in content, "List link must be present for all users"
+
+
+# ---------------------------------------------------------------------------
+# US4 E2E Tests — Object-Named Heading, Breadcrumb Trail, and CSS Classes
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.e2e
+@pytest.mark.django_db
+class TestUS4ProductDetailPageHeadingAndCSSClass:
+    """[US4] ProductDetailView renders str(product) as heading, correct breadcrumb, and model CSS classes."""
+
+    def test_product_detail_page_heading_equals_str_product(self, client, product):
+        """[US4] Visible heading matches str(product) — US4 AC1."""
+        url = reverse("product-detail", kwargs={"pk": product.pk})
+        response = client.get(url)
+        assert response.status_code == 200
+        content = response.content.decode()
+        assert "<h1" in content and str(product) in content, f"Heading element containing '{product!s}' must be present"
+
+    def test_product_detail_breadcrumb_ends_with_product_name(self, client, product):
+        """[US4] Final breadcrumb item text equals str(product) — US4 AC3."""
+        url = reverse("product-detail", kwargs={"pk": product.pk})
+        response = client.get(url)
+        assert response.status_code == 200
+        content = response.content.decode()
+        product_name = str(product)
+        # The breadcrumb trail should contain the product name as the last item
+        assert product_name in content, f"Breadcrumb must contain '{product_name}'"
+
+    def test_product_detail_page_container_has_model_css_class(self, client, product):
+        """[US4] div.mvp-layout class attribute contains 'product-page' — FR-005."""
+        url = reverse("product-detail", kwargs={"pk": product.pk})
+        response = client.get(url)
+        assert response.status_code == 200
+        content = response.content.decode()
+        assert "product-page" in content, "CSS class 'product-page' must be present in the page container"
+
+    def test_product_detail_page_container_has_action_css_class(self, client, product):
+        """[US4] div.mvp-layout class attribute contains 'mvp-detail-page' — FR-009."""
+        url = reverse("product-detail", kwargs={"pk": product.pk})
+        response = client.get(url)
+        assert response.status_code == 200
+        content = response.content.decode()
+        assert "mvp-detail-page" in content, "CSS class 'mvp-detail-page' must be present in the page container"

@@ -457,6 +457,87 @@ crud_views = {
 
 ---
 
+## Step 10 — Object Page Foundation (`PageObjectMixin` + `MVPDetailView`)
+
+`PageObjectMixin` and `MVPDetailView` are the shared composition layer for all
+object-level views (detail, create, update, delete).
+
+### PageObjectMixin
+
+`PageObjectMixin` merges three prior building blocks into a single inheritable base:
+
+- **Model resolution** — from `ModelInfoMixin` via `CRUDDirectoryMixin`
+- **Permission-gated sibling URLs** — from `CRUDDirectoryMixin`
+- **Page header and breadcrumbs** — from `PageMixin`
+
+```python
+from mvp.views import PageObjectMixin
+```
+
+Key class attributes and methods:
+
+| Attribute / Method | Description |
+|---|---|
+| `list_view_title = ""` | Override text for the breadcrumb back-link. Defaults to `verbose_name_plural.title()`. |
+| `get_list_title()` | Returns `list_view_title` or the model's plural verbose name, title-cased. |
+| `get_list_url()` | Returns the resolved list URL, or `""` when suppressed by permission gating. |
+| `get_breadcrumbs()` | Two-item trail: `[{"text": list_title, "href": list_url}, {"text": page_title}]`. |
+| `get_page_class()` | Appends `{model_name}-page` to the class string from `PageMixin.get_page_class()`. |
+
+### MVPDetailView
+
+`MVPDetailView` is the simplest concrete result — a zero-configuration read-only detail page:
+
+```python
+from mvp.views import MVPDetailView
+from myapp.models import Order
+
+class OrderDetailView(MVPDetailView):
+    model = Order
+```
+
+Wire it to a URL:
+
+```python
+urlpatterns = [
+    path("orders/<int:pk>/", OrderDetailView.as_view(), name="myapp_order_detail"),
+]
+```
+
+The rendered page automatically:
+
+- Sets the page title to `str(order_instance)` (from `Order.__str__`).
+- Applies CSS classes `mvp-page mvp-detail-page order-page` to the page container.
+- Tries `myapp/order_detail.html` first, falls back to `detail_view.html`.
+
+### Breadcrumb wiring via `has_list_permission`
+
+```python
+class OrderDetailView(MVPDetailView):
+    model = Order
+    directory = ["list"]
+    has_list_permission = True
+    list_view_title = "Active Orders"  # optional; defaults to verbose_name_plural.title()
+```
+
+Breadcrumb trail: `Active Orders  >  Order #42`
+
+### Effective CSS classes
+
+For a view with `model = Order`:
+
+```
+mvp-page  mvp-detail-page  order-page
+```
+
+`mvp-page` — always present (from `PageMixin`)
+`mvp-detail-page` — action class set on `MVPDetailView.page_class`
+`order-page` — model-name class appended by `PageObjectMixin.get_page_class()`
+
+> **Full guide**: `specs/007-object-page-foundation/quickstart.md`
+
+---
+
 ## Common Pitfalls
 
 **"AppMenu items don't appear"**
