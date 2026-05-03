@@ -4,7 +4,7 @@
   {{ page.title }}
 {% endblock title %}
 {% block content %}
-  <c-page class="{{ page_class }} mb-5">
+  <c-page class="{{ page.class }} mb-5">
     {% block page.header %}
       <c-slot name="header">
         <c-mvp-toolbar class="container-fluid mb">
