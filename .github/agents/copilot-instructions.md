@@ -55,9 +55,9 @@ cd src; pytest; ruff check .
 Python 3.11 (tests target): Follow standard conventions
 
 ## Recent Changes
+- 006-crud-directory-mixin: Added Python 3.11+ + Django 4.2+
+- 006-crud-directory-mixin: Added [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS CLARIFICATION] + [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION]
 - 005-model-resolution-mixin: Added Python 3.11+ + Django 4.2+
-- 004-zero-config-views: Added Python 3.11+ + Django 4.2+, django-cotton (Cotton component syntax), django-cotton-bs5 (prebuilt Bootstrap 5 components)
-- 003-base-mixin-classes: Added Python 3.10+ + Django 4.2–5.x, pytest, pytest-django
 
 
 <!-- MANUAL ADDITIONS START -->

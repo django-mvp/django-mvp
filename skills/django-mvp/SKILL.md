@@ -351,6 +351,112 @@ Manual smoke-test checklist (visit in browser):
 
 ---
 
+---
+
+## Step 9 — CRUD Directory Mixin (`CRUDDirectoryMixin`)
+
+`CRUDDirectoryMixin` removes URL wiring boilerplate from model-driven views. Declare
+which CRUD actions to include, set a permission flag per action, and the mixin resolves
+URLs automatically. Templates read from the `directory` context variable.
+
+### Basic usage
+
+```python
+from mvp.views import MVPDetailView
+
+class ProductDetailView(MVPDetailView):
+    model = Product
+    directory = ["list", "detail", "update", "delete"]
+
+    # All permissions default to False — opt in per action:
+    has_list_permission   = True
+    has_detail_permission = True   # note: NOT has_read_permission
+    has_update_permission = True
+    has_delete_permission = True
+```
+
+In the template:
+
+```django
+{% if directory.update_url %}
+  <a href="{{ directory.update_url }}" class="btn btn-primary">Edit</a>
+{% endif %}
+{% if directory.delete_url %}
+  <a href="{{ directory.delete_url }}" class="btn btn-danger">Delete</a>
+{% endif %}
+{% if directory.list_url %}
+  <a href="{{ directory.list_url }}">&larr; Back to list</a>
+{% endif %}
+```
+
+The `directory` context key is **always present** — even when all permissions are
+denied it is an empty dict. Use `{% if directory.update_url %}` safely without fallback.
+
+### Permission attributes (all default to `False`)
+
+| Attribute | Action |
+|-----------|--------|
+| `has_list_permission` | `"list"` |
+| `has_detail_permission` | `"detail"` |
+| `has_create_permission` | `"create"` |
+| `has_update_permission` | `"update"` |
+| `has_delete_permission` | `"delete"` |
+
+> **Breaking change (006)**: `has_read_permission` was renamed to `has_detail_permission`.
+> Using `has_read_permission` has no effect — the attribute is not checked by the mixin.
+
+For dynamic gating use a `staticmethod` callable:
+
+```python
+class ProductUpdateView(MVPUpdateView):
+    model = Product
+    directory = ["list", "delete"]
+    has_list_permission = True
+
+    @staticmethod
+    def has_delete_permission(user):
+        return user.is_staff
+```
+
+### Override point: `get_url_kwargs(action: str) -> dict | None`
+
+Controls which URL kwargs are forwarded for each action. Override for nested URLs:
+
+```python
+def get_url_kwargs(self, action: str) -> dict | None:
+    project_pk = self.kwargs["project_pk"]
+    if action in {"list", "create"}:
+        return {"project_pk": project_pk}   # collection URLs need parent only
+    pk = self.kwargs.get("pk")
+    if pk is None:
+        return None  # silently suppress — no object in scope
+    return {"project_pk": project_pk, "pk": pk}
+```
+
+Returning `None` suppresses the URL silently (no `NoReverseMatch` attempted).
+Returning `{}` reverses with no kwargs (valid for collection actions).
+
+> **Breaking change (006)**: `get_lookup_kwargs()` was replaced by
+> `get_url_kwargs(action: str) -> dict | None`. The new method is action-aware and
+> returns `{}` for `"list"` / `"create"` by default, preventing `NoReverseMatch` on
+> collection URLs when called from an object-level view.
+
+### Custom URL naming via `crud_views`
+
+Override `crud_views` if your project does not follow the `{model_name}-{action}` convention:
+
+```python
+crud_views = {
+    "list":   "catalogue:{model_name}-index",
+    "detail": "catalogue:{model_name}-view",
+    "update": "catalogue:{model_name}-modify",
+    "create": "catalogue:{model_name}-new",
+    "delete": "catalogue:{model_name}-remove",
+}
+```
+
+---
+
 ## Common Pitfalls
 
 **"AppMenu items don't appear"**

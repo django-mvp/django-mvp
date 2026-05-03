@@ -4,7 +4,9 @@
         renderer
         submit_text="{% trans "Save" %}" />
 <c-modal fade center>
-  <c-form method="{{ method }}" action="{{ action }}">
+  <c-form method="{{ method }}"
+          action="{{ action }}"
+          {{ attrs }}>
     <c-card.header title="{{ title }}"
                    icon="obsession"
                    :end="header_actions">
