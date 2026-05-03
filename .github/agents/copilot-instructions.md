@@ -35,6 +35,7 @@ Auto-generated from all feature plans. Last updated: 2025-12-23
 - N/A (no database models) (003-base-mixin-classes)
 - Python 3.11+ + Django 4.2+, django-cotton (Cotton component syntax), django-cotton-bs5 (prebuilt Bootstrap 5 components) (004-zero-config-views)
 - N/A — both views are stateless and query-free (004-zero-config-views)
+- N/A — pure mixin, no database interaction (005-model-resolution-mixin)
 
 - Python 3.11 (tests target) + Django, django-cotton, django-cotton-bs5, django-flex-menus, django-easy-icons, django-compressor, django-libsass, crispy-forms/bootstrap5 (001-outer-layout-config)
 
@@ -54,9 +55,9 @@ cd src; pytest; ruff check .
 Python 3.11 (tests target): Follow standard conventions
 
 ## Recent Changes
+- 005-model-resolution-mixin: Added Python 3.11+ + Django 4.2+
 - 004-zero-config-views: Added Python 3.11+ + Django 4.2+, django-cotton (Cotton component syntax), django-cotton-bs5 (prebuilt Bootstrap 5 components)
 - 003-base-mixin-classes: Added Python 3.10+ + Django 4.2–5.x, pytest, pytest-django
-- 001-app-components: Added Python 3.11+ / Django 4.2�5.x + django-cotton (>=2.3.1), django-cotton-bs5 (>=0.9.0), django-flex-menus (>=0.4.1), django-easy-icons (>=0.5), AdminLTE 4 (rc3, bundled locally), Bootstrap 5
 
 
 <!-- MANUAL ADDITIONS START -->

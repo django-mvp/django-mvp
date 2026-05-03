@@ -1,5 +1,5 @@
-from .base import BaseTemplateNameMixin, MVPHomeView, MVPTemplateView, PageMixin
-from .detail import CRUDDirectoryMixin, ModelInfoMixin, MVPDetailView, PageObjectMixin
+from .base import BaseTemplateNameMixin, ModelInfoMixin, MVPHomeView, MVPTemplateView, PageMixin
+from .detail import CRUDDirectoryMixin, MVPDetailView, PageObjectMixin
 from .edit import (
     MVPCreateView,
     MVPDeleteView,

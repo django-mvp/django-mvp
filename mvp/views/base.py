@@ -1,3 +1,5 @@
+from functools import cached_property
+
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.functional import Promise
 from django.utils.translation import gettext_lazy as _
@@ -286,6 +288,78 @@ class PageMixin:
         """
 
         return " ".join(filter(None, ["mvp-page", self.page_class]))
+
+
+class ModelInfoMixin:
+    """Mixin to provide model metadata in the template context."""
+
+    @cached_property
+    def model_meta(self):
+        """Return the meta options of the model class for this view. Subclasses can override this if they need to
+        customize how the model class is determined.
+
+        Returns:
+            type: The Django model class associated with this view
+        """
+        return self.get_model_class()._meta
+
+    def get_model_class(self):
+        """Resolve the model class for this view across common configuration styles."""
+
+        # 1) Explicit model attribute
+        if getattr(self, "model", None) is not None:
+            return self.model
+
+        # 2) Queryset/model from SingleObjectMixin/ModelFormMixin path
+        try:
+            queryset = self.get_queryset()
+        except Exception:
+            queryset = None
+        if queryset is not None and getattr(queryset, "model", None) is not None:
+            return queryset.model
+
+        # 3) Model declared on a custom form class (ModelForm)
+        form_class = getattr(self, "form_class", None)
+        if form_class is None:
+            try:
+                form_class = self.get_form_class()
+            except Exception:
+                form_class = None
+        if form_class is not None:
+            model = getattr(getattr(form_class, "_meta", None), "model", None)
+            if model is not None:
+                return model
+
+        # 4) Fallback when an object instance is already available
+        if getattr(self, "object", None) is not None:
+            return self.object.__class__
+
+        raise ImproperlyConfigured(
+            f"{self.__class__.__name__} inherits from `ModelInfoMixin` but could not determine a model class. "
+            "Set `model`, `queryset`, use a ModelForm `form_class` or override the `get_model_class()` method."
+        )
+
+    def get_model_info(self):
+        """Return a dict of details about the model for use in templates.
+
+        Returns:
+            dict: Details about the model, including:
+                - verbose_name: The human-readable name of the model
+                - verbose_name_plural: The plural form of the human-readable name
+                - app_label: The Django app label for the model
+                - model_name: The lowercase name of the model
+        """
+        return {
+            "verbose_name": self.model_meta.verbose_name,
+            "verbose_name_plural": self.model_meta.verbose_name_plural,
+            "app_label": self.model_meta.app_label,
+            "model_name": self.model_meta.model_name,
+        }
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["model_info"] = self.get_model_info()
+        return context
 
 
 class MVPTemplateView(PageMixin, generic.TemplateView):
