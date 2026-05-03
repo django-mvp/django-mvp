@@ -69,18 +69,19 @@ class MVPModelFormBase(MVPFormBase):
             "verbose_name": self.model_meta.verbose_name,
         }
 
-    def get_lookup_kwargs(self):
-        """Extend base lookup kwargs with a CreateView fallback.
+    def get_url_kwargs(self, action: str) -> dict | None:
+        """Extend base URL kwargs with a CreateView fallback.
 
         After saving a new object ``self.kwargs`` is still empty, but
         ``self.object`` now has a pk, so we use that to allow ``next=detail``
         redirects after creation.
         """
-        if lookup := super().get_lookup_kwargs():
-            return lookup
+        result = super().get_url_kwargs(action)
+        if result is not None:
+            return result
         if obj := getattr(self, "object", None):
             return {self.pk_url_kwarg: obj.pk}
-        return {}
+        return None
 
     def get_success_url(self):
         """Determine the URL to redirect to after successful form submission.
@@ -140,7 +141,7 @@ class MVPUpdateView(MVPModelFormBase, generic.UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # context["delete_url"] = self.get_delete_url()
+        context["delete_url"] = self.get_delete_url()
         return context
 
     def get_breadcrumbs(self):
@@ -160,19 +161,20 @@ class MVPUpdateView(MVPModelFormBase, generic.UpdateView):
     def get_delete_url(self):
         """Return the URL to use for the delete view link in the form header.
 
-        Appends ``?next=<list url>`` so the delete view redirects to the list
-        after a successful deletion rather than back to the (now-gone) object.
+        Routes through ``_resolve_directory_url("delete")`` so that
+        ``has_delete_permission`` gates the URL. Appends ``?back=<update url>&next=<list url>``
+        so the delete view redirects to the list after successful deletion.
 
         Returns:
-            str: URL for the delete view link
+            str: URL for the delete view link, or empty string when suppressed.
         """
-        if delete_view_name := self._get_view_name("delete"):
-            url = reverse(delete_view_name, kwargs=self.get_lookup_kwargs())
-            back_url = reverse(self._get_view_name("update"), kwargs=self.get_lookup_kwargs())
-            next_url = self.get_list_url()
-            params = urlencode({"back": back_url, "next": next_url})
-            return f"{url}?{params}"
-        return ""
+        url = self._resolve_directory_url("delete")
+        if not url:
+            return ""
+        back_url = reverse(self._get_view_name("update"), kwargs=self.get_url_kwargs("update"))
+        next_url = self.get_list_url()
+        params = urlencode({"back": back_url, "next": next_url})
+        return f"{url}?{params}"
 
 
 class MVPDeleteView(MVPModelFormBase, generic.DeleteView):

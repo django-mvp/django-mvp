@@ -6,19 +6,20 @@ from django.views import generic
 from ..config import MVP_DEFAULT_VIEW_NAMES
 from .base import BaseTemplateNameMixin, ModelInfoMixin, PageMixin
 
-_OBJECT_ACTIONS = frozenset({"detail", "update", "delete"})
-
 
 class CRUDDirectoryMixin(ModelInfoMixin):
     """Mixin to provide URLs for related CRUD views in the template context.
 
     This mixin assumes a standard set of CRUD view names based on the model name and action (list, detail, create, update, delete).
-    The view names can be customized via the `crud_views` attribute, which should be a dict mapping action keys to URL name patterns. The URL name patterns can include `{model_name}` and `{app_name}` placeholders that will be filled in based on the model metadata.
     """
 
     crud_views = MVP_DEFAULT_VIEW_NAMES
     directory = []
-    _OBJECT_ACTIONS = _OBJECT_ACTIONS
+    has_list_permission = False
+    has_detail_permission = False
+    has_create_permission = False
+    has_update_permission = False
+    has_delete_permission = False
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -35,33 +36,42 @@ class CRUDDirectoryMixin(ModelInfoMixin):
             raise ValueError(f"Invalid action '{action}'. Must be one of: {', '.join(self.crud_views.keys())}")
         return self.crud_views[action].format(model_name=self.model_meta.model_name, app_name=self.model_meta.app_label)
 
-    def get_lookup_kwargs(self) -> dict:
-        """Return URL kwargs for reversing object-level URLs.
+    def get_url_kwargs(self, action: str) -> dict | None:
+        """Return URL kwargs for reversing the URL for ``action``.
 
-        Returns a copy of all URL kwargs captured by the dispatcher (``self.kwargs``),
-        which is empty on views without an object in the URL (list, create).
+        Default behaviour:
+        - ``"list"`` and ``"create"`` → ``{}`` (collection-level, no object needed).
+        - All other actions → ``dict(self.kwargs)`` or ``None`` when kwargs are empty.
 
-        For nested URLs (e.g. ``/projects/<project_pk>/tasks/<pk>/``), override this
-        method to remove parent resource kwargs that sibling URLs don't expect::
+        Override to branch on ``action`` for nested URL patterns::
 
-            def get_lookup_kwargs(self):
-                return {"pk": self.kwargs["pk"]}
+            def get_url_kwargs(self, action: str) -> dict | None:
+                if action in {"list", "create"}:
+                    return {"project_pk": self.kwargs["project_pk"]}
+                pk = self.kwargs.get("pk")
+                if pk is None:
+                    return None
+                return {"project_pk": self.kwargs["project_pk"], "pk": pk}
+
+        Return ``None`` to suppress the action silently (no URL generated, no error raised).
         """
-        return dict(self.kwargs)
+        if action in {"list", "create"}:
+            return {}
+        return dict(self.kwargs) or None
 
     def _resolve_directory_url(self, action: str) -> str | None:
         """Resolve the URL for a single CRUD action.
 
-        Returns ``None`` for object-level actions (detail, update, delete) when
-        no lookup kwargs are available (e.g. on list or create views).
+        Returns ``None`` when the action is suppressed by a ``None`` return from
+        ``get_url_kwargs``, a missing/falsy permission attribute, or a falsy callable.
         """
-        lookup_kwargs = self.get_lookup_kwargs()
-        if action in self._OBJECT_ACTIONS and not lookup_kwargs:
+        url_kwargs = self.get_url_kwargs(action)
+        if url_kwargs is None:
             return None
 
         url_name = self._get_view_name(action)
 
-        # Only generate a URL if has_<action>_permission exists and returns True
+        # Only generate a URL if has_<action>_permission exists and evaluates to True
         perm = getattr(self, f"has_{action}_permission", None)
         if perm is None:
             return None
@@ -69,14 +79,14 @@ class CRUDDirectoryMixin(ModelInfoMixin):
         if not allowed:
             return None
 
-        return reverse(url_name, kwargs=lookup_kwargs)
+        return reverse(url_name, kwargs=url_kwargs)
 
     def get_directory(self) -> dict[str, str]:
         """Return a dict mapping ``{action}_url`` keys to resolved URLs.
 
         Only actions listed in ``self.directory`` are included. Entries whose
-        resolved URL is ``None`` (e.g. suppressed by a ``get_{action}_url``
-        hook or missing object context) are omitted from the result.
+        resolved URL is ``None`` (e.g. suppressed by a ``get_url_kwargs``
+        return of ``None`` or missing permission) are omitted from the result.
         """
         result = {}
         for action in self.directory:
@@ -86,7 +96,7 @@ class CRUDDirectoryMixin(ModelInfoMixin):
         return result
 
 
-class PageObjectMixin(CRUDDirectoryMixin, ModelInfoMixin, PageMixin):
+class PageObjectMixin(CRUDDirectoryMixin, PageMixin):
     object: Any
     list_view_title = ""
 

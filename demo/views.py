@@ -17,6 +17,7 @@ from demo.tables import ProductTable
 from mvp.views import (
     MVPCreateView,
     MVPDeleteView,
+    MVPDetailView,
     MVPFormView,
     MVPUpdateView,
 )
@@ -206,6 +207,26 @@ class ProductCreateView(MVPCreateView):
     fields = ["name", "slug", "category", "description", "price", "stock", "status"]
 
 
+class ProductDetailView(MVPDetailView):
+    """
+    Demo product detail page for CRUDDirectoryMixin verification.
+
+    Demonstrates permission-gated directory URLs: staff users see edit/delete
+    buttons; read-only users do not. The list link is always visible.
+    """
+
+    model = Product
+    directory = ["list", "detail", "update", "delete"]
+    has_list_permission = True
+    has_detail_permission = True
+
+    def has_update_permission(self, user):
+        return user.is_staff
+
+    def has_delete_permission(self, user):
+        return user.is_staff
+
+
 class ProductUpdateView(MVPUpdateView):
     """
     Demo product edit form for MVPUpdateView verification.
@@ -217,6 +238,8 @@ class ProductUpdateView(MVPUpdateView):
     model = Product
     fields = ["name", "slug", "category", "description", "price", "stock", "status"]
     page_title = "Edit Product"
+    has_list_permission = True
+    has_delete_permission = True
 
 
 class ProductDeleteView(MVPDeleteView):
@@ -228,6 +251,7 @@ class ProductDeleteView(MVPDeleteView):
     """
 
     model = Product
+    has_list_permission = True
 
 
 class ProductDeleteWithRelatedView(MVPDeleteView):
@@ -235,6 +259,7 @@ class ProductDeleteWithRelatedView(MVPDeleteView):
 
     model = Product
     show_related_objects = True
+    has_list_permission = True
 
 
 class ProductDeleteWithConfirmView(MVPDeleteView):
@@ -242,3 +267,4 @@ class ProductDeleteWithConfirmView(MVPDeleteView):
 
     model = Product
     require_confirmation = True
+    has_list_permission = True

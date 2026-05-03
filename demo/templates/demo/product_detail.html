@@ -1,0 +1,46 @@
+{% extends "detail_view.html" %}
+{% load i18n %}
+
+{% block page.actions %}
+  {% if directory.list_url %}
+    <a class="btn btn-outline-secondary btn-sm" href="{{ directory.list_url }}">
+      <i class="bi bi-arrow-left"></i> {% trans "Back to list" %}
+    </a>
+  {% endif %}
+  {% if directory.update_url %}
+    <a class="btn btn-primary btn-sm" href="{{ directory.update_url }}">
+      <i class="bi bi-pencil"></i> {% trans "Edit" %}
+    </a>
+  {% endif %}
+  {% if directory.delete_url %}
+    <a class="btn btn-danger btn-sm" href="{{ directory.delete_url }}">
+      <i class="bi bi-trash"></i> {% trans "Delete" %}
+    </a>
+  {% endif %}
+{% endblock page.actions %}
+
+{% block page.content %}
+  <div class="row g-3">
+    <div class="col-12 col-md-6">
+      <dl class="row">
+        <dt class="col-sm-4">{% trans "Name" %}</dt>
+        <dd class="col-sm-8">{{ object.name }}</dd>
+
+        <dt class="col-sm-4">{% trans "Category" %}</dt>
+        <dd class="col-sm-8">{{ object.category }}</dd>
+
+        <dt class="col-sm-4">{% trans "Price" %}</dt>
+        <dd class="col-sm-8">${{ object.price }}</dd>
+
+        <dt class="col-sm-4">{% trans "Stock" %}</dt>
+        <dd class="col-sm-8">{{ object.stock }}</dd>
+
+        <dt class="col-sm-4">{% trans "Status" %}</dt>
+        <dd class="col-sm-8">{{ object.get_status_display }}</dd>
+      </dl>
+    </div>
+    <div class="col-12 col-md-6">
+      <p class="text-muted">{{ object.description }}</p>
+    </div>
+  </div>
+{% endblock page.content %}
