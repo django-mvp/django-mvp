@@ -8,9 +8,9 @@ description: "Task list template for feature implementation"
 **Input**: Design documents from `/specs/[###-feature-name]/`
 **Prerequisites**: plan.md (required), spec.md (required for user stories), research.md, data-model.md, contracts/
 
-**Workflow**: Following Design-First approach - implement and verify design BEFORE writing tests. Tests are REQUIRED for behavior changes but come AFTER design verification. Use pytest + pytest-django for backend/integration and pytest-playwright for UI behavior. End-to-end tests with playwright are REQUIRED for all features. UI changes MUST be verified using the Playwright MCP server DURING implementation. Use context7 for up-to-date library documentation. Every phase that modifies Django code MUST include a validation task running `python manage.py check` AND the pytest suite for the touched area. Every phase that modifies UI MUST include a Playwright MCP server verification task asserting specific UX behaviour from the user story acceptance criteria. When the work touches Cotton components, tests MUST be placed under `tests/test_components/`, grouped by top-level `templates/cotton/` directory (one module for `app`, one for `forms`, etc.), and top-level single-file components (for example `grid.html`, `icon.html`) MUST be grouped into one shared top-level module.
+**Tests**: The examples below include test tasks. Tests are OPTIONAL - only include them if explicitly requested in the feature specification.
 
-**Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story. Each story follows: Design → Implement → Verify → Test.
+**Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story.
 
 ## Format: `[ID] [P?] [Story] Description`
 
@@ -23,24 +23,23 @@ description: "Task list template for feature implementation"
 - **Single project**: `src/`, `tests/` at repository root
 - **Web app**: `backend/src/`, `frontend/src/`
 - **Mobile**: `api/src/`, `ios/src/` or `android/src/`
-- **Cotton components tests**: all component tests live in `tests/test_components/`; use one module per top-level `templates/cotton/<dir>/` directory (for example `test_app_components.py`, `test_forms_components.py`) plus one shared module for top-level single-file components (for example `test_top_level_components.py`)
 - Paths shown below assume single project - adjust based on plan.md structure
 
-<!--
+<!-- 
   ============================================================================
   IMPORTANT: The tasks below are SAMPLE TASKS for illustration purposes only.
-
+  
   The /speckit.tasks command MUST replace these with actual tasks based on:
   - User stories from spec.md (with their priorities P1, P2, P3...)
   - Feature requirements from plan.md
   - Entities from data-model.md
   - Endpoints from contracts/
-
+  
   Tasks MUST be organized by user story so each story can be:
   - Implemented independently
   - Tested independently
   - Delivered as an MVP increment
-
+  
   DO NOT keep these sample tasks in the generated tasks.md file.
   ============================================================================
 -->
@@ -80,35 +79,23 @@ Examples of foundational tasks (adjust based on your project):
 
 **Independent Test**: [How to verify this story works on its own]
 
-### Design & Implementation for User Story 1
+### Tests for User Story 1 (OPTIONAL - only if tests requested) ⚠️
 
-> **NOTE: Implement FIRST, verify design meets expectations, THEN write tests**
+> **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T010 [P] [US1] Create [Entity1] model in src/models/[entity1].py
-- [ ] T011 [P] [US1] Create [Entity2] model in src/models/[entity2].py
-- [ ] T012 [US1] Implement [Service] in src/services/[service].py (depends on T010, T011)
-- [ ] T013 [US1] Implement [endpoint/feature] in src/[location]/[file].py
-- [ ] T014 [US1] Add validation and error handling
-- [ ] T015 [US1] Add logging for user story 1 operations
+- [ ] T010 [P] [US1] Contract test for [endpoint] in tests/contract/test_[name].py
+- [ ] T011 [P] [US1] Integration test for [user journey] in tests/integration/test_[name].py
 
-### Verification for User Story 1
+### Implementation for User Story 1
 
-- [ ] T016 [US1] Verify UI implementation using Playwright MCP server — assert specific acceptance criteria
-  (e.g., "[describe expected UX outcome from user story]"); MUST NOT merely assert page loads
-- [ ] T017 [US1] Manual walkthrough of user journey to confirm design meets expectations
+- [ ] T012 [P] [US1] Create [Entity1] model in src/models/[entity1].py
+- [ ] T013 [P] [US1] Create [Entity2] model in src/models/[entity2].py
+- [ ] T014 [US1] Implement [Service] in src/services/[service].py (depends on T012, T013)
+- [ ] T015 [US1] Implement [endpoint/feature] in src/[location]/[file].py
+- [ ] T016 [US1] Add validation and error handling
+- [ ] T017 [US1] Add logging for user story 1 operations
 
-### Tests for User Story 1 (AFTER design verification)
-
-- [ ] T018 [P] [US1] Contract test for [endpoint] in tests/contract/test_[name].py
-- [ ] T019 [P] [US1] Integration test for [user journey] in tests/integration/test_[name].py
-- [ ] T020 [US1] End-to-end test with playwright in tests/e2e/test_[name].py
-
-### Story 1 Validation (REQUIRED)
-
-- [ ] T021 [US1] Run `python manage.py check` — zero errors MUST be reported
-- [ ] T022 [US1] Run pytest suite for User Story 1 touched area (e.g., `pytest tests/test_[area]/`) — all pass
-
-**Checkpoint**: At this point, User Story 1 should be fully functional, verified, and tested independently
+**Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
 
 ---
 
@@ -118,7 +105,7 @@ Examples of foundational tasks (adjust based on your project):
 
 **Independent Test**: [How to verify this story works on its own]
 
-### Tests for User Story 2 (REQUIRED for behavior changes)
+### Tests for User Story 2 (OPTIONAL - only if tests requested) ⚠️
 
 - [ ] T018 [P] [US2] Contract test for [endpoint] in tests/contract/test_[name].py
 - [ ] T019 [P] [US2] Integration test for [user journey] in tests/integration/test_[name].py
@@ -129,13 +116,6 @@ Examples of foundational tasks (adjust based on your project):
 - [ ] T021 [US2] Implement [Service] in src/services/[service].py
 - [ ] T022 [US2] Implement [endpoint/feature] in src/[location]/[file].py
 - [ ] T023 [US2] Integrate with User Story 1 components (if needed)
-- [ ] T024 [US2] Verify UI changes using Playwright MCP server — assert acceptance criteria from US2
-  (omit if this story has no UI changes)
-
-### Story 2 Validation (REQUIRED)
-
-- [ ] T025 [US2] Run `python manage.py check` — zero errors MUST be reported
-- [ ] T026 [US2] Run pytest suite for User Story 2 touched area (e.g., `pytest tests/test_[area]/`) — all pass
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
 
@@ -147,7 +127,7 @@ Examples of foundational tasks (adjust based on your project):
 
 **Independent Test**: [How to verify this story works on its own]
 
-### Tests for User Story 3 (REQUIRED for behavior changes)
+### Tests for User Story 3 (OPTIONAL - only if tests requested) ⚠️
 
 - [ ] T024 [P] [US3] Contract test for [endpoint] in tests/contract/test_[name].py
 - [ ] T025 [P] [US3] Integration test for [user journey] in tests/integration/test_[name].py
@@ -157,13 +137,6 @@ Examples of foundational tasks (adjust based on your project):
 - [ ] T026 [P] [US3] Create [Entity] model in src/models/[entity].py
 - [ ] T027 [US3] Implement [Service] in src/services/[service].py
 - [ ] T028 [US3] Implement [endpoint/feature] in src/[location]/[file].py
-- [ ] T029 [US3] Verify UI changes using Playwright MCP server — assert acceptance criteria from US3
-  (omit if this story has no UI changes)
-
-### Story 3 Validation (REQUIRED)
-
-- [ ] T030 [US3] Run `python manage.py check` — zero errors MUST be reported
-- [ ] T031 [US3] Run pytest suite for User Story 3 touched area (e.g., `pytest tests/test_[area]/`) — all pass
 
 **Checkpoint**: All user stories should now be independently functional
 
@@ -180,7 +153,7 @@ Examples of foundational tasks (adjust based on your project):
 - [ ] TXXX [P] Documentation updates in docs/
 - [ ] TXXX Code cleanup and refactoring
 - [ ] TXXX Performance optimization across all stories
-- [ ] TXXX [P] Additional unit/UI tests as needed in tests/
+- [ ] TXXX [P] Additional unit tests (if requested) in tests/unit/
 - [ ] TXXX Security hardening
 - [ ] TXXX Run quickstart.md validation
 
