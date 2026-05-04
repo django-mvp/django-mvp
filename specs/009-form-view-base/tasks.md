@@ -1,3 +1,7 @@
+> ~~⚠️ **STALE**: spec.md was refined on 2026-05-04. Run `/speckit.refine.propagate` to update this plan.~~
+
+**Propagated**: 2026-05-04 — Updated from spec.md refinement (FR-008 redesign)
+
 # Tasks: Form View Base Classes
 
 **Input**: Design documents from `specs/009-form-view-base/`
@@ -89,33 +93,39 @@ views; missing field placeholders silently produce `""` on delete views.
 
 ## Phase 5: User Story 3 — Redirect Destination Resolves Through a Predictable Priority Chain (Priority: P2)
 
-**Goal**: Fix FR-008 gap — `MVPModelFormBase.get_success_url()` currently returns `None`
-when `resolve_crud_url("list")` cannot resolve a list URL (no `crud_views` configured, no
-`success_url` set). This causes a cryptic crash inside Django's redirect machinery. Fix by
-raising `ImproperlyConfigured` with a clear message, symmetric with FR-005.
+> ⚠️ **FR-008 was redesigned** in the spec refinement of 2026-05-04. T013–T016 implemented
+> the old behavior (list-view fallback → `ImproperlyConfigured`). That implementation is
+> now superseded. See Phase 7 for the replacement tasks.
+
+**Goal** ~~(superseded)~~: ~~Fix FR-008 gap — `MVPModelFormBase.get_success_url()` currently
+returns `None` when `resolve_crud_url("list")` cannot resolve a list URL. Fix by raising
+`ImproperlyConfigured` with a clear message, symmetric with FR-005.~~
+
+**Goal (revised)**: Redesign `MVPModelFormBase.get_success_url()` so that: (1) `success_url`
+is tried first as a CRUD shorthand via `resolve_crud_url()`; (2) the final fallback is
+`self.object.get_absolute_url()`; (3) `ImproperlyConfigured` is raised only when the object
+lacks `get_absolute_url`. See Phase 7 for tasks.
 
 **Existing coverage note**: US3 acceptance scenarios 1, 2, and 5 (redirect priority chain —
 `next` wins, `success_url` wins, post-create pk) are already covered by the baseline 35-test
-suite per research.md (FR-004, FR-006, FR-009 — all complete). Only scenario 4 (clear error
-when list URL unresolvable) requires a new task.
+suite per research.md (FR-004, FR-006, FR-009 — all complete).
 
-**Independent Test**: A test in `tests/test_views/test_edit_view.py` that asserts
-`get_success_url()` raises `ImproperlyConfigured` (not `NoReverseMatch` or `AttributeError`)
-when the list URL is unresolvable. Must FAIL before the fix, PASS after.
+### Tests for User Story 3 (original — superseded)
 
-### Tests for User Story 3
+> **NOTE**: T013–T016 implemented the old FR-008 (list URL fallback → `ImproperlyConfigured`).
+> T013/T014 are superseded; T-FM-004 tests behavior that no longer matches the spec.
+> T015/T016 are superseded by T025/T026 in Phase 7.
 
-> **NOTE**: Write T-FM-004 first, run to confirm it FAILS, then implement the fix.
+- [x] ~~[REMOVED]~~ ~~T013 [US3] Write test T-FM-004 asserting `MVPModelFormBase.get_success_url()` raises `ImproperlyConfigured` when `resolve_crud_url("list")` cannot resolve and no `success_url` is set, in `tests/test_views/test_edit_view.py`~~
+- [x] ~~[REMOVED]~~ ~~T014 [US3] Run test suite to confirm T-FM-004 fails before fix~~
 
-- [x] T013 [US3] Write test T-FM-004 asserting `MVPModelFormBase.get_success_url()` raises `ImproperlyConfigured` (not `None`) when `resolve_crud_url("list")` cannot resolve and no `success_url` is set, in `tests/test_views/test_edit_view.py`
-- [x] T014 [US3] Run `poetry run pytest tests/test_views/test_edit_view.py -q --tb=short -k "T_FM_004 or test_get_success_url"` and confirm T-FM-004 **fails** before implementing the fix
+### Implementation for User Story 3 (original — superseded)
 
-### Implementation for User Story 3
+- [x] ~~[REMOVED]~~ ~~T015 [US3] Update `MVPModelFormBase.get_success_url()` to raise `ImproperlyConfigured` when `resolve_crud_url("list")` returns `None`~~ — superseded by T025
+- [x] ~~[REMOVED]~~ ~~T016 [US3] Run validation after old FR-008 fix~~ — superseded by T026
 
-- [x] T015 [US3] Update `MVPModelFormBase.get_success_url()` to raise `ImproperlyConfigured` when `resolve_crud_url("list")` returns `None`, per the plan.md Change 2 design in `mvp/views/edit.py`
-- [x] T016 [US3] Run `python manage.py check` (no errors) then `poetry run pytest tests/test_views/test_edit_view.py -q --tb=short` and confirm T-FM-004 passes (baseline + 7)
-
-**Checkpoint**: US3 is fully functional. All three user stories complete.
+**Checkpoint**: Phase 5 original implementation was complete but is now superseded.
+Phase 7 replaces US3 with the revised FR-008 behavior.
 
 ---
 
@@ -125,10 +135,42 @@ when the list URL is unresolvable. Must FAIL before the fix, PASS after.
 quickstart walkthrough.
 
 - [x] T017 [P] Update docstring on `MVPModelFormBase.get_success_message()` to document the `defaultdict(str)` behavior and the `%(verbose_name)s` guarantee in `mvp/views/edit.py`
-- [x] T018 [P] Update docstring on `MVPModelFormBase.get_success_url()` to document the `ImproperlyConfigured` raise when list URL is unresolvable in `mvp/views/edit.py`
+- [x] T018 [P] Update docstring on `MVPModelFormBase.get_success_url()` to document the `ImproperlyConfigured` raise when list URL is unresolvable in `mvp/views/edit.py` *(note: docstring will need re-updating after T025)*
 - [x] T019 Run `python manage.py check` and confirm no Django system check errors
 - [x] T020 Run `poetry run pytest tests/test_views/ -q --tb=short` and confirm full test suite passes (42 tests minimum)
 - [ ] T021 Walk through `specs/009-form-view-base/quickstart.md` scenarios manually and confirm each example behaves as documented
+
+---
+
+## Phase 7: User Story 3 (Revised) — FR-008 Redesigned Priority Chain
+
+**Purpose**: Implement the redesigned `MVPModelFormBase.get_success_url()` per spec
+refinement 2026-05-04. The old list-view automatic fallback is replaced by:
+1. `success_url` tried first as a CRUD shorthand via `resolve_crud_url()`
+2. `success_url` treated as a direct URL path if shorthand resolution returns `None`
+3. `self.object.get_absolute_url()` as the final zero-config fallback
+4. `ImproperlyConfigured` only when the object is absent or lacks `get_absolute_url`
+
+**Files changed**: `mvp/views/edit.py`, `tests/test_views/test_edit_view.py`
+
+### Tests for Revised US3 (write first, then implement)
+
+> **NOTE**: Write T022–T024 first. T022 and T023 should FAIL against the currently
+> implemented (old) `get_success_url()`. Then implement T025. T024 may or may not
+> pass before the fix depending on current behavior.
+
+- [x] T022 [P] [US3] Write test T-FM-004a asserting that when `success_url = "list"` is set on a model view, `get_success_url()` resolves it via `resolve_crud_url("list")` and returns the list URL, in `tests/test_views/test_edit_view.py`
+- [x] T023 [P] [US3] Write test T-FM-004b asserting that when no `next` and no `success_url` are set but `self.object` defines `get_absolute_url()`, `get_success_url()` returns `object.get_absolute_url()`, in `tests/test_views/test_edit_view.py`
+- [x] T024 [P] [US3] Write test T-FM-004c asserting that when no `next`, no `success_url`, and `self.object` does not define `get_absolute_url()`, `get_success_url()` raises `ImproperlyConfigured`, in `tests/test_views/test_edit_view.py`
+- [x] T025 [US3] Run `poetry run pytest tests/test_views/test_edit_view.py -q --tb=short -k "T_FM_004"` and confirm T022/T023 fail (or behave differently from the new spec) before implementing
+
+### Implementation for Revised US3
+
+- [x] T026 [US3] Rewrite `MVPModelFormBase.get_success_url()` per the plan.md Change 2 revised design in `mvp/views/edit.py` — CRUD shorthand in `success_url`, then `object.get_absolute_url()` fallback, then `ImproperlyConfigured`
+- [x] T027 [US3] Update the docstring on `MVPModelFormBase.get_success_url()` to document the revised four-step priority chain in `mvp/views/edit.py`
+- [x] T028 [US3] Run `python manage.py check` (no errors) then `poetry run pytest tests/test_views/ -q --tb=short` and confirm all tests pass (T022, T023, T024 newly passing; T-FM-004 original test updated or removed as it tests old behavior)
+
+**Checkpoint**: FR-008 revised behavior is implemented and regression-protected.
 
 ---
 
@@ -140,8 +182,9 @@ quickstart walkthrough.
 - **Phase 2 (Foundational)**: Empty — no blocking prerequisites
 - **Phase 3 (US1)**: Depends on Phase 1 baseline confirmation
 - **Phase 4 (US2)**: Depends on Phase 1; can start in parallel with Phase 3
-- **Phase 5 (US3)**: Depends on Phase 1; can start in parallel with Phase 3 and Phase 4
+- **Phase 5 (US3)**: Superseded — completed tasks are historical record only
 - **Phase 6 (Polish)**: Depends on Phase 3, 4, and 5 completion
+- **Phase 7 (US3 revised)**: Depends on Phase 6; blocks T021
 
 ### User Story Dependencies
 
@@ -165,6 +208,7 @@ parallel by different contributors, but should be merged and validated sequentia
 ## Parallel Opportunities
 
 ### Phase 3 (US1): T002 and T003 can run in parallel
+
 ```
 Agent A: T002 — Write test T-FM-006 (base_template_name)
 Agent B: T003 — Write test T-FM-007 (page_class)
@@ -173,6 +217,7 @@ Agent B: T003 — Write test T-FM-007 (page_class)
 ```
 
 ### Phase 4 (US2): T006, T007, T008 can run in parallel
+
 ```
 Agent A: T006 — Write T-FM-001
 Agent B: T007 — Write T-FM-002
@@ -182,6 +227,7 @@ Agent C: T008 — Write T-FM-003
 ```
 
 ### Phase 6 (Polish): T017 and T018 can run in parallel
+
 ```
 Agent A: T017 — Docstring for get_success_message()
 Agent B: T018 — Docstring for get_success_url()
@@ -193,14 +239,17 @@ Agent B: T018 — Docstring for get_success_url()
 ## Implementation Strategy
 
 **MVP Scope**: Phase 3 + Phase 4 (US1 + US2)
+
 - T002–T012: 11 tasks, one file changed (`mvp/views/edit.py`), one file extended (`tests/test_views/test_edit_view.py`)
 - Delivers: regression-protected attribute contracts + correct success message interpolation
 
 **Full Scope**: All phases (T001–T021, 21 tasks total)
+
 - Adds US3 (FR-008 fix) and polish (docstrings, final validation)
 - Both code changes touch different methods in the same file — no merge conflicts
 
 **Test Count Progression**:
+
 - Baseline: recorded in T001
 - After Phase 3 (US1): baseline + 3
 - After Phase 4 (US2): baseline + 6

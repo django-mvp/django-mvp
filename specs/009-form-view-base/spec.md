@@ -2,7 +2,8 @@
 
 **Feature Branch**: `009-form-view-base`
 **Created**: 2026-05-04
-**Status**: Draft — Prescriptive (planner evaluates whether current code needs changes, additions, or is already complete)
+**Status**: Refined
+**Refined**: 2026-05-04 — Redesigned `MVPModelFormBase.get_success_url()` priority chain: `success_url` is now first attempted as a CRUD shorthand key via `resolve_crud_url()`; automatic list-view fallback replaced by `object.get_absolute_url()`; `ImproperlyConfigured` raised only when the object lacks `get_absolute_url`.
 **Input**: User description: "Before concrete form views can exist, the package needs a shared foundation that gives every form view its layout, its success message support, and its redirect logic. This spec defines MVPFormBase and MVPModelFormBase as that foundation — not concrete views themselves, but the layer that all edit views inherit from. Their job is to ensure that the moment a developer subclasses any edit view in this package, they automatically get a consistent layout, safe redirects, and properly interpolated success messages without any additional configuration."
 
 ## Clarifications
@@ -25,11 +26,11 @@ As a developer building a form view, I want to subclass any edit view from this 
 
 **Why this priority**: This is the core value of the form view foundation. Without it, every developer subclassing a form view must manually assemble the same three concerns (layout, redirect, messages) each time, defeating the purpose of the package.
 
-**Independent Test**: A minimal create view that inherits from `MVPCreateView`, sets only `model`, and is wired to a URL successfully: renders a page using the shared form layout, redirects to the list view after submission, and displays a success message that names the model — all with zero redirect or message configuration on the subclass.
+**Independent Test**: A minimal create view that inherits from `MVPCreateView`, sets only `model`, and is wired to a URL successfully: renders a page using the shared form layout, redirects to the object's canonical URL (via `get_absolute_url()`) after submission, and displays a success message that names the model — all with zero redirect or message configuration on the subclass.
 
 **Acceptance Scenarios**:
 
-1. **Given** a *model* form view class (inheriting from `MVPModelFormBase`) has no `next` parameter and no `success_url` configured, **When** the form is submitted successfully, **Then** the view redirects to the model's list view without raising an error.
+1. **Given** a *model* form view class (inheriting from `MVPModelFormBase`) has no `next` parameter and no `success_url` configured, **When** the form is submitted successfully, **Then** the view redirects to the object's canonical URL via `get_absolute_url()` without raising an error — or raises `ImproperlyConfigured` if the object does not define `get_absolute_url`.
 2. **Given** a view class inherits from any edit view in this package, **When** the view renders, **Then** the shared form layout template is used as the fallback — no custom template required.
 3. **Given** a view class inherits from any edit view and sets `success_message`, **When** the form is submitted successfully, **Then** the message is displayed to the user via Django's messages framework.
 4. **Given** a model form view is submitted successfully with the default `success_message`, **When** the success message is displayed, **Then** the message includes the model's human-readable name without any extra configuration.
@@ -69,9 +70,10 @@ As a developer wiring form views into larger flows, I want the post-submit redir
 
 1. **Given** a `?next=/records/` parameter is present, **When** the form is submitted successfully, **Then** the user is redirected to `/records/` regardless of any `success_url` configured on the view.
 2. **Given** no `next` parameter is present and `success_url = "/dashboard/"` is set on the view, **When** the form is submitted successfully, **Then** the user is redirected to `/dashboard/`.
-3. **Given** a model form view has neither `next` parameter nor `success_url`, **When** the form is submitted successfully, **Then** the user is redirected to the model's list view.
+3. **Given** a model form view has neither `next` parameter nor `success_url`, **When** the form is submitted successfully, **Then** the user is redirected to the object's canonical URL via `get_absolute_url()`.
 4. **Given** a non-model form view has neither `next` parameter nor `success_url`, **When** the form is submitted successfully, **Then** a clear misconfiguration error is raised rather than a silent redirect to a broken URL.
 5. **Given** a new object was just created (no pk was in the URL kwargs before submission), **When** the `next=detail` CRUD shorthand is used, **Then** the redirect resolves correctly using the newly created object's pk.
+6. **Given** a model form view has `success_url = "list"` (a CRUD shorthand key), **When** the form is submitted successfully, **Then** the user is redirected to the model's list view URL resolved via `resolve_crud_url("list")`.
 
 ---
 
@@ -81,7 +83,9 @@ As a developer wiring form views into larger flows, I want the post-submit redir
 - What happens when a delete-view success message contains field-value placeholders (e.g. `%(name)s`) and `cleaned_data` is absent? → Missing field placeholders are substituted with `""` (empty string); the message displays without error. Only `%(verbose_name)s` is guaranteed to resolve in every `MVPModelFormBase` context.
 - What happens when `success_url` is set to a falsy value (e.g., empty string)? → A falsy `success_url` is treated as absent; the next step in the priority chain applies.
 - How does the chain behave when the `next` parameter is present but fails validation? → The invalid `next` value is silently dropped (per spec 008 — Safe Post-Submit Redirect); the chain falls through to `success_url` or the default.
-- What happens for `MVPModelFormBase` subclasses when no list URL is configured and no `success_url` is set? → `ImproperlyConfigured` is raised at `get_success_url()` time with a clear message — symmetric with FR-005. Developers must configure `crud_views` or set `success_url` when using `MVPModelFormBase`.
+- What happens when `success_url` is set to a CRUD shorthand key (e.g. `"list"`, `"detail"`) on a model form view? → `MVPModelFormBase.get_success_url()` first attempts `resolve_crud_url(success_url)`; if resolution succeeds the resulting URL is used, otherwise the chain continues with the inherited `MVPFormBase` logic (treating `success_url` as a direct URL path).
+- What happens for `MVPModelFormBase` subclasses when no `next`, no resolvable `success_url`, and the object lacks `get_absolute_url`? → `ImproperlyConfigured` is raised at `get_success_url()` time with a clear message identifying the view class and the resolution steps available. Developers should configure `success_url` (e.g. `success_url = "list"`) or ensure the model defines `get_absolute_url`.
+- What happens when a delete view's `get_success_url()` falls back to `object.get_absolute_url()`? → The object's URL is computed after deletion; the resulting path typically returns a 404 on the next request. Delete views should configure an explicit `success_url` (e.g. `success_url = "list"`) to avoid redirecting to a deleted record's URL.
 - What happens if a CRUD shorthand (e.g. `?next=detail`) cannot be resolved because no model identity is configured? → Resolution fails silently; the chain falls through to the next priority step.
 
 ## Requirements *(mandatory)*
@@ -95,23 +99,23 @@ As a developer wiring form views into larger flows, I want the post-submit redir
 - **FR-005**: `MVPFormBase` MUST raise a clear misconfiguration error when neither `next` nor `success_url` is configured, rather than silently redirecting to an unexpected destination.
 - **FR-006**: `MVPFormBase` MUST resolve CRUD action shorthands (e.g. `?next=list`, `?next=detail`) into real same-origin URLs when the view has model identity available, so that developers can reference related views by name rather than hardcoded paths.
 - **FR-007**: `MVPModelFormBase` MUST extend `MVPFormBase` with automatic `%(verbose_name)s` interpolation in `success_message`, sourcing the value from the model's `verbose_name` metadata. When additional field-value placeholders are present but `cleaned_data` is absent or does not contain the key (e.g. on a delete view), those placeholders MUST be substituted with an empty string rather than raising an error.
-- **FR-008**: `MVPModelFormBase` MUST extend the redirect priority chain with a built-in fallback to the model's list view, so that model form views can omit `success_url` entirely. When the list view URL cannot be resolved (e.g. `crud_views` is not configured), `ImproperlyConfigured` MUST be raised with a clear message — symmetric with FR-005.
+- **FR-008**: `MVPModelFormBase` MUST extend the redirect priority chain with two additional behaviors: (1) when `success_url` is defined, it MUST first be attempted as a CRUD shorthand key via `resolve_crud_url(success_url)` — allowing developers to write `success_url = "list"` or `success_url = "detail"` to reference related views by name rather than hardcoded paths; if the shorthand resolves to a URL that URL is used, otherwise the chain continues with the inherited logic; (2) when all earlier steps fail (no valid `next`, no `success_url` that resolves as either a shorthand or a direct URL path), the view MUST fall back to `self.object.get_absolute_url()` as the final redirect destination. If the object does not expose `get_absolute_url`, `ImproperlyConfigured` MUST be raised with a clear message that identifies the view class and the resolution steps available.
 - **FR-009**: `MVPModelFormBase` MUST correctly resolve post-submit redirect destinations that require an object pk (e.g. `?next=detail`) after a create operation, using the pk of the newly created object even though no pk was present in the URL kwargs at request time.
 - **FR-010**: Both base classes MUST compose cleanly with Django's generic form views (`FormView`, `CreateView`, `UpdateView`, `DeleteView`) without altering their core form processing or validation behavior.
 
 ### Key Entities
 
 - **MVPFormBase**: The shared foundation for all form views in the package. Composes the layout template resolution, Django's success message machinery, and the post-submit redirect priority chain. Not a concrete view — must be combined with a Django generic view class.
-- **MVPModelFormBase**: Extends `MVPFormBase` with model-aware success message interpolation and an automatic list-view fallback in the redirect chain. Serves as the base for all model form views (`MVPCreateView`, `MVPUpdateView`, `MVPDeleteView`).
+- **MVPModelFormBase**: Extends `MVPFormBase` with model-aware success message interpolation and an extended redirect chain that resolves `success_url` as a CRUD shorthand key and falls back to `object.get_absolute_url()`. Serves as the base for all model form views (`MVPCreateView`, `MVPUpdateView`, `MVPDeleteView`).
 
 ## Success Criteria *(mandatory)*
 
 ### Measurable Outcomes
 
-- **SC-001**: A developer can build a working model create/update/delete view with zero redirect and message configuration — the view renders, processes the form, displays a model-named success message, and redirects to the list view without any explicit wiring.
+- **SC-001**: A developer can build a working model create/update/delete view with zero redirect and message configuration — the view renders, processes the form, displays a model-named success message, and redirects to the object's canonical URL (via `get_absolute_url()`) — all without any explicit redirect wiring when the model defines `get_absolute_url`.
 - **SC-002**: All model form views in the package produce success messages that include the model's human-readable name, with no per-view message formatting code required.
 - **SC-003**: All form views inherit the shared form layout template by default; a subclass must explicitly set `template_name` to use a different template.
-- **SC-004**: The post-submit redirect priority chain is documentable in three steps — developers can predict the redirect destination from a view's configuration without reading the source code.
+- **SC-004**: The post-submit redirect priority chain is fully documentable — developers can predict the redirect destination from a view's configuration without reading the source code.
 - **SC-005**: Misconfiguration on a non-model form view (missing redirect destination) produces an error that names the problem clearly and points to the resolution, not a silent redirect to a broken URL.
 
 ## Assumptions

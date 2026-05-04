@@ -178,32 +178,61 @@ class MVPModelFormBase(MVPFormBase):
     def get_success_url(self):
         """Determine the URL to redirect to after successful form submission.
 
-        Priority chain:
+        Priority chain (4 steps):
 
-        1–3. Inherited from :class:`MVPFormBase` (URL → shorthand → ``success_url``)
-        4.   :meth:`resolve_crud_url("list")` — built-in fallback for model-based views
-             (only reached when ``success_url`` is not set)
+        1. **next URL**: A validated ``?next=`` or ``POST next=`` value from
+           :meth:`get_next_url` (safe-URL check applied; CRUD shorthands are
+           resolved via :meth:`resolve_crud_url`).
 
-        Raises:
-            ImproperlyConfigured: When neither ``success_url`` nor a resolvable
-                list URL can be determined — i.e. when
-                :meth:`resolve_crud_url("list")` returns ``None`` (missing
-                permission or unregistered URL name). Configure ``crud_views``
-                or set ``success_url`` to resolve this error.
+        2. **success_url as CRUD shorthand**: If ``success_url`` is set, it is
+           first tried as an argument to :meth:`resolve_crud_url`.  If it
+           resolves to a known CRUD URL (e.g. ``"list"``, ``"detail"``), that
+           URL is returned.  If resolution fails (unknown key, missing
+           permission, unregistered name), the value is used verbatim as a
+           literal URL path (step 2b).
+
+        3. **object.get_absolute_url()**: When neither a next URL nor
+           ``success_url`` is available, the saved ``self.object`` is checked
+           for a ``get_absolute_url()`` method.  If present, its return value
+           is used.
+
+        4. **ImproperlyConfigured**: Raised when the previous three steps all
+           fail — typically because ``self.object`` is absent (delete views
+           after deletion) or the model does not define ``get_absolute_url()``.
+           Add ``success_url = "list"`` (or any valid CRUD shorthand / literal
+           path) to fix this error.
 
         Returns:
-            str: URL to redirect to
+            str: URL to redirect to.
+
+        Raises:
+            ImproperlyConfigured: When no redirect URL can be determined.
         """
-        try:
-            return super().get_success_url()
-        except ImproperlyConfigured:
-            url = self.resolve_crud_url("list")
-            if url is None:
-                raise ImproperlyConfigured(
-                    f"'{self.__class__.__name__}' could not resolve a list URL. "
-                    f"Configure 'crud_views' or set 'success_url'."
-                )
-            return url
+        # Step 1: validated next URL / CRUD shorthand
+        if next_url := self.get_next_url():
+            return next_url
+
+        # Step 2: success_url — tried as CRUD shorthand first, then literal path
+        raw = getattr(self, "success_url", None)
+        if raw:
+            try:
+                resolved = self.resolve_crud_url(str(raw))
+            except Exception:
+                resolved = None
+            if resolved:
+                return resolved
+            return str(raw)
+
+        # Step 3: object.get_absolute_url() final fallback
+        obj = getattr(self, "object", None)
+        if obj is not None and callable(getattr(obj, "get_absolute_url", None)):
+            return obj.get_absolute_url()
+
+        raise ImproperlyConfigured(
+            f"'{self.__class__.__name__}' could not determine a redirect URL. "
+            f"Set 'success_url' (e.g. 'list'), or ensure the model defines "
+            f"'get_absolute_url()'."
+        )
 
 
 class MVPFormView(MVPFormBase, generic.FormView):

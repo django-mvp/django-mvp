@@ -1,3 +1,7 @@
+> ~~⚠️ **STALE**: spec.md was refined on 2026-05-04. Run `/speckit.refine.propagate` to update this plan.~~
+
+**Propagated**: 2026-05-04 — Updated from spec.md refinement (FR-008 redesign)
+
 # Implementation Plan: Form View Base Classes
 
 **Branch**: `009-form-view-base` | **Date**: 2026-05-04 | **Spec**: [spec.md](spec.md)
@@ -12,11 +16,15 @@ the existing implementation. Two targeted code changes are required:
 1. **FR-007** — `MVPModelFormBase.get_success_message()`: wrap the interpolation dict in
    `collections.defaultdict(str, ...)` so missing field-value placeholders (e.g. `%(name)s`
    on a delete view) substitute `""` instead of raising `KeyError`.
-2. **FR-008** — `MVPModelFormBase.get_success_url()`: raise `ImproperlyConfigured` when
-   `resolve_crud_url("list")` returns `None`, symmetric with FR-005.
+2. **FR-008** — `MVPModelFormBase.get_success_url()`: redesign the fallback chain so that
+   (a) `success_url` is first tried as a CRUD shorthand key via `resolve_crud_url()` —
+   enabling `success_url = "list"` — and (b) when all earlier steps fail, the view falls
+   back to `self.object.get_absolute_url()` instead of `resolve_crud_url("list")`, raising
+   `ImproperlyConfigured` only when the object lacks `get_absolute_url`.
 
-Seven new unit tests cover both code changes and make the class-level attribute contracts
-explicit.
+Seven existing tests cover FR-007 and the class-level attribute contracts. Three additional
+tests are required for the redesigned FR-008 behaviour (T022–T024) plus one implementation
+task (T025).
 
 ## Technical Context
 
@@ -97,8 +105,8 @@ Full audit documented in [research.md](research.md).
 | FR-004 Redirect priority chain | ✅ Complete | None |
 | FR-005 `ImproperlyConfigured` for `MVPFormBase` | ✅ Complete | None |
 | FR-006 CRUD shorthand resolution | ✅ Complete | None |
-| FR-007 `%(verbose_name)s` + empty-string fallback | ❌ Incomplete | Wrap dict in `defaultdict(str)` |
-| FR-008 List-view fallback + symmetric error | ❌ Incomplete | Raise `ImproperlyConfigured` when `resolve_crud_url("list")` → `None` |
+| FR-007 `%(verbose_name)s` + empty-string fallback | ✅ Complete | `defaultdict(str)` implemented |
+| FR-008 CRUD shorthand in `success_url` + `get_absolute_url()` fallback | ❌ Incomplete | Redesign `get_success_url()` — see Change 2 |
 | FR-009 Post-create pk fallback | ✅ Complete | None |
 | FR-010 Clean composition with Django generics | ✅ Complete | None |
 
@@ -145,16 +153,7 @@ present.
 
 **File**: `mvp/views/edit.py`
 
-**Before**:
-```python
-def get_success_url(self):
-    try:
-        return super().get_success_url()
-    except ImproperlyConfigured:
-        return self.resolve_crud_url("list")
-```
-
-**After**:
+**Before** (current implementation — shipped in first iteration of this feature):
 ```python
 def get_success_url(self):
     try:
@@ -169,9 +168,47 @@ def get_success_url(self):
         return url
 ```
 
-**Backward compatibility**: Any view that previously silently returned `None` (broken
-behavior — Django would crash anyway) now gets a named, actionable error at
-`get_success_url()` time rather than a cryptic crash inside Django's redirect machinery.
+**After**:
+```python
+def get_success_url(self):
+    # Step 1: validated next URL / CRUD shorthand (inherited from MVPFormBase)
+    if next_url := self.get_next_url():
+        return next_url
+
+    # Step 2: success_url — tried first as a CRUD shorthand, then as a literal path
+    raw = getattr(self, "success_url", None)
+    if raw:
+        resolved = self.resolve_crud_url(str(raw))
+        if resolved:
+            return resolved
+        return str(raw)  # treat as a direct URL path
+
+    # Step 3: object.get_absolute_url() final fallback
+    obj = getattr(self, "object", None)
+    if obj is not None and callable(getattr(obj, "get_absolute_url", None)):
+        return obj.get_absolute_url()
+
+    raise ImproperlyConfigured(
+        f"'{self.__class__.__name__}' could not determine a redirect URL. "
+        f"Set 'success_url' (e.g. \"list\"), or ensure the model defines "
+        f"'get_absolute_url()'."
+    )
+```
+
+**Priority chain documented**:
+1. Validated `next` URL / CRUD shorthand from request (inherited from `MVPFormBase`)
+2. `success_url` — first attempted as `resolve_crud_url(success_url)`; if that returns
+   `None` or `success_url` is not a known shorthand, treated as a direct URL path
+3. `self.object.get_absolute_url()` — final zero-config fallback for model views
+4. `ImproperlyConfigured` — raised when object is absent or lacks `get_absolute_url`
+
+**Note for delete views**: Step 3 will compute the object's URL after deletion, producing
+a 404 on the next request. Delete views should set `success_url = "list"` explicitly.
+
+**Backward compatibility**: Views that already set `success_url` as a literal path are
+unaffected — the literal-path branch returns the same value as before. Views relying on
+the old `resolve_crud_url("list")` automatic fallback now need either `success_url = "list"`
+or a model with `get_absolute_url`.
 
 ### New Tests — `tests/test_views/test_edit_view.py`
 
@@ -182,7 +219,10 @@ Seven tests added to a new class `TestMVPFormBase` and `TestGetSuccessMessage`:
 | T-FM-001 | `TestGetSuccessMessage` | `%(verbose_name)s` resolves to model verbose_name on create view |
 | T-FM-002 | `TestGetSuccessMessage` | `%(name)s` on delete view (no cleaned_data field) → `""` substituted |
 | T-FM-003 | `TestGetSuccessMessage` | Combined `%(verbose_name)s` + `%(name)s` on update view → both resolved |
-| T-FM-004 | `TestMVPModelFormBase` | `get_success_url()` when list URL unresolvable → `ImproperlyConfigured` |
+| ~~T-FM-004~~ | ~~`TestMVPModelFormBase`~~ | ~~`get_success_url()` when list URL unresolvable → `ImproperlyConfigured`~~ — **superseded by spec refinement** |
+| T-FM-004a | `TestMVPModelFormBase` | `success_url = "list"` resolves via `resolve_crud_url()` to list URL |
+| T-FM-004b | `TestMVPModelFormBase` | No `next`, no `success_url`, model has `get_absolute_url()` → object URL returned |
+| T-FM-004c | `TestMVPModelFormBase` | No `next`, no `success_url`, model lacks `get_absolute_url()` → `ImproperlyConfigured` |
 | T-FM-005 | `TestMVPFormBase` | `get_success_url()` with no next and no success_url → `ImproperlyConfigured` |
 | T-FM-006 | `TestMVPFormBase` | `MVPFormBase.base_template_name == "form_view.html"` |
 | T-FM-007 | `TestMVPFormBase` | `MVPFormBase.page_class == "mvp-form-page"` |
