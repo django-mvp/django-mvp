@@ -342,15 +342,14 @@ class TestUS3ShorthandSuccessUrl:
 
         assert url == reverse("product-update", kwargs={"pk": self.product.pk})
 
-    def test_unrecognised_shorthand_falls_through_to_list(self):
-        """[US3] Unrecognised shorthand (e.g. next=foobar) silently falls through."""
+    def test_unrecognised_shorthand_falls_through_to_object_url(self):
+        """[US3] Unrecognised shorthand (e.g. next=foobar) silently falls through to object.get_absolute_url()."""
         view = make_create_view(method="POST", params={"next": "foobar"})
         view.object = self.product
         url = view.get_success_url()
-        from django.urls import reverse
 
-        # Falls through to resoluve_crud_url("list") since no success_url is set
-        assert url == reverse("product-list")
+        # Falls through to object.get_absolute_url() since no success_url is set
+        assert url == self.product.get_absolute_url()
 
     def test_form_view_skips_shorthand_silently(self):
         """[US3] MVPFormView (no crud_views) with next=list falls through to success_url."""
@@ -446,13 +445,11 @@ class TestUS5FallbackChain:
         view.object = self.product
         assert view.get_success_url() == "/done/"
 
-    def test_no_next_no_success_url_returns_list_url(self):
-        """[US5] No next + no success_url → get_success_url() returns resoluve_crud_url("list")."""
-        from django.urls import reverse
-
+    def test_no_next_no_success_url_falls_back_to_object_url(self):
+        """[US5] No next + no success_url → get_success_url() returns object.get_absolute_url()."""
         view = make_create_view(method="POST", params={})
         view.object = self.product
-        assert view.get_success_url() == reverse("product-list")
+        assert view.get_success_url() == self.product.get_absolute_url()
 
     @override_settings(DEBUG=True)
     def test_rejected_next_falls_through_to_success_url(self, caplog):
@@ -495,3 +492,155 @@ class TestUS5FallbackChain:
         view.kwargs = {}
         view.args = []
         assert view.get_success_url() == "/done/"
+
+
+# ---------------------------------------------------------------------------
+# US1 — Class-Level Attribute Contract Tests (TestMVPFormBase)
+# ---------------------------------------------------------------------------
+
+
+class TestMVPFormBase:
+    """[US1] MVPFormBase class-level attribute and redirect contract tests."""
+
+    def test_base_template_name(self):
+        """[T-FM-006] MVPFormBase.base_template_name == 'form_view.html'."""
+        from mvp.views.edit import MVPFormBase
+
+        assert MVPFormBase.base_template_name == "form_view.html"
+
+    def test_page_class(self):
+        """[T-FM-007] MVPFormBase.page_class == 'mvp-form-page'."""
+        from mvp.views.edit import MVPFormBase
+
+        assert MVPFormBase.page_class == "mvp-form-page"
+
+    def test_get_success_url_raises_improperly_configured(self):
+        """[T-FM-005] get_success_url() raises ImproperlyConfigured when no next and no success_url."""
+        from django.core.exceptions import ImproperlyConfigured
+
+        rf = RequestFactory()
+        request = rf.post("/", data={})
+        request.user = User()
+        view_cls = type(
+            "StubFormView",
+            (MVPFormView,),
+            {"template_name": "form_view.html"},
+        )
+        view = view_cls()
+        view.request = request
+        view.kwargs = {}
+        view.args = []
+
+        with pytest.raises(ImproperlyConfigured):
+            view.get_success_url()
+
+
+# ---------------------------------------------------------------------------
+# US2 — Success Message Interpolation (TestGetSuccessMessage)
+# ---------------------------------------------------------------------------
+
+
+class TestGetSuccessMessage:
+    """[US2] MVPModelFormBase.get_success_message() interpolation contract tests."""
+
+    def test_verbose_name_only_resolves(self):
+        """[T-FM-001] %(verbose_name)s with empty cleaned_data → model verbose_name."""
+        view = make_create_view(
+            method="POST",
+            params={},
+            extra_attrs={"success_message": "%(verbose_name)s created."},
+        )
+        result = view.get_success_message({})
+        assert result == f"{Product._meta.verbose_name} created."
+
+    def test_missing_field_placeholder_substitutes_empty_string(self):
+        """[T-FM-002] %(name)s with empty cleaned_data → '' substituted, no KeyError raised."""
+        view = make_create_view(
+            method="POST",
+            params={},
+            extra_attrs={"success_message": "%(verbose_name)s %(name)s deleted."},
+        )
+        result = view.get_success_message({})
+        assert result == f"{Product._meta.verbose_name}  deleted."
+
+    def test_field_value_and_verbose_name_both_resolve(self):
+        """[T-FM-003] %(verbose_name)s + %(name)s both resolve when name present in cleaned_data."""
+        view = make_create_view(
+            method="POST",
+            params={},
+            extra_attrs={"success_message": "%(verbose_name)s %(name)s updated."},
+        )
+        result = view.get_success_message({"name": "Widget A"})
+        assert result == f"{Product._meta.verbose_name} Widget A updated."
+
+
+# ---------------------------------------------------------------------------
+# US3 — Unresolvable List URL Error (TestMVPModelFormBase)
+# ---------------------------------------------------------------------------
+
+
+class TestMVPModelFormBase:
+    """[US3] MVPModelFormBase.get_success_url() revised FR-008 priority chain tests."""
+
+    def test_get_success_url_raises_when_list_url_unresolvable(self):
+        """[T-FM-004] get_success_url() raises ImproperlyConfigured when object is None and no success_url."""
+        from django.core.exceptions import ImproperlyConfigured
+
+        # has_list_permission=False → resolve_crud_url("list") returns None; object=None → ImproperlyConfigured
+        view = make_create_view(
+            method="POST",
+            params={},
+            extra_attrs={"has_list_permission": False},
+        )
+        view.object = None
+
+        with pytest.raises(ImproperlyConfigured):
+            view.get_success_url()
+
+    def test_success_url_shorthand_resolves_to_crud_url(self):
+        """[T-FM-004a] success_url='list' resolves via resolve_crud_url('list') → list URL."""
+        from django.urls import reverse
+
+        view = make_create_view(
+            method="POST",
+            params={},
+            extra_attrs={"success_url": "list"},
+        )
+        view.object = None
+
+        result = view.get_success_url()
+        assert result == reverse("product-list")
+
+    def test_no_success_url_falls_back_to_object_get_absolute_url(self):
+        """[T-FM-004b] No next, no success_url, object has get_absolute_url() → object URL returned."""
+
+        class _MockObj:
+            def get_absolute_url(self):
+                return "/products/42/"
+
+        view = make_create_view(
+            method="POST",
+            params={},
+            extra_attrs={"has_list_permission": False},
+        )
+        view.object = _MockObj()
+
+        result = view.get_success_url()
+        assert result == "/products/42/"
+
+    def test_no_success_url_no_get_absolute_url_raises(self):
+        """[T-FM-004c] No next, no success_url, object lacks get_absolute_url() → ImproperlyConfigured."""
+        from django.core.exceptions import ImproperlyConfigured
+
+        class _NoURL:
+            pass
+
+        view = make_create_view(
+            method="POST",
+            params={},
+            extra_attrs={"has_list_permission": False},
+        )
+        view.object = _NoURL()
+
+        with pytest.raises(ImproperlyConfigured):
+            view.get_success_url()

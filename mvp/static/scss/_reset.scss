@@ -36,10 +36,7 @@
     vertical-align: middle;
 }
 
-.bg-rating-scale {
-    --rating: 50;
-    background-color: hsl(var(--rating), 70%, 30%);
-}
+
 
 
 html[data-bs-theme="dark"] {

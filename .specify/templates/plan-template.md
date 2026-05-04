@@ -3,7 +3,7 @@
 **Branch**: `[###-feature-name]` | **Date**: [DATE] | **Spec**: [link]
 **Input**: Feature specification from `/specs/[###-feature-name]/spec.md`
 
-**Note**: This template is filled in by the `/speckit.plan` command.
+**Note**: This template is filled in by the `/speckit.plan` command. See `.specify/templates/plan-template.md` for the execution workflow.
 
 ## Summary
 
@@ -17,40 +17,21 @@
   the iteration process.
 -->
 
-**Language/Version**: [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS CLARIFICATION]
-**Primary Dependencies**: [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION]
-**Storage**: [if applicable, e.g., PostgreSQL, CoreData, files or N/A]
-**Testing**: [e.g., pytest, XCTest, cargo test or NEEDS CLARIFICATION]
+**Language/Version**: [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS CLARIFICATION]  
+**Primary Dependencies**: [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION]  
+**Storage**: [if applicable, e.g., PostgreSQL, CoreData, files or N/A]  
+**Testing**: [e.g., pytest, XCTest, cargo test or NEEDS CLARIFICATION]  
 **Target Platform**: [e.g., Linux server, iOS 15+, WASM or NEEDS CLARIFICATION]
-**Project Type**: [single/web/mobile - determines source structure]
-**Performance Goals**: [domain-specific, e.g., 1000 req/s, 10k lines/sec, 60 fps or NEEDS CLARIFICATION]
-**Constraints**: [domain-specific, e.g., <200ms p95, <100MB memory, offline-capable or NEEDS CLARIFICATION]
+**Project Type**: [e.g., library/cli/web-service/mobile-app/compiler/desktop-app or NEEDS CLARIFICATION]  
+**Performance Goals**: [domain-specific, e.g., 1000 req/s, 10k lines/sec, 60 fps or NEEDS CLARIFICATION]  
+**Constraints**: [domain-specific, e.g., <200ms p95, <100MB memory, offline-capable or NEEDS CLARIFICATION]  
 **Scale/Scope**: [domain-specific, e.g., 10k users, 1M LOC, 50 screens or NEEDS CLARIFICATION]
 
 ## Constitution Check
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-- Design-first approach is feasible and planned (implementation before test writing)
-- Visual verification approach is planned (Playwright MCP server for UI validation)
-- Test types are identified (pytest, pytest-django, pytest-playwright as needed) for post-implementation
-- Documentation updates are included for any public behavior change
-- Quality gates are understood (tests + lint + format + `python manage.py check`)
-- Documentation retrieval is planned (context7 for up-to-date library docs)
-- End-to-end testing is planned (pytest-playwright for complete user workflows after implementation)
-- Tasks are grouped by user story (each story independently testable)
-- Every phase touching Django code includes `python manage.py check` validation task
-- Every phase touching UI includes a Playwright MCP server verification task with specific acceptance criteria assertions
-- UI configuration uses Cotton components and template overrides only (no Python-level UI config)
-- Template work considered prebuilt django-cotton-bs5 components first (Principle IX)
-- Custom Cotton components used instead of `{% include %}` partials for reusable segments (Principle IX)
-- django-cotton-bs5 skill and django-cotton skill consulted before authoring new templates
-- cotton-test-components skill consulted for any custom Cotton component tests (Principle IX)
-- Cotton component tests are planned under `tests/test_components/` and grouped by top-level cotton directory (e.g., one `app` module, one `forms` module, etc.)
-- Single-file top-level cotton components are planned in one shared top-level components test module (no one-module-per-tiny-component sprawl without explicit exception)
-- If this feature touches the public API, skills/django-mvp/SKILL.md update is planned (Principle X)
-- skills/django-mvp/SKILL.md is only referenced for example-app work, not core mvp/ development (Principle X)
-- Spec includes at least one [Developer] story and one [End User] story (Principle XI)
+[Gates determined based on constitution file]
 
 ## Project Structure
 
