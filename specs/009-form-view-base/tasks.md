@@ -146,6 +146,7 @@ quickstart walkthrough.
 
 **Purpose**: Implement the redesigned `MVPModelFormBase.get_success_url()` per spec
 refinement 2026-05-04. The old list-view automatic fallback is replaced by:
+
 1. `success_url` tried first as a CRUD shorthand via `resolve_crud_url()`
 2. `success_url` treated as a direct URL path if shorthand resolution returns `None`
 3. `self.object.get_absolute_url()` as the final zero-config fallback

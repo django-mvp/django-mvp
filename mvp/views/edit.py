@@ -10,6 +10,7 @@ from django.db.models.deletion import ProtectedError
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
+from django.utils.text import camel_case_to_spaces
 from django.utils.translation import gettext_lazy as _
 from django.views import generic
 
@@ -251,6 +252,44 @@ class MVPFormView(MVPFormBase, generic.FormView):
     """
 
     page_class = "mvp-form-page"
+
+    def get_success_message(self, cleaned_data):
+        """Return the interpolated success message for this non-model form submission.
+
+        Unlike :meth:`MVPModelFormBase.get_success_message`, this method does
+        **not** inject ``verbose_name`` into the substitution dict — there is no
+        model associated with a plain ``FormView``.  Any ``%(key)s`` placeholder
+        absent from ``cleaned_data`` silently substitutes ``""`` via
+        ``collections.defaultdict(str)``; no ``KeyError`` is raised.
+
+        Args:
+            cleaned_data (dict): Validated form field values from the submitted form.
+
+        Returns:
+            str: The formatted success message, or ``""`` when ``success_message``
+            is falsy.
+        """
+        if not self.success_message:
+            return ""
+        data = defaultdict(str, cleaned_data)
+        return self.success_message % data
+
+    def get_page_title(self):
+        """Return the page title for this form view.
+
+        When :attr:`page_title` is set (truthy), returns it directly.
+        When :attr:`page_title` is falsy (unset or empty), derives a readable
+        default from the concrete class name using
+        :func:`django.utils.text.camel_case_to_spaces` and capitalises each
+        word with ``.title()``.  For example, a class named
+        ``ContactFormView`` returns ``"Contact Form View"``.
+
+        Returns:
+            str: The page title to display in the template.
+        """
+        if self.page_title:
+            return str(self.page_title)
+        return camel_case_to_spaces(self.__class__.__name__).title()
 
 
 class MVPCreateView(MVPModelFormBase, generic.CreateView):

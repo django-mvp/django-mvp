@@ -121,6 +121,7 @@ Full audit documented in [research.md](research.md).
 **File**: `mvp/views/edit.py`
 
 **Before**:
+
 ```python
 def get_success_message(self, cleaned_data):
     return self.success_message % {
@@ -130,6 +131,7 @@ def get_success_message(self, cleaned_data):
 ```
 
 **After**:
+
 ```python
 from collections import defaultdict
 
@@ -154,6 +156,7 @@ present.
 **File**: `mvp/views/edit.py`
 
 **Before** (current implementation — shipped in first iteration of this feature):
+
 ```python
 def get_success_url(self):
     try:
@@ -169,6 +172,7 @@ def get_success_url(self):
 ```
 
 **After**:
+
 ```python
 def get_success_url(self):
     # Step 1: validated next URL / CRUD shorthand (inherited from MVPFormBase)
@@ -196,6 +200,7 @@ def get_success_url(self):
 ```
 
 **Priority chain documented**:
+
 1. Validated `next` URL / CRUD shorthand from request (inherited from `MVPFormBase`)
 2. `success_url` — first attempted as `resolve_crud_url(success_url)`; if that returns
    `None` or `success_url` is not a known shorthand, treated as a direct URL path
@@ -243,4 +248,3 @@ behavior change is additive (empty string substitution) or error-clarifying (nam
 facing contract.
 
 The `/contracts/` directory is intentionally omitted for this feature.
-
