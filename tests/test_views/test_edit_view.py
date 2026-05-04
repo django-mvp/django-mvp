@@ -495,3 +495,107 @@ class TestUS5FallbackChain:
         view.kwargs = {}
         view.args = []
         assert view.get_success_url() == "/done/"
+
+
+# ---------------------------------------------------------------------------
+# US1 — Class-Level Attribute Contract Tests (TestMVPFormBase)
+# ---------------------------------------------------------------------------
+
+
+class TestMVPFormBase:
+    """[US1] MVPFormBase class-level attribute and redirect contract tests."""
+
+    def test_base_template_name(self):
+        """[T-FM-006] MVPFormBase.base_template_name == 'form_view.html'."""
+        from mvp.views.edit import MVPFormBase
+
+        assert MVPFormBase.base_template_name == "form_view.html"
+
+    def test_page_class(self):
+        """[T-FM-007] MVPFormBase.page_class == 'mvp-form-page'."""
+        from mvp.views.edit import MVPFormBase
+
+        assert MVPFormBase.page_class == "mvp-form-page"
+
+    def test_get_success_url_raises_improperly_configured(self):
+        """[T-FM-005] get_success_url() raises ImproperlyConfigured when no next and no success_url."""
+        from django.core.exceptions import ImproperlyConfigured
+
+        rf = RequestFactory()
+        request = rf.post("/", data={})
+        request.user = User()
+        view_cls = type(
+            "StubFormView",
+            (MVPFormView,),
+            {"template_name": "form_view.html"},
+        )
+        view = view_cls()
+        view.request = request
+        view.kwargs = {}
+        view.args = []
+
+        with pytest.raises(ImproperlyConfigured):
+            view.get_success_url()
+
+
+# ---------------------------------------------------------------------------
+# US2 — Success Message Interpolation (TestGetSuccessMessage)
+# ---------------------------------------------------------------------------
+
+
+class TestGetSuccessMessage:
+    """[US2] MVPModelFormBase.get_success_message() interpolation contract tests."""
+
+    def test_verbose_name_only_resolves(self):
+        """[T-FM-001] %(verbose_name)s with empty cleaned_data → model verbose_name."""
+        view = make_create_view(
+            method="POST",
+            params={},
+            extra_attrs={"success_message": "%(verbose_name)s created."},
+        )
+        result = view.get_success_message({})
+        assert result == f"{Product._meta.verbose_name} created."
+
+    def test_missing_field_placeholder_substitutes_empty_string(self):
+        """[T-FM-002] %(name)s with empty cleaned_data → '' substituted, no KeyError raised."""
+        view = make_create_view(
+            method="POST",
+            params={},
+            extra_attrs={"success_message": "%(verbose_name)s %(name)s deleted."},
+        )
+        result = view.get_success_message({})
+        assert result == f"{Product._meta.verbose_name}  deleted."
+
+    def test_field_value_and_verbose_name_both_resolve(self):
+        """[T-FM-003] %(verbose_name)s + %(name)s both resolve when name present in cleaned_data."""
+        view = make_create_view(
+            method="POST",
+            params={},
+            extra_attrs={"success_message": "%(verbose_name)s %(name)s updated."},
+        )
+        result = view.get_success_message({"name": "Widget A"})
+        assert result == f"{Product._meta.verbose_name} Widget A updated."
+
+
+# ---------------------------------------------------------------------------
+# US3 — Unresolvable List URL Error (TestMVPModelFormBase)
+# ---------------------------------------------------------------------------
+
+
+class TestMVPModelFormBase:
+    """[US3] MVPModelFormBase.get_success_url() error contract when list URL is unresolvable."""
+
+    def test_get_success_url_raises_when_list_url_unresolvable(self):
+        """[T-FM-004] get_success_url() raises ImproperlyConfigured when resolve_crud_url("list") returns None."""
+        from django.core.exceptions import ImproperlyConfigured
+
+        # has_list_permission=False → resolve_crud_url("list") returns None
+        view = make_create_view(
+            method="POST",
+            params={},
+            extra_attrs={"has_list_permission": False},
+        )
+        view.object = None
+
+        with pytest.raises(ImproperlyConfigured):
+            view.get_success_url()

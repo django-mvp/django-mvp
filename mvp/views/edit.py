@@ -1,4 +1,5 @@
 import logging
+from collections import defaultdict
 from urllib.parse import urlencode
 
 from django.conf import settings
@@ -140,10 +141,25 @@ class MVPModelFormBase(MVPFormBase):
     """
 
     def get_success_message(self, cleaned_data):
-        return self.success_message % {
-            **cleaned_data,
-            "verbose_name": self.model_meta.verbose_name,
-        }
+        """Return the interpolated success message for this form submission.
+
+        ``%(verbose_name)s`` is always substituted with the model's verbose name.
+        Any other ``%(key)s`` placeholders present in ``success_message`` are
+        filled from ``cleaned_data``; keys absent from ``cleaned_data`` (e.g.
+        ``%(name)s`` on a delete view, which has no form fields) silently
+        substitute ``""`` via ``collections.defaultdict(str)`` — no
+        ``KeyError`` is raised.
+
+        Args:
+            cleaned_data (dict): Validated form field values (may be empty on
+                delete views).
+
+        Returns:
+            str: The formatted success message.
+        """
+        data = defaultdict(str, cleaned_data)
+        data["verbose_name"] = self.model_meta.verbose_name
+        return self.success_message % data
 
     def get_url_kwargs(self, action: str) -> dict | None:
         """Extend base URL kwargs with a CreateView fallback.
@@ -168,13 +184,26 @@ class MVPModelFormBase(MVPFormBase):
         4.   :meth:`resolve_crud_url("list")` — built-in fallback for model-based views
              (only reached when ``success_url`` is not set)
 
+        Raises:
+            ImproperlyConfigured: When neither ``success_url`` nor a resolvable
+                list URL can be determined — i.e. when
+                :meth:`resolve_crud_url("list")` returns ``None`` (missing
+                permission or unregistered URL name). Configure ``crud_views``
+                or set ``success_url`` to resolve this error.
+
         Returns:
             str: URL to redirect to
         """
         try:
             return super().get_success_url()
         except ImproperlyConfigured:
-            return self.resolve_crud_url("list")
+            url = self.resolve_crud_url("list")
+            if url is None:
+                raise ImproperlyConfigured(
+                    f"'{self.__class__.__name__}' could not resolve a list URL. "
+                    f"Configure 'crud_views' or set 'success_url'."
+                )
+            return url
 
 
 class MVPFormView(MVPFormBase, generic.FormView):
