@@ -5,6 +5,14 @@
 **Status**: Draft
 **Input**: User description: "Not every form in an application is backed by a database model. Contact forms, settings pages, search forms, and wizard steps all need a place to live. This spec defines MVPFormView as the package's answer for that case: a form view that slots into the standard AdminLTE card layout and participates in the page context system, without requiring a model to be configured. It should be immediately usable and clearly distinct from the model form views."
 
+## Clarifications
+
+### Session 2026-05-04
+
+- Q: Does `success_message` on `MVPFormView` support `%(field_name)s` substitution from submitted `cleaned_data`? → A: Yes — `cleaned_data` substitution IS supported (same as Django's `SuccessMessageMixin`); `%(verbose_name)s` is NOT injected into the substitution dict — because `defaultdict(str)` is used, it silently substitutes as `""` (empty string) if accidentally present.
+- Q: What should `MVPFormView` display as the page title when `title` is not set? → A: The view's Python class name, split from CamelCase using `django.utils.text.camel_case_to_spaces()` and title-cased — e.g. `ContactFormView` → `"Contact Form View"`. This gives a readable, zero-config default with no model dependency.
+- Q: What is the authentication posture for `MVPFormView`? → A: No authentication by default — access is unrestricted; developers add `LoginRequiredMixin` (or equivalent) to their subclass when needed. Authentication is an application-level concern, not a library concern.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 — Wire Up a Non-Model Form in Minutes (Priority: P1) [Developer]
@@ -40,7 +48,7 @@ As a developer wiring up a non-model form, I want to configure a `success_messag
 
 1. **Given** a `MVPFormView` subclass has `success_message = "Your message was sent."`, **When** the form is submitted with valid data, **Then** the message "Your message was sent." is displayed via the messages framework.
 2. **Given** a `MVPFormView` subclass has no `success_message` configured, **When** the form is submitted with valid data, **Then** no message is displayed and no error is raised.
-3. **Given** a `MVPFormView` subclass has a `success_message` containing a literal placeholder, **When** the form is submitted with valid data, **Then** the message is displayed with the placeholder text intact (no model-based interpolation is attempted).
+3. **Given** a `MVPFormView` subclass has `success_message = "Thanks, %(email)s!"` and the submitted form has `email` in `cleaned_data`, **When** the form is submitted with valid data, **Then** the message is displayed as `"Thanks, user@example.com!"` — `%(field_name)s` tokens are substituted from `cleaned_data`; `%(verbose_name)s` is not injected and silently substitutes as `""` (empty string) if accidentally present.
 
 ---
 
@@ -75,14 +83,16 @@ As a developer building a non-model form page, I want to configure `title`, `sub
 **Acceptance Scenarios**:
 
 1. **Given** a `MVPFormView` subclass with `title = "Contact Us"` set, **When** the view is rendered, **Then** the page displays "Contact Us" as the page title in the layout.
-2. **Given** a `MVPFormView` subclass with breadcrumbs configured, **When** the view is rendered, **Then** the breadcrumbs are rendered in the layout.
-3. **Given** a `MVPFormView` subclass with `page_class` set, **When** the view is rendered, **Then** the CSS class is applied to the page wrapper element.
+2. **Given** a `MVPFormView` subclass with no `title` set and class name `ContactFormView`, **When** the view is rendered, **Then** the page title is `"Contact Form View"` (class name split from CamelCase via `django.utils.text.camel_case_to_spaces()` and title-cased).
+3. **Given** a `MVPFormView` subclass with breadcrumbs configured, **When** the view is rendered, **Then** the breadcrumbs are rendered in the layout.
+4. **Given** a `MVPFormView` subclass with `page_class` set, **When** the view is rendered, **Then** the CSS class is applied to the page wrapper element.
 
 ---
 
 ### Edge Cases
 
 - What happens when `form_class` is not set? The view should raise `ImproperlyConfigured` (or Django's own equivalent) at dispatch time, matching Django's standard `FormMixin` behaviour.
+- What is the default page title when `title` is not set? The class name is split from CamelCase via `django.utils.text.camel_case_to_spaces()` and title-cased — e.g. `ContactFormView` → `"Contact Form View"`.
 - What happens when `success_url` is a lazy translation string? It should be coerced to a string before use, matching the behaviour of other views in the package.
 - What happens when both `?next=` and `success_url` are absent? `ImproperlyConfigured` is raised with a message that names the view class and describes the fix.
 - What if the developer sets `model` on `MVPFormView`? The view processes the form normally; the `model` attribute is ignored (no error, no model-specific behaviour activates).
@@ -95,10 +105,10 @@ As a developer building a non-model form page, I want to configure `title`, `sub
 - **FR-002**: `MVPFormView` MUST process a form specified via `form_class`, following Django's standard form validation lifecycle (GET renders the form; valid POST triggers `form_valid()`; invalid POST triggers `form_invalid()`).
 - **FR-003**: `MVPFormView` MUST redirect the user to `success_url` after a valid form submission when no higher-priority redirect source is present.
 - **FR-004**: `MVPFormView` MUST honour a validated, same-origin `?next=` (or POST `next`) redirect as the highest-priority redirect destination, consistent with other package form views.
-- **FR-005**: `MVPFormView` MUST display a `success_message` via Django's messages framework after a valid submission, when `success_message` is set on the view.
+- **FR-005**: `MVPFormView` MUST display a `success_message` via Django's messages framework after a valid submission, when `success_message` is set on the view. `%(field_name)s` tokens in the message MUST be substituted from the submitted form's `cleaned_data` (identical to Django's `SuccessMessageMixin` behaviour); `%(verbose_name)s` MUST NOT be injected — because `defaultdict(str)` is used internally, any key absent from `cleaned_data` (including `verbose_name`) silently substitutes as `""` (empty string).
 - **FR-006**: `MVPFormView` MUST raise `ImproperlyConfigured` with an actionable error message when `form_valid()` is called and neither a valid `next` URL nor a `success_url` is available.
 - **FR-007**: `MVPFormView` MUST NOT require a `model` attribute; no model-specific logic (CRUD URL resolution, verbose-name interpolation, object list fallback) must activate.
-- **FR-008**: `MVPFormView` MUST participate in the package page context system, accepting `title`, `subtitle`, `page_class`, and breadcrumb configuration through the same attributes used by other package views.
+- **FR-008**: `MVPFormView` MUST participate in the package page context system, accepting `title`, `subtitle`, `page_class`, and breadcrumb configuration through the same attributes used by other package views. When `title` is not set, the default title MUST be derived from the view's Python class name by splitting CamelCase words with `django.utils.text.camel_case_to_spaces()` and applying title-case (e.g. `ContactFormView` → `"Contact Form View"`).
 - **FR-009**: `MVPFormView` MUST be exported from `mvp.views` as a named, importable symbol so that developers can import it with a single import statement (`from mvp.views import MVPFormView`).
 - **FR-010**: `MVPFormView` MUST coerce `success_url` to a plain string before use, supporting lazy translation strings without requiring the developer to call `str()` manually.
 
@@ -119,4 +129,5 @@ As a developer building a non-model form page, I want to configure `title`, `sub
 - Django's built-in `FormView` (using `ProcessFormView` and `FormMixin`) is the correct base for `MVPFormView`; the class does not need to support model querysets, object lookup, or save logic.
 - A single concrete class (`MVPFormView`) is sufficient for this use case. Developers with more complex needs (wizard steps with state, multi-step flows) are expected to subclass and override.
 - The success message on `MVPFormView` does NOT perform model-aware `%(verbose_name)s` interpolation — only `MVPModelFormBase`-derived views do that. Literal strings in `success_message` are used as-is.
+- `MVPFormView` applies no authentication by default. Access is unrestricted; developers who need auth add `LoginRequiredMixin` (or the project's equivalent) to their subclass. Authentication policy is an application-level concern.
 - Out of scope: form wizard orchestration, multi-step flows, AJAX form submission, file upload handling.

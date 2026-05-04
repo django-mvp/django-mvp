@@ -38,10 +38,7 @@ def make_next_url_view(method="GET", params=None, extra_attrs=None):
     for GET requests and POST-body data for POST requests.
     """
     rf = RequestFactory()
-    if method == "POST":
-        request = rf.post("/", data=params or {})
-    else:
-        request = rf.get("/", data=params or {})
+    request = rf.post("/", data=params or {}) if method == "POST" else rf.get("/", data=params or {})
 
     attrs = {"template_name": "base.html", **(extra_attrs or {})}
     view_cls = type("StubNextURLView", (NextURLMixin, TemplateView), attrs)
@@ -59,10 +56,7 @@ def make_create_view(method="POST", params=None, extra_attrs=None, kwargs=None):
     shorthand resolution can proceed end-to-end during unit tests.
     """
     rf = RequestFactory()
-    if method == "POST":
-        request = rf.post("/", data=params or {})
-    else:
-        request = rf.get("/", data=params or {})
+    request = rf.post("/", data=params or {}) if method == "POST" else rf.get("/", data=params or {})
     request.user = User()
 
     attrs = {
@@ -644,3 +638,69 @@ class TestMVPModelFormBase:
 
         with pytest.raises(ImproperlyConfigured):
             view.get_success_url()
+
+
+# ---------------------------------------------------------------------------
+# US2 — MVPFormView Success Message Interpolation (TestMVPFormView)
+# ---------------------------------------------------------------------------
+
+
+def make_form_view(extra_attrs=None):
+    """Return a configured MVPFormView stub with a fake POST request."""
+    rf = RequestFactory()
+    request = rf.post("/", data={})
+    request.user = User()
+    attrs = {
+        "template_name": "form_view.html",
+        "success_url": "/done/",
+        **(extra_attrs or {}),
+    }
+    view_cls = type("StubFormView", (MVPFormView,), attrs)
+    view = view_cls()
+    view.request = request
+    view.kwargs = {}
+    view.args = []
+    return view
+
+
+class TestMVPFormView:
+    """[US2/US4] MVPFormView.get_success_message() and get_page_title() contract tests."""
+
+    def test_field_placeholder_substituted_from_cleaned_data(self):
+        """[US2-S1] %(email)s + email in cleaned_data → substituted correctly, no KeyError."""
+        view = make_form_view(extra_attrs={"success_message": "Thanks, %(email)s!"})
+        result = view.get_success_message({"email": "user@example.com"})
+        assert result == "Thanks, user@example.com!"
+
+    def test_unknown_placeholder_substitutes_empty_string(self):
+        """[US2-S2] %(foo)s absent from cleaned_data → '' substituted, no KeyError raised."""
+        view = make_form_view(extra_attrs={"success_message": "Hello %(foo)s!"})
+        result = view.get_success_message({})
+        assert result == "Hello !"
+
+    def test_verbose_name_not_injected_substitutes_empty_string(self):
+        """[US2-S3] %(verbose_name)s → '' because verbose_name is NOT injected on MVPFormView."""
+        view = make_form_view(extra_attrs={"success_message": "%(verbose_name)s saved."})
+        result = view.get_success_message({})
+        assert result == " saved."
+
+    def test_default_title_derived_from_class_name(self):
+        """[US4-S1] Subclass named ContactFormView with no page_title → 'Contact Form View'."""
+        rf = RequestFactory()
+        request = rf.get("/")
+        request.user = User()
+        view_cls = type(
+            "ContactFormView",
+            (MVPFormView,),
+            {"template_name": "form_view.html", "success_url": "/done/"},
+        )
+        view = view_cls()
+        view.request = request
+        view.kwargs = {}
+        view.args = []
+        assert view.get_page_title() == "Contact Form View"
+
+    def test_explicit_page_title_returned_as_is(self):
+        """[US4-S2] page_title='My Form' → 'My Form' returned as-is."""
+        view = make_form_view(extra_attrs={"page_title": "My Form"})
+        assert view.get_page_title() == "My Form"
