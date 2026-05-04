@@ -126,11 +126,6 @@ class TestPageObjectMixin:
         breadcrumbs = view.get_breadcrumbs()
         assert breadcrumbs[0]["text"] == "All Orders"
 
-    def test_get_list_url_returns_empty_string_when_permission_false(self):
-        """[US1] get_list_url() returns '' when has_list_permission is False."""
-        view = make_page_object_view(extra_attrs={"directory": ["list"], "has_list_permission": False})
-        assert view.get_list_url() == ""
-
 
 # ---------------------------------------------------------------------------
 # TestMVPDetailView — US2

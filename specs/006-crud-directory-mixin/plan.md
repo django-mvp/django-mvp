@@ -11,7 +11,7 @@ An experimental implementation already exists in `mvp/views/detail.py`. Research
 
 1. **Permission naming mismatch**: `has_read_permission` is declared but never checked; the `"detail"` action checks `has_detail_permission`. Rename to align with action names.
 2. **URL kwargs leak**: `get_lookup_kwargs()` (the single override point) is used for ALL actions. On detail/edit views this passes `pk` when reversing collection URLs (`list`, `create`), causing latent `NoReverseMatch` errors. Fix by splitting into `get_object_url_kwargs()` + `get_collection_url_kwargs()`.
-3. **`MVPUpdateView.get_delete_url()` ignores permissions**: generates the delete URL without checking `has_delete_permission`. Fix by routing through `_resolve_directory_url`.
+3. **`MVPUpdateView.get_delete_url()` ignores permissions**: generates the delete URL without checking `has_delete_permission`. Fix by routing through `resolve_crud_url`.
 
 The implementation also has structural issues: `_OBJECT_ACTIONS` exposed as a class attribute, redundant `ModelInfoMixin` in `PageObjectMixin`'s explicit bases, and zero test coverage.
 

@@ -50,7 +50,7 @@ description: "Task list for 006-crud-directory-mixin"
 ### Implementation for User Story 1
 
 - [X] T004 [US1] Replace `get_lookup_kwargs()` with `get_url_kwargs(action: str) -> dict | None` in `CRUDDirectoryMixin` in `mvp/views/detail.py`. Default implementation: return `{}` when `action` is `"list"` or `"create"`; return `dict(self.kwargs) or None` for all other actions (object-level and custom). Update all internal callers. Remove the `_OBJECT_ACTIONS` class-level attribute from `CRUDDirectoryMixin`. Remove the module-level `_OBJECT_ACTIONS = frozenset(...)` constant — it is no longer referenced by any production code.
-- [X] T006 [US1] Update `_resolve_directory_url()` in `mvp/views/detail.py` to call `self.get_url_kwargs(action)` and suppress (return `None`) when the result is `None`. Remove the old `_OBJECT_ACTIONS` membership check. Pass the returned dict directly to `reverse()`. No other branching on action category is needed.
+- [X] T006 [US1] Update `resolve_crud_url()` in `mvp/views/detail.py` to call `self.get_url_kwargs(action)` and suppress (return `None`) when the result is `None`. Remove the old `_OBJECT_ACTIONS` membership check. Pass the returned dict directly to `reverse()`. No other branching on action category is needed.
 - [X] T007 [P] [US1] Replace `get_lookup_kwargs()` override in `MVPModelFormBase` in `mvp/views/edit.py` with `get_url_kwargs(self, action: str) -> dict | None`. Logic: call `super().get_url_kwargs(action)`; if result is **not `None`** (use `is not None` — not truthiness, since `{}` is a valid non-None return for collection actions), return it; otherwise fall back to `{self.pk_url_kwarg: obj.pk}` if `self.object` exists, else return `None`.
 
 ### Validation for User Story 1
@@ -79,7 +79,7 @@ description: "Task list for 006-crud-directory-mixin"
 ### Implementation for User Story 2
 
 - [X] T011 [US2] In `CRUDDirectoryMixin` in `mvp/views/detail.py`: rename `has_read_permission = False` → `has_detail_permission = False`; add `has_list_permission = False` as a new class attribute alongside the existing four permission attributes
-- [X] T012 [P] [US2] Fix `MVPUpdateView.get_delete_url()` in `mvp/views/edit.py` to route through `self._resolve_directory_url("delete")` instead of calling `reverse()` directly — `has_delete_permission` must now gate this URL; preserve the `?back=...&next=...` query-string appending logic that follows the URL resolution. ⚠️ **Regression note**: any existing `MVPUpdateView` subclass that relied on `get_delete_url()` always resolving must explicitly set `has_delete_permission = True`.
+- [X] T012 [P] [US2] Fix `MVPUpdateView.get_delete_url()` in `mvp/views/edit.py` to route through `self.resolve_crud_url("delete")` instead of calling `reverse()` directly — `has_delete_permission` must now gate this URL; preserve the `?back=...&next=...` query-string appending logic that follows the URL resolution. ⚠️ **Regression note**: any existing `MVPUpdateView` subclass that relied on `get_delete_url()` always resolving must explicitly set `has_delete_permission = True`.
 
 ### Validation for User Story 2
 

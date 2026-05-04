@@ -480,7 +480,6 @@ Key class attributes and methods:
 |---|---|
 | `list_view_title = ""` | Override text for the breadcrumb back-link. Defaults to `verbose_name_plural.title()`. |
 | `get_list_title()` | Returns `list_view_title` or the model's plural verbose name, title-cased. |
-| `get_list_url()` | Returns the resolved list URL, or `""` when suppressed by permission gating. |
 | `get_breadcrumbs()` | Two-item trail: `[{"text": list_title, "href": list_url}, {"text": page_title}]`. |
 | `get_page_class()` | Appends `{model_name}-page` to the class string from `PageMixin.get_page_class()`. |
 
@@ -535,6 +534,80 @@ mvp-page  mvp-detail-page  order-page
 `order-page` — model-name class appended by `PageObjectMixin.get_page_class()`
 
 > **Full guide**: `specs/007-object-page-foundation/quickstart.md`
+
+---
+
+## Step 11 — Safe Post-Submit Redirect (`NextURLMixin`)
+
+`NextURLMixin` provides safe handling of the `?next=` parameter for all form views.
+It is automatically composed into `MVPFormBase`, so every `MVPCreateView`,
+`MVPUpdateView`, `MVPFormView`, and `MVPDeleteView` benefits without any extra setup.
+
+### URL destination
+
+Embed a same-origin URL in the query string:
+
+```python
+# In a list view template:
+<a href="{% url 'product-create' %}?next={{ request.path }}">Add product</a>
+```
+
+After a successful save the user lands back at `request.path` — no custom view code
+needed.
+
+### CRUD shorthand destination
+
+Use a shorthand key from `crud_views` as the `next` value:
+
+```python
+# Via query string:
+<a href="{% url 'product-create' %}?next=detail">Create & view</a>
+
+# Or hard-code in a link column:
+<a href="{% url 'product-update' pk=obj.pk %}?next=list">Edit</a>
+```
+
+Supported shorthands (from `MVP_DEFAULT_VIEW_NAMES`):
+`"list"`, `"detail"`, `"create"`, `"update"`, `"delete"`
+
+Shorthand resolution follows the same permission gating as `CRUDDirectoryMixin`.
+If a shorthand cannot be resolved (permission denied, URL pattern missing), a
+`logger.warning` is emitted when `settings.DEBUG = True` and the fallback chain
+continues.
+
+### Template: preserving `next` across failed POST re-renders
+
+The `form_view.html` base template includes a hidden input after the submit buttons:
+
+```html
+{% if next_url %}<input type="hidden" name="next" value="{{ next_url }}">{% endif %}
+```
+
+This ensures the destination survives form validation failures. The hidden input is
+placed **after** the submit buttons so that when a user clicks a button (e.g. "Save
+entry" with `name="next" value="list"`), the hidden field's value wins in Django's
+`QueryDict` (last value wins for duplicate keys).
+
+### `get_success_url()` priority chain
+
+| Step | Source | Condition |
+|------|--------|-----------|
+| 1 | Validated same-origin `next` URL | POST data contains a `next` starting with `/` or `://` |
+| 2 | CRUD shorthand via `resolve_crud_url()` | POST data `next` is a key in `crud_views` and resolves |
+| 3 | `success_url` class attribute | Set explicitly on the view class |
+
+`MVPFormView` raises `ImproperlyConfigured` at step 3 when `success_url` is not set —
+this is intentional, matching Django's own `FormMixin` contract.
+
+### Security behaviour
+
+- **Open-redirect protection** is enforced via `url_has_allowed_host_and_scheme`.
+- **Bare words** (e.g. `next=foobar`) that aren't recognized CRUD shorthands are
+  rejected, preventing browsers from treating them as relative paths.
+- **Cross-origin URLs** (e.g. `next=https://evil.com/`) are rejected and logged
+  in `DEBUG=True` mode.
+- **Logging** is performed by `logging.getLogger("mvp.views.edit")`. To suppress
+  warnings in tests: `@override_settings(DEBUG=False)`.
 
 ---
 

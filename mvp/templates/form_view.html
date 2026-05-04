@@ -59,6 +59,7 @@
                 </c-action-row>
               </c-card>
             </div>
+            {% if next_url %}<input type="hidden" name="next" value="{{ next_url }}">{% endif %}
           </c-form>
         </c-col>
       </c-row>

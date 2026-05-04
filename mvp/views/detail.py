@@ -59,7 +59,7 @@ class CRUDDirectoryMixin(ModelInfoMixin):
             return {}
         return dict(self.kwargs) or None
 
-    def _resolve_directory_url(self, action: str) -> str | None:
+    def resolve_crud_url(self, action: str) -> str | None:
         """Resolve the URL for a single CRUD action.
 
         Returns ``None`` when the action is suppressed by a ``None`` return from
@@ -90,7 +90,7 @@ class CRUDDirectoryMixin(ModelInfoMixin):
         """
         result = {}
         for action in self.directory:
-            url = self._resolve_directory_url(action)
+            url = self.resolve_crud_url(action)
             if url is not None:
                 result[f"{action}_url"] = url
         return result
@@ -111,10 +111,6 @@ class PageObjectMixin(CRUDDirectoryMixin, PageMixin):
         """
         return self.list_view_title or self.model_meta.verbose_name_plural.title()
 
-    def get_list_url(self):
-        """Return the URL for the list view, or an empty string if suppressed by permission gating."""
-        return self._resolve_directory_url("list") or ""
-
     def get_breadcrumbs(self):
         """Return the list of breadcrumb items for the form view.
 
@@ -125,7 +121,7 @@ class PageObjectMixin(CRUDDirectoryMixin, PageMixin):
         """
 
         breadcrumbs = [
-            {"text": self.get_list_title(), "href": self.get_list_url()},
+            {"text": self.get_list_title(), "href": self.resolve_crud_url("list") or ""},
             {"text": self.get_page_title()},
         ]
         return breadcrumbs

@@ -177,7 +177,7 @@ class TestUS1Directory:
 
 @pytest.mark.django_db
 class TestUS2PermissionGating:
-    """[US2] Tests for permission gating in _resolve_directory_url()."""
+    """[US2] Tests for permission gating in resolve_crud_url()."""
 
     def test_US2_false_permission_excludes_url(self):
         """[US2] has_delete_permission=False → delete_url absent from context."""
@@ -250,6 +250,7 @@ class TestUS2PermissionGating:
 
     def test_US2_callable_permission_raising_propagates(self):
         """[US2] Callable permission that raises ValueError → exception propagates."""
+
         def bad_perm(user):
             raise ValueError("permission check failed")
 
