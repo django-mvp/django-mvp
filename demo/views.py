@@ -205,6 +205,9 @@ class ProductCreateView(MVPCreateView):
 
     model = Product
     fields = ["name", "slug", "category", "description", "price", "stock", "status"]
+    has_list_permission = True
+    has_detail_permission = True
+    has_update_permission = True
 
 
 class ProductDetailView(MVPDetailView):

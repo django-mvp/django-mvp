@@ -88,7 +88,7 @@ These methods are implementation details. Do NOT override them in subclasses.
 | Method | Purpose |
 |---|---|
 | `_get_view_name(action: str) -> str` | Looks up and formats the URL name for an action from `crud_views`. Raises `ValueError` for unknown action names. |
-| `_resolve_directory_url(action: str) -> str \| None` | Resolves a single action URL applying permission gate and kwargs dispatch. Returns `None` when excluded. |
+| `resolve_crud_url(action: str) -> str \| None` | Resolves a single action URL applying permission gate and kwargs dispatch. Returns `None` when excluded. |
 
 ---
 

@@ -34,7 +34,7 @@
 
 **Decision**: Rename `has_read_permission` → `has_detail_permission`. Add `has_list_permission = False`.
 
-**Rationale**: The `directory` mechanism is action-name-driven: when `"detail"` is in `directory`, `_resolve_directory_url` checks `getattr(self, "has_detail_permission", None)`. The current class declares `has_read_permission`, which is never checked by this mechanism. It is a dead attribute — it neither gates nor enables any directory URL. Renaming it to `has_detail_permission` makes the declared defaults consistent with the resolution logic.
+**Rationale**: The `directory` mechanism is action-name-driven: when `"detail"` is in `directory`, `resolve_crud_url` checks `getattr(self, "has_detail_permission", None)`. The current class declares `has_read_permission`, which is never checked by this mechanism. It is a dead attribute — it neither gates nor enables any directory URL. Renaming it to `has_detail_permission` makes the declared defaults consistent with the resolution logic.
 
 The standard actions in `crud_views` are: `list`, `detail`, `create`, `update`, `delete`. The class should declare a default permission attribute for each:
 
@@ -55,7 +55,7 @@ has_delete_permission = False
 
 ## Research Question 3: How should URL kwargs be handled for collection-level vs object-level actions?
 
-**Decision**: Introduce two separate override methods. Rename `get_lookup_kwargs()` → `get_object_url_kwargs()` and add `get_collection_url_kwargs()` returning `{}` by default. The internal `_resolve_directory_url` dispatches to the correct getter based on whether the action is in `_OBJECT_ACTIONS`.
+**Decision**: Introduce two separate override methods. Rename `get_lookup_kwargs()` → `get_object_url_kwargs()` and add `get_collection_url_kwargs()` returning `{}` by default. The internal `resolve_crud_url` dispatches to the correct getter based on whether the action is in `_OBJECT_ACTIONS`.
 
 > **⚠️ Superseded** (2026-05-03): This two-method design was replaced during clarification by a single `get_url_kwargs(action: str) -> dict | None` method. See spec.md § Clarifications for the final design. The code examples below are retained for historical context only.
 
@@ -120,9 +120,8 @@ class TaskUpdateView(MVPUpdateView):
 |---|---|---|
 | `mvp/views/detail.py` — `CRUDDirectoryMixin` | Modified directly | All changes land here |
 | `mvp/views/detail.py` — `PageObjectMixin` | Inherits `CRUDDirectoryMixin` + `ModelInfoMixin` | `ModelInfoMixin` in explicit bases is redundant (already inherited via `CRUDDirectoryMixin`). Remove it. |
-| `mvp/views/detail.py` — `PageObjectMixin.get_list_url()` | Calls `_resolve_directory_url("list")` directly | After the kwargs fix, this correctly uses `get_collection_url_kwargs()` (empty dict) for "list" — no special change needed. Behavior is preserved. |
 | `mvp/views/edit.py` — `MVPModelFormBase.get_lookup_kwargs()` | Overrides `get_lookup_kwargs()` | Must be renamed to `get_object_url_kwargs()`. Also extends with CreateView fallback (adding `object.pk` after save) — this remains correct. |
-| `mvp/views/edit.py` — `MVPUpdateView.get_delete_url()` | Calls `_get_view_name("delete")` directly, ignores `has_delete_permission` | Should call `_resolve_directory_url("delete")` to respect permission gating. Currently generates the delete URL unconditionally. The method appends `?back=...&next=...` params (UX logic) — this special logic means it cannot simply be replaced by reading from `get_directory()`, but the permission gate can be applied via `_resolve_directory_url`. |
+| `mvp/views/edit.py` — `MVPUpdateView.get_delete_url()` | Calls `_get_view_name("delete")` directly, ignores `has_delete_permission` | Should call `resolve_crud_url("delete")` to respect permission gating. Currently generates the delete URL unconditionally. The method appends `?back=...&next=...` params (UX logic) — this special logic means it cannot simply be replaced by reading from `get_directory()`, but the permission gate can be applied via `resolve_crud_url`. |
 | `mvp/views/list.py` — `MVPListViewMixin` | Inherits `CRUDDirectoryMixin` from `detail.py` | No logic change. Import path unchanged. |
 | `demo/views.py` | Uses `MVPCreateView`, `MVPUpdateView`, `MVPDeleteView`, `MVPListViewMixin` | No `directory` or permission attributes set anywhere → currently dormant usage. No code change needed in demo views unless a demo page is added to showcase the feature. |
 | `tests/test_views/` | No tests for `CRUDDirectoryMixin` | Full unit test suite must be written. |
@@ -181,6 +180,6 @@ class TaskUpdateView(MVPUpdateView):
 | `_OBJECT_ACTIONS` class attr | Remove from class. Keep as module-level frozenset only. |
 | `PageObjectMixin` MRO | Remove redundant `ModelInfoMixin` from explicit bases. |
 | `MVPModelFormBase.get_lookup_kwargs()` | Rename to `get_object_url_kwargs()`. |
-| `MVPUpdateView.get_delete_url()` | Apply `has_delete_permission` gate via `_resolve_directory_url`. |
+| `MVPUpdateView.get_delete_url()` | Apply `has_delete_permission` gate via `resolve_crud_url`. |
 | Test file | `tests/test_views/test_crud_directory_mixin.py` (new file) |
 | Demo update | Add a showcase view to the demo app demonstrating `directory` usage. |

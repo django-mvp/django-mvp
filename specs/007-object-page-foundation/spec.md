@@ -28,7 +28,7 @@ As a developer building object-level views, I want to inherit a single base clas
 1. **Given** a view inherits the shared base and sets `model`, `has_list_permission = True`, and `directory = ["list"]`, **When** the view renders, **Then** the template context contains a populated `page` dict and a `directory` dict with `list_url`.
 2. **Given** a view inherits the shared base but does not override `list_view_title`, **When** the view renders, **Then** the breadcrumb link to the list view uses the model's plural verbose name, title-cased.
 3. **Given** a view overrides `list_view_title = "All Orders"`, **When** the view renders, **Then** the breadcrumb link to the list view reads "All Orders".
-4. **Given** `has_list_permission = False` on the view, **When** the view renders, **Then** `get_list_url()` returns an empty string and the breadcrumb link has no `href`.
+4. **Given** `has_list_permission = False` on the view, **When** the view renders, **Then** `get_crud_url("list")` returns an empty string and the breadcrumb link has no `href`.
 
 ---
 
@@ -84,7 +84,6 @@ As an end user viewing a record's detail page, I see the record's own name or de
 ### Edge Cases
 
 - What happens when `str(object)` returns an empty string? The page title and final breadcrumb item are both empty strings — no fallback is substituted; the developer is expected to ensure `__str__` returns a non-empty value.
-- What happens when the list URL does not exist in the URL configuration? `get_list_url()` returns an empty string if `has_list_permission` is falsy; if permission is truthy but the URL is missing, the existing reversal error from `CRUDDirectoryMixin._resolve_directory_url` propagates as a configuration error.
 - What happens when `MVPDetailView` is used without any model configuration? The `ModelInfoMixin` resolution chain raises a clear configuration error before the page renders, identifying the view class by name.
 - What happens when both a model-specific template and the base fallback template are absent? Django's template engine raises its standard `TemplateDoesNotExist` error.
 
@@ -94,8 +93,7 @@ As an end user viewing a record's detail page, I see the record's own name or de
 
 - **FR-001**: The framework MUST provide a single composable base (`PageObjectMixin`) that merges model resolution, sibling URL directory, and page header/breadcrumb concerns. Concrete views for create, update, and delete are out of scope for this spec.
 - **FR-002**: `PageObjectMixin` MUST expose a `list_view_title` class attribute that controls the text of the breadcrumb back-link to the list view; when not set, the breadcrumb text MUST default to the model's plural verbose name, title-cased.
-- **FR-003**: `PageObjectMixin` MUST expose a `get_list_url()` method that returns the resolved list URL, or an empty string when the list URL is suppressed by permission gating.
-- **FR-004**: `PageObjectMixin.get_breadcrumbs()` MUST return a two-item trail: a link to the list view (using `get_list_title()` and `get_list_url()`) followed by the current page title (no link).
+- **FR-004**: `PageObjectMixin.get_breadcrumbs()` MUST return a two-item trail: a link to the list view (using `get_list_title()` and `resolve_crud_url("list")`) followed by the current page title (no link).
 - **FR-005**: `PageObjectMixin.get_page_class()` MUST append a CSS class derived from the model name (e.g. `order-page`) to the page container class string inherited from `PageMixin`. This class is shared by all concrete views that inherit `PageObjectMixin`; each concrete view is responsible only for adding its own action-specific class (see FR-009).
 - **FR-006**: The framework MUST provide a concrete `MVPDetailView` class that combines the shared base with Django's built-in single-object retrieval so that a developer only needs to set `model` (or `queryset`) to get a working read-only page.
 - **FR-007**: `MVPDetailView.get_page_title()` MUST return the string representation of the resolved object (`str(self.object)`).

@@ -34,7 +34,6 @@ PageObjectMixin(CRUDDirectoryMixin, PageMixin)
 | Method | Signature | Returns | Description |
 |---|---|---|---|
 | `get_list_title` | `() → str` | `str` | Returns `list_view_title` or model's plural verbose name, title-cased. |
-| `get_list_url` | `() → str` | `str` | Returns the resolved list URL, or `""` if suppressed by permission gating. |
 | `get_breadcrumbs` | `() → list[dict]` | `list` | Two-item trail: `[{"text": list_title, "href": list_url}, {"text": page_title}]`. |
 | `get_page_class` | `() → str` | `str` | Appends `{model_name}-page` to the class string from `PageMixin.get_page_class()`. |
 

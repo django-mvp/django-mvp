@@ -34,7 +34,7 @@ description: "Task list for Object Page Foundation"
 
 **Goal**: Full unit test coverage for `PageObjectMixin` — the shared composition base. Verifies that the three shared concerns (model resolution, sibling URL directory, breadcrumbs/page class) are correctly assembled and independently testable.
 
-**Independent Test**: Create `tests/test_views/test_detail_view.py` with a `TestPageObjectMixin` class. Four scenarios: breadcrumbs include list link when `has_list_permission = True`; breadcrumb text defaults to `verbose_name_plural.title()`; `get_list_url()` returns `""` when permission is False; `get_page_class()` appends model-name CSS class. All pass with no database required. Note: the `has_list_permission = True` scenario triggers `_resolve_directory_url`, which requires URL configuration — isolate by registering a minimal URL or mocking `get_list_url()` in that test.
+**Independent Test**: Create `tests/test_views/test_detail_view.py` with a `TestPageObjectMixin` class. Four scenarios: breadcrumbs include list link when `has_list_permission = True`; breadcrumb text defaults to `verbose_name_plural.title()`; `resolve_crud_url("list")` returns `""` when permission is False; `get_page_class()` appends model-name CSS class. All pass with no database required. Note: the `has_list_permission = True` scenario triggers `resolve_crud_url("list")`, which requires URL configuration — isolate by registering a minimal URL or mocking `resolve_crud_url("list")` in that test.
 
 ### Tests for User Story 1
 
@@ -42,7 +42,6 @@ description: "Task list for Object Page Foundation"
   - `test_context_contains_page_and_directory_with_list_permission` — given `has_list_permission = True` and `directory = ["list"]`, context has `page` dict and `directory["list_url"]`
   - `test_breadcrumb_text_defaults_to_verbose_name_plural` — given no `list_view_title`, first breadcrumb text equals `model_meta.verbose_name_plural.title()`
   - `test_breadcrumb_text_uses_list_view_title_when_set` — given `list_view_title = "All Orders"`, first breadcrumb text is `"All Orders"`
-  - `test_get_list_url_returns_empty_string_when_permission_false` — given `has_list_permission = False`, `get_list_url()` returns `""`
   *(Note: `test_breadcrumb_text_defaults_to_verbose_name_plural` intentionally overlaps with `TestListViewTitle.test_default_breadcrumb_text_is_verbose_name_plural_title_cased` in T009 — US1 tests mixin assembly; US3 tests the attribute contract in isolation.)*
 
 ### Story 1 Validation

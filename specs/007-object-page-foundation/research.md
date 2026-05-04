@@ -15,8 +15,7 @@
 |---|---|---|
 | FR-001: `PageObjectMixin` merges model resolution, CRUD directory, page header/breadcrumbs | ✅ | `class PageObjectMixin(CRUDDirectoryMixin, PageMixin)` inherits both; model resolution comes through `CRUDDirectoryMixin → ModelInfoMixin` |
 | FR-002: `list_view_title` controls breadcrumb back-link text; defaults to `verbose_name_plural.title()` | ✅ | `list_view_title = ""`; `get_list_title()` returns `self.list_view_title or self.model_meta.verbose_name_plural.title()` |
-| FR-003: `get_list_url()` returns resolved list URL or empty string when suppressed | ✅ | `return self._resolve_directory_url("list") or ""` — routes through permission gating |
-| FR-004: `get_breadcrumbs()` returns two-item trail: list link → current page (no link) | ✅ | `[{"text": self.get_list_title(), "href": self.get_list_url()}, {"text": self.get_page_title()}]` |
+| FR-004: `get_breadcrumbs()` returns two-item trail: list link → current page (no link) | ✅ | `[{"text": self.get_list_title(), "href": self.resolve_()}, {"text": self.get_page_title()}]` |
 | FR-005: `PageObjectMixin.get_page_class()` appends model-name CSS class | ✅ | `" ".join(filter(None, [super().get_page_class(), self.model_meta.model_name + "-page"]))` |
 | FR-006: `MVPDetailView` combines `PageObjectMixin` with Django's single-object retrieval | ✅ | `class MVPDetailView(BaseTemplateNameMixin, PageObjectMixin, generic.DetailView)` |
 | FR-007: `MVPDetailView.get_page_title()` returns `str(self.object)` | ✅ | Implemented directly; single-line method |

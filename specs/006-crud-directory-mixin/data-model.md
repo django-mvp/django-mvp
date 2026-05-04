@@ -40,7 +40,7 @@ This feature introduces no Django models, no database migrations, and no new dat
 | Name | Signature | Description |
 |---|---|---|
 | `_get_view_name(action)` | `(str) -> str` | Looks up the URL name pattern for `action` in `crud_views` and applies model/app label substitution. Raises `ValueError` for unknown action names. |
-| `_resolve_directory_url(action)` | `(str) -> str \| None` | Resolves a single action URL. Returns `None` when permission is denied, kwargs are empty for object-level actions, or no permission attribute exists. |
+| `resolve_crud_url(action)` | `(str) -> str \| None` | Resolves a single action URL. Returns `None` when permission is denied, kwargs are empty for object-level actions, or no permission attribute exists. |
 
 ---
 
@@ -126,7 +126,7 @@ ModelInfoMixin                               [mvp.views.base]
             Provides: directory context dict
             │
             ├── PageObjectMixin(CRUDDirectoryMixin, PageMixin)    [mvp.views.detail]
-            │       Extends: get_list_url(), get_breadcrumbs()
+            │       Extends: get_breadcrumbs()
             │       │
             │       ├── MVPDetailView          [mvp.views.detail]
             │       ├── MVPFormBase            [mvp.views.edit]
@@ -136,7 +136,7 @@ ModelInfoMixin                               [mvp.views.base]
             │       │       │       │
             │       │       │       ├── MVPCreateView
             │       │       │       ├── MVPUpdateView
-            │       │       │       │       get_delete_url() → uses _resolve_directory_url("delete")
+            │       │       │       │       get_delete_url() → uses resolve_crud_url("delete")
             │       │       │       └── MVPDeleteView
             │       │       └── MVPFormView
             │       └── (used by edit views above)
@@ -151,7 +151,7 @@ ModelInfoMixin                               [mvp.views.base]
 
 | Entity | Change |
 |---|---|
-| `CRUDDirectoryMixin` | Rename `has_read_permission` → `has_detail_permission`; add `has_list_permission`; remove `_OBJECT_ACTIONS` class attribute; rename `get_lookup_kwargs()` → `get_object_url_kwargs()`; add `get_collection_url_kwargs()`; update `_resolve_directory_url()` to dispatch to correct kwargs getter. |
+| `CRUDDirectoryMixin` | Rename `has_read_permission` → `has_detail_permission`; add `has_list_permission`; remove `_OBJECT_ACTIONS` class attribute; rename `get_lookup_kwargs()` → `get_object_url_kwargs()`; add `get_collection_url_kwargs()`; update `resolve_crud_url()` to dispatch to correct kwargs getter. |
 | `PageObjectMixin` | Remove redundant `ModelInfoMixin` from explicit bases (already inherited via `CRUDDirectoryMixin`). |
 | `MVPModelFormBase` | Rename `get_lookup_kwargs()` override → `get_object_url_kwargs()`. |
-| `MVPUpdateView.get_delete_url()` | Apply `has_delete_permission` gate by delegating to `_resolve_directory_url("delete")` before appending `?back=...&next=...` params. |
+| `MVPUpdateView.get_delete_url()` | Apply `has_delete_permission` gate by delegating to `resolve_crud_url("delete")` before appending `?back=...&next=...` params. |

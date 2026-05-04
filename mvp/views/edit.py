@@ -1,7 +1,10 @@
+import logging
 from urllib.parse import urlencode
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.messages.views import SuccessMessageMixin
+from django.core.exceptions import ImproperlyConfigured
 from django.db.models.deletion import ProtectedError
 from django.http import HttpResponseRedirect
 from django.urls import reverse
@@ -12,9 +15,17 @@ from django.views import generic
 from .base import BaseTemplateNameMixin
 from .detail import PageObjectMixin
 
+logger = logging.getLogger(__name__)
+
 
 class NextURLMixin:
     """Mixin to determine the next URL to redirect to after form submission."""
+
+    def get_next_candidate(self):
+        """Return the raw next URL candidate from the request, without validation."""
+        if self.request.method == "POST":
+            return self.request.POST.get("next")
+        return self.request.GET.get("next")
 
     def get_next_url(self):
         """Return a validated ``next`` URL from the current request, or ``None``.
@@ -23,13 +34,28 @@ class NextURLMixin:
         query string. The candidate URL is validated against the current host
         via ``url_has_allowed_host_and_scheme`` to prevent open redirects.
 
+        Validation rules:
+
+        - Bare words (e.g. ``"list"``) that don't start with ``"/"`` or
+          contain ``"://"`` are rejected (open-redirect protection).
+        - Cross-origin or unsafe-scheme URLs are rejected.
+        - When ``settings.DEBUG`` is ``True``, a ``logger.warning`` is emitted
+          for every rejected candidate to aid development.
+
         Returns:
-            str | None: Validated URL, or ``None`` if absent or unsafe.
+            str | None: Validated URL path, or ``None`` if absent or unsafe.
         """
-        if self.request.method == "POST":
-            candidate = self.request.POST.get("next")
-        else:
-            candidate = self.request.GET.get("next")
+        candidate = self.get_next_candidate()
+
+        # Require the candidate to look like a URL (starts with "/" or contains "://")
+        # to prevent bare words from being treated as valid relative paths.
+        if candidate and not (candidate.startswith("/") or "://" in candidate):
+            if settings.DEBUG:
+                logger.warning(
+                    "next parameter %r rejected (unsafe or cross-origin); falling back to default destination.",
+                    candidate,
+                )
+            return None
 
         if candidate and url_has_allowed_host_and_scheme(
             url=candidate,
@@ -37,6 +63,13 @@ class NextURLMixin:
             require_https=self.request.is_secure(),
         ):
             return candidate
+
+        # Emit a warning when a candidate was present but rejected.
+        if candidate and settings.DEBUG:
+            logger.warning(
+                "next parameter %r rejected (unsafe or cross-origin); falling back to default destination.",
+                candidate,
+            )
         return None
 
     def get_context_data(self, **kwargs):
@@ -50,6 +83,49 @@ class MVPFormBase(SuccessMessageMixin, BaseTemplateNameMixin, NextURLMixin, Page
 
     base_template_name = "form_view.html"
     page_class = "mvp-form-page"
+
+    def get_next_url(self):
+        """Extend NextURLMixin by resolving CRUD shorthands into real URLs.
+
+        If the candidate is a recognised CRUD shorthand it is resolved via
+        ``resolve_crud_url()`` and the resulting URL is returned directly,
+        bypassing the open-redirect validation (the resolved URL is always
+        same-origin).  When resolution fails (e.g. no pk is available yet on
+        a create view) ``None`` is returned.
+        """
+        candidate = self.get_next_candidate()
+        if candidate and hasattr(self, "crud_views") and candidate in self.crud_views:
+            try:
+                url = self.resolve_crud_url(candidate)
+            except Exception:
+                return None  # No model configured on this view — fall through silently.
+            if url is None and settings.DEBUG:
+                logger.warning(
+                    "next shorthand %r could not be resolved; falling back to default destination.",
+                    candidate,
+                )
+            return url
+        return super().get_next_url()
+
+    def get_success_url(self):
+        """Determine the URL to redirect to after successful form submission.
+
+        Priority chain:
+
+        1. ``get_next_url()`` — validated same-origin ``next`` URL, or a
+           resolved CRUD action shorthand (e.g. ``"list"``, ``"detail"``)
+        2. Django ``FormMixin.get_success_url()`` — uses ``success_url`` attribute
+
+        Returns:
+            str: URL to redirect to
+        """
+        if next_url := self.get_next_url():
+            return next_url
+        if getattr(self, "success_url", None):
+            return str(self.success_url)
+        raise ImproperlyConfigured(
+            f"'{self.__class__.__name__}' must define 'success_url' or override 'get_success_url()'."
+        )
 
 
 class MVPModelFormBase(MVPFormBase):
@@ -86,22 +162,19 @@ class MVPModelFormBase(MVPFormBase):
     def get_success_url(self):
         """Determine the URL to redirect to after successful form submission.
 
+        Priority chain:
+
+        1–3. Inherited from :class:`MVPFormBase` (URL → shorthand → ``success_url``)
+        4.   :meth:`resolve_crud_url("list")` — built-in fallback for model-based views
+             (only reached when ``success_url`` is not set)
+
         Returns:
             str: URL to redirect to
         """
-        # Validated external 'next' URL from query string or POST data
-        if next_url := self.get_next_url():
-            return next_url
-
-        # 'next' as a CRUD action key in POST data (e.g. next=detail)
-        # Delegates entirely to _resolve_directory_url, which handles
-        # permission gating and object-action guarding automatically.
-        next_key = self.request.POST.get("next")
-        if next_key and next_key in self.crud_views:
-            if url := self._resolve_directory_url(next_key):
-                return url
-
-        return self.get_list_url()
+        try:
+            return super().get_success_url()
+        except ImproperlyConfigured:
+            return self.resolve_crud_url("list")
 
 
 class MVPFormView(MVPFormBase, generic.FormView):
@@ -153,7 +226,7 @@ class MVPUpdateView(MVPModelFormBase, generic.UpdateView):
             list[dict]: List of breadcrumb items with 'text' and optional 'href'
         """
         return [
-            {"text": self.get_list_title(), "href": self.get_list_url()},
+            {"text": self.get_list_title(), "href": self.resolve_crud_url("list")},
             {"text": str(self.object), "href": self.object.get_absolute_url()},
             {"text": self.get_page_title()},
         ]
@@ -161,18 +234,18 @@ class MVPUpdateView(MVPModelFormBase, generic.UpdateView):
     def get_delete_url(self):
         """Return the URL to use for the delete view link in the form header.
 
-        Routes through ``_resolve_directory_url("delete")`` so that
+        Routes through ``resolve_crud_url("delete")`` so that
         ``has_delete_permission`` gates the URL. Appends ``?back=<update url>&next=<list url>``
         so the delete view redirects to the list after successful deletion.
 
         Returns:
             str: URL for the delete view link, or empty string when suppressed.
         """
-        url = self._resolve_directory_url("delete")
+        url = self.resolve_crud_url("delete")
         if not url:
             return ""
         back_url = reverse(self._get_view_name("update"), kwargs=self.get_url_kwargs("update"))
-        next_url = self.get_list_url()
+        next_url = self.resolve_crud_url("list")
         params = urlencode({"back": back_url, "next": next_url})
         return f"{url}?{params}"
 
@@ -258,7 +331,7 @@ class MVPDeleteView(MVPModelFormBase, generic.DeleteView):
             require_https=self.request.is_secure(),
         ):
             return candidate
-        return self.get_list_url()
+        return self.resolve_crud_url("list")
 
     def get_next_url(self):
         """Return the URL for the post-delete redirect.
@@ -276,11 +349,11 @@ class MVPDeleteView(MVPModelFormBase, generic.DeleteView):
         """
         if next_url := super().get_next_url():
             return next_url
-        return self.get_list_url()
+        return self.resolve_crud_url("list")
 
     def get_success_url(self):
         """Redirect to the validated ``next`` URL from POST, or the list view."""
-        return super().get_next_url() or self.get_list_url()
+        return super().get_next_url() or self.resolve_crud_url("list")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
