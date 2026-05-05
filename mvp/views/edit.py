@@ -295,6 +295,7 @@ class MVPFormView(MVPFormBase, generic.FormView):
 class MVPCreateView(MVPModelFormBase, generic.CreateView):
     """CreateView with AdminLTE layout and auto-detected form rendering."""
 
+    page_title = _("Create %(verbose_name)s")
     page_icon = "add"
     page_class = "mvp-form-page mvp-create-page"
     success_message = _("%(verbose_name)s successfully created.")
@@ -314,9 +315,9 @@ class MVPCreateView(MVPModelFormBase, generic.CreateView):
         Returns:
             str: The page title to display.
         """
-        if self.page_title:
-            return str(self.page_title)
-        return _("Create %(verbose_name)s") % {"verbose_name": self.model_meta.verbose_name.title()}
+        if not self.page_title:
+            return self.page_title
+        return self.page_title % {"verbose_name": self.model_meta.verbose_name.title()}
 
     def get_success_message(self, cleaned_data: dict) -> str:
         """Interpolate ``success_message`` with a title-cased ``verbose_name``.

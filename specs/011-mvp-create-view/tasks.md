@@ -131,6 +131,7 @@ message "Product successfully created.", breadcrumb to list.
   Changes to `MVPCreateView`:
   1. Remove the `page_title = _("Create Entry")` class attribute.
   2. Add `get_page_title()`:
+
      ```python
      def get_page_title(self) -> str:
          """Return a model-aware page title, or the explicit override if set.
@@ -151,7 +152,9 @@ message "Product successfully created.", breadcrumb to list.
              return str(self.page_title)
          return f"Create {self.model_meta.verbose_name.title()}"
      ```
+
   3. Add `get_success_message()`:
+
      ```python
      def get_success_message(self, cleaned_data: dict) -> str:
          """Interpolate ``success_message`` with a title-cased ``verbose_name``.

@@ -744,9 +744,10 @@ class TestMVPCreateViewDefaults:
         """'mvp-create-page' appears in MVPCreateView.page_class."""
         assert "mvp-create-page" in MVPCreateView.page_class
 
-    def test_no_page_title_class_attr(self):
-        """MVPCreateView.__dict__ does not define page_title (title is derived dynamically)."""
-        assert "page_title" not in MVPCreateView.__dict__
+    def test_page_title_class_attr_is_template(self):
+        """MVPCreateView defines page_title as an interpolation template on the class."""
+        assert "page_title" in MVPCreateView.__dict__
+        assert "%(verbose_name)s" in str(MVPCreateView.page_title)
 
 
 # ---------------------------------------------------------------------------
@@ -790,10 +791,10 @@ class TestMVPCreateViewPageTitle:
         view = make_create_view(extra_attrs={"page_title": "Add a new product"})
         assert view.get_page_title() == "Add a new product"
 
-    def test_empty_string_page_title_falls_back(self):
-        """page_title='' (empty string, falsy) → falls back to 'Create Product'."""
+    def test_empty_string_page_title_returns_empty(self):
+        """page_title='' is an explicit override; returned as-is (caller's intent)."""
         view = make_create_view(extra_attrs={"page_title": ""})
-        assert view.get_page_title() == "Create Product"
+        assert view.get_page_title() == ""
 
     def test_lazy_string_page_title_returned(self):
         """page_title=_('Add Product') (lazy string) → 'Add Product'."""
@@ -823,9 +824,7 @@ class TestMVPCreateViewSuccessMessage:
 
     def test_missing_key_substitutes_empty_string(self):
         """Missing %(key)s placeholder silently substitutes '' — no KeyError raised."""
-        view = make_create_view(
-            extra_attrs={"success_message": "%(verbose_name)s %(missing)s done."}
-        )
+        view = make_create_view(extra_attrs={"success_message": "%(verbose_name)s %(missing)s done."})
         result = view.get_success_message({})
         assert result == "Product  done."
 
@@ -892,7 +891,5 @@ class TestMVPCreateViewBreadcrumb:
     def test_get_breadcrumbs_override_is_respected(self):
         """Subclass overriding get_breadcrumbs() returns its custom list (SC-003)."""
         custom_crumbs = [{"text": "Home", "href": "/"}, {"text": "New"}]
-        view = make_create_view(
-            extra_attrs={"get_breadcrumbs": lambda self: custom_crumbs}
-        )
+        view = make_create_view(extra_attrs={"get_breadcrumbs": lambda self: custom_crumbs})
         assert view.get_breadcrumbs() == custom_crumbs
