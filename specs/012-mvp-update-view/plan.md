@@ -33,6 +33,16 @@ but has two implementation gaps and a Principle XII docstring deficiency:
 Research also confirmed `"detail"` is a valid key in `MVP_DEFAULT_VIEW_NAMES`,
 so `resolve_crud_url("detail")` is safe to call without a `ValueError`.
 
+Research Finding 7 (post-analysis addition) confirms that `get_delete_url()` already
+correctly integrates with `CRUDDirectoryMixin` by calling `resolve_crud_url("delete")`
+first. Replacing it with `get_directory()` is not viable: `get_directory()` returns
+plain URLs and cannot append the `?back`/`?next` query parameters that are a core
+UX requirement (US3). The raw `reverse()` call for `back_url` inside `get_delete_url()`
+is intentional — using `resolve_crud_url("update")` would silently gate on
+`has_update_permission` (which defaults to `False`), producing a `None` back URL
+for developers who have not explicitly set that attribute. Only improvement: wrap
+the `reverse()` call in `try/except` (T023).
+
 ## Technical Context
 
 **Language/Version**: Python 3.10–3.13, Django 4.2–5.x
@@ -79,10 +89,11 @@ components, and no migration needed. Constitution check unchanged.
 |----------|---------|----------|
 | Is `"detail"` a valid key for `resolve_crud_url()`? | `MVP_DEFAULT_VIEW_NAMES` in `config.py` includes `"detail"` | Safe — no `ValueError` risk |
 | Does the template already gate the Delete button on `delete_url`? | `form_view.html` line 51 gates on `{% if object %}`, not `{% if delete_url %}` | Template fix required (FR-009) |
-| Does breadcrumb degradation need Python changes? | `href|yesno:"a,span"` in Cotton breadcrumbs component handles `None`/empty `href` automatically | No Python guard needed in `get_breadcrumbs()` |
+| Does breadcrumb degradation need Python changes? | `href|yesno:"a,span"` in Cotton breadcrumbs component handles `None`/empty`href` automatically | No Python guard needed in `get_breadcrumbs()` |
 | Does `MVPModelFormBase.get_page_title()` handle `%(verbose_name)s` interpolation? | Yes — confirmed at `mvp/views/edit.py`; interpolates with `model_meta.verbose_name.title()` | No override needed on `MVPUpdateView` |
 | Do `TestMVPUpdateViewDeleteUrl` tests already exist? | Yes — 3 tests in `test_delete_view.py` cover US3's `?back`/`?next` params | Do not duplicate; add breadcrumb and title tests only |
 | Does `make_update_view()` fixture helper already exist? | Yes — in `test_edit_view.py` | Reuse directly |
+| Should `get_delete_url()` be replaced by `CRUDDirectoryMixin.get_directory()`? | `get_delete_url()` already calls `resolve_crud_url("delete")` — permission integration is correct. `get_directory()` produces plain URLs and cannot append `?back`/`?next` params. Raw `reverse()` for `back_url` is intentional (must not gate on `has_update_permission`). | No change to `get_delete_url()` structure. Only improvement: add `try/except` around `reverse()` for `back_url` (T023) |
 
 ## Project Structure
 
@@ -135,7 +146,7 @@ save path.
 Key entities (unchanged from spec):
 
 - **MVPUpdateView** — concrete view class; changes confined to three lines of Python
-  + one line of HTML
+  - one line of HTML
 - **Object** — the model instance being edited; surfaced in breadcrumb via `str(object)`
   and linked via `resolve_crud_url("detail")`
 - **Delete URL** — empty string when no delete view is accessible; non-empty string
@@ -159,7 +170,6 @@ See [quickstart.md](quickstart.md).
 ## Complexity Tracking
 
 > **No constitution violations.** No complexity justification required.
-
 
 [Gates determined based on constitution file]
 

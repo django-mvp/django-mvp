@@ -99,6 +99,32 @@ def get_page_title(self) -> str:
 
 ---
 
+---
+
+## Finding 7 — Should `get_delete_url()` be replaced by `CRUDDirectoryMixin.get_directory()`?
+
+**Question**: Would it be wiser to have `delete_url` sourced from `CRUDDirectoryMixin.get_directory()` (adding `"delete"` to `self.directory`) instead of the custom `get_delete_url()` method?
+
+**Source inspected**: `mvp/views/edit.py` (`MVPUpdateView.get_delete_url`), `mvp/views/detail.py` (`CRUDDirectoryMixin.resolve_crud_url`, `CRUDDirectoryMixin.get_directory`)
+
+**Findings**:
+
+1. **Permission integration is already correct.** `get_delete_url()` calls `self.resolve_crud_url("delete")` as its first step, which is the same permission-gated resolver used by `get_directory()`. `resolve_crud_url` checks `has_delete_permission` and returns `None` when it is falsy — `get_delete_url()` then returns `""`. No change is needed to integrate with the permission system.
+
+2. **`get_directory()` cannot replace `get_delete_url()`.** `get_directory()` returns plain resolved URLs (e.g. `/products/1/delete/`). `get_delete_url()` appends `?back=<update_url>&next=<list_url>` query parameters that are essential UX requirements (US3): they tell the delete view where to return on cancel and where to redirect after confirmed deletion. There is no mechanism in `get_directory()` to append action-specific query parameters.
+
+3. **The `back_url` construction uses raw `reverse()` — intentionally.** Inside `get_delete_url()`, `back_url` is built with `reverse(self._get_view_name("update"), kwargs=...)` rather than `self.resolve_crud_url("update")`. This is the correct choice: `resolve_crud_url("update")` gates on `has_update_permission`, which defaults to `False` on `CRUDDirectoryMixin`. A developer who sets `has_update_permission = False` (or forgets to set it to `True`) would get a `None` back URL, producing a broken `?back=None` param. Since the user is already on the update page, the back URL must always be generated regardless of the permission attribute — `reverse()` is the right primitive here.
+
+4. **The only improvement from M2 stands.** The raw `reverse()` call in `back_url` can raise `NoReverseMatch` if the update URL is not registered (e.g. a custom `crud_views` mapping with no `"update"` entry). Wrapping in `try/except Exception` returning `""` is the correct guard, as already captured in T023.
+
+**Decision**: Keep `get_delete_url()` as the mechanism for building the delete link. It already correctly integrates with `CRUDDirectoryMixin` through `resolve_crud_url("delete")`. Do not add `"delete"` to `self.directory` — the `get_directory()` path cannot produce the parameterised URL this feature requires.
+
+**Alternatives considered**:
+- `self.directory = ["delete"]` + override `get_directory()` to append params — rejected; this would add complexity and split the parameterisation logic into two override points.
+- Replace `reverse()` with `resolve_crud_url("update")` for `back_url` — rejected; `resolve_crud_url` gates on `has_update_permission` which defaults to `False`, making it unsuitable for generating the self-referential back URL.
+
+---
+
 ## Resolved Unknowns Summary
 
 | Unknown | Resolution |
@@ -109,3 +135,4 @@ def get_page_title(self) -> str:
 | `get_page_title()` override needed? | ✅ No — base class handles interpolation |
 | Existing delete-URL test coverage | ✅ Already in `test_delete_view.py` — do not duplicate |
 | `make_update_view()` fixture helper | ✅ Already exists in `test_edit_view.py` |
+| Should `get_directory()` replace `get_delete_url()`? | ✅ No — permission integration already correct; `get_directory()` cannot append `?back`/`?next` params; raw `reverse()` for `back_url` is intentional |
