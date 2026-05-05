@@ -12,6 +12,7 @@
 - Q: Should `get_breadcrumbs()` be modified as part of this feature, and if so how should the object detail link be resolved? → A: Yes — replace the direct `self.object.get_absolute_url()` call with `self.resolve_crud_url("detail")` so the permissions system (CRUDDirectoryMixin) controls whether the link appears.
 - Q: Does `MVPUpdateView` need to override `get_page_title()`? → A: No — set the class-level `page_title = _("Update %(verbose_name)s")`; `MVPModelFormBase.get_page_title()` handles interpolation.
 - Q: Does `MVPUpdateView` need to override `get_success_message()`? → A: No — set the class-level `success_message = _("%(verbose_name)s successfully updated.")`; `MVPModelFormBase.get_success_message()` handles interpolation.
+- Q: Does this PR need to add a Principle XII-compliant docstring to `MVPUpdateView`? → A: Yes — the constitution (v3.6.0) mandates a structured `Config:` block, `Override hooks:` subsection, and usage example on every public view class in `mvp/views/`; FR-014 captures this requirement.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -144,6 +145,7 @@ A site visitor navigates to an update page built on `MVPUpdateView`. The page he
 - **FR-011**: All defaults (title, icon, CSS classes, success message, breadcrumb, delete URL) MUST be overridable by setting the corresponding class attribute or overriding the corresponding `get_*()` method on the subclass.
 - **FR-012**: A minimal subclass with only `model` and `fields` set MUST pass Django's `manage.py check` without errors or warnings.
 - **FR-013**: `MVPUpdateView` MUST NOT change the behaviour of `MVPCreateView`, `MVPDeleteView`, `MVPFormView`, or any base mixin class.
+- **FR-014**: The `MVPUpdateView` class-level docstring MUST be replaced with a Principle XII-compliant docstring containing: (a) a one-to-two sentence intended-use summary; (b) a `Config:` block listing every developer-settable attribute (`page_title`, `page_icon`, `page_class`, `success_message`, `success_url`, `fields`, `model`) with type, default value, and one-line description — including inherited attributes routinely overridden; (c) an `Override hooks:` subsection listing `get_breadcrumbs()`, `get_delete_url()`, `get_page_title()` (inherited), `get_success_message()` (inherited), and `get_success_url()` (inherited) with return-type and purpose notes; (d) a minimal usage example showing the class wired to a URL with `model` and `fields` set.
 
 ### Key Entities
 
@@ -164,6 +166,7 @@ A site visitor navigates to an update page built on `MVPUpdateView`. The page he
 - **SC-005**: All six default attributes (title, icon, CSS, success message, breadcrumb, delete URL) can be independently overridden without affecting any other default — verifiable by six independent unit tests, one per attribute.
 - **SC-006**: The view passes `manage.py check` with zero errors on a project that registers only `model` and `fields` — verifiable by running the system check in CI.
 - **SC-007**: No existing tests for `MVPCreateView`, `MVPDeleteView`, or `MVPFormView` regress — verifiable by running the full test suite before and after the change.
+- **SC-008**: The `MVPUpdateView` class-level docstring complies with Principle XII — verifiable by manual review confirming the presence of an intended-use summary, a `Config:` block covering all developer-settable attributes, an `Override hooks:` subsection, and a minimal usage example.
 
 ## Assumptions
 
@@ -176,3 +179,4 @@ A site visitor navigates to an update page built on `MVPUpdateView`. The page he
 - The auto-derived title is generated at request time (not at class-definition time) by the existing `MVPModelFormBase.get_page_title()` — `MVPUpdateView` does not override it.
 - The existing `MVPUpdateView` stub has two implementation gaps: (1) `page_title` is still the static string `_("Update Entry")` — replace with `_("Update %(verbose_name)s")`; (2) `get_breadcrumbs()` calls `self.object.get_absolute_url()` directly — replace with `self.resolve_crud_url("detail")`. No new methods are needed.
 - `get_delete_url()` already appends `?back` and `?next` query parameters; this spec does not change that behaviour, only documents and validates it.
+- Constitution Principle XII (View Class Docstring Completeness) requires a structured docstring on every public view class in `mvp/views/`. The current `MVPUpdateView` docstring is a single line (`"""UpdateView with AdminLTE layout and auto-detected form rendering."""`); replacing it with a Principle XII-compliant docstring is mandatory in this PR (see FR-014). The docstring is the authoritative reference for AI agents and contributors discovering the class's configuration surface.
