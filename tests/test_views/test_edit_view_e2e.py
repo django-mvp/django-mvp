@@ -130,3 +130,55 @@ def test_US3_create_with_detail_shorthand_redirects_to_detail(page, live_server,
     # Detail URL for a product is /products/<pk>/
     assert "/products/" in page.url
     assert page.url.rstrip("/").split("/")[-1].isdigit(), f"Expected detail URL like /products/<pk>/, got {page.url}"
+
+
+# ---------------------------------------------------------------------------
+# US1 — MVPCreateView: zero-config model create page E2E (T021)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db(transaction=True)
+def test_US1_create_page_title_is_model_aware(page, live_server):
+    """[US1] Navigate to /products/create/ — page title element contains 'Create Product'.
+
+    Verifies FR-001: get_page_title() derives the title from verbose_name rather than
+    returning the old static 'Create Entry' fallback.
+    """
+    page.goto(f"{live_server.url}/products/create/")
+    page.wait_for_load_state("networkidle")
+    title_text = page.locator("h1, .page-title, [data-testid='page-title']").first.inner_text()
+    assert "Create Product" in title_text, f"Expected 'Create Product' in page title, got: {title_text!r}"
+
+
+@pytest.mark.django_db(transaction=True)
+def test_US1_success_message_is_title_cased(page, live_server, category):
+    """[US1] Fill and submit create form — flash message contains 'Product successfully created.'
+
+    Verifies FR-004: get_success_message() title-cases verbose_name so the flash reads
+    'Product successfully created.' rather than 'product successfully created.'
+    """
+    page.goto(f"{live_server.url}/products/create/")
+    _fill_product_form(page, category, name="E2E Flash Product", slug="e2e-flash-product")
+    page.click("button[type=submit]")
+    page.wait_for_load_state("networkidle")
+    # The flash message should contain the title-cased model name
+    body_text = page.content()
+    assert "Product successfully created." in body_text, (
+        f"Expected 'Product successfully created.' in flash message body"
+    )
+
+
+@pytest.mark.django_db(transaction=True)
+def test_US1_breadcrumb_links_to_list(page, live_server):
+    """[US1] Navigate to /products/create/ — first breadcrumb <a> href points to /products/.
+
+    Verifies FR-006: breadcrumb degradation handled by base class — list link present when
+    has_list_permission is truthy.
+    """
+    page.goto(f"{live_server.url}/products/create/")
+    page.wait_for_load_state("networkidle")
+    # First breadcrumb item should be an <a> linking to the product list
+    breadcrumb_link = page.locator(".breadcrumb a").first
+    href = breadcrumb_link.get_attribute("href")
+    assert href is not None, "First breadcrumb item should be an <a> tag"
+    assert href.endswith("/products/"), f"Expected breadcrumb href to end with /products/, got: {href!r}"

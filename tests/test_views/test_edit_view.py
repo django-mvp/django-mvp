@@ -16,10 +16,11 @@ import logging
 import pytest
 from django.contrib.auth import get_user_model
 from django.test import RequestFactory, override_settings
+from django.utils.translation import gettext_lazy as _
 from django.views.generic import TemplateView
 
-from demo.models import Category, Product
-from mvp.views.edit import MVPCreateView, MVPFormView, NextURLMixin
+from demo.models import Category, OrderLine, Product
+from mvp.views.edit import MVPCreateView, MVPFormView, MVPUpdateView, NextURLMixin
 
 User = get_user_model()
 
@@ -74,6 +75,35 @@ def make_create_view(method="POST", params=None, extra_attrs=None, kwargs=None):
     view = view_cls()
     view.request = request
     view.kwargs = kwargs or {}
+    view.args = []
+    view.object = None
+    return view
+
+
+def make_update_view(extra_attrs=None):
+    """Return a configured MVPUpdateView stub with a fake POST request.
+
+    Used as the test vehicle for MVPModelFormBase behaviour tests so they
+    remain decoupled from MVPCreateView-specific overrides.
+    """
+    rf = RequestFactory()
+    request = rf.post("/", data={})
+    request.user = User()
+    attrs = {
+        "model": Product,
+        "fields": ["name"],
+        "template_name": "form_view.html",
+        "has_list_permission": True,
+        "has_detail_permission": True,
+        "has_create_permission": True,
+        "has_update_permission": True,
+        "has_delete_permission": True,
+        **(extra_attrs or {}),
+    }
+    view_cls = type("StubUpdateView", (MVPUpdateView,), attrs)
+    view = view_cls()
+    view.request = request
+    view.kwargs = {}
     view.args = []
     view.object = None
     return view
@@ -534,36 +564,28 @@ class TestMVPFormBase:
 # ---------------------------------------------------------------------------
 
 
-class TestGetSuccessMessage:
-    """[US2] MVPModelFormBase.get_success_message() interpolation contract tests."""
+class TestMVPModelFormBaseSuccessMessage:
+    """[US2] MVPModelFormBase.get_success_message() interpolation contract tests.
+
+    Uses MVPUpdateView as the test vehicle so these tests remain decoupled from
+    MVPCreateView's own get_success_message() override.
+    """
 
     def test_verbose_name_only_resolves(self):
-        """[T-FM-001] %(verbose_name)s with empty cleaned_data → model verbose_name."""
-        view = make_create_view(
-            method="POST",
-            params={},
-            extra_attrs={"success_message": "%(verbose_name)s created."},
-        )
+        """[T-FM-001] %(verbose_name)s with empty cleaned_data → lowercase model verbose_name."""
+        view = make_update_view(extra_attrs={"success_message": "%(verbose_name)s created."})
         result = view.get_success_message({})
         assert result == f"{Product._meta.verbose_name} created."
 
     def test_missing_field_placeholder_substitutes_empty_string(self):
         """[T-FM-002] %(name)s with empty cleaned_data → '' substituted, no KeyError raised."""
-        view = make_create_view(
-            method="POST",
-            params={},
-            extra_attrs={"success_message": "%(verbose_name)s %(name)s deleted."},
-        )
+        view = make_update_view(extra_attrs={"success_message": "%(verbose_name)s %(name)s deleted."})
         result = view.get_success_message({})
         assert result == f"{Product._meta.verbose_name}  deleted."
 
     def test_field_value_and_verbose_name_both_resolve(self):
         """[T-FM-003] %(verbose_name)s + %(name)s both resolve when name present in cleaned_data."""
-        view = make_create_view(
-            method="POST",
-            params={},
-            extra_attrs={"success_message": "%(verbose_name)s %(name)s updated."},
-        )
+        view = make_update_view(extra_attrs={"success_message": "%(verbose_name)s %(name)s updated."})
         result = view.get_success_message({"name": "Widget A"})
         assert result == f"{Product._meta.verbose_name} Widget A updated."
 
@@ -704,3 +726,173 @@ class TestMVPFormView:
         """[US4-S2] page_title='My Form' → 'My Form' returned as-is."""
         view = make_form_view(extra_attrs={"page_title": "My Form"})
         assert view.get_page_title() == "My Form"
+
+
+# ---------------------------------------------------------------------------
+# T005 — MVPCreateView class-level defaults (US1)
+# ---------------------------------------------------------------------------
+
+
+class TestMVPCreateViewDefaults:
+    """[US1] MVPCreateView class-level attribute defaults with no overrides."""
+
+    def test_page_icon_is_add(self):
+        """page_icon is 'add' at the class level."""
+        assert MVPCreateView.page_icon == "add"
+
+    def test_page_class_contains_create(self):
+        """'mvp-create-page' appears in MVPCreateView.page_class."""
+        assert "mvp-create-page" in MVPCreateView.page_class
+
+    def test_no_page_title_class_attr(self):
+        """MVPCreateView.__dict__ does not define page_title (title is derived dynamically)."""
+        assert "page_title" not in MVPCreateView.__dict__
+
+
+# ---------------------------------------------------------------------------
+# T006 — MVPCreateView.get_page_title() (US1 / US2)
+# ---------------------------------------------------------------------------
+
+
+class TestMVPCreateViewPageTitle:
+    """[US1/US2] MVPCreateView.get_page_title() derives title from verbose_name or explicit override."""
+
+    def test_default_title_single_word_verbose_name(self):
+        """Single-word verbose_name 'product' → 'Create Product'."""
+        view = make_create_view()
+        assert view.get_page_title() == "Create Product"
+
+    def test_default_title_multi_word_verbose_name(self):
+        """Multi-word verbose_name 'order line' → 'Create Order Line'."""
+        rf = RequestFactory()
+        request = rf.get("/")
+        request.user = User()
+        attrs = {
+            "model": OrderLine,
+            "fields": ["quantity"],
+            "template_name": "form_view.html",
+            "has_list_permission": False,
+            "has_detail_permission": False,
+            "has_create_permission": True,
+            "has_update_permission": False,
+            "has_delete_permission": False,
+        }
+        view_cls = type("StubOrderLineCreateView", (MVPCreateView,), attrs)
+        view = view_cls()
+        view.request = request
+        view.kwargs = {}
+        view.args = []
+        view.object = None
+        assert view.get_page_title() == "Create Order Line"
+
+    def test_explicit_page_title_returned(self):
+        """page_title='Add a new product' overrides the default derivation."""
+        view = make_create_view(extra_attrs={"page_title": "Add a new product"})
+        assert view.get_page_title() == "Add a new product"
+
+    def test_empty_string_page_title_falls_back(self):
+        """page_title='' (empty string, falsy) → falls back to 'Create Product'."""
+        view = make_create_view(extra_attrs={"page_title": ""})
+        assert view.get_page_title() == "Create Product"
+
+    def test_lazy_string_page_title_returned(self):
+        """page_title=_('Add Product') (lazy string) → 'Add Product'."""
+        view = make_create_view(extra_attrs={"page_title": _("Add Product")})
+        assert view.get_page_title() == "Add Product"
+
+
+# ---------------------------------------------------------------------------
+# T007 — MVPCreateView.get_success_message() (US1 / US2)
+# ---------------------------------------------------------------------------
+
+
+class TestMVPCreateViewSuccessMessage:
+    """[US1/US2] MVPCreateView.get_success_message() injects title-cased verbose_name."""
+
+    def test_default_message_uses_title_cased_verbose_name(self):
+        """Default success_message → 'Product successfully created.' (title-cased, not lowercase)."""
+        view = make_create_view()
+        result = view.get_success_message({})
+        assert result == "Product successfully created."
+
+    def test_custom_message_with_field_interpolation(self):
+        """Custom success_message with %(name)s interpolated from cleaned_data."""
+        view = make_create_view(extra_attrs={"success_message": "%(name)s was added."})
+        result = view.get_success_message({"name": "Widget"})
+        assert result == "Widget was added."
+
+    def test_missing_key_substitutes_empty_string(self):
+        """Missing %(key)s placeholder silently substitutes '' — no KeyError raised."""
+        view = make_create_view(
+            extra_attrs={"success_message": "%(verbose_name)s %(missing)s done."}
+        )
+        result = view.get_success_message({})
+        assert result == "Product  done."
+
+
+# ---------------------------------------------------------------------------
+# T013 — MVPCreateView overridable defaults (US2)
+# ---------------------------------------------------------------------------
+
+
+class TestMVPCreateViewOverrides:
+    """[US2] Each MVPCreateView default can be independently overridden."""
+
+    def test_page_icon_overridable(self):
+        """Setting page_icon='edit' on a subclass overrides the default 'add'."""
+        view = make_create_view(extra_attrs={"page_icon": "edit"})
+        assert view.get_page_icon() == "edit"
+
+    def test_page_class_overridable(self):
+        """Setting page_class='custom-class' on a subclass overrides the default."""
+        view = make_create_view(extra_attrs={"page_class": "custom-class"})
+        assert "custom-class" in view.get_page_class()
+
+
+# ---------------------------------------------------------------------------
+# T016 — MVPCreateView breadcrumb structure (US3)
+# ---------------------------------------------------------------------------
+
+
+class TestMVPCreateViewBreadcrumb:
+    """[US3] MVPCreateView breadcrumb structure via PageObjectMixin.get_breadcrumbs()."""
+
+    def test_breadcrumb_has_two_items(self):
+        """get_breadcrumbs() returns exactly two items by default."""
+        view = make_create_view()
+        assert len(view.get_breadcrumbs()) == 2
+
+    def test_first_item_has_no_href_when_list_permission_false(self):
+        """has_list_permission=False → first breadcrumb href is falsy."""
+        view = make_create_view(extra_attrs={"has_list_permission": False})
+        breadcrumbs = view.get_breadcrumbs()
+        assert not breadcrumbs[0].get("href")
+
+    def test_first_item_has_href_when_list_permission_true(self):
+        """has_list_permission=True → first breadcrumb href resolves to product-list URL."""
+        from django.urls import reverse
+
+        view = make_create_view()
+        breadcrumbs = view.get_breadcrumbs()
+        assert breadcrumbs[0]["href"] == reverse("product-list")
+
+    def test_second_item_has_no_href(self):
+        """Second breadcrumb (current page) has no href."""
+        view = make_create_view()
+        breadcrumbs = view.get_breadcrumbs()
+        assert breadcrumbs[1].get("href") is None
+
+    def test_second_item_text_matches_page_title(self):
+        """Second breadcrumb text equals get_page_title() → 'Create Product'."""
+        view = make_create_view()
+        breadcrumbs = view.get_breadcrumbs()
+        assert breadcrumbs[1]["text"] == view.get_page_title()
+        assert breadcrumbs[1]["text"] == "Create Product"
+
+    def test_get_breadcrumbs_override_is_respected(self):
+        """Subclass overriding get_breadcrumbs() returns its custom list (SC-003)."""
+        custom_crumbs = [{"text": "Home", "href": "/"}, {"text": "New"}]
+        view = make_create_view(
+            extra_attrs={"get_breadcrumbs": lambda self: custom_crumbs}
+        )
+        assert view.get_breadcrumbs() == custom_crumbs

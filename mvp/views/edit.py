@@ -296,9 +296,50 @@ class MVPCreateView(MVPModelFormBase, generic.CreateView):
     """CreateView with AdminLTE layout and auto-detected form rendering."""
 
     page_icon = "add"
-    page_title = _("Create Entry")
     page_class = "mvp-form-page mvp-create-page"
     success_message = _("%(verbose_name)s successfully created.")
+
+    def get_page_title(self) -> str:
+        """Return a model-aware page title, or the explicit override if set.
+
+        When ``page_title`` is falsy (unset or empty string), derives the title
+        from the model's ``verbose_name`` — capitalised with ``.title()`` — and
+        prepends ``"Create "``. For example, a ``Product`` model with
+        ``verbose_name = "product"`` produces ``"Create Product"``; a model with
+        ``verbose_name = "order line"`` produces ``"Create Order Line"``.
+
+        When ``page_title`` is set to a truthy value, returns it directly (cast
+        to ``str`` to resolve lazy translation strings).
+
+        Returns:
+            str: The page title to display.
+        """
+        if self.page_title:
+            return str(self.page_title)
+        return _("Create %(verbose_name)s") % {"verbose_name": self.model_meta.verbose_name.title()}
+
+    def get_success_message(self, cleaned_data: dict) -> str:
+        """Interpolate ``success_message`` with a title-cased ``verbose_name``.
+
+        Overrides :meth:`MVPModelFormBase.get_success_message` to inject a
+        capitalised ``verbose_name`` (e.g. ``"Product"`` rather than
+        ``"product"``), so the default flash message reads
+        ``"Product successfully created."`` rather than starting with a
+        lowercase letter.
+
+        Any ``%(key)s`` placeholder absent from ``cleaned_data`` silently
+        substitutes ``""`` via ``collections.defaultdict(str)``; no
+        ``KeyError`` is raised.
+
+        Args:
+            cleaned_data (dict): Validated form field values.
+
+        Returns:
+            str: The formatted success message.
+        """
+        data = defaultdict(str, cleaned_data)
+        data["verbose_name"] = self.model_meta.verbose_name.title()
+        return self.success_message % data
 
 
 class MVPUpdateView(MVPModelFormBase, generic.UpdateView):

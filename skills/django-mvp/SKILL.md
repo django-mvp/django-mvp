@@ -611,6 +611,80 @@ this is intentional, matching Django's own `FormMixin` contract.
 
 ---
 
+## Step 12 — Zero-Config Model Create View (`MVPCreateView`)
+
+`MVPCreateView` is the package's concrete create view. Set `model` and `fields` — everything else is derived automatically.
+
+### Minimal usage
+
+```python
+# views.py
+class ProductCreateView(MVPCreateView):
+    model = Product
+    fields = ["name", "slug", "category", "description", "price"]
+    has_list_permission = True
+    has_detail_permission = True
+    has_update_permission = True
+```
+
+Defaults provided automatically (no overrides needed):
+
+| Attribute / Method | Default value | Source |
+|--------------------|---------------|--------|
+| `page_icon` | `"add"` | class attribute |
+| `page_class` | `"mvp-form-page mvp-create-page"` | class attribute |
+| `get_page_title()` | `"Create {VerboseName}"` e.g. `"Create Product"` | derived from `model._meta.verbose_name` |
+| `success_message` | `"%(verbose_name)s successfully created."` | class attribute |
+| `get_success_message()` | `"Product successfully created."` | title-cased verbose_name injected |
+
+### `get_page_title()` — auto-derived title
+
+When `page_title` is not set (or is an empty string), the title is derived from the model's `verbose_name`:
+
+```python
+# Product._meta.verbose_name == "product" → "Create Product"
+# OrderLine._meta.verbose_name == "order line" → "Create Order Line"
+```
+
+Override by setting `page_title` on the subclass or passing a lazy translation string:
+
+```python
+class ProductCreateView(MVPCreateView):
+    model = Product
+    fields = [...]
+    page_title = "Add a new product"          # exact string
+    # or:
+    page_title = _("Add a new product")       # lazy translated string
+```
+
+### `get_success_message()` — title-cased flash
+
+Unlike `MVPModelFormBase.get_success_message()` (which uses lowercase `verbose_name`),
+`MVPCreateView` injects a title-cased `verbose_name` so the default flash reads
+`"Product successfully created."` rather than `"product successfully created."`.
+
+Custom messages with `%(key)s` interpolation work as normal:
+
+```python
+class ProductCreateView(MVPCreateView):
+    model = Product
+    fields = [...]
+    success_message = "%(name)s was added to the catalogue."
+```
+
+Missing keys silently substitute `""` — no `KeyError` is raised.
+
+### Breadcrumbs
+
+The breadcrumb is inherited from `PageObjectMixin.get_breadcrumbs()`:
+
+- **First item**: model's `verbose_name_plural.title()` (e.g. `"Products"`) with a link to the list URL when `has_list_permission` is truthy; rendered as plain text when falsy.
+- **Second item**: current page title (`"Create Product"`) with no href.
+
+Override the full breadcrumb list by defining `get_breadcrumbs()` on the subclass.
+
+---
+
 ## Common Pitfalls
 
 **"AppMenu items don't appear"**
