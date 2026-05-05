@@ -151,7 +151,7 @@ A site visitor navigates to an update page built on `MVPUpdateView`. The page he
 
 - **MVPUpdateView**: A concrete view class combining `MVPModelFormBase` with Django's `generic.UpdateView`. Encapsulates all update-specific defaults. Developers subclass it directly and set `model` and `fields`.
 - **Model**: The Django model being updated. Provides `verbose_name` (singular) and `verbose_name_plural` for title, breadcrumb, and success message generation.
-- **Object**: The specific model instance being edited. Its `__str__()` result appears as the middle breadcrumb item; its detail URL (from `get_absolute_url()`) becomes the middle breadcrumb link.
+- **Object**: The specific model instance being edited. Its `__str__()` result appears as the middle breadcrumb item; its detail URL (from `resolve_crud_url("detail")`) becomes the middle breadcrumb link — `get_absolute_url()` is not called in `get_breadcrumbs()`.
 - **Form**: Auto-generated from `fields`, or supplied via `form_class`. Rendered by the existing form rendering infrastructure inherited from `MVPFormBase`.
 - **Delete URL**: A computed URL string (or empty string) surfaced to the template via the `delete_url` context variable. Built from the delete view URL plus `?back` and `?next` query parameters.
 

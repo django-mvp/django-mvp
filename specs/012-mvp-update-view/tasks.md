@@ -48,6 +48,7 @@
 
 - [ ] T005 [US1] Change `page_title = _("Update Entry")` to `page_title = _("Update %(verbose_name)s")` in `MVPUpdateView` class in `mvp/views/edit.py`; run T002 and T003 tests — all must now pass
 - [ ] T006 [US1] Change `get_breadcrumbs()` to use `self.resolve_crud_url("detail")` instead of `self.object.get_absolute_url()` for the middle breadcrumb item in `mvp/views/edit.py`; run T004 tests — all must now pass
+- [ ] T006a [US1] Run `python manage.py check` and `pytest tests/test_views/test_edit_view.py -k "TestMVPUpdateViewDefaults or TestMVPUpdateViewPageTitle or TestMVPUpdateViewBreadcrumb"` — all must pass before proceeding to Phase 4
 
 **Checkpoint**: US1 is fully functional. `pytest tests/test_views/test_edit_view.py -k TestMVPUpdateView` is green.
 
@@ -77,7 +78,7 @@
 
 ### Tests for User Story 2
 
-- [ ] T010 [US2] Write unit tests `TestMVPUpdateViewOverrides` (`test_page_icon_overridable`, `test_page_class_overridable`, `test_page_title_overridable`, `test_success_message_overridable_with_field_interpolation`) in `tests/test_views/test_edit_view.py`; use `make_update_view(extra_attrs=...)` for each; all tests should pass with existing code (no new implementation needed)
+- [ ] T010 [US2] Write unit tests `TestMVPUpdateViewOverrides` (`test_page_icon_overridable`, `test_page_class_overridable`, `test_page_title_overridable`, `test_success_message_overridable_with_field_interpolation`, `test_get_breadcrumbs_override_is_respected`, `test_delete_url_can_be_suppressed_via_override`) in `tests/test_views/test_edit_view.py`; use `make_update_view(extra_attrs=...)` for each; all six tests should pass with existing code, satisfying all six SC-005 override cases — note: the `success_url` redirect chain is exercised by the pre-existing `TestMVPModelFormBase` tests and does not require a new update-specific test
 
 **Checkpoint**: US2 passes — customisation works without code changes (tested against already-correct infrastructure from Phase 3).
 
@@ -106,14 +107,16 @@
 
 ### Tests for User Story 4 ⚠️ Write FIRST — ensure they FAIL before implementation
 
-- [ ] T013 [US4] Write failing unit test `TestMVPUpdateViewDeleteLinkVisibility.test_delete_button_absent_when_delete_url_empty` in `tests/test_views/test_edit_view.py`; create a `make_update_view(extra_attrs={"has_delete_permission": False})` instance; verify `get_context_data()["delete_url"]` is falsy (this should already pass); additionally render the template snippet and verify the delete button element is absent — this test FAILS with current `{% if object %}` guard
+- [ ] T013 [US4] Write failing unit tests `TestMVPUpdateViewDeleteLinkVisibility` in `tests/test_views/test_edit_view.py` with two contrasting test cases (satisfying SC-004): (a) `test_delete_button_absent_when_delete_url_empty` — `make_update_view(extra_attrs={"has_delete_permission": False})`; verify `get_context_data()["delete_url"]` is falsy and the delete button element is absent in the rendered template — FAILS with the current `{% if object %}` guard; (b) `test_delete_button_present_when_delete_url_set` — `make_update_view()` with delete permission enabled; verify `get_context_data()["delete_url"]` is truthy and the delete button element is present
 - [ ] T014 [P] [US4] Write E2E test `test_US4_update_delete_link_absent_when_not_configured` in `tests/test_views/test_edit_view_e2e.py`; navigate to a product update URL where no delete view is configured (use the `demo` app's category update route which has no delete view); verify no delete button is rendered
 
 ### Implementation for User Story 4
 
 - [ ] T015 [US4] Change `{% if object %}` to `{% if delete_url %}` on the Delete button guard in `mvp/templates/form_view.html`; run T013 and T014 — all must now pass
+- [ ] T015a [US4] Run `python manage.py check` and `pytest tests/test_views/test_edit_view.py -k TestMVPUpdateViewDeleteLinkVisibility` — all must pass before proceeding
+- [ ] T015b [US4] Use Playwright MCP to verify delete button show/hide: (a) navigate to `/demo/products/<pk>/update/` with delete view configured — assert the Delete button element IS visible in the page header; (b) navigate to a category update page where no delete view is registered — assert no Delete button element is rendered; assertions MUST confirm the specific US4 acceptance criteria, not merely that the page loads without error
 
-**Checkpoint**: US4 complete — `pytest tests/test_views/test_edit_view.py -k TestMVPUpdateViewDeleteLink` is green; E2E test T014 passes.
+**Checkpoint**: US4 complete — `pytest tests/test_views/test_edit_view.py -k TestMVPUpdateViewDeleteLinkVisibility` is green; E2E test T014 and Playwright MCP verification T015b pass.
 
 ---
 
@@ -141,6 +144,7 @@
 - [ ] T020 Run `python manage.py check` and confirm zero errors or warnings with a minimal `MVPUpdateView` subclass registered in `INSTALLED_APPS`
 - [ ] T021 Run quickstart.md validation: create `class ProductUpdateView(MVPUpdateView): model = Product; fields = ["name", "slug"]` wired to `product-update` URL; navigate to `/demo/products/<pk>/update/`; verify page renders with correct title, breadcrumb, and icon (Playwright MCP)
 - [ ] T022 Run full test suite `pytest tests/test_views/` and confirm zero regressions across all `MVPCreateView`, `MVPDeleteView`, `MVPFormView`, and `MVPUpdateView` tests
+- [ ] T023 [M2] Implement exception guard in `MVPUpdateView.get_delete_url()` in `mvp/views/edit.py`: wrap the `reverse()` call in `try/except NoReverseMatch` returning `""`, per the edge case documented in spec.md; add unit test `TestMVPUpdateViewDeleteUrl.test_get_delete_url_returns_empty_on_reverse_failure` in `tests/test_views/test_delete_view.py` confirming no exception propagates to the caller
 
 ---
 
@@ -209,11 +213,11 @@ pytest tests/test_views/test_edit_view.py -k "TestMVPUpdateViewDefaults or TestM
 | Phase | Story | Tasks | Parallel |
 |-------|-------|-------|---------|
 | Phase 1 (Setup) | — | 1 | 0 |
-| Phase 3 | US1 [P1] | 5 | 2 |
+| Phase 3 | US1 [P1] | 6 | 2 |
 | Phase 4 | US6 [P1] | 3 | 3 |
 | Phase 5 | US2 [P2] | 1 | 0 |
 | Phase 6 | US3 [P2] | 2 | 0 |
-| Phase 7 | US4 [P3] | 3 | 1 |
+| Phase 7 | US4 [P3] | 5 | 1 |
 | Phase 8 | US5 [P3] | 2 | 2 |
-| Polish | — | 5 | 1 |
-| **Total** | | **22** | **9** |
+| Polish | — | 6 | 1 |
+| **Total** | | **26** | **9** |
