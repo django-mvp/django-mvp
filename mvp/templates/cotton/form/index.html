@@ -1,18 +1,3 @@
-<style>
-  fieldset {
-    border-top: 0;
-    border-left: 0;
-    border-right: 0;
-  }
-
-  fieldset:last-of-type {
-    border: 0;
-  }
-
-  fieldset legend {
-    padding: 0;
-  }
-</style>
 <form x-data="{}" {{ attrs }}>
   {% if method|lower == "post" %}
     {% csrf_token %}

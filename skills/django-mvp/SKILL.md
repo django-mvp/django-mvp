@@ -685,6 +685,76 @@ Override the full breadcrumb list by defining `get_breadcrumbs()` on the subclas
 
 ---
 
+## Step 13 — Zero-Config Model Update View (`MVPUpdateView`)
+
+`MVPUpdateView` is the package's concrete model update view. Set `model` and `fields` — everything else is derived automatically.
+
+### Minimal usage
+
+```python
+# views.py
+class ProductUpdateView(MVPUpdateView):
+    model = Product
+    fields = ["name", "slug", "price"]
+    has_list_permission = True
+    has_detail_permission = True
+    has_delete_permission = True
+```
+
+Defaults provided automatically (no overrides needed):
+
+| Attribute / Method | Default value | Source |
+|--------------------|---------------|--------|
+| `page_icon` | `"edit"` | class attribute |
+| `page_class` | `"mvp-form-page mvp-update-page"` | class attribute |
+| `get_page_title()` | `"Update {VerboseName}"` e.g. `"Update Product"` | derived from `model._meta.verbose_name` |
+| `success_message` | `"%(verbose_name_title)s successfully updated."` | class attribute |
+| `get_success_message()` | `"Product successfully updated."` | `verbose_name_title` key in template data |
+
+### `get_page_title()` — model-aware title
+
+The default `page_title` interpolation template is `_("Update %(verbose_name)s")`.
+At runtime the `%(verbose_name)s` placeholder is replaced with the title-cased model
+verbose name:
+
+```python
+# Product._meta.verbose_name == "product" → "Update Product"
+# OrderLine._meta.verbose_name == "order line" → "Update Order Line"
+```
+
+Override by setting `page_title` on the subclass:
+
+```python
+class ProductUpdateView(MVPUpdateView):
+    page_title = "Edit product details"
+```
+
+### `get_breadcrumbs()` — three-level breadcrumb
+
+The update view always produces a **three-level** breadcrumb:
+
+1. **List link** — model verbose_name_plural (e.g. `"Products"`), linked to the list URL when `has_list_permission` is truthy.
+2. **Detail link** — `str(object)` (the object's string representation), linked to the detail URL when `has_detail_permission` is truthy; uses `resolve_crud_url("detail")` so the permission flag controls the link. Renders as plain text when `has_detail_permission` is falsy.
+3. **Current page** — `get_page_title()` with no href.
+
+Override by defining `get_breadcrumbs()` on the subclass.
+
+### `get_delete_url()` — delete button visibility
+
+The delete button in the form footer is controlled by `context["delete_url"]` (gated by `{% if delete_url %}` in the template):
+
+- When `has_delete_permission = True` (and the delete view is registered), `get_delete_url()` returns the delete URL with `?back=<update_url>&next=<list_url>` params.
+- When `has_delete_permission = False` (default), `get_delete_url()` returns `""` → the delete button is hidden.
+- If the `back_url` reverse fails (`NoReverseMatch`), the method returns the delete URL with an empty `back` param rather than raising.
+
+```python
+class ProductUpdateView(MVPUpdateView):
+    has_delete_permission = True   # shows Delete button
+    # has_delete_permission = False  # hides Delete button (default)
+```
+
+---
+
 ## Common Pitfalls
 
 **"AppMenu items don't appear"**

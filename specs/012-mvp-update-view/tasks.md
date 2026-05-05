@@ -18,7 +18,7 @@
 
 **Purpose**: Confirm the baseline is clean before any changes.
 
-- [ ] T001 Run `pytest tests/test_views/` and confirm zero failures on branch `012-mvp-update-view` before any code changes
+- [X] T001 Run `pytest tests/test_views/` and confirm zero failures on branch `012-mvp-update-view` before any code changes
 
 **Checkpoint**: Green baseline confirmed — implementation can begin.
 
@@ -40,15 +40,15 @@
 
 ### Tests for User Story 1 ⚠️ Write FIRST — ensure they FAIL before implementation
 
-- [ ] T002 [US1] Write failing unit tests `TestMVPUpdateViewDefaults` (`test_page_icon_is_edit`, `test_page_class_contains_update`, `test_page_title_class_attr_is_template`) in `tests/test_views/test_edit_view.py` — mirror structure of `TestMVPCreateViewDefaults`
-- [ ] T003 [P] [US1] Write failing unit tests `TestMVPUpdateViewPageTitle` (`test_default_title_single_word_verbose_name` → "Update Product", `test_default_title_multi_word_verbose_name` → "Update Order Line", `test_explicit_page_title_returned`, `test_empty_string_page_title_returns_empty`) in `tests/test_views/test_edit_view.py` — mirror structure of `TestMVPCreateViewPageTitle`; use `make_update_view()`
-- [ ] T004 [P] [US1] Write failing unit tests `TestMVPUpdateViewBreadcrumb` (`test_breadcrumb_has_three_items`, `test_second_item_text_is_str_object`, `test_second_item_href_uses_resolve_crud_url_detail`, `test_third_item_has_no_href`, `test_third_item_text_matches_page_title`) in `tests/test_views/test_edit_view.py`; confirm T004 `test_second_item_href_uses_resolve_crud_url_detail` FAILs (current code calls `self.object.get_absolute_url()`)
+- [X] T002 [US1] Write failing unit tests `TestMVPUpdateViewDefaults` (`test_page_icon_is_edit`, `test_page_class_contains_update`, `test_page_title_class_attr_is_template`) in `tests/test_views/test_edit_view.py` — mirror structure of `TestMVPCreateViewDefaults`
+- [X] T003 [P] [US1] Write failing unit tests `TestMVPUpdateViewPageTitle` (`test_default_title_single_word_verbose_name` → "Update Product", `test_default_title_multi_word_verbose_name` → "Update Order Line", `test_explicit_page_title_returned`, `test_empty_string_page_title_returns_empty`) in `tests/test_views/test_edit_view.py` — mirror structure of `TestMVPCreateViewPageTitle`; use `make_update_view()`
+- [X] T004 [P] [US1] Write failing unit tests `TestMVPUpdateViewBreadcrumb` (`test_breadcrumb_has_three_items`, `test_second_item_text_is_str_object`, `test_second_item_href_uses_resolve_crud_url_detail`, `test_third_item_has_no_href`, `test_third_item_text_matches_page_title`) in `tests/test_views/test_edit_view.py`; confirm T004 `test_second_item_href_uses_resolve_crud_url_detail` FAILs (current code calls `self.object.get_absolute_url()`)
 
 ### Implementation for User Story 1
 
-- [ ] T005 [US1] Change `page_title = _("Update Entry")` to `page_title = _("Update %(verbose_name)s")` in `MVPUpdateView` class in `mvp/views/edit.py`; run T002 and T003 tests — all must now pass
-- [ ] T006 [US1] Change `get_breadcrumbs()` to use `self.resolve_crud_url("detail")` instead of `self.object.get_absolute_url()` for the middle breadcrumb item in `mvp/views/edit.py`; run T004 tests — all must now pass
-- [ ] T006a [US1] Run `python manage.py check` and `pytest tests/test_views/test_edit_view.py -k "TestMVPUpdateViewDefaults or TestMVPUpdateViewPageTitle or TestMVPUpdateViewBreadcrumb"` — all must pass before proceeding to Phase 4
+- [X] T005 [US1] Change `page_title = _("Update Entry")` to `page_title = _("Update %(verbose_name)s")` in `MVPUpdateView` class in `mvp/views/edit.py`; run T002 and T003 tests — all must now pass
+- [X] T006 [US1] Change `get_breadcrumbs()` to use `self.resolve_crud_url("detail")` instead of `self.object.get_absolute_url()` for the middle breadcrumb item in `mvp/views/edit.py`; run T004 tests — all must now pass
+- [X] T006a [US1] Run `python manage.py check` and `pytest tests/test_views/test_edit_view.py -k "TestMVPUpdateViewDefaults or TestMVPUpdateViewPageTitle or TestMVPUpdateViewBreadcrumb"` — all must pass before proceeding to Phase 4
 
 **Checkpoint**: US1 is fully functional. `pytest tests/test_views/test_edit_view.py -k TestMVPUpdateView` is green.
 
@@ -62,9 +62,9 @@
 
 ### Tests for User Story 6
 
-- [ ] T007 [P] [US6] Write E2E test `test_US6_update_page_title_is_model_aware` in `tests/test_views/test_edit_view_e2e.py`; use `product` fixture; verify page title element contains "Update Product"
-- [ ] T008 [P] [US6] Write E2E test `test_US6_update_success_message_is_title_cased` in `tests/test_views/test_edit_view_e2e.py`; submit valid product update form; verify flash contains "Product successfully updated."
-- [ ] T009 [P] [US6] Write E2E test `test_US6_update_breadcrumb_has_three_items` in `tests/test_views/test_edit_view_e2e.py`; verify breadcrumb container contains exactly three items with correct text and link presence
+- [X] T007 [P] [US6] Write E2E test `test_US6_update_page_title_is_model_aware` in `tests/test_views/test_edit_view_e2e.py`; use `product` fixture; verify page title element contains "Update Product"
+- [X] T008 [P] [US6] Write E2E test `test_US6_update_success_message_is_title_cased` in `tests/test_views/test_edit_view_e2e.py`; submit valid product update form; verify flash contains "Product successfully updated."
+- [X] T009 [P] [US6] Write E2E test `test_US6_update_breadcrumb_has_three_items` in `tests/test_views/test_edit_view_e2e.py`; verify breadcrumb container contains exactly three items with correct text and link presence
 
 **Checkpoint**: US6 E2E tests pass. US1 + US6 complete — the P1 MVP is deliverable.
 
@@ -78,7 +78,7 @@
 
 ### Tests for User Story 2
 
-- [ ] T010 [US2] Write unit tests `TestMVPUpdateViewOverrides` (`test_page_icon_overridable`, `test_page_class_overridable`, `test_page_title_overridable`, `test_success_message_overridable_with_field_interpolation`, `test_get_breadcrumbs_override_is_respected`, `test_delete_url_can_be_suppressed_via_override`) in `tests/test_views/test_edit_view.py`; use `make_update_view(extra_attrs=...)` for each; all six tests should pass with existing code, satisfying all six SC-005 override cases — note: the `success_url` redirect chain is exercised by the pre-existing `TestMVPModelFormBase` tests and does not require a new update-specific test
+- [X] T010 [US2] Write unit tests `TestMVPUpdateViewOverrides` (`test_page_icon_overridable`, `test_page_class_overridable`, `test_page_title_overridable`, `test_success_message_overridable_with_field_interpolation`, `test_get_breadcrumbs_override_is_respected`, `test_delete_url_can_be_suppressed_via_override`) in `tests/test_views/test_edit_view.py`; use `make_update_view(extra_attrs=...)` for each; all six tests should pass with existing code, satisfying all six SC-005 override cases — note: the `success_url` redirect chain is exercised by the pre-existing `TestMVPModelFormBase` tests and does not require a new update-specific test
 
 **Checkpoint**: US2 passes — customisation works without code changes (tested against already-correct infrastructure from Phase 3).
 
@@ -92,8 +92,8 @@
 
 ### Tests for User Story 3
 
-- [ ] T011 [US3] Confirm `TestMVPUpdateViewDeleteUrl` (3 existing tests) in `tests/test_views/test_delete_view.py` already covers `?back` and `?next` params on `get_delete_url()` — no new unit tests needed (see research finding 5)
-- [ ] T012 [US3] Write E2E test `test_US3_update_delete_link_visible_when_configured` in `tests/test_views/test_edit_view_e2e.py`; use `product` fixture; verify Delete button is visible and `href` contains both `?back=` and `?next=` substrings
+- [X] T011 [US3] Confirm `TestMVPUpdateViewDeleteUrl` (3 existing tests) in `tests/test_views/test_delete_view.py` already covers `?back` and `?next` params on `get_delete_url()` — no new unit tests needed (see research finding 5)
+- [X] T012 [US3] Write E2E test `test_US3_update_delete_link_visible_when_configured` in `tests/test_views/test_edit_view_e2e.py`; use `product` fixture; verify Delete button is visible and `href` contains both `?back=` and `?next=` substrings
 
 **Checkpoint**: US3 verified end-to-end.
 
@@ -107,14 +107,14 @@
 
 ### Tests for User Story 4 ⚠️ Write FIRST — ensure they FAIL before implementation
 
-- [ ] T013 [US4] Write failing unit tests `TestMVPUpdateViewDeleteLinkVisibility` in `tests/test_views/test_edit_view.py` with two contrasting test cases (satisfying SC-004): (a) `test_delete_button_absent_when_delete_url_empty` — `make_update_view(extra_attrs={"has_delete_permission": False})`; verify `get_context_data()["delete_url"]` is falsy and the delete button element is absent in the rendered template — FAILS with the current `{% if object %}` guard; (b) `test_delete_button_present_when_delete_url_set` — `make_update_view()` with delete permission enabled; verify `get_context_data()["delete_url"]` is truthy and the delete button element is present
-- [ ] T014 [P] [US4] Write E2E test `test_US4_update_delete_link_absent_when_not_configured` in `tests/test_views/test_edit_view_e2e.py`; navigate to a product update URL where no delete view is configured (use the `demo` app's category update route which has no delete view); verify no delete button is rendered
+- [X] T013 [US4] Write failing unit tests `TestMVPUpdateViewDeleteLinkVisibility` in `tests/test_views/test_edit_view.py` with two contrasting test cases (satisfying SC-004): (a) `test_delete_button_absent_when_delete_url_empty` — `make_update_view(extra_attrs={"has_delete_permission": False})`; verify `get_context_data()["delete_url"]` is falsy and the delete button element is absent in the rendered template — FAILS with the current `{% if object %}` guard; (b) `test_delete_button_present_when_delete_url_set` — `make_update_view()` with delete permission enabled; verify `get_context_data()["delete_url"]` is truthy and the delete button element is present
+- [X] T014 [P] [US4] Write E2E test `test_US4_update_delete_link_absent_when_not_configured` in `tests/test_views/test_edit_view_e2e.py`; navigate to a product update URL where no delete view is configured (use the `demo` app's category update route which has no delete view); verify no delete button is rendered
 
 ### Implementation for User Story 4
 
-- [ ] T015 [US4] Change `{% if object %}` to `{% if delete_url %}` on the Delete button guard in `mvp/templates/form_view.html`; run T013 and T014 — all must now pass
-- [ ] T015a [US4] Run `python manage.py check` and `pytest tests/test_views/test_edit_view.py -k TestMVPUpdateViewDeleteLinkVisibility` — all must pass before proceeding
-- [ ] T015b [US4] Use Playwright MCP to verify delete button show/hide: (a) navigate to `/demo/products/<pk>/update/` with delete view configured — assert the Delete button element IS visible in the page header; (b) navigate to a category update page where no delete view is registered — assert no Delete button element is rendered; assertions MUST confirm the specific US4 acceptance criteria, not merely that the page loads without error
+- [X] T015 [US4] Change `{% if object %}` to `{% if delete_url %}` on the Delete button guard in `mvp/templates/form_view.html`; run T013 and T014 — all must now pass
+- [X] T015a [US4] Run `python manage.py check` and `pytest tests/test_views/test_edit_view.py -k TestMVPUpdateViewDeleteLinkVisibility` — all must pass before proceeding
+- [X] T015b [US4] Use Playwright MCP to verify delete button show/hide: (a) navigate to `/demo/products/<pk>/update/` with delete view configured — assert the Delete button element IS visible in the page header; (b) navigate to a category update page where no delete view is registered — assert no Delete button element is rendered; assertions MUST confirm the specific US4 acceptance criteria, not merely that the page loads without error
 
 **Checkpoint**: US4 complete — `pytest tests/test_views/test_edit_view.py -k TestMVPUpdateViewDeleteLinkVisibility` is green; E2E test T014 and Playwright MCP verification T015b pass.
 
@@ -128,8 +128,8 @@
 
 ### Tests for User Story 5
 
-- [ ] T016 [P] [US5] Write unit tests extending `TestMVPUpdateViewBreadcrumb` (from T004) with: `test_first_item_has_no_href_when_list_permission_false` and `test_first_item_has_href_when_list_permission_true` in `tests/test_views/test_edit_view.py`; use `make_update_view(extra_attrs={"has_list_permission": False/True})` — these should pass after T006 (no new implementation needed)
-- [ ] T017 [P] [US5] Write unit tests `test_second_item_has_no_href_when_detail_permission_false` and `test_second_item_has_href_when_detail_permission_true` in `tests/test_views/test_edit_view.py`; use `make_update_view(extra_attrs={"has_detail_permission": False/True})` — these should pass after T006 (the change to `resolve_crud_url("detail")` already handles this)
+- [X] T016 [P] [US5] Write unit tests extending `TestMVPUpdateViewBreadcrumb` (from T004) with: `test_first_item_has_no_href_when_list_permission_false` and `test_first_item_has_href_when_list_permission_true` in `tests/test_views/test_edit_view.py`; use `make_update_view(extra_attrs={"has_list_permission": False/True})` — these should pass after T006 (no new implementation needed)
+- [X] T017 [P] [US5] Write unit tests `test_second_item_has_no_href_when_detail_permission_false` and `test_second_item_has_href_when_detail_permission_true` in `tests/test_views/test_edit_view.py`; use `make_update_view(extra_attrs={"has_detail_permission": False/True})` — these should pass after T006 (the change to `resolve_crud_url("detail")` already handles this)
 
 **Checkpoint**: US5 complete — all `TestMVPUpdateViewBreadcrumb` tests green.
 
@@ -139,12 +139,12 @@
 
 **Purpose**: Principle XII docstring compliance, skill currency, and final validation.
 
-- [ ] T018 Replace the single-line `MVPUpdateView` class docstring with a Principle XII-compliant docstring in `mvp/views/edit.py`: (a) 1–2 sentence intended-use summary; (b) `Config:` block listing `page_title`, `page_icon`, `page_class`, `success_message`, `success_url`, `fields`, `model` with types, defaults, and one-line descriptions; (c) `Override hooks:` subsection listing `get_breadcrumbs()`, `get_delete_url()`, `get_page_title()` (inherited), `get_success_message()` (inherited), `get_success_url()` (inherited); (d) minimal usage example (match the pattern in `quickstart.md`)
-- [ ] T019 [P] Update `MVPUpdateView` entry in `skills/django-mvp/SKILL.md`: document model-aware default title (`_("Update %(verbose_name)s")`), three-level breadcrumb depth, `resolve_crud_url("detail")` middle link, and delete-button visibility gate (`{% if delete_url %}`)
-- [ ] T020 Run `python manage.py check` and confirm zero errors or warnings with a minimal `MVPUpdateView` subclass registered in `INSTALLED_APPS`
-- [ ] T021 Run quickstart.md validation: create `class ProductUpdateView(MVPUpdateView): model = Product; fields = ["name", "slug"]` wired to `product-update` URL; navigate to `/demo/products/<pk>/update/`; verify page renders with correct title, breadcrumb, and icon (Playwright MCP)
-- [ ] T022 Run full test suite `pytest tests/test_views/` and confirm zero regressions across all `MVPCreateView`, `MVPDeleteView`, `MVPFormView`, and `MVPUpdateView` tests
-- [ ] T023 [M2] Implement exception guard in `MVPUpdateView.get_delete_url()` in `mvp/views/edit.py`: wrap the `reverse()` call in `try/except NoReverseMatch` returning `""`, per the edge case documented in spec.md; add unit test `TestMVPUpdateViewDeleteUrl.test_get_delete_url_returns_empty_on_reverse_failure` in `tests/test_views/test_delete_view.py` confirming no exception propagates to the caller
+- [X] T018 Replace the single-line `MVPUpdateView` class docstring with a Principle XII-compliant docstring in `mvp/views/edit.py`: (a) 1–2 sentence intended-use summary; (b) `Config:` block listing `page_title`, `page_icon`, `page_class`, `success_message`, `success_url`, `fields`, `model` with types, defaults, and one-line descriptions; (c) `Override hooks:` subsection listing `get_breadcrumbs()`, `get_delete_url()`, `get_page_title()` (inherited), `get_success_message()` (inherited), `get_success_url()` (inherited); (d) minimal usage example (match the pattern in `quickstart.md`)
+- [X] T019 [P] Update `MVPUpdateView` entry in `skills/django-mvp/SKILL.md`: document model-aware default title (`_("Update %(verbose_name)s")`), three-level breadcrumb depth, `resolve_crud_url("detail")` middle link, and delete-button visibility gate (`{% if delete_url %}`)
+- [X] T020 Run `python manage.py check` and confirm zero errors or warnings with a minimal `MVPUpdateView` subclass registered in `INSTALLED_APPS`
+- [X] T021 Run quickstart.md validation: create `class ProductUpdateView(MVPUpdateView): model = Product; fields = ["name", "slug"]` wired to `product-update` URL; navigate to `/demo/products/<pk>/update/`; verify page renders with correct title, breadcrumb, and icon (Playwright MCP)
+- [X] T022 Run full test suite `pytest tests/test_views/` and confirm zero regressions across all `MVPCreateView`, `MVPDeleteView`, `MVPFormView`, and `MVPUpdateView` tests
+- [X] T023 [M2] Implement exception guard in `MVPUpdateView.get_delete_url()` in `mvp/views/edit.py`: wrap the `reverse()` call in `try/except NoReverseMatch` returning `""`, per the edge case documented in spec.md; add unit test `TestMVPUpdateViewDeleteUrl.test_get_delete_url_returns_empty_on_reverse_failure` in `tests/test_views/test_delete_view.py` confirming no exception propagates to the caller
 
 ---
 

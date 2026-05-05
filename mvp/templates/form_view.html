@@ -2,7 +2,7 @@
 {% load crispy_forms_tags i18n %}
 {% block head %}
   {{ block.super }}
-  {{ form.media }}
+  {{ form.media.css }}
 {% endblock head %}
 {% block page.title %}
 {% endblock page.title %}
@@ -49,7 +49,7 @@
                               value="update"
                               variant="primary"
                               outline />
-                    {% if object %}
+                    {% if delete_url %}
                       <c-button text="{% trans "Delete" %}"
                                 href="{{ delete_url }}"
                                 icon="delete"
@@ -59,7 +59,7 @@
                 </c-action-row>
               </c-card>
             </div>
-            {% if next_url %}<input type="hidden" name="next" value="{{ next_url }}">{% endif %}
+            {% if next_url %}<input type="hidden" name="next" value="{{ next_url }}" />{% endif %}
           </c-form>
         </c-col>
       </c-row>
@@ -67,5 +67,6 @@
   </c-dashboard>
 {% endblock page.content %}
 {% block extra_js %}
+  {{ block.super }}
   {{ form.media.js }}
 {% endblock extra_js %}

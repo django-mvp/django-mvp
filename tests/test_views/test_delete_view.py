@@ -263,3 +263,54 @@ class TestMVPUpdateViewDeleteUrl:
         qs = parse_qs(urlparse(delete_url).query)
         expected_next = reverse("product-list")
         assert qs["next"][0] == expected_next
+
+    def test_get_delete_url_returns_empty_on_reverse_failure(self):
+        """[T023/M2] get_delete_url() returns a string when the update view name is not registered.
+
+        Verifies that a NoReverseMatch for back_url does not propagate to the caller —
+        the method returns a URL string with an empty back param rather than raising.
+        """
+        from django.test import RequestFactory
+
+        from mvp.views.edit import MVPUpdateView
+
+        rf = RequestFactory()
+        request = rf.get("/")
+
+        # Use a crud_views mapping where "update" points to a non-existent URL name.
+        # _get_view_name("update") will format this and produce "no-such-product-update"
+        # which has no URL registered → triggers NoReverseMatch inside get_delete_url().
+        attrs = {
+            "model": __import__("demo.models", fromlist=["Product"]).Product,
+            "fields": ["name"],
+            "template_name": "form_view.html",
+            "has_list_permission": True,
+            "has_detail_permission": True,
+            "has_create_permission": True,
+            "has_update_permission": True,
+            "has_delete_permission": True,
+            "crud_views": {
+                "list": "{model_name}-list",
+                "detail": "{model_name}-detail",
+                "create": "{model_name}-create",
+                "update": "no-such-{model_name}-update",  # will cause NoReverseMatch
+                "delete": "{model_name}-delete",
+            },
+        }
+        view_cls = type("StubUpdateBadName", (MVPUpdateView,), attrs)
+        view = view_cls()
+        view.request = request
+        view.kwargs = {"pk": 1}
+        view.args = []
+
+        class _Obj:
+            pk = 1
+
+            def __str__(self):
+                return "Product 1"
+
+        view.object = _Obj()
+        # Must not raise — should return a URL string with the delete URL (back may be empty)
+        result = view.get_delete_url()
+        assert isinstance(result, str), "get_delete_url() must return a string, not raise"
+        assert "delete" in result, "delete_url should still contain the delete path"

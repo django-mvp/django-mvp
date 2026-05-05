@@ -12,7 +12,7 @@ from django.views.generic import TemplateView
 from django_filters.views import FilterView
 
 from demo.forms import ContactForm
-from demo.models import Product
+from demo.models import Category, Product
 from demo.tables import ProductTable
 from mvp.views import (
     MVPCreateView,
@@ -240,8 +240,8 @@ class ProductUpdateView(MVPUpdateView):
 
     model = Product
     fields = ["name", "slug", "category", "description", "price", "stock", "status"]
-    page_title = "Edit Product"
     has_list_permission = True
+    has_detail_permission = True
     has_delete_permission = True
 
 
@@ -271,3 +271,17 @@ class ProductDeleteWithConfirmView(MVPDeleteView):
     model = Product
     require_confirmation = True
     has_list_permission = True
+
+
+class CategoryUpdateView(MVPUpdateView):
+    """Demo category update view — no delete view registered (US4 verification).
+
+    Used by E2E tests to verify the delete button is hidden when no delete
+    view is configured (has_delete_permission defaults to False).
+    """
+
+    model = Category
+    fields = ["name", "slug"]
+    has_list_permission = False  # no category list view wired in demo
+    has_detail_permission = False  # no category detail view wired in demo
+    has_delete_permission = False  # intentionally no delete view — verifies US4

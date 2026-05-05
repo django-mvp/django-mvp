@@ -1,10 +1,11 @@
 {% load flex_menu %}
-<c-vars brand_text="Django MVP"
-        brand_logo=""
+<c-vars brand_text
+        brand_logo
         brand_icon
         brand_url="/"
         class />
-<aside class="app-sidebar shadow {{ class }}" data-bs-theme="dark">
+<aside class="app-sidebar shadow {{ class }}"
+       data-bs-theme="dark">
   <c-app.sidebar.header text="{{ brand_text }}"
                         icon="{{ brand_icon }}"
                         logo="{{ brand_logo }}"
@@ -20,4 +21,6 @@
   </div>
 </aside>
 </aside>
-<div class="sidebar-overlay" data-lte-toggle="sidebar" data-lte-dismiss="sidebar-menu"></div>
+<div class="sidebar-overlay"
+     data-lte-toggle="sidebar"
+     data-lte-dismiss="sidebar-menu"></div>

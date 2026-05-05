@@ -120,6 +120,7 @@ def get_page_title(self) -> str:
 **Decision**: Keep `get_delete_url()` as the mechanism for building the delete link. It already correctly integrates with `CRUDDirectoryMixin` through `resolve_crud_url("delete")`. Do not add `"delete"` to `self.directory` — the `get_directory()` path cannot produce the parameterised URL this feature requires.
 
 **Alternatives considered**:
+
 - `self.directory = ["delete"]` + override `get_directory()` to append params — rejected; this would add complexity and split the parameterisation logic into two override points.
 - Replace `reverse()` with `resolve_crud_url("update")` for `back_url` — rejected; `resolve_crud_url` gates on `has_update_permission` which defaults to `False`, making it unsuitable for generating the self-referential back URL.
 
