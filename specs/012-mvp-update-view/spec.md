@@ -5,6 +5,14 @@
 **Status**: Draft
 **Input**: User description: "The update view differs from the create view in ways that matter to users: the breadcrumb trail is deeper (it includes a link to the record itself, sitting between the list and the form), the page signals that something already exists is being changed rather than created, and the form can offer a direct path to the delete view from within the edit page itself. This spec defines all of those distinctions and what the view should do when the delete destination is not configured."
 
+## Clarifications
+
+### Session 2026-05-05
+
+- Q: Should `get_breadcrumbs()` be modified as part of this feature, and if so how should the object detail link be resolved? → A: Yes — replace the direct `self.object.get_absolute_url()` call with `self.resolve_crud_url("detail")` so the permissions system (CRUDDirectoryMixin) controls whether the link appears.
+- Q: Does `MVPUpdateView` need to override `get_page_title()`? → A: No — set the class-level `page_title = _("Update %(verbose_name)s")`; `MVPModelFormBase.get_page_title()` handles interpolation.
+- Q: Does `MVPUpdateView` need to override `get_success_message()`? → A: No — set the class-level `success_message = _("%(verbose_name)s successfully updated.")`; `MVPModelFormBase.get_success_message()` handles interpolation.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 [Developer] — Zero-Config Update Page (Priority: P1)
@@ -18,10 +26,10 @@ A developer registers an update view for their `Product` model using only the tw
 **Acceptance Scenarios**:
 
 1. **Given** a `MVPUpdateView` subclass with only `model` and `fields` set, **When** the page is rendered, **Then** the page title reads "Update {verbose_name.title()}" (e.g., "Update Product").
-2. **Given** a `MVPUpdateView` subclass, **When** the page is rendered, **Then** the breadcrumb shows three items: "{verbose_name_plural.title()}" linking to the list URL, "{str(object)}" linking to the object's detail URL, and the current page title with no link.
+2. **Given** a `MVPUpdateView` subclass, **When** the page is rendered, **Then** the breadcrumb shows three items: "{verbose_name_plural.title()}" linking to the list URL (via `resolve_crud_url("list")`), "{str(object)}" linking to the detail URL (via `resolve_crud_url("detail")`), and the current page title with no link.
 3. **Given** a `MVPUpdateView` subclass, **When** the page is rendered, **Then** the page icon is "edit" and the page CSS classes include "mvp-form-page" and "mvp-update-page".
 4. **Given** a valid form submission, **When** the object is saved, **Then** a success message "{verbose_name.title()} successfully updated." is displayed on the next page.
-5. **Given** a valid form submission and no explicit `success_url`, **When** the object is saved, **Then** the user is redirected to the updated object's detail URL (via `object.get_absolute_url()`); if `get_absolute_url()` is not defined, `ImproperlyConfigured` is raised guiding the developer to set `success_url`.
+5. **Given** a valid form submission and no explicit `success_url`, **When** the object is saved, **Then** the user is redirected to the updated object's detail URL (via `resolve_crud_url("detail")`, falling back to `object.get_absolute_url()`, then `ImproperlyConfigured`) — the existing 4-step chain in `MVPModelFormBase.get_success_url()`.
 
 ---
 
@@ -81,13 +89,13 @@ A developer uses `MVPUpdateView` for a model that has no detail URL or no list U
 
 **Why this priority**: Edge-case resilience mirrors the equivalent story in the create view spec. The breadcrumb must never generate an empty `href` or a 404-triggering link.
 
-**Independent Test**: Configure `MVPUpdateView` with `has_list_permission = False` (or omit a list URL). Verify the breadcrumb list item renders as non-linked text. Separately, configure a model whose `get_absolute_url()` is not defined and verify the object-level breadcrumb item also renders as plain text.
+**Independent Test**: Configure `MVPUpdateView` with `has_list_permission = False` (or omit a list URL). Verify the breadcrumb list item renders as non-linked text. Separately, omit a detail view from the CRUD directory and verify `resolve_crud_url("detail")` returns `None`, causing the object-level breadcrumb item to render as plain text.
 
 **Acceptance Scenarios**:
 
 1. **Given** no list URL can be resolved, **When** the page is rendered, **Then** the breadcrumb list item appears as plain text (no `href`).
 2. **Given** `has_list_permission` is falsy, **When** the page is rendered, **Then** the breadcrumb list item appears as plain text.
-3. **Given** the object's `get_absolute_url()` is not defined, **When** the page is rendered, **Then** the breadcrumb object item appears as plain text (no `href`).
+3. **Given** no detail view is registered (or `has_detail_permission` is falsy), **When** the page is rendered, **Then** the breadcrumb object item appears as plain text (no `href`).
 
 ---
 
@@ -117,18 +125,19 @@ A site visitor navigates to an update page built on `MVPUpdateView`. The page he
 - What happens when `page_title` is set to `None`, `False`, or `""`? The falsy value is returned as-is — this is treated as a deliberate override. The class default (`_("Update %(verbose_name)s")`) is only used when the subclass does not override `page_title` at all.
 - What happens when `get_delete_url()` raises an exception internally (e.g., URL reverse failure)? The exception must be caught and an empty string returned — no server error rendered to the user.
 - What happens when the object's `__str__()` returns an empty string? The breadcrumb object item renders as an empty plain-text item — no crash, no omission of the breadcrumb level.
+- What happens when `resolve_crud_url("detail")` returns `None` because no detail view is registered? The breadcrumb renders the object's `str()` as plain text with no `href` — the `href|yesno:"a,span"` filter in the Cotton breadcrumbs component handles this automatically.
 
 ## Requirements *(mandatory)*
 
 ### Functional Requirements
 
-- **FR-001**: `MVPUpdateView` MUST produce a page title of "Update {verbose_name.title()}" by default, via a class-level `page_title` attribute set to the translatable interpolation template `_("Update %(verbose_name)s")`. `get_page_title()` interpolates this template with `{"verbose_name": verbose_name.title()}` at request time. When a subclass sets `page_title` to a truthy string, that string is interpolated instead (if it contains `%(verbose_name)s`) or returned as-is. When `page_title` is explicitly set to a falsy value (`None`, `False`, `""`), that value is returned directly as the caller's deliberate intent.
+- **FR-001**: `MVPUpdateView` MUST produce a page title of "Update {verbose_name.title()}" by default. This is achieved solely by setting the class-level attribute `page_title = _("Update %(verbose_name)s")`; `MVPModelFormBase.get_page_title()` already handles interpolation with `{"verbose_name": verbose_name.title()}` and all falsy-override behaviour. `MVPUpdateView` does NOT override `get_page_title()`.
 - **FR-002**: `MVPUpdateView` MUST display "edit" as the default page icon when `page_icon` is not overridden.
 - **FR-003**: `MVPUpdateView` MUST apply "mvp-form-page" and "mvp-update-page" CSS classes to the page container when `page_class` is not overridden.
-- **FR-004**: `MVPUpdateView` MUST display a default success message of "{verbose_name.title()} successfully updated." when `success_message` is not overridden.
-- **FR-005**: `MVPUpdateView` MUST render a three-level breadcrumb: (1) `{verbose_name_plural.title()}` linking to the list URL, (2) `{str(object)}` linking to the object's detail URL, (3) the current page title with no link.
-- **FR-006**: When the list URL cannot be resolved (no permission or no URL registered), the breadcrumb list item MUST appear as non-linked text rather than an empty or broken anchor.
-- **FR-007**: When the object's detail URL cannot be resolved (e.g., `get_absolute_url()` not defined), the breadcrumb object item MUST appear as non-linked text rather than an empty or broken anchor.
+- **FR-004**: `MVPUpdateView` MUST display a default success message of "{verbose_name} successfully updated." when `success_message` is not overridden. This is achieved solely by setting the class-level attribute `success_message = _("%(verbose_name)s successfully updated.")`; `MVPModelFormBase.get_success_message()` handles interpolation (injecting the lowercased `verbose_name`). `MVPUpdateView` does NOT override `get_success_message()`.
+- **FR-005**: `MVPUpdateView` MUST render a three-level breadcrumb via `get_breadcrumbs()`: (1) `{verbose_name_plural.title()}` with `href` from `resolve_crud_url("list")`, (2) `{str(object)}` with `href` from `resolve_crud_url("detail")`, (3) the current page title with no `href`. The existing `get_breadcrumbs()` implementation MUST be updated to replace the direct `self.object.get_absolute_url()` call with `self.resolve_crud_url("detail")`.
+- **FR-006**: When the list URL cannot be resolved (no permission or no URL registered), `resolve_crud_url("list")` returns `None`/empty string and the breadcrumb list item MUST appear as non-linked text — this is handled automatically by the breadcrumbs component's `href|yesno:"a,span"` filter.
+- **FR-007**: When the detail URL cannot be resolved (no detail view registered or no permission), `resolve_crud_url("detail")` returns `None`/empty string and the breadcrumb object item MUST appear as non-linked text — handled automatically by the same `href|yesno:"a,span"` filter. No `get_absolute_url()` call is made.
 - **FR-008**: `MVPUpdateView` MUST expose a `delete_url` variable in the template context, produced by `get_delete_url()`. When a delete view is accessible, `delete_url` is a URL string with `?back=<update_url>&next=<list_url>` query parameters appended. When no delete view is accessible, `delete_url` is an empty string.
 - **FR-009**: The `form_view.html` template (or its Cotton card component) MUST render a visible delete link or button when `delete_url` is truthy, and MUST NOT render any delete control when `delete_url` is falsy or absent.
 - **FR-010**: After a valid form submission, `MVPUpdateView` MUST redirect using the same 4-step priority chain as `MVPCreateView`: `?next=` parameter → `success_url` (CRUD shorthand or literal) → `object.get_absolute_url()` → `ImproperlyConfigured`.
@@ -150,7 +159,7 @@ A site visitor navigates to an update page built on `MVPUpdateView`. The page he
 
 - **SC-001**: A developer can produce a fully functional, correctly styled update page by writing exactly two class attributes (`model` and `fields`) — measurable by a passing test that exercises the full request/response cycle with only those two attributes set.
 - **SC-002**: 100% of auto-generated page titles for models with single- and multi-word verbose names render with correct title-case capitalisation — verifiable by at least two named unit tests, one per case.
-- **SC-003**: The breadcrumb always contains exactly three items for `MVPUpdateView` — verifiable by unit tests that count breadcrumb entries and check text and href values for each item.
+- **SC-003**: The breadcrumb always contains exactly three items for `MVPUpdateView` — verifiable by unit tests that count breadcrumb entries and check text and href values for each item. The middle item's href is produced by `resolve_crud_url("detail")`, not `get_absolute_url()`.
 - **SC-004**: The delete link is present in the rendered page when a delete view is accessible, and absent when it is not — verifiable by two contrasting unit tests (one with delete view registered, one without).
 - **SC-005**: All six default attributes (title, icon, CSS, success message, breadcrumb, delete URL) can be independently overridden without affecting any other default — verifiable by six independent unit tests, one per attribute.
 - **SC-006**: The view passes `manage.py check` with zero errors on a project that registers only `model` and `fields` — verifiable by running the system check in CI.
@@ -160,10 +169,10 @@ A site visitor navigates to an update page built on `MVPUpdateView`. The page he
 
 - The developer's project has already registered a URL for the update view (e.g., via `path("products/<pk>/update/", ProductUpdateView.as_view(), ...)`). This spec does not cover URL auto-registration.
 - The breadcrumb list link is suppressed (plain text) when `has_list_permission` is falsy — the same permission model already used by `CRUDDirectoryMixin.resolve_crud_url()`.
-- The breadcrumb object link is suppressed (plain text) when `object.get_absolute_url()` raises `AttributeError` or any other exception — no crash, no broken anchor.
+- The breadcrumb object link is suppressed (plain text) when `resolve_crud_url("detail")` returns `None` or an empty string — handled automatically by the breadcrumbs component; no `get_absolute_url()` call is made in `get_breadcrumbs()`.
 - `verbose_name` and `verbose_name_plural` are assumed to be set correctly on the model's `Meta` class; if absent, Django's defaults (class name lowercased, pluralised) are used.
 - The form template and card layout are provided by the existing `form_view.html` base template and Cotton components. The delete link rendering is gated by the `delete_url` context variable — `truthy → show link`, `falsy → hide link`.
 - Multi-language support (i18n) is handled by wrapping default string constants in `gettext_lazy`; translators supply the translations.
-- The auto-derived title is generated at request time (not at class-definition time), so it correctly reflects any model `verbose_name` overridden at runtime.
-- The existing `MVPUpdateView` stub (currently with static `page_title = _("Update Entry")` and the full `get_breadcrumbs()` and `get_delete_url()` implementations) is the target of this change — the breadcrumb structure and delete URL logic already exist and only the model-aware title and title-cased success message need to be added.
+- The auto-derived title is generated at request time (not at class-definition time) by the existing `MVPModelFormBase.get_page_title()` — `MVPUpdateView` does not override it.
+- The existing `MVPUpdateView` stub has two implementation gaps: (1) `page_title` is still the static string `_("Update Entry")` — replace with `_("Update %(verbose_name)s")`; (2) `get_breadcrumbs()` calls `self.object.get_absolute_url()` directly — replace with `self.resolve_crud_url("detail")`. No new methods are needed.
 - `get_delete_url()` already appends `?back` and `?next` query parameters; this spec does not change that behaviour, only documents and validates it.
