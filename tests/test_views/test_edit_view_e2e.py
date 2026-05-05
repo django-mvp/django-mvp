@@ -182,3 +182,117 @@ def test_US1_breadcrumb_links_to_list(page, live_server):
     href = breadcrumb_link.get_attribute("href")
     assert href is not None, "First breadcrumb item should be an <a> tag"
     assert href.endswith("/products/"), f"Expected breadcrumb href to end with /products/, got: {href!r}"
+
+
+# ---------------------------------------------------------------------------
+# US6 — MVPUpdateView: model-aware title and success message (T007-T009)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db(transaction=True)
+def test_US6_update_page_title_is_model_aware(page, live_server, product):
+    """[US6/T007] Navigate to the product update URL — page title contains 'Update Product'.
+
+    Verifies FR-001: MVPUpdateView.page_title = _("Update %(verbose_name)s") produces a
+    model-aware heading instead of the old static 'Update Entry' fallback.
+    """
+    update_url = f"{live_server.url}/products/{product.pk}/edit/"
+    page.goto(update_url)
+    page.wait_for_load_state("networkidle")
+    title_text = page.locator("h1, .page-title, [data-testid='page-title']").first.inner_text()
+    assert "Update Product" in title_text, f"Expected 'Update Product' in page title, got: {title_text!r}"
+
+
+@pytest.mark.django_db(transaction=True)
+def test_US6_update_success_message_is_title_cased(page, live_server, product):
+    """[US6/T008] Submit valid product update form — flash contains 'Product successfully updated.'
+
+    Verifies FR-004: the success flash uses title-cased verbose_name so the message reads
+    'Product successfully updated.' not 'product successfully updated.'
+    """
+    update_url = f"{live_server.url}/products/{product.pk}/edit/"
+    page.goto(update_url)
+    page.wait_for_load_state("networkidle")
+    # Clear and update the name field
+    page.fill("input[name=name]", "E2E Updated Product")
+    # Submit via the "Save entry" button (value=list redirects to list)
+    page.click("button[type=submit][value=list]")
+    page.wait_for_load_state("networkidle")
+    body_text = page.content()
+    assert "Product successfully updated." in body_text, (
+        f"Expected 'Product successfully updated.' in flash message, got page content snippet:\n"
+        f"{body_text[:500]}"
+    )
+
+
+@pytest.mark.django_db(transaction=True)
+def test_US6_update_breadcrumb_has_three_items(page, live_server, product):
+    """[US6/T009] Navigate to product update URL — breadcrumb has exactly three items.
+
+    Verifies FR-002: three-level breadcrumb (list → detail → update form title).
+    Second item links to the detail view; third item has no link.
+    """
+    update_url = f"{live_server.url}/products/{product.pk}/edit/"
+    page.goto(update_url)
+    page.wait_for_load_state("networkidle")
+    breadcrumb_items = page.locator(".breadcrumb li")
+    count = breadcrumb_items.count()
+    assert count == 3, f"Expected 3 breadcrumb items, got {count}"
+    # First item should be a link (to list)
+    first_link = breadcrumb_items.nth(0).locator("a")
+    assert first_link.count() > 0, "First breadcrumb item should be an <a> link (list)"
+    # Second item should be a link (to detail — has_detail_permission=True on ProductUpdateView)
+    second_link = breadcrumb_items.nth(1).locator("a")
+    assert second_link.count() > 0, "Second breadcrumb item should be an <a> link (detail)"
+    # Third item should have no link (current page)
+    third_link = breadcrumb_items.nth(2).locator("a")
+    assert third_link.count() == 0, "Third breadcrumb item should be plain text (no link)"
+
+
+# ---------------------------------------------------------------------------
+# US3 — Delete link visible on update page when delete view configured (T012)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db(transaction=True)
+def test_US3_update_delete_link_visible_when_configured(page, live_server, product):
+    """[US3/T012] Navigate to product update URL — Delete button is visible and href has back/next.
+
+    Verifies FR-003: the delete button rendered by the update page includes ?back= and ?next=
+    query parameters, enabling the delete view to redirect correctly after deletion.
+    """
+    update_url = f"{live_server.url}/products/{product.pk}/edit/"
+    page.goto(update_url)
+    page.wait_for_load_state("networkidle")
+    # The delete button should be visible
+    delete_link = page.locator("a[href*='delete']").first
+    assert delete_link.is_visible(), "Delete button should be visible on the update page"
+    href = delete_link.get_attribute("href")
+    assert "?back=" in href or "&back=" in href, f"Delete link should contain ?back= param, got: {href!r}"
+    assert "next=" in href, f"Delete link should contain next= param, got: {href!r}"
+
+
+# ---------------------------------------------------------------------------
+# US4 — Delete link absent when delete view not configured (T014)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db(transaction=True)
+def test_US4_update_delete_link_absent_when_not_configured(page, live_server):
+    """[US4/T014] Navigate to category update URL (no delete view) — no delete button rendered.
+
+    Verifies FR-009 template fix: the Delete button guard uses {% if delete_url %} so
+    the button is hidden when get_delete_url() returns '' (has_delete_permission=False).
+    """
+    from demo.models import Category
+
+    cat = Category.objects.create(name="E2E No Delete Cat", slug="e2e-no-delete-cat")
+    update_url = f"{live_server.url}/categories/{cat.pk}/edit/"
+    page.goto(update_url)
+    page.wait_for_load_state("networkidle")
+    # No delete link should appear anywhere on the page
+    delete_links = page.locator("a[href*='delete'], button[data-action*='delete']")
+    assert delete_links.count() == 0, (
+        f"Expected no delete button on category update page (no delete view configured), "
+        f"but found {delete_links.count()} delete element(s)"
+    )

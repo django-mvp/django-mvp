@@ -131,15 +131,24 @@ class MVPFormBase(SuccessMessageMixin, BaseTemplateNameMixin, NextURLMixin, Page
 
 
 class MVPModelFormBase(MVPFormBase):
-    """Base class for model form views in AdminLTE layout with auto-detected renderer.
+    """Base class for model form views in AdminLTE layout with auto-detected renderer."""
 
-    Features:
+    page_title = ""
 
-        - Smart redirection after form submission based on 'next' parameter or default to list view
-        - Automatic page title generation based on model and action (Create/Edit/Delete)
-        - Breadcrumb generation with links back to list and detail views
+    def get_page_title(self) -> str:
+        """Return a model-aware page title, or the explicit override if set.
 
-    """
+        When ``page_title`` is not falsy, uses it to create an interpolated string using
+        the model's verbose_name capitalised with title. For example, for ``page_title = _("Create %(verbose_name)s")``,
+        and a ``Product`` model with ``verbose_name = "product"``, a title will be produced as ``"Create Product"``; a model with
+        ``verbose_name = "order line"`` produces ``"Create Order Line"``.
+
+        Returns:
+            str: The page title to display.
+        """
+        if not self.page_title:
+            return self.page_title
+        return self.page_title % {"verbose_name": self.model_meta.verbose_name.title()}
 
     def get_success_message(self, cleaned_data):
         """Return the interpolated success message for this form submission.
@@ -160,6 +169,7 @@ class MVPModelFormBase(MVPFormBase):
         """
         data = defaultdict(str, cleaned_data)
         data["verbose_name"] = self.model_meta.verbose_name
+        data["verbose_name_title"] = self.model_meta.verbose_name.title()
         return self.success_message % data
 
     def get_url_kwargs(self, action: str) -> dict | None:
@@ -300,56 +310,73 @@ class MVPCreateView(MVPModelFormBase, generic.CreateView):
     page_class = "mvp-form-page mvp-create-page"
     success_message = _("%(verbose_name)s successfully created.")
 
-    def get_page_title(self) -> str:
-        """Return a model-aware page title, or the explicit override if set.
+    def get_success_message(self, cleaned_data):
+        """Return the success message with title-cased verbose_name.
 
-        When ``page_title`` is falsy (unset or empty string), derives the title
-        from the model's ``verbose_name`` — capitalised with ``.title()`` — and
-        prepends ``"Create "``. For example, a ``Product`` model with
-        ``verbose_name = "product"`` produces ``"Create Product"``; a model with
-        ``verbose_name = "order line"`` produces ``"Create Order Line"``.
-
-        When ``page_title`` is set to a truthy value, returns it directly (cast
-        to ``str`` to resolve lazy translation strings).
-
-        Returns:
-            str: The page title to display.
-        """
-        if not self.page_title:
-            return self.page_title
-        return self.page_title % {"verbose_name": self.model_meta.verbose_name.title()}
-
-    def get_success_message(self, cleaned_data: dict) -> str:
-        """Interpolate ``success_message`` with a title-cased ``verbose_name``.
-
-        Overrides :meth:`MVPModelFormBase.get_success_message` to inject a
-        capitalised ``verbose_name`` (e.g. ``"Product"`` rather than
-        ``"product"``), so the default flash message reads
-        ``"Product successfully created."`` rather than starting with a
-        lowercase letter.
-
-        Any ``%(key)s`` placeholder absent from ``cleaned_data`` silently
-        substitutes ``""`` via ``collections.defaultdict(str)``; no
-        ``KeyError`` is raised.
-
-        Args:
-            cleaned_data (dict): Validated form field values.
-
-        Returns:
-            str: The formatted success message.
+        Overrides the base class to inject a title-cased ``verbose_name`` so
+        the flash reads e.g. "Product successfully created." not
+        "product successfully created."
         """
         data = defaultdict(str, cleaned_data)
         data["verbose_name"] = self.model_meta.verbose_name.title()
+        data["verbose_name_title"] = self.model_meta.verbose_name.title()
         return self.success_message % data
 
 
 class MVPUpdateView(MVPModelFormBase, generic.UpdateView):
-    """UpdateView with AdminLTE layout and auto-detected form rendering."""
+    """Concrete model update view with zero-config AdminLTE layout integration.
+
+    A minimal subclass needs only ``model`` and ``fields``; everything else is
+    auto-derived from the model's ``verbose_name``.  The page title, breadcrumb,
+    and delete-button visibility all adapt automatically to whatever CRUD directory
+    the developer has configured.
+
+    Config:
+        page_title (str | lazy str): Interpolation template for the page heading.
+            Defaults to ``_("Update %(verbose_name)s")``; ``%(verbose_name)s`` is
+            replaced at runtime with the title-cased model verbose name.
+        page_icon (str): Material icon name for the page header.
+            Defaults to ``"edit"``.
+        page_class (str): CSS class(es) applied to the page wrapper.
+            Defaults to ``"mvp-form-page mvp-update-page"``.
+        success_message (str | lazy str): Flash message template shown after a
+            successful save.  ``%(verbose_name_title)s`` is replaced with the
+            title-cased model verbose name (e.g. "Product").
+            Defaults to ``_("%(verbose_name_title)s successfully updated.")``.
+        success_url (str | None): Redirect target after save.  Accepts literal
+            URL paths or CRUD action shorthands (``"list"``, ``"detail"``).
+            Defaults to ``None`` (falls back to ``get_absolute_url()`` then
+            ``ImproperlyConfigured``).
+        fields (list[str]): Required. Model fields to include in the form.
+        model (Model): Required. The Django model class to update.
+
+    Override hooks:
+        get_breadcrumbs(): Returns the three-level breadcrumb list.  Override to
+            replace the default list → detail → form structure.
+        get_delete_url(): Returns the delete-button href with ``?back`` and
+            ``?next`` params, or ``""`` when the delete view is not registered.
+        get_page_title(): Inherited from ``MVPModelFormBase``; interpolates
+            ``page_title`` with the model's title-cased ``verbose_name``.
+        get_success_message(cleaned_data): Inherited from ``MVPModelFormBase``;
+            interpolates ``success_message`` with ``verbose_name`` and
+            ``verbose_name_title``.
+        get_success_url(): Inherited from ``MVPModelFormBase``; priority chain:
+            next URL → ``success_url`` → ``object.get_absolute_url()``.
+
+    Example::
+
+        class ProductUpdateView(MVPUpdateView):
+            model = Product
+            fields = ["name", "slug", "price"]
+            has_list_permission = True
+            has_detail_permission = True
+            has_delete_permission = True
+    """
 
     page_icon = "edit"
-    page_title = _("Update Entry")
+    page_title = _("Update %(verbose_name)s")
     page_class = "mvp-form-page mvp-update-page"
-    success_message = _("%(verbose_name)s successfully updated.")
+    success_message = _("%(verbose_name_title)s successfully updated.")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -359,14 +386,18 @@ class MVPUpdateView(MVPModelFormBase, generic.UpdateView):
     def get_breadcrumbs(self):
         """Return the list of breadcrumb items for the form view.
 
-        By default, includes a link back to the list view and a final item for the current form.
+        By default, includes a link back to the list view, a link to the detail
+        view (gated by ``has_detail_permission``), and a final item for the current
+        form.  When a permission is falsy the affected breadcrumb renders as plain
+        text (the ``href|yesno`` filter in the Cotton breadcrumbs component handles
+        the ``None``/empty-href case automatically).
 
         Returns:
             list[dict]: List of breadcrumb items with 'text' and optional 'href'
         """
         return [
             {"text": self.get_list_title(), "href": self.resolve_crud_url("list")},
-            {"text": str(self.object), "href": self.object.get_absolute_url()},
+            {"text": str(self.object), "href": self.resolve_crud_url("detail")},
             {"text": self.get_page_title()},
         ]
 
@@ -377,13 +408,25 @@ class MVPUpdateView(MVPModelFormBase, generic.UpdateView):
         ``has_delete_permission`` gates the URL. Appends ``?back=<update url>&next=<list url>``
         so the delete view redirects to the list after successful deletion.
 
+        The ``reverse()`` call for ``back_url`` is intentionally NOT routed through
+        ``resolve_crud_url("update")`` — that would gate on ``has_update_permission``
+        (default ``False``), silently producing a ``None`` back URL for developers who
+        have not explicitly set that attribute.  The raw ``reverse()`` call is wrapped
+        in ``try/except NoReverseMatch`` to prevent propagation when the update view
+        name is not registered.
+
         Returns:
             str: URL for the delete view link, or empty string when suppressed.
         """
+        from django.urls import NoReverseMatch
+
         url = self.resolve_crud_url("delete")
         if not url:
             return ""
-        back_url = reverse(self._get_view_name("update"), kwargs=self.get_url_kwargs("update"))
+        try:
+            back_url = reverse(self._get_view_name("update"), kwargs=self.get_url_kwargs("update"))
+        except NoReverseMatch:
+            back_url = ""
         next_url = self.resolve_crud_url("list")
         params = urlencode({"back": back_url, "next": next_url})
         return f"{url}?{params}"

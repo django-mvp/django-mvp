@@ -1,5 +1,32 @@
 <!--
 Sync Impact Report
+- Version change: 3.5.0 → 3.6.0
+- Change type: MINOR — Added Principle XII mandating comprehensive docstrings for
+  all view mixins and concrete base classes in mvp/views/, including a structured
+  Config: section, Override hooks: subsection, and minimal usage example.
+- Modified principles: none
+- Added sections:
+  - XII. View Class Docstring Completeness (NON-NEGOTIABLE)
+- Removed sections: none
+- Templates requiring updates:
+  - .specify/templates/plan-template.md ✅ No change needed (Constitution Check
+    section is filled dynamically from constitution at plan-generation time;
+    Principle XII will be picked up automatically)
+  - .specify/templates/spec-template.md ✅ No change needed (no hardcoded principle
+    references)
+  - .specify/templates/tasks-template.md ✅ No change needed (task categories are
+    not hardcoded to specific principles)
+- Skills/runtime guidance:
+  - skills/django-mvp/SKILL.md ⚠ Pending manual review (check whether the public
+    view API entries include Config/Override hooks sections matching new standard)
+  - .specify/templates/commands/*.md ✅ No change needed (directory not present)
+- Deferred items:
+  - CONTRIBUTING.md manual update (chrome-devtools-mcp → playwright-mcp ref,
+    carried over from 3.5.0)
+-->
+
+<!--
+Prior sync report (3.4.0 → 3.5.0)
 - Version change: 3.4.0 → 3.5.0
 - Change type: MINOR — Materially expanded Cotton component testing policy to
   require predictable grouped test modules under tests/test_components, organized
@@ -301,6 +328,51 @@ specification.
   developer story and a P1 end-user story may coexist and SHOULD be implemented
   together where they describe two sides of the same feature.
 
+### XII. View Class Docstring Completeness (NON-NEGOTIABLE)
+
+Every public view mixin and concrete base view class in `mvp/views/` MUST carry a
+comprehensive class-level docstring that serves as the authoritative reference for
+human contributors and AI agents navigating the codebase via code-lookup tools.
+
+**Rationale**: Agents and new developers primarily learn the available surface area of
+a class by reading its docstring, not by tracing the full class hierarchy. Without
+complete, structured docstrings, configuration attributes inherited from mixins become
+invisible, overridable hook methods go undiscovered, and the developer experience
+degrades significantly. A well-structured docstring is therefore both a quality gate
+and a knowledge-transfer artifact.
+
+**Requirements**:
+
+- **Scope**: Every public mixin and concrete base class in `mvp/views/` MUST have a
+  class-level docstring. Private helpers (`_*` prefix) and internal detail classes are
+  exempt.
+- **Intended-use summary**: The docstring MUST open with one or two sentences
+  describing what the class does and when a developer should reach for it.
+- **Config section**: The docstring MUST include a `Config:` block listing every
+  configuration attribute a downstream developer may set, using the format:
+
+  ```
+  Config:
+      - ``attr_name`` (type, default): One-line description plus any special
+        behaviour. Attributes inherited from mixins that are routinely overridden
+        MUST also appear here; their provenance may be noted parenthetically
+        (e.g., ``(inherited from NextURLMixin)``).
+  ```
+
+- **Override hooks**: Any method that downstream classes are expected to override MUST
+  be listed under an `Override hooks:` subsection with a one-line summary of the
+  expected return type and intended customisation point.
+- **Minimal example**: Where the class is the primary entry point for a new developer,
+  the docstring SHOULD include at minimum a short usage example showing the class
+  wired to a URL and configured with common attributes.
+- **Completeness gate**: A pull request that introduces a new view mixin or base class
+  without a conforming docstring MUST NOT be merged. A PR that modifies the public
+  interface of an existing class MUST update its docstring in the same PR.
+- **AI-agent discoverability**: The docstrings are the canonical surface area
+  description consumed by AI agents performing code lookups. They MUST be complete
+  enough that an agent can determine all available knobs and extension points without
+  reading every parent class.
+
 ## Quality Gates
 
 The following gates MUST pass for every pull request that changes runtime behavior:
@@ -339,4 +411,4 @@ This constitution defines non-negotiable project rules and supersedes local conv
 - MINOR: Adds a principle/section or materially expands guidance.
 - PATCH: Clarifies wording or fixes typos without changing intent.
 
-**Version**: 3.5.0 | **Ratified**: 2026-01-05 | **Last Amended**: 2026-04-17
+**Version**: 3.6.0 | **Ratified**: 2026-01-05 | **Last Amended**: 2026-05-05

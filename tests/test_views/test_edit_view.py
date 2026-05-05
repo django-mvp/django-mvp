@@ -893,3 +893,279 @@ class TestMVPCreateViewBreadcrumb:
         custom_crumbs = [{"text": "Home", "href": "/"}, {"text": "New"}]
         view = make_create_view(extra_attrs={"get_breadcrumbs": lambda self: custom_crumbs})
         assert view.get_breadcrumbs() == custom_crumbs
+
+
+# ---------------------------------------------------------------------------
+# T002 — MVPUpdateView class-level defaults (US1)
+# ---------------------------------------------------------------------------
+
+
+class TestMVPUpdateViewDefaults:
+    """[US1] MVPUpdateView class-level attribute defaults with no overrides."""
+
+    def test_page_icon_is_edit(self):
+        """page_icon is 'edit' at the class level."""
+        assert MVPUpdateView.page_icon == "edit"
+
+    def test_page_class_contains_update(self):
+        """'mvp-update-page' appears in MVPUpdateView.page_class."""
+        assert "mvp-update-page" in MVPUpdateView.page_class
+
+    def test_page_title_class_attr_is_template(self):
+        """MVPUpdateView defines page_title as an interpolation template on the class."""
+        assert "page_title" in MVPUpdateView.__dict__
+        assert "%(verbose_name)s" in str(MVPUpdateView.page_title)
+
+
+# ---------------------------------------------------------------------------
+# T003 — MVPUpdateView.get_page_title() (US1 / US2)
+# ---------------------------------------------------------------------------
+
+
+class TestMVPUpdateViewPageTitle:
+    """[US1/US2] MVPUpdateView.get_page_title() derives title from verbose_name or explicit override."""
+
+    def test_default_title_single_word_verbose_name(self):
+        """Single-word verbose_name 'product' → 'Update Product'."""
+        view = make_update_view()
+        assert view.get_page_title() == "Update Product"
+
+    def test_default_title_multi_word_verbose_name(self):
+        """Multi-word verbose_name 'order line' → 'Update Order Line'."""
+        rf = RequestFactory()
+        request = rf.post("/", data={})
+        request.user = User()
+        attrs = {
+            "model": OrderLine,
+            "fields": ["quantity"],
+            "template_name": "form_view.html",
+            "has_list_permission": False,
+            "has_detail_permission": False,
+            "has_create_permission": False,
+            "has_update_permission": True,
+            "has_delete_permission": False,
+        }
+        view_cls = type("StubOrderLineUpdateView", (MVPUpdateView,), attrs)
+        view = view_cls()
+        view.request = request
+        view.kwargs = {}
+        view.args = []
+        view.object = None
+        assert view.get_page_title() == "Update Order Line"
+
+    def test_explicit_page_title_returned(self):
+        """page_title='Edit product details' overrides the default derivation."""
+        view = make_update_view(extra_attrs={"page_title": "Edit product details"})
+        assert view.get_page_title() == "Edit product details"
+
+    def test_empty_string_page_title_returns_empty(self):
+        """page_title='' is an explicit override; returned as-is (caller's intent)."""
+        view = make_update_view(extra_attrs={"page_title": ""})
+        assert view.get_page_title() == ""
+
+
+# ---------------------------------------------------------------------------
+# T004 — MVPUpdateView.get_breadcrumbs() (US1 / US5)
+# ---------------------------------------------------------------------------
+
+
+class TestMVPUpdateViewBreadcrumb:
+    """[US1/US5] MVPUpdateView breadcrumb structure — three-level with detail link."""
+
+    @pytest.fixture(autouse=True)
+    def _stub_object(self):
+        """Attach a minimal stub object (with pk) to all views in this class."""
+
+        class _Obj:
+            pk = 1
+
+            def __str__(self):
+                return "Test Product"
+
+            def get_absolute_url(self):
+                return "/products/1/"
+
+        self._obj = _Obj()
+
+    def _view_with_object(self, extra_attrs=None):
+        view = make_update_view(extra_attrs=extra_attrs)
+        view.kwargs = {"pk": 1}
+        view.object = self._obj
+        return view
+
+    def test_breadcrumb_has_three_items(self):
+        """get_breadcrumbs() returns exactly three items."""
+        view = self._view_with_object()
+        assert len(view.get_breadcrumbs()) == 3
+
+    def test_second_item_text_is_str_object(self):
+        """Second breadcrumb text is str(object)."""
+        view = self._view_with_object()
+        crumbs = view.get_breadcrumbs()
+        assert crumbs[1]["text"] == str(self._obj)
+
+    def test_second_item_href_uses_resolve_crud_url_detail(self):
+        """Second breadcrumb href uses resolve_crud_url('detail'), not object.get_absolute_url()."""
+        from django.urls import reverse
+
+        from demo.models import Product as _Product
+
+        rf = RequestFactory()
+        request = rf.post("/", data={})
+        request.user = User()
+
+        class _RealObj:
+            pk = 1
+
+            def __str__(self):
+                return "Product 1"
+
+            def get_absolute_url(self):
+                return "/old-absolute-url/"
+
+        attrs = {
+            "model": _Product,
+            "fields": ["name"],
+            "template_name": "form_view.html",
+            "has_list_permission": True,
+            "has_detail_permission": True,
+            "has_create_permission": True,
+            "has_update_permission": True,
+            "has_delete_permission": True,
+        }
+        view_cls = type("StubUpdateWithPk", (MVPUpdateView,), attrs)
+        view = view_cls()
+        view.request = request
+        view.kwargs = {"pk": 1}
+        view.args = []
+        view.object = _RealObj()
+
+        crumbs = view.get_breadcrumbs()
+        expected = reverse("product-detail", kwargs={"pk": 1})
+        assert crumbs[1]["href"] == expected
+        assert crumbs[1]["href"] != "/old-absolute-url/"
+
+    def test_third_item_has_no_href(self):
+        """Third breadcrumb (current page) has no href."""
+        view = self._view_with_object()
+        crumbs = view.get_breadcrumbs()
+        assert crumbs[2].get("href") is None
+
+    def test_third_item_text_matches_page_title(self):
+        """Third breadcrumb text equals get_page_title()."""
+        view = self._view_with_object()
+        crumbs = view.get_breadcrumbs()
+        assert crumbs[2]["text"] == view.get_page_title()
+
+    # US5 — breadcrumb degrades when list or detail permission is missing
+    def test_first_item_has_no_href_when_list_permission_false(self):
+        """has_list_permission=False → first breadcrumb href is falsy."""
+        view = self._view_with_object(extra_attrs={"has_list_permission": False})
+        assert not view.get_breadcrumbs()[0].get("href")
+
+    def test_first_item_has_href_when_list_permission_true(self):
+        """has_list_permission=True → first breadcrumb href resolves to list URL."""
+        from django.urls import reverse
+
+        view = self._view_with_object()
+        assert view.get_breadcrumbs()[0]["href"] == reverse("product-list")
+
+    def test_second_item_has_no_href_when_detail_permission_false(self):
+        """has_detail_permission=False → second breadcrumb href is falsy."""
+        view = self._view_with_object(extra_attrs={"has_detail_permission": False})
+        assert not view.get_breadcrumbs()[1].get("href")
+
+    def test_second_item_has_href_when_detail_permission_true(self):
+        """has_detail_permission=True → second breadcrumb href is truthy."""
+        view = self._view_with_object()
+        assert view.get_breadcrumbs()[1].get("href")
+
+
+# ---------------------------------------------------------------------------
+# T010 — MVPUpdateView overridable defaults (US2)
+# ---------------------------------------------------------------------------
+
+
+class TestMVPUpdateViewOverrides:
+    """[US2] Each MVPUpdateView default can be independently overridden."""
+
+    def test_page_icon_overridable(self):
+        """Setting page_icon='add' on a subclass overrides the default 'edit'."""
+        view = make_update_view(extra_attrs={"page_icon": "add"})
+        assert view.get_page_icon() == "add"
+
+    def test_page_class_overridable(self):
+        """Setting page_class='custom-class' on a subclass overrides the default."""
+        view = make_update_view(extra_attrs={"page_class": "custom-class"})
+        assert "custom-class" in view.get_page_class()
+
+    def test_page_title_overridable(self):
+        """Setting page_title='Edit product details' overrides the default derivation."""
+        view = make_update_view(extra_attrs={"page_title": "Edit product details"})
+        assert view.get_page_title() == "Edit product details"
+
+    def test_success_message_overridable_with_field_interpolation(self):
+        """Custom success_message with %(name)s interpolated from cleaned_data."""
+        view = make_update_view(extra_attrs={"success_message": "%(name)s was saved."})
+        result = view.get_success_message({"name": "Widget"})
+        assert result == "Widget was saved."
+
+    def test_get_breadcrumbs_override_is_respected(self):
+        """Subclass overriding get_breadcrumbs() returns its custom list (SC-003)."""
+        custom_crumbs = [{"text": "Home", "href": "/"}, {"text": "Products", "href": "/products/"}, {"text": "Edit"}]
+        view = make_update_view(extra_attrs={"get_breadcrumbs": lambda self: custom_crumbs})
+        assert view.get_breadcrumbs() == custom_crumbs
+
+    def test_delete_url_can_be_suppressed_via_override(self):
+        """Setting has_delete_permission=False suppresses the delete URL."""
+        view = make_update_view(extra_attrs={"has_delete_permission": False})
+        assert not view.get_delete_url()
+
+
+# ---------------------------------------------------------------------------
+# T013 — MVPUpdateView delete button visibility (US4)
+# ---------------------------------------------------------------------------
+
+
+class TestMVPUpdateViewDeleteLinkVisibility:
+    """[US4] Delete button visibility is gated on delete_url context variable.
+
+    Tests use get_delete_url() directly (equivalent to get_context_data()["delete_url"],
+    since get_context_data() just delegates to get_delete_url()).
+    """
+
+    def test_delete_button_absent_when_delete_url_empty(self):
+        """has_delete_permission=False → get_delete_url() is falsy (empty string)."""
+        view = make_update_view(extra_attrs={"has_delete_permission": False})
+        view.object = None
+        assert not view.get_delete_url()
+
+    def test_delete_button_present_when_delete_url_set(self):
+        """has_delete_permission=True and pk present → get_delete_url() is truthy."""
+
+        class _Obj:
+            pk = 1
+
+            def __str__(self):
+                return "Product 1"
+
+        rf = RequestFactory()
+        request = rf.get("/")
+        request.user = User()
+        attrs = {
+            "model": __import__("demo.models", fromlist=["Product"]).Product,
+            "fields": ["name"],
+            "template_name": "form_view.html",
+            "has_list_permission": True,
+            "has_detail_permission": True,
+            "has_create_permission": True,
+            "has_update_permission": True,
+            "has_delete_permission": True,
+        }
+        view_cls = type("StubUpdateWithPk", (MVPUpdateView,), attrs)
+        view = view_cls()
+        view.request = request
+        view.kwargs = {"pk": 1}
+        view.args = []
+        view.object = _Obj()
+        assert view.get_delete_url()
