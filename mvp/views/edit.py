@@ -131,15 +131,24 @@ class MVPFormBase(SuccessMessageMixin, BaseTemplateNameMixin, NextURLMixin, Page
 
 
 class MVPModelFormBase(MVPFormBase):
-    """Base class for model form views in AdminLTE layout with auto-detected renderer.
+    """Base class for model form views in AdminLTE layout with auto-detected renderer."""
 
-    Features:
+    page_title = ""
 
-        - Smart redirection after form submission based on 'next' parameter or default to list view
-        - Automatic page title generation based on model and action (Create/Edit/Delete)
-        - Breadcrumb generation with links back to list and detail views
+    def get_page_title(self) -> str:
+        """Return a model-aware page title, or the explicit override if set.
 
-    """
+        When ``page_title`` is not falsy, uses it to create an interpolated string using
+        the model's verbose_name capitalised with title. For example, for ``page_title = _("Create %(verbose_name)s")``,
+        and a ``Product`` model with ``verbose_name = "product"``, a title will be produced as ``"Create Product"``; a model with
+        ``verbose_name = "order line"`` produces ``"Create Order Line"``.
+
+        Returns:
+            str: The page title to display.
+        """
+        if not self.page_title:
+            return self.page_title
+        return self.page_title % {"verbose_name": self.model_meta.verbose_name.title()}
 
     def get_success_message(self, cleaned_data):
         """Return the interpolated success message for this form submission.
@@ -299,48 +308,6 @@ class MVPCreateView(MVPModelFormBase, generic.CreateView):
     page_icon = "add"
     page_class = "mvp-form-page mvp-create-page"
     success_message = _("%(verbose_name)s successfully created.")
-
-    def get_page_title(self) -> str:
-        """Return a model-aware page title, or the explicit override if set.
-
-        When ``page_title`` is falsy (unset or empty string), derives the title
-        from the model's ``verbose_name`` — capitalised with ``.title()`` — and
-        prepends ``"Create "``. For example, a ``Product`` model with
-        ``verbose_name = "product"`` produces ``"Create Product"``; a model with
-        ``verbose_name = "order line"`` produces ``"Create Order Line"``.
-
-        When ``page_title`` is set to a truthy value, returns it directly (cast
-        to ``str`` to resolve lazy translation strings).
-
-        Returns:
-            str: The page title to display.
-        """
-        if not self.page_title:
-            return self.page_title
-        return self.page_title % {"verbose_name": self.model_meta.verbose_name.title()}
-
-    def get_success_message(self, cleaned_data: dict) -> str:
-        """Interpolate ``success_message`` with a title-cased ``verbose_name``.
-
-        Overrides :meth:`MVPModelFormBase.get_success_message` to inject a
-        capitalised ``verbose_name`` (e.g. ``"Product"`` rather than
-        ``"product"``), so the default flash message reads
-        ``"Product successfully created."`` rather than starting with a
-        lowercase letter.
-
-        Any ``%(key)s`` placeholder absent from ``cleaned_data`` silently
-        substitutes ``""`` via ``collections.defaultdict(str)``; no
-        ``KeyError`` is raised.
-
-        Args:
-            cleaned_data (dict): Validated form field values.
-
-        Returns:
-            str: The formatted success message.
-        """
-        data = defaultdict(str, cleaned_data)
-        data["verbose_name"] = self.model_meta.verbose_name.title()
-        return self.success_message % data
 
 
 class MVPUpdateView(MVPModelFormBase, generic.UpdateView):

@@ -39,6 +39,7 @@ Auto-generated from all feature plans. Last updated: 2025-12-23
 - N/A — no database interaction; view-layer composition only (007-object-page-foundation)
 - Python 3.10–3.12 (target-version = py311 per pyproject.toml) + Django ≥4.2,<6.0; `django.utils.http.url_has_allowed_host_and_scheme`; Python `logging` stdlib (008-safe-post-submit-redirect)
 - N/A — no new models or migrations (008-safe-post-submit-redirect)
+- Python 3.10–3.13, Django 4.2–5.x + Django (`SuccessMessageMixin`, `generic.CreateView`), `collections.defaultdict` (main)
 
 - Python 3.11 (tests target) + Django, django-cotton, django-cotton-bs5, django-flex-menus, django-easy-icons, django-compressor, django-libsass, crispy-forms/bootstrap5 (001-outer-layout-config)
 
@@ -58,9 +59,9 @@ cd src; pytest; ruff check .
 Python 3.11 (tests target): Follow standard conventions
 
 ## Recent Changes
+- main: Added Python 3.10–3.13, Django 4.2–5.x + Django (`SuccessMessageMixin`, `generic.CreateView`), `collections.defaultdict`
 - 008-safe-post-submit-redirect: Added Python 3.10–3.12 (target-version = py311 per pyproject.toml) + Django ≥4.2,<6.0; `django.utils.http.url_has_allowed_host_and_scheme`; Python `logging` stdlib
 - 007-object-page-foundation: Added Python 3.11+ + Django 4.2+
-- 006-crud-directory-mixin: Added Python 3.11+ + Django 4.2+
 
 
 <!-- MANUAL ADDITIONS START -->
