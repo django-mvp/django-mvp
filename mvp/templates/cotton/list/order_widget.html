@@ -7,14 +7,14 @@
               aria-expanded="false" />
     <ul class="dropdown-menu dropdown-menu-end"
         aria-labelledby="orderingDropdown">
-      {% for value, label in order_by_choices %}
+      {% for key, label, _ in order_by_choices %}
         <li>
-          <a class="dropdown-item me-4 ordering-option {% if current_ordering == value %}active{% endif %}"
+          <a class="dropdown-item me-4 ordering-option {% if current_ordering == key %}active{% endif %}"
              href="#"
-             data-order-value="{{ value }}"
-             onclick="submitOrdering(event, '{{ value }}')">
+             data-order-value="{{ key }}"
+             onclick="submitOrdering(event, '{{ key }}')">
             {{ label }}
-            {% if current_ordering == value %}<c-icon name="check" class="float-end" />{% endif %}
+            {% if current_ordering == key %}<c-icon name="check" class="float-end" />{% endif %}
           </a>
         </li>
       {% endfor %}

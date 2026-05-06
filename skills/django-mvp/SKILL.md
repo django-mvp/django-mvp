@@ -889,3 +889,140 @@ class OrderDeleteView(MVPDeleteView):
     def get_confirmation_value(self):
         return self.object.reference_number
 ```
+
+---
+
+## Step 15 — List Search and Ordering (`SearchMixin`, `OrderMixin`, `SearchOrderMixin`)
+
+### SearchMixin — text search via `?q=`
+
+`SearchMixin` adds Django admin-style multi-word OR search across declared model fields.
+
+```python
+class ProductListView(SearchMixin, ListView):
+    model = Product
+    search_fields = ["name", "description", "category__name"]
+```
+
+**Behaviour**:
+- `?q=foo bar` returns records where any field contains `"foo"` OR `"bar"` (case-insensitive).
+- Whitespace-only `?q=` is treated as empty — no filtering applied.
+- When `search_fields` is `None` or not set, the mixin is a **complete no-op**.
+
+**Context sentinels** (always injected, even when unconfigured):
+
+| Variable | Type | Value when unconfigured | Value when configured |
+|---|---|---|---|
+| `is_searchable` | `bool` | `False` | `True` |
+| `search_query` | `str` | `""` | Raw `?q=` value, or `""` |
+
+Override `get_search_fields()` to compute the field list dynamically.
+
+---
+
+### OrderMixin — whitelist-only column ordering via `?o=`
+
+**Breaking change (014)**: `order_by` entries changed from two-tuple
+`(orm_expression, label)` to three-tuple `(public_key, label, orm_expression)`.
+
+```python
+class ProductListView(OrderMixin, ListView):
+    model = Product
+    order_by = [
+        ("name_asc",   "Name (A–Z)",          "name"),
+        ("name_desc",  "Name (Z–A)",          "-name"),
+        ("newest",     "Newest First",         "-created_at"),
+        ("price_asc",  "Price (Low to High)", "price"),
+    ]
+```
+
+**Three-tuple format**: `(public_key, label, orm_expression)`
+
+| Field | Description |
+|---|---|
+| `public_key` | Matched against `?o=`. Any URL-safe string. **Need not match a DB column name.** |
+| `label` | Display text for the ordering UI dropdown. |
+| `orm_expression` | Passed to `queryset.order_by()`. May be prefixed with `-` for descending. **Never URL-exposed.** |
+
+**Security guarantee**: the raw `?o=` value is **never** passed to the ORM.
+Only the `orm_expression` of the matching whitelist entry is used.
+Unrecognised `?o=` values are silently ignored.
+
+**Upgrade from two-tuple format**:
+
+```python
+# Before (two-tuple — broken):
+order_by = [("name", "Name A-Z"), ("-name", "Name Z-A")]
+
+# After (three-tuple — correct):
+order_by = [
+    ("name_asc",  "Name A-Z", "name"),
+    ("name_desc", "Name Z-A", "-name"),
+]
+```
+
+**Context variables** (only injected when `order_by` is configured):
+
+| Variable | Type | Description |
+|---|---|---|
+| `order_by_choices` | `list[tuple[str, str, str]]` | Full three-tuple whitelist. Iterate with `{% for key, label, _ in order_by_choices %}`. |
+| `current_ordering` | `str` | Matched `public_key` for the active `?o=`, or `""` if absent/unrecognised. |
+
+Override `get_order_by_choices()` to compute the whitelist dynamically.
+
+---
+
+### SearchOrderMixin — combined search and ordering
+
+Use `SearchOrderMixin` when you need both `?q=` search and `?o=` ordering:
+
+```python
+class ProductListView(SearchOrderMixin, ListView):
+    model = Product
+    search_fields = ["name", "description"]
+    order_by = [
+        ("name_asc",  "Name (A–Z)",  "name"),
+        ("name_desc", "Name (Z–A)", "-name"),
+    ]
+```
+
+`SearchOrderMixin(SearchMixin, OrderMixin)` — MRO is fixed. This guarantees:
+
+1. `OrderMixin.get_queryset()` runs first (ordering applied to the base queryset).
+2. `SearchMixin.get_queryset()` runs second (search + `distinct()` applied last).
+
+This avoids the PostgreSQL `SELECT DISTINCT + ORDER BY on JOIN columns` error.
+
+**`MVPListViewMixin` and `MVPListView`** already inherit `SearchOrderMixin` — add
+`search_fields` and `order_by` attributes directly without mixing in anything extra.
+
+---
+
+### django_filters composition
+
+Place `SearchOrderMixin` **left** of `FilterView` in the MRO:
+
+```python
+from django_filters.views import FilterView
+from mvp.views.list import SearchOrderMixin
+
+class ProductListView(SearchOrderMixin, FilterView):
+    model = Product
+    filterset_fields = ["category"]
+    search_fields = ["name"]
+    order_by = [("name_asc", "Name (A–Z)", "name")]
+```
+
+Or with `MVPListViewMixin`:
+
+```python
+class ProductListView(MVPListViewMixin, FilterView):
+    model = Product
+    filterset_fields = ["category"]
+    search_fields = ["name"]
+    order_by = [("name_asc", "Name (A–Z)", "name")]
+```
+
+Both `search_fields` and `order_by` are individually optional — omit either to leave that
+dimension unconfigured (no-op).
+

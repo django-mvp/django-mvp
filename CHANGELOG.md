@@ -7,7 +7,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### ⚠️ Breaking Changes
+
+- **`OrderMixin.order_by` format changed from two-tuple to three-tuple** (Feature 014):
+
+  The `order_by` class attribute now requires a three-tuple `(public_key, label, orm_expression)`
+  instead of the previous two-tuple `(orm_expression, label)`.
+
+  **Upgrade instructions**:
+
+  ```python
+  # Before (two-tuple — no longer supported):
+  order_by = [
+      ("name", "Name (A-Z)"),
+      ("-name", "Name (Z-A)"),
+  ]
+
+  # After (three-tuple — required):
+  order_by = [
+      ("name_asc",  "Name (A-Z)", "name"),
+      ("name_desc", "Name (Z-A)", "-name"),
+  ]
+  ```
+
+  The `public_key` (first element) is the value matched against `?o=` in the URL.
+  It need not match the database column name — use opaque keys to avoid leaking
+  schema information in URLs. The `orm_expression` (third element) is the value
+  passed to `queryset.order_by()` and is never exposed in URLs.
+
+  Templates that iterate over `order_by_choices` must be updated to unpack three
+  values: `{% for key, label, _ in order_by_choices %}`.
+
 ### Added
+
+- **List Search and Ordering Mixins** (Feature 014): Formalised `SearchMixin`,
+  `OrderMixin`, and `SearchOrderMixin` with comprehensive test coverage and
+  Constitution-XII-compliant docstrings.
+  - **`SearchMixin`**: Django admin-style multi-word OR text search via `?q=`.
+    `is_searchable` and `search_query` context sentinels always injected.
+  - **`OrderMixin`**: Whitelist-only column ordering via `?o=`. Security guarantee:
+    raw `?o=` values never reach the ORM.
+  - **`SearchOrderMixin`**: Combined mixin with fixed MRO ensuring correct
+    evaluation order (ordering before `distinct()`).
+  - **`django_filters` composition**: `SearchOrderMixin` composes correctly with
+    `FilterView` when placed left of it in the MRO.
+  - **Test coverage**: 35 new unit tests covering all four user stories.
 
 - **Form View Mixins** (Feature 009): Automatic form renderer detection with AdminLTE layout
   - **MVPFormView**: Drop-in replacement for Django's FormView with auto-detected rendering

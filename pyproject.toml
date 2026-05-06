@@ -33,7 +33,7 @@ repository = "https://github.com/SamuelJennings/django-mvp"
 
 
 [tool.poetry]
-version = "0.1.1"
+version = "0.2.0"
 packages = [{ include = "mvp" }]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -89,7 +89,13 @@ django-compressor = ["compressor"]
 
 [tool.deptry.per_rule_ignores]
 # These packages are used indirectly (INSTALLED_APPS, templates, sass pipeline)
-DEP002 = ["django-cotton-bs5", "django-flex-menus", "django-easy-icons", "django-compressor", "django-libsass"]
+DEP002 = [
+    "django-cotton-bs5",
+    "django-flex-menus",
+    "django-easy-icons",
+    "django-compressor",
+    "django-libsass",
+]
 # django-filter is a dev dep used only in the Demo App, not the published package
 DEP001 = ["invoke"]
 DEP003 = ["invoke"]
