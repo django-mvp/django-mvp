@@ -103,6 +103,7 @@ This is a **breaking change** from the existing two-tuple format. All existing u
 ### D2: MRO Invariant
 
 `SearchOrderMixin(SearchMixin, OrderMixin)` is fixed. This guarantees:
+
 - Ordering applied first (innermost `super()` call)
 - Search + `distinct()` applied last (outermost)
 
@@ -127,6 +128,7 @@ No code changes are needed. The MRO convention `class MyView(SearchOrderMixin, F
 **Files modified**: `mvp/views/list.py`, `demo/views.py`
 
 Changes:
+
 1. Change `_apply_ordering` to read `choice[0]` as the public_key and `choice[2]` as the orm_expression.
 2. Change `get_context_data` to pass `order_by_choices` as the raw three-tuple list (templates destructure it as `(key, label, _)`).
 3. Update `OrderMixin` docstring to Constitution XII format (Config, Override hooks, example).
@@ -142,6 +144,7 @@ Validation: `python manage.py check` + `pytest tests/test_views/` after completi
 **Files created/modified**: `tests/test_views/test_list_view.py`
 
 Test cases:
+
 - `test_search_no_query_returns_all`
 - `test_search_single_word_filters`
 - `test_search_multi_word_or_semantics`
@@ -160,6 +163,7 @@ Validation: `pytest tests/test_views/test_list_view.py` after completion.
 **Files modified**: `tests/test_views/test_list_view.py`
 
 Test cases:
+
 - `test_order_valid_key_applies_orm_expression`
 - `test_order_invalid_key_ignored`
 - `test_order_absent_parameter_no_override`
@@ -175,6 +179,7 @@ Validation: `pytest tests/test_views/test_list_view.py` after completion.
 **Files modified**: `tests/test_views/test_list_view.py`
 
 Test cases:
+
 - `test_combined_search_and_ordering`
 - `test_combined_search_only`
 - `test_combined_ordering_only`
@@ -189,6 +194,7 @@ Validation: `pytest tests/test_views/test_list_view.py` after completion.
 **Files created**: `tests/test_views/test_list_view_e2e.py`
 
 Playwright tests via the demo `ProductListView`:
+
 - Verify search input pre-populated with `?q=` value
 - Verify filtered results shown on search submit
 - Verify ordering dropdown shows selected state for `?o=` value
@@ -208,4 +214,3 @@ Validation: Read-only; no automated check. Human review.
 ## Complexity Tracking
 
 No constitution violations. No complexity exceptions required.
-

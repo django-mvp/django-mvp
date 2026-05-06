@@ -11,11 +11,13 @@
 **Decision**: Three-tuple `(public_key, label, orm_expression)`
 
 **Rationale**: The spec requires that the value matched by `?o=` (the public key) is an arbitrary developer-chosen string that need not match the underlying ORM field name. A three-tuple separates these concerns explicitly:
+
 - `public_key` (str): Matched against `?o=` query parameter. Developer-chosen; never required to equal a DB column name.
 - `label` (str): Human-readable description shown in the UI.
 - `orm_expression` (str): ORM field name passed to `queryset.order_by()`. May have a leading `-` for descending order. Never exposed in the URL.
 
 **Alternatives considered**:
+
 - *Two-tuple `(value, label)`* (current implementation): `value` serves as both the public key and the ORM expression. This directly exposes DB column names in `?o=`. Rejected per FR-006a.
 - *Dict `{'key': ..., 'label': ..., 'field': ...}`*: More readable but more verbose to declare and iterate. Three-tuple is idiomatic for ordered lookup tables in Python.
 - *Backward-compat shim* (detect two-tuple vs three-tuple at runtime): Adds branching complexity, makes docstrings harder to write clearly, and obscures the security guarantee. Rejected. Since the package is alpha (v0.1.1), a clean breaking change is acceptable.
@@ -45,6 +47,7 @@ SearchMixin.get_queryset()          # called first by Django dispatch
 This satisfies the spec requirement: ordering is applied first (to the base queryset), and `distinct()` is applied last. The PostgreSQL DISTINCT + ORDER BY conflict is therefore avoided.
 
 **Alternatives considered**:
+
 - Reverse MRO `SearchOrderMixin(OrderMixin, SearchMixin)`: Would apply search+distinct first, then try to re-order the already-distinct queryset. This triggers the PostgreSQL error for JOIN-based search fields. Rejected.
 
 ---
@@ -74,10 +77,12 @@ SearchMixin.get_queryset()
 **Decision**: Always inject `is_searchable` and `search_query` regardless of whether `search_fields` is configured.
 
 **Implementation**: The existing `SearchMixin.get_context_data()` already does this unconditionally:
+
 ```python
 context["search_query"] = self.request.GET.get("q", "")
 context["is_searchable"] = bool(self.search_fields)
 ```
+
 No code change is needed for this requirement; only the docstring needs updating to document this guarantee.
 
 ---
@@ -93,6 +98,7 @@ No code change is needed for this requirement; only the docstring needs updating
 ## 6. Backward Compatibility
 
 **Decision**: The three-tuple `order_by` format is a **breaking change** to the `OrderMixin` public API. The change is acceptable because:
+
 1. The package is alpha (`v0.1.1`) with no stable API guarantees.
 2. The existing two-tuple format violates the security requirement (FR-006a) and must be replaced.
 3. The only existing usage of `order_by` is in `demo/views.py`, which is internal to this repository.

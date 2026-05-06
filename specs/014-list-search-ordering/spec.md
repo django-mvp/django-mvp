@@ -100,11 +100,11 @@ When a list view already uses `django_filters` (via `FilterView` or a `filterset
 
 - **FR-001**: `SearchMixin` MUST read the `?q` query parameter and apply case-insensitive substring matching across all fields declared in `search_fields`.
 - **FR-002**: Multi-word `?q` values MUST be split on whitespace; a record matches if it contains ANY of the words in ANY of the declared fields (OR semantics across both words and fields).
-- **FR-003**: When `search_fields` is `None` or empty, `SearchMixin` MUST NOT modify the queryset, but MUST still inject `is_searchable = False` and `search_query = ""` into the template context as safe defaults.
+- **FR-003**: When `search_fields` is `None` or empty, `SearchMixin` MUST NOT modify the queryset, but MUST still inject `is_searchable = False` and `search_query = ""` into the template context as safe defaults. *(FR-003 is the unconfigured instance of the general guarantee stated in FR-004.)*
 - **FR-004**: `SearchMixin` MUST always inject `is_searchable` (a boolean reflecting whether `search_fields` is configured) and `search_query` (the current `?q` value stripped, or `""`) into the template context — regardless of configuration state.
 - **FR-005**: `SearchMixin` MUST call `super().get_queryset()` and operate on its result, preserving any prior queryset transformations (including `django_filters` output).
 - **FR-006**: `OrderMixin` MUST read the `?o` query parameter and apply ordering only when the value is present in the declared `order_by` whitelist.
-- **FR-006a**: `OrderMixin` MUST support opaque ordering keys — the value matched by `?o=` MUST be an arbitrary developer-chosen string that need not match the underlying ORM field name. This prevents database column names from being exposed in URLs. The planning agent is responsible for determining the appropriate data structure (e.g., three-tuple, dict, or named mapping) that separates the public key from the private ORM expression.
+- **FR-006a**: `OrderMixin` MUST support opaque ordering keys — the value matched by `?o=` MUST be an arbitrary developer-chosen string that need not match the underlying ORM field name. This prevents database column names from being exposed in URLs. Resolved in plan.md D1: three-tuple `(public_key, label, orm_expression)` where `public_key` is matched against `?o=` and only `orm_expression` is passed to the ORM.
 - **FR-007**: When the `?o` value is not in the whitelist (or is absent), `OrderMixin` MUST NOT modify the queryset ordering.
 - **FR-008**: When `order_by` is `None` or empty, `OrderMixin` MUST NOT modify the queryset or add any ordering-related keys to the template context.
 - **FR-009**: `OrderMixin` MUST add `order_by_choices` (the full list of permitted options) and `current_ordering` (the active `?o` value) to the template context when `order_by` is configured.
@@ -116,9 +116,9 @@ When a list view already uses `django_filters` (via `FilterView` or a `filterset
 ### Key Entities
 
 - **SearchMixin**: A Django view mixin that adds `?q=` text search capability. Configured via `search_fields` (list of ORM field paths). No-op when unconfigured.
-- **OrderMixin**: A Django view mixin that adds `?o=` ordering capability. Configured via `order_by` (list of `(value, label)` tuples). Only permitted values are accepted; others are silently ignored.
+- **OrderMixin**: A Django view mixin that adds `?o=` ordering capability. Configured via `order_by` (list of `(public_key, label, orm_expression)` three-tuples). Only permitted public keys are accepted; others are silently ignored. The ORM expression is never URL-exposed.
 - **SearchOrderMixin**: A convenience mixin that combines `SearchMixin` and `OrderMixin` for views needing both capabilities.
-- **Ordering whitelist entry**: A configuration entry declaring one permitted ordering option. It MUST associate three things: a public key (the value matched by `?o=`, chosen freely by the developer and never required to match a column name), a display label (shown in the UI), and the private ORM sort expression applied to the queryset. The exact data structure is determined during planning.
+- **Ordering whitelist entry**: A configuration entry declaring one permitted ordering option. Implemented as a three-tuple `(public_key, label, orm_expression)` where `public_key` is the value matched by `?o=` (chosen freely by the developer, never required to match a column name), `label` is the display string shown in the UI, and `orm_expression` is the private ORM sort expression applied to the queryset (never URL-exposed).
 
 ## Success Criteria *(mandatory)*
 
@@ -127,10 +127,10 @@ When a list view already uses `django_filters` (via `FilterView` or a `filterset
 - **SC-001**: A developer can add full-text search to any list view by setting a single class attribute (`search_fields`), with zero additional code.
 - **SC-002**: A developer can add safe column ordering to any list view by setting a single class attribute (`order_by`), with zero additional code.
 - **SC-003**: An unrecognised `?o=` value never causes an error, never exposes internal field names, and never changes the displayed result set compared to the default ordering.
-- **SC-007**: The `?o=` query parameter value is always a developer-chosen opaque string. At no point does the mixin apply an ORM expression that was not explicitly declared in the `order_by` configuration — including indirect exposure of column names through default parameter echo.
 - **SC-004**: A list view with neither `search_fields` nor `order_by` set produces exactly the same queryset as a plain `ListView`. The only additional context keys are `is_searchable = False` and `search_query = ""`, which are always injected as safe sentinel defaults.
 - **SC-005**: Search and ordering compose correctly with `django_filters` — the active filterset constraints are preserved when `?q=` and `?o=` are also present.
 - **SC-006**: Multi-word search queries return a superset of single-word results for each individual word, and no record appears more than once in results.
+- **SC-007**: The `?o=` query parameter value is always a developer-chosen opaque string. At no point does the mixin apply an ORM expression that was not explicitly declared in the `order_by` configuration — including indirect exposure of column names through default parameter echo.
 
 ## Assumptions
 
@@ -139,6 +139,6 @@ When a list view already uses `django_filters` (via `FilterView` or a `filterset
 - Ordering direction (ascending/descending) is encoded entirely in the `order_by` whitelist values (e.g., `-name` for descending); there is no separate direction parameter.
 - When `django_filters` is not installed, the mixins operate identically — there is no conditional import failure.
 - Multi-column ORM ordering (e.g., sorting by a primary and secondary field simultaneously from a single `?o=` selection) is out of scope and deferred to a future spec. Each whitelist entry maps to exactly one ORM sort expression (single field, with optional `-` prefix).
-- The exact data structure for `order_by` whitelist entries (separating public key, display label, and ORM expression) is a planning decision. The spec requires the three concerns to be expressible; it does not prescribe a two-tuple, three-tuple, or dict.
+- The exact data structure for `order_by` whitelist entries was a planning decision, resolved in plan.md D1 as three-tuple `(public_key, label, orm_expression)`. The public key is matched against `?o=`; the ORM expression is passed to `queryset.order_by()` and is never URL-exposed.
 - The `SearchOrderMixin` resolves MRO conflicts between `SearchMixin` and `OrderMixin` by inheriting both and relying on Python's cooperative `super()` chain.
 - Template rendering of search inputs and ordering dropdowns is the responsibility of the view templates, not the mixins; the mixins only inject the necessary context variables.

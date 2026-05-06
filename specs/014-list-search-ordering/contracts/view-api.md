@@ -111,6 +111,7 @@ class SearchOrderMixin(SearchMixin, OrderMixin):
 ```
 
 The MRO `(SearchMixin, OrderMixin)` guarantees:
+
 1. Ordering is applied first (to the base queryset).
 2. Search + `distinct()` is applied second (on the ordered queryset).
 
