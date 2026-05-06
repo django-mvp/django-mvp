@@ -4,8 +4,9 @@
     <c-mvp-toolbar :title="title"
                    :icon="icon"
                    :level="level"
-                   class="mb-3"
-                   :actions="actions" />
+                   class="mb-3">
+      {{ actions }}
+    </c-mvp-toolbar>
   {% endif %}
   {{ slot }}
 </section>

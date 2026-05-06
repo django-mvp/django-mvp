@@ -20,7 +20,8 @@
         class="" />
 {% if status %}<span class="avatar-wrap">{% endif %}
   <span class="avatar avatar-{{ size }} {{ class }}"
-        {% if not src %}aria-hidden="true"{% endif %}>
+        {% if not src %}aria-hidden="true"{% endif %}
+        {{ attrs }}>
     {% if src %}
       <img class="avatar-img"
            src="{{ src }}"
