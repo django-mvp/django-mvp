@@ -16,6 +16,7 @@
               left: 0;
               background-color: rgba(0, 0, 0, {{ backdrop }})"></div>
   <div class="text-center p-5 position-relative">
+    {{ top }}
     {% if subtitle %}<span class="text-uppercase text-white w-bold">{{ subtitle }}</span>{% endif %}
     <h1 class="mb-3 mt-2 fw-bold">{{ title }}</h1>
     {% if lead %}<p class="lead">{{ lead }}</p>{% endif %}
@@ -24,5 +25,6 @@
         {{ actions }}
       </c-action-row>
     {% endif %}
+    {{ bottom }}
   </div>
 </div>
