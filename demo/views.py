@@ -143,10 +143,10 @@ class ListViewDemo(MVPListViewMixin, FilterView):
     filterset_fields = ["name", "price"]
     search_fields = ["name", "description"]
     order_by = [
-        ("name", "Name (A-Z)"),
-        ("-name", "Name (Z-A)"),
-        ("price", "Price (Low to High)"),
-        ("-price", "Price (High to Low)"),
+        ("name_asc", "Name (A-Z)", "name"),
+        ("name_desc", "Name (Z-A)", "-name"),
+        ("price_asc", "Price (Low to High)", "price"),
+        ("price_desc", "Price (High to Low)", "-price"),
     ]
 
 

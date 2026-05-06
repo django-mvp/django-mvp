@@ -9,23 +9,38 @@ from .detail import CRUDDirectoryMixin
 
 
 class SearchMixin:
-    """Mixin for handling search functionality on list views.
+    """Django admin-style multi-word OR text search for list views.
 
-    This mixin provides search functionality similar to Django admin's
-    search_fields, using the 'q' query parameter.
+    Reads ``?q=`` and applies case-insensitive substring (``icontains``) matching
+    across all declared ``search_fields``. Multi-word queries use OR semantics —
+    a record is included if any word matches any field. Calls ``.distinct()`` to
+    deduplicate records that match via multiple fields.
 
-    Attributes:
-        search_fields (list[str]): List of model field names to search across.
-            Supports relationship lookups (e.g., 'descriptions__value').
-            Default: None (no search).
+    When ``search_fields`` is ``None`` or empty the mixin is a complete no-op:
+    the queryset is returned unmodified. The context sentinels ``is_searchable``
+    and ``search_query`` are **always** injected regardless of configuration.
 
-    Example:
-        class MyListView(SearchMixin, ListView):
-            model = MyModel
-            search_fields = ['name', 'description', 'related__field']
+    Config:
+        search_fields (list[str] | None): ORM field paths to search across.
+            Supports relationship traversal (e.g. ``"category__name"``).
+            Default: ``None`` (mixin is a no-op).
 
-    Query Parameters:
-        q (str): Search term to filter results across search_fields
+    Override hooks:
+        get_search_fields(): Return the effective field list dynamically.
+
+    Context (always injected):
+        is_searchable (bool): ``True`` when ``search_fields`` is configured.
+        search_query (str): Raw ``?q=`` value, or ``""`` if absent.
+
+    Query parameters:
+        ?q: Search term. Stripped before filtering; split on whitespace for
+            multi-word OR matching.
+
+    Example::
+
+        class ProductListView(SearchMixin, ListView):
+            model = Product
+            search_fields = ["name", "description", "category__name"]
     """
 
     search_fields = None
@@ -91,28 +106,49 @@ class SearchMixin:
 
 
 class OrderMixin:
-    """Mixin for handling ordering functionality on list views.
+    """Whitelist-only safe column ordering for list views via ``?o=``.
 
-    This mixin provides ordering capabilities using the 'o' query parameter.
+    Each permitted ordering is declared as a three-tuple
+    ``(public_key, label, orm_expression)``:
 
-    Attributes:
-        order_by (list[tuple[str, str]]): List of (ordering, label) tuples
-            defining available ordering options. The ordering value should be
-            a field name with optional '-' prefix for descending order.
-            Default: None (no ordering).
+    * ``public_key`` — matched against the ``?o=`` query parameter; may be any
+      URL-safe string and need not match a database column name.
+    * ``label`` — human-readable display string for ordering UI controls.
+    * ``orm_expression`` — the value passed to ``queryset.order_by()``. This is
+      a developer-declared constant and is **never** exposed in the URL.
 
-    Example:
-        class MyListView(OrderMixin, ListView):
-            model = MyModel
+    **Security guarantee**: the raw ``?o=`` value is never passed to the ORM.
+    Only the ``orm_expression`` of the matching whitelist entry is used.
+    Unrecognised ``?o=`` values are silently ignored.
+
+    When ``order_by`` is ``None`` or empty the mixin is a complete no-op.
+    Context variables are only injected when ``order_by`` is configured.
+
+    Config:
+        order_by (list[tuple[str, str, str]] | None): Whitelist of permitted
+            ordering options. Each entry is ``(public_key, label, orm_expression)``.
+            Default: ``None`` (mixin is a no-op).
+
+    Override hooks:
+        get_order_by_choices(): Return the effective whitelist dynamically.
+
+    Context (only when ``order_by`` is configured):
+        order_by_choices (list[tuple[str, str, str]]): Full whitelist as declared.
+        current_ordering (str): Matched public_key for the active ``?o=``, or
+            ``""`` if absent or unrecognised.
+
+    Query parameters:
+        ?o: Public key of the desired ordering. Ignored if not in the whitelist.
+
+    Example::
+
+        class ProductListView(OrderMixin, ListView):
+            model = Product
             order_by = [
-                ('name', 'Name A-Z'),
-                ('-name', 'Name Z-A'),
-                ('created', 'Oldest First'),
-                ('-created', 'Newest First'),
+                ("name_asc", "Name (A–Z)", "name"),
+                ("name_desc", "Name (Z–A)", "-name"),
+                ("newest", "Newest First", "-created_at"),
             ]
-
-    Query Parameters:
-        o (str): Ordering value from the order_by choices
     """
 
     order_by = None
@@ -143,71 +179,96 @@ class OrderMixin:
     def _apply_ordering(self, queryset, ordering):
         """Apply ordering to the queryset.
 
-        Validates that the ordering value exists in the configured order_by
-        choices before applying it to prevent arbitrary field ordering.
+        Validates that the ordering value matches a public_key in the configured
+        order_by choices before applying the corresponding orm_expression.
+        The raw ``?o=`` value is NEVER passed directly to the ORM.
 
         Args:
             queryset: The queryset to order
-            ordering: The ordering field name (with optional '-' prefix)
+            ordering: The public_key value from the ``?o=`` query parameter
 
         Returns:
             QuerySet: Ordered queryset
         """
-        # Validate ordering is in allowed choices
-        valid_orderings = [choice[0] for choice in self.get_order_by_choices()]
-        if ordering in valid_orderings:
-            return queryset.order_by(ordering)
+        for choice in self.get_order_by_choices():
+            if choice[0] == ordering:
+                return queryset.order_by(choice[2])
 
         return queryset
 
     def get_context_data(self, **kwargs):
         """Add ordering data to the template context.
 
-        Adds:
-            order_by_choices (list): Available ordering options
-            current_ordering (str): Currently active ordering
+        Adds (only when ``order_by`` is configured):
+            order_by_choices (list[tuple[str, str, str]]): Full three-tuple list of
+                available ordering options.
+            current_ordering (str): The matched public_key for the current ``?o=``
+                parameter value, or ``""`` if the value is absent or unrecognised.
         """
         context = super().get_context_data(**kwargs)
 
-        # Add ordering context
         order_by_choices = self.get_order_by_choices()
         if order_by_choices:
             context["order_by_choices"] = order_by_choices
-            context["current_ordering"] = self.request.GET.get("o", "")
+            raw_o = self.request.GET.get("o", "")
+            valid_keys = {choice[0] for choice in order_by_choices}
+            context["current_ordering"] = raw_o if raw_o in valid_keys else ""
 
         return context
 
 
 class SearchOrderMixin(SearchMixin, OrderMixin):
-    """Combined mixin for handling both search and ordering on list views.
+    """Combined text search and safe column ordering for list views.
 
-    This mixin combines SearchMixin and OrderMixin to provide both search
-    and ordering functionality using query parameters 'q' for search and 'o'
-    for ordering.
+    Composes ``SearchMixin`` (``?q=``) and ``OrderMixin`` (``?o=``) into a
+    single convenience mixin. Both parameters work independently and combine
+    transparently: ``?q=foo&o=name_asc`` returns filtered and ordered results.
 
-    Attributes:
-        search_fields (list[str]): List of model field names to search across.
-            Supports relationship lookups (e.g., 'descriptions__value').
-            Default: None (no search).
-        order_by (list[tuple[str, str]]): List of (ordering, label) tuples
-            defining available ordering options. The ordering value should be
-            a field name with optional '-' prefix for descending order.
-            Default: None (no ordering).
+    **MRO evaluation order** (``SearchMixin`` left of ``OrderMixin`` is fixed):
 
-    Example:
-        class MyListView(SearchOrderMixin, ListView):
-            model = MyModel
-            search_fields = ['name', 'description', 'related__field']
+    1. ``OrderMixin.get_queryset()`` runs first (innermost ``super()`` call),
+       applying the ORM ordering expression.
+    2. ``SearchMixin.get_queryset()`` runs second, applying the search filter
+       and ``.distinct()`` on top of the ordered queryset.
+
+    This ordering avoids the PostgreSQL ``SELECT DISTINCT + ORDER BY on JOIN
+    columns`` error that would occur if distinct were applied before ordering.
+
+    When positioned left of ``django_filters.views.FilterView`` in the MRO
+    (e.g. ``class MyView(SearchOrderMixin, FilterView)``), both mixins compose
+    correctly: the filterset's ``qs`` is built from the search + ordering
+    queryset returned by ``get_queryset()``.
+
+    Config:
+        search_fields (list[str] | None): See ``SearchMixin``. Default: ``None``.
+        order_by (list[tuple[str, str, str]] | None): See ``OrderMixin``.
+            Default: ``None``.
+
+    Override hooks:
+        get_search_fields(): Inherited from ``SearchMixin``.
+        get_order_by_choices(): Inherited from ``OrderMixin``.
+
+    Query parameters:
+        ?q: Search term — see ``SearchMixin``.
+        ?o: Ordering public_key — see ``OrderMixin``.
+
+    Example::
+
+        class ProductListView(SearchOrderMixin, ListView):
+            model = Product
+            search_fields = ["name", "description"]
             order_by = [
-                ('name', 'Name A-Z'),
-                ('-name', 'Name Z-A'),
-                ('created', 'Oldest First'),
-                ('-created', 'Newest First'),
+                ("name_asc", "Name (A–Z)", "name"),
+                ("name_desc", "Name (Z–A)", "-name"),
             ]
 
-    Query Parameters:
-        q (str): Search term to filter results across search_fields
-        o (str): Ordering value from the order_by choices
+
+        # With django_filters:
+        class ProductFilteredListView(SearchOrderMixin, FilterView):
+            model = Product
+            filterset_fields = ["category"]
+            search_fields = ["name"]
+            order_by = [("name_asc", "Name (A–Z)", "name")]
     """
 
     pass
@@ -289,6 +350,63 @@ class ListItemTemplateMixin:
 
 
 class MVPListViewMixin(BaseTemplateNameMixin, SearchOrderMixin, CRUDDirectoryMixin, PageMixin, ListItemTemplateMixin):
+    """Foundation mixin for django-mvp list views with search, ordering, pagination, and AdminLTE styling.
+
+    Composes ``SearchOrderMixin``, ``CRUDDirectoryMixin``, ``PageMixin``, and
+    ``ListItemTemplateMixin`` into a single class. Renders to the
+    ``list_view.html`` base template with optional card-grid layout, empty-state
+    messaging, and breadcrumb auto-generation.
+
+    Config:
+        search_fields (list[str] | None): ORM field paths for ``?q=`` search.
+            Default: ``None`` (search disabled).
+        order_by (list[tuple[str, str, str]] | None): Three-tuple whitelist for
+            ``?o=`` ordering. Each entry is ``(public_key, label, orm_expression)``.
+            Default: ``None`` (ordering disabled).
+        grid (dict): Bootstrap grid kwargs passed to the list template
+            (e.g. ``{"cols": 1, "md": 2, "gap": 3}``). Default: ``{}``
+            (single-column layout).
+        paginate_by (int | None): Records per page. Default: ``None`` (no
+            pagination; inherited from ``ListView``).
+        create_view_name (str): URL name template for the "Add" button.
+            Default: ``"{model_name}-create"``.
+        empty_state_heading (str | None): Heading shown when the queryset is
+            empty. Default: translatable "There's nothing here yet".
+        empty_state_message (str | None): Body text for the empty state.
+            Default: translatable prompt to add the first record.
+        directory (list[str]): CRUD action names exposed in the ``CRUDDirectoryMixin``
+            context. Default: ``["create"]``.
+
+    Override hooks:
+        get_grid_config(): Return the grid layout dict.
+        get_empty_state_heading(): Return the empty-state heading string.
+        get_empty_state_message(): Return the empty-state body string.
+        get_page_title(): Return the page title (defaults to model verbose_name_plural).
+        get_breadcrumbs(): Return the breadcrumb list.
+        get_search_fields(): Inherited from ``SearchMixin``.
+        get_order_by_choices(): Inherited from ``OrderMixin``.
+
+    Example::
+
+        class ProductListView(MVPListViewMixin, ListView):
+            model = Product
+            search_fields = ["name", "description"]
+            order_by = [
+                ("name_asc", "Name (A-Z)", "name"),
+                ("name_desc", "Name (Z-A)", "-name"),
+            ]
+            grid = {"cols": 1, "md": 2, "xl": 3, "gap": 3}
+            paginate_by = 24
+
+
+        # With django_filters:
+        class ProductFilteredListView(MVPListViewMixin, FilterView):
+            model = Product
+            filterset_fields = ["category"]
+            search_fields = ["name"]
+            order_by = [("name_asc", "Name (A-Z)", "name")]
+    """
+
     grid: dict = {}
     base_template_name = "list_view.html"
     create_view_name: str = "{model_name}-create"
