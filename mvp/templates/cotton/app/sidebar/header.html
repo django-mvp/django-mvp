@@ -12,6 +12,6 @@
            alt="{{ text }} Logo"
            class="brand-image-xs logo-xl" />
     {% endif %}
-    <span class="brand-text fw-light{% if icon and logo %} d-none{% endif %}">{{ text }}</span>
+    <span class="brand-text fw-light{% if icon and logo %} d-none{% endif %}">{{ text|default:request.site.name }}</span>
   </a>
 </div>

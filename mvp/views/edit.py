@@ -6,7 +6,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.messages.views import SuccessMessageMixin
 from django.core.exceptions import ImproperlyConfigured
-from django.db.models.deletion import ProtectedError
+from django.db.models.deletion import Collector, ProtectedError
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
@@ -14,6 +14,7 @@ from django.utils.text import camel_case_to_spaces
 from django.utils.translation import gettext_lazy as _
 from django.views import generic
 
+from ..forms import DeleteConfirmForm
 from .base import BaseTemplateNameMixin
 from .detail import PageObjectMixin
 
@@ -169,7 +170,6 @@ class MVPModelFormBase(MVPFormBase):
         """
         data = defaultdict(str, cleaned_data)
         data["verbose_name"] = self.model_meta.verbose_name
-        data["verbose_name_title"] = self.model_meta.verbose_name.title()
         return self.success_message % data
 
     def get_url_kwargs(self, action: str) -> dict | None:
@@ -319,7 +319,6 @@ class MVPCreateView(MVPModelFormBase, generic.CreateView):
         """
         data = defaultdict(str, cleaned_data)
         data["verbose_name"] = self.model_meta.verbose_name.title()
-        data["verbose_name_title"] = self.model_meta.verbose_name.title()
         return self.success_message % data
 
 
@@ -340,9 +339,9 @@ class MVPUpdateView(MVPModelFormBase, generic.UpdateView):
         page_class (str): CSS class(es) applied to the page wrapper.
             Defaults to ``"mvp-form-page mvp-update-page"``.
         success_message (str | lazy str): Flash message template shown after a
-            successful save.  ``%(verbose_name_title)s`` is replaced with the
+            successful save.  ``%(verbose_name)s`` is replaced with the
             title-cased model verbose name (e.g. "Product").
-            Defaults to ``_("%(verbose_name_title)s successfully updated.")``.
+            Defaults to ``_("%(verbose_name)s successfully updated.")``.
         success_url (str | None): Redirect target after save.  Accepts literal
             URL paths or CRUD action shorthands (``"list"``, ``"detail"``).
             Defaults to ``None`` (falls back to ``get_absolute_url()`` then
@@ -359,7 +358,7 @@ class MVPUpdateView(MVPModelFormBase, generic.UpdateView):
             ``page_title`` with the model's title-cased ``verbose_name``.
         get_success_message(cleaned_data): Inherited from ``MVPModelFormBase``;
             interpolates ``success_message`` with ``verbose_name`` and
-            ``verbose_name_title``.
+            ``verbose_name``.
         get_success_url(): Inherited from ``MVPModelFormBase``; priority chain:
             next URL → ``success_url`` → ``object.get_absolute_url()``.
 
@@ -376,7 +375,7 @@ class MVPUpdateView(MVPModelFormBase, generic.UpdateView):
     page_icon = "edit"
     page_title = _("Update %(verbose_name)s")
     page_class = "mvp-form-page mvp-update-page"
-    success_message = _("%(verbose_name_title)s successfully updated.")
+    success_message = _("%(verbose_name)s successfully updated.")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -445,23 +444,53 @@ class MVPDeleteView(MVPModelFormBase, generic.DeleteView):
     4. **Type-to-confirm** — opt-in; user must type ``confirmation_value`` into an
        input before the Delete button becomes active. Set ``require_confirmation = True``.
 
-    Attributes:
+    Config:
         show_related_objects (bool): Show a summary of cascade-deleted related
             records. Defaults to ``False``.
         require_confirmation (bool): Require the user to type the object name (or
             a custom string) before deletion proceeds. Defaults to ``False``.
         confirmation_label (str): Label for the confirmation input.
+            Defaults to ``"Type the name to confirm"``.
+        related_objects_max_per_group (int): Maximum number of related objects
+            shown per group before an overflow note is displayed.
+            Defaults to ``25``.
+
+    Override hooks:
+        get_confirmation_value(): Returns the string the user must type.
+            Defaults to ``str(self.object)``.
+        get_back_url(): Returns the URL for the Go Back button.
+            Reads ``?back`` from the query string, falling back to the list URL.
+        get_breadcrumbs(): Returns a three-item breadcrumb list: List → Detail → Delete.
+        get_success_url(): Redirect priority: ``?next=`` → ``success_url`` → list URL.
+            Does NOT use ``object.get_absolute_url()`` (the object no longer exists
+            after deletion).
+
+    Example::
+
+        class ArticleDeleteView(MVPDeleteView):
+            model = Article
+            require_confirmation = True  # user must type article title
+            show_related_objects = True  # preview cascade deletes
     """
 
     base_template_name = "delete_view.html"
     page_icon = "delete"
     page_class = "mvp-delete-page"
-    page_title = _("Delete Entry")
+    page_title = _("Delete %(verbose_name)s")
     success_message = _("%(verbose_name)s successfully deleted.")
 
     show_related_objects: bool = False
     require_confirmation: bool = False
     confirmation_label: str = _("Type the name to confirm")
+    related_objects_max_per_group: int = 25
+
+    def get_breadcrumbs(self):
+        """Return three-level breadcrumb list: List → Detail → Delete."""
+        return [
+            {"text": self.get_list_title(), "href": self.resolve_crud_url("list")},
+            {"text": str(self.object), "href": self.resolve_crud_url("detail")},
+            {"text": self.get_page_title()},
+        ]
 
     def get_confirmation_value(self) -> str:
         """Return the string the user must type. Override to customise.
@@ -480,7 +509,6 @@ class MVPDeleteView(MVPModelFormBase, generic.DeleteView):
                 - protected: list of objects blocking deletion via PROTECT.
                   Empty list when deletion is safe.
         """
-        from django.db.models.deletion import Collector, ProtectedError
 
         using = self.object._state.db
         collector = Collector(using=using)
@@ -496,6 +524,26 @@ class MVPDeleteView(MVPModelFormBase, generic.DeleteView):
             if instances:
                 related[model] = list(instances)
         return related, []
+
+    def get_form_class(self):
+        """Return DeleteConfirmForm when require_confirmation is True."""
+        if self.require_confirmation:
+            return DeleteConfirmForm
+        return super().get_form_class()
+
+    def get_form_kwargs(self):
+        """Inject confirmation_value into form kwargs when require_confirmation is True."""
+        kwargs = super().get_form_kwargs()
+        if self.require_confirmation:
+            kwargs["confirmation_value"] = self.get_confirmation_value()
+        return kwargs
+
+    def form_valid(self, form):
+        """Delete the object and redirect to success URL."""
+        success_url = self.get_success_url()
+        self.object.delete()
+        messages.success(self.request, self.get_success_message({}))
+        return HttpResponseRedirect(success_url)
 
     def get_back_url(self) -> str:
         """Return the URL for the Go Back button.
@@ -515,27 +563,43 @@ class MVPDeleteView(MVPModelFormBase, generic.DeleteView):
             return candidate
         return self.resolve_crud_url("list")
 
-    def get_next_url(self):
-        """Return the URL for the post-delete redirect.
+    def get_success_url(self):
+        """Redirect using ?next= → success_url → list URL priority chain.
+
+        Intentionally does NOT fall back to ``object.get_absolute_url()`` — the
+        object no longer exists after deletion. Instead falls back to the
+        registered list URL from the CRUD directory.
 
         Priority:
-        1. Validated ``next`` query parameter from the incoming request
-        2. List URL
-
-        Note: We deliberately do NOT fall back to ``get_absolute_url()`` here.
-        That URL belongs to the object being deleted — after deletion it would
-        be a 404. The list is always a safe fallback.
-
-        Returns:
-            str: URL to navigate back to
+        1. Validated ``?next=`` / CRUD shorthand from ``get_next_url()``
+        2. ``success_url`` class attribute (tried as CRUD shorthand, then literal)
+        3. List URL from ``resolve_crud_url("list")``
+        4. Raises ``ImproperlyConfigured``
         """
-        if next_url := super().get_next_url():
+        # Step 1: validated next URL / CRUD shorthand
+        if next_url := self.get_next_url():
             return next_url
-        return self.resolve_crud_url("list")
 
-    def get_success_url(self):
-        """Redirect to the validated ``next`` URL from POST, or the list view."""
-        return super().get_next_url() or self.resolve_crud_url("list")
+        # Step 2: success_url — tried as CRUD shorthand first, then literal path
+        raw = getattr(self, "success_url", None)
+        if raw:
+            try:
+                resolved = self.resolve_crud_url(str(raw))
+            except Exception:
+                resolved = None
+            if resolved:
+                return resolved
+            return str(raw)
+
+        # Step 3: list URL (replaces object.get_absolute_url() which 404s after deletion)
+        url = self.resolve_crud_url("list")
+        if url:
+            return url
+
+        raise ImproperlyConfigured(
+            f"'{self.__class__.__name__}' could not determine a redirect URL. "
+            f"Set 'success_url' (e.g. 'list'), or register a list view with has_list_permission=True."
+        )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -549,13 +613,18 @@ class MVPDeleteView(MVPModelFormBase, generic.DeleteView):
         context["confirmation_label"] = self.confirmation_label
 
         if self.show_related_objects and not protected_objects:
+            cap = self.related_objects_max_per_group
             context["related_objects"] = [
-                (model._meta.verbose_name_plural.title(), objs) for model, objs in related_map.items()
+                (
+                    model._meta.verbose_name_plural.title(),
+                    list(instances)[:cap],
+                    max(0, len(instances) - cap),
+                )
+                for model, instances in related_map.items()
             ]
         else:
             context["related_objects"] = []
 
-        context.setdefault("confirmation_error", kwargs.get("confirmation_error", ""))
         context["back_url"] = self.get_back_url()
 
         return context
@@ -563,27 +632,13 @@ class MVPDeleteView(MVPModelFormBase, generic.DeleteView):
     def post(self, request, *args, **kwargs):
         """Handle DELETE confirmation — validates type-to-confirm and catches ProtectedError.
 
-        Overrides ``post()`` rather than ``delete()`` because Django 5.x's
-        ``BaseDeleteView.post()`` calls ``form_valid()`` directly, bypassing
-        any ``delete()`` override in subclasses.
+        Uses Django's form machinery: if ``require_confirmation=True`` the request
+        data is validated through ``DeleteConfirmForm``; if the object is
+        PROTECT-blocked the deletion is aborted before any form processing.
         """
-
         self.object = self.get_object()
-
-        if self.require_confirmation:
-            submitted = request.POST.get("confirmation", "").strip()
-            if submitted != self.get_confirmation_value():
-                return self.render_to_response(
-                    self.get_context_data(
-                        confirmation_error=_("The value you entered does not match. Please try again.")
-                    )
-                )
-
-        success_url = self.get_success_url()
-        try:
-            self.object.delete()
-        except ProtectedError:
+        _, protected = self._collect_deletion_data()
+        if protected:
             return self.render_to_response(self.get_context_data())
-
-        messages.success(request, self.get_success_message({}))
-        return HttpResponseRedirect(success_url)
+        form = self.get_form()
+        return self.form_valid(form) if form.is_valid() else self.form_invalid(form)

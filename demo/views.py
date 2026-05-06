@@ -285,3 +285,16 @@ class CategoryUpdateView(MVPUpdateView):
     has_list_permission = False  # no category list view wired in demo
     has_detail_permission = False  # no category detail view wired in demo
     has_delete_permission = False  # intentionally no delete view — verifies US4
+
+
+class CategoryDeleteWithRelatedView(MVPDeleteView):
+    """Delete confirmation for Category — shows cascade-deleted Products as related objects.
+
+    Uses a low cap (3) to allow overflow testing without creating large datasets.
+    """
+
+    model = Category
+    show_related_objects = True
+    related_objects_max_per_group = 3
+    success_url = "/"  # No category list URL; redirect to home after deletion
+    has_list_permission = False  # no category list URL registered
