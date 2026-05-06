@@ -43,11 +43,16 @@ html[data-bs-theme="dark"] {
   .dark-theme-only {
     display: block;
   }
-  
+
 }
 
 html[data-bs-theme="light"] {
   .light-theme-only {
     display: block;
   }
+}
+
+.card-title {
+  float: none;
+  margin-bottom: var(--bs-card-title-spacer-y);
 }

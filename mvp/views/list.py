@@ -274,41 +274,30 @@ class SearchOrderMixin(SearchMixin, OrderMixin):
     pass
 
 
-class ListItemTemplateMixin:
-    """Mixin for providing list item template resolution for list views.
+class MVPListViewMixin(BaseTemplateNameMixin, SearchOrderMixin, CRUDDirectoryMixin, PageMixin):
+    """Foundation mixin for django-mvp list views with search, ordering, pagination, and consistent styling."""
 
-    This mixin automatically resolves the template to use for rendering
-    individual list items in a list view. It follows Django's convention
-    of app_label/model_name pattern.
-
-    Attributes:
-        list_item_template (str): Explicit template path for list items.
-            If None, template is auto-generated via get_list_item_template().
-            Default: None (auto-generate).
-
-    Example:
-        class MyListView(ListItemTemplateMixin, ListView):
-            model = Product
-            # Will automatically use: 'myapp/list_product_item.html'
-
-        class CustomListView(ListItemTemplateMixin, ListView):
-            model = Product
-            list_item_template = 'custom/product_card.html'
-
-        class OverrideListView(ListItemTemplateMixin, ListView):
-            model = Product
-
-            def get_list_item_template(self):
-                # Custom logic for template selection
-                if self.request.GET.get('compact'):
-                    return 'myapp/compact_product_item.html'
-                return 'myapp/full_product_item.html'
-
-    Template Context:
-        list_item_template (str): The resolved template path for list items
-    """
-
+    base_template_name = "list_view.html"
     list_item_template = None
+    grid: dict = {}
+    empty_state_heading: str | None = _("There's nothing here yet")
+    empty_state_message: str | None = _("You haven't added any records yet. Click the button below to get started.")
+
+    def get_context_data(self, **kwargs):
+        """Add grid configuration to the template context.
+
+        Adds:
+            grid_config (GridConfig): Configuration for grid layout
+        """
+        context = super().get_context_data(**kwargs)
+        context["grid_config"] = self.get_grid_config()
+        context["empty_state"] = {
+            "heading": self.get_empty_state_heading(),
+            "message": self.get_empty_state_message(),
+        }
+        context["list_item_template"] = self.get_list_item_template()
+
+        return context
 
     def get_list_item_template(self):
         """Return the template path for rendering individual list items.
@@ -323,6 +312,7 @@ class ListItemTemplateMixin:
         Raises:
             AttributeError: If model is not defined on the view
         """
+        # NOTE: We should probably try to get the model class using utilities from inherited base classes.
         if self.list_item_template:
             return self.list_item_template
 
@@ -338,96 +328,6 @@ class ListItemTemplateMixin:
         opts = self.model._meta
         return f"{opts.app_label}/{opts.model_name}_list_item.html"
 
-    def get_context_data(self, **kwargs):
-        """Add list item template to the template context.
-
-        Adds:
-            list_item_template (str): Template path for rendering list items
-        """
-        context = super().get_context_data(**kwargs)
-        context["list_item_template"] = self.get_list_item_template()
-        return context
-
-
-class MVPListViewMixin(BaseTemplateNameMixin, SearchOrderMixin, CRUDDirectoryMixin, PageMixin, ListItemTemplateMixin):
-    """Foundation mixin for django-mvp list views with search, ordering, pagination, and AdminLTE styling.
-
-    Composes ``SearchOrderMixin``, ``CRUDDirectoryMixin``, ``PageMixin``, and
-    ``ListItemTemplateMixin`` into a single class. Renders to the
-    ``list_view.html`` base template with optional card-grid layout, empty-state
-    messaging, and breadcrumb auto-generation.
-
-    Config:
-        search_fields (list[str] | None): ORM field paths for ``?q=`` search.
-            Default: ``None`` (search disabled).
-        order_by (list[tuple[str, str, str]] | None): Three-tuple whitelist for
-            ``?o=`` ordering. Each entry is ``(public_key, label, orm_expression)``.
-            Default: ``None`` (ordering disabled).
-        grid (dict): Bootstrap grid kwargs passed to the list template
-            (e.g. ``{"cols": 1, "md": 2, "gap": 3}``). Default: ``{}``
-            (single-column layout).
-        paginate_by (int | None): Records per page. Default: ``None`` (no
-            pagination; inherited from ``ListView``).
-        create_view_name (str): URL name template for the "Add" button.
-            Default: ``"{model_name}-create"``.
-        empty_state_heading (str | None): Heading shown when the queryset is
-            empty. Default: translatable "There's nothing here yet".
-        empty_state_message (str | None): Body text for the empty state.
-            Default: translatable prompt to add the first record.
-        directory (list[str]): CRUD action names exposed in the ``CRUDDirectoryMixin``
-            context. Default: ``["create"]``.
-
-    Override hooks:
-        get_grid_config(): Return the grid layout dict.
-        get_empty_state_heading(): Return the empty-state heading string.
-        get_empty_state_message(): Return the empty-state body string.
-        get_page_title(): Return the page title (defaults to model verbose_name_plural).
-        get_breadcrumbs(): Return the breadcrumb list.
-        get_search_fields(): Inherited from ``SearchMixin``.
-        get_order_by_choices(): Inherited from ``OrderMixin``.
-
-    Example::
-
-        class ProductListView(MVPListViewMixin, ListView):
-            model = Product
-            search_fields = ["name", "description"]
-            order_by = [
-                ("name_asc", "Name (A-Z)", "name"),
-                ("name_desc", "Name (Z-A)", "-name"),
-            ]
-            grid = {"cols": 1, "md": 2, "xl": 3, "gap": 3}
-            paginate_by = 24
-
-
-        # With django_filters:
-        class ProductFilteredListView(MVPListViewMixin, FilterView):
-            model = Product
-            filterset_fields = ["category"]
-            search_fields = ["name"]
-            order_by = [("name_asc", "Name (A-Z)", "name")]
-    """
-
-    grid: dict = {}
-    base_template_name = "list_view.html"
-    create_view_name: str = "{model_name}-create"
-    empty_state_heading: str | None = _("There's nothing here yet")
-    empty_state_message: str | None = _("You haven't added any records yet. Click the button below to get started.")
-    directory = ["create"]
-
-    def get_context_data(self, **kwargs):
-        """Add grid configuration to the template context.
-
-        Adds:
-            grid_config (GridConfig): Configuration for grid layout
-        """
-        context = super().get_context_data(**kwargs)
-        context["grid_config"] = self.get_grid_config()
-        context["empty_state"] = {
-            "heading": self.get_empty_state_heading(),
-            "message": self.get_empty_state_message(),
-        }
-        return context
-
     def get_empty_state_heading(self) -> str | None:
         return self.empty_state_heading
 
@@ -438,17 +338,12 @@ class MVPListViewMixin(BaseTemplateNameMixin, SearchOrderMixin, CRUDDirectoryMix
         return self.grid
 
     def get_page_title(self):
-        if self.page_title:
-            return self.page_title
-
-        model = getattr(self, "model", None)
-        if model:
-            return model._meta.verbose_name_plural.title()
-
-        return self.page_title
+        # NOTE: If self.page_title not set, this should default to the model_class verbose name plural if
+        pass
 
     def get_breadcrumbs(self):
-        return super().get_breadcrumbs() + [
+        # NOTE: Should we remove the Home breadcrumb by default, what is normal here?
+        return [
             {"text": _("Home"), "href": "/"},
             {"text": self.get_page_title()},
         ]

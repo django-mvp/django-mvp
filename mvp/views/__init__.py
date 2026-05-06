@@ -10,7 +10,6 @@ from .edit import (
     NextURLMixin,
 )
 from .list import (
-    ListItemTemplateMixin,
     MVPListView,
     MVPListViewMixin,
     OrderMixin,
@@ -47,7 +46,6 @@ __all__ = [
     "SearchMixin",
     "OrderMixin",
     "SearchOrderMixin",
-    "ListItemTemplateMixin",
     "MVPListViewMixin",
     "MVPListView",
 ]
