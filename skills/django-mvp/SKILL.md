@@ -176,19 +176,19 @@ To inject custom slot content above/below the menu, use named slots:
 
 ---
 
-## Step 6 — Zero-Config Views: `PageView` and `HomeView`
+## Step 6 — Zero-Config Views: `MVPTemplateView` and `HomeView`
 
 django-mvp ships two ready-to-use view classes that require no model, form, or queryset.
 
-### `PageView` — Plain layout-aware template view
+### `MVPTemplateView` — Plain layout-aware template view
 
 Wire any informational page (About, FAQ, Terms, etc.) directly in `urls.py`:
 
 ```python
-from mvp.views import PageView
+from mvp.views import MVPTemplateView
 
 urlpatterns = [
-    path("about/", PageView.as_view(
+    path("about/", MVPTemplateView.as_view(
         template_name="myapp/about.html",
         page_title="About Us",
         page_subtitle="Who we are",
@@ -208,7 +208,7 @@ Create the template extending `page_view.html`:
 {% endblock page.content %}
 ```
 
-`PageView` is an alias for `MVPTemplateView`. Import from `mvp.views`.
+`MVPTemplateView` is an alias for `MVPTemplateView`. Import from `mvp.views`.
 
 ### `HomeView` — Landing page for guests, dashboard for authenticated users
 

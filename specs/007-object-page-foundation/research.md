@@ -51,7 +51,7 @@
 | Test file | Covers |
 |---|---|
 | `tests/test_views/test_base.py` | `BaseTemplateNameMixin`, `PageMixin`, `ModelInfoMixin` |
-| `tests/test_views/test_base_e2e.py` | `MVPTemplateView` (PageView/HomeView) E2E |
+| `tests/test_views/test_base_e2e.py` | `MVPTemplateView` E2E |
 | `tests/test_views/test_crud_directory_mixin.py` | `CRUDDirectoryMixin` |
 | `tests/test_views/test_crud_directory_mixin_e2e.py` | `ProductDetailView` — CRUD directory buttons |
 | `tests/test_views/test_delete_view.py` | `MVPDeleteView` |

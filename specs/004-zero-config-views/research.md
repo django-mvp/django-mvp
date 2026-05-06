@@ -11,7 +11,7 @@
 
 **Findings**:
 
-- `MVPTemplateView` = `PageMixin + django.views.generic.TemplateView` — already exists. Satisfies the spec's `PageView` concept completely. No new class needed; only a public alias is required.
+- `MVPTemplateView` = `PageMixin + django.views.generic.TemplateView` — already exists. Satisfies the requirements for a plain layout-aware template view completely. No new class needed.
 - `MVPHomeView` = extends `MVPTemplateView` — already exists with:
   - `landing_template = "mvp/landing.html"` (attribute)
   - `dashboard_template = "mvp/dashboard.html"` (attribute)
@@ -67,20 +67,20 @@ Django raises `ImproperlyConfigured` in `TemplateResponseMixin.get_template_name
 
 ---
 
-## Research Question 4: Public Aliases (PageView, HomeView)
+## Research Question 4: Public API Naming
 
-**Task**: Determine how to expose `PageView` and `HomeView` as the spec-described names without introducing a parallel class hierarchy.
+**Task**: Confirm that `MVPTemplateView` and `MVPHomeView` are the only acceptable public names for these views, with no shorter aliases.
 
 **Findings**:
 
-Python allows simple module-level aliases: `PageView = MVPTemplateView`. These are first-class references, not wrappers — `issubclass(PageView, MVPTemplateView)` is `True`, and subclassing `PageView` is identical to subclassing `MVPTemplateView`. Django's `as_view()` inherits correctly.
+The project naming convention uses `MVP*` prefix for all view classes. `MVPTemplateView` and `MVPHomeView` are consistent with this pattern and should be the only public imports.
 
-**Decision**: Add `PageView = MVPTemplateView` and `HomeView = MVPHomeView` to `mvp/views/__init__.py` and include them in `__all__`. Document `PageView` and `HomeView` as the primary names in quickstart and the SKILL.md.
+**Decision**: Export only `MVPTemplateView` and `MVPHomeView` from `mvp/views/__init__.py` in `__all__`. No shorter aliases.
 
 **Alternatives considered**:
 
-- Rename the classes directly — rejected; `MVPTemplateView` and `MVPHomeView` follow the project's existing naming convention (`MVP*`) and are used internally. Renaming would be a larger change.
-- Introduce subclasses — rejected; unnecessary indirection with no behaviour difference.
+- Introduce module-level aliases — rejected; adds confusion about which name is canonical. Users should import the actual class names directly.
+- Use shorter names as primary classes — rejected; `MVP*` naming convention is used consistently across the project.
 
 ---
 
@@ -122,12 +122,12 @@ The `mvp/dashboard.html` template should provide a minimal authenticated-user gr
 
 **Findings**:
 
-`demo/urls.py` already has `path("", MVPDemoView.as_view(template_name="demo/home.html"), name="home")`. The demo's home URL uses a plain `TemplateView` subclass. For this feature, the demo's home URL should be updated to use `HomeView` (via `MVPHomeView`) to demonstrate the dual landing/dashboard pattern. A separate URL (e.g., `/about/`) can demonstrate `PageView`.
+`demo/urls.py` already has `path("", MVPDemoView.as_view(template_name="demo/home.html"), name="home")`. The demo's home URL uses a plain `TemplateView` subclass. For this feature, the demo's home URL should be updated to use `MVPHomeView` to demonstrate the dual landing/dashboard pattern. A separate URL (e.g., `/about/`) can demonstrate `MVPTemplateView`.
 
 **Decision**:
 
 - Update demo home URL (`""`) to use `MVPHomeView` with demo-specific `landing_template_name` and `dashboard_template_name`.
-- Add a `path("about/", ...)` URL using `MVPTemplateView` (i.e., `PageView`) with `template_name = "demo/about.html"` and `page_title = "About"`.
+- Add a `path("about/", ...)` URL using `MVPTemplateView` with `template_name = "demo/about.html"` and `page_title = "About"`.
 - Create minimal `demo/templates/demo/landing.html` and `demo/templates/demo/dashboard.html` templates that extend the bundled `mvp/landing.html` and `mvp/dashboard.html` respectively, overriding `{% block page.content %}` with demo-specific content.
 
 ---
@@ -139,7 +139,7 @@ The `mvp/dashboard.html` template should provide a minimal authenticated-user gr
 | 1 | Current implementation state | Both views exist; close gaps only |
 | 2 | Attribute naming | Rename to `_name` suffix: `landing_template_name`, `dashboard_template_name` |
 | 3 | ImproperlyConfigured guard | Raise in `get_template_names()` when selected template attribute is `None` |
-| 4 | Public aliases | `PageView = MVPTemplateView`, `HomeView = MVPHomeView` in `__init__.py` |
+| 4 | Public API naming | Use only `MVPTemplateView` and `MVPHomeView`; no shorter aliases |
 | 5 | Bundled templates | Extend `page_view.html`; use `hero_content` for landing, `request.user` for dashboard |
 | 6 | HTTP method constraint | Already handled by Django's TemplateView base; no new code needed |
 | 7 | Demo app integration | Update demo home URL; add `/about/`; create demo-specific template overrides |

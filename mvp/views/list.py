@@ -325,6 +325,7 @@ class MVPListViewMixin(BaseTemplateNameMixin, SearchOrderMixin, CRUDDirectoryMix
         from mvp.views.list import MVPListViewMixin
         from django_filters.views import FilterView
 
+
         class ProductFilteredListView(MVPListViewMixin, FilterView):
             model = Product
             filterset_class = ProductFilter
@@ -399,7 +400,6 @@ class MVPListViewMixin(BaseTemplateNameMixin, SearchOrderMixin, CRUDDirectoryMix
         return self.model._meta.verbose_name_plural.title()
 
     def get_breadcrumbs(self):
-        # NOTE: Should we remove the Home breadcrumb by default, what is normal here?
         return [
             {"text": _("Home"), "href": "/"},
             {"text": self.get_page_title()},
@@ -423,6 +423,7 @@ class MVPListView(MVPListViewMixin, ListView):
     Example::
 
         from mvp.views.list import MVPListView
+
 
         class ProductListView(MVPListView):
             model = Product

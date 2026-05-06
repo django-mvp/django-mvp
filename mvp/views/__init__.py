@@ -18,8 +18,6 @@ from .list import (
 )
 
 # Public aliases — preferred import names for developers
-PageView = MVPTemplateView
-HomeView = MVPHomeView
 
 __all__ = [
     # base
@@ -27,8 +25,6 @@ __all__ = [
     "PageMixin",
     "MVPTemplateView",
     "MVPHomeView",
-    "PageView",
-    "HomeView",
     # detail
     "ModelInfoMixin",
     "CRUDDirectoryMixin",

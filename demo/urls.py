@@ -3,7 +3,7 @@
 from django.conf import settings
 from django.urls import include, path
 
-from mvp.views import HomeView, PageView
+from mvp.views import MVPHomeView, MVPTemplateView
 
 from . import views
 from .views import (
@@ -25,16 +25,16 @@ urlpatterns = [
     # Main home — landing for guests, dashboard for authenticated users
     path(
         "",
-        HomeView.as_view(
+        MVPHomeView.as_view(
             landing_template_name="demo/landing.html",
             dashboard_template_name="demo/dashboard.html",
         ),
         name="home",
     ),
-    # About page — PageView demo
+    # About page — MVPTemplateView demo
     path(
         "about/",
-        PageView.as_view(
+        MVPTemplateView.as_view(
             template_name="demo/about.html",
             page_title="About Us",
             page_subtitle="Learn more",

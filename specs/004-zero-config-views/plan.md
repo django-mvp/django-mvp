@@ -5,7 +5,7 @@
 
 ## Summary
 
-Ship two zero-config ready-to-use views: `MVPTemplateView` (aliased as `PageView`) for plain layout-aware pages, and `MVPHomeView` (aliased as `HomeView`) for a dual-purpose landing/dashboard from a single URL. Both already exist in `mvp/views/base.py` — this feature closes the remaining gaps: attribute naming consistency, the `ImproperlyConfigured` guard for a missing dashboard template, creation of the bundled `mvp/landing.html` and `mvp/dashboard.html` base templates, public aliases, and complete test coverage.
+Ship two zero-config ready-to-use views: `MVPTemplateView` for plain layout-aware pages, and `MVPHomeView` for a dual-purpose landing/dashboard from a single URL. Both already exist in `mvp/views/base.py` — this feature closes the remaining gaps: attribute naming consistency, the `ImproperlyConfigured` guard for a missing dashboard template, creation of the bundled `mvp/landing.html` and `mvp/dashboard.html` base templates, and complete test coverage.
 
 ## Technical Context
 
@@ -30,7 +30,7 @@ Ship two zero-config ready-to-use views: `MVPTemplateView` (aliased as `PageView
 - [x] Quality gates understood — `python manage.py check` + pytest + ruff + djlint
 - [x] Documentation retrieval planned — context7 for Django TemplateView and ImproperlyConfigured API
 - [x] E2E testing planned — pytest-playwright covers guest landing page and authenticated dashboard flows
-- [x] Tasks grouped by user story — US1 (PageView/MVPTemplateView), US2 (HomeView/MVPHomeView), US3 (E2E)
+- [x] Tasks grouped by user story — US1 (MVPTemplateView), US2 (MVPHomeView), US3 (E2E)
 - [x] Every phase touching Django code includes `python manage.py check` validation task
 - [x] Every phase touching UI includes Playwright MCP server verification task
 - [x] UI configuration uses Cotton components and template overrides only — bundled templates use existing Cotton components (`c-page`, `c-page.content`)
@@ -39,7 +39,7 @@ Ship two zero-config ready-to-use views: `MVPTemplateView` (aliased as `PageView
 - [x] django-cotton-bs5 skill consulted before authoring new templates
 - [x] cotton-test-components skill N/A — no new custom Cotton components introduced by this feature
 - [x] Cotton component tests N/A — no new custom components; existing test_components/ unaffected
-- [x] skills/django-mvp/SKILL.md update planned — public API additions (`PageView`, `HomeView` aliases; `landing_template_name`, `dashboard_template_name` attributes; `ImproperlyConfigured` behaviour)
+- [x] skills/django-mvp/SKILL.md update planned — public API additions (`MVPTemplateView`, `MVPHomeView`; `landing_template_name`, `dashboard_template_name` attributes; `ImproperlyConfigured` behaviour)
 - [x] skills/django-mvp/SKILL.md only used for demo-app work — not consulted during core `mvp/` development
 - [x] Spec has at least one [Developer] story (US1, US2, US4) and one [End User] story (US3) ✅
 
@@ -65,7 +65,6 @@ specs/004-zero-config-views/
 ```text
 mvp/
 ├── views/
-│   ├── __init__.py      # ADD: PageView, HomeView public aliases
 │   └── base.py          # MODIFY: rename attributes to _name suffix; add ImproperlyConfigured guard
 ├── templates/
 │   └── mvp/
@@ -85,7 +84,7 @@ tests/
 
 skills/
 └── django-mvp/
-    └── SKILL.md           # UPDATE: document PageView, HomeView, attributes, ImproperlyConfigured behaviour
+    └── SKILL.md           # UPDATE: document MVPTemplateView, MVPHomeView, attributes, ImproperlyConfigured behaviour
 ```
 
 **Structure Decision**: Single Django app (reusable package). All production changes are in `mvp/`. Demo wiring is in `demo/` for end-to-end illustration. No new apps, packages, or test directories needed.

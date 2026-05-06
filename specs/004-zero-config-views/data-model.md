@@ -6,9 +6,9 @@ This feature introduces no database models. All entities are Python view classes
 
 ---
 
-## Entity 1: MVPTemplateView (alias: PageView)
+## Entity 1: MVPTemplateView
 
-**Location**: `mvp/views/base.py` (existing) → `mvp/views/__init__.py` (alias added)
+**Location**: `mvp/views/base.py` (existing)
 
 **Description**: A zero-config layout-aware template view. Renders any named template inside the standard AdminLTE layout shell (navbar, sidebar, content area) without requiring a model, form, or queryset.
 
@@ -17,7 +17,7 @@ This feature introduces no database models. All entities are Python view classes
 ```
 django.views.generic.View
   └── django.views.generic.TemplateView
-        └── mvp.views.base.MVPTemplateView  (= PageView alias)
+        └── mvp.views.base.MVPTemplateView
               (also mixes in: PageMixin)
 ```
 
@@ -62,9 +62,9 @@ django.views.generic.View
 
 ---
 
-## Entity 2: MVPHomeView (alias: HomeView)
+## Entity 2: MVPHomeView
 
-**Location**: `mvp/views/base.py` (existing, modified) → `mvp/views/__init__.py` (alias added)
+**Location**: `mvp/views/base.py` (existing, modified)
 
 **Description**: A dual-purpose view that serves a landing page to anonymous visitors and a dashboard to authenticated users, from the same URL, without redirects. Template selection is the only authentication-sensitive decision; the view itself does not require login.
 
@@ -74,7 +74,7 @@ django.views.generic.View
 django.views.generic.View
   └── django.views.generic.TemplateView
         └── mvp.views.base.MVPTemplateView
-              └── mvp.views.base.MVPHomeView  (= HomeView alias)
+              └── mvp.views.base.MVPHomeView
 ```
 
 ### Configuration Attributes
@@ -162,8 +162,8 @@ Request → is_authenticated?
 
 ```
 PageMixin
-  └── used by → MVPTemplateView (= PageView)
-                  └── extends → MVPHomeView (= HomeView)
+  └── used by → MVPTemplateView
+                  └── extends → MVPHomeView
 
 MVPTemplateView → renders → any developer-supplied template
 MVPHomeView     → renders → mvp/landing.html (anonymous)

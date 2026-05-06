@@ -3,7 +3,7 @@
 **Branch**: `004-zero-config-views` | **Date**: 2026-05-02
 **Estimated setup time**: under 5 minutes per view
 
-This guide shows how to wire `PageView` and `HomeView` — the two zero-config views shipped by django-mvp. Neither view requires a model, form, or queryset. You only need to point a URL at the view and create a template.
+This guide shows how to wire `MVPTemplateView` and `MVPHomeView` — the two zero-config views shipped by django-mvp. Neither view requires a model, form, or queryset. You only need to point a URL at the view and create a template.
 
 ---
 
@@ -15,18 +15,18 @@ This guide shows how to wire `PageView` and `HomeView` — the two zero-config v
 
 ---
 
-## 1. PageView — Plain Layout-Aware Template
+## 1. MVPTemplateView — Plain Layout-Aware Template
 
-Use `PageView` for any informational page (About, FAQ, Terms, etc.) that should render inside the standard application layout.
+Use `MVPTemplateView` for any informational page (About, FAQ, Terms, etc.) that should render inside the standard application layout.
 
 ### Step 1: Wire the URL
 
 ```python
 # myapp/urls.py
-from mvp.views import PageView
+from mvp.views import MVPTemplateView
 
 urlpatterns = [
-    path("about/", PageView.as_view(
+    path("about/", MVPTemplateView.as_view(
         template_name="myapp/about.html",
         page_title="About",
     ), name="about"),
@@ -52,7 +52,7 @@ Set layout attributes directly on the URL entry or in a subclass:
 
 ```python
 # Via as_view() — for one-off pages
-path("about/", PageView.as_view(
+path("about/", MVPTemplateView.as_view(
     template_name="myapp/about.html",
     page_title="About Us",
     page_subtitle="Who we are",
@@ -63,9 +63,9 @@ path("about/", PageView.as_view(
 
 ```python
 # Via subclass — for pages with dynamic values
-from mvp.views import PageView
+from mvp.views import MVPTemplateView
 
-class AboutView(PageView):
+class AboutView(MVPTemplateView):
     template_name = "myapp/about.html"
     page_title = "About Us"
     page_subtitle = "Who we are"
@@ -86,18 +86,18 @@ class AboutView(PageView):
 
 ---
 
-## 2. HomeView — Landing Page for Guests, Dashboard for Users
+## 2. MVPHomeView — Landing Page for Guests, Dashboard for Users
 
-Use `HomeView` at your root URL (`/`) to serve a marketing landing page to anonymous visitors and an application dashboard to logged-in users — same URL, same view class, no redirect.
+Use `MVPHomeView` at your root URL (`/`) to serve a marketing landing page to anonymous visitors and an application dashboard to logged-in users — same URL, same view class, no redirect.
 
 ### Step 1: Wire the URL
 
 ```python
 # myproject/urls.py (or myapp/urls.py)
-from mvp.views import HomeView
+from mvp.views import MVPHomeView
 
 urlpatterns = [
-    path("", HomeView.as_view(
+    path("", MVPHomeView.as_view(
         landing_template_name="myapp/landing.html",
         dashboard_template_name="myapp/dashboard.html",
     ), name="home"),
@@ -140,10 +140,10 @@ urlpatterns = [
 
 ### Using the bundled default templates
 
-`HomeView` ships with built-in templates that work out of the box without any project-level template files. To use them, wire the URL without specifying templates:
+`MVPHomeView` ships with built-in templates that work out of the box without any project-level template files. To use them, wire the URL without specifying templates:
 
 ```python
-path("", HomeView.as_view(), name="home")  # uses mvp/landing.html and mvp/dashboard.html
+path("", MVPHomeView.as_view(), name="home")  # uses mvp/landing.html and mvp/dashboard.html
 ```
 
 The bundled `mvp/landing.html` uses `hero_content` from the `MVP_LANDING_PAGE_HERO` Django setting. Customise it in `settings.py`:
@@ -157,14 +157,14 @@ MVP_LANDING_PAGE_HERO = {
 }
 ```
 
-### Subclassing HomeView
+### Subclassing MVPHomeView
 
 For dashboard-specific logic (e.g., fetching recent activity), override `get_dashboard_context()`:
 
 ```python
-from mvp.views import HomeView
+from mvp.views import MVPHomeView
 
-class AppHomeView(HomeView):
+class AppHomeView(MVPHomeView):
     landing_template_name = "myapp/landing.html"
     dashboard_template_name = "myapp/dashboard.html"
 
@@ -180,9 +180,9 @@ class AppHomeView(HomeView):
 
 | Error | Cause | Fix |
 |-------|-------|-----|
-| `ImproperlyConfigured: PageView requires template_name to be set` | `template_name` not provided | Set `template_name` as class attribute or `as_view()` kwarg |
-| `ImproperlyConfigured: HomeView requires landing_template_name to be set` | `landing_template_name` is `None` | Set `landing_template_name` |
-| `ImproperlyConfigured: HomeView requires dashboard_template_name to be set for authenticated users` | `dashboard_template_name` is `None` and user is logged in | Set `dashboard_template_name` |
+| `ImproperlyConfigured: MVPTemplateView requires template_name to be set` | `template_name` not provided | Set `template_name` as class attribute or `as_view()` kwarg |
+| `ImproperlyConfigured: MVPHomeView requires landing_template_name to be set` | `landing_template_name` is `None` | Set `landing_template_name` |
+| `ImproperlyConfigured: MVPHomeView requires dashboard_template_name to be set for authenticated users` | `dashboard_template_name` is `None` and user is logged in | Set `dashboard_template_name` |
 | `TemplateDoesNotExist: myapp/about.html` | Template file not found | Create the template file in a `templates/` directory on `DIRS` or in an installed app |
 
 ---
@@ -191,5 +191,5 @@ class AppHomeView(HomeView):
 
 | View | Import | Required attributes | Optional attributes |
 |------|--------|--------------------|--------------------|
-| `PageView` | `from mvp.views import PageView` | `template_name` | `page_title`, `page_subtitle`, `page_icon`, `page_class`, `breadcrumbs` |
-| `HomeView` | `from mvp.views import HomeView` | *(none — defaults to bundled templates)* | `landing_template_name`, `dashboard_template_name`, all `page_*` attributes |
+| `MVPTemplateView` | `from mvp.views import MVPTemplateView` | `template_name` | `page_title`, `page_subtitle`, `page_icon`, `page_class`, `breadcrumbs` |
+| `MVPHomeView` | `from mvp.views import MVPHomeView` | *(none — defaults to bundled templates)* | `landing_template_name`, `dashboard_template_name`, all `page_*` attributes |

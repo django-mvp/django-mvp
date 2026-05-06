@@ -683,18 +683,7 @@ class TestPageViewAlias:
 # ---------------------------------------------------------------------------
 
 
-class TestHomeViewAlias:
-    def test_home_view_is_mvp_home_view(self):
-        import mvp.views as views_module
-        from mvp.views.base import MVPHomeView
-
-        assert views_module.HomeView is MVPHomeView
-
-    def test_home_view_in_all(self):
-        import mvp.views as views_module
-
-        assert "HomeView" in views_module.__all__
-
+class TestMVPHomeViewAlias:
     def test_mvp_home_view_default_landing_template_name(self):
         from mvp.views.base import MVPHomeView
 

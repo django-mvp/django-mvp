@@ -1,4 +1,4 @@
-"""End-to-end tests for PageView and HomeView using pytest-playwright.
+"""End-to-end tests for MVPTemplateView and MVPHomeView using pytest-playwright.
 
 These tests require:
   - pytest-playwright installed and browsers downloaded (``playwright install``)
@@ -70,7 +70,7 @@ def test_about_page_post_returns_405(page, live_server):
 
 
 # ---------------------------------------------------------------------------
-# US2: HomeView — guest/dashboard template switch
+# US2: MVPHomeView — guest/dashboard template switch
 # ---------------------------------------------------------------------------
 
 

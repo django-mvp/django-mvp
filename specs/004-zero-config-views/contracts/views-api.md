@@ -7,19 +7,18 @@ This document defines the public interface contract for the two zero-config view
 
 ---
 
-## Contract 1: PageView (MVPTemplateView)
+## Contract 1: MVPTemplateView
 
 ### Import
 
 ```python
-from mvp.views import PageView        # preferred public alias
 from mvp.views import MVPTemplateView  # internal name, also exported
 ```
 
 ### Class Signature
 
 ```python
-class PageView(TemplateView):
+class MVPTemplateView(TemplateView):
     template_name: str           # required — no default
     page_title: str = ""
     page_subtitle: str = ""
@@ -31,12 +30,12 @@ class PageView(TemplateView):
 ### URL Wiring
 
 ```python
-path("about/", PageView.as_view(template_name="myapp/about.html", page_title="About"))
+path("about/", MVPTemplateView.as_view(template_name="myapp/about.html", page_title="About"))
 ```
 
 ### Template Context Contract
 
-Any template rendered by `PageView` **MUST** receive:
+Any template rendered by `MVPTemplateView` **MUST** receive:
 
 | Variable | Type | Guarantee |
 |----------|------|-----------|
@@ -62,7 +61,7 @@ Any template rendered by `PageView` **MUST** receive:
 
 ### Extension Contract
 
-Developers MAY subclass `PageView` and:
+Developers MAY subclass `MVPTemplateView` and:
 
 - Override any `get_page_*()` method for dynamic values.
 - Override `get_context_data()` to inject additional context (MUST call `super()`).
@@ -75,19 +74,18 @@ Subclasses MUST NOT:
 
 ---
 
-## Contract 2: HomeView (MVPHomeView)
+## Contract 2: MVPHomeView
 
 ### Import
 
 ```python
-from mvp.views import HomeView        # preferred public alias
-from mvp.views import MVPHomeView      # internal name, also exported
+from mvp.views import MVPHomeView
 ```
 
 ### Class Signature
 
 ```python
-class HomeView(MVPTemplateView):
+class MVPHomeView(MVPTemplateView):
     landing_template_name: str = "mvp/landing.html"
     dashboard_template_name: str = "mvp/dashboard.html"
     page_title: str = _("Home")
@@ -96,10 +94,10 @@ class HomeView(MVPTemplateView):
 ### URL Wiring
 
 ```python
-path("", HomeView.as_view(), name="home")  # uses bundled defaults
+path("", MVPHomeView.as_view(), name="home")  # uses bundled defaults
 
 # Or with project-specific templates:
-path("", HomeView.as_view(
+path("", MVPHomeView.as_view(
     landing_template_name="myapp/landing.html",
     dashboard_template_name="myapp/dashboard.html",
 ), name="home")
@@ -120,7 +118,7 @@ path("", HomeView.as_view(
 
 | Variable | Type | Guarantee |
 |----------|------|-----------|
-| `page` | `dict` | As per PageView contract above |
+| `page` | `dict` | As per MVPTemplateView contract above |
 | `hero_content` | `dict` | Always present for anonymous requests; sourced from `MVP_LANDING_PAGE_HERO` Django setting |
 | `hero_content.title` | `str` | Always present |
 | `hero_content.subtitle` | `str` | Always present |
@@ -132,7 +130,7 @@ path("", HomeView.as_view(
 
 | Variable | Type | Guarantee |
 |----------|------|-----------|
-| `page` | `dict` | As per PageView contract above |
+| `page` | `dict` | As per MVPTemplateView contract above |
 | `request.user` | `User` | Via auth context processor |
 
 ### Error Contract
@@ -156,7 +154,7 @@ path("", HomeView.as_view(
 
 ### Extension Contract
 
-Developers MAY subclass `HomeView` and:
+Developers MAY subclass `MVPHomeView` and:
 
 - Override `landing_template_name` and/or `dashboard_template_name` as class attributes.
 - Override `get_landing_context(context)` to add extra context for anonymous users (MUST call `super()` and return the modified `context` dict).
@@ -204,7 +202,7 @@ Subclasses MUST NOT:
 
 ## Stability Guarantee
 
-Both `PageView` and `HomeView` are **stable public API** from this release. The following are breaking changes that MUST be versioned:
+Both `MVPTemplateView` and `MVPHomeView` are **stable public API** from this release. The following are breaking changes that MUST be versioned:
 
 - Removing or renaming `landing_template_name` or `dashboard_template_name` attributes.
 - Changing the `page` context key structure.
