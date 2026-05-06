@@ -164,7 +164,7 @@ def test_US1_success_message_is_title_cased(page, live_server, category):
     # The flash message should contain the title-cased model name
     body_text = page.content()
     assert "Product successfully created." in body_text, (
-        f"Expected 'Product successfully created.' in flash message body"
+        "Expected 'Product successfully created.' in flash message body"
     )
 
 
@@ -220,8 +220,7 @@ def test_US6_update_success_message_is_title_cased(page, live_server, product):
     page.wait_for_load_state("networkidle")
     body_text = page.content()
     assert "Product successfully updated." in body_text, (
-        f"Expected 'Product successfully updated.' in flash message, got page content snippet:\n"
-        f"{body_text[:500]}"
+        f"Expected 'Product successfully updated.' in flash message, got page content snippet:\n{body_text[:500]}"
     )
 
 

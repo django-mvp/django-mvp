@@ -83,11 +83,13 @@ Returns `200 OK` with the confirmation page. Context populated with all scenario
 #### `POST /path/to/<pk>/delete/`
 
 **Success path (delete executed)**:
+
 - Object is not protected AND (confirmation not required OR submitted value matches).
 - Object is deleted, success message is added, redirect issued.
 - **Response**: `302 Found` → `success_url` / list.
 
 **Failure paths (object not deleted)**:
+
 - Object is **protected**: re-renders page with `is_protected=True` and `protected_objects` list.
   - **Response**: `200 OK`.
 - Type-to-confirm submitted with **wrong value**: `form_invalid()` re-renders with form errors.

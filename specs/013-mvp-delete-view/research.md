@@ -21,6 +21,7 @@ In Django 5.x `BaseDeleteView` inherits from `DeletionMixin`, `FormMixin`, and `
 `form_valid()` and `form_invalid()` provide natural hooks that avoid the current monolithic `post()` override.
 
 **Key API surface used**:
+
 - `get_form_class()` — overridden to return `DeleteConfirmForm` when `require_confirmation = True`.
 - `get_form_kwargs()` — overridden to inject `confirmation_value` into the form.
 - `form_valid(form)` — overridden to perform the delete and emit the success message.
@@ -28,6 +29,7 @@ In Django 5.x `BaseDeleteView` inherits from `DeletionMixin`, `FormMixin`, and `
 - `post(request, *args, **kwargs)` — overridden to set `self.object` and run the protection check before invoking form machinery.
 
 **Alternatives considered**:  
+
 - Keep the monolithic `post()` override from the existing sketch. Rejected: forces all branching into one method, breaks separation of concerns, and cannot re-use Django's `form_valid`/`form_invalid` pipeline.
 - Use `delete()` override. Rejected: Django 5.x `BaseDeleteView` no longer calls `delete()`; it routes through `FormMixin.post()` → `form_valid()` instead.
 
@@ -41,6 +43,7 @@ In Django 5.x `BaseDeleteView` inherits from `DeletionMixin`, `FormMixin`, and `
 Injecting `confirmation_value` via `__init__` and validating it in `clean_confirmation()` means the form's `is_valid()` call handles both presence and match validation in one step. The view's `form_valid()` path is then unconditionally safe to delete — no second-layer check needed. This is idiomatic Django form design.
 
 **Implementation**:
+
 ```python
 class DeleteConfirmForm(forms.Form):
     confirmation = forms.CharField(...)
@@ -59,6 +62,7 @@ class DeleteConfirmForm(forms.Form):
 ```
 
 **View wiring**:
+
 ```python
 def get_form_class(self):
     if self.require_confirmation:
@@ -73,6 +77,7 @@ def get_form_kwargs(self):
 ```
 
 **Alternatives considered**:
+
 - Validate the match in `form_valid()` (existing approach). Rejected: `form_valid()` should be the "all-OK" path; adding a conditional re-render inside it blurs the `valid/invalid` contract.
 - Subclass `DeleteConfirmForm` per view to hardcode the value. Rejected: unnecessary coupling; `get_form_kwargs()` is the idiomatic injection point.
 
@@ -86,6 +91,7 @@ def get_form_kwargs(self):
 `Collector.collect()` raises `ProtectedError` if any `PROTECT` FK references the object. Otherwise `collector.data` yields `{model: set-of-instances}` for all cascade relations. This is the same code path Django's own delete machinery uses, so the displayed data exactly matches what `object.delete()` would do — no possibility of divergence.
 
 **Caching strategy**: `_collect_deletion_data()` is called at most once per request path:
+
 - GET: called from `get_context_data()`.
 - POST (protection check): called from `post()` override before form processing.
 - POST (form_invalid re-render): called again from `get_context_data()`.
@@ -93,6 +99,7 @@ def get_form_kwargs(self):
 For a delete view, a maximum of two Collector traversals per request is acceptable. No explicit caching is added to keep the code simple (the view is not performance-critical and the dataset is bounded by the model's FK graph).
 
 **Alternatives considered**:
+
 - Cache via `functools.cached_property`. Would save one traversal on the POST→invalid path but adds complexity. Deferred: not worth the added surface area for this feature.
 - Use `QuerySet.delete(keep_parents=True)` to get related counts. Rejected: `delete()` on a queryset does not raise `ProtectedError` for a single object lookup pre-deletion; the Collector is the right tool.
 
@@ -106,6 +113,7 @@ For a delete view, a maximum of two Collector traversals per request is acceptab
 Keeping truncation in the view keeps the template dumb — it just iterates `display_list` and conditionally renders "… and N more" when `overflow_count > 0`. The cap is a class attribute so developers can raise or lower it without subclassing beyond changing the value.
 
 **Context structure**:
+
 ```python
 # In get_context_data():
 related_objects = []
@@ -119,6 +127,7 @@ context["related_objects"] = related_objects
 ```
 
 **Alternatives considered**:
+
 - Do truncation in the template with `|slice`. Rejected: pushes business logic into templates; the overflow count cannot be computed in a template filter without custom tags.
 - Always load all instances (no cap). Rejected: a model with thousands of cascade children would fill memory and produce an unusable page.
 
@@ -134,24 +143,26 @@ context["related_objects"] = related_objects
 `get_success_message({})` (from `MVPModelFormBase`) is still used for message formatting — it injects `verbose_name` into the template — so the message text machinery is inherited correctly.
 
 **Alternatives considered**:
+
 - Call `super().form_valid(form)` to trigger `SuccessMessageMixin`. Rejected: Django's `DeletionMixin.form_valid()` calls `self.object.delete()` which would double-delete.
 
 ---
 
 ## 6. `get_success_url()` and post-delete redirect
 
-**Decision**: Override `get_success_url()` to return `get_next_url()` (validated `?next=` param) or fall back to the list URL — never to `object.get_absolute_url()`.
+**Decision**: Minimal override — call `super().get_success_url()` (inheriting steps 1–3 from `MVPModelFormBase`) and catch `ImproperlyConfigured` to replace step 4 (`object.get_absolute_url()`) with `resolve_crud_url("list")`.
 
 **Rationale**:  
-After deletion the object no longer exists; its URL would return a 404. The object-based fallback in `MVPModelFormBase.get_success_url()` must be suppressed. The delete view's redirect priority is:
-1. Validated `?next=` POST parameter (via `NextURLMixin`)
-2. List view URL from CRUD directory
+After deletion the object no longer exists; `object.get_absolute_url()` would return a 404. `MVPModelFormBase.get_success_url()` already implements the full priority chain (next URL → success_url shorthand → success_url literal → object URL → raise). The delete view's only special requirement is suppressing step 4. Duplicating the full chain in `MVPDeleteView` would be redundant.
 
-No `success_url` class attribute fallback is needed because the list URL is always a valid fallback. However, developers can still set `success_url` as a literal URL if they want a custom destination — this is handled by overriding `get_success_url()` to check `self.success_url` before falling back to the list.
+**Full priority chain** (inherited + patched):
 
-**Full priority chain**:
 ```
-?next= param → success_url (if set) → list URL (CRUD directory)
+1. get_next_url()          → validated ?next= / CRUD shorthand (from MVPModelFormBase)
+2. success_url as shorthand → resolved via resolve_crud_url() (from MVPModelFormBase)
+3. success_url literal      → used verbatim (from MVPModelFormBase)
+4. resolve_crud_url("list") → list URL fallback (DELETE override — replaces object.get_absolute_url())
+5. ImproperlyConfigured     → raised if list URL is also unresolvable
 ```
 
 ---

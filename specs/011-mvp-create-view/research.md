@@ -81,11 +81,12 @@ targeted override on `MVPCreateView` only, leaving `MVPModelFormBase`,
 `MVPUpdateView`, and `MVPDeleteView` unaffected (preserving FR-010).
 
 **Alternatives considered**:
+
 1. Change `MVPModelFormBase.get_success_message()` to always title-case — rejected;
    violates FR-010 (would affect UpdateView and DeleteView tests).
 2. Use a capitalised `verbose_name` in the `success_message` template string via
    a custom template filter — overly complex; no existing filter for in-string title-casing.
-3. Change the `success_message` default to use `%(verbose_name_title)s` — requires
+3. Change the `success_message` default to use `%(verbose_name)s` — requires
    injecting a new key; more invasive than a local override.
 
 ---
@@ -106,6 +107,7 @@ class (or relocate them to use a `MVPUpdateView`-based helper) to test
 `TestMVPCreateViewSuccessMessage` class testing the title-cased output.
 
 **Affected tests**:
+
 - `TestGetSuccessMessage.test_verbose_name_only_resolves` — asserts `"product created."`
 - `TestGetSuccessMessage.test_missing_field_placeholder_substitutes_empty_string` — asserts lowercase verbose_name
 - `TestGetSuccessMessage.test_field_value_and_verbose_name_both_resolve` — asserts lowercase verbose_name

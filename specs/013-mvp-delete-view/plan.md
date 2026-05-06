@@ -183,22 +183,17 @@ class MVPDeleteView(MVPModelFormBase, generic.DeleteView):
             context["related_objects"] = []
         return context
 
-    def get_next_url(self):
-        return super().get_next_url() or self.resolve_crud_url("list") or ""
-
     def get_success_url(self):
-        if next_url := super().get_next_url():
-            return next_url
-        raw = getattr(self, "success_url", None)
-        if raw:
-            try:
-                resolved = self.resolve_crud_url(str(raw))
-            except Exception:
-                resolved = None
-            if resolved:
-                return resolved
-            return str(raw)
-        return self.resolve_crud_url("list") or ""
+        # Inherit steps 1-3 from MVPModelFormBase (next URL → success_url shorthand → success_url literal).
+        # Override only to replace step 4 (object.get_absolute_url — 404 after deletion)
+        # with the list URL.
+        try:
+            return super().get_success_url()
+        except ImproperlyConfigured:
+            url = self.resolve_crud_url("list")
+            if url:
+                return url
+            raise
 ```
 
 ### `DeleteConfirmForm` — updated
@@ -252,4 +247,4 @@ No Constitution violations to justify. All design choices use the simplest adequ
 | Data Model | [data-model.md](data-model.md) | ✅ Complete |
 | API Contract | [contracts/view-api.md](contracts/view-api.md) | ✅ Complete |
 | Quickstart | [quickstart.md](quickstart.md) | ✅ Complete |
-| Tasks | tasks.md | ⏳ Pending (`/speckit.tasks`) |
+| Tasks | [tasks.md](tasks.md) | ✅ Complete |

@@ -7,6 +7,7 @@ from mvp.views import HomeView, PageView
 
 from . import views
 from .views import (
+    CategoryDeleteWithRelatedView,
     CategoryUpdateView,
     ContactFormView,
     FullShellDemoView,
@@ -70,6 +71,9 @@ urlpatterns = [
     ),
     # Category CRUD (partial — update only, no delete, used for US4 E2E verification)
     path("categories/<int:pk>/edit/", CategoryUpdateView.as_view(), name="category-update"),
+    path(
+        "categories/<int:pk>/delete/related/", CategoryDeleteWithRelatedView.as_view(), name="category-delete-related"
+    ),
     # 3rd Party Integration Demos
     path("datatables-demo/", views.DataTablesView.as_view(), name="datatables_demo"),
 ]

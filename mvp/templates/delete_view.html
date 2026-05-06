@@ -24,18 +24,24 @@
       {# ===== Scenario 2: Related-objects summary (opt-in) ===== #}
       <c-alert variant="info" class="mt-2">
         <strong>{% trans "The following related records will also be permanently deleted:" %}</strong>
-        {% for label, objs in related_objects %}
+        {% for label, objs, overflow in related_objects %}
           <p class="fw-semibold mb-1 mt-2">{{ label }}</p>
           <ul class="mb-0">
             {% for obj in objs %}<li>{{ obj }}</li>{% endfor %}
           </ul>
+          {% if overflow %}<p class="text-muted small mb-0">… and {{ overflow }} more</p>{% endif %}
         {% endfor %}
       </c-alert>
     {% endif %}
     {% if require_confirmation %}
       {# ===== Scenario 4: Type-to-confirm input (opt-in) ===== #}
-      {% if confirmation_error %}
-        <div class="alert alert-danger py-2 mt-2" role="alert">{{ confirmation_error }}</div>
+      {% if form.errors.confirmation %}
+        <div class="alert alert-danger py-2 mt-2" role="alert">
+          {% for error in form.errors.confirmation %}
+            {{ error }}
+            {% if not forloop.last %}{% endif %}
+          {% endfor %}
+        </div>
       {% endif %}
       <p class="mb-2 mt-3">
         {% blocktrans with val=confirmation_value %}To confirm, type <strong class="font-monospace">{{ val }}</strong> below:{% endblocktrans %}

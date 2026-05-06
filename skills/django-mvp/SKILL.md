@@ -708,8 +708,8 @@ Defaults provided automatically (no overrides needed):
 | `page_icon` | `"edit"` | class attribute |
 | `page_class` | `"mvp-form-page mvp-update-page"` | class attribute |
 | `get_page_title()` | `"Update {VerboseName}"` e.g. `"Update Product"` | derived from `model._meta.verbose_name` |
-| `success_message` | `"%(verbose_name_title)s successfully updated."` | class attribute |
-| `get_success_message()` | `"Product successfully updated."` | `verbose_name_title` key in template data |
+| `success_message` | `"%(verbose_name)s successfully updated."` | class attribute |
+| `get_success_message()` | `"Product successfully updated."` | `verbose_name` key in template data |
 
 ### `get_page_title()` — model-aware title
 
@@ -775,3 +775,117 @@ class ProductUpdateView(MVPUpdateView):
 
 **"500 page is broken / shows error"**
 - The 500 template CANNOT extend any base template. Make it fully self-contained HTML.
+
+---
+
+## Step 14 — Zero-Config Model Delete View (`MVPDeleteView`)
+
+`MVPDeleteView` handles four deletion scenarios through class attributes — no custom
+template or view logic needed for common cases.
+
+### Minimal usage
+
+```python
+# views.py
+class ProductDeleteView(MVPDeleteView):
+    model = Product
+    has_list_permission = True
+    has_detail_permission = True   # enables detail link in breadcrumb
+```
+
+Wire to a URL:
+
+```python
+urlpatterns = [
+    path("products/<int:pk>/delete/", ProductDeleteView.as_view(), name="product-delete"),
+]
+```
+
+### Four deletion scenarios
+
+| # | Scenario | Trigger |
+|---|----------|---------|
+| 1 | **Basic** — warning + Delete button | default |
+| 2 | **Related objects summary** — preview cascade deletes | `show_related_objects = True` |
+| 3 | **Protected** — hides Delete button, shows blocking records | auto-detected (PROTECT FK) |
+| 4 | **Type-to-confirm** — user must type the object name | `require_confirmation = True` |
+
+### Config attributes
+
+| Attribute | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `show_related_objects` | `bool` | `False` | Show cascade-deleted related records in a preview list. |
+| `require_confirmation` | `bool` | `False` | Require user to type the object name before Delete is enabled. |
+| `confirmation_label` | `str` | `"Type the name to confirm"` | Label for the confirmation input. |
+| `related_objects_max_per_group` | `int` | `25` | Max items shown per related-object group; excess shown as "… and N more". |
+
+### Override hooks
+
+| Method | Default | Description |
+|--------|---------|-------------|
+| `get_confirmation_value()` | `str(self.object)` | String the user must type. Override to use e.g. `self.object.slug`. |
+| `get_back_url()` | `?back` param or list URL | URL for the Go Back button. |
+| `get_breadcrumbs()` | List → Detail → Delete | Three-item trail; detail link requires `has_detail_permission = True`. |
+| `get_success_url()` | `?next=` → `success_url` → list URL | Does **not** fall back to `object.get_absolute_url()` (object no longer exists). |
+
+### Defaults provided automatically
+
+| Attribute / Method | Default value |
+|--------------------|---------------|
+| `page_icon` | `"delete"` |
+| `page_class` | `"mvp-delete-page"` |
+| `get_page_title()` | `"Delete {VerboseName}"` — e.g. `"Delete Product"` |
+| `success_message` | `"%(verbose_name)s successfully deleted."` |
+
+### Scenario 2: related objects preview
+
+```python
+class ArticleDeleteView(MVPDeleteView):
+    model = Article
+    show_related_objects = True
+    related_objects_max_per_group = 10   # default 25
+```
+
+When `show_related_objects = True`, `context["related_objects"]` is a list of
+`(label, objects, overflow)` tuples — one per related model group. The template
+renders each group with an overflow note when `overflow > 0`.
+
+### Scenario 4: type-to-confirm
+
+```python
+class ArticleDeleteView(MVPDeleteView):
+    model = Article
+    require_confirmation = True   # user must type str(article)
+
+    def get_confirmation_value(self):
+        return self.object.slug   # override: type slug instead of __str__
+```
+
+The Delete button is disabled via JavaScript until the input matches
+`confirmation_value`. The form is validated server-side via `DeleteConfirmForm`
+(from `mvp.forms`) which uses `clean_confirmation()` to compare against the expected
+value — protection against JavaScript bypass.
+
+### Redirect priority chain (`get_success_url()`)
+
+1. Validated same-origin `?next=` URL (or CRUD shorthand such as `"list"`)
+2. `success_url` class attribute (tried as CRUD shorthand first, then literal path)
+3. List URL from `resolve_crud_url("list")`
+4. Raises `ImproperlyConfigured`
+
+`get_absolute_url()` is intentionally skipped — the object does not exist after deletion.
+
+### Example — all options combined
+
+```python
+class OrderDeleteView(MVPDeleteView):
+    model = Order
+    show_related_objects = True
+    require_confirmation = True
+    related_objects_max_per_group = 5
+    has_list_permission = True
+    has_detail_permission = True
+
+    def get_confirmation_value(self):
+        return self.object.reference_number
+```

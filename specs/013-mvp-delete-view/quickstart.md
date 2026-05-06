@@ -143,6 +143,7 @@ Protection detection always takes precedence: when `is_protected=True`, both the
 ## Redirects: `?back` and `?next`
 
 The update view passes `?back=<update-url>&?next=<list-url>` to the delete view automatically. The delete view uses:
+
 - `?back=` for the Go Back button.
 - `?next=` (from the POST body) for the post-delete redirect destination.
 

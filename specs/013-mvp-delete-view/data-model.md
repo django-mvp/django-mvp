@@ -147,6 +147,7 @@ Context variables available to `delete_view.html` on both GET and the POST→inv
 ### `related_objects` tuple structure change
 
 The current shape `(label, objs_list)` becomes `(label, display_list, overflow_count)`:
+
 - `label` — `model._meta.verbose_name_plural.title()`
 - `display_list` — at most `related_objects_max_per_group` instances
 - `overflow_count` — `max(0, total - cap)` — zero means no truncation
@@ -160,6 +161,7 @@ The `delete_view.html` template must be updated to unpack all three elements and
 **File**: `mvp/templates/delete_view.html`
 
 Changes required:
+
 1. Update the related-objects loop from `{% for label, objs in related_objects %}` to `{% for label, objs, overflow in related_objects %}`.
 2. Add conditional overflow note inside the loop: `{% if overflow %}<p class="text-muted mb-0">… and {{ overflow }} more</p>{% endif %}`.
 3. No other structural changes — the four-scenario branching (`is_protected` / `related_objects` / `require_confirmation`) remains in place.

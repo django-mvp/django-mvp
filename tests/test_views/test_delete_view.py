@@ -1,8 +1,9 @@
 """Tests for MVPDeleteView — all four deletion scenarios."""
 
+from urllib.parse import parse_qs, urlparse
+
 import pytest
 from django.urls import reverse
-from urllib.parse import parse_qs, urlparse
 
 from mvp.forms import DeleteConfirmForm
 
@@ -16,6 +17,28 @@ class TestDeleteConfirmForm:
         form = DeleteConfirmForm(data={"confirmation": ""})
         assert not form.is_valid()
         assert "confirmation" in form.errors
+
+    def test_form_valid_when_confirmation_matches_value(self):
+        """(a) Matching confirmation_value → form is valid."""
+        form = DeleteConfirmForm(data={"confirmation": "correct"}, confirmation_value="correct")
+        assert form.is_valid()
+
+    def test_form_invalid_when_confirmation_does_not_match(self):
+        """(b) Non-matching confirmation_value → form is invalid."""
+        form = DeleteConfirmForm(data={"confirmation": "wrong"}, confirmation_value="correct")
+        assert not form.is_valid()
+        assert "confirmation" in form.errors
+
+    def test_form_invalid_when_confirmation_empty_with_value(self):
+        """(c) Empty input with confirmation_value set → invalid (required field)."""
+        form = DeleteConfirmForm(data={"confirmation": ""}, confirmation_value="correct")
+        assert not form.is_valid()
+        assert "confirmation" in form.errors
+
+    def test_form_valid_when_confirmation_value_is_none(self):
+        """(d) confirmation_value=None → no match check, any non-empty value is valid."""
+        form = DeleteConfirmForm(data={"confirmation": "x"}, confirmation_value=None)
+        assert form.is_valid()
 
 
 # ---------------------------------------------------------------------------
@@ -69,11 +92,50 @@ class TestMVPDeleteViewBasic:
         response = client.get(url)
         assert response.context["require_confirmation"] is False
 
+    def test_page_title_contains_verbose_name(self, client, product):
+        """(a) GET page title interpolates model verbose_name (e.g. 'Delete Product')."""
+        url = reverse("product-delete", kwargs={"pk": product.pk})
+        response = client.get(url)
+        assert "Product" in response.context["page"]["title"]
+        assert "Delete" in response.context["page"]["title"]
+
+    def test_breadcrumbs_has_three_items(self, client, product):
+        """(b) GET context breadcrumbs list has exactly 3 items."""
+        url = reverse("product-delete", kwargs={"pk": product.pk})
+        response = client.get(url)
+        assert len(response.context["page"]["breadcrumbs"]) == 3
+
     def test_post_deletes_object(self, client, product):
         url = reverse("product-delete", kwargs={"pk": product.pk})
         response = client.post(url)
         assert response.status_code == 302
         assert not Product.objects.filter(pk=product.pk).exists()
+
+    def test_post_redirects_to_list_url(self, client, product):
+        """(c) POST without body returns 302 to list URL."""
+        url = reverse("product-delete", kwargs={"pk": product.pk})
+        response = client.post(url)
+        assert response.status_code == 302
+        assert response["Location"] == reverse("product-list")
+
+    def test_post_shows_success_message(self, client, product):
+        """(e) POST deletion adds a success flash message."""
+        url = reverse("product-delete", kwargs={"pk": product.pk})
+        response = client.post(url, follow=True)
+        messages = list(response.context["messages"])
+        assert len(messages) == 1
+
+    def test_page_icon_is_delete(self, client, product):
+        """(g) page icon is 'delete' — FR-012 AdminLTE integration."""
+        url = reverse("product-delete", kwargs={"pk": product.pk})
+        response = client.get(url)
+        assert response.context["page"]["icon"] == "delete"
+
+    def test_page_class_contains_mvp_delete_page(self, client, product):
+        """(g) page class contains 'mvp-delete-page' — FR-012 AdminLTE integration."""
+        url = reverse("product-delete", kwargs={"pk": product.pk})
+        response = client.get(url)
+        assert "mvp-delete-page" in response.context["page"]["class"]
 
 
 # ---------------------------------------------------------------------------
@@ -102,11 +164,18 @@ class TestMVPDeleteViewBackUrl:
         response = client.get(url, {"back": "https://evil.com/"})
         assert response.context["back_url"] == reverse("product-list")
 
-    def test_next_url_defaults_to_list_when_absent(self, client, product):
-        """No ?next param → next_url falls back to the list URL."""
+    def test_next_url_is_none_when_absent(self, client, product):
+        """No ?next param → next_url is None (redirect handled by get_success_url())."""
         url = reverse("product-delete", kwargs={"pk": product.pk})
         response = client.get(url)
-        assert response.context["next_url"] == reverse("product-list")
+        assert response.context["next_url"] is None
+
+    def test_post_with_external_next_redirects_to_list(self, client, product):
+        """?next=https://evil.com/ on POST → redirects to list URL (open-redirect guard)."""
+        url = reverse("product-delete", kwargs={"pk": product.pk})
+        response = client.post(url, data={"next": "https://evil.com/"})
+        assert response.status_code == 302
+        assert response["Location"] == reverse("product-list")
 
 
 # ---------------------------------------------------------------------------
@@ -117,7 +186,7 @@ class TestMVPDeleteViewBackUrl:
 @pytest.mark.django_db
 class TestMVPDeleteViewRelatedObjects:
     def test_related_objects_hidden_when_flag_off(self, client, product):
-        """show_related_objects=False (default) → related_objects is empty."""
+        """(f) show_related_objects=False (default) → related_objects is empty."""
         url = reverse("product-delete", kwargs={"pk": product.pk})
         response = client.get(url)
         assert response.context["related_objects"] == []
@@ -137,6 +206,111 @@ class TestMVPDeleteViewRelatedObjects:
         assert response.context["is_protected"] is True
         assert response.context["related_objects"] == []
 
+    def test_related_objects_are_3_tuples(self, client, category):
+        """(a) Each element in related_objects is a 3-tuple (label, display_list, overflow)."""
+        # Create products to give the category cascade-deleted children
+        for i in range(2):
+            Product.objects.create(
+                name=f"Product {i}",
+                slug=f"product-{i}-cat-del",
+                category=category,
+                description="Test",
+                price="1.00",
+                sku=f"SKU-CAT-DEL-{i}",
+            )
+        url = reverse("category-delete-related", kwargs={"pk": category.pk})
+        response = client.get(url)
+        related = response.context["related_objects"]
+        assert isinstance(related, list)
+        for item in related:
+            assert len(item) == 3, f"Expected 3-tuple, got {len(item)}-tuple: {item}"
+
+    def test_related_objects_capped_at_max_per_group(self, client, category):
+        """(b) display list is capped at related_objects_max_per_group (3 in demo view)."""
+        # Create 5 products; cap is 3 in CategoryDeleteWithRelatedView
+        for i in range(5):
+            Product.objects.create(
+                name=f"Cap Product {i}",
+                slug=f"cap-product-{i}",
+                category=category,
+                description="Test",
+                price="1.00",
+                sku=f"SKU-CAP-{i}",
+            )
+        url = reverse("category-delete-related", kwargs={"pk": category.pk})
+        response = client.get(url)
+        related = response.context["related_objects"]
+        # Should have one group (Products)
+        assert len(related) == 1
+        label, display_list, overflow = related[0]
+        assert len(display_list) == 3  # capped at 3
+
+    def test_overflow_count_is_correct(self, client, category):
+        """(c) overflow count equals total - cap when objects exceed cap."""
+        for i in range(5):
+            Product.objects.create(
+                name=f"Overflow Prod {i}",
+                slug=f"overflow-prod-{i}",
+                category=category,
+                description="Test",
+                price="1.00",
+                sku=f"SKU-OVF-{i}",
+            )
+        url = reverse("category-delete-related", kwargs={"pk": category.pk})
+        response = client.get(url)
+        related = response.context["related_objects"]
+        _label, _display_list, overflow = related[0]
+        assert overflow == 2  # 5 - 3 = 2
+
+    def test_overflow_note_in_html(self, client, category):
+        """(d) overflow note appears in rendered HTML when objects exceed cap."""
+        for i in range(5):
+            Product.objects.create(
+                name=f"Html Overflow {i}",
+                slug=f"html-overflow-{i}",
+                category=category,
+                description="Test",
+                price="1.00",
+                sku=f"SKU-HTML-{i}",
+            )
+        url = reverse("category-delete-related", kwargs={"pk": category.pk})
+        response = client.get(url)
+        assert "and 2 more" in response.content.decode()
+
+    def test_no_overflow_note_when_within_cap(self, client, category):
+        """(e) No overflow note when objects <= cap."""
+        for i in range(2):
+            Product.objects.create(
+                name=f"No Overflow {i}",
+                slug=f"no-overflow-{i}",
+                category=category,
+                description="Test",
+                price="1.00",
+                sku=f"SKU-NOV-{i}",
+            )
+        url = reverse("category-delete-related", kwargs={"pk": category.pk})
+        response = client.get(url)
+        related = response.context["related_objects"]
+        _label, _display_list, overflow = related[0]
+        assert overflow == 0
+        assert "more" not in response.content.decode() or "0 more" not in response.content.decode()
+
+    def test_post_deletes_when_cascade_related_objects_exist(self, client, category):
+        """(g) POST deletes correctly when cascade-related objects exist."""
+        product_pk = Product.objects.create(
+            name="Cascade Delete Me",
+            slug="cascade-del-me",
+            category=category,
+            description="Test",
+            price="1.00",
+            sku="SKU-CASCADE-ME",
+        ).pk
+        url = reverse("category-delete-related", kwargs={"pk": category.pk})
+        response = client.post(url)
+        assert response.status_code == 302
+        assert not Category.objects.filter(pk=category.pk).exists()
+        assert not Product.objects.filter(pk=product_pk).exists()
+
 
 # ---------------------------------------------------------------------------
 # Scenario 3: Protected object
@@ -146,10 +320,11 @@ class TestMVPDeleteViewRelatedObjects:
 @pytest.mark.django_db
 class TestMVPDeleteViewProtected:
     def test_get_shows_protected_flag_when_orderline_exists(self, client, product):
-        """A product with an OrderLine (PROTECT) must show is_protected=True."""
+        """(a) GET with protected object returns 200 with is_protected=True in context."""
         OrderLine.objects.create(product=product, quantity=1)
         url = reverse("product-delete", kwargs={"pk": product.pk})
         response = client.get(url)
+        assert response.status_code == 200
         assert response.context["is_protected"] is True
 
     def test_get_lists_protected_objects(self, client, product):
@@ -159,12 +334,21 @@ class TestMVPDeleteViewProtected:
         response = client.get(url)
         assert line in response.context["protected_objects"]
 
+    def test_get_html_has_no_delete_button_when_protected(self, client, product):
+        """(b) HTML contains protection explanation but no Delete button."""
+        OrderLine.objects.create(product=product, quantity=1)
+        url = reverse("product-delete", kwargs={"pk": product.pk})
+        response = client.get(url)
+        content = response.content.decode()
+        assert "cannot be deleted" in content
+        # Delete submit button must not be present
+        assert 'type="submit"' not in content
+
     def test_post_does_not_delete_protected_object(self, client, product):
-        """POSTing to delete a protected product must NOT delete it."""
+        """(c) POST to protected object returns 200 (re-render), not 302 or 500; (d) not deleted."""
         OrderLine.objects.create(product=product, quantity=1)
         url = reverse("product-delete", kwargs={"pk": product.pk})
         response = client.post(url)
-        # Re-renders the page (200) instead of redirecting
         assert response.status_code == 200
         assert Product.objects.filter(pk=product.pk).exists()
 
@@ -201,9 +385,10 @@ class TestMVPDeleteViewTypeToConfirm:
         assert Product.objects.filter(pk=product.pk).exists()
 
     def test_post_wrong_confirmation_shows_error(self, client, product):
+        """Wrong confirmation value returns 200 with form.errors["confirmation"]."""
         url = reverse("product-delete-confirm", kwargs={"pk": product.pk})
         response = client.post(url, data={"confirmation": "wrong-value"})
-        assert response.context["confirmation_error"] != ""
+        assert "confirmation" in response.context["form"].errors
 
     def test_post_correct_confirmation_deletes_object(self, client, product):
         url = reverse("product-delete-confirm", kwargs={"pk": product.pk})
@@ -224,7 +409,7 @@ class TestMVPDeleteViewTypeToConfirm:
 
 
 def test_mvp_delete_view_in_public_api():
-    from mvp.views import MVPDeleteView  # noqa: F401 — must not raise
+    from mvp.views import MVPDeleteView
 
     assert MVPDeleteView is not None
 
