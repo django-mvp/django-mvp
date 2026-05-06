@@ -1026,3 +1026,92 @@ class ProductListView(MVPListViewMixin, FilterView):
 Both `search_fields` and `order_by` are individually optional — omit either to leave that
 dimension unconfigured (no-op).
 
+---
+
+## MVPListView — Concrete list view
+
+`MVPListView` is the ready-to-use concrete class. Subclass it with only `model` to get a
+fully functional, paginated, searchable, orderable list page.
+
+```python
+from mvp.views.list import MVPListView
+
+class ProductListView(MVPListView):
+    model = Product
+    # That's it — paginated (24/page), searchable, orderable.
+```
+
+### Class attributes
+
+| Attribute | Default | Description |
+|-----------|---------|-------------|
+| `paginate_by` | `24` | Page size. 24 is divisible by 1, 2, 3, and 4 — safe for any grid column count. |
+| `list_item_template` | `None` | Explicit path to the partial template for each item. When `None`, the path is derived from the model: `<app_label>/<model_name>_list_item.html`. |
+| `grid` | `{}` | Responsive grid breakpoint dict, passed through to context as `grid_config` unchanged. |
+| `empty_state_heading` | `_("There's nothing here yet")` | Heading shown when the queryset is empty. Set to `None` to suppress. |
+| `empty_state_message` | `_("You haven't added any records yet…")` | Body text shown when empty. Set to `None` to suppress the paragraph. |
+| `page_title` | `""` | Overrides the model-derived title. Falsy value falls back to `model._meta.verbose_name_plural.title()`. |
+| `search_fields` | `None` | ORM field paths for `?q=` search (inherited from `SearchMixin`). |
+| `order_by` | `None` | Three-tuple whitelist for `?o=` ordering (inherited from `OrderMixin`). |
+| `directory` | `["create"]` | CRUD actions exposed from the list page. Only `"create"` is included by default. |
+
+### Override hooks
+
+| Method | Purpose |
+|--------|---------|
+| `get_list_item_template()` | Return the item partial path. Override for full control. |
+| `get_empty_state_heading()` | Return the empty-state heading string (or `None`). |
+| `get_empty_state_message()` | Return the empty-state message string (or `None`). |
+| `get_grid_config()` | Return the grid breakpoint dict passed to context. |
+| `get_page_title()` | Return the page title; falls back to `verbose_name_plural.title()`. |
+| `get_breadcrumbs()` | Return the breadcrumb list. Default: Home + page title. |
+| `get_search_fields()` | Inherited from `SearchMixin`. |
+| `get_order_by_choices()` | Inherited from `OrderMixin`. |
+
+### Context variables
+
+| Key | Type | Description |
+|-----|------|-------------|
+| `list_item_template` | `str` | Resolved partial template path. |
+| `empty_state` | `dict` | `{"heading": str\|None, "message": str\|None}`. |
+| `grid_config` | `dict` | Grid breakpoint configuration (may be `{}`). |
+| `directory` | `dict` | CRUD URLs. Only `create_url` is injected (when `has_create_permission=True`). |
+| `search_query` | `str` | Active `?q=` value, or `""`. Always injected. |
+| `is_searchable` | `bool` | Whether `search_fields` is configured. |
+| `page` | `dict` | PageMixin metadata — `title`, `subtitle`, `icon`, `class`, `breadcrumbs`. |
+
+### Item template naming convention
+
+When `list_item_template` is not set, the path is derived automatically:
+
+```
+<app_label>/<model_name>_list_item.html
+```
+
+Examples:
+- `Product` in app `shop` → `shop/product_list_item.html`
+- `Category` in app `demo` → `demo/category_list_item.html`
+- `Order` in app `sales` → `sales/order_list_item.html`
+
+Override `list_item_template` for shared partials, or override `get_list_item_template()`
+for full programmatic control.
+
+### Using MVPListViewMixin for custom base class compositions
+
+Subclass `MVPListViewMixin` (not `MVPListView`) when you need to compose with another
+base class, such as `FilterView`:
+
+```python
+from mvp.views.list import MVPListViewMixin
+from django_filters.views import FilterView
+
+class ProductFilteredListView(MVPListViewMixin, FilterView):
+    model = Product
+    filterset_class = ProductFilter
+    search_fields = ["name", "description"]
+    list_item_template = "shop/product_card.html"
+```
+
+`MVPListViewMixin` does not declare `paginate_by` — set it on your subclass if needed.
+`MVPListView` adds `paginate_by = 24` on top of the mixin.
+

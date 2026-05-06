@@ -15,7 +15,7 @@ from django.test import RequestFactory
 from django.views.generic import ListView
 
 from demo.models import Category, Product
-from mvp.views.list import OrderMixin, SearchMixin, SearchOrderMixin
+from mvp.views.list import MVPListView, MVPListViewMixin, OrderMixin, SearchMixin, SearchOrderMixin
 
 # ---------------------------------------------------------------------------
 # Module-level stub view classes (needed for django_filters FilterView)
@@ -671,3 +671,325 @@ class TestDjangoFiltersNoOpCases:
 
         # No order_by means ?o= has no effect — model default ordering is used
         assert view.object_list.count() == 2
+
+
+# ---------------------------------------------------------------------------
+# MVPListViewMixin / MVPListView tests (specs/015-mvp-list-view/)
+# ---------------------------------------------------------------------------
+
+
+def _make_list_view(params=None, extra_attrs=None):
+    """Return a configured MVPListViewMixin+ListView stub with a fake GET request.
+
+    The returned view has ``request``, ``kwargs``, and ``args`` set.
+    Call ``get_queryset()`` and then set ``object_list`` before calling
+    ``get_context_data()``.
+    """
+    rf = RequestFactory()
+    request = rf.get("/", data=params or {})
+
+    attrs = {
+        "model": Product,
+        "template_name": "base.html",
+        **(extra_attrs or {}),
+    }
+    view_cls = type("StubListView", (MVPListViewMixin, ListView), attrs)
+    view = view_cls()
+    view.request = request
+    view.kwargs = {}
+    view.args = []
+    return view
+
+
+# ---------------------------------------------------------------------------
+# US1 — Zero-Config List Page (T010–T015)
+# ---------------------------------------------------------------------------
+
+
+class TestMVPListViewMixinZeroConfig:
+    """[015-US1] Zero-config list page with only model declared."""
+
+    def test_zero_config_page_renders(self, db, cat):
+        """[015-US1] View with only model produces a valid context without error."""
+        _product(cat, "Alpha")
+        view = _make_list_view()
+        view.object_list = view.get_queryset()
+        ctx = view.get_context_data()
+        assert ctx is not None
+
+    def test_default_page_title_from_model(self, db):
+        """[015-US1] page.title equals model verbose_name_plural.title() by default."""
+        view = _make_list_view()
+        view.object_list = view.get_queryset()
+        ctx = view.get_context_data()
+        expected = Product._meta.verbose_name_plural.title()
+        assert ctx["page"]["title"] == expected
+
+    def test_default_list_item_template_convention(self, db):
+        """[015-US1] list_item_template follows <app_label>/<model_name>_list_item.html."""
+        view = _make_list_view()
+        view.object_list = view.get_queryset()
+        ctx = view.get_context_data()
+        assert ctx["list_item_template"] == "demo/product_list_item.html"
+
+    def test_default_paginate_by(self):
+        """[015-US1] MVPListView.paginate_by == 24 by default."""
+        assert MVPListView.paginate_by == 24
+
+
+# ---------------------------------------------------------------------------
+# US2 — Item Template Convention and Override (T016–T020)
+# ---------------------------------------------------------------------------
+
+
+class TestMVPListViewMixinItemTemplate:
+    """[015-US2] Item template convention and explicit override."""
+
+    def test_explicit_list_item_template_overrides_convention(self, db):
+        """[015-US2] Explicit list_item_template takes precedence over convention."""
+        view = _make_list_view(extra_attrs={"list_item_template": "shared/item.html"})
+        view.object_list = view.get_queryset()
+        ctx = view.get_context_data()
+        assert ctx["list_item_template"] == "shared/item.html"
+
+    def test_list_item_template_convention_uses_app_label_and_model_name(self, db):
+        """[015-US2] Convention uses model._meta.app_label and model._meta.model_name."""
+        view = _make_list_view(extra_attrs={"model": Category})
+        view.object_list = view.get_queryset()
+        ctx = view.get_context_data()
+        assert ctx["list_item_template"] == "demo/category_list_item.html"
+
+    def test_list_item_template_convention_different_app_label(self):
+        """[015-US2] Convention produces correct path for arbitrary app_label/model_name."""
+        import types
+
+        meta = types.SimpleNamespace(app_label="sales", model_name="order")
+        MockModel = type("MockModel", (), {"_meta": meta})
+
+        rf = RequestFactory()
+        request = rf.get("/")
+        view_cls = type(
+            "StubListView",
+            (MVPListViewMixin, ListView),
+            {"model": MockModel, "list_item_template": None, "template_name": "base.html"},
+        )
+        view = view_cls()
+        view.request = request
+        view.kwargs = {}
+        view.args = []
+        assert view.get_list_item_template() == "sales/order_list_item.html"
+
+    def test_empty_string_list_item_template_falls_back_to_convention(self, db):
+        """[015-US2] Empty string list_item_template falls back to the naming convention."""
+        view = _make_list_view(extra_attrs={"list_item_template": ""})
+        view.object_list = view.get_queryset()
+        ctx = view.get_context_data()
+        assert ctx["list_item_template"] == "demo/product_list_item.html"
+
+    def test_get_list_item_template_override_takes_full_precedence(self, db):
+        """[015-US2] Overriding get_list_item_template() bypasses attribute and convention."""
+        rf = RequestFactory()
+        request = rf.get("/")
+        view_cls = type(
+            "StubListView",
+            (MVPListViewMixin, ListView),
+            {
+                "model": Product,
+                "list_item_template": "should/be/ignored.html",
+                "template_name": "base.html",
+                "get_list_item_template": lambda self: "custom/override.html",
+            },
+        )
+        view = view_cls()
+        view.request = request
+        view.kwargs = {}
+        view.args = []
+        view.object_list = view.get_queryset()
+        ctx = view.get_context_data()
+        assert ctx["list_item_template"] == "custom/override.html"
+
+    def test_missing_model_and_template_raises_error(self):
+        """[015-US2] AttributeError raised when neither model nor list_item_template is set."""
+        rf = RequestFactory()
+        request = rf.get("/")
+        view_cls = type(
+            "StubListView",
+            (MVPListViewMixin, ListView),
+            {"model": None, "list_item_template": None, "template_name": "base.html"},
+        )
+        view = view_cls()
+        view.request = request
+        view.kwargs = {}
+        view.args = []
+        with pytest.raises(AttributeError):
+            view.get_list_item_template()
+
+
+# ---------------------------------------------------------------------------
+# US3 — Empty State Messaging (T021–T025)
+# ---------------------------------------------------------------------------
+
+
+class TestMVPListViewMixinEmptyState:
+    """[015-US3] Empty state context is always present and configurable."""
+
+    def test_empty_state_present_in_context_with_defaults(self, db):
+        """[015-US3] empty_state in context with non-empty heading and message."""
+        view = _make_list_view()
+        view.object_list = view.get_queryset()
+        ctx = view.get_context_data()
+        assert "empty_state" in ctx
+        assert ctx["empty_state"]["heading"]
+        assert ctx["empty_state"]["message"]
+
+    def test_empty_state_heading_override(self, db):
+        """[015-US3] empty_state_heading attribute overrides the default heading."""
+        view = _make_list_view(extra_attrs={"empty_state_heading": "No products found"})
+        view.object_list = view.get_queryset()
+        ctx = view.get_context_data()
+        assert ctx["empty_state"]["heading"] == "No products found"
+
+    def test_empty_state_message_none_suppresses_message(self, db):
+        """[015-US3] empty_state_message = None results in empty_state.message is None."""
+        view = _make_list_view(extra_attrs={"empty_state_message": None})
+        view.object_list = view.get_queryset()
+        ctx = view.get_context_data()
+        assert ctx["empty_state"]["message"] is None
+
+    def test_empty_state_heading_none_suppresses_heading(self, db):
+        """[015-US3] empty_state_heading = None results in empty_state.heading is None."""
+        view = _make_list_view(extra_attrs={"empty_state_heading": None})
+        view.object_list = view.get_queryset()
+        ctx = view.get_context_data()
+        assert ctx["empty_state"]["heading"] is None
+
+
+# ---------------------------------------------------------------------------
+# US4 — "Create" Action Link from the List Page (T026–T029)
+# ---------------------------------------------------------------------------
+
+
+class TestMVPListViewMixinDirectory:
+    """[015-US4] directory is limited to create-only; create_url absent by default."""
+
+    def test_directory_attribute_is_create_only(self):
+        """[015-US4] MVPListViewMixin.directory == ["create"]."""
+        assert MVPListViewMixin.directory == ["create"]
+
+    def test_create_url_absent_when_permission_false(self, db):
+        """[015-US4] directory context does not contain create_url when has_create_permission=False."""
+        view = _make_list_view()  # has_create_permission=False by default
+        view.object_list = view.get_queryset()
+        ctx = view.get_context_data()
+        assert "create_url" not in ctx["directory"]
+
+    def test_no_detail_update_delete_urls_in_directory(self, db):
+        """[015-US4] directory context never contains detail_url, update_url, or delete_url."""
+        view = _make_list_view()  # has_create_permission=False avoids URL resolution
+        view.object_list = view.get_queryset()
+        ctx = view.get_context_data()
+        assert "detail_url" not in ctx["directory"]
+        assert "update_url" not in ctx["directory"]
+        assert "delete_url" not in ctx["directory"]
+
+
+# ---------------------------------------------------------------------------
+# US5 — Grid Configuration (T030–T032)
+# ---------------------------------------------------------------------------
+
+
+class TestMVPListViewMixinGridConfig:
+    """[015-US5] grid dict is passed through to context as grid_config."""
+
+    def test_grid_config_passthrough(self, db):
+        """[015-US5] grid attribute is passed unchanged to context as grid_config."""
+        grid = {"sm": 1, "md": 2, "lg": 3}
+        view = _make_list_view(extra_attrs={"grid": grid})
+        view.object_list = view.get_queryset()
+        ctx = view.get_context_data()
+        assert ctx["grid_config"] == {"sm": 1, "md": 2, "lg": 3}
+
+    def test_grid_config_empty_dict_when_not_configured(self, db):
+        """[015-US5] grid_config is {} when grid attribute is not configured."""
+        view = _make_list_view()  # grid defaults to {}
+        view.object_list = view.get_queryset()
+        ctx = view.get_context_data()
+        assert ctx["grid_config"] == {}
+
+
+# ---------------------------------------------------------------------------
+# US6 — Search, Ordering, and Pagination Compose Cleanly (T033–T037)
+# ---------------------------------------------------------------------------
+
+
+class TestMVPListViewMixinSearchOrdering:
+    """[015-US6] search_query and current_ordering injected correctly into context."""
+
+    def test_search_query_in_context_when_search_active(self, db):
+        """[015-US6] search_query == 'foo' when ?q=foo submitted."""
+        view = _make_list_view(
+            params={"q": "foo"},
+            extra_attrs={"search_fields": ["name"]},
+        )
+        view.object_list = view.get_queryset()
+        ctx = view.get_context_data()
+        assert ctx["search_query"] == "foo"
+
+    def test_search_query_empty_when_not_configured(self, db):
+        """[015-US6] search_query == '' when no search_fields configured."""
+        view = _make_list_view(extra_attrs={"search_fields": None})
+        view.object_list = view.get_queryset()
+        ctx = view.get_context_data()
+        assert ctx["search_query"] == ""
+
+    def test_current_ordering_in_context_when_ordering_active(self, db):
+        """[015-US6] current_ordering == 'name_asc' when ?o=name_asc with matching whitelist."""
+        view = _make_list_view(
+            params={"o": "name_asc"},
+            extra_attrs={
+                "order_by": [("name_asc", "Name A-Z", "name"), ("name_desc", "Name Z-A", "-name")],
+            },
+        )
+        view.object_list = view.get_queryset()
+        ctx = view.get_context_data()
+        assert ctx["current_ordering"] == "name_asc"
+
+    def test_mvp_list_view_all_context_keys_present_with_defaults(self, db):
+        """[015-US6] All mandatory context keys present on a zero-config view."""
+        view = _make_list_view()
+        view.object_list = view.get_queryset()
+        ctx = view.get_context_data()
+        assert "list_item_template" in ctx
+        assert "empty_state" in ctx
+        assert "grid_config" in ctx
+        assert "directory" in ctx
+        assert "search_query" in ctx
+        assert "is_searchable" in ctx
+        assert "page" in ctx
+        assert "title" in ctx["page"]
+
+
+# ---------------------------------------------------------------------------
+# Phase 9 — Breadcrumbs and page_title override (T038–T039)
+# ---------------------------------------------------------------------------
+
+
+class TestMVPListViewMixinPageMetadata:
+    """[015] Breadcrumbs and page_title override via class attribute."""
+
+    def test_default_breadcrumbs_include_home_and_page_title(self, db):
+        """[015] Default breadcrumbs: Home link + model verbose_name_plural."""
+        view = _make_list_view()
+        view.object_list = view.get_queryset()
+        ctx = view.get_context_data()
+        breadcrumbs = ctx["page"]["breadcrumbs"]
+        assert breadcrumbs[0] == {"text": "Home", "href": "/"}
+        expected_title = Product._meta.verbose_name_plural.title()
+        assert breadcrumbs[1] == {"text": expected_title}
+
+    def test_page_title_attribute_overrides_model_derived_title(self, db):
+        """[015] page_title class attribute takes precedence over model-derived title."""
+        view = _make_list_view(extra_attrs={"page_title": "Our Catalogue"})
+        view.object_list = view.get_queryset()
+        ctx = view.get_context_data()
+        assert ctx["page"]["title"] == "Our Catalogue"

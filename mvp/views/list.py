@@ -275,9 +275,65 @@ class SearchOrderMixin(SearchMixin, OrderMixin):
 
 
 class MVPListViewMixin(BaseTemplateNameMixin, SearchOrderMixin, CRUDDirectoryMixin, PageMixin):
-    """Foundation mixin for django-mvp list views with search, ordering, pagination, and consistent styling."""
+    """Foundation mixin for paginated, searchable, orderable list pages with AdminLTE styling.
+
+    Composes ``BaseTemplateNameMixin``, ``SearchOrderMixin``, ``CRUDDirectoryMixin``, and
+    ``PageMixin`` into a single base class. Subclass this directly (instead of ``MVPListView``)
+    when you need to compose with another base class (e.g. ``FilterView``).
+
+    The mixin limits CRUD URL injection to the create action only (``directory = ["create"]``).
+    Detail, update, and delete URLs belong on object pages, not list pages.
+
+    Config:
+        base_template_name (str): Fallback template. Default: ``"list_view.html"``.
+        list_item_template (str | None): Explicit path to the partial template for each item.
+            When ``None`` (the default), the path is derived from the model's app label and
+            model name: ``"<app_label>/<model_name>_list_item.html"``.
+        grid (dict): Responsive grid breakpoint dict passed through to context unchanged
+            as ``grid_config``. Default: ``{}``.
+        empty_state_heading (str | None): Heading shown when the queryset is empty.
+            Default: ``_("There's nothing here yet")``.
+        empty_state_message (str | None): Body text shown when the queryset is empty. Set to
+            ``None`` to suppress the paragraph entirely. Default: translated library string.
+        page_title (str | Promise): Overrides the model-derived page title. When falsy, the
+            title falls back to ``model._meta.verbose_name_plural.title()``.
+        search_fields (list[str] | None): Inherited from ``SearchMixin``. Default: ``None``.
+        order_by (list[tuple] | None): Inherited from ``OrderMixin``. Default: ``None``.
+
+    Override hooks:
+        get_list_item_template(): Return the item partial path; override for full control.
+        get_empty_state_heading(): Return the empty-state heading string (or ``None``).
+        get_empty_state_message(): Return the empty-state message string (or ``None``).
+        get_grid_config(): Return the grid breakpoint dict passed to context.
+        get_page_title(): Return the page title; falls back to verbose_name_plural.title().
+        get_breadcrumbs(): Return the breadcrumb list. Default includes Home + page title.
+        get_search_fields(): Inherited from ``SearchMixin``.
+        get_order_by_choices(): Inherited from ``OrderMixin``.
+
+    Context (always injected):
+        list_item_template (str): Resolved partial template path.
+        empty_state (dict): ``{"heading": str | None, "message": str | None}``.
+        grid_config (dict): Grid breakpoint configuration (may be empty).
+        directory (dict): CRUD URLs; only ``create_url`` is injected (when permitted).
+        search_query (str): Active ``?q=`` value, or ``""``.
+        is_searchable (bool): Whether ``search_fields`` is configured.
+        page (dict): PageMixin metadata — ``title``, ``subtitle``, ``icon``, ``class``,
+            ``breadcrumbs``.
+
+    Example::
+
+        from mvp.views.list import MVPListViewMixin
+        from django_filters.views import FilterView
+
+        class ProductFilteredListView(MVPListViewMixin, FilterView):
+            model = Product
+            filterset_class = ProductFilter
+            search_fields = ["name", "description"]
+            list_item_template = "shop/product_card.html"
+    """
 
     base_template_name = "list_view.html"
+    directory = ["create"]
     list_item_template = None
     grid: dict = {}
     empty_state_heading: str | None = _("There's nothing here yet")
@@ -338,8 +394,9 @@ class MVPListViewMixin(BaseTemplateNameMixin, SearchOrderMixin, CRUDDirectoryMix
         return self.grid
 
     def get_page_title(self):
-        # NOTE: If self.page_title not set, this should default to the model_class verbose name plural if
-        pass
+        if self.page_title:
+            return self.page_title
+        return self.model._meta.verbose_name_plural.title()
 
     def get_breadcrumbs(self):
         # NOTE: Should we remove the Home breadcrumb by default, what is normal here?
@@ -350,9 +407,39 @@ class MVPListViewMixin(BaseTemplateNameMixin, SearchOrderMixin, CRUDDirectoryMix
 
 
 class MVPListView(MVPListViewMixin, ListView):
-    """Default list view class for django-mvp, combining search, ordering, pagination, and AdminLTE styling."""
+    """Concrete list view for django-mvp. Subclass with only ``model`` for a fully functional page.
 
-    pass
+    Extends ``MVPListViewMixin`` with a default ``paginate_by = 24`` (divisible by 1, 2, 3, and 4
+    — safe for single, two, three, and four-column grids). Override ``paginate_by`` on your
+    subclass to change the page size.
+
+    Config:
+        paginate_by (int): Default page size. Default: ``24``.
+        (all other config inherited from ``MVPListViewMixin``)
+
+    Override hooks:
+        (all hooks inherited from ``MVPListViewMixin``)
+
+    Example::
+
+        from mvp.views.list import MVPListView
+
+        class ProductListView(MVPListView):
+            model = Product
+            # That's it — paginated, searchable, orderable list page.
+
+
+        # With search and ordering:
+        class ProductListView(MVPListView):
+            model = Product
+            search_fields = ["name", "description"]
+            order_by = [
+                ("name_asc", "Name (A–Z)", "name"),
+                ("name_desc", "Name (Z–A)", "-name"),
+            ]
+    """
+
+    paginate_by = 24
 
 
 try:
