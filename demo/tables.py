@@ -2,6 +2,7 @@
 
 import django_tables2 as tables
 from django_tables2.utils import A  # alias for Accessor
+
 from demo.models import Product
 
 
@@ -42,6 +43,4 @@ class ProductTable(tables.Table):
             "created_at",
             "updated_at",
         )
-        empty_text = (
-            "No products available. Run 'poetry run python manage.py generate_dummy_data' to create sample data."
-        )
+        empty_text = "No products available. Run 'poetry run python manage.py generate_dummy_data' to create sample data."

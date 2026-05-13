@@ -45,7 +45,9 @@ class FullShellDemoView(TemplateView):
         context = super().get_context_data(**kwargs)
         context["fixed_sidebar"] = self.request.GET.get("fixed_sidebar", "on") == "on"
         context["fixed_header"] = self.request.GET.get("fixed_header", "on") == "on"
-        context["sidebar_collapsible"] = self.request.GET.get("sidebar_collapsible", "on") == "on"
+        context["sidebar_collapsible"] = (
+            self.request.GET.get("sidebar_collapsible", "on") == "on"
+        )
         context["sidebar_expand"] = self.request.GET.get("sidebar_expand", "lg")
         context["breakpoint"] = context["sidebar_expand"]
         return context

@@ -4,22 +4,22 @@
   <c-app :fill="fill"
          x-data="{
           'sidebar': $persist({
-            'expand': 'lg', 
+            'expand': 'lg',
             'fixed': false,
             'collapsible': false,
             'collapsed': false,
-            }), 
-          'fixedHeader': $persist(true), 
+            }),
+          'fixedHeader': $persist(true),
           'fixedFooter': $persist(true),
           'fill': $persist(false)
          }"
          x-bind:class="{
-          'fixed-footer': fixedFooter, 
-          'fixed-header': fixedHeader, 
+          'fixed-footer': fixedFooter,
+          'fixed-header': fixedHeader,
           'layout-fixed': sidebar.fixed,
           'sidebar-mini': sidebar.collapsible,
           'sidebar-open': ! sidebar.collapsed,
-          'sidebar-collapse': sidebar.collapsed   
+          'sidebar-collapse': sidebar.collapsed
          }">
   {# djlint:on #}
   <c-app.header>

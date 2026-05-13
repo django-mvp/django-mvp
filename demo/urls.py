@@ -58,7 +58,9 @@ urlpatterns = [
     path("products/create/", ProductCreateView.as_view(), name="product-create"),
     path("products/<int:pk>/", ProductDetailView.as_view(), name="product-detail"),
     path("products/<int:pk>/edit/", ProductUpdateView.as_view(), name="product-update"),
-    path("products/<int:pk>/delete/", ProductDeleteView.as_view(), name="product-delete"),
+    path(
+        "products/<int:pk>/delete/", ProductDeleteView.as_view(), name="product-delete"
+    ),
     path(
         "products/<int:pk>/delete/related/",
         ProductDeleteWithRelatedView.as_view(),
@@ -70,9 +72,15 @@ urlpatterns = [
         name="product-delete-confirm",
     ),
     # Category CRUD (partial — update only, no delete, used for US4 E2E verification)
-    path("categories/<int:pk>/edit/", CategoryUpdateView.as_view(), name="category-update"),
     path(
-        "categories/<int:pk>/delete/related/", CategoryDeleteWithRelatedView.as_view(), name="category-delete-related"
+        "categories/<int:pk>/edit/",
+        CategoryUpdateView.as_view(),
+        name="category-update",
+    ),
+    path(
+        "categories/<int:pk>/delete/related/",
+        CategoryDeleteWithRelatedView.as_view(),
+        name="category-delete-related",
     ),
     # 3rd Party Integration Demos
     path("datatables-demo/", views.DataTablesView.as_view(), name="datatables_demo"),
