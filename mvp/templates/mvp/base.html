@@ -40,6 +40,7 @@
         {% block title %}
           {{ mvp.brand.text|default:"Django MVP" }}
         {% endblock title %}
+        | {{ request.site.name }}
       </title>
       <meta name="viewport"
             content="width=device-width, initial-scale=1.0" />
@@ -76,7 +77,6 @@
               src="https://cdn.jsdelivr.net/npm/@alpinejs/sort@3.x.x/dist/cdn.min.js"></script>
       <script defer
               src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-      {% comment %} <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@4.0.0-rc3/dist/css/adminlte.min.css" crossorigin="anonymous" /> {% endcomment %}
       {# Inner Layout System Styles #}
       {% compress css %}
         <link type="text/x-scss"
@@ -106,14 +106,6 @@
           integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
           crossorigin="anonymous"></script>
   <script src="{% static "js/adminlte.min.js" %}"></script>
-  {# AdminLTE JS #}
-  {% comment %}
-  <script src="https://cdn.jsdelivr.net/npm/admin-lte@4.0.0-rc3/dist/js/adminlte.min.js"
-          {% endcomment %}
-          {% comment %}
-          crossorigin="anonymous"></script> {% endcomment %}
-  {# Theme Switcher JS #}
-  {# Inner Layout Toggle JS #}
   <script src="{% static 'js/page-layout.js' %}"></script>
   <script src="{% static 'js/sidebar-toggle.js' %}"></script>
   {% block extra_js %}

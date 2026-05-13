@@ -49,13 +49,16 @@ Usage:
         icon
         level="1"
         fs
+        container
+        fluid
         reverse
-        vspace="2"
+        tight
+        relaxed
         row="sm"
         center
         class
         gap="1" />
-<div class="mvp-toolbar {% if row == True %}flex-row align-items-center{% elif row %}flex-{{ row }}-row align-items-{{ row }}-center{% endif %}{% if center %} align-items-center{% endif %} {% if reverse %}mvp-toolbar--reverse{% endif %}{% if gap %} gap-{{ gap }}{% endif %} {{ class }}"
+<div class="mvp-toolbar{% if container %} container{% elif fluid %} container-fluid{% endif %} {% if row == True %}flex-row align-items-center{% elif row %}flex-{{ row }}-row align-items-{{ row }}-center{% endif %}{% if center %} align-items-center{% endif %} {% if reverse %}mvp-toolbar--reverse{% endif %}{% if gap %} gap-{{ gap }}{% endif %}{% if tight %} py-0{% elif relaxed %} py-3{% else %} py-2{% endif %} {{ class }}"
      {{ attrs }}>
   {% if title %}
     {# djlint:off #}
@@ -64,6 +67,6 @@ Usage:
     {{ title }}</h{{level}}>
     {# djlint:on #}
   {% endif %}
-  {% if start %}<div class="mvp-toolbar-start">{{ start }}</div>{% endif %}
+  <div class="mvp-toolbar-start">{{ start }}</div>
   {{ slot }}
 </div>

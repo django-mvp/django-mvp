@@ -145,8 +145,8 @@ class OrderMixin:
         class ProductListView(OrderMixin, ListView):
             model = Product
             order_by = [
-                ("name_asc", "Name (A–Z)", "name"),
-                ("name_desc", "Name (Z–A)", "-name"),
+                ("name_asc", "Name (A-Z)", "name"),
+                ("name_desc", "Name (Z-A)", "-name"),
                 ("newest", "Newest First", "-created_at"),
             ]
     """
@@ -258,8 +258,8 @@ class SearchOrderMixin(SearchMixin, OrderMixin):
             model = Product
             search_fields = ["name", "description"]
             order_by = [
-                ("name_asc", "Name (A–Z)", "name"),
-                ("name_desc", "Name (Z–A)", "-name"),
+                ("name_asc", "Name (A-Z)", "name"),
+                ("name_desc", "Name (Z-A)", "-name"),
             ]
 
 
@@ -268,7 +268,7 @@ class SearchOrderMixin(SearchMixin, OrderMixin):
             model = Product
             filterset_fields = ["category"]
             search_fields = ["name"]
-            order_by = [("name_asc", "Name (A–Z)", "name")]
+            order_by = [("name_asc", "Name (A-Z)", "name")]
     """
 
     pass
@@ -435,8 +435,8 @@ class MVPListView(MVPListViewMixin, ListView):
             model = Product
             search_fields = ["name", "description"]
             order_by = [
-                ("name_asc", "Name (A–Z)", "name"),
-                ("name_desc", "Name (Z–A)", "-name"),
+                ("name_asc", "Name (A-Z)", "name"),
+                ("name_desc", "Name (Z-A)", "-name"),
             ]
     """
 

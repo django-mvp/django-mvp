@@ -702,7 +702,7 @@ def _make_list_view(params=None, extra_attrs=None):
 
 
 # ---------------------------------------------------------------------------
-# US1 — Zero-Config List Page (T010–T015)
+# US1 - Zero-Config List Page (T010-T015)
 # ---------------------------------------------------------------------------
 
 
@@ -738,7 +738,7 @@ class TestMVPListViewMixinZeroConfig:
 
 
 # ---------------------------------------------------------------------------
-# US2 — Item Template Convention and Override (T016–T020)
+# US2 - Item Template Convention and Override (T016-T020)
 # ---------------------------------------------------------------------------
 
 
@@ -826,7 +826,7 @@ class TestMVPListViewMixinItemTemplate:
 
 
 # ---------------------------------------------------------------------------
-# US3 — Empty State Messaging (T021–T025)
+# US3 - Empty State Messaging (T021-T025)
 # ---------------------------------------------------------------------------
 
 
@@ -865,7 +865,7 @@ class TestMVPListViewMixinEmptyState:
 
 
 # ---------------------------------------------------------------------------
-# US4 — "Create" Action Link from the List Page (T026–T029)
+# US4 - "Create" Action Link from the List Page (T026-T029)
 # ---------------------------------------------------------------------------
 
 
@@ -894,7 +894,7 @@ class TestMVPListViewMixinDirectory:
 
 
 # ---------------------------------------------------------------------------
-# US5 — Grid Configuration (T030–T032)
+# US5 - Grid Configuration (T030-T032)
 # ---------------------------------------------------------------------------
 
 
@@ -918,7 +918,7 @@ class TestMVPListViewMixinGridConfig:
 
 
 # ---------------------------------------------------------------------------
-# US6 — Search, Ordering, and Pagination Compose Cleanly (T033–T037)
+# US6 - Search, Ordering, and Pagination Compose Cleanly (T033-T037)
 # ---------------------------------------------------------------------------
 
 
@@ -970,7 +970,7 @@ class TestMVPListViewMixinSearchOrdering:
 
 
 # ---------------------------------------------------------------------------
-# Phase 9 — Breadcrumbs and page_title override (T038–T039)
+# Phase 9 - Breadcrumbs and page_title override (T038-T039)
 # ---------------------------------------------------------------------------
 
 

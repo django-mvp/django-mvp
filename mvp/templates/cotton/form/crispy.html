@@ -1,2 +1,7 @@
 {% load crispy_forms_tags %}
-{{ form|crispy }}
+{% comment %} If the form has a helper method, we MUST use the crispy tag. However, user must be sure to set form_tag = False {% endcomment %}
+{% if form.helper %}
+  {% crispy form %}
+{% else %}
+  {{ form|crispy }}
+{% endif %}

@@ -1,0 +1,43 @@
+// Bootstrap breakpoints (for reference)
+$breakpoint-sm: 576px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 992px;
+$breakpoint-xl: 1200px;
+$breakpoint-xxl: 1400px;
+
+.image-height {
+  // Public API: set any of these to override at that breakpoint and up.
+  // Unset breakpoint variables fall back to the previous breakpoint's value.
+  --height: auto;
+
+  // Private cascade chain — each resolves to the nearest smaller breakpoint
+  // that was explicitly set, or ultimately --height.
+  --_h-sm:  var(--height-sm,  var(--height));
+  --_h-md:  var(--height-md,  var(--_h-sm));
+  --_h-lg:  var(--height-lg,  var(--_h-md));
+  --_h-xl:  var(--height-xl,  var(--_h-lg));
+  --_h-xxl: var(--height-xxl, var(--_h-xl));
+
+  max-width: 100%;
+  height: var(--height);
+}
+
+@media (min-width: $breakpoint-sm) {
+  .image-height { height: var(--_h-sm); }
+}
+
+@media (min-width: $breakpoint-md) {
+  .image-height { height: var(--_h-md); }
+}
+
+@media (min-width: $breakpoint-lg) {
+  .image-height { height: var(--_h-lg); }
+}
+
+@media (min-width: $breakpoint-xl) {
+  .image-height { height: var(--_h-xl); }
+}
+
+@media (min-width: $breakpoint-xxl) {
+  .image-height { height: var(--_h-xxl); }
+}

@@ -9,7 +9,9 @@
       <c-slot name="header">
         <c-mvp-toolbar class="container-fluid mb">
           <c-slot name="start">
-            <c-breadcrumbs class="py-1" :items="page.breadcrumbs" />
+            {% block page.breadcrumbs %}
+              <c-breadcrumbs class="py-1" :items="page.breadcrumbs" />
+            {% endblock page.breadcrumbs %}
           </c-slot>
         </c-mvp-toolbar>
       </c-slot>

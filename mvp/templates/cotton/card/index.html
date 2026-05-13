@@ -11,6 +11,7 @@
     <c-mvp-toolbar :title="title"
                    level="5"
                    :icon="icon"
+                   relaxed
                    class="card-header">
       {% if actions %}
         <c-action-row>
@@ -23,8 +24,10 @@
     {{ slot }}
   </c-card.body>
   {% if footer_start or footer_end %}
-    <c-mvp-toolbar class="card-footer" :start="footer_start">
+    <c-mvp-toolbar class="card-footer" relaxed :start="footer_start">
       {{ footer_end }}
     </c-mvp-toolbar>
+  {% elif footer %}
+    {{ footer }}
   {% endif %}
 </c-card.wrapper>

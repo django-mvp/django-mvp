@@ -1,155 +1,104 @@
-# Implementation Plan: MVPListView — Item Templates and Composed List Page
+# Implementation Plan: [FEATURE]
 
-**Branch**: `015-mvp-list-view` | **Date**: 2026-05-06 | **Spec**: [spec.md](spec.md)  
-**Input**: Feature specification from `specs/015-mvp-list-view/spec.md`
+**Branch**: `[###-feature-name]` | **Date**: [DATE] | **Spec**: [link]
+**Input**: Feature specification from `/specs/[###-feature-name]/spec.md`
+
+**Note**: This template is filled in by the `/speckit.plan` command. See `.specify/templates/plan-template.md` for the execution workflow.
 
 ## Summary
 
-`MVPListViewMixin` and `MVPListView` already have most of the required infrastructure
-in place from earlier specs. This feature closes three open stubs and adds the
-Constitution-XII-compliant docstrings that are currently missing:
-
-1. **`get_page_title()` stub**: currently returns `None` (`pass`). Must return
-   `page_title` attribute when set; fall back to `model._meta.verbose_name_plural.title()`.
-2. **`directory` attribute not set**: `MVPListViewMixin` inherits `directory = []`
-   from `CRUDDirectoryMixin`. Must be set to `["create"]` to limit CRUD URL injection
-   to the create action only.
-3. **`MVPListView` missing `paginate_by`**: Must declare `paginate_by = 24` (grid-friendly
-   default, divisible by 1, 2, 3, and 4).
-4. **Docstrings**: `MVPListViewMixin` and `MVPListView` need Constitution-XII compliant
-   class docstrings with `Config:`, `Override hooks:`, and usage examples.
-5. **Tests**: `tests/test_views/test_list_view.py` needs new test cases for all five
-   items above (the existing file covers only `SearchMixin`/`OrderMixin`/`SearchOrderMixin`).
-6. **Skill update**: `skills/django-mvp/SKILL.md` needs an `MVPListView` entry documenting
-   the full developer-facing API.
-
-No new models, migrations, templates, Cotton components, or URL patterns are required.
+[Extract from feature spec: primary requirement + technical approach from research]
 
 ## Technical Context
 
-**Language/Version**: Python 3.12, Django 5.x  
-**Primary Dependencies**: django-mvp (internal), Django's `ListView`  
-**Storage**: N/A — no new models or migrations  
-**Testing**: pytest, pytest-django, factory-boy  
-**Target Platform**: Django web application (server-rendered), reusable library  
-**Project Type**: Reusable Django library  
-**Performance Goals**: No queryset overhead from `directory = ["create"]` when
-`has_create_permission` is falsy — `CRUDDirectoryMixin.get_directory()` already
-short-circuits on permission checks.  
-**Constraints**: `paginate_by = 24` default must not affect `MVPListViewMixin` itself
-(only `MVPListView`), preserving full control for custom base class compositions.  
-**Scale/Scope**: Three stub fixes + docstrings in one file; test additions to one
-existing test file; one skill doc update.
+<!--
+  ACTION REQUIRED: Replace the content in this section with the technical details
+  for the project. The structure here is presented in advisory capacity to guide
+  the iteration process.
+-->
+
+**Language/Version**: [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS CLARIFICATION]  
+**Primary Dependencies**: [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION]  
+**Storage**: [if applicable, e.g., PostgreSQL, CoreData, files or N/A]  
+**Testing**: [e.g., pytest, XCTest, cargo test or NEEDS CLARIFICATION]  
+**Target Platform**: [e.g., Linux server, iOS 15+, WASM or NEEDS CLARIFICATION]
+**Project Type**: [e.g., library/cli/web-service/mobile-app/compiler/desktop-app or NEEDS CLARIFICATION]  
+**Performance Goals**: [domain-specific, e.g., 1000 req/s, 10k lines/sec, 60 fps or NEEDS CLARIFICATION]  
+**Constraints**: [domain-specific, e.g., <200ms p95, <100MB memory, offline-capable or NEEDS CLARIFICATION]  
+**Scale/Scope**: [domain-specific, e.g., 10k users, 1M LOC, 50 screens or NEEDS CLARIFICATION]
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-checked after Phase 1 design.*
+*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-| Principle | Gate | Status | Notes |
-|---|---|---|---|
-| I. Design-First, Verify Implementation | Tests written for verified behaviour; `python manage.py check` after each story phase | ✅ PASS | Existing infrastructure verified; new test cases target the three stub fixes |
-| I. Story-Level Validation | Tasks grouped by user story; manage.py check + pytest required per phase | ✅ PASS | Required in tasks.md generation |
-| II. Documentation-First | Public API documented in quickstart and skill | ✅ PASS | [quickstart.md](quickstart.md), [contracts/view-api.md](contracts/view-api.md), `skills/django-mvp/SKILL.md` update required |
-| III. Component Quality & Accessibility | No new templates or Cotton components | ✅ PASS | Python-only changes |
-| IV. Config-Driven Design | All configuration via class attributes | ✅ PASS | `list_item_template`, `grid`, `empty_state_*`, `directory`, `paginate_by` |
-| V. Tooling & Consistency | Ruff + djlint must pass | ✅ PASS | Python-only changes; no template files added |
-| VI. UI Verification (playwright-mcp) | No new HTML/CSS/templates | ⚠️ REQUIRES TASK | Template files unchanged, but rendered output changes: page title was `None` (now model name), pagination controls activate at 24 records, "New" button eligibility changes. A Playwright verification task is required per Constitution VI. Added as T044 in tasks.md. |
-| VIII. End-to-End Testing (pytest-playwright) | E2E required when user-visible behaviour changes | ⚠️ REQUIRES TASK | Stub fixes produce user-visible changes (title, pagination). Playwright MCP verification (T044) satisfies the in-PR interactive check. No persistent pytest-playwright spec added (changes are behavior-restoring fixes, not new feature screens); T044 covers the acceptance gate. |
-| IX. Template Component Reuse | No new templates | ✅ PASS | No template changes |
-| X. django-mvp Skill Currency | `skills/django-mvp/SKILL.md` must document `MVPListView` API | ✅ PASS | Listed as required file change |
-| XI. Dual-Audience User Stories | Developer and end-user stories both present in spec | ✅ PASS | US1–US6 cover both audiences |
-| XII. View Class Docstring Completeness | `MVPListViewMixin` and `MVPListView` need full Config/Override hooks/Example docstrings | ✅ PASS | Listed as required change; both currently have placeholder docstrings |
-
-**Constitution Check result**: All gates PASS. No violations to justify.
+[Gates determined based on constitution file]
 
 ## Project Structure
 
 ### Documentation (this feature)
 
 ```text
-specs/015-mvp-list-view/
-├── plan.md              ← this file
-├── research.md          ← Phase 0 decisions
-├── data-model.md        ← attribute/context variable schema
-├── quickstart.md        ← developer quickstart
-├── contracts/
-│   └── view-api.md      ← public API contract for MVPListViewMixin and MVPListView
-└── tasks.md             ← Phase 2 output (/speckit.tasks command)
+specs/[###-feature]/
+├── plan.md              # This file (/speckit.plan command output)
+├── research.md          # Phase 0 output (/speckit.plan command)
+├── data-model.md        # Phase 1 output (/speckit.plan command)
+├── quickstart.md        # Phase 1 output (/speckit.plan command)
+├── contracts/           # Phase 1 output (/speckit.plan command)
+└── tasks.md             # Phase 2 output (/speckit.tasks command - NOT created by /speckit.plan)
 ```
 
-### Source Code
+### Source Code (repository root)
+<!--
+  ACTION REQUIRED: Replace the placeholder tree below with the concrete layout
+  for this feature. Delete unused options and expand the chosen structure with
+  real paths (e.g., apps/admin, packages/something). The delivered plan must
+  not include Option labels.
+-->
 
 ```text
-mvp/
-└── views/
-    └── list.py                         ← implement get_page_title(), set directory, add paginate_by, add docstrings (modify)
+# [REMOVE IF UNUSED] Option 1: Single project (DEFAULT)
+src/
+├── models/
+├── services/
+├── cli/
+└── lib/
 
 tests/
-└── test_views/
-    └── test_list_view.py               ← add MVPListViewMixin test cases (modify)
+├── contract/
+├── integration/
+└── unit/
 
-skills/
-└── django-mvp/
-    └── SKILL.md                        ← add MVPListView section (modify)
+# [REMOVE IF UNUSED] Option 2: Web application (when "frontend" + "backend" detected)
+backend/
+├── src/
+│   ├── models/
+│   ├── services/
+│   └── api/
+└── tests/
+
+frontend/
+├── src/
+│   ├── components/
+│   ├── pages/
+│   └── services/
+└── tests/
+
+# [REMOVE IF UNUSED] Option 3: Mobile + API (when "iOS/Android" detected)
+api/
+└── [same as backend above]
+
+ios/ or android/
+└── [platform-specific structure: feature modules, UI flows, platform tests]
 ```
 
-## Design Decisions
+**Structure Decision**: [Document the selected structure and reference the real
+directories captured above]
 
-### D1: `get_page_title()` implementation
+## Complexity Tracking
 
-```python
-def get_page_title(self):
-    if self.page_title:
-        return self.page_title
-    return self.model._meta.verbose_name_plural.title()
-```
+> **Fill ONLY if Constitution Check has violations that must be justified**
 
-`page_title` (inherited from `PageMixin`, default `""`) is checked for truthiness first.
-When truthy, it is returned as-is. When falsy (empty string, `None`, or unset), the model's
-`verbose_name_plural` is used. This mirrors the precedence pattern used by other views
-in the library (e.g., `MVPCreateView`).
-
-### D2: `directory = ["create"]` placement
-
-`directory = ["create"]` is set **on `MVPListViewMixin`**, not on `MVPListView`. This ensures
-that any custom view combining `MVPListViewMixin` with a non-`ListView` base class
-(e.g., `MVPFilteredListView`) also inherits the correct scoping. The attribute is defined at
-the mixin level to match where all other `MVPListViewMixin` class attributes live.
-
-### D3: `paginate_by = 24` placement
-
-`paginate_by = 24` is set **on `MVPListView`**, not on `MVPListViewMixin`. This keeps
-`MVPListViewMixin` neutral — developers combining it with custom base classes retain full
-control over pagination. 24 was chosen because it is the smallest even number divisible
-by 1, 2, 3, and 4, making it ideal for grid layouts of any common column count.
-
-### D4: Breadcrumb default
-
-The existing `get_breadcrumbs()` on `MVPListViewMixin` already returns:
-
-```python
-[{"text": _("Home"), "href": "/"}, {"text": self.get_page_title()}]
-```
-
-This satisfies FR-011. No change needed; the stub fix to `get_page_title()` (D1) makes
-the breadcrumb title correct automatically.
-
-### D5: Test helper for `MVPListViewMixin`
-
-A new `_make_list_view()` helper will be added to `test_list_view.py` alongside
-the existing `_make_search_view()` / `_make_order_view()` helpers. It produces a
-fully-wired `MVPListViewMixin + ListView` stub with `request`, `kwargs`, `args`,
-and `object_list` set, avoiding template rendering.
-
-## Constitution Check (post-design)
-
-All gates re-checked after Phase 1 design. No new violations introduced.
-
-- Principle XII: `MVPListViewMixin` docstring will include `Config:`, `Override hooks:`,
-  and a minimal 5-line usage example as mandated.
-- Principle II: `quickstart.md` and `contracts/view-api.md` are generated as part of this
-  plan; `skills/django-mvp/SKILL.md` update is a required task.
-- Principle I: All code changes are testable without running a server. `manage.py check`
-  is a required step in each story phase task.
-
-**Post-design Constitution Check result**: PASS.
+| Violation | Why Needed | Simpler Alternative Rejected Because |
+|-----------|------------|-------------------------------------|
+| [e.g., 4th project] | [current need] | [why 3 projects insufficient] |
+| [e.g., Repository pattern] | [specific problem] | [why direct DB access insufficient] |

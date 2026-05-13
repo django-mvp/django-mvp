@@ -1,0 +1,4 @@
+<c-vars impact small class text center tight />
+<p class="text-muted{% if center %} text-center{% endif %}{% if impact %} lead{% elif small %} small{% endif %}{% if tight %} mb-0{% endif %} {{ class }}">
+  {{ text }}{{ slot }}
+</p>

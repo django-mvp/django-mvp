@@ -1,6 +1,15 @@
-<form x-data="{}" {{ attrs }}>
+<c-vars renderer="crispy" form-obj />
+<form x-data="{form: {}}" {{ attrs }}>
   {% if method|lower == "post" %}
     {% csrf_token %}
   {% endif %}
+  {% if renderer and form_obj %}<c-component is="form.{{ renderer }}" />{% endif %}
   {{ slot }}
+  {% if actions %}
+    <c-mvp-toolbar>
+      <c-slot name="start">
+        {{ actions }}
+      </c-slot>
+    </c-mvp-toolbar>
+  {% endif %}
 </form>

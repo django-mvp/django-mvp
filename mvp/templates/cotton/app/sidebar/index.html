@@ -3,7 +3,9 @@
         brand_logo
         brand_icon
         brand_url="/"
-        class />
+        class
+        menu="AppMenu"
+        renderer="adminlte" />
 <aside class="app-sidebar shadow {{ class }}"
        data-bs-theme="dark">
   <c-app.sidebar.header text="{{ brand_text }}"
@@ -15,11 +17,10 @@
       {% if slot %}
         {{ slot }}
       {% else %}
-        {% render_menu "AppMenu" renderer="adminlte" %}
+        {% render_menu menu renderer=renderer %}
       {% endif %}
     </nav>
   </div>
-</aside>
 </aside>
 <div class="sidebar-overlay"
      data-lte-toggle="sidebar"

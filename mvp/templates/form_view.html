@@ -1,5 +1,5 @@
 {% extends "page_view.html" %}
-{% load crispy_forms_tags i18n %}
+{% load i18n %}
 {% block head %}
   {{ block.super }}
   {{ form.media.css }}
@@ -7,66 +7,72 @@
 {% block page.title %}
 {% endblock page.title %}
 {% block page.content %}
-  <c-dashboard>
-    <c-section>
-      <c-row class="justify-content-center">
-        <c-col col=12 md=9 lg=7>
-          <c-form method="post">
-            <div class="d-flex flex-column gap-3">
-              {% block form_col %}
-                <c-card title="{{ page.title }}" icon="{{ page.icon }}">
-                  {% comment %} If the form has a helper method, we MUST use the crispy tag. However, user must be sure to set form_tag = False {% endcomment %}
-                  {% if form.helper %}
-                    {% crispy form %}
-                  {% else %}
-                    {{ form|crispy }}
-                  {% endif %}
-                </c-card>
-              {% endblock form_col %}
-              <c-card class="p-1">
-                <c-action-row>
-                  {% block actions %}
-                    <c-button text="{% trans "Save entry" %}"
-                              type="submit"
-                              name="next"
-                              value="list"
-                              variant="primary" />
-                    {% comment %} <c-button text="{% trans "Save & view" %}"
-           type="submit"
-           name="next"
-           value="detail"
-           variant="primary"
-           outline /> {% endcomment %}
-                    <c-button text="{% trans "Save & add another" %}"
-                              type="submit"
-                              name="next"
-                              value="create"
-                              variant="primary"
-                              outline />
-                    <c-button text="{% trans "Save & continue editing" %}"
-                              type="submit"
-                              name="next"
-                              value="update"
-                              variant="primary"
-                              outline />
-                    {% if delete_url %}
-                      <c-button text="{% trans "Delete" %}"
-                                href="{{ delete_url }}"
-                                icon="delete"
-                                variant="danger" />
-                    {% endif %}
-                  {% endblock actions %}
-                </c-action-row>
-              </c-card>
-            </div>
-            {% if next_url %}<input type="hidden" name="next" value="{{ next_url }}" />{% endif %}
-          </c-form>
-        </c-col>
-      </c-row>
-    </c-section>
-  </c-dashboard>
+  <c-layouts.form-view>
+    <c-form.card title="{{ page.title }}"
+                 icon="{{ page.icon }}"
+                 method="post"
+                 action=".">
+      <c-slot name="form_actions">
+        {% block actions %}
+          <c-button text="{% trans "Save entry" %}"
+                    icon="arrow-right"
+                    type="submit"
+                    name="next"
+                    value="list"
+                    variant="primary" />
+          <c-button text="{% trans "Save & view" %}"
+                    type="submit"
+                    name="next"
+                    value="detail"
+                    variant="primary"
+                    outline />
+          <c-button text="{% trans "Save & add another" %}"
+                    type="submit"
+                    name="next"
+                    value="create"
+                    variant="primary"
+                    outline />
+          <c-button text="{% trans "Save & continue editing" %}"
+                    type="submit"
+                    name="next"
+                    value="update"
+                    variant="primary"
+                    outline />
+          {% if delete_url %}
+            <c-button text="{% trans "Delete" %}"
+                      href="{{ delete_url }}"
+                      icon="delete"
+                      variant="danger" />
+          {% endif %}
+        {% endblock actions %}
+      </c-slot>
+    </c-form.card>
+  </c-layouts.form-view>
 {% endblock page.content %}
 {% block extra_js %}
   {{ block.super }}
   {{ form.media.js }}
 {% endblock extra_js %}
+{% comment %} <c-form method="post">
+  <div class="d-flex flex-column gap-3">
+    {% block form_col %}
+      <c-card title="{{ page.title }}" icon="{{ page.icon }}">
+        <c-form.crispy />
+      </c-card>
+    {% endblock form_col %}
+    <c-card class="p-1">
+      <c-action-row>
+        {% block actions %}
+          <c-button text="{% trans "Save entry" %}" type="submit" name="next" value="list" variant="primary" />
+          <c-button text="{% trans "Save & view" %}" type="submit" name="next" value="detail" variant="primary" outline />
+          <c-button text="{% trans "Save & add another" %}" type="submit" name="next" value="create" variant="primary" outline />
+          <c-button text="{% trans "Save & continue editing" %}" type="submit" name="next" value="update" variant="primary" outline />
+          {% if delete_url %}
+            <c-button text="{% trans "Delete" %}" href="{{ delete_url }}" icon="delete" variant="danger" />
+          {% endif %}
+        {% endblock actions %}
+      </c-action-row>
+    </c-card>
+  </div>
+  {% if next_url %}<input type="hidden" name="next" value="{{ next_url }}" />{% endif %}
+</c-form> {% endcomment %}

@@ -1,5 +1,5 @@
-<c-vars class />
-<c-mvp-toolbar class="container-fluid py-2 border-top"
+<c-vars class :border="True" />
+<c-mvp-toolbar class="container-fluid py-2{% if border %} border-top{% endif %}"
                :attrs="attrs">
   {{ slot }}
 </c-mvp-toolbar>
