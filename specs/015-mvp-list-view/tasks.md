@@ -1,6 +1,6 @@
 # Tasks: MVPListView — Item Templates and Composed List Page
 
-**Input**: Design documents from `specs/015-mvp-list-view/`  
+**Input**: Design documents from `specs/015-mvp-list-view/`
 **Prerequisites**: [plan.md](plan.md) ✅ · [spec.md](spec.md) ✅ · [research.md](research.md) ✅ · [data-model.md](data-model.md) ✅ · [contracts/view-api.md](contracts/view-api.md) ✅ · [quickstart.md](quickstart.md) ✅
 
 ## Format: `[ID] [P?] [Story] Description`
@@ -209,6 +209,6 @@ Dev B: T016 + T017 (parallel) → T018 → T019 → T020  (US2 tests)
 2. Phases 3–8 are test-only additions that verify the already-implemented behaviour
 3. Phase 9 adds the skill doc and full suite confirmation
 
-**Total task count**: 43 tasks across 9 phases  
-**Tasks per user story**: US1 = 6, US2 = 5, US3 = 5, US4 = 4, US5 = 3, US6 = 5  
+**Total task count**: 43 tasks across 9 phases
+**Tasks per user story**: US1 = 6, US2 = 5, US3 = 5, US4 = 4, US5 = 3, US6 = 5
 **Parallel opportunities**: 16 tasks marked [P]

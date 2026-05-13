@@ -32,7 +32,7 @@ Django tries templates in this order:
 
 ### Rules
 
-- `base_template_name` **must** be set on every concrete subclass.  
+- `base_template_name` **must** be set on every concrete subclass.
   Leaving it as `None` (the default) raises `ImproperlyConfigured` at render time.
 - The base template is always appended **last** — view-specific templates always take priority.
 

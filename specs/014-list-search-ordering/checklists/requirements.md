@@ -1,7 +1,7 @@
 # Specification Quality Checklist: List Search and Ordering Mixins
 
-**Purpose**: Validate specification completeness and quality before proceeding to planning  
-**Created**: 2026-05-06  
+**Purpose**: Validate specification completeness and quality before proceeding to planning
+**Created**: 2026-05-06
 **Feature**: [spec.md](../spec.md)
 
 ## Content Quality

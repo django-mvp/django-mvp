@@ -1,8 +1,8 @@
 # Feature Specification: List Search and Ordering Mixins
 
-**Feature Branch**: `014-list-search-ordering`  
-**Created**: 2026-05-06  
-**Status**: Draft  
+**Feature Branch**: `014-list-search-ordering`
+**Created**: 2026-05-06
+**Status**: Draft
 **Input**: User description: "Any list view in this package should be able to offer ?q= text search across a set of declared fields with a single attribute. The search should behave the way users expect from Django admin: multi-word queries match records that contain any of the words in any of the configured fields. When no search fields are configured, the mixin should be a complete no-op — it should not filter anything or add unnecessary context. Additionally, any list view should be able to offer ?o= column ordering from a declared list of permitted options. The permitted-options design is intentional — it prevents users from passing arbitrary database field names as query parameters, which can expose column names or allow exploitation of database-level quirks. This spec defines how ordering is applied, how it is communicated back to the template, and what happens when an unrecognised ordering value is submitted. Finally, this spec defines a combined mixin for easily adding both search and ordering functionality to any views. Both functionalities MUST integrate with django_filters if present."
 
 ## Clarifications

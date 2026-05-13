@@ -1,14 +1,14 @@
 # API Contract: List Search and Ordering Mixins
 
-**Phase**: 1 — Design  
-**Feature**: [spec.md](../spec.md)  
+**Phase**: 1 — Design
+**Feature**: [spec.md](../spec.md)
 **Date**: 2026-05-06
 
 ---
 
 ## SearchMixin
 
-**Module**: `mvp.views.list`  
+**Module**: `mvp.views.list`
 **Import**: `from mvp.views import SearchMixin`
 
 ### Class Attributes
@@ -46,7 +46,7 @@
 
 ## OrderMixin
 
-**Module**: `mvp.views.list`  
+**Module**: `mvp.views.list`
 **Import**: `from mvp.views import OrderMixin`
 
 ### Class Attributes
@@ -100,7 +100,7 @@
 
 ## SearchOrderMixin
 
-**Module**: `mvp.views.list`  
+**Module**: `mvp.views.list`
 **Import**: `from mvp.views import SearchOrderMixin`
 
 A convenience mixin that combines `SearchMixin` and `OrderMixin`. Use this as the single mixin when a view needs both capabilities.

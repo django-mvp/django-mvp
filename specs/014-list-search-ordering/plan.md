@@ -1,6 +1,6 @@
 # Implementation Plan: List Search and Ordering Mixins
 
-**Branch**: `014-list-search-ordering` | **Date**: 2026-05-06 | **Spec**: [spec.md](spec.md)  
+**Branch**: `014-list-search-ordering` | **Date**: 2026-05-06 | **Spec**: [spec.md](spec.md)
 **Input**: Feature specification from `specs/014-list-search-ordering/spec.md`
 
 ## Summary
@@ -18,14 +18,14 @@ No new Django models, migrations, or template files are needed. The existing MRO
 
 ## Technical Context
 
-**Language/Version**: Python 3.12, Django 5.x  
-**Primary Dependencies**: django-mvp (internal), `django-filter` (optional dev dependency, used in `MVPFilteredListView`)  
-**Storage**: N/A — no new models or migrations  
-**Testing**: pytest, pytest-django, factory-boy; pytest-playwright for E2E  
-**Target Platform**: Django web application (server-rendered), reusable library  
-**Project Type**: Reusable Django library  
-**Performance Goals**: No queryset overhead when mixins are unconfigured — `search_fields = None` and `order_by = None` must be proven no-ops in tests.  
-**Constraints**: The `?o=` parameter value must never be passed directly to the ORM. The security whitelist must be the only code path that produces an ORM field name for `order_by()`.  
+**Language/Version**: Python 3.12, Django 5.x
+**Primary Dependencies**: django-mvp (internal), `django-filter` (optional dev dependency, used in `MVPFilteredListView`)
+**Storage**: N/A — no new models or migrations
+**Testing**: pytest, pytest-django, factory-boy; pytest-playwright for E2E
+**Target Platform**: Django web application (server-rendered), reusable library
+**Project Type**: Reusable Django library
+**Performance Goals**: No queryset overhead when mixins are unconfigured — `search_fields = None` and `order_by = None` must be proven no-ops in tests.
+**Constraints**: The `?o=` parameter value must never be passed directly to the ORM. The security whitelist must be the only code path that produces an ORM field name for `order_by()`.
 **Scale/Scope**: Three mixin classes in one file; one new test module; one quickstart update.
 
 ## Constitution Check

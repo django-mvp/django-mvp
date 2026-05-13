@@ -8,7 +8,7 @@
 
 **Decision**: Use Django 5.x `BaseDeleteView` form machinery (`FormMixin` + `DeletionMixin`) as the inheritance foundation rather than overriding `post()` monolithically.
 
-**Rationale**:  
+**Rationale**:
 In Django 5.x `BaseDeleteView` inherits from `DeletionMixin`, `FormMixin`, and `BaseDetailView`. `FormMixin` provides a well-defined `get_form()` / `get_form_class()` / `get_form_kwargs()` / `form_valid()` / `form_invalid()` pipeline that maps naturally onto all four delete scenarios:
 
 | Scenario | Form Class | Path |
@@ -28,7 +28,7 @@ In Django 5.x `BaseDeleteView` inherits from `DeletionMixin`, `FormMixin`, and `
 - `form_invalid(form)` — standard Django; re-renders the template with `form.errors` in context.
 - `post(request, *args, **kwargs)` — overridden to set `self.object` and run the protection check before invoking form machinery.
 
-**Alternatives considered**:  
+**Alternatives considered**:
 
 - Keep the monolithic `post()` override from the existing sketch. Rejected: forces all branching into one method, breaks separation of concerns, and cannot re-use Django's `form_valid`/`form_invalid` pipeline.
 - Use `delete()` override. Rejected: Django 5.x `BaseDeleteView` no longer calls `delete()`; it routes through `FormMixin.post()` → `form_valid()` instead.
@@ -39,7 +39,7 @@ In Django 5.x `BaseDeleteView` inherits from `DeletionMixin`, `FormMixin`, and `
 
 **Decision**: Move the confirmation-value match into the form itself rather than validating it manually in the view.
 
-**Rationale**:  
+**Rationale**:
 Injecting `confirmation_value` via `__init__` and validating it in `clean_confirmation()` means the form's `is_valid()` call handles both presence and match validation in one step. The view's `form_valid()` path is then unconditionally safe to delete — no second-layer check needed. This is idiomatic Django form design.
 
 **Implementation**:
@@ -87,7 +87,7 @@ def get_form_kwargs(self):
 
 **Decision**: Use `django.db.models.deletion.Collector` to gather cascade and protection data synchronously on page load.
 
-**Rationale**:  
+**Rationale**:
 `Collector.collect()` raises `ProtectedError` if any `PROTECT` FK references the object. Otherwise `collector.data` yields `{model: set-of-instances}` for all cascade relations. This is the same code path Django's own delete machinery uses, so the displayed data exactly matches what `object.delete()` would do — no possibility of divergence.
 
 **Caching strategy**: `_collect_deletion_data()` is called at most once per request path:
@@ -109,7 +109,7 @@ For a delete view, a maximum of two Collector traversals per request is acceptab
 
 **Decision**: Truncate each group at `related_objects_max_per_group` (default 25) in the view layer; pass a `(label, display_list, overflow_count)` triple to the template.
 
-**Rationale**:  
+**Rationale**:
 Keeping truncation in the view keeps the template dumb — it just iterates `display_list` and conditionally renders "… and N more" when `overflow_count > 0`. The cap is a class attribute so developers can raise or lower it without subclassing beyond changing the value.
 
 **Context structure**:
@@ -137,7 +137,7 @@ context["related_objects"] = related_objects
 
 **Decision**: Emit the success message directly in `MVPDeleteView.form_valid()` via `messages.success()` rather than relying on `SuccessMessageMixin`.
 
-**Rationale**:  
+**Rationale**:
 `MVPDeleteView` inherits `SuccessMessageMixin` through `MVPModelFormBase → MVPFormBase`. `SuccessMessageMixin.form_valid()` calls `super().form_valid()` first, then adds the message. Since `MVPDeleteView.form_valid()` overrides the entire method and does not call `super().form_valid()`, `SuccessMessageMixin` never fires. Calling `messages.success()` directly is the correct and explicit approach.
 
 `get_success_message({})` (from `MVPModelFormBase`) is still used for message formatting — it injects `verbose_name` into the template — so the message text machinery is inherited correctly.
@@ -152,7 +152,7 @@ context["related_objects"] = related_objects
 
 **Decision**: Minimal override — call `super().get_success_url()` (inheriting steps 1–3 from `MVPModelFormBase`) and catch `ImproperlyConfigured` to replace step 4 (`object.get_absolute_url()`) with `resolve_crud_url("list")`.
 
-**Rationale**:  
+**Rationale**:
 After deletion the object no longer exists; `object.get_absolute_url()` would return a 404. `MVPModelFormBase.get_success_url()` already implements the full priority chain (next URL → success_url shorthand → success_url literal → object URL → raise). The delete view's only special requirement is suppressing step 4. Duplicating the full chain in `MVPDeleteView` would be redundant.
 
 **Full priority chain** (inherited + patched):
@@ -171,7 +171,7 @@ After deletion the object no longer exists; `object.get_absolute_url()` would re
 
 **Decision**: List → Detail → Delete (three-level, mirrors `MVPUpdateView`).
 
-**Rationale**:  
+**Rationale**:
 The breadcrumb links are gated by `has_list_permission` and `has_detail_permission` respectively (via `resolve_crud_url()`). When a permission is absent, the link renders as plain text — consistent with `MVPUpdateView.get_breadcrumbs()`.
 
 ```python

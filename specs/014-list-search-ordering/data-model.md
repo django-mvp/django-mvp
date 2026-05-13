@@ -1,7 +1,7 @@
 # Data Model: List Search and Ordering Mixins
 
-**Phase**: 1 — Design  
-**Feature**: [spec.md](spec.md)  
+**Phase**: 1 — Design
+**Feature**: [spec.md](spec.md)
 **Date**: 2026-05-06
 
 ---

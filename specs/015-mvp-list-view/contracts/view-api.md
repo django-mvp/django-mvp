@@ -10,7 +10,7 @@ requires a version bump and migration note.
 
 ## Class: `MVPListViewMixin`
 
-**Module**: `mvp.views.list`  
+**Module**: `mvp.views.list`
 **MRO**: `BaseTemplateNameMixin → SearchOrderMixin → CRUDDirectoryMixin → PageMixin`
 
 ### Configuration Attributes (set on subclass)
@@ -50,7 +50,7 @@ def get_list_item_template(self) -> str:
     """
 
 def get_page_title(self) -> str:
-    """Return page title. page_title attribute takes precedence; 
+    """Return page title. page_title attribute takes precedence;
     falls back to model._meta.verbose_name_plural.title()."""
 
 def get_breadcrumbs(self) -> list[dict]:
@@ -83,7 +83,7 @@ def get_grid_config(self) -> dict:
 
 ## Class: `MVPListView`
 
-**Module**: `mvp.views.list`  
+**Module**: `mvp.views.list`
 **Bases**: `MVPListViewMixin, ListView`
 
 ### Class Attributes

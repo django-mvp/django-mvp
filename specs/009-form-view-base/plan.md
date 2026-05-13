@@ -28,14 +28,14 @@ task (T025).
 
 ## Technical Context
 
-**Language/Version**: Python 3.10–3.12, Django 4.2–5.x  
-**Primary Dependencies**: Django (`SuccessMessageMixin`, `FormMixin`, generic views), `collections.defaultdict`  
-**Storage**: N/A  
-**Testing**: pytest, pytest-django  
-**Target Platform**: Reusable Django app  
-**Project Type**: Library  
-**Performance Goals**: N/A  
-**Constraints**: Backward-compatible; must not alter Django's form processing or validation behavior  
+**Language/Version**: Python 3.10–3.12, Django 4.2–5.x
+**Primary Dependencies**: Django (`SuccessMessageMixin`, `FormMixin`, generic views), `collections.defaultdict`
+**Storage**: N/A
+**Testing**: pytest, pytest-django
+**Target Platform**: Reusable Django app
+**Project Type**: Library
+**Performance Goals**: N/A
+**Constraints**: Backward-compatible; must not alter Django's form processing or validation behavior
 **Scale/Scope**: Two base classes, one file (`mvp/views/edit.py`), seven new tests
 
 ## Constitution Check

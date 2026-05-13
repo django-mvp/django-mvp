@@ -1,8 +1,8 @@
 # Feature Specification: Document and Test Core View Mixins
 
-**Feature Branch**: `003-base-mixin-classes`  
-**Created**: May 2, 2026  
-**Status**: Draft  
+**Feature Branch**: `003-base-mixin-classes`
+**Created**: May 2, 2026
+**Status**: Draft
 **Input**: User description: "BaseTemplateMixin and PageMixin are two mixin classes that are inherited by essentially all other view classes. These need to be explicitly defined documented and tested."
 
 ## User Scenarios & Testing *(mandatory)*

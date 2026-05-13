@@ -1,7 +1,7 @@
 # Research: List Search and Ordering Mixins
 
-**Phase**: 0 — Pre-design research  
-**Feature**: [spec.md](spec.md)  
+**Phase**: 0 — Pre-design research
+**Feature**: [spec.md](spec.md)
 **Date**: 2026-05-06
 
 ---

@@ -1,7 +1,7 @@
 ﻿# Tasks: MVP Delete View
 
-**Feature**: `013-mvp-delete-view`  
-**Input**: `specs/013-mvp-delete-view/plan.md`, `specs/013-mvp-delete-view/spec.md`  
+**Feature**: `013-mvp-delete-view`
+**Input**: `specs/013-mvp-delete-view/plan.md`, `specs/013-mvp-delete-view/spec.md`
 **Branch**: `013-mvp-delete-view`
 
 ## Format: `[ID] [P?] [Story] Description`
@@ -199,4 +199,3 @@ T021
 > **Note**: The existing `MVPDeleteView` in `mvp/views/edit.py` is already substantially
 > implemented. These tasks perform targeted, incremental changes rather than a full rewrite.
 > Each task touches at most one class method or template block.
-

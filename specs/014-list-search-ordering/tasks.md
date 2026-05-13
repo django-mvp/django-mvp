@@ -4,7 +4,7 @@ description: "Task list for List Search and Ordering Mixins (014)"
 
 # Tasks: List Search and Ordering Mixins
 
-**Input**: Design documents from `specs/014-list-search-ordering/`  
+**Input**: Design documents from `specs/014-list-search-ordering/`
 **Prerequisites**: plan.md ✅, spec.md ✅, research.md ✅, data-model.md ✅, contracts/view-api.md ✅, quickstart.md ✅
 
 **Branch**: `014-list-search-ordering`
@@ -181,10 +181,10 @@ description: "Task list for List Search and Ordering Mixins (014)"
 
 ### Parallel Opportunities per Story
 
-**US1 (Phase 3)**: T011–T014 can all be written in parallel (different test classes, same file).  
-**US2 (Phase 4)**: T017–T020 can all be written in parallel.  
-**US3 (Phase 5)**: T023–T024 can be written in parallel; T022 (docstring) can be written in parallel with both.  
-**US4 (Phase 6)**: T026–T027 can be written in parallel.  
+**US1 (Phase 3)**: T011–T014 can all be written in parallel (different test classes, same file).
+**US2 (Phase 4)**: T017–T020 can all be written in parallel.
+**US3 (Phase 5)**: T023–T024 can be written in parallel; T022 (docstring) can be written in parallel with both.
+**US4 (Phase 6)**: T026–T027 can be written in parallel.
 **Polish (Phase 8)**: T035 (docstring), T036 (SKILL.md), T040 (CHANGELOG), T037 (lint) can all run in parallel.
 
 ---
@@ -195,5 +195,5 @@ description: "Task list for List Search and Ordering Mixins (014)"
 
 **Full feature**: Phases 5–8 add the combined `SearchOrderMixin` tests (US3), `django_filters` integration tests (US4), E2E Playwright coverage, and final skill/docstring polish.
 
-**Suggested execution order** (single developer, sequential):  
+**Suggested execution order** (single developer, sequential):
 Phase 1 → Phase 2 → Phase 3 (US1 tests + impl) → Phase 4 (US2 tests + impl) → Phase 5 → Phase 6 → Phase 7 → Phase 8

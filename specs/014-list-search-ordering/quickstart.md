@@ -1,6 +1,6 @@
 # Quickstart: List Search and Ordering Mixins
 
-**Feature**: 014 — List Search and Ordering  
+**Feature**: 014 — List Search and Ordering
 **Package**: `django-mvp`
 
 ---

@@ -8,7 +8,7 @@
 
 ## Class: `BaseTemplateNameMixin`
 
-**Module**: `mvp.views.base`  
+**Module**: `mvp.views.base`
 **Purpose**: Extends Django's template resolution to support a mandatory fallback base template. The most-specific template (from the concrete view) is tried first; the base template acts as a catch-all shell.
 
 ### Class Attributes
@@ -43,7 +43,7 @@
 
 ## Class: `PageMixin`
 
-**Module**: `mvp.views.base`  
+**Module**: `mvp.views.base`
 **Purpose**: Injects a `page` context dict into the template context, grouping all page-level rendering metadata (title, subtitle, icon, CSS class, breadcrumbs) under a single key to avoid namespace pollution.
 
 ### Class Attributes

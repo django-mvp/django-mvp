@@ -1,6 +1,6 @@
 # Implementation Plan: MVP Delete View
 
-**Branch**: `013-mvp-delete-view` | **Date**: 2026-05-05 | **Spec**: [spec.md](spec.md)  
+**Branch**: `013-mvp-delete-view` | **Date**: 2026-05-05 | **Spec**: [spec.md](spec.md)
 **Input**: Feature specification from `specs/013-mvp-delete-view/spec.md`
 
 ## Summary
@@ -9,14 +9,14 @@
 
 ## Technical Context
 
-**Language/Version**: Python 3.12, Django 5.x  
-**Primary Dependencies**: django-mvp (internal), django-cotton-bs5 (template components), Bootstrap 5 (CSS)  
-**Storage**: Django ORM (SQLite in development, PostgreSQL in production) — no new migrations  
-**Testing**: pytest, pytest-django, pytest-playwright, factory-boy  
-**Target Platform**: Django web application (server-rendered)  
-**Project Type**: Reusable Django library  
-**Performance Goals**: At most two `Collector` traversals per request (GET and POST→invalid). No caching needed — delete pages are low-traffic and the Collector traversal is bounded by the model's FK graph.  
-**Constraints**: Must not crash with an unhandled exception on `PROTECT` FK conflicts. Must not use `object.get_absolute_url()` as a post-delete redirect fallback.  
+**Language/Version**: Python 3.12, Django 5.x
+**Primary Dependencies**: django-mvp (internal), django-cotton-bs5 (template components), Bootstrap 5 (CSS)
+**Storage**: Django ORM (SQLite in development, PostgreSQL in production) — no new migrations
+**Testing**: pytest, pytest-django, pytest-playwright, factory-boy
+**Target Platform**: Django web application (server-rendered)
+**Project Type**: Reusable Django library
+**Performance Goals**: At most two `Collector` traversals per request (GET and POST→invalid). No caching needed — delete pages are low-traffic and the Collector traversal is bounded by the model's FK graph.
+**Constraints**: Must not crash with an unhandled exception on `PROTECT` FK conflicts. Must not use `object.get_absolute_url()` as a post-delete redirect fallback.
 **Scale/Scope**: Single class (`MVPDeleteView`) + one form (`DeleteConfirmForm`) + one template (`delete_view.html`) update.
 
 ## Constitution Check

@@ -6,7 +6,7 @@
 
 ## Class: `MVPDeleteView`
 
-**Module**: `mvp.views.edit` (re-exported from `mvp.views`)  
+**Module**: `mvp.views.edit` (re-exported from `mvp.views`)
 **Base classes**: `MVPModelFormBase`, `django.views.generic.DeleteView`
 
 A configurable Django class-based view that handles all four deletion scenarios — simple confirmation, related-objects summary, protected-record detection, and type-to-confirm — from a single class.
