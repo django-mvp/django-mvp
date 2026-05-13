@@ -22,7 +22,8 @@
 !tests/
 !tests/test*
 *.code-workspace
-
+.superpowers
+todo.md
 # Project files
 .ropeproject
 .project
