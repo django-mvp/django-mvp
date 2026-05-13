@@ -9,6 +9,7 @@ jobs:
   update-changelog:
     name: Update CHANGELOG.md
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: write
     steps:

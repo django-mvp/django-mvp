@@ -1,14 +1,21 @@
 name: Deploy Docs
 
+# on:
+#   push:
+#     branches:
+#       - main
+#     paths:
+#       - 'docs/**'
+#       - 'mvp/templates/**'
+#       - 'README.md'
+#   workflow_dispatch:
+# Docs build is not yet configured. Re-enable when mkdocs (or equivalent) is set up.
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'docs/**'
-      - 'mvp/templates/**'
-      - 'README.md'
   workflow_dispatch:
+    inputs:
+      _disabled:
+        description: "This workflow is currently disabled"
+        required: false
 
 permissions:
   contents: read
