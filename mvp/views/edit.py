@@ -9,6 +9,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.db.models.deletion import Collector, ProtectedError
 from django.http import HttpResponseRedirect
 from django.urls import reverse
+from django.utils.functional import Promise
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.text import camel_case_to_spaces
 from django.utils.translation import gettext_lazy as _
@@ -81,7 +82,9 @@ class NextURLMixin:
         return context
 
 
-class MVPFormBase(SuccessMessageMixin, BaseTemplateNameMixin, NextURLMixin, PageObjectMixin):
+class MVPFormBase(
+    SuccessMessageMixin, BaseTemplateNameMixin, NextURLMixin, PageObjectMixin
+):
     """Base class for form views in AdminLTE layout with auto-detected renderer."""
 
     base_template_name = "form_view.html"
@@ -134,7 +137,7 @@ class MVPFormBase(SuccessMessageMixin, BaseTemplateNameMixin, NextURLMixin, Page
 class MVPModelFormBase(MVPFormBase):
     """Base class for model form views in AdminLTE layout with auto-detected renderer."""
 
-    page_title = ""
+    page_title: str | Promise = ""
 
     def get_page_title(self) -> str:
         """Return a model-aware page title, or the explicit override if set.
@@ -148,7 +151,7 @@ class MVPModelFormBase(MVPFormBase):
             str: The page title to display.
         """
         if not self.page_title:
-            return self.page_title
+            return ""
         return self.page_title % {"verbose_name": self.model_meta.verbose_name.title()}
 
     def get_success_message(self, cleaned_data):
@@ -183,7 +186,7 @@ class MVPModelFormBase(MVPFormBase):
         if result is not None:
             return result
         if obj := getattr(self, "object", None):
-            return {self.pk_url_kwarg: obj.pk}
+            return {self.pk_url_kwarg: obj.pk}  # type: ignore[attr-defined]
         return None
 
     def get_success_url(self):
@@ -423,7 +426,9 @@ class MVPUpdateView(MVPModelFormBase, generic.UpdateView):
         if not url:
             return ""
         try:
-            back_url = reverse(self._get_view_name("update"), kwargs=self.get_url_kwargs("update"))
+            back_url = reverse(
+                self._get_view_name("update"), kwargs=self.get_url_kwargs("update")
+            )
         except NoReverseMatch:
             back_url = ""
         next_url = self.resolve_crud_url("list")
@@ -481,7 +486,7 @@ class MVPDeleteView(MVPModelFormBase, generic.DeleteView):
 
     show_related_objects: bool = False
     require_confirmation: bool = False
-    confirmation_label: str = _("Type the name to confirm")
+    confirmation_label: str | Promise = _("Type the name to confirm")
     related_objects_max_per_group: int = 25
 
     def get_breadcrumbs(self):
@@ -561,7 +566,7 @@ class MVPDeleteView(MVPModelFormBase, generic.DeleteView):
             require_https=self.request.is_secure(),
         ):
             return candidate
-        return self.resolve_crud_url("list")
+        return self.resolve_crud_url("list") or ""
 
     def get_success_url(self):
         """Redirect using ?next= → success_url → list URL priority chain.
@@ -609,7 +614,9 @@ class MVPDeleteView(MVPModelFormBase, generic.DeleteView):
         context["is_protected"] = bool(protected_objects)
         context["protected_objects"] = protected_objects
         context["require_confirmation"] = self.require_confirmation
-        context["confirmation_value"] = self.get_confirmation_value() if self.require_confirmation else ""
+        context["confirmation_value"] = (
+            self.get_confirmation_value() if self.require_confirmation else ""
+        )
         context["confirmation_label"] = self.confirmation_label
 
         if self.show_related_objects and not protected_objects:

@@ -99,7 +99,7 @@ DEP002 = [
 # django-filter is a dev dep used only in the Demo App, not the published package
 DEP001 = ["invoke"]
 DEP003 = ["invoke"]
-DEP004 = ["django_filters"]
+DEP004 = ["django_filters", "django_tables2"]
 
 [tool.ruff]
 target-version = "py311"
@@ -215,9 +215,11 @@ indent_size = 2
 
 [tool.mypy]
 strict = false
+explicit_package_bases = true
+namespace_packages = true
 
 [[tool.mypy.overrides]]
-module = ["flex_menu", "flex_menu.*", "django_cotton.*"]
+module = ["flex_menu", "flex_menu.*", "django_cotton.*", "django_filters.*", "django_tables2.*"]
 ignore_missing_imports = true
 
 [tool.django-stubs]

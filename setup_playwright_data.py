@@ -7,9 +7,9 @@ import django
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "tests.settings")
 django.setup()
 
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model  # noqa: E402
 
-from demo.models import Category, Product
+from demo.models import Category, Product  # noqa: E402
 
 User = get_user_model()
 

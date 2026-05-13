@@ -36,9 +36,9 @@ repos:
     hooks:
       - id: mypy
         name: mypy
-        entry: poetry run mypy
+        entry: poetry run mypy mvp
         language: system
-        types: [python]
+        pass_filenames: false
         files: ^mvp/
   - repo: local
     hooks:

@@ -1,4 +1,10 @@
-from .base import BaseTemplateNameMixin, ModelInfoMixin, MVPHomeView, MVPTemplateView, PageMixin
+from .base import (
+    BaseTemplateNameMixin,
+    ModelInfoMixin,
+    MVPHomeView,
+    MVPTemplateView,
+    PageMixin,
+)
 from .detail import CRUDDirectoryMixin, MVPDetailView, PageObjectMixin
 from .edit import (
     MVPCreateView,
@@ -20,30 +26,26 @@ from .list import (
 # Public aliases — preferred import names for developers
 
 __all__ = [
-    # base
     "BaseTemplateNameMixin",
-    "PageMixin",
-    "MVPTemplateView",
-    "MVPHomeView",
-    # detail
-    "ModelInfoMixin",
     "CRUDDirectoryMixin",
-    "PageObjectMixin",
-    "MVPDetailView",
-    # edit
-    "NextURLMixin",
-    "MVPFormBase",
-    "MVPModelFormBase",
-    "MVPFormView",
     "MVPCreateView",
-    "MVPUpdateView",
     "MVPDeleteView",
-    # list
-    "SearchMixin",
-    "OrderMixin",
-    "SearchOrderMixin",
-    "MVPListViewMixin",
+    "MVPDetailView",
+    "MVPFormBase",
+    "MVPFormView",
+    "MVPHomeView",
     "MVPListView",
+    "MVPListViewMixin",
+    "MVPModelFormBase",
+    "MVPTemplateView",
+    "MVPUpdateView",
+    "ModelInfoMixin",
+    "NextURLMixin",
+    "OrderMixin",
+    "PageMixin",
+    "PageObjectMixin",
+    "SearchMixin",
+    "SearchOrderMixin",
 ]
 
 try:
@@ -57,5 +59,5 @@ try:
     from .table import MVPTableView, MVPTableViewMixin
 
     __all__ += ["MVPTableView", "MVPTableViewMixin"]
-except Exception:
+except Exception:  # noqa: S110
     pass

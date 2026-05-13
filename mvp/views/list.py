@@ -1,6 +1,7 @@
 """Views and view mixins for django-mvp."""
 
 from django.db.models import Q
+from django.utils.functional import Promise
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import ListView
 
@@ -274,7 +275,9 @@ class SearchOrderMixin(SearchMixin, OrderMixin):
     pass
 
 
-class MVPListViewMixin(BaseTemplateNameMixin, SearchOrderMixin, CRUDDirectoryMixin, PageMixin):
+class MVPListViewMixin(
+    BaseTemplateNameMixin, SearchOrderMixin, CRUDDirectoryMixin, PageMixin
+):
     """Foundation mixin for paginated, searchable, orderable list pages with AdminLTE styling.
 
     Composes ``BaseTemplateNameMixin``, ``SearchOrderMixin``, ``CRUDDirectoryMixin``, and
@@ -337,8 +340,10 @@ class MVPListViewMixin(BaseTemplateNameMixin, SearchOrderMixin, CRUDDirectoryMix
     directory = ["create"]
     list_item_template = None
     grid: dict = {}
-    empty_state_heading: str | None = _("There's nothing here yet")
-    empty_state_message: str | None = _("You haven't added any records yet. Click the button below to get started.")
+    empty_state_heading: str | Promise | None = _("There's nothing here yet")
+    empty_state_message: str | Promise | None = _(
+        "You haven't added any records yet. Click the button below to get started."
+    )
 
     def get_context_data(self, **kwargs):
         """Add grid configuration to the template context.
@@ -385,10 +390,10 @@ class MVPListViewMixin(BaseTemplateNameMixin, SearchOrderMixin, CRUDDirectoryMix
         opts = self.model._meta
         return f"{opts.app_label}/{opts.model_name}_list_item.html"
 
-    def get_empty_state_heading(self) -> str | None:
+    def get_empty_state_heading(self) -> str | Promise | None:
         return self.empty_state_heading
 
-    def get_empty_state_message(self) -> str | None:
+    def get_empty_state_message(self) -> str | Promise | None:
         return self.empty_state_message
 
     def get_grid_config(self):

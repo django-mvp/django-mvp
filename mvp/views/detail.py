@@ -14,7 +14,7 @@ class CRUDDirectoryMixin(ModelInfoMixin):
     """
 
     crud_views = MVP_DEFAULT_VIEW_NAMES
-    directory = []
+    directory: list[str] = []
     has_list_permission = False
     has_detail_permission = False
     has_create_permission = False
@@ -33,8 +33,12 @@ class CRUDDirectoryMixin(ModelInfoMixin):
             action (str): One of 'list', 'detail', 'create', 'update'
         """
         if action not in self.crud_views:
-            raise ValueError(f"Invalid action '{action}'. Must be one of: {', '.join(self.crud_views.keys())}")
-        return self.crud_views[action].format(model_name=self.model_meta.model_name, app_name=self.model_meta.app_label)
+            raise ValueError(
+                f"Invalid action '{action}'. Must be one of: {', '.join(self.crud_views.keys())}"
+            )
+        return self.crud_views[action].format(
+            model_name=self.model_meta.model_name, app_name=self.model_meta.app_label
+        )
 
     def get_url_kwargs(self, action: str) -> dict | None:
         """Return URL kwargs for reversing the URL for ``action``.
@@ -57,7 +61,7 @@ class CRUDDirectoryMixin(ModelInfoMixin):
         """
         if action in {"list", "create"}:
             return {}
-        return dict(self.kwargs) or None
+        return dict(self.kwargs) or None  # type: ignore[attr-defined]
 
     def resolve_crud_url(self, action: str) -> str | None:
         """Resolve the URL for a single CRUD action.
@@ -75,7 +79,7 @@ class CRUDDirectoryMixin(ModelInfoMixin):
         perm = getattr(self, f"has_{action}_permission", None)
         if perm is None:
             return None
-        allowed = perm(self.request.user) if callable(perm) else bool(perm)
+        allowed = perm(self.request.user) if callable(perm) else bool(perm)  # type: ignore[attr-defined]
         if not allowed:
             return None
 
@@ -101,7 +105,11 @@ class PageObjectMixin(CRUDDirectoryMixin, PageMixin):
     list_view_title = ""
 
     def get_page_class(self):
-        return " ".join(filter(None, [super().get_page_class(), self.model_meta.model_name + "-page"]))
+        return " ".join(
+            filter(
+                None, [super().get_page_class(), self.model_meta.model_name + "-page"]
+            )
+        )
 
     def get_list_title(self):
         """Return the title to use for the list view link in the form header.
@@ -121,7 +129,10 @@ class PageObjectMixin(CRUDDirectoryMixin, PageMixin):
         """
 
         breadcrumbs = [
-            {"text": self.get_list_title(), "href": self.resolve_crud_url("list") or ""},
+            {
+                "text": self.get_list_title(),
+                "href": self.resolve_crud_url("list") or "",
+            },
             {"text": self.get_page_title()},
         ]
         return breadcrumbs
