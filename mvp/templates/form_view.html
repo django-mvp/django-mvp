@@ -12,6 +12,14 @@
                  icon="{{ page.icon }}"
                  method="post"
                  action=".">
+      <c-slot name="before_form">
+        {% block before_form %}
+        {% endblock before_form %}
+      </c-slot>
+      <c-slot name="after_form">
+        {% block after_form %}
+        {% endblock after_form %}
+      </c-slot>
       <c-slot name="form_actions">
         {% block actions %}
           <c-button text="{% trans "Save entry" %}"
