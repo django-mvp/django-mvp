@@ -1114,4 +1114,3 @@ class ProductFilteredListView(MVPListViewMixin, FilterView):
 
 `MVPListViewMixin` does not declare `paginate_by` — set it on your subclass if needed.
 `MVPListView` adds `paginate_by = 24` on top of the mixin.
-

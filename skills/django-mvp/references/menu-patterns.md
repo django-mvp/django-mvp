@@ -86,7 +86,7 @@ The sidebar item template renders `{{ badge }}` with `{{ badge_classes }}` if pr
 ## Active State
 
 Active state is **automatic** — the `AdminLTERenderer` performs an exact path match
-(`request.path == item.url`). No manual work needed. The `.active` CSS class is applied 
+(`request.path == item.url`). No manual work needed. The `.active` CSS class is applied
 by `<c-app.sidebar.menu.item>` when `selected=True`.
 
 For prefix-based matching (e.g., highlight "Episodes" for any URL starting with `/episodes/`),
