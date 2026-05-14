@@ -22,7 +22,9 @@ def prerelease(c):
     print("=" * 60)
 
     # Step 1: Run comprehensive linting, type checking, and dependency analysis
-    print("\n🧹 Step 1: Running comprehensive linting, type checking, and dependency analysis")
+    print(
+        "\n🧹 Step 1: Running comprehensive linting, type checking, and dependency analysis"
+    )
     print("🚀 Running pre-commit hooks (includes mypy and deptry)")
     c.run("poetry run pre-commit run -a")
 
@@ -34,11 +36,15 @@ def prerelease(c):
     # Step 3: Run comprehensive test suite
     print("\n🧪 Step 3: Running comprehensive test suite")
     print("🚀 Running pytest with coverage")
-    c.run("poetry run pytest --cov --cov-config=pyproject.toml --cov-report=html --cov-report=term --tb=no -qq")
+    c.run(
+        "poetry run pytest --cov --cov-config=pyproject.toml --cov-report=html --cov-report=term --tb=no -qq"
+    )
 
     print("\n" + "=" * 60)
     print("✅ Pre-release checks completed successfully!")
-    print("🎉 Repository is ready for release. You can now run 'invoke release' with the appropriate rule.")
+    print(
+        "🎉 Repository is ready for release. You can now run 'invoke release' with the appropriate rule."
+    )
     print("   Example: invoke release --rule=patch")
 
 
@@ -76,7 +82,11 @@ def release(c, rule="", retry=False):
         # retry existing tags without creating new version
         print(f"♻️  retrying existing tag v{version_short}...")
         response = (
-            input(f"This will force-push tag v{version_short} to retrigger CI. Continue? (y/N): ").strip().lower()
+            input(
+                f"This will force-push tag v{version_short} to retrigger CI. Continue? (y/N): "
+            )
+            .strip()
+            .lower()
         )
         if response not in ("y", "yes"):
             print("❌ retry cancelled.")
@@ -92,7 +102,9 @@ def release(c, rule="", retry=False):
     if not rule:
         print("❌ Error: You must specify a version bump rule.")
         print("   Example: invoke release --rule=patch")
-        print("\n   Available rules: major, minor, patch, premajor, preminor, prepatch, prerelease")
+        print(
+            "\n   Available rules: major, minor, patch, premajor, preminor, prepatch, prerelease"
+        )
         return
 
     # Check for unstaged changes
