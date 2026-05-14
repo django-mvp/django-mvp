@@ -11,6 +11,7 @@
     <c-form.card title="{{ page.title }}"
                  icon="{{ page.icon }}"
                  method="post"
+                 :form-obj="form"
                  action=".">
       <c-slot name="before_form">
         {% block before_form %}
