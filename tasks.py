@@ -92,11 +92,18 @@ def release(c, rule="", retry=False):
             print("❌ retry cancelled.")
             return
 
-        # Delete and recreate tag locally, then force push
+        # Move the tag to the current HEAD (which includes any fixes committed since the failure)
         c.run(f"git tag -d v{version_short}", warn=True)
         c.run(f'git tag -a v{version_short} -m "{version}"')
         c.run(f"git push origin v{version_short} --force")
-        print(f"✅ Tag v{version_short} force-pushed successfully!")
+
+        # Push the branch — this is what actually triggers the Tests workflow,
+        # which chains into Build, which chains into Release (where the tag is detected).
+        # Pushing only the tag does not trigger Tests and the pipeline never starts.
+        c.run("git push origin main")
+        print(
+            f"✅ Tag v{version_short} updated and main pushed — CI chain retriggered!"
+        )
         return
 
     if not rule:
