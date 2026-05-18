@@ -13,11 +13,13 @@
 {#   <c-avatar size="sm" />                                     #}
 {#   <c-avatar src="{{ user.photo.url }}" status="online" />   #}
 {# ============================================================ #}
-<c-vars src=""
+{% load mvp %}
+<c-vars :for="request.user"
         alt="User avatar"
         size="md"
-        status=""
-        class="" />
+        status
+        class />
+{% avatar_url for size as src %}
 {% if status %}<span class="avatar-wrap">{% endif %}
   <span class="avatar avatar-{{ size }} {{ class }}"
         {% if not src %}aria-hidden="true"{% endif %}

@@ -26,3 +26,7 @@ MVP_LANDING_PAGE_HERO = _get_or_default(
         "image": "mvp/landing_hero.png",
     },
 )
+
+MVP_AVATAR_URL_FUNCTION = _get_or_default(
+    "MVP_AVATAR_URL_FUNCTION", "mvp.utils.avatar_url"
+)

@@ -51,14 +51,15 @@ def prerelease(c):
 @task
 def release(c, rule="", retry=False):
     """
-    Create a new git tag and push it to the remote repository.
+    Create a new git tag and push it to trigger a PyPI release.
 
-    This will create a new tag and push it to the remote repository, which will trigger
-    a new build and deployment of the package to PyPI.
+    Pushing a version tag triggers the Release workflow, which builds and
+    publishes the package to PyPI and creates a GitHub Release.
 
     Args:
         rule: Version bump rule (major, minor, patch, premajor, preminor, prepatch, prerelease)
-        retry: If True, force-push existing tags without creating new version (default: False)
+        retry: If True, delete local/remote tag and re-push at HEAD (use after
+               fixing a failed CI run — no version bump, no new commit)
 
     RULE        BEFORE  AFTER
     major       1.3.0   2.0.0
@@ -70,44 +71,33 @@ def release(c, rule="", retry=False):
     prerelease  1.0.2   1.0.3a0
 
     Examples:
-        invoke release --rule=patch        # Bump patch version and release
-        invoke release --retry             # Force-push existing tags (e.g., to retrigger CI)
+        invoke release --rule=patch    # bump patch version and release
+        invoke release --retry         # re-push existing tag after fixing CI
     """
-    prerelease(c)
-    # Get the current version number
-    version_short = c.run("poetry version -s", hide=True).stdout.strip()
-    version = c.run("poetry version", hide=True).stdout.strip()
-
     if retry:
-        # retry existing tags without creating new version
-        print(f"♻️  retrying existing tag v{version_short}...")
+        version_short = c.run("poetry version -s", hide=True).stdout.strip()
+        version = c.run("poetry version", hide=True).stdout.strip()
+        tag = f"v{version_short}"
+        print(f"♻️  Retrying release for {tag}...")
         response = (
             input(
-                f"This will force-push tag v{version_short} to retrigger CI. Continue? (y/N): "
+                f"This will delete local and remote tag {tag} and re-push it at HEAD. Continue? (y/N): "
             )
             .strip()
             .lower()
         )
         if response not in ("y", "yes"):
-            print("❌ retry cancelled.")
+            print("❌ Retry cancelled.")
             return
-
-        # Move the tag to the current HEAD (which includes any fixes committed since the failure)
-        c.run(f"git tag -d v{version_short}", warn=True)
-        c.run(f'git tag -a v{version_short} -m "{version}"')
-        c.run(f"git push origin v{version_short} --force")
-
-        # Push the branch — this is what actually triggers the Tests workflow,
-        # which chains into Build, which chains into Release (where the tag is detected).
-        # Pushing only the tag does not trigger Tests and the pipeline never starts.
-        c.run("git push origin main")
-        print(
-            f"✅ Tag v{version_short} updated and main pushed — CI chain retriggered!"
-        )
+        c.run(f"git tag -d {tag}", warn=True)
+        c.run(f"git push origin :refs/tags/{tag}", warn=True)
+        c.run(f'git tag -a {tag} -m "{version}"')
+        c.run("git push origin main --follow-tags")
+        print(f"✅ Tag {tag} re-pushed — Release workflow retriggered!")
         return
 
     if not rule:
-        print("❌ Error: You must specify a version bump rule.")
+        print("❌ Error: You must specify a version bump rule (or use --retry).")
         print("   Example: invoke release --rule=patch")
         print(
             "\n   Available rules: major, minor, patch, premajor, preminor, prepatch, prerelease"
@@ -138,10 +128,8 @@ def release(c, rule="", retry=False):
         print(f"🚀 Committing version bump for v{version_short}")
         c.run(f'git commit pyproject.toml -m "Release v{version_short}"')
 
-    # Create an annotated tag
+    # Create an annotated tag and push commit + tag together
     c.run(f'git tag -a v{version_short} -m "{version}"')
-
-    # Push commits and tags together
     print(f"📤 Pushing v{version_short} to remote repository...")
     c.run("git push origin main --follow-tags")
 

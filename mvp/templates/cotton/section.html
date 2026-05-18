@@ -1,10 +1,7 @@
 <c-vars title icon level=2 actions />
 <section {{ attrs }}>
   {% if title %}
-    <c-mvp-toolbar :title="title"
-                   :icon="icon"
-                   :level="level"
-                   class="mb-3">
+    <c-mvp-toolbar :title="title" :icon="icon" :level="level">
       {{ actions }}
     </c-mvp-toolbar>
   {% endif %}

@@ -1,6 +1,10 @@
 from django.apps import apps
 
 
+def avatar_url(user, height):
+    return None
+
+
 def app_is_installed(app_name: str) -> bool:
     """
     Check if a Django app is installed.
