@@ -63,8 +63,9 @@ BS5_ICONS = {
     "sidebar-right": "bi bi-layout-sidebar-reverse",
     "sort": "bi bi-sort-down",
     "table": "bi bi-table",
-    "theme_auto": "bi bi-circle-half",
-    "theme_dark": "bi bi-moon-stars-fill",
-    "theme_light": "bi bi-sun",
+    "theme.auto": "bi bi-circle-half",
+    "theme.dark": "bi bi-moon-stars-fill",
+    "theme.light": "bi bi-sun",
     "x": "bi bi-x-lg",
+    "check": "bi bi-check-lg",
 }

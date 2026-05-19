@@ -1,27 +1,31 @@
 {% load i18n %}
-<div x-data="themeSwitcher">
-  <c-dropdown>
-    <c-slot name="button">
-      <button class="btn btn-default d-inline-flex align-items-center gap-2 "
+<c-dropdown>
+  <c-slot name="button">
+    <c-button id="bd-theme"
+              aria-label="{% trans "Toggle color scheme" %}"
               data-bs-toggle="dropdown"
-              aria-expanded="false"
-              type="button">
-        <i class="bi" x-bind:class="iconClass"></i>
-        <span class="d-none">{% trans "Select a theme" %}</span>
-      </button>
-    </c-slot>
-    <c-dropdown.header text="{% trans "Select a theme" %}" />
-    <c-dropdown.item text="{% trans "Light" %}"
-                     icon="theme_light"
-                     x-on:click.prevent="setTheme('light')"
-                     x-bind:class="{ active: theme === 'light' }" />
-    <c-dropdown.item text="{% trans "Dark" %}"
-                     icon="theme_dark"
-                     x-on:click.prevent="setTheme('dark')"
-                     x-bind:class="{ active: theme === 'dark' }" />
-    <c-dropdown.item text="{% trans "Auto" %}"
-                     icon="theme_auto"
-                     x-on:click.prevent="setTheme('auto')"
-                     x-bind:class="{ active: theme === 'auto' }" />
-  </c-dropdown>
-</div>
+              aria-expanded="false">
+      <c-icon name="theme.light" data-lte-theme-icon="light" />
+      <c-icon name="theme.dark" data-lte-theme-icon="dark" />
+      <c-icon name="theme.auto" data-lte-theme-icon="auto" />
+    </c-button>
+  </c-slot>
+  <c-dropdown.item text="{% trans "Light" %}"
+                   icon="theme.light"
+                   data-bs-theme-value="light"
+                   aria-pressed="false">
+    <c-icon name="check" class="ms-auto d-none" />
+  </c-dropdown.item>
+  <c-dropdown.item text="{% trans "Dark" %}"
+                   icon="theme.dark"
+                   data-bs-theme-value="dark"
+                   aria-pressed="false">
+    <c-icon name="check" class="ms-auto d-none" />
+  </c-dropdown.item>
+  <c-dropdown.item text="{% trans "Auto" %}"
+                   icon="theme.auto"
+                   data-bs-theme-value="auto"
+                   aria-pressed="false">
+    <c-icon name="check" class="ms-auto d-none" />
+  </c-dropdown.item>
+</c-dropdown>

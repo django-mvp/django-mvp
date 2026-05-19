@@ -156,7 +156,6 @@ EASY_ICONS = {
             "cancel": "bi bi-x-lg",
             "cart": "bi bi-cart-fill",
             "check-circle-fill": "bi bi-check-circle-fill",
-            "check": "bi bi-check",
             "check2-square": "bi bi-check2-square",
             "chevron_right": "bi bi-chevron-right",
             "code-slash": "bi bi-code-slash",

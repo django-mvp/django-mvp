@@ -1,72 +1,83 @@
 /**
- * Theme Switcher — Alpine.js component
+ * Theme Switcher — vanilla JS IIFE
  *
- * Registered as Alpine.data('themeSwitcher') and used via x-data="themeSwitcher"
- * in the theme_switcher.html Cotton component.
+ * Mirrors AdminLTE's color-mode toggle (issue #6010).
+ * Loaded synchronously in <head> so it prevents FOUC by applying the
+ * resolved theme to <html data-bs-theme> before the first paint.
  *
- * Responsibilities:
- * - Load persisted theme from localStorage on init
- * - Apply the resolved theme to <html data-bs-theme>
- * - React to system preference changes when theme is "auto"
- * - Persist the chosen theme to localStorage
+ * HTML contract:
+ *   - Trigger icons:  data-lte-theme-icon="light|dark|auto"
+ *   - Dropdown items: data-bs-theme-value="light|dark|auto"
+ *   - Active check:   <i class="bi bi-check-lg"> inside each button
+ *
+ * Storage key: "lte-theme"
  */
-document.addEventListener("alpine:init", () => {
-  Alpine.data("themeSwitcher", () => ({
-    /** Currently selected theme preference: 'light' | 'dark' | 'auto' */
-    theme: "light",
+; (() => {
+  "use strict"
 
-    init() {
-      this.theme = this._getStored()
-      this._apply(this.theme)
+  const STORAGE_KEY = "lte-theme"
 
-      // Re-apply when the OS preference changes (only matters in auto mode)
-      window
-        .matchMedia?.("(prefers-color-scheme: dark)")
-        ?.addEventListener("change", () => {
-          if (this.theme === "auto") this._apply("auto")
-        })
-    },
+  const getStoredTheme = () => {
+    try { return localStorage.getItem(STORAGE_KEY) } catch { return null }
+  }
+  const setStoredTheme = (theme) => {
+    try { localStorage.setItem(STORAGE_KEY, theme) } catch { }
+  }
 
-    /** Bootstrap Icon class object for x-bind:class on the toggle button icon */
-    get iconClass() {
-      return {
-        "bi-sun": this.theme === "light",
-        "bi-moon-stars-fill": this.theme === "dark",
-        "bi-circle-half": this.theme === "auto",
-      }
-    },
+  const prefersDark = () =>
+    globalThis.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false
 
-    /** Called from x-on:click.prevent on each dropdown item */
-    setTheme(theme) {
-      this.theme = theme
-      this._apply(theme)
-      try {
-        localStorage.setItem("theme", theme)
-      } catch (e) {
-        console.warn("Could not persist theme:", e.message)
-      }
-    },
+  const getPreferredTheme = () => {
+    const stored = getStoredTheme()
+    if (stored) return stored
+    return prefersDark() ? "dark" : "light"
+  }
 
-    /** Resolve and apply theme to the <html> element */
-    _apply(theme) {
-      const actual =
-        theme === "auto"
-          ? window.matchMedia?.("(prefers-color-scheme: dark)").matches
-            ? "dark"
-            : "light"
-          : theme
-      document.documentElement.setAttribute("data-bs-theme", actual)
-    },
+  const setTheme = (theme) => {
+    const resolved =
+      theme === "auto" ? (prefersDark() ? "dark" : "light") : theme
+    document.documentElement.setAttribute("data-bs-theme", resolved)
+  }
 
-    /** Read persisted theme, falling back to 'light' */
-    _getStored() {
-      try {
-        const stored = localStorage.getItem("theme")
-        if (["light", "dark", "auto"].includes(stored)) return stored
-      } catch (e) {
-        console.warn("localStorage not available:", e.message)
-      }
-      return "light"
-    },
-  }))
-})
+  // Apply immediately to prevent FOUC
+  setTheme(getPreferredTheme())
+
+  const showActiveTheme = (theme) => {
+    // Highlight the active dropdown option
+    document.querySelectorAll("[data-bs-theme-value]").forEach((el) => {
+      el.classList.remove("active")
+      el.setAttribute("aria-pressed", "false")
+      const check = el.querySelector(".bi-check-lg")
+      if (check) check.classList.add("d-none")
+    })
+    const active = document.querySelector(`[data-bs-theme-value="${theme}"]`)
+    if (active) {
+      active.classList.add("active")
+      active.setAttribute("aria-pressed", "true")
+      const check = active.querySelector(".bi-check-lg")
+      if (check) check.classList.remove("d-none")
+    }
+    // Sync the trigger icon
+    document.querySelectorAll("[data-lte-theme-icon]").forEach((icon) => {
+      icon.classList.toggle("d-none", icon.dataset.lteThemeIcon !== theme)
+    })
+  }
+
+  globalThis.matchMedia?.("(prefers-color-scheme: dark)")
+    ?.addEventListener("change", () => {
+      const stored = getStoredTheme()
+      if (!stored || stored === "auto") setTheme(getPreferredTheme())
+    })
+
+  document.addEventListener("DOMContentLoaded", () => {
+    showActiveTheme(getPreferredTheme())
+    document.querySelectorAll("[data-bs-theme-value]").forEach((toggle) => {
+      toggle.addEventListener("click", () => {
+        const theme = toggle.getAttribute("data-bs-theme-value")
+        setStoredTheme(theme)
+        setTheme(theme)
+        showActiveTheme(theme)
+      })
+    })
+  })
+})()

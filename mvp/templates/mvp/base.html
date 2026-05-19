@@ -19,19 +19,9 @@
             }
           }
         }
-
-
-        // Apply theme immediately to prevent FOUC (Flash of Unstyled Content)
-        try {
-          const _t = localStorage.getItem('theme');
-          const _dark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-          document.documentElement.setAttribute(
-            'data-bs-theme',
-            _t === 'dark' ? 'dark' : _t === 'auto' ? (_dark ? 'dark' : 'light') : 'light'
-          );
-        } catch (e) {}
       })();
     </script>
+    {# Theme FOUC prevention + switcher logic (runs synchronously before first paint) #}
     <script src="{% static 'js/navbar/theme-switcher.js' %}"></script>
     {% block head %}
       <meta charset="UTF-8" />
