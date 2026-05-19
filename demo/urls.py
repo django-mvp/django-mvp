@@ -10,6 +10,7 @@ from .views import (
     CategoryDeleteWithRelatedView,
     CategoryUpdateView,
     ContactFormView,
+    ErrorPagePreviewView,
     FullShellDemoView,
     ListViewDemo,
     MVPDemoView,
@@ -85,6 +86,30 @@ urlpatterns = [
     ),
     # 3rd Party Integration Demos
     path("datatables-demo/", views.DataTablesView.as_view(), name="datatables_demo"),
+    # Error page previews — developer convenience routes
+    path(
+        "errors/400/",
+        ErrorPagePreviewView.as_view(template_name="400.html"),
+        name="error-preview-400",
+    ),
+    path(
+        "errors/403/",
+        ErrorPagePreviewView.as_view(template_name="403.html"),
+        name="error-preview-403",
+    ),
+    path(
+        "errors/404/",
+        ErrorPagePreviewView.as_view(template_name="404.html"),
+        name="error-preview-404",
+    ),
+    path(
+        "errors/500/",
+        ErrorPagePreviewView.as_view(
+            template_name="500.html",
+            extra_context={"support_email": settings.DEFAULT_FROM_EMAIL or None},
+        ),
+        name="error-preview-500",
+    ),
 ]
 
 
@@ -93,3 +118,9 @@ if settings.DEBUG:
 
 # Auth URLs (provides login, logout, password change, etc.)
 urlpatterns += [path("accounts/", include("django.contrib.auth.urls"))]
+
+# Django error handlers — must be set on root URLconf module
+handler400 = "mvp.views.error.bad_request"
+handler403 = "mvp.views.error.permission_denied"
+handler404 = "mvp.views.error.not_found"
+handler500 = "mvp.views.error.server_error"

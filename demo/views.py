@@ -31,6 +31,16 @@ class MVPDemoView(TemplateView):
     pass
 
 
+class ErrorPagePreviewView(TemplateView):
+    """Preview any error page template without triggering a real error.
+
+    Wire via: ErrorPagePreviewView.as_view(template_name="NNN.html")
+    For the 500 preview, also pass extra_context={"support_email": ...}.
+    """
+
+    pass
+
+
 class FullShellDemoView(TemplateView):
     """Demo page that enforces the canonical full app shell configuration.
 
