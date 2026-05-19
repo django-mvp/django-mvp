@@ -1,61 +1,10 @@
 name: Deploy Docs
 
-# on:
-#   push:
-#     branches:
-#       - main
-#     paths:
-#       - 'docs/**'
-#       - 'mvp/templates/**'
-#       - 'README.md'
-#   workflow_dispatch:
-# Docs build is not yet configured. Re-enable when mkdocs (or equivalent) is set up.
+# Docs build is not yet configured. Re-enable the push trigger when mkdocs (or equivalent) is set up.
 on:
   workflow_dispatch:
-    inputs:
-      _disabled:
-        description: "This workflow is currently disabled"
-        required: false
-
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: 'pages'
-  cancel-in-progress: true
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
-
-      - name: Set up Poetry env
-        uses: SamuelJennings/cached-poetry-action@v2.0
-        with:
-          python-version: '3.12'
-
-      - name: Configure Pages
-        uses: actions/configure-pages@v5
-
-      - name: Build documentation
-        run: poetry run invoke docs
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v4
-        with:
-          path: ./docs
-
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+  call-docs:
+    uses: django-mvp/.github/workflows/docs.yml@main
+    secrets: inherit

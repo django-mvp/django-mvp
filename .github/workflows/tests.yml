@@ -20,48 +20,9 @@ on:
       - '.github/workflows/tests.yml'
   workflow_dispatch:
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    name: Test Python ${{ matrix.python-version }}, Django ${{ matrix.django-version }}
-    timeout-minutes: 20
-    strategy:
-      matrix:
-        python-version: ['3.11', '3.12']
-        django-version: ['4.2', '5.2']
-      fail-fast: false
-
-    steps:
-      - name: Check out
-        uses: actions/checkout@v6
-
-      - name: Set up Poetry env
-        uses: SamuelJennings/cached-poetry-action@v2.0
-        with:
-          python-version: ${{ matrix.python-version }}
-          poetry-install-args: --with test
-
-      - name: Pin Django version
-        run: poetry run pip install "django~=${{ matrix.django-version }}"
-
-      - name: Run tests
-        run: |
-          if [ "${{ matrix.python-version }}" = "3.12" ] && [ "${{ matrix.django-version }}" = "5.2" ]; then
-            poetry run pytest --cov=mvp --cov-report=xml
-          else
-            poetry run pytest
-          fi
-
-      - name: Upload coverage to Codecov
-        if: matrix.python-version == '3.12' && matrix.django-version == '5.2'
-        uses: codecov/codecov-action@v5
-        with:
-          files: ./coverage.xml
-          flags: unittests
-          name: codecov-umbrella
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+  call-tests:
+    uses: django-mvp/.github/workflows/tests.yml@main
+    with:
+      coverage-package: mvp
+    secrets: inherit
