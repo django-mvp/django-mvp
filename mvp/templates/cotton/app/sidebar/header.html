@@ -1,23 +1,29 @@
-<c-vars text icon logo link="/" />
-<div class="sidebar-brand">
-  <a href="{{ link }}"
-     class="brand-link{% if icon and logo %} logo-switch{% endif %}">
-    {% if icon %}
-      <img src="{{ icon }}"
-           alt="{{ text }} Icon"
-           class="brand-image-xl logo-xs h-100" />
-    {% endif %}
-    {% if logo %}
-      <img src="{{ logo }}"
+{% load static %}
+<c-vars text icon logo="" link="/" />
+{% static "brand/logo.svg" as logo_src %}
+<div class="content-header bg-sidebar sticky-top px-3 pt-3 border-bottom ">
+  <div class="header-brand">
+    <a href="{{ link }}"
+       class="brand-link{% if icon and logo %} logo-switch{% endif %}">
+      {% if icon %}
+        <img src="{{ icon }}"
+             alt="{{ text }} Icon"
+             class="brand-image-xl logo-xs h-100" />
+      {% endif %}
+      <img src="{{ logo_src }}"
            alt="{{ text }} Logo"
-           class="brand-image-xs logo-xl" />
-    {% endif %}
-    <span class="brand-text fw-light{% if icon and logo %} d-none{% endif %}">
+           class="w-100" />
+      {% comment %} <span class="brand-text fw-light{% if icon and logo %} d-none{% endif %}">
       {% if text %}
         {{ text }}
       {% else %}
         {{ request.site.name }}
       {% endif %}
-    </span>
-  </a>
+      </span> {% endcomment %}
+    </a>
+  </div>
+  <div class="d-flex gap-1 mt-1 mb-0 justify-content-center">
+    <c-actions.theme-switcher />
+    <c-actions.language-switcher />
+  </div>
 </div>

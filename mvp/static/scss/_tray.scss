@@ -1,0 +1,15 @@
+.nav.nav-underline {
+  --bs-nav-link-color: var(--bs-gray-800);
+  --bs-nav-link-hover-color: var(--bs-gray-900);
+  --bs-nav-link-active-color: var(--bs-gray-800);
+
+  .nav-link.active {
+    color: var(--bs-nav-link-color);
+    border-bottom-color: var(--bs-emphasis-color);
+    font-weight: 800;
+  }
+
+  .nav-link:hover {
+    border-bottom-color: var(--bs-emphasis-color);
+  }
+}

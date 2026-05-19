@@ -3,11 +3,44 @@
 @import "toolbar";
 @import "app";
 @import "table";
-@import "default";
-@import "avatar";
+@import "tray";
 @import "form";
 @import "image";
+@import "button";
 
-.app-header:has(.mvp-toolbar) .navbar {
+.app-header:has(> .mvp-toolbar) .navbar {
   padding-bottom: 0;
+}
+
+.sidebar-layout {
+  display: grid;
+  grid-template-areas:
+    "header"
+    "main"
+    "footer";
+  grid-template-rows: auto 1fr auto;
+
+  > .content-header {
+    grid-area: header;
+  }
+
+  > .content-main {
+    grid-area: main;
+  }
+
+  > .content-footer {
+    grid-area: footer;
+  }
+}
+
+.layout-fixed {
+  .app-sidebar {
+    .sidebar-wrapper {
+      height: 100vh !important;
+    }
+  }
+}
+
+.bg-sidebar {
+  background-color: var(--mvp-sidebar-bg-color);
 }

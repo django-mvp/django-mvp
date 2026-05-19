@@ -1,8 +1,17 @@
 from django.apps import apps
+from django.templatetags.static import static
 
 
-def avatar_url(user, height):
+def avatar_url(request, height):
     return None
+
+
+def logo_url(request, height):
+    return static("brand/logo.svg")
+
+
+def icon_url(request, height):
+    return static("brand/icon.svg")
 
 
 def app_is_installed(app_name: str) -> bool:

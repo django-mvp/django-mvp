@@ -22,6 +22,7 @@ from .views import (
 )
 
 urlpatterns = [
+    path("i18n/", include("django.conf.urls.i18n")),
     # Main home — landing for guests, dashboard for authenticated users
     path(
         "",

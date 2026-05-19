@@ -7,18 +7,23 @@
         class
         menu="AppMenu"
         renderer="adminlte" />
-<aside class="app-sidebar shadow d-flex flex-column {{ class }}"
+<aside class="app-sidebar shadow {{ class }}"
        {% if dark %}data-bs-theme="dark"{% endif %}>
-  <c-app.sidebar.header text="{{ brand_text }}"
-                        icon="{{ brand_icon }}"
-                        logo="{{ brand_logo }}"
-                        link="{{ brand_url }}" />
-  <div class="sidebar-wrapper">
-    <nav class="mt-2">
-      {% render_menu menu renderer=renderer %}
-    </nav>
+  <div class="sidebar-wrapper p-0 overflow-x-hidden overflow-y-auto sidebar-layout">
+    <c-app.sidebar.header text="{{ brand_text }}"
+                          icon="{{ brand_icon }}"
+                          logo="{{ brand_logo }}"
+                          link="{{ brand_url }}"
+                          class="content-header sticky-top" />
+    <div class="content-main px-2">
+      <nav class="mt-2">
+        {% render_menu menu renderer=renderer %}
+      </nav>
+      <div style="height: 600px">long content for overflow scroll</div>
+    </div>
+    <div class="content-footer sticky-bottom px-1 py-2 mt-auto border-top"
+         style="background-color: var(--mvp-sidebar-bg-color)">Footer content</div>
   </div>
-  {% if footer %}<div class="sidebar-footer px-1 py-2 mt-auto">{{ footer }}</div>{% endif %}
 </aside>
 <div class="sidebar-overlay"
      data-lte-toggle="sidebar"

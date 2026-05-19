@@ -27,6 +27,8 @@ MVP_LANDING_PAGE_HERO = _get_or_default(
     },
 )
 
-MVP_AVATAR_URL_FUNCTION = _get_or_default(
-    "MVP_AVATAR_URL_FUNCTION", "mvp.utils.avatar_url"
-)
+MVP_AVATAR_URL_FUNC = _get_or_default("MVP_AVATAR_URL_FUNC", "mvp.utils.avatar_url")
+
+MVP_LOGO_URL_FUNC = _get_or_default("MVP_LOGO_URL_FUNC", "mvp.utils.logo_url")
+
+MVP_ICON_URL_FUNC = _get_or_default("MVP_ICON_URL_FUNC", "mvp.utils.icon_url")
