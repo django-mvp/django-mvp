@@ -2,7 +2,8 @@
 
 **Feature Branch**: `016-django-error-pages`
 **Created**: 2026-05-19
-**Status**: Draft
+**Status**: Refined
+**Refined**: 2026-05-19 — Removed visible error code numbers; added logo to base template; simplified block names (`heading`, `description`, `actions`); consolidated layout markup in `error_base.html`
 **Input**: User description: "Any production ready django app needs error pages. This spec will handle the creation, styling, layout, etc of standard django error pages."
 
 ## User Scenarios & Testing *(mandatory)*
@@ -17,7 +18,7 @@ A visitor navigates to a URL that does not exist in the application — either b
 
 **Acceptance Scenarios**:
 
-1. **Given** a visitor navigates to a URL that does not match any registered route, **When** the page loads, **Then** the visitor sees a styled page with the "404" code, a friendly "Page Not Found" message, and a link back to the home/dashboard.
+1. **Given** a visitor navigates to a URL that does not match any registered route, **When** the page loads, **Then** the visitor sees a styled, branded page (with logo) showing a friendly "Page Not Found" heading and a link back to the home/dashboard.
 2. **Given** the 404 page is displayed, **When** the visitor clicks the "Back to dashboard" action, **Then** they are taken to the application's home page.
 3. **Given** the application is in production mode (DEBUG=False), **When** a missing URL is accessed, **Then** the custom 404 page is rendered (not Django's default debug 404 page).
 
@@ -33,7 +34,7 @@ An unexpected server-side error occurs while the user is using the application, 
 
 **Acceptance Scenarios**:
 
-1. **Given** an unhandled server exception occurs, **When** the error response is returned, **Then** the visitor sees a styled page with the "500" code, a neutral message such as "Something went wrong. Please try again.", and options to return home or contact support.
+1. **Given** an unhandled server exception occurs, **When** the error response is returned, **Then** the visitor sees a styled, branded page (with logo) showing a neutral message such as "Something went wrong." and options to return home or contact support.
 2. **Given** the 500 page is displayed, **When** the visitor clicks "Back to dashboard", **Then** they are taken to the home page.
 3. **Given** the 500 page is displayed, **When** the visitor clicks the support contact action, **Then** their email client opens addressed to the configured support email.
 4. **Given** the application is in production mode, **When** a 500 error occurs, **Then** no stack trace or debug information is visible to the user.
@@ -50,7 +51,7 @@ A visitor attempts to access a resource or page they do not have permission to v
 
 **Acceptance Scenarios**:
 
-1. **Given** a user attempts to access a resource they are not authorized to view, **When** the 403 response is returned, **Then** the visitor sees a styled page with the "403" code, a message explaining access is denied, and a single "Back to home" action.
+1. **Given** a user attempts to access a resource they are not authorized to view, **When** the 403 response is returned, **Then** the visitor sees a styled, branded page (with logo) showing a message explaining access is denied and a single "Back to home" action.
 2. **Given** the 403 page is displayed, **When** the visitor clicks "Back to home", **Then** they are taken to the application's home page.
 
 ---
@@ -65,7 +66,7 @@ The application receives a bad or malformed request from the client, resulting i
 
 **Acceptance Scenarios**:
 
-1. **Given** a bad or malformed HTTP request is sent to the application, **When** the 400 response is returned, **Then** the visitor sees a styled page with the "400" code, a plain-language explanation of the error, and an option to return home.
+1. **Given** a bad or malformed HTTP request is sent to the application, **When** the 400 response is returned, **Then** the visitor sees a styled, branded page (with logo) showing a plain-language explanation of the error and an option to return home.
 2. **Given** the 400 page is displayed, **When** the visitor clicks the navigation action, **Then** they are taken back to the home page.
 
 ---
@@ -97,12 +98,12 @@ A developer working on the application wants to visually review each error page 
 ### Functional Requirements
 
 - **FR-001**: The application MUST provide styled custom error pages for all four standard Django error types: 400 (Bad Request), 403 (Forbidden), 404 (Not Found), and 500 (Server Error).
-- **FR-002**: Each error page MUST display its numeric HTTP status code prominently and in a visually distinct style.
+- ~~**FR-002**: Each error page MUST display its numeric HTTP status code prominently and in a visually distinct style.~~ *(Removed 2026-05-19 — error codes are no longer shown on the visible page; the HTTP status code is conveyed via response headers and the page title only.)*
 - **FR-003**: Each error page MUST display a user-friendly heading and a plain-language description appropriate to the specific error type.
 - **FR-004**: Each error page MUST provide at least one navigation action (e.g., a button linking to the home/dashboard page) to help users recover. By convention: 404 and 500 pages use the label "Back to dashboard" (common user-facing errors); 400 and 403 pages use "Back to home" (technical/access errors where a narrower recovery path is appropriate). This distinction is intentional and must be maintained consistently across templates.
 - **FR-005**: The 500 error page MUST offer an optional secondary action to contact support via the address configured in Django's `DEFAULT_FROM_EMAIL` setting; if that setting is empty the action MUST be hidden.
 - **FR-006**: All error pages MUST share a common base template (`error_base.html`) to ensure visual consistency and reduce duplication.
-- **FR-007**: The `error_base.html` base template MUST define named template blocks for: page title, error code display, error heading, error description, and navigation actions — allowing each error page to override them independently.
+- **FR-007**: The `error_base.html` base template MUST define named template blocks for: page title, error heading, error description, and navigation actions — allowing each error page to override them independently. The base template MUST also display the application logo (via `{% logo_url %}`) above the heading on every error page. Block names are: `title`, `heading`, `description`, `actions`.
 - **FR-008**: The application's URL configuration MUST register custom error handlers (`handler400`, `handler403`, `handler404`, `handler500`) pointing to views that render the corresponding error page templates.
 - **FR-009**: All error pages MUST render correctly when `DEBUG=False` (production mode).
 - **FR-010**: All error pages MUST be fully responsive and readable on mobile, tablet, and desktop viewport sizes.
@@ -125,7 +126,7 @@ A developer working on the application wants to visually review each error page 
 
 - **SC-001**: All four error pages (400, 403, 404, 500) render without errors in both development and production modes.
 - **SC-002**: Each error page renders in under 1 second under normal server load conditions, as they contain no dynamic data lookups.
-- **SC-003**: Each error page displays the correct HTTP status code in the response headers as well as on the visible page.
+- **SC-003**: Each error page returns the correct HTTP status code in the response headers. *(Note: the numeric code is no longer displayed on the visible page — conveyed via page title and response headers only.)*
 - **SC-004**: A developer can navigate to all four error page previews via the demo app sidebar without triggering a real error.
 - **SC-005**: All error pages meet WCAG 2.1 AA accessibility conformance: correct heading hierarchy (single `h1` present), minimum 4.5:1 color contrast ratio for body text, 3:1 for large text, and meaningful link/button labels.
 - **SC-006**: Error pages are visually consistent with the rest of the application — same font, color palette, spacing, and component style.
@@ -143,6 +144,7 @@ A developer working on the application wants to visually review each error page 
 ## Assumptions
 
 - Bootstrap 5 and the AdminLTE 4 theme are the CSS frameworks in use throughout the app; error pages will follow the same visual language.
+- The application logo is displayed on every error page via the `{% logo_url request size="md" %}` template tag; it is always available even during error conditions.
 - The app already has a `mvp/base.html` and `mvp/error_base.html` that serve as the foundation; this feature extends and formalizes that existing structure.
 - The 404.html and 500.html templates already exist in a partial state; this feature completes them and adds the missing 400.html and 403.html.
 - Django's built-in error handler mechanism (`handler400`, `handler403`, `handler404`, `handler500`) is the integration point; no third-party error tracking middleware is in scope.

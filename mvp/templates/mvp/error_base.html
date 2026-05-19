@@ -1,9 +1,7 @@
 {% extends "mvp/base.html" %}
-{% load i18n %}
+{% load i18n mvp %}
 {% block title %}
-  {% block error_title %}
-    {% trans "Error" %}
-  {% endblock %}
+  {% trans "Error" %}
 {% endblock title %}
 {% block app %}
   <body class="bg-body-tertiary">
@@ -11,10 +9,18 @@
       <div class="container">
         <div class="row justify-content-center">
           <div class="col-md-8 col-lg-6 text-center">
-            {% block error_code %}{% endblock %}
-            {% block error_heading %}{% endblock %}
-            {% block error_description %}{% endblock %}
-            {% block error_actions %}{% endblock %}
+            <div class="mb-4">
+              <img src="{% logo_url request size="md" %}" />
+            </div>
+            <h1 class="h3 mb-3">
+              {% block heading %}{% endblock %}
+            </h1>
+            <p class="text-secondary mb-4">
+              {% block description %}{% endblock %}
+            </p>
+            <div class="d-flex gap-2 justify-content-center flex-wrap">
+              {% block actions %}{% endblock %}
+            </div>
           </div>
         </div>
       </div>

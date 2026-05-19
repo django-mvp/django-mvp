@@ -3,6 +3,7 @@
 **Input**: Design documents from `specs/016-django-error-pages/`
 **Branch**: `feature/016-django-error-pages`
 **Prerequisites**: plan.md ✅ | spec.md ✅ | research.md ✅ | data-model.md ✅ | contracts/template-block-api.md ✅
+**Propagated**: 2026-05-19 — Updated from spec.md refinement (logo added, error code display removed, block API simplified to 4 blocks)
 
 ## Format: `[ID] [P?] [Story?] Description`
 
@@ -16,7 +17,7 @@
 
 **Purpose**: Verify baseline state before making any changes.
 
-- [X] T001 Audit existing error templates: read `mvp/templates/mvp/error_base.html`, `mvp/templates/404.html`, and `mvp/templates/500.html` in full; confirm all 5 blocks (`error_title`, `error_code`, `error_heading`, `error_description`, `error_actions`) exist in `error_base.html` and note any gaps
+- [X] T001 Audit existing error templates: read `mvp/templates/mvp/error_base.html`, `mvp/templates/404.html`, and `mvp/templates/500.html` in full; confirm all 4 blocks (`title`, `heading`, `description`, `actions`) exist in `error_base.html` and that the logo is rendered via `{% logo_url %}`; note any gaps
 
 ---
 
@@ -26,7 +27,7 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [X] T002 Harden `mvp/templates/mvp/error_base.html` — verify all 5 named blocks (`error_title`, `error_code`, `error_heading`, `error_description`, `error_actions`) are defined with sensible empty defaults; fix any missing blocks
+- [X] T002 Harden `mvp/templates/mvp/error_base.html` — verify all 4 named blocks (`title`, `heading`, `description`, `actions`) are defined with sensible empty defaults, and logo is rendered via `{% logo_url request size="md" %}`; fix any missing blocks
 - [X] T003 Create `mvp/views/error.py` with skeleton stubs for all four handler functions: `bad_request(request, exception)` returns `HttpResponse(status=400)`, `permission_denied(request, exception)` returns 403, `not_found(request, exception)` returns 404, `server_error(request)` returns 500 — stubs render the correct template but `server_error` passes an empty context for now (support_email logic is added in T012)
 - [X] T004 Update `mvp/views/__init__.py` to export `bad_request`, `permission_denied`, `not_found`, `server_error` in `__all__`
 - [X] T005 Register Django error handlers in `demo/urls.py`: `handler400 = "mvp.views.error.bad_request"`, `handler403 = "mvp.views.error.permission_denied"`, `handler404 = "mvp.views.error.not_found"`, `handler500 = "mvp.views.error.server_error"`
@@ -40,7 +41,7 @@
 
 **Goal**: A visitor navigating to a missing URL sees a styled, branded 404 page with a "Back to dashboard" action.
 
-**Independent Test**: Navigate to any non-existent URL with `DEBUG=False` (or use the demo preview at `/errors/404/`); confirm the styled 404 page renders, heading reads "Oops! Page not found.", and the back button links to `/`.
+**Independent Test**: Navigate to any non-existent URL with `DEBUG=False` (or use the demo preview at `/errors/404/`); confirm the styled 404 page renders with logo, heading reads "Oops! Page not found.", and the back button links to `/`.
 
 ### Tests — User Story 1
 
@@ -52,8 +53,8 @@
 
 ### Implementation — User Story 1
 
-- [X] T008 [US1] Update `mvp/templates/404.html`: confirm all 5 blocks are filled — `error_title` = "404 — Page Not Found", `error_code` = blue display-1 div, `error_heading` = `<h1>` "Oops! Page not found.", `error_description` with helpful copy, `error_actions` with a single `<c-button>` linking to `/`; wrap all user-visible text in `{% trans %}`
-- [X] T009 [US1] Playwright MCP verification — open `http://localhost:8003/errors/404/` in browser; confirm: 404 code is prominent and blue, `<h1>` is visible, "Back to dashboard" button exists and links to `/`, page is readable on mobile viewport (375px wide)
+- [X] T008 [US1] Update `mvp/templates/404.html`: confirm all 4 blocks are filled — `title` = "404 — Page Not Found", `heading` = "Oops! Page not found.", `description` with helpful copy, `actions` with a single `<c-button>` linking to `/`; ~~`error_code` block removed (error codes no longer displayed on-page)~~; wrap all user-visible text in `{% trans %}`
+- [X] T009 [US1] Playwright MCP verification — open `http://localhost:8003/errors/404/` in browser; confirm: logo is visible above the heading, `<h1>` is visible, "Back to dashboard" button exists and links to `/`, page is readable on mobile viewport (375px wide); ~~404 code prominent and blue~~ (removed)
 
 **Checkpoint**: 404 page is independently functional and visually verified.
 
@@ -94,7 +95,7 @@
 
 **Goal**: A visitor denied access sees a styled 403 page explaining the situation with a single "Back to home" action.
 
-**Independent Test**: Open the demo preview at `/errors/403/`; confirm the 403 code is displayed, heading reads "Access Denied", and a single "Back to home" button is present (no sign-in link).
+**Independent Test**: Open the demo preview at `/errors/403/`; confirm the logo is displayed, heading reads "Access Denied", and a single "Back to home" button is present (no sign-in link).
 
 ### Tests — User Story 3
 
@@ -106,8 +107,8 @@
 
 ### Implementation — User Story 3
 
-- [X] T017 [US3] Create `mvp/templates/403.html`: extends `mvp/error_base.html`, `error_title` = "403 — Forbidden", `error_code` = amber/warning display-1 div (`text-warning`), `error_heading` = `<h1>` "Access Denied.", `error_description` = plain-language explanation, `error_actions` = single `<c-button variant="outline-secondary">` linking to `/` with "Back to home" label; wrap all text in `{% trans %}`
-- [X] T018 [US3] Playwright MCP verification — open `http://localhost:8003/errors/403/`; confirm: 403 code visible and amber-coloured, `<h1>` "Access Denied" present, single "Back to home" button with href `/`, no sign-in link, responsive on mobile
+- [X] T017 [US3] Create `mvp/templates/403.html`: extends `mvp/error_base.html`, `title` = "403 — Forbidden", ~~`error_code` block removed~~, `heading` = "Access Denied.", `description` = plain-language explanation, `actions` = single `<c-button variant="outline-secondary">` linking to `/` with "Back to home" label; wrap all text in `{% trans %}`
+- [X] T018 [US3] Playwright MCP verification — open `http://localhost:8003/errors/403/`; confirm: logo visible above heading, `<h1>` "Access Denied" present, single "Back to home" button with href `/`, no sign-in link, responsive on mobile; ~~403 code amber-coloured~~ (removed)
 
 **Checkpoint**: 403 page is independently functional.
 
@@ -119,7 +120,7 @@
 
 **Goal**: A visitor sending a malformed request sees a styled 400 page with a plain-language explanation and a "Back to home" action.
 
-**Independent Test**: Open the demo preview at `/errors/400/`; confirm the 400 code is displayed, heading is "Bad Request", and a single "Back to home" button is present.
+**Independent Test**: Open the demo preview at `/errors/400/`; confirm the logo is displayed, heading is "Bad Request", and a single "Back to home" button is present.
 
 ### Tests — User Story 4
 
@@ -131,8 +132,8 @@
 
 ### Implementation — User Story 4
 
-- [X] T021 [US4] Create `mvp/templates/400.html`: extends `mvp/error_base.html`, `error_title` = "400 — Bad Request", `error_code` = muted/secondary display-1 div (`text-secondary`), `error_heading` = `<h1>` "Bad Request.", `error_description` = plain-language explanation (e.g. "Your browser sent a request the server could not understand."), `error_actions` = single `<c-button variant="outline-secondary">` linking to `/` with "Back to home"; wrap all text in `{% trans %}`
-- [X] T022 [US4] Playwright MCP verification — open `http://localhost:8003/errors/400/`; confirm: 400 code visible, `<h1>` "Bad Request" present, "Back to home" button with href `/`, responsive on mobile
+- [X] T021 [US4] Create `mvp/templates/400.html`: extends `mvp/error_base.html`, `title` = "400 — Bad Request", ~~`error_code` block removed~~, `heading` = "Bad Request.", `description` = plain-language explanation (e.g. "Your browser sent a request the server could not understand."), `actions` = single `<c-button variant="outline-secondary">` linking to `/` with "Back to home"; wrap all text in `{% trans %}`
+- [X] T022 [US4] Playwright MCP verification — open `http://localhost:8003/errors/400/`; confirm: logo visible above heading, `<h1>` "Bad Request" present, "Back to home" button with href `/`, responsive on mobile; ~~400 code visible~~ (removed)
 
 **Checkpoint**: All four error pages are independently functional.
 
@@ -163,8 +164,8 @@
 
 **Purpose**: End-to-end coverage, skill documentation, and final quality gates.
 
-- [X] T029 [P] Write `tests/test_views/test_error_views_e2e.py` with pytest-playwright E2E tests for all four error pages: for each preview URL assert — error code text is visible in the DOM, a single `<h1>` element is present, a link with `href="/"` exists, page `<title>` contains the numeric code, HTTP response is 200 (preview) and correct status (handler); also run an axe-core accessibility sweep on each page using `page.evaluate(axe_script)` and assert zero critical WCAG 2.1 AA violations (satisfies SC-005)
-- [X] T030 [P] Update `skills/django-mvp/SKILL.md` — add a section documenting the error page template block API (`error_title`, `error_code`, `error_heading`, `error_description`, `error_actions`), the handler registration pattern (`handler400/403/404/500` string paths in root URLconf), and the `DEFAULT_FROM_EMAIL` → `support_email` context variable for the 500 page
+- [X] T029 [P] Write `tests/test_views/test_error_views_e2e.py` with pytest-playwright E2E tests for all four error pages: for each preview URL assert — ~~error code text is visible in the DOM~~ (removed), logo `<img>` is present, a single `<h1>` element is present, a link with `href="/"` exists, page `<title>` contains the numeric code, HTTP response is 200 (preview) and correct status (handler); also run an axe-core accessibility sweep on each page using `page.evaluate(axe_script)` and assert zero critical WCAG 2.1 AA violations (satisfies SC-005)
+- [X] T030 [P] Update `skills/django-mvp/SKILL.md` — add a section documenting the error page template block API (`title`, `heading`, `description`, `actions` — ~~`error_code` block removed~~), the logo auto-render behaviour in `error_base.html`, the handler registration pattern (`handler400/403/404/500` string paths in root URLconf), and the `DEFAULT_FROM_EMAIL` → `support_email` context variable for the 500 page
 - [X] T031 Run full test suite: `poetry run pytest` — all tests must pass including new unit and E2E tests; SC-002 (<1s render) is verified by design — zero DB queries + static template rendering guarantees sub-second response, no wall-clock assertion required
 - [X] T032 [P] Run Ruff: `poetry run ruff check . && poetry run ruff format --check .` — zero violations
 - [X] T033 [P] Run djlint on new and updated templates: `poetry run djlint mvp/templates/400.html mvp/templates/403.html mvp/templates/404.html mvp/templates/500.html mvp/templates/mvp/error_base.html --check` — zero violations
@@ -204,6 +205,7 @@
 ### Parallel Opportunities
 
 All tasks marked `[P]` within a phase can run concurrently (they touch different files):
+
 - T007, T011, T016, T020 (story test files — each tests a different view)
 - T026, T029, T030, T032, T033 (independent in Phase 7/8)
 - US1–US4 can be implemented in parallel after Phase 2 completes (different templates)

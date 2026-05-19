@@ -24,17 +24,14 @@ or footer) suitable for rendering standalone error pages at any HTTP error statu
 
 | Block name | Required | Default | Description |
 |------------|----------|---------|-------------|
-| `error_title` | No | `"Error"` | Page `<title>` content; appears in browser tab. Should include both the code and a human label (e.g. `"404 — Page Not Found"`). |
-| `error_code` | No | *(empty)* | Large-print numeric code element. Convention: `<div class="display-1 fw-bold lh-1 mb-3">NNN</div>`. Color classes signal severity: `text-primary` (4xx), `text-danger` (5xx). |
-| `error_heading` | No | *(empty)* | Primary `<h1>` visible to the user. Should be short, friendly, and in plain language. |
-| `error_description` | No | *(empty)* | Supporting paragraph explaining the error. Must use `{% trans %}` for i18n. |
-| `error_actions` | No | *(empty)* | CTA row. Use `<c-button>` components. At minimum, provide a link back to `/`. |
+| `title` | No | `"Error"` | Page `<title>` content; appears in browser tab. Should include both the code and a human label (e.g. `"404 — Page Not Found"`). |
+| `heading` | No | *(empty)* | Primary `<h1>` visible to the user. Should be short, friendly, and in plain language. |
+| `description` | No | *(empty)* | Supporting paragraph explaining the error. Must use `{% trans %}` for i18n. |
+| `actions` | No | *(empty)* | CTA row. Use `<c-button>` components. At minimum, provide a link back to `/`. |
 
-### Block Wrapping Note
+> **Logo**: The application logo is rendered automatically by `error_base.html` above the heading on every error page. Individual templates do not need to include it.
 
-`error_title` is automatically wrapped by `title` (the `<title>` parent block
-inherited from `mvp/base.html`). Override only `error_title` — never override
-`title` directly in error page templates.
+> **Error code numbers**: Numeric HTTP status codes (e.g. "404") are NOT displayed on the visible page. The status code is communicated via the HTTP response headers and the page `<title>` only.
 
 ### Extending Example
 
@@ -43,21 +40,21 @@ inherited from `mvp/base.html`). Override only `error_title` — never override
 {% extends "mvp/error_base.html" %}
 {% load i18n %}
 
-{% block error_title %}{% trans "403 — Forbidden" %}{% endblock %}
+{% block title %}{% trans "403 — Forbidden" %}{% endblock %}
 
-{% block error_code %}
-  <div class="display-1 fw-bold text-warning lh-1 mb-3">403</div>
+{% block heading %}
+  {% trans "Access Denied." %}
 {% endblock %}
 
-{% block error_heading %}
-  <h1 class="h3 mb-3">{% trans "Access Denied" %}</h1>
+{% block description %}
+  {% trans "You do not have permission to view this page." %}
 {% endblock %}
 
-{% block error_description %}
-  <p class="text-secondary mb-4">{% trans "You do not have permission to view this page." %}</p>
+{% block actions %}
+  <c-button variant="outline-secondary" icon="arrow-left" href="/" text="{% trans 'Back to home' %}" />
 {% endblock %}
+```
 
-{% block error_actions %}
   <c-button variant="outline-secondary" icon="arrow-left" href="/" text="{% trans 'Back to home' %}" />
 {% endblock %}
 ```

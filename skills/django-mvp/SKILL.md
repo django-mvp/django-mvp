@@ -331,30 +331,32 @@ from that module, not from `include()`d apps.
 ### Template Block API
 
 All four error templates extend `mvp/error_base.html`, which provides a
-full-viewport centered layout **with no sidebar and no DB queries**. Override
-these five named blocks to customise each page:
+full-viewport centered layout **with no sidebar and no DB queries**. The base
+template automatically renders the application logo above the heading. Override
+these four named blocks to customise each page:
 
 | Block | Purpose | Default |
 |-------|---------|---------|
-| `error_title` | `<title>` text (`{% block title %}` wrapper) | `"Error"` |
-| `error_code` | Large numeric error code display | *(empty)* |
-| `error_heading` | `<h1>` explanation for the user | *(empty)* |
-| `error_description` | `<p>` with context / next steps | *(empty)* |
-| `error_actions` | CTA buttons (`<c-button>` components) | *(empty)* |
+| `title` | `<title>` text (`{% block title %}` wrapper) | `"Error"` |
+| `heading` | User-facing heading line | *(empty)* |
+| `description` | Supporting paragraph with context / next steps | *(empty)* |
+| `actions` | CTA buttons (`<c-button>` components) | *(empty)* |
+
+> **No error code numbers on page.** The numeric HTTP status code is communicated
+> via response headers and the page `<title>` only — not as a visible on-page element.
 
 Example custom error page:
 
 ```django
 {% extends "mvp/error_base.html" %}
 {% load i18n %}
-{% block error_title %}{% trans "404 — Page Not Found" %}{% endblock %}
-{% block error_code %}<div class="display-1 fw-bold text-primary lh-1 mb-3">404</div>{% endblock %}
-{% block error_heading %}<h1 class="h3 mb-3">{% trans "Oops! Page not found." %}</h1>{% endblock %}
-{% block error_description %}
-  <p class="text-secondary mb-4">{% trans "We could not find that page." %}</p>
+{% block title %}{% trans "404 — Page Not Found" %}{% endblock %}
+{% block heading %}{% trans "Oops! Page not found." %}{% endblock %}
+{% block description %}
+  {% trans "We could not find that page." %}
 {% endblock %}
-{% block error_actions %}
-  <c-button variant="outline-secondary" icon="arrow-left" href="/" text="{% trans "Back to home" %}" />
+{% block actions %}
+  <c-button variant="outline-secondary" icon="arrow-left" href="/" text="{% trans \"Back to home\" %}" />
 {% endblock %}
 ```
 
@@ -365,7 +367,7 @@ from `settings.DEFAULT_FROM_EMAIL` (empty string → `None`). Use it to conditio
 render a support contact button:
 
 ```django
-{% block error_actions %}
+{% block actions %}
   <div class="d-flex gap-2 justify-content-center flex-wrap">
     <c-button variant="primary" icon="arrow-left" href="/" text="{% trans "Back to dashboard" %}" />
     {% if support_email %}

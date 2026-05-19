@@ -1,18 +1,15 @@
 {% extends "mvp/error_base.html" %}
 {% load i18n %}
-{% block error_title %}
-  {% trans "404 \u2014 Page Not Found" %}
+{% block title %}
+  {% trans "404 — Page Not Found" %}
 {% endblock %}
-{% block error_code %}<div class="display-1 fw-bold text-primary lh-1 mb-3">404</div>{% endblock %}
-{% block error_heading %}
-  <h1 class="h3 mb-3">{% trans "Oops! Page not found." %}</h1>
+{% block heading %}
+  {% trans "Oops! Page not found." %}
 {% endblock %}
-{% block error_description %}
-  <p class="text-secondary mb-4">
-    {% trans "We could not find the page you were looking for. Meanwhile, you may return to the dashboard or try searching for what you need." %}
-  </p>
+{% block description %}
+  {% trans "We could not find the page you were looking for. Meanwhile, you may return to the dashboard or try searching for what you need." %}
 {% endblock %}
-{% block error_actions %}
+{% block actions %}
   <c-button variant="outline-secondary"
             icon="arrow-left"
             href="/"

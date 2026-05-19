@@ -53,8 +53,8 @@ the following named blocks consumed by child templates:
 
 | Block name | Purpose | Default value |
 |------------|---------|---------------|
-| `error_title` | `<title>` content (also used in tab/browser title) | `"Error"` |
+| `title` | `<title>` content (also used in tab/browser title) | `"Error"` |
 | `error_code` | Large numeric code display (e.g., `<div class="display-1">404</div>`) | *(empty)* |
-| `error_heading` | Primary `<h1>` visible heading | *(empty)* |
-| `error_description` | Supporting paragraph text | *(empty)* |
-| `error_actions` | CTA buttons / navigation links | *(empty)* |
+| `heading` | Primary `<h1>` visible heading | *(empty)* |
+| `description` | Supporting paragraph text | *(empty)* |
+| `actions` | CTA buttons / navigation links | *(empty)* |

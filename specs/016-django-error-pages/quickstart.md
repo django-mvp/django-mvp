@@ -83,13 +83,13 @@ create a template with the same name in your app's `templates/` directory:
 {% extends "mvp/error_base.html" %}
 {% load i18n %}
 
-{% block error_title %}{% trans "404 — Not Found" %}{% endblock %}
+{% block title %}{% trans "404 — Not Found" %}{% endblock %}
 {% block error_code %}<div class="display-1 fw-bold text-primary lh-1 mb-3">404</div>{% endblock %}
-{% block error_heading %}<h1 class="h3 mb-3">{% trans "This page doesn't exist." %}</h1>{% endblock %}
-{% block error_description %}
+{% block heading %}<h1 class="h3 mb-3">{% trans "This page doesn't exist." %}</h1>{% endblock %}
+{% block description %}
   <p class="text-secondary mb-4">{% trans "Double-check your URL and try again." %}</p>
 {% endblock %}
-{% block error_actions %}
+{% block actions %}
   <c-button variant="outline-secondary" icon="arrow-left" href="/" text="{% trans 'Go home' %}" />
 {% endblock %}
 ```
@@ -103,10 +103,10 @@ template loader finds your override first.
 
 | Block | Default | Description |
 |-------|---------|-------------|
-| `error_title` | `"Error"` | Browser `<title>` content |
+| `title` | `"Error"` | Browser `<title>` content |
 | `error_code` | *(empty)* | Large numeric code element |
-| `error_heading` | *(empty)* | Primary `<h1>` heading |
-| `error_description` | *(empty)* | Explanatory paragraph |
-| `error_actions` | *(empty)* | CTA buttons (use `<c-button>`) |
+| `heading` | *(empty)* | Primary `<h1>` heading |
+| `description` | *(empty)* | Explanatory paragraph |
+| `actions` | *(empty)* | CTA buttons (use `<c-button>`) |
 
 Full API reference: [contracts/template-block-api.md](contracts/template-block-api.md)

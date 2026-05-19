@@ -1,17 +1,19 @@
 # Implementation Plan: Django Error Pages
 
 **Branch**: `feature/016-django-error-pages` | **Date**: 2026-05-19 | **Spec**: [spec.md](spec.md)
-**Input**: Feature specification from `specs/016-django-error-pages/spec.md`
+**Propagated**: 2026-05-19 — Updated from spec.md refinement (logo added, error code display removed, block names simplified)
 
 ## Summary
 
 Provide four production-ready, consistently styled Django error pages (400, 403, 404,
 500) for the `django-mvp` package. Each page extends a shared `mvp/error_base.html`
-scaffold that renders a full-viewport centered layout without sidebar or DB queries.
-Custom view functions in `mvp/views/error.py` are registered as Django error handlers
-in `demo/urls.py`. The 500 page optionally surfaces a support contact link sourced
-from `settings.DEFAULT_FROM_EMAIL`. Four demo preview routes allow developers to
-inspect the pages without triggering real errors.
+scaffold that renders a full-viewport centered layout with the application logo,
+without sidebar or DB queries. Numeric HTTP status codes are not displayed on-page;
+they are communicated via response headers and page `<title>` only. Custom view
+functions in `mvp/views/error.py` are registered as Django error handlers in
+`demo/urls.py`. The 500 page optionally surfaces a support contact link sourced from
+`settings.DEFAULT_FROM_EMAIL`. Four demo preview routes allow developers to inspect
+the pages without triggering real errors.
 
 ## Technical Context
 
