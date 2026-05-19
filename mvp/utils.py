@@ -69,4 +69,7 @@ BS5_ICONS = {
     "x": "bi bi-x-lg",
     "check": "bi bi-check-lg",
     "life-preserver": "bi bi-life-preserver",
+    "exclamation-circle": "bi bi-exclamation-circle",
+    "shield-x": "bi bi-shield-x",
+    "bug": "bi bi-bug",
 }

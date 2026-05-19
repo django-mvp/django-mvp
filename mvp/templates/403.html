@@ -1,0 +1,20 @@
+{% extends "mvp/error_base.html" %}
+{% load i18n %}
+{% block error_title %}
+  {% trans "403 — Forbidden" %}
+{% endblock %}
+{% block error_code %}<div class="display-1 fw-bold text-warning lh-1 mb-3">403</div>{% endblock %}
+{% block error_heading %}
+  <h1 class="h3 mb-3">{% trans "Access Denied." %}</h1>
+{% endblock %}
+{% block error_description %}
+  <p class="text-secondary mb-4">
+    {% trans "You do not have permission to access this page. If you believe this is a mistake, please contact your administrator." %}
+  </p>
+{% endblock %}
+{% block error_actions %}
+  <c-button variant="outline-secondary"
+            icon="arrow-left"
+            href="/"
+            text="{% trans "Back to home" %}" />
+{% endblock %}

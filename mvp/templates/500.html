@@ -1,26 +1,26 @@
 {% extends "mvp/error_base.html" %}
 {% load i18n %}
 {% block error_title %}
-  {% trans "500 \u2014 Server Error" %}
+  {% trans "500 — Server Error" %}
 {% endblock %}
 {% block error_code %}<div class="display-1 fw-bold text-danger lh-1 mb-3">500</div>{% endblock %}
 {% block error_heading %}
-  <h1 class="h3 mb-3">{% trans "Something went wrong on our end." %}</h1>
+  <h1 class="h3 mb-3">{% trans "Something went wrong." %}</h1>
 {% endblock %}
 {% block error_description %}
-  <p class="text-secondary mb-4">
-    {% trans "The server encountered an unexpected condition. Our team has been notified. Please try again in a moment, or contact support if the issue persists." %}
-  </p>
+  <p class="text-secondary mb-4">{% trans "Please try again, or contact support if the issue persists." %}</p>
 {% endblock %}
 {% block error_actions %}
-  <div class="d-flex gap-2 justify-content-center">
+  <div class="d-flex gap-2 justify-content-center flex-wrap">
     <c-button variant="primary"
               icon="arrow-left"
               href="/"
               text="{% trans "Back to dashboard" %}" />
-    <c-button variant="outline-secondary"
-              icon="life-preserver"
-              href="mailto:support@example.com"
-              text="{% trans "Contact support" %}" />
+    {% if support_email %}
+      <c-button variant="outline-secondary"
+                icon="life-preserver"
+                href="mailto:{{ support_email }}"
+                text="{% trans "Contact support" %}" />
+    {% endif %}
   </div>
 {% endblock %}

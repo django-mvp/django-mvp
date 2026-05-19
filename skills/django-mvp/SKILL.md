@@ -309,27 +309,109 @@ class ProductDetailView(PageMixin, DetailView):
 
 ## Step 8 — Error Pages
 
-**`templates/404.html`** — extends `base.html` safely (Django runs context processors
-for 404, so Cotton and menu rendering work):
+django-mvp ships four production-ready, consistently styled error pages (400, 403, 404,
+500) in `mvp/templates/`. Register them by wiring the four Django error handlers in your
+root URLconf module.
+
+### Handler Registration
+
+In your **root URLconf** (the module pointed to by `ROOT_URLCONF` in settings):
+
+```python
+# myproject/urls.py  — root URLconf only, not app urls.py
+handler400 = "mvp.views.error.bad_request"
+handler403 = "mvp.views.error.permission_denied"
+handler404 = "mvp.views.error.not_found"
+handler500 = "mvp.views.error.server_error"
+```
+
+These string paths must be in the root URLconf — Django only reads handler variables
+from that module, not from `include()`d apps.
+
+### Template Block API
+
+All four error templates extend `mvp/error_base.html`, which provides a
+full-viewport centered layout **with no sidebar and no DB queries**. Override
+these five named blocks to customise each page:
+
+| Block | Purpose | Default |
+|-------|---------|---------|
+| `error_title` | `<title>` text (`{% block title %}` wrapper) | `"Error"` |
+| `error_code` | Large numeric error code display | *(empty)* |
+| `error_heading` | `<h1>` explanation for the user | *(empty)* |
+| `error_description` | `<p>` with context / next steps | *(empty)* |
+| `error_actions` | CTA buttons (`<c-button>` components) | *(empty)* |
+
+Example custom error page:
+
 ```django
-{% extends "base.html" %}
-{% block content %}
-  <h1>Page not found</h1>
-  <a href="{% url 'home' %}">Back to home</a>
+{% extends "mvp/error_base.html" %}
+{% load i18n %}
+{% block error_title %}{% trans "404 — Page Not Found" %}{% endblock %}
+{% block error_code %}<div class="display-1 fw-bold text-primary lh-1 mb-3">404</div>{% endblock %}
+{% block error_heading %}<h1 class="h3 mb-3">{% trans "Oops! Page not found." %}</h1>{% endblock %}
+{% block error_description %}
+  <p class="text-secondary mb-4">{% trans "We could not find that page." %}</p>
+{% endblock %}
+{% block error_actions %}
+  <c-button variant="outline-secondary" icon="arrow-left" href="/" text="{% trans "Back to home" %}" />
 {% endblock %}
 ```
 
-**`templates/500.html`** — must be self-contained with **no template inheritance**,
-no context processors, no Cotton, no template tags. Django's 500 handler uses a bare
-`Context()` with no processor injection:
-```html
-<!doctype html>
-<html><head><title>Error</title></head>
-<body style="font-family:sans-serif;max-width:600px;margin:4rem auto;padding:1rem">
-  <h1>Something went wrong</h1>
-  <p>Please try again later.</p>
-  <a href="/">Return to home</a>
-</body></html>
+### 500 Page — `support_email` Context Variable
+
+The `server_error` handler passes `support_email` to the template context, sourced
+from `settings.DEFAULT_FROM_EMAIL` (empty string → `None`). Use it to conditionally
+render a support contact button:
+
+```django
+{% block error_actions %}
+  <div class="d-flex gap-2 justify-content-center flex-wrap">
+    <c-button variant="primary" icon="arrow-left" href="/" text="{% trans "Back to dashboard" %}" />
+    {% if support_email %}
+      <c-button variant="outline-secondary" icon="life-preserver"
+                href="mailto:{{ support_email }}" text="{% trans "Contact support" %}" />
+    {% endif %}
+  </div>
+{% endblock %}
+```
+
+Set `DEFAULT_FROM_EMAIL` in `settings.py` to enable the contact button:
+
+```python
+DEFAULT_FROM_EMAIL = "support@yourdomain.com"
+```
+
+### DB Safety Constraint
+
+`server_error` **must never touch the database**. The built-in handler satisfies
+this: it uses only `getattr(settings, ...)` and `render()`. If you override it,
+verify with `django_assert_num_queries(0)` in your test.
+
+### Developer Preview Routes
+
+Add preview routes so developers can inspect each error page without triggering a
+real error:
+
+```python
+# demo/urls.py (or any app urls.py)
+from django.conf import settings
+from django.urls import path
+from mvp.views import ErrorPagePreviewView  # or your own TemplateView subclass
+
+urlpatterns += [
+    path("errors/400/", TemplateView.as_view(template_name="400.html"), name="error-preview-400"),
+    path("errors/403/", TemplateView.as_view(template_name="403.html"), name="error-preview-403"),
+    path("errors/404/", TemplateView.as_view(template_name="404.html"), name="error-preview-404"),
+    path(
+        "errors/500/",
+        TemplateView.as_view(
+            template_name="500.html",
+            extra_context={"support_email": settings.DEFAULT_FROM_EMAIL or None},
+        ),
+        name="error-preview-500",
+    ),
+]
 ```
 
 ---
@@ -347,6 +429,7 @@ Manual smoke-test checklist (visit in browser):
 - [ ] Each sidebar URL → HTTP 200, correct active item highlighted
 - [ ] Navbar Quick Action → present on every authenticated page
 - [ ] `/nonexistent/` → styled 404 page in full layout
+- [ ] `/errors/400/`, `/errors/403/`, `/errors/404/`, `/errors/500/` → each previews correctly
 - [ ] Mobile viewport (320px) → sidebar hidden, toggle button visible, layout not clipped
 
 ---
