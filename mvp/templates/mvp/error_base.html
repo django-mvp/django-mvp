@@ -1,0 +1,23 @@
+{% extends "mvp/base.html" %}
+{% load i18n %}
+{% block title %}
+  {% block error_title %}
+    {% trans "Error" %}
+  {% endblock %}
+{% endblock title %}
+{% block app %}
+  <body class="bg-body-tertiary">
+    <main class="d-flex align-items-center min-vh-100 py-5">
+      <div class="container">
+        <div class="row justify-content-center">
+          <div class="col-md-8 col-lg-6 text-center">
+            {% block error_code %}{% endblock %}
+            {% block error_heading %}{% endblock %}
+            {% block error_description %}{% endblock %}
+            {% block error_actions %}{% endblock %}
+          </div>
+        </div>
+      </div>
+    </main>
+  </body>
+{% endblock app %}
