@@ -1,0 +1,26 @@
+{% if request.LANGUAGE_CODE %}
+  {% load i18n %}
+  {% get_current_language as CURRENT_LANGUAGE %}
+  {% get_available_languages as LANGUAGES %}
+  <form action="{% url "set_language" %}" method="post">
+    {% csrf_token %}
+    <input type="hidden"
+           name="next"
+           value="{{ request.get_full_path }}" />
+    <c-dropdown only>
+      <c-slot name="button">
+        <c-button text="{{ CURRENT_LANGUAGE }}"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false" />
+      </c-slot>
+      {% for lang_code, lang_name in LANGUAGES %}
+        <c-dropdown.item text="{{ lang_name }}"
+                         type="submit"
+                         name="language"
+                         value="{{ lang_code }}"
+                         :active="lang_code == CURRENT_LANGUAGE"
+                         only />
+      {% endfor %}
+    </c-dropdown>
+  </form>
+{% endif %}
