@@ -30,7 +30,7 @@ jobs:
           python-version: '3.12'
 
       - name: Load cached pre-commit
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.cache/pre-commit
           key: pre-commit-${{ hashFiles('.pre-commit-config.yaml') }}
@@ -61,7 +61,7 @@ jobs:
           bandit -r mvp/ -f json -o bandit-report.json || true
 
       - name: Upload bandit report
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: bandit-report
@@ -73,7 +73,7 @@ jobs:
           safety check --json --output safety-report.json || true
 
       - name: Upload safety report
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: safety-report
@@ -100,7 +100,7 @@ jobs:
         run: poetry check
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: dist
           path: dist/
