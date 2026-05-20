@@ -6,6 +6,6 @@
   {% if value.get_absolute_url %}
     <a href="{{ value.get_absolute_url }}">{{ value }}</a>
   {% else %}
-    <p class="mb-0">{{ value|default:missing }}</p>
+    <p class="mb-0">{{ value|default:missing }}{{ slot }}</p>
   {% endif %}
 </div>
