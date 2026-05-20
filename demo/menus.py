@@ -14,7 +14,7 @@ navigation menus with all available features:
 
 from flex_menu import MenuItem
 
-from mvp.menus import AppMenu, MenuGroup
+from mvp.menus import AppMenu, MenuCollapse, MenuGroup
 
 AppMenu.extend(
     [
@@ -131,41 +131,50 @@ AppMenu.extend(
         # ),
         # Extra resources with external links to github and documentation
         MenuGroup(
-            name="error_pages",
-            extra_context={"label": "Error Pages"},
+            name="pages",
+            extra_context={"label": "Pages"},
             children=[
-                MenuItem(
-                    name="error-preview-400",
-                    view_name="error-preview-400",
+                MenuCollapse(
+                    name="error_previews",
                     extra_context={
-                        "label": "400 Bad Request",
+                        "label": "Error Pages",
                         "icon": "exclamation-circle",
                     },
-                ),
-                MenuItem(
-                    name="error-preview-403",
-                    view_name="error-preview-403",
-                    extra_context={
-                        "label": "403 Forbidden",
-                        "icon": "shield-x",
-                    },
-                ),
-                MenuItem(
-                    name="error-preview-404",
-                    view_name="error-preview-404",
-                    extra_context={
-                        "label": "404 Not Found",
-                        "icon": "search",
-                    },
-                ),
-                MenuItem(
-                    name="error-preview-500",
-                    view_name="error-preview-500",
-                    extra_context={
-                        "label": "500 Server Error",
-                        "icon": "bug",
-                    },
-                ),
+                    children=[
+                        MenuItem(
+                            name="error-preview-400",
+                            view_name="error-preview-400",
+                            extra_context={
+                                "label": "400 Bad Request",
+                                "icon": "exclamation-circle",
+                            },
+                        ),
+                        MenuItem(
+                            name="error-preview-403",
+                            view_name="error-preview-403",
+                            extra_context={
+                                "label": "403 Forbidden",
+                                "icon": "shield-x",
+                            },
+                        ),
+                        MenuItem(
+                            name="error-preview-404",
+                            view_name="error-preview-404",
+                            extra_context={
+                                "label": "404 Not Found",
+                                "icon": "search",
+                            },
+                        ),
+                        MenuItem(
+                            name="error-preview-500",
+                            view_name="error-preview-500",
+                            extra_context={
+                                "label": "500 Server Error",
+                                "icon": "bug",
+                            },
+                        ),
+                    ],
+                )
             ],
         ),
         MenuGroup(

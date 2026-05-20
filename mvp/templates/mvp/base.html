@@ -76,6 +76,22 @@
               href="{% static 'scss/mvp.scss' %}"
               rel="stylesheet" />
       {% endcompress %}
+      {% comment %} <style>
+   :root,
+   [data-bs-theme="light"] {
+     --bs-primary: #6610f2;
+     /* swap Bootstrap's blue for purple */
+     --bs-primary-rgb: 102, 16, 242;
+     --bs-body-bg: #f3f4f6;
+     --bs-nav-link-color: white;
+   }
+
+   [data-bs-theme="dark"] {
+     --bs-body-bg: #14171c;
+     /* darker than Bootstrap's default */
+     --bs-body-color: #e9ecef;
+   }
+ </style> {% endcomment %}
       {% block extra_css %}
       {% endblock extra_css %}
     {% endblock head %}

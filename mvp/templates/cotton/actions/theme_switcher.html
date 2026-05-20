@@ -1,5 +1,6 @@
 {% load i18n %}
-<c-dropdown>
+<c-vars direction="down" />
+<c-dropdown direction="{{ direction }}">
   <c-slot name="button">
     <c-button id="bd-theme"
               aria-label="{% trans "Toggle color scheme" %}"

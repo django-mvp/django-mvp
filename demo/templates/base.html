@@ -3,12 +3,13 @@
   {# djlint:off #}
   <c-app :fill="fill"
          x-data="{
-          'sidebar': $persist({
-            'expand': 'lg',
+          'sidebar': {
+            'expand': false,
             'fixed': false,
             'collapsible': false,
             'collapsed': false,
-            }),
+            'expandOnHover': false,
+            },
           'fixedHeader': $persist(true),
           'fixedFooter': $persist(true),
           'fill': $persist(false)
@@ -19,10 +20,11 @@
           'layout-fixed': sidebar.fixed,
           'sidebar-mini': sidebar.collapsible,
           'sidebar-open': ! sidebar.collapsed,
-          'sidebar-collapse': sidebar.collapsed
+          'sidebar-collapse': sidebar.collapsed,
+          'sidebar-without-hover': ! sidebar.expandOnHover
          }">
   {# djlint:on #}
-  <c-app.header>
+  <c-app.header variant="primary">
     <c-slot name="right">
       {% block navbar_widgets %}
         <c-actions.layout-configuration />
@@ -34,7 +36,7 @@
       {% endblock tray %}
     </c-slot>
   </c-app.header>
-  <c-app.sidebar />
+  <c-app.sidebar collapsible expand="md" compact indent />
   <c-app.main>
     {% block content %}
     {% endblock content %}

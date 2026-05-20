@@ -1,0 +1,115 @@
+// Custom sidebar functionality on top of AdminLTE's default behavior
+
+.bg-sidebar {
+  background-color: var(--mvp-sidebar-bg-color);
+}
+
+.nested-dropdown-mini {
+  .sidebar-wrapper {
+    overflow: visible !important;
+
+    .nav-item.menu-open {
+      position: relative;
+
+      .nav-treeview {
+        background-color: var(--mvp-sidebar-bg-color);
+        position: absolute;
+        top: 0;
+        left: 100%;
+        padding: 0.5rem 0 !important;
+        border-radius: 0.25rem;
+
+        .nav-item {
+          padding: 0;
+        }
+
+        a {
+          width: unset;
+        }
+        p {
+          visibility: visible;
+          width: auto;
+          animation-fill-mode: unset;
+        }
+      }
+    }
+  }
+}
+
+[data-bs-theme="light"] {
+  .show-on-light-theme {
+    display: block !important;
+  }
+  .hide-on-light-theme {
+    display: none !important;
+  }
+}
+
+[data-bs-theme="dark"] {
+  .show-on-dark-theme {
+    display: block !important;
+  }
+  .hide-on-dark-theme {
+    display: none !important;
+  }
+}
+
+.show-on-mini {
+  display: none;
+}
+
+// Header action items in mini/collapsed sidebar mode
+.sidebar-mini.sidebar-collapse .app-sidebar {
+  .sidebar-header-actions-mini {
+    // Unwrap form elements (language switcher)
+    form {
+      display: block;
+    }
+
+    .btn {
+      width: 100%;
+      border: none;
+      border-radius: 0;
+      background: transparent;
+      color: var(--lte-sidebar-color);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 0.5rem 1rem;
+
+      &:hover,
+      &:active {
+        background-color: var(--lte-sidebar-hover-bg);
+        color: var(--lte-sidebar-color);
+      }
+
+      &:focus-visible {
+        box-shadow: none;
+        outline: none;
+      }
+    }
+  }
+}
+
+.sidebar-mini.sidebar-collapse {
+  .show-on-mini {
+    display: block;
+  }
+
+  .hide-on-mini {
+    display: none;
+  }
+
+  &:not(.sidebar-without-hover) {
+    .app-sidebar:hover {
+      // when hovering in this mode, the sidebar is expanded! therefore our classes here are inverted - hide-on-mini should be shown, and show-on-mini should be hidden
+      .show-on-mini {
+        display: none;
+      }
+
+      .hide-on-mini {
+        display: block;
+      }
+    }
+  }
+}

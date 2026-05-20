@@ -1,0 +1,6 @@
+<c-vars value text variant="primary" />
+<div class="p-4 rounded-3 text-center h-100 border-top border-4 border-{{ variant }} bg-{{ variant }}-subtle">
+  <div class="display-5 fw-bold text-{{ variant }}{% if variant == 'warning' %}-emphasis{% endif %} lh-1 mb-2">{{ value|default:"0" }}</div>
+  <div class="small text-muted text-uppercase fw-semibold">{{ text }}</div>
+  {{ slot }}
+</div>

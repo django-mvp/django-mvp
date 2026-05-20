@@ -1,28 +1,73 @@
 {% load flex_menu %}
-<c-vars brand_text
-        brand_logo
-        brand_icon
-        brand_url="/"
+{% comment %}
+c-app.sidebar
+=============
+Root application sidebar component. Renders an AdminLTE-compatible <aside>
+element containing a sticky brand header, a scrollable navigation area, a
+sticky footer strip, and a full-screen overlay for dismissing the sidebar on
+mobile.
+
+Attributes
+----------
+fixed       (bool) Whether the sidebar is constrained to the viewport height.
+collapsed   (bool) Whether the sidebar starts in a collapsed state
+collapsible (bool) Whether the sidebar collapses to icons only
+expand      (str) The breakpoint at which the sidebar is automatically expanded
+expand-on-hover (bool) When in "mini" mode, automatically expands the sidebar when the user hovers.
+indent      (bool) Indents nested nav items.
+compact     (bool) Applies less spacing between nav elements.
+dark        (bool) Makes the sidebar ALWAYS use the dark theme.
+brand-text  (str)  Display name shown in the brand header.
+brand-url   (str) The url the user is directed to when click the sidebar header
+class       (str)  Extra CSS classes appended to the <aside>.
+menu        (str)  Name of a flex-menu Menu class to render. Default: "AppMenu".
+{% endcomment %}
+<c-vars fixed
+        persist="true"
+        collapsed
+        collapsible
+        expand="lg"
+        expand-on-hover
+        :nested-dropdown-mini="True"
+        indent
+        compact
         dark
+        brand-text
+        brand-url="/"
         class
-        menu="AppMenu"
-        renderer="adminlte" />
-<aside class="app-sidebar shadow {{ class }}"
+        menu="AppMenu" />
+<aside class="app-sidebar shadow{% if nested_dropdown_mini %} nested-dropdown-mini{% endif %} {{ class }}"
+       data-enable-persistance="{{ persist }}"
+       x-init="{% if expand %}sidebar.expand = '{{ expand }}';{% endif %}{% if collapsed or collapsible %}sidebar.collapsible = true;{% endif %}{% if collapsed %}sidebar.collapsed = true;{% endif %}{% if expand_on_hover %}sidebar.expandOnHover=true;{% endif %}"
        {% if dark %}data-bs-theme="dark"{% endif %}>
   <div class="sidebar-wrapper p-0 overflow-x-hidden overflow-y-auto sidebar-layout">
     <c-app.sidebar.header text="{{ brand_text }}"
-                          icon="{{ brand_icon }}"
-                          logo="{{ brand_logo }}"
                           link="{{ brand_url }}"
                           class="content-header sticky-top" />
     <div class="content-main px-2">
-      <nav class="mt-2">
-        {% render_menu menu renderer=renderer %}
+      <nav class="mt-2{% if indent %} nav-indent{% endif %}{% if compact %} nav-compact{% endif %}  ">
+        {% render_menu menu renderer="adminlte" %}
       </nav>
       <div style="height: 600px">long content for overflow scroll</div>
     </div>
-    <div class="content-footer sticky-bottom px-1 py-2 mt-auto border-top"
-         style="background-color: var(--mvp-sidebar-bg-color)">Footer content</div>
+    <div class="content-footer bg-sidebar sticky-bottom px-1 py-2 mt-auto border-top">
+      <!-- Expanded sidebar: horizontal row of small buttons -->
+      <div class="hide-on-mini">
+        <div class="d-flex flex-row gap-1 mb-1 justify-content-center">
+          <c-actions.theme-switcher size="sm" />
+          <c-actions.language-switcher size="sm" />
+        </div>
+      </div>
+      <!-- Mini sidebar: vertical icon-only items styled like nav links -->
+      <ul class="show-on-mini list-unstyled m-0 sidebar-header-actions-mini">
+        <li class="nav-item">
+          <c-actions.theme-switcher direction="end" />
+        </li>
+        <li class="nav-item">
+          <c-actions.language-switcher direction="end" />
+        </li>
+      </ul>
+    </div>
   </div>
 </aside>
 <div class="sidebar-overlay"

@@ -1,29 +1,43 @@
-{% load static %}
-<c-vars text icon logo="" link="/" />
-{% static "brand/logo.svg" as logo_src %}
-<div class="content-header bg-sidebar sticky-top px-3 pt-3 border-bottom ">
-  <div class="header-brand">
+{% load i18n mvp %}
+<c-vars link="/" max-height="85px" />
+{% logo_url "small" as logo_light %}
+{% logo_url "small" "dark" as logo_dark %}
+{% icon_url "small" as icon_light %}
+{% icon_url "small" "dark" as icon_dark %}
+<div class="content-header bg-sidebar sticky-top border-bottom ">
+  <div class="header-brand d-flex justify-content-center p-1">
     <a href="{{ link }}"
        class="brand-link{% if icon and logo %} logo-switch{% endif %}">
-      {% if icon %}
-        <img src="{{ icon }}"
-             alt="{{ text }} Icon"
-             class="brand-image-xl logo-xs h-100" />
+      <div class="show-on-mini">
+        <img src="{{ icon_light }}"
+             alt="{% trans "Site icon" %}"
+             class="rounded-3 hide-on-dark-theme h-100" />
+        <img src="{{ icon_dark }}"
+             alt="{% trans "Site icon" %}"
+             class="rounded-3 hide-on-light-theme h-100" />
+      </div>
+      <div class="hide-on-mini px-3 py-2 mx-auto">
+        <img src="{{ logo_light }}"
+             {% comment %}
+             src="https://picsum.photos/400/600"
+             {% endcomment %}
+             alt="{% trans "Site Logo" %}"
+             class="hide-on-dark-theme w-100"
+             style="max-height: {{ max_height }}" />
+        <img src="{{ logo_dark }}"
+             alt="{% trans "Site Logo" %}"
+             class="hide-on-light-theme w-100"
+             style="max-height: {{ max_height }}" />
+      </div>
+      {% if text or not logo_light %}
+        <span class="brand-text fw-light d-none">
+          {% if text %}
+            {{ text }}
+          {% else %}
+            {{ request.site.name }}
+          {% endif %}
+        </span>
       {% endif %}
-      <img src="{{ logo_src }}"
-           alt="{{ text }} Logo"
-           class="w-100" />
-      {% comment %} <span class="brand-text fw-light{% if icon and logo %} d-none{% endif %}">
-      {% if text %}
-        {{ text }}
-      {% else %}
-        {{ request.site.name }}
-      {% endif %}
-      </span> {% endcomment %}
     </a>
-  </div>
-  <div class="d-flex gap-1 mt-1 mb-0 justify-content-center">
-    <c-actions.theme-switcher />
-    <c-actions.language-switcher />
   </div>
 </div>

@@ -6,11 +6,16 @@ def avatar_url(request, height):
     return None
 
 
-def logo_url(request, height):
+def logo_url(request, height, theme):
     return static("brand/logo.svg")
 
 
-def icon_url(request, height):
+def icon_url(request, height, theme):
+    if theme == "dark":
+        return static("brand/icon_dark.svg")
+    elif theme == "light":
+        return static("brand/icon_light.svg")
+
     return static("brand/icon.svg")
 
 

@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="33.949871mm"
+   height="12.517701mm"
+   viewBox="0 0 33.949871 12.5177"
+   version="1.1"
+   id="svg1"
+   xml:space="preserve"
+   sodipodi:docname="icon.svg"
+   inkscape:version="1.4.2 (f4327f4, 2025-05-13)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"><sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     inkscape:zoom="4.5443981"
+     inkscape:cx="47.421021"
+     inkscape:cy="22.445217"
+     inkscape:window-width="1920"
+     inkscape:window-height="1130"
+     inkscape:window-x="-6"
+     inkscape:window-y="-6"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg1" /><defs
+     id="defs1" /><g
+     id="g9"
+     transform="translate(-5.2916663,0.23288748)"
+     inkscape:export-filename="icon_light.svg"
+     inkscape:export-xdpi="96"
+     inkscape:export-ydpi="96"><g
+       id="g3"
+       transform="matrix(1.3274239,0,0,1.3274239,7.5290243,-1.5208238)"><path
+         style="font-size:13.2954px;font-family:Montserrat;-inkscape-font-specification:'Montserrat, @wght=670';font-variation-settings:'wght' 670;letter-spacing:0px;fill:#0b5af5;stroke-width:0.142081"
+         d="M 16.620982,5.5251495 V 1.7768528 h 0.674693 L 18.90744,4.448853 h -0.358764 l 1.579637,-2.6720002 h 0.674694 l 0.0054,3.7482967 h -0.765723 l -0.0054,-2.5649057 h 0.149932 L 18.896732,5.1181917 H 18.527257 L 17.215351,2.9602438 h 0.176706 v 2.5649057 z"
+         id="path1"
+         aria-label="MVP"
+         sodipodi:nodetypes="ccccccccccccccccc" /><g
+         id="g2"><path
+           style="font-size:13.2954px;font-family:Montserrat;-inkscape-font-specification:'Montserrat, @wght=670';font-variation-settings:'wght' 670;letter-spacing:0px;fill:#0b5af5;stroke-width:0.142081"
+           d="M 16.420895,9.5937228 14.798416,5.8454261 h 0.883527 l 1.424354,3.3413389 h -0.514053 l 1.451125,-3.3413389 h 0.808563 l -1.622478,3.7482967 z"
+           id="text1-5"
+           aria-label="MVP"
+           sodipodi:nodetypes="ccccccccc" /><path
+           style="font-size:13.2954px;font-family:Montserrat;-inkscape-font-specification:'Montserrat, @wght=670';font-variation-settings:'wght' 670;letter-spacing:0px;fill:#0b5af5;stroke-width:0.142081"
+           d="m 19.412793,9.5937228 v -3.748297 h 1.595704 c 0.33556,0 0.624713,0.055332 0.867461,0.1659964 0.242748,0.1070944 0.428377,0.2623806 0.556889,0.4658596 0.132083,0.199909 0.198125,0.4390859 0.198125,0.7175309 0,0.278445 -0.06604,0.519407 -0.198125,0.722886 -0.128512,0.1999089 -0.314141,0.3551956 -0.556889,0.46586 -0.242748,0.1070939 -0.531901,0.1606409 -0.867461,0.1606409 H 19.86794 l 0.364121,-0.369475 V 9.5937228 Z M 20.232061,8.265755 19.86794,7.874861 h 1.103073 c 0.278445,0 0.487278,-0.058902 0.6265,-0.1767053 0.139222,-0.1213737 0.208834,-0.2891547 0.208834,-0.503343 0,-0.2141883 -0.06961,-0.3801843 -0.208834,-0.4979879 -0.139222,-0.1213733 -0.348055,-0.18206 -0.6265,-0.18206 H 19.86794 l 0.364121,-0.390894 z"
+           id="path2"
+           aria-label="MVP"
+           sodipodi:nodetypes="ccsccsccsccccccscscsccc" /></g></g><rect
+       style="font-variation-settings:'wght' 670;fill:none;stroke-width:0.352777;-inkscape-stroke:none"
+       id="rect4"
+       width="13.740359"
+       height="12.517701"
+       x="25.501177"
+       y="-0.23288748" /></g><g
+     id="g8"
+     inkscape:export-filename="icon_dark.svg"
+     inkscape:export-xdpi="96"
+     inkscape:export-ydpi="96"><rect
+       style="font-variation-settings:'wght' 670;fill:#0b5af5;fill-opacity:1;stroke-width:0.352777;-inkscape-stroke:none"
+       id="rect3"
+       width="13.740359"
+       height="12.517701"
+       x="9.6015462e-10"
+       y="-1.0768743e-08" /><g
+       id="g7"
+       transform="matrix(1.3274239,0,0,1.3274239,-17.972152,-1.2879363)"
+       style="fill:#ffffff"><path
+         style="font-size:13.2954px;font-family:Montserrat;-inkscape-font-specification:'Montserrat, @wght=670';font-variation-settings:'wght' 670;letter-spacing:0px;fill:#ffffff;stroke-width:0.142081"
+         d="M 16.620982,5.5251495 V 1.7768528 h 0.674693 L 18.90744,4.448853 h -0.358764 l 1.579637,-2.6720002 h 0.674694 l 0.0054,3.7482967 h -0.765723 l -0.0054,-2.5649057 h 0.149932 L 18.896732,5.1181917 H 18.527257 L 17.215351,2.9602438 h 0.176706 v 2.5649057 z"
+         id="path4"
+         aria-label="MVP"
+         sodipodi:nodetypes="ccccccccccccccccc" /><g
+         id="g6"
+         style="fill:#ffffff"><path
+           style="font-size:13.2954px;font-family:Montserrat;-inkscape-font-specification:'Montserrat, @wght=670';font-variation-settings:'wght' 670;letter-spacing:0px;fill:#ffffff;stroke-width:0.142081"
+           d="M 16.420895,9.5937228 14.798416,5.8454261 h 0.883527 l 1.424354,3.3413389 h -0.514053 l 1.451125,-3.3413389 h 0.808563 l -1.622478,3.7482967 z"
+           id="path5"
+           aria-label="MVP"
+           sodipodi:nodetypes="ccccccccc" /><path
+           style="font-size:13.2954px;font-family:Montserrat;-inkscape-font-specification:'Montserrat, @wght=670';font-variation-settings:'wght' 670;letter-spacing:0px;fill:#ffffff;stroke-width:0.142081"
+           d="m 19.412793,9.5937228 v -3.748297 h 1.595704 c 0.33556,0 0.624713,0.055332 0.867461,0.1659964 0.242748,0.1070944 0.428377,0.2623806 0.556889,0.4658596 0.132083,0.199909 0.198125,0.4390859 0.198125,0.7175309 0,0.278445 -0.06604,0.519407 -0.198125,0.722886 -0.128512,0.1999089 -0.314141,0.3551956 -0.556889,0.46586 -0.242748,0.1070939 -0.531901,0.1606409 -0.867461,0.1606409 H 19.86794 l 0.364121,-0.369475 V 9.5937228 Z M 20.232061,8.265755 19.86794,7.874861 h 1.103073 c 0.278445,0 0.487278,-0.058902 0.6265,-0.1767053 0.139222,-0.1213737 0.208834,-0.2891547 0.208834,-0.503343 0,-0.2141883 -0.06961,-0.3801843 -0.208834,-0.4979879 -0.139222,-0.1213733 -0.348055,-0.18206 -0.6265,-0.18206 H 19.86794 l 0.364121,-0.390894 z"
+           id="path6"
+           aria-label="MVP"
+           sodipodi:nodetypes="ccsccsccsccccccscscsccc" /></g></g></g></svg>
