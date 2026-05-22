@@ -8,5 +8,5 @@ on:
 
 jobs:
   call-dependencies:
-    uses: django-mvp/.github/workflows/dependencies.yml@main
+    uses: django-mvp/workflows/workflows/dependencies.yml@main
     secrets: inherit

@@ -9,7 +9,7 @@ on:
 
 jobs:
   call-build:
-    uses: django-mvp/.github/workflows/build.yml@main
+    uses: django-mvp/workflows/workflows/build.yml@main
     if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     with:
       source-dir: mvp
