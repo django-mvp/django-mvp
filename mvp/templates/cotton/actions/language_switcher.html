@@ -6,6 +6,7 @@
   <c-dropdown direction="{{ direction }}" only>
     <c-slot name="button">
       <c-button text="{{ CURRENT_LANGUAGE }}"
+                icon="globe"
                 data-bs-toggle="dropdown"
                 aria-expanded="false" />
     </c-slot>
@@ -14,6 +15,7 @@
       <input type="hidden"
              name="next"
              value="{{ request.get_full_path }}" />
+      <c-dropdown.header text="{% trans "Select a language" %}" />
       {% for lang_code, lang_name in LANGUAGES|slice:10 %}
         <c-dropdown.item text="{{ lang_name }}"
                          type="submit"
