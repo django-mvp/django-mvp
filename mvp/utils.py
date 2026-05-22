@@ -78,4 +78,5 @@ BS5_ICONS = {
     "exclamation-circle": "bi bi-exclamation-circle",
     "shield-x": "bi bi-shield-x",
     "bug": "bi bi-bug",
+    "logout": "bi bi-box-arrow-right",
 }

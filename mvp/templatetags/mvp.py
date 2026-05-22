@@ -33,7 +33,7 @@ def logo_url(context, height, theme="light"):
     Note: The default implementation of avatar_url returns None, which will cause the avatar component to fall back to displaying an anonymouse user svg icon.
     """
     func = import_string(MVP_LOGO_URL_FUNC)
-    return func(context.request, height, theme)
+    return func(getattr(context, "request", None), height, theme)
 
 
 @register.simple_tag(takes_context=True)
@@ -43,7 +43,7 @@ def icon_url(context, height, theme="light"):
     Note: The default implementation of avatar_url returns None, which will cause the avatar component to fall back to displaying an anonymouse user svg icon.
     """
     func = import_string(MVP_ICON_URL_FUNC)
-    return func(context.request, height, theme)
+    return func(getattr(context, "request", None), height, theme)
 
 
 @register.simple_tag(takes_context=True)
