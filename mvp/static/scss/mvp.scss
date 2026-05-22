@@ -1,3 +1,31 @@
+/*!
+ *   AdminLTE v4.0.0
+ *   Author: Colorlib
+ *   Website: AdminLTE.io <https://adminlte.io>
+ *   License: Open source - MIT <https://opensource.org/licenses/MIT>
+ */
+
+// Bootstrap Configuration
+// ---------------------------------------------------
+@import "bs5/functions";
+
+// AdminLTE Configuration
+// ---------------------------------------------------
+@import "bootstrap-variables"; // little modified are here
+
+// Bootstrap Configuration
+// ---------------------------------------------------
+@import "bs5/variables";
+@import "bs5/variables-dark";
+@import "bs5/maps";
+@import "bs5/mixins";
+@import "bs5/utilities";
+
+@import "variables";
+@import "variables-dark";
+
+// Start MVP custom styles
+
 @import "reset";
 @import "container";
 @import "toolbar";
@@ -8,6 +36,8 @@
 @import "image";
 @import "button";
 @import "sidebar";
+@import "avatar";
+@import "utils";
 
 .app-header:has(> .mvp-toolbar) .navbar {
   padding-bottom: 0;

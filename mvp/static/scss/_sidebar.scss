@@ -4,37 +4,37 @@
   background-color: var(--mvp-sidebar-bg-color);
 }
 
-.nested-dropdown-mini {
-  .sidebar-wrapper {
-    overflow: visible !important;
+// .nested-dropdown-mini {
+//   .sidebar-wrapper {
+//     overflow: visible !important;
 
-    .nav-item.menu-open {
-      position: relative;
+//     .nav-item.menu-open {
+//       position: relative;
 
-      .nav-treeview {
-        background-color: var(--mvp-sidebar-bg-color);
-        position: absolute;
-        top: 0;
-        left: 100%;
-        padding: 0.5rem 0 !important;
-        border-radius: 0.25rem;
+//       .nav-treeview {
+//         background-color: var(--mvp-sidebar-bg-color);
+//         position: absolute;
+//         top: 0;
+//         left: 100%;
+//         padding: 0.5rem 0 !important;
+//         border-radius: 0.25rem;
 
-        .nav-item {
-          padding: 0;
-        }
+//         .nav-item {
+//           padding: 0;
+//         }
 
-        a {
-          width: unset;
-        }
-        p {
-          visibility: visible;
-          width: auto;
-          animation-fill-mode: unset;
-        }
-      }
-    }
-  }
-}
+//         a {
+//           width: unset;
+//         }
+//         p {
+//           visibility: visible;
+//           width: auto;
+//           animation-fill-mode: unset;
+//         }
+//       }
+//     }
+//   }
+// }
 
 [data-bs-theme="light"] {
   .show-on-light-theme {
@@ -111,5 +111,14 @@
         display: block;
       }
     }
+  }
+
+  .btn-text {
+    display: none;
+  }
+
+  .sidebar-wrapper {
+    // allows dropdowns to overflow the sidebar when in mini mode
+    overflow: visible !important;
   }
 }

@@ -19,8 +19,6 @@
   margin-bottom: 0;
 }
 
-
-
 .hide-btn-text {
   .show-btn-text {
     .btn-text {
@@ -33,17 +31,13 @@
 }
 
 .bi {
-    vertical-align: middle;
+  vertical-align: middle;
 }
-
-
-
 
 html[data-bs-theme="dark"] {
   .dark-theme-only {
     display: block;
   }
-
 }
 
 html[data-bs-theme="light"] {

@@ -26,16 +26,16 @@
   min-width: 0;    // allow text truncation inside
 }
 
-// ── mvp-action-row ────────────────────────────────────────────────────────
+// ── mvp-action-group ────────────────────────────────────────────────────────
 // Flex row of actions. Works as a direct child of mvp-toolbar, or standalone.
 // Default: wrap mode.
-// Modifier: mvp-action-row--scroll → single row, scrollable.
+// Modifier: mvp-action-group--scroll → single row, scrollable.
 //
 // flex-grow:1 — fills full width when wrapping onto its own row inside
 // mvp-toolbar (start's flex-grow:9999 wins when both are inline).
 // Harmless outside a flex parent.
 // ──────────────────────────────────────────────────────────────────────────
-.mvp-action-row {
+.mvp-action-group {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -53,12 +53,12 @@
   }
 }
 
-// ── mvp-action-row-grow ───────────────────────────────────────────────────
+// ── mvp-action-group-grow ───────────────────────────────────────────────────
 // Apply to a child (e.g. search input) that should stretch to fill remaining
 // space. width:auto overrides Bootstrap's width:100% on .form-control so
 // flex-grow distributes only leftover space, keeping siblings at natural size.
 // ──────────────────────────────────────────────────────────────────────────
-.mvp-action-row-grow {
+.mvp-action-group-grow {
   flex-grow: 1;
   min-width: 0;
   width: auto;
