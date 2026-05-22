@@ -25,6 +25,7 @@
         {% if not src %}aria-hidden="true"{% endif %}
         {{ attrs }}>
     {% if src %}
+      {{ src }}
       <img class="avatar-img"
            src="{{ src }}"
            alt="{{ alt }}" />

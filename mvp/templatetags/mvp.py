@@ -16,14 +16,14 @@ register = template.Library()
 compiler = CottonCompiler()
 
 
-@register.simple_tag(takes_context=True)
-def avatar_url(context, size):
+@register.simple_tag
+def avatar_url(user, size):
     """Returns the URL for a user's avatar image for a given size. Size is specified as "sm", "md", "lg", etc. The actual implementation is determined by the MVP_AVATAR_URL_FUNCTION setting, which should point to a function that accepts a user and size and returns a URL string.
 
     Note: The default implementation of avatar_url returns None, which will cause the avatar component to fall back to displaying an anonymouse user svg icon.
     """
     func = import_string(MVP_AVATAR_URL_FUNC)
-    return func(context.request, size)
+    return func(user, size)
 
 
 @register.simple_tag(takes_context=True)

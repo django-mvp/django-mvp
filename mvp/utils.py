@@ -2,7 +2,7 @@ from django.apps import apps
 from django.templatetags.static import static
 
 
-def avatar_url(request, height):
+def avatar_url(user, height):
     return None
 
 
@@ -56,6 +56,7 @@ BS5_ICONS = {
     "dropdown_check": "bi bi-check-circle-fill",
     "filter": "bi bi-funnel",
     "github": "bi bi-github",
+    "globe": "bi bi-globe",
     "home": "bi bi-house",
     "maximize": "bi bi-arrows-fullscreen",
     "minimize": "bi bi-arrows-angle-contract",
