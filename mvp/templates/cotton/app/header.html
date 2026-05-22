@@ -1,20 +1,24 @@
 <c-vars title variant="body" :border="True" tray />
-<header class="app-header container-full">
+<header class="app-header container-full position-relative">
   <nav class="container-fluid navbar navbar-dark bg-{{ variant }}">
     <c-mvp-toolbar title="{{ title }}"
                    class="container-fluid hide-btn-text"
                    tight
                    row>
       <c-slot name="start">
-        <c-button text="toggle"
+        <c-button text="{% trans "Toggle site navigation" %}"
+                  outline
+                  class="hide-on-mobile"
                   icon="menu"
-                  class="btn-txt"
                   data-lte-toggle="sidebar" />
-        <a class="navbar-brand align-middle" href="/">{{ request.site.name }}</a>
+        <a class="navbar-brand align-middle ms-2" href="/">{{ request.site.name }}</a>
       </c-slot>
-      <c-action-row gap=1>
+      <c-action-group row gap=3 icons-only>
         {{ right }}
-      </c-action-row>
+      </c-action-group>
+      <div class="position-absolute top-50 start-50 translate-middle d-md-none">
+        <c-logo height="60px" />
+      </div>
     </c-mvp-toolbar>
   </nav>
   {% if tray %}{{ tray }}{% endif %}

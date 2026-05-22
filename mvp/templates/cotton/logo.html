@@ -1,0 +1,16 @@
+{% load i18n mvp %}
+<c-vars height />
+
+{% logo_url height as logo_light %}
+{% logo_url height "dark" as logo_dark %}
+<img src="{{ logo_light }}"
+      {% comment %}
+      src="https://picsum.photos/400/600"
+      {% endcomment %}
+      alt="{% trans "Site Logo" %}"
+      class="image-height hide-on-dark-theme"
+      style="--height: 100%; max-height: 100%" />
+<img src="{{ logo_dark }}"
+      alt="{% trans "Site Logo" %}"
+      class="hide-on-light-theme"
+      style="max-height: {{ max_height }}" />
