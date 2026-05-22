@@ -40,7 +40,7 @@ menu        (str)  Name of a flex-menu Menu class to render. Default: "AppMenu".
        data-enable-persistance="{{ persist }}"
        x-init="{% if expand %}sidebar.expand = '{{ expand }}';{% endif %}{% if collapsed or collapsible %}sidebar.collapsible = true;{% endif %}{% if collapsed %}sidebar.collapsed = true;{% endif %}{% if expand_on_hover %}sidebar.expandOnHover=true;{% endif %}"
        {% if dark %}data-bs-theme="dark"{% endif %}>
-  <div class="sidebar-wrapper p-0 overflow-x-hidden overflow-y-auto sidebar-layout">
+  <div class="sidebar-wrapper h-100 p-0 overflow-x-hidden overflow-y-auto sidebar-layout">
     <c-app.sidebar.header text="{{ brand_text }}"
                           link="{{ brand_url }}"
                           class="content-header sticky-top" />
@@ -48,18 +48,17 @@ menu        (str)  Name of a flex-menu Menu class to render. Default: "AppMenu".
       <nav class="mt-2{% if indent %} nav-indent{% endif %}{% if compact %} nav-compact{% endif %}  ">
         {% render_menu menu renderer="adminlte" %}
       </nav>
-      <div style="height: 600px">long content for overflow scroll</div>
     </div>
     <div class="content-footer bg-sidebar sticky-bottom px-1 py-2 mt-auto border-top">
       <!-- Expanded sidebar: horizontal row of small buttons -->
       <div class="hide-on-mini">
-        <div class="d-flex flex-row gap-1 mb-1 justify-content-center">
+        <c-action-group row gap=3 centered icons-only>
           <c-actions.theme-switcher size="sm" />
           <c-actions.language-switcher size="sm" />
-        </div>
+        </c-action-group>
       </div>
       <!-- Mini sidebar: vertical icon-only items styled like nav links -->
-      <ul class="show-on-mini list-unstyled m-0 sidebar-header-actions-mini">
+      <ul class="show-on-mini list-unstyled m-0 sidebar-header-actions-mini hide-btn-text">
         <li class="nav-item">
           <c-actions.theme-switcher direction="end" />
         </li>
@@ -67,6 +66,8 @@ menu        (str)  Name of a flex-menu Menu class to render. Default: "AppMenu".
           <c-actions.language-switcher direction="end" />
         </li>
       </ul>
+      <c-user.sidebar-menu />
+      {{ footer }}
     </div>
   </div>
 </aside>

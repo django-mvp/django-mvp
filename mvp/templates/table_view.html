@@ -6,8 +6,8 @@
     <c-mvp-toolbar title="{{ page.title }}"
                    fs="4"
                    class="container-fluid pt-2 pb-1 bg-body">
-      <c-action-row hide-labels>
-        <c-list.search-widget class="mvp-action-row-grow" />
+      <c-action-group hide-labels>
+        <c-list.search-widget class="mvp-action-group-grow" />
         <c-list.order-widget />
         {% if filter %}<c-page.toolbar.sidebar-widget icon="filter" />{% endif %}
         {% if directory.create_url %}
@@ -16,7 +16,7 @@
                     class="show-btn-text"
                     href="{{ directory.create_url }}" />
         {% endif %}
-      </c-action-row>
+      </c-action-group>
     </c-mvp-toolbar>
   </c-slot>
 {% endblock page.header %}

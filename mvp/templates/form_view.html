@@ -70,7 +70,7 @@
       </c-card>
     {% endblock form_col %}
     <c-card class="p-1">
-      <c-action-row>
+      <c-action-group>
         {% block actions %}
           <c-button text="{% trans "Save entry" %}" type="submit" name="next" value="list" variant="primary" />
           <c-button text="{% trans "Save & view" %}" type="submit" name="next" value="detail" variant="primary" outline />
@@ -80,7 +80,7 @@
             <c-button text="{% trans "Delete" %}" href="{{ delete_url }}" icon="delete" variant="danger" />
           {% endif %}
         {% endblock actions %}
-      </c-action-row>
+      </c-action-group>
     </c-card>
   </div>
   {% if next_url %}<input type="hidden" name="next" value="{{ next_url }}" />{% endif %}

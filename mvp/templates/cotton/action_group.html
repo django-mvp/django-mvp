@@ -1,0 +1,12 @@
+<c-vars row
+        breakpoint
+        :scroll="False"
+        icons-only
+        centered
+        class
+        hide-labels
+        gap="2" />
+<div class="d-flex{% if row %} flex-row{% else %} flex-column{% endif %}{% if breakpoint %} flex-row-{{ breakpoint }}{% endif %} gap-{{ gap }}{% if scroll %}mvp-action-group--scroll{% endif %}{% if hide_labels %} hide-btn-text{% endif %}{% if icons_only %} btn-icons{% endif %} {% if centered %}justify-content-center align-items-center{% endif %} {{ class }}"
+     {{ attrs }}>
+  {{ slot }}
+</div>
