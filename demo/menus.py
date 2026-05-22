@@ -20,6 +20,14 @@ AppMenu.extend(
     [
         # Home
         MenuItem(
+            name="buttons",
+            view_name="buttons",
+            extra_context={
+                "label": "Buttons",
+            },
+        ),
+        # Home
+        MenuItem(
             name="home",
             view_name="home",
             extra_context={

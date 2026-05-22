@@ -23,6 +23,11 @@ from .views import (
 )
 
 urlpatterns = [
+    path(
+        "buttons/",
+        MVPTemplateView.as_view(template_name="demo/buttons.html"),
+        name="buttons",
+    ),
     path("i18n/", include("django.conf.urls.i18n")),
     # Main home — landing for guests, dashboard for authenticated users
     path(
