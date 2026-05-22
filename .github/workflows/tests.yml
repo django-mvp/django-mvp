@@ -22,7 +22,7 @@ on:
 
 jobs:
   call-tests:
-    uses: django-mvp/workflows/workflows/tests.yml@main
+    uses: django-mvp/shared/.github/workflows/tests.yml@main
     with:
       coverage-package: mvp
     secrets: inherit
