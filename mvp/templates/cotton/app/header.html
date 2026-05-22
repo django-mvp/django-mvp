@@ -2,7 +2,7 @@
 <header class="app-header container-full position-relative">
   <nav class="container-fluid navbar navbar-dark bg-{{ variant }}">
     <c-mvp-toolbar title="{{ title }}"
-                   class="container-fluid hide-btn-text"
+                   class="container-fluid hide-on-mobile hide-btn-text"
                    tight
                    row>
       <c-slot name="start">
@@ -16,10 +16,11 @@
       <c-action-group row gap=3 icons-only>
         {{ right }}
       </c-action-group>
-      <div class="position-absolute top-50 start-50 translate-middle d-md-none">
-        <c-logo height="60px" />
-      </div>
     </c-mvp-toolbar>
+    <div class="navbar-brand flex-center w-100 show-on-mobile "
+         style="height: 35px">
+      <c-logo height="40px" class="navbar-brand" />
+    </div>
   </nav>
   {% if tray %}{{ tray }}{% endif %}
 </header>
