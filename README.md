@@ -1,8 +1,17 @@
 # Django MVP
 
+[![Tests](https://github.com/SamuelJennings/django-mvp/actions/workflows/tests.yml/badge.svg)](https://github.com/SamuelJennings/django-mvp/actions/workflows/tests.yml)
+[![Build](https://github.com/SamuelJennings/django-mvp/actions/workflows/build.yml/badge.svg)](https://github.com/SamuelJennings/django-mvp/actions/workflows/build.yml)
+[![Release](https://github.com/SamuelJennings/django-mvp/actions/workflows/on-release-main.yml/badge.svg)](https://github.com/SamuelJennings/django-mvp/actions/workflows/on-release-main.yml)
+[![PyPI](https://img.shields.io/pypi/v/django-mvp.svg)](https://pypi.org/project/django-mvp/)
+[![codecov](https://codecov.io/gh/SamuelJennings/django-mvp/branch/main/graph/badge.svg)](https://codecov.io/gh/SamuelJennings/django-mvp)
+[![Python Versions](https://img.shields.io/pypi/pyversions/django-mvp.svg)](https://pypi.org/project/django-mvp/)
+[![Django Versions](https://img.shields.io/pypi/djversions/django-mvp.svg)](https://pypi.org/project/django-mvp/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 **AdminLTE 4 for Django** - A modern, responsive admin dashboard template system built with Django Cotton, providing AdminLTE 4 layouts and components for building production-ready data-centric applications.
 
-**Note:** This project is currently in active development. Version 1.0 will introduce AdminLTE 4 integration with breaking changes from previous versions.
+> **Note:** This project is currently in active development. Version 1.0 will introduce AdminLTE 4 integration with breaking changes from previous versions.
 
 ## Overview
 
@@ -741,11 +750,11 @@ All form views automatically use AdminLTE card layout with consistent styling, C
 
 ## Requirements
 
-- Python 3.10+
-- Django 4.2+
+- Python 3.12 or 3.13
+- Django 5.2 or 6.0 (currently supported Django releases)
 - django-cotton 2.3.1+
-- django-cotton-bs5 0.5.0+
-- django-easy-icons 0.3.0+
+- django-cotton-bs5 0.9.0+
+- django-easy-icons 0.5+
 - AdminLTE 4.x (CSS/JS included)
 
 ## Design Philosophy
