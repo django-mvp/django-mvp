@@ -10,7 +10,6 @@ on:
   workflow_run:
     workflows: ["Build"]
     types: [completed]
-    branches: [main]
 
 permissions:
   id-token: write
@@ -31,6 +30,18 @@ jobs:
       id-token: write
       contents: read
     steps:
-      - uses: django-mvp/shared/.github/actions/publish-pypi@main
+      - name: Check out
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Set up Poetry env
+        uses: SamuelJennings/cached-poetry-action@v2.0
+        with:
+          python-version: '3.13'
+
+      - name: Build package
+        run: poetry build
+
+      - name: Publish package to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1

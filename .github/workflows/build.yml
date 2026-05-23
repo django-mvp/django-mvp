@@ -5,12 +5,15 @@ on:
     workflows: ["Tests"]
     types: [completed]
     branches: [main]
+  push:
+    tags:
+      - 'v*'
   workflow_dispatch:
 
 jobs:
   call-build:
     uses: django-mvp/shared/.github/workflows/build.yml@main
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     with:
       source-dir: mvp
     secrets: inherit
