@@ -31,6 +31,11 @@
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
+For UI-impacting work, this check MUST explicitly confirm that the plan includes
+playwright-cli skill verification tasks in a real browser for each UI-related phase,
+with behavior-level assertions tied to acceptance criteria (never page-load-only
+checks).
+
 [Gates determined based on constitution file]
 
 ## Project Structure

@@ -1,83 +1,27 @@
 <!--
 Sync Impact Report
-- Version change: 3.5.0 → 3.6.0
-- Change type: MINOR — Added Principle XII mandating comprehensive docstrings for
-  all view mixins and concrete base classes in mvp/views/, including a structured
-  Config: section, Override hooks: subsection, and minimal usage example.
-- Modified principles: none
-- Added sections:
-  - XII. View Class Docstring Completeness (NON-NEGOTIABLE)
+- Version change: 3.6.0 → 3.7.0
+- Change type: MINOR — Materially expanded UI verification governance to require
+  the playwright-cli skill for all UI-impacting work, acceptance-criteria behavior
+  checks for each UI-related phase, and constrained screenshot-only fallback usage.
+- Modified principles:
+  - I. Design-First, Verify Implementation (verification workflow wording updated)
+  - VI. UI Verification (playwright-mcp) → VI. UI Verification
+    (playwright-cli skill)
+- Added sections: none
 - Removed sections: none
 - Templates requiring updates:
-  - .specify/templates/plan-template.md ✅ No change needed (Constitution Check
-    section is filled dynamically from constitution at plan-generation time;
-    Principle XII will be picked up automatically)
-  - .specify/templates/spec-template.md ✅ No change needed (no hardcoded principle
-    references)
-  - .specify/templates/tasks-template.md ✅ No change needed (task categories are
-    not hardcoded to specific principles)
-- Skills/runtime guidance:
-  - skills/django-mvp/SKILL.md ⚠ Pending manual review (check whether the public
-    view API entries include Config/Override hooks sections matching new standard)
+  - .specify/templates/plan-template.md ✅ Updated (Constitution Check guidance now
+    calls out playwright-cli acceptance-criteria assertions for UI phases)
+  - .specify/templates/spec-template.md ✅ No change needed
+    (story/acceptance structure already supports behavioral assertions)
+  - .specify/templates/tasks-template.md ✅ Updated (UI-phase verification task
+    requirements and screenshot fallback constraints added)
   - .specify/templates/commands/*.md ✅ No change needed (directory not present)
-- Deferred items:
-  - CONTRIBUTING.md manual update (chrome-devtools-mcp → playwright-mcp ref,
-    carried over from 3.5.0)
--->
-
-<!--
-Prior sync report (3.4.0 → 3.5.0)
-- Version change: 3.4.0 → 3.5.0
-- Change type: MINOR — Materially expanded Cotton component testing policy to
-  require predictable grouped test modules under tests/test_components, organized
-  by top-level cotton directory plus a shared top-level module for single-file
-  top-level components.
-- Modified principles:
-  - I. Design-First, Verify Implementation — expanded Testing Requirements with
-    Cotton component test module topology and anti-sprawl constraints
-  - IX. Template Component Reuse Discipline — replaced per-component test-file
-    requirement with grouped module strategy by top-level cotton directory
-- Added sections: none
-- Removed sections: none
-- Templates requiring updates:
-  - .specify/templates/plan-template.md ✅ Updated (Constitution Check enforces
-    grouped Cotton component test module planning)
-  - .specify/templates/spec-template.md ✅ Updated (Independent Test guidance for
-    Cotton component stories includes grouped-module requirement)
-  - .specify/templates/tasks-template.md ✅ Updated (workflow and path conventions
-    enforce tests/test_components grouped-module structure)
-  - .specify/templates/checklist-template.md ✅ Updated (default checklist notes
-    include Cotton test-module organization checks)
-- Skills/runtime guidance:
-  - .github/skills/cotton-test-components/SKILL.md ✅ Updated (repository-specific
-    layout and naming guidance added)
-  - .specify/templates/commands/*.md ⚠ Pending (directory not present in repo;
-    no command templates to update)
-- Deferred items:
-  - CONTRIBUTING.md manual update (chrome-devtools-mcp → playwright-mcp ref)
--->
-
-<!--
-Prior sync report (3.0.0 from 2.0.0)
-- Version change: 2.0.0 → 3.0.0
-- Modified principles:
-  - I. Design-First, Verify Implementation — expanded with story-level validation mandates
-    (task grouping by user story, python manage.py check, pytest by story area)
-  - IV. Compatibility & Config-Driven Design — expanded with cotton-only UI config mandate
-  - VI. UI Verification (chrome-devtools-mcp) → VI. UI Verification (playwright-mcp)
-    [BREAKING: agent tool requirement changed from chrome-devtools-mcp to playwright-mcp]
-  - VIII. End-to-End Testing (playwright) — clarified distinction from Principle VI
-- Added sections: none
-- Removed sections: none
-- Templates requiring updates:
-  - ✅ .specify/templates/tasks-template.md (verification tasks updated to playwright-mcp;
-    added python manage.py check + story-scoped pytest validation tasks per user story)
-  - ✅ .specify/templates/plan-template.md (Constitution Check updated: playwright-mcp,
-    cotton-only config, story validation)
-  - ✅ .specify/templates/spec-template.md (no changes needed)
-- Runtime guidance docs requiring updates:
-  - ⚠ CONTRIBUTING.md (manual: update references from chrome-devtools-mcp to playwright-mcp)
-- Follow-up TODOs: none
+- Runtime guidance updates:
+  - CONTRIBUTING.md ✅ Updated (UI verification step now references playwright-cli
+    skill and behavior-oriented checks)
+- Deferred items: none
 -->
 
 # Django MVP Constitution
@@ -94,7 +38,7 @@ All behavior changes MUST follow a design-verify-test workflow to ensure alignme
 
 1. **Design Phase**: Create the design (mockups, wireframes, or initial implementation) based on specifications
 2. **Verification Phase**: Verify the design meets expectations using visual inspection
-   (Playwright MCP server for UI), user feedback, and manual testing
+  (playwright-cli skill in a real browser for UI), user feedback, and manual testing
 3. **Implementation Phase**: Refine implementation based on verification feedback
 4. **Testing Phase**: Write comprehensive tests for the verified, approved implementation
 
@@ -188,23 +132,30 @@ The project uses consistent tooling to keep quality high and contributions smoot
   committed with djlint violations.
 - Keep changes minimal and focused; avoid incidental refactors.
 
-### VI. UI Verification (playwright-mcp)
+### VI. UI Verification (playwright-cli skill)
 
-Agents MUST verify UI changes using the Playwright MCP server during implementation.
+Agents MUST verify UI changes using the playwright-cli skill in a real browser
+during implementation.
 
-- When building or modifying UI elements, agents MUST use the Playwright MCP server to
-  open a real browser, interact with the rendered output, and confirm that implementation
-  changes are visually and interactively represented as expected.
+- When building or modifying UI elements, agents MUST use the playwright-cli skill to
+  open a real browser, interact with the rendered output, and confirm that
+  implementation changes are visually and interactively represented as expected.
 - Any phase in `tasks.md` that modifies the user experience — including HTML templates,
   Cotton components, form rendering, CSS, HTMX interactions, or any visible UI element —
-  MUST include at least one Playwright verification task that uses the Playwright MCP
-  server to confirm the expected interactive or visual outcome in a real browser.
-- Playwright tasks MUST assert the specific UX behaviour described in the corresponding
+  MUST include at least one Playwright verification task that uses the playwright-cli
+  skill in a real browser to confirm the expected interactive or visual outcome.
+- Playwright verification tasks MUST assert the specific UX behaviour described in the corresponding
   user story acceptance criteria (e.g., "the form displays an inline validation error
   adjacent to the field", "the delete confirmation modal appears") and MUST NOT merely
   assert that the page loads without error.
+- Screenshot-file analysis MAY be used only as a fallback for multi-viewport
+  differences, configuration-driven visual diffs, subtle layout/CSS regressions, or an
+  explicit reviewer request. Screenshot-only checks are insufficient for normal
+  acceptance-criteria verification.
 - Visual verification MUST occur after each significant UI modification to catch
   rendering issues before they are committed.
+- No UI-impacting change MAY be merged without completing this verification and
+  documenting the behavior-level assertion outcomes.
 - This requirement applies to all `tasks.md` files regardless of which agent or tool
   generates them.
 
@@ -273,7 +224,7 @@ Features MUST include comprehensive end-to-end test coverage using pytest-playwr
 - UI interactions, form submissions, navigation flows, and visual elements MUST be
   tested at the browser level.
 - E2E tests serve as acceptance tests that validate feature requirements are fully met.
-- **Distinction from Principle VI**: Playwright MCP server tasks (Principle VI) are the
+- **Distinction from Principle VI**: playwright-cli verification tasks (Principle VI) are the
   inline interactive verification step performed by agents during implementation;
   pytest-playwright tests (this principle) are the formal regression suite that persists
   in the repository and runs in CI.
@@ -322,8 +273,9 @@ specification.
 - Every feature specification (`spec.md`) MUST include at least one developer story
   AND at least one end-user story before the spec is considered complete. A spec with
   only one audience represented MUST be treated as a failing acceptance criterion.
-- Developer stories and end-user stories MUST be clearly labelled (e.g.,
-  `[Developer]` / `[End User]` tag on the story heading or as a **Audience** field).
+- Developer stories and end-user stories MUST be clearly labelled (for example,
+  `Developer` / `End User` tags on the story heading or an explicit **Audience**
+  field).
 - Prioritisation (P1, P2 …) applies independently within each audience group; a P1
   developer story and a P1 end-user story may coexist and SHOULD be implemented
   together where they describe two sides of the same feature.
@@ -382,6 +334,8 @@ The following gates MUST pass for every pull request that changes runtime behavi
 - Formatting is applied (Ruff formatter).
 - Documentation is updated when public behavior changes.
 - `python manage.py check` passes with no errors.
+- UI-impacting changes include completed playwright-cli verification evidence for
+  acceptance-criteria behavior (not page-load-only checks).
 
 If a change affects UI output or interaction, add or update pytest-playwright coverage.
 
@@ -389,7 +343,7 @@ If a change affects UI output or interaction, add or update pytest-playwright co
 
 - Start with the design that expresses the desired behavior and visual appearance
 - Verify the design meets expectations through visual inspection and user feedback (use
-  Playwright MCP server for UI verification)
+  the playwright-cli skill in a real browser for UI verification)
 - Refine the implementation based on verification feedback
 - Write comprehensive tests for the verified implementation (unit, integration, and end-to-end)
 - After each user story phase, run `python manage.py check` and the relevant pytest suite
@@ -403,7 +357,8 @@ This constitution defines non-negotiable project rules and supersedes local conv
 - Amendments MUST be proposed via pull request and include a brief rationale.
 - Amendments MUST state whether they are MAJOR/MINOR/PATCH changes to this constitution.
 - Any PR that materially changes development norms MUST update this constitution and any dependent templates.
-- Reviews MUST explicitly check compliance with the Core Principles.
+- Reviews MUST explicitly check compliance with the Core Principles and record any
+  deviations with a remediation plan before merge.
 
 ### Versioning Policy (Constitution)
 
@@ -411,4 +366,4 @@ This constitution defines non-negotiable project rules and supersedes local conv
 - MINOR: Adds a principle/section or materially expands guidance.
 - PATCH: Clarifies wording or fixes typos without changing intent.
 
-**Version**: 3.6.0 | **Ratified**: 2026-01-05 | **Last Amended**: 2026-05-05
+**Version**: 3.7.0 | **Ratified**: 2026-01-05 | **Last Amended**: 2026-05-26
