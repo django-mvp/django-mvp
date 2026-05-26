@@ -5,6 +5,16 @@
 **Status**: Draft
 **Input**: User description: "It is a common design pattern on mobile screensizes to have a footer navigation that sticks to the bottom of the viewport. The mobile navigation will be shown in mobile only mode using the .show-on-mobile class which syncs to the app's sidebar-expand-{bp} syntax. The nav items will be populated using a new django-flex-menus object specifically for this purpose (independent of the "AppMenu" menu). It will come prepopulated with a single menu item - a toggle to open the sidebar menu. We will also need a custom renderer to render links in a consistent manner. The link will follow standard bs5 nav items styling."
 
+## Clarifications
+
+### Session 2026-05-26
+
+- Q: Where in the base template layout should the footer nav component be inserted? → A: Inside the `c-app` Cotton component
+- Q: Should MobileFooterMenu items be filtered based on user permissions/auth state? → A: Items use the same permission/visibility model as AppMenu items
+- Q: How does the pre-populated sidebar toggle item trigger the sidebar open/close mechanism? → A: Via `data-lte-toggle="sidebar"` HTML data attribute (AdminLTE 4 convention)
+- Q: When many items overflow the footer nav width, what should the component do? → A: Nothing — overflow behaviour is the developer's responsibility
+- Q: What level of accessibility support is required for the footer nav? → A: Basic — semantic `<nav>` element with `aria-label`, no keyboard enhancements
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Developer Adds Items to Mobile Footer Menu (Priority: P1)
@@ -79,7 +89,7 @@ A developer rendering mobile footer nav links relies on a custom renderer that a
 - How does the footer nav behave when the sidebar toggle item is removed by the developer?
 - What happens when a menu item URL is `None` or blank?
 - How does the footer nav interact with browsers that do not support CSS `position: fixed` correctly (e.g., older iOS Safari)?
-- What happens when a very large number of items are registered — does the footer overflow or scroll horizontally?
+- What happens when a very large number of items are registered — overflow behaviour is the developer's responsibility; the component imposes no cap or overflow handling.
 
 ## Requirements *(mandatory)*
 
@@ -87,14 +97,16 @@ A developer rendering mobile footer nav links relies on a custom renderer that a
 
 - **FR-001**: The system MUST provide a `MobileFooterMenu` object that is independent of the existing `AppMenu` and can be populated with `MenuItem` instances using the same django-flex-menus API.
 - **FR-002**: The `MobileFooterMenu` MUST come pre-populated with a single sidebar-toggle `MenuItem` out of the box, so no developer configuration is required to get a working default.
-- **FR-003**: The footer nav component MUST be rendered using a Cotton (or equivalent template) component that applies the `.show-on-mobile` CSS class to synchronise its visibility with the app's `sidebar-expand-{bp}` breakpoint system.
+- **FR-003**: The footer nav component MUST be rendered using a Cotton component inserted inside the `c-app` Cotton component, applying the `.show-on-mobile` CSS class to synchronise its visibility with the app's `sidebar-expand-{bp}` breakpoint system.
 - **FR-004**: The footer nav MUST be visually fixed to the bottom of the viewport on mobile screen sizes and MUST NOT be visible on screen sizes at or above the configured sidebar expand breakpoint.
 - **FR-005**: The system MUST provide a custom renderer (compatible with django-flex-menus' renderer interface) that renders each `MenuItem` as a standard BS5 `.nav-item > .nav-link` structure.
 - **FR-006**: The custom renderer MUST mark the active `.nav-link` with the BS5 `active` class when the item's URL matches the current request path.
 - **FR-007**: The custom renderer MUST support optional icons on menu items, rendering the icon alongside the link label when present.
-- **FR-008**: The sidebar toggle item pre-populated in `MobileFooterMenu` MUST trigger the app's existing sidebar open/close mechanism when activated.
+- **FR-008**: The sidebar toggle item pre-populated in `MobileFooterMenu` MUST trigger the sidebar open/close mechanism via the `data-lte-toggle="sidebar"` HTML data attribute, consistent with the AdminLTE 4 convention already used in the project's header and sidebar components.
 - **FR-009**: Developers MUST be able to add, remove, or reorder items on `MobileFooterMenu` using standard django-flex-menus registration patterns.
 - **FR-010**: The footer nav MUST render correctly when `MobileFooterMenu` is empty (no items), displaying nothing or a zero-height container rather than broken markup.
+- **FR-011**: `MobileFooterMenu` items MUST respect the same permission and visibility model as `AppMenu` items, hiding items from users who lack the required permissions using the standard django-flex-menus visibility mechanism.
+- **FR-012**: The footer nav component MUST be wrapped in a semantic `<nav>` element with an `aria-label` attribute (e.g., `aria-label="Mobile navigation"`). No additional keyboard navigation enhancements are required.
 
 ### Key Entities
 
