@@ -3,6 +3,8 @@
   <c-vars direction="down" />
   {% get_current_language as CURRENT_LANGUAGE %}
   {% get_available_languages as LANGUAGES %}
+  {% url "set_language" as set_language_url %}
+  {% if set_language_url %}
   <c-dropdown direction="{{ direction }}" only>
     <c-slot name="button">
       <c-button text="{{ CURRENT_LANGUAGE }}"
@@ -10,7 +12,7 @@
                 data-bs-toggle="dropdown"
                 aria-expanded="false" />
     </c-slot>
-    <form action="{% url "set_language" %}" method="post">
+    <form action="{{ set_language_url }}" method="post">
       {% csrf_token %}
       <input type="hidden"
              name="next"
@@ -26,4 +28,5 @@
       {% endfor %}
     </form>
   </c-dropdown>
+  {% endif %}
 {% endif %}
