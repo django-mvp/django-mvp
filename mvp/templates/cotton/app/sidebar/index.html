@@ -49,26 +49,12 @@ menu        (str)  Name of a flex-menu Menu class to render. Default: "AppMenu".
         {% render_menu menu renderer="adminlte" %}
       </nav>
     </div>
-    <div class="content-footer bg-sidebar sticky-bottom px-1 py-2 mt-auto border-top">
-      <!-- Expanded sidebar: horizontal row of small buttons -->
-      <div class="hide-on-mini">
-        <c-action-group row gap=3 centered icons-only>
-          <c-actions.theme-switcher size="sm" />
-          <c-actions.language-switcher size="sm" />
-        </c-action-group>
+    {% if request.user.is_authenticated or footer %}
+      <div class="content-footer bg-sidebar sticky-bottom px-1 py-2 mt-auto border-top">
+        <c-user.sidebar-menu />
+        {{ footer }}
       </div>
-      <!-- Mini sidebar: vertical icon-only items styled like nav links -->
-      <ul class="show-on-mini list-unstyled m-0 sidebar-header-actions-mini hide-btn-text">
-        <li class="nav-item">
-          <c-actions.theme-switcher direction="end" />
-        </li>
-        <li class="nav-item">
-          <c-actions.language-switcher direction="end" />
-        </li>
-      </ul>
-      <c-user.sidebar-menu />
-      {{ footer }}
-    </div>
+    {% endif %}
   </div>
 </aside>
 <div class="sidebar-overlay"

@@ -3,6 +3,8 @@
 **Input**: Design documents from `specs/017-mobile-footer-nav/`
 **Feature Branch**: `017-mobile-footer-nav`
 **Prerequisites**: plan.md ✅ · spec.md ✅ · research.md ✅ · data-model.md ✅ · contracts/public-api.md ✅ · quickstart.md ✅
+**Propagated**: 2026-05-26 — Updated from spec.md refinement (NFR-001: BS5-utility-first styling). T002/T009/T010 descriptions corrected; corrective tasks T023–T026 added.
+**Propagated**: 2026-05-26 — Reflected user template/style refactoring. T004/T008/T009/T010/T017 descriptions updated; Phase 9 (T027–T029) added for test corrections.
 
 ## Format: `[ID] [P?] [Story] Description`
 
@@ -16,7 +18,7 @@
 
 **Purpose**: Register the new renderer in the test settings so all subsequent story phases can run against a fully configured environment.
 
-- [ ] T001 Register `"mobile-footer-nav": "mvp.renderers.MobileFooterNavRenderer"` in `FLEX_MENUS["renderers"]` dict in `tests/settings.py`
+- [X] T001 Register `"mobile-footer-nav": "mvp.renderers.MobileFooterNavRenderer"` in `FLEX_MENUS["renderers"]` dict in `tests/settings.py`
 
 **Checkpoint**: `python manage.py check` passes with the new key present before any implementation exists (renderer import error expected — confirms the hook is wired).
 
@@ -28,8 +30,8 @@
 
 **⚠️ CRITICAL**: All user story UI work depends on the SCSS partial being importable from `mvp.scss`.
 
-- [ ] T002 [P] Create `mvp/static/scss/_mobile-footer-nav.scss` with `position: fixed; bottom: 0; left: 0; right: 0; z-index: $zindex-fixed` sticky-footer rules, background (`--bs-body-bg`), and border-top (`--bs-border-color`) for dark-mode compatibility
-- [ ] T003 Add `@use "mobile-footer-nav"` to the partials block in `mvp/static/scss/mvp.scss` (depends on T002)
+- [X] T002 [P] Create `mvp/static/scss/_mobile-footer-nav.scss` containing **only** `padding-bottom: env(safe-area-inset-bottom, 0)` within `.mobile-footer-nav` for iOS safe-area support. All other properties (positioning, background, border, flex layout) are applied as BS5 utility classes in templates — NOT in this file (NFR-001).
+- [X] T003 Add `@use "mobile-footer-nav"` to the partials block in `mvp/static/scss/mvp.scss` (depends on T002)
 
 **Checkpoint**: SCSS compiles without errors (run `python manage.py check` — static assets compile on first request in dev).
 
@@ -43,18 +45,18 @@
 
 ### Tests for User Story 1 ⚠️ Write FIRST — must FAIL before implementation
 
-- [ ] T003a [P] Consult context7 for up-to-date `django-flex-menus` `BaseRenderer` API before writing any implementation in T006–T009 — confirm `get_context_data` signature, `visible` field behaviour, and template rendering loop (Constitution Principle VII)
+- [X] T003a [P] Consult context7 for up-to-date `django-flex-menus` `BaseRenderer` API before writing any implementation in T006–T009 — confirm `get_context_data` signature, `visible` field behaviour, and template rendering loop (Constitution Principle VII)
 
-- [ ] T004 [P] [US1] Add `TestCAppMobileFooterNav` class to `tests/test_components/test_c_app.py` with tests for:
-  - component renders `<nav aria-label="Mobile navigation">`
-  - component applies `show-on-mobile` CSS class
+- [X] T004 [P] [US1] Add `TestCAppMobileFooterNav` class to `tests/test_components/test_c_app.py` with tests for:
+  - outer container `<div>` carries `aria-label="Mobile navigation"` and `show-on-mobile`
+  - component's inner `<nav>` (from `<c-nav>`) is present
   - pre-populated sidebar toggle renders as `<button data-lte-toggle="sidebar">`
-  - custom `MenuItem` added to `MobileFooterMenu` appears as `.nav-item > .nav-link`
-  - empty `MobileFooterMenu` renders without broken markup
-  - `class` attribute is forwarded to the `<nav>` element
+  - custom `MenuItem` added to `MobileFooterMenu` appears as direct `<button>`/`<a class="nav-link">` child of `<nav>` (no `<li>` wrapper)
+  - empty `MobileFooterMenu` renders without broken markup (checks for `<nav>`)
+  - `class` attribute is forwarded to the outer `<div>` element
   - a `MenuItem` with a permission/visibility constraint the current user does not satisfy does NOT appear in rendered output (FR-011)
 
-- [ ] T005 [P] [US1] Create `tests/test_renderers.py` with `TestMobileFooterNavRenderer` class testing:
+- [X] T005 [P] [US1] Create `tests/test_renderers.py` with `TestMobileFooterNavRenderer` class testing:
   - `MobileFooterNavRenderer` is importable and is a `BaseRenderer` subclass
   - `templates` dict maps depth-0 to `menus/mobile-footer-nav/wrapper.html`
   - `templates` dict maps depth-1+ leaf and parent to `menus/mobile-footer-nav/item.html`
@@ -63,14 +65,14 @@
 
 ### Implementation for User Story 1
 
-- [ ] T006 [P] [US1] Add `MobileFooterMenu` singleton to `mvp/menus.py` — `Menu("MobileFooterMenu", children=[MenuItem(name="sidebar_toggle", extra_context={...})])` pre-populated with the sidebar toggle item per data-model.md Entity 1
-- [ ] T007 [P] [US1] Add `MobileFooterNavRenderer` class to `mvp/renderers.py` with `templates` dict mapping depth-0 to `menus/mobile-footer-nav/wrapper.html` and depth-1+ to `menus/mobile-footer-nav/item.html` per data-model.md Entity 2
-- [ ] T008 [P] [US1] Create `mvp/templates/menus/mobile-footer-nav/wrapper.html` — renders `<ul class="nav w-100">` and iterates children via `{% render_item child renderer=renderer %}` per data-model.md Entity 3
-- [ ] T009 [P] [US1] Create `mvp/templates/menus/mobile-footer-nav/item.html` — renders one BS5 `.nav-item.flex-grow-1.text-center`; sidebar-toggle items render `<button type="button" data-lte-toggle="sidebar">`; other items render `<a href="{{ url }}>`; both include `{% icon icon %}` and label `<span>`; `active` class applied when `selected` per data-model.md Entity 4
-- [ ] T010 [US1] Create `mvp/templates/cotton/app/mobile-footer-nav.html` — Cotton component wrapping `{% render_menu "MobileFooterMenu" renderer="mobile-footer-nav" %}` inside `<nav class="show-on-mobile {{ class }}" aria-label="Mobile navigation">` per data-model.md Entity 5 and contracts/public-api.md Cotton Component API (depends on T007, T008, T009)
-- [ ] T011 [US1] Add `{% block app.mobile_footer_nav %}<c-app.mobile-footer-nav />{% endblock app.mobile_footer_nav %}` to `mvp/templates/mvp/base.html` immediately after `{% endblock app.footer %}` and before `{% endblock app %}` per contracts/public-api.md Template Block API (depends on T010)
-- [ ] T011a [US1] **Playwright MCP inline verification** (Constitution Principle VI): use the Playwright MCP server to open the running dev app in a 375×812 mobile viewport; confirm `nav[aria-label="Mobile navigation"]` is present and visually pinned at the bottom of the viewport; confirm the pre-populated sidebar toggle `<button data-lte-toggle="sidebar">` is visible and tappable; screenshot for record (depends on T011)
-- [ ] T012 [US1] Validate User Story 1: `python manage.py check` then `pytest tests/test_components/test_c_app.py::TestCAppMobileFooterNav tests/test_renderers.py -v` — all tests must pass GREEN
+- [X] T006 [P] [US1] Add `MobileFooterMenu` singleton to `mvp/menus.py` — `Menu("MobileFooterMenu", children=[MenuItem(name="sidebar_toggle", extra_context={...})])` pre-populated with the sidebar toggle item per data-model.md Entity 1
+- [X] T007 [P] [US1] Add `MobileFooterNavRenderer` class to `mvp/renderers.py` with `templates` dict mapping depth-0 to `menus/mobile-footer-nav/wrapper.html` and depth-1+ to `menus/mobile-footer-nav/item.html` per data-model.md Entity 2
+- [X] T008 [P] [US1] Create `mvp/templates/menus/mobile-footer-nav/wrapper.html` — renders `<c-nav :attrs="context">` passing `MobileFooterMenu.extra_context` (type, fill, gap) as component attributes, iterates children via `{% render_item child renderer=renderer %}` with `<div class="vr my-2">` separators between items per data-model.md Entity 3
+- [X] T009 [P] [US1] Create `mvp/templates/menus/mobile-footer-nav/item.html` — renders `<c-nav.link text="{{ label }}" :href="url" :active="selected" :attrs="attrs">` with `btn-icon` class when `show_text` is falsy (icon-only default) and optional extra classes; delegates button-vs-anchor branching and `data-lte-toggle` attribute forwarding to `<c-nav.link>` via `:attrs="attrs"`. **NFR-001**: all item layout handled by the cotton-bs5 component; no custom SCSS rules.
+- [X] T010 [US1] Create `mvp/templates/cotton/app/mobile-footer-nav.html` — Cotton component with a `<div>` outer positioning container carrying `fixed-bottom bg-body border-top show-on-mobile mobile-footer-nav` and `aria-label="Mobile navigation"`; wraps `{% render_menu "MobileFooterMenu" renderer="mobile-footer-nav" %}` whose wrapper template provides the inner `<c-nav>` semantic nav element; per contracts/public-api.md Cotton Component API. (depends on T007, T008, T009)
+- [X] T011 [US1] Add `{% block app.mobile_footer_nav %}<c-app.mobile-footer-nav />{% endblock app.mobile_footer_nav %}` to `mvp/templates/mvp/base.html` immediately after `{% endblock app.footer %}` and before `{% endblock app %}` per contracts/public-api.md Template Block API (depends on T010)
+- [X] T011a [US1] **Playwright MCP inline verification** (Constitution Principle VI): use the Playwright MCP server to open the running dev app in a 375×812 mobile viewport; confirm `nav[aria-label="Mobile navigation"]` is present and visually pinned at the bottom of the viewport; confirm the pre-populated sidebar toggle `<button data-lte-toggle="sidebar">` is visible and tappable; screenshot for record (depends on T011)
+- [X] T012 [US1] Validate User Story 1: `python manage.py check` then `pytest tests/test_components/test_c_app.py::TestCAppMobileFooterNav tests/test_renderers.py -v` — all tests must pass GREEN
 
 **Checkpoint**: User Story 1 fully functional — developer can add items to `MobileFooterMenu` and see them rendered. Cotton component and renderer complete and tested.
 
@@ -84,7 +86,7 @@
 
 ### Tests for User Story 2 ⚠️ Write FIRST — must FAIL before implementation
 
-- [ ] T013 [P] [US2] Create `tests/test_views/test_mobile_footer_nav_e2e.py` with `@pytest.mark.e2e` class `TestMobileFooterNavVisibility` containing:
+- [X] T013 [P] [US2] Create `tests/test_views/test_mobile_footer_nav_e2e.py` with `@pytest.mark.e2e` class `TestMobileFooterNavVisibility` containing:
   - `test_footer_nav_visible_on_mobile` — viewport 375×812, assert `nav[aria-label="Mobile navigation"]` is visible
   - `test_footer_nav_hidden_on_desktop` — viewport 1280×800, assert same nav is hidden
   - `test_footer_nav_fixed_during_scroll` — mobile viewport, scroll 500px, assert nav bounding box `y + height ≈ viewport height` (still pinned)
@@ -94,7 +96,7 @@
 
 No new implementation files required — visibility is governed by the `show-on-mobile` CSS class (already active via T002/T003 SCSS and T010 component). Verify SCSS partial includes the `d-none` / display override rules within the `.sidebar-expand` loop interaction (research.md §2 confirms `.show-on-mobile` already exists in `_utils.scss`).
 
-- [ ] T014 [US2] Validate User Story 2: `python manage.py check` then `pytest tests/test_views/test_mobile_footer_nav_e2e.py -m e2e -k "visibility or scroll" -v` — all visibility tests must pass GREEN
+- [X] T014 [US2] Validate User Story 2: `python manage.py check` then `pytest tests/test_views/test_mobile_footer_nav_e2e.py -m e2e -k "visibility or scroll" -v` — all visibility tests must pass GREEN
 
 **Checkpoint**: Footer nav responsive visibility confirmed by Playwright at both mobile and desktop breakpoints.
 
@@ -108,7 +110,7 @@ No new implementation files required — visibility is governed by the `show-on-
 
 ### Tests for User Story 3 ⚠️ Write FIRST — must FAIL before implementation
 
-- [ ] T015 [P] [US3] Add `TestMobileFooterNavSidebarToggle` class to `tests/test_views/test_mobile_footer_nav_e2e.py` with:
+- [X] T015 [P] [US3] Add `TestMobileFooterNavSidebarToggle` class to `tests/test_views/test_mobile_footer_nav_e2e.py` with:
   - `test_sidebar_opens_when_toggle_tapped` — mobile viewport, click `nav[aria-label="Mobile navigation"] button[data-lte-toggle="sidebar"]`, assert sidebar overlay or sidebar element becomes visible
   - `test_sidebar_closes_when_toggle_tapped_again` — mobile viewport, open sidebar via toggle, tap again, assert sidebar is closed/hidden
   - `test_default_menu_has_exactly_one_item` — render page, count items inside footer nav, assert exactly 1
@@ -117,8 +119,8 @@ No new implementation files required — visibility is governed by the `show-on-
 
 No new implementation files required — the `data-lte-toggle="sidebar"` button was defined in T006 (`MobileFooterMenu` pre-populated item) and T009 (item template button rendering). Confirm `sidebar-toggle.js` script tag already loads in `base.html` (research.md §3 confirms it is on line 134).
 
-- [ ] T016 [US3] Validate User Story 3: `python manage.py check` then `pytest tests/test_views/test_mobile_footer_nav_e2e.py -m e2e -k "sidebar_toggle or sidebar_opens or sidebar_closes or default_menu" -v` — all sidebar toggle tests must pass GREEN
-- [ ] T016a [US3] **Playwright MCP inline verification** (Constitution Principle VI): use the Playwright MCP server on a 375×812 mobile viewport; tap `nav[aria-label="Mobile navigation"] button[data-lte-toggle="sidebar"]`; confirm the sidebar opens (sidebar overlay or `aside.app-sidebar` becomes visible); tap again and confirm it closes; screenshot both states for record
+- [X] T016 [US3] Validate User Story 3: `python manage.py check` then `pytest tests/test_views/test_mobile_footer_nav_e2e.py -m e2e -k "sidebar_toggle or sidebar_opens or sidebar_closes or default_menu" -v` — all sidebar toggle tests must pass GREEN
+- [X] T016a [US3] **Playwright MCP inline verification** (Constitution Principle VI): use the Playwright MCP server on a 375×812 mobile viewport; tap `nav[aria-label="Mobile navigation"] button[data-lte-toggle="sidebar"]`; confirm the sidebar opens (sidebar overlay or `aside.app-sidebar` becomes visible); tap again and confirm it closes; screenshot both states for record
 
 **Checkpoint**: Sidebar toggle works end-to-end on mobile via the pre-populated footer nav item.
 
@@ -132,21 +134,21 @@ No new implementation files required — the `data-lte-toggle="sidebar"` button 
 
 ### Tests for User Story 4 ⚠️ Write FIRST — must FAIL before implementation
 
-- [ ] T017 [P] [US4] Extend `tests/test_renderers.py` with `TestMobileFooterNavRendererOutput` class testing:
-  - `test_item_renders_nav_item_nav_link_structure` — rendered HTML contains `.nav-item > .nav-link`
+- [X] T017 [P] [US4] Extend `tests/test_renderers.py` with `TestMobileFooterNavRendererOutput` class testing:
+  - `test_item_renders_nav_item_nav_link_structure` — rendered HTML contains a direct `<button>`/`<a class="nav-link">` child of `<nav>` (no `<li class="nav-item">` wrapper)
   - `test_active_class_applied_when_url_matches_request_path` — item with matching URL gets `active` on `.nav-link`
   - `test_no_active_class_when_url_does_not_match` — non-matching URL has no `active` class
   - `test_icon_rendered_when_icon_in_extra_context` — icon element present in output
   - `test_sidebar_toggle_renders_as_button_not_anchor` — sidebar toggle item renders `<button>`, not `<a>`
   - `test_regular_item_renders_as_anchor_not_button` — non-toggle item renders `<a>`, not `<button>`
   - `test_sidebar_toggle_has_data_lte_toggle_attribute` — `data-lte-toggle="sidebar"` present on toggle button
-  - `test_items_rendered_in_registration_order` — two items registered in order appear in DOM order
+  - `test_items_rendered_in_registration_order` — two items registered in order appear in DOM order (find by `.nav-link` class)
 
 ### Implementation for User Story 4
 
 No new implementation files required — the renderer (`mvp/renderers.py`, T007) and templates (`mvp/templates/menus/mobile-footer-nav/`, T008/T009) were created in Phase 3. Verify all renderer contract assertions in the new tests pass against the existing implementation.
 
-- [ ] T018 [US4] Validate User Story 4: `python manage.py check` then `pytest tests/test_renderers.py -v` — all renderer output tests must pass GREEN
+- [X] T018 [US4] Validate User Story 4: `python manage.py check` then `pytest tests/test_renderers.py -v` — all renderer output tests must pass GREEN
 
 **Checkpoint**: All user stories (US1–US4) are independently functional and fully tested.
 
@@ -156,12 +158,46 @@ No new implementation files required — the renderer (`mvp/renderers.py`, T007)
 
 **Purpose**: Documentation, linting, and full-suite green — Constitution Principles II, V, X.
 
-- [ ] T019 Update `skills/django-mvp/SKILL.md` to document: `MobileFooterMenu` import and `children.append()` usage, `"mobile-footer-nav"` renderer registration in `FLEX_MENUS`, `c-app.mobile-footer-nav` component with `class` attribute, `{% block app.mobile_footer_nav %}` override pattern, and removal of pre-populated sidebar toggle
-- [ ] T020 [P] Run `ruff check mvp/menus.py mvp/renderers.py` and fix any style or import-order violations
-- [ ] T021 [P] Run `djlint mvp/templates/cotton/app/mobile-footer-nav.html mvp/templates/menus/mobile-footer-nav/wrapper.html mvp/templates/menus/mobile-footer-nav/item.html --check` and fix any template formatting issues
-- [ ] T022 Full suite validation: `python manage.py check` then `pytest -m "not e2e"` (unit + component tests) then `pytest -m e2e` (Playwright) — entire test suite must be GREEN with no regressions
+- [X] T019 Update `skills/django-mvp/SKILL.md` to document: `MobileFooterMenu` import and `children.append()` usage, `"mobile-footer-nav"` renderer registration in `FLEX_MENUS`, `c-app.mobile-footer-nav` component with `class` attribute, `{% block app.mobile_footer_nav %}` override pattern, and removal of pre-populated sidebar toggle
+- [X] T020 [P] Run `ruff check mvp/menus.py mvp/renderers.py` and fix any style or import-order violations
+- [X] T021 [P] Run `djlint mvp/templates/cotton/app/mobile-footer-nav.html mvp/templates/menus/mobile-footer-nav/wrapper.html mvp/templates/menus/mobile-footer-nav/item.html --check` and fix any template formatting issues
+- [X] T022 Full suite validation: `python manage.py check` then `pytest -m "not e2e"` (unit + component tests) then `pytest -m e2e` (Playwright) — entire test suite must be GREEN with no regressions
 
 **Checkpoint**: Feature complete. All linters pass, all tests green, SKILL.md updated.
+
+---
+
+## Phase 8: NFR-001 Corrective Refactoring (BS5-Utility-First)
+
+**Purpose**: The implementation of T002/T009/T010 predates NFR-001. These corrective tasks bring the existing implementation into compliance with the refined spec by removing custom SCSS rules that have direct BS5 utility class equivalents and moving them to templates.
+
+- [X] T023 [P] Refactor `mvp/static/scss/_mobile-footer-nav.scss` — remove `position: fixed`, `bottom`, `left`, `right`, `z-index`, `background-color`, `border-top`, and `.nav-link` flex/padding rules; retain **only** `padding-bottom: env(safe-area-inset-bottom, 0)` inside `.mobile-footer-nav { }` (NFR-001)
+- [X] T024 [P] Add BS5 utility classes `fixed-bottom bg-body border-top` to the `<nav>` element in `mvp/templates/cotton/app/mobile_footer_nav.html`; update `TestCAppMobileFooterNav` test assertions if class names on `<nav>` change (NFR-001, depends on T023)
+- [X] T025 [P] Add BS5 utility classes `d-flex flex-column align-items-center py-2 px-1` to `.nav-link` elements in `mvp/templates/menus/mobile-footer-nav/item.html`; update `TestMobileFooterNavRendererOutput` test assertions if `.nav-link` class list changes (NFR-001, depends on T023)
+- [X] T026 Validate NFR-001 refactoring: `python manage.py check` then `pytest tests/test_components/test_c_app.py::TestCAppMobileFooterNav tests/test_renderers.py -v` — all tests must pass GREEN with no regressions (depends on T023, T024, T025)
+
+**Checkpoint**: `_mobile-footer-nav.scss` contains only `env(safe-area-inset-bottom)`. All positioning/background/border/flex layout is applied via BS5 utility classes in templates. Tests green.
+
+---
+
+## Phase 9: Test Corrections for `<c-nav>`/`<c-nav.link>` Architecture
+
+**Purpose**: The user's template refactoring (reflected in T008/T009/T010) uses `<c-nav>` and `<c-nav.link>` cotton-bs5 components instead of custom HTML, changing the DOM structure. Seven tests written against the original `<nav>` outer + `<li class="nav-item">` structure are failing. These tasks update assertions to match the actual architecture.
+
+- [X] T027 [P] Update `TestCAppMobileFooterNav` failing tests in `tests/test_components/test_c_app.py`:
+  - `test_renders_nav_with_aria_label`: find outer `<div>` with `aria-label="Mobile navigation"` (not `<nav>`)
+  - `test_applies_show_on_mobile_class`: assert `show-on-mobile` is on the outer `<div>`, not on the inner `<nav>`
+  - `test_custom_menu_item_appears_as_nav_item_nav_link`: assert item is a direct `<button>`/`<a class="nav-link">` child of `<nav>` (no `<li>` wrapper)
+  - `test_empty_menu_renders_without_broken_markup`: check for `<nav>` (not `<ul>`) in output
+  - `test_class_attribute_forwarded_to_nav`: check custom class is on outer `<div>`, not inner `<nav>`
+
+- [X] T028 [P] Update `TestMobileFooterNavRendererOutput` failing tests in `tests/test_renderers.py`:
+  - `test_item_renders_nav_item_nav_link_structure`: assert direct child `<button>`/`<a class="nav-link">` of `<nav>` (no `<li class="nav-item">`)
+  - `test_items_rendered_in_registration_order`: find items by `class_="nav-link"` as direct `<nav>` children (not `<li class="nav-item">`)
+
+- [X] T029 Validate: `pytest tests/test_components/test_c_app.py::TestCAppMobileFooterNav tests/test_renderers.py -v` — all 22 tests must pass GREEN (depends on T027, T028)
+
+**Checkpoint**: 7 previously-failing tests corrected and passing; all tests in both test files pass GREEN.
 
 ---
 
@@ -197,6 +233,15 @@ T012 (US1 validate)
                                                             └─→ T020 (ruff)
                                                             └─→ T021 (djlint)
                                                             └─→ T022 (full suite)
+
+T023 (refactor _mobile-footer-nav.scss — NFR-001)
+    ├─→ T024 (add fixed-bottom/bg-body/border-top to <nav> — NFR-001)
+    ├─→ T025 (add d-flex/flex-column/align-items-center to .nav-link — NFR-001)
+    └─→ (T024 + T025) → T026 (validate NFR-001 refactoring)
+
+T027 [P] (update TestCAppMobileFooterNav assertions) ─┐
+T028 [P] (update TestMobileFooterNavRendererOutput assertions) ─┘
+    └─→ T029 (validate: all 22 tests GREEN)
 ```
 
 **Story completion order**: US1 (P1) → US2 (P1) → US3 (P2) → US4 (P2)

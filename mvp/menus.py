@@ -127,3 +127,54 @@ class MenuCollapse(MenuItem):
 # Global menu instance for application navigation
 # Initially empty - users extend by importing and adding MenuItem instances
 AppMenu = Menu("AppMenu", children=[])
+
+# Mobile footer navigation menu — pre-populated with sidebar toggle item.
+# Developers may append additional MenuItem instances to this singleton.
+# Example:
+#     from mvp.menus import MobileFooterMenu
+#     MobileFooterMenu.children.append(MenuItem(name="home", ...))
+MobileFooterMenu = Menu(
+    "MobileFooterMenu",
+    extra_context={
+        "text": "Mobile Navigation",
+        "type": "underline",
+        "fill": True,
+        "gap": 0,
+    },
+    children=[
+        MenuItem(
+            name="sidebar_toggle",
+            extra_context={
+                "label": "Menu",
+                "icon": "menu",
+                "attrs": {
+                    "data-lte-toggle": "sidebar",
+                },
+            },
+        ),
+        # Uncomment to test more mobile nav-items
+        # MenuItem(
+        #     name="sidebar_toggle",
+        #     extra_context={
+        #         "label": "Menu",
+        #         "icon": "menu",
+        #         "show_text": True,
+        #         "attrs": {
+        #             "data-lte-toggle": "sidebar",
+        #         },
+        #         "sidebar_toggle": True,
+        #     },
+        # ),
+        # MenuItem(
+        #     name="sidebar_toggle",
+        #     extra_context={
+        #         "label": "Menu",
+        #         "icon": "menu",
+        #         "attrs": {
+        #             "data-lte-toggle": "sidebar",
+        #         },
+        #         "sidebar_toggle": True,
+        #     },
+        # ),
+    ],
+)

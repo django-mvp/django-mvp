@@ -116,6 +116,88 @@ For nesting, see [./references/menu-patterns.md](./references/menu-patterns.md).
 
 ---
 
+## Mobile Footer Navigation
+
+`MobileFooterMenu` is an independent menu object for the mobile-only sticky footer nav
+bar. It ships pre-populated with a sidebar toggle item and supports the same
+django-flex-menus API as `AppMenu`.
+
+### Register the renderer (settings.py)
+
+Add `"mobile-footer-nav"` alongside the existing renderer keys:
+
+```python
+FLEX_MENUS = {
+    "renderers": {
+        "adminlte": "mvp.renderers.AdminLTERenderer",
+        "mobile-footer-nav": "mvp.renderers.MobileFooterNavRenderer",  # ← add this
+    },
+    "log_url_failures": DEBUG,
+}
+```
+
+### Add items to the menu (menus.py)
+
+Import and mutate `MobileFooterMenu` in the same `menus.py` file as your `AppMenu` items:
+
+```python
+from flex_menu import MenuItem
+from mvp.menus import AppMenu, MobileFooterMenu
+
+AppMenu.extend([...])  # existing sidebar items
+
+MobileFooterMenu.children.append(
+    MenuItem(
+        name="my_footer_link",
+        view_name="my_view_name",
+        extra_context={"label": "My Page", "icon": "house"},
+    )
+)
+```
+
+**Removing the pre-populated sidebar toggle** — if you don't want the default toggle:
+
+```python
+MobileFooterMenu.children = [
+    # Only your custom items here; sidebar toggle is excluded
+    MenuItem("my_link", view_name="home", extra_context={"label": "Home", "icon": "house"}),
+]
+```
+
+**Visibility checks** work identically to `AppMenu`:
+
+```python
+from flex_menu.checks import user_is_authenticated
+MenuItem("my_link", view_name="home", check=user_is_authenticated, extra_context={...})
+```
+
+### Use the component (templates)
+
+The footer nav renders automatically in `mvp/base.html`. Override the block to customise
+or disable it:
+
+```django
+{# Disable the footer nav entirely #}
+{% block app.mobile_footer_nav %}{% endblock app.mobile_footer_nav %}
+
+{# Add custom CSS class #}
+{% block app.mobile_footer_nav %}
+  <c-app.mobile-footer-nav class="my-custom-modifier" />
+{% endblock app.mobile_footer_nav %}
+```
+
+The `<c-app.mobile-footer-nav>` component renders a `<nav>` element with `show-on-mobile`
+(hidden on desktop via the sidebar-expand breakpoint), `fixed-bottom` (pinned to viewport
+bottom), `bg-body`, and `border-top` classes.
+
+### Supported attributes
+
+| Attribute | Type | Effect |
+|-----------|------|--------|
+| `class` | string | Extra CSS class(es) appended to the `<nav>` element |
+
+---
+
 ## Step 5 — Base Template
 
 Extend `mvp/base.html` and override `{% block app %}` to compose the layout using

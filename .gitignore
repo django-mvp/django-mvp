@@ -30,7 +30,7 @@ todo.md
 .pydevproject
 .idea
 tags
-
+.playwright-cli
 # Package files
 *.egg
 *.eggs/

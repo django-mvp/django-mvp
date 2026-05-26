@@ -196,6 +196,7 @@ FLEX_MENUS = {
         "sidebar": "mvp.renderers.SidebarRenderer",
         "navbar": "mvp.renderers.NavbarRenderer",
         "dropdown": "mvp.renderers.DropdownRenderer",
+        "mobile-footer-nav": "mvp.renderers.MobileFooterNavRenderer",
     },
     "log_url_failures": DEBUG,
 }

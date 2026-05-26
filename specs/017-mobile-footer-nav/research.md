@@ -79,6 +79,7 @@ in `base.html` is sufficient for developer override.
 ## 5. Template Topology for `MobileFooterNavRenderer`
 
 **Decision**: Two templates:
+
 - `menus/mobile-footer-nav/wrapper.html` — depth-0 container; iterates children
 - `menus/mobile-footer-nav/item.html` — depth-1+ leaf; renders one BS5 `.nav-item`
 

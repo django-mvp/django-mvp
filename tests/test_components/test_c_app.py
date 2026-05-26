@@ -171,7 +171,9 @@ class TestCAppSidebar:
         aside = soup.find("aside", class_="app-sidebar")
         assert aside.get("data-bs-theme") == "dark"
 
-    @pytest.mark.skip(reason="sidebar-brand div is no longer rendered inside <aside>; sidebar header structure has changed.")
+    @pytest.mark.skip(
+        reason="sidebar-brand div is no longer rendered inside <aside>; sidebar header structure has changed."
+    )
     def test_c_app_sidebar_renders_header(self, cotton_render_soup):
         """Test that sidebar renders the header component."""
         soup = cotton_render_soup("app.sidebar")
@@ -409,3 +411,90 @@ class TestCAppMenu:
         soup = cotton_render_soup("app.menu")
         ul = soup.find("ul", class_="sidebar-menu")
         assert "flex-column" in ul.get("class", [])
+
+
+class TestCAppMobileFooterNav:
+    """Tests for <c-app.mobile-footer-nav> component."""
+
+    @pytest.fixture(autouse=True)
+    def reset_mobile_footer_menu(self):
+        """Save and restore MobileFooterMenu children around each test."""
+        from mvp.menus import MobileFooterMenu
+
+        original_children = list(MobileFooterMenu.children)
+        yield
+        MobileFooterMenu.children = original_children
+
+    def test_renders_nav_with_aria_label(self, cotton_render_soup):
+        """Test component renders outer container with aria-label="Mobile navigation"."""
+        soup = cotton_render_soup("app.mobile-footer-nav")
+        container = soup.find(attrs={"aria-label": "Mobile navigation"})
+        assert container is not None
+
+    def test_applies_show_on_mobile_class(self, cotton_render_soup):
+        """Test component applies show-on-mobile CSS class to outer container."""
+        soup = cotton_render_soup("app.mobile-footer-nav")
+        container = soup.find(class_="mobile-footer-nav")
+        assert container is not None
+        assert "show-on-mobile" in container.get("class", [])
+
+    def test_pre_populated_sidebar_toggle_renders_as_button(self, cotton_render_soup):
+        """Test pre-populated sidebar toggle renders as <button data-lte-toggle="sidebar">."""
+        soup = cotton_render_soup("app.mobile-footer-nav")
+        button = soup.find("button", attrs={"data-lte-toggle": "sidebar"})
+        assert button is not None
+
+    def test_custom_menu_item_appears_as_nav_item_nav_link(self, cotton_render_soup):
+        """Test custom MenuItem added to MobileFooterMenu appears as .nav-link inside <nav>."""
+        from flex_menu import MenuItem
+
+        from mvp.menus import MobileFooterMenu
+
+        MobileFooterMenu.children = [
+            MenuItem(
+                name="test_item",
+                extra_context={"label": "Test", "icon": "home", "url": "/test/"},
+                url="/test/",
+            )
+        ]
+        soup = cotton_render_soup("app.mobile-footer-nav")
+        nav = soup.find("nav")
+        assert nav is not None
+        nav_link = nav.find(class_="nav-link")
+        assert nav_link is not None
+
+    def test_empty_menu_renders_without_broken_markup(self, cotton_render_soup):
+        """Test empty MobileFooterMenu renders without broken markup."""
+        from mvp.menus import MobileFooterMenu
+
+        MobileFooterMenu.children = []
+        soup = cotton_render_soup("app.mobile-footer-nav")
+        container = soup.find(class_="mobile-footer-nav")
+        assert container is not None
+        nav = soup.find("nav")
+        assert nav is not None
+
+    def test_class_attribute_forwarded_to_nav(self, cotton_render_soup):
+        """Test class attribute is forwarded to the outer container element."""
+        soup = cotton_render_soup("app.mobile-footer-nav", **{"class": "custom-class"})
+        container = soup.find(class_="mobile-footer-nav")
+        assert container is not None
+        assert "custom-class" in container.get("class", [])
+
+    def test_invisible_menu_item_does_not_appear(self, cotton_render_soup):
+        """Test MenuItem with check=False does not appear in rendered output (FR-011)."""
+        from flex_menu import MenuItem
+
+        from mvp.menus import MobileFooterMenu
+
+        MobileFooterMenu.children = [
+            MenuItem(
+                name="restricted_item",
+                extra_context={"label": "Restricted", "icon": "lock", "url": "/restricted/"},
+                url="/restricted/",
+                check=False,
+            )
+        ]
+        soup = cotton_render_soup("app.mobile-footer-nav")
+        items = soup.find_all(class_="nav-link")
+        assert len(items) == 0

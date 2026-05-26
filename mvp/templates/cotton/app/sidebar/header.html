@@ -16,7 +16,7 @@
              alt="{% trans "Site icon" %}"
              class="rounded-3 hide-on-light-theme h-100" />
       </div>
-      <div class="hide-on-mini px-3 py-2 mx-auto">
+      <div class="hide-on-mini px-3 pt-2 mx-auto">
         <img src="{{ logo_light }}"
              {% comment %}
              src="https://picsum.photos/400/600"
@@ -39,5 +39,11 @@
         </span>
       {% endif %}
     </a>
+  </div>
+  <div class="hide-on-mini mb-2">
+    <c-action-group row gap=3 centered>
+      <c-actions.theme-switcher size="sm" />
+      <c-actions.language-switcher size="sm" />
+    </c-action-group>
   </div>
 </div>

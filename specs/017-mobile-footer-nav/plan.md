@@ -2,16 +2,28 @@
 
 **Branch**: `017-mobile-footer-nav` | **Date**: 2026-05-26 | **Spec**: [spec.md](spec.md)
 **Input**: Feature specification from `specs/017-mobile-footer-nav/spec.md`
+**Propagated**: 2026-05-26 — Updated from spec.md refinement (NFR-001: BS5-utility-first styling)
+**Propagated**: 2026-05-26 — Reflected user template/style refactoring: `<div>` outer container, `<c-nav>`/`<c-nav.link>` components, `attrs` dict sidebar toggle, `show_text` flag, SCSS underline indicator
 
 ## Summary
 
 Add a mobile-only sticky footer navigation bar to django-mvp's layout system.
 The nav bar is rendered by a new `c-app.mobile-footer-nav` Cotton component inserted
-inside `c-app` in `base.html`. Items are populated via a new `MobileFooterMenu`
-singleton (independent of `AppMenu`), rendered by a new `MobileFooterNavRenderer`
-registered as `"mobile-footer-nav"` in `FLEX_MENUS`. The component is hidden on
-desktop using the existing `.show-on-mobile` CSS utility (no new media queries needed).
-It ships pre-populated with a sidebar toggle item using `data-lte-toggle="sidebar"`.
+inside `c-app` in `base.html`. Its **outer element is a `<div>` positioning container**
+applying `fixed-bottom bg-body border-top show-on-mobile mobile-footer-nav` and
+`aria-label`; the semantic `<nav>` is provided by the inner `<c-nav>` cotton-bs5
+component, configured via `MobileFooterMenu.extra_context` (`type="underline"`,
+`fill=True`, `gap=0`). Items are populated via a new `MobileFooterMenu` singleton
+(independent of `AppMenu`), rendered by a new `MobileFooterNavRenderer` registered as
+`"mobile-footer-nav"` in `FLEX_MENUS`. The wrapper template uses `<c-nav :attrs="context">`;
+item templates use `<c-nav.link>` as direct children of `<nav>` (no `<li>` wrapper).
+Items default to icon-only mode (`btn-icon`) — `show_text=True` in `extra_context`
+enables label display. The pre-populated sidebar toggle uses `attrs: {"data-lte-toggle":
+"sidebar"}` in `extra_context`, forwarded to the rendered element by `<c-nav.link>`.
+**NFR-001**: Bootstrap 5 utility classes and prebuilt cotton-bs5 components are preferred
+over custom SCSS and custom HTML. The `_mobile-footer-nav.scss` partial is restricted to
+`env(safe-area-inset-bottom)` padding and nav-underline active indicator (both lack
+BS5 utility equivalents).
 
 ## Technical Context
 
@@ -28,7 +40,11 @@ pytest-playwright
 **Constraints**: Cotton-only UI configuration (no Python-level CSS/layout config);
 `show-on-mobile` already defined in `_utils.scss` via `.sidebar-expand` loop;
 renderer registration via Django `FLEX_MENUS["renderers"]` setting; Cotton component
-tests MUST go in `tests/test_components/test_c_app.py` (not a new file per Principle IX)
+tests MUST go in `tests/test_components/test_c_app.py` (not a new file per Principle IX);
+**NFR-001**: custom SCSS restricted to `env(safe-area-inset-bottom)` padding and
+nav-underline active indicator (`var(--bs-nav-underline-border-width)`,
+`var(--bs-emphasis-color)`) — both lack BS5 utility equivalents. All other styling
+via BS5 utility classes in templates or prebuilt cotton-bs5 components
 **Scale/Scope**: Small addition — 2 Python class additions, 1 Cotton component,
 2 menu templates, 1 SCSS partial, 1 base.html block, 1 settings entry
 
@@ -41,13 +57,13 @@ gates continue to pass.*
 |---|---|---|
 | I. Design-First | Playwright MCP verification tasks required; pytest coverage required; Cotton tests in `tests/test_components/test_c_app.py` | ✅ PASS — all verification tasks planned |
 | II. Documentation-First | `skills/django-mvp/SKILL.md` must be updated; quickstart.md produced | ✅ PASS — quickstart.md created; SKILL.md update in scope |
-| III. Component Quality & Accessibility | Semantic `<nav>` with `aria-label` (FR-012); valid HTML | ✅ PASS — `<nav aria-label="Mobile navigation">` in design |
+| III. Component Quality & Accessibility | Semantic `<nav>` with `aria-label` on outer container (FR-012); valid HTML | ✅ PASS — `<div aria-label="Mobile navigation">` outer; `<nav>` from inner `<c-nav>` |
 | IV. Compatibility & Config-Driven | Cotton-only UI; renderer via settings; no breaking changes on existing API | ✅ PASS — new block/component; does not alter existing API |
 | V. Tooling & Consistency | Ruff + djlint must pass; SCSS in existing pipeline | ✅ PASS — no new tooling needed |
 | VI. UI Verification (playwright-mcp) | Playwright MCP tasks required for all UI changes | ✅ PASS — planned in tasks |
 | VII. Documentation Retrieval | context7 for django-flex-menus | ✅ PASS — to be used during implementation |
 | VIII. E2E Testing | pytest-playwright E2E tests required | ✅ PASS — planned |
-| IX. Template Component Reuse | Prebuilt-first check; custom Cotton component; tests in `test_c_app.py` | ✅ PASS — no suitable prebuilt component; `test_c_app.py` grouping confirmed |
+| IX. Template Component Reuse | Prebuilt-first check; tests in `test_c_app.py` | ✅ PASS — wrapper uses `<c-nav>`; items use `<c-nav.link>` from cotton-bs5; `test_c_app.py` grouping confirmed |
 | X. SKILL.md Currency | `skills/django-mvp/SKILL.md` must be updated | ✅ PASS — in scope |
 | XI. Dual-Audience | Developer + End User stories both present in spec | ✅ PASS — User Story 1 (Developer), Stories 2–3 (End User) |
 | XII. View Docstring Completeness | No new view classes introduced | ✅ PASS — N/A |
@@ -75,16 +91,16 @@ mvp/
 ├── renderers.py                          # + MobileFooterNavRenderer
 ├── static/
 │   └── scss/
-│       ├── _mobile-footer-nav.scss       # NEW — sticky positioning + z-index + nav-link layout
+│       ├── _mobile-footer-nav.scss       # NEW — iOS safe-area only: env(safe-area-inset-bottom); positioning/bg/border/flex via BS5 utilities in templates (NFR-001)
 │       └── mvp.scss                      # + @use "_mobile-footer-nav"
 └── templates/
     ├── cotton/
     │   └── app/
-    │       └── mobile-footer-nav.html    # NEW — c-app.mobile-footer-nav Cotton component
+    │       └── mobile-footer-nav.html    # NEW — c-app.mobile-footer-nav Cotton component (<div> outer + <c-nav> inner)
     ├── menus/
     │   └── mobile-footer-nav/
-    │       ├── wrapper.html              # NEW — depth-0: <ul class="nav"> + children loop
-    │       └── item.html                # NEW — depth-1+: BS5 .nav-item leaf
+    │       ├── wrapper.html              # NEW — depth-0: <c-nav :attrs="context"> wrapping children with vr separators
+    │       └── item.html                # NEW — depth-1+: <c-nav.link> (direct child of <nav>, no <li>)
 
 mvp/templates/mvp/
 └── base.html                             # + {% block app.mobile_footer_nav %} inside <c-app>

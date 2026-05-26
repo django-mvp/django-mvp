@@ -98,13 +98,34 @@
   </head>
   {% block app %}
     <c-app>
-      <c-app.header />
-      <c-app.sidebar />
-      <c-app.main>
-        {% block content %}
-        {% endblock content %}
-      </c-app.main>
-      <c-app.footer />
+      {% block app.header %}
+        <c-app.header>
+          <c-slot name="right">
+            {% block app.header.widgets %}
+            {% endblock app.header.widgets %}
+          </c-slot>
+          <c-slot name="tray">
+            {% block app.header.tray %}
+            {% endblock app.header.tray %}
+          </c-slot>
+        </c-app.header>
+      {% endblock app.header %}
+      {% block app.sidebar %}
+        <c-app.sidebar />
+      {% endblock app.sidebar %}
+      {% block app.main %}
+        <c-app.main>
+          {% block content %}
+          {% endblock content %}
+          <c-messages :messages="messages" dismissible animate />
+        </c-app.main>
+      {% endblock app.main %}
+      {% block app.footer %}
+        <c-app.footer />
+      {% endblock app.footer %}
+      {% block app.mobile_footer_nav %}
+        <c-app.mobile-footer-nav />
+      {% endblock app.mobile_footer_nav %}
     </c-app>
   {% endblock app %}
   {# Bootstrap 5 JS (required for dropdowns, modals, etc.) #}

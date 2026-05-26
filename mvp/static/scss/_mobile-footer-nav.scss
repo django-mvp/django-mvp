@@ -1,0 +1,15 @@
+.mobile-footer-nav {
+  // iOS safe area — no BS5 utility equivalent
+  padding-bottom: env(safe-area-inset-bottom, 0);
+
+  .nav-link {
+    border-bottom: 0;
+    // border-top: 1
+    border-top: var(--bs-nav-underline-border-width) solid transparent;
+
+    &.active,
+    &:hover {
+      border-top-color: var(--bs-emphasis-color);
+    }
+  }
+}

@@ -38,6 +38,7 @@
 @import "sidebar";
 @import "avatar";
 @import "utils";
+@import "mobile-footer-nav";
 
 .app-header:has(> .mvp-toolbar) .navbar {
   padding-bottom: 0;

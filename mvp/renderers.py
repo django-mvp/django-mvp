@@ -8,6 +8,26 @@ from flex_menu.menu import MenuItem
 from flex_menu.renderers import BaseRenderer
 
 
+class MobileFooterNavRenderer(BaseRenderer):
+    """Renderer for the mobile footer navigation bar.
+
+    Produces flat BS5 .nav-item > .nav-link HTML for each registered MenuItem.
+    Sidebar toggle items are rendered as <button data-lte-toggle="sidebar">
+    rather than anchor links.
+
+    Config:
+        FLEX_MENUS["renderers"]["mobile-footer-nav"] = "mvp.renderers.MobileFooterNavRenderer"
+    """
+
+    templates = {
+        0: {"default": "menus/mobile-footer-nav/wrapper.html"},
+        "default": {
+            "parent": "menus/mobile-footer-nav/item.html",
+            "leaf": "menus/mobile-footer-nav/item.html",
+        },
+    }
+
+
 class AdminLTERenderer(BaseRenderer):
     """Renderer for AdminLTE 4 sidebar navigation.
 

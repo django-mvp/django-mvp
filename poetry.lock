@@ -647,7 +647,7 @@ version = "2.6.1"
 description = "Enabling Modern UI Composition in Django."
 optional = false
 python-versions = "<4,>=3.8"
-groups = ["main"]
+groups = ["main", "dev"]
 files = [
     {file = "django_cotton-2.6.1-py3-none-any.whl", hash = "sha256:775dda0336c08d33a6daf10557eb261746b1b8e5f260b669cc6b37115571cb08"},
     {file = "django_cotton-2.6.1.tar.gz", hash = "sha256:bedfa4561e2505fca5b88396acb9bdfaea85167eeef11813676fedab45906088"},
@@ -658,21 +658,23 @@ django = ">=4.2,<7.0"
 
 [[package]]
 name = "django-cotton-bs5"
-version = "0.9.0"
+version = "0.9.1"
 description = "Bootstrap 5 components for use with Django Cotton."
 optional = false
-python-versions = "<4,>=3.10"
-groups = ["main"]
-files = [
-    {file = "django_cotton_bs5-0.9.0-py3-none-any.whl", hash = "sha256:f3ac382193dfed1931b7392d6fe2b1324221ba408f8c59cb7bd8737a42c8a1e0"},
-    {file = "django_cotton_bs5-0.9.0.tar.gz", hash = "sha256:bd60fc12d55f4ba428f0e9d2c9c4f98e974cbbcc98af49ca155d5fd94295d12f"},
-]
+python-versions = ">=3.10,<4"
+groups = ["main", "dev"]
+files = []
+develop = true
 
 [package.dependencies]
-django-cotton = ">=2.6.1,<3.0.0"
+django-cotton = "^2.6.1"
 
 [package.extras]
 django-compressor = ["django-compressor (>=4.5.1,<5.0.0)", "django-libsass (>=0.9,<0.10)"]
+
+[package.source]
+type = "directory"
+url = "../../coding/django-cotton-bs5"
 
 [[package]]
 name = "django-coverage-plugin"
@@ -2901,4 +2903,4 @@ dev = ["pytest", "setuptools"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<4.0"
-content-hash = "3c4f1f61865d96f3a326bbd39de120ba05948c76f4edf1f057d2cc1aa9059888"
+content-hash = "94012883f371992d45be2baf328314a865115ae187d98e29dd387021f54f6118"

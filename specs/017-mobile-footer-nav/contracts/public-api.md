@@ -13,6 +13,7 @@
 **Import path**: `from mvp.menus import MobileFooterMenu`
 
 **Contract**:
+
 - Always present after `import mvp.menus`
 - `MobileFooterMenu.children` is a mutable list of `MenuItem` instances
 - Starts with one pre-populated `MenuItem` named `"sidebar_toggle"`
@@ -28,6 +29,7 @@
 **Import path**: `from mvp.renderers import MobileFooterNavRenderer`
 
 **Contract**:
+
 - Registered as `"mobile-footer-nav"` in `FLEX_MENUS["renderers"]`
 - Renders depth-0 output via `menus/mobile-footer-nav/wrapper.html`
 - Renders depth-1+ output via `menus/mobile-footer-nav/item.html`
@@ -45,6 +47,7 @@
 **File**: `mvp/templates/mvp/base.html`
 
 **Contract**:
+
 - Block is always present inside `<c-app>`, after `{% block app.footer %}`
 - Default content: `<c-app.mobile-footer-nav />`
 - Developers MAY override to customise, replace, or remove the footer nav
@@ -65,6 +68,7 @@
 | `class`   | `str`   | No       | `""`    | Additional CSS classes on the `<nav>` element |
 
 **Contract**:
+
 - Always renders a `<nav aria-label="Mobile navigation">` element
 - Always applies `show-on-mobile` CSS class (responsive visibility)
 - Always renders `MobileFooterMenu` via the `"mobile-footer-nav"` renderer
@@ -84,6 +88,7 @@ FLEX_MENUS = {
 ```
 
 **Contract**:
+
 - Key `"mobile-footer-nav"` MUST be present for the component to render
 - Missing key produces a django-flex-menus `RendererNotFound` error at render time
 - Value MUST be the full dotted Python path to `MobileFooterNavRenderer` or a subclass
