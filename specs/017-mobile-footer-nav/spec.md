@@ -120,7 +120,7 @@ A developer rendering mobile footer nav links relies on a custom renderer that a
 ### Measurable Outcomes
 
 - **SC-001**: The footer nav is visible on viewports narrower than the app's sidebar-expand breakpoint and hidden on viewports at or above it — verifiable by automated visual regression or browser resize test.
-- **SC-002**: The sidebar toggle opens and closes the sidebar in 100% of test cases across supported mobile browsers.
+- **SC-002**: The sidebar toggle opens and closes the sidebar in 100% of test cases — browser scope is Chrome/Chromium at a 375×812 mobile viewport (Playwright default; no multi-browser matrix required at this stage).
 - **SC-003**: Every item rendered by the custom renderer produces structurally valid BS5 nav-item markup, verifiable via automated HTML assertion in the test suite.
 - **SC-004**: Developers can add a custom item to `MobileFooterMenu` and see it appear in the rendered footer nav with zero additional template changes.
 - **SC-005**: The footer nav remains pinned to the bottom of the viewport during page scroll on all tested mobile device profiles.

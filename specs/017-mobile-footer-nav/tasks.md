@@ -43,6 +43,8 @@
 
 ### Tests for User Story 1 ⚠️ Write FIRST — must FAIL before implementation
 
+- [ ] T003a [P] Consult context7 for up-to-date `django-flex-menus` `BaseRenderer` API before writing any implementation in T006–T009 — confirm `get_context_data` signature, `visible` field behaviour, and template rendering loop (Constitution Principle VII)
+
 - [ ] T004 [P] [US1] Add `TestCAppMobileFooterNav` class to `tests/test_components/test_c_app.py` with tests for:
   - component renders `<nav aria-label="Mobile navigation">`
   - component applies `show-on-mobile` CSS class
@@ -50,12 +52,14 @@
   - custom `MenuItem` added to `MobileFooterMenu` appears as `.nav-item > .nav-link`
   - empty `MobileFooterMenu` renders without broken markup
   - `class` attribute is forwarded to the `<nav>` element
+  - a `MenuItem` with a permission/visibility constraint the current user does not satisfy does NOT appear in rendered output (FR-011)
 
 - [ ] T005 [P] [US1] Create `tests/test_renderers.py` with `TestMobileFooterNavRenderer` class testing:
   - `MobileFooterNavRenderer` is importable and is a `BaseRenderer` subclass
   - `templates` dict maps depth-0 to `menus/mobile-footer-nav/wrapper.html`
   - `templates` dict maps depth-1+ leaf and parent to `menus/mobile-footer-nav/item.html`
   - renderer is registered under key `"mobile-footer-nav"` in test settings `FLEX_MENUS`
+  - a mocked item with `visible=False` produces no output (confirms `super().get_context_data()` `BaseRenderer` visibility filtering is preserved — FR-011)
 
 ### Implementation for User Story 1
 
@@ -64,7 +68,8 @@
 - [ ] T008 [P] [US1] Create `mvp/templates/menus/mobile-footer-nav/wrapper.html` — renders `<ul class="nav w-100">` and iterates children via `{% render_item child renderer=renderer %}` per data-model.md Entity 3
 - [ ] T009 [P] [US1] Create `mvp/templates/menus/mobile-footer-nav/item.html` — renders one BS5 `.nav-item.flex-grow-1.text-center`; sidebar-toggle items render `<button type="button" data-lte-toggle="sidebar">`; other items render `<a href="{{ url }}>`; both include `{% icon icon %}` and label `<span>`; `active` class applied when `selected` per data-model.md Entity 4
 - [ ] T010 [US1] Create `mvp/templates/cotton/app/mobile-footer-nav.html` — Cotton component wrapping `{% render_menu "MobileFooterMenu" renderer="mobile-footer-nav" %}` inside `<nav class="show-on-mobile {{ class }}" aria-label="Mobile navigation">` per data-model.md Entity 5 and contracts/public-api.md Cotton Component API (depends on T007, T008, T009)
-- [ ] T011 [US1] Add `{% block app.mobile_footer_nav %}<c-app.mobile-footer-nav />{% endblock app.mobile_footer_nav %}` to `mvp/templates/mvp/base.html` immediately after `{% endblock app.footer %}` (line 125) and before `{% endblock app %}` per contracts/public-api.md Template Block API (depends on T010)
+- [ ] T011 [US1] Add `{% block app.mobile_footer_nav %}<c-app.mobile-footer-nav />{% endblock app.mobile_footer_nav %}` to `mvp/templates/mvp/base.html` immediately after `{% endblock app.footer %}` and before `{% endblock app %}` per contracts/public-api.md Template Block API (depends on T010)
+- [ ] T011a [US1] **Playwright MCP inline verification** (Constitution Principle VI): use the Playwright MCP server to open the running dev app in a 375×812 mobile viewport; confirm `nav[aria-label="Mobile navigation"]` is present and visually pinned at the bottom of the viewport; confirm the pre-populated sidebar toggle `<button data-lte-toggle="sidebar">` is visible and tappable; screenshot for record (depends on T011)
 - [ ] T012 [US1] Validate User Story 1: `python manage.py check` then `pytest tests/test_components/test_c_app.py::TestCAppMobileFooterNav tests/test_renderers.py -v` — all tests must pass GREEN
 
 **Checkpoint**: User Story 1 fully functional — developer can add items to `MobileFooterMenu` and see them rendered. Cotton component and renderer complete and tested.
@@ -83,7 +88,7 @@
   - `test_footer_nav_visible_on_mobile` — viewport 375×812, assert `nav[aria-label="Mobile navigation"]` is visible
   - `test_footer_nav_hidden_on_desktop` — viewport 1280×800, assert same nav is hidden
   - `test_footer_nav_fixed_during_scroll` — mobile viewport, scroll 500px, assert nav bounding box `y + height ≈ viewport height` (still pinned)
-  - Follow pattern from `tests/test_views/test_base_e2e.py` for `pytest_playwright` importorskip guard and `pytestmark`
+  - Use `pytest.importorskip("playwright")` guard and `pytestmark = pytest.mark.e2e` at module level
 
 ### Implementation for User Story 2
 
@@ -113,6 +118,7 @@ No new implementation files required — visibility is governed by the `show-on-
 No new implementation files required — the `data-lte-toggle="sidebar"` button was defined in T006 (`MobileFooterMenu` pre-populated item) and T009 (item template button rendering). Confirm `sidebar-toggle.js` script tag already loads in `base.html` (research.md §3 confirms it is on line 134).
 
 - [ ] T016 [US3] Validate User Story 3: `python manage.py check` then `pytest tests/test_views/test_mobile_footer_nav_e2e.py -m e2e -k "sidebar_toggle or sidebar_opens or sidebar_closes or default_menu" -v` — all sidebar toggle tests must pass GREEN
+- [ ] T016a [US3] **Playwright MCP inline verification** (Constitution Principle VI): use the Playwright MCP server on a 375×812 mobile viewport; tap `nav[aria-label="Mobile navigation"] button[data-lte-toggle="sidebar"]`; confirm the sidebar opens (sidebar overlay or `aside.app-sidebar` becomes visible); tap again and confirm it closes; screenshot both states for record
 
 **Checkpoint**: Sidebar toggle works end-to-end on mobile via the pre-populated footer nav item.
 
@@ -169,11 +175,14 @@ T002 (SCSS partial)
     └─→ T003 (SCSS import)
             └─→ T014 (US2 validate)
 
+T003a (context7 API research)
+    └─→ T006, T007, T008, T009 (implementation)
+
 T004 (Cotton component tests - RED) ─┐
 T005 (renderer unit tests - RED)     │
 T006 (MobileFooterMenu)             ─┤
 T007 (MobileFooterNavRenderer)      ─┤
-T008 (wrapper.html)                 ─┤→ T010 (Cotton component) → T011 (base.html block) → T012 (US1 validate)
+T008 (wrapper.html)                 ─┤→ T010 (Cotton component) → T011 (base.html block) → T011a (MCP verify) → T012 (US1 validate)
 T009 (item.html)                    ─┘
 
 T012 (US1 validate)
@@ -181,12 +190,13 @@ T012 (US1 validate)
             └─→ T014 (US2 validate)
                     └─→ T015 (E2E sidebar toggle tests - RED)
                             └─→ T016 (US3 validate)
-                                    └─→ T017 (renderer output tests - RED)
-                                            └─→ T018 (US4 validate)
-                                                    └─→ T019 (SKILL.md)
-                                                    └─→ T020 (ruff)
-                                                    └─→ T021 (djlint)
-                                                    └─→ T022 (full suite)
+                                    └─→ T016a (MCP sidebar toggle verify)
+                                            └─→ T017 (renderer output tests - RED)
+                                                    └─→ T018 (US4 validate)
+                                                            └─→ T019 (SKILL.md)
+                                                            └─→ T020 (ruff)
+                                                            └─→ T021 (djlint)
+                                                            └─→ T022 (full suite)
 ```
 
 **Story completion order**: US1 (P1) → US2 (P1) → US3 (P2) → US4 (P2)
@@ -208,6 +218,7 @@ T012 (US1 validate)
 **MVP scope**: Phases 1–3 (T001–T012) deliver User Story 1 — a fully functional `MobileFooterMenu` + renderer + Cotton component. This alone is independently releasable.
 
 **Incremental delivery**:
+
 1. US1 (T001–T012): Core menu object, renderer, component, base.html wiring — developer integration story complete
 2. US2 (T013–T014): Playwright verification of responsive visibility — end user story confirmed
 3. US3 (T015–T016): Sidebar toggle E2E — default item behavior confirmed
