@@ -109,7 +109,8 @@ Before submitting a pull request:
 
 1. Create a feature branch from `main`
 2. Implement the feature/design
-3. Verify the design meets expectations (use chrome-devtools-mcp for UI changes)
+3. Verify the design meets expectations (use the playwright-cli skill in a real
+   browser for UI changes)
 4. Write comprehensive tests for the verified implementation
 5. Update documentation
 6. Run all quality checks
@@ -118,6 +119,12 @@ Before submitting a pull request:
    - Link to any related issues
    - Confirmation that tests pass
    - Note any breaking changes
+
+For UI-impacting changes, the PR MUST include behavior-level verification evidence
+from playwright-cli skill steps aligned to acceptance criteria. Page-load-only checks
+are insufficient. Screenshot-file analysis is fallback-only for multi-viewport
+differences, configuration-driven visual diffs, subtle layout/CSS regressions, or
+explicit reviewer request.
 
 ## Component Development
 

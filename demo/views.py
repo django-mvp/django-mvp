@@ -19,6 +19,7 @@ from mvp.views import (
     MVPDeleteView,
     MVPDetailView,
     MVPFormView,
+    MVPTemplateView,
     MVPUpdateView,
 )
 from mvp.views.list import MVPListViewMixin
@@ -310,3 +311,30 @@ class CategoryDeleteWithRelatedView(MVPDeleteView):
     related_objects_max_per_group = 3
     success_url = "/"  # No category list URL; redirect to home after deletion
     has_list_permission = False  # no category list URL registered
+
+
+class ScssVariablesDemoView(MVPTemplateView):
+    """Live demo page showing how to override SCSS variables in a downstream project.
+
+    User Story 4: Demo Override Workflow In-App (FR-013)
+
+    Covers both override entrypoints:
+    - ``_bootstrap_variables.scss`` — Bootstrap design tokens and plain AdminLTE values.
+      Imported before all defaults in ``mvp.scss`` (resolved via INSTALLED_APPS order).
+    - ``_adminlte_variables.scss`` — AdminLTE vars that reference Bootstrap tokens.
+      Injected into vendored ``adminlte.scss`` after Bootstrap vars resolve but before
+      AdminLTE ``_variables.scss``, via ``_patch_adminlte_scss()`` in ``tasks.py``.
+
+    Explains the INSTALLED_APPS ordering convention: the app whose static files
+    should shadow the defaults must appear *before* ``mvp`` in ``INSTALLED_APPS``.
+
+    Template: demo/scss_variables.html
+    URL Pattern: /theming/scss-variables/
+    """
+
+    page_title = "Theme Customization"
+    template_name = "demo/scss_variables.html"
+    breadcrumbs = [
+        {"text": "Home", "href": "/"},
+        {"text": "Theme Customization"},
+    ]

@@ -59,8 +59,7 @@
       <link rel="stylesheet"
             href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css"
             crossorigin="anonymous" />
-      <link rel="stylesheet"
-            href="{% static "css/adminlte.min.css" %}" />
+      {# AdminLTE CSS is now compiled from source via mvp.scss + django-compressor. #}
       <script defer
               src="https://cdn.jsdelivr.net/npm/@alpinejs/persist@3.x.x/dist/cdn.min.js"></script>
       <script defer
@@ -76,22 +75,6 @@
               href="{% static 'scss/mvp.scss' %}"
               rel="stylesheet" />
       {% endcompress %}
-      {% comment %} <style>
-   :root,
-   [data-bs-theme="light"] {
-     --bs-primary: #6610f2;
-     /* swap Bootstrap's blue for purple */
-     --bs-primary-rgb: 102, 16, 242;
-     --bs-body-bg: #f3f4f6;
-     --bs-nav-link-color: white;
-   }
-
-   [data-bs-theme="dark"] {
-     --bs-body-bg: #14171c;
-     /* darker than Bootstrap's default */
-     --bs-body-color: #e9ecef;
-   }
- </style> {% endcomment %}
       {% block extra_css %}
       {% endblock extra_css %}
     {% endblock head %}

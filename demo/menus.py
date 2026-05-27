@@ -20,14 +20,6 @@ AppMenu.extend(
     [
         # Home
         MenuItem(
-            name="buttons",
-            view_name="buttons",
-            extra_context={
-                "label": "Buttons",
-            },
-        ),
-        # Home
-        MenuItem(
             name="home",
             view_name="home",
             extra_context={
@@ -71,6 +63,14 @@ AppMenu.extend(
             extra_context={
                 "label": "Inner Layout",
                 "icon": "sidebar",
+            },
+        ),
+        MenuItem(
+            name="scss_variables_demo",
+            view_name="scss_variables_demo",
+            extra_context={
+                "label": "Theme Customization",
+                "icon": "code-slash",
             },
         ),
         # List View Demos

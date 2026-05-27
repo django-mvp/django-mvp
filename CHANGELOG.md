@@ -7,7 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### ⚠️ Breaking Changes
+### Added
+
+- **Vendored AdminLTE 4 SCSS workflow** (Feature 018):
+  - Added `mvp/static/adminlte/scss/` as the destination for vendored AdminLTE 4 SCSS sources.
+  - Added `mvp/static/scss/_mvp_variables.scss` — a single downstream override entrypoint.
+    Downstream developers can override any AdminLTE Sass variable here without touching vendored files.
+  - Added `invoke refresh-adminlte-scss` Invoke task to install the latest `admin-lte@^4` npm
+    package, replace the vendored SCSS tree in full, and validate the override file for issues.
+  - Updated `mvp/static/scss/mvp.scss` with the Sass include-path contract comment block and the
+    `_mvp_variables` import placed before vendor defaults (respecting `!default` semantics).
+  - Added asset pipeline contract tests (`tests/test_static_assets.py`) covering:
+    - Compiler configuration assertions for `django-compressor` and `django-libsass`.
+    - Sass load-order contract (override file imported before vendor defaults).
+    - Stale-file-removal regression test for the vendor directory replacement helper.
+    - Lockfile pinning and repeatability assertions for `refresh_adminlte_scss`.
+    - Diagnostic output contract for invalid override values.
+  - Added UI theme verification test scaffold (`tests/test_ui_theme.py`).
+  - Updated smoke tests (`tests/test_smoke.py`) with quickstart command-path validation and
+    documentation consistency checks across README and quickstart docs.
+  - Added `specs/018-vendor-adminlte-scss/quickstart.md` with full override guide,
+    troubleshooting section, SC-002 first-time timing protocol, and SC-003 refresh
+    repeatability sampling protocol.
+  - Updated `specs/018-vendor-adminlte-scss/contracts/public-api.md` with diagnostic output
+    contract and SC-003 repeatability protocol table.
+  - Added vendor source ownership documentation in `mvp/static/adminlte/README.md`.
+  - Added theming & vendor SCSS section to the top-level `README.md`.
 
 - **`OrderMixin.order_by` format changed from two-tuple to three-tuple** (Feature 014):
 

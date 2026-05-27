@@ -786,6 +786,58 @@ Contributions welcome! When adding components:
 4. Support AdminLTE's data attributes and JS interactions
 5. Add tests for new components
 
+## Theming & Vendor SCSS
+
+Django MVP compiles its styles through `django-compressor` and `django-libsass`.
+The AdminLTE 4 SCSS sources are vendored into `mvp/static/adminlte/scss/`.
+
+### Customize Theme Variables
+
+There are two override files — use whichever fits the variable you need:
+
+**`mvp/static/_bootstrap_variables.scss`** — Bootstrap design tokens and plain AdminLTE values:
+
+```scss
+// mvp/static/_bootstrap_variables.scss
+$primary:   #2c5f2e;
+$secondary: #606c38;
+```
+
+**`mvp/static/_adminlte_variables.scss`** — AdminLTE variables that reference Bootstrap tokens:
+
+```scss
+// mvp/static/_adminlte_variables.scss
+$lte-sidebar-color: $primary;  // can safely reference Bootstrap vars here
+```
+
+All overrides in `_bootstrap_variables.scss` are imported **before** the vendor defaults,
+so any variable you define takes precedence over Bootstrap and AdminLTE's `!default` values.
+Overrides in `_adminlte_variables.scss` are injected after Bootstrap vars are resolved.
+
+To provide **app-specific** overrides, create the same-named file in your app's static root
+and list your app before `mvp` in `INSTALLED_APPS` (same pattern as Django template overrides).
+
+### Refresh the Vendored SCSS Tree
+
+When a new AdminLTE version is available, run:
+
+```bash
+invoke refresh-adminlte-scss
+```
+
+This will:
+
+1. Install the latest AdminLTE 4 package with npm (`admin-lte@^4`).
+2. Delete the current vendored SCSS tree in full (preventing stale files).
+3. Copy the refreshed SCSS sources into `mvp/static/adminlte/scss/`.
+4. Patch `adminlte.scss` to inject the `_adminlte_variables` override hook.
+
+After the refresh, commit `package-lock.json` to pin the resolved version for
+deterministic builds on CI and other machines.
+
+> **Full docs**: See `specs/018-vendor-adminlte-scss/quickstart.md` for detailed
+> override guidance, troubleshooting steps, and first-time timing protocols.
+
 ## License
 
 MIT License - see [LICENSE](LICENSE) file for details.

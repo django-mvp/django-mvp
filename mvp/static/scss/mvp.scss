@@ -5,24 +5,54 @@
  *   License: Open source - MIT <https://opensource.org/licenses/MIT>
  */
 
-// Bootstrap Configuration
-// ---------------------------------------------------
-@import "bs5/functions";
+// ===========================================================================
+// Sass include path contract
+// ===========================================================================
+// The django-libsass compiler (COMPRESS_PRECOMPILERS) is expected to resolve
+// imports from the following roots, in order (matching INSTALLED_APPS order):
+//
+//   1. <user-app>/static/   — user app overrides (must be before mvp in INSTALLED_APPS)
+//   2. mvp/static/          — mvp defaults and partials
+//   3. mvp/static/adminlte/scss/ — vendored AdminLTE 4 SCSS sources
+//   4. cotton_bs5/static/   — Bootstrap 5 SCSS (bootstrap/scss/* prefix)
+//
+// Override entrypoint 1: _bootstrap_variables.scss  (resolved via include paths)
+//   Bootstrap design tokens + plain AdminLTE variables with literal values.
+//   Imported BEFORE any !default declarations fire.
+//
+// Override entrypoint 2: _adminlte_variables.scss  (resolved via include paths)
+//   AdminLTE variables that reference Bootstrap tokens (e.g. $gray-800).
+//   Injected into adminlte.scss AFTER Bootstrap variables are defined but
+//   BEFORE AdminLTE's own _variables.scss fires its !default declarations.
+//
+// For both files: create the file in your app's static root and list your app
+// BEFORE mvp in INSTALLED_APPS — same convention as Django template overrides.
+//
+// Vendored sources: mvp/static/adminlte/scss/
+//   Populated by `invoke refresh-adminlte-scss`. Do not edit files there.
+// ===========================================================================
 
-// AdminLTE Configuration
-// ---------------------------------------------------
-@import "bootstrap-variables"; // little modified are here
+// ---------------------------------------------------------------------------
+// Step 1 — Variable override entrypoint (resolved via include paths)
+// ---------------------------------------------------------------------------
+// Resolved from the FIRST app static directory (in INSTALLED_APPS order) that
+// contains _bootstrap_variables.scss. The default ships at mvp/static/_bootstrap_variables.scss.
+// To override: create <your-app>/static/_bootstrap_variables.scss and list your app
+// BEFORE mvp in INSTALLED_APPS — identical to Django template override semantics.
+@import "bootstrap_variables";
 
-// Bootstrap Configuration
-// ---------------------------------------------------
-@import "bs5/variables";
-@import "bs5/variables-dark";
-@import "bs5/maps";
-@import "bs5/mixins";
-@import "bs5/utilities";
-
-@import "variables";
-@import "variables-dark";
+// ---------------------------------------------------------------------------
+// Step 2 — Vendored AdminLTE SCSS sources (Bootstrap + AdminLTE components)
+// ---------------------------------------------------------------------------
+// Imported from mvp/static/adminlte/scss/ (populated by `invoke refresh-adminlte-scss`).
+// This single import handles all Bootstrap and AdminLTE SCSS compilation.
+// Do not edit files under adminlte/scss/ — they are replaced on each refresh.
+//
+// Bootstrap SCSS resolves from django-cotton-bs5 static files (bootstrap/scss/ prefix).
+// AdminLTE's upstream 'bootstrap/scss/' import paths resolve directly — no rewrite needed.
+// Override Bootstrap and AdminLTE variables in _bootstrap_variables.scss (Step 1 above).
+// ---------------------------------------------------------------------------
+@import "adminlte/scss/adminlte";
 
 // Start MVP custom styles
 

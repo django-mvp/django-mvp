@@ -12,6 +12,16 @@ description: "Task list template for feature implementation"
 
 **Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story.
 
+For every UI-impacting phase (templates, Cotton components, CSS, HTMX behavior,
+visible form behavior, navigation flow, or other user-visible changes), include at
+least one explicit playwright-cli skill verification task that validates
+acceptance-criteria behavior in a real browser. Page-load-only checks are not
+acceptable.
+
+Screenshot-file analysis is fallback-only and may be used only for multi-viewport
+differences, configuration-driven visual diffs, subtle layout/CSS regressions, or
+explicit reviewer request.
+
 ## Format: `[ID] [P?] [Story] Description`
 
 - **[P]**: Can run in parallel (different files, no dependencies)

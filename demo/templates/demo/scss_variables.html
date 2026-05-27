@@ -1,0 +1,91 @@
+﻿{% extends "page_view.html" %}
+{% block page.content %}
+  <c-text impact>
+    How to customise the look and feel of your application.
+  </c-text>
+  {# ------------------------------------------------------------------ #}
+  {# OVERVIEW                                                            #}
+  {# ------------------------------------------------------------------ #}
+  <c-row>
+    <c-col>
+      <c-alert variant="info" class="mb-0" :animate="False">
+        <strong>Two override entrypoints.</strong>
+        Create one or both of these files in your app's <code>static/</code> folder:
+        <ul class="mb-0 mt-2">
+          <li>
+            <code>bootstrap_variables.scss</code> &mdash; Bootstrap design tokens
+            (<code>$primary</code>, <code>$gray-800</code>, &hellip;).
+            Loaded <em>before</em> all vendor defaults.
+          </li>
+          <li>
+            <code>adminlte_variables.scss</code> &mdash; AdminLTE-specific variables,
+            including those that reference Bootstrap tokens
+            (e.g. <code>$lte-sidebar-color: $primary</code>).
+            Injected after Bootstrap resolves but before AdminLTE's own defaults.
+          </li>
+        </ul>
+      </c-alert>
+    </c-col>
+  </c-row>
+  {# ------------------------------------------------------------------ #}
+  {# INSTALLED_APPS                                                      #}
+  {# ------------------------------------------------------------------ #}
+  <c-row>
+    <c-col>
+      <c-card title="Step 1: INSTALLED_APPS ordering">
+        <p>
+          Django's static-files finder searches <code>INSTALLED_APPS</code> in order and stops at
+          the first match. Place your app <strong>before</strong> <code>mvp</code> so your override
+          files shadow the defaults:
+        </p>
+        <pre class="bg-body-tertiary rounded p-3 mb-0"><code># settings.py
+INSTALLED_APPS = [
+    ...
+    "your_app",   # &larr; before mvp &mdash; your static/ files take priority
+    "mvp",
+    ...
+]</code></pre>
+      </c-card>
+    </c-col>
+  </c-row>
+  {# ------------------------------------------------------------------ #}
+  {# ENTRYPOINT 1                                                        #}
+  {# ------------------------------------------------------------------ #}
+  <c-row>
+    <c-col>
+      <c-card title="Step 2a: Bootstrap tokens &mdash; bootstrap_variables.scss">
+        <p>
+          Create this file in your app's <code>static/</code> folder:
+        </p>
+        <pre class="bg-body-tertiary rounded p-3"><code>your_app/
+&boxur;&boxh;&boxh; static/
+    &boxur;&boxh;&boxh; bootstrap_variables.scss</code></pre>
+        <p>Use it for Bootstrap design tokens:</p>
+        <pre class="bg-body-tertiary rounded p-3"><code>// your_app/static/bootstrap_variables.scss
+$primary:   #2c5f2e;
+$secondary: #606c38;
+$info:      #0077b6;
+
+$font-size-base:         0.9rem;
+$font-family-sans-serif: "Inter", system-ui, sans-serif;</code></pre>
+      </c-card>
+    </c-col>
+  </c-row>
+  {# ------------------------------------------------------------------ #}
+  {# ENTRYPOINT 2                                                        #}
+  {# ------------------------------------------------------------------ #}
+  <c-row>
+    <c-col>
+      <c-card title="Step 2b: AdminLTE tokens &mdash; adminlte_variables.scss">
+        <p>
+          Use this file for all AdminLTE-specific variables. Because Bootstrap variables are
+          already resolved when this file is loaded, you can safely reference them:
+        </p>
+        <pre class="bg-body-tertiary rounded p-3"><code>// your_app/static/adminlte_variables.scss
+$lte-sidebar-color: $primary;      // references your $primary from step 2a
+$lte-sidebar-bg:    $gray-900;
+$lte-sidebar-width: 280px;</code></pre>
+      </c-card>
+    </c-col>
+  </c-row>
+{% endblock page.content %}

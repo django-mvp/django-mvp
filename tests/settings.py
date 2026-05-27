@@ -27,7 +27,6 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django.contrib.humanize",
     "compressor",
-    "django_browser_reload",  # Optional, commented for testing
     "demo",
     "mvp",
     "easy_icons",
@@ -36,6 +35,7 @@ INSTALLED_APPS = [
     "flex_menu",
     "django_cotton",
     "cotton_bs5",
+    "django_browser_reload",  # Optional, commented for testing
     "django_watchfiles",
 ]
 

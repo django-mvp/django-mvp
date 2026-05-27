@@ -91,6 +91,12 @@ urlpatterns = [
     ),
     # 3rd Party Integration Demos
     path("datatables-demo/", views.DataTablesView.as_view(), name="datatables_demo"),
+    # Theming demos
+    path(
+        "theming/scss-variables/",
+        views.ScssVariablesDemoView.as_view(),
+        name="scss_variables_demo",
+    ),
     # Error page previews — developer convenience routes
     path(
         "errors/400/",

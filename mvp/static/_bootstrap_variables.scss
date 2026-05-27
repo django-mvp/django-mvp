@@ -1,0 +1,45 @@
+// =============================================================================
+// App Theme Variable Overrides
+// =============================================================================
+//
+// PURPOSE
+// -------
+// Place all downstream theme customizations in this file.
+// Do NOT edit files under mvp/static/adminlte/scss/ — those are vendored
+// sources that will be replaced on the next `invoke refresh-adminlte-scss` run.
+//
+// HOW IT WORKS
+// ------------
+// This file is imported BEFORE the vendored AdminLTE defaults in mvp.scss.
+// Any Sass variable you define here will take precedence over AdminLTE's own
+// !default declarations, because !default only assigns a value when the
+// variable is undefined.
+//
+// USAGE EXAMPLE
+// -------------
+// To change the primary brand colour, add:
+//
+//   $primary: #2c5f2e;
+//
+// To change the sidebar background:
+//
+//   $sidebar-bg: #1a1a2e;
+//
+// TROUBLESHOOTING
+// ---------------
+// If a variable override does not appear to take effect:
+//   1. Ensure the variable name matches the AdminLTE 4 SCSS variable exactly.
+//      Check mvp/static/adminlte/scss/ for the current upstream declarations.
+//   2. Make sure this file is imported before the vendor partials in mvp.scss.
+//      The @import "bootstrap_variables" line must appear before any AdminLTE @import.
+//   3. If the SCSS compilation fails with an error that names the variable,
+//      the override value is likely the wrong Sass type (e.g., a string where
+//      a colour is expected). Correct the value type and recompile.
+//
+// =============================================================================
+
+// Add your variable overrides below this line.
+// Examples (uncomment to activate):
+//
+// $primary:   #2c5f2e;
+// $secondary: #606c38;
