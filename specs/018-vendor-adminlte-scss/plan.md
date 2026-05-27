@@ -41,7 +41,7 @@ Add a repeatable vendor-refresh flow for AdminLTE 4 SCSS, store the upstream sou
 | IX. Template Component Reuse Discipline | New demo page uses the existing demo app view pattern — no new reusable component fragments needed | ✅ PASS — demo view follows the existing `LayoutConfigMixin + TemplateView` pattern already established in `demo/views.py` |
 | X. SKILL.md Currency | Relevant repo guidance must remain current | ✅ PASS — demo-views SKILL.md covers the view/URL/menu pattern; no conflict introduced |
 | XI. Dual-Audience | Spec must support both maintainer and downstream developer workflows | ✅ PASS — refresh flow serves maintainers; `_bootstrap_variables.scss` and `_adminlte_variables.scss` serve downstream developers |
-| XII. View Class Docstring Completeness | New view class added in demo/views.py | ✅ PASS — plan includes task to add docstring to the new `ScssVariablesDemoView` |
+| XII. View Class Docstring Completeness | New view class added in demo/views.py | ✅ PASS — plan includes task to add docstring to the new `ThemeCustomizationView` |
 
 ## Project Structure
 
@@ -75,7 +75,7 @@ mvp/
     └── [unchanged]                  # No template contract changes required for this feature
 
 demo/
-├── views.py                          # NEW — ScssVariablesDemoView (LayoutConfigMixin + TemplateView)
+├── views.py                          # NEW — ThemeCustomizationView (LayoutConfigMixin + TemplateView)
 ├── urls.py                           # NEW URL — /demo/theming/scss-variables/
 ├── menus.py                          # NEW sidebar menu entry for the demo page
 ├── static/
@@ -116,7 +116,7 @@ tests/
 ### Design Notes
 
 - No database schema changes are needed.
-- One new Django view (`ScssVariablesDemoView`) and one new URL are introduced in the `demo` app using `MVPTemplateView`. The view sets `page_title = "Theme Customization"` and two-level breadcrumbs (Home → Theme Customization).
+- One new Django view (`ThemeCustomizationView`) and one new URL are introduced in the `demo` app using `MVPTemplateView`. The view sets `page_title = "Theme Customization"` and two-level breadcrumbs (Home → Theme Customization).
 - One new template (`demo/templates/demo/scss_variables.html`) is added; it extends `page_view.html` and uses cotton components.
 - One new **top-level** sidebar menu entry is added in `demo/menus.py`.
 - The main implementation risk is keeping the vendor refresh repeatable while preserving downstream overrides and preventing stale files.

@@ -8,7 +8,6 @@ This view provides an interactive form for testing all layout options:
 View uses query parameters for stateless, shareable URL-based configuration.
 """
 
-from django.views.generic import TemplateView
 from django_filters.views import FilterView
 
 from demo.forms import ContactForm
@@ -23,26 +22,30 @@ from mvp.views import (
     MVPUpdateView,
 )
 from mvp.views.list import MVPListViewMixin
-from mvp.views.table import MVPTableView
+from mvp.views.table import MVPTableViewMixin
 
 
-class MVPDemoView(TemplateView):
+class MVPDemoView(MVPTemplateView):
     """Base TemplateView with LayoutConfigMixin for layout configuration support."""
 
-    pass
+    page_title = "MVP Demo"
+    page_subtitle = "Base template view for MVP demo pages"
+    breadcrumbs = [{"text": "Home", "href": "/"}, {"text": "MVP Demo"}]
 
 
-class ErrorPagePreviewView(TemplateView):
+class ErrorPagePreviewView(MVPTemplateView):
     """Preview any error page template without triggering a real error.
 
     Wire via: ErrorPagePreviewView.as_view(template_name="NNN.html")
     For the 500 preview, also pass extra_context={"support_email": ...}.
     """
 
-    pass
+    page_title = "Error Page Preview"
+    page_subtitle = "Preview error page templates without triggering real errors"
+    breadcrumbs = [{"text": "Home", "href": "/"}, {"text": "Error Page Preview"}]
 
 
-class FullShellDemoView(TemplateView):
+class FullShellDemoView(MVPTemplateView):
     """Demo page that enforces the canonical full app shell configuration.
 
     This view provides a stable visual verification target for US1 contracts.
@@ -50,6 +53,11 @@ class FullShellDemoView(TemplateView):
     """
 
     template_name = "demo/full_shell.html"
+    page_title = "Full Shell Demo"
+    page_subtitle = (
+        "Stable visual verification target for US1 shell integration contracts"
+    )
+    breadcrumbs = [{"text": "Home", "href": "/"}, {"text": "Full Shell Demo"}]
 
     def get_context_data(self, **kwargs):
         """Set default shell configuration for fixed header/sidebar and collapsible nav."""
@@ -64,7 +72,7 @@ class FullShellDemoView(TemplateView):
         return context
 
 
-class LayoutDemoView(TemplateView):
+class LayoutDemoView(MVPTemplateView):
     """
     Unified layout demo view for testing all AdminLTE layout configurations.
 
@@ -81,9 +89,14 @@ class LayoutDemoView(TemplateView):
     """
 
     template_name = "demo/layout_demo.html"
+    page_title = "Layout Configuration"
+    page_subtitle = """This page demonstrates all AdminLTE layout configuration options
+      in a single interactive view. Use the configuration form on the right
+      to toggle different layout behaviors."""
+    breadcrumbs = [{"text": "Home", "href": "/"}, {"text": "Layout Demo"}]
 
 
-class NavbarWidgetsView(TemplateView):
+class NavbarWidgetsView(MVPTemplateView):
     """
     Navbar widgets demonstration page.
 
@@ -95,6 +108,11 @@ class NavbarWidgetsView(TemplateView):
     """
 
     template_name = "demo/navbar_widgets.html"
+    page_title = "Navbar Widgets Demo"
+    page_subtitle = (
+        "Interactive demonstration of all navbar widget components with usage examples"
+    )
+    breadcrumbs = [{"text": "Home", "href": "/"}, {"text": "Navbar Widgets"}]
 
     def get_context_data(self, **kwargs):
         """Add navbar widget sample data to context."""
@@ -117,7 +135,7 @@ class NavbarWidgetsView(TemplateView):
         return context
 
 
-class PageLayoutDemoView(TemplateView):
+class PageLayoutDemoView(MVPTemplateView):
     """
     Inner layout demonstration page.
 
@@ -132,6 +150,9 @@ class PageLayoutDemoView(TemplateView):
     """
 
     template_name = "demo/page_layout.html"
+    page_title = "Page Layout Demo"
+    page_subtitle = "Test all inner layout options including fixed positioning and responsive breakpoints"
+    breadcrumbs = [{"text": "Home", "href": "/"}, {"text": "Page Layout Demo"}]
 
 
 class ListViewDemo(MVPListViewMixin, FilterView):
@@ -163,7 +184,7 @@ class ListViewDemo(MVPListViewMixin, FilterView):
     ]
 
 
-class DataTablesView(MVPTableView):
+class DataTablesView(MVPTableViewMixin, FilterView):
     """Django Tables2 demo page showing Product table with sorting and pagination.
 
     User Story 2: Viewing DataTables Demo Page
@@ -185,6 +206,8 @@ class DataTablesView(MVPTableView):
     table_class = ProductTable
     paginate_by = 25
     search_fields = ["name", "description"]
+    has_create_permission = True
+    filterset_fields = ["name", "category__name", "price", "stock", "status"]
 
 
 class ContactFormView(MVPFormView):
@@ -313,24 +336,8 @@ class CategoryDeleteWithRelatedView(MVPDeleteView):
     has_list_permission = False  # no category list URL registered
 
 
-class ScssVariablesDemoView(MVPTemplateView):
-    """Live demo page showing how to override SCSS variables in a downstream project.
-
-    User Story 4: Demo Override Workflow In-App (FR-013)
-
-    Covers both override entrypoints:
-    - ``_bootstrap_variables.scss`` — Bootstrap design tokens and plain AdminLTE values.
-      Imported before all defaults in ``mvp.scss`` (resolved via INSTALLED_APPS order).
-    - ``_adminlte_variables.scss`` — AdminLTE vars that reference Bootstrap tokens.
-      Injected into vendored ``adminlte.scss`` after Bootstrap vars resolve but before
-      AdminLTE ``_variables.scss``, via ``_patch_adminlte_scss()`` in ``tasks.py``.
-
-    Explains the INSTALLED_APPS ordering convention: the app whose static files
-    should shadow the defaults must appear *before* ``mvp`` in ``INSTALLED_APPS``.
-
-    Template: demo/scss_variables.html
-    URL Pattern: /theming/scss-variables/
-    """
+class ThemeCustomizationView(MVPTemplateView):
+    """Live demo page showing how to override SCSS variables in a downstream project."""
 
     page_subtitle = "Overriding SCSS Variables in Your Project"
     page_title = "Theme Customization"

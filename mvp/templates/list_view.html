@@ -1,60 +1,37 @@
-{% extends "base.html" %}
+{% extends "page_view.html" %}
 {% load i18n static crispy_forms_tags mvp %}
-{% block content %}
-  <c-page>
-    {% block page.header %}
-      <c-slot name="header">
-        <c-mvp-toolbar class="container-fluid">
-          <c-slot name="start">
-            <c-breadcrumbs class="py-1" :items="page.breadcrumbs" />
-          </c-slot>
-          {% if directory.create_url %}
-            <c-button text="{% trans "Add new" %}"
-                      icon="add"
-                      size="sm"
-                      variant="primary"
-                      class="show-btn-text"
-                      href="{{ directory.create_url }}" />
-          {% endif %}
-        </c-mvp-toolbar>
+{% block page.actions %}
+  <c-list.toolbar />
+{% endblock page.actions %}
+{% block page.content %}
+  <div class="border-top pt-5">
+    <c-row :attrs="grid_config">
+      {% for object in object_list %}
+        <div class="col">{% render_list_item object list_item_template %}</div>
+      {% empty %}
+        <c-list.empty :attrs="empty_state" />
+      {% endfor %}
+    </c-row>
+  </div>
+  <c-slot name="footer_end">
+    <c-list.footer />
+  </c-slot>
+{% endblock page.content %}
+{% block extra_js %}
+  {{ block.super }}
+  <c-modal id="filterModal" centered>
+    <c-form.card id="filterForm"
+                 title="{% trans "Filter" %}"
+                 icon="filter"
+                 method="get"
+                 action="{{ action|default:"." }}"
+                 :form-obj="filter.form">
+      <c-slot name="actions">
+        <c-button text="{% trans "Submit" %}"
+                  variant="primary"
+                  type="submit" />
       </c-slot>
-    {% endblock page.header %}
-    {% block page.content %}
-      <c-page.content class="container mt-4 mb-5">
-        <c-mvp-toolbar title="{{ page.title }}" class="mb-3">
-          <c-action-group hide-labels>
-            <c-list.search-widget class="mvp-action-group-grow" />
-            <c-list.order-widget />
-            {% if filter %}
-              <c-button text="{% trans "Open filters" %}"
-                        icon="filter"
-                        data-bs-target="#filterModal"
-                        data-bs-toggle="modal" />
-            {% endif %}
-          </c-action-group>
-        </c-mvp-toolbar>
-        <c-row :attrs="grid_config">
-          {% for object in object_list %}
-            <div class="col">{% render_list_item object list_item_template %}</div>
-          {% empty %}
-            <c-list.empty :attrs="empty_state" />
-          {% endfor %}
-        </c-row>
-      </c-page.content>
-    {% endblock page.content %}
-    <c-slot name="footer">
-      <c-list.footer />
-    </c-slot>
-  </c-page>
-  <c-modal id="filterModal">
-    <c-modal.header title="{% trans "Filter" %}" />
-    <c-modal.body>
-      <form id="filterForm"
-            method="get"
-            {% if action %}action="{{ action }}"{% endif %}>
-        {{ filter.form|crispy }}
-      </form>
-    </c-modal.body>
+    </c-form.card>
   </c-modal>
   <script src="{% static "js/list_view.js" %}"></script>
-{% endblock content %}
+{% endblock extra_js %}

@@ -7,6 +7,10 @@
 // (--bs-btn-*), so they are never live references to theme variables and will
 // not trigger Bootstrap's btn color/bg transition when the theme switches.
 
+.btn-text {
+  white-space: nowrap;
+}
+
 .btn-default {
   @include button-variant(
     transparent,

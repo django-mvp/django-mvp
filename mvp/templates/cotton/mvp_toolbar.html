@@ -59,7 +59,11 @@ Usage:
     {{ slot }}
   {% endif %}
   {% if actions %}
-    <c-action-group class="ms-auto" shrink row only>
+    <c-action-group class="ms-auto"
+                    shrink
+                    row
+                    :breakpoint="breakpoint"
+                    only>
       {{ actions }}
     </c-action-group>
   {% endif %}

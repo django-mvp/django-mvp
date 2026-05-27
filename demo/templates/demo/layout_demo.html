@@ -1,176 +1,152 @@
-{% extends "base.html" %}
-{% block content %}
-  <c-page.content>
-    <c-card title="Interactive Layout Configuration Demo">
-      <div class="alert alert-info">
-        <h5 class="alert-heading">
-          <i class="fas fa-info-circle me-2"></i>
-          About This Demo
-        </h5>
-        <p>
-          This page demonstrates all AdminLTE layout configuration options
-          in a single interactive view. Use the configuration form on the right
-          to toggle different layout behaviors.
-        </p>
-      </div>
-      <h4>Current Configuration</h4>
-      <table class="table table-bordered">
-        <thead>
-          <tr>
-            <th>Property</th>
-            <th>Value</th>
-            <th>Description</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>
-              <code>fixed_sidebar</code>
-            </td>
-            <td>
-              {% if fixed_sidebar %}
-                <span class="badge bg-success">Enabled</span>
-              {% else %}
-                <span class="badge bg-secondary">Disabled</span>
-              {% endif %}
-            </td>
-            <td>Sidebar stays fixed when scrolling content</td>
-          </tr>
-          <tr>
-            <td>
-              <code>fixed_header</code>
-            </td>
-            <td>
-              {% if fixed_header %}
-                <span class="badge bg-success">Enabled</span>
-              {% else %}
-                <span class="badge bg-secondary">Disabled</span>
-              {% endif %}
-            </td>
-            <td>Header navbar stays fixed at top of viewport</td>
-          </tr>
-          <tr>
-            <td>
-              <code>fixed_footer</code>
-            </td>
-            <td>
-              {% if fixed_footer %}
-                <span class="badge bg-success">Enabled</span>
-              {% else %}
-                <span class="badge bg-secondary">Disabled</span>
-              {% endif %}
-            </td>
-            <td>Footer stays fixed at bottom of viewport</td>
-          </tr>
-          <tr>
-            <td>
-              <code>fill</code>
-            </td>
-            <td>
-              {% if fill %}
-                <span class="badge bg-success">Enabled</span>
-              {% else %}
-                <span class="badge bg-secondary">Disabled</span>
-              {% endif %}
-            </td>
-            <td>Viewport-constrained scrolling (100vh height, scroll in app-wrapper)</td>
-          </tr>
-          <tr>
-            <td>
-              <code>breakpoint</code>
-            </td>
-            <td>
-              <span class="badge bg-primary">{{ breakpoint }}</span>
-            </td>
-            <td>Breakpoint at which sidebar auto-expands</td>
-          </tr>
-        </tbody>
-      </table>
-      <div class="alert alert-success">
-        <h5 class="alert-heading">
-          <i class="fas fa-bookmark me-2"></i>
-          Shareable URL
-        </h5>
-        <p>
-          This page uses query parameters to maintain state, making
-          configurations <strong>shareable via URL</strong>. The current
-          configuration can be bookmarked or shared with others.
-        </p>
-        <p class="mb-0">
-          <strong>Current URL:</strong>
-          <br />
-          <code>{{ request.get_full_path }}</code>
-        </p>
-      </div>
-      <h4>CSS Classes Applied</h4>
-      <p>Based on your current configuration, these CSS classes are applied:</p>
-      <ul>
-        {% if fixed_sidebar %}
-          <li>
-            <code>.layout-fixed</code> - Fixed sidebar positioning
-          </li>
-        {% endif %}
-        {% if fixed_header %}
-          <li>
-            <code>.fixed-header</code> - Fixed header navbar
-          </li>
-        {% endif %}
-        {% if fixed_footer %}
-          <li>
-            <code>.fixed-footer</code> - Fixed footer positioning
-          </li>
-        {% endif %}
-        {% if fill %}
-          <li>
-            <code>.fill</code> - Viewport-constrained layout (100vh height, scroll container = app-wrapper)
-          </li>
-        {% endif %}
+{% extends "page_view.html" %}
+{% block page.content %}
+  <c-card>
+    <c-text>
+      This page demonstrates all AdminLTE layout configuration options
+      in a single interactive view. Use the configuration form on the right
+      to toggle different layout behaviors.
+    </c-text>
+    <h4>Current Configuration</h4>
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>Property</th>
+          <th>Value</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+            <code>fixed_sidebar</code>
+          </td>
+          <td>
+            {% if fixed_sidebar %}
+              <span class="badge bg-success">Enabled</span>
+            {% else %}
+              <span class="badge bg-secondary">Disabled</span>
+            {% endif %}
+          </td>
+          <td>Sidebar stays fixed when scrolling content</td>
+        </tr>
+        <tr>
+          <td>
+            <code>fixed_header</code>
+          </td>
+          <td>
+            {% if fixed_header %}
+              <span class="badge bg-success">Enabled</span>
+            {% else %}
+              <span class="badge bg-secondary">Disabled</span>
+            {% endif %}
+          </td>
+          <td>Header navbar stays fixed at top of viewport</td>
+        </tr>
+        <tr>
+          <td>
+            <code>fixed_footer</code>
+          </td>
+          <td>
+            {% if fixed_footer %}
+              <span class="badge bg-success">Enabled</span>
+            {% else %}
+              <span class="badge bg-secondary">Disabled</span>
+            {% endif %}
+          </td>
+          <td>Footer stays fixed at bottom of viewport</td>
+        </tr>
+        <tr>
+          <td>
+            <code>fill</code>
+          </td>
+          <td>
+            {% if fill %}
+              <span class="badge bg-success">Enabled</span>
+            {% else %}
+              <span class="badge bg-secondary">Disabled</span>
+            {% endif %}
+          </td>
+          <td>Viewport-constrained scrolling (100vh height, scroll in app-wrapper)</td>
+        </tr>
+        <tr>
+          <td>
+            <code>breakpoint</code>
+          </td>
+          <td>
+            <span class="badge bg-primary">{{ breakpoint }}</span>
+          </td>
+          <td>Breakpoint at which sidebar auto-expands</td>
+        </tr>
+      </tbody>
+    </table>
+    <h4>CSS Classes Applied</h4>
+    <p>Based on your current configuration, these CSS classes are applied:</p>
+    <ul>
+      {% if fixed_sidebar %}
         <li>
-          <code>.sidebar-expand-{{ breakpoint }}</code> - Sidebar expansion breakpoint
+          <code>.layout-fixed</code> - Fixed sidebar positioning
+        </li>
+      {% endif %}
+      {% if fixed_header %}
+        <li>
+          <code>.fixed-header</code> - Fixed header navbar
+        </li>
+      {% endif %}
+      {% if fixed_footer %}
+        <li>
+          <code>.fixed-footer</code> - Fixed footer positioning
+        </li>
+      {% endif %}
+      {% if fill %}
+        <li>
+          <code>.fill</code> - Viewport-constrained layout (100vh height, scroll container = app-wrapper)
+        </li>
+      {% endif %}
+      <li>
+        <code>.sidebar-expand-{{ breakpoint }}</code> - Sidebar expansion breakpoint
+      </li>
+    </ul>
+    <div class="alert alert-warning">
+      <h5 class="alert-heading">
+        <i class="fas fa-code me-2"></i>
+        For Developers
+      </h5>
+      <p>
+        This demo page is <strong>extensible</strong> for future feature specs.
+        Other specifications can add new layout options by:
+      </p>
+      <ol>
+        <li>Adding query parameters to the form</li>
+        <li>Updating the view to parse new parameters</li>
+        <li>Passing new context variables to the template</li>
+        <li>Demonstrating new behaviors in this same unified interface</li>
+      </ol>
+      <p class="mb-0">
+        See <code>docs/components/app.md</code> for full component documentation.
+      </p>
+    </div>
+    <div class="alert alert-info">
+      <h5 class="alert-heading">
+        <i class="fas fa-fill-drip me-2"></i>
+        Fill Layout Mode
+      </h5>
+      <p>
+        Fill layout creates a <strong>viewport-constrained layout</strong> perfect for data-intensive applications:
+      </p>
+      <ul class="mb-0">
+        <li>
+          <strong>Data tables:</strong> Keep column headers visible while scrolling large datasets
+        </li>
+        <li>
+          <strong>Maps:</strong> Full viewport mapping interfaces with fixed controls
+        </li>
+        <li>
+          <strong>Dashboards:</strong> Constrain charts and widgets to viewport bounds
+        </li>
+        <li>
+          <strong>Fixed toolbars:</strong> Enables page-layout's internal toolbar-fixed/footer-fixed modes
         </li>
       </ul>
-      <div class="alert alert-warning">
-        <h5 class="alert-heading">
-          <i class="fas fa-code me-2"></i>
-          For Developers
-        </h5>
-        <p>
-          This demo page is <strong>extensible</strong> for future feature specs.
-          Other specifications can add new layout options by:
-        </p>
-        <ol>
-          <li>Adding query parameters to the form</li>
-          <li>Updating the view to parse new parameters</li>
-          <li>Passing new context variables to the template</li>
-          <li>Demonstrating new behaviors in this same unified interface</li>
-        </ol>
-        <p class="mb-0">
-          See <code>docs/components/app.md</code> for full component documentation.
-        </p>
-      </div>
-      <div class="alert alert-info">
-        <h5 class="alert-heading">
-          <i class="fas fa-fill-drip me-2"></i>
-          Fill Layout Mode
-        </h5>
-        <p>
-          Fill layout creates a <strong>viewport-constrained layout</strong> perfect for data-intensive applications:
-        </p>
-        <ul class="mb-0">
-          <li>
-            <strong>Data tables:</strong> Keep column headers visible while scrolling large datasets
-          </li>
-          <li>
-            <strong>Maps:</strong> Full viewport mapping interfaces with fixed controls
-          </li>
-          <li>
-            <strong>Dashboards:</strong> Constrain charts and widgets to viewport bounds
-          </li>
-          <li>
-            <strong>Fixed toolbars:</strong> Enables page-layout's internal toolbar-fixed/footer-fixed modes
-          </li>
-        </ul>
-      </div>
-    </c-card>
-  </c-page.content>
-{% endblock content %}
+    </div>
+  </c-card>
+{% endblock page.content %}

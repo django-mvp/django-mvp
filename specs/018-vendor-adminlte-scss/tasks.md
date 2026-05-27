@@ -138,7 +138,7 @@
 
 ### Implementation for User Story 4
 
-- [X] T053 [US4] Create `ScssVariablesDemoView` (`MVPTemplateView`) with `page_title = "Theme Customization"`, two-level breadcrumbs (Home → Theme Customization), and docstring in demo/views.py
+- [X] T053 [US4] Create `ThemeCustomizationView` (`MVPTemplateView`) with `page_title = "Theme Customization"`, two-level breadcrumbs (Home → Theme Customization), and docstring in demo/views.py
 - [X] T054 [US4] Register demo URL `/demo/theming/scss-variables/` and name `demo:scss_variables` in demo/urls.py
 - [X] T055 [US4] Create demo template `demo/templates/demo/scss_variables.html` extending `page_view.html` with cotton components and code examples for both override entrypoints and INSTALLED_APPS ordering guidance
 - [X] T056 [US4] Add top-level sidebar menu entry titled "Theme Customization" for the SCSS variables demo page in demo/menus.py

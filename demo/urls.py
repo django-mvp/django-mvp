@@ -94,7 +94,7 @@ urlpatterns = [
     # Theming demos
     path(
         "theming/scss-variables/",
-        views.ScssVariablesDemoView.as_view(),
+        views.ThemeCustomizationView.as_view(),
         name="scss_variables_demo",
     ),
     # Error page previews — developer convenience routes

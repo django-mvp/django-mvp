@@ -1,9 +1,11 @@
 <!-- ── Page Title Section ───────────────────────── -->
 <header>
   <!-- Caption -->
-  <c-text class="page-header-caption mb-1">
-    {{ caption }}
-  </c-text>
+  {% if caption %}
+    <c-text class="page-header-caption mb-1">
+      {{ caption }}
+    </c-text>
+  {% endif %}
   <!-- Title + Actions row -->
   <c-mvp-toolbar :attrs="attrs" />
   <!-- Subtitle / Lead -->

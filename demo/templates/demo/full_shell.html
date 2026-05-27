@@ -1,15 +1,5 @@
-{% extends "base.html" %}
-
-{% block breadcrumbs %}
-  <c-breadcrumbs.item text="Full Shell" />
-{% endblock breadcrumbs %}
-
-{% block toolbar_widgets %}
-  <a class="btn btn-sm btn-outline-primary"
-     href="?fixed_sidebar=on&fixed_header=on&sidebar_collapsible=on&sidebar_expand=lg">Reset Shell Preset</a>
-{% endblock toolbar_widgets %}
-
-{% block content %}
+{% extends "page_view.html" %}
+{% block page.content %}
   <div class="container-fluid">
     <div class="card card-outline card-primary mb-3">
       <div class="card-header">
@@ -18,13 +8,18 @@
       <div class="card-body">
         <p class="mb-2">This page is the dedicated shell verification target for the demo app.</p>
         <ul class="mb-0">
-          <li>Expected body classes include <code>bg-body-tertiary</code> and <code>sidebar-expand-lg</code>.</li>
-          <li>Header, sidebar, main content, and footer are all rendered through <code>c-app</code> components.</li>
-          <li>Default config enforces <code>fixed-sidebar</code>, <code>fixed-header</code>, and <code>sidebar-collapsible</code>.</li>
+          <li>
+            Expected body classes include <code>bg-body-tertiary</code> and <code>sidebar-expand-lg</code>.
+          </li>
+          <li>
+            Header, sidebar, main content, and footer are all rendered through <code>c-app</code> components.
+          </li>
+          <li>
+            Default config enforces <code>fixed-sidebar</code>, <code>fixed-header</code>, and <code>sidebar-collapsible</code>.
+          </li>
         </ul>
       </div>
     </div>
-
     <div class="row g-3">
       <div class="col-md-6">
         <div class="card">
@@ -38,10 +33,12 @@
         <div class="card">
           <div class="card-body">
             <h5 class="mb-2">Sidebar Region</h5>
-            <p class="text-muted mb-0">Renders <code>AppMenu</code> using the <code>adminlte</code> menu renderer.</p>
+            <p class="text-muted mb-0">
+              Renders <code>AppMenu</code> using the <code>adminlte</code> menu renderer.
+            </p>
           </div>
         </div>
       </div>
     </div>
   </div>
-{% endblock content %}
+{% endblock page.content %}

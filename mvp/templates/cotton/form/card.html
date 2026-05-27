@@ -13,7 +13,7 @@
   <c-card :footer_start="actions">
     {{ before_form }}
     {% if renderer and form_obj %}
-      <c-component is="form.{{ renderer }}" />
+      <c-component is="form.{{ renderer }}" :form="form_obj" />
     {% else %}
       {{ slot }}
     {% endif %}

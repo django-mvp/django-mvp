@@ -1,0 +1,16 @@
+{% comment %} <div class="d-flex flex-column"> {% endcomment %}
+<c-list.search-widget />
+<c-list.order-widget />
+{% if filter %}
+  <c-button text="{% trans "Filter" %}"
+            icon="filter"
+            data-bs-target="#filterModal"
+            data-bs-toggle="modal" />
+{% endif %}
+{% if directory.create_url %}
+  <c-button text="{% trans "Add new" %}"
+            icon="add"
+            class="show-btn-text"
+            href="{{ directory.create_url }}" />
+{% endif %}
+{% comment %} </div> {% endcomment %}

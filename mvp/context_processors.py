@@ -1,5 +1,6 @@
 """Context processors for django-mvp."""
 
+import json
 import logging
 
 logger = logging.getLogger(__name__)
@@ -20,7 +21,7 @@ def mvp_config(request):
         "layout": {
             "fixed_sidebar": False,
             "sidebar_expand": "lg",
-            "body_class": "sidebar-expand-lg bg-body-tertiary",
+            "body_class": "sidebar-expand-lg",
         },
         "sidebar": {
             "visible": True,
@@ -34,5 +35,5 @@ def mvp_config(request):
     }
 
     return {
-        "mvp": config,
+        "mvp": json.dumps(config),
     }

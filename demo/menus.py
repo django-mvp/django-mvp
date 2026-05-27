@@ -32,18 +32,8 @@ AppMenu.extend(
             name="layout_demo",
             view_name="layout_demo",
             extra_context={
-                "label": "Layout Demo",
+                "label": "Layout Configuration",
                 "icon": "box-seam",
-            },
-        ),
-        MenuItem(
-            name="full_shell_demo",
-            view_name="full_shell_demo",
-            extra_context={
-                "label": "Full Shell",
-                "icon": "layout-wtf",
-                "badge": "US1",
-                "badge_classes": "text-bg-success",
             },
         ),
         # Navbar Widgets
@@ -53,18 +43,16 @@ AppMenu.extend(
             extra_context={
                 "label": "Navbar Widgets",
                 "icon": "grid",
-                "badge": "MVP",
-                "badge_classes": "text-bg-primary",
             },
         ),
-        MenuItem(
-            name="page_layout_demo",
-            view_name="page_layout_demo",
-            extra_context={
-                "label": "Inner Layout",
-                "icon": "sidebar",
-            },
-        ),
+        # MenuItem(
+        #     name="page_layout_demo",
+        #     view_name="page_layout_demo",
+        #     extra_context={
+        #         "label": "Inner Layout",
+        #         "icon": "sidebar",
+        #     },
+        # ),
         MenuItem(
             name="scss_variables_demo",
             view_name="scss_variables_demo",

@@ -1,33 +1,25 @@
 {% extends "list_view.html" %}
 {% load static %}
 {% load render_table from django_tables2 %}
-{% block page.header %}
-  <c-slot name="header">
-    <c-mvp-toolbar title="{{ page.title }}"
-                   fs="4"
-                   class="container-fluid pt-2 pb-1 bg-body">
-      <c-action-group hide-labels>
-        <c-list.search-widget class="mvp-action-group-grow" />
-        <c-list.order-widget />
-        {% if filter %}<c-page.toolbar.sidebar-widget icon="filter" />{% endif %}
-        {% if directory.create_url %}
-          <c-button text="{% trans "Add new" %}"
-                    icon="add"
-                    class="show-btn-text"
-                    href="{{ directory.create_url }}" />
-        {% endif %}
-      </c-action-group>
-    </c-mvp-toolbar>
-  </c-slot>
-{% endblock page.header %}
-{% block page.content %}
+{% block page.stack %}
   <style>
     td,
     th {
       text-wrap: nowrap;
     }
   </style>
-  <c-page.content tight>
-    <c-django-table2 bg-striped />
-  </c-page.content>
-{% endblock page.content %}
+  <c-card variant="primary" tight>
+    {% block page.title %}
+      <c-slot name="header">
+        <div class="px-3 pt-3">
+          <c-page.title :attrs="page">
+            <c-slot name="actions">
+              <c-list.toolbar />
+            </c-slot>
+          </c-page.title>
+        </div>
+      </c-slot>
+    {% endblock page.title %}
+    <c-django-table2 min-height="65vh" />
+  </c-card>
+{% endblock page.stack %}
