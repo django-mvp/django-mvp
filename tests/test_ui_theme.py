@@ -11,6 +11,8 @@ pytest-playwright is not installed or the dev server is not running.
 
 import pytest
 
+pytest.importorskip("playwright", reason="pytest-playwright not installed")
+
 # ---------------------------------------------------------------------------
 # Playwright-based visual verification
 # ---------------------------------------------------------------------------
@@ -21,17 +23,6 @@ import pytest
 # ---------------------------------------------------------------------------
 
 BASE_URL = "http://localhost:8001"
-
-
-def pytest_collection_modifyitems(config, items):
-    """Skip playwright tests when pytest-playwright is unavailable."""
-    try:
-        import playwright  # noqa: F401
-    except ImportError:
-        skip = pytest.mark.skip(reason="pytest-playwright not installed")
-        for item in items:
-            if "playwright" in item.keywords:
-                item.add_marker(skip)
 
 
 # ---------------------------------------------------------------------------
