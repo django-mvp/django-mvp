@@ -342,11 +342,12 @@ the corresponding `get_*()` method for dynamic values.
 ### Attributes
 
 | Attribute | Type | Default | Template access |
-|-----------|------|---------|-----------------|
+|-----------|------|---------|---------------|
 | `page_title` | `str \| Promise` | `""` | `{{ page.title }}` |
 | `page_subtitle` | `str \| Promise` | `""` | `{{ page.subtitle }}` |
 | `page_icon` | `str \| None` | `None` | `{{ page.icon }}` |
 | `page_class` | `str` | `""` | `{{ page.class }}` (always prefixed with `"mvp-page"`) |
+| `page_caption` | `str` | `""` | `{{ page.caption }}` |
 | `breadcrumbs` | `list[dict]` | `[]` | `{% for crumb in page.breadcrumbs %}` |
 
 Each breadcrumb dict must have a `"text"` key. An optional `"href"` key makes it a link;
@@ -363,6 +364,7 @@ class AboutView(MVPTemplateView):
     page_subtitle = "Our mission"
     page_icon = "info-circle"
     page_class = "about-page"
+    page_caption = "Last updated January 2026"
     breadcrumbs = [
         {"text": "Home", "href": "/"},
         {"text": "About"},  # no href = current page

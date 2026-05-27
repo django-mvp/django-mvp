@@ -98,6 +98,9 @@ class TestPageMixinDefaults:
     def test_default_breadcrumbs_is_empty_list(self):
         assert PageMixin.breadcrumbs == []
 
+    def test_default_page_caption_is_empty_string(self):
+        assert PageMixin.page_caption == ""
+
 
 # ---------------------------------------------------------------------------
 # TestPageMixinGetters
@@ -145,6 +148,15 @@ class TestPageMixinGetters:
         view.page_class = None
         assert view.get_page_class() == "mvp-page"
 
+    def test_get_page_caption_returns_page_caption(self):
+        view = ConcretePage()
+        view.page_caption = "As of Q1 2026"
+        assert view.get_page_caption() == "As of Q1 2026"
+
+    def test_get_page_caption_returns_empty_string_by_default(self):
+        view = ConcretePage()
+        assert view.get_page_caption() == ""
+
 
 # ---------------------------------------------------------------------------
 # TestPageMixinGetPageContext
@@ -155,7 +167,7 @@ class TestPageMixinGetPageContext:
     def test_get_page_context_returns_dict_with_required_keys(self):
         view = ConcretePage()
         ctx = view.get_page_context()
-        assert set(ctx.keys()) == {"title", "subtitle", "icon", "class", "breadcrumbs"}
+        assert set(ctx.keys()) == {"title", "subtitle", "icon", "class", "caption", "breadcrumbs"}
 
     def test_get_page_context_delegates_to_getters(self):
         view = ConcretePage()
@@ -163,12 +175,14 @@ class TestPageMixinGetPageContext:
         view.page_subtitle = "Sub"
         view.page_icon = "fas fa-star"
         view.page_class = "extra"
+        view.page_caption = "Q1 summary"
         view.breadcrumbs = [{"text": "Home"}]
         ctx = view.get_page_context()
         assert ctx["title"] == "Test"
         assert ctx["subtitle"] == "Sub"
         assert ctx["icon"] == "fas fa-star"
         assert ctx["class"] == "mvp-page extra"
+        assert ctx["caption"] == "Q1 summary"
         assert ctx["breadcrumbs"] == [{"text": "Home"}]
 
 

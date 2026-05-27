@@ -4,12 +4,15 @@ description: "Task list for: Document and Test Core View Mixins"
 
 # Tasks: Document and Test Core View Mixins
 
+**Propagated**: 2026-05-27 — Updated from spec.md refinement (FR-012: `page_caption` attribute added to `PageMixin`)
+
 **Input**: Design documents from `/specs/003-base-mixin-classes/`
 **Prerequisites**: plan.md ✅ spec.md ✅ research.md ✅ data-model.md ✅ quickstart.md ✅
 
 **Workflow**: Design-first. Behaviour changes to `mvp/views/base.py` are implemented and verified before tests are written. No UI changes → no Playwright tasks. All phases touching Django code include `python manage.py check`. Tests are written after implementation verification.
 
 **Source files touched**:
+
 - `mvp/views/base.py` — behaviour changes + docstrings
 - `tests/test_views/test_base.py` — new test file
 - `skills/django-mvp/SKILL.md` — API update for `breadcrumbs` attr
@@ -35,6 +38,7 @@ description: "Task list for: Document and Test Core View Mixins"
 - [X] T004 In `mvp/views/base.py`: add `breadcrumbs: list = []` class attribute to `PageMixin` (after `page_class = ""`); update `get_breadcrumbs()` to return `self.breadcrumbs` instead of `[]`
 - [X] T005 Run `python manage.py check` — zero errors MUST be reported
 - [X] T006 Run `poetry run pytest tests/test_smoke.py` — all smoke tests pass (confirms existing imports still work)
+- [X] T035 [FR-012] In `mvp/views/base.py`: add `page_caption: str = ""` class attribute to `PageMixin` (after `page_class = ""`); add `get_page_caption()` method returning `self.page_caption`; update `get_page_context()` to include `"caption": self.get_page_caption()` in the returned dict
 
 **Checkpoint**: Behaviour changes are live and project is not broken.
 
@@ -54,6 +58,8 @@ description: "Task list for: Document and Test Core View Mixins"
 - [X] T010 [US1] Write Google-style method docstrings for `PageMixin.get_context_data()` and `PageMixin.get_page_context()` in `mvp/views/base.py`: document the `page` context dict shape (keys: `title`, `subtitle`, `icon`, `class`, `breadcrumbs`) and the reason for grouping under a single key
 - [X] T011 [P] [US1] Write Google-style method docstrings for `PageMixin.get_page_title()`, `get_page_subtitle()`, `get_page_icon()` in `mvp/views/base.py`: document `Returns`, note these are override hooks, include one `Example` per method
 - [X] T012 [P] [US1] Write Google-style method docstrings for `PageMixin.get_page_class()` and `get_breadcrumbs()` in `mvp/views/base.py`: document `Returns`, note `get_page_class()` always prefixes `"mvp-page"`, note `get_breadcrumbs()` returns `self.breadcrumbs`, include one `Example` per method
+- [X] T036 [US1] [FR-012] Update `PageMixin` class docstring in `mvp/views/base.py` to add `page_caption` (type `str`, default `""`) to the documented class attributes; update `get_page_context()` docstring to include `caption` in the `page` dict shape description
+- [X] T037 [US1] [FR-012] Write Google-style method docstring for `PageMixin.get_page_caption()` in `mvp/views/base.py`: document `Returns` (str), note it is the override hook for dynamic captions, include one `Example` showing both declarative and override usage
 
 ### Story 1 Validation
 
@@ -104,6 +110,8 @@ description: "Task list for: Document and Test Core View Mixins"
   - `test_page_value_is_page_context` — assert `context["page"]` equals `get_page_context()` output
   - `test_preserves_existing_context_keys` — assert other context keys (e.g., `view`) are not removed
   - (Use `RequestFactory().get("/")`, attach to view instance, call `setup()` and `get_context_data()`)
+- [X] T038 [US2] [FR-012] Add `test_page_caption_default` to `TestPageMixinDefaults` in `tests/test_views/test_base.py` → asserts `ConcretePage().page_caption == ""`
+- [X] T039 [US2] [FR-012] Add `test_get_page_caption_returns_attribute` to `TestPageMixinGetters`; add `"caption"` to the key assertions in `test_returns_all_expected_keys` and `test_context_values_match_getters` in `TestPageMixinGetPageContext`
 
 ### Story 2 Validation
 
@@ -145,6 +153,7 @@ description: "Task list for: Document and Test Core View Mixins"
 **Purpose**: Skill update, final lint pass, and full test suite run.
 
 - [X] T031 [P] Update `skills/django-mvp/SKILL.md`: add documentation for the `breadcrumbs` class attribute on `PageMixin` — include type (`list`), default (`[]`), and a usage example alongside the existing `page_title`/`page_subtitle` attr docs
+- [X] T040 [FR-012] Update `skills/django-mvp/SKILL.md`: add documentation for the `page_caption` attribute on `PageMixin` — include type (`str`), default (`""`), context key (`page.caption`), and a usage example alongside the existing attribute docs
 - [X] T032 Run `poetry run ruff check mvp/views/base.py tests/test_views/test_base.py` — zero violations
 - [X] T033 Run `poetry run ruff format --check mvp/views/base.py tests/test_views/test_base.py` — no format changes needed
 - [X] T034 Run full test suite: `poetry run pytest tests/ -v` — all tests pass, no regressions
@@ -215,13 +224,13 @@ T021 - TestPageMixinGetContextData (tests/test_views/test_base.py)
 
 | Metric | Value |
 |--------|-------|
-| Total tasks | 34 |
+| Total tasks | 40 |
 | Phase 1 (Setup) | 2 tasks |
-| Phase 2 (Foundational) | 4 tasks |
-| Phase 3 (US1 — Docstrings) | 9 tasks |
-| Phase 4 (US2 — Tests) | 9 tasks |
+| Phase 2 (Foundational) | 5 tasks |
+| Phase 3 (US1 — Docstrings) | 11 tasks |
+| Phase 4 (US2 — Tests) | 11 tasks |
 | Phase 5 (US3 — Extension Points) | 6 tasks |
-| Phase 6 (Polish) | 4 tasks |
+| Phase 6 (Polish) | 5 tasks |
 | Parallelizable tasks | 10 tasks marked [P] |
 | New files created | 1 (`tests/test_views/test_base.py`) |
 | Files modified | 2 (`mvp/views/base.py`, `skills/django-mvp/SKILL.md`) |

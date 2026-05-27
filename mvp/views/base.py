@@ -88,7 +88,7 @@ class BaseTemplateNameMixin:
 class PageMixin:
     """Mixin that injects a ``page`` context dict into every template rendered by the view.
 
-    Groups all page-level rendering metadata (title, subtitle, icon, CSS class, breadcrumbs)
+    Groups all page-level rendering metadata (title, subtitle, caption, icon, CSS class, breadcrumbs)
     under a single ``page`` key in the template context. This keeps the main context
     namespace clean and makes it easy to identify where each variable originates.
 
@@ -96,6 +96,7 @@ class PageMixin:
 
         {{ page.title }}
         {{ page.subtitle }}
+        {{ page.caption }}
         {{ page.icon }}
         {{ page.class }}
         {% for crumb in page.breadcrumbs %}...{% endfor %}
@@ -110,6 +111,8 @@ class PageMixin:
         page_icon (str | None): Icon identifier (e.g. ``"fas fa-home"``). Defaults to ``None``.
         page_class (str): Extra CSS class(es) appended to the page container after the
             mandatory ``"mvp-page"`` prefix. Defaults to ``""``.
+        page_caption (str): Optional caption or supplementary text shown beneath the page
+            title area. Exposed in templates as ``page.caption``. Defaults to ``""``.
         breadcrumbs (list): List of breadcrumb dicts. Each dict has a ``"text"`` key and
             an optional ``"href"`` key. Defaults to ``[]``.
 
@@ -130,6 +133,7 @@ class PageMixin:
             page_title = "Dashboard"
             page_subtitle = "Welcome back"
             page_icon = "fas fa-tachometer-alt"
+            page_caption = "Last 30 days"
             breadcrumbs = [{"text": "Home", "href": "/"}, {"text": "Dashboard"}]
     """
 
@@ -137,6 +141,7 @@ class PageMixin:
     page_subtitle: str | Promise = ""
     page_icon: str | None = None
     page_class = ""
+    page_caption: str = ""
     breadcrumbs: list = []
 
     def get_context_data(self, **kwargs):
@@ -152,7 +157,7 @@ class PageMixin:
         Returns:
             dict: The full template context with a ``"page"`` key added containing:
                 ``{"title": str, "subtitle": str, "icon": str | None,
-                "class": str, "breadcrumbs": list}``.
+                "class": str, "caption": str, "breadcrumbs": list}``.
         """
         context = super().get_context_data(**kwargs)
         context["page"] = self.get_page_context()
@@ -170,6 +175,7 @@ class PageMixin:
                 - ``"subtitle"`` — from ``get_page_subtitle()``
                 - ``"icon"`` — from ``get_page_icon()``
                 - ``"class"`` — from ``get_page_class()`` (always starts with ``"mvp-page"``)
+                - ``"caption"`` — from ``get_page_caption()``
                 - ``"breadcrumbs"`` — from ``get_breadcrumbs()``
         """
         return {
@@ -177,6 +183,7 @@ class PageMixin:
             "subtitle": self.get_page_subtitle(),
             "icon": self.get_page_icon(),
             "class": self.get_page_class(),
+            "caption": self.get_page_caption(),
             "breadcrumbs": self.get_breadcrumbs(),
         }
 
@@ -236,6 +243,29 @@ class PageMixin:
                     return self.object.icon or "fas fa-box"
         """
         return self.page_icon
+
+    def get_page_caption(self) -> str:
+        """Return the page caption string.
+
+        This method is the override hook for dynamic values. To set a static caption,
+        assign ``page_caption`` as a class attribute instead.
+
+        Returns:
+            str: The value of ``self.page_caption``.
+
+        Example::
+
+            # Static caption — use the class attribute:
+            class ReportView(PageMixin, TemplateView):
+                page_caption = "Last updated: January 2026"
+
+
+            # Dynamic caption — override this method:
+            class ProductDetailView(PageMixin, DetailView):
+                def get_page_caption(self) -> str:
+                    return f"SKU: {self.object.sku}"
+        """
+        return self.page_caption
 
     def get_breadcrumbs(self):
         """Return the list of breadcrumb items for the page.

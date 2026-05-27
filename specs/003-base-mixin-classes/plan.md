@@ -1,11 +1,12 @@
 # Implementation Plan: Document and Test Core View Mixins
 
 **Branch**: `003-base-mixin-classes` | **Date**: 2026-05-02 | **Spec**: [spec.md](spec.md)
+**Propagated**: 2026-05-27 — Updated from spec.md refinement (FR-012: `page_caption` attribute added to `PageMixin`)
 **Input**: Feature specification from `/specs/003-base-mixin-classes/spec.md`
 
 ## Summary
 
-Add Google-style docstrings, type annotations, and comprehensive pytest coverage to `BaseTemplateNameMixin` and `PageMixin` in `mvp/views/base.py`. Also applies two small behaviour improvements agreed during clarification: (1) `base_template_name` defaults to `None` and raises `ImproperlyConfigured` when unset (mirrors Django's `TemplateResponseMixin`); (2) `breadcrumbs = []` class attribute is added to `PageMixin` and `get_breadcrumbs()` returns `self.breadcrumbs`, consistent with the other page-attribute getter pattern.
+Add Google-style docstrings, type annotations, and comprehensive pytest coverage to `BaseTemplateNameMixin` and `PageMixin` in `mvp/views/base.py`. Also applies three behaviour improvements: (1) `base_template_name` defaults to `None` and raises `ImproperlyConfigured` when unset (mirrors Django's `TemplateResponseMixin`); (2) `breadcrumbs = []` class attribute is added to `PageMixin` and `get_breadcrumbs()` returns `self.breadcrumbs`, consistent with the other page-attribute getter pattern; (3) `page_caption = ""` class attribute is added to `PageMixin` with `get_page_caption()` returning `self.page_caption`, and `get_page_context()` exposes it as the `"caption"` key so templates access it as `page.caption` (FR-012, refined 2026-05-27).
 
 ## Technical Context
 
@@ -68,7 +69,7 @@ specs/003-base-mixin-classes/
 ```text
 mvp/
 └── views/
-    └── base.py          # MODIFY: docstrings, base_template_name=None, breadcrumbs attr
+    └── base.py          # MODIFY: docstrings, base_template_name=None, breadcrumbs attr, page_caption attr
 
 tests/
 └── test_views/
