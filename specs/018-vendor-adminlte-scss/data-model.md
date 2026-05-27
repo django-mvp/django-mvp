@@ -15,16 +15,28 @@ This feature does not add database models. The "entities" below are build-time a
   - Must not retain stale files from prior versions.
   - Must correspond to the lockfile-resolved package version.
 
-## Entity: Theme Override File
+## Entity: Bootstrap Variable Override File
 
-- **Represents**: The app-owned SCSS override entrypoint at `mvp/static/scss/_mvp_variables.scss`.
+- **Represents**: The app-owned SCSS override entrypoint at `mvp/static/_bootstrap_variables.scss`.
 - **Key fields**:
-  - `variable_name`: The Sass variable being overridden.
-  - `variable_value`: The downstream theme value.
-  - `scope`: App-wide theme configuration.
+  - `variable_name`: The Bootstrap or plain AdminLTE Sass variable being overridden.
+  - `variable_value`: The downstream theme value (literal values only).
+  - `scope`: App-wide Bootstrap token and plain AdminLTE variable configuration.
 - **Validation rules**:
-  - Must be loaded before vendor defaults.
+  - Must be loaded before Bootstrap and vendor AdminLTE defaults.
   - Must contain valid Sass-compatible values.
+  - Must not require edits to vendored source files.
+
+## Entity: AdminLTE Variable Override File
+
+- **Represents**: The app-owned SCSS override entrypoint at `mvp/static/_adminlte_variables.scss`.
+- **Key fields**:
+  - `variable_name`: The AdminLTE Sass variable being overridden (typically one that references a Bootstrap token).
+  - `variable_value`: The downstream theme value (may reference Bootstrap tokens).
+  - `scope`: App-wide AdminLTE variable configuration.
+- **Validation rules**:
+  - Must be injected into `adminlte.scss` after Bootstrap variables are resolved, before AdminLTE `_variables.scss` fires.
+  - Must contain valid Sass-compatible values that may reference Bootstrap variables.
   - Must not require edits to vendored source files.
 
 ## Entity: Sass Compilation Pipeline

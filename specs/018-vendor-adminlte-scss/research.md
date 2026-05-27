@@ -16,12 +16,13 @@
   - Standalone CLI compilation scripts: rejected because they duplicate behavior already provided by the Django pipeline.
   - A Node-only Sass pipeline: rejected because the project already has the Python-side compressor integration in place.
 
-## Decision 3: Apply app overrides before vendor defaults in the Sass import order
+## Decision 3: Apply app overrides before vendor defaults in the Sass import order, with a second hook for AdminLTE vars that reference Bootstrap tokens
 
-- **Decision**: Import `_mvp_variables.scss` ahead of the vendored AdminLTE defaults so downstream values can override `!default` declarations.
-- **Rationale**: This matches standard Sass override semantics and gives downstream apps a single, predictable customization point.
+- **Decision**: Import `_bootstrap_variables.scss` ahead of Bootstrap and vendored AdminLTE defaults; inject `_adminlte_variables.scss` into `adminlte.scss` after Bootstrap variables are resolved but before AdminLTE `_variables.scss` fires, so downstream apps can override both Bootstrap tokens and AdminLTE vars that reference them.
+- **Rationale**: Some AdminLTE variables reference Bootstrap tokens (e.g. `$lte-sidebar-color: $gray-800 !default`). These can only be overridden after Bootstrap vars are defined, which requires a second injection point inside `adminlte.scss` itself. The refresh task patches `adminlte.scss` to insert the hook after each vendor copy.
 - **Alternatives considered**:
-  - Import overrides after vendor defaults: rejected because `!default` values would already be fixed in many cases.
+  - Single override file before all imports: rejected because AdminLTE vars that reference Bootstrap tokens cannot be overridden before Bootstrap defines those tokens.
+  - Import overrides after vendor defaults: rejected because `!default` values would already be fixed.
   - Allow mixed ordering: rejected because it makes the theming contract ambiguous for downstream teams.
 
 ## Decision 4: Refresh vendor sources via npm latest plus lockfile pinning

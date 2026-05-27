@@ -1,0 +1,44 @@
+// =============================================================================
+// AdminLTE Variable Overrides
+// =============================================================================
+//
+// PURPOSE
+// -------
+// Place AdminLTE-specific variable overrides here — particularly those that
+// reference Bootstrap tokens such as $gray-800, $primary, or $border-width.
+//
+// This file is imported AFTER Bootstrap variables have been fully resolved but
+// BEFORE AdminLTE's own _variables.scss fires its !default declarations.
+// That means you can safely reference any Bootstrap variable here:
+//
+//   $lte-sidebar-color: $primary;         // uses your $primary override
+//   $lte-sidebar-width: 280px;
+//
+// WHEN TO USE THIS FILE vs _bootstrap_variables.scss
+// ----------------------------------------------------
+// _bootstrap_variables.scss  — Bootstrap design tokens ($primary, $gray-800, etc.)
+//                               and plain AdminLTE variables that use literal values.
+//
+// _adminlte_variables.scss (this file) — AdminLTE variables that reference
+//                               Bootstrap tokens, e.g.:
+//                                 $lte-sidebar-color: $gray-800 !default;
+//
+// HOW TO OVERRIDE
+// ---------------
+// 1. Create <your-app>/static/_adminlte_variables.scss in your app.
+// 2. List your app BEFORE mvp in INSTALLED_APPS (same as template overrides).
+// 3. Define your overrides — no !default needed; yours fire before AdminLTE's.
+//
+// AVAILABLE VARIABLES
+// -------------------
+// See mvp/static/adminlte/scss/_variables.scss for the full list of AdminLTE
+// variables and their defaults.
+//
+// =============================================================================
+
+// Add your AdminLTE variable overrides below this line.
+// Examples (uncomment to activate):
+//
+// $lte-sidebar-color:      $gray-900;
+// $lte-sidebar-width:      280px;
+// $lte-app-header-height:  ($nav-link-height + 1rem);

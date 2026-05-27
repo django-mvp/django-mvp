@@ -658,14 +658,14 @@ django = ">=4.2,<7.0"
 
 [[package]]
 name = "django-cotton-bs5"
-version = "0.9.2"
+version = "0.10.0"
 description = "Bootstrap 5 components for use with Django Cotton."
 optional = false
 python-versions = "<4,>=3.10"
 groups = ["main"]
 files = [
-    {file = "django_cotton_bs5-0.9.2-py3-none-any.whl", hash = "sha256:b1231244ac738ed3a9213e9649b1262dea33f6371ce453f500a22f5c78c62008"},
-    {file = "django_cotton_bs5-0.9.2.tar.gz", hash = "sha256:de32cd1e715e99c459d03c94b55bf544e5a012f115c4703aaf723089abdd5928"},
+    {file = "django_cotton_bs5-0.10.0-py3-none-any.whl", hash = "sha256:ae70812afa64b8c9afee71e0d58ba5615e0495eec066ef372b39282eae49379e"},
+    {file = "django_cotton_bs5-0.10.0.tar.gz", hash = "sha256:649aaf3a38dbcedee6144bdc1661fc956729c5f7b76b07b746777df95220a368"},
 ]
 
 [package.dependencies]
@@ -2901,4 +2901,4 @@ dev = ["pytest", "setuptools"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<4.0"
-content-hash = "5965639e4c0f98a6735410abda1c8d6d1aa16d5044025fee7a7ce8d0e095e723"
+content-hash = "e6f26511d1fd4549517edc4ff3d441ca64fcc1c5a399c78d3831df7f91b7bd33"

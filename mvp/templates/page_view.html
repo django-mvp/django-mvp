@@ -17,17 +17,21 @@
       </c-slot>
     {% endblock page.header %}
     {% block page.content-wrapper %}
-      <c-page.content class="container mt-4 mb-5">
-        {% block page.title %}
-          <c-page.subtitle text="{{ page.subtitle }}" icon="{{ page.icon }}" />
-          <c-mvp-toolbar title="{{ page.title }}" class="mb-3" gap="3">
-            {% block page.actions %}
-            {% endblock page.actions %}
-          </c-mvp-toolbar>
-        {% endblock page.title %}
-        {% block page.content %}
-          {% trans "Coming soon..." %}
-        {% endblock page.content %}
+      <c-page.content>
+        <c-container>
+          {% block page.title %}
+            <c-page.subtitle text="{{ page.subtitle }}" icon="{{ page.icon }}" />
+            <c-mvp-toolbar title="{{ page.title }}" class="mb-3" gap="3">
+              {% block page.actions %}
+              {% endblock page.actions %}
+            </c-mvp-toolbar>
+          {% endblock page.title %}
+          <c-vstack gap=3>
+            {% block page.content %}
+              {% trans "Coming soon..." %}
+            {% endblock page.content %}
+          </c-vstack>
+        </c-container>
       </c-page.content>
     {% endblock page.content-wrapper %}
   </c-page>
