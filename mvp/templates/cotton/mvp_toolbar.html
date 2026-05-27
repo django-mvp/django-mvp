@@ -47,28 +47,20 @@ Usage:
     Additional toolbar content
   </c-mvp-toolbar>
 {% endcomment %}
-<c-vars title
-        icon
-        level="1"
-        fs
-        container
-        fluid
-        reverse
-        tight
-        relaxed
-        row="sm"
-        center
-        class
-        gap="1" />
-<div class="mvp-toolbar{% if container %} container{% elif fluid %} container-fluid{% endif %} {% if row == True %}flex-row align-items-center{% elif row %}flex-{{ row }}-row align-items-{{ row }}-center{% endif %}{% if center %} align-items-center{% endif %} {% if reverse %}mvp-toolbar--reverse{% endif %}{% if gap %} gap-{{ gap }}{% endif %}{% if tight %} py-0{% elif relaxed %} py-3{% else %} py-2{% endif %} {{ class }}"
-     {{ attrs }}>
+<c-vars title level="1" fs="4" row tight breakpoint="md" />
+<div class="d-flex w-100 gap-3{% if row %} align-items-center justify-content-between{% else %} flex-column flex-{{ breakpoint }}-row align-items-{{ breakpoint }}-center justify-content-{{ breakpoint }}-between{% endif %}{% if not tight %} mb-2{% endif %} {{ class }}">
   {% if title %}
     {# djlint:off #}
-    <h{{level}} class="mvp-toolbar-start mb-0 fs-{{ fs|default:level }}">
+    <h{{level}} class="h{{ fs }} mb-0 lh-sm">
     {% if icon %}<c-icon name="{{ icon }}" class="me-1" />{% endif %}
     {{ title }}</h{{level}}>
     {# djlint:on #}
+  {% else %}
+    {{ slot }}
   {% endif %}
-  <div class="mvp-toolbar-start">{{ start }}</div>
-  {{ slot }}
+  {% if actions %}
+    <c-action-group shrink row only>
+      {{ actions }}
+    </c-action-group>
+  {% endif %}
 </div>

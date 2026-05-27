@@ -1,7 +1,6 @@
 <c-vars form-obj
         method
         action
-        actions
         renderer="crispy"
         :submit-button="True"
         submit-text="{% trans "Submit" %}"
@@ -9,8 +8,9 @@
 <c-form method="{{ method }}"
         action="{{ action }}"
         :form-obj="False"
-        :attrs="form_attrs">
-  <c-card :attrs="attrs">
+        :attrs="form_attrs"
+        only>
+  <c-card :footer_start="actions">
     {{ before_form }}
     {% if renderer and form_obj %}
       <c-component is="form.{{ renderer }}" />
@@ -18,10 +18,5 @@
       {{ slot }}
     {% endif %}
     {{ after_form }}
-    <c-mvp-toolbar tight only>
-      <c-slot name="start">
-        {{ form_actions }}
-      </c-slot>
-    </c-mvp-toolbar>
   </c-card>
 </c-form>

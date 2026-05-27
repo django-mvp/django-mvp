@@ -1,12 +1,10 @@
 ﻿{% extends "page_view.html" %}
+{% block page.actions %}
+  <c-button text="Action 1" icon="home" />
+  <c-button text="Action 2" icon="menu" />
+{% endblock page.actions %}
 {% block page.content %}
-  <c-text impact>
-    How to customise the look and feel of your application.
-  </c-text>
-  {# ------------------------------------------------------------------ #}
-  {# OVERVIEW                                                            #}
-  {# ------------------------------------------------------------------ #}
-  <c-row>
+  {% comment %} <c-row>
     <c-col>
       <c-alert variant="info" class="mb-0" :animate="False">
         <strong>Two override entrypoints.</strong>
@@ -26,13 +24,22 @@
         </ul>
       </c-alert>
     </c-col>
-  </c-row>
+  </c-row> {% endcomment %}
   {# ------------------------------------------------------------------ #}
   {# INSTALLED_APPS                                                      #}
   {# ------------------------------------------------------------------ #}
   <c-row>
     <c-col>
-      <c-card title="Step 1: INSTALLED_APPS ordering">
+      <c-card title="1) INSTALLED_APPS ordering">
+        <c-slot name="actions">
+          <c-button text="header action" variant="primary" />
+        </c-slot>
+        <c-slot name="footer">
+          <c-button text="footer action" variant="primary" />
+        </c-slot>
+        <c-slot name="footer_end">
+          <c-button text="footer end" variant="primary" />
+        </c-slot>
         <p>
           Django's static-files finder searches <code>INSTALLED_APPS</code> in order and stops at
           the first match. Place your app <strong>before</strong> <code>mvp</code> so your override

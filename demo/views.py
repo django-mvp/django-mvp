@@ -332,9 +332,15 @@ class ScssVariablesDemoView(MVPTemplateView):
     URL Pattern: /theming/scss-variables/
     """
 
+    page_subtitle = "Overriding SCSS Variables in Your Project"
     page_title = "Theme Customization"
     template_name = "demo/scss_variables.html"
     breadcrumbs = [
         {"text": "Home", "href": "/"},
         {"text": "Theme Customization"},
     ]
+
+    def get_page_context(self):
+        context = super().get_page_context()
+        context["caption"] = "Custom caption"
+        return context

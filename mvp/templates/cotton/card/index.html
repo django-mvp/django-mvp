@@ -1,33 +1,26 @@
-<c-vars title
-        icon
-        icon_class=""
-        variant="default"
-        fill="outline"
-        class />
-<c-card.wrapper :attrs="attrs">
+<c-vars title icon variant="default" fill="outline" class />
+<c-card.wrapper :variant="variant" :fill="fill" only>
   {% if header %}
     {{ header }}
   {% elif title %}
-    <c-mvp-toolbar :title="title"
-                   level="5"
-                   :icon="icon"
-                   relaxed
-                   class="card-header">
-      {% if actions %}
-        <c-action-group>
-          {{ actions }}
-        </c-action-group>
-      {% endif %}
-    </c-mvp-toolbar>
+    <div class="card-header">
+      <c-mvp-toolbar :title="title"
+                     :icon="icon"
+                     level="5"
+                     fs="5"
+                     :actions="widgets"
+                     tight
+                     only />
+    </div>
   {% endif %}
   <c-card.body>
     {{ slot }}
   </c-card.body>
   {% if footer_start or footer_end %}
-    <c-mvp-toolbar class="card-footer" relaxed :start="footer_start">
-      {{ footer_end }}
-    </c-mvp-toolbar>
-  {% elif footer %}
-    {{ footer }}
+    <div class="card-footer">
+      <c-mvp-toolbar :actions="footer_end" tight only>
+        {{ footer_start }}
+      </c-mvp-toolbar>
+    </div>
   {% endif %}
 </c-card.wrapper>

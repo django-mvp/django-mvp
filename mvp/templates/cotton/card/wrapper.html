@@ -1,3 +1,4 @@
+<c-vars variant="default" fill="outline" class />
 <div class="card {% if fill == "card" %}text-bg-{{ variant }}{% else %}card-{{ variant }}{% endif %}{% if fill == "outline" %} card-outline{% endif %}{% if collapsible and collapsed %} collapsed-card{% endif %} {{ class }}"
      {{ attrs }}>
   {{ slot }}

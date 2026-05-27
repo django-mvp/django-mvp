@@ -100,8 +100,8 @@
   .btn {
     --#{$prefix}btn-focus-box-shadow: none;
     --#{$prefix}btn-active-shadow: none;
-    --#{$prefix}btn-hover-bg: transparent;
-    --#{$prefix}btn-active-bg: transparent;
+    // --#{$prefix}btn-hover-bg: transparent;
+    // --#{$prefix}btn-active-bg: transparent;
     --#{$prefix}btn-border-color: var(--bs-btn-color);
     --#{$prefix}btn-hover-border-color: var(--bs-btn-hover-color);
   }
@@ -110,8 +110,8 @@
 .btn-icons .btn,
 .btn-icon {
   border: none;
-  --#{$prefix}btn-hover-bg: transparent;
-  --#{$prefix}btn-active-bg: transparent;
+  // --#{$prefix}btn-hover-bg: transparent;
+  // --#{$prefix}btn-active-bg: transparent;
 
   .btn-text {
     display: none;

@@ -36,7 +36,7 @@ menu        (str)  Name of a flex-menu Menu class to render. Default: "AppMenu".
         brand-url="/"
         class
         menu="AppMenu" />
-<aside class="app-sidebar shadow{% if nested_dropdown_mini %} nested-dropdown-mini{% endif %} {{ class }}"
+<aside class="app-sidebar bg-body-secondary shadow{% if nested_dropdown_mini %} nested-dropdown-mini{% endif %} {{ class }}"
        data-enable-persistance="{{ persist }}"
        x-init="{% if expand %}sidebar.expand = '{{ expand }}';{% endif %}{% if collapsed or collapsible %}sidebar.collapsible = true;{% endif %}{% if collapsed %}sidebar.collapsed = true;{% endif %}{% if expand_on_hover %}sidebar.expandOnHover=true;{% endif %}"
        {% if dark %}data-bs-theme="dark"{% endif %}>

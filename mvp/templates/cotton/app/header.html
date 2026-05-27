@@ -1,28 +1,29 @@
 <c-vars title variant="body" :border="True" tray />
-<header class="app-header container-full position-relative">
-  <nav class="container-fluid navbar bg-{{ variant }}">
-    <c-mvp-toolbar title="{{ title }}"
-                   class="container-fluid hide-on-mobile hide-btn-text"
-                   tight
-                   row>
-      <c-slot name="start">
-        <c-button text="{% trans "Toggle site navigation" %}"
-                  outline
-                  class="hide-on-mobile"
-                  icon="menu"
-                  data-lte-toggle="sidebar" />
-        <a class="navbar-brand align-middle ms-2" href="/">{{ request.site.name }}</a>
-      </c-slot>
-      <c-action-group row gap=3 icons-only>
-        {{ right }}
-      </c-action-group>
-    </c-mvp-toolbar>
-    <div class="navbar-brand flex-center w-100 show-on-mobile "
-         style="height: 35px">
-      <a class="navbar-brand align-middle ms-2" href="/">
-        <c-logo height="40px" class="navbar-brand" />
-      </a>
-    </div>
+<header class="app-header position-relative">
+  <nav class="navbar bg-{{ variant }}">
+    <c-container fluid>
+      <c-mvp-toolbar class="hide-on-mobile hide-btn-text btn-icons"
+                     tight
+                     row>
+        <div>
+          <c-button text="{% trans "Toggle site navigation" %}"
+                    outline
+                    class="hide-on-mobile"
+                    icon="menu"
+                    data-lte-toggle="sidebar" />
+          <a class="navbar-brand ms-2" href="/">{{ request.site.name }}</a>
+        </div>
+        <c-slot name="actions">
+          {{ right }}
+        </c-slot>
+      </c-mvp-toolbar>
+      <div class="navbar-brand flex-center w-100 show-on-mobile"
+           style="height: 1lh">
+        <a class="navbar-brand align-middle ms-2" href="/">
+          <c-logo height="40px" class="navbar-brand" />
+        </a>
+      </div>
+    </c-container>
   </nav>
   {% if tray %}{{ tray }}{% endif %}
 </header>

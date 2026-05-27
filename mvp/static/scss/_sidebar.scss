@@ -1,40 +1,18 @@
 // Custom sidebar functionality on top of AdminLTE's default behavior
 
+.app-sidebar {
+  .btn-default {
+    color: var(--lte-sidebar-color);
+  }
+
+  .btn-default:hover {
+    background-color: var(--lte-sidebar-hover-bg);
+  }
+}
+
 .bg-sidebar {
   background-color: var(--mvp-sidebar-bg-color);
 }
-
-// .nested-dropdown-mini {
-//   .sidebar-wrapper {
-//     overflow: visible !important;
-
-//     .nav-item.menu-open {
-//       position: relative;
-
-//       .nav-treeview {
-//         background-color: var(--mvp-sidebar-bg-color);
-//         position: absolute;
-//         top: 0;
-//         left: 100%;
-//         padding: 0.5rem 0 !important;
-//         border-radius: 0.25rem;
-
-//         .nav-item {
-//           padding: 0;
-//         }
-
-//         a {
-//           width: unset;
-//         }
-//         p {
-//           visibility: visible;
-//           width: auto;
-//           animation-fill-mode: unset;
-//         }
-//       }
-//     }
-//   }
-// }
 
 [data-bs-theme="light"] {
   .show-on-light-theme {

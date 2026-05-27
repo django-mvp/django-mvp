@@ -7,26 +7,27 @@
   <c-page class="{{ page.class }} mb-5">
     {% block page.header %}
       <c-slot name="header">
-        <c-mvp-toolbar class="container-fluid mb">
-          <c-slot name="start">
+        <c-container fluid>
+          <c-mvp-toolbar>
             {% block page.breadcrumbs %}
               <c-breadcrumbs class="py-1" :items="page.breadcrumbs" />
             {% endblock page.breadcrumbs %}
-          </c-slot>
-        </c-mvp-toolbar>
+          </c-mvp-toolbar>
+        </c-container>
       </c-slot>
     {% endblock page.header %}
     {% block page.content-wrapper %}
       <c-page.content>
         <c-container>
-          {% block page.title %}
-            <c-page.subtitle text="{{ page.subtitle }}" icon="{{ page.icon }}" />
-            <c-mvp-toolbar title="{{ page.title }}" class="mb-3" gap="3">
-              {% block page.actions %}
-              {% endblock page.actions %}
-            </c-mvp-toolbar>
-          {% endblock page.title %}
           <c-vstack gap=3>
+            {% block page.title %}
+              <c-page.title :attrs="page">
+                <c-slot name="actions">
+                  {% block page.actions %}
+                  {% endblock page.actions %}
+                </c-slot>
+              </c-page.title>
+            {% endblock page.title %}
             {% block page.content %}
               {% trans "Coming soon..." %}
             {% endblock page.content %}

@@ -1,20 +1,3 @@
-:root {
-  // --bs-emphasis-color-rgb: 23, 16, 160;
-  color: rgb(255, 244, 84);
-  // --bs-primary-rgb: 100, 110, 253;
-  // --bs-primary-rgb: 58, 0, 152;
-  // --bs-warning-rgb: 58, 0, 152;
-}
-
-.app-sidebar {
-  --mvp-sidebar-opacity: 1;
-  --mvp-sidebar-bg-color: rgba(
-    var(--bs-secondary-bg-rgb),
-    var(--bs-bg-opacity)
-  );
-  background-color: var(--mvp-sidebar-bg-color);
-}
-
 .breadcrumb {
   margin-bottom: 0;
 }
