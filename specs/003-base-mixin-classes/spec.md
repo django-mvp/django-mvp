@@ -2,7 +2,8 @@
 
 **Feature Branch**: `003-base-mixin-classes`
 **Created**: May 2, 2026
-**Status**: Draft
+**Status**: Refined
+**Refined**: 2026-05-27 — Added `page_caption` attribute to `PageMixin`; context key `caption` exposed as `page.caption` in templates
 **Input**: User description: "BaseTemplateMixin and PageMixin are two mixin classes that are inherited by essentially all other view classes. These need to be explicitly defined documented and tested."
 
 ## User Scenarios & Testing *(mandatory)*
@@ -34,7 +35,7 @@ A code maintainer refactoring the view system needs confidence that changes to `
 **Acceptance Scenarios**:
 
 1. **Given** a test for `BaseTemplateNameMixin.get_template_names()`, **When** the test runs with a view that has `base_template_name` set, **Then** the template name list includes both the view-specific template and the base template in correct priority order
-2. **Given** a test for `PageMixin.get_page_context()`, **When** the test runs with all page attributes set, **Then** the context dict contains all expected keys (title, subtitle, icon, class, breadcrumbs) with correct values
+2. **Given** a test for `PageMixin.get_page_context()`, **When** the test runs with all page attributes set, **Then** the context dict contains all expected keys (title, subtitle, icon, class, breadcrumbs, caption) with correct values
 3. **Given** a test for `PageMixin` with unset attributes, **When** the test runs, **Then** the context dict contains sensible defaults (empty strings, None, empty lists as appropriate)
 
 ---
@@ -68,11 +69,12 @@ A view developer needs to extend the page rendering behavior (e.g., add custom b
 - **FR-001**: System MUST provide clear docstrings for `BaseTemplateNameMixin` explaining its purpose: extending Django's `get_template_names()` to support a fallback base template
 - **FR-002**: System MUST provide clear docstrings for all public methods of `BaseTemplateNameMixin` (`get_template_names()`) documenting parameters, return type, and behavior
 - **FR-003**: System MUST provide clear docstrings for `PageMixin` explaining its purpose: adding page-level context (title, subtitle, icon, CSS class, breadcrumbs) to template rendering
-- **FR-004**: System MUST provide clear docstrings for all public methods of `PageMixin` (`get_context_data()`, `get_page_context()`, `get_page_title()`, `get_page_subtitle()`, `get_page_icon()`, `get_page_class()`, `get_breadcrumbs()`) documenting parameters, return types, and behavior
+- **FR-004**: System MUST provide clear docstrings for all public methods of `PageMixin` (`get_context_data()`, `get_page_context()`, `get_page_title()`, `get_page_subtitle()`, `get_page_icon()`, `get_page_class()`, `get_page_caption()`, `get_breadcrumbs()`) documenting parameters, return types, and behavior
 - **FR-005**: System MUST provide code examples in docstrings demonstrating how to use and extend each mixin; all docstrings MUST use **Google style** (`Args:`, `Returns:`, `Raises:`, `Example:` sections)
 - **FR-006**: System MUST have automated tests for `BaseTemplateNameMixin` covering: normal template resolution, `ImproperlyConfigured` raised when `base_template_name` is `None`, template list priority order, and integration with Django generic views
-- **FR-007**: System MUST have automated tests for `PageMixin` covering: context structure, all getter methods, attribute defaults (including `breadcrumbs = []`), the `breadcrumbs` class attribute being used by `get_breadcrumbs()`, and override patterns
+- **FR-007**: System MUST have automated tests for `PageMixin` covering: context structure, all getter methods, attribute defaults (including `breadcrumbs = []` and `page_caption = ""`), the `breadcrumbs` class attribute being used by `get_breadcrumbs()`, the `page_caption` attribute being used by `get_page_caption()`, and override patterns
 - **FR-011** *(added during clarification — see § Session 2026-05-02; numbered out of sequence)*: System MUST add a `breadcrumbs = []` class attribute to `PageMixin` so breadcrumbs can be set declaratively (consistent with `page_title`, `page_subtitle`, `page_icon`, `page_class`); `get_breadcrumbs()` MUST return `self.breadcrumbs` by default
+- **FR-012** *(added during refinement — see § Session 2026-05-27)*: System MUST add a `page_caption = ""` class attribute to `PageMixin` so a caption can be set declaratively, consistent with `page_title`, `page_subtitle`, `page_icon`, `page_class`; `get_page_caption()` MUST return `self.page_caption` by default; `get_page_context()` MUST include the result under the key `"caption"` so templates can reference it as `page.caption`
 - **FR-008**: *(Format constraint on FR-001–FR-004)* Documentation MUST be available as inline docstrings (not external docs only) so IDE tooltips show the information
 - **FR-009**: System MUST document the intended inheritance hierarchy in the class docstrings of both mixins — listing at minimum the primary known subclasses by name (e.g., `MVPDetailView`, `MVPListViewMixin`, `MVPFormBase`, `MVPDeleteView`, `MVPTableView` for `BaseTemplateNameMixin`; `MVPTemplateView`, `MVPDetailView`, `MVPListViewMixin`, `MVPFormBase` for `PageMixin`) as an illustrative list, not an exhaustive registry
 - **FR-010**: System MUST provide guidance on when to override each method vs. setting class attributes
@@ -80,7 +82,7 @@ A view developer needs to extend the page rendering behavior (e.g., add custom b
 ### Key Entities
 
 - **BaseTemplateNameMixin**: A mixin class that extends Django's template resolution by appending a mandatory fallback base template name to the list of candidate templates. `base_template_name` defaults to `None`; subclasses **must** set it or `ImproperlyConfigured` is raised (mirrors Django's `TemplateResponseMixin` behaviour)
-- **PageMixin**: A mixin class that injects page-rendering context (title, subtitle, icon, CSS class, breadcrumbs) into the template context dict. Breadcrumb data can be set via the `breadcrumbs` class attribute (default `[]`) **or** by overriding `get_breadcrumbs()` — consistent with the `page_title`/`get_page_title()` pattern used by all other page attributes
+- **PageMixin**: A mixin class that injects page-rendering context (title, subtitle, caption, icon, CSS class, breadcrumbs) into the template context dict. Breadcrumb data can be set via the `breadcrumbs` class attribute (default `[]`) **or** by overriding `get_breadcrumbs()`. Caption can be set via `page_caption` (default `""`) **or** by overriding `get_page_caption()` — consistent with the `page_title`/`get_page_title()` pattern used by all other page attributes
 - **View Class Hierarchy**: The structure of view classes (MVPListView, MVPDetailView, MVPFormBase, etc.) that inherit from these mixins
 
 ## Success Criteria *(mandatory)*
@@ -104,6 +106,10 @@ A view developer needs to extend the page rendering behavior (e.g., add custom b
 - External documentation (README, guides) is out of scope; this feature focuses on inline code documentation and tests
 
 ## Clarifications
+
+### Session 2026-05-27
+
+- Q: Should `PageMixin` support a caption? → A: Yes, in scope. Add `page_caption = ""` class attribute and `get_page_caption()` method returning `self.page_caption`. `get_page_context()` MUST expose it as the `"caption"` key so templates access it as `page.caption`. Follows the same declarative/override pattern as `page_title`/`get_page_title()`.
 
 ### Session 2026-05-02
 
