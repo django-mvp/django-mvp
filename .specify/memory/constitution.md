@@ -1,26 +1,22 @@
 <!--
 Sync Impact Report
-- Version change: 3.6.0 → 3.7.0
-- Change type: MINOR — Materially expanded UI verification governance to require
-  the playwright-cli skill for all UI-impacting work, acceptance-criteria behavior
-  checks for each UI-related phase, and constrained screenshot-only fallback usage.
+- Version change: 3.7.0 → 3.8.0
+- Change type: MINOR — Added a Simplicity Mandate (NON-NEGOTIABLE) to Principle VIII
+  explicitly prohibiting the use of pytest-playwright/live_server wherever standard
+  pytest/Django testing workflows are sufficient. Clarifies that E2E tests are reserved
+  for behaviours that genuinely require a real browser.
 - Modified principles:
-  - I. Design-First, Verify Implementation (verification workflow wording updated)
-  - VI. UI Verification (playwright-mcp) → VI. UI Verification
-    (playwright-cli skill)
+  - VIII. End-to-End Testing (pytest-playwright) — Simplicity Mandate bullet added
 - Added sections: none
 - Removed sections: none
 - Templates requiring updates:
-  - .specify/templates/plan-template.md ✅ Updated (Constitution Check guidance now
-    calls out playwright-cli acceptance-criteria assertions for UI phases)
+  - .specify/templates/plan-template.md ⚠ Review: ensure task generation does not
+    schedule Playwright tests for functionality testable without a browser
   - .specify/templates/spec-template.md ✅ No change needed
-    (story/acceptance structure already supports behavioral assertions)
-  - .specify/templates/tasks-template.md ✅ Updated (UI-phase verification task
-    requirements and screenshot fallback constraints added)
+  - .specify/templates/tasks-template.md ⚠ Review: ensure E2E task generation respects
+    the simplicity mandate and defaults to pytest/Django test client where applicable
   - .specify/templates/commands/*.md ✅ No change needed (directory not present)
-- Runtime guidance updates:
-  - CONTRIBUTING.md ✅ Updated (UI verification step now references playwright-cli
-    skill and behavior-oriented checks)
+- Runtime guidance updates: none
 - Deferred items: none
 -->
 
@@ -215,14 +211,28 @@ for reusable template segments.
 
 ### VIII. End-to-End Testing (pytest-playwright)
 
-Features MUST include comprehensive end-to-end test coverage using pytest-playwright.
+Features MUST include comprehensive end-to-end test coverage using pytest-playwright,
+but ONLY for behaviour that genuinely requires a real browser.
 
+- **Simplicity Mandate (NON-NEGOTIABLE)**: Playwright MUST NOT be used to test
+  functionality that can be adequately verified using standard pytest/Django testing
+  workflows. If a test can be written using the Django test client, model assertions,
+  form validation helpers, view response assertions, or any other non-browser mechanism,
+  it MUST be written that way instead. Using `live_server` + Playwright for behaviour
+  that a `@pytest.mark.django_db` test with the Django test client can cover equally
+  well is a defect, not a test. Any such test MUST be refactored to use the simpler
+  approach.
+- **When Playwright is appropriate**: E2E tests using pytest-playwright are reserved for
+  behaviours that genuinely require a real browser environment — for example:
+  JavaScript-driven interactions (HTMX DOM mutations, dynamic form behaviour, client-side
+  validation), multi-step navigation flows that depend on browser state (cookies,
+  history, focus management), visual rendering or accessibility checks, and interactions
+  with third-party browser APIs. These are cases where the Django test client cannot
+  reproduce the actual user experience.
 - All new features MUST include end-to-end tests using pytest-playwright to verify
-  complete user workflows.
+  complete user workflows **only where the above criteria are met**.
 - E2E tests MUST cover the entire user journey from initial page load through final
-  action completion.
-- UI interactions, form submissions, navigation flows, and visual elements MUST be
-  tested at the browser level.
+  action completion for flows that are genuinely browser-dependent.
 - E2E tests serve as acceptance tests that validate feature requirements are fully met.
 - **Distinction from Principle VI**: playwright-cli verification tasks (Principle VI) are the
   inline interactive verification step performed by agents during implementation;
@@ -366,4 +376,4 @@ This constitution defines non-negotiable project rules and supersedes local conv
 - MINOR: Adds a principle/section or materially expands guidance.
 - PATCH: Clarifies wording or fixes typos without changing intent.
 
-**Version**: 3.7.0 | **Ratified**: 2026-01-05 | **Last Amended**: 2026-05-26
+**Version**: 3.8.0 | **Ratified**: 2026-01-05 | **Last Amended**: 2026-05-28
