@@ -19,25 +19,27 @@
     {% block page.content-wrapper %}
       <c-page.content>
         <c-container>
-          <c-vstack gap=3>
+          <c-vstack gap=2>
             {% block page.stack %}
-              <c-card variant="primary">
-                {% block page.title %}
-                  <c-slot name="header">
-                    <div class="px-3 pt-3">
-                      <c-page.title :attrs="page">
-                        <c-slot name="actions">
-                          {% block page.actions %}
-                          {% endblock page.actions %}
-                        </c-slot>
-                      </c-page.title>
-                    </div>
-                  </c-slot>
-                {% endblock page.title %}
-                {% block page.content %}
-                  {% trans "Coming soon..." %}
-                {% endblock page.content %}
-              </c-card>
+              {% block page.title %}
+                <c-card variant="primary">
+                  {% comment %} <c-slot name="header"> {% endcomment %}
+                  <div class="px-3 py-3">
+                    <c-page.title :attrs="page">
+                      <c-slot name="actions">
+                        {% block page.actions %}
+                        {% endblock page.actions %}
+                      </c-slot>
+                    </c-page.title>
+                  </div>
+                  {% block page.title.below %}
+                  {% endblock page.title.below %}
+                </c-card>
+                {% comment %} </c-slot> {% endcomment %}
+              {% endblock page.title %}
+              {% block page.content %}
+                {% trans "Coming soon..." %}
+              {% endblock page.content %}
             {% endblock page.stack %}
           </c-vstack>
         </c-container>

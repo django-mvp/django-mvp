@@ -1,11 +1,12 @@
 <c-vars row
         breakpoint
+        wrap
         shrink
         justify
         icons-only
         class
         gap="2" />
-<div class="d-flex align-items-stretch flex-wrap flex-{{ breakpoint }}-nowrap{% if justify %} justify-content-{{ justify }}{% endif %} {% if shrink %} flex-shrink-0{% else %} flex-grow-1{% endif %}{% if row %} flex-row{% else %} flex-column{% endif %}{% if breakpoint %} flex-{{ breakpoint }}-row{% endif %} gap-{{ gap }}{% if icons_only %} btn-icons{% endif %} {{ class }}"
+<div class="d-flex align-items-stretch flex-wrap {% if not wrap %}flex-{{ breakpoint }}-nowrap{% endif %}{% if justify %} justify-content-{{ justify }}{% endif %} {% if shrink %} flex-shrink-0{% else %} flex-grow-1{% endif %}{% if row %} flex-row{% else %} flex-column{% endif %}{% if breakpoint %} flex-{{ breakpoint }}-row{% endif %} gap-{{ gap }}{% if icons_only %} btn-icons{% endif %} {{ class }}"
      {{ attrs }}>
   {{ slot }}
 </div>
