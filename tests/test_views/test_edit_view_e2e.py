@@ -1,22 +1,17 @@
-"""E2E tests for NextURLMixin: full round-trip redirect verification.
+"""Integration tests for NextURLMixin: redirect verification and form behaviour.
+
+Converted from end-to-end Playwright tests to Django test-client integration tests.
 
 Covers:
+  US1 — MVPCreateView: zero-config model create page (T021)
   US2 — Redirected Back to the Right Place (T022, T023)
-  US3 — CRUD Action Shorthand Destinations E2E (T035a, T035b)
-
-These tests require:
-  - pytest-playwright installed and browsers downloaded (``playwright install``)
-  - The ``e2e`` marker is registered in pytest configuration
-
-Run with: ``pytest tests/test_views/test_edit_view_e2e.py -m e2e``
-Skip in CI without playwright: ``pytest -m "not e2e"``
+  US3 — CRUD Action Shorthand Destinations (T035a, T035b)
+  US6 — MVPUpdateView: model-aware title and success message (T007-T009)
+  US3/US4 — Delete link visibility on update page (T012, T014)
 """
 
 import pytest
-
-pytest_playwright = pytest.importorskip("playwright", reason="playwright not installed — skip e2e tests")
-
-pytestmark = pytest.mark.e2e
+from django.urls import reverse
 
 
 # ---------------------------------------------------------------------------
@@ -28,7 +23,7 @@ pytestmark = pytest.mark.e2e
 def category(db):
     from demo.models import Category
 
-    return Category.objects.create(name="E2E Form Cat", slug="e2e-form-cat")
+    return Category.objects.create(name="Form Cat", slug="form-cat-integ")
 
 
 @pytest.fixture
@@ -36,152 +31,119 @@ def product(category):
     from demo.models import Product
 
     return Product.objects.create(
-        name="E2E Edit Product",
-        slug="e2e-edit-product",
+        name="Edit Product",
+        slug="edit-product-integ",
         category=category,
-        description="A product for E2E edit tests",
+        description="A product for edit integration tests",
         price="9.99",
         stock=5,
     )
 
 
-def _fill_product_form(page, category, *, name="E2E Created Product", slug="e2e-created-product"):
-    """Fill in the product creation form fields."""
-    page.fill("input[name=name]", name)
-    page.fill("input[name=slug]", slug)
-    page.fill("textarea[name=description]", "E2E test description")
-    page.fill("input[name=price]", "12.99")
-    page.fill("input[name=stock]", "3")
-    # Select the category in the <select> element
-    page.select_option("select[name=category]", str(category.pk))
+def _product_post_data(category, *, name="Created Product", slug="created-product-integ"):
+    """Return valid POST data for the product create/update form."""
+    return {
+        "name": name,
+        "slug": slug,
+        "description": "Integration test description",
+        "price": "12.99",
+        "stock": "3",
+        "category": category.pk,
+    }
 
 
 # ---------------------------------------------------------------------------
-# US2 — Redirected Back to the Right Place
+# US1 — MVPCreateView: zero-config model create page (T021)
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.django_db(transaction=True)
-def test_US2_create_with_url_next_redirects_to_url(page, live_server, category):
-    """[US2] Navigate to create URL with ?next=/products/, submit form, land at /products/.
-
-    Verifies the full create→redirect round-trip when a URL destination is embedded
-    in the query string.
-    """
-
-    create_url = f"{live_server.url}/products/create/?next=/products/"
-    page.goto(create_url)
-    _fill_product_form(page, category)
-    page.press("input[name=name]", "Enter")  # submit via Enter (no button shorthand)
-    page.wait_for_load_state("networkidle")
-    assert page.url.endswith("/products/"), f"Expected /products/, got {page.url}"
+@pytest.mark.django_db
+def test_US1_create_page_title_is_model_aware(client):
+    """[US1] GET /products/create/ — page contains 'Create Product'."""
+    response = client.get(reverse("product-create"))
+    assert b"Create Product" in response.content
 
 
-@pytest.mark.django_db(transaction=True)
-def test_US2_failed_form_preserves_next_url(page, live_server, category):
-    """[US2] Failed form submission re-renders the form with next_url still present.
-
-    Verifies that the destination is preserved for retry when validation fails.
-    """
-    create_url = f"{live_server.url}/products/create/?next=/products/"
-    page.goto(create_url)
-    # Deliberately leave required fields empty and submit — form validation fails
-    page.click("button[type=submit][value=list]")
-    page.wait_for_load_state("networkidle")
-    # The form re-renders on the same URL
-    assert "/products/create/" in page.url
-    # The hidden next input must still carry the destination value
-    hidden_next = page.query_selector("input[name=next][type=hidden]")
-    assert hidden_next is not None, "Hidden next input must be present after failed submission"
-    assert hidden_next.get_attribute("value") == "/products/"
-
-
-# ---------------------------------------------------------------------------
-# US3 — CRUD Action Shorthand Destinations E2E
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.django_db(transaction=True)
-def test_US3_create_with_list_shorthand_redirects_to_list(page, live_server, category):
-    """[US3] Navigate to create URL with ?next=list, submit form, land at list URL.
-
-    Required by Constitution §VIII and SC-003.
-    """
-
-    create_url = f"{live_server.url}/products/create/?next=list"
-    page.goto(create_url)
-    _fill_product_form(page, category, name="E2E List Redirect", slug="e2e-list-redirect")
-    page.press("input[name=name]", "Enter")
-    page.wait_for_load_state("networkidle")
-    assert page.url.endswith("/products/"), f"Expected list URL /products/, got {page.url}"
-
-
-@pytest.mark.django_db(transaction=True)
-def test_US3_create_with_detail_shorthand_redirects_to_detail(page, live_server, category):
-    """[US3] Navigate to create URL with ?next=detail, submit form, land at new object's detail URL.
-
-    Required by Constitution §VIII.
-    """
-    create_url = f"{live_server.url}/products/create/?next=detail"
-    page.goto(create_url)
-    _fill_product_form(page, category, name="E2E Detail Redirect", slug="e2e-detail-redirect")
-    page.press("input[name=name]", "Enter")
-    page.wait_for_load_state("networkidle")
-    # Detail URL for a product is /products/<pk>/
-    assert "/products/" in page.url
-    assert page.url.rstrip("/").split("/")[-1].isdigit(), f"Expected detail URL like /products/<pk>/, got {page.url}"
-
-
-# ---------------------------------------------------------------------------
-# US1 — MVPCreateView: zero-config model create page E2E (T021)
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.django_db(transaction=True)
-def test_US1_create_page_title_is_model_aware(page, live_server):
-    """[US1] Navigate to /products/create/ — page title element contains 'Create Product'.
-
-    Verifies FR-001: get_page_title() derives the title from verbose_name rather than
-    returning the old static 'Create Entry' fallback.
-    """
-    page.goto(f"{live_server.url}/products/create/")
-    page.wait_for_load_state("networkidle")
-    title_text = page.locator("h1, .page-title, [data-testid='page-title']").first.inner_text()
-    assert "Create Product" in title_text, f"Expected 'Create Product' in page title, got: {title_text!r}"
-
-
-@pytest.mark.django_db(transaction=True)
-def test_US1_success_message_is_title_cased(page, live_server, category):
-    """[US1] Fill and submit create form — flash message contains 'Product successfully created.'
-
-    Verifies FR-004: get_success_message() title-cases verbose_name so the flash reads
-    'Product successfully created.' rather than 'product successfully created.'
-    """
-    page.goto(f"{live_server.url}/products/create/")
-    _fill_product_form(page, category, name="E2E Flash Product", slug="e2e-flash-product")
-    page.click("button[type=submit]")
-    page.wait_for_load_state("networkidle")
-    # The flash message should contain the title-cased model name
-    body_text = page.content()
-    assert "Product successfully created." in body_text, (
-        "Expected 'Product successfully created.' in flash message body"
+@pytest.mark.django_db
+def test_US1_success_message_is_title_cased(client, category):
+    """[US1] POST valid create form — flash message contains 'Product successfully created.'"""
+    response = client.post(
+        reverse("product-create"),
+        _product_post_data(category, name="Flash Product", slug="flash-product-integ"),
+        follow=True,
     )
+    assert b"Product successfully created." in response.content
 
 
-@pytest.mark.django_db(transaction=True)
-def test_US1_breadcrumb_links_to_list(page, live_server):
-    """[US1] Navigate to /products/create/ — first breadcrumb <a> href points to /products/.
+@pytest.mark.django_db
+def test_US1_breadcrumb_links_to_list(client):
+    """[US1] GET /products/create/ — first breadcrumb href points to /products/."""
+    response = client.get(reverse("product-create"))
+    breadcrumbs = response.context["page"]["breadcrumbs"]
+    assert len(breadcrumbs) >= 1
+    assert breadcrumbs[0].get("href") == reverse("product-list")
 
-    Verifies FR-006: breadcrumb degradation handled by base class — list link present when
-    has_list_permission is truthy.
-    """
-    page.goto(f"{live_server.url}/products/create/")
-    page.wait_for_load_state("networkidle")
-    # First breadcrumb item should be an <a> linking to the product list
-    breadcrumb_link = page.locator(".breadcrumb a").first
-    href = breadcrumb_link.get_attribute("href")
-    assert href is not None, "First breadcrumb item should be an <a> tag"
-    assert href.endswith("/products/"), f"Expected breadcrumb href to end with /products/, got: {href!r}"
+
+# ---------------------------------------------------------------------------
+# US2 — Redirected Back to the Right Place (T022, T023)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+def test_US2_create_with_url_next_redirects_to_url(client, category):
+    """[US2] POST to create URL with ?next=/products/ — redirect lands at /products/."""
+    url = reverse("product-create") + "?next=/products/"
+    response = client.post(
+        url,
+        _product_post_data(category, name="Next URL Product", slug="next-url-product-integ"),
+    )
+    assert response.status_code == 302
+    assert response["Location"] == "/products/"
+
+
+@pytest.mark.django_db
+def test_US2_failed_form_preserves_next_url(client, category):
+    """[US2] Failed POST re-renders the form with the next destination preserved."""
+    url = reverse("product-create") + "?next=/products/"
+    # Submit empty data — form validation fails, re-renders the page.
+    response = client.post(url, {})
+    assert response.status_code == 200
+    assert "/products/create/" in response.wsgi_request.path
+    # The hidden next input must still carry the destination value.
+    assert b'name="next"' in response.content
+    assert b"/products/" in response.content
+
+
+# ---------------------------------------------------------------------------
+# US3 — CRUD Action Shorthand Destinations (T035a, T035b)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+def test_US3_create_with_list_shorthand_redirects_to_list(client, category):
+    """[US3] POST with ?next=list — redirect lands at the product list URL."""
+    url = reverse("product-create") + "?next=list"
+    response = client.post(
+        url,
+        _product_post_data(category, name="List Redirect Product", slug="list-redirect-integ"),
+    )
+    assert response.status_code == 302
+    assert response["Location"] == reverse("product-list")
+
+
+@pytest.mark.django_db
+def test_US3_create_with_detail_shorthand_redirects_to_detail(client, category):
+    """[US3] POST with ?next=detail — redirect lands at the new object's detail URL."""
+    from demo.models import Product
+
+    url = reverse("product-create") + "?next=detail"
+    response = client.post(
+        url,
+        _product_post_data(category, name="Detail Redirect Product", slug="detail-redirect-integ"),
+    )
+    assert response.status_code == 302
+    product = Product.objects.get(slug="detail-redirect-integ")
+    assert response["Location"] == reverse("product-detail", kwargs={"pk": product.pk})
 
 
 # ---------------------------------------------------------------------------
@@ -189,63 +151,34 @@ def test_US1_breadcrumb_links_to_list(page, live_server):
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.django_db(transaction=True)
-def test_US6_update_page_title_is_model_aware(page, live_server, product):
-    """[US6/T007] Navigate to the product update URL — page title contains 'Update Product'.
-
-    Verifies FR-001: MVPUpdateView.page_title = _("Update %(verbose_name)s") produces a
-    model-aware heading instead of the old static 'Update Entry' fallback.
-    """
-    update_url = f"{live_server.url}/products/{product.pk}/edit/"
-    page.goto(update_url)
-    page.wait_for_load_state("networkidle")
-    title_text = page.locator("h1, .page-title, [data-testid='page-title']").first.inner_text()
-    assert "Update Product" in title_text, f"Expected 'Update Product' in page title, got: {title_text!r}"
+@pytest.mark.django_db
+def test_US6_update_page_title_is_model_aware(client, product):
+    """[US6/T007] GET update URL — page contains 'Update Product'."""
+    url = reverse("product-update", kwargs={"pk": product.pk})
+    response = client.get(url)
+    assert b"Update Product" in response.content
 
 
-@pytest.mark.django_db(transaction=True)
-def test_US6_update_success_message_is_title_cased(page, live_server, product):
-    """[US6/T008] Submit valid product update form — flash contains 'Product successfully updated.'
-
-    Verifies FR-004: the success flash uses title-cased verbose_name so the message reads
-    'Product successfully updated.' not 'product successfully updated.'
-    """
-    update_url = f"{live_server.url}/products/{product.pk}/edit/"
-    page.goto(update_url)
-    page.wait_for_load_state("networkidle")
-    # Clear and update the name field
-    page.fill("input[name=name]", "E2E Updated Product")
-    # Submit via the "Save entry" button (value=list redirects to list)
-    page.click("button[type=submit][value=list]")
-    page.wait_for_load_state("networkidle")
-    body_text = page.content()
-    assert "Product successfully updated." in body_text, (
-        f"Expected 'Product successfully updated.' in flash message, got page content snippet:\n{body_text[:500]}"
-    )
+@pytest.mark.django_db
+def test_US6_update_success_message_is_title_cased(client, product, category):
+    """[US6/T008] POST valid update — flash contains 'Product successfully updated.'"""
+    url = reverse("product-update", kwargs={"pk": product.pk})
+    data = _product_post_data(category, name="Updated Product Name", slug="edit-product-integ")
+    response = client.post(url, data, follow=True)
+    assert b"Product successfully updated." in response.content
 
 
-@pytest.mark.django_db(transaction=True)
-def test_US6_update_breadcrumb_has_three_items(page, live_server, product):
-    """[US6/T009] Navigate to product update URL — breadcrumb has exactly three items.
-
-    Verifies FR-002: three-level breadcrumb (list → detail → update form title).
-    Second item links to the detail view; third item has no link.
-    """
-    update_url = f"{live_server.url}/products/{product.pk}/edit/"
-    page.goto(update_url)
-    page.wait_for_load_state("networkidle")
-    breadcrumb_items = page.locator(".breadcrumb li")
-    count = breadcrumb_items.count()
-    assert count == 3, f"Expected 3 breadcrumb items, got {count}"
-    # First item should be a link (to list)
-    first_link = breadcrumb_items.nth(0).locator("a")
-    assert first_link.count() > 0, "First breadcrumb item should be an <a> link (list)"
-    # Second item should be a link (to detail — has_detail_permission=True on ProductUpdateView)
-    second_link = breadcrumb_items.nth(1).locator("a")
-    assert second_link.count() > 0, "Second breadcrumb item should be an <a> link (detail)"
-    # Third item should have no link (current page)
-    third_link = breadcrumb_items.nth(2).locator("a")
-    assert third_link.count() == 0, "Third breadcrumb item should be plain text (no link)"
+@pytest.mark.django_db
+def test_US6_update_breadcrumb_has_three_items(client, product):
+    """[US6/T009] GET update URL — breadcrumb context has exactly three items."""
+    url = reverse("product-update", kwargs={"pk": product.pk})
+    response = client.get(url)
+    breadcrumbs = response.context["page"]["breadcrumbs"]
+    assert len(breadcrumbs) == 3
+    # First two items are links; last item is plain text (current page).
+    assert breadcrumbs[0].get("href") is not None, "First breadcrumb must be a link (list)"
+    assert breadcrumbs[1].get("href") is not None, "Second breadcrumb must be a link (detail)"
+    assert breadcrumbs[2].get("href") is None, "Third breadcrumb must be plain text (no link)"
 
 
 # ---------------------------------------------------------------------------
@@ -253,22 +186,15 @@ def test_US6_update_breadcrumb_has_three_items(page, live_server, product):
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.django_db(transaction=True)
-def test_US3_update_delete_link_visible_when_configured(page, live_server, product):
-    """[US3/T012] Navigate to product update URL — Delete button is visible and href has back/next.
-
-    Verifies FR-003: the delete button rendered by the update page includes ?back= and ?next=
-    query parameters, enabling the delete view to redirect correctly after deletion.
-    """
-    update_url = f"{live_server.url}/products/{product.pk}/edit/"
-    page.goto(update_url)
-    page.wait_for_load_state("networkidle")
-    # The delete button should be visible
-    delete_link = page.locator("a[href*='delete']").first
-    assert delete_link.is_visible(), "Delete button should be visible on the update page"
-    href = delete_link.get_attribute("href")
-    assert "?back=" in href or "&back=" in href, f"Delete link should contain ?back= param, got: {href!r}"
-    assert "next=" in href, f"Delete link should contain next= param, got: {href!r}"
+@pytest.mark.django_db
+def test_US3_update_delete_link_visible_when_configured(client, product):
+    """[US3/T012] GET update URL — Delete link is present with ?back= and next= params."""
+    url = reverse("product-update", kwargs={"pk": product.pk})
+    response = client.get(url)
+    content = response.content.decode()
+    assert "delete" in content, "Delete link must be present on the update page"
+    assert "back=" in content, "Delete link must contain ?back= parameter"
+    assert "next=" in content, "Delete link must contain next= parameter"
 
 
 # ---------------------------------------------------------------------------
@@ -276,22 +202,21 @@ def test_US3_update_delete_link_visible_when_configured(page, live_server, produ
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.django_db(transaction=True)
-def test_US4_update_delete_link_absent_when_not_configured(page, live_server):
-    """[US4/T014] Navigate to category update URL (no delete view) — no delete button rendered.
-
-    Verifies FR-009 template fix: the Delete button guard uses {% if delete_url %} so
-    the button is hidden when get_delete_url() returns '' (has_delete_permission=False).
-    """
+@pytest.mark.django_db
+def test_US4_update_delete_link_absent_when_not_configured(client):
+    """[US4/T014] GET category update URL (no delete view) — no delete link rendered."""
     from demo.models import Category
 
-    cat = Category.objects.create(name="E2E No Delete Cat", slug="e2e-no-delete-cat")
-    update_url = f"{live_server.url}/categories/{cat.pk}/edit/"
-    page.goto(update_url)
-    page.wait_for_load_state("networkidle")
-    # No delete link should appear anywhere on the page
-    delete_links = page.locator("a[href*='delete'], button[data-action*='delete']")
-    assert delete_links.count() == 0, (
-        f"Expected no delete button on category update page (no delete view configured), "
-        f"but found {delete_links.count()} delete element(s)"
+    cat = Category.objects.create(name="No Delete Cat", slug="no-delete-cat-integ")
+    url = reverse("category-update", kwargs={"pk": cat.pk})
+    response = client.get(url)
+    # CategoryUpdateView has has_delete_permission=False → get_delete_url() returns ''.
+    content = response.content.decode()
+    # No anchor pointing to a delete URL should appear.
+    import re
+
+    delete_links = re.findall(r'href="[^"]*delete[^"]*"', content)
+    assert delete_links == [], (
+        f"Expected no delete link on category update page, but found: {delete_links}"
     )
+

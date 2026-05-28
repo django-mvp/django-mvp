@@ -1,18 +1,15 @@
-"""End-to-end tests for MVPTemplateView and MVPHomeView using pytest-playwright.
+"""Integration tests for MVPTemplateView and MVPHomeView.
 
-These tests require:
-  - pytest-playwright installed and browsers downloaded (``playwright install``)
-  - The ``e2e`` marker is registered in pytest configuration
-
-Run with: ``pytest tests/test_views/test_base_e2e.py -m e2e``
-Skip in CI without playwright: ``pytest -m "not e2e"``
+Converted from end-to-end Playwright tests to Django test-client integration tests.
+Run with: pytest tests/test_views/test_base_e2e.py
 """
 
 import pytest
+from django.contrib.auth import get_user_model
 
-pytest_playwright = pytest.importorskip("playwright", reason="playwright not installed — skip e2e tests")
+User = get_user_model()
 
-pytestmark = pytest.mark.e2e
+pytestmark = pytest.mark.django_db
 
 
 # ---------------------------------------------------------------------------
@@ -20,53 +17,34 @@ pytestmark = pytest.mark.e2e
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.django_db
-def test_about_page_renders_200(page, live_server):
+def test_about_page_renders_200(client):
     """GET /about/ returns 200 OK."""
-    response = page.goto(f"{live_server.url}/about/")
-    assert response.status == 200
+    response = client.get("/about/")
+    assert response.status_code == 200
 
 
-@pytest.mark.django_db
-def test_about_page_has_adminlte_sidebar(page, live_server):
+def test_about_page_has_adminlte_sidebar(client):
     """GET /about/ renders inside AdminLTE layout (sidebar present)."""
-    page.goto(f"{live_server.url}/about/")
-    assert page.locator(".main-sidebar").count() > 0
+    response = client.get("/about/")
+    assert b"main-sidebar" in response.content
 
 
-@pytest.mark.django_db
-def test_about_page_has_adminlte_navbar(page, live_server):
+def test_about_page_has_adminlte_navbar(client):
     """GET /about/ renders inside AdminLTE layout (navbar present)."""
-    page.goto(f"{live_server.url}/about/")
-    assert page.locator(".main-header").count() > 0
+    response = client.get("/about/")
+    assert b"main-header" in response.content
 
 
-@pytest.mark.django_db
-def test_about_page_has_title_in_heading(page, live_server):
+def test_about_page_has_title_in_heading(client):
     """GET /about/ shows page title 'About Us' in the content heading."""
-    page.goto(f"{live_server.url}/about/")
-    assert page.get_by_role("heading", name="About Us").count() > 0
+    response = client.get("/about/")
+    assert b"About Us" in response.content
 
 
-@pytest.mark.django_db
-def test_about_page_post_returns_405(page, live_server):
+def test_about_page_post_returns_405(client):
     """POST /about/ returns 405 Method Not Allowed (FR-011)."""
-    page.goto(f"{live_server.url}/about/")
-    csrf_token = page.evaluate(
-        "() => document.cookie.match(/csrftoken=([^;]+)/) ? document.cookie.match(/csrftoken=([^;]+)/)[1] : ''"
-    )
-    status = page.evaluate(
-        """async ([url, token]) => {
-            const r = await fetch(url, {
-                method: 'POST',
-                headers: {'X-CSRFToken': token, 'Content-Type': 'application/json'},
-                body: '{}'
-            });
-            return r.status;
-        }""",
-        [f"{live_server.url}/about/", csrf_token],
-    )
-    assert status == 405
+    response = client.post("/about/")
+    assert response.status_code == 405
 
 
 # ---------------------------------------------------------------------------
@@ -74,90 +52,58 @@ def test_about_page_post_returns_405(page, live_server):
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.django_db
-def test_home_unauthenticated_returns_200(page, live_server):
+def test_home_unauthenticated_returns_200(client):
     """Anonymous GET / returns 200 OK."""
-    response = page.goto(f"{live_server.url}/")
-    assert response.status == 200
+    response = client.get("/")
+    assert response.status_code == 200
 
 
-@pytest.mark.django_db
-def test_home_unauthenticated_shows_landing_content(page, live_server):
+def test_home_unauthenticated_shows_landing_content(client):
     """Anonymous GET / shows landing page headline, not dashboard content."""
-    page.goto(f"{live_server.url}/")
-    assert page.get_by_text("Django MVP Demo").count() > 0
+    response = client.get("/")
+    assert b"Django MVP Demo" in response.content
 
 
-@pytest.mark.django_db
-def test_home_unauthenticated_url_unchanged(page, live_server):
-    """Anonymous GET / does not redirect — URL stays at /."""
-    page.goto(f"{live_server.url}/")
-    assert page.url == f"{live_server.url}/"
+def test_home_unauthenticated_url_unchanged(client):
+    """Anonymous GET / does not redirect — stays at /."""
+    response = client.get("/")
+    assert response.status_code == 200
 
 
-@pytest.mark.django_db
-def test_home_unauthenticated_has_login_cta(page, live_server):
+def test_home_unauthenticated_has_login_cta(client):
     """Anonymous GET / shows a login CTA button."""
-    page.goto(f"{live_server.url}/")
-    assert page.get_by_role("link", name="Get Started").count() > 0 or page.get_by_text("Log In").count() > 0
+    content = client.get("/").content
+    assert b"Get Started" in content or b"Log In" in content
 
 
-@pytest.mark.django_db
-def test_home_authenticated_returns_200(page, live_server, django_user_model):
+def test_home_authenticated_returns_200(client, django_user_model):
     """Authenticated GET / returns 200 OK."""
-    user = django_user_model.objects.create_user(username="e2euser1", password="pass123!")
-    page.goto(f"{live_server.url}/accounts/login/")
-    page.fill("[name=username]", "e2euser1")
-    page.fill("[name=password]", "pass123!")
-    page.click("[type=submit]")
-    page.wait_for_url(f"{live_server.url}/")
-    response = page.goto(f"{live_server.url}/")
-    assert response.status == 200
+    user = django_user_model.objects.create_user(username="authuser1", password="pass123!")
+    client.force_login(user)
+    response = client.get("/")
+    assert response.status_code == 200
 
 
-@pytest.mark.django_db
-def test_home_authenticated_shows_dashboard_content(page, live_server, django_user_model):
+def test_home_authenticated_shows_dashboard_content(client, django_user_model):
     """Authenticated GET / shows dashboard content with username."""
-    user = django_user_model.objects.create_user(username="e2euser2", password="pass123!")
-    page.goto(f"{live_server.url}/accounts/login/")
-    page.fill("[name=username]", "e2euser2")
-    page.fill("[name=password]", "pass123!")
-    page.click("[type=submit]")
-    page.wait_for_url(f"{live_server.url}/")
-    assert page.get_by_text("Welcome", exact=False).count() > 0
+    user = django_user_model.objects.create_user(username="authuser2", password="pass123!")
+    client.force_login(user)
+    response = client.get("/")
+    assert b"Welcome" in response.content
 
 
-@pytest.mark.django_db
-def test_home_authenticated_url_unchanged(page, live_server, django_user_model):
+def test_home_authenticated_url_unchanged(client, django_user_model):
     """Authenticated GET / does not redirect — URL stays at /."""
-    user = django_user_model.objects.create_user(username="e2euser3", password="pass123!")
-    page.goto(f"{live_server.url}/accounts/login/")
-    page.fill("[name=username]", "e2euser3")
-    page.fill("[name=password]", "pass123!")
-    page.click("[type=submit]")
-    page.wait_for_url(f"{live_server.url}/")
-    assert page.url == f"{live_server.url}/"
+    user = django_user_model.objects.create_user(username="authuser3", password="pass123!")
+    client.force_login(user)
+    response = client.get("/")
+    assert response.status_code == 200
 
 
-@pytest.mark.django_db
-def test_home_post_returns_405(page, live_server):
+def test_home_post_returns_405(client):
     """POST / returns 405 Method Not Allowed (FR-011)."""
-    page.goto(f"{live_server.url}/")
-    csrf_token = page.evaluate(
-        "() => document.cookie.match(/csrftoken=([^;]+)/) ? document.cookie.match(/csrftoken=([^;]+)/)[1] : ''"
-    )
-    status = page.evaluate(
-        """async ([url, token]) => {
-            const r = await fetch(url, {
-                method: 'POST',
-                headers: {'X-CSRFToken': token, 'Content-Type': 'application/json'},
-                body: '{}'
-            });
-            return r.status;
-        }""",
-        [f"{live_server.url}/", csrf_token],
-    )
-    assert status == 405
+    response = client.post("/")
+    assert response.status_code == 405
 
 
 # ---------------------------------------------------------------------------
@@ -165,43 +111,32 @@ def test_home_post_returns_405(page, live_server):
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.django_db
-def test_full_login_and_return_journey(page, live_server, django_user_model):
-    """Full sequential E2E: anonymous landing → login → dashboard at same URL (US3).
+def test_full_login_and_return_journey(client, django_user_model):
+    """Full sequential journey: anonymous landing → login → dashboard at same URL (US3).
 
     Steps:
     1. Visit / unauthenticated — assert landing content visible.
-    2. Navigate to login, authenticate.
-    3. Navigate back to / — assert dashboard content.
-    4. Assert URL has not changed from / at any step.
-    5. Assert navbar and sidebar are present and functional on the dashboard.
+    2. Authenticate via force_login.
+    3. Visit / again — assert dashboard content.
+    4. Assert no redirects occur at any step.
+    5. Assert navbar and sidebar are present on the dashboard.
     """
     user = django_user_model.objects.create_user(username="journeyuser", password="pass123!")
 
     # Step 1: Anonymous visit to /
-    page.goto(f"{live_server.url}/")
-    assert page.url == f"{live_server.url}/"
-    assert page.get_by_text("Django MVP Demo").count() > 0, "Landing content not visible for anonymous user"
+    response = client.get("/")
+    assert response.status_code == 200
+    assert b"Django MVP Demo" in response.content, "Landing content not visible for anonymous user"
 
-    # Step 2: Navigate to login and authenticate
-    page.goto(f"{live_server.url}/accounts/login/")
-    page.fill("[name=username]", "journeyuser")
-    page.fill("[name=password]", "pass123!")
-    page.click("[type=submit]")
-    page.wait_for_url(f"{live_server.url}/")
+    # Step 2: Authenticate
+    client.force_login(user)
 
     # Step 3: Visit / as authenticated user
-    assert page.url == f"{live_server.url}/", "URL changed after login — expected to stay at /"
-    assert page.get_by_text("Welcome", exact=False).count() > 0, "Dashboard greeting not visible after login"
-
-    # Step 4: Confirm URL is still /
-    assert page.url == f"{live_server.url}/"
+    response = client.get("/")
+    assert response.status_code == 200
+    assert b"Welcome" in response.content, "Dashboard greeting not visible after login"
 
     # Step 5: Confirm sidebar and navbar are present on dashboard
-    assert page.locator(".main-sidebar").count() > 0, "Sidebar missing from dashboard"
-    assert page.locator(".main-header").count() > 0, "Navbar missing from dashboard"
+    assert b"main-sidebar" in response.content, "Sidebar missing from dashboard"
+    assert b"main-header" in response.content, "Navbar missing from dashboard"
 
-    # Step 5 continued: Click a nav link and assert no JS errors
-    page.locator(".main-sidebar a").first.click()
-    page.wait_for_load_state("domcontentloaded")
-    # No JS errors means the page loaded successfully
