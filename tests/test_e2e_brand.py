@@ -21,9 +21,7 @@ Skip if playwright not installed:
 
 import pytest
 
-pytest_playwright = pytest.importorskip(
-    "playwright", reason="playwright not installed — skip e2e tests"
-)
+pytest_playwright = pytest.importorskip("playwright", reason="playwright not installed — skip e2e tests")
 
 pytestmark = pytest.mark.e2e
 
@@ -73,9 +71,7 @@ def _get_logo_src(page):
 def _get_icon_srcs(page):
     """Return a list of all icon img src values on the page."""
     return page.evaluate(
-        "() => Array.from(document.querySelectorAll('img'))"
-        ".filter(img => img.src.includes('icon'))"
-        ".map(img => img.src)"
+        "() => Array.from(document.querySelectorAll('img')).filter(img => img.src.includes('icon')).map(img => img.src)"
     )
 
 
@@ -108,8 +104,7 @@ def test_light_and_dark_icon_srcs_differ(page, live_server):
     assert light_icons, f"No light icon (icon_light) found; icons: {icon_srcs}"
     assert dark_icons, f"No dark icon (icon_dark) found; icons: {icon_srcs}"
     assert light_icons[0] != dark_icons[0], (
-        "Light and dark icon srcs must be different URLs. "
-        f"Got: {light_icons[0]!r} and {dark_icons[0]!r}"
+        f"Light and dark icon srcs must be different URLs. Got: {light_icons[0]!r} and {dark_icons[0]!r}"
     )
 
 
@@ -160,9 +155,7 @@ def test_empty_resolver_produces_no_broken_img_elements(page, live_server, monke
 
     monkeypatch.setattr(mvp_tags, "MVP_LOGO_RESOLVER", _EMPTY_RESOLVER)
     page.goto(f"{live_server.url}/")
-    broken_count = page.evaluate(
-        "() => Array.from(document.querySelectorAll('img[src=\"\"]')).length"
-    )
+    broken_count = page.evaluate("() => Array.from(document.querySelectorAll('img[src=\"\"]')).length")
     assert broken_count == 0, (
         f"{broken_count} <img> element(s) with empty src found — "
         "resolver returning '' must not produce broken image elements"

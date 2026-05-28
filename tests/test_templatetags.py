@@ -172,6 +172,7 @@ class TestLogoUrlCustomResolver:
         """FR-017/M1: logo_url output is plain str, not SafeData (no mark_safe)."""
         monkeypatch.setattr("mvp.templatetags.mvp.MVP_LOGO_RESOLVER", _CUSTOM_LOGO)
         from mvp.templatetags.mvp import logo_url
+
         result = logo_url(Context({}), height=40, theme="light")
         assert isinstance(result, str)
         assert not isinstance(result, SafeData), "logo_url must not return SafeData"
@@ -238,6 +239,7 @@ class TestIconUrlCustomResolver:
         """FR-017/M1: icon_url output is plain str, not SafeData (no mark_safe)."""
         monkeypatch.setattr("mvp.templatetags.mvp.MVP_ICON_RESOLVER", _CUSTOM_ICON)
         from mvp.templatetags.mvp import icon_url
+
         result = icon_url(Context({}), height=32, theme="light")
         assert isinstance(result, str)
         assert not isinstance(result, SafeData), "icon_url must not return SafeData"

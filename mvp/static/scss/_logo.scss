@@ -1,0 +1,12 @@
+.mvp-logo-container {
+  --logo-max-height: auto;
+  width: 100%;
+}
+
+.mvp-logo-container img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: var(--logo-max-height);
+  object-fit: contain;
+}

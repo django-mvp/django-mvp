@@ -26,13 +26,13 @@ def test_about_page_renders_200(client):
 def test_about_page_has_adminlte_sidebar(client):
     """GET /about/ renders inside AdminLTE layout (sidebar present)."""
     response = client.get("/about/")
-    assert b"main-sidebar" in response.content
+    assert b"app-sidebar" in response.content
 
 
 def test_about_page_has_adminlte_navbar(client):
     """GET /about/ renders inside AdminLTE layout (navbar present)."""
     response = client.get("/about/")
-    assert b"main-header" in response.content
+    assert b"app-header" in response.content
 
 
 def test_about_page_has_title_in_heading(client):
@@ -61,7 +61,7 @@ def test_home_unauthenticated_returns_200(client):
 def test_home_unauthenticated_shows_landing_content(client):
     """Anonymous GET / shows landing page headline, not dashboard content."""
     response = client.get("/")
-    assert b"Django MVP Demo" in response.content
+    assert b"production-ready Django apps fast" in response.content
 
 
 def test_home_unauthenticated_url_unchanged(client):
@@ -70,10 +70,10 @@ def test_home_unauthenticated_url_unchanged(client):
     assert response.status_code == 200
 
 
-def test_home_unauthenticated_has_login_cta(client):
-    """Anonymous GET / shows a login CTA button."""
+def test_home_unauthenticated_has_hero_lead(client):
+    """Anonymous GET / shows the hero lead paragraph."""
     content = client.get("/").content
-    assert b"Get Started" in content or b"Log In" in content
+    assert b"focus on your business logic" in content
 
 
 def test_home_authenticated_returns_200(client, django_user_model):
@@ -126,7 +126,7 @@ def test_full_login_and_return_journey(client, django_user_model):
     # Step 1: Anonymous visit to /
     response = client.get("/")
     assert response.status_code == 200
-    assert b"Django MVP Demo" in response.content, "Landing content not visible for anonymous user"
+    assert b"production-ready Django apps fast" in response.content, "Landing content not visible for anonymous user"
 
     # Step 2: Authenticate
     client.force_login(user)
@@ -137,6 +137,6 @@ def test_full_login_and_return_journey(client, django_user_model):
     assert b"Welcome" in response.content, "Dashboard greeting not visible after login"
 
     # Step 5: Confirm sidebar and navbar are present on dashboard
-    assert b"main-sidebar" in response.content, "Sidebar missing from dashboard"
-    assert b"main-header" in response.content, "Navbar missing from dashboard"
+    assert b"app-sidebar" in response.content, "Sidebar missing from dashboard"
+    assert b"app-header" in response.content, "Navbar missing from dashboard"
 

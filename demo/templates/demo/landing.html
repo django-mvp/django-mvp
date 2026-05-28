@@ -5,11 +5,10 @@
     <c-mvp.hero title="Build production-ready Django apps fast"
                 lead="A comprehensive framework with layouts, components, and ready-to-use views — so you can focus on your business logic."
                 parallax
-                height="75vh"
-                backdrop="0">
+                height="75vh">
       <c-slot name="top">
-        <img src="{% logo_url "md" %}"
-             class="img-fluid w-50 mb-3" />
+        <c-logo max-height="150px"
+                class="flex-center col-10 col-md-9 col-lg-8" />
       </c-slot>
     </c-mvp.hero>
   </c-slot>
