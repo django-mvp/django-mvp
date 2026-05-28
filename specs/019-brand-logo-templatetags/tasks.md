@@ -27,8 +27,8 @@
 
 **Purpose**: Rename settings constants and wire up the config layer before any tag logic is touched. All user story phases depend on this.
 
-- [ ] T001 Rename `MVP_LOGO_URL_FUNC` → `MVP_LOGO_RESOLVER` and `MVP_ICON_URL_FUNC` → `MVP_ICON_RESOLVER` in `mvp/config.py`
-- [ ] T014 Run `python manage.py check` — confirm no configuration errors after renaming the settings constants
+- [X] T001 Rename `MVP_LOGO_URL_FUNC` → `MVP_LOGO_RESOLVER` and `MVP_ICON_URL_FUNC` → `MVP_ICON_RESOLVER` in `mvp/config.py`
+- [X] T014 Run `python manage.py check` — confirm no configuration errors after renaming the settings constants
 
 ---
 
@@ -38,8 +38,8 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T002 Update `logo_url` and `icon_url` in `mvp/templatetags/mvp.py`: import renamed constants (`MVP_LOGO_RESOLVER`, `MVP_ICON_RESOLVER`); keep `takes_context=True`; keep `height` as required positional arg; add `ImproperlyConfigured` when setting present but import fails; return `""` on any resolver runtime exception
-- [ ] T015 Run `python manage.py check` — confirm no configuration errors after updating the templatetags module
+- [X] T002 Update `logo_url` and `icon_url` in `mvp/templatetags/mvp.py`: import renamed constants (`MVP_LOGO_RESOLVER`, `MVP_ICON_RESOLVER`); keep `takes_context=True`; keep `height` as required positional arg; add `ImproperlyConfigured` when setting present but import fails; return `""` on any resolver runtime exception
+- [X] T015 Run `python manage.py check` — confirm no configuration errors after updating the templatetags module
 
 **Checkpoint**: Tags callable from templates with the correct signature. Error paths exercisable.
 
@@ -53,7 +53,7 @@
 
 ### Tests for User Story 1
 
-- [ ] T003 [P] [US1] Write pytest tests for `logo_url` default resolver in `tests/test_templatetags.py`:
+- [X] T003 [P] [US1] Write pytest tests for `logo_url` default resolver in `tests/test_templatetags.py`:
   - Tag returns URL ending in `logo.svg` for `theme="light"`
   - Tag returns URL ending in `logo.svg` for `theme="dark"` (light fallback — no dark asset bundled)
   - Tag returns URL ending in `logo.svg` with no `theme` argument (default `"light"`)
@@ -62,7 +62,7 @@
 
 ### Implementation for User Story 1
 
-- [ ] T004 [P] [US1] Review `mvp/utils.py` `logo_url` default resolver: confirm it returns `static("brand/logo.svg")` for all themes (light fallback per FR-009/FR-010). Update docstring to document light-fallback behaviour. No logic change required.
+- [X] T004 [P] [US1] Review `mvp/utils.py` `logo_url` default resolver: confirm it returns `static("brand/logo.svg")` for all themes (light fallback per FR-009/FR-010). Update docstring to document light-fallback behaviour. No logic change required.
 
 **Checkpoint**: US1 fully functional and tested independently. `{% logo_url height=40 %}` works zero-config.
 
@@ -76,7 +76,7 @@
 
 ### Tests for User Story 2
 
-- [ ] T005 [P] [US2] Add pytest tests for `icon_url` default resolver to `tests/test_templatetags.py`:
+- [X] T005 [P] [US2] Add pytest tests for `icon_url` default resolver to `tests/test_templatetags.py`:
   - Tag returns URL ending in `icon_light.svg` for `theme="light"`
   - Tag returns URL ending in `icon_dark.svg` for `theme="dark"`
   - Tag returns URL ending in `icon_light.svg` with no `theme` argument (default)
@@ -85,7 +85,7 @@
 
 ### Implementation for User Story 2
 
-- [ ] T006 [P] [US2] Review `mvp/utils.py` `icon_url` default resolver: confirm light/dark/fallback logic is correct per FR-008/FR-009/FR-010. Update docstring. No logic change required.
+- [X] T006 [P] [US2] Review `mvp/utils.py` `icon_url` default resolver: confirm light/dark/fallback logic is correct per FR-008/FR-009/FR-010. Update docstring. No logic change required.
 
 **Checkpoint**: US2 fully functional and tested. Both `logo_url` and `icon_url` work zero-config. MVP deliverable complete.
 
@@ -99,7 +99,7 @@
 
 ### Tests for User Story 3
 
-- [ ] T007 [P] [US3] Add pytest tests for custom resolver paths to `tests/test_templatetags.py`:
+- [X] T007 [P] [US3] Add pytest tests for custom resolver paths to `tests/test_templatetags.py`:
   - `MVP_LOGO_RESOLVER` absent from settings → tag renders default logo URL, no `ImproperlyConfigured` raised — FR-007 / M3
   - Custom `MVP_LOGO_RESOLVER` is called with `(request, height, theme)` — assert callable receives correct args
   - Custom resolver return value is rendered as tag output
@@ -123,7 +123,7 @@
 
 ### Tests for User Story 4
 
-- [ ] T008 [P] [US4] Add pytest tests for height forwarding to `tests/test_templatetags.py`:
+- [X] T008 [P] [US4] Add pytest tests for height forwarding to `tests/test_templatetags.py`:
   - `{% logo_url height=40 %}` → resolver receives `height=40`
   - `{% logo_url height=100 theme="dark" %}` → resolver receives `height=100` and `theme="dark"`
   - `{% icon_url height=32 %}` → resolver receives `height=32`
@@ -140,13 +140,13 @@
 
 ### Implementation for User Story 5
 
-- [ ] T009 [US5] Using the playwright-cli skill: verify in the running demo app (`http://localhost:8001`) that:
+- [X] T009 [US5] Using the playwright-cli skill: verify in the running demo app (`http://localhost:8001`) that:
   - A logo `<img>` element with a non-empty `src` attribute is present in the page header / sidebar
   - The light-theme icon `src` and dark-theme icon `src` are different values (confirming theme routing works)
   - No broken image elements (missing or empty `src`) for logo or icon in default configuration
   - No console errors related to image loading
 
-- [ ] T016 [US5] Create `tests/test_e2e_brand.py` using pytest-playwright (Constitution VIII — formal CI regression suite):
+- [X] T016 [US5] Create `tests/test_e2e_brand.py` using pytest-playwright (Constitution VIII — formal CI regression suite):
   - Navigate to demo home page; assert logo `<img>` has a non-empty `src` containing `logo.svg`
   - Inject a multi-tenant resolver via `override_settings(MVP_LOGO_RESOLVER=...)` in a test view; assert that the resolver output changes when the simulated identity changes (verifies US5 AC-1 and AC-2)
   - Assert that a resolver returning `None` or `""` produces no broken `<img>` element (US5 AC-3)
@@ -160,13 +160,13 @@
 
 **Purpose**: Documentation update, SKILL.md, and final validation.
 
-- [ ] T010 [P] Update `skills/django-mvp/SKILL.md`: add a "Brand Templatetags" section documenting `MVP_LOGO_RESOLVER` / `MVP_ICON_RESOLVER` settings keys, the resolver callable signature `fn(request, height, theme) -> str | None`, and template usage (`{% logo_url height=N %}` / `{% icon_url height=N theme="dark" %}`)
+- [X] T010 [P] Update `skills/django-mvp/SKILL.md`: add a "Brand Templatetags" section documenting `MVP_LOGO_RESOLVER` / `MVP_ICON_RESOLVER` settings keys, the resolver callable signature `fn(request, height, theme) -> str | None`, and template usage (`{% logo_url height=N %}` / `{% icon_url height=N theme="dark" %}`)
 
-- [ ] T011 [P] Run `poetry run pytest tests/test_templatetags.py -v` and confirm all tests pass; run `poetry run ruff check mvp/config.py mvp/utils.py mvp/templatetags/mvp.py tests/test_templatetags.py` and confirm zero linting errors
+- [X] T011 [P] Run `poetry run pytest tests/test_templatetags.py -v` and confirm all tests pass; run `poetry run ruff check mvp/config.py mvp/utils.py mvp/templatetags/mvp.py tests/test_templatetags.py` and confirm zero linting errors
 
-- [ ] T012 [P] Run `poetry run djlint mvp/templates/ --check` to confirm no template linting regressions from any template changes
+- [X] T012 [P] Run `poetry run djlint mvp/templates/ --check` to confirm no template linting regressions from any template changes
 
-- [ ] T013 Confirm the old settings keys (`MVP_LOGO_URL_FUNC`, `MVP_ICON_URL_FUNC`) are fully removed from `mvp/config.py` and `mvp/templatetags/mvp.py`; grep for any remaining references across the codebase and update them
+- [X] T013 Confirm the old settings keys (`MVP_LOGO_URL_FUNC`, `MVP_ICON_URL_FUNC`) are fully removed from `mvp/config.py` and `mvp/templatetags/mvp.py`; grep for any remaining references across the codebase and update them
 
 ---
 
@@ -185,6 +185,7 @@ T001 (rename config) ─► T014 (manage.py check)
 ```
 
 **Parallel opportunities per story** (once T002 is done):
+
 - T003 and T005 can run in parallel (different test functions, same file)
 - T004 and T006 can run in parallel (same file `utils.py`, non-conflicting functions)
 - T007 and T008 test additions are additive — can be written together
@@ -196,6 +197,7 @@ T001 (rename config) ─► T014 (manage.py check)
 ## Implementation Strategy
 
 **MVP first**: Complete Phase 1–4 (T001–T006) before starting Phase 5+. At that point:
+
 - Both tags work zero-config with correct default resolvers
 - Full pytest coverage for happy paths
 - Linting clean
@@ -203,6 +205,7 @@ T001 (rename config) ─► T014 (manage.py check)
 **Then**: Add custom resolver tests (T007), height forwarding tests (T008), Playwright verification (T009), and polish (T010–T013).
 
 **Key constraints** (from spec + research):
+
 - `takes_context=True` — tag reads `request` from context; never a template argument
 - `height` — required in template calls, no Python default
 - `theme` — keyword arg, defaults to `"light"`

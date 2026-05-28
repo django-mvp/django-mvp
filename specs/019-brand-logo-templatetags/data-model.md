@@ -22,10 +22,12 @@ Settings are read from the host project's Django settings module via `mvp/config
 | `MVP_ICON_RESOLVER` | `str` (dotted import path) | `"mvp.utils.icon_url"` | Dotted path to the icon resolver callable |
 
 **Renamed from**:
+
 - `MVP_LOGO_URL_FUNC` → `MVP_LOGO_RESOLVER`
 - `MVP_ICON_URL_FUNC` → `MVP_ICON_RESOLVER`
 
 **Validation rules**:
+
 - If a setting is absent: default resolver is used, no error.
 - If a setting is present but the import path cannot be resolved: `ImproperlyConfigured` is raised on first tag use.
 - Neither setting is required; both have safe defaults.

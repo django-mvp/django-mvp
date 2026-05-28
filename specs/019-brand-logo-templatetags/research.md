@@ -39,6 +39,7 @@
 **Rationale**: The spec defines these names as the canonical API. The project is currently in alpha (v0.6.1); renaming now before stabilisation is lower cost than maintaining a compatibility shim long-term. The suffix `_RESOLVER` is more descriptive (it points to a callable that resolves a URL, not just any function).
 
 **Alternatives Considered**:
+
 - Keep `_FUNC` suffix: Rejected — inconsistent with the spec and less descriptive.
 - Deprecation shim (support both names): Rejected for this iteration — adds complexity for a pre-1.0 alpha library with no known downstream consumers outside the demo app.
 
@@ -53,6 +54,7 @@
 **Rationale**: The `request` object is always required by the resolver contract, so there is no benefit to making it an explicit template argument — it would add boilerplate to every tag call (`{% logo_url request %}`, `{% logo_url request theme="dark" %}`) without adding clarity. Django's `RequestContext` (the standard template context for views) always provides `request`; developers are already assumed to be using it (Assumptions). Extracting it automatically is therefore the ergonomic choice.
 
 **New Python signature**:
+
 ```python
 @register.simple_tag(takes_context=True)
 def logo_url(context, height, theme="light"):
@@ -66,6 +68,7 @@ def icon_url(context, height, theme="light"):
 ```
 
 **New template usage**:
+
 ```html
 {% load mvp %}
 <img src="{% logo_url height=40 %}">
@@ -73,6 +76,7 @@ def icon_url(context, height, theme="light"):
 ```
 
 **Alternatives Considered**:
+
 - Explicit `request` as first positional template argument (`{% logo_url request %}`): Rejected by user — request is always required, so declaring it every time is needless boilerplate.
 - Hybrid (optional explicit override): Rejected — YAGNI; adds complexity for a rare edge case.
 
@@ -87,6 +91,7 @@ def icon_url(context, height, theme="light"):
 The `icon_url` resolver already has proper light/dark handling via `icon_light.svg` and `icon_dark.svg`. No change needed for icons.
 
 **Alternatives Considered**:
+
 - Add `logo_dark.svg` to bundled assets: Rejected — unnecessary for a placeholder/demo logo; real consumers will supply their own resolver or assets.
 - Make the default resolver accept settings for asset paths: Rejected — spec explicitly removed light/dark path settings; resolver replacement is the extension point.
 
@@ -95,12 +100,14 @@ The `icon_url` resolver already has proper light/dark handling via `icon_light.s
 ## 5. Decision: Error Handling
 
 **Decision**: Two-tier error handling:
+
 1. **Bad import path** (setting present but module/function not importable): Raise `django.core.exceptions.ImproperlyConfigured` with a clear message identifying the setting name and the bad path. This check happens on first tag call (lazy), not at Django startup.
 2. **Resolver raises at runtime**: Catch all exceptions, return `""` (empty string). No logging.
 
 **Rationale**: FR-013 requires `ImproperlyConfigured` for bad paths. FR-012 requires silent empty-string return for runtime resolver failures. FR (logging) was explicitly removed during clarification — the default resolver never fails; custom resolvers own their observability.
 
 **Implementation Pattern**:
+
 ```python
 try:
     func = import_string(resolver_path)
@@ -115,6 +122,7 @@ except Exception:
 ```
 
 **Alternatives Considered**:
+
 - Validate at app startup (`AppConfig.ready()`): Rejected — import_string call at startup would couple app loading to the presence of the resolver module; lazy resolution is simpler and sufficient.
 - Log on resolver exception: Rejected during spec clarification.
 
@@ -127,6 +135,7 @@ except Exception:
 **Rationale**: The spec says "no implicit caching at the tag level." Python's import system already caches module objects, so `import_string` is cheap. Caching the resolved callable at module level would break test isolation (tests swap resolver settings). Caching at tag level would prevent dynamic resolver changes (rare but valid in testing scenarios).
 
 **Alternatives Considered**:
+
 - Cache using `functools.lru_cache` on a helper: Rejected — complicates test isolation.
 - Module-level lazy cache (`_logo_resolver = None`): Rejected — same issue; tests cannot swap resolvers cleanly.
 
@@ -139,6 +148,7 @@ except Exception:
 **Rationale**: Constitution Principle XI requires at least one labeled developer story AND one labeled end-user story. All 4 current stories are developer-facing and unlabeled. Story 3 (per-tenant logo) has an implicit end-user dimension but is not labeled as such.
 
 **Proposed amendment**:
+
 - Add `**Audience**: Developer` label to all 4 existing stories.
 - Promote the implicit end-user concern in Story 3 to an explicit end-user scenario, or add a new Story 5 labeled `**Audience**: End User`.
 
