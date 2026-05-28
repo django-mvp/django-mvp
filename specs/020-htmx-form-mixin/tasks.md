@@ -16,7 +16,7 @@
 **Purpose**: Add `django-htmx` as a required package dependency and wire it into the shared settings.
 
 - [ ] T001 Add `"django-htmx (>=1.0,<2.0)"` to `[project] dependencies` in `pyproject.toml` and run `poetry lock`
-- [ ] T002 Add `"django_htmx.middleware.HtmxMiddleware"` to `MIDDLEWARE` in `tests/settings.py` after `SessionMiddleware` and before `CsrfViewMiddleware`
+- [ ] T002 Add `"django_htmx.middleware.HtmxMiddleware"` to `MIDDLEWARE` in `tests/settings.py` after `SessionMiddleware` and before `CsrfViewMiddleware` — `django_htmx` does NOT need to be added to `INSTALLED_APPS`
 
 ---
 
@@ -26,7 +26,7 @@
 
 **⚠️ CRITICAL**: Complete before any Phase 3+ work begins.
 
-- [ ] T003 Create `mvp/views/htmx.py` with `HtmxFormMixin` class: declare all five class attributes (`htmx_success_template = None`, `htmx_form_template = None`, `htmx_redirect_on_success = False`, `htmx_trigger = None`, `htmx_trigger_after = "receive"`) and stub `get_htmx_success_template()`, `get_htmx_form_template()`, `form_valid()`, `form_invalid()` with `pass` bodies
+- [ ] T003 Create `mvp/views/htmx.py` with `HtmxFormMixin` class: declare all five class attributes (`htmx_success_template = None`, `htmx_form_template = None`, `htmx_redirect_on_success = False`, `htmx_trigger = None`, `htmx_trigger_after = "receive"`) and stub `get_htmx_success_template()`, `get_htmx_form_template()`, `form_valid()`, `form_invalid()` with `pass` bodies — `ImproperlyConfigured` guards are intentionally deferred to T022/T023; do not add them to the stubs now
 - [ ] T004 Add `from .htmx import HtmxFormMixin` import and `"HtmxFormMixin"` entry to `__all__` in `mvp/views/__init__.py`
 - [ ] T005 [P] Create `tests/test_views/test_htmx_form_mixin.py` with module docstring, all required imports (`pytest`, `RequestFactory`, `HtmxFormMixin`, `MVPCreateView`, `Product`), and a `make_htmx_view()` helper that builds a stub `HtmxFormMixin` + `MVPCreateView` subclass with a fake request bearing `HTTP_HX_REQUEST="true"`
 - [ ] T006 Run `python manage.py check` — must report zero errors before user story work begins
@@ -53,9 +53,10 @@
 
 - [ ] T011 [US1] Implement `form_valid()` htmx branch in `mvp/views/htmx.py`: when `request.htmx`, call `super().form_valid(form)`, drain messages via `list(get_messages(request))`, build context from `self.get_context_data(form=form)`, and return `HttpResponse(render_component(request, self.get_htmx_success_template(), context))`
 - [ ] T012 [US1] Implement `form_invalid()` htmx branch in `mvp/views/htmx.py`: when `request.htmx`, build context from `self.get_context_data(form=form)` and return `HttpResponse(render_component(request, self.get_htmx_form_template(), context), status=200)`
-- [ ] T013 [P] [US1] Create demo Cotton form-error component `demo/templates/cotton/demo/htmx-product-form.html` with `<form hx-post="{{ request.path }}" hx-target="#htmx-demo-form" hx-swap="outerHTML">`, CSRF token, `{{ form.as_div }}`, and a submit button
+- [ ] T013 [P] [US1] Create demo Cotton form-error component `demo/templates/cotton/demo/htmx-product-form.html` with `<form hx-post="{{ request.path }}" hx-target="#htmx-demo-form" hx-swap="outerHTML">`, CSRF token, `{{ form.as_div }}`, and a submit button — `Product.name` is a required `CharField`; leaving it blank will produce a visible validation error for the T018(c) error scenario
 - [ ] T014 [P] [US1] Create demo Cotton success component `demo/templates/cotton/demo/htmx-product-created.html` with success feedback referencing `{{ object.name }}`
-- [ ] T015 [US1] Add `HtmxProductCreateView` (subclass of `HtmxFormMixin` + `MVPCreateView` with `Product` model, both cotton templates configured, `success_url="list"`) to `demo/views.py` and register URL `htmx-demo/` in `demo/urls.py`
+- [ ] T014b [US1] Create demo page template `demo/templates/htmx_demo.html` that extends the base layout, wraps `<c-demo.htmx-product-form :form="form" />` in `<div id="htmx-demo-form">...</div>`, and includes `<script src="https://unpkg.com/htmx.org@2" defer></script>` in the `{% block extra_js %}` section — this is the swap target and outer page served on non-htmx GET requests
+- [ ] T015 [US1] Add `HtmxProductCreateView` (subclass of `HtmxFormMixin` + `MVPCreateView` with `Product` model, both cotton templates configured, `template_name="htmx_demo.html"`, `success_url="list"`) to `demo/views.py` and register URL `htmx-demo/` with `name="htmx_demo"` in `demo/urls.py`
 - [ ] T016 [US1] Add sidebar menu entry for `htmx_demo` view in `demo/menus.py`
 - [ ] T017 [US1] Run `pytest tests/test_views/test_htmx_form_mixin.py -x` — all US1 tests must pass; then run `python manage.py check`
 - [ ] T018 [US1] Playwright verification using playwright-cli skill in a real browser: (a) navigate to the htmx demo view, submit the form via htmx with valid data → assert success partial replaces the form container without any page navigation (URL unchanged); (b) submit the form with JS/htmx disabled → assert standard redirect occurs; (c) submit invalid data via htmx → assert validation errors appear inside the form partial
@@ -83,7 +84,7 @@
 - [ ] T023 [US2] Implement `get_htmx_form_template()` in `mvp/views/htmx.py`: return `self.htmx_form_template` if truthy; raise `ImproperlyConfigured("HtmxFormMixin requires 'htmx_form_template' to be set.")` otherwise
 - [ ] T024 [US2] Update `form_valid()` to call `self.get_htmx_success_template()` only when `htmx_redirect_on_success` is falsy; update `form_invalid()` to call `self.get_htmx_form_template()` unconditionally when on the htmx path in `mvp/views/htmx.py`
 - [ ] T025 [US2] Run `pytest tests/test_views/test_htmx_form_mixin.py` — all US1 + US2 tests pass; run `python manage.py check`
-- [ ] T026 [US2] Playwright verification: temporarily remove `htmx_form_template` from the demo view and submit an invalid htmx POST → assert Django DEBUG error page shows a clear `ImproperlyConfigured` message; restore config and confirm the view works again
+- [ ] T026 [US2] Playwright verification: (a) temporarily remove `htmx_form_template` from the demo view class and restart the server; submit an invalid htmx POST → assert Django DEBUG error page contains `ImproperlyConfigured` and the text `htmx_form_template`; (b) restore `htmx_form_template` to its original value and immediately run `pytest tests/test_views/test_htmx_form_mixin.py -x` to confirm the restoration — do not proceed until pytest is green; (c) reload the browser and submit a valid htmx POST → assert the success partial is returned normally (positive US2 acceptance scenario 1); also verify a non-htmx GET renders the full page without errors
 
 **Checkpoint**: US2 complete. Misconfiguration caught early with clear messages. Override hooks work.
 
@@ -130,7 +131,7 @@
 - [ ] T036 [US4] Add `_apply_htmx_triggers(self, response)` private method to `HtmxFormMixin` in `mvp/views/htmx.py`: no-op when `htmx_trigger` is falsy; calls `trigger_client_event(response, self.htmx_trigger, after=self.htmx_trigger_after)` for a string; iterates `self.htmx_trigger.items()` and calls `trigger_client_event(response, name, params, after=self.htmx_trigger_after)` for each entry when a dict; import `trigger_client_event` from `django_htmx.http`
 - [ ] T037 [US4] Call `self._apply_htmx_triggers(response)` at the end of both the partial and redirect branches in `form_valid()` in `mvp/views/htmx.py`
 - [ ] T038 [US4] Run `pytest tests/test_views/test_htmx_form_mixin.py` — all US1 + US2 + US3 + US4 tests pass; run `python manage.py check`
-- [ ] T039 [US4] Playwright verification: add `htmx_trigger = "productCreated"` to the demo view; add `<div hx-get="{{ request.path }}" hx-trigger="productCreated from:body" ...>` panel to the demo page template; submit a valid htmx POST → assert the listening panel refreshes without a full page reload
+- [ ] T039 [US4] Playwright verification: (a) add `htmx_trigger = "productCreated"` to `HtmxProductCreateView` in `demo/views.py`; (b) update `demo/templates/htmx_demo.html` to add a `<div hx-get="{{ request.path }}" hx-trigger="productCreated from:body" hx-target="this">product count</div>` panel below the form container; (c) submit a valid htmx POST → assert the listening panel refreshes without a full-page reload; (d) revert both changes (htmx_trigger and the template panel) after verification — trigger emission is not a permanent feature of the demo view
 
 **Checkpoint**: US4 complete. All four user stories fully functional.
 

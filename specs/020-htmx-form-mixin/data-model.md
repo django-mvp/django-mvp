@@ -63,7 +63,7 @@ Default implementation returns `self.htmx_success_template`.
 
 Override for dynamic (per-request) component name resolution.
 
-**Raises**: `ImproperlyConfigured` if `self.htmx_success_template` is falsy and `self.htmx_redirect_on_success` is also falsy — enforced in `form_valid()`, not in this method itself.
+**Raises**: `ImproperlyConfigured` if `self.htmx_success_template` is falsy and `self.htmx_redirect_on_success` is also falsy.
 
 ---
 
@@ -75,7 +75,7 @@ Default implementation returns `self.htmx_form_template`.
 
 Override for dynamic component name resolution.
 
-**Raises**: `ImproperlyConfigured` if `self.htmx_form_template` is falsy — enforced in `form_invalid()`, not in this method itself.
+**Raises**: `ImproperlyConfigured` if `self.htmx_form_template` is falsy.
 
 ---
 
@@ -95,7 +95,7 @@ Override for dynamic component name resolution.
 3. If `htmx_redirect_on_success` is truthy:
    - Returns `HttpResponseClientRedirect(self.get_success_url())`.
 4. Otherwise:
-   - Verifies `get_htmx_success_template()` returns a non-empty value; raises `ImproperlyConfigured` if not.
+   - Calls `self.get_htmx_success_template()`; the getter raises `ImproperlyConfigured` if `htmx_success_template` is falsy.
    - Builds context via `self.get_context_data(form=form)`.
    - Returns `HttpResponse(render_component(request, template, context))`.
 5. If `htmx_trigger` is set, calls `trigger_client_event()` on the response before returning.
