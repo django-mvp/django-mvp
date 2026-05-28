@@ -1,5 +1,5 @@
 <!-- SPECKIT START -->
 For additional context about technologies to be used, project structure,
 shell commands, and other important information, read the current plan
-at specs/018-vendor-adminlte-scss/plan.md
+at specs/019-brand-logo-templatetags/plan.md
 <!-- SPECKIT END -->

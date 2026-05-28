@@ -12,3 +12,7 @@
   padding-left: 0.85rem;
   border-left: 3px solid $primary;
 }
+
+.mvp-header {
+  @extend .bg-body;
+}

@@ -182,3 +182,61 @@ class TestBadRequestView:
             response = client.get("/bad/")
         assert response.status_code == 400
         assert b"Bad Request" in response.content or b"400" in response.content
+
+
+# ---------------------------------------------------------------------------
+# T029: Error page preview routes /errors/{code}/ — status, content, structure
+# ---------------------------------------------------------------------------
+
+_ERROR_PREVIEW_CODES = ["400", "403", "404", "500"]
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("code", _ERROR_PREVIEW_CODES)
+def test_error_preview_returns_200(client, code):
+    """Preview route /errors/{code}/ responds HTTP 200."""
+    response = client.get(f"/errors/{code}/")
+    assert response.status_code == 200
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("code", _ERROR_PREVIEW_CODES)
+def test_error_code_visible_in_dom(client, code):
+    """Numeric error code text is rendered prominently on the page."""
+    response = client.get(f"/errors/{code}/")
+    assert code.encode() in response.content
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("code", _ERROR_PREVIEW_CODES)
+def test_single_h1_element_present(client, code):
+    """Exactly one <h1> element is present (semantic heading)."""
+    content = client.get(f"/errors/{code}/").content.decode()
+    assert content.count("<h1") == 1
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("code", _ERROR_PREVIEW_CODES)
+def test_home_link_present(client, code):
+    """A link with href="/" exists on every error preview page."""
+    response = client.get(f"/errors/{code}/")
+    assert b'href="/"' in response.content
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("code", _ERROR_PREVIEW_CODES)
+def test_page_title_contains_error_code(client, code):
+    """Page <title> contains the numeric error code."""
+    content = client.get(f"/errors/{code}/").content.decode()
+    title_start = content.find("<title")
+    title_end = content.find("</title>")
+    title_text = content[title_start:title_end] if title_start != -1 else ""
+    assert code in title_text
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("code", _ERROR_PREVIEW_CODES)
+def test_no_sidebar_on_error_page(client, code):
+    """Error pages must NOT render the AdminLTE sidebar (standalone layout)."""
+    response = client.get(f"/errors/{code}/")
+    assert b"main-sidebar" not in response.content

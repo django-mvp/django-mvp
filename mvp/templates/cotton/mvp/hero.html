@@ -4,18 +4,13 @@
         title
         subtitle
         actions
-        backdrop="0.6" />
+        opacity="0.5" />
 <div class="{% if parallax %}parallax{% endif %} {{ class }}"
      data-speed="{{ speed }}"
      data-height="{{ height }}"
      data-image="{{ bg_image }}">
-  <div class="position-absolute"
-       style="top: 0;
-              right: 0;
-              bottom: 0;
-              left: 0;
-              background-color: rgba(0, 0, 0, {{ backdrop }})"></div>
-  <div class="text-center p-5 position-relative">
+  {% if opacity %}<c-components.backdrop opacity="{{ opacity }}" />{% endif %}
+  <div class="flex-center flex-column p-1 p-md-5 position-relative">
     {{ top }}
     {% if subtitle %}<span class="text-uppercase text-white w-bold">{{ subtitle }}</span>{% endif %}
     <h1 class="mb-3 mt-2 fw-bold">{{ title }}</h1>

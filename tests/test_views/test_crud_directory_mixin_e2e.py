@@ -1,11 +1,7 @@
-"""E2E tests for US5: Render Navigation Links Only for Available Actions.
+"""Integration tests for US4/US5: Render Navigation Links Only for Available Actions.
 
 Tests verify that the ProductDetailView correctly shows/hides action buttons
-based on user permissions (staff vs read-only).
-
-These tests use Django's test client for integration testing since they test
-the HTTP response and rendered HTML directly, which is equivalent to E2E
-browser verification for permission-gating logic.
+based on user permissions (staff vs read-only), using Django's test client.
 """
 
 import pytest
@@ -58,7 +54,6 @@ def regular_user(db):
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.e2e
 @pytest.mark.django_db
 class TestUS5StaffUserSeesActionButtons:
     """[US5] Staff user: edit and delete buttons visible; list link present."""
@@ -94,7 +89,6 @@ class TestUS5StaffUserSeesActionButtons:
         assert list_url in content, "List link must be present for staff user"
 
 
-@pytest.mark.e2e
 @pytest.mark.django_db
 class TestUS5ReadOnlyUserHidesActionButtons:
     """[US5] Read-only user: edit and delete buttons absent; list link present."""
@@ -135,7 +129,6 @@ class TestUS5ReadOnlyUserHidesActionButtons:
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.e2e
 @pytest.mark.django_db
 class TestUS4ProductDetailPageHeadingAndCSSClass:
     """[US4] ProductDetailView renders str(product) as heading, correct breadcrumb, and model CSS classes."""

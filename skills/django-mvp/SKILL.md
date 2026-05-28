@@ -1283,3 +1283,98 @@ class ProductFilteredListView(MVPListViewMixin, FilterView):
 
 `MVPListViewMixin` does not declare `paginate_by` — set it on your subclass if needed.
 `MVPListView` adds `paginate_by = 24` on top of the mixin.
+
+---
+
+## Brand Templatetags — `logo_url` and `icon_url`
+
+Two template tags resolve brand assets (logo and icon SVGs) for a given theme. Both call
+a configurable resolver function, making it easy to swap in per-tenant, thumbnail-aware,
+or CDN-backed URLs without changing templates.
+
+### Template usage
+
+```django
+{% load mvp %}
+
+{# Logo — height is required #}
+<img src="{% logo_url height=40 %}" alt="Logo" style="max-height: 40px; width: auto;">
+
+{# Logo with explicit dark theme #}
+<img src="{% logo_url height=40 theme="dark" %}" alt="Dark Logo">
+
+{# Icon — height is required #}
+<img src="{% icon_url height=32 %}" alt="Icon" style="max-height: 32px; width: auto;">
+
+{# Icon with dark theme #}
+<img src="{% icon_url height=32 theme="dark" %}" alt="Dark Icon">
+```
+
+The `request` object is extracted automatically from the Django template context
+(`takes_context=True`). Template authors do not pass it explicitly.
+
+### Tag argument contract
+
+| Argument | Type | Default | Description |
+|----------|------|---------|-------------|
+| `height` | `int` | **required** | Advisory max image height in pixels. Passed to resolver. |
+| `theme` | `str` | `"light"` | Theme identifier. Passed to resolver. |
+
+### Settings
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `MVP_LOGO_RESOLVER` | `str` | `"mvp.utils.logo_url"` | Dotted import path to logo resolver callable |
+| `MVP_ICON_RESOLVER` | `str` | `"mvp.utils.icon_url"` | Dotted import path to icon resolver callable |
+
+Zero-config: both settings are optional. The bundled defaults return the SVG files from
+`mvp/static/brand/` (`logo.svg`, `icon_light.svg`, `icon_dark.svg`).
+
+### Default resolver behaviour
+
+| Tag | `theme="light"` | `theme="dark"` | unknown theme |
+|-----|----------------|---------------|---------------|
+| `logo_url` | `brand/logo.svg` | `brand/logo.svg` (fallback) | `brand/logo.svg` |
+| `icon_url` | `brand/icon_light.svg` | `brand/icon_dark.svg` | `brand/icon.svg` |
+
+No dark logo asset is bundled — `logo_url` always falls back to the single `logo.svg`.
+
+### Custom resolver
+
+Point the setting to any callable with this signature:
+
+```python
+# myapp/branding.py
+def get_logo_url(request, height, theme):
+    """
+    Args:
+        request (HttpRequest | None): Current request, or None.
+        height (int | None): Advisory max height in pixels.
+        theme (str): Theme identifier, e.g. 'light' or 'dark'.
+
+    Returns:
+        str | None: URL string, or None/"" for no asset.
+    """
+    if hasattr(request, "user") and request.user.is_authenticated:
+        return request.user.organisation.logo_url
+    return static("brand/logo.svg")
+```
+
+```python
+# settings.py
+MVP_LOGO_RESOLVER = "myapp.branding.get_logo_url"
+```
+
+### Error behaviour
+
+| Scenario | Behaviour |
+|----------|-----------|
+| Setting absent | Default resolver used silently |
+| Setting present, import fails | `ImproperlyConfigured` raised on first tag call |
+| Resolver returns `None` | Tag outputs empty string `""` |
+| Resolver raises exception | Tag outputs `""` silently (no re-raise) |
+
+### Output safety
+
+Both tags return a **plain `str`** — not `SafeData`. Django auto-escaping applies
+normally. Do not call `mark_safe()` in a custom resolver.

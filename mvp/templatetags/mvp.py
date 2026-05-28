@@ -3,13 +3,14 @@
 import textwrap
 
 from django import template
+from django.core.exceptions import ImproperlyConfigured
 from django.template.loader import render_to_string
 from django.utils.html import escape
 from django.utils.module_loading import import_string
 from django.utils.safestring import mark_safe
 from django_cotton.compiler_regex import CottonCompiler
 
-from ..config import MVP_AVATAR_URL_FUNC, MVP_ICON_URL_FUNC, MVP_LOGO_URL_FUNC
+from ..config import MVP_AVATAR_URL_FUNC, MVP_ICON_RESOLVER, MVP_LOGO_RESOLVER
 
 register = template.Library()
 
@@ -28,22 +29,52 @@ def avatar_url(user, size):
 
 @register.simple_tag(takes_context=True)
 def logo_url(context, height, theme="light"):
-    """Returns the URL for a user's avatar image for a given size. Size is specified as "sm", "md", "lg", etc. The actual implementation is determined by the MVP_AVATAR_URL_FUNCTION setting, which should point to a function that accepts a user and size and returns a URL string.
+    """Returns the URL for the brand logo image for a given height and theme.
 
-    Note: The default implementation of avatar_url returns None, which will cause the avatar component to fall back to displaying an anonymouse user svg icon.
+    The resolver callable is determined by the MVP_LOGO_RESOLVER setting, which
+    should point to a function that accepts (request, height, theme) and returns
+    a URL string or None. Defaults to mvp.utils.logo_url (light-theme fallback
+    for all themes — no dark logo asset is bundled).
+
+    Raises ImproperlyConfigured if MVP_LOGO_RESOLVER is set to a non-existent
+    import path. Returns "" silently if the resolver raises a runtime exception.
     """
-    func = import_string(MVP_LOGO_URL_FUNC)
-    return func(getattr(context, "request", None), height, theme)
+    try:
+        func = import_string(MVP_LOGO_RESOLVER)
+    except ImportError as exc:
+        raise ImproperlyConfigured(
+            f"MVP_LOGO_RESOLVER '{MVP_LOGO_RESOLVER}' could not be imported: {exc}"
+        ) from exc
+    try:
+        result = func(context.get("request"), height, theme)
+    except Exception:
+        return ""
+    return result if result is not None else ""
 
 
 @register.simple_tag(takes_context=True)
 def icon_url(context, height, theme="light"):
-    """Returns the URL for a user's avatar image for a given size. Size is specified as "sm", "md", "lg", etc. The actual implementation is determined by the MVP_AVATAR_URL_FUNCTION setting, which should point to a function that accepts a user and size and returns a URL string.
+    """Returns the URL for the brand icon image for a given height and theme.
 
-    Note: The default implementation of avatar_url returns None, which will cause the avatar component to fall back to displaying an anonymouse user svg icon.
+    The resolver callable is determined by the MVP_ICON_RESOLVER setting, which
+    should point to a function that accepts (request, height, theme) and returns
+    a URL string or None. Defaults to mvp.utils.icon_url (light/dark routing via
+    icon_light.svg / icon_dark.svg; falls back to icon.svg for unknown themes).
+
+    Raises ImproperlyConfigured if MVP_ICON_RESOLVER is set to a non-existent
+    import path. Returns "" silently if the resolver raises a runtime exception.
     """
-    func = import_string(MVP_ICON_URL_FUNC)
-    return func(getattr(context, "request", None), height, theme)
+    try:
+        func = import_string(MVP_ICON_RESOLVER)
+    except ImportError as exc:
+        raise ImproperlyConfigured(
+            f"MVP_ICON_RESOLVER '{MVP_ICON_RESOLVER}' could not be imported: {exc}"
+        ) from exc
+    try:
+        result = func(context.get("request"), height, theme)
+    except Exception:
+        return ""
+    return result if result is not None else ""
 
 
 @register.simple_tag(takes_context=True)

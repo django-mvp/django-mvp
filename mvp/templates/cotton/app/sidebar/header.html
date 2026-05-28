@@ -1,5 +1,5 @@
 {% load i18n mvp %}
-<c-vars link="/" max-height="85px" />
+<c-vars link="/" max-height="80px" />
 {% logo_url "small" as logo_light %}
 {% logo_url "small" "dark" as logo_dark %}
 {% icon_url "small" as icon_light %}
@@ -7,7 +7,7 @@
 <div class="content-header bg-sidebar sticky-top border-bottom ">
   <div class="header-brand d-flex justify-content-center p-1">
     <a href="{{ link }}"
-       class="brand-link{% if icon and logo %} logo-switch{% endif %}">
+       class="brand-link w-100{% if icon and logo %} logo-switch{% endif %}">
       <div class="show-on-mini">
         <img src="{{ icon_light }}"
              alt="{% trans "Site icon" %}"
@@ -17,17 +17,13 @@
              class="rounded-3 hide-on-light-theme h-100" />
       </div>
       <div class="hide-on-mini px-3 pt-2 mx-auto">
-        <img src="{{ logo_light }}"
-             {% comment %}
-             src="https://picsum.photos/400/600"
-             {% endcomment %}
-             alt="{% trans "Site Logo" %}"
-             class="hide-on-dark-theme w-100"
-             style="max-height: {{ max_height }}" />
+        <c-logo max-height="{{ max_height }}" />
+        {% comment %} <c-logo max-height="{{ max_height }}" />
+        <img src="{{ logo_light }}" alt="{% trans "Site Logo" %}" class="mvp-logo hide-on-dark-theme" style="max-height: {{ max_height }}" />
         <img src="{{ logo_dark }}"
              alt="{% trans "Site Logo" %}"
-             class="hide-on-light-theme w-100"
-             style="max-height: {{ max_height }}" />
+             class="mvp-logo hide-on-light-theme"
+             style="max-height: {{ max_height }}" /> {% endcomment %}
       </div>
       {% if text or not logo_light %}
         <span class="brand-text fw-light d-none">
