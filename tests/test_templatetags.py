@@ -97,18 +97,18 @@ class TestLogoUrlDefaultResolver:
 class TestIconUrlDefaultResolver:
     """icon_url zero-config: default resolver routes light/dark/fallback correctly."""
 
-    def test_light_theme_returns_icon_light_svg(self):
+    def test_light_theme_returns_icon_svg(self):
         result = _render('{% icon_url height=32 theme="light" %}')
-        assert result.endswith("icon_light.svg")
+        assert result.endswith("icon.svg")
 
     def test_dark_theme_returns_icon_dark_svg(self):
         result = _render('{% icon_url height=32 theme="dark" %}')
         assert result.endswith("icon_dark.svg")
 
-    def test_no_theme_arg_returns_icon_light_svg(self):
-        """Default theme is 'light'."""
+    def test_no_theme_arg_returns_icon_svg(self):
+        """Default theme is 'light'; falls back to icon.svg."""
         result = _render("{% icon_url height=32 %}")
-        assert result.endswith("icon_light.svg")
+        assert result.endswith("icon.svg")
 
     def test_unrecognised_theme_returns_icon_svg_fallback(self):
         """FR-010: Unrecognised theme falls back to icon.svg."""
@@ -120,7 +120,7 @@ class TestIconUrlDefaultResolver:
     def test_without_request_in_context_does_not_raise(self):
         """SC-006: request absent from context — tag renders normally."""
         result = _render("{% icon_url height=32 %}", context_dict={})
-        assert result.endswith("icon_light.svg")
+        assert result.endswith("icon.svg")
 
 
 # ---------------------------------------------------------------------------
@@ -202,7 +202,7 @@ class TestIconUrlCustomResolver:
     def test_absent_resolver_setting_uses_default_icon(self):
         """FR-007/M3: MVP_ICON_RESOLVER absent → default resolver; no ImproperlyConfigured."""
         result = _render('{% icon_url height=32 theme="light" %}')
-        assert result.endswith("icon_light.svg")
+        assert result.endswith("icon.svg")
 
     def test_custom_resolver_is_called_with_correct_args(self, monkeypatch, rf):
         """Custom resolver receives (request, height, theme) with correct values."""

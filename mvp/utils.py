@@ -1,4 +1,5 @@
 from django.apps import apps
+from django.contrib.staticfiles import finders
 from django.templatetags.static import static
 
 
@@ -7,45 +8,42 @@ def avatar_url(user, height):
 
 
 def logo_url(request, height, theme):
-    """Default logo resolver: returns the bundled brand/logo.svg for all themes.
+    """Default logo resolver.
 
-    There is no separate dark-theme logo asset in the bundled defaults (FR-009/FR-010).
-    For any theme value — including 'dark' or unrecognised values — this resolver
-    falls back to the single bundled logo.svg. Consumers who need a distinct dark-theme
-    logo should register a custom resolver via the MVP_LOGO_RESOLVER setting.
+    Returns brand/logo.svg for light theme. For dark theme, returns
+    brand/logo_dark.svg if that asset is present, otherwise falls back
+    to brand/logo.svg. Unrecognised themes also fall back to brand/logo.svg.
 
     Args:
         request: The current HttpRequest, or None (e.g. management commands).
         height: Advisory max image height in pixels. Unused by the default resolver.
-        theme: Theme identifier (e.g. 'light', 'dark'). Unused — always falls back
-               to the single bundled asset.
+        theme: Theme identifier ('light', 'dark', or any other string).
 
     Returns:
-        str: Static URL for brand/logo.svg.
+        str: Static URL for the appropriate brand logo asset.
     """
-
-    if theme == "dark":
+    if theme == "dark" and finders.find("brand/logo_dark.svg"):
         return static("brand/logo_dark.svg")
 
     return static("brand/logo.svg")
 
 
 def icon_url(request, height, theme):
-    """Default icon resolver: returns the bundled light/dark brand icon.
+    """Default icon resolver.
 
-    Routes 'dark' theme to icon_dark.svg, 'light' theme to icon_light.svg,
-    and falls back to icon.svg for any unrecognised theme value (FR-008/FR-009/FR-010).
+    Returns brand/icon.svg for light theme and unrecognised themes. For dark
+    theme, returns brand/icon_dark.svg if that asset is present, otherwise
+    falls back to brand/icon.svg.
 
     Args:
         request: The current HttpRequest, or None (e.g. management commands).
         height: Advisory max image height in pixels. Unused by the default resolver.
-        theme: Theme identifier. 'light' → icon_light.svg, 'dark' → icon_dark.svg,
-               anything else → icon.svg (fallback).
+        theme: Theme identifier ('light', 'dark', or any other string).
 
     Returns:
         str: Static URL for the appropriate brand icon asset.
     """
-    if theme == "dark":
+    if theme == "dark" and finders.find("brand/icon_dark.svg"):
         return static("brand/icon_dark.svg")
 
     return static("brand/icon.svg")
