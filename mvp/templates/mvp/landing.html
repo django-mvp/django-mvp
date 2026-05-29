@@ -9,16 +9,23 @@
   {{ block.super }}
   <script src="https://cdn.jsdelivr.net/npm/parallaxx-js/dist/parallax.js"></script>
 {% endblock extra_js %}
-{% comment %} {% block page.content %}
-  <div class="hero-section text-center py-5">
-    {% if hero_content.image %}
-      <img src="{% static hero_content.image %}" alt="{{ hero_content.title }}" class="img-fluid mb-4" height="200" width="auto" style="max-height: 200px" />
-    {% endif %}
-    <img src="{% logo_url request "md" %}" alt="" />
-    <h1 class="display-4 fw-bold mb-3">{{ hero_content.title }}</h1>
-    <h2 class="h4 text-muted mb-4">{{ hero_content.subtitle }}</h2>
-    <p class="lead mb-5">{{ hero_content.lead }}</p>
-  </div>
-{% endblock page.content %} {% endcomment %}
-{% block app.header %}
-{% endblock app.header %}
+{% block content %}
+  <c-page class="{{ page.class }}">
+    <div class="mvp-header">
+      {% block page.hero %}
+      {% endblock page.hero %}
+    </div>
+    {% block page.content-wrapper %}
+      <c-page.content center gap=3 class="py-4">
+        <c-vstack gap=3>
+          {% block page.content %}
+          {% endblock page.content %}
+        </c-vstack>
+      </c-page.content>
+    {% endblock page.content-wrapper %}
+    <c-page.toolbar bottom>
+      {% block page.footer %}
+      {% endblock page.footer %}
+    </c-page.toolbar>
+  </c-page>
+{% endblock content %}

@@ -1,7 +1,7 @@
 {% load mvp %}
 <c-vars bottom />
 {% if not slot|slot_is_empty %}
-  <div class="mvp-{{ bottom|yesno:"footer,header" }} py-2">
+  <div class="mvp-{{ bottom|yesno:"footer,header" }}">
     <c-container :attrs="attrs">
       <c-mvp.toolbar tight>
         {{ slot }}

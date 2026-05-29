@@ -12,10 +12,9 @@
   {% if opacity %}<c-components.backdrop opacity="{{ opacity }}" />{% endif %}
   <div class="flex-center flex-column p-1 p-md-5 position-relative">
     {{ top }}
-    {% if subtitle %}<c-text text="{{ subtitle }}" bold upper />{% endif %}
     {% if subtitle %}<span class="text-uppercase text-white w-bold">{{ subtitle }}</span>{% endif %}
     <h1 class="mb-3 mt-2 fw-bold">{{ title }}</h1>
-    {% if lead %}<c-text text="{{ lead }}" impact />{% endif %}
+    {% if lead %}<p class="lead">{{ lead }}</p>{% endif %}
     {% if actions %}
       <c-action-group class="justify-content-center pt-4">
         {{ actions }}
