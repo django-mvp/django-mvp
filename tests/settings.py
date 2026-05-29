@@ -54,6 +54,7 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sites.middleware.CurrentSiteMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "django_htmx.middleware.HtmxMiddleware",
     "django.middleware.locale.LocaleMiddleware",  # MUST be here
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -128,7 +129,8 @@ LIBSASS_SOURCEMAPS = True
 
 CACHES = {
     "default": {
-        "BACKEND": "django.core.cache.backends.dummy.DummyCache",
+        # "BACKEND": "django.core.cache.backends.dummy.DummyCache",
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
     },
 }
 
@@ -174,6 +176,7 @@ EASY_ICONS = {
             "info-circle": "bi bi-info-circle",
             "laptop": "bi bi-laptop",
             "layout-wtf": "bi bi-layout-wtf",
+            "layout": "bi bi-layout-text-window-reverse",
             "link": "bi bi-link-45deg",
             "list-ul": "bi bi-list-ul",
             "list": "bi bi-card-list",
@@ -182,7 +185,8 @@ EASY_ICONS = {
             "person-circle": "bi bi-person-circle",
             "plus": "bi bi-plus-lg",
             "shirt": "bi bi-shirt",
-            "sidebar": "bi bi-layout-sidebar",
+            "sidebar-left": "bi bi-layout-sidebar",
+            "sidebar-right": "bi bi-layout-sidebar-right",
             "submit": "bi bi-check-lg",
             "support": "bi bi-life-preserver",
         },

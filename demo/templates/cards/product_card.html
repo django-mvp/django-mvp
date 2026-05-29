@@ -1,46 +1,42 @@
-<c-card title="{{ product.name }}"
-        icon="{{ product.category.icon }}"
-        variant="{{ product.is_featured|yesno:'primary,secondary' }}">
-  {% comment %} {% if product.is_featured %}<span class="badge bg-warning text-dark ms-2">Featured</span>{% endif %} {% endcomment %}
-  {% comment %} <span class="badge bg-{{ product.status|yesno:'success,secondary' }}">{{ product.get_status_display }}</span> {% endcomment %}
-  <div class="row g-0">
-    <div class="col-12 col-md-8">
-      <div class="mb-2 text-muted small">
-        <span class="me-2"><i class="bi bi-tag"></i> {{ product.sku }}</span>
-        {% if product.barcode %}<span class="me-2"><i class="bi bi-upc-scan"></i> {{ product.barcode }}</span>{% endif %}
-        <span class="me-2"><i class="bi bi-calendar"></i> {{ product.release_date|date:'M d, Y' }}</span>
-      </div>
-      <div class="mb-2">{{ product.short_description|default:product.description|truncatewords:30 }}</div>
-      <div class="mb-2">
-        {% for tag in product.tag_list %}<span class="badge text-secondary border me-1">#{{ tag }}</span>{% endfor %}
-      </div>
-      <div class="d-flex align-items-center gap-3 mt-2">
-        <span class="fw-bold text-primary fs-5">${{ product.price }}</span>
-        <span class="badge bg-{{ product.stock_status|yesno:'danger,warning,success' }}">
-          {% if product.stock_status == 'out_of_stock' %}
-            Out of Stock
-          {% elif product.stock_status == 'low_stock' %}
-            Low Stock
-          {% else %}
-            In Stock
-          {% endif %}
-        </span>
-        {% if product.rating %}
-          <span class="ms-2 text-warning">
-            <i class="bi bi-star-fill"></i> {{ product.rating }}
-          </span>
-        {% endif %}
-      </div>
-    </div>
-    <div class="col-12 col-md-4 d-flex flex-column align-items-end justify-content-between">
-      <div class="mb-2">
-        <span class="badge bg-info text-dark">Priority: {{ product.get_priority_display }}</span>
-      </div>
-    </div>
+<c-card class="h-100 position-relative">
+  <a href="{% url "product-delete" pk=object.pk %}"
+     class="link-danger position-absolute top-0 end-0 p-2">
+    <c-icon name="delete" />
+  </a>
+  <c-slot name="widgets">
+    <c-badge variant="{{ product.stock_status|yesno:'danger,warning,success' }}">
+      {% if product.stock_status == 'out_of_stock' %}
+        Out of Stock
+      {% elif product.stock_status == 'low_stock' %}
+        Low Stock
+      {% else %}
+        In Stock
+      {% endif %}
+    </c-badge>
+  </c-slot>
+  <c-text small tight>
+    {{ product.sku }}
+  </c-text>
+  <h5 class="card-title">{{ product.name }}</h5>
+  <div class="mb-2 overflow-hidden" style="height: 5lh;">
+    {% if not product.description %}
+      {{ product.description|truncatewords:30 }}
+    {% else %}
+      {% lorem 1 b random %}
+    {% endif %}
+  </div>
+  <div class="mb-2">
+    {% for tag in product.tag_list %}<span class="badge text-secondary border me-1">#{{ tag }}</span>{% endfor %}
+  </div>
+  <div class="d-flex align-items-center gap-3 mt-2">
+    {% if product.rating %}
+      <span class="ms-2 text-warning">
+        <i class="bi bi-star-fill"></i> {{ product.rating }}
+      </span>
+    {% endif %}
   </div>
   <c-slot name="footer_start">
-    <span class="me-2"><i class="bi bi-tag"></i> {{ product.sku }}</span>
-    {% if product.barcode %}<span class="me-2"><i class="bi bi-upc-scan"></i> {{ product.barcode }}</span>{% endif %}
-    <span class="me-2"><i class="bi bi-calendar"></i> {{ product.release_date|date:'M d, Y' }}</span>
+    <span class="fw-bold text-primary fs-5">${{ product.price }}</span>
+    <c-button text="View" size="sm" icon="arrow-right" reverse />
   </c-slot>
 </c-card>

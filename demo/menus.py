@@ -27,23 +27,40 @@ AppMenu.extend(
                 "icon": "home",
             },
         ),
-        # Layout Demo
-        MenuItem(
-            name="layout_demo",
-            view_name="layout_demo",
+        MenuCollapse(
+            name="crud_views",
             extra_context={
-                "label": "Layout Configuration",
-                "icon": "box-seam",
+                "label": "App Layout",
+                "icon": "layout",
             },
-        ),
-        # Navbar Widgets
-        MenuItem(
-            name="navbar_widgets_demo",
-            view_name="navbar_widgets_demo",
-            extra_context={
-                "label": "Navbar Widgets",
-                "icon": "grid",
-            },
+            children=[
+                # Layout Demo
+                MenuItem(
+                    name="layout_demo",
+                    view_name="layout_demo",
+                    extra_context={
+                        "label": "Configuration",
+                        "icon": "settings",
+                    },
+                ),
+                # Navbar Widgets
+                MenuItem(
+                    name="navbar_widgets_demo",
+                    view_name="navbar_widgets_demo",
+                    extra_context={
+                        "label": "Navbar",
+                        "icon": "grid",
+                    },
+                ),
+                MenuItem(
+                    name="app_sidebar",
+                    view_name="navbar_widgets_demo",
+                    extra_context={
+                        "label": "Sidebar",
+                        "icon": "sidebar-left",
+                    },
+                ),
+            ],
         ),
         # MenuItem(
         #     name="page_layout_demo",
@@ -114,8 +131,14 @@ AppMenu.extend(
                         "badge_classes": "text-bg-success",
                     },
                 ),
-                # Note: Edit Product would need dynamic pk - linking to products list instead
-                # MenuItem for editing will be added dynamically from product list view
+                MenuItem(
+                    name="htmx_demo",
+                    view_name="htmx_demo",
+                    extra_context={
+                        "label": "HTMX Form Demo",
+                        "icon": "form",
+                    },
+                ),
             ],
         ),
         # 3rd party integration demos - shows how to link to external apps or features

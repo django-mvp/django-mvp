@@ -1,25 +1,32 @@
 # Implementation Plan: HTMX Form Mixin
 
+**Propagated**: 2026-05-28 — Updated from spec.md refinement
+**Propagated**: 2026-05-29 — Added US5 (`htmx_success_components` allowlist + `X-Success-Component` client-driven component selection)
+**Propagated**: 2026-05-29 — Added `HtmxMixin` base class; `get_context_data()` / `htmx_enabled` moves from `HtmxFormMixin` to `HtmxMixin`; `HtmxFormMixin` now inherits from `HtmxMixin` (FR-025–FR-026, Phase 9)
+**Propagated**: 2026-05-29 — Expanded `HtmxMixin`: trigger subsystem (`htmx_trigger`, `htmx_trigger_after`, `_apply_htmx_triggers()`) and `_resolve_component()` helper move from `HtmxFormMixin` to `HtmxMixin`; `get_htmx_success_component()` delegates to `_resolve_component()` (FR-027–FR-028, Phase 10)
+
 **Branch**: `020-htmx-form-mixin` | **Date**: 2026-05-28 | **Spec**: [specs/020-htmx-form-mixin/spec.md](spec.md)
 **Input**: Feature specification from `specs/020-htmx-form-mixin/spec.md`
 
 ## Summary
 
-A new `HtmxFormMixin` class that augments any of the package's existing form views (`MVPFormView`, `MVPCreateView`, `MVPUpdateView`, `MVPDeleteView`) with htmx progressive enhancement. On a valid htmx POST it returns a Cotton component partial (or an `HX-Redirect` header); on an invalid htmx POST it returns the form Cotton component at HTTP 200. Non-htmx requests are completely unmodified.
+A new `HtmxMixin` base class and `HtmxFormMixin` subclass that augment any of the package's existing form views (`MVPFormView`, `MVPCreateView`, `MVPUpdateView`, `MVPDeleteView`) with htmx progressive enhancement. On a valid htmx POST it returns a Cotton component partial (or an `HX-Redirect` header); on an invalid htmx POST it returns the form Cotton component at HTTP 200. Non-htmx requests are completely unmodified.
 
-Detection uses `request.htmx` from `django-htmx`. Rendering uses `render_component()` from `django-cotton`. Client-side redirects use `HttpResponseClientRedirect`; triggers use `trigger_client_event()`. Django messages are drained via `get_messages()` on htmx success paths.
+`HtmxMixin` is a lightweight base class for all htmx-enhanced views. It provides: `get_context_data()` (injects `htmx_enabled = True`), the trigger subsystem (`htmx_trigger`, `htmx_trigger_after`, `_apply_htmx_triggers()`), and `_resolve_component(attr, allowlist_attr, header_name)` — a shared helper for client-driven component selection via request headers. Any future htmx view type (e.g., `HtmxListViewMixin`) inherits all three capabilities without form-specific code. `HtmxFormMixin` inherits from `HtmxMixin` and adds all form-specific behaviour; its public API is unchanged. `get_htmx_success_component()` now delegates the allowlist/header lookup to `_resolve_component()`.
+
+Success component resolution follows a two-stage lookup: (1) if `htmx_success_components` (a tuple of `(alias, component)` pairs) is non-empty and the `X-Success-Component` request header is present with a known alias, that component is returned immediately; (2) otherwise the server default `htmx_success_component` is used. Unknown aliases fall through silently. The feature is opt-in — an empty `htmx_success_components` means the header is always ignored.
 
 ## Technical Context
 
 **Language/Version**: Python 3.12 / 3.13
-**Primary Dependencies**: Django 5.2+, `django-htmx>=1.0,<2.0` (new required dep), `django-cotton==2.6.1` (existing dep)
+**Primary Dependencies**: Django 5.2+, `django-htmx>=1.0,<2.0` (dev/optional dep — not declared as a package dependency; developers must install it themselves), `django-cotton==2.6.1` (existing dep)
 **Storage**: N/A — no model changes, no migrations
 **Testing**: pytest + pytest-django (unit); pytest-playwright (browser htmx interactions)
 **Target Platform**: Django web application (server-side)
 **Project Type**: Reusable Django app — view mixin
 **Performance Goals**: No additional database queries beyond the existing form view chain
 **Constraints**: Zero regression on non-htmx paths; 100% branch coverage on mixin logic
-**Scale/Scope**: One new Python file (~80–100 LOC), one test module, one demo view, two demo Cotton components
+**Scale/Scope**: One new Python file (~150 LOC), one test module, one demo view, two demo Cotton components
 
 ## Constitution Check
 
@@ -62,8 +69,13 @@ No `contracts/` directory: the mixin is a Python class, not an external service 
 mvp/
 └── views/
     ├── edit.py                      # unchanged — existing form view base classes
-    ├── htmx.py                      # NEW — HtmxFormMixin class
-    └── __init__.py                  # updated — export HtmxFormMixin
+    ├── htmx.py                      # NEW — HtmxMixin + HtmxFormMixin (import directly from mvp.views.htmx)
+    │                                #   HtmxMixin: get_context_data(), htmx_trigger, htmx_trigger_after,
+    │                                #     _apply_htmx_triggers(), _resolve_component()
+    │                                #   HtmxFormMixin(HtmxMixin): htmx_success_component,
+    │                                #     htmx_success_components, htmx_form_component,
+    │                                #     htmx_redirect_on_success (trigger attrs inherited from HtmxMixin)
+    └── __init__.py                  # unchanged — neither HtmxMixin nor HtmxFormMixin exported here
 
 tests/
 └── test_views/
@@ -80,10 +92,10 @@ demo/
             ├── htmx-product-form.html     # NEW — form-error partial demo component
             └── htmx-product-created.html  # NEW — success partial demo component
 
-pyproject.toml                       # updated — add django-htmx dependency
+pyproject.toml                       # updated — add django-htmx as dev dependency only (not in [project] dependencies)
 ```
 
-**Structure Decision**: Single Django app layout. New source file `mvp/views/htmx.py` isolates the `django-htmx` dependency and keeps `edit.py` clean. No new Django app or package is required.
+**Structure Decision**: Single Django app layout. New source file `mvp/views/htmx.py` isolates the `django-htmx` dependency and keeps `edit.py` clean. `HtmxFormMixin` is NOT exported from `mvp/views/__init__.py` to avoid `ImportError` in projects that do not install `django-htmx`. No new Django app or package is required.
 
 ## Complexity Tracking
 

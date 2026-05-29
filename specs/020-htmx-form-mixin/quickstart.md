@@ -40,7 +40,7 @@ In your base template (e.g. `base.html`):
 
 ## Minimum Configuration: Success Partial
 
-Add the mixin **before** the base view class and set `htmx_success_template` and `htmx_form_template`:
+Add the mixin **before** the base view class and set `htmx_success_component`. `htmx_form_component` defaults to `"form.card"` (the package's standard card form component) and does not need to be set:
 
 ```python
 # views.py
@@ -50,8 +50,8 @@ from mvp.views.htmx import HtmxFormMixin
 class ProductCreateView(HtmxFormMixin, MVPCreateView):
     model = Product
     form_class = ProductForm
-    htmx_success_template = "demo.product-created"  # → cotton/demo/product_created.html
-    htmx_form_template = "demo.product-form"         # → cotton/demo/product_form.html
+    htmx_success_component = "demo.product-created"  # → cotton/demo/product_created.html
+    # htmx_form_component defaults to "form.card" — no need to set it unless overriding
     success_url = "/products/"  # used for non-htmx POST fallback
 ```
 
@@ -97,11 +97,11 @@ class OrderCreateView(HtmxFormMixin, MVPCreateView):
     model = Order
     form_class = OrderForm
     htmx_redirect_on_success = True   # returns HX-Redirect header
-    htmx_form_template = "orders.form"
+    # htmx_form_component defaults to "form.card"
     success_url = "list"              # resolved via CRUDDirectoryMixin
 ```
 
-When both `htmx_redirect_on_success` and `htmx_success_template` are set, the redirect takes precedence.
+When both `htmx_redirect_on_success` and `htmx_success_component` are set, the redirect takes precedence.
 
 ---
 
@@ -113,8 +113,8 @@ Notify other htmx elements on the page when the form succeeds, without writing J
 class ProductCreateView(HtmxFormMixin, MVPCreateView):
     model = Product
     form_class = ProductForm
-    htmx_success_template = "demo.product-created"
-    htmx_form_template = "demo.product-form"
+    htmx_success_component = "demo.product-created"
+    # htmx_form_component defaults to "form.card"
     htmx_trigger = "productCreated"           # simple string → HX-Trigger: productCreated
     htmx_trigger_after = "settle"             # → HX-Trigger-After-Settle
 ```
@@ -144,8 +144,8 @@ The mixin is **completely transparent** for non-htmx requests. If a user submits
 class ProductCreateView(HtmxFormMixin, MVPCreateView):
     model = Product
     form_class = ProductForm
-    htmx_success_template = "demo.product-created"
-    htmx_form_template = "demo.product-form"
+    htmx_success_component = "demo.product-created"
+    # htmx_form_component defaults to "form.card"
     success_url = "/products/"   # used when htmx is not present
 ```
 
@@ -153,13 +153,13 @@ class ProductCreateView(HtmxFormMixin, MVPCreateView):
 
 ## Dynamic Template Selection
 
-Override `get_htmx_success_template()` or `get_htmx_form_template()` for per-request logic:
+Override `get_htmx_success_component()` or `get_htmx_form_component()` for per-request logic:
 
 ```python
 class ProductView(HtmxFormMixin, MVPCreateView):
-    htmx_form_template = "products.form"
+    # htmx_form_component defaults to "form.card"
 
-    def get_htmx_success_template(self):
+    def get_htmx_success_component(self):
         if self.request.user.is_staff:
             return "products.created-admin"
         return "products.created"
@@ -185,8 +185,8 @@ class ProductCreateView(HtmxFormMixin, MVPCreateView):
 
 | Attribute | Type | Default | Purpose |
 |---|---|---|---|
-| `htmx_success_template` | `str \| None` | `None` | Cotton component (dot-notation) rendered on success |
-| `htmx_form_template` | `str \| None` | `None` | Cotton component (dot-notation) rendered on invalid form |
+| `htmx_success_component` | `str \| None` | `None` | Cotton component (dot-notation) rendered on success |
+| `htmx_form_component` | `str` | `"form.card"` | Cotton component (dot-notation) rendered on invalid form |
 | `htmx_redirect_on_success` | `bool` | `False` | Return `HX-Redirect` header on success instead of partial |
 | `htmx_trigger` | `str \| dict \| None` | `None` | Event(s) to emit via `HX-Trigger` family headers on success |
 | `htmx_trigger_after` | `'receive' \| 'settle' \| 'swap'` | `'receive'` | Controls timing variant of the trigger header |
@@ -205,5 +205,5 @@ class ProductCreateView(HtmxFormMixin, MVPCreateView):
 
 | Scenario | Exception |
 |---|---|
-| htmx POST valid + `htmx_success_template` not set + `htmx_redirect_on_success=False` | `ImproperlyConfigured` |
-| htmx POST invalid + `htmx_form_template` not set | `ImproperlyConfigured` |
+| htmx POST valid + `htmx_success_component` not set + `htmx_redirect_on_success=False` | `ImproperlyConfigured` |
+| htmx POST invalid + `htmx_form_component` explicitly cleared to falsy | `ImproperlyConfigured` (default `"form.card"` prevents this) |

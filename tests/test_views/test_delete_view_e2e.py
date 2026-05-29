@@ -12,7 +12,6 @@ Covers:
 import pytest
 from django.urls import reverse
 
-
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
@@ -147,7 +146,7 @@ def test_US3_protected_page_has_no_delete_button(client, product):
     # We verify via context rather than raw HTML since other page elements (sidebar
     # settings form) may also contain type="submit".
     assert response.context["is_protected"] is True
-    assert b'delete-submit-btn' not in response.content
+    assert b"delete-submit-btn" not in response.content
 
 
 # ---------------------------------------------------------------------------
@@ -184,4 +183,3 @@ def test_US4_confirmation_input_visible_with_prompt(client, product):
     content = response.content.decode()
     assert "id_confirmation" in content
     assert str(product) in content
-

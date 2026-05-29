@@ -1,14 +1,14 @@
 {% extends "form_view.html" %}
 {% load i18n %}
 {% block before_form %}
-  <input type="hidden" name="next" value="{{ next_url }}" />
+  {% if next_url %}<input type="hidden" name="next" value="{{ next_url }}" />{% endif %}
   {% if is_protected %}
     {# ===== Scenario 3: Object is PROTECT-blocked - no delete button ===== #}
     <c-alert variant="danger">
       <strong>{% trans "This record cannot be deleted." %}</strong>
-      <p class="mb-1 mt-2">
+      <c-text>
         {% trans "It is referenced by the following records, which must be removed or updated first:" %}
-      </p>
+      </c-text>
       <ul class="mb-0">
         {% for obj in protected_objects %}<li>{{ obj }}</li>{% endfor %}
       </ul>
@@ -16,64 +16,69 @@
   {% else %}
     {# ===== Scenarios 1, 2, 4: Object is safe to delete ===== #}
     <c-alert variant="warning">
-      {% trans "You are about to" %}
-      <strong>{% trans "permanently" %}</strong>
-      {% trans "delete this record. This action cannot be undone." %}
+      {% blocktrans %}
+      You are about to <strong>permanently</strong> delete this record. This action cannot be undone.
+      {% endblocktrans %}
     </c-alert>
     {% if related_objects %}
       {# ===== Scenario 2: Related-objects summary (opt-in) ===== #}
-      <c-alert variant="info" class="mt-2">
+      <c-alert variant="info">
         <strong>{% trans "The following related records will also be permanently deleted:" %}</strong>
         {% for label, objs, overflow in related_objects %}
-          <p class="fw-semibold mb-1 mt-2">{{ label }}</p>
+          <c-text text="{{ label }}" bold />
           <ul class="mb-0">
             {% for obj in objs %}<li>{{ obj }}</li>{% endfor %}
           </ul>
-          {% if overflow %}<p class="text-muted small mb-0">… and {{ overflow }} more</p>{% endif %}
+          {% if overflow %}
+            <c-text small>
+              {% blocktrans %}
+              … and {{ overflow }} more
+              {% endblocktrans %}
+            </c-text>
+          {% endif %}
         {% endfor %}
       </c-alert>
     {% endif %}
     {% if require_confirmation %}
       {# ===== Scenario 4: Type-to-confirm input (opt-in) ===== #}
       {% if form.errors.confirmation %}
-        <div class="alert alert-danger py-2 mt-2" role="alert">
+        <c-alert variant="danger">
           {% for error in form.errors.confirmation %}
             {{ error }}
             {% if not forloop.last %}{% endif %}
           {% endfor %}
-        </div>
+        </c-alert>
       {% endif %}
-      <p class="mb-2 mt-3">
+      <c-text>
         {% blocktrans with val=confirmation_value %}To confirm, type <strong class="font-monospace">{{ val }}</strong> below:{% endblocktrans %}
-      </p>
-      <div class="mb-3">
-        <label for="id_confirmation"
-               class="form-label visually-hidden">{{ confirmation_label }}</label>
-        <input type="text"
-               id="id_confirmation"
-               name="confirmation"
-               class="form-control"
-               placeholder="{{ confirmation_label }}"
-               autocomplete="off"
-               aria-label="{{ confirmation_label }}" />
-      </div>
+      </c-text>
+      <c-form.field id="id_confirmation"
+                    type="text"
+                    name="confirmation"
+                    placeholder="{{ confirmation_label }}"
+                    label="{{ confirmation_label }}"
+                    autocomplete="off"
+                    hide-label
+                    only />
     {% endif %}
   {% endif %}
 {% endblock before_form %}
 {% block actions %}
-  <c-button text="{% trans "Go back" %}"
+  <c-button text="{% trans "Back" %}"
             href="{{ back_url }}"
-            icon="arrow-left"
-            variant="secondary" />
+            outline
+            icon="arrow-left" />
   {% if not is_protected %}
     {% if require_confirmation %}
-      <button type="submit"
-              id="delete-submit-btn"
-              data-confirmation-value="{{ confirmation_value }}"
-              class="btn btn-danger"
-              disabled>{% trans "Delete" %}</button>
-    {% else %}
       <c-button text="{% trans "Delete" %}"
+                id="delete-submit-btn"
+                data-confirmation-value="{{ confirmation_value }}"
+                disabled
+                type="submit"
+                icon="delete"
+                variant="danger" />
+    {% else %}
+      <c-button text="{% trans "Confirm delete" %}"
                 type="submit"
                 icon="delete"
                 variant="danger" />

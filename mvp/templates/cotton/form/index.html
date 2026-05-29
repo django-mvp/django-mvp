@@ -1,15 +1,15 @@
 <c-vars renderer="crispy" form-obj />
-<form x-data="{form: {}}" {{ attrs }}>
+<form x-data="{form: {}}"
+      {% if form_obj.is_multipart %}enctype="multipart/form-data"{% endif %}
+      {{ attrs }}>
   {% if method|lower == "post" %}
     {% csrf_token %}
   {% endif %}
   {% if renderer and form_obj %}<c-component is="form.{{ renderer }}" />{% endif %}
   {{ slot }}
-  {% if actions %}
-    <c-mvp-toolbar>
-      <c-slot name="start">
-        {{ actions }}
-      </c-slot>
-    </c-mvp-toolbar>
-  {% endif %}
+  {% comment %} {% if actions %}
+    <c-mvp.toolbar only>
+      {{ actions }}
+    </c-mvp.toolbar>
+  {% endif %} {% endcomment %}
 </form>

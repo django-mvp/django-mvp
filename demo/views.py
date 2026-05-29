@@ -21,6 +21,7 @@ from mvp.views import (
     MVPTemplateView,
     MVPUpdateView,
 )
+from mvp.views.htmx import HtmxFormMixin
 from mvp.views.list import MVPListViewMixin
 from mvp.views.table import MVPTableViewMixin
 
@@ -172,8 +173,8 @@ class ListViewDemo(MVPListViewMixin, FilterView):
 
     model = Product
     list_item_template = "cards/product_card.html"
-    grid = {"cols": 1, "md": 2, "xl": 2, "gap": 2}
-    paginate_by = 12
+    grid = {"cols": 1, "md": 2, "xl": 3, "gap": 2}
+    paginate_by = 10
     filterset_fields = ["name", "price"]
     search_fields = ["name", "description"]
     order_by = [
@@ -351,3 +352,57 @@ class ThemeCustomizationView(MVPTemplateView):
         context = super().get_page_context()
         context["caption"] = "Custom caption"
         return context
+
+
+# ======== HTMX Form Mixin Demo ========
+
+
+class HtmxProductCreateView(HtmxFormMixin, MVPCreateView):
+    """Demo view for HtmxFormMixin: create a product with htmx-powered form submission.
+
+    The form only shows the ``name`` field for simplicity. On a valid htmx POST
+    the success partial is swapped in; on an invalid htmx POST the form partial
+    with validation errors is swapped in. Non-htmx submissions fall back to the
+    standard redirect.
+
+    Template: htmx_demo.html
+    URL Pattern: /htmx-demo/
+    """
+
+    model = Product
+    fields = ["name"]
+    template_name = "htmx_demo.html"
+    htmx_form_component = "demo.htmx-product-form"
+    htmx_success_component = "demo.htmx-product-created"
+    success_url = "list"
+    page_title = "HTMX Form Demo"
+    page_subtitle = "Partial form rendering with HtmxFormMixin"
+    breadcrumbs = [{"text": "Home", "href": "/"}, {"text": "HTMX Form Demo"}]
+    has_list_permission = True
+
+    def form_valid(self, form):
+        """Fill in required Product fields not exposed in the demo form, then delegate."""
+        import re
+        import uuid
+
+        instance = form.instance
+        if not instance.slug:
+            slug_base = re.sub(r"[^\w\s-]", "", instance.name.lower())
+            slug_base = re.sub(r"[\s_-]+", "-", slug_base).strip("-")
+            # Ensure uniqueness by appending a short timestamp if needed
+            from django.utils import timezone
+
+            instance.slug = f"{slug_base}-{int(timezone.now().timestamp())}"
+        if not instance.sku:
+            instance.sku = str(uuid.uuid4())[:8].upper()
+        if not instance.description:
+            instance.description = "(Demo product created via HTMX form)"
+        if instance.price is None:
+            instance.price = "0.00"
+        if instance.category_id is None:
+            demo_cat, _ = Category.objects.get_or_create(
+                slug="htmx-demo",
+                defaults={"name": "HTMX Demo"},
+            )
+            instance.category = demo_cat
+        return super().form_valid(form)

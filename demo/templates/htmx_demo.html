@@ -1,0 +1,14 @@
+{% extends "page_view.html" %}
+{% block page.content %}
+  <p class="text-muted mb-4">
+    Demonstration of <code>HtmxFormMixin</code>: submit the form below with
+    htmx enabled to see a partial swap instead of a full page reload. Disable
+    JavaScript to verify the standard redirect fallback.
+  </p>
+  <div id="htmx-demo-form">
+    <c-demo.htmx-product-form :form="form" />
+  </div>
+{% endblock page.content %}
+{% block extra_js %}
+  <script src="https://unpkg.com/htmx.org@2" defer></script>
+{% endblock extra_js %}

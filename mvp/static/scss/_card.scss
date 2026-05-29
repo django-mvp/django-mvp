@@ -1,4 +1,6 @@
 .card {
+  overflow: hidden;
+
   &.card-tight {
     .card-body {
       padding: 0;

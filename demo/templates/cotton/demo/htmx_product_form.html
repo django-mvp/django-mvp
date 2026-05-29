@@ -1,0 +1,9 @@
+<form hx-post="{{ request.path }}"
+      hx-target="#htmx-demo-form"
+      hx-swap="outerHTML"
+      method="post"
+      id="htmx-demo-form">
+  {% csrf_token %}
+  {{ form.as_div }}
+  <button type="submit" class="btn btn-primary mt-2">Create Product</button>
+</form>

@@ -1,4 +1,6 @@
-<c-vars class tight />
-<div class="mvp-content{% if tight %} p-0{% endif %} {{ class }}"
-     {{ attrs }}>{{ slot }}
+<c-vars center />
+<div class="mvp-content">
+  <c-container :attrs="attrs" only>
+    {{ slot }}
+  </c-container>
 </div>

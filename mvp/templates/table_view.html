@@ -1,25 +1,23 @@
 {% extends "list_view.html" %}
 {% load static %}
 {% load render_table from django_tables2 %}
-{% block page.stack %}
-  <style>
-    td,
-    th {
-      text-wrap: nowrap;
-    }
-  </style>
-  <c-card variant="primary" tight>
-    {% block page.title %}
-      <c-slot name="header">
-        <div class="px-3 pt-3">
-          <c-page.title :attrs="page">
-            <c-slot name="actions">
-              <c-list.toolbar />
-            </c-slot>
-          </c-page.title>
-        </div>
-      </c-slot>
-    {% endblock page.title %}
-    <c-django-table2 min-height="65vh" />
-  </c-card>
-{% endblock page.stack %}
+{% block page.content-wrapper %}
+  <c-page.content fluid class="py-4">
+    <c-card tight>
+      {% block page.title %}
+        <c-slot name="header">
+          <div class="px-3 pt-3">
+            <c-page.title :attrs="page">
+              <c-slot name="actions">
+                <c-list.toolbar />
+              </c-slot>
+            </c-page.title>
+          </div>
+        </c-slot>
+      {% endblock page.title %}
+      <div class="table-compact">
+        <c-django-table2 min-height="65vh" class="table-compact" />
+      </div>
+    </c-card>
+  </c-page.content>
+{% endblock page.content-wrapper %}
