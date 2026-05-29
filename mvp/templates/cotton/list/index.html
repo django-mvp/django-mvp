@@ -1,16 +1,8 @@
-<c-vars card="non-existent-card-template.html" />
-<c-row {{ attrs }}>
+{% load mvp %}
+<c-row :attrs="attrs">
   {% for object in object_list %}
-    <div class="col">{% include card %}</div>
+    <div class="col">{% render_list_item object list_item_template %}</div>
   {% empty %}
-    <c-list.empty-state />
+    <c-list.empty :attrs="empty_state" />
   {% endfor %}
 </c-row>
-{% comment %} <!-- Pagination -->
-<c-list.pagination :is_paginated="is_paginated"
-                   :page_obj="page_obj"
-                   :request="request" />
-<!-- Results Summary -->
-<c-list.results-summary :is_paginated="is_paginated"
-                        :page_obj="page_obj"
-                        :object_list="object_list" /> {% endcomment %}

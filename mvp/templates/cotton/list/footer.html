@@ -1,15 +1,13 @@
 {% load i18n %}
-<c-mvp-toolbar class="container-fluid py-1">
-  <c-slot name="start">
-    {% if page_obj %}
-      <div class="text-muted small">
-        {% with start=page_obj.start_index end=page_obj.end_index total=page_obj.paginator.count %}
-          {% blocktrans %}
+<c-mvp.toolbar>
+  {% if page_obj %}
+    <c-text small>
+      {% with start=page_obj.start_index end=page_obj.end_index total=page_obj.paginator.count %}
+        {% blocktrans %}
           Showing {{ start }}-{{ end }} of {{ total }} entries
           {% endblocktrans %}
-        {% endwith %}
-      </div>
-    {% endif %}
-  </c-slot>
-  <c-pagination :page_obj="page_obj" ul_class="mb-0" />
-</c-mvp-toolbar>
+      {% endwith %}
+    </c-text>
+  {% endif %}
+  <c-pagination :page_obj="page_obj" />
+</c-mvp.toolbar>

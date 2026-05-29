@@ -7,59 +7,65 @@
 {% block page.title %}
 {% endblock page.title %}
 {% block page.content %}
-  <c-layouts.form-view>
-    <c-form.card title="{{ page.title }}"
-                 icon="{{ page.icon }}"
-                 method="post"
-                 :form-obj="form"
-                 action=".">
-      <c-slot name="before_form">
-        {% block before_form %}
-        {% endblock before_form %}
-      </c-slot>
-      <c-slot name="after_form">
-        {% block after_form %}
-        {% endblock after_form %}
-      </c-slot>
-      <c-slot name="actions">
-        {% block actions %}
-          <c-action-group breakpoint="lg" wrap>
-            <c-button text="{% trans "Save & continue" %}"
-                      icon="arrow-right"
-                      type="submit"
-                      name="next"
-                      reverse
-                      value="list"
-                      variant="primary" />
-            <c-button text="{% trans "Save & view" %}"
-                      type="submit"
-                      name="next"
-                      value="detail"
-                      variant="primary"
-                      outline />
-            <c-button text="{% trans "Save & add another" %}"
-                      type="submit"
-                      name="next"
-                      value="create"
-                      variant="primary"
-                      outline />
-            <c-button text="{% trans "Save & continue editing" %}"
-                      type="submit"
-                      name="next"
-                      value="update"
-                      variant="primary"
-                      outline />
-            {% if delete_url %}
-              <c-button text="{% trans "Delete" %}"
-                        href="{{ delete_url }}"
-                        icon="delete"
-                        variant="danger" />
-            {% endif %}
-          </c-action-group>
-        {% endblock actions %}
-      </c-slot>
-    </c-form.card>
-  </c-layouts.form-view>
+  <c-row class="justify-content-center">
+    <c-col col="12" md="9" lg="7">
+      {% block before_card %}
+      {% endblock before_card %}
+      <c-form.card title="{{ page.title }}"
+                   icon="{{ page.icon }}"
+                   method="post"
+                   action="{{ request.path }}"
+                   :form-obj="form">
+        <c-slot name="before_form">
+          {% block before_form %}
+          {% endblock before_form %}
+        </c-slot>
+        <c-slot name="after_form">
+          {% block after_form %}
+          {% endblock after_form %}
+        </c-slot>
+        <c-slot name="actions">
+          {% block actions %}
+            <c-action-group breakpoint="lg" wrap>
+              <c-button text="{% trans "Save & continue" %}"
+                        icon="arrow-right"
+                        type="submit"
+                        name="next"
+                        reverse
+                        value="list"
+                        variant="primary" />
+              <c-button text="{% trans "Save & view" %}"
+                        type="submit"
+                        name="next"
+                        value="detail"
+                        variant="primary"
+                        outline />
+              <c-button text="{% trans "Save & add another" %}"
+                        type="submit"
+                        name="next"
+                        value="create"
+                        variant="primary"
+                        outline />
+              <c-button text="{% trans "Save & continue editing" %}"
+                        type="submit"
+                        name="next"
+                        value="update"
+                        variant="primary"
+                        outline />
+              {% if delete_url %}
+                <c-button text="{% trans "Delete" %}"
+                          href="{{ delete_url }}"
+                          icon="delete"
+                          variant="danger" />
+              {% endif %}
+            </c-action-group>
+          {% endblock actions %}
+        </c-slot>
+      </c-form.card>
+      {% block after_card %}
+      {% endblock after_card %}
+    </c-col>
+  </c-row>
 {% endblock page.content %}
 {% block extra_js %}
   {{ block.super }}

@@ -23,6 +23,10 @@ def logo_url(request, height, theme):
     Returns:
         str: Static URL for brand/logo.svg.
     """
+
+    if theme == "dark":
+        return static("brand/logo_dark.svg")
+
     return static("brand/logo.svg")
 
 
@@ -43,8 +47,6 @@ def icon_url(request, height, theme):
     """
     if theme == "dark":
         return static("brand/icon_dark.svg")
-    elif theme == "light":
-        return static("brand/icon_light.svg")
 
     return static("brand/icon.svg")
 

@@ -13,6 +13,21 @@
   border-left: 3px solid $primary;
 }
 
-.mvp-header {
-  @extend .bg-body;
+.container-full {
+  padding: 0 !important;
+  > .card {
+    height: 100%;
+    border-radius: 0;
+    box-shadow: none;
+    border: none;
+    &.card-outline {
+      border-top: 3px solid var(--lte-card-variant-bg);
+    }
+  }
 }
+
+// .app-wrapper:has(.mvp-header) {
+//   .app-header {
+//     border-bottom: 0;
+//   }
+// }

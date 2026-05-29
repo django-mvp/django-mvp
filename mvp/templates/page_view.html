@@ -4,46 +4,38 @@
   {{ page.title }}
 {% endblock title %}
 {% block content %}
-  <c-page class="{{ page.class }} mb-5">
-    {% block page.header %}
-      <c-slot name="header">
-        <c-container>
-          <c-mvp-toolbar>
-            {% block page.breadcrumbs %}
-              <c-breadcrumbs class="py-1" :items="page.breadcrumbs" />
-            {% endblock page.breadcrumbs %}
-          </c-mvp-toolbar>
-        </c-container>
-      </c-slot>
-    {% endblock page.header %}
+  <c-page class="{{ page.class }}">
+    <c-page.toolbar fluid>
+      {% block page.header %}
+        <c-breadcrumbs :items="page.breadcrumbs" />
+      {% endblock page.header %}
+    </c-page.toolbar>
     {% block page.content-wrapper %}
-      <c-page.content>
-        <c-container>
-          <c-vstack gap=2>
-            {% block page.stack %}
-              {% block page.title %}
-                <c-card variant="primary">
-                  {% comment %} <c-slot name="header"> {% endcomment %}
-                  <div class="px-3 py-3">
-                    <c-page.title :attrs="page">
-                      <c-slot name="actions">
-                        {% block page.actions %}
-                        {% endblock page.actions %}
-                      </c-slot>
-                    </c-page.title>
-                  </div>
-                  {% block page.title.below %}
-                  {% endblock page.title.below %}
-                </c-card>
-                {% comment %} </c-slot> {% endcomment %}
-              {% endblock page.title %}
-              {% block page.content %}
-                {% trans "Coming soon..." %}
-              {% endblock page.content %}
-            {% endblock page.stack %}
-          </c-vstack>
-        </c-container>
+      <c-page.content center gap=3 class="py-4">
+        <c-vstack gap=3>
+          {% block page.title %}
+            <c-card variant="primary">
+              <div class="px-3 py-3">
+                <c-page.title :attrs="page">
+                  <c-slot name="actions">
+                    {% block page.actions %}
+                    {% endblock page.actions %}
+                  </c-slot>
+                </c-page.title>
+              </div>
+              {% block page.title.below %}
+              {% endblock page.title.below %}
+            </c-card>
+          {% endblock page.title %}
+          {% block page.content %}
+            {% trans "Coming soon..." %}
+          {% endblock page.content %}
+        </c-vstack>
       </c-page.content>
     {% endblock page.content-wrapper %}
+    <c-page.toolbar bottom>
+      {% block page.footer %}
+      {% endblock page.footer %}
+    </c-page.toolbar>
   </c-page>
 {% endblock content %}

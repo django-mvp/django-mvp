@@ -13,7 +13,6 @@ Covers:
 import pytest
 from django.urls import reverse
 
-
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
@@ -230,7 +229,4 @@ def test_US4_update_delete_link_absent_when_not_configured(client):
     import re
 
     delete_links = re.findall(r'href="[^"]*delete[^"]*"', content)
-    assert delete_links == [], (
-        f"Expected no delete link on category update page, but found: {delete_links}"
-    )
-
+    assert delete_links == [], f"Expected no delete link on category update page, but found: {delete_links}"

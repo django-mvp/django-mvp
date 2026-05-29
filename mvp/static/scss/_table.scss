@@ -4,7 +4,7 @@
   --stripe-color-2: #e9ecef;
   --stripe-size: 10px;
 
-  // height: 100%;
+  height: 100%;
 
   &.bg-striped {
     background: repeating-linear-gradient(
@@ -25,4 +25,12 @@
 html[data-bs-theme="dark"] .mvp-table {
   --stripe-color-1: #23272b;
   --stripe-color-2: #343a40;
+}
+
+.table-compact {
+  td,
+  th {
+    width: 1%;
+    text-wrap: nowrap;
+  }
 }

@@ -1,5 +1,5 @@
 <c-vars fluid fill class />
-<div class="container{% if fluid %}-fluid{% elif fill %}-full{% endif %} {{ class }}"
+<div class="container{% if fluid %}-fluid{% elif fill %}-full{% endif %}{% if fill %} h-100{% endif %} {{ class }}"
      {{ attrs }}>
   {{ slot }}
 </div>

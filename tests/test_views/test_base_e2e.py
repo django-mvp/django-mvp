@@ -139,4 +139,3 @@ def test_full_login_and_return_journey(client, django_user_model):
     # Step 5: Confirm sidebar and navbar are present on dashboard
     assert b"app-sidebar" in response.content, "Sidebar missing from dashboard"
     assert b"app-header" in response.content, "Navbar missing from dashboard"
-

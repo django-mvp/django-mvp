@@ -4,42 +4,9 @@
   <c-button text="Action 2" icon="menu" />
 {% endblock page.actions %}
 {% block page.content %}
-  {% comment %} <c-row>
-    <c-col>
-      <c-alert variant="info" class="mb-0" :animate="False">
-        <strong>Two override entrypoints.</strong>
-        Create one or both of these files in your app's <code>static/</code> folder:
-        <ul class="mb-0 mt-2">
-          <li>
-            <code>bootstrap_variables.scss</code> &mdash; Bootstrap design tokens
-            (<code>$primary</code>, <code>$gray-800</code>, &hellip;).
-            Loaded <em>before</em> all vendor defaults.
-          </li>
-          <li>
-            <code>adminlte_variables.scss</code> &mdash; AdminLTE-specific variables,
-            including those that reference Bootstrap tokens
-            (e.g. <code>$lte-sidebar-color: $primary</code>).
-            Injected after Bootstrap resolves but before AdminLTE's own defaults.
-          </li>
-        </ul>
-      </c-alert>
-    </c-col>
-  </c-row> {% endcomment %}
-  {# ------------------------------------------------------------------ #}
-  {# INSTALLED_APPS                                                      #}
-  {# ------------------------------------------------------------------ #}
   <c-row>
     <c-col>
       <c-card title="1) INSTALLED_APPS ordering">
-        <c-slot name="actions">
-          <c-button text="header action" variant="primary" />
-        </c-slot>
-        <c-slot name="footer">
-          <c-button text="footer action" variant="primary" />
-        </c-slot>
-        <c-slot name="footer_end">
-          <c-button text="footer end" variant="primary" />
-        </c-slot>
         <p>
           Django's static-files finder searches <code>INSTALLED_APPS</code> in order and stops at
           the first match. Place your app <strong>before</strong> <code>mvp</code> so your override

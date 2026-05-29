@@ -12,6 +12,7 @@ from .views import (
     ContactFormView,
     ErrorPagePreviewView,
     FullShellDemoView,
+    HtmxProductCreateView,
     ListViewDemo,
     MVPDemoView,
     ProductCreateView,
@@ -59,6 +60,12 @@ urlpatterns = [
         "contact/success/",
         MVPDemoView.as_view(template_name="demo/contact_success.html"),
         name="contact_success",
+    ),
+    # HTMX Form Mixin Demo
+    path(
+        "htmx-demo/",
+        HtmxProductCreateView.as_view(),
+        name="htmx_demo",
     ),
     # CRUD Views for Product model
     path("products/", ListViewDemo.as_view(), name="product-list"),

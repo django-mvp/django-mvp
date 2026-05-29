@@ -4,7 +4,7 @@
     {{ header }}
   {% elif title %}
     <div class="card-header">
-      <c-mvp-toolbar :title="title"
+      <c-mvp.toolbar :title="title"
                      :icon="icon"
                      level="5"
                      fs="5"
@@ -18,9 +18,9 @@
   </c-card.body>
   {% if footer_start or footer_end %}
     <div class="card-footer">
-      <c-mvp-toolbar :actions="footer_end" tight only>
+      <c-mvp.toolbar :actions="footer_end" tight only>
         {{ footer_start }}
-      </c-mvp-toolbar>
+      </c-mvp.toolbar>
     </div>
   {% endif %}
 </c-card.wrapper>

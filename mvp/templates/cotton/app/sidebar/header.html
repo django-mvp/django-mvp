@@ -18,12 +18,6 @@
       </div>
       <div class="hide-on-mini px-3 pt-2 mx-auto">
         <c-logo max-height="{{ max_height }}" />
-        {% comment %} <c-logo max-height="{{ max_height }}" />
-        <img src="{{ logo_light }}" alt="{% trans "Site Logo" %}" class="mvp-logo hide-on-dark-theme" style="max-height: {{ max_height }}" />
-        <img src="{{ logo_dark }}"
-             alt="{% trans "Site Logo" %}"
-             class="mvp-logo hide-on-light-theme"
-             style="max-height: {{ max_height }}" /> {% endcomment %}
       </div>
       {% if text or not logo_light %}
         <span class="brand-text fw-light d-none">

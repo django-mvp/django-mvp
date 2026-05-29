@@ -71,7 +71,7 @@
 @import "utils";
 @import "mobile-footer-nav";
 
-.app-header:has(> .mvp-toolbar) .navbar {
+.app-header:has(> .mvp.toolbar) .navbar {
   padding-bottom: 0;
 }
 

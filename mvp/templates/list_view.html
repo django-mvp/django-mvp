@@ -3,22 +3,38 @@
 {% block page.actions %}
   <c-list.toolbar />
 {% endblock page.actions %}
-{% block page.content %}
-  <div class="border-top pt-5">
-    <c-row :attrs="grid_config">
-      {% for object in object_list %}
-        <div class="col">{% render_list_item object list_item_template %}</div>
-      {% empty %}
-        <c-list.empty :attrs="empty_state" />
-      {% endfor %}
-    </c-row>
-  </div>
-  <c-slot name="footer_end">
-    <c-list.footer />
-  </c-slot>
-{% endblock page.content %}
+{% block page.content-wrapper %}
+  <c-page.content class="py-4">
+    {% block page.title %}
+      <c-page.title :attrs="page">
+        <c-slot name="actions">
+          <c-list.toolbar />
+        </c-slot>
+      </c-page.title>
+    {% endblock page.title %}
+    {% if page_obj %}
+      <c-text small>
+        {% with start=page_obj.start_index end=page_obj.end_index total=page_obj.paginator.count %}
+          {% blocktrans with name_plural=model_info.verbose_name_plural %}
+          Showing {{ start }}-{{ end }} of {{ total }} {{ name_plural }}
+          {% endblocktrans %}
+        {% endwith %}
+      </c-text>
+    {% endif %}
+    <c-list :list="object_list"
+            :attrs="grid_config"
+            :card="list_item_template"
+            :empty_state="empty_state" />
+  </c-page.content>
+{% endblock page.content-wrapper %}
+{% block page.footer %}
+  {% if page_obj %}
+    <div class="d-flex flex-center w-100">
+      <c-pagination :page_obj="page_obj" />
+    </div>
+  {% endif %}
+{% endblock page.footer %}
 {% block extra_js %}
-  {{ block.super }}
   <c-modal id="filterModal" centered>
     <c-form.card id="filterForm"
                  title="{% trans "Filter" %}"
@@ -33,5 +49,6 @@
       </c-slot>
     </c-form.card>
   </c-modal>
+  {{ block.super }}
   <script src="{% static "js/list_view.js" %}"></script>
 {% endblock extra_js %}
