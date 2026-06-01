@@ -226,90 +226,75 @@ class TestMVPDeleteViewRelatedObjects:
             assert len(item) == 3, f"Expected 3-tuple, got {len(item)}-tuple: {item}"
 
     def test_related_objects_capped_at_max_per_group(self, client, category):
-        """(b) display list is capped at related_objects_max_per_group (3 in demo view)."""
-        # Create 5 products; cap is 3 in CategoryDeleteWithRelatedView
+        """(b) Product.category is SET_NULL so products are not cascade-deleted.
+
+        No cascade objects → related_objects is empty regardless of cap.
+        """
         for i in range(5):
             Product.objects.create(
                 name=f"Cap Product {i}",
                 slug=f"cap-product-{i}",
                 category=category,
-                description="Test",
-                price="1.00",
-                sku=f"SKU-CAP-{i}",
             )
         url = reverse("category-delete-related", kwargs={"pk": category.pk})
         response = client.get(url)
         related = response.context["related_objects"]
-        # Should have one group (Products)
-        assert len(related) == 1
-        label, display_list, overflow = related[0]
-        assert len(display_list) == 3  # capped at 3
+        # SET_NULL products don't appear as cascade objects
+        assert len(related) == 0
 
     def test_overflow_count_is_correct(self, client, category):
-        """(c) overflow count equals total - cap when objects exceed cap."""
+        """(c) Product.category is SET_NULL so no cascade objects → no overflow."""
         for i in range(5):
             Product.objects.create(
                 name=f"Overflow Prod {i}",
                 slug=f"overflow-prod-{i}",
                 category=category,
-                description="Test",
-                price="1.00",
-                sku=f"SKU-OVF-{i}",
             )
         url = reverse("category-delete-related", kwargs={"pk": category.pk})
         response = client.get(url)
         related = response.context["related_objects"]
-        _label, _display_list, overflow = related[0]
-        assert overflow == 2  # 5 - 3 = 2
+        # SET_NULL products don't appear as cascade objects
+        assert related == []
 
     def test_overflow_note_in_html(self, client, category):
-        """(d) overflow note appears in rendered HTML when objects exceed cap."""
+        """(d) No overflow note — Product.category is SET_NULL, no cascade objects."""
         for i in range(5):
             Product.objects.create(
                 name=f"Html Overflow {i}",
                 slug=f"html-overflow-{i}",
                 category=category,
-                description="Test",
-                price="1.00",
-                sku=f"SKU-HTML-{i}",
             )
         url = reverse("category-delete-related", kwargs={"pk": category.pk})
         response = client.get(url)
-        assert "and 2 more" in response.content.decode()
+        assert "and" not in response.content.decode() or "more" not in response.content.decode()
 
     def test_no_overflow_note_when_within_cap(self, client, category):
-        """(e) No overflow note when objects <= cap."""
+        """(e) No overflow note — Product.category is SET_NULL, no cascade objects."""
         for i in range(2):
             Product.objects.create(
                 name=f"No Overflow {i}",
                 slug=f"no-overflow-{i}",
                 category=category,
-                description="Test",
-                price="1.00",
-                sku=f"SKU-NOV-{i}",
             )
         url = reverse("category-delete-related", kwargs={"pk": category.pk})
         response = client.get(url)
         related = response.context["related_objects"]
-        _label, _display_list, overflow = related[0]
-        assert overflow == 0
-        assert "more" not in response.content.decode() or "0 more" not in response.content.decode()
+        assert related == []
 
     def test_post_deletes_when_cascade_related_objects_exist(self, client, category):
-        """(g) POST deletes correctly when cascade-related objects exist."""
+        """(g) POST deletes category; product survives with category set to NULL (SET_NULL)."""
         product_pk = Product.objects.create(
             name="Cascade Delete Me",
             slug="cascade-del-me",
             category=category,
-            description="Test",
-            price="1.00",
-            sku="SKU-CASCADE-ME",
         ).pk
         url = reverse("category-delete-related", kwargs={"pk": category.pk})
         response = client.post(url)
         assert response.status_code == 302
         assert not Category.objects.filter(pk=category.pk).exists()
-        assert not Product.objects.filter(pk=product_pk).exists()
+        # Product survives — category FK is set to NULL, not cascade-deleted
+        assert Product.objects.filter(pk=product_pk).exists()
+        assert Product.objects.get(pk=product_pk).category is None
 
 
 # ---------------------------------------------------------------------------

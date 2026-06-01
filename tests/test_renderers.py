@@ -128,10 +128,21 @@ class TestMobileFooterNavRendererOutput:
 
     def test_sidebar_toggle_renders_as_button_not_anchor(self, cotton_render_soup):
         """Test sidebar toggle item renders as <button>, not <a>."""
+        from flex_menu import MenuItem
+
         from mvp.menus import MobileFooterMenu
 
-        # Default pre-populated item is the sidebar toggle
-        MobileFooterMenu.children = MobileFooterMenu.children  # keep default
+        # Isolate to only the sidebar toggle to avoid interference from other items
+        MobileFooterMenu.children = [
+            MenuItem(
+                name="sidebar_toggle",
+                extra_context={
+                    "label": "Menu",
+                    "icon": "menu",
+                    "attrs": {"data-lte-toggle": "sidebar"},
+                },
+            ),
+        ]
         soup = cotton_render_soup("app.mobile-footer-nav")
         button = soup.find("button", attrs={"data-lte-toggle": "sidebar"})
         anchor = soup.find("a", class_="nav-link")

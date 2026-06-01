@@ -247,17 +247,16 @@ class TestCAppFooter:
         assert footer is not None
 
     def test_c_app_footer_renders_default_text(self, cotton_render_soup):
-        """Test that footer renders default text attribute."""
+        """Test that footer renders inner footer-content wrapper by default."""
         soup = cotton_render_soup("app.footer")
         footer = soup.find("footer", class_="app-footer")
-        _ = footer.get_text()
-        strong = footer.find("strong")
-        assert strong is not None
+        content_div = footer.find("div", class_="footer-content")
+        assert content_div is not None
 
-    def test_c_app_footer_with_custom_text(self, cotton_render_soup):
-        """Test that custom text attribute appears in footer."""
+    def test_c_app_footer_with_custom_text(self, cotton_render_string_soup):
+        """Test that slot content appears in footer."""
         custom_text = "Custom Footer Text"
-        soup = cotton_render_soup("app.footer", text=custom_text)
+        soup = cotton_render_string_soup(f"<c-app.footer>{custom_text}</c-app.footer>")
         footer = soup.find("footer", class_="app-footer")
         assert custom_text in footer.get_text()
 
@@ -268,18 +267,18 @@ class TestCAppFooter:
         assert "custom-footer-class" in footer.get("class", [])
 
     def test_c_app_footer_renders_float_end_div_for_right_slot(self, cotton_render_soup):
-        """Test that footer renders float-end div for right slot content."""
+        """Test that footer no longer renders a float-end div (right slot removed in refactor)."""
         soup = cotton_render_soup("app.footer")
         float_div = soup.find("div", class_="float-end")
-        assert float_div is not None
+        assert float_div is None
 
     def test_c_app_footer_float_end_has_d_none_d_sm_inline(self, cotton_render_soup):
-        """Test that float-end div has responsive classes."""
+        """Test that footer no longer has float-end responsive classes (removed in refactor)."""
         soup = cotton_render_soup("app.footer")
-        float_div = soup.find("div", class_="float-end")
-        classes = float_div.get("class", [])
-        assert "d-none" in classes
-        assert "d-sm-inline" in classes
+        footer = soup.find("footer", class_="app-footer")
+        # float-end div is gone; footer itself should not have d-none/d-sm-inline
+        classes = footer.get("class", [])
+        assert "float-end" not in classes
 
 
 class TestCAppSidebarToggle:

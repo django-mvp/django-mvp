@@ -3,26 +3,20 @@
 <header class="app-header sticky-top">
   <nav class="navbar bg-{{ variant }}">
     <c-container fluid>
-      <c-toolbar class="hide-on-mobile hide-btn-text btn-icons"
-                 tight
-                 row>
-        <div>
+      <c-toolbar class="hide-btn-text btn-icons" tight row>
+        <div class="d-inline-flex">
           <c-button text="{% trans "Toggle site navigation" %}"
                     outline
-                    class="hide-on-mobile"
                     icon="menu"
                     data-lte-toggle="sidebar" />
-          <a class="navbar-brand ms-2" href="/">{{ request.site.name }}</a>
+          <a class="navbar-brand ms-1 show-on-mobile" href="/">
+            <c-logo max-height="0.9lh" />
+          </a>
         </div>
         <c-slot name="actions">
           {{ right }}
         </c-slot>
       </c-toolbar>
-      <div class="w-100 show-on-mobile">
-        <a class="navbar-brand m-0" href="/">
-          <c-logo max-height="1lh" />
-        </a>
-      </div>
     </c-container>
   </nav>
   {% if not tray|slot_is_empty %}<div class="header-tray">{{ tray }}</div>{% endif %}

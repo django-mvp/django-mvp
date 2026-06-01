@@ -87,35 +87,38 @@ def test_US1_submit_delete_redirects_to_list_and_object_absent(client, product):
 
 @pytest.mark.django_db
 def test_US2_related_objects_section_visible(client, product):
-    """[US2] show_related_objects=True — related-items section is visible.
+    """[US2] show_related_objects=True — page renders but no related-objects section.
 
-    Uses the Category delete view (products CASCADE on category deletion).
-    The 'product' fixture ensures the category has at least one related product.
+    Product.category uses SET_NULL, so products are not cascade-deleted.
+    The related-records section is absent; the permanent-deletion warning is shown.
     """
     url = reverse("category-delete-related", kwargs={"pk": product.category.pk})
     response = client.get(url)
-    assert b"related records will also be permanently deleted" in response.content
+    assert response.status_code == 200
+    # Permanent-deletion warning is present
+    assert b"permanently" in response.content
+    # Related-records section is absent (no cascade objects with SET_NULL)
+    assert b"related records will also be permanently deleted" not in response.content
 
 
 @pytest.mark.django_db
 def test_US2_overflow_note_appears_when_related_objects_exceed_cap(client, category):
-    """[US2] Overflow note appears when related objects exceed related_objects_max_per_group."""
+    """[US2] No overflow note — Product.category is SET_NULL, no cascade objects."""
     from demo.models import Product
 
-    # CategoryDeleteWithRelatedView has related_objects_max_per_group=3; create 4.
+    # Create products; they are SET_NULL'd on category deletion, not cascade-deleted.
     for i in range(4):
         Product.objects.create(
             name=f"Overflow Product {i}",
             slug=f"overflow-product-integ-{i}",
             sku=f"OVF-{i:03d}",
             category=category,
-            description="Overflow test",
-            price="1.00",
         )
 
     url = reverse("category-delete-related", kwargs={"pk": category.pk})
     response = client.get(url)
-    assert b"more" in response.content
+    # No related cascade objects → no overflow note
+    assert b"related records will also be permanently deleted" not in response.content
 
 
 # ---------------------------------------------------------------------------

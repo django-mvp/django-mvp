@@ -1,6 +1,6 @@
 {% load flex_menu i18n %}
 <c-vars class />
-<div class="mobile-footer-nav show-on-mobile"
+<div class="mobile-footer-nav show-on-mobile{% if class %} {{ class }}{% endif %}"
      aria-label="{% trans "Mobile navigation" %}">
   {% render_menu "MobileFooterMenu" renderer="mobile-footer-nav" %}
 </div>

@@ -1,6 +1,6 @@
 {% extends "form_view.html" %}
 {% load i18n %}
-{% block before_form %}
+{% block before_card %}
   {% if next_url %}<input type="hidden" name="next" value="{{ next_url }}" />{% endif %}
   {% if is_protected %}
     {# ===== Scenario 3: Object is PROTECT-blocked - no delete button ===== #}
@@ -62,7 +62,7 @@
                     only />
     {% endif %}
   {% endif %}
-{% endblock before_form %}
+{% endblock before_card %}
 {% block actions %}
   <c-button text="{% trans "Back" %}"
             href="{{ back_url }}"
