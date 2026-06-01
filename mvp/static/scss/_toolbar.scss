@@ -1,0 +1,33 @@
+.toolbar {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 0.5rem;
+
+  &.toolbar-row {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  @each $breakpoint in map-keys($grid-breakpoints) {
+    &.toolbar-row-#{$breakpoint} {
+      @include media-breakpoint-up($breakpoint) {
+        flex-direction: row;
+        align-items: center;
+      }
+    }
+  }
+
+  &.toolbar-top {
+    grid-area: top;
+  }
+
+  &.toolbar-bottom {
+    grid-area: bottom;
+  }
+
+  .input-group {
+    width: auto;
+  }
+}

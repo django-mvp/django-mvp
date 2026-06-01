@@ -7,7 +7,7 @@
   <c-page class="{{ page.class }}">
     <c-page.toolbar fluid>
       {% block page.header %}
-        <c-breadcrumbs :items="page.breadcrumbs" />
+        <c-breadcrumbs :items="page.breadcrumbs" class="py-2" />
       {% endblock page.header %}
     </c-page.toolbar>
     {% block page.content-wrapper %}
@@ -15,14 +15,14 @@
         <c-vstack gap=3>
           {% block page.title %}
             <c-card variant="primary">
-              <div class="px-3 py-3">
+              <c-card.body>
                 <c-page.title :attrs="page">
                   <c-slot name="actions">
                     {% block page.actions %}
                     {% endblock page.actions %}
                   </c-slot>
-                </c-page.title>
-              </div>
+                </c-card.body>
+              </c-page.title>
               {% block page.title.below %}
               {% endblock page.title.below %}
             </c-card>

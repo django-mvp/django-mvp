@@ -61,7 +61,6 @@
 @import "card";
 @import "app";
 @import "table";
-@import "tray";
 @import "form";
 @import "image";
 @import "logo";
@@ -69,11 +68,9 @@
 @import "sidebar";
 @import "avatar";
 @import "utils";
-@import "mobile-footer-nav";
-
-.app-header:has(> .mvp.toolbar) .navbar {
-  padding-bottom: 0;
-}
+@import "nav";
+// @import "layout";
+@import "toolbar";
 
 .sidebar-layout {
   display: grid;

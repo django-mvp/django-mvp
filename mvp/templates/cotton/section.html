@@ -1,9 +1,9 @@
 <c-vars title icon level=2 actions />
 <section {{ attrs }}>
   {% if title %}
-    <c-mvp.toolbar :title="title" :icon="icon" :level="level">
+    <c-toolbar :title="title" :icon="icon" :level="level">
       {{ actions }}
-    </c-mvp.toolbar>
+    </c-toolbar>
   {% endif %}
   {{ slot }}
 </section>

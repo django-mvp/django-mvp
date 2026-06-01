@@ -1,11 +1,5 @@
-<c-vars text="Copyright &copy; 2026" class />
-<footer class="app-footer {{ class }}">
-  <div class="float-end d-none d-sm-inline">{{ right }}</div>
-  <strong>
-    {% if slot %}
-      {{ slot }}
-    {% else %}
-      {{ text }}
-    {% endif %}
-  </strong>
+{% load i18n flex_menu %}
+<c-vars class />
+<footer class="app-footer p-0 d-flex flex-column {{ class }}">
+  <div class="footer-content">{{ slot }}</div>
 </footer>

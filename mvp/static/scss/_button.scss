@@ -122,9 +122,13 @@
   }
 }
 
-// .btn {
-//   &.btn-icon {
-//     --#{$prefix}btn-hover-bg: transparent;
-//     --#{$prefix}btn-active-bg: transparent;
-//   }
-// }
+// Responsive overrides: restore .btn-text visibility from a breakpoint upward.
+// Use alongside .btn-icons, e.g. class="btn-icons btn-text-md" shows labels
+// on md and above while remaining icon-only on smaller screens.
+@each $breakpoint in map-keys($grid-breakpoints) {
+  @include media-breakpoint-up($breakpoint) {
+    .btn-text-#{$breakpoint} {
+      display: inline !important;
+    }
+  }
+}

@@ -1,5 +1,5 @@
 {% load i18n %}
-<c-mvp.toolbar>
+<c-toolbar>
   {% if page_obj %}
     <c-text small>
       {% with start=page_obj.start_index end=page_obj.end_index total=page_obj.paginator.count %}
@@ -10,4 +10,4 @@
     </c-text>
   {% endif %}
   <c-pagination :page_obj="page_obj" />
-</c-mvp.toolbar>
+</c-toolbar>

@@ -1,6 +1,6 @@
 {% load easy_icons %}
 <c-nav.link text="{{ label }}"
-            class="{% if not show_text %}btn-icon{% endif %} {{ class }}"
+            class="vstack {{ class }}"
             :href="url"
             :active="selected"
             :attrs="attrs" />

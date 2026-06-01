@@ -1,10 +1,7 @@
 {% extends "page_view.html" %}
 {% load i18n static crispy_forms_tags mvp %}
-{% block page.actions %}
-  <c-list.toolbar />
-{% endblock page.actions %}
 {% block page.content-wrapper %}
-  <c-page.content class="py-4">
+  <c-page.content gap=3>
     {% block page.title %}
       <c-page.title :attrs="page">
         <c-slot name="actions">
@@ -25,17 +22,15 @@
             :attrs="grid_config"
             :card="list_item_template"
             :empty_state="empty_state" />
+    {% if page_obj %}
+      <div class="flex-center">
+        <c-pagination :page_obj="page_obj" />
+      </div>
+    {% endif %}
   </c-page.content>
 {% endblock page.content-wrapper %}
-{% block page.footer %}
-  {% if page_obj %}
-    <div class="d-flex flex-center w-100">
-      <c-pagination :page_obj="page_obj" />
-    </div>
-  {% endif %}
-{% endblock page.footer %}
 {% block extra_js %}
-  <c-modal id="filterModal" centered>
+  <c-modal id="filterModal" centered fade only>
     <c-form.card id="filterForm"
                  title="{% trans "Filter" %}"
                  icon="filter"
@@ -44,6 +39,20 @@
                  :form-obj="filter.form">
       <c-slot name="actions">
         <c-button text="{% trans "Submit" %}"
+                  variant="primary"
+                  type="submit" />
+      </c-slot>
+    </c-form.card>
+  </c-modal>
+  <c-modal id="createModal" centered fade only>
+    <c-form.card id="createForm"
+                 title="{% trans "Create product" %}"
+                 icon="add"
+                 method="post"
+                 action="{{ directory.create_url }}"
+                 :form-obj="create_form">
+      <c-slot name="actions">
+        <c-button text="{% trans "Add" %}"
                   variant="primary"
                   type="submit" />
       </c-slot>

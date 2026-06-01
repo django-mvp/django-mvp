@@ -1,9 +1,5 @@
 <c-card class="h-100 position-relative">
-  <a href="{% url "product-delete" pk=object.pk %}"
-     class="link-danger position-absolute top-0 end-0 p-2">
-    <c-icon name="delete" />
-  </a>
-  <c-slot name="widgets">
+  <c-card.header title="{{ product.name }}">
     <c-badge variant="{{ product.stock_status|yesno:'danger,warning,success' }}">
       {% if product.stock_status == 'out_of_stock' %}
         Out of Stock
@@ -13,7 +9,9 @@
         In Stock
       {% endif %}
     </c-badge>
-  </c-slot>
+    <c-button href="{% url "product-delete" pk=object.pk %}"
+              icon="delete" />
+  </c-card.header>
   <c-text small tight>
     {{ product.sku }}
   </c-text>

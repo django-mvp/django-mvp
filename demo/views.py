@@ -25,6 +25,8 @@ from mvp.views.htmx import HtmxFormMixin
 from mvp.views.list import MVPListViewMixin
 from mvp.views.table import MVPTableViewMixin
 
+from .forms import ProductForm
+
 
 class MVPDemoView(MVPTemplateView):
     """Base TemplateView with LayoutConfigMixin for layout configuration support."""
@@ -172,6 +174,10 @@ class ListViewDemo(MVPListViewMixin, FilterView):
     """
 
     model = Product
+    create_form_class = ProductForm
+    has_create_permission = True
+    page_caption = "Browse"
+    page_subtitle = """Check out our amazing products!"""
     list_item_template = "cards/product_card.html"
     grid = {"cols": 1, "md": 2, "xl": 3, "gap": 2}
     paginate_by = 10
@@ -183,6 +189,12 @@ class ListViewDemo(MVPListViewMixin, FilterView):
         ("price_asc", "Price (Low to High)", "price"),
         ("price_desc", "Price (High to Low)", "-price"),
     ]
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if self.create_form_class:
+            context["create_form"] = self.create_form_class()
+        return context
 
 
 class DataTablesView(MVPTableViewMixin, FilterView):

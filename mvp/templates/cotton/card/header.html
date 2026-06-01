@@ -1,0 +1,14 @@
+<c-vars title icon level="5" />
+<c-toolbar class="card-header" tight row only>
+  {% if title %}
+    {# djlint:off #}
+  <h{{ level }}>
+    {% if icon %}<c-icon name="{{ icon }}" />{% endif %}
+    {{ title }}
+  </h{{ level }}>
+    {# djlint:on #}
+  {% endif %}
+  <c-slot name="actions">
+    {{ slot }}
+  </c-slot>
+</c-toolbar>

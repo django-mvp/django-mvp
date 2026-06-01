@@ -33,7 +33,7 @@
         | {{ request.site.name }}
       </title>
       <meta name="viewport"
-            content="width=device-width, initial-scale=1.0" />
+            content="width=device-width, initial-scale=1, viewport-fit=cover" />
       {# AdminLTE Accessibility Meta Tags #}
       <meta name="color-scheme" content="light dark" />
       <meta name="theme-color"
@@ -80,7 +80,7 @@
     {% endblock head %}
   </head>
   {% block app %}
-    <c-app>
+    <c-app fixed-footer>
       {% block app.header %}
         <c-app.header>
           <c-slot name="right">
@@ -105,10 +105,11 @@
       {% endblock app.main %}
       {% block app.footer %}
         <c-app.footer />
-      {% endblock app.footer %}
-      {% block app.mobile_footer_nav %}
         <c-app.mobile-footer-nav />
-      {% endblock app.mobile_footer_nav %}
+      {% endblock app.footer %}
+      {% comment %} {% block app.mobile_footer_nav %}
+        <c-app.mobile-footer-nav />
+      {% endblock app.mobile_footer_nav %} {% endcomment %}
     </c-app>
   {% endblock app %}
   {# Bootstrap 5 JS (required for dropdowns, modals, etc.) #}

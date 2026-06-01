@@ -3,9 +3,9 @@
 {% if not slot|slot_is_empty %}
   <div class="mvp-{{ bottom|yesno:"footer,header" }}">
     <c-container :attrs="attrs">
-      <c-mvp.toolbar tight>
+      <c-toolbar tight row>
         {{ slot }}
-      </c-mvp.toolbar>
+      </c-toolbar>
     </c-container>
   </div>
 {% endif %}

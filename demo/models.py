@@ -53,25 +53,31 @@ class Product(models.Model):
 
     # Basic fields
     name = models.CharField(max_length=200)
-    slug = models.SlugField(unique=True)
+    slug = models.SlugField(unique=True, null=True, blank=True)
     category = models.ForeignKey(
-        Category, on_delete=models.CASCADE, related_name="products"
+        Category,
+        on_delete=models.SET_NULL,
+        related_name="products",
+        null=True,
+        blank=True,
     )
-    description = models.TextField()
-    short_description = models.CharField(max_length=300, blank=True)
+    description = models.TextField(null=True, blank=True)
+    short_description = models.CharField(max_length=300, null=True, blank=True)
 
     # Numeric fields
-    price = models.DecimalField(max_digits=10, decimal_places=2)
-    stock = models.IntegerField(default=0)
+    price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    stock = models.IntegerField(default=0, null=True, blank=True)
     rating = models.DecimalField(max_digits=3, decimal_places=2, null=True, blank=True)
 
     # Status fields
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="draft")
-    priority = models.CharField(
-        max_length=20, choices=PRIORITY_CHOICES, default="medium"
+    status = models.CharField(
+        max_length=20, choices=STATUS_CHOICES, default="draft", null=True, blank=True
     )
-    is_featured = models.BooleanField(default=False)
-    is_available = models.BooleanField(default=True)
+    priority = models.CharField(
+        max_length=20, choices=PRIORITY_CHOICES, default="medium", null=True, blank=True
+    )
+    is_featured = models.BooleanField(default=False, null=True, blank=True)
+    is_available = models.BooleanField(default=True, null=True, blank=True)
 
     # Date fields
     release_date = models.DateField(null=True, blank=True)
@@ -80,10 +86,10 @@ class Product(models.Model):
 
     # Metadata
     tags = models.CharField(
-        max_length=200, blank=True, help_text="Comma-separated tags"
+        max_length=200, null=True, blank=True, help_text="Comma-separated tags"
     )
-    sku = models.CharField(max_length=50, unique=True, blank=True)
-    barcode = models.CharField(max_length=100, blank=True)
+    sku = models.CharField(max_length=50, unique=True, null=True, blank=True)
+    barcode = models.CharField(max_length=100, null=True, blank=True)
 
     class Meta:
         """Meta options."""
@@ -105,7 +111,8 @@ class Product(models.Model):
     @property
     def tag_list(self):
         """Return tags as a list."""
-        return [tag.strip() for tag in self.tags.split(",") if tag.strip()]
+        if self.tags:
+            return [tag.strip() for tag in self.tags.split(",") if tag.strip()]
 
     @property
     def stock_status(self):

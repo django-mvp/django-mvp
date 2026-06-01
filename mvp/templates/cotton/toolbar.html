@@ -42,29 +42,23 @@ Slots:
   (slot)  – Default slot content rendered after the start region.
 
 Usage:
-  <c-mvp.toolbar title="Page Title" gap="2">
+  <c-toolbar title="Page Title" gap="2">
     <c-slot name="start"><button …>Action</button></c-slot>
     Additional toolbar content
-  </c-mvp.toolbar>
+  </c-toolbar>
 {% endcomment %}
-<c-vars title level="1" fs="4" row tight breakpoint="md" />
-<div class="d-flex w-100 gap-3{% if row %} align-items-center justify-content-between{% else %} flex-column flex-{{ breakpoint }}-row align-items-{{ breakpoint }}-center justify-content-{{ breakpoint }}-between{% endif %}{% if not tight %} mb-2{% endif %} {{ class }}">
-  {% if title %}
-    {# djlint:off #}
-    <h{{level}} class="h{{ fs }} mb-0 lh-sm">
-    {% if icon %}<c-icon name="{{ icon }}" class="me-1" />{% endif %}
-    {{ title }}</h{{level}}>
-    {# djlint:on #}
-  {% else %}
-    {{ slot }}
-  {% endif %}
+<c-vars title
+        top
+        bottom
+        justify="between"
+        row
+        tight
+        breakpoint="md" />
+<div class="toolbar w-100 {% if row is True %} toolbar-row{% elif row %} toolbar-row-{{ row }}{% endif %} {% if not tight %}mb-2{% endif %} justify-content-{{ justify }} {{ class }}">
+  {{ slot }}
   {% if actions %}
-    <c-action-group class="ms-auto"
-                    shrink
-                    row
-                    :breakpoint="breakpoint"
-                    only>
+    <c-group shrink row :breakpoint="breakpoint" only>
       {{ actions }}
-    </c-action-group>
+    </c-group>
   {% endif %}
 </div>

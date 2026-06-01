@@ -1,22 +1,21 @@
 {% extends "list_view.html" %}
 {% load static %}
 {% load render_table from django_tables2 %}
+{% block page.header %}
+  <c-container fluid>
+    <c-breadcrumbs :items="page.breadcrumbs" class="py-2" />
+  </c-container>
+{% endblock page.header %}
 {% block page.content-wrapper %}
-  <c-page.content fluid class="py-4">
+  <c-page.content fluid>
     <c-card tight>
       {% block page.title %}
-        <c-slot name="header">
-          <div class="px-3 pt-3">
-            <c-page.title :attrs="page">
-              <c-slot name="actions">
-                <c-list.toolbar />
-              </c-slot>
-            </c-page.title>
-          </div>
-        </c-slot>
+        <c-card.header level="1" :attrs="page">
+          <c-list.toolbar />
+        </c-card.header>
       {% endblock page.title %}
       <div class="table-compact">
-        <c-django-table2 min-height="65vh" class="table-compact" />
+        <c-addons.django-table min-height="65vh" class="table-compact" />
       </div>
     </c-card>
   </c-page.content>

@@ -1,8 +1,0 @@
-<c-vars class :condition="True" divider divider-text />
-{% if condition %}
-  {% if divider or divider_text %}<c-card.divider :text="divider_text" />{% endif %}
-  <div class="card-section {{ class }}" {{ attrs }}>
-    {% if message %}<c-text :text="message" center only />{% endif %}
-    {{ slot }}
-  </div>
-{% endif %}

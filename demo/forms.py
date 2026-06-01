@@ -2,6 +2,19 @@
 
 from django import forms
 
+from .models import Product
+
+
+class ProductForm(forms.ModelForm):
+    """Simple product form for testing MVPFormMixin."""
+
+    class Meta:
+        model = Product
+        fields = ["name", "description", "price"]
+        widgets = {
+            "description": forms.Textarea(attrs={"rows": 4}),
+        }
+
 
 class ContactForm(forms.Form):
     """Simple contact form for MVPFormView testing."""

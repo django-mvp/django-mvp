@@ -1,5 +1,5 @@
 // Overrides for AdminLTE 4 app layout system
-
+// WRAPPER
 .app-wrapper.fill {
   height: 100vh;
   overflow: auto;
@@ -15,9 +15,6 @@
     overflow: auto;
   }
 
-  // .page-layout {
-  //   overflow: auto;
-  // }
   .page-content {
     min-height: 0;
     overflow: auto;
@@ -29,6 +26,28 @@
   }
 }
 
+// ------- HEADER -------
 .app-header {
+  @extend .bg-body;
   flex-wrap: wrap;
+
+  &:has(> .header-tray) {
+    .navbar {
+      padding-bottom: 0;
+    }
+  }
+
+  .header-tray {
+    width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none; /* Firefox */
+  }
+}
+
+// ------- FOOTER -------
+.app-footer {
+  @extend .bg-body;
+  padding-bottom: env(safe-area-inset-bottom, 0) !important;
+  padding: 0;
+  min-height: 0;
 }

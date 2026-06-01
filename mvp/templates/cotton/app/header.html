@@ -1,10 +1,11 @@
+{% load mvp %}
 <c-vars title variant="body" :border="True" tray />
 <header class="app-header position-relative">
   <nav class="navbar bg-{{ variant }}">
     <c-container fluid>
-      <c-mvp.toolbar class="hide-on-mobile hide-btn-text btn-icons"
-                     tight
-                     row>
+      <c-toolbar class="hide-on-mobile hide-btn-text btn-icons"
+                 tight
+                 row>
         <div>
           <c-button text="{% trans "Toggle site navigation" %}"
                     outline
@@ -16,14 +17,13 @@
         <c-slot name="actions">
           {{ right }}
         </c-slot>
-      </c-mvp.toolbar>
-      <div class="navbar-brand flex-center w-100 show-on-mobile"
-           style="height: 1lh">
-        <a class="navbar-brand align-middle ms-2" href="/">
-          <c-logo height="40px" class="navbar-brand" />
+      </c-toolbar>
+      <div class="w-100 show-on-mobile">
+        <a class="navbar-brand m-0" href="/">
+          <c-logo max-height="1lh" />
         </a>
       </div>
     </c-container>
   </nav>
-  {% if tray %}{{ tray }}{% endif %}
+  {% if not tray|slot_is_empty %}<div class="header-tray">{{ tray }}</div>{% endif %}
 </header>

@@ -1,5 +1,5 @@
 <!-- ── Page Title Section ───────────────────────── -->
-<header>
+<header class="w-100">
   <!-- Caption -->
   {% if caption %}
     <c-text class="page-header-caption mb-1">
@@ -7,7 +7,12 @@
     </c-text>
   {% endif %}
   <!-- Title + Actions row -->
-  <c-mvp.toolbar :attrs="attrs" />
+  <c-toolbar row="md" :attrs="attrs">
+    <h1 class="fs-2">
+      {% if icon %}<c-icon name="{{ icon }}" />{% endif %}
+      {{ title }}
+    </h1>
+  </c-toolbar>
   <!-- Subtitle / Lead -->
   {% if subtitle %}
     <c-text impact tight>

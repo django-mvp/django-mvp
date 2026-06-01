@@ -16,17 +16,9 @@
                    method="post"
                    action="{{ request.path }}"
                    :form-obj="form">
-        <c-slot name="before_form">
-          {% block before_form %}
-          {% endblock before_form %}
-        </c-slot>
-        <c-slot name="after_form">
-          {% block after_form %}
-          {% endblock after_form %}
-        </c-slot>
         <c-slot name="actions">
           {% block actions %}
-            <c-action-group breakpoint="lg" wrap>
+            <c-group breakpoint="md" wrap>
               <c-button text="{% trans "Save & continue" %}"
                         icon="arrow-right"
                         type="submit"
@@ -34,18 +26,13 @@
                         reverse
                         value="list"
                         variant="primary" />
-              <c-button text="{% trans "Save & view" %}"
-                        type="submit"
-                        name="next"
-                        value="detail"
-                        variant="primary"
-                        outline />
+              {% comment %} <c-button text="{% trans "Save & view" %}" type="submit" name="next" value="detail" variant="primary" outline />
               <c-button text="{% trans "Save & add another" %}"
                         type="submit"
                         name="next"
                         value="create"
                         variant="primary"
-                        outline />
+                        outline /> {% endcomment %}
               <c-button text="{% trans "Save & continue editing" %}"
                         type="submit"
                         name="next"
@@ -58,7 +45,7 @@
                           icon="delete"
                           variant="danger" />
               {% endif %}
-            </c-action-group>
+            </c-group>
           {% endblock actions %}
         </c-slot>
       </c-form.card>

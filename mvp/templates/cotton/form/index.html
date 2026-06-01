@@ -7,9 +7,4 @@
   {% endif %}
   {% if form_obj %}<c-form.render :form-obj="form_obj" />{% endif %}
   {{ slot }}
-  {% comment %} {% if actions %}
-    <c-mvp.toolbar only>
-      {{ actions }}
-    </c-mvp.toolbar>
-  {% endif %} {% endcomment %}
 </form>

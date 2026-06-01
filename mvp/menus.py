@@ -152,6 +152,14 @@ MobileFooterMenu = Menu(
                 },
             },
         ),
+        MenuItem(
+            name="home",
+            view_name="home",
+            extra_context={
+                "label": "Home",
+                "icon": "home",
+            },
+        ),
         # Uncomment to test more mobile nav-items
         # MenuItem(
         #     name="sidebar_toggle",
