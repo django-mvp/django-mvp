@@ -190,12 +190,6 @@ class ListViewDemo(MVPListViewMixin, FilterView):
         ("price_desc", "Price (High to Low)", "-price"),
     ]
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        if self.create_form_class:
-            context["create_form"] = self.create_form_class()
-        return context
-
 
 class DataTablesView(MVPTableViewMixin, FilterView):
     """Django Tables2 demo page showing Product table with sorting and pagination.
