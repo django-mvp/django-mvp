@@ -302,6 +302,13 @@ class MVPListViewMixin(
             title falls back to ``model._meta.verbose_name_plural.title()``.
         search_fields (list[str] | None): Inherited from ``SearchMixin``. Default: ``None``.
         order_by (list[tuple] | None): Inherited from ``OrderMixin``. Default: ``None``.
+        create_form_class (type[Form] | None): Django form class for inline object creation
+            in a modal. When ``None`` (the default), inline create is disabled. When set, the
+            mixin injects an unbound form instance into context as ``create_form`` (if the user
+            has create permission). Default: ``None``.
+        create_modal_title (str | None): Override the modal title for inline create. When
+            ``None`` (the default), auto-derives as ``"Add <verbose_name>"`` (e.g. "Add Product").
+            Default: ``None``.
 
     Override hooks:
         get_list_item_template(): Return the item partial path; override for full control.
@@ -312,6 +319,9 @@ class MVPListViewMixin(
         get_breadcrumbs(): Return the breadcrumb list. Default includes Home + page title.
         get_search_fields(): Inherited from ``SearchMixin``.
         get_order_by_choices(): Inherited from ``OrderMixin``.
+        get_create_form(): Instantiate and return the create form, or ``None`` if not configured.
+            Default implementation returns ``self.create_form_class()`` (unbound). Override to pass
+            additional kwargs (e.g. request, user, initial data).
 
     Context (always injected):
         list_item_template (str): Resolved partial template path.
@@ -322,6 +332,10 @@ class MVPListViewMixin(
         is_searchable (bool): Whether ``search_fields`` is configured.
         page (dict): PageMixin metadata — ``title``, ``subtitle``, ``icon``, ``class``,
             ``breadcrumbs``.
+        create_form (Form): Unbound form instance for inline create modal (only when
+            ``create_form_class`` is set and ``has_create_permission`` is ``True``).
+        create_modal_title (str): Resolved modal title for inline create (only when
+            ``create_form`` is also injected).
 
     Example::
 
@@ -344,6 +358,8 @@ class MVPListViewMixin(
     empty_state_message: str | Promise | None = _(
         "You haven't added any records yet. Click the button below to get started."
     )
+    create_form_class = None
+    create_modal_title = None
 
     def get_context_data(self, **kwargs):
         """Add grid configuration to the template context.
@@ -359,7 +375,31 @@ class MVPListViewMixin(
         }
         context["list_item_template"] = self.get_list_item_template()
 
+        # Inject create_form and create_modal_title when configured and permitted
+        perm = self.has_create_permission
+        allowed = perm(self.request.user) if callable(perm) else bool(perm)
+        if allowed and self.create_form_class:
+            context["create_form"] = self.get_create_form()
+            title = (
+                self.create_modal_title
+                or f"Add {self.model._meta.verbose_name.title()}"
+            )
+            context["create_modal_title"] = title
+
         return context
+
+    def get_create_form(self):
+        """Instantiate and return the create form, or None if not configured.
+
+        Default implementation returns ``self.create_form_class()`` (unbound).
+        Override to pass additional kwargs (e.g. request, user, initial data).
+
+        Returns:
+            Form instance, or None when create_form_class is not set.
+        """
+        if self.create_form_class is None:
+            return None
+        return self.create_form_class()
 
     def get_list_item_template(self):
         """Return the template path for rendering individual list items.

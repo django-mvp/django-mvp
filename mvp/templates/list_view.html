@@ -44,20 +44,22 @@
       </c-slot>
     </c-form.card>
   </c-modal>
-  <c-modal id="createModal" centered fade only>
-    <c-form.card id="createForm"
-                 title="{% trans "Create product" %}"
-                 icon="add"
-                 method="post"
-                 action="{{ directory.create_url }}"
-                 :form-obj="create_form">
-      <c-slot name="actions">
-        <c-button text="{% trans "Add" %}"
-                  variant="primary"
-                  type="submit" />
-      </c-slot>
-    </c-form.card>
-  </c-modal>
+  {% if create_form %}
+    <c-modal id="createModal" centered fade only>
+      <c-form.card id="createForm"
+                   title="{{ create_modal_title }}"
+                   icon="add"
+                   method="post"
+                   action="{{ directory.create_url }}?next={{ request.path }}"
+                   :form-obj="create_form">
+        <c-slot name="actions">
+          <c-button text="{% trans "Add" %}"
+                    variant="primary"
+                    type="submit" />
+        </c-slot>
+      </c-form.card>
+    </c-modal>
+  {% endif %}
   {{ block.super }}
   <script src="{% static "js/list_view.js" %}"></script>
 {% endblock extra_js %}
