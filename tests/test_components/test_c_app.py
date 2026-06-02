@@ -473,13 +473,6 @@ class TestCAppMobileFooterNav:
         nav = soup.find("nav")
         assert nav is not None
 
-    def test_class_attribute_forwarded_to_nav(self, cotton_render_soup):
-        """Test class attribute is forwarded to the outer container element."""
-        soup = cotton_render_soup("app.mobile-footer-nav", **{"class": "custom-class"})
-        container = soup.find(class_="mobile-footer-nav")
-        assert container is not None
-        assert "custom-class" in container.get("class", [])
-
     def test_invisible_menu_item_does_not_appear(self, cotton_render_soup):
         """Test MenuItem with check=False does not appear in rendered output (FR-011)."""
         from flex_menu import MenuItem

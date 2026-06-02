@@ -42,6 +42,7 @@ Auto-generated from all feature plans. Last updated: 2025-12-23
 - Python 3.10–3.13, Django 4.2–5.x + Django (`SuccessMessageMixin`, `generic.CreateView`), `collections.defaultdict` (main)
 - Python 3.12 / 3.13 + Django 5.2+, `django-htmx>=1.0,<2.0` (new required dep), `django-cotton==2.6.1` (existing dep) (020-htmx-form-mixin)
 - N/A — no model changes, no migrations (020-htmx-form-mixin)
+- Python 3.12 — Django 5.2 + django-cotton 2.6.1, django-cotton-bs5 ≥ 0.10.0, Bootstrap 5 (AdminLTE 4) (main)
 
 - Python 3.11 (tests target) + Django, django-cotton, django-cotton-bs5, django-flex-menus, django-easy-icons, django-compressor, django-libsass, crispy-forms/bootstrap5 (001-outer-layout-config)
 
@@ -61,9 +62,9 @@ cd src; pytest; ruff check .
 Python 3.11 (tests target): Follow standard conventions
 
 ## Recent Changes
+- main: Added Python 3.12 — Django 5.2 + django-cotton 2.6.1, django-cotton-bs5 ≥ 0.10.0, Bootstrap 5 (AdminLTE 4)
 - 020-htmx-form-mixin: Added Python 3.12 / 3.13 + Django 5.2+, `django-htmx>=1.0,<2.0` (new required dep), `django-cotton==2.6.1` (existing dep)
 - main: Added Python 3.10–3.13, Django 4.2–5.x + Django (`SuccessMessageMixin`, `generic.CreateView`), `collections.defaultdict`
-- 008-safe-post-submit-redirect: Added Python 3.10–3.12 (target-version = py311 per pyproject.toml) + Django ≥4.2,<6.0; `django.utils.http.url_has_allowed_host_and_scheme`; Python `logging` stdlib
 
 
 <!-- MANUAL ADDITIONS START -->

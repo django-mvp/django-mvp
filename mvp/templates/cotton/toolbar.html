@@ -1,5 +1,5 @@
 {% comment %}
-mvp.toolbar — Horizontal toolbar layout container.
+toolbar — Horizontal toolbar layout container.
 
 A responsive horizontal bar that combines an optional heading with slotted
 content areas. By default it stacks vertically and switches to a flex row at
@@ -10,7 +10,7 @@ Props:
   level   (int)  – Heading level for `title` (1–6). Default: 1.
   fs      (int)  – Bootstrap `fs-*` size override for the heading.
                    Defaults to the value of `level`.
-  reverse (flag) – When present, applies `mvp.toolbar--reverse` to flip
+  reverse (flag) – When present, applies `toolbar--reverse` to flip
                    the layout direction.
   gap     (int)  – Bootstrap `gap-*` spacing between toolbar children.
                    Default: 1.
@@ -37,7 +37,7 @@ Props:
   attrs          – Extra HTML attributes forwarded to the root `<div>`.
 
 Slots:
-  start   – Content placed in a `mvp.toolbar-start` div before the default
+  start   – Content placed in a `toolbar-start` div before the default
              slot. Typically used for leading action buttons or controls.
   (slot)  – Default slot content rendered after the start region.
 

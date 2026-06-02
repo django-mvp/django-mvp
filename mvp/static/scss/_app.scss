@@ -51,3 +51,14 @@
   padding: 0;
   min-height: 0;
 }
+
+// ------- SIDEBAR -------
+.app-sidebar {
+  .content-header,
+  .content-footer {
+    background-color: rgba(
+      var(--bs-secondary-bg-rgb),
+      var(--bs-bg-opacity)
+    ) !important;
+  }
+}

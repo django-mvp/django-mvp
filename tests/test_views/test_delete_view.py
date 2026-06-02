@@ -329,7 +329,7 @@ class TestMVPDeleteViewProtected:
         # Delete submit button (btn-danger) must not be present.
         # Note: the language switcher renders type="submit" buttons (name="language"),
         # so we check for the danger-styled button class instead.
-        assert 'btn-danger' not in content
+        assert "btn-danger" not in content
 
     def test_post_does_not_delete_protected_object(self, client, product):
         """(c) POST to protected object returns 200 (re-render), not 302 or 500; (d) not deleted."""
