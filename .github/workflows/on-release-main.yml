@@ -36,7 +36,7 @@ jobs:
           ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Set up Poetry env
-        uses: SamuelJennings/cached-poetry-action@v2.0
+        uses: django-mvp/shared/.github/actions/setup-poetry@main
         with:
           python-version: '3.13'
 

@@ -1,9 +1,27 @@
 version: 2
 updates:
-  # Python dependencies are managed via the weekly dependencies.yml workflow
-  # which uses Poetry directly for better compatibility
+  # Python dependencies (Poetry)
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "SamuelJennings"
+    labels:
+      - "dependencies"
+      - "python"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    groups:
+      python-dependencies:
+        patterns:
+          - "*"
 
-  # Enable version updates for GitHub Actions only
+  # GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
@@ -20,7 +38,6 @@ updates:
       prefix: "chore"
       include: "scope"
     groups:
-      # Group all GitHub Actions updates together
       github-actions:
         patterns:
           - "*"
