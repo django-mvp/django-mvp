@@ -1,6 +1,6 @@
 # Data Model: Mobile Footer Navigation
 
-**Branch**: `017-mobile-footer-nav` | **Date**: 2026-05-26
+**Branch**: `017-dock` | **Date**: 2026-05-26
 
 ---
 
@@ -57,7 +57,7 @@ django-flex-menus). No additional permission infrastructure is required.
 
 **Kind**: Python class (django-flex-menus `BaseRenderer` subclass)
 **Module**: `mvp/renderers.py`
-**Registry key**: `"mobile-footer-nav"` (in Django's `FLEX_MENUS["renderers"]` setting)
+**Registry key**: `"dock"` (in Django's `FLEX_MENUS["renderers"]` setting)
 
 ```python
 from flex_menu.renderers import BaseRenderer
@@ -70,14 +70,14 @@ class MobileFooterNavRenderer(BaseRenderer):
     rather than anchor links.
 
     Config:
-        FLEX_MENUS["renderers"]["mobile-footer-nav"] = "mvp.renderers.MobileFooterNavRenderer"
+        FLEX_MENUS["renderers"]["dock"] = "mvp.renderers.MobileFooterNavRenderer"
     """
 
     templates = {
-        0: {"default": "menus/mobile-footer-nav/wrapper.html"},
+        0: {"default": "menus/dock/index.html"},
         "default": {
-            "parent": "menus/mobile-footer-nav/item.html",
-            "leaf":   "menus/mobile-footer-nav/item.html",
+            "parent": "menus/dock/item.html",
+            "leaf":   "menus/dock/item.html",
         },
     }
 ```
@@ -86,16 +86,16 @@ class MobileFooterNavRenderer(BaseRenderer):
 
 | Depth | Kind   | Template                                       |
 |-------|--------|------------------------------------------------|
-| 0     | root   | `menus/mobile-footer-nav/wrapper.html`         |
-| 1+    | leaf   | `menus/mobile-footer-nav/item.html`            |
-| 1+    | parent | `menus/mobile-footer-nav/item.html` (flat nav) |
+| 0     | root   | `menus/dock/index.html`         |
+| 1+    | leaf   | `menus/dock/item.html`            |
+| 1+    | parent | `menus/dock/item.html` (flat nav) |
 
 ---
 
-## Entity 3: `menus/mobile-footer-nav/wrapper.html`
+## Entity 3: `menus/dock/index.html`
 
 **Kind**: Django template (depth-0 renderer output)
-**Path**: `mvp/templates/menus/mobile-footer-nav/wrapper.html`
+**Path**: `mvp/templates/menus/dock/index.html`
 
 Responsibility: Renders the `<ul class="nav">` list and iterates children.
 
@@ -110,10 +110,10 @@ Responsibility: Renders the `<ul class="nav">` list and iterates children.
 
 ---
 
-## Entity 4: `menus/mobile-footer-nav/item.html`
+## Entity 4: `menus/dock/item.html`
 
 **Kind**: Django template (depth-1+ renderer output)
-**Path**: `mvp/templates/menus/mobile-footer-nav/item.html`
+**Path**: `mvp/templates/menus/dock/item.html`
 
 Responsibility: Renders one BS5 `.nav-item`. Sidebar toggle items render as
 `<button data-lte-toggle="sidebar">`; all other items render as `<a>` links.
@@ -140,10 +140,10 @@ Responsibility: Renders one BS5 `.nav-item`. Sidebar toggle items render as
 
 ---
 
-## Entity 5: `c-app.mobile-footer-nav` Cotton Component
+## Entity 5: `c-app.dock` Cotton Component
 
 **Kind**: Django Cotton component
-**Path**: `mvp/templates/cotton/app/mobile-footer-nav.html`
+**Path**: `mvp/templates/cotton/app/dock.html`
 
 Responsibility: Wraps the rendered menu in a `<nav>` element with `show-on-mobile`
 for responsive hiding and `aria-label` for accessibility.
@@ -151,9 +151,9 @@ for responsive hiding and `aria-label` for accessibility.
 ```html
 {% load flex_menu i18n %}
 <c-vars class />
-<nav class="mobile-footer-nav show-on-mobile{% if class %} {{ class }}{% endif %}"
+<nav class="dock show-on-mobile{% if class %} {{ class }}{% endif %}"
      aria-label="{% trans 'Mobile navigation' %}">
-  {% render_menu "MobileFooterMenu" renderer="mobile-footer-nav" %}
+  {% render_menu "MobileFooterMenu" renderer="dock" %}
 </nav>
 ```
 
@@ -165,16 +165,16 @@ for responsive hiding and `aria-label` for accessibility.
 
 ---
 
-## Entity 6: SCSS Partial `_mobile-footer-nav.scss`
+## Entity 6: SCSS Partial `_dock.scss`
 
 **Kind**: SCSS partial
-**Path**: `mvp/static/scss/_mobile-footer-nav.scss`
+**Path**: `mvp/static/scss/_dock.scss`
 **Imported by**: `mvp/static/scss/mvp.scss`
 
 Responsibility: Sticky positioning, z-index, visual treatment, and nav-link vertical layout.
 
 ```scss
-.mobile-footer-nav {
+.dock {
   position: fixed;
   bottom: 0;
   left: 0;
@@ -205,7 +205,7 @@ Responsibility: Sticky positioning, z-index, visual treatment, and nav-link vert
 
 ```html
 {% block app.mobile_footer_nav %}
-  <c-app.mobile-footer-nav />
+  <c-app.dock />
 {% endblock app.mobile_footer_nav %}
 ```
 

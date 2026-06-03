@@ -22,25 +22,25 @@ class TestMobileFooterNavRenderer:
         """Test templates dict maps depth-0 default to wrapper.html."""
         from mvp.renderers import MobileFooterNavRenderer
 
-        assert MobileFooterNavRenderer.templates[0]["default"] == "menus/mobile-footer-nav/wrapper.html"
+        assert MobileFooterNavRenderer.templates[0]["default"] == "menus/dock/index.html"
 
     def test_templates_maps_default_leaf_to_item(self):
         """Test templates dict maps default leaf to item.html."""
         from mvp.renderers import MobileFooterNavRenderer
 
-        assert MobileFooterNavRenderer.templates["default"]["leaf"] == "menus/mobile-footer-nav/item.html"
+        assert MobileFooterNavRenderer.templates["default"]["leaf"] == "menus/dock/item.html"
 
     def test_templates_maps_default_parent_to_item(self):
         """Test templates dict maps default parent to item.html."""
         from mvp.renderers import MobileFooterNavRenderer
 
-        assert MobileFooterNavRenderer.templates["default"]["parent"] == "menus/mobile-footer-nav/item.html"
+        assert MobileFooterNavRenderer.templates["default"]["parent"] == "menus/dock/item.html"
 
     def test_renderer_registered_in_settings(self, settings):
-        """Test renderer is registered under 'mobile-footer-nav' key in FLEX_MENUS."""
+        """Test renderer is registered under 'dock' key in FLEX_MENUS."""
         renderers = settings.FLEX_MENUS["renderers"]
-        assert "mobile-footer-nav" in renderers
-        assert renderers["mobile-footer-nav"] == "mvp.renderers.MobileFooterNavRenderer"
+        assert "dock" in renderers
+        assert renderers["dock"] == "mvp.renderers.MobileFooterNavRenderer"
 
     def test_invisible_item_produces_no_output(self, rf):
         """Test item with visible=False produces no output (FR-011 — BaseRenderer.render visibility)."""
@@ -78,7 +78,7 @@ class TestMobileFooterNavRendererOutput:
         MobileFooterMenu.children = [
             MenuItem(name="link", url="/test/", extra_context={"label": "Test", "icon": "home", "url": "/test/"})
         ]
-        soup = cotton_render_soup("app.mobile-footer-nav")
+        soup = cotton_render_soup("app.dock")
         nav = soup.find("nav")
         assert nav is not None
         nav_link = nav.find(class_="nav-link")
@@ -94,7 +94,7 @@ class TestMobileFooterNavRendererOutput:
         MobileFooterMenu.children = [
             MenuItem(name="current", url="/", extra_context={"label": "Current", "icon": "home", "url": "/"})
         ]
-        soup = cotton_render_soup("app.mobile-footer-nav")
+        soup = cotton_render_soup("app.dock")
         nav_link = soup.find(class_="nav-link")
         assert nav_link is not None
         assert "active" in nav_link.get("class", [])
@@ -108,7 +108,7 @@ class TestMobileFooterNavRendererOutput:
         MobileFooterMenu.children = [
             MenuItem(name="other", url="/other/", extra_context={"label": "Other", "icon": "home", "url": "/other/"})
         ]
-        soup = cotton_render_soup("app.mobile-footer-nav", request_path="/test/")
+        soup = cotton_render_soup("app.dock", request_path="/test/")
         nav_link = soup.find(class_="nav-link")
         assert nav_link is not None
         assert "active" not in nav_link.get("class", [])
@@ -122,7 +122,7 @@ class TestMobileFooterNavRendererOutput:
         MobileFooterMenu.children = [
             MenuItem(name="icon_item", url="/test/", extra_context={"label": "Item", "icon": "home", "url": "/test/"})
         ]
-        soup = cotton_render_soup("app.mobile-footer-nav")
+        soup = cotton_render_soup("app.dock")
         icon = soup.find("i", class_="bi")
         assert icon is not None
 
@@ -143,7 +143,7 @@ class TestMobileFooterNavRendererOutput:
                 },
             ),
         ]
-        soup = cotton_render_soup("app.mobile-footer-nav")
+        soup = cotton_render_soup("app.dock")
         button = soup.find("button", attrs={"data-lte-toggle": "sidebar"})
         anchor = soup.find("a", class_="nav-link")
         assert button is not None
@@ -158,7 +158,7 @@ class TestMobileFooterNavRendererOutput:
         MobileFooterMenu.children = [
             MenuItem(name="link", url="/test/", extra_context={"label": "Link", "icon": "home", "url": "/test/"})
         ]
-        soup = cotton_render_soup("app.mobile-footer-nav")
+        soup = cotton_render_soup("app.dock")
         anchor = soup.find("a", class_="nav-link")
         button = soup.find("button")
         assert anchor is not None
@@ -166,7 +166,7 @@ class TestMobileFooterNavRendererOutput:
 
     def test_sidebar_toggle_has_data_lte_toggle_attribute(self, cotton_render_soup):
         """Test data-lte-toggle='sidebar' present on toggle button."""
-        soup = cotton_render_soup("app.mobile-footer-nav")
+        soup = cotton_render_soup("app.dock")
         button = soup.find("button", attrs={"data-lte-toggle": "sidebar"})
         assert button is not None
         assert button.get("data-lte-toggle") == "sidebar"
@@ -183,7 +183,7 @@ class TestMobileFooterNavRendererOutput:
                 name="second", url="/second/", extra_context={"label": "Second", "icon": "list", "url": "/second/"}
             ),
         ]
-        soup = cotton_render_soup("app.mobile-footer-nav")
+        soup = cotton_render_soup("app.dock")
         nav = soup.find("nav")
         assert nav is not None
         items = nav.find_all(class_="nav-link")

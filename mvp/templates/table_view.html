@@ -3,7 +3,7 @@
 {% load render_table from django_tables2 %}
 {% block page.header %}
   <c-container fluid>
-    <c-breadcrumbs :items="page.breadcrumbs" class="py-2" />
+    <c-navigation.breadcrumbs :items="page.breadcrumbs" class="py-2" />
   </c-container>
 {% endblock page.header %}
 {% block page.content-wrapper %}

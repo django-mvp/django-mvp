@@ -124,13 +124,13 @@ django-flex-menus API as `AppMenu`.
 
 ### Register the renderer (settings.py)
 
-Add `"mobile-footer-nav"` alongside the existing renderer keys:
+Add `"dock"` alongside the existing renderer keys:
 
 ```python
 FLEX_MENUS = {
     "renderers": {
         "adminlte": "mvp.renderers.AdminLTERenderer",
-        "mobile-footer-nav": "mvp.renderers.MobileFooterNavRenderer",  # ← add this
+        "dock": "mvp.renderers.MobileFooterNavRenderer",  # ← add this
     },
     "log_url_failures": DEBUG,
 }
@@ -182,11 +182,11 @@ or disable it:
 
 {# Add custom CSS class #}
 {% block app.mobile_footer_nav %}
-  <c-app.mobile-footer-nav class="my-custom-modifier" />
+  <c-app.dock class="my-custom-modifier" />
 {% endblock app.mobile_footer_nav %}
 ```
 
-The `<c-app.mobile-footer-nav>` component renders a `<nav>` element with `show-on-mobile`
+The `<c-app.dock>` component renders a `<nav>` element with `show-on-mobile`
 (hidden on desktop via the sidebar-expand breakpoint), `fixed-bottom` (pinned to viewport
 bottom), `bg-body`, and `border-top` classes.
 

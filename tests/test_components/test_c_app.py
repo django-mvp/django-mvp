@@ -413,7 +413,7 @@ class TestCAppMenu:
 
 
 class TestCAppMobileFooterNav:
-    """Tests for <c-app.mobile-footer-nav> component."""
+    """Tests for <c-app.dock> component."""
 
     @pytest.fixture(autouse=True)
     def reset_mobile_footer_menu(self):
@@ -426,20 +426,20 @@ class TestCAppMobileFooterNav:
 
     def test_renders_nav_with_aria_label(self, cotton_render_soup):
         """Test component renders outer container with aria-label="Mobile navigation"."""
-        soup = cotton_render_soup("app.mobile-footer-nav")
+        soup = cotton_render_soup("app.dock")
         container = soup.find(attrs={"aria-label": "Mobile navigation"})
         assert container is not None
 
     def test_applies_show_on_mobile_class(self, cotton_render_soup):
         """Test component applies show-on-mobile CSS class to outer container."""
-        soup = cotton_render_soup("app.mobile-footer-nav")
-        container = soup.find(class_="mobile-footer-nav")
+        soup = cotton_render_soup("app.dock")
+        container = soup.find(class_="dock")
         assert container is not None
         assert "show-on-mobile" in container.get("class", [])
 
     def test_pre_populated_sidebar_toggle_renders_as_button(self, cotton_render_soup):
         """Test pre-populated sidebar toggle renders as <button data-lte-toggle="sidebar">."""
-        soup = cotton_render_soup("app.mobile-footer-nav")
+        soup = cotton_render_soup("app.dock")
         button = soup.find("button", attrs={"data-lte-toggle": "sidebar"})
         assert button is not None
 
@@ -456,7 +456,7 @@ class TestCAppMobileFooterNav:
                 url="/test/",
             )
         ]
-        soup = cotton_render_soup("app.mobile-footer-nav")
+        soup = cotton_render_soup("app.dock")
         nav = soup.find("nav")
         assert nav is not None
         nav_link = nav.find(class_="nav-link")
@@ -467,8 +467,8 @@ class TestCAppMobileFooterNav:
         from mvp.menus import MobileFooterMenu
 
         MobileFooterMenu.children = []
-        soup = cotton_render_soup("app.mobile-footer-nav")
-        container = soup.find(class_="mobile-footer-nav")
+        soup = cotton_render_soup("app.dock")
+        container = soup.find(class_="dock")
         assert container is not None
         nav = soup.find("nav")
         assert nav is not None
@@ -487,6 +487,6 @@ class TestCAppMobileFooterNav:
                 check=False,
             )
         ]
-        soup = cotton_render_soup("app.mobile-footer-nav")
+        soup = cotton_render_soup("app.dock")
         items = soup.find_all(class_="nav-link")
         assert len(items) == 0

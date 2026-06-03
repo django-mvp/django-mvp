@@ -1,0 +1,5 @@
+<c-vars cols="1" gap="4" sm md lg xl xxl class />
+<div class="grid{% if cols %} grid-cols-{{ cols }}{% endif %}{% if sm %} sm:grid-cols-{{ sm }}{% endif %}{% if md %} md:grid-cols-{{ md }}{% endif %}{% if lg %} lg:grid-cols-{{ lg }}{% endif %}{% if xl %} xl:grid-cols-{{ xl }}{% endif %}{% if xxl %} 2xl:grid-cols-{{ xxl }}{% endif %}{% if gap %} gap-{{ gap }}{% endif %} {{ class }}"
+     {{ attrs }}>
+  {{ slot }}
+</div>

@@ -1,10 +1,10 @@
 # Research: Mobile Footer Navigation
 
-**Branch**: `017-mobile-footer-nav` | **Date**: 2026-05-26
+**Branch**: `017-dock` | **Date**: 2026-05-26
 
 ## 1. django-flex-menus Renderer Registration
 
-**Decision**: Register `MobileFooterNavRenderer` as `"mobile-footer-nav"` in the
+**Decision**: Register `MobileFooterNavRenderer` as `"dock"` in the
 `FLEX_MENUS["renderers"]` Django setting.
 
 **Rationale**: Confirmed by reading `tests/settings.py` (lines 193-200). All existing
@@ -59,7 +59,7 @@ instead of an `<a href="#">` to avoid spurious URL navigation.
 
 ## 4. Cotton Component Placement Inside `c-app`
 
-**Decision**: The `c-app.mobile-footer-nav` component is inserted as a sibling of
+**Decision**: The `c-app.dock` component is inserted as a sibling of
 `c-app.header`, `c-app.sidebar`, `c-app.main`, and `c-app.footer` within `c-app`'s
 default slot in `base.html`.
 
@@ -80,8 +80,8 @@ in `base.html` is sufficient for developer override.
 
 **Decision**: Two templates:
 
-- `menus/mobile-footer-nav/wrapper.html` — depth-0 container; iterates children
-- `menus/mobile-footer-nav/item.html` — depth-1+ leaf; renders one BS5 `.nav-item`
+- `menus/dock/index.html` — depth-0 container; iterates children
+- `menus/dock/item.html` — depth-1+ leaf; renders one BS5 `.nav-item`
 
 **Rationale**: Mirrors the existing `NavRenderer` pattern (`menus/nav/wrapper.html` +
 `menus/nav/link.html`). The mobile footer nav is intentionally flat (no nested menus),
@@ -98,10 +98,10 @@ item split is the established pattern in this codebase.
 **Decision**: All new Cotton component tests go into the existing
 `tests/test_components/test_c_app.py` module.
 
-**Rationale**: The new component lives at `templates/cotton/app/mobile-footer-nav.html`
+**Rationale**: The new component lives at `templates/cotton/app/dock.html`
 — within the `cotton/app/` top-level directory. Constitution Principle IX mandates
 one test module per top-level Cotton directory. `test_c_app.py` is the existing module
-for `cotton/app/**` components. Adding mobile-footer-nav tests there keeps the topology
+for `cotton/app/**` components. Adding dock tests there keeps the topology
 consistent and avoids the prohibited one-module-per-component sprawl.
 
 **Alternatives considered**: New `test_mobile_footer_nav.py` file — explicitly
@@ -111,7 +111,7 @@ prohibited by Constitution Principle IX unless justified. No justification exist
 
 ## 7. SCSS Sticky Positioning
 
-**Decision**: A new `_mobile-footer-nav.scss` partial handles sticky positioning and
+**Decision**: A new `_dock.scss` partial handles sticky positioning and
 z-index. It is `@use`d from `mvp.scss`.
 
 **Rationale**: The `show-on-mobile` class handles responsive visibility. A small

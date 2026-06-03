@@ -1,16 +1,12 @@
-<c-list.search-widget />
-<c-list.order-widget />
-{% if filter %}
-  <c-button text="{% trans "Filter" %}"
-            icon="filter"
-            onclick="document.getElementById('filterModal').showModal()" />
-{% endif %}
-{% if directory.create_url and create_form %}
-  <c-button text="{% trans "Add new" %}"
-            icon="add"
-            onclick="document.getElementById('createModal').showModal()" />
-{% elif directory.create_url %}
-  <c-button text="{% trans "Add new" %}"
-            icon="add"
-            href="{{ directory.create_url }}" />
-{% endif %}
+<div class="flex">
+  <c-list.search-widget />
+  {% comment %} <c-list.order-widget />
+  {% if filter %}
+    <c-button text="{% trans "Filter" %}" icon="filter" onclick="document.getElementById('filterModal').showModal()" />
+  {% endif %}
+  {% if directory.create_url and create_form %}
+    <c-button text="{% trans "Add new" %}" icon="add" onclick="document.getElementById('createModal').showModal()" />
+  {% elif directory.create_url %}
+    <c-button text="{% trans "Add new" %}" icon="add" href="{{ directory.create_url }}" />
+  {% endif %} {% endcomment %}
+</div>

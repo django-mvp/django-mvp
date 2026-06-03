@@ -16,14 +16,14 @@ class MobileFooterNavRenderer(BaseRenderer):
     rather than anchor links.
 
     Config:
-        FLEX_MENUS["renderers"]["mobile-footer-nav"] = "mvp.renderers.MobileFooterNavRenderer"
+        FLEX_MENUS["renderers"]["dock"] = "mvp.renderers.MobileFooterNavRenderer"
     """
 
     templates = {
-        0: {"default": "menus/mobile-footer-nav/wrapper.html"},
+        0: {"default": "menus/dock/index.html"},
         "default": {
-            "parent": "menus/mobile-footer-nav/item.html",
-            "leaf": "menus/mobile-footer-nav/item.html",
+            "parent": "menus/dock/item.html",
+            "leaf": "menus/dock/item.html",
         },
     }
 
@@ -92,27 +92,27 @@ class AdminLTERenderer(BaseRenderer):
         return context
 
 
-class DaisyUIRenderer(BaseRenderer):
-    """Renderer for DaisyUI sidebar navigation.
+class SidebarRenderer(BaseRenderer):
+    """Renderer for sidebar navigation.
 
-    Generates DaisyUI ``menu`` markup for use inside the drawer sidebar.
+    Generates semantic menu markup for use inside the sidebar drawer.
     Supports leaf items, section headers (MenuGroup) and collapsible groups
     (MenuCollapse) via the ``<details>/<summary>`` pattern.
 
     Templates:
-    - Depth 0: ``menus/daisyui/container.html``
-    - Leaf items: ``menus/daisyui/item.html``
-    - Parent items: ``menus/daisyui/parent.html``
+    - Depth 0: ``menus/sidebar/container.html``
+    - Leaf items: ``menus/sidebar/item.html``
+    - Parent items: ``menus/sidebar/parent.html``
 
     Config:
-        FLEX_MENUS["renderers"]["daisyui"] = "mvp.renderers.DaisyUIRenderer"
+        FLEX_MENUS["renderers"]["sidebar"] = "mvp.renderers.SidebarRenderer"
     """
 
     templates: dict[Any, Any] = {
-        0: {"default": "menus/daisyui/container.html"},
+        0: {"default": "menus/sidebar/container.html"},
         "default": {
-            "parent": "menus/daisyui/parent.html",
-            "leaf": "menus/daisyui/item.html",
+            "parent": "menus/sidebar/parent.html",
+            "leaf": "menus/sidebar/item.html",
         },
     }
 

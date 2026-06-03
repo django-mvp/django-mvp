@@ -1,27 +1,27 @@
 # Implementation Plan: Mobile Footer Navigation
 
-**Branch**: `017-mobile-footer-nav` | **Date**: 2026-05-26 | **Spec**: [spec.md](spec.md)
-**Input**: Feature specification from `specs/017-mobile-footer-nav/spec.md`
+**Branch**: `017-dock` | **Date**: 2026-05-26 | **Spec**: [spec.md](spec.md)
+**Input**: Feature specification from `specs/017-dock/spec.md`
 **Propagated**: 2026-05-26 — Updated from spec.md refinement (NFR-001: BS5-utility-first styling)
 **Propagated**: 2026-05-26 — Reflected user template/style refactoring: `<div>` outer container, `<c-nav>`/`<c-nav.link>` components, `attrs` dict sidebar toggle, `show_text` flag, SCSS underline indicator
 
 ## Summary
 
 Add a mobile-only sticky footer navigation bar to django-mvp's layout system.
-The nav bar is rendered by a new `c-app.mobile-footer-nav` Cotton component inserted
+The nav bar is rendered by a new `c-app.dock` Cotton component inserted
 inside `c-app` in `base.html`. Its **outer element is a `<div>` positioning container**
-applying `fixed-bottom bg-body border-top show-on-mobile mobile-footer-nav` and
+applying `fixed-bottom bg-body border-top show-on-mobile dock` and
 `aria-label`; the semantic `<nav>` is provided by the inner `<c-nav>` cotton-bs5
 component, configured via `MobileFooterMenu.extra_context` (`type="underline"`,
 `fill=True`, `gap=0`). Items are populated via a new `MobileFooterMenu` singleton
 (independent of `AppMenu`), rendered by a new `MobileFooterNavRenderer` registered as
-`"mobile-footer-nav"` in `FLEX_MENUS`. The wrapper template uses `<c-nav :attrs="context">`;
+`"dock"` in `FLEX_MENUS`. The wrapper template uses `<c-nav :attrs="context">`;
 item templates use `<c-nav.link>` as direct children of `<nav>` (no `<li>` wrapper).
 Items default to icon-only mode (`btn-icon`) — `show_text=True` in `extra_context`
 enables label display. The pre-populated sidebar toggle uses `attrs: {"data-lte-toggle":
 "sidebar"}` in `extra_context`, forwarded to the rendered element by `<c-nav.link>`.
 **NFR-001**: Bootstrap 5 utility classes and prebuilt cotton-bs5 components are preferred
-over custom SCSS and custom HTML. The `_mobile-footer-nav.scss` partial is restricted to
+over custom SCSS and custom HTML. The `_dock.scss` partial is restricted to
 `env(safe-area-inset-bottom)` padding and nav-underline active indicator (both lack
 BS5 utility equivalents).
 
@@ -73,7 +73,7 @@ gates continue to pass.*
 ### Documentation (this feature)
 
 ```text
-specs/017-mobile-footer-nav/
+specs/017-dock/
 ├── plan.md              # This file
 ├── research.md          # Phase 0 output
 ├── data-model.md        # Phase 1 output
@@ -91,14 +91,14 @@ mvp/
 ├── renderers.py                          # + MobileFooterNavRenderer
 ├── static/
 │   └── scss/
-│       ├── _mobile-footer-nav.scss       # NEW — iOS safe-area only: env(safe-area-inset-bottom); positioning/bg/border/flex via BS5 utilities in templates (NFR-001)
-│       └── mvp.scss                      # + @use "_mobile-footer-nav"
+│       ├── _dock.scss       # NEW — iOS safe-area only: env(safe-area-inset-bottom); positioning/bg/border/flex via BS5 utilities in templates (NFR-001)
+│       └── mvp.scss                      # + @use "_dock"
 └── templates/
     ├── cotton/
     │   └── app/
-    │       └── mobile-footer-nav.html    # NEW — c-app.mobile-footer-nav Cotton component (<div> outer + <c-nav> inner)
+    │       └── dock.html    # NEW — c-app.dock Cotton component (<div> outer + <c-nav> inner)
     ├── menus/
-    │   └── mobile-footer-nav/
+    │   └── dock/
     │       ├── wrapper.html              # NEW — depth-0: <c-nav :attrs="context"> wrapping children with vr separators
     │       └── item.html                # NEW — depth-1+: <c-nav.link> (direct child of <nav>, no <li>)
 
@@ -106,13 +106,13 @@ mvp/templates/mvp/
 └── base.html                             # + {% block app.mobile_footer_nav %} inside <c-app>
 
 tests/
-├── settings.py                           # + "mobile-footer-nav" in FLEX_MENUS["renderers"]
+├── settings.py                           # + "dock" in FLEX_MENUS["renderers"]
 └── test_components/
-    └── test_c_app.py                     # + mobile-footer-nav component tests (grouped per Principle IX)
+    └── test_c_app.py                     # + dock component tests (grouped per Principle IX)
 
 skills/
 └── django-mvp/
-    └── SKILL.md                          # + MobileFooterMenu, renderer registration, c-app.mobile-footer-nav usage
+    └── SKILL.md                          # + MobileFooterMenu, renderer registration, c-app.dock usage
 ```
 
 **Structure Decision**: Single Django library layout. All new source files are

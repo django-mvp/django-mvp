@@ -1,0 +1,91 @@
+{% load i18n %}
+<c-vars label
+        page_obj
+        page_window="5"
+        use_icons
+        show_first_and_last />
+{% if page_obj.paginator.num_pages > 1 %}
+  <c-pagination.wrapper :attrs="attrs">
+    {# --- First page --- #}
+    {% if not show_first_and_last %}
+      <c-pagination.link :page="1"
+                         :disabled="{{ page_obj.has_previous|yesno:"False,True" }}"
+                         text="{% trans "First" %}">
+        {% if use_icons %}
+          <svg height="1em"
+               style="vertical-align: -0.175em"
+               fill="currentColor"
+               viewBox="0 0 16 16">
+            <path fill-rule="evenodd" d="M8.354 1.646a.5.5 0 0 1 0 .708L2.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0" />
+            <path fill-rule="evenodd" d="M12.354 1.646a.5.5 0 0 1 0 .708L6.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0" />
+          </svg>
+        {% else %}
+          {% trans "First" %}
+        {% endif %}
+      </c-pagination.link>
+    {% endif %}
+    {# --- Previous page --- #}
+    <c-pagination.link :page="{% if page_obj.has_previous %}{{ page_obj.previous_page_number }}{% endif %}"
+                       :disabled="{{ page_obj.has_previous|yesno:"False,True" }}"
+                       text="{% trans "Previous" %}">
+      {% if use_icons %}
+        <svg height="1em"
+             style="vertical-align: -0.175em"
+             fill="currentColor"
+             viewBox="0 0 16 16">
+          <path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0" />
+        </svg>
+      {% else %}
+        {% trans "Previous" %}
+      {% endif %}
+    </c-pagination.link>
+    {% with "-"|add:page_window as negative_window %}
+      {% for num in page_obj.paginator.page_range %}
+        {% if forloop.first or forloop.last and show_first_and_last %}
+          <c-pagination.link page="{{ num }}"
+                             text="{{ num }}"
+                             :active="{% if num == page_obj.number %}True{% endif %}" />
+        {% elif num >= page_obj.number|add:negative_window and num <= page_obj.number|add:page_window %}
+          <c-pagination.link page="{{ num }}"
+                             text="{{ num }}"
+                             :active="{% if num == page_obj.number %}True{% endif %}" />
+        {% elif num == page_obj.number|add:negative_window|add:"-1" or num == page_obj.number|add:page_window|add:"1" %}
+          <c-pagination.link text="..." disabled />
+        {% endif %}
+      {% endfor %}
+    {% endwith %}
+    {# --- Next page --- #}
+    <c-pagination.link :page="{% if page_obj.has_next %}{{ page_obj.next_page_number }}{% endif %}"
+                       :disabled="{{ page_obj.has_next|yesno:"False,True" }}"
+                       text="{% trans "Next" %}">
+      {% if use_icons %}
+        <svg height="1em"
+             style="vertical-align: -0.175em"
+             fill="currentColor"
+             viewBox="0 0 16 16">
+          <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708" />
+        </svg>
+      {% else %}
+        {% trans "Next" %}
+      {% endif %}
+    </c-pagination.link>
+    {% if not show_first_and_last %}
+      {# --- Last page --- #}
+      <c-pagination.link :page="{{ page_obj.paginator.num_pages }}"
+                         :disabled="{{ page_obj.has_next|yesno:"False,True" }}"
+                         text="{% trans "Last" %}">
+        {% if use_icons %}
+          <svg height="1em"
+               style="vertical-align: -0.175em"
+               fill="currentColor"
+               viewBox="0 0 16 16">
+            <path fill-rule="evenodd" d="M3.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L9.293 8 3.646 2.354a.5.5 0 0 1 0-.708" />
+            <path fill-rule="evenodd" d="M7.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L13.293 8 7.646 2.354a.5.5 0 0 1 0-.708" />
+          </svg>
+        {% else %}
+          {% trans "Last" %}
+        {% endif %}
+      </c-pagination.link>
+    {% endif %}
+  </c-pagination.wrapper>
+{% endif %}

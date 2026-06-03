@@ -1,0 +1,8 @@
+{% load mvp %}
+<c-vars title tray />
+<div x-data="{ stuck: false }"
+     @scroll.window="stuck = window.scrollY > 0"
+     class="sticky top-0 z-30 w-full">
+  <c-app.header.navbar />
+  {% if not tray|slot_is_empty %}<div class="px-4 py-1">{{ tray }}</div>{% endif %}
+</div>

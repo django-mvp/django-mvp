@@ -1,19 +1,7 @@
 <c-vars title icon variant fill footer-start class />
-<div class="card bg-base-100 shadow-sm{% if fill == 'card' %} bg-{{ variant }} text-{{ variant }}-content{% endif %}{% if fill == 'outline' %} card-border border-base-300{% endif %} {{ class }}">
-  {% if header %}
-    {{ header }}
-  {% elif title %}
-    <c-card.header :title="title"
-                   :icon="icon"
-                   :actions="widgets"
-                   only />
-  {% endif %}
-  <c-card.body>
+<div class="card bg-base-100 shadow-sm {{ class }}">
+  <div class="card-body">
+    {% if title %}<h2 class="card-title">{{ title }}</h2>{% endif %}
     {{ slot }}
-  </c-card.body>
-  {% if footer_start or footer_end %}
-    <c-card.footer :actions="footer_end" only>
-      {{ footer_start }}
-    </c-card.footer>
-  {% endif %}
+  </div>
 </div>

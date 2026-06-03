@@ -3,6 +3,7 @@
 {% block title %}
   {% trans "403 — Forbidden" %}
 {% endblock title %}
+{% block error_code %}403{% endblock %}
 {% block heading %}
   {% trans "Access Denied." %}
 {% endblock heading %}
@@ -10,7 +11,7 @@
   {% trans "You do not have permission to access this page. If you believe this is a mistake, please contact your administrator." %}
 {% endblock description %}
 {% block actions %}
-  <c-button variant="outline-secondary"
+  <c-button variant="ghost"
             icon="arrow-left"
             href="/"
             text="{% trans "Back to home" %}" />

@@ -1,0 +1,5 @@
+{% load mvp %}
+<c-vars horizontal />
+<ul class="steps{% if not horizontal == True %} steps-vertical{% endif %} {% responsive horizontal "steps-horizontal" %}">
+  {{ slot }}
+</ul>

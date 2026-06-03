@@ -1,50 +1,7 @@
 {% extends "mvp/base.html" %}
-{% comment %}
-{% block app %}
-{# djlint:off #}
-  <c-app :fill="fill"
-         x-data="{
-          'sidebar': {
-            'expand': false,
-            'fixed': false,
-            'collapsible': false,
-            'collapsed': false,
-            'expandOnHover': false,
-            },
-          'fixedHeader': $persist(true),
-          'fixedFooter': $persist(true),
-          'fill': $persist(false)
-         }"
-         x-bind:class="{
-          'fixed-footer': fixedFooter,
-          'fixed-header': fixedHeader,
-          'layout-fixed': sidebar.fixed,
-          'sidebar-mini': sidebar.collapsible,
-          'sidebar-open': ! sidebar.collapsed,
-          'sidebar-collapse': sidebar.collapsed,
-          'sidebar-without-hover': ! sidebar.expandOnHover
-         }">
-{# djlint:on #}
-<c-app.header variant="primary">
-<c-slot name="tray">
-{% block tray %}
-{% endblock tray %}
-</c-slot>
-</c-app.header>
-<c-app.sidebar collapsible expand="md" compact indent />
-<c-app.main>
-{% block content %}
-{% endblock content %}
-<c-messages :messages="messages" dismissible animate />
-</c-app.main>
-{% block app_footer %}
-<c-app.footer />
-{% endblock app_footer %}
-</c-app>
-{% endblock app %}
-{% endcomment %}
 {% block app.header.widgets %}
   <c-actions.theme-switcher />
+  <c-actions.language-switcher />
 {% endblock app.header.widgets %}
 {% block app %}
   {{ block.super }}

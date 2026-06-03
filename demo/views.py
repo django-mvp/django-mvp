@@ -28,6 +28,14 @@ from mvp.views.table import MVPTableViewMixin
 from .forms import ProductForm
 
 
+class ComponentView(MVPTemplateView):
+    template_name = "demo/components.html"
+    page_title = "Components"
+    page_subtitle = "Learn more"
+    page_icon = "info-circle"
+    breadcrumbs = [{"text": "Home", "href": "/"}, {"text": "Components"}]
+
+
 class MVPDemoView(MVPTemplateView):
     """Base TemplateView with LayoutConfigMixin for layout configuration support."""
 

@@ -1,0 +1,9 @@
+{# DaisyUI sidebar menu — leaf item (no children) #}
+<li>
+  <a href="{{ url }}"
+     class="{% if selected %}active{% endif %}">
+    {% if icon %}<c-icon name="{{ icon }}" class="{{ icon_class }}" />{% endif %}
+    {{ label }}
+    {% if badge %}<span class="badge badge-sm ms-auto {{ badge_class }}">{{ badge }}</span>{% endif %}
+  </a>
+</li>

@@ -1,6 +1,6 @@
 # Public API Contract: Mobile Footer Navigation
 
-**Branch**: `017-mobile-footer-nav` | **Date**: 2026-05-26
+**Branch**: `017-dock` | **Date**: 2026-05-26
 
 ---
 
@@ -30,9 +30,9 @@
 
 **Contract**:
 
-- Registered as `"mobile-footer-nav"` in `FLEX_MENUS["renderers"]`
-- Renders depth-0 output via `menus/mobile-footer-nav/wrapper.html`
-- Renders depth-1+ output via `menus/mobile-footer-nav/item.html`
+- Registered as `"dock"` in `FLEX_MENUS["renderers"]`
+- Renders depth-0 output via `menus/dock/index.html`
+- Renders depth-1+ output via `menus/dock/item.html`
 - Items with `extra_context["sidebar_toggle"] == True` render as
   `<button data-lte-toggle="sidebar">` not `<a>` links
 - `active` class applied to `.nav-link` when item URL matches `request.path`
@@ -49,7 +49,7 @@
 **Contract**:
 
 - Block is always present inside `<c-app>`, after `{% block app.footer %}`
-- Default content: `<c-app.mobile-footer-nav />`
+- Default content: `<c-app.dock />`
 - Developers MAY override to customise, replace, or remove the footer nav
 - Block name `app.mobile_footer_nav` is stable across minor releases
 
@@ -57,9 +57,9 @@
 
 ## Cotton Component API
 
-### `<c-app.mobile-footer-nav>`
+### `<c-app.dock>`
 
-**Path**: `mvp/templates/cotton/app/mobile-footer-nav.html`
+**Path**: `mvp/templates/cotton/app/dock.html`
 
 **Attributes**:
 
@@ -71,9 +71,9 @@
 
 - Always renders a `<nav aria-label="Mobile navigation">` element
 - Always applies `show-on-mobile` CSS class (responsive visibility)
-- Always renders `MobileFooterMenu` via the `"mobile-footer-nav"` renderer
+- Always renders `MobileFooterMenu` via the `"dock"` renderer
 - Visible below the app's sidebar-expand breakpoint; hidden at or above it
-- Component name `c-app.mobile-footer-nav` is stable across minor releases
+- Component name `c-app.dock` is stable across minor releases
 
 ---
 
@@ -82,14 +82,14 @@
 ```python
 FLEX_MENUS = {
     "renderers": {
-        "mobile-footer-nav": "mvp.renderers.MobileFooterNavRenderer",
+        "dock": "mvp.renderers.MobileFooterNavRenderer",
     }
 }
 ```
 
 **Contract**:
 
-- Key `"mobile-footer-nav"` MUST be present for the component to render
+- Key `"dock"` MUST be present for the component to render
 - Missing key produces a django-flex-menus `RendererNotFound` error at render time
 - Value MUST be the full dotted Python path to `MobileFooterNavRenderer` or a subclass
 
@@ -102,8 +102,8 @@ FLEX_MENUS = {
 | `mvp.menus.MobileFooterMenu`  | Stable    |
 | `MobileFooterMenu.children`   | Stable    |
 | `mvp.renderers.MobileFooterNavRenderer` | Stable |
-| `c-app.mobile-footer-nav`     | Stable    |
-| `c-app.mobile-footer-nav` `class` attribute | Stable |
+| `c-app.dock`     | Stable    |
+| `c-app.dock` `class` attribute | Stable |
 | `{% block app.mobile_footer_nav %}` | Stable |
-| `"mobile-footer-nav"` renderer key | Stable |
-| Template paths (`menus/mobile-footer-nav/*.html`) | Internal — may change |
+| `"dock"` renderer key | Stable |
+| Template paths (`menus/dock/*.html`) | Internal — may change |

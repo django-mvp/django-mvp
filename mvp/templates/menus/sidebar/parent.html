@@ -2,7 +2,7 @@
 {# Handles MenuGroup (section header) and MenuCollapse (details/summary) #}
 {% load flex_menu %}
 {% if component_type == "menu.group" %}
-  <li class="menu-title">{{ label }}</li>
+  <li class="menu-title text-upper">{{ label }}</li>
   {% for child in children %}
     {% render_item child renderer=renderer %}
   {% endfor %}
@@ -10,9 +10,9 @@
   <li>
     <details {% if selected %}open{% endif %}>
       <summary>
-        {% if icon %}<i class="bi bi-{{ icon }}"></i>{% endif %}
+        {% if icon %}<c-icon name="{{ icon }}" class="{{ icon_class }}" />{% endif %}
         {{ label }}
-        {% if badge %}<span class="badge badge-sm ms-auto">{{ badge }}</span>{% endif %}
+        {% if badge %}<span class="badge badge-sm ms-auto {{ badge_class }}">{{ badge }}</span>{% endif %}
       </summary>
       <ul>
         {% for child in children %}

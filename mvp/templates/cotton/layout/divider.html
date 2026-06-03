@@ -1,0 +1,5 @@
+{% load mvp %}
+<c-vars horizontal variant position />
+<div class="divider{% if variant %} divider-{{ variant }}{% endif %} {% responsive horizontal "divider-horizontal" %}{% if position %} divider-{{ position }}{% endif %} ">
+  {{ label }} {{ slot }}
+</div>

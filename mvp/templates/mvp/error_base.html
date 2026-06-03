@@ -4,26 +4,23 @@
   {% trans "Error" %}
 {% endblock title %}
 {% block app %}
-  <body class="bg-body-tertiary">
-    <main class="d-flex align-items-center min-vh-100 py-5">
-      <div class="container">
-        <div class="row justify-content-center">
-          <div class="col-md-8 col-lg-6 text-center">
-            <div class="mb-4">
-              <img src="{% logo_url "md" %}" />
-            </div>
-            <h1 class="h3 mb-3">
-              {% block heading %}{% endblock %}
-            </h1>
-            <p class="text-secondary mb-4">
-              {% block description %}{% endblock %}
-            </p>
-            <div class="d-flex gap-2 justify-content-center flex-wrap">
-              {% block actions %}{% endblock %}
-            </div>
-          </div>
-        </div>
+  <body class="min-h-screen flex items-center justify-center bg-base-200 py-12 px-4">
+    <div class="text-center max-w-md w-full">
+      <div class="mb-6 flex justify-center">
+        <img src="{% logo_url "md" %}" class="max-h-16" />
       </div>
-    </main>
+      <p class="text-6xl font-black text-base-content/10 mb-2">
+        {% block error_code %}{% endblock %}
+      </p>
+      <h1 class="text-2xl font-bold mb-3">
+        {% block heading %}{% endblock %}
+      </h1>
+      <p class="text-base-content/60 mb-6">
+        {% block description %}{% endblock %}
+      </p>
+      <div class="flex gap-2 justify-center flex-wrap">
+        {% block actions %}{% endblock %}
+      </div>
+    </div>
   </body>
 {% endblock app %}

@@ -4,38 +4,30 @@
   {{ page.title }}
 {% endblock title %}
 {% block content %}
-  <c-page class="{{ page.class }}">
-    <c-page.toolbar fluid>
+  <c-page>
+    <c-toolbar>
       {% block page.header %}
-        <c-breadcrumbs :items="page.breadcrumbs" class="py-2" />
+        <c-navigation.breadcrumbs :items="page.breadcrumbs" class="py-2" />
       {% endblock page.header %}
-    </c-page.toolbar>
+    </c-toolbar>
     {% block page.content-wrapper %}
       <c-page.content center gap=3 class="py-4">
-        <c-vstack gap=3>
-          {% block page.title %}
-            <c-card variant="primary">
-              <c-card.body>
-                <c-page.title :attrs="page">
-                  <c-slot name="actions">
-                    {% block page.actions %}
-                    {% endblock page.actions %}
-                  </c-slot>
-                </c-card.body>
-              </c-page.title>
-              {% block page.title.below %}
-              {% endblock page.title.below %}
-            </c-card>
-          {% endblock page.title %}
-          {% block page.content %}
-            {% trans "Coming soon..." %}
-          {% endblock page.content %}
-        </c-vstack>
+        {% block page.title %}
+          <c-page.title :attrs="page">
+            <c-slot name="actions">
+              {% block page.actions %}
+              {% endblock page.actions %}
+            </c-slot>
+          </c-page.title>
+        {% endblock page.title %}
+        {% block page.content %}
+          {% trans "Coming soon..." %}
+        {% endblock page.content %}
       </c-page.content>
     {% endblock page.content-wrapper %}
-    <c-page.toolbar bottom>
+    <c-toolbar bottom>
       {% block page.footer %}
       {% endblock page.footer %}
-    </c-page.toolbar>
+    </c-toolbar>
   </c-page>
 {% endblock content %}

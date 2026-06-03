@@ -1,11 +1,7 @@
 {% load mvp %}
-<c-vars bottom />
+<c-vars bottom class />
 {% if not slot|slot_is_empty %}
-  <div class="mvp-{{ bottom|yesno:"footer,header" }}">
-    <c-container :attrs="attrs">
-      <c-toolbar tight row>
-        {{ slot }}
-      </c-toolbar>
-    </c-container>
+  <div class="flex shrink-0 items-center gap-2 {{ class }}" {{ attrs }}>
+    {{ slot }}
   </div>
 {% endif %}

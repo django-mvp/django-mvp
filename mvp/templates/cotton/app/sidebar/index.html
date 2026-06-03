@@ -1,12 +1,18 @@
 {% load flex_menu %}
 <c-vars brand-text brand-url="/" class menu="AppMenu" />
-<aside class="bg-base-200 min-h-full w-72 flex flex-col {{ class }}">
+<aside x-data="{ scrolled: false }"
+       x-init=" const nav = $el.querySelector('nav'); new IntersectionObserver( ([entry]) => { scrolled = !entry.isIntersecting }, { root: nav, threshold: 0 } ).observe($refs.sentinel); "
+       class="bg-base-100 min-h-screen w-80 flex flex-col {{ class }}">
   <c-app.sidebar.header link="{{ brand_url }}" />
-  <nav class="flex-1 overflow-y-auto p-2">
-    {% render_menu menu renderer="daisyui" %}
+  <div class="h-4"></div>
+  <nav class="flex-1 overflow-y-auto py-0">
+    <div x-ref="sentinel"
+         class="h-px w-full"
+         aria-hidden="true"></div>
+    {% render_menu menu renderer="sidebar" %}
   </nav>
   {% if request.user.is_authenticated %}
-    <div class="sticky bottom-0 bg-base-200 border-t border-base-300 p-2">
+    <div class="sticky bottom-0 p-4">
       <c-user.sidebar-menu />
     </div>
   {% endif %}

@@ -78,6 +78,14 @@ AppMenu.extend(
                 "icon": "code-slash",
             },
         ),
+        MenuItem(
+            name="custom-components",
+            view_name="custom-components",
+            extra_context={
+                "label": "Components",
+                "icon": "code-slash",
+            },
+        ),
         # List View Demos
         MenuGroup(
             name="crud_views",

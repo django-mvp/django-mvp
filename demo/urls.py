@@ -9,6 +9,7 @@ from . import views
 from .views import (
     CategoryDeleteWithRelatedView,
     CategoryUpdateView,
+    ComponentView,
     ContactFormView,
     ErrorPagePreviewView,
     FullShellDemoView,
@@ -29,6 +30,7 @@ urlpatterns = [
         MVPTemplateView.as_view(template_name="demo/buttons.html"),
         name="buttons",
     ),
+    path("components/", ComponentView.as_view(), name="custom-components"),
     path("i18n/", include("django.conf.urls.i18n")),
     # Main home — landing for guests, dashboard for authenticated users
     path(

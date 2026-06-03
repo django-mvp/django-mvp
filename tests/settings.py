@@ -197,11 +197,10 @@ EASY_ICONS = {
 FLEX_MENUS = {
     "renderers": {
         "adminlte": "mvp.renderers.AdminLTERenderer",
-        "daisyui": "mvp.renderers.DaisyUIRenderer",
         "sidebar": "mvp.renderers.SidebarRenderer",
         "navbar": "mvp.renderers.NavbarRenderer",
         "dropdown": "mvp.renderers.DropdownRenderer",
-        "mobile-footer-nav": "mvp.renderers.MobileFooterNavRenderer",
+        "dock": "mvp.renderers.MobileFooterNavRenderer",
     },
     "log_url_failures": DEBUG,
 }

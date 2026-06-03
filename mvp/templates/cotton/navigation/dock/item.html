@@ -1,0 +1,5 @@
+<c-vars active icon label />
+<button class="{% if active %}dock-active{% endif %}">
+  <c-icon name="{{ icon }}" />
+  {% if label %}<span class="dock-label">{{ label }}</span>{% endif %}
+</button>

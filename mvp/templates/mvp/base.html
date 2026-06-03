@@ -4,15 +4,13 @@
   <head>
     <script>
       (function() {
-        // Restore DaisyUI theme before first paint to prevent FOUC
         try {
-          var theme = localStorage.getItem('mvp.theme') || 'light';
+          var theme = localStorage.getItem('theme') || 'light';
           document.documentElement.setAttribute('data-theme', theme);
         } catch (e) {}
       })();
     </script>
-    {# Theme FOUC prevention + switcher logic (runs synchronously before first paint) #}
-    <script src="{% static 'js/navbar/theme-switcher.js' %}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/theme-change@2.0.2/index.js"></script>
     {% block head %}
       <meta charset="UTF-8" />
       <meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -40,17 +38,25 @@
       <link rel="stylesheet"
             href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css"
             crossorigin="anonymous" />
-      {# DaisyUI + Tailwind CSS (CDN) #}
-      <link href="https://cdn.jsdelivr.net/npm/daisyui@5"
-            rel="stylesheet"
-            type="text/css" />
-      <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+      {# DaisyUI + Tailwind CSS (compiled via npm) #}
+      <link rel="stylesheet"
+            href="{% static 'css/tailwind.css' %}" />
       <script defer
               src="https://cdn.jsdelivr.net/npm/@alpinejs/persist@3.x.x/dist/cdn.min.js"></script>
       <script defer
               src="https://cdn.jsdelivr.net/npm/@alpinejs/sort@3.x.x/dist/cdn.min.js"></script>
       <script defer
               src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+      {% comment %} temp fix for conditional hide based on theme {% endcomment %}
+      <style>
+        [data-theme="light"] .hide-on-light-theme {
+          display: none !important
+        }
+
+        [data-theme="dark"] .hide-on-dark-theme {
+          display: none !important
+        }
+      </style>
       {% block extra_css %}
       {% endblock extra_css %}
     {% endblock head %}
@@ -84,6 +90,7 @@
       {% block app.footer %}
         <c-app.footer />
       {% endblock app.footer %}
+      <c-app.dock />
     </c-app>
   {% endblock app %}
   {% block extra_js %}

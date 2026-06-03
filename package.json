@@ -1,6 +1,17 @@
 {
+  "scripts": {
+    "build:css": "tailwindcss -i tailwind.css -o mvp/static/css/tailwind.css",
+    "build:css:prod": "tailwindcss -i tailwind.css -o mvp/static/css/tailwind.css --minify",
+    "watch:css": "tailwindcss -i tailwind.css -o mvp/static/css/tailwind.css --watch"
+  },
   "dependencies": {
     "admin-lte": "^4.0.0",
     "bootstrap": "^5.3.8"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.3.0",
+    "@tailwindcss/typography": "^0.5.19",
+    "daisyui": "^5.5.20",
+    "tailwindcss": "^4.3.0"
   }
 }

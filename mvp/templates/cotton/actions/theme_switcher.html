@@ -1,14 +1,12 @@
 {% load i18n %}
 <c-vars size="sm" />
 <label class="flex cursor-pointer items-center gap-2"
-       title="{% trans "Toggle dark mode" %}"
-       x-data="{ isDark: document.documentElement.getAttribute('data-theme') === 'dark' }"
-       x-init="$watch('isDark', val => { const t = val ? 'dark' : 'light'; document.documentElement.setAttribute('data-theme', t); try { localStorage.setItem('mvp.theme', t); } catch(e) {} })">
+       title="{% trans "Toggle dark mode" %}">
   <i class="bi bi-sun text-sm" aria-hidden="true"></i>
   <input type="checkbox"
          class="toggle toggle-{{ size }}"
-         :checked="isDark"
-         @change="isDark = $event.target.checked"
+         data-toggle-theme="dark,light"
+         data-act-class="swap-active"
          aria-label="{% trans "Toggle dark mode" %}" />
   <i class="bi bi-moon text-sm" aria-hidden="true"></i>
 </label>

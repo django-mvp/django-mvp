@@ -3,6 +3,7 @@
 {% block title %}
   {% trans "400 — Bad Request" %}
 {% endblock title %}
+{% block error_code %}400{% endblock %}
 {% block heading %}
   {% trans "Bad Request." %}
 {% endblock heading %}
@@ -10,7 +11,7 @@
   {% trans "Your browser sent a request the server could not understand. Please check your input and try again." %}
 {% endblock description %}
 {% block actions %}
-  <c-button variant="outline-secondary"
+  <c-button variant="ghost"
             icon="arrow-left"
             href="/"
             text="{% trans "Back to home" %}" />

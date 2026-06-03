@@ -33,7 +33,7 @@ class TestMobileFooterNavVisibility:
         page.set_viewport_size({"width": 375, "height": 812})
         page.goto("http://localhost:8001/")
         page.evaluate("window.scrollBy(0, 500)")
-        nav = page.locator("div.mobile-footer-nav")
+        nav = page.locator("div.dock")
         bounding_box = nav.bounding_box()
         assert bounding_box is not None
         # Nav should still be near the bottom of the viewport
