@@ -92,6 +92,52 @@ class AdminLTERenderer(BaseRenderer):
         return context
 
 
+class DaisyUIRenderer(BaseRenderer):
+    """Renderer for DaisyUI sidebar navigation.
+
+    Generates DaisyUI ``menu`` markup for use inside the drawer sidebar.
+    Supports leaf items, section headers (MenuGroup) and collapsible groups
+    (MenuCollapse) via the ``<details>/<summary>`` pattern.
+
+    Templates:
+    - Depth 0: ``menus/daisyui/container.html``
+    - Leaf items: ``menus/daisyui/item.html``
+    - Parent items: ``menus/daisyui/parent.html``
+
+    Config:
+        FLEX_MENUS["renderers"]["daisyui"] = "mvp.renderers.DaisyUIRenderer"
+    """
+
+    templates: dict[Any, Any] = {
+        0: {"default": "menus/daisyui/container.html"},
+        "default": {
+            "parent": "menus/daisyui/parent.html",
+            "leaf": "menus/daisyui/item.html",
+        },
+    }
+
+    def get_context_data(self, item: MenuItem, **kwargs: Any) -> dict[str, Any]:
+        """Build template context.
+
+        Inherits all BaseRenderer context (label, url, selected, depth, visible,
+        children, extra_context fields). Additionally sorts MenuGroup children to
+        the bottom at depth 0 to match AdminLTERenderer behaviour.
+        """
+        context = super().get_context_data(item, **kwargs)
+
+        children = context.get("children")
+        if item.depth == 0 and children:
+            groups, others = [], []
+            for child in children:
+                if child.extra_context.get("component_type") == "menu.group":
+                    groups.append(child)
+                else:
+                    others.append(child)
+            context["children"] = others + groups
+
+        return context
+
+
 class NavRenderer(BaseRenderer):
     """Renderer for navigation menus.
 

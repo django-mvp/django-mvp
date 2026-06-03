@@ -3,7 +3,7 @@
 <aside class="bg-base-200 min-h-full w-72 flex flex-col {{ class }}">
   <c-app.sidebar.header link="{{ brand_url }}" />
   <nav class="flex-1 overflow-y-auto p-2">
-    {% render_menu menu renderer="adminlte" %}
+    {% render_menu menu renderer="daisyui" %}
   </nav>
   {% if request.user.is_authenticated %}
     <div class="sticky bottom-0 bg-base-200 border-t border-base-300 p-2">

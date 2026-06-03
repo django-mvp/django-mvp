@@ -1,20 +1,20 @@
 {% if order_by_choices %}
-  <div class="dropdown">
-    <c-button icon="sort"
-              text="Sort"
-              id="orderingDropdown"
-              data-bs-toggle="dropdown"
-              aria-expanded="false" />
-    <ul class="dropdown-menu dropdown-menu-end"
-        aria-labelledby="orderingDropdown">
+  <div class="dropdown dropdown-end">
+    <div tabindex="0"
+         role="button"
+         class="btn btn-ghost btn-sm gap-1">
+      <i class="bi bi-sort-down"></i> Sort
+    </div>
+    <ul tabindex="0"
+        class="dropdown-content menu bg-base-100 rounded-box z-50 w-48 p-2 shadow-lg border border-base-300">
       {% for key, label, _ in order_by_choices %}
         <li>
-          <a class="dropdown-item me-4 ordering-option {% if current_ordering == key %}active{% endif %}"
-             href="#"
+          <a href="#"
+             class="{% if current_ordering == key %}active{% endif %} ordering-option"
              data-order-value="{{ key }}"
              onclick="submitOrdering(event, '{{ key }}')">
             {{ label }}
-            {% if current_ordering == key %}<c-icon name="check" class="float-end" />{% endif %}
+            {% if current_ordering == key %}<i class="bi bi-check ms-auto"></i>{% endif %}
           </a>
         </li>
       {% endfor %}

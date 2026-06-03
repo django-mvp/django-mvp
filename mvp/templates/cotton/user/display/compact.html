@@ -1,7 +1,7 @@
-<div class="d-inline-flex align-items-center gap-2">
+<div class="flex items-center gap-2">
   <c-avatar size="sm" />
-  <span class="btn-text flex-grow-1 overflow-hidden text-start">
-    <span class="d-block fw-semibold text-truncate lh-sm">{{ request.user }}</span>
-    <span class="d-block small text-muted text-truncate">{{ request.user.email }}</span>
+  <span class="flex-1 min-w-0 text-start">
+    <span class="block font-semibold truncate leading-tight">{{ request.user }}</span>
+    <span class="block text-xs text-base-content/60 truncate">{{ request.user.email }}</span>
   </span>
 </div>

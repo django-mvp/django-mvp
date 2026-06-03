@@ -23,16 +23,16 @@ def test_about_page_renders_200(client):
     assert response.status_code == 200
 
 
-def test_about_page_has_adminlte_sidebar(client):
-    """GET /about/ renders inside AdminLTE layout (sidebar present)."""
+def test_about_page_has_daisyui_sidebar(client):
+    """GET /about/ renders inside DaisyUI drawer layout (sidebar present)."""
     response = client.get("/about/")
-    assert b"app-sidebar" in response.content
+    assert b"drawer-side" in response.content
 
 
-def test_about_page_has_adminlte_navbar(client):
-    """GET /about/ renders inside AdminLTE layout (navbar present)."""
+def test_about_page_has_daisyui_navbar(client):
+    """GET /about/ renders inside DaisyUI layout (navbar present)."""
     response = client.get("/about/")
-    assert b"app-header" in response.content
+    assert b"navbar" in response.content
 
 
 def test_about_page_has_title_in_heading(client):
