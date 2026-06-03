@@ -1,10 +1,11 @@
 <c-vars icon="" icon_class="text-primary" time="" text="" />
 <li>
-  {% if icon %}
-    <i class="bi bi-{{ icon }} {{ icon_class }}"></i>
-  {% else %}
-    <i class="bi bi-circle-fill {{ icon_class }}"></i>
-  {% endif %}
-  {% if time %}<span class="time">{{ time }}</span>{% endif %}
-  <span>{{ text }}{{ slot }}</span>
+  <div class="timeline-start timeline-box text-sm opacity-60">
+    {% if time %}{{ time }}{% endif %}
+  </div>
+  <div class="timeline-middle">
+    <i class="bi bi-{% if icon %}{{ icon }}{% else %}circle-fill{% endif %} {{ icon_class }}"></i>
+  </div>
+  <div class="timeline-end timeline-box">{{ text }}{{ slot }}</div>
+  <hr />
 </li>

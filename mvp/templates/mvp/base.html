@@ -1,24 +1,14 @@
-{% load compress static %}
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <script>
       (function() {
-        // Apply main sidebar state immediately (AdminLTE)
-        // Note: Can't access document.body yet, so set data attribute on html
-        // AdminLTE JS will later move this to body classes
-        const sidebarState = localStorage.getItem('lte.sidebar.state');
-        if (sidebarState) {
-          // Only restore state on desktop (let responsive behavior handle mobile)
-          // 992px matches AdminLTE's default lg breakpoint
-          if (window.innerWidth >= 992) {
-            if (sidebarState === 'sidebar-collapse') {
-              document.documentElement.setAttribute('data-sidebar-state', 'collapse');
-            } else if (sidebarState === 'sidebar-open') {
-              document.documentElement.setAttribute('data-sidebar-state', 'open');
-            }
-          }
-        }
+        // Restore DaisyUI theme before first paint to prevent FOUC
+        try {
+          var theme = localStorage.getItem('mvp.theme') || 'light';
+          document.documentElement.setAttribute('data-theme', theme);
+        } catch (e) {}
       })();
     </script>
     {# Theme FOUC prevention + switcher logic (runs synchronously before first paint) #}
@@ -46,41 +36,32 @@
       {% if mvp.brand.icon %}
         <link rel="icon" href="{% static mvp.brand.icon %}" />
       {% endif %}
-      {# Fonts #}
-      <link rel="stylesheet"
-            href="https://cdn.jsdelivr.net/npm/@fontsource/source-sans-3@5.0.12/index.css"
-            integrity="sha256-tXJfXfp6Ewt1ilPzLDtQnJV4hclT9XuaZUKyUvmyr+Q="
-            crossorigin="anonymous" />
-      {# OverlayScrollbars #}
-      <link rel="stylesheet"
-            href="https://cdn.jsdelivr.net/npm/overlayscrollbars@2.11.0/styles/overlayscrollbars.min.css"
-            crossorigin="anonymous" />
       {# Bootstrap Icons #}
       <link rel="stylesheet"
             href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css"
             crossorigin="anonymous" />
-      {# AdminLTE CSS is now compiled from source via mvp.scss + django-compressor. #}
+      {# DaisyUI + Tailwind CSS (CDN) #}
+      <link href="https://cdn.jsdelivr.net/npm/daisyui@5"
+            rel="stylesheet"
+            type="text/css" />
+      <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
       <script defer
               src="https://cdn.jsdelivr.net/npm/@alpinejs/persist@3.x.x/dist/cdn.min.js"></script>
       <script defer
               src="https://cdn.jsdelivr.net/npm/@alpinejs/sort@3.x.x/dist/cdn.min.js"></script>
       <script defer
               src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-      {# Inner Layout System Styles #}
-      {% compress css %}
-        <link type="text/x-scss"
-              href="{% static 'scss/mvp-layout.scss' %}"
-              rel="stylesheet" />
-        <link type="text/x-scss"
-              href="{% static 'scss/mvp.scss' %}"
-              rel="stylesheet" />
-      {% endcompress %}
       {% block extra_css %}
       {% endblock extra_css %}
     {% endblock head %}
   </head>
   {% block app %}
-    <c-app fixed-footer>
+    <c-app>
+      <c-slot name="sidebar">
+        {% block app.sidebar %}
+          <c-app.sidebar />
+        {% endblock app.sidebar %}
+      </c-slot>
       {% block app.header %}
         <c-app.header>
           <c-slot name="right">
@@ -93,9 +74,6 @@
           </c-slot>
         </c-app.header>
       {% endblock app.header %}
-      {% block app.sidebar %}
-        <c-app.sidebar />
-      {% endblock app.sidebar %}
       {% block app.main %}
         <c-app.main>
           {% block content %}
@@ -105,20 +83,9 @@
       {% endblock app.main %}
       {% block app.footer %}
         <c-app.footer />
-        <c-app.mobile-footer-nav />
       {% endblock app.footer %}
-      {% comment %} {% block app.mobile_footer_nav %}
-        <c-app.mobile-footer-nav />
-      {% endblock app.mobile_footer_nav %} {% endcomment %}
     </c-app>
   {% endblock app %}
-  {# Bootstrap 5 JS (required for dropdowns, modals, etc.) #}
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
-          integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
-          crossorigin="anonymous"></script>
-  <script src="{% static "js/adminlte.min.js" %}"></script>
-  <script src="{% static 'js/page-layout.js' %}"></script>
-  <script src="{% static 'js/sidebar-toggle.js' %}"></script>
   {% block extra_js %}
   {% endblock extra_js %}
 </html>

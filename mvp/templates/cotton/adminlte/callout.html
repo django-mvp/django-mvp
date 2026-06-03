@@ -1,7 +1,6 @@
 <c-vars variant="" class />
-<div class="callout {% if variant %}callout-{{ variant }}{% endif %} {{ class }}">
-  <c-slot name="title">
-    {# Callout title #}
-  </c-slot>
-  {{ slot }}
+<div role="alert"
+     class="alert{% if variant %} alert-{{ variant }}{% endif %} {{ class }}">
+  {% if title %}<div class="font-bold">{{ title }}</div>{% endif %}
+  <div>{{ slot }}</div>
 </div>

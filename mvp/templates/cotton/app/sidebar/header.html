@@ -1,39 +1,11 @@
-{% load i18n mvp %}
-<c-vars link="/" max-height="80px" />
-{% logo_url "small" as logo_light %}
-{% logo_url "small" "dark" as logo_dark %}
-{% icon_url "small" as icon_light %}
-{% icon_url "small" "dark" as icon_dark %}
-<div class="content-header bg-sidebar sticky-top border-bottom ">
-  <div class="header-brand d-flex justify-content-center p-1">
-    <a href="{{ link }}"
-       class="brand-link w-100{% if icon and logo %} logo-switch{% endif %}">
-      <div class="show-on-mini">
-        <img src="{{ icon_light }}"
-             alt="{% trans "Site icon" %}"
-             class="rounded-3 hide-on-dark-theme h-100" />
-        <img src="{{ icon_dark }}"
-             alt="{% trans "Site icon" %}"
-             class="rounded-3 hide-on-light-theme h-100" />
-      </div>
-      <div class="hide-on-mini px-3 pt-2 mx-auto">
-        <c-logo max-height="{{ max_height }}" />
-      </div>
-      {% if text or not logo_light %}
-        <span class="brand-text fw-light d-none">
-          {% if text %}
-            {{ text }}
-          {% else %}
-            {{ request.site.name }}
-          {% endif %}
-        </span>
-      {% endif %}
-    </a>
-  </div>
-  <div class="hide-on-mini mb-2">
-    <c-group row gap=3 justify="center">
-      <c-actions.theme-switcher size="sm" />
-      <c-actions.language-switcher size="sm" />
-    </c-group>
-  </div>
+{% load mvp %}
+<c-vars link="/" />
+<div class="sticky top-0 bg-base-200 z-10 px-4 py-3 border-b border-base-300">
+  <a href="{{ link }}" class="flex items-center gap-2">
+    <c-logo max-height="2rem" />
+  </a>
+  {% comment %} <div class="mt-2 flex items-center gap-2">
+    <c-actions.theme-switcher size="sm" />
+    <c-actions.language-switcher size="sm" />
+  </div> {% endcomment %}
 </div>

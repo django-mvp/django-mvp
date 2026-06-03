@@ -1,6 +1,5 @@
-{% load mvp %}
-<c-vars class cols gap=1 xs sm md lg xl xxl />
-<div class="row {% if cols %}row-cols-{{ cols }}{% endif %} {% responsive "row-cols" %} g-{{ gap }} {{ class }}"
+<c-vars class cols gap=1 sm md lg xl />
+<div class="grid {% if cols %}grid-cols-{{ cols }}{% else %}grid-cols-1{% endif %}{% if sm %} sm:grid-cols-{{ sm }}{% endif %}{% if md %} md:grid-cols-{{ md }}{% endif %}{% if lg %} lg:grid-cols-{{ lg }}{% endif %}{% if xl %} xl:grid-cols-{{ xl }}{% endif %} gap-{{ gap }} {{ class }}"
      {{ attrs }}>
   {{ slot }}
 </div>

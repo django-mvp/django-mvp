@@ -6,14 +6,14 @@
         label-class
         class />
 <div class="mb-3 {{ wrapper_class }}">
-  <label class="form-label{% if hide_label %} visually-hidden{% endif %} {{ label_class }} "
+  <label class="label{% if hide_label %} sr-only{% endif %} {{ label_class }}"
          {% if id %}for="{{ id }}"{% endif %}>{{ label }}</label>
   {% if type == "textarea" %}
-    <textarea class="form-control {{ class }}" {{ attrs }}>
+    <textarea class="textarea textarea-bordered w-full {{ class }}" {{ attrs }}>
       {{ slot }}
     </textarea>
   {% else %}
-    <input class="form-control {{ class }}"
+    <input class="input input-bordered w-full {{ class }}"
            aria-label="{{ label }}"
            {{ attrs }} />
   {% endif %}

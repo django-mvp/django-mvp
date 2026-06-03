@@ -54,7 +54,7 @@ Usage:
         row
         tight
         breakpoint="md" />
-<div class="toolbar w-100 {% if row is True %} toolbar-row{% elif row %} toolbar-row-{{ row }}{% endif %} {% if not tight %}mb-2{% endif %} justify-content-{{ justify }} {{ class }}">
+<div class="flex items-center w-full {% if row is True %}flex-row flex-wrap{% elif row %}flex-col {{ row }}:flex-row {{ row }}:flex-wrap{% else %}flex-col{% endif %} {% if not tight %}mb-2{% endif %} justify-{{ justify }} gap-1 {{ class }}">
   {{ slot }}
   {% if actions %}
     <c-group shrink row :breakpoint="breakpoint" only>

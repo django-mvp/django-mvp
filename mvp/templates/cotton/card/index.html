@@ -1,10 +1,5 @@
-<c-vars title
-        icon
-        variant="default"
-        fill="outline"
-        footer-start
-        class />
-<div class="card layout {% if fill == "card" %}text-bg-{{ variant }}{% else %}card-{{ variant }}{% endif %}{% if fill == "outline" %} card-outline{% endif %}{% if collapsible and collapsed %} collapsed-card{% endif %} {{ class }}">
+<c-vars title icon variant fill footer-start class />
+<div class="card bg-base-100 shadow-sm{% if fill == 'card' %} bg-{{ variant }} text-{{ variant }}-content{% endif %}{% if fill == 'outline' %} card-border border-base-300{% endif %} {{ class }}">
   {% if header %}
     {{ header }}
   {% elif title %}

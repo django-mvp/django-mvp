@@ -1,0 +1,8 @@
+<c-vars id centered />
+<dialog {% if id %}id="{{ id }}"{% endif %}
+        class="modal{% if centered %} modal-middle{% endif %}">
+  <div class="modal-box w-11/12 max-w-2xl">{{ slot }}</div>
+  <form method="dialog" class="modal-backdrop">
+    <button aria-label="close">close</button>
+  </form>
+</dialog>

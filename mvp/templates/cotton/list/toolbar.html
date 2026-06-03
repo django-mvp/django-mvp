@@ -3,14 +3,12 @@
 {% if filter %}
   <c-button text="{% trans "Filter" %}"
             icon="filter"
-            data-bs-target="#filterModal"
-            data-bs-toggle="modal" />
+            onclick="document.getElementById('filterModal').showModal()" />
 {% endif %}
 {% if directory.create_url and create_form %}
   <c-button text="{% trans "Add new" %}"
             icon="add"
-            data-bs-toggle="modal"
-            data-bs-target="#createModal" />
+            onclick="document.getElementById('createModal').showModal()" />
 {% elif directory.create_url %}
   <c-button text="{% trans "Add new" %}"
             icon="add"

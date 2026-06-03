@@ -3,15 +3,17 @@
         text=""
         image=""
         align="start" />
-<div class="direct-chat-msg {% if align == 'end' %}right{% endif %}">
-  <div class="direct-chat-infos clearfix">
-    <span class="direct-chat-name float-{{ align }}">{{ name }}</span>
-    <span class="direct-chat-timestamp float-{% if align == 'end' %}start{% else %}end{% endif %}">{{ timestamp }}</span>
-  </div>
+<div class="chat chat-{{ align }}">
   {% if image %}
-    <img class="direct-chat-img"
-         src="{{ image }}"
-         alt="{{ name }}" />
+    <div class="chat-image avatar">
+      <div class="w-10 rounded-full">
+        <img src="{{ image }}" alt="{{ name }}" />
+      </div>
+    </div>
   {% endif %}
-  <div class="direct-chat-text">{{ text }}{{ slot }}</div>
+  <div class="chat-header">
+    {{ name }}
+    {% if timestamp %}<time class="text-xs opacity-50 ml-1">{{ timestamp }}</time>{% endif %}
+  </div>
+  <div class="chat-bubble">{{ text }}{{ slot }}</div>
 </div>

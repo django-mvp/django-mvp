@@ -1,24 +1,29 @@
 <c-vars heading
         text
-        variant="default"
+        variant="primary"
         icon
         icon_class=""
         link
         link_text="More info"
         link_icon="link"
         class />
-<div class="small-box text-bg-{{ variant }} {{ class }}">
-  <div class="inner">
-    <h3>{{ heading }}</h3>
-    <p>{{ text }}</p>
+<div class="stats shadow {{ class }}">
+  <div class="stat bg-{{ variant }} text-{{ variant }}-content">
+    {% if icon %}
+      <div class="stat-figure">
+        <c-icon name="{{ icon }}"
+                class="text-3xl {{ icon_class }}" />
+      </div>
+    {% endif %}
+    <div class="stat-title opacity-70">{{ text }}</div>
+    <div class="stat-value">{{ heading }}</div>
+    {% if link %}
+      <div class="stat-actions">
+        <a href="{{ link }}" class="btn btn-sm btn-ghost">
+          {{ link_text }}
+          <c-icon name="{{ link_icon }}" />
+        </a>
+      </div>
+    {% endif %}
   </div>
-  <c-icon name="{{ icon }}"
-          class="small-box-icon {{ icon_class }}" />
-  {% if link %}
-    <a href="{{ link }}"
-       class="small-box-footer stretched-link link-light link-underline-opacity-0 link-underline-opacity-50-hover">
-      {{ link_text }}
-      <c-icon name="{{ link_icon }}" />
-    </a>
-  {% endif %}
 </div>

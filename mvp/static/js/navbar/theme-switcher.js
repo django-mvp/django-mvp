@@ -1,21 +1,20 @@
 /**
  * Theme Switcher — vanilla JS IIFE
  *
- * Mirrors AdminLTE's color-mode toggle (issue #6010).
  * Loaded synchronously in <head> so it prevents FOUC by applying the
- * resolved theme to <html data-bs-theme> before the first paint.
+ * resolved theme to <html data-theme> before the first paint.
  *
  * HTML contract:
- *   - Trigger icons:  data-lte-theme-icon="light|dark|auto"
- *   - Dropdown items: data-bs-theme-value="light|dark|auto"
+ *   - Trigger icons:  data-theme-icon="light|dark|auto"
+ *   - Dropdown items: data-theme-value="light|dark|auto"
  *   - Active check:   <i class="bi bi-check-lg"> inside each button
  *
- * Storage key: "lte-theme"
+ * Storage key: "mvp.theme"
  */
 ; (() => {
   "use strict"
 
-  const STORAGE_KEY = "lte-theme"
+  const STORAGE_KEY = "mvp.theme"
 
   const getStoredTheme = () => {
     try { return localStorage.getItem(STORAGE_KEY) } catch { return null }
@@ -36,7 +35,7 @@
   const setTheme = (theme) => {
     const resolved =
       theme === "auto" ? (prefersDark() ? "dark" : "light") : theme
-    document.documentElement.setAttribute("data-bs-theme", resolved)
+    document.documentElement.setAttribute("data-theme", resolved)
   }
 
   // Apply immediately to prevent FOUC
@@ -44,13 +43,13 @@
 
   const showActiveTheme = (theme) => {
     // Highlight the active dropdown option
-    document.querySelectorAll("[data-bs-theme-value]").forEach((el) => {
+    document.querySelectorAll("[data-theme-value]").forEach((el) => {
       el.classList.remove("active")
       el.setAttribute("aria-pressed", "false")
       const check = el.querySelector(".bi-check-lg")
       if (check) check.classList.add("d-none")
     })
-    const active = document.querySelector(`[data-bs-theme-value="${theme}"]`)
+    const active = document.querySelector(`[data-theme-value="${theme}"]`)
     if (active) {
       active.classList.add("active")
       active.setAttribute("aria-pressed", "true")
@@ -58,8 +57,8 @@
       if (check) check.classList.remove("d-none")
     }
     // Sync the trigger icon
-    document.querySelectorAll("[data-lte-theme-icon]").forEach((icon) => {
-      icon.classList.toggle("d-none", icon.dataset.lteThemeIcon !== theme)
+    document.querySelectorAll("[data-theme-icon]").forEach((icon) => {
+      icon.classList.toggle("d-none", icon.dataset.themeIcon !== theme)
     })
   }
 
@@ -71,9 +70,9 @@
 
   document.addEventListener("DOMContentLoaded", () => {
     showActiveTheme(getPreferredTheme())
-    document.querySelectorAll("[data-bs-theme-value]").forEach((toggle) => {
+    document.querySelectorAll("[data-theme-value]").forEach((toggle) => {
       toggle.addEventListener("click", () => {
-        const theme = toggle.getAttribute("data-bs-theme-value")
+        const theme = toggle.getAttribute("data-theme-value")
         setStoredTheme(theme)
         setTheme(theme)
         showActiveTheme(theme)
