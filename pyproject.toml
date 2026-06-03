@@ -58,8 +58,8 @@ mvp-shared = {git = "https://github.com/django-mvp/shared.git", rev = "main", ex
 Django = ">=5.2"
 django-distill = "^3.0"
 django-filter = "^25.2"
-django-crispy-forms = "^2.4"
-crispy-bootstrap5 = "^2025.6"
+django-crispy-forms = "^2.6"
+crispy-bootstrap5 = "^2026.3"
 django-tables2 = "^3.0.0"
 django-htmx = ">=1.0,<2.0"
 mvp-shared = {git = "https://github.com/django-mvp/shared.git", rev = "main", extras = ["dev"]}
