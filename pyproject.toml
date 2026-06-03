@@ -52,26 +52,17 @@ requires-poetry = '>=2.0,<3.0'
 
 [tool.poetry.group.test.dependencies]
 Django = ">=5.2"
-fairdm-dev-tools = { git = "https://github.com/FAIR-DM/dev-tools", extras = [
-    "test",
-] }
+mvp-shared = {git = "https://github.com/django-mvp/shared.git", rev = "main", extras = ["test"]}
 
 [tool.poetry.group.dev.dependencies]
 Django = ">=5.2"
 django-distill = "^3.0"
-django-formset = "^2.2"
 django-filter = "^25.2"
 django-crispy-forms = "^2.4"
 crispy-bootstrap5 = "^2025.6"
-fairdm-dev-tools = { git = "https://github.com/FAIR-DM/dev-tools", extras = [
-    "test",
-    "dev",
-] }
 django-tables2 = "^3.0.0"
-beautifulsoup4 = ">=4.0"
-dj-urls-panel = "^0.2.0"
-django-watchfiles = "^1.4.0"
 django-htmx = ">=1.0,<2.0"
+mvp-shared = {git = "https://github.com/django-mvp/shared.git", rev = "main", extras = ["dev"]}
 
 [build-system]
 requires = ['poetry-core (>=2.0,<3.0)']
