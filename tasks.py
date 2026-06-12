@@ -1,4 +1,3 @@
-import shutil
 from pathlib import Path
 
 from invoke import task
@@ -9,142 +8,6 @@ from invoke import task
 
 # Root of the repository (same directory as this file).
 REPO_ROOT = Path(__file__).resolve().parent
-
-# Destination for vendored AdminLTE SCSS sources inside the app static tree.
-ADMINLTE_VENDOR_SCSS_DST = REPO_ROOT / "mvp" / "static" / "adminlte" / "scss"
-
-# npm package specifier for AdminLTE 4.
-ADMINLTE_NPM_PACKAGE = "admin-lte@^4"
-
-# npm package source path (relative to node_modules) containing the SCSS tree.
-ADMINLTE_NPM_SCSS_SRC = REPO_ROOT / "node_modules" / "admin-lte" / "src" / "scss"
-
-
-# ---------------------------------------------------------------------------
-# Helper functions
-# ---------------------------------------------------------------------------
-
-
-def _require_npm(c):
-    """Raise RuntimeError if npm is not available on PATH."""
-    result = c.run("npm --version", hide=True, warn=True)
-    if result.failed:
-        raise RuntimeError(
-            "npm is not available. Install Node.js to use the vendor-refresh task."
-        )
-    return result.stdout.strip()
-
-
-def _copy_vendor_scss(src: Path, dst: Path) -> None:
-    """
-    Replace the vendored SCSS tree at *dst* with a fresh copy from *src*.
-
-    This performs a full directory replacement so stale upstream files cannot
-    linger when AdminLTE adds, renames, or removes SCSS partials.
-    """
-    if not src.is_dir():
-        raise FileNotFoundError(
-            f"AdminLTE SCSS source not found at {src}. Ensure the npm install step completed successfully."
-        )
-    if dst.exists():
-        shutil.rmtree(dst)
-    shutil.copytree(src, dst)
-
-
-def _patch_adminlte_scss(dst: Path) -> None:
-    """
-    Inject the ``adminlte_variables`` override hook into the vendored adminlte.scss.
-
-    AdminLTE variables that reference Bootstrap tokens (e.g. ``$lte-sidebar-color:
-    $gray-800 !default``) can only be overridden *after* Bootstrap's own variables
-    have been imported.  The vendored ``adminlte.scss`` imports Bootstrap first and
-    then its own ``_variables.scss``.  This function inserts a single import line
-    immediately before that AdminLTE variables import so that users can provide
-    overrides that reference Bootstrap variables.
-
-    The injected import is resolved via include paths (not relative), so:
-      - The default fallback lives at ``mvp/static/_adminlte_variables.scss``.
-      - A user app can override it by placing ``_adminlte_variables.scss`` in its
-        own static root and listing that app before ``mvp`` in INSTALLED_APPS.
-    """
-    adminlte_scss = dst / "adminlte.scss"
-    if not adminlte_scss.exists():
-        raise FileNotFoundError(f"adminlte.scss not found at {adminlte_scss}.")
-
-    content = adminlte_scss.read_text(encoding="utf-8")
-    hook_line = '@import "adminlte_variables"; // user AdminLTE variable overrides\n'
-    marker = '@import "variables";'
-
-    if hook_line.strip() in content:
-        print("  Hook line already present in adminlte.scss — skipping patch.")
-        return
-
-    if marker not in content:
-        raise RuntimeError(
-            f"Could not find '{marker}' in adminlte.scss. "
-            "The AdminLTE package layout may have changed — update the patch target."
-        )
-
-    patched = content.replace(marker, hook_line + marker, 1)
-    adminlte_scss.write_text(patched, encoding="utf-8")
-    print(
-        "  Patched adminlte.scss: inserted adminlte_variables hook before AdminLTE variables."
-    )
-
-
-@task
-def refresh_adminlte_scss(c):
-    """
-    Refresh the vendored AdminLTE 4 SCSS source tree.
-
-    Steps:
-    1. Verify npm is available.
-    2. Install the latest AdminLTE 4 package with npm (lockfile pins the version).
-    3. Delete the existing vendored SCSS tree under mvp/static/adminlte/scss/.
-    4. Copy the refreshed SCSS sources from node_modules into the vendor tree.
-
-    The committed package-lock.json pins the resolved AdminLTE version so
-    subsequent `npm install` calls reproduce the same tree deterministically.
-
-    Usage::
-
-        invoke refresh-adminlte-scss
-    """
-    npm_version = _require_npm(c)
-    print(f"npm {npm_version} detected.")
-
-    print(f"Installing {ADMINLTE_NPM_PACKAGE} …")
-    result = c.run(f"npm install {ADMINLTE_NPM_PACKAGE}", warn=True)
-    if result.failed:
-        raise RuntimeError(
-            f"npm install failed for {ADMINLTE_NPM_PACKAGE}. Check your network connection and npm registry settings."
-        )
-
-    if not ADMINLTE_NPM_SCSS_SRC.is_dir():
-        raise FileNotFoundError(
-            f"Expected AdminLTE SCSS source at {ADMINLTE_NPM_SCSS_SRC} after install, "
-            "but the directory was not found. The package layout may have changed."
-        )
-
-    print(f"Copying SCSS sources → {ADMINLTE_VENDOR_SCSS_DST} …")
-    _copy_vendor_scss(ADMINLTE_NPM_SCSS_SRC, ADMINLTE_VENDOR_SCSS_DST)
-
-    print("Patching adminlte.scss: inserting adminlte_variables hook …")
-    _patch_adminlte_scss(ADMINLTE_VENDOR_SCSS_DST)
-
-    pkg_lock = REPO_ROOT / "package-lock.json"
-    if pkg_lock.exists():
-        print(f"Lockfile present at {pkg_lock} — resolved version is pinned.")
-    else:
-        print(
-            "⚠  No package-lock.json found. Commit the lockfile after this run to ensure reproducible vendor refreshes."
-        )
-
-    print("✅ AdminLTE SCSS vendor tree refreshed successfully.")
-    print(
-        "   Next: run the Django compressor pipeline to rebuild compiled CSS.\n"
-        "   Hint: poetry run python manage.py compress"
-    )
 
 
 @task
@@ -281,3 +144,17 @@ def release(c, rule="", retry=False):
 
     print(f"✅ Release v{version_short} created and pushed successfully!")
     print("🎉 GitHub Actions will now build and publish the package to PyPI.")
+
+
+@task
+def build_stylesheet(c):
+    import brotli
+
+    c.run("npm run build:css:prod")
+
+    with open("mvp/static/css/django-mvp.css", "rb") as f:
+        compressed = brotli.compress(f.read(), quality=11)
+
+    with open("mvp/static/css/django-mvp.css.br", "wb") as f:
+        f.write(compressed)
+    print("Built and compressed stylesheet to django-mvp.css.br")

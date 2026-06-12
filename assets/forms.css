@@ -1,0 +1,21 @@
+/* @source inline("
+textinput px-4 leading-normal appearance-none border-gray-300 w-full text-gray-700 block bg-white rounded-lg focus:outline-none border py-2
+"); */
+@layer components {
+  .form-control {
+    @apply w-full rounded-md border border-gray-300 px-3 py-2
+           focus:outline-none focus:ring-2 focus:ring-blue-500;
+  }
+
+  .form-label {
+    @apply block text-sm font-medium text-gray-700 mb-1;
+  }
+
+  .form-error {
+    @apply text-sm bg-primary text-warning mt-1;
+  }
+
+  .form-select {
+    @apply w-full rounded-md border border-gray-300 px-3 py-2 bg-white;
+  }
+}
