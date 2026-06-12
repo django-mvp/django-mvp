@@ -99,7 +99,7 @@ DEP002 = [
 # django-filter is a dev dep used only in the Demo App, not the published package
 DEP001 = ["invoke"]
 DEP003 = ["invoke"]
-DEP004 = ["django_filters", "django_tables2", "django_htmx", "tasks"]
+DEP004 = ["django_filters", "django_tables2", "django_htmx"]
 
 [tool.ruff]
 target-version = "py313"
