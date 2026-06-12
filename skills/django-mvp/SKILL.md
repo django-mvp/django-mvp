@@ -274,7 +274,6 @@ urlpatterns = [
         template_name="myapp/about.html",
         page_title="About Us",
         page_subtitle="Who we are",
-        page_icon="info-circle",  # must be a registered EASY_ICONS name
         breadcrumbs=[{"text": "Home", "href": "/"}, {"text": "About"}],
     ), name="about"),
 ]
@@ -345,9 +344,7 @@ the corresponding `get_*()` method for dynamic values.
 |-----------|------|---------|---------------|
 | `page_title` | `str \| Promise` | `""` | `{{ page.title }}` |
 | `page_subtitle` | `str \| Promise` | `""` | `{{ page.subtitle }}` |
-| `page_icon` | `str \| None` | `None` | `{{ page.icon }}` |
 | `page_class` | `str` | `""` | `{{ page.class }}` (always prefixed with `"mvp-page"`) |
-| `page_caption` | `str` | `""` | `{{ page.caption }}` |
 | `breadcrumbs` | `list[dict]` | `[]` | `{% for crumb in page.breadcrumbs %}` |
 
 Each breadcrumb dict must have a `"text"` key. An optional `"href"` key makes it a link;
@@ -362,9 +359,7 @@ class AboutView(MVPTemplateView):
     template_name = "about.html"
     page_title = "About Us"
     page_subtitle = "Our mission"
-    page_icon = "info-circle"
     page_class = "about-page"
-    page_caption = "Last updated January 2026"
     breadcrumbs = [
         {"text": "Home", "href": "/"},
         {"text": "About"},  # no href = current page
@@ -800,7 +795,6 @@ Defaults provided automatically (no overrides needed):
 
 | Attribute / Method | Default value | Source |
 |--------------------|---------------|--------|
-| `page_icon` | `"add"` | class attribute |
 | `page_class` | `"mvp-form-page mvp-create-page"` | class attribute |
 | `get_page_title()` | `"Create {VerboseName}"` e.g. `"Create Product"` | derived from `model._meta.verbose_name` |
 | `success_message` | `"%(verbose_name)s successfully created."` | class attribute |
@@ -874,7 +868,6 @@ Defaults provided automatically (no overrides needed):
 
 | Attribute / Method | Default value | Source |
 |--------------------|---------------|--------|
-| `page_icon` | `"edit"` | class attribute |
 | `page_class` | `"mvp-form-page mvp-update-page"` | class attribute |
 | `get_page_title()` | `"Update {VerboseName}"` e.g. `"Update Product"` | derived from `model._meta.verbose_name` |
 | `success_message` | `"%(verbose_name)s successfully updated."` | class attribute |
@@ -1001,7 +994,6 @@ urlpatterns = [
 
 | Attribute / Method | Default value |
 |--------------------|---------------|
-| `page_icon` | `"delete"` |
 | `page_class` | `"mvp-delete-page"` |
 | `get_page_title()` | `"Delete {VerboseName}"` — e.g. `"Delete Product"` |
 | `success_message` | `"%(verbose_name)s successfully deleted."` |
