@@ -5,12 +5,12 @@
         use_icons
         show_first_and_last />
 {% if page_obj.paginator.num_pages > 1 %}
-  <c-pagination.wrapper :attrs="attrs">
+  <c-navigation.pagination.wrapper :attrs="attrs">
     {# --- First page --- #}
     {% if not show_first_and_last %}
-      <c-pagination.link :page="1"
-                         :disabled="{{ page_obj.has_previous|yesno:"False,True" }}"
-                         text="{% trans "First" %}">
+      <c-navigation.pagination.link :page="1"
+                                    :disabled="{{ page_obj.has_previous|yesno:"False,True" }}"
+                                    text="{% trans "First" %}">
         {% if use_icons %}
           <svg height="1em"
                style="vertical-align: -0.175em"
@@ -22,12 +22,12 @@
         {% else %}
           {% trans "First" %}
         {% endif %}
-      </c-pagination.link>
+      </c-navigation.pagination.link>
     {% endif %}
     {# --- Previous page --- #}
-    <c-pagination.link :page="{% if page_obj.has_previous %}{{ page_obj.previous_page_number }}{% endif %}"
-                       :disabled="{{ page_obj.has_previous|yesno:"False,True" }}"
-                       text="{% trans "Previous" %}">
+    <c-navigation.pagination.link :page="{% if page_obj.has_previous %}{{ page_obj.previous_page_number }}{% endif %}"
+                                  :disabled="{{ page_obj.has_previous|yesno:"False,True" }}"
+                                  text="{% trans "Previous" %}">
       {% if use_icons %}
         <svg height="1em"
              style="vertical-align: -0.175em"
@@ -38,26 +38,26 @@
       {% else %}
         {% trans "Previous" %}
       {% endif %}
-    </c-pagination.link>
+    </c-navigation.pagination.link>
     {% with "-"|add:page_window as negative_window %}
       {% for num in page_obj.paginator.page_range %}
         {% if forloop.first or forloop.last and show_first_and_last %}
-          <c-pagination.link page="{{ num }}"
-                             text="{{ num }}"
-                             :active="{% if num == page_obj.number %}True{% endif %}" />
+          <c-navigation.pagination.link page="{{ num }}"
+                                        text="{{ num }}"
+                                        :active="{% if num == page_obj.number %}True{% endif %}" />
         {% elif num >= page_obj.number|add:negative_window and num <= page_obj.number|add:page_window %}
-          <c-pagination.link page="{{ num }}"
-                             text="{{ num }}"
-                             :active="{% if num == page_obj.number %}True{% endif %}" />
+          <c-navigation.pagination.link page="{{ num }}"
+                                        text="{{ num }}"
+                                        :active="{% if num == page_obj.number %}True{% endif %}" />
         {% elif num == page_obj.number|add:negative_window|add:"-1" or num == page_obj.number|add:page_window|add:"1" %}
-          <c-pagination.link text="..." disabled />
+          <c-navigation.pagination.link text="..." disabled />
         {% endif %}
       {% endfor %}
     {% endwith %}
     {# --- Next page --- #}
-    <c-pagination.link :page="{% if page_obj.has_next %}{{ page_obj.next_page_number }}{% endif %}"
-                       :disabled="{{ page_obj.has_next|yesno:"False,True" }}"
-                       text="{% trans "Next" %}">
+    <c-navigation.pagination.link :page="{% if page_obj.has_next %}{{ page_obj.next_page_number }}{% endif %}"
+                                  :disabled="{{ page_obj.has_next|yesno:"False,True" }}"
+                                  text="{% trans "Next" %}">
       {% if use_icons %}
         <svg height="1em"
              style="vertical-align: -0.175em"
@@ -68,12 +68,12 @@
       {% else %}
         {% trans "Next" %}
       {% endif %}
-    </c-pagination.link>
+    </c-navigation.pagination.link>
     {% if not show_first_and_last %}
       {# --- Last page --- #}
-      <c-pagination.link :page="{{ page_obj.paginator.num_pages }}"
-                         :disabled="{{ page_obj.has_next|yesno:"False,True" }}"
-                         text="{% trans "Last" %}">
+      <c-navigation.pagination.link :page="{{ page_obj.paginator.num_pages }}"
+                                    :disabled="{{ page_obj.has_next|yesno:"False,True" }}"
+                                    text="{% trans "Last" %}">
         {% if use_icons %}
           <svg height="1em"
                style="vertical-align: -0.175em"
@@ -85,7 +85,7 @@
         {% else %}
           {% trans "Last" %}
         {% endif %}
-      </c-pagination.link>
+      </c-navigation.pagination.link>
     {% endif %}
-  </c-pagination.wrapper>
+  </c-navigation.pagination.wrapper>
 {% endif %}

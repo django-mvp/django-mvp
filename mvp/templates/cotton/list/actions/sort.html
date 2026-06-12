@@ -1,0 +1,24 @@
+{% if order_by_choices %}
+  <c-dropdown x-data="{value: '{{ current_ordering }}'}"
+              x-init="$watch('value', () => { filterForm.submit() })">
+    <c-slot name="button">
+      <c-button small icon="sort-desc" text="{% trans "Sort" %}" />
+    </c-slot>
+    <ul tabindex="0"
+        class="dropdown-content menu bg-base-100 rounded-box z-50 w-48 p-2 shadow-lg border border-base-300">
+      {% for key, label, _ in order_by_choices %}
+        <li>
+          <span class="ordering-option"
+                @click="value='{{ key }}'">
+            {{ label }}
+            {% if current_ordering == key %}<i class="bi bi-check ms-auto"></i>{% endif %}
+          </span>
+        </li>
+      {% endfor %}
+    </ul>
+    <input type="hidden"
+           form="filterForm"
+           name="o"
+           :value="value" />
+  </c-dropdown>
+{% endif %}

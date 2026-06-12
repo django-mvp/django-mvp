@@ -1,33 +1,28 @@
 {% load i18n mvp %}
 {% if request.user.is_authenticated %}
-  <div class="dropdown dropdown-top w-full">
-    <div tabindex="0"
-         role="button"
-         class="btn btn-ghost w-full justify-start">
-      <c-user.display.compact />
-    </div>
-    <ul tabindex="0"
-        class="dropdown-content menu bg-base-100 rounded-box z-50 w-full p-2 shadow-lg border border-base-300">
-      <li>
-        <a href="{% url "account-center" %}">
-          <i class="bi bi-grid"></i>
-          {% trans "Account Center" %}
-        </a>
-      </li>
+  <c-dropdown valign="top" halign="center" class="w-full">
+    <c-slot name="button">
+      <div tabindex="0"
+           role="button"
+           class="btn btn-ghost w-full justify-start ">
+        <c-user.display.compact />
+      </div>
+    </c-slot>
+    <c-menu>
+      {% url "account-center" as account_center_url %}
+      {% if account_center_url %}
+        <c-menu.item label="{% trans "Account Center" %}"
+                     icon="account_center"
+                     href="{{ account_center_url }}" />
+      {% endif %}
       {{ slot }}
-      <li>
-        <hr class="my-1 border-base-300" />
-      </li>
-      <li>
-        <button type="submit"
-                form="logoutForm"
-                class="w-full text-start">
-          <i class="bi bi-box-arrow-right"></i>
-          {% trans "Log out" %}
-        </button>
-      </li>
-    </ul>
-    {% url 'account_logout' as logout_url %}
+      {% if slot or account_center_url %}<c-menu.divider />{% endif %}
+      <c-menu.item label="{% trans "Log out" %}"
+                   type="submit"
+                   form="logoutForm"
+                   icon="logout" />
+    </c-menu>
+    {% url "account_logout" as logout_url %}
     {% if logout_url %}
       <form method="post"
             id="logoutForm"
@@ -36,5 +31,5 @@
         {% csrf_token %}
       </form>
     {% endif %}
-  </div>
+  </c-dropdown>
 {% endif %}

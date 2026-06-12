@@ -5,6 +5,6 @@
   {% if method|lower == "post" %}
     {% csrf_token %}
   {% endif %}
-  {% if form_obj %}<c-form.render :form-obj="form_obj" />{% endif %}
+  {% if form_obj %}<c-form.render :form="form_obj" />{% endif %}
   {{ slot }}
 </form>

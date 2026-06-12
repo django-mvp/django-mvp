@@ -1,8 +1,6 @@
-{% load mvp %}
-<c-vars link="/" />
-<div class="bg-base-100 navbar sticky top-0 z-20 hidden items-center gap-2 px-4 py-0 backdrop-blur transition-shadow duration-100 lg:flex"
-     :class="{ 'shadow-xs': scrolled }">
+<c-vars link="/" bg="bg-base-200" />
+<div class="{{ bg }} sticky top-0 z-20 items-center gap-2 px-4 py-2">
   <a href="{{ link }}" class="flex items-center gap-2">
-    <c-logo max-height="2rem" />
+    <c-brand.logo max-height="1.5rem" />
   </a>
 </div>

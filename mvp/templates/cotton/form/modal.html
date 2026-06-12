@@ -1,7 +1,7 @@
 {% load i18n %}
 <c-vars widgets />
 <c-modal centered>
-  <c-form.card :attrs="attrs">
+  <c-form :attrs="attrs">
     <c-slot name="widgets">
       {{ widgets }}
       <button type="button"
@@ -11,5 +11,5 @@
         <i class="bi bi-x text-xl"></i>
       </button>
     </c-slot>
-  </c-form.card>
+  </c-form>
 </c-modal>

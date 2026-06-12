@@ -1,59 +1,31 @@
 {% extends "page_view.html" %}
 {% load i18n static crispy_forms_tags mvp %}
 {% block page.actions %}
-  <c-list.toolbar />
+  <c-list.actions />
 {% endblock page.actions %}
 {% block page.content %}
-  {% if page_obj %}
-    <c-text small>
-      {% with start=page_obj.start_index end=page_obj.end_index total=page_obj.paginator.count %}
-        {% blocktrans with name_plural=model_info.verbose_name_plural %}
+  <div class="mt-5">
+    {% if page_obj %}
+      <c-text small>
+        {% with start=page_obj.start_index end=page_obj.end_index total=page_obj.paginator.count %}
+          {% blocktrans with name_plural=model_info.verbose_name_plural %}
           Showing {{ start }}-{{ end }} of {{ total }} {{ name_plural }}
           {% endblocktrans %}
-      {% endwith %}
-    </c-text>
-  {% endif %}
-  <c-list :list="object_list"
-          :attrs="grid_config"
-          :card="list_item_template"
-          :empty_state="empty_state" />
+        {% endwith %}
+      </c-text>
+    {% endif %}
+    <c-list :list="object_list"
+            :attrs="grid_config"
+            :card="list_item_template"
+            :empty_state="empty_state" />
+  </div>
   {% if page_obj %}
     <div class="w-full flex justify-center align-center">
-      <c-pagination :page_obj="page_obj" />
+      <c-navigation.pagination :page_obj="page_obj" />
     </div>
   {% endif %}
 {% endblock page.content %}
 {% block extra_js %}
-  <c-modal id="filterModal" centered fade only>
-    <c-form.card id="filterForm"
-                 title="{% trans "Filter" %}"
-                 icon="filter"
-                 method="get"
-                 action="{{ action|default:"." }}"
-                 :form-obj="filter.form">
-      <c-slot name="actions">
-        <c-button text="{% trans "Submit" %}"
-                  variant="primary"
-                  type="submit" />
-      </c-slot>
-    </c-form.card>
-  </c-modal>
-  {% if create_form %}
-    <c-modal id="createModal" centered fade only>
-      <c-form.card id="createForm"
-                   title="{{ create_modal_title }}"
-                   icon="add"
-                   method="post"
-                   action="{{ directory.create_url }}?next={{ request.path }}"
-                   :form-obj="create_form">
-        <c-slot name="actions">
-          <c-button text="{% trans "Add" %}"
-                    variant="primary"
-                    type="submit" />
-        </c-slot>
-      </c-form.card>
-    </c-modal>
-  {% endif %}
   {{ block.super }}
   <script src="{% static "js/list_view.js" %}"></script>
 {% endblock extra_js %}

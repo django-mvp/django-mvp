@@ -1,9 +1,6 @@
-{# Sidebar menu — depth 0 container #}
-{% load flex_menu %}
-<ul class="menu w-full px-4 py-0"
-    role="navigation"
-    aria-label="Main Navigation">
+{% load flex_menu i18n %}
+<c-menu label="{% trans "Main Navigation" %}">
   {% for child in children %}
     {% render_item child renderer=renderer %}
   {% endfor %}
-</ul>
+</c-menu>

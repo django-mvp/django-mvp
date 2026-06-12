@@ -1,0 +1,21 @@
+<c-vars label collapse icon selected />
+{% if collapse %}
+  <li>
+    <details open>
+      <summary>
+        {% if icon %}<c-icon name="{{ icon }}" class="{{ icon_class }}" />{% endif %}
+        <span>{{ label }}</span>
+        {% if badge %}<span class="badge badge-sm ms-auto {{ badge_class }}">{{ badge }}</span>{% endif %}
+      </summary>
+      <ul>
+        {{ slot }}
+      </ul>
+    </details>
+  </li>
+{% else %}
+  <li></li>
+  <li class="menu-title text-upper">
+    <span>{{ label }}</span>
+  </li>
+  {{ slot }}
+{% endif %}

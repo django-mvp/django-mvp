@@ -1,11 +1,11 @@
-<c-vars title subtitle caption icon class actions />
-<div class="flex flex-col gap-1 {{ class }}">
-  {% if caption %}<p class="text-xs font-semibold tracking-widest uppercase opacity-60">{{ caption }}</p>{% endif %}
-  <c-toolbar>
-    <h1 class="text-2xl font-bold leading-tight">
-      {% if icon %}<c-icon name="{{ icon }}" />{% endif %}
-      {{ title }}
-    </h1>
-  </c-toolbar>
-  {% if subtitle %}<p class="opacity-70 leading-relaxed max-w-prose">{{ subtitle }}</p>{% endif %}
+<c-vars title subtitle class actions />
+<!-- Top row: title + actions -->
+<div class="page-title flex flex-col md:flex-row md:items-start md:justify-between gap-2 w-full">
+  <!-- Title + subtitle -->
+  <div class="flex flex-col gap-1">
+    <h1 class="text-3xl font-bold leading-tight">{{ title }}</h1>
+    {% if subtitle %}<p class="opacity-70 text-lg leading-relaxed max-w-prose">{{ subtitle }}</p>{% endif %}
+  </div>
+  <!-- Actions -->
+  <div class="flex flex-wrap md:flex-nowrap gap-2 md:gap-1 md:justify-end md:items-center ">{{ actions }}</div>
 </div>

@@ -4,55 +4,45 @@
   {{ block.super }}
   {{ form.media.css }}
 {% endblock head %}
-{% block page.title %}
-{% endblock page.title %}
 {% block page.content %}
-  <c-row class="justify-content-center">
-    <c-col col="12" md="9" lg="7">
-      {% block before_card %}
-      {% endblock before_card %}
-      <c-form.card title="{{ page.title }}"
-                   icon="{{ page.icon }}"
-                   method="post"
-                   action="{{ request.path }}"
-                   :form-obj="form">
-        <c-slot name="actions">
-          {% block actions %}
-            <c-group breakpoint="md" wrap>
-              <c-button text="{% trans "Save & continue" %}"
-                        icon="arrow-right"
-                        type="submit"
-                        name="next"
-                        reverse
-                        value="list"
-                        variant="primary" />
-              {% comment %} <c-button text="{% trans "Save & view" %}" type="submit" name="next" value="detail" variant="primary" outline />
-              <c-button text="{% trans "Save & add another" %}"
-                        type="submit"
-                        name="next"
-                        value="create"
-                        variant="primary"
-                        outline /> {% endcomment %}
-              <c-button text="{% trans "Save & continue editing" %}"
-                        type="submit"
-                        name="next"
-                        value="update"
-                        variant="primary"
-                        outline />
-              {% if delete_url %}
-                <c-button text="{% trans "Delete" %}"
-                          href="{{ delete_url }}"
-                          icon="delete"
-                          variant="danger" />
-              {% endif %}
-            </c-group>
-          {% endblock actions %}
-        </c-slot>
-      </c-form.card>
-      {% block after_card %}
-      {% endblock after_card %}
-    </c-col>
-  </c-row>
+  <div class="w-full lg:max-w-4xl">
+    <c-form title="{{ page.title }}"
+            icon="{{ page.icon }}"
+            method="post"
+            action="{{ request.path }}"
+            :form-obj="form">
+      {% block actions %}
+        <c-group breakpoint="md" wrap>
+          <c-button text="{% trans "Save & continue" %}"
+                    icon="arrow-right"
+                    type="submit"
+                    name="next"
+                    reverse
+                    value="list"
+                    variant="primary" />
+          {% comment %} <c-button text="{% trans "Save & view" %}" type="submit" name="next" value="detail" variant="primary" outline />
+          <c-button text="{% trans "Save & add another" %}"
+                    type="submit"
+                    name="next"
+                    value="create"
+                    variant="primary"
+                    outline /> {% endcomment %}
+          <c-button text="{% trans "Save & continue editing" %}"
+                    type="submit"
+                    name="next"
+                    value="update"
+                    variant="primary"
+                    outline />
+          {% if delete_url %}
+            <c-button text="{% trans "Delete" %}"
+                      href="{{ delete_url }}"
+                      icon="delete"
+                      variant="danger" />
+          {% endif %}
+        </c-group>
+      {% endblock actions %}
+    </c-form>
+  </div>
 {% endblock page.content %}
 {% block extra_js %}
   {{ block.super }}

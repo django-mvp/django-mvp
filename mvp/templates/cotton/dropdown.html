@@ -1,0 +1,7 @@
+{% load mvp %}
+<c-vars valign="bottom" halign="start" trigger class />
+<div class="dropdown {% variation valign "dropdown" "top,center,bottom" %}  {% variation valign "dropdown" "top,center,bottom" %} {{ class }}"
+     {{ attrs }}>
+  {{ button }}
+  <div class="dropdown-content bg-base-100 rounded-box z-50 w-full shadow-lg border border-base-300">{{ slot }}</div>
+</div>

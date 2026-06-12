@@ -1,8 +1,0 @@
-{% load mvp %}
-<c-vars valign="bottom" halign="start" trigger class />
-<div class="dropdown {% variation valign "dropdown" "top,center,bottom" %}  {% variation valign "dropdown" "top,center,bottom" %} {{ class }}">
-  {% comment %} <div tabindex="0" role="button">{{ trigger }}</div> {% endcomment %}
-  {% comment %} <ul class="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow"> {% endcomment %}
-  {{ slot }}
-  {% comment %} </ul> {% endcomment %}
-</div>
