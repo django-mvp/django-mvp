@@ -166,6 +166,7 @@ they are tightly coupled.
 **Current**: Sets AdminLTE body classes (`layout-fixed`, `sidebar-mini`, etc.) on `<body>`.
 
 **New structure**:
+
 ```html
 <body data-theme="{{ theme|default:'light' }}" {{ attrs }}>
   <div class="drawer lg:drawer-open">
@@ -183,6 +184,7 @@ they are tightly coupled.
 ```
 
 **Key design decisions**:
+
 - `lg:drawer-open` keeps the sidebar always-visible on large screens (mirrors `sidebar-expand-lg`)
 - The `drawer-toggle` checkbox replaces `data-lte-toggle="sidebar"` JS hook
 - Sidebar state persistence (collapsed/expanded) on desktop handled via Alpine `$persist`
@@ -192,6 +194,7 @@ they are tightly coupled.
 **Current**: Bootstrap `navbar bg-{variant}` inside `.app-header.sticky-top`.
 
 **New structure**:
+
 ```html
 <div class="sticky top-0 z-40 w-full">
   <div class="navbar bg-base-100 shadow-sm">
@@ -201,7 +204,7 @@ they are tightly coupled.
         <i class="bi bi-list text-xl"></i>
       </label>
       {# Brand logo — shown on mobile only (hidden on lg where sidebar has it) #}
-      <a class="navbar-brand lg:hidden" href="/"><c-logo max-height="1.5rem" /></a>
+      <a class="navbar-brand lg:hidden" href="/"><c-brand.logo max-height="1.5rem" /></a>
     </div>
     <div class="navbar-end gap-1">
       {{ right }}
@@ -216,12 +219,13 @@ they are tightly coupled.
 **Current**: `<aside class="app-sidebar bg-body-secondary shadow ...">` with AdminLTE structure.
 
 **New structure**:
+
 ```html
 <aside class="bg-base-200 min-h-screen w-64 {{ class }}">
   {# Brand header #}
   <div class="sticky top-0 bg-base-200 px-4 py-3 border-b border-base-300">
     <a href="{{ brand_url }}" class="flex items-center gap-2">
-      <c-logo max-height="1.5rem" />
+      <c-brand.logo max-height="1.5rem" />
       {% if brand_text %}<span class="font-semibold text-base-content">{{ brand_text }}</span>{% endif %}
     </a>
   </div>
@@ -245,6 +249,7 @@ they are tightly coupled.
 **Current**: `<main class="app-main pb-0">{{ slot }}</main>`
 
 **New**:
+
 ```html
 <main class="flex-1 p-4 bg-base-200">{{ slot }}</main>
 ```
@@ -252,6 +257,7 @@ they are tightly coupled.
 ### 2.5 `cotton/app/footer.html` (`c-app.footer`)
 
 Replace AdminLTE `.app-footer` with:
+
 ```html
 <footer class="footer footer-center bg-base-100 border-t border-base-300 py-3 text-base-content/60 text-sm">
   {{ slot }}
@@ -274,6 +280,7 @@ Work through these in dependency order (most-used first). Each component gets it
 | `card/footer.html` | Replace Bootstrap `card-footer` → plain `div` with `border-t border-base-300 p-4` |
 
 **Variant mapping**:
+
 - `variant="primary"` → add `bg-primary text-primary-content` to card
 - `variant="default"` → `bg-base-100` (default)
 - `fill="outline"` → `card-border` (DaisyUI 5) or `border border-base-300`
@@ -299,6 +306,7 @@ Work through these in dependency order (most-used first). Each component gets it
 ```
 
 **Tag mapping** (needs template filter or inline mapping):
+
 - `error` → `alert-error`
 - `success` → `alert-success`
 - `warning` → `alert-warning`
@@ -311,6 +319,7 @@ Work through these in dependency order (most-used first). Each component gets it
 ### 3.3 `cotton/toolbar.html` — `c-toolbar`
 
 Replace Bootstrap spacing/flex utilities with Tailwind equivalents:
+
 - `w-100` → `w-full`
 - `justify-content-between` → `justify-between`
 - `d-flex` → `flex`
@@ -320,6 +329,7 @@ Replace Bootstrap spacing/flex utilities with Tailwind equivalents:
 ### 3.4 `cotton/form/field.html` — form fields
 
 Replace Bootstrap form classes with DaisyUI equivalents:
+
 - `form-control` (input) → `input w-full` (DaisyUI input)
 - `form-label` → `label` inside `fieldset` or standalone
 - `form-check-input` → `checkbox`
@@ -411,6 +421,7 @@ A new `DaisyUIRenderer` must generate DaisyUI `menu` markup:
 ```
 
 **DaisyUI menu classes**:
+
 - `menu menu-vertical` — vertical navigation list
 - `menu-title` — section header (replaces `MenuGroup`)
 - `active` modifier on `<a>` — active/current page
@@ -418,6 +429,7 @@ A new `DaisyUIRenderer` must generate DaisyUI `menu` markup:
 - `menu-xs`, `menu-sm`, `menu-lg` — size variants
 
 **Steps**:
+
 1. Create `DaisyUIRenderer` class in `renderers.py`
 2. Register renderer in `render_menu` call: `renderer="daisyui"`
 3. Update `app/sidebar/index.html` renderer reference (done in Phase 2.3)
@@ -457,6 +469,7 @@ Remove `libsass` / `django-compressor` from requirements if no longer used.
 ### 6.1 Playwright visual verification (per phase)
 
 After each phase, run the Playwright CLI to verify the layout:
+
 - Sidebar opens/closes on mobile (drawer checkbox)
 - Sidebar is always visible on desktop (`lg:drawer-open`)
 - Theme switch persists across page reloads
@@ -466,6 +479,7 @@ After each phase, run the Playwright CLI to verify the layout:
 ### 6.2 Unit test updates
 
 Files likely affected by class name changes:
+
 - Any test asserting `card`, `modal`, `navbar` HTML structure
 - Tests checking for `btn-outline-secondary` → `btn-outline btn-secondary`
 - Tests checking for `alert-danger` → `alert-error`
@@ -475,6 +489,7 @@ Run full test suite after each phase: `poetry run pytest`
 ### 6.3 Demo app visual review
 
 The `demo/` app exercises most components. After Phase 3, walk through all demo pages:
+
 - Dashboard
 - List views (with inline create modal)
 - Form views

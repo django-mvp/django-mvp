@@ -72,7 +72,7 @@ A developer configures a list view with `create_form_class` set but `has_create_
 - **FR-006**: The list view toolbar template MUST conditionally render: a modal-trigger button when **both** `directory.create_url` **and** `create_form` are present in context; a link button to `directory.create_url` when only `directory.create_url` is present (no `create_form`); no create UI when neither is present.
 - **FR-007**: The create modal title MUST default to `"Add <verbose_name>"` (capitalised, derived from `model._meta.verbose_name`). Developers MUST be able to override it via a `create_modal_title` class attribute on the view without subclassing or template changes. The submit button label is always `"Add"`. No other modal strings are hardcoded to a specific model name.
 - **FR-008**: `create_form_class` and `get_create_form()` MUST be added directly to `MVPListViewMixin`; existing subclasses that do not set `create_form_class` MUST require no changes and exhibit no behavioral difference.
-- **FR-009**: The demo app's `ListViewDemo` MUST be updated to use the new mixin attribute and remove the manual `get_context_data` override that currently injects `create_form`.
+- **FR-009**: The demo app's `ProductListView` MUST be updated to use the new mixin attribute and remove the manual `get_context_data` override that currently injects `create_form`.
 - **FR-010**: The create modal form action URL MUST include a `?next={{ request.path }}` query parameter so that after a successful create the user is redirected back to the list page. The create view (`MVPCreateView`) MUST honour the `next` parameter when present (verifying or adding this support is in scope for this feature).
 
 ### Key Entities *(include if feature involves data)*
@@ -88,7 +88,7 @@ A developer configures a list view with `create_form_class` set but `has_create_
 
 - **SC-001**: Developers can enable inline object creation on any list view by adding a single attribute (`create_form_class`) without overriding any methods.
 - **SC-002**: All three toolbar states (modal button / link button / no button) are covered by automated tests and produce no regressions against the existing list view test suite.
-- **SC-003**: The demo app's product list page demonstrates the complete inline create workflow: modal opens, form is submitted, user is redirected back to the list page, and the new object appears. The manual `get_context_data` override is removed from `ListViewDemo`.
+- **SC-003**: The demo app's product list page demonstrates the complete inline create workflow: modal opens, form is submitted, user is redirected back to the list page, and the new object appears. The manual `get_context_data` override is removed from `ProductListView`.
 - **SC-004**: List views that do not set `create_form_class` continue to function identically to their pre-feature behavior — no behavioral change introduced for existing views.
 - **SC-005**: The create modal title and labels are derived generically from the model, so no hardcoded model-specific strings remain in the base list view template.
 
@@ -109,4 +109,4 @@ A developer configures a list view with `create_form_class` set but `has_create_
 - The modal structure follows the existing Bootstrap 5 modal pattern already present in the codebase.
 - The `create_form_class` form is instantiated without request data by default (i.e., as an unbound form for initial rendering); binding the form with POST data for submission is handled by the separate create view.
 - `create_form_class` support is folded directly into `MVPListViewMixin`; `MVPTableViewMixin` (which inherits from it) gains the behavior automatically without additional changes.
-- The existing demo mockup (manual `get_context_data` override on `ListViewDemo`) will be replaced by the mixin implementation as part of this feature.
+- The existing demo mockup (manual `get_context_data` override on `ProductListView`) will be replaced by the mixin implementation as part of this feature.

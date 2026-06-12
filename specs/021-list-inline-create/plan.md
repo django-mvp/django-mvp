@@ -33,13 +33,13 @@ redirects the user back to the list after a successful create.
 |---|---|---|
 | I. Design-First, Verify Implementation | ✅ PASS | Playwright UI verification tasks required for modal interaction (US1). Tests written after visual confirmation. |
 | II. Documentation-First | ✅ PASS | `quickstart.md` created. Docstrings required on new public attributes and `get_create_form()`. |
-| III. Component Quality & Accessibility | ✅ PASS | No new Cotton components. Existing `<c-modal>`, `<c-form.card>`, `<c-button>` components used. Modal already keyboard-accessible via Bootstrap 5. |
+| III. Component Quality & Accessibility | ✅ PASS | No new Cotton components. Existing `<c-modal>`, `<c-form>`, `<c-button>` components used. Modal already keyboard-accessible via Bootstrap 5. |
 | IV. Compatibility & Config-Driven | ✅ PASS | `create_form_class = None` default is a no-op. No breaking changes. Cotton-only UI configuration. |
 | V. Tooling & Consistency | ✅ PASS | All commands via `poetry run`. Ruff lint + djlint must pass. |
 | VI. UI Verification (playwright-cli) | ✅ REQUIRED | Every phase touching modal HTML must include a playwright-cli verification task asserting modal opens, form renders, submit redirects back to list. |
 | VII. Documentation Retrieval | ✅ PASS | Django 5.2, django-cotton 2.6.1 docs consulted for context injection and template patterns. |
 | VIII. E2E Testing (pytest-playwright) | ✅ REQUIRED | Modal open/close and form submission require a real browser (Bootstrap JS). E2E tests in `tests/test_views/test_list_view_e2e.py`. Django test client used for context/HTML assertions (Simplicity Mandate). |
-| IX. Template Component Reuse | ✅ PASS | No raw HTML added. `<c-form.card>`, `<c-modal>`, `<c-button>` prebuilt components used. Toolbar component unchanged. |
+| IX. Template Component Reuse | ✅ PASS | No raw HTML added. `<c-form>`, `<c-modal>`, `<c-button>` prebuilt components used. Toolbar component unchanged. |
 
 **Constitution Check: PASS — no violations. Ready for implementation.**
 
@@ -70,7 +70,7 @@ mvp/templates/
 
 demo/
 └── views.py                             # remove manual get_context_data override
-                                         #   from ListViewDemo
+                                         #   from ProductListView
 
 tests/test_views/
 ├── test_list_view.py                    # add US1/US2/US3 inline-create unit tests
@@ -190,10 +190,10 @@ tests/test_views/
 
 **Changes**:
 
-Remove the manual `get_context_data` override from `ListViewDemo`:
+Remove the manual `get_context_data` override from `ProductListView`:
 
 ```python
-# REMOVE this method entirely from ListViewDemo:
+# REMOVE this method entirely from ProductListView:
 def get_context_data(self, **kwargs):
     context = super().get_context_data(**kwargs)
     if self.create_form_class:
@@ -202,7 +202,7 @@ def get_context_data(self, **kwargs):
 ```
 
 The `create_form_class = ProductForm` and `has_create_permission = True` attributes
-already on `ListViewDemo` will drive the mixin automatically.
+already on `ProductListView` will drive the mixin automatically.
 
 **Playwright UI Verification (Constitution VI)**:
 

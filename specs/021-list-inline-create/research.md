@@ -71,7 +71,7 @@ This pattern handles both `has_create_permission = True` (boolean) and `has_crea
 
 - `mvp/templates/list_view.html` — has a hardcoded `title="{% trans "Create product" %}"` and a hardcoded `action="{{ directory.create_url }}"` with no `?next=`. Both need updating.
 - `mvp/templates/cotton/list/toolbar.html` — already has the correct three-state conditional logic. No changes required.
-- The `<c-form.card>` and `<c-modal>` components used in the modal are `django-cotton-bs5` prebuilt components — no new components needed.
+- The `<c-form>` and `<c-modal>` components used in the modal are `django-cotton-bs5` prebuilt components — no new components needed.
 - The `<c-button>` component in the toolbar already has `data-bs-toggle="modal"` / `href=` variant selection.
 
 **Decision**: Minimal template changes — only `list_view.html` needs updates. No new Cotton components required. No djlint violations expected from the changes.
