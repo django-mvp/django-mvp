@@ -31,7 +31,7 @@ BASE_URL = "http://localhost:8001"
 
 
 @pytest.mark.playwright
-def test_scss_variables_demo_page_renders(page):
+def test_customization_page_renders(page):
     """The SCSS variables demo page loads and shows both override entrypoints.
 
     Requires a running dev server at http://localhost:8001.

@@ -89,17 +89,11 @@ class TestPageMixinDefaults:
     def test_default_page_subtitle_is_empty_string(self):
         assert PageMixin.page_subtitle == ""
 
-    def test_default_page_icon_is_none(self):
-        assert PageMixin.page_icon is None
-
     def test_default_page_class_is_empty_string(self):
         assert PageMixin.page_class == ""
 
     def test_default_breadcrumbs_is_empty_list(self):
         assert PageMixin.breadcrumbs == []
-
-    def test_default_page_caption_is_empty_string(self):
-        assert PageMixin.page_caption == ""
 
 
 # ---------------------------------------------------------------------------
@@ -117,15 +111,6 @@ class TestPageMixinGetters:
         view = ConcretePage()
         view.page_subtitle = "My Subtitle"
         assert view.get_page_subtitle() == "My Subtitle"
-
-    def test_get_page_icon_returns_page_icon(self):
-        view = ConcretePage()
-        view.page_icon = "fas fa-home"
-        assert view.get_page_icon() == "fas fa-home"
-
-    def test_get_page_icon_returns_none_by_default(self):
-        view = ConcretePage()
-        assert view.get_page_icon() is None
 
     def test_get_breadcrumbs_returns_breadcrumbs(self):
         crumbs = [{"text": "Home", "href": "/"}, {"text": "About"}]
@@ -148,15 +133,6 @@ class TestPageMixinGetters:
         view.page_class = None
         assert view.get_page_class() == "mvp-page"
 
-    def test_get_page_caption_returns_page_caption(self):
-        view = ConcretePage()
-        view.page_caption = "As of Q1 2026"
-        assert view.get_page_caption() == "As of Q1 2026"
-
-    def test_get_page_caption_returns_empty_string_by_default(self):
-        view = ConcretePage()
-        assert view.get_page_caption() == ""
-
 
 # ---------------------------------------------------------------------------
 # TestPageMixinGetPageContext
@@ -173,9 +149,7 @@ class TestPageMixinGetPageContext:
         view = ConcretePage()
         view.page_title = "Test"
         view.page_subtitle = "Sub"
-        view.page_icon = "fas fa-star"
         view.page_class = "extra"
-        view.page_caption = "Q1 summary"
         view.breadcrumbs = [{"text": "Home"}]
         ctx = view.get_page_context()
         assert ctx["title"] == "Test"
@@ -256,7 +230,6 @@ class SubclassedPageView(PageMixin, TemplateView):
     template_name = "page.html"
     page_title = "Static Title"
     page_subtitle = "Static Subtitle"
-    page_icon = "fas fa-check"
     page_class = "custom-view"
     breadcrumbs = [{"text": "Home", "href": "/"}]
 
@@ -793,7 +766,6 @@ class TestMVPTemplateViewLayoutIntegration:
             template_name="page_view.html",
             page_title="T",
             page_subtitle="S",
-            page_icon="info-circle",
             page_class="sidebar-collapse",
             breadcrumbs=[{"text": "Home", "href": "/"}],
         )

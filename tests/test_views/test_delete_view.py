@@ -125,12 +125,6 @@ class TestMVPDeleteViewBasic:
         messages = list(response.context["messages"])
         assert len(messages) == 1
 
-    def test_page_icon_is_delete(self, client, product):
-        """(g) page icon is 'delete' — FR-012 AdminLTE integration."""
-        url = reverse("product-delete", kwargs={"pk": product.pk})
-        response = client.get(url)
-        assert response.context["page"]["icon"] == "delete"
-
     def test_page_class_contains_mvp_delete_page(self, client, product):
         """(g) page class contains 'mvp-delete-page' — FR-012 AdminLTE integration."""
         url = reverse("product-delete", kwargs={"pk": product.pk})

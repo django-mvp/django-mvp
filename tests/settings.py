@@ -7,7 +7,7 @@ This module provides a stable, minimal configuration for testing.
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
-
+NPM_BIN_PATH = r"C:\Program Files\nodejs\npm.cmd"
 SECRET_KEY = "test-secret-key-for-testing-only"
 
 DEBUG = True
@@ -26,18 +26,17 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.humanize",
-    "compressor",
     "demo",
     "mvp",
     "easy_icons",
     "crispy_forms",
-    "crispy_bootstrap5",
+    "crispy_tailwind",
     "flex_menu",
     "django_cotton",
-    "cotton_bs5",
     "django_browser_reload",  # Optional, commented for testing
     "django_watchfiles",
 ]
+
 
 # Add django-tables2 if installed (optional dependency)
 try:
@@ -100,7 +99,6 @@ STATIC_ROOT = str(BASE_DIR / "static")
 STATICFILES_FINDERS = (
     "django.contrib.staticfiles.finders.FileSystemFinder",
     "django.contrib.staticfiles.finders.AppDirectoriesFinder",
-    "compressor.finders.CompressorFinder",
 )
 
 STATICFILES_DIRS = []
@@ -111,21 +109,6 @@ STORAGES = {
     },
 }
 
-COMPRESS_ENABLED = False
-COMPRESS_OFFLINE = False
-COMPRESS_FILTERS = {
-    "css": [
-        "compressor.filters.css_default.CssAbsoluteFilter",
-        "compressor.filters.cssmin.rCSSMinFilter",
-    ],
-    "js": ["compressor.filters.jsmin.JSMinFilter"],
-}
-COMPRESS_PRECOMPILERS = (("text/x-scss", "django_libsass.SassCompiler"),)
-
-
-# https://github.com/torchbox/django-libsass
-LIBSASS_SOURCEMAPS = True
-
 
 CACHES = {
     "default": {
@@ -134,8 +117,8 @@ CACHES = {
     },
 }
 
-CRISPY_ALLOWED_TEMPLATE_PACKS = ["bootstrap5"]
-CRISPY_TEMPLATE_PACK = "bootstrap5"
+CRISPY_ALLOWED_TEMPLATE_PACKS = ["tailwind"]
+CRISPY_TEMPLATE_PACK = "tailwind"
 
 # Easy Icons configuration
 EASY_ICONS = {
@@ -171,6 +154,7 @@ EASY_ICONS = {
             "form": "bi bi-journal-text",
             "graph-up": "bi bi-graph-up-arrow",
             "grid": "bi bi-grid-3x3-gap",
+            "gears": "bi bi-gear",
             "heart": "bi bi-heart",
             "home": "bi bi-house",
             "info-circle": "bi bi-info-circle",
@@ -185,6 +169,7 @@ EASY_ICONS = {
             "person-circle": "bi bi-person-circle",
             "plus": "bi bi-plus-lg",
             "shirt": "bi bi-shirt",
+            "sort-desc": "bi bi-sort-down",
             "sidebar-left": "bi bi-layout-sidebar",
             "sidebar-right": "bi bi-layout-sidebar-right",
             "submit": "bi bi-check-lg",
@@ -204,3 +189,5 @@ FLEX_MENUS = {
     },
     "log_url_failures": DEBUG,
 }
+
+INTERNAL_IPS = ["127.0.0.1"]

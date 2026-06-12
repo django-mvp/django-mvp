@@ -114,7 +114,7 @@ def test_override_path_consistent_across_docs():
 
 
 @pytest.mark.django_db
-def test_scss_variables_demo_page_accessible(client):
+def test_customization_page_accessible(client):
     """The SCSS variables demo page responds with HTTP 200."""
     response = client.get("/theming/scss-variables/")
     assert response.status_code == 200, (
