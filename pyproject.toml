@@ -76,6 +76,10 @@ brotli = "^1.2.0"
 requires = ['poetry-core (>=2.0,<3.0)']
 build-backend = "poetry.core.masonry.api"
 
+[tool.poetry.plugins."pytest11"]
+mvp = "mvp.fixtures"
+
+
 [tool.deptry]
 extend_exclude = ["tasks.py"]
 
@@ -238,6 +242,7 @@ testpaths = ["tests"]
 addopts = ["--strict-markers", "--tb=short"]
 markers = ["e2e: End-to-end tests using Playwright"]
 asyncio_mode = "auto"
+
 
 [tool.coverage.run]
 source = ["mvp"]

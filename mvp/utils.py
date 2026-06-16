@@ -109,4 +109,5 @@ BS5_ICONS = {
     "shield-x": "bi bi-shield-x",
     "bug": "bi bi-bug",
     "logout": "bi bi-box-arrow-right",
+    "login": "bi bi-box-arrow-in-right",
 }

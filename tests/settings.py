@@ -174,6 +174,8 @@ EASY_ICONS = {
             "sidebar-right": "bi bi-layout-sidebar-right",
             "submit": "bi bi-check-lg",
             "support": "bi bi-life-preserver",
+            "pencil": "bi bi-pencil",
+            "trash": "bi bi-trash",
         },
     },
 }

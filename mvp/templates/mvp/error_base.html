@@ -18,6 +18,11 @@
     <c-text impact muted center>
       {% block description %}{% endblock %}
     </c-text>
-    {% block actions %}{% endblock %}
+    {% block actions %}
+      <c-button variant="ghost"
+                icon="arrow-left"
+                href="/"
+                text="{% trans "Return to site" %}" />
+    {% endblock %}
   </c-entrance>
 {% endblock app %}

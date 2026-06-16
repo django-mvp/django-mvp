@@ -4,7 +4,7 @@
   {{ page.title }}
 {% endblock title %}
 {% block content %}
-  <c-page>
+  <c-page class="{{ page.class }}">
     <c-toolbar>
       {% block page.header %}
         <c-navigation.breadcrumbs :items="page.breadcrumbs" class="py-2" />

@@ -11,10 +11,7 @@
   {% trans "Please try again, or contact support if the issue persists." %}
 {% endblock description %}
 {% block actions %}
-  <c-button variant="primary"
-            icon="arrow-left"
-            href="/"
-            text="{% trans "Back to dashboard" %}" />
+  {{ block.super }}
   {% if support_email %}
     <c-button variant="ghost"
               icon="life-preserver"

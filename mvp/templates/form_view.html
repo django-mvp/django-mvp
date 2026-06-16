@@ -6,6 +6,8 @@
 {% endblock head %}
 {% block page.content %}
   <div class="w-full lg:max-w-4xl">
+    {% block before_form %}
+    {% endblock before_form %}
     <c-form title="{{ page.title }}"
             icon="{{ page.icon }}"
             method="post"
@@ -42,6 +44,8 @@
         </c-group>
       {% endblock actions %}
     </c-form>
+    {% block after_form %}
+    {% endblock after_form %}
   </div>
 {% endblock page.content %}
 {% block extra_js %}
