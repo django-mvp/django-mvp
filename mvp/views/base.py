@@ -357,7 +357,9 @@ class MVPHomeView(MVPTemplateView):
     def get_template_names(self):
         """Choose template based on authentication status."""
         if self.landing_template_name is None:
-            raise ImproperlyConfigured(f"{self.__class__.__name__} requires `landing_template_name` to be set.")
+            raise ImproperlyConfigured(
+                f"{self.__class__.__name__} requires `landing_template_name` to be set."
+            )
         if self.request.user.is_authenticated:
             if self.dashboard_template_name is None:
                 raise ImproperlyConfigured(
