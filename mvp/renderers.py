@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from typing import Any
 
-from flex_menu.menu import MenuItem
 from flex_menu.renderers import BaseRenderer
 
 
@@ -16,80 +15,41 @@ class MobileFooterNavRenderer(BaseRenderer):
     rather than anchor links.
 
     Config:
-        FLEX_MENUS["renderers"]["mobile-footer-nav"] = "mvp.renderers.MobileFooterNavRenderer"
+        FLEX_MENUS["renderers"]["dock"] = "mvp.renderers.MobileFooterNavRenderer"
     """
 
     templates = {
-        0: {"default": "menus/mobile-footer-nav/wrapper.html"},
+        0: {"default": "menus/dock/index.html"},
         "default": {
-            "parent": "menus/mobile-footer-nav/item.html",
-            "leaf": "menus/mobile-footer-nav/item.html",
+            "parent": "menus/dock/item.html",
+            "leaf": "menus/dock/item.html",
         },
     }
 
 
-class AdminLTERenderer(BaseRenderer):
-    """Renderer for AdminLTE 4 sidebar navigation.
+class SidebarRenderer(BaseRenderer):
+    """Renderer for sidebar navigation.
 
-    This renderer transforms django-flex-menus MenuItem objects into context data
-    for AdminLTE-compatible templates. It provides:
+    Generates semantic menu markup for use inside the sidebar drawer.
+    Supports leaf items, section headers (MenuGroup) and collapsible groups
+    (MenuCollapse) via the ``<details>/<summary>`` pattern.
 
-    - MenuItem and MenuCollapse items maintain declaration order
-    - MenuGroup items (section headers) sorted to bottom
-    - Depth-based template selection for hierarchical menus
-    - Active state detection based on current URL matching
-    - Icon and badge rendering via extra_context
-    - Bootstrap 5 compatible CSS classes and structure
+    Templates:
+    - Depth 0: ``menus/sidebar/container.html``
+    - Leaf items: ``menus/sidebar/item.html``
+    - Parent items: ``menus/sidebar/parent.html``
 
-    Templates are selected based on item depth and whether the item has children:
-    - Depth 0: Container template (menus/container.html)
-    - Depth 1+: Parent/leaf templates based on children presence
-
-    Active state detection compares:
-    1. Current request URL with menu item URL
-    2. Current view name with menu item view_name
-    3. Hierarchical active states for parent menu expansion
+    Config:
+        FLEX_MENUS["renderers"]["sidebar"] = "mvp.renderers.SidebarRenderer"
     """
 
     templates: dict[Any, Any] = {
-        # Depth 0: Container (root menu)
-        0: {"default": "menus/container.html"},
-        # Depth 1+: Nested items (fallback)
+        0: {"default": "menus/sidebar/container.html"},
         "default": {
-            "parent": "menus/parent.html",
-            "leaf": "menus/item.html",
+            "parent": "menus/sidebar/parent.html",
+            "leaf": "menus/sidebar/item.html",
         },
     }
-
-    def get_context_data(self, item: MenuItem, **kwargs: Any) -> dict[str, Any]:
-        """Build template context for rendering a menu item.
-
-        BaseRenderer already provides: label, url, selected, depth, visible, children
-        BaseRenderer merges item.extra_context into context (icon, badge, classes, etc.)
-
-        We only add:
-        - component_type for template selection
-        - Child sorting (MenuGroup to bottom)
-        """
-        context = super().get_context_data(item, **kwargs)
-
-        # Sort children: MenuGroup to bottom, others in declaration order
-        # Only sort at depth 0 (root menu container)
-        children = context.get("children")
-        if item.depth == 0 and children:
-            menu_groups = []
-            other_items = []
-
-            for child in children:
-                component_type = child.extra_context.get("component_type")
-                if component_type == "menu.group":
-                    menu_groups.append(child)
-                else:
-                    other_items.append(child)
-
-            context["children"] = other_items + menu_groups
-
-        return context
 
 
 class NavRenderer(BaseRenderer):

@@ -1,46 +1,56 @@
 {% extends "detail_view.html" %}
 {% load i18n %}
-
 {% block page.actions %}
   {% if directory.list_url %}
-    <a class="btn btn-outline-secondary btn-sm" href="{{ directory.list_url }}">
-      <i class="bi bi-arrow-left"></i> {% trans "Back to list" %}
-    </a>
+    <c-button href="{{ directory.list_url }}"
+              text="{% trans 'Back to list' %}"
+              icon="arrow-left"
+              size="sm"
+              variant="ghost" />
   {% endif %}
   {% if directory.update_url %}
-    <a class="btn btn-primary btn-sm" href="{{ directory.update_url }}">
-      <i class="bi bi-pencil"></i> {% trans "Edit" %}
-    </a>
+    <c-button href="{{ directory.update_url }}"
+              text="{% trans 'Edit' %}"
+              icon="pencil"
+              size="sm"
+              variant="primary" />
   {% endif %}
   {% if directory.delete_url %}
-    <a class="btn btn-danger btn-sm" href="{{ directory.delete_url }}">
-      <i class="bi bi-trash"></i> {% trans "Delete" %}
-    </a>
+    <c-button href="{{ directory.delete_url }}"
+              text="{% trans 'Delete' %}"
+              icon="trash"
+              size="sm"
+              variant="error" />
   {% endif %}
 {% endblock page.actions %}
-
 {% block page.content %}
-  <div class="row g-3">
-    <div class="col-12 col-md-6">
-      <dl class="row">
-        <dt class="col-sm-4">{% trans "Name" %}</dt>
-        <dd class="col-sm-8">{{ object.name }}</dd>
-
-        <dt class="col-sm-4">{% trans "Category" %}</dt>
-        <dd class="col-sm-8">{{ object.category }}</dd>
-
-        <dt class="col-sm-4">{% trans "Price" %}</dt>
-        <dd class="col-sm-8">${{ object.price }}</dd>
-
-        <dt class="col-sm-4">{% trans "Stock" %}</dt>
-        <dd class="col-sm-8">{{ object.stock }}</dd>
-
-        <dt class="col-sm-4">{% trans "Status" %}</dt>
-        <dd class="col-sm-8">{{ object.get_status_display }}</dd>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+    <div>
+      <dl class="space-y-3">
+        <dt class="font-semibold">{% trans "Name" %}</dt>
+        <dd>
+          {{ object.name }}
+        </dd>
+        <dt class="font-semibold">{% trans "Category" %}</dt>
+        <dd>
+          {{ object.category }}
+        </dd>
+        <dt class="font-semibold">{% trans "Price" %}</dt>
+        <dd>
+          ${{ object.price }}
+        </dd>
+        <dt class="font-semibold">{% trans "Stock" %}</dt>
+        <dd>
+          {{ object.stock }}
+        </dd>
+        <dt class="font-semibold">{% trans "Status" %}</dt>
+        <dd>
+          {{ object.get_status_display }}
+        </dd>
       </dl>
     </div>
-    <div class="col-12 col-md-6">
-      <p class="text-muted">{{ object.description }}</p>
+    <div>
+      <p class="text-base-content/60">{{ object.description }}</p>
     </div>
   </div>
 {% endblock page.content %}

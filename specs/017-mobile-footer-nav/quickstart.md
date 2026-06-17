@@ -1,6 +1,6 @@
 # Quickstart: Mobile Footer Navigation
 
-**Branch**: `017-mobile-footer-nav` | **Date**: 2026-05-26
+**Branch**: `017-dock` | **Date**: 2026-05-26
 
 ---
 
@@ -13,7 +13,7 @@
 
 ## Step 1 — Register the Renderer
 
-Add `"mobile-footer-nav"` to the `FLEX_MENUS["renderers"]` dictionary in your
+Add `"dock"` to the `FLEX_MENUS["renderers"]` dictionary in your
 Django settings alongside the existing `adminlte` renderer:
 
 ```python
@@ -21,7 +21,7 @@ Django settings alongside the existing `adminlte` renderer:
 FLEX_MENUS = {
     "renderers": {
         "adminlte": "mvp.renderers.AdminLTERenderer",
-        "mobile-footer-nav": "mvp.renderers.MobileFooterNavRenderer",
+        "dock": "mvp.renderers.MobileFooterNavRenderer",
         # ... other renderers
     },
 }
@@ -32,12 +32,12 @@ FLEX_MENUS = {
 ## Step 2 — The Default Footer Nav
 
 No additional configuration is required. The `MobileFooterMenu` singleton is
-pre-populated with a sidebar toggle item. The `c-app.mobile-footer-nav` component
+pre-populated with a sidebar toggle item. The `c-app.dock` component
 is included in `base.html` by default via:
 
 ```html
 {% block app.mobile_footer_nav %}
-  <c-app.mobile-footer-nav />
+  <c-app.dock />
 {% endblock app.mobile_footer_nav %}
 ```
 
@@ -104,7 +104,7 @@ MobileFooterMenu.children = [
 
 ## Component Attributes
 
-The `c-app.mobile-footer-nav` component accepts one optional attribute:
+The `c-app.dock` component accepts one optional attribute:
 
 | Attribute | Type  | Default | Description                          |
 |-----------|-------|---------|--------------------------------------|
@@ -114,6 +114,6 @@ Example — add a custom background variant:
 
 ```html
 {% block app.mobile_footer_nav %}
-  <c-app.mobile-footer-nav class="bg-dark" />
+  <c-app.dock class="bg-dark" />
 {% endblock app.mobile_footer_nav %}
 ```

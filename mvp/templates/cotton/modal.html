@@ -1,0 +1,22 @@
+{% load i18n %}
+<c-vars id centered />
+<dialog {% if id %}id="{{ id }}"{% endif %}
+        class="modal{% if centered %} modal-middle{% endif %}">
+  <div class="modal-box w-11/12 max-w-2xl">
+    {% if title %}
+      <h1 class="text-2xl mb-5">
+        {% if icon %}<c-icon name="{{ icon }}" class="me-2" />{% endif %}
+        {{ title }}
+      </h1>
+    {% endif %}
+    {{ slot }}
+    {% if footer %}
+      <c-toolbar class="pt-4" only>
+        {{ footer }}
+      </c-toolbar>
+    {% endif %}
+  </div>
+  <form method="dialog" class="modal-backdrop">
+    <button aria-label="{% trans "Close" %}">{% trans "Close" %}</button>
+  </form>
+</dialog>

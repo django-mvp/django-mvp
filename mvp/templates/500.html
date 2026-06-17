@@ -3,6 +3,7 @@
 {% block title %}
   {% trans "500 — Server Error" %}
 {% endblock title %}
+{% block error_code %}500{% endblock %}
 {% block heading %}
   {% trans "Something went wrong." %}
 {% endblock heading %}
@@ -10,12 +11,9 @@
   {% trans "Please try again, or contact support if the issue persists." %}
 {% endblock description %}
 {% block actions %}
-  <c-button variant="primary"
-            icon="arrow-left"
-            href="/"
-            text="{% trans "Back to dashboard" %}" />
+  {{ block.super }}
   {% if support_email %}
-    <c-button variant="outline-secondary"
+    <c-button variant="ghost"
               icon="life-preserver"
               href="mailto:{{ support_email }}"
               text="{% trans "Contact support" %}" />

@@ -66,7 +66,7 @@
 ### Implementation for User Story 1
 
 - [ ] T008 [US1] **Before editing**: consult the `django-cotton-bs5` skill (`.github/skills/django-cotton-bs5/SKILL.md`) to confirm no prebuilt component supersedes the planned changes — Constitution IX. Then wrap the `<c-modal id="createModal">` block in `{% if create_form %}...{% endif %}` in `mvp/templates/list_view.html`
-- [ ] T009 [US1] Replace hardcoded `title="{% trans "Create product" %}"` with `title="{{ create_modal_title }}"` on `<c-form.card>` in `mvp/templates/list_view.html`
+- [ ] T009 [US1] Replace hardcoded `title="{% trans "Create product" %}"` with `title="{{ create_modal_title }}"` on `<c-form>` in `mvp/templates/list_view.html`
 - [ ] T010 [US1] Append `?next={{ request.path }}` to the form action: `action="{{ directory.create_url }}?next={{ request.path }}"` in `mvp/templates/list_view.html`
 - [ ] T011 [US1] Run djlint on modified template — `poetry run djlint mvp/templates/list_view.html --check`; fix any violations
 - [ ] T012 [US1] Playwright-cli verification — open the demo product list page (`/products/`); assert: "Add new" button is visible in toolbar; click opens modal; modal header text is "Add Product" (not "Create product"); form `action` attribute contains `?next=`
@@ -104,7 +104,7 @@
 
 **Purpose**: Demo migration, E2E regression suite, full validation.
 
-- [ ] T016 Remove manual `get_context_data` override from `ListViewDemo` in `demo/views.py` (the `create_form_class = ProductForm` and `has_create_permission = True` attributes already on the class drive the mixin automatically)
+- [ ] T016 Remove manual `get_context_data` override from `ProductListView` in `demo/views.py` (the `create_form_class = ProductForm` and `has_create_permission = True` attributes already on the class drive the mixin automatically)
 - [ ] T016a Validate T016 — `poetry run python manage.py check` · `poetry run pytest tests/test_views/test_list_view.py -x -q` (Constitution I: Django code change requires immediate check)
 - [ ] T017 Playwright-cli verification — reload demo product list (`/products/`); assert: modal "Add new" button still present; modal opens; submitting a valid product form redirects browser back to `/products/` and the new product appears; assert: `?next=` parameter is honoured by `MVPCreateView`
 - [ ] T018 [P] Write E2E Playwright tests in `tests/test_views/test_list_view_e2e.py` covering: modal opens on button click (US1); modal title is auto-derived (US1, FR-007); valid submit redirects back to list URL (US1, scenario 2); invalid submit lands on create page (US1, scenario 3); no modal button when permission denied (US3)

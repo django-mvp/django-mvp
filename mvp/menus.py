@@ -86,14 +86,6 @@ class MenuGroup(MenuItem):
         )
     """
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Inject component_type into extra_context
-        if "extra_context" not in kwargs:
-            self.extra_context = {}
-        self.extra_context["component_type"] = "menu.group"
-        self.extra_context["url"] = "#"  # Collapsible items do not navigate
-
 
 class MenuCollapse(MenuItem):
     """MenuItem subclass for expandable dropdown menus.
@@ -112,16 +104,12 @@ class MenuCollapse(MenuItem):
         )
     """
 
-    icon = "chevron_right"
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Inject component_type into extra_context
         if "extra_context" not in kwargs:
             self.extra_context = {}
-        self.extra_context["component_type"] = "menu.collapse"
-        self.extra_context["url"] = "#"  # Collapsible items do not navigate
-        self.extra_context.setdefault("icon", self.icon)
+        self.extra_context["collapsible"] = True
 
 
 # Global menu instance for application navigation

@@ -1,2 +1,5 @@
-<c-vars layout="lhr-lpr-lfr" sidebar_expand="lg" class />
-<div class="mvp-layout {{ layout }} {{ class }}">{{ slot }}</div>
+<c-vars fluid fill gap="6" class />
+<div class="flex flex-col mb-16 gap-{{ gap }} {% if fill %}h-full{% elif fluid %}w-full px-4{% else %}container mx-auto px-4{% endif %} {{ class }}"
+     {{ attrs }}>
+  {{ slot }}
+</div>

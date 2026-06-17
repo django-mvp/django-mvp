@@ -1,12 +1,15 @@
+{% load i18n %}
 <c-vars widgets />
-<c-modal fade centered>
-  <c-form.card :attrs="attrs">
+<c-modal centered>
+  <c-form :attrs="attrs">
     <c-slot name="widgets">
       {{ widgets }}
-      <c-button text="{% trans "Close modal" %}"
-                icon="x"
-                class="hide-btn-text"
-                data-bs-dismiss="modal" />
+      <button type="button"
+              onclick="this.closest('dialog').close()"
+              class="btn btn-ghost btn-sm btn-square"
+              aria-label="{% trans 'Close modal' %}">
+        <i class="bi bi-x text-xl"></i>
+      </button>
     </c-slot>
-  </c-form.card>
+  </c-form>
 </c-modal>

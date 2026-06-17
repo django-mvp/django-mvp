@@ -1,0 +1,20 @@
+{% extends "page_view.html" %}
+{% block page.content %}
+  <div>
+    <c-avatar size="md" />
+    <c-avatar size="lg" />
+    <c-avatar size="xl"
+              src="https://img.daisyui.com/images/profile/demo/gordon@192.webp"
+              status="online" />
+    <c-avatar size="xxl" />
+  </div>
+  <div>
+    <c-avatar.group size="lg">
+      <c-avatar size="md" />
+      <c-avatar size="md" />
+      <c-avatar size="md"
+                src="https://img.daisyui.com/images/profile/demo/gordon@192.webp" />
+      <c-avatar size="md" />
+    </c-avatar.group>
+  </div>
+{% endblock page.content %}

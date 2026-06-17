@@ -109,15 +109,3 @@ def test_override_path_consistent_across_docs():
 
 
 # ---------------------------------------------------------------------------
-# Phase 7 [US4]: SCSS variables demo page accessibility (T051)
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.django_db
-def test_scss_variables_demo_page_accessible(client):
-    """The SCSS variables demo page responds with HTTP 200."""
-    response = client.get("/theming/scss-variables/")
-    assert response.status_code == 200, (
-        "The SCSS variables demo page at /theming/scss-variables/ must return HTTP 200. "
-        "Check that the URL is registered in demo/urls.py and the view renders without errors."
-    )

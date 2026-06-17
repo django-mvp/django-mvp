@@ -1,64 +1,33 @@
-{% comment %}
-toolbar — Horizontal toolbar layout container.
-
-A responsive horizontal bar that combines an optional heading with slotted
-content areas. By default it stacks vertically and switches to a flex row at
-the `sm` breakpoint. Behaviour is fully controlled via the `row` prop.
-
-Props:
-  title   (str)  – Optional heading text rendered on the leading edge.
-  level   (int)  – Heading level for `title` (1–6). Default: 1.
-  fs      (int)  – Bootstrap `fs-*` size override for the heading.
-                   Defaults to the value of `level`.
-  reverse (flag) – When present, applies `toolbar--reverse` to flip
-                   the layout direction.
-  gap     (int)  – Bootstrap `gap-*` spacing between toolbar children.
-                   Default: 1.
-  container (bool) - Denotes whether the contents should be placed inside a fixed-width, responsive container
-  fluid (bool)   - Denotes whether the contents should be place in a full-width container (with horizontal padding)
-  width   (str)  – Container width variant passed as `container-{width}`.
-                   Options:
-                    - "full": Full width, no horizontal padding
-                    - "fluid" (default): Full width, horizontal padding
-                    - "container": Width defined by responsive breakpoints
-  row     (str)  – Controls when (or whether) the toolbar switches to a
-                   horizontal flex-row layout.
-                    - "sm" (default): row from the `sm` breakpoint upward.
-                    - "md" / "lg" / "xl" / "xxl": row from that breakpoint.
-                    - "True": always a row at every breakpoint.
-                    - not set / "": always stacked (column) at every breakpoint.
-  center  (flag) – Centers children horizontally within each stacked row
-                   (`align-items-center`). Useful when `row` is a breakpoint
-                   to center items on smaller screens before the row kicks in,
-                   or when `row` is not set and the layout is always stacked.
-  vspace  (int)  – Bootstrap `py-*` value controlling vertical (y-axis)
-                   padding. Default: 2. Set to "" or "0" to remove padding.
-  class   (str)  – Additional CSS classes appended to the root element.
-  attrs          – Extra HTML attributes forwarded to the root `<div>`.
-
-Slots:
-  start   – Content placed in a `toolbar-start` div before the default
-             slot. Typically used for leading action buttons or controls.
-  (slot)  – Default slot content rendered after the start region.
-
-Usage:
-  <c-toolbar title="Page Title" gap="2">
-    <c-slot name="start"><button …>Action</button></c-slot>
-    Additional toolbar content
-  </c-toolbar>
-{% endcomment %}
-<c-vars title
-        top
-        bottom
-        justify="between"
-        row
-        tight
-        breakpoint="md" />
-<div class="toolbar w-100 {% if row is True %} toolbar-row{% elif row %} toolbar-row-{{ row }}{% endif %} {% if not tight %}mb-2{% endif %} justify-content-{{ justify }} {{ class }}">
-  {{ slot }}
-  {% if actions %}
-    <c-group shrink row :breakpoint="breakpoint" only>
-      {{ actions }}
-    </c-group>
-  {% endif %}
+{# ============================================================ #}
+{# <c-toolbar> — responsive toolbar with heading and actions    #}
+{#                                                              #}
+{# A flexible toolbar that displays a heading/content area on  #}
+{# the left and action buttons on the right. Stacks vertically #}
+{# on mobile, switches to horizontal layout at breakpoint.     #}
+{#                                                              #}
+{# Props:                                                       #}
+{#   row        – True|sm|md|lg|xl|2xl (default: md)           #}
+{#                True = always row, breakpoint = row at/above #}
+{#   gap        – Tailwind gap size (default: 2)               #}
+{#   class      – Additional classes on wrapper                #}
+{#                                                              #}
+{# Slots:                                                       #}
+{#   (default)  – Left content (heading, breadcrumbs, etc)     #}
+{#   actions    – Right content (buttons, action group)        #}
+{#                                                              #}
+{# Examples:                                                    #}
+{#   <c-toolbar row>                                           #}
+{#     <h1>Page Title</h1>                                     #}
+{#     <c-slot name="actions">                                 #}
+{#       <button class="btn">Action</button>                   #}
+{#     </c-slot>                                               #}
+{#   </c-toolbar>                                              #}
+{#                                                              #}
+{#   <c-toolbar row="lg">...</c-toolbar>                       #}
+{# ============================================================ #}
+<c-vars row="md" gap="2" tight class />
+<div class="flex {% if row is True %}flex-row justify-between items-center{% else %}flex-col {{ row }}:flex-row {{ row }}:justify-between {{ row }}:items-center{% endif %} w-full gap-{{ gap }} {{ class }}"
+     {{ attrs }}>
+  <div class="flex-shrink-0">{{ slot }}</div>
+  {% if actions %}<div class="flex-shrink-0">{{ actions }}</div>{% endif %}
 </div>

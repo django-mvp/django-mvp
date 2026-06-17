@@ -1,64 +1,33 @@
-{# ================================================================= #}
-{# <c-dac.user-menu> — Sidebar user menu (dropup)                    #}
-{#                                                                   #}
-{# Props:                                                            #}
-{#   display_name        – User's display name (name + fallback)     #}
-{#   subtitle            – Optional secondary text (email, role …)  #}
-{#   avatar_url          – Profile photo URL. Empty → SVG icon       #}
-{#   avatar_size         – Size token for avatar (default: sm)       #}
-{#   show_account_center – Show Account Center link (default: True)  #}
-{#   show_logout         – Show Logout button (default: True)        #}
-{#   class               – Extra classes on the wrapper              #}
-{#                                                                   #}
-{# Slots:                                                            #}
-{#   default             – Custom menu items (placed between Account #}
-{#                         Center link and Logout button)            #}
-{#                                                                   #}
-{# Examples:                                                         #}
-{#   Minimal:                                                        #}
-{#     <c-dac.user-menu                                              #}
-{#       display_name="{{ request.user.get_full_name                 #}
-{#                        |default:request.user.username }}"         #}
-{#       subtitle="{{ request.user.email }}" />                      #}
-{#                                                                   #}
-{#   With avatar and custom item:                                    #}
-{#     <c-dac.user-menu                                              #}
-{#       display_name="..."                                          #}
-{#       avatar_url="{{ request.user.profile.photo.url }}">          #}
-{#       <c-dropdown.item href="{% url 'settings' %}"               #}
-{#                        text="Settings" icon="gear" />             #}
-{#     </c-dac.user-menu>                                            #}
-{# ================================================================= #}
 {% load i18n mvp %}
 {% if request.user.is_authenticated %}
-  <c-dropdown direction="up"
-              min_width="100%"
-              dropdown_class="w-100">
+  <c-dropdown valign="top" halign="center" class="w-full">
     <c-slot name="button">
-      <c-button type="button"
-                class="w-100"
-                data-bs-toggle="dropdown"
-                aria-expanded="false"
-                aria-haspopup="true">
+      <div tabindex="0"
+           role="button"
+           class="btn btn-ghost w-full justify-start ">
         <c-user.display.compact />
-      </c-button>
+      </div>
     </c-slot>
-    <c-dropdown.item href="{% url "account-center" %}"
-                     text="{% trans "Account Center" %}"
-                     icon="grid" />
-    {{ slot }}
-    <c-dropdown.divider />
-    <c-dropdown.item text="{% trans "Log out" %}"
-                     icon="logout"
-                     type="submit"
-                     form="logoutForm"
-                     class="dropdown-item text-start w-100" />
-    {% url 'account_logout' as logout_url %}
+    <c-menu>
+      {% url "account-center" as account_center_url %}
+      {% if account_center_url %}
+        <c-menu.item label="{% trans "Account Center" %}"
+                     icon="account_center"
+                     href="{{ account_center_url }}" />
+      {% endif %}
+      {{ slot }}
+      {% if slot or account_center_url %}<c-menu.divider />{% endif %}
+      <c-menu.item label="{% trans "Log out" %}"
+                   type="submit"
+                   form="logoutForm"
+                   icon="logout" />
+    </c-menu>
+    {% url "account_logout" as logout_url %}
     {% if logout_url %}
       <form method="post"
             id="logoutForm"
             action="{{ logout_url }}"
-            class="d-block m-0">
+            class="hidden">
         {% csrf_token %}
       </form>
     {% endif %}

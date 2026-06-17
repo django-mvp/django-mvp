@@ -17,10 +17,10 @@
     </div>
     {% block page.content-wrapper %}
       <c-page.content center gap=3 class="py-4">
-        <c-vstack gap=3>
+        <c-group gap=3>
           {% block page.content %}
           {% endblock page.content %}
-        </c-vstack>
+        </c-group>
       </c-page.content>
     {% endblock page.content-wrapper %}
     <c-page.toolbar bottom>

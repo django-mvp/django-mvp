@@ -1,7 +1,0 @@
-{% load flex_menu %}
-<c-nav :attrs="context">
-  {% for child in children %}
-    {% render_item child renderer=renderer %}
-    {% if not forloop.last %}<div class="vr my-2"></div>{% endif %}
-  {% endfor %}
-</c-nav>

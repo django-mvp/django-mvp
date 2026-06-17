@@ -1,5 +1,5 @@
-<c-card class="h-100 position-relative">
-  <c-card.header title="{{ product.name }}">
+<c-card class="h-full">
+  <div class="flex items-start justify-between gap-2 mb-2">
     <c-badge variant="{{ product.stock_status|yesno:'danger,warning,success' }}">
       {% if product.stock_status == 'out_of_stock' %}
         Out of Stock
@@ -10,31 +10,29 @@
       {% endif %}
     </c-badge>
     <c-button href="{% url "product-delete" pk=object.pk %}"
+              variant="error"
+              ghost
               icon="delete" />
-  </c-card.header>
-  <c-text small tight>
-    {{ product.sku }}
-  </c-text>
-  <h5 class="card-title">{{ product.name }}</h5>
-  <div class="mb-2 overflow-hidden" style="height: 5lh;">
+  </div>
+  <p class="text-xs text-base-content/50 font-mono">{{ product.sku }}</p>
+  <h2 class="card-title">{{ product.name }}</h2>
+  <div class="overflow-hidden mb-2" style="height: 5lh;">
     {% if not product.description %}
       {{ product.description|truncatewords:30 }}
     {% else %}
       {% lorem 1 b random %}
     {% endif %}
   </div>
-  <div class="mb-2">
-    {% for tag in product.tag_list %}<span class="badge text-secondary border me-1">#{{ tag }}</span>{% endfor %}
+  <div class="flex flex-wrap gap-1 mb-2">
+    {% for tag in product.tag_list %}<span class="badge badge-outline">#{{ tag }}</span>{% endfor %}
   </div>
-  <div class="d-flex align-items-center gap-3 mt-2">
-    {% if product.rating %}
-      <span class="ms-2 text-warning">
-        <i class="bi bi-star-fill"></i> {{ product.rating }}
-      </span>
-    {% endif %}
-  </div>
-  <c-slot name="footer_start">
-    <span class="fw-bold text-primary fs-5">${{ product.price }}</span>
+  {% if product.rating %}
+    <span class="text-warning text-sm">
+      <i class="bi bi-star-fill"></i> {{ product.rating }}
+    </span>
+  {% endif %}
+  <div class="flex items-center justify-between gap-3 mt-auto pt-4">
+    <span class="font-bold text-primary text-lg">${{ product.price }}</span>
     <c-button text="View" size="sm" icon="arrow-right" reverse />
-  </c-slot>
+  </div>
 </c-card>

@@ -1,15 +1,13 @@
 <c-vars label value help_text missing="–" />
 <div class="mb-3">
-  <h6 class="text-muted text-uppercase small fw-semibold"
-      data-bs-toggle="tooltip"
-      data-bs-title="{{ help_text }}">{{ label }}</h6>
+  <h6 class="text-base-content/60 text-xs uppercase font-semibold{% if help_text %} tooltip tooltip-right{% endif %}"
+      {% if help_text %}data-tip="{{ help_text }}"{% endif %}>{{ label }}</h6>
   {% if value.get_absolute_url %}
     <a href="{{ value.get_absolute_url }}">{{ value }}</a>
   {% else %}
     <p class="mb-0">
-      {% if not value and not slot %}
-      {{ missing }}
-      {% endif %}
-      {{ value }}{{ slot }}</p>
+      {% if not value and not slot %}{{ missing }}{% endif %}
+      {{ value }}{{ slot }}
+    </p>
   {% endif %}
 </div>

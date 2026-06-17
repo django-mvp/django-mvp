@@ -1,6 +1,16 @@
 {
+  "scripts": {
+    "build:css": "tailwindcss -i assets/tailwind.css -o mvp/static/css/django-mvp.css",
+    "build:css:prod": "tailwindcss -i assets/tailwind.css -o mvp/static/css/django-mvp.css --minify",
+    "watch:css": "tailwindcss -i assets/tailwind.css -o mvp/static/css/django-mvp.css --watch"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.3.0",
+    "@tailwindcss/typography": "^0.5.19",
+    "daisyui": "^5.5.20",
+    "tailwindcss": "^4.3.0"
+  },
   "dependencies": {
-    "admin-lte": "^4.0.0",
     "bootstrap": "^5.3.8"
   }
 }

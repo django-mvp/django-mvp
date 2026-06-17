@@ -1,0 +1,35 @@
+{% load i18n %}
+<c-vars label="{% trans "Add new" %}" icon="add" />
+{% if directory.create_url and create_form %}
+  <c-button text="{{ label }}"
+            small
+            @click="createModal.showModal()" />
+  <c-modal id="createModal"
+           title="{{ label }}"
+           icon="add"
+           centered
+           fade
+           only>
+    <c-form id="createForm"
+            icon="add"
+            method="post"
+            action="{{ directory.create_url }}?next={{ request.path }}"
+            :form-obj="create_form">
+    </c-form>
+    <c-slot name="footer">
+      <c-button text="{% trans "Submit" %}"
+                form="createForm"
+                reverse
+                icon="arrow-right"
+                variant="primary"
+                large
+                type="submit" />
+    </c-slot>
+  </c-modal>
+{% elif directory.create_url %}
+  <c-button text="{{ label }}"
+            icon="add"
+            small
+            ghost
+            href="{{ directory.create_url }}" />
+{% endif %}

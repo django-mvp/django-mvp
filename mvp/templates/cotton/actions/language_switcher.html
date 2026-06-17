@@ -1,34 +1,39 @@
 {% if request.LANGUAGE_CODE %}
   {% load i18n %}
-  <c-vars direction="down" />
+  <c-vars direction="down" size icon />
   {% get_current_language as CURRENT_LANGUAGE %}
   {% get_available_languages as LANGUAGES %}
   {% get_language_info for CURRENT_LANGUAGE as lang %}
   {% url "set_language" as set_language_url %}
   {% if set_language_url %}
-    <c-dropdown direction="{{ direction }}" only>
-      <c-slot name="button">
-        <c-button text="{{ lang.name_local }}"
-                  icon="globe"
-                  data-bs-toggle="dropdown"
-                  aria-expanded="false" />
-      </c-slot>
-      <form action="{{ set_language_url }}" method="post">
-        {% csrf_token %}
-        <input type="hidden"
-               name="next"
-               value="{{ request.get_full_path }}" />
-        <c-dropdown.header text="{% trans "Select a language" %}" />
-        {% for code, name in LANGUAGES %}
-          {% get_language_info for code as lang %}
-          <c-dropdown.item text="{{ lang.name_local }}"
-                           type="submit"
-                           name="language"
-                           value="{{ code }}"
-                           :active="code == CURRENT_LANGUAGE"
-                           only />
-        {% endfor %}
-      </form>
+    <c-dropdown position="end">
+      <div tabindex="0"
+           role="button"
+           class="btn btn-ghost btn-{{ size }} gap-1">
+        <c-icon name="globe" />
+        {% comment %} {{ lang.name_local }} {% endcomment %}
+      </div>
+      <div tabindex="0"
+           class="dropdown-content bg-base-200 text-base-content rounded-box top-px mt-16 h-[30.5rem] max-h-[calc(100vh-8.6rem)] w-56 overflow-y-auto border-[length:var(--border)] border-white/5 shadow-2xl outline-[length:var(--border)] outline-black/5">
+        <p class="px-3 pt-2 pb-1 text-xs font-semibold uppercase text-base-content/60">{% trans "Select a language" %}</p>
+        <ul class="menu menu-sm w-full">
+          <form action="{{ set_language_url }}" method="post">
+            {% csrf_token %}
+            <input type="hidden"
+                   name="next"
+                   value="{{ request.get_full_path }}" />
+            {% for code, name in LANGUAGES %}
+              {% get_language_info for code as lang %}
+              <li>
+                <button type="submit"
+                        name="language"
+                        value="{{ code }}"
+                        class="{% if code == CURRENT_LANGUAGE %}active{% endif %}">{{ lang.name_local }}</button>
+              </li>
+            {% endfor %}
+          </form>
+        </ul>
+      </div>
     </c-dropdown>
   {% endif %}
 {% endif %}

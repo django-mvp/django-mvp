@@ -294,8 +294,7 @@ class MVPFormView(MVPFormBase, generic.FormView):
         When :attr:`page_title` is falsy (unset or empty), derives a readable
         default from the concrete class name using
         :func:`django.utils.text.camel_case_to_spaces` and capitalises each
-        word with ``.title()``.  For example, a class named
-        ``ContactFormView`` returns ``"Contact Form View"``.
+        word with ``.title()``.
 
         Returns:
             str: The page title to display in the template.
@@ -309,7 +308,6 @@ class MVPCreateView(MVPModelFormBase, generic.CreateView):
     """CreateView with AdminLTE layout and auto-detected form rendering."""
 
     page_title = _("Create %(verbose_name)s")
-    page_icon = "add"
     page_class = "mvp-form-page mvp-create-page"
     success_message = _("%(verbose_name)s successfully created.")
 
@@ -337,8 +335,6 @@ class MVPUpdateView(MVPModelFormBase, generic.UpdateView):
         page_title (str | lazy str): Interpolation template for the page heading.
             Defaults to ``_("Update %(verbose_name)s")``; ``%(verbose_name)s`` is
             replaced at runtime with the title-cased model verbose name.
-        page_icon (str): Material icon name for the page header.
-            Defaults to ``"edit"``.
         page_class (str): CSS class(es) applied to the page wrapper.
             Defaults to ``"mvp-form-page mvp-update-page"``.
         success_message (str | lazy str): Flash message template shown after a
@@ -375,7 +371,6 @@ class MVPUpdateView(MVPModelFormBase, generic.UpdateView):
             has_delete_permission = True
     """
 
-    page_icon = "edit"
     page_title = _("Update %(verbose_name)s")
     page_class = "mvp-form-page mvp-update-page"
     success_message = _("%(verbose_name)s successfully updated.")
@@ -479,7 +474,6 @@ class MVPDeleteView(MVPModelFormBase, generic.DeleteView):
     """
 
     base_template_name = "delete_view.html"
-    page_icon = "delete"
     page_class = "mvp-delete-page"
     page_title = _("Delete %(verbose_name)s")
     success_message = _("%(verbose_name)s successfully deleted.")

@@ -1,0 +1,6 @@
+{% load flex_menu i18n %}
+<c-menu label="{% trans "Main Navigation" %}">
+  {% for child in children %}
+    {% render_item child renderer=renderer %}
+  {% endfor %}
+</c-menu>

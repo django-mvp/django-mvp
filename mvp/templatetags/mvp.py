@@ -107,23 +107,16 @@ def slot_exists(*args):
     return any(not slot_is_empty(slot) for slot in args)
 
 
-@register.simple_tag(takes_context=True)
-def responsive(context, root: str):
-    # The idea is to take a root class name (e.g., "col") and
-    # and generate responsive variants based on context variables xs, sm, md, lg, xl, xxl).
-    # If a context variable is present, the value should be added to root along with the responsive
-    # name (e.g., "col-md-6").
+# @register.simple_tag(takes_context=True)
+# def responsive(context, root: str):
+#     # The idea is to take a root class name (e.g., "col") and
+#     # and generate responsive variants based on context variables xs, sm, md, lg, xl, xxl).
+#     # If a context variable is present, the value should be added to root along with the responsive
+#     # name (e.g., "col-md-6").
 
-    responsive_values = {
-        responsive: context.get(responsive)
-        for responsive in ["xs", "sm", "md", "lg", "xl", "xxl"]
-    }
+#     responsive_values = {responsive: context.get(responsive) for responsive in ["xs", "sm", "md", "lg", "xl", "xxl"]}
 
-    return " ".join(
-        f"{root}-{key}-{value}"
-        for key, value in responsive_values.items()
-        if value is not None
-    )
+#     return " ".join(f"{root}-{key}-{value}" for key, value in responsive_values.items() if value is not None)
 
 
 @register.tag(name="show_code")
@@ -143,6 +136,55 @@ def nrange(start, end):
         {% endfor %}
     """
     return range(int(start), int(end))
+
+
+@register.simple_tag(takes_context=True)
+def resolve_attr(context, options, default=""):
+    """In django-cotton, we often want to modify the behavior or look of a component by specifying boolean attrs on the component. If there are multiple options, the canonical way is to declare size="xs", size="sm", size="md", etc."""
+    # attrs are all the attributes passed directly to a component
+    attrs = context.get("attrs", {})
+    if not attrs:
+        return options.get("default")
+
+    for option in options:
+        # if the option is present in attrs and has a truthy value, return it. This allows for affirmative and negative booleans.
+        if attrs.get(option):
+            return attrs[option]
+
+    return options.get("default")
+
+
+@register.simple_tag
+def responsive(var, klass):
+    """Returns a base class if the var is True, and a responsive class variant if the var is a string.
+
+    E.g., responsive(True, "divider-horizontal") -> "divider-horizontal"
+          responsive("md", "divider-horizontal") -> "md:divider-horizontal"
+
+    """
+    if var is True:
+        return klass
+    elif isinstance(var, str):
+        return f"{var}:{klass}"
+
+    return ""  # Return empty string if var is falsy or not a string/boolean
+
+
+@register.simple_tag
+def variation(var, klass, allowed):
+    """Returns a base class if the var is True, and a responsive class variant if the var is a string.
+
+    E.g., responsive(True, "divider-horizontal") -> "divider-horizontal"
+          responsive("md", "divider-horizontal") -> "md:divider-horizontal"
+
+    """
+    if isinstance(allowed, str):
+        allowed = allowed.split(",")
+
+    if var in allowed:
+        return f"{klass}-{var}"
+
+    return ""
 
 
 class ShowCodeNode(template.Node):

@@ -61,8 +61,8 @@
           {% empty %}
             {% if table.empty_text %}
               {% block table.tbody.empty_text %}
-                <tr class="position-absolute w-100 mw-100 d-flex mt-5 pe-none">
-                  <td class="card col-12 col-md-9 col-lg-6 mx-auto bg-white text-wrap">
+                <tr class="absolute w-full flex mt-5 pointer-events-none">
+                  <td class="card w-full md:w-3/4 lg:w-1/2 mx-auto bg-white text-wrap">
                     <c-list.empty heading="{{ table.context.empty_state.heading }}"
                                   message="{{ table.context.empty_state.message }}"
                                   icon="{{ table.context.page.icon|default:"search" }}"

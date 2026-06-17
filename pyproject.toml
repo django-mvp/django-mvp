@@ -22,9 +22,8 @@ dependencies = [
     "django-cotton (==2.6.1)",
     "django-flex-menus (>=0.4.2,<0.5.0)",
     'django-easy-icons (>=0.5)',
-    'django-compressor (>=4.5.1,<5.0.0)',
-    'django-libsass (>=0.9,<0.10)',
-    "django-cotton-bs5 (>=0.10.0,<0.11.0)",
+    "crispy-tailwind (>=1.0.3,<2.0.0)",
+    "crispy-bootstrap5 (>=2026.3,<2027.0)",
 ]
 
 [project.urls]
@@ -51,24 +50,38 @@ classifiers = [
 requires-poetry = '>=2.0,<3.0'
 
 [tool.poetry.group.test.dependencies]
-Django = ">=5.2.15.15"
-mvp-shared = {git = "https://github.com/django-mvp/shared.git", rev = "main", extras = ["test"]}
+Django = ">=5.2"
+mvp-shared = { git = "https://github.com/django-mvp/shared.git", rev = "main", extras = [
+    "test",
+] }
 
 [tool.poetry.group.dev.dependencies]
 Django = ">=5.2.15"
 django-distill = "^3.0"
 django-filter = "^25.2"
 django-crispy-forms = "^2.6"
-crispy-bootstrap5 = "^2026.3"
 django-tables2 = "^3.0.0"
 django-htmx = ">=1.0,<2.0"
-mvp-shared = {git = "https://github.com/django-mvp/shared.git", rev = "main", extras = ["dev"]}
+mvp-shared = { git = "https://github.com/django-mvp/shared.git", rev = "main", extras = [
+    "dev",
+] }
+django-tailwind = { extras = [
+    "cookiecutter",
+    "honcho",
+    "reload",
+], version = "^4.4.2" }
+brotli = "^1.2.0"
 
 [build-system]
 requires = ['poetry-core (>=2.0,<3.0)']
 build-backend = "poetry.core.masonry.api"
 
+[tool.poetry.plugins."pytest11"]
+mvp = "mvp.fixtures"
+
+
 [tool.deptry]
+extend_exclude = ["tasks.py"]
 
 [tool.deptry.package_module_name_map]
 # Map PyPI package names to their actual importable module names where they differ
@@ -78,16 +91,14 @@ django-easy-icons = ["easy_icons"]
 django-compressor = ["compressor"]
 
 [tool.deptry.per_rule_ignores]
+DEP001 = ["invoke", "bs4", "pytest"]
 # These packages are used indirectly (INSTALLED_APPS, templates, sass pipeline)
 DEP002 = [
-    "django-cotton-bs5",
     "django-flex-menus",
     "django-easy-icons",
-    "django-compressor",
-    "django-libsass",
+    "crispy-tailwind",
+    "crispy-bootstrap5",
 ]
-# django-filter is a dev dep used only in the Demo App, not the published package
-DEP001 = ["invoke"]
 DEP003 = ["invoke"]
 DEP004 = ["django_filters", "django_tables2", "django_htmx"]
 
@@ -228,6 +239,7 @@ testpaths = ["tests"]
 addopts = ["--strict-markers", "--tb=short"]
 markers = ["e2e: End-to-end tests using Playwright"]
 asyncio_mode = "auto"
+
 
 [tool.coverage.run]
 source = ["mvp"]

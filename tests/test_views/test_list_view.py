@@ -1077,31 +1077,6 @@ class TestListViewInlineCreate:
         assert ctx["create_form"] is custom_form
         assert ctx["create_form"].initial["name"] == "Custom Initial"
 
-    def test_toolbar_html_contains_modal_trigger_when_form_present(self, client, db):
-        """[021][US1][FR-006] Toolbar HTML contains data-bs-toggle='modal' when create_url and create_form present."""
-        from demo.forms import ProductForm
-
-        # Create a view subclass with inline create enabled
-        from mvp.views.list import MVPListView
-
-        class TestListView(MVPListView):
-            model = Product
-            template_name = "list_view.html"
-            create_form_class = ProductForm
-            has_create_permission = True
-
-        # Register the view temporarily
-
-        # Use test client to render the full template
-        response = client.get("/products/")
-
-        # The toolbar should contain modal trigger button
-        # Looking for button with data-bs-toggle="modal" attribute
-        assert (
-            'data-bs-toggle="modal"' in response.content.decode()
-            or 'data-bs-target="#createModal"' in response.content.decode()
-        )
-
     def test_fallback_link_when_no_form_class(self, client, db):
         """[021][US2][FR-006] Toolbar shows link button (no modal toggle) when create_form_class=None + has_create_permission=True."""
         # This test should verify that when create_form_class is None,

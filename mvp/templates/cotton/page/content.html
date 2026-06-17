@@ -1,8 +1,5 @@
-<c-vars center gap />
-<div class="mvp-content">
-  <c-container :attrs="attrs" class="py-{{ gap }}" only>
-    <c-vstack :gap="gap" only>
-      {{ slot }}
-    </c-vstack>
-  </c-container>
+<c-vars gap="4" class />
+<div class="flex-1 min-h-0 flex flex-col gap-{{ gap }} {{ class }}"
+     {{ attrs }}>
+  {{ slot }}
 </div>

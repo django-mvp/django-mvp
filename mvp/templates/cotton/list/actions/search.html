@@ -1,0 +1,21 @@
+<c-vars placeholder="{% trans "Search" %}"
+        label="{% trans "Search" %}" />
+{% if is_searchable %}
+  <div class="join grow">
+    <c-form.field type="text"
+                  name="q"
+                  form="filterForm"
+                  class="grow md:w-[220px]"
+                  placeholder="{{ placeholder }}"
+                  value="{{ search_query|default:'' }}"
+                  aria-label="{{ placeholder }}">
+      <c-slot name="prelabel">
+        <c-icon name="search" />
+      </c-slot>
+    </c-form.field>
+    <c-button type="submit"
+              class="join-item"
+              form="filterForm"
+              text="Search" />
+  </div>
+{% endif %}

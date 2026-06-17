@@ -4,26 +4,25 @@
   {% trans "Error" %}
 {% endblock title %}
 {% block app %}
-  <body class="bg-body-tertiary">
-    <main class="d-flex align-items-center min-vh-100 py-5">
-      <div class="container">
-        <div class="row justify-content-center">
-          <div class="col-md-8 col-lg-6 text-center">
-            <div class="mb-4">
-              <img src="{% logo_url "md" %}" />
-            </div>
-            <h1 class="h3 mb-3">
-              {% block heading %}{% endblock %}
-            </h1>
-            <p class="text-secondary mb-4">
-              {% block description %}{% endblock %}
-            </p>
-            <div class="d-flex gap-2 justify-content-center flex-wrap">
-              {% block actions %}{% endblock %}
-            </div>
-          </div>
-        </div>
-      </div>
-    </main>
-  </body>
+  <c-entrance>
+    <img src="{% logo_url "md" %}"
+         width="auto"
+         height="auto"
+         class="max-h-16 mb-4" />
+    <p class="text-6xl font-black text-base-content/10 mb-2">
+      {% block error_code %}{% endblock %}
+    </p>
+    <h1 class="text-2xl font-bold mb-2">
+      {% block heading %}{% endblock %}
+    </h1>
+    <c-text impact muted center>
+      {% block description %}{% endblock %}
+    </c-text>
+    {% block actions %}
+      <c-button variant="ghost"
+                icon="arrow-left"
+                href="/"
+                text="{% trans "Return to site" %}" />
+    {% endblock %}
+  </c-entrance>
 {% endblock app %}

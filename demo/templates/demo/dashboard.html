@@ -5,35 +5,26 @@
     <h2>
       {% blocktrans with name=request.user.get_full_name|default:request.user.username %}Welcome back, {{ name }}{% endblocktrans %}
     </h2>
-    <p class="text-muted">{% trans "Here is an overview of your application." %}</p>
+    <p class="text-base-content/60">{% trans "Here is an overview of your application." %}</p>
   </div>
-  <div class="row">
-    <div class="col-md-4">
-      <div class="card mb-4">
-        <div class="card-body text-center">
-          <i class="fas fa-chart-bar fa-2x text-primary mb-2"></i>
-          <h5 class="card-title">{% trans "Statistics" %}</h5>
-          <p class="card-text text-muted">{% trans "Add your stat widgets here." %}</p>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-4">
-      <div class="card mb-4">
-        <div class="card-body text-center">
-          <i class="fas fa-tasks fa-2x text-success mb-2"></i>
-          <h5 class="card-title">{% trans "Tasks" %}</h5>
-          <p class="card-text text-muted">{% trans "Add your task widgets here." %}</p>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-4">
-      <div class="card mb-4">
-        <div class="card-body text-center">
-          <i class="fas fa-bell fa-2x text-warning mb-2"></i>
-          <h5 class="card-title">{% trans "Notifications" %}</h5>
-          <p class="card-text text-muted">{% trans "Add your notification widgets here." %}</p>
-        </div>
-      </div>
-    </div>
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <c-card title="{% trans 'Statistics' %}"
+            icon="chart-bar"
+            variant="primary"
+            class="text-center">
+      <p class="text-base-content/60">{% trans "Add your stat widgets here." %}</p>
+    </c-card>
+    <c-card title="{% trans 'Tasks' %}"
+            icon="tasks"
+            variant="success"
+            class="text-center">
+      <p class="text-base-content/60">{% trans "Add your task widgets here." %}</p>
+    </c-card>
+    <c-card title="{% trans 'Notifications' %}"
+            icon="bell"
+            variant="warning"
+            class="text-center">
+      <p class="text-base-content/60">{% trans "Add your notification widgets here." %}</p>
+    </c-card>
   </div>
 {% endblock page.content %}

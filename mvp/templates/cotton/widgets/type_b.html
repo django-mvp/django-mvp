@@ -1,9 +1,0 @@
-<c-vars class />
-<c-widgets.type-a class="text-bg-{{ variant }} {{ class }}"
-                  :attrs="attrs">
-  {% if progress %}
-    <c-progress :value="progress" :variant="variant" only />
-    {% if text %}<span class="progress-description">{{ text }}</span>{% endif %}
-  {% endif %}
-  {{ slot }}
-</c-widgets.type-a>

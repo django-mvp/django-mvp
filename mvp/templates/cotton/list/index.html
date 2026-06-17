@@ -1,8 +1,9 @@
 {% load mvp %}
-<c-row :attrs="attrs">
-  {% for object in object_list %}
-    <div class="col">{% render_list_item object list_item_template %}</div>
+<c-vars list empty_state card />
+<c-grid :attrs="attrs">
+  {% for object in list %}
+    {% render_list_item object list_item_template %}
   {% empty %}
     <c-list.empty :attrs="empty_state" />
   {% endfor %}
-</c-row>
+</c-grid>

@@ -374,6 +374,13 @@ class MVPListViewMixin(
             "message": self.get_empty_state_message(),
         }
         context["list_item_template"] = self.get_list_item_template()
+        # import pprint
+
+        # pprint.pprint(context)
+        if context.get("filter", None):
+            active = self.get_active_filters()
+            context["applied_filters"] = active
+            context["applied_filter_count"] = len(active)
 
         # Inject create_form and create_modal_title when configured and permitted
         perm = self.has_create_permission
@@ -387,6 +394,29 @@ class MVPListViewMixin(
             context["create_modal_title"] = title
 
         return context
+
+    def get_active_filters(self):
+        """
+        Returns a dict of filters that are actually applied.
+        Filters out empty values and defaults.
+        """
+
+        active = {}
+        if not hasattr(self.filterset.form, "cleaned_data"):
+            return active
+
+        for name, value in self.filterset.form.cleaned_data.items():
+            # skip empty / null / default-like values
+            if value in (None, "", [], (), False):
+                continue
+
+            # optional: skip "empty choice" sentinel values if you use them
+            if value == "":
+                continue
+
+            active[name] = value
+
+        return active
 
     def get_create_form(self):
         """Instantiate and return the create form, or None if not configured.

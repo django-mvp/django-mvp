@@ -18,7 +18,6 @@ from mvp.menus import AppMenu, MenuCollapse, MenuGroup
 
 AppMenu.extend(
     [
-        # Home
         MenuItem(
             name="home",
             view_name="home",
@@ -27,134 +26,44 @@ AppMenu.extend(
                 "icon": "home",
             },
         ),
-        MenuCollapse(
-            name="crud_views",
+        MenuItem(
+            name="layout",
+            view_name="layout",
             extra_context={
-                "label": "App Layout",
+                "label": "Layout",
                 "icon": "layout",
             },
-            children=[
-                # Layout Demo
-                MenuItem(
-                    name="layout_demo",
-                    view_name="layout_demo",
-                    extra_context={
-                        "label": "Configuration",
-                        "icon": "settings",
-                    },
-                ),
-                # Navbar Widgets
-                MenuItem(
-                    name="navbar_widgets_demo",
-                    view_name="navbar_widgets_demo",
-                    extra_context={
-                        "label": "Navbar",
-                        "icon": "grid",
-                    },
-                ),
-                MenuItem(
-                    name="app_sidebar",
-                    view_name="navbar_widgets_demo",
-                    extra_context={
-                        "label": "Sidebar",
-                        "icon": "sidebar-left",
-                    },
-                ),
-            ],
         ),
-        # MenuItem(
-        #     name="page_layout_demo",
-        #     view_name="page_layout_demo",
-        #     extra_context={
-        #         "label": "Inner Layout",
-        #         "icon": "sidebar",
-        #     },
-        # ),
         MenuItem(
-            name="scss_variables_demo",
-            view_name="scss_variables_demo",
+            name="customization",
+            view_name="customization",
             extra_context={
                 "label": "Theme Customization",
+                "icon": "gears",
+            },
+        ),
+        MenuItem(
+            name="custom-components",
+            view_name="custom-components",
+            extra_context={
+                "label": "Components",
                 "icon": "code-slash",
             },
         ),
-        # List View Demos
         MenuGroup(
-            name="crud_views",
-            extra_context={
-                "label": "CRUD Views",
-            },
+            name="pages",
+            extra_context={"label": "Demo Pages"},
             children=[
                 MenuItem(
                     name="product-list",
                     view_name="product-list",
                     extra_context={
-                        "label": "Product List",
+                        "label": "List Page",
                         "icon": "list",
                     },
                 ),
-                MenuItem(
-                    name="datatables_demo",
-                    view_name="datatables_demo",
-                    extra_context={
-                        "label": "Product Table",
-                        "icon": "table",
-                        "badge": "add-on",
-                        "badge_classes": "text-bg-info",
-                    },
-                ),
-                MenuItem(
-                    name="product_create",
-                    view_name="product-create",
-                    extra_context={
-                        "label": "Create Product",
-                        "icon": "add",
-                    },
-                ),
-            ],
-        ),
-        # Form View Demos
-        MenuGroup(
-            name="mvp_forms",
-            extra_context={
-                "label": "Form Views",
-                "icon": "form",
-            },
-            children=[
-                MenuItem(
-                    name="contact_form",
-                    view_name="contact_form",
-                    extra_context={
-                        "label": "Contact Form",
-                        "icon": "book",  # Using available Bootstrap icon
-                        "badge": "NEW",
-                        "badge_classes": "text-bg-success",
-                    },
-                ),
-                MenuItem(
-                    name="htmx_demo",
-                    view_name="htmx_demo",
-                    extra_context={
-                        "label": "HTMX Form Demo",
-                        "icon": "form",
-                    },
-                ),
-            ],
-        ),
-        # 3rd party integration demos - shows how to link to external apps or features
-        # MenuGroup(
-        #     name="integrations_section",
-        #     extra_context={"label": "INTEGRATIONS", "component_type": "menu.group"},
-        #     children=[
-        #     ],
-        # ),
-        # Extra resources with external links to github and documentation
-        MenuGroup(
-            name="pages",
-            extra_context={"label": "Pages"},
-            children=[
                 MenuCollapse(
-                    name="error_previews",
+                    name="errors",
                     extra_context={
                         "label": "Error Pages",
                         "icon": "exclamation-circle",
@@ -193,16 +102,32 @@ AppMenu.extend(
                             },
                         ),
                     ],
-                )
+                ),
             ],
         ),
         MenuGroup(
-            name="resources_section",
+            name="integrations",
+            extra_context={
+                "label": "Integrations",
+            },
+            children=[
+                MenuItem(
+                    name="django-tables-2",
+                    view_name="djangotables2",
+                    extra_context={
+                        "label": "Django Tables 2",
+                        "icon": "table",
+                    },
+                ),
+            ],
+        ),
+        MenuGroup(
+            name="resources",
             extra_context={"label": "Resources"},
             children=[
                 MenuItem(
                     name="external_link",
-                    url="https://github.com/SamuelJennings/django-mvp",
+                    url="https://github.com/django-mvp/django-mvp",
                     extra_context={
                         "label": "GitHub Repository",
                         "icon": "github",
@@ -210,7 +135,7 @@ AppMenu.extend(
                 ),
                 MenuItem(
                     name="documentation",
-                    url="https://samueljennings.github.io/django-cotton-bs5/",
+                    url="https://github.com/django-mvp/django-mvp",
                     extra_context={
                         "label": "Documentation",
                         "icon": "book",

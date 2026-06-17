@@ -1,13 +1,4 @@
-<c-vars class
-        fixed_sidebar
-        fixed_header
-        fixed_footer
-        fill
-        sidebar_collapsible
-        :collapsed="False"
-        sidebar_expand="lg" />
-<body class="bg-body-tertiary{% if fixed_sidebar %} layout-fixed{% endif %}{% if fixed_header %} fixed-header{% endif %}{% if fixed_footer %} fixed-footer{% endif %}{% if sidebar_collapsible %} sidebar-mini{% if collapsed %} sidebar-collapse{% endif %}{% endif %} sidebar-expand-{{ sidebar_expand }}{% if class %} {{ class }}{% endif %}"
-      {{ attrs }}>
-  <div class="app-wrapper{% if fill %} fill{% endif %}">{{ slot }}</div>
-  {{ modals }}
-</body>
+<c-vars class breakpoint="lg" />
+<c-layout.drawer id="mvp-app" :breakpoint="breakpoint" x-data>
+  {{ slot }}
+</c-layout.drawer>

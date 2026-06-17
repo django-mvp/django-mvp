@@ -1,0 +1,6 @@
+<c-vars variant icon />
+<li class="step {% if variant %}step-{{ variant }}{% endif %}"
+    {{ attrs }}>
+  {% if icon %}<span class="step-icon">😕</span>{% endif %}
+  {{ slot }}{{ label }}
+</li>

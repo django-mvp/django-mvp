@@ -46,7 +46,7 @@ class MyCreateView(HtmxFormMixin, MVPCreateView):
 | Attribute | Type | Default | Description |
 |---|---|---|---|
 | `htmx_success_component` | `str \| None` | `None` | Cotton component name (dot-notation) for the success partial. Example: `"ui.product-created"` → `cotton/ui/product_created.html` |
-| `htmx_form_component` | `str` | `"form.card"` | Cotton component name (dot-notation) for the form-error partial. Defaults to the package's standard card form component; override for non-standard layouts. |
+| `htmx_form_component` | `str` | `"form"` | Cotton component name (dot-notation) for the form-error partial. Defaults to the package's standard card form component; override for non-standard layouts. |
 | `htmx_redirect_on_success` | `bool` | `False` | When `True`, returns `HttpResponseClientRedirect` on a valid htmx POST instead of a success partial. |
 | `htmx_trigger` | `str \| dict \| None` | `None` | Event(s) to emit on the success response via `HX-Trigger` family headers. A string emits one event; a dict emits one event per key. |
 | `htmx_trigger_after` | `Literal['receive', 'settle', 'swap']` | `'receive'` | Controls which `HX-Trigger` header variant is used. |
@@ -71,7 +71,7 @@ Override for dynamic (per-request) component name resolution.
 
 Returns the Cotton component name for the form-error partial.
 
-Default implementation returns `self.htmx_form_component` (defaults to `"form.card"`).
+Default implementation returns `self.htmx_form_component` (defaults to `"form"`).
 
 Override for dynamic component name resolution.
 
@@ -118,7 +118,7 @@ Delegates to `super().get_context_data(**kwargs)` and adds the key before return
 
 **Htmx path** (`request.htmx`):
 
-1. Verifies `get_htmx_form_component()` returns a non-empty value; raises `ImproperlyConfigured` if not (only when `htmx_form_component` was explicitly cleared from the default `"form.card"`).
+1. Verifies `get_htmx_form_component()` returns a non-empty value; raises `ImproperlyConfigured` if not (only when `htmx_form_component` was explicitly cleared from the default `"form"`).
 2. Builds context via `self.get_context_data(form=form)`.
 3. Returns `HttpResponse(render_component(request, template, context), status=200)`.
 
@@ -205,7 +205,7 @@ for name, params in self.htmx_trigger.items():
 |---|---|
 | `htmx_redirect_on_success=True` + `htmx_success_component` set | Redirect takes precedence; success component ignored |
 | `htmx_success_component` not set + `htmx_redirect_on_success=False` | `ImproperlyConfigured` raised on valid htmx POST |
-| `htmx_form_component` explicitly cleared to falsy | `ImproperlyConfigured` raised on invalid htmx POST (default `"form.card"` prevents this) |
+| `htmx_form_component` explicitly cleared to falsy | `ImproperlyConfigured` raised on invalid htmx POST (default `"form"` prevents this) |
 | Neither htmx attribute set + non-htmx request | Full transparent delegation to base view (no error) |
 
 ---

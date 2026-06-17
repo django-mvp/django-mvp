@@ -1,0 +1,24 @@
+<c-vars page text active disabled size class />
+{% if disabled %}
+  <button class="join-item btn{% if size %} btn-{{ size }}{% endif %} btn-disabled {{ class }}"
+          aria-disabled="true"
+          tabindex="-1"
+          {{ attrs }}>
+    {% if slot %}
+      {{ slot }}
+    {% else %}
+      {{ text }}
+    {% endif %}
+  </button>
+{% else %}
+  <a class="join-item btn{% if size %} btn-{{ size }}{% endif %}{% if active %} btn-active{% endif %} {{ class }}"
+     href="?{{ page_param|default:"page" }}={{ page }}"
+     {% if active %}aria-current="page"{% endif %}
+     {{ attrs }}>
+    {% if slot %}
+      {{ slot }}
+    {% else %}
+      {{ text }}
+    {% endif %}
+  </a>
+{% endif %}

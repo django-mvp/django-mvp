@@ -1,0 +1,5 @@
+{% load cotton %}
+<c-vars size
+        class
+        :size_opts="{'sm': 'badge-sm', 'lg': 'badge-lg'}" />
+<div class="badge {% if size %}{{ size_opts|get_item:size }}{% endif %} {{ class }}">{{ text }}{{ slot }}</div>

@@ -108,11 +108,8 @@ class PageMixin:
     Attributes:
         page_title (str | Promise): Page heading. Defaults to ``""``.
         page_subtitle (str | Promise): Secondary heading shown below the title. Defaults to ``""``.
-        page_icon (str | None): Icon identifier (e.g. ``"fas fa-home"``). Defaults to ``None``.
         page_class (str): Extra CSS class(es) appended to the page container after the
             mandatory ``"mvp-page"`` prefix. Defaults to ``""``.
-        page_caption (str): Optional caption or supplementary text shown beneath the page
-            title area. Exposed in templates as ``page.caption``. Defaults to ``""``.
         breadcrumbs (list): List of breadcrumb dicts. Each dict has a ``"text"`` key and
             an optional ``"href"`` key. Defaults to ``[]``.
 
@@ -132,16 +129,12 @@ class PageMixin:
             template_name = "dashboard.html"
             page_title = "Dashboard"
             page_subtitle = "Welcome back"
-            page_icon = "fas fa-tachometer-alt"
-            page_caption = "Last 30 days"
             breadcrumbs = [{"text": "Home", "href": "/"}, {"text": "Dashboard"}]
     """
 
     page_title: str | Promise = ""
     page_subtitle: str | Promise = ""
-    page_icon: str | None = None
     page_class = ""
-    page_caption: str = ""
     breadcrumbs: list = []
 
     def get_context_data(self, **kwargs):
@@ -173,17 +166,13 @@ class PageMixin:
             dict: A dict with the following string keys:
                 - ``"title"`` — from ``get_page_title()``
                 - ``"subtitle"`` — from ``get_page_subtitle()``
-                - ``"icon"`` — from ``get_page_icon()``
                 - ``"class"`` — from ``get_page_class()`` (always starts with ``"mvp-page"``)
-                - ``"caption"`` — from ``get_page_caption()``
                 - ``"breadcrumbs"`` — from ``get_breadcrumbs()``
         """
         return {
             "title": self.get_page_title(),
             "subtitle": self.get_page_subtitle(),
-            "icon": self.get_page_icon(),
             "class": self.get_page_class(),
-            "caption": self.get_page_caption(),
             "breadcrumbs": self.get_breadcrumbs(),
         }
 
@@ -226,46 +215,6 @@ class PageMixin:
                     return self.object.category.name
         """
         return self.page_subtitle
-
-    def get_page_icon(self) -> str | None:
-        """Return the icon identifier for the page, or ``None`` if no icon is set.
-
-        This method is the override hook for dynamic values. To set a static icon,
-        assign ``page_icon`` as a class attribute instead.
-
-        Returns:
-            str | None: The value of ``self.page_icon``.
-
-        Example::
-
-            class ProductDetailView(PageMixin, DetailView):
-                def get_page_icon(self) -> str | None:
-                    return self.object.icon or "fas fa-box"
-        """
-        return self.page_icon
-
-    def get_page_caption(self) -> str:
-        """Return the page caption string.
-
-        This method is the override hook for dynamic values. To set a static caption,
-        assign ``page_caption`` as a class attribute instead.
-
-        Returns:
-            str: The value of ``self.page_caption``.
-
-        Example::
-
-            # Static caption — use the class attribute:
-            class ReportView(PageMixin, TemplateView):
-                page_caption = "Last updated: January 2026"
-
-
-            # Dynamic caption — override this method:
-            class ProductDetailView(PageMixin, DetailView):
-                def get_page_caption(self) -> str:
-                    return f"SKU: {self.object.sku}"
-        """
-        return self.page_caption
 
     def get_breadcrumbs(self):
         """Return the list of breadcrumb items for the page.

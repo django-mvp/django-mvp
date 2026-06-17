@@ -46,8 +46,8 @@ def get_create_form(self) -> Form | None:
 
 | Attribute | Before | After |
 |---|---|---|
-| `title` on `<c-form.card>` | `"Create product"` (hardcoded) | `{{ create_modal_title }}` |
-| `action` on `<c-form.card>` | `{{ directory.create_url }}` | `{{ directory.create_url }}?next={{ request.path }}` |
+| `title` on `<c-form>` | `"Create product"` (hardcoded) | `{{ create_modal_title }}` |
+| `action` on `<c-form>` | `{{ directory.create_url }}` | `{{ directory.create_url }}?next={{ request.path }}` |
 | Modal conditional guard | Always rendered | Wrapped in `{% if create_form %}` |
 
 ### `list/toolbar.html` — no changes

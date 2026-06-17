@@ -1,21 +1,24 @@
-<c-vars dismissible delay=2000 animate class="opacity-75" />
-<div class="position-absolute start-0 end-0 container mt-3"
-     style="z-index: 1050">
+<c-vars dismissible :delay=2000 animate />
+<div class="toast toast-top toast-end z-50">
   {% for message in messages %}
-    <c-alert text="{{ message }}"
-             dismissible
-             animate
-             class="{{ class }}"
-             variant="{% if message.tags == 'error' %}danger{% elif message.tags == 'debug' %}secondary {% else %}{{ message.tags }}{% endif %}" />
+    <div role="alert"
+         class="alert {% if message.tags == 'error' %}alert-error{% elif message.tags == 'success' %}alert-success{% elif message.tags == 'warning' %}alert-warning{% elif message.tags == 'debug' %}alert-info{% else %}alert-{{ message.tags }}{% endif %} shadow-lg"
+         {% if animate %}x-data="{ show: true }" x-show="show" x-transition{% endif %}>
+      <span>{{ message }}</span>
+      {% if dismissible %}
+        <button type="button"
+                class="btn btn-ghost btn-xs btn-circle"
+                {% if animate %}@click="show = false"{% endif %}
+                aria-label="dismiss">✕</button>
+      {% endif %}
+    </div>
   {% endfor %}
 </div>
-{% if dismissible %}
+{% if dismissible and delay %}
   {# djlint:off #}
   <script>
-    document.querySelectorAll('.position-absolute .alert').forEach(function(el) {
-      setTimeout(function() {
-        bootstrap.Alert.getOrCreateInstance(el).close();
-      }, {{ delay }});
+    document.querySelectorAll('.toast .alert').forEach(function(el) {
+      setTimeout(function() { el.style.display = 'none'; }, {{ delay }});
     });
 </script>
   {# djlint:on #}

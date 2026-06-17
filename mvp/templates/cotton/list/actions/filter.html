@@ -1,0 +1,35 @@
+{% load i18n %}
+<c-vars label="{% trans "Filter" %}" icon="filter" />
+{% if filter %}
+  <div class="indicator">
+    {% if applied_filters %}
+      <span class="indicator-item badge badge-secondary badge-xs">{{ applied_filter_count }}</span>
+    {% endif %}
+    <c-button text="{{ label }}"
+              icon="{{ icon }}"
+              small
+              @click="filterModal.showModal()" />
+  </div>
+  <c-modal id="filterModal"
+           title="{{ label }}"
+           icon="{{ icon }}"
+           centered
+           fade
+           only>
+    <c-form id="filterForm"
+            method="get"
+            action="{{ action|default:"." }}"
+            :form-obj="filter.form"
+            only>
+    </c-form>
+    <c-slot name="footer">
+      <c-button text="{% trans "Apply filters" %}"
+                form="filterForm"
+                icon="arrow-right"
+                reverse
+                large
+                variant="primary"
+                type="submit" />
+    </c-slot>
+  </c-modal>
+{% endif %}

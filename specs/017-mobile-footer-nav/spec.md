@@ -1,6 +1,6 @@
 # Feature Specification: Mobile Footer Navigation
 
-**Feature Branch**: `017-mobile-footer-nav`
+**Feature Branch**: `017-dock`
 **Created**: 2026-05-26
 **Status**: Refined
 **Refined**: 2026-05-26 — Added BS5-utility-first constraint: prefer Bootstrap 5 utility classes and component classes over custom SCSS whenever a direct equivalent exists; custom CSS restricted to properties with no BS5 equivalent (e.g., `env(safe-area-inset-bottom)`).
@@ -115,7 +115,7 @@ A developer rendering mobile footer nav links relies on a custom renderer that a
 - **MobileFooterMenu**: A django-flex-menus menu registry object scoped exclusively to the mobile footer navigation. Holds an ordered list of `MenuItem` instances. Independent of `AppMenu`.
 - **MobileFooterMenuItem / MenuItem**: A single navigation entry in the footer nav. Has a label, URL (or action trigger), optional icon, optional `show_text` flag (controls icon-only vs icon+label mode), optional `attrs` dict for arbitrary HTML attribute passthrough (e.g. `{"data-lte-toggle": "sidebar"}`), and active-state logic.
 - **MobileFooterNavRenderer**: A custom django-flex-menus renderer that produces cotton-bs5 component markup for each registered `MenuItem`. The wrapper template renders the menu list via `<c-nav :attrs="context">` (passing `MobileFooterMenu.extra_context` as attributes); the item template renders each entry via `<c-nav.link>`. Items are direct children of the `<nav>` element with no `<li>` wrapper.
-- **Mobile Footer Nav Component**: A Cotton template component (`c-app.mobile-footer-nav`) that wraps the rendered menu items in a `<div>` positioning container applying `.show-on-mobile`, `fixed-bottom`, `bg-body`, and `border-top`. The `aria-label` is on this `<div>`. The semantic `<nav>` is provided by the inner `<c-nav>` component rendered by the menu system.
+- **Mobile Footer Nav Component**: A Cotton template component (`c-app.dock`) that wraps the rendered menu items in a `<div>` positioning container applying `.show-on-mobile`, `fixed-bottom`, `bg-body`, and `border-top`. The `aria-label` is on this `<div>`. The semantic `<nav>` is provided by the inner `<c-nav>` component rendered by the menu system.
 
 ### Non-Functional Requirements
 
@@ -142,4 +142,4 @@ A developer rendering mobile footer nav links relies on a custom renderer that a
 - Icons, if used on menu items, are from the icon library already available in the project (e.g., Font Awesome or Bootstrap Icons).
 - The feature is targeted at the django-mvp project's base layout; integration into other layouts is out of scope for this specification.
 - Server-side rendering is the primary delivery mechanism; no client-side-only dynamic menu loading is required.
-- **Bootstrap 5 utility classes are preferred over custom SCSS.** Custom CSS in `_mobile-footer-nav.scss` MUST be limited to properties with no BS5 utility equivalent — specifically `env(safe-area-inset-bottom)` padding for iOS safe-area support. All other layout, positioning, colour, and spacing properties MUST be applied via BS5 utility classes in the component and item templates.
+- **Bootstrap 5 utility classes are preferred over custom SCSS.** Custom CSS in `_dock.scss` MUST be limited to properties with no BS5 utility equivalent — specifically `env(safe-area-inset-bottom)` padding for iOS safe-area support. All other layout, positioning, colour, and spacing properties MUST be applied via BS5 utility classes in the component and item templates.

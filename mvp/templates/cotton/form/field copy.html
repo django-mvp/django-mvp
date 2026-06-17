@@ -1,0 +1,20 @@
+{% comment %} For very simple form fields {% endcomment %}
+<c-vars type
+        hide-label
+        label
+        wrapper-class
+        label-class
+        class />
+<div class="mb-3 {{ wrapper_class }}">
+  <label class="label{% if hide_label %} sr-only{% endif %} {{ label_class }}"
+         {% if id %}for="{{ id }}"{% endif %}>{{ label }}</label>
+  {% if type == "textarea" %}
+    <textarea class="textarea textarea-bordered w-full {{ class }}" {{ attrs }}>
+      {{ slot }}
+    </textarea>
+  {% else %}
+    <input class="input input-bordered w-full {{ class }}"
+           aria-label="{{ label }}"
+           {{ attrs }} />
+  {% endif %}
+</div>

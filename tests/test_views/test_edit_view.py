@@ -736,10 +736,6 @@ class TestMVPFormView:
 class TestMVPCreateViewDefaults:
     """[US1] MVPCreateView class-level attribute defaults with no overrides."""
 
-    def test_page_icon_is_add(self):
-        """page_icon is 'add' at the class level."""
-        assert MVPCreateView.page_icon == "add"
-
     def test_page_class_contains_create(self):
         """'mvp-create-page' appears in MVPCreateView.page_class."""
         assert "mvp-create-page" in MVPCreateView.page_class
@@ -837,11 +833,6 @@ class TestMVPCreateViewSuccessMessage:
 class TestMVPCreateViewOverrides:
     """[US2] Each MVPCreateView default can be independently overridden."""
 
-    def test_page_icon_overridable(self):
-        """Setting page_icon='edit' on a subclass overrides the default 'add'."""
-        view = make_create_view(extra_attrs={"page_icon": "edit"})
-        assert view.get_page_icon() == "edit"
-
     def test_page_class_overridable(self):
         """Setting page_class='custom-class' on a subclass overrides the default."""
         view = make_create_view(extra_attrs={"page_class": "custom-class"})
@@ -902,10 +893,6 @@ class TestMVPCreateViewBreadcrumb:
 
 class TestMVPUpdateViewDefaults:
     """[US1] MVPUpdateView class-level attribute defaults with no overrides."""
-
-    def test_page_icon_is_edit(self):
-        """page_icon is 'edit' at the class level."""
-        assert MVPUpdateView.page_icon == "edit"
 
     def test_page_class_contains_update(self):
         """'mvp-update-page' appears in MVPUpdateView.page_class."""
@@ -1088,11 +1075,6 @@ class TestMVPUpdateViewBreadcrumb:
 
 class TestMVPUpdateViewOverrides:
     """[US2] Each MVPUpdateView default can be independently overridden."""
-
-    def test_page_icon_overridable(self):
-        """Setting page_icon='add' on a subclass overrides the default 'edit'."""
-        view = make_update_view(extra_attrs={"page_icon": "add"})
-        assert view.get_page_icon() == "add"
 
     def test_page_class_overridable(self):
         """Setting page_class='custom-class' on a subclass overrides the default."""
