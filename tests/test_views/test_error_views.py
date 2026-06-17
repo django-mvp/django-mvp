@@ -128,7 +128,7 @@ class TestPermissionDeniedView:
     def test_response_contains_back_to_home_text(self):
         request = _make_get("/secret/")
         response = permission_denied(request, exception=Exception("test"))
-        assert b"Back to home" in response.content
+        assert b"Return to site" in response.content
 
     def test_response_contains_home_link(self):
         request = _make_get("/secret/")
@@ -163,7 +163,7 @@ class TestBadRequestView:
     def test_response_contains_back_to_home_text(self):
         request = _make_get("/bad/")
         response = bad_request(request, exception=Exception("test"))
-        assert b"Back to home" in response.content
+        assert b"Return to site" in response.content
 
     def test_response_contains_home_link(self):
         request = _make_get("/bad/")

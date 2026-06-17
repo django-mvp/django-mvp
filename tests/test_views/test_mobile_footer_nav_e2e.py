@@ -50,7 +50,7 @@ class TestMobileFooterNavSidebarToggle:
         page.goto("http://localhost:8001/")
         toggle = page.locator("div[aria-label='Mobile navigation'] button")
         toggle.click()
-        sidebar = page.locator("aside.app-sidebar")
+        sidebar = page.locator("aside.mvp-sidebar")
         assert sidebar.is_visible()
 
     def test_sidebar_closes_when_toggle_tapped_again(self, page):

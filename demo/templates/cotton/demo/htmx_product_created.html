@@ -1,10 +1,12 @@
-<div class="alert alert-success d-flex align-items-center gap-2"
-     role="alert">
-  <i class="bi bi-check-circle-fill fs-5"></i>
+<c-alert variant="success" class="flex items-center gap-2">
+  <c-icon name="check" class="text-5xl" />
   <div>
     <strong>Product created!</strong>
     <span class="ms-1">{{ object.name }}</span> has been added successfully.
   </div>
-  <a href="{% url 'product-list' %}"
-     class="btn btn-sm btn-outline-success ms-auto">View all products</a>
-</div>
+  <c-button href="{% url 'product-list' %}"
+            text="View all products"
+            variant="ghost"
+            size="sm"
+            class="ms-auto" />
+</c-alert>

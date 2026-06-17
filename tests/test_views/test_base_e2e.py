@@ -13,40 +13,7 @@ pytestmark = pytest.mark.django_db
 
 
 # ---------------------------------------------------------------------------
-# US1: PageView — plain layout-aware template
-# ---------------------------------------------------------------------------
-
-
-def test_about_page_renders_200(client):
-    """GET /about/ returns 200 OK."""
-    response = client.get("/about/")
-    assert response.status_code == 200
-
-
-def test_about_page_has_daisyui_sidebar(client):
-    """GET /about/ renders inside DaisyUI drawer layout (sidebar present)."""
-    response = client.get("/about/")
-    assert b"drawer-side" in response.content
-
-
-def test_about_page_has_daisyui_navbar(client):
-    """GET /about/ renders inside DaisyUI layout (navbar present)."""
-    response = client.get("/about/")
-    assert b"navbar" in response.content
-
-
-def test_about_page_has_title_in_heading(client):
-    """GET /about/ shows page title 'About Us' in the content heading."""
-    response = client.get("/about/")
-    assert b"About Us" in response.content
-
-
-def test_about_page_post_returns_405(client):
-    """POST /about/ returns 405 Method Not Allowed (FR-011)."""
-    response = client.post("/about/")
-    assert response.status_code == 405
-
-
+# US1: MVPHomeView — guest/dashboard template switch
 # ---------------------------------------------------------------------------
 # US2: MVPHomeView — guest/dashboard template switch
 # ---------------------------------------------------------------------------
@@ -137,5 +104,5 @@ def test_full_login_and_return_journey(client, django_user_model):
     assert b"Welcome" in response.content, "Dashboard greeting not visible after login"
 
     # Step 5: Confirm sidebar and navbar are present on dashboard
-    assert b"app-sidebar" in response.content, "Sidebar missing from dashboard"
-    assert b"app-header" in response.content, "Navbar missing from dashboard"
+    assert b"mvp-sidebar" in response.content, "Sidebar missing from dashboard"
+    assert b"mvp-header" in response.content, "Navbar missing from dashboard"

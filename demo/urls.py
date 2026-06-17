@@ -3,74 +3,30 @@
 from django.conf import settings
 from django.urls import include, path
 
-from mvp.views import MVPHomeView, MVPTemplateView
-
 from . import views
 from .views import (
+    E400,
+    E403,
+    E404,
+    E500,
     CategoryDeleteWithRelatedView,
     CategoryUpdateView,
-    ComponentView,
-    ContactFormView,
-    ErrorPagePreviewView,
-    FullShellDemoView,
-    HtmxProductCreateView,
-    ListViewDemo,
-    MVPDemoView,
+    DemoHomeView,
     ProductCreateView,
     ProductDeleteView,
     ProductDeleteWithConfirmView,
     ProductDeleteWithRelatedView,
     ProductDetailView,
+    ProductListView,
     ProductUpdateView,
 )
 
 urlpatterns = [
-    path(
-        "buttons/",
-        MVPTemplateView.as_view(template_name="demo/buttons.html"),
-        name="buttons",
-    ),
-    path("components/", ComponentView.as_view(), name="custom-components"),
-    path("i18n/", include("django.conf.urls.i18n")),
-    # Main home — landing for guests, dashboard for authenticated users
-    path(
-        "",
-        MVPHomeView.as_view(
-            landing_template_name="demo/landing.html",
-            dashboard_template_name="demo/dashboard.html",
-        ),
-        name="home",
-    ),
-    # About page — MVPTemplateView demo
-    path(
-        "about/",
-        MVPTemplateView.as_view(
-            template_name="demo/about.html",
-            page_title="About Us",
-            page_subtitle="Learn more",
-            page_icon="info-circle",
-            breadcrumbs=[{"text": "Home", "href": "/"}, {"text": "About"}],
-        ),
-        name="about",
-    ),
-    path("shell/", FullShellDemoView.as_view(), name="full_shell_demo"),
-    path("layout/", views.LayoutDemoView.as_view(), name="layout_demo"),
-    path("page-layout/", views.PageLayoutDemoView.as_view(), name="page_layout_demo"),
-    path("widgets/", views.NavbarWidgetsView.as_view(), name="navbar_widgets_demo"),
-    path("contact/", ContactFormView.as_view(), name="contact_form"),
-    path(
-        "contact/success/",
-        MVPDemoView.as_view(template_name="demo/contact_success.html"),
-        name="contact_success",
-    ),
-    # HTMX Form Mixin Demo
-    path(
-        "htmx-demo/",
-        HtmxProductCreateView.as_view(),
-        name="htmx_demo",
-    ),
-    # CRUD Views for Product model
-    path("products/", ListViewDemo.as_view(), name="product-list"),
+    path("", DemoHomeView.as_view(), name="home"),
+    path("layout/", views.layout_demo, name="layout"),
+    path("theme/", views.theme_customization_demo, name="customization"),
+    path("components/", views.components_demo, name="custom-components"),
+    path("products/", ProductListView.as_view(), name="product-list"),
     path("products/create/", ProductCreateView.as_view(), name="product-create"),
     path("products/<int:pk>/", ProductDetailView.as_view(), name="product-detail"),
     path("products/<int:pk>/edit/", ProductUpdateView.as_view(), name="product-update"),
@@ -98,38 +54,12 @@ urlpatterns = [
         CategoryDeleteWithRelatedView.as_view(),
         name="category-delete-related",
     ),
-    # 3rd Party Integration Demos
-    path("datatables-demo/", views.DataTablesView.as_view(), name="datatables_demo"),
-    # Theming demos
-    path(
-        "theming/scss-variables/",
-        views.ThemeCustomizationView.as_view(),
-        name="scss_variables_demo",
-    ),
-    # Error page previews — developer convenience routes
-    path(
-        "errors/400/",
-        ErrorPagePreviewView.as_view(template_name="400.html"),
-        name="error-preview-400",
-    ),
-    path(
-        "errors/403/",
-        ErrorPagePreviewView.as_view(template_name="403.html"),
-        name="error-preview-403",
-    ),
-    path(
-        "errors/404/",
-        ErrorPagePreviewView.as_view(template_name="404.html"),
-        name="error-preview-404",
-    ),
-    path(
-        "errors/500/",
-        ErrorPagePreviewView.as_view(
-            template_name="500.html",
-            extra_context={"support_email": settings.DEFAULT_FROM_EMAIL or None},
-        ),
-        name="error-preview-500",
-    ),
+    path("django-tables2/", views.DataTablesView.as_view(), name="djangotables2"),
+    path("errors/400/", E400, name="error-preview-400"),
+    path("errors/403/", E403, name="error-preview-403"),
+    path("errors/404/", E404, name="error-preview-404"),
+    path("errors/500/", E500, name="error-preview-500"),
+    path("i18n/", include("django.conf.urls.i18n")),
 ]
 
 

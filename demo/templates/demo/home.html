@@ -4,201 +4,154 @@
   <c-navigation.breadcrumbs.item text="Home" />
 {% endblock breadcrumbs %}
 {% block content %}
-  <div class="container-fluid">
-    {% cotton:verbatim %}
-    <section class="mb-4">
-      <h2>Info Box</h2>
-      <p>The info box is...</p>
-      {% show_code %}
-      <div class="row">
-        <div class="col-md-3">
-          <c-widgets.type-a value="1,410"
-                            label="Total Orders"
-                            variant="primary"
-                            icon="cart" />
-        </div>
-        <div class="col-md-3">
-          <c-widgets.type-a value="$53,000"
-                            label="Revenue"
-                            icon="dollar"
-                            variant="success"
-                            fill="box"
-                            progress="70"
-                            description="70% Increase this year" />
-        </div>
-        <div class="col-md-3">
-          <c-widgets.type-a value="93,139"
-                            label="Page Views"
-                            icon="eye"
-                            fill="box"
-                            variant="warning" />
-        </div>
-        <div class="col-md-3">
-          <c-widgets.type-a value="13,648"
-                            label="Unique Visitors"
-                            icon="people"
-                            variant="danger" />
-        </div>
-      </div>
-    {% endshow_code %}
-  </section>
-{% endcotton:verbatim %}
-<!--begin::Row - Info Boxes-->
-<section class="mb-4">
-  <h2>Info Box</h2>
-  <div class="row mt-4">
-    <div class="col-md-3">
+  {% cotton:verbatim %}
+  <section class="mb-4">
+    <h2>Info Box</h2>
+    <p>The info box is...</p>
+    {% show_code %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       <c-widgets.type-a value="1,410"
                         label="Total Orders"
                         variant="primary"
                         icon="cart" />
     </div>
-    <div class="col-md-3">
-      <c-widgets.type-a value="$53,000"
-                        label="Revenue"
-                        icon="dollar"
-                        variant="success"
-                        fill="box"
-                        progress="70"
-                        description="70% Increase this year" />
-    </div>
-    <div class="col-md-3">
-      <c-widgets.type-a value="93,139"
-                        label="Page Views"
-                        icon="eye"
-                        fill="box"
-                        variant="warning" />
-    </div>
-    <div class="col-md-3">
-      <c-widgets.type-a value="13,648"
-                        label="Unique Visitors"
-                        icon="people"
-                        variant="danger" />
-    </div>
+  {% endshow_code %}
+{% endcotton:verbatim %}
+<!--begin::Row - Info Boxes-->
+<section class="mb-4">
+  <h2>Info Box</h2>
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
+    <c-widgets.type-a value="1,410"
+                      label="Total Orders"
+                      variant="primary"
+                      icon="cart" />
+    <c-widgets.type-a value="$53,000"
+                      label="Revenue"
+                      icon="dollar"
+                      variant="success"
+                      fill="box"
+                      progress="70"
+                      description="70% Increase this year" />
+    <c-widgets.type-a value="93,139"
+                      label="Page Views"
+                      icon="eye"
+                      fill="box"
+                      variant="warning" />
+    <c-widgets.type-a value="13,648"
+                      label="Unique Visitors"
+                      icon="people"
+                      variant="danger" />
   </div>
 </section>
 <!--begin::Row - Small Box-->
 <section class="mb-4">
   <h2>Small Box</h2>
-  <div class="row">
-    <div class="col-lg-3 col-6">
-      <c-adminlte.small-box heading="150"
-                            label="New Orders"
-                            icon="cart"
-                            variant="primary"
-                            link="#" />
-    </div>
-    <div class="col-lg-3 col-6">
-      <c-adminlte.small-box heading="53%"
-                            label="Bounce Rate"
-                            icon="graph-up"
-                            variant="success"
-                            link="#"
-                            link_text="Custom link text" />
-    </div>
-    <div class="col-lg-3 col-6">
-      <c-adminlte.small-box heading="44"
-                            label="User Registrations"
-                            icon="people"
-                            variant="warning"
-                            link="#" />
-    </div>
-    <div class="col-lg-3 col-6">
-      <c-adminlte.small-box heading="65"
-                            label="Unique Visitors"
-                            icon="eye"
-                            variant="danger"
-                            link="#" />
-    </div>
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <c-adminlte.small-box heading="150"
+                          label="New Orders"
+                          icon="cart"
+                          variant="primary"
+                          link="#" />
+    <c-adminlte.small-box heading="53%"
+                          label="Bounce Rate"
+                          icon="graph-up"
+                          variant="success"
+                          link="#"
+                          link_text="Custom link text" />
+    <c-adminlte.small-box heading="44"
+                          label="User Registrations"
+                          icon="people"
+                          variant="warning"
+                          link="#" />
+    <c-adminlte.small-box heading="65"
+                          label="Unique Visitors"
+                          icon="eye"
+                          variant="danger"
+                          link="#" />
   </div>
 </section>
 <!--begin::Row - Content Cards-->
 <section class="mb-4">
   <h2>Cards</h2>
-  <div class="row mt-4">
-    <div class="col-lg-8">
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4">
+    <div class="lg:col-span-2">
       <c-card variant="primary"
               title="Welcome to Django MVP"
               icon="cart"
-              class="rounded-0"
+              class="rounded-none"
               collapsible
               removable
               maximizable>
-        <div class="card-body">
-          <h4>AdminLTE 4 Integration</h4>
-          <p>
-            Django MVP now provides a complete AdminLTE 4 admin dashboard template system
-            for Django using django-cotton components.
-          </p>
-          <c-adminlte.callout variant="info">
-            <c-slot name="title">
-              <h5>
-                <i class="bi bi-info-circle"></i> Key Features
-              </h5>
-            </c-slot>
-            <ul class="mb-0">
-              <li>
-                <strong>AdminLTE Layout System</strong> - Full grid-based app-wrapper structure
-              </li>
-              <li>
-                <strong>Configuration-Driven</strong> - Control layout via MVP settings
-              </li>
-              <li>
-                <strong>Cotton Components</strong> - AdminLTE-specific reusable components
-              </li>
-              <li>
-                <strong>Bootstrap 5</strong> - Built on Bootstrap 5 framework
-              </li>
-            </ul>
-          </c-adminlte.callout>
-          <h5 class="mt-4">Available Components</h5>
-          <div class="row">
-            {% cotton:verbatim %}
-            {% show_code %}
-            <c-adminlte.small-box text="Hello"
-                                  icon="person"
-                                  somethign="asdasdasdasdas" />
-          {% endshow_code %}
-        {% endcotton:verbatim %}
-        <div class="col-md-6">
-          <ul>
+        <h4>AdminLTE 4 Integration</h4>
+        <p>
+          Django MVP now provides a complete AdminLTE 4 admin dashboard template system
+          for Django using django-cotton components.
+        </p>
+        <c-adminlte.callout variant="info">
+          <c-slot name="title">
+            <h5>
+              <c-icon name="info-circle" />
+              Key Features
+            </h5>
+          </c-slot>
+          <ul class="mb-0">
             <li>
-              <code>&lt;c-widgets.type-a /&gt;</code>
+              <strong>AdminLTE Layout System</strong> - Full grid-based app-wrapper structure
             </li>
             <li>
-              <code>&lt;c-card /&gt;</code>
+              <strong>Configuration-Driven</strong> - Control layout via MVP settings
             </li>
             <li>
-              <code>&lt;c-adminlte.callout /&gt;</code>
+              <strong>Cotton Components</strong> - AdminLTE-specific reusable components
+            </li>
+            <li>
+              <strong>Tailwind/DaisyUI</strong> - Built on Tailwind CSS framework
             </li>
           </ul>
-        </div>
-        <div class="col-md-6">
-          <ul>
-            <li>
-              <code>&lt;c-adminlte.timeline /&gt;</code>
-            </li>
-            <li>
-              <code>&lt;c-adminlte.timeline-item /&gt;</code>
-            </li>
-            <li>
-              <code>&lt;c-adminlte.direct-chat /&gt;</code>
-            </li>
-            <li>
-              <code>&lt;c-adminlte.chat-message /&gt;</code>
-            </li>
-          </ul>
-        </div>
-      </div>
+        </c-adminlte.callout>
+        <h5 class="mt-4">Available Components</h5>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {% cotton:verbatim %}
+          {% show_code %}
+          <c-adminlte.small-box text="Hello"
+                                icon="person"
+                                somethign="asdasdasdasdas" />
+        {% endshow_code %}
+      {% endcotton:verbatim %}
+      <ul>
+        <li>
+          <code>&lt;c-widgets.type-a /&gt;</code>
+        </li>
+        <li>
+          <code>&lt;c-card /&gt;</code>
+        </li>
+        <li>
+          <code>&lt;c-adminlte.callout /&gt;</code>
+        </li>
+      </ul>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <ul>
+        <li>
+          <code>&lt;c-adminlte.timeline /&gt;</code>
+        </li>
+        <li>
+          <code>&lt;c-adminlte.timeline-item /&gt;</code>
+        </li>
+        <li>
+          <code>&lt;c-adminlte.direct-chat /&gt;</code>
+        </li>
+        <li>
+          <code>&lt;c-adminlte.chat-message /&gt;</code>
+        </li>
+      </ul>
     </div>
   </c-card>
 </div>
-<div class="col-lg-4">
+<div class="lg:col-span-1">
   <c-card variant="success" outline>
     <c-slot name="header">
-      <div class="card-header">
-        <h3 class="card-title">Recent Activity</h3>
-      </div>
+      <h3 class="card-title">Recent Activity</h3>
     </c-slot>
     <div class="card-body">
       <c-adminlte.timeline>

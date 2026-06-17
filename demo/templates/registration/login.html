@@ -1,39 +1,29 @@
 {% extends "mvp/entrance.html" %}
 {% load i18n %}
 {% block content %}
-  <div class="login-box mx-auto"
-       style="max-width: 400px;
-              padding-top: 5rem">
-    <div class="card">
-      <div class="card-body">
-        <h4 class="text-center mb-3">{% trans "Sign in to your account" %}</h4>
-        <form method="post" action="{% url 'login' %}">
-          {% csrf_token %}
-          {% if form.errors %}
-            <div class="alert alert-danger">{% trans "Invalid username or password." %}</div>
-          {% endif %}
-          <div class="mb-3">
-            <input id="{{ form.username.id_for_label }}"
-                   name="{{ form.username.html_name }}"
-                   type="text"
-                   class="form-control"
-                   placeholder="{% trans 'Username' %}"
-                   required />
-          </div>
-          <div class="mb-3">
-            <input id="{{ form.password.id_for_label }}"
-                   name="{{ form.password.html_name }}"
-                   type="password"
-                   class="form-control"
-                   placeholder="{% trans 'Password' %}"
-                   required />
-          </div>
-          <div class="d-grid">
-            <button type="submit" class="btn btn-primary">{% trans "Sign In" %}</button>
-          </div>
-          <input type="hidden" name="next" value="{{ next }}" />
-        </form>
-      </div>
-    </div>
-  </div>
+  <c-entrance width="narrow">
+    {% if form.errors %}
+      <c-alert variant="error" class="mb-6">
+        <span>{% trans "Invalid username or password." %}</span>
+      </c-alert>
+    {% endif %}
+    <h2 class="text-center mb-6">{% trans "Sign in to your account" %}</h2>
+    <c-form method="post"
+            action="{% url 'login' %}"
+            class="space-y-4">
+      <c-form.field type="text"
+                    label="{% trans 'Username' %}"
+                    wrapper-class="mb-4"
+                    attrs='id="{{ form.username.id_for_label }}" name="{{ form.username.html_name }}" placeholder="{% trans "Username" %}" required autocomplete="username"' />
+      <c-form.field type="text"
+                    label="{% trans 'Password' %}"
+                    wrapper-class="mb-4"
+                    attrs='id="{{ form.password.id_for_label }}" name="{{ form.password.html_name }}" type="password" placeholder="{% trans "Password" %}" required autocomplete="current-password"' />
+      <c-button type="submit"
+                variant="primary"
+                text="{% trans 'Sign In' %}"
+                class="w-full" />
+      <input type="hidden" name="next" value="{{ next }}" />
+    </c-form>
+  </c-entrance>
 {% endblock content %}
