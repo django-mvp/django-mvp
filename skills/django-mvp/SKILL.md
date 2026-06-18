@@ -311,7 +311,7 @@ urlpatterns = [
 | `landing_template_name` | `"mvp/landing.html"` | Template for anonymous visitors |
 | `dashboard_template_name` | `"mvp/dashboard.html"` | Template for authenticated users |
 
-**Bundled defaults**: omit both attributes to use the built-in `mvp/landing.html` and `mvp/dashboard.html` templates. The landing template reads from `MVP_LANDING_PAGE_HERO` in settings.
+**Bundled defaults**: omit both attributes to use the built-in `mvp/landing.html` and `mvp/dashboard.html` templates. The landing template reads from ``MVP_CONFIG["brand"]`` in settings.
 
 **`ImproperlyConfigured` guard**: raises with a diagnostic message if `landing_template_name` is `None` (for any request), or if `dashboard_template_name` is `None` when an authenticated user requests the page.
 

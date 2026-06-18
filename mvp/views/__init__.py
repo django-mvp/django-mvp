@@ -1,11 +1,4 @@
-from .base import (
-    BaseTemplateNameMixin,
-    ModelInfoMixin,
-    MVPHomeView,
-    MVPTemplateView,
-    PageMixin,
-)
-from .detail import CRUDDirectoryMixin, MVPDetailView, PageObjectMixin
+from .detail import MVPDetailView
 from .edit import (
     MVPCreateView,
     MVPDeleteView,
@@ -13,22 +6,19 @@ from .edit import (
     MVPFormView,
     MVPModelFormBase,
     MVPUpdateView,
-    NextURLMixin,
 )
 from .error import bad_request, not_found, permission_denied, server_error
-from .list import (
-    MVPListView,
-    MVPListViewMixin,
-    OrderMixin,
-    SearchMixin,
-    SearchOrderMixin,
-)
+from .extra import MVPHomeView, MVPTemplateView
+from .list import MVPListView
 
-# Public aliases — preferred import names for developers
+# Public API — concrete views and error handlers only.
+# Mixins are available via full import paths:
+#   from mvp.views.base import PageMixin, BaseTemplateNameMixin, ModelInfoMixin
+#   from mvp.views.detail import CRUDDirectoryMixin, PageObjectMixin
+#   from mvp.views.edit import NextURLMixin
+#   from mvp.views.list import SearchMixin, OrderMixin
 
 __all__ = [
-    "BaseTemplateNameMixin",
-    "CRUDDirectoryMixin",
     "MVPCreateView",
     "MVPDeleteView",
     "MVPDetailView",
@@ -36,17 +26,9 @@ __all__ = [
     "MVPFormView",
     "MVPHomeView",
     "MVPListView",
-    "MVPListViewMixin",
     "MVPModelFormBase",
     "MVPTemplateView",
     "MVPUpdateView",
-    "ModelInfoMixin",
-    "NextURLMixin",
-    "OrderMixin",
-    "PageMixin",
-    "PageObjectMixin",
-    "SearchMixin",
-    "SearchOrderMixin",
     "bad_request",
     "not_found",
     "permission_denied",
@@ -58,11 +40,4 @@ try:
 
     __all__ += ["MVPFilteredListView"]
 except ImportError:
-    pass
-
-try:
-    from .table import MVPTableView, MVPTableViewMixin
-
-    __all__ += ["MVPTableView", "MVPTableViewMixin"]
-except Exception:  # noqa: S110
     pass

@@ -1,11 +1,28 @@
+"""Cross-cutting mixins for django-mvp views.
+
+This module provides the shared mixin infrastructure that all view types use:
+- Template resolution with fallback (BaseTemplateNameMixin)
+- Page metadata injection (PageMixin)
+- Model info resolution (ModelInfoMixin)
+
+These mixins are imported by all other view modules and composed into concrete
+views via multiple inheritance. Developers rarely import from this module directly —
+they use the concrete views exported from ``mvp.views``.
+
+Example::
+
+    from mvp.views.base import PageMixin, BaseTemplateNameMixin
+
+
+    class MyView(PageMixin, BaseTemplateNameMixin, DetailView):
+        model = Product
+        base_template_name = "my_detail.html"
+"""
+
 from functools import cached_property
 
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.functional import Promise
-from django.utils.translation import gettext_lazy as _
-from django.views import generic
-
-from ..config import MVP_LANDING_PAGE_HERO
 
 
 class BaseTemplateNameMixin:
@@ -338,50 +355,4 @@ class ModelInfoMixin:
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["model_info"] = self.get_model_info()
-        return context
-
-
-class MVPTemplateView(PageMixin, generic.TemplateView):
-    """TemplateView with support for page configuration features like title and breadcrumbs."""
-
-    pass
-
-
-class MVPHomeView(MVPTemplateView):
-    """Home page view. Shows stats and recent activity for authenticated users. Landing page for unauthenticated users."""
-
-    page_title = _("Home")
-    dashboard_template_name = "mvp/dashboard.html"
-    landing_template_name = "mvp/landing.html"
-
-    def get_template_names(self):
-        """Choose template based on authentication status."""
-        if self.landing_template_name is None:
-            raise ImproperlyConfigured(
-                f"{self.__class__.__name__} requires `landing_template_name` to be set."
-            )
-        if self.request.user.is_authenticated:
-            if self.dashboard_template_name is None:
-                raise ImproperlyConfigured(
-                    f"{self.__class__.__name__} requires `dashboard_template_name` to be set for authenticated users."
-                )
-            return [self.dashboard_template_name]
-        return [self.landing_template_name]
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        if self.request.user.is_authenticated:
-            context = self.get_dashboard_context(context)
-        else:
-            context = self.get_landing_context(context)
-
-        return context
-
-    def get_landing_context(self, context):
-        """Context for unauthenticated users."""
-        context["hero_content"] = MVP_LANDING_PAGE_HERO
-        return context
-
-    def get_dashboard_context(self, context):
-        """Context for authenticated users."""
         return context

@@ -1700,6 +1700,18 @@ files = [
 ]
 
 [[package]]
+name = "mergedeep"
+version = "1.3.4"
+description = "A deep merge function for 🐍."
+optional = false
+python-versions = ">=3.6"
+groups = ["main"]
+files = [
+    {file = "mergedeep-1.3.4-py3-none-any.whl", hash = "sha256:70775750742b25c0d8f36c55aed03d24c3384d17c951b3175d898bd778ef0307"},
+    {file = "mergedeep-1.3.4.tar.gz", hash = "sha256:0096d52e9dad9939c3d975a774666af186eda617e6ca84df4c94dec30004f2a8"},
+]
+
+[[package]]
 name = "mvp-shared"
 version = "0.1.0"
 description = "Shared development, docs and testing tools for the django-mvp org"
@@ -3206,4 +3218,4 @@ dev = ["pytest", "setuptools"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<4.0"
-content-hash = "6c7a3e8c2ad88ad227b2eadaeb5e9813b0227f1cd690af6ca4566910160293e4"
+content-hash = "7b59e1513372f0d142b5fb18ac78b4ecef87eba4ce28527a57516c96e6d5c969"

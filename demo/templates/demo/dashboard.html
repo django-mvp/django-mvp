@@ -1,30 +1,18 @@
 {% extends "mvp/dashboard.html" %}
 {% load i18n %}
 {% block page.content %}
-  <div class="dashboard-welcome mb-4">
-    <h2>
-      {% blocktrans with name=request.user.get_full_name|default:request.user.username %}Welcome back, {{ name }}{% endblocktrans %}
-    </h2>
+  <c-section title="{% trans 'Welcome' %}" level="2">
     <p class="text-base-content/60">{% trans "Here is an overview of your application." %}</p>
-  </div>
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-    <c-card title="{% trans 'Statistics' %}"
-            icon="chart-bar"
-            variant="primary"
-            class="text-center">
-      <p class="text-base-content/60">{% trans "Add your stat widgets here." %}</p>
-    </c-card>
-    <c-card title="{% trans 'Tasks' %}"
-            icon="tasks"
-            variant="success"
-            class="text-center">
-      <p class="text-base-content/60">{% trans "Add your task widgets here." %}</p>
-    </c-card>
-    <c-card title="{% trans 'Notifications' %}"
-            icon="bell"
-            variant="warning"
-            class="text-center">
-      <p class="text-base-content/60">{% trans "Add your notification widgets here." %}</p>
-    </c-card>
-  </div>
+    <c-grid cols="1" md="3" gap="4">
+      <c-card title="{% trans 'Statistics' %}" icon="chart-bar">
+        <p class="text-base-content/60">{% trans "Add your stat widgets here." %}</p>
+      </c-card>
+      <c-card title="{% trans 'Tasks' %}" icon="tasks">
+        <p class="text-base-content/60">{% trans "Add your task widgets here." %}</p>
+      </c-card>
+      <c-card title="{% trans 'Notifications' %}" icon="bell">
+        <p class="text-base-content/60">{% trans "Add your notification widgets here." %}</p>
+      </c-card>
+    </c-grid>
+  </c-section>
 {% endblock page.content %}

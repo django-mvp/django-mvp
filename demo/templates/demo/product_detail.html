@@ -24,33 +24,33 @@
   {% endif %}
 {% endblock page.actions %}
 {% block page.content %}
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+  <c-grid cols="1" md="2" gap="3">
     <div>
-      <dl class="space-y-3">
-        <dt class="font-semibold">{% trans "Name" %}</dt>
+      <dl>
+        <dt>{% trans "Name" %}</dt>
         <dd>
           {{ object.name }}
         </dd>
-        <dt class="font-semibold">{% trans "Category" %}</dt>
+        <dt>{% trans "Category" %}</dt>
         <dd>
           {{ object.category }}
         </dd>
-        <dt class="font-semibold">{% trans "Price" %}</dt>
+        <dt>{% trans "Price" %}</dt>
         <dd>
           ${{ object.price }}
         </dd>
-        <dt class="font-semibold">{% trans "Stock" %}</dt>
+        <dt>{% trans "Stock" %}</dt>
         <dd>
           {{ object.stock }}
         </dd>
-        <dt class="font-semibold">{% trans "Status" %}</dt>
+        <dt>{% trans "Status" %}</dt>
         <dd>
           {{ object.get_status_display }}
         </dd>
       </dl>
     </div>
     <div>
-      <p class="text-base-content/60">{{ object.description }}</p>
+      <p>{{ object.description }}</p>
     </div>
-  </div>
+  </c-grid>
 {% endblock page.content %}

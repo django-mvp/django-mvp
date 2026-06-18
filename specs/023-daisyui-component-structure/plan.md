@@ -128,9 +128,9 @@ All changes are within `mvp/templates/cotton/`. The full diff is in Phase 1 belo
 | 15 | `cotton/layout/divider.html` | `cotton/divider.html` | `<c-divider>` | Move from layout/ |
 | 16 | `cotton/app/footer.html` | `cotton/footer.html` | `<c-footer>` | Move from app/ |
 | 17 | `cotton/mvp/hero.html` | `cotton/hero.html` | `<c-hero>` | Move from mvp/ |
-| 18 | `cotton/list/index.html` | `cotton/list/index.html` | `<c-list>` | No change — already aligned |
-| 19 | `cotton/list/empty.html` | `cotton/list/empty.html` | `<c-list.empty>` | No change — already aligned |
-| 20 | `cotton/list/footer.html` | `cotton/list/footer.html` | `<c-list.footer>` | No change — already aligned |
+| 18 | `cotton/list/index.html` | `cotton/list/index.html` | `<c-page.list>` | No change — already aligned |
+| 19 | `cotton/list/empty.html` | `cotton/list/empty.html` | `<c-page.list.empty>` | No change — already aligned |
+| 20 | `cotton/list/footer.html` | `cotton/list/footer.html` | `<c-page.list.footer>` | No change — already aligned |
 | 21 | `cotton/app/sidebar/menu/index.html` | `cotton/menu/index.html` | `<c-menu>` | Move from app/sidebar/menu/ |
 | 22 | `cotton/app/sidebar/menu/item.html` | `cotton/menu/item.html` | `<c-menu.item>` | Move from app/sidebar/menu/ |
 | 23 | `cotton/app/sidebar/menu/group.html` | `cotton/menu/group.html` | `<c-menu.group>` | Move from app/sidebar/menu/ |
@@ -168,7 +168,7 @@ All changes are within `mvp/templates/cotton/`. The full diff is in Phase 1 belo
 | M7 | `cotton/grid.html` | `cotton/grid.html` | `<c-grid>` | Keep as-is (Tailwind grid) |
 | M8 | `cotton/row.html` | **DELETE** | — | Merge into `join.html` or remove |
 | M9 | `cotton/col.html` | **DELETE** | — | Merge into `join.html` or remove |
-| M10 | `cotton/group.html` | `cotton/join.html` | `<c-join>` | Rename to match DaisyUI "join" |
+| M10 | `cotton/group.html` | `cotton/join.html` | `<c-group>` | Rename to match DaisyUI "join" |
 | M11 | `cotton/icon.html` | `cotton/icon.html` | `<c-icon>` | Keep as-is (not a DaisyUI component) |
 | M12 | `cotton/logo.html` | `cotton/logo.html` | `<c-brand.logo>` | Keep as-is (MVP-specific) |
 | M13 | `cotton/text.html` | `cotton/text.html` | `<c-text>` | Keep as-is (MVP-specific) |
@@ -348,7 +348,7 @@ grep -rn '<c-' mvp/templates/ demo/ --include='*.html' | sort
 | `<c-user.display.compact>` | `<c-user.display-compact>` |
 | `<c-actions.search>` | `<c-action.search>` |
 | `<c-actions.language_switcher>` | `<c-action.language-switcher>` |
-| `<c-group>` | `<c-join>` |
+| `<c-group>` | `<c-group>` |
 | `` | **removed** (merged) |
 | `` | **removed** (merged) |
 | `<c-form.modal>` | **removed** (merged) |

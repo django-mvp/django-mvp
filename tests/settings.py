@@ -183,10 +183,7 @@ EASY_ICONS = {
 # Flex Menu configuration
 FLEX_MENUS = {
     "renderers": {
-        "adminlte": "mvp.renderers.AdminLTERenderer",
         "sidebar": "mvp.renderers.SidebarRenderer",
-        "navbar": "mvp.renderers.NavbarRenderer",
-        "dropdown": "mvp.renderers.DropdownRenderer",
         "dock": "mvp.renderers.MobileFooterNavRenderer",
     },
     "log_url_failures": DEBUG,

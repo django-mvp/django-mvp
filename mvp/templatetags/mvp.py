@@ -10,7 +10,7 @@ from django.utils.module_loading import import_string
 from django.utils.safestring import mark_safe
 from django_cotton.compiler_regex import CottonCompiler
 
-from ..config import MVP_AVATAR_URL_FUNC, MVP_ICON_RESOLVER, MVP_LOGO_RESOLVER
+from ..config import MVP_CONFIG
 
 register = template.Library()
 
@@ -23,7 +23,7 @@ def avatar_url(user, size):
 
     Note: The default implementation of avatar_url returns None, which will cause the avatar component to fall back to displaying an anonymouse user svg icon.
     """
-    func = import_string(MVP_AVATAR_URL_FUNC)
+    func = import_string(MVP_CONFIG["brand"]["avatar_resolver"])
     return func(user, size)
 
 
@@ -40,10 +40,10 @@ def logo_url(context, height, theme="light"):
     import path. Returns "" silently if the resolver raises a runtime exception.
     """
     try:
-        func = import_string(MVP_LOGO_RESOLVER)
+        func = import_string(MVP_CONFIG["brand"]["logo_resolver"])
     except ImportError as exc:
         raise ImproperlyConfigured(
-            f"MVP_LOGO_RESOLVER '{MVP_LOGO_RESOLVER}' could not be imported: {exc}"
+            f"MVP_CONFIG['brand']['logo_resolver'] '{MVP_CONFIG['brand']['logo_resolver']}' could not be imported: {exc}"
         ) from exc
     try:
         result = func(context.get("request"), height, theme)
@@ -65,10 +65,10 @@ def icon_url(context, height, theme="light"):
     import path. Returns "" silently if the resolver raises a runtime exception.
     """
     try:
-        func = import_string(MVP_ICON_RESOLVER)
+        func = import_string(MVP_CONFIG["brand"]["icon_resolver"])
     except ImportError as exc:
         raise ImproperlyConfigured(
-            f"MVP_ICON_RESOLVER '{MVP_ICON_RESOLVER}' could not be imported: {exc}"
+            f"MVP_CONFIG['brand']['icon_resolver'] '{MVP_CONFIG['brand']['icon_resolver']}' could not be imported: {exc}"
         ) from exc
     try:
         result = func(context.get("request"), height, theme)

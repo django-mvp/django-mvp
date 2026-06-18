@@ -1,6 +1,5 @@
 {% if request.LANGUAGE_CODE %}
   {% load i18n %}
-  <c-vars direction="down" size icon />
   {% get_current_language as CURRENT_LANGUAGE %}
   {% get_available_languages as LANGUAGES %}
   {% get_language_info for CURRENT_LANGUAGE as lang %}

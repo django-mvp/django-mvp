@@ -62,7 +62,7 @@ The template receives `search_query`, `is_searchable`, `order_by_choices`, and
 ## Grid Layout
 
 Pass a `grid` dict to configure responsive column widths. The consuming Cotton
-component (`<c-list-view>` or similar) reads `grid_config` from context.
+component (`<c-page.list-view>` or similar) reads `grid_config` from context.
 
 ```python
 class ProductListView(MVPListView):

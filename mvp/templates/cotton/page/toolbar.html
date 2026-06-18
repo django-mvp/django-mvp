@@ -1,5 +1,5 @@
 {% load mvp %}
-<c-vars bottom class />
+<c-vars class />
 {% if not slot|slot_is_empty %}
   <div class="flex shrink-0 items-center gap-2 {{ class }}" {{ attrs }}>
     {{ slot }}

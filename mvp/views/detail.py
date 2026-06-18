@@ -3,7 +3,7 @@ from typing import Any
 from django.urls import reverse
 from django.views import generic
 
-from ..config import MVP_DEFAULT_VIEW_NAMES
+from ..config import MVP_CONFIG
 from .base import BaseTemplateNameMixin, ModelInfoMixin, PageMixin
 
 
@@ -13,7 +13,7 @@ class CRUDDirectoryMixin(ModelInfoMixin):
     This mixin assumes a standard set of CRUD view names based on the model name and action (list, detail, create, update, delete).
     """
 
-    crud_views = MVP_DEFAULT_VIEW_NAMES
+    crud_views = MVP_CONFIG["view_names"]
     directory: list[str] = []
     has_list_permission = False
     has_detail_permission = False

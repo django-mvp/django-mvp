@@ -1,5 +1,5 @@
 {% comment %} For very simple form fields {% endcomment %}
-<c-vars type hide-label label class />
+<c-vars type hide-label label class id prelabel postlabel />
 <label class="input rounded-s-md grow {% if hide_label %}sr-only{% endif %}"
        {% if id %}for="{{ id }}"{% endif %}>
   {% if prelabel %}<span class="label">{{ prelabel }}</span>{% endif %}
