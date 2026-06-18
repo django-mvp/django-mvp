@@ -1,0 +1,9 @@
+{% load mvp %}
+<c-vars list empty_state card />
+<c-grid :attrs="attrs">
+  {% for object in list %}
+    {% render_list_item object list_item_template %}
+  {% empty %}
+    <c-page.list.empty :attrs="empty_state" />
+  {% endfor %}
+</c-grid>

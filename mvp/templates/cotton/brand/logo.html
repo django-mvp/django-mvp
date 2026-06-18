@@ -1,13 +1,8 @@
 {% load i18n mvp %}
-<c-vars max-height class />
-{% logo_url max_height as logo_light %}
-{% logo_url max_height "dark" as logo_dark %}
-<div class="mvp-logo-container {{ class }}"
-     style="--logo-max-height: {{ max_height }}">
-  <img src="{{ logo_light }}"
+<c-vars class />
+{% logo_url max_height as logo %}
+<div class="mx-auto {{ class }}">
+  <img src="{{ logo }}"
        alt="{% trans "Site Logo" %}"
-       class="hide-on-dark-theme " />
-  <img src="{{ logo_dark }}"
-       alt="{% trans "Site Logo" %}"
-       class="hide-on-light-theme" />
+       {{ attrs }} />
 </div>

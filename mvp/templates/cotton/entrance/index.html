@@ -1,10 +1,8 @@
 {% load cotton %}
-<c-vars width="default"
-        full-height
-        :width_opts="{'default': 'max-w-4xl', 'narrow':'max-w-sm', 'wide': 'container'}" />
+<c-vars small=1 full-height />
 <c-entrance.background>
-  <div class="card py-24 bg-base-100 shadow-xl w-full {{ width_opts|get_item:width }} {% if full_height %}h-90/100{% endif %} ">
+  <div class="card  bg-base-100 shadow-xl container mx-3{% if small %} md:max-w-2xl{% endif %}  {% if full_height %}h-90/100{% endif %} ">
     <!-- Card content -->
-    <div class="card-body py-8 items-center ">{{ slot }}</div>
+    <div class="card-body py-16 items-fill">{{ slot }}</div>
   </div>
 </c-entrance.background>

@@ -1,12 +1,5 @@
-<c-vars row
-        breakpoint
-        wrap
-        shrink
-        justify
-        icons-only
-        class
-        gap="2" />
-<div class="d-flex align-items-stretch flex-wrap {% if not wrap %}flex-{{ breakpoint }}-nowrap{% endif %}{% if justify %} justify-content-{{ justify }}{% endif %} {% if shrink %} flex-shrink-0{% else %} flex-grow-1{% endif %}{% if row %} flex-row{% else %} flex-column{% endif %}{% if breakpoint %} flex-{{ breakpoint }}-row{% endif %} gap-{{ gap }}{% if icons_only %} btn-icons{% endif %} {{ class }}"
+<c-vars row collapse wrap class gap="2" />
+<div class="flex flex-col items-stretch{% if wrap %} flex-wrap{% endif %} gap-{{ gap }}{% if row is True %} flex-row{% elif collapse %} lg:flex-row{% else %} flex-col{% endif %} {{ class }}"
      {{ attrs }}>
   {{ slot }}
 </div>
