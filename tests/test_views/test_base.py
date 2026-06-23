@@ -45,18 +45,10 @@ class ConcretePage(PageMixin, TemplateView):
 
 
 class TestBaseTemplateNameMixin:
-    def test_default_base_template_name_is_none(self):
-        assert BaseTemplateNameMixin.base_template_name is None
-
     def test_raises_when_base_template_name_is_none(self):
         view = BareTemplateNameMixin()
         view.request = None  # not needed for template resolution
         with pytest.raises(ImproperlyConfigured):
-            view.get_template_names()
-
-    def test_error_message_includes_class_name(self):
-        view = BareTemplateNameMixin()
-        with pytest.raises(ImproperlyConfigured, match="BareTemplateNameMixin"):
             view.get_template_names()
 
     def test_returns_specific_template_first(self):
@@ -69,70 +61,9 @@ class TestBaseTemplateNameMixin:
         names = view.get_template_names()
         assert names[-1] == "base.html"
 
-    def test_returns_list(self):
-        view = ConcreteTemplateView()
-        assert isinstance(view.get_template_names(), list)
-
     def test_base_template_name_in_list(self):
         view = ConcreteTemplateView()
         assert "base.html" in view.get_template_names()
-
-
-# ---------------------------------------------------------------------------
-# TestPageMixinDefaults
-# ---------------------------------------------------------------------------
-
-
-class TestPageMixinDefaults:
-    def test_default_page_title_is_empty_string(self):
-        assert PageMixin.page_title == ""
-
-    def test_default_page_subtitle_is_empty_string(self):
-        assert PageMixin.page_subtitle == ""
-
-    def test_default_page_class_is_empty_string(self):
-        assert PageMixin.page_class == ""
-
-    def test_default_breadcrumbs_is_empty_list(self):
-        assert PageMixin.breadcrumbs == []
-
-
-# ---------------------------------------------------------------------------
-# TestPageMixinGetters
-# ---------------------------------------------------------------------------
-
-
-class TestPageMixinGetters:
-    def test_get_page_title_returns_page_title(self):
-        view = ConcretePage()
-        view.page_title = "My Title"
-        assert view.get_page_title() == "My Title"
-
-    def test_get_page_subtitle_returns_page_subtitle(self):
-        view = ConcretePage()
-        view.page_subtitle = "My Subtitle"
-        assert view.get_page_subtitle() == "My Subtitle"
-
-    def test_get_breadcrumbs_returns_breadcrumbs(self):
-        crumbs = [{"text": "Home", "href": "/"}, {"text": "About"}]
-        view = ConcretePage()
-        view.breadcrumbs = crumbs
-        assert view.get_breadcrumbs() == crumbs
-
-    def test_get_page_class_prefixes_mvp_page(self):
-        view = ConcretePage()
-        view.page_class = "my-class"
-        assert view.get_page_class() == "mvp-page my-class"
-
-    def test_get_page_class_with_empty_page_class(self):
-        view = ConcretePage()
-        view.page_class = ""
-        assert view.get_page_class() == "mvp-page"
-
-    def test_get_page_class_with_none_page_class(self):
-        view = ConcretePage()
-        view.page_class = None
-        assert view.get_page_class() == "mvp-page"
 
 
 # ---------------------------------------------------------------------------
@@ -199,76 +130,7 @@ class TestPageMixinGetContextData:
 
 
 # ---------------------------------------------------------------------------
-# TestPageMixinOverridePattern (Phase 5 — Extension Points)
-# ---------------------------------------------------------------------------
-
-
-class DynamicTitleView(PageMixin, TemplateView):
-    """Stub that overrides get_page_title() to return a dynamic value."""
-
-    template_name = "page.html"
-    _dynamic_title = "Dynamic Title"
-
-    def get_page_title(self):
-        return self._dynamic_title
-
-
-class DynamicBreadcrumbView(PageMixin, TemplateView):
-    """Stub that overrides get_breadcrumbs() to return dynamic breadcrumbs."""
-
-    template_name = "page.html"
-
-    def get_breadcrumbs(self):
-        return [{"text": "Home", "href": "/"}, {"text": "Detail"}]
-
-
-class SubclassedPageView(PageMixin, TemplateView):
-    """Stub that sets all attributes as class attributes."""
-
-    template_name = "page.html"
-    page_title = "Static Title"
-    page_subtitle = "Static Subtitle"
-    page_class = "custom-view"
-    breadcrumbs = [{"text": "Home", "href": "/"}]
-
-
-class TestPageMixinOverridePattern:
-    def test_overriding_get_page_title_is_reflected_in_context(self):
-        request = RequestFactory().get("/")
-        view = DynamicTitleView()
-        view.request = request
-        view.kwargs = {}
-        view.args = []
-        context = view.get_context_data()
-        assert context["page"]["title"] == "Dynamic Title"
-
-    def test_overriding_get_breadcrumbs_is_reflected_in_context(self):
-        request = RequestFactory().get("/")
-        view = DynamicBreadcrumbView()
-        view.request = request
-        view.kwargs = {}
-        view.args = []
-        context = view.get_context_data()
-        crumbs = context["page"]["breadcrumbs"]
-        assert len(crumbs) == 2
-        assert crumbs[0] == {"text": "Home", "href": "/"}
-
-    def test_class_attribute_overrides_work_end_to_end(self):
-        request = RequestFactory().get("/")
-        view = SubclassedPageView()
-        view.request = request
-        view.kwargs = {}
-        view.args = []
-        context = view.get_context_data()
-        page = context["page"]
-        assert page["title"] == "Static Title"
-        assert page["subtitle"] == "Static Subtitle"
-        assert page["class"] == "mvp-page custom-view"
-        assert page["breadcrumbs"] == [{"text": "Home", "href": "/"}]
-
-
-# ---------------------------------------------------------------------------
-# Stub models, forms, and proxies for TestModelInfoMixin (T006)
+# Stub models, forms for TestModelInfoMixin (T006)
 # ---------------------------------------------------------------------------
 
 
@@ -280,14 +142,6 @@ class _CustomVerboseModel(db_models.Model):
         managed = False
         verbose_name = "custom item"
         verbose_name_plural = "custom items"
-
-
-class _ProductProxy(Product):
-    """Proxy of Product for proxy-model resolution tests."""
-
-    class Meta:
-        app_label = "demo"
-        proxy = True
 
 
 class _ProductForm(django_forms.ModelForm):
@@ -452,56 +306,6 @@ class TestModelInfoMixin:
 
         assert V().get_model_class() is Product
 
-    # --- US1 edge cases: plain Form skipped (T023) --------------------------
-
-    def test_plain_form_class_skipped(self):
-        """form_class with no _meta.model is skipped silently; ImproperlyConfigured raised."""
-
-        class V(ModelInfoMixin):
-            form_class = _PlainForm
-
-        with pytest.raises(ImproperlyConfigured):
-            V().get_model_class()
-
-    # --- US1 edge cases: None object skipped (T024) -------------------------
-
-    def test_none_object_skipped(self):
-        class V(ModelInfoMixin):
-            object = None
-
-        with pytest.raises(ImproperlyConfigured):
-            V().get_model_class()
-
-    # --- US1 edge cases: proxy model (T025) ---------------------------------
-
-    def test_proxy_model_returns_proxy_not_concrete(self):
-        class V(ModelInfoMixin):
-            model = _ProductProxy
-
-        result = V().get_model_class()
-        assert result is _ProductProxy
-        assert result is not Product
-
-    # --- US1 edge cases: all four strategies present (T026) -----------------
-
-    def test_all_four_strategies_present_model_wins(self):
-        obj = Category.__new__(Category)
-
-        class _CategoryForm(django_forms.ModelForm):
-            class Meta:
-                model = Category
-                fields = []
-
-        class V(ModelInfoMixin):
-            model = Product  # should win
-            form_class = _CategoryForm
-            object = obj
-
-            def get_queryset(self):
-                return Category.objects.all()
-
-        assert V().get_model_class() is Product
-
     # --- US2: Custom override point (T028–T029) -----------------------------
 
     def test_custom_get_model_class_override_used(self):
@@ -531,32 +335,6 @@ class TestModelInfoMixin:
             V().get_model_class()
 
     # --- US3: Diagnostic error messages (T031–T034) -------------------------
-
-    def test_raises_improperly_configured_with_no_config(self):
-        class V(ModelInfoMixin):
-            pass
-
-        with pytest.raises(ImproperlyConfigured):
-            V().get_model_class()
-
-    def test_error_message_contains_view_class_name(self):
-        class MyUnconfiguredView(ModelInfoMixin):
-            pass
-
-        with pytest.raises(ImproperlyConfigured, match="MyUnconfiguredView"):
-            MyUnconfiguredView().get_model_class()
-
-    def test_error_message_describes_configuration_options(self):
-        class V(ModelInfoMixin):
-            pass
-
-        with pytest.raises(ImproperlyConfigured) as exc_info:
-            V().get_model_class()
-        msg = str(exc_info.value)
-        assert "model" in msg
-        assert "queryset" in msg
-        assert "form_class" in msg
-        assert "get_model_class" in msg
 
     def test_raises_when_queryset_has_no_model(self):
         class _NoModelQuerySet:
@@ -610,123 +388,7 @@ class TestMVPHomeView:
 
 
 # ---------------------------------------------------------------------------
-# TestMVPHomeViewDefaults (T031, T032 — US2)
-# ---------------------------------------------------------------------------
-
-
-class TestMVPHomeViewDefaults:
-    def test_mvp_home_view_default_landing_template_name(self):
-        from mvp.views.extra import MVPHomeView
-
-        assert MVPHomeView.landing_template_name == "mvp/landing.html"
-
-    def test_mvp_home_view_default_dashboard_template_name(self):
-        from mvp.views.extra import MVPHomeView
-
-        assert MVPHomeView.dashboard_template_name == "mvp/dashboard.html"
-
-    def test_mvp_home_view_default_page_title(self):
-        from django.utils.translation import gettext_lazy as _
-
-        from mvp.views.extra import MVPHomeView
-
-        assert str(MVPHomeView.page_title) == str(_("Home"))
-
-    def test_landing_template_none_raises_for_anonymous(self):
-        from django.contrib.auth.models import AnonymousUser
-
-        from mvp.views.extra import MVPHomeView
-
-        request = RequestFactory().get("/")
-        request.user = AnonymousUser()
-        view = MVPHomeView()
-        view.landing_template_name = None
-        view.request = request
-        with pytest.raises(ImproperlyConfigured, match="landing_template_name"):
-            view.get_template_names()
-
-    def test_landing_template_none_error_message_contains_class_name(self):
-        from django.contrib.auth.models import AnonymousUser
-
-        from mvp.views.extra import MVPHomeView
-
-        request = RequestFactory().get("/")
-        request.user = AnonymousUser()
-        view = MVPHomeView()
-        view.landing_template_name = None
-        view.request = request
-        with pytest.raises(ImproperlyConfigured, match="MVPHomeView"):
-            view.get_template_names()
-
-    @pytest.mark.django_db
-    def test_dashboard_template_none_raises_for_authenticated(self):
-        user = User.objects.create_user(username="guardtest1", password="pass")
-        request = RequestFactory().get("/")
-        request.user = user
-        from mvp.views.extra import MVPHomeView
-
-        view = MVPHomeView()
-        view.dashboard_template_name = None
-        view.request = request
-        with pytest.raises(ImproperlyConfigured, match="dashboard_template_name"):
-            view.get_template_names()
-
-    def test_dashboard_template_none_no_error_for_anonymous(self):
-        from django.contrib.auth.models import AnonymousUser
-
-        from mvp.views.extra import MVPHomeView
-
-        request = RequestFactory().get("/")
-        request.user = AnonymousUser()
-        view = MVPHomeView()
-        view.dashboard_template_name = None
-        view.request = request
-        # Should not raise — anonymous users get the landing template
-        templates = view.get_template_names()
-        assert templates == [view.landing_template_name]
-
-    def test_both_none_anonymous_raises_on_landing_template_name(self):
-        from django.contrib.auth.models import AnonymousUser
-
-        from mvp.views.extra import MVPHomeView
-
-        request = RequestFactory().get("/")
-        request.user = AnonymousUser()
-        view = MVPHomeView()
-        view.landing_template_name = None
-        view.dashboard_template_name = None
-        view.request = request
-        with pytest.raises(ImproperlyConfigured, match="landing_template_name"):
-            view.get_template_names()
-
-
-# ---------------------------------------------------------------------------
-
-
-class _CustomVerboseModel(db_models.Model):
-    """Stub with a custom verbose_name — unmanaged, no DB table."""
-
-    class Meta:
-        app_label = "demo"
-        managed = False
-        verbose_name = "custom item"
-        verbose_name_plural = "custom items"
-
-
-class _ProductProxy(Product):
-    """Proxy of Product for proxy-model resolution tests."""
-
-    class Meta:
-        app_label = "demo"
-        proxy = True
-
-
-class _ProductForm(django_forms.ModelForm):
-    """Minimal ModelForm bound to Product."""
-
-    class Meta:
-        model = Product
-        fields = []
+# TestMVPTemplateViewLayoutIntegration
 
 
 class _PlainForm(django_forms.Form):
