@@ -5,7 +5,7 @@
      {{ attrs }}>
   <ul>
     {% if items %}
-      {% for item in items %}<c-navigation.breadcrumbs.item :attrs="item" />{% endfor %}
+      {% for item in items %}<c-breadcrumbs.item :attrs="item" />{% endfor %}
     {% else %}
       {{ slot }}
     {% endif %}
