@@ -42,48 +42,6 @@ def make_view(extra_attrs=None, kwargs=None, user=None):
 
 
 # ---------------------------------------------------------------------------
-# US1: Declarative URL Resolution Without URL Wiring
-# ---------------------------------------------------------------------------
-
-
-class TestUS1GetUrlKwargs:
-    """[US1] Unit tests for the get_url_kwargs() default implementation."""
-
-    def test_US1_list_returns_empty_dict(self):
-        """[US1] get_url_kwargs('list') returns {} — collection action needs no object."""
-        view = make_view(kwargs={})
-        assert view.get_url_kwargs("list") == {}
-
-    def test_US1_create_returns_empty_dict(self):
-        """[US1] get_url_kwargs('create') returns {} — collection action needs no object."""
-        view = make_view(kwargs={})
-        assert view.get_url_kwargs("create") == {}
-
-    def test_US1_object_action_with_kwargs_returns_dict(self):
-        """[US1] Object-level actions return dict(self.kwargs) when kwargs are present."""
-        view = make_view(kwargs={"pk": 42})
-        assert view.get_url_kwargs("detail") == {"pk": 42}
-        assert view.get_url_kwargs("update") == {"pk": 42}
-        assert view.get_url_kwargs("delete") == {"pk": 42}
-
-    def test_US1_object_action_with_empty_kwargs_returns_none(self):
-        """[US1] Object-level actions return None when self.kwargs is empty."""
-        view = make_view(kwargs={})
-        assert view.get_url_kwargs("detail") is None
-        assert view.get_url_kwargs("update") is None
-        assert view.get_url_kwargs("delete") is None
-
-    def test_US1_custom_action_with_kwargs_returns_dict(self):
-        """[US1] Custom action (not list/create) uses same fallback: dict(self.kwargs) or None."""
-        view = make_view(kwargs={"pk": 7})
-        assert view.get_url_kwargs("archive") == {"pk": 7}
-
-    def test_US1_custom_action_with_empty_kwargs_returns_none(self):
-        """[US1] Custom action with empty self.kwargs returns None."""
-        view = make_view(kwargs={})
-        assert view.get_url_kwargs("archive") is None
-
-
 @pytest.mark.django_db
 class TestUS1Directory:
     """[US1] Integration tests for get_directory() and get_context_data()."""

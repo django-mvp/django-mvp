@@ -19,22 +19,11 @@ pytestmark = pytest.mark.django_db
 # ---------------------------------------------------------------------------
 
 
-def test_home_unauthenticated_returns_200(client):
-    """Anonymous GET / returns 200 OK."""
-    response = client.get("/")
-    assert response.status_code == 200
-
-
 def test_home_unauthenticated_shows_landing_content(client):
     """Anonymous GET / shows landing page headline, not dashboard content."""
     response = client.get("/")
-    assert b"production-ready Django apps fast" in response.content
-
-
-def test_home_unauthenticated_url_unchanged(client):
-    """Anonymous GET / does not redirect — stays at /."""
-    response = client.get("/")
     assert response.status_code == 200
+    assert b"production-ready Django apps fast" in response.content
 
 
 def test_home_unauthenticated_has_hero_lead(client):
@@ -43,28 +32,12 @@ def test_home_unauthenticated_has_hero_lead(client):
     assert b"focus on your business logic" in content
 
 
-def test_home_authenticated_returns_200(client, django_user_model):
-    """Authenticated GET / returns 200 OK."""
+def test_home_authenticated_shows_dashboard_content(client, django_user_model):
+    """Authenticated GET / shows dashboard content with username."""
     user = django_user_model.objects.create_user(username="authuser1", password="pass123!")
     client.force_login(user)
     response = client.get("/")
-    assert response.status_code == 200
-
-
-def test_home_authenticated_shows_dashboard_content(client, django_user_model):
-    """Authenticated GET / shows dashboard content with username."""
-    user = django_user_model.objects.create_user(username="authuser2", password="pass123!")
-    client.force_login(user)
-    response = client.get("/")
     assert b"Welcome" in response.content
-
-
-def test_home_authenticated_url_unchanged(client, django_user_model):
-    """Authenticated GET / does not redirect — URL stays at /."""
-    user = django_user_model.objects.create_user(username="authuser3", password="pass123!")
-    client.force_login(user)
-    response = client.get("/")
-    assert response.status_code == 200
 
 
 def test_home_post_returns_405(client):
