@@ -9,7 +9,8 @@ from django.test import RequestFactory
 from django.views.generic import TemplateView
 
 from demo.models import Category, Product
-from mvp.views.base import BaseTemplateNameMixin, ModelInfoMixin, MVPHomeView, PageMixin
+from mvp.views.base import BaseTemplateNameMixin, ModelInfoMixin, PageMixin
+from mvp.views.extra import MVPHomeView
 
 User = get_user_model()
 
@@ -607,13 +608,6 @@ class TestMVPHomeView:
         context = view.get_context_data()
         assert isinstance(context, dict)
 
-    def test_unauthenticated_context_includes_hero_content(self):
-        from django.contrib.auth.models import AnonymousUser
-
-        view = self._make_view(AnonymousUser())
-        context = view.get_context_data()
-        assert "hero_content" in context
-
 
 # ---------------------------------------------------------------------------
 # TestMVPHomeViewDefaults (T031, T032 — US2)
@@ -622,26 +616,26 @@ class TestMVPHomeView:
 
 class TestMVPHomeViewDefaults:
     def test_mvp_home_view_default_landing_template_name(self):
-        from mvp.views.base import MVPHomeView
+        from mvp.views.extra import MVPHomeView
 
         assert MVPHomeView.landing_template_name == "mvp/landing.html"
 
     def test_mvp_home_view_default_dashboard_template_name(self):
-        from mvp.views.base import MVPHomeView
+        from mvp.views.extra import MVPHomeView
 
         assert MVPHomeView.dashboard_template_name == "mvp/dashboard.html"
 
     def test_mvp_home_view_default_page_title(self):
         from django.utils.translation import gettext_lazy as _
 
-        from mvp.views.base import MVPHomeView
+        from mvp.views.extra import MVPHomeView
 
         assert str(MVPHomeView.page_title) == str(_("Home"))
 
     def test_landing_template_none_raises_for_anonymous(self):
         from django.contrib.auth.models import AnonymousUser
 
-        from mvp.views.base import MVPHomeView
+        from mvp.views.extra import MVPHomeView
 
         request = RequestFactory().get("/")
         request.user = AnonymousUser()
@@ -654,7 +648,7 @@ class TestMVPHomeViewDefaults:
     def test_landing_template_none_error_message_contains_class_name(self):
         from django.contrib.auth.models import AnonymousUser
 
-        from mvp.views.base import MVPHomeView
+        from mvp.views.extra import MVPHomeView
 
         request = RequestFactory().get("/")
         request.user = AnonymousUser()
@@ -669,7 +663,7 @@ class TestMVPHomeViewDefaults:
         user = User.objects.create_user(username="guardtest1", password="pass")
         request = RequestFactory().get("/")
         request.user = user
-        from mvp.views.base import MVPHomeView
+        from mvp.views.extra import MVPHomeView
 
         view = MVPHomeView()
         view.dashboard_template_name = None
@@ -680,7 +674,7 @@ class TestMVPHomeViewDefaults:
     def test_dashboard_template_none_no_error_for_anonymous(self):
         from django.contrib.auth.models import AnonymousUser
 
-        from mvp.views.base import MVPHomeView
+        from mvp.views.extra import MVPHomeView
 
         request = RequestFactory().get("/")
         request.user = AnonymousUser()
@@ -694,7 +688,7 @@ class TestMVPHomeViewDefaults:
     def test_both_none_anonymous_raises_on_landing_template_name(self):
         from django.contrib.auth.models import AnonymousUser
 
-        from mvp.views.base import MVPHomeView
+        from mvp.views.extra import MVPHomeView
 
         request = RequestFactory().get("/")
         request.user = AnonymousUser()
@@ -739,409 +733,6 @@ class _PlainForm(django_forms.Form):
     """Plain (non-Model) Form — used to verify silent skipping."""
 
     name = django_forms.CharField()
-
-
-# ---------------------------------------------------------------------------
-# TestModelInfoMixin
-# ---------------------------------------------------------------------------
-
-
-class TestModelInfoMixin:
-    """All ModelInfoMixin tests. Pure Python unit tests — no database access required."""
-
-    # --- US1: Four resolution strategies (T007–T011) -------------------------
-
-    def test_resolves_from_model_attribute(self):
-        class V(ModelInfoMixin):
-            model = Product
-
-        assert V().get_model_class() is Product
-
-    def test_resolves_from_queryset(self):
-        class V(ModelInfoMixin):
-            def get_queryset(self):
-                return Product.objects.all()
-
-        assert V().get_model_class() is Product
-
-    def test_resolves_from_form_class_attribute(self):
-        class V(ModelInfoMixin):
-            form_class = _ProductForm
-
-        assert V().get_model_class() is Product
-
-    def test_resolves_from_get_form_class(self):
-        class V(ModelInfoMixin):
-            def get_form_class(self):
-                return _ProductForm
-
-        assert V().get_model_class() is Product
-
-    def test_resolves_from_object_instance(self):
-        obj = Product.__new__(Product)
-
-        class V(ModelInfoMixin):
-            object = obj
-
-        assert V().get_model_class() is Product
-
-    # --- US1: Priority order (T012–T014) ------------------------------------
-
-    def test_model_priority_over_queryset(self):
-        class V(ModelInfoMixin):
-            model = Category
-
-            def get_queryset(self):
-                return Product.objects.all()
-
-        assert V().get_model_class() is Category
-
-    def test_queryset_priority_over_form_class(self):
-        class _CategoryForm(django_forms.ModelForm):
-            class Meta:
-                model = Category
-                fields = []
-
-        class V(ModelInfoMixin):
-            form_class = _CategoryForm  # would resolve to Category...
-
-            def get_queryset(self):
-                return Product.objects.all()  # ...but queryset wins
-
-        assert V().get_model_class() is Product
-
-    def test_form_class_priority_over_object(self):
-        obj = Category.__new__(Category)
-
-        class V(ModelInfoMixin):
-            form_class = _ProductForm  # form_class points to Product...
-            object = obj  # ...instance is Category — form_class wins
-
-        assert V().get_model_class() is Product
-
-    # --- US4: Context shape (T015–T018) ------------------------------------
-
-    def test_model_info_context_key_present(self):
-        class V(ModelInfoMixin, TemplateView):
-            model = Product
-            template_name = "base.html"
-
-        v = V()
-        v.request = RequestFactory().get("/")
-        v.kwargs = {}
-        v.args = []
-        assert "model_info" in v.get_context_data()
-
-    def test_model_info_contains_all_four_fields(self):
-        class V(ModelInfoMixin, TemplateView):
-            model = Product
-            template_name = "base.html"
-
-        v = V()
-        v.request = RequestFactory().get("/")
-        v.kwargs = {}
-        v.args = []
-        info = v.get_context_data()["model_info"]
-        assert {"verbose_name", "verbose_name_plural", "app_label", "model_name"} <= set(info.keys())
-
-    def test_model_info_does_not_contain_model_class(self):
-        class V(ModelInfoMixin, TemplateView):
-            model = Product
-            template_name = "base.html"
-
-        v = V()
-        v.request = RequestFactory().get("/")
-        v.kwargs = {}
-        v.args = []
-        for value in v.get_context_data()["model_info"].values():
-            assert not isinstance(value, type)
-
-    def test_custom_verbose_name_appears_in_model_info(self):
-        class V(ModelInfoMixin, TemplateView):
-            model = _CustomVerboseModel
-            template_name = "base.html"
-
-        v = V()
-        v.request = RequestFactory().get("/")
-        v.kwargs = {}
-        v.args = []
-        assert v.get_context_data()["model_info"]["verbose_name"] == "custom item"
-
-    # --- US1 edge cases: exception silencing (T021–T022) --------------------
-
-    def test_get_queryset_exception_silenced(self):
-        class V(ModelInfoMixin):
-            form_class = _ProductForm  # fallback after queryset raises
-
-            def get_queryset(self):
-                raise RuntimeError("queryset exploded")
-
-        assert V().get_model_class() is Product
-
-    def test_get_form_class_exception_silenced(self):
-        obj = Product.__new__(Product)
-
-        class V(ModelInfoMixin):
-            object = obj  # fallback after form_class raises
-
-            def get_form_class(self):
-                raise RuntimeError("form_class exploded")
-
-        assert V().get_model_class() is Product
-
-    # --- US1 edge cases: plain Form skipped (T023) --------------------------
-
-    def test_plain_form_class_skipped(self):
-        """form_class with no _meta.model is skipped silently; ImproperlyConfigured raised."""
-
-        class V(ModelInfoMixin):
-            form_class = _PlainForm
-
-        with pytest.raises(ImproperlyConfigured):
-            V().get_model_class()
-
-    # --- US1 edge cases: None object skipped (T024) -------------------------
-
-    def test_none_object_skipped(self):
-        class V(ModelInfoMixin):
-            object = None
-
-        with pytest.raises(ImproperlyConfigured):
-            V().get_model_class()
-
-    # --- US1 edge cases: proxy model (T025) ---------------------------------
-
-    def test_proxy_model_returns_proxy_not_concrete(self):
-        class V(ModelInfoMixin):
-            model = _ProductProxy
-
-        result = V().get_model_class()
-        assert result is _ProductProxy
-        assert result is not Product
-
-    # --- US1 edge cases: all four strategies present (T026) -----------------
-
-    def test_all_four_strategies_present_model_wins(self):
-        obj = Category.__new__(Category)
-
-        class _CategoryForm(django_forms.ModelForm):
-            class Meta:
-                model = Category
-                fields = []
-
-        class V(ModelInfoMixin):
-            model = Product  # should win
-            form_class = _CategoryForm
-            object = obj
-
-            def get_queryset(self):
-                return Category.objects.all()
-
-        assert V().get_model_class() is Product
-
-    # --- US2: Custom override point (T028–T029) -----------------------------
-
-    def test_custom_get_model_class_override_used(self):
-        class V(ModelInfoMixin, TemplateView):
-            template_name = "base.html"
-
-            def get_model_class(self):
-                return Category
-
-        v = V()
-        v.request = RequestFactory().get("/")
-        v.kwargs = {}
-        v.args = []
-        info = v.get_context_data()["model_info"]
-        assert info["model_name"] == "category"
-        assert info["app_label"] == "demo"
-
-    def test_custom_override_exception_propagates(self):
-        class CustomError(Exception):
-            pass
-
-        class V(ModelInfoMixin):
-            def get_model_class(self):
-                raise CustomError("boom")
-
-        with pytest.raises(CustomError):
-            V().get_model_class()
-
-    # --- US3: Diagnostic error messages (T031–T034) -------------------------
-
-    def test_raises_improperly_configured_with_no_config(self):
-        class V(ModelInfoMixin):
-            pass
-
-        with pytest.raises(ImproperlyConfigured):
-            V().get_model_class()
-
-    def test_error_message_contains_view_class_name(self):
-        class MyUnconfiguredView(ModelInfoMixin):
-            pass
-
-        with pytest.raises(ImproperlyConfigured, match="MyUnconfiguredView"):
-            MyUnconfiguredView().get_model_class()
-
-    def test_error_message_describes_configuration_options(self):
-        class V(ModelInfoMixin):
-            pass
-
-        with pytest.raises(ImproperlyConfigured) as exc_info:
-            V().get_model_class()
-        msg = str(exc_info.value)
-        assert "model" in msg
-        assert "queryset" in msg
-        assert "form_class" in msg
-        assert "get_model_class" in msg
-
-    def test_raises_when_queryset_has_no_model(self):
-        class _NoModelQuerySet:
-            """Queryset-like object with no .model attribute."""
-
-        class V(ModelInfoMixin):
-            def get_queryset(self):
-                return _NoModelQuerySet()
-
-        with pytest.raises(ImproperlyConfigured):
-            V().get_model_class()
-
-
-# ---------------------------------------------------------------------------
-# TestMVPHomeView (covers MVPHomeView branches in mvp.views.base)
-# ---------------------------------------------------------------------------
-
-
-class TestMVPHomeView:
-    def _make_view(self, user):
-        """Return a configured MVPHomeView instance for the given user."""
-        request = RequestFactory().get("/")
-        request.user = user
-        view = MVPHomeView()
-        view.request = request
-        view.kwargs = {}
-        view.args = []
-        return view
-
-    @pytest.mark.django_db
-    def test_authenticated_user_gets_dashboard_template(self):
-        user = User.objects.create_user(username="dashuser", password="pass")
-        view = self._make_view(user)
-        templates = view.get_template_names()
-        assert templates == [view.dashboard_template_name]
-
-    def test_anonymous_user_gets_landing_template(self):
-        from django.contrib.auth.models import AnonymousUser
-
-        view = self._make_view(AnonymousUser())
-        templates = view.get_template_names()
-        assert templates == [view.landing_template_name]
-
-    @pytest.mark.django_db
-    def test_authenticated_context_calls_dashboard_context(self):
-        user = User.objects.create_user(username="dashuser2", password="pass")
-        view = self._make_view(user)
-        # get_context_data raises no errors and returns a dict
-        context = view.get_context_data()
-        assert isinstance(context, dict)
-
-    def test_unauthenticated_context_includes_hero_content(self):
-        from django.contrib.auth.models import AnonymousUser
-
-        view = self._make_view(AnonymousUser())
-        context = view.get_context_data()
-        assert "hero_content" in context
-
-
-# ---------------------------------------------------------------------------
-# TestMVPHomeViewDefaults (T031, T032 — US2)
-# ---------------------------------------------------------------------------
-
-
-class TestMVPHomeViewDefaults:
-    def test_mvp_home_view_default_landing_template_name(self):
-        from mvp.views.base import MVPHomeView
-
-        assert MVPHomeView.landing_template_name == "mvp/landing.html"
-
-    def test_mvp_home_view_default_dashboard_template_name(self):
-        from mvp.views.base import MVPHomeView
-
-        assert MVPHomeView.dashboard_template_name == "mvp/dashboard.html"
-
-    def test_mvp_home_view_default_page_title(self):
-        from django.utils.translation import gettext_lazy as _
-
-        from mvp.views.base import MVPHomeView
-
-        assert str(MVPHomeView.page_title) == str(_("Home"))
-
-    def test_landing_template_none_raises_for_anonymous(self):
-        from django.contrib.auth.models import AnonymousUser
-
-        from mvp.views.base import MVPHomeView
-
-        request = RequestFactory().get("/")
-        request.user = AnonymousUser()
-        view = MVPHomeView()
-        view.landing_template_name = None
-        view.request = request
-        with pytest.raises(ImproperlyConfigured, match="landing_template_name"):
-            view.get_template_names()
-
-    def test_landing_template_none_error_message_contains_class_name(self):
-        from django.contrib.auth.models import AnonymousUser
-
-        from mvp.views.base import MVPHomeView
-
-        request = RequestFactory().get("/")
-        request.user = AnonymousUser()
-        view = MVPHomeView()
-        view.landing_template_name = None
-        view.request = request
-        with pytest.raises(ImproperlyConfigured, match="MVPHomeView"):
-            view.get_template_names()
-
-    @pytest.mark.django_db
-    def test_dashboard_template_none_raises_for_authenticated(self):
-        user = User.objects.create_user(username="guardtest1", password="pass")
-        request = RequestFactory().get("/")
-        request.user = user
-        from mvp.views.base import MVPHomeView
-
-        view = MVPHomeView()
-        view.dashboard_template_name = None
-        view.request = request
-        with pytest.raises(ImproperlyConfigured, match="dashboard_template_name"):
-            view.get_template_names()
-
-    def test_dashboard_template_none_no_error_for_anonymous(self):
-        from django.contrib.auth.models import AnonymousUser
-
-        from mvp.views.base import MVPHomeView
-
-        request = RequestFactory().get("/")
-        request.user = AnonymousUser()
-        view = MVPHomeView()
-        view.dashboard_template_name = None
-        view.request = request
-        # Should not raise — anonymous users get the landing template
-        templates = view.get_template_names()
-        assert templates == [view.landing_template_name]
-
-    def test_both_none_anonymous_raises_on_landing_template_name(self):
-        from django.contrib.auth.models import AnonymousUser
-
-        from mvp.views.base import MVPHomeView
-
-        request = RequestFactory().get("/")
-        request.user = AnonymousUser()
-        view = MVPHomeView()
-        view.landing_template_name = None
-        view.dashboard_template_name = None
-        view.request = request
-        with pytest.raises(ImproperlyConfigured, match="landing_template_name"):
-            view.get_template_names()
 
 
 # ---------------------------------------------------------------------------

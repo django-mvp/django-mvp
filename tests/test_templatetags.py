@@ -57,6 +57,20 @@ def _render(template_str, context_dict=None):
     return t.render(Context(context_dict or {}))
 
 
+def _patch_logo(monkeypatch, resolver):
+    """Monkeypatch MVP_CONFIG['brand']['logo_resolver'] to *resolver*."""
+    from mvp.config import MVP_CONFIG
+
+    monkeypatch.setitem(MVP_CONFIG["brand"], "logo_resolver", resolver)
+
+
+def _patch_icon(monkeypatch, resolver):
+    """Monkeypatch MVP_CONFIG['brand']['icon_resolver'] to *resolver*."""
+    from mvp.config import MVP_CONFIG
+
+    monkeypatch.setitem(MVP_CONFIG["brand"], "icon_resolver", resolver)
+
+
 # ---------------------------------------------------------------------------
 # Phase 3 [US1]: logo_url default resolver — T003
 # ---------------------------------------------------------------------------
@@ -138,7 +152,7 @@ class TestLogoUrlCustomResolver:
 
     def test_custom_resolver_is_called_with_correct_args(self, monkeypatch, rf):
         """Custom resolver receives (request, height, theme) with correct values."""
-        monkeypatch.setattr("mvp.templatetags.mvp.MVP_LOGO_RESOLVER", _CUSTOM_LOGO)
+        _patch_logo(monkeypatch, _CUSTOM_LOGO)
         request = rf.get("/")
         result = _render('{% logo_url height=40 theme="dark" %}', {"request": request})
         # _custom_logo_resolver encodes height and theme in the URL
@@ -146,31 +160,31 @@ class TestLogoUrlCustomResolver:
 
     def test_custom_resolver_return_value_is_rendered(self, monkeypatch):
         """Custom resolver return value appears verbatim in template output."""
-        monkeypatch.setattr("mvp.templatetags.mvp.MVP_LOGO_RESOLVER", _CUSTOM_LOGO)
+        _patch_logo(monkeypatch, _CUSTOM_LOGO)
         result = _render('{% logo_url height=40 theme="light" %}')
         assert result == "/custom/logo/light/40.svg"
 
     def test_resolver_returning_none_renders_empty_string(self, monkeypatch):
         """Resolver returning None → tag outputs ''."""
-        monkeypatch.setattr("mvp.templatetags.mvp.MVP_LOGO_RESOLVER", _NONE_RESOLVER)
+        _patch_logo(monkeypatch, _NONE_RESOLVER)
         result = _render("{% logo_url height=40 %}")
         assert result == ""
 
     def test_resolver_raising_renders_empty_string_silently(self, monkeypatch):
         """Resolver raising exception → tag outputs '' with no re-raise."""
-        monkeypatch.setattr("mvp.templatetags.mvp.MVP_LOGO_RESOLVER", _RAISING_RESOLVER)
+        _patch_logo(monkeypatch, _RAISING_RESOLVER)
         result = _render("{% logo_url height=40 %}")
         assert result == ""
 
     def test_bad_import_path_raises_improperly_configured(self, monkeypatch):
         """MVP_LOGO_RESOLVER set to non-existent path → ImproperlyConfigured on tag call."""
-        monkeypatch.setattr("mvp.templatetags.mvp.MVP_LOGO_RESOLVER", _BAD_IMPORT_PATH)
+        _patch_logo(monkeypatch, _BAD_IMPORT_PATH)
         with pytest.raises(ImproperlyConfigured):
             _render("{% logo_url height=40 %}")
 
     def test_output_is_plain_str_not_safe_data(self, monkeypatch):
         """FR-017/M1: logo_url output is plain str, not SafeData (no mark_safe)."""
-        monkeypatch.setattr("mvp.templatetags.mvp.MVP_LOGO_RESOLVER", _CUSTOM_LOGO)
+        _patch_logo(monkeypatch, _CUSTOM_LOGO)
         from mvp.templatetags.mvp import logo_url
 
         result = logo_url(Context({}), height=40, theme="light")
@@ -179,8 +193,11 @@ class TestLogoUrlCustomResolver:
 
     def test_both_tags_render_multiple_times_without_error(self, monkeypatch):
         """SC-004/M4: template calling logo_url and icon_url four times each renders ok."""
-        monkeypatch.setattr("mvp.templatetags.mvp.MVP_LOGO_RESOLVER", _CUSTOM_LOGO)
-        monkeypatch.setattr("mvp.templatetags.mvp.MVP_ICON_RESOLVER", _CUSTOM_ICON)
+        _patch_logo(monkeypatch, _CUSTOM_LOGO)
+        from mvp.config import MVP_CONFIG
+
+        original_icon = MVP_CONFIG["brand"]["icon_resolver"]
+        monkeypatch.setitem(MVP_CONFIG["brand"], "icon_resolver", _CUSTOM_ICON)
         template_str = (
             '{% logo_url height=40 %}{% logo_url height=40 theme="dark" %}'
             '{% logo_url height=32 %}{% logo_url height=32 theme="dark" %}'
@@ -206,38 +223,38 @@ class TestIconUrlCustomResolver:
 
     def test_custom_resolver_is_called_with_correct_args(self, monkeypatch, rf):
         """Custom resolver receives (request, height, theme) with correct values."""
-        monkeypatch.setattr("mvp.templatetags.mvp.MVP_ICON_RESOLVER", _CUSTOM_ICON)
+        _patch_icon(monkeypatch, _CUSTOM_ICON)
         request = rf.get("/")
         result = _render('{% icon_url height=32 theme="dark" %}', {"request": request})
         assert result == "/custom/icon/dark/32.svg"
 
     def test_custom_resolver_return_value_is_rendered(self, monkeypatch):
         """Custom resolver return value appears verbatim in template output."""
-        monkeypatch.setattr("mvp.templatetags.mvp.MVP_ICON_RESOLVER", _CUSTOM_ICON)
+        _patch_icon(monkeypatch, _CUSTOM_ICON)
         result = _render('{% icon_url height=32 theme="light" %}')
         assert result == "/custom/icon/light/32.svg"
 
     def test_resolver_returning_none_renders_empty_string(self, monkeypatch):
         """Resolver returning None → tag outputs ''."""
-        monkeypatch.setattr("mvp.templatetags.mvp.MVP_ICON_RESOLVER", _NONE_RESOLVER)
+        _patch_icon(monkeypatch, _NONE_RESOLVER)
         result = _render("{% icon_url height=32 %}")
         assert result == ""
 
     def test_resolver_raising_renders_empty_string_silently(self, monkeypatch):
         """Resolver raising exception → tag outputs '' with no re-raise."""
-        monkeypatch.setattr("mvp.templatetags.mvp.MVP_ICON_RESOLVER", _RAISING_RESOLVER)
+        _patch_icon(monkeypatch, _RAISING_RESOLVER)
         result = _render("{% icon_url height=32 %}")
         assert result == ""
 
     def test_bad_import_path_raises_improperly_configured(self, monkeypatch):
         """MVP_ICON_RESOLVER set to non-existent path → ImproperlyConfigured on tag call."""
-        monkeypatch.setattr("mvp.templatetags.mvp.MVP_ICON_RESOLVER", _BAD_IMPORT_PATH)
+        _patch_icon(monkeypatch, _BAD_IMPORT_PATH)
         with pytest.raises(ImproperlyConfigured):
             _render("{% icon_url height=32 %}")
 
     def test_output_is_plain_str_not_safe_data(self, monkeypatch):
         """FR-017/M1: icon_url output is plain str, not SafeData (no mark_safe)."""
-        monkeypatch.setattr("mvp.templatetags.mvp.MVP_ICON_RESOLVER", _CUSTOM_ICON)
+        _patch_icon(monkeypatch, _CUSTOM_ICON)
         from mvp.templatetags.mvp import icon_url
 
         result = icon_url(Context({}), height=32, theme="light")
@@ -255,20 +272,20 @@ class TestHeightForwarding:
 
     def test_logo_url_forwards_height_40(self, monkeypatch):
         """`{% logo_url height=40 %}` → resolver receives height=40."""
-        monkeypatch.setattr("mvp.templatetags.mvp.MVP_LOGO_RESOLVER", _CUSTOM_LOGO)
+        _patch_logo(monkeypatch, _CUSTOM_LOGO)
         result = _render("{% logo_url height=40 %}")
         # _custom_logo_resolver encodes height in path: /custom/logo/{theme}/{height}.svg
         assert "/40." in result
 
     def test_logo_url_forwards_height_100_and_dark_theme(self, monkeypatch):
         """`{% logo_url height=100 theme="dark" %}` → resolver receives height=100, theme='dark'."""
-        monkeypatch.setattr("mvp.templatetags.mvp.MVP_LOGO_RESOLVER", _CUSTOM_LOGO)
+        _patch_logo(monkeypatch, _CUSTOM_LOGO)
         result = _render('{% logo_url height=100 theme="dark" %}')
         assert "/100." in result
         assert "dark" in result
 
     def test_icon_url_forwards_height_32(self, monkeypatch):
         """`{% icon_url height=32 %}` → resolver receives height=32."""
-        monkeypatch.setattr("mvp.templatetags.mvp.MVP_ICON_RESOLVER", _CUSTOM_ICON)
+        _patch_icon(monkeypatch, _CUSTOM_ICON)
         result = _render("{% icon_url height=32 %}")
         assert "/32." in result

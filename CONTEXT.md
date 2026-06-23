@@ -19,12 +19,6 @@ A configurable property declared via `<c-vars>` that controls a component's appe
 
 The mechanism by which a consumer replaces a package component with their own implementation. Drop a template at the same path in your project's template directory and it replaces the package version. This is the **primary extension point**.
 
-### Core Component
-
-A component that is part of django-mvp's stable vocabulary. These are the only components consumers should use when building reusable templates. Everything else is an implementation detail.
-
-**Core components:** `c-app`, `c-page`, `c-card`, `c-grid`, `c-section`, `c-button`, `c-avatar`
-
 ### Mixin
 
 A Python class that provides cross-cutting behavior for Django views. Consumers compose their own view from exported mixins rather than using factory functions or pre-built concrete classes. This follows Django's standard pattern.
@@ -104,6 +98,17 @@ c-entrance              — entrance animation wrapper
 
 **App vs. Layout:** `c-app.sidebar` already occupies the default slot with the main application menu. If you use `c-layout.sidebar` directly, you must provide your own slot content. Use `c-app.*` for the default chrome; use `c-layout.*` when you need a reusable sidebar primitive inside `c-page.content`, `c-card`, or anywhere else.
 
+### Section
+
+The basic building blocks of a page. Sections are **not** full-page layouts — they are meant to be composed inside a page or card.
+
+```
+c-section
+
+c-section.hero          — full-width hero banner with background image, parallax support, and centered text layout (alias for c-hero)
+
+```
+
 ### Actions
 
 Actions directories hold prebuilt, non-customizable components that work out of the box without attribute configuration.
@@ -129,7 +134,6 @@ c-alert                 — contextual alert banner
 c-modal                 — modal dialog overlay
 c-dropdown              — dropdown menu trigger
 c-button                — action button
-c-hero                  — full-width hero banner with background image, parallax support, and centered text layout (alias for c-sections.hero)
 c-brand.logo            — brand logo image
 c-brand.icon            — brand icon glyph
 ```
@@ -155,10 +159,7 @@ c-menu                  — menu container
 Loading states, placeholders, and visual mockup components.
 
 ```
-c-skeleton.card         — loading placeholder card
-c-skeleton.grid         — loading placeholder grid
 c-placeholder.card      — coming-soon placeholder
-c-placeholder.grid      — coming-soon grid placeholder
 c-mockup.browser        — browser window mockup
 c-mockup.code.line      — code line with prefix
 ```

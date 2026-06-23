@@ -1,27 +1,15 @@
 {% extends "mvp/landing.html" %}
 {% load i18n mvp %}
 {% block page.hero %}
-  <c-sections.hero title="Build production-ready Django apps fast"
-                   lead="A comprehensive framework with layouts, components, and ready-to-use views — so you can focus on your business logic."
-                   parallax
-                   height="80vh">
+  <c-section.hero title="Build production-ready Django apps fast"
+                  subtitle="A comprehensive framework with layouts, components, and ready-to-use views — so you can focus on your business logic."
+                  bg-image="https://picsum.photos/id/237/800/1200"
+                  parallax
+                  height="80vh">
     <c-slot name="top">
-      <c-brand.logo max-height="150px" />
+      <div class="mb-6 text-center flex">
+        <c-brand.logo max-height="250px" class="h-[100px]" />
+      </div>
     </c-slot>
-  </c-sections.hero>
-  Lorem ipsum dolor sit amet, consectetur adipisicing elit. Dolorem cumque deleniti quidem perspiciatis iusto accusantium, molestias autem suscipit? Facilis, recusandae alias. Quia provident, dolor delectus molestiae sint eius repellendus excepturi.
-  Lorem ipsum dolor, sit amet consectetur adipisicing elit. Cum, voluptatum cupiditate, quam adipisci ad ab sit consequatur est nisi praesentium repellendus expedita! Excepturi laudantium deleniti dicta dolorum a nihil quia.
-  Lorem ipsum dolor sit amet consectetur adipisicing elit. Reiciendis excepturi explicabo accusamus quis. Impedit pariatur natus magnam veniam neque nam inventore nobis! Accusamus deserunt, nemo odit quidem optio voluptas nisi!
-  Lorem ipsum dolor sit amet, consectetur adipisicing elit. Dolorem cumque deleniti quidem perspiciatis iusto accusantium, molestias autem suscipit? Facilis, recusandae alias. Quia provident, dolor delectus molestiae sint eius repellendus excepturi.
-  Lorem ipsum dolor, sit amet consectetur adipisicing elit. Cum, voluptatum cupiditate, quam adipisci ad ab sit consequatur est nisi praesentium repellendus expedita! Excepturi laudantium deleniti dicta dolorum a nihil quia.
-  Lorem ipsum dolor sit amet consectetur adipisicing elit. Reiciendis excepturi explicabo accusamus quis. Impedit pariatur natus magnam veniam neque nam inventore nobis! Accusamus deserunt, nemo odit quidem optio voluptas nisi!
-  Lorem ipsum dolor sit amet, consectetur adipisicing elit. Dolorem cumque deleniti quidem perspiciatis iusto accusantium, molestias autem suscipit? Facilis, recusandae alias. Quia provident, dolor delectus molestiae sint eius repellendus excepturi.
-  Lorem ipsum dolor, sit amet consectetur adipisicing elit. Cum, voluptatum cupiditate, quam adipisci ad ab sit consequatur est nisi praesentium repellendus expedita! Excepturi laudantium deleniti dicta dolorum a nihil quia.
-  Lorem ipsum dolor sit amet consectetur adipisicing elit. Reiciendis excepturi explicabo accusamus quis. Impedit pariatur natus magnam veniam neque nam inventore nobis! Accusamus deserunt, nemo odit quidem optio voluptas nisi!
-  Lorem ipsum dolor sit amet, consectetur adipisicing elit. Dolorem cumque deleniti quidem perspiciatis iusto accusantium, molestias autem suscipit? Facilis, recusandae alias. Quia provident, dolor delectus molestiae sint eius repellendus excepturi.
-  Lorem ipsum dolor, sit amet consectetur adipisicing elit. Cum, voluptatum cupiditate, quam adipisci ad ab sit consequatur est nisi praesentium repellendus expedita! Excepturi laudantium deleniti dicta dolorum a nihil quia.
-  Lorem ipsum dolor sit amet consectetur adipisicing elit. Reiciendis excepturi explicabo accusamus quis. Impedit pariatur natus magnam veniam neque nam inventore nobis! Accusamus deserunt, nemo odit quidem optio voluptas nisi!
-  Lorem ipsum dolor sit amet, consectetur adipisicing elit. Dolorem cumque deleniti quidem perspiciatis iusto accusantium, molestias autem suscipit? Facilis, recusandae alias. Quia provident, dolor delectus molestiae sint eius repellendus excepturi.
-  Lorem ipsum dolor, sit amet consectetur adipisicing elit. Cum, voluptatum cupiditate, quam adipisci ad ab sit consequatur est nisi praesentium repellendus expedita! Excepturi laudantium deleniti dicta dolorum a nihil quia.
-  Lorem ipsum dolor sit amet consectetur adipisicing elit. Reiciendis excepturi explicabo accusamus quis. Impedit pariatur natus magnam veniam neque nam inventore nobis! Accusamus deserunt, nemo odit quidem optio voluptas nisi!
+  </c-section.hero>
 {% endblock page.hero %}

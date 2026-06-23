@@ -11,7 +11,7 @@ from django.urls import NoReverseMatch, reverse
 from django.views.generic import TemplateView
 
 from demo.models import Product
-from mvp.config import MVP_DEFAULT_VIEW_NAMES
+from mvp.config import MVP_CONFIG
 from mvp.views.detail import CRUDDirectoryMixin
 
 User = get_user_model()
@@ -139,7 +139,7 @@ class TestUS1Directory:
 
     def test_US1_nonexistent_url_pattern_raises_no_reverse_match(self):
         """[US1] Action whose URL pattern doesn't exist → NoReverseMatch propagates."""
-        custom_crud = {**MVP_DEFAULT_VIEW_NAMES, "list": "nonexistent-{model_name}-list"}
+        custom_crud = {**MVP_CONFIG["view_names"], "list": "nonexistent-{model_name}-list"}
         view = make_view(
             extra_attrs={
                 "directory": ["list"],
@@ -154,7 +154,7 @@ class TestUS1Directory:
     def test_US1_two_actions_resolving_same_url_both_keys_present(self):
         """[US1] Two actions that resolve to the same URL → both {action}_url keys present."""
         # Point 'create' to 'product-list' (same URL as 'list')
-        custom_crud = {**MVP_DEFAULT_VIEW_NAMES, "create": "{model_name}-list"}
+        custom_crud = {**MVP_CONFIG["view_names"], "create": "{model_name}-list"}
         view = make_view(
             extra_attrs={
                 "directory": ["list", "create"],
@@ -190,7 +190,7 @@ class TestUS2PermissionGating:
     def test_US2_has_detail_permission_true_includes_url(self):
         """[US2] has_detail_permission=True → detail_url present (confirms rename from has_read_permission)."""
         # Redirect 'detail' to an existing URL pattern for testing
-        custom_crud = {**MVP_DEFAULT_VIEW_NAMES, "detail": "{model_name}-update"}
+        custom_crud = {**MVP_CONFIG["view_names"], "detail": "{model_name}-update"}
         view = make_view(
             extra_attrs={
                 "directory": ["detail"],
@@ -236,7 +236,7 @@ class TestUS2PermissionGating:
     def test_US2_absent_permission_attribute_excludes_url_no_error(self):
         """[US2] Undeclared permission attribute (custom action) → URL excluded, no AttributeError."""
         # 'archive' is not a standard action, so has_archive_permission doesn't exist
-        custom_crud = {**MVP_DEFAULT_VIEW_NAMES, "archive": "{model_name}-delete"}
+        custom_crud = {**MVP_CONFIG["view_names"], "archive": "{model_name}-delete"}
         view = make_view(
             extra_attrs={
                 "directory": ["archive"],
@@ -349,7 +349,7 @@ class TestUS3NestedKwargs:
 
     def test_US3_custom_action_with_no_kwargs_excluded_no_error(self):
         """[US3] Custom action with empty self.kwargs → get_url_kwargs returns None → absent."""
-        custom_crud = {**MVP_DEFAULT_VIEW_NAMES, "archive": "{model_name}-delete"}
+        custom_crud = {**MVP_CONFIG["view_names"], "archive": "{model_name}-delete"}
         view = make_view(
             extra_attrs={
                 "directory": ["archive"],
@@ -376,7 +376,7 @@ class TestUS4CustomCrudViews:
         # Remap 'list' to 'product-delete' URL (which accepts no kwargs)
         # In practice, remapping to the delete URL of a product is artificial,
         # but it proves the custom mapping is used instead of the default.
-        custom_crud = {**MVP_DEFAULT_VIEW_NAMES, "list": "{model_name}-list"}
+        custom_crud = {**MVP_CONFIG["view_names"], "list": "{model_name}-list"}
         view = make_view(
             extra_attrs={
                 "directory": ["list"],
@@ -417,7 +417,7 @@ class TestUS4CustomCrudViews:
 
     def test_US4_custom_pattern_with_app_name_token(self):
         """[US4] {app_name} token in custom pattern substituted with model app_label."""
-        custom_crud = {**MVP_DEFAULT_VIEW_NAMES, "list": "{model_name}-list"}
+        custom_crud = {**MVP_CONFIG["view_names"], "list": "{model_name}-list"}
         view = make_view(
             extra_attrs={"crud_views": custom_crud},
             kwargs={},
