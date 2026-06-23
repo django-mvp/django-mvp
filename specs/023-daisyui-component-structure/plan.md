@@ -318,8 +318,8 @@ grep -rn '<c-' mvp/templates/ demo/ --include='*.html' | sort
 | Old Tag | New Tag |
 |---|---|
 | `<c-messages>` | `<c-alert>` |
-| `<c-navigation.breadcrumbs>` | `<c-breadcrumbs>` |
-| `<c-navigation.breadcrumbs.item>` | `<c-breadcrumbs.item>` |
+| `<c-breadcrumbs>` | `<c-breadcrumbs>` |
+| `<c-breadcrumbs.item>` | `<c-breadcrumbs.item>` |
 | `<c-divider>` | `<c-divider>` |
 | `<c-dropdown.divider>` | **removed** (merged) |
 | `<c-app.footer>` | `<c-footer>` |
@@ -329,12 +329,12 @@ grep -rn '<c-' mvp/templates/ demo/ --include='*.html' | sort
 | `<c-app.sidebar.menu.group>` | `<c-menu.group>` |
 | `<c-app.sidebar.menu.collapse>` | `<c-menu.collapse>` |
 | `<c-app.header.navbar>` | `<c-navbar>` |
-| `<c-navigation.pagination>` | `<c-pagination>` |
-| `<c-navigation.pagination.link>` | `<c-pagination.link>` |
-| `<c-navigation.pagination.wrapper>` | `<c-pagination.wrapper>` |
+| `<c-pagination>` | `<c-pagination>` |
+| `<c-pagination.link>` | `<c-pagination.link>` |
+| `<c-pagination.wrapper>` | `<c-pagination.wrapper>` |
 | `<c-widgets.stat_tile>` | `<c-stat>` |
-| `<c-navigation.steps>` | `<c-steps>` |
-| `<c-navigation.steps.item>` | `<c-steps.item>` |
+| `<c-steps>` | `<c-steps>` |
+| `<c-steps.item>` | `<c-steps.item>` |
 | `<c-actions.theme_switcher>` | `<c-swap>` |
 | `<c-addons.django_table>` | `<c-table>` |
 | `<c-app.sidebar>` | `<c-drawer>` |
@@ -349,9 +349,6 @@ grep -rn '<c-' mvp/templates/ demo/ --include='*.html' | sort
 | `<c-actions.search>` | `<c-action.search>` |
 | `<c-actions.language_switcher>` | `<c-action.language-switcher>` |
 | `<c-group>` | `<c-group>` |
-| `` | **removed** (merged) |
-| `` | **removed** (merged) |
-| `<c-form.modal>` | **removed** (merged) |
 | `<c-form.index>` | **removed** (merged) |
 | `<c-card.toggle.collapse>` | **removed** (merged) |
 | `<c-card.toggle.maximize>` | **removed** (merged) |

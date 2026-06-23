@@ -3,7 +3,7 @@
 **Branch**: `017-dock` | **Date**: 2026-05-26 | **Spec**: [spec.md](spec.md)
 **Input**: Feature specification from `specs/017-dock/spec.md`
 **Propagated**: 2026-05-26 — Updated from spec.md refinement (NFR-001: BS5-utility-first styling)
-**Propagated**: 2026-05-26 — Reflected user template/style refactoring: `<div>` outer container, `<c-nav>`/`<c-nav.link>` components, `attrs` dict sidebar toggle, `show_text` flag, SCSS underline indicator
+**Propagated**: 2026-05-26 — Reflected user template/style refactoring: `<div>` outer container, `<c-nav>`/`<c-link>` components, `attrs` dict sidebar toggle, `show_text` flag, SCSS underline indicator
 
 ## Summary
 
@@ -16,10 +16,10 @@ component, configured via `MobileFooterMenu.extra_context` (`type="underline"`,
 `fill=True`, `gap=0`). Items are populated via a new `MobileFooterMenu` singleton
 (independent of `AppMenu`), rendered by a new `MobileFooterNavRenderer` registered as
 `"dock"` in `FLEX_MENUS`. The wrapper template uses `<c-nav :attrs="context">`;
-item templates use `<c-nav.link>` as direct children of `<nav>` (no `<li>` wrapper).
+item templates use `<c-link>` as direct children of `<nav>` (no `<li>` wrapper).
 Items default to icon-only mode (`btn-icon`) — `show_text=True` in `extra_context`
 enables label display. The pre-populated sidebar toggle uses `attrs: {"data-lte-toggle":
-"sidebar"}` in `extra_context`, forwarded to the rendered element by `<c-nav.link>`.
+"sidebar"}` in `extra_context`, forwarded to the rendered element by `<c-link>`.
 **NFR-001**: Bootstrap 5 utility classes and prebuilt cotton-bs5 components are preferred
 over custom SCSS and custom HTML. The `_dock.scss` partial is restricted to
 `env(safe-area-inset-bottom)` padding and nav-underline active indicator (both lack
@@ -63,7 +63,7 @@ gates continue to pass.*
 | VI. UI Verification (playwright-mcp) | Playwright MCP tasks required for all UI changes | ✅ PASS — planned in tasks |
 | VII. Documentation Retrieval | context7 for django-flex-menus | ✅ PASS — to be used during implementation |
 | VIII. E2E Testing | pytest-playwright E2E tests required | ✅ PASS — planned |
-| IX. Template Component Reuse | Prebuilt-first check; tests in `test_c_app.py` | ✅ PASS — wrapper uses `<c-nav>`; items use `<c-nav.link>` from cotton-bs5; `test_c_app.py` grouping confirmed |
+| IX. Template Component Reuse | Prebuilt-first check; tests in `test_c_app.py` | ✅ PASS — wrapper uses `<c-nav>`; items use `<c-link>` from cotton-bs5; `test_c_app.py` grouping confirmed |
 | X. SKILL.md Currency | `skills/django-mvp/SKILL.md` must be updated | ✅ PASS — in scope |
 | XI. Dual-Audience | Developer + End User stories both present in spec | ✅ PASS — User Story 1 (Developer), Stories 2–3 (End User) |
 | XII. View Docstring Completeness | No new view classes introduced | ✅ PASS — N/A |
@@ -100,7 +100,7 @@ mvp/
     ├── menus/
     │   └── dock/
     │       ├── wrapper.html              # NEW — depth-0: <c-nav :attrs="context"> wrapping children with vr separators
-    │       └── item.html                # NEW — depth-1+: <c-nav.link> (direct child of <nav>, no <li>)
+    │       └── item.html                # NEW — depth-1+: <c-link> (direct child of <nav>, no <li>)
 
 mvp/templates/mvp/
 └── base.html                             # + {% block app.mobile_footer_nav %} inside <c-app>

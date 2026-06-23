@@ -68,7 +68,7 @@
 - [X] T006 [P] [US1] Add `MobileFooterMenu` singleton to `mvp/menus.py` — `Menu("MobileFooterMenu", children=[MenuItem(name="sidebar_toggle", extra_context={...})])` pre-populated with the sidebar toggle item per data-model.md Entity 1
 - [X] T007 [P] [US1] Add `MobileFooterNavRenderer` class to `mvp/renderers.py` with `templates` dict mapping depth-0 to `menus/dock/index.html` and depth-1+ to `menus/dock/item.html` per data-model.md Entity 2
 - [X] T008 [P] [US1] Create `mvp/templates/menus/dock/index.html` — renders `<c-nav :attrs="context">` passing `MobileFooterMenu.extra_context` (type, fill, gap) as component attributes, iterates children via `{% render_item child renderer=renderer %}` with `<div class="vr my-2">` separators between items per data-model.md Entity 3
-- [X] T009 [P] [US1] Create `mvp/templates/menus/dock/item.html` — renders `<c-nav.link text="{{ label }}" :href="url" :active="selected" :attrs="attrs">` with `btn-icon` class when `show_text` is falsy (icon-only default) and optional extra classes; delegates button-vs-anchor branching and `data-lte-toggle` attribute forwarding to `<c-nav.link>` via `:attrs="attrs"`. **NFR-001**: all item layout handled by the cotton-bs5 component; no custom SCSS rules.
+- [X] T009 [P] [US1] Create `mvp/templates/menus/dock/item.html` — renders `<c-link text="{{ label }}" :href="url" :active="selected" :attrs="attrs">` with `btn-icon` class when `show_text` is falsy (icon-only default) and optional extra classes; delegates button-vs-anchor branching and `data-lte-toggle` attribute forwarding to `<c-link>` via `:attrs="attrs"`. **NFR-001**: all item layout handled by the cotton-bs5 component; no custom SCSS rules.
 - [X] T010 [US1] Create `mvp/templates/cotton/app/dock.html` — Cotton component with a `<div>` outer positioning container carrying `fixed-bottom bg-body border-top show-on-mobile dock` and `aria-label="Mobile navigation"`; wraps `{% render_menu "MobileFooterMenu" renderer="dock" %}` whose wrapper template provides the inner `<c-nav>` semantic nav element; per contracts/public-api.md Cotton Component API. (depends on T007, T008, T009)
 - [X] T011 [US1] Add `{% block app.mobile_footer_nav %}<c-app.dock />{% endblock app.mobile_footer_nav %}` to `mvp/templates/mvp/base.html` immediately after `{% endblock app.footer %}` and before `{% endblock app %}` per contracts/public-api.md Template Block API (depends on T010)
 - [X] T011a [US1] **Playwright MCP inline verification** (Constitution Principle VI): use the Playwright MCP server to open the running dev app in a 375×812 mobile viewport; confirm `nav[aria-label="Mobile navigation"]` is present and visually pinned at the bottom of the viewport; confirm the pre-populated sidebar toggle `<button data-lte-toggle="sidebar">` is visible and tappable; screenshot for record (depends on T011)
@@ -180,9 +180,9 @@ No new implementation files required — the renderer (`mvp/renderers.py`, T007)
 
 ---
 
-## Phase 9: Test Corrections for `<c-nav>`/`<c-nav.link>` Architecture
+## Phase 9: Test Corrections for `<c-nav>`/`<c-link>` Architecture
 
-**Purpose**: The user's template refactoring (reflected in T008/T009/T010) uses `<c-nav>` and `<c-nav.link>` cotton-bs5 components instead of custom HTML, changing the DOM structure. Seven tests written against the original `<nav>` outer + `<li class="nav-item">` structure are failing. These tasks update assertions to match the actual architecture.
+**Purpose**: The user's template refactoring (reflected in T008/T009/T010) uses `<c-nav>` and `<c-link>` cotton-bs5 components instead of custom HTML, changing the DOM structure. Seven tests written against the original `<nav>` outer + `<li class="nav-item">` structure are failing. These tasks update assertions to match the actual architecture.
 
 - [X] T027 [P] Update `TestCAppMobileFooterNav` failing tests in `tests/test_components/test_c_app.py`:
   - `test_renders_nav_with_aria_label`: find outer `<div>` with `aria-label="Mobile navigation"` (not `<nav>`)

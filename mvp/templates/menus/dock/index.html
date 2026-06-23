@@ -1,6 +1,6 @@
 {% load flex_menu %}
-<c-navigation.dock>
+<c-dock>
   {% for child in children %}
     {% render_item child renderer=renderer %}
   {% endfor %}
-</c-navigation.dock>
+</c-dock>

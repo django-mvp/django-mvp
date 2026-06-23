@@ -3,16 +3,14 @@
 {% load render_table from django_tables2 %}
 {% block page.header %}
   <c-container fluid>
-    <c-navigation.breadcrumbs :items="page.breadcrumbs" class="py-2" />
+    <c-breadcrumbs :items="page.breadcrumbs" class="py-2" />
   </c-container>
 {% endblock page.header %}
 {% block page.content-wrapper %}
   <c-page.content fluid>
     <c-card tight>
       {% block page.title %}
-        <c-card.header level="1" :attrs="page">
-          <c-page.list.toolbar />
-        </c-card.header>
+        <c-page.list.toolbar />
       {% endblock page.title %}
       <div class="table-compact">
         <c-addons.django-table min-height="65vh" class="table-compact" />

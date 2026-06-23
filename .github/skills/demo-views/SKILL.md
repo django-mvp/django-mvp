@@ -159,7 +159,7 @@ Most demo templates only need two blocks:
 {% extends "base.html" %}
 
 {% block breadcrumbs %}
-  <c-navigation.breadcrumbs.item text="My Demo" />
+  <c-breadcrumbs.item text="My Demo" />
 {% endblock breadcrumbs %}
 
 {% block content %}
@@ -189,7 +189,7 @@ Most demo templates only need two blocks:
 {% extends "base.html" %}
 
 {% block breadcrumbs %}
-  <c-navigation.breadcrumbs.item text="My Demo" />
+  <c-breadcrumbs.item text="My Demo" />
 {% endblock breadcrumbs %}
 
 {% block toolbar_widgets %}
