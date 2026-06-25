@@ -178,7 +178,7 @@ def test_form_valid_htmx_returns_success_partial():
     with patch("mvp.views.htmx.render_component", return_value="<div>success</div>") as mock_rc:
         response = view.form_valid(form)
 
-    from django.http import HttpResponse, HttpResponseRedirect
+    from django.http import HttpResponseRedirect
 
     assert isinstance(response, HttpResponse)
     assert not isinstance(response, HttpResponseRedirect)
@@ -200,8 +200,6 @@ def test_form_invalid_htmx_returns_form_partial_at_200():
 
     with patch("mvp.views.htmx.render_component", return_value="<div>form</div>"):
         response = view.form_invalid(form)
-
-    from django.http import HttpResponse
 
     assert isinstance(response, HttpResponse)
     assert response.status_code == 200
@@ -233,7 +231,7 @@ def test_form_invalid_non_htmx_full_page():
 
     response = view.form_invalid(form)
 
-    from django.http import HttpResponse, HttpResponseRedirect
+    from django.http import HttpResponseRedirect
 
     # Base view returns a TemplateResponse (not a redirect, not an htmx partial)
     assert isinstance(response, HttpResponse)

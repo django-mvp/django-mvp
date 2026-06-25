@@ -1,12 +1,14 @@
 {% load i18n %}
 <c-vars id breakpoint />
 <div id="{{ id }}"
-     class="drawer{% if breakpoint %} {{ breakpoint }}:drawer-open{% endif %}"
+     class="drawer lg:drawer-open"
+     x-data="{open: true}"
      {{ attrs }}>
   <input id="{{ id }}-toggle"
          type="checkbox"
+         x-model="open"
          class="drawer-toggle" />
-  <div class="drawer-side">
+  <div class="drawer-side is-drawer-close:overflow-visible z-40">
     <label for="{{ id }}-toggle"
            aria-label="{% trans "Close sidebar" %}"
            class="drawer-overlay"></label>

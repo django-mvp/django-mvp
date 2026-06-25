@@ -1,24 +1,20 @@
 {% load i18n %}
-<div class="navbar w-full backdrop-blur transition-shadow duration-100 print:hidden">
-  <div class="navbar-start gap-1">
+<div class="navbar px-3 w-full backdrop-blur transition-shadow duration-100 print:hidden">
+  <div class="navbar-start gap-1 ">
     <label for="mvp-app-toggle"
            aria-label="{% trans "Open sidebar" %}"
-           class="btn btn-ghost btn-square is-drawer-open:hidden">
+           class="btn btn-ghost btn-square ">
       <c-icon name="menu" />
     </label>
     <a href="/">
-      <c-brand.icon "sm" />
-      <div class="text-2xl  hidden lg:flex items-center">
-        {% comment %} {% if icon %}
-          <img src="{{ icon }}" alt="{% trans "Icon" %}" class="max-h-1lh" />
-        {% endif %} {% endcomment %}
-        {{ request.site.name }}
-      </div>
+      {% if icon %}
+        <c-brand.icon size="sm" />
+      {% endif %}
+      <div class="text-2xl hidden lg:flex items-center">{{ request.site.name }}</div>
       <div class="lg:hidden">
         <c-brand.logo max-height="1.5rem" />
       </div>
     </a>
   </div>
-  <div class="navbar-center"></div>
   <div class="navbar-end gap-1">{{ right }}</div>
 </div>
