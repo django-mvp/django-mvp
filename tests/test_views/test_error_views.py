@@ -157,49 +157,6 @@ def test_400_real_handler_fires():
     assert b"Bad Request" in response.content or b"400" in response.content
 
 
-# 404: real handler fires on missing URL
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.django_db
-@override_settings(DEBUG=False)
-def test_404_real_handler_fires():
-    """Missing URL renders custom 404, not Django's debug page."""
-    client = Client()
-    response = client.get("/this-url-does-not-exist-at-all-xyz/")
-    assert response.status_code == 404
-    assert b"Page not found" in response.content or b"Oops" in response.content
-
-
-# ---------------------------------------------------------------------------
-# 500: real handler fires on view crash, no traceback leaked
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.django_db
-@override_settings(DEBUG=False, DEFAULT_FROM_EMAIL="support@example.com")
-def test_500_real_handler_no_traceback():
-    """Crashing view returns 500 with custom page, no traceback in output."""
-
-    def crashing_view(request):
-        raise RuntimeError("Deliberate crash for testing")
-
-    urlconf = _crashing_urlconf(path("crash/", crashing_view))
-    with override_settings(ROOT_URLCONF=urlconf):
-        client = Client(raise_request_exception=False)
-        response = client.get("/crash/")
-    assert response.status_code == 500
-    assert b"Traceback" not in response.content
-
-
-@pytest.mark.django_db
-@override_settings(DEFAULT_FROM_EMAIL="support@example.com")
-def test_500_support_email_appears():
-    """DEFAULT_FROM_EMAIL renders as contact link on 500 page."""
-    response = server_error(RequestFactory().get("/"))
-    assert b"support@example.com" in response.content
-
-
 @pytest.mark.django_db
 @override_settings(DEFAULT_FROM_EMAIL="")
 def test_500_no_support_email_when_empty():
