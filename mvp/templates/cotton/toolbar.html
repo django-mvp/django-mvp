@@ -25,7 +25,7 @@
 {#                                                              #}
 {#   <c-toolbar row="lg">...</c-toolbar>                       #}
 {# ============================================================ #}
-<c-vars row="md" gap="2" tight class />
+<c-vars row="md" gap="2" class />
 <div class="flex {% if row is True %}flex-row justify-between items-center{% else %}flex-col {{ row }}:flex-row {{ row }}:justify-between {{ row }}:items-center{% endif %} w-full gap-{{ gap }} {{ class }}"
      {{ attrs }}>
   <div class="flex-shrink-0">{{ slot }}</div>

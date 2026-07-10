@@ -5,7 +5,7 @@
   {% get_language_info for CURRENT_LANGUAGE as lang %}
   {% url "set_language" as set_language_url %}
   {% if set_language_url %}
-    <c-dropdown position="end">
+    <c-dropdown halign="end">
       <div tabindex="0"
            role="button"
            class="btn btn-ghost btn-{{ size }} gap-1">

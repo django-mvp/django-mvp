@@ -1,8 +1,16 @@
-<c-vars title icon level=2 actions />
+<c-vars title icon level="2" actions />
 <section {{ attrs }}>
-  {% if title %}
-    <c-toolbar :title="title" :icon="icon" :level="level">
-      {{ actions }}
+  {% if title or actions %}
+    <c-toolbar class="mb-3">
+      {% if title %}
+        {# djlint:off #}
+        <h{{ level }} class="flex items-center gap-2 font-semibold {% if level == '1' %}text-3xl{% elif level == '2' %}text-2xl{% elif level == '3' %}text-xl{% else %}text-lg{% endif %}">
+          {% if icon %}<c-icon name="{{ icon }}" />{% endif %}
+          {{ title }}
+        </h{{ level }}>
+        {# djlint:on #}
+      {% endif %}
+      <c-slot name="actions">{{ actions }}</c-slot>
     </c-toolbar>
   {% endif %}
   {{ slot }}

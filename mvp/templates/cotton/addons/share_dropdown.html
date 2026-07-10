@@ -1,40 +1,44 @@
 {% load i18n %}
-
 <c-vars url="{{ request.build_absolute_uri }}"
         title="{{ page.title|default:'' }}"
-        description="{{ page.meta_description|default:'' }}"
+        size
         class />
-<c-dropdown id="shareDropdown"
-            class="{{ class }}"
-            text="{% trans "Share" %}"
-            :caret="False"
-            icon="share">
-  <c-dropdown.header text="{% trans "Share this page" %}" />
-  <c-dropdown.item href="https://www.facebook.com/sharer/sharer.php?u={{ url|urlencode }}"
-                   icon="facebook"
-                   text="Facebook"
-                   target="_blank"
-                   rel="noopener noreferrer" />
-  <c-dropdown.item href="https://twitter.com/intent/tweet?text={{ title|add:" "|add:url|urlencode }}"
-                   icon="twitter"
-                   text="Twitter"
-                   target="_blank"
-                   rel="noopener noreferrer" />
-  <c-dropdown.item href="https://www.reddit.com/submit?title={{ title|urlencode }}&url={{ url|urlencode }}"
-                   icon="reddit"
-                   text="Reddit"
-                   target="_blank"
-                   rel="noopener noreferrer" />
-  <c-dropdown.item href="https://www.pinterest.com/pin/create/button/?url={{ url|urlencode }}"
-                   icon="pinterest"
-                   text="Pinterest"
-                   target="_blank"
-                   rel="noopener noreferrer" />
-  <c-dropdown.item href="mailto:?subject={{ title|urlencode }}&body={{ description|add:" "|add:url|urlencode }}"
-                   icon="email"
-                   text="Email" />
-  <c-dropdown.item icon="copy-link"
-                   href="#"
-                   onclick="navigator.clipboard.writeText(window.location.href); this.textContent='Copied!'; setTimeout(() => this.textContent='Copy Link', 2000); return false;"
-                   text="Copy Link" />
-  </c-dropdown>
+<c-dropdown halign="end" class="{{ class }}">
+  <c-slot name="button">
+    <c-button tabindex="0"
+              role="button"
+              :size="size"
+              icon="share"
+              text="{% trans "Share" %}" />
+  </c-slot>
+  <c-menu label="{% trans "Share this page" %}">
+    <li class="menu-title">{% trans "Share this page" %}</li>
+    <c-menu.item label="Facebook"
+                 icon="facebook"
+                 href="https://www.facebook.com/sharer/sharer.php?u={{ url|urlencode }}"
+                 target="_blank"
+                 rel="noopener noreferrer" />
+    <c-menu.item label="X / Twitter"
+                 icon="twitter"
+                 href="https://twitter.com/intent/tweet?text={{ title|urlencode }}&url={{ url|urlencode }}"
+                 target="_blank"
+                 rel="noopener noreferrer" />
+    <c-menu.item label="Reddit"
+                 icon="reddit"
+                 href="https://www.reddit.com/submit?title={{ title|urlencode }}&url={{ url|urlencode }}"
+                 target="_blank"
+                 rel="noopener noreferrer" />
+    <c-menu.item label="Pinterest"
+                 icon="pinterest"
+                 href="https://www.pinterest.com/pin/create/button/?url={{ url|urlencode }}"
+                 target="_blank"
+                 rel="noopener noreferrer" />
+    <c-menu.item label="{% trans "Email" %}"
+                 icon="email"
+                 href="mailto:?subject={{ title|urlencode }}&body={{ url|urlencode }}" />
+    <c-menu.item label="{% trans "Copy link" %}"
+                 icon="copy-link"
+                 href="#"
+                 onclick="navigator.clipboard.writeText(window.location.href); return false;" />
+  </c-menu>
+</c-dropdown>

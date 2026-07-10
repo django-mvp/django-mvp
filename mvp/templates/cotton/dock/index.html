@@ -1,2 +1,3 @@
+{% load mvp %}
 <c-vars size />
-<div class="dock bg-transparent backdrop-blur">{{ slot }}</div>
+<div class="dock bg-transparent backdrop-blur {% variation size "dock" "xs,sm,md,lg,xl" %}">{{ slot }}</div>

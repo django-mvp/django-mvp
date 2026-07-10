@@ -1,4 +1,6 @@
 {% load i18n mvp %}
 <c-vars max-height class />
 <img src="{% icon_url max_height %}"
-     alt="{% trans "Icon" %}" />
+     alt="{% trans "Icon" %}"
+     {% if class %}class="{{ class }}"{% endif %}
+     {{ attrs }} />

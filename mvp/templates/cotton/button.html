@@ -1,7 +1,7 @@
-<c-vars small
-        large
+{% load mvp %}
+<c-vars size
         text
-        variant="default"
+        variant
         outline
         align="center"
         icon
@@ -14,7 +14,7 @@
   {% spaceless %}
     {% with element=href|yesno:"a,button" %}
       {# djlint:off #}
-      <{{ element }} class="btn {% if variant %} btn-{{variant}}{% endif %} inline-flex items-center justify-{{ align }}{% if reverse %} flex-row-reverse{% endif %} gap-{{ gap }}{% if small %} btn-sm{% elif large %} btn-lg{% endif %}{% if ghost %} btn-ghost{% endif %} {{ class }}" {{ attrs }}>
+      <{{ element }} class="btn{% if variant %} btn-{{ variant }}{% endif %}{% if outline %} btn-outline{% endif %} {% variation size "btn" "sm,md,lg" %}{% if ghost %} btn-ghost{% endif %} inline-flex items-center justify-{{ align }}{% if reverse %} flex-row-reverse{% endif %} gap-{{ gap }} {{ class }}" {{ attrs }}>
         {% if icon %}<c-icon name="{{icon }}" />{% endif %}
         {% if text %}<span>{{ text }}</span>{% endif %}
         {{ slot }}
