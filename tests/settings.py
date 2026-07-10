@@ -120,6 +120,19 @@ CACHES = {
 CRISPY_ALLOWED_TEMPLATE_PACKS = ["tailwind"]
 CRISPY_TEMPLATE_PACK = "tailwind"
 
+# django-mvp configuration — demonstrates deep-merge overrides of package
+# defaults (mvp/config.py). Unset keys keep their package defaults.
+MVP_CONFIG = {
+    "layout": {
+        "navbar": {
+            "end": [
+                "actions.theme-controller",
+                "actions.language-switcher",
+            ],
+        },
+    },
+}
+
 # Easy Icons configuration
 EASY_ICONS = {
     "default": {
@@ -132,7 +145,10 @@ EASY_ICONS = {
         "icons": {
             "add": "bi bi-plus-circle",
             "arrow-left": "bi bi-arrow-left",
+            "bell": "bi bi-bell",
             "bicycle": "bi bi-bicycle",
+            "chart-bar": "bi bi-bar-chart",
+            "tasks": "bi bi-list-check",
             "book": "bi bi-book",
             "box-seam": "bi bi-box-seam",
             "briefcase": "bi bi-briefcase",

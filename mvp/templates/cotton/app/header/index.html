@@ -1,10 +1,11 @@
-{% load mvp %}
-<c-vars title tray />
 <div x-data="{ stuck: false }"
      @scroll.window="stuck = window.scrollY > 0"
      class="mvp-header sticky z-10 top-0 w-full"
      :class="{ 'shadow-xs': stuck }">
   {{ above }}
-  <c-app.header.navbar />
+  <c-app.header.navbar>
+    <c-slot name="right">{{ right }}</c-slot>
+  </c-app.header.navbar>
+  {{ tray }}
   {{ below }}
 </div>

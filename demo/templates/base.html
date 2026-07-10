@@ -1,8 +1,6 @@
 {% extends "mvp/base.html" %}
-{% block app.header.widgets %}
-  <c-actions.theme-controller />
-  <c-actions.language-switcher />
-{% endblock app.header.widgets %}
-{% block app %}
-  {{ block.super }}
-{% endblock app %}
+{% comment %}
+  Navbar widgets are configured via MVP_CONFIG["layout"]["navbar"]["end"] in
+  settings.py. Use {% block app.header.widgets %} here only for page/project
+  widgets that shouldn't come from settings.
+{% endcomment %}

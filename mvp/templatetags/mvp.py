@@ -7,7 +7,6 @@ from django.core.exceptions import ImproperlyConfigured
 from django.template.loader import render_to_string
 from django.utils.html import escape
 from django.utils.module_loading import import_string
-from django.utils.safestring import mark_safe
 from django_cotton.compiler_regex import CottonCompiler
 
 from ..config import MVP_CONFIG
@@ -15,6 +14,32 @@ from ..config import MVP_CONFIG
 register = template.Library()
 
 compiler = CottonCompiler()
+
+# Tailwind breakpoints supported for sidebar expansion. Maps breakpoint name to
+# (drawer-open variant class, min-width in px). The class strings must stay in
+# sync with the @source inline() safelist in assets/tailwind.css.
+SIDEBAR_BREAKPOINTS = {
+    "sm": ("sm:drawer-open", 640),
+    "md": ("md:drawer-open", 768),
+    "lg": ("lg:drawer-open", 1024),
+    "xl": ("xl:drawer-open", 1280),
+    "2xl": ("2xl:drawer-open", 1536),
+}
+
+
+@register.simple_tag
+def sidebar_breakpoint_class(bp):
+    """Return the drawer-open variant class for a configured sidebar breakpoint.
+
+    Falls back to the ``lg`` breakpoint for unknown values.
+    """
+    return SIDEBAR_BREAKPOINTS.get(bp, SIDEBAR_BREAKPOINTS["lg"])[0]
+
+
+@register.simple_tag
+def breakpoint_px(bp):
+    """Return the min-width in pixels for a configured sidebar breakpoint."""
+    return SIDEBAR_BREAKPOINTS.get(bp, SIDEBAR_BREAKPOINTS["lg"])[1]
 
 
 @register.simple_tag
@@ -105,18 +130,6 @@ def slot_is_empty(slot):
 def slot_exists(*args):
     """Accepts any number of slots and returns True if any are non-empty."""
     return any(not slot_is_empty(slot) for slot in args)
-
-
-# @register.simple_tag(takes_context=True)
-# def responsive(context, root: str):
-#     # The idea is to take a root class name (e.g., "col") and
-#     # and generate responsive variants based on context variables xs, sm, md, lg, xl, xxl).
-#     # If a context variable is present, the value should be added to root along with the responsive
-#     # name (e.g., "col-md-6").
-
-#     responsive_values = {responsive: context.get(responsive) for responsive in ["xs", "sm", "md", "lg", "xl", "xxl"]}
-
-#     return " ".join(f"{root}-{key}-{value}" for key, value in responsive_values.items() if value is not None)
 
 
 @register.tag(name="show_code")
@@ -210,5 +223,3 @@ class ShowCodeNode(template.Node):
         return render_to_string(
             "cotton/documentation.html", {"code": escaped, "rendered": rendered}
         )
-        return rendered
-        return mark_safe(f"<pre><code>{escaped}</code></pre>")

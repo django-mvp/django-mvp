@@ -24,6 +24,21 @@ MVP_CONFIG = {
         "logo_resolver": "mvp.utils.logo_url",
         "icon_resolver": "mvp.utils.icon_url",
     },
+    "layout": {
+        "sidebar": {
+            # Tailwind breakpoint at which the sidebar becomes persistent
+            # (below it, the sidebar is a mobile drawer): sm | md | lg | xl | 2xl
+            "breakpoint": "lg",
+            # How the sidebar collapses when toggled at or above the breakpoint:
+            # "offcanvas" (slides fully away) or "icons" (collapses to an icon rail)
+            "collapse": "offcanvas",
+        },
+        "navbar": {
+            # Cotton component names rendered at the end (right side) of the navbar,
+            # in order, e.g. "actions.theme-controller" -> <c-actions.theme-controller />
+            "end": ["actions.theme-controller"],
+        },
+    },
 }
 
 merge(MVP_CONFIG, getattr(settings, "MVP_CONFIG", {}))

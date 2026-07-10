@@ -16,5 +16,10 @@
       </div>
     </a>
   </div>
-  <div class="navbar-end gap-1">{{ right }}</div>
+  <div class="navbar-end gap-1">
+    {{ right }}
+    {% for widget in mvp_config.layout.navbar.end %}
+      <c-component :is="widget" />
+    {% endfor %}
+  </div>
 </div>

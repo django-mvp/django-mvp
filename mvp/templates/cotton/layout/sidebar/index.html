@@ -1,8 +1,9 @@
-{% load i18n %}
+{% load i18n mvp %}
 <c-vars id breakpoint />
+{% firstof breakpoint mvp_config.layout.sidebar.breakpoint "lg" as bp %}
 <div id="{{ id }}"
-     class="drawer lg:drawer-open"
-     x-data="{open: true}"
+     class="drawer {% sidebar_breakpoint_class bp %}"
+     x-data="{ open: $persist(window.matchMedia('(min-width: {% breakpoint_px bp %}px)').matches).as('{{ id }}-drawer-open') }"
      {{ attrs }}>
   <input id="{{ id }}-toggle"
          type="checkbox"

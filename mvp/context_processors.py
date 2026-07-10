@@ -1,16 +1,16 @@
 """Context processors for django-mvp."""
 
-import json
-
 from .config import MVP_CONFIG
 
 
 def mvp_config(request):
     """Provide MVP configuration to all templates.
 
-    Passes the merged MVP_CONFIG dict as JSON under the 'mvp' key.
+    Exposes the merged MVP_CONFIG dict as ``mvp_config`` so templates and
+    Cotton components can read settings-driven configuration, e.g.
+    ``{{ mvp_config.layout.sidebar.breakpoint }}``.
     """
 
     return {
-        "mvp": json.dumps(MVP_CONFIG),
+        "mvp_config": MVP_CONFIG,
     }
