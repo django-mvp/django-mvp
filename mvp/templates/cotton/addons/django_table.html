@@ -1,4 +1,4 @@
 {% load render_table from django_tables2 %}
-<c-vars table />
-<div class="table-container table-responsive"
-     style="min-height: {{ min_height }}">{% render_table table %}</div>
+<c-vars table min_height />
+<div class="table-container overflow-x-auto"
+     {% if min_height %}style="min-height: {{ min_height }}"{% endif %}>{% render_table table %}</div>

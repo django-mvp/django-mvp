@@ -1,4 +1,4 @@
-<c-vars label collapse icon selected />
+<c-vars label collapse icon icon_class badge badge_class />
 {% if collapse %}
   <li>
     <details open>
@@ -14,7 +14,7 @@
   </li>
 {% else %}
   <li></li>
-  <li class="menu-title text-upper">
+  <li class="menu-title uppercase">
     <span>{{ label }}</span>
   </li>
   {{ slot }}

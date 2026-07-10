@@ -1,12 +1,13 @@
+{% load i18n %}
 <c-vars message="{% trans "Coming soon..." %}"
         height
         icon
         class />
 <div class="card bg-base-200 {{ class }}"
      {% if height %}style="height: {{ height }}"{% endif %}>
-  <div class="card-body d-flex justify-content-center align-items-center">
+  <div class="card-body flex justify-center items-center">
     <div class="text-center">
-      <c-icon name="{{ icon }}" class="text-5xl" />
+      {% if icon %}<c-icon name="{{ icon }}" class="text-5xl" />{% endif %}
       <p>{{ message }}</p>
     </div>
   </div>

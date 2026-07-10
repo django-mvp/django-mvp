@@ -1,8 +1,9 @@
-<c-vars icon label active badge />
+<c-vars icon label active badge tip />
 {% with element=href|yesno:"a,button" %}
   <li class="{% if slot and active %}menu-open{% endif %}">
     {# djlint:off #}
-  <{{element}} class="group {% if selected %}menu-active{% endif %}"
+  <{{element}} class="group {% if active %}menu-active{% endif %} {% if tip %}is-drawer-close:tooltip is-drawer-close:tooltip-right{% endif %}"
+     {% if tip %}data-tip="{{ tip }}"{% endif %}
      {{ attrs }}>
      {% if icon %}<c-icon name="{{ icon }}" />{% endif %}
     <span>{{ label }}</span>

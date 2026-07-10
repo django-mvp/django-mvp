@@ -1,13 +1,13 @@
+{% load i18n %}
 <c-vars icon="search"
         heading
         message
-        icon_class="display-1 text-muted mb-3" />
-<div class="w-100" {{ attrs }}>
+        icon_class="text-6xl text-base-content/60 mb-3" />
+<div class="w-full" {{ attrs }}>
   <div class="text-center py-5">
     <c-icon name="{{ icon }}" class="{{ icon_class }}" />
-    <i class="{{ icon }} {{ icon_class }}"></i>
-    <h3 class="text-muted">{{ heading }}</h3>
-    <p class="text-muted">{{ message }}</p>
+    <h3 class="text-base-content/60">{{ heading }}</h3>
+    <p class="text-base-content/60">{{ message }}</p>
     {% if directory.create_url %}
       <c-button variant="primary"
                 size="lg"

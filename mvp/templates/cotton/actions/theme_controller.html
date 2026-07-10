@@ -2,11 +2,11 @@
 <c-vars size="sm" />
 <label class="flex cursor-pointer items-center gap-2"
        title="{% trans "Toggle dark mode" %}">
-  <i class="bi bi-sun text-sm" aria-hidden="true"></i>
+  <c-icon name="theme.light" class="text-sm" aria-hidden="true" />
   <input type="checkbox"
          class="toggle toggle-{{ size }}"
          data-toggle-theme="dark,light"
          data-act-class="swap-active"
          aria-label="{% trans "Toggle dark mode" %}" />
-  <i class="bi bi-moon text-sm" aria-hidden="true"></i>
+  <c-icon name="theme.dark" class="text-sm" aria-hidden="true" />
 </label>

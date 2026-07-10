@@ -1,8 +1,9 @@
+{% load i18n %}
 <div class="join">
   <c-icon name="search"
           class="join-item btn btn-square btn-ghost" />
   <input type="text"
          class="input input-bordered input-sm w-full rounded-l-none"
-         placeholder="Search..."
-         aria-label="Username" />
+         placeholder="{% trans "Search..." %}"
+         aria-label="{% trans "Search" %}" />
 </div>
