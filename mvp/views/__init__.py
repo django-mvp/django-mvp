@@ -17,6 +17,10 @@ from .list import MVPListView
 #   from mvp.views.detail import CRUDDirectoryMixin, PageObjectMixin
 #   from mvp.views.edit import NextURLMixin
 #   from mvp.views.list import SearchMixin, OrderMixin
+# Views built on optional third-party packages live in mvp.integrations and
+# are intentionally NOT exported here:
+#   from mvp.integrations.django_tables.views import MVPTableView
+#   from mvp.integrations.django_filters.views import MVPFilteredListView
 
 __all__ = [
     "MVPCreateView",
@@ -34,10 +38,3 @@ __all__ = [
     "permission_denied",
     "server_error",
 ]
-
-try:
-    from .list import MVPFilteredListView
-
-    __all__ += ["MVPFilteredListView"]
-except ImportError:
-    pass

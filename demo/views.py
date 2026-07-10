@@ -12,6 +12,7 @@ from django_filters.views import FilterView
 
 from demo.models import Category, Product
 from demo.tables import ProductTable
+from mvp.integrations.django_tables.views import MVPTableViewMixin
 from mvp.views import (
     MVPCreateView,
     MVPDeleteView,
@@ -22,7 +23,6 @@ from mvp.views import (
 )
 from mvp.views.htmx import HtmxFormMixin
 from mvp.views.list import MVPListViewMixin
-from mvp.views.table import MVPTableViewMixin
 
 from .forms import ProductForm
 

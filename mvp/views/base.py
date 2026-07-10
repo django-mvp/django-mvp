@@ -47,7 +47,7 @@ class BaseTemplateNameMixin:
         - ``MVPListViewMixin`` (``mvp.views.list``) — uses ``"list_view.html"``
         - ``MVPFormBase`` (``mvp.views.edit``) — uses ``"form_view.html"``
         - ``MVPDeleteView`` (``mvp.views.edit``) — uses ``"delete_view.html"``
-        - ``MVPTableView`` / ``MVPTableListView`` (``mvp.views.table``) — use ``"table_view.html"``
+        - ``MVPTableView`` / ``MVPTableViewMixin`` (``mvp.integrations.django_tables.views``) — use ``"table_view.html"``
 
     Example::
 
@@ -166,8 +166,7 @@ class PageMixin:
 
         Returns:
             dict: The full template context with a ``"page"`` key added containing:
-                ``{"title": str, "subtitle": str, "icon": str | None,
-                "class": str, "caption": str, "breadcrumbs": list}``.
+                ``{"title": str, "subtitle": str, "class": str, "breadcrumbs": list}``.
         """
         context = super().get_context_data(**kwargs)
         context["page"] = self.get_page_context()
