@@ -3,6 +3,7 @@
 ## Problem Statement
 
 The remaining ~365 tests use an inconsistent mix of testing strategies:
+
 - Some create `Client()` instances inline instead of using the `client` fixture
 - Some define stub view classes via `type()` inline instead of conftest helpers
 - Shared model fixtures (`category`, `product`, `article`) are duplicated across test files

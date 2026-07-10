@@ -5,6 +5,7 @@ from urllib.parse import parse_qs, urlparse
 import pytest
 from django.urls import reverse
 
+from demo.models import Category, OrderLine, Product
 from mvp.forms import DeleteConfirmForm
 
 
@@ -39,30 +40,6 @@ class TestDeleteConfirmForm:
         """(d) confirmation_value=None → no match check, any non-empty value is valid."""
         form = DeleteConfirmForm(data={"confirmation": "x"}, confirmation_value=None)
         assert form.is_valid()
-
-
-# ---------------------------------------------------------------------------
-# Fixtures
-# ---------------------------------------------------------------------------
-
-from demo.models import Category, OrderLine, Product  # noqa: E402
-
-
-@pytest.fixture
-def category(db):
-    return Category.objects.create(name="Test Cat", slug="test-cat-del")
-
-
-@pytest.fixture
-def product(category):
-    return Product.objects.create(
-        name="Test Product",
-        slug="test-product-del",
-        category=category,
-        description="A test product",
-        price="9.99",
-        sku="TP-DEL-001",
-    )
 
 
 # ---------------------------------------------------------------------------

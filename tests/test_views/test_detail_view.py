@@ -60,41 +60,6 @@ def make_detail_view(model, obj, extra_attrs=None, user=None):
 
 
 # ---------------------------------------------------------------------------
-# Fixtures
-# ---------------------------------------------------------------------------
-
-
-@pytest.fixture
-def category(db):
-    from demo.models import Category
-
-    return Category.objects.create(name="Detail Test Cat", slug="detail-test-cat")
-
-
-@pytest.fixture
-def product(category):
-    return Product.objects.create(
-        name="Detail Test Product",
-        slug="detail-test-product",
-        category=category,
-        description="A test product for detail view tests",
-        price="9.99",
-        stock=5,
-    )
-
-
-@pytest.fixture
-def article(db):
-    return Article.objects.create(
-        title="Detail Test Article",
-        slug="detail-test-article",
-        author="Test Author",
-        excerpt="A short excerpt",
-        content="Full article content body",
-    )
-
-
-# ---------------------------------------------------------------------------
 # TestPageObjectMixin — US1
 # ---------------------------------------------------------------------------
 
