@@ -62,9 +62,8 @@ def test_error_pages_have_title_with_code(client):
 
 @pytest.mark.django_db
 @override_settings(DEBUG=False)
-def test_404_real_handler_fires():
+def test_404_real_handler_fires(client):
     """Missing URL renders custom 404, not Django's debug page."""
-    client = Client()
     response = client.get("/this-url-does-not-exist-at-all-xyz/")
     assert response.status_code == 404
     assert b"Page not found" in response.content or b"Oops" in response.content
@@ -122,7 +121,7 @@ def test_500_zero_db_queries(django_assert_num_queries):
 
 @pytest.mark.django_db
 @override_settings(DEBUG=False)
-def test_403_real_handler_fires():
+def test_403_real_handler_fires(client):
     """PermissionDenied renders custom 403, not Django's debug page."""
 
     def forbidden_view(request):
@@ -130,7 +129,6 @@ def test_403_real_handler_fires():
 
     urlconf = _crashing_urlconf(path("forbidden/", forbidden_view))
     with override_settings(ROOT_URLCONF=urlconf):
-        client = Client()
         response = client.get("/forbidden/")
     assert response.status_code == 403
     assert b"Access Denied" in response.content or b"403" in response.content
@@ -143,7 +141,7 @@ def test_403_real_handler_fires():
 
 @pytest.mark.django_db
 @override_settings(DEBUG=False)
-def test_400_real_handler_fires():
+def test_400_real_handler_fires(client):
     """SuspiciousOperation renders custom 400, not Django's debug page."""
 
     def bad_view(request):
@@ -151,65 +149,6 @@ def test_400_real_handler_fires():
 
     urlconf = _crashing_urlconf(path("bad/", bad_view))
     with override_settings(ROOT_URLCONF=urlconf):
-        client = Client()
-        response = client.get("/bad/")
-    assert response.status_code == 400
-    assert b"Bad Request" in response.content or b"400" in response.content
-
-
-@pytest.mark.django_db
-@override_settings(DEFAULT_FROM_EMAIL="")
-def test_500_no_support_email_when_empty():
-    """When DEFAULT_FROM_EMAIL is empty, no mailto: link renders."""
-    response = server_error(RequestFactory().get("/"))
-    assert b"mailto:" not in response.content
-
-
-@pytest.mark.django_db
-@override_settings(DEFAULT_FROM_EMAIL="support@example.com")
-def test_500_zero_db_queries(django_assert_num_queries):
-    """SC-007: zero DB queries even during error handling."""
-    with django_assert_num_queries(0):
-        server_error(RequestFactory().get("/"))
-
-
-# ---------------------------------------------------------------------------
-# 403: real handler fires on permission denied
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.django_db
-@override_settings(DEBUG=False)
-def test_403_real_handler_fires():
-    """PermissionDenied renders custom 403, not Django's debug page."""
-
-    def forbidden_view(request):
-        raise PermissionDenied
-
-    urlconf = _crashing_urlconf(path("forbidden/", forbidden_view))
-    with override_settings(ROOT_URLCONF=urlconf):
-        client = Client()
-        response = client.get("/forbidden/")
-    assert response.status_code == 403
-    assert b"Access Denied" in response.content or b"403" in response.content
-
-
-# ---------------------------------------------------------------------------
-# 400: real handler fires on bad request
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.django_db
-@override_settings(DEBUG=False)
-def test_400_real_handler_fires():
-    """SuspiciousOperation renders custom 400, not Django's debug page."""
-
-    def bad_view(request):
-        raise SuspiciousOperation("bad data")
-
-    urlconf = _crashing_urlconf(path("bad/", bad_view))
-    with override_settings(ROOT_URLCONF=urlconf):
-        client = Client()
         response = client.get("/bad/")
     assert response.status_code == 400
     assert b"Bad Request" in response.content or b"400" in response.content
