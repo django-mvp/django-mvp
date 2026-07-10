@@ -26,6 +26,12 @@ A Python class that provides cross-cutting behavior for Django views. Consumers 
 **Exported mixins:** `PageMixin`, `BaseTemplateNameMixin`, `SearchMixin`, `OrderMixin`, `CRUDDirectoryMixin`
 **Concrete views:** `MVPListView`, `MVPCreateView`, `MVPDetailView`, `MVPUpdateView`, `MVPDeleteView`
 
+### Integration
+
+A guarded Python module under `mvp.integrations` that builds on exactly one optional third-party package (e.g. `mvp.integrations.django_tables.views`). Integrations are **never** imported by the core package and are **not** packaging extras — the third-party dependency is only required when a project explicitly imports the integration. Importing without the dependency raises `ImproperlyConfigured` with install instructions.
+
+**Existing integrations:** `django_tables` (django-tables2), `django_filters` (django-filter)
+
 ### Config
 
 A single merged dictionary, built at module import time by deep-merging package defaults with user overrides from ``settings.MVP_CONFIG``. Consumers import it directly::
@@ -38,8 +44,24 @@ A single merged dictionary, built at module import time by deep-merging package 
 # settings.py — optional overrides
 MVP_CONFIG = {
     "view_names": {"list": "{model_name}_list"},
+    "layout": {
+        "sidebar": {
+            "breakpoint": "lg",       # sm | md | lg | xl | 2xl — when the sidebar becomes persistent
+            "collapse": "offcanvas",  # "offcanvas" (slides away) | "icons" (icon rail)
+        },
+        "navbar": {
+            # Cotton component NAMES (not template paths), rendered in order at the
+            # navbar end via <c-component :is="...">
+            "end": ["actions.theme-controller", "actions.language-switcher"],
+        },
+    },
 }
 ```
+
+The context processor ``mvp.context_processors.mvp_config`` exposes the merged dict
+to all templates as ``mvp_config``. Layout config resolution order: component
+attribute (per-page override, e.g. ``<c-app breakpoint="xl">`` or
+``<c-app.sidebar collapse="icons">``) → ``MVP_CONFIG`` → package default.
 
 ## Component Library
 
@@ -52,6 +74,7 @@ App components make django-mvp a **MVP framework**. They are pre-configured, hig
 ```
 c-app
   c-app.header          — application header bar
+    c-app.header.navbar — top navbar (sidebar toggle, brand, configured widgets)
   c-app.sidebar         — application sidebar (provides default slot content: main application menu)
     c-app.sidebar.header
     c-app.sidebar.footer
@@ -72,6 +95,7 @@ c-divider               — visual separator
 c-section               — titled content section (wraps any content with optional title/icon toolbar)
 c-backdrop              — absolutely-positioned backdrop (e.g., over hero images to improve text readability)
 c-grid                  — responsive CSS grid layout
+c-layout.sidebar        — drawer shell (checkbox toggle + sidebar/content slots); c-app delegates to this
 ```
 
 ### Page
@@ -105,7 +129,7 @@ The basic building blocks of a page. Sections are **not** full-page layouts — 
 ```
 c-section
 
-c-section.hero          — full-width hero banner with background image, parallax support, and centered text layout (alias for c-hero)
+c-section.hero          — full-width hero banner with background image, parallax support, and centered text layout
 
 ```
 
@@ -145,6 +169,7 @@ c-breadcrumbs
   c-breadcrumbs.item
 c-pagination
   c-pagination.link
+  c-pagination.wrapper  — join wrapper around pagination links
 c-dock                  — bottom dock navigation
   c-dock.item
 c-menu                  — menu container
@@ -161,7 +186,10 @@ Loading states, placeholders, and visual mockup components.
 ```
 c-placeholder.card      — coming-soon placeholder
 c-mockup.browser        — browser window mockup
-c-mockup.code.line      — code line with prefix
+c-mockup.code           — code block mockup
+  c-mockup.code.line    — code line with prefix
+c-mockup.phone          — phone frame mockup
+c-mockup.window         — OS window mockup
 ```
 
 ### User
@@ -184,10 +212,8 @@ c-form.field            — single form field renderer
 Components that require additional packages to be installed. They are only available when the corresponding dependency is present.
 
 ```
-
-c-addons.share-dropdown   — requires django-tables-2
-c-addons.django-table     — requires django-tables-2
-
+c-addons.share-dropdown   — social share dropdown (no extra dependencies)
+c-addons.django-table     — requires django-tables2
 ```
 
 ### Component Naming Rules

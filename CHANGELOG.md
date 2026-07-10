@@ -9,30 +9,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Vendored AdminLTE 4 SCSS workflow** (Feature 018):
-  - Added `mvp/static/adminlte/scss/` as the destination for vendored AdminLTE 4 SCSS sources.
-  - Added `mvp/static/scss/_mvp_variables.scss` — a single downstream override entrypoint.
-    Downstream developers can override any AdminLTE Sass variable here without touching vendored files.
-  - Added `invoke refresh-adminlte-scss` Invoke task to install the latest `admin-lte@^4` npm
-    package, replace the vendored SCSS tree in full, and validate the override file for issues.
-  - Updated `mvp/static/scss/mvp.scss` with the Sass include-path contract comment block and the
-    `_mvp_variables` import placed before vendor defaults (respecting `!default` semantics).
-  - Added asset pipeline contract tests (`tests/test_static_assets.py`) covering:
-    - Compiler configuration assertions for `django-compressor` and `django-libsass`.
-    - Sass load-order contract (override file imported before vendor defaults).
-    - Stale-file-removal regression test for the vendor directory replacement helper.
-    - Lockfile pinning and repeatability assertions for `refresh_adminlte_scss`.
-    - Diagnostic output contract for invalid override values.
-  - Added UI theme verification test scaffold (`tests/test_ui_theme.py`).
-  - Updated smoke tests (`tests/test_smoke.py`) with quickstart command-path validation and
-    documentation consistency checks across README and quickstart docs.
-  - Added `specs/018-vendor-adminlte-scss/quickstart.md` with full override guide,
-    troubleshooting section, SC-002 first-time timing protocol, and SC-003 refresh
-    repeatability sampling protocol.
-  - Updated `specs/018-vendor-adminlte-scss/contracts/public-api.md` with diagnostic output
-    contract and SC-003 repeatability protocol table.
-  - Added vendor source ownership documentation in `mvp/static/adminlte/README.md`.
-  - Added theming & vendor SCSS section to the top-level `README.md`.
+- **Settings-driven layout configuration** via `MVP_CONFIG["layout"]`:
+  - `layout.sidebar.breakpoint` (`sm|md|lg|xl|2xl`) — when the sidebar becomes persistent.
+  - `layout.sidebar.collapse` (`"offcanvas"` or `"icons"`) — slide fully away, or collapse
+    to an icon rail with DaisyUI tooltips. Mark sidebar elements with `.mvp-rail-hide` /
+    `.mvp-rail-only` to control their rail visibility.
+  - `layout.navbar.end` — list of Cotton component names rendered at the navbar end via
+    `<c-component :is="...">` (e.g. `"actions.theme-controller"`).
+  - Resolution order everywhere: component attribute → `MVP_CONFIG` → package default.
+  - The `mvp_config` context processor now exposes the merged config dict to all templates.
+  - Sidebar open/closed state persists across navigation (Alpine `$persist`), defaulting by
+    viewport width at the configured breakpoint.
+- **`python manage.py mvp_tailwind`** — generates a Tailwind v4 entry stylesheet for projects
+  that build their own CSS, scanning both their templates and django-mvp's packaged templates.
+  The shared preset (`mvp/tailwind/base.css`) ships in the wheel. See `docs/styling.md`.
+- **`mvp.integrations`** package for optional third-party integrations (see Changed).
+- **CI stylesheet drift check** (`.github/workflows/stylesheet.yml`) — fails if the committed
+  CSS is stale relative to the Tailwind sources.
+- **Component render smoke tests** — every packaged Cotton template renders in CI.
+- `c-page.list.actions.share` list action and a working `c-addons.share-dropdown`.
+
+### Changed
+
+- **BREAKING: optional-dependency views moved to `mvp.integrations`** — integrations are
+  guarded modules, not extras; the dependency is only required when explicitly imported:
+  - `mvp.views.table.MVPTableView(Mixin)` → `mvp.integrations.django_tables.views`
+  - `mvp.views.MVPFilteredListView` → `mvp.integrations.django_filters.views`
+    (the `applied_filters` context logic moved with it)
+- **BREAKING: `c-button` size API** — `size="sm|md|lg"` replaces the boolean `small`/`large`
+  attributes; `variant="default"` (which emitted a non-existent `btn-default` class) removed;
+  `outline` is now implemented.
+- **BREAKING: `c-dropdown`** — `halign="start|center|end"` implemented, `valign` options are
+  now `top|bottom|left|right`; undeclared `position`/`trigger` attributes removed.
+- `crispy-tailwind` and `crispy-bootstrap5` are no longer runtime dependencies. Install
+  `django-crispy-forms` + `crispy-tailwind` yourself to enable crispy form rendering
+  (auto-detected at runtime, unchanged).
+- Navbar widgets in `mvp/base.html` now come from `MVP_CONFIG["layout"]["navbar"]["end"]`;
+  the `{% block app.header.widgets %}` override still works.
 
 - **`OrderMixin.order_by` format changed from two-tuple to three-tuple** (Feature 014):
 
@@ -62,6 +75,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
   Templates that iterate over `order_by_choices` must be updated to unpack three
   values: `{% for key, label, _ in order_by_choices %}`.
+
+### Fixed
+
+- Restored the DaisyUI plugin in the Tailwind build — v0.12.0 shipped a stylesheet with no
+  DaisyUI classes. Defined the previously-missing `is-drawer-open:`/`is-drawer-close:`
+  custom variants the sidebar depends on.
+- Sidebar menu active-state highlight never rendered (`selected` vs `active` mismatch).
+- `c-section` silently dropped its `title`/`icon`/`level` attributes.
+- Collapsed sidebar content spilled over the page (missing overflow clipping).
+- `c-placeholder.card` and `c-dock.item` crashed when their optional `icon` was omitted.
+- Header `right`/`tray` slots were never forwarded into the navbar.
+- Classes built from component attributes (`btn-{{ variant }}`, `grid-cols-{{ cols }}`, …)
+  are now safelisted in the preset — they previously only compiled by accident.
+- Removed remaining Bootstrap/AdminLTE leftovers from DaisyUI templates, two orphaned
+  AdminLTE toggle templates, and assorted dead code.
 
 ### Added
 
