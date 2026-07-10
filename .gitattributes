@@ -1,0 +1,4 @@
+# The built stylesheet must stay byte-identical across platforms so the
+# CI drift check (.github/workflows/stylesheet.yml) can compare it.
+mvp/static/css/*.css text eol=lf
+mvp/static/css/*.br binary

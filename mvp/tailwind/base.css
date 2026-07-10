@@ -1,0 +1,59 @@
+/* django-mvp Tailwind preset.
+ *
+ * Everything django-mvp's templates need beyond Tailwind + DaisyUI themselves.
+ * Import this from your Tailwind entry CSS, after `@import "tailwindcss"` and
+ * `@plugin "daisyui"`. Generate a ready-made entry with:
+ *
+ *     python manage.py mvp_tailwind
+ */
+
+/* Drawer-state variants: style descendants of a .drawer based on its
+   .drawer-toggle checkbox state (checked = open, unchecked = closed). */
+@custom-variant is-drawer-open (&:is(.drawer:has(> .drawer-toggle:checked) *));
+@custom-variant is-drawer-close (&:is(.drawer:has(> .drawer-toggle:not(:checked)) *));
+
+/* Safelist: sidebar breakpoint classes are emitted by the sidebar_breakpoint_class
+   templatetag (mvp/templatetags/mvp.py), so the scanner never sees them in source. */
+@source inline("{sm,md,lg,xl,2xl}:drawer-open");
+
+/* Safelist: classes constructed at runtime from component attributes
+   (e.g. `btn-{{ variant }}`, `grid-cols-{{ cols }}`) — the scanner can never
+   see these in source. Keep in sync with the component attribute APIs. */
+@source inline("btn-{neutral,primary,secondary,accent,info,success,warning,error,ghost,link}");
+@source inline("btn-{sm,md,lg}");
+@source inline("{,sm:,md:,lg:,xl:,2xl:}grid-cols-{1,2,3,4,5,6,12}");
+@source inline("gap-{0,1,2,3,4,5,6,8}");
+@source inline("divider-{neutral,primary,secondary,accent,info,success,warning,error,start,end}");
+@source inline("dock-{xs,sm,md,lg,xl}");
+@source inline("dropdown-{top,bottom,left,right,start,center,end}");
+@source inline("toggle-{xs,sm,md,lg,xl}");
+@source inline("justify-{start,center,end,between}");
+
+/* Icon-rail collapse mode (MVP_CONFIG layout.sidebar.collapse = "icons"):
+   when the drawer is closed, the sidebar keeps its icons and hides labels,
+   badges and section titles. Mark elements with .mvp-rail-hide to hide them
+   in the closed rail, or .mvp-rail-only to show them only in the closed rail. */
+/* Unlayered on purpose: must beat DaisyUI's layered component styles. */
+.mvp-rail-only {
+  display: none;
+}
+
+.drawer:has(> .drawer-toggle:not(:checked)) .mvp-sidebar--icons {
+  .menu-title,
+  .badge,
+  .mvp-rail-hide {
+    display: none;
+  }
+
+  :is(a, button, summary) {
+    justify-content: center;
+
+    > span {
+      display: none;
+    }
+  }
+
+  .mvp-rail-only {
+    display: inline-flex;
+  }
+}

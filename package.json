@@ -9,8 +9,5 @@
     "@tailwindcss/typography": "^0.5.19",
     "daisyui": "^5.5.20",
     "tailwindcss": "^4.3.0"
-  },
-  "dependencies": {
-    "bootstrap": "^5.3.8"
   }
 }

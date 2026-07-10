@@ -35,77 +35,44 @@ def test_mvp_imports():
 
 
 # ---------------------------------------------------------------------------
-# Phase 5 [US3]: Quickstart command-path validation (T029)
+# Styling docs discoverability (Tailwind/DaisyUI era)
 # ---------------------------------------------------------------------------
 
 
-def test_quickstart_md_exists():
-    """The quickstart document exists for new team onboarding."""
-    quickstart = BASE_DIR / "specs" / "018-vendor-adminlte-scss" / "quickstart.md"
-    assert quickstart.exists(), "specs/018-vendor-adminlte-scss/quickstart.md must exist for new team onboarding."
-
-
-def test_quickstart_documents_invoke_refresh_command():
-    """Quickstart references the correct invoke task name."""
-    quickstart = BASE_DIR / "specs" / "018-vendor-adminlte-scss" / "quickstart.md"
-    content = quickstart.read_text(encoding="utf-8")
-    assert "invoke refresh-adminlte-scss" in content, (
-        "quickstart.md must document the 'invoke refresh-adminlte-scss' command "
-        "so new teams can run the vendor refresh without searching the codebase."
+def test_styling_doc_exists():
+    """The styling guide exists and documents the consumer build command."""
+    styling = BASE_DIR / "docs" / "styling.md"
+    assert styling.exists(), "docs/styling.md must exist — it is the canonical CSS/theming guide."
+    content = styling.read_text(encoding="utf-8")
+    assert "mvp_tailwind" in content, (
+        "docs/styling.md must document the 'python manage.py mvp_tailwind' command "
+        "so Tier 2 consumers can find the CSS rebuild path."
     )
 
 
-def test_quickstart_documents_override_file_path():
-    """Quickstart references the correct override entrypoint file path."""
-    quickstart = BASE_DIR / "specs" / "018-vendor-adminlte-scss" / "quickstart.md"
-    content = quickstart.read_text(encoding="utf-8")
-    assert "_bootstrap_variables.scss" in content, (
-        "quickstart.md must name '_bootstrap_variables.scss' as the override entrypoint "
-        "so new developers know which file to edit."
-    )
-
-
-# ---------------------------------------------------------------------------
-# Phase 5 [US3]: Documentation snippet consistency (T030)
-# ---------------------------------------------------------------------------
-
-
-def test_readme_references_override_file():
-    """README.md mentions _bootstrap_variables.scss in the theming section."""
+def test_readme_references_styling_doc_and_command():
+    """README.md points at the styling guide and the mvp_tailwind command."""
     readme = BASE_DIR / "README.md"
     content = readme.read_text(encoding="utf-8")
-    assert "_bootstrap_variables.scss" in content, (
-        "README.md must reference '_bootstrap_variables.scss' so that new teams "
-        "discover the override entrypoint from the top-level documentation."
+    assert "mvp_tailwind" in content, (
+        "README.md must reference 'manage.py mvp_tailwind' so consumers discover "
+        "the CSS rebuild path from the top-level documentation."
     )
+    assert "docs/styling.md" in content, "README.md must link to docs/styling.md."
 
 
-def test_readme_references_invoke_refresh_command():
-    """README.md mentions the invoke refresh-adminlte-scss command."""
-    readme = BASE_DIR / "README.md"
-    content = readme.read_text(encoding="utf-8")
-    assert "invoke refresh-adminlte-scss" in content, (
-        "README.md must document 'invoke refresh-adminlte-scss' so that "
-        "maintainers can find the vendor refresh command from the top-level docs."
+def test_entry_css_imports_packaged_preset():
+    """The package's own Tailwind entry uses the same preset shipped to consumers."""
+    entry = (BASE_DIR / "assets" / "tailwind.css").read_text(encoding="utf-8")
+    assert '@plugin "daisyui";' in entry, (
+        "assets/tailwind.css must load the daisyui plugin — its removal once "
+        "shipped a stylesheet with no DaisyUI classes at all."
     )
-
-
-def test_override_path_consistent_across_docs():
-    """The override entrypoint path is consistent between README and quickstart."""
-    readme = BASE_DIR / "README.md"
-    quickstart = BASE_DIR / "specs" / "018-vendor-adminlte-scss" / "quickstart.md"
-
-    readme_content = readme.read_text(encoding="utf-8")
-    quickstart_content = quickstart.read_text(encoding="utf-8")
-
-    # Both must reference the same file path.
-    assert "_bootstrap_variables.scss" in readme_content
-    assert "_bootstrap_variables.scss" in quickstart_content
-    # Both must reference the same vendored SCSS path.
-    assert "mvp/static/adminlte/scss" in quickstart_content, (
-        "quickstart.md must reference the canonical vendored SCSS path "
-        "'mvp/static/adminlte/scss/' for path consistency."
+    assert "mvp/tailwind/base.css" in entry, (
+        "assets/tailwind.css must import the packaged preset so the shipped "
+        "stylesheet and consumer builds share one source of truth."
     )
+    assert (BASE_DIR / "mvp" / "tailwind" / "base.css").exists()
 
 
 # ---------------------------------------------------------------------------

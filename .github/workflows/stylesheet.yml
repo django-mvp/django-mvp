@@ -1,0 +1,30 @@
+name: Stylesheet
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  css-drift:
+    name: Committed CSS matches source
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      # package-lock.json is gitignored in this repo, so npm ci is unavailable.
+      - run: npm install
+
+      - run: npm run build:css:prod
+
+      - name: Fail if the committed stylesheet is stale
+        run: |
+          if ! git diff --exit-code -- mvp/static/css/django-mvp.css; then
+            echo "::error::mvp/static/css/django-mvp.css is out of date with assets/tailwind.css or the templates."
+            echo "::error::Run 'invoke build-stylesheet' (or 'npm run build:css:prod' + brotli) and commit the result."
+            exit 1
+          fi

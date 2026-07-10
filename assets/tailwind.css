@@ -1,2 +1,15 @@
-@import "tailwindcss";
+/* Tailwind entry for django-mvp's own shipped stylesheet.
+   Consumer projects should generate their own entry with
+   `python manage.py mvp_tailwind` instead of copying this file. */
+@import "tailwindcss" source(none);
+@plugin "daisyui";
 @plugin "@tailwindcss/typography";
+
+/* Shared preset (custom variants, safelist, rail-mode CSS) — packaged so
+   consumer builds can import the same file from site-packages. */
+@import "../mvp/tailwind/base.css";
+
+/* Explicit sources only: keeps the build deterministic regardless of stray
+   files in the working tree (coverage reports, tool caches, etc.). */
+@source "../mvp";
+@source "../demo";
