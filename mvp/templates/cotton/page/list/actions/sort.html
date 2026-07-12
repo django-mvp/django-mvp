@@ -2,7 +2,7 @@
   <c-dropdown x-data="{value: '{{ current_ordering }}'}"
               x-init="$watch('value', () => { filterForm.submit() })">
     <c-slot name="button">
-      <c-button size="sm" icon="sort-desc" text="{% trans "Sort" %}" />
+      <c-button icon="sort-desc" text="{% trans "Sort" %}" />
     </c-slot>
     <ul tabindex="0"
         class="dropdown-content menu bg-base-100 rounded-box z-50 w-48 p-2 shadow-lg border border-base-300">
