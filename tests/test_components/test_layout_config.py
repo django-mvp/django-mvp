@@ -12,7 +12,12 @@ from django.test import RequestFactory
 
 from mvp.config import MVP_CONFIG
 from mvp.context_processors import mvp_config as mvp_config_processor
-from mvp.templatetags.mvp import breakpoint_px, sidebar_breakpoint_class
+from mvp.templatetags.mvp import (
+    breakpoint_px,
+    sidebar_breakpoint_class,
+    sidebar_has_breakpoint,
+    sidebar_navbar_toggle_class,
+)
 
 
 def _render(template_name):
@@ -78,6 +83,24 @@ def test_breakpoint_tags_fall_back_to_lg():
     assert breakpoint_px(None) == 1024
 
 
+@pytest.mark.parametrize("bp", ["never", "none", "NEVER"])
+def test_breakpoint_never_disables_persistent_sidebar(bp):
+    """"never"/"none" emit no drawer-open class and no navbar-toggle hiding."""
+    assert sidebar_breakpoint_class(bp) == ""
+    assert sidebar_has_breakpoint(bp) is False
+    assert sidebar_navbar_toggle_class(bp, "offcanvas") == ""
+    assert sidebar_navbar_toggle_class(bp, "icons") == ""
+
+
+def test_navbar_toggle_class_hides_at_breakpoint():
+    """Navbar toggle hides at the breakpoint: always for the icons rail,
+    only while open for offcanvas (a hidden sidebar has no toggle left)."""
+    assert sidebar_navbar_toggle_class("md", "icons") == "md:hidden"
+    assert sidebar_navbar_toggle_class("md", "offcanvas") == "md:is-drawer-open:hidden"
+    # unknown breakpoints fall back to lg, mirroring sidebar_breakpoint_class
+    assert sidebar_navbar_toggle_class("bogus", "icons") == "lg:hidden"
+
+
 # ---------------------------------------------------------------------------
 # Rendered layout: defaults from config
 # ---------------------------------------------------------------------------
@@ -132,6 +155,33 @@ def test_breakpoint_component_override():
     assert "xl:drawer-open" in html
     assert "lg:drawer-open" not in html
     assert "min-width: 1280px" in html
+
+
+@pytest.mark.django_db
+def test_overlay_state_is_transient_desktop_state_persists():
+    """Only the desktop (persistent) open state survives reloads: the drawer
+    seeds closed, then x-init restores the persisted state at/above the
+    breakpoint; $watch writes back only at desktop widths."""
+    content = _render("tests/app_breakpoint_override.html")
+    assert "desktopOpen" in content
+    assert "$persist(true)" in content
+    assert "open: false" in content
+    assert "$watch" in content
+
+
+@pytest.mark.django_db
+def test_breakpoint_never_component_override():
+    """<c-app breakpoint="never"> renders an overlay-only drawer: no
+    *:drawer-open class, a closed initial Alpine state, and no persistence
+    (overlay drawers are transient)."""
+    from mvp.templatetags.mvp import SIDEBAR_BREAKPOINTS
+
+    html = _render("tests/app_breakpoint_never.html")
+    assert "{ open: false }" in html
+    assert "$persist" not in html
+    assert "matchMedia" not in html
+    for klass, _px in SIDEBAR_BREAKPOINTS.values():
+        assert klass not in html
 
 
 @pytest.mark.django_db

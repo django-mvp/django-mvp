@@ -26,13 +26,34 @@ SIDEBAR_BREAKPOINTS = {
     "2xl": ("2xl:drawer-open", 1536),
 }
 
+# Breakpoint values (case-insensitive) that disable the persistent sidebar
+# entirely: the sidebar is an off-canvas overlay at every viewport width.
+NO_BREAKPOINT_VALUES = {"never", "none"}
+
+
+def _breakpoint_disabled(bp):
+    return isinstance(bp, str) and bp.lower() in NO_BREAKPOINT_VALUES
+
+
+@register.simple_tag
+def sidebar_has_breakpoint(bp):
+    """Return whether the sidebar becomes persistent at some viewport width.
+
+    False when the breakpoint is set to "never" (or "none"), meaning the
+    sidebar stays an off-canvas overlay at every width.
+    """
+    return not _breakpoint_disabled(bp)
+
 
 @register.simple_tag
 def sidebar_breakpoint_class(bp):
     """Return the drawer-open variant class for a configured sidebar breakpoint.
 
-    Falls back to the ``lg`` breakpoint for unknown values.
+    Returns "" for the "never"/"none" breakpoint (the sidebar never becomes
+    persistent). Falls back to the ``lg`` breakpoint for unknown values.
     """
+    if _breakpoint_disabled(bp):
+        return ""
     return SIDEBAR_BREAKPOINTS.get(bp, SIDEBAR_BREAKPOINTS["lg"])[0]
 
 
@@ -52,9 +73,14 @@ def sidebar_navbar_toggle_class(bp, collapse):
     collapsed rail still shows a toggle on hover), and only while the drawer
     is open in ``offcanvas`` mode (a fully hidden sidebar has no toggle left).
 
+    With the "never"/"none" breakpoint the sidebar is an overlay everywhere,
+    so the navbar toggle is always shown (the open overlay covers the navbar).
+
     The emitted classes must stay in sync with the @source inline() safelist
     in mvp/tailwind/base.css.
     """
+    if _breakpoint_disabled(bp):
+        return ""
     prefix = bp if bp in SIDEBAR_BREAKPOINTS else "lg"
     if collapse == "icons":
         return f"{prefix}:hidden"

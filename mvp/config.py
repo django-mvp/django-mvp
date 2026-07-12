@@ -27,7 +27,9 @@ MVP_CONFIG = {
     "layout": {
         "sidebar": {
             # Tailwind breakpoint at which the sidebar becomes persistent
-            # (below it, the sidebar is a mobile drawer): sm | md | lg | xl | 2xl
+            # (below it, the sidebar is a mobile drawer):
+            # sm | md | lg | xl | 2xl | never
+            # "never" keeps the sidebar an off-canvas overlay at every width.
             "breakpoint": "lg",
             # How the sidebar collapses when toggled at or above the breakpoint:
             # "offcanvas" (slides fully away) or "icons" (collapses to an icon rail)
