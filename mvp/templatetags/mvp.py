@@ -43,6 +43,25 @@ def breakpoint_px(bp):
 
 
 @register.simple_tag
+def sidebar_navbar_toggle_class(bp, collapse):
+    """Return visibility classes for the navbar's sidebar-toggle button.
+
+    Below the sidebar breakpoint the toggle is always shown (the sidebar is an
+    off-canvas overlay there). At or above it, the sidebar header carries its
+    own toggle, so the navbar one is hidden: always in ``icons`` mode (the
+    collapsed rail still shows a toggle on hover), and only while the drawer
+    is open in ``offcanvas`` mode (a fully hidden sidebar has no toggle left).
+
+    The emitted classes must stay in sync with the @source inline() safelist
+    in mvp/tailwind/base.css.
+    """
+    prefix = bp if bp in SIDEBAR_BREAKPOINTS else "lg"
+    if collapse == "icons":
+        return f"{prefix}:hidden"
+    return f"{prefix}:is-drawer-open:hidden"
+
+
+@register.simple_tag
 def avatar_url(user, size):
     """Returns the URL for a user's avatar image for a given size. Size is specified as "sm", "md", "lg", etc. The actual implementation is determined by the MVP_AVATAR_URL_FUNCTION setting, which should point to a function that accepts a user and size and returns a URL string.
 

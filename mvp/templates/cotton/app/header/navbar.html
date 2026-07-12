@@ -1,10 +1,12 @@
-{% load i18n %}
+{% load i18n mvp %}
+{% firstof mvp_config.layout.sidebar.breakpoint "lg" as bp %}
+{% firstof mvp_config.layout.sidebar.collapse "offcanvas" as collapse_mode %}
 <div class="navbar px-3 w-full backdrop-blur transition-shadow duration-100 print:hidden">
   <div class="navbar-start gap-1 ">
     <label for="mvp-app-toggle"
            aria-label="{% trans "Open sidebar" %}"
-           class="btn btn-ghost btn-square ">
-      <c-icon name="menu" />
+           class="btn btn-ghost btn-square {% sidebar_navbar_toggle_class bp collapse_mode %}">
+      <c-icon name="sidebar-left" />
     </label>
     <a href="/">
       {% if icon %}

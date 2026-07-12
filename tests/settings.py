@@ -124,6 +124,10 @@ CRISPY_TEMPLATE_PACK = "tailwind"
 # defaults (mvp/config.py). Unset keys keep their package defaults.
 MVP_CONFIG = {
     "layout": {
+        "sidebar": {
+            "breakpoint": "md",
+            "collapse": "icons",
+        },
         "navbar": {
             "end": [
                 "actions.theme-controller",

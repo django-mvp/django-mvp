@@ -1,7 +1,14 @@
+{% load i18n %}
 <c-vars link="/" bg="bg-base-200" />
-<div class="{{ bg }} sticky top-0 z-20 items-center gap-2 px-4 py-2">
-  <a href="{{ link }}" class="flex items-center justify-center gap-2">
-    <span class="mvp-rail-hide"><c-brand.logo max-height="1.5rem" /></span>
-    <span class="mvp-rail-only"><c-brand.icon max-height="1.5rem" /></span>
+<div class="{{ bg }} mvp-sidebar-header sticky top-0 z-20 flex w-full items-center justify-between gap-2 px-3 py-2">
+  <a href="{{ link }}"
+     aria-label="{% trans "Home" %}"
+     class="mvp-sidebar-brand flex size-10 items-center justify-center">
+    <c-brand.icon max-height="1.5rem" class="max-h-9 max-w-9" />
   </a>
+  <label for="mvp-app-toggle"
+         aria-label="{% trans "Toggle sidebar" %}"
+         class="mvp-sidebar-toggle btn btn-ghost btn-square">
+    <c-icon name="sidebar-left" />
+  </label>
 </div>

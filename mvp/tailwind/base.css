@@ -29,6 +29,11 @@
 @source inline("toggle-{xs,sm,md,lg,xl}");
 @source inline("justify-{start,center,end,between}");
 
+/* Safelist: navbar sidebar-toggle visibility classes are emitted by the
+   sidebar_navbar_toggle_class templatetag (mvp/templatetags/mvp.py). */
+@source inline("{sm,md,lg,xl,2xl}:hidden");
+@source inline("{sm,md,lg,xl,2xl}:is-drawer-open:hidden");
+
 /* Icon-rail collapse mode (MVP_CONFIG layout.sidebar.collapse = "icons"):
    when the drawer is closed, the sidebar keeps its icons and hides labels,
    badges and section titles. Mark elements with .mvp-rail-hide to hide them
@@ -45,15 +50,90 @@
     display: none;
   }
 
-  :is(a, button, summary) {
-    justify-content: center;
+  /* [role="button"] covers the footer user-menu trigger, which is a <div>.
+     Kept separate from the label-hide rule below: an attribute selector in the
+     :is() would raise its specificity above the fly-out's label-restore rule.
 
-    > span {
-      display: none;
-    }
+     display:flex (not just justify-content) is required: leaf links carry
+     `is-drawer-close:tooltip`, and DaisyUI's .tooltip forces display:inline-block,
+     which disables the menu's grid centering and left-aligns the icon. Forcing
+     flex here re-centers leaf and parent (summary) icons identically. */
+  :is(a, button, summary, [role="button"]) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  :is(a, button, summary) > span {
+    display: none;
   }
 
   .mvp-rail-only {
     display: inline-flex;
+  }
+
+  /* Footer action (login button / user-menu trigger) → centered icon tile
+     the same size as a nav row, instead of a full-width, overflowing .btn. */
+  .btn {
+    width: auto;
+    padding-inline: 0.75rem;
+  }
+
+  /* Collapsible groups become hover fly-outs: the disclosure caret is
+     meaningless at rail width, and the child <ul> is repositioned as a
+     right-side popover instead of an indented, guide-lined inline list. */
+  summary::after {
+    display: none;
+  }
+
+  details > ul {
+    position: absolute;
+    inset-inline-start: 100%;
+    top: 0;
+    display: none;
+    min-width: 14rem;
+    margin-inline-start: 0;
+    padding: 0.5rem;
+    border-radius: var(--radius-box, 0.5rem);
+    background-color: var(--color-base-200);
+    box-shadow: 0 4px 12px oklch(0 0 0 / 0.15);
+    z-index: 50;
+  }
+
+  details > ul::before {
+    display: none;
+  }
+
+  li:hover > details > ul,
+  li:focus-within > details > ul {
+    display: block;
+  }
+
+  /* Inside the fly-out, restore full-width rows with visible labels. */
+  details > ul :is(a, button, summary) {
+    justify-content: flex-start;
+
+    > span {
+      display: inline;
+    }
+  }
+
+  /* Rail header (ChatGPT-style): only the brand icon shows; hovering the
+     header swaps it for the sidebar toggle. Placed after the generic
+     :is(a, button, ...) display rules so the hide rules win the tie. */
+  .mvp-sidebar-header {
+    justify-content: center;
+  }
+
+  .mvp-sidebar-toggle {
+    display: none;
+  }
+
+  .mvp-sidebar-header:hover .mvp-sidebar-toggle {
+    display: flex;
+  }
+
+  .mvp-sidebar-header:hover .mvp-sidebar-brand {
+    display: none;
   }
 }
