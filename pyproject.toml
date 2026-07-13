@@ -52,13 +52,13 @@ classifiers = [
 requires-poetry = '>=2.0,<3.0'
 
 [tool.poetry.group.test.dependencies]
-Django = ">=5.2"
+Django = ">=5.2.16.16"
 mvp-shared = { git = "https://github.com/django-mvp/shared.git", rev = "main", extras = [
     "test",
 ] }
 
 [tool.poetry.group.dev.dependencies]
-Django = ">=5.2.15"
+Django = ">=5.2.16"
 django-distill = "^3.0"
 django-filter = "^25.2"
 django-crispy-forms = "^2.6"
