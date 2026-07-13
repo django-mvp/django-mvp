@@ -10,6 +10,9 @@
 @import "../mvp/tailwind/base.css";
 
 /* Explicit sources only: keeps the build deterministic regardless of stray
-   files in the working tree (coverage reports, tool caches, etc.). */
+   files in the working tree (coverage reports, tool caches, etc.).
+
+   Only ../mvp is scanned here: this is the stylesheet that ships in the wheel,
+   so it must not carry demo-only utilities. The demo has its own build entry
+   (assets/demo.css → demo/static/css/demo.css). */
 @source "../mvp";
-@source "../demo";

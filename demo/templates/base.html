@@ -1,6 +1,15 @@
 {% extends "mvp/base.html" %}
+{% load static %}
 {% comment %}
   Navbar widgets are configured via MVP_CONFIG["layout"]["navbar"]["end"] in
   settings.py. Use {% block app.header.widgets %} here only for page/project
   widgets that shouldn't come from settings.
 {% endcomment %}
+{% comment %}
+  The demo loads its own stylesheet (assets/demo.css → demo/static/css/demo.css)
+  rather than the shipped django-mvp.css, so demo pages can use utilities that
+  aren't present in the mvp package without bloating the shipped build.
+{% endcomment %}
+{% block styles %}
+  <link rel="stylesheet" href="{% static 'css/demo.css' %}" />
+{% endblock styles %}

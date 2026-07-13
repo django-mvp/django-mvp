@@ -1,0 +1,17 @@
+/* Tailwind entry for the demo site's stylesheet.
+
+   The demo extends mvp/base.html but loads THIS build instead of the shipped
+   django-mvp.css (see demo/templates/base.html), so demo pages can use utility
+   classes that never appear in the mvp package. Keeping demo out of the shipped
+   build is what stops demo-only classes from bloating what consumers download.
+
+   This is a superset of the production build: it scans ../mvp AND ../demo. */
+@import "tailwindcss" source(none);
+@plugin "daisyui";
+@plugin "@tailwindcss/typography";
+
+/* Same shared preset (custom variants, safelist, rail-mode CSS) as production. */
+@import "../mvp/tailwind/base.css";
+
+@source "../mvp";
+@source "../demo";

@@ -2,7 +2,10 @@
   "scripts": {
     "build:css": "tailwindcss -i assets/tailwind.css -o mvp/static/css/django-mvp.css",
     "build:css:prod": "tailwindcss -i assets/tailwind.css -o mvp/static/css/django-mvp.css --minify",
-    "watch:css": "tailwindcss -i assets/tailwind.css -o mvp/static/css/django-mvp.css --watch"
+    "watch:css": "tailwindcss -i assets/tailwind.css -o mvp/static/css/django-mvp.css --watch",
+    "build:demo": "tailwindcss -i assets/demo.css -o demo/static/css/demo.css",
+    "build:demo:prod": "tailwindcss -i assets/demo.css -o demo/static/css/demo.css --minify",
+    "watch:demo": "tailwindcss -i assets/demo.css -o demo/static/css/demo.css --watch"
   },
   "devDependencies": {
     "@tailwindcss/cli": "^4.3.0",

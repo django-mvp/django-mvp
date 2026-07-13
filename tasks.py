@@ -16,10 +16,17 @@ def prerelease(c):
     Run comprehensive pre-release checks and update all required files.
 
     This task performs all necessary steps to prepare the repository for release:
-    1. Run linting, formatting, type checking, and dependency checks via pre-commit hooks
-    2. Run quality checks and tests
+    1. Build, minify and brotli-compress the stylesheets (committed artifacts)
+    2. Run linting, formatting, type checking, and dependency checks via pre-commit hooks
+    3. Run quality checks and tests
 
     Use this before running the release task to ensure everything is ready.
+
+    The stylesheet is a committed build artifact shipped in the wheel; building
+    it here (before the release tag is cut) keeps it in sync with the templates
+    and lets the lint/test steps run against fresh output. The Stylesheet CI
+    workflow only fails *after* a stale commit lands, so this is where drift is
+    actually prevented. Remember to commit the rebuilt CSS before 'invoke release'.
 
     Pre-commit hooks include:
     - Code formatting (Ruff)
@@ -30,20 +37,24 @@ def prerelease(c):
     print("🚀 Starting comprehensive pre-release checks...")
     print("=" * 60)
 
-    # Step 1: Run comprehensive linting, type checking, and dependency analysis
+    # Step 1: Build, minify and compress the stylesheets
+    print("\n🎨 Step 1: Building, minifying and compressing stylesheets")
+    build_stylesheet(c)
+
+    # Step 2: Run comprehensive linting, type checking, and dependency analysis
     print(
-        "\n🧹 Step 1: Running comprehensive linting, type checking, and dependency analysis"
+        "\n🧹 Step 2: Running comprehensive linting, type checking, and dependency analysis"
     )
     print("🚀 Running pre-commit hooks (includes mypy and deptry)")
     c.run("poetry run pre-commit run -a")
 
-    # Step 2: Check Poetry lock file consistency
-    print("\n🔍 Step 2: Checking Poetry lock file consistency")
+    # Step 3: Check Poetry lock file consistency
+    print("\n🔍 Step 3: Checking Poetry lock file consistency")
     print("🚀 Checking Poetry lock file consistency with 'pyproject.toml'")
     c.run("poetry check --lock")
 
-    # Step 3: Run comprehensive test suite
-    print("\n🧪 Step 3: Running comprehensive test suite")
+    # Step 4: Run comprehensive test suite
+    print("\n🧪 Step 4: Running comprehensive test suite")
     print("🚀 Running pytest with coverage")
     c.run(
         "poetry run pytest --cov --cov-config=pyproject.toml --cov-report=html --cov-report=term --tb=no -qq"
@@ -158,3 +169,8 @@ def build_stylesheet(c):
     with open("mvp/static/css/django-mvp.css.br", "wb") as f:
         f.write(compressed)
     print("Built and compressed stylesheet to django-mvp.css.br")
+
+    # Demo site stylesheet: a superset scanning mvp + demo, used only by the
+    # demo pages (not shipped in the wheel), so no brotli step is needed.
+    c.run("npm run build:demo:prod")
+    print("Built demo stylesheet to demo/static/css/demo.css")

@@ -6,8 +6,13 @@ repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
+      # Built stylesheets are generated (minified, no trailing newline) — leave
+      # them alone, or these hooks fight the Tailwind build and the Stylesheet
+      # drift-check CI fails on the hook-added newline.
       - id: trailing-whitespace
+        exclude: '^(mvp|demo)/static/css/.*\.(css|br)$'
       - id: end-of-file-fixer
+        exclude: '^(mvp|demo)/static/css/.*\.(css|br)$'
       - id: check-yaml
 
   - repo: https://github.com/asottile/pyupgrade
