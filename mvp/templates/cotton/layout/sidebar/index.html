@@ -1,7 +1,6 @@
 {% load i18n mvp %}
-<c-vars id breakpoint />
-{% firstof breakpoint mvp_config.layout.sidebar.breakpoint "lg" as bp %}
-{% sidebar_has_breakpoint bp as persistent %}
+<c-vars id :breakpoint="mvp_config.layout.sidebar.breakpoint" />
+{% sidebar_has_breakpoint breakpoint as persistent %}
 {% comment %}
   Open-state persistence is desktop-only: the persistent sidebar remembers
   open/collapsed across reloads (desktopOpen), while the overlay drawer
@@ -10,9 +9,9 @@
   toggling the mobile overlay never clobbers the saved desktop state.
 {% endcomment %}
 <div id="{{ id }}"
-     class="drawer {% sidebar_breakpoint_class bp %}"
+     class="drawer {% sidebar_breakpoint_class breakpoint %}"
      {% if persistent %}
-     x-data="{ mq: window.matchMedia('(min-width: {% breakpoint_px bp %}px)'), open: false, desktopOpen: $persist(true).as('{{ id }}-drawer-open') }"
+     x-data="{ mq: window.matchMedia('(min-width: {% breakpoint_px breakpoint %}px)'), open: false, desktopOpen: $persist(true).as('{{ id }}-drawer-open') }"
      x-init="open = mq.matches && desktopOpen; $watch('open', v => { if (mq.matches) desktopOpen = v })"
      {% else %}
      x-data="{ open: false }"

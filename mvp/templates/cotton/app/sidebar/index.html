@@ -3,9 +3,8 @@
         brand-url="/"
         class
         menu="AppMenu"
-        collapse />
-{% firstof collapse mvp_config.layout.sidebar.collapse "offcanvas" as collapse_mode %}
-<aside class="mvp-sidebar flex flex-col min-h-full items-start transition-[width] duration-200 {% if collapse_mode == 'icons' %}mvp-sidebar--icons is-drawer-close:w-16 is-drawer-open:w-65{% else %}is-drawer-close:w-0 is-drawer-close:overflow-hidden is-drawer-open:w-65{% endif %} {{ bg }} {{ class }}"
+        :collapse="mvp_config.layout.sidebar.collapse" />
+<aside class="mvp-sidebar flex flex-col min-h-full items-start transition-[width] duration-200 {% if collapse == 'icons' %}mvp-sidebar--icons is-drawer-close:w-16 is-drawer-open:w-65{% else %}is-drawer-close:w-0 is-drawer-close:overflow-hidden is-drawer-open:w-65{% endif %} {{ bg }} {{ class }}"
        {{ attrs }}>
   <c-app.sidebar.header link="{{ brand_url }}" :bg="bg" />
   <nav class="flex w-full">
