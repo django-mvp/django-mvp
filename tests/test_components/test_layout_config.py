@@ -191,3 +191,31 @@ def test_collapse_icons_component_override():
     assert "mvp-sidebar--icons" in html
     assert "is-drawer-close:w-16" in html
     assert "is-drawer-close:w-0" not in html
+
+
+# ---------------------------------------------------------------------------
+# Navbar sticky vs static header
+# ---------------------------------------------------------------------------
+
+
+def test_navbar_sticky_default_present():
+    """Package default pins the header to the top of the viewport."""
+    assert MVP_CONFIG["layout"]["navbar"]["sticky"] is True
+
+
+@pytest.mark.django_db
+def test_default_header_is_sticky(client):
+    """With the default config the header pins on scroll (sticky + scroll shadow)."""
+    content = client.get("/").content.decode()
+    assert "mvp-header w-full sticky z-10 top-0" in content
+    assert "stuck = window.scrollY > 0" in content
+
+
+@pytest.mark.django_db
+def test_static_header_component_override():
+    """<c-app.header :sticky="False"> drops the sticky classes and scroll logic."""
+    html = _render("tests/header_static_override.html")
+    assert "sticky z-10 top-0" not in html
+    assert "scrollY" not in html
+    # the header still renders, just without the pinning behaviour
+    assert "mvp-header w-full" in html

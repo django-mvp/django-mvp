@@ -24,6 +24,7 @@ MVP_CONFIG = {
         },
         "navbar": {
             "end": ["actions.theme-controller"],
+            "sticky": True,           # True: pinned | False: scrolls away
         },
     },
 }
@@ -111,6 +112,33 @@ the configured list:
 ```html
 {% block app.header.widgets %}
   <c-my-page-widget />
+{% endblock %}
+```
+
+## Navbar position
+
+`layout.navbar.sticky` controls whether the header pins to the top of the viewport:
+
+- **`True`** (default) — the header stays fixed at the top on scroll (app-style), gaining a
+  subtle shadow once the page scrolls.
+- **`False`** — the header scrolls away with the page (traditional-site behaviour). The
+  scroll shadow is dropped along with the pinning.
+
+```python
+MVP_CONFIG = {
+    "layout": {
+        "navbar": {
+            "sticky": False,
+        },
+    },
+}
+```
+
+Per-page override (use the `:` expression form so the value stays a real boolean):
+
+```html
+{% block app.header %}
+  <c-app.header :sticky="False" />
 {% endblock %}
 ```
 

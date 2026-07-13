@@ -16,6 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     `.mvp-rail-only` to control their rail visibility.
   - `layout.navbar.end` — list of Cotton component names rendered at the navbar end via
     `<c-component :is="...">` (e.g. `"actions.theme-controller"`).
+  - `layout.navbar.sticky` (`True` default / `False`) — pin the header to the top on scroll
+    (app-style) or let it scroll away with the page (traditional-site). Overridable per page
+    with `<c-app.header :sticky="False" />`.
   - Resolution order everywhere: component attribute → `MVP_CONFIG` → package default.
   - The `mvp_config` context processor now exposes the merged config dict to all templates.
   - Sidebar open/closed state persists across navigation (Alpine `$persist`), defaulting by

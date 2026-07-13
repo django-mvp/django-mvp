@@ -1,7 +1,6 @@
-<div x-data="{ stuck: false }"
-     @scroll.window="stuck = window.scrollY > 0"
-     class="mvp-header sticky z-10 top-0 w-full"
-     :class="{ 'shadow-xs': stuck }">
+<c-vars :sticky="mvp_config.layout.navbar.sticky" />
+<div class="mvp-header w-full{% if sticky %} sticky z-10 top-0{% endif %}"
+     {% if sticky %}x-data="{ stuck: false }" @scroll.window="stuck = window.scrollY > 0" :class="{ 'shadow-xs': stuck }"{% endif %}>
   {{ above }}
   <c-app.header.navbar>
     <c-slot name="right">{{ right }}</c-slot>
