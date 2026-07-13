@@ -47,13 +47,7 @@ navbar hamburger or the dock, closed by tapping the overlay).
 | `xl` | 1280px |
 | `2xl` | 1536px |
 
-Per-page override:
-
-```html
-{% block app %}
-  <c-app breakpoint="xl">...</c-app>
-{% endblock %}
-```
+Per-page override — see [Overriding the layout per page](#overriding-the-layout-per-page).
 
 ## Sidebar collapse mode
 
@@ -71,13 +65,7 @@ In your own sidebar content, control rail visibility with two utility classes:
 - `.mvp-rail-hide` — hidden while the rail is collapsed
 - `.mvp-rail-only` — shown *only* while the rail is collapsed
 
-Per-page override (the sidebar consumes this attribute, not `c-app`):
-
-```html
-{% block app.sidebar %}
-  <c-app.sidebar collapse="icons" />
-{% endblock %}
-```
+Per-page override — see [Overriding the layout per page](#overriding-the-layout-per-page).
 
 The open/closed state persists across page loads (localStorage, key
 `mvp-app-drawer-open`). On first visit it defaults to open at/above the breakpoint and
@@ -141,6 +129,32 @@ Per-page override (use the `:` expression form so the value stays a real boolean
   <c-app.header :sticky="False" />
 {% endblock %}
 ```
+
+## Overriding the layout per page
+
+`layout.sidebar.breakpoint` and `layout.sidebar.collapse` drive three regions that
+have to agree: the sidebar drawer, the collapsed sidebar itself, and the **navbar
+toggle** that shows/hides against them. `mvp/base.html` therefore resolves both knobs
+*once* at the top of the `app` block and threads them to every region. To override them
+for a single page, set `breakpoint` and/or `collapse` in the template context — the
+whole shell, navbar toggle included, follows.
+
+The tidiest way is to wrap `{{ block.super }}` so you reuse the shipped shell:
+
+```html
+{% block app %}
+  {% with breakpoint="xl" collapse="icons" %}{{ block.super }}{% endwith %}
+{% endblock %}
+```
+
+Either knob may be set on its own; the other keeps its `MVP_CONFIG` default. The same
+variables can instead be supplied from the view context (e.g. `{"breakpoint": "xl"}`)
+when the choice is view- rather than template-driven.
+
+> Setting `breakpoint`/`collapse` as attributes on `<c-app>` or `<c-app.sidebar>`
+> directly still styles *that* component, but it does **not** reach the navbar toggle
+> (a sibling region) — resolve them in the `app` block as above so all three stay in
+> sync.
 
 ## Template blocks
 

@@ -1,8 +1,10 @@
-<c-vars :sticky="mvp_config.layout.navbar.sticky" />
+<c-vars :sticky="mvp_config.layout.navbar.sticky"
+        :breakpoint="mvp_config.layout.sidebar.breakpoint"
+        :collapse="mvp_config.layout.sidebar.collapse" />
 <div class="mvp-header w-full{% if sticky %} sticky z-10 top-0{% endif %}"
      {% if sticky %}x-data="{ stuck: false }" @scroll.window="stuck = window.scrollY > 0" :class="{ 'shadow-xs': stuck }"{% endif %}>
   {{ above }}
-  <c-app.header.navbar>
+  <c-app.header.navbar :breakpoint="breakpoint" :collapse="collapse">
     <c-slot name="right">{{ right }}</c-slot>
   </c-app.header.navbar>
   {{ tray }}

@@ -49,14 +49,23 @@
   </head>
   <body>
     {% block app %}
-      <c-app>
+      {% comment %}
+        Resolve the sidebar breakpoint/collapse knobs once, here in the shell,
+        so every region agrees. A page overrides them by setting `breakpoint`
+        and/or `collapse` in the context (view context, or a `{% with %}`
+        wrapping `{{ block.super }}` inside `{% block app %}`) — the sidebar
+        drawer, the sidebar rail AND the navbar toggle all follow.
+      {% endcomment %}
+      {% firstof breakpoint mvp_config.layout.sidebar.breakpoint as breakpoint %}
+      {% firstof collapse mvp_config.layout.sidebar.collapse as collapse %}
+      <c-app :breakpoint="breakpoint">
         <c-slot name="sidebar">
           {% block app.sidebar %}
-            <c-app.sidebar />
+            <c-app.sidebar :collapse="collapse" />
           {% endblock app.sidebar %}
         </c-slot>
         {% block app.header %}
-          <c-app.header>
+          <c-app.header :breakpoint="breakpoint" :collapse="collapse">
             <c-slot name="right">
               {% block app.header.widgets %}
               {% endblock app.header.widgets %}

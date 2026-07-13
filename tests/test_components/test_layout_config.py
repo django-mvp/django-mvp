@@ -6,6 +6,8 @@ Covers the three configurable layout concerns:
 3. Navbar end widgets rendered from the component-name registry
 """
 
+import re
+
 import pytest
 from django.template.loader import render_to_string
 from django.test import RequestFactory
@@ -27,6 +29,19 @@ def _render(template_name):
     request = RequestFactory().get("/")
     request.user = AnonymousUser()
     return render_to_string(template_name, request=request)
+
+
+def _navbar_toggle_class(html):
+    """Extract the class list of the navbar's sidebar-toggle button.
+
+    That toggle is the one carrying the "Open sidebar" aria-label (the sidebar
+    header and the drawer overlay reuse the same ``for`` target with different
+    labels).
+    """
+    match = re.search(
+        r'<label[^>]*aria-label="Open sidebar"[^>]*?class="([^"]*)"', html, re.S
+    )
+    return " ".join(match.group(1).split()) if match else None
 
 
 # ---------------------------------------------------------------------------
@@ -191,6 +206,40 @@ def test_collapse_icons_component_override():
     assert "mvp-sidebar--icons" in html
     assert "is-drawer-close:w-16" in html
     assert "is-drawer-close:w-0" not in html
+
+
+# ---------------------------------------------------------------------------
+# Navbar sidebar-toggle follows the resolved layout knobs (issue #114)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+def test_default_navbar_toggle_matches_config(client):
+    """With no override the navbar toggle mirrors the config default: the
+    offcanvas sidebar hides its navbar toggle only while open, at ``lg``."""
+    toggle = _navbar_toggle_class(client.get("/").content.decode())
+    assert toggle is not None
+    assert "lg:is-drawer-open:hidden" in toggle
+
+
+@pytest.mark.django_db
+def test_navbar_toggle_follows_shell_override():
+    """A per-page shell override of breakpoint+collapse reaches the navbar
+    toggle, not just the drawer/sidebar (regression for issue #114).
+
+    breakpoint=xl + collapse=icons => the toggle hides at ``xl`` unconditionally
+    (the icon rail keeps its own toggle), i.e. ``xl:hidden`` — never the default
+    ``lg:``-prefixed class."""
+    html = _render("tests/app_shell_override.html")
+    # sanity: the drawer and rail honour the override too
+    assert "xl:drawer-open" in html
+    assert "mvp-sidebar--icons" in html
+    # the navbar toggle must agree with them
+    toggle = _navbar_toggle_class(html)
+    assert toggle is not None
+    assert "xl:hidden" in toggle
+    assert "lg:" not in toggle
+    assert "is-drawer-open" not in toggle
 
 
 # ---------------------------------------------------------------------------

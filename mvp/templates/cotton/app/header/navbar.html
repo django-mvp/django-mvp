@@ -1,9 +1,11 @@
 {% load i18n mvp %}
+<c-vars :breakpoint="mvp_config.layout.sidebar.breakpoint"
+        :collapse="mvp_config.layout.sidebar.collapse" />
 <div class="navbar px-3 w-full backdrop-blur transition-shadow duration-100 print:hidden">
   <div class="navbar-start gap-1 ">
     <label for="mvp-app-toggle"
            aria-label="{% trans "Open sidebar" %}"
-           class="btn btn-ghost btn-square {% sidebar_navbar_toggle_class mvp_config.layout.sidebar.breakpoint mvp_config.layout.sidebar.collapse %}">
+           class="btn btn-ghost btn-square {% sidebar_navbar_toggle_class breakpoint collapse %}">
       <c-icon name="sidebar-left" />
     </label>
     <a href="/">

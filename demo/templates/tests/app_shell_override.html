@@ -1,0 +1,9 @@
+{% extends "mvp/base.html" %}
+{% comment %}
+  Full app shell with a per-page override of both layout knobs. Wrapping
+  {{ block.super }} in {% with %} sets breakpoint/collapse for the whole shell,
+  so the drawer, the sidebar rail AND the navbar toggle must all agree.
+{% endcomment %}
+{% block app %}
+  {% with breakpoint="xl" collapse="icons" %}{{ block.super }}{% endwith %}
+{% endblock app %}
