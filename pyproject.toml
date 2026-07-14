@@ -18,9 +18,9 @@ readme = "README.md"
 authors = [{ name = "Sam", email = "samuel.scott.jennings@gmail.com" }]
 requires-python = '>=3.12,<4.0'
 dependencies = [
-    'django (>=5.2)',                       # only actively supported Django releases
+    'django (>=5.2)',              # only actively supported Django releases
     "django-cotton (==2.6.1)",
-    "django-flex-menus (>=0.4.2,<0.5.0)",
+    "django-flex-menus (>=0.4.3)",
     'django-easy-icons (>=0.5)',
     "mergedeep (>=1.3,<2.0)",
 ]
@@ -52,7 +52,7 @@ classifiers = [
 requires-poetry = '>=2.0,<3.0'
 
 [tool.poetry.group.test.dependencies]
-Django = ">=5.2.16.16"
+Django = ">=5.2.16"
 mvp-shared = { git = "https://github.com/django-mvp/shared.git", rev = "main", extras = [
     "test",
 ] }
@@ -95,10 +95,7 @@ django-easy-icons = ["easy_icons"]
 [tool.deptry.per_rule_ignores]
 DEP001 = ["invoke", "bs4", "pytest"]
 # These packages are used indirectly (INSTALLED_APPS, templates)
-DEP002 = [
-    "django-flex-menus",
-    "django-easy-icons",
-]
+DEP002 = ["django-flex-menus", "django-easy-icons"]
 DEP003 = ["invoke"]
 DEP004 = ["django_filters", "django_tables2", "django_htmx"]
 
