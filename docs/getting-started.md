@@ -58,6 +58,18 @@ EASY_ICONS = {
 }
 ```
 
+The bundled pack registers common icons under several synonyms — `add`, `plus` and
+`create` all resolve to the same glyph, as do `delete`/`remove`/`trash`,
+`person`/`user`/`account`, `settings`/`gear`/`cog`, and more — so callers can reach for
+whichever name reads best. You can do the same in your own `"icons"` block by declaring
+comma-separated keys (whitespace is ignored):
+
+```python
+"icons": {
+    "dashboard, home, overview": "bi bi-speedometer2",
+}
+```
+
 `mvp/base.html` loads the Bootstrap Icons webfont from a CDN by default; override the
 `head` block to self-host it.
 

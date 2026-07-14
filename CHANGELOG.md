@@ -31,6 +31,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   CSS is stale relative to the Tailwind sources.
 - **Component render smoke tests** — every packaged Cotton template renders in CI.
 - `c-page.list.actions.share` list action and a working `c-addons.share-dropdown`.
+- **Synonym aliases in the bundled `mvp.utils.BS5_ICONS` pack** — common icons now
+  answer to several names via django-easy-icons' comma-separated alias keys (e.g.
+  `add`/`plus`/`create`, `delete`/`remove`/`trash`, `person`/`user`/`account`,
+  `settings`/`gear`/`cog`, `x`/`close`). Every previously registered name still
+  resolves; the pack is just grouped onto fewer lines.
 
 ### Changed
 
