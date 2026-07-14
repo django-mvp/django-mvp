@@ -1,7 +1,7 @@
 <c-vars label collapse icon icon_class badge badge_class />
 {% if collapse %}
   <li>
-    <details open>
+    <details {% if selected %}open{% endif %}>
       <summary>
         {% if icon %}<c-icon name="{{ icon }}" class="{{ icon_class }}" />{% endif %}
         <span>{{ label }}</span>

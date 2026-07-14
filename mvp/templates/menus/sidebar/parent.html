@@ -1,7 +1,8 @@
 {% load flex_menu %}
 <c-menu.group icon="{{ icon }}"
               :collapse="collapsible"
-              label="{{ label }}">
+              label="{{ label }}"
+              :selected="selected">
   {% for child in children %}
     {% render_item child renderer=renderer %}
   {% endfor %}
