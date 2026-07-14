@@ -59,8 +59,25 @@ EASY_ICONS = {
 
 ## Finding Bootstrap Icon Names
 
-Browse https://icons.getbootstrap.com/ — the icon name to use is the part after `bi-`
+Browse <https://icons.getbootstrap.com/> — the icon name to use is the part after `bi-`
 in the CSS class. Example: class `bi-speedometer2` → name `"speedometer2"`.
+
+## Declaring Aliases (Comma-Separated Keys)
+
+A single entry can register several names for one icon by separating them with commas.
+Surrounding whitespace is stripped, so format for readability:
+
+```python
+"icons": {
+    "add, plus, create": "bi bi-plus",
+    "delete, remove, trash": "bi bi-trash",
+    "person, user, account": "bi bi-person",
+}
+```
+
+Every alias resolves to the same class, which keeps a pack flexible for callers while
+grouping synonyms onto single, manageable lines. The bundled `mvp.utils.BS5_ICONS` pack
+uses this throughout. (A logical icon name therefore cannot itself contain a comma.)
 
 ## Using a Non-Default Renderer in Templates
 

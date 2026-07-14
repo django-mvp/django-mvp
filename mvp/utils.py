@@ -70,51 +70,65 @@ def app_is_installed(app_name: str) -> bool:
     return apps.is_installed(app_name)
 
 
+# Comma-separated keys declare several aliases for one icon (expanded by
+# django-easy-icons); surrounding whitespace is stripped. Every alias below
+# resolves to the same Bootstrap Icons class, keeping the pack flexible for
+# callers while grouping synonyms onto single, manageable lines.
 BS5_ICONS = {
-    "add": "bi bi-plus-lg",
-    "search": "bi bi-search",
-    "delete": "bi bi-trash",
-    "edit": "bi bi-pencil",
-    "plus": "bi bi-plus",
-    "minus": "bi bi-dash",
-    "sort-asc": "bi bi-arrow-down-short",
-    "sort-desc": "bi bi-arrow-up-short",
-    "arrow-right": "bi bi-arrow-right",
-    "arrow-left": "bi bi-arrow-left",
-    "circle": "bi bi-circle",
-    "dash": "bi bi-dash-lg",
-    "dropdown_check": "bi bi-check-circle-fill",
+    # ── Actions ──────────────────────────────────────────────────────────
+    "add, plus, create": "bi bi-plus",
+    "minus, dash": "bi bi-dash",
+    "delete, remove, trash": "bi bi-trash",
+    "edit, pencil": "bi bi-pencil",
+    "search, find": "bi bi-search",
     "filter": "bi bi-funnel",
-    "github": "bi bi-github",
-    "globe": "bi bi-globe",
-    "home": "bi bi-house",
-    "maximize": "bi bi-arrows-fullscreen",
-    "minimize": "bi bi-arrows-angle-contract",
+    "check, tick": "bi bi-check-lg",
+    "x, close": "bi bi-x-lg",
+    "share": "bi bi-share",
+    "copy-link, link": "bi bi-link-45deg",
+    "login": "bi bi-box-arrow-in-right",
+    "logout": "bi bi-box-arrow-right",
+    # ── Navigation & layout ──────────────────────────────────────────────
+    "home, house": "bi bi-house",
     "menu": "bi bi-list",
     "navbar": "bi bi-window",
-    "people": "bi bi-people",
-    "person": "bi bi-person",
-    "settings": "bi bi-gear",
+    "table": "bi bi-table",
     "sidebar-left": "bi bi-layout-sidebar",
     "sidebar-right": "bi bi-layout-sidebar-reverse",
+    "maximize": "bi bi-arrows-fullscreen",
+    "minimize": "bi bi-arrows-angle-contract",
+    "arrow-right": "bi bi-arrow-right",
+    "arrow-left": "bi bi-arrow-left",
+    # ── Sorting ──────────────────────────────────────────────────────────
     "sort": "bi bi-sort-down",
-    "table": "bi bi-table",
+    "sort-asc": "bi bi-arrow-down-short",
+    "sort-desc": "bi bi-arrow-up-short",
+    # ── People ───────────────────────────────────────────────────────────
+    "person, user, account": "bi bi-person",
+    "people, users": "bi bi-people",
+    # ── Settings & theme ─────────────────────────────────────────────────
+    "settings, gear, cog": "bi bi-gear",
     "theme.auto": "bi bi-circle-half",
     "theme.dark": "bi bi-moon-stars-fill",
     "theme.light": "bi bi-sun",
-    "x": "bi bi-x-lg",
-    "check": "bi bi-check-lg",
-    "share": "bi bi-share",
+    # ── Social ───────────────────────────────────────────────────────────
+    "github": "bi bi-github",
     "facebook": "bi bi-facebook",
     "twitter": "bi bi-twitter-x",
     "reddit": "bi bi-reddit",
     "pinterest": "bi bi-pinterest",
-    "email": "bi bi-envelope",
-    "copy-link": "bi bi-link-45deg",
+    "email, envelope": "bi bi-envelope",
+    # ── Misc glyphs ──────────────────────────────────────────────────────
+    "circle": "bi bi-circle",
+    "globe": "bi bi-globe",
     "life-preserver": "bi bi-life-preserver",
     "exclamation-circle": "bi bi-exclamation-circle",
     "shield-x": "bi bi-shield-x",
     "bug": "bi bi-bug",
-    "logout": "bi bi-box-arrow-right",
-    "login": "bi bi-box-arrow-in-right",
+    # ── Status (keyed to alert/badge variant names so a component can pass
+    #    its variant straight through to <c-icon>) ─────────────────────────
+    "info": "bi bi-info-circle-fill",
+    "success, dropdown_check": "bi bi-check-circle-fill",
+    "warning": "bi bi-exclamation-triangle-fill",
+    "error": "bi bi-x-circle-fill",
 }
