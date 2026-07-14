@@ -3,10 +3,11 @@
         brand-url="/"
         class
         menu="AppMenu"
-        :collapse="mvp_config.layout.sidebar.collapse" />
+        :collapse="mvp_config.layout.sidebar.collapse"
+        :title="mvp_config.layout.sidebar.title" />
 <aside class="mvp-sidebar flex flex-col min-h-full items-start transition-[width] duration-200 {% if collapse == 'icons' %}mvp-sidebar--icons is-drawer-close:w-16 is-drawer-open:w-65{% else %}is-drawer-close:w-0 is-drawer-close:overflow-hidden is-drawer-open:w-65{% endif %} {{ bg }} {{ class }}"
        {{ attrs }}>
-  <c-app.sidebar.header link="{{ brand_url }}" :bg="bg" />
+  <c-app.sidebar.header link="{{ brand_url }}" :bg="bg" :title="title" />
   <nav class="flex w-full">
     {% render_menu menu renderer="sidebar" %}
   </nav>

@@ -9,13 +9,11 @@
       <c-icon name="menu" />
     </label>
     <a href="/">
-      {% if icon %}
-        <c-brand.icon size="sm" />
-      {% endif %}
+      {% comment %} <c-brand.icon size="sm" /> {% endcomment %}
       <div class="text-2xl hidden lg:flex items-center">{{ request.site.name }}</div>
-      <div class="lg:hidden">
-        <c-brand.logo max-height="1.5rem" />
-      </div>
+      {% comment %} <div class="lg:hidden">
+        <c-brand.logo max-height="1rem" />
+      </div> {% endcomment %}
     </a>
   </div>
   <div class="navbar-end gap-1">

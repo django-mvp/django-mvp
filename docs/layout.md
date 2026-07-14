@@ -21,6 +21,7 @@ MVP_CONFIG = {
         "sidebar": {
             "breakpoint": "lg",       # sm | md | lg | xl | 2xl
             "collapse": "offcanvas",  # "offcanvas" | "icons"
+            "title": None,            # text beside the brand icon (falsey = none)
         },
         "navbar": {
             "end": ["actions.theme-controller"],
@@ -70,6 +71,30 @@ Per-page override — see [Overriding the layout per page](#overriding-the-layou
 The open/closed state persists across page loads (localStorage, key
 `mvp-app-drawer-open`). On first visit it defaults to open at/above the breakpoint and
 closed below it.
+
+## Sidebar title
+
+`layout.sidebar.title` renders a short text label beside the brand icon in the sidebar
+header. Falsey (the default `None`) renders no title. In the `"icons"` collapse mode the
+title hides along with the rail's other labels, leaving just the icon.
+
+```python
+MVP_CONFIG = {
+    "layout": {
+        "sidebar": {
+            "title": "Acme Admin",
+        },
+    },
+}
+```
+
+Per-page override:
+
+```html
+{% block app.sidebar %}
+  <c-app.sidebar title="Acme Admin" />
+{% endblock %}
+```
 
 ## Navbar widgets
 

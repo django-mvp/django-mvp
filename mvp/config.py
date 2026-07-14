@@ -34,6 +34,9 @@ MVP_CONFIG = {
             # How the sidebar collapses when toggled at or above the breakpoint:
             # "offcanvas" (slides fully away) or "icons" (collapses to an icon rail)
             "collapse": "offcanvas",
+            # Text shown beside the brand icon in the sidebar header. Falsey
+            # (the default) renders no title. Hidden while collapsed to an icon rail.
+            "title": None,
         },
         "navbar": {
             # Cotton component names rendered at the end (right side) of the navbar,

@@ -54,6 +54,7 @@ def test_layout_defaults_present():
     layout = MVP_CONFIG["layout"]
     assert layout["sidebar"]["breakpoint"] == "lg"
     assert layout["sidebar"]["collapse"] == "offcanvas"
+    assert layout["sidebar"]["title"] is None
     assert isinstance(layout["navbar"]["end"], list)
 
 
@@ -206,6 +207,29 @@ def test_collapse_icons_component_override():
     assert "mvp-sidebar--icons" in html
     assert "is-drawer-close:w-16" in html
     assert "is-drawer-close:w-0" not in html
+
+
+# ---------------------------------------------------------------------------
+# Sidebar title beside the brand icon
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+def test_default_title_renders_nothing(client):
+    """The default None title renders no title element in the sidebar header."""
+    content = client.get("/").content.decode()
+    assert "mvp-sidebar-title" not in content
+
+
+@pytest.mark.django_db
+def test_title_component_override():
+    """<c-app.sidebar title="..."> renders the text beside the brand icon,
+    marked mvp-rail-hide so it hides when collapsed to an icon rail."""
+    html = _render("tests/sidebar_title_override.html")
+    match = re.search(r'<span class="mvp-sidebar-title[^"]*">([^<]*)</span>', html)
+    assert match is not None, "title span must render when title is set"
+    assert match.group(1).strip() == "Acme Admin"
+    assert "mvp-rail-hide" in match.group(0)
 
 
 # ---------------------------------------------------------------------------
