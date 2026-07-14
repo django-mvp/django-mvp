@@ -1,0 +1,29 @@
+{% comment %}
+  <c-components.section> — one documented example on a component page.
+
+  Renders a heading (with an anchor link), an optional description, and the
+  example itself passed through {% show_code %}, which shows the live preview
+  plus Cotton / HTML source tabs.
+
+  IMPORTANT: wrap the example markup in {% cotton:verbatim %}...{% endcotton:verbatim %}
+  on the page so django-cotton passes the literal source through to show_code
+  instead of compiling it first.
+
+  Props:
+    title       – heading text (also used to build the #anchor)
+    description – short prose shown under the heading (slot or attr)
+{% endcomment %}
+{% load mvp %}
+<c-vars title description />
+<section id="{{ title|slugify }}" class="scroll-mt-24">
+  <div class="flex items-center gap-2 mb-1 group">
+    <h3 class="text-xl font-semibold">{{ title }}</h3>
+    <a href="#{{ title|slugify }}"
+       class="text-base-content/40 hover:text-base-content opacity-0 group-hover:opacity-100 transition"
+       aria-label="Permalink to {{ title }}">
+      <i class="bi bi-link-45deg"></i>
+    </a>
+  </div>
+  {% if description %}<p class="text-base-content/60 mb-3">{{ description }}</p>{% endif %}
+  {% show_code %}{{ slot }}{% endshow_code %}
+</section>

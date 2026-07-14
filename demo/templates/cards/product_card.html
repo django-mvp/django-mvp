@@ -1,6 +1,6 @@
 <c-card class="h-full">
   <div class="flex items-start justify-between gap-2 mb-2">
-    <c-badge variant="{{ product.stock_status|yesno:'danger,warning,success' }}">
+    <c-badge variant="{% if product.stock_status == 'out_of_stock' %}error{% elif product.stock_status == 'low_stock' %}warning{% else %}success{% endif %}">
       {% if product.stock_status == 'out_of_stock' %}
         Out of Stock
       {% elif product.stock_status == 'low_stock' %}

@@ -1,0 +1,53 @@
+{% extends "demo/components/base.html" %}
+
+{% block component.docs %}
+  <c-components.section title="Default"
+                        description="Render a registered icon by name. Names are configured in the EASY_ICONS setting.">
+    {% cotton:verbatim %}
+      <c-icon name="home" />
+      <c-icon name="search" />
+      <c-icon name="bell" />
+      <c-icon name="gears" />
+    {% endcotton:verbatim %}
+  </c-components.section>
+
+  <c-components.section title="Size"
+                        description="Icons inherit the current font size — scale them with Tailwind text-* utilities via class.">
+    {% cotton:verbatim %}
+      <div class="flex items-center gap-4">
+        <c-icon name="heart" class="text-sm" />
+        <c-icon name="heart" class="text-xl" />
+        <c-icon name="heart" class="text-3xl" />
+        <c-icon name="heart" class="text-5xl" />
+      </div>
+    {% endcotton:verbatim %}
+  </c-components.section>
+
+  <c-components.section title="Colour"
+                        description="Colour an icon with any text colour utility.">
+    {% cotton:verbatim %}
+      <div class="flex items-center gap-4 text-2xl">
+        <c-icon name="check-circle-fill" class="text-success" />
+        <c-icon name="exclamation-circle" class="text-warning" />
+        <c-icon name="trash" class="text-error" />
+        <c-icon name="star" class="text-primary" />
+      </div>
+    {% endcotton:verbatim %}
+  </c-components.section>
+
+  <c-components.section title="A sampling"
+                        description="A few of the icons registered in this demo.">
+    {% cotton:verbatim %}
+      <div class="flex flex-wrap gap-6 text-2xl">
+        <c-icon name="cart" />
+        <c-icon name="calendar" />
+        <c-icon name="folder" />
+        <c-icon name="eye" />
+        <c-icon name="email" />
+        <c-icon name="link" />
+        <c-icon name="laptop" />
+        <c-icon name="graph-up" />
+      </div>
+    {% endcotton:verbatim %}
+  </c-components.section>
+{% endblock component.docs %}

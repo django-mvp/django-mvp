@@ -1,0 +1,27 @@
+{% extends "page_view.html" %}
+
+{% block page.content %}
+  <c-text muted tight class="text-lg">
+    The core UI components for building your own pages. Each page shows live examples
+    alongside their Cotton markup and the HTML it renders to. Pick one to explore.
+  </c-text>
+
+  <c-grid cols="1" sm="2" lg="3" gap="4" class="mt-4">
+    {% for c in components %}
+      <a href="{% url 'component-doc' slug=c.slug %}"
+         class="block h-full transition hover:-translate-y-0.5">
+        <c-card class="h-full hover:shadow-md transition border border-transparent hover:border-base-300">
+          <div class="flex items-start gap-3">
+            <span class="text-2xl text-primary shrink-0">
+              <c-icon name="{{ c.icon }}" />
+            </span>
+            <div>
+              <h3 class="font-semibold">{{ c.label }}</h3>
+              <p class="text-sm text-base-content/60 mb-0">{{ c.description }}</p>
+            </div>
+          </div>
+        </c-card>
+      </a>
+    {% endfor %}
+  </c-grid>
+{% endblock page.content %}

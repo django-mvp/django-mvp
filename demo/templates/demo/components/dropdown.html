@@ -1,0 +1,110 @@
+{% extends "demo/components/base.html" %}
+{% block component.docs %}
+  <c-components.section title="Default"
+                        description="Extra attributes on c-dropdown configure the trigger button (text, icon, variant, size…). Put a c-menu in the default slot for a list of items. The panel sizes to its content.">
+    {% cotton:verbatim %}
+    <c-dropdown text="Options" icon="gears" variant="primary">
+      <c-menu>
+        <c-menu.item label="Edit" icon="pencil" href="#" />
+        <c-menu.item label="View" icon="eye" href="#" />
+        <c-menu.item label="Delete"
+                     icon="trash"
+                     href="#"
+                     class="text-error" />
+      </c-menu>
+    </c-dropdown>
+  {% endcotton:verbatim %}
+</c-components.section>
+<c-components.section title="Custom trigger"
+                      description="For full control over the trigger, declare it in the button slot. You own its tabindex/role; extra attributes on c-dropdown then apply to the wrapper (handy for x-data, id…).">
+  {% cotton:verbatim %}
+  <c-dropdown>
+    <c-slot name="button">
+      <c-button ghost icon="gears" tabindex="0" role="button" />
+    </c-slot>
+    <c-menu>
+      <c-menu.item label="Profile" href="#" />
+      <c-menu.item label="Settings" href="#" />
+    </c-menu>
+  </c-dropdown>
+{% endcotton:verbatim %}
+</c-components.section>
+<c-components.section title="Alignment"
+                      description="Use halign to line the panel up with the trigger: start (default), center, or end.">
+  {% cotton:verbatim %}
+  <div class="flex flex-wrap justify-center gap-4">
+    <c-dropdown halign="start" text="Start" variant="neutral">
+      <c-menu>
+        <c-menu.item label="Aligned to the start" href="#" />
+      </c-menu>
+    </c-dropdown>
+    <c-dropdown halign="center" text="Center" variant="neutral">
+      <c-menu>
+        <c-menu.item label="Aligned to the center" href="#" />
+      </c-menu>
+    </c-dropdown>
+    <c-dropdown halign="end" text="End" variant="neutral">
+      <c-menu>
+        <c-menu.item label="Aligned to the end" href="#" />
+      </c-menu>
+    </c-dropdown>
+  </div>
+{% endcotton:verbatim %}
+</c-components.section>
+<c-components.section title="Open direction"
+                      description="Use valign to control which way the panel opens: bottom (default), top, left, or right.">
+  {% cotton:verbatim %}
+  <div class="flex flex-wrap justify-center gap-4 py-16">
+    <c-dropdown valign="bottom" text="Bottom" variant="primary">
+      <c-menu>
+        <c-menu.item label="Opens downward" href="#" />
+      </c-menu>
+    </c-dropdown>
+    <c-dropdown valign="top" text="Top" variant="primary">
+      <c-menu>
+        <c-menu.item label="Opens upward" href="#" />
+      </c-menu>
+    </c-dropdown>
+    <c-dropdown valign="left" text="Left" variant="primary">
+      <c-menu>
+        <c-menu.item label="Opens to the left" href="#" />
+      </c-menu>
+    </c-dropdown>
+    <c-dropdown valign="right" text="Right" variant="primary">
+      <c-menu>
+        <c-menu.item label="Opens to the right" href="#" />
+      </c-menu>
+    </c-dropdown>
+  </div>
+{% endcotton:verbatim %}
+</c-components.section>
+<c-components.section title="Open on hover"
+                      description="Add hover to open the panel on pointer hover instead of click.">
+  {% cotton:verbatim %}
+  <c-dropdown hover text="Hover me" variant="neutral">
+    <c-menu>
+      <c-menu.item label="Opens on hover" href="#" />
+    </c-menu>
+  </c-dropdown>
+{% endcotton:verbatim %}
+</c-components.section>
+<c-components.section title="Full width"
+                      description="By default the panel sizes to its content (with a sensible min-width). Add full to stretch it to the trigger's width instead — handy when the trigger is full-width, e.g. in a sidebar.">
+  {% cotton:verbatim %}
+  <div class="w-72">
+    <c-dropdown full class="w-full">
+      <c-slot name="button">
+        <c-button full
+                  text="Full-width trigger"
+                  variant="neutral"
+                  tabindex="0"
+                  role="button" />
+      </c-slot>
+      <c-menu>
+        <c-menu.item label="The panel matches the trigger" href="#" />
+      </c-menu>
+    </c-dropdown>
+  </div>
+{% endcotton:verbatim %}
+</c-components.section>
+{% endblock component.docs %}

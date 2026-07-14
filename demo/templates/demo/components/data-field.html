@@ -1,0 +1,38 @@
+{% extends "demo/components/base.html" %}
+
+{% block component.docs %}
+  <c-components.section title="Default"
+                        description="Display a labelled read-only value — ideal for detail pages.">
+    {% cotton:verbatim %}
+      <c-data-field label="Full name" value="Ada Lovelace" />
+    {% endcotton:verbatim %}
+  </c-components.section>
+
+  <c-components.section title="Help text"
+                        description="Add help_text to show a tooltip on hover over the label.">
+    {% cotton:verbatim %}
+      <c-data-field label="Email"
+                    value="ada@example.com"
+                    help_text="Primary contact address" />
+    {% endcotton:verbatim %}
+  </c-components.section>
+
+  <c-components.section title="Missing values"
+                        description="When no value is given, a fallback is shown. Customise it with the missing attribute.">
+    {% cotton:verbatim %}
+      <c-data-field label="Phone" />
+      <c-data-field label="Website" missing="Not provided" />
+    {% endcotton:verbatim %}
+  </c-components.section>
+
+  <c-components.section title="In a grid"
+                        description="Lay several fields out together to form a detail panel.">
+    {% cotton:verbatim %}
+      <c-grid cols="1" md="3" gap="4">
+        <c-data-field label="Plan" value="Pro" />
+        <c-data-field label="Seats" value="12" />
+        <c-data-field label="Renews" value="14 Aug 2026" help_text="Billed annually" />
+      </c-grid>
+    {% endcotton:verbatim %}
+  </c-components.section>
+{% endblock component.docs %}

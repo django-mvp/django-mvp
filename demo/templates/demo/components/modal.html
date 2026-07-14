@@ -1,0 +1,60 @@
+{% extends "demo/components/base.html" %}
+{% block component.docs %}
+  <c-components.section title="Default"
+                        description="Give the modal an id, then open it from any element with id.showModal(). Clicking the backdrop closes it. The box is laid out exactly like a c-card.">
+    {% cotton:verbatim %}
+    <c-button text="Open modal" variant="primary" onclick="basic_modal.showModal()" />
+    <c-modal id="basic_modal" title="Hello">
+      <c-text tight>This is a modal dialog. Click outside the box to dismiss it.</c-text>
+    </c-modal>
+  {% endcotton:verbatim %}
+  </c-components.section>
+  <c-components.section title="Title icon"
+                        description="title and icon flow straight through to the inner card's header.">
+    {% cotton:verbatim %}
+    <c-button text="Show info" variant="info" onclick="info_modal.showModal()" />
+    <c-modal id="info_modal" title="Good to know" icon="info-circle" closable>
+      <c-text tight>Modals are built on the native &lt;dialog&gt; element, so they work without extra JavaScript libraries. Add closable for the ✕ in the corner.</c-text>
+    </c-modal>
+  {% endcotton:verbatim %}
+  </c-components.section>
+  <c-components.section title="Footer actions"
+                        description="Put action buttons in footer_end so they sit at the end of the footer. Call id.close() to dismiss.">
+    {% cotton:verbatim %}
+    <c-button text="Delete item" variant="error" onclick="confirm_modal.showModal()" />
+    <c-modal id="confirm_modal" title="Are you sure?" icon="trash">
+      <c-text tight>This action cannot be undone.</c-text>
+      <c-slot name="footer_end">
+        <c-button text="Cancel" variant="ghost" onclick="confirm_modal.close()" />
+        <c-button text="Delete" variant="error" onclick="confirm_modal.close()" />
+      </c-slot>
+    </c-modal>
+  {% endcotton:verbatim %}
+  </c-components.section>
+  <c-components.section title="Size"
+                        description="Use size to widen the dialog: sm, md (default), lg, xl, or full.">
+    {% cotton:verbatim %}
+    <c-button text="Open large modal"
+              variant="neutral"
+              onclick="large_modal.showModal()" />
+    <c-modal id="large_modal" title="Roomier" icon="maximize" size="lg" closable>
+      <c-text tight>A larger dialog for content that needs more breathing room — forms, tables, side-by-side layouts.</c-text>
+    </c-modal>
+  {% endcotton:verbatim %}
+  </c-components.section>
+  <c-components.section title="Position"
+                        description="By default the dialog is centred. Use position to pin it to an edge instead: top, bottom, start, or end.">
+    {% cotton:verbatim %}
+    <div class="flex flex-wrap gap-2">
+      <c-button text="Top" variant="neutral" onclick="top_modal.showModal()" />
+      <c-button text="Bottom" variant="neutral" onclick="bottom_modal.showModal()" />
+    </div>
+    <c-modal id="top_modal" title="Pinned to the top" icon="info-circle" position="top" closable>
+      <c-text tight>This dialog opens against the top edge of the screen.</c-text>
+    </c-modal>
+    <c-modal id="bottom_modal" title="Pinned to the bottom" icon="info-circle" position="bottom" closable>
+      <c-text tight>This dialog opens against the bottom edge — handy on mobile.</c-text>
+    </c-modal>
+  {% endcotton:verbatim %}
+  </c-components.section>
+{% endblock component.docs %}

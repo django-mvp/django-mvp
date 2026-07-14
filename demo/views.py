@@ -8,8 +8,10 @@ This view provides an interactive form for testing all layout options:
 View uses query parameters for stateless, shareable URL-based configuration.
 """
 
+from django.http import Http404
 from django_filters.views import FilterView
 
+from demo.component_docs import COMPONENTS, COMPONENTS_BY_SLUG
 from demo.models import Category, Product
 from demo.tables import ProductTable
 from mvp.integrations.django_tables.views import MVPTableViewMixin
@@ -43,9 +45,48 @@ class DemoTemplateView(MVPTemplateView):
         return [{"text": "Home", "href": "/"}, {"text": self.page_title}]
 
 
-components_demo = DemoTemplateView.as_view(
-    template_name="components.html", page_title="Components"
-)
+class ComponentIndexView(DemoTemplateView):
+    """Landing page for the component documentation: a card per component."""
+
+    template_name = "components/index.html"
+    page_title = "Components"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["components"] = COMPONENTS
+        return context
+
+
+class ComponentDocView(DemoTemplateView):
+    """Render a single component's documentation page from its slug.
+
+    Templates live at ``demo/components/<slug>.html``. The slug must be a known
+    component; anything else is a 404.
+    """
+
+    def setup(self, request, *args, slug=None, **kwargs):
+        super().setup(request, *args, **kwargs)
+        self.component = COMPONENTS_BY_SLUG.get(slug)
+        if self.component is None:
+            raise Http404(f"Unknown component: {slug!r}")
+        self.template_name = f"components/{slug}.html"
+        self.page_title = self.component.label
+
+    def get_breadcrumbs(self):
+        return [
+            {"text": "Home", "href": "/"},
+            {"text": "Components", "href": "/components/"},
+            {"text": self.component.label},
+        ]
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["components"] = COMPONENTS
+        context["component"] = self.component
+        return context
+
+
+components_demo = ComponentIndexView.as_view()
 layout_demo = DemoTemplateView.as_view(
     template_name="layout.html", page_title="Layout Demo"
 )

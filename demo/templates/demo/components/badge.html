@@ -1,0 +1,83 @@
+{% extends "demo/components/base.html" %}
+
+{% block component.docs %}
+  <c-components.section title="Default"
+                        description="A small pill for labels and counts. Pass content as the slot or via the text attribute.">
+    {% cotton:verbatim %}
+      <c-badge>New</c-badge>
+      <c-badge text="42" />
+    {% endcotton:verbatim %}
+  </c-components.section>
+
+  <c-components.section title="Variants"
+                        description="Give a badge intent with the variant attribute; omit it for the neutral default. Add outline for a bordered, transparent style.">
+    {% cotton:verbatim %}
+      <div class="flex flex-wrap gap-2">
+        <c-badge>Default</c-badge>
+        <c-badge variant="primary">Primary</c-badge>
+        <c-badge variant="secondary">Secondary</c-badge>
+        <c-badge variant="accent">Accent</c-badge>
+        <c-badge variant="info">Info</c-badge>
+        <c-badge variant="success">Success</c-badge>
+        <c-badge variant="warning">Warning</c-badge>
+        <c-badge variant="error">Error</c-badge>
+        <c-badge outline>Outline</c-badge>
+      </div>
+    {% endcotton:verbatim %}
+  </c-components.section>
+
+  <c-components.section title="Sizes"
+                        description="Set size='sm' or 'lg'; omit it for the default size.">
+    {% cotton:verbatim %}
+      <div class="flex flex-wrap items-center gap-2">
+        <c-badge size="sm" variant="primary">Small</c-badge>
+        <c-badge variant="primary">Default</c-badge>
+        <c-badge size="lg" variant="primary">Large</c-badge>
+      </div>
+    {% endcotton:verbatim %}
+  </c-components.section>
+
+  <c-components.section title="In headings"
+                        description="Drop a badge beside a heading to annotate it with a count or status.">
+    {% cotton:verbatim %}
+      <h3 class="text-lg font-semibold">
+        Inbox <c-badge size="sm" variant="primary">3</c-badge>
+      </h3>
+    {% endcotton:verbatim %}
+  </c-components.section>
+
+  <c-components.section title="In buttons"
+                        description="Pass a badge as slot content to trail a button label with a count. The button's own gap spaces it automatically.">
+    {% cotton:verbatim %}
+      <div class="flex flex-wrap items-center gap-3">
+        <c-button variant="primary" text="Inbox">
+          <c-badge size="sm" variant="neutral">3</c-badge>
+        </c-button>
+        <c-button ghost text="Updates">
+          <c-badge size="sm" variant="primary">5</c-badge>
+        </c-button>
+      </div>
+    {% endcotton:verbatim %}
+  </c-components.section>
+
+  <c-components.section title="In tabs"
+                        description="Count badges inside tab labels show how many items sit behind each tab.">
+    {% cotton:verbatim %}
+      <div role="tablist" class="tabs tabs-border">
+        <a role="tab" class="tab tab-active gap-2">Open <c-badge size="sm" variant="primary">12</c-badge></a>
+        <a role="tab" class="tab gap-2">Closed <c-badge size="sm">3</c-badge></a>
+        <a role="tab" class="tab gap-2">Archived <c-badge size="sm">48</c-badge></a>
+      </div>
+    {% endcotton:verbatim %}
+  </c-components.section>
+
+  <c-components.section title="As an indicator"
+                        description="Wrap a target in daisyUI's indicator and add indicator-item to the badge to pin a count to a corner — the classic notification pattern.">
+    {% cotton:verbatim %}
+      <div class="indicator">
+        <c-badge size="sm" variant="error" class="indicator-item">9</c-badge>
+        <c-button variant="neutral" text="Messages" />
+      </div>
+    {% endcotton:verbatim %}
+  </c-components.section>
+{% endblock component.docs %}

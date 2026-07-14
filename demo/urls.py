@@ -26,6 +26,11 @@ urlpatterns = [
     path("layout/", views.layout_demo, name="layout"),
     path("theme/", views.theme_customization_demo, name="customization"),
     path("components/", views.components_demo, name="custom-components"),
+    path(
+        "components/<slug:slug>/",
+        views.ComponentDocView.as_view(),
+        name="component-doc",
+    ),
     path("products/", ProductListView.as_view(), name="product-list"),
     path("products/create/", ProductCreateView.as_view(), name="product-create"),
     path("products/<int:pk>/", ProductDetailView.as_view(), name="product-detail"),

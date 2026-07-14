@@ -1,0 +1,52 @@
+{% extends "demo/components/base.html" %}
+
+{% block component.docs %}
+  <c-components.section title="Default"
+                        description="Renders a paragraph. Pass content as the slot, or use the text attribute.">
+    {% cotton:verbatim %}
+      <c-text>The quick brown fox jumps over the lazy dog.</c-text>
+    {% endcotton:verbatim %}
+  </c-components.section>
+
+  <c-components.section title="Size"
+                        description="Set the type scale with size: sm for captions and footnotes, base (the default) for body copy, lg and xl for lead paragraphs and standout copy.">
+    {% cotton:verbatim %}
+      <c-text size="sm">Small — for captions and footnotes.</c-text>
+      <c-text>Base — the default body size.</c-text>
+      <c-text size="lg">Large — a subheading or lead-in.</c-text>
+      <c-text size="xl">Extra large — standout copy.</c-text>
+    {% endcotton:verbatim %}
+  </c-components.section>
+
+  <c-components.section title="Emphasis"
+                        description="Set tone and weight: muted dims for secondary information, bold thickens to draw the eye.">
+    {% cotton:verbatim %}
+      <c-text muted>Muted — dimmed for secondary information.</c-text>
+      <c-text bold>Bold — draws the eye to a key phrase.</c-text>
+    {% endcotton:verbatim %}
+  </c-components.section>
+
+  <c-components.section title="Alignment"
+                        description="Text inherits its container's alignment by default. Override it explicitly with align: start, center, or end.">
+    {% cotton:verbatim %}
+      <c-text>Inherits alignment from the container.</c-text>
+      <c-text align="center">Center-aligned.</c-text>
+      <c-text align="end">End-aligned.</c-text>
+    {% endcotton:verbatim %}
+  </c-components.section>
+
+  <c-components.section title="Transform"
+                        description="Use upper to uppercase text — handy for eyebrow labels and section kickers.">
+    {% cotton:verbatim %}
+      <c-text upper muted size="sm">Uppercase text for labels</c-text>
+    {% endcotton:verbatim %}
+  </c-components.section>
+
+  <c-components.section title="Spacing"
+                        description="Paragraphs carry a bottom margin by default. Add tight to remove it when stacking closely.">
+    {% cotton:verbatim %}
+      <c-text tight>These two lines</c-text>
+      <c-text tight>sit close together.</c-text>
+    {% endcotton:verbatim %}
+  </c-components.section>
+{% endblock component.docs %}

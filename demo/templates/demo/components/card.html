@@ -1,0 +1,101 @@
+{% extends "demo/components/base.html" %}
+{% block component.docs %}
+  <c-components.section title="Default"
+                        description="A padded, elevated surface. Put any content in the default slot.">
+    {% cotton:verbatim %}
+    <c-card>
+      <c-text tight>A plain card — a clean surface for whatever you need.</c-text>
+    </c-card>
+  {% endcotton:verbatim %}
+  </c-components.section>
+  <c-components.section title="Title & icon"
+                        description="Pass title for a heading and, optionally, icon for a leading glyph.">
+    {% cotton:verbatim %}
+    <c-card title="Statistics" icon="chart-bar">
+      <c-text size="xl" tight>1,248</c-text>
+      <c-text muted size="sm" tight>Total visitors this week</c-text>
+    </c-card>
+  {% endcotton:verbatim %}
+  </c-components.section>
+  <c-components.section title="Title badges"
+                        description="The badges slot sits just after the title — great for a status, a count, or a version tag.">
+    {% cotton:verbatim %}
+    <c-card title="Release 2.4" icon="star">
+      <c-slot name="badges">
+        <c-badge variant="success" size="sm">Stable</c-badge>
+      </c-slot>
+      <c-text muted tight>Badges line up right after the title.</c-text>
+    </c-card>
+  {% endcotton:verbatim %}
+  </c-components.section>
+  <c-components.section title="Header actions"
+                        description="The actions slot sits at the end of the header — ideal for a button, a dropdown, or any per-card controls. Give the dropdown halign=end so its panel stays inside the card.">
+    {% cotton:verbatim %}
+    <c-card title="Project Atlas" icon="folder">
+      <c-slot name="badges">
+        <c-badge variant="info" size="sm" outline>3 tasks</c-badge>
+      </c-slot>
+      <c-slot name="actions">
+        <c-dropdown halign="end" ghost size="sm" icon="gears">
+          <c-menu>
+            <c-menu.item label="Rename" icon="pencil" href="#" />
+            <c-menu.item label="Archive" icon="box-seam" href="#" />
+          </c-menu>
+        </c-dropdown>
+      </c-slot>
+      <c-text muted tight>A card with a status badge and its own controls in the header.</c-text>
+    </c-card>
+  {% endcotton:verbatim %}
+  </c-components.section>
+  <c-components.section title="Footer"
+                        description="The footer slot aligns to the start, footer_end to the end — put metadata on one side and actions on the other.">
+    {% cotton:verbatim %}
+    <c-card title="Upgrade your plan" icon="star">
+      <c-text muted tight>Unlock advanced features and priority support.</c-text>
+      <c-slot name="footer">
+        <c-badge variant="warning">Pro</c-badge>
+      </c-slot>
+      <c-slot name="footer_end">
+        <c-button text="Learn more" variant="ghost" size="sm" />
+        <c-button text="Upgrade" variant="primary" size="sm" />
+      </c-slot>
+    </c-card>
+  {% endcotton:verbatim %}
+  </c-components.section>
+  <c-components.section title="In a grid"
+                        description="Cards fill their container, so they line up neatly inside a c-grid.">
+    {% cotton:verbatim %}
+    <c-grid cols="1" md="3" gap="4">
+      <c-card title="Design" icon="pencil">
+        <c-text muted tight>Craft the interface.</c-text>
+      </c-card>
+      <c-card title="Build" icon="gears">
+        <c-text muted tight>Ship the feature.</c-text>
+      </c-card>
+      <c-card title="Measure" icon="graph-up">
+        <c-text muted tight>Learn from usage.</c-text>
+      </c-card>
+    </c-grid>
+  {% endcotton:verbatim %}
+  </c-components.section>
+  <c-components.section title="Tight"
+                        description="Add tight to drop the body padding — handy when the content brings its own edges, like a table or a menu.">
+    {% cotton:verbatim %}
+    <c-card tight class="overflow-hidden">
+      <c-menu>
+        <c-menu.item label="Inbox" icon="email" href="#" />
+        <c-menu.item label="Starred" icon="star" href="#" />
+        <c-menu.item label="Trash" icon="trash" href="#" />
+      </c-menu>
+    </c-card>
+  {% endcotton:verbatim %}
+  </c-components.section>
+  <c-components.section title="Bare surface"
+                        description="c-card.wrapper is the low-level primitive — just the card surface, no layout. Reach for it when you want full control over the interior.">
+    {% cotton:verbatim %}
+    <c-card.wrapper class="p-6">
+      <c-text tight>A wrapper gives you the surface and nothing else — lay out the inside however you like.</c-text>
+    </c-card.wrapper>
+  {% endcotton:verbatim %}
+  </c-components.section>
+{% endblock component.docs %}

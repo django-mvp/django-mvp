@@ -1,0 +1,99 @@
+{% extends "demo/components/base.html" %}
+
+{% block component.docs %}
+  <c-components.section title="Variants"
+                        description="Give a button its intent with the variant attribute. Omit it for the neutral default; add ghost for a borderless look.">
+    {% cotton:verbatim %}
+      <div class="flex flex-wrap gap-2">
+        <c-button text="Default" />
+        <c-button text="Primary" variant="primary" />
+        <c-button text="Secondary" variant="secondary" />
+        <c-button text="Accent" variant="accent" />
+        <c-button text="Info" variant="info" />
+        <c-button text="Success" variant="success" />
+        <c-button text="Warning" variant="warning" />
+        <c-button text="Error" variant="error" />
+        <c-button text="Neutral" variant="neutral" />
+        <c-button text="Ghost" ghost />
+        <c-button text="Link" variant="link" />
+      </div>
+    {% endcotton:verbatim %}
+  </c-components.section>
+
+  <c-components.section title="Outline"
+                        description="Add the outline attribute for a transparent button with a coloured border. Pairs with any variant.">
+    {% cotton:verbatim %}
+      <div class="flex flex-wrap gap-2">
+        <c-button text="Default" outline />
+        <c-button text="Primary" variant="primary" outline />
+        <c-button text="Secondary" variant="secondary" outline />
+        <c-button text="Accent" variant="accent" outline />
+        <c-button text="Info" variant="info" outline />
+        <c-button text="Success" variant="success" outline />
+        <c-button text="Warning" variant="warning" outline />
+        <c-button text="Error" variant="error" outline />
+        <c-button text="Neutral" variant="neutral" outline />
+      </div>
+    {% endcotton:verbatim %}
+  </c-components.section>
+
+  <c-components.section title="Sizes"
+                        description="Control the size with size='sm', 'md' (default), or 'lg'.">
+    {% cotton:verbatim %}
+      <div class="flex flex-wrap items-center gap-2">
+        <c-button text="Small" variant="primary" size="sm" />
+        <c-button text="Medium" variant="primary" size="md" />
+        <c-button text="Large" variant="primary" size="lg" />
+      </div>
+    {% endcotton:verbatim %}
+  </c-components.section>
+
+  <c-components.section title="Full width"
+                        description="Add full to stretch the button to the full width of its container — ideal for form submits and mobile calls to action. The align attribute positions the label within the stretched button.">
+    {% cotton:verbatim %}
+      <c-button text="Continue" variant="primary" full />
+    {% endcotton:verbatim %}
+  </c-components.section>
+
+  <c-components.section title="Disabled"
+                        description="Pass the native disabled attribute to deactivate the button — it falls through to the underlying &lt;button&gt; element.">
+    {% cotton:verbatim %}
+      <div class="flex flex-wrap gap-2">
+        <c-button text="Disabled" variant="primary" disabled />
+        <c-button text="Disabled" variant="neutral" outline disabled />
+      </div>
+    {% endcotton:verbatim %}
+  </c-components.section>
+
+  <c-components.section title="Icons"
+                        description="Add a leading icon with the icon attribute. Use reverse to move it after the text, or omit text for an icon-only button.">
+    {% cotton:verbatim %}
+      <div class="flex flex-wrap gap-2">
+        <c-button text="Add" icon="add" variant="primary" />
+        <c-button text="Edit" icon="pencil" variant="neutral" />
+        <c-button text="Delete" icon="trash" variant="error" outline />
+        <c-button text="Next" icon="arrow-right" variant="primary" reverse />
+        <c-button icon="gears" variant="ghost" />
+      </div>
+    {% endcotton:verbatim %}
+  </c-components.section>
+
+  <c-components.section title="Links"
+                        description="Pass href to render an anchor styled as a button instead of a <button> element.">
+    {% cotton:verbatim %}
+      <div class="flex flex-wrap gap-2">
+        <c-button text="Home" icon="home" href="/" variant="primary" />
+        <c-button text="GitHub" href="https://github.com" variant="ghost" />
+      </div>
+    {% endcotton:verbatim %}
+  </c-components.section>
+
+  <c-components.section title="Slot content"
+                        description="Skip the text attribute and pass rich markup as the button's content.">
+    {% cotton:verbatim %}
+      <c-button variant="primary">
+        <strong>Bold</strong>&nbsp;and normal text
+      </c-button>
+    {% endcotton:verbatim %}
+  </c-components.section>
+{% endblock component.docs %}

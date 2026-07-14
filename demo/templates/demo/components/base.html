@@ -1,0 +1,24 @@
+{% extends "page_view.html" %}
+{% comment %}
+  Shared shell for a single component's documentation page.
+
+  Provides the lead description and a vertical stack for the examples. Concrete
+  pages fill {% block component.docs %} with <c-components.section> blocks, each
+  wrapping its example in {% cotton:verbatim %} so the source shows verbatim.
+{% endcomment %}
+
+{% block page.actions %}
+  <c-button text="Overview"
+            icon="grid"
+            href="{% url 'custom-components' %}"
+            variant="ghost" />
+{% endblock page.actions %}
+
+{% block page.content %}
+  {% if component.description %}
+    <c-text muted tight class="text-lg">{{ component.description }}</c-text>
+  {% endif %}
+  <div class="flex flex-col gap-8 mt-2">
+    {% block component.docs %}{% endblock component.docs %}
+  </div>
+{% endblock page.content %}

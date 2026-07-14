@@ -1,0 +1,39 @@
+{% extends "demo/components/base.html" %}
+
+{% block component.docs %}
+  <c-components.section title="Default"
+                        description="A horizontal rule that separates stacked content.">
+    {% cotton:verbatim %}
+      <c-text tight>Above the divider</c-text>
+      <c-divider />
+      <c-text tight>Below the divider</c-text>
+    {% endcotton:verbatim %}
+  </c-components.section>
+
+  <c-components.section title="With a label"
+                        description="Pass label (or slot content) to place text in the middle of the line.">
+    {% cotton:verbatim %}
+      <c-divider label="OR" />
+    {% endcotton:verbatim %}
+  </c-components.section>
+
+  <c-components.section title="Colours"
+                        description="Tint the divider with the variant attribute.">
+    {% cotton:verbatim %}
+      <c-divider variant="primary" label="Primary" />
+      <c-divider variant="secondary" label="Secondary" />
+      <c-divider variant="accent" label="Accent" />
+    {% endcotton:verbatim %}
+  </c-components.section>
+
+  <c-components.section title="Vertical"
+                        description="Add vertical to separate side-by-side content in a flex row. The divider stretches to the height of its container.">
+    {% cotton:verbatim %}
+      <div class="flex w-full h-24">
+        <div class="grid grow place-items-center">Left</div>
+        <c-divider vertical label="OR" />
+        <div class="grid grow place-items-center">Right</div>
+      </div>
+    {% endcotton:verbatim %}
+  </c-components.section>
+{% endblock component.docs %}

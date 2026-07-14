@@ -1,0 +1,34 @@
+{% extends "demo/components/base.html" %}
+
+{% block component.docs %}
+  <c-components.section title="Default"
+                        description="A muted stand-in for regions that aren't built yet.">
+    {% cotton:verbatim %}
+      <c-placeholder.card />
+    {% endcotton:verbatim %}
+  </c-components.section>
+
+  <c-components.section title="Custom message &amp; icon"
+                        description="Set message and icon to describe what will eventually go here.">
+    {% cotton:verbatim %}
+      <c-placeholder.card icon="chart-bar" message="Chart goes here" />
+    {% endcotton:verbatim %}
+  </c-components.section>
+
+  <c-components.section title="Height"
+                        description="Use height to reserve vertical space that matches the eventual content.">
+    {% cotton:verbatim %}
+      <c-placeholder.card icon="image" message="Banner image" height="200px" />
+    {% endcotton:verbatim %}
+  </c-components.section>
+
+  <c-components.section title="In a grid"
+                        description="Placeholders fill their container, so they work well inside layouts.">
+    {% cotton:verbatim %}
+      <c-grid cols="1" md="2" gap="4">
+        <c-placeholder.card icon="list-ul" message="Recent activity" height="150px" />
+        <c-placeholder.card icon="bell" message="Notifications" height="150px" />
+      </c-grid>
+    {% endcotton:verbatim %}
+  </c-components.section>
+{% endblock component.docs %}

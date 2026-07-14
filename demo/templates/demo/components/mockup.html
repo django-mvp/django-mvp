@@ -1,0 +1,40 @@
+{% extends "demo/components/base.html" %}
+
+{% block component.docs %}
+  <c-components.section title="Browser"
+                        description="Frame content in a browser chrome with c-mockup.browser. Pass url for the address bar.">
+    {% cotton:verbatim %}
+      <c-mockup.browser url="https://example.com">
+        <div class="bg-base-200 flex justify-center items-center h-40">Page content</div>
+      </c-mockup.browser>
+    {% endcotton:verbatim %}
+  </c-components.section>
+
+  <c-components.section title="Window"
+                        description="c-mockup.window frames content in a generic application window.">
+    {% cotton:verbatim %}
+      <c-mockup.window>
+        Hello from a window!
+      </c-mockup.window>
+    {% endcotton:verbatim %}
+  </c-components.section>
+
+  <c-components.section title="Code"
+                        description="c-mockup.code renders a terminal-style block. Add a c-mockup.code.line per line.">
+    {% cotton:verbatim %}
+      <c-mockup.code>
+        <c-mockup.code.line text="pip install django-mvp" />
+        <c-mockup.code.line text="python manage.py runserver" />
+      </c-mockup.code>
+    {% endcotton:verbatim %}
+  </c-components.section>
+
+  <c-components.section title="Phone"
+                        description="c-mockup.phone frames content in a mobile device.">
+    {% cotton:verbatim %}
+      <c-mockup.phone>
+        <span class="px-6">It's a phone!</span>
+      </c-mockup.phone>
+    {% endcotton:verbatim %}
+  </c-components.section>
+{% endblock component.docs %}

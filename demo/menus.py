@@ -12,8 +12,10 @@ navigation menus with all available features:
 - Menu sections with headers
 """
 
+from django.urls import reverse_lazy
 from flex_menu import MenuItem
 
+from demo.component_docs import COMPONENTS
 from mvp.menus import AppMenu, MenuCollapse, MenuGroup
 
 AppMenu.extend(
@@ -42,13 +44,35 @@ AppMenu.extend(
                 "icon": "gears",
             },
         ),
-        MenuItem(
+        MenuCollapse(
             name="custom-components",
-            view_name="custom-components",
             extra_context={
                 "label": "Components",
                 "icon": "code-slash",
             },
+            children=[
+                MenuItem(
+                    name="components-overview",
+                    view_name="custom-components",
+                    extra_context={
+                        "label": "Overview",
+                        "icon": "grid",
+                    },
+                ),
+                *[
+                    MenuItem(
+                        name=f"component-{component.slug}",
+                        url=reverse_lazy(
+                            "component-doc", kwargs={"slug": component.slug}
+                        ),
+                        extra_context={
+                            "label": component.label,
+                            "icon": component.icon,
+                        },
+                    )
+                    for component in COMPONENTS
+                ],
+            ],
         ),
         MenuGroup(
             name="pages",

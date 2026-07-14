@@ -1,0 +1,92 @@
+{% extends "demo/components/base.html" %}
+
+{% block component.docs %}
+  <c-components.section title="Default"
+                        description="A neutral message. Pass content as the slot.">
+    {% cotton:verbatim %}
+      <c-alert>
+        <span>A new software update is available.</span>
+      </c-alert>
+    {% endcotton:verbatim %}
+  </c-components.section>
+
+  <c-components.section title="Variants"
+                        description="Set variant to convey status: info, success, warning, or error. Each brings a matching status icon automatically.">
+    {% cotton:verbatim %}
+      <div class="flex flex-col gap-2">
+        <c-alert variant="info">
+          <span>A new software update is available.</span>
+        </c-alert>
+        <c-alert variant="success">
+          <span>Your changes have been saved.</span>
+        </c-alert>
+        <c-alert variant="warning">
+          <span>Your subscription expires soon.</span>
+        </c-alert>
+        <c-alert variant="error">
+          <span>Something went wrong. Please try again.</span>
+        </c-alert>
+      </div>
+    {% endcotton:verbatim %}
+  </c-components.section>
+
+  <c-components.section title="Icons"
+                        description="The icon attribute sets the leading icon. Use it on its own for a neutral alert, or alongside variant to override the default status icon.">
+    {% cotton:verbatim %}
+      <div class="flex flex-col gap-2">
+        <c-alert icon="bell">
+          <span>Reminder: your subscription renews tomorrow.</span>
+        </c-alert>
+        <c-alert variant="info" icon="bell">
+          <span>An info alert with a custom icon.</span>
+        </c-alert>
+      </div>
+    {% endcotton:verbatim %}
+  </c-components.section>
+
+  <c-components.section title="Dismissible"
+                        description="Add dismissible for a close button that hides the alert. This is the same behaviour the messages component uses for flash notifications.">
+    {% cotton:verbatim %}
+      <c-alert variant="info" dismissible>
+        <span>This alert can be dismissed with the close button.</span>
+      </c-alert>
+    {% endcotton:verbatim %}
+  </c-components.section>
+
+  <c-components.section title="Soft"
+                        description="Add soft for a gentler, tinted background. Combine with a variant to tint it with that colour.">
+    {% cotton:verbatim %}
+      <c-alert variant="success" soft>
+        <span>Your changes have been saved.</span>
+      </c-alert>
+    {% endcotton:verbatim %}
+  </c-components.section>
+
+  <c-components.section title="Outline"
+                        description="Add outline for a border-only alert with no fill.">
+    {% cotton:verbatim %}
+      <c-alert variant="warning" outline>
+        <span>Please review your details before continuing.</span>
+      </c-alert>
+    {% endcotton:verbatim %}
+  </c-components.section>
+
+  <c-components.section title="Dash"
+                        description="Add dash for a dashed border variant.">
+    {% cotton:verbatim %}
+      <c-alert variant="info" dash>
+        <span>Reminder: your subscription renews tomorrow.</span>
+      </c-alert>
+    {% endcotton:verbatim %}
+  </c-components.section>
+
+  <c-components.section title="With actions"
+                        description="Any markup works inside an alert, including buttons.">
+    {% cotton:verbatim %}
+      <c-alert variant="info" soft>
+        <span>We use cookies to improve your experience.</span>
+        <c-button text="Accept" variant="primary" size="sm" />
+      </c-alert>
+    {% endcotton:verbatim %}
+  </c-components.section>
+{% endblock component.docs %}
