@@ -41,7 +41,7 @@ MVP_CONFIG = {
         "navbar": {
             # Cotton component names rendered at the end (right side) of the navbar,
             # in order, e.g. "actions.theme-controller" -> <c-actions.theme-controller />
-            "end": ["actions.theme-controller"],
+            "end": ["actions.theme-controller", "actions.login"],
             # Whether the header sticks to the top of the viewport on scroll.
             # True (default) pins it (app-style); False lets it scroll away with
             # the page (traditional-site behaviour).

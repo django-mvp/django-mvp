@@ -14,6 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `layout.sidebar.collapse` (`"offcanvas"` or `"icons"`) — slide fully away, or collapse
     to an icon rail with DaisyUI tooltips. Mark sidebar elements with `.mvp-rail-hide` /
     `.mvp-rail-only` to control their rail visibility.
+  - `layout.sidebar.title` — text shown beside the brand icon in the sidebar header; falsey
+    (default `None`) renders nothing, and it hides when collapsed to an icon rail. Overridable
+    per page with `<c-app.sidebar title="..." />`.
   - `layout.navbar.end` — list of Cotton component names rendered at the navbar end via
     `<c-component :is="...">` (e.g. `"actions.theme-controller"`).
   - `layout.navbar.sticky` (`True` default / `False`) — pin the header to the top on scroll
@@ -30,6 +33,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **CI stylesheet drift check** (`.github/workflows/stylesheet.yml`) — fails if the committed
   CSS is stale relative to the Tailwind sources.
 - **Component render smoke tests** — every packaged Cotton template renders in CI.
+- `c-actions.login` — standalone navbar log-in button (renders only for anonymous users),
+  wired into the default `layout.navbar.end`. Add or remove it via config like any other
+  navbar widget.
 - `c-page.list.actions.share` list action and a working `c-addons.share-dropdown`.
 - **Synonym aliases in the bundled `mvp.utils.BS5_ICONS` pack** — common icons now
   answer to several names via django-easy-icons' comma-separated alias keys (e.g.
@@ -54,6 +60,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (auto-detected at runtime, unchanged).
 - Navbar widgets in `mvp/base.html` now come from `MVP_CONFIG["layout"]["navbar"]["end"]`;
   the `{% block app.header.widgets %}` override still works.
+- The sidebar footer no longer renders a log-in button for anonymous users; log-in now lives
+  in the navbar via the new `c-actions.login` widget (see Added).
 
 - **`OrderMixin.order_by` format changed from two-tuple to three-tuple** (Feature 014):
 

@@ -2,12 +2,5 @@
 <div class="{{ bg }} w-full sticky bottom-0 mt-auto z-20 items-center gap-2 px-4 is-drawer-close:px-2 py-2 mb-4">
   {% if request.user.is_authenticated %}
     <c-user.sidebar-menu />
-  {% else %}
-    <c-button text="{% trans "Log in" %}"
-              href="{% url "login" %}"
-              reverse
-              size="lg"
-              icon="login"
-              class="w-full" />
   {% endif %}
 </div>

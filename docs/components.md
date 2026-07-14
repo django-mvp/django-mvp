@@ -93,6 +93,7 @@ Menus are normally rendered from Python via django-flex-menus — see
 | `c-actions.theme-controller` | light/dark theme toggle (`size`) |
 | `c-actions.language-switcher` | i18n language dropdown (needs `set_language` URL) |
 | `c-actions.search` | navbar search input |
+| `c-actions.login` | navbar log-in button (needs `login` URL); renders only when anonymous |
 | `c-user.sidebar-menu` | account dropdown for the sidebar footer |
 | `c-user.display.compact` | avatar + name row |
 | `c-form`, `c-form.render`, `c-form.field` | form wrapper / renderer dispatch / single field |

@@ -141,6 +141,7 @@ Actions directories hold prebuilt, non-customizable components that work out of 
 c-actions.theme-controller
 c-actions.language-switcher
 c-actions.search
+c-actions.login          — navbar log-in button, renders only when anonymous
 ```
 
 ### Data Display

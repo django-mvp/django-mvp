@@ -1,0 +1,8 @@
+{% load i18n %}
+{% if not request.user.is_authenticated %}
+  <c-button text="{% trans "Log in" %}"
+            href="{% url "login" %}"
+            icon="login"
+            reverse
+            size="sm" />
+{% endif %}
