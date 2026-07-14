@@ -1,7 +1,39 @@
+{# ============================================================ #}
+{# <c-dropdown> — daisyUI dropdown (trigger + panel)           #}
+{#                                                              #}
+{# Trigger:                                                     #}
+{#   By default, any extra attributes on <c-dropdown> are      #}
+{#   forwarded to an inner <c-button> that becomes the         #}
+{#   trigger — e.g. text, icon, variant, size.                 #}
+{#                                                              #}
+{#     <c-dropdown text="Options" icon="gears" variant="primary"> #}
+{#       <ul class="menu w-full">…</ul>                        #}
+{#     </c-dropdown>                                            #}
+{#                                                              #}
+{#   For full control, supply the trigger in the `button`      #}
+{#   slot. In that case extra attributes fall through to the   #}
+{#   dropdown wrapper instead (handy for x-data, id, …), and   #}
+{#   you own the trigger's tabindex/role.                      #}
+{#                                                              #}
+{# Props:                                                       #}
+{#   halign        – start|center|end (default: start)         #}
+{#   valign        – top|bottom|left|right (default: bottom)   #}
+{#   full          – stretch the panel to the trigger's width  #}
+{#                   (w-full); otherwise it sizes to its       #}
+{#                   content with a sensible min-width         #}
+{#   hover         – open on hover instead of click            #}
+{#   class         – extra classes on the .dropdown wrapper    #}
+{#   content_class – extra classes on the .dropdown-content    #}
+{# ============================================================ #}
 {% load mvp %}
-<c-vars valign="bottom" halign="start" class />
-<div class="dropdown {% variation valign "dropdown" "top,bottom,left,right" %} {% variation halign "dropdown" "start,center,end" %} {{ class }}"
-     {{ attrs }}>
-  {{ button }}
-  <div class="dropdown-content bg-base-100 rounded-box z-50 w-full shadow-lg border border-base-300">{{ slot }}</div>
+<c-vars valign="bottom" halign="start" full hover class content_class />
+<div class="dropdown {% variation valign "dropdown" "top,bottom,left,right" %} {% variation halign "dropdown" "start,center,end" %}{% if hover %} dropdown-hover{% endif %} {{ class }}"
+     {% if button %}{{ attrs }}{% endif %}>
+  {% if button %}
+    {{ button }}
+  {% else %}
+    <c-button tabindex="0" role="button" :attrs="attrs" />
+  {% endif %}
+  <div tabindex="0"
+       class="dropdown-content bg-base-100 rounded-box z-50 min-w-52{% if full %} w-full{% endif %} shadow-lg border border-base-300 {{ content_class }}">{{ slot }}</div>
 </div>

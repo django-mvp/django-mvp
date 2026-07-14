@@ -1,0 +1,52 @@
+{# ============================================================ #}
+{# <c-card> — opinionated card layout                          #}
+{#                                                              #}
+{# The standard layout that covers most cards:                  #}
+{#   • header — icon + title, then the `badges` slot, on the    #}
+{#     left; the `actions` slot (buttons, dropdown…) on the     #}
+{#     right                                                    #}
+{#   • body   — the default slot                                #}
+{#   • footer — `footer` slot at the start, `footer_end` slot   #}
+{#     at the end                                               #}
+{#                                                              #}
+{# Every section is optional; the card renders only what it is  #}
+{# given. For a fully custom surface, use <c-card.wrapper>.     #}
+{#                                                              #}
+{# Props:                                                       #}
+{#   title      – heading text                                  #}
+{#   icon       – leading icon name for the heading             #}
+{#   tight      – remove body padding (full-bleed tables/lists) #}
+{#   class      – extra classes on the .card surface            #}
+{#   body_class – extra classes on the .card-body               #}
+{#                                                              #}
+{# Slots:                                                       #}
+{#   (default)  – card body content                             #}
+{#   badges     – header, just after the title (status, counts) #}
+{#   actions    – header, end-aligned (buttons, dropdown…)      #}
+{#   footer     – footer, start-aligned                         #}
+{#   footer_end – footer, end-aligned                           #}
+{# ============================================================ #}
+<c-vars title="" icon="" tight class body_class />
+<c-card.wrapper class="{{ class }}" :attrs="attrs">
+  <div class="card-body {% if tight %}p-0{% endif %} {{ body_class }}">
+    {% if title or icon or badges or actions %}
+      <div class="flex items-center gap-3">
+        {% if title or icon %}
+          <h2 class="card-title">
+            {% if icon %}<c-icon name="{{ icon }}" />{% endif %}
+            {% if title %}<span>{{ title }}</span>{% endif %}
+          </h2>
+        {% endif %}
+        {% if badges %}<div class="flex items-center gap-1">{{ badges }}</div>{% endif %}
+        {% if actions %}<div class="flex items-center gap-1 ms-auto">{{ actions }}</div>{% endif %}
+      </div>
+    {% endif %}
+    {{ slot }}
+    {% if footer or footer_end %}
+      <div class="flex flex-wrap items-center gap-2 pt-2">
+        {% if footer %}<div class="flex items-center gap-2">{{ footer }}</div>{% endif %}
+        {% if footer_end %}<div class="flex items-center gap-2 ms-auto">{{ footer_end }}</div>{% endif %}
+      </div>
+    {% endif %}
+  </div>
+</c-card.wrapper>

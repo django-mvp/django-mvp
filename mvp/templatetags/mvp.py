@@ -7,6 +7,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.template.loader import render_to_string
 from django.utils.html import escape
 from django.utils.module_loading import import_string
+from django.utils.safestring import mark_safe
 from django_cotton.compiler_regex import CottonCompiler
 
 from ..config import MVP_CONFIG
@@ -222,10 +223,10 @@ def responsive(var, klass):
     """
     if var is True:
         return klass
-    elif isinstance(var, str):
+    elif isinstance(var, str) and var:
         return f"{var}:{klass}"
 
-    return ""  # Return empty string if var is falsy or not a string/boolean
+    return ""  # Return empty string if var is falsy (incl. "") or not a string/boolean
 
 
 @register.simple_tag
@@ -246,25 +247,49 @@ def variation(var, klass, allowed):
 
 
 class ShowCodeNode(template.Node):
+    """Render a live component example three ways for documentation pages.
+
+    The captured block is expected to contain *literal* Cotton markup — wrap it in
+    ``{% cotton:verbatim %}`` on the page so django-cotton does not compile it away
+    before it reaches this tag. The node then produces:
+
+    - ``code``: the escaped Cotton source (the "Cotton" tab)
+    - ``rendered``: the live, compiled component (the preview)
+    - ``html``: the escaped, prettified HTML the component renders to (the "HTML" tab)
+
+    These are handed to ``cotton/documentation.html`` for display.
+    """
+
     def __init__(self, nodelist):
         self.nodelist = nodelist
 
     def render(self, context):
         raw = self.nodelist.render(context)
 
-        # 1. Normalize indentation
-        dedented = textwrap.dedent(raw)
+        # Normalize indentation and trim surrounding blank lines so the snippet
+        # reads cleanly regardless of how it was indented on the page.
+        cleaned = textwrap.dedent(raw).strip("\n")
 
-        # 2. Remove leading/trailing blank lines
-        cleaned = dedented.strip("\n")
+        # The Cotton source, escaped for display in the "Cotton" tab.
+        code = escape(cleaned)
 
-        # 3. Escape for HTML
-        escaped = escape(cleaned)
+        # Compile the Cotton source and render it for the live preview.
+        rendered_raw = template.Template(compiler.process(cleaned)).render(context)
 
-        compiled = compiler.process(cleaned)
+        # Prettify the resulting HTML for the "HTML" tab when BeautifulSoup is
+        # available; fall back to the raw output otherwise.
+        try:
+            from bs4 import BeautifulSoup
 
-        t = template.Template(compiled)
-        rendered = t.render(context)
+            html_pretty = BeautifulSoup(rendered_raw, "html.parser").prettify()
+        except ImportError:
+            html_pretty = rendered_raw.strip()
+
         return render_to_string(
-            "cotton/documentation.html", {"code": escaped, "rendered": rendered}
+            "cotton/documentation.html",
+            {
+                "code": code,
+                "rendered": mark_safe(rendered_raw),
+                "html": escape(html_pretty),
+            },
         )

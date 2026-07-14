@@ -1,5 +1,5 @@
-<c-vars impact muted small text center tight bold upper />
-<p class="{% if muted %}text-base-content/60{% endif %}{% if center %} text-center{% endif %}{% if impact %} text-xl{% elif small %} text-sm{% endif %}{% if tight %} mb-0 {% else %} mb-3{% endif %}{% if bold %} font-semibold{% endif %}{% if upper %} uppercase{% endif %}"
+<c-vars muted text align size="base" tight bold upper />
+<p class="text-{{ size }}{% if align %} text-{{ align }}{% endif %}{% if muted %} text-base-content/60{% endif %}{% if tight %} mb-0{% else %} mb-3{% endif %}{% if bold %} font-semibold{% endif %}{% if upper %} uppercase{% endif %}"
    {{ attrs }}>
   {{ text }}{{ slot }}
 </p>

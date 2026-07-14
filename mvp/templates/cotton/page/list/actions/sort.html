@@ -1,11 +1,14 @@
 {% if order_by_choices %}
-  <c-dropdown x-data="{value: '{{ current_ordering }}'}"
+  <c-dropdown halign="end"
+              x-data="{value: '{{ current_ordering }}'}"
               x-init="$watch('value', () => { filterForm.submit() })">
     <c-slot name="button">
-      <c-button icon="sort-desc" text="{% trans "Sort" %}" />
+      <c-button tabindex="0"
+                role="button"
+                icon="sort-desc"
+                text="{% trans "Sort" %}" />
     </c-slot>
-    <ul tabindex="0"
-        class="dropdown-content menu bg-base-100 rounded-box z-50 w-48 p-2 shadow-lg border border-base-300">
+    <ul class="menu w-full">
       {% for key, label, _ in order_by_choices %}
         <li>
           <span class="ordering-option"

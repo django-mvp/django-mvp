@@ -1,5 +1,14 @@
-<c-vars soft outline dash />
+<c-vars variant icon soft outline dash dismissible delay class />
 <div role="alert"
-     class="alert {% if soft %}alert-soft{% endif %}{% if outline %} alert-outline{% endif %}{% if dash %} alert-dash{% endif %}">
+     class="alert{% if variant %} alert-{{ variant }}{% endif %}{% if soft %} alert-soft{% endif %}{% if outline %} alert-outline{% endif %}{% if dash %} alert-dash{% endif %} {{ class }}"
+     {% if dismissible %}x-data="{ show: true }" x-show="show" x-transition{% if delay %} x-init="setTimeout(() => show = false, {{ delay }})"{% endif %}{% endif %}
+     {{ attrs }}>
+  {% if icon %}<c-icon name="{{ icon }}" />{% elif variant %}<c-icon name="{{ variant }}" />{% endif %}
   {{ slot }}
+  {% if dismissible %}
+    <button type="button"
+            class="btn btn-ghost btn-xs btn-circle"
+            @click="show = false"
+            aria-label="Dismiss">✕</button>
+  {% endif %}
 </div>

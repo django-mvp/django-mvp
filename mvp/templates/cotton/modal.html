@@ -1,19 +1,43 @@
-{% load i18n %}
-<c-vars id centered />
+{% load i18n mvp %}
+{# ============================================================ #}
+{# <c-modal> — dialog built around a <c-card>                  #}
+{#                                                              #}
+{# The modal owns the <dialog>, the backdrop, and the on-screen #}
+{# placement / sizing. Everything else — title, icon, the       #}
+{# default (body) slot, and the actions / footer / footer_end   #}
+{# slots — is forwarded to an inner <c-card>, so a modal is     #}
+{# laid out exactly like a card.                                #}
+{#                                                              #}
+{# Open / close via the native <dialog> API:                    #}
+{#   <c-button onclick="myModal.showModal()" />                 #}
+{#   <c-modal id="myModal" title="…"> … </c-modal>              #}
+{#                                                              #}
+{# Props (modal-specific):                                      #}
+{#   id       – dialog id, for showModal() / close()            #}
+{#   size     – sm | md | lg | xl | full (default: md)          #}
+{#   position – top | bottom | start | end (default: daisyUI's  #}
+{#              own centred placement)                          #}
+{#   closable – show an ✕ close button in the top corner        #}
+{#   class    – extra classes on the inner card surface         #}
+{#                                                              #}
+{# All other attributes and the title / icon / actions /        #}
+{# footer / footer_end slots pass through to the inner <c-card>.#}
+{# ============================================================ #}
+<c-vars id size="md" position closable fade class />
 <dialog {% if id %}id="{{ id }}"{% endif %}
-        class="modal{% if centered %} modal-middle{% endif %}">
-  <div class="modal-box w-11/12 max-w-2xl">
-    {% if title %}
-      <h1 class="text-2xl mb-5">
-        {% if icon %}<c-icon name="{{ icon }}" class="me-2" />{% endif %}
-        {{ title }}
-      </h1>
-    {% endif %}
-    {{ slot }}
-    {% if footer %}
-      <c-toolbar class="pt-4" only>
-        {{ footer }}
-      </c-toolbar>
+        class="modal {% variation position "modal" "top,bottom,start,end" %}">
+  <div class="modal-box bg-transparent p-0 shadow-none w-11/12 {% if size == "sm" %}max-w-md{% elif size == "lg" %}max-w-4xl{% elif size == "xl" %}max-w-6xl{% elif size == "full" %}max-w-none{% else %}max-w-2xl{% endif %}">
+    <c-card class="w-full {{ class }}" :attrs="attrs">
+      {{ slot }}
+      {% if actions %}<c-slot name="actions">{{ actions }}</c-slot>{% endif %}
+      {% if footer %}<c-slot name="footer">{{ footer }}</c-slot>{% endif %}
+      {% if footer_end %}<c-slot name="footer_end">{{ footer_end }}</c-slot>{% endif %}
+    </c-card>
+    {% if closable %}
+      <form method="dialog">
+        <button class="btn btn-sm btn-circle btn-ghost absolute end-3 top-3"
+                aria-label="{% trans "Close" %}">✕</button>
+      </form>
     {% endif %}
   </div>
   <form method="dialog" class="modal-backdrop">

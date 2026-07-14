@@ -7,7 +7,6 @@
   <c-modal id="createModal"
            title="{{ label }}"
            icon="add"
-           centered
            fade
            only>
     <c-form id="createForm"
@@ -16,7 +15,7 @@
             action="{{ directory.create_url }}?next={{ request.path }}"
             :form-obj="create_form">
     </c-form>
-    <c-slot name="footer">
+    <c-slot name="footer_end">
       <c-button text="{% trans "Submit" %}"
                 form="createForm"
                 reverse

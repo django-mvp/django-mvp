@@ -1,7 +1,7 @@
 {% load i18n %}
 <c-toolbar>
   {% if page_obj %}
-    <c-text small>
+    <c-text size="sm">
       {% with start=page_obj.start_index end=page_obj.end_index total=page_obj.paginator.count %}
         {% blocktrans %}
           Showing {{ start }}-{{ end }} of {{ total }} entries

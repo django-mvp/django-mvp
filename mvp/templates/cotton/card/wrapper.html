@@ -1,0 +1,13 @@
+{# ============================================================ #}
+{# <c-card.wrapper> — bare card surface                         #}
+{#                                                              #}
+{# The low-level primitive: just the card surface (background,  #}
+{# rounded corners, shadow). Compose your own layout inside,    #}
+{# or reach for <c-card> for the standard header / body /       #}
+{# footer layout.                                               #}
+{#                                                              #}
+{# Props:                                                       #}
+{#   class – extra classes on the .card element                 #}
+{# ============================================================ #}
+<c-vars class />
+<div class="card bg-base-100 shadow-sm {{ class }}" {{ attrs }}>{{ slot }}</div>

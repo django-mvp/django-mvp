@@ -7,15 +7,15 @@
         icon
         class
         ghost
-        gap="2"
+        full
         :condition="True"
         reverse />
 {% if condition %}
   {% spaceless %}
     {% with element=href|yesno:"a,button" %}
       {# djlint:off #}
-      <{{ element }} class="btn{% if variant %} btn-{{ variant }}{% endif %}{% if outline %} btn-outline{% endif %} {% variation size "btn" "sm,md,lg" %}{% if ghost %} btn-ghost{% endif %} inline-flex items-center justify-{{ align }}{% if reverse %} flex-row-reverse{% endif %} gap-{{ gap }} {{ class }}" {{ attrs }}>
-        {% if icon %}<c-icon name="{{icon }}" />{% endif %}
+      <{{ element }} class="btn{% if variant %} btn-{{ variant }}{% endif %}{% if outline %} btn-outline{% endif %} {% variation size "btn" "sm,md,lg" %}{% if ghost %} btn-ghost{% endif %}{% if full %} btn-block{% endif %} inline-flex items-center justify-{{ align }}{% if reverse %} flex-row-reverse{% endif %} gap-2 {{ class }}" {{ attrs }}>
+        {% if icon %}<c-icon name="{{ icon }}" />{% endif %}
         {% if text %}<span>{{ text }}</span>{% endif %}
         {{ slot }}
       </{{ element }}>

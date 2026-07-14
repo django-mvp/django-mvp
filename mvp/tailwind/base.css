@@ -21,13 +21,22 @@
    see these in source. Keep in sync with the component attribute APIs. */
 @source inline("btn-{neutral,primary,secondary,accent,info,success,warning,error,ghost,link}");
 @source inline("btn-{sm,md,lg}");
+@source inline("badge-{neutral,primary,secondary,accent,info,success,warning,error,ghost}");
+@source inline("alert-{info,success,warning,error}");
+@source inline("avatar-{online,offline}");
+@source inline("-space-x-{2,4,6,8,10,12}");
+@source inline("bg-{primary,secondary,accent,neutral}");
+@source inline("text-{primary,secondary,accent,neutral}-content");
 @source inline("{,sm:,md:,lg:,xl:,2xl:}grid-cols-{1,2,3,4,5,6,12}");
 @source inline("gap-{0,1,2,3,4,5,6,8}");
 @source inline("divider-{neutral,primary,secondary,accent,info,success,warning,error,start,end}");
 @source inline("dock-{xs,sm,md,lg,xl}");
 @source inline("dropdown-{top,bottom,left,right,start,center,end}");
+@source inline("modal-{top,bottom,start,end}");
 @source inline("toggle-{xs,sm,md,lg,xl}");
 @source inline("justify-{start,center,end,between}");
+@source inline("text-{start,center,end}");
+@source inline("text-{sm,base,lg,xl}");
 
 /* Safelist: navbar sidebar-toggle visibility classes are emitted by the
    sidebar_navbar_toggle_class templatetag (mvp/templatetags/mvp.py). */

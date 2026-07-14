@@ -4,7 +4,7 @@
   {% if next_url %}<input type="hidden" name="next" value="{{ next_url }}" />{% endif %}
   {% if is_protected %}
     {# ===== Scenario 3: Object is PROTECT-blocked - no delete button ===== #}
-    <c-alert variant="danger">
+    <c-alert variant="error">
       <strong>{% trans "This record cannot be deleted." %}</strong>
       <c-text>
         {% trans "It is referenced by the following records, which must be removed or updated first:" %}
@@ -30,7 +30,7 @@
             {% for obj in objs %}<li>{{ obj }}</li>{% endfor %}
           </ul>
           {% if overflow %}
-            <c-text small>
+            <c-text size="sm">
               {% blocktrans %}
               … and {{ overflow }} more
               {% endblocktrans %}
@@ -42,7 +42,7 @@
     {% if require_confirmation %}
       {# ===== Scenario 4: Type-to-confirm input (opt-in) ===== #}
       {% if form.errors.confirmation %}
-        <c-alert variant="danger">
+        <c-alert variant="error">
           {% for error in form.errors.confirmation %}
             {{ error }}
             {% if not forloop.last %}{% endif %}
@@ -76,12 +76,12 @@
                 disabled
                 type="submit"
                 icon="delete"
-                variant="danger" />
+                variant="error" />
     {% else %}
       <c-button text="{% trans "Confirm delete" %}"
                 type="submit"
                 icon="delete"
-                variant="danger" />
+                variant="error" />
     {% endif %}
   {% endif %}
 {% endblock actions %}

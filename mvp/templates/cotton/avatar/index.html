@@ -13,6 +13,9 @@
 {#                 (default: rounded-full)                     #}
 {#   status      – online|offline|"" (default: no indicator)  #}
 {#   placeholder – Initials/text shown when no image           #}
+{#   variant     – primary|secondary|accent|neutral for the   #}
+{#                 initials background (default: primary). The #}
+{#                 bare silhouette fallback is always muted.   #}
 {#   class       – extra classes on the .avatar wrapper        #}
 {#                                                              #}
 {# Examples:                                                    #}
@@ -27,16 +30,16 @@
         size="md"
         :size_options="{'xs': 'w-6', 'sm': 'w-8', 'md': 'w-12', 'lg': 'w-16', 'xl': 'w-24', 'xxl': 'w-32'}"
         shape="rounded-full"
-        bg="primary"
+        variant="primary"
         status
         placeholder
         class />
 {% if not src %}
   {% avatar_url for size as src %}
 {% endif %}
-<div class="avatar{% if not src %} avatar-placeholder{% endif %}{% if status %} avatar-{{ status }}{% endif %} {% if class %}{{ class }}{% endif %} "
+<div class="avatar{% if not src %} avatar-placeholder{% endif %}{% if status %} avatar-{{ status }}{% endif %}{% if class %} {{ class }}{% endif %}"
      {{ attrs }}>
-  <div class="{% firstof size_options|get_item:size size %} bg-{{ bg }} text-{{ bg }}-content {{ shape }}">
+  <div class="{% firstof size_options|get_item:size size %} {{ shape }}{% if src %}{% elif placeholder %} bg-{{ variant }} text-{{ variant }}-content{% else %} bg-base-300 text-base-content/40{% endif %}">
     {% if src %}
       <img src="{{ src }}" alt="{{ alt }}" />
     {% elif placeholder %}
