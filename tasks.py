@@ -24,9 +24,12 @@ def prerelease(c):
 
     The stylesheet is a committed build artifact shipped in the wheel; building
     it here (before the release tag is cut) keeps it in sync with the templates
-    and lets the lint/test steps run against fresh output. The Stylesheet CI
-    workflow only fails *after* a stale commit lands, so this is where drift is
-    actually prevented. Remember to commit the rebuilt CSS before 'invoke release'.
+    and lets the lint/test steps run against fresh output. This is the *only*
+    place stylesheet drift is prevented: the Tailwind/daisyUI build is
+    non-deterministic (identical toolchain, different bytes each run), so CI
+    cannot byte-compare committed output against a fresh build — the Stylesheet
+    workflow only checks that the CSS still compiles. Remember to commit the
+    rebuilt CSS before 'invoke release'.
 
     Pre-commit hooks include:
     - Code formatting (Ruff)
