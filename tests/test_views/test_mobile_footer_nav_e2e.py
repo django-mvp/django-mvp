@@ -1,71 +1,74 @@
-"""E2E tests for mobile footer navigation visibility and sidebar toggle.
+"""E2E tests for the mobile dock (footer navigation).
 
-These tests use pytest-playwright and require a running development server.
-They are marked with @pytest.mark.e2e and skipped if playwright is not installed.
+These exercise real user interactions in a browser, which is why they are e2e
+rather than client tests: the dock is hidden/shown by a CSS breakpoint, pinned
+by fixed positioning, and its "Menu" item toggles the daisyUI drawer via a
+checkbox — none of which a server-rendered-markup assertion can verify.
+
+Self-contained: they use pytest-django's ``live_server`` (no hand-started
+server) and pytest-playwright's ``page``. Skipped when playwright is absent.
 """
 
 import pytest
 
-playwright = pytest.importorskip("playwright")
+pytest.importorskip("playwright")
+from playwright.sync_api import expect  # noqa: E402
 
 pytestmark = pytest.mark.e2e
 
+MOBILE = {"width": 375, "height": 812}
+DESKTOP = {"width": 1280, "height": 800}
 
-class TestMobileFooterNavVisibility:
-    """Playwright E2E tests for mobile footer nav responsive visibility."""
 
-    def test_footer_nav_visible_on_mobile(self, page):
-        """Footer nav is visible at mobile viewport (375x812)."""
-        page.set_viewport_size({"width": 375, "height": 812})
-        page.goto("http://localhost:8001/")
-        nav = page.locator("div[aria-label='Mobile navigation']")
-        assert nav.is_visible()
+@pytest.mark.django_db
+class TestMobileDockVisibility:
+    """The dock shows only at mobile widths and stays pinned to the bottom."""
 
-    def test_footer_nav_hidden_on_desktop(self, page):
-        """Footer nav is hidden at desktop viewport (1280x800)."""
-        page.set_viewport_size({"width": 1280, "height": 800})
-        page.goto("http://localhost:8001/")
-        nav = page.locator("div[aria-label='Mobile navigation']")
-        assert not nav.is_visible()
+    def test_dock_visible_on_mobile(self, page, live_server):
+        page.set_viewport_size(MOBILE)
+        page.goto(live_server.url)
+        expect(page.locator("div.dock")).to_be_visible()
 
-    def test_footer_nav_fixed_during_scroll(self, page):
-        """Footer nav remains pinned at bottom after scrolling on mobile."""
-        page.set_viewport_size({"width": 375, "height": 812})
-        page.goto("http://localhost:8001/")
+    def test_dock_hidden_on_desktop(self, page, live_server):
+        page.set_viewport_size(DESKTOP)
+        page.goto(live_server.url)
+        expect(page.locator("div.dock")).to_be_hidden()
+
+    def test_dock_pinned_to_bottom_after_scroll(self, page, live_server):
+        page.set_viewport_size(MOBILE)
+        page.goto(live_server.url)
         page.evaluate("window.scrollBy(0, 500)")
-        nav = page.locator("div.dock")
-        bounding_box = nav.bounding_box()
-        assert bounding_box is not None
-        # Nav should still be near the bottom of the viewport
-        viewport_height = 812
-        assert abs((bounding_box["y"] + bounding_box["height"]) - viewport_height) < 10
+        box = page.locator("div.dock").bounding_box()
+        assert box is not None
+        # bottom edge of the dock sits at the bottom edge of the viewport
+        assert abs((box["y"] + box["height"]) - MOBILE["height"]) < 10
 
 
-class TestMobileFooterNavSidebarToggle:
-    """Playwright E2E tests for mobile footer nav sidebar toggle interaction."""
+@pytest.mark.django_db
+class TestMobileDockSidebarToggle:
+    """The dock's "Menu" item toggles the sidebar drawer open and closed."""
 
-    def test_sidebar_opens_when_toggle_tapped(self, page):
-        """Tapping the sidebar toggle in the footer nav opens the sidebar."""
-        page.set_viewport_size({"width": 375, "height": 812})
-        page.goto("http://localhost:8001/")
-        toggle = page.locator("div[aria-label='Mobile navigation'] button")
-        toggle.click()
+    def _toggle(self, page):
+        return page.locator("div.dock label[for='mvp-app-toggle']")
+
+    def test_menu_button_opens_sidebar(self, page, live_server):
+        page.set_viewport_size(MOBILE)
+        page.goto(live_server.url)
         sidebar = page.locator("aside.mvp-sidebar")
-        assert sidebar.is_visible()
+        expect(sidebar).not_to_be_visible()
+        self._toggle(page).click()
+        expect(sidebar).to_be_visible()
 
-    def test_sidebar_closes_when_toggle_tapped_again(self, page):
-        """Tapping the sidebar toggle twice closes the sidebar."""
-        page.set_viewport_size({"width": 375, "height": 812})
-        page.goto("http://localhost:8001/")
-        toggle = page.locator("div[aria-label='Mobile navigation'] button")
-        toggle.click()
-        toggle.click()
-        overlay = page.locator(".sidebar-overlay")
-        assert not overlay.is_visible()
+    # Note: closing the drawer is the drawer's own concern, not the dock's —
+    # once open, the overlay sidebar covers the dock, so there is no "tap the
+    # dock toggle again" flow to test here. Drawer close is exercised elsewhere.
 
-    def test_default_menu_has_exactly_one_item(self, page):
-        """Default MobileFooterMenu has exactly one item (the sidebar toggle)."""
-        page.set_viewport_size({"width": 375, "height": 812})
-        page.goto("http://localhost:8001/")
-        items = page.locator("div[aria-label='Mobile navigation'] nav button.nav-link")
-        assert items.count() == 1
+    def test_dock_has_a_toggle_and_a_home_link(self, page, live_server):
+        page.set_viewport_size(MOBILE)
+        page.goto(live_server.url)
+        # exactly one sidebar-toggle control (a label bound to the drawer checkbox)
+        expect(self._toggle(page)).to_have_count(1)
+        # exactly one real navigation link (Home)
+        home = page.locator("div.dock a")
+        expect(home).to_have_count(1)
+        expect(home).to_have_attribute("href", "/")
