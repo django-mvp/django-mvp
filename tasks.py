@@ -97,6 +97,18 @@ def release(c, rule="", retry=False):
         invoke release --rule=patch    # bump patch version and release
         invoke release --retry         # re-push existing tag after fixing CI
     """
+    # Releases publish to PyPI and push to main, so they must run from main.
+    # Running from a dev/feature branch is almost always an accident (it tags the
+    # wrong ref and can push unintended commits), so no-op instead. Covers both
+    # the --rule and --retry paths.
+    current_branch = c.run("git rev-parse --abbrev-ref HEAD", hide=True).stdout.strip()
+    if current_branch != "main":
+        print(
+            f"❌ 'invoke release' must run on 'main', but you are on '{current_branch}'."
+        )
+        print("   Run 'git checkout main && git pull' first. No changes made.")
+        return
+
     if retry:
         version_short = c.run("poetry version -s", hide=True).stdout.strip()
         version = c.run("poetry version", hide=True).stdout.strip()
