@@ -135,9 +135,11 @@ MobileFooterMenu = Menu(
             extra_context={
                 "label": "Menu",
                 "icon": "menu",
-                "attrs": {
-                    "data-lte-toggle": "sidebar",
-                },
+                # Renders as a <label for="mvp-app-toggle"> that flips the
+                # daisyUI drawer checkbox — same mechanism as the navbar
+                # hamburger. The value is the drawer toggle's element id
+                # (c-layout.sidebar id="mvp-app" -> checkbox id "mvp-app-toggle").
+                "toggle": "mvp-app-toggle",
             },
         ),
         MenuItem(

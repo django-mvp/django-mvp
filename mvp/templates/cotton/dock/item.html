@@ -1,5 +1,38 @@
-<c-vars active icon label />
-<button class="{% if active %}dock-active{% endif %}">
-  {% if icon %}<c-icon name="{{ icon }}" />{% endif %}
-  {% if label %}<span class="dock-label">{{ label }}</span>{% endif %}
-</button>
+{# ============================================================ #}
+{# <c-dock.item> — one item in the mobile dock                  #}
+{#                                                              #}
+{# Renders as whichever element matches its role:               #}
+{#   toggle  -> <label for="{{ toggle }}"> flips a drawer       #}
+{#             checkbox (e.g. the sidebar), like the navbar     #}
+{#             hamburger                                         #}
+{#   href    -> <a href="{{ href }}"> navigates                 #}
+{#   neither -> <button> (inert placeholder)                    #}
+{#                                                              #}
+{# Props: label, icon, href, toggle, active                     #}
+{# ============================================================ #}
+{% load i18n %}
+<c-vars active icon label href toggle />
+{% if toggle %}
+  <label for="{{ toggle }}"
+         role="button"
+         tabindex="0"
+         aria-label="{{ label }}"
+         class="{% if active %}dock-active{% endif %}"
+         {{ attrs }}>
+    {% if icon %}<c-icon name="{{ icon }}" />{% endif %}
+    {% if label %}<span class="dock-label">{{ label }}</span>{% endif %}
+  </label>
+{% elif href %}
+  <a href="{{ href }}"
+     class="{% if active %}dock-active{% endif %}"
+     {% if active %}aria-current="page"{% endif %}
+     {{ attrs }}>
+    {% if icon %}<c-icon name="{{ icon }}" />{% endif %}
+    {% if label %}<span class="dock-label">{{ label }}</span>{% endif %}
+  </a>
+{% else %}
+  <button class="{% if active %}dock-active{% endif %}" {{ attrs }}>
+    {% if icon %}<c-icon name="{{ icon }}" />{% endif %}
+    {% if label %}<span class="dock-label">{{ label }}</span>{% endif %}
+  </button>
+{% endif %}

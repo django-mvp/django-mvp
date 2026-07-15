@@ -8,11 +8,13 @@ from flex_menu.renderers import BaseRenderer
 
 
 class MobileFooterNavRenderer(BaseRenderer):
-    """Renderer for the mobile footer navigation bar.
+    """Renderer for the mobile footer navigation bar (daisyUI dock).
 
-    Produces flat BS5 .nav-item > .nav-link HTML for each registered MenuItem.
-    Sidebar toggle items are rendered as <button data-lte-toggle="sidebar">
-    rather than anchor links.
+    Renders each registered MenuItem as a dock item (see c-dock.item):
+    - items with a ``toggle`` in extra_context become a <label for="..."> that
+      flips a drawer checkbox (e.g. "mvp-app-toggle" opens the sidebar);
+    - items with a URL become an <a href> navigation link;
+    - items with neither render as an inert <button> placeholder.
 
     Config:
         FLEX_MENUS["renderers"]["dock"] = "mvp.renderers.MobileFooterNavRenderer"

@@ -22,6 +22,7 @@ MVP_CONFIG = {
             "breakpoint": "lg",       # sm | md | lg | xl | 2xl
             "collapse": "offcanvas",  # "offcanvas" | "icons"
             "title": None,            # text beside the brand icon (falsey = none)
+            "footer": [],             # Cotton components in the sidebar footer
         },
         "navbar": {
             "end": ["actions.theme-controller"],
@@ -96,6 +97,33 @@ Per-page override:
 {% endblock %}
 ```
 
+## Sidebar footer widgets
+
+`layout.sidebar.footer` is a list of **Cotton component names** rendered in the sidebar
+footer, above the user menu. They are laid out as a **horizontally centered, wrapping
+flex row**, so they reflow gracefully as the sidebar narrows:
+
+```python
+MVP_CONFIG = {
+    "layout": {
+        "sidebar": {
+            "footer": [
+                "actions.theme-controller",     # light/dark toggle
+                "actions.language-switcher",    # i18n language menu
+                "myapp.support-link",           # your own component
+            ],
+        },
+    },
+}
+```
+
+Names map to Cotton templates the same way as [navbar widgets](#navbar-widgets):
+`"myapp.support-link"` → `templates/cotton/myapp/support_link.html`. The default is an
+empty list (no footer actions).
+
+For deeper control of the footer, override the component template itself by dropping your
+own `templates/cotton/app/sidebar/footer.html`.
+
 ## Navbar widgets
 
 `layout.navbar.end` is a list of **Cotton component names** rendered in order at the
@@ -118,6 +146,39 @@ MVP_CONFIG = {
 A name maps to a Cotton template: `"myapp.notifications-bell"` →
 `templates/cotton/myapp/notifications_bell.html`. Any component in your project's
 cotton directory works, so app-specific widgets need no configuration beyond the name.
+
+### Language switcher: dropdown or modal
+
+Two i18n language pickers ship as widgets — use whichever fits the slot:
+
+- **`actions.language-switcher`** — a compact dropdown menu. Best in the navbar, where
+  it opens in place.
+- **`actions.language-switcher-modal`** — a globe button that opens a centered modal with
+  a responsive, tappable grid of languages (one column on phones, two from `sm` up), the
+  active language highlighted. Better for touch and for narrow slots like the
+  [sidebar footer](#sidebar-footer-widgets), where a dropdown would be cramped.
+
+Both post to Django's `set_language` view and preserve the current path, so they are
+interchangeable:
+
+```python
+MVP_CONFIG = {
+    "layout": {
+        "sidebar": {
+            "footer": ["actions.language-switcher-modal"],
+        },
+    },
+}
+```
+
+If you place the modal switcher in more than one slot on the same page, give the extra
+instances a distinct dialog id so they don't collide — this needs a wrapper component,
+since `MVP_CONFIG` names take no attributes:
+
+```html
+{# templates/cotton/myapp/footer_language.html #}
+<c-actions.language-switcher-modal id="footerLanguageModal" />
+```
 
 For one-off, page-specific widgets, the template block still works and renders before
 the configured list:

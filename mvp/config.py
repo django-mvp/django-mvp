@@ -37,6 +37,10 @@ MVP_CONFIG = {
             # Text shown beside the brand icon in the sidebar header. Falsey
             # (the default) renders no title. Hidden while collapsed to an icon rail.
             "title": None,
+            # Cotton component names rendered in the sidebar footer, in order,
+            # e.g. "actions.theme-controller" -> <c-actions.theme-controller />.
+            # Laid out as a horizontally centered, wrapping flex row.
+            "footer": [],
         },
         "navbar": {
             # Cotton component names rendered at the end (right side) of the navbar,

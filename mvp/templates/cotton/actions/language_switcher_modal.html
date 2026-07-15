@@ -1,0 +1,66 @@
+{# ============================================================ #}
+{# <c-actions.language-switcher-modal>                          #}
+{#                                                              #}
+{# Modal-based alternative to <c-actions.language-switcher>     #}
+{# (which uses a dropdown). A ghost globe button opens a native #}
+{# <dialog> holding a responsive, tappable grid of languages —  #}
+{# comfortable on both phones and desktops.                     #}
+{#                                                              #}
+{# Prop:                                                        #}
+{#   id – dialog id (default "languageModal"); override when    #}
+{#        placing more than one instance on a page.             #}
+{# ============================================================ #}
+{% load i18n %}
+<c-vars id="languageModal" />
+{% if request.LANGUAGE_CODE %}
+  {% get_current_language as CURRENT_LANGUAGE %}
+  {% get_available_languages as LANGUAGES %}
+  {% url "set_language" as set_language_url %}
+  {% if set_language_url %}
+    <c-button ghost
+              icon="globe"
+              class="btn-square"
+              aria-label="{% trans "Select a language" %}"
+              @click="{{ id }}.showModal()" />
+    <c-modal id="{{ id }}"
+             title="{% trans "Select a language" %}"
+             icon="globe"
+             closable
+             fade>
+      <form action="{{ set_language_url }}" method="post">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.get_full_path }}" />
+        <div class="grid max-h-[60vh] grid-cols-1 gap-2 overflow-y-auto pt-1 sm:grid-cols-2">
+          {% for code, name in LANGUAGES %}
+            {% get_language_info for code as info %}
+            {% if code == CURRENT_LANGUAGE %}
+              <button type="submit"
+                      name="language"
+                      value="{{ code }}"
+                      aria-current="true"
+                      class="group relative flex items-center gap-3 rounded-box border border-primary bg-primary/10 p-2.5 text-start transition-colors">
+                <span class="grid size-9 shrink-0 place-items-center rounded-lg bg-primary text-xs font-bold uppercase text-primary-content">{{ code|slice:":2" }}</span>
+                <span class="flex min-w-0 flex-col leading-tight">
+                  <span class="truncate font-medium">{{ info.name_local }}</span>
+                  <span class="truncate text-xs text-base-content/60">{{ info.name }}</span>
+                </span>
+                <c-icon name="check" class="ms-auto shrink-0 text-primary" />
+              </button>
+            {% else %}
+              <button type="submit"
+                      name="language"
+                      value="{{ code }}"
+                      class="group relative flex items-center gap-3 rounded-box border border-base-300 p-2.5 text-start transition-colors hover:border-primary/50 hover:bg-base-200">
+                <span class="grid size-9 shrink-0 place-items-center rounded-lg bg-base-300 text-xs font-bold uppercase text-base-content/70 transition-colors group-hover:bg-base-100">{{ code|slice:":2" }}</span>
+                <span class="flex min-w-0 flex-col leading-tight">
+                  <span class="truncate font-medium">{{ info.name_local }}</span>
+                  <span class="truncate text-xs text-base-content/60">{{ info.name }}</span>
+                </span>
+              </button>
+            {% endif %}
+          {% endfor %}
+        </div>
+      </form>
+    </c-modal>
+  {% endif %}
+{% endif %}
