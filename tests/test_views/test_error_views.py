@@ -6,6 +6,8 @@ Direct-call unit tests (status code, content bytes) were removed because
 they test Django's render() output, not our app's functionality.
 """
 
+import re
+
 import pytest
 from django.core.exceptions import PermissionDenied, SuspiciousOperation
 from django.test import Client, RequestFactory, override_settings
@@ -53,6 +55,22 @@ def test_error_pages_have_title_with_code(client):
         title_end = content.find("</title>")
         title_text = content[title_start:title_end] if title_start != -1 else ""
         assert code in title_text
+
+
+@pytest.mark.django_db
+def test_error_page_logo_img_has_alt_text(client):
+    """The error page's brand logo <img> carries non-empty alt text (WCAG image-alt).
+
+    Regression: the error template rendered a raw <img> with no alt attribute,
+    which axe-core flagged as a critical WCAG 2.1 AA violation on every error page.
+    """
+    for code in ["400", "403", "404", "500"]:
+        content = client.get(f"/errors/{code}/").content.decode()
+        imgs = re.findall(r"<img\b[^>]*>", content, re.S)
+        assert imgs, f"/errors/{code}/ renders no <img> to check"
+        for img in imgs:
+            alt = re.search(r'\balt="([^"]*)"', img, re.S)
+            assert alt and alt.group(1).strip(), f"<img> without alt text on /{code}/: {img}"
 
 
 # ---------------------------------------------------------------------------
