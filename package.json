@@ -8,9 +8,9 @@
     "watch:demo": "tailwindcss -i assets/demo.css -o demo/static/css/demo.css --watch"
   },
   "devDependencies": {
-    "@tailwindcss/cli": "^4.3.0",
-    "@tailwindcss/typography": "^0.5.19",
-    "daisyui": "^5.5.20",
-    "tailwindcss": "^4.3.0"
+    "@tailwindcss/cli": "4.3.2",
+    "@tailwindcss/typography": "0.5.20",
+    "daisyui": "5.6.18",
+    "tailwindcss": "4.3.2"
   }
 }

@@ -90,7 +90,8 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-package-lock.json
+# package-lock.json is committed to pin the CSS toolchain (see stylesheet.yml, which
+# uses `npm ci` for reproducible Tailwind/daisyUI builds). yarn/pnpm are not used.
 yarn.lock
 pnpm-lock.yaml
 
