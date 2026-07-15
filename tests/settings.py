@@ -134,6 +134,7 @@ MVP_CONFIG = {
         "sidebar": {
             "footer": [
                 "actions.theme-controller",
+                "actions.language-switcher-modal",
             ],
         },
     },
