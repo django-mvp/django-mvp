@@ -128,6 +128,12 @@ MVP_CONFIG = {
             "end": [
                 "actions.theme-controller",
                 "actions.language-switcher",
+                "actions.login",
+            ],
+        },
+        "sidebar": {
+            "footer": [
+                "actions.theme-controller",
             ],
         },
     },

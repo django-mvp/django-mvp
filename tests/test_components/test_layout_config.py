@@ -56,6 +56,7 @@ def test_layout_defaults_present():
     assert layout["sidebar"]["collapse"] == "offcanvas"
     assert layout["sidebar"]["title"] is None
     assert isinstance(layout["navbar"]["end"], list)
+    assert isinstance(layout["sidebar"]["footer"], list)
 
 
 def test_settings_override_replaces_navbar_list():
@@ -149,6 +150,18 @@ def test_navbar_widgets_render_from_config(client):
     lang_pos = content.find('name="language"')
     assert lang_pos != -1, "language switcher widget must render in navbar"
     assert theme_pos < lang_pos, "widgets must render in configured order"
+
+
+@pytest.mark.django_db
+def test_sidebar_footer_widgets_render_from_config(client):
+    """Configured sidebar footer components render in a centered, wrapping row."""
+    content = client.get("/").content.decode()
+    # the footer actions live in a centered wrapping flex row
+    assert re.search(
+        r'<div class="flex flex-wrap items-center justify-center gap-2">', content
+    ), "sidebar footer must wrap its actions in a centered wrapping flex row"
+    # the configured component renders (theme controller marker)
+    assert "data-toggle-theme" in content
 
 
 @pytest.mark.django_db

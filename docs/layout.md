@@ -22,6 +22,7 @@ MVP_CONFIG = {
             "breakpoint": "lg",       # sm | md | lg | xl | 2xl
             "collapse": "offcanvas",  # "offcanvas" | "icons"
             "title": None,            # text beside the brand icon (falsey = none)
+            "footer": [],             # Cotton components in the sidebar footer
         },
         "navbar": {
             "end": ["actions.theme-controller"],
@@ -95,6 +96,33 @@ Per-page override:
   <c-app.sidebar title="Acme Admin" />
 {% endblock %}
 ```
+
+## Sidebar footer widgets
+
+`layout.sidebar.footer` is a list of **Cotton component names** rendered in the sidebar
+footer, above the user menu. They are laid out as a **horizontally centered, wrapping
+flex row**, so they reflow gracefully as the sidebar narrows:
+
+```python
+MVP_CONFIG = {
+    "layout": {
+        "sidebar": {
+            "footer": [
+                "actions.theme-controller",     # light/dark toggle
+                "actions.language-switcher",    # i18n language menu
+                "myapp.support-link",           # your own component
+            ],
+        },
+    },
+}
+```
+
+Names map to Cotton templates the same way as [navbar widgets](#navbar-widgets):
+`"myapp.support-link"` → `templates/cotton/myapp/support_link.html`. The default is an
+empty list (no footer actions).
+
+For deeper control of the footer, override the component template itself by dropping your
+own `templates/cotton/app/sidebar/footer.html`.
 
 ## Navbar widgets
 
