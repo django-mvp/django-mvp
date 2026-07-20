@@ -60,11 +60,11 @@ mvp-shared = { git = "https://github.com/django-mvp/shared.git", rev = "main", e
 [tool.poetry.group.dev.dependencies]
 Django = ">=5.2.16"
 django-distill = "^3.0"
-django-filter = "^25.2"
+django-filter = "^26.1"
 django-crispy-forms = "^2.6"
 crispy-tailwind = "^1.0.3"
 django-tables2 = "^3.0.0"
-django-htmx = ">=1.0,<2.0"
+django-htmx = ">=1.28.0,<2.0"
 mvp-shared = { git = "https://github.com/django-mvp/shared.git", rev = "main", extras = [
     "dev",
 ] }
