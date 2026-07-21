@@ -9,6 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`<c-form.field>` is now a complete single-field component.** One entry point covers
+  text-like inputs plus `textarea`, `select`, `file`, `checkbox`, `radio` and `toggle`
+  (check-style types get inline-label markup). New attributes: `label` (finally rendered;
+  also a named slot for rich content such as badges), `help-text`, `errors` (string, list,
+  or slot — applies DaisyUI error styling and `aria-invalid`), `required` (label
+  indicator + HTML attribute), and `wrapper-class`. The label/help/errors wrapper uses the
+  DaisyUI 5 fieldset idiom and only renders when needed, so bare fields still compose
+  inside joins. `id` now lands on the control (fixing the delete-view type-to-confirm
+  input, whose JS looked it up by id) as well as the label's `for`. Documented on its own
+  demo page at `components/form-field/`. The check-style classes are built from the `type`
+  attribute at runtime, so they're safelisted in the Tailwind preset
+  (`{checkbox,radio,toggle}{,-error}`); both shipped stylesheets were rebuilt.
+
 - **Settings-driven layout configuration** via `MVP_CONFIG["layout"]`:
   - `layout.sidebar.breakpoint` (`sm|md|lg|xl|2xl`) — when the sidebar becomes persistent.
   - `layout.sidebar.collapse` (`"offcanvas"` or `"icons"`) — slide fully away, or collapse

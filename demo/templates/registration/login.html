@@ -12,16 +12,24 @@
             action="{% url 'login' %}"
             class="space-y-4">
       <c-form.field type="text"
-                    label="{% trans 'Username' %}"
-                    wrapper-class="mb-4"
-                    attrs='id="{{ form.username.id_for_label }}" name="{{ form.username.html_name }}" placeholder="{% trans "Username" %}" required autocomplete="username"' />
-      <c-form.field type="text"
-                    label="{% trans 'Password' %}"
-                    wrapper-class="mb-4"
-                    attrs='id="{{ form.password.id_for_label }}" name="{{ form.password.html_name }}" type="password" placeholder="{% trans "Password" %}" required autocomplete="current-password"' />
+                    label="{% trans "Username" %}"
+                    id="{{ form.username.id_for_label }}"
+                    name="{{ form.username.html_name }}"
+                    placeholder="{% trans "Username" %}"
+                    autocomplete="username"
+                    :errors="form.username.errors"
+                    required />
+      <c-form.field type="password"
+                    label="{% trans "Password" %}"
+                    id="{{ form.password.id_for_label }}"
+                    name="{{ form.password.html_name }}"
+                    placeholder="{% trans "Password" %}"
+                    autocomplete="current-password"
+                    :errors="form.password.errors"
+                    required />
       <c-button type="submit"
                 variant="primary"
-                text="{% trans 'Sign In' %}"
+                text="{% trans "Sign In" %}"
                 class="w-full" />
       <input type="hidden" name="next" value="{{ next }}" />
     </c-form>

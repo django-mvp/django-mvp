@@ -34,6 +34,7 @@
 @source inline("dropdown-{top,bottom,left,right,start,center,end}");
 @source inline("modal-{top,bottom,start,end}");
 @source inline("toggle-{xs,sm,md,lg,xl}");
+@source inline("{checkbox,radio,toggle}{,-error}");
 @source inline("justify-{start,center,end,between}");
 @source inline("text-{start,center,end}");
 @source inline("text-{sm,base,lg,xl}");

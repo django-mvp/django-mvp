@@ -205,7 +205,7 @@ c-user.display.compact  — compact user display card
 ```
 c-form                  — form wrapper
 c-form.render           — controls how a form is rendererd
-c-form.field            — single form field renderer
+c-form.field            — single presentational field (control + label, help text, errors)
 ```
 
 ### Addons

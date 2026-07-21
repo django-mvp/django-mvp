@@ -96,7 +96,8 @@ Menus are normally rendered from Python via django-flex-menus — see
 | `c-actions.login` | navbar log-in button (needs `login` URL); renders only when anonymous |
 | `c-user.sidebar-menu` | account dropdown for the sidebar footer |
 | `c-user.display.compact` | avatar + name row |
-| `c-form`, `c-form.render`, `c-form.field` | form wrapper / renderer dispatch / single field |
+| `c-form`, `c-form.render` | form wrapper / renderer dispatch |
+| `c-form.field` | single presentational field: `type` (text-like, `textarea`, `select`, `file`, `checkbox`, `radio`, `toggle`), `label`, `hide-label`, `help-text`, `errors`, `prelabel`, `postlabel`, `wrapper-class`; `label`/`help_text`/`errors` also accept named slots |
 | `c-placeholder.card` | `message`, `icon`, `height` — coming-soon card |
 | `c-mockup.browser`, `c-mockup.window`, `c-mockup.phone`, `c-mockup.code` | visual mockups |
 | `c-addons.share-dropdown` | social share menu (`url`, `title`, `size`) |

@@ -48,6 +48,12 @@ COMPONENTS = [
         "A labelled read-only value for detail pages.",
     ),
     ComponentDoc(
+        "form-field",
+        "Form Field",
+        "input-cursor",
+        "A single form field: control, label, help text, and errors.",
+    ),
+    ComponentDoc(
         "dropdown", "Dropdown", "list", "A trigger that reveals a floating panel."
     ),
     ComponentDoc("modal", "Modal", "layout", "A dialog overlay opened via JavaScript."),

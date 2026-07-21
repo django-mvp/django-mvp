@@ -1,0 +1,153 @@
+{% extends "demo/components/base.html" %}
+
+{% block component.docs %}
+  <c-components.section title="Default"
+                        description="A text input with a label. name, placeholder, value and any other input attributes pass straight through to the control.">
+    {% cotton:verbatim %}
+      <c-form.field label="Full name" name="name" placeholder="Jane Doe" />
+    {% endcotton:verbatim %}
+  </c-components.section>
+
+  <c-components.section title="Input types"
+                        description="type accepts any HTML input type — text, email, tel, password, number, date, and friends all share the same markup. Dedicated types (textarea, select, file, checkbox, radio, toggle) are covered below.">
+    {% cotton:verbatim %}
+      <c-grid md="2" gap="4">
+        <c-form.field type="email" label="Email" name="email" placeholder="jane@example.com" />
+        <c-form.field type="password" label="Password" name="password" />
+        <c-form.field type="number" label="Quantity" name="quantity" value="1" min="0" />
+        <c-form.field type="date" label="Ship date" name="ship_date" />
+      </c-grid>
+    {% endcotton:verbatim %}
+  </c-components.section>
+
+  <c-components.section title="Required and help text"
+                        description="required marks the label with an indicator and lands on the control as the HTML required attribute. help-text renders muted helper text below the field — use the help_text slot instead when it needs markup.">
+    {% cotton:verbatim %}
+      <c-grid md="2" gap="4">
+        <c-form.field label="Username"
+                      name="username"
+                      required
+                      help-text="Lowercase letters and digits only." />
+        <c-form.field type="email" label="Email" name="email" required>
+          <c-slot name="help_text">
+            We never share it — see our <a class="link" href="#required-and-help-text">privacy policy</a>.
+          </c-slot>
+        </c-form.field>
+      </c-grid>
+    {% endcotton:verbatim %}
+  </c-components.section>
+
+  <c-components.section title="Errors"
+                        description="errors renders below the field and switches the control to its error style. Pass a string, or bind a Django field's error list directly with :errors=&quot;form.email.errors&quot; — each error renders on its own line.">
+    {% cotton:verbatim %}
+      <c-grid md="2" gap="4">
+        <c-form.field type="email"
+                      label="Email"
+                      name="email"
+                      value="jane@"
+                      errors="Enter a valid email address." />
+        <c-form.field type="select"
+                      label="Plan"
+                      name="plan"
+                      errors="Choose a plan to continue.">
+          <option value="" selected>Pick one…</option>
+          <option>Free</option>
+          <option>Pro</option>
+        </c-form.field>
+      </c-grid>
+    {% endcotton:verbatim %}
+  </c-components.section>
+
+  <c-components.section title="Prefix and suffix"
+                        description="prelabel and postlabel sit inside the control's border, before and after the input — as an attribute for plain text, or as a slot for icons and keyboard hints.">
+    {% cotton:verbatim %}
+      <c-grid md="2" gap="4">
+        <c-form.field label="Site" name="site" prelabel="https://" postlabel=".com" placeholder="my-site" />
+        <c-form.field label="Search" name="q" placeholder="Type to search…">
+          <c-slot name="prelabel"><c-icon name="search" /></c-slot>
+          <c-slot name="postlabel"><kbd class="kbd kbd-sm">⌘K</kbd></c-slot>
+        </c-form.field>
+      </c-grid>
+    {% endcotton:verbatim %}
+  </c-components.section>
+
+  <c-components.section title="Rich label content"
+                        description="The label slot takes arbitrary markup, so a label can carry badges, links, or status indicators.">
+    {% cotton:verbatim %}
+      <c-form.field type="email" name="email" value="jane@example.com" readonly>
+        <c-slot name="label">
+          jane@example.com
+          <c-badge size="sm" variant="success">Verified</c-badge>
+          <c-badge size="sm" variant="primary">Primary</c-badge>
+        </c-slot>
+      </c-form.field>
+    {% endcotton:verbatim %}
+  </c-components.section>
+
+  <c-components.section title="Textarea"
+                        description="type='textarea' renders a multi-line control; the default slot becomes its value. rows and other textarea attributes pass through.">
+    {% cotton:verbatim %}
+      <c-form.field type="textarea"
+                    label="Bio"
+                    name="bio"
+                    rows="3"
+                    placeholder="A few words about yourself"
+                    help-text="Markdown is supported." />
+    {% endcotton:verbatim %}
+  </c-components.section>
+
+  <c-components.section title="Select"
+                        description="type='select' renders a select whose options come from the default slot. prelabel works here too.">
+    {% cotton:verbatim %}
+      <c-form.field type="select" label="Shipping" name="shipping" prelabel="Via">
+        <option>Standard (3–5 days)</option>
+        <option>Express (1–2 days)</option>
+        <option>Overnight</option>
+      </c-form.field>
+    {% endcotton:verbatim %}
+  </c-components.section>
+
+  <c-components.section title="File"
+                        description="type='file' renders a file picker. accept, multiple and other file input attributes pass through.">
+    {% cotton:verbatim %}
+      <c-form.field type="file"
+                    label="Avatar"
+                    name="avatar"
+                    accept="image/*"
+                    help-text="PNG or JPG, up to 2 MB." />
+    {% endcotton:verbatim %}
+  </c-components.section>
+
+  <c-components.section title="Checkbox, radio and toggle"
+                        description="Check-style types put the label beside the control instead of above it. toggle renders a checkbox styled as a switch. checked passes through like any other attribute.">
+    {% cotton:verbatim %}
+      <div class="flex flex-col gap-2">
+        <c-form.field type="checkbox" label="Remember me" name="remember" checked />
+        <c-form.field type="radio" label="Standard shipping" name="shipping" value="standard" checked />
+        <c-form.field type="radio" label="Express shipping" name="shipping" value="express" />
+        <c-form.field type="toggle"
+                      label="Email notifications"
+                      name="notifications"
+                      help-text="A weekly digest, no spam." />
+      </div>
+    {% endcotton:verbatim %}
+  </c-components.section>
+
+  <c-components.section title="Hidden labels and composing"
+                        description="hide-label keeps the label for screen readers but hides it visually. A field with no label, help text or errors renders as a bare control, so it drops straight into a daisyUI join.">
+    {% cotton:verbatim %}
+      <div class="flex flex-col gap-4">
+        <c-form.field label="Confirmation" hide-label name="confirmation" placeholder="Type DELETE to confirm" />
+        <div class="join">
+          <c-form.field name="q"
+                        class="join-item"
+                        placeholder="Search products…"
+                        aria-label="Search products">
+            <c-slot name="prelabel"><c-icon name="search" /></c-slot>
+          </c-form.field>
+          <c-button type="submit" class="join-item" text="Search" />
+        </div>
+      </div>
+    {% endcotton:verbatim %}
+  </c-components.section>
+{% endblock component.docs %}

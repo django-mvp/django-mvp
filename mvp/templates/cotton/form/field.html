@@ -1,14 +1,87 @@
-{% comment %} For very simple form fields {% endcomment %}
-<c-vars type hide-label label class id prelabel postlabel />
-<label class="input rounded-s-md grow {% if hide_label %}sr-only{% endif %}"
-       {% if id %}for="{{ id }}"{% endif %}>
-  {% if prelabel %}<span class="label">{{ prelabel }}</span>{% endif %}
-  {% if type == "textarea" %}
-    <textarea class="textarea textarea-bordered w-full {{ class }}" {{ attrs }}>
-      {{ slot }}
-    </textarea>
-  {% else %}
-    <input class="grow {{ class }}" {{ attrs }} />
+{% comment %}
+  A single, presentational form field: one control plus an optional label, help
+  text, and errors. It renders entirely from explicit attributes — to render a
+  whole Django form use <c-form.render> instead.
+
+  type — any text-like input (text, email, tel, password, number, date, …)
+  plus textarea, select, file, checkbox, radio and toggle.
+
+  label, help-text and errors accept an attribute or a named slot of the same
+  name (a slot allows rich content, e.g. badges inside the label). errors also
+  accepts a list (e.g. :errors="form.email.errors") and switches the control
+  to its error style. The default slot fills the textarea value, the select
+  options, or extra content inside a text input (e.g. a <kbd> hint).
+
+  Everything else (name, id, value, placeholder, required, disabled, checked,
+  rows, …) passes straight through to the control element.
+{% endcomment %}
+
+<c-vars type="text"
+        label
+        hide-label
+        help-text
+        errors
+        prelabel
+        postlabel
+        class
+        wrapper-class />
+{% comment %}
+  The fieldset wrapper only renders when there is something to put in it, so a
+  bare field stays a single control that composes inside joins and toolbars.
+  Check-style controls carry their label inline, so they never need a legend.
+{% endcomment %}
+{% if type == "checkbox" or type == "radio" or type == "toggle" %}
+  {% firstof help_text errors as wrapped %}
+  {% firstof "" as legend %}
+{% else %}
+  {% firstof label help_text errors as wrapped %}
+  {% firstof label as legend %}
+{% endif %}
+{# djlint:off #}
+{% if wrapped %}
+  <div class="fieldset {{ wrapper_class }}">
+  {% if legend %}
+    <label class="fieldset-legend{% if hide_label %} sr-only{% endif %}" {% if id %}for="{{ id }}"{% endif %}>
+      {{ legend }}{% if required %}<span class="text-error" aria-hidden="true">*</span>{% endif %}
+    </label>
   {% endif %}
-  {% if postlabel %}<span class="label">{{ postlabel }}</span>{% endif %}
-</label>
+{% endif %}
+{% if type == "textarea" %}
+  <textarea class="textarea w-full{% if errors %} textarea-error{% endif %} {{ class }}"{% if errors %} aria-invalid="true"{% endif %} {{ attrs }}>{{ slot }}</textarea>
+{% elif type == "select" %}
+  <label class="select w-full{% if errors %} select-error{% endif %} {{ class }}">
+    {% if prelabel %}<span class="label">{{ prelabel }}</span>{% endif %}
+    <select{% if errors %} aria-invalid="true"{% endif %} {{ attrs }}>{{ slot }}</select>
+    {% if postlabel %}<span class="label">{{ postlabel }}</span>{% endif %}
+  </label>
+{% elif type == "file" %}
+  <input type="file" class="file-input w-full{% if errors %} file-input-error{% endif %} {{ class }}"{% if errors %} aria-invalid="true"{% endif %} {{ attrs }} />
+{% elif type == "checkbox" or type == "radio" or type == "toggle" %}
+  <label class="label gap-2">
+    <input type="{% if type == 'radio' %}radio{% else %}checkbox{% endif %}"
+           class="{{ type }}{% if errors %} {{ type }}-error{% endif %} {{ class }}"{% if errors %} aria-invalid="true"{% endif %} {{ attrs }} />
+    {% if label %}<span{% if hide_label %} class="sr-only"{% endif %}>{{ label }}{% if required %}<span class="text-error" aria-hidden="true">*</span>{% endif %}</span>{% endif %}
+    {{ slot }}
+  </label>
+{% else %}
+  <label class="input w-full{% if errors %} input-error{% endif %} {{ class }}">
+    {% if prelabel %}<span class="label">{{ prelabel }}</span>{% endif %}
+    <input type="{{ type }}" class="grow"{% if errors %} aria-invalid="true"{% endif %} {{ attrs }} />
+    {{ slot }}
+    {% if postlabel %}<span class="label">{{ postlabel }}</span>{% endif %}
+  </label>
+{% endif %}
+{% if wrapped %}
+  {% if help_text %}<p class="label">{{ help_text }}</p>{% endif %}
+  {% if errors %}
+    <p class="label text-error">
+      {% if errors == errors|stringformat:"s" %}
+        {{ errors }}
+      {% else %}
+        {% for error in errors %}{{ error }}{% if not forloop.last %}<br />{% endif %}{% endfor %}
+      {% endif %}
+    </p>
+  {% endif %}
+  </div>
+{% endif %}
+{# djlint:on #}

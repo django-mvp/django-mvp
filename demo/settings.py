@@ -187,6 +187,7 @@ EASY_ICONS = {
             "home": "bi bi-house",
             "image": "bi bi-image",
             "info-circle": "bi bi-info-circle",
+            "input-cursor": "bi bi-input-cursor-text",
             "laptop": "bi bi-laptop",
             "layout-wtf": "bi bi-layout-wtf",
             "layout": "bi bi-layout-text-window-reverse",
