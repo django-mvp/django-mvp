@@ -172,6 +172,12 @@ Django MVP is styled with **Tailwind CSS v4 + DaisyUI 5** and ships a prebuilt
 stylesheet — most projects need **no build tooling**. Use the packaged
 components (and DaisyUI themes for colors) and you're done.
 
+Need a DaisyUI component the packaged CSS doesn't include (e.g. `progress`,
+`skeleton`)? Every DaisyUI component is also published as a standalone CSS file
+— add a `<link>` for it in a `styles` block override (CDN or self-hosted) and
+it picks up your theme automatically. Still no build tooling. See
+[docs/styling.md](docs/styling.md#adding-individual-daisyui-components--still-no-build).
+
 If your own templates use their own Tailwind utility classes, rebuild the CSS
 with the generated entry file, which scans your templates *and* Django MVP's:
 

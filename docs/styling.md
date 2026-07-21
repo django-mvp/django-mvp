@@ -28,6 +28,41 @@ class may not exist in the prebuilt stylesheet.
 Theme changes (colors, radius, fonts) do **not** require Tier 2 — DaisyUI
 themes are CSS variables. See [Theming](#theming) below.
 
+### Adding individual DaisyUI components — still no build
+
+The prebuilt stylesheet contains the DaisyUI components **django-mvp's own
+components use** — not all of DaisyUI. If your template uses a component mvp
+doesn't (say `progress`, `skeleton`, or `chat`), those classes won't exist in
+the packaged CSS and the element renders unstyled.
+
+You don't need a Tailwind build to close that gap: every DaisyUI component is
+published as a [standalone plain-CSS file](https://daisyui.com/docs/cdn/),
+driven by the same theme variables the packaged stylesheet already defines —
+so they follow your active theme automatically. Add the ones you need in a
+`styles` block override:
+
+```django
+{# templates/mvp/base.html is extended by your pages; override once in your own base #}
+{% block styles %}
+  {{ block.super }}
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/combine/npm/daisyui@5/components/progress.css,npm/daisyui@5/components/skeleton.css" />
+{% endblock styles %}
+```
+
+Notes:
+
+- jsDelivr's `/combine/` endpoint bundles several component files into one
+  request; browse the available files at
+  <https://cdn.jsdelivr.net/npm/daisyui@5/components/>.
+- Prefer self-hosting? Download the same file (or copy it from the `daisyui`
+  npm package, `daisyui/components/<name>.css`) into your static directory and
+  point the `<link>` there — no third-party request at runtime.
+- Each file ships the **complete** component: all colors, sizes and modifiers.
+- Pin the same DaisyUI major version (`daisyui@5`) as django-mvp.
+- This covers DaisyUI *component* classes only. The moment you also write your
+  own Tailwind *utility* classes next to them, you're in Tier 2.
+
 ## Tier 2: build your own stylesheet
 
 Your build must scan **both** your templates **and** django-mvp's packaged

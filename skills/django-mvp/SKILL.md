@@ -465,9 +465,22 @@ Full table: `docs/components.md` in the package. Component naming/domain rules: 
 Two tiers:
 
 - **Tier 1 — no build.** The prebuilt stylesheet (`mvp/static/css/django-mvp.css`, loaded
-  by `mvp/base.html`) covers every class mvp's components use. Customize via component
-  **attributes** and template overrides that **reuse packaged components**. Theme changes
-  (DaisyUI CSS-variable themes; `<c-actions.theme-controller>` for light/dark) stay Tier 1.
+  by `mvp/base.html`) covers every class mvp's components use — **not all of DaisyUI**.
+  Customize via component **attributes** and template overrides that **reuse packaged
+  components**. Theme changes (DaisyUI CSS-variable themes; `<c-actions.theme-controller>`
+  for light/dark) stay Tier 1.
+  - *Escape hatch:* a DaisyUI component mvp doesn't use (`progress`, `skeleton`, `chat`, …)
+    renders unstyled — but every DaisyUI component is published as a standalone
+    theme-variable-driven CSS file, so link it in a `styles` block override (still no build):
+    ```django
+    {% block styles %}
+      {{ block.super }}
+      <link rel="stylesheet"
+            href="https://cdn.jsdelivr.net/combine/npm/daisyui@5/components/progress.css,npm/daisyui@5/components/skeleton.css" />
+    {% endblock styles %}
+    ```
+    Self-host by copying `daisyui/components/<name>.css` from the npm package into static
+    instead. Component classes only — writing your own Tailwind *utilities* is Tier 2.
 - **Tier 2 — own build.** The moment your own templates use their own Tailwind utility
   classes (`class="grid grid-cols-3"`), rebuild so Tailwind scans both your templates and
   mvp's:
