@@ -1,8 +1,15 @@
 {% load i18n %}
 {% if not request.user.is_authenticated %}
-  <c-button text="{% trans "Log in" %}"
-            href="{% url "login" %}"
-            icon="login"
-            reverse
-            size="sm" />
+  {% comment %} Prefer allauth's login URL when present, else Django's. {% endcomment %}
+  {% url "account_login" as login_url %}
+  {% if not login_url %}
+    {% url "login" as login_url %}
+  {% endif %}
+  {% if login_url %}
+    <c-button text="{% trans "Log in" %}"
+              href="{{ login_url }}"
+              icon="login"
+              reverse
+              size="sm" />
+  {% endif %}
 {% endif %}
