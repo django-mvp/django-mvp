@@ -83,6 +83,14 @@ build-backend = "poetry.core.masonry.api"
 mvp = "mvp.fixtures"
 
 
+[tool.forge.conformance]
+# tests/test_components/ exercises Cotton templates under mvp/templates/cotton/.
+# Those have no Python module behind them — there is no mvp/components/ package
+# and there should not be — so the mirror-the-source-tree rule has nothing to
+# match. Declared here rather than carried as accepted drift, because the point
+# is that no source module exists to mirror, not that the tests are misplaced.
+non-mirror-paths = ["tests/test_components/"]
+
 [tool.deptry]
 extend_exclude = ["tasks.py"]
 

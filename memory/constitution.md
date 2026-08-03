@@ -84,12 +84,31 @@ package itself is deliberately model-free.
 
 ### Article X — Test structure & fixtures
 
-Tests mirror the source tree: `mvp/views/list.py` is exercised by `tests/test_views/test_list_view.py`.
-Related tests are grouped into `Test<Subject>` classes so one area can be targeted when debugging.
-Shared setup and reusable fixtures live in `conftest.py`; test modules hold assertions, not
-construction boilerplate. Database access goes through the `db` fixture or
-`@pytest.mark.django_db`, requests through `client` or `rf`, and query-count guards through
-`django_assert_num_queries` rather than wall-clock timing.
+Tests mirror the source tree: `mvp/views/list.py` is exercised by `tests/test_views/test_list.py`.
+Where one source module defines several things — `mvp/views/edit.py` holds the form, create, update
+and delete views — the tests stay in **one** module and split by class, never into extra files. The
+class is what you target when debugging (`pytest tests/test_views/test_edit.py::TestDeleteView`), and
+a `test_delete.py` with no `mvp/views/delete.py` behind it is the mismatch this rule prevents.
+
+Related tests are grouped into `Test<Subject>` classes. Each demo model has exactly one
+`factory_boy` factory in `tests/factories.py`, with variants expressed by overriding fields at the
+call site rather than by subclassing. Fixtures in `conftest.py` are thin wrappers over those
+factories; test modules hold assertions, not construction boilerplate. Database access goes through
+the `db` fixture or `@pytest.mark.django_db`, requests through `client` or `rf`, and query-count
+guards through `django_assert_num_queries` rather than wall-clock timing.
+
+**A test whose subject is not a Python module has nothing to mirror.** `tests/factories.py` and
+`tests/test_smoke.py` are exempt everywhere. Beyond those, a suite testing templates or another
+non-module artifact is exempt only when this repository declares it in `pyproject.toml` under
+`[tool.forge.conformance] non-mirror-paths`. `tests/test_components/` is declared there because it
+exercises Cotton templates under `mvp/templates/cotton/`, which have no Python module behind them.
+That is a statement that no source module exists to mirror, not a waiver — declaring a path whose
+subject *is* a Python module is a review failure.
+
+**Module-level `pytestmark` and `pytest.importorskip` apply to the whole module.** In a module that
+mixes unit and browser tests, scope them to the class instead. A module-level `importorskip` also
+aborts collection of the entire module, which hides the tests underneath it rather than reporting
+them as skipped.
 
 ## Project articles
 
