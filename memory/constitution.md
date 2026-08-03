@@ -1,9 +1,9 @@
 # django-mvp Constitution
 
-<!-- Version 4.0.0. Replaces the previous constitution that lived at
-     .specify/memory/constitution.md (v3.8.0), which was removed with the rest of the
-     upstream Spec Kit surface. Rarely changed; changes are human-gated and never made
-     mid-feature. Read at the Constitution Check in planning, and by reviewers. -->
+<!-- Replaces the previous constitution that lived at .specify/memory/constitution.md
+     (v3.8.0), which was removed with the rest of the upstream Spec Kit surface. Rarely
+     changed; changes are human-gated and never made mid-feature. Read at the Constitution
+     Check in planning, and by reviewers. The version is in the footer at the end. -->
 
 ## Core articles
 
@@ -182,3 +182,7 @@ that need ignore rules first. Do not cite it as an enforced standard until it ru
 - Automation commits under the `django-mvp-bot` identity, never a human token.
 - Machine verification (tests, build, lint) gates every stage exit. No judgement call overrides a
   red gate.
+
+---
+
+**Version**: 4.0.0 | **Ratified**: 2026-01-05 | **Last Amended**: 2026-08-03
