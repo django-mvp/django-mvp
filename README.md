@@ -16,7 +16,7 @@ components, and enhanced class-based views with search, ordering and pagination 
 the box. **Things should just work.**
 
 > **Note:** django-mvp is in active development (0.x). Import paths and component APIs
-> may change between minor versions — see the [CHANGELOG](CHANGELOG.md).
+> may change between minor versions — see the [CHANGELOG](https://github.com/django-mvp/django-mvp/blob/main/CHANGELOG.md).
 
 ## What you get
 
@@ -98,7 +98,7 @@ FLEX_MENUS = {
 {% endblock %}
 ```
 
-Full walkthrough: [Getting Started](docs/getting-started.md).
+Full walkthrough: [Getting Started](https://github.com/django-mvp/django-mvp/blob/main/docs/getting-started.md).
 
 ## Configure the layout from settings
 
@@ -118,7 +118,7 @@ MVP_CONFIG = {
 ```
 
 Per-page overrides use component attributes (`<c-app breakpoint="xl">`,
-`<c-app.sidebar collapse="icons">`). Details: [Layout](docs/layout.md).
+`<c-app.sidebar collapse="icons">`). Details: [Layout](https://github.com/django-mvp/django-mvp/blob/main/docs/layout.md).
 
 ## Views in one line each
 
@@ -137,7 +137,7 @@ class ProductCreateView(MVPCreateView):
     fields = ["name", "category", "price"]               # crispy-detected rendering
 ```
 
-Details: [Views](docs/views.md).
+Details: [Views](https://github.com/django-mvp/django-mvp/blob/main/docs/views.md).
 
 ## Menus in Python
 
@@ -152,7 +152,7 @@ AppMenu.extend([
 ])
 ```
 
-Details: [Navigation](docs/navigation.md).
+Details: [Navigation](https://github.com/django-mvp/django-mvp/blob/main/docs/navigation.md).
 
 ## Optional integrations
 
@@ -164,7 +164,7 @@ from mvp.integrations.django_tables.views import MVPTableView      # django-tabl
 from mvp.integrations.django_filters.views import MVPFilteredListView  # django-filter
 ```
 
-Details: [Integrations](docs/integrations.md).
+Details: [Integrations](https://github.com/django-mvp/django-mvp/blob/main/docs/integrations.md).
 
 ## Styling & Theming
 
@@ -176,7 +176,7 @@ Need a DaisyUI component the packaged CSS doesn't include (e.g. `progress`,
 `skeleton`)? Every DaisyUI component is also published as a standalone CSS file
 — add a `<link>` for it in a `styles` block override (CDN or self-hosted) and
 it picks up your theme automatically. Still no build tooling. See
-[docs/styling.md](docs/styling.md#adding-individual-daisyui-components--still-no-build).
+[docs/styling.md](https://github.com/django-mvp/django-mvp/blob/main/docs/styling.md#adding-individual-daisyui-components--still-no-build).
 
 If your own templates use their own Tailwind utility classes, rebuild the CSS
 with the generated entry file, which scans your templates *and* Django MVP's:
@@ -187,12 +187,12 @@ python manage.py mvp_tailwind > assets/tailwind.css
 npx @tailwindcss/cli -i assets/tailwind.css -o static/css/app.css --minify
 ```
 
-See [docs/styling.md](docs/styling.md) for the full guide (two-tier model,
+See [docs/styling.md](https://github.com/django-mvp/django-mvp/blob/main/docs/styling.md) for the full guide (two-tier model,
 theming, and the packaged Tailwind preset).
 
 ## Documentation
 
-Start at [docs/index.md](docs/index.md): Getting Started · Layout · Components ·
+Start at [docs/index.md](https://github.com/django-mvp/django-mvp/blob/main/docs/index.md): Getting Started · Layout · Components ·
 Navigation · Views · Styling · Integrations.
 
 ## Requirements
@@ -226,7 +226,7 @@ CI only checks that it still compiles, so keeping it current is up to the author
 
 ## License
 
-MIT License — see [LICENSE](LICENSE).
+MIT License — see [LICENSE](https://github.com/django-mvp/django-mvp/blob/main/LICENSE).
 
 ## Acknowledgments
 
