@@ -39,7 +39,9 @@ def test_type_is_emitted_on_the_input():
 
 
 def test_attrs_pass_through_to_the_control():
-    html = render('<c-form.field name="q" id="id_q" value="abc" form="filterForm" disabled />')
+    html = render(
+        '<c-form.field name="q" id="id_q" value="abc" form="filterForm" disabled />'
+    )
     assert 'id="id_q"' in html
     assert 'value="abc"' in html
     assert 'form="filterForm"' in html
@@ -58,7 +60,9 @@ def test_class_lands_on_the_control_wrapper():
 
 
 def test_label_renders_and_points_at_the_control():
-    html = render('<c-form.field label="Email" type="email" name="email" id="id_email" />')
+    html = render(
+        '<c-form.field label="Email" type="email" name="email" id="id_email" />'
+    )
     assert 'class="fieldset' in html
     assert "fieldset-legend" in html
     assert ">Email<" in html or "Email" in html
@@ -138,7 +142,9 @@ def test_errors_alone_do_not_render_a_label():
 
 
 def test_textarea_takes_value_from_slot_without_extra_whitespace():
-    html = render('<c-form.field type="textarea" label="Bio" name="bio" rows="3">Hello</c-form.field>')
+    html = render(
+        '<c-form.field type="textarea" label="Bio" name="bio" rows="3">Hello</c-form.field>'
+    )
     assert 'class="textarea w-full' in html
     assert ">Hello</textarea>" in html
     assert 'rows="3"' in html
@@ -150,7 +156,9 @@ def test_textarea_error_style():
 
 
 def test_select_renders_options_from_slot():
-    html = render('<c-form.field type="select" label="Plan" name="plan"><option>Free</option></c-form.field>')
+    html = render(
+        '<c-form.field type="select" label="Plan" name="plan"><option>Free</option></c-form.field>'
+    )
     assert 'class="select w-full' in html
     assert "<select" in html
     assert "<option>Free</option>" in html
@@ -162,14 +170,18 @@ def test_select_error_style():
 
 
 def test_file_input():
-    html = render('<c-form.field type="file" label="Avatar" name="avatar" accept="image/*" />')
+    html = render(
+        '<c-form.field type="file" label="Avatar" name="avatar" accept="image/*" />'
+    )
     assert '<input type="file"' in html
     assert "file-input" in html
     assert 'accept="image/*"' in html
 
 
 def test_checkbox_renders_inline_label():
-    html = render('<c-form.field type="checkbox" label="Remember me" name="remember" checked />')
+    html = render(
+        '<c-form.field type="checkbox" label="Remember me" name="remember" checked />'
+    )
     assert '<input type="checkbox"' in html
     assert 'class="checkbox' in html
     assert "Remember me" in html
@@ -180,7 +192,9 @@ def test_checkbox_renders_inline_label():
 
 
 def test_radio_renders_radio_input():
-    html = render('<c-form.field type="radio" label="Standard" name="ship" value="std" />')
+    html = render(
+        '<c-form.field type="radio" label="Standard" name="ship" value="std" />'
+    )
     assert '<input type="radio"' in html
     assert 'class="radio' in html
 
@@ -192,14 +206,18 @@ def test_toggle_is_a_checkbox_styled_as_a_switch():
 
 
 def test_check_style_field_with_help_text_wraps_without_legend():
-    html = render('<c-form.field type="toggle" label="Notify" name="notify" help-text="Weekly." />')
+    html = render(
+        '<c-form.field type="toggle" label="Notify" name="notify" help-text="Weekly." />'
+    )
     assert 'class="fieldset' in html
     assert "fieldset-legend" not in html
     assert '<p class="label">Weekly.</p>' in html
 
 
 def test_checkbox_error_style():
-    html = render('<c-form.field type="checkbox" label="Terms" name="terms" errors="Required." />')
+    html = render(
+        '<c-form.field type="checkbox" label="Terms" name="terms" errors="Required." />'
+    )
     assert "checkbox-error" in html
 
 
@@ -215,7 +233,9 @@ def test_prelabel_and_postlabel_attributes():
 
 
 def test_prelabel_slot():
-    html = render('<c-form.field name="q"><c-slot name="prelabel"><c-icon name="search" /></c-slot></c-form.field>')
+    html = render(
+        '<c-form.field name="q"><c-slot name="prelabel"><c-icon name="search" /></c-slot></c-form.field>'
+    )
     assert '<span class="label">' in html
     assert "bi-search" in html
 

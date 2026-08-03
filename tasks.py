@@ -45,7 +45,9 @@ def prerelease(c):
     build_stylesheet(c)
 
     # Step 2: Run comprehensive linting, type checking, and dependency analysis
-    print("\n🧹 Step 2: Running comprehensive linting, type checking, and dependency analysis")
+    print(
+        "\n🧹 Step 2: Running comprehensive linting, type checking, and dependency analysis"
+    )
     print("🚀 Running pre-commit hooks (includes mypy and deptry)")
     c.run("poetry run pre-commit run -a")
 
@@ -57,7 +59,9 @@ def prerelease(c):
     # Step 4: Run comprehensive test suite
     print("\n🧪 Step 4: Running comprehensive test suite")
     print("🚀 Running pytest with coverage")
-    c.run("poetry run pytest --cov --cov-config=pyproject.toml --cov-report=html --cov-report=term --tb=no -qq")
+    c.run(
+        "poetry run pytest --cov --cov-config=pyproject.toml --cov-report=html --cov-report=term --tb=no -qq"
+    )
 
     print("\n" + "=" * 60)
     print("✅ Pre-release checks completed successfully!")

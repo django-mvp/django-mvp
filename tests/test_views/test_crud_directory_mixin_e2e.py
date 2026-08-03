@@ -39,13 +39,17 @@ def product(category):
 
 @pytest.fixture
 def staff_user(db):
-    user = User.objects.create_user(username="e2e_staff", password="pass", is_staff=True, is_active=True)
+    user = User.objects.create_user(
+        username="e2e_staff", password="pass", is_staff=True, is_active=True
+    )
     return user
 
 
 @pytest.fixture
 def regular_user(db):
-    user = User.objects.create_user(username="e2e_regular", password="pass", is_staff=False, is_active=True)
+    user = User.objects.create_user(
+        username="e2e_regular", password="pass", is_staff=False, is_active=True
+    )
     return user
 
 
@@ -101,7 +105,9 @@ class TestUS5ReadOnlyUserHidesActionButtons:
         assert response.status_code == 200
         content = response.content.decode()
         edit_url = reverse("product-update", kwargs={"pk": product.pk})
-        assert edit_url not in content, "Edit link must NOT be present for non-staff user"
+        assert edit_url not in content, (
+            "Edit link must NOT be present for non-staff user"
+        )
 
     def test_US5_regular_user_no_delete_button(self, client, regular_user, product):
         """[US5] Read-only user → delete button absent on product detail page."""
@@ -111,7 +117,9 @@ class TestUS5ReadOnlyUserHidesActionButtons:
         assert response.status_code == 200
         content = response.content.decode()
         delete_url = reverse("product-delete", kwargs={"pk": product.pk})
-        assert delete_url not in content, "Delete link must NOT be present for non-staff user"
+        assert delete_url not in content, (
+            "Delete link must NOT be present for non-staff user"
+        )
 
     def test_US5_regular_user_sees_list_link(self, client, regular_user, product):
         """[US5] Read-only user → list link still present."""
@@ -139,7 +147,9 @@ class TestUS4ProductDetailPageHeadingAndCSSClass:
         response = client.get(url)
         assert response.status_code == 200
         content = response.content.decode()
-        assert "<h1" in content and str(product) in content, f"Heading element containing '{product!s}' must be present"
+        assert "<h1" in content and str(product) in content, (
+            f"Heading element containing '{product!s}' must be present"
+        )
 
     def test_product_detail_breadcrumb_ends_with_product_name(self, client, product):
         """[US4] Final breadcrumb item text equals str(product) — US4 AC3."""
@@ -157,7 +167,9 @@ class TestUS4ProductDetailPageHeadingAndCSSClass:
         response = client.get(url)
         assert response.status_code == 200
         content = response.content.decode()
-        assert "product-page" in content, "CSS class 'product-page' must be present in the page container"
+        assert "product-page" in content, (
+            "CSS class 'product-page' must be present in the page container"
+        )
 
     def test_product_detail_page_container_has_action_css_class(self, client, product):
         """[US4] div.mvp-layout class attribute contains 'mvp-detail-page' — FR-009."""
@@ -165,4 +177,6 @@ class TestUS4ProductDetailPageHeadingAndCSSClass:
         response = client.get(url)
         assert response.status_code == 200
         content = response.content.decode()
-        assert "mvp-detail-page" in content, "CSS class 'mvp-detail-page' must be present in the page container"
+        assert "mvp-detail-page" in content, (
+            "CSS class 'mvp-detail-page' must be present in the page container"
+        )

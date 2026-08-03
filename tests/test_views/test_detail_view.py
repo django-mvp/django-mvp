@@ -73,7 +73,9 @@ class TestPageObjectMixin:
 
     def test_context_contains_page_and_directory_with_list_permission(self):
         """[US1] Given has_list_permission=True and directory=['list'], context has 'page' and 'directory['list_url']'."""
-        view = make_page_object_view(extra_attrs={"directory": ["list"], "has_list_permission": True})
+        view = make_page_object_view(
+            extra_attrs={"directory": ["list"], "has_list_permission": True}
+        )
         ctx = view.get_context_data()
         assert "page" in ctx
         assert "list_url" in ctx["directory"]

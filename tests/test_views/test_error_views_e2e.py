@@ -12,7 +12,9 @@ Skip in CI without playwright: ``pytest -m "not e2e"``
 
 import pytest
 
-pytest_playwright = pytest.importorskip("playwright", reason="playwright not installed — skip e2e tests")
+pytest_playwright = pytest.importorskip(
+    "playwright", reason="playwright not installed — skip e2e tests"
+)
 
 pytestmark = pytest.mark.e2e
 
@@ -53,4 +55,6 @@ def test_no_critical_wcag_aa_violations(page, live_server, code, title_fragment)
     page.goto(f"{live_server.url}/errors/{code}/")
     violations = _inject_axe(page)
     violation_descriptions = [f"{v['id']}: {v['description']}" for v in violations]
-    assert violations == [], f"Critical WCAG 2.1 AA violations on /{code}/: {violation_descriptions}"
+    assert violations == [], (
+        f"Critical WCAG 2.1 AA violations on /{code}/: {violation_descriptions}"
+    )

@@ -105,7 +105,10 @@ DEP003 = ["invoke", "pytest", "bs4"]
 DEP004 = ["django_filters", "django_tables2", "django_htmx"]
 
 [tool.ruff]
-target-version = "py313"
+# line-length is deliberately unset: Ruff's default is 88, matching Black, which
+# is what Django, pytest and httpx ship. PEP 8 caps a team's own preference at 99.
+# target-version is deliberately unset too: Ruff infers it from requires-python,
+# so it cannot drift above the versions this package actually supports.
 exclude = [
     ".bzr",
     ".direnv",
@@ -133,7 +136,6 @@ exclude = [
     "docs/",
     ".github/",
 ]
-line-length = 120
 fix = true
 
 [tool.ruff.lint]
@@ -201,7 +203,7 @@ ignore = [
 
 [tool.ruff.format]
 docstring-code-format = true
-docstring-code-line-length = 88
+docstring-code-line-length = "dynamic"
 line-ending = "lf"
 exclude = ["*/migrations/*.py"]
 

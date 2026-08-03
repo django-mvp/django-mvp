@@ -21,18 +21,24 @@ class TestDeleteConfirmForm:
 
     def test_form_valid_when_confirmation_matches_value(self):
         """(a) Matching confirmation_value → form is valid."""
-        form = DeleteConfirmForm(data={"confirmation": "correct"}, confirmation_value="correct")
+        form = DeleteConfirmForm(
+            data={"confirmation": "correct"}, confirmation_value="correct"
+        )
         assert form.is_valid()
 
     def test_form_invalid_when_confirmation_does_not_match(self):
         """(b) Non-matching confirmation_value → form is invalid."""
-        form = DeleteConfirmForm(data={"confirmation": "wrong"}, confirmation_value="correct")
+        form = DeleteConfirmForm(
+            data={"confirmation": "wrong"}, confirmation_value="correct"
+        )
         assert not form.is_valid()
         assert "confirmation" in form.errors
 
     def test_form_invalid_when_confirmation_empty_with_value(self):
         """(c) Empty input with confirmation_value set → invalid (required field)."""
-        form = DeleteConfirmForm(data={"confirmation": ""}, confirmation_value="correct")
+        form = DeleteConfirmForm(
+            data={"confirmation": ""}, confirmation_value="correct"
+        )
         assert not form.is_valid()
         assert "confirmation" in form.errors
 
@@ -237,7 +243,10 @@ class TestMVPDeleteViewRelatedObjects:
             )
         url = reverse("category-delete-related", kwargs={"pk": category.pk})
         response = client.get(url)
-        assert "and" not in response.content.decode() or "more" not in response.content.decode()
+        assert (
+            "and" not in response.content.decode()
+            or "more" not in response.content.decode()
+        )
 
     def test_no_overflow_note_when_within_cap(self, client, category):
         """(e) No overflow note — Product.category is SET_NULL, no cascade objects."""
@@ -455,5 +464,7 @@ class TestMVPUpdateViewDeleteUrl:
         view.object = _Obj()
         # Must not raise — should return a URL string with the delete URL (back may be empty)
         result = view.get_delete_url()
-        assert isinstance(result, str), "get_delete_url() must return a string, not raise"
+        assert isinstance(result, str), (
+            "get_delete_url() must return a string, not raise"
+        )
         assert "delete" in result, "delete_url should still contain the delete path"

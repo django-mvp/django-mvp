@@ -70,7 +70,9 @@ def test_error_page_logo_img_has_alt_text(client):
         assert imgs, f"/errors/{code}/ renders no <img> to check"
         for img in imgs:
             alt = re.search(r'\balt="([^"]*)"', img, re.S)
-            assert alt and alt.group(1).strip(), f"<img> without alt text on /{code}/: {img}"
+            assert alt and alt.group(1).strip(), (
+                f"<img> without alt text on /{code}/: {img}"
+            )
 
 
 # ---------------------------------------------------------------------------

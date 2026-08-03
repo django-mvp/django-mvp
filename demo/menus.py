@@ -62,7 +62,9 @@ AppMenu.extend(
                 *[
                     MenuItem(
                         name=f"component-{component.slug}",
-                        url=reverse_lazy("component-doc", kwargs={"slug": component.slug}),
+                        url=reverse_lazy(
+                            "component-doc", kwargs={"slug": component.slug}
+                        ),
                         extra_context={
                             "label": component.label,
                             "icon": component.icon,

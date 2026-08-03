@@ -42,7 +42,9 @@ def test_mvp_imports():
 def test_styling_doc_exists():
     """The styling guide exists and documents the consumer build command."""
     styling = BASE_DIR / "docs" / "styling.md"
-    assert styling.exists(), "docs/styling.md must exist — it is the canonical CSS/theming guide."
+    assert styling.exists(), (
+        "docs/styling.md must exist — it is the canonical CSS/theming guide."
+    )
     content = styling.read_text(encoding="utf-8")
     assert "mvp_tailwind" in content, (
         "docs/styling.md must document the 'python manage.py mvp_tailwind' command "

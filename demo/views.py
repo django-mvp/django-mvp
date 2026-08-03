@@ -87,7 +87,9 @@ class ComponentDocView(DemoTemplateView):
 
 
 components_demo = ComponentIndexView.as_view()
-layout_demo = DemoTemplateView.as_view(template_name="layout.html", page_title="Layout Demo")
+layout_demo = DemoTemplateView.as_view(
+    template_name="layout.html", page_title="Layout Demo"
+)
 theme_customization_demo = DemoTemplateView.as_view(
     template_name="theme_customization.html", page_title="Theme Customization"
 )

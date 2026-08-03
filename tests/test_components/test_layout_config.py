@@ -38,7 +38,9 @@ def _navbar_toggle_class(html):
     header and the drawer overlay reuse the same ``for`` target with different
     labels).
     """
-    match = re.search(r'<label[^>]*aria-label="Open sidebar"[^>]*?class="([^"]*)"', html, re.S)
+    match = re.search(
+        r'<label[^>]*aria-label="Open sidebar"[^>]*?class="([^"]*)"', html, re.S
+    )
     return " ".join(match.group(1).split()) if match else None
 
 
@@ -155,9 +157,9 @@ def test_sidebar_footer_widgets_render_from_config(client):
     """Configured sidebar footer components render in a centered, wrapping row."""
     content = client.get("/").content.decode()
     # the footer actions live in a centered wrapping flex row
-    assert re.search(r'<div class="flex flex-wrap items-center justify-center gap-2">', content), (
-        "sidebar footer must wrap its actions in a centered wrapping flex row"
-    )
+    assert re.search(
+        r'<div class="flex flex-wrap items-center justify-center gap-2">', content
+    ), "sidebar footer must wrap its actions in a centered wrapping flex row"
     # the configured component renders (theme controller marker)
     assert "data-toggle-theme" in content
 

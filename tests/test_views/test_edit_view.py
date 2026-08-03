@@ -39,7 +39,11 @@ def make_next_url_view(method="GET", params=None, extra_attrs=None):
     for GET requests and POST-body data for POST requests.
     """
     rf = RequestFactory()
-    request = rf.post("/", data=params or {}) if method == "POST" else rf.get("/", data=params or {})
+    request = (
+        rf.post("/", data=params or {})
+        if method == "POST"
+        else rf.get("/", data=params or {})
+    )
 
     attrs = {"template_name": "base.html", **(extra_attrs or {})}
     view_cls = type("StubNextURLView", (NextURLMixin, TemplateView), attrs)
@@ -57,7 +61,11 @@ def make_create_view(method="POST", params=None, extra_attrs=None, kwargs=None):
     shorthand resolution can proceed end-to-end during unit tests.
     """
     rf = RequestFactory()
-    request = rf.post("/", data=params or {}) if method == "POST" else rf.get("/", data=params or {})
+    request = (
+        rf.post("/", data=params or {})
+        if method == "POST"
+        else rf.get("/", data=params or {})
+    )
     request.user = User()
 
     attrs = {
@@ -136,7 +144,9 @@ class TestUS1GetNextUrl:
         """[US1] POST next value wins when both POST body and query string have next."""
         rf = RequestFactory()
         request = rf.post("/?next=/from-get/", data={"next": "/from-post/"})
-        view_cls = type("StubView", (NextURLMixin, TemplateView), {"template_name": "base.html"})
+        view_cls = type(
+            "StubView", (NextURLMixin, TemplateView), {"template_name": "base.html"}
+        )
         view = view_cls()
         view.request = request
         view.kwargs = {}
@@ -205,7 +215,9 @@ class TestGetNextCandidate:
         """[FR-001a] POST reads POST body, not query string."""
         rf = RequestFactory()
         request = rf.post("/?next=/from-qs/", data={"next": "/from-body/"})
-        view_cls = type("StubView", (NextURLMixin, TemplateView), {"template_name": "base.html"})
+        view_cls = type(
+            "StubView", (NextURLMixin, TemplateView), {"template_name": "base.html"}
+        )
         view = view_cls()
         view.request = request
         view.kwargs = {}
@@ -500,19 +512,25 @@ class TestMVPModelFormBaseSuccessMessage:
 
     def test_verbose_name_only_resolves(self):
         """[T-FM-001] %(verbose_name)s with empty cleaned_data → lowercase model verbose_name."""
-        view = make_update_view(extra_attrs={"success_message": "%(verbose_name)s created."})
+        view = make_update_view(
+            extra_attrs={"success_message": "%(verbose_name)s created."}
+        )
         result = view.get_success_message({})
         assert result == f"{Product._meta.verbose_name} created."
 
     def test_missing_field_placeholder_substitutes_empty_string(self):
         """[T-FM-002] %(name)s with empty cleaned_data → '' substituted, no KeyError raised."""
-        view = make_update_view(extra_attrs={"success_message": "%(verbose_name)s %(name)s deleted."})
+        view = make_update_view(
+            extra_attrs={"success_message": "%(verbose_name)s %(name)s deleted."}
+        )
         result = view.get_success_message({})
         assert result == f"{Product._meta.verbose_name}  deleted."
 
     def test_field_value_and_verbose_name_both_resolve(self):
         """[T-FM-003] %(verbose_name)s + %(name)s both resolve when name present in cleaned_data."""
-        view = make_update_view(extra_attrs={"success_message": "%(verbose_name)s %(name)s updated."})
+        view = make_update_view(
+            extra_attrs={"success_message": "%(verbose_name)s %(name)s updated."}
+        )
         result = view.get_success_message({"name": "Widget A"})
         assert result == f"{Product._meta.verbose_name} Widget A updated."
 
@@ -629,7 +647,9 @@ class TestMVPFormView:
 
     def test_verbose_name_not_injected_substitutes_empty_string(self):
         """[US2-S3] %(verbose_name)s → '' because verbose_name is NOT injected on MVPFormView."""
-        view = make_form_view(extra_attrs={"success_message": "%(verbose_name)s saved."})
+        view = make_form_view(
+            extra_attrs={"success_message": "%(verbose_name)s saved."}
+        )
         result = view.get_success_message({})
         assert result == " saved."
 
@@ -747,7 +767,9 @@ class TestMVPCreateViewSuccessMessage:
 
     def test_missing_key_substitutes_empty_string(self):
         """Missing %(key)s placeholder silently substitutes '' — no KeyError raised."""
-        view = make_create_view(extra_attrs={"success_message": "%(verbose_name)s %(missing)s done."})
+        view = make_create_view(
+            extra_attrs={"success_message": "%(verbose_name)s %(missing)s done."}
+        )
         result = view.get_success_message({})
         assert result == "Product  done."
 
@@ -809,7 +831,9 @@ class TestMVPCreateViewBreadcrumb:
     def test_get_breadcrumbs_override_is_respected(self):
         """Subclass overriding get_breadcrumbs() returns its custom list (SC-003)."""
         custom_crumbs = [{"text": "Home", "href": "/"}, {"text": "New"}]
-        view = make_create_view(extra_attrs={"get_breadcrumbs": lambda self: custom_crumbs})
+        view = make_create_view(
+            extra_attrs={"get_breadcrumbs": lambda self: custom_crumbs}
+        )
         assert view.get_breadcrumbs() == custom_crumbs
 
 
@@ -1021,8 +1045,14 @@ class TestMVPUpdateViewOverrides:
 
     def test_get_breadcrumbs_override_is_respected(self):
         """Subclass overriding get_breadcrumbs() returns its custom list (SC-003)."""
-        custom_crumbs = [{"text": "Home", "href": "/"}, {"text": "Products", "href": "/products/"}, {"text": "Edit"}]
-        view = make_update_view(extra_attrs={"get_breadcrumbs": lambda self: custom_crumbs})
+        custom_crumbs = [
+            {"text": "Home", "href": "/"},
+            {"text": "Products", "href": "/products/"},
+            {"text": "Edit"},
+        ]
+        view = make_update_view(
+            extra_attrs={"get_breadcrumbs": lambda self: custom_crumbs}
+        )
         assert view.get_breadcrumbs() == custom_crumbs
 
     def test_delete_url_can_be_suppressed_via_override(self):

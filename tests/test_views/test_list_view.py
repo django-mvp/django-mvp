@@ -15,7 +15,13 @@ from django.test import RequestFactory
 from django.views.generic import ListView
 
 from demo.models import Category, Product
-from mvp.views.list import MVPListView, MVPListViewMixin, OrderMixin, SearchMixin, SearchOrderMixin
+from mvp.views.list import (
+    MVPListView,
+    MVPListViewMixin,
+    OrderMixin,
+    SearchMixin,
+    SearchOrderMixin,
+)
 
 # ---------------------------------------------------------------------------
 # Module-level stub view classes (needed for django_filters FilterView)
@@ -474,7 +480,9 @@ class TestOrderMixinContext:
         )
         view.object_list = view.get_queryset()
         ctx = view.get_context_data()
-        assert ctx["current_ordering"] == "name_asc"  # public_key, not "name" (orm_expression)
+        assert (
+            ctx["current_ordering"] == "name_asc"
+        )  # public_key, not "name" (orm_expression)
 
     def test_order_context_current_ordering_empty_on_invalid(self, db, cat):
         """[US2] current_ordering is '' when ?o= is not a recognised public_key."""
@@ -771,7 +779,11 @@ class TestMVPListViewMixinItemTemplate:
         view_cls = type(
             "StubListView",
             (MVPListViewMixin, ListView),
-            {"model": MockModel, "list_item_template": None, "template_name": "base.html"},
+            {
+                "model": MockModel,
+                "list_item_template": None,
+                "template_name": "base.html",
+            },
         )
         view = view_cls()
         view.request = request
@@ -947,7 +959,10 @@ class TestMVPListViewMixinSearchOrdering:
         view = _make_list_view(
             params={"o": "name_asc"},
             extra_attrs={
-                "order_by": [("name_asc", "Name A-Z", "name"), ("name_desc", "Name Z-A", "-name")],
+                "order_by": [
+                    ("name_asc", "Name A-Z", "name"),
+                    ("name_desc", "Name Z-A", "-name"),
+                ],
             },
         )
         view.object_list = view.get_queryset()
@@ -1154,7 +1169,9 @@ class TestListViewInlineCreate:
         view = _make_list_view(
             extra_attrs={
                 "create_form_class": ProductForm,
-                "has_create_permission": staticmethod(lambda user: user.is_authenticated),
+                "has_create_permission": staticmethod(
+                    lambda user: user.is_authenticated
+                ),
             }
         )
         view.request.user = user

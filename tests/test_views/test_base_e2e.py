@@ -34,7 +34,9 @@ def test_home_unauthenticated_has_hero_lead(client):
 
 def test_home_authenticated_shows_dashboard_content(client, django_user_model):
     """Authenticated GET / shows dashboard content with username."""
-    user = django_user_model.objects.create_user(username="authuser1", password="pass123!")
+    user = django_user_model.objects.create_user(
+        username="authuser1", password="pass123!"
+    )
     client.force_login(user)
     response = client.get("/")
     assert b"Welcome" in response.content
@@ -61,12 +63,16 @@ def test_full_login_and_return_journey(client, django_user_model):
     4. Assert no redirects occur at any step.
     5. Assert navbar and sidebar are present on the dashboard.
     """
-    user = django_user_model.objects.create_user(username="journeyuser", password="pass123!")
+    user = django_user_model.objects.create_user(
+        username="journeyuser", password="pass123!"
+    )
 
     # Step 1: Anonymous visit to /
     response = client.get("/")
     assert response.status_code == 200
-    assert b"production-ready Django apps fast" in response.content, "Landing content not visible for anonymous user"
+    assert b"production-ready Django apps fast" in response.content, (
+        "Landing content not visible for anonymous user"
+    )
 
     # Step 2: Authenticate
     client.force_login(user)

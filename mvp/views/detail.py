@@ -33,8 +33,12 @@ class CRUDDirectoryMixin(ModelInfoMixin):
             action (str): One of 'list', 'detail', 'create', 'update'
         """
         if action not in self.crud_views:
-            raise ValueError(f"Invalid action '{action}'. Must be one of: {', '.join(self.crud_views.keys())}")
-        return self.crud_views[action].format(model_name=self.model_meta.model_name, app_name=self.model_meta.app_label)
+            raise ValueError(
+                f"Invalid action '{action}'. Must be one of: {', '.join(self.crud_views.keys())}"
+            )
+        return self.crud_views[action].format(
+            model_name=self.model_meta.model_name, app_name=self.model_meta.app_label
+        )
 
     def get_url_kwargs(self, action: str) -> dict | None:
         """Return URL kwargs for reversing the URL for ``action``.
@@ -101,7 +105,11 @@ class PageObjectMixin(CRUDDirectoryMixin, PageMixin):
     list_view_title = ""
 
     def get_page_class(self):
-        return " ".join(filter(None, [super().get_page_class(), self.model_meta.model_name + "-page"]))
+        return " ".join(
+            filter(
+                None, [super().get_page_class(), self.model_meta.model_name + "-page"]
+            )
+        )
 
     def get_list_title(self):
         """Return the title to use for the list view link in the form header.
