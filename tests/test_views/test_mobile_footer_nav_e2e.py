@@ -12,7 +12,7 @@ server) and pytest-playwright's ``page``. Skipped when playwright is absent.
 import pytest
 
 pytest.importorskip("playwright")
-from playwright.sync_api import expect  # noqa: E402
+from playwright.sync_api import expect
 
 pytestmark = pytest.mark.e2e
 

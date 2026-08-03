@@ -79,7 +79,10 @@ class TestUS1Directory:
 
     def test_US1_nonexistent_url_pattern_raises_no_reverse_match(self):
         """[US1] Action whose URL pattern doesn't exist → NoReverseMatch propagates."""
-        custom_crud = {**MVP_CONFIG["view_names"], "list": "nonexistent-{model_name}-list"}
+        custom_crud = {
+            **MVP_CONFIG["view_names"],
+            "list": "nonexistent-{model_name}-list",
+        }
         view = make_stub_view(
             extra_attrs={
                 "directory": ["list"],
@@ -195,7 +198,10 @@ class TestUS2PermissionGating:
             raise ValueError("permission check failed")
 
         view = make_stub_view(
-            extra_attrs={"directory": ["list"], "has_list_permission": staticmethod(bad_perm)},
+            extra_attrs={
+                "directory": ["list"],
+                "has_list_permission": staticmethod(bad_perm),
+            },
             kwargs={},
         )
         with pytest.raises(ValueError, match="permission check failed"):

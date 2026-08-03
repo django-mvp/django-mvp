@@ -42,7 +42,9 @@ def test_renders_trigger_and_dialog():
 def test_lists_available_languages_as_submit_buttons():
     """Each available language is a submit button posting its code."""
     html = _render()
-    codes = re.findall(r'<button type="submit"\s+name="language"\s+value="([^"]+)"', html)
+    codes = re.findall(
+        r'<button type="submit"\s+name="language"\s+value="([^"]+)"', html
+    )
     assert "en" in codes
     assert "fr" in codes
     # every language renders exactly one option

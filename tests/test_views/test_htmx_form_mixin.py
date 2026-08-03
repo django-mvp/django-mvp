@@ -77,7 +77,11 @@ def make_htmx_view(
     rf = RequestFactory()
     headers = HTMX_HEADERS if htmx else {}
 
-    request = rf.post("/", data=data or {}, **headers) if method == "POST" else rf.get("/", data=data or {}, **headers)
+    request = (
+        rf.post("/", data=data or {}, **headers)
+        if method == "POST"
+        else rf.get("/", data=data or {}, **headers)
+    )
 
     request.user = User()
     # Attach HtmxDetails so request.htmx is available (middleware not run in unit tests)
@@ -119,7 +123,9 @@ def test_htmx_mixin_standalone_injects_htmx_enabled():
     request = rf.get("/")
     request.user = User()
 
-    view_cls = type("StubMixinView", (HtmxMixin, TemplateView), {"template_name": "base.html"})
+    view_cls = type(
+        "StubMixinView", (HtmxMixin, TemplateView), {"template_name": "base.html"}
+    )
     view = view_cls()
     view.request = request
     view.kwargs = {}
@@ -175,7 +181,9 @@ def test_form_valid_htmx_returns_success_partial():
     form = form_cls(data={"name": "Widget A"})
     assert form.is_valid(), form.errors
 
-    with patch("mvp.views.htmx.render_component", return_value="<div>success</div>") as mock_rc:
+    with patch(
+        "mvp.views.htmx.render_component", return_value="<div>success</div>"
+    ) as mock_rc:
         response = view.form_valid(form)
 
     from django.http import HttpResponseRedirect

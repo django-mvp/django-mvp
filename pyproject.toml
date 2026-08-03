@@ -29,8 +29,8 @@ dependencies = [
 # the corresponding package only when explicitly imported.
 
 [project.urls]
-homepage = "https://github.com/SamuelJennings/django-mvp"
-repository = "https://github.com/SamuelJennings/django-mvp"
+homepage = "https://github.com/django-mvp/django-mvp"
+repository = "https://github.com/django-mvp/django-mvp"
 
 
 [tool.poetry]
@@ -53,7 +53,7 @@ requires-poetry = '>=2.0,<3.0'
 
 [tool.poetry.group.test.dependencies]
 Django = ">=5.2.16"
-mvp-shared = { git = "https://github.com/django-mvp/shared.git", rev = "main", extras = [
+mvp-shared = { git = "https://github.com/django-mvp/shared.git", rev = "v0.2.0", extras = [
     "test",
 ] }
 
@@ -65,7 +65,7 @@ django-crispy-forms = "^2.6"
 crispy-tailwind = "^1.0.3"
 django-tables2 = "^3.0.0"
 django-htmx = ">=1.0,<2.0"
-mvp-shared = { git = "https://github.com/django-mvp/shared.git", rev = "main", extras = [
+mvp-shared = { git = "https://github.com/django-mvp/shared.git", rev = "v0.2.0", extras = [
     "dev",
 ] }
 django-tailwind = { extras = [
@@ -96,11 +96,19 @@ django-easy-icons = ["easy_icons"]
 DEP001 = ["invoke", "bs4", "pytest"]
 # These packages are used indirectly (INSTALLED_APPS, templates)
 DEP002 = ["django-flex-menus", "django-easy-icons"]
-DEP003 = ["invoke"]
+# invoke: dev task runner, only imported by tasks.py.
+# pytest: mvp/fixtures.py is a pytest11 plugin — it is only ever imported by
+#   pytest itself, so pytest is guaranteed present wherever that module loads.
+# bs4: an optional extra in both call sites (mvp/fixtures.py and the component
+#   documentation tag), imported lazily inside a try/except with a fallback.
+DEP003 = ["invoke", "pytest", "bs4"]
 DEP004 = ["django_filters", "django_tables2", "django_htmx"]
 
 [tool.ruff]
-target-version = "py313"
+# line-length is deliberately unset: Ruff's default is 88, matching Black, which
+# is what Django, pytest and httpx ship. PEP 8 caps a team's own preference at 99.
+# target-version is deliberately unset too: Ruff infers it from requires-python,
+# so it cannot drift above the versions this package actually supports.
 exclude = [
     ".bzr",
     ".direnv",
@@ -128,7 +136,6 @@ exclude = [
     "docs/",
     ".github/",
 ]
-line-length = 120
 fix = true
 
 [tool.ruff.lint]
@@ -184,13 +191,19 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"**/tests/*" = ["S101", "S105"]
+# `tests/**`, not `**/tests/*`: the latter matches only files directly inside a
+# `tests` directory, so every nested test module (tests/test_views/…) silently
+# missed these ignores.
+# S101/S105/S106: asserts and placeholder credentials are the point of a test.
+# RUF002/RUF003: prose punctuation in test docstrings and comments is not a defect
+# (the rules stay enabled for the package itself).
+"tests/**" = ["S101", "S105", "S106", "RUF002", "RUF003"]
 # Demo/dev settings carry an intentional non-secret placeholder SECRET_KEY.
 "**/demo/settings.py" = ["S105"]
 
 [tool.ruff.format]
 docstring-code-format = true
-docstring-code-line-length = 88
+docstring-code-line-length = "dynamic"
 line-ending = "lf"
 exclude = ["*/migrations/*.py"]
 
@@ -214,6 +227,7 @@ indent_size = 2
 indent_size = 2
 
 [tool.mypy]
+files = ["mvp"]
 strict = false
 explicit_package_bases = true
 namespace_packages = true

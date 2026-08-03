@@ -39,7 +39,9 @@ def product(category):
     )
 
 
-def _product_post_data(category, *, name="Created Product", slug="created-product-integ"):
+def _product_post_data(
+    category, *, name="Created Product", slug="created-product-integ"
+):
     """Return valid POST data for the product create/update form."""
     return {
         "name": name,
@@ -101,7 +103,9 @@ def test_US2_create_with_url_next_redirects_to_url(client, category):
     NextURLMixin reads 'next' from POST body on POST requests, not from the
     query string.
     """
-    data = _product_post_data(category, name="Next URL Product", slug="next-url-product-integ")
+    data = _product_post_data(
+        category, name="Next URL Product", slug="next-url-product-integ"
+    )
     data["next"] = "/products/"
     response = client.post(reverse("product-create"), data)
     assert response.status_code == 302
@@ -129,7 +133,9 @@ def test_US2_failed_form_preserves_next_url(client, category):
 @pytest.mark.django_db
 def test_US3_create_with_list_shorthand_redirects_to_list(client, category):
     """[US3] POST with next='list' in body — redirect lands at the product list URL."""
-    data = _product_post_data(category, name="List Redirect Product", slug="list-redirect-integ")
+    data = _product_post_data(
+        category, name="List Redirect Product", slug="list-redirect-integ"
+    )
     data["next"] = "list"
     response = client.post(reverse("product-create"), data)
     assert response.status_code == 302
@@ -141,7 +147,9 @@ def test_US3_create_with_detail_shorthand_redirects_to_detail(client, category):
     """[US3] POST with next='detail' in body — redirect lands at the new object's detail URL."""
     from demo.models import Product
 
-    data = _product_post_data(category, name="Detail Redirect Product", slug="detail-redirect-integ")
+    data = _product_post_data(
+        category, name="Detail Redirect Product", slug="detail-redirect-integ"
+    )
     data["next"] = "detail"
     response = client.post(reverse("product-create"), data)
     assert response.status_code == 302
@@ -173,7 +181,9 @@ def test_US6_update_success_message_appears(client, product, category):
     from django.contrib.messages import get_messages
 
     url = reverse("product-update", kwargs={"pk": product.pk})
-    data = _product_post_data(category, name="Updated Product Name", slug="edit-product-integ")
+    data = _product_post_data(
+        category, name="Updated Product Name", slug="edit-product-integ"
+    )
     response = client.post(url, data)
     assert response.status_code == 302
     response = client.get(response["Location"])
@@ -189,9 +199,15 @@ def test_US6_update_breadcrumb_has_three_items(client, product):
     breadcrumbs = response.context["page"]["breadcrumbs"]
     assert len(breadcrumbs) == 3
     # First two items are links; last item is plain text (current page).
-    assert breadcrumbs[0].get("href") is not None, "First breadcrumb must be a link (list)"
-    assert breadcrumbs[1].get("href") is not None, "Second breadcrumb must be a link (detail)"
-    assert breadcrumbs[2].get("href") is None, "Third breadcrumb must be plain text (no link)"
+    assert breadcrumbs[0].get("href") is not None, (
+        "First breadcrumb must be a link (list)"
+    )
+    assert breadcrumbs[1].get("href") is not None, (
+        "Second breadcrumb must be a link (detail)"
+    )
+    assert breadcrumbs[2].get("href") is None, (
+        "Third breadcrumb must be plain text (no link)"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -229,4 +245,6 @@ def test_US4_update_delete_link_absent_when_not_configured(client):
     import re
 
     delete_links = re.findall(r'href="[^"]*delete[^"]*"', content)
-    assert delete_links == [], f"Expected no delete link on category update page, but found: {delete_links}"
+    assert delete_links == [], (
+        f"Expected no delete link on category update page, but found: {delete_links}"
+    )

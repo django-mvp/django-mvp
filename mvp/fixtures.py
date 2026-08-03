@@ -1,13 +1,32 @@
-"""Pytest fixtures for testing Django Cotton BS5 components."""
+"""Pytest fixtures for testing django-mvp's Cotton components."""
 
 import pytest
-from bs4 import BeautifulSoup
 from django.template import Context, Template
 from django.test import RequestFactory
 from django_cotton.compiler_regex import CottonCompiler  # type: ignore[import-untyped]
 from django_cotton.utils import render_component  # type: ignore[import-untyped]
 
 compiler = CottonCompiler()
+
+
+def _beautiful_soup():
+    """
+    Return the BeautifulSoup class, or raise with install instructions.
+
+    This module is registered as a pytest11 entry point, so pytest imports it at
+    startup for every project that installs django-mvp. beautifulsoup4 is not a
+    runtime dependency of the package, so importing it at module level would
+    break collection for consumers who never use the ``*_soup`` fixtures. Only
+    those two fixtures need it, and only when they are actually requested.
+    """
+    try:
+        from bs4 import BeautifulSoup
+    except ImportError as exc:
+        raise ImportError(
+            "The *_soup fixtures need beautifulsoup4, which django-mvp does not "
+            "install. Add it to your test dependencies: pip install beautifulsoup4"
+        ) from exc
+    return BeautifulSoup
 
 
 @pytest.fixture
@@ -21,11 +40,10 @@ def cotton_render():
     Usage:
         def test_something(cotton_render):
             html = cotton_render(
-                'cotton_bs5.alert',
-                message="Hello",
-                type="success"
+                'card',
+                title="Hello"
             )
-            assert 'alert-success' in html
+            assert 'Hello' in html
     """
     factory = RequestFactory()
 
@@ -34,7 +52,7 @@ def cotton_render():
         Render a Cotton component with automatic request injection.
 
         Args:
-            component_name: Component name in dotted notation (e.g., "cotton_bs5.alert")
+            component_name: Component name in dotted notation (e.g., "card", "app.sidebar")
             context: Optional context dict to pass as component attributes
             **kwargs: Component attributes (alternative to context dict)
 
@@ -58,11 +76,10 @@ def cotton_render_soup():
     Usage:
         def test_something(cotton_render_soup):
             soup = cotton_render_soup(
-                'cotton_bs5.alert',
-                message="Hello",
-                type="success"
+                'card',
+                title="Hello"
             )
-            assert soup.find('div')['class'] == ['alert', 'alert-success']
+            assert 'Hello' in soup.get_text()
     """
     factory = RequestFactory()
 
@@ -71,7 +88,7 @@ def cotton_render_soup():
         Render a Cotton component with automatic request injection and parse with BeautifulSoup.
 
         Args:
-            component_name: Component name in dotted notation (e.g., "cotton_bs5.alert")
+            component_name: Component name in dotted notation (e.g., "card", "app.sidebar")
             context: Optional context dict to pass as component attributes
             **kwargs: Component attributes (alternative to context dict)
 
@@ -80,7 +97,7 @@ def cotton_render_soup():
         """
         request = factory.get("/")
         html = render_component(request, component_name, context, **kwargs)
-        return BeautifulSoup(html, "html.parser")
+        return _beautiful_soup()(html, "html.parser")
 
     return _render
 
@@ -97,8 +114,8 @@ def cotton_render_string():
 
     Usage:
         def test_button_in_template(cotton_render_string):
-            html = cotton_render_string("<c-button variant='primary'>Click me</c-button>")
-            assert 'btn-primary' in html
+            html = cotton_render_string("<c-card title='Click me'></c-card>")
+            assert 'Click me' in html
 
         def test_with_context(cotton_render_string):
             html = cotton_render_string(
@@ -176,8 +193,8 @@ def cotton_render_string_soup():
                 'title': 'My Card',
                 'action': 'Click Here'
             })
-            assert soup.find('h5').get_text() == 'My Card'
-            assert 'btn-primary' in soup.find('button')['class']
+            assert 'My Card' in soup.get_text()
+            assert 'Click Here' in soup.get_text()
 
     Returns:
         A callable function that accepts:
@@ -213,6 +230,6 @@ def cotton_render_string_soup():
         html = django_template.render(django_context)
 
         # Parse with BeautifulSoup for easy DOM traversal
-        return BeautifulSoup(html, "html.parser")
+        return _beautiful_soup()(html, "html.parser")
 
     return _render

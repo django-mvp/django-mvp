@@ -27,8 +27,7 @@ SKIP = {
 }
 
 TEMPLATES = sorted(
-    p.relative_to(COTTON_DIR).as_posix()
-    for p in COTTON_DIR.rglob("*.html")
+    p.relative_to(COTTON_DIR).as_posix() for p in COTTON_DIR.rglob("*.html")
 )
 
 

@@ -259,7 +259,12 @@ class TestModelInfoMixin:
         v.kwargs = {}
         v.args = []
         info = v.get_context_data()["model_info"]
-        assert {"verbose_name", "verbose_name_plural", "app_label", "model_name"} <= set(info.keys())
+        assert {
+            "verbose_name",
+            "verbose_name_plural",
+            "app_label",
+            "model_name",
+        } <= set(info.keys())
 
     def test_model_info_does_not_contain_model_class(self):
         class V(ModelInfoMixin, TemplateView):

@@ -1,148 +1,80 @@
 # CI/CD Workflows
 
-This project uses six GitHub Actions workflows, chained into a linear release pipeline with two independent supporting workflows.
+Continuous integration runs on GitHub Actions. Most of the work lives in reusable workflows
+published by [`django-mvp/shared`](https://github.com/django-mvp/shared), which this repository
+calls at a pinned release tag. That is why the status checks are named `call-tests / …` and
+`call-build / …` — the prefix is the local job that calls the shared workflow.
 
-## Workflow Overview
+## Workflow overview
 
 | Workflow | File | Trigger |
 |---|---|---|
-| **Tests** | `tests.yml` | Push/PR to `main` (path-filtered), `workflow_dispatch` |
-| **Build** | `build.yml` | `Tests` completes on `main`, `workflow_dispatch` |
-| **Release** | `on-release-main.yml` | `Build` completes on `main` |
-| **Update Changelog** | `changelog.yml` | GitHub Release published |
-| **Dependency Updates** | `dependencies.yml` | Weekly schedule (Mon 09:00 UTC), `workflow_dispatch` |
-| **Deploy Docs** | `docs.yml` | `workflow_dispatch` only *(disabled — docs not yet configured)* |
+| **Tests** | `tests.yml` | Every pull request, pushes to `main` touching the package, `workflow_dispatch` |
+| **Build** | `build.yml` | Every pull request, pushes to `main` touching the package, `workflow_dispatch` |
+| **Stylesheet** | `stylesheet.yml` | Pull requests touching templates, assets or the npm manifest |
+| **Prepare Release** | `prepare-release.yml` | `workflow_dispatch` with a bump level |
+| **Tag Release** | `tag-release.yml` | Push to `main` that changes `pyproject.toml` |
+| **Publish** | `publish.yml` | A published release, a pushed `v*` tag, or `workflow_dispatch` |
+| **Auto-merge Dependabot** | `auto-merge-dependabot.yml` | Dependabot pull requests |
+| **Deploy Docs** | `docs.yml` | `workflow_dispatch` only *(docs not yet configured)* |
 
----
+## Checks on a pull request
 
-## Pipeline Diagram
+Tests and Build both run on every pull request, and between them produce the seven required
+status checks:
 
-```mermaid
-flowchart TD
-    %% External triggers
-    PUSH["Push to main\n(mvp/**, tests/**, pyproject.toml…)"]
-    PR["Pull Request\n(opened / sync / reopen)"]
-    SCHEDULE["Weekly Schedule\n(Mon 09:00 UTC)"]
-    RELEASE_EVT["GitHub Release published"]
-    MANUAL["workflow_dispatch"]
+- `call-build / Code Quality` — lockfile consistency and `pre-commit run --all-files`
+- `call-build / Security Scan`
+- `call-build / Build Package`
+- `call-tests / Test Python 3.12, Django 5.2`
+- `call-tests / Test Python 3.12, Django 6.0`
+- `call-tests / Test Python 3.13, Django 5.2`
+- `call-tests / Test Python 3.13, Django 6.0`
 
-    %% ── Tests ──────────────────────────────────────────────────────
-    subgraph TESTS ["① Tests  (tests.yml)"]
-        direction TB
-        T1["test matrix\nPython 3.11 / 3.12  ×  Django 4.2 / 5.2"]
-        T2["Upload coverage → Codecov\n(Py 3.12 + DJ 5.2 only)"]
-        T1 --> T2
-    end
+Neither workflow filters on paths for the `pull_request` event. A path-filtered check does not
+report at all on a pull request that misses its paths, and a required check that never reports
+blocks the merge permanently. The `push` triggers keep their path filters, where the same problem
+does not arise.
 
-    %% ── Build ──────────────────────────────────────────────────────
-    subgraph BUILD ["② Build  (build.yml)  — workflow_run: Tests ✓"]
-        direction TB
-        B1["code-quality\npoetry check --lock\npre-commit run --all-files"]
-        B2["security\nbandit · safety\n(upload JSON reports)"]
-        B3["package\npoetry build\n(upload dist/)"]
-        B1 --> B3
-    end
+Coverage is uploaded to Codecov from one matrix cell. The floors are project 90% and patch 85%,
+set in `codecov.yml`.
 
-    %% ── Release ────────────────────────────────────────────────────
-    subgraph RELEASE ["③ Release  (on-release-main.yml)  — workflow_run: Build ✓"]
-        direction TB
-        R1["check-tag\nDetect vX.Y.Z tag on HEAD"]
-        R2["publish-pypi\npoetry build → PyPI Trusted Publishing"]
-        R3["create-release\nGitHub Release + changelog"]
-        R1 -->|tag found| R2
-        R1 -->|tag found| R3
-        R2 --> R3
-    end
+### Stylesheet
 
-    %% ── Update Changelog ───────────────────────────────────────────
-    subgraph CHANGELOG ["④ Update Changelog  (changelog.yml)"]
-        direction TB
-        C1["changelog-updater-action"]
-        C2["Commit CHANGELOG.md → main\n[skip ci]"]
-        C1 --> C2
-    end
+`stylesheet.yml` builds the shipped and demo stylesheets and fails if either stops compiling. It
+does **not** compare the result against the committed CSS: the Tailwind and DaisyUI build is
+non-deterministic, so consecutive builds with an identical pinned toolchain produce different
+bytes. An earlier byte-comparison gate failed pull requests for drift no contributor could fix.
 
-    %% ── Dependency Updates ─────────────────────────────────────────
-    subgraph DEPS ["⑤ Dependency Updates  (dependencies.yml)"]
-        direction TB
-        D1["poetry update"]
-        D2["pytest (smoke check)"]
-        D3["Create PR\n(branch: update-dependencies)"]
-        D1 --> D2 --> D3
-    end
+Because of that, keeping `mvp/static/css/django-mvp.css` current is an author responsibility.
+Run `invoke build-stylesheet` and commit the output whenever templates change classes.
 
-    %% ── Docs (disabled) ────────────────────────────────────────────
-    subgraph DOCS ["⑥ Deploy Docs  (docs.yml)  — DISABLED"]
-        direction TB
-        DOC1["invoke docs"]
-        DOC2["Deploy → GitHub Pages"]
-        DOC1 --> DOC2
-    end
+## Releasing
 
-    %% ── Connections ────────────────────────────────────────────────
-    PUSH --> TESTS
-    PR   --> TESTS
-    TESTS -->|workflow_run completed| BUILD
-    BUILD -->|workflow_run completed| RELEASE
-    RELEASE -->|creates GitHub Release| RELEASE_EVT
-    RELEASE_EVT --> CHANGELOG
+Releases run entirely through pull requests. Nothing pushes to `main` directly.
 
-    SCHEDULE --> DEPS
-    MANUAL --> TESTS
-    MANUAL --> BUILD
-    MANUAL --> DOCS
-    MANUAL --> DEPS
-```
+1. **Prepare** — run the *Prepare Release* workflow with a bump level (`patch`, `minor`, `major`,
+   or an explicit version). It opens a pull request carrying the version bump in `pyproject.toml`
+   and the new CHANGELOG section.
+2. **Tag** — merging that pull request changes `pyproject.toml` on `main`, which triggers *Tag
+   Release*. It creates the `vX.Y.Z` tag and the GitHub Release.
+3. **Publish** — the release event triggers *Publish*, which builds the package and uploads it to
+   PyPI through trusted publishing (no API token, `id-token: write` only).
 
----
+Before starting, run `invoke prerelease` on a branch: it rebuilds the stylesheet, runs the
+pre-commit hooks, checks the lockfile, and runs the suite. Commit the rebuilt CSS on that branch
+so it lands before the release pull request.
 
-## Job Details
+A release created by *Tag Release* using the default `GITHUB_TOKEN` does not trigger *Publish*,
+because GitHub suppresses workflow events raised by the default token. Set the `RELEASE_TOKEN`
+secret to lift that, or run *Publish* manually.
 
-### ① Tests
-
-Runs a 2×2 matrix (Python 3.11/3.12 × Django 4.2/5.2) with `fail-fast: false` so all cells complete even if one fails. Coverage is only collected for the Python 3.12 / Django 5.2 cell and uploaded to Codecov.
-
-Django version pinning is done via `pip install "django~=X.Y"` inside the Poetry virtual environment so the dependency matrix can be varied without maintaining separate lock files.
-
-### ② Build
-
-Three independent jobs:
-
-- **code-quality** — only runs when Tests passed (or on `workflow_dispatch`). Runs `poetry check --lock` to verify the lockfile is consistent, then `pre-commit run --all-files`. If pre-commit modifies any file the step exits non-zero and the job fails — fixes must be committed locally, not auto-applied by CI.
-- **security** — runs `bandit` and `safety` via plain `pip install` (not `poetry add`) to avoid mutating the lockfile. Both tools upload JSON reports as artifacts even on failure, and errors are intentionally soft (`|| true`) so they inform without blocking.
-- **package** — depends on `code-quality`; builds the wheel/sdist and uploads `dist/` as an artifact for downstream inspection.
-
-### ③ Release
-
-Triggered only when Build succeeds on `main`. The `check-tag` job inspects the HEAD commit for a `v`-prefixed git tag (created by `invoke release --rule=<patch|minor|major>`). If no tag is found, the remaining jobs are skipped — this is the normal path for non-release pushes.
-
-When a tag is found:
-
-1. **publish-pypi** — builds the package (`pyproject.toml` already has the correct version, bumped locally by `invoke release`) and publishes via PyPI Trusted Publishing (no API token required, `id-token: write` permission only).
-2. **create-release** — generates a changelog via `mikepenz/release-changelog-builder-action` and creates the GitHub Release using `softprops/action-gh-release@v2`.
-
-### ④ Update Changelog
-
-Fires on the `release: published` event (emitted by step ③). Updates `CHANGELOG.md` with the release notes and commits directly to `main` with `[skip ci]` to avoid re-triggering the pipeline.
-
-### ⑤ Dependency Updates
-
-Runs weekly. Calls `poetry update` (which also regenerates `poetry.lock`), runs the test suite as a smoke check, then opens or updates a PR on branch `update-dependencies`. The PR must be reviewed and merged manually.
-
-### ⑥ Deploy Docs *(disabled)*
-
-The workflow exists but is gated behind `workflow_dispatch` with a dummy `_disabled` input. It will be re-enabled once `invoke docs` and the MkDocs configuration are set up.
-
----
-
-## Design Decisions
+## Design decisions
 
 | Decision | Rationale |
 |---|---|
-| No auto-commit of pre-commit fixes | Auto-committing back to `main` means the release pipeline would build from different code than what was tested. Fixes belong in developer commits. |
-| `pip install` for bandit/safety | `poetry add` re-solves the full dependency graph and mutates `pyproject.toml` in CI — non-reproducible and slow. These tools are CI-only utilities, not project dependencies. |
-| Redundant `poetry lock` removed from dependencies.yml | `poetry update` already regenerates the lockfile; a second `poetry lock` was a no-op. |
-| `poetry version` removed from publish-pypi | `invoke release` bumps the version locally and commits `pyproject.toml` before tagging. The workflow just runs `poetry build` against the already-correct version. |
-| `softprops/action-gh-release@v2` over `actions/create-release@v1` | The official action was deprecated and archived; `softprops/action-gh-release` is the community-maintained replacement. |
-| `concurrency` on Tests and Build | Prevents stale runs queuing up when commits arrive quickly; older runs are cancelled in favour of the latest. |
-| `timeout-minutes` on all jobs | Prevents hung jobs (e.g. a network-blocked hook) from consuming runner minutes for up to the default 6-hour limit. |
+| Shared workflows, pinned to a tag | One definition of the test and build pipeline across the family. Pinning to `@v0.2.0` rather than `@main` means an upstream change cannot alter this repository's CI without a deliberate bump. |
+| No paths filter on `pull_request` | A path-filtered required check never reports on an out-of-scope pull request, which deadlocks the merge. |
+| No auto-commit of pre-commit fixes | Auto-committing back means the release builds from different code than was tested. Fixes belong in the author's commits. |
+| Stylesheet compiles, not byte-compares | The Tailwind build is non-deterministic, so a byte comparison fails for drift nobody can fix. |
+| Dependabot rather than a scheduled update job | Dependabot groups updates, respects the lockfile, and opens one pull request per ecosystem. The previous weekly `poetry update` job did the same job less well. |

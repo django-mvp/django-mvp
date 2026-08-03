@@ -1,4 +1,4 @@
-﻿"""Integration tests for MVPDeleteView â€” all four deletion scenarios.
+"""Integration tests for MVPDeleteView â€” all four deletion scenarios.
 
 Converted from end-to-end Playwright tests to Django test-client integration tests.
 

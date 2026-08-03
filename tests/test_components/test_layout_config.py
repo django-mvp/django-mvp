@@ -102,7 +102,7 @@ def test_breakpoint_tags_fall_back_to_lg():
 
 @pytest.mark.parametrize("bp", ["never", "none", "NEVER"])
 def test_breakpoint_never_disables_persistent_sidebar(bp):
-    """"never"/"none" emit no drawer-open class and no navbar-toggle hiding."""
+    """ "never"/"none" emit no drawer-open class and no navbar-toggle hiding."""
     assert sidebar_breakpoint_class(bp) == ""
     assert sidebar_has_breakpoint(bp) is False
     assert sidebar_navbar_toggle_class(bp, "offcanvas") == ""

@@ -196,7 +196,6 @@ class TestLogoUrlCustomResolver:
         _patch_logo(monkeypatch, _CUSTOM_LOGO)
         from mvp.config import MVP_CONFIG
 
-        original_icon = MVP_CONFIG["brand"]["icon_resolver"]
         monkeypatch.setitem(MVP_CONFIG["brand"], "icon_resolver", _CUSTOM_ICON)
         template_str = (
             '{% logo_url height=40 %}{% logo_url height=40 theme="dark" %}'
