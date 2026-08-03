@@ -75,16 +75,17 @@ Serves G6.
 
 *feature · advances G3, G2*
 
-The detail page is the one stop on the model-to-pages path that does not arrive: the view class exists and resolves its object, but the page it renders says "Coming soon...". A project that configures a list, a create form and a delete flow still has to write the read view itself, which breaks the promise the other pages make. This comes first among the open work because the pages either side of it are already delivered and the gap is visible to anyone following the documented path.
+The detail page is the one stop on the model-to-pages path that does not arrive: the view class exists and resolves its object, but the page it renders is a placeholder. A project that configures a list, a create form and a delete flow gets nothing for the read view, not even the header the other pages have.
+
+What the page owes a project is narrower than it first appears. The body of a detail page is layout, and layout is where an application's design lives, so it is written per project rather than generated. The part that does repeat is the header: the view has already worked out which of the edit and delete pages this user may reach, and every project turns those URLs into the same row of buttons by hand.
 
 **Deliverables:**
 
-- A detail page that presents a model instance's fields with their labels, using the packaged read-only field component.
-- Control over which fields appear and in what order, configured on the view in the same style as the list and form views.
-- Links onward to the edit and delete flows, shown according to the permissions the view already resolves.
-- An empty or missing value presented deliberately rather than as a blank space.
+- Links onward to the edit and delete flows, shown according to the permissions the view already resolves, in a consistent position and style.
+- A packaged page that stands on its own without a placeholder, carrying the object's title and leaving its body to the project.
+- A documented override point for a project that wants a different set of actions.
 
-Serves G3, and G2 for the components the page needs. Custom page composition beyond field presentation stays out of scope.
+Serves G3, and G2 for the components the page needs. A field-rendering API on the view is explicitly out of scope and is recorded as such in `docs/adr/0001-detail-views-do-not-take-a-field-list.md`.
 
 ### R8 — Formsets that render and work
 

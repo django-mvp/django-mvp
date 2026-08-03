@@ -9,6 +9,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **The packaged detail page now carries its own edit and delete links.**
+  `detail_view.html` renders them from the URLs `CRUDDirectoryMixin` already resolves, so
+  a link appears only where the view's `has_update_permission` / `has_delete_permission`
+  allow it. `MVPDetailView.directory` therefore defaults to `["update", "delete"]` instead
+  of an empty list; the list action stays out because the breadcrumb trail already links it.
+  A project that wants a different set overrides the `page.actions` block.
+
+  **On upgrade:** if one of your detail views sets `has_update_permission` or
+  `has_delete_permission` truthy but has no matching `<model>-update` /
+  `<model>-delete` route, that flag was previously inert and now resolves a URL,
+  so the page raises `NoReverseMatch`. This is the package's existing fail-fast
+  contract for a missing route, reached by more views than before. Fix it by
+  registering the route, or suppress the action by returning `None` from
+  `get_url_kwargs`. Views that grant no permissions are unaffected.
+
+### Changed
+
+- **`detail_view.html` no longer renders a "Coming soon..." placeholder.** The packaged page
+  is the object's title plus its action links, with the body left to the project's
+  `page.content` override. Rendering a model's fields from a declarative list on the view was
+  considered and declined — see `docs/adr/0001-detail-views-do-not-take-a-field-list.md`.
+
 - **`<c-form.field>` is now a complete single-field component.** One entry point covers
   text-like inputs plus `textarea`, `select`, `file`, `checkbox`, `radio` and `toggle`
   (check-style types get inline-label markup). New attributes: `label` (finally rendered;
