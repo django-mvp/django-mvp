@@ -31,18 +31,20 @@ TEMPLATES = sorted(
 )
 
 
-def test_inventory_is_nonempty():
-    assert len(TEMPLATES) > 50, "cotton template discovery looks broken"
+class TestComponentRenderSmoke:
+    """Every packaged Cotton component template renders."""
 
+    def test_inventory_is_nonempty(self):
+        assert len(TEMPLATES) > 50, "cotton template discovery looks broken"
 
-@pytest.mark.django_db
-@pytest.mark.parametrize("relpath", TEMPLATES)
-def test_component_template_renders(relpath):
-    if relpath in SKIP:
-        pytest.skip(SKIP[relpath])
+    @pytest.mark.django_db
+    @pytest.mark.parametrize("relpath", TEMPLATES)
+    def test_component_template_renders(self, relpath):
+        if relpath in SKIP:
+            pytest.skip(SKIP[relpath])
 
-    request = RequestFactory().get("/")
-    request.user = AnonymousUser()
-    # `name` satisfies c-icon, the one component whose only attribute is
-    # genuinely required. Everything else must survive an empty context.
-    render_to_string(f"cotton/{relpath}", {"name": "home"}, request=request)
+        request = RequestFactory().get("/")
+        request.user = AnonymousUser()
+        # `name` satisfies c-icon, the one component whose only attribute is
+        # genuinely required. Everything else must survive an empty context.
+        render_to_string(f"cotton/{relpath}", {"name": "home"}, request=request)

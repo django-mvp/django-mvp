@@ -9,45 +9,34 @@ from django.contrib.auth import get_user_model
 from django.test import RequestFactory
 from django.views.generic import TemplateView
 
-from demo.models import Article, Category, Product
+from tests.factories import ArticleFactory, CategoryFactory, ProductFactory
 
 User = get_user_model()
 
 
 # ---------------------------------------------------------------------------
-# Model fixtures (shared across all test files)
+# Model fixtures — thin wrappers over the factories in tests/factories.py.
+# A one-off variation needs no fixture here: call the factory inline in the
+# test, e.g. ProductFactory(category=None).
 # ---------------------------------------------------------------------------
 
 
 @pytest.fixture
 def category(db):
     """A single Category for FK relationships."""
-    return Category.objects.create(name="Test Category", slug="test-category")
+    return CategoryFactory()
 
 
 @pytest.fixture
-def product(category):
-    """A Product linked to the default category."""
-    return Product.objects.create(
-        name="Test Product",
-        slug="test-product",
-        category=category,
-        description="A test product",
-        price="9.99",
-        sku="TP-001",
-    )
+def product(db):
+    """A Product linked to its own category."""
+    return ProductFactory()
 
 
 @pytest.fixture
 def article(db):
     """An Article instance for detail/list view tests."""
-    return Article.objects.create(
-        title="Test Article",
-        slug="test-article",
-        author="Test Author",
-        excerpt="A short excerpt",
-        content="Full article content body",
-    )
+    return ArticleFactory()
 
 
 # ---------------------------------------------------------------------------
