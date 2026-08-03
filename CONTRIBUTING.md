@@ -128,6 +128,12 @@ explicit reviewer request.
 
 ## Component Development
 
+Before building a new component, check that it belongs in this package at all. The test is
+repeat use: would a second, unrelated project want this? Components that pass, and that the
+maintainers agree on, live here. Specialized or advanced ones belong in a package of their
+own — Cotton resolves components from any installed app, so a separate component pack needs no
+registration and drops straight in alongside these.
+
 When creating or modifying Cotton components:
 
 1. **Use snake_case/kebab-case for filenames:** `small-box.html`, `info_box.html`
@@ -138,7 +144,9 @@ When creating or modifying Cotton components:
 
 ## Questions?
 
-- Check the [constitution](.specify/memory/constitution.md) for project rules
+- Check the [constitution](memory/constitution.md) for project rules
+- Read the *Scope & philosophy* section of the [README](README.md) for what belongs here
+- See [GOALS.md](GOALS.md) for the directions the package is working toward
 - Review existing components and tests for examples
 - Open an issue for discussion
 
