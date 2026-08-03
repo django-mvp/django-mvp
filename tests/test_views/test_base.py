@@ -450,3 +450,94 @@ class TestMVPTemplateViewLayoutIntegration:
         assert page["subtitle"] == "S"
         assert "sidebar-collapse" in page["class"]
         assert page["breadcrumbs"] == [{"text": "Home", "href": "/"}]
+
+
+# -------------------------------------------------------------------------
+# Browser tests (mvp/views/base.py)
+# -------------------------------------------------------------------------
+
+User = get_user_model()
+
+
+# ---------------------------------------------------------------------------
+# US1: MVPHomeView — guest/dashboard template switch
+# ---------------------------------------------------------------------------
+# US2: MVPHomeView — guest/dashboard template switch
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+class TestMVPHomeViewPages:
+    """Guest and dashboard rendering for the home view."""
+
+    def test_home_unauthenticated_shows_landing_content(self, client):
+        """Anonymous GET / shows landing page headline, not dashboard content."""
+        response = client.get("/")
+        assert response.status_code == 200
+        assert b"production-ready Django apps fast" in response.content
+
+    def test_home_unauthenticated_has_hero_lead(self, client):
+        """Anonymous GET / shows the hero lead paragraph."""
+        content = client.get("/").content
+        assert b"focus on your business logic" in content
+
+    def test_home_authenticated_shows_dashboard_content(
+        self, client, django_user_model
+    ):
+        """Authenticated GET / shows dashboard content with username."""
+        user = django_user_model.objects.create_user(
+            username="authuser1", password="pass123!"
+        )
+        client.force_login(user)
+        response = client.get("/")
+        assert b"Welcome" in response.content
+
+    def test_home_post_returns_405(self, client):
+        """POST / returns 405 Method Not Allowed (FR-011)."""
+        response = client.post("/")
+        assert response.status_code == 405
+
+
+# ---------------------------------------------------------------------------
+# US3: Full login-and-return journey
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+class TestLoginReturnJourney:
+    """The full login-and-return flow through the shell."""
+
+    def test_full_login_and_return_journey(self, client, django_user_model):
+        """Full sequential journey: anonymous landing → login → dashboard at same URL (US3).
+
+        Steps:
+        1. Visit / unauthenticated — assert landing content visible.
+        2. Authenticate via force_login.
+        3. Visit / again — assert dashboard content.
+        4. Assert no redirects occur at any step.
+        5. Assert navbar and sidebar are present on the dashboard.
+        """
+        user = django_user_model.objects.create_user(
+            username="journeyuser", password="pass123!"
+        )
+
+        # Step 1: Anonymous visit to /
+        response = client.get("/")
+        assert response.status_code == 200
+        assert b"production-ready Django apps fast" in response.content, (
+            "Landing content not visible for anonymous user"
+        )
+
+        # Step 2: Authenticate
+        client.force_login(user)
+
+        # Step 3: Visit / as authenticated user
+        response = client.get("/")
+        assert response.status_code == 200
+        assert b"Welcome" in response.content, (
+            "Dashboard greeting not visible after login"
+        )
+
+        # Step 5: Confirm sidebar and navbar are present on dashboard
+        assert b"mvp-sidebar" in response.content, "Sidebar missing from dashboard"
+        assert b"mvp-header" in response.content, "Navbar missing from dashboard"
