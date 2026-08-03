@@ -8,6 +8,8 @@ Covers:
   T008 — height argument forwarding (US4)
 """
 
+import re
+
 import pytest
 from django.core.exceptions import ImproperlyConfigured
 from django.template import Context, Template
@@ -288,3 +290,28 @@ class TestHeightForwarding:
         _patch_icon(monkeypatch, _CUSTOM_ICON)
         result = _render("{% icon_url height=32 %}")
         assert "/32." in result
+
+
+# -------------------------------------------------------------------------
+# Brand logo shell integration
+# -------------------------------------------------------------------------
+
+
+class TestBrandLogoShellIntegration:
+    """The shell templates wire the brand logo onto a rendered page."""
+
+    @pytest.mark.django_db
+    def test_home_page_renders_brand_logo(self, client):
+        """GET / renders a brand logo <img> pointing at the bundled logo asset."""
+        html = client.get("/").content.decode()
+        srcs = re.findall(r'<img[^>]*\bsrc="([^"]*)"', html)
+        logo_srcs = [s for s in srcs if "logo.svg" in s]
+        assert logo_srcs, f"No brand logo img rendered on the home page; imgs: {srcs}"
+
+    @pytest.mark.django_db
+    def test_home_page_has_no_broken_img_src(self, client):
+        """No <img> renders with an empty src (which would be a broken image)."""
+        html = client.get("/").content.decode()
+        assert 'src=""' not in html, (
+            "An <img> with an empty src rendered on the home page"
+        )
