@@ -1,3 +1,15 @@
+# Family-standard pre-commit configuration (django-mvp/shared
+# templates/pre-commit-config.yaml), with the built-stylesheet exclusions this
+# repository needs on top.
+#
+# The Python tools (ruff, mypy, deptry) run as *local* hooks inside the Poetry
+# env, so their versions come from the mvp-shared[dev] bundle — one version
+# source for the whole family, instead of per-repo `rev:` pins that drift under
+# autoupdate. It also means `poetry run <tool>` behaves identically to the hook.
+#
+# black and pyupgrade are deliberately absent: `ruff format` is a drop-in black
+# replacement, and ruff's UP rules (enabled in [tool.ruff.lint]) cover pyupgrade.
+
 exclude: "^docs/|/migrations/|^tests/"
 default_stages: [pre-commit]
 
@@ -7,58 +19,57 @@ repos:
     rev: v6.0.0
     hooks:
       # Built stylesheets are generated (minified, no trailing newline) — leave
-      # them alone, or these hooks fight the Tailwind build and the Stylesheet
-      # drift-check CI fails on the hook-added newline.
+      # them alone, or these hooks fight the Tailwind build and the stylesheet
+      # compile check fails on the hook-added newline.
       - id: trailing-whitespace
         exclude: '^(mvp|demo)/static/css/.*\.(css|br)$'
       - id: end-of-file-fixer
         exclude: '^(mvp|demo)/static/css/.*\.(css|br)$'
       - id: check-yaml
 
-  - repo: https://github.com/asottile/pyupgrade
-    rev: v3.21.2
-    hooks:
-      - id: pyupgrade
-        args: [--py310-plus]
-
-  - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.14.7
-    hooks:
-      - id: ruff
-
-  - repo: https://github.com/psf/black
-    rev: 25.11.0
-    hooks:
-      - id: black
-
   - repo: https://github.com/python-poetry/poetry
     rev: '2.3.4'
     hooks:
       - id: poetry-check
+      - id: poetry-lock
+        stages: [manual]  # Only run manually, not in CI
 
-  # Local hooks that use Poetry environment
+  # Local hooks that use the Poetry environment
   - repo: local
     hooks:
+      - id: ruff
+        name: ruff (lint)
+        entry: poetry run ruff check --fix
+        language: system
+        types: [python]
+        require_serial: true
+      - id: ruff-format
+        name: ruff (format)
+        entry: poetry run ruff format
+        language: system
+        types: [python]
+        require_serial: true
       - id: mypy
         name: mypy
-        entry: poetry run mypy mvp
+        entry: poetry run mypy
         language: system
-        pass_filenames: false
+        # Without require_serial, pre-commit splits the file list into parallel
+        # batches, and concurrent mypy processes race on the shared .mypy_cache —
+        # INTERNAL ERROR on a cold cache. One serial invocation is also what
+        # mirrors-mypy ships.
+        require_serial: true
+        types: [python]
         files: ^mvp/
-  - repo: local
-    hooks:
       - id: deptry
         name: deptry
-        language: python
-        entry: deptry
-        additional_dependencies: ["deptry==0.24.0"]
-        args: ["--verbose", "."]
+        entry: poetry run deptry .
+        language: system
         pass_filenames: false
         always_run: true
 
-
-# sets up .pre-commit-ci.yaml to ensure pre-commit dependencies stay up to date
+# pre-commit.ci runs only the env-independent hooks; the local Poetry-env hooks
+# run in this repo's own CI (the shared build workflow's Code Quality job).
 ci:
   autoupdate_schedule: monthly
-  skip: [mypy, deptry]  # Skip hooks that use the local Poetry environment in CI
+  skip: [poetry-lock, ruff, ruff-format, mypy, deptry]
   submodules: false

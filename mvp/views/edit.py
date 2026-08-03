@@ -82,9 +82,7 @@ class NextURLMixin:
         return context
 
 
-class MVPFormBase(
-    SuccessMessageMixin, BaseTemplateNameMixin, NextURLMixin, PageObjectMixin
-):
+class MVPFormBase(SuccessMessageMixin, BaseTemplateNameMixin, NextURLMixin, PageObjectMixin):
     """Base class for form views in AdminLTE layout with auto-detected renderer."""
 
     base_template_name = "form_view.html"
@@ -421,9 +419,7 @@ class MVPUpdateView(MVPModelFormBase, generic.UpdateView):
         if not url:
             return ""
         try:
-            back_url = reverse(
-                self._get_view_name("update"), kwargs=self.get_url_kwargs("update")
-            )
+            back_url = reverse(self._get_view_name("update"), kwargs=self.get_url_kwargs("update"))
         except NoReverseMatch:
             back_url = ""
         next_url = self.resolve_crud_url("list")
@@ -608,9 +604,7 @@ class MVPDeleteView(MVPModelFormBase, generic.DeleteView):
         context["is_protected"] = bool(protected_objects)
         context["protected_objects"] = protected_objects
         context["require_confirmation"] = self.require_confirmation
-        context["confirmation_value"] = (
-            self.get_confirmation_value() if self.require_confirmation else ""
-        )
+        context["confirmation_value"] = self.get_confirmation_value() if self.require_confirmation else ""
         context["confirmation_label"] = self.confirmation_label
 
         if self.show_related_objects and not protected_objects:

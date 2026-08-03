@@ -10,19 +10,15 @@ on:
       - 'pyproject.toml'
       - 'poetry.lock'
       - '.github/workflows/tests.yml'
+  # No paths filter on pull_request: these checks are ruleset-required, and a
+  # path-filtered required check never reports on out-of-scope PRs, blocking merge.
   pull_request:
     types: [opened, synchronize, reopened]
-    paths:
-      - 'mvp/**'
-      - 'tests/**'
-      - 'pyproject.toml'
-      - 'poetry.lock'
-      - '.github/workflows/tests.yml'
   workflow_dispatch:
 
 jobs:
   call-tests:
-    uses: django-mvp/shared/.github/workflows/tests.yml@main
+    uses: django-mvp/shared/.github/workflows/tests.yml@v0.2.0
     with:
       coverage-package: mvp
     secrets: inherit

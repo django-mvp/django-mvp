@@ -26,10 +26,7 @@ SKIP = {
     "addons/django_table.html": "requires a django-tables2 Table instance",
 }
 
-TEMPLATES = sorted(
-    p.relative_to(COTTON_DIR).as_posix()
-    for p in COTTON_DIR.rglob("*.html")
-)
+TEMPLATES = sorted(p.relative_to(COTTON_DIR).as_posix() for p in COTTON_DIR.rglob("*.html"))
 
 
 def test_inventory_is_nonempty():

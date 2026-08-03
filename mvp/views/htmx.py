@@ -63,13 +63,9 @@ class HtmxMixin:
             return response
         if isinstance(self.htmx_trigger, dict):
             for name, params in self.htmx_trigger.items():
-                trigger_client_event(
-                    response, name, params or {}, after=self.htmx_trigger_after
-                )
+                trigger_client_event(response, name, params or {}, after=self.htmx_trigger_after)
         else:
-            trigger_client_event(
-                response, self.htmx_trigger, after=self.htmx_trigger_after
-            )
+            trigger_client_event(response, self.htmx_trigger, after=self.htmx_trigger_after)
         return response
 
     def _resolve_component(self, attr, allowlist_attr, header_name):
@@ -160,9 +156,7 @@ class HtmxFormMixin(HtmxMixin):
             ImproperlyConfigured: if no component can be resolved and
                 ``htmx_redirect_on_success`` is also falsy.
         """
-        component = self._resolve_component(
-            "htmx_success_component", "htmx_success_components", "X-Success-Component"
-        )
+        component = self._resolve_component("htmx_success_component", "htmx_success_components", "X-Success-Component")
         if component:
             return component
         raise ImproperlyConfigured(
@@ -179,9 +173,7 @@ class HtmxFormMixin(HtmxMixin):
         """
         if self.htmx_form_component:
             return self.htmx_form_component
-        raise ImproperlyConfigured(
-            "HtmxFormMixin requires 'htmx_form_component' to be set."
-        )
+        raise ImproperlyConfigured("HtmxFormMixin requires 'htmx_form_component' to be set.")
 
     # ------------------------------------------------------------------
     # Form handling
@@ -232,6 +224,4 @@ class HtmxFormMixin(HtmxMixin):
 
         template = self.get_htmx_form_component()
         context = self.get_context_data(form=form)
-        return HttpResponse(
-            render_component(self.request, template, context), status=200
-        )
+        return HttpResponse(render_component(self.request, template, context), status=200)

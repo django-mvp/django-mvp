@@ -43,4 +43,6 @@ class ProductTable(tables.Table):
             "created_at",
             "updated_at",
         )
-        empty_text = "No products available. Run 'poetry run python manage.py generate_dummy_data' to create sample data."
+        empty_text = (
+            "No products available. Run 'poetry run python manage.py generate_dummy_data' to create sample data."
+        )

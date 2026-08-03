@@ -24,6 +24,5 @@ def missing_dependency(integration: str, pip_name: str) -> ImproperlyConfigured:
             raise missing_dependency("some_integration", "some-package") from e
     """
     return ImproperlyConfigured(
-        f"mvp.integrations.{integration} requires the '{pip_name}' package. "
-        f"Install it with: pip install {pip_name}"
+        f"mvp.integrations.{integration} requires the '{pip_name}' package. Install it with: pip install {pip_name}"
     )

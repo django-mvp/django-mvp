@@ -1,0 +1,43 @@
+name: Publish
+
+# Publishes to PyPI when a release is published (or a v* tag is pushed by a
+# user). Release creation itself is owned by the Tag Release workflow; the
+# CHANGELOG section is written before release by Prepare Release.
+#
+# Note: releases/tags created by the Tag Release workflow with the default
+# GITHUB_TOKEN do not trigger this workflow — set the RELEASE_TOKEN org secret
+# (see django-mvp/shared README, Release Flow) or run this manually via
+# workflow_dispatch.
+
+on:
+  push:
+    tags:
+      - "v*"
+  release:
+    types: [published]
+  workflow_dispatch:
+
+jobs:
+  publish-pypi:
+    name: Publish to PyPI
+    runs-on: ubuntu-latest
+    permissions:
+      # IMPORTANT: this permission is mandatory for trusted publishing
+      id-token: write
+      contents: read
+    steps:
+      - name: Check out
+        uses: actions/checkout@v6
+
+      - name: Set up Poetry env
+        uses: django-mvp/shared/.github/actions/setup-poetry@v0.2.0
+        with:
+          python-version: '3.13'
+
+      - name: Build package
+        run: |
+          poetry check --lock
+          poetry build
+
+      - name: Publish package to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1

@@ -275,9 +275,7 @@ class SearchOrderMixin(SearchMixin, OrderMixin):
     pass
 
 
-class MVPListViewMixin(
-    BaseTemplateNameMixin, SearchOrderMixin, CRUDDirectoryMixin, PageMixin
-):
+class MVPListViewMixin(BaseTemplateNameMixin, SearchOrderMixin, CRUDDirectoryMixin, PageMixin):
     """Foundation mixin for paginated, searchable, orderable list pages with AdminLTE styling.
 
     Composes ``BaseTemplateNameMixin``, ``SearchOrderMixin``, ``CRUDDirectoryMixin``, and
@@ -380,10 +378,7 @@ class MVPListViewMixin(
         allowed = perm(self.request.user) if callable(perm) else bool(perm)
         if allowed and self.create_form_class:
             context["create_form"] = self.get_create_form()
-            title = (
-                self.create_modal_title
-                or f"Add {self.model._meta.verbose_name.title()}"
-            )
+            title = self.create_modal_title or f"Add {self.model._meta.verbose_name.title()}"
             context["create_modal_title"] = title
 
         return context

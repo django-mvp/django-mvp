@@ -1,10 +1,10 @@
 # Django MVP
 
-[![Tests](https://github.com/SamuelJennings/django-mvp/actions/workflows/tests.yml/badge.svg)](https://github.com/SamuelJennings/django-mvp/actions/workflows/tests.yml)
-[![Build](https://github.com/SamuelJennings/django-mvp/actions/workflows/build.yml/badge.svg)](https://github.com/SamuelJennings/django-mvp/actions/workflows/build.yml)
-[![Release](https://github.com/SamuelJennings/django-mvp/actions/workflows/on-release-main.yml/badge.svg)](https://github.com/SamuelJennings/django-mvp/actions/workflows/on-release-main.yml)
+[![Tests](https://github.com/django-mvp/django-mvp/actions/workflows/tests.yml/badge.svg)](https://github.com/django-mvp/django-mvp/actions/workflows/tests.yml)
+[![Build](https://github.com/django-mvp/django-mvp/actions/workflows/build.yml/badge.svg)](https://github.com/django-mvp/django-mvp/actions/workflows/build.yml)
+[![Publish](https://github.com/django-mvp/django-mvp/actions/workflows/publish.yml/badge.svg)](https://github.com/django-mvp/django-mvp/actions/workflows/publish.yml)
 [![PyPI](https://img.shields.io/pypi/v/django-mvp.svg)](https://pypi.org/project/django-mvp/)
-[![codecov](https://codecov.io/gh/SamuelJennings/django-mvp/branch/main/graph/badge.svg)](https://codecov.io/gh/SamuelJennings/django-mvp)
+[![codecov](https://codecov.io/gh/django-mvp/django-mvp/branch/main/graph/badge.svg)](https://codecov.io/gh/django-mvp/django-mvp)
 [![Python Versions](https://img.shields.io/pypi/pyversions/django-mvp.svg)](https://pypi.org/project/django-mvp/)
 [![Django Versions](https://img.shields.io/pypi/djversions/django-mvp.svg)](https://pypi.org/project/django-mvp/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -221,7 +221,8 @@ building the UI layer first.
 Contributions welcome! When adding components: use `<c-vars />` for defaults, no ghost
 attributes, include ARIA attributes, and add tests (`tests/test_components/` renders
 every packaged component). Rebuild the stylesheet with `invoke build-stylesheet` when
-templates change classes — CI fails on drift.
+templates change classes, and commit the result — the built CSS ships in the wheel, and
+CI only checks that it still compiles, so keeping it current is up to the author.
 
 ## License
 

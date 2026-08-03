@@ -73,8 +73,6 @@ def test_id_prop_overrides_dialog_id():
     request.user = AnonymousUser()
     request.LANGUAGE_CODE = "en"
     with translation.override("en"):
-        html = render_to_string(
-            "tests/language_switcher_modal_id.html", request=request
-        )
+        html = render_to_string("tests/language_switcher_modal_id.html", request=request)
     assert 'id="footerLangModal"' in html
     assert "footerLangModal.showModal()" in html

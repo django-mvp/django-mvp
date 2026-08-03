@@ -52,8 +52,7 @@ def test_core_views_have_no_optional_dependency_imports():
                 continue
             for name in names:
                 assert name.split(".")[0] not in optional, (
-                    f"{module_path.name} imports optional package '{name}' — "
-                    "move that code to mvp/integrations/"
+                    f"{module_path.name} imports optional package '{name}' — move that code to mvp/integrations/"
                 )
 
 

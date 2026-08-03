@@ -22,9 +22,7 @@ class ComponentDoc:
 # Deliberately excludes layout primitives (container/grid/group/section) and app
 # chrome (navbar/sidebar/dock/breadcrumbs/menus), which pages provide already.
 COMPONENTS = [
-    ComponentDoc(
-        "text", "Text", "newspaper", "Paragraph text with tone and emphasis modifiers."
-    ),
+    ComponentDoc("text", "Text", "newspaper", "Paragraph text with tone and emphasis modifiers."),
     ComponentDoc(
         "button",
         "Button",
@@ -34,13 +32,9 @@ COMPONENTS = [
     ComponentDoc("badge", "Badge", "bell", "Compact labels and counts."),
     ComponentDoc("alert", "Alert", "info-circle", "Inline contextual messages."),
     ComponentDoc("card", "Card", "grid", "A padded surface for grouping content."),
-    ComponentDoc(
-        "divider", "Divider", "dash", "Separate content, horizontally or vertically."
-    ),
+    ComponentDoc("divider", "Divider", "dash", "Separate content, horizontally or vertically."),
     ComponentDoc("icon", "Icon", "star", "Render any registered icon by name."),
-    ComponentDoc(
-        "avatar", "Avatar", "person-circle", "User pictures, status dots, and groups."
-    ),
+    ComponentDoc("avatar", "Avatar", "person-circle", "User pictures, status dots, and groups."),
     ComponentDoc(
         "data-field",
         "Data Field",
@@ -53,13 +47,9 @@ COMPONENTS = [
         "input-cursor",
         "A single form field: control, label, help text, and errors.",
     ),
-    ComponentDoc(
-        "dropdown", "Dropdown", "list", "A trigger that reveals a floating panel."
-    ),
+    ComponentDoc("dropdown", "Dropdown", "list", "A trigger that reveals a floating panel."),
     ComponentDoc("modal", "Modal", "layout", "A dialog overlay opened via JavaScript."),
-    ComponentDoc(
-        "mockup", "Mockup", "laptop", "Device and browser frames for screenshots."
-    ),
+    ComponentDoc("mockup", "Mockup", "laptop", "Device and browser frames for screenshots."),
     ComponentDoc(
         "placeholder",
         "Placeholder",

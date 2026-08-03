@@ -1086,11 +1086,11 @@ class TestListViewInlineCreate:
         # So we test the current behavior - it should show a link to create page
         response = client.get("/products/")
 
-        # Toolbar should have create link but NOT modal toggle
-        content = response.content.decode()
-        # The view might not have create_url configured, so this is a placeholder
-        # Once implemented, should verify: has href but NOT data-bs-toggle
-        assert True  # Placeholder - will verify after mixin implementation
+        # Placeholder: the demo view has no create_url configured, so there is no
+        # create control to inspect yet. Once it has one, assert the toolbar
+        # renders an href and no data-bs-toggle. For now, only assert the page
+        # still renders, so the test fails if the view regresses.
+        assert response.status_code == 200
 
     def test_no_create_button_when_no_permission(self, client, db):
         """[021][US3][FR-006] No create UI element when has_create_permission=False."""
