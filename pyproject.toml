@@ -60,11 +60,11 @@ mvp-shared = { git = "https://github.com/django-mvp/shared.git", rev = "v0.2.0",
 [tool.poetry.group.dev.dependencies]
 Django = ">=5.2.16"
 django-distill = "^3.0"
-django-filter = "^25.2"
-django-crispy-forms = "^2.6"
+django-filter = "^26.1"
+django-crispy-forms = "^2.7"
 crispy-tailwind = "^1.0.3"
 django-tables2 = "^3.0.0"
-django-htmx = ">=1.0,<2.0"
+django-htmx = ">=1.28.0,<2.0"
 mvp-shared = { git = "https://github.com/django-mvp/shared.git", rev = "v0.2.0", extras = [
     "dev",
 ] }
@@ -82,6 +82,14 @@ build-backend = "poetry.core.masonry.api"
 [tool.poetry.plugins."pytest11"]
 mvp = "mvp.fixtures"
 
+
+[tool.forge.conformance]
+# tests/test_components/ exercises Cotton templates under mvp/templates/cotton/.
+# Those have no Python module behind them — there is no mvp/components/ package
+# and there should not be — so the mirror-the-source-tree rule has nothing to
+# match. Declared here rather than carried as accepted drift, because the point
+# is that no source module exists to mirror, not that the tests are misplaced.
+non-mirror-paths = ["tests/test_components/"]
 
 [tool.deptry]
 extend_exclude = ["tasks.py"]
