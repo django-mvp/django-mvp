@@ -162,6 +162,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   are now safelisted in the preset — they previously only compiled by accident.
 - Removed remaining Bootstrap/AdminLTE leftovers from DaisyUI templates, two orphaned
   AdminLTE toggle templates, and assorted dead code.
+- `c-text`, `c-menu`, `c-menu.item`, `c-dock.item`, `c-page.list.empty` and
+  `c-layout.sidebar` silently dropped a caller's `class` attribute. Each hardcoded its own
+  `class="..."` on the root element while also spreading `{{ attrs }}` there, so an
+  undeclared `class` produced a duplicate attribute the browser ignored. `class` is now
+  declared and merged like every other component.
 
 ### Added
 
