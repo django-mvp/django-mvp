@@ -60,6 +60,7 @@ Empty, unopinionated building blocks — you provide the content.
 | --- | --- |
 | `c-card` | `title`, `icon` |
 | `c-button` | `text`, `icon`, `variant` (DaisyUI color names), `size` (`sm`/`md`/`lg`), `outline`, `ghost`, `reverse`, `align`, `gap`, `condition` |
+| `c-link` | `href`, `text`, `variant` (DaisyUI color names), `hover` (underline on hover only) — a styled inline text link, for prose rather than actions |
 | `c-badge` | `text`, `size` (`sm`/`lg`) |
 | `c-icon` | `name` (required) |
 | `c-text` | `impact`, `muted`, `small`, `center`, `tight`, `bold`, `upper` |

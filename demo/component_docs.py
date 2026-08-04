@@ -31,6 +31,12 @@ COMPONENTS = [
         "check2-square",
         "Actions and links with variants, sizes, and icons.",
     ),
+    ComponentDoc(
+        "link",
+        "Link",
+        "link",
+        "A styled inline text link, for prose rather than actions.",
+    ),
     ComponentDoc("badge", "Badge", "bell", "Compact labels and counts."),
     ComponentDoc("alert", "Alert", "info-circle", "Inline contextual messages."),
     ComponentDoc("card", "Card", "grid", "A padded surface for grouping content."),

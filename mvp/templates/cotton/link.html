@@ -1,0 +1,8 @@
+<c-vars href="#"
+        text
+        variant
+        hover
+        class />
+<a href="{{ href }}"
+   class="link{% if variant %} link-{{ variant }}{% endif %}{% if hover %} link-hover{% endif %} {{ class }}"
+   {{ attrs }}>{{ text }}{{ slot }}</a>
