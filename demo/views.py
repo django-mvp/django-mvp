@@ -116,7 +116,7 @@ class ProductListView(MVPListViewMixin, FilterView):
 
     model = Product
     create_form_class = ProductForm
-    has_create_permission = True
+    show_create_action = True
     page_subtitle = "Check out our amazing products!"
     list_item_template = "cards/product_card.html"
     grid = {"cols": 1, "md": 2, "xl": 3, "gap": 2}
@@ -144,28 +144,31 @@ class ProductCreateView(MVPCreateView):
 
     model = Product
     fields = ["name", "slug", "category", "description", "price", "stock", "status"]
-    has_list_permission = True
-    has_detail_permission = True
-    has_update_permission = True
+    show_list_action = True
+    show_detail_action = True
+    show_update_action = True
 
 
 class ProductDetailView(MVPDetailView):
     """
     Demo product detail page that supplies its own body.
 
-    The edit and delete buttons come from the packaged template and are gated on
-    the permissions below, so staff users see them and read-only users do not.
+    The edit and delete buttons come from the packaged template and are gated on the
+    flags below, so staff users see them and read-only users do not. Hiding a button
+    is all these flags do: this demo leaves the update and delete views open so the
+    flows can be browsed without an account. A real project puts an access mixin on
+    those views as well — see "Action links are not access control" in docs/views.md.
     Only demo/product_detail.html's page.content block is written by hand.
     """
 
     model = Product
-    has_list_permission = True
-    has_detail_permission = True
+    show_list_action = True
+    show_detail_action = True
 
-    def has_update_permission(self, user):
+    def show_update_action(self, user):
         return user.is_staff
 
-    def has_delete_permission(self, user):
+    def show_delete_action(self, user):
         return user.is_staff
 
 
@@ -190,9 +193,9 @@ class ProductUpdateView(MVPUpdateView):
 
     model = Product
     fields = ["name", "slug", "category", "description", "price", "stock", "status"]
-    has_list_permission = True
-    has_detail_permission = True
-    has_delete_permission = True
+    show_list_action = True
+    show_detail_action = True
+    show_delete_action = True
 
 
 class ProductDeleteView(MVPDeleteView):
@@ -204,7 +207,7 @@ class ProductDeleteView(MVPDeleteView):
     """
 
     model = Product
-    has_list_permission = True
+    show_list_action = True
 
 
 class ProductDeleteWithRelatedView(MVPDeleteView):
@@ -212,7 +215,7 @@ class ProductDeleteWithRelatedView(MVPDeleteView):
 
     model = Product
     show_related_objects = True
-    has_list_permission = True
+    show_list_action = True
 
 
 class ProductDeleteWithConfirmView(MVPDeleteView):
@@ -220,7 +223,7 @@ class ProductDeleteWithConfirmView(MVPDeleteView):
 
     model = Product
     require_confirmation = True
-    has_list_permission = True
+    show_list_action = True
 
 
 # ======== HTMX Form Mixin Demo ========
@@ -247,7 +250,7 @@ class HtmxProductCreateView(HtmxFormMixin, MVPCreateView):
     page_title = "HTMX Form Demo"
     page_subtitle = "Partial form rendering with HtmxFormMixin"
     breadcrumbs = [{"text": "Home", "href": "/"}, {"text": "HTMX Form Demo"}]
-    has_list_permission = True
+    show_list_action = True
 
     def form_valid(self, form):
         """Fill in required Product fields not exposed in the demo form, then delegate."""
@@ -281,7 +284,7 @@ class CategoryUpdateView(MVPUpdateView):
     """Demo category update view — no delete view registered (US4 verification).
 
     Used by E2E tests to verify the delete button is hidden when no delete
-    view is configured (has_delete_permission defaults to False).
+    view is configured (show_delete_action defaults to False).
     """
 
     model = Category
@@ -298,7 +301,7 @@ class CategoryDeleteWithRelatedView(MVPDeleteView):
     show_related_objects = True
     related_objects_max_per_group = 3
     success_url = "/"  # No category list URL; redirect to home after deletion
-    has_list_permission = False  # no category list URL registered
+    show_list_action = False  # no category list URL registered
 
 
 # ==================== Addons ======================
@@ -312,5 +315,5 @@ class DataTablesView(MVPTableViewMixin, FilterView):
     table_class = ProductTable
     paginate_by = 25
     search_fields = ["name", "description"]
-    has_create_permission = True
+    show_create_action = True
     filterset_fields = ["name", "category__name", "price", "stock", "status"]

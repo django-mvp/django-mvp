@@ -333,7 +333,7 @@ class MVPListViewMixin(
         page (dict): PageMixin metadata — ``title``, ``subtitle``, ``icon``, ``class``,
             ``breadcrumbs``.
         create_form (Form): Unbound form instance for inline create modal (only when
-            ``create_form_class`` is set and ``has_create_permission`` is ``True``).
+            ``create_form_class`` is set and ``show_create_action`` is ``True``).
         create_modal_title (str): Resolved modal title for inline create (only when
             ``create_form`` is also injected).
 
@@ -375,10 +375,8 @@ class MVPListViewMixin(
         }
         context["list_item_template"] = self.get_list_item_template()
 
-        # Inject create_form and create_modal_title when configured and permitted
-        perm = self.has_create_permission
-        allowed = perm(self.request.user) if callable(perm) else bool(perm)
-        if allowed and self.create_form_class:
+        # Inject create_form and create_modal_title when configured and shown
+        if self.show_action("create") and self.create_form_class:
             context["create_form"] = self.get_create_form()
             title = (
                 self.create_modal_title

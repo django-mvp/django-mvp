@@ -889,15 +889,15 @@ class TestMVPListViewMixinDirectory:
         assert MVPListViewMixin.directory == ["create"]
 
     def test_create_url_absent_when_permission_false(self, db):
-        """[015-US4] directory context does not contain create_url when has_create_permission=False."""
-        view = _make_list_view()  # has_create_permission=False by default
+        """[015-US4] directory context does not contain create_url when show_create_action=False."""
+        view = _make_list_view()  # show_create_action=False by default
         view.object_list = view.get_queryset()
         ctx = view.get_context_data()
         assert "create_url" not in ctx["directory"]
 
     def test_no_detail_update_delete_urls_in_directory(self, db):
         """[015-US4] directory context never contains detail_url, update_url, or delete_url."""
-        view = _make_list_view()  # has_create_permission=False avoids URL resolution
+        view = _make_list_view()  # show_create_action=False avoids URL resolution
         view.object_list = view.get_queryset()
         ctx = view.get_context_data()
         assert "detail_url" not in ctx["directory"]
@@ -1023,13 +1023,13 @@ class TestListViewInlineCreate:
     """
 
     def test_create_form_in_context_when_configured_and_permitted(self, db):
-        """[021][US1][FR-002] create_form injected when create_form_class set + has_create_permission=True."""
+        """[021][US1][FR-002] create_form injected when create_form_class set + show_create_action=True."""
         from demo.forms import ProductForm
 
         view = _make_list_view(
             extra_attrs={
                 "create_form_class": ProductForm,
-                "has_create_permission": True,
+                "show_create_action": True,
             }
         )
         view.object_list = view.get_queryset()
@@ -1045,7 +1045,7 @@ class TestListViewInlineCreate:
         view = _make_list_view(
             extra_attrs={
                 "create_form_class": ProductForm,
-                "has_create_permission": True,
+                "show_create_action": True,
                 "create_modal_title": None,
             }
         )
@@ -1062,7 +1062,7 @@ class TestListViewInlineCreate:
         view = _make_list_view(
             extra_attrs={
                 "create_form_class": ProductForm,
-                "has_create_permission": True,
+                "show_create_action": True,
                 "create_modal_title": "Custom Create Title",
             }
         )
@@ -1080,7 +1080,7 @@ class TestListViewInlineCreate:
         view = _make_list_view(
             extra_attrs={
                 "create_form_class": ProductForm,
-                "has_create_permission": True,
+                "show_create_action": True,
             }
         )
 
@@ -1093,7 +1093,7 @@ class TestListViewInlineCreate:
         assert ctx["create_form"].initial["name"] == "Custom Initial"
 
     def test_fallback_link_when_no_form_class(self, client, db):
-        """[021][US2][FR-006] Toolbar shows link button (no modal toggle) when create_form_class=None + has_create_permission=True."""
+        """[021][US2][FR-006] Toolbar shows link button (no modal toggle) when create_form_class=None + show_create_action=True."""
         # This test should verify that when create_form_class is None,
         # the toolbar contains a standard link without modal trigger
 
@@ -1108,13 +1108,13 @@ class TestListViewInlineCreate:
         assert response.status_code == 200
 
     def test_no_create_button_when_no_permission(self, client, db):
-        """[021][US3][FR-006] No create UI element when has_create_permission=False."""
+        """[021][US3][FR-006] No create UI element when show_create_action=False."""
         from demo.forms import ProductForm
 
         view = _make_list_view(
             extra_attrs={
                 "create_form_class": ProductForm,
-                "has_create_permission": False,
+                "show_create_action": False,
             }
         )
         view.object_list = view.get_queryset()
@@ -1124,13 +1124,13 @@ class TestListViewInlineCreate:
         assert "create_form" not in ctx
 
     def test_permission_boolean_false_prevents_form_injection(self, db):
-        """[021][US3][FR-004] create_form absent when has_create_permission=False (boolean)."""
+        """[021][US3][FR-004] create_form absent when show_create_action=False (boolean)."""
         from demo.forms import ProductForm
 
         view = _make_list_view(
             extra_attrs={
                 "create_form_class": ProductForm,
-                "has_create_permission": False,
+                "show_create_action": False,
             }
         )
         view.object_list = view.get_queryset()
@@ -1140,7 +1140,7 @@ class TestListViewInlineCreate:
         assert "create_modal_title" not in ctx
 
     def test_permission_callable_returns_false_prevents_form_injection(self, db, rf):
-        """[021][US3][FR-004] create_form absent when callable has_create_permission returns False."""
+        """[021][US3][FR-004] create_form absent when callable show_create_action returns False."""
         from django.contrib.auth.models import AnonymousUser
 
         from demo.forms import ProductForm
@@ -1148,7 +1148,7 @@ class TestListViewInlineCreate:
         view = _make_list_view(
             extra_attrs={
                 "create_form_class": ProductForm,
-                "has_create_permission": staticmethod(lambda user: False),
+                "show_create_action": staticmethod(lambda user: False),
             }
         )
         view.request.user = AnonymousUser()
@@ -1159,7 +1159,7 @@ class TestListViewInlineCreate:
         assert "create_modal_title" not in ctx
 
     def test_permission_callable_returns_true_allows_form_injection(self, db, rf):
-        """[021][US3][FR-004] create_form present when callable has_create_permission returns True."""
+        """[021][US3][FR-004] create_form present when callable show_create_action returns True."""
         from django.contrib.auth.models import User
 
         from demo.forms import ProductForm
@@ -1169,7 +1169,7 @@ class TestListViewInlineCreate:
         view = _make_list_view(
             extra_attrs={
                 "create_form_class": ProductForm,
-                "has_create_permission": staticmethod(
+                "show_create_action": staticmethod(
                     lambda user: user.is_authenticated
                 ),
             }
@@ -1208,7 +1208,7 @@ class TestListViewInlineCreate:
         view = _make_list_view(
             extra_attrs={
                 "create_form_class": None,
-                "has_create_permission": False,
+                "show_create_action": False,
             }
         )
         view.object_list = view.get_queryset()

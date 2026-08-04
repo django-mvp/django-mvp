@@ -1,10 +1,14 @@
+import warnings
 from typing import Any
 
 from django.urls import reverse
 from django.views import generic
 
 from ..config import MVP_CONFIG
+from ..warnings import MVPDeprecationWarning
 from .base import BaseTemplateNameMixin, ModelInfoMixin, PageMixin
+
+_UNSET = object()
 
 
 class CRUDDirectoryMixin(ModelInfoMixin):
@@ -12,18 +16,45 @@ class CRUDDirectoryMixin(ModelInfoMixin):
 
     This mixin assumes a standard set of CRUD view names based on the model name and action (list, detail, create, update, delete).
 
-    The ``has_<action>_permission`` attributes decide whether a **link** is offered.
-    They do not protect the view that link points at. Each target view enforces its
-    own access control, or it has none — hiding a button is not authorization.
+    The ``show_<action>_action`` attributes decide whether a **link** to that action
+    is offered on this page. They are display flags, not access control.
+
+    An action link is drawn on one view and points at another. ``show_delete_action``
+    on a detail view says "this page offers a delete link", and the delete view it
+    points at is a different class that never sees the attribute. Restricting who may
+    delete belongs on the delete view, through Django's ``LoginRequiredMixin``,
+    ``PermissionRequiredMixin`` or ``UserPassesTestMixin``, or through a package such
+    as django-guardian for object-level rules. Hiding a button is not authorization::
+
+        class ProductDetailView(MVPDetailView):
+            model = Product
+
+            def show_delete_action(self, user):  # hides the button
+                return user.is_staff
+
+
+        class ProductDeleteView(
+            PermissionRequiredMixin, MVPDeleteView
+        ):  # closes the door
+            model = Product
+            permission_required = "shop.delete_product"
+
+    Each attribute accepts a boolean or a callable taking the request user.
+
+    .. deprecated:: 0.16
+        The former ``has_<action>_permission`` names are still honoured and still
+        decide visibility, with an ``MVPDeprecationWarning``. They are read rather
+        than ignored on purpose: ignoring one would reveal a link the project had
+        hidden. Removed in 0.18.
     """
 
     crud_views = MVP_CONFIG["view_names"]
     directory: list[str] = []
-    has_list_permission = False
-    has_detail_permission = False
-    has_create_permission = False
-    has_update_permission = False
-    has_delete_permission = False
+    show_list_action = False
+    show_detail_action = False
+    show_create_action = False
+    show_update_action = False
+    show_delete_action = False
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -67,15 +98,44 @@ class CRUDDirectoryMixin(ModelInfoMixin):
             return {}
         return dict(self.kwargs) or None  # type: ignore[attr-defined]
 
+    def show_action(self, action: str) -> bool:
+        """Return whether a link to ``action`` should be offered on this page.
+
+        Reads ``show_<action>_action``, calling it with the request user when it is a
+        callable. An action with no attribute at all is not shown, so a custom action
+        added to ``directory`` stays hidden until the view opts into it.
+
+        This is a display decision. It has no bearing on whether the target view
+        accepts the request — see the class docstring.
+        """
+        legacy_name = f"has_{action}_permission"
+        legacy = getattr(self, legacy_name, _UNSET)
+        if legacy is not _UNSET:
+            warnings.warn(
+                f"{legacy_name} is deprecated and will be removed in 0.18; "
+                f"rename it to show_{action}_action. Either way it decides only "
+                f"whether the link is drawn — it does not restrict access to the "
+                f"{action} view, which needs its own access mixin.",
+                MVPDeprecationWarning,
+                stacklevel=2,
+            )
+            flag = legacy
+        else:
+            flag = getattr(self, f"show_{action}_action", None)
+
+        if flag is None:
+            return False
+        return bool(flag(self.request.user)) if callable(flag) else bool(flag)  # type: ignore[attr-defined]
+
     def resolve_crud_url(self, action: str) -> str | None:
         """Resolve the URL for a single CRUD action.
 
         Returns ``None`` when the action is suppressed by a ``None`` return from
-        ``get_url_kwargs``, a missing/falsy permission attribute, or a falsy callable.
+        ``get_url_kwargs`` or by ``show_action`` returning ``False``.
 
-        A granted permission whose route does not exist raises ``NoReverseMatch``
-        rather than dropping the link, so the misconfiguration surfaces. Suppress an
-        action deliberately by returning ``None`` from ``get_url_kwargs``.
+        A shown action whose route does not exist raises ``NoReverseMatch`` rather
+        than dropping the link, so the misconfiguration surfaces. Suppress an action
+        deliberately by returning ``None`` from ``get_url_kwargs``.
         """
         url_kwargs = self.get_url_kwargs(action)
         if url_kwargs is None:
@@ -83,12 +143,7 @@ class CRUDDirectoryMixin(ModelInfoMixin):
 
         url_name = self._get_view_name(action)
 
-        # Only generate a URL if has_<action>_permission exists and evaluates to True
-        perm = getattr(self, f"has_{action}_permission", None)
-        if perm is None:
-            return None
-        allowed = perm(self.request.user) if callable(perm) else bool(perm)  # type: ignore[attr-defined]
-        if not allowed:
+        if not self.show_action(action):
             return None
 
         return reverse(url_name, kwargs=url_kwargs)
@@ -98,7 +153,7 @@ class CRUDDirectoryMixin(ModelInfoMixin):
 
         Only actions listed in ``self.directory`` are included. Entries whose
         resolved URL is ``None`` (e.g. suppressed by a ``get_url_kwargs``
-        return of ``None`` or missing permission) are omitted from the result.
+        return of ``None`` or a hidden action) are omitted from the result.
         """
         result = {}
         for action in self.directory:
@@ -151,8 +206,8 @@ class MVPDetailView(BaseTemplateNameMixin, PageObjectMixin, generic.DetailView):
     page_class = "mvp-detail-page"
 
     #: Actions offered in the page header. Each still resolves to a URL only
-    #: when its ``has_<action>_permission`` allows it, so the default is inert
-    #: until a view grants permission. The list action is deliberately absent:
+    #: when its ``show_<action>_action`` allows it, so the default is inert
+    #: until a view opts in. The list action is deliberately absent:
     #: the breadcrumb trail already links it.
     directory = ["update", "delete"]
 

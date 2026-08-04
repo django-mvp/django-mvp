@@ -94,11 +94,11 @@ def make_htmx_view(
         "htmx_success_component": "demo.htmx-product-created",
         "htmx_form_component": "demo.htmx-product-form",
         "success_url": SUCCESS_URL,
-        "has_list_permission": True,
-        "has_detail_permission": True,
-        "has_create_permission": True,
-        "has_update_permission": True,
-        "has_delete_permission": True,
+        "show_list_action": True,
+        "show_detail_action": True,
+        "show_create_action": True,
+        "show_update_action": True,
+        "show_delete_action": True,
         **(extra_attrs or {}),
     }
     view_cls = type("StubHtmxView", (HtmxFormMixin, _NoSaveCreateView), attrs)
