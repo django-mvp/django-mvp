@@ -12,7 +12,7 @@ from django.http import Http404
 from django_filters.views import FilterView
 
 from demo.component_docs import COMPONENTS, COMPONENTS_BY_SLUG
-from demo.models import Category, Product
+from demo.models import Article, Category, Product
 from demo.tables import ProductTable
 from mvp.integrations.django_tables.views import MVPTableViewMixin
 from mvp.views import (
@@ -151,14 +151,14 @@ class ProductCreateView(MVPCreateView):
 
 class ProductDetailView(MVPDetailView):
     """
-    Demo product detail page for CRUDDirectoryMixin verification.
+    Demo product detail page that supplies its own body.
 
-    Demonstrates permission-gated directory URLs: staff users see edit/delete
-    buttons; read-only users do not. The list link is always visible.
+    The edit and delete buttons come from the packaged template and are gated on
+    the permissions below, so staff users see them and read-only users do not.
+    Only demo/product_detail.html's page.content block is written by hand.
     """
 
     model = Product
-    directory = ["list", "detail", "update", "delete"]
     has_list_permission = True
     has_detail_permission = True
 
@@ -167,6 +167,17 @@ class ProductDetailView(MVPDetailView):
 
     def has_delete_permission(self, user):
         return user.is_staff
+
+
+class ArticleDetailView(MVPDetailView):
+    """
+    Demo article detail page with no template override at all.
+
+    Shows what MVPDetailView gives a project for free: breadcrumbs, the object's
+    own title as the heading, and an empty body waiting to be filled.
+    """
+
+    model = Article
 
 
 class ProductUpdateView(MVPUpdateView):

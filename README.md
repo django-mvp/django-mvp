@@ -41,6 +41,54 @@ the box. **Things should just work.**
   your own templates need their own Tailwind classes, one management command generates
   the build config.
 
+## Scope & philosophy
+
+django-mvp is an application UI framework for the Django apps you write yourself. It gives you
+the application chrome, a library of components, and views that carry a model through to a
+working set of pages, so that reaching a minimum viable product doesn't start with building a
+UI layer.
+
+It also fills in where Django stops. Django ships the backend machinery for formsets and then
+leaves you with nothing to render or drive them with, and closing that kind of gap is squarely
+the point of this package.
+
+Use it for admin dashboards, data-management tools, research portals, internal apps and SaaS
+back-offices: anywhere you want a production-looking, data-centric Django application without
+writing the front end first.
+
+**What it deliberately is not:**
+
+- **An admin theme.** It doesn't touch `django.contrib.admin`. django-unfold and django-daisy
+  serve that audience well.
+- **A component engine.** [django-cotton](https://github.com/wrabit/django-cotton) provides the
+  syntax; this package provides components built with it.
+- **A project scaffold.** You install it as a dependency and upgrade it, rather than generating
+  a starter project you then own outright.
+- **An authentication system.** Account management lives in
+  [django-accounts-center](https://github.com/django-mvp/django-accounts-center), which builds
+  on these components.
+- **A JavaScript application.** Pages are server-rendered, with Alpine and htmx where
+  interaction calls for it. No build step, no single-page frontend.
+- **An API layer.** Django REST Framework and django-ninja already cover that ground.
+- **Real-time infrastructure.** Websockets and Channels are out of scope.
+
+**Principles, in the order they settle a close call:**
+
+1. **Things should just work.** Sensible defaults, minimum ceremony, MVP first.
+2. **Configuration before customization.** Views are configured declaratively, much as Django's
+   admin classes are. When the packaged look isn't right, override the Cotton component and
+   honour its attributes. Past that, bring your own CSS.
+3. **Basic components, not a component framework.** Small attribute APIs and limited variation.
+   A component earns its place here by being useful more than once, and a specialized one
+   belongs in a package of its own. Cotton finds components in any installed app, so a
+   component pack needs no registration.
+4. **Integrate, don't reimplement.** Django's third-party ecosystem already covers a great deal
+   of this ground, but most of those packages still leave you to adapt their output into your
+   own templates before it looks like part of your application. Rather than rewriting
+   well-established packages, django-mvp puts a consistent UI around them wherever it can.
+
+Where the package is headed is a separate question, answered in [GOALS.md](https://github.com/django-mvp/django-mvp/blob/main/GOALS.md).
+
 ## Quick start
 
 ```bash
@@ -200,21 +248,6 @@ Navigation · Views · Styling · Integrations.
 - Python 3.12+
 - Django 5.2+ (currently supported Django releases)
 - django-cotton, django-flex-menus, django-easy-icons (installed automatically)
-
-## Design philosophy
-
-1. **Things should just work** — sensible defaults, minimum ceremony, MVP first.
-2. **Configuration-driven** — layout and behavior controlled via `settings.MVP_CONFIG`.
-3. **Basic components, not a component framework** — small attribute APIs; extensive
-   customization happens by overriding templates.
-4. **Focused integrations** — only for packages the author reuses across projects;
-   the guarded-module pattern makes rolling your own trivial.
-
-## Use cases
-
-Admin dashboards, data-management tools, research portals, internal apps, SaaS
-back-offices — anywhere you want a production-looking, data-centric Django app without
-building the UI layer first.
 
 ## Contributing
 

@@ -607,3 +607,84 @@ class TestUS4ProductDetailPageHeadingAndCSSClass:
         assert "mvp-detail-page" in content, (
             "CSS class 'mvp-detail-page' must be present in the page container"
         )
+
+
+# ---------------------------------------------------------------------------
+# Packaged detail template — the default page body and action links
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+class TestPackagedDetailTemplateBody:
+    """detail_view.html leaves its body to the project rather than filling it."""
+
+    def test_packaged_page_renders_without_placeholder(self, client, article):
+        """A detail page with no project override ships no placeholder text."""
+        response = client.get(reverse("article-detail", kwargs={"pk": article.pk}))
+        assert response.status_code == 200
+        assert "Coming soon" not in response.content.decode()
+
+    def test_packaged_page_titles_itself_from_the_object(self, client, article):
+        """The page title is str(object), which is the whole default body."""
+        response = client.get(reverse("article-detail", kwargs={"pk": article.pk}))
+        content = response.content.decode()
+        assert "<h1" in content
+        assert str(article) in content
+
+
+@pytest.mark.django_db
+class TestPackagedDetailTemplateActions:
+    """The edit and delete links come from the package, not from the project."""
+
+    def test_edit_link_present_for_permitted_user(self, client, staff_user, product):
+        """Product's template overrides only the body, so its actions are the packaged ones."""
+        client.force_login(staff_user)
+        response = client.get(reverse("product-detail", kwargs={"pk": product.pk}))
+        assert reverse("product-update", kwargs={"pk": product.pk}) in response.content.decode()
+
+    def test_delete_link_present_for_permitted_user(self, client, staff_user, product):
+        client.force_login(staff_user)
+        response = client.get(reverse("product-detail", kwargs={"pk": product.pk}))
+        assert reverse("product-delete", kwargs={"pk": product.pk}) in response.content.decode()
+
+    def test_links_absent_without_permission(self, client, regular_user, product):
+        """A user the view refuses gets no link, because the URL never resolves."""
+        client.force_login(regular_user)
+        content = client.get(reverse("product-detail", kwargs={"pk": product.pk})).content.decode()
+        assert reverse("product-update", kwargs={"pk": product.pk}) not in content
+        assert reverse("product-delete", kwargs={"pk": product.pk}) not in content
+
+    def test_project_can_replace_the_action_set(self, client, staff_user, product):
+        """The page.actions block is the documented override point, so it must be a block."""
+        from django.template.loader import get_template
+
+        source = get_template("detail_view.html").template.source
+        assert "{% block page.actions %}" in source
+
+
+class TestMVPDetailViewDirectory:
+    """MVPDetailView asks for the two actions its template renders."""
+
+    def test_default_directory_is_update_and_delete(self):
+        assert MVPDetailView.directory == ["update", "delete"]
+
+
+@pytest.mark.django_db
+class TestDefaultDirectoryIsInertWithoutPermission:
+    """The default directory asks for actions the project never named.
+
+    That is only safe because permissions default to False, so nothing resolves and
+    no route is required. These tests pin that, because it is what stops the new
+    default from breaking a project on upgrade. A project that grants a permission
+    for an action it has no route for still gets NoReverseMatch, which is the
+    package's existing fail-fast contract (see TestUS1Directory).
+    """
+
+    def test_no_url_resolves_without_permission(self, article):
+        view = make_detail_view(Article, article)
+        assert view.get_directory() == {}
+
+    def test_page_renders_with_no_crud_routes_registered(self, client, article):
+        """Article has no update, delete or list route anywhere in the demo URLconf."""
+        response = client.get(reverse("article-detail", kwargs={"pk": article.pk}))
+        assert response.status_code == 200

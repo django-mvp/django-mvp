@@ -11,6 +11,10 @@ class CRUDDirectoryMixin(ModelInfoMixin):
     """Mixin to provide URLs for related CRUD views in the template context.
 
     This mixin assumes a standard set of CRUD view names based on the model name and action (list, detail, create, update, delete).
+
+    The ``has_<action>_permission`` attributes decide whether a **link** is offered.
+    They do not protect the view that link points at. Each target view enforces its
+    own access control, or it has none — hiding a button is not authorization.
     """
 
     crud_views = MVP_CONFIG["view_names"]
@@ -68,6 +72,10 @@ class CRUDDirectoryMixin(ModelInfoMixin):
 
         Returns ``None`` when the action is suppressed by a ``None`` return from
         ``get_url_kwargs``, a missing/falsy permission attribute, or a falsy callable.
+
+        A granted permission whose route does not exist raises ``NoReverseMatch``
+        rather than dropping the link, so the misconfiguration surfaces. Suppress an
+        action deliberately by returning ``None`` from ``get_url_kwargs``.
         """
         url_kwargs = self.get_url_kwargs(action)
         if url_kwargs is None:
@@ -141,6 +149,12 @@ class PageObjectMixin(CRUDDirectoryMixin, PageMixin):
 class MVPDetailView(BaseTemplateNameMixin, PageObjectMixin, generic.DetailView):
     base_template_name = "detail_view.html"
     page_class = "mvp-detail-page"
+
+    #: Actions offered in the page header. Each still resolves to a URL only
+    #: when its ``has_<action>_permission`` allows it, so the default is inert
+    #: until a view grants permission. The list action is deliberately absent:
+    #: the breadcrumb trail already links it.
+    directory = ["update", "delete"]
 
     def get_page_title(self):
         return str(self.object)
