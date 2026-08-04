@@ -1,4 +1,4 @@
-<c-vars row collapse wrap class gap="2" />
+<c-vars row=False collapse=False wrap=False class gap="2" />
 <div class="flex flex-col items-stretch{% if wrap %} flex-wrap{% endif %} gap-{{ gap }}{% if row is True %} flex-row{% elif collapse %} lg:flex-row{% else %} flex-col{% endif %} {{ class }}"
      {{ attrs }}>
   {{ slot }}
