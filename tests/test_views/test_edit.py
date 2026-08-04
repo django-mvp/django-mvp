@@ -75,11 +75,11 @@ def make_create_view(method="POST", params=None, extra_attrs=None, kwargs=None):
         "model": Product,
         "fields": ["name"],
         "template_name": "form_view.html",
-        "has_list_permission": True,
-        "has_detail_permission": True,
-        "has_create_permission": True,
-        "has_update_permission": True,
-        "has_delete_permission": True,
+        "show_list_action": True,
+        "show_detail_action": True,
+        "show_create_action": True,
+        "show_update_action": True,
+        "show_delete_action": True,
         **(extra_attrs or {}),
     }
     view_cls = type("StubCreateView", (MVPCreateView,), attrs)
@@ -104,11 +104,11 @@ def make_update_view(extra_attrs=None):
         "model": Product,
         "fields": ["name"],
         "template_name": "form_view.html",
-        "has_list_permission": True,
-        "has_detail_permission": True,
-        "has_create_permission": True,
-        "has_update_permission": True,
-        "has_delete_permission": True,
+        "show_list_action": True,
+        "show_detail_action": True,
+        "show_create_action": True,
+        "show_update_action": True,
+        "show_delete_action": True,
         **(extra_attrs or {}),
     }
     view_cls = type("StubUpdateView", (MVPUpdateView,), attrs)
@@ -550,11 +550,11 @@ class TestMVPModelFormBase:
         """[T-FM-004] get_success_url() raises ImproperlyConfigured when object is None and no success_url."""
         from django.core.exceptions import ImproperlyConfigured
 
-        # has_list_permission=False → resolve_crud_url("list") returns None; object=None → ImproperlyConfigured
+        # show_list_action=False → resolve_crud_url("list") returns None; object=None → ImproperlyConfigured
         view = make_create_view(
             method="POST",
             params={},
-            extra_attrs={"has_list_permission": False},
+            extra_attrs={"show_list_action": False},
         )
         view.object = None
 
@@ -585,7 +585,7 @@ class TestMVPModelFormBase:
         view = make_create_view(
             method="POST",
             params={},
-            extra_attrs={"has_list_permission": False},
+            extra_attrs={"show_list_action": False},
         )
         view.object = _MockObj()
 
@@ -602,7 +602,7 @@ class TestMVPModelFormBase:
         view = make_create_view(
             method="POST",
             params={},
-            extra_attrs={"has_list_permission": False},
+            extra_attrs={"show_list_action": False},
         )
         view.object = _NoURL()
 
@@ -718,11 +718,11 @@ class TestMVPCreateViewPageTitle:
             "model": OrderLine,
             "fields": ["quantity"],
             "template_name": "form_view.html",
-            "has_list_permission": False,
-            "has_detail_permission": False,
-            "has_create_permission": True,
-            "has_update_permission": False,
-            "has_delete_permission": False,
+            "show_list_action": False,
+            "show_detail_action": False,
+            "show_create_action": True,
+            "show_update_action": False,
+            "show_delete_action": False,
         }
         view_cls = type("StubOrderLineCreateView", (MVPCreateView,), attrs)
         view = view_cls()
@@ -805,13 +805,13 @@ class TestMVPCreateViewBreadcrumb:
         assert len(view.get_breadcrumbs()) == 2
 
     def test_first_item_has_no_href_when_list_permission_false(self):
-        """has_list_permission=False → first breadcrumb href is falsy."""
-        view = make_create_view(extra_attrs={"has_list_permission": False})
+        """show_list_action=False → first breadcrumb href is falsy."""
+        view = make_create_view(extra_attrs={"show_list_action": False})
         breadcrumbs = view.get_breadcrumbs()
         assert not breadcrumbs[0].get("href")
 
     def test_first_item_has_href_when_list_permission_true(self):
-        """has_list_permission=True → first breadcrumb href resolves to product-list URL."""
+        """show_list_action=True → first breadcrumb href resolves to product-list URL."""
         from django.urls import reverse
 
         view = make_create_view()
@@ -880,11 +880,11 @@ class TestMVPUpdateViewPageTitle:
             "model": OrderLine,
             "fields": ["quantity"],
             "template_name": "form_view.html",
-            "has_list_permission": False,
-            "has_detail_permission": False,
-            "has_create_permission": False,
-            "has_update_permission": True,
-            "has_delete_permission": False,
+            "show_list_action": False,
+            "show_detail_action": False,
+            "show_create_action": False,
+            "show_update_action": True,
+            "show_delete_action": False,
         }
         view_cls = type("StubOrderLineUpdateView", (MVPUpdateView,), attrs)
         view = view_cls()
@@ -968,11 +968,11 @@ class TestMVPUpdateViewBreadcrumb:
             "model": _Product,
             "fields": ["name"],
             "template_name": "form_view.html",
-            "has_list_permission": True,
-            "has_detail_permission": True,
-            "has_create_permission": True,
-            "has_update_permission": True,
-            "has_delete_permission": True,
+            "show_list_action": True,
+            "show_detail_action": True,
+            "show_create_action": True,
+            "show_update_action": True,
+            "show_delete_action": True,
         }
         view_cls = type("StubUpdateWithPk", (MVPUpdateView,), attrs)
         view = view_cls()
@@ -1000,24 +1000,24 @@ class TestMVPUpdateViewBreadcrumb:
 
     # US5 — breadcrumb degrades when list or detail permission is missing
     def test_first_item_has_no_href_when_list_permission_false(self):
-        """has_list_permission=False → first breadcrumb href is falsy."""
-        view = self._view_with_object(extra_attrs={"has_list_permission": False})
+        """show_list_action=False → first breadcrumb href is falsy."""
+        view = self._view_with_object(extra_attrs={"show_list_action": False})
         assert not view.get_breadcrumbs()[0].get("href")
 
     def test_first_item_has_href_when_list_permission_true(self):
-        """has_list_permission=True → first breadcrumb href resolves to list URL."""
+        """show_list_action=True → first breadcrumb href resolves to list URL."""
         from django.urls import reverse
 
         view = self._view_with_object()
         assert view.get_breadcrumbs()[0]["href"] == reverse("product-list")
 
     def test_second_item_has_no_href_when_detail_permission_false(self):
-        """has_detail_permission=False → second breadcrumb href is falsy."""
-        view = self._view_with_object(extra_attrs={"has_detail_permission": False})
+        """show_detail_action=False → second breadcrumb href is falsy."""
+        view = self._view_with_object(extra_attrs={"show_detail_action": False})
         assert not view.get_breadcrumbs()[1].get("href")
 
     def test_second_item_has_href_when_detail_permission_true(self):
-        """has_detail_permission=True → second breadcrumb href is truthy."""
+        """show_detail_action=True → second breadcrumb href is truthy."""
         view = self._view_with_object()
         assert view.get_breadcrumbs()[1].get("href")
 
@@ -1059,8 +1059,8 @@ class TestMVPUpdateViewOverrides:
         assert view.get_breadcrumbs() == custom_crumbs
 
     def test_delete_url_can_be_suppressed_via_override(self):
-        """Setting has_delete_permission=False suppresses the delete URL."""
-        view = make_update_view(extra_attrs={"has_delete_permission": False})
+        """Setting show_delete_action=False suppresses the delete URL."""
+        view = make_update_view(extra_attrs={"show_delete_action": False})
         assert not view.get_delete_url()
 
 
@@ -1077,13 +1077,13 @@ class TestMVPUpdateViewDeleteLinkVisibility:
     """
 
     def test_delete_button_absent_when_delete_url_empty(self):
-        """has_delete_permission=False → get_delete_url() is falsy (empty string)."""
-        view = make_update_view(extra_attrs={"has_delete_permission": False})
+        """show_delete_action=False → get_delete_url() is falsy (empty string)."""
+        view = make_update_view(extra_attrs={"show_delete_action": False})
         view.object = None
         assert not view.get_delete_url()
 
     def test_delete_button_present_when_delete_url_set(self):
-        """has_delete_permission=True and pk present → get_delete_url() is truthy."""
+        """show_delete_action=True and pk present → get_delete_url() is truthy."""
 
         class _Obj:
             pk = 1
@@ -1098,11 +1098,11 @@ class TestMVPUpdateViewDeleteLinkVisibility:
             "model": __import__("demo.models", fromlist=["Product"]).Product,
             "fields": ["name"],
             "template_name": "form_view.html",
-            "has_list_permission": True,
-            "has_detail_permission": True,
-            "has_create_permission": True,
-            "has_update_permission": True,
-            "has_delete_permission": True,
+            "show_list_action": True,
+            "show_detail_action": True,
+            "show_create_action": True,
+            "show_update_action": True,
+            "show_delete_action": True,
         }
         view_cls = type("StubUpdateWithPk", (MVPUpdateView,), attrs)
         view = view_cls()
@@ -1325,7 +1325,7 @@ class TestUpdateViewRendering:
         cat = Category.objects.create(name="No Delete Cat", slug="no-delete-cat-integ")
         url = reverse("category-update", kwargs={"pk": cat.pk})
         response = client.get(url)
-        # CategoryUpdateView has has_delete_permission=False → get_delete_url() returns ''.
+        # CategoryUpdateView has show_delete_action=False → get_delete_url() returns ''.
         content = response.content.decode()
         # No anchor pointing to a delete URL should appear.
         import re
@@ -1771,11 +1771,11 @@ class TestMVPUpdateViewDeleteUrl:
             "model": __import__("demo.models", fromlist=["Product"]).Product,
             "fields": ["name"],
             "template_name": "form_view.html",
-            "has_list_permission": True,
-            "has_detail_permission": True,
-            "has_create_permission": True,
-            "has_update_permission": True,
-            "has_delete_permission": True,
+            "show_list_action": True,
+            "show_detail_action": True,
+            "show_create_action": True,
+            "show_update_action": True,
+            "show_delete_action": True,
             "crud_views": {
                 "list": "{model_name}-list",
                 "detail": "{model_name}-detail",

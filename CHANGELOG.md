@@ -11,13 +11,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **The packaged detail page now carries its own edit and delete links.**
   `detail_view.html` renders them from the URLs `CRUDDirectoryMixin` already resolves, so
-  a link appears only where the view's `has_update_permission` / `has_delete_permission`
+  a link appears only where the view's `show_update_action` / `show_delete_action`
   allow it. `MVPDetailView.directory` therefore defaults to `["update", "delete"]` instead
-  of an empty list; the list action stays out because the breadcrumb trail already links it.
+  of an empty list. The list action stays out because the breadcrumb trail already links it.
   A project that wants a different set overrides the `page.actions` block.
 
-  **On upgrade:** if one of your detail views sets `has_update_permission` or
-  `has_delete_permission` truthy but has no matching `<model>-update` /
+  **On upgrade:** if one of your detail views sets `show_update_action` or
+  `show_delete_action` truthy but has no matching `<model>-update` /
   `<model>-delete` route, that flag was previously inert and now resolves a URL,
   so the page raises `NoReverseMatch`. This is the package's existing fail-fast
   contract for a missing route, reached by more views than before. Fix it by
@@ -25,6 +25,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `get_url_kwargs`. Views that grant no permissions are unaffected.
 
 ### Changed
+
+- **`has_<action>_permission` is now `show_<action>_action`.** The five attributes on
+  `CRUDDirectoryMixin` decide whether an action link is drawn on the current page. They
+  never restricted the view that link points at, and the old names promised otherwise:
+  a project that read `has_delete_permission` as authorization shipped a delete endpoint
+  it believed was closed. The new names say what the attributes do. Restricting who may
+  perform an action belongs on the view that performs it. See
+  [Views](docs/views.md#action-links-are-not-access-control) for the pattern.
+
+  **On upgrade:** the old names still work and still decide visibility, with an
+  `MVPDeprecationWarning` naming the replacement. They are read rather than ignored on
+  purpose, because ignoring one would reveal a link you had hidden. Rename them at your
+  convenience. They are removed in 0.18, two minor releases beyond what the README's
+  pre-1.0 compatibility statement asks for. `CRUDDirectoryMixin.show_action(action)` is
+  the single resolution point if you were reading these attributes yourself.
+
+- **New warning category `mvp.warnings.MVPDeprecationWarning`.** A `DeprecationWarning`
+  subclass, so a project can surface django-mvp's deprecations without unmasking every
+  other dependency's:
+  `filterwarnings = ["error::mvp.warnings.MVPDeprecationWarning"]`. This is the
+  package's first deprecation. Roadmap item R19 sets the wider policy.
 
 - **`detail_view.html` no longer renders a "Coming soon..." placeholder.** The packaged page
   is the object's title plus its action links, with the body left to the project's

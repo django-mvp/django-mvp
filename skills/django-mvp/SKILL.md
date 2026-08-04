@@ -325,7 +325,7 @@ class ProductListView(MVPListView):
     grid = {"md": 2, "xl": 3}                    # card grid breakpoints
     list_item_template = "shop/product_card.html"  # default: <app>/<model>_list_item.html
     create_form_class = ProductForm              # inline "create" modal on the list page
-    has_create_permission = True
+    show_create_action = True
 ```
 
 `order_by` entries are **three-tuples** `(public_key, label, orm_expression)` — the raw
@@ -336,21 +336,30 @@ class ProductListView(MVPListView):
 ### Detail + CRUD URL wiring
 
 `MVPDetailView` (via `CRUDDirectoryMixin`) builds a `directory` of sibling CRUD URLs,
-each gated by a `has_<action>_permission` flag (all default `False`). URL names come from
-`MVP_CONFIG["view_names"]` (`{model_name}-detail`, etc.).
+each gated by a `show_<action>_action` flag (all default `False`). URL names come from
+`MVP_CONFIG["view_names"]` (`{model_name}-detail`, etc.). Renamed in 0.16 from
+`has_<action>_permission`, which still works with an `MVPDeprecationWarning` until 0.18.
 
 ```python
 class ProductDetailView(MVPDetailView):
     model = Product
     directory = ["list", "detail", "update", "delete"]
-    has_list_permission = True
-    has_detail_permission = True
-    def has_update_permission(self, user): return user.is_staff   # dynamic gate
-    def has_delete_permission(self, user): return user.is_staff
+    show_list_action = True
+    show_detail_action = True
+    def show_update_action(self, user): return user.is_staff   # dynamic gate
+    def show_delete_action(self, user): return user.is_staff
 ```
 
 Templates read `{% if directory.update_url %}…{% endif %}` (the `directory` key is always
-present, empty when all denied).
+present, empty when every action is hidden).
+
+These flags draw the link and nothing more. The update and delete views are separate
+classes that never see them, so restricting who may act goes on those views. Use one of:
+
+- `LoginRequiredMixin` — any authenticated user.
+- `PermissionRequiredMixin` — Django model permissions.
+- `UserPassesTestMixin` — a one-off predicate.
+- django-guardian or django-rules — object-level rules.
 
 ### Forms: create / update / generic
 
@@ -358,12 +367,12 @@ present, empty when all denied).
 class ProductCreateView(MVPCreateView):
     model = Product
     fields = ["name", "category", "price"]
-    has_list_permission = True
+    show_list_action = True
 
 class ProductUpdateView(MVPUpdateView):
     model = Product
     form_class = ProductForm
-    has_delete_permission = True   # shows the Delete button in the form footer
+    show_delete_action = True   # shows the Delete button in the form footer
 ```
 
 - **Renderer auto-detection** — crispy-forms or django-formset when installed, else

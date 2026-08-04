@@ -366,9 +366,9 @@ class MVPUpdateView(MVPModelFormBase, generic.UpdateView):
         class ProductUpdateView(MVPUpdateView):
             model = Product
             fields = ["name", "slug", "price"]
-            has_list_permission = True
-            has_detail_permission = True
-            has_delete_permission = True
+            show_list_action = True
+            show_detail_action = True
+            show_delete_action = True
     """
 
     page_title = _("Update %(verbose_name)s")
@@ -384,7 +384,7 @@ class MVPUpdateView(MVPModelFormBase, generic.UpdateView):
         """Return the list of breadcrumb items for the form view.
 
         By default, includes a link back to the list view, a link to the detail
-        view (gated by ``has_detail_permission``), and a final item for the current
+        view (gated by ``show_detail_action``), and a final item for the current
         form.  When a permission is falsy the affected breadcrumb renders as plain
         text (the ``href|yesno`` filter in the Cotton breadcrumbs component handles
         the ``None``/empty-href case automatically).
@@ -402,11 +402,11 @@ class MVPUpdateView(MVPModelFormBase, generic.UpdateView):
         """Return the URL to use for the delete view link in the form header.
 
         Routes through ``resolve_crud_url("delete")`` so that
-        ``has_delete_permission`` gates the URL. Appends ``?back=<update url>&next=<list url>``
+        ``show_delete_action`` gates the URL. Appends ``?back=<update url>&next=<list url>``
         so the delete view redirects to the list after successful deletion.
 
         The ``reverse()`` call for ``back_url`` is intentionally NOT routed through
-        ``resolve_crud_url("update")`` — that would gate on ``has_update_permission``
+        ``resolve_crud_url("update")`` — that would gate on ``show_update_action``
         (default ``False``), silently producing a ``None`` back URL for developers who
         have not explicitly set that attribute.  The raw ``reverse()`` call is wrapped
         in ``try/except NoReverseMatch`` to prevent propagation when the update view
@@ -597,7 +597,7 @@ class MVPDeleteView(MVPModelFormBase, generic.DeleteView):
 
         raise ImproperlyConfigured(
             f"'{self.__class__.__name__}' could not determine a redirect URL. "
-            f"Set 'success_url' (e.g. 'list'), or register a list view with has_list_permission=True."
+            f"Set 'success_url' (e.g. 'list'), or register a list view with show_list_action=True."
         )
 
     def get_context_data(self, **kwargs):

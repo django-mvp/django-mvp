@@ -73,21 +73,26 @@ is `None` (any request) or `dashboard_template_name` is `None` (authenticated re
 ## `CRUDDirectoryMixin` — sibling CRUD URLs
 
 Builds a `directory` context dict of CRUD URLs for the model, each gated by a
-`has_<action>_permission` flag. URL names come from `crud_views` (defaults to
+`show_<action>_action` flag. URL names come from `crud_views` (defaults to
 `MVP_CONFIG["view_names"]`).
 
 ```python
 class ProductDetailView(MVPDetailView):
     model = Product
     directory = ["list", "detail", "update", "delete"]
-    has_list_permission   = True
-    has_detail_permission = True    # NOT has_read_permission
-    has_update_permission = True
-    has_delete_permission = True
+    show_list_action   = True
+    show_detail_action = True
+    show_update_action = True
+    show_delete_action = True
 ```
 
-- All `has_*_permission` default to **`False`** — opt in per action. Each may be a bool or
+- All `show_*_action` default to **`False`** — opt in per action. Each may be a bool or
   a `staticmethod`/method callable `(self, user) -> bool` for dynamic gating.
+- **These draw the link, they do not protect the target view.** The delete view is a
+  separate class and never sees `show_delete_action`. Put `LoginRequiredMixin` /
+  `PermissionRequiredMixin` (or django-guardian) on the target view itself.
+- Renamed in 0.16 from `has_<action>_permission`. The old names still decide visibility
+  and emit an `MVPDeprecationWarning`. They are removed in 0.18.
 - The `directory` context key is **always present** (empty dict when all denied), so
   `{% if directory.update_url %}` is always safe.
 - `crud_views` templates use `{model_name}` — override to change the naming convention:
@@ -113,8 +118,8 @@ Zero-config read-only detail page:
 class OrderDetailView(MVPDetailView):
     model = Order
     directory = ["list", "update"]
-    has_list_permission = True
-    has_update_permission = True   # controls the Edit button
+    show_list_action = True
+    show_update_action = True   # controls the Edit button
 ```
 
 Automatically: page title = `str(object)`; template = `<app>/<model>_detail.html` then
@@ -143,12 +148,12 @@ Composed into `MVPFormBase`, so every create/update/form/delete view benefits.
 class ProductCreateView(MVPCreateView):
     model = Product
     fields = ["name", "category", "price"]      # or form_class = ProductForm
-    has_list_permission = True
+    show_list_action = True
 
 class ProductUpdateView(MVPUpdateView):
     model = Product
     form_class = ProductForm
-    has_delete_permission = True                # shows the footer Delete button
+    show_delete_action = True                # shows the footer Delete button
 ```
 
 - **Renderer auto-detection** — crispy-forms or django-formset when installed, else
@@ -162,7 +167,7 @@ class ProductUpdateView(MVPUpdateView):
 - **`MVPFormView`** (non-model): raises `ImproperlyConfigured` if `success_url` is unset,
   matching Django's `FormMixin` contract.
 - **Breadcrumbs**: create = `[list, current]`; update = `[list, detail (str(object)),
-  current]`, with the detail link gated by `has_detail_permission`.
+  current]`, with the detail link gated by `show_detail_action`.
 
 ---
 
@@ -268,8 +273,8 @@ class ProductListView(MVPListView):
 | `empty_state_message` | `_("You haven't added any records yet…")` | `None` suppresses |
 | `page_title` | `""` | falls back to `verbose_name_plural.title()` |
 | `search_fields` / `order_by` | `None` | from Search/Order mixins |
-| `directory` | `["create"]` | only `create_url` injected (when `has_create_permission`) |
-| `create_form_class` | `None` | set it (+ `has_create_permission`) for an inline create modal on the list page |
+| `directory` | `["create"]` | only `create_url` injected (when `show_create_action`) |
+| `create_form_class` | `None` | set it (+ `show_create_action`) for an inline create modal on the list page |
 
 Override hooks: `get_list_item_template()`, `get_empty_state_heading/message()`,
 `get_grid_config()`, `get_page_title()`, `get_breadcrumbs()`, `get_create_form()`.

@@ -1,5 +1,12 @@
 # Feature Specification: CRUD Directory Mixin
 
+> **Superseded in part, 2026-08-04 (issue #142).** The `has_<action>_permission`
+> attributes named throughout this specification are now `show_<action>_action`. The
+> behaviour they describe is unchanged. The rename says what the attributes always did,
+> which is decide whether a link is drawn rather than whether the target view accepts the
+> request. The wording below is preserved as the record of the original feature. The
+> current contract is in `docs/views.md` and the `CRUDDirectoryMixin` docstring.
+
 **Feature Branch**: `006-crud-directory-mixin`
 **Created**: 2026-05-03
 **Status**: Draft
