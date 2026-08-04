@@ -1,1 +1,9 @@
 {% extends "page_view.html" %}
+{% block page.content %}
+  <c-text muted tight class="text-lg">
+    This page is the plain page_view.html shell — the breadcrumbs, title, and
+    toolbar above come from the package. Nothing here overrides the
+    page.content block. Everything you see is what a project gets before it
+    writes a single line of its own.
+  </c-text>
+{% endblock page.content %}

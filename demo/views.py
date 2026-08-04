@@ -1,11 +1,10 @@
 """
-Demo views for testing AdminLTE layout configurations.
+Demo views: the concrete views behind the demo site's pages.
 
-This view provides an interactive form for testing all layout options:
-- Fixed properties (fixed_sidebar, fixed_header, fixed_footer)
-- Responsive breakpoints (sidebar_expand)
-
-View uses query parameters for stateless, shareable URL-based configuration.
+Most of these instantiate a packaged django-mvp view directly (MVPListView,
+MVPDetailView, MVPCreateView, …) to show what a project gets with no
+customization. A few, like ``layout_demo`` and ``theme_customization_demo``,
+are plain ``DemoTemplateView`` instances that render a static demo page.
 """
 
 from django.http import Http404
