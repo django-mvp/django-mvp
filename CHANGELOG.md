@@ -24,6 +24,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   registering the route, or suppress the action by returning `None` from
   `get_url_kwargs`. Views that grant no permissions are unaffected.
 
+### Fixed
+
+- **`<c-form.render>` help text now separates from its control instead of sitting flush
+  against it.** crispy-tailwind's default help-text markup was a bare inline `<small>`
+  with no spacing utility. Vertical margin alone would not have fixed it: CSS ignores
+  top/bottom margin on non-replaced inline elements. `mvp/templates/tailwind/layout/help_text.html`
+  overrides crispy-tailwind's own copy (the same pattern already used for `django_tables2`)
+  to render the element `block` with a top margin, so consuming packages no longer need a
+  CSS workaround to read allauth-style help text, such as a password field's "Forgot your
+  password?" link, as guidance rather than part of the control.
+
 ### Changed
 
 - **`has_<action>_permission` is now `show_<action>_action`.** The five attributes on
