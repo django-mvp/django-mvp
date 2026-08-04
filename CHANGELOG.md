@@ -150,6 +150,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `c-breadcrumbs.item` rendered its `href` attribute twice. It wasn't declared in
+  `<c-vars>`, so it stayed in `{{ attrs }}` and was written a second time
+  alongside the explicit `href="{{ href }}"`.
 - Restored the DaisyUI plugin in the Tailwind build — v0.12.0 shipped a stylesheet with no
   DaisyUI classes. Defined the previously-missing `is-drawer-open:`/`is-drawer-close:`
   custom variants the sidebar depends on.
