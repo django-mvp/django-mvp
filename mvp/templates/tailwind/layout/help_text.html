@@ -1,0 +1,22 @@
+{% comment %}
+  Override of crispy_tailwind's tailwind/layout/help_text.html.
+
+  <c-form.render> (mvp/templates/cotton/form/render.html) renders whole
+  forms through crispy-tailwind, which by default renders help text as a
+  bare inline <small> with no spacing utility. Vertical margin has no
+  effect on non-replaced inline elements, so the fix needs `block` before a
+  top margin can create any visible gap from the control above it (#125).
+
+  This file must stay at this same relative path so Django's app_dirs
+  template loader picks it up ahead of crispy_tailwind's own copy — `mvp`
+  is listed before `crispy_tailwind` in INSTALLED_APPS. See
+  mvp/templates/django_tables2/ for the same override pattern applied to a
+  different vendored template.
+{% endcomment %}
+{% if field.help_text %}
+    {% if help_text_inline %}
+        <p {% if field.id_for_label %}id="{{ field.id_for_label }}_helptext" {% endif %}class="text-gray-600 block mt-2">{{ field.help_text|safe }}</p>
+    {% else %}
+        <small {% if field.id_for_label %}id="{{ field.id_for_label }}_helptext" {% endif %}class="text-gray-600 block mt-2">{{ field.help_text|safe }}</small>
+    {% endif %}
+{% endif %}
