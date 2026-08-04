@@ -153,6 +153,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `c-breadcrumbs.item` rendered its `href` attribute twice. It wasn't declared in
   `<c-vars>`, so it stayed in `{{ attrs }}` and was written a second time
   alongside the explicit `href="{{ href }}"`.
+- **Sidebar brand icon no longer stays tiny when the SVG's intrinsic size is small.**
+  The sidebar header sized the icon with `max-h-9 max-w-9`, which only caps an
+  oversized image and never grows an undersized one. A brand icon with small
+  intrinsic dimensions (e.g. an 8×8 viewBox) rendered at its own tiny size
+  instead of filling the reserved slot. It now gets a fixed `size-9
+  object-contain`, so both small and large icons land at the same predictable
+  size.
 - Restored the DaisyUI plugin in the Tailwind build — v0.12.0 shipped a stylesheet with no
   DaisyUI classes. Defined the previously-missing `is-drawer-open:`/`is-drawer-close:`
   custom variants the sidebar depends on.

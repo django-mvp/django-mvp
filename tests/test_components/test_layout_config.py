@@ -250,6 +250,42 @@ class TestSidebarTitle:
 
 
 # ---------------------------------------------------------------------------
+# Sidebar brand icon sizing (issue #123)
+# ---------------------------------------------------------------------------
+
+
+def _brand_icon_tag(html):
+    """Extract the ``<img>`` tag rendered by ``c-brand.icon`` in the sidebar
+    header (the only image with the ``Icon`` alt text)."""
+    match = re.search(r"<img[^>]*alt=\"Icon\"[^>]*>", html)
+    return match.group(0) if match else None
+
+
+class TestSidebarBrandIconSizing:
+    """The sidebar brand icon must fill its slot, not just cap out at it.
+
+    ``max-h-*``/``max-w-*`` are upper bounds only: they shrink an oversized
+    image but never grow an undersized one, so a brand SVG with small
+    intrinsic dimensions rendered as a tiny mark instead of filling the
+    reserved slot (issue #123)."""
+
+    @pytest.mark.django_db
+    def test_brand_icon_has_a_fixed_size_not_only_a_maximum(self, client):
+        """The rendered <img> carries an actual size (e.g. size-9), so an
+        undersized SVG scales up to fill the slot instead of staying tiny."""
+        tag = _brand_icon_tag(client.get("/").content.decode())
+        assert tag is not None, "sidebar header must render the brand icon <img>"
+        assert "size-9" in tag, (
+            "brand icon must get a fixed size class, not just max-h-9/max-w-9 "
+            "upper bounds, or small SVGs render at their tiny intrinsic size"
+        )
+        assert "object-contain" in tag, (
+            "brand icon must use object-contain so a fixed box doesn't distort "
+            "non-square assets"
+        )
+
+
+# ---------------------------------------------------------------------------
 # Navbar sidebar-toggle follows the resolved layout knobs (issue #114)
 # ---------------------------------------------------------------------------
 
