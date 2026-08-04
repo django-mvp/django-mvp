@@ -150,6 +150,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `c-breadcrumbs.item` rendered its `href` attribute twice. It wasn't declared in
+  `<c-vars>`, so it stayed in `{{ attrs }}` and was written a second time
+  alongside the explicit `href="{{ href }}"`.
 - **Sidebar brand icon no longer stays tiny when the SVG's intrinsic size is small.**
   The sidebar header sized the icon with `max-h-9 max-w-9`, which only caps an
   oversized image and never grows an undersized one. A brand icon with small
