@@ -39,6 +39,15 @@
 @source inline("text-{start,center,end}");
 @source inline("text-{sm,base,lg,xl}");
 
+/* Safelist: responsive divider orientation is emitted by the `responsive`
+   templatetag from cotton/divider.html's `vertical` attribute
+   (mvp/templatetags/mvp.py). */
+@source inline("{sm,md,lg,xl,2xl}:divider-horizontal");
+
+/* Safelist: cotton/toolbar.html builds these three classes at render time
+   from its `row` attribute. */
+@source inline("{sm,md,lg,xl,2xl}:{flex-row,justify-between,items-center}");
+
 /* Safelist: navbar sidebar-toggle visibility classes are emitted by the
    sidebar_navbar_toggle_class templatetag (mvp/templatetags/mvp.py). */
 @source inline("{sm,md,lg,xl,2xl}:hidden");

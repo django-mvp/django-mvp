@@ -98,6 +98,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `add`/`plus`/`create`, `delete`/`remove`/`trash`, `person`/`user`/`account`,
   `settings`/`gear`/`cog`, `x`/`close`). Every previously registered name still
   resolves; the pack is just grouped onto fewer lines.
+- `<c-group>` and `<c-button>` now declare their boolean `c-vars` bare (`row=False`) instead of quoted-colon (`:row="False"`). django-cotton resolves both the same way, so this is cosmetic only.
 
 ### Changed
 
@@ -185,6 +186,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `class="..."` on the root element while also spreading `{{ attrs }}` there, so an
   undeclared `class` produced a duplicate attribute the browser ignored. `class` is now
   declared and merged like every other component.
+- **`<c-divider vertical="...">` and `<c-toolbar row="...">` silently did nothing at most
+  breakpoints.** Both build a responsive class at render time from the attribute value
+  (`md:divider-horizontal`, `lg:flex-row`, …), so Tailwind's scanner never saw the literal
+  string and only compiled it when the same text happened to appear elsewhere by
+  coincidence — a docstring example, in one case, a sibling template, in the other. Every
+  breakpoint the two components accept is now safelisted, and both shipped stylesheets
+  were rebuilt.
 
 ### Added
 
