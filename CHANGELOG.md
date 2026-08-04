@@ -98,6 +98,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `add`/`plus`/`create`, `delete`/`remove`/`trash`, `person`/`user`/`account`,
   `settings`/`gear`/`cog`, `x`/`close`). Every previously registered name still
   resolves; the pack is just grouped onto fewer lines.
+- `<c-group>` and `<c-button>` now declare their boolean `c-vars` bare (`row=False`) instead of quoted-colon (`:row="False"`). django-cotton resolves both the same way, so this is cosmetic only.
 
 ### Changed
 
