@@ -13,25 +13,26 @@
             method="post"
             action="{{ request.path }}"
             :form-obj="form">
+      {% if next_url %}<input type="hidden" name="next" value="{{ next_url }}">{% endif %}
       {% block actions %}
         <c-group breakpoint="md" wrap>
           <c-button text="{% trans "Save & continue" %}"
                     icon="arrow-right"
                     type="submit"
-                    name="next"
+                    name="default_next"
                     reverse
                     value="list"
                     variant="primary" />
-          {% comment %} <c-button text="{% trans "Save & view" %}" type="submit" name="next" value="detail" variant="primary" outline />
+          {% comment %} <c-button text="{% trans "Save & view" %}" type="submit" name="default_next" value="detail" variant="primary" outline />
           <c-button text="{% trans "Save & add another" %}"
                     type="submit"
-                    name="next"
+                    name="default_next"
                     value="create"
                     variant="primary"
                     outline /> {% endcomment %}
           <c-button text="{% trans "Save & continue editing" %}"
                     type="submit"
-                    name="next"
+                    name="default_next"
                     value="update"
                     variant="primary"
                     outline />
