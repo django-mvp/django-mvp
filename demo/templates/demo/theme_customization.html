@@ -1,5 +1,15 @@
 ﻿{% extends "page_view.html" %}
+{% load i18n %}
 {% block page.actions %}
   <c-button text="Action 1" icon="home" />
   <c-button text="Action 2" icon="menu" />
 {% endblock page.actions %}
+{% block page.content %}
+  <c-text muted tight class="text-lg">
+    {% blocktrans %}
+      The theme toggle in the navbar switches the DaisyUI theme for the whole
+      app. The two buttons above are here to show how page.actions renders
+      next to a page title — they carry no theme logic of their own.
+    {% endblocktrans %}
+  </c-text>
+{% endblock page.content %}

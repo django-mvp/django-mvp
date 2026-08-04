@@ -80,3 +80,30 @@ class TestStylingDocs:
 
 
 # ---------------------------------------------------------------------------
+# Demo pages that extend page_view.html directly — the placeholder leak (#145)
+# ---------------------------------------------------------------------------
+
+
+class TestDemoPagesDontLeakTheScaffoldPlaceholder:
+    """page_view.html's default page.content block reads "Coming soon...".
+
+    That default is deliberate for a scaffold nobody has extended yet — see
+    mvp/templates/page_view.html. A demo page is not a scaffold: it ships as a
+    worked example, so it must supply its own content rather than fall through
+    to the placeholder.
+    """
+
+    @pytest.mark.django_db
+    def test_layout_demo_page_supplies_its_own_content(self, client):
+        response = client.get("/layout/")
+        assert response.status_code == 200
+        assert "Coming soon" not in response.content.decode()
+
+    @pytest.mark.django_db
+    def test_theme_customization_demo_page_supplies_its_own_content(self, client):
+        response = client.get("/theme/")
+        assert response.status_code == 200
+        assert "Coming soon" not in response.content.decode()
+
+
+# ---------------------------------------------------------------------------
