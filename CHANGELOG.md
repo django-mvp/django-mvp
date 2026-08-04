@@ -24,6 +24,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   registering the route, or suppress the action by returning `None` from
   `get_url_kwargs`. Views that grant no permissions are unaffected.
 
+### Fixed
+
+- **A caller-supplied `?next=` was silently dropped on every create, update, and delete
+  form.** Two defects compounded: the form's `action="{{ request.path }}"` drops the query
+  string, and the hidden `next` input that used to carry the value through the POST body had
+  been lost from the live markup. `delete_view.html` also injected its own copy of that hidden
+  input in the `before_form` block, which renders outside the `<c-form>` element. It was never
+  actually part of the submitted form either. Both templates now carry the hidden `next` input
+  inside the real `<form>`, seeded from the `next_url` context `NextURLMixin` already provides.
+
+  **On upgrade:** the "Save & continue" / "Save & continue editing" buttons no longer assert
+  their own destination outright. They now propose a *default* (`default_next`) that only
+  applies when the caller didn't supply an explicit `?next=`. Previously the buttons' hardcoded
+  `name="next"` competed with, and always won over, the caller's value, so "Save & continue"
+  landed on the list view regardless of a passed `?next=`. Forms that receive an explicit
+  `?next=` now honour it instead. Anyone relying on "Save & continue" always landing on the
+  list view, even when the page was reached with a `?next=` query string, will see that
+  destination change to the caller-supplied one.
+
 ### Changed
 
 - **`has_<action>_permission` is now `show_<action>_action`.** The five attributes on

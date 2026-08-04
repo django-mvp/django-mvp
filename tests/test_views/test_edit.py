@@ -3,7 +3,7 @@
 Covers all five user stories defined in specs/008-safe-post-submit-redirect/:
 
   US1 — Chain Form Views with a URL Destination
-  US2 — Redirected Back to the Right Place (E2E in test_edit_view_e2e.py)
+  US2 — Redirected Back to the Right Place
   US3 — CRUD Action Shorthand Destinations
   US4 — Open-Redirect Protection (logging + rejection)
   US5 — Graceful Fallback (success_url → resoluve_crud_url("list"))
@@ -15,6 +15,7 @@ import logging
 from urllib.parse import parse_qs, urlparse
 
 import pytest
+from bs4 import BeautifulSoup
 from django.contrib.auth import get_user_model
 from django.test import RequestFactory, override_settings
 from django.urls import reverse
@@ -213,6 +214,24 @@ class TestGetNextCandidate:
         """[FR-001a] Absent next → get_next_candidate() returns None."""
         view = make_next_url_view(method="GET", params={})
         assert view.get_next_candidate() is None
+
+    def test_post_falls_back_to_default_next_when_next_absent(self):
+        """A clicked button's default_next is used only when no explicit next was sent.
+
+        This is the button-carried shorthand (e.g. "Save & continue" submits
+        default_next=list) for the common case where the caller never supplied
+        a ?next= at all — the hidden explicit-next field never rendered, so the
+        button's own value is the only candidate in the POST body.
+        """
+        view = make_next_url_view(method="POST", params={"default_next": "list"})
+        assert view.get_next_candidate() == "list"
+
+    def test_post_explicit_next_wins_over_default_next(self):
+        """An explicit next (the hidden field) always wins over a clicked button's default_next."""
+        view = make_next_url_view(
+            method="POST", params={"next": "/orders/", "default_next": "list"}
+        )
+        assert view.get_next_candidate() == "/orders/"
 
     def test_post_reads_body_not_query_string(self):
         """[FR-001a] POST reads POST body, not query string."""
@@ -1137,6 +1156,22 @@ def _product_post_data(
     }
 
 
+def _get_form(content, action_substring):
+    """Parse ``content`` and return the ``<form>`` whose action contains the substring.
+
+    A rendered mvp page carries more than one ``<form>`` — the language-selector
+    form (``action="/i18n/setlang/"``) appears first in the document — so
+    selecting by action rather than taking the first match is load-bearing.
+    """
+    soup = BeautifulSoup(content, "html.parser")
+    for form in soup.find_all("form"):
+        if action_substring in (form.get("action") or ""):
+            return form
+    raise AssertionError(
+        f"no <form> with action containing {action_substring!r} found in response"
+    )
+
+
 # ---------------------------------------------------------------------------
 # US1 — MVPCreateView: zero-config model create page (T021)
 # ---------------------------------------------------------------------------
@@ -1187,30 +1222,80 @@ class TestCreateViewRedirects:
 
     @pytest.mark.django_db
     def test_US2_create_with_url_next_redirects_to_url(self, client, category):
-        """[US2] POST with next=/products/ in body — redirect lands at /products/.
+        """[US2] A caller-supplied ?next= survives a real rendered-form round trip.
 
-        NextURLMixin reads 'next' from POST body on POST requests, not from the
-        query string.
+        Goes through the actual markup rather than around it: fetches the create
+        page with ?next=/orders/, asserts the create form (not the language-
+        selector form, which also appears in the document) carries a hidden
+        ``next`` input with that value, then submits exactly what a browser
+        submits when "Save & continue" is clicked — the form fields plus the
+        clicked button's default_next=list — and asserts the redirect honours
+        the caller's destination rather than the button's default.
         """
+        get_response = client.get(reverse("product-create") + "?next=/orders/")
+        form = _get_form(get_response.content, "/products/create/")
+        hidden_next = form.find("input", {"type": "hidden", "name": "next"})
+        assert hidden_next is not None, "rendered create form has no hidden next input"
+        assert hidden_next["value"] == "/orders/"
+
         data = _product_post_data(
             category, name="Next URL Product", slug="next-url-product-integ"
         )
-        data["next"] = "/products/"
-        response = client.post(reverse("product-create"), data)
+        data["next"] = hidden_next["value"]
+        data["default_next"] = "list"  # the clicked "Save & continue" button
+        response = client.post(form["action"], data)
         assert response.status_code == 302
-        assert response["Location"] == "/products/"
+        assert response["Location"] == "/orders/"
 
     @pytest.mark.django_db
     def test_US2_failed_form_preserves_next_url(self, client, category):
-        """[US2] Failed POST re-renders the form with the next destination preserved."""
-        url = reverse("product-create") + "?next=/products/"
-        # Submit empty data — form validation fails, re-renders the page.
-        response = client.post(url, {})
+        """[US2] A failed rendered-form submission still carries the caller's next.
+
+        Fetches the create form with ?next=/orders/, submits it with the
+        required 'name' field missing (as the real form's own action, carrying
+        the real hidden next field, rather than posting straight to the view),
+        and asserts the re-rendered create form's hidden next input still
+        carries /orders/ — not merely that the bytes 'name="next"' and
+        '/orders/' happen to appear somewhere in the page (they always do,
+        from the submit buttons and the breadcrumbs, regardless of this
+        feature).
+        """
+        get_response = client.get(reverse("product-create") + "?next=/orders/")
+        form = _get_form(get_response.content, "/products/create/")
+        hidden_next = form.find("input", {"type": "hidden", "name": "next"})
+        assert hidden_next is not None
+        assert hidden_next["value"] == "/orders/"
+
+        response = client.post(form["action"], {"next": hidden_next["value"]})
         assert response.status_code == 200
-        assert "/products/create/" in response.wsgi_request.path
-        # The hidden next input must still carry the destination value.
-        assert b'name="next"' in response.content
-        assert b"/products/" in response.content
+
+        form2 = _get_form(response.content, "/products/create/")
+        hidden_next2 = form2.find("input", {"type": "hidden", "name": "next"})
+        assert hidden_next2 is not None, "next input lost on failed-form re-render"
+        assert hidden_next2["value"] == "/orders/"
+
+    @pytest.mark.django_db
+    def test_US2_plain_create_with_no_next_still_lands_on_list_by_default(
+        self, client, category
+    ):
+        """A plain create with no ?next= anywhere still lands on the list view.
+
+        Rendered without a caller-supplied ?next=, the create form has no hidden
+        next input at all — only the clicked button's own default_next=list
+        travels in the POST body. Confirms the button-rename in (b) didn't
+        change this, the overwhelming majority case, at all.
+        """
+        get_response = client.get(reverse("product-create"))
+        form = _get_form(get_response.content, "/products/create/")
+        assert form.find("input", {"type": "hidden", "name": "next"}) is None
+
+        data = _product_post_data(
+            category, name="Default Redirect Product", slug="default-redirect-integ"
+        )
+        data["default_next"] = "list"  # the clicked "Save & continue" button
+        response = client.post(form["action"], data)
+        assert response.status_code == 302
+        assert response["Location"] == reverse("product-list")
 
     # ---------------------------------------------------------------------------
     # US3 — CRUD Action Shorthand Destinations (T035a, T035b)
@@ -1485,6 +1570,29 @@ class TestMVPDeleteViewBackUrl:
         response = client.post(url, data={"next": "https://evil.com/"})
         assert response.status_code == 302
         assert response["Location"] == reverse("product-list")
+
+    def test_rendered_form_carries_caller_next_through_real_delete_submit(
+        self, client, product
+    ):
+        """A caller-supplied ?next= survives a real rendered delete-form round trip.
+
+        delete_view.html used to inject its own hidden next input in the
+        ``before_form`` block, which renders outside the ``<c-form>`` element and
+        is therefore never part of the submitted ``<form>``. Confirms the hidden
+        next input the form now inherits from form_view.html is present inside
+        the real delete form and that submitting it lands on the caller's
+        destination, not the list-URL fallback.
+        """
+        delete_url = reverse("product-delete", kwargs={"pk": product.pk})
+        get_response = client.get(delete_url + "?next=/orders/")
+        form = _get_form(get_response.content, delete_url)
+        hidden_next = form.find("input", {"type": "hidden", "name": "next"})
+        assert hidden_next is not None, "rendered delete form has no hidden next input"
+        assert hidden_next["value"] == "/orders/"
+
+        response = client.post(form["action"], {"next": hidden_next["value"]})
+        assert response.status_code == 302
+        assert response["Location"] == "/orders/"
 
 
 # ---------------------------------------------------------------------------

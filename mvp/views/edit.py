@@ -26,9 +26,20 @@ class NextURLMixin:
     """Mixin to determine the next URL to redirect to after form submission."""
 
     def get_next_candidate(self):
-        """Return the raw next URL candidate from the request, without validation."""
+        """Return the raw next URL candidate from the request, without validation.
+
+        On POST, an explicit ``next`` value (the hidden field carrying a caller-
+        supplied ``?next=`` through the form) always wins. ``default_next`` — the
+        name/value pair contributed by whichever submit button was clicked, e.g.
+        "Save & continue" → ``default_next=list`` — is consulted only when no
+        explicit ``next`` was supplied. A button must never override a caller's
+        destination; it only proposes one when the caller didn't ask for a
+        specific place to land.
+        """
         if self.request.method == "POST":
-            return self.request.POST.get("next")
+            return self.request.POST.get("next") or self.request.POST.get(
+                "default_next"
+            )
         return self.request.GET.get("next")
 
     def get_next_url(self):

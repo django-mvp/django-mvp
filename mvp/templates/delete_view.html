@@ -1,7 +1,6 @@
 {% extends "form_view.html" %}
 {% load i18n %}
 {% block before_form %}
-  {% if next_url %}<input type="hidden" name="next" value="{{ next_url }}" />{% endif %}
   {% if is_protected %}
     {# ===== Scenario 3: Object is PROTECT-blocked - no delete button ===== #}
     <c-alert variant="error">
