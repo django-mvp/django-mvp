@@ -24,17 +24,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   registering the route, or suppress the action by returning `None` from
   `get_url_kwargs`. Views that grant no permissions are unaffected.
 
-### Fixed
-
-- **`<c-form.render>` help text now separates from its control instead of sitting flush
-  against it.** crispy-tailwind's default help-text markup was a bare inline `<small>`
-  with no spacing utility. Vertical margin alone would not have fixed it: CSS ignores
-  top/bottom margin on non-replaced inline elements. `mvp/templates/tailwind/layout/help_text.html`
-  overrides crispy-tailwind's own copy (the same pattern already used for `django_tables2`)
-  to render the element `block` with a top margin, so consuming packages no longer need a
-  CSS workaround to read allauth-style help text, such as a password field's "Forgot your
-  password?" link, as guidance rather than part of the control.
-
 ### Changed
 
 - **`has_<action>_permission` is now `show_<action>_action`.** The five attributes on
@@ -161,6 +150,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `c-breadcrumbs.item` rendered its `href` attribute twice. It wasn't declared in
+  `<c-vars>`, so it stayed in `{{ attrs }}` and was written a second time
+  alongside the explicit `href="{{ href }}"`.
+- **Sidebar brand icon no longer stays tiny when the SVG's intrinsic size is small.**
+  The sidebar header sized the icon with `max-h-9 max-w-9`, which only caps an
+  oversized image and never grows an undersized one. A brand icon with small
+  intrinsic dimensions (e.g. an 8×8 viewBox) rendered at its own tiny size
+  instead of filling the reserved slot. It now gets a fixed `size-9
+  object-contain`, so both small and large icons land at the same predictable
+  size.
+- **`<c-form.render>` help text now separates from its control instead of sitting flush
+  against it.** crispy-tailwind's default help-text markup was a bare inline `<small>`
+  with no spacing utility. Vertical margin alone would not have fixed it: CSS ignores
+  top/bottom margin on non-replaced inline elements. `mvp/templates/tailwind/layout/help_text.html`
+  overrides crispy-tailwind's own copy (the same pattern already used for `django_tables2`)
+  to render the element `block` with a top margin, so consuming packages no longer need a
+  CSS workaround to read allauth-style help text, such as a password field's "Forgot your
+  password?" link, as guidance rather than part of the control.
 - Restored the DaisyUI plugin in the Tailwind build — v0.12.0 shipped a stylesheet with no
   DaisyUI classes. Defined the previously-missing `is-drawer-open:`/`is-drawer-close:`
   custom variants the sidebar depends on.
@@ -173,6 +180,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   are now safelisted in the preset — they previously only compiled by accident.
 - Removed remaining Bootstrap/AdminLTE leftovers from DaisyUI templates, two orphaned
   AdminLTE toggle templates, and assorted dead code.
+- `c-text`, `c-menu`, `c-menu.item`, `c-dock.item`, `c-page.list.empty` and
+  `c-layout.sidebar` silently dropped a caller's `class` attribute. Each hardcoded its own
+  `class="..."` on the root element while also spreading `{{ attrs }}` there, so an
+  undeclared `class` produced a duplicate attribute the browser ignored. `class` is now
+  declared and merged like every other component.
 
 ### Added
 
