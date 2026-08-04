@@ -116,7 +116,7 @@ c-page
       c-page.list.actions.search
       c-page.list.actions.sort
       c-page.list.actions.share
-c-entrance              — entrance animation wrapper
+c-entrance              — centered card for anonymous-facing pages (size, full-height)
   c-entrance.background — entrance background layer
 ```
 

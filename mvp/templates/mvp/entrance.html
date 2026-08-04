@@ -1,7 +1,18 @@
 {% extends "mvp/base.html" %}
+{% comment %}
+  The page anonymous-facing views extend: a full-screen background with one
+  centered card.
+
+  Fill {% block content %} and the card takes the default width. A page that
+  wants a different width overrides {% block entrance %} instead, restating
+  <c-entrance> with the size it wants and nesting its own {% block content %}
+  inside it.
+{% endcomment %}
 {% block app %}
-  <c-entrance full-height>
-    {% block content %}
-    {% endblock content %}
-  </c-entrance>
+  {% block entrance %}
+    <c-entrance full-height>
+      {% block content %}
+      {% endblock content %}
+    </c-entrance>
+  {% endblock entrance %}
 {% endblock app %}
