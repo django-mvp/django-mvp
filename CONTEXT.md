@@ -159,6 +159,7 @@ c-alert                 — contextual alert banner
 c-modal                 — modal dialog overlay
 c-dropdown              — dropdown menu trigger
 c-button                — action button
+c-link                  — styled inline text link
 c-brand.logo            — brand logo image
 c-brand.icon            — brand icon glyph
 ```

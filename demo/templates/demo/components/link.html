@@ -1,0 +1,44 @@
+{% extends "demo/components/base.html" %}
+
+{% block component.docs %}
+  <c-components.section title="Default"
+                        description="Without a variant, the link inherits the surrounding text colour and is always underlined.">
+    {% cotton:verbatim %}
+      <c-text>
+        Already have an account? <c-link href="{% url 'login' %}" text="Sign in" />.
+      </c-text>
+    {% endcotton:verbatim %}
+  </c-components.section>
+
+  <c-components.section title="Variants"
+                        description="Give a link a colour with the variant attribute.">
+    {% cotton:verbatim %}
+      <div class="flex flex-wrap gap-4">
+        <c-link href="#" text="Primary" variant="primary" />
+        <c-link href="#" text="Secondary" variant="secondary" />
+        <c-link href="#" text="Accent" variant="accent" />
+        <c-link href="#" text="Neutral" variant="neutral" />
+        <c-link href="#" text="Info" variant="info" />
+        <c-link href="#" text="Success" variant="success" />
+        <c-link href="#" text="Warning" variant="warning" />
+        <c-link href="#" text="Error" variant="error" />
+      </div>
+    {% endcotton:verbatim %}
+  </c-components.section>
+
+  <c-components.section title="Hover"
+                        description="Add hover to underline only on hover instead of always.">
+    {% cotton:verbatim %}
+      <c-link href="#" text="Underlined only on hover" variant="primary" hover />
+    {% endcotton:verbatim %}
+  </c-components.section>
+
+  <c-components.section title="Slot content"
+                        description="Skip the text attribute and pass rich markup as the link's content.">
+    {% cotton:verbatim %}
+      <c-link href="#" variant="primary">
+        <strong>Bold</strong> link text
+      </c-link>
+    {% endcotton:verbatim %}
+  </c-components.section>
+{% endblock component.docs %}
