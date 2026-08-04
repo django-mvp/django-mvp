@@ -73,7 +73,7 @@ Serves G6.
 
 ### R7 — The object detail page
 
-*feature · advances G3, G2*
+*Delivered · advances G3, G2*
 
 The detail page is the one stop on the model-to-pages path that does not arrive: the view class exists and resolves its object, but the page it renders is a placeholder. A project that configures a list, a create form and a delete flow gets nothing for the read view, not even the header the other pages have.
 
