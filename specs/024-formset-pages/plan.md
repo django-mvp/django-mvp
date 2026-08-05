@@ -201,7 +201,7 @@ but its page tests assert against rendered rows, which only reach the page throu
   its CDN path executes code in every consuming project's authenticated pages, with no deployment
   on the consumer's side. This is pre-existing and predates the feature, and two other script tags
   in the same block have the same shape, so it is not fixed here. It is named because this feature
-  is what makes it load-bearing, and it is filed separately.
+  is what makes it load-bearing. Filed as issue #170.
 
 ## Complexity Tracking
 

@@ -216,3 +216,19 @@ Three deviations, all accepted and none changing the design.
 - `progress.md` and `decisions.md` are outside the story brief's file allowlist, so the child
   recorded its per-task notes in the completion report instead. That is the intended flow — story
   worktrees do not edit the feature's shared documents.
+
+## SEC-002 deferred and filed — 2026-08-05
+
+Sam's call: mark and skip, raise an issue to address later. Filed as django-mvp#170, "Front-end
+runtime loads from a CDN unpinned and unverified", under Sam's identity because a defect report is
+maintainer intent rather than automation output. Humanized before filing, per the public-markdown
+checklist, and it carries no internal handles.
+
+Checking the claim before writing it up corrected part of it. Only the three Alpine tags float at
+`3.x.x`, which is what makes subresource integrity impossible for them. `theme-change@2.0.2` and
+`bootstrap-icons@1.13.1` are pinned to exact versions and are simply missing an `integrity` hash —
+a smaller problem with a cheaper fix, and the icons stylesheet even carries `crossorigin` without
+the hash it exists to accompany. The issue states that split rather than repeating the reviewer's
+"same shape" aside.
+
+Nothing in this feature waits on it.
