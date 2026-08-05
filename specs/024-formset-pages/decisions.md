@@ -491,3 +491,17 @@ pins it is now written against the case that fails.
 withdrawn it, contradicting the contract, the data model, the plan and the task. Removed. This is
 the second instance of the pattern D27 named: a correction has to reach every copy of the claim,
 including the summary that restates it.
+
+## D30 — The US2 tamper flag is an append, and is approved
+
+`forge tamper-check --base 3b3ef2f` raised one flag: `modified_preexisting_test` on
+`tests/test_views/test_edit.py`. The check is file-granular, and the file existed at the base, so
+any edit to it flags.
+
+The diff is additive only: two import lines, a module-level helper, and one new test class appended
+at the end. No pre-existing test function is modified, weakened or deleted, and the file's other 155
+tests pass unchanged. T012 named this file explicitly, so the story could not have been done
+without touching it.
+
+Approved under the D4 triage rule rather than escalated. Recorded here because the policy requires
+an approved flag to carry a written reason.

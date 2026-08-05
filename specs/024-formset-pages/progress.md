@@ -182,3 +182,37 @@ approval, since it is the same gate re-affirmed rather than a new one. **T043 is
 Craft-skill gate green before any dispatch: `forge check-skills --role implementer --brief brief`
 returns `craft-tdd` and `craft-increments` with receipts matching `kit/craft-skills.json`.
 Beginning with the US1 foundational phase, which every later story renders through.
+
+## US1 complete — 2026-08-05
+
+Five tasks, all first attempt. `forge verify` green in the worktree. `check-receipts` green for
+both craft skills. Story comment posted to #163.
+
+Two corrections applied on review. The child reported "verify red" from a raw `ruff check .`; this
+repo's gate is `pre-commit run --all-files`, which excludes `tests/`, and those errors sit at
+`origin/main` by design. Later briefs name the right command. Separately the README still described
+form pages as having "automatic crispy-forms detection", which reads as optional now the
+distributions ship as dependencies — reworded.
+
+The five commits were authored under Sam's identity rather than the repo bot's. Rewritten and
+force-pushed to `024-formset-pages-us1`, content byte-identical.
+
+## US2 complete — 2026-08-05
+
+Eight tasks, all first attempt, strict red-then-green throughout — each test task observed its
+failure for the right reason (`TemplateDoesNotExist` for the two new components, a plain assertion
+failure for the two that extended existing templates). `forge verify` green in the worktree: lint,
+typecheck, 621 tests, build, conformance. `check-receipts` green. The diff touches exactly the seven
+files the brief allowed. One tamper flag, triaged and approved as D30.
+
+Three deviations, all accepted and none changing the design.
+
+- `tests/test_components/test_form_index.py` did not exist; T010's wording assumed it did. Created
+  fresh following `test_form_field.py`'s compiled-source `render()` pattern.
+- `tests/test_views/test_edit.py` had no precedent for rendering a full view through its template —
+  the existing `MVPFormView` tests only call individual methods. T012 uses a local
+  `RequestFactory` + `as_view()` + `response.render()` helper, which is standard Django and stays
+  inside the file the task named.
+- `progress.md` and `decisions.md` are outside the story brief's file allowlist, so the child
+  recorded its per-task notes in the completion report instead. That is the intended flow — story
+  worktrees do not edit the feature's shared documents.
