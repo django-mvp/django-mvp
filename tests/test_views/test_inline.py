@@ -306,3 +306,37 @@ class TestInlineInvalidParentForm:
         assert _field_value(html, "form-0-quantity") == "4"
         assert Product.objects.count() == 0
         assert OrderLine.objects.count() == 0
+
+
+# ---------------------------------------------------------------------------
+# T019 - the mirror case: valid parent form, invalid row (FR-010, FR-013)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+class TestInlineInvalidRow:
+    """A valid parent form with an invalid row persists nothing; the page
+    re-renders with every submitted value present in both parts, and the row
+    carries its error (FR-010, FR-013). This is the branch ``form_valid``
+    adds over Django's default: without it, the formset is never checked."""
+
+    def test_invalid_row_persists_nothing_and_carries_its_error(self):
+        view_cls = _inline_create_view_class(success_url="list")
+        data = {
+            "name": "Valid Parent Name",
+            "form-TOTAL_FORMS": "1",
+            "form-INITIAL_FORMS": "0",
+            "form-MIN_NUM_FORMS": "0",
+            "form-MAX_NUM_FORMS": "1000",
+            "form-0-quantity": "-1",  # PositiveIntegerField rejects negatives
+        }
+
+        _, response = _dispatch(view_cls, method="POST", data=data)
+
+        assert response.status_code == 200
+        html = _rendered_html(response)
+        assert _field_value(html, "name") == "Valid Parent Name"
+        assert _field_value(html, "form-0-quantity") == "-1"
+        assert "greater than or equal to 0" in html
+        assert Product.objects.count() == 0
+        assert OrderLine.objects.count() == 0
