@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.16.0] - 2026-08-05
+
 ### Added
 
 - **The entrance card can be asked for a width.** `<c-entrance>` takes a `size`
