@@ -622,3 +622,29 @@ with no verb to attach to).
 **Resolution**: the original description of Django's shortfall is restored, and the sentence
 now names what the package does about it. Committed as `cbad6d6`. **Revisit if**: the scope
 statement is rewritten wholesale, at which point the illustration may move.
+## D38 — the ledger records no per-task evidence because nothing ever required it
+
+While closing US-6 I found all 43 story tasks marked `done` with no `evidence` object, and
+said the schema required it and a gate had failed to fire. Both halves were wrong, and the
+check took one query: `evidence` is optional in `schemas/feature-state.schema.json`, and
+`forgekit/stage_exit.py` never reads it. No gate failed, because there is no gate.
+
+**What is true**: the Implementer completion reports do carry per-task evidence and the
+completion-report schema requires it. The orchestrator step that advances the ledger from a
+report copies `status` and `attempts` and drops `evidence`, so the evidence exists in
+`runs/.../reports/` and never reaches the ledger — which is the artefact S8 reads.
+
+**Resolution here**: backfilled all 43 tasks from the six reports. US-3's report carried no
+per-task evidence of its own (its Implementer omitted the field, which the report schema
+should have refused), so those eleven entries are reconstructed from the commit history and
+labelled as such in their own `commands` array — they are not that Implementer's
+red-then-green record and must not be read as one.
+
+**Two kit gaps, neither of them this feature's work**: the ledger schema has no `commits`
+field, so a task's evidence cannot point at the commit that produced it and the shas had to
+go into `commands` as prose; and nothing validated US-3's report against the completion-report
+schema on arrival. Both filed against the kit rather than fixed mid-run.
+
+**Revisit if**: the kit adds evidence propagation, at which point this backfill becomes the
+regression fixture — reinstate an evidence-free ledger and prove the stage exit goes red.
+
