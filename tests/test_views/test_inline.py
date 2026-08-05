@@ -225,3 +225,51 @@ class TestInlineValidSubmission:
             "product-detail", kwargs={"pk": new_product.pk}
         )
         assert list(new_product.order_lines.values_list("quantity", flat=True)) == [3]
+
+
+# ---------------------------------------------------------------------------
+# T017 — a failure partway through saving rows rolls back the parent too
+# ---------------------------------------------------------------------------
+
+
+class _SimulatedRowFailure(Exception):
+    """Raised by a monkeypatched ``OrderLine.save`` to force a partial-save."""
+
+
+@pytest.mark.django_db
+class TestInlineTransactionAtomicity:
+    """A failure while saving rows leaves the parent's changes unpersisted
+    (FR-011, SC-006), and no success message survives the rollback."""
+
+    def test_row_save_failure_rolls_back_parent_and_queues_no_message(
+        self, monkeypatch
+    ):
+        product = ProductFactory(name="Original")
+        original_save = OrderLine.save
+
+        def failing_save(self, *args, **kwargs):
+            if self.quantity == 999:
+                raise _SimulatedRowFailure("boom")
+            return original_save(self, *args, **kwargs)
+
+        monkeypatch.setattr(OrderLine, "save", failing_save)
+        view_cls = _inline_update_view_class(success_url="list")
+        data = {
+            "name": "Changed Name",
+            "form-TOTAL_FORMS": "2",
+            "form-INITIAL_FORMS": "0",
+            "form-MIN_NUM_FORMS": "0",
+            "form-MAX_NUM_FORMS": "1000",
+            "form-0-quantity": "5",
+            "form-1-quantity": "999",
+        }
+        request = _build_request(method="POST", data=data)
+
+        with pytest.raises(_SimulatedRowFailure):
+            view_cls.as_view()(request, pk=product.pk)
+
+        product.refresh_from_db()
+        assert product.name == "Original"
+        assert not OrderLine.objects.filter(quantity=5).exists()
+        assert not OrderLine.objects.filter(quantity=999).exists()
+        assert list(request._messages) == []
