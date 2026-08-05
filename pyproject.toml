@@ -26,9 +26,11 @@ dependencies = [
     "django-crispy-forms (>=2.7,<3.0)",
     "crispy-tailwind (>=1.0.3,<2.0)",
 ]
-# Optional integrations (django-tables2, django-filter, crispy forms, ...) are
-# NOT extras — they live in guarded modules under mvp.integrations and require
-# the corresponding package only when explicitly imported.
+# Optional integrations (django-tables2, django-filter, ...) are NOT extras —
+# they live in guarded modules under mvp.integrations and require the
+# corresponding package only when explicitly imported. django-crispy-forms and
+# crispy-tailwind above are plain runtime dependencies, not an integration:
+# form rendering requires them on every install.
 
 [project.urls]
 homepage = "https://github.com/django-mvp/django-mvp"
