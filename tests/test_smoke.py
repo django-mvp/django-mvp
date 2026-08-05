@@ -107,3 +107,34 @@ class TestDemoPagesDontLeakTheScaffoldPlaceholder:
 
 
 # ---------------------------------------------------------------------------
+# Packaged form rendering works on a clean install (FR-001)
+# ---------------------------------------------------------------------------
+
+
+class TestCrispyIsARuntimeDependency:
+    """crispy is required for the packaged form rendering to work at all.
+
+    Parses pyproject.toml itself rather than installed distribution metadata:
+    `.dist-info/METADATA` is written at install time and would not change when
+    the source is fixed, so a metadata-based assertion would stay red after
+    the declaration moves.
+    """
+
+    def test_crispy_pair_declared_in_project_dependencies(self):
+        import tomllib
+
+        pyproject = tomllib.loads(
+            (BASE_DIR / "pyproject.toml").read_text(encoding="utf-8")
+        )
+        declared = pyproject["project"]["dependencies"]
+        assert any("django-crispy-forms" in dep for dep in declared), (
+            "django-crispy-forms must be declared in [project].dependencies — "
+            "packaged form rendering requires it on every install."
+        )
+        assert any("crispy-tailwind" in dep for dep in declared), (
+            "crispy-tailwind must be declared in [project].dependencies — "
+            "packaged form rendering requires it on every install."
+        )
+
+
+# ---------------------------------------------------------------------------
