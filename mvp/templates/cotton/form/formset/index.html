@@ -1,0 +1,20 @@
+{% comment %}
+  A whole Django formset: the management form Django needs to read the
+  submission back, one row per form in formset order, and the inert
+  empty-form template a later phase clones to add rows in the browser.
+
+  Set-level error rendering and the add-row control are not this template's
+  job yet — see contracts/formset-component.md.
+{% endcomment %}
+<c-vars formset class />
+{% if formset %}
+  <div class="space-y-4 {{ class }}" {{ attrs }}>
+    {{ formset.management_form }}
+    {% for form in formset.forms %}
+      <c-form.formset.row :form="form" />
+    {% endfor %}
+    <template>
+      <c-form.formset.row :form="formset.empty_form" />
+    </template>
+  </div>
+{% endif %}
