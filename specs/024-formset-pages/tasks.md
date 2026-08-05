@@ -136,14 +136,14 @@ and the submission.
 
 Depends on every phase above — the capability has to exist before it is documented.
 
-- [ ] T036 [US6] Add `ProductOrderLinesView` to `demo/views.py` using the existing `Product` and `OrderLine` models, and its route to `demo/urls.py`.
-- [ ] T037 [US6] Give `demo.OrderLine`'s `product` and `quantity` fields `verbose_name` and `help_text` with `gettext_lazy`, and wrap its `Meta.verbose_name` strings, then generate the migration. Article IX makes both mandatory and applies to `demo/`, and this is the pair the worked example renders — a page demonstrating the packaged look cannot demonstrate help text with a field that has none.
-- [ ] T038 [P] [US6] Write `docs/formsets.md`: the whole path from a model and its related model, through view configuration, to a rendered page, plus the standalone formset case (FR-027, FR-028). Add it to the guide table in `docs/index.md`.
-- [ ] T039 [P] [US6] Add `<c-form.formset>` and `<c-form.formset.row>` to the component reference in `docs/components.md`, and the configured view to `docs/views.md`.
-- [ ] T040 [P] [US6] Add a component doc page at `demo/templates/demo/components/formset.html` and register it in `demo/component_docs.py`, matching the existing per-component pages.
-- [ ] T041 [P] [US6] Define the vocabulary this feature introduces in `CONTEXT.md` — row set, related row, and the two new components in the Forms block of the component inventory (FR-029).
-- [ ] T042 [US6] Record the public surface in `CHANGELOG.md` under Unreleased, with an "On upgrade:" paragraph in the house style covering the two new `INSTALLED_APPS` entries a consumer must add (FR-030). Update the README's scope statement, which currently points at formsets as the example of what the package does not yet cover.
-- [ ] T043 [US6] Annotate roadmap item R12 in `docs/ROADMAP.md` in place. Strike through, never delete, and follow each struck passage with a **Settled by this feature, 2026-08-05** note in the same shape as the refined Assumption in `spec.md` (`~~struck text~~` then an indented bold-led replacement paragraph), which is the house pattern and has no precedent yet in this file.
+- [x] T036 [US6] Add `ProductOrderLinesView` to `demo/views.py` using the existing `Product` and `OrderLine` models, and its route to `demo/urls.py`.
+- [x] T037 [US6] Give `demo.OrderLine`'s `product` and `quantity` fields `verbose_name` and `help_text` with `gettext_lazy`, and wrap its `Meta.verbose_name` strings, then generate the migration. Article IX makes both mandatory and applies to `demo/`, and this is the pair the worked example renders — a page demonstrating the packaged look cannot demonstrate help text with a field that has none.
+- [x] T038 [P] [US6] Write `docs/formsets.md`: the whole path from a model and its related model, through view configuration, to a rendered page, plus the standalone formset case (FR-027, FR-028). Add it to the guide table in `docs/index.md`.
+- [x] T039 [P] [US6] Add `<c-form.formset>` and `<c-form.formset.row>` to the component reference in `docs/components.md`, and the configured view to `docs/views.md`.
+- [x] T040 [P] [US6] Add a component doc page at `demo/templates/demo/components/formset.html` and register it in `demo/component_docs.py`, matching the existing per-component pages.
+- [x] T041 [P] [US6] Define the vocabulary this feature introduces in `CONTEXT.md` — row set, related row, and the two new components in the Forms block of the component inventory (FR-029).
+- [x] T042 [US6] Record the public surface in `CHANGELOG.md` under Unreleased, with an "On upgrade:" paragraph in the house style covering the two new `INSTALLED_APPS` entries a consumer must add (FR-030). Update the README's scope statement, which currently points at formsets as the example of what the package does not yet cover.
+- [x] T043 [US6] Annotate roadmap item R12 in `docs/ROADMAP.md` in place. Strike through, never delete, and follow each struck passage with a **Settled by this feature, 2026-08-05** note in the same shape as the refined Assumption in `spec.md` (`~~struck text~~` then an indented bold-led replacement paragraph), which is the house pattern and has no precedent yet in this file.
 
   Two passages go, and identifying them correctly matters more than the edit itself:
 

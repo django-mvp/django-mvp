@@ -579,3 +579,46 @@ rather than three, but a correction is not a strike.
 recording the earlier misreading in the task text so it is not reintroduced. **Revisit if**:
 R12 is rewritten wholesale by a later roadmap pass, at which point the strike-throughs fold
 into the rewrite.
+
+## D35 — US-6 tamper flag on `tests/test_smoke.py`: approved, same file-granular cause
+
+`tamper-check` flagged `tests/test_smoke.py` as a modified pre-existing test file. The diff
+across US-6's eight commits is 77 insertions and zero deletions: three new test classes
+appended (`TestProductOrderLinesWorkedExample`, `TestOrderLineArticleIXCompliance`,
+`TestFormsetComponentDocPage`). No pre-existing test in the file was altered.
+
+**Why it fires**: the check is file-granular, so appending to a file that existed at the base
+ref reads the same as editing it. Third occurrence in this feature, after D30 and D32.
+
+**Resolution**: approved. **Revisit if**: the check gains function-level granularity, at which
+point these three triage entries stop being needed.
+
+## D36 — R8 is closed by a status-line flip at convergence, not a strike-through
+
+The US-6 Implementer raised that `docs/ROADMAP.md`'s R8 — the item this whole feature
+delivers — now reads stale in the same way R12 did ("Nothing in the package refers to
+formsets today"), and asked whether it needed the same treatment. It does not.
+
+**Why the two differ**: R12 is a *live* item that this feature partly settled, so the part
+that is settled has to be struck or a future reader hunts for a defect that is gone. R8 is
+*this feature's own item*, and the repository already has a convention for a delivered item:
+the status line changes to `*Delivered · needs verification · advances G4*` and the body
+prose stays in its original tense. R7 is the precedent — tagged Delivered, body still reads
+"the one stop on the model-to-pages path that does not arrive".
+
+**Resolution**: R8's body is left alone; the status-line flip happens at convergence with the
+rest of the feature-level bookkeeping. The Implementer was right to leave it rather than
+assume. **Revisit if**: the roadmap adopts a single completion convention that supersedes the
+status-line tag.
+
+## D37 — T042's README rewrite reverted to the original description of Django's gap
+
+T042 updated the README scope statement on the basis that its formset sentence had gone
+stale. It had not. The sentence describes what *Django* leaves you with, and Django has not
+changed — the package filling that gap is the paragraph's own claim, which this feature makes
+true rather than false. The shipped wording also broke grammatically ("this package does",
+with no verb to attach to).
+
+**Resolution**: the original description of Django's shortfall is restored, and the sentence
+now names what the package does about it. Committed as `cbad6d6`. **Revisit if**: the scope
+statement is rewritten wholesale, at which point the illustration may move.
