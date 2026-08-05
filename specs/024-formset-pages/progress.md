@@ -122,3 +122,28 @@ subtractive. Applied in full:
 
 The spec amendment is the one change that alters what Sam signed off, so it goes to him as a delta
 brief before S4 begins.
+
+## S3R round 3 — security lens — 2026-08-05
+
+Re-ran the security lens alone, as the only one still red. It confirmed SEC-101, SEC-102 and
+SEC-103 closed, and found that the SEC-102 remedy had itself introduced a regression:
+
+- **SEC-201 (verified high)** — resolving the success URL above the atomic block breaks the create
+  path, where `self.object` is `None`: the no-`success_url` case raises `ImproperlyConfigured`
+  after the rows commit, and `success_url = "detail"` silently redirects to an unresolved literal
+  path. Verified independently against `mvp/views/edit.py:203-260` and
+  `mvp/views/detail.py:78-99,130-149` before accepting. Fixed by moving the resolution below the
+  block, and T016 now exercises FR-012 on the create path with an object-dependent success URL —
+  `success_url = "list"` resolves without the object and would have hidden it. Recorded as D28.
+- **SEC-202 (verified low)** — one residue of the withdrawn `absolute_max` bound in `research.md`'s
+  summary table. Removed. Recorded as D29.
+
+The reviewer also confirmed, in its own words, that leaving `absolute_max` at Django's default is
+safe here: the ceiling is bounded rather than absent, validation runs outside the transaction, the
+attacker must already hold the parent's edit permission, and the cost matches what every Django
+inline formset in the consuming project already carries. It separately cleared row identity for
+IDOR — a submitted `id` belonging to another parent's row creates a new row rather than hijacking
+the other record, because `_existing_object` resolves only within the parent-scoped queryset.
+
+**The D28 and D29 edits have not themselves been through a review round.** Both are subtractive or
+one-statement moves, and T016 and T021 are written to fail if either is undone.

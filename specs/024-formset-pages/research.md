@@ -326,7 +326,7 @@ is identical and Article II prefers what is already there.
 | Row-level field errors | Already handled by `tailwind/layout/help_text_and_errors.html` |
 | Row removal | `DELETE` flag set, row hidden, indices untouched |
 | Row addition | `empty_form` in a `<template>`, `__prefix__` substitution, `TOTAL_FORMS` incremented |
-| Row cap | `validate_max=True` plus a bounded `absolute_max` on the server; the add control compares the visible-row count |
+| Row cap | `validate_max=True` on the server; the add control compares the visible-row count |
 | Client runtime | Alpine 3, already loaded by `mvp/templates/mvp/base.html` |
 | Atomicity | `transaction.atomic()` around parent save and formset save |
 | Dependencies | crispy pair promoted to runtime, deptry `DEP002` ignores extended |

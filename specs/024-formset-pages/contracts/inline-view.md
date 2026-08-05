@@ -91,16 +91,26 @@ The success message and the redirect are produced **after** the block exits, and
 So `form_valid` queues the message and returns the redirect itself:
 
 ```python
-success_url = self.get_success_url()
 with transaction.atomic():
     self.object = form.save()
     formset.instance = self.object
     formset.save()
+success_url = self.get_success_url()
 messages.success(self.request, self.get_success_message(form.cleaned_data))
 return HttpResponseRedirect(success_url)
 ```
 
-`MVPDeleteView.form_valid` already does exactly this and is the house precedent.
+**The success URL is resolved after the saves, not before them.** On the create path Django sets
+`self.object = None` before `form_valid` runs, and `get_success_url()` needs the saved object: with
+no `success_url` set it falls through to `object.get_absolute_url()` and raises
+`ImproperlyConfigured` when there is no object, and with `success_url = "detail"` it fails to
+resolve the shorthand — `get_url_kwargs` has no pk — and silently returns the literal string
+`"detail"` as a relative path. Either way the rows are already committed. This is the same order
+`ModelFormMixin.form_valid` uses: save, then resolve.
+
+`MVPDeleteView.form_valid` is the precedent for producing the message and redirect directly, but
+**not** for the ordering — it resolves the URL first because its object is about to be deleted,
+and its success-URL chain has no `get_absolute_url()` step. That reason does not transfer here.
 
 **Redirect.** Handled by the inherited `get_success_url()` — the `next` parameter, then a CRUD
 shorthand, then `success_url`, then `get_absolute_url()`. Identical to the single-form pages

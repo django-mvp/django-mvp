@@ -452,3 +452,42 @@ falsehood T005 exists to correct was missed:
 implementer reads as normative. The lesson is narrower than "proofread": an edit that corrects a
 claim has to correct every copy of it, and a renumbering invalidates every id written down
 elsewhere.
+
+## D28 — The success URL is resolved after the saves, not before them
+
+The round-2 fix for the double parent save (D26) introduced a regression, which round 3 caught. It
+specified `success_url = self.get_success_url()` as the first statement of `form_valid`, above the
+atomic block. On the create path Django sets `self.object = None` before `form_valid` runs, and
+`MVPModelFormBase.get_success_url` needs the saved object:
+
+- With no `success_url` set, it falls through to step 3 — `object.get_absolute_url()` — finds no
+  object, and raises `ImproperlyConfigured`. The rows are already committed, so the user gets a 500
+  on a submission that saved.
+- With `success_url = "detail"`, `get_url_kwargs` has no pk to work with and returns `None`,
+  `resolve_crud_url` returns `None`, and the chain falls to step 2b and returns the literal string
+  `"detail"` as a relative path. The user is redirected to a 404 on a record that saved fine.
+
+Neither shows up under `success_url = "list"`, which `get_url_kwargs` resolves to `{}` without the
+object — and that is the value the contract's own worked configuration uses, so the obvious fixture
+would have hidden it. T016 now exercises FR-012 on the create path with an object-dependent success
+URL specifically.
+
+The fix is to resolve the URL after the block, which is the same effective order
+`ModelFormMixin.form_valid` uses: save, then resolve. The message and the redirect stay outside the
+transaction, which is all D19 and D26 ever required.
+
+**Where the mistake came from, because it is the more useful part.** `MVPDeleteView.form_valid` was
+cited as the house precedent, and it does resolve the URL first — but for a reason that does not
+transfer: its object is about to be deleted, and its success-URL chain has no `get_absolute_url()`
+step. It was the right precedent for *producing the message and redirect directly* and the wrong
+one for *ordering*. Copying a shape without its reason is what put the statement in the wrong place.
+
+**Why defensible**: it restores Django's own ordering, it is a one-statement move, and the test that
+pins it is now written against the case that fails.
+
+## D29 — One residue from the D25 withdrawal
+
+`research.md`'s technology summary table still listed "a bounded `absolute_max`" after R9 had
+withdrawn it, contradicting the contract, the data model, the plan and the task. Removed. This is
+the second instance of the pattern D27 named: a correction has to reach every copy of the claim,
+including the summary that restates it.
