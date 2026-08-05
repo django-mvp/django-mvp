@@ -25,12 +25,19 @@ mixins.
 
 `inline_max_num` is a real cap, not a presentational one. Django's `inlineformset_factory`
 defaults `validate_max=False`, so `max_num` alone rejects nothing: a submission carrying more
-rows than the cap is accepted and saved, up to `max_num + 1000`. When `inline_max_num` is set,
-`get_formset_factory_kwargs()` therefore also sets `validate_max=True` and an `absolute_max`
-proportionate to the cap rather than Django's `max_num + 1000` default. The second half matters
-independently of the first: `full_clean` constructs and validates every submitted form before it
-reaches the too-many-forms check, so `absolute_max` is what bounds the work a single request can
-demand.
+rows than the cap is accepted and saved. When `inline_max_num` is set,
+`get_formset_factory_kwargs()` therefore also sets `validate_max=True`.
+
+**`absolute_max` is left at Django's default and must not be derived from the cap.** Django's
+`absolute_max` check reads the *raw* submitted `TOTAL_FORMS` and, unlike the `validate_max` check,
+does not subtract the rows marked for deletion — and `total_form_count()` clamps to it, so every
+row past the bound is dropped before validation and never re-rendered. Binding it to the cap would
+therefore reject submissions that are legitimately within the cap the moment a user adds and
+removes rows in the same sitting, and would silently discard what they typed, against FR-013. It
+would also make a record with pre-existing rows above the cap permanently uneditable through this
+view, because the very submission that removes the surplus is the one rejected. `absolute_max`
+stays the memory-exhaustion backstop Django intends, at the same ceiling every other Django inline
+formset already has.
 
 Anything else — `min_num`, `validate_min`, a custom base formset class, `fk_name` where two
 relations exist between the models — is supplied by overriding `get_formset_factory_kwargs()`.
@@ -69,10 +76,31 @@ to `formset.instance`, and the formset is saved. A failure at any point leaves n
 (FR-011). `BaseInlineFormSet.save_new` reads `formset.instance` at save time, so assigning the
 parent after creating it is what attaches rows to a brand-new record (FR-014).
 
-The success message and the redirect are produced **after** the block exits. `super().form_valid()`
-reaches `SuccessMessageMixin`, and Django's message storage is not transactional — a flash queued
-inside the block survives the rollback, so a request that persisted nothing would still tell the
-user the record was saved.
+The success message and the redirect are produced **after** the block exits, and **not** by calling
+`super().form_valid()`. Two reasons, and both matter:
+
+- Django's message storage is not transactional, so a flash queued inside the block survives a
+  rollback — a request that persisted nothing would still tell the user the record was saved.
+- `super().form_valid()` reaches `SuccessMessageMixin`, whose first statement delegates to
+  `ModelFormMixin.form_valid`, whose first statement is `self.object = form.save()`. Neither
+  `MVPCreateView` nor `MVPUpdateView` overrides it, so calling it after the block would save the
+  parent a **second** time, outside the transaction and after the rows were written — an extra
+  `UPDATE` of every field, a second `_save_m2m`, and a consuming project's `post_save` receivers
+  firing twice for one user action.
+
+So `form_valid` queues the message and returns the redirect itself:
+
+```python
+success_url = self.get_success_url()
+with transaction.atomic():
+    self.object = form.save()
+    formset.instance = self.object
+    formset.save()
+messages.success(self.request, self.get_success_message(form.cleaned_data))
+return HttpResponseRedirect(success_url)
+```
+
+`MVPDeleteView.form_valid` already does exactly this and is the house precedent.
 
 **Redirect.** Handled by the inherited `get_success_url()` — the `next` parameter, then a CRUD
 shorthand, then `success_url`, then `get_absolute_url()`. Identical to the single-form pages

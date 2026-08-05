@@ -2,8 +2,9 @@
 
 **Feature**: `024-formset-pages` | **Date**: 2026-08-05
 
-The package ships no models and this feature adds none. There is no migration. What follows is
-the runtime shape of the data the page carries, which is what the spec's Key Entities describe.
+The package ships no models and this feature adds none. It does add field metadata to one demo
+model, which generates a single migration — see Demo models at the end. What follows is the
+runtime shape of the data the page carries, which is what the spec's Key Entities describe.
 
 ## Entities
 
@@ -64,7 +65,7 @@ flag and Django decides what it means.
 | A row is internally inconsistent | The row form's `clean()` | Inside that row, above its fields |
 | Rows conflict with each other | The formset's `clean()` | Above the set (FR-017) |
 | Too few rows | Django, when `validate_min` | Above the set |
-| Too many rows | Django, when `validate_max` — which the view sets whenever `inline_max_num` is configured | Above the set |
+| Too many rows | Django, when `validate_max` — which the view sets whenever `inline_max_num` is configured. `absolute_max` stays at Django's default and is never derived from the cap | Above the set |
 | Management form missing or tampered with | Django | The submission is rejected rather than partly processed |
 | Parent and rows valid together | The view | Neither is persisted unless both pass (FR-010) |
 

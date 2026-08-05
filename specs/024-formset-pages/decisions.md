@@ -356,3 +356,99 @@ pages. It predates this feature and two other script tags in the same block have
 fixing it here would be a second feature wearing this one's branch. It is named in the plan's Risks,
 the Constitution Check's Article V row is qualified rather than a bare PASS, and the remedy is filed
 as its own issue — the same treatment D16 gave the declined system check.
+
+---
+
+*Decisions below came out of the S3R design review's **second** round (2026-08-05). The
+spec-compliance lens approved; the security lens returned one verified high finding against the
+round-1 remedy itself. The design-review budget was exhausted, so the run escalated and Sam
+authorised a second re-plan cycle rather than treating it as a spec failure.*
+
+## D24 — This feature settles the whole of R12's undeclared-dependency deliverable, not half
+
+**This one amends the approved spec**, which is why it is recorded here and struck through in
+`spec.md` rather than quietly edited.
+
+The spec's Assumptions reserved "the list-page dependency" for R12, on the reading that this
+feature fixed only the form-rendering half. That reading was wrong on the facts. The list page and
+the form page load the *same* distribution: `mvp/templates/list_view.html` loads
+`crispy_forms_tags`, `mvp/templates/cotton/form/render.html` loads `crispy_forms_tags` and
+`tailwind_filters`, and an exhaustive search of `mvp/templates/` finds no other third-party tag
+library on either path. Declaring the distribution resolves both pages at once, so after this
+feature there is no list-page half left to do.
+
+Two further corrections ride with it. R12's "at a reduced but working level of polish" framing is
+also settled, because crispy is no longer optional and there is nothing to degrade to. And the
+deliverable in question is R12's **second**, not its first — the first is the general
+guarded-or-declared rule, which stays.
+
+R12 keeps the unguarded module-level import in a view module, the documented-but-absent form
+renderer setting, and the check covering every optional dependency.
+
+**Why defensible**: a roadmap item that still claims a defect the repository no longer has sends a
+future feature looking for it. The original text is struck rather than deleted, because it records
+why R12 was scoped the way it was.
+
+## D25 — `absolute_max` stays at Django's default; the cap is enforced by `validate_max` alone
+
+D17 said `get_formset_factory_kwargs()` should also bound `absolute_max` to the cap plus the
+extras. That half is withdrawn. It was wrong, and the design review demonstrated it against this
+project's own environment rather than arguing it.
+
+Django's `absolute_max` check reads the **raw** submitted `TOTAL_FORMS` and, unlike the
+`validate_max` check beside it, does not subtract the rows marked for deletion. So a user working
+inside a cap of three who adds four rows and removes two submits five forms with two `DELETE`
+flags — `validate_max` passes, because 5 − 2 = 3, and a cap-derived `absolute_max` rejects it
+anyway. Worse, `total_form_count()` clamps to `absolute_max`, so rows past the bound are never
+constructed, never validated and never re-rendered, and what the user typed is gone: a direct
+breach of FR-013. Worst, a record whose rows already exceed the cap after an import or a lowered
+limit could never be brought back into compliance, because the submission that removes the surplus
+is exactly the one refused.
+
+The justification D17 gave was also false. It claimed the unbounded default lets a request force a
+thousand form constructions "while holding a write transaction open". The formset is validated
+**before** `transaction.atomic()` opens, so `full_clean` never runs inside a write transaction.
+
+`validate_max=True` alone gives the enforcement the finding asked for. T021 now tests both
+directions — over the cap is rejected, and within-the-cap-after-removals is accepted, which is the
+test that pins this decision.
+
+**Why defensible**: it is subtractive. The remaining ceiling is Django's own default, which every
+inline formset in every Django project already carries, and the enforcement FR-026 needs is intact.
+
+## D26 — `form_valid` never calls `super().form_valid()`
+
+D19 moved the success message outside the transaction, which was right, but specified doing it by
+calling `super().form_valid()` after the block. That re-enters `SuccessMessageMixin`, which
+delegates to `ModelFormMixin.form_valid`, whose first statement is `self.object = form.save()`.
+Neither `MVPCreateView` nor `MVPUpdateView` overrides it, so every inline submission would have
+saved the parent a second time — outside the transaction, after the rows were written, re-running
+`_save_m2m`, and firing a consuming project's `post_save` receivers twice for one user action.
+
+`form_valid` resolves the success URL, does the two saves inside the block, queues the message with
+`messages.success`, and returns the redirect itself. `MVPDeleteView.form_valid` already does
+exactly this and is the house precedent. T016 now asserts the parent is saved exactly once.
+
+**Why defensible**: the correct shape already existed in the same module. The defect came from
+reaching for the inherited hook out of habit rather than reading what it does.
+
+## D27 — Documentation drift the round-1 edits left behind
+
+Three artefacts contradicted themselves after the first re-plan, and one instance of the standing
+falsehood T005 exists to correct was missed:
+
+- `research.md` R3's decision sentence still said `__prefix__` is replaced with "the current
+  `TOTAL_FORMS` value" — the exact ambiguity SEC-003 was raised about — while the corrected
+  wording sat three lines below it in the same section.
+- `data-model.md` opened by saying there is no migration and closed by describing the one this
+  feature generates.
+- `progress.md`'s S3 record named T041–T043 as the convergence tasks. After the renumbering those
+  ids are live US6 story tasks, so the reference resolved to the wrong three rather than failing
+  to resolve.
+- `docs/index.md` still describes crispy forms as an optional third-party integration. T004 now
+  covers it.
+
+**Why defensible**: none of these changes a decision, but each is the kind of stale sentence an
+implementer reads as normative. The lesson is narrower than "proofread": an edit that corrects a
+claim has to correct every copy of it, and a renumbering invalidates every id written down
+elsewhere.

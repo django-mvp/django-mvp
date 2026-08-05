@@ -24,9 +24,10 @@ Artifacts: `plan.md`, `research.md` (R1–R8), `data-model.md`, `contracts/forms
   which permits it where a rendered-template assertion cannot express the behaviour). No
   Complexity Tracking entry.
 - Ledger: 40 tasks across six stories, schema-valid.
-- `tasks.md` carries three further convergence tasks (T041–T043: stylesheet rebuild,
-  simplification pass, full machine gate). They belong to S5 and are driven by the pipeline, not
-  by a story, so they are deliberately absent from the story ledger.
+- `tasks.md` carries three further convergence tasks (then T041–T043, now **T044–T046** after the
+  S3R renumbering: stylesheet rebuild, simplification pass, full machine gate). They belong to S5
+  and are driven by the pipeline, not by a story, so they are deliberately absent from the story
+  ledger. Under the current numbering T041–T043 are live US6 story tasks.
 - Planning decisions D10–D16 recorded in `decisions.md`.
 
 ## S3R DESIGN_REVIEW — 2026-08-05
@@ -97,3 +98,27 @@ Four low-severity findings (SEC-103, SPEC-102, SPEC-103, SPEC-104) are documenta
 the round-1 edits and are applied with whichever disposition Sam chooses.
 
 Reports archived at `engineering-org/runs/django-mvp/024-formset-pages/findings-<lens>-round2.json`.
+
+## S3R re-plan, cycle 2 — 2026-08-05
+
+Sam authorised a second re-plan cycle rather than treating the escalation as a spec failure, on
+the reading that both blocking findings were defects in the round-1 remedy and both fixes were
+subtractive. Applied in full:
+
+- **SEC-101** — the `absolute_max` bound is withdrawn. `validate_max=True` alone enforces the cap.
+  `contracts/inline-view.md`, `research.md` R9 (including the false write-transaction
+  justification), `data-model.md`, `plan.md`'s Article V row and T022 all corrected, and T021 now
+  tests both directions: over the cap is rejected, and within-the-cap-after-removals is accepted.
+  That second test is what pins the decision. Recorded as D25.
+- **SEC-102** — `form_valid` no longer calls `super().form_valid()`. It queues the message and
+  returns the redirect directly, as `MVPDeleteView.form_valid` already does. T023 rewritten, and
+  T016 gained a parent-saved-exactly-once assertion. Recorded as D26.
+- **SPEC-101** — **spec amendment.** The Assumption reserving a list-page dependency for R12 is
+  struck through in place and replaced with a dated `**Refined**` note: both pages load the same
+  distribution, so this feature settles that deliverable whole, and it is R12's second deliverable
+  rather than its first. T043 rewritten against the corrected reading. Recorded as D24.
+- **SEC-103, SPEC-102, SPEC-103, SPEC-104** — documentation drift left by the round-1 edits, all
+  four applied. Recorded as D27.
+
+The spec amendment is the one change that alters what Sam signed off, so it goes to him as a delta
+brief before S4 begins.

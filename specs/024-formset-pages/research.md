@@ -99,7 +99,8 @@ nothing that the `DELETE` flag does not already give.
 
 **Decision**: The component renders `formset.empty_form` once into an inert
 `<template x-ref>` element. Adding a row clones that markup, replaces every `__prefix__`
-occurrence with the current `TOTAL_FORMS` value, appends it, and increments `TOTAL_FORMS`.
+occurrence with the monotonic `total` counter described below, appends it, and increments both
+counters and `TOTAL_FORMS`.
 
 **Rationale**: This is what `empty_form` exists for. It is a real, unbound form whose prefix is
 the literal `__prefix__`, so its field names, ids and label `for` attributes are all
@@ -146,18 +147,25 @@ it to `formset.instance`, then save the formset. `BaseInlineFormSet.save_new` re
 `self.instance` at save time to set the foreign key, so assigning the freshly-created parent
 after the fact is sufficient and satisfies FR-014 for the create case.
 
-**What must stay outside the block**: the success message and the redirect. The parent save runs
-through `super().form_valid()`, which reaches `SuccessMessageMixin` and calls `messages.success`.
-Django's message storage is not transactional, so a flash queued inside the block outlives the
-rollback — a request that persisted nothing would still tell the user the record was saved. The
-transaction wraps the two saves and nothing else.
+**What must stay outside the block**: the success message and the redirect. Django's message
+storage is not transactional, so a flash queued inside the block outlives the rollback — a request
+that persisted nothing would still tell the user the record was saved. The transaction wraps the
+two saves and nothing else.
+
+**And `super().form_valid()` is not how they get produced.** It reaches `SuccessMessageMixin`,
+whose first statement delegates to `ModelFormMixin.form_valid`, whose first statement is
+`self.object = form.save()`. Neither `MVPCreateView` nor `MVPUpdateView` overrides it, so calling
+it after the block would save the parent a second time — outside the transaction, after the rows
+were written, re-running `_save_m2m` and firing a consuming project's `post_save` receivers twice
+for one user action. `form_valid` therefore queues the message and returns the redirect itself,
+exactly as `MVPDeleteView.form_valid` already does.
 
 ---
 
 ## R9 — `max_num` is not a cap unless `validate_max` is set
 
-**Decision**: `get_formset_factory_kwargs()` sets `validate_max=True` and a bounded
-`absolute_max` whenever `inline_max_num` is configured.
+**Decision**: `get_formset_factory_kwargs()` sets `validate_max=True` whenever `inline_max_num`
+is configured, and leaves `absolute_max` at Django's default.
 
 **Rationale**: `inlineformset_factory` defaults `validate_max=False`, and `BaseFormSet.full_clean`
 raises `too_many_forms` only when `self.validate_max` is set, or when the submitted `TOTAL_FORMS`
@@ -170,15 +178,35 @@ it says the add control stops "rather than adding a row the submission will reje
 assumes a rejection the design had not arranged. For a published package the distinction is not
 academic: the consumer sets `inline_max_num` and reasonably believes it binds.
 
-`absolute_max` matters independently of `validate_max`, and this is the part that is easy to
-miss. `full_clean` constructs and validates **every** submitted form before it reaches the
-too-many-forms check, so with the default a single request can still force a thousand form
-constructions and a thousand primary-key lookups while holding a write transaction open. Bounding
-`absolute_max` to the configured cap plus the extras is what bounds the work.
+**`absolute_max` must not be derived from the cap**, and an earlier draft of this entry said it
+should. That was wrong, and demonstrably so — the design review reproduced it against this
+project's own environment rather than reasoning about it. Two properties of Django's check make a
+cap-derived bound break correct submissions:
+
+- The `absolute_max` clause reads the **raw** submitted `TOTAL_FORMS` and, unlike the
+  `validate_max` clause beside it, does not subtract `deleted_forms`. A user working within a cap
+  of three who adds four rows and removes two submits `TOTAL_FORMS=5` with two `DELETE` flags:
+  `validate_max` passes, because 5 − 2 = 3, and a cap-derived `absolute_max` rejects it anyway.
+- `total_form_count()` returns `min(TOTAL_FORMS, absolute_max)`, and only that many forms are
+  constructed. Rows past the bound are dropped before validation and never re-rendered, so what
+  the user typed vanishes — a direct breach of FR-013.
+
+The second case is worse than the first. A record whose rows already exceed the cap, after an
+import or a lowered limit, could never be brought back into compliance, because the submission
+marking the surplus for deletion is exactly the one rejected.
+
+The justification the earlier draft gave was also false. It claimed an unbounded `absolute_max`
+lets a request force a thousand form constructions "while holding a write transaction open". It
+does not: the formset is validated **before** `transaction.atomic()` opens, so `full_clean` never
+runs inside a write transaction. What remains is the ordinary cost of Django's own default
+ceiling, which every inline formset in every Django project already carries.
 
 **Alternatives considered**: leaving enforcement to the consumer through
 `get_formset_factory_kwargs()`. Rejected — a property that only holds when the consumer
 independently discovers an override hook is a design defect in a package, not a documentation gap.
+A separate opt-in attribute capping add operations per page load was also considered and rejected:
+no FR or SC asks for one, and it cannot be derived from `inline_max_num` without reintroducing the
+defect above.
 
 ---
 
