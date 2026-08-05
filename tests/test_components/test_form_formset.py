@@ -92,3 +92,49 @@ class TestFormsetRowErrors:
         form = _error_row_form()
         html = render('<c-form.formset.row :form="form" />', form=form)
         assert "Something is wrong with this row." in html
+
+
+# ---------------------------------------------------------------------------
+# <c-form.formset>
+# ---------------------------------------------------------------------------
+
+
+class TestFormsetManagementForm:
+    def test_management_form_is_present(self):
+        formset = RowFormSet()
+        html = render('<c-form.formset :formset="formset" />', formset=formset)
+        assert 'name="form-TOTAL_FORMS"' in html
+        assert 'name="form-INITIAL_FORMS"' in html
+
+
+class TestFormsetRows:
+    def test_one_row_per_form_in_formset_order(self):
+        formset = forms.formset_factory(RowForm, extra=0)(
+            initial=[{"name": "Alpha"}, {"name": "Bravo"}]
+        )
+        html = render('<c-form.formset :formset="formset" />', formset=formset)
+        assert 'name="form-0-name"' in html
+        assert 'name="form-1-name"' in html
+        assert html.index("form-0-name") < html.index("form-1-name")
+
+    def test_blank_extra_rows_look_identical_to_populated_ones(self):
+        formset = forms.formset_factory(RowForm, extra=1)(initial=[{"name": "Alpha"}])
+        html = render('<c-form.formset :formset="formset" />', formset=formset)
+        # form-0 is populated (from initial), form-1 is a blank extra row —
+        # both must go through the same row wrapper markup.
+        assert 'id="div_id_form-0-name"' in html
+        assert 'id="div_id_form-1-name"' in html
+
+
+class TestFormsetEmptyForm:
+    def test_empty_form_appears_once_inside_a_template_element(self):
+        formset = RowFormSet()
+        html = render('<c-form.formset :formset="formset" />', formset=formset)
+        assert html.count("<template>") == 1
+        assert html.count("</template>") == 1
+
+    def test_empty_form_carries_the_literal_prefix(self):
+        formset = RowFormSet()
+        html = render('<c-form.formset :formset="formset" />', formset=formset)
+        assert "__prefix__" in html
+        assert 'name="form-__prefix__-name"' in html
