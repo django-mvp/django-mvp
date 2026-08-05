@@ -2,7 +2,7 @@
   "feature": "024-formset-pages",
   "branch": "024-formset-pages",
   "repo": "django-mvp/django-mvp",
-  "state": "DESIGN_REVIEW",
+  "state": "ESCALATED",
   "state_history": [
     {
       "state": "INTAKE",
@@ -29,6 +29,11 @@
       "state": "DESIGN_REVIEW",
       "at": "2026-08-05T19:05:00Z",
       "note": "Three lenses ran; all returned request_changes. Two verified HIGH (SPEC-001, SEC-001) forced the one permitted re-plan cycle; 17 further findings applied in the same pass. Task ids renumbered, 43 tasks."
+    },
+    {
+      "state": "ESCALATED",
+      "at": "2026-08-05T20:05:00Z",
+      "note": "S3R round 2: spec-compliance approve, security request_changes with one verified HIGH (SEC-101). Design-review budget 1/1 exhausted, so the second red round escalates rather than re-plans."
     }
   ],
   "gates": {
@@ -359,5 +364,12 @@
   "pr": {
     "number": 169,
     "draft": true
-  }
+  },
+  "escalations": [
+    {
+      "at": "2026-08-05T20:05:00Z",
+      "reason": "Design-review budget exhausted with security still red. SEC-101 (verified high): the absolute_max half of the round-1 SEC-001 remedy rejects legitimate submissions and drops submitted rows, contradicting D18's monotonic TOTAL_FORMS and FR-013. SEC-102 (verified medium): the specified form_valid re-enters ModelFormMixin and saves the parent twice. SPEC-101 (verified medium): spec.md's Assumptions reserve a list-page dependency for R12 that this feature in fact resolves, so the R12 annotation needs a spec amendment and a re-gate.",
+      "resolved": false
+    }
+  ]
 }

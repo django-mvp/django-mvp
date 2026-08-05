@@ -59,3 +59,41 @@ Task ids were renumbered in the re-plan. 43 story tasks plus three convergence t
 is schema-valid at 43.
 
 **Design-review budget: 1 of 1 used.** A second red round escalates rather than re-plans.
+
+## S3R round 2 — 2026-08-05 — ESCALATED
+
+Re-ran the two lenses that raised blocking findings in round 1. Both reports gated green on
+receipts.
+
+| Lens | Verdict | Round-1 dispositions | New findings |
+|---|---|---|---|
+| spec-compliance | **approve** | 10 closed, 1 partly closed and accepted | 4 (1 medium, 3 low) |
+| security | **request_changes** | SEC-002 and SEC-003 closed, SEC-001 partly closed | 3 (1 high, 1 medium, 1 low) |
+
+The spec-compliance lens re-ran the two-way FR/SC-to-task trace from scratch against the
+renumbered task list and found no orphaned requirement and no orphaned task.
+
+**Design-review budget is 1 of 1, and the second round is still red, so the run escalates rather
+than re-planning.** The three findings Sam needs to rule on:
+
+- **SEC-101 (verified high)** — the `absolute_max` half of the round-1 fix is wrong. Bounding it
+  to the cap plus the extras rejects submissions that are legitimately within the cap, because
+  Django's `absolute_max` check reads the raw submitted `TOTAL_FORMS` without subtracting deleted
+  rows, and drops every row past the bound before validation. It contradicts D18's monotonic
+  counter and breaks FR-013. The reviewer demonstrated both cases against the project venv rather
+  than reasoning about them. The remedy is subtractive: keep `validate_max=True`, drop the
+  `absolute_max` bound. R9's justification for the bound is also false — the formset is validated
+  before the transaction opens, so no write transaction is held during `full_clean`.
+- **SEC-102 (verified medium)** — producing the flash by calling `super().form_valid()` after the
+  atomic block re-enters `ModelFormMixin.form_valid`, which saves the parent a second time outside
+  the transaction. `MVPDeleteView.form_valid` is the house precedent for doing it directly.
+- **SPEC-101 (verified medium)** — a **spec** fault, not a plan fault. `spec.md`'s Assumptions
+  reserve "the list-page dependency" for R12, but the list page and the form page load the same
+  distribution, which this feature declares. R12's deliverable is settled for both pages. Fixing
+  the R12 annotation correctly needs a spec amendment and a re-gate, which is why it is not being
+  applied quietly.
+
+Four low-severity findings (SEC-103, SPEC-102, SPEC-103, SPEC-104) are documentation drift left by
+the round-1 edits and are applied with whichever disposition Sam chooses.
+
+Reports archived at `engineering-org/runs/django-mvp/024-formset-pages/findings-<lens>-round2.json`.
