@@ -138,3 +138,46 @@ class TestCrispyIsARuntimeDependency:
 
 
 # ---------------------------------------------------------------------------
+# Worked example: a parent and its rows on one page (US6, T036)
+# ---------------------------------------------------------------------------
+
+
+class TestProductOrderLinesWorkedExample:
+    """demo.ProductOrderLinesView — the parent-and-rows page docs/formsets.md walks through."""
+
+    @pytest.mark.django_db
+    def test_get_renders_the_parent_form_and_its_existing_rows(self, client):
+        from tests.factories import OrderLineFactory, ProductFactory
+
+        product = ProductFactory()
+        OrderLineFactory(product=product, quantity=3)
+
+        response = client.get(f"/products/{product.pk}/order-lines/")
+
+        assert response.status_code == 200
+        content = response.content.decode()
+        assert 'value="3"' in content
+
+    @pytest.mark.django_db
+    def test_post_saves_the_parent_and_its_rows_in_one_submission(self, client):
+        from tests.factories import ProductFactory
+
+        product = ProductFactory(name="Original")
+        data = {
+            "name": "Renamed via the worked example",
+            "order_lines-TOTAL_FORMS": "1",
+            "order_lines-INITIAL_FORMS": "0",
+            "order_lines-MIN_NUM_FORMS": "0",
+            "order_lines-MAX_NUM_FORMS": "1000",
+            "order_lines-0-quantity": "5",
+        }
+
+        response = client.post(f"/products/{product.pk}/order-lines/", data=data)
+
+        assert response.status_code == 302
+        product.refresh_from_db()
+        assert product.name == "Renamed via the worked example"
+        assert list(product.order_lines.values_list("quantity", flat=True)) == [5]
+
+
+# ---------------------------------------------------------------------------

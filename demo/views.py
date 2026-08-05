@@ -11,7 +11,7 @@ from django.http import Http404
 from django_filters.views import FilterView
 
 from demo.component_docs import COMPONENTS, COMPONENTS_BY_SLUG
-from demo.models import Article, Category, Product
+from demo.models import Article, Category, OrderLine, Product
 from demo.tables import ProductTable
 from mvp.integrations.django_tables.views import MVPTableViewMixin
 from mvp.views import (
@@ -19,6 +19,7 @@ from mvp.views import (
     MVPDeleteView,
     MVPDetailView,
     MVPHomeView,
+    MVPInlineUpdateView,
     MVPTemplateView,
     MVPUpdateView,
 )
@@ -195,6 +196,23 @@ class ProductUpdateView(MVPUpdateView):
     show_list_action = True
     show_detail_action = True
     show_delete_action = True
+
+
+class ProductOrderLinesView(MVPInlineUpdateView):
+    """A product and its order lines, validated and saved together.
+
+    The worked example docs/formsets.md walks through: one view, no template
+    markup for the rows, no code to build, validate or save the set.
+    """
+
+    model = Product
+    fields = ["name", "category"]
+    inline_model = OrderLine
+    inline_fields = ["quantity"]
+    inline_extra = 1
+    success_url = "list"
+    show_list_action = True
+    show_detail_action = True
 
 
 class ProductDeleteView(MVPDeleteView):
