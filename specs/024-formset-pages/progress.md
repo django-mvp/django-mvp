@@ -169,3 +169,16 @@ Two items travel forward rather than being closed here:
   gate, so it goes to him as a delta brief. Only T043 depends on it; it is held until he rules.
 - **SEC-002**, the CDN-loaded Alpine runtime, is filed as its own issue rather than fixed on this
   branch.
+
+## Spec amendment approved — 2026-08-05
+
+Sam approved the D24 delta brief in session. The amended Assumption stands: this feature settles
+the whole of R12's undeclared-dependency deliverable rather than half of it, and it is R12's second
+deliverable rather than its first. Recorded on the ledger's spec gate alongside the original
+approval, since it is the same gate re-affirmed rather than a new one. **T043 is released.**
+
+## S4 IMPLEMENT — 2026-08-05
+
+Craft-skill gate green before any dispatch: `forge check-skills --role implementer --brief brief`
+returns `craft-tdd` and `craft-increments` with receipts matching `kit/craft-skills.json`.
+Beginning with the US1 foundational phase, which every later story renders through.

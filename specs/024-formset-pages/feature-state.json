@@ -2,7 +2,7 @@
   "feature": "024-formset-pages",
   "branch": "024-formset-pages",
   "repo": "django-mvp/django-mvp",
-  "state": "PLAN",
+  "state": "IMPLEMENT",
   "state_history": [
     {
       "state": "INTAKE",
@@ -39,6 +39,11 @@
       "state": "PLAN",
       "at": "2026-08-05T21:10:00Z",
       "note": "S3R closed clean after a Sam-authorised second re-plan cycle and a third security round. All three lenses satisfied; ready for the plan notification and S4."
+    },
+    {
+      "state": "IMPLEMENT",
+      "at": "2026-08-05T21:35:00Z",
+      "note": "Spec amendment (D24) approved by Sam via delta brief; T043 released. S4 begins with the US1 foundational phase."
     }
   ],
   "gates": {
@@ -52,7 +57,8 @@
         "Parent and rows save atomically, stated as a requirement rather than assumed of the database.",
         "Creating a parent alongside its first rows is covered, not only editing.",
         "No per-row permission surface.",
-        "The worked example is written against the demo application."
+        "The worked example is written against the demo application.",
+        "AMENDED 2026-08-05 and re-approved by Sam in session: the Assumption reserving R12's list-page dependency is struck through and refined. This feature settles the whole of R12's undeclared-dependency deliverable (its second, not its first), because both pages load the same distribution. R12 keeps the unguarded module-level import, the absent form renderer setting, and the optional-dependency check. Delta brief sent and approved before implementation; T043 released."
       ]
     },
     "plan": {
