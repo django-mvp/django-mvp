@@ -378,3 +378,68 @@ class TestInlineCreateAttachesRows:
         assert all(
             line.product_id == new_product.pk for line in new_product.order_lines.all()
         )
+
+
+# ---------------------------------------------------------------------------
+# T021 - inline_max_num is a real cap, and absolute_max stays at Django's
+# default so a within-cap submission is not silently truncated
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+class TestInlineMaxNumCap:
+    """``inline_max_num`` is enforced on the server, not only in the browser.
+    Equally important: a submission that is within the cap once removals are
+    counted is accepted - this is what pins ``absolute_max`` to Django's
+    default rather than a derivation from the cap."""
+
+    def test_exceeding_max_num_is_rejected_with_set_level_error(self):
+        view_cls = _inline_create_view_class(success_url="list", inline_max_num=3)
+        data = {
+            "name": "Capped Product",
+            "form-TOTAL_FORMS": "4",
+            "form-INITIAL_FORMS": "0",
+            "form-MIN_NUM_FORMS": "0",
+            "form-MAX_NUM_FORMS": "1000",
+            "form-0-quantity": "1",
+            "form-1-quantity": "2",
+            "form-2-quantity": "3",
+            "form-3-quantity": "4",
+        }
+
+        _, response = _dispatch(view_cls, method="POST", data=data)
+
+        assert response.status_code == 200
+        html = _rendered_html(response)
+        assert "Please submit at most 3 forms." in html
+        assert Product.objects.count() == 0
+        assert OrderLine.objects.count() == 0
+
+    def test_within_cap_after_removals_is_accepted(self):
+        product = ProductFactory(name="Existing")
+        existing = OrderLineFactory(product=product, quantity=1)
+        view_cls = _inline_update_view_class(success_url="list", inline_max_num=3)
+        # 5 forms submitted (1 existing + 4 new), 2 of the new rows marked
+        # DELETE -> 3 forms remain, exactly at the cap.
+        data = {
+            "name": "Existing",
+            "form-TOTAL_FORMS": "5",
+            "form-INITIAL_FORMS": "1",
+            "form-MIN_NUM_FORMS": "0",
+            "form-MAX_NUM_FORMS": "1000",
+            "form-0-id": str(existing.pk),
+            "form-0-quantity": "1",
+            "form-1-quantity": "2",
+            "form-2-quantity": "3",
+            "form-2-DELETE": "on",
+            "form-3-quantity": "4",
+            "form-4-quantity": "5",
+            "form-4-DELETE": "on",
+        }
+
+        _, response = _dispatch(
+            view_cls, method="POST", data=data, view_kwargs={"pk": product.pk}
+        )
+
+        assert response.status_code == 302
+        assert set(product.order_lines.values_list("quantity", flat=True)) == {1, 2, 4}
