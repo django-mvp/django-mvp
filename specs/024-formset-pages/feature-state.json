@@ -2,7 +2,7 @@
   "feature": "024-formset-pages",
   "branch": "024-formset-pages",
   "repo": "django-mvp/django-mvp",
-  "state": "ESCALATED",
+  "state": "PLAN",
   "state_history": [
     {
       "state": "INTAKE",
@@ -34,6 +34,11 @@
       "state": "ESCALATED",
       "at": "2026-08-05T20:05:00Z",
       "note": "S3R round 2: spec-compliance approve, security request_changes with one verified HIGH (SEC-101). Design-review budget 1/1 exhausted, so the second red round escalates rather than re-plans."
+    },
+    {
+      "state": "PLAN",
+      "at": "2026-08-05T21:10:00Z",
+      "note": "S3R closed clean after a Sam-authorised second re-plan cycle and a third security round. All three lenses satisfied; ready for the plan notification and S4."
     }
   ],
   "gates": {
@@ -60,9 +65,10 @@
     },
     "design_review": {
       "approved_by": "design-panel",
-      "at": "2026-08-05T19:05:00Z",
+      "at": "2026-08-05T21:10:00Z",
       "self_resolved": [
-        "SEC-002 \u2014 Alpine loaded from a CDN at a floating version with no subresource integrity. Pre-existing and wider than this feature; carried as a named risk in plan.md and filed as its own issue rather than fixed on this branch."
+        "SEC-002 \u2014 Alpine loaded from a CDN at a floating version with no subresource integrity. Pre-existing and wider than this feature; carried as a named risk in plan.md and filed as its own issue rather than fixed on this branch.",
+        "SPEC-101 \u2014 the R12 scope Assumption was amended in spec.md via a dated strikethrough refinement (D24) rather than a quiet plan edit; it goes to Sam as a delta brief."
       ]
     }
   },
@@ -353,8 +359,8 @@
       "max": 2
     },
     "design_review_cycles": {
-      "used": 1,
-      "max": 1
+      "used": 2,
+      "max": 2
     },
     "tokens": {
       "used": 0,
@@ -369,7 +375,8 @@
     {
       "at": "2026-08-05T20:05:00Z",
       "reason": "Design-review budget exhausted with security still red. SEC-101 (verified high): the absolute_max half of the round-1 SEC-001 remedy rejects legitimate submissions and drops submitted rows, contradicting D18's monotonic TOTAL_FORMS and FR-013. SEC-102 (verified medium): the specified form_valid re-enters ModelFormMixin and saves the parent twice. SPEC-101 (verified medium): spec.md's Assumptions reserve a list-page dependency for R12 that this feature in fact resolves, so the R12 annotation needs a spec amendment and a re-gate.",
-      "resolved": false
+      "resolved": true,
+      "resolution": "Sam authorised a second re-plan cycle on 2026-08-05 rather than treating the escalation as a spec failure, on the reading that both blocking findings were defects in the round-1 remedy and both fixes were subtractive. Applied in full, including a gated spec amendment (D24). Round 3 of the security lens confirmed SEC-101/102/103 closed and found one regression from the round-2 remedy (SEC-201), which was fixed and re-verified. Panel now clean: spec-compliance approve, security approve, architecture raised no blocking finding."
     }
   ]
 }

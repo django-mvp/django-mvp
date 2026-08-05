@@ -147,3 +147,25 @@ the other record, because `_existing_object` resolves only within the parent-sco
 
 **The D28 and D29 edits have not themselves been through a review round.** Both are subtractive or
 one-statement moves, and T016 and T021 are written to fail if either is undone.
+
+## S3R closed — 2026-08-05
+
+Confirmation pass on the two round-3 fixes came back closed with no new findings, verified in the
+files rather than from my report. The reviewer added one observation worth keeping: resolving the
+success URL after the save is not merely safe on the update path but slightly better, because
+`get_absolute_url()` then reflects persisted values rather than pending ones — a slug the
+submission changed, for instance. It also noted that a genuinely misconfigured view still raises
+`ImproperlyConfigured` after the commit, and that this is parity with the packaged single-form
+pages rather than a regression, which is what FR-012 asks for.
+
+**Panel status: clean.** spec-compliance approve, security approve, architecture raised no blocking
+finding and all seven of its findings were applied. `forge stage-exit --stage S3R` green across
+clarifications, ledger schema, issue titles and PR title. Design-review budget 2 of 2, both cycles
+authorised.
+
+Two items travel forward rather than being closed here:
+
+- The **spec amendment** (D24, the R12 scope correction) changes what Sam signed off at the Spec
+  gate, so it goes to him as a delta brief. Only T043 depends on it; it is held until he rules.
+- **SEC-002**, the CDN-loaded Alpine runtime, is filed as its own issue rather than fixed on this
+  branch.
