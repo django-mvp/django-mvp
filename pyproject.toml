@@ -103,7 +103,14 @@ django-easy-icons = ["easy_icons"]
 [tool.deptry.per_rule_ignores]
 DEP001 = ["invoke", "bs4", "pytest"]
 # These packages are used indirectly (INSTALLED_APPS, templates)
-DEP002 = ["django-flex-menus", "django-easy-icons"]
+DEP002 = [
+    "django-flex-menus",
+    "django-easy-icons",
+    "django-crispy-forms",
+    "crispy-tailwind",
+]
+# django-crispy-forms, crispy-tailwind: reached through {% load %} and
+#   INSTALLED_APPS rather than a Python import.
 # invoke: dev task runner, only imported by tasks.py.
 # pytest: mvp/fixtures.py is a pytest11 plugin — it is only ever imported by
 #   pytest itself, so pytest is guaranteed present wherever that module loads.
