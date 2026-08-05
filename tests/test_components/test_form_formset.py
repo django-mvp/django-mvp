@@ -319,6 +319,53 @@ class TestFormsetBuiltinSetLevelErrors:
 # ---------------------------------------------------------------------------
 
 
+class TestFormsetAddRemoveControls:
+    """The add and remove controls (US5, FR-026): no remove control when
+    deletion is forbidden, each remove control carries an accessible name,
+    neither control submits the form, and the add control is bound to the
+    count of rows not marked for removal rather than the raw form count."""
+
+    def test_no_remove_control_when_formset_forbids_deletion(self):
+        NoDeleteFormSet = forms.formset_factory(RowForm, can_delete=False, extra=1)
+        formset = NoDeleteFormSet()
+        html = render('<c-form.formset :formset="formset" />', formset=formset)
+        soup = BeautifulSoup(html, "html.parser")
+        assert soup.find(attrs={"aria-label": "Remove"}) is None
+
+    def test_each_row_remove_control_carries_an_accessible_name(self):
+        formset = RowFormSet()
+        html = render('<c-form.formset :formset="formset" />', formset=formset)
+        soup = BeautifulSoup(html, "html.parser")
+        remove_buttons = soup.find_all(attrs={"aria-label": "Remove"})
+        # RowFormSet has extra=2, and can_delete=True.
+        assert len(remove_buttons) == 2
+
+    def test_neither_control_submits_the_form(self):
+        formset = RowFormSet()
+        html = render('<c-form.formset :formset="formset" />', formset=formset)
+        soup = BeautifulSoup(html, "html.parser")
+        add_button = soup.find("button", attrs={"type": "button"})
+        assert add_button is not None
+        remove_button = soup.find(attrs={"aria-label": "Remove"})
+        assert remove_button.name == "button"
+        assert remove_button.get("type") == "button"
+
+    def test_add_control_is_bound_to_visible_not_the_raw_form_count(self):
+        formset = RowFormSet()
+        html = render('<c-form.formset :formset="formset" />', formset=formset)
+        soup = BeautifulSoup(html, "html.parser")
+        add_button = soup.find(attrs={"aria-label": "Add row"}) or soup.find(
+            lambda tag: tag.name == "button" and "Add row" in tag.get_text()
+        )
+        assert add_button is not None
+        disabled_binding = add_button.get(":disabled") or add_button.get(
+            "x-bind:disabled"
+        )
+        assert disabled_binding is not None
+        assert "visible" in disabled_binding
+        assert "maxNum" in disabled_binding
+
+
 class TestFormsetPageLevelErrorPlacement:
     """An invalid submission never collapses its error into a page-level
     summary distinct from where it belongs, and every submitted value
