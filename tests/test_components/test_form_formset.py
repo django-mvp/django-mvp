@@ -257,6 +257,62 @@ class TestFormsetNonFormErrors:
         assert soup.find(attrs={"role": "alert"}) is None
 
 
+class TestFormsetBuiltinSetLevelErrors:
+    """Django's own set-level validation rules — ``validate_min`` and
+    ``validate_max`` — surface through ``non_form_errors`` exactly like a
+    developer-authored ``formset.clean()`` error, and render above the set.
+    These are the two rules the framework generates rather than the
+    developer writing (T029); US3's TestInlineMaxNumCap already proves
+    ``validate_max`` lands in ``formset.non_form_errors()`` — this proves the
+    rendered page shows it."""
+
+    def test_too_few_rows_renders_above_the_set(self):
+        MinFormSet = forms.formset_factory(RowForm, extra=0, min_num=2, validate_min=True)
+        formset = MinFormSet(
+            data={
+                "form-TOTAL_FORMS": "1",
+                "form-INITIAL_FORMS": "0",
+                "form-MIN_NUM_FORMS": "2",
+                "form-MAX_NUM_FORMS": "1000",
+                "form-0-row_id": "",
+                "form-0-name": "Widget",
+            }
+        )
+        formset.is_valid()
+        html = render('<c-form.formset :formset="formset" />', formset=formset)
+        soup = BeautifulSoup(html, "html.parser")
+        alert = soup.find(attrs={"role": "alert"})
+        assert alert is not None
+        assert "Please submit at least 2 forms." in alert.get_text()
+        assert html.index("Please submit at least 2 forms.") < html.index(
+            'name="form-0-name"'
+        )
+
+    def test_too_many_rows_renders_above_the_set(self):
+        MaxFormSet = forms.formset_factory(RowForm, extra=0, max_num=1, validate_max=True)
+        formset = MaxFormSet(
+            data={
+                "form-TOTAL_FORMS": "2",
+                "form-INITIAL_FORMS": "0",
+                "form-MIN_NUM_FORMS": "0",
+                "form-MAX_NUM_FORMS": "1000",
+                "form-0-row_id": "",
+                "form-0-name": "Widget",
+                "form-1-row_id": "",
+                "form-1-name": "Gadget",
+            }
+        )
+        formset.is_valid()
+        html = render('<c-form.formset :formset="formset" />', formset=formset)
+        soup = BeautifulSoup(html, "html.parser")
+        alert = soup.find(attrs={"role": "alert"})
+        assert alert is not None
+        assert "Please submit at most 1 form." in alert.get_text()
+        assert html.index("Please submit at most 1 form.") < html.index(
+            'name="form-0-name"'
+        )
+
+
 # ---------------------------------------------------------------------------
 # Rendered through a view — proves the re-render is genuine, not just a
 # compiled-source rendering (FR-018, US4 scenario 4)
