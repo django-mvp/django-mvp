@@ -371,6 +371,48 @@ class TestFormsetAddRemoveControls:
         assert "maxNum" in disabled_binding
 
 
+class TestFormsetAddRemoveLabels:
+    """Add and remove control labels default per the contract and are
+    overridable through the add-label and remove-label attributes,
+    Article VIII (T034)."""
+
+    def test_default_labels_match_the_contract(self):
+        formset = RowFormSet()
+        html = render('<c-form.formset :formset="formset" />', formset=formset)
+        assert "Add row" in html
+        soup = BeautifulSoup(html, "html.parser")
+        assert soup.find(attrs={"aria-label": "Remove"}) is not None
+
+    def test_labels_are_overridable_through_attributes(self):
+        formset = RowFormSet()
+        html = render(
+            '<c-form.formset :formset="formset" '
+            'add-label="Add item" remove-label="Take off" />',
+            formset=formset,
+        )
+        assert "Add item" in html
+        assert "Add row" not in html
+        soup = BeautifulSoup(html, "html.parser")
+        removed = [
+            button
+            for button in soup.find_all(attrs={"aria-label": "Take off"})
+            if button.find_parent("template") is None
+        ]
+        assert len(removed) == 2
+        assert soup.find(attrs={"aria-label": "Remove"}) is None
+
+    def test_row_remove_label_is_overridable_directly(self):
+        form = RowFormSet().forms[0]
+        html = render(
+            '<c-form.formset.row :form="form" can-delete="true" '
+            'remove-label="Take off" />',
+            form=form,
+        )
+        soup = BeautifulSoup(html, "html.parser")
+        assert soup.find(attrs={"aria-label": "Take off"}) is not None
+        assert soup.find(attrs={"aria-label": "Remove"}) is None
+
+
 class TestFormsetPageLevelErrorPlacement:
     """An invalid submission never collapses its error into a page-level
     summary distinct from where it belongs, and every submitted value
