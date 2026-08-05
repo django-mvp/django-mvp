@@ -8,6 +8,8 @@ from pathlib import Path
 import django
 import pytest
 
+from demo.models import OrderLine
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
@@ -178,6 +180,20 @@ class TestProductOrderLinesWorkedExample:
         product.refresh_from_db()
         assert product.name == "Renamed via the worked example"
         assert list(product.order_lines.values_list("quantity", flat=True)) == [5]
+
+
+class TestOrderLineArticleIXCompliance:
+    """demo.OrderLine's fields carry help text — Article IX, and T037's reason for existing:
+    the worked example renders both fields, and a page demonstrating the packaged look
+    cannot demonstrate help text with a field that has none."""
+
+    def test_product_field_has_help_text(self):
+        field = OrderLine._meta.get_field("product")
+        assert str(field.help_text) != ""
+
+    def test_quantity_field_has_help_text(self):
+        field = OrderLine._meta.get_field("quantity")
+        assert str(field.help_text) != ""
 
 
 # ---------------------------------------------------------------------------
