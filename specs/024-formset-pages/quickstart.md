@@ -105,15 +105,22 @@ Expected from the view: a submission whose row carries `DELETE` deletes that rec
 whose *added* row carries `DELETE` creates nothing; a record whose row was removed on the page
 but never submitted is unchanged.
 
-The interaction itself needs a real browser and is the one exception Article XIV allows:
+Also expected from the view: a submission whose `TOTAL_FORMS` exceeds the configured
+`inline_max_num` is rejected with a set-level error and persists nothing. The add control is
+presentation; this is the cap.
+
+The interaction itself needs a real browser and is the one exception Article XIV allows. It lives
+beside the components it exercises, as a class with the marker at class level:
 
 ```bash
-poetry run pytest tests/test_e2e/ -m e2e
+poetry run pytest tests/test_components/test_form_formset.py -m e2e
 ```
 
 Expected: adding a row inserts a blank row without a reload and increments `TOTAL_FORMS`;
-removing a row hides it without a request; submitting afterwards matches the database to what
-the page showed.
+removing a pre-rendered row hides it without a request; **removing the row that was just added**
+hides it and sets its `DELETE`, which is the case no server-side test can reach because cloned
+markup is inert until Alpine initialises it; and submitting afterwards matches the database to
+what the page showed.
 
 ## Scenario 6 — The documented path (US6, SC-007)
 

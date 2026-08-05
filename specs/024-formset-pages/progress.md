@@ -28,3 +28,34 @@ Artifacts: `plan.md`, `research.md` (R1–R8), `data-model.md`, `contracts/forms
   simplification pass, full machine gate). They belong to S5 and are driven by the pipeline, not
   by a story, so they are deliberately absent from the story ledger.
 - Planning decisions D10–D16 recorded in `decisions.md`.
+
+## S3R DESIGN_REVIEW — 2026-08-05
+
+Three lenses in parallel against `spec.md` + `plan.md` + `research.md` + `tasks.md` + the
+constitution, with no diff in existence. Craft-skill gate green both ways: `check-skills` before
+dispatch, `check-receipts` per lens against its own dispatch brief on the way back.
+
+| Lens | Verdict | Findings |
+|---|---|---|
+| spec-compliance | request_changes | 11 (1 high, 5 medium, 5 low) |
+| security | request_changes | 3 (1 high, 1 medium, 1 low) |
+| architecture | request_changes | 7 (3 medium, 4 low) |
+
+Two verified HIGH findings forced the one permitted re-plan cycle:
+
+- **SPEC-001** — no task tested a valid parent submitted with invalid rows, the one branch
+  `form_valid` adds. The formset-validation guard could have been deleted with every other test in
+  that story still passing.
+- **SEC-001** — `inline_max_num` was passed to Django as `max_num` without `validate_max`, so a
+  cap of three would have accepted and saved a submission carrying a thousand rows.
+
+Eighteen further findings were accepted and applied in the same pass rather than carried, because
+the cycle was already open. One finding (SEC-002, the CDN-loaded Alpine runtime) is carried rather
+than fixed: it predates the feature and is wider than it. Decisions D17–D23 record the outcomes;
+the three reports are archived at
+`engineering-org/runs/django-mvp/024-formset-pages/findings-<lens>.json`.
+
+Task ids were renumbered in the re-plan. 43 story tasks plus three convergence tasks; the ledger
+is schema-valid at 43.
+
+**Design-review budget: 1 of 1 used.** A second red round escalates rather than re-plans.

@@ -36,7 +36,7 @@ them consistent.
 |---|---|---|
 | `<prefix>-TOTAL_FORMS` | Django | How many rows the submission carries. **Incremented when a row is added; never decremented.** |
 | `<prefix>-INITIAL_FORMS` | Django | How many rows already existed. Never touched by the page. |
-| `<prefix>-MIN_NUM_FORMS` / `-MAX_NUM_FORMS` | Django | The configured bounds. Read by the add control. |
+| `<prefix>-MIN_NUM_FORMS` / `-MAX_NUM_FORMS` | Django | The configured bounds. Read by the add control, and enforced on the server through `validate_max`. |
 | `<prefix>-<n>-id` | Django | The primary key of an existing row. Rendered as a hidden field; without it a submitted row cannot be matched to its record. |
 | `<prefix>-<n>-DELETE` | Django | Whether this row is removed. Rendered hidden and driven by the row's state, never shown as a checkbox. |
 | `__prefix__` | Django | The literal index in `formset.empty_form`, substituted with the new row's index when a row is added. |
@@ -64,7 +64,7 @@ flag and Django decides what it means.
 | A row is internally inconsistent | The row form's `clean()` | Inside that row, above its fields |
 | Rows conflict with each other | The formset's `clean()` | Above the set (FR-017) |
 | Too few rows | Django, when `validate_min` | Above the set |
-| Too many rows | Django, when `validate_max` | Above the set |
+| Too many rows | Django, when `validate_max` — which the view sets whenever `inline_max_num` is configured | Above the set |
 | Management form missing or tampered with | Django | The submission is rejected rather than partly processed |
 | Parent and rows valid together | The view | Neither is persisted unless both pass (FR-010) |
 
@@ -80,5 +80,10 @@ The worked example uses the demo application's existing pair, unchanged:
 - `demo.OrderLine` — the row. Foreign key to `Product`, `on_delete=PROTECT`,
   `related_name="order_lines"`, plus `quantity`.
 
-No field is added and no migration is generated, so Article IX's field conventions are not
-engaged.
+No field is added and no relation changes. Article IX is engaged all the same: neither of
+`OrderLine`'s fields carries `verbose_name` or `help_text`, both are mandatory, and the article
+says explicitly that it applies to `demo/`. They are added, with `gettext_lazy`, which generates
+one migration — squashed with the branch's others at convergence. This is not incidental
+conformance work: the worked example renders `quantity`, and a page demonstrating that a row's
+field gets the same label and help text as a single form's field cannot demonstrate it with a
+field that has neither.

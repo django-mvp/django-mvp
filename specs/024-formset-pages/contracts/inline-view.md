@@ -21,12 +21,23 @@ mixins.
 | `inline_fields` | `None` | Fields on a row, when no form class is given. |
 | `inline_extra` | `1` | Blank rows rendered beyond the existing ones. |
 | `inline_can_delete` | `True` | Whether rows may be removed. `False` suppresses every remove control (FR-026). |
-| `inline_max_num` | `None` | Cap on rows. Passed to Django and read by the add control. |
+| `inline_max_num` | `None` | Cap on rows. Enforced on the server **and** read by the add control. |
 
-Anything else — `min_num`, `validate_min`, `validate_max`, a custom base formset class — is
-supplied by overriding `get_formset_factory_kwargs()`, which returns the full keyword dictionary
-handed to `inlineformset_factory`. One override point rather than an attribute per Django
-parameter.
+`inline_max_num` is a real cap, not a presentational one. Django's `inlineformset_factory`
+defaults `validate_max=False`, so `max_num` alone rejects nothing: a submission carrying more
+rows than the cap is accepted and saved, up to `max_num + 1000`. When `inline_max_num` is set,
+`get_formset_factory_kwargs()` therefore also sets `validate_max=True` and an `absolute_max`
+proportionate to the cap rather than Django's `max_num + 1000` default. The second half matters
+independently of the first: `full_clean` constructs and validates every submitted form before it
+reaches the too-many-forms check, so `absolute_max` is what bounds the work a single request can
+demand.
+
+Anything else — `min_num`, `validate_min`, a custom base formset class, `fk_name` where two
+relations exist between the models — is supplied by overriding `get_formset_factory_kwargs()`.
+It is **super-and-extend**, like Django's own `get_form_kwargs`: the base implementation derives
+the dictionary from the six attributes above, and an override calls
+`super().get_formset_factory_kwargs()` and mutates the result. One override point rather than an
+attribute per Django parameter.
 
 ## Hooks
 
@@ -53,10 +64,15 @@ this feature adds no surface of its own (FR-015).
 (FR-010). If either fails, nothing is persisted and the page re-renders with every submitted
 value still present in both parts (FR-013).
 
-**Saving.** In one `transaction.atomic()` block: the parent is saved, assigned to
-`formset.instance`, and the formset is saved. A failure at any point leaves nothing persisted
+**Saving.** In one `transaction.atomic()` block, and in this order: the parent is saved, assigned
+to `formset.instance`, and the formset is saved. A failure at any point leaves nothing persisted
 (FR-011). `BaseInlineFormSet.save_new` reads `formset.instance` at save time, so assigning the
 parent after creating it is what attaches rows to a brand-new record (FR-014).
+
+The success message and the redirect are produced **after** the block exits. `super().form_valid()`
+reaches `SuccessMessageMixin`, and Django's message storage is not transactional — a flash queued
+inside the block survives the rollback, so a request that persisted nothing would still tell the
+user the record was saved.
 
 **Redirect.** Handled by the inherited `get_success_url()` — the `next` parameter, then a CRUD
 shorthand, then `success_url`, then `get_absolute_url()`. Identical to the single-form pages
@@ -71,10 +87,11 @@ which is what `BaseInlineFormSet` does when given no instance.
 | Condition | Result |
 |---|---|
 | `inline_model` unset | `ImproperlyConfigured`, naming the attribute. |
-| Neither `inline_form_class` nor `inline_fields` set | `ImproperlyConfigured`, naming both. |
 
-Configuration mistakes fail at request time with an actionable message rather than as a
-`TypeError` out of `inlineformset_factory`.
+One guard, not two. Django's own `modelform_factory` already raises a clear `ImproperlyConfigured`
+when neither fields nor a form class is given, so a second check would restate it; an unset
+`inline_model` would otherwise surface as a `TypeError` from inside `inlineformset_factory`, which
+names nothing the developer wrote.
 
 ## Worked configuration
 

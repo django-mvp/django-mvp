@@ -20,7 +20,6 @@ error belonging to the set as a whole, one row per form, and the controls that a
 | `formset` | — | The formset to render. Required in practice; absent renders nothing. |
 | `add-label` | `"Add row"` | Text on the add control. Translatable at the call site. |
 | `remove-label` | `"Remove"` | Accessible name for each row's remove control, passed through to rows. |
-| `legend` | — | Optional heading rendered above the set. |
 | `class` | — | Merged onto the root element. Declared so the caller's classes are not dropped. |
 
 Unrecognised attributes pass through to the root element, as with every packaged component.
@@ -36,9 +35,20 @@ Unrecognised attributes pass through to the root element, as with every packaged
    presented identically to populated ones (US2 scenario 3).
 4. `formset.empty_form` is rendered exactly once inside an inert `<template>` element. It is not
    part of the submitted document and contains the literal prefix `__prefix__`.
-5. The root element carries the Alpine state for the set: how many rows exist, and the cap.
-6. The add control is present when the formset permits another row, and is disabled at
-   `formset.max_num` (FR-026). It never submits the form.
+5. The root element carries the Alpine state for the set, as **two** counters rather than one:
+   - `total` — monotonic. It seeds `__prefix__` substitution and `TOTAL_FORMS`, and is never
+     decremented, because Django reads submitted rows by contiguous index.
+   - `visible` — the number of rows not marked for removal.
+
+   `total` is seeded from `{{ formset.total_form_count }}`, an integer Django has already
+   clamped to `absolute_max`. It is **never** read from the management-form input's DOM value:
+   that is a string the server re-emits verbatim after an invalid submission, and substituting it
+   into cloned markup is an injection seam.
+6. The add control compares **`visible`** against `formset.max_num`, so removing a row on a
+   capped set frees its slot rather than forfeiting it. It is present when the formset permits
+   another row, disabled at the cap (FR-026), and never submits the form. The control is
+   presentation only — the cap is enforced on the server by the view, per
+   `contracts/inline-view.md`.
 7. Rendering with no `formset` in context produces no error. This is not defensive style — it is
    the contract `tests/test_components/test_render_all.py` enforces on every packaged component.
 
@@ -74,8 +84,8 @@ Renders one form of a formset as a row.
 3. `DELETE` is rendered as a hidden input rather than a visible checkbox, and its value is
    driven by the row's removed state. It is never presented to the user as a field.
 4. The form's own non-field errors render inside the row, above its fields.
-5. The remove control appears only when `can-delete` is set. It carries an accessible name and
-   never submits the form.
+5. The remove control appears only when `can-delete` is set. It carries an accessible name,
+   never submits the form, and decrements the set's `visible` counter.
 6. A removed row is hidden, not detached. Its inputs stay in the document with their submitted
    values, which is what keeps the formset's indices contiguous and what makes a removal
    survive an invalid submission (R2).

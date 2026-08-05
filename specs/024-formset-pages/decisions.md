@@ -239,3 +239,120 @@ id, documentation and a CHANGELOG entry. The documented setup in README and
 
 **Why defensible**: Article II, and scope. If the failure recurs in the wild it is a small,
 well-shaped issue of its own rather than something smuggled into this feature.
+
+---
+
+*Decisions below came out of the S3R design review (2026-08-05). Three lenses ran in parallel —
+spec-compliance, security, architecture — against the plan before any code existed. All three
+returned `request_changes`, and every accepted finding is applied in the re-plan. The full reports
+are archived with the run record.*
+
+## D17 — `inline_max_num` is enforced on the server, not only in the browser
+
+The plan passed `inline_max_num` to Django as `max_num` and had the add control stop at it.
+`inlineformset_factory` defaults `validate_max=False`, so `max_num` alone rejects nothing: a view
+configured for three rows would have accepted and saved a submission carrying a thousand.
+`get_formset_factory_kwargs()` now sets `validate_max=True`, and bounds `absolute_max` to the cap
+plus the extras rather than leaving Django's `max_num + 1000`.
+
+The second half is the part that is easy to miss and is not about validity. `full_clean` constructs
+and validates every submitted form *before* it reaches the too-many-forms check, so with the
+default bound a single request can force a thousand form constructions and a thousand primary-key
+lookups while holding a write transaction open. `absolute_max` is what bounds the work.
+
+**Why defensible**: the spec's own edge case says the add control stops "rather than adding a row
+the submission will reject", which assumes a rejection the design had not arranged. A cap a
+consumer sets and reasonably believes binds is a design property, not a documentation one.
+
+## D18 — The set carries two counters, not one
+
+`total` is monotonic and seeds `__prefix__` and `TOTAL_FORMS`. `visible` counts rows not marked for
+removal and is what the add control compares against the cap. With one counter, removing a row on a
+capped set would permanently forfeit its slot — the page would refuse a replacement the submission
+would happily accept, since Django tests `total_form_count() - len(deleted_forms) > max_num`.
+
+`total` is seeded from `{{ formset.total_form_count }}`, never from the management form's DOM value.
+That value is a string the server re-emits verbatim after an invalid submission, and substituting it
+into cloned markup would put a user-supplied string into a new row's `name` and `id` attributes. The
+template variable is an integer Django has already clamped.
+
+**Why defensible**: D11's "never decrement" is about the index Django reads rows by, and it stays.
+It was never a statement about what the add control should count, and collapsing the two into one
+number is what created the defect.
+
+## D19 — The success message is produced outside the transaction
+
+`super().form_valid()` reaches `SuccessMessageMixin`, and Django's message storage is not
+transactional. A flash queued inside the atomic block survives the rollback, so a request that
+persisted nothing would still tell the user the record was saved. The transaction wraps the parent
+save and the formset save, and nothing else; the message and the redirect follow it.
+
+**Why defensible**: FR-011 and SC-006 are about what persists, and a lie in the interface is a
+failure of the same requirement by a different route.
+
+## D20 — The browser test lives with the components, not in a new directory
+
+The plan created `tests/test_e2e/` and its own Constitution Check then claimed no new
+`non-mirror-path` was declared. Both cannot be true. The browser test moves into
+`tests/test_components/test_form_formset.py` as its own class, with the `e2e` marker and the
+playwright `skipif` at class level.
+
+The separate module had been justified as protection against a module-level `pytestmark` hiding
+unit tests. The task always specified a class-level marker, which does not do that, so the module
+was solving a problem the plan had already avoided. `tests/test_views/test_error.py` sets the
+precedent.
+
+Its coverage grew by one case: **removing the row that was just added**. An added row is a clone of
+the `<template>` content, and cloned markup appended into a live Alpine tree is inert until it is
+initialised — so its remove control can do nothing while every markup and view test stays green.
+That is the one behaviour no server-side test can reach, which is the only justification Article XIV
+accepts for a browser test at all.
+
+**Why defensible**: it removes a directory, removes a conformance declaration, and repairs a false
+statement in the Constitution Check, while making the remaining test cover the case that needed a
+browser.
+
+## D21 — Two test gaps the plan had left
+
+**A valid parent with an invalid row.** The plan tested the reverse and not this. It is the branch
+`form_valid` adds: without it, the formset-validation guard could be deleted and every other test in
+that story would still pass. FR-010 and the spec's edge case both name it.
+
+**Errors on more than one row.** FR-019 and US4 scenario 3 require every affected row to carry its
+own message; the task tagged with FR-019 asserted only the single-error case.
+
+**Why defensible**: a requirement with no test that would fail if the behaviour regressed is not
+delivered, whatever the task list says.
+
+## D22 — Three corrections to the plan's own claims
+
+- **`docs/ROADMAP.md` R12 gets a task.** The spec's Assumptions and D5 both commit this feature to
+  correcting R12's framing, and no task did it. The annotation lands in this pull request with the
+  change that causes it.
+- **`demo.OrderLine` needs Article IX work after all.** An earlier draft of R8 said it did not.
+  Neither of its fields carries `verbose_name` or `help_text`, both are mandatory, and Article IX
+  says explicitly that it applies to `demo/`. It matters beyond conformance: this is the pair the
+  worked example renders, and a page demonstrating that a row's field gets the same help text as a
+  single form's field cannot demonstrate it with a field that has none.
+- **The dependency graph and the parallelisation note were wrong.** The story that builds the view
+  asserts against rendered rows, so it depends on the story that puts rows on the page. The two
+  stories that follow the component both edit the same template and cannot run concurrently. Both
+  notes now name the file rather than the phase.
+
+## D23 — Work the review removed, and the one thing it flagged that is not ours to fix
+
+**Removed**: a task duplicating the render-smoke floor that already enrols every packaged component
+automatically; a `legend` attribute on `<c-form.formset>` with no requirement behind it, which would
+have invited an implementer to build it; and half of the view's configuration-error surface, since
+Django's own `modelform_factory` already raises a clear `ImproperlyConfigured` when neither fields
+nor a form class is given. The declared-dependency test also moved out of the module about guarded
+optional integrations, and now parses `pyproject.toml` rather than installed distribution metadata,
+which would not have changed when the fix landed.
+
+**Not ours to fix here**: `mvp/templates/mvp/base.html` loads Alpine and its plugins from a public
+CDN at `3.x.x` with no subresource integrity, which a floating range makes impossible anyway. Anyone
+who compromises that package or its CDN path runs code in every consuming project's authenticated
+pages. It predates this feature and two other script tags in the same block have the same shape, so
+fixing it here would be a second feature wearing this one's branch. It is named in the plan's Risks,
+the Constitution Check's Article V row is qualified rather than a bare PASS, and the remedy is filed
+as its own issue — the same treatment D16 gave the declined system check.

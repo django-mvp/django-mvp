@@ -65,12 +65,12 @@ second verdict column.*
 | II — Simplicity | Reuses `form_view.html` rather than adding a page template; reuses `Product`/`OrderLine` rather than adding a demo model; declines a system check that no requirement asks for. | PASS | PASS |
 | III — Anti-Abstraction | One mixin holding the formset configuration, consumed by two views. No registry, no base hierarchy, no second implementation anticipated. | PASS | PASS |
 | IV — Integration-First | The component and view contracts are written before internals (`contracts/`), and acceptance scenarios drive the tests. | PASS | PASS |
-| V — Security & data-safety | All values render through the template layer. `__prefix__` substitution operates on markup Django produced, never on user input. No auth or crypto surface. | PASS | PASS |
+| V — Security & data-safety | All values render through the template layer. `__prefix__` substitution operates on markup Django produced, and the index substituted in is seeded from `formset.total_form_count` rather than from the management form's DOM value. `inline_max_num` is enforced on the server, not only in the browser. No auth or crypto surface of its own. **Qualified**: the browser behaviour rests on Alpine loaded from a CDN at a floating version with no subresource integrity — pre-existing, not introduced here, and recorded in Risks. | PASS | PASS (qualified) |
 | VI — Documentation | README, `docs/getting-started.md`, `docs/views.md`, `docs/components.md`, `docs/integrations.md`, `CONTEXT.md` and `CHANGELOG.md` all ship in this PR. | PASS | PASS |
 | VII — Dependency discipline | Two runtime dependencies added, justification stated in FR-001 and R5. No new distribution enters the tree — both are already installed transitively for development. deptry stays green. | PASS (justified) | PASS |
 | VIII — Internationalization | Every user-facing string on the add and remove controls and in the demo uses `{% trans %}` or `gettext_lazy`. | PASS | PASS |
-| IX — Data-model conventions | No new model. No migration. | PASS (N/A) | PASS (N/A) |
-| X — Test structure | `mvp/views/inline.py` → `tests/test_views/test_inline.py`; component tests under the already-declared `tests/test_components/`. No new non-mirror path is declared. | PASS | PASS |
+| IX — Data-model conventions | No new model. One migration, giving `demo.OrderLine`'s two fields the `verbose_name` and `help_text` the article makes mandatory and which they have never had. Squashed at convergence. | PASS | PASS |
+| X — Test structure | `mvp/views/inline.py` → `tests/test_views/test_inline.py`; component tests, including the browser test, under the already-declared `tests/test_components/`. No new test directory and no new non-mirror path. The browser test carries its `e2e` marker and `skipif` at class level, never module level. | PASS | PASS |
 | XI — Components are the public API | `<c-form.formset>` and `<c-form.formset.row>` are named for their domain role, live under `mvp/templates/cotton/`, are overridable at their template path, and expose attributes rather than utility classes. This is why crispy's own formset template is not used — see R1. | PASS | PASS |
 | XII — Configuration-driven layout | Row presentation is controlled by component attributes; the view's shape by class attributes. Nothing new enters `MVP_CONFIG`. | PASS | PASS |
 | XIII — Rendered markup is a contract | Both components get per-component tests asserting their rendered structure, and are automatically enrolled in `test_render_all.py`. Remove controls carry an accessible name; the set-level error region is announced. | PASS | PASS |
@@ -121,23 +121,25 @@ mvp/
 └── static/css/django-mvp.css(.br)            # REBUILT at convergence
 
 demo/
+├── models.py                                 # MODIFIED: OrderLine field metadata (Article IX)
+├── migrations/                               # NEW: one, for that metadata
 ├── views.py                                  # MODIFIED: ProductOrderLinesView
 ├── urls.py                                   # MODIFIED: its route
 └── templates/demo/components/formset.html    # NEW: component doc page
 
 tests/
 ├── test_components/
-│   ├── test_form_formset.py                  # NEW: both components
+│   ├── test_form_formset.py                  # NEW: both components, plus the one
+│   │                                         #      browser test as its own class
 │   └── test_form_index.py                    # MODIFIED or NEW: enctype contract
 ├── test_views/
 │   └── test_inline.py                        # NEW: the configured view
-└── test_e2e/
-    └── test_formset_rows.py                  # NEW: the one browser test
+└── test_smoke.py                             # MODIFIED: the declared-dependency check
 
 docs/
 ├── formsets.md                               # NEW: the worked example
-├── getting-started.md, views.md,
-│   components.md, integrations.md, index.md  # MODIFIED
+├── getting-started.md, views.md, components.md,
+│   integrations.md, index.md, ROADMAP.md     # MODIFIED
 CONTEXT.md                                    # MODIFIED: vocabulary
 CHANGELOG.md                                  # MODIFIED: Unreleased
 pyproject.toml                                # MODIFIED: dependencies, deptry
@@ -148,9 +150,14 @@ README.md                                     # MODIFIED: required setup
 `mvp/templates/cotton/form/formset/` because the directory is the Cotton namespace, matching
 `cotton/page/list/actions/`. The view goes in a new `mvp/views/inline.py` rather than into
 `mvp/views/edit.py`, which already carries four view classes across roughly six hundred lines —
-see R7. Tests mirror that split under Article X. The one browser test gets its own module so
-that a module-level `pytestmark` scoping it to `e2e` cannot hide unit tests, per Article X's
-final paragraph.
+see R7. Tests mirror that split under Article X.
+
+**No new test directory.** The one browser test lives in `tests/test_components/test_form_formset.py`
+as its own class, carrying the `e2e` marker and the playwright `skipif` at class level. That is the
+precedent `tests/test_views/test_error.py` already sets, it keeps the test beside the components it
+exercises, and it avoids declaring a second `non-mirror-path` for a directory with no source module
+behind it. Article X's warning is about *module-level* `pytestmark` hiding the unit tests underneath
+it, which a class-level marker does not do — a separate module was never the remedy it called for.
 
 ## Phase breakdown
 
@@ -170,8 +177,10 @@ Ordered by dependency, matching the story priorities. Each phase is independentl
 6. **US6 — documentation.** `docs/formsets.md`, the demo page, `CONTEXT.md`, `CHANGELOG.md`,
    README.
 
-Phases 4 and 5 both touch the component from phase 2, so they run after it rather than beside
-it. Phase 3 is independent of 4 and 5.
+Phase 2 gates everything after it. Phases 4 and 5 both edit the component it creates, so they run
+after it and sequentially with each other, never concurrently. Phase 3 needs no code from phase 2,
+but its page tests assert against rendered rows, which only reach the page through the block phase
+2 adds — so it follows phase 2 too.
 
 ## Risks
 
@@ -186,6 +195,13 @@ it. Phase 3 is independent of 4 and 5.
 - **Promoting a dependency changes what a consumer must install.** It is additive for anyone
   already rendering forms, since they necessarily had both packages, but it is a real metadata
   change and belongs in the CHANGELOG with an "On upgrade:" note, matching the house style.
+- **The browser behaviour rests on an unpinned third-party script.** `mvp/templates/mvp/base.html`
+  loads Alpine and its plugins from a public CDN at `3.x.x`, with no subresource integrity — and a
+  floating range makes integrity impossible by construction. Anyone who compromises that package or
+  its CDN path executes code in every consuming project's authenticated pages, with no deployment
+  on the consumer's side. This is pre-existing and predates the feature, and two other script tags
+  in the same block have the same shape, so it is not fixed here. It is named because this feature
+  is what makes it load-bearing, and it is filed separately.
 
 ## Complexity Tracking
 

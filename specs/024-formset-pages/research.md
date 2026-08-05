@@ -110,8 +110,20 @@ with no build tooling and no new client-side dependency.
 
 The row cap in FR-026 reads from `formset.max_num`, which `formset_factory` always sets
 (defaulting to `DEFAULT_MAX_NUM`), so the add control has a number to compare against in every
-configuration. `absolute_max` is deliberately not used — it is a memory-exhaustion backstop set
-to `max_num + 1000`, not a user-facing limit.
+configuration.
+
+Two details, both added after the design review:
+
+- **The state is two counters, not one.** `total` is monotonic and seeds both `__prefix__` and
+  `TOTAL_FORMS`; `visible` counts rows not marked for removal and is what the add control compares
+  against the cap. With a single counter, removing a row on a capped set would permanently forfeit
+  its slot, which is neither what the user expects nor what Django accepts — `full_clean` tests
+  `total_form_count() - len(deleted_forms) > max_num`.
+- **`total` is seeded from `formset.total_form_count`, never from the DOM.** The management form's
+  `TOTAL_FORMS` input is a string the server re-emits verbatim after an invalid submission. Reading
+  it back and substituting it into cloned markup would put a user-supplied string into the `name`
+  and `id` attributes of a new row. Seeding from the template variable takes an integer Django has
+  already clamped to `absolute_max`.
 
 **Alternatives considered**: fetching a fresh blank row from the server. Rejected outright by
 FR-024, which forbids any row change reaching the server before submission.
@@ -133,6 +145,40 @@ Ordering matters and follows Django's documented inline pattern: save the parent
 it to `formset.instance`, then save the formset. `BaseInlineFormSet.save_new` reads
 `self.instance` at save time to set the foreign key, so assigning the freshly-created parent
 after the fact is sufficient and satisfies FR-014 for the create case.
+
+**What must stay outside the block**: the success message and the redirect. The parent save runs
+through `super().form_valid()`, which reaches `SuccessMessageMixin` and calls `messages.success`.
+Django's message storage is not transactional, so a flash queued inside the block outlives the
+rollback — a request that persisted nothing would still tell the user the record was saved. The
+transaction wraps the two saves and nothing else.
+
+---
+
+## R9 — `max_num` is not a cap unless `validate_max` is set
+
+**Decision**: `get_formset_factory_kwargs()` sets `validate_max=True` and a bounded
+`absolute_max` whenever `inline_max_num` is configured.
+
+**Rationale**: `inlineformset_factory` defaults `validate_max=False`, and `BaseFormSet.full_clean`
+raises `too_many_forms` only when `self.validate_max` is set, or when the submitted `TOTAL_FORMS`
+exceeds `absolute_max` — which defaults to `max_num + DEFAULT_MAX_NUM`, that is `max_num + 1000`
+(`django/forms/formsets.py:552-557`). Passing `max_num` alone therefore rejects nothing: a view
+configured for three rows accepts and saves a submission carrying a thousand.
+
+That would have made FR-026 a browser-side suggestion and left the spec's own edge case false —
+it says the add control stops "rather than adding a row the submission will reject", which
+assumes a rejection the design had not arranged. For a published package the distinction is not
+academic: the consumer sets `inline_max_num` and reasonably believes it binds.
+
+`absolute_max` matters independently of `validate_max`, and this is the part that is easy to
+miss. `full_clean` constructs and validates **every** submitted form before it reaches the
+too-many-forms check, so with the default a single request can still force a thousand form
+constructions and a thousand primary-key lookups while holding a write transaction open. Bounding
+`absolute_max` to the configured cap plus the extras is what bounds the work.
+
+**Alternatives considered**: leaving enforcement to the consumer through
+`get_formset_factory_kwargs()`. Rejected — a property that only holds when the consumer
+independently discovers an override hook is a design defect in a package, not a documentation gap.
 
 ---
 
@@ -226,9 +272,17 @@ models. No new demo model is added.
 
 **Rationale**: `demo/models.py:229` already defines `OrderLine` with a `PROTECT` foreign key to
 `Product` (`related_name="order_lines"`) and a `quantity` field. It is the only true
-line-item-shaped pair in the demo application and needs no migration, no new factory and no new
-`verbose_name`/`help_text` work under Article IX. Its docstring records that it was added for
-delete-view tests; that stays true and gains a second use.
+line-item-shaped pair in the demo application and needs no new model and no new factory. Its
+docstring records that it was added for delete-view tests; that stays true and gains a second use.
+
+**Correction after the design review**: an earlier draft of this section claimed the pair needed
+no `verbose_name`/`help_text` work either. That was wrong. Neither `OrderLine.product` nor
+`OrderLine.quantity` carries either, and Article IX makes both mandatory and says explicitly that
+it applies to `demo/`. It matters here beyond conformance: this is the pair the worked example
+renders, and a page whose job is to demonstrate that a row's field gets the same label and help
+text a single form's field gets cannot demonstrate it with a field that has neither. The fields
+are given both, with `gettext_lazy`, and the resulting migration is squashed with the branch's
+others at convergence.
 
 The naming is a shade off the spec's illustration of an order and its line items, but the shape
 is identical and Article II prefers what is already there.
@@ -244,6 +298,7 @@ is identical and Article II prefers what is already there.
 | Row-level field errors | Already handled by `tailwind/layout/help_text_and_errors.html` |
 | Row removal | `DELETE` flag set, row hidden, indices untouched |
 | Row addition | `empty_form` in a `<template>`, `__prefix__` substitution, `TOTAL_FORMS` incremented |
+| Row cap | `validate_max=True` plus a bounded `absolute_max` on the server; the add control compares the visible-row count |
 | Client runtime | Alpine 3, already loaded by `mvp/templates/mvp/base.html` |
 | Atomicity | `transaction.atomic()` around parent save and formset save |
 | Dependencies | crispy pair promoted to runtime, deptry `DEP002` ignores extended |
