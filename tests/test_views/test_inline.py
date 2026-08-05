@@ -273,3 +273,36 @@ class TestInlineTransactionAtomicity:
         assert not OrderLine.objects.filter(quantity=5).exists()
         assert not OrderLine.objects.filter(quantity=999).exists()
         assert list(request._messages) == []
+
+
+# ---------------------------------------------------------------------------
+# T018 — invalid parent form with valid rows: nothing persists, both
+# parts re-render with submitted values (FR-013)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+class TestInlineInvalidParentForm:
+    """An invalid parent form with a valid row persists nothing, and the page
+    re-renders with every submitted value present in both parts (FR-013)."""
+
+    def test_invalid_parent_persists_nothing_and_preserves_both_parts(self):
+        view_cls = _inline_create_view_class(success_url="list")
+        too_long_name = "x" * 250  # Product.name has max_length=200
+        data = {
+            "name": too_long_name,
+            "form-TOTAL_FORMS": "1",
+            "form-INITIAL_FORMS": "0",
+            "form-MIN_NUM_FORMS": "0",
+            "form-MAX_NUM_FORMS": "1000",
+            "form-0-quantity": "4",
+        }
+
+        _, response = _dispatch(view_cls, method="POST", data=data)
+
+        assert response.status_code == 200
+        html = _rendered_html(response)
+        assert _field_value(html, "name") == too_long_name
+        assert _field_value(html, "form-0-quantity") == "4"
+        assert Product.objects.count() == 0
+        assert OrderLine.objects.count() == 0
