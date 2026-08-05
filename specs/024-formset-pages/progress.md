@@ -13,3 +13,18 @@
 - S1 SPECIFY — done (spec.md + decisions.md, clarify run).
 - S2 SETUP — done (epic promoted, stories #163–#168, draft PR #169, milestone v1.0.0).
 - S3 PLAN — started 2026-08-05.
+
+## S3 PLAN — 2026-08-05
+
+Artifacts: `plan.md`, `research.md` (R1–R8), `data-model.md`, `contracts/formset-component.md`,
+`contracts/inline-view.md`, `quickstart.md`, `tasks.md`, `feature-state.json`.
+
+- Constitution Check: PASS against v4.1.0, with two recorded justifications — the runtime
+  dependency addition (Article VII, which FR-001 states) and one browser test (Article XIV,
+  which permits it where a rendered-template assertion cannot express the behaviour). No
+  Complexity Tracking entry.
+- Ledger: 40 tasks across six stories, schema-valid.
+- `tasks.md` carries three further convergence tasks (T041–T043: stylesheet rebuild,
+  simplification pass, full machine gate). They belong to S5 and are driven by the pipeline, not
+  by a story, so they are deliberately absent from the story ledger.
+- Planning decisions D10–D16 recorded in `decisions.md`.

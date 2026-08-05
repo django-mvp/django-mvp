@@ -140,3 +140,102 @@ integration* and that the work belonged to R12, not here. Sam reversed both at t
 intake: crispy-forms and crispy-tailwind become plain declared dependencies, and they are declared
 in this feature. The reasoning is in D5. The earlier position is not deleted, because it explains
 why R12's first deliverable is now written against a scope it no longer has.
+
+---
+
+*Decisions below were taken at planning (S3). Rationale in full lives in `research.md`; this
+section is the record and the ADR-verdict surface.*
+
+## D10 — The packaged component renders the set, crispy renders the fields
+
+`|crispy` accepts a formset and switches to `<pack>/uni_formset.html`, so the shortest possible
+route existed. It is not taken. crispy-tailwind's formset template never renders
+`formset.non_form_errors`, which would silently drop every set-level error and violate FR-018,
+and its sibling error templates emit raw utility colours rather than DaisyUI classes, which
+Article XI forbids in a component template.
+
+Instead `<c-form.formset>` owns the structure — management form, rows, set-level errors, the
+blank-row template, the controls — and each row's fields go through `|as_crispy_field`, which is
+the same `tailwind/field.html` a single form's fields go through. That identity is what makes
+SC-008 true rather than approximately true, and it means FR-016 is satisfied by a template this
+repository does not own, so the first task of that story is a test proving it.
+
+**Why defensible**: the alternative was overriding a vendored template at `tailwind/`, which
+would have produced a component invisible to `test_render_all.py`, unreachable by a consumer's
+`cotton/` override, and in breach of Article XI's rule that reusable markup is a Cotton component.
+
+## D11 — Removal is uniform; indices are never re-numbered
+
+Removing a row sets Django's `DELETE` flag and hides the row, whether the row is saved or not.
+`TOTAL_FORMS` is incremented when a row is added and never decremented.
+
+Django already separates the two cases: `save_new_objects` skips extra forms marked for deletion,
+and `save_existing_objects` deletes the saved ones. The page therefore sets one flag and lets
+Django decide what it means. Not decrementing is the load-bearing half — Django reads submitted
+rows by contiguous index, so removing a row from the middle and decrementing shifts every later
+row onto the wrong index.
+
+**Why defensible**: re-indexing is the standard source of off-by-one defects in hand-written
+formset pages, it requires rewriting every `name`, `id` and `for` attribute in the surviving
+rows, and it buys nothing the `DELETE` flag does not already give. It also makes the invalid-
+resubmit edge case fall out for free, since the removal was submitted like any other value.
+
+## D12 — No new page template, and no second view for the standalone case
+
+`form_view.html` gains a `{% block formset %}` whose default content renders `<c-form.formset>`
+when a `formset` is in context. Any packaged form view that supplies one gets it rendered in the
+right place, which covers US2 scenario 4 and FR-006 without a second configured view, and leaves
+the US3 view with no template of its own.
+
+A dedicated `inline_form_view.html` was written into the first draft of this plan and removed:
+it carried one line and left the standalone case unsolved.
+
+**Why defensible**: Article II. The block sits where `{% block actions %}` already sits, so the
+pattern is the one the template already uses.
+
+## D13 — `<c-form>` learns about the formset, for one reason
+
+`<c-form>` decides the form's `enctype` from `form_obj.is_multipart` alone. A file field on a row
+would therefore submit without the multipart encoding, which is the edge case the spec names. The
+component gains an optional `formset` attribute consulted in the same condition, and nothing else.
+
+**Why defensible**: the narrowest change that closes a real defect. Widening `<c-form>` to render
+the formset itself was rejected because the actions must follow the set, and the slot cannot
+express that ordering.
+
+## D14 — The view lives in its own module
+
+`mvp/views/inline.py` holds `InlineFormsetMixin`, `MVPInlineCreateView` and `MVPInlineUpdateView`;
+tests mirror it at `tests/test_views/test_inline.py`. Article X permits either placement, so the
+choice is cohesion: `mvp/views/edit.py` already carries four view classes across roughly six
+hundred lines, and the parent-and-rows page is a distinct concern with its own configuration
+surface. "Inline" is Django's own word for a formset bound to a parent through a foreign key.
+
+The configuration is six class attributes for the common cases plus `get_formset_factory_kwargs()`
+for everything else, rather than one attribute per Django parameter.
+
+**Why defensible**: Article XVII wants related behaviour grouped on a class with an extension
+point, and Article III wants no layer between the caller and the work. One mixin with hooks is
+both. The mixin is not exported, matching the rule already stated in `mvp/views/__init__.py`.
+
+## D15 — `get_formset()` memoises, deliberately
+
+The formset is built once per request and reused. `form_invalid` re-renders through
+`get_context_data`, and constructing a second formset there would discard the bound one carrying
+the user's values and its errors — the page would come back blank and FR-013 would fail.
+
+**Why defensible**: it is a correctness requirement disguised as a performance detail, which is
+why it is recorded rather than left to an implementer to rediscover.
+
+## D16 — A startup system check for the crispy apps was declined
+
+Installing the two distributions is not sufficient: Django resolves template tag libraries only
+from apps in `INSTALLED_APPS`, so a consumer who installs and does not configure still meets a
+`TemplateSyntaxError`. A Django system check would turn that into an actionable startup error.
+
+It is not built. No requirement asks for it, and a check is a public surface of its own needing an
+id, documentation and a CHANGELOG entry. The documented setup in README and
+`docs/getting-started.md` carries the requirement instead.
+
+**Why defensible**: Article II, and scope. If the failure recurs in the wild it is a small,
+well-shaped issue of its own rather than something smuggled into this feature.
