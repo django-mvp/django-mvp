@@ -1,0 +1,24 @@
+{% comment %}
+  One row of a formset: every hidden field, every visible field except
+  DELETE rendered through crispy (so a row's field matches a single form's
+  field exactly), and DELETE as a hidden input rather than a checkbox. The
+  form's own non-field errors render above its fields.
+
+  Adding and removing rows in the browser, and the row's remove control, are
+  not this template's job — see contracts/formset-component.md.
+{% endcomment %}
+<c-vars form class />
+{% load crispy_forms_filters %}
+{% if form %}
+  <div class="space-y-4 {{ class }}" {{ attrs }}>
+    {{ form|as_crispy_errors }}
+    {% for field in form.hidden_fields %}{{ field }}{% endfor %}
+    {% for field in form.visible_fields %}
+      {% if field.name == "DELETE" %}
+        {{ field.as_hidden }}
+      {% else %}
+        {{ field|as_crispy_field }}
+      {% endif %}
+    {% endfor %}
+  </div>
+{% endif %}
