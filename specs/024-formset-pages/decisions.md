@@ -124,3 +124,19 @@ nothing to be written against inside the package.
 this feature needs, and Article IX explicitly extends the data-model conventions to `demo/`. An
 example against invented models in prose cannot be executed, and an example that cannot be executed
 is the documentation failure R20 exists to fix.
+
+## D9 — Rulings inherited from the roadmap decomposition, and the one that was reversed
+
+Two decisions were made when R8 was turned into a feature request, before this spec existed.
+
+**Carried forward.** Adding and removing rows uses Alpine, not hand-written JavaScript. The
+packaged base template already loads Alpine 3 and its sort plugin, and the form component already
+carries an Alpine root, so the mechanism is present and a second one would be a second thing to
+maintain. This is a constraint on the plan rather than on the requirements, which is why it appears
+here and in the spec's assumptions rather than as a functional requirement.
+
+**Reversed.** The decomposition recorded that django-crispy-forms would become a *guarded
+integration* and that the work belonged to R12, not here. Sam reversed both at this feature's
+intake: crispy-forms and crispy-tailwind become plain declared dependencies, and they are declared
+in this feature. The reasoning is in D5. The earlier position is not deleted, because it explains
+why R12's first deliverable is now written against a scope it no longer has.

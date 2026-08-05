@@ -169,15 +169,15 @@ of any further code change.
 
 ### Edge Cases
 
-- **A formset that permits no deletion.** When the formset is not configured to allow deletion, no remove control is offered on any row, and the page cannot be made to delete a record.
-- **A formset at its maximum number of rows.** The add control stops offering more rows once the configured maximum is reached, rather than adding a row the submission will reject.
-- **A formset with a minimum number of rows.** Removing below the minimum is a set-level error and renders above the set, per User Story 4.
-- **Every row removed.** The page renders with no rows and the set-level messaging, rather than an empty area with no explanation.
-- **A parent form that is valid while its rows are not, and the reverse.** Neither is persisted, and both keep the values the user typed.
-- **A row containing a file upload.** The page carries the encoding a file submission needs, as the packaged single-form pages already do.
-- **A user without permission to change the parent.** The page behaves exactly as the packaged single-form pages do for the same user; this feature adds no permission surface of its own.
-- **A submission whose management form has been tampered with or is absent.** The request is rejected rather than partially processed, as Django's own handling requires.
-- **A row removed in the browser and then the page submitted with the parent invalid.** The page re-renders with the removal still shown, so the user does not have to remove it again.
+- What happens when the formset does not allow deletion? No remove control is offered on any row, and the page cannot be made to delete a record.
+- What happens when the formset is already at its maximum number of rows? The add control stops offering more, rather than adding a row the submission will reject.
+- What happens when a user removes rows below the formset's minimum? That is an error belonging to the set, so it renders above the set, per User Story 4.
+- What happens when every row is removed? The page renders with no rows and with the set-level messaging, rather than an empty area with no explanation.
+- What happens when the parent form is valid but its rows are not, or the reverse? Neither is persisted, and both keep the values the user typed.
+- What happens when a row contains a file upload? The page carries the encoding a file submission needs, as the packaged single-form pages already do.
+- What happens when the user may not change the parent? The page behaves as the packaged single-form pages behave for that user. This feature adds no permission surface of its own.
+- What happens when a submission's management form is absent or has been tampered with? The request is rejected rather than partly processed, as Django's own handling requires.
+- What happens when a user removes a row and the submission then fails for an unrelated reason? The page re-renders with the removal still shown, so the user does not have to remove it a second time.
 
 ## Requirements *(mandatory)*
 
@@ -284,10 +284,10 @@ requirement.*
 
 ## Assumptions
 
-- **The client-side runtime is already there.** The packaged base template loads Alpine 3 and its sort plugin from a CDN, so adding and removing rows in the browser needs no new client-side dependency and no build step in the consuming project. This is what makes FR-025 achievable rather than aspirational.
-- **Django's own formset machinery is used, not reimplemented.** The management form, the deletion flag, the extra-row count and the row limits are Django's, and this feature puts a front end on them. That is the whole point of the roadmap item.
-- **One parent, one related set.** The configured view packages the single-set case. A page with two related sets remains buildable by composing the rendering components, and is not packaged. Agreed at intake; revisited when a real case appears.
-- **Standalone formsets are a rendering concern.** No second configured view is packaged for a formset with no parent. Agreed at intake.
-- **The roadmap item R12 keeps the rest of its scope.** Only the form-rendering half of its first deliverable moves here. The list-page dependency, the unguarded module-level import in a view module, and the documented-but-absent form renderer setting stay with R12, whose framing needs the corresponding correction.
-- **The demo application is where the worked example lives.** The package ships no models of its own, so the documented path is demonstrated against demo models, as the package's other model-to-pages documentation is.
-- **The shipped stylesheet is rebuilt on this branch.** Any class the new components introduce has to reach the committed build artifact, per Article XV.
+- The client-side runtime the browser behaviour needs is already loaded. The packaged base template pulls in Alpine 3 and its sort plugin, and the packaged form component already carries an Alpine root, so no new client-side dependency and no build step is needed in the consuming project. Alpine rather than hand-written JavaScript was settled when the roadmap item was decomposed. This is what makes FR-025 achievable rather than aspirational.
+- Django's own formset machinery is used rather than reimplemented. The management form, the deletion flag, the extra-row count and the row limits are Django's, and this feature puts a front end on them. That is what the roadmap item asks for.
+- The configured view packages one parent with one related set. A page with two related sets stays buildable by composing the rendering components and is not packaged. Agreed at intake, and revisited when a real case appears.
+- Standalone formsets are a rendering concern only. No second configured view is packaged for a formset with no parent. Agreed at intake.
+- Roadmap item R12 keeps the rest of its scope. Only the form-rendering half of its first deliverable moves here. The list-page dependency, the unguarded module-level import in a view module, and the documented-but-absent form renderer setting stay with R12, whose framing needs the matching correction.
+- The worked example is written against the demo application. The package ships no models of its own, so the documented path is demonstrated against demo models, as the package's other model-to-pages documentation is.
+- The shipped stylesheet is rebuilt on this branch. Any class the new components introduce has to reach the committed build artifact, per Article XV.
