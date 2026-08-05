@@ -104,6 +104,8 @@ INSTALLED_APPS = [
     "easy_icons",
     "flex_menu",
     "mvp",
+    "crispy_forms",     # must come after "mvp" — see Getting Started
+    "crispy_tailwind",
 ]
 
 TEMPLATES = [{
@@ -128,6 +130,9 @@ FLEX_MENUS = {
         "dock": "mvp.renderers.MobileFooterNavRenderer",
     },
 }
+
+CRISPY_ALLOWED_TEMPLATE_PACKS = ["tailwind"]
+CRISPY_TEMPLATE_PACK = "tailwind"
 ```
 
 ```html

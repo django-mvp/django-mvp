@@ -18,7 +18,7 @@ configuration through Django settings, customization through template overrides.
 | [Navigation](navigation.md) | Sidebar and mobile-dock menus via django-flex-menus |
 | [Views](views.md) | List/form/detail/delete views and mixins |
 | [Styling](styling.md) | Tailwind/DaisyUI, theming, and building your own CSS |
-| [Integrations](integrations.md) | Optional third-party integrations (django-tables2, django-filter, crispy forms) |
+| [Integrations](integrations.md) | Optional third-party integrations (django-tables2, django-filter) |
 
 ## Design philosophy
 
