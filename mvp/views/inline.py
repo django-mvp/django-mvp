@@ -4,8 +4,11 @@ Source: mvp/views/inline.py
 Contract: specs/024-formset-pages/contracts/inline-view.md
 """
 
+from django.contrib import messages
 from django.core.exceptions import ImproperlyConfigured
+from django.db import transaction
 from django.forms import inlineformset_factory
+from django.http import HttpResponseRedirect
 
 
 class InlineFormsetMixin:
@@ -85,3 +88,31 @@ class InlineFormsetMixin:
         context = super().get_context_data(**kwargs)
         context["formset"] = self.get_formset()
         return context
+
+    def form_valid(self, form):
+        """Validate the formset, then save both atomically.
+
+        Delegates to ``form_invalid`` when the formset fails validation.
+        Otherwise, in one ``transaction.atomic()`` block, saves the parent,
+        assigns it to ``formset.instance`` and saves the formset - in that
+        order, because ``BaseInlineFormSet.save_new`` reads
+        ``formset.instance`` at save time. The success URL, the message and
+        the redirect are all produced after the block exits, and never by
+        calling ``super().form_valid()``: that reaches ``SuccessMessageMixin``,
+        which delegates to ``ModelFormMixin.form_valid``, which would save the
+        parent a second time outside the transaction. The URL is resolved
+        after the saves so that, on the create path, ``get_success_url()``
+        sees the saved object rather than ``self.object is None``.
+        """
+        formset = self.get_formset()
+        if not formset.is_valid():
+            return self.form_invalid(form)
+
+        with transaction.atomic():
+            self.object = form.save()
+            formset.instance = self.object
+            formset.save()
+
+        success_url = self.get_success_url()
+        messages.success(self.request, self.get_success_message(form.cleaned_data))
+        return HttpResponseRedirect(success_url)

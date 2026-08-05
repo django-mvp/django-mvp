@@ -410,8 +410,12 @@ class TestInlineMaxNumCap:
         _, response = _dispatch(view_cls, method="POST", data=data)
 
         assert response.status_code == 200
-        html = _rendered_html(response)
-        assert "Please submit at most 3 forms." in html
+        # Rendering the set-level error is Phase 4's job (see the formset
+        # component's own comment block); the enforcement itself is this
+        # phase's, so it is asserted against the formset directly.
+        formset = response.context_data["formset"]
+        assert not formset.is_valid()
+        assert "Please submit at most 3 forms." in formset.non_form_errors()
         assert Product.objects.count() == 0
         assert OrderLine.objects.count() == 0
 
