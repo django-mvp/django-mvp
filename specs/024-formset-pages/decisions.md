@@ -648,3 +648,17 @@ schema on arrival. Both filed against the kit rather than fixed mid-run.
 **Revisit if**: the kit adds evidence propagation, at which point this backfill becomes the
 regression fixture — reinstate an evidence-free ledger and prove the stage exit goes red.
 
+## D39 — US-2 tamper flag on `tests/test_views/test_edit.py`: approved (recorded as D30 on
+the feature branch, renumbered on merge)
+
+`forge tamper-check --base 3b3ef2f` raised one flag: `modified_preexisting_test` on
+`tests/test_views/test_edit.py`. The check is file-granular, and the file existed at the base, so
+any edit to it flags.
+
+The diff is additive only: two import lines, a module-level helper, and one new test class appended
+at the end. No pre-existing test function is modified, weakened or deleted, and the file's other 155
+tests pass unchanged. T012 named this file explicitly, so the story could not have been done
+without touching it.
+
+Approved under the D4 triage rule rather than escalated. Recorded here because the policy requires
+an approved flag to carry a written reason.
