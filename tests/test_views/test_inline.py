@@ -115,3 +115,31 @@ class TestInlineModelGuard:
 
         with pytest.raises(ImproperlyConfigured, match="inline_model"):
             _dispatch(view_cls, method="GET", view_kwargs={"pk": product.pk})
+
+
+# ---------------------------------------------------------------------------
+# T015 — GET renders the parent form, existing rows and inline_extra blanks
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+class TestInlineGetRendering:
+    """GET renders the parent's form and one row per existing related record,
+    plus ``inline_extra`` blank rows (FR-009)."""
+
+    def test_get_renders_parent_form_and_existing_rows_plus_extra(self):
+        product = ProductFactory(name="Widget")
+        OrderLineFactory(product=product, quantity=2)
+        OrderLineFactory(product=product, quantity=5)
+        view_cls = _inline_update_view_class()
+
+        _, response = _dispatch(view_cls, method="GET", view_kwargs={"pk": product.pk})
+        html = _rendered_html(response)
+
+        assert _field_value(html, "name") == "Widget"
+        quantities = _all_field_values(html, r"^form-\d+-quantity$")
+        assert quantities.count("2") == 1
+        assert quantities.count("5") == 1
+        # 2 existing rows + 1 inline_extra blank row (default)
+        assert len(quantities) == 3
+        assert _field_value(html, "form-TOTAL_FORMS") == "3"
