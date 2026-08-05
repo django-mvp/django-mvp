@@ -83,34 +83,34 @@
       "id": "US1",
       "priority": "P1",
       "issue": 163,
-      "worktree": null,
-      "status": "todo",
+      "worktree": "/home/sam/projects/django-mvp/mvp-fs024-us1",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
           "id": "T001",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1
         },
         {
           "id": "T002",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1
         },
         {
           "id": "T003",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1
         },
         {
           "id": "T004",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1
         },
         {
           "id": "T005",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1
         }
       ]
     },
@@ -118,49 +118,49 @@
       "id": "US2",
       "priority": "P1",
       "issue": 164,
-      "worktree": null,
-      "status": "todo",
+      "worktree": "/home/sam/projects/django-mvp/mvp-fs024-us2",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
           "id": "T006",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1
         },
         {
           "id": "T007",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1
         },
         {
           "id": "T008",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1
         },
         {
           "id": "T009",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1
         },
         {
           "id": "T010",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1
         },
         {
           "id": "T011",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1
         },
         {
           "id": "T012",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1
         },
         {
           "id": "T013",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1
         }
       ]
     },
@@ -168,8 +168,8 @@
       "id": "US3",
       "priority": "P1",
       "issue": 165,
-      "worktree": null,
-      "status": "todo",
+      "worktree": "/home/sam/projects/django-mvp/mvp-fs024-us3",
+      "status": "in_progress",
       "replans": 0,
       "tasks": [
         {
