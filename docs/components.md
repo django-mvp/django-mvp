@@ -52,7 +52,8 @@ Empty, unopinionated building blocks — you provide the content.
 | `c-page.list.actions.{search,sort,create,filter,share}` | individual list actions |
 | `c-section` | `title`, `icon`, `level` (heading level 1–4); slot `actions` |
 | `c-section.hero` | `bg-image`, `title`, `subtitle`, `parallax`, `speed`, `opacity`, `height`; slots `top`, `actions`, `bottom` |
-| `c-entrance` / `c-entrance.background` | entrance animation wrapper |
+| `c-entrance` | `size` (`sm`/`md`/`lg`/`xl`/`2xl`/`3xl`/`4xl`/`full`, default `2xl`), `full-height` — the centered card for anonymous-facing pages; `small` is its deprecated predecessor |
+| `c-entrance.background` | full-screen background the card sits on |
 
 ## Data display
 

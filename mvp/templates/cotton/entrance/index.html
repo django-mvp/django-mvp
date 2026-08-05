@@ -1,7 +1,21 @@
 {% load cotton %}
-<c-vars small=1 full-height />
+<c-vars size="2xl" small=True full-height />
+{% comment %}
+  The centered card anonymous-facing pages render into.
+
+  `size` is the width the page wants: sm, md, lg, xl, 2xl, 3xl or 4xl, or
+  "full" for a card that fills its container. The card fills its container
+  below the md breakpoint whichever is chosen. Defaults to 2xl, the width
+  entrance pages had before the scale existed.
+
+  `small` is the deprecated predecessor of `size` and still forces a
+  full-width card when passed falsy, so `<c-entrance small="">` keeps
+  rendering what it always did. A page moving to `size` drops `small`
+  entirely; passing both states two widths at once and the older one wins.
+  It will be removed in a future minor release.
+{% endcomment %}
 <c-entrance.background>
-  <div class="card  bg-base-100 shadow-xl container mx-3{% if small %} md:max-w-2xl{% endif %}  {% if full_height %}h-90/100{% endif %} ">
+  <div class="card bg-base-100 shadow-xl container mx-3{% if size != "full" and small %} md:max-w-{{ size }}{% endif %}{% if full_height %} h-90/100{% endif %}">
     <!-- Card content -->
     <div class="card-body py-16 items-fill">{{ slot }}</div>
   </div>

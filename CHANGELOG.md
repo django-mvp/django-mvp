@@ -9,6 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **The entrance card can be asked for a width.** `<c-entrance>` takes a `size`
+  attribute naming a step on the max-width scale — `sm`, `md`, `lg`, `xl`, `2xl`,
+  `3xl`, `4xl`, or `full` for a card that fills its container. A password-reset
+  form and a sign-up page with a provider list no longer have to share one width.
+  The card still fills its container below the `md` breakpoint whichever step is
+  chosen. A page that asks for nothing gets `2xl`, which is what every entrance
+  page rendered before.
+
+  `mvp/entrance.html` gained a `{% block entrance %}` so an extending page can
+  restate the card with the size it wants, nesting its own `{% block content %}`
+  inside. Filling `{% block content %}` alone keeps the default width.
+
+  **On upgrade:** `small`, the boolean this replaces, still decides the width
+  when no `size` is given — `<c-entrance>` and `<c-entrance small="">` render
+  exactly as before. It is deprecated and will be removed in a future minor
+  release; move `small=""` to `size="full"` and drop `small="1"` entirely.
+
 - **The packaged detail page now carries its own edit and delete links.**
   `detail_view.html` renders them from the URLs `CRUDDirectoryMixin` already resolves, so
   a link appears only where the view's `show_update_action` / `show_delete_action`
