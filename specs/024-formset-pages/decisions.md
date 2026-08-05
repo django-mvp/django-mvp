@@ -491,3 +491,37 @@ pins it is now written against the case that fails.
 withdrawn it, contradicting the contract, the data model, the plan and the task. Removed. This is
 the second instance of the pattern D27 named: a correction has to reach every copy of the claim,
 including the summary that restates it.
+
+## D30 — US1: PEP 508 constraint translation preserves the caret ranges exactly
+
+`[tool.poetry.group.dev.dependencies]` used Poetry's own caret syntax: `^2.7` for
+django-crispy-forms, `^1.0.3` for crispy-tailwind. `[project].dependencies` is PEP 508
+and takes no caret operator, so each had to be translated to an explicit range rather
+than copied. Caret semantics: the range stays open below the left-most non-zero
+digit. `^2.7` → `>=2.7,<3.0`; `^1.0.3` → `>=1.0.3,<2.0` (the left-most non-zero digit
+is the major version, `1`, so the upper bound is the next major, not `1.1`). Verified
+against every other PEP 508 entry already in the list, none of which had an upper
+bound to check against, and against `poetry check`, which passed clean.
+
+**Why defensible**: the acceptance criteria said preserve the existing constraints, and
+a caret-to-range translation that gets the boundary wrong silently widens or narrows
+what the constraint actually allows — worth spelling out rather than trusting by eye.
+**Revisit if**: Poetry ever adds native caret support to `[project].dependencies`
+resolution, at which point this translation becomes unnecessary indirection.
+
+## D31 — US1: docs/integrations.md keeps a crispy section, rewritten rather than deleted
+
+T004's brief says crispy is required setup, not an optional add-on, and to move the
+`INSTALLED_APPS`/`CRISPY_*` content into README and Getting Started. It does not say
+to delete the section from `docs/integrations.md` outright. Kept a short section there
+that states plainly that crispy isn't an integration in this doc's sense (it was
+already correctly absent from the file's own guarded-module tree diagram) and links to
+Getting Started for setup, so a reader who lands on the integrations doc looking for
+crispy is redirected rather than finding nothing.
+
+**Why defensible**: `docs/index.md`'s guide table already only advertises
+`integrations.md` for django-tables2 and django-filter after this change, so the
+redirect is a courtesy for existing inbound links, not a claim that crispy is an
+integration. **Revisit if**: a future story wants integrations.md to only ever discuss
+guarded `mvp.integrations` modules — then this redirect line should move to a FAQ or
+be dropped once external links have had time to update.
