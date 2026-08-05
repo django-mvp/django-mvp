@@ -9,6 +9,7 @@ from .edit import (
 )
 from .error import bad_request, not_found, permission_denied, server_error
 from .extra import MVPHomeView, MVPTemplateView
+from .inline import MVPInlineCreateView, MVPInlineUpdateView
 from .list import MVPListView
 
 # Public API — concrete views and error handlers only.
@@ -29,6 +30,8 @@ __all__ = [
     "MVPFormBase",
     "MVPFormView",
     "MVPHomeView",
+    "MVPInlineCreateView",
+    "MVPInlineUpdateView",
     "MVPListView",
     "MVPModelFormBase",
     "MVPTemplateView",

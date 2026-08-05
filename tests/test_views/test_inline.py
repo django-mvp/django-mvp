@@ -18,8 +18,7 @@ from django.test import RequestFactory
 from django.urls import reverse
 
 from demo.models import OrderLine, Product
-from mvp.views.inline import InlineFormsetMixin
-from mvp.views.edit import MVPCreateView, MVPUpdateView
+from mvp.views.inline import MVPInlineCreateView, MVPInlineUpdateView
 from tests.factories import OrderLineFactory, ProductFactory
 
 # ---------------------------------------------------------------------------
@@ -84,7 +83,7 @@ def _inline_update_view_class(**attrs):
         "show_list_action": True,
         **attrs,
     }
-    return type("StubInlineUpdateView", (InlineFormsetMixin, MVPUpdateView), base_attrs)
+    return type("StubInlineUpdateView", (MVPInlineUpdateView,), base_attrs)
 
 
 def _inline_create_view_class(**attrs):
@@ -98,7 +97,7 @@ def _inline_create_view_class(**attrs):
         "show_list_action": True,
         **attrs,
     }
-    return type("StubInlineCreateView", (InlineFormsetMixin, MVPCreateView), base_attrs)
+    return type("StubInlineCreateView", (MVPInlineCreateView,), base_attrs)
 
 
 # ---------------------------------------------------------------------------
@@ -447,3 +446,24 @@ class TestInlineMaxNumCap:
 
         assert response.status_code == 302
         assert set(product.order_lines.values_list("quantity", flat=True)) == {1, 2, 4}
+
+
+# ---------------------------------------------------------------------------
+# T024 - MVPInlineCreateView / MVPInlineUpdateView export; mixin stays private
+# ---------------------------------------------------------------------------
+
+
+class TestInlineViewsPublicAPI:
+    """``mvp.views`` exports the two concrete views, not the mixin - the rule
+    already stated in that module's comment block."""
+
+    def test_create_and_update_views_are_exported(self):
+        from mvp.views import MVPInlineCreateView, MVPInlineUpdateView
+
+        assert MVPInlineCreateView is not None
+        assert MVPInlineUpdateView is not None
+
+    def test_mixin_is_not_exported(self):
+        import mvp.views
+
+        assert not hasattr(mvp.views, "InlineFormsetMixin")

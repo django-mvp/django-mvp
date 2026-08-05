@@ -10,6 +10,8 @@ from django.db import transaction
 from django.forms import inlineformset_factory
 from django.http import HttpResponseRedirect
 
+from .edit import MVPCreateView, MVPUpdateView
+
 
 class InlineFormsetMixin:
     """Builds and validates an inline formset alongside a single-object form.
@@ -116,3 +118,15 @@ class InlineFormsetMixin:
         success_url = self.get_success_url()
         messages.success(self.request, self.get_success_message(form.cleaned_data))
         return HttpResponseRedirect(success_url)
+
+
+class MVPInlineCreateView(InlineFormsetMixin, MVPCreateView):
+    """A create page carrying one record and one set of rows belonging to it.
+
+    On create, the formset is built against an unsaved parent instance,
+    which is what ``BaseInlineFormSet`` does when given no instance.
+    """
+
+
+class MVPInlineUpdateView(InlineFormsetMixin, MVPUpdateView):
+    """An update page carrying one record and one set of rows belonging to it."""
