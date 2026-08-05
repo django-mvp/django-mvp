@@ -355,7 +355,14 @@ who compromises that package or its CDN path runs code in every consuming projec
 pages. It predates this feature and two other script tags in the same block have the same shape, so
 fixing it here would be a second feature wearing this one's branch. It is named in the plan's Risks,
 the Constitution Check's Article V row is qualified rather than a bare PASS, and the remedy is filed
-as its own issue — the same treatment D16 gave the declined system check.
+as issue #170 — the same treatment D16 gave the declined system check.
+
+Writing it up corrected part of the finding. Only the three Alpine tags float at `3.x.x`, which is
+what makes subresource integrity impossible for them rather than merely absent. `theme-change@2.0.2`
+and `bootstrap-icons@1.13.1` are pinned to exact versions and are only missing an `integrity` hash,
+which is a smaller problem and a cheaper fix — the icons stylesheet even carries `crossorigin`
+without the hash it exists to accompany. The issue states that split rather than repeating the
+reviewer's "same shape" aside. Checking a claim before publishing it is what caught this.
 
 ---
 
