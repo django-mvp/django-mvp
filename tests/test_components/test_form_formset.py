@@ -189,3 +189,61 @@ class TestFormsetEmptyForm:
         html = render('<c-form.formset :formset="formset" />', formset=formset)
         assert "__prefix__" in html
         assert 'name="form-__prefix__-name"' in html
+
+
+class NonFormErrorFormSet(forms.BaseFormSet):
+    """A formset whose own ``clean()`` raises a set-level error — the
+    developer-authored counterpart to Django's built-in ``validate_min`` /
+    ``validate_max`` rules exercised in TestFormsetBuiltinSetLevelErrors."""
+
+    def clean(self):
+        if any(self.errors):
+            return
+        names = [form.cleaned_data.get("name") for form in self.forms]
+        if len(names) != len(set(names)):
+            raise forms.ValidationError("Rows must not repeat the same name.")
+
+
+DuplicateNameFormSet = forms.formset_factory(
+    RowForm, formset=NonFormErrorFormSet, can_delete=True, extra=0
+)
+
+
+def _duplicate_name_formset():
+    """A bound, invalid formset carrying a non-form error."""
+    data = {
+        "form-TOTAL_FORMS": "2",
+        "form-INITIAL_FORMS": "0",
+        "form-MIN_NUM_FORMS": "0",
+        "form-MAX_NUM_FORMS": "1000",
+        "form-0-row_id": "",
+        "form-0-name": "Widget",
+        "form-1-row_id": "",
+        "form-1-name": "Widget",
+    }
+    formset = DuplicateNameFormSet(data)
+    formset.is_valid()
+    return formset
+
+
+class TestFormsetNonFormErrors:
+    """``formset.non_form_errors`` renders above the rows, inside an element
+    structurally distinct from a row's own error, and only when non-empty
+    (FR-017)."""
+
+    def test_non_form_errors_render_inside_an_alert_above_the_rows(self):
+        formset = _duplicate_name_formset()
+        html = render('<c-form.formset :formset="formset" />', formset=formset)
+        soup = BeautifulSoup(html, "html.parser")
+        alert = soup.find(attrs={"role": "alert"})
+        assert alert is not None
+        assert "Rows must not repeat the same name." in alert.get_text()
+        assert html.index("Rows must not repeat the same name.") < html.index(
+            'name="form-0-name"'
+        )
+
+    def test_no_alert_rendered_when_there_are_no_non_form_errors(self):
+        formset = RowFormSet()
+        html = render('<c-form.formset :formset="formset" />', formset=formset)
+        soup = BeautifulSoup(html, "html.parser")
+        assert soup.find(attrs={"role": "alert"}) is None
