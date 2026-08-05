@@ -1,37 +1,43 @@
 {% extends "mvp/entrance.html" %}
 {% load i18n %}
-{% block content %}
-  <c-entrance width="narrow">
-    {% if form.errors %}
-      <c-alert variant="error" class="mb-6">
-        <span>{% trans "Invalid username or password." %}</span>
-      </c-alert>
-    {% endif %}
-    <h2 class="text-center mb-6">{% trans "Sign in to your account" %}</h2>
-    <c-form method="post"
-            action="{% url 'login' %}"
-            class="space-y-4">
-      <c-form.field type="text"
-                    label="{% trans "Username" %}"
-                    id="{{ form.username.id_for_label }}"
-                    name="{{ form.username.html_name }}"
-                    placeholder="{% trans "Username" %}"
-                    autocomplete="username"
-                    :errors="form.username.errors"
-                    required />
-      <c-form.field type="password"
-                    label="{% trans "Password" %}"
-                    id="{{ form.password.id_for_label }}"
-                    name="{{ form.password.html_name }}"
-                    placeholder="{% trans "Password" %}"
-                    autocomplete="current-password"
-                    :errors="form.password.errors"
-                    required />
-      <c-button type="submit"
-                variant="primary"
-                text="{% trans "Sign In" %}"
-                class="w-full" />
-      <input type="hidden" name="next" value="{{ next }}" />
-    </c-form>
+{% comment %}
+  Overrides {% block entrance %} rather than {% block content %} so the sign-in
+  form can ask for a narrower card than the entrance default.
+{% endcomment %}
+{% block entrance %}
+  <c-entrance size="md" full-height>
+    {% block content %}
+      {% if form.errors %}
+        <c-alert variant="error" class="mb-6">
+          <span>{% trans "Invalid username or password." %}</span>
+        </c-alert>
+      {% endif %}
+      <h2 class="text-center mb-6">{% trans "Sign in to your account" %}</h2>
+      <c-form method="post"
+              action="{% url 'login' %}"
+              class="space-y-4">
+        <c-form.field type="text"
+                      label="{% trans "Username" %}"
+                      id="{{ form.username.id_for_label }}"
+                      name="{{ form.username.html_name }}"
+                      placeholder="{% trans "Username" %}"
+                      autocomplete="username"
+                      :errors="form.username.errors"
+                      required />
+        <c-form.field type="password"
+                      label="{% trans "Password" %}"
+                      id="{{ form.password.id_for_label }}"
+                      name="{{ form.password.html_name }}"
+                      placeholder="{% trans "Password" %}"
+                      autocomplete="current-password"
+                      :errors="form.password.errors"
+                      required />
+        <c-button type="submit"
+                  variant="primary"
+                  text="{% trans "Sign In" %}"
+                  class="w-full" />
+        <input type="hidden" name="next" value="{{ next }}" />
+      </c-form>
+    {% endblock content %}
   </c-entrance>
-{% endblock content %}
+{% endblock entrance %}
