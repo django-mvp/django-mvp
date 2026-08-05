@@ -8,17 +8,24 @@ tests exercise each component exactly as a template invocation would, per
 tests/test_components/test_form_field.py.
 """
 
+import importlib.util
+
 import pytest
 from bs4 import BeautifulSoup
 from django import forms
 from django.template import Template
 from django.template.context import Context
+from django.test import override_settings
+from django.urls import path
 from django_cotton.compiler_regex import CottonCompiler
 
+from demo.models import OrderLine
+from tests.factories import OrderLineFactory, ProductFactory
 from tests.test_views.test_inline import (
     _dispatch,
     _field_value,
     _inline_create_view_class,
+    _inline_update_view_class,
     _rendered_html,
 )
 
@@ -449,3 +456,95 @@ class TestFormsetPageLevelErrorPlacement:
         )
         assert row_error_container is not None
         assert "greater than or equal to 0" in row_error_container.get_text()
+
+
+# ---------------------------------------------------------------------------
+# T035 — the one browser test: adding and removing rows in the client, and a
+# submission that matches what the page showed (SC-004, US5 scenario 3).
+#
+# Scoped to the class below, not the module: a module-level importorskip or
+# pytestmark would skip and re-mark this module's unit tests too, per
+# tests/test_views/test_error.py lines 185-235.
+# ---------------------------------------------------------------------------
+
+_HAS_PLAYWRIGHT = importlib.util.find_spec("playwright") is not None
+
+
+def _row_locator(page, quantity_input_name):
+    """Return the row wrapper for a given row's quantity input.
+
+    Rows are the only elements whose ``x-data`` mentions ``removed`` (the
+    formset root's own ``x-data`` carries ``total``/``visible`` instead), so
+    this scopes to the nearest such ancestor without any extra test-only
+    markup in the row template.
+    """
+    return page.locator(f'input[name="{quantity_input_name}"]').locator(
+        "xpath=ancestor::div[contains(@x-data, 'removed')][1]"
+    )
+
+
+@pytest.mark.e2e
+@pytest.mark.skipif(not _HAS_PLAYWRIGHT, reason="playwright not installed")
+class TestFormsetAddRemoveRowsE2E:
+    """Adding and removing rows happens entirely in the browser, and a
+    submission afterwards matches what the page showed."""
+
+    @pytest.mark.django_db
+    def test_add_remove_and_submit_matches_the_database(self, page, live_server):
+        product = ProductFactory(name="Existing")
+        kept = OrderLineFactory(product=product, quantity=7)
+        removed_existing = OrderLineFactory(product=product, quantity=5)
+        view_cls = _inline_update_view_class(
+            success_url="/formset-e2e/",
+            show_detail_action=False,
+            show_list_action=False,
+            inline_extra=0,
+        )
+        urlconf = type(
+            "_URLConf",
+            (),
+            {"urlpatterns": [path("formset-e2e/<int:pk>/", view_cls.as_view())]},
+        )
+
+        with override_settings(ROOT_URLCONF=urlconf):
+            page.goto(f"{live_server.url}/formset-e2e/{product.pk}/")
+            start_url = page.url
+
+            total_forms = page.locator('input[name="order_lines-TOTAL_FORMS"]')
+            assert total_forms.input_value() == "2"
+
+            # Adding a row inserts a blank row with no reload and increments
+            # TOTAL_FORMS.
+            page.get_by_role("button", name="Add row").click()
+            assert page.url == start_url
+            assert total_forms.input_value() == "3"
+            added_quantity = page.locator('input[name="order_lines-2-quantity"]')
+            added_quantity.fill("9")
+
+            # Removing a pre-rendered row hides it with no request. Django's
+            # BaseInlineFormSet.get_queryset() orders an unordered queryset by
+            # pk, so `removed_existing` (created second) is form-1.
+            existing_row = _row_locator(page, "order_lines-1-quantity")
+            existing_row.get_by_role("button", name="Remove").click()
+            assert page.url == start_url
+            assert not existing_row.is_visible()
+
+            # Removing the row that was just added hides it and sets its
+            # DELETE - the one behaviour no server-side test can reach.
+            added_row = _row_locator(page, "order_lines-2-quantity")
+            added_row.get_by_role("button", name="Remove").click()
+            assert page.url == start_url
+            assert not added_row.is_visible()
+            assert (
+                page.locator('input[name="order_lines-2-DELETE"]').input_value()
+                == "on"
+            )
+
+            page.get_by_role("button", name="Save & continue").click()
+            page.wait_for_url(lambda url: url != start_url)
+
+        removed_existing_pk = removed_existing.pk
+        assert not OrderLine.objects.filter(pk=removed_existing_pk).exists()
+        kept.refresh_from_db()
+        assert kept.quantity == 7
+        assert OrderLine.objects.filter(product=product).count() == 1
