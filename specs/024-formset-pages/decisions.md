@@ -562,3 +562,20 @@ the browser-install gap tracked as its own repository issue.
 test can reach, so it is currently unexecuted rather than merely unasserted. **Revisit
 if**: playwright is added to the dev dependencies and CI installs a browser, at which
 point the skip resolves on its own and the flag disappears.
+
+## D34 — T043 named the wrong sentence of R12's prose; corrected before dispatch
+
+T043 as written said to strike "the first sentence of the prose above" R12's deliverables.
+It is the **second** sentence that describes the defect this feature removes ("Form and list
+pages load a third-party template library unconditionally..."). The first is the framing
+sentence, and it says three places do not follow the optional-dependency rule.
+
+**Why it matters**: striking the first sentence would have deleted the framing while leaving
+a sentence describing a defect the package no longer has — the exact outcome the amendment in
+D24 exists to prevent. The first sentence still needs a correction, because two places remain
+rather than three, but a correction is not a strike.
+
+**Resolution**: T043 rewritten before US-6 was dispatched, naming both passages explicitly and
+recording the earlier misreading in the task text so it is not reintroduced. **Revisit if**:
+R12 is rewritten wholesale by a later roadmap pass, at which point the strike-throughs fold
+into the rewrite.
