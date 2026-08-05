@@ -48,9 +48,10 @@ the application chrome, a library of components, and views that carry a model th
 working set of pages, so that reaching a minimum viable product doesn't start with building a
 UI layer.
 
-It also fills in where Django stops. Django ships the backend machinery for formsets and then
-leaves you with nothing to render or drive them with, and closing that kind of gap is squarely
-the point of this package.
+It also fills in where Django stops. Django ships the backend machinery for formsets and stops
+short of rendering or driving them — this package does, with the same packaged look, validation
+and error placement any other page gets, and closing that kind of gap is squarely the point of
+this package.
 
 Use it for admin dashboards, data-management tools, research portals, internal apps and SaaS
 back-offices: anywhere you want a production-looking, data-centric Django application without
