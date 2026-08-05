@@ -8,11 +8,19 @@ tests exercise each component exactly as a template invocation would, per
 tests/test_components/test_form_field.py.
 """
 
+import pytest
 from bs4 import BeautifulSoup
 from django import forms
 from django.template import Template
 from django.template.context import Context
 from django_cotton.compiler_regex import CottonCompiler
+
+from tests.test_views.test_inline import (
+    _dispatch,
+    _field_value,
+    _inline_create_view_class,
+    _rendered_html,
+)
 
 compiler = CottonCompiler()
 
@@ -247,3 +255,47 @@ class TestFormsetNonFormErrors:
         html = render('<c-form.formset :formset="formset" />', formset=formset)
         soup = BeautifulSoup(html, "html.parser")
         assert soup.find(attrs={"role": "alert"}) is None
+
+
+# ---------------------------------------------------------------------------
+# Rendered through a view — proves the re-render is genuine, not just a
+# compiled-source rendering (FR-018, US4 scenario 4)
+# ---------------------------------------------------------------------------
+
+
+class TestFormsetPageLevelErrorPlacement:
+    """An invalid submission never collapses its error into a page-level
+    summary distinct from where it belongs, and every submitted value
+    survives the re-render (FR-018, US4 scenario 4). Reuses the invalid-row
+    dispatch already exercised end to end by US3's
+    tests/test_views/test_inline.py rather than rebuilding it."""
+
+    @pytest.mark.django_db
+    def test_invalid_submission_avoids_a_page_level_summary_and_preserves_values(self):
+        view_cls = _inline_create_view_class(success_url="list")
+        data = {
+            "name": "Valid Parent Name",
+            "order_lines-TOTAL_FORMS": "1",
+            "order_lines-INITIAL_FORMS": "0",
+            "order_lines-MIN_NUM_FORMS": "0",
+            "order_lines-MAX_NUM_FORMS": "1000",
+            "order_lines-0-quantity": "-1",  # PositiveIntegerField rejects negatives
+        }
+
+        _, response = _dispatch(view_cls, method="POST", data=data)
+
+        assert response.status_code == 200
+        html = _rendered_html(response)
+        # Submitted values survive the re-render.
+        assert _field_value(html, "name") == "Valid Parent Name"
+        assert _field_value(html, "order_lines-0-quantity") == "-1"
+        # The error appears exactly once, and that occurrence is inside the
+        # row-scoped container — not additionally hoisted to a page-level
+        # summary.
+        assert html.count("greater than or equal to 0") == 1
+        soup = BeautifulSoup(html, "html.parser")
+        row_error_container = soup.find(
+            attrs={"id": "div_id_order_lines-0-quantity"}
+        )
+        assert row_error_container is not None
+        assert "greater than or equal to 0" in row_error_container.get_text()
