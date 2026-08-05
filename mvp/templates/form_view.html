@@ -3,6 +3,7 @@
 {% block head %}
   {{ block.super }}
   {{ form.media.css }}
+  {{ formset.media.css }}
 {% endblock head %}
 {% block page.content %}
   <div class="w-full lg:max-w-4xl">
@@ -12,8 +13,10 @@
             icon="{{ page.icon }}"
             method="post"
             action="{{ request.path }}"
-            :form-obj="form">
+            :form-obj="form"
+            :formset="formset">
       {% if next_url %}<input type="hidden" name="next" value="{{ next_url }}">{% endif %}
+      {% block formset %}{% if formset %}<c-form.formset :formset="formset" />{% endif %}{% endblock formset %}
       {% block actions %}
         <c-group breakpoint="md" wrap>
           <c-button text="{% trans "Save & continue" %}"
@@ -52,4 +55,5 @@
 {% block extra_js %}
   {{ block.super }}
   {{ form.media.js }}
+  {{ formset.media.js }}
 {% endblock extra_js %}
