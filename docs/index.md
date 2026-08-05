@@ -17,6 +17,7 @@ configuration through Django settings, customization through template overrides.
 | [Components](components.md) | The Cotton component library reference |
 | [Navigation](navigation.md) | Sidebar and mobile-dock menus via django-flex-menus |
 | [Views](views.md) | List/form/detail/delete views and mixins |
+| [Formsets](formsets.md) | A parent record and its related rows, and the standalone formset case |
 | [Styling](styling.md) | Tailwind/DaisyUI, theming, and building your own CSS |
 | [Integrations](integrations.md) | Optional third-party integrations (django-tables2, django-filter) |
 
