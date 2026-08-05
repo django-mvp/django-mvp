@@ -60,6 +60,12 @@ COMPONENTS = [
         "A single form field: control, label, help text, and errors.",
     ),
     ComponentDoc(
+        "formset",
+        "Formset",
+        "list-ul",
+        "A whole Django formset: management form, one row per form, and add/remove controls.",
+    ),
+    ComponentDoc(
         "dropdown", "Dropdown", "list", "A trigger that reveals a floating panel."
     ),
     ComponentDoc("modal", "Modal", "layout", "A dialog overlay opened via JavaScript."),

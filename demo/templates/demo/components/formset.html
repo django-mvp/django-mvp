@@ -1,0 +1,10 @@
+{% extends "demo/components/base.html" %}
+
+{% block component.docs %}
+  <c-components.section title="Default"
+                        description="A whole Django formset — the management form, one <c-form.formset.row> per form, and an add-row control. This is the standalone case: the formset has no parent record, unlike the inline formset on a parent-and-rows page (see docs/formsets.md). formset is a bound modelformset built in the view; nothing about the markup changes between the two cases.">
+    {% cotton:verbatim %}
+      <c-form.formset :formset="formset" />
+    {% endcotton:verbatim %}
+  </c-components.section>
+{% endblock component.docs %}

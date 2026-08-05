@@ -7,6 +7,7 @@ customization. A few, like ``layout_demo`` and ``theme_customization_demo``,
 are plain ``DemoTemplateView`` instances that render a static demo page.
 """
 
+from django.forms import modelformset_factory
 from django.http import Http404
 from django_filters.views import FilterView
 
@@ -83,6 +84,13 @@ class ComponentDocView(DemoTemplateView):
         context = super().get_context_data(**kwargs)
         context["components"] = COMPONENTS
         context["component"] = self.component
+        if self.component.slug == "formset":
+            # <c-form.formset> needs a real, bound formset — the standalone case
+            # (no parent record, unlike the inline formset in the worked example).
+            OrderLineFormSet = modelformset_factory(
+                OrderLine, fields=["product", "quantity"], extra=2
+            )
+            context["formset"] = OrderLineFormSet(queryset=OrderLine.objects.none())
         return context
 
 

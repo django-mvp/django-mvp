@@ -196,4 +196,22 @@ class TestOrderLineArticleIXCompliance:
         assert str(field.help_text) != ""
 
 
+class TestFormsetComponentDocPage:
+    """The formset component doc page (US6, T040) — the standalone formset case.
+
+    Registered like every other entry in demo.component_docs.COMPONENTS, but the
+    only one whose live example needs a real, bound formset in context rather
+    than static markup.
+    """
+
+    @pytest.mark.django_db
+    def test_page_renders_a_bound_orderline_formset(self, client):
+        response = client.get("/components/formset/")
+
+        assert response.status_code == 200
+        content = response.content.decode()
+        assert "Add row" in content
+        assert 'name="form-TOTAL_FORMS"' in content
+
+
 # ---------------------------------------------------------------------------
