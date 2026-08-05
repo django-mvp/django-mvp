@@ -29,7 +29,7 @@ the box. **Things should just work.**
   Override the component's template in your project — that's the intended extension
   path, not a bigger API.
 - **Views that do the boring parts** — list pages with admin-style search, whitelisted
-  ordering and pagination; form pages with automatic crispy-forms detection; delete
+  ordering and pagination; form pages rendered with crispy-forms; delete
   flows with related-object summaries and type-to-confirm; styled error pages.
 - **Menus in Python** — sidebar and mobile-dock navigation via
   [django-flex-menus](https://github.com/SamuelJennings/django-flex-menus), with active
