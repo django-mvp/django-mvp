@@ -101,11 +101,11 @@ SC-002 and SC-006 are provable, and the configured cap is a cap.
 Depends on Phase 2. **Runs before or after Phase 5, never beside it** — both phases edit
 `mvp/templates/cotton/form/formset/index.html`.
 
-- [ ] T025 [US4] Write a failing test that proves row-level placement before anything is built on it: a row whose field fails validation renders its message inside that row, adjacent to the field, and no other row carries a message; and, in the same task, a formset with errors on **two different rows** renders a message inside each of them (FR-016, FR-019, US4 scenario 3). This placement is inherited from crispy's field template rather than written here, and the test is what turns that from an assumption into a fact.
-- [ ] T026 [US4] Write a failing test that `formset.non_form_errors` renders above the set, is structurally distinguishable from a row's error, and renders nothing when empty (FR-017).
-- [ ] T027 [US4] Write a failing test that no error is rendered only as a page-level summary, and that submitted values survive the re-render (FR-018, US4 scenario 4).
-- [ ] T028 [US4] Render `formset.non_form_errors` in `mvp/templates/cotton/form/formset/index.html`, above the rows, inside `<c-alert variant="error">`, only when non-empty. Do not reach for crispy's `errors_formset.html` — it emits raw utility colours rather than DaisyUI classes, which Article XI forbids in a component template.
-- [ ] T029 [US4] Write failing tests for the two set-level rules Django produces as non-form errors — too few rows under `validate_min` and too many under `validate_max` — and confirm both render above the set.
+- [X] T025 [US4] Write a failing test that proves row-level placement before anything is built on it: a row whose field fails validation renders its message inside that row, adjacent to the field, and no other row carries a message; and, in the same task, a formset with errors on **two different rows** renders a message inside each of them (FR-016, FR-019, US4 scenario 3). This placement is inherited from crispy's field template rather than written here, and the test is what turns that from an assumption into a fact.
+- [X] T026 [US4] Write a failing test that `formset.non_form_errors` renders above the set, is structurally distinguishable from a row's error, and renders nothing when empty (FR-017).
+- [X] T027 [US4] Write a failing test that no error is rendered only as a page-level summary, and that submitted values survive the re-render (FR-018, US4 scenario 4).
+- [X] T028 [US4] Render `formset.non_form_errors` in `mvp/templates/cotton/form/formset/index.html`, above the rows, inside `<c-alert variant="error">`, only when non-empty. Do not reach for crispy's `errors_formset.html` — it emits raw utility colours rather than DaisyUI classes, which Article XI forbids in a component template.
+- [X] T029 [US4] Write failing tests for the two set-level rules Django produces as non-form errors — too few rows under `validate_min` and too many under `validate_max` — and confirm both render above the set.
 
 **Checkpoint**: SC-003 is provable. No error collapses to the top of the page.
 

@@ -525,3 +525,17 @@ redirect is a courtesy for existing inbound links, not a claim that crispy is an
 integration. **Revisit if**: a future story wants integrations.md to only ever discuss
 guarded `mvp.integrations` modules — then this redirect line should move to a FAQ or
 be dropped once external links have had time to update.
+
+## D32 — US4: tamper-check flag on `tests/test_components/test_form_formset.py` approved
+
+`forge tamper-check --base 6f3a8a6` flags the file because it existed at the story's
+base commit, having been created by US2. The check is file-granular, so any change to
+a file containing pre-existing tests raises a flag regardless of what the change does.
+
+**Why defensible**: the diff over the range deletes and modifies nothing — `git diff`
+reports zero removed lines in the file, and comparing the class and test declarations
+at base against head shows only additions (four new classes, seven new tests, one new
+formset fixture). Every test US2 wrote is byte-identical at head, and the full suite
+went from 634 to 641 passing with no failures. Same shape as D30 on US3's
+`tests/test_views/test_edit.py`. **Revisit if**: tamper-check gains hunk-level
+granularity, at which point neither this entry nor D30 is needed.

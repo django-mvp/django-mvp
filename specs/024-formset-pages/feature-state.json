@@ -234,33 +234,33 @@
       "priority": "P2",
       "issue": 166,
       "worktree": "/home/sam/projects/django-mvp/mvp-fs024-us4",
-      "status": "in_progress",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
           "id": "T025",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 2
         },
         {
           "id": "T026",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1
         },
         {
           "id": "T027",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1
         },
         {
           "id": "T028",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1
         },
         {
           "id": "T029",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1
         }
       ]
     },
