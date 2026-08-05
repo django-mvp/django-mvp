@@ -138,12 +138,12 @@ class TestInlineGetRendering:
         html = _rendered_html(response)
 
         assert _field_value(html, "name") == "Widget"
-        quantities = _all_field_values(html, r"^form-\d+-quantity$")
+        quantities = _all_field_values(html, r"^order_lines-\d+-quantity$")
         assert quantities.count("2") == 1
         assert quantities.count("5") == 1
         # 2 existing rows + 1 inline_extra blank row (default)
         assert len(quantities) == 3
-        assert _field_value(html, "form-TOTAL_FORMS") == "3"
+        assert _field_value(html, "order_lines-TOTAL_FORMS") == "3"
 
 
 # ---------------------------------------------------------------------------
@@ -163,13 +163,13 @@ class TestInlineValidSubmission:
         view_cls = _inline_update_view_class(success_url="list")
         data = {
             "name": "Updated Name",
-            "form-TOTAL_FORMS": "2",
-            "form-INITIAL_FORMS": "1",
-            "form-MIN_NUM_FORMS": "0",
-            "form-MAX_NUM_FORMS": "1000",
-            "form-0-id": str(existing.pk),
-            "form-0-quantity": "5",
-            "form-1-quantity": "7",
+            "order_lines-TOTAL_FORMS": "2",
+            "order_lines-INITIAL_FORMS": "1",
+            "order_lines-MIN_NUM_FORMS": "0",
+            "order_lines-MAX_NUM_FORMS": "1000",
+            "order_lines-0-id": str(existing.pk),
+            "order_lines-0-quantity": "5",
+            "order_lines-1-quantity": "7",
         }
 
         _, response = _dispatch(
@@ -195,11 +195,11 @@ class TestInlineValidSubmission:
         view_cls = _inline_update_view_class(success_url="list")
         data = {
             "name": "Counted Once",
-            "form-TOTAL_FORMS": "1",
-            "form-INITIAL_FORMS": "0",
-            "form-MIN_NUM_FORMS": "0",
-            "form-MAX_NUM_FORMS": "1000",
-            "form-0-quantity": "3",
+            "order_lines-TOTAL_FORMS": "1",
+            "order_lines-INITIAL_FORMS": "0",
+            "order_lines-MIN_NUM_FORMS": "0",
+            "order_lines-MAX_NUM_FORMS": "1000",
+            "order_lines-0-quantity": "3",
         }
 
         _dispatch(view_cls, method="POST", data=data, view_kwargs={"pk": product.pk})
@@ -210,11 +210,11 @@ class TestInlineValidSubmission:
         view_cls = _inline_create_view_class(success_url="detail")
         data = {
             "name": "Brand New",
-            "form-TOTAL_FORMS": "1",
-            "form-INITIAL_FORMS": "0",
-            "form-MIN_NUM_FORMS": "0",
-            "form-MAX_NUM_FORMS": "1000",
-            "form-0-quantity": "3",
+            "order_lines-TOTAL_FORMS": "1",
+            "order_lines-INITIAL_FORMS": "0",
+            "order_lines-MIN_NUM_FORMS": "0",
+            "order_lines-MAX_NUM_FORMS": "1000",
+            "order_lines-0-quantity": "3",
         }
 
         _, response = _dispatch(view_cls, method="POST", data=data)
@@ -256,12 +256,12 @@ class TestInlineTransactionAtomicity:
         view_cls = _inline_update_view_class(success_url="list")
         data = {
             "name": "Changed Name",
-            "form-TOTAL_FORMS": "2",
-            "form-INITIAL_FORMS": "0",
-            "form-MIN_NUM_FORMS": "0",
-            "form-MAX_NUM_FORMS": "1000",
-            "form-0-quantity": "5",
-            "form-1-quantity": "999",
+            "order_lines-TOTAL_FORMS": "2",
+            "order_lines-INITIAL_FORMS": "0",
+            "order_lines-MIN_NUM_FORMS": "0",
+            "order_lines-MAX_NUM_FORMS": "1000",
+            "order_lines-0-quantity": "5",
+            "order_lines-1-quantity": "999",
         }
         request = _build_request(method="POST", data=data)
 
@@ -291,11 +291,11 @@ class TestInlineInvalidParentForm:
         too_long_name = "x" * 250  # Product.name has max_length=200
         data = {
             "name": too_long_name,
-            "form-TOTAL_FORMS": "1",
-            "form-INITIAL_FORMS": "0",
-            "form-MIN_NUM_FORMS": "0",
-            "form-MAX_NUM_FORMS": "1000",
-            "form-0-quantity": "4",
+            "order_lines-TOTAL_FORMS": "1",
+            "order_lines-INITIAL_FORMS": "0",
+            "order_lines-MIN_NUM_FORMS": "0",
+            "order_lines-MAX_NUM_FORMS": "1000",
+            "order_lines-0-quantity": "4",
         }
 
         _, response = _dispatch(view_cls, method="POST", data=data)
@@ -303,7 +303,7 @@ class TestInlineInvalidParentForm:
         assert response.status_code == 200
         html = _rendered_html(response)
         assert _field_value(html, "name") == too_long_name
-        assert _field_value(html, "form-0-quantity") == "4"
+        assert _field_value(html, "order_lines-0-quantity") == "4"
         assert Product.objects.count() == 0
         assert OrderLine.objects.count() == 0
 
@@ -324,11 +324,11 @@ class TestInlineInvalidRow:
         view_cls = _inline_create_view_class(success_url="list")
         data = {
             "name": "Valid Parent Name",
-            "form-TOTAL_FORMS": "1",
-            "form-INITIAL_FORMS": "0",
-            "form-MIN_NUM_FORMS": "0",
-            "form-MAX_NUM_FORMS": "1000",
-            "form-0-quantity": "-1",  # PositiveIntegerField rejects negatives
+            "order_lines-TOTAL_FORMS": "1",
+            "order_lines-INITIAL_FORMS": "0",
+            "order_lines-MIN_NUM_FORMS": "0",
+            "order_lines-MAX_NUM_FORMS": "1000",
+            "order_lines-0-quantity": "-1",  # PositiveIntegerField rejects negatives
         }
 
         _, response = _dispatch(view_cls, method="POST", data=data)
@@ -336,7 +336,7 @@ class TestInlineInvalidRow:
         assert response.status_code == 200
         html = _rendered_html(response)
         assert _field_value(html, "name") == "Valid Parent Name"
-        assert _field_value(html, "form-0-quantity") == "-1"
+        assert _field_value(html, "order_lines-0-quantity") == "-1"
         assert "greater than or equal to 0" in html
         assert Product.objects.count() == 0
         assert OrderLine.objects.count() == 0
@@ -358,12 +358,12 @@ class TestInlineCreateAttachesRows:
         view_cls = _inline_create_view_class(success_url="list")
         data = {
             "name": "Fresh Product",
-            "form-TOTAL_FORMS": "2",
-            "form-INITIAL_FORMS": "0",
-            "form-MIN_NUM_FORMS": "0",
-            "form-MAX_NUM_FORMS": "1000",
-            "form-0-quantity": "2",
-            "form-1-quantity": "6",
+            "order_lines-TOTAL_FORMS": "2",
+            "order_lines-INITIAL_FORMS": "0",
+            "order_lines-MIN_NUM_FORMS": "0",
+            "order_lines-MAX_NUM_FORMS": "1000",
+            "order_lines-0-quantity": "2",
+            "order_lines-1-quantity": "6",
         }
 
         _, response = _dispatch(view_cls, method="POST", data=data)
@@ -397,14 +397,14 @@ class TestInlineMaxNumCap:
         view_cls = _inline_create_view_class(success_url="list", inline_max_num=3)
         data = {
             "name": "Capped Product",
-            "form-TOTAL_FORMS": "4",
-            "form-INITIAL_FORMS": "0",
-            "form-MIN_NUM_FORMS": "0",
-            "form-MAX_NUM_FORMS": "1000",
-            "form-0-quantity": "1",
-            "form-1-quantity": "2",
-            "form-2-quantity": "3",
-            "form-3-quantity": "4",
+            "order_lines-TOTAL_FORMS": "4",
+            "order_lines-INITIAL_FORMS": "0",
+            "order_lines-MIN_NUM_FORMS": "0",
+            "order_lines-MAX_NUM_FORMS": "1000",
+            "order_lines-0-quantity": "1",
+            "order_lines-1-quantity": "2",
+            "order_lines-2-quantity": "3",
+            "order_lines-3-quantity": "4",
         }
 
         _, response = _dispatch(view_cls, method="POST", data=data)
@@ -423,18 +423,18 @@ class TestInlineMaxNumCap:
         # DELETE -> 3 forms remain, exactly at the cap.
         data = {
             "name": "Existing",
-            "form-TOTAL_FORMS": "5",
-            "form-INITIAL_FORMS": "1",
-            "form-MIN_NUM_FORMS": "0",
-            "form-MAX_NUM_FORMS": "1000",
-            "form-0-id": str(existing.pk),
-            "form-0-quantity": "1",
-            "form-1-quantity": "2",
-            "form-2-quantity": "3",
-            "form-2-DELETE": "on",
-            "form-3-quantity": "4",
-            "form-4-quantity": "5",
-            "form-4-DELETE": "on",
+            "order_lines-TOTAL_FORMS": "5",
+            "order_lines-INITIAL_FORMS": "1",
+            "order_lines-MIN_NUM_FORMS": "0",
+            "order_lines-MAX_NUM_FORMS": "1000",
+            "order_lines-0-id": str(existing.pk),
+            "order_lines-0-quantity": "1",
+            "order_lines-1-quantity": "2",
+            "order_lines-2-quantity": "3",
+            "order_lines-2-DELETE": "on",
+            "order_lines-3-quantity": "4",
+            "order_lines-4-quantity": "5",
+            "order_lines-4-DELETE": "on",
         }
 
         _, response = _dispatch(
