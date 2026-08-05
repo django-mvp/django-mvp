@@ -15,6 +15,7 @@ from django.contrib.messages.middleware import MessageMiddleware
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.core.exceptions import ImproperlyConfigured
 from django.test import RequestFactory
+from django.urls import reverse
 
 from demo.models import OrderLine, Product
 from mvp.views.inline import InlineFormsetMixin
@@ -143,3 +144,84 @@ class TestInlineGetRendering:
         # 2 existing rows + 1 inline_extra blank row (default)
         assert len(quantities) == 3
         assert _field_value(html, "form-TOTAL_FORMS") == "3"
+
+
+# ---------------------------------------------------------------------------
+# T016 — valid submission persists both parts, exactly once, redirect (FR-012)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+class TestInlineValidSubmission:
+    """Both parts persist on a valid submission, the parent saves exactly
+    once, and the redirect follows the inherited ``get_success_url`` chain
+    (FR-012), including on the create path with an object-dependent URL."""
+
+    def test_update_valid_submission_persists_parent_and_rows(self):
+        product = ProductFactory(name="Original")
+        existing = OrderLineFactory(product=product, quantity=1)
+        view_cls = _inline_update_view_class(success_url="list")
+        data = {
+            "name": "Updated Name",
+            "form-TOTAL_FORMS": "2",
+            "form-INITIAL_FORMS": "1",
+            "form-MIN_NUM_FORMS": "0",
+            "form-MAX_NUM_FORMS": "1000",
+            "form-0-id": str(existing.pk),
+            "form-0-quantity": "5",
+            "form-1-quantity": "7",
+        }
+
+        _, response = _dispatch(
+            view_cls, method="POST", data=data, view_kwargs={"pk": product.pk}
+        )
+
+        assert response.status_code == 302
+        assert response["Location"] == reverse("product-list")
+        product.refresh_from_db()
+        assert product.name == "Updated Name"
+        assert set(product.order_lines.values_list("quantity", flat=True)) == {5, 7}
+
+    def test_parent_is_saved_exactly_once(self, monkeypatch):
+        product = ProductFactory(name="Original")
+        save_calls = []
+        original_save = Product.save
+
+        def counting_save(self, *args, **kwargs):
+            save_calls.append(1)
+            return original_save(self, *args, **kwargs)
+
+        monkeypatch.setattr(Product, "save", counting_save)
+        view_cls = _inline_update_view_class(success_url="list")
+        data = {
+            "name": "Counted Once",
+            "form-TOTAL_FORMS": "1",
+            "form-INITIAL_FORMS": "0",
+            "form-MIN_NUM_FORMS": "0",
+            "form-MAX_NUM_FORMS": "1000",
+            "form-0-quantity": "3",
+        }
+
+        _dispatch(view_cls, method="POST", data=data, view_kwargs={"pk": product.pk})
+
+        assert len(save_calls) == 1
+
+    def test_create_with_detail_shorthand_redirects_to_new_object(self):
+        view_cls = _inline_create_view_class(success_url="detail")
+        data = {
+            "name": "Brand New",
+            "form-TOTAL_FORMS": "1",
+            "form-INITIAL_FORMS": "0",
+            "form-MIN_NUM_FORMS": "0",
+            "form-MAX_NUM_FORMS": "1000",
+            "form-0-quantity": "3",
+        }
+
+        _, response = _dispatch(view_cls, method="POST", data=data)
+
+        assert response.status_code == 302
+        new_product = Product.objects.get(name="Brand New")
+        assert response["Location"] == reverse(
+            "product-detail", kwargs={"pk": new_product.pk}
+        )
+        assert list(new_product.order_lines.values_list("quantity", flat=True)) == [3]
