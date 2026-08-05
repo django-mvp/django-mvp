@@ -8,6 +8,7 @@ tests exercise each component exactly as a template invocation would, per
 tests/test_components/test_form_field.py.
 """
 
+from bs4 import BeautifulSoup
 from django import forms
 from django.template import Template
 from django.template.context import Context
@@ -92,6 +93,56 @@ class TestFormsetRowErrors:
         form = _error_row_form()
         html = render('<c-form.formset.row :form="form" />', form=form)
         assert "Something is wrong with this row." in html
+
+
+class TestFormsetRowFieldErrorPlacement:
+    """A field-level error renders inside the row containing that field, in
+    the same crispy field markup a single form's field error uses, and no
+    other row carries it (FR-016, FR-019). This placement is inherited from
+    crispy's field template rather than written here; these tests turn that
+    inheritance from an assumption into a fact."""
+
+    def test_field_error_renders_inside_its_own_row_only(self):
+        formset = RowFormSet(
+            data={
+                "form-TOTAL_FORMS": "2",
+                "form-INITIAL_FORMS": "2",
+                "form-MIN_NUM_FORMS": "0",
+                "form-MAX_NUM_FORMS": "1000",
+                "form-0-row_id": "",
+                "form-0-name": "",
+                "form-1-row_id": "",
+                "form-1-name": "Valid",
+            }
+        )
+        formset.is_valid()
+        html = render('<c-form.formset :formset="formset" />', formset=formset)
+        soup = BeautifulSoup(html, "html.parser")
+        row0 = soup.find(attrs={"id": "div_id_form-0-name"})
+        row1 = soup.find(attrs={"id": "div_id_form-1-name"})
+        assert "This field is required." in row0.get_text()
+        assert "This field is required." not in row1.get_text()
+
+    def test_errors_on_two_different_rows_each_carry_their_own_message(self):
+        formset = RowFormSet(
+            data={
+                "form-TOTAL_FORMS": "2",
+                "form-INITIAL_FORMS": "2",
+                "form-MIN_NUM_FORMS": "0",
+                "form-MAX_NUM_FORMS": "1000",
+                "form-0-row_id": "",
+                "form-0-name": "",
+                "form-1-row_id": "",
+                "form-1-name": "",
+            }
+        )
+        formset.is_valid()
+        html = render('<c-form.formset :formset="formset" />', formset=formset)
+        soup = BeautifulSoup(html, "html.parser")
+        row0 = soup.find(attrs={"id": "div_id_form-0-name"})
+        row1 = soup.find(attrs={"id": "div_id_form-1-name"})
+        assert "This field is required." in row0.get_text()
+        assert "This field is required." in row1.get_text()
 
 
 # ---------------------------------------------------------------------------
