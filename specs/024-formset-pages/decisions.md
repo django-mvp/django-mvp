@@ -539,3 +539,26 @@ formset fixture). Every test US2 wrote is byte-identical at head, and the full s
 went from 634 to 641 passing with no failures. Same shape as D30 on US3's
 `tests/test_views/test_edit.py`. **Revisit if**: tamper-check gains hunk-level
 granularity, at which point neither this entry nor D30 is needed.
+
+## D33 — US5: three tamper-check flags approved, including the playwright skip
+
+`forge tamper-check --base 5e4d7ef` raises three flags on this story: the two test files
+US5 touches (`tests/test_components/test_form_formset.py` from US2 and
+`tests/test_views/test_inline.py` from US3) and one `weakening_patterns_added`.
+
+**Why the two file flags are defensible**: identical in shape to D30 and D32. `git diff`
+over the range reports zero removed lines across `tests/`, so every prior-story test is
+byte-identical at head, and the suite went from 641 to 651 passing.
+
+**Why the weakening flag is defensible**: the single pattern is T035's
+`@pytest.mark.skipif(not _HAS_PLAYWRIGHT, ...)` on `TestFormsetAddRemoveRowsE2E`. It is
+specified by the task, copies the existing `tests/test_views/test_error.py` precedent,
+and sits on the class rather than the module so it cannot hide the 22 unit tests in the
+same file. The `e2e` marker is registered in `pyproject.toml` under `--strict-markers`.
+Sam ruled on 2026-08-05 that marking and skipping is the accepted position for now, with
+the browser-install gap tracked as its own repository issue.
+
+**What this costs**: the add-then-remove interaction is the one behaviour no server-side
+test can reach, so it is currently unexecuted rather than merely unasserted. **Revisit
+if**: playwright is added to the dev dependencies and CI installs a browser, at which
+point the skip resolves on its own and the flag disappears.
