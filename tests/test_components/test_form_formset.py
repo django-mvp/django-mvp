@@ -336,8 +336,13 @@ class TestFormsetAddRemoveControls:
         formset = RowFormSet()
         html = render('<c-form.formset :formset="formset" />', formset=formset)
         soup = BeautifulSoup(html, "html.parser")
-        remove_buttons = soup.find_all(attrs={"aria-label": "Remove"})
-        # RowFormSet has extra=2, and can_delete=True.
+        # Exclude the inert empty-form template's own remove control - only
+        # the rendered rows count here. RowFormSet has extra=2, can_delete=True.
+        remove_buttons = [
+            button
+            for button in soup.find_all(attrs={"aria-label": "Remove"})
+            if button.find_parent("template") is None
+        ]
         assert len(remove_buttons) == 2
 
     def test_neither_control_submits_the_form(self):

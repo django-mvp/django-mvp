@@ -4,21 +4,36 @@
   field exactly), and DELETE as a hidden input rather than a checkbox. The
   form's own non-field errors render above its fields.
 
-  Adding and removing rows in the browser, and the row's remove control, are
-  not this template's job — see contracts/formset-component.md.
+  The remove control and the row's removed state live here. A removed row is
+  hidden, never detached - its inputs stay in the document so the removal
+  survives an invalid submission and re-render. The removed state seeds from
+  form.DELETE.value, drives the hidden DELETE input, and decrements the
+  parent <c-form.formset>'s `visible` counter (context.delete_semantics).
 {% endcomment %}
-<c-vars form class />
-{% load crispy_forms_filters %}
+{% load i18n crispy_forms_filters %}
+<c-vars form class can-delete=False remove-label="{% trans "Remove" %}" />
 {% if form %}
-  <div class="space-y-4 {{ class }}" {{ attrs }}>
+  <div class="space-y-4 {{ class }}"
+       x-data="{ removed: {{ form.DELETE.value|yesno:'true,false,false' }} }"
+       x-init="if (removed) $parent.visible--"
+       x-show="!removed"
+       {{ attrs }}>
     {{ form|as_crispy_errors }}
     {% for field in form.hidden_fields %}{{ field }}{% endfor %}
     {% for field in form.visible_fields %}
       {% if field.name == "DELETE" %}
-        {{ field.as_hidden }}
+        <input type="hidden" name="{{ field.html_name }}" :value="removed ? 'on' : ''">
       {% else %}
         {{ field|as_crispy_field }}
       {% endif %}
     {% endfor %}
+    {% if can_delete %}
+      <button type="button"
+              class="btn btn-ghost btn-sm"
+              aria-label="{{ remove_label }}"
+              @click="removed = true; $parent.visible--">
+        {{ remove_label }}
+      </button>
+    {% endif %}
   </div>
 {% endif %}
