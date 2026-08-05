@@ -340,3 +340,41 @@ class TestInlineInvalidRow:
         assert "greater than or equal to 0" in html
         assert Product.objects.count() == 0
         assert OrderLine.objects.count() == 0
+
+
+# ---------------------------------------------------------------------------
+# T020 - create case: a new parent is created and its rows attached to it
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+class TestInlineCreateAttachesRows:
+    """Given no parent record, a create submission carrying rows creates a
+    new parent and attaches its rows to it (FR-014, US3 scenario 5).
+    ``BaseInlineFormSet.save_new`` reads ``formset.instance`` at save time, so
+    the assignment must happen after the parent is saved."""
+
+    def test_create_attaches_all_new_rows_to_the_newly_created_parent(self):
+        view_cls = _inline_create_view_class(success_url="list")
+        data = {
+            "name": "Fresh Product",
+            "form-TOTAL_FORMS": "2",
+            "form-INITIAL_FORMS": "0",
+            "form-MIN_NUM_FORMS": "0",
+            "form-MAX_NUM_FORMS": "1000",
+            "form-0-quantity": "2",
+            "form-1-quantity": "6",
+        }
+
+        _, response = _dispatch(view_cls, method="POST", data=data)
+
+        assert response.status_code == 302
+        new_product = Product.objects.get(name="Fresh Product")
+        assert list(
+            new_product.order_lines.order_by("quantity").values_list(
+                "quantity", flat=True
+            )
+        ) == [2, 6]
+        assert all(
+            line.product_id == new_product.pk for line in new_product.order_lines.all()
+        )
