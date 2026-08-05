@@ -449,6 +449,87 @@ class TestInlineMaxNumCap:
 
 
 # ---------------------------------------------------------------------------
+# T031 - removing rows in the browser, proven server-side (FR-022, FR-023,
+# SC-005): an existing row's DELETE removes it, an added row's DELETE creates
+# nothing, and a row absent from the submission is left untouched.
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+class TestInlineRowRemoval:
+    """The server-side half of US5's remove control: what a submitted
+    ``DELETE`` flag - or its absence - does to a related record."""
+
+    def test_delete_on_an_existing_row_deletes_that_record(self):
+        product = ProductFactory(name="Existing")
+        existing = OrderLineFactory(product=product, quantity=3)
+        view_cls = _inline_update_view_class(success_url="list")
+        data = {
+            "name": "Existing",
+            "order_lines-TOTAL_FORMS": "1",
+            "order_lines-INITIAL_FORMS": "1",
+            "order_lines-MIN_NUM_FORMS": "0",
+            "order_lines-MAX_NUM_FORMS": "1000",
+            "order_lines-0-id": str(existing.pk),
+            "order_lines-0-quantity": "3",
+            "order_lines-0-DELETE": "on",
+        }
+
+        _, response = _dispatch(
+            view_cls, method="POST", data=data, view_kwargs={"pk": product.pk}
+        )
+
+        assert response.status_code == 302
+        assert not OrderLine.objects.filter(pk=existing.pk).exists()
+
+    def test_delete_on_an_added_row_creates_nothing(self):
+        product = ProductFactory(name="Existing")
+        view_cls = _inline_update_view_class(success_url="list")
+        data = {
+            "name": "Existing",
+            "order_lines-TOTAL_FORMS": "1",
+            "order_lines-INITIAL_FORMS": "0",
+            "order_lines-MIN_NUM_FORMS": "0",
+            "order_lines-MAX_NUM_FORMS": "1000",
+            "order_lines-0-quantity": "9",
+            "order_lines-0-DELETE": "on",
+        }
+
+        _, response = _dispatch(
+            view_cls, method="POST", data=data, view_kwargs={"pk": product.pk}
+        )
+
+        assert response.status_code == 302
+        assert not OrderLine.objects.filter(quantity=9).exists()
+        assert OrderLine.objects.count() == 0
+
+    def test_row_absent_from_the_submission_is_left_unchanged(self):
+        product = ProductFactory(name="Existing")
+        kept = OrderLineFactory(product=product, quantity=1)
+        untouched = OrderLineFactory(product=product, quantity=2)
+        view_cls = _inline_update_view_class(success_url="list")
+        # Only `kept`'s row is submitted - as if `untouched`'s row had been
+        # removed on the page and the page was never submitted afterwards.
+        data = {
+            "name": "Existing",
+            "order_lines-TOTAL_FORMS": "1",
+            "order_lines-INITIAL_FORMS": "1",
+            "order_lines-MIN_NUM_FORMS": "0",
+            "order_lines-MAX_NUM_FORMS": "1000",
+            "order_lines-0-id": str(kept.pk),
+            "order_lines-0-quantity": "1",
+        }
+
+        _, response = _dispatch(
+            view_cls, method="POST", data=data, view_kwargs={"pk": product.pk}
+        )
+
+        assert response.status_code == 302
+        untouched.refresh_from_db()
+        assert untouched.quantity == 2
+
+
+# ---------------------------------------------------------------------------
 # T024 - MVPInlineCreateView / MVPInlineUpdateView export; mixin stays private
 # ---------------------------------------------------------------------------
 
