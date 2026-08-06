@@ -45,6 +45,9 @@
 @source inline("menu-{horizontal,vertical}");
 @source inline("{sm,md,lg,xl,2xl}:menu-horizontal");
 
+/* Safelist: c-menu's `paged` attribute (cotton/menu/index.html). */
+@source inline("menu-paged");
+
 /* Safelist: cotton/entrance/index.html builds its card's width cap from the
    `size` attribute. Must cover every width that attribute accepts. */
 @source inline("md:max-w-{sm,md,lg,xl,2xl,3xl,4xl}");

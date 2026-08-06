@@ -31,3 +31,14 @@ class TestMenuDirection:
         html = render('<c-menu responsive="lg" />')
         assert "menu-vertical" in html
         assert "lg:menu-horizontal" in html
+
+
+class TestMenuPaged:
+    def test_default_menu_is_not_paged(self):
+        html = render("<c-menu />")
+        assert "menu-paged" not in html
+
+    def test_paged_menu(self):
+        html = render("<c-menu paged />")
+        assert "menu-paged" in html
+
