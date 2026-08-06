@@ -7,6 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`c-menu` can lay out horizontally.** A `horizontal` attribute applies
+  DaisyUI's `menu-horizontal`, and a `responsive` attribute names the breakpoint
+  at which a vertical menu turns horizontal (`<c-menu responsive="lg" />` is
+  vertical on small screens and horizontal from `lg` up). Menus stay vertical
+  when neither is set, so existing usage is unchanged.
+
+- **`c-menu` supports DaisyUI paged menus.** An opt-in `paged` attribute applies
+  the `menu-paged` modifier, so a nested menu shows one level at a time with the
+  open summary acting as a back button. Off by default; no existing menu changes.
+
+### Fixed
+
+- **The brand icon no longer vanishes from the collapsed sidebar rail.** The
+  icon-rail's label-hiding rule also blanked the brand icon's wrapper span,
+  leaving the header empty. The wrapper is now marked so the rail keeps the
+  brand visible, swapping it for the sidebar toggle on hover as intended.
+
+- **The list-page search input lines up with its button again.** The search
+  action's `label` leaked into the inner `c-form.field` through the template
+  context and rendered a stray fieldset legend that pushed the input out of
+  line. The input is now a bare control sharing the `join` with the button.
+
+- **Navbar-end widgets have room to breathe.** The gap between the theme and
+  language controls widened from `gap-1` to `gap-3`.
+
+- **Opening enough menu items no longer reflows the page.** The sidebar reserves
+  a stable scrollbar gutter while open, so a vertical scrollbar appearing never
+  widens the sidebar and shifts the main content.
+
+- **The brand logo no longer distorts on error pages.** `c-brand.logo` rendered
+  with `h-full` and no `object-fit`, so a height-constrained box stretched it.
+  It now renders with `object-contain` and an automatic width, and the error
+  pages use `c-brand.logo` instead of a hand-built `<img>`.
+
 ## [v0.16.0] - 2026-08-05
 
 ### Added

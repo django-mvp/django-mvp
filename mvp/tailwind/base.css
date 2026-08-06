@@ -40,6 +40,9 @@
 @source inline("text-{start,center,end}");
 @source inline("text-{sm,base,lg,xl}");
 
+/* Safelist: c-menu `responsive` modifiers (cotton/menu/index.html). */
+@source inline("{md,lg,xl}:menu-horizontal");
+
 /* Safelist: cotton/entrance/index.html builds its card's width cap from the
    `size` attribute. Must cover every width that attribute accepts. */
 @source inline("md:max-w-{sm,md,lg,xl,2xl,3xl,4xl}");
@@ -160,4 +163,20 @@
   .mvp-sidebar-header:hover .mvp-sidebar-brand {
     display: none;
   }
+
+  /* The generic `> span` hide rule above also blanks the brand icon's wrapper
+     span, which left the rail header empty. Keep the icon visible so the
+     collapsed header always shows the brand (#174). */
+  .mvp-sidebar-brand-icon {
+    display: flex;
+  }
+}
+
+/* Reserve the sidebar's scrollbar gutter while it is open, so a vertical
+   scrollbar appearing (enough menu items to overflow) never widens the
+   sidebar and reflows the main content (#179). */
+.drawer:has(> .drawer-toggle:checked) .mvp-sidebar {
+  max-height: 100dvh;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
 }
