@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.16.1] - 2026-08-06
+
 ### Added
 
 - **`c-menu` can lay out horizontally.** A `horizontal` attribute applies
