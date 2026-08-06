@@ -77,7 +77,7 @@ Empty, unopinionated building blocks — you provide the content.
 
 | Component | Notes |
 | --- | --- |
-| `c-menu` | `label` — DaisyUI menu `<ul>` |
+| `c-menu` | `label`, `horizontal`, `responsive` (breakpoint at which a vertical menu turns horizontal) — DaisyUI menu `<ul>` |
 | `c-menu.item` | `label`, `icon`, `href`, `active`, `badge`, `tip` (rail tooltip) |
 | `c-menu.group` | `label`, `collapse`, `icon`, `badge` — section header or `<details>` group |
 | `c-menu.collapse`, `c-menu.divider` | collapsible wrapper / separator |
