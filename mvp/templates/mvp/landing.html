@@ -3,11 +3,15 @@
 {% block head %}
   {{ block.super }}
   <link rel="stylesheet"
-        href="https://cdn.jsdelivr.net/npm/parallaxx-js/dist/parallax.css" />
+        href="https://cdn.jsdelivr.net/npm/parallaxx-js@1.0.2/dist/parallax.css"
+        integrity="sha384-0goO/zYG6ft5VdtvW8SEbzTtrYnczQtihz9U3slbTDLtUtM5pMG32FTTiPfJk2fP"
+        crossorigin="anonymous" />
 {% endblock head %}
 {% block extra_js %}
   {{ block.super }}
-  <script src="https://cdn.jsdelivr.net/npm/parallaxx-js/dist/parallax.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/parallaxx-js@1.0.2/dist/parallax.js"
+          integrity="sha384-9z2rEUx2IcqaJvF0hLhpPZzUP9wX7f+saQJqCigqqvp/ZGoYOrk1nOZ6SUgbDcvt"
+          crossorigin="anonymous"></script>
 {% endblock extra_js %}
 {% block content %}
   <c-page class="{{ page.class }}">
