@@ -168,3 +168,12 @@
     display: flex;
   }
 }
+
+/* Reserve the sidebar's scrollbar gutter while it is open, so a vertical
+   scrollbar appearing (enough menu items to overflow) never widens the
+   sidebar and reflows the main content (#179). */
+.drawer:has(> .drawer-toggle:checked) .mvp-sidebar {
+  max-height: 100dvh;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+}
