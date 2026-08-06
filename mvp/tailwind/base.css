@@ -40,13 +40,8 @@
 @source inline("text-{start,center,end}");
 @source inline("text-{sm,base,lg,xl}");
 
-/* Safelist: c-menu builds its direction modifier from the `horizontal` and
-   `responsive` attributes (cotton/menu/index.html). */
-@source inline("menu-{horizontal,vertical}");
-@source inline("{sm,md,lg,xl,2xl}:menu-horizontal");
-
-/* Safelist: c-menu's `paged` attribute (cotton/menu/index.html). */
-@source inline("menu-paged");
+/* Safelist: c-menu `responsive` modifiers (cotton/menu/index.html). */
+@source inline("{md,lg,xl}:menu-horizontal");
 
 /* Safelist: cotton/entrance/index.html builds its card's width cap from the
    `size` attribute. Must cover every width that attribute accepts. */
