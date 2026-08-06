@@ -160,4 +160,11 @@
   .mvp-sidebar-header:hover .mvp-sidebar-brand {
     display: none;
   }
+
+  /* The generic `> span` hide rule above also blanks the brand icon's wrapper
+     span, which left the rail header empty. Keep the icon visible so the
+     collapsed header always shows the brand (#174). */
+  .mvp-sidebar-brand-icon {
+    display: flex;
+  }
 }
