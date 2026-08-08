@@ -1,15 +1,11 @@
 {% extends "mvp/base.html" %}
-{% load i18n mvp %}
+{% load i18n %}
 {% block title %}
   {% trans "Error" %}
 {% endblock title %}
 {% block app %}
   <c-entrance>
-    <img src="{% logo_url "md" %}"
-         alt="{% trans "Site Logo" %}"
-         width="auto"
-         height="auto"
-         class="max-h-16 mb-4" />
+    <c-brand.logo max-height="md" class="h-16 mb-4" />
     <p class="text-6xl font-black text-base-content/10 mb-2 text-center">
       {% block error_code %}{% endblock %}
     </p>

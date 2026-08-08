@@ -38,7 +38,7 @@ repository = "https://github.com/django-mvp/django-mvp"
 
 
 [tool.poetry]
-version = "0.16.0"
+version = "0.16.1"
 packages = [{ include = "mvp" }]
 classifiers = [
     "Development Status :: 3 - Alpha",
