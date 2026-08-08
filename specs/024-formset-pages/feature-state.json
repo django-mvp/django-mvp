@@ -2,7 +2,7 @@
   "feature": "024-formset-pages",
   "branch": "024-formset-pages",
   "repo": "django-mvp/django-mvp",
-  "state": "IMPLEMENT",
+  "state": "CONVERGE",
   "state_history": [
     {
       "state": "INTAKE",
@@ -44,6 +44,11 @@
       "state": "IMPLEMENT",
       "at": "2026-08-05T21:35:00Z",
       "note": "Spec amendment (D24) approved by Sam via delta brief; T043 released. S4 begins with the US1 foundational phase."
+    },
+    {
+      "state": "CONVERGE",
+      "at": "2026-08-08T21:10:00Z",
+      "note": "Story chain merged, main (v0.16.1) merged in, stylesheet rebuilt, five ADRs graduated, 39 decision verdicts recorded, R8 closed, six story comments posted. Review budget cut to one cycle on Sam instruction 2026-08-08 (weekly quota cost)."
     }
   ],
   "gates": {
@@ -794,7 +799,7 @@
     },
     "review_cycles": {
       "used": 0,
-      "max": 2
+      "max": 1
     },
     "design_review_cycles": {
       "used": 2,
