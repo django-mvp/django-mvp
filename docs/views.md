@@ -94,6 +94,24 @@ class ProductUpdateView(MVPUpdateView):
 - Model form views derive page titles and success messages from the model's
   `verbose_name`.
 
+### A parent and its related rows
+
+`MVPInlineCreateView` and `MVPInlineUpdateView` put a record and a formset of related rows
+on one page, validated and saved together:
+
+```python
+class ProductOrderLinesView(MVPInlineUpdateView):
+    model = Product
+    fields = ["name", "category"]
+    inline_model = OrderLine
+    inline_fields = ["quantity"]
+```
+
+No template markup, no formset construction, no save logic — the same page chrome, renderer
+detection and success-URL chain as any other form view. See [Formsets](formsets.md) for the
+whole path from the two models to a rendered page, and the standalone case for a formset with
+no parent record at all.
+
 ## Delete flows
 
 `MVPDeleteView` handles the hard parts of deletion:

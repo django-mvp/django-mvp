@@ -7,11 +7,12 @@ customization. A few, like ``layout_demo`` and ``theme_customization_demo``,
 are plain ``DemoTemplateView`` instances that render a static demo page.
 """
 
+from django.forms import modelformset_factory
 from django.http import Http404
 from django_filters.views import FilterView
 
 from demo.component_docs import COMPONENTS, COMPONENTS_BY_SLUG
-from demo.models import Article, Category, Product
+from demo.models import Article, Category, OrderLine, Product
 from demo.tables import ProductTable
 from mvp.integrations.django_tables.views import MVPTableViewMixin
 from mvp.views import (
@@ -19,6 +20,7 @@ from mvp.views import (
     MVPDeleteView,
     MVPDetailView,
     MVPHomeView,
+    MVPInlineUpdateView,
     MVPTemplateView,
     MVPUpdateView,
 )
@@ -82,6 +84,13 @@ class ComponentDocView(DemoTemplateView):
         context = super().get_context_data(**kwargs)
         context["components"] = COMPONENTS
         context["component"] = self.component
+        if self.component.slug == "formset":
+            # <c-form.formset> needs a real, bound formset — the standalone case
+            # (no parent record, unlike the inline formset in the worked example).
+            OrderLineFormSet = modelformset_factory(
+                OrderLine, fields=["product", "quantity"], extra=2
+            )
+            context["formset"] = OrderLineFormSet(queryset=OrderLine.objects.none())
         return context
 
 
@@ -195,6 +204,23 @@ class ProductUpdateView(MVPUpdateView):
     show_list_action = True
     show_detail_action = True
     show_delete_action = True
+
+
+class ProductOrderLinesView(MVPInlineUpdateView):
+    """A product and its order lines, validated and saved together.
+
+    The worked example docs/formsets.md walks through: one view, no template
+    markup for the rows, no code to build, validate or save the set.
+    """
+
+    model = Product
+    fields = ["name", "category"]
+    inline_model = OrderLine
+    inline_fields = ["quantity"]
+    inline_extra = 1
+    success_url = "list"
+    show_list_action = True
+    show_detail_action = True
 
 
 class ProductDeleteView(MVPDeleteView):

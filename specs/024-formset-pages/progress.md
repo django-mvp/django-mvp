@@ -183,6 +183,70 @@ Craft-skill gate green before any dispatch: `forge check-skills --role implement
 returns `craft-tdd` and `craft-increments` with receipts matching `kit/craft-skills.json`.
 Beginning with the US1 foundational phase, which every later story renders through.
 
+## 2026-08-05T19:05:48Z · Implementer US1 · T001
+
+Did: added `TestCrispyIsARuntimeDependency` to `tests/test_smoke.py`, parsing
+`pyproject.toml` with `tomllib` and asserting `django-crispy-forms` and
+`crispy-tailwind` appear in `[project].dependencies`.
+Verified: `poetry run pytest tests/test_smoke.py::TestCrispyIsARuntimeDependency -v`
+— 1 failed (red, correct reason: `AssertionError` on the `django-crispy-forms` assert,
+both distributions still declared only in the dev group at this point).
+Next: T002 — move the crispy pair into `[project].dependencies`.
+Watch: nothing.
+
+## 2026-08-05T19:05:48Z · Implementer US1 · T002
+
+Did: moved `django-crispy-forms` (`^2.7` → `>=2.7,<3.0`) and `crispy-tailwind`
+(`^1.0.3` → `>=1.0.3,<2.0`) from `[tool.poetry.group.dev.dependencies]` to
+`[project].dependencies` in `pyproject.toml`; ran `poetry lock` to regenerate
+`poetry.lock`.
+Verified: `poetry run pytest tests/test_smoke.py::TestCrispyIsARuntimeDependency -v`
+— 1 passed. `poetry run pytest tests/test_smoke.py -v` — 9 passed. `poetry check` —
+exit 0 (one pre-existing, unrelated deprecation warning about `[tool.poetry.plugins]`).
+Next: T003 — deptry ignores for the two new runtime deps.
+Watch: nothing.
+
+## 2026-08-05T19:05:48Z · Implementer US1 · T003
+
+Did: added `django-crispy-forms` and `crispy-tailwind` to
+`[tool.deptry.per_rule_ignores] DEP002` in `pyproject.toml`, with a comment stating
+they are reached through `{% load %}` and `INSTALLED_APPS` rather than a Python
+import — same shape as the existing `django-flex-menus` entry.
+Verified: before the change, `poetry run deptry .` reported 2 DEP002 issues (both
+new dependencies, confirming the fix was necessary). After: `poetry run deptry .` —
+"Success! No dependency issues found."
+Next: T004 — document crispy as required setup.
+Watch: nothing.
+
+## 2026-08-05T19:05:48Z · Implementer US1 · T004
+
+Did: rewrote the crispy section of `docs/integrations.md` to state crispy is a
+required runtime dependency, not an optional integration, and point at Getting
+Started for setup. Added the `crispy_forms`/`crispy_tailwind` `INSTALLED_APPS`
+entries and the two `CRISPY_*` settings to the required setup in `README.md` and a
+new "Configure form rendering" section in `docs/getting-started.md`, including the
+ordering note (`mvp` before `crispy_tailwind`, so the packaged `help_text.html`
+override wins) and the "installing is necessary but not sufficient" note about
+`{% load %}` resolving only through `INSTALLED_APPS`. Dropped "crispy forms" from the
+integrations row of the guide table in `docs/index.md`.
+Verified: `poetry run pytest tests/test_smoke.py -q` — 9 passed (docs-only change;
+no test targets these files directly). Confirmed by grep that no test in `tests/`
+references `integrations.md`, `docs/index.md` or the "Crispy forms" heading text.
+Next: T005 — fix the standing pyproject.toml comment.
+Watch: none of README's other pre-existing "crispy-forms detection" mentions
+(lines ~32, ~185) were touched — out of this task's acceptance criteria and outside
+scope per craft-increments.
+
+## 2026-08-05T19:05:48Z · Implementer US1 · T005
+
+Did: rewrote the standing comment under `[project].dependencies` in `pyproject.toml`
+so it no longer claims crispy lives behind a guarded import in `mvp.integrations`,
+while keeping that claim true for django-tables2 and django-filter.
+Verified: `poetry run pytest tests/test_smoke.py -q` — 9 passed. `poetry check` —
+exit 0 (same pre-existing warning as T002).
+Next: story-level verify (full `pytest`, `ruff check`, `ruff format --check`,
+`deptry`), then completion report.
+Watch: nothing.
 ## US1 complete — 2026-08-05
 
 Five tasks, all first attempt. `forge verify` green in the worktree. `check-receipts` green for

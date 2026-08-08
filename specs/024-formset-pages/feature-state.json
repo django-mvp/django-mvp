@@ -90,27 +90,73 @@
         {
           "id": "T001",
           "status": "done",
-          "attempts": 1
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_smoke.py::TestCrispyIsARuntimeDependency::test_crispy_pair_declared_in_project_dependencies"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_smoke.py::TestCrispyIsARuntimeDependency -v  # 1 failed, correct reason (AssertionError, crispy still dev-only)",
+              "commits: 93c83a1 T001: assert crispy pair is declared at runtime"
+            ]
+          }
         },
         {
           "id": "T002",
           "status": "done",
-          "attempts": 1
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_smoke.py::TestCrispyIsARuntimeDependency -> 1 passed",
+              "tests/test_smoke.py -> 9 passed"
+            ],
+            "commands": [
+              "poetry lock",
+              "poetry check  # exit 0, one pre-existing unrelated deprecation warning",
+              "commits: f307059 T002: promote crispy pair to runtime dependencies"
+            ]
+          }
         },
         {
           "id": "T003",
           "status": "done",
-          "attempts": 1
+          "attempts": 1,
+          "evidence": {
+            "tests": [],
+            "commands": [
+              "poetry run deptry .  # before: 2 DEP002 issues; after: Success, no dependency issues found",
+              "commits: 3e621b4 T003: ignore DEP002 for the crispy pair"
+            ]
+          }
         },
         {
           "id": "T004",
           "status": "done",
-          "attempts": 1
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_smoke.py -> 9 passed"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_smoke.py -q",
+              "grep -rn 'integrations.md|docs/index.md|Crispy forms' tests/  # no matches, docs not test-bound",
+              "commits: 7ecf3e4 T004: document crispy as required setup"
+            ]
+          }
         },
         {
           "id": "T005",
           "status": "done",
-          "attempts": 1
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_smoke.py -> 9 passed"
+            ],
+            "commands": [
+              "poetry check  # exit 0",
+              "commits: 92ce230 T005: fix standing comment, crispy is no longer an integration"
+            ]
+          }
         }
       ]
     },
@@ -125,42 +171,119 @@
         {
           "id": "T006",
           "status": "done",
-          "attempts": 1
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_form_formset.py::TestFormsetRowFields, TestFormsetRowErrors \u2014 4 tests, observed red with TemplateDoesNotExist: cotton/form/formset/row.html before T008"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_components/test_form_formset.py -v  -> 4 failed (TemplateDoesNotExist)",
+              "commits: 7f81d19b6a88fdae932cf3fe21793a7ba42b618b"
+            ]
+          }
         },
         {
           "id": "T007",
           "status": "done",
-          "attempts": 1
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_form_formset.py::TestFormsetManagementForm, TestFormsetRows, TestFormsetEmptyForm \u2014 5 tests, observed red with TemplateDoesNotExist: cotton/form/formset/index.html before T009"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_components/test_form_formset.py -v  -> 9 failed (TemplateDoesNotExist)",
+              "commits: 398804bd6a73d8fe19c044c84e8ff6e8a584d599"
+            ]
+          }
         },
         {
           "id": "T008",
           "status": "done",
-          "attempts": 1
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_form_formset.py::TestFormsetRowFields, TestFormsetRowErrors \u2014 all 4 green; test_render_all.py[form/formset/row.html] green (no SKIP added); test_class_attribute_merge.py unaffected/green"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_components/test_form_formset.py::TestFormsetRowFields tests/test_components/test_form_formset.py::TestFormsetRowErrors -v  -> 4 passed",
+              "poetry run pytest tests/test_components/test_render_all.py -k formset -v  -> 1 passed (row.html)",
+              "commits: 8ea3466c7bfe743638118ac3aa2cc8f8e666084d"
+            ]
+          }
         },
         {
           "id": "T009",
           "status": "done",
-          "attempts": 1
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_form_formset.py \u2014 all 9 tests green; test_render_all.py[form/formset/index.html and row.html] green; test_class_attribute_merge.py green"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_components/test_form_formset.py -v  -> 9 passed",
+              "poetry run pytest tests/test_components/test_render_all.py -k formset -v  -> 2 passed",
+              "poetry run pytest tests/test_components/test_class_attribute_merge.py -v  -> 8 passed",
+              "commits: be888e5617732da1d3b598d50e716faccdd83e8a"
+            ]
+          }
         },
         {
           "id": "T010",
           "status": "done",
-          "attempts": 1
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_form_index.py::TestFormEnctype \u2014 observed red: assertion failure (enctype not set), not an error \u2014 correct reason since <c-form> did not yet consult formset"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_components/test_form_index.py -v  -> 1 failed (assertion)",
+              "commits: 3f74d9c89b2c7ef0e71f7e3c00524b85c1df96ad"
+            ]
+          }
         },
         {
           "id": "T011",
           "status": "done",
-          "attempts": 1
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_form_index.py::TestFormEnctype green; tests/test_components/test_form_render.py unaffected/green; test_render_all.py[form/index.html] green"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_components/test_form_index.py tests/test_components/test_form_render.py -v  -> 2 passed",
+              "poetry run pytest 'tests/test_components/test_render_all.py::TestComponentRenderSmoke::test_component_template_renders[form/index.html]' -v  -> 1 passed",
+              "commits: 88f9ca76e9c2bc0d80471a1e9ad23ebb93baa167"
+            ]
+          }
         },
         {
           "id": "T012",
           "status": "done",
-          "attempts": 1
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_views/test_edit.py::TestFormViewStandaloneFormset \u2014 observed red: page rendered 200 with full layout but no formset markup (assertion failure, not a crash) \u2014 correct reason since form_view.html did not yet render the formset"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_views/test_edit.py::TestFormViewStandaloneFormset -v  -> 1 failed (assertion)",
+              "commits: b537d332a31a34d8562435efe4c5e1f26b3cc847"
+            ]
+          }
         },
         {
           "id": "T013",
           "status": "done",
-          "attempts": 1
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_views/test_edit.py full file green (156 passed, includes T012 now green and every pre-existing form-view rendering test unaffected); tests/test_components/test_form_formset.py, test_form_index.py, test_render_all.py all green"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_views/test_edit.py -v  -> 156 passed",
+              "poetry run pytest tests/test_components/test_form_formset.py tests/test_components/test_form_index.py tests/test_components/test_render_all.py -q  -> 91 passed, 1 skipped",
+              "commits: 54b290d65c7ef469d3a1a06512900124b6fedbc6"
+            ]
+          }
         }
       ]
     },
@@ -169,63 +292,184 @@
       "priority": "P1",
       "issue": 165,
       "worktree": "/home/sam/projects/django-mvp/mvp-fs024-us3",
-      "status": "in_progress",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
           "id": "T014",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_views/test_inline.py"
+            ],
+            "commands": [
+              "git show b954fa6 -- tests/test_views/test_inline.py  -> T014: failing test \u2014 view without inline_model raises ImproperlyConfigured",
+              "story-level verify: forge verify green (lint, typecheck, 634 tests, build, conformance); tamper-check triaged and recorded as D30",
+              "provenance: reconstructed from commit history at convergence; the US3 Implementer report omitted per-task evidence. Not the Implementer's own red-then-green record.",
+              "commits: b954fa6"
+            ]
+          }
         },
         {
           "id": "T015",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_views/test_inline.py"
+            ],
+            "commands": [
+              "git show 9838141 -- tests/test_views/test_inline.py  -> T015: failing tests \u2014 GET renders parent form, existing rows, and inline_extra blanks",
+              "story-level verify: forge verify green (lint, typecheck, 634 tests, build, conformance); tamper-check triaged and recorded as D30",
+              "provenance: reconstructed from commit history at convergence; the US3 Implementer report omitted per-task evidence. Not the Implementer's own red-then-green record.",
+              "commits: 9838141"
+            ]
+          }
         },
         {
           "id": "T016",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_views/test_inline.py"
+            ],
+            "commands": [
+              "git show 4b063aa -- tests/test_views/test_inline.py  -> T016: failing tests \u2014 valid submission persists both parts exactly once, FR-012 redirect chain",
+              "story-level verify: forge verify green (lint, typecheck, 634 tests, build, conformance); tamper-check triaged and recorded as D30",
+              "provenance: reconstructed from commit history at convergence; the US3 Implementer report omitted per-task evidence. Not the Implementer's own red-then-green record.",
+              "commits: 4b063aa"
+            ]
+          }
         },
         {
           "id": "T017",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_views/test_inline.py"
+            ],
+            "commands": [
+              "git show 76e63bb -- tests/test_views/test_inline.py  -> T017: failing test \u2014 row-save failure rolls back parent, no message survives",
+              "story-level verify: forge verify green (lint, typecheck, 634 tests, build, conformance); tamper-check triaged and recorded as D30",
+              "provenance: reconstructed from commit history at convergence; the US3 Implementer report omitted per-task evidence. Not the Implementer's own red-then-green record.",
+              "commits: 76e63bb"
+            ]
+          }
         },
         {
           "id": "T018",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_views/test_inline.py"
+            ],
+            "commands": [
+              "git show 96637f9 -- tests/test_views/test_inline.py  -> T018: failing test \u2014 invalid parent form persists nothing, preserves both parts",
+              "story-level verify: forge verify green (lint, typecheck, 634 tests, build, conformance); tamper-check triaged and recorded as D30",
+              "provenance: reconstructed from commit history at convergence; the US3 Implementer report omitted per-task evidence. Not the Implementer's own red-then-green record.",
+              "commits: 96637f9"
+            ]
+          }
         },
         {
           "id": "T019",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_views/test_inline.py"
+            ],
+            "commands": [
+              "git show a580681 -- tests/test_views/test_inline.py  -> T019: failing test \u2014 invalid row persists nothing, carries its error, mirrors T018",
+              "story-level verify: forge verify green (lint, typecheck, 634 tests, build, conformance); tamper-check triaged and recorded as D30",
+              "provenance: reconstructed from commit history at convergence; the US3 Implementer report omitted per-task evidence. Not the Implementer's own red-then-green record.",
+              "commits: a580681"
+            ]
+          }
         },
         {
           "id": "T020",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_views/test_inline.py"
+            ],
+            "commands": [
+              "git show d098b59 -- tests/test_views/test_inline.py  -> T020: failing test \u2014 create attaches all new rows to the newly created parent",
+              "story-level verify: forge verify green (lint, typecheck, 634 tests, build, conformance); tamper-check triaged and recorded as D30",
+              "provenance: reconstructed from commit history at convergence; the US3 Implementer report omitted per-task evidence. Not the Implementer's own red-then-green record.",
+              "commits: d098b59"
+            ]
+          }
         },
         {
           "id": "T021",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_views/test_inline.py"
+            ],
+            "commands": [
+              "git show ef624ac -- tests/test_views/test_inline.py  -> T021: failing tests \u2014 inline_max_num rejects excess forms, accepts within-cap-after-removals",
+              "story-level verify: forge verify green (lint, typecheck, 634 tests, build, conformance); tamper-check triaged and recorded as D30",
+              "provenance: reconstructed from commit history at convergence; the US3 Implementer report omitted per-task evidence. Not the Implementer's own red-then-green record.",
+              "commits: ef624ac"
+            ]
+          }
         },
         {
           "id": "T022",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_views/test_inline.py"
+            ],
+            "commands": [
+              "git show 9820daa -- tests/test_views/test_inline.py  -> T022: implement InlineFormsetMixin config, get_formset_class/kwargs, memoised get_formset, get_context_data",
+              "story-level verify: forge verify green (lint, typecheck, 634 tests, build, conformance); tamper-check triaged and recorded as D30",
+              "provenance: reconstructed from commit history at convergence; the US3 Implementer report omitted per-task evidence. Not the Implementer's own red-then-green record.",
+              "commits: 9820daa"
+            ]
+          }
         },
         {
           "id": "T023",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 2,
+          "evidence": {
+            "tests": [
+              "tests/test_views/test_inline.py"
+            ],
+            "commands": [
+              "git show 9b9309c -- tests/test_views/test_inline.py  -> T023: implement InlineFormsetMixin.form_valid \u2014 atomic save, no super().form_valid()",
+              "story-level verify: forge verify green (lint, typecheck, 634 tests, build, conformance); tamper-check triaged and recorded as D30",
+              "provenance: reconstructed from commit history at convergence; the US3 Implementer report omitted per-task evidence. Not the Implementer's own red-then-green record.",
+              "commits: 9b9309c"
+            ]
+          }
         },
         {
           "id": "T024",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_views/test_inline.py"
+            ],
+            "commands": [
+              "git show ede935f -- tests/test_views/test_inline.py  -> T024: add MVPInlineCreateView/MVPInlineUpdateView, export from mvp.views",
+              "story-level verify: forge verify green (lint, typecheck, 634 tests, build, conformance); tamper-check triaged and recorded as D30",
+              "provenance: reconstructed from commit history at convergence; the US3 Implementer report omitted per-task evidence. Not the Implementer's own red-then-green record.",
+              "commits: ede935f"
+            ]
+          }
         }
       ]
     },
@@ -233,34 +477,84 @@
       "id": "US4",
       "priority": "P2",
       "issue": 166,
-      "worktree": null,
-      "status": "todo",
+      "worktree": "/home/sam/projects/django-mvp/mvp-fs024-us4",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
           "id": "T025",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 2,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_form_formset.py::TestFormsetRowFieldErrorPlacement::test_field_error_renders_inside_its_own_row_only",
+              "tests/test_components/test_form_formset.py::TestFormsetRowFieldErrorPlacement::test_errors_on_two_different_rows_each_carry_their_own_message"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_components/test_form_formset.py::TestFormsetRowFieldErrorPlacement -v",
+              "commits: 300f526"
+            ]
+          }
         },
         {
           "id": "T026",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_form_formset.py::TestFormsetNonFormErrors::test_non_form_errors_render_inside_an_alert_above_the_rows",
+              "tests/test_components/test_form_formset.py::TestFormsetNonFormErrors::test_no_alert_rendered_when_there_are_no_non_form_errors"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_components/test_form_formset.py::TestFormsetNonFormErrors -v",
+              "commits: 8a3594c"
+            ]
+          }
         },
         {
           "id": "T027",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_form_formset.py::TestFormsetPageLevelErrorPlacement::test_invalid_submission_avoids_a_page_level_summary_and_preserves_values"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_components/test_form_formset.py::TestFormsetPageLevelErrorPlacement -v",
+              "commits: 07ce6e1"
+            ]
+          }
         },
         {
           "id": "T028",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_form_formset.py (all 14, then 15 after T029)",
+              "tests/test_components/test_render_all.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_components/test_form_formset.py -v",
+              "poetry run pytest tests/test_components/test_render_all.py -q",
+              "commits: dbb5156"
+            ]
+          }
         },
         {
           "id": "T029",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_form_formset.py::TestFormsetBuiltinSetLevelErrors::test_too_few_rows_renders_above_the_set",
+              "tests/test_components/test_form_formset.py::TestFormsetBuiltinSetLevelErrors::test_too_many_rows_renders_above_the_set"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_components/test_form_formset.py::TestFormsetBuiltinSetLevelErrors -v",
+              "commits: de4875f"
+            ]
+          }
         }
       ]
     },
@@ -269,38 +563,96 @@
       "priority": "P2",
       "issue": 167,
       "worktree": null,
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
           "id": "T030",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_form_formset.py::TestFormsetAddRemoveControls (4 tests)"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_components/test_form_formset.py::TestFormsetAddRemoveControls -q  -> 3 failed, 1 passed (red, correct reason: controls not implemented)",
+              "commits: 749666f"
+            ]
+          }
         },
         {
           "id": "T031",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_views/test_inline.py::TestInlineRowRemoval (3 tests)"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_views/test_inline.py::TestInlineRowRemoval -q  -> 3 passed",
+              "commits: e4f0ac7"
+            ]
+          }
         },
         {
           "id": "T032",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_form_formset.py (full file), tests/test_views/test_inline.py, tests/test_views/test_edit.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_components/test_form_formset.py -q  -> 18 passed, 2 failed (remove-control tests correctly still red)",
+              "poetry run pytest tests/test_views/test_inline.py tests/test_views/test_edit.py -q  -> 172 passed",
+              "commits: 620567b"
+            ]
+          }
         },
         {
           "id": "T033",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_form_formset.py (full file), tests/test_views/, tests/test_components/"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_components/test_form_formset.py -q  -> 20 passed (all T030 tests green)",
+              "poetry run pytest tests/test_views/test_inline.py tests/test_views/test_edit.py tests/test_components/ -q  -> 396 passed, 1 skipped",
+              "commits: 20a36e0"
+            ]
+          }
         },
         {
           "id": "T034",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_form_formset.py::TestFormsetAddRemoveLabels (3 tests)"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_components/test_form_formset.py::TestFormsetAddRemoveLabels -q  -> 3 passed",
+              "poetry run pytest tests/test_components/ tests/test_views/ -q  -> 595 passed, 5 skipped",
+              "commits: 5ae6ee7"
+            ]
+          }
         },
         {
           "id": "T035",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_form_formset.py::TestFormsetAddRemoveRowsE2E (1 test, class-scoped e2e marker + skipif)"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_components/test_form_formset.py -q  -> 23 passed, 1 skipped",
+              "poetry run pytest tests/test_components/ tests/test_views/ -q  -> 595 passed, 6 skipped",
+              "commits: da34093"
+            ]
+          }
         }
       ]
     },
@@ -308,49 +660,129 @@
       "id": "US6",
       "priority": "P3",
       "issue": 168,
-      "worktree": null,
-      "status": "todo",
+      "worktree": "/home/sam/projects/django-mvp/mvp-fs024-us6",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
           "id": "T036",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_smoke.py::TestProductOrderLinesWorkedExample (2 tests)"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_smoke.py::TestProductOrderLinesWorkedExample -q  -> 2 failed (red, correct reason: /products/<pk>/order-lines/ 404, view/route did not exist)",
+              "poetry run pytest tests/test_smoke.py::TestProductOrderLinesWorkedExample -q  -> 2 passed",
+              "poetry run pytest tests/test_smoke.py tests/test_views/test_inline.py -q  -> 27 passed",
+              "commits: d771a4f"
+            ]
+          }
         },
         {
           "id": "T037",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_smoke.py::TestOrderLineArticleIXCompliance (2 tests)"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_smoke.py::TestOrderLineArticleIXCompliance -q  -> 2 failed (red, correct reason: help_text == '' on both fields)",
+              "poetry run pytest tests/test_smoke.py::TestOrderLineArticleIXCompliance -q  -> 2 passed",
+              "DJANGO_SETTINGS_MODULE=demo.settings poetry run python manage.py makemigrations demo --check --dry-run  -> 'No changes detected in app demo' (clean, one migration generated: 0005_orderline_verbose_name_and_help_text.py)",
+              "poetry run pytest tests/test_smoke.py tests/test_views/test_inline.py tests/test_views/test_edit.py -q  -> 185 passed",
+              "commits: 61be0ca"
+            ]
+          }
         },
         {
           "id": "T038",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "No behaviour change; verified every symbol/snippet by hand per the acceptance criterion."
+            ],
+            "commands": [
+              "poetry run pytest tests/test_smoke.py -q  -> 14 passed",
+              "Verification-only scratch test (written, run, then deleted - not part of the story's test suite): instantiated the standalone-case snippet's BulkOrderLinesView(MVPFormView) against demo.forms.ProductForm and demo.models.OrderLine via the Django test client; confirmed 'form-TOTAL_FORMS' and 'Add row' render. This caught two errors in my first draft before commit: MVPFormView needs a ModelForm form_class (not demo.forms.ContactForm, a plain Form) to resolve model_meta, and needs an explicit template_name (a bare FormView has no model to derive one from, unlike MVPCreateView/MVPUpdateView).",
+              "commits: 88e02d5"
+            ]
+          }
         },
         {
           "id": "T039",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "No behaviour change."
+            ],
+            "commands": [
+              "poetry run pytest tests/test_smoke.py -q  -> 14 passed",
+              "commits: 057f853"
+            ]
+          }
         },
         {
           "id": "T040",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_smoke.py::TestFormsetComponentDocPage (1 test)"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_smoke.py::TestFormsetComponentDocPage -q  -> 1 failed (red, correct reason: /components/formset/ 404, slug not registered)",
+              "poetry run pytest tests/test_smoke.py::TestFormsetComponentDocPage -q  -> 1 passed",
+              "poetry run pytest tests/test_smoke.py tests/test_views/ tests/test_components/ -q  -> 609 passed, 6 skipped",
+              "commits: d85e087"
+            ]
+          }
         },
         {
           "id": "T041",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "No behaviour change."
+            ],
+            "commands": [
+              "poetry run pytest tests/test_smoke.py -q  -> 14 passed",
+              "commits: 4986e2f"
+            ]
+          }
         },
         {
           "id": "T042",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "No behaviour change."
+            ],
+            "commands": [
+              "poetry run pytest tests/test_smoke.py -q  -> 14 passed",
+              "commits: 66caadf"
+            ]
+          }
         },
         {
           "id": "T043",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "No behaviour change."
+            ],
+            "commands": [
+              "poetry run pytest tests/test_smoke.py -q  -> 14 passed",
+              "commits: b6b8ea4"
+            ]
+          }
         }
       ]
     }

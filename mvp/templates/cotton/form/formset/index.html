@@ -1,0 +1,60 @@
+{% comment %}
+  A whole Django formset: any error belonging to the set as a whole, the
+  management form Django needs to read the submission back, one row per form
+  in formset order, the inert empty-form template cloned to add rows in the
+  browser, and the add-row control.
+
+  Two Alpine counters drive the set: `total` (monotonic, seeds `__prefix__`
+  substitution and TOTAL_FORMS - never decremented) and `visible` (rows not
+  marked for removal, compared against `formset.max_num` by the add control).
+  See contracts/formset-component.md and specs/024-formset-pages/CONTEXT.md.
+{% endcomment %}
+{% load i18n %}
+<c-vars formset class add-label="{% trans "Add row" %}" remove-label="{% trans "Remove" %}" />
+{% if formset %}
+  <div class="space-y-4 {{ class }}"
+       x-data="{
+         total: {{ formset.total_form_count }},
+         visible: {{ formset.total_form_count }},
+         maxNum: {{ formset.max_num }},
+         addRow() {
+           if (this.visible >= this.maxNum) return
+           const tpl = this.$el.querySelector('template')
+           const wrapper = document.createElement('div')
+           wrapper.innerHTML = tpl.innerHTML.replaceAll('__prefix__', this.total).trim()
+           const row = wrapper.firstElementChild
+           tpl.before(row)
+           Alpine.initTree(row)
+           this.total++
+           this.visible++
+         }
+       }"
+       {{ attrs }}>
+    {% if formset.non_form_errors %}
+      <c-alert variant="error">{{ formset.non_form_errors }}</c-alert>
+    {% endif %}
+    {{ formset.management_form.INITIAL_FORMS }}
+    {{ formset.management_form.MIN_NUM_FORMS }}
+    {{ formset.management_form.MAX_NUM_FORMS }}
+    <input type="hidden"
+           name="{{ formset.management_form.TOTAL_FORMS.html_name }}"
+           value="{{ formset.management_form.TOTAL_FORMS.value }}"
+           :value="total">
+    {% for form in formset.forms %}
+      <c-form.formset.row :form="form"
+                           :can-delete="formset.can_delete"
+                           :remove-label="remove_label" />
+    {% endfor %}
+    <template>
+      <c-form.formset.row :form="formset.empty_form"
+                           :can-delete="formset.can_delete"
+                           :remove-label="remove_label" />
+    </template>
+    <button type="button"
+            class="btn btn-outline btn-sm"
+            :disabled="visible >= maxNum"
+            @click="addRow()">
+      {{ add_label }}
+    </button>
+  </div>
+{% endif %}

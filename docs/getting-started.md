@@ -16,9 +16,15 @@ INSTALLED_APPS = [
     "easy_icons",      # Icon system
     "flex_menu",       # Menu system
     "mvp",             # django-mvp
+    "crispy_forms",    # Form rendering
+    "crispy_tailwind", # Tailwind template pack for crispy forms
     ...
 ]
 ```
+
+`mvp` must come before `crispy_tailwind` in this list: django-mvp ships an override of
+crispy-tailwind's help text template, and Django's template loader picks up the first
+app's copy it finds.
 
 Add the context processor so layout configuration reaches every template:
 
@@ -87,6 +93,22 @@ FLEX_MENUS = {
     },
 }
 ```
+
+## Configure form rendering
+
+django-mvp's form pages render through
+[django-crispy-forms](https://github.com/django-crispy-forms/django-crispy-forms) with
+the Tailwind template pack. Add both settings:
+
+```python
+CRISPY_ALLOWED_TEMPLATE_PACKS = ["tailwind"]
+CRISPY_TEMPLATE_PACK = "tailwind"
+```
+
+Installing the two distributions is necessary but not sufficient on its own: Django
+resolves `{% load %}` tag libraries only from apps registered in `INSTALLED_APPS`, so
+without the `crispy_forms` and `crispy_tailwind` entries above, `{% load
+crispy_forms_tags %}` still raises `TemplateSyntaxError`.
 
 ## Your first page
 

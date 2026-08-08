@@ -499,7 +499,164 @@ withdrawn it, contradicting the contract, the data model, the plan and the task.
 the second instance of the pattern D27 named: a correction has to reach every copy of the claim,
 including the summary that restates it.
 
-## D30 — The US2 tamper flag is an append, and is approved
+## D30 — US1: PEP 508 constraint translation preserves the caret ranges exactly
+
+`[tool.poetry.group.dev.dependencies]` used Poetry's own caret syntax: `^2.7` for
+django-crispy-forms, `^1.0.3` for crispy-tailwind. `[project].dependencies` is PEP 508
+and takes no caret operator, so each had to be translated to an explicit range rather
+than copied. Caret semantics: the range stays open below the left-most non-zero
+digit. `^2.7` → `>=2.7,<3.0`; `^1.0.3` → `>=1.0.3,<2.0` (the left-most non-zero digit
+is the major version, `1`, so the upper bound is the next major, not `1.1`). Verified
+against every other PEP 508 entry already in the list, none of which had an upper
+bound to check against, and against `poetry check`, which passed clean.
+
+**Why defensible**: the acceptance criteria said preserve the existing constraints, and
+a caret-to-range translation that gets the boundary wrong silently widens or narrows
+what the constraint actually allows — worth spelling out rather than trusting by eye.
+**Revisit if**: Poetry ever adds native caret support to `[project].dependencies`
+resolution, at which point this translation becomes unnecessary indirection.
+
+## D31 — US1: docs/integrations.md keeps a crispy section, rewritten rather than deleted
+
+T004's brief says crispy is required setup, not an optional add-on, and to move the
+`INSTALLED_APPS`/`CRISPY_*` content into README and Getting Started. It does not say
+to delete the section from `docs/integrations.md` outright. Kept a short section there
+that states plainly that crispy isn't an integration in this doc's sense (it was
+already correctly absent from the file's own guarded-module tree diagram) and links to
+Getting Started for setup, so a reader who lands on the integrations doc looking for
+crispy is redirected rather than finding nothing.
+
+**Why defensible**: `docs/index.md`'s guide table already only advertises
+`integrations.md` for django-tables2 and django-filter after this change, so the
+redirect is a courtesy for existing inbound links, not a claim that crispy is an
+integration. **Revisit if**: a future story wants integrations.md to only ever discuss
+guarded `mvp.integrations` modules — then this redirect line should move to a FAQ or
+be dropped once external links have had time to update.
+
+## D32 — US4: tamper-check flag on `tests/test_components/test_form_formset.py` approved
+
+`forge tamper-check --base 6f3a8a6` flags the file because it existed at the story's
+base commit, having been created by US2. The check is file-granular, so any change to
+a file containing pre-existing tests raises a flag regardless of what the change does.
+
+**Why defensible**: the diff over the range deletes and modifies nothing — `git diff`
+reports zero removed lines in the file, and comparing the class and test declarations
+at base against head shows only additions (four new classes, seven new tests, one new
+formset fixture). Every test US2 wrote is byte-identical at head, and the full suite
+went from 634 to 641 passing with no failures. Same shape as D30 on US3's
+`tests/test_views/test_edit.py`. **Revisit if**: tamper-check gains hunk-level
+granularity, at which point neither this entry nor D30 is needed.
+
+## D33 — US5: three tamper-check flags approved, including the playwright skip
+
+`forge tamper-check --base 5e4d7ef` raises three flags on this story: the two test files
+US5 touches (`tests/test_components/test_form_formset.py` from US2 and
+`tests/test_views/test_inline.py` from US3) and one `weakening_patterns_added`.
+
+**Why the two file flags are defensible**: identical in shape to D30 and D32. `git diff`
+over the range reports zero removed lines across `tests/`, so every prior-story test is
+byte-identical at head, and the suite went from 641 to 651 passing.
+
+**Why the weakening flag is defensible**: the single pattern is T035's
+`@pytest.mark.skipif(not _HAS_PLAYWRIGHT, ...)` on `TestFormsetAddRemoveRowsE2E`. It is
+specified by the task, copies the existing `tests/test_views/test_error.py` precedent,
+and sits on the class rather than the module so it cannot hide the 22 unit tests in the
+same file. The `e2e` marker is registered in `pyproject.toml` under `--strict-markers`.
+Sam ruled on 2026-08-05 that marking and skipping is the accepted position for now, with
+the browser-install gap tracked as its own repository issue.
+
+**What this costs**: the add-then-remove interaction is the one behaviour no server-side
+test can reach, so it is currently unexecuted rather than merely unasserted. **Revisit
+if**: playwright is added to the dev dependencies and CI installs a browser, at which
+point the skip resolves on its own and the flag disappears.
+
+## D34 — T043 named the wrong sentence of R12's prose; corrected before dispatch
+
+T043 as written said to strike "the first sentence of the prose above" R12's deliverables.
+It is the **second** sentence that describes the defect this feature removes ("Form and list
+pages load a third-party template library unconditionally..."). The first is the framing
+sentence, and it says three places do not follow the optional-dependency rule.
+
+**Why it matters**: striking the first sentence would have deleted the framing while leaving
+a sentence describing a defect the package no longer has — the exact outcome the amendment in
+D24 exists to prevent. The first sentence still needs a correction, because two places remain
+rather than three, but a correction is not a strike.
+
+**Resolution**: T043 rewritten before US-6 was dispatched, naming both passages explicitly and
+recording the earlier misreading in the task text so it is not reintroduced. **Revisit if**:
+R12 is rewritten wholesale by a later roadmap pass, at which point the strike-throughs fold
+into the rewrite.
+
+## D35 — US-6 tamper flag on `tests/test_smoke.py`: approved, same file-granular cause
+
+`tamper-check` flagged `tests/test_smoke.py` as a modified pre-existing test file. The diff
+across US-6's eight commits is 77 insertions and zero deletions: three new test classes
+appended (`TestProductOrderLinesWorkedExample`, `TestOrderLineArticleIXCompliance`,
+`TestFormsetComponentDocPage`). No pre-existing test in the file was altered.
+
+**Why it fires**: the check is file-granular, so appending to a file that existed at the base
+ref reads the same as editing it. Third occurrence in this feature, after D30 and D32.
+
+**Resolution**: approved. **Revisit if**: the check gains function-level granularity, at which
+point these three triage entries stop being needed.
+
+## D36 — R8 is closed by a status-line flip at convergence, not a strike-through
+
+The US-6 Implementer raised that `docs/ROADMAP.md`'s R8 — the item this whole feature
+delivers — now reads stale in the same way R12 did ("Nothing in the package refers to
+formsets today"), and asked whether it needed the same treatment. It does not.
+
+**Why the two differ**: R12 is a *live* item that this feature partly settled, so the part
+that is settled has to be struck or a future reader hunts for a defect that is gone. R8 is
+*this feature's own item*, and the repository already has a convention for a delivered item:
+the status line changes to `*Delivered · needs verification · advances G4*` and the body
+prose stays in its original tense. R7 is the precedent — tagged Delivered, body still reads
+"the one stop on the model-to-pages path that does not arrive".
+
+**Resolution**: R8's body is left alone; the status-line flip happens at convergence with the
+rest of the feature-level bookkeeping. The Implementer was right to leave it rather than
+assume. **Revisit if**: the roadmap adopts a single completion convention that supersedes the
+status-line tag.
+
+## D37 — T042's README rewrite reverted to the original description of Django's gap
+
+T042 updated the README scope statement on the basis that its formset sentence had gone
+stale. It had not. The sentence describes what *Django* leaves you with, and Django has not
+changed — the package filling that gap is the paragraph's own claim, which this feature makes
+true rather than false. The shipped wording also broke grammatically ("this package does",
+with no verb to attach to).
+
+**Resolution**: the original description of Django's shortfall is restored, and the sentence
+now names what the package does about it. Committed as `cbad6d6`. **Revisit if**: the scope
+statement is rewritten wholesale, at which point the illustration may move.
+## D38 — the ledger records no per-task evidence because nothing ever required it
+
+While closing US-6 I found all 43 story tasks marked `done` with no `evidence` object, and
+said the schema required it and a gate had failed to fire. Both halves were wrong, and the
+check took one query: `evidence` is optional in `schemas/feature-state.schema.json`, and
+`forgekit/stage_exit.py` never reads it. No gate failed, because there is no gate.
+
+**What is true**: the Implementer completion reports do carry per-task evidence and the
+completion-report schema requires it. The orchestrator step that advances the ledger from a
+report copies `status` and `attempts` and drops `evidence`, so the evidence exists in
+`runs/.../reports/` and never reaches the ledger — which is the artefact S8 reads.
+
+**Resolution here**: backfilled all 43 tasks from the six reports. US-3's report carried no
+per-task evidence of its own (its Implementer omitted the field, which the report schema
+should have refused), so those eleven entries are reconstructed from the commit history and
+labelled as such in their own `commands` array — they are not that Implementer's
+red-then-green record and must not be read as one.
+
+**Two kit gaps, neither of them this feature's work**: the ledger schema has no `commits`
+field, so a task's evidence cannot point at the commit that produced it and the shas had to
+go into `commands` as prose; and nothing validated US-3's report against the completion-report
+schema on arrival. Both filed against the kit rather than fixed mid-run.
+
+**Revisit if**: the kit adds evidence propagation, at which point this backfill becomes the
+regression fixture — reinstate an evidence-free ledger and prove the stage exit goes red.
+
+## D39 — US-2 tamper flag on `tests/test_views/test_edit.py`: approved (recorded as D30 on
+the feature branch, renumbered on merge)
 
 `forge tamper-check --base 3b3ef2f` raised one flag: `modified_preexisting_test` on
 `tests/test_views/test_edit.py`. The check is file-granular, and the file existed at the base, so

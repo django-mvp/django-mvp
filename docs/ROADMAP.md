@@ -151,12 +151,18 @@ Serves G5. The wider theming and branding story is R18.
 
 *feature · advances G3, G7, G10*
 
-The package is deliberate about optional dependencies, and three places do not follow it. Form and list pages load a third-party template library unconditionally, so a project that installs the package as documented and renders a form gets a template error rather than the promised working page. One view module imports an optional package at module level with none of the guarding the others have, so the failure is a bare import error instead of a message saying what to install. And a documented setting for choosing how forms render does not exist in the code at all. Each one turns a configuration question into a crash.
+The package is deliberate about optional dependencies, and ~~three~~ **two** places do not follow it. ~~Form and list pages load a third-party template library unconditionally, so a project that installs the package as documented and renders a form gets a template error rather than the promised working page.~~
+
+**Settled by this feature, 2026-08-05**: django-crispy-forms and crispy-tailwind are now declared runtime dependencies rather than an implicit requirement of the packaged form rendering. The list page loads the same distribution as the form page, so declaring it settles both at once — a project that installs the package as documented no longer hits this on either one.
+
+One view module imports an optional package at module level with none of the guarding the others have, so the failure is a bare import error instead of a message saying what to install. And a documented setting for choosing how forms render does not exist in the code at all. Each one turns a configuration question into a crash.
 
 **Deliverables:**
 
 - Every optional dependency either declared, or guarded so its absence produces a message naming the package to install.
-- Form and list pages rendering without any undeclared dependency, at a reduced but working level of polish.
+- ~~Form and list pages rendering without any undeclared dependency, at a reduced but working level of polish.~~
+
+  **Settled by this feature, 2026-08-05**: both pages load django-crispy-forms and crispy-tailwind as declared dependencies now, not conditionally, so there is no undeclared dependency left to guard against and no reduced-polish fallback left to build toward — installing the two apps gets the full packaged look on both pages.
 - The documented form-rendering choice either built or removed from the documentation, whichever is right.
 - A check covering every optional dependency, not the two it covers today.
 

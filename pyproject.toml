@@ -23,10 +23,14 @@ dependencies = [
     "django-flex-menus (>=0.4.3)",
     "django-easy-icons (>=0.6)",
     "mergedeep (>=1.3,<2.0)",
+    "django-crispy-forms (>=2.7,<3.0)",
+    "crispy-tailwind (>=1.0.3,<2.0)",
 ]
-# Optional integrations (django-tables2, django-filter, crispy forms, ...) are
-# NOT extras — they live in guarded modules under mvp.integrations and require
-# the corresponding package only when explicitly imported.
+# Optional integrations (django-tables2, django-filter, ...) are NOT extras —
+# they live in guarded modules under mvp.integrations and require the
+# corresponding package only when explicitly imported. django-crispy-forms and
+# crispy-tailwind above are plain runtime dependencies, not an integration:
+# form rendering requires them on every install.
 
 [project.urls]
 homepage = "https://github.com/django-mvp/django-mvp"
@@ -61,8 +65,6 @@ mvp-shared = { git = "https://github.com/django-mvp/shared.git", rev = "v0.2.0",
 Django = ">=5.2.16"
 django-distill = "^3.0"
 django-filter = "^26.1"
-django-crispy-forms = "^2.7"
-crispy-tailwind = "^1.0.3"
 django-tables2 = "^3.0.0"
 django-htmx = ">=1.28.0,<2.0"
 mvp-shared = { git = "https://github.com/django-mvp/shared.git", rev = "v0.2.0", extras = [
@@ -103,7 +105,14 @@ django-easy-icons = ["easy_icons"]
 [tool.deptry.per_rule_ignores]
 DEP001 = ["invoke", "bs4", "pytest"]
 # These packages are used indirectly (INSTALLED_APPS, templates)
-DEP002 = ["django-flex-menus", "django-easy-icons"]
+DEP002 = [
+    "django-flex-menus",
+    "django-easy-icons",
+    "django-crispy-forms",
+    "crispy-tailwind",
+]
+# django-crispy-forms, crispy-tailwind: reached through {% load %} and
+#   INSTALLED_APPS rather than a Python import.
 # invoke: dev task runner, only imported by tasks.py.
 # pytest: mvp/fixtures.py is a pytest11 plugin — it is only ever imported by
 #   pytest itself, so pytest is guaranteed present wherever that module loads.

@@ -2,6 +2,7 @@
 
 from django.db import models
 from django.urls import reverse
+from django.utils.translation import gettext_lazy as _
 
 
 class Category(models.Model):
@@ -236,12 +237,18 @@ class OrderLine(models.Model):
         Product,
         on_delete=models.PROTECT,
         related_name="order_lines",
+        verbose_name=_("product"),
+        help_text=_("The product this order line is for."),
     )
-    quantity = models.PositiveIntegerField(default=1)
+    quantity = models.PositiveIntegerField(
+        default=1,
+        verbose_name=_("quantity"),
+        help_text=_("How many units of the product were ordered."),
+    )
 
     class Meta:
-        verbose_name = "order line"
-        verbose_name_plural = "order lines"
+        verbose_name = _("order line")
+        verbose_name_plural = _("order lines")
 
     def __str__(self):
         return f"Order line for {self.product.name} (qty {self.quantity})"

@@ -55,19 +55,11 @@ badge the number of active filters.
 
 ## Crispy forms
 
-Form rendering is runtime-detected rather than module-guarded: install
-[django-crispy-forms](https://github.com/django-crispy-forms/django-crispy-forms) with
-the Tailwind template pack and MVP form views pick it up automatically:
-
-```bash
-pip install django-crispy-forms crispy-tailwind
-```
-
-```python
-INSTALLED_APPS += ["crispy_forms", "crispy_tailwind"]
-CRISPY_ALLOWED_TEMPLATE_PACKS = ["tailwind"]
-CRISPY_TEMPLATE_PACK = "tailwind"
-```
+Form rendering isn't an integration in the sense above: `django-crispy-forms` and
+`crispy-tailwind` are required dependencies, installed with the package, not an
+optional third-party package you opt into. Their `INSTALLED_APPS` entries and settings
+are part of the required setup — see
+[Getting Started — configure form rendering](getting-started.md#configure-form-rendering).
 
 See [Views — forms](views.md#forms-create--update--generic) for the renderer
 resolution order.
