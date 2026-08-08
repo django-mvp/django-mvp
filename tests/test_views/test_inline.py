@@ -72,8 +72,9 @@ def _all_field_values(html, name_pattern):
     return [tag.get("value") for tag in soup.find_all(attrs={"name": pattern})]
 
 
-def _inline_update_view_class(**attrs):
-    base_attrs = {
+def _stub_attrs(**overrides):
+    """The shared stub configuration: a Product parent with OrderLine rows."""
+    return {
         "model": Product,
         "fields": ["name"],
         "inline_model": OrderLine,
@@ -81,23 +82,16 @@ def _inline_update_view_class(**attrs):
         "template_name": "form_view.html",
         "show_detail_action": True,
         "show_list_action": True,
-        **attrs,
+        **overrides,
     }
-    return type("StubInlineUpdateView", (MVPInlineUpdateView,), base_attrs)
+
+
+def _inline_update_view_class(**attrs):
+    return type("StubInlineUpdateView", (MVPInlineUpdateView,), _stub_attrs(**attrs))
 
 
 def _inline_create_view_class(**attrs):
-    base_attrs = {
-        "model": Product,
-        "fields": ["name"],
-        "inline_model": OrderLine,
-        "inline_fields": ["quantity"],
-        "template_name": "form_view.html",
-        "show_detail_action": True,
-        "show_list_action": True,
-        **attrs,
-    }
-    return type("StubInlineCreateView", (MVPInlineCreateView,), base_attrs)
+    return type("StubInlineCreateView", (MVPInlineCreateView,), _stub_attrs(**attrs))
 
 
 # ---------------------------------------------------------------------------
