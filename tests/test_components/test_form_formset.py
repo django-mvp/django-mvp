@@ -548,3 +548,128 @@ class TestFormsetAddRemoveRowsE2E:
         kept.refresh_from_db()
         assert kept.quantity == 7
         assert OrderLine.objects.filter(product=product).count() == 1
+
+
+# ---------------------------------------------------------------------------
+# Review findings — see specs/024-formset-pages/decisions.md D41
+# ---------------------------------------------------------------------------
+
+
+class TestFormsetCountersAreNotLocalized:
+    """The Alpine counters are JavaScript, not display text.
+
+    Django runs every template variable through ``localize()``. A project with
+    ``USE_THOUSAND_SEPARATOR`` on therefore renders the default ``max_num`` of
+    1000 as ``1,000``, which turns the ``x-data`` object literal into a syntax
+    error and kills the whole component silently — no server-side symptom, and
+    every add and remove control dead.
+    """
+
+    @override_settings(USE_THOUSAND_SEPARATOR=True)
+    def test_x_data_carries_no_grouped_numbers(self):
+        formset = RowFormSet()
+        html = render('<c-form.formset :formset="formset" />', formset=formset)
+
+        x_data = BeautifulSoup(html, "html.parser").find(attrs={"x-data": True})
+        assert x_data is not None
+        expression = x_data["x-data"]
+
+        assert "maxNum: 1000," in expression
+        assert "1,000" not in expression
+        assert "total: 2," in expression
+        assert "visible: 2," in expression
+
+    @override_settings(USE_THOUSAND_SEPARATOR=True)
+    def test_total_forms_input_carries_no_grouped_number(self):
+        formset = forms.formset_factory(RowForm, can_delete=True, extra=0)(
+            initial=[{"name": f"Row {n}"} for n in range(1200)]
+        )
+        html = render('<c-form.formset :formset="formset" />', formset=formset)
+
+        total_forms = BeautifulSoup(html, "html.parser").find(
+            "input", attrs={"name": "form-TOTAL_FORMS"}
+        )
+        assert total_forms["value"] == "1200"
+
+
+class TestFormsetRemoveControlNeedsADeleteField:
+    """``formset.can_delete`` is set-wide; the DELETE field is per row.
+
+    Under ``can_delete_extra=False`` Django gives DELETE only to the initial
+    forms while ``formset.can_delete`` stays True. Gating the control on the
+    set-wide flag alone would offer Remove on an extra row with no way to
+    record the removal: the row hides and its data still saves.
+    """
+
+    def _formset(self):
+        factory = forms.formset_factory(
+            RowForm, can_delete=True, can_delete_extra=False, extra=1
+        )
+        return factory(initial=[{"name": "Alpha"}])
+
+    def test_initial_row_keeps_its_remove_control(self):
+        html = render('<c-form.formset :formset="formset" />', formset=self._formset())
+        rows = BeautifulSoup(html, "html.parser").find_all(
+            "div", attrs={"x-show": "!removed"}
+        )
+        assert rows[0].find("button", attrs={"aria-label": "Remove"}) is not None
+
+    def test_extra_row_without_a_delete_field_offers_no_remove_control(self):
+        formset = self._formset()
+        html = render('<c-form.formset :formset="formset" />', formset=formset)
+        soup = BeautifulSoup(html, "html.parser")
+
+        delete_inputs = soup.find_all("input", attrs={"name": "form-1-DELETE"})
+        assert delete_inputs == []
+
+        rows = soup.find_all("div", attrs={"x-show": "!removed"})
+        assert rows[1].find("button", attrs={"aria-label": "Remove"}) is None
+
+    def test_the_empty_form_template_offers_no_remove_control_either(self):
+        html = render('<c-form.formset :formset="formset" />', formset=self._formset())
+        template = BeautifulSoup(html, "html.parser").find("template")
+        assert template.find("button", attrs={"aria-label": "Remove"}) is None
+
+
+class TestFormsetCounterContract:
+    """The counter contract, pinned without a browser.
+
+    The one test that drives ``addRow()`` for real is browser-gated and does
+    not run here, so these assert the contract from the rendered markup: the
+    counters are seeded from the server's form count, TOTAL_FORMS is bound to
+    the monotonic one, and the handler increments both without ever
+    decrementing ``total``.
+    """
+
+    def _expression(self, formset):
+        html = render('<c-form.formset :formset="formset" />', formset=formset)
+        return BeautifulSoup(html, "html.parser").find(attrs={"x-data": True})["x-data"]
+
+    def test_counters_seed_from_the_server_side_form_count(self):
+        formset = forms.formset_factory(RowForm, can_delete=True, extra=1)(
+            initial=[{"name": "Alpha"}, {"name": "Beta"}]
+        )
+        assert formset.total_form_count() == 3
+
+        expression = self._expression(formset)
+        assert "total: 3," in expression
+        assert "visible: 3," in expression
+
+    def test_total_forms_input_is_bound_to_the_monotonic_counter(self):
+        html = render('<c-form.formset :formset="formset" />', formset=RowFormSet())
+        total_forms = BeautifulSoup(html, "html.parser").find(
+            "input", attrs={"name": "form-TOTAL_FORMS"}
+        )
+        assert total_forms[":value"] == "total"
+
+    def test_add_increments_both_counters_and_never_decrements_total(self):
+        expression = self._expression(RowFormSet())
+
+        assert "this.total++" in expression
+        assert "this.visible++" in expression
+        assert "this.total--" not in expression
+        assert "total--" not in expression
+
+    def test_prefix_substitution_uses_the_monotonic_counter(self):
+        expression = self._expression(RowFormSet())
+        assert "replaceAll('__prefix__', this.total)" in expression

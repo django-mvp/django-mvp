@@ -772,3 +772,50 @@ three-day-old snapshot.
 
 **ADR:** none — a triage record and a tooling gotcha, not a constraint on the software. Worth
 carrying into the kit's tamper-check documentation instead.
+
+## D41 — The single review round, and what it found
+
+The review budget was cut to one cycle on Sam's instruction (2026-08-08), because review rounds
+were the largest recurring cost against his weekly quota. One round ran; all four findings were
+confirmed and fixed in this pass. Each fix carries a test, and each test was proven by reinstating
+the defect and watching it go red before the fix was restored.
+
+**REV-001, high — the counters were localised.** `x-data` interpolated
+`{{ formset.max_num }}` straight into a JavaScript object literal. Django runs every template
+variable through `localize()`, and `formset_factory` defaults `max_num` to 1000, so a project with
+`USE_THOUSAND_SEPARATOR` on rendered `maxNum: 1,000` — a syntax error that kills the entire
+component. No server-side symptom, no error anywhere: `addRow()` simply never exists and every
+control is dead. The reviewer reproduced it rather than reasoning about it.
+
+Fixed with `{% load l10n %}` and `|unlocalize` on all four interpolated numbers. The fourth was not
+in the finding: the hand-written `TOTAL_FORMS` hidden input carries the same hazard, and a formset
+with more than 999 rows would have submitted `1,200`. The repository already knew this trap —
+`django_tables2/bootstrap5-mvp.html` uses `|unlocalize` for the same reason.
+
+**REV-002, medium — the remove control was gated on the wrong thing.** It keyed on
+`formset.can_delete`, which is set-wide, while the `DELETE` field is per row. Under
+`can_delete_extra=False` Django gives `DELETE` only to the initial forms and leaves
+`formset.can_delete` True, so an extra row got a Remove button with no way to record the removal:
+the row would hide and its data would still save. That is the exact inverse of FR-022, and it
+breaks FR-026 for precisely the rows that forbid deletion. Now gated on `can_delete and form.DELETE`.
+
+**REV-003, medium — the client-side contract had no running test.** Every executable assertion
+about the browser behaviour was a substring check on attribute text, and the one test that drives
+`addRow()` is browser-gated and skipped, because playwright is in neither
+`[tool.poetry.group.test.dependencies]` nor the lock file. Deleting `addRow()` outright left all
+656 tests green.
+
+Rather than add a browser dependency to the test group, the counter contract is now pinned from
+rendered markup: the counters seed from `formset.total_form_count` as integers, `TOTAL_FORMS` is
+bound to the monotonic counter, `__prefix__` substitutes from it, and `addRow` increments both
+without ever decrementing `total`. That is cheaper, runs in CI, and matches Article XIV's
+preference for a rendered-template assertion over a browser test. The browser test stays for the
+one case markup cannot reach — removing a row that was added moments earlier.
+
+**REV-004, low — `inline_form_class` had no test**, and was the single uncovered line in the new
+module. A wrong keyword name would have reached a consumer as a `TypeError` from inside Django.
+Now covered both ways, with a negative control proving the generated form is used when the
+attribute is unset.
+
+**ADR:** none — findings against this feature's own code and their fixes. The durable positions
+they touch are already in ADRs 0003 and 0004.

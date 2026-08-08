@@ -9,6 +9,12 @@
   survives an invalid submission and re-render. The removed state seeds from
   form.DELETE.value, drives the hidden DELETE input, and decrements the
   parent <c-form.formset>'s `visible` counter (context.delete_semantics).
+
+  The control needs BOTH `can-delete` and a DELETE field on this row. Under
+  `can_delete_extra=False` Django gives DELETE only to the initial forms while
+  `formset.can_delete` stays True, so the set-wide flag alone would put a
+  Remove button on an extra row that has no way to record the removal - the
+  row would hide and its data would still save.
 {% endcomment %}
 {% load i18n crispy_forms_filters %}
 <c-vars form class can-delete=False remove-label="{% trans "Remove" %}" />
@@ -27,7 +33,7 @@
         {{ field|as_crispy_field }}
       {% endif %}
     {% endfor %}
-    {% if can_delete %}
+    {% if can_delete and form.DELETE %}
       <button type="button"
               class="btn btn-ghost btn-sm"
               aria-label="{{ remove_label }}"

@@ -13,6 +13,7 @@ import pytest
 from bs4 import BeautifulSoup
 from django.contrib.messages.middleware import MessageMiddleware
 from django.contrib.sessions.middleware import SessionMiddleware
+from django import forms
 from django.core.exceptions import ImproperlyConfigured
 from django.test import RequestFactory
 from django.urls import reverse
@@ -542,3 +543,49 @@ class TestInlineViewsPublicAPI:
         import mvp.views
 
         assert not hasattr(mvp.views, "InlineFormsetMixin")
+
+
+# ---------------------------------------------------------------------------
+# Review finding REV-004 — see specs/024-formset-pages/decisions.md D41
+# ---------------------------------------------------------------------------
+
+
+class OrderLineCustomForm(forms.ModelForm):
+    """A row form whose rendering differs observably from the generated one."""
+
+    class Meta:
+        model = OrderLine
+        fields = ["quantity"]
+        labels = {"quantity": "Units on this line (custom form)"}
+        widgets = {"quantity": forms.NumberInput(attrs={"data-custom-row-form": "1"})}
+
+
+@pytest.mark.django_db
+class TestInlineFormClass:
+    """``inline_form_class`` is public configuration and must reach the factory.
+
+    Without this the attribute is documented in the contract and in
+    docs/formsets.md while nothing exercises it, so a wrong keyword name would
+    reach a consumer as a ``TypeError`` from inside Django on first request.
+    """
+
+    def _html(self, **attrs):
+        product = ProductFactory()
+        view_cls = _inline_update_view_class(**attrs)
+        _, response = _dispatch(view_cls, view_kwargs={"pk": product.pk})
+        return _rendered_html(response)
+
+    def test_inline_form_class_supplies_the_row_form(self):
+        html = self._html(inline_form_class=OrderLineCustomForm)
+        soup = BeautifulSoup(html, "html.parser")
+
+        assert soup.find(attrs={"data-custom-row-form": "1"}) is not None
+        assert "Units on this line (custom form)" in html
+
+    def test_without_it_the_row_form_is_generated_from_inline_fields(self):
+        html = self._html()
+        soup = BeautifulSoup(html, "html.parser")
+
+        assert soup.find(attrs={"data-custom-row-form": "1"}) is None
+        assert "Units on this line (custom form)" not in html
+        assert soup.find(attrs={"name": "order_lines-0-quantity"}) is not None

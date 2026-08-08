@@ -9,14 +9,14 @@
   marked for removal, compared against `formset.max_num` by the add control).
   See contracts/formset-component.md and specs/024-formset-pages/CONTEXT.md.
 {% endcomment %}
-{% load i18n %}
+{% load i18n l10n %}
 <c-vars formset class add-label="{% trans "Add row" %}" remove-label="{% trans "Remove" %}" />
 {% if formset %}
   <div class="space-y-4 {{ class }}"
        x-data="{
-         total: {{ formset.total_form_count }},
-         visible: {{ formset.total_form_count }},
-         maxNum: {{ formset.max_num }},
+         total: {{ formset.total_form_count|unlocalize }},
+         visible: {{ formset.total_form_count|unlocalize }},
+         maxNum: {{ formset.max_num|unlocalize }},
          addRow() {
            if (this.visible >= this.maxNum) return
            const tpl = this.$el.querySelector('template')
@@ -38,7 +38,7 @@
     {{ formset.management_form.MAX_NUM_FORMS }}
     <input type="hidden"
            name="{{ formset.management_form.TOTAL_FORMS.html_name }}"
-           value="{{ formset.management_form.TOTAL_FORMS.value }}"
+           value="{{ formset.management_form.TOTAL_FORMS.value|unlocalize }}"
            :value="total">
     {% for form in formset.forms %}
       <c-form.formset.row :form="form"
