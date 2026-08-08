@@ -17,6 +17,8 @@ package exists to remove — building the formset, validating it against the par
 two in the right order inside a transaction. The tracking issue asks for a page that behaves "the
 way the single-form pages already do", and the single-form pages are views.
 
+**ADR:** docs/adr/0002-formset-rendering-is-generic-the-configured-view-is-not.md — graduated with D2 and D3; the split between generic rendering and a narrow configured view is the feature's public shape.
+
 ## D2 — Rendering is generic, the view is not
 
 **Ambiguous because** the same item asks both for "a form page that renders a formset" (any
@@ -33,6 +35,8 @@ parent-and-rows case. A standalone formset needs no such decision: it goes on th
 view and is saved by the developer's own `form_valid`. Packaging a second view for it would be
 machinery with no problem behind it.
 
+**ADR:** docs/adr/0002-formset-rendering-is-generic-the-configured-view-is-not.md
+
 ## D3 — One related set, not many
 
 **Ambiguous because** nothing in the issue or the roadmap says how many related sets a page may
@@ -46,6 +50,8 @@ each other, and reported in errors — against a case that has not appeared is t
 speculative generality Article III forbids. The single-set case is what both the roadmap and the
 issue describe. Widening later is additive and cheap; narrowing a shipped collection API is not.
 Sam agreed the boundary at intake in these terms: start simple, revisit when there is a case.
+
+**ADR:** docs/adr/0002-formset-rendering-is-generic-the-configured-view-is-not.md
 
 ## D4 — Deletion is deferred to submission
 
@@ -62,6 +68,8 @@ on click would make a page that otherwise commits nothing until submit start iss
 requests mid-edit, with no undo, and would break the guarantee the whole feature rests on: one
 submission, all or nothing. Sam's instruction at intake was to follow standard practice, and this
 is what standard practice is.
+
+**ADR:** docs/adr/0004-row-removal-uses-the-delete-flag-and-never-reindexes.md — graduated with D11 and D18.
 
 ## D5 — django-crispy-forms and crispy-tailwind become declared dependencies
 
@@ -86,6 +94,8 @@ list-page case, the unguarded module-level import in a view module, and the docu
 form renderer setting. The roadmap text needs the corresponding correction, and this feature is
 where the supersession is recorded.
 
+**ADR:** docs/adr/0006-crispy-forms-is-a-runtime-dependency.md
+
 ## D6 — Atomicity is a requirement, not a database assumption
 
 **Ambiguous because** a spec can treat "the parent and its rows save together" as something the
@@ -98,6 +108,8 @@ rows, produces a half-saved page the moment a row fails a database constraint �
 line items, created by a user who thought they had cancelled. The page's entire premise is one
 submission, and one submission that half-applies is worse than two that do not, because the user
 has no way to see what happened.
+
+**ADR:** docs/adr/0005-the-inline-view-save-path.md — graduated with D19, D25, D26 and D28 as one decision about the save path.
 
 ## D7 — No per-row permission surface
 
@@ -113,6 +125,8 @@ policy for a row the user may read but not change, and a presentation for it —
 it in either the issue or the roadmap. Adding a permission surface speculatively is worse than
 adding none, because a half-designed one reads as a guarantee.
 
+**ADR:** none — a statement that this feature adds no permission surface. Nothing downstream inherits a rule from an absence.
+
 ## D8 — The worked example lives against the demo application
 
 **Ambiguous because** the package ships no models of its own, so a model-to-page example has
@@ -124,6 +138,8 @@ nothing to be written against inside the package.
 this feature needs, and Article IX explicitly extends the data-model conventions to `demo/`. An
 example against invented models in prose cannot be executed, and an example that cannot be executed
 is the documentation failure R20 exists to fix.
+
+**ADR:** none — local to this feature's documentation; which demo models illustrate a page constrains nothing.
 
 ## D9 — Rulings inherited from the roadmap decomposition, and the one that was reversed
 
@@ -146,6 +162,8 @@ why R12's first deliverable is now written against a scope it no longer has.
 *Decisions below were taken at planning (S3). Rationale in full lives in `research.md`; this
 section is the record and the ADR-verdict surface.*
 
+**ADR:** none — a record of what the roadmap decomposition ruled and what intake reversed. The surviving half is captured in 0006.
+
 ## D10 — The packaged component renders the set, crispy renders the fields
 
 `|crispy` accepts a formset and switches to `<pack>/uni_formset.html`, so the shortest possible
@@ -164,6 +182,8 @@ repository does not own, so the first task of that story is a test proving it.
 would have produced a component invisible to `test_render_all.py`, unreachable by a consumer's
 `cotton/` override, and in breach of Article XI's rule that reusable markup is a Cotton component.
 
+**ADR:** docs/adr/0003-the-packaged-component-owns-formset-structure.md
+
 ## D11 — Removal is uniform; indices are never re-numbered
 
 Removing a row sets Django's `DELETE` flag and hides the row, whether the row is saved or not.
@@ -180,6 +200,8 @@ formset pages, it requires rewriting every `name`, `id` and `for` attribute in t
 rows, and it buys nothing the `DELETE` flag does not already give. It also makes the invalid-
 resubmit edge case fall out for free, since the removal was submitted like any other value.
 
+**ADR:** docs/adr/0004-row-removal-uses-the-delete-flag-and-never-reindexes.md
+
 ## D12 — No new page template, and no second view for the standalone case
 
 `form_view.html` gains a `{% block formset %}` whose default content renders `<c-form.formset>`
@@ -193,6 +215,8 @@ it carried one line and left the standalone case unsolved.
 **Why defensible**: Article II. The block sits where `{% block actions %}` already sits, so the
 pattern is the one the template already uses.
 
+**ADR:** none — where a formset reaches the page is a template seam inside this feature, not a rule others follow.
+
 ## D13 — `<c-form>` learns about the formset, for one reason
 
 `<c-form>` decides the form's `enctype` from `form_obj.is_multipart` alone. A file field on a row
@@ -202,6 +226,8 @@ component gains an optional `formset` attribute consulted in the same condition,
 **Why defensible**: the narrowest change that closes a real defect. Widening `<c-form>` to render
 the formset itself was rejected because the actions must follow the set, and the slot cannot
 express that ordering.
+
+**ADR:** none — one optional attribute on one component, sealed inside the enctype condition.
 
 ## D14 — The view lives in its own module
 
@@ -218,6 +244,8 @@ for everything else, rather than one attribute per Django parameter.
 point, and Article III wants no layer between the caller and the work. One mixin with hooks is
 both. The mixin is not exported, matching the rule already stated in `mvp/views/__init__.py`.
 
+**ADR:** none — module placement. Article X already governs where the tests go, and nothing downstream inherits the choice.
+
 ## D15 — `get_formset()` memoises, deliberately
 
 The formset is built once per request and reused. `form_invalid` re-renders through
@@ -226,6 +254,8 @@ the user's values and its errors — the page would come back blank and FR-013 w
 
 **Why defensible**: it is a correctness requirement disguised as a performance detail, which is
 why it is recorded rather than left to an implementer to rediscover.
+
+**ADR:** none — an implementation invariant of one method, recorded where the implementer reads it. It is a correctness note, not a constraint on future work.
 
 ## D16 — A startup system check for the crispy apps was declined
 
@@ -247,6 +277,8 @@ spec-compliance, security, architecture — against the plan before any code exi
 returned `request_changes`, and every accepted finding is applied in the re-plan. The full reports
 are archived with the run record.*
 
+**ADR:** none — a declined addition. An ADR records what was decided to build, and there is no surface here to abide by.
+
 ## D17 — `inline_max_num` is enforced on the server, not only in the browser
 
 The plan passed `inline_max_num` to Django as `max_num` and had the add control stop at it.
@@ -264,6 +296,8 @@ lookups while holding a write transaction open. `absolute_max` is what bounds th
 the submission will reject", which assumes a rejection the design had not arranged. A cap a
 consumer sets and reasonably believes binds is a design property, not a documentation one.
 
+**ADR:** docs/adr/0005-the-inline-view-save-path.md — superseded in part by D25, which withdrew the absolute_max half; the ADR carries the settled position.
+
 ## D18 — The set carries two counters, not one
 
 `total` is monotonic and seeds `__prefix__` and `TOTAL_FORMS`. `visible` counts rows not marked for
@@ -280,6 +314,8 @@ template variable is an integer Django has already clamped.
 It was never a statement about what the add control should count, and collapsing the two into one
 number is what created the defect.
 
+**ADR:** docs/adr/0004-row-removal-uses-the-delete-flag-and-never-reindexes.md
+
 ## D19 — The success message is produced outside the transaction
 
 `super().form_valid()` reaches `SuccessMessageMixin`, and Django's message storage is not
@@ -289,6 +325,8 @@ save and the formset save, and nothing else; the message and the redirect follow
 
 **Why defensible**: FR-011 and SC-006 are about what persists, and a lie in the interface is a
 failure of the same requirement by a different route.
+
+**ADR:** docs/adr/0005-the-inline-view-save-path.md
 
 ## D20 — The browser test lives with the components, not in a new directory
 
@@ -312,6 +350,8 @@ accepts for a browser test at all.
 statement in the Constitution Check, while making the remaining test cover the case that needed a
 browser.
 
+**ADR:** none — test placement, already governed by constitution Article X. The reasoning belongs beside the decision, not in a standing rule.
+
 ## D21 — Two test gaps the plan had left
 
 **A valid parent with an invalid row.** The plan tested the reverse and not this. It is the branch
@@ -323,6 +363,8 @@ own message; the task tagged with FR-019 asserted only the single-error case.
 
 **Why defensible**: a requirement with no test that would fail if the behaviour regressed is not
 delivered, whatever the task list says.
+
+**ADR:** none — two missing tests, since written. A gap that has been closed constrains nothing.
 
 ## D22 — Three corrections to the plan's own claims
 
@@ -338,6 +380,8 @@ delivered, whatever the task list says.
   asserts against rendered rows, so it depends on the story that puts rows on the page. The two
   stories that follow the component both edit the same template and cannot run concurrently. Both
   notes now name the file rather than the phase.
+
+**ADR:** none — corrections to this feature's own planning artefacts.
 
 ## D23 — Work the review removed, and the one thing it flagged that is not ours to fix
 
@@ -371,6 +415,8 @@ spec-compliance lens approved; the security lens returned one verified high find
 round-1 remedy itself. The design-review budget was exhausted, so the run escalated and Sam
 authorised a second re-plan cycle rather than treating it as a spec failure.*
 
+**ADR:** none — a record of work removed at review, plus a deferral now tracked as issue #170.
+
 ## D24 — This feature settles the whole of R12's undeclared-dependency deliverable, not half
 
 **This one amends the approved spec**, which is why it is recorded here and struck through in
@@ -395,6 +441,8 @@ renderer setting, and the check covering every optional dependency.
 **Why defensible**: a roadmap item that still claims a defect the repository no longer has sends a
 future feature looking for it. The original text is struck rather than deleted, because it records
 why R12 was scoped the way it was.
+
+**ADR:** none — a scope correction to roadmap item R12, recorded in docs/ROADMAP.md where a reader will meet it.
 
 ## D25 — `absolute_max` stays at Django's default; the cap is enforced by `validate_max` alone
 
@@ -423,6 +471,8 @@ test that pins this decision.
 **Why defensible**: it is subtractive. The remaining ceiling is Django's own default, which every
 inline formset in every Django project already carries, and the enforcement FR-026 needs is intact.
 
+**ADR:** docs/adr/0005-the-inline-view-save-path.md
+
 ## D26 — `form_valid` never calls `super().form_valid()`
 
 D19 moved the success message outside the transaction, which was right, but specified doing it by
@@ -438,6 +488,8 @@ exactly this and is the house precedent. T016 now asserts the parent is saved ex
 
 **Why defensible**: the correct shape already existed in the same module. The defect came from
 reaching for the inherited hook out of habit rather than reading what it does.
+
+**ADR:** docs/adr/0005-the-inline-view-save-path.md
 
 ## D27 — Documentation drift the round-1 edits left behind
 
@@ -459,6 +511,8 @@ falsehood T005 exists to correct was missed:
 implementer reads as normative. The lesson is narrower than "proofread": an edit that corrects a
 claim has to correct every copy of it, and a renumbering invalidates every id written down
 elsewhere.
+
+**ADR:** none — documentation drift in this feature's planning artefacts, since corrected.
 
 ## D28 — The success URL is resolved after the saves, not before them
 
@@ -492,12 +546,16 @@ one for *ordering*. Copying a shape without its reason is what put the statement
 **Why defensible**: it restores Django's own ordering, it is a one-statement move, and the test that
 pins it is now written against the case that fails.
 
+**ADR:** docs/adr/0005-the-inline-view-save-path.md
+
 ## D29 — One residue from the D25 withdrawal
 
 `research.md`'s technology summary table still listed "a bounded `absolute_max`" after R9 had
 withdrawn it, contradicting the contract, the data model, the plan and the task. Removed. This is
 the second instance of the pattern D27 named: a correction has to reach every copy of the claim,
 including the summary that restates it.
+
+**ADR:** none — one stale sentence in a summary table, since corrected.
 
 ## D30 — US1: PEP 508 constraint translation preserves the caret ranges exactly
 
@@ -516,6 +574,8 @@ what the constraint actually allows — worth spelling out rather than trusting 
 **Revisit if**: Poetry ever adds native caret support to `[project].dependencies`
 resolution, at which point this translation becomes unnecessary indirection.
 
+**ADR:** none — a packaging mechanic of one dependency move, verified and recorded where it happened.
+
 ## D31 — US1: docs/integrations.md keeps a crispy section, rewritten rather than deleted
 
 T004's brief says crispy is required setup, not an optional add-on, and to move the
@@ -533,6 +593,8 @@ integration. **Revisit if**: a future story wants integrations.md to only ever d
 guarded `mvp.integrations` modules — then this redirect line should move to a FAQ or
 be dropped once external links have had time to update.
 
+**ADR:** none — an editorial choice about one documentation section.
+
 ## D32 — US4: tamper-check flag on `tests/test_components/test_form_formset.py` approved
 
 `forge tamper-check --base 6f3a8a6` flags the file because it existed at the story's
@@ -546,6 +608,8 @@ formset fixture). Every test US2 wrote is byte-identical at head, and the full s
 went from 634 to 641 passing with no failures. Same shape as D30 on US3's
 `tests/test_views/test_edit.py`. **Revisit if**: tamper-check gains hunk-level
 granularity, at which point neither this entry nor D30 is needed.
+
+**ADR:** none — a tamper-check triage. The policy it applies is D4's; the flag itself is a per-run event.
 
 ## D33 — US5: three tamper-check flags approved, including the playwright skip
 
@@ -570,6 +634,8 @@ test can reach, so it is currently unexecuted rather than merely unasserted. **R
 if**: playwright is added to the dev dependencies and CI installs a browser, at which
 point the skip resolves on its own and the flag disappears.
 
+**ADR:** none — tamper-check triage, as D32.
+
 ## D34 — T043 named the wrong sentence of R12's prose; corrected before dispatch
 
 T043 as written said to strike "the first sentence of the prose above" R12's deliverables.
@@ -587,6 +653,8 @@ recording the earlier misreading in the task text so it is not reintroduced. **R
 R12 is rewritten wholesale by a later roadmap pass, at which point the strike-throughs fold
 into the rewrite.
 
+**ADR:** none — a correction to one task's wording before it was carried out.
+
 ## D35 — US-6 tamper flag on `tests/test_smoke.py`: approved, same file-granular cause
 
 `tamper-check` flagged `tests/test_smoke.py` as a modified pre-existing test file. The diff
@@ -599,6 +667,8 @@ ref reads the same as editing it. Third occurrence in this feature, after D30 an
 
 **Resolution**: approved. **Revisit if**: the check gains function-level granularity, at which
 point these three triage entries stop being needed.
+
+**ADR:** none — tamper-check triage, as D32.
 
 ## D36 — R8 is closed by a status-line flip at convergence, not a strike-through
 
@@ -618,6 +688,8 @@ rest of the feature-level bookkeeping. The Implementer was right to leave it rat
 assume. **Revisit if**: the roadmap adopts a single completion convention that supersedes the
 status-line tag.
 
+**ADR:** none — a roadmap status flip recorded in docs/ROADMAP.md itself.
+
 ## D37 — T042's README rewrite reverted to the original description of Django's gap
 
 T042 updated the README scope statement on the basis that its formset sentence had gone
@@ -629,6 +701,8 @@ with no verb to attach to).
 **Resolution**: the original description of Django's shortfall is restored, and the sentence
 now names what the package does about it. Committed as `cbad6d6`. **Revisit if**: the scope
 statement is rewritten wholesale, at which point the illustration may move.
+
+**ADR:** none — an editorial revert of one README paragraph.
 ## D38 — the ledger records no per-task evidence because nothing ever required it
 
 While closing US-6 I found all 43 story tasks marked `done` with no `evidence` object, and
@@ -655,6 +729,8 @@ schema on arrival. Both filed against the kit rather than fixed mid-run.
 **Revisit if**: the kit adds evidence propagation, at which point this backfill becomes the
 regression fixture — reinstate an evidence-free ledger and prove the stage exit goes red.
 
+**ADR:** none — a run-record defect and its backfill. It says nothing about the software.
+
 ## D39 — US-2 tamper flag on `tests/test_views/test_edit.py`: approved (recorded as D30 on
 the feature branch, renumbered on merge)
 
@@ -669,3 +745,5 @@ without touching it.
 
 Approved under the D4 triage rule rather than escalated. Recorded here because the policy requires
 an approved flag to carry a written reason.
+
+**ADR:** none — tamper-check triage, as D32.

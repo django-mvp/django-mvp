@@ -87,11 +87,13 @@ What the page owes a project is narrower than it first appears. The body of a de
 
 Serves G3, and G2 for the components the page needs. A field-rendering API on the view is explicitly out of scope and is recorded as such in `docs/adr/0001-detail-views-do-not-take-a-field-list.md`.
 
-### R8 — Formsets that render and work
+### R8 — Formsets that render and work — **delivered**
 
 *feature · advances G4*
 
-G4 is the only Essential goal with nothing behind it, and formsets are the example the package's own scope statement uses: Django ships the backend machinery and leaves you with nothing to render or drive it with. Nothing in the package refers to formsets today. Until this lands, the claim that the package fills in where Django stops has no instance to point at.
+~~G4 is the only Essential goal with nothing behind it, and formsets are the example the package's own scope statement uses: Django ships the backend machinery and leaves you with nothing to render or drive it with. Nothing in the package refers to formsets today. Until this lands, the claim that the package fills in where Django stops has no instance to point at.~~
+
+Delivered. `<c-form.formset>` and `<c-form.formset.row>` render any Django formset with the packaged look, `MVPInlineCreateView` and `MVPInlineUpdateView` put a parent record and its related rows on one page, and [Formsets](formsets.md) walks the path from two models to a rendered page. G4 now has an instance to point at.
 
 **Deliverables:**
 
