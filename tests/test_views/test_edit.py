@@ -2102,26 +2102,20 @@ def _make_formset_in_context_view():
     """
     FormSet = django_forms.formset_factory(ContactForm, extra=1)
 
-    attrs = {
-        "template_name": "form_view.html",
-        "form_class": ProductForm,
-        "success_url": "/done/",
-    }
-    view_cls = type("StubFormsetView", (MVPFormView,), attrs)
+    class StubFormsetView(MVPFormView):
+        template_name = "form_view.html"
+        form_class = ProductForm
+        success_url = "/done/"
 
-    base_get_context_data = view_cls.get_context_data
-
-    def get_context_data(self, **kwargs):
-        context = base_get_context_data(self, **kwargs)
-        context["formset"] = FormSet()
-        return context
-
-    view_cls.get_context_data = get_context_data
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            context["formset"] = FormSet()
+            return context
 
     rf = RequestFactory()
     request = rf.get("/")
     request.user = User()
-    return view_cls, request
+    return StubFormsetView, request
 
 
 class TestFormViewStandaloneFormset:
