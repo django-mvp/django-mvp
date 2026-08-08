@@ -273,7 +273,9 @@ class TestFormsetBuiltinSetLevelErrors:
     rendered page shows it."""
 
     def test_too_few_rows_renders_above_the_set(self):
-        MinFormSet = forms.formset_factory(RowForm, extra=0, min_num=2, validate_min=True)
+        MinFormSet = forms.formset_factory(
+            RowForm, extra=0, min_num=2, validate_min=True
+        )
         formset = MinFormSet(
             data={
                 "form-TOTAL_FORMS": "1",
@@ -295,7 +297,9 @@ class TestFormsetBuiltinSetLevelErrors:
         )
 
     def test_too_many_rows_renders_above_the_set(self):
-        MaxFormSet = forms.formset_factory(RowForm, extra=0, max_num=1, validate_max=True)
+        MaxFormSet = forms.formset_factory(
+            RowForm, extra=0, max_num=1, validate_max=True
+        )
         formset = MaxFormSet(
             data={
                 "form-TOTAL_FORMS": "2",
@@ -450,9 +454,7 @@ class TestFormsetPageLevelErrorPlacement:
         # summary.
         assert html.count("greater than or equal to 0") == 1
         soup = BeautifulSoup(html, "html.parser")
-        row_error_container = soup.find(
-            attrs={"id": "div_id_order_lines-0-quantity"}
-        )
+        row_error_container = soup.find(attrs={"id": "div_id_order_lines-0-quantity"})
         assert row_error_container is not None
         assert "greater than or equal to 0" in row_error_container.get_text()
 
@@ -535,8 +537,7 @@ class TestFormsetAddRemoveRowsE2E:
             assert page.url == start_url
             assert not added_row.is_visible()
             assert (
-                page.locator('input[name="order_lines-2-DELETE"]').input_value()
-                == "on"
+                page.locator('input[name="order_lines-2-DELETE"]').input_value() == "on"
             )
 
             page.get_by_role("button", name="Save & continue").click()
