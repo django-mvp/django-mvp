@@ -320,12 +320,6 @@ class TestFormsetBuiltinSetLevelErrors:
         )
 
 
-# ---------------------------------------------------------------------------
-# Rendered through a view — proves the re-render is genuine, not just a
-# compiled-source rendering (FR-018, US4 scenario 4)
-# ---------------------------------------------------------------------------
-
-
 class TestFormsetAddRemoveControls:
     """The add and remove controls (US5, FR-026): no remove control when
     deletion is forbidden, each remove control carries an accessible name,
@@ -418,6 +412,12 @@ class TestFormsetAddRemoveLabels:
         soup = BeautifulSoup(html, "html.parser")
         assert soup.find(attrs={"aria-label": "Take off"}) is not None
         assert soup.find(attrs={"aria-label": "Remove"}) is None
+
+
+# ---------------------------------------------------------------------------
+# Rendered through a view — proves the re-render is genuine, not just a
+# compiled-source rendering (FR-018, US4 scenario 4)
+# ---------------------------------------------------------------------------
 
 
 class TestFormsetPageLevelErrorPlacement:
