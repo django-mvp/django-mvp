@@ -747,3 +747,28 @@ Approved under the D4 triage rule rather than escalated. Recorded here because t
 an approved flag to carry a written reason.
 
 **ADR:** none — tamper-check triage, as D32.
+
+## D40 — Convergence tamper triage, and the base that made it look worse than it was
+
+Two flags at convergence, both `modified_preexisting_test` and both approved: `tests/test_smoke.py`
+(US1 appended the declared-dependency class) and `tests/test_views/test_edit.py` (US2 appended the
+standalone-formset case, which T012 named explicitly). Both diffs are additive — 108 and 51 lines
+added, zero removed — so no pre-existing test was modified, weakened or deleted. Already triaged
+per-story as D30 and D35; recorded again here because the whole-feature check is a separate gate.
+
+**The part worth keeping.** The first run of `forge tamper-check --base origin/main` reported six
+flags, four of them `deleted_test` on component test files this branch never touched. The branch
+deleted nothing. Those four tests were **added on main** after this branch left it, and a diff
+against a moved `origin/main` reports the other side's additions as this side's deletions.
+
+So the base for a tamper check is the **merge-base**, not `origin/main`. Against
+`git merge-base origin/main HEAD` the same tree reports two flags, both real and both benign. The
+failure mode is nasty because it is loud and plausible: four deleted tests reads as a serious
+guardrail breach, and the instinct is to act on it rather than to question the base. Confirm what
+the base actually contains before believing a deletion.
+
+Main was then merged in (v0.16.1) so the pull request is built against current main rather than a
+three-day-old snapshot.
+
+**ADR:** none — a triage record and a tooling gotcha, not a constraint on the software. Worth
+carrying into the kit's tamper-check documentation instead.
