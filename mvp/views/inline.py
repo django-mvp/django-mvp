@@ -1,6 +1,5 @@
 """A parent record and its related rows on one page.
 
-Source: mvp/views/inline.py
 Contract: specs/024-formset-pages/contracts/inline-view.md
 """
 
