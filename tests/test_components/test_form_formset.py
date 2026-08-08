@@ -46,9 +46,8 @@ class RowForm(forms.Form):
 
 class RowFormWithNonFieldError(RowForm):
     def clean(self):
-        cleaned_data = super().clean()
+        super().clean()
         raise forms.ValidationError("Something is wrong with this row.")
-        return cleaned_data  # pragma: no cover - unreachable, clean() always raises
 
 
 RowFormSet = forms.formset_factory(RowForm, can_delete=True, extra=2)
