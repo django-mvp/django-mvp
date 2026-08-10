@@ -40,10 +40,20 @@
    them without an explicit safelist. Tiered by responsive cost, following
    mvp/tailwind/base.css's inline-safelist mechanism:
    Tier R gets base + md: + lg: + xl: (layout utilities genuinely used at
-   breakpoints); Tier B is base only (utilities where a breakpoint variant
-   buys nothing); Tier C is daisyUI's semantic colour palette, base only;
+   breakpoints — including position/inset/overflow, which get reached for
+   responsively just as often as flex/grid do); Tier B is base only
+   (z-index, border and typography, where a breakpoint variant buys
+   nothing); Tier C is daisyUI's semantic colour palette, base only;
    Tier S is hover:/focus-visible: states over Tier C's colours plus a small
-   state-only set. */
+   state-only set.
+
+   Shadow utilities (shadow-*) are deliberately not shipped in any tier.
+   Novices reach for them by default and the result almost always clashes —
+   a free-floating box-shadow works against a unified UI. daisyUI's own
+   component rules (.card, .dropdown-content, .modal-box, ...) declare their
+   own box-shadow directly, so this does not flatten the shipped components;
+   it only removes the loose utility that would let a consumer bolt one onto
+   an arbitrary element. See docs/utility-classes.md. */
 
 /* Tier R — responsive layout utilities (base, md, lg, xl). */
 @source inline("{,md:,lg:,xl:}{block,inline-block,inline,flex,inline-flex,grid,hidden}");
@@ -68,20 +78,19 @@
 @source inline("{,md:,lg:,xl:}min-h-{0,full,screen}");
 @source inline("{,md:,lg:,xl:}text-{left,center,right,justify}");
 @source inline("{,md:,lg:,xl:}text-{xs,sm,base,lg,xl,2xl,3xl,4xl,5xl,6xl}");
+@source inline("{,md:,lg:,xl:}{static,relative,absolute,fixed,sticky}");
+@source inline("{,md:,lg:,xl:}inset{,-x,-y}-0");
+@source inline("{,md:,lg:,xl:}{top,right,bottom,left}-{0,auto}");
+@source inline("{,md:,lg:,xl:}overflow-{auto,hidden,visible,scroll}");
+@source inline("{,md:,lg:,xl:}overflow-{x,y}-auto");
 
-/* Tier B — base-only utilities. A breakpoint variant of a position/inset/
-   border/typography utility buys nothing a consumer has ever asked for. */
-@source inline("{static,relative,absolute,fixed,sticky}");
-@source inline("inset{,-x,-y}-0");
-@source inline("{top,right,bottom,left}-{0,auto}");
+/* Tier B — base-only utilities: z-index, border, and typography, where a
+   breakpoint variant buys nothing a consumer has ever asked for. */
 @source inline("z-{0,10,20,30,40,50,auto}");
-@source inline("overflow-{auto,hidden,visible,scroll}");
-@source inline("overflow-{x,y}-auto");
 @source inline("border{,-0,-2,-4,-8}");
 @source inline("border-{t,r,b,l}");
 @source inline("rounded-{none,sm,md,lg,xl,2xl,3xl,full}");
 @source inline("rounded-{t,r,b,l}-{sm,md,lg,xl,full}");
-@source inline("shadow-{none,sm,md,lg,xl,2xl,inner}");
 @source inline("opacity-{0,25,50,75,100}");
 @source inline("font-{sans,serif,mono}");
 @source inline("font-{light,normal,medium,semibold,bold,extrabold}");
@@ -99,6 +108,6 @@
 @source inline("{bg,text,border}-{primary,secondary,accent,neutral,info,success,warning,error,primary-content,secondary-content,accent-content,neutral-content,info-content,success-content,warning-content,error-content,base-100,base-200,base-300,base-content}");
 
 /* Tier S — hover:/focus-visible: states over Tier C's colours, plus a small
-   state-only set (opacity/shadow/underline transitions on interaction). */
+   state-only set (opacity/underline transitions on interaction). */
 @source inline("{hover,focus-visible}:{bg,text,border}-{primary,secondary,accent,neutral,info,success,warning,error,primary-content,secondary-content,accent-content,neutral-content,info-content,success-content,warning-content,error-content,base-100,base-200,base-300,base-content}");
-@source inline("{hover,focus-visible}:{opacity-75,opacity-100,shadow-md,shadow-lg,underline}");
+@source inline("{hover,focus-visible}:{opacity-75,opacity-100,underline}");
