@@ -37,6 +37,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   both entries, `{% load crispy_forms_tags %}` raises `TemplateSyntaxError` on any packaged
   form page, not only one carrying a formset.
 
+- **Navbar widgets can now differ between mobile and desktop.**
+  `layout.navbar.end` is replaced by `layout.navbar.mobile.end` and
+  `layout.navbar.desktop.end`, each the same ordered list of Cotton component names as
+  before. A widget that only makes sense at one screen size no longer has to be baked
+  responsive by its own author. See [Navbar widgets](docs/layout.md#navbar-widgets).
+
+  **On upgrade:** a flat `layout.navbar.end` still works and applies to both — nothing
+  breaks. Both regions render server-side and are toggled with responsive display
+  classes, so a widget listed on both `mobile.end` and `desktop.end` renders twice in
+  the page; see the docs for the one shipped widget (the language-switcher modal) where
+  that duplication needs a distinct `id`.
+
 ### Fixed
 
 - **Top and bottom modals now span the full screen width.** `<c-modal>` always
