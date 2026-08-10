@@ -32,6 +32,23 @@ class AboutView(MVPTemplateView):
 `MVPHomeView` renders a dashboard template for authenticated users and a landing
 template for anonymous visitors.
 
+### Placeholder default
+
+`MVPTemplateView` defaults `template_name` to a packaged placeholder page instead
+of leaving it unset, so wiring up a menu or URL ahead of writing the real template
+renders a page that says so instead of a 500:
+
+```python
+class AboutView(MVPTemplateView):
+    page_title = "About us"
+    # no template_name yet — renders the placeholder, not a 500
+```
+
+Set `template_name` once the real template exists. The placeholder never shows
+again. Under `settings.DEBUG` the placeholder also names the view class and the
+URL path that rendered it — that detail is left out in production so the
+placeholder doesn't advertise internal view names.
+
 ## List pages
 
 ```python

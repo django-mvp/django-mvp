@@ -20,6 +20,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`MVPTemplateView` now renders a placeholder page by default instead of a 500.**
+  Rapid prototyping routinely wires up a menu or URL before every page has a real
+  template. Django's own default is to raise `ImproperlyConfigured` for a missing
+  `template_name`, which surfaces as a server error the moment that route is
+  visited. `MVPTemplateView` now defaults `template_name` to a packaged
+  placeholder (`mvp/placeholder_view.html`) that says the page has no template
+  yet, and under `settings.DEBUG` names the view and URL that rendered it. A
+  subclass that sets its own `template_name` is unaffected. See
+  [Views](docs/views.md#placeholder-default).
+
 - **A parent record and its related rows now render, validate and save together on one
   page.** `MVPInlineCreateView` and `MVPInlineUpdateView` (`mvp.views`) build the formset,
   validate it alongside the parent form, and save both in one transaction — configure
