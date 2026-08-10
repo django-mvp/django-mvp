@@ -1,0 +1,11 @@
+{% extends "page_view.html" %}
+{% load i18n %}
+{% block page.content %}
+  <c-placeholder.card icon="gear"
+                       message="{% trans "This page doesn't have a template yet." %}" />
+  {% if placeholder_source %}
+    <c-text size="sm" muted align="center" class="mt-4">
+      {% blocktrans %}Rendered by {{ placeholder_source }}. Set template_name on the view to replace this placeholder.{% endblocktrans %}
+    </c-text>
+  {% endif %}
+{% endblock page.content %}

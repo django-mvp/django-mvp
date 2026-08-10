@@ -13,6 +13,7 @@ Example usage::
         landing_template_name = "myapp/landing.html"
 """
 
+from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import gettext_lazy as _
 from django.views import generic
@@ -21,9 +22,30 @@ from .base import PageMixin
 
 
 class MVPTemplateView(PageMixin, generic.TemplateView):
-    """TemplateView with support for page configuration features like title and breadcrumbs."""
+    """TemplateView with support for page configuration features like title and breadcrumbs.
 
-    pass
+    Defaults ``template_name`` to a packaged placeholder page rather than leaving it
+    unset. Rapid prototyping routinely wires up a menu or URL structure before every
+    page has a real template, and Django's own default — raising
+    ``ImproperlyConfigured`` — turns that into a 500 for every unfinished page. A
+    subclass that sets its own ``template_name`` is unaffected; this only fires when
+    nothing more specific was configured.
+
+    Under ``settings.DEBUG``, the placeholder also names the view class and the
+    request path that rendered it, so it doubles as a "this route isn't wired to a
+    template yet" signal during development. That detail is omitted outside DEBUG so
+    the placeholder doesn't advertise internal view class names in production.
+    """
+
+    template_name = "mvp/placeholder_view.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if settings.DEBUG:
+            context["placeholder_source"] = (
+                f"{type(self).__name__} at {self.request.path}"
+            )
+        return context
 
 
 class MVPHomeView(MVPTemplateView):
