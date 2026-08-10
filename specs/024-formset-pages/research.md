@@ -364,8 +364,8 @@ against Django 6.0, whereas this package declares `django >=5.2` with no upper b
 `{{ object }}` therefore shows values that were just refused. This package has the same
 behaviour for the same reason — `form.is_valid()` writes the submitted values onto
 `form.instance`, which is `self.object`, and `form_valid` hands straight to `form_invalid`
-without re-reading it. Filed separately; not fixed here, because it is a behaviour change and
-this feature is through review.
+without re-reading it. Filed as #193; not fixed here, because it is a behaviour change and this
+feature is through review.
 
 **Alternatives considered**:
 
@@ -384,7 +384,7 @@ formulation, arrived at years before this one.
 `inline_*` attributes here support a single related set, whereas a declaration class listed in a
 view-level `inlines` supports several and would let a developer moving from that package find
 the names where they expect them. That is a change to the public API and a widening past this
-feature's scope, so it belongs in its own feature request rather than in this one.
+feature's scope, so it is filed as #194 rather than folded in here.
 
 ---
 
