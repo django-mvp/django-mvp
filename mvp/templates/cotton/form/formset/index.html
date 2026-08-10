@@ -4,31 +4,21 @@
   in formset order, the inert empty-form template cloned to add rows in the
   browser, and the add-row control.
 
-  Two Alpine counters drive the set: `total` (monotonic, seeds `__prefix__`
+  The browser behaviour is the `mvpFormset` Alpine component in
+  mvp/static/js/formset.js, loaded by the <script> at the bottom of this file.
+  The x-data attribute only initialises it with this set's counts.
+
+  Two counters drive the set: `total` (monotonic, seeds `__prefix__`
   substitution and TOTAL_FORMS - never decremented) and `visible` (rows not
   marked for removal, compared against `formset.max_num` by the add control).
   See contracts/formset-component.md and specs/024-formset-pages/CONTEXT.md.
 {% endcomment %}
-{% load i18n l10n %}
+{% load i18n l10n static %}
 <c-vars formset class add-label="{% trans "Add row" %}" remove-label="{% trans "Remove" %}" />
 {% if formset %}
   <div class="space-y-4 {{ class }}"
-       x-data="{
-         total: {{ formset.total_form_count|unlocalize }},
-         visible: {{ formset.total_form_count|unlocalize }},
-         maxNum: {{ formset.max_num|unlocalize }},
-         addRow() {
-           if (this.visible >= this.maxNum) return
-           const tpl = this.$el.querySelector('template')
-           const wrapper = document.createElement('div')
-           wrapper.innerHTML = tpl.innerHTML.replaceAll('__prefix__', this.total).trim()
-           const row = wrapper.firstElementChild
-           tpl.before(row)
-           Alpine.initTree(row)
-           this.total++
-           this.visible++
-         }
-       }"
+       x-data="mvpFormset({{ formset.total_form_count|unlocalize }}, {{ formset.max_num|unlocalize }})"
+       x-on:mvp-formset-row-removed="visible--"
        {{ attrs }}>
     {% if formset.non_form_errors %}
       <c-alert variant="error">{{ formset.non_form_errors }}</c-alert>
@@ -50,11 +40,18 @@
                            :can-delete="formset.can_delete"
                            :remove-label="remove_label" />
     </template>
-    <button type="button"
-            class="btn btn-outline btn-sm"
-            :disabled="visible >= maxNum"
-            @click="addRow()">
-      {{ add_label }}
-    </button>
+    <c-button type="button"
+              size="sm"
+              outline
+              text="{{ add_label }}"
+              x-bind:disabled="!canAddRow"
+              x-on:click="addRow()" />
   </div>
+  {% comment %}
+    Not `defer`: Alpine is deferred in the base template, so a deferred tag
+    here would run after `alpine:init` had already fired and neither component
+    would register. A page with several formsets loads the same URL more than
+    once, which re-registers the same two names and is harmless.
+  {% endcomment %}
+  <script src="{% static 'js/formset.js' %}"></script>
 {% endif %}

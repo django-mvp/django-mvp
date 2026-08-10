@@ -819,3 +819,60 @@ attribute is unset.
 
 **ADR:** none — findings against this feature's own code and their fixes. The durable positions
 they touch are already in ADRs 0003 and 0004.
+
+---
+
+## D42 — The browser behaviour moves out of `x-data`, and two defects it was hiding
+
+Raised by Sam against the demo page: the add control threw on every click, the two controls were
+hand-rolled `<button>` markup, and the Alpine logic was an object literal in an `x-data`
+attribute against a standing instruction that it be a registered component.
+
+**The component now lives in `mvp/static/js/formset.js`.** `Alpine.data("mvpFormset", ...)` and
+`Alpine.data("mvpFormsetRow", ...)` are registered on `alpine:init`, and the templates carry only
+the initialiser: `x-data="mvpFormset(2, 1000)"`. The file is loaded by a plain, non-deferred
+`<script>` the component emits. Alpine itself is deferred in the packaged base template and
+deferred scripts run after plain ones, so the registration lands before `alpine:init` fires;
+adding `defer` to that tag would miss the event and neither component would register. Emitting
+the tag from the component rather than the base template keeps the set working on a page that
+does not extend the packaged base.
+
+**Both controls are `<c-button>`.** Article XI: markup that has a component is not written by
+hand. Note that Alpine's `:disabled` shorthand cannot be used on a Cotton tag, because Cotton
+reads a leading `:` as its own dynamic-attribute syntax. The long forms `x-bind:` and `x-on:` are
+the ones that work.
+
+**Defect 1 — `$el` is the control, not the set.** `addRow()` read the empty-form template with
+`this.$el.querySelector("template")`. The method runs from the add control's click handler, so
+`$el` is that button, the template is not inside it, and every click threw
+`Cannot read properties of null`. The add control did nothing on any page that shipped. `$root`
+is the component's own root element regardless of what triggered the method.
+
+**Defect 2 — Alpine 3 has no `$parent` magic.** A row decremented the set's `visible` counter
+with `this.$parent.visible--`. There is no such magic, and inside an `Alpine.data` method `this`
+is the row's own data object rather than the merged scope chain, so a parent property is
+unreachable through it either way. The row now dispatches `mvp-formset-row-removed`, which
+bubbles to the set's root, and the set decrements its own counter.
+
+The second defect is the more instructive one. It threw *after* `this.removed = true`, so the row
+still disappeared and the page looked correct. The only symptom was a capped set staying at its
+cap after a removal — the exact case the two-counter design exists to serve, and one no
+server-side test can see.
+
+**Why none of this was caught.** The counter contract was asserted by string-matching the
+`x-data` attribute, which pins where the code is written rather than what it does, and passes
+just as happily when the code throws. The one test that drives the controls for real is
+`@pytest.mark.e2e` and skips when Playwright is absent — which it was, so it had never run. It
+also could not have: it built a URLconf holding a single path, and the packaged base template
+reverses demo view names, so every page raised `NoReverseMatch` before reaching the formset.
+
+Fixed on all three counts. `pytest-playwright` is now a dev dependency, the E2E URLconf extends
+the project's instead of replacing it, the counter tests assert against the component source and
+the initialiser, and a new E2E test fills a set to its cap, removes a row and asserts the add
+control comes back. Both defects were reinstated and confirmed to turn those tests red.
+
+Running them in CI needs a browser in the runner, which is a change to the shared reusable
+workflow rather than to this repository — #171.
+
+**ADR:** none. Article XI already governs the component rule, and these are defects against this
+feature's own code.

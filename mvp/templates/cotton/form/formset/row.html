@@ -4,11 +4,12 @@
   field exactly), and DELETE as a hidden input rather than a checkbox. The
   form's own non-field errors render above its fields.
 
-  The remove control and the row's removed state live here. A removed row is
-  hidden, never detached - its inputs stay in the document so the removal
-  survives an invalid submission and re-render. The removed state seeds from
-  form.DELETE.value, drives the hidden DELETE input, and decrements the
-  parent <c-form.formset>'s `visible` counter (context.delete_semantics).
+  The removed state is the `mvpFormsetRow` Alpine component in
+  mvp/static/js/formset.js; the x-data attribute only seeds it from
+  form.DELETE.value. A removed row is hidden, never detached - its inputs stay
+  in the document so the removal survives an invalid submission and re-render.
+  Removing decrements the parent <c-form.formset>'s `visible` counter
+  (context.delete_semantics).
 
   The control needs BOTH `can-delete` and a DELETE field on this row. Under
   `can_delete_extra=False` Django gives DELETE only to the initial forms while
@@ -20,8 +21,7 @@
 <c-vars form class can-delete=False remove-label="{% trans "Remove" %}" />
 {% if form %}
   <div class="space-y-4 {{ class }}"
-       x-data="{ removed: {{ form.DELETE.value|yesno:'true,false,false' }} }"
-       x-init="if (removed) $parent.visible--"
+       x-data="mvpFormsetRow({{ form.DELETE.value|yesno:'true,false,false' }})"
        x-show="!removed"
        {{ attrs }}>
     {{ form|as_crispy_errors }}
@@ -34,12 +34,12 @@
       {% endif %}
     {% endfor %}
     {% if can_delete and form.DELETE %}
-      <button type="button"
-              class="btn btn-ghost btn-sm"
-              aria-label="{{ remove_label }}"
-              @click="removed = true; $parent.visible--">
-        {{ remove_label }}
-      </button>
+      <c-button type="button"
+                size="sm"
+                ghost
+                text="{{ remove_label }}"
+                aria-label="{{ remove_label }}"
+                x-on:click="remove()" />
     {% endif %}
   </div>
 {% endif %}

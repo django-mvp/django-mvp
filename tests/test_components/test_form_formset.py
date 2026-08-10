@@ -9,10 +9,14 @@ tests/test_components/test_form_field.py.
 """
 
 import importlib.util
+from importlib import import_module
+from pathlib import Path
 
+import mvp
 import pytest
 from bs4 import BeautifulSoup
 from django import forms
+from django.conf import settings
 from django.template import Template
 from django.template.context import Context
 from django.test import override_settings
@@ -370,9 +374,15 @@ class TestFormsetAddRemoveControls:
         disabled_binding = add_button.get(":disabled") or add_button.get(
             "x-bind:disabled"
         )
-        assert disabled_binding is not None
-        assert "visible" in disabled_binding
-        assert "maxNum" in disabled_binding
+        assert disabled_binding == "!canAddRow"
+
+        # The comparison itself is in the component, so assert it there: the
+        # cap is measured against the rows the user can see, never against the
+        # monotonic counter, or a removed row would forfeit its slot.
+        source = (
+            Path(mvp.__path__[0]) / "static" / "js" / "formset.js"
+        ).read_text()
+        assert "return this.visible < this.maxNum;" in source
 
 
 class TestFormsetAddRemoveLabels:
@@ -474,13 +484,12 @@ _HAS_PLAYWRIGHT = importlib.util.find_spec("playwright") is not None
 def _row_locator(page, quantity_input_name):
     """Return the row wrapper for a given row's quantity input.
 
-    Rows are the only elements whose ``x-data`` mentions ``removed`` (the
-    formset root's own ``x-data`` carries ``total``/``visible`` instead), so
-    this scopes to the nearest such ancestor without any extra test-only
-    markup in the row template.
+    Rows are the only elements initialising ``mvpFormsetRow`` (the set's own
+    root initialises ``mvpFormset`` instead), so this scopes to the nearest
+    such ancestor without any extra test-only markup in the row template.
     """
     return page.locator(f'input[name="{quantity_input_name}"]').locator(
-        "xpath=ancestor::div[contains(@x-data, 'removed')][1]"
+        "xpath=ancestor::div[contains(@x-data, 'mvpFormsetRow')][1]"
     )
 
 
@@ -501,10 +510,20 @@ class TestFormsetAddRemoveRowsE2E:
             show_list_action=False,
             inline_extra=0,
         )
+        # The packaged base template renders the demo menus, which reverse
+        # demo view names, so the test URLconf extends the project's rather
+        # than replacing it. With only the one path, every page raises
+        # NoReverseMatch before the formset is ever reached.
+        base_urlpatterns = import_module(settings.ROOT_URLCONF).urlpatterns
         urlconf = type(
             "_URLConf",
             (),
-            {"urlpatterns": [path("formset-e2e/<int:pk>/", view_cls.as_view())]},
+            {
+                "urlpatterns": [
+                    path("formset-e2e/<int:pk>/", view_cls.as_view()),
+                    *base_urlpatterns,
+                ]
+            },
         )
 
         with override_settings(ROOT_URLCONF=urlconf):
@@ -540,7 +559,9 @@ class TestFormsetAddRemoveRowsE2E:
                 page.locator('input[name="order_lines-2-DELETE"]').input_value() == "on"
             )
 
-            page.get_by_role("button", name="Save & continue").click()
+            # By name and value, not by label: the page carries two submits
+            # whose accessible names share this prefix.
+            page.locator('button[name="default_next"][value="list"]').click()
             page.wait_for_url(lambda url: url != start_url)
 
         removed_existing_pk = removed_existing.pk
@@ -548,6 +569,56 @@ class TestFormsetAddRemoveRowsE2E:
         kept.refresh_from_db()
         assert kept.quantity == 7
         assert OrderLine.objects.filter(product=product).count() == 1
+
+    @pytest.mark.django_db
+    def test_removing_a_row_gives_its_slot_back_under_the_cap(
+        self, page, live_server
+    ):
+        """The whole reason there are two counters.
+
+        ``visible`` lives on the set and a row has to reach it to decrement it.
+        Alpine 3 has no ``$parent`` magic, and inside an ``Alpine.data`` method
+        ``this`` is the row's own data rather than the merged scope chain, so
+        the obvious spelling throws and the counter never moves. The page still
+        hides the row, which is why nothing else here catches it: the only
+        visible symptom is a set that stays at its cap after a removal.
+        """
+        product = ProductFactory(name="Capped")
+        OrderLineFactory(product=product, quantity=1)
+        OrderLineFactory(product=product, quantity=2)
+        view_cls = _inline_update_view_class(
+            success_url="/formset-cap/",
+            show_detail_action=False,
+            show_list_action=False,
+            inline_extra=0,
+            inline_max_num=2,
+        )
+        base_urlpatterns = import_module(settings.ROOT_URLCONF).urlpatterns
+        urlconf = type(
+            "_URLConf",
+            (),
+            {
+                "urlpatterns": [
+                    path("formset-cap/<int:pk>/", view_cls.as_view()),
+                    *base_urlpatterns,
+                ]
+            },
+        )
+
+        with override_settings(ROOT_URLCONF=urlconf):
+            page.goto(f"{live_server.url}/formset-cap/{product.pk}/")
+            add = page.get_by_role("button", name="Add row")
+
+            assert add.is_disabled(), "two rows against a cap of two"
+
+            _row_locator(page, "order_lines-1-quantity").get_by_role(
+                "button", name="Remove"
+            ).click()
+
+            assert not add.is_disabled(), (
+                "a removed row must give its slot back, or the set is stuck at "
+                "its cap for the rest of the page's life"
+            )
 
 
 # ---------------------------------------------------------------------------
@@ -574,10 +645,8 @@ class TestFormsetCountersAreNotLocalized:
         assert x_data is not None
         expression = x_data["x-data"]
 
-        assert "maxNum: 1000," in expression
+        assert expression == "mvpFormset(2, 1000)"
         assert "1,000" not in expression
-        assert "total: 2," in expression
-        assert "visible: 2," in expression
 
     @override_settings(USE_THOUSAND_SEPARATOR=True)
     def test_total_forms_input_carries_no_grouped_number(self):
@@ -634,16 +703,45 @@ class TestFormsetRemoveControlNeedsADeleteField:
 class TestFormsetCounterContract:
     """The counter contract, pinned without a browser.
 
-    The one test that drives ``addRow()`` for real is browser-gated and does
-    not run here, so these assert the contract from the rendered markup: the
-    counters are seeded from the server's form count, TOTAL_FORMS is bound to
-    the monotonic one, and the handler increments both without ever
-    decrementing ``total``.
+    The behaviour is in ``mvp/static/js/formset.js`` rather than in an x-data
+    attribute, so it splits in two: the template's job is to load that file and
+    seed the component with this set's counts, and the file's job is to hold a
+    handler that increments both counters and never decrements ``total``. The
+    test that drives ``addRow()`` for real is browser-gated and does not run
+    here.
     """
 
-    def _expression(self, formset):
-        html = render('<c-form.formset :formset="formset" />', formset=formset)
-        return BeautifulSoup(html, "html.parser").find(attrs={"x-data": True})["x-data"]
+    @staticmethod
+    def _soup(formset):
+        return BeautifulSoup(
+            render('<c-form.formset :formset="formset" />', formset=formset),
+            "html.parser",
+        )
+
+    @staticmethod
+    def _component_source():
+        return (Path(mvp.__path__[0]) / "static" / "js" / "formset.js").read_text()
+
+    def test_the_component_is_registered_in_a_file_not_an_x_data_attribute(self):
+        """The x-data attribute initialises; it does not define.
+
+        An object literal in the attribute is unreadable in the page source,
+        cannot be linted or covered, and puts the whole handler through
+        Django's template escaping on every render.
+        """
+        soup = self._soup(RowFormSet())
+
+        expression = soup.find(attrs={"x-data": True})["x-data"]
+        assert expression.startswith("mvpFormset(")
+        assert "{" not in expression
+
+        script = soup.find("script", src=True)
+        assert script is not None
+        assert script["src"].endswith("js/formset.js")
+        assert not script.has_attr("defer"), (
+            "Alpine is deferred in the base template, so a deferred tag here "
+            "would register the component after alpine:init had fired."
+        )
 
     def test_counters_seed_from_the_server_side_form_count(self):
         formset = forms.formset_factory(RowForm, can_delete=True, extra=1)(
@@ -651,9 +749,8 @@ class TestFormsetCounterContract:
         )
         assert formset.total_form_count() == 3
 
-        expression = self._expression(formset)
-        assert "total: 3," in expression
-        assert "visible: 3," in expression
+        expression = self._soup(formset).find(attrs={"x-data": True})["x-data"]
+        assert expression == "mvpFormset(3, 1000)"
 
     def test_total_forms_input_is_bound_to_the_monotonic_counter(self):
         html = render('<c-form.formset :formset="formset" />', formset=RowFormSet())
@@ -663,13 +760,25 @@ class TestFormsetCounterContract:
         assert total_forms[":value"] == "total"
 
     def test_add_increments_both_counters_and_never_decrements_total(self):
-        expression = self._expression(RowFormSet())
+        source = self._component_source()
 
-        assert "this.total++" in expression
-        assert "this.visible++" in expression
-        assert "this.total--" not in expression
-        assert "total--" not in expression
+        assert "this.total++" in source
+        assert "this.visible++" in source
+        assert "this.total--" not in source
+        assert "total--" not in source
 
     def test_prefix_substitution_uses_the_monotonic_counter(self):
-        expression = self._expression(RowFormSet())
-        assert "replaceAll('__prefix__', this.total)" in expression
+        assert '.replaceAll("__prefix__", this.total)' in self._component_source()
+
+    def test_the_empty_form_template_is_found_from_the_component_root(self):
+        """``$el`` is the add control, not the set.
+
+        ``addRow()`` runs from the button's click handler, so ``$el`` is the
+        button and the template is not inside it. Reading the template from
+        ``$el`` throws on every click and the page ships an add control that
+        does nothing.
+        """
+        source = self._component_source()
+
+        assert 'this.$root.querySelector("template")' in source
+        assert "$el.querySelector" not in source
