@@ -97,7 +97,12 @@ mvp = "mvp.fixtures"
 # and there should not be — so the mirror-the-source-tree rule has nothing to
 # match. Declared here rather than carried as accepted drift, because the point
 # is that no source module exists to mirror, not that the tests are misplaced.
-non-mirror-paths = ["tests/test_components/"]
+# tests/test_conftest.py exercises tests/conftest.py's browser-skip decision,
+# a helper shared by three otherwise-unrelated test modules (test_renderers,
+# test_error, test_form_formset). It has no mvp/ counterpart to mirror for the
+# same reason tests/factories.py and tests/test_smoke.py are exempt outright:
+# its subject is test infrastructure, not a package module.
+non-mirror-paths = ["tests/test_components/", "tests/test_conftest.py"]
 
 [tool.deptry]
 extend_exclude = ["tasks.py"]
