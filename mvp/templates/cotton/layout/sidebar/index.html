@@ -21,6 +21,29 @@
          type="checkbox"
          x-model="open"
          class="drawer-toggle" />
+  {% if persistent %}
+  {% comment %}
+    Alpine's persist scripts are deferred, so x-init only corrects the
+    checkbox after the browser's first paint — by then the sidebar's width
+    transition has already been active for a frame, and the correction
+    plays as a visible animation (#178). This blocking script runs
+    immediately, mid-parse, before that first paint, and sets the same
+    checked state x-init would derive, so there is nothing left to correct
+    once Alpine hydrates.
+  {% endcomment %}
+  <script>
+    (function () {
+      try {
+        var stored = localStorage.getItem('{{ id }}-drawer-open');
+        var wasOpen = stored === null ? true : JSON.parse(stored);
+        var isDesktop = window.matchMedia('(min-width: {% breakpoint_px breakpoint %}px)').matches;
+        if (isDesktop && wasOpen) {
+          document.getElementById('{{ id }}-toggle').checked = true;
+        }
+      } catch (e) {}
+    })();
+  </script>
+  {% endif %}
   <div class="drawer-side is-drawer-close:overflow-visible z-40">
     <label for="{{ id }}-toggle"
            aria-label="{% trans "Close sidebar" %}"

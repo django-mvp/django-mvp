@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **`c-menu` no longer stretches to fill its container by default.** The `grow`
+  utility class was applied unconditionally, which is correct for the sidebar
+  navigation but not for a menu inside a dropdown panel or a card. `grow` is
+  now an opt-in `<c-vars>` attribute, off by default; the sidebar's menu
+  renderer (`menus/sidebar/container.html`) passes it explicitly.
+
+  **On upgrade:** if a project renders `<c-menu>` directly and relied on the
+  old always-on stretching, add `grow` to that call.
+
 ### Added
 
 - **A parent record and its related rows now render, validate and save together on one
@@ -42,6 +53,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **The component demo shows all four modal positions.** The Position section
   only had `top` and `bottom` examples; `start` and `end` are now demonstrated
   too, which is what would have caught the height bug above.
+- **The sidebar no longer animates open on every page load.** With
+  `sidebar.collapse = "icons"`, the persisted open/closed state loaded after
+  the browser's first paint, so the correction played as a visible width
+  transition. A blocking script now applies the persisted state before that
+  first paint, matching the technique already used to avoid a theme flash.
 
 ## [v0.16.1] - 2026-08-06
 

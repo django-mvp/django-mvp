@@ -173,6 +173,29 @@ class TestShellRendersConfig:
         assert "$persist" in content
         assert "min-width: 1024px" in content
 
+    @pytest.mark.django_db
+    def test_persisted_state_applied_before_alpine_hydrates(self, client):
+        """A blocking script, not just Alpine's (deferred) x-init, sets the
+        checkbox's checked state — so the persisted "open" value is already
+        correct on the first paint instead of arriving as a later, animated
+        correction (issue #178). It must read the exact same $persist key
+        and breakpoint Alpine itself uses, and run before the checkbox's
+        drawer-side content."""
+        content = client.get("/").content.decode()
+        toggle_pos = content.find('id="mvp-app-toggle"')
+        script_pos = content.find("localStorage.getItem('mvp-app-drawer-open')")
+        drawer_side_pos = content.find('class="drawer-side')
+        assert toggle_pos != -1
+        assert script_pos != -1, (
+            "a synchronous pre-hydration script must read the same "
+            "$persist key Alpine's x-init resolves"
+        )
+        assert toggle_pos < script_pos < drawer_side_pos, (
+            "the correction script must sit between the checkbox and the "
+            "sidebar markup, so it runs before that markup is painted"
+        )
+        assert "min-width: 1024px" in content[script_pos : drawer_side_pos + 1]
+
 
 # ---------------------------------------------------------------------------
 # Rendered layout: per-page component attribute overrides
