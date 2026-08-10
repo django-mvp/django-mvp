@@ -16,3 +16,17 @@
    so it must not carry demo-only utilities. The demo has its own build entry
    (assets/demo.css → demo/static/css/demo.css). */
 @source "../mvp";
+
+/* Ship the complete daisyUI component set, not just the subset mvp's own
+   templates happen to use (#190). daisyUI registers its classes with
+   Tailwind's JIT scanner like any other utility, so without this a consumer
+   reaching for a component mvp never renders itself (`carousel`, `kbd`,
+   `chat`, ...) got no styling at all — @source only emits a class if it finds
+   the literal token somewhere in scanned content. Scanning daisyUI's own
+   component and utility source files as content forces every one of its
+   classes into the build, independent of what mvp's templates reference.
+   Named themes (dracula, synthwave, ...) are untouched by this — themes are
+   controlled by the `@plugin "daisyui"` line above, not by @source, and
+   default to light/dark only. */
+@source "../node_modules/daisyui/components/**/*.js";
+@source "../node_modules/daisyui/utilities/**/*.js";

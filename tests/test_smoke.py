@@ -3,6 +3,7 @@ Smoke tests – quick sanity-checks that the package imports cleanly and
 the Django configuration is valid.
 """
 
+import re
 from pathlib import Path
 
 import django
@@ -79,6 +80,95 @@ class TestStylingDocs:
             "stylesheet and consumer builds share one source of truth."
         )
         assert (BASE_DIR / "mvp" / "tailwind" / "base.css").exists()
+
+
+# ---------------------------------------------------------------------------
+# The shipped stylesheet carries the complete daisyUI component set (#190)
+# ---------------------------------------------------------------------------
+
+
+class TestShippedStylesheetShipsCompleteDaisyUI:
+    """django-mvp.css ships every daisyUI component, not only the ones mvp's
+    own templates happen to use.
+
+    Before #190, the packaged Tailwind build only emitted a daisyUI class if
+    the JIT scanner found it in mvp's own templates — so a consumer reaching
+    for a component mvp never uses itself (`carousel`, `kbd`, `chat`, ...) got
+    no styling at all. Forcing daisyUI's own component/utility source files
+    into `@source` closes that gap regardless of what mvp's templates use.
+    """
+
+    STYLESHEET = BASE_DIR / "mvp" / "static" / "css" / "django-mvp.css"
+
+    @staticmethod
+    def _class_present(content: str, css_class: str) -> bool:
+        return re.search(rf"\.{re.escape(css_class)}\b", content) is not None
+
+    def test_entry_sources_daisyuis_own_component_and_utility_definitions(self):
+        """assets/tailwind.css scans daisyUI's own class definitions, not just mvp's templates."""
+        entry = (BASE_DIR / "assets" / "tailwind.css").read_text(encoding="utf-8")
+        assert "node_modules/daisyui/components" in entry, (
+            "assets/tailwind.css must scan daisyUI's component source files, or "
+            "only the components mvp's own templates use ship (#190)."
+        )
+        assert "node_modules/daisyui/utilities" in entry, (
+            "assets/tailwind.css must scan daisyUI's utility source files (glass, "
+            "join, radius, typography), or the same gap applies to them (#190)."
+        )
+
+    def test_control_class_mvp_templates_already_use_is_present(self):
+        """Known-present control, asserted with the same technique as the cases
+        below: proves the substring/regex match actually finds a real class
+        before any "still absent" or "now present" result is trusted. A built
+        stylesheet escapes special characters (e.g. `lg:flex-row` is committed
+        as `lg\\:flex-row`), so an untested assertion technique is worthless."""
+        content = self.STYLESHEET.read_text(encoding="utf-8")
+        assert self._class_present(content, "modal-top"), (
+            ".modal-top is a component class mvp's own cotton/modal template "
+            "renders — if this control fails, the assertion technique itself is "
+            "broken, not the stylesheet."
+        )
+
+    @pytest.mark.parametrize(
+        "css_class",
+        [
+            "carousel",
+            "chat-bubble",
+            "kbd",
+            "rating",
+            "countdown",
+            "timeline",
+            "diff",
+            "fab",
+            "radial-progress",
+            "validator",
+            "glass",
+        ],
+    )
+    def test_component_mvp_templates_never_reference_still_ships(self, css_class):
+        """A daisyUI component none of mvp's own templates use is still emitted."""
+        content = self.STYLESHEET.read_text(encoding="utf-8")
+        assert self._class_present(content, css_class), (
+            f".{css_class} is missing from the shipped stylesheet — daisyUI "
+            "component coverage regressed (#190)."
+        )
+
+    @pytest.mark.parametrize(
+        "theme",
+        ["dracula", "synthwave", "cyberpunk", "retro", "valentine"],
+    )
+    def test_named_themes_are_not_shipped(self, theme):
+        """Shipping every component must not pull in daisyUI's ~30 named themes.
+
+        Only the default light/dark themes ship — daisyUI's own default when
+        `@plugin "daisyui"` carries no `themes` option, unrelated to and
+        unaffected by the component/utility @source additions this guards.
+        """
+        content = self.STYLESHEET.read_text(encoding="utf-8")
+        assert f"[data-theme={theme}]" not in content, (
+            f"[data-theme={theme}] found in the shipped stylesheet — issue #190 "
+            "asked for complete components while explicitly excluding themes."
+        )
 
 
 # ---------------------------------------------------------------------------
