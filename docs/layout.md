@@ -25,7 +25,8 @@ MVP_CONFIG = {
             "footer": [],             # Cotton components in the sidebar footer
         },
         "navbar": {
-            "end": ["actions.theme-controller"],
+            "mobile": {"end": ["actions.theme-controller"]},
+            "desktop": {"end": ["actions.theme-controller"]},
             "sticky": True,           # True: pinned | False: scrolls away
         },
     },
@@ -126,18 +127,27 @@ own `templates/cotton/app/sidebar/footer.html`.
 
 ## Navbar widgets
 
-`layout.navbar.end` is a list of **Cotton component names** rendered in order at the
-right end of the navbar via `<c-component :is="...">`:
+`layout.navbar.mobile.end` and `layout.navbar.desktop.end` are each a list of
+**Cotton component names** rendered in order at the right end of the navbar via
+`<c-component :is="...">`. They're configured separately because a widget can be
+right for one screen size and noise on the other — a language switcher that's fine
+in a spacious desktop bar may not be worth the tap target on a phone, and for a
+third-party widget you often can't rely on it making that call itself:
 
 ```python
 MVP_CONFIG = {
     "layout": {
         "navbar": {
-            "end": [
-                "actions.theme-controller",     # light/dark toggle
-                "actions.language-switcher",    # i18n language menu
-                "myapp.notifications-bell",     # your own component
-            ],
+            "mobile": {
+                "end": ["actions.theme-controller"],
+            },
+            "desktop": {
+                "end": [
+                    "actions.theme-controller",     # light/dark toggle
+                    "actions.language-switcher",    # i18n language menu
+                    "myapp.notifications-bell",     # your own component
+                ],
+            },
         },
     },
 }
@@ -146,6 +156,33 @@ MVP_CONFIG = {
 A name maps to a Cotton template: `"myapp.notifications-bell"` →
 `templates/cotton/myapp/notifications_bell.html`. Any component in your project's
 cotton directory works, so app-specific widgets need no configuration beyond the name.
+
+**Backward compatibility:** a flat `layout.navbar.end` (the pre-split shape) still
+works and applies the same list to both `mobile` and `desktop`:
+
+```python
+MVP_CONFIG = {
+    "layout": {
+        "navbar": {
+            "end": ["actions.theme-controller"],  # applies to both mobile and desktop
+        },
+    },
+}
+```
+
+**How it's rendered:** both lists render server-side, in two separate regions toggled
+with Tailwind's responsive display utilities (the mobile region is `flex lg:hidden`,
+the desktop region `hidden lg:flex`) — a config-driven widget list can't be resolved
+from the request alone, so there's no way to render only one without a live layout.
+The region hidden by `display:none` is dropped from the accessibility tree by every
+evergreen browser, so screen-reader users only ever reach the visible one. The cost is
+duplicate markup: any widget listed on both `mobile.end` and `desktop.end` renders
+twice in the page (once per region). Most shipped widgets carry no DOM `id`, so this is
+inert, but `actions.language-switcher-modal` does (its dialog `id`, default
+`"languageModal"`) — list it on only one of `mobile.end`/`desktop.end`, or wrap it in
+your own component that overrides the `id` (see
+[Language switcher: dropdown or modal](#language-switcher-dropdown-or-modal)) before
+placing it on both.
 
 ### Language switcher: dropdown or modal
 
