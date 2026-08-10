@@ -98,7 +98,13 @@ mvp = "mvp.fixtures"
 # and there should not be — so the mirror-the-source-tree rule has nothing to
 # match. Declared here rather than carried as accepted drift, because the point
 # is that no source module exists to mirror, not that the tests are misplaced.
-non-mirror-paths = ["tests/test_components/"]
+# tests/test_demo/ exercises demo/, the example project used to develop and
+# showcase the package. demo/ is a top-level app, not a submodule of mvp/ —
+# the only package this repo ships, per tool.poetry.packages above — so the
+# mirror check's guess of mvp/demo/<module>.py can never exist. Declared here
+# for the same reason as the entry above: the mismatch is by design, not
+# drift to fix.
+non-mirror-paths = ["tests/test_components/", "tests/test_demo/"]
 
 [tool.deptry]
 extend_exclude = ["tasks.py"]
