@@ -30,3 +30,42 @@
    default to light/dark only. */
 @source "../node_modules/daisyui/components/**/*.js";
 @source "../node_modules/daisyui/utilities/**/*.js";
+
+/* Curated Tailwind utility pack (#190, second half). Consumer projects lay
+   out pages with plain Tailwind utilities around mvp's components, not just
+   daisyUI classes — @source only emits a class if it finds the literal
+   token somewhere in scanned content, and utility classes composed at
+   template-authoring time in a *consuming* project's templates are never
+   present in this package's own source, so the scanner would never find
+   them without an explicit safelist. Tiered by responsive cost, following
+   mvp/tailwind/base.css's inline-safelist mechanism:
+   Tier R gets base + md: + lg: + xl: (layout utilities genuinely used at
+   breakpoints); Tier B is base only (utilities where a breakpoint variant
+   buys nothing); Tier C is daisyUI's semantic colour palette, base only;
+   Tier S is hover:/focus-visible: states over Tier C's colours plus a small
+   state-only set. */
+
+/* Tier R — responsive layout utilities (base, md, lg, xl). */
+@source inline("{,md:,lg:,xl:}{block,inline-block,inline,flex,inline-flex,grid,hidden}");
+@source inline("{,md:,lg:,xl:}{flex-row,flex-col,flex-wrap,flex-nowrap,flex-1,flex-auto,flex-none,grow,grow-0,shrink,shrink-0}");
+@source inline("{,md:,lg:,xl:}items-{start,center,end,baseline,stretch}");
+@source inline("{,md:,lg:,xl:}justify-{start,center,end,between,around,evenly}");
+@source inline("{,md:,lg:,xl:}content-{start,center,end,between,around,evenly}");
+@source inline("{,md:,lg:,xl:}self-{auto,start,center,end,stretch}");
+@source inline("{,md:,lg:,xl:}grid-cols-{1,2,3,4,5,6,7,8,9,10,11,12}");
+@source inline("{,md:,lg:,xl:}col-span-{1,2,3,4,5,6,7,8,9,10,11,12,full}");
+@source inline("{,md:,lg:,xl:}gap-{0,1,2,3,4,5,6,8,10,12}");
+@source inline("{,md:,lg:,xl:}gap-x-{0,1,2,3,4,5,6,8,10,12}");
+@source inline("{,md:,lg:,xl:}gap-y-{0,1,2,3,4,5,6,8,10,12}");
+@source inline("{,md:,lg:,xl:}{p,px,py,pt,pr,pb,pl}-{0,1,2,3,4,5,6,8,10,12}");
+@source inline("{,md:,lg:,xl:}{m,mx,my,mt,mr,mb,ml}-{0,1,2,3,4,5,6,8,10,12}");
+@source inline("{,md:,lg:,xl:}{m,mx,my}-auto");
+@source inline("{,md:,lg:,xl:}w-{auto,full,screen,min,max,fit,1/2,1/3,2/3,1/4,3/4}");
+@source inline("{,md:,lg:,xl:}h-{auto,full,screen,min,max,fit}");
+@source inline("{,md:,lg:,xl:}max-w-{xs,sm,md,lg,xl,2xl,3xl,4xl,5xl,6xl,7xl,full,none,prose}");
+@source inline("{,md:,lg:,xl:}min-w-{0,full}");
+@source inline("{,md:,lg:,xl:}max-h-{full,screen}");
+@source inline("{,md:,lg:,xl:}min-h-{0,full,screen}");
+@source inline("{,md:,lg:,xl:}text-{left,center,right,justify}");
+@source inline("{,md:,lg:,xl:}text-{xs,sm,base,lg,xl,2xl,3xl,4xl,5xl,6xl}");
+
