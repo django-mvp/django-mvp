@@ -8,7 +8,6 @@ tests exercise each component exactly as a template invocation would, per
 tests/test_components/test_form_field.py.
 """
 
-import importlib.util
 from importlib import import_module
 from pathlib import Path
 
@@ -24,6 +23,7 @@ from django.urls import path
 from django_cotton.compiler_regex import CottonCompiler
 
 from demo.models import OrderLine
+from tests.conftest import requires_browser
 from tests.factories import OrderLineFactory, ProductFactory
 from tests.test_views.test_inline import (
     _dispatch,
@@ -478,7 +478,6 @@ class TestFormsetPageLevelErrorPlacement:
 # tests/test_views/test_error.py lines 185-235.
 # ---------------------------------------------------------------------------
 
-_HAS_PLAYWRIGHT = importlib.util.find_spec("playwright") is not None
 
 
 def _row_locator(page, quantity_input_name):
@@ -494,7 +493,7 @@ def _row_locator(page, quantity_input_name):
 
 
 @pytest.mark.e2e
-@pytest.mark.skipif(not _HAS_PLAYWRIGHT, reason="playwright not installed")
+@requires_browser
 class TestFormsetAddRemoveRowsE2E:
     """Adding and removing rows happens entirely in the browser, and a
     submission afterwards matches what the page showed."""

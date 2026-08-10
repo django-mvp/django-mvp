@@ -6,7 +6,6 @@ Direct-call unit tests (status code, content bytes) were removed because
 they test Django's render() output, not our app's functionality.
 """
 
-import importlib.util
 import re
 
 import pytest
@@ -15,6 +14,7 @@ from django.test import Client, RequestFactory, override_settings
 from django.urls import path
 
 from mvp.views.error import server_error
+from tests.conftest import requires_browser
 
 
 def _crashing_urlconf(*patterns):
@@ -190,7 +190,6 @@ class TestBadRequestHandler:
 
 # Scoped to the class below, not the module: a module-level importorskip or
 # pytestmark would skip and re-mark this module's unit tests too.
-_HAS_PLAYWRIGHT = importlib.util.find_spec("playwright") is not None
 
 AXE_CDN = "https://cdnjs.cloudflare.com/ajax/libs/axe-core/4.9.1/axe.min.js"
 
@@ -223,7 +222,7 @@ ERROR_PAGES = [
 
 
 @pytest.mark.e2e
-@pytest.mark.skipif(not _HAS_PLAYWRIGHT, reason="playwright not installed")
+@requires_browser
 class TestErrorPagesAccessibilityE2E:
     """Browser accessibility checks for the rendered error pages."""
 

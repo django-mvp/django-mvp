@@ -874,5 +874,14 @@ control comes back. Both defects were reinstated and confirmed to turn those tes
 Running them in CI needs a browser in the runner, which is a change to the shared reusable
 workflow rather than to this repository — #171.
 
+**And the gate itself was wrong in the same way.** Every browser test skipped on
+``find_spec("playwright")``, which tests whether the package imports. Installing the package and
+downloading the browser are two separate steps, so adding the dependency turned the skips into
+errors on a runner that had never run ``playwright install`` — including in ``test_renderers.py``,
+which had no skip of its own at all. ``tests/conftest.py`` now exposes one ``requires_browser``
+marker that checks the browser executable exists, and all three modules use it. Verified both
+ways: with a browser, 680 pass and 1 skips; with ``PLAYWRIGHT_BROWSERS_PATH`` pointed at nothing,
+669 pass and 12 skip with no errors.
+
 **ADR:** none. Article XI already governs the component rule, and these are defects against this
 feature's own code.
