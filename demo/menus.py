@@ -59,14 +59,6 @@ AppMenu.extend(
                         "icon": "grid",
                     },
                 ),
-                MenuItem(
-                    name="utility-classes",
-                    view_name="utility-classes",
-                    extra_context={
-                        "label": "Utility Classes",
-                        "icon": "list-ul",
-                    },
-                ),
                 *[
                     MenuItem(
                         name=f"component-{component.slug}",
@@ -81,6 +73,14 @@ AppMenu.extend(
                     for component in COMPONENTS
                 ],
             ],
+        ),
+        MenuItem(
+            name="utility-classes",
+            view_name="utility-classes",
+            extra_context={
+                "label": "Utility Classes",
+                "icon": "list-ul",
+            },
         ),
         MenuGroup(
             name="pages",
