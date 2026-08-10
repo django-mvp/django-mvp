@@ -69,3 +69,28 @@
 @source inline("{,md:,lg:,xl:}text-{left,center,right,justify}");
 @source inline("{,md:,lg:,xl:}text-{xs,sm,base,lg,xl,2xl,3xl,4xl,5xl,6xl}");
 
+/* Tier B — base-only utilities. A breakpoint variant of a position/inset/
+   border/typography utility buys nothing a consumer has ever asked for. */
+@source inline("{static,relative,absolute,fixed,sticky}");
+@source inline("inset{,-x,-y}-0");
+@source inline("{top,right,bottom,left}-{0,auto}");
+@source inline("z-{0,10,20,30,40,50,auto}");
+@source inline("overflow-{auto,hidden,visible,scroll}");
+@source inline("overflow-{x,y}-auto");
+@source inline("border{,-0,-2,-4,-8}");
+@source inline("border-{t,r,b,l}");
+@source inline("rounded-{none,sm,md,lg,xl,2xl,3xl,full}");
+@source inline("rounded-{t,r,b,l}-{sm,md,lg,xl,full}");
+@source inline("shadow-{none,sm,md,lg,xl,2xl,inner}");
+@source inline("opacity-{0,25,50,75,100}");
+@source inline("font-{sans,serif,mono}");
+@source inline("font-{light,normal,medium,semibold,bold,extrabold}");
+@source inline("leading-{none,tight,snug,normal,relaxed,loose}");
+@source inline("tracking-{tight,normal,wide}");
+@source inline("{truncate,whitespace-nowrap,break-words,italic,uppercase,lowercase,capitalize,underline,no-underline}");
+@source inline("cursor-{pointer,not-allowed,default}");
+@source inline("{transition,select-none,pointer-events-none,align-middle}");
+@source inline("duration-{150,200,300}");
+@source inline("object-{cover,contain,fill}");
+@source inline("list-{none,disc,decimal}");
+
