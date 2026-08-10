@@ -525,6 +525,50 @@ class TestInlineRowRemoval:
 
 
 # ---------------------------------------------------------------------------
+# Issue #193 - on re-render after a formset error, object-derived page parts
+# (breadcrumbs, page title) must show the stored object, not the submitted-
+# but-unsaved values written onto it by the parent form's own validation.
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+class TestInlineInvalidRowPreservesStoredObjectDisplay:
+    """A valid parent form with an invalid row must not leak the submitted
+    parent values into object-derived page chrome, because nothing was
+    saved. ``form.is_valid()`` runs ``_post_clean``, which writes submitted
+    values onto ``form.instance`` - the same object as ``self.object`` on an
+    update view - before ``form_valid`` ever sees it (#193)."""
+
+    def test_breadcrumbs_and_title_show_stored_value_not_submitted_value(self):
+        product = ProductFactory(name="Stored Name")
+        view_cls = _inline_update_view_class(success_url="list")
+        data = {
+            "name": "Submitted But Refused Name",
+            "order_lines-TOTAL_FORMS": "1",
+            "order_lines-INITIAL_FORMS": "0",
+            "order_lines-MIN_NUM_FORMS": "0",
+            "order_lines-MAX_NUM_FORMS": "1000",
+            "order_lines-0-quantity": "-1",  # PositiveIntegerField rejects negatives
+        }
+
+        _, response = _dispatch(
+            view_cls, method="POST", data=data, view_kwargs={"pk": product.pk}
+        )
+
+        assert response.status_code == 200
+        # The parent form itself is correctly bound to the submitted value -
+        # this is not what #193 is about.
+        assert response.context_data["form"]["name"].value() == (
+            "Submitted But Refused Name"
+        )
+        breadcrumbs = response.context_data["page"]["breadcrumbs"]
+        assert breadcrumbs[1]["text"] == "Stored Name"
+        assert Product.objects.count() == 1
+        product.refresh_from_db()
+        assert product.name == "Stored Name"
+
+
+# ---------------------------------------------------------------------------
 # T024 - MVPInlineCreateView / MVPInlineUpdateView export; mixin stays private
 # ---------------------------------------------------------------------------
 
