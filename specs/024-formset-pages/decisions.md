@@ -907,9 +907,10 @@ control. The label answers "which record is this", which is unanswerable from a 
 fields. A saved row shows `str(instance)`. An unsaved one cannot: `str()` on an unsaved model
 reads `OrderLine object (None)`, so it is named `New <verbose_name>` instead. A plain, non-model
 form has no instance and gets no label, and the header is omitted when there is neither a label
-nor a control to put in it. The rule leads every row rather than sitting between rows: rows are
+nor a control to put in it. The rule leads the row rather than sitting between rows: rows are
 hidden rather than detached, and a rule rendered between two of them is orphaned the moment
-either one goes.
+either one goes. The first row is exempt — the set's own divider is already directly above it,
+and a second line there is just noise.
 
 Both labels are `mvp.templatetags.mvp` filters (`formset_row_label`, `formset_label`) rather
 than view code, because `_meta` is unreachable from a template — Django rejects any variable

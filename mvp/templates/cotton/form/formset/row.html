@@ -2,16 +2,18 @@
   One row of a formset. Minimal markup: a hairline and a header are all that
   set one related object apart from the next, rather than a card or a box.
 
-  Every row opens with a hairline <c-rule> and a header: the object's own
-  label on the left, the remove control on the right. The label matters
-  because a row usually edits a related record, and "which one am I editing"
-  is otherwise unanswerable from the page. A saved row shows the object's
-  string; an unsaved one is named by its model, since str() on an unsaved
-  instance reads `Thing object (None)`.
+  A row opens with a header: the object's own label on the left, the remove
+  control on the right. The label matters because a row usually edits a
+  related record, and "which one am I editing" is otherwise unanswerable from
+  the page. A saved row shows the object's string; an unsaved one is named by
+  its model, since str() on an unsaved instance reads `Thing object (None)`.
 
-  The rule leads every row rather than sitting between rows, so that a removed
-  row takes its own separator with it. A rule rendered between two rows would
-  be orphaned the moment either was hidden.
+  Above the header, every row but the first carries a hairline <c-rule>. The
+  rule leads the row rather than sitting between rows, so that a removed row
+  takes its own separator with it; a rule rendered between two rows would be
+  orphaned the moment either was hidden. `first` comes from the set's loop,
+  and defaults to False so that a row cloned from the empty-form template -
+  which is only ever appended after the others - always gets one.
 
   Then every hidden field, every visible field except DELETE rendered through
   crispy (so a row's field matches a single form's field exactly), and DELETE
@@ -36,13 +38,13 @@
   row would hide and its data would still save.
 {% endcomment %}
 {% load i18n crispy_forms_filters mvp %}
-<c-vars form label class can-delete=False remove-label="{% trans "Remove" %}" />
+<c-vars form label class first=False can-delete=False remove-label="{% trans "Remove" %}" />
 {% if form %}
   <div class="group space-y-4 {{ class }}"
        x-data="mvpFormsetRow({{ form.DELETE.value|yesno:'true,false,false' }})"
        x-show="!removed"
        {{ attrs }}>
-    <c-rule />
+    {% if not first %}<c-rule />{% endif %}
     {% firstof label form|formset_row_label as row_label %}
     {% if row_label or can_delete and form.DELETE %}
       <div class="flex items-start justify-between gap-2">

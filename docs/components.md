@@ -102,7 +102,7 @@ Menus are normally rendered from Python via django-flex-menus — see
 | `c-form`, `c-form.render` | form wrapper / renderer dispatch |
 | `c-form.field` | single presentational field: `type` (text-like, `textarea`, `select`, `file`, `checkbox`, `radio`, `toggle`), `label`, `hide-label`, `help-text`, `errors`, `prelabel`, `postlabel`, `wrapper-class`; `label`/`help_text`/`errors` also accept named slots |
 | `c-form.formset` | whole Django formset: `formset` (required), `title` (defaults to the model in plural), `description`, `add-label`, `remove-label`, `class` — see [Formsets](formsets.md) |
-| `c-form.formset.row` | one row of a formset: `form` (required), `label` (defaults to the object), `can-delete`, `remove-label`, `class` |
+| `c-form.formset.row` | one row of a formset: `form` (required), `label` (defaults to the object), `first`, `can-delete`, `remove-label`, `class` |
 | `c-placeholder.card` | `message`, `icon`, `height` — coming-soon card |
 | `c-mockup.browser`, `c-mockup.window`, `c-mockup.phone`, `c-mockup.code` | visual mockups |
 | `c-addons.share-dropdown` | social share menu (`url`, `title`, `size`) |

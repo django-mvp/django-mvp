@@ -48,6 +48,7 @@
            :value="total">
     {% for form in formset.forms %}
       <c-form.formset.row :form="form"
+                           :first="forloop.first"
                            :can-delete="formset.can_delete"
                            :remove-label="remove_label" />
     {% endfor %}

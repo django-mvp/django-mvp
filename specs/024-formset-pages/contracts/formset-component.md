@@ -72,6 +72,7 @@ Renders one form of a formset as a row.
 | Attribute | Default | Meaning |
 |---|---|---|
 | `form` | — | The individual form. Absent renders nothing. |
+| `first` | `False` | Suppresses the leading rule. Set by the parent from `forloop.first`; a row cloned from the empty-form template is never first. |
 | `label` | the object | Heading for the row. Defaults to the instance's string once saved, and to `New <model>` before that, since `str()` on an unsaved model reads `Thing object (None)`. Empty for a non-model form. |
 | `remove-label` | `"Remove"` | Accessible name for the remove control, which renders as a trash icon with no visible text. |
 | `can-delete` | `False` | Whether to offer a remove control. Set by the parent from `formset.can_delete`. |

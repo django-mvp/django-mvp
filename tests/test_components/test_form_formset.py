@@ -901,21 +901,30 @@ class TestFormsetRowSeparation:
             template.decompose()  # the empty-form clone source, not a row
         return soup.find_all("div", attrs={"x-show": "!removed"})
 
-    def test_every_row_leads_with_its_own_rule(self):
-        """Leading, not between.
+    def test_every_row_but_the_first_leads_with_a_rule(self):
+        """Leading, not between, and not on the first.
 
         A rule rendered between two rows is orphaned the moment either of
         them is hidden, and rows are hidden rather than detached. Owned by
-        the row, it goes when the row goes.
+        the row, it goes when the row goes. The first row has the set's own
+        divider above it already, so a second line there is just noise.
         """
         formset = forms.formset_factory(RowForm, extra=0)(
-            initial=[{"name": "Alpha"}, {"name": "Bravo"}]
+            initial=[{"name": "Alpha"}, {"name": "Bravo"}, {"name": "Charlie"}]
         )
         rows = self._rows(formset)
 
-        assert len(rows) == 2
-        for row in rows:
-            assert row.find("hr") is not None
+        assert len(rows) == 3
+        assert rows[0].find("hr") is None
+        assert rows[1].find("hr") is not None
+        assert rows[2].find("hr") is not None
+
+    def test_a_row_cloned_from_the_empty_form_gets_one(self):
+        """It is only ever appended after the others, so it is never first."""
+        html = render('<c-form.formset :formset="formset" />', formset=RowFormSet())
+        template = BeautifulSoup(html, "html.parser").find("template")
+
+        assert template.find("hr") is not None
 
     def test_rows_carry_no_card_or_box_styling(self):
         row = self._rows(RowFormSet())[0]
