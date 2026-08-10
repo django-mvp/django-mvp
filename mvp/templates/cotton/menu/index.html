@@ -1,5 +1,5 @@
-<c-vars label class horizontal responsive paged />
-<ul class="menu w-full grow{% if horizontal %} menu-horizontal{% endif %}{% if responsive %} menu-vertical {{ responsive }}:menu-horizontal{% endif %}{% if paged %} menu-paged{% endif %} {{ class }}"
+<c-vars label class horizontal responsive paged grow=False />
+<ul class="menu w-full{% if grow %} grow{% endif %}{% if horizontal %} menu-horizontal{% endif %}{% if responsive %} menu-vertical {{ responsive }}:menu-horizontal{% endif %}{% if paged %} menu-paged{% endif %} {{ class }}"
     role="navigation"
     aria-label="{{ label }}"
     {{ attrs }}>

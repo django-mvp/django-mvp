@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **`c-menu` no longer stretches to fill its container by default.** The `grow`
+  utility class was applied unconditionally, which is correct for the sidebar
+  navigation but not for a menu inside a dropdown panel or a card. `grow` is
+  now an opt-in `<c-vars>` attribute, off by default; the sidebar's menu
+  renderer (`menus/sidebar/container.html`) passes it explicitly.
+
+  **On upgrade:** if a project renders `<c-menu>` directly and relied on the
+  old always-on stretching, add `grow` to that call.
+
 ### Added
 
 - **A parent record and its related rows now render, validate and save together on one
