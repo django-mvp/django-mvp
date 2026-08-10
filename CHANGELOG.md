@@ -26,6 +26,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   both entries, `{% load crispy_forms_tags %}` raises `TemplateSyntaxError` on any packaged
   form page, not only one carrying a formset.
 
+### Fixed
+
+- **Top and bottom modals now span the full screen width.** `<c-modal>` always
+  capped its box to a `max-w-*` size class, which overrode daisyUI's own
+  edge-to-edge rule for `position="top"` and `position="bottom"`. Those two
+  positions now render at `w-full`/`max-w-none` instead; centred, `start`, and
+  `end` modals keep sizing by `size` as before.
+
+- **Start and end modals now stretch to fill the screen height.** The visible
+  card inside `<c-modal>` had no height utility, so it stayed sized to its
+  content even though the transparent wrapper around it correctly grew to
+  `100vh`. The card now carries `h-full`.
+
+- **The component demo shows all four modal positions.** The Position section
+  only had `top` and `bottom` examples; `start` and `end` are now demonstrated
+  too, which is what would have caught the height bug above.
+
 ## [v0.16.1] - 2026-08-06
 
 ### Added

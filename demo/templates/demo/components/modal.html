@@ -48,12 +48,20 @@
     <div class="flex flex-wrap gap-2">
       <c-button text="Top" variant="neutral" onclick="top_modal.showModal()" />
       <c-button text="Bottom" variant="neutral" onclick="bottom_modal.showModal()" />
+      <c-button text="Start" variant="neutral" onclick="start_modal.showModal()" />
+      <c-button text="End" variant="neutral" onclick="end_modal.showModal()" />
     </div>
     <c-modal id="top_modal" title="Pinned to the top" icon="info-circle" position="top" closable>
       <c-text tight>This dialog opens against the top edge of the screen.</c-text>
     </c-modal>
     <c-modal id="bottom_modal" title="Pinned to the bottom" icon="info-circle" position="bottom" closable>
       <c-text tight>This dialog opens against the bottom edge — handy on mobile.</c-text>
+    </c-modal>
+    <c-modal id="start_modal" title="Pinned to the start" icon="info-circle" position="start" closable>
+      <c-text tight>This dialog opens against the start edge (left in LTR) and fills the screen height.</c-text>
+    </c-modal>
+    <c-modal id="end_modal" title="Pinned to the end" icon="info-circle" position="end" closable>
+      <c-text tight>This dialog opens against the end edge (right in LTR) and fills the screen height.</c-text>
     </c-modal>
   {% endcotton:verbatim %}
   </c-components.section>
