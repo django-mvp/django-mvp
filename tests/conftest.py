@@ -105,23 +105,62 @@ def _browser_is_installed():
         return False
 
 
-def _should_skip_browser_tests(*, has_browser: bool, in_ci: bool) -> bool:
+def _browser_cache_root() -> Path:
+    """Where Playwright downloads browsers, honouring ``PLAYWRIGHT_BROWSERS_PATH``.
+
+    Mirrors Playwright's own resolution: an explicit override if set, else
+    its default per-user cache directory.
+    """
+    override = os.environ.get("PLAYWRIGHT_BROWSERS_PATH")
+    return Path(override) if override else Path.home() / ".cache" / "ms-playwright"
+
+
+def _browsers_were_attempted() -> bool:
+    """True when something has already tried to install Playwright's browsers
+    in this environment.
+
+    ``playwright install`` creates its cache root as the very first thing it
+    does, before any download completes — verified directly: 2 seconds into
+    a 184 MiB chromium download, the directory and its lock file already
+    existed. So a CI job that ran the install step leaves this directory
+    behind even when the install later failed or left the wrong browser
+    version cached, which is exactly the case that should be loud rather
+    than silently skipped.
+    """
+    return _browser_cache_root().exists()
+
+
+def _should_skip_browser_tests(
+    *, has_browser: bool, in_ci: bool, browsers_attempted: bool
+) -> bool:
     """True when browser/e2e tests should be skipped rather than run.
 
-    Skips only for a contributor without Playwright's browser installed
-    locally. In CI a browser is always expected — the workflow installs it
-    before tests run — so a missing browser there is left unskipped and
-    fails loudly against Playwright's own launch error instead. A skip
-    nobody sees in CI is what let six of these tests sit dormant for as
-    long as they did (#171); this is the guard against that recurring.
+    Skips whenever the browser is present — nothing to decide there — and
+    otherwise skips unless CI has actually tried to get one. That's the
+    fix for keying this on bare ``CI=true``: GitHub Actions sets that on
+    every job unconditionally, before the workflow's own
+    ``install-playwright`` step has had a chance to run, so a naive
+    CI-only check fails loudly even when nobody asked for a browser (today's
+    workflow default: ``install-playwright: false``). Once CI has attempted
+    an install and the browser still isn't there, that is left unskipped and
+    fails loudly against Playwright's own launch error instead of a silent
+    skip — the actual defect #171 reports.
     """
-    return not has_browser and not in_ci
+    if has_browser:
+        return False
+    return not (in_ci and browsers_attempted)
 
 
 HAS_BROWSER = _browser_is_installed()
 IN_CI = os.environ.get("CI", "").lower() == "true"
+BROWSERS_ATTEMPTED = _browsers_were_attempted()
 
 requires_browser = pytest.mark.skipif(
-    _should_skip_browser_tests(has_browser=HAS_BROWSER, in_ci=IN_CI),
-    reason="playwright browser not installed locally (run: playwright install chromium)",
+    _should_skip_browser_tests(
+        has_browser=HAS_BROWSER, in_ci=IN_CI, browsers_attempted=BROWSERS_ATTEMPTED
+    ),
+    reason=(
+        "playwright browser not installed (run: playwright install chromium; "
+        "in CI, set install-playwright: true in tests.yml)"
+    ),
 )
