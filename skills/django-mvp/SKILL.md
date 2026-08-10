@@ -474,22 +474,24 @@ Full table: `docs/components.md` in the package. Component naming/domain rules: 
 Two tiers:
 
 - **Tier 1 — no build.** The prebuilt stylesheet (`mvp/static/css/django-mvp.css`, loaded
-  by `mvp/base.html`) covers every class mvp's components use — **not all of DaisyUI**.
-  Customize via component **attributes** and template overrides that **reuse packaged
-  components**. Theme changes (DaisyUI CSS-variable themes; `<c-actions.theme-controller>`
-  for light/dark) stay Tier 1.
-  - *Escape hatch:* a DaisyUI component mvp doesn't use (`progress`, `skeleton`, `chat`, …)
-    renders unstyled — but every DaisyUI component is published as a standalone
-    theme-variable-driven CSS file, so link it in a `styles` block override (still no build):
+  by `mvp/base.html`) ships the **complete DaisyUI 5 component set**, not just the ones
+  mvp's own components use — a raw `<div class="chat chat-start">` renders styled with no
+  build step. Named themes are the exception: only light/dark ship by default. Customize via
+  component **attributes** and template overrides that **reuse packaged components**. Theme
+  changes (DaisyUI CSS-variable themes; `<c-actions.theme-controller>` for light/dark) stay
+  Tier 1.
+  - *Escape hatch:* a named theme other than light/dark (`dracula`, `synthwave`, …) isn't
+    shipped, but every DaisyUI theme is published as a standalone CSS file, so link it in a
+    `styles` block override (still no build):
     ```django
     {% block styles %}
       {{ block.super }}
-      <link rel="stylesheet"
-            href="https://cdn.jsdelivr.net/combine/npm/daisyui@5/components/progress.css,npm/daisyui@5/components/skeleton.css" />
+      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daisyui@5/theme/dracula.css" />
     {% endblock styles %}
     ```
-    Self-host by copying `daisyui/components/<name>.css` from the npm package into static
-    instead. Component classes only — writing your own Tailwind *utilities* is Tier 2.
+    Self-host by copying `daisyui/theme/<name>.css` from the npm package into static instead.
+  - Tailwind **utility** classes (`class="grid grid-cols-3"`) not already emitted by mvp's own
+    templates are still Tier 2 — only DaisyUI component coverage is complete in Tier 1.
 - **Tier 2 — own build.** The moment your own templates use their own Tailwind utility
   classes (`class="grid grid-cols-3"`), rebuild so Tailwind scans both your templates and
   mvp's:
