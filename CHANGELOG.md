@@ -39,6 +39,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Top and bottom modals now span the full screen width.** `<c-modal>` always
+  capped its box to a `max-w-*` size class, which overrode daisyUI's own
+  edge-to-edge rule for `position="top"` and `position="bottom"`. Those two
+  positions now render at `w-full`/`max-w-none` instead; centred, `start`, and
+  `end` modals keep sizing by `size` as before.
+
+- **Start and end modals now stretch to fill the screen height.** The visible
+  card inside `<c-modal>` had no height utility, so it stayed sized to its
+  content even though the transparent wrapper around it correctly grew to
+  `100vh`. The card now carries `h-full`.
+
+- **The component demo shows all four modal positions.** The Position section
+  only had `top` and `bottom` examples; `start` and `end` are now demonstrated
+  too, which is what would have caught the height bug above.
 - **The sidebar no longer animates open on every page load.** With
   `sidebar.collapse = "icons"`, the persisted open/closed state loaded after
   the browser's first paint, so the correction played as a visible width
