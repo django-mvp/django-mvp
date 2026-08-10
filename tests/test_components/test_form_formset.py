@@ -978,7 +978,7 @@ class TestFormsetUsesPackagedComponents:
     def test_the_set_uses_c_divider_and_c_text(self):
         source = self._source("index.html")
 
-        assert "<c-divider>" in source
+        assert "<c-divider" in source
         assert "<c-text" in source
         assert 'class="divider' not in source, "c-divider owns that markup"
 

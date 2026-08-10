@@ -33,7 +33,7 @@
        x-on:mvp-formset-row-removed="visible--"
        {{ attrs }}>
     {% firstof title formset.title formset|formset_label as heading %}
-    <c-divider>{{ heading }}</c-divider>
+    <c-divider class="my-8">{{ heading }}</c-divider>
     {% firstof description formset.description as help_text %}
     {% if help_text %}<c-text muted size="sm">{{ help_text }}</c-text>{% endif %}
     {% if formset.non_form_errors %}

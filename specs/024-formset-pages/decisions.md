@@ -938,7 +938,12 @@ not written again — and the first version of this feature broke it in three pl
 **What changed:**
 
 - The set's heading is `<c-divider>`, centred, which is that component's default. The earlier
-  version passed `divider-start` and a font weight of its own.
+  version passed `divider-start` and a font weight of its own. It carries `class="my-8"` for the
+  breathing room Sam asked for, which needed a fix to `<c-divider>` itself: it declared no
+  `class` and spread no `attrs`, so it could not be adjusted at all. Under Article XI a
+  component's attributes are its only supported customization surface, and that one had none.
+  Covered by `tests/test_components/test_class_attribute_merge.py`, alongside the other
+  components fixed for the same reason in #121.
 - The description is `<c-text muted size="sm">`, and the row label `<c-text tight bold>`.
 - Rows are not cards. Sam's call, on seeing them: a card per row is too heavy for what is one
   object among several in a list. Rows now carry no box at all.
