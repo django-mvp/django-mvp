@@ -1,0 +1,16 @@
+{% extends "page_view.html" %}
+{% comment %}
+  Renders docs/utility-classes.md (see demo.views.UtilityClassesView) so the
+  utility inventory has one source of truth instead of being copied here.
+{% endcomment %}
+
+{% block page.actions %}
+  <c-button text="Overview"
+            icon="grid"
+            href="{% url 'custom-components' %}"
+            variant="ghost" />
+{% endblock page.actions %}
+
+{% block page.content %}
+  <article class="prose max-w-none">{{ utility_classes_html }}</article>
+{% endblock page.content %}

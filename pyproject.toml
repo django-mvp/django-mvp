@@ -77,6 +77,12 @@ django-tailwind = { extras = [
 ], version = "^4.4.2" }
 brotli = "^1.2.0"
 pytest-playwright = "^0.9.0"
+# Renders docs/utility-classes.md inside the demo app's own "Utility Classes"
+# page, so the docs stay one source of truth instead of being copied into a
+# template. Already present transitively (pulled in by rich, via django-distill/
+# pytest-playwright); declared explicitly here because the demo app now imports
+# it directly. Demo-only: never a runtime dependency of the mvp package itself.
+markdown-it-py = "^4.2.0"
 
 [build-system]
 requires = ['poetry-core (>=2.0,<3.0)']
@@ -120,7 +126,9 @@ DEP002 = [
 # bs4: an optional extra in both call sites (mvp/fixtures.py and the component
 #   documentation tag), imported lazily inside a try/except with a fallback.
 DEP003 = ["invoke", "pytest", "bs4"]
-DEP004 = ["django_filters", "django_tables2", "django_htmx"]
+DEP004 = ["django_filters", "django_tables2", "django_htmx", "markdown_it"]
+# markdown_it: demo/views.py renders docs/utility-classes.md into the demo app's
+#   own "Utility Classes" page; demo-only, never a runtime dependency of mvp.
 
 [tool.ruff]
 # line-length is deliberately unset: Ruff's default is 88, matching Black, which

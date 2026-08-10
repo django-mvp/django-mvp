@@ -7,10 +7,14 @@ customization. A few, like ``layout_demo`` and ``theme_customization_demo``,
 are plain ``DemoTemplateView`` instances that render a static demo page.
 """
 
+from pathlib import Path
+
 from django.forms import modelformset_factory
 from django.http import Http404
+from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 from django_filters.views import FilterView
+from markdown_it import MarkdownIt
 
 from demo.component_docs import COMPONENTS, COMPONENTS_BY_SLUG
 from demo.models import Article, Category, OrderLine, Product
@@ -95,7 +99,44 @@ class ComponentDocView(DemoTemplateView):
         return context
 
 
+_DOCS_DIR = Path(__file__).resolve().parent.parent / "docs"
+
+
+class UtilityClassesView(DemoTemplateView):
+    """Render ``docs/utility-classes.md`` inside the demo app.
+
+    The markdown file is the single source of truth for the shipped utility
+    inventory (#190); this view renders it rather than copying its content
+    into a template, so the two can never drift apart.
+
+    ``_DOCS_DIR`` is resolved from this module's own file location, not the
+    process's working directory, so the page renders correctly no matter
+    where ``manage.py`` is invoked from. The demo app is never distributed
+    as part of the django-mvp package — only ``mvp/`` ships to PyPI — so
+    reading a file from the repo tree like this is safe here but would not
+    survive a packaged install.
+    """
+
+    template_name = "utility-classes.html"
+    page_title = "Utility Classes"
+
+    def get_breadcrumbs(self):
+        return [
+            {"text": "Home", "href": "/"},
+            {"text": "Components", "href": "/components/"},
+            {"text": self.page_title},
+        ]
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        markdown_source = (_DOCS_DIR / "utility-classes.md").read_text(encoding="utf-8")
+        renderer = MarkdownIt("gfm-like").disable("linkify")
+        context["utility_classes_html"] = mark_safe(renderer.render(markdown_source))
+        return context
+
+
 components_demo = ComponentIndexView.as_view()
+utility_classes_demo = UtilityClassesView.as_view()
 layout_demo = DemoTemplateView.as_view(
     template_name="layout.html", page_title="Layout Demo"
 )
