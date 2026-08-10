@@ -28,7 +28,7 @@ class MVPTemplateView(PageMixin, generic.TemplateView):
     unset. Rapid prototyping routinely wires up a menu or URL structure before every
     page has a real template, and Django's own default — raising
     ``ImproperlyConfigured`` — turns that into a 500 for every unfinished page. A
-    subclass that sets its own ``template_name`` is unaffected; this only fires when
+    subclass that sets its own ``template_name`` is unaffected. This only fires when
     nothing more specific was configured.
 
     Under ``settings.DEBUG``, the placeholder also names the view class and the

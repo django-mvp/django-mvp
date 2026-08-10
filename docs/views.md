@@ -44,7 +44,7 @@ class AboutView(MVPTemplateView):
     # no template_name yet — renders the placeholder, not a 500
 ```
 
-Set `template_name` once the real template exists; the placeholder never shows
+Set `template_name` once the real template exists. The placeholder never shows
 again. Under `settings.DEBUG` the placeholder also names the view class and the
 URL path that rendered it — that detail is left out in production so the
 placeholder doesn't advertise internal view names.
