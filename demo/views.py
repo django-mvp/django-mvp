@@ -130,8 +130,15 @@ class UtilityClassesView(DemoTemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         markdown_source = (_DOCS_DIR / "utility-classes.md").read_text(encoding="utf-8")
+        # The file's own H1 titles it as a standalone document; here the page
+        # chrome already supplies the heading, so drop it to avoid two titles.
+        body = (
+            markdown_source.split("\n", 1)[1]
+            if markdown_source.startswith("# ")
+            else markdown_source
+        )
         renderer = MarkdownIt("gfm-like").disable("linkify")
-        context["utility_classes_html"] = mark_safe(renderer.render(markdown_source))
+        context["utility_classes_html"] = mark_safe(renderer.render(body))
         return context
 
 

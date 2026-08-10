@@ -33,10 +33,19 @@ class TestUtilityClassesView:
         response = client.get(reverse("utility-classes"))
         content = response.content.decode()
 
-        # The markdown file's own title, and a class name from its inventory
-        # table — proof the source file was rendered, not paraphrased.
-        assert "Utility Class Reference" in content
+        # Class names from the inventory tables — proof the source file was
+        # rendered, not paraphrased.
         assert "grid-cols-{1..12}" in content
+        assert "focus-visible:border-error" in content
+
+    def test_drops_the_markdown_h1_so_the_page_has_one_heading(self, client):
+        response = client.get(reverse("utility-classes"))
+        content = response.content.decode()
+
+        # The page chrome supplies the heading, so the file's own H1 must not
+        # be rendered on top of it.
+        assert "Utility Class Reference" not in content
+        assert content.count("<h1") == 1
 
 
 class TestUtilityClassesMenuItem:
