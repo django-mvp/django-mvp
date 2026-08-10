@@ -18,8 +18,21 @@
   </div>
   <div class="navbar-end gap-3">
     {{ right }}
-    {% for widget in mvp_config.layout.navbar.end %}
-      <c-component :is="widget" />
-    {% endfor %}
+    {# Mobile and desktop widget lists (issue #176) render as two separate #}
+    {# regions toggled by Tailwind's responsive display utilities, matching #}
+    {# the "hidden lg:flex" convention already used above for the site name. #}
+    {# A display:none region is dropped from the accessibility tree by every #}
+    {# evergreen browser/screen-reader pairing, so the hidden copy needs no #}
+    {# aria-hidden of its own. #}
+    <div id="mvp-navbar-widgets-mobile" class="flex lg:hidden items-center gap-3">
+      {% for widget in mvp_config.layout.navbar.mobile.end %}
+        <c-component :is="widget" />
+      {% endfor %}
+    </div>
+    <div id="mvp-navbar-widgets-desktop" class="hidden lg:flex items-center gap-3">
+      {% for widget in mvp_config.layout.navbar.desktop.end %}
+        <c-component :is="widget" />
+      {% endfor %}
+    </div>
   </div>
 </div>

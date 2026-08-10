@@ -45,13 +45,40 @@ MVP_CONFIG = {
         "navbar": {
             # Cotton component names rendered at the end (right side) of the navbar,
             # in order, e.g. "actions.theme-controller" -> <c-actions.theme-controller />
-            "end": ["actions.theme-controller", "actions.login"],
+            # Configured separately for mobile and desktop (issue #176) so a widget
+            # that only makes sense at one screen size doesn't have to be baked
+            # responsive by its own author — see _apply_legacy_flat_navbar_config
+            # below for the pre-split "navbar.end" shape this replaces.
+            "mobile": {"end": ["actions.theme-controller", "actions.login"]},
+            "desktop": {"end": ["actions.theme-controller", "actions.login"]},
             # Whether the header sticks to the top of the viewport on scroll.
             # True (default) pins it (app-style); False lets it scroll away with
-            # the page (traditional-site behaviour).
+            # the page (traditional-site behaviour). Applies at every screen size.
             "sticky": True,
         },
     },
 }
 
 merge(MVP_CONFIG, getattr(settings, "MVP_CONFIG", {}))
+
+
+def _apply_legacy_flat_navbar_config(config):
+    """Map a flat, pre-#176 ``layout.navbar.end`` override onto both
+    ``navbar.mobile.end`` and ``navbar.desktop.end``.
+
+    Before the mobile/desktop split, ``MVP_CONFIG["layout"]["navbar"]["end"]``
+    was the only widget list, applied at every screen size. A project's
+    ``settings.MVP_CONFIG`` may still set it in that flat shape, and
+    ``mergedeep.merge`` above only adds it as a sibling of the new "mobile"/
+    "desktop" keys rather than replacing them. Normalize it here so templates
+    read one shape: a flat override replaces both breakpoints' lists, exactly
+    what it did before the split.
+    """
+    navbar = config["layout"]["navbar"]
+    legacy_end = navbar.pop("end", None)
+    if legacy_end is not None:
+        navbar["mobile"]["end"] = legacy_end
+        navbar["desktop"]["end"] = legacy_end
+
+
+_apply_legacy_flat_navbar_config(MVP_CONFIG)

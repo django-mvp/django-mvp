@@ -58,15 +58,21 @@ class TestLayoutConfigResolution:
         assert layout["sidebar"]["breakpoint"] == "lg"
         assert layout["sidebar"]["collapse"] == "offcanvas"
         assert layout["sidebar"]["title"] is None
-        assert isinstance(layout["navbar"]["end"], list)
+        assert isinstance(layout["navbar"]["mobile"]["end"], list)
+        assert isinstance(layout["navbar"]["desktop"]["end"], list)
         assert isinstance(layout["sidebar"]["footer"], list)
 
     def test_settings_override_replaces_navbar_list(self):
-        """tests/settings.py MVP_CONFIG overrides the navbar widget list wholesale."""
-        assert MVP_CONFIG["layout"]["navbar"]["end"] == [
+        """tests/settings.py's flat, pre-split ``navbar.end`` override (issue #176
+        backward compatibility) applies to both mobile and desktop."""
+        expected = [
             "actions.theme-controller",
             "actions.language-switcher",
         ]
+        assert MVP_CONFIG["layout"]["navbar"]["mobile"]["end"] == expected
+        assert MVP_CONFIG["layout"]["navbar"]["desktop"]["end"] == expected
+        # the flat key itself is normalized away, so templates read one shape
+        assert "end" not in MVP_CONFIG["layout"]["navbar"]
         # sibling keys not mentioned in the override keep package defaults
         assert MVP_CONFIG["layout"]["sidebar"]["breakpoint"] == "lg"
 
@@ -74,6 +80,110 @@ class TestLayoutConfigResolution:
         """The context processor provides MVP_CONFIG as a dict, not JSON."""
         context = mvp_config_processor(RequestFactory().get("/"))
         assert context["mvp_config"] is MVP_CONFIG
+
+
+# ---------------------------------------------------------------------------
+# Navbar mobile/desktop split (issue #176)
+# ---------------------------------------------------------------------------
+
+
+class TestNavbarMobileDesktopSplit:
+    """A widget list configured differently for mobile and desktop must reach
+    the right screen size only, without exposing the hidden copy to
+    assistive technology.
+
+    Both variants render server-side (a config-driven widget list can't be
+    resolved from the request alone) and are toggled with Tailwind's
+    responsive display utilities. Browsers and screen readers already drop a
+    ``display:none`` element from the accessibility tree, so the ``hidden``/
+    ``flex`` utility pair below is sufficient on its own — no ``aria-hidden``
+    is needed on top of it.
+    """
+
+    @pytest.mark.django_db
+    def test_mobile_and_desktop_widget_lists_render_independently(
+        self, client, monkeypatch
+    ):
+        """A widget configured only for one breakpoint must not leak into
+        the other breakpoint's markup."""
+        monkeypatch.setitem(
+            MVP_CONFIG["layout"]["navbar"]["mobile"], "end", ["actions.theme-controller"]
+        )
+        monkeypatch.setitem(
+            MVP_CONFIG["layout"]["navbar"]["desktop"],
+            "end",
+            ["actions.language-switcher"],
+        )
+        content = client.get("/").content.decode()
+
+        mobile_start = content.find('id="mvp-navbar-widgets-mobile"')
+        desktop_start = content.find('id="mvp-navbar-widgets-desktop"')
+        assert mobile_start != -1, "mobile widget wrapper must render"
+        assert desktop_start != -1, "desktop widget wrapper must render"
+        assert mobile_start < desktop_start
+
+        mobile_html = content[mobile_start:desktop_start]
+        desktop_html = content[desktop_start:]
+        assert "data-toggle-theme" in mobile_html, (
+            "mobile-only widget must render in the mobile wrapper"
+        )
+        assert "data-toggle-theme" not in desktop_html, (
+            "mobile-only widget must not also render in the desktop wrapper"
+        )
+        assert 'name="language"' in desktop_html, (
+            "desktop-only widget must render in the desktop wrapper"
+        )
+        assert 'name="language"' not in mobile_html, (
+            "desktop-only widget must not also render in the mobile wrapper"
+        )
+
+    @pytest.mark.django_db
+    def test_wrapper_ids_are_unique(self, client):
+        """The two wrappers get distinct ids — no duplicate DOM id."""
+        content = client.get("/").content.decode()
+        assert content.count('id="mvp-navbar-widgets-mobile"') == 1
+        assert content.count('id="mvp-navbar-widgets-desktop"') == 1
+
+    @pytest.mark.django_db
+    def test_mobile_wrapper_hides_at_the_desktop_breakpoint(self, client):
+        """The mobile wrapper is visible below ``lg`` and display:none at/above
+        it, matching the ``hidden lg:flex`` convention already used elsewhere
+        in this template (the site name in the navbar-start)."""
+        content = client.get("/").content.decode()
+        match = re.search(
+            r'<div id="mvp-navbar-widgets-mobile" class="([^"]*)"', content
+        )
+        assert match is not None
+        classes = match.group(1).split()
+        assert "flex" in classes
+        assert "lg:hidden" in classes
+
+    @pytest.mark.django_db
+    def test_desktop_wrapper_hides_below_the_desktop_breakpoint(self, client):
+        """The desktop wrapper is display:none below ``lg`` and visible at/above
+        it — the inverse of the mobile wrapper."""
+        content = client.get("/").content.decode()
+        match = re.search(
+            r'<div id="mvp-navbar-widgets-desktop" class="([^"]*)"', content
+        )
+        assert match is not None
+        classes = match.group(1).split()
+        assert "hidden" in classes
+        assert "lg:flex" in classes
+
+    @pytest.mark.django_db
+    def test_flat_legacy_config_renders_the_same_widgets_on_both(self, client):
+        """The suite's own tests/settings.py still uses the flat pre-split
+        ``navbar.end`` shape — confirming the backward-compatible mapping is
+        exercised by the whole existing suite, not just a dedicated test."""
+        content = client.get("/").content.decode()
+        mobile_start = content.find('id="mvp-navbar-widgets-mobile"')
+        desktop_start = content.find('id="mvp-navbar-widgets-desktop"')
+        mobile_html = content[mobile_start:desktop_start]
+        desktop_html = content[desktop_start:]
+        for marker in ("data-toggle-theme", 'name="language"'):
+            assert marker in mobile_html
+            assert marker in desktop_html
 
 
 # ---------------------------------------------------------------------------
