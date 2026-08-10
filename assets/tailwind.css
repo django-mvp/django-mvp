@@ -94,3 +94,7 @@
 @source inline("object-{cover,contain,fill}");
 @source inline("list-{none,disc,decimal}");
 
+/* Tier C — daisyUI's semantic colour palette as plain Tailwind utilities,
+   base only. Tier S below reuses this list under hover:/focus-visible:. */
+@source inline("{bg,text,border}-{primary,secondary,accent,neutral,info,success,warning,error,primary-content,secondary-content,accent-content,neutral-content,info-content,success-content,warning-content,error-content,base-100,base-200,base-300,base-content}");
+
