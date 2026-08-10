@@ -35,7 +35,8 @@ Empty, unopinionated building blocks — you provide the content.
 | `c-grid` | `cols`, `sm`, `md`, `lg`, `xl`, `xxl` (column counts 1–6, 12), `gap` |
 | `c-group` | `row`, `collapse`, `wrap`, `gap` — flex group |
 | `c-toolbar` | `row` (True or breakpoint), `gap`; slots: default (left), `actions` (right) |
-| `c-divider` | `horizontal`, `variant`, `position` |
+| `c-divider` | `horizontal`, `variant`, `position` — a section break, with room for a label |
+| `c-rule` | `class` — a hairline between items in one list, where a divider would be too loud |
 | `c-backdrop` | `opacity` — absolute overlay (e.g. over hero images) |
 | `c-layout.sidebar` | `id`, `breakpoint` — reusable drawer shell (what `c-app` uses) |
 

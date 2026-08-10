@@ -902,12 +902,14 @@ carries them as `inline_title` and `inline_description` and hangs them on the fo
 rather than adding context variables, which keeps `form_view.html` unchanged and generalises to
 several sets per page when #194 lands.
 
-**Each row is a bordered box with a header.** Left, the object's own label; right, the remove
+**Each row carries a hairline and a header.** Left, the object's own label; right, the remove
 control. The label answers "which record is this", which is unanswerable from a bare row of
 fields. A saved row shows `str(instance)`. An unsaved one cannot: `str()` on an unsaved model
 reads `OrderLine object (None)`, so it is named `New <verbose_name>` instead. A plain, non-model
 form has no instance and gets no label, and the header is omitted when there is neither a label
-nor a control to put in it.
+nor a control to put in it. The rule leads every row rather than sitting between rows: rows are
+hidden rather than detached, and a rule rendered between two of them is orphaned the moment
+either one goes.
 
 Both labels are `mvp.templatetags.mvp` filters (`formset_row_label`, `formset_label`) rather
 than view code, because `_meta` is unreachable from a template — Django rejects any variable
@@ -923,3 +925,37 @@ colour is the error token, the control has no text content, and a row added afte
 labelled `New order line`.
 
 **ADR:** none — presentation of this feature's own components under Articles XI and XIII.
+
+---
+
+## D44 — The presentation is assembled from packaged components, not rewritten
+
+Sam, on reviewing D43: the heading was a hand-written `<div class="divider">`, the description a
+bare `<p>` with utility classes, and each row a hand-rolled card. `<c-divider>`, `<c-text>` and
+`<c-card>` all already exist. Article XI is explicit — where a component exists, the markup is
+not written again — and the first version of this feature broke it in three places at once.
+
+**What changed:**
+
+- The set's heading is `<c-divider>`, centred, which is that component's default. The earlier
+  version passed `divider-start` and a font weight of its own.
+- The description is `<c-text muted size="sm">`, and the row label `<c-text tight bold>`.
+- Rows are not cards. Sam's call, on seeing them: a card per row is too heavy for what is one
+  object among several in a list. Rows now carry no box at all.
+- Separation between rows is a new `<c-rule>`: one border-width of `base-300`, nothing else.
+
+**Why `<c-rule>` rather than `<c-divider>` or a bare `<hr>`.** A bare `<hr>` in the row template
+would repeat the mistake this decision exists to correct. `<c-divider>` is the wrong component
+rather than the wrong markup: daisyUI's divider is a thick line with generous vertical margin and
+space for a label, which is right for a section break and much too loud repeated between the rows
+of one set. The two are different roles, so they are two components — 1px against the divider's
+16px of height in the rendered page.
+
+**The tests now assert the components were used**, not merely that the output looks right. A
+hand-written reproduction of `<c-divider>` renders identically and would pass every markup
+assertion in this file, so `TestFormsetUsesPackagedComponents` reads the templates and checks
+that `<c-divider>`, `<c-text>` and `<c-rule>` appear and that `class="divider"` and `<hr` do not.
+That is the only form of test that can catch this class of mistake, which is presumably why it
+went uncaught twice.
+
+**ADR:** none — Article XI already states the rule. This is a record of breaking it.

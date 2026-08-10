@@ -879,7 +879,7 @@ class TestFormsetRowLabel:
     def test_a_plain_form_gets_no_label(self):
         html = render('<c-form.formset.row :form="form" />', form=RowFormSet().forms[0])
         soup = BeautifulSoup(html, "html.parser")
-        assert soup.find("span", class_="font-medium") is None
+        assert soup.find("p", class_="font-semibold") is None
 
     def test_the_label_attribute_overrides_it(self):
         html = render(
@@ -890,23 +890,38 @@ class TestFormsetRowLabel:
 
 
 class TestFormsetRowSeparation:
-    """Rows are boxed, so two related objects do not read as one long form."""
+    """Rows are separated by a hairline, not boxed."""
 
-    def test_each_row_is_its_own_bordered_box(self):
+    def _rows(self, formset):
+        soup = BeautifulSoup(
+            render('<c-form.formset :formset="formset" />', formset=formset),
+            "html.parser",
+        )
+        for template in soup.find_all("template"):
+            template.decompose()  # the empty-form clone source, not a row
+        return soup.find_all("div", attrs={"x-show": "!removed"})
+
+    def test_every_row_leads_with_its_own_rule(self):
+        """Leading, not between.
+
+        A rule rendered between two rows is orphaned the moment either of
+        them is hidden, and rows are hidden rather than detached. Owned by
+        the row, it goes when the row goes.
+        """
         formset = forms.formset_factory(RowForm, extra=0)(
             initial=[{"name": "Alpha"}, {"name": "Bravo"}]
         )
-        html = render('<c-form.formset :formset="formset" />', formset=formset)
+        rows = self._rows(formset)
 
-        soup = BeautifulSoup(html, "html.parser")
-        for template in soup.find_all("template"):
-            template.decompose()  # the empty-form clone source, not a row
-
-        rows = soup.find_all("div", attrs={"x-show": "!removed"})
         assert len(rows) == 2
         for row in rows:
-            assert "rounded-box" in row["class"]
-            assert "border" in row["class"]
+            assert row.find("hr") is not None
+
+    def test_rows_carry_no_card_or_box_styling(self):
+        row = self._rows(RowFormSet())[0]
+        assert "rounded-box" not in row["class"]
+        assert "card" not in row["class"]
+        assert "border" not in row["class"]
 
 
 class TestFormsetControlAffordances:
@@ -946,3 +961,41 @@ class TestFormsetControlAffordances:
             lambda tag: tag.name == "button" and "Add row" in tag.get_text()
         )
         assert add.find("i") is not None
+
+
+class TestFormsetUsesPackagedComponents:
+    """Article XI: where a component exists, the markup is not hand-written.
+
+    These assert the components were actually used rather than reproduced,
+    which is invisible to any test that only checks the rendered result.
+    """
+
+    def _source(self, name):
+        return (
+            Path(mvp.__path__[0]) / "templates" / "cotton" / "form" / "formset" / name
+        ).read_text()
+
+    def test_the_set_uses_c_divider_and_c_text(self):
+        source = self._source("index.html")
+
+        assert "<c-divider>" in source
+        assert "<c-text" in source
+        assert 'class="divider' not in source, "c-divider owns that markup"
+
+    def test_the_row_uses_c_rule_and_c_text(self):
+        source = self._source("row.html")
+
+        assert "<c-rule />" in source
+        assert "<c-text" in source
+        assert "<hr" not in source, "c-rule owns that markup"
+
+    def test_the_rule_is_finer_than_a_divider(self):
+        """A divider is a section break; a rule separates items in one list."""
+        soup = BeautifulSoup(render("<c-rule />"), "html.parser")
+
+        rule = soup.find("hr")
+        assert rule is not None
+        assert "divider" not in rule.get("class", []), (
+            "daisyUI's divider is a thick line with generous margin; "
+            "repeating it between the rows of one set is far too loud"
+        )
