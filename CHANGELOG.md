@@ -26,6 +26,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   both entries, `{% load crispy_forms_tags %}` raises `TemplateSyntaxError` on any packaged
   form page, not only one carrying a formset.
 
+### Fixed
+
+- **The sidebar no longer animates open on every page load.** With
+  `sidebar.collapse = "icons"`, the persisted open/closed state loaded after
+  the browser's first paint, so the correction played as a visible width
+  transition. A blocking script now applies the persisted state before that
+  first paint, matching the technique already used to avoid a theme flash.
+
 ## [v0.16.1] - 2026-08-06
 
 ### Added
