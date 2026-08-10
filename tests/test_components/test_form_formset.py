@@ -781,3 +781,168 @@ class TestFormsetCounterContract:
 
         assert 'this.$root.querySelector("template")' in source
         assert "$el.querySelector" not in source
+
+
+# ---------------------------------------------------------------------------
+# Presentation — the set is marked off from the form above it, and each row
+# names the object it edits. See specs/024-formset-pages/decisions.md D43.
+# ---------------------------------------------------------------------------
+
+
+class TestFormsetHeading:
+    """A set opens with a divider and a heading, so it does not read as more
+    fields on the form above it."""
+
+    def test_the_divider_and_default_heading_name_the_model_in_plural(self):
+        formset = forms.modelformset_factory(OrderLine, fields=["quantity"])(
+            queryset=OrderLine.objects.none()
+        )
+        html = render('<c-form.formset :formset="formset" />', formset=formset)
+
+        divider = BeautifulSoup(html, "html.parser").find(class_="divider")
+        assert divider is not None
+        assert divider.get_text(strip=True) == "Order Lines"
+
+    def test_the_title_attribute_wins_over_the_default(self):
+        formset = forms.modelformset_factory(OrderLine, fields=["quantity"])(
+            queryset=OrderLine.objects.none()
+        )
+        html = render(
+            '<c-form.formset :formset="formset" title="Add quantities" />',
+            formset=formset,
+        )
+
+        divider = BeautifulSoup(html, "html.parser").find(class_="divider")
+        assert divider.get_text(strip=True) == "Add quantities"
+
+    def test_a_title_set_on_the_formset_is_used_when_no_attribute_is_given(self):
+        """What the view does: it hangs the title on the formset itself."""
+        formset = RowFormSet()
+        formset.title = "Add people"
+        html = render('<c-form.formset :formset="formset" />', formset=formset)
+
+        divider = BeautifulSoup(html, "html.parser").find(class_="divider")
+        assert divider.get_text(strip=True) == "Add people"
+
+    def test_a_plain_formset_still_gets_its_divider_with_no_heading(self):
+        """The separation is the point, and it does not depend on a model."""
+        html = render('<c-form.formset :formset="formset" />', formset=RowFormSet())
+
+        divider = BeautifulSoup(html, "html.parser").find(class_="divider")
+        assert divider is not None
+        assert divider.get_text(strip=True) == ""
+
+
+class TestFormsetDescription:
+    """Help text under the heading is the developer's, and optional."""
+
+    def test_the_description_renders_when_given(self):
+        html = render(
+            '<c-form.formset :formset="formset" description="One row per order." />',
+            formset=RowFormSet(),
+        )
+        assert "One row per order." in html
+
+    def test_nothing_renders_when_it_is_unset(self):
+        formset = RowFormSet()
+        html = render('<c-form.formset :formset="formset" />', formset=formset)
+        soup = BeautifulSoup(html, "html.parser")
+
+        divider = soup.find(class_="divider")
+        assert divider.find_next_sibling("p") is None
+
+
+@pytest.mark.django_db
+class TestFormsetRowLabel:
+    """Each row names the object it edits."""
+
+    def test_a_saved_row_shows_the_object(self):
+        product = ProductFactory(name="Widget")
+        line = OrderLineFactory(product=product, quantity=3)
+        formset = forms.modelformset_factory(OrderLine, fields=["quantity"], extra=0)(
+            queryset=OrderLine.objects.filter(pk=line.pk)
+        )
+        html = render('<c-form.formset :formset="formset" />', formset=formset)
+
+        assert str(line) in html
+
+    def test_an_unsaved_row_is_named_by_its_model_not_by_str(self):
+        """``str()`` on an unsaved model reads ``OrderLine object (None)``."""
+        formset = forms.modelformset_factory(OrderLine, fields=["quantity"], extra=1)(
+            queryset=OrderLine.objects.none()
+        )
+        html = render('<c-form.formset :formset="formset" />', formset=formset)
+
+        assert "New order line" in html
+        assert "object (None)" not in html
+
+    def test_a_plain_form_gets_no_label(self):
+        html = render('<c-form.formset.row :form="form" />', form=RowFormSet().forms[0])
+        soup = BeautifulSoup(html, "html.parser")
+        assert soup.find("span", class_="font-medium") is None
+
+    def test_the_label_attribute_overrides_it(self):
+        html = render(
+            '<c-form.formset.row :form="form" label="Line one" />',
+            form=RowFormSet().forms[0],
+        )
+        assert "Line one" in html
+
+
+class TestFormsetRowSeparation:
+    """Rows are boxed, so two related objects do not read as one long form."""
+
+    def test_each_row_is_its_own_bordered_box(self):
+        formset = forms.formset_factory(RowForm, extra=0)(
+            initial=[{"name": "Alpha"}, {"name": "Bravo"}]
+        )
+        html = render('<c-form.formset :formset="formset" />', formset=formset)
+
+        soup = BeautifulSoup(html, "html.parser")
+        for template in soup.find_all("template"):
+            template.decompose()  # the empty-form clone source, not a row
+
+        rows = soup.find_all("div", attrs={"x-show": "!removed"})
+        assert len(rows) == 2
+        for row in rows:
+            assert "rounded-box" in row["class"]
+            assert "border" in row["class"]
+
+
+class TestFormsetControlAffordances:
+    """The two controls: a hover-revealed red trash icon, and a plus on add."""
+
+    def _remove_control(self, html):
+        return BeautifulSoup(html, "html.parser").find(attrs={"aria-label": "Remove"})
+
+    def test_remove_is_an_icon_with_the_text_as_its_accessible_name(self):
+        html = render('<c-form.formset :formset="formset" />', formset=RowFormSet())
+        control = self._remove_control(html)
+
+        assert control.name == "button"
+        assert control.get_text(strip=True) == "", "icon only, no visible text"
+        assert control.find("i") is not None, "the icon itself"
+
+    def test_remove_is_red_and_hidden_until_the_row_is_hovered_or_focused(self):
+        html = render('<c-form.formset :formset="formset" />', formset=RowFormSet())
+        classes = self._remove_control(html)["class"]
+
+        assert "text-error" in classes
+        assert "opacity-0" in classes
+        assert "group-hover:opacity-100" in classes
+        assert "group-focus-within:opacity-100" in classes, (
+            "hover alone puts the control out of reach of a keyboard"
+        )
+
+    def test_the_row_is_the_hover_group(self):
+        html = render('<c-form.formset :formset="formset" />', formset=RowFormSet())
+        row = BeautifulSoup(html, "html.parser").find(attrs={"x-show": "!removed"})
+        assert "group" in row["class"]
+
+    def test_add_carries_a_plus_icon(self):
+        html = render('<c-form.formset :formset="formset" />', formset=RowFormSet())
+        soup = BeautifulSoup(html, "html.parser")
+        add = soup.find(
+            lambda tag: tag.name == "button" and "Add row" in tag.get_text()
+        )
+        assert add.find("i") is not None

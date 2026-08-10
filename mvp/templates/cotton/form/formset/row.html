@@ -1,15 +1,28 @@
 {% comment %}
-  One row of a formset: every hidden field, every visible field except
-  DELETE rendered through crispy (so a row's field matches a single form's
-  field exactly), and DELETE as a hidden input rather than a checkbox. The
-  form's own non-field errors render above its fields.
+  One row of a formset, in its own bordered box so that each related object
+  reads as a separate thing rather than as more fields on one long form.
+
+  The box opens with a header: the object's own label on the left, the remove
+  control on the right. The label matters because a row usually edits a
+  related record, and "which one am I editing" is otherwise unanswerable from
+  the page. A saved row shows the object's string; an unsaved one is named by
+  its model, since str() on an unsaved instance reads `Thing object (None)`.
+
+  Then every hidden field, every visible field except DELETE rendered through
+  crispy (so a row's field matches a single form's field exactly), and DELETE
+  as a hidden input rather than a checkbox. The form's own non-field errors
+  render above its fields.
+
+  The remove control is an icon alone. Its text survives as the accessible
+  name, and it is transparent until the row is hovered or something inside it
+  takes focus - `group-focus-within`, not hover alone, or the control would be
+  unreachable by keyboard.
 
   The removed state is the `mvpFormsetRow` Alpine component in
   mvp/static/js/formset.js; the x-data attribute only seeds it from
   form.DELETE.value. A removed row is hidden, never detached - its inputs stay
   in the document so the removal survives an invalid submission and re-render.
-  Removing decrements the parent <c-form.formset>'s `visible` counter
-  (context.delete_semantics).
+  Removing dispatches an event the set listens for (context.delete_semantics).
 
   The control needs BOTH `can-delete` and a DELETE field on this row. Under
   `can_delete_extra=False` Django gives DELETE only to the initial forms while
@@ -17,13 +30,28 @@
   Remove button on an extra row that has no way to record the removal - the
   row would hide and its data would still save.
 {% endcomment %}
-{% load i18n crispy_forms_filters %}
-<c-vars form class can-delete=False remove-label="{% trans "Remove" %}" />
+{% load i18n crispy_forms_filters mvp %}
+<c-vars form label class can-delete=False remove-label="{% trans "Remove" %}" />
 {% if form %}
-  <div class="space-y-4 {{ class }}"
+  <div class="group space-y-4 rounded-box border border-base-300 bg-base-100 p-4 {{ class }}"
        x-data="mvpFormsetRow({{ form.DELETE.value|yesno:'true,false,false' }})"
        x-show="!removed"
        {{ attrs }}>
+    {% firstof label form|formset_row_label as row_label %}
+    {% if row_label or can_delete and form.DELETE %}
+      <div class="flex items-start justify-between gap-2">
+        <span class="font-medium">{{ row_label }}</span>
+        {% if can_delete and form.DELETE %}
+          <c-button type="button"
+                    size="sm"
+                    ghost
+                    icon="trash"
+                    aria-label="{{ remove_label }}"
+                    class="text-error opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100"
+                    x-on:click="remove()" />
+        {% endif %}
+      </div>
+    {% endif %}
     {{ form|as_crispy_errors }}
     {% for field in form.hidden_fields %}{{ field }}{% endfor %}
     {% for field in form.visible_fields %}
@@ -33,13 +61,5 @@
         {{ field|as_crispy_field }}
       {% endif %}
     {% endfor %}
-    {% if can_delete and form.DELETE %}
-      <c-button type="button"
-                size="sm"
-                ghost
-                text="{{ remove_label }}"
-                aria-label="{{ remove_label }}"
-                x-on:click="remove()" />
-    {% endif %}
   </div>
 {% endif %}

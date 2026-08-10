@@ -1,8 +1,15 @@
 {% comment %}
-  A whole Django formset: any error belonging to the set as a whole, the
-  management form Django needs to read the submission back, one row per form
-  in formset order, the inert empty-form template cloned to add rows in the
-  browser, and the add-row control.
+  A whole Django formset: a divider and heading marking it off from the form
+  above, an optional description, any error belonging to the set as a whole,
+  the management form Django needs to read the submission back, one row per
+  form in formset order, the inert empty-form template cloned to add rows in
+  the browser, and the add-row control.
+
+  The divider is unconditional. A set of related rows sitting flush against
+  the parent form's fields reads as more of the same form, and the point of
+  the heading is to say that this part of the page edits something else.
+  `title` defaults to the set's model in plural; `description` is the
+  developer's own help text and has no default.
 
   The browser behaviour is the `mvpFormset` Alpine component in
   mvp/static/js/formset.js, loaded by the <script> at the bottom of this file.
@@ -13,13 +20,22 @@
   marked for removal, compared against `formset.max_num` by the add control).
   See contracts/formset-component.md and specs/024-formset-pages/CONTEXT.md.
 {% endcomment %}
-{% load i18n l10n static %}
-<c-vars formset class add-label="{% trans "Add row" %}" remove-label="{% trans "Remove" %}" />
+{% load i18n l10n static mvp %}
+<c-vars formset
+        title
+        description
+        class
+        add-label="{% trans "Add row" %}"
+        remove-label="{% trans "Remove" %}" />
 {% if formset %}
   <div class="space-y-4 {{ class }}"
        x-data="mvpFormset({{ formset.total_form_count|unlocalize }}, {{ formset.max_num|unlocalize }})"
        x-on:mvp-formset-row-removed="visible--"
        {{ attrs }}>
+    {% firstof title formset.title formset|formset_label as heading %}
+    <div class="divider divider-start font-semibold">{{ heading }}</div>
+    {% firstof description formset.description as help_text %}
+    {% if help_text %}<p class="text-sm text-base-content/70">{{ help_text }}</p>{% endif %}
     {% if formset.non_form_errors %}
       <c-alert variant="error">{{ formset.non_form_errors }}</c-alert>
     {% endif %}
@@ -43,6 +59,7 @@
     <c-button type="button"
               size="sm"
               outline
+              icon="plus"
               text="{{ add_label }}"
               x-bind:disabled="!canAddRow"
               x-on:click="addRow()" />

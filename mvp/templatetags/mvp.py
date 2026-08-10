@@ -8,6 +8,7 @@ from django.template.loader import render_to_string
 from django.utils.html import escape
 from django.utils.module_loading import import_string
 from django.utils.safestring import mark_safe
+from django.utils.translation import gettext_lazy as _
 from django_cotton.compiler_regex import CottonCompiler
 
 from ..config import MVP_CONFIG
@@ -293,3 +294,37 @@ class ShowCodeNode(template.Node):
                 "html": escape(html_pretty),
             },
         )
+
+
+@register.filter
+def formset_row_label(form):
+    """Return a human label for one formset row.
+
+    A row usually edits a related object, and the page is much easier to read
+    when it says which one. A saved row shows the object's own string; an
+    unsaved row has nothing meaningful to show, since ``str()`` on an
+    unsaved model gives ``Thing object (None)``, so it is named by its model
+    instead.
+
+    Returns an empty string for a plain (non-model) form, which has no
+    instance to name.
+    """
+    instance = getattr(form, "instance", None)
+    if instance is None or not hasattr(instance, "_meta"):
+        return ""
+    if instance.pk:
+        return str(instance)
+    return _("New %(model)s") % {"model": instance._meta.verbose_name}
+
+
+@register.filter
+def formset_label(formset):
+    """Return the default heading for a set: its model's plural name.
+
+    Used when the developer sets no title of their own. A plain (non-model)
+    formset has no model to name and gets no default.
+    """
+    model = getattr(formset, "model", None)
+    if model is None:
+        return ""
+    return model._meta.verbose_name_plural.title()

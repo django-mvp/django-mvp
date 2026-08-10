@@ -18,7 +18,9 @@ error belonging to the set as a whole, one row per form, and the controls that a
 | Attribute | Default | Meaning |
 |---|---|---|
 | `formset` | — | The formset to render. Required in practice; absent renders nothing. |
-| `add-label` | `"Add row"` | Text on the add control. Translatable at the call site. |
+| `title` | model in plural | Heading in the divider that opens the set. Falls back to `formset.title`, then to the set's model's plural name. |
+| `description` | — | Help text under the heading. Falls back to `formset.description`. Omitted entirely when unset. |
+| `add-label` | `"Add row"` | Text on the add control, which also carries a plus icon. |
 | `remove-label` | `"Remove"` | Accessible name for each row's remove control, passed through to rows. |
 | `class` | — | Merged onto the root element. Declared so the caller's classes are not dropped. |
 
@@ -70,7 +72,8 @@ Renders one form of a formset as a row.
 | Attribute | Default | Meaning |
 |---|---|---|
 | `form` | — | The individual form. Absent renders nothing. |
-| `remove-label` | `"Remove"` | Accessible name for the remove control. |
+| `label` | the object | Heading for the row. Defaults to the instance's string once saved, and to `New <model>` before that, since `str()` on an unsaved model reads `Thing object (None)`. Empty for a non-model form. |
+| `remove-label` | `"Remove"` | Accessible name for the remove control, which renders as a trash icon with no visible text. |
 | `can-delete` | `False` | Whether to offer a remove control. Set by the parent from `formset.can_delete`. |
 | `class` | — | Merged onto the root element. |
 

@@ -27,6 +27,8 @@ Configure one view with `MVPInlineUpdateView`:
 
 ```python
 # views.py
+from django.utils.translation import gettext_lazy as _
+
 from mvp.views import MVPInlineUpdateView
 
 from .models import OrderLine, Product
@@ -38,6 +40,8 @@ class ProductOrderLinesView(MVPInlineUpdateView):
     inline_model = OrderLine
     inline_fields = ["quantity"]
     inline_extra = 1
+    inline_title = _("Order lines")
+    inline_description = _("Add a row per order, or remove one to drop it when you save.")
     success_url = "list"
 ```
 
@@ -55,6 +59,14 @@ validate or save the formset:
   `inline_extra` blank rows. The view's default template (`form_view.html`) already renders
   `{{ formset }}` through `<c-form.formset>` when one is in context — see
   [Components](components.md#actions-user-misc) for what that component renders.
+- **Telling the two parts of the page apart.** The set opens with a divider and a heading, so
+  the rows do not read as more fields on the parent's form. `inline_title` sets that heading
+  and defaults to the related model in plural; `inline_description` puts help text under it and
+  is omitted when unset. Each row is boxed and labelled with the object it edits — the object's
+  own string once it is saved, and its model name before that.
+- **Removing a row.** The control is a trash icon in the row's top right, kept transparent
+  until the row is hovered or something in it takes focus. Its label is the accessible name
+  rather than visible text, and it is overridable with the `remove-label` attribute.
 - **Adding and removing rows.** The add control clones the row markup in the browser; removing
   a row hides it and marks it for deletion (a saved row) or drops it (an unsaved one). Neither
   needs a page reload.

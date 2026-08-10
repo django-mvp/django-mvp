@@ -885,3 +885,41 @@ ways: with a browser, 680 pass and 1 skips; with ``PLAYWRIGHT_BROWSERS_PATH`` po
 
 **ADR:** none. Article XI already governs the component rule, and these are defects against this
 feature's own code.
+
+---
+
+## D43 — Telling the set apart from the form, and telling its rows apart from each other
+
+Raised by Sam against the demo page: the rows blended into the parent form, nothing said which
+object a row was editing, and the remove control sat at the bottom of the row where it read as
+one more field.
+
+**The set opens with a divider and a heading.** Unconditional, because the separation is the
+point — a set of related rows sitting flush against the parent's fields reads as more of the
+same form. `title` defaults to the set's model in plural, so the zero-config case still gets a
+usable heading, and `description` is the developer's own help text with no default. The view
+carries them as `inline_title` and `inline_description` and hangs them on the formset object
+rather than adding context variables, which keeps `form_view.html` unchanged and generalises to
+several sets per page when #194 lands.
+
+**Each row is a bordered box with a header.** Left, the object's own label; right, the remove
+control. The label answers "which record is this", which is unanswerable from a bare row of
+fields. A saved row shows `str(instance)`. An unsaved one cannot: `str()` on an unsaved model
+reads `OrderLine object (None)`, so it is named `New <verbose_name>` instead. A plain, non-model
+form has no instance and gets no label, and the header is omitted when there is neither a label
+nor a control to put in it.
+
+Both labels are `mvp.templatetags.mvp` filters (`formset_row_label`, `formset_label`) rather
+than view code, because `_meta` is unreachable from a template — Django rejects any variable
+starting with an underscore.
+
+**The remove control is a red trash icon, revealed on hover.** Icon alone, with the label
+surviving as the accessible name. `group-hover:opacity-100` **and** `group-focus-within:
+opacity-100`: hover alone would put the control out of reach of a keyboard, which Article XIII
+forbids. The add control gains a plus icon.
+
+Verified in a browser as well as in the markup tests: opacity moves 0 → 1 on hover, the computed
+colour is the error token, the control has no text content, and a row added after load is
+labelled `New order line`.
+
+**ADR:** none — presentation of this feature's own components under Articles XI and XIII.

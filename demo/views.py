@@ -9,6 +9,7 @@ are plain ``DemoTemplateView`` instances that render a static demo page.
 
 from django.forms import modelformset_factory
 from django.http import Http404
+from django.utils.translation import gettext_lazy as _
 from django_filters.views import FilterView
 
 from demo.component_docs import COMPONENTS, COMPONENTS_BY_SLUG
@@ -218,6 +219,11 @@ class ProductOrderLinesView(MVPInlineUpdateView):
     inline_model = OrderLine
     inline_fields = ["quantity"]
     inline_extra = 1
+    inline_title = _("Order lines")
+    inline_description = _(
+        "How many of this product each order asked for. Add a row per order, "
+        "or remove one to drop it when you save."
+    )
     success_url = "list"
     show_list_action = True
     show_detail_action = True

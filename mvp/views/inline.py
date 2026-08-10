@@ -33,6 +33,12 @@ class InlineFormsetMixin:
     inline_can_delete = True
     inline_max_num = None
 
+    inline_title = None
+    """Heading above the set. Defaults to the related model in plural."""
+
+    inline_description = None
+    """Help text under the heading. No default; omitted when unset."""
+
     def get_formset_factory_kwargs(self):
         """Return the kwargs ``inlineformset_factory`` builds the class from.
 
@@ -87,8 +93,22 @@ class InlineFormsetMixin:
         its errors, and the page would come back blank.
         """
         if not hasattr(self, "_formset"):
-            self._formset = self.get_formset_class()(**self.get_formset_kwargs())
+            formset = self.get_formset_class()(**self.get_formset_kwargs())
+            # Carried on the formset rather than passed through the context,
+            # so that a template rendering <c-form.formset> needs no second
+            # variable and an override can set them per request.
+            formset.title = self.get_inline_title()
+            formset.description = self.get_inline_description()
+            self._formset = formset
         return self._formset
+
+    def get_inline_title(self):
+        """Return the heading for the set, or None to take the default."""
+        return self.inline_title
+
+    def get_inline_description(self):
+        """Return the help text under the heading, or None for none."""
+        return self.inline_description
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
