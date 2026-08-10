@@ -14,54 +14,45 @@ one generated file.
 
 ## Tier 1: no build step
 
-The packaged stylesheet (`mvp/static/css/django-mvp.css`) contains every class
-used by django-mvp's components, the DaisyUI components they rely on, and the
-sidebar breakpoint/rail classes. It is loaded automatically by `mvp/base.html`.
+The packaged stylesheet (`mvp/static/css/django-mvp.css`) contains the
+**complete daisyUI 5 component set** — every component, not just the ones
+django-mvp's own templates happen to use — plus the sidebar breakpoint/rail
+classes. Themes are the exception: only the default light/dark themes ship;
+the ~30 additional named themes (`dracula`, `synthwave`, ...) do not, since
+shipping every color palette by default would bloat the stylesheet for every
+project regardless of which theme it actually uses. It is loaded automatically
+by `mvp/base.html`.
 
 The contract that makes this work: **customize through component attributes and
 template overrides that reuse packaged components — not raw utility classes**.
 A template override that only composes existing components (`<c-card>`,
-`<c-button variant="primary">`, ...) needs no CSS rebuild. The moment you write
-`class="grid grid-cols-3"` in your own template, you're in Tier 2, because that
-class may not exist in the prebuilt stylesheet.
+`<c-button variant="primary">`, a raw `<div class="chat chat-start">`, ...)
+needs no CSS rebuild. The moment you write `class="grid grid-cols-3"` in your
+own template, you're in Tier 2, because Tailwind *utility* classes — as
+opposed to daisyUI *component* classes — are still scanned from django-mvp's
+own templates, not shipped complete, and that one may not exist in the
+prebuilt stylesheet.
 
 Theme changes (colors, radius, fonts) do **not** require Tier 2 — DaisyUI
 themes are CSS variables. See [Theming](#theming) below.
 
-### Adding individual DaisyUI components — still no build
+### Want a named theme that isn't light or dark?
 
-The prebuilt stylesheet contains the DaisyUI components **django-mvp's own
-components use** — not all of DaisyUI. If your template uses a component mvp
-doesn't (say `progress`, `skeleton`, or `chat`), those classes won't exist in
-the packaged CSS and the element renders unstyled.
-
-You don't need a Tailwind build to close that gap: every DaisyUI component is
-published as a [standalone plain-CSS file](https://daisyui.com/docs/cdn/),
-driven by the same theme variables the packaged stylesheet already defines —
-so they follow your active theme automatically. Add the ones you need in a
-`styles` block override:
+Each daisyUI named theme is a block of CSS custom properties, published as a
+[standalone plain-CSS file](https://daisyui.com/docs/themes/) you can add
+without a Tailwind build:
 
 ```django
 {# templates/mvp/base.html is extended by your pages; override once in your own base #}
 {% block styles %}
   {{ block.super }}
   <link rel="stylesheet"
-        href="https://cdn.jsdelivr.net/combine/npm/daisyui@5/components/progress.css,npm/daisyui@5/components/skeleton.css" />
+        href="https://cdn.jsdelivr.net/npm/daisyui@5/theme/dracula.css" />
 {% endblock styles %}
 ```
 
-Notes:
-
-- jsDelivr's `/combine/` endpoint bundles several component files into one
-  request; browse the available files at
-  <https://cdn.jsdelivr.net/npm/daisyui@5/components/>.
-- Prefer self-hosting? Download the same file (or copy it from the `daisyui`
-  npm package, `daisyui/components/<name>.css`) into your static directory and
-  point the `<link>` there — no third-party request at runtime.
-- Each file ships the **complete** component: all colors, sizes and modifiers.
-- Pin the same DaisyUI major version (`daisyui@5`) as django-mvp.
-- This covers DaisyUI *component* classes only. The moment you also write your
-  own Tailwind *utility* classes next to them, you're in Tier 2.
+Pin the same DaisyUI major version (`daisyui@5`) as django-mvp, or self-host
+the same file from the `daisyui` npm package (`daisyui/theme/<name>.css`).
 
 ## Tier 2: build your own stylesheet
 
@@ -119,6 +110,11 @@ In Tier 2 you can register custom themes in your entry file with DaisyUI's
 
 - Source of truth: `assets/tailwind.css` (entry) + `mvp/tailwind/base.css`
   (shared preset, shipped in the wheel).
+- `assets/tailwind.css` scans `node_modules/daisyui/{components,utilities}`
+  (installed via `npm ci`) as content, not just `../mvp`, so that every
+  daisyUI class is forced into the build regardless of what mvp's own
+  templates use. Removing those two `@source` lines silently shrinks Tier 1
+  back down to the components mvp itself renders.
 - Build: `invoke build-stylesheet` (runs `npm run build:css:prod` and
   brotli-compresses the output). Both artifacts are committed.
 - CI: `.github/workflows/stylesheet.yml` rebuilds the CSS on every PR and

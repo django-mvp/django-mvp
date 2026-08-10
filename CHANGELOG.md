@@ -20,6 +20,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **The packaged stylesheet now ships the complete DaisyUI 5 component set,
+  not just the components django-mvp's own templates use.** Tailwind's JIT
+  scanner previously only emitted a DaisyUI class when it found the literal
+  class name somewhere in django-mvp's packaged templates, so a project
+  reaching for a component django-mvp never renders itself (`carousel`,
+  `kbd`, `chat`, `timeline`, ...) got no styling for it. `assets/tailwind.css`
+  now scans daisyUI's own component and utility source files as build
+  content, forcing every one of its classes into the build regardless of
+  what django-mvp's templates reference. Named themes are unaffected — only
+  light/dark ship by default, same as before. Raw stylesheet size grows from
+  150KB to 352KB (23KB to 50KB gzipped). See
+  [Styling](docs/styling.md#tier-1-no-build-step).
+
+  **Deferred:** the same issue also asked for a curated pack of common
+  Tailwind layout/spacing/sizing/typography utilities with responsive
+  variants, generated with `@source inline()`. That request has no defined
+  boundary — "curated" isn't specified anywhere, and an unbounded pack is a
+  full Tailwind build with extra steps, applied to every downstream project
+  whether or not it uses any of it. Left for a follow-up decision with a
+  concrete, bounded utility list.
+
 - **`MVPTemplateView` now renders a placeholder page by default instead of a 500.**
   Rapid prototyping routinely wires up a menu or URL before every page has a real
   template. Django's own default is to raise `ImproperlyConfigured` for a missing
