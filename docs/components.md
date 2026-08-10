@@ -78,7 +78,7 @@ Empty, unopinionated building blocks — you provide the content.
 
 | Component | Notes |
 | --- | --- |
-| `c-menu` | `label`, `horizontal`, `responsive` (breakpoint at which a vertical menu turns horizontal), `paged` (DaisyUI paged mode) — DaisyUI menu `<ul>` |
+| `c-menu` | `label`, `horizontal`, `responsive` (breakpoint at which a vertical menu turns horizontal), `paged` (DaisyUI paged mode), `grow` (stretch to fill a flex parent, off by default — the sidebar nav passes it explicitly) — DaisyUI menu `<ul>` |
 | `c-menu.item` | `label`, `icon`, `href`, `active`, `badge`, `tip` (rail tooltip) |
 | `c-menu.group` | `label`, `collapse`, `icon`, `badge` — section header or `<details>` group |
 | `c-menu.collapse`, `c-menu.divider` | collapsible wrapper / separator |
