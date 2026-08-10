@@ -2,8 +2,7 @@
 
 The packaged stylesheet (`mvp/static/css/django-mvp.css`) ships daisyUI's component set
 alongside a set of plain Tailwind utility classes, built in explicitly rather than
-discovered by scanning your templates. This page lists what's available. See
-[Styling](styling.md) for the build model this fits into.
+discovered by scanning your templates. This page lists what's available.
 
 ## Responsive utilities (base, `md:`, `lg:`, `xl:`)
 
@@ -73,8 +72,4 @@ not just the ones django-mvp's own templates use — so classes like `carousel`,
 `chat`, `timeline`, and the rest of the [daisyUI component
 list](https://daisyui.com/components/) work out of the box. Themes are the exception: the
 default light and dark themes are included, not the additional named themes (`dracula`,
-`synthwave`, ...), which are one CSS file you can add yourself — see
-[Theming](styling.md#theming).
-
-For django-mvp's own components (`c-card`, `c-button`, `c-dropdown`, ...) built on top of
-this CSS, see the [Component Reference](components.md).
+`synthwave`, ...), which are one CSS file you can add yourself.
