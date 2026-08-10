@@ -27,11 +27,13 @@ The contract that makes this work: **customize through component attributes and
 template overrides that reuse packaged components — not raw utility classes**.
 A template override that only composes existing components (`<c-card>`,
 `<c-button variant="primary">`, a raw `<div class="chat chat-start">`, ...)
-needs no CSS rebuild. The moment you write `class="grid grid-cols-3"` in your
-own template, you're in Tier 2, because Tailwind *utility* classes — as
-opposed to daisyUI *component* classes — are still scanned from django-mvp's
-own templates, not shipped complete, and that one may not exist in the
-prebuilt stylesheet.
+needs no CSS rebuild. The stylesheet also carries a curated set of common
+Tailwind utility classes — layout, spacing, sizing, typography, colour and
+state — so `class="grid grid-cols-3"` works in Tier 1 too. See [Utility
+Classes](utility-classes.md) for the full list. The moment you reach for a
+utility class outside that list, or an arbitrary value like `w-[37px]`, you're
+in Tier 2: those were never scanned from django-mvp's own templates and don't
+exist in the prebuilt stylesheet.
 
 Theme changes (colors, radius, fonts) do **not** require Tier 2 — DaisyUI
 themes are CSS variables. See [Theming](#theming) below.

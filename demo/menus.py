@@ -74,6 +74,14 @@ AppMenu.extend(
                 ],
             ],
         ),
+        MenuItem(
+            name="utility-classes",
+            view_name="utility-classes",
+            extra_context={
+                "label": "Utility Classes",
+                "icon": "list-ul",
+            },
+        ),
         MenuGroup(
             name="pages",
             extra_context={"label": "Demo Pages"},

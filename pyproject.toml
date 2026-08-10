@@ -77,6 +77,12 @@ django-tailwind = { extras = [
 ], version = "^4.4.2" }
 brotli = "^1.2.0"
 pytest-playwright = "^0.9.0"
+# Renders docs/utility-classes.md inside the demo app's own "Utility Classes"
+# page, so the docs stay one source of truth instead of being copied into a
+# template. Already present transitively (pulled in by rich, via django-distill/
+# pytest-playwright); declared explicitly here because the demo app now imports
+# it directly. Demo-only: never a runtime dependency of the mvp package itself.
+markdown-it-py = "^4.2.0"
 
 [build-system]
 requires = ['poetry-core (>=2.0,<3.0)']
@@ -92,7 +98,13 @@ mvp = "mvp.fixtures"
 # and there should not be — so the mirror-the-source-tree rule has nothing to
 # match. Declared here rather than carried as accepted drift, because the point
 # is that no source module exists to mirror, not that the tests are misplaced.
-non-mirror-paths = ["tests/test_components/"]
+# tests/test_demo/ exercises demo/, the example project used to develop and
+# showcase the package. demo/ is a top-level app, not a submodule of mvp/ —
+# the only package this repo ships, per tool.poetry.packages above — so the
+# mirror check's guess of mvp/demo/<module>.py can never exist. Declared here
+# for the same reason as the entry above: the mismatch is by design, not
+# drift to fix.
+non-mirror-paths = ["tests/test_components/", "tests/test_demo/"]
 
 [tool.deptry]
 extend_exclude = ["tasks.py"]
@@ -120,7 +132,9 @@ DEP002 = [
 # bs4: an optional extra in both call sites (mvp/fixtures.py and the component
 #   documentation tag), imported lazily inside a try/except with a fallback.
 DEP003 = ["invoke", "pytest", "bs4"]
-DEP004 = ["django_filters", "django_tables2", "django_htmx"]
+DEP004 = ["django_filters", "django_tables2", "django_htmx", "markdown_it"]
+# markdown_it: demo/views.py renders docs/utility-classes.md into the demo app's
+#   own "Utility Classes" page; demo-only, never a runtime dependency of mvp.
 
 [tool.ruff]
 # line-length is deliberately unset: Ruff's default is 88, matching Black, which
