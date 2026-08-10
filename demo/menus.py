@@ -59,6 +59,14 @@ AppMenu.extend(
                         "icon": "grid",
                     },
                 ),
+                MenuItem(
+                    name="utility-classes",
+                    url="https://github.com/django-mvp/django-mvp/blob/main/docs/utility-classes.md",
+                    extra_context={
+                        "label": "Utility Classes",
+                        "icon": "list-ul",
+                    },
+                ),
                 *[
                     MenuItem(
                         name=f"component-{component.slug}",

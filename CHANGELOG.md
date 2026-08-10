@@ -33,13 +33,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   150KB to 352KB (23KB to 50KB gzipped). See
   [Styling](docs/styling.md#tier-1-no-build-step).
 
-  **Deferred:** the same issue also asked for a curated pack of common
-  Tailwind layout/spacing/sizing/typography utilities with responsive
-  variants, generated with `@source inline()`. That request has no defined
-  boundary — "curated" isn't specified anywhere, and an unbounded pack is a
-  full Tailwind build with extra steps, applied to every downstream project
-  whether or not it uses any of it. Left for a follow-up decision with a
-  concrete, bounded utility list.
+  **Resolved below:** the same issue also asked for a curated pack of common
+  Tailwind utilities. See the next entry for the bounded list that shipped.
+
+- **The packaged stylesheet now also ships a curated pack of common Tailwind
+  utility classes** — layout/spacing/sizing/typography, daisyUI's colour
+  palette, and hover/focus states — generated explicitly with
+  `@source inline()` so a project using the prebuilt CSS can reach for
+  `class="grid grid-cols-3"` without running its own Tailwind build. Layout
+  utilities (`flex`, `grid-cols-*`, `p-*`, `w-*`, position, inset, overflow,
+  ...) ship at four breakpoints: base, `md:`, `lg:`, `xl:`. Border,
+  typography, and z-index utilities ship base only. Shadow utilities
+  (`shadow-*`) are deliberately not included: a loose shadow on an arbitrary
+  element reliably clashes with the rest of the page, and the components
+  that need one — cards, dropdown panels, the modal box, toast messages —
+  already carry it themselves. See
+  [Utility Classes](docs/utility-classes.md) for the full inventory. Raw
+  stylesheet size is now 414,884 B (58,402 B gzip -9, 41,670 B brotli q11),
+  up from 352KB/50KB gzipped after the daisyUI-only change above.
 
 - **`MVPTemplateView` now renders a placeholder page by default instead of a 500.**
   Rapid prototyping routinely wires up a menu or URL before every page has a real
