@@ -5,6 +5,7 @@ so individual test files stay focused on assertions, not setup boilerplate.
 """
 
 import importlib.util
+import os
 from pathlib import Path
 
 import pytest
@@ -104,9 +105,23 @@ def _browser_is_installed():
         return False
 
 
+def _should_skip_browser_tests(*, has_browser: bool, in_ci: bool) -> bool:
+    """True when browser/e2e tests should be skipped rather than run.
+
+    Skips only for a contributor without Playwright's browser installed
+    locally. In CI a browser is always expected — the workflow installs it
+    before tests run — so a missing browser there is left unskipped and
+    fails loudly against Playwright's own launch error instead. A skip
+    nobody sees in CI is what let six of these tests sit dormant for as
+    long as they did (#171); this is the guard against that recurring.
+    """
+    return not has_browser and not in_ci
+
+
 HAS_BROWSER = _browser_is_installed()
+IN_CI = os.environ.get("CI", "").lower() == "true"
 
 requires_browser = pytest.mark.skipif(
-    not HAS_BROWSER,
-    reason="playwright browser not installed (run: playwright install chromium)",
+    _should_skip_browser_tests(has_browser=HAS_BROWSER, in_ci=IN_CI),
+    reason="playwright browser not installed locally (run: playwright install chromium)",
 )
