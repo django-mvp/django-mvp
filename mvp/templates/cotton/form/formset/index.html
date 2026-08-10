@@ -1,0 +1,76 @@
+{% comment %}
+  A whole Django formset: a divider and heading marking it off from the form
+  above, an optional description, any error belonging to the set as a whole,
+  the management form Django needs to read the submission back, one row per
+  form in formset order, the inert empty-form template cloned to add rows in
+  the browser, and the add-row control.
+
+  The divider is unconditional. A set of related rows sitting flush against
+  the parent form's fields reads as more of the same form, and the point of
+  the heading is to say that this part of the page edits something else.
+  `title` defaults to the set's model in plural; `description` is the
+  developer's own help text and has no default.
+
+  The browser behaviour is the `mvpFormset` Alpine component in
+  mvp/static/js/formset.js, loaded by the <script> at the bottom of this file.
+  The x-data attribute only initialises it with this set's counts.
+
+  Two counters drive the set: `total` (monotonic, seeds `__prefix__`
+  substitution and TOTAL_FORMS - never decremented) and `visible` (rows not
+  marked for removal, compared against `formset.max_num` by the add control).
+  See contracts/formset-component.md and specs/024-formset-pages/CONTEXT.md.
+{% endcomment %}
+{% load i18n l10n static mvp %}
+<c-vars formset
+        title
+        description
+        class
+        add-label="{% trans "Add row" %}"
+        remove-label="{% trans "Remove" %}" />
+{% if formset %}
+  <div class="space-y-4 {{ class }}"
+       x-data="mvpFormset({{ formset.total_form_count|unlocalize }}, {{ formset.max_num|unlocalize }})"
+       x-on:mvp-formset-row-removed="visible--"
+       {{ attrs }}>
+    {% firstof title formset.title formset|formset_label as heading %}
+    <c-divider class="my-8">{{ heading }}</c-divider>
+    {% firstof description formset.description as help_text %}
+    {% if help_text %}<c-text muted size="sm">{{ help_text }}</c-text>{% endif %}
+    {% if formset.non_form_errors %}
+      <c-alert variant="error">{{ formset.non_form_errors }}</c-alert>
+    {% endif %}
+    {{ formset.management_form.INITIAL_FORMS }}
+    {{ formset.management_form.MIN_NUM_FORMS }}
+    {{ formset.management_form.MAX_NUM_FORMS }}
+    <input type="hidden"
+           name="{{ formset.management_form.TOTAL_FORMS.html_name }}"
+           value="{{ formset.management_form.TOTAL_FORMS.value|unlocalize }}"
+           :value="total">
+    {% for form in formset.forms %}
+      <c-form.formset.row :form="form"
+                           :first="forloop.first"
+                           :can-delete="formset.can_delete"
+                           :remove-label="remove_label" />
+    {% endfor %}
+    <template>
+      <c-form.formset.row :form="formset.empty_form"
+                           :can-delete="formset.can_delete"
+                           :remove-label="remove_label" />
+    </template>
+    <c-button type="button"
+              size="sm"
+              outline
+              icon="plus"
+              text="{{ add_label }}"
+              class="mb-8"
+              x-bind:disabled="!canAddRow"
+              x-on:click="addRow()" />
+  </div>
+  {% comment %}
+    Not `defer`: Alpine is deferred in the base template, so a deferred tag
+    here would run after `alpine:init` had already fired and neither component
+    would register. A page with several formsets loads the same URL more than
+    once, which re-registers the same two names and is harmless.
+  {% endcomment %}
+  <script src="{% static 'js/formset.js' %}"></script>
+{% endif %}

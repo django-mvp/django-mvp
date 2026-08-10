@@ -1,3 +1,14 @@
+{% comment %}
+  A section break, optionally labelled. `class` and any further attributes
+  reach the element, so a caller can adjust spacing without reproducing the
+  markup - the component's attributes are its only supported customization
+  surface (Article XI), and until this accepted a class there was none.
+
+  For separating items within one list, see <c-rule>: this one is a thick
+  line with generous margin and room for a label, and repeating it between
+  the rows of a single set is far too loud.
+{% endcomment %}
 {% load mvp %}
-<c-vars vertical variant position />
-<div class="divider{% if variant %} divider-{{ variant }}{% endif %}{% if vertical %} {% responsive vertical "divider-horizontal" %}{% endif %}{% if position %} divider-{{ position }}{% endif %}">{{ label }}{{ slot }}</div>
+<c-vars vertical variant position class />
+<div class="divider{% if variant %} divider-{{ variant }}{% endif %}{% if vertical %} {% responsive vertical "divider-horizontal" %}{% endif %}{% if position %} divider-{{ position }}{% endif %} {{ class }}"
+     {{ attrs }}>{{ label }}{{ slot }}</div>

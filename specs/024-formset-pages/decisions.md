@@ -1,0 +1,967 @@
+# Decisions — 024 Formset Pages
+
+Rationale too long to sit inside `spec.md`, plus every ambiguity resolved without asking. The
+spec stands alone; this file explains why it says what it says.
+
+## D1 — The feature owns the view, not only the rendering
+
+**Ambiguous because** the roadmap item lists rendering first and the parent-and-rows case second,
+which reads as a template feature with a note attached.
+
+**Chosen**: the feature packages a configured view as well as the rendering components.
+
+**Why defensible**: the package's whole model-to-pages story is view configuration. A developer
+reaches a working create page by configuring `MVPCreateView`, not by assembling templates. A
+formset feature that stopped at rendering would leave that developer writing the one piece the
+package exists to remove — building the formset, validating it against the parent, and saving the
+two in the right order inside a transaction. The tracking issue asks for a page that behaves "the
+way the single-form pages already do", and the single-form pages are views.
+
+**ADR:** docs/adr/0002-formset-rendering-is-generic-the-configured-view-is-not.md — graduated with D2 and D3; the split between generic rendering and a narrow configured view is the feature's public shape.
+
+## D2 — Rendering is generic, the view is not
+
+**Ambiguous because** the same item asks both for "a form page that renders a formset" (any
+formset) and for "a parent object edited alongside its related rows" (one specific shape).
+
+**Chosen**: the rendering component takes any formset and works anywhere the packaged form
+components work. The configured view covers a parent with one related set.
+
+**Why defensible**: the two halves have different reasons to exist. Rendering is generic because a
+formset is a formset — presentation does not care whether a parent exists. The view is specific
+because its value is the decision it makes for the developer, and that decision (validate together,
+save atomically, attach rows to a parent that may not exist yet) only has content in the
+parent-and-rows case. A standalone formset needs no such decision: it goes on the existing form
+view and is saved by the developer's own `form_valid`. Packaging a second view for it would be
+machinery with no problem behind it.
+
+**ADR:** docs/adr/0002-formset-rendering-is-generic-the-configured-view-is-not.md
+
+## D3 — One related set, not many
+
+**Ambiguous because** nothing in the issue or the roadmap says how many related sets a page may
+have, and real pages sometimes have two.
+
+**Chosen**: the configured view packages exactly one. Two remain buildable by composing the
+rendering components.
+
+**Why defensible**: designing a collection API — how sets are named, ordered, validated against
+each other, and reported in errors — against a case that has not appeared is the kind of
+speculative generality Article III forbids. The single-set case is what both the roadmap and the
+issue describe. Widening later is additive and cheap; narrowing a shipped collection API is not.
+Sam agreed the boundary at intake in these terms: start simple, revisit when there is a case.
+
+**ADR:** docs/adr/0002-formset-rendering-is-generic-the-configured-view-is-not.md
+
+## D4 — Deletion is deferred to submission
+
+**Ambiguous because** "remove a row" has two coherent readings for a row that already exists: take
+it out of the database now, or mark it and act on submission.
+
+**Chosen**: mark and act on submission. An unsaved row is simply dropped from the page and the
+management form's count adjusted.
+
+**Why defensible**: this is what Django's own formset machinery is built for — `can_delete` puts a
+deletion flag on each row precisely so the decision travels with the submission — and it is what
+every established dynamic-formset implementation does. It also keeps the page one thing. Deleting
+on click would make a page that otherwise commits nothing until submit start issuing destructive
+requests mid-edit, with no undo, and would break the guarantee the whole feature rests on: one
+submission, all or nothing. Sam's instruction at intake was to follow standard practice, and this
+is what standard practice is.
+
+**ADR:** docs/adr/0004-row-removal-uses-the-delete-flag-and-never-reindexes.md — graduated with D11 and D18.
+
+## D5 — django-crispy-forms and crispy-tailwind become declared dependencies
+
+**Ambiguous because** roadmap item R12 frames the packaged form rendering's reliance on
+django-crispy-forms as a defect to be removed, with form pages falling back to "a reduced but
+working level of polish" when it is absent. Read that way, this feature would have had to render
+formsets without it.
+
+**Chosen**: declare both distributions as runtime dependencies. `c-form.render` loads
+`crispy_forms_tags` and `tailwind_filters`, which come from django-crispy-forms and crispy-tailwind
+respectively, so both are needed for the template as written.
+
+**Why defensible**: Sam's ruling at intake, and the reasoning holds independently. The package has
+called into crispy since form rendering existed. What was wrong was the metadata, not the design —
+a project that installs django-mvp as documented and renders a form gets a template error today,
+and no amount of guarding makes an undeclared dependency correct. Article VII asks for a stated
+justification for a new runtime dependency, and the justification is that this is not a new
+dependency, only a newly honest one.
+
+**Consequence for R12**: its first deliverable is now wrong for the form half. R12 keeps the
+list-page case, the unguarded module-level import in a view module, and the documented-but-absent
+form renderer setting. The roadmap text needs the corresponding correction, and this feature is
+where the supersession is recorded.
+
+**ADR:** docs/adr/0006-crispy-forms-is-a-runtime-dependency.md
+
+## D6 — Atomicity is a requirement, not a database assumption
+
+**Ambiguous because** a spec can treat "the parent and its rows save together" as something the
+database provides rather than something the feature must arrange.
+
+**Chosen**: FR-011 states it as a requirement on the feature, and SC-006 measures it.
+
+**Why defensible**: it does not happen by itself. A view that saves the parent, then saves the
+rows, produces a half-saved page the moment a row fails a database constraint — an order with no
+line items, created by a user who thought they had cancelled. The page's entire premise is one
+submission, and one submission that half-applies is worse than two that do not, because the user
+has no way to see what happened.
+
+**ADR:** docs/adr/0005-the-inline-view-save-path.md — graduated with D19, D25, D26 and D28 as one decision about the save path.
+
+## D7 — No per-row permission surface
+
+**Ambiguous because** a page that edits several records could plausibly ask whether the user may
+edit each one.
+
+**Chosen**: none. The page behaves for permissions exactly as the packaged single-form pages
+behave.
+
+**Why defensible**: the rows belong to the parent, and the parent's own permission check is the
+question the page is already asking. A per-row model is a genuinely larger design — it needs a
+policy for a row the user may read but not change, and a presentation for it — with no case behind
+it in either the issue or the roadmap. Adding a permission surface speculatively is worse than
+adding none, because a half-designed one reads as a guarantee.
+
+**ADR:** none — a statement that this feature adds no permission surface. Nothing downstream inherits a rule from an absence.
+
+## D8 — The worked example lives against the demo application
+
+**Ambiguous because** the package ships no models of its own, so a model-to-page example has
+nothing to be written against inside the package.
+
+**Chosen**: the demo application, as with the package's other model-to-pages documentation.
+
+**Why defensible**: it is the existing convention, the demo models already carry the relationships
+this feature needs, and Article IX explicitly extends the data-model conventions to `demo/`. An
+example against invented models in prose cannot be executed, and an example that cannot be executed
+is the documentation failure R20 exists to fix.
+
+**ADR:** none — local to this feature's documentation; which demo models illustrate a page constrains nothing.
+
+## D9 — Rulings inherited from the roadmap decomposition, and the one that was reversed
+
+Two decisions were made when R8 was turned into a feature request, before this spec existed.
+
+**Carried forward.** Adding and removing rows uses Alpine, not hand-written JavaScript. The
+packaged base template already loads Alpine 3 and its sort plugin, and the form component already
+carries an Alpine root, so the mechanism is present and a second one would be a second thing to
+maintain. This is a constraint on the plan rather than on the requirements, which is why it appears
+here and in the spec's assumptions rather than as a functional requirement.
+
+**Reversed.** The decomposition recorded that django-crispy-forms would become a *guarded
+integration* and that the work belonged to R12, not here. Sam reversed both at this feature's
+intake: crispy-forms and crispy-tailwind become plain declared dependencies, and they are declared
+in this feature. The reasoning is in D5. The earlier position is not deleted, because it explains
+why R12's first deliverable is now written against a scope it no longer has.
+
+---
+
+*Decisions below were taken at planning (S3). Rationale in full lives in `research.md`; this
+section is the record and the ADR-verdict surface.*
+
+**ADR:** none — a record of what the roadmap decomposition ruled and what intake reversed. The surviving half is captured in 0006.
+
+## D10 — The packaged component renders the set, crispy renders the fields
+
+`|crispy` accepts a formset and switches to `<pack>/uni_formset.html`, so the shortest possible
+route existed. It is not taken. crispy-tailwind's formset template never renders
+`formset.non_form_errors`, which would silently drop every set-level error and violate FR-018,
+and its sibling error templates emit raw utility colours rather than DaisyUI classes, which
+Article XI forbids in a component template.
+
+Instead `<c-form.formset>` owns the structure — management form, rows, set-level errors, the
+blank-row template, the controls — and each row's fields go through `|as_crispy_field`, which is
+the same `tailwind/field.html` a single form's fields go through. That identity is what makes
+SC-008 true rather than approximately true, and it means FR-016 is satisfied by a template this
+repository does not own, so the first task of that story is a test proving it.
+
+**Why defensible**: the alternative was overriding a vendored template at `tailwind/`, which
+would have produced a component invisible to `test_render_all.py`, unreachable by a consumer's
+`cotton/` override, and in breach of Article XI's rule that reusable markup is a Cotton component.
+
+**ADR:** docs/adr/0003-the-packaged-component-owns-formset-structure.md
+
+## D11 — Removal is uniform; indices are never re-numbered
+
+Removing a row sets Django's `DELETE` flag and hides the row, whether the row is saved or not.
+`TOTAL_FORMS` is incremented when a row is added and never decremented.
+
+Django already separates the two cases: `save_new_objects` skips extra forms marked for deletion,
+and `save_existing_objects` deletes the saved ones. The page therefore sets one flag and lets
+Django decide what it means. Not decrementing is the load-bearing half — Django reads submitted
+rows by contiguous index, so removing a row from the middle and decrementing shifts every later
+row onto the wrong index.
+
+**Why defensible**: re-indexing is the standard source of off-by-one defects in hand-written
+formset pages, it requires rewriting every `name`, `id` and `for` attribute in the surviving
+rows, and it buys nothing the `DELETE` flag does not already give. It also makes the invalid-
+resubmit edge case fall out for free, since the removal was submitted like any other value.
+
+**ADR:** docs/adr/0004-row-removal-uses-the-delete-flag-and-never-reindexes.md
+
+## D12 — No new page template, and no second view for the standalone case
+
+`form_view.html` gains a `{% block formset %}` whose default content renders `<c-form.formset>`
+when a `formset` is in context. Any packaged form view that supplies one gets it rendered in the
+right place, which covers US2 scenario 4 and FR-006 without a second configured view, and leaves
+the US3 view with no template of its own.
+
+A dedicated `inline_form_view.html` was written into the first draft of this plan and removed:
+it carried one line and left the standalone case unsolved.
+
+**Why defensible**: Article II. The block sits where `{% block actions %}` already sits, so the
+pattern is the one the template already uses.
+
+**ADR:** none — where a formset reaches the page is a template seam inside this feature, not a rule others follow.
+
+## D13 — `<c-form>` learns about the formset, for one reason
+
+`<c-form>` decides the form's `enctype` from `form_obj.is_multipart` alone. A file field on a row
+would therefore submit without the multipart encoding, which is the edge case the spec names. The
+component gains an optional `formset` attribute consulted in the same condition, and nothing else.
+
+**Why defensible**: the narrowest change that closes a real defect. Widening `<c-form>` to render
+the formset itself was rejected because the actions must follow the set, and the slot cannot
+express that ordering.
+
+**ADR:** none — one optional attribute on one component, sealed inside the enctype condition.
+
+## D14 — The view lives in its own module
+
+`mvp/views/inline.py` holds `InlineFormsetMixin`, `MVPInlineCreateView` and `MVPInlineUpdateView`;
+tests mirror it at `tests/test_views/test_inline.py`. Article X permits either placement, so the
+choice is cohesion: `mvp/views/edit.py` already carries four view classes across roughly six
+hundred lines, and the parent-and-rows page is a distinct concern with its own configuration
+surface. "Inline" is Django's own word for a formset bound to a parent through a foreign key.
+
+The configuration is six class attributes for the common cases plus `get_formset_factory_kwargs()`
+for everything else, rather than one attribute per Django parameter.
+
+**Why defensible**: Article XVII wants related behaviour grouped on a class with an extension
+point, and Article III wants no layer between the caller and the work. One mixin with hooks is
+both. The mixin is not exported, matching the rule already stated in `mvp/views/__init__.py`.
+
+**ADR:** none — module placement. Article X already governs where the tests go, and nothing downstream inherits the choice.
+
+## D15 — `get_formset()` memoises, deliberately
+
+The formset is built once per request and reused. `form_invalid` re-renders through
+`get_context_data`, and constructing a second formset there would discard the bound one carrying
+the user's values and its errors — the page would come back blank and FR-013 would fail.
+
+**Why defensible**: it is a correctness requirement disguised as a performance detail, which is
+why it is recorded rather than left to an implementer to rediscover.
+
+**ADR:** none — an implementation invariant of one method, recorded where the implementer reads it. It is a correctness note, not a constraint on future work.
+
+## D16 — A startup system check for the crispy apps was declined
+
+Installing the two distributions is not sufficient: Django resolves template tag libraries only
+from apps in `INSTALLED_APPS`, so a consumer who installs and does not configure still meets a
+`TemplateSyntaxError`. A Django system check would turn that into an actionable startup error.
+
+It is not built. No requirement asks for it, and a check is a public surface of its own needing an
+id, documentation and a CHANGELOG entry. The documented setup in README and
+`docs/getting-started.md` carries the requirement instead.
+
+**Why defensible**: Article II, and scope. If the failure recurs in the wild it is a small,
+well-shaped issue of its own rather than something smuggled into this feature.
+
+---
+
+*Decisions below came out of the S3R design review (2026-08-05). Three lenses ran in parallel —
+spec-compliance, security, architecture — against the plan before any code existed. All three
+returned `request_changes`, and every accepted finding is applied in the re-plan. The full reports
+are archived with the run record.*
+
+**ADR:** none — a declined addition. An ADR records what was decided to build, and there is no surface here to abide by.
+
+## D17 — `inline_max_num` is enforced on the server, not only in the browser
+
+The plan passed `inline_max_num` to Django as `max_num` and had the add control stop at it.
+`inlineformset_factory` defaults `validate_max=False`, so `max_num` alone rejects nothing: a view
+configured for three rows would have accepted and saved a submission carrying a thousand.
+`get_formset_factory_kwargs()` now sets `validate_max=True`, and bounds `absolute_max` to the cap
+plus the extras rather than leaving Django's `max_num + 1000`.
+
+The second half is the part that is easy to miss and is not about validity. `full_clean` constructs
+and validates every submitted form *before* it reaches the too-many-forms check, so with the
+default bound a single request can force a thousand form constructions and a thousand primary-key
+lookups while holding a write transaction open. `absolute_max` is what bounds the work.
+
+**Why defensible**: the spec's own edge case says the add control stops "rather than adding a row
+the submission will reject", which assumes a rejection the design had not arranged. A cap a
+consumer sets and reasonably believes binds is a design property, not a documentation one.
+
+**ADR:** docs/adr/0005-the-inline-view-save-path.md — superseded in part by D25, which withdrew the absolute_max half; the ADR carries the settled position.
+
+## D18 — The set carries two counters, not one
+
+`total` is monotonic and seeds `__prefix__` and `TOTAL_FORMS`. `visible` counts rows not marked for
+removal and is what the add control compares against the cap. With one counter, removing a row on a
+capped set would permanently forfeit its slot — the page would refuse a replacement the submission
+would happily accept, since Django tests `total_form_count() - len(deleted_forms) > max_num`.
+
+`total` is seeded from `{{ formset.total_form_count }}`, never from the management form's DOM value.
+That value is a string the server re-emits verbatim after an invalid submission, and substituting it
+into cloned markup would put a user-supplied string into a new row's `name` and `id` attributes. The
+template variable is an integer Django has already clamped.
+
+**Why defensible**: D11's "never decrement" is about the index Django reads rows by, and it stays.
+It was never a statement about what the add control should count, and collapsing the two into one
+number is what created the defect.
+
+**ADR:** docs/adr/0004-row-removal-uses-the-delete-flag-and-never-reindexes.md
+
+## D19 — The success message is produced outside the transaction
+
+`super().form_valid()` reaches `SuccessMessageMixin`, and Django's message storage is not
+transactional. A flash queued inside the atomic block survives the rollback, so a request that
+persisted nothing would still tell the user the record was saved. The transaction wraps the parent
+save and the formset save, and nothing else; the message and the redirect follow it.
+
+**Why defensible**: FR-011 and SC-006 are about what persists, and a lie in the interface is a
+failure of the same requirement by a different route.
+
+**ADR:** docs/adr/0005-the-inline-view-save-path.md
+
+## D20 — The browser test lives with the components, not in a new directory
+
+The plan created `tests/test_e2e/` and its own Constitution Check then claimed no new
+`non-mirror-path` was declared. Both cannot be true. The browser test moves into
+`tests/test_components/test_form_formset.py` as its own class, with the `e2e` marker and the
+playwright `skipif` at class level.
+
+The separate module had been justified as protection against a module-level `pytestmark` hiding
+unit tests. The task always specified a class-level marker, which does not do that, so the module
+was solving a problem the plan had already avoided. `tests/test_views/test_error.py` sets the
+precedent.
+
+Its coverage grew by one case: **removing the row that was just added**. An added row is a clone of
+the `<template>` content, and cloned markup appended into a live Alpine tree is inert until it is
+initialised — so its remove control can do nothing while every markup and view test stays green.
+That is the one behaviour no server-side test can reach, which is the only justification Article XIV
+accepts for a browser test at all.
+
+**Why defensible**: it removes a directory, removes a conformance declaration, and repairs a false
+statement in the Constitution Check, while making the remaining test cover the case that needed a
+browser.
+
+**ADR:** none — test placement, already governed by constitution Article X. The reasoning belongs beside the decision, not in a standing rule.
+
+## D21 — Two test gaps the plan had left
+
+**A valid parent with an invalid row.** The plan tested the reverse and not this. It is the branch
+`form_valid` adds: without it, the formset-validation guard could be deleted and every other test in
+that story would still pass. FR-010 and the spec's edge case both name it.
+
+**Errors on more than one row.** FR-019 and US4 scenario 3 require every affected row to carry its
+own message; the task tagged with FR-019 asserted only the single-error case.
+
+**Why defensible**: a requirement with no test that would fail if the behaviour regressed is not
+delivered, whatever the task list says.
+
+**ADR:** none — two missing tests, since written. A gap that has been closed constrains nothing.
+
+## D22 — Three corrections to the plan's own claims
+
+- **`docs/ROADMAP.md` R12 gets a task.** The spec's Assumptions and D5 both commit this feature to
+  correcting R12's framing, and no task did it. The annotation lands in this pull request with the
+  change that causes it.
+- **`demo.OrderLine` needs Article IX work after all.** An earlier draft of R8 said it did not.
+  Neither of its fields carries `verbose_name` or `help_text`, both are mandatory, and Article IX
+  says explicitly that it applies to `demo/`. It matters beyond conformance: this is the pair the
+  worked example renders, and a page demonstrating that a row's field gets the same help text as a
+  single form's field cannot demonstrate it with a field that has none.
+- **The dependency graph and the parallelisation note were wrong.** The story that builds the view
+  asserts against rendered rows, so it depends on the story that puts rows on the page. The two
+  stories that follow the component both edit the same template and cannot run concurrently. Both
+  notes now name the file rather than the phase.
+
+**ADR:** none — corrections to this feature's own planning artefacts.
+
+## D23 — Work the review removed, and the one thing it flagged that is not ours to fix
+
+**Removed**: a task duplicating the render-smoke floor that already enrols every packaged component
+automatically; a `legend` attribute on `<c-form.formset>` with no requirement behind it, which would
+have invited an implementer to build it; and half of the view's configuration-error surface, since
+Django's own `modelform_factory` already raises a clear `ImproperlyConfigured` when neither fields
+nor a form class is given. The declared-dependency test also moved out of the module about guarded
+optional integrations, and now parses `pyproject.toml` rather than installed distribution metadata,
+which would not have changed when the fix landed.
+
+**Not ours to fix here**: `mvp/templates/mvp/base.html` loads Alpine and its plugins from a public
+CDN at `3.x.x` with no subresource integrity, which a floating range makes impossible anyway. Anyone
+who compromises that package or its CDN path runs code in every consuming project's authenticated
+pages. It predates this feature and two other script tags in the same block have the same shape, so
+fixing it here would be a second feature wearing this one's branch. It is named in the plan's Risks,
+the Constitution Check's Article V row is qualified rather than a bare PASS, and the remedy is filed
+as issue #170 — the same treatment D16 gave the declined system check.
+
+Writing it up corrected part of the finding. Only the three Alpine tags float at `3.x.x`, which is
+what makes subresource integrity impossible for them rather than merely absent. `theme-change@2.0.2`
+and `bootstrap-icons@1.13.1` are pinned to exact versions and are only missing an `integrity` hash,
+which is a smaller problem and a cheaper fix — the icons stylesheet even carries `crossorigin`
+without the hash it exists to accompany. The issue states that split rather than repeating the
+reviewer's "same shape" aside. Checking a claim before publishing it is what caught this.
+
+---
+
+*Decisions below came out of the S3R design review's **second** round (2026-08-05). The
+spec-compliance lens approved; the security lens returned one verified high finding against the
+round-1 remedy itself. The design-review budget was exhausted, so the run escalated and Sam
+authorised a second re-plan cycle rather than treating it as a spec failure.*
+
+**ADR:** none — a record of work removed at review, plus a deferral now tracked as issue #170.
+
+## D24 — This feature settles the whole of R12's undeclared-dependency deliverable, not half
+
+**This one amends the approved spec**, which is why it is recorded here and struck through in
+`spec.md` rather than quietly edited.
+
+The spec's Assumptions reserved "the list-page dependency" for R12, on the reading that this
+feature fixed only the form-rendering half. That reading was wrong on the facts. The list page and
+the form page load the *same* distribution: `mvp/templates/list_view.html` loads
+`crispy_forms_tags`, `mvp/templates/cotton/form/render.html` loads `crispy_forms_tags` and
+`tailwind_filters`, and an exhaustive search of `mvp/templates/` finds no other third-party tag
+library on either path. Declaring the distribution resolves both pages at once, so after this
+feature there is no list-page half left to do.
+
+Two further corrections ride with it. R12's "at a reduced but working level of polish" framing is
+also settled, because crispy is no longer optional and there is nothing to degrade to. And the
+deliverable in question is R12's **second**, not its first — the first is the general
+guarded-or-declared rule, which stays.
+
+R12 keeps the unguarded module-level import in a view module, the documented-but-absent form
+renderer setting, and the check covering every optional dependency.
+
+**Why defensible**: a roadmap item that still claims a defect the repository no longer has sends a
+future feature looking for it. The original text is struck rather than deleted, because it records
+why R12 was scoped the way it was.
+
+**ADR:** none — a scope correction to roadmap item R12, recorded in docs/ROADMAP.md where a reader will meet it.
+
+## D25 — `absolute_max` stays at Django's default; the cap is enforced by `validate_max` alone
+
+D17 said `get_formset_factory_kwargs()` should also bound `absolute_max` to the cap plus the
+extras. That half is withdrawn. It was wrong, and the design review demonstrated it against this
+project's own environment rather than arguing it.
+
+Django's `absolute_max` check reads the **raw** submitted `TOTAL_FORMS` and, unlike the
+`validate_max` check beside it, does not subtract the rows marked for deletion. So a user working
+inside a cap of three who adds four rows and removes two submits five forms with two `DELETE`
+flags — `validate_max` passes, because 5 − 2 = 3, and a cap-derived `absolute_max` rejects it
+anyway. Worse, `total_form_count()` clamps to `absolute_max`, so rows past the bound are never
+constructed, never validated and never re-rendered, and what the user typed is gone: a direct
+breach of FR-013. Worst, a record whose rows already exceed the cap after an import or a lowered
+limit could never be brought back into compliance, because the submission that removes the surplus
+is exactly the one refused.
+
+The justification D17 gave was also false. It claimed the unbounded default lets a request force a
+thousand form constructions "while holding a write transaction open". The formset is validated
+**before** `transaction.atomic()` opens, so `full_clean` never runs inside a write transaction.
+
+`validate_max=True` alone gives the enforcement the finding asked for. T021 now tests both
+directions — over the cap is rejected, and within-the-cap-after-removals is accepted, which is the
+test that pins this decision.
+
+**Why defensible**: it is subtractive. The remaining ceiling is Django's own default, which every
+inline formset in every Django project already carries, and the enforcement FR-026 needs is intact.
+
+**ADR:** docs/adr/0005-the-inline-view-save-path.md
+
+## D26 — `form_valid` never calls `super().form_valid()`
+
+D19 moved the success message outside the transaction, which was right, but specified doing it by
+calling `super().form_valid()` after the block. That re-enters `SuccessMessageMixin`, which
+delegates to `ModelFormMixin.form_valid`, whose first statement is `self.object = form.save()`.
+Neither `MVPCreateView` nor `MVPUpdateView` overrides it, so every inline submission would have
+saved the parent a second time — outside the transaction, after the rows were written, re-running
+`_save_m2m`, and firing a consuming project's `post_save` receivers twice for one user action.
+
+`form_valid` resolves the success URL, does the two saves inside the block, queues the message with
+`messages.success`, and returns the redirect itself. `MVPDeleteView.form_valid` already does
+exactly this and is the house precedent. T016 now asserts the parent is saved exactly once.
+
+**Why defensible**: the correct shape already existed in the same module. The defect came from
+reaching for the inherited hook out of habit rather than reading what it does.
+
+**ADR:** docs/adr/0005-the-inline-view-save-path.md
+
+## D27 — Documentation drift the round-1 edits left behind
+
+Three artefacts contradicted themselves after the first re-plan, and one instance of the standing
+falsehood T005 exists to correct was missed:
+
+- `research.md` R3's decision sentence still said `__prefix__` is replaced with "the current
+  `TOTAL_FORMS` value" — the exact ambiguity SEC-003 was raised about — while the corrected
+  wording sat three lines below it in the same section.
+- `data-model.md` opened by saying there is no migration and closed by describing the one this
+  feature generates.
+- `progress.md`'s S3 record named T041–T043 as the convergence tasks. After the renumbering those
+  ids are live US6 story tasks, so the reference resolved to the wrong three rather than failing
+  to resolve.
+- `docs/index.md` still describes crispy forms as an optional third-party integration. T004 now
+  covers it.
+
+**Why defensible**: none of these changes a decision, but each is the kind of stale sentence an
+implementer reads as normative. The lesson is narrower than "proofread": an edit that corrects a
+claim has to correct every copy of it, and a renumbering invalidates every id written down
+elsewhere.
+
+**ADR:** none — documentation drift in this feature's planning artefacts, since corrected.
+
+## D28 — The success URL is resolved after the saves, not before them
+
+The round-2 fix for the double parent save (D26) introduced a regression, which round 3 caught. It
+specified `success_url = self.get_success_url()` as the first statement of `form_valid`, above the
+atomic block. On the create path Django sets `self.object = None` before `form_valid` runs, and
+`MVPModelFormBase.get_success_url` needs the saved object:
+
+- With no `success_url` set, it falls through to step 3 — `object.get_absolute_url()` — finds no
+  object, and raises `ImproperlyConfigured`. The rows are already committed, so the user gets a 500
+  on a submission that saved.
+- With `success_url = "detail"`, `get_url_kwargs` has no pk to work with and returns `None`,
+  `resolve_crud_url` returns `None`, and the chain falls to step 2b and returns the literal string
+  `"detail"` as a relative path. The user is redirected to a 404 on a record that saved fine.
+
+Neither shows up under `success_url = "list"`, which `get_url_kwargs` resolves to `{}` without the
+object — and that is the value the contract's own worked configuration uses, so the obvious fixture
+would have hidden it. T016 now exercises FR-012 on the create path with an object-dependent success
+URL specifically.
+
+The fix is to resolve the URL after the block, which is the same effective order
+`ModelFormMixin.form_valid` uses: save, then resolve. The message and the redirect stay outside the
+transaction, which is all D19 and D26 ever required.
+
+**Where the mistake came from, because it is the more useful part.** `MVPDeleteView.form_valid` was
+cited as the house precedent, and it does resolve the URL first — but for a reason that does not
+transfer: its object is about to be deleted, and its success-URL chain has no `get_absolute_url()`
+step. It was the right precedent for *producing the message and redirect directly* and the wrong
+one for *ordering*. Copying a shape without its reason is what put the statement in the wrong place.
+
+**Why defensible**: it restores Django's own ordering, it is a one-statement move, and the test that
+pins it is now written against the case that fails.
+
+**ADR:** docs/adr/0005-the-inline-view-save-path.md
+
+## D29 — One residue from the D25 withdrawal
+
+`research.md`'s technology summary table still listed "a bounded `absolute_max`" after R9 had
+withdrawn it, contradicting the contract, the data model, the plan and the task. Removed. This is
+the second instance of the pattern D27 named: a correction has to reach every copy of the claim,
+including the summary that restates it.
+
+**ADR:** none — one stale sentence in a summary table, since corrected.
+
+## D30 — US1: PEP 508 constraint translation preserves the caret ranges exactly
+
+`[tool.poetry.group.dev.dependencies]` used Poetry's own caret syntax: `^2.7` for
+django-crispy-forms, `^1.0.3` for crispy-tailwind. `[project].dependencies` is PEP 508
+and takes no caret operator, so each had to be translated to an explicit range rather
+than copied. Caret semantics: the range stays open below the left-most non-zero
+digit. `^2.7` → `>=2.7,<3.0`; `^1.0.3` → `>=1.0.3,<2.0` (the left-most non-zero digit
+is the major version, `1`, so the upper bound is the next major, not `1.1`). Verified
+against every other PEP 508 entry already in the list, none of which had an upper
+bound to check against, and against `poetry check`, which passed clean.
+
+**Why defensible**: the acceptance criteria said preserve the existing constraints, and
+a caret-to-range translation that gets the boundary wrong silently widens or narrows
+what the constraint actually allows — worth spelling out rather than trusting by eye.
+**Revisit if**: Poetry ever adds native caret support to `[project].dependencies`
+resolution, at which point this translation becomes unnecessary indirection.
+
+**ADR:** none — a packaging mechanic of one dependency move, verified and recorded where it happened.
+
+## D31 — US1: docs/integrations.md keeps a crispy section, rewritten rather than deleted
+
+T004's brief says crispy is required setup, not an optional add-on, and to move the
+`INSTALLED_APPS`/`CRISPY_*` content into README and Getting Started. It does not say
+to delete the section from `docs/integrations.md` outright. Kept a short section there
+that states plainly that crispy isn't an integration in this doc's sense (it was
+already correctly absent from the file's own guarded-module tree diagram) and links to
+Getting Started for setup, so a reader who lands on the integrations doc looking for
+crispy is redirected rather than finding nothing.
+
+**Why defensible**: `docs/index.md`'s guide table already only advertises
+`integrations.md` for django-tables2 and django-filter after this change, so the
+redirect is a courtesy for existing inbound links, not a claim that crispy is an
+integration. **Revisit if**: a future story wants integrations.md to only ever discuss
+guarded `mvp.integrations` modules — then this redirect line should move to a FAQ or
+be dropped once external links have had time to update.
+
+**ADR:** none — an editorial choice about one documentation section.
+
+## D32 — US4: tamper-check flag on `tests/test_components/test_form_formset.py` approved
+
+`forge tamper-check --base 6f3a8a6` flags the file because it existed at the story's
+base commit, having been created by US2. The check is file-granular, so any change to
+a file containing pre-existing tests raises a flag regardless of what the change does.
+
+**Why defensible**: the diff over the range deletes and modifies nothing — `git diff`
+reports zero removed lines in the file, and comparing the class and test declarations
+at base against head shows only additions (four new classes, seven new tests, one new
+formset fixture). Every test US2 wrote is byte-identical at head, and the full suite
+went from 634 to 641 passing with no failures. Same shape as D30 on US3's
+`tests/test_views/test_edit.py`. **Revisit if**: tamper-check gains hunk-level
+granularity, at which point neither this entry nor D30 is needed.
+
+**ADR:** none — a tamper-check triage. The policy it applies is D4's; the flag itself is a per-run event.
+
+## D33 — US5: three tamper-check flags approved, including the playwright skip
+
+`forge tamper-check --base 5e4d7ef` raises three flags on this story: the two test files
+US5 touches (`tests/test_components/test_form_formset.py` from US2 and
+`tests/test_views/test_inline.py` from US3) and one `weakening_patterns_added`.
+
+**Why the two file flags are defensible**: identical in shape to D30 and D32. `git diff`
+over the range reports zero removed lines across `tests/`, so every prior-story test is
+byte-identical at head, and the suite went from 641 to 651 passing.
+
+**Why the weakening flag is defensible**: the single pattern is T035's
+`@pytest.mark.skipif(not _HAS_PLAYWRIGHT, ...)` on `TestFormsetAddRemoveRowsE2E`. It is
+specified by the task, copies the existing `tests/test_views/test_error.py` precedent,
+and sits on the class rather than the module so it cannot hide the 22 unit tests in the
+same file. The `e2e` marker is registered in `pyproject.toml` under `--strict-markers`.
+Sam ruled on 2026-08-05 that marking and skipping is the accepted position for now, with
+the browser-install gap tracked as its own repository issue.
+
+**What this costs**: the add-then-remove interaction is the one behaviour no server-side
+test can reach, so it is currently unexecuted rather than merely unasserted. **Revisit
+if**: playwright is added to the dev dependencies and CI installs a browser, at which
+point the skip resolves on its own and the flag disappears.
+
+**ADR:** none — tamper-check triage, as D32.
+
+## D34 — T043 named the wrong sentence of R12's prose; corrected before dispatch
+
+T043 as written said to strike "the first sentence of the prose above" R12's deliverables.
+It is the **second** sentence that describes the defect this feature removes ("Form and list
+pages load a third-party template library unconditionally..."). The first is the framing
+sentence, and it says three places do not follow the optional-dependency rule.
+
+**Why it matters**: striking the first sentence would have deleted the framing while leaving
+a sentence describing a defect the package no longer has — the exact outcome the amendment in
+D24 exists to prevent. The first sentence still needs a correction, because two places remain
+rather than three, but a correction is not a strike.
+
+**Resolution**: T043 rewritten before US-6 was dispatched, naming both passages explicitly and
+recording the earlier misreading in the task text so it is not reintroduced. **Revisit if**:
+R12 is rewritten wholesale by a later roadmap pass, at which point the strike-throughs fold
+into the rewrite.
+
+**ADR:** none — a correction to one task's wording before it was carried out.
+
+## D35 — US-6 tamper flag on `tests/test_smoke.py`: approved, same file-granular cause
+
+`tamper-check` flagged `tests/test_smoke.py` as a modified pre-existing test file. The diff
+across US-6's eight commits is 77 insertions and zero deletions: three new test classes
+appended (`TestProductOrderLinesWorkedExample`, `TestOrderLineArticleIXCompliance`,
+`TestFormsetComponentDocPage`). No pre-existing test in the file was altered.
+
+**Why it fires**: the check is file-granular, so appending to a file that existed at the base
+ref reads the same as editing it. Third occurrence in this feature, after D30 and D32.
+
+**Resolution**: approved. **Revisit if**: the check gains function-level granularity, at which
+point these three triage entries stop being needed.
+
+**ADR:** none — tamper-check triage, as D32.
+
+## D36 — R8 is closed by a status-line flip at convergence, not a strike-through
+
+The US-6 Implementer raised that `docs/ROADMAP.md`'s R8 — the item this whole feature
+delivers — now reads stale in the same way R12 did ("Nothing in the package refers to
+formsets today"), and asked whether it needed the same treatment. It does not.
+
+**Why the two differ**: R12 is a *live* item that this feature partly settled, so the part
+that is settled has to be struck or a future reader hunts for a defect that is gone. R8 is
+*this feature's own item*, and the repository already has a convention for a delivered item:
+the status line changes to `*Delivered · needs verification · advances G4*` and the body
+prose stays in its original tense. R7 is the precedent — tagged Delivered, body still reads
+"the one stop on the model-to-pages path that does not arrive".
+
+**Resolution**: R8's body is left alone; the status-line flip happens at convergence with the
+rest of the feature-level bookkeeping. The Implementer was right to leave it rather than
+assume. **Revisit if**: the roadmap adopts a single completion convention that supersedes the
+status-line tag.
+
+**ADR:** none — a roadmap status flip recorded in docs/ROADMAP.md itself.
+
+## D37 — T042's README rewrite reverted to the original description of Django's gap
+
+T042 updated the README scope statement on the basis that its formset sentence had gone
+stale. It had not. The sentence describes what *Django* leaves you with, and Django has not
+changed — the package filling that gap is the paragraph's own claim, which this feature makes
+true rather than false. The shipped wording also broke grammatically ("this package does",
+with no verb to attach to).
+
+**Resolution**: the original description of Django's shortfall is restored, and the sentence
+now names what the package does about it. Committed as `cbad6d6`. **Revisit if**: the scope
+statement is rewritten wholesale, at which point the illustration may move.
+
+**ADR:** none — an editorial revert of one README paragraph.
+## D38 — the ledger records no per-task evidence because nothing ever required it
+
+While closing US-6 I found all 43 story tasks marked `done` with no `evidence` object, and
+said the schema required it and a gate had failed to fire. Both halves were wrong, and the
+check took one query: `evidence` is optional in `schemas/feature-state.schema.json`, and
+`forgekit/stage_exit.py` never reads it. No gate failed, because there is no gate.
+
+**What is true**: the Implementer completion reports do carry per-task evidence and the
+completion-report schema requires it. The orchestrator step that advances the ledger from a
+report copies `status` and `attempts` and drops `evidence`, so the evidence exists in
+`runs/.../reports/` and never reaches the ledger — which is the artefact S8 reads.
+
+**Resolution here**: backfilled all 43 tasks from the six reports. US-3's report carried no
+per-task evidence of its own (its Implementer omitted the field, which the report schema
+should have refused), so those eleven entries are reconstructed from the commit history and
+labelled as such in their own `commands` array — they are not that Implementer's
+red-then-green record and must not be read as one.
+
+**Two kit gaps, neither of them this feature's work**: the ledger schema has no `commits`
+field, so a task's evidence cannot point at the commit that produced it and the shas had to
+go into `commands` as prose; and nothing validated US-3's report against the completion-report
+schema on arrival. Both filed against the kit rather than fixed mid-run.
+
+**Revisit if**: the kit adds evidence propagation, at which point this backfill becomes the
+regression fixture — reinstate an evidence-free ledger and prove the stage exit goes red.
+
+**ADR:** none — a run-record defect and its backfill. It says nothing about the software.
+
+## D39 — US-2 tamper flag on `tests/test_views/test_edit.py`: approved (recorded as D30 on
+the feature branch, renumbered on merge)
+
+`forge tamper-check --base 3b3ef2f` raised one flag: `modified_preexisting_test` on
+`tests/test_views/test_edit.py`. The check is file-granular, and the file existed at the base, so
+any edit to it flags.
+
+The diff is additive only: two import lines, a module-level helper, and one new test class appended
+at the end. No pre-existing test function is modified, weakened or deleted, and the file's other 155
+tests pass unchanged. T012 named this file explicitly, so the story could not have been done
+without touching it.
+
+Approved under the D4 triage rule rather than escalated. Recorded here because the policy requires
+an approved flag to carry a written reason.
+
+**ADR:** none — tamper-check triage, as D32.
+
+## D40 — Convergence tamper triage, and the base that made it look worse than it was
+
+Two flags at convergence, both `modified_preexisting_test` and both approved: `tests/test_smoke.py`
+(US1 appended the declared-dependency class) and `tests/test_views/test_edit.py` (US2 appended the
+standalone-formset case, which T012 named explicitly). Both diffs are additive — 108 and 51 lines
+added, zero removed — so no pre-existing test was modified, weakened or deleted. Already triaged
+per-story as D30 and D35; recorded again here because the whole-feature check is a separate gate.
+
+**The part worth keeping.** The first run of `forge tamper-check --base origin/main` reported six
+flags, four of them `deleted_test` on component test files this branch never touched. The branch
+deleted nothing. Those four tests were **added on main** after this branch left it, and a diff
+against a moved `origin/main` reports the other side's additions as this side's deletions.
+
+So the base for a tamper check is the **merge-base**, not `origin/main`. Against
+`git merge-base origin/main HEAD` the same tree reports two flags, both real and both benign. The
+failure mode is nasty because it is loud and plausible: four deleted tests reads as a serious
+guardrail breach, and the instinct is to act on it rather than to question the base. Confirm what
+the base actually contains before believing a deletion.
+
+Main was then merged in (v0.16.1) so the pull request is built against current main rather than a
+three-day-old snapshot.
+
+**ADR:** none — a triage record and a tooling gotcha, not a constraint on the software. Worth
+carrying into the kit's tamper-check documentation instead.
+
+## D41 — The single review round, and what it found
+
+The review budget was cut to one cycle on Sam's instruction (2026-08-08), because review rounds
+were the largest recurring cost against his weekly quota. One round ran; all four findings were
+confirmed and fixed in this pass. Each fix carries a test, and each test was proven by reinstating
+the defect and watching it go red before the fix was restored.
+
+**REV-001, high — the counters were localised.** `x-data` interpolated
+`{{ formset.max_num }}` straight into a JavaScript object literal. Django runs every template
+variable through `localize()`, and `formset_factory` defaults `max_num` to 1000, so a project with
+`USE_THOUSAND_SEPARATOR` on rendered `maxNum: 1,000` — a syntax error that kills the entire
+component. No server-side symptom, no error anywhere: `addRow()` simply never exists and every
+control is dead. The reviewer reproduced it rather than reasoning about it.
+
+Fixed with `{% load l10n %}` and `|unlocalize` on all four interpolated numbers. The fourth was not
+in the finding: the hand-written `TOTAL_FORMS` hidden input carries the same hazard, and a formset
+with more than 999 rows would have submitted `1,200`. The repository already knew this trap —
+`django_tables2/bootstrap5-mvp.html` uses `|unlocalize` for the same reason.
+
+**REV-002, medium — the remove control was gated on the wrong thing.** It keyed on
+`formset.can_delete`, which is set-wide, while the `DELETE` field is per row. Under
+`can_delete_extra=False` Django gives `DELETE` only to the initial forms and leaves
+`formset.can_delete` True, so an extra row got a Remove button with no way to record the removal:
+the row would hide and its data would still save. That is the exact inverse of FR-022, and it
+breaks FR-026 for precisely the rows that forbid deletion. Now gated on `can_delete and form.DELETE`.
+
+**REV-003, medium — the client-side contract had no running test.** Every executable assertion
+about the browser behaviour was a substring check on attribute text, and the one test that drives
+`addRow()` is browser-gated and skipped, because playwright is in neither
+`[tool.poetry.group.test.dependencies]` nor the lock file. Deleting `addRow()` outright left all
+656 tests green.
+
+Rather than add a browser dependency to the test group, the counter contract is now pinned from
+rendered markup: the counters seed from `formset.total_form_count` as integers, `TOTAL_FORMS` is
+bound to the monotonic counter, `__prefix__` substitutes from it, and `addRow` increments both
+without ever decrementing `total`. That is cheaper, runs in CI, and matches Article XIV's
+preference for a rendered-template assertion over a browser test. The browser test stays for the
+one case markup cannot reach — removing a row that was added moments earlier.
+
+**REV-004, low — `inline_form_class` had no test**, and was the single uncovered line in the new
+module. A wrong keyword name would have reached a consumer as a `TypeError` from inside Django.
+Now covered both ways, with a negative control proving the generated form is used when the
+attribute is unset.
+
+**ADR:** none — findings against this feature's own code and their fixes. The durable positions
+they touch are already in ADRs 0003 and 0004.
+
+---
+
+## D42 — The browser behaviour moves out of `x-data`, and two defects it was hiding
+
+Raised by Sam against the demo page: the add control threw on every click, the two controls were
+hand-rolled `<button>` markup, and the Alpine logic was an object literal in an `x-data`
+attribute against a standing instruction that it be a registered component.
+
+**The component now lives in `mvp/static/js/formset.js`.** `Alpine.data("mvpFormset", ...)` and
+`Alpine.data("mvpFormsetRow", ...)` are registered on `alpine:init`, and the templates carry only
+the initialiser: `x-data="mvpFormset(2, 1000)"`. The file is loaded by a plain, non-deferred
+`<script>` the component emits. Alpine itself is deferred in the packaged base template and
+deferred scripts run after plain ones, so the registration lands before `alpine:init` fires;
+adding `defer` to that tag would miss the event and neither component would register. Emitting
+the tag from the component rather than the base template keeps the set working on a page that
+does not extend the packaged base.
+
+**Both controls are `<c-button>`.** Article XI: markup that has a component is not written by
+hand. Note that Alpine's `:disabled` shorthand cannot be used on a Cotton tag, because Cotton
+reads a leading `:` as its own dynamic-attribute syntax. The long forms `x-bind:` and `x-on:` are
+the ones that work.
+
+**Defect 1 — `$el` is the control, not the set.** `addRow()` read the empty-form template with
+`this.$el.querySelector("template")`. The method runs from the add control's click handler, so
+`$el` is that button, the template is not inside it, and every click threw
+`Cannot read properties of null`. The add control did nothing on any page that shipped. `$root`
+is the component's own root element regardless of what triggered the method.
+
+**Defect 2 — Alpine 3 has no `$parent` magic.** A row decremented the set's `visible` counter
+with `this.$parent.visible--`. There is no such magic, and inside an `Alpine.data` method `this`
+is the row's own data object rather than the merged scope chain, so a parent property is
+unreachable through it either way. The row now dispatches `mvp-formset-row-removed`, which
+bubbles to the set's root, and the set decrements its own counter.
+
+The second defect is the more instructive one. It threw *after* `this.removed = true`, so the row
+still disappeared and the page looked correct. The only symptom was a capped set staying at its
+cap after a removal — the exact case the two-counter design exists to serve, and one no
+server-side test can see.
+
+**Why none of this was caught.** The counter contract was asserted by string-matching the
+`x-data` attribute, which pins where the code is written rather than what it does, and passes
+just as happily when the code throws. The one test that drives the controls for real is
+`@pytest.mark.e2e` and skips when Playwright is absent — which it was, so it had never run. It
+also could not have: it built a URLconf holding a single path, and the packaged base template
+reverses demo view names, so every page raised `NoReverseMatch` before reaching the formset.
+
+Fixed on all three counts. `pytest-playwright` is now a dev dependency, the E2E URLconf extends
+the project's instead of replacing it, the counter tests assert against the component source and
+the initialiser, and a new E2E test fills a set to its cap, removes a row and asserts the add
+control comes back. Both defects were reinstated and confirmed to turn those tests red.
+
+Running them in CI needs a browser in the runner, which is a change to the shared reusable
+workflow rather than to this repository — #171.
+
+**And the gate itself was wrong in the same way.** Every browser test skipped on
+``find_spec("playwright")``, which tests whether the package imports. Installing the package and
+downloading the browser are two separate steps, so adding the dependency turned the skips into
+errors on a runner that had never run ``playwright install`` — including in ``test_renderers.py``,
+which had no skip of its own at all. ``tests/conftest.py`` now exposes one ``requires_browser``
+marker that checks the browser executable exists, and all three modules use it. Verified both
+ways: with a browser, 680 pass and 1 skips; with ``PLAYWRIGHT_BROWSERS_PATH`` pointed at nothing,
+669 pass and 12 skip with no errors.
+
+**ADR:** none. Article XI already governs the component rule, and these are defects against this
+feature's own code.
+
+---
+
+## D43 — Telling the set apart from the form, and telling its rows apart from each other
+
+Raised by Sam against the demo page: the rows blended into the parent form, nothing said which
+object a row was editing, and the remove control sat at the bottom of the row where it read as
+one more field.
+
+**The set opens with a divider and a heading.** Unconditional, because the separation is the
+point — a set of related rows sitting flush against the parent's fields reads as more of the
+same form. `title` defaults to the set's model in plural, so the zero-config case still gets a
+usable heading, and `description` is the developer's own help text with no default. The view
+carries them as `inline_title` and `inline_description` and hangs them on the formset object
+rather than adding context variables, which keeps `form_view.html` unchanged and generalises to
+several sets per page when #194 lands.
+
+**Each row carries a hairline and a header.** Left, the object's own label; right, the remove
+control. The label answers "which record is this", which is unanswerable from a bare row of
+fields. A saved row shows `str(instance)`. An unsaved one cannot: `str()` on an unsaved model
+reads `OrderLine object (None)`, so it is named `New <verbose_name>` instead. A plain, non-model
+form has no instance and gets no label, and the header is omitted when there is neither a label
+nor a control to put in it. The rule leads the row rather than sitting between rows: rows are
+hidden rather than detached, and a rule rendered between two of them is orphaned the moment
+either one goes. The first row is exempt — the set's own divider is already directly above it,
+and a second line there is just noise.
+
+Both labels are `mvp.templatetags.mvp` filters (`formset_row_label`, `formset_label`) rather
+than view code, because `_meta` is unreachable from a template — Django rejects any variable
+starting with an underscore.
+
+**The remove control is a red trash icon, revealed on hover.** Icon alone, with the label
+surviving as the accessible name. `group-hover:opacity-100` **and** `group-focus-within:
+opacity-100`: hover alone would put the control out of reach of a keyboard, which Article XIII
+forbids. The add control gains a plus icon.
+
+Verified in a browser as well as in the markup tests: opacity moves 0 → 1 on hover, the computed
+colour is the error token, the control has no text content, and a row added after load is
+labelled `New order line`.
+
+**ADR:** none — presentation of this feature's own components under Articles XI and XIII.
+
+---
+
+## D44 — The presentation is assembled from packaged components, not rewritten
+
+Sam, on reviewing D43: the heading was a hand-written `<div class="divider">`, the description a
+bare `<p>` with utility classes, and each row a hand-rolled card. `<c-divider>`, `<c-text>` and
+`<c-card>` all already exist. Article XI is explicit — where a component exists, the markup is
+not written again — and the first version of this feature broke it in three places at once.
+
+**What changed:**
+
+- The set's heading is `<c-divider>`, centred, which is that component's default. The earlier
+  version passed `divider-start` and a font weight of its own. It carries `class="my-8"` for the
+  breathing room Sam asked for, which needed a fix to `<c-divider>` itself: it declared no
+  `class` and spread no `attrs`, so it could not be adjusted at all. Under Article XI a
+  component's attributes are its only supported customization surface, and that one had none.
+  Covered by `tests/test_components/test_class_attribute_merge.py`, alongside the other
+  components fixed for the same reason in #121.
+- The description is `<c-text muted size="sm">`, and the row label `<c-text tight bold>`.
+- Rows are not cards. Sam's call, on seeing them: a card per row is too heavy for what is one
+  object among several in a list. Rows now carry no box at all.
+- Separation between rows is a new `<c-rule>`: one border-width of `base-300`, nothing else.
+
+**Why `<c-rule>` rather than `<c-divider>` or a bare `<hr>`.** A bare `<hr>` in the row template
+would repeat the mistake this decision exists to correct. `<c-divider>` is the wrong component
+rather than the wrong markup: daisyUI's divider is a thick line with generous vertical margin and
+space for a label, which is right for a section break and much too loud repeated between the rows
+of one set. The two are different roles, so they are two components — 1px against the divider's
+16px of height in the rendered page.
+
+**The tests now assert the components were used**, not merely that the output looks right. A
+hand-written reproduction of `<c-divider>` renders identically and would pass every markup
+assertion in this file, so `TestFormsetUsesPackagedComponents` reads the templates and checks
+that `<c-divider>`, `<c-text>` and `<c-rule>` appear and that `class="divider"` and `<hr` do not.
+That is the only form of test that can catch this class of mistake, which is presumably why it
+went uncaught twice.
+
+**ADR:** none — Article XI already states the rule. This is a record of breaking it.

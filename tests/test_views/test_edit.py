@@ -16,12 +16,14 @@ from urllib.parse import parse_qs, urlparse
 
 import pytest
 from bs4 import BeautifulSoup
+from django import forms as django_forms
 from django.contrib.auth import get_user_model
 from django.test import RequestFactory, override_settings
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import TemplateView
 
+from demo.forms import ContactForm, ProductForm
 from demo.models import Category, OrderLine, Product
 from mvp.forms import DeleteConfirmForm
 from mvp.views.edit import MVPCreateView, MVPFormView, MVPUpdateView, NextURLMixin
@@ -2083,3 +2085,46 @@ class TestDeleteViewConfirmation:
         content = response.content.decode()
         assert "id_confirmation" in content
         assert str(product) in content
+
+
+# ---------------------------------------------------------------------------
+# US2 scenario 4 — a standalone formset on MVPFormView (T012)
+# ---------------------------------------------------------------------------
+
+
+def _make_formset_in_context_view():
+    """A GET-able MVPFormView subclass with a formset injected into its context.
+
+    No parent object is involved — this is the standalone case (US2 scenario
+    4), distinct from US3's inline formset tied to a parent record. form_class
+    is a ModelForm (ProductForm) purely so PageObjectMixin can resolve
+    model_meta; the formset itself is unrelated to that model.
+    """
+    FormSet = django_forms.formset_factory(ContactForm, extra=1)
+
+    class StubFormsetView(MVPFormView):
+        template_name = "form_view.html"
+        form_class = ProductForm
+        success_url = "/done/"
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            context["formset"] = FormSet()
+            return context
+
+    rf = RequestFactory()
+    request = rf.get("/")
+    request.user = User()
+    return StubFormsetView, request
+
+
+class TestFormViewStandaloneFormset:
+    """[US2-S4] A formset placed in an MVPFormView's context renders on the page."""
+
+    @pytest.mark.django_db
+    def test_formset_in_context_renders_on_the_page(self):
+        view_cls, request = _make_formset_in_context_view()
+        response = view_cls.as_view()(request)
+        response.render()
+        html = response.content.decode()
+        assert 'name="form-TOTAL_FORMS"' in html

@@ -35,7 +35,8 @@ Empty, unopinionated building blocks — you provide the content.
 | `c-grid` | `cols`, `sm`, `md`, `lg`, `xl`, `xxl` (column counts 1–6, 12), `gap` |
 | `c-group` | `row`, `collapse`, `wrap`, `gap` — flex group |
 | `c-toolbar` | `row` (True or breakpoint), `gap`; slots: default (left), `actions` (right) |
-| `c-divider` | `horizontal`, `variant`, `position` |
+| `c-divider` | `horizontal`, `variant`, `position`, `class` — a section break, with room for a label |
+| `c-rule` | `class` — a hairline between items in one list, where a divider would be too loud |
 | `c-backdrop` | `opacity` — absolute overlay (e.g. over hero images) |
 | `c-layout.sidebar` | `id`, `breakpoint` — reusable drawer shell (what `c-app` uses) |
 
@@ -100,6 +101,8 @@ Menus are normally rendered from Python via django-flex-menus — see
 | `c-user.display.compact` | avatar + name row |
 | `c-form`, `c-form.render` | form wrapper / renderer dispatch |
 | `c-form.field` | single presentational field: `type` (text-like, `textarea`, `select`, `file`, `checkbox`, `radio`, `toggle`), `label`, `hide-label`, `help-text`, `errors`, `prelabel`, `postlabel`, `wrapper-class`; `label`/`help_text`/`errors` also accept named slots |
+| `c-form.formset` | whole Django formset: `formset` (required), `title` (defaults to the model in plural), `description`, `add-label`, `remove-label`, `class` — see [Formsets](formsets.md) |
+| `c-form.formset.row` | one row of a formset: `form` (required), `label` (defaults to the object), `first`, `can-delete`, `remove-label`, `class` |
 | `c-placeholder.card` | `message`, `icon`, `height` — coming-soon card |
 | `c-mockup.browser`, `c-mockup.window`, `c-mockup.phone`, `c-mockup.code` | visual mockups |
 | `c-addons.share-dropdown` | social share menu (`url`, `title`, `size`) |

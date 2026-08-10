@@ -87,11 +87,13 @@ What the page owes a project is narrower than it first appears. The body of a de
 
 Serves G3, and G2 for the components the page needs. A field-rendering API on the view is explicitly out of scope and is recorded as such in `docs/adr/0001-detail-views-do-not-take-a-field-list.md`.
 
-### R8 — Formsets that render and work
+### R8 — Formsets that render and work — **delivered**
 
 *feature · advances G4*
 
-G4 is the only Essential goal with nothing behind it, and formsets are the example the package's own scope statement uses: Django ships the backend machinery and leaves you with nothing to render or drive it with. Nothing in the package refers to formsets today. Until this lands, the claim that the package fills in where Django stops has no instance to point at.
+~~G4 is the only Essential goal with nothing behind it, and formsets are the example the package's own scope statement uses: Django ships the backend machinery and leaves you with nothing to render or drive it with. Nothing in the package refers to formsets today. Until this lands, the claim that the package fills in where Django stops has no instance to point at.~~
+
+Delivered. `<c-form.formset>` and `<c-form.formset.row>` render any Django formset with the packaged look, `MVPInlineCreateView` and `MVPInlineUpdateView` put a parent record and its related rows on one page, and [Formsets](formsets.md) walks the path from two models to a rendered page. G4 now has an instance to point at.
 
 **Deliverables:**
 
@@ -151,12 +153,18 @@ Serves G5. The wider theming and branding story is R18.
 
 *feature · advances G3, G7, G10*
 
-The package is deliberate about optional dependencies, and three places do not follow it. Form and list pages load a third-party template library unconditionally, so a project that installs the package as documented and renders a form gets a template error rather than the promised working page. One view module imports an optional package at module level with none of the guarding the others have, so the failure is a bare import error instead of a message saying what to install. And a documented setting for choosing how forms render does not exist in the code at all. Each one turns a configuration question into a crash.
+The package is deliberate about optional dependencies, and ~~three~~ **two** places do not follow it. ~~Form and list pages load a third-party template library unconditionally, so a project that installs the package as documented and renders a form gets a template error rather than the promised working page.~~
+
+**Settled by this feature, 2026-08-05**: django-crispy-forms and crispy-tailwind are now declared runtime dependencies rather than an implicit requirement of the packaged form rendering. The list page loads the same distribution as the form page, so declaring it settles both at once — a project that installs the package as documented no longer hits this on either one.
+
+One view module imports an optional package at module level with none of the guarding the others have, so the failure is a bare import error instead of a message saying what to install. And a documented setting for choosing how forms render does not exist in the code at all. Each one turns a configuration question into a crash.
 
 **Deliverables:**
 
 - Every optional dependency either declared, or guarded so its absence produces a message naming the package to install.
-- Form and list pages rendering without any undeclared dependency, at a reduced but working level of polish.
+- ~~Form and list pages rendering without any undeclared dependency, at a reduced but working level of polish.~~
+
+  **Settled by this feature, 2026-08-05**: both pages load django-crispy-forms and crispy-tailwind as declared dependencies now, not conditionally, so there is no undeclared dependency left to guard against and no reduced-polish fallback left to build toward — installing the two apps gets the full packaged look on both pages.
 - The documented form-rendering choice either built or removed from the documentation, whichever is right.
 - A check covering every optional dependency, not the two it covers today.
 

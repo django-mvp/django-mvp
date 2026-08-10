@@ -1,0 +1,73 @@
+{% comment %}
+  One row of a formset. Minimal markup: a hairline and a header are all that
+  set one related object apart from the next, rather than a card or a box.
+
+  A row opens with a header: the object's own label on the left, the remove
+  control on the right. The label matters because a row usually edits a
+  related record, and "which one am I editing" is otherwise unanswerable from
+  the page. A saved row shows the object's string; an unsaved one is named by
+  its model, since str() on an unsaved instance reads `Thing object (None)`.
+
+  Above the header, every row but the first carries a hairline <c-rule>. The
+  rule leads the row rather than sitting between rows, so that a removed row
+  takes its own separator with it; a rule rendered between two rows would be
+  orphaned the moment either was hidden. `first` comes from the set's loop,
+  and defaults to False so that a row cloned from the empty-form template -
+  which is only ever appended after the others - always gets one.
+
+  Then every hidden field, every visible field except DELETE rendered through
+  crispy (so a row's field matches a single form's field exactly), and DELETE
+  as a hidden input rather than a checkbox. The form's own non-field errors
+  render above its fields.
+
+  The remove control is an icon alone. Its text survives as the accessible
+  name, and it is transparent until the row is hovered or something inside it
+  takes focus - `group-focus-within`, not hover alone, or the control would be
+  unreachable by keyboard.
+
+  The removed state is the `mvpFormsetRow` Alpine component in
+  mvp/static/js/formset.js; the x-data attribute only seeds it from
+  form.DELETE.value. A removed row is hidden, never detached - its inputs stay
+  in the document so the removal survives an invalid submission and re-render.
+  Removing dispatches an event the set listens for (context.delete_semantics).
+
+  The control needs BOTH `can-delete` and a DELETE field on this row. Under
+  `can_delete_extra=False` Django gives DELETE only to the initial forms while
+  `formset.can_delete` stays True, so the set-wide flag alone would put a
+  Remove button on an extra row that has no way to record the removal - the
+  row would hide and its data would still save.
+{% endcomment %}
+{% load i18n crispy_forms_filters mvp %}
+<c-vars form label class first=False can-delete=False remove-label="{% trans "Remove" %}" />
+{% if form %}
+  <div class="group space-y-4 {{ class }}"
+       x-data="mvpFormsetRow({{ form.DELETE.value|yesno:'true,false,false' }})"
+       x-show="!removed"
+       {{ attrs }}>
+    {% if not first %}<c-rule />{% endif %}
+    {% firstof label form|formset_row_label as row_label %}
+    {% if row_label or can_delete and form.DELETE %}
+      <div class="flex items-start justify-between gap-2">
+        <c-text tight bold>{{ row_label }}</c-text>
+        {% if can_delete and form.DELETE %}
+          <c-button type="button"
+                    size="sm"
+                    ghost
+                    icon="trash"
+                    aria-label="{{ remove_label }}"
+                    class="text-error opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100"
+                    x-on:click="remove()" />
+        {% endif %}
+      </div>
+    {% endif %}
+    {{ form|as_crispy_errors }}
+    {% for field in form.hidden_fields %}{{ field }}{% endfor %}
+    {% for field in form.visible_fields %}
+      {% if field.name == "DELETE" %}
+        <input type="hidden" name="{{ field.html_name }}" :value="removed ? 'on' : ''">
+      {% else %}
+        {{ field|as_crispy_field }}
+      {% endif %}
+    {% endfor %}
+  </div>
+{% endif %}

@@ -29,7 +29,7 @@ the box. **Things should just work.**
   Override the component's template in your project — that's the intended extension
   path, not a bigger API.
 - **Views that do the boring parts** — list pages with admin-style search, whitelisted
-  ordering and pagination; form pages with automatic crispy-forms detection; delete
+  ordering and pagination; form pages rendered with crispy-forms; delete
   flows with related-object summaries and type-to-confirm; styled error pages.
 - **Menus in Python** — sidebar and mobile-dock navigation via
   [django-flex-menus](https://github.com/SamuelJennings/django-flex-menus), with active
@@ -48,9 +48,10 @@ the application chrome, a library of components, and views that carry a model th
 working set of pages, so that reaching a minimum viable product doesn't start with building a
 UI layer.
 
-It also fills in where Django stops. Django ships the backend machinery for formsets and then
-leaves you with nothing to render or drive them with, and closing that kind of gap is squarely
-the point of this package.
+It also fills in where Django stops. Django ships the backend machinery for formsets and leaves
+you with nothing to render or drive them with, so this package renders them for you, with the
+same look, validation and error placement every other page gets. Closing that kind of gap is
+squarely the point of it.
 
 Use it for admin dashboards, data-management tools, research portals, internal apps and SaaS
 back-offices: anywhere you want a production-looking, data-centric Django application without
@@ -104,6 +105,8 @@ INSTALLED_APPS = [
     "easy_icons",
     "flex_menu",
     "mvp",
+    "crispy_forms",     # must come after "mvp" — see Getting Started
+    "crispy_tailwind",
 ]
 
 TEMPLATES = [{
@@ -128,6 +131,9 @@ FLEX_MENUS = {
         "dock": "mvp.renderers.MobileFooterNavRenderer",
     },
 }
+
+CRISPY_ALLOWED_TEMPLATE_PACKS = ["tailwind"]
+CRISPY_TEMPLATE_PACK = "tailwind"
 ```
 
 ```html

@@ -1,0 +1,10 @@
+{% comment %}
+  A hairline separating items in a stack.
+
+  Distinct from <c-divider>, which is a section break: daisyUI's divider is a
+  thick line with generous vertical margin and room for a label, and repeating
+  it between the items of one list is far too loud. This is one border-width
+  of `base-300` and nothing else, for separating things that belong together.
+{% endcomment %}
+<c-vars class />
+<hr class="border-base-300 {{ class }}" {{ attrs }}>

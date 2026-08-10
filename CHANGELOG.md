@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **A parent record and its related rows now render, validate and save together on one
+  page.** `MVPInlineCreateView` and `MVPInlineUpdateView` (`mvp.views`) build the formset,
+  validate it alongside the parent form, and save both in one transaction — configure
+  `inline_model` and the rest follows the packaged single-form pages: same page chrome,
+  same renderer, same success-URL chain. `<c-form.formset>` and `<c-form.formset.row>`
+  render any Django formset, inline or standalone, with the packaged look, errors placed
+  per row and at the set level, and add/remove controls that work in the browser without a
+  page reload. See [Formsets](docs/formsets.md) for the whole path from two models to a
+  rendered page.
+
+  **On upgrade:** django-crispy-forms and crispy-tailwind are now declared runtime
+  dependencies of the package rather than an implicit requirement of its form rendering.
+  Add `"crispy_forms"` and `"crispy_tailwind"` to `INSTALLED_APPS` if your project doesn't
+  already have them — see [Getting Started](docs/getting-started.md#installation). Without
+  both entries, `{% load crispy_forms_tags %}` raises `TemplateSyntaxError` on any packaged
+  form page, not only one carrying a formset.
+
 ## [v0.16.1] - 2026-08-06
 
 ### Added

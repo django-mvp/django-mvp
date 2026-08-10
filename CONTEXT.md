@@ -63,6 +63,17 @@ to all templates as ``mvp_config``. Layout config resolution order: component
 attribute (per-page override, e.g. ``<c-app breakpoint="xl">`` or
 ``<c-app.sidebar collapse="icons">``) → ``MVP_CONFIG`` → package default.
 
+### Related row
+
+One record belonging to a parent — a line item, a question. Rows are created, edited and
+removed on the parent's page and are only persisted when that page is submitted.
+
+### Row set
+
+The collection of related rows shown on a page, together with the bookkeeping that lets a
+submission be read back and tells the page how many rows may exist. Rendered by
+`c-form.formset`, one row set per formset.
+
 ## Component Library
 
 The complete component library is declared below. Components are organized by their namespace (directory). Root-level components have no namespace prefix beyond `c-`. Nested components use dot notation: `c-app.header` means the `header.html` template inside the `app/` directory.
@@ -205,8 +216,10 @@ c-user.display.compact  — compact user display card
 
 ```
 c-form                  — form wrapper
-c-form.render           — controls how a form is rendererd
+c-form.render           — controls how a form is rendered
 c-form.field            — single presentational field (control + label, help text, errors)
+c-form.formset          — a whole row set: management form, rows, add/remove controls
+c-form.formset.row      — one row of a row set
 ```
 
 ### Addons

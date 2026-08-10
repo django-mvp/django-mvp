@@ -1,0 +1,404 @@
+# Phase 0 Research: Formset Pages
+
+**Feature**: `024-formset-pages` | **Date**: 2026-08-05
+
+Every unknown the Technical Context raised, resolved against the installed source of the
+libraries involved rather than against documentation. File references are to the versions
+resolved in this repository's lock file: Django 5.2, django-crispy-forms 2.7,
+crispy-tailwind 1.0.3.
+
+---
+
+## R1 — How a formset renders through the packaged form path
+
+**Decision**: The packaged formset component renders the set's structure itself and delegates
+only the individual fields to crispy, field by field, through `|as_crispy_field`. It does not
+use crispy's `|crispy` filter on the formset.
+
+**Rationale**: `|crispy` does accept a formset — `as_crispy_form` checks
+`isinstance(form, BaseFormSet)` and switches to `<pack>/uni_formset.html`. For the `tailwind`
+pack that template is four lines:
+
+```django
+{% with formset.management_form as form %}{% include 'tailwind/uni_form.html' %}{% endwith %}
+{% for form in formset %}<div class="multiField">{% include 'tailwind/uni_form.html' %}</div>{% endfor %}
+```
+
+It has two properties that make it unusable here:
+
+1. **It never renders `formset.non_form_errors`.** FR-017 requires set-level errors above the
+   set, and the only crispy template that renders them is `errors_formset.html`, reachable
+   only through the separate `|as_crispy_errors` filter. Rendering through `|crispy` alone
+   would silently drop every set-level error — the exact failure FR-018 forbids.
+2. **Its sibling error templates are not DaisyUI.** `errors_formset.html` and `errors.html`
+   emit `bg-red-500`, `text-red-700`, `border-red-400` — raw utility colours from crispy's own
+   Tailwind styling, not the DaisyUI semantic classes the package uses everywhere else.
+   Article XI forbids raw utility classes in templates demonstrating a component, and the
+   result would not match the packaged look FR-004 requires.
+
+Delegating per field keeps SC-008 exactly true. `as_crispy_field` renders through
+`tailwind/field.html`, which is the same template `uni_form.html` includes for every field of a
+single form. A row's fields therefore go through a byte-identical path to a single form's
+fields, including this repository's own `tailwind/layout/help_text.html` override and the
+per-field error block in `tailwind/layout/help_text_and_errors.html`. That block is what
+satisfies FR-016 with no work: a row's field error already renders adjacent to its field.
+
+**Alternatives considered**:
+
+- *Override `tailwind/uni_formset.html` in `mvp/templates/`, as this repo already does for
+  `tailwind/layout/help_text.html`.* Rejected: the override would have to reintroduce the
+  errors, the add and remove controls, the empty-form template and the Alpine root, at which
+  point it is a component wearing a vendored template's path — invisible to
+  `tests/test_components/test_render_all.py`, not overridable by a consumer at a
+  `cotton/` path, and in breach of Article XI's rule that reusable markup is a Cotton
+  component.
+- *Render rows with the packaged `<c-form.field>` component.* Rejected: `<c-form.field>` is
+  the manual DaisyUI-native path and produces different markup from the crispy path a single
+  form takes. Using it would make a formset row visibly different from a single form's field
+  and break SC-008.
+
+---
+
+## R2 — What removing a row means
+
+**Decision**: Every row, saved or unsaved, is removed the same way — Django's `DELETE` flag is
+set and the row is hidden. Nothing is re-indexed and `TOTAL_FORMS` is never decremented.
+
+**Rationale**: Django already distinguishes the two cases, so the page does not have to.
+`BaseModelFormSet.save_new_objects` (`django/forms/models.py:950`) reads:
+
+```python
+for form in self.extra_forms:
+    if not form.has_changed():
+        continue
+    # If someone has marked an add form for deletion, don't save the object.
+    if self.can_delete and self._should_delete_form(form):
+        continue
+```
+
+An unsaved row marked for deletion is therefore never created, satisfying FR-022, and a saved
+row marked for deletion is deleted by `save_existing_objects` on submission, satisfying FR-023.
+`can_delete_extra` defaults to `True` (`django/forms/formsets.py:545`), so extra forms carry a
+`DELETE` field and the uniform treatment is available without configuration.
+
+Not decrementing `TOTAL_FORMS` is the load-bearing half. Django reads submitted forms by index
+from `0` to `TOTAL_FORMS - 1`, so removing a row from the middle of the page and decrementing
+the count silently shifts every later row onto the wrong index. Hiding rather than deleting the
+markup keeps the indices contiguous and keeps the submitted values intact, which is also what
+makes the re-render edge case work: an invalid submission comes back with the removal still
+applied, because the `DELETE` value was submitted like any other field.
+
+**Alternatives considered**: removing unsaved rows from the DOM and re-indexing the survivors.
+Rejected — it is the standard source of off-by-one bugs in hand-written formset pages, it
+requires rewriting every `name`, `id` and `for` attribute in the remaining rows, and it buys
+nothing that the `DELETE` flag does not already give.
+
+---
+
+## R3 — Adding a row without a reload
+
+**Decision**: The component renders `formset.empty_form` once into an inert
+`<template x-ref>` element. Adding a row clones that markup, replaces every `__prefix__`
+occurrence with the monotonic `total` counter described below, appends it, and increments both
+counters and `TOTAL_FORMS`.
+
+**Rationale**: This is what `empty_form` exists for. It is a real, unbound form whose prefix is
+the literal `__prefix__`, so its field names, ids and label `for` attributes are all
+substitutable in one pass. Holding it in a `<template>` keeps it out of the submitted document
+and out of Alpine's reach until it is cloned. The Alpine 3 runtime and its plugins are already
+loaded by the packaged base template (`mvp/templates/mvp/base.html:34-39`), so FR-025 is met
+with no build tooling and no new client-side dependency.
+
+The row cap in FR-026 reads from `formset.max_num`, which `formset_factory` always sets
+(defaulting to `DEFAULT_MAX_NUM`), so the add control has a number to compare against in every
+configuration.
+
+Two details, both added after the design review:
+
+- **The state is two counters, not one.** `total` is monotonic and seeds both `__prefix__` and
+  `TOTAL_FORMS`; `visible` counts rows not marked for removal and is what the add control compares
+  against the cap. With a single counter, removing a row on a capped set would permanently forfeit
+  its slot, which is neither what the user expects nor what Django accepts — `full_clean` tests
+  `total_form_count() - len(deleted_forms) > max_num`.
+- **`total` is seeded from `formset.total_form_count`, never from the DOM.** The management form's
+  `TOTAL_FORMS` input is a string the server re-emits verbatim after an invalid submission. Reading
+  it back and substituting it into cloned markup would put a user-supplied string into the `name`
+  and `id` attributes of a new row. Seeding from the template variable takes an integer Django has
+  already clamped to `absolute_max`.
+
+**Alternatives considered**: fetching a fresh blank row from the server. Rejected outright by
+FR-024, which forbids any row change reaching the server before submission.
+
+---
+
+## R4 — Atomicity
+
+**Decision**: The parent save and the formset save happen inside a single
+`transaction.atomic()` block in the view's `form_valid`.
+
+**Rationale**: FR-011 states atomicity as a requirement on the feature, not an assumption about
+the database. Django gives no implicit transaction around a view unless `ATOMIC_REQUESTS` is
+set, which is a project-level setting the package cannot rely on. Wrapping the two saves is the
+whole of the mechanism: if saving a row raises, the parent's `INSERT` or `UPDATE` is rolled
+back with it and nothing is persisted.
+
+Ordering matters and follows Django's documented inline pattern: save the parent first, assign
+it to `formset.instance`, then save the formset. `BaseInlineFormSet.save_new` reads
+`self.instance` at save time to set the foreign key, so assigning the freshly-created parent
+after the fact is sufficient and satisfies FR-014 for the create case.
+
+**What must stay outside the block**: the success message and the redirect. Django's message
+storage is not transactional, so a flash queued inside the block outlives the rollback — a request
+that persisted nothing would still tell the user the record was saved. The transaction wraps the
+two saves and nothing else.
+
+**And `super().form_valid()` is not how they get produced.** It reaches `SuccessMessageMixin`,
+whose first statement delegates to `ModelFormMixin.form_valid`, whose first statement is
+`self.object = form.save()`. Neither `MVPCreateView` nor `MVPUpdateView` overrides it, so calling
+it after the block would save the parent a second time — outside the transaction, after the rows
+were written, re-running `_save_m2m` and firing a consuming project's `post_save` receivers twice
+for one user action. `form_valid` therefore queues the message and returns the redirect itself,
+exactly as `MVPDeleteView.form_valid` already does.
+
+---
+
+## R9 — `max_num` is not a cap unless `validate_max` is set
+
+**Decision**: `get_formset_factory_kwargs()` sets `validate_max=True` whenever `inline_max_num`
+is configured, and leaves `absolute_max` at Django's default.
+
+**Rationale**: `inlineformset_factory` defaults `validate_max=False`, and `BaseFormSet.full_clean`
+raises `too_many_forms` only when `self.validate_max` is set, or when the submitted `TOTAL_FORMS`
+exceeds `absolute_max` — which defaults to `max_num + DEFAULT_MAX_NUM`, that is `max_num + 1000`
+(`django/forms/formsets.py:552-557`). Passing `max_num` alone therefore rejects nothing: a view
+configured for three rows accepts and saves a submission carrying a thousand.
+
+That would have made FR-026 a browser-side suggestion and left the spec's own edge case false —
+it says the add control stops "rather than adding a row the submission will reject", which
+assumes a rejection the design had not arranged. For a published package the distinction is not
+academic: the consumer sets `inline_max_num` and reasonably believes it binds.
+
+**`absolute_max` must not be derived from the cap**, and an earlier draft of this entry said it
+should. That was wrong, and demonstrably so — the design review reproduced it against this
+project's own environment rather than reasoning about it. Two properties of Django's check make a
+cap-derived bound break correct submissions:
+
+- The `absolute_max` clause reads the **raw** submitted `TOTAL_FORMS` and, unlike the
+  `validate_max` clause beside it, does not subtract `deleted_forms`. A user working within a cap
+  of three who adds four rows and removes two submits `TOTAL_FORMS=5` with two `DELETE` flags:
+  `validate_max` passes, because 5 − 2 = 3, and a cap-derived `absolute_max` rejects it anyway.
+- `total_form_count()` returns `min(TOTAL_FORMS, absolute_max)`, and only that many forms are
+  constructed. Rows past the bound are dropped before validation and never re-rendered, so what
+  the user typed vanishes — a direct breach of FR-013.
+
+The second case is worse than the first. A record whose rows already exceed the cap, after an
+import or a lowered limit, could never be brought back into compliance, because the submission
+marking the surplus for deletion is exactly the one rejected.
+
+The justification the earlier draft gave was also false. It claimed an unbounded `absolute_max`
+lets a request force a thousand form constructions "while holding a write transaction open". It
+does not: the formset is validated **before** `transaction.atomic()` opens, so `full_clean` never
+runs inside a write transaction. What remains is the ordinary cost of Django's own default
+ceiling, which every inline formset in every Django project already carries.
+
+**Alternatives considered**: leaving enforcement to the consumer through
+`get_formset_factory_kwargs()`. Rejected — a property that only holds when the consumer
+independently discovers an override hook is a design defect in a package, not a documentation gap.
+A separate opt-in attribute capping add operations per page load was also considered and rejected:
+no FR or SC asks for one, and it cannot be derived from `inline_max_num` without reintroducing the
+defect above.
+
+---
+
+## R5 — Declaring the crispy dependencies
+
+**Decision**: `django-crispy-forms` and `crispy-tailwind` move from the dev group to
+`[project].dependencies`, and both are added to deptry's `DEP002` ignore list. The consumer
+setup documentation gains the two `INSTALLED_APPS` entries and the two `CRISPY_*` settings.
+
+**Rationale**: `mvp/templates/cotton/form/render.html:1-2` unconditionally loads
+`crispy_forms_tags` and `tailwind_filters`. The packaged form rendering has always required
+both distributions at render time while the metadata declared them dev-only, which is the
+defect US1 exists to close. Article VII asks for a stated justification for a runtime
+dependency, and the justification is that the dependency already existed in the code.
+
+`DEP002` (declared but not imported) fires because neither package is imported from Python in
+`mvp/` — they are reached through `{% load %}` and `INSTALLED_APPS`. That is the same shape as
+`django-flex-menus` and `django-easy-icons`, which are already listed there
+(`pyproject.toml:100`), so the ignore entry follows established precedent rather than
+suppressing a real finding.
+
+The documentation half is not optional. Django resolves template tag libraries only from apps
+in `INSTALLED_APPS`, so installing the distributions is necessary but not sufficient —
+`{% load crispy_forms_tags %}` still raises `TemplateSyntaxError` without the app entries.
+`docs/integrations.md` currently presents crispy as an optional add-on; that section moves to
+the required setup in `README.md` and `docs/getting-started.md`.
+
+**Alternatives considered**: a Django system check that reports the missing apps at startup
+instead of a template error at render time. Declined — no requirement asks for it, and a check
+is a public surface of its own needing an id, documentation and a CHANGELOG entry. Recorded in
+`decisions.md` rather than built.
+
+---
+
+## R6 — Where the formset renders on the page
+
+**Decision**: `mvp/templates/form_view.html` gains a `{% block formset %}` inside the `<c-form>`
+body, above the actions block, whose default content renders `<c-form.formset>` when a
+`formset` is present in the context. No new page template is added, and no new view is needed
+for the standalone case.
+
+**Rationale**: This is the smallest change that satisfies FR-006 and US2 scenario 4 together.
+Any packaged form view that puts a `formset` in its context — including the existing
+`MVPFormView` with a standalone formset — renders it, in the right place, with no further
+configuration. The configured view of US3 then needs no template of its own: it inherits
+`form_view.html` unchanged and only has to supply the context entry.
+
+The block sits inside the `<c-form>` slot, which is where the existing `{% block actions %}`
+already lives, so the pattern is the one the template already uses.
+
+One consequence: `<c-form>` decides the form's `enctype` from `form_obj.is_multipart` alone, so
+a file field on a row would submit without the multipart encoding. `<c-form>` therefore gains a
+`formset` attribute consulted in the same condition. `BaseFormSet.is_multipart` interrogates the
+first form, or `empty_form` when there are none, so it answers correctly for an empty set.
+
+**Alternatives considered**: a dedicated `inline_form_view.html` extending `form_view.html`.
+Rejected under Article II once the default block content covered both cases — the extra
+template would have carried one line and left the standalone case unsolved.
+
+---
+
+## R7 — Where the view lives, and what it is called
+
+**Decision**: A new module `mvp/views/inline.py` holds `InlineFormsetMixin`,
+`MVPInlineCreateView` and `MVPInlineUpdateView`. The two views are exported from
+`mvp/views/__init__.py`; the mixin is not, matching the existing rule stated in that file.
+Tests live in `tests/test_views/test_inline.py`.
+
+**Rationale**: Article X requires tests to mirror the source tree and to split by class within
+one module rather than across files. Either placement satisfies it, so the choice is about
+cohesion: `mvp/views/edit.py` already carries the form, create, update and delete views across
+roughly six hundred lines, and the parent-and-rows page is a distinct concern with its own
+configuration surface. A separate module keeps each test file targeted.
+
+"Inline" is Django's own word for a formset bound to a parent through a foreign key
+(`inlineformset_factory`), so the name is the domain vocabulary rather than an invention.
+
+**Configuration surface**: `inline_model`, `inline_form_class`, `inline_fields`,
+`inline_extra`, `inline_can_delete`, `inline_max_num` as class attributes for the common cases,
+plus `get_formset_factory_kwargs()` returning the full kwargs dictionary so `min_num`,
+`validate_min`, `validate_max` and a custom base formset are each one override away. Article
+III is satisfied — this is configuration on one class, not a layer between the caller and the
+work.
+
+---
+
+## R8 — The demo models behind the worked example
+
+**Decision**: The worked example and the demo page use the existing `Product` and `OrderLine`
+models. No new demo model is added.
+
+**Rationale**: `demo/models.py:229` already defines `OrderLine` with a `PROTECT` foreign key to
+`Product` (`related_name="order_lines"`) and a `quantity` field. It is the only true
+line-item-shaped pair in the demo application and needs no new model and no new factory. Its
+docstring records that it was added for delete-view tests; that stays true and gains a second use.
+
+**Correction after the design review**: an earlier draft of this section claimed the pair needed
+no `verbose_name`/`help_text` work either. That was wrong. Neither `OrderLine.product` nor
+`OrderLine.quantity` carries either, and Article IX makes both mandatory and says explicitly that
+it applies to `demo/`. It matters here beyond conformance: this is the pair the worked example
+renders, and a page whose job is to demonstrate that a row's field gets the same label and help
+text a single form's field gets cannot demonstrate it with a field that has neither. The fields
+are given both, with `gettext_lazy`, and the resulting migration is squashed with the branch's
+others at convergence.
+
+The naming is a shade off the spec's illustration of an order and its line items, but the shape
+is identical and Article II prefers what is already there.
+
+---
+
+## R10 — Why the view is written here rather than taken from django-extra-views
+
+*Added 2026-08-10, after the rest of this document. `django-extra-views` is the established
+package for this problem and Phase 0 never compared against it. That omission is recorded here
+rather than quietly corrected, because the conclusion below only carries weight if it is clear
+when it was reached.*
+
+**Decision**: Keep the view layer in this package. Do not depend on `django-extra-views`.
+
+**Rationale**: The package solves a different share of the problem than it first appears to. It
+ships no templates outside its own test app, so the DaisyUI component, the add and remove
+controls and the error placement — the majority of this feature — are untouched by it. What a
+dependency would replace is the roughly 120 lines of save-flow logic in `mvp/views/inline.py`.
+
+Against that saving, three differences in behaviour, read from the installed source at v0.16:
+
+1. **The save is not atomic** (`extra_views/advanced.py:52-59`). `forms_valid` calls
+   `self.form_valid(form)`, which saves the parent and builds the redirect, and only then
+   loops over the formsets calling `save()`. A row rejected at the database layer leaves a
+   committed parent and a partial set of rows, and `get_success_url()` is resolved before the
+   rows exist. FR-011 requires one commit, so this would have to be overridden.
+2. **A class-level dictionary is mutated in place** (`extra_views/formsets.py:77-79`). The
+   `.copy()` is shallow, so `setdefault("form_kwargs", {}).update(...)` writes into the
+   attribute shared by every request using that inline. It bites only when both
+   `formset_kwargs["form_kwargs"]` and `form_kwargs` are set, and then it accumulates for the
+   life of the process.
+3. **`model` names two different things** (`advanced.py:19-20`). It is declared as the related
+   model and reassigned to the parent model at construction, so any `get_*` override reading
+   `self.model` receives the parent. Here the two are `model` on the view and `inline_model` on
+   the mixin, and neither is reassigned.
+
+Two smaller ones: the parent model is read as the view's `self.model` with no fallback, so a
+view configured with `queryset` alone raises, and nothing detects two inline sets resolving to
+the same prefix, whose submitted fields then merge silently. Neither reaches this package's
+single-set surface today, and both are constraints on the follow-up below.
+
+The deciding factor is not the list. Correcting the first item means overriding `post`,
+`forms_valid` and `forms_invalid` — the whole of the logic that was to be inherited — while
+still carrying the dependency. Its last commit is 2025-04-28 and it has not been exercised
+against Django 6.0, whereas this package declares `django >=5.2` with no upper bound.
+
+**A defect the comparison found here, not there**: at `advanced.py:108,119` the view restores
+`self.object = initial_object` after a failed submission, which changes nothing, because
+`initial_object` is the same object `form.save(commit=False)` returned. A page rendering
+`{{ object }}` therefore shows values that were just refused. This package has the same
+behaviour for the same reason — `form.is_valid()` writes the submitted values onto
+`form.instance`, which is `self.object`, and `form_valid` hands straight to `form_invalid`
+without re-reading it. Filed as #193; not fixed here, because it is a behaviour change and this
+feature is through review.
+
+**Alternatives considered**:
+
+- *Depend on it and subclass around the differences.* Rejected for the reason above: after the
+  overrides, nothing inherited remains.
+- *Depend on it for the standalone formset views (`FormSetView`, `ModelFormSetView`).* Not
+  applicable. Per the spec's clarification, the standalone case is a documented rendering
+  pattern on the existing form view, not a shipped view class, so there is no gap to fill.
+
+**Credit**: `django-extra-views` (MIT, Andrew Ingram) is the prior art for putting a parent form
+and its related rows on one page through a class-based view, and the shape of the problem — a
+per-model declaration, kwargs for the factory kept apart from kwargs for the instance — is its
+formulation, arrived at years before this one.
+
+**Follow-up**: the one thing this package should take from it is the configuration surface. The
+`inline_*` attributes here support a single related set, whereas a declaration class listed in a
+view-level `inlines` supports several and would let a developer moving from that package find
+the names where they expect them. That is a change to the public API and a widening past this
+feature's scope, so it is filed as #194 rather than folded in here.
+
+---
+
+## Technology summary
+
+| Concern | Resolution |
+|---|---|
+| Row field rendering | `\|as_crispy_field`, per field, skipping `DELETE` |
+| Set-level errors | Rendered by the packaged component into `<c-alert variant="error">` |
+| Row-level field errors | Already handled by `tailwind/layout/help_text_and_errors.html` |
+| Row removal | `DELETE` flag set, row hidden, indices untouched |
+| Row addition | `empty_form` in a `<template>`, `__prefix__` substitution, `TOTAL_FORMS` incremented |
+| Row cap | `validate_max=True` on the server; the add control compares the visible-row count |
+| Client runtime | Alpine 3, already loaded by `mvp/templates/mvp/base.html` |
+| Atomicity | `transaction.atomic()` around parent save and formset save |
+| Dependencies | crispy pair promoted to runtime, deptry `DEP002` ignores extended |
+| Stylesheet | Rebuilt with `invoke build-stylesheet`; new classes are literal, so no safelist entry |

@@ -4,6 +4,9 @@ Standardized per Phase 2: all model fixtures and view factory helpers live here
 so individual test files stay focused on assertions, not setup boilerplate.
 """
 
+import importlib.util
+from pathlib import Path
+
 import pytest
 from django.contrib.auth import get_user_model
 from django.test import RequestFactory
@@ -78,3 +81,32 @@ def make_stub_view(mixin_class, extra_attrs=None, kwargs=None, user=None):
     view.kwargs = kwargs or {}
     view.args = []
     return view
+
+
+def _browser_is_installed():
+    """True when Playwright is importable *and* its browser is downloaded.
+
+    Testing the import alone is not enough. Installing the package is one
+    step and downloading the browser is another, so a CI runner that has the
+    dependency but has never run ``playwright install`` errors at launch
+    instead of skipping. That gap is why the end-to-end formset tests had
+    never run anywhere (specs/024-formset-pages/decisions.md D42).
+    """
+    if importlib.util.find_spec("playwright") is None:
+        return False
+
+    from playwright.sync_api import sync_playwright
+
+    try:
+        with sync_playwright() as p:
+            return Path(p.chromium.executable_path).exists()
+    except Exception:
+        return False
+
+
+HAS_BROWSER = _browser_is_installed()
+
+requires_browser = pytest.mark.skipif(
+    not HAS_BROWSER,
+    reason="playwright browser not installed (run: playwright install chromium)",
+)

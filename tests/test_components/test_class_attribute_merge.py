@@ -79,6 +79,19 @@ class TestClassAttributeMerge:
         assert "dac-prose" in attrs[0]
         assert "text-base" in attrs[0]
 
+    def test_divider_merges_caller_class(self):
+        """Added when <c-form.formset> needed more room around its heading.
+
+        Until then the component declared no ``class`` and spread no
+        ``attrs``, so it could not be adjusted at all — and per Article XI
+        its attributes are the only supported way to customize it.
+        """
+        html = render('<c-divider class="my-8">Order lines</c-divider>')
+        attrs = class_attrs_on(html, "div")
+        assert len(attrs) == 1, f"expected one class attribute, found {attrs}"
+        assert "my-8" in attrs[0]
+        assert "divider" in attrs[0]
+
     def test_menu_merges_caller_class(self):
         html = render('<c-menu class="my-menu">items</c-menu>')
         attrs = class_attrs_on(html, "ul")
