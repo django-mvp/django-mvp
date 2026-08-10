@@ -317,6 +317,77 @@ is identical and Article II prefers what is already there.
 
 ---
 
+## R10 — Why the view is written here rather than taken from django-extra-views
+
+*Added 2026-08-10, after the rest of this document. `django-extra-views` is the established
+package for this problem and Phase 0 never compared against it. That omission is recorded here
+rather than quietly corrected, because the conclusion below only carries weight if it is clear
+when it was reached.*
+
+**Decision**: Keep the view layer in this package. Do not depend on `django-extra-views`.
+
+**Rationale**: The package solves a different share of the problem than it first appears to. It
+ships no templates outside its own test app, so the DaisyUI component, the add and remove
+controls and the error placement — the majority of this feature — are untouched by it. What a
+dependency would replace is the roughly 120 lines of save-flow logic in `mvp/views/inline.py`.
+
+Against that saving, three differences in behaviour, read from the installed source at v0.16:
+
+1. **The save is not atomic** (`extra_views/advanced.py:52-59`). `forms_valid` calls
+   `self.form_valid(form)`, which saves the parent and builds the redirect, and only then
+   loops over the formsets calling `save()`. A row rejected at the database layer leaves a
+   committed parent and a partial set of rows, and `get_success_url()` is resolved before the
+   rows exist. FR-011 requires one commit, so this would have to be overridden.
+2. **A class-level dictionary is mutated in place** (`extra_views/formsets.py:77-79`). The
+   `.copy()` is shallow, so `setdefault("form_kwargs", {}).update(...)` writes into the
+   attribute shared by every request using that inline. It bites only when both
+   `formset_kwargs["form_kwargs"]` and `form_kwargs` are set, and then it accumulates for the
+   life of the process.
+3. **`model` names two different things** (`advanced.py:19-20`). It is declared as the related
+   model and reassigned to the parent model at construction, so any `get_*` override reading
+   `self.model` receives the parent. Here the two are `model` on the view and `inline_model` on
+   the mixin, and neither is reassigned.
+
+Two smaller ones: the parent model is read as the view's `self.model` with no fallback, so a
+view configured with `queryset` alone raises, and nothing detects two inline sets resolving to
+the same prefix, whose submitted fields then merge silently. Neither reaches this package's
+single-set surface today, and both are constraints on the follow-up below.
+
+The deciding factor is not the list. Correcting the first item means overriding `post`,
+`forms_valid` and `forms_invalid` — the whole of the logic that was to be inherited — while
+still carrying the dependency. Its last commit is 2025-04-28 and it has not been exercised
+against Django 6.0, whereas this package declares `django >=5.2` with no upper bound.
+
+**A defect the comparison found here, not there**: at `advanced.py:108,119` the view restores
+`self.object = initial_object` after a failed submission, which changes nothing, because
+`initial_object` is the same object `form.save(commit=False)` returned. A page rendering
+`{{ object }}` therefore shows values that were just refused. This package has the same
+behaviour for the same reason — `form.is_valid()` writes the submitted values onto
+`form.instance`, which is `self.object`, and `form_valid` hands straight to `form_invalid`
+without re-reading it. Filed separately; not fixed here, because it is a behaviour change and
+this feature is through review.
+
+**Alternatives considered**:
+
+- *Depend on it and subclass around the differences.* Rejected for the reason above: after the
+  overrides, nothing inherited remains.
+- *Depend on it for the standalone formset views (`FormSetView`, `ModelFormSetView`).* Not
+  applicable. Per the spec's clarification, the standalone case is a documented rendering
+  pattern on the existing form view, not a shipped view class, so there is no gap to fill.
+
+**Credit**: `django-extra-views` (MIT, Andrew Ingram) is the prior art for putting a parent form
+and its related rows on one page through a class-based view, and the shape of the problem — a
+per-model declaration, kwargs for the factory kept apart from kwargs for the instance — is its
+formulation, arrived at years before this one.
+
+**Follow-up**: the one thing this package should take from it is the configuration surface. The
+`inline_*` attributes here support a single related set, whereas a declaration class listed in a
+view-level `inlines` supports several and would let a developer moving from that package find
+the names where they expect them. That is a change to the public API and a widening past this
+feature's scope, so it belongs in its own feature request rather than in this one.
+
+---
+
 ## Technology summary
 
 | Concern | Resolution |

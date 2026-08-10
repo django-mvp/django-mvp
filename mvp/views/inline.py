@@ -1,5 +1,10 @@
 """A parent record and its related rows on one page.
 
+The prior art for this is django-extra-views (MIT, Andrew Ingram), which has
+solved the parent-and-rows page through a class-based view for far longer than
+this package has existed. The save flow is written here rather than inherited
+from it, for the reasons set out in specs/024-formset-pages/research.md (R10).
+
 Contract: specs/024-formset-pages/contracts/inline-view.md
 """
 
