@@ -129,9 +129,21 @@ class InlineFormsetMixin:
         parent a second time outside the transaction. The URL is resolved
         after the saves so that, on the create path, ``get_success_url()``
         sees the saved object rather than ``self.object is None``.
+
+        Reaching this method means ``form.is_valid()`` has already run and,
+        with it, ``BaseModelForm._post_clean()``, which writes the submitted
+        values onto ``form.instance`` - the same object as ``self.object`` on
+        an update view, because ``ModelFormMixin.get_form_kwargs`` passes it
+        in as ``instance``. When the formset then fails, re-reading
+        ``self.object`` before delegating to ``form_invalid`` undoes that
+        mutation, so object-derived page parts (breadcrumbs, page title)
+        render the stored record rather than the refused submission (#193).
+        On create, ``self.object`` has no pk yet and is left alone.
         """
         formset = self.get_formset()
         if not formset.is_valid():
+            if self.object is not None and self.object.pk is not None:
+                self.object = self.get_object()
             return self.form_invalid(form)
 
         with transaction.atomic():
