@@ -583,3 +583,124 @@ class TestInlineValidSubmission:
         assert set(
             new_project.tasks.values_list("title", flat=True)
         ) == {"First task", "Second task"}
+
+
+# ---------------------------------------------------------------------------
+# T019 — overriding get_factory_kwargs() reaches a parameter the shorthands
+# do not expose: can_order (FR-020, US1 s6)
+# ---------------------------------------------------------------------------
+
+
+class TestGetFactoryKwargsOverride:
+    """A subclass overriding ``get_factory_kwargs()`` — the super-and-extend
+    pattern — reaches a formset-class parameter with no attribute of its
+    own. ``can_order`` is the worked case: it is deliberately not an
+    ``InlineFormSet`` attribute (it is a distinct, user-driven reordering
+    feature, unlike FR-022's display order)."""
+
+    def test_can_order_reaches_the_formset_through_the_override(self):
+        class OrderedTaskInline(InlineFormSet):
+            model = ProjectTask
+            fields = ["title"]
+
+            def get_factory_kwargs(self):
+                kwargs = super().get_factory_kwargs()
+                kwargs["can_order"] = True
+                return kwargs
+
+        declaration = OrderedTaskInline(
+            parent_model=Project, request=None, instance=None, view=None
+        )
+
+        assert declaration.get_factory_kwargs()["can_order"] is True
+        formset_class = declaration.get_formset_class()
+        assert formset_class.can_order is True
+
+    def test_can_order_is_not_a_declaration_attribute(self):
+        assert not hasattr(InlineFormSet, "can_order")
+
+
+# ---------------------------------------------------------------------------
+# T020-T021 — get_form_kwargs(index): Django's own per-form hook
+# (FR-021, US1 s7, R13)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+class TestGetFormKwargsPerForm:
+    """``get_form_kwargs(index)`` is called once per form with that form's
+    index, and with ``None`` for the blank template form."""
+
+    def test_called_once_per_form_with_its_index_and_none_for_the_empty_form(self):
+        project = ProjectFactory()
+        ProjectTaskFactory(project=project)
+        calls = []
+
+        class RecordingTaskInline(InlineFormSet):
+            model = ProjectTask
+            fields = ["title"]
+            extra = 1
+
+            def get_form_kwargs(self, index):
+                calls.append(index)
+                return super().get_form_kwargs(index)
+
+        declaration = RecordingTaskInline(
+            parent_model=Project,
+            request=RequestFactory().get("/"),
+            instance=project,
+            view=None,
+        )
+        formset = declaration.construct_formset()
+
+        list(formset.forms)  # forces construction of every form (1 existing + 1 extra)
+        formset.empty_form  # the blank template form
+
+        assert calls[:-1] == [0, 1]
+        assert calls[-1] is None  # the empty form is built with index None
+
+    def test_a_declaration_can_give_each_form_a_different_value_per_index(self):
+        project = ProjectFactory()
+        ProjectTaskFactory(project=project)
+        ProjectTaskFactory(project=project)
+
+        class VaryingTaskInline(InlineFormSet):
+            model = ProjectTask
+            fields = ["title"]
+
+            def get_form_kwargs(self, index):
+                kwargs = super().get_form_kwargs(index)
+                kwargs["label_suffix"] = f"row-{index}" if index is not None else "blank"
+                return kwargs
+
+        declaration = VaryingTaskInline(
+            parent_model=Project,
+            request=RequestFactory().get("/"),
+            instance=project,
+            view=None,
+        )
+        formset = declaration.construct_formset()
+
+        assert formset.forms[0].label_suffix == "row-0"
+        assert formset.forms[1].label_suffix == "row-1"
+        assert formset.empty_form.label_suffix == "blank"
+
+    def test_shared_form_kwargs_is_the_default_when_undeclared(self):
+        project = ProjectFactory()
+        ProjectTaskFactory(project=project)
+
+        class PlainTaskInline(InlineFormSet):
+            model = ProjectTask
+            fields = ["title"]
+            form_kwargs = {"label_suffix": "shared"}
+
+        declaration = PlainTaskInline(
+            parent_model=Project,
+            request=RequestFactory().get("/"),
+            instance=project,
+            view=None,
+        )
+        formset = declaration.construct_formset()
+
+        assert formset.forms[0].label_suffix == "shared"
+        assert formset.empty_form.label_suffix == "shared"
