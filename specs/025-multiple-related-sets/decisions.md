@@ -380,3 +380,34 @@ same grep on the branch is the whole check, and it would have caught the #193 re
 US1 landed.
 
 **ADR:** none — a record of guards dropped and restored during the rewrite. The guards themselves are tests in the repository; the incident is a run record.
+
+## D16 — Two multipart row sets wrote the encoding attribute twice
+
+Found at converge, by reading the template diff rather than by a failing test — nothing was red.
+
+`cotton/form/index.html` decided the page's encoding by testing each set in turn inside the
+`<form>` tag and emitting `enctype="multipart/form-data"` for each one that needed it. With two
+multipart sets the tag came out carrying the attribute twice:
+
+```html
+<form x-data="{form: {}}"
+      enctype="multipart/form-data"enctype="multipart/form-data"
+      method="post">
+```
+
+Browsers take the first and the page works, which is why no test caught it and why it would have
+survived review by eye. It is still wrong twice over: the markup is invalid, and FR-012 says the
+encoding is decided from the parent form and every set **together**, which a per-set emission does
+not do.
+
+**Fixed** with an `any_multipart` filter, so the tag carries one condition and one attribute
+however many sets need it. Three tests were added to the component's own test module: one set
+multipart, several sets multipart (the count assertion), and no set multipart. The fix was proven
+by reinstating the old template expression and watching only the count test go red.
+
+The filter is the smallest correct fix available: Django's template language cannot express "any of
+these" inline, and the alternative — deciding it in the view and passing a flag — would have taken
+the decision off the component, which is what the design review already rejected once.
+
+**ADR:** none — a defect and its guard, both local to this feature's markup. The contract it
+enforces is already stated in [ADR 0007](../../docs/adr/0007-a-row-set-is-declared-as-its-own-class.md).

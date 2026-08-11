@@ -47,3 +47,34 @@ class TestFormEnctype:
             formset=formset,
         )
         assert 'enctype="multipart/form-data"' in html
+
+    def test_enctype_is_multipart_when_only_a_row_set_is(self):
+        html = render(
+            '<c-form :form-obj="form_obj" :inlines="inlines" method="post"></c-form>',
+            form_obj=PlainForm(),
+            inlines=[FileFormSet()],
+        )
+        assert 'enctype="multipart/form-data"' in html
+
+    def test_enctype_is_emitted_once_when_several_row_sets_are_multipart(self):
+        """Two multipart sets must not put the attribute on the tag twice.
+
+        FR-012 decides the encoding from the parent form and every set
+        together, so the answer is one attribute however many sets need it.
+        Emitting it per set produces a duplicate attribute, which browsers
+        tolerate and the markup contract does not.
+        """
+        html = render(
+            '<c-form :form-obj="form_obj" :inlines="inlines" method="post"></c-form>',
+            form_obj=PlainForm(),
+            inlines=[FileFormSet(), FileFormSet()],
+        )
+        assert html.count('enctype="multipart/form-data"') == 1
+
+    def test_enctype_is_absent_when_nothing_needs_it(self):
+        html = render(
+            '<c-form :form-obj="form_obj" :inlines="inlines" method="post"></c-form>',
+            form_obj=PlainForm(),
+            inlines=[forms.formset_factory(PlainForm, extra=1)()],
+        )
+        assert "enctype=" not in html
