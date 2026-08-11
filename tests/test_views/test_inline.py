@@ -1348,3 +1348,49 @@ class TestInvalidParentFormStillValidatesSets:
         assert inlines[1]._errors is not None
         assert not inlines[1].is_valid()
         assert inlines[1].forms[0].errors
+
+
+# ---------------------------------------------------------------------------
+# T040 — a refused submission redisplays every set with the submitted
+# values, while the page's object-derived parts show the stored record
+# (US3 s3, FR-010)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+class TestRefusedSubmissionKeepsObjectDerivedPartsOnTheStoredRecord:
+    """A refused submission redisplays a set carrying the submitted values,
+    while the page's object-derived parts (the breadcrumb naming the
+    record) show the stored record — even though the parent form's own
+    fields validated individually, since Django's ``_post_clean`` still
+    writes them onto ``self.object`` in place before the page as a whole is
+    refused for a failing set."""
+
+    def test_set_keeps_submitted_value_while_breadcrumb_shows_stored_name(self):
+        project = ProjectFactory(name="Original")
+        view_cls = _inline_update_view_class(
+            success_url="/done/", inlines=[TaskInline, NoteViaProjectInline]
+        )
+        data = {
+            "name": "Submitted But Rejected",
+            "tasks-TOTAL_FORMS": "1",
+            "tasks-INITIAL_FORMS": "0",
+            "tasks-MIN_NUM_FORMS": "0",
+            "tasks-MAX_NUM_FORMS": "1000",
+            "tasks-0-title": "x" * 201,  # invalid: over max_length
+            "notes-TOTAL_FORMS": "0",
+            "notes-INITIAL_FORMS": "0",
+            "notes-MIN_NUM_FORMS": "0",
+            "notes-MAX_NUM_FORMS": "1000",
+        }
+
+        _, response = _dispatch(
+            view_cls, method="POST", data=data, view_kwargs={"pk": project.pk}
+        )
+        breadcrumbs = response.context_data["page"]["breadcrumbs"]
+        html = _rendered_html(response)
+
+        assert response.status_code == 200
+        assert _field_value(html, "name") == "Submitted But Rejected"
+        assert _field_value(html, "tasks-0-title") == "x" * 201
+        assert breadcrumbs[1]["text"] == "Original"
