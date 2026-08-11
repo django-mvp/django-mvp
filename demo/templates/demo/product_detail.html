@@ -31,6 +31,10 @@
       <p>{{ object.description }}</p>
     </div>
   </c-grid>
+  <c-button href="{% url "product-order-lines" pk=object.pk %}"
+            text="{% trans "Edit product and order lines" %}"
+            icon="list"
+            size="sm" />
   <c-button href="{% url "product-order-lines-rows-only" pk=object.pk %}"
             text="{% trans "Edit order lines only" %}"
             icon="list-ul"
