@@ -105,6 +105,7 @@ class _StubInlinesView(InlinesMixin):
     def get_queryset(self):
         return self.queryset
 
+
 # ---------------------------------------------------------------------------
 # T001 — fixture models and factories for the whole feature
 # ---------------------------------------------------------------------------
@@ -811,3 +812,438 @@ class TestInlineViewsPublicAPI:
             dir(InlinesMixin)
         )
         assert present == set()
+
+
+# ---------------------------------------------------------------------------
+# Shared multi-set declarations (US2). ``ProjectNote`` reaches ``Project`` by
+# two relations, so a declaration over it must name which one it uses
+# (``fk_name``) or Django's own factory raises for the ambiguity.
+# ---------------------------------------------------------------------------
+
+
+class NoteViaProjectInline(InlineFormSet):
+    model = ProjectNote
+    fields = ["text"]
+    fk_name = "project"
+
+
+class NoteViaRelatedProjectInline(InlineFormSet):
+    model = ProjectNote
+    fields = ["text"]
+    fk_name = "related_project"
+
+
+# ---------------------------------------------------------------------------
+# T025 — two declarations render as two sets, each under its own heading, in
+# the declared order (US2 s1)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+class TestTwoInlineSetsRenderInOrder:
+    """A view listing two declaration classes renders both sets, each under
+    its own heading, in the order the view lists them."""
+
+    def test_both_sets_render_under_their_own_headings_in_declared_order(self):
+        project = ProjectFactory()
+        view_cls = _inline_update_view_class(
+            success_url="/done/", inlines=[TaskInline, NoteViaProjectInline]
+        )
+
+        _, response = _dispatch(view_cls, method="GET", view_kwargs={"pk": project.pk})
+        html = _rendered_html(response)
+
+        tasks_index = html.index(str(ProjectTask._meta.verbose_name_plural))
+        notes_index = html.index(str(ProjectNote._meta.verbose_name_plural))
+        assert tasks_index < notes_index
+
+    def test_context_carries_both_sets_in_declared_order(self):
+        project = ProjectFactory()
+        view_cls = _inline_update_view_class(
+            success_url="/done/", inlines=[TaskInline, NoteViaProjectInline]
+        )
+
+        _, response = _dispatch(view_cls, method="GET", view_kwargs={"pk": project.pk})
+
+        inlines = response.context_data["inlines"]
+        assert len(inlines) == 2
+        assert inlines[0].title == "project tasks"
+        assert inlines[1].title == "project notes"
+
+
+# ---------------------------------------------------------------------------
+# T027 — two sets over the same related model through different relations
+# both build, with different prefixes, neither declaring one (US2 s6, R3)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+class TestSameModelDifferentRelationsGetDifferentPrefixes:
+    """Two sets naming ``ProjectNote`` through two different foreign keys
+    both build, and their default prefixes differ without either
+    declaration setting ``prefix`` (R3's claim)."""
+
+    def test_both_sets_build_with_different_default_prefixes(self):
+        project = ProjectFactory()
+        view_cls = _inline_update_view_class(
+            success_url="/done/",
+            inlines=[NoteViaProjectInline, NoteViaRelatedProjectInline],
+        )
+
+        _, response = _dispatch(view_cls, method="GET", view_kwargs={"pk": project.pk})
+
+        assert response.status_code == 200
+        inlines = response.context_data["inlines"]
+        assert len(inlines) == 2
+        assert inlines[0].prefix == "notes"
+        assert inlines[1].prefix == "cross_notes"
+        assert inlines[0].prefix != inlines[1].prefix
+
+    def test_neither_declaration_sets_a_prefix(self):
+        assert NoteViaProjectInline.prefix is None
+        assert NoteViaRelatedProjectInline.prefix is None
+
+
+# ---------------------------------------------------------------------------
+# T028-T029 — two declarations resolving to the same prefix raise
+# ImproperlyConfigured naming both and the fix, at page-build time
+# (FR-005, US2 s5)
+# ---------------------------------------------------------------------------
+
+
+class _DuplicateTaskInline(InlineFormSet):
+    """Same related model, same relation, no prefix override — collides
+    with ``TaskInline``'s default prefix."""
+
+    model = ProjectTask
+    fields = ["title"]
+
+
+@pytest.mark.django_db
+class TestDuplicatePrefixRaisesAtBuildTime:
+    """Two declarations resolving to the same prefix raise
+    ``ImproperlyConfigured`` naming both declaration classes and the fix,
+    when the page is built — not merely when it is rendered."""
+
+    def test_raises_naming_both_declarations_and_the_fix(self):
+        project = ProjectFactory()
+        view_cls = _inline_update_view_class(
+            success_url="/done/", inlines=[TaskInline, _DuplicateTaskInline]
+        )
+
+        with pytest.raises(ImproperlyConfigured) as excinfo:
+            _dispatch(view_cls, method="GET", view_kwargs={"pk": project.pk})
+
+        message = str(excinfo.value)
+        assert "TaskInline" in message
+        assert "_DuplicateTaskInline" in message
+        assert "prefix" in message
+
+    def test_raises_from_as_view_not_from_a_template_render(self):
+        """Built through ``as_view()`` alone — the error must fire before
+        any template touches the sets, matching FR-005."""
+        project = ProjectFactory()
+        view_cls = _inline_update_view_class(
+            success_url="/done/", inlines=[TaskInline, _DuplicateTaskInline]
+        )
+        request = _build_request(method="GET")
+
+        with pytest.raises(ImproperlyConfigured):
+            view_cls.as_view()(request, pk=project.pk)
+
+
+# ---------------------------------------------------------------------------
+# T030 — a submission adding a row to each set saves both against the
+# parent (US2 s2)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+class TestMultiSetValidSubmission:
+    """A submission adding a row to each of two sets saves both, and both
+    rows belong to the parent record."""
+
+    def test_rows_added_to_both_sets_are_saved_against_the_parent(self):
+        project = ProjectFactory(name="Original")
+        view_cls = _inline_update_view_class(
+            success_url="/done/", inlines=[TaskInline, NoteViaProjectInline]
+        )
+        data = {
+            "name": "Original",
+            "tasks-TOTAL_FORMS": "1",
+            "tasks-INITIAL_FORMS": "0",
+            "tasks-MIN_NUM_FORMS": "0",
+            "tasks-MAX_NUM_FORMS": "1000",
+            "tasks-0-title": "New task",
+            "notes-TOTAL_FORMS": "1",
+            "notes-INITIAL_FORMS": "0",
+            "notes-MIN_NUM_FORMS": "0",
+            "notes-MAX_NUM_FORMS": "1000",
+            "notes-0-text": "New note",
+        }
+
+        _, response = _dispatch(
+            view_cls, method="POST", data=data, view_kwargs={"pk": project.pk}
+        )
+
+        assert response.status_code == 302
+        project.refresh_from_db()
+        assert set(project.tasks.values_list("title", flat=True)) == {"New task"}
+        assert set(project.notes.values_list("text", flat=True)) == {"New note"}
+
+
+# ---------------------------------------------------------------------------
+# T031 — a row invalid in the second set leaves nothing saved (US2 s3,
+# FR-009)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+class TestInvalidSecondSetLeavesNothingSaved:
+    """A row invalid in the second set leaves nothing saved: not the first
+    set's rows, not the parent's own change. Asserted by counting rows and
+    re-reading the parent from the database, never by trusting the
+    response."""
+
+    def test_nothing_is_saved_when_the_second_set_has_an_invalid_row(self):
+        project = ProjectFactory(name="Original")
+        view_cls = _inline_update_view_class(
+            success_url="/done/", inlines=[TaskInline, NoteViaProjectInline]
+        )
+        data = {
+            "name": "Renamed",
+            "tasks-TOTAL_FORMS": "1",
+            "tasks-INITIAL_FORMS": "0",
+            "tasks-MIN_NUM_FORMS": "0",
+            "tasks-MAX_NUM_FORMS": "1000",
+            "tasks-0-title": "Would-be task",
+            "notes-TOTAL_FORMS": "1",
+            "notes-INITIAL_FORMS": "0",
+            "notes-MIN_NUM_FORMS": "0",
+            "notes-MAX_NUM_FORMS": "1000",
+            # a filled field over max_length: invalid without being an
+            # unchanged extra row Django's formset would silently skip
+            "notes-0-text": "x" * 201,
+        }
+
+        _, response = _dispatch(
+            view_cls, method="POST", data=data, view_kwargs={"pk": project.pk}
+        )
+
+        assert response.status_code == 200
+        project.refresh_from_db()
+        assert project.name == "Original"
+        assert project.tasks.count() == 0
+        assert project.notes.count() == 0
+
+
+# ---------------------------------------------------------------------------
+# T032 — two sets carrying a same-named field each receive only their own
+# rows' values (US2 s4)
+# ---------------------------------------------------------------------------
+
+
+class _PrimaryTaskInline(InlineFormSet):
+    model = ProjectTask
+    fields = ["title"]
+    prefix = "primary"
+
+
+class _SecondaryTaskInline(InlineFormSet):
+    model = ProjectTask
+    fields = ["title"]
+    prefix = "secondary"
+
+
+@pytest.mark.django_db
+class TestSameNamedFieldAcrossSetsStaysScoped:
+    """Two sets sharing a field name (``title``, on the same related model
+    through the same relation, distinguished only by an explicit prefix)
+    each receive only their own rows' submitted values."""
+
+    def test_each_set_receives_only_its_own_values(self):
+        project = ProjectFactory(name="Original")
+        view_cls = _inline_update_view_class(
+            success_url="/done/",
+            inlines=[_PrimaryTaskInline, _SecondaryTaskInline],
+        )
+        data = {
+            "name": "Original",
+            "primary-TOTAL_FORMS": "1",
+            "primary-INITIAL_FORMS": "0",
+            "primary-MIN_NUM_FORMS": "0",
+            "primary-MAX_NUM_FORMS": "1000",
+            "primary-0-title": "Primary title",
+            "secondary-TOTAL_FORMS": "1",
+            "secondary-INITIAL_FORMS": "0",
+            "secondary-MIN_NUM_FORMS": "0",
+            "secondary-MAX_NUM_FORMS": "1000",
+            "secondary-0-title": "Secondary title",
+        }
+
+        _, response = _dispatch(
+            view_cls, method="POST", data=data, view_kwargs={"pk": project.pk}
+        )
+
+        assert response.status_code == 302
+        assert set(project.tasks.values_list("title", flat=True)) == {
+            "Primary title",
+            "Secondary title",
+        }
+
+
+# ---------------------------------------------------------------------------
+# T033 — a page where one set among several needs multipart encodes the
+# form for uploads (FR-012, US2 s7, S3R ARCH-002)
+# ---------------------------------------------------------------------------
+
+
+class _UploadTaskForm(forms.ModelForm):
+    upload = forms.FileField(required=False)
+
+    class Meta:
+        model = ProjectTask
+        fields = ["title"]
+
+
+class _UploadTaskInline(InlineFormSet):
+    model = ProjectTask
+    form = _UploadTaskForm
+    prefix = "uploads"
+
+
+@pytest.mark.django_db
+class TestMultipartWhenAnySetNeedsIt:
+    """A page carrying several sets is encoded for uploads when any one of
+    them needs it, even when the others do not."""
+
+    def test_form_is_multipart_when_one_of_several_sets_needs_it(self):
+        project = ProjectFactory()
+        view_cls = _inline_update_view_class(
+            success_url="/done/", inlines=[TaskInline, _UploadTaskInline]
+        )
+
+        _, response = _dispatch(view_cls, method="GET", view_kwargs={"pk": project.pk})
+        html = _rendered_html(response)
+
+        assert 'enctype="multipart/form-data"' in html
+
+
+# ---------------------------------------------------------------------------
+# T034 — two sets with different max_num caps: a submission within one and
+# above the other rejects only the set that is over (FR-013, US2 s8, R9)
+# ---------------------------------------------------------------------------
+
+
+class _CappedTaskInline(InlineFormSet):
+    model = ProjectTask
+    fields = ["title"]
+    prefix = "capped_tasks"
+    max_num = 1
+
+
+@pytest.mark.django_db
+class TestPerSetCapsIndependent:
+    """Two sets with different row caps: a submission within one cap and
+    above the other rejects only the set that is over, and a submission
+    within a cap after row removals is accepted."""
+
+    def _data(self, project, task_titles, note_texts):
+        data = {
+            "name": project.name,
+            "capped_tasks-TOTAL_FORMS": str(len(task_titles)),
+            "capped_tasks-INITIAL_FORMS": "0",
+            "capped_tasks-MIN_NUM_FORMS": "0",
+            "capped_tasks-MAX_NUM_FORMS": "1000",
+            "notes-TOTAL_FORMS": str(len(note_texts)),
+            "notes-INITIAL_FORMS": "0",
+            "notes-MIN_NUM_FORMS": "0",
+            "notes-MAX_NUM_FORMS": "1000",
+        }
+        for i, title in enumerate(task_titles):
+            data[f"capped_tasks-{i}-title"] = title
+        for i, text in enumerate(note_texts):
+            data[f"notes-{i}-text"] = text
+        return data
+
+    def test_only_the_set_over_its_cap_is_rejected(self):
+        project = ProjectFactory(name="Original")
+        view_cls = _inline_update_view_class(
+            success_url="/done/",
+            inlines=[_CappedTaskInline, NoteViaProjectInline],
+        )
+        data = self._data(
+            project,
+            task_titles=["First", "Second"],  # over the cap of 1
+            note_texts=["A note"],  # NoteViaProjectInline has no cap
+        )
+
+        _, response = _dispatch(
+            view_cls, method="POST", data=data, view_kwargs={"pk": project.pk}
+        )
+
+        assert response.status_code == 200
+        inlines = response.context_data["inlines"]
+        assert not inlines[0].is_valid()
+        assert inlines[0].non_form_errors()
+        assert inlines[1].is_valid()
+
+    def test_within_a_cap_after_removals_is_accepted(self):
+        project = ProjectFactory(name="Original")
+        existing_one = ProjectTaskFactory(project=project, title="Keep")
+        existing_two = ProjectTaskFactory(project=project, title="Drop")
+        view_cls = _inline_update_view_class(
+            success_url="/done/",
+            inlines=[_CappedTaskInline, NoteViaProjectInline],
+        )
+        data = {
+            "name": project.name,
+            "capped_tasks-TOTAL_FORMS": "2",
+            "capped_tasks-INITIAL_FORMS": "2",
+            "capped_tasks-MIN_NUM_FORMS": "0",
+            "capped_tasks-MAX_NUM_FORMS": "1000",
+            "capped_tasks-0-id": str(existing_one.pk),
+            "capped_tasks-0-title": "Keep",
+            "capped_tasks-1-id": str(existing_two.pk),
+            "capped_tasks-1-title": "Drop",
+            "capped_tasks-1-DELETE": "on",
+            "notes-TOTAL_FORMS": "0",
+            "notes-INITIAL_FORMS": "0",
+            "notes-MIN_NUM_FORMS": "0",
+            "notes-MAX_NUM_FORMS": "1000",
+        }
+
+        _, response = _dispatch(
+            view_cls, method="POST", data=data, view_kwargs={"pk": project.pk}
+        )
+
+        assert response.status_code == 302
+        assert set(project.tasks.values_list("title", flat=True)) == {"Keep"}
+
+
+# ---------------------------------------------------------------------------
+# T036 — a declaration naming fk_name builds against that relation and
+# reaches its rows (FR-019, US2 s9)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+class TestFkNameBuildsAgainstNamedRelation:
+    """A declaration naming ``fk_name`` builds against that relation and its
+    rows are those the named relation reaches, not the other one."""
+
+    def test_reaches_only_rows_through_the_named_relation(self):
+        project = ProjectFactory()
+        other = ProjectFactory()
+        ProjectNoteFactory(project=project, text="Owned note")
+        cross_note = ProjectNoteFactory(
+            project=other, related_project=project, text="Cross-referenced note"
+        )
+        view_cls = _inline_update_view_class(
+            success_url="/done/", inlines=[NoteViaRelatedProjectInline]
+        )
+
+        _, response = _dispatch(view_cls, method="GET", view_kwargs={"pk": project.pk})
+
+        formset = response.context_data["inlines"][0]
+        assert list(formset.queryset) == [cross_note]
