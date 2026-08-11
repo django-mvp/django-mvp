@@ -704,3 +704,72 @@ class TestGetFormKwargsPerForm:
 
         assert formset.forms[0].label_suffix == "shared"
         assert formset.empty_form.label_suffix == "shared"
+
+
+# ---------------------------------------------------------------------------
+# T022-T023 — sort_forms() decides display order only (FR-022, US1 s8)
+# ---------------------------------------------------------------------------
+
+
+class _ReversedTaskInline(InlineFormSet):
+    model = ProjectTask
+    fields = ["title"]
+    extra = 0
+
+    def sort_forms(self, forms):
+        return list(reversed(forms))
+
+
+@pytest.mark.django_db
+class TestSortFormsIsDisplayOnly:
+    """A declaration reversing the given order renders in that order, and
+    the order rows are validated and saved in is unchanged."""
+
+    def test_reversed_declaration_renders_in_reverse(self):
+        project = ProjectFactory()
+        first = ProjectTaskFactory(project=project, title="First")
+        second = ProjectTaskFactory(project=project, title="Second")
+        assert first.pk < second.pk
+        view_cls = _inline_update_view_class(
+            success_url="/done/", inlines=[_ReversedTaskInline]
+        )
+
+        _, response = _dispatch(view_cls, method="GET", view_kwargs={"pk": project.pk})
+        html = _rendered_html(response)
+        soup = BeautifulSoup(html, "html.parser")
+        titles_in_order = [
+            tag.get("value")
+            for tag in soup.find_all(attrs={"name": lambda n: n and n.endswith("-title")})
+            if tag.get("value")
+        ]
+
+        assert titles_in_order == ["Second", "First"]
+
+    def test_the_saved_order_matches_the_submitted_index_not_the_display_order(self):
+        project = ProjectFactory()
+        first = ProjectTaskFactory(project=project, title="First")
+        second = ProjectTaskFactory(project=project, title="Second")
+        view_cls = _inline_update_view_class(
+            success_url="/done/", inlines=[_ReversedTaskInline]
+        )
+        data = {
+            "name": project.name,
+            "tasks-TOTAL_FORMS": "2",
+            "tasks-INITIAL_FORMS": "2",
+            "tasks-MIN_NUM_FORMS": "0",
+            "tasks-MAX_NUM_FORMS": "1000",
+            "tasks-0-id": str(first.pk),
+            "tasks-0-title": "Updated First",
+            "tasks-1-id": str(second.pk),
+            "tasks-1-title": "Updated Second",
+        }
+
+        _, response = _dispatch(
+            view_cls, method="POST", data=data, view_kwargs={"pk": project.pk}
+        )
+
+        assert response.status_code == 302
+        first.refresh_from_db()
+        second.refresh_from_db()
+        assert first.title == "Updated First"
+        assert second.title == "Updated Second"
