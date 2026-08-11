@@ -771,6 +771,37 @@ class TestSortFormsIsDisplayOnly:
         assert first.title == "Updated First"
         assert second.title == "Updated Second"
 
+    def test_a_new_row_alongside_an_existing_one_still_saves(self):
+        """The initial/extra boundary is where display order reaching the save
+        path does damage: Django tells an existing row from a new one by its
+        position in ``formset.forms``, not by whether it carries an id. Reorder
+        that list before saving and the new row is silently dropped."""
+        project = ProjectFactory()
+        existing = ProjectTaskFactory(project=project, title="First")
+        view_cls = _inline_update_view_class(
+            success_url="/done/", inlines=[_ReversedTaskInline]
+        )
+        data = {
+            "name": project.name,
+            "tasks-TOTAL_FORMS": "2",
+            "tasks-INITIAL_FORMS": "1",
+            "tasks-MIN_NUM_FORMS": "0",
+            "tasks-MAX_NUM_FORMS": "1000",
+            "tasks-0-id": str(existing.pk),
+            "tasks-0-title": "Updated First",
+            "tasks-1-id": "",
+            "tasks-1-title": "Brand New",
+        }
+
+        _, response = _dispatch(
+            view_cls, method="POST", data=data, view_kwargs={"pk": project.pk}
+        )
+
+        assert response.status_code == 302
+        existing.refresh_from_db()
+        assert existing.title == "Updated First"
+        assert ProjectTask.objects.filter(project=project, title="Brand New").exists()
+
 
 # ---------------------------------------------------------------------------
 # T024 — InlineFormsetMixin and the six inline_* attributes are gone;
