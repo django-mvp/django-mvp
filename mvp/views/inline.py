@@ -298,6 +298,24 @@ class InlinesMixin:
         messages.success(self.request, self.get_success_message(form.cleaned_data))
         return HttpResponseRedirect(success_url)
 
+    def form_invalid(self, form):
+        """Validate every set even on the path where the parent form itself
+        is invalid, then redisplay.
+
+        Django's ``ProcessFormView.post`` calls this directly when
+        ``form.is_valid()`` is ``False``, so on that path nothing has called
+        ``is_valid()`` on the sets before now (US3 s2, research R11) — left
+        unvalidated, a set's errors would reach the page only by lazy
+        evaluation during rendering, alongside the parent's, rather than
+        being guaranteed to. ``all_valid`` runs here for the same reason
+        ``form_valid`` uses it above (research R5): its list comprehension
+        defeats ``all()``'s short-circuit, so every set accumulates its own
+        errors regardless of what came before it.
+        """
+        formsets = self.construct_inlines()
+        all_valid(formsets)
+        return super().form_invalid(form)
+
 
 class MVPInlineCreateView(InlinesMixin, MVPCreateView):
     """A create page carrying one record and its declared row sets.
