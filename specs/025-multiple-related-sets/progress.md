@@ -16,7 +16,12 @@
   - Roadmap link settled with Sam: this extends R8 rather than opening a new item.
 - S1 SPECIFY — done. `spec.md` (5 stories, 22 FRs, 6 SCs) and `decisions.md` (D1–D7). Clarify scan run in full: five questions, all self-answered, none escalated.
 - S2 SETUP — done. Epic promoted in place, stories #210–#214 created with empty label sets, draft PR #215 opened bot-authored with the six-line `Closes` block, milestone v1.0.0 on the epic, every story and the PR.
-- S3 PLAN — started 2026-08-11, after the Spec gate and the two amendments.
+- S3 PLAN — done. `plan.md`, `research.md` (R1–R11), `tasks.md`, `feature-state.json`. Constitution Check passes with one recorded justification (the shorthand attributes diverge from upstream 0.16 — research R7). No Complexity Tracking entry.
+- S3R DESIGN_REVIEW — done, one round, budget 1 of 1. One reviewer, three lenses, no diff in existence. Verdict `request_changes`, nine verified findings, three of them high. All applied; every remedy checked against the finding's own evidence before acceptance; the reviewer was not re-dispatched. Craft-skill gate green both ways. Recorded as D8.
+  - The three high findings were all real defects in the plan, not preferences: the template change would have silently deleted FS-024's standalone formset case, the multipart change would have broken Article XI and an existing component test, and FR-004's prefix override had no assembly point — which would also have made FR-005's error message suggest a fix that did nothing.
+  - Two findings removed work: `min_num`/`can_order`/`validate_min` were unrequested surface, and the memoisation rationale inherited from FS-024 turned out to be false (the fence stays, its stated reason is corrected).
+  - Task ids renumbered in the re-plan. 51 story tasks across five stories, plus three convergence tasks driven by the pipeline.
+- **S4 IMPLEMENT — held.** The plan gate is a hard gate for this run.
 
 ## Notes carried forward
 

@@ -81,6 +81,20 @@ FS-024 recorded it as D25 after a design-review round demonstrated that bounding
 ceiling to the cap plus extras rejects legitimate submissions, because Django reads the raw
 submitted total before subtracting deleted rows. Recorded as FR-013.
 
+## D6 — FS-024's single-set assumption is annotated, not left standing
+
+**Ambiguous**: FS-024's spec states, under Assumptions and in an intake clarification, that the
+configured view covers one parent and one row set, and that the shape would be revisited when a
+case appeared. That text is now wrong, and it is a landed spec.
+
+**Chosen**: strike the superseded text in place on `specs/024-formset-pages/spec.md` and forward-tag
+it to FS-025, landing in this feature's pull request. Nothing is deleted.
+
+**Why defensible**: a landed spec is a record of what was decided when, so removing the sentence
+would erase the decision rather than supersede it, and leaving it untouched would leave a reader
+believing a limit that no longer exists. The strike-and-forward-tag form is the established
+convention for this across the family.
+
 ## D7 — No compatibility shim, and no parity requirement
 
 **Ruled by Sam at the Spec gate**, 2026-08-11, confirming one point and correcting another.
@@ -106,16 +120,55 @@ attributes.
 Amended in place: US-1's narrative, its independent test and its first acceptance scenario;
 SC-005; and Assumptions.
 
-## D6 — FS-024's single-set assumption is annotated, not left standing
+## D8 — Design review, one round: nine findings applied
 
-**Ambiguous**: FS-024's spec states, under Assumptions and in an intake clarification, that the
-configured view covers one parent and one row set, and that the shape would be revisited when a
-case appeared. That text is now wrong, and it is a landed spec.
+**S3R, 2026-08-11.** One reviewer, three lenses, against the specification, plan, research and task
+list with no diff in existence. Verdict `request_changes`, nine findings, all `verified`. Reports at
+`engineering-org/runs/django-mvp/025-multiple-related-sets/findings-design.json`.
 
-**Chosen**: strike the superseded text in place on `specs/024-formset-pages/spec.md` and forward-tag
-it to FS-025, landing in this feature's pull request. Nothing is deleted.
+Every remedy was checked against the finding's own evidence before being accepted, rather than
+applied on the reviewer's say-so. Three were high.
 
-**Why defensible**: a landed spec is a record of what was decided when, so removing the sentence
-would erase the decision rather than supersede it, and leaving it untouched would leave a reader
-believing a limit that no longer exists. The strike-and-forward-tag form is the established
-convention for this across the family.
+- **ARCH-001** — looping `inlines` in `form_view.html` would have deleted FS-024's standalone
+  formset case, which is documented in `docs/formsets.md`, rendered by the demo, and pinned by a
+  test at `tests/test_views/test_edit.py:2091`. The plan declared that case out of scope while
+  quietly removing it. Both variables now coexist: `formset` for the standalone page, `inlines` for
+  the configured one. **Confirmed by reading the doc section and the test.**
+- **ARCH-002** — moving the multipart decision to an ambient context flag breaks Article XI, the
+  house rule that Cotton components are configured by attributes, and
+  `tests/test_components/test_form_index.py:41`, which renders the component directly with a
+  `formset` attribute and asserts the encoding. The decision stays on the component. The plan's
+  Constitution Check row for Article XI was wrong and is corrected. **Confirmed by reading the
+  test.**
+- **SPEC-001** — the per-declaration `prefix` override had no assembly point and no test, so
+  FR-004 would have gone unimplemented and, worse, FR-005's collision error tells the developer to
+  set a prefix, which would have done nothing. Now wired in `get_formset_kwargs()` and tested in
+  both directions. **Confirmed by reading the task list.**
+
+The medium and low findings: the invalid-parent test could not have failed (`BaseFormSet.errors`
+calls `full_clean()` on access, so the guard could be deleted with the test still green — the same
+vacuous-test shape FS-024's review caught, and confirmed by reading Django's source); the
+documentation sweep both missed `docs/views.md` and would have rewritten ADR 0005 and a released
+changelog entry, which are records rather than guidance; a set declared with `exclude` on a model
+that reaches the parent twice renders the sibling relation as an unfiltered parent chooser, which
+is a documentation fix rather than a code one; formset media were dropped when the variable became
+a list.
+
+Two findings **removed** work rather than adding it, which is the asymmetry that keeps this stage
+cheap:
+
+- **ARCH-003** — `min_num`, `can_order` and `validate_min` were unrequested public surface, outside
+  both D3's stated boundary and upstream's. Dropped from the shorthands; both remain reachable
+  through `factory_kwargs`, which is what FR-019 says the escape hatch is for.
+- **ARCH-004** — the memoisation rationale inherited from FS-024 is false. A rebuilt formset is
+  bound to the same POST data and re-renders the same values and errors, so the page does not
+  "come back blank". The memoisation is kept for the reasons that do hold; the false one is
+  removed, because a fence with a wrong reason on it is a fence someone later removes after
+  checking.
+
+The reviewer separately checked and cleared three things rather than flagging them: the row-cap
+decision still holds for several sets, row-id hijacking across sets is closed by Django's
+parent-scoped queryset, and the rows-only page's authorisation is the same `get_object()` scoping
+the single-form pages already use.
+
+**Design-review budget: 1 of 1 used.** The reviewer was not re-dispatched on the fixes.
