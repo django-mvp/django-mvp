@@ -8,6 +8,9 @@ Source: mvp/views/inline.py
 Spec: specs/025-multiple-related-sets/spec.md
 """
 
+import re
+from pathlib import Path
+
 import pytest
 from bs4 import BeautifulSoup
 from django import forms
@@ -1929,3 +1932,102 @@ class TestRowsOnlyConfigurationGuards:
         response = view_cls.as_view()(request, pk=project.pk)
 
         assert response.status_code == 200
+
+
+# ---------------------------------------------------------------------------
+# T053 — live guidance no longer describes the removed inline_* attribute
+# surface as supported configuration (FR-025, US5 s4)
+# ---------------------------------------------------------------------------
+
+REPO_ROOT = Path(__file__).resolve().parent.parent.parent
+
+# The exact identifiers FS-024 shipped and FS-025 removed outright, read from
+# the last commit that still had them (`git show 1038b3e:mvp/views/inline.py`):
+# six class attributes plus the method that assembled them into
+# `inlineformset_factory`'s kwargs.
+REMOVED_IDENTIFIERS = [
+    "inline_model",
+    "inline_form_class",
+    "inline_fields",
+    "inline_extra",
+    "inline_can_delete",
+    "inline_max_num",
+    "inline_title",
+    "inline_description",
+    "get_formset_factory_kwargs",
+]
+
+REMOVED_PATTERN = re.compile(
+    r"\b(?:" + "|".join(re.escape(name) for name in REMOVED_IDENTIFIERS) + r")\b"
+)
+
+# "Live" guidance: what a developer reads today to configure a page — docs/
+# (excluding docs/adr/), README.md, demo/, mvp/, and the CHANGELOG's own
+# Unreleased section. Deliberately excluded, because rewriting it would erase a
+# decision rather than supersede it:
+#   - docs/adr/                            — accepted decisions, standing record
+#   - every released CHANGELOG.md section  — what a shipped version did
+#   - specs/                               — feature specs and their working
+#                                            notes, in their entirety
+LIVE_TEXT_EXTENSIONS = {".py", ".md", ".html"}
+LIVE_ROOT_NAMES = ("docs", "demo", "mvp")
+
+
+def _iter_live_files():
+    """Yield every path this guard treats as live guidance."""
+    for root_name in LIVE_ROOT_NAMES:
+        root = REPO_ROOT / root_name
+        for path in sorted(root.rglob("*")):
+            if not path.is_file() or path.suffix not in LIVE_TEXT_EXTENSIONS:
+                continue
+            relative_parts = path.relative_to(root).parts
+            if root_name == "docs" and relative_parts[0] == "adr":
+                continue
+            yield path
+    yield REPO_ROOT / "README.md"
+
+
+def _changelog_unreleased_section():
+    """Return only the CHANGELOG's ``## [Unreleased]`` section text.
+
+    Every other section documents a version that has already shipped with
+    those attributes described in it. Only Unreleased describes what the next
+    release supports.
+    """
+    text = (REPO_ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
+    match = re.search(r"## \[Unreleased\](.*?)(?=\n## \[|\Z)", text, flags=re.DOTALL)
+    assert match is not None, "CHANGELOG.md has no '## [Unreleased]' heading"
+    return match.group(1)
+
+
+class TestLiveGuidanceHasNoRemovedInlineAttributes:
+    """No file a developer reads to configure a page today still describes a
+    removed ``inline_*`` attribute, or ``get_formset_factory_kwargs``, as
+    supported configuration."""
+
+    def test_no_live_file_mentions_a_removed_identifier(self):
+        offenders = {}
+        for path in _iter_live_files():
+            text = path.read_text(encoding="utf-8")
+            found = sorted(set(REMOVED_PATTERN.findall(text)))
+            if found:
+                offenders[str(path.relative_to(REPO_ROOT))] = found
+        assert offenders == {}, (
+            f"Live guidance still describes removed inline_* attributes: {offenders}"
+        )
+
+    def test_changelog_unreleased_section_records_the_removal_as_breaking(self):
+        """FR-026 asks for the opposite of the check above: the changelog entry
+        *must* name every removed attribute, as evidence it maps each one to
+        its replacement, and must call the removal out as breaking."""
+        section = _changelog_unreleased_section()
+
+        assert re.search(r"breaking", section, flags=re.IGNORECASE), (
+            "CHANGELOG.md's Unreleased section does not record the removal as breaking"
+        )
+
+        named = set(REMOVED_PATTERN.findall(section))
+        missing = sorted(set(REMOVED_IDENTIFIERS) - named)
+        assert missing == [], (
+            f"CHANGELOG.md's Unreleased section does not map: {missing}"
+        )
