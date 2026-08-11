@@ -1036,3 +1036,58 @@ class TestInvalidSecondSetLeavesNothingSaved:
         assert project.tasks.count() == 0
         assert project.notes.count() == 0
 
+
+# ---------------------------------------------------------------------------
+# T032 — two sets carrying a same-named field each receive only their own
+# rows' values (US2 s4)
+# ---------------------------------------------------------------------------
+
+
+class _PrimaryTaskInline(InlineFormSet):
+    model = ProjectTask
+    fields = ["title"]
+    prefix = "primary"
+
+
+class _SecondaryTaskInline(InlineFormSet):
+    model = ProjectTask
+    fields = ["title"]
+    prefix = "secondary"
+
+
+@pytest.mark.django_db
+class TestSameNamedFieldAcrossSetsStaysScoped:
+    """Two sets sharing a field name (``title``, on the same related model
+    through the same relation, distinguished only by an explicit prefix)
+    each receive only their own rows' submitted values."""
+
+    def test_each_set_receives_only_its_own_values(self):
+        project = ProjectFactory(name="Original")
+        view_cls = _inline_update_view_class(
+            success_url="/done/",
+            inlines=[_PrimaryTaskInline, _SecondaryTaskInline],
+        )
+        data = {
+            "name": "Original",
+            "primary-TOTAL_FORMS": "1",
+            "primary-INITIAL_FORMS": "0",
+            "primary-MIN_NUM_FORMS": "0",
+            "primary-MAX_NUM_FORMS": "1000",
+            "primary-0-title": "Primary title",
+            "secondary-TOTAL_FORMS": "1",
+            "secondary-INITIAL_FORMS": "0",
+            "secondary-MIN_NUM_FORMS": "0",
+            "secondary-MAX_NUM_FORMS": "1000",
+            "secondary-0-title": "Secondary title",
+        }
+
+        _, response = _dispatch(
+            view_cls, method="POST", data=data, view_kwargs={"pk": project.pk}
+        )
+
+        assert response.status_code == 302
+        assert set(project.tasks.values_list("title", flat=True)) == {
+            "Primary title",
+            "Secondary title",
+        }
+
