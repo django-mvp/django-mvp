@@ -198,7 +198,16 @@ migratable, discoverable feature.
 
 ### Key Entities
 
-- **Row set declaration**: One related model's configuration for one page — which model, which of its fields or which form, how many blank rows, whether rows can be removed, any cap, its prefix, its heading and help text, and which relation to the parent it uses. Written once and reusable across views. Its parameters are split into those that shape the generated formset class and those that shape the formset instance.
+- **Row set declaration**: One related model's configuration for one page, written once and reusable across views. It carries:
+
+  - the related model, and which relation to the parent it uses
+  - which of that model's fields to edit, or a form that decides
+  - how many blank rows to offer, and whether rows can be removed
+  - a cap on the number of rows
+  - the prefix its rows submit under
+  - the heading shown above the set, and any help text below it
+
+  Its parameters are split into those that shape the generated formset class and those that shape the formset instance.
 - **Parent record**: The record the page edits or creates, and the record every set's rows belong to. Its own fields may be absent from the page.
 - **Page**: One parent record and an ordered list of row sets, submitted and saved as a unit.
 
@@ -216,7 +225,7 @@ migratable, discoverable feature.
 ## Clarifications
 
 *Recorded during the clarification scan. Each answer is integrated into the requirement, scenario
-or edge case it affects; this section is the record, not the requirement. Longer rationale is in
+or edge case it affects. This section is the record, not the requirement. Longer rationale is in
 `decisions.md`.*
 
 ### Session 2026-08-11 (clarification scan)
