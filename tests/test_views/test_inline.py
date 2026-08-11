@@ -13,8 +13,21 @@ from django.core.exceptions import ImproperlyConfigured
 from django.test import RequestFactory
 
 from demo.models import Project, ProjectNote, ProjectTask
-from mvp.views.inline import InlineFormSet
+from mvp.views.inline import InlineFormSet, InlinesMixin
 from tests.factories import ProjectFactory, ProjectNoteFactory, ProjectTaskFactory
+
+
+class _StubInlinesView(InlinesMixin):
+    """A bare object mixing in ``InlinesMixin``, for testing its methods in
+    isolation from the rest of the view stack."""
+
+    def __init__(self, model, object, queryset=None):
+        self.model = model
+        self.object = object
+        self.queryset = queryset
+
+    def get_queryset(self):
+        return self.queryset
 
 # ---------------------------------------------------------------------------
 # T001 — fixture models and factories for the whole feature
@@ -251,3 +264,66 @@ class TestGetFormsetKwargs:
 
         assert cls.form_kwargs == {"label_suffix": "!"}
         assert second.get_formset_kwargs()["form_kwargs"] == {"label_suffix": "!"}
+
+
+# ---------------------------------------------------------------------------
+# T009 — get_title() defaults to verbose_name_plural (FR-011)
+# ---------------------------------------------------------------------------
+
+
+class TestGetTitle:
+    """``get_title()`` defaults to the related model's ``verbose_name_plural``
+    and an explicit ``title`` overrides it."""
+
+    def _declaration(self, **attrs):
+        cls = type("TaskInline", (InlineFormSet,), {"model": ProjectTask, **attrs})
+        return cls(parent_model=Project, request=None, instance=None, view=None)
+
+    def test_defaults_to_verbose_name_plural(self):
+        declaration = self._declaration()
+
+        assert declaration.get_title() == ProjectTask._meta.verbose_name_plural
+
+    def test_explicit_title_overrides_the_default(self):
+        declaration = self._declaration(title="Custom heading")
+
+        assert declaration.get_title() == "Custom heading"
+
+    def test_get_description_has_no_default(self):
+        declaration = self._declaration()
+
+        assert declaration.get_description() is None
+
+    def test_explicit_description_is_returned(self):
+        declaration = self._declaration(description="Help text")
+
+        assert declaration.get_description() == "Help text"
+
+
+# ---------------------------------------------------------------------------
+# T011 — get_parent_model() resolution (FR-007, US1 s5)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+class TestGetParentModel:
+    """``get_parent_model()`` resolves the parent the way Django's own
+    model-form pages resolve it: ``self.model``, then the loaded object's
+    class, then the queryset's model."""
+
+    def test_resolves_from_model_attribute(self):
+        stub = _StubInlinesView(model=Project, object=None)
+
+        assert stub.get_parent_model() is Project
+
+    def test_resolves_from_a_loaded_object_when_model_is_unset(self):
+        project = ProjectFactory()
+        stub = _StubInlinesView(model=None, object=project)
+
+        assert stub.get_parent_model() is Project
+
+    def test_resolves_from_queryset_alone(self):
+        stub = _StubInlinesView(model=None, object=None)
+        stub.queryset = Project.objects.all()
+
+        assert stub.get_parent_model() is Project
