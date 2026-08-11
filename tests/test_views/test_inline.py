@@ -12,6 +12,7 @@ import pytest
 from django.core.exceptions import ImproperlyConfigured
 
 from demo.models import Project, ProjectNote, ProjectTask
+from mvp.views.inline import InlineFormSet
 from tests.factories import ProjectFactory, ProjectNoteFactory, ProjectTaskFactory
 
 # ---------------------------------------------------------------------------
@@ -45,3 +46,20 @@ class TestRowSetFixtures:
     def test_project_task_and_project_note_are_distinct_related_models(self):
         assert ProjectTask is not ProjectNote
         assert Project._meta.get_field("name")
+
+
+# ---------------------------------------------------------------------------
+# T002 — a declaration naming no model raises ImproperlyConfigured (FR-006)
+# ---------------------------------------------------------------------------
+
+
+class TestInlineFormSetRequiresModel:
+    """A declaration class that does not name a related model raises
+    ``ImproperlyConfigured`` naming the declaration class (FR-006, US1 s3)."""
+
+    def test_missing_model_raises_improperly_configured_naming_the_class(self):
+        class TaskInline(InlineFormSet):
+            fields = ["title"]
+
+        with pytest.raises(ImproperlyConfigured, match="TaskInline"):
+            TaskInline(parent_model=Project, request=None, instance=None, view=None)
