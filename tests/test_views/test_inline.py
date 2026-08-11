@@ -1247,3 +1247,50 @@ class TestFkNameBuildsAgainstNamedRelation:
 
         formset = response.context_data["inlines"][0]
         assert list(formset.queryset) == [cross_note]
+
+
+# ---------------------------------------------------------------------------
+# T037 — two sets each with an invalid row both report their own errors on
+# redisplay (US3 s1, FR-008)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+class TestBothSetsReportErrorsOnRedisplay:
+    """Two sets each carrying an invalid row: the redisplayed page shows an
+    error against both rows, asserted from the response context's formsets.
+
+    The parent form here is valid, so this path already runs through
+    ``form_valid``'s ``all_valid`` call (US1/US2) — no production change is
+    expected; this test pins the behaviour that already generalised.
+    """
+
+    def test_both_sets_report_their_own_row_errors(self):
+        project = ProjectFactory(name="Original")
+        view_cls = _inline_update_view_class(
+            success_url="/done/", inlines=[TaskInline, NoteViaProjectInline]
+        )
+        data = {
+            "name": "Original",
+            "tasks-TOTAL_FORMS": "1",
+            "tasks-INITIAL_FORMS": "0",
+            "tasks-MIN_NUM_FORMS": "0",
+            "tasks-MAX_NUM_FORMS": "1000",
+            "tasks-0-title": "x" * 201,
+            "notes-TOTAL_FORMS": "1",
+            "notes-INITIAL_FORMS": "0",
+            "notes-MIN_NUM_FORMS": "0",
+            "notes-MAX_NUM_FORMS": "1000",
+            "notes-0-text": "x" * 201,
+        }
+
+        _, response = _dispatch(
+            view_cls, method="POST", data=data, view_kwargs={"pk": project.pk}
+        )
+
+        assert response.status_code == 200
+        inlines = response.context_data["inlines"]
+        assert not inlines[0].is_valid()
+        assert inlines[0].forms[0].errors
+        assert not inlines[1].is_valid()
+        assert inlines[1].forms[0].errors
