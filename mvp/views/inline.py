@@ -78,9 +78,7 @@ class InlineFormSet:
 
     def __init__(self, parent_model, request, instance, view):
         if self.model is None:
-            raise ImproperlyConfigured(
-                f"'{self.__class__.__name__}' must set 'model'."
-            )
+            raise ImproperlyConfigured(f"'{self.__class__.__name__}' must set 'model'.")
         self.parent_model = parent_model
         self.request = request
         self.instance = instance
@@ -104,7 +102,15 @@ class InlineFormSet:
         mutate the result.
         """
         kwargs = {}
-        for name in ("fields", "exclude", "form", "formset", "extra", "can_delete", "fk_name"):
+        for name in (
+            "fields",
+            "exclude",
+            "form",
+            "formset",
+            "extra",
+            "can_delete",
+            "fk_name",
+        ):
             value = getattr(self, name)
             if value is not None:
                 kwargs[name] = value
@@ -205,7 +211,7 @@ class InlinesMixin:
     ``mvp/views/__init__.py``: the package exports views, not mixins.
     """
 
-    inlines = []
+    inlines: list[type[InlineFormSet]] = []
 
     def get_inlines(self):
         """Return the declaration classes to build, in the order given."""
