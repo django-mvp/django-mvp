@@ -21,6 +21,7 @@ from demo.models import Article, Category, OrderLine, Product
 from demo.tables import ProductTable
 from mvp.integrations.django_tables.views import MVPTableViewMixin
 from mvp.views import (
+    InlineFormSet,
     MVPCreateView,
     MVPDeleteView,
     MVPDetailView,
@@ -255,6 +256,19 @@ class ProductUpdateView(MVPUpdateView):
     show_delete_action = True
 
 
+class OrderLineInline(InlineFormSet):
+    """The order lines shown beneath a product."""
+
+    model = OrderLine
+    fields = ["quantity"]
+    extra = 1
+    title = _("Order lines")
+    description = _(
+        "How many of this product each order asked for. Add a row per order, "
+        "or remove one to drop it when you save."
+    )
+
+
 class ProductOrderLinesView(MVPInlineUpdateView):
     """A product and its order lines, validated and saved together.
 
@@ -264,14 +278,7 @@ class ProductOrderLinesView(MVPInlineUpdateView):
 
     model = Product
     fields = ["name", "category"]
-    inline_model = OrderLine
-    inline_fields = ["quantity"]
-    inline_extra = 1
-    inline_title = _("Order lines")
-    inline_description = _(
-        "How many of this product each order asked for. Add a row per order, "
-        "or remove one to drop it when you save."
-    )
+    inlines = [OrderLineInline]
     success_url = "list"
     show_list_action = True
     show_detail_action = True

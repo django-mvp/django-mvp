@@ -73,19 +73,7 @@ class TaskInline(InlineFormSet):
 
 
 def _stub_attrs(**overrides):
-    """The shared stub configuration: a Project parent with ProjectTask rows.
-
-    ``tests/test_components/test_form_formset.py`` imports the two view-class
-    builders below alongside ``_field_value``/``_dispatch``/``_rendered_html``
-    — they predate this story and exercised the removed ``inline_*``
-    attributes against ``Product``/``OrderLine``. Kept here, re-pointed at
-    this story's ``InlineFormSet`` surface and fixtures, so that file still
-    *collects* rather than erroring on import; the handful of its own tests
-    that assert on the old attribute names or Product/OrderLine field
-    prefixes now fail honestly, which is correct — that configuration no
-    longer exists. See this story's completion report for the concern this
-    is reported under.
-    """
+    """The shared stub configuration: a Project parent with ProjectTask rows."""
     return {
         "model": Project,
         "fields": ["name"],
