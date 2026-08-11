@@ -1546,3 +1546,47 @@ class TestCreatePageRefusedByItsParentFormPersistsNothing:
         assert _field_value(html, "tasks-0-title") == "A Valid Row"
         assert Project.objects.count() == 0
         assert ProjectTask.objects.count() == 0
+
+
+# ---------------------------------------------------------------------------
+# US4 — a page that edits only the related rows (#213)
+#
+# `fields = []` on an update view is the whole configuration: no new view
+# class, no page-selecting attribute (plan.md "The rows-only page").
+# ---------------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------------
+# T042 — a rows-only page renders no parent field, and every set against the
+# record the URL identifies (FR-014, US4 s1)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+class TestRowsOnlyPageRendersNoParentFields:
+    """An update view configured with ``fields = []`` renders no parent
+    field, and every configured set against the record the URL identifies."""
+
+    def test_no_parent_field_input_renders(self):
+        project = ProjectFactory(name="Website revamp")
+        view_cls = _inline_update_view_class(success_url="/done/", fields=[])
+
+        _, response = _dispatch(view_cls, method="GET", view_kwargs={"pk": project.pk})
+        html = _rendered_html(response)
+
+        assert _field_value(html, "name") is None
+
+    def test_each_sets_rows_are_the_urls_record_rows(self):
+        project = ProjectFactory(name="Website revamp")
+        other_project = ProjectFactory(name="Someone else's project")
+        ProjectTaskFactory(project=project, title="Mine")
+        ProjectTaskFactory(project=other_project, title="Not mine")
+        view_cls = _inline_update_view_class(success_url="/done/", fields=[])
+
+        _, response = _dispatch(view_cls, method="GET", view_kwargs={"pk": project.pk})
+
+        inlines = response.context_data["inlines"]
+        assert len(inlines) == 1
+        assert {
+            form.instance.title for form in inlines[0].forms if form.instance.pk
+        } == {"Mine"}
