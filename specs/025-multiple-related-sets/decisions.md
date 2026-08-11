@@ -20,6 +20,8 @@ case FR-005 turns into an error. Inventing a derivation from the model name inst
 made the common two-relations case fail for no reason, and would have diverged from what
 django-extra-views produces for the same configuration.
 
+**ADR:** none — this is Django's own documented behaviour, not a decision this package made. Where it matters to a developer it is stated in [ADR 0007](../../docs/adr/0007-a-row-set-is-declared-as-its-own-class.md) and in the formsets guide.
+
 ## D2 — The view class names do not change
 
 **Ambiguous**: the feature folds django-extra-views' two view classes into one and removes the
@@ -33,6 +35,8 @@ import as well would double the size of the rewrite a project has to perform, an
 note would have to carry two unrelated changes. "Inline" is also still the right word: it is
 Django admin's word for exactly this idea, and the rows-only page is an inline page with the
 parent's fields hidden rather than a different kind of page. Recorded as FR-024.
+
+**ADR:** none — a migration-cost judgement, local to this release and recorded in the changelog where an upgrading reader will meet it.
 
 ## D3 — The declaration class is not an exhaustive parameter surface
 
@@ -54,6 +58,8 @@ itself uses for `get_form_kwargs`. It also matches django-extra-views, whose `fa
 attribute per Django kwarg would grow the public surface this package has to keep compatible for
 every parameter Django ever adds, against constitution Article II. Recorded as FR-020.
 
+**ADR:** docs/adr/0007-a-row-set-is-declared-as-its-own-class.md — graduated as part of the declaration's surface, which is what downstream inherits.
+
 ## D4 — The spec uses the repository's glossary, not the issue's wording
 
 **Ambiguous**: the tracking issue says "related set"; `CONTEXT.md` defines **row set** and
@@ -67,6 +73,8 @@ adds one rather than introducing an undefined term.
 **Why defensible**: the repository glossary is canonical by constitution Article VI, and a spec
 that invents a synonym for a defined term is how the glossary rots. Keeping the issue's phrase
 visible once means a reader arriving from #194 is not left guessing.
+
+**ADR:** none — a house-style ruling about this repository's glossary, with nothing downstream inheriting it.
 
 ## D5 — The row cap keeps FS-024's enforcement, per set
 
@@ -85,6 +93,8 @@ FS-024 recorded it as D25 after a design-review round demonstrated that bounding
 ceiling to the cap plus extras rejects legitimate submissions, because Django reads the raw
 submitted total before subtracting deleted rows. Recorded as FR-013.
 
+**ADR:** docs/adr/0008-the-inline-pages-save-path-across-many-sets.md — carried into the restated save path, since the reasoning about the absolute ceiling is the part most likely to be undone by someone tidying up.
+
 ## D6 — FS-024's single-set assumption is annotated, not left standing
 
 **Ambiguous**: FS-024's spec states, under Assumptions and in an intake clarification, that the
@@ -98,6 +108,8 @@ it to FS-025, landing in this feature's pull request. Nothing is deleted.
 would erase the decision rather than supersede it, and leaving it untouched would leave a reader
 believing a limit that no longer exists. The strike-and-forward-tag form is the established
 convention for this across the family.
+
+**ADR:** none — an editorial rule about how superseded specification text is annotated, not an architectural decision.
 
 ## D7 — No compatibility shim, and no parity requirement
 
@@ -123,6 +135,8 @@ attributes.
 
 Amended in place: US-1's narrative, its independent test and its first acceptance scenario;
 SC-005; and Assumptions.
+
+**ADR:** none — a scope ruling for this release. Its outcome is in the changelog; nothing downstream inherits the reasoning.
 
 ## D8 — Design review, one round: nine findings applied
 
@@ -181,6 +195,8 @@ the single-form pages already use.
 
 **Design-review budget: 1 of 1 used.** The reviewer was not re-dispatched on the fixes.
 
+**ADR:** none — a record of one review round and its dispositions, local to this run.
+
 ## D9 — The surface is named after Django, not after its prior art
 
 **Sam's ruling at the plan gate**, 2026-08-11, overturning the naming premise the spec and research
@@ -206,6 +222,8 @@ and "Factory" was borrowed rather than chosen.
 
 The prior art keeps its place: the `factory_kwargs`/`formset_kwargs` split is a good idea and is
 taken. Read it for ideas, not for names.
+
+**ADR:** docs/adr/0007-a-row-set-is-declared-as-its-own-class.md — graduated. This is the decision that governs every name in the public surface, so it is the one a later reader most needs to find.
 
 ## D10 — The rows-only page touches the parent's timestamp, and never saves its form
 
@@ -235,6 +253,8 @@ Two consequences stated rather than left to be discovered: the touch happens ins
 transaction, and it fires the model's save signals and any lifecycle hooks. Both are intended — a
 parent-level "something changed" is not observable otherwise — but neither is silent.
 
+**ADR:** docs/adr/0009-a-rows-only-page-touches-the-parent-rather-than-saving-it.md — graduated, with the measurements, because the obvious implementation loses data and someone will reach for it.
+
 ## D11 — `min_num` is in, `can_order` is not, and display order is a third thing
 
 The S3R round dropped `min_num`, `can_order` and `validate_min` together as unrequested surface
@@ -251,6 +271,8 @@ are not.
   then blanks". It is a method, `sort_forms`, and it is **display only** — reordering the sequence a
   formset validates or writes in would change which submitted row maps to which record. Recorded as
   FR-022, with a test that pins the saved order as unaffected.
+
+**ADR:** docs/adr/0007-a-row-set-is-declared-as-its-own-class.md — graduated as part of the surface; the ADR states why `can_order` is absent and where it remains reachable.
 
 ## D12 — Per-form keyword arguments use Django's signature
 
@@ -276,6 +298,8 @@ from a list of permitted kinds — one form per kind, present or not — is a th
 on top, using this hook plus the formset's own initial data. Agreed with Sam; it does not come into
 this package.
 
+**ADR:** docs/adr/0007-a-row-set-is-declared-as-its-own-class.md — graduated as part of the surface, including why the hook takes an index.
+
 ## D13 — US1's tamper flags are approved; the regressions they hid are not
 
 `forge tamper-check` flagged two pre-existing test files modified in US1: `tests/factories.py` and
@@ -298,6 +322,8 @@ own local view class over `Product`/`OrderLine`, and the cross-file helper impor
 removal task owns every live consumer in the repo, and a story that ends red has to prove the red
 predates it — `git checkout <base> -- <paths>` and re-run is one command.
 
+**ADR:** none — a run-level triage record and a working rule for implementers. The rule belongs in the org's own method notes rather than in this repository's architecture record.
+
 ## D14 — US2's tamper flag is a file-granularity false positive
 
 `forge tamper-check` flagged `tests/test_views/test_inline.py` again. This time the flag carries no
@@ -314,6 +340,8 @@ code — the prefix-collision guard. The loop, the single transaction, the valid
 pass and per-set formset construction that US1 built for one set already generalise to many, which
 is why eleven of the thirteen new tests were green on first run. Verified rather than accepted: the
 production change was reverted against the US2 tests, and exactly the two collision tests went red.
+
+**ADR:** none — an observation about a tooling check's granularity, with no bearing on the package's design.
 
 ## D15 — the surface rewrite dropped three landed guards, restored at US3
 
@@ -350,3 +378,5 @@ diff the class names against the base and account for every one that disappears 
 an absence needs a replacement or a reason. `git show <base>:<path> | grep '^class '` against the
 same grep on the branch is the whole check, and it would have caught the #193 regression on the day
 US1 landed.
+
+**ADR:** none — a record of guards dropped and restored during the rewrite. The guards themselves are tests in the repository; the incident is a run record.
