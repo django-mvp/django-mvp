@@ -314,3 +314,39 @@ code — the prefix-collision guard. The loop, the single transaction, the valid
 pass and per-set formset construction that US1 built for one set already generalise to many, which
 is why eleven of the thirteen new tests were green on first run. Verified rather than accepted: the
 production change was reverted against the US2 tests, and exactly the two collision tests went red.
+
+## D15 — the surface rewrite dropped three landed guards, restored at US3
+
+US3's own work held up. Its report claimed one of five tasks needed no production code, and the
+revert probe confirms it: with `form_invalid` removed, exactly two of the new tests go red and the
+other 56 stay green, T037 among them. Its test for the parent-invalid path reads `formset._errors
+is not None` rather than `formset.errors`, which is right — both `errors` and `non_form_errors`
+validate on access, so an assertion against either passes whether or not the view validated
+anything. The tamper flag on the test file is D14's shape again: 147 insertions, 0 deletions.
+
+What US3 surfaced by accident is the more interesting finding. T041 re-reads `self.object` before
+redisplaying, which is the fix that landed on `main` as PR #195 (issue #193) on 2026-08-10 — and it
+had to be written again because US1's `T001` replaced every class in
+`tests/test_views/test_inline.py`, dropping that regression test, and US1's rewrite of `inline.py`
+dropped the guard it protected. The feature branch carried the #193 defect from US1 until US3
+happened to specify the same behaviour from the spec side. Nothing caught it in between.
+
+Comparing class names between `origin/main` and the branch finds two more with no replacement:
+
+- **The single transaction under a save-time failure** (FR-009, SC-002). The branch's remaining
+  atomicity test uses a row that fails *validation*, which never enters the transaction at all, so
+  it cannot distinguish wrapped writes from merely ordered ones. Restored and probed: replacing
+  `transaction.atomic()` with a null context turns it red on the parent's changed name.
+- **The remove control.** A submitted `DELETE` flag deleting an existing row, and creating nothing
+  for a row added and removed in the same submission — the count FR-013 excludes from a cap.
+
+A third, weaker gap: the create page refused by its own parent form. US3 covers the update path;
+create is where `self.object` is `None` throughout. Restored too.
+
+**The rule this earns:** Sam's ruling that this feature is an overhaul, not a port, licenses a
+difference in *behaviour* from what the removed attributes produced. It does not license dropping
+coverage of behaviour the new spec still requires. When a story replaces a test file wholesale,
+diff the class names against the base and account for every one that disappears — a rename is fine,
+an absence needs a replacement or a reason. `git show <base>:<path> | grep '^class '` against the
+same grep on the branch is the whole check, and it would have caught the #193 regression on the day
+US1 landed.
