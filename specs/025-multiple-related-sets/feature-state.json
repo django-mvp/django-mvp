@@ -3,7 +3,7 @@
   "feature": "025-multiple-related-sets",
   "branch": "025-multiple-related-sets",
   "repo": "django-mvp/django-mvp",
-  "state": "CONVERGE",
+  "state": "GATE_MERGE",
   "state_history": [
     {
       "state": "INTAKE",
@@ -59,6 +59,21 @@
       "state": "CONVERGE",
       "at": "2026-08-11T18:05:00Z",
       "note": "Ledger reconciled from the run journal, the commit range and an independent verify. It had been left frozen at 'US1 in_progress, 0/24' through the whole of S4 while every story was in fact dispatched, verified and accepted \u2014 the journal, the story comments and the commits all recorded it and the ledger did not."
+    },
+    {
+      "state": "REVIEW",
+      "at": "2026-08-11T18:25:00Z",
+      "note": "One reviewer, single round, approve with one low finding. Six probes reverted real production code and each broke exactly the intended test; class-name diff against main confirmed no coverage dropped in the test-file rewrite."
+    },
+    {
+      "state": "PR_READY",
+      "at": "2026-08-11T18:55:00Z",
+      "note": "REV-001 fixed on the branch (d1853cc): the sort_forms guard used two existing rows, which cannot distinguish display order reaching the save path from it not doing so. Mixed initial+extra case added and proved to discriminate. 823 passing, forge verify green, all CI checks green, PR #215 out of draft."
+    },
+    {
+      "state": "GATE_MERGE",
+      "at": "2026-08-11T18:58:00Z",
+      "note": "Awaiting Sam's merge."
     }
   ],
   "gates": {
