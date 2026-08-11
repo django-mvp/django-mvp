@@ -951,3 +951,43 @@ class TestDuplicatePrefixRaisesAtBuildTime:
         with pytest.raises(ImproperlyConfigured):
             view_cls.as_view()(request, pk=project.pk)
 
+
+# ---------------------------------------------------------------------------
+# T030 — a submission adding a row to each set saves both against the
+# parent (US2 s2)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+class TestMultiSetValidSubmission:
+    """A submission adding a row to each of two sets saves both, and both
+    rows belong to the parent record."""
+
+    def test_rows_added_to_both_sets_are_saved_against_the_parent(self):
+        project = ProjectFactory(name="Original")
+        view_cls = _inline_update_view_class(
+            success_url="/done/", inlines=[TaskInline, NoteViaProjectInline]
+        )
+        data = {
+            "name": "Original",
+            "tasks-TOTAL_FORMS": "1",
+            "tasks-INITIAL_FORMS": "0",
+            "tasks-MIN_NUM_FORMS": "0",
+            "tasks-MAX_NUM_FORMS": "1000",
+            "tasks-0-title": "New task",
+            "notes-TOTAL_FORMS": "1",
+            "notes-INITIAL_FORMS": "0",
+            "notes-MIN_NUM_FORMS": "0",
+            "notes-MAX_NUM_FORMS": "1000",
+            "notes-0-text": "New note",
+        }
+
+        _, response = _dispatch(
+            view_cls, method="POST", data=data, view_kwargs={"pk": project.pk}
+        )
+
+        assert response.status_code == 302
+        project.refresh_from_db()
+        assert set(project.tasks.values_list("title", flat=True)) == {"New task"}
+        assert set(project.notes.values_list("text", flat=True)) == {"New note"}
+
