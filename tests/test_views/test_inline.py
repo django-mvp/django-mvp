@@ -1590,3 +1590,25 @@ class TestRowsOnlyPageRendersNoParentFields:
         assert {
             form.instance.title for form in inlines[0].forms if form.instance.pk
         } == {"Mine"}
+
+
+# ---------------------------------------------------------------------------
+# T043 — `fields = None` still raises Django's own error: only an empty
+# collection selects the rows-only page (plan risk 4)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+class TestFieldsNoneStillRaisesDjangosOwnError:
+    """``fields = None`` (Django's "not configured") is not treated as
+    ``fields = []`` (this feature's "deliberately none"). The unconfigured
+    page still raises Django's own error, not this feature's."""
+
+    def test_unconfigured_fields_raises_djangos_own_message(self):
+        project = ProjectFactory()
+        view_cls = _inline_update_view_class(success_url="/done/", fields=None)
+
+        with pytest.raises(ImproperlyConfigured) as excinfo:
+            _dispatch(view_cls, method="GET", view_kwargs={"pk": project.pk})
+
+        assert "without the 'fields' attribute is prohibited" in str(excinfo.value)
