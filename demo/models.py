@@ -255,10 +255,11 @@ class OrderLine(models.Model):
 
 
 class Project(models.Model):
-    """Parent record for row-set declaration tests (FS-025).
+    """A parent record carrying two related models, one of which reaches it
+    by two relations — ``ProjectTask`` and ``ProjectNote`` below.
 
-    Exists solely so ``InlineFormSet`` tests have a parent carrying two
-    distinct related models, one of which reaches the parent by two relations.
+    Backs the demo's two-set page (FS-025) and the ``InlineFormSet`` tests
+    it shares fixtures with.
     """
 
     name = models.CharField(
@@ -276,9 +277,8 @@ class Project(models.Model):
 
 
 class ProjectTask(models.Model):
-    """A task belonging to a project — one related model on ``Project``.
-
-    Exists solely for ``InlineFormSet`` tests (FS-025).
+    """A task belonging to a project — one of the two row sets on the
+    demo's two-set page (FS-025).
     """
 
     project = models.ForeignKey(
@@ -304,8 +304,10 @@ class ProjectTask(models.Model):
 
 class ProjectNote(models.Model):
     """A note belonging to a project, reachable from ``Project`` by two
-    relations — exercises a per-relation prefix default and ``fk_name``
-    disambiguation. Exists solely for ``InlineFormSet`` tests (FS-025).
+    relations — the demo's worked example (FS-025) of a declaration that
+    must name ``fk_name`` and its own ``fields`` explicitly, and exercises
+    a per-relation prefix default in the ``InlineFormSet`` tests it shares
+    fixtures with.
     """
 
     project = models.ForeignKey(

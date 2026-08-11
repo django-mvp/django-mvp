@@ -17,7 +17,15 @@ from django_filters.views import FilterView
 from markdown_it import MarkdownIt
 
 from demo.component_docs import COMPONENTS, COMPONENTS_BY_SLUG
-from demo.models import Article, Category, OrderLine, Product
+from demo.models import (
+    Article,
+    Category,
+    OrderLine,
+    Product,
+    Project,
+    ProjectNote,
+    ProjectTask,
+)
 from demo.tables import ProductTable
 from mvp.integrations.django_tables.views import MVPTableViewMixin
 from mvp.views import (
@@ -26,6 +34,7 @@ from mvp.views import (
     MVPDeleteView,
     MVPDetailView,
     MVPHomeView,
+    MVPInlineCreateView,
     MVPInlineUpdateView,
     MVPTemplateView,
     MVPUpdateView,
@@ -282,6 +291,59 @@ class ProductOrderLinesView(MVPInlineUpdateView):
     success_url = "list"
     show_list_action = True
     show_detail_action = True
+
+
+class ProductOrderLinesRowsOnlyView(MVPInlineUpdateView):
+    """A product's order lines, with no parent fields on the page at all.
+
+    ``fields = []`` selects the rows-only page: the parent form is never
+    saved, and ``touch_parent`` (on by default) records the change on
+    ``Product.updated_at`` instead, since that field is ``auto_now``. See
+    "The rows-only page" in docs/formsets.md.
+    """
+
+    model = Product
+    fields = []
+    inlines = [OrderLineInline]
+    success_url = "list"
+    show_list_action = True
+    show_detail_action = True
+
+
+class ProjectTaskInline(InlineFormSet):
+    """The tasks on a project — one of two row sets on the same page."""
+
+    model = ProjectTask
+    fields = ["title"]
+    extra = 1
+
+
+class ProjectNoteInline(InlineFormSet):
+    """The notes on a project — the second row set on the same page.
+
+    ``ProjectNote`` reaches ``Project`` by two relations (``project`` and
+    ``related_project``), so ``fk_name`` names the one this set edits, and
+    ``fields`` is named explicitly rather than left to ``exclude`` — see
+    the multi-relation warning in docs/formsets.md.
+    """
+
+    model = ProjectNote
+    fields = ["text"]
+    fk_name = "project"
+    extra = 1
+
+
+class ProjectCreateView(MVPInlineCreateView):
+    """A project created together with its tasks and notes — two row sets
+    on one page, each under its own default heading.
+
+    docs/formsets.md walks through this exact page.
+    """
+
+    model = Project
+    fields = ["name"]
+    inlines = [ProjectTaskInline, ProjectNoteInline]
+    success_url = "/"
 
 
 class ProductDeleteView(MVPDeleteView):
