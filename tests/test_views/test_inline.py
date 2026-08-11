@@ -773,3 +773,53 @@ class TestSortFormsIsDisplayOnly:
         second.refresh_from_db()
         assert first.title == "Updated First"
         assert second.title == "Updated Second"
+
+
+# ---------------------------------------------------------------------------
+# T024 — InlineFormsetMixin and the six inline_* attributes are gone;
+# InlineFormSet is exported, MVPInlineCreateView/MVPInlineUpdateView keep
+# their names (FR-024)
+# ---------------------------------------------------------------------------
+
+
+class TestInlineViewsPublicAPI:
+    """``mvp.views`` exports the declaration class and the two concrete
+    views, not ``InlinesMixin`` — the rule already stated in
+    ``mvp/views/__init__.py``: the package exports views, not mixins."""
+
+    def test_inline_form_set_is_exported(self):
+        from mvp.views import InlineFormSet as ExportedInlineFormSet
+
+        assert ExportedInlineFormSet is InlineFormSet
+
+    def test_create_and_update_views_keep_their_names(self):
+        from mvp.views import MVPInlineCreateView, MVPInlineUpdateView
+
+        assert MVPInlineCreateView is not None
+        assert MVPInlineUpdateView is not None
+
+    def test_inlines_mixin_is_not_exported(self):
+        import mvp.views
+
+        assert not hasattr(mvp.views, "InlinesMixin")
+
+    def test_the_old_inline_formset_mixin_no_longer_exists(self):
+        import mvp.views.inline
+
+        assert not hasattr(mvp.views.inline, "InlineFormsetMixin")
+
+    def test_no_inline_star_attribute_survives_on_the_new_surface(self):
+        removed = {
+            "inline_model",
+            "inline_fields",
+            "inline_extra",
+            "inline_can_delete",
+            "inline_max_num",
+            "inline_title",
+            "inline_description",
+            "inline_form_class",
+        }
+        present = removed & set(dir(InlineFormSet)) | removed & set(
+            dir(InlinesMixin)
+        )
+        assert present == set()
