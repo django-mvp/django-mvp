@@ -297,3 +297,20 @@ own local view class over `Product`/`OrderLine`, and the cross-file helper impor
 **The rule this earns:** deleting a public attribute is not scoped to the file that defines it. A
 removal task owns every live consumer in the repo, and a story that ends red has to prove the red
 predates it — `git checkout <base> -- <paths>` and re-run is one command.
+
+## D14 — US2's tamper flag is a file-granularity false positive
+
+`forge tamper-check` flagged `tests/test_views/test_inline.py` again. This time the flag carries no
+information: the diff against the branch point is `436 insertions, 0 deletions`. Every US2 test is a
+new class appended below the US1 material, and nothing pre-existing was touched. The check reports
+at file granularity, so any addition to a file that held tests at `--base` raises it.
+
+Worth knowing for the remaining stories, since US3, US4 and US5 all append to this same file: a flag
+on a purely additive diff is not a triage event. `git diff --numstat <base>..HEAD` settles it in one
+command, and a nonzero deletion count is the thing that actually warrants reading.
+
+US2 also confirmed something the plan predicted but had not proven. Only `T029` needed production
+code — the prefix-collision guard. The loop, the single transaction, the validate-everything-first
+pass and per-set formset construction that US1 built for one set already generalise to many, which
+is why eleven of the thirteen new tests were green on first run. Verified rather than accepted: the
+production change was reverted against the US2 tests, and exactly the two collision tests went red.

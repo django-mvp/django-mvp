@@ -104,7 +104,7 @@
       "id": "US1",
       "priority": "P1",
       "issue": 210,
-      "status": "todo",
+      "status": "in_progress",
       "replans": 0,
       "tasks": [
         {
@@ -227,7 +227,8 @@
           "status": "todo",
           "attempts": 0
         }
-      ]
+      ],
+      "worktree": "/home/sam/projects/django-mvp/mvp-fs025-us1"
     },
     {
       "id": "US2",
