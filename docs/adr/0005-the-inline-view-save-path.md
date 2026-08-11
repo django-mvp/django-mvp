@@ -1,6 +1,11 @@
 # ADR 0005 — The inline view's save path
 
-**Status:** accepted
+**Status:** superseded by [ADR 0008](0008-the-inline-pages-save-path-across-many-sets.md)
+
+> **Superseded 2026-08-11.** The decision itself was right and is carried forward whole. This
+> record is superseded because the class and the attribute it names — `InlineFormsetMixin` and
+> `inline_max_num` — no longer exist, and because two of its steps need more saying once a page can
+> carry several row sets. Kept in place as the record of when each step was decided and why.
 
 ## Decision
 

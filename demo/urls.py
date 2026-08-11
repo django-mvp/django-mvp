@@ -19,8 +19,10 @@ from .views import (
     ProductDeleteWithRelatedView,
     ProductDetailView,
     ProductListView,
+    ProductOrderLinesRowsOnlyView,
     ProductOrderLinesView,
     ProductUpdateView,
+    ProjectCreateView,
 )
 
 urlpatterns = [
@@ -42,6 +44,11 @@ urlpatterns = [
         "products/<int:pk>/order-lines/",
         ProductOrderLinesView.as_view(),
         name="product-order-lines",
+    ),
+    path(
+        "products/<int:pk>/order-lines/rows-only/",
+        ProductOrderLinesRowsOnlyView.as_view(),
+        name="product-order-lines-rows-only",
     ),
     path(
         "products/<int:pk>/delete/", ProductDeleteView.as_view(), name="product-delete"
@@ -68,6 +75,7 @@ urlpatterns = [
         name="category-delete-related",
     ),
     path("articles/<int:pk>/", ArticleDetailView.as_view(), name="article-detail"),
+    path("projects/create/", ProjectCreateView.as_view(), name="project-create"),
     path("django-tables2/", views.DataTablesView.as_view(), name="djangotables2"),
     path("errors/400/", E400, name="error-preview-400"),
     path("errors/403/", E403, name="error-preview-403"),
