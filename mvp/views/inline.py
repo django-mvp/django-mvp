@@ -280,18 +280,16 @@ class InlinesMixin:
             declarations = self.get_inlines()
             if self.is_rows_only() and self.object is None:
                 raise ImproperlyConfigured(
-                    f"'{self.__class__.__name__}' has no parent fields "
-                    f"('fields = []') on a create page, so there is "
-                    f"nothing to create the parent record from. Set "
-                    f"'fields' to at least one field, or use an update "
-                    f"page instead."
+                    f"'{self.__class__.__name__}' sets an empty 'fields' on a "
+                    f"create page, so there is nothing to create the parent "
+                    f"record from. Set 'fields' to at least one field, or use "
+                    f"an update page instead."
                 )
             if self.is_rows_only() and not declarations:
                 raise ImproperlyConfigured(
-                    f"'{self.__class__.__name__}' has no parent fields "
-                    f"('fields = []') and no 'inlines', so the page could "
-                    f"edit nothing. Set 'inlines' to at least one "
-                    f"'InlineFormSet'."
+                    f"'{self.__class__.__name__}' sets an empty 'fields' and no "
+                    f"'inlines', so the page could edit nothing. Set 'inlines' "
+                    f"to at least one 'InlineFormSet'."
                 )
             parent_model = self.get_parent_model()
             formsets = [

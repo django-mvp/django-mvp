@@ -57,26 +57,26 @@ path("products/<int:pk>/order-lines/", ProductOrderLinesView.as_view(), name="pr
 ```
 
 That's the whole configuration. No template markup for the rows, and no code to build,
-validate or save the set:
+validate or save the set.
 
-- **Rendering.** `GET` renders the parent's form and one row per existing `OrderLine`, plus
-  `extra` blank rows. The view's default template (`form_view.html`) already renders each
-  declared set through `<c-form.formset>` when it is in context — see
-  [Components](components.md#actions-user-misc) for what that component renders.
-- **Telling the set apart from the parent's fields.** The set opens with a divider and a
-  heading, so the rows do not read as more fields on the parent's form. `title` sets that
-  heading and `description` puts help text under it. See
-  [the heading below](#more-than-one-set-on-a-page) for what `title` defaults to when it is
-  left unset.
-- **Removing a row.** The control is a trash icon in the row's top right, kept transparent
-  until the row is hovered or something in it takes focus. Its label is the accessible name
-  rather than visible text, and it is overridable with the `remove-label` attribute.
-- **Adding and removing rows.** The add control clones the row markup in the browser. Removing
-  a row hides it and marks it for deletion (a saved row) or drops it (an unsaved one). Neither
-  needs a page reload.
-- **Validation and saving.** A submission is only valid when the parent form and every set are
-  valid. On success the parent is saved, every set's rows are attached to it, and everything
-  saves in one transaction — nothing is half-persisted.
+`GET` renders the parent's form and one row per existing `OrderLine`, plus `extra` blank rows.
+The view's default template (`form_view.html`) renders each declared set through
+`<c-form.formset>` when it is in context — see
+[Components](components.md#actions-user-misc) for what that component renders. The set opens
+with a divider and a heading, so the rows do not read as more fields on the parent's form.
+`title` sets that heading and `description` puts help text under it. See
+[the heading below](#more-than-one-set-on-a-page) for what `title` defaults to when it is left
+unset.
+
+Both row controls work in the browser. The add control clones the row markup. The remove
+control is a trash icon in the row's top right, kept transparent until the row is hovered or
+something in it takes focus, and it hides the row and marks it for deletion if the row is
+already saved or drops it if it is not. Its label is the accessible name rather than visible
+text, overridable with the `remove-label` attribute.
+
+A submission is only valid when the parent form and every set are valid. On success the parent
+is saved and every set's rows are attached to it, all in one transaction, so nothing is ever
+half-persisted.
 
 ## More than one set on a page
 
@@ -293,14 +293,17 @@ parent view around it at all.
 
 ## What you get either way
 
-- **The packaged look.** Every row's fields render through the same crispy field template a
-  single form's fields use — same control, same label, same help text, same error placement.
-- **Errors in the right place.** A row's own errors render inside that row. An error that
-  belongs to a set as a whole — too few rows, a cross-row constraint — renders once, above
-  every row in that set, never collapsed into the row-level messages.
-- **A cap that's actually enforced.** `max_num` (with `validate_min`/`validate_max` set
-  automatically alongside `min_num`/`max_num`) rejects a submission over the limit on the
-  server, and disables the add control in the browser once the limit is reached.
+Every row's fields render through the same crispy field template a single form's fields use,
+so a row gets the same control, label, help text and error placement a parent field does.
+
+A row's own errors render inside that row. An error belonging to a set as a whole, such as too
+few rows or a cross-row constraint, renders once above every row in that set rather than
+collapsed into the row-level messages.
+
+`max_num` is enforced on both sides. It rejects a submission over the limit on the server and
+disables the add control in the browser once the limit is reached. `validate_min` and
+`validate_max` are set automatically alongside `min_num` and `max_num`, since Django's factory
+defaults both to `False` and a bound on its own rejects nothing.
 
 ## Reference
 
