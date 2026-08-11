@@ -1612,3 +1612,103 @@ class TestFieldsNoneStillRaisesDjangosOwnError:
             _dispatch(view_cls, method="GET", view_kwargs={"pk": project.pk})
 
         assert "without the 'fields' attribute is prohibited" in str(excinfo.value)
+
+
+# ---------------------------------------------------------------------------
+# T044 — the rows-only branch: no parent form fields, sets bound to the
+# loaded instance. No new view class, no page-selecting attribute. Verified
+# by T042/T043 above needing no production code — both already green,
+# because `fields = []` renders through Django's own empty-form machinery
+# and every set already binds to `self.object` via the existing multi-set
+# construction (US1-3). Nothing to add here.
+# ---------------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------------
+# T045 — a valid submission saves the rows and leaves the record's own
+# field values unchanged (FR-015, US4 s2)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+class TestRowsOnlySavesRowsLeavesParentFieldValuesUnchanged:
+    """A valid submission on a rows-only page saves the rows against the
+    URL's record, and every one of the parent's own columns reads what it
+    read before the submission."""
+
+    def test_rows_land_and_parent_field_values_are_unchanged(self):
+        project = ProjectFactory(name="Original")
+        view_cls = _inline_update_view_class(success_url="/done/", fields=[])
+        data = {
+            "tasks-TOTAL_FORMS": "1",
+            "tasks-INITIAL_FORMS": "0",
+            "tasks-MIN_NUM_FORMS": "0",
+            "tasks-MAX_NUM_FORMS": "1000",
+            "tasks-0-title": "New task",
+        }
+
+        _, response = _dispatch(
+            view_cls, method="POST", data=data, view_kwargs={"pk": project.pk}
+        )
+
+        assert response.status_code == 302
+        project.refresh_from_db()
+        assert project.name == "Original"
+        assert set(project.tasks.values_list("title", flat=True)) == {"New task"}
+
+
+# ---------------------------------------------------------------------------
+# T047 — the concurrency test: a change another writer makes to the
+# parent's own field while the rows-only page is open survives the
+# submission (FR-015, US4 s4, research R12)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+class TestConcurrentWriteToParentFieldSurvivesTheSubmission:
+    """Load the rows-only page for a parent, have another writer change one
+    of that parent's own fields while the page is open, then post the
+    submission from the page that was loaded. That other change must
+    survive — this is red against a naive ``form.save()`` implementation
+    and green against never saving the parent form (FR-015, R12).
+
+    Django's own ``UpdateView.post()`` re-fetches the object fresh at the
+    start of every request, so the race this simulates is not "another
+    request landed between GET and POST" (a fresh POST already sees that)
+    but the narrower, real window every writer has to contend with: another
+    writer's change lands after this request has already read its own copy
+    of the record and before this request writes anything back. Monkey-
+    patching ``get_object`` to perform that second write immediately after
+    the read is what puts a genuinely stale value in this request's memory.
+    """
+
+    def test_concurrent_change_to_parent_field_survives(self, monkeypatch):
+        project = ProjectFactory(name="Original")
+        view_cls = _inline_update_view_class(success_url="/done/", fields=[])
+        original_get_object = view_cls.get_object
+
+        def get_object_then_concurrent_write(self, queryset=None):
+            obj = original_get_object(self, queryset)
+            # Simulate another process changing this record's own field in
+            # the window between this request reading it and writing it
+            # back — a raw queryset write that bypasses `obj` entirely.
+            Project.objects.filter(pk=obj.pk).update(name="Changed By Someone Else")
+            return obj
+
+        monkeypatch.setattr(view_cls, "get_object", get_object_then_concurrent_write)
+        data = {
+            "tasks-TOTAL_FORMS": "1",
+            "tasks-INITIAL_FORMS": "0",
+            "tasks-MIN_NUM_FORMS": "0",
+            "tasks-MAX_NUM_FORMS": "1000",
+            "tasks-0-title": "New task",
+        }
+
+        _, response = _dispatch(
+            view_cls, method="POST", data=data, view_kwargs={"pk": project.pk}
+        )
+
+        assert response.status_code == 302
+        project.refresh_from_db()
+        assert project.name == "Changed By Someone Else"
+        assert set(project.tasks.values_list("title", flat=True)) == {"New task"}
