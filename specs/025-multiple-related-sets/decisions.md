@@ -32,7 +32,7 @@ their names was not stated anywhere.
 import as well would double the size of the rewrite a project has to perform, and the migration
 note would have to carry two unrelated changes. "Inline" is also still the right word: it is
 Django admin's word for exactly this idea, and the rows-only page is an inline page with the
-parent's fields hidden rather than a different kind of page. Recorded as FR-020.
+parent's fields hidden rather than a different kind of page. Recorded as FR-024.
 
 ## D3 — The declaration class is not an exhaustive parameter surface
 
@@ -44,11 +44,15 @@ on), or a smaller set with an escape hatch.
 and the relation name. Anything further is reached by overriding the method that assembles that
 group of parameters and mutating the result.
 
+**Partly superseded 2026-08-11 by [D11]**: the boundary is not "what the six attributes carried".
+It is Django's own inline surface, which also includes `min_num`. `can_order` stays out, but for
+its own reason rather than because this line drew the edge there.
+
 **Why defensible**: this is the pattern the current view already documents and the pattern Django
 itself uses for `get_form_kwargs`. It also matches django-extra-views, whose `factory_kwargs` and
 `formset_kwargs` are dictionaries a subclass extends rather than a fixed attribute list. An
 attribute per Django kwarg would grow the public surface this package has to keep compatible for
-every parameter Django ever adds, against constitution Article II. Recorded as FR-019.
+every parameter Django ever adds, against constitution Article II. Recorded as FR-020.
 
 ## D4 — The spec uses the repository's glossary, not the issue's wording
 
@@ -100,7 +104,7 @@ convention for this across the family.
 **Ruled by Sam at the Spec gate**, 2026-08-11, confirming one point and correcting another.
 
 **Confirmed**: the `inline_*` attributes are removed outright. The two configuration surfaces
-never coexist and nothing is written to accept both. FR-020 already said so; it is restated in
+never coexist and nothing is written to accept both. FR-024 already said so; it is restated in
 the Clarifications because a shim that keeps the old names working for one release is the obvious
 thing to reach for, and it is refused rather than merely unmentioned.
 
@@ -158,8 +162,12 @@ Two findings **removed** work rather than adding it, which is the asymmetry that
 cheap:
 
 - **ARCH-003** — `min_num`, `can_order` and `validate_min` were unrequested public surface, outside
-  both D3's stated boundary and upstream's. Dropped from the shorthands; both remain reachable
-  through `factory_kwargs`, which is what FR-019 says the escape hatch is for.
+  both D3's stated boundary and the prior art's. Dropped from the shorthands; both remain reachable
+  through `factory_kwargs`, which is what FR-020 says the escape hatch is for.
+  **Half reversed 2026-08-11 by [D11]**: `min_num` and `validate_min` come back, because the
+  boundary D3 drew was itself wrong. `can_order` stays out. The finding was right that the three
+  had no stated demand behind them and wrong to treat them as one decision — they were adjacent in
+  a list, not related to each other.
 - **ARCH-004** — the memoisation rationale inherited from FS-024 is false. A rebuilt formset is
   bound to the same POST data and re-renders the same values and errors, so the page does not
   "come back blank". The memoisation is kept for the reasons that do hold; the false one is
@@ -172,3 +180,98 @@ parent-scoped queryset, and the rows-only page's authorisation is the same `get_
 the single-form pages already use.
 
 **Design-review budget: 1 of 1 used.** The reviewer was not re-dispatched on the fixes.
+
+## D9 — The surface is named after Django, not after its prior art
+
+**Sam's ruling at the plan gate**, 2026-08-11, overturning the naming premise the spec and research
+were built on.
+
+The first draft justified its choices by asking whether a developer arriving from django-extra-views
+would find the names where they expected them. That is the wrong question. That package is not
+widely enough used to be owed compatibility, and the people this surface has to be legible to are
+Django developers, who already know `django.contrib.admin`'s inlines.
+
+**Chosen**: name everything after Django's own. The declaration class is `InlineFormSet`, its
+options are admin's attribute names — which are also `inlineformset_factory`'s parameter names — and
+where the two sources disagree Django wins. `title` and `description` stay ours, because admin's
+`verbose_name_plural` covers only half of what they do.
+
+**The research had this backwards and is corrected in place.** R7 previously described `extra`,
+`max_num`, `can_delete` and `fk_name` as a "deliberate divergence from django-extra-views" needing
+justification. They are Django's names, present both on `InlineModelAdmin` and in the factory
+signature; the other package is the one that removed them. An entry that asks for a justification
+that was never owed is worse than no entry, because the next reader inherits the false premise.
+`InlineFormSetFactory` goes the same way — the class declares a set, it does not manufacture one,
+and "Factory" was borrowed rather than chosen.
+
+The prior art keeps its place: the `factory_kwargs`/`formset_kwargs` split is a good idea and is
+taken. Read it for ideas, not for names.
+
+## D10 — The rows-only page touches the parent's timestamp, and never saves its form
+
+**Sam's ruling at the plan gate**, and the first draft was wrong about the requirement.
+
+FR-015 originally said the page must leave the parent's stored values unchanged, full stop. Sam's
+case is that a record and its related rows are one thing to a reader: a project whose description
+changed should show as having changed. Leaving no trace is the surprising outcome, not the safe one.
+
+**Chosen**: the page records the change on the parent's own last-modified timestamp, on by default,
+switchable off on the view. But **not** by saving the empty parent form, which is the obvious
+implementation and a data-loss bug. Three measurements against the project's database (R12):
+
+- `save(update_fields=[<auto_now fields>])` bumps the timestamp;
+- it leaves a concurrent write to other fields intact;
+- a full `save()` — what an empty `ModelForm.save()` does — **discards that concurrent write.**
+
+An empty model form is always valid and writes every column from values read when the page was
+opened, so the naive version silently loses whatever changed in between. That risk is worst on
+exactly this page: a long-lived editing screen for a shared record.
+
+**Why the default is on**: a model with no `auto_now` field has nothing to write, so the feature is
+a no-op there. It acts only where the developer has already declared, by putting such a field on the
+model, that they care when the record last changed. That bounds it to the case that asked for it.
+
+Two consequences stated rather than left to be discovered: the touch happens inside the rows'
+transaction, and it fires the model's save signals and any lifecycle hooks. Both are intended — a
+parent-level "something changed" is not observable otherwise — but neither is silent.
+
+## D11 — `min_num` is in, `can_order` is not, and display order is a third thing
+
+The S3R round dropped `min_num`, `can_order` and `validate_min` together as unrequested surface
+(ARCH-003). Half right. They were adjacent in one list and were treated as one decision, which they
+are not.
+
+- **`min_num` is in**, with `validate_min` paired to it for the same reason `validate_max` pairs
+  with `max_num`: Django's factory defaults both to `False`, so a bound that is not validated
+  rejects nothing. Recorded as FR-023.
+- **`can_order` is out for now.** It is a user-facing feature — an `ORDER` field on every form so a
+  person can reorder rows — and nothing asks for it. It remains reachable through `factory_kwargs`.
+- **Display order is neither of those**, and is what was actually wanted: the developer deciding the
+  sequence forms appear in, so a set renders in a meaningful order rather than "rows already saved,
+  then blanks". It is a method, `sort_forms`, and it is **display only** — reordering the sequence a
+  formset validates or writes in would change which submitted row maps to which record. Recorded as
+  FR-022, with a test that pins the saved order as unaffected.
+
+## D12 — Per-form keyword arguments use Django's signature
+
+**Ambiguous**: whether one dictionary of form keyword arguments per set is enough.
+
+It is not. A set that shows one form per permitted kind needs each form to know which kind it is; a
+set that validates a row against its siblings needs each form to know what the others hold. Neither
+is reachable when every form gets the same dictionary.
+
+**Chosen**: the declaration exposes `get_form_kwargs(index)` — Django's own signature, where `index`
+identifies the form and is `None` for the blank template form the browser clones to add a row. The
+shared `form_kwargs` attribute stays as the default for the common case.
+
+**Why defensible**: Django has carried this hook since 1.9 and calls it once per form from
+`_construct_form`. What hides it is the prior art's `get_form_kwargs(self)`, with no index, whose
+result is merged into a single shared dictionary — so a project needing per-form arguments has to
+reach around the surface it is using and subclass the formset directly, ending with two APIs for
+one job on the same page (R13). Taking Django's signature is a one-parameter difference and it is
+the whole of what makes the requirement reachable.
+
+**Scope**: this feature owes the hook and the display order. Building a set whose forms are derived
+from a list of permitted kinds — one form per kind, present or not — is a thing a project assembles
+on top, using this hook plus the formset's own initial data. Agreed with Sam; it does not come into
+this package.

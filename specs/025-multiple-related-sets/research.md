@@ -50,11 +50,10 @@ attribute is overwritten with the *parent* model. Every method downstream then r
 as the parent. The upstream docs have to warn about this explicitly.
 
 **Decision: keep the declaration's `model` meaning the related model for its whole life, and hold
-the parent in a separately-named attribute.** The declared spelling — `model = OrderLine` — is
-identical, so a developer arriving from django-extra-views writes the same class. What differs is
-that the attribute does not silently change meaning after construction, which is a trap for anyone
-overriding a method rather than merely declaring one. FR-002 asks for the split and the names, not
-for a rebinding that upstream itself documents as a surprise.
+the parent in a separately-named attribute.** This is also what `django.contrib.admin` does — an
+`InlineModelAdmin`'s `model` is the related model from declaration to render, and the parent is
+never written over it. The rebinding is upstream's alone, and its own documentation has to warn
+about it.
 
 ## R3 — The default prefix comes from Django, not from django-extra-views
 
@@ -79,7 +78,7 @@ the same related model through different foreign keys already differ with nothin
 (FR-004, US2 scenario 6). And because `prefix or ...` is a truthiness test, an empty string falls
 through to the default rather than producing an unprefixed set.
 
-## R4 — Upstream has no transaction and no collision detection. Both are ours.
+## R4 — django-extra-views has no transaction and no collision detection. Both are ours.
 
 `grep -rn "atomic\|transaction" extra_views/` returns nothing. `forms_valid` saves the parent then
 loops the formsets, so a failure in the third inline leaves the parent and the first two committed
@@ -90,9 +89,8 @@ resulting prefixes (`advanced.py:72-83`), and `NamedFormsetsMixin` names *contex
 form prefixes, so it does not help. Two declarations over the same relation both parse the same
 POST keys and share one management form, silently.
 
-FR-009 and FR-005 are therefore deliberate divergences, not omissions being filled in. They are
-the two places this package does more than the surface it borrows, and both were named in the
-tracking issue before any research ran.
+FR-009 and FR-005 are therefore things this package does that its prior art does not, and both
+were named in the tracking issue before any research ran.
 
 ## R5 — `all_valid` is the mechanism FR-008 needs, and short-circuiting is the trap
 
@@ -126,30 +124,40 @@ place, accumulating across every request the process serves. Only the outer dict
 
 Copy both levels.
 
-## R7 — The shorthand attributes are a deliberate divergence
+## R7 — The shorthand attributes are Django's names, not a divergence
 
-Upstream removed `extra`, `max_num`, `can_delete` and `fk_name` as attributes in 0.11.0. This
-package keeps them as named shorthands *alongside* `factory_kwargs`, which then wins on conflict.
+**This entry replaces an earlier version that had the argument backwards**, and the correction
+matters because the earlier version asked for a justification that was never needed.
 
-Two independent sources agree on this. The tracking issue's own worked example and the sketch on
-`024-multi-inline-wip` both declare shorthand attributes, and the specification names them in
-FR-001 and in the Key Entities. It is also what the six removed `inline_*` attributes provided, so
-dropping them would make the common case wordier than the surface being replaced:
+The earlier text described `extra`, `max_num`, `can_delete` and `fk_name` as shorthands kept "in
+deliberate divergence from django-extra-views", which removed them as class attributes in 0.11.0.
+That framing takes django-extra-views as the baseline. It is not. Those are **Django's own names**,
+in two places at once:
 
-```python
-# shorthand kept                          # what upstream requires instead
-class OrderLineInline(InlineFormSetFactory):   class OrderLineInline(InlineFormSetFactory):
-    model = OrderLine                              model = OrderLine
-    fields = ["quantity"]                          fields = ["quantity"]
-    extra = 3                                      factory_kwargs = {"extra": 3}
+- they are parameters of `inlineformset_factory`;
+- they are attributes of `django.contrib.admin`'s `InlineModelAdmin`. Read from the class in the
+  project's environment, its class attributes are exactly:
+
+```
+['can_delete', 'classes', 'extra', 'fk_name', 'max_num', 'media',
+ 'min_num', 'model', 'show_change_link', 'template', 'verbose_name', 'verbose_name_plural']
 ```
 
-The cost of the divergence is that a reader who knows upstream 0.16 finds attributes upstream does
-not have. That is a smaller surprise than the reverse, because the shorthands are additive: a
-declaration written to upstream's surface still works here unchanged.
+So keeping them is alignment with the framework, and django-extra-views is the outlier for having
+dropped them. Nothing here needs justifying against that package.
 
-Flagged at the plan gate rather than settled quietly, because "follows django-extra-views' surface"
-is the tracking issue's phrase and this is the one place the plan does not follow it exactly.
+The same reading settles the class name. `InlineFormSetFactory` was borrowed wholesale, and
+"Factory" was never accurate for it: the class *declares* a set, and something else manufactures
+the formset from the declaration. `InlineFormSet` says what it is, and reads as the sibling of
+admin's `TabularInline` and `StackedInline` that it functionally is.
+
+Two more names follow admin rather than the borrowed surface: `form` and `formset`, not
+`form_class` and `formset_class`. Those are both admin's attribute names and
+`inlineformset_factory`'s parameter names, so they agree twice over.
+
+`title` and `description` stay as they are rather than becoming admin's `verbose_name_plural`,
+because ours is a rendered heading with help text beneath it and admin has no equivalent for the
+second half. Borrowing the name for only half the concept would cost more than it saves.
 
 ## R8 — `fields = []` produces a valid form, and saving it is the risk
 
@@ -158,13 +166,15 @@ is the tracking issue's phrase and this is the one place the plan does not follo
 
 So the rows-only page (FR-014) needs no new form machinery — but `form.save()` on that empty form
 still issues a full `UPDATE` of every column, which touches `auto_now` fields and fires
-`pre_save`/`post_save` with `update_fields=None`. FR-015 asks for the record's stored values to be
-unchanged, and a no-op UPDATE is not the same thing as no write.
+`pre_save`/`post_save` with `update_fields=None`. FR-015 forbids writing the record's field values
+at all, and it forbids losing a concurrent change, which a full UPDATE does. See R12 for the
+measurement.
 
-**The parent is not saved at all when the page carries no parent fields.** The formsets bind to the
-loaded instance, which already has a pk.
+**The parent form is never saved when the page carries no parent fields.** The formsets bind to the
+loaded instance, which already has a pk. Where the parent's timestamp is to be updated, that is a
+separate surgical write, not this form's save (FR-016, R12).
 
-This is also why FR-016 exists: on create there is no loaded instance, so a page with no parent
+This is also why FR-017 exists: on create there is no loaded instance, so a page with no parent
 fields would have to save an empty parent to obtain a pk for the rows to hang off, which is exactly
 the record nobody asked to create.
 
@@ -210,3 +220,71 @@ carry them:
 
 The plan is written against the specification. Where the sketch happens to agree, that is
 corroboration, not authority.
+
+## R12 — Touching the parent on a rows-only page, measured rather than assumed
+
+FR-016 asks the rows-only page to record its change on the parent's own timestamp. The obvious
+implementation — save the empty parent form — is the wrong one, and the difference is a data-loss
+bug rather than a matter of taste. Three probes against the project's own database:
+
+| What was done | Result |
+|---|---|
+| `parent.save(update_fields=["modified"])` on a model with `auto_now=True` | timestamp bumped |
+| the same, after another writer changed a different field | the other writer's change survived |
+| `parent.save()` — what `form.save()` on a field-less form does | **the other writer's change was lost** |
+
+The third row is the whole argument. An empty `ModelForm` is always valid and its `save()` issues a
+full `UPDATE` of every column from values read when the page was opened, so any change made in
+between is silently overwritten. That risk is highest on exactly the pages this feature targets:
+a long-lived editing page for a record other people also edit.
+
+So the mechanism is a surgical touch of the model's `auto_now` fields, not a save of the parent
+form. It produces the timestamp the developer wants and cannot lose a concurrent write.
+
+**Default on**, for a reason that also bounds the blast radius: a model with no `auto_now` field
+has nothing to touch, so the feature does nothing at all there. It acts only where the developer
+has already declared, by putting such a field on the model, that they care when the record last
+changed. Switching it off is a one-line opt-out on the view.
+
+One consequence worth stating rather than discovering: a touch fires the model's save signals and
+any lifecycle hooks attached to them. That is the point — it is how a parent-level "something
+changed" is observed — but it is not a silent write.
+
+## R13 — Django already has the per-form hook; the shared dictionary is what hides it
+
+FR-021 asks for keyword arguments that differ per form. Django has carried the hook since 1.9:
+
+```python
+# django/forms/formsets.py
+def get_form_kwargs(self, index):
+    """
+    Return additional keyword arguments for each individual formset form.
+
+    index will be None if the form being constructed is a new empty form.
+    """
+    return self.form_kwargs.copy()
+```
+
+`_construct_form` calls it per form, so the index identifies which form is being built, and `None`
+identifies the blank template form the browser clones to add a row.
+
+django-extra-views declares `get_form_kwargs(self)` with no index and merges the result into
+`formset_kwargs["form_kwargs"]`, which is a single dictionary shared by every form
+(`extra_views/formsets.py:61-79`). That signature shadows Django's, so a project needing per-form
+arguments has to reach around the surface it is using and subclass the formset directly — two
+different APIs for one job, on the same page.
+
+Our declaration takes **Django's signature**, index and all. It is one parameter, and it is the
+difference between the requirement being reachable and not.
+
+The related requirement, FR-022, is display order. Django's `can_order` is a different feature: it
+adds an `ORDER` field to every form so the *user* can reorder rows, and exposes `ordered_forms`
+after validation. What FR-022 asks for is the *developer* deciding the sequence forms appear in —
+a set that renders in a fixed conceptual order rather than "rows already saved, then blanks". The
+two were bundled together and dropped together in an earlier draft, which was a mistake: they are
+unrelated options that happened to be adjacent in the same list. `can_order` stays unbuilt until
+something asks for it; the display order is FR-022 and is built here.
+
+Because it is display only, it must not touch validation or saving. Reordering the sequence a
+formset validates or writes in would change which row is which, and the requirement says so
+explicitly.

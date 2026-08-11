@@ -11,11 +11,16 @@ and saves the parent and every set in one transaction. The same view covers the 
 page: when the parent's `fields` is empty the parent form renders nothing and is never saved, and
 the sets bind to the record the URL identifies.
 
-The configuration surface follows django-extra-views (MIT, 0.16.0) — the class name
-`InlineFormSetFactory` and the `factory_kwargs`/`formset_kwargs` split — with named shorthands for
-the common factory kwargs kept on top of it (research R7, flagged at the plan gate). Two behaviours
-upstream does not have are ours by requirement: the transaction (FR-009) and the prefix-collision
-error (FR-005).
+The declaration is named after Django's own inlines: the class is `InlineFormSet`, and its options
+are `django.contrib.admin`'s attribute names, which are also `inlineformset_factory`'s parameter
+names (research R7). django-extra-views solved this first and its `factory_kwargs`/`formset_kwargs`
+split is a good idea worth taking, but it is prior art rather than a surface to reproduce. Two
+behaviours it does not have are ours by requirement: the transaction (FR-009) and the
+prefix-collision error (FR-005).
+
+The declaration also decides things Django exposes but no packaged view currently reaches: the
+keyword arguments of each *individual* form (FR-021), and the order the forms are displayed in
+(FR-022).
 
 Nothing in the rendering layer is rebuilt. `<c-form.formset>` and `<c-form.formset.row>` already
 render one set; the templates change only to loop over a list instead of reading one variable.
@@ -33,8 +38,8 @@ Poetry.
 
 | Path | Change |
 |---|---|
-| `mvp/views/inline.py` | rewritten — `InlineFormSetFactory` + `InlinesMixin`, replacing `InlineFormsetMixin` |
-| `mvp/views/__init__.py` | export `InlineFormSetFactory`; view class names unchanged |
+| `mvp/views/inline.py` | rewritten — `InlineFormSet` + `InlinesMixin`, replacing `InlineFormsetMixin` |
+| `mvp/views/__init__.py` | export `InlineFormSet`; view class names unchanged |
 | `mvp/templates/form_view.html` | render a list of sets, not one |
 | `mvp/templates/cotton/form/index.html` | multipart decided from parent form plus every set |
 | `tests/test_views/test_inline.py` | rewritten against the new surface |
@@ -51,7 +56,7 @@ FS-024's and unchanged.
 |---|---|
 | I Test-First | Every task pairs a test written first with the code that satisfies it. |
 | II Simplicity | One declaration class and one mixin replace one mixin. No new layer. |
-| III Anti-Abstraction | `InlineFormSetFactory` has a present concrete second use by construction — the feature exists because there are two of them on a page. |
+| III Anti-Abstraction | `InlineFormSet` has a present concrete second use by construction — the feature exists because there are two of them on a page. |
 | IV Integration-First | The contracts below are written before internals; tests drive the view through `as_view()` and a real request, not by calling methods. |
 | V Security & data-safety | The cap decision is inherited from FS-024 D25 and pinned by a test in both directions. The collision check is a data-integrity guard, not a nicety: without it two sets read the same POST keys. |
 | VI Documentation | US5 is a delivered story, not a follow-up. `CONTEXT.md` gains the declaration term. |
@@ -62,43 +67,53 @@ FS-024's and unchanged.
 | XIII Rendered markup is a contract | Heading-per-set and multipart encoding are asserted on rendered markup. |
 | XIV Browser tests are the exception | **None added.** Everything here is expressible with the test client and rendered-template assertions. |
 | XV Shipped stylesheet | No new class is introduced, so no rebuild is expected. Verified at converge rather than assumed. |
-| XVI Compatibility | The breaking change is the point; CHANGELOG entry is FR-022 and a delivered story. |
+| XVI Compatibility | The breaking change is the point; CHANGELOG entry is FR-026 and a delivered story. |
 
-No Complexity Tracking entry. One justification recorded: the shorthand attributes diverge from
-upstream 0.16 (research R7), justified there and raised at this gate.
+No Complexity Tracking entry, and no justification owed for the attribute names: they are Django's
+own (research R7). The one behaviour needing a stated reason is the parent touch on a rows-only
+page, and R12 states it with measurements.
 
 ## Design
 
-### `InlineFormSetFactory` — the declaration
+### `InlineFormSet` — the declaration
 
 A plain class, instantiated per request by the view. Declaring one is the whole configuration.
 
 ```python
-class OrderLineInline(InlineFormSetFactory):
-    model = OrderLine            # the RELATED model
+class OrderLineInline(InlineFormSet):
+    model = OrderLine            # the RELATED model, as in django.contrib.admin
     fields = ["quantity", "unit_price"]
     extra = 2
     title = _("Line items")
 ```
 
-Attributes: `model`, `fields`, `exclude`, `form_class`, `formset_class`, `extra`, `max_num`,
-`can_delete`, `fk_name`, `prefix`, `initial`, `factory_kwargs`, `formset_kwargs`, `form_kwargs`,
-`title`, `description`.
+Attributes, all of them admin's names or `inlineformset_factory`'s: `model`, `fields`, `exclude`,
+`form`, `formset`, `extra`, `min_num`, `max_num`, `can_delete`, `fk_name`, `prefix`, `initial`,
+`factory_kwargs`, `formset_kwargs`, `form_kwargs`. Two are ours because admin has no equivalent:
+`title` and `description`, the rendered heading and the help text beneath it. (Admin's
+`verbose_name_plural` labels its inline, but has no second half, so borrowing the name for half the
+concept would cost more than it saves.)
 
-`min_num` and `can_order` are deliberately **not** shorthands. Neither was one of the six
-`inline_*` attributes, neither is in upstream's surface, and no requirement asks for a minimum row
-count or row ordering. Both stay reachable through `factory_kwargs`, which is what FR-019 says the
-escape hatch is for. (S3R ARCH-003.)
+`can_order` is **not** included. It is a distinct feature — an `ORDER` field on every form so the
+*user* can reorder rows — and nothing asks for it yet. It stays reachable through `factory_kwargs`.
+What is included is FR-022's display order, which is a different thing and is a method, below.
 
 Methods, each mirroring its attribute so a subclass can decide per request: `get_title`,
-`get_description`, `get_factory_kwargs`, `get_formset_kwargs`, `get_form_kwargs`,
-`get_formset_class`, `construct_formset`.
+`get_description`, `get_factory_kwargs`, `get_formset_kwargs`, `get_formset_class`,
+`construct_formset`, plus the two new hooks:
+
+- **`get_form_kwargs(index)`** — Django's own signature, not the shared-dictionary variant
+  (R13). `index` says which form is being built and is `None` for the blank template form the
+  browser clones. This is what lets a set give each form different arguments; the shared
+  `form_kwargs` attribute stays as the default for the common case where they do not differ.
+- **`sort_forms(forms)`** — returns the sequence the forms are displayed in, defaulting to the
+  order given. **Display only.** It must not reach the order rows are validated or saved in, since
+  reordering that would change which row is which.
 
 Three decisions inside it:
 
-- **`model` keeps meaning the related model for its whole life** (R2). The parent is held
-  separately. The declared spelling is identical to upstream's; what is dropped is upstream's
-  post-construction rebinding, which its own docs warn about.
+- **`model` keeps meaning the related model for its whole life** (R2), as it does on an
+  `InlineModelAdmin`. The parent is held separately, never written over it.
 - **The shorthands are folded into `factory_kwargs`, and `factory_kwargs` wins** on any key both
   set. One direction, stated in the docstring, so there is never a question which applies.
 - **Both kwarg dicts are copied at both levels** (R6), because class-level nested dicts are shared
@@ -128,8 +143,9 @@ that shape. No code change. (S3R SEC-001.)
 - `get_context_data()` → `inlines` (the list) plus a flag saying whether any set needs multipart.
 - `form_valid()` / `form_invalid()` → validate every set on **both** paths using Django's
   `all_valid` (R5, R11), then save inside one `transaction.atomic()`.
-- **The parent is saved only when the page has parent fields.** On a rows-only page the loaded
-  instance already has a pk and is left alone (R8).
+- **The parent form is saved only when the page has parent fields.** On a rows-only page the
+  loaded instance already has a pk; its form is never saved, and its timestamp is touched
+  separately if that is switched on (R8, R12).
 
 **Memoisation is kept, and its stated reason is corrected.** FS-024's docstring says a rebuild
 would leave the page blank. That is false: `get_formset_kwargs()` puts `data` and `files` in on
@@ -141,11 +157,27 @@ is a fence someone removes later after checking. (S3R ARCH-004.)
 
 ### The rows-only page
 
-`fields = []` on an update view. No new view class, no new attribute — the emptiness *is* the
-configuration, which is what folds upstream's second view class into this one.
+`fields = []` on an update view. No new view class, no new attribute for the page itself — the
+emptiness *is* the configuration, which is what folds a second view class into this one.
 
-Guards: create with no parent fields raises (FR-016); update with neither parent fields nor any
-set raises (FR-017). Both at page-build time, with the class name and the fix in the message.
+Guards: create with no parent fields raises (FR-017); update with neither parent fields nor any
+set raises (FR-018). Both at page-build time, with the class name and the fix in the message.
+
+**The parent form is never saved here, and the parent's timestamp is touched instead** (FR-015,
+FR-016). These are two separate statements and both are load-bearing:
+
+- An empty `ModelForm` is always valid, and its `save()` issues a full `UPDATE` of every column
+  from values read when the page was opened. Measured in R12: that silently discards a change
+  another writer made while the page was open. So the form is not saved.
+- Recording that something changed is still wanted, and is done by writing only the model's
+  `auto_now` fields (`instance.save(update_fields=[...])`). R12 measures that this bumps the
+  timestamp and leaves a concurrent write to other fields intact.
+
+**On by default**, switchable off with one attribute on the view. The default is safe because a
+model with no `auto_now` field has nothing to write, so the touch is a no-op there — it acts only
+where the developer has already said, by declaring such a field, that they care when the record
+last changed. It happens inside the same transaction as the rows, and it fires the model's save
+signals and any lifecycle hooks, which is the point rather than a side effect.
 
 ### Templates
 
@@ -194,6 +226,12 @@ US2 and US3 are independent of each other and can run in parallel after US1.
   silently wrong instruction. US5 scenario 4 is a repository-wide search, not a spot check.
 - **`fields = []` versus `fields = None`.** `None` means "not configured" and must keep raising
   Django's own error; only an empty collection selects the rows-only page. The tests pin both.
+- **The parent touch is a write on a page that claims not to write the parent.** The distinction
+  between "does not change field values" and "does not write at all" has to survive into the tests
+  and the documentation, or the next reader will collapse them. The concurrency test is what pins
+  it, and it is the one test here that would pass against the naive implementation only by luck.
+- **`sort_forms` must not reach saving.** A display-order hook that reordered `formset.forms` would
+  change which submitted row maps to which record. The test asserts the saved order is unaffected.
 
 ## Complexity Tracking
 

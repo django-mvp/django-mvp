@@ -21,7 +21,18 @@
   - The three high findings were all real defects in the plan, not preferences: the template change would have silently deleted FS-024's standalone formset case, the multipart change would have broken Article XI and an existing component test, and FR-004's prefix override had no assembly point — which would also have made FR-005's error message suggest a fix that did nothing.
   - Two findings removed work: `min_num`/`can_order`/`validate_min` were unrequested surface, and the memoisation rationale inherited from FS-024 turned out to be false (the fence stays, its stated reason is corrected).
   - Task ids renumbered in the re-plan. 51 story tasks across five stories, plus three convergence tasks driven by the pipeline.
-- **S4 IMPLEMENT — held.** The plan gate is a hard gate for this run.
+- **Plan gate, round 1 — changes requested** (Sam, 2026-08-11). Four rulings, all of which change the specification rather than only the plan, so this is a spec amendment and the gate re-runs.
+  - **Naming** (D9). Stop justifying the surface against django-extra-views and name it after Django's own: `InlineFormSet`, admin's attribute names, `form`/`formset` rather than `form_class`/`formset_class`. The research had the argument backwards — the shorthand attributes it defended as a "divergence" are Django's own names, and that package is the one that dropped them. R7 rewritten in place.
+  - **Parent timestamp on the rows-only page** (D10). The page records that its rows changed on the parent's own last-modified field, on by default, switchable off. Measured rather than assumed: saving the empty parent form — the obvious implementation — discards a concurrent write to the parent's other fields, so the touch writes only the `auto_now` fields instead. Recorded as R12 with the three probe results.
+  - **`min_num` back, `can_order` still out, display order separate** (D11). The design review dropped all three together as unrequested surface; they were adjacent in a list rather than one decision.
+  - **Per-form keyword arguments** (D12). Django's `get_form_kwargs(index)` signature, not a shared dictionary. This is what the prior art's no-index variant makes unreachable.
+- **S4 IMPLEMENT — held.** The plan gate is a hard gate for this run and has not been passed.
+
+## Amendment, 2026-08-11 (plan gate round 1)
+
+Spec: 22 FRs → 26, 6 SCs → 7. New FR-016 (parent timestamp), FR-021 (per-form arguments), FR-022 (display order), FR-023 (minimum rows); FR-002 and FR-015 rewritten; FR-016 onward renumbered, with every reference in the plan, task list, research and decisions remapped. US1 gained three scenarios, US4 gained two. Tasks 51 → 59 story tasks, ids renumbered.
+
+The design review ran against the pre-amendment plan. Its nine findings all still stand and are all still applied, but three areas it did not see are new: the per-form kwargs hook, the display-order hook and the parent touch. The touch is the one carrying real risk, and its concurrency test is written to fail against the naive implementation.
 
 ## Notes carried forward
 

@@ -39,6 +39,11 @@
       "state": "DESIGN_REVIEW",
       "at": "2026-08-11T11:10:00Z",
       "note": "One round, one reviewer, three lenses. request_changes with 9 verified findings (3 high). All applied; remedies verified by the orchestrator against each finding's evidence. Reviewer not re-dispatched. Budget 1 of 1."
+    },
+    {
+      "state": "PLAN",
+      "at": "2026-08-11T12:40:00Z",
+      "note": "Spec amended at the plan gate on four rulings from Sam: Django-derived naming, the parent timestamp touch, min_num restored with display order as a separate hook, and per-form keyword arguments. 26 FRs, 7 SCs, 62 tasks. Re-gate pending."
     }
   ],
   "gates": {
@@ -50,7 +55,11 @@
         "D2 view class names unchanged",
         "D3 declaration is not an exhaustive parameter surface",
         "D4 repository glossary terms over the issue's wording",
-        "D5 row cap keeps FS-024's enforcement, applied per set"
+        "D5 row cap keeps FS-024's enforcement, applied per set",
+        "D9 naming follows Django's own, not its prior art (Sam, plan gate)",
+        "D10 rows-only page touches the parent timestamp and never saves its form (Sam, plan gate)",
+        "D11 min_num in, can_order deferred, display order is a separate hook (Sam, plan gate)",
+        "D12 per-form keyword arguments use Django's index signature (Sam, plan gate)"
       ]
     },
     "plan": {
@@ -111,72 +120,97 @@
           "attempts": 0
         },
         {
-          "id": "T006",
+          "id": "T060",
           "status": "todo",
           "attempts": 0
         },
         {
-          "id": "T007",
+          "id": "T060",
           "status": "todo",
           "attempts": 0
         },
         {
-          "id": "T008",
+          "id": "T060",
           "status": "todo",
           "attempts": 0
         },
         {
-          "id": "T009",
+          "id": "T060",
           "status": "todo",
           "attempts": 0
         },
         {
-          "id": "T010",
+          "id": "T060",
           "status": "todo",
           "attempts": 0
         },
         {
-          "id": "T011",
+          "id": "T060",
           "status": "todo",
           "attempts": 0
         },
         {
-          "id": "T012",
+          "id": "T060",
           "status": "todo",
           "attempts": 0
         },
         {
-          "id": "T013",
+          "id": "T060",
           "status": "todo",
           "attempts": 0
         },
         {
-          "id": "T014",
+          "id": "T060",
           "status": "todo",
           "attempts": 0
         },
         {
-          "id": "T015",
+          "id": "T060",
           "status": "todo",
           "attempts": 0
         },
         {
-          "id": "T016",
+          "id": "T060",
           "status": "todo",
           "attempts": 0
         },
         {
-          "id": "T017",
+          "id": "T060",
           "status": "todo",
           "attempts": 0
         },
         {
-          "id": "T018",
+          "id": "T060",
           "status": "todo",
           "attempts": 0
         },
         {
-          "id": "T019",
+          "id": "T060",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T061",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T062",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T058",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T059",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T060",
           "status": "todo",
           "attempts": 0
         }
@@ -190,62 +224,62 @@
       "replans": 0,
       "tasks": [
         {
-          "id": "T020",
+          "id": "T061",
           "status": "todo",
           "attempts": 0
         },
         {
-          "id": "T021",
+          "id": "T062",
           "status": "todo",
           "attempts": 0
         },
         {
-          "id": "T022",
+          "id": "T058",
           "status": "todo",
           "attempts": 0
         },
         {
-          "id": "T023",
+          "id": "T059",
           "status": "todo",
           "attempts": 0
         },
         {
-          "id": "T024",
+          "id": "T060",
           "status": "todo",
           "attempts": 0
         },
         {
-          "id": "T025",
+          "id": "T061",
           "status": "todo",
           "attempts": 0
         },
         {
-          "id": "T026",
+          "id": "T062",
           "status": "todo",
           "attempts": 0
         },
         {
-          "id": "T027",
+          "id": "T058",
           "status": "todo",
           "attempts": 0
         },
         {
-          "id": "T028",
+          "id": "T059",
           "status": "todo",
           "attempts": 0
         },
         {
-          "id": "T029",
+          "id": "T060",
           "status": "todo",
           "attempts": 0
         },
         {
-          "id": "T030",
+          "id": "T061",
           "status": "todo",
           "attempts": 0
         },
         {
-          "id": "T031",
+          "id": "T062",
           "status": "todo",
           "attempts": 0
         }
@@ -259,27 +293,27 @@
       "replans": 0,
       "tasks": [
         {
-          "id": "T032",
+          "id": "T058",
           "status": "todo",
           "attempts": 0
         },
         {
-          "id": "T033",
+          "id": "T059",
           "status": "todo",
           "attempts": 0
         },
         {
-          "id": "T034",
+          "id": "T060",
           "status": "todo",
           "attempts": 0
         },
         {
-          "id": "T035",
+          "id": "T061",
           "status": "todo",
           "attempts": 0
         },
         {
-          "id": "T036",
+          "id": "T062",
           "status": "todo",
           "attempts": 0
         }
@@ -293,42 +327,57 @@
       "replans": 0,
       "tasks": [
         {
-          "id": "T037",
+          "id": "T058",
           "status": "todo",
           "attempts": 0
         },
         {
-          "id": "T038",
+          "id": "T059",
           "status": "todo",
           "attempts": 0
         },
         {
-          "id": "T039",
+          "id": "T060",
           "status": "todo",
           "attempts": 0
         },
         {
-          "id": "T040",
+          "id": "T061",
           "status": "todo",
           "attempts": 0
         },
         {
-          "id": "T041",
+          "id": "T062",
           "status": "todo",
           "attempts": 0
         },
         {
-          "id": "T042",
+          "id": "T055",
           "status": "todo",
           "attempts": 0
         },
         {
-          "id": "T043",
+          "id": "T056",
           "status": "todo",
           "attempts": 0
         },
         {
-          "id": "T044",
+          "id": "T057",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T058",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T059",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T060",
           "status": "todo",
           "attempts": 0
         }
@@ -342,37 +391,37 @@
       "replans": 0,
       "tasks": [
         {
-          "id": "T045",
+          "id": "T061",
           "status": "todo",
           "attempts": 0
         },
         {
-          "id": "T046",
+          "id": "T062",
           "status": "todo",
           "attempts": 0
         },
         {
-          "id": "T047",
+          "id": "T055",
           "status": "todo",
           "attempts": 0
         },
         {
-          "id": "T048",
+          "id": "T056",
           "status": "todo",
           "attempts": 0
         },
         {
-          "id": "T049",
+          "id": "T057",
           "status": "todo",
           "attempts": 0
         },
         {
-          "id": "T050",
+          "id": "T058",
           "status": "todo",
           "attempts": 0
         },
         {
-          "id": "T051",
+          "id": "T059",
           "status": "todo",
           "attempts": 0
         }
