@@ -1836,3 +1836,40 @@ class TestRowsOnlyPageTouchesParentAutoNowField:
 
         assert response.status_code == 302
         assert save_calls == []
+
+
+# ---------------------------------------------------------------------------
+# T050 — a refused submission redisplays with the set's errors and still
+# no parent fields (US4 s5)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+class TestRowsOnlyRefusedSubmissionStillNoParentFields:
+    """A submission refused on a set's own errors redisplays that error,
+    and the page still shows no parent fields — the ``form_invalid`` path
+    US3 added does not reintroduce them on redisplay."""
+
+    def test_refused_submission_shows_set_errors_and_no_parent_fields(self):
+        project = ProjectFactory(name="Original")
+        view_cls = _inline_update_view_class(success_url="/done/", fields=[])
+        data = {
+            "tasks-TOTAL_FORMS": "1",
+            "tasks-INITIAL_FORMS": "0",
+            "tasks-MIN_NUM_FORMS": "0",
+            "tasks-MAX_NUM_FORMS": "1000",
+            "tasks-0-title": "x" * 201,  # invalid: over max_length
+        }
+
+        _, response = _dispatch(
+            view_cls, method="POST", data=data, view_kwargs={"pk": project.pk}
+        )
+        html = _rendered_html(response)
+
+        assert response.status_code == 200
+        assert _field_value(html, "name") is None
+        assert _field_value(html, "tasks-0-title") == "x" * 201
+        assert response.context_data["inlines"][0].forms[0].errors
+        project.refresh_from_db()
+        assert project.name == "Original"
+        assert project.tasks.count() == 0
