@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **BREAKING: the `inline_*` view attributes are removed.** A page carrying a parent
+  record and one or more sets of related rows now declares each set as its own
+  `InlineFormSet` class (`mvp.views`) and lists it on the view's `inlines`, rather than
+  configuring it as attributes on `MVPInlineCreateView`/`MVPInlineUpdateView` directly.
+  This also lifts the old one-set limit: `inlines` takes any number of declarations.
+  See [Formsets](docs/formsets.md) for the whole path from a model to a rendered page.
+
+  **On upgrade**, move each attribute onto a declaration class:
+
+  - `inline_model` → declare an `InlineFormSet` subclass with `model` set to it, and add
+    the subclass to `inlines`.
+  - `inline_fields` → `InlineFormSet.fields`
+  - `inline_form_class` → `InlineFormSet.form`
+  - `inline_extra` → `InlineFormSet.extra`
+  - `inline_can_delete` → `InlineFormSet.can_delete`
+  - `inline_max_num` → `InlineFormSet.max_num`
+  - `inline_title` → `InlineFormSet.title`
+  - `inline_description` → `InlineFormSet.description`
+  - An override of `get_formset_factory_kwargs()` → an override of
+    `InlineFormSet.get_factory_kwargs()`, the same super-and-extend pattern.
+
+  `MVPInlineCreateView` and `MVPInlineUpdateView` keep their names and import paths — only
+  the configuration on them changes.
+
 ## [v0.17.0] - 2026-08-10
 
 ### Changed

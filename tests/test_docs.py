@@ -92,6 +92,18 @@ class TestLiveGuidanceHasNoRemovedInlineAttributes:
             f"Live guidance still describes removed inline_* attributes: {offenders}"
         )
 
-    def test_changelog_unreleased_section_mentions_no_removed_identifier(self):
-        found = sorted(set(REMOVED_PATTERN.findall(_changelog_unreleased_section())))
-        assert found == [], f"CHANGELOG.md's Unreleased section still names: {found}"
+    def test_changelog_unreleased_section_records_the_removal_as_breaking(self):
+        """FR-026 asks for the opposite of the check above: the changelog
+        entry *must* name every removed attribute, as evidence it maps each
+        one to its replacement, and must call the removal out as breaking."""
+        section = _changelog_unreleased_section()
+
+        assert re.search(r"breaking", section, flags=re.IGNORECASE), (
+            "CHANGELOG.md's Unreleased section does not record the removal as breaking"
+        )
+
+        named = set(REMOVED_PATTERN.findall(section))
+        missing = sorted(set(REMOVED_IDENTIFIERS) - named)
+        assert missing == [], (
+            f"CHANGELOG.md's Unreleased section does not map: {missing}"
+        )
