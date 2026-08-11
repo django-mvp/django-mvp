@@ -213,6 +213,13 @@ class InlinesMixin:
 
     inlines: list[type[InlineFormSet]] = []
 
+    touch_parent = True
+    """On a rows-only page (``fields == []``), whether a valid submission
+    records the change on the parent's own ``auto_now`` field(s). Ignored
+    on any other page. Default on: a model with no ``auto_now`` field has
+    nothing to write, so the touch is a no-op there (FR-016, research R12).
+    """
+
     def get_inlines(self):
         """Return the declaration classes to build, in the order given."""
         return list(self.inlines)
@@ -298,7 +305,9 @@ class InlinesMixin:
             return self.form_invalid(form)
 
         with transaction.atomic():
-            if self.fields != []:
+            if self.fields == []:
+                self.touch_parent_timestamp()
+            else:
                 self.object = form.save()
             for formset in formsets:
                 formset.instance = self.object
@@ -307,6 +316,32 @@ class InlinesMixin:
         success_url = self.get_success_url()
         messages.success(self.request, self.get_success_message(form.cleaned_data))
         return HttpResponseRedirect(success_url)
+
+    def touch_parent_timestamp(self):
+        """Record the rows' change on the parent's own ``auto_now`` field(s),
+        without saving the parent form (FR-015, FR-016, research R12).
+
+        Writes only those fields, via ``save(update_fields=[...])``, inside
+        the caller's transaction — never a full ``save()``, which would
+        write every column from whatever was in memory when the object was
+        loaded and discard a concurrent change to any other one. The field
+        list is read from the model's own meta rather than a hardcoded
+        name, since a model may declare more than one ``auto_now`` field,
+        or none, in which case this is a genuine no-op. A no-op skips the
+        call to ``save()`` entirely, rather than calling it with an empty
+        ``update_fields``, so a developer who switches ``touch_parent`` off
+        or whose model has no such field gets a parent this page truly
+        never wrote.
+        """
+        if not self.touch_parent:
+            return
+        auto_now_fields = [
+            field.name
+            for field in self.object._meta.fields
+            if getattr(field, "auto_now", False)
+        ]
+        if auto_now_fields:
+            self.object.save(update_fields=auto_now_fields)
 
     def form_invalid(self, form):
         """Validate every set even on the path where the parent form itself
