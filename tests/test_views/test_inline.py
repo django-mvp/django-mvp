@@ -16,14 +16,19 @@ from django.contrib.sessions.middleware import SessionMiddleware
 from django.core.exceptions import ImproperlyConfigured
 from django.test import RequestFactory
 
-from demo.models import Project, ProjectNote, ProjectTask
+from demo.models import OrderLine, Product, Project, ProjectNote, ProjectTask
 from mvp.views.inline import (
     InlineFormSet,
     InlinesMixin,
     MVPInlineCreateView,
     MVPInlineUpdateView,
 )
-from tests.factories import ProjectFactory, ProjectNoteFactory, ProjectTaskFactory
+from tests.factories import (
+    ProductFactory,
+    ProjectFactory,
+    ProjectNoteFactory,
+    ProjectTaskFactory,
+)
 
 
 def _build_request(method="GET", data=None):
@@ -1712,3 +1717,122 @@ class TestConcurrentWriteToParentFieldSurvivesTheSubmission:
         project.refresh_from_db()
         assert project.name == "Changed By Someone Else"
         assert set(project.tasks.values_list("title", flat=True)) == {"New task"}
+
+
+# ---------------------------------------------------------------------------
+# T048 — the parent touch: on by default where the parent carries an
+# auto_now field, switchable off, a genuine no-op where it does not
+# (FR-016, US4 s3, research R12)
+# ---------------------------------------------------------------------------
+
+
+class OrderLineRowInline(InlineFormSet):
+    """The set used by the Product rows-only fixtures below."""
+
+    model = OrderLine
+    fields = ["quantity"]
+
+
+def _rows_only_product_view_class(**attrs):
+    return type(
+        "StubRowsOnlyProductView",
+        (MVPInlineUpdateView,),
+        {
+            "model": Product,
+            "fields": [],
+            "inlines": [OrderLineRowInline],
+            "template_name": "form_view.html",
+            "show_detail_action": False,
+            "show_list_action": False,
+            **attrs,
+        },
+    )
+
+
+def _order_line_submission_data(quantity="3"):
+    return {
+        "order_lines-TOTAL_FORMS": "1",
+        "order_lines-INITIAL_FORMS": "0",
+        "order_lines-MIN_NUM_FORMS": "0",
+        "order_lines-MAX_NUM_FORMS": "1000",
+        "order_lines-0-quantity": quantity,
+    }
+
+
+@pytest.mark.django_db
+class TestRowsOnlyPageTouchesParentAutoNowField:
+    """A valid submission on a rows-only page records the change on the
+    parent's own ``auto_now`` field by default, a developer can switch that
+    off, and where the parent carries no such field neither setting writes
+    anything at all."""
+
+    def test_default_bumps_the_parents_auto_now_field(self):
+        product = ProductFactory()
+        original_updated_at = product.updated_at
+        view_cls = _rows_only_product_view_class(success_url="/done/")
+
+        _, response = _dispatch(
+            view_cls,
+            method="POST",
+            data=_order_line_submission_data(),
+            view_kwargs={"pk": product.pk},
+        )
+
+        assert response.status_code == 302
+        product.refresh_from_db()
+        assert product.updated_at > original_updated_at
+
+    def test_touch_parent_false_leaves_the_parent_entirely_unwritten(
+        self, monkeypatch
+    ):
+        product = ProductFactory()
+        original_updated_at = product.updated_at
+        save_calls = []
+        original_save = Product.save
+
+        def counting_save(self, *args, **kwargs):
+            save_calls.append(kwargs)
+            return original_save(self, *args, **kwargs)
+
+        monkeypatch.setattr(Product, "save", counting_save)
+        view_cls = _rows_only_product_view_class(
+            success_url="/done/", touch_parent=False
+        )
+
+        _, response = _dispatch(
+            view_cls,
+            method="POST",
+            data=_order_line_submission_data(),
+            view_kwargs={"pk": product.pk},
+        )
+
+        assert response.status_code == 302
+        assert save_calls == []
+        product.refresh_from_db()
+        assert product.updated_at == original_updated_at
+
+    def test_no_auto_now_field_is_a_genuine_no_op(self, monkeypatch):
+        project = ProjectFactory(name="Original")
+        save_calls = []
+        original_save = Project.save
+
+        def counting_save(self, *args, **kwargs):
+            save_calls.append(kwargs)
+            return original_save(self, *args, **kwargs)
+
+        monkeypatch.setattr(Project, "save", counting_save)
+        view_cls = _inline_update_view_class(success_url="/done/", fields=[])
+        data = {
+            "tasks-TOTAL_FORMS": "1",
+            "tasks-INITIAL_FORMS": "0",
+            "tasks-MIN_NUM_FORMS": "0",
+            "tasks-MAX_NUM_FORMS": "1000",
+            "tasks-0-title": "New task",
+        }
+
+        _, response = _dispatch(
+            view_cls, method="POST", data=data, view_kwargs={"pk": project.pk}
+        )
+
+        assert response.status_code == 302
+        assert save_calls == []
