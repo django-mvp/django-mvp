@@ -1247,3 +1247,150 @@ class TestFkNameBuildsAgainstNamedRelation:
 
         formset = response.context_data["inlines"][0]
         assert list(formset.queryset) == [cross_note]
+
+
+# ---------------------------------------------------------------------------
+# T037 — two sets each with an invalid row both report their own errors on
+# redisplay (US3 s1, FR-008)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+class TestBothSetsReportErrorsOnRedisplay:
+    """Two sets each carrying an invalid row: the redisplayed page shows an
+    error against both rows, asserted from the response context's formsets.
+
+    The parent form here is valid, so this path already runs through
+    ``form_valid``'s ``all_valid`` call (US1/US2) — no production change is
+    expected; this test pins the behaviour that already generalised.
+    """
+
+    def test_both_sets_report_their_own_row_errors(self):
+        project = ProjectFactory(name="Original")
+        view_cls = _inline_update_view_class(
+            success_url="/done/", inlines=[TaskInline, NoteViaProjectInline]
+        )
+        data = {
+            "name": "Original",
+            "tasks-TOTAL_FORMS": "1",
+            "tasks-INITIAL_FORMS": "0",
+            "tasks-MIN_NUM_FORMS": "0",
+            "tasks-MAX_NUM_FORMS": "1000",
+            "tasks-0-title": "x" * 201,
+            "notes-TOTAL_FORMS": "1",
+            "notes-INITIAL_FORMS": "0",
+            "notes-MIN_NUM_FORMS": "0",
+            "notes-MAX_NUM_FORMS": "1000",
+            "notes-0-text": "x" * 201,
+        }
+
+        _, response = _dispatch(
+            view_cls, method="POST", data=data, view_kwargs={"pk": project.pk}
+        )
+
+        assert response.status_code == 200
+        inlines = response.context_data["inlines"]
+        assert not inlines[0].is_valid()
+        assert inlines[0].forms[0].errors
+        assert not inlines[1].is_valid()
+        assert inlines[1].forms[0].errors
+
+
+# ---------------------------------------------------------------------------
+# T038 — an invalid parent form together with invalid sets shows both
+# (US3 s2, R11, S3R SPEC-002)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+class TestInvalidParentFormStillValidatesSets:
+    """An invalid parent form together with invalid sets shows both: Django's
+    ``ProcessFormView.post`` routes straight to ``form_invalid`` when the
+    parent form fails, so nothing calls ``is_valid()`` on the sets unless
+    the view does that itself on this path too.
+
+    The assertion reads ``formset._errors is not None`` rather than
+    ``formset.errors``/``formset.non_form_errors``. Both of those are
+    properties that call ``full_clean()`` on access
+    (``django/forms/formsets.py``), so an assertion against them would pass
+    whether or not the view validated the sets — the vacuous-test shape
+    FS-024's design review caught. ``_errors`` is populated only if
+    something already called ``is_valid()``.
+    """
+
+    def test_sets_are_validated_even_when_the_parent_form_is_invalid(self):
+        project = ProjectFactory(name="Original")
+        view_cls = _inline_update_view_class(
+            success_url="/done/", inlines=[TaskInline, NoteViaProjectInline]
+        )
+        data = {
+            "name": "",  # required field left blank: parent form is invalid
+            "tasks-TOTAL_FORMS": "1",
+            "tasks-INITIAL_FORMS": "0",
+            "tasks-MIN_NUM_FORMS": "0",
+            "tasks-MAX_NUM_FORMS": "1000",
+            "tasks-0-title": "x" * 201,
+            "notes-TOTAL_FORMS": "1",
+            "notes-INITIAL_FORMS": "0",
+            "notes-MIN_NUM_FORMS": "0",
+            "notes-MAX_NUM_FORMS": "1000",
+            "notes-0-text": "x" * 201,
+        }
+
+        _, response = _dispatch(
+            view_cls, method="POST", data=data, view_kwargs={"pk": project.pk}
+        )
+
+        assert response.status_code == 200
+        assert response.context_data["form"].is_valid() is False
+        inlines = response.context_data["inlines"]
+        assert inlines[0]._errors is not None
+        assert inlines[1]._errors is not None
+        assert not inlines[1].is_valid()
+        assert inlines[1].forms[0].errors
+
+
+# ---------------------------------------------------------------------------
+# T040 — a refused submission redisplays every set with the submitted
+# values, while the page's object-derived parts show the stored record
+# (US3 s3, FR-010)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+class TestRefusedSubmissionKeepsObjectDerivedPartsOnTheStoredRecord:
+    """A refused submission redisplays a set carrying the submitted values,
+    while the page's object-derived parts (the breadcrumb naming the
+    record) show the stored record — even though the parent form's own
+    fields validated individually, since Django's ``_post_clean`` still
+    writes them onto ``self.object`` in place before the page as a whole is
+    refused for a failing set."""
+
+    def test_set_keeps_submitted_value_while_breadcrumb_shows_stored_name(self):
+        project = ProjectFactory(name="Original")
+        view_cls = _inline_update_view_class(
+            success_url="/done/", inlines=[TaskInline, NoteViaProjectInline]
+        )
+        data = {
+            "name": "Submitted But Rejected",
+            "tasks-TOTAL_FORMS": "1",
+            "tasks-INITIAL_FORMS": "0",
+            "tasks-MIN_NUM_FORMS": "0",
+            "tasks-MAX_NUM_FORMS": "1000",
+            "tasks-0-title": "x" * 201,  # invalid: over max_length
+            "notes-TOTAL_FORMS": "0",
+            "notes-INITIAL_FORMS": "0",
+            "notes-MIN_NUM_FORMS": "0",
+            "notes-MAX_NUM_FORMS": "1000",
+        }
+
+        _, response = _dispatch(
+            view_cls, method="POST", data=data, view_kwargs={"pk": project.pk}
+        )
+        breadcrumbs = response.context_data["page"]["breadcrumbs"]
+        html = _rendered_html(response)
+
+        assert response.status_code == 200
+        assert _field_value(html, "name") == "Submitted But Rejected"
+        assert _field_value(html, "tasks-0-title") == "x" * 201
+        assert breadcrumbs[1]["text"] == "Original"

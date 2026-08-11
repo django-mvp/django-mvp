@@ -298,6 +298,39 @@ class InlinesMixin:
         messages.success(self.request, self.get_success_message(form.cleaned_data))
         return HttpResponseRedirect(success_url)
 
+    def form_invalid(self, form):
+        """Validate every set even on the path where the parent form itself
+        is invalid, refresh ``self.object`` from the database, then
+        redisplay.
+
+        Django's ``ProcessFormView.post`` calls this directly when
+        ``form.is_valid()`` is ``False``, so on that path nothing has called
+        ``is_valid()`` on the sets before now (US3 s2, research R11) — left
+        unvalidated, a set's errors would reach the page only by lazy
+        evaluation during rendering, alongside the parent's, rather than
+        being guaranteed to. ``all_valid`` runs here for the same reason
+        ``form_valid`` uses it above (research R5): its list comprehension
+        defeats ``all()``'s short-circuit, so every set accumulates its own
+        errors regardless of what came before it.
+
+        This is also reached from ``form_valid`` above when the parent form
+        is individually valid but a set is not — and on an update, ``self.
+        object`` *is* ``form.instance``, so ``form.is_valid()`` has already
+        run ``_post_clean``, which writes every submitted value that passed
+        its own field clean onto that instance in place, whether or not the
+        page as a whole is refused. Re-reading ``self.object`` here undoes
+        that write before the page renders, so the object-derived context
+        (title, breadcrumbs) reflects what is actually stored rather than
+        what was submitted and refused (US3 s3, FR-010). On create,
+        ``self.object`` carries no primary key yet, so there is nothing to
+        re-read.
+        """
+        formsets = self.construct_inlines()
+        all_valid(formsets)
+        if self.object is not None and self.object.pk:
+            self.object.refresh_from_db()
+        return super().form_invalid(form)
+
 
 class MVPInlineCreateView(InlinesMixin, MVPCreateView):
     """A create page carrying one record and its declared row sets.
