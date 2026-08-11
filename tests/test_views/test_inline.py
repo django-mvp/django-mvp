@@ -497,3 +497,89 @@ class TestInlineRowMediaRenders:
 
         assert "custom-row-widget.css" in html
         assert "custom-row-widget.js" in html
+
+
+# ---------------------------------------------------------------------------
+# T017-T018 — a valid submission saves the parent and the set's rows and
+# redirects; the parent is saved exactly once (US1 s2, R9's second decision)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+class TestInlineValidSubmission:
+    """A valid submission saves the parent and the declared set's rows
+    together, in one transaction, and redirects."""
+
+    def test_update_valid_submission_persists_parent_and_rows(self):
+        project = ProjectFactory(name="Original")
+        existing = ProjectTaskFactory(project=project, title="Existing task")
+        view_cls = _inline_update_view_class(success_url="/done/")
+        data = {
+            "name": "Renamed",
+            "tasks-TOTAL_FORMS": "2",
+            "tasks-INITIAL_FORMS": "1",
+            "tasks-MIN_NUM_FORMS": "0",
+            "tasks-MAX_NUM_FORMS": "1000",
+            "tasks-0-id": str(existing.pk),
+            "tasks-0-title": "Renamed task",
+            "tasks-1-title": "New task",
+        }
+
+        _, response = _dispatch(
+            view_cls, method="POST", data=data, view_kwargs={"pk": project.pk}
+        )
+
+        assert response.status_code == 302
+        assert response["Location"] == "/done/"
+        project.refresh_from_db()
+        assert project.name == "Renamed"
+        assert set(project.tasks.values_list("title", flat=True)) == {
+            "Renamed task",
+            "New task",
+        }
+
+    def test_parent_is_saved_exactly_once(self, monkeypatch):
+        project = ProjectFactory(name="Original")
+        save_calls = []
+        original_save = Project.save
+
+        def counting_save(self, *args, **kwargs):
+            save_calls.append(1)
+            return original_save(self, *args, **kwargs)
+
+        monkeypatch.setattr(Project, "save", counting_save)
+        view_cls = _inline_update_view_class(success_url="/done/")
+        data = {
+            "name": "Counted Once",
+            "tasks-TOTAL_FORMS": "1",
+            "tasks-INITIAL_FORMS": "0",
+            "tasks-MIN_NUM_FORMS": "0",
+            "tasks-MAX_NUM_FORMS": "1000",
+            "tasks-0-title": "One task",
+        }
+
+        _dispatch(
+            view_cls, method="POST", data=data, view_kwargs={"pk": project.pk}
+        )
+
+        assert len(save_calls) == 1
+
+    def test_create_attaches_all_new_rows_to_the_newly_created_parent(self):
+        view_cls = _inline_create_view_class(success_url="/done/")
+        data = {
+            "name": "Fresh Project",
+            "tasks-TOTAL_FORMS": "2",
+            "tasks-INITIAL_FORMS": "0",
+            "tasks-MIN_NUM_FORMS": "0",
+            "tasks-MAX_NUM_FORMS": "1000",
+            "tasks-0-title": "First task",
+            "tasks-1-title": "Second task",
+        }
+
+        _, response = _dispatch(view_cls, method="POST", data=data)
+
+        assert response.status_code == 302
+        new_project = Project.objects.get(name="Fresh Project")
+        assert set(
+            new_project.tasks.values_list("title", flat=True)
+        ) == {"First task", "Second task"}
