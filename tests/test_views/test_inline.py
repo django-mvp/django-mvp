@@ -1394,3 +1394,155 @@ class TestRefusedSubmissionKeepsObjectDerivedPartsOnTheStoredRecord:
         assert _field_value(html, "name") == "Submitted But Rejected"
         assert _field_value(html, "tasks-0-title") == "x" * 201
         assert breadcrumbs[1]["text"] == "Original"
+
+
+# ---------------------------------------------------------------------------
+# Guards carried over from FS-024, restored against the new surface: the
+# declaration classes replaced the `inline_*` attributes, but FR-009's single
+# transaction, the remove control and the create page's refusal path are
+# unchanged requirements, and the rewrite of this file left each of them with
+# no test (D15).
+# ---------------------------------------------------------------------------
+
+
+class _SimulatedRowFailure(Exception):
+    """Raised by a monkeypatched ``ProjectTask.save`` to force a partial save."""
+
+
+@pytest.mark.django_db
+class TestSaveFailurePartwayThroughRollsBackEverything:
+    """A failure raised while saving rows leaves the parent's changes
+    unpersisted and queues no success message (FR-009, SC-002).
+
+    A row that fails *validation* never reaches the transaction at all, so it
+    cannot tell whether ``form_valid`` wraps the writes or merely orders them.
+    Only a failure raised after the block is entered does.
+    """
+
+    def test_row_save_failure_rolls_back_parent_and_queues_no_message(
+        self, monkeypatch
+    ):
+        project = ProjectFactory(name="Original")
+        original_save = ProjectTask.save
+
+        def failing_save(self, *args, **kwargs):
+            if self.title == "boom":
+                raise _SimulatedRowFailure("boom")
+            return original_save(self, *args, **kwargs)
+
+        monkeypatch.setattr(ProjectTask, "save", failing_save)
+        view_cls = _inline_update_view_class(success_url="/done/")
+        data = {
+            "name": "Changed Name",
+            "tasks-TOTAL_FORMS": "2",
+            "tasks-INITIAL_FORMS": "0",
+            "tasks-MIN_NUM_FORMS": "0",
+            "tasks-MAX_NUM_FORMS": "1000",
+            "tasks-0-title": "saved first",
+            "tasks-1-title": "boom",
+        }
+        request = _build_request(method="POST", data=data)
+
+        with pytest.raises(_SimulatedRowFailure):
+            view_cls.as_view()(request, pk=project.pk)
+
+        project.refresh_from_db()
+        assert project.name == "Original"
+        assert not ProjectTask.objects.filter(title="saved first").exists()
+        assert not ProjectTask.objects.filter(title="boom").exists()
+        assert list(request._messages) == []
+
+
+class _DeletableTaskInline(InlineFormSet):
+    """A set carrying the remove control, which the default declaration also
+    has — named here so the DELETE flag is what the test is about."""
+
+    model = ProjectTask
+    fields = ["title"]
+    can_delete = True
+
+
+@pytest.mark.django_db
+class TestSubmittedRemoveFlagRemovesTheRow:
+    """The server-side half of the remove control: what a submitted ``DELETE``
+    flag does to a related record, and what it does to a row added in the same
+    submission (the count FR-013 excludes from a cap)."""
+
+    def test_delete_on_an_existing_row_deletes_that_record(self):
+        project = ProjectFactory(name="Existing")
+        existing = ProjectTaskFactory(project=project, title="Doomed")
+        view_cls = _inline_update_view_class(
+            success_url="/done/", inlines=[_DeletableTaskInline]
+        )
+        data = {
+            "name": "Existing",
+            "tasks-TOTAL_FORMS": "1",
+            "tasks-INITIAL_FORMS": "1",
+            "tasks-MIN_NUM_FORMS": "0",
+            "tasks-MAX_NUM_FORMS": "1000",
+            "tasks-0-id": str(existing.pk),
+            "tasks-0-title": "Doomed",
+            "tasks-0-DELETE": "on",
+        }
+
+        _, response = _dispatch(
+            view_cls, method="POST", data=data, view_kwargs={"pk": project.pk}
+        )
+
+        assert response.status_code == 302
+        assert not ProjectTask.objects.filter(pk=existing.pk).exists()
+
+    def test_delete_on_a_row_added_in_the_same_submission_creates_nothing(self):
+        project = ProjectFactory(name="Existing")
+        view_cls = _inline_update_view_class(
+            success_url="/done/", inlines=[_DeletableTaskInline]
+        )
+        data = {
+            "name": "Existing",
+            "tasks-TOTAL_FORMS": "1",
+            "tasks-INITIAL_FORMS": "0",
+            "tasks-MIN_NUM_FORMS": "0",
+            "tasks-MAX_NUM_FORMS": "1000",
+            "tasks-0-title": "Never Stored",
+            "tasks-0-DELETE": "on",
+        }
+
+        _, response = _dispatch(
+            view_cls, method="POST", data=data, view_kwargs={"pk": project.pk}
+        )
+
+        assert response.status_code == 302
+        assert not ProjectTask.objects.filter(title="Never Stored").exists()
+        assert ProjectTask.objects.count() == 0
+
+
+@pytest.mark.django_db
+class TestCreatePageRefusedByItsParentFormPersistsNothing:
+    """On a create page, an invalid parent form with a valid row persists
+    neither part, and the page comes back carrying every submitted value.
+
+    The update-page equivalent is covered above; create is the path where
+    ``self.object`` is ``None`` throughout, so the refusal runs through
+    different state.
+    """
+
+    def test_invalid_parent_persists_nothing_and_preserves_both_parts(self):
+        view_cls = _inline_create_view_class(success_url="/done/")
+        too_long_name = "x" * 250  # Project.name has max_length=200
+        data = {
+            "name": too_long_name,
+            "tasks-TOTAL_FORMS": "1",
+            "tasks-INITIAL_FORMS": "0",
+            "tasks-MIN_NUM_FORMS": "0",
+            "tasks-MAX_NUM_FORMS": "1000",
+            "tasks-0-title": "A Valid Row",
+        }
+
+        _, response = _dispatch(view_cls, method="POST", data=data)
+
+        assert response.status_code == 200
+        html = _rendered_html(response)
+        assert _field_value(html, "name") == too_long_name
+        assert _field_value(html, "tasks-0-title") == "A Valid Row"
+        assert Project.objects.count() == 0
+        assert ProjectTask.objects.count() == 0
