@@ -166,3 +166,88 @@ class TestMinNumRejectsFewerRows:
         )
 
         assert formset.is_valid()
+
+
+# ---------------------------------------------------------------------------
+# T007 — get_formset_kwargs() (FR-004, R3, R6)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+class TestGetFormsetKwargs:
+    """``get_formset_kwargs()`` carries the instance-level kwargs the
+    formset is constructed from."""
+
+    def _declaration(self, request=None, **attrs):
+        cls = type(
+            "TaskInline", (InlineFormSet,), {"model": ProjectTask, **attrs}
+        )
+        return cls(
+            parent_model=Project,
+            request=request or RequestFactory().get("/"),
+            instance=self.project,
+            view=None,
+        )
+
+    @pytest.fixture(autouse=True)
+    def _project(self):
+        self.project = ProjectFactory()
+
+    def test_carries_the_instance(self):
+        declaration = self._declaration()
+
+        assert declaration.get_formset_kwargs()["instance"] is self.project
+
+    def test_get_carries_no_data_or_files(self):
+        declaration = self._declaration(request=RequestFactory().get("/"))
+
+        kwargs = declaration.get_formset_kwargs()
+
+        assert "data" not in kwargs
+        assert "files" not in kwargs
+
+    def test_post_carries_data_and_files(self):
+        request = RequestFactory().post("/", data={"tasks-TOTAL_FORMS": "0"})
+        declaration = self._declaration(request=request)
+
+        kwargs = declaration.get_formset_kwargs()
+
+        assert kwargs["data"] is request.POST
+        assert kwargs["files"] is request.FILES
+
+    def test_declared_prefix_is_put_in(self):
+        declaration = self._declaration(prefix="custom")
+
+        assert declaration.get_formset_kwargs()["prefix"] == "custom"
+
+    def test_unset_prefix_is_omitted_entirely(self):
+        declaration = self._declaration()
+
+        assert "prefix" not in declaration.get_formset_kwargs()
+
+    def test_mutating_the_returned_form_kwargs_does_not_alter_the_class_attribute(
+        self,
+    ):
+        cls = type(
+            "TaskInline",
+            (InlineFormSet,),
+            {"model": ProjectTask, "form_kwargs": {"label_suffix": "!"}},
+        )
+        first = cls(
+            parent_model=Project,
+            request=RequestFactory().get("/"),
+            instance=self.project,
+            view=None,
+        )
+        second = cls(
+            parent_model=Project,
+            request=RequestFactory().get("/"),
+            instance=self.project,
+            view=None,
+        )
+
+        first_kwargs = first.get_formset_kwargs()
+        first_kwargs["form_kwargs"]["label_suffix"] = "MUTATED"
+
+        assert cls.form_kwargs == {"label_suffix": "!"}
+        assert second.get_formset_kwargs()["form_kwargs"] == {"label_suffix": "!"}
