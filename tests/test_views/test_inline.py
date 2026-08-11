@@ -1220,3 +1220,30 @@ class TestPerSetCapsIndependent:
         assert response.status_code == 302
         assert set(project.tasks.values_list("title", flat=True)) == {"Keep"}
 
+
+# ---------------------------------------------------------------------------
+# T036 — a declaration naming fk_name builds against that relation and
+# reaches its rows (FR-019, US2 s9)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+class TestFkNameBuildsAgainstNamedRelation:
+    """A declaration naming ``fk_name`` builds against that relation and its
+    rows are those the named relation reaches, not the other one."""
+
+    def test_reaches_only_rows_through_the_named_relation(self):
+        project = ProjectFactory()
+        other = ProjectFactory()
+        ProjectNoteFactory(project=project, text="Owned note")
+        cross_note = ProjectNoteFactory(
+            project=other, related_project=project, text="Cross-referenced note"
+        )
+        view_cls = _inline_update_view_class(
+            success_url="/done/", inlines=[NoteViaRelatedProjectInline]
+        )
+
+        _, response = _dispatch(view_cls, method="GET", view_kwargs={"pk": project.pk})
+
+        formset = response.context_data["inlines"][0]
+        assert list(formset.queryset) == [cross_note]
