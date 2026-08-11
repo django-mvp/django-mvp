@@ -248,10 +248,36 @@ class InlinesMixin:
         same prefix (FR-005): unless caught here, at build time, both sets
         would silently read the same POST keys and share one management
         form. The message names both declaration classes and the fix.
+
+        Also raises ``ImproperlyConfigured``, at the same build time, for
+        the two rows-only misconfigurations Django's own ``fields = None``
+        check cannot see: a create page with no parent fields (FR-017 —
+        there is no loaded instance to hang rows off, so an empty parent
+        form would have to save one, which is exactly the record nobody
+        asked to create) and an update page with neither parent fields nor
+        any set (FR-018 — nothing on the page could edit anything).
+        ``self.object`` is ``None`` throughout a create page's construction
+        and always the loaded instance on an update page, so it is what
+        distinguishes the two here.
         """
         if not hasattr(self, "_inline_formsets"):
-            parent_model = self.get_parent_model()
             declarations = self.get_inlines()
+            if self.fields == [] and self.object is None:
+                raise ImproperlyConfigured(
+                    f"'{self.__class__.__name__}' has no parent fields "
+                    f"('fields = []') on a create page, so there is "
+                    f"nothing to create the parent record from. Set "
+                    f"'fields' to at least one field, or use an update "
+                    f"page instead."
+                )
+            if self.fields == [] and not declarations:
+                raise ImproperlyConfigured(
+                    f"'{self.__class__.__name__}' has no parent fields "
+                    f"('fields = []') and no 'inlines', so the page could "
+                    f"edit nothing. Set 'inlines' to at least one "
+                    f"'InlineFormSet'."
+                )
+            parent_model = self.get_parent_model()
             formsets = [
                 declaration_cls(
                     parent_model, self.request, self.object, self
