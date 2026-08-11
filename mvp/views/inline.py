@@ -236,15 +236,32 @@ class InlinesMixin:
         ``form_invalid`` re-renders through ``get_context_data``, and a
         second construction there would discard the bound formsets carrying
         the user's submitted values and their errors.
+
+        Raises ``ImproperlyConfigured`` when two declarations resolve to the
+        same prefix (FR-005): unless caught here, at build time, both sets
+        would silently read the same POST keys and share one management
+        form. The message names both declaration classes and the fix.
         """
         if not hasattr(self, "_inline_formsets"):
             parent_model = self.get_parent_model()
-            self._inline_formsets = [
+            declarations = self.get_inlines()
+            formsets = [
                 declaration_cls(
                     parent_model, self.request, self.object, self
                 ).construct_formset()
-                for declaration_cls in self.get_inlines()
+                for declaration_cls in declarations
             ]
+            seen_by_prefix = {}
+            for declaration_cls, formset in zip(declarations, formsets, strict=True):
+                other = seen_by_prefix.get(formset.prefix)
+                if other is not None:
+                    raise ImproperlyConfigured(
+                        f"'{other.__name__}' and '{declaration_cls.__name__}' "
+                        f"both resolve to the prefix '{formset.prefix}'. Set "
+                        f"'prefix' on one of them."
+                    )
+                seen_by_prefix[formset.prefix] = declaration_cls
+            self._inline_formsets = formsets
         return self._inline_formsets
 
     def get_context_data(self, **kwargs):

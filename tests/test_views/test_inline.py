@@ -903,3 +903,51 @@ class TestSameModelDifferentRelationsGetDifferentPrefixes:
         assert NoteViaProjectInline.prefix is None
         assert NoteViaRelatedProjectInline.prefix is None
 
+
+# ---------------------------------------------------------------------------
+# T028-T029 — two declarations resolving to the same prefix raise
+# ImproperlyConfigured naming both and the fix, at page-build time
+# (FR-005, US2 s5)
+# ---------------------------------------------------------------------------
+
+
+class _DuplicateTaskInline(InlineFormSet):
+    """Same related model, same relation, no prefix override — collides
+    with ``TaskInline``'s default prefix."""
+
+    model = ProjectTask
+    fields = ["title"]
+
+
+@pytest.mark.django_db
+class TestDuplicatePrefixRaisesAtBuildTime:
+    """Two declarations resolving to the same prefix raise
+    ``ImproperlyConfigured`` naming both declaration classes and the fix,
+    when the page is built — not merely when it is rendered."""
+
+    def test_raises_naming_both_declarations_and_the_fix(self):
+        project = ProjectFactory()
+        view_cls = _inline_update_view_class(
+            success_url="/done/", inlines=[TaskInline, _DuplicateTaskInline]
+        )
+
+        with pytest.raises(ImproperlyConfigured) as excinfo:
+            _dispatch(view_cls, method="GET", view_kwargs={"pk": project.pk})
+
+        message = str(excinfo.value)
+        assert "TaskInline" in message
+        assert "_DuplicateTaskInline" in message
+        assert "prefix" in message
+
+    def test_raises_from_as_view_not_from_a_template_render(self):
+        """Built through ``as_view()`` alone — the error must fire before
+        any template touches the sets, matching FR-005."""
+        project = ProjectFactory()
+        view_cls = _inline_update_view_class(
+            success_url="/done/", inlines=[TaskInline, _DuplicateTaskInline]
+        )
+        request = _build_request(method="GET")
+
+        with pytest.raises(ImproperlyConfigured):
+            view_cls.as_view()(request, pk=project.pk)
+
