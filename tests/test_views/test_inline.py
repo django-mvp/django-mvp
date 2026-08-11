@@ -1294,3 +1294,57 @@ class TestBothSetsReportErrorsOnRedisplay:
         assert inlines[0].forms[0].errors
         assert not inlines[1].is_valid()
         assert inlines[1].forms[0].errors
+
+
+# ---------------------------------------------------------------------------
+# T038 — an invalid parent form together with invalid sets shows both
+# (US3 s2, R11, S3R SPEC-002)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+class TestInvalidParentFormStillValidatesSets:
+    """An invalid parent form together with invalid sets shows both: Django's
+    ``ProcessFormView.post`` routes straight to ``form_invalid`` when the
+    parent form fails, so nothing calls ``is_valid()`` on the sets unless
+    the view does that itself on this path too.
+
+    The assertion reads ``formset._errors is not None`` rather than
+    ``formset.errors``/``formset.non_form_errors``. Both of those are
+    properties that call ``full_clean()`` on access
+    (``django/forms/formsets.py``), so an assertion against them would pass
+    whether or not the view validated the sets — the vacuous-test shape
+    FS-024's design review caught. ``_errors`` is populated only if
+    something already called ``is_valid()``.
+    """
+
+    def test_sets_are_validated_even_when_the_parent_form_is_invalid(self):
+        project = ProjectFactory(name="Original")
+        view_cls = _inline_update_view_class(
+            success_url="/done/", inlines=[TaskInline, NoteViaProjectInline]
+        )
+        data = {
+            "name": "",  # required field left blank: parent form is invalid
+            "tasks-TOTAL_FORMS": "1",
+            "tasks-INITIAL_FORMS": "0",
+            "tasks-MIN_NUM_FORMS": "0",
+            "tasks-MAX_NUM_FORMS": "1000",
+            "tasks-0-title": "x" * 201,
+            "notes-TOTAL_FORMS": "1",
+            "notes-INITIAL_FORMS": "0",
+            "notes-MIN_NUM_FORMS": "0",
+            "notes-MAX_NUM_FORMS": "1000",
+            "notes-0-text": "x" * 201,
+        }
+
+        _, response = _dispatch(
+            view_cls, method="POST", data=data, view_kwargs={"pk": project.pk}
+        )
+
+        assert response.status_code == 200
+        assert response.context_data["form"].is_valid() is False
+        inlines = response.context_data["inlines"]
+        assert inlines[0]._errors is not None
+        assert inlines[1]._errors is not None
+        assert not inlines[1].is_valid()
+        assert inlines[1].forms[0].errors
