@@ -105,6 +105,7 @@ class _StubInlinesView(InlinesMixin):
     def get_queryset(self):
         return self.queryset
 
+
 # ---------------------------------------------------------------------------
 # T001 — fixture models and factories for the whole feature
 # ---------------------------------------------------------------------------
@@ -811,3 +812,60 @@ class TestInlineViewsPublicAPI:
             dir(InlinesMixin)
         )
         assert present == set()
+
+
+# ---------------------------------------------------------------------------
+# Shared multi-set declarations (US2). ``ProjectNote`` reaches ``Project`` by
+# two relations, so a declaration over it must name which one it uses
+# (``fk_name``) or Django's own factory raises for the ambiguity.
+# ---------------------------------------------------------------------------
+
+
+class NoteViaProjectInline(InlineFormSet):
+    model = ProjectNote
+    fields = ["text"]
+    fk_name = "project"
+
+
+class NoteViaRelatedProjectInline(InlineFormSet):
+    model = ProjectNote
+    fields = ["text"]
+    fk_name = "related_project"
+
+
+# ---------------------------------------------------------------------------
+# T025 — two declarations render as two sets, each under its own heading, in
+# the declared order (US2 s1)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+class TestTwoInlineSetsRenderInOrder:
+    """A view listing two declaration classes renders both sets, each under
+    its own heading, in the order the view lists them."""
+
+    def test_both_sets_render_under_their_own_headings_in_declared_order(self):
+        project = ProjectFactory()
+        view_cls = _inline_update_view_class(
+            success_url="/done/", inlines=[TaskInline, NoteViaProjectInline]
+        )
+
+        _, response = _dispatch(view_cls, method="GET", view_kwargs={"pk": project.pk})
+        html = _rendered_html(response)
+
+        tasks_index = html.index(str(ProjectTask._meta.verbose_name_plural))
+        notes_index = html.index(str(ProjectNote._meta.verbose_name_plural))
+        assert tasks_index < notes_index
+
+    def test_context_carries_both_sets_in_declared_order(self):
+        project = ProjectFactory()
+        view_cls = _inline_update_view_class(
+            success_url="/done/", inlines=[TaskInline, NoteViaProjectInline]
+        )
+
+        _, response = _dispatch(view_cls, method="GET", view_kwargs={"pk": project.pk})
+
+        inlines = response.context_data["inlines"]
+        assert len(inlines) == 2
+        assert inlines[0].title == "project tasks"
+        assert inlines[1].title == "project notes"
