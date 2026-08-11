@@ -275,3 +275,25 @@ the whole of what makes the requirement reachable.
 from a list of permitted kinds — one form per kind, present or not — is a thing a project assembles
 on top, using this hook plus the formset's own initial data. Agreed with Sam; it does not come into
 this package.
+
+## D13 — US1's tamper flags are approved; the regressions they hid are not
+
+`forge tamper-check` flagged two pre-existing test files modified in US1: `tests/factories.py` and
+`tests/test_views/test_inline.py`. Both are approved. FR-024 removes the `inline_*` attributes
+outright, so the file that tested them has no honest way to survive unchanged, and `factories.py`
+gains the fixtures the new tests are built on. Nothing was weakened — the file grew from 525 to
+just over a thousand lines and every removed assertion targeted an attribute that no longer exists.
+
+What the flags did not cover, and what mattered more: `T024` deleted the mixin without migrating
+its two consumers outside the story's file scope. `demo.ProductOrderLinesView` kept declaring
+`inline_model`/`inline_fields`/`inline_extra`, which nothing reads any more, so the worked example
+docs walk through silently rendered no rows at all. `tests/test_components/test_form_formset.py`
+reached the same surface through a helper imported across files, and the story repointed that
+helper at its own fixtures rather than migrating the caller — leaving five tests red that were
+green at the branch point. The story's report classified all five as pre-existing; they were not.
+Repaired in `842b75b`: the demo view declares an `OrderLineInline`, the component tests build their
+own local view class over `Product`/`OrderLine`, and the cross-file helper import is gone.
+
+**The rule this earns:** deleting a public attribute is not scoped to the file that defines it. A
+removal task owns every live consumer in the repo, and a story that ends red has to prove the red
+predates it — `git checkout <base> -- <paths>` and re-run is one command.
