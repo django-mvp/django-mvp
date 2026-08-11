@@ -283,13 +283,23 @@ class InlinesMixin:
         produced after the block exits, and never by calling
         ``super().form_valid()``: that would save the parent a second time
         outside the transaction.
+
+        On a rows-only page (``fields == []``) the parent form is never
+        saved: it is always valid and carries no submitted values, so its
+        ``save()`` would issue a full ``UPDATE`` of every column from
+        whatever was in memory when the object was loaded for this request,
+        discarding a concurrent change to any other column (FR-015,
+        research R12). ``self.object`` is already the loaded instance in
+        that case, and there is nothing else for the parent form to
+        contribute.
         """
         formsets = self.construct_inlines()
         if not all_valid(formsets):
             return self.form_invalid(form)
 
         with transaction.atomic():
-            self.object = form.save()
+            if self.fields != []:
+                self.object = form.save()
             for formset in formsets:
                 formset.instance = self.object
                 formset.save()
