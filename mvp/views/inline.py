@@ -214,11 +214,27 @@ class InlinesMixin:
     inlines: list[type[InlineFormSet]] = []
 
     touch_parent = True
-    """On a rows-only page (``fields == []``), whether a valid submission
-    records the change on the parent's own ``auto_now`` field(s). Ignored
-    on any other page. Default on: a model with no ``auto_now`` field has
-    nothing to write, so the touch is a no-op there (FR-016, research R12).
+    """On a rows-only page, whether a valid submission records the change on
+    the parent's own ``auto_now`` field(s). Ignored on any other page.
+    Default on: a model with no ``auto_now`` field has nothing to write, so
+    the touch is a no-op there (FR-016, research R12).
     """
+
+    def is_rows_only(self):
+        """Whether this page edits only the related rows, leaving the parent's
+        own fields off it entirely (FR-014).
+
+        Empty and ``None`` are different configurations, so this cannot be a
+        plain truthiness test: ``fields = None`` is Django's "you configured
+        nothing" state and must keep raising Django's own error, while any
+        empty ``fields`` is the deliberate declaration this feature reads.
+        Django accepts a tuple wherever it accepts a list for ``fields`` -
+        its own documentation and ``ModelAdmin`` both use tuples - so
+        comparing against ``[]`` would drop ``fields = ()`` onto the
+        parent-editing path, where the parent form is saved and a concurrent
+        write to the parent's other columns is lost.
+        """
+        return self.fields is not None and not self.fields
 
     def get_inlines(self):
         """Return the declaration classes to build, in the order given."""
@@ -262,7 +278,7 @@ class InlinesMixin:
         """
         if not hasattr(self, "_inline_formsets"):
             declarations = self.get_inlines()
-            if self.fields == [] and self.object is None:
+            if self.is_rows_only() and self.object is None:
                 raise ImproperlyConfigured(
                     f"'{self.__class__.__name__}' has no parent fields "
                     f"('fields = []') on a create page, so there is "
@@ -270,7 +286,7 @@ class InlinesMixin:
                     f"'fields' to at least one field, or use an update "
                     f"page instead."
                 )
-            if self.fields == [] and not declarations:
+            if self.is_rows_only() and not declarations:
                 raise ImproperlyConfigured(
                     f"'{self.__class__.__name__}' has no parent fields "
                     f"('fields = []') and no 'inlines', so the page could "
@@ -317,7 +333,7 @@ class InlinesMixin:
         ``super().form_valid()``: that would save the parent a second time
         outside the transaction.
 
-        On a rows-only page (``fields == []``) the parent form is never
+        On a rows-only page (see ``is_rows_only``) the parent form is never
         saved: it is always valid and carries no submitted values, so its
         ``save()`` would issue a full ``UPDATE`` of every column from
         whatever was in memory when the object was loaded for this request,
@@ -331,7 +347,7 @@ class InlinesMixin:
             return self.form_invalid(form)
 
         with transaction.atomic():
-            if self.fields == []:
+            if self.is_rows_only():
                 self.touch_parent_timestamp()
             else:
                 self.object = form.save()

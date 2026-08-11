@@ -1687,9 +1687,18 @@ class TestConcurrentWriteToParentFieldSurvivesTheSubmission:
     the read is what puts a genuinely stale value in this request's memory.
     """
 
-    def test_concurrent_change_to_parent_field_survives(self, monkeypatch):
+    @pytest.mark.parametrize("empty_fields", [[], ()], ids=["list", "tuple"])
+    def test_concurrent_change_to_parent_field_survives(
+        self, monkeypatch, empty_fields
+    ):
+        """Run against both spellings of empty ``fields``. Django accepts a
+        tuple wherever it accepts a list, and a rows-only page declared
+        ``fields = ()`` that fell onto the parent-editing path would save the
+        parent form and lose the other writer's change without a word."""
         project = ProjectFactory(name="Original")
-        view_cls = _inline_update_view_class(success_url="/done/", fields=[])
+        view_cls = _inline_update_view_class(
+            success_url="/done/", fields=empty_fields
+        )
         original_get_object = view_cls.get_object
 
         def get_object_then_concurrent_write(self, queryset=None):
