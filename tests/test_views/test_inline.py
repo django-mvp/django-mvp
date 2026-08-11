@@ -1128,3 +1128,95 @@ class TestMultipartWhenAnySetNeedsIt:
 
         assert 'enctype="multipart/form-data"' in html
 
+
+# ---------------------------------------------------------------------------
+# T034 — two sets with different max_num caps: a submission within one and
+# above the other rejects only the set that is over (FR-013, US2 s8, R9)
+# ---------------------------------------------------------------------------
+
+
+class _CappedTaskInline(InlineFormSet):
+    model = ProjectTask
+    fields = ["title"]
+    prefix = "capped_tasks"
+    max_num = 1
+
+
+@pytest.mark.django_db
+class TestPerSetCapsIndependent:
+    """Two sets with different row caps: a submission within one cap and
+    above the other rejects only the set that is over, and a submission
+    within a cap after row removals is accepted."""
+
+    def _data(self, project, task_titles, note_texts):
+        data = {
+            "name": project.name,
+            "capped_tasks-TOTAL_FORMS": str(len(task_titles)),
+            "capped_tasks-INITIAL_FORMS": "0",
+            "capped_tasks-MIN_NUM_FORMS": "0",
+            "capped_tasks-MAX_NUM_FORMS": "1000",
+            "notes-TOTAL_FORMS": str(len(note_texts)),
+            "notes-INITIAL_FORMS": "0",
+            "notes-MIN_NUM_FORMS": "0",
+            "notes-MAX_NUM_FORMS": "1000",
+        }
+        for i, title in enumerate(task_titles):
+            data[f"capped_tasks-{i}-title"] = title
+        for i, text in enumerate(note_texts):
+            data[f"notes-{i}-text"] = text
+        return data
+
+    def test_only_the_set_over_its_cap_is_rejected(self):
+        project = ProjectFactory(name="Original")
+        view_cls = _inline_update_view_class(
+            success_url="/done/",
+            inlines=[_CappedTaskInline, NoteViaProjectInline],
+        )
+        data = self._data(
+            project,
+            task_titles=["First", "Second"],  # over the cap of 1
+            note_texts=["A note"],  # NoteViaProjectInline has no cap
+        )
+
+        _, response = _dispatch(
+            view_cls, method="POST", data=data, view_kwargs={"pk": project.pk}
+        )
+
+        assert response.status_code == 200
+        inlines = response.context_data["inlines"]
+        assert not inlines[0].is_valid()
+        assert inlines[0].non_form_errors()
+        assert inlines[1].is_valid()
+
+    def test_within_a_cap_after_removals_is_accepted(self):
+        project = ProjectFactory(name="Original")
+        existing_one = ProjectTaskFactory(project=project, title="Keep")
+        existing_two = ProjectTaskFactory(project=project, title="Drop")
+        view_cls = _inline_update_view_class(
+            success_url="/done/",
+            inlines=[_CappedTaskInline, NoteViaProjectInline],
+        )
+        data = {
+            "name": project.name,
+            "capped_tasks-TOTAL_FORMS": "2",
+            "capped_tasks-INITIAL_FORMS": "2",
+            "capped_tasks-MIN_NUM_FORMS": "0",
+            "capped_tasks-MAX_NUM_FORMS": "1000",
+            "capped_tasks-0-id": str(existing_one.pk),
+            "capped_tasks-0-title": "Keep",
+            "capped_tasks-1-id": str(existing_two.pk),
+            "capped_tasks-1-title": "Drop",
+            "capped_tasks-1-DELETE": "on",
+            "notes-TOTAL_FORMS": "0",
+            "notes-INITIAL_FORMS": "0",
+            "notes-MIN_NUM_FORMS": "0",
+            "notes-MAX_NUM_FORMS": "1000",
+        }
+
+        _, response = _dispatch(
+            view_cls, method="POST", data=data, view_kwargs={"pk": project.pk}
+        )
+
+        assert response.status_code == 302
+        assert set(project.tasks.values_list("title", flat=True)) == {"Keep"}
+
