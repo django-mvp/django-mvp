@@ -869,3 +869,37 @@ class TestTwoInlineSetsRenderInOrder:
         assert len(inlines) == 2
         assert inlines[0].title == "project tasks"
         assert inlines[1].title == "project notes"
+
+
+# ---------------------------------------------------------------------------
+# T027 — two sets over the same related model through different relations
+# both build, with different prefixes, neither declaring one (US2 s6, R3)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+class TestSameModelDifferentRelationsGetDifferentPrefixes:
+    """Two sets naming ``ProjectNote`` through two different foreign keys
+    both build, and their default prefixes differ without either
+    declaration setting ``prefix`` (R3's claim)."""
+
+    def test_both_sets_build_with_different_default_prefixes(self):
+        project = ProjectFactory()
+        view_cls = _inline_update_view_class(
+            success_url="/done/",
+            inlines=[NoteViaProjectInline, NoteViaRelatedProjectInline],
+        )
+
+        _, response = _dispatch(view_cls, method="GET", view_kwargs={"pk": project.pk})
+
+        assert response.status_code == 200
+        inlines = response.context_data["inlines"]
+        assert len(inlines) == 2
+        assert inlines[0].prefix == "notes"
+        assert inlines[1].prefix == "cross_notes"
+        assert inlines[0].prefix != inlines[1].prefix
+
+    def test_neither_declaration_sets_a_prefix(self):
+        assert NoteViaProjectInline.prefix is None
+        assert NoteViaRelatedProjectInline.prefix is None
+
