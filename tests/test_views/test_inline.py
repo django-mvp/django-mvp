@@ -1091,3 +1091,40 @@ class TestSameNamedFieldAcrossSetsStaysScoped:
             "Secondary title",
         }
 
+
+# ---------------------------------------------------------------------------
+# T033 — a page where one set among several needs multipart encodes the
+# form for uploads (FR-012, US2 s7, S3R ARCH-002)
+# ---------------------------------------------------------------------------
+
+
+class _UploadTaskForm(forms.ModelForm):
+    upload = forms.FileField(required=False)
+
+    class Meta:
+        model = ProjectTask
+        fields = ["title"]
+
+
+class _UploadTaskInline(InlineFormSet):
+    model = ProjectTask
+    form = _UploadTaskForm
+    prefix = "uploads"
+
+
+@pytest.mark.django_db
+class TestMultipartWhenAnySetNeedsIt:
+    """A page carrying several sets is encoded for uploads when any one of
+    them needs it, even when the others do not."""
+
+    def test_form_is_multipart_when_one_of_several_sets_needs_it(self):
+        project = ProjectFactory()
+        view_cls = _inline_update_view_class(
+            success_url="/done/", inlines=[TaskInline, _UploadTaskInline]
+        )
+
+        _, response = _dispatch(view_cls, method="GET", view_kwargs={"pk": project.pk})
+        html = _rendered_html(response)
+
+        assert 'enctype="multipart/form-data"' in html
+
