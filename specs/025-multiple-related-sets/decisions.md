@@ -81,6 +81,31 @@ FS-024 recorded it as D25 after a design-review round demonstrated that bounding
 ceiling to the cap plus extras rejects legitimate submissions, because Django reads the raw
 submitted total before subtracting deleted rows. Recorded as FR-013.
 
+## D7 — No compatibility shim, and no parity requirement
+
+**Ruled by Sam at the Spec gate**, 2026-08-11, confirming one point and correcting another.
+
+**Confirmed**: the `inline_*` attributes are removed outright. The two configuration surfaces
+never coexist and nothing is written to accept both. FR-020 already said so; it is restated in
+the Clarifications because a shim that keeps the old names working for one release is the obvious
+thing to reach for, and it is refused rather than merely unmentioned.
+
+**Corrected**: the first draft required behavioural parity with the removed attributes. US-1 said
+the page "behaves exactly as it did before", its independent test judged the story by comparison
+with what the old attributes produced, and SC-005 asked for a rewrite "with no behaviour lost".
+That is wrong. This feature is an overhaul of the previous one, and the specification is the whole
+of what the page must do. A difference from what the removed attributes produced is not by itself
+a defect.
+
+**Why it matters beyond the wording**: parity language written into a story becomes a test written
+against the old implementation, and an implementer reading it would treat the removed code as the
+oracle — which would have quietly preserved decisions this feature exists to revisit. Where the
+specification is silent, the precedent is the packaged single-form pages, not the removed
+attributes.
+
+Amended in place: US-1's narrative, its independent test and its first acceptance scenario;
+SC-005; and Assumptions.
+
 ## D6 — FS-024's single-set assumption is annotated, not left standing
 
 **Ambiguous**: FS-024's spec states, under Assumptions and in an intake clarification, that the

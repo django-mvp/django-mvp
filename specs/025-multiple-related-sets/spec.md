@@ -20,26 +20,24 @@
 
 ### User Story 1 - A row set is declared as its own class (Priority: P1)
 
-A developer moves an existing single-set page from the six `inline_*` view attributes to a
-declaration class: one class per related model, carrying that set's own configuration, listed on
-the view. The page behaves exactly as it did before — same rendering, same validation, same
-atomic save — but the configuration now lives somewhere that can hold more than one of itself.
+A developer configures a page carrying one row set by writing a declaration class: one class per
+related model, carrying that set's own configuration, listed on the view. The parent's form and
+the set's rows render, validate and save together, and the configuration lives somewhere that can
+hold more than one of itself.
 
 **Why this priority**: Every other story in this feature is expressed in terms of the declaration
 class. Until configuration moves off the view and onto a per-set object, there is nowhere for a
-second set's parameters to go, and no amount of later work changes that. This story delivers the
-whole of the existing single-set page through the new surface, which is what makes it
-independently valuable: a developer can adopt it and be no worse off before any multi-set work
-exists.
+second set's parameters to go, and no amount of later work changes that. A working one-set page is
+also the smallest thing this feature can ship that is worth having on its own.
 
 **Independent Test**: Configure a view with one declaration class against a parent and one related
-model, render the create and update pages, submit both a valid and an invalid submission, and
-confirm the behaviour matches what the `inline_*` attributes produced. Delivers the current
-feature through the new configuration surface.
+model, render the create and update pages, and submit both a valid and an invalid submission.
+Judged against the acceptance scenarios below, not against what the removed attributes produced.
+Delivers a working single-set page on the new configuration surface.
 
 **Acceptance Scenarios**:
 
-1. **Given** a view listing one declaration class naming a related model and its fields, **When** the update page is requested, **Then** the parent's form and that set's rows render as they did under the previous attributes.
+1. **Given** a view listing one declaration class naming a related model and its fields, **When** the update page is requested, **Then** the parent's form renders and the set's rows render beneath it, each row through the packaged form components.
 2. **Given** the same view, **When** a valid submission is posted, **Then** the parent record and the set's rows are saved together and the page redirects to the success URL.
 3. **Given** a declaration class that does not name a related model, **When** the view is used, **Then** the misconfiguration is reported when the page is built rather than producing an empty or partial page.
 4. **Given** a declaration class carrying parameters that shape the generated formset class and parameters that shape the formset instance, **When** the set is built, **Then** each group reaches the stage it belongs to, under the names django-extra-views uses for them.
@@ -219,7 +217,7 @@ migratable, discoverable feature.
 - **SC-002**: A submission that changes rows in more than one set on one page results in every change persisted, or, if any part is invalid, none of them.
 - **SC-003**: A submission that is invalid in more than one set reports every one of those errors on a single redisplay, with no error hidden behind an earlier failure.
 - **SC-004**: An update page can be configured to edit only a record's related rows, without the record's own fields appearing and without leaving its stored values altered.
-- **SC-005**: A page built on the previous `inline_*` attributes can be rewritten onto the new surface using only the changelog entry and the documentation, with no behaviour lost.
+- **SC-005**: A page built on the previous `inline_*` attributes can be rewritten onto the new surface using only the changelog entry and the documentation.
 - **SC-006**: Every configuration mistake this feature can make — a set with no related model, two sets sharing a prefix, a create page with no parent fields, an update page that can edit nothing — is reported when the page is built, not as a wrong page.
 
 ## Clarifications
@@ -227,6 +225,13 @@ migratable, discoverable feature.
 *Recorded during the clarification scan. Each answer is integrated into the requirement, scenario
 or edge case it affects. This section is the record, not the requirement. Longer rationale is in
 `decisions.md`.*
+
+### Session 2026-08-11 (Spec gate)
+
+- **Q**: Do the `inline_*` view attributes keep working alongside the declaration class for a release?
+  **A**: No. They are removed outright and the two surfaces never coexist. Confirmed by Sam at the Spec gate; already recorded as FR-020, restated here because a compatibility shim is the obvious thing to reach for and it is refused.
+- **Q**: Must the new surface reproduce the removed attributes' behaviour?
+  **A**: No. This feature is an overhaul of the previous one, not a port of it. The specification below is the whole of what the page must do, and a difference from what the removed attributes produced is not by itself a defect. Sam's ruling at the Spec gate. Recorded in US-1, SC-005 and Assumptions.
 
 ### Session 2026-08-11 (clarification scan)
 
@@ -243,7 +248,8 @@ or edge case it affects. This section is the record, not the requirement. Longer
 
 ## Assumptions
 
-- The package is pre-1.0, so removing the `inline_*` attributes in the same release that introduces their replacement is acceptable and needs a changelog note rather than a deprecation period. This is stated in the tracking issue.
+- The package is pre-1.0, so removing the `inline_*` attributes in the same release that introduces their replacement is acceptable and needs a changelog note rather than a deprecation period. This is stated in the tracking issue and confirmed at the Spec gate. The two configuration surfaces never coexist, and no compatibility shim is written.
+- This feature is an overhaul of the previous one rather than a port of it. Behavioural parity with the removed attributes is not a requirement, and a difference from what they produced is not by itself a defect. Where this specification is silent, the packaged single-form pages are the precedent, not the removed attributes. Sam's ruling at the Spec gate.
 - FS-024 assumed one parent and one row set, and said the shape would be revisited when a case for it appeared. This feature is that revisit. FS-024's assumption and the intake clarification behind it are annotated in place on `specs/024-formset-pages/spec.md` rather than left to read as current.
 - The branch `024-multi-inline-wip` is a sketch of the intended shape, not a candidate for merge, and carries no authority over the decisions this spec makes.
 - The naming follows django-extra-views deliberately, so a developer arriving from that package finds the names where they expect them. Why the view logic is written in this package rather than inherited from it is already recorded as R10 in `specs/024-formset-pages/research.md` and is not reopened here.
