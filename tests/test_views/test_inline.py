@@ -991,3 +991,48 @@ class TestMultiSetValidSubmission:
         assert set(project.tasks.values_list("title", flat=True)) == {"New task"}
         assert set(project.notes.values_list("text", flat=True)) == {"New note"}
 
+
+# ---------------------------------------------------------------------------
+# T031 — a row invalid in the second set leaves nothing saved (US2 s3,
+# FR-009)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+class TestInvalidSecondSetLeavesNothingSaved:
+    """A row invalid in the second set leaves nothing saved: not the first
+    set's rows, not the parent's own change. Asserted by counting rows and
+    re-reading the parent from the database, never by trusting the
+    response."""
+
+    def test_nothing_is_saved_when_the_second_set_has_an_invalid_row(self):
+        project = ProjectFactory(name="Original")
+        view_cls = _inline_update_view_class(
+            success_url="/done/", inlines=[TaskInline, NoteViaProjectInline]
+        )
+        data = {
+            "name": "Renamed",
+            "tasks-TOTAL_FORMS": "1",
+            "tasks-INITIAL_FORMS": "0",
+            "tasks-MIN_NUM_FORMS": "0",
+            "tasks-MAX_NUM_FORMS": "1000",
+            "tasks-0-title": "Would-be task",
+            "notes-TOTAL_FORMS": "1",
+            "notes-INITIAL_FORMS": "0",
+            "notes-MIN_NUM_FORMS": "0",
+            "notes-MAX_NUM_FORMS": "1000",
+            # a filled field over max_length: invalid without being an
+            # unchanged extra row Django's formset would silently skip
+            "notes-0-text": "x" * 201,
+        }
+
+        _, response = _dispatch(
+            view_cls, method="POST", data=data, view_kwargs={"pk": project.pk}
+        )
+
+        assert response.status_code == 200
+        project.refresh_from_db()
+        assert project.name == "Original"
+        assert project.tasks.count() == 0
+        assert project.notes.count() == 0
+
