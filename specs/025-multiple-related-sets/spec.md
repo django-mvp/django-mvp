@@ -188,7 +188,7 @@ migratable, discoverable feature.
 - **FR-008**: Every set MUST be validated on submission even after an earlier set has failed.
 - **FR-009**: A submission MUST be saved only when the parent form and every set are valid, and the parent record and every set MUST be saved in one transaction.
 - **FR-010**: A refused submission MUST redisplay every set carrying the submitted values and their errors, while the page's object-derived parts show the stored record.
-- **FR-011**: Each set MUST render under its own heading, defaulting to the related model's plural name and overridable per declaration, with optional help text beneath it.
+- **FR-011**: Each set MUST render under its own heading, defaulting to the related model's `verbose_name_plural` and overridable per declaration, with optional help text beneath it.
 - **FR-012**: The page MUST be encoded for uploads when any set or the parent form requires it, decided from all of them together.
 - **FR-013**: A row cap on a set MUST reject a submission that exceeds it, MUST NOT count rows the submission removes, and MUST NOT discard rows from a submission that is within the cap. Each set's cap is enforced independently of every other set on the page.
 - **FR-014**: An update page MUST render no parent fields when the parent's fields are configured empty, and MUST still render every configured set against the record the URL identifies.

@@ -3,7 +3,7 @@
   "feature": "025-multiple-related-sets",
   "branch": "025-multiple-related-sets",
   "repo": "django-mvp/django-mvp",
-  "state": "GATE_PLAN",
+  "state": "IMPLEMENT",
   "state_history": [
     {
       "state": "INTAKE",
@@ -44,6 +44,16 @@
       "state": "PLAN",
       "at": "2026-08-11T12:40:00Z",
       "note": "Spec amended at the plan gate on four rulings from Sam: Django-derived naming, the parent timestamp touch, min_num restored with display order as a separate hook, and per-form keyword arguments. 26 FRs, 7 SCs, 62 tasks. Re-gate pending."
+    },
+    {
+      "state": "GATE_PLAN",
+      "at": "2026-08-11T13:20:00Z",
+      "note": "Approved after one round of changes. Promoted to a hard gate for this run at Sam's request."
+    },
+    {
+      "state": "IMPLEMENT",
+      "at": "2026-08-11T13:25:00Z",
+      "note": "US1 foundational phase first, sequential."
     }
   ],
   "gates": {
@@ -63,8 +73,11 @@
       ]
     },
     "plan": {
-      "approved_by": null,
-      "at": null
+      "approved_by": "SamuelJennings",
+      "at": "2026-08-11T13:20:00Z",
+      "self_resolved": [
+        "Heading defaults to the related model's verbose_name_plural; the attribute stays named title"
+      ]
     },
     "merge": {
       "approved_by": null,

@@ -90,9 +90,10 @@ class OrderLineInline(InlineFormSet):
 Attributes, all of them admin's names or `inlineformset_factory`'s: `model`, `fields`, `exclude`,
 `form`, `formset`, `extra`, `min_num`, `max_num`, `can_delete`, `fk_name`, `prefix`, `initial`,
 `factory_kwargs`, `formset_kwargs`, `form_kwargs`. Two are ours because admin has no equivalent:
-`title` and `description`, the rendered heading and the help text beneath it. (Admin's
-`verbose_name_plural` labels its inline, but has no second half, so borrowing the name for half the
-concept would cost more than it saves.)
+`title` and `description`, the rendered heading and the help text beneath it. **`title` defaults to
+the related model's `verbose_name_plural`**, so an unset heading is the one admin would have given
+(Sam, plan gate). The attribute keeps its own name because admin's covers only the first half of
+what the pair does.
 
 `can_order` is **not** included. It is a distinct feature — an `ORDER` field on every form so the
 *user* can reorder rows — and nothing asks for it yet. It stays reachable through `factory_kwargs`.

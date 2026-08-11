@@ -26,7 +26,8 @@
   - **Parent timestamp on the rows-only page** (D10). The page records that its rows changed on the parent's own last-modified field, on by default, switchable off. Measured rather than assumed: saving the empty parent form — the obvious implementation — discards a concurrent write to the parent's other fields, so the touch writes only the `auto_now` fields instead. Recorded as R12 with the three probe results.
   - **`min_num` back, `can_order` still out, display order separate** (D11). The design review dropped all three together as unrequested surface; they were adjacent in a list rather than one decision.
   - **Per-form keyword arguments** (D12). Django's `get_form_kwargs(index)` signature, not a shared dictionary. This is what the prior art's no-index variant makes unreachable.
-- **S4 IMPLEMENT — held.** The plan gate is a hard gate for this run and has not been passed.
+- **Plan gate: APPROVED** by Sam, 2026-08-11, in session, with one refinement: the set's heading defaults to the related model's `verbose_name_plural`. The attribute keeps the name `title`, so the admin name is where the default comes from rather than what the option is called. Recorded in FR-011, R7 and the plan.
+- S4 IMPLEMENT — starting.
 
 ## Amendment, 2026-08-11 (plan gate round 1)
 

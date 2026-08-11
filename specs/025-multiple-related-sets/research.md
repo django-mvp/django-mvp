@@ -155,9 +155,14 @@ Two more names follow admin rather than the borrowed surface: `form` and `formse
 `form_class` and `formset_class`. Those are both admin's attribute names and
 `inlineformset_factory`'s parameter names, so they agree twice over.
 
-`title` and `description` stay as they are rather than becoming admin's `verbose_name_plural`,
+`title` and `description` keep their own names rather than becoming admin's `verbose_name_plural`,
 because ours is a rendered heading with help text beneath it and admin has no equivalent for the
 second half. Borrowing the name for only half the concept would cost more than it saves.
+
+**`title` defaults to the related model's `verbose_name_plural`** (Sam, plan gate). So the admin
+name is where the default comes *from*, even though it is not what the attribute is called — which
+is the right way round: a developer who sets nothing gets the same heading admin would give them,
+and a developer who sets something is plainly overriding a heading rather than renaming a model.
 
 ## R8 — `fields = []` produces a valid form, and saving it is the risk
 
