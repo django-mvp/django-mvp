@@ -1782,9 +1782,7 @@ class TestRowsOnlyPageTouchesParentAutoNowField:
         product.refresh_from_db()
         assert product.updated_at > original_updated_at
 
-    def test_touch_parent_false_leaves_the_parent_entirely_unwritten(
-        self, monkeypatch
-    ):
+    def test_touch_parent_false_leaves_the_parent_entirely_unwritten(self, monkeypatch):
         product = ProductFactory()
         original_updated_at = product.updated_at
         save_calls = []
