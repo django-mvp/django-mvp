@@ -10,6 +10,7 @@ Spec: specs/025-multiple-related-sets/spec.md
 
 import pytest
 from django.core.exceptions import ImproperlyConfigured
+from django.test import RequestFactory
 
 from demo.models import Project, ProjectNote, ProjectTask
 from mvp.views.inline import InlineFormSet
@@ -63,3 +64,105 @@ class TestInlineFormSetRequiresModel:
 
         with pytest.raises(ImproperlyConfigured, match="TaskInline"):
             TaskInline(parent_model=Project, request=None, instance=None, view=None)
+
+
+# ---------------------------------------------------------------------------
+# T004 — get_factory_kwargs() folds the shorthands in (FR-002, FR-013, R9)
+# ---------------------------------------------------------------------------
+
+
+class TestGetFactoryKwargs:
+    """``get_factory_kwargs()`` assembles the kwargs ``inlineformset_factory``
+    builds the formset class from, folding the shorthand attributes in."""
+
+    def _declaration(self, **attrs):
+        cls = type("TaskInline", (InlineFormSet,), {"model": ProjectTask, **attrs})
+        return cls(parent_model=Project, request=None, instance=None, view=None)
+
+    def test_folds_shorthand_attributes_in(self):
+        declaration = self._declaration(fields=["title"], extra=2, can_delete=False)
+
+        kwargs = declaration.get_factory_kwargs()
+
+        assert kwargs["fields"] == ["title"]
+        assert kwargs["extra"] == 2
+        assert kwargs["can_delete"] is False
+
+    def test_explicit_factory_kwargs_key_wins_over_its_shorthand(self):
+        declaration = self._declaration(
+            fields=["title"], factory_kwargs={"fields": ["title", "project"]}
+        )
+
+        kwargs = declaration.get_factory_kwargs()
+
+        assert kwargs["fields"] == ["title", "project"]
+
+    def test_validate_max_is_set_exactly_when_max_num_is(self):
+        without_cap = self._declaration(fields=["title"])
+        with_cap = self._declaration(fields=["title"], max_num=5)
+
+        assert "validate_max" not in without_cap.get_factory_kwargs()
+        assert with_cap.get_factory_kwargs()["validate_max"] is True
+        assert with_cap.get_factory_kwargs()["max_num"] == 5
+
+    def test_absolute_max_is_never_present(self):
+        declaration = self._declaration(fields=["title"], max_num=5)
+
+        assert "absolute_max" not in declaration.get_factory_kwargs()
+
+    def test_validate_min_is_set_exactly_when_min_num_is(self):
+        without_floor = self._declaration(fields=["title"])
+        with_floor = self._declaration(fields=["title"], min_num=1)
+
+        assert "validate_min" not in without_floor.get_factory_kwargs()
+        assert with_floor.get_factory_kwargs()["validate_min"] is True
+        assert with_floor.get_factory_kwargs()["min_num"] == 1
+
+
+# ---------------------------------------------------------------------------
+# T006 — a set declaring min_num rejects a submission with fewer rows
+# (FR-023, US1 s9)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+class TestMinNumRejectsFewerRows:
+    """A set declaring ``min_num`` rejects a submission carrying fewer rows
+    than the minimum."""
+
+    def _post_formset(self, project, min_rows, total_forms, quantities):
+        cls = type(
+            "TaskInline",
+            (InlineFormSet,),
+            {"model": ProjectTask, "fields": ["title"], "min_num": min_rows},
+        )
+        data = {
+            "tasks-TOTAL_FORMS": str(total_forms),
+            "tasks-INITIAL_FORMS": "0",
+            "tasks-MIN_NUM_FORMS": "0",
+            "tasks-MAX_NUM_FORMS": "1000",
+        }
+        for i, title in enumerate(quantities):
+            data[f"tasks-{i}-title"] = title
+        request = RequestFactory().post("/", data=data)
+        declaration = cls(
+            parent_model=Project, request=request, instance=project, view=None
+        )
+        return declaration.construct_formset()
+
+    def test_submission_below_the_minimum_is_rejected(self):
+        project = ProjectFactory()
+        formset = self._post_formset(
+            project, min_rows=2, total_forms=1, quantities=["Only one"]
+        )
+
+        assert not formset.is_valid()
+        assert formset.non_form_errors()
+
+    def test_submission_at_the_minimum_is_accepted(self):
+        project = ProjectFactory()
+        formset = self._post_formset(
+            project, min_rows=2, total_forms=2, quantities=["First", "Second"]
+        )
+
+        assert formset.is_valid()
