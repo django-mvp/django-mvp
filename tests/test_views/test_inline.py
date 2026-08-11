@@ -10,6 +10,7 @@ Spec: specs/025-multiple-related-sets/spec.md
 
 import pytest
 from bs4 import BeautifulSoup
+from django import forms
 from django.contrib.messages.middleware import MessageMiddleware
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.core.exceptions import ImproperlyConfigured
@@ -453,3 +454,46 @@ class TestInlineUpdatePageRendering:
 
         assert len(response.context_data["inlines"]) == 1
         assert response.context_data["inlines"][0].title == "project tasks"
+
+
+# ---------------------------------------------------------------------------
+# T016 — a row form whose widget carries media renders that media
+# (S3R SPEC-004, Article XIII)
+# ---------------------------------------------------------------------------
+
+
+class _WidgetWithMedia(forms.TextInput):
+    class Media:
+        css = {"all": ["custom-row-widget.css"]}
+        js = ["custom-row-widget.js"]
+
+
+class _TaskFormWithMedia(forms.ModelForm):
+    class Meta:
+        model = ProjectTask
+        fields = ["title"]
+        widgets = {"title": _WidgetWithMedia}
+
+
+class TaskInlineWithMedia(InlineFormSet):
+    model = ProjectTask
+    form = _TaskFormWithMedia
+
+
+@pytest.mark.django_db
+class TestInlineRowMediaRenders:
+    """A row form whose widget carries media renders that media on the page
+    — the media blocks iterate the sets as well as the standalone formset,
+    so a list of inlines does not silently drop them."""
+
+    def test_row_widget_media_renders_on_the_page(self):
+        project = ProjectFactory()
+        view_cls = _inline_update_view_class(
+            success_url="/done/", inlines=[TaskInlineWithMedia]
+        )
+
+        _, response = _dispatch(view_cls, method="GET", view_kwargs={"pk": project.pk})
+        html = _rendered_html(response)
+
+        assert "custom-row-widget.css" in html
+        assert "custom-row-widget.js" in html
