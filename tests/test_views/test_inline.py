@@ -9,12 +9,99 @@ Spec: specs/025-multiple-related-sets/spec.md
 """
 
 import pytest
+from bs4 import BeautifulSoup
+from django.contrib.messages.middleware import MessageMiddleware
+from django.contrib.sessions.middleware import SessionMiddleware
 from django.core.exceptions import ImproperlyConfigured
 from django.test import RequestFactory
 
 from demo.models import Project, ProjectNote, ProjectTask
-from mvp.views.inline import InlineFormSet, InlinesMixin
+from mvp.views.inline import (
+    InlineFormSet,
+    InlinesMixin,
+    MVPInlineCreateView,
+    MVPInlineUpdateView,
+)
 from tests.factories import ProjectFactory, ProjectNoteFactory, ProjectTaskFactory
+
+
+def _build_request(method="GET", data=None):
+    """Return a request carrying working session and messages storage.
+
+    ``as_view()`` is called directly (no middleware runs), but ``form_valid``
+    needs ``request._messages`` to queue the success flash, so session and
+    messages middleware are applied to the request by hand.
+    """
+    rf = RequestFactory()
+    request = rf.post("/", data=data or {}) if method == "POST" else rf.get("/")
+    SessionMiddleware(lambda r: None).process_request(request)
+    request.session.save()
+    MessageMiddleware(lambda r: None).process_request(request)
+    return request
+
+
+def _dispatch(view_cls, method="GET", data=None, view_kwargs=None):
+    """Build a request and run it through ``view_cls`` via ``as_view()``."""
+    request = _build_request(method=method, data=data)
+    response = view_cls.as_view()(request, **(view_kwargs or {}))
+    return request, response
+
+
+def _rendered_html(response):
+    """Render a ``TemplateResponse`` and return its decoded content."""
+    response.render()
+    return response.content.decode()
+
+
+def _field_value(html, field_name):
+    """Return the ``value`` of the first field named ``field_name``, or None."""
+    soup = BeautifulSoup(html, "html.parser")
+    field = soup.find(attrs={"name": field_name})
+    if field is None:
+        return None
+    if field.name == "textarea":
+        return field.text
+    return field.get("value")
+
+
+class TaskInline(InlineFormSet):
+    """The worked one-set declaration used across US1's view-level tests."""
+
+    model = ProjectTask
+    fields = ["title"]
+
+
+def _stub_attrs(**overrides):
+    """The shared stub configuration: a Project parent with ProjectTask rows.
+
+    ``tests/test_components/test_form_formset.py`` imports the two view-class
+    builders below alongside ``_field_value``/``_dispatch``/``_rendered_html``
+    — they predate this story and exercised the removed ``inline_*``
+    attributes against ``Product``/``OrderLine``. Kept here, re-pointed at
+    this story's ``InlineFormSet`` surface and fixtures, so that file still
+    *collects* rather than erroring on import; the handful of its own tests
+    that assert on the old attribute names or Product/OrderLine field
+    prefixes now fail honestly, which is correct — that configuration no
+    longer exists. See this story's completion report for the concern this
+    is reported under.
+    """
+    return {
+        "model": Project,
+        "fields": ["name"],
+        "inlines": [TaskInline],
+        "template_name": "form_view.html",
+        "show_detail_action": False,
+        "show_list_action": False,
+        **overrides,
+    }
+
+
+def _inline_update_view_class(**attrs):
+    return type("StubInlineUpdateView", (MVPInlineUpdateView,), _stub_attrs(**attrs))
+
+
+def _inline_create_view_class(**attrs):
+    return type("StubInlineCreateView", (MVPInlineCreateView,), _stub_attrs(**attrs))
 
 
 class _StubInlinesView(InlinesMixin):
@@ -327,3 +414,42 @@ class TestGetParentModel:
         stub.queryset = Project.objects.all()
 
         assert stub.get_parent_model() is Project
+
+
+# ---------------------------------------------------------------------------
+# T013 — an update page with one declaration renders the parent form and the
+# set's rows through the packaged components, from a real request (US1 s1)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+class TestInlineUpdatePageRendering:
+    """A GET renders the parent's form and the declared set's rows through
+    the packaged formset components (US1 s1)."""
+
+    def test_renders_parent_form_and_existing_rows(self):
+        project = ProjectFactory(name="Website revamp")
+        ProjectTaskFactory(project=project, title="Design mockups")
+        ProjectTaskFactory(project=project, title="Build the homepage")
+        view_cls = _inline_update_view_class(success_url="/done/")
+
+        _, response = _dispatch(view_cls, method="GET", view_kwargs={"pk": project.pk})
+        html = _rendered_html(response)
+        soup = BeautifulSoup(html, "html.parser")
+
+        assert soup.find(attrs={"name": "name"}).get("value") == "Website revamp"
+        titles = [
+            tag.get("value")
+            for tag in soup.find_all(attrs={"name": lambda n: n and n.endswith("-title")})
+        ]
+        assert "Design mockups" in titles
+        assert "Build the homepage" in titles
+
+    def test_context_carries_the_inlines_list(self):
+        project = ProjectFactory()
+        view_cls = _inline_update_view_class(success_url="/done/")
+
+        _, response = _dispatch(view_cls, method="GET", view_kwargs={"pk": project.pk})
+
+        assert len(response.context_data["inlines"]) == 1
+        assert response.context_data["inlines"][0].title == "project tasks"

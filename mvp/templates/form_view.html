@@ -4,6 +4,7 @@
   {{ block.super }}
   {{ form.media.css }}
   {{ formset.media.css }}
+  {% for inline in inlines %}{{ inline.media.css }}{% endfor %}
 {% endblock head %}
 {% block page.content %}
   <div class="w-full lg:max-w-4xl">
@@ -14,9 +15,13 @@
             method="post"
             action="{{ request.path }}"
             :form-obj="form"
-            :formset="formset">
+            :formset="formset"
+            :inlines="inlines">
       {% if next_url %}<input type="hidden" name="next" value="{{ next_url }}">{% endif %}
-      {% block formset %}{% if formset %}<c-form.formset :formset="formset" />{% endif %}{% endblock formset %}
+      {% block formset %}
+        {% if formset %}<c-form.formset :formset="formset" />{% endif %}
+        {% for inline in inlines %}<c-form.formset :formset="inline" />{% endfor %}
+      {% endblock formset %}
       {% block actions %}
         <c-group breakpoint="md" wrap>
           <c-button text="{% trans "Save & continue" %}"
@@ -56,4 +61,5 @@
   {{ block.super }}
   {{ form.media.js }}
   {{ formset.media.js }}
+  {% for inline in inlines %}{{ inline.media.js }}{% endfor %}
 {% endblock extra_js %}
