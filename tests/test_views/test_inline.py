@@ -1871,3 +1871,52 @@ class TestRowsOnlyRefusedSubmissionStillNoParentFields:
         project.refresh_from_db()
         assert project.name == "Original"
         assert project.tasks.count() == 0
+
+
+# ---------------------------------------------------------------------------
+# T051-T052 — a create page with no parent fields raises, and an update
+# page with neither parent fields nor any set raises. Both at page-build
+# time, naming the class and the fix (FR-017, FR-018, US4 s6/s7)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+class TestRowsOnlyConfigurationGuards:
+    """Both misconfigurations report at page-build time, naming the class
+    and the fix — the prefix-collision guard's shape."""
+
+    def test_create_with_no_parent_fields_raises(self):
+        view_cls = _inline_create_view_class(success_url="/done/", fields=[])
+        request = _build_request(method="GET")
+
+        with pytest.raises(ImproperlyConfigured) as excinfo:
+            view_cls.as_view()(request)
+
+        message = str(excinfo.value)
+        assert "StubInlineCreateView" in message
+        assert "fields" in message
+
+    def test_update_with_no_parent_fields_and_no_inlines_raises(self):
+        project = ProjectFactory()
+        view_cls = _inline_update_view_class(
+            success_url="/done/", fields=[], inlines=[]
+        )
+        request = _build_request(method="GET")
+
+        with pytest.raises(ImproperlyConfigured) as excinfo:
+            view_cls.as_view()(request, pk=project.pk)
+
+        message = str(excinfo.value)
+        assert "StubInlineUpdateView" in message
+        assert "inlines" in message
+
+    def test_update_with_no_parent_fields_but_a_set_does_not_raise(self):
+        """The negative case: a rows-only update page with at least one set
+        is exactly what US4 delivers, and must not trip either guard."""
+        project = ProjectFactory()
+        view_cls = _inline_update_view_class(success_url="/done/", fields=[])
+        request = _build_request(method="GET")
+
+        response = view_cls.as_view()(request, pk=project.pk)
+
+        assert response.status_code == 200
