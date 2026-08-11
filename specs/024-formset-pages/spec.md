@@ -267,7 +267,8 @@ requirement.*
 - **Q**: Must a formset page render with no third-party package installed?
   **A**: No. django-crispy-forms and crispy-tailwind become declared runtime dependencies in this feature. Their absence from the metadata is a packaging mistake, not a design decision, and the packaged form rendering has always called into both. Recorded as US1 and FR-001 to FR-003.
 - **Q**: Does the configured view cover a parent with more than one related set on one page?
-  **A**: No. One parent, one related set. A page needing two sets composes the rendering components and drives the extra set itself. The shape is revisited when a case for it appears rather than designed against a case neither the roadmap nor the tracking issue raises. Recorded under Assumptions.
+  ~~**A**: No. One parent, one related set. A page needing two sets composes the rendering components and drives the extra set itself. The shape is revisited when a case for it appears rather than designed against a case neither the roadmap nor the tracking issue raises. Recorded under Assumptions.~~
+  **Superseded 2026-08-11 by FS-025** (`specs/025-multiple-related-sets/`): the case appeared as issue #194 and the answer is now yes.
 
 ### Session 2026-08-05 (clarification scan)
 
@@ -286,7 +287,9 @@ requirement.*
 
 - The client-side runtime the browser behaviour needs is already loaded. The packaged base template pulls in Alpine 3 and its sort plugin, and the packaged form component already carries an Alpine root, so no new client-side dependency and no build step is needed in the consuming project. Alpine rather than hand-written JavaScript was settled when the roadmap item was decomposed. This is what makes FR-025 achievable rather than aspirational.
 - Django's own formset machinery is used rather than reimplemented. The management form, the deletion flag, the extra-row count and the row limits are Django's, and this feature puts a front end on them. That is what the roadmap item asks for.
-- The configured view packages one parent with one related set. A page with two related sets stays buildable by composing the rendering components and is not packaged. Agreed at intake, and revisited when a real case appears.
+- ~~The configured view packages one parent with one related set. A page with two related sets stays buildable by composing the rendering components and is not packaged. Agreed at intake, and revisited when a real case appears.~~
+
+  **Superseded 2026-08-11 by FS-025** (`specs/025-multiple-related-sets/`): the case appeared, and the configured view now packages one parent with any number of row sets, configured by a declaration class per set. The original text is struck rather than deleted, because it records why this feature was scoped to one set.
 - Standalone formsets are a rendering concern only. No second configured view is packaged for a formset with no parent. Agreed at intake.
 - ~~Roadmap item R12 keeps the rest of its scope. Only the form-rendering half of its first deliverable moves here. The list-page dependency, the unguarded module-level import in a view module, and the documented-but-absent form renderer setting stay with R12, whose framing needs the matching correction.~~
 
