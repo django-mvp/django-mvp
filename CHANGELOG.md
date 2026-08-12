@@ -43,7 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   an app raised `TemplateDoesNotExist`. `mvp/page_view.html`, `mvp/list_view.html`,
   `mvp/detail_view.html`, `mvp/form_view.html`, `mvp/delete_view.html` and
   `mvp/table_view.html` now carry the packaged content and extend `mvp/base.html` (or
-  each other) directly; a reusable app extends the `mvp/`-prefixed name instead. The
+  each other) directly. A reusable app extends the `mvp/`-prefixed name instead. The
   project-facing names are unchanged and now delegate to their qualified equivalent, so
   no project needs to change anything (#219).
 
