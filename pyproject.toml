@@ -57,7 +57,7 @@ requires-poetry = '>=2.0,<3.0'
 
 [tool.poetry.group.test.dependencies]
 Django = ">=5.2.16"
-mvp-shared = { git = "https://github.com/django-mvp/shared.git", rev = "v0.2.0", extras = [
+mvp-shared = { git = "https://github.com/django-mvp/shared.git", rev = "v0.3.2", extras = [
     "test",
 ] }
 
@@ -67,7 +67,7 @@ django-distill = "^3.0"
 django-filter = "^26.1"
 django-tables2 = "^3.0.0"
 django-htmx = ">=1.28.0,<2.0"
-mvp-shared = { git = "https://github.com/django-mvp/shared.git", rev = "v0.2.0", extras = [
+mvp-shared = { git = "https://github.com/django-mvp/shared.git", rev = "v0.3.2", extras = [
     "dev",
 ] }
 django-tailwind = { extras = [
@@ -76,12 +76,11 @@ django-tailwind = { extras = [
     "reload",
 ], version = "^4.4.2" }
 brotli = "^1.2.0"
-pytest-playwright = "^0.9.0"
 # Renders docs/utility-classes.md inside the demo app's own "Utility Classes"
 # page, so the docs stay one source of truth instead of being copied into a
-# template. Already present transitively (pulled in by rich, via django-distill/
-# pytest-playwright); declared explicitly here because the demo app now imports
-# it directly. Demo-only: never a runtime dependency of the mvp package itself.
+# template. Already present transitively (pulled in by rich, via django-distill);
+# declared explicitly here because the demo app now imports it directly.
+# Demo-only: never a runtime dependency of the mvp package itself.
 markdown-it-py = "^4.2.0"
 
 [build-system]
@@ -108,10 +107,14 @@ mvp = "mvp.fixtures"
 # which names resolve, and what they extend — against raw .html files under
 # mvp/templates/. There is no mvp/templates.py and there cannot be, for the same
 # reason as the first entry above.
+# tests/test_conftest.py exercises the test suite's own shared fixtures module,
+# tests/conftest.py. Its subject is test infrastructure, not a packaged module,
+# so the mirror check's guess of mvp/conftest.py can never exist either.
 non-mirror-paths = [
     "tests/test_components/",
     "tests/test_demo/",
     "tests/test_templates.py",
+    "tests/test_conftest.py",
 ]
 
 [tool.deptry]

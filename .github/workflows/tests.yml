@@ -21,4 +21,7 @@ jobs:
     uses: django-mvp/shared/.github/workflows/tests.yml@v0.3.2
     with:
       coverage-package: mvp
+      # Downloads chromium so the browser tests actually run. Without it they
+      # are marked, skipped and green, which is indistinguishable from passing.
+      install-playwright: true
     secrets: inherit

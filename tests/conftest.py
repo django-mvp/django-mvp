@@ -5,6 +5,7 @@ so individual test files stay focused on assertions, not setup boilerplate.
 """
 
 import importlib.util
+import os
 from pathlib import Path
 
 import pytest
@@ -104,9 +105,25 @@ def _browser_is_installed():
         return False
 
 
+def _should_skip_browser_tests(has_browser, env):
+    """Decide whether browser-marked tests skip, given the browser and the environment.
+
+    Locally a missing browser is ordinary: a contributor who has not run
+    ``playwright install`` should see skips, not a wall of errors.
+
+    In CI it is a failure. ``.github/workflows/tests.yml`` passes
+    ``install-playwright: true``, so a browser is always expected there, and
+    skipping would hide exactly the thing this guard exists to surface —
+    nineteen silent skips reading as nineteen passes (issue #171).
+    """
+    if has_browser:
+        return False
+    return env.get("CI", "").lower() not in {"1", "true"}
+
+
 HAS_BROWSER = _browser_is_installed()
 
 requires_browser = pytest.mark.skipif(
-    not HAS_BROWSER,
+    _should_skip_browser_tests(HAS_BROWSER, os.environ),
     reason="playwright browser not installed (run: playwright install chromium)",
 )
