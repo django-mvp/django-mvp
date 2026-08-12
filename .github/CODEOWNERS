@@ -1,0 +1,3 @@
+# Restores the review assignment that dependabot.yml `reviewers` used to provide.
+# GitHub removed that option on 2025-08-08; code owners is the prescribed replacement.
+*       @SamuelJennings
