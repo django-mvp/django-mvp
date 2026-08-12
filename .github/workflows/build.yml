@@ -18,7 +18,7 @@ on:
 
 jobs:
   call-build:
-    uses: django-mvp/shared/.github/workflows/build.yml@v0.2.0
+    uses: django-mvp/shared/.github/workflows/build.yml@v0.3.2
     with:
       source-dir: mvp
     secrets: inherit
