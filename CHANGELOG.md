@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **A default `base.html`.** The packaged view templates extend `base.html`, a name a
+  project owns. A project that had not written one could not render `page_view.html` or
+  anything under it, and neither could a reusable app, which has no way to write a
+  template on its host's behalf. django-mvp now ships a `base.html` that forwards to
+  `mvp/base.html` and defines nothing. A project's own `base.html` still takes
+  precedence, so nothing changes for a project that has one.
+
 ### Changed
 
 - **BREAKING: the `inline_*` view attributes are removed.** A page carrying a parent

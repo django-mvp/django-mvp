@@ -1,0 +1,11 @@
+{% extends "mvp/base.html" %}
+{% comment %}
+  The default project base. `page_view.html` and the view templates extending it
+  all extend `base.html` — an unqualified name a project is meant to own, and a
+  project that writes its own overrides this file entirely.
+
+  This exists so a project that has not written one, and a reusable app that
+  cannot ask its host to, still reach the packaged shell. It forwards to
+  `mvp/base.html` and deliberately defines nothing: a block here would silently
+  override the shell's own.
+{% endcomment %}
