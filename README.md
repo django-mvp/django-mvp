@@ -100,14 +100,29 @@ pip install django-mvp
 # settings.py
 INSTALLED_APPS = [
     ...
+    "your_app",         # your apps above "mvp" — see below
     "django.contrib.sites",
     "django_cotton",
     "easy_icons",
     "flex_menu",
     "mvp",
-    "crispy_forms",     # must come after "mvp" — see Getting Started
-    "crispy_tailwind",
+    "crispy_forms",
+    "crispy_tailwind",  # must come after "mvp" — see Getting Started
 ]
+```
+
+Order matters here. Django's template loader walks `INSTALLED_APPS` top to bottom and
+takes the first copy of a name it finds, so **list your own apps above `mvp`** to
+override any template django-mvp ships. This is the same rule projects already use to
+override the Django admin's templates.
+
+Note that it does not follow that `mvp` belongs at the bottom of the list. `mvp` has to
+stay above `crispy_tailwind`, whose help-text template it overrides by the same
+mechanism. Raise your own apps rather than lowering `mvp`. See
+[Getting Started](docs/getting-started.md) for both halves of the rule.
+
+```python
+# settings.py, continued
 
 TEMPLATES = [{
     ...
