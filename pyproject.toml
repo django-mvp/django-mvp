@@ -104,7 +104,15 @@ mvp = "mvp.fixtures"
 # mirror check's guess of mvp/demo/<module>.py can never exist. Declared here
 # for the same reason as the entry above: the mismatch is by design, not
 # drift to fix.
-non-mirror-paths = ["tests/test_components/", "tests/test_demo/"]
+# tests/test_templates.py exercises the packaged template chain's own wiring —
+# which names resolve, and what they extend — against raw .html files under
+# mvp/templates/. There is no mvp/templates.py and there cannot be, for the same
+# reason as the first entry above.
+non-mirror-paths = [
+    "tests/test_components/",
+    "tests/test_demo/",
+    "tests/test_templates.py",
+]
 
 [tool.deptry]
 extend_exclude = ["tasks.py"]
