@@ -21,6 +21,7 @@ from django.template.context import Context
 from django.test import override_settings
 from django.urls import path
 from django_cotton.compiler_regex import CottonCompiler
+from playwright.sync_api import expect
 
 from demo.models import OrderLine, Product
 from mvp.views import InlineFormSet, MVPInlineCreateView, MVPInlineUpdateView
@@ -568,14 +569,19 @@ class TestFormsetAddRemoveRowsE2E:
             existing_row = _row_locator(page, "order_lines-1-quantity")
             existing_row.get_by_role("button", name="Remove").click()
             assert page.url == start_url
-            assert not existing_row.is_visible()
+            # expect(...) rather than a bare is_visible(): Alpine's x-show
+            # applies on the tick after the click, and is_visible() samples the
+            # DOM once with no retry. A developer machine wins that race and a
+            # CI runner does not, which is how this passed everywhere it ran
+            # until it first ran in CI (#171).
+            expect(existing_row).to_be_hidden()
 
             # Removing the row that was just added hides it and sets its
             # DELETE - the one behaviour no server-side test can reach.
             added_row = _row_locator(page, "order_lines-2-quantity")
             added_row.get_by_role("button", name="Remove").click()
             assert page.url == start_url
-            assert not added_row.is_visible()
+            expect(added_row).to_be_hidden()
             assert (
                 page.locator('input[name="order_lines-2-DELETE"]').input_value() == "on"
             )
