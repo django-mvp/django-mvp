@@ -328,3 +328,15 @@ def formset_label(formset):
     if model is None:
         return ""
     return model._meta.verbose_name_plural.title()
+
+
+@register.filter
+def any_multipart(formsets):
+    """Return True when any set in the list needs multipart encoding.
+
+    The form component decides the page's encoding from the parent form and
+    every set together, and emits one attribute however many of them need it.
+    Testing each set inside the tag instead would write the attribute once per
+    multipart set, which browsers accept and the markup contract does not.
+    """
+    return any(formset.is_multipart() for formset in formsets or [])

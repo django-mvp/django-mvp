@@ -113,21 +113,28 @@ class ProductUpdateView(MVPUpdateView):
 
 ### A parent and its related rows
 
-`MVPInlineCreateView` and `MVPInlineUpdateView` put a record and a formset of related rows
-on one page, validated and saved together:
+`MVPInlineCreateView` and `MVPInlineUpdateView` put a record and one or more sets of related
+rows on one page, validated and saved together. Each set is declared as its own `InlineFormSet`
+class and listed on `inlines`:
 
 ```python
+class OrderLineInline(InlineFormSet):
+    model = OrderLine
+    fields = ["quantity"]
+
+
 class ProductOrderLinesView(MVPInlineUpdateView):
     model = Product
     fields = ["name", "category"]
-    inline_model = OrderLine
-    inline_fields = ["quantity"]
+    inlines = [OrderLineInline]
 ```
 
 No template markup, no formset construction, no save logic — the same page chrome, renderer
-detection and success-URL chain as any other form view. See [Formsets](formsets.md) for the
-whole path from the two models to a rendered page, and the standalone case for a formset with
-no parent record at all.
+detection and success-URL chain as any other form view. `fields = []` on an update view edits
+only the declared sets, leaving the parent's own fields off the page. See
+[Formsets](formsets.md) for the whole path from the models to a rendered page, more than one
+set on a page, the rows-only page, and the standalone case for a formset with no parent record
+at all.
 
 ## Delete flows
 

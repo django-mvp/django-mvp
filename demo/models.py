@@ -252,3 +252,89 @@ class OrderLine(models.Model):
 
     def __str__(self):
         return f"Order line for {self.product.name} (qty {self.quantity})"
+
+
+class Project(models.Model):
+    """A parent record carrying two related models, one of which reaches it
+    by two relations — ``ProjectTask`` and ``ProjectNote`` below.
+
+    Backs the demo's two-set page (FS-025) and the ``InlineFormSet`` tests
+    it shares fixtures with.
+    """
+
+    name = models.CharField(
+        max_length=200,
+        verbose_name=_("name"),
+        help_text=_("The project's name."),
+    )
+
+    class Meta:
+        verbose_name = _("project")
+        verbose_name_plural = _("projects")
+
+    def __str__(self):
+        return self.name
+
+
+class ProjectTask(models.Model):
+    """A task belonging to a project — one of the two row sets on the
+    demo's two-set page (FS-025).
+    """
+
+    project = models.ForeignKey(
+        Project,
+        on_delete=models.CASCADE,
+        related_name="tasks",
+        verbose_name=_("project"),
+        help_text=_("The project this task belongs to."),
+    )
+    title = models.CharField(
+        max_length=200,
+        verbose_name=_("title"),
+        help_text=_("The task's title."),
+    )
+
+    class Meta:
+        verbose_name = _("project task")
+        verbose_name_plural = _("project tasks")
+
+    def __str__(self):
+        return self.title
+
+
+class ProjectNote(models.Model):
+    """A note belonging to a project, reachable from ``Project`` by two
+    relations — the demo's worked example (FS-025) of a declaration that
+    must name ``fk_name`` and its own ``fields`` explicitly, and exercises
+    a per-relation prefix default in the ``InlineFormSet`` tests it shares
+    fixtures with.
+    """
+
+    project = models.ForeignKey(
+        Project,
+        on_delete=models.CASCADE,
+        related_name="notes",
+        verbose_name=_("project"),
+        help_text=_("The project this note was written for."),
+    )
+    related_project = models.ForeignKey(
+        Project,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="cross_notes",
+        verbose_name=_("related project"),
+        help_text=_("A second project this note cross-references, if any."),
+    )
+    text = models.CharField(
+        max_length=200,
+        verbose_name=_("text"),
+        help_text=_("The note's text."),
+    )
+
+    class Meta:
+        verbose_name = _("project note")
+        verbose_name_plural = _("project notes")
+
+    def __str__(self):
+        return self.text

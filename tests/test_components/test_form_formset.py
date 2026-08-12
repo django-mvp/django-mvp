@@ -22,18 +22,41 @@ from django.test import override_settings
 from django.urls import path
 from django_cotton.compiler_regex import CottonCompiler
 
-from demo.models import OrderLine
+from demo.models import OrderLine, Product
+from mvp.views import InlineFormSet, MVPInlineCreateView, MVPInlineUpdateView
 from tests.conftest import requires_browser
 from tests.factories import OrderLineFactory, ProductFactory
-from tests.test_views.test_inline import (
-    _dispatch,
-    _field_value,
-    _inline_create_view_class,
-    _inline_update_view_class,
-    _rendered_html,
-)
+from tests.test_views.test_inline import _dispatch, _field_value, _rendered_html
 
 compiler = CottonCompiler()
+
+
+def _order_line_view_class(base, *, extra=None, max_num=None, **attrs):
+    """A product-and-its-order-lines view, for the cases below that need a
+    real page rather than a rendered component in isolation.
+
+    Local to this file: tests/test_views/test_inline.py declares its own
+    fixtures for the view surface itself, and these tests assert on the
+    ``order_lines`` prefix and OrderLine's own fields.
+    """
+    inline = type(
+        "_OrderLineInline",
+        (InlineFormSet,),
+        {"model": OrderLine, "fields": ["quantity"], "extra": extra, "max_num": max_num},
+    )
+    return type(
+        f"Stub{base.__name__}",
+        (base,),
+        {
+            "model": Product,
+            "fields": ["name"],
+            "inlines": [inline],
+            "template_name": "form_view.html",
+            "show_detail_action": False,
+            "show_list_action": False,
+            **attrs,
+        },
+    )
 
 
 def render(source, **context):
@@ -442,7 +465,7 @@ class TestFormsetPageLevelErrorPlacement:
 
     @pytest.mark.django_db
     def test_invalid_submission_avoids_a_page_level_summary_and_preserves_values(self):
-        view_cls = _inline_create_view_class(success_url="list")
+        view_cls = _order_line_view_class(MVPInlineCreateView, success_url="list")
         data = {
             "name": "Valid Parent Name",
             "order_lines-TOTAL_FORMS": "1",
@@ -503,11 +526,10 @@ class TestFormsetAddRemoveRowsE2E:
         product = ProductFactory(name="Existing")
         kept = OrderLineFactory(product=product, quantity=7)
         removed_existing = OrderLineFactory(product=product, quantity=5)
-        view_cls = _inline_update_view_class(
+        view_cls = _order_line_view_class(
+            MVPInlineUpdateView,
             success_url="/formset-e2e/",
-            show_detail_action=False,
-            show_list_action=False,
-            inline_extra=0,
+            extra=0,
         )
         # The packaged base template renders the demo menus, which reverse
         # demo view names, so the test URLconf extends the project's rather
@@ -585,12 +607,11 @@ class TestFormsetAddRemoveRowsE2E:
         product = ProductFactory(name="Capped")
         OrderLineFactory(product=product, quantity=1)
         OrderLineFactory(product=product, quantity=2)
-        view_cls = _inline_update_view_class(
+        view_cls = _order_line_view_class(
+            MVPInlineUpdateView,
             success_url="/formset-cap/",
-            show_detail_action=False,
-            show_list_action=False,
-            inline_extra=0,
-            inline_max_num=2,
+            extra=0,
+            max_num=2,
         )
         base_urlpatterns = import_module(settings.ROOT_URLCONF).urlpatterns
         urlconf = type(

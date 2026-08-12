@@ -1,6 +1,12 @@
 # ADR 0002 — Formset rendering is generic; the configured view is not
 
-**Status:** accepted
+**Status:** accepted; partly superseded by [ADR 0007](0007-a-row-set-is-declared-as-its-own-class.md)
+
+> **Superseded 2026-08-11, in part.** The paragraph below limiting the configured view to one
+> parent and one related set no longer holds: a view now lists as many row set declarations as it
+> needs. The rest of this decision stands — rendering is still generic, and no configured view is
+> packaged for a standalone formset. The original text is kept because it records why the first
+> pass was scoped to one set.
 
 ## Decision
 
@@ -8,9 +14,9 @@
 form components render. They require nothing but the formset itself, and they know nothing about
 parents, foreign keys or saving.
 
-`MVPInlineCreateView` and `MVPInlineUpdateView` cover exactly one shape: one parent record with
+~~`MVPInlineCreateView` and `MVPInlineUpdateView` cover exactly one shape: one parent record with
 one related set. A page needing two related sets composes the rendering components and drives the
-extra set itself. No configured view is packaged for a standalone formset, because rendering
+extra set itself.~~ *(Superseded by ADR 0007.)* No configured view is packaged for a standalone formset, because rendering
 already covers that case.
 
 ## Why

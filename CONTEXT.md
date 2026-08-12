@@ -74,6 +74,13 @@ The collection of related rows shown on a page, together with the bookkeeping th
 submission be read back and tells the page how many rows may exist. Rendered by
 `c-form.formset`, one row set per formset.
 
+### Row set declaration
+
+One related model's configuration for a page, written once as an `InlineFormSet` subclass and
+reusable across views. Carries which fields its rows edit, how many blank rows to offer, and
+the heading and help text shown above the row set. Listed on a view's `inlines`, one
+declaration per row set.
+
 ## Component Library
 
 The complete component library is declared below. Components are organized by their namespace (directory). Root-level components have no namespace prefix beyond `c-`. Nested components use dot notation: `c-app.header` means the `header.html` template inside the `app/` directory.

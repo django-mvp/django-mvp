@@ -2,7 +2,7 @@
   "feature": "024-formset-pages",
   "branch": "024-formset-pages",
   "repo": "django-mvp/django-mvp",
-  "state": "PR_READY",
+  "state": "MERGED",
   "state_history": [
     {
       "state": "INTAKE",
@@ -54,6 +54,11 @@
       "state": "PR_READY",
       "at": "2026-08-08T21:45:00Z",
       "note": "One review round used of one. Four findings fixed with tests, each proven against the reinstated defect. Review report posted to the PR; body rewritten with the Closes block."
+    },
+    {
+      "state": "MERGED",
+      "at": "2026-08-10T14:02:18Z",
+      "note": "PR #169 merged; approved by SamuelJennings"
     }
   ],
   "gates": {
@@ -76,8 +81,8 @@
       "at": null
     },
     "merge": {
-      "approved_by": null,
-      "at": null
+      "approved_by": "SamuelJennings",
+      "at": "2026-08-10T14:02:06Z"
     },
     "design_review": {
       "approved_by": "design-panel",

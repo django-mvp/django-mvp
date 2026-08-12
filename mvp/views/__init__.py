@@ -9,7 +9,7 @@ from .edit import (
 )
 from .error import bad_request, not_found, permission_denied, server_error
 from .extra import MVPHomeView, MVPTemplateView
-from .inline import MVPInlineCreateView, MVPInlineUpdateView
+from .inline import InlineFormSet, MVPInlineCreateView, MVPInlineUpdateView
 from .list import MVPListView
 
 # Public API — concrete views and error handlers only.
@@ -24,6 +24,7 @@ from .list import MVPListView
 #   from mvp.integrations.django_filters.views import MVPFilteredListView
 
 __all__ = [
+    "InlineFormSet",
     "MVPCreateView",
     "MVPDeleteView",
     "MVPDetailView",

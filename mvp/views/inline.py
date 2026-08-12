@@ -1,24 +1,209 @@
-"""A parent record and its related rows on one page.
+"""A parent record and one or more sets of related rows on one page.
 
 The prior art for this is django-extra-views (MIT, Andrew Ingram), which has
 solved the parent-and-rows page through a class-based view for far longer than
 this package has existed. The save flow is written here rather than inherited
 from it, for the reasons set out in specs/024-formset-pages/research.md (R10).
 
-Contract: specs/024-formset-pages/contracts/inline-view.md
+The declaration surface is named after django.contrib.admin's inlines and
+inlineformset_factory's parameters (specs/025-multiple-related-sets/research.md
+R7) rather than reproducing django-extra-views' surface.
+
+Spec: specs/025-multiple-related-sets/spec.md
 """
 
 from django.contrib import messages
 from django.core.exceptions import ImproperlyConfigured
 from django.db import transaction
 from django.forms import inlineformset_factory
+from django.forms.formsets import all_valid
 from django.http import HttpResponseRedirect
 
 from .edit import MVPCreateView, MVPUpdateView
 
 
-class InlineFormsetMixin:
-    """Builds and validates an inline formset alongside a single-object form.
+class InlineFormSet:
+    """Declares one set of related rows: the related model and how its
+    formset is built, instance and displayed.
+
+    One declaration class per related model, listed on a view's ``inlines``.
+    ``model`` keeps meaning the related model for its whole life — never
+    rebound to the parent — the parent is held separately on ``parent_model``
+    (research R2).
+
+    Attributes fall into two groups, per Django's own two-phase construction
+    (``get_factory_kwargs()`` / ``get_formset_kwargs()``): ``fields``,
+    ``exclude``, ``form``, ``formset``, ``extra``, ``min_num``, ``max_num``,
+    ``can_delete`` and ``fk_name`` shape the generated formset *class*;
+    ``prefix`` and ``initial`` shape the formset *instance*. ``factory_kwargs``
+    and ``formset_kwargs`` reach anything the shorthands do not expose, and
+    ``factory_kwargs`` wins over its shorthand on any key both set.
+    """
+
+    model = None
+    """The related model this set edits. Never rebound to the parent."""
+
+    fields = None
+    exclude = None
+    """Fields to omit from the generated form.
+
+    On a related model that reaches the parent by more than one relation,
+    ``BaseInlineFormSet.add_fields`` replaces only *this set's own* foreign
+    key with the parent-bound field — any other foreign key the field
+    selection admits (via ``exclude`` rather than an explicit ``fields``)
+    stays a plain chooser over every parent record, not just this one. Name
+    ``fields`` explicitly on that shape rather than relying on ``exclude``.
+    """
+    form = None
+    formset = None
+    extra = None
+    min_num = None
+    max_num = None
+    can_delete = None
+    fk_name = None
+
+    prefix = None
+    initial = None
+
+    factory_kwargs = None
+    formset_kwargs = None
+    form_kwargs = None
+
+    title = None
+    """Heading above the set. Defaults to the related model's
+    ``verbose_name_plural`` — the heading django.contrib.admin would give."""
+
+    description = None
+    """Help text under the heading. No default; omitted when unset."""
+
+    def __init__(self, parent_model, request, instance, view):
+        if self.model is None:
+            raise ImproperlyConfigured(f"'{self.__class__.__name__}' must set 'model'.")
+        self.parent_model = parent_model
+        self.request = request
+        self.instance = instance
+        self.view = view
+
+    def get_factory_kwargs(self):
+        """Return the kwargs ``inlineformset_factory`` builds the class from.
+
+        Folds the shorthand attributes in; an explicit ``factory_kwargs`` key
+        wins over its shorthand. ``validate_max``/``validate_min`` are set
+        exactly when ``max_num``/``min_num`` are, because
+        ``inlineformset_factory`` defaults both to ``False`` and a bound
+        alone rejects nothing. ``absolute_max`` is never derived from
+        ``max_num`` — Django reads the raw submitted ``TOTAL_FORMS`` before
+        subtracting deleted rows, so deriving it would silently truncate a
+        submission that is legitimately within the cap.
+
+        Super-and-extend, like Django's own ``get_form_kwargs``: to reach a
+        formset-class parameter this method does not expose as an attribute,
+        override this method, call ``super().get_factory_kwargs()`` and
+        mutate the result.
+        """
+        kwargs = {}
+        for name in (
+            "fields",
+            "exclude",
+            "form",
+            "formset",
+            "extra",
+            "can_delete",
+            "fk_name",
+        ):
+            value = getattr(self, name)
+            if value is not None:
+                kwargs[name] = value
+        if self.min_num is not None:
+            kwargs["min_num"] = self.min_num
+            kwargs["validate_min"] = True
+        if self.max_num is not None:
+            kwargs["max_num"] = self.max_num
+            kwargs["validate_max"] = True
+        if self.factory_kwargs:
+            kwargs.update(self.factory_kwargs)
+        return kwargs
+
+    def get_formset_class(self):
+        """Build the formset class from ``get_factory_kwargs()``."""
+        return inlineformset_factory(
+            self.parent_model, self.model, **self.get_factory_kwargs()
+        )
+
+    def get_formset_kwargs(self):
+        """Return instance-level kwargs: ``instance``, and ``data``/``files``
+        on a POST.
+
+        Both ``formset_kwargs`` and its nested ``form_kwargs`` are copied at
+        both levels, so mutating the returned dict never mutates the
+        declaration's own class-level attributes across requests (research
+        R6). ``prefix`` is put in only when the declaration sets one, so
+        Django's per-relation default applies when it does not (research R3)
+        — load-bearing beyond configuration: the prefix-collision error
+        (FR-005) tells the developer to set a prefix, so an unwired override
+        would make the error's own suggested fix do nothing.
+        """
+        kwargs = dict(self.formset_kwargs) if self.formset_kwargs else {}
+        kwargs["form_kwargs"] = dict(self.form_kwargs) if self.form_kwargs else {}
+        kwargs["instance"] = self.instance
+        if self.initial is not None:
+            kwargs["initial"] = self.initial
+        if self.prefix:
+            kwargs["prefix"] = self.prefix
+        if self.request.method in ("POST", "PUT"):
+            kwargs["data"] = self.request.POST
+            kwargs["files"] = self.request.FILES
+        return kwargs
+
+    def get_title(self):
+        """Return the heading for the set, defaulting to the related model's
+        ``verbose_name_plural``."""
+        if self.title:
+            return self.title
+        return self.model._meta.verbose_name_plural
+
+    def get_description(self):
+        """Return the help text under the heading, or ``None`` for none."""
+        return self.description
+
+    def get_form_kwargs(self, index):
+        """Return additional keyword arguments for the form at ``index``.
+
+        Django's own signature (index and all — research R13): ``index`` is
+        ``None`` for the blank template form the browser clones. Defaults to
+        the shared ``form_kwargs`` attribute, mirroring
+        ``BaseFormSet.get_form_kwargs``. Override to give forms different
+        arguments according to their position.
+        """
+        return dict(self.form_kwargs) if self.form_kwargs else {}
+
+    def sort_forms(self, forms):
+        """Return the sequence forms are displayed in. Defaults to the order
+        given.
+
+        Display only — must never reach the order rows are validated or
+        saved in, since reordering that would change which submitted row
+        maps to which record.
+        """
+        return forms
+
+    def construct_formset(self):
+        """Build the formset, wiring this declaration's ``get_form_kwargs``
+        and ``sort_forms`` through so Django's own per-form hook and the
+        page's rendering reach them, and attaching ``title``/``description``
+        so a template rendering the formset needs no second variable."""
+        formset_class = self.get_formset_class()
+        formset = formset_class(**self.get_formset_kwargs())
+        formset.get_form_kwargs = self.get_form_kwargs
+        formset.sort_forms = self.sort_forms
+        formset.title = self.get_title()
+        formset.description = self.get_description()
+        return formset
+
+
+class InlinesMixin:
+    """Builds and validates one or more ``InlineFormSet`` declarations
+    alongside a single-object form.
 
     Not exported from ``mvp.views`` - compose it with ``MVPCreateView`` or
     ``MVPUpdateView`` (see ``MVPInlineCreateView`` and ``MVPInlineUpdateView``)
@@ -26,143 +211,220 @@ class InlineFormsetMixin:
     ``mvp/views/__init__.py``: the package exports views, not mixins.
     """
 
-    inline_model = None
-    inline_form_class = None
-    inline_fields = None
-    inline_extra = 1
-    inline_can_delete = True
-    inline_max_num = None
+    inlines: list[type[InlineFormSet]] = []
 
-    inline_title = None
-    """Heading above the set. Defaults to the related model in plural."""
+    touch_parent = True
+    """On a rows-only page, whether a valid submission records the change on
+    the parent's own ``auto_now`` field(s). Ignored on any other page.
+    Default on: a model with no ``auto_now`` field has nothing to write, so
+    the touch is a no-op there (FR-016, research R12).
+    """
 
-    inline_description = None
-    """Help text under the heading. No default; omitted when unset."""
+    def is_rows_only(self):
+        """Whether this page edits only the related rows, leaving the parent's
+        own fields off it entirely (FR-014).
 
-    def get_formset_factory_kwargs(self):
-        """Return the kwargs ``inlineformset_factory`` builds the class from.
-
-        Derived from the six ``inline_*`` attributes. Super-and-extend, like
-        Django's own ``get_form_kwargs``: to add ``min_num``, ``validate_min``,
-        a custom base formset class, or ``fk_name``, override this method,
-        call ``super().get_formset_factory_kwargs()`` and mutate the result.
-
-        ``validate_max`` is set to ``True`` whenever ``inline_max_num`` is
-        set, because ``inlineformset_factory`` defaults ``validate_max=False``
-        and ``max_num`` alone rejects nothing. ``absolute_max`` is left at
-        Django's default and must never be derived from the cap - see the
-        contract for why deriving it silently discards submitted rows.
+        Empty and ``None`` are different configurations, so this cannot be a
+        plain truthiness test: ``fields = None`` is Django's "you configured
+        nothing" state and must keep raising Django's own error, while any
+        empty ``fields`` is the deliberate declaration this feature reads.
+        Django accepts a tuple wherever it accepts a list for ``fields`` -
+        its own documentation and ``ModelAdmin`` both use tuples - so
+        comparing against ``[]`` would drop ``fields = ()`` onto the
+        parent-editing path, where the parent form is saved and a concurrent
+        write to the parent's other columns is lost.
         """
-        if self.inline_model is None:
-            raise ImproperlyConfigured(
-                f"'{self.__class__.__name__}' must set 'inline_model'."
-            )
-        kwargs = {
-            "fields": self.inline_fields,
-            "extra": self.inline_extra,
-            "can_delete": self.inline_can_delete,
-        }
-        if self.inline_form_class is not None:
-            kwargs["form"] = self.inline_form_class
-        if self.inline_max_num is not None:
-            kwargs["max_num"] = self.inline_max_num
-            kwargs["validate_max"] = True
-        return kwargs
+        return self.fields is not None and not self.fields
 
-    def get_formset_class(self):
-        """Build the formset class from ``get_formset_factory_kwargs()``."""
-        return inlineformset_factory(
-            self.model, self.inline_model, **self.get_formset_factory_kwargs()
-        )
+    def get_inlines(self):
+        """Return the declaration classes to build, in the order given."""
+        return list(self.inlines)
 
-    def get_formset_kwargs(self):
-        """Return instance-level kwargs: ``instance``, and ``data``/``files``
-        on a POST."""
-        kwargs = {"instance": self.object}
-        if self.request.method in ("POST", "PUT"):
-            kwargs["data"] = self.request.POST
-            kwargs["files"] = self.request.FILES
-        return kwargs
+    def get_parent_model(self):
+        """Return the parent model, matching how Django's own model-form
+        pages resolve it (``ModelFormMixin.get_form_class``): ``self.model``
+        first, then the loaded object's class, then the queryset's model."""
+        if self.model is not None:
+            return self.model
+        obj = getattr(self, "object", None)
+        if obj is not None:
+            return obj.__class__
+        return self.get_queryset().model
 
-    def get_formset(self):
-        """Return the formset, built once per request and reused.
+    def construct_inlines(self):
+        """Return one formset per declaration, built once per request and
+        reused.
 
-        The memoisation is not an optimisation: ``form_invalid`` re-renders
-        through ``get_context_data``, and a second construction there would
-        discard the bound formset carrying the user's submitted values and
-        its errors, and the page would come back blank.
+        The memoisation is not an optimisation: on an invalid submission,
+        ``form_invalid`` re-renders through ``get_context_data``, and a
+        second construction there would discard the bound formsets carrying
+        the user's submitted values and their errors.
+
+        Raises ``ImproperlyConfigured`` when two declarations resolve to the
+        same prefix (FR-005): unless caught here, at build time, both sets
+        would silently read the same POST keys and share one management
+        form. The message names both declaration classes and the fix.
+
+        Also raises ``ImproperlyConfigured``, at the same build time, for
+        the two rows-only misconfigurations Django's own ``fields = None``
+        check cannot see: a create page with no parent fields (FR-017 —
+        there is no loaded instance to hang rows off, so an empty parent
+        form would have to save one, which is exactly the record nobody
+        asked to create) and an update page with neither parent fields nor
+        any set (FR-018 — nothing on the page could edit anything).
+        ``self.object`` is ``None`` throughout a create page's construction
+        and always the loaded instance on an update page, so it is what
+        distinguishes the two here.
         """
-        if not hasattr(self, "_formset"):
-            formset = self.get_formset_class()(**self.get_formset_kwargs())
-            # Carried on the formset rather than passed through the context,
-            # so that a template rendering <c-form.formset> needs no second
-            # variable and an override can set them per request.
-            formset.title = self.get_inline_title()
-            formset.description = self.get_inline_description()
-            self._formset = formset
-        return self._formset
-
-    def get_inline_title(self):
-        """Return the heading for the set, or None to take the default."""
-        return self.inline_title
-
-    def get_inline_description(self):
-        """Return the help text under the heading, or None for none."""
-        return self.inline_description
+        if not hasattr(self, "_inline_formsets"):
+            declarations = self.get_inlines()
+            if self.is_rows_only() and self.object is None:
+                raise ImproperlyConfigured(
+                    f"'{self.__class__.__name__}' sets an empty 'fields' on a "
+                    f"create page, so there is nothing to create the parent "
+                    f"record from. Set 'fields' to at least one field, or use "
+                    f"an update page instead."
+                )
+            if self.is_rows_only() and not declarations:
+                raise ImproperlyConfigured(
+                    f"'{self.__class__.__name__}' sets an empty 'fields' and no "
+                    f"'inlines', so the page could edit nothing. Set 'inlines' "
+                    f"to at least one 'InlineFormSet'."
+                )
+            parent_model = self.get_parent_model()
+            formsets = [
+                declaration_cls(
+                    parent_model, self.request, self.object, self
+                ).construct_formset()
+                for declaration_cls in declarations
+            ]
+            seen_by_prefix = {}
+            for declaration_cls, formset in zip(declarations, formsets, strict=True):
+                other = seen_by_prefix.get(formset.prefix)
+                if other is not None:
+                    raise ImproperlyConfigured(
+                        f"'{other.__name__}' and '{declaration_cls.__name__}' "
+                        f"both resolve to the prefix '{formset.prefix}'. Set "
+                        f"'prefix' on one of them."
+                    )
+                seen_by_prefix[formset.prefix] = declaration_cls
+            self._inline_formsets = formsets
+        return self._inline_formsets
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["formset"] = self.get_formset()
+        formsets = self.construct_inlines()
+        for formset in formsets:
+            formset.forms = formset.sort_forms(list(formset.forms))
+        context["inlines"] = formsets
         return context
 
     def form_valid(self, form):
-        """Validate the formset, then save both atomically.
+        """Validate every set with Django's ``all_valid``, then save the
+        parent and every set inside one ``transaction.atomic()``.
 
-        Delegates to ``form_invalid`` when the formset fails validation.
-        Otherwise, in one ``transaction.atomic()`` block, saves the parent,
-        assigns it to ``formset.instance`` and saves the formset - in that
-        order, because ``BaseInlineFormSet.save_new`` reads
-        ``formset.instance`` at save time. The success URL, the message and
-        the redirect are all produced after the block exits, and never by
-        calling ``super().form_valid()``: that reaches ``SuccessMessageMixin``,
-        which delegates to ``ModelFormMixin.form_valid``, which would save the
-        parent a second time outside the transaction. The URL is resolved
-        after the saves so that, on the create path, ``get_success_url()``
-        sees the saved object rather than ``self.object is None``.
+        ``all_valid`` is used rather than a hand-rolled loop specifically
+        because its list comprehension defeats ``all()``'s short-circuit, so
+        every set is validated even after an earlier one has failed
+        (research R5). The success URL, the message and the redirect are all
+        produced after the block exits, and never by calling
+        ``super().form_valid()``: that would save the parent a second time
+        outside the transaction.
 
-        Reaching this method means ``form.is_valid()`` has already run and,
-        with it, ``BaseModelForm._post_clean()``, which writes the submitted
-        values onto ``form.instance`` - the same object as ``self.object`` on
-        an update view, because ``ModelFormMixin.get_form_kwargs`` passes it
-        in as ``instance``. When the formset then fails, re-reading
-        ``self.object`` before delegating to ``form_invalid`` undoes that
-        mutation, so object-derived page parts (breadcrumbs, page title)
-        render the stored record rather than the refused submission (#193).
-        On create, ``self.object`` has no pk yet and is left alone.
+        On a rows-only page (see ``is_rows_only``) the parent form is never
+        saved: it is always valid and carries no submitted values, so its
+        ``save()`` would issue a full ``UPDATE`` of every column from
+        whatever was in memory when the object was loaded for this request,
+        discarding a concurrent change to any other column (FR-015,
+        research R12). ``self.object`` is already the loaded instance in
+        that case, and there is nothing else for the parent form to
+        contribute.
         """
-        formset = self.get_formset()
-        if not formset.is_valid():
-            if self.object is not None and self.object.pk is not None:
-                self.object = self.get_object()
+        formsets = self.construct_inlines()
+        if not all_valid(formsets):
             return self.form_invalid(form)
 
         with transaction.atomic():
-            self.object = form.save()
-            formset.instance = self.object
-            formset.save()
+            if self.is_rows_only():
+                self.touch_parent_timestamp()
+            else:
+                self.object = form.save()
+            for formset in formsets:
+                formset.instance = self.object
+                formset.save()
 
         success_url = self.get_success_url()
         messages.success(self.request, self.get_success_message(form.cleaned_data))
         return HttpResponseRedirect(success_url)
 
+    def touch_parent_timestamp(self):
+        """Record the rows' change on the parent's own ``auto_now`` field(s),
+        without saving the parent form (FR-015, FR-016, research R12).
 
-class MVPInlineCreateView(InlineFormsetMixin, MVPCreateView):
-    """A create page carrying one record and one set of rows belonging to it.
+        Writes only those fields, via ``save(update_fields=[...])``, inside
+        the caller's transaction — never a full ``save()``, which would
+        write every column from whatever was in memory when the object was
+        loaded and discard a concurrent change to any other one. The field
+        list is read from the model's own meta rather than a hardcoded
+        name, since a model may declare more than one ``auto_now`` field,
+        or none, in which case this is a genuine no-op. A no-op skips the
+        call to ``save()`` entirely, rather than calling it with an empty
+        ``update_fields``, so a developer who switches ``touch_parent`` off
+        or whose model has no such field gets a parent this page truly
+        never wrote.
+        """
+        if not self.touch_parent:
+            return
+        auto_now_fields = [
+            field.name
+            for field in self.object._meta.fields
+            if getattr(field, "auto_now", False)
+        ]
+        if auto_now_fields:
+            self.object.save(update_fields=auto_now_fields)
 
-    On create, the formset is built against an unsaved parent instance,
-    which is what ``BaseInlineFormSet`` does when given no instance.
+    def form_invalid(self, form):
+        """Validate every set even on the path where the parent form itself
+        is invalid, refresh ``self.object`` from the database, then
+        redisplay.
+
+        Django's ``ProcessFormView.post`` calls this directly when
+        ``form.is_valid()`` is ``False``, so on that path nothing has called
+        ``is_valid()`` on the sets before now (US3 s2, research R11) — left
+        unvalidated, a set's errors would reach the page only by lazy
+        evaluation during rendering, alongside the parent's, rather than
+        being guaranteed to. ``all_valid`` runs here for the same reason
+        ``form_valid`` uses it above (research R5): its list comprehension
+        defeats ``all()``'s short-circuit, so every set accumulates its own
+        errors regardless of what came before it.
+
+        This is also reached from ``form_valid`` above when the parent form
+        is individually valid but a set is not — and on an update, ``self.
+        object`` *is* ``form.instance``, so ``form.is_valid()`` has already
+        run ``_post_clean``, which writes every submitted value that passed
+        its own field clean onto that instance in place, whether or not the
+        page as a whole is refused. Re-reading ``self.object`` here undoes
+        that write before the page renders, so the object-derived context
+        (title, breadcrumbs) reflects what is actually stored rather than
+        what was submitted and refused (US3 s3, FR-010). On create,
+        ``self.object`` carries no primary key yet, so there is nothing to
+        re-read.
+        """
+        formsets = self.construct_inlines()
+        all_valid(formsets)
+        if self.object is not None and self.object.pk:
+            self.object.refresh_from_db()
+        return super().form_invalid(form)
+
+
+class MVPInlineCreateView(InlinesMixin, MVPCreateView):
+    """A create page carrying one record and its declared row sets.
+
+    On create, each set's formset is built against an unsaved parent
+    instance, which is what ``BaseInlineFormSet`` does when given no
+    instance.
     """
 
 
-class MVPInlineUpdateView(InlineFormsetMixin, MVPUpdateView):
-    """An update page carrying one record and one set of rows belonging to it."""
+class MVPInlineUpdateView(InlinesMixin, MVPUpdateView):
+    """An update page carrying one record and its declared row sets."""

@@ -10,7 +10,16 @@ needs no fixture: call the factory inline in the test.
 import factory
 from factory.django import DjangoModelFactory
 
-from demo.models import Article, Category, OrderLine, Product, Task
+from demo.models import (
+    Article,
+    Category,
+    OrderLine,
+    Product,
+    Project,
+    ProjectNote,
+    ProjectTask,
+    Task,
+)
 
 
 class CategoryFactory(DjangoModelFactory):
@@ -59,3 +68,26 @@ class OrderLineFactory(DjangoModelFactory):
 
     product = factory.SubFactory(ProductFactory)
     quantity = 1
+
+
+class ProjectFactory(DjangoModelFactory):
+    class Meta:
+        model = Project
+
+    name = factory.Sequence(lambda n: f"Project {n}")
+
+
+class ProjectTaskFactory(DjangoModelFactory):
+    class Meta:
+        model = ProjectTask
+
+    project = factory.SubFactory(ProjectFactory)
+    title = factory.Sequence(lambda n: f"Task {n}")
+
+
+class ProjectNoteFactory(DjangoModelFactory):
+    class Meta:
+        model = ProjectNote
+
+    project = factory.SubFactory(ProjectFactory)
+    text = factory.Sequence(lambda n: f"Note {n}")

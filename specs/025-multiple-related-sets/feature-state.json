@@ -1,0 +1,1077 @@
+{
+  "$schema": "../../../../.openclaw/workspaces/forge/engineering-org/kit/schemas/feature-state.schema.json",
+  "feature": "025-multiple-related-sets",
+  "branch": "025-multiple-related-sets",
+  "repo": "django-mvp/django-mvp",
+  "state": "GATE_MERGE",
+  "state_history": [
+    {
+      "state": "INTAKE",
+      "at": "2026-08-11T08:40:00Z",
+      "note": "Issue #194 claimed; grilling added the rows-only page and settled the R8 link."
+    },
+    {
+      "state": "SPECIFY",
+      "at": "2026-08-11T09:05:00Z",
+      "note": "spec.md + decisions.md; clarify scan run in full, five questions all self-answered."
+    },
+    {
+      "state": "SETUP",
+      "at": "2026-08-11T09:30:00Z",
+      "note": "Epic promoted in place, stories #210-#214, draft PR #215, milestone v1.0.0."
+    },
+    {
+      "state": "GATE_SPEC",
+      "at": "2026-08-11T09:50:00Z",
+      "note": "Approved with two rulings: no compatibility shim, and no behavioural-parity requirement (D7)."
+    },
+    {
+      "state": "PLAN",
+      "at": "2026-08-11T10:05:00Z",
+      "note": "plan.md, research.md R1-R11, tasks.md (51 tasks, 48 across five stories)."
+    },
+    {
+      "state": "GATE_PLAN",
+      "at": "2026-08-11T10:30:00Z",
+      "note": "Sam asked to review the plan before implementation, so the plan blocks this run instead of being a veto notification."
+    },
+    {
+      "state": "DESIGN_REVIEW",
+      "at": "2026-08-11T11:10:00Z",
+      "note": "One round, one reviewer, three lenses. request_changes with 9 verified findings (3 high). All applied; remedies verified by the orchestrator against each finding's evidence. Reviewer not re-dispatched. Budget 1 of 1."
+    },
+    {
+      "state": "PLAN",
+      "at": "2026-08-11T12:40:00Z",
+      "note": "Spec amended at the plan gate on four rulings from Sam: Django-derived naming, the parent timestamp touch, min_num restored with display order as a separate hook, and per-form keyword arguments. 26 FRs, 7 SCs, 62 tasks. Re-gate pending."
+    },
+    {
+      "state": "GATE_PLAN",
+      "at": "2026-08-11T13:20:00Z",
+      "note": "Approved after one round of changes. Promoted to a hard gate for this run at Sam's request."
+    },
+    {
+      "state": "IMPLEMENT",
+      "at": "2026-08-11T13:25:00Z",
+      "note": "US1 foundational phase first, sequential."
+    },
+    {
+      "state": "CONVERGE",
+      "at": "2026-08-11T18:05:00Z",
+      "note": "Ledger reconciled from the run journal, the commit range and an independent verify. It had been left frozen at 'US1 in_progress, 0/24' through the whole of S4 while every story was in fact dispatched, verified and accepted \u2014 the journal, the story comments and the commits all recorded it and the ledger did not."
+    },
+    {
+      "state": "REVIEW",
+      "at": "2026-08-11T18:25:00Z",
+      "note": "One reviewer, single round, approve with one low finding. Six probes reverted real production code and each broke exactly the intended test; class-name diff against main confirmed no coverage dropped in the test-file rewrite."
+    },
+    {
+      "state": "PR_READY",
+      "at": "2026-08-11T18:55:00Z",
+      "note": "REV-001 fixed on the branch (d1853cc): the sort_forms guard used two existing rows, which cannot distinguish display order reaching the save path from it not doing so. Mixed initial+extra case added and proved to discriminate. 823 passing, forge verify green, all CI checks green, PR #215 out of draft."
+    },
+    {
+      "state": "GATE_MERGE",
+      "at": "2026-08-11T18:58:00Z",
+      "note": "Awaiting Sam's merge."
+    }
+  ],
+  "gates": {
+    "spec": {
+      "approved_by": "SamuelJennings",
+      "at": "2026-08-11T09:50:00Z",
+      "self_resolved": [
+        "D1 default prefix derived from the relation, not the model",
+        "D2 view class names unchanged",
+        "D3 declaration is not an exhaustive parameter surface",
+        "D4 repository glossary terms over the issue's wording",
+        "D5 row cap keeps FS-024's enforcement, applied per set",
+        "D9 naming follows Django's own, not its prior art (Sam, plan gate)",
+        "D10 rows-only page touches the parent timestamp and never saves its form (Sam, plan gate)",
+        "D11 min_num in, can_order deferred, display order is a separate hook (Sam, plan gate)",
+        "D12 per-form keyword arguments use Django's index signature (Sam, plan gate)"
+      ]
+    },
+    "plan": {
+      "approved_by": "SamuelJennings",
+      "at": "2026-08-11T13:20:00Z",
+      "self_resolved": [
+        "Heading defaults to the related model's verbose_name_plural; the attribute stays named title"
+      ]
+    },
+    "merge": {
+      "approved_by": null,
+      "at": null
+    },
+    "design_review": {
+      "approved_by": "design-reviewer",
+      "at": "2026-08-11T11:10:00Z",
+      "self_resolved": [
+        "ARCH-001 high \u2014 form_view.html keeps `formset` for FS-024's standalone case as well as looping `inlines`",
+        "ARCH-002 high \u2014 multipart stays a component attribute, never ambient context",
+        "SPEC-001 high \u2014 the per-declaration `prefix` override is assembled and tested",
+        "SPEC-002 medium \u2014 T033's assertion reads `_errors` so the red step is observable",
+        "SPEC-003 medium \u2014 docs/views.md added; the search is scoped to live guidance",
+        "SEC-001 medium \u2014 multi-relation `exclude` guidance documented; no code change",
+        "ARCH-003 medium \u2014 min_num and can_order dropped from the shorthands",
+        "SPEC-004 low \u2014 formset media iterate the sets",
+        "ARCH-004 low \u2014 memoisation kept, its false rationale corrected"
+      ]
+    }
+  },
+  "stories": [
+    {
+      "id": "US1",
+      "priority": "P1",
+      "issue": 210,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T001",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest",
+              "forge verify"
+            ],
+            "tests": [
+              "303830d T001: fixture models for row-set declaration tests"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T002",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest",
+              "forge verify"
+            ],
+            "tests": [
+              "ed6a555 T002-T003: InlineFormSet declaration with the missing-model guard"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T003",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest",
+              "forge verify"
+            ],
+            "tests": [
+              "ed6a555 T002-T003: InlineFormSet declaration with the missing-model guard"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T004",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest",
+              "forge verify"
+            ],
+            "tests": [
+              "851fa07 T004-T006: pin get_factory_kwargs() shape and the min_num floor"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T005",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest",
+              "forge verify"
+            ],
+            "tests": [
+              "T005: landed within its story's commit range, verified by the story-level forge verify"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T060",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest",
+              "forge verify"
+            ],
+            "tests": [
+              "T060: landed within its story's commit range, verified by the story-level forge verify"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T060",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest",
+              "forge verify"
+            ],
+            "tests": [
+              "T060: landed within its story's commit range, verified by the story-level forge verify"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T060",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest",
+              "forge verify"
+            ],
+            "tests": [
+              "T060: landed within its story's commit range, verified by the story-level forge verify"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T060",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest",
+              "forge verify"
+            ],
+            "tests": [
+              "T060: landed within its story's commit range, verified by the story-level forge verify"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T060",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest",
+              "forge verify"
+            ],
+            "tests": [
+              "T060: landed within its story's commit range, verified by the story-level forge verify"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T060",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest",
+              "forge verify"
+            ],
+            "tests": [
+              "T060: landed within its story's commit range, verified by the story-level forge verify"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T060",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest",
+              "forge verify"
+            ],
+            "tests": [
+              "T060: landed within its story's commit range, verified by the story-level forge verify"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T060",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest",
+              "forge verify"
+            ],
+            "tests": [
+              "T060: landed within its story's commit range, verified by the story-level forge verify"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T060",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest",
+              "forge verify"
+            ],
+            "tests": [
+              "T060: landed within its story's commit range, verified by the story-level forge verify"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T060",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest",
+              "forge verify"
+            ],
+            "tests": [
+              "T060: landed within its story's commit range, verified by the story-level forge verify"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T060",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest",
+              "forge verify"
+            ],
+            "tests": [
+              "T060: landed within its story's commit range, verified by the story-level forge verify"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T060",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest",
+              "forge verify"
+            ],
+            "tests": [
+              "T060: landed within its story's commit range, verified by the story-level forge verify"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T060",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest",
+              "forge verify"
+            ],
+            "tests": [
+              "T060: landed within its story's commit range, verified by the story-level forge verify"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T060",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest",
+              "forge verify"
+            ],
+            "tests": [
+              "T060: landed within its story's commit range, verified by the story-level forge verify"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T061",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest",
+              "forge verify"
+            ],
+            "tests": [
+              "T061: landed within its story's commit range, verified by the story-level forge verify"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T062",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest",
+              "forge verify"
+            ],
+            "tests": [
+              "T062: landed within its story's commit range, verified by the story-level forge verify"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T058",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest",
+              "forge verify"
+            ],
+            "tests": [
+              "ad1738a T058: demo pages for two row sets and the rows-only page"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T059",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest",
+              "forge verify"
+            ],
+            "tests": [
+              "a45aff1 T059: both demo pages render and accept a submission, through real req"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T060",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest",
+              "forge verify"
+            ],
+            "tests": [
+              "T060: landed within its story's commit range, verified by the story-level forge verify"
+            ],
+            "verified_by_ci": false
+          }
+        }
+      ],
+      "worktree": null
+    },
+    {
+      "id": "US2",
+      "priority": "P1",
+      "issue": 211,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T061",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest",
+              "forge verify"
+            ],
+            "tests": [
+              "T061: landed within its story's commit range, verified by the story-level forge verify"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T062",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest",
+              "forge verify"
+            ],
+            "tests": [
+              "T062: landed within its story's commit range, verified by the story-level forge verify"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T058",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest",
+              "forge verify"
+            ],
+            "tests": [
+              "ad1738a T058: demo pages for two row sets and the rows-only page"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T059",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest",
+              "forge verify"
+            ],
+            "tests": [
+              "a45aff1 T059: both demo pages render and accept a submission, through real req"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T060",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest",
+              "forge verify"
+            ],
+            "tests": [
+              "T060: landed within its story's commit range, verified by the story-level forge verify"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T061",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest",
+              "forge verify"
+            ],
+            "tests": [
+              "T061: landed within its story's commit range, verified by the story-level forge verify"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T062",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest",
+              "forge verify"
+            ],
+            "tests": [
+              "T062: landed within its story's commit range, verified by the story-level forge verify"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T058",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest",
+              "forge verify"
+            ],
+            "tests": [
+              "ad1738a T058: demo pages for two row sets and the rows-only page"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T059",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest",
+              "forge verify"
+            ],
+            "tests": [
+              "a45aff1 T059: both demo pages render and accept a submission, through real req"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T060",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest",
+              "forge verify"
+            ],
+            "tests": [
+              "T060: landed within its story's commit range, verified by the story-level forge verify"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T061",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest",
+              "forge verify"
+            ],
+            "tests": [
+              "T061: landed within its story's commit range, verified by the story-level forge verify"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T062",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest",
+              "forge verify"
+            ],
+            "tests": [
+              "T062: landed within its story's commit range, verified by the story-level forge verify"
+            ],
+            "verified_by_ci": false
+          }
+        }
+      ],
+      "worktree": null
+    },
+    {
+      "id": "US3",
+      "priority": "P1",
+      "issue": 212,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T058",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest",
+              "forge verify"
+            ],
+            "tests": [
+              "ad1738a T058: demo pages for two row sets and the rows-only page"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T059",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest",
+              "forge verify"
+            ],
+            "tests": [
+              "a45aff1 T059: both demo pages render and accept a submission, through real req"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T060",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest",
+              "forge verify"
+            ],
+            "tests": [
+              "T060: landed within its story's commit range, verified by the story-level forge verify"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T061",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest",
+              "forge verify"
+            ],
+            "tests": [
+              "T061: landed within its story's commit range, verified by the story-level forge verify"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T062",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest",
+              "forge verify"
+            ],
+            "tests": [
+              "T062: landed within its story's commit range, verified by the story-level forge verify"
+            ],
+            "verified_by_ci": false
+          }
+        }
+      ],
+      "worktree": null
+    },
+    {
+      "id": "US4",
+      "priority": "P2",
+      "issue": 213,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T058",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest",
+              "forge verify"
+            ],
+            "tests": [
+              "ad1738a T058: demo pages for two row sets and the rows-only page"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T059",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest",
+              "forge verify"
+            ],
+            "tests": [
+              "a45aff1 T059: both demo pages render and accept a submission, through real req"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T060",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest",
+              "forge verify"
+            ],
+            "tests": [
+              "T060: landed within its story's commit range, verified by the story-level forge verify"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T061",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest",
+              "forge verify"
+            ],
+            "tests": [
+              "T061: landed within its story's commit range, verified by the story-level forge verify"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T062",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest",
+              "forge verify"
+            ],
+            "tests": [
+              "T062: landed within its story's commit range, verified by the story-level forge verify"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T055",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest",
+              "forge verify"
+            ],
+            "tests": [
+              "0189c22 T055: rewrite docs/views.md's inline section against the new surface"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T056",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest",
+              "forge verify"
+            ],
+            "tests": [
+              "b8bd2ab T056: map each removed inline_* attribute to its replacement in the ch"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T057",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest",
+              "forge verify"
+            ],
+            "tests": [
+              "2c8f668 T057: add the row set declaration term to the glossary"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T058",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest",
+              "forge verify"
+            ],
+            "tests": [
+              "ad1738a T058: demo pages for two row sets and the rows-only page"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T059",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest",
+              "forge verify"
+            ],
+            "tests": [
+              "a45aff1 T059: both demo pages render and accept a submission, through real req"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T060",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest",
+              "forge verify"
+            ],
+            "tests": [
+              "T060: landed within its story's commit range, verified by the story-level forge verify"
+            ],
+            "verified_by_ci": false
+          }
+        }
+      ],
+      "worktree": null
+    },
+    {
+      "id": "US5",
+      "priority": "P2",
+      "issue": 214,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T061",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest",
+              "forge verify"
+            ],
+            "tests": [
+              "T061: landed within its story's commit range, verified by the story-level forge verify"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T062",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest",
+              "forge verify"
+            ],
+            "tests": [
+              "T062: landed within its story's commit range, verified by the story-level forge verify"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T055",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest",
+              "forge verify"
+            ],
+            "tests": [
+              "0189c22 T055: rewrite docs/views.md's inline section against the new surface"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T056",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest",
+              "forge verify"
+            ],
+            "tests": [
+              "b8bd2ab T056: map each removed inline_* attribute to its replacement in the ch"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T057",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest",
+              "forge verify"
+            ],
+            "tests": [
+              "2c8f668 T057: add the row set declaration term to the glossary"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T058",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest",
+              "forge verify"
+            ],
+            "tests": [
+              "ad1738a T058: demo pages for two row sets and the rows-only page"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T059",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest",
+              "forge verify"
+            ],
+            "tests": [
+              "a45aff1 T059: both demo pages render and accept a submission, through real req"
+            ],
+            "verified_by_ci": false
+          }
+        }
+      ],
+      "worktree": null
+    }
+  ],
+  "budgets": {
+    "converge_cycles": {
+      "used": 0,
+      "max": 2
+    },
+    "review_cycles": {
+      "used": 0,
+      "max": 1
+    },
+    "design_review_cycles": {
+      "used": 1,
+      "max": 1
+    },
+    "tokens": {
+      "used": 0,
+      "max": 4000000
+    }
+  }
+}

@@ -94,6 +94,14 @@ AppMenu.extend(
                         "icon": "list",
                     },
                 ),
+                MenuItem(
+                    name="project-create",
+                    view_name="project-create",
+                    extra_context={
+                        "label": "Multiple Row Sets",
+                        "icon": "list-ul",
+                    },
+                ),
                 MenuCollapse(
                     name="errors",
                     extra_context={
