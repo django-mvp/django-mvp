@@ -15,8 +15,8 @@ permissions:
 
 jobs:
   call-prepare-release:
-    uses: django-mvp/shared/.github/workflows/prepare-release.yml@v0.2.0
+    uses: django-mvp/shared/.github/workflows/prepare-release.yml@v0.3.2
     with:
       bump: ${{ inputs.bump }}
     secrets:
-      release-token: ${{ secrets.RELEASE_TOKEN }}
+      RELEASE_TOKEN: ${{ secrets.RELEASE_TOKEN }}

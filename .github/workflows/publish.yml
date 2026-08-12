@@ -30,7 +30,7 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Set up Poetry env
-        uses: django-mvp/shared/.github/actions/setup-poetry@v0.2.0
+        uses: django-mvp/shared/.github/actions/setup-poetry@v0.3.2
         with:
           python-version: '3.13'
 
