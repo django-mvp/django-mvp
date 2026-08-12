@@ -11,6 +11,7 @@ Add the required apps to `INSTALLED_APPS`:
 ```python
 INSTALLED_APPS = [
     ...
+    "your_app",        # your own apps, above "mvp"
     "django.contrib.sites",
     "django_cotton",   # Cotton template components
     "easy_icons",      # Icon system
@@ -22,9 +23,22 @@ INSTALLED_APPS = [
 ]
 ```
 
-`mvp` must come before `crispy_tailwind` in this list: django-mvp ships an override of
-crispy-tailwind's help text template, and Django's template loader picks up the first
-app's copy it finds.
+### Why the order matters
+
+Django's app template loader walks `INSTALLED_APPS` top to bottom and uses the first
+copy of a template name it finds. Two consequences, pulling in opposite directions:
+
+- **Your own apps go above `mvp`.** An app listed earlier wins, so this is what lets you
+  replace any template django-mvp ships, from `base.html` down to a single Cotton
+  component, by putting a file of the same name in your own app. It is the same rule
+  projects already use to override the Django admin's templates.
+- **`mvp` goes above `crispy_tailwind`.** django-mvp ships an override of
+  crispy-tailwind's help text template, and it only takes effect if `mvp` is found
+  first.
+
+So place your apps above `mvp` rather than pushing `mvp` towards the bottom of the list.
+Templates in a directory listed under `TEMPLATES` `DIRS` sidestep the question entirely:
+that loader runs before any app is consulted, whatever the order.
 
 Add the context processor so layout configuration reaches every template:
 

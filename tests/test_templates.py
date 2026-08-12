@@ -15,6 +15,7 @@ from pathlib import Path
 
 import pytest
 from django.apps import apps
+from django.conf import settings
 from django.template import Engine, engines
 from django.template.loader import get_template
 from django.template.loader_tags import BlockNode, ExtendsNode
@@ -75,8 +76,15 @@ class TestDefaultBaseTemplate:
 
             assert package_only_engine.get_template(extends.parent_name.var)
 
-    def test_a_project_template_still_wins(self):
-        """``demo`` ships its own ``base.html``; the configured engine picks it."""
+    def test_an_app_listed_above_mvp_still_wins(self):
+        """The override rule getting-started documents, exercised for real.
+
+        ``demo`` ships its own ``base.html`` and sits above ``mvp`` in
+        ``INSTALLED_APPS``, so the app template loader reaches it first.
+        """
+        installed = settings.INSTALLED_APPS
+        assert installed.index("demo") < installed.index("mvp")
+
         origin = get_template("base.html").origin.name
 
         assert MVP_TEMPLATES not in Path(origin).parents
