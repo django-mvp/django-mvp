@@ -10,6 +10,6 @@ permissions:
 
 jobs:
   call-tag-release:
-    uses: django-mvp/shared/.github/workflows/tag-release.yml@v0.2.0
+    uses: django-mvp/shared/.github/workflows/tag-release.yml@v0.3.2
     secrets:
-      release-token: ${{ secrets.RELEASE_TOKEN }}
+      RELEASE_TOKEN: ${{ secrets.RELEASE_TOKEN }}
