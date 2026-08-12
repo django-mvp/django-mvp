@@ -33,6 +33,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `MVPInlineCreateView` and `MVPInlineUpdateView` keep their names and import paths — only
   the configuration on them changes.
 
+### Added
+
+- **A package-qualified template chain lets a reusable app extend django-mvp's
+  page/list/detail/form/delete/table templates directly.** `page_view.html` used to
+  `{% extends "base.html" %}` — a name that only resolves against a project's own
+  template, since django-mvp ships no top-level `base.html` of its own. A reusable app
+  has no way to supply a project-wide `base.html`, so extending the packaged chain from
+  an app raised `TemplateDoesNotExist`. `mvp/page_view.html`, `mvp/list_view.html`,
+  `mvp/detail_view.html`, `mvp/form_view.html`, `mvp/delete_view.html` and
+  `mvp/table_view.html` now carry the packaged content and extend `mvp/base.html` (or
+  each other) directly; a reusable app extends the `mvp/`-prefixed name instead. The
+  project-facing names are unchanged and now delegate to their qualified equivalent, so
+  no project needs to change anything (#219).
+
 ## [v0.17.0] - 2026-08-10
 
 ### Changed

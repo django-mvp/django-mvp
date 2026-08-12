@@ -656,10 +656,15 @@ class TestPackagedDetailTemplateActions:
         assert reverse("product-delete", kwargs={"pk": product.pk}) not in content
 
     def test_project_can_replace_the_action_set(self, client, staff_user, product):
-        """The page.actions block is the documented override point, so it must be a block."""
+        """The page.actions block is the documented override point, so it must be a block.
+
+        `detail_view.html` itself is now a one-line pass-through to
+        `mvp/detail_view.html` (#219), so that is where the block is
+        actually defined and where this assertion belongs.
+        """
         from django.template.loader import get_template
 
-        source = get_template("detail_view.html").template.source
+        source = get_template("mvp/detail_view.html").template.source
         assert "{% block page.actions %}" in source
 
 
