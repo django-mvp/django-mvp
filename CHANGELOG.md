@@ -15,6 +15,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   template on its host's behalf. django-mvp now ships a `base.html` that forwards to
   `mvp/base.html` and defines nothing. A project's own `base.html` still takes
   precedence, so nothing changes for a project that has one.
+- **`INSTALLED_APPS` ordering is documented in both directions.** The README and Getting
+  Started now say that your own apps belong above `mvp` if you want to override a
+  packaged template, alongside the existing rule that `mvp` belongs above
+  `crispy_tailwind`. The README's inline comment named `crispy_forms` as the app that
+  must follow `mvp`; the template it refers to is crispy-tailwind's.
 
 ### Changed
 
