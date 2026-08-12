@@ -125,6 +125,14 @@ content area, footer, mobile dock):
 {% endblock %}
 ```
 
+The packaged page templates — `page_view.html` and the list, detail, form, delete and
+table pages that build on it — extend the unqualified `base.html` instead. That name is
+yours to own: write your own `base.html` and every packaged page renders through it.
+Write none and django-mvp's default takes over, forwarding to `mvp/base.html` and
+defining nothing of its own. Either way the pages render, which also means a reusable
+app can extend `page_view.html` without requiring a template from the project
+installing it.
+
 For a complete page with title, breadcrumbs and consistent structure, use an MVP view
 instead of a bare `TemplateView` — see [Views](views.md):
 
