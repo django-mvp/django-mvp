@@ -6,16 +6,13 @@ trigger) that only a live layout render exposes.
 """
 
 import pytest
+from django.conf import settings
+from django.contrib.auth import get_user_model
+from django.test import Client
+from playwright.sync_api import expect
 
-pytest.importorskip("playwright")
-from playwright.sync_api import expect  # noqa: E402
-
-from django.conf import settings  # noqa: E402
-from django.contrib.auth import get_user_model  # noqa: E402
-from django.test import Client  # noqa: E402
-
-from mvp.config import MVP_CONFIG  # noqa: E402
-from tests.conftest import requires_browser  # noqa: E402
+from mvp.config import MVP_CONFIG
+from tests.conftest import requires_browser
 
 pytestmark = [pytest.mark.e2e, requires_browser]
 

@@ -15,11 +15,9 @@ firing — neither is observable from server-rendered markup alone.
 """
 
 import pytest
+from playwright.sync_api import expect
 
-pytest.importorskip("playwright")
-from playwright.sync_api import expect  # noqa: E402
-
-from tests.conftest import requires_browser  # noqa: E402
+from tests.conftest import requires_browser
 
 pytestmark = [pytest.mark.e2e, requires_browser]
 

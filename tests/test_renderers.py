@@ -6,15 +6,14 @@ by fixed positioning, and its "Menu" item toggles the daisyUI drawer via a
 checkbox — none of which a server-rendered-markup assertion can verify.
 
 Self-contained: they use pytest-django's ``live_server`` (no hand-started
-server) and pytest-playwright's ``page``. Skipped when the browser is absent.
+server) and pytest-playwright's ``page``. Skipped locally when no browser is
+installed; in CI the workflow installs one, so a missing browser is an error.
 """
 
 import pytest
+from playwright.sync_api import expect
 
-pytest.importorskip("playwright")
-from playwright.sync_api import expect  # noqa: E402
-
-from tests.conftest import requires_browser  # noqa: E402
+from tests.conftest import requires_browser
 
 pytestmark = [pytest.mark.e2e, requires_browser]
 
