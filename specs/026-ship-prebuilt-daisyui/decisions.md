@@ -144,7 +144,28 @@ the repository before being accepted as work.
   documents for the deferred bundle. T016 adds one browser test. Article XIV's row in `plan.md` was
   corrected rather than argued around.
 
-## D9 — US1 dispatched through the fallback subagent mechanism (2026-08-13)
+## D9 — T001 reverses the #190 named-theme exclusion guard on purpose
+
+`tests/test_smoke.py`'s `TestShippedStylesheetShipsCompleteDaisyUI` carried
+`test_named_themes_are_not_shipped`, asserting `[data-theme=<name>]` was *absent* for a handful of
+named themes. That assertion was correct for #190: the ask there was complete daisyUI *component*
+coverage regardless of what mvp's own templates reference, while deliberately keeping only the
+default light/dark theme pair, so the stylesheet stayed small. Its docstring said so explicitly.
+
+FS-026 changes what "correct" means for the same code path: the feature's entire point is that a
+project selects any prebuilt theme by setting one config value, which requires every theme's block to
+ship. The old assertion and the new requirement are direct opposites over the same evidence (the
+built stylesheet), so the guard could not be kept alongside the new one — it was replaced with its
+inverse rather than left to rot as a second, contradictory source of truth.
+
+The original reasoning is not deleted: `TestShippedStylesheetShipsCompleteDaisyUI` and its docstring,
+which explain #190's component-coverage ask, are untouched above the new class. Only the
+themes-are-excluded assertion — the one part of #190 this spec deliberately supersedes — is replaced,
+by `TestShippedStylesheetShipsEveryPrebuiltTheme`, which also adds the two invariants (default theme
+still bound through `:where(:root)`, `prefers-color-scheme: dark` still emitted) that prove FR-006
+holds through the reversal rather than assuming it.
+
+## D10 — US1 dispatched through the fallback subagent mechanism (2026-08-13)
 
 The gateway-tracked spawn mechanism returned "Unable to connect" on three consecutive attempts while
 `openclaw gateway status` reported the service running, the connectivity probe ok and admin
@@ -161,3 +182,31 @@ rather than a correctness one.
 
 **Revisit if**: the gateway-tracked mechanism returns. It is the default and this is a fallback, not
 a new preference.
+
+## D11 — FR-001 needed a check that survives CI (2026-08-13)
+
+Found in the orchestrator's independent verification of US1, not by the implementer or by any gate.
+
+T001's completeness case discovers theme names from `node_modules/daisyui/theme/*.css`. The design
+review had already caught that this would report green on an empty glob, and the remedy was to skip
+explicitly and assert a non-empty list first. That remedy is correct and it was implemented
+correctly. It does not, however, address what remains once the skip fires.
+
+`node_modules` is gitignored and the Python CI job never runs `npm ci`, so in CI the completeness
+case is skipped. Running the class with `node_modules` moved aside gives two passed, two skipped —
+and both survivors, the `:where(:root)` binding and the `prefers-color-scheme` block, were already
+true before this feature. They are regression guards for FR-006, which is what they were designed
+to be. Nothing was left asserting FR-001, the requirement this feature exists to satisfy. Reverting
+`themes: all` would have been a silently green change.
+
+The fix is the five theme names #190's original guard listed, asserted unconditionally against the
+committed stylesheet. No new dependency on the front-end toolchain, and the completeness case stays
+as the stronger local check.
+
+Proven against the defect before being accepted as a gate: with `themes: all` reverted and
+`node_modules` absent, five cases fail where the suite was previously green. Restored, the class is
+green again.
+
+The general shape, which is not about themes: **a skip changes which assertions remain, and the
+remainder has to be checked on its own terms.** Reviewing the skip's correctness is not the same as
+reviewing what is left running, and here the two answers differed.

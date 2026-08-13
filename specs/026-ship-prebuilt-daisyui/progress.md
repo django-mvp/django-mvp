@@ -14,3 +14,96 @@ Append-only stage and gate log. Gate outcomes are written here at the moment the
 | 2026-08-13 | SPEC GATE | **Approved** by the maintainer, on the amended specification. Scope frozen at 3 stories, 21 functional requirements, 8 success criteria. |
 | 2026-08-13 | S3 PLAN | `plan.md` (constitution check across 17 articles, all pass or N/A), `tasks.md` (15 tasks, 5 phases, test-first throughout), `feature-state.json` created and schema-valid. Two rejected alternatives recorded: per-theme static files, and a theme registry for validation. **Spec defect caught and corrected during planning:** FR-002 forbade fetching "a theme definition or stylesheet" from a third party, which the pre-existing icon-font link already violated and which the approved scope excludes. Narrowed to theme definitions, restoring the requirement to what the gate approved rather than widening the feature. SC-002 narrowed to match. |
 | 2026-08-13 | S3R DESIGN REVIEW | `request_changes`, risk medium, three findings, all verified against the repository before being accepted. Two orphaned exact-string assertions on `@plugin "daisyui";` given owning tasks, and T012's file list repointed away from a test module that does not exist and that Article X forbids creating. T001's theme-completeness guard given the skip-and-non-empty treatment T010 already carried, so it cannot report green on an empty glob in a CI job that never installs node_modules. SC-004 had no task: T016 added, one browser test for the `data-set-theme` path, and the Article XIV row in `plan.md` corrected rather than argued around. 16 tasks, 5 phases. Recorded as D8. |
+
+## Implementer US1 task log
+
+## 2026-08-13T00:00Z · Implementer US1 · T001
+
+Did: Replaced `TestShippedStylesheetShipsCompleteDaisyUI.test_named_themes_are_not_shipped` (the
+#190 named-theme exclusion guard) with a new class `TestShippedStylesheetShipsEveryPrebuiltTheme` in
+`tests/test_smoke.py`, asserting the inverse plus the two FR-006 invariants: theme names discovered
+from `node_modules/daisyui/theme/*.css` (skips explicitly and asserts non-empty before
+parametrising), the `:where(:root)` default binding, and the `@media (prefers-color-scheme: dark)`
+block. Recorded the reversal as D9 in decisions.md, citing #190 and this spec, without deleting the
+original #190 reasoning.
+Verified: `poetry run pytest -q tests/test_smoke.py::TestShippedStylesheetShipsEveryPrebuiltTheme` →
+33 failed (one per theme not yet shipped), 5 passed (discovery + both invariants), 0 errors — red for
+the expected reason: the stylesheet has not been rebuilt yet.
+Next: T002 rebuilds the stylesheet with `themes: all` to turn this green.
+Watch: none.
+
+## 2026-08-13T00:05Z · Implementer US1 · T002
+
+Did: Changed `assets/tailwind.css`'s bare `@plugin "daisyui";` to the block form with
+`themes: all;`, updated the stale adjoining comment that claimed themes "default to light/dark
+only", relaxed `tests/test_smoke.py`'s exact-string assertion from `'@plugin "daisyui";'` to
+`'@plugin "daisyui"'` (still guards the plugin line's presence, now tolerant of the block form),
+and rebuilt+committed `mvp/static/css/django-mvp.css` and its `.br` sibling with
+`poetry run invoke build-stylesheet`. That command also regenerated `demo/static/css/demo.css` as
+a side effect (single-line non-deterministic reordering, no content change — `assets/demo.css`
+still uses the bare, unmodified `@plugin "daisyui";`); reverted it with `git checkout --` since it
+is outside T002's file list.
+Verified: `poetry run pytest -q tests/test_smoke.py` → 65 passed, 0 failed — T001's completeness
+class is now fully green (34 discovery/invariant + parametrised theme cases), and the relaxed
+entry-css assertion passes.
+Measured (Article XV discipline — one session, one tool, brotli quality 11 via the repo's own
+`build_stylesheet` task): pre-change committed `django-mvp.css.br` = 41,670 B (verified via
+`git show HEAD~1:mvp/static/css/django-mvp.css.br`, matching decisions.md D3's recorded baseline);
+post-change = 46,532 B. Growth = 4,862 B (4.75 KiB), under the 8 KB bound (SC-003).
+Next: T003 adds the `theme` block to `MVP_CONFIG`.
+Watch: none.
+
+## 2026-08-13T00:10Z · Implementer US1 · T003
+
+Did: Added `tests/test_config.py` (new file, mirrors `mvp/config.py` per Article X) covering
+`theme.default == "light"` / `theme.choices == []` with no override, and — exercised directly
+against `mergedeep.merge` since `MVP_CONFIG` is a process-wide singleton and `tests/settings.py`
+carries no `theme` override — that overriding one theme key leaves the other and sibling
+top-level blocks (`brand`, `layout`) untouched. Then added the `theme` block to `mvp/config.py` as
+a top-level sibling of `brand`, with the plan's comments including the fall-through/no-validation
+note pointing at decisions.md D5.
+Verified: `poetry run pytest -q tests/test_config.py` → before the production change, 5 failed
+(`KeyError: 'theme'`) — red for the right reason; after, 5 passed. Also ran
+`poetry run pytest -q tests/test_components/test_layout_config.py` (adjacent config consumer) →
+40 passed, no regression from the `mvp/config.py` edit.
+Next: T004 makes the pre-paint guard read `theme.default`.
+Watch: none.
+
+## 2026-08-13T00:15Z · Implementer US1 · T004
+
+Did: Added `tests/test_components/test_theme_controller.py` (new file) covering the pre-paint
+guard's position (first thing in `<head>`, before any stylesheet link — FR-005), its
+stored-value-or-default expression against `theme.default` (SC-006, FR-003), and that a configured
+value containing a quote and a closing `</script>` tag cannot break out of the script (Article V).
+Then changed `mvp/templates/mvp/base.html`'s guard from the hardcoded
+`localStorage.getItem('theme') || 'light'` to reading `mvp_config.theme.default` through
+`{{ ... |escapejs }}` embedded as a double-quoted JS string literal, rather than raw interpolation.
+Verified: `poetry run pytest -q tests/test_components/test_theme_controller.py` → before the
+production change, 2 failed (default-expression tests, red for the right reason — script still
+hardcoded `'light'`), 2 passed (position + escaping, trivially, since the config value wasn't read
+yet); after, 4 passed. Also ran
+`poetry run pytest -q tests/test_components/test_layout_config.py tests/test_smoke.py` (adjacent
+`base.html` consumers) → 105 passed, no regression.
+Next: T005 — a name matching nothing falls through, no production code.
+Watch: T007 (not mine, Phase 3/US-2) adds the `theme.choices` membership arm to this same guard —
+this task deliberately implements only the default-fallback arm FR-003/FR-005/FR-006 need.
+
+## 2026-08-13T00:20Z · Implementer US1 · T005
+
+Did: Added `TestUnmatchedThemeNameFallsThrough` to
+`tests/test_components/test_theme_controller.py` (no production code, per the task): a configured
+theme name matching no shipped or project block (1) renders without raising, (2) is emitted
+unvalidated by the guard — same as a matching name — because the package cannot see a project's
+own theme file (decisions.md D5), and (3) the shipped stylesheet's `:where(:root)` fall-through
+binding, which is what makes that safe, is still present. This is the regression guard on the
+deliberate non-validation decision.
+Verified: `poetry run pytest -q tests/test_components/test_theme_controller.py` → 7 passed (all
+green immediately, as expected for a no-production-code coverage task — the behaviour it guards
+was already delivered by T002/T004). One self-correction during authoring: the first attempt used
+a hyphenated fixture name (`totally-not-a-real-theme`); `escapejs` escapes every `-` to the
+six-character sequence backslash-u-0-0-2-D (it guards against `--&gt;` breaking an HTML comment),
+so the literal-substring assertion failed for a reason unrelated to the guard's correctness. Switched to a hyphen-free fixture name
+(`totallynotarealtheme`, matching the un-hyphenated shape of every real daisyUI theme name) and
+reran green — not a same-file/same-error repeat, so craft-debugging was not invoked.
+Next: T003-T005 (US1) complete. Full-suite verify runs once, at the completion report.
+Watch: none.
