@@ -238,15 +238,15 @@ Details: [Integrations](https://github.com/django-mvp/django-mvp/blob/main/docs/
 ## Styling & Theming
 
 Django MVP is styled with **Tailwind CSS v4 + DaisyUI 5** and ships a prebuilt
-stylesheet with the **complete DaisyUI component set** — most projects need
-**no build tooling**. Use the packaged components (and DaisyUI themes for
-colors) and you're done.
+stylesheet with the **complete DaisyUI component set** and every DaisyUI theme.
+Most projects need **no build tooling** at all.
 
-Want a named DaisyUI theme beyond the default light/dark (e.g. `dracula`,
-`synthwave`)? Every DaisyUI theme is also published as a standalone CSS file
-— add a `<link>` for it in a `styles` block override (CDN or self-hosted).
-Still no build tooling. See
-[docs/styling.md](https://github.com/django-mvp/django-mvp/blob/main/docs/styling.md#want-a-named-theme-that-isnt-light-or-dark).
+Set `MVP_CONFIG["theme"]["default"]` to any DaisyUI theme name (`dracula`,
+`synthwave`, ...) and it applies with no build step and nothing fetched from
+outside your project. Offer a choice of themes to visitors through
+`MVP_CONFIG["theme"]["choices"]`, or write your own theme as a plain CSS file.
+See [docs/theming.md](https://github.com/django-mvp/django-mvp/blob/main/docs/theming.md)
+for the full variable reference and a worked example.
 
 If your own templates use their own Tailwind utility classes, rebuild the CSS
 with the generated entry file, which scans your templates *and* Django MVP's:

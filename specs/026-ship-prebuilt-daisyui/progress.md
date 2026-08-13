@@ -309,3 +309,25 @@ Next: T014 — README and CHANGELOG.
 Watch: `demo/static/css/demo.css` is a committed build artifact (Article XV) and is included
 in this commit since its input (`assets/demo.css`) changed; `mvp/static/css/django-mvp.css`
 was not rebuilt or touched, it already carries `themes: all` from US1's T002.
+
+## 2026-08-13T15:58Z · Implementer US3 · T014
+
+Did: Added a CHANGELOG entry under `## [Unreleased]` covering the whole feature (FS-026,
+not just US3): every prebuilt daisyUI theme now ships, `MVP_CONFIG["theme"]` is new public
+API with its two keys and their defaults described, a project's own theme overriding a
+shipped one is mentioned, and a second bullet states default behaviour is unchanged for a
+project that configures nothing (Article XVI, quality bar). Rewrote README.md's "Styling &
+Theming" section: removed the stale "Want a named DaisyUI theme..." paragraph, whose only
+content was a jsDelivr CDN `<link>` and a link fragment
+(`docs/styling.md#want-a-named-theme-that-isnt-light-or-dark`) that T009 deleted, which
+would otherwise have shipped a 404 in this same PR. Replaced it with the actual mechanism
+(`MVP_CONFIG["theme"]["default"]`/`["choices"]`) and a link to the new docs/theming.md page.
+Verified: `poetry run pytest -q tests/test_smoke.py::TestStylingDocs` → 3 passed (README
+still references `mvp_tailwind` and `docs/styling.md`, both untouched by this task's edits).
+`git diff README.md CHANGELOG.md | grep -E "^\+" | grep -niE "delve|leverage|seamless|robust|comprehensive|powerful|—|; "`
+→ no matches.
+Next: none — T008-T014 (this dispatch's full task set) are complete. The full verify runs
+once, at the completion report.
+Watch: `skills/django-mvp/SKILL.md:489` still shows the old CDN `<link>` pattern for a named
+theme. It is not in any T008-T014 file list, so left untouched and named in `concerns`
+instead of fixed in scope.
