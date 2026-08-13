@@ -27,6 +27,8 @@ This is the fact the documentation has to carry (FR-016). Without it a reader re
 theme is a build artefact, which is why the current guidance sends them to a CDN or to a Tailwind
 build.
 
+**ADR:** none — a mechanism, not a decision, and `docs/theming.md` is where a reader needs it.
+
 ## D2 — A project's theme wins on layers, not on load order
 
 `mvp/static/css/django-mvp.css` places its light and dark blocks inside `@layer base`. daisyUI's
@@ -38,6 +40,8 @@ This is why FR-012 is stated as an ordering-independent guarantee rather than "l
 after ours", and why FR-017 requires the documentation to explain it. A reader who believes order
 matters will write ordering assumptions into their base template, and those assumptions will hold
 by accident until something reorders the page.
+
+**ADR:** none — same as D1; the cascade-layer behaviour is explained in `docs/theming.md`.
 
 ## D3 — Shipping every theme, rather than a curated subset
 
@@ -56,6 +60,8 @@ Curating a subset would trade a decision the package has no basis to make for ro
 SC-003 bounds the growth at 8 KB compressed rather than at the measured 5 KB, so that a later change
 which does add rules is caught rather than absorbed into the allowance.
 
+**ADR:** docs/adr/0010-every-prebuilt-theme-ships-in-the-package.md
+
 ## D4 — Nothing about the default theme changes
 
 R18's roadmap entry names R11 as its predecessor, and R11 (issue #136, open) owns which theme the
@@ -65,6 +71,8 @@ identical to the preceding release (FR-006, SC-006).
 
 That also settles the upgrade question. A project that upgrades and changes nothing sees no visual
 change, which is the only acceptable behaviour for a package at 0.x with real consumers.
+
+**ADR:** none — a sequencing choice between this feature and #136, spent once and not inherited.
 
 ## D5 — Theme names are not validated
 
@@ -92,6 +100,8 @@ will look for the fault in their CSS.
 The wider principle, worth keeping: a validation rule the package cannot evaluate completely is worse
 than none, because it converts an open extension point into a closed list.
 
+**ADR:** docs/adr/0011-theme-names-are-not-validated.md
+
 ## D6 — The switcher stays at light and dark until a project says otherwise
 
 Presenting thirty-five themes to the visitors of every upgrading project would be a visible change
@@ -99,12 +109,16 @@ nobody requested. Which themes to offer is a product decision belonging to the p
 package ships the capability and no opinion (FR-007, FR-008), with the pre-existing pair as the
 unconfigured behaviour (FR-006).
 
+**ADR:** none — a backwards-compatibility default, local to this feature.
+
 ## D7 — Glossary gap found during grilling
 
 `CONTEXT.md` defines component, attribute, override, mixin, integration and config, and says nothing
 about themes, although the theme controller has been a configured navbar entry since before the
 DaisyUI migration. FR-020 closes that. Recorded here because a missing glossary term is the kind of
 thing a feature notices and nobody owns.
+
+**ADR:** none — a glossary gap, closed in `CONTEXT.md` where it belongs.
 
 ## Out of scope, recorded so it is a choice rather than an omission
 
@@ -144,6 +158,8 @@ the repository before being accepted as work.
   documents for the deferred bundle. T016 adds one browser test. Article XIV's row in `plan.md` was
   corrected rather than argued around.
 
+**ADR:** none — a record of review findings and their remedies, not a standing decision.
+
 ## D9 — T001 reverses the #190 named-theme exclusion guard on purpose
 
 `tests/test_smoke.py`'s `TestShippedStylesheetShipsCompleteDaisyUI` carried
@@ -165,23 +181,22 @@ by `TestShippedStylesheetShipsEveryPrebuiltTheme`, which also adds the two invar
 still bound through `:where(:root)`, `prefers-color-scheme: dark` still emitted) that prove FR-006
 holds through the reversal rather than assuming it.
 
-## D10 — US1 dispatched through the fallback subagent mechanism (2026-08-13)
+**ADR:** none — the reasoning lives in the test that replaced the guard, which is where the next reader meets it.
 
-The gateway-tracked spawn mechanism returned "Unable to connect" on three consecutive attempts while
-`openclaw gateway status` reported the service running, the connectivity probe ok and admin
-capability present. The fault is in the tool bridge rather than the gateway.
+## D10 — US1 was built by a delegated worker, through a fallback route (2026-08-13)
 
-US1 was dispatched through the harness's own subagent tool instead, run synchronously so the child
-is awaited within the dispatching turn.
+The usual mechanism for handing a story to a separate worker was unavailable, returning a
+connection error on three consecutive attempts while the service behind it reported healthy. The
+story was handed over by a second, equivalent route instead.
 
-What the standing directive protects is preserved: implementation still runs on the Sonnet tier
-rather than the orchestrator's model, the builder still does not review, accept, merge or push its
-own work, and the completion report is still re-verified independently before the ledger advances.
-What is lost is dashboard visibility of the child while it runs, which is an observability cost
-rather than a correctness one.
+What the usual mechanism protects was kept: the story was built by a worker separate from the one
+that reviews and merges it, on the smaller model tier rather than the one used for planning, and
+its report was re-verified independently before the ledger advanced. What was lost is live
+visibility of the worker while it ran, which costs observability rather than correctness.
 
-**Revisit if**: the gateway-tracked mechanism returns. It is the default and this is a fallback, not
-a new preference.
+**Revisit if**: the usual route returns. This is a fallback, not a new preference.
+
+**ADR:** none — how the work was delegated, with no bearing on the package.
 
 ## D11 — FR-001 needed a check that survives CI (2026-08-13)
 
@@ -210,6 +225,8 @@ green again.
 The general shape, which is not about themes: **a skip changes which assertions remain, and the
 remainder has to be checked on its own terms.** Reviewing the skip's correctness is not the same as
 reviewing what is left running, and here the two answers differed.
+
+**ADR:** none — a testing lesson, carried in the comment above the check it produced.
 
 ## D12 — T007's offered set stays an inline escaped array; its tests stay source-level (2026-08-13)
 
@@ -241,6 +258,8 @@ beyond what T016's `@requires_browser` test already covers — at that point the
 this file stop being sufficient evidence and the file's own established convention should be
 revisited, not worked around task by task.
 
+**ADR:** none — a local implementation choice within an established seam, and reversible in one edit.
+
 ## D13 — T010's test moved from a standalone tests/test_docs.py into tests/test_smoke.py (2026-08-13)
 
 `plan.md`'s Structure Decision and `tasks.md`'s T010 file list both name `tests/test_docs.py` as
@@ -263,6 +282,8 @@ changed.
 checks in this repo have never mirrored a source module), at which point this class could move
 again to mirror it properly.
 
+**ADR:** none — a file moved to satisfy a structure rule the project already states.
+
 ## D14 — T016 implemented directly rather than dispatched (2026-08-13)
 
 One test, no design content, and it depends on T013, which belongs to a different story than the
@@ -277,3 +298,6 @@ with the JavaScript bundle blocked at the network layer — the state where `dat
 rendered correctly and nothing ever binds it — the test fails. Restored, it passes. That is the
 same failure the toggle test beside it already documents, and the reason a rendered-markup assertion
 could not have covered SC-004.
+
+**ADR:** none — how one task was executed, with no bearing on the package.
+
