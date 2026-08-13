@@ -91,6 +91,100 @@ class TestPrePaintThemeGuardEscaping:
         )
 
 
+def _theme_toggle_html(content):
+    """The unconfigured switcher's ``<label>...</label>`` — the checkbox
+    toggle, isolated from the rest of the page (it renders twice per page,
+    once in the navbar and once in the sidebar footer, per
+    ``tests/settings.py``)."""
+    match = re.search(
+        r'<label[^>]*title="Toggle dark mode"[^>]*>.*?</label>', content, re.S
+    )
+    return match.group(0) if match else None
+
+
+class TestThemeControllerUnconfiguredShape:
+    """With ``theme.choices`` empty (the package default), the switcher
+    renders exactly today's markup: the ``data-toggle-theme="dark,light"``
+    checkbox, its ``data-act-class``, both icons and the translated label
+    (FR-006, FR-008). Written against the *current* template, before T006's
+    production change, so it is a genuine regression guard rather than a
+    description of whatever the change produces."""
+
+    @pytest.mark.django_db
+    def test_renders_the_v0_18_0_checkbox_toggle_unchanged(self, client):
+        assert MVP_CONFIG["theme"]["choices"] == []
+        content = client.get("/").content.decode()
+        toggle = _theme_toggle_html(content)
+        assert toggle is not None, "the checkbox toggle must render"
+        assert 'data-toggle-theme="dark,light"' in toggle
+        assert 'data-act-class="swap-active"' in toggle
+        assert "bi bi-sun" in toggle, "the light-mode icon must render"
+        assert "bi bi-moon-stars-fill" in toggle, "the dark-mode icon must render"
+        assert 'title="Toggle dark mode"' in toggle
+        assert 'aria-label="Toggle dark mode"' in toggle
+        assert "data-set-theme" not in toggle, (
+            "the unconfigured shape must not carry the offered-set API"
+        )
+
+
+class TestThemeControllerOfferedSetShape:
+    """With ``theme.choices`` populated, the switcher renders one entry per
+    configured theme, in the configured order, each carrying
+    ``data-set-theme="<name>"`` — theme-change's documented API, present in
+    the shipped bundle. Entries carry accessible names (Article XIII) and
+    the control's own label goes through ``gettext`` (Article VIII)
+    (FR-007, FR-008, FR-009)."""
+
+    CHOICES = ["dracula", "synthwave", "forest"]
+
+    @pytest.mark.django_db
+    def test_offers_exactly_the_configured_themes_in_order(self, client, monkeypatch):
+        monkeypatch.setitem(MVP_CONFIG["theme"], "choices", self.CHOICES)
+        content = client.get("/").content.decode()
+
+        positions = [content.find(f'data-set-theme="{name}"') for name in self.CHOICES]
+        assert all(pos != -1 for pos in positions), (
+            "every configured theme must carry data-set-theme"
+        )
+        assert positions == sorted(positions), (
+            "entries must render in the configured order"
+        )
+        renders = content.count('data-set-theme="dracula"')
+        assert renders >= 1, "the configured theme must render at least once"
+        assert content.count("data-set-theme=") == len(self.CHOICES) * renders, (
+            "no theme outside the configured set may be offered, on any of "
+            "the controller's render sites on the page (navbar mobile/"
+            "desktop + sidebar footer, per tests/settings.py)"
+        )
+
+    @pytest.mark.django_db
+    def test_configured_shape_drops_the_unconfigured_checkbox_toggle(
+        self, client, monkeypatch
+    ):
+        monkeypatch.setitem(MVP_CONFIG["theme"], "choices", self.CHOICES)
+        content = client.get("/").content.decode()
+        assert "data-toggle-theme" not in content
+
+    @pytest.mark.django_db
+    def test_each_entry_has_an_accessible_name(self, client, monkeypatch):
+        monkeypatch.setitem(MVP_CONFIG["theme"], "choices", self.CHOICES)
+        content = client.get("/").content.decode()
+        for name in self.CHOICES:
+            match = re.search(
+                rf'<a[^>]*data-set-theme="{name}"[^>]*>([^<]*)</a>', content
+            )
+            assert match is not None, f"{name} entry must render as a link"
+            assert match.group(1).strip(), (
+                f"{name} entry must have a non-empty accessible name"
+            )
+
+    @pytest.mark.django_db
+    def test_controls_own_label_is_translated(self, client, monkeypatch):
+        monkeypatch.setitem(MVP_CONFIG["theme"], "choices", self.CHOICES)
+        content = client.get("/").content.decode()
+        assert "Choose theme" in content
+
+
 class TestUnmatchedThemeNameFallsThrough:
     """A configured theme name matching no shipped or project theme block
     leaves the page rendering under the ``:where(:root)`` default, and

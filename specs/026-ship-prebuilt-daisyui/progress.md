@@ -107,3 +107,32 @@ so the literal-substring assertion failed for a reason unrelated to the guard's 
 reran green — not a same-file/same-error repeat, so craft-debugging was not invoked.
 Next: T003-T005 (US1) complete. Full-suite verify runs once, at the completion report.
 Watch: none.
+
+## Implementer US2 task log
+
+## 2026-08-13T00:30Z · Implementer US2 · T006
+
+Did: Added `TestThemeControllerUnconfiguredShape` to
+`tests/test_components/test_theme_controller.py` first, against the *unmodified*
+`theme_controller.html`, and ran it to confirm it passed before any production change — the
+regression guard the task requires. Then added `TestThemeControllerOfferedSetShape` (4 tests:
+exact configured set in order, unconfigured checkbox dropped, each entry has an accessible name,
+control's label goes through `gettext`) and confirmed it RED against the unmodified template.
+Changed `mvp/templates/cotton/actions/theme_controller.html`: with `mvp_config.theme.choices`
+populated, renders `<c-dropdown>` (the same component `actions/language-switcher.html` already
+uses) with one `<li><a data-set-theme="{{ choice }}">{{ choice }}</a></li>` per configured theme,
+in order; with `choices` empty, renders the pre-existing checkbox `<label>` unchanged. No new
+attribute added to `theme-controller` itself (Article XI) — the branch reads `MVP_CONFIG` directly,
+matching how `navbar.html`/`sidebar/footer.html` already read it.
+Verified: `poetry run pytest -q tests/test_components/test_theme_controller.py::TestThemeControllerUnconfiguredShape`
+→ 1 passed (before the template change, confirming the regression guard against the current
+markup). `poetry run pytest -q tests/test_components/test_theme_controller.py::TestThemeControllerOfferedSetShape`
+→ 4 failed (before the template change, RED for the right reason: no `data-set-theme` in the
+rendered page). After the template change: `poetry run pytest -q tests/test_components/test_theme_controller.py`
+→ 12 passed. Also ran `poetry run pytest -q tests/test_components/test_layout_config.py
+tests/test_smoke.py` (adjacent consumers of the same widget slots) → 110 passed, no regression.
+`poetry run pre-commit run --files mvp/templates/cotton/actions/theme_controller.html
+tests/test_components/test_theme_controller.py` → all hooks passed/skipped, no findings.
+Next: T007 — the pre-paint guard's membership check.
+Watch: T007 depends on T006 only for the offered set already existing in `MVP_CONFIG` (it does,
+since US1) — no coupling to this task's template change.
