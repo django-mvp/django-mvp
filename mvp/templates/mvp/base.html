@@ -34,7 +34,18 @@
       </title>
       <meta name="viewport"
             content="width=device-width, initial-scale=1, viewport-fit=cover" />
+      {% comment %}
+        A favicon is requested without a theme, so the packaged resolvers have
+        nothing to read: the browser picks by its own colour scheme instead.
+        Two links rather than one file, because the brand mark is delivered as
+        a light and a dark SVG and a third copy of it would go stale the first
+        time the mark is touched. The light link is unconditional as well as
+        media-scoped so a browser that ignores `media` on an icon still gets one.
+      {% endcomment %}
       <link rel="icon" href="{% icon_url "16px" "light" %}" />
+      <link rel="icon"
+            media="(prefers-color-scheme: dark)"
+            href="{% icon_url "16px" "dark" %}" />
       <link rel="stylesheet"
             href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css"
             crossorigin="anonymous" />
@@ -52,13 +63,17 @@
         plugins or htmx extensions by extending `head` in your base template.
       {% endcomment %}
       <script defer src="{% static 'js/django-mvp.js' %}"></script>
-      {% comment %} temp fix for conditional hide based on theme {% endcomment %}
+      {% comment %}
+        Conditional hide based on the applied theme. Keyed off the configured
+        pair rather than the literal names "light" and "dark", so a project
+        that sets its own two themes keeps these hooks working.
+      {% endcomment %}
       <style>
-        [data-theme="light"] .hide-on-light-theme {
+        [data-theme="{{ mvp_config.theme.default|escape }}"] .hide-on-light-theme {
           display: none !important
         }
 
-        [data-theme="dark"] .hide-on-dark-theme {
+        [data-theme="{{ mvp_config.theme.dark|escape }}"] .hide-on-dark-theme {
           display: none !important
         }
       </style>

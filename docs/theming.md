@@ -1,8 +1,50 @@
 # Theming
 
-django-mvp ships every prebuilt DaisyUI theme, plus the mechanism to write your own. This
-page explains how theming actually works, lists every variable a theme can set, and walks
-through writing a theme from an empty file to a rendered page.
+django-mvp ships two themes of its own, every prebuilt DaisyUI theme, and the mechanism to
+write your own. This page explains how theming actually works, lists every variable a theme
+can set, and walks through writing a theme from an empty file to a rendered page.
+
+## The themes the package applies
+
+With nothing configured, pages render in `mvp`. Its partner is `mvp-dark`, and the packaged
+switcher moves between the two:
+
+```python
+MVP_CONFIG = {
+    "theme": {
+        "default": "mvp",       # applied when the visitor has expressed no preference
+        "dark": "mvp-dark",     # the other half of the toggle
+        "choices": [],          # a menu instead of a toggle, when non-empty
+    },
+}
+```
+
+Both are the package's own palette: near-black primary actions, one steel-blue accent used
+sparingly, warm paper rather than pure white, and flat surfaces. Dark is drawn in its own right
+rather than derived from light.
+
+These two are held to a contrast floor, and a test computes the ratios from the theme source on
+every run so a later edit to the palette is checked rather than trusted. That is a floor on our
+own work, not a compliance claim on the package's behalf. **The prebuilt themes are DaisyUI's
+files and carry no such guarantee** — most of them put at least one brand colour below the AA
+text floor against their own page background, which matters because `text-error` and
+`border-*` render the raw fill value. If your project has a contrast obligation to meet, write
+a theme to it. That is what the mechanism below is for, and it is the only way to be sure,
+whatever theme you start from.
+
+Replacing them takes one setting. `"default": "light"` renders the prebuilt DaisyUI theme the
+package applied before it had one of its own, and nothing else needs to change:
+
+```python
+MVP_CONFIG = {"theme": {"default": "light", "dark": "dark"}}
+```
+
+Set `default` and `dark` together. The toggle switches between exactly those two names, so
+changing one alone leaves it moving between a theme you chose and one you did not.
+
+A visitor who has already used your site has their choice stored in `localStorage`, and that
+is read before `default`. Upgrading the package does not move them, by design, because a stored
+value is a choice someone made. They reach the new pair by using the switcher.
 
 ## What a theme is
 

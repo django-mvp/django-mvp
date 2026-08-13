@@ -129,10 +129,12 @@ CRISPY_TEMPLATE_PACK = "tailwind"
 # freely here; tests pin their own values in tests/settings.py.
 MVP_CONFIG = {
     "theme": {
-        # A mix of prebuilt themes and "sunrise", the project-written custom
-        # theme loaded in demo/templates/base.html and documented at
-        # docs/theming.md — proof both sources work through the same config.
-        "choices": ["light", "dark", "dracula", "synthwave", "sunrise"],
+        # The package's own two themes first, so the demo opens in the brand
+        # and a reader can switch away and back. The rest is a mix of prebuilt
+        # themes and "sunrise", the project-written custom theme loaded in
+        # demo/templates/base.html and documented at docs/theming.md — proof
+        # all three sources work through the same config.
+        "choices": ["mvp", "mvp-dark", "light", "dracula", "synthwave", "sunrise"],
     },
     "layout": {
         "navbar": {

@@ -30,9 +30,14 @@ MVP_CONFIG = {
         # project loads from its own stylesheet. A name that matches nothing
         # falls through to the default theme, and is not validated — see
         # docs/adr/0011-theme-names-are-not-validated.md.
-        "default": "light",
+        "default": "mvp",
+        # The theme the packaged toggle switches to, and back from. Paired with
+        # "default": the toggle moves between the two, so a project that
+        # replaces one usually replaces both. Only consulted while "choices"
+        # is empty; with choices set, the switcher is a menu instead.
+        "dark": "mvp-dark",
         # Themes the packaged switcher offers, in order. Empty keeps the
-        # existing light/dark toggle, so an upgrading project sees no change.
+        # two-theme toggle over "default" and "dark".
         "choices": [],
     },
     "layout": {

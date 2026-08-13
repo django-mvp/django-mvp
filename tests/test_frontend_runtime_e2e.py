@@ -240,6 +240,13 @@ class TestThemeChangeStillWorks:
         before reading the attribute.
         """
         monkeypatch.setitem(MVP_CONFIG["theme"], "choices", ["light", "dark"])
+        # Pin the default inside this scenario's own choices. It used to be
+        # "light" package-wide, so the fixture read as self-consistent without
+        # saying so; the packaged default is now "mvp" (docs/adr/0012), which
+        # this project does not offer. Stating it here keeps the subject of the
+        # test — a dropped theme staying dropped — independent of what the
+        # package happens to default to.
+        monkeypatch.setitem(MVP_CONFIG["theme"], "default", "light")
 
         page.goto(f"{live_server.url}/theme/")
         page.evaluate("() => localStorage.setItem('theme', 'dracula')")

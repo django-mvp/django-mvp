@@ -20,9 +20,14 @@
   <label class="flex cursor-pointer items-center gap-2"
          title="{% trans "Toggle dark mode" %}">
     <c-icon name="theme.light" class="text-sm" aria-hidden="true" />
+    {# theme-change reads this pair as "first,second": clicking while the first
+       is applied switches to the second, and anything else switches to the
+       first. Built from configuration so the toggle follows a project that
+       replaces the packaged themes, instead of stranding it on names the
+       stylesheet no longer defines. #}
     <input type="checkbox"
            class="toggle toggle-{{ size }}"
-           data-toggle-theme="dark,light"
+           data-toggle-theme="{{ mvp_config.theme.dark }},{{ mvp_config.theme.default }}"
            data-act-class="swap-active"
            aria-label="{% trans "Toggle dark mode" %}" />
     <c-icon name="theme.dark" class="text-sm" aria-hidden="true" />

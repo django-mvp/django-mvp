@@ -16,8 +16,9 @@ one generated file.
 
 The packaged stylesheet (`mvp/static/css/django-mvp.css`) contains the
 **complete daisyUI 5 component set** — every component, not just the ones
-django-mvp's own templates happen to use — plus every daisyUI theme and the
-sidebar breakpoint/rail classes. It is loaded automatically by `mvp/base.html`.
+django-mvp's own templates happen to use — plus the package's own `mvp` and
+`mvp-dark` themes, every daisyUI theme, and the sidebar breakpoint/rail
+classes. It is loaded automatically by `mvp/base.html`.
 
 The contract that makes this work: **customize through component attributes and
 template overrides that reuse packaged components — not raw utility classes**.
@@ -77,14 +78,17 @@ templates weren't there. Rebuilding with both `@source` lines closes the gap.
 
 ## Theming
 
-DaisyUI themes are pure CSS custom properties, so they apply with no build step in
-either tier. Set the applied theme and the switcher's offered set through
-`MVP_CONFIG["theme"]`, and use `<c-actions.theme-controller />` (included in the
-default navbar config) to let visitors switch between them.
+Themes are pure CSS custom properties, so they apply with no build step in either
+tier. With nothing configured, pages render in `mvp`, the package's own theme, and
+the packaged toggle switches to `mvp-dark`. Set the applied theme, its dark
+partner and the switcher's offered set through `MVP_CONFIG["theme"]`, and use
+`<c-actions.theme-controller />` (included in the default navbar config) to let
+visitors switch between them.
 
-See [Theming](theming.md) for the full variable reference, why the theme plugin
-computes nothing, why a project's own theme overrides a packaged one regardless of
-load order, and a worked example of writing one from scratch.
+See [Theming](theming.md) for the packaged pair and how to replace it, the full
+variable reference, why the theme plugin computes nothing, why a project's own
+theme overrides a packaged one regardless of load order, and a worked example of
+writing one from scratch.
 
 ## For django-mvp developers
 
