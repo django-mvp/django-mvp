@@ -162,3 +162,192 @@ out of this dispatch (depends on T013, US3, not built).
 Watch: T016, when dispatched, needs a `[data-set-theme]` entry to click against — this task's
 dropdown markup provides it once `theme.choices` is configured in whatever fixture/settings T016
 uses.
+
+## 2026-08-13T14:57Z · Implementer US3 · T008
+
+Did: Wrote `docs/theming.md`, the page the package has never had. Carries, in the order
+the acceptance scenario specifies: what a theme is (a block of CSS custom properties under
+`[data-theme="<name>"]`, read at runtime); the full variable table (28 custom properties plus
+`color-scheme`, each with what it controls); the plugin-is-a-pass-through explanation
+(`@plugin "daisyui/theme"` emits exactly what it's given and computes nothing); why a
+project's own theme wins regardless of load order (unlayered beats `@layer base`); a worked
+example from an empty `static/css/theme-sunrise.css` to a rendered page (write the file, load
+it via a `styles` block override, name it in `MVP_CONFIG`, reload); what to check when a
+theme does not appear (name match, stylesheet actually loading, selector shape); and where
+theming stops (color/radius/size/border/depth/noise only, never markup — links to
+styling.md and components.md for the rest). Variable names and their groupings were read
+from `node_modules/daisyui/theme/light.css` and cross-checked against `dracula.css` (same 28
+properties in both) and against which components reference each `--radius-*`/`--size-*`
+variable (`node_modules/daisyui/components/*/object.js`), not written from memory. Ran the
+humanizer skill over the draft afterward and removed 7 em dashes, converting each to two
+sentences or a parenthetical per house style.
+Verified: no test targets this task directly (T010 is its test, next). Read the file back in
+full after edits to confirm section order matches T008's acceptance scenario and that no
+banned word (delve/leverage/seamless/robust/comprehensive/powerful) or semicolon clause-join
+appears: `grep -niE "delve|leverage|seamless|robust|comprehensive|powerful" docs/theming.md`
+→ no matches. `grep -c "—" docs/theming.md` → 0.
+Next: T009 — rewrite the theming parts of docs/styling.md and link this page from
+docs/index.md.
+Watch: T010's mechanical coverage test will extract property names from a shipped theme file
+and assert each appears in this page's table — the table above uses the exact `--kebab-case`
+spelling from the CSS, not a paraphrase, so that test should pass without rework.
+
+## 2026-08-13T15:05Z · Implementer US3 · T009
+
+Did: Rewrote the theming parts of `docs/styling.md` and linked `docs/theming.md`. Removed
+the "Want a named theme that isn't light or dark?" section (its entire content was a
+jsDelivr CDN `<link>`, which FR-019 forbids recommending). Corrected the Tier 1 paragraph:
+it previously said only light/dark ship and that shipping the rest "would bloat the
+stylesheet for every project" — both false since T002, and the bloat claim was never
+measured (D3 measured it at ~5 KB compressed for all 35). Also fixed "fonts" in the nearby
+"Theme changes (colors, radius, fonts)" sentence — themes never set a font variable, so this
+was a pre-existing inaccuracy in the same sentence; replaced with "borders", which the
+variable table does cover. Rewrote the `## Theming` section to point at `docs/theming.md`
+for the mechanics rather than restating a shortened, now-outdated version of them (it
+previously told Tier 2 readers to "register custom themes" through the Tailwind plugin,
+which contradicts docs/theming.md's guidance to write the CSS file directly). Added a
+`docs/index.md` row for the new page, matching the existing table's style.
+Verified: `poetry run pytest -q tests/test_smoke.py::TestStylingDocs` → 3 passed (the
+existing doc-discoverability checks — docs/styling.md still exists, still mentions
+`mvp_tailwind`, README still links it — none of which this task's edits touch). Read both
+files back in full after editing. `grep -n "bloat\|only the default light\|cdn.jsdelivr\|isn't light or dark" docs/styling.md`
+→ no matches, confirming the three claims T009 required gone are gone.
+Next: T010 — make the variable coverage in docs/theming.md mechanical with a test.
+Watch: T010's test reads `docs/theming.md` directly, so it is unaffected by this task's
+changes to styling.md/index.md.
+
+## 2026-08-13T15:18Z · Implementer US3 · T010
+
+Did: Added `tests/test_docs.py` with `TestThemingDocVariableCoverage`, mirroring the
+node_modules-skip convention `tests/test_smoke.py` already uses: a discovery-guard test that
+skips explicitly when `node_modules/daisyui/theme` is absent, then a
+`@pytest.mark.skipif`-guarded test that extracts every `--custom-property` name from a
+shipped theme file (`light.css`) with a regex and asserts each appears in
+`docs/theming.md`, asserting the extracted set is non-empty first so a broken regex can't
+report green while checking nothing.
+Verified: wrote the test against the already-written `docs/theming.md` (T008), so getting a
+real RED meant proving the test actually detects a missing variable rather than trusting it.
+Backed up `docs/theming.md`, deleted every line containing `--depth` with `sed`, ran
+`poetry run pytest -q tests/test_docs.py -v` → 1 failed with `AssertionError: docs/theming.md
+is missing these theme variables: ['--depth']`, `1 passed` (the discovery guard, unaffected).
+Restored the doc from the backup (`diff` confirmed byte-identical), re-ran → `2 passed`.
+Separately confirmed the skip path: moved `node_modules/daisyui/theme` aside, ran the same
+command → `2 skipped`, moved it back. `poetry run ruff check tests/test_docs.py` → all
+checks passed; `poetry run ruff format tests/test_docs.py` reformatted one multi-line string
+join, re-ran the test after → `2 passed` still.
+Next: T011 — define *theme* in CONTEXT.md's glossary.
+Watch: this test reads `light.css` specifically as "a shipped theme definition" per the task
+wording; confirmed earlier (T008 research) that `dracula.css` defines the identical 28
+property set, so the choice of theme file doesn't change what gets checked.
+
+## 2026-08-13T15:24Z · Implementer US3 · T011
+
+Did: Added a `### Theme` entry to `CONTEXT.md`'s Core Concepts, placed after `### Config`
+(the block a theme is selected through). States what a theme is, that it carries no
+structure or layout and why that means a template never needs to change for one, and names
+both sources (shipped daisyUI themes, project-written CSS files), linking to
+`docs/theming.md` for the mechanics.
+Verified: no test in the suite reads `CONTEXT.md` (`grep -rln "CONTEXT.md" tests/` → no
+matches), so this is a documentation-only addition with nothing to run narrowly. Read the
+file back to confirm placement and that neighbouring entries' register (short definition,
+bold callouts, cross-reference) was matched.
+Next: T012 — Tier 2 parity in the generated entry file.
+Watch: none.
+
+## 2026-08-13T15:32Z · Implementer US3 · T012
+
+Did: Updated `test_entry_contains_daisyui_and_preset_import` in
+`tests/test_components/test_mvp_tailwind_command.py` (the exact-string assertion decisions.md
+D8 flagged as orphaned by this task) to require `@plugin "daisyui" {\n  themes: all;\n}`
+instead of the bare `@plugin "daisyui";`, confirmed it fails against the unmodified command,
+then changed `ENTRY_TEMPLATE` in `mvp/management/commands/mvp_tailwind.py` to emit the block
+form (curly braces doubled for `.format()`). Before this, a Tier 2 project — one that builds
+its own CSS — got only light and dark while a Tier 1 project (no build) got all 35, which
+inverted the tiering the docs describe. No new test module created: Article X keeps the
+command's tests in the one module that already covers it.
+Verified: `poetry run pytest -q tests/test_components/test_mvp_tailwind_command.py -v` before
+the template change → 1 failed (`test_entry_contains_daisyui_and_preset_import`, RED for the
+right reason — the old bare form doesn't contain the block), 3 passed. After the template
+change → 4 passed. `poetry run pre-commit run --files mvp/management/commands/mvp_tailwind.py`
+→ trailing-whitespace/end-of-file-fixer/ruff/ruff-format/mypy/deptry all passed.
+Next: T013 — show it in the demo.
+Watch: none.
+
+## 2026-08-13T15:48Z · Implementer US3 · T013
+
+Did: Enabled `themes: all` in `assets/demo.css` (parity with T002/T012) and rebuilt only the
+demo artifact with `npm run build:demo:prod` (not `invoke build-stylesheet`, which also
+rebuilds `mvp/static/css/django-mvp.css` — US1's committed artifact, not this task's to
+touch). Added `demo/static/css/theme-sunrise.css`, a project-written custom theme matching
+docs/theming.md's worked example byte-for-byte, so the demo is a running instance of that
+example rather than a second, drifting one. Loaded it as a second `<link>` in
+`demo/templates/base.html`'s `styles` block override. Configured
+`demo/settings.py`'s `MVP_CONFIG["theme"]["choices"]` to `["light", "dark", "dracula",
+"synthwave", "sunrise"]`, mixing shipped and custom. Extended
+`demo/templates/demo/theme_customization.html` to explain the mix and added a row of
+variant-coloured buttons so the theme's effect is visible on the page, not just in the
+switcher.
+Verified test-first: wrote `tests/test_demo/test_theme_customization.py` (5 tests: page
+renders, switcher offers every one of the demo's configured choices, the switcher includes
+"sunrise", the custom stylesheet is linked and no jsDelivr daisyUI theme URL appears, the
+custom CSS file itself defines `[data-theme="sunrise"]`), reading the choices from
+`demo.settings.MVP_CONFIG` rather than hardcoding a second copy, and applying them for the
+test's duration via `monkeypatch.setitem(MVP_CONFIG["theme"], "choices", ...)` — the same
+seam `tests/test_components/test_theme_controller.py` already uses, since
+`tests/settings.py` deliberately pins a bare `MVP_CONFIG` with no `theme.choices` so demo
+tweaks can't ripple into the rest of the suite. Confirmed RED for the right reason before
+implementing: `git stash push` on the five implementation files, ran
+`poetry run pytest -q tests/test_demo/test_theme_customization.py` → collection error,
+`KeyError: 'theme'` (demo/settings.py had no theme block yet). `git stash pop`, re-ran →
+`5 passed`. Also ran `poetry run pytest -q tests/test_smoke.py::TestDemoPagesDontLeakTheScaffoldPlaceholder
+tests/test_components/test_theme_controller.py` (adjacent consumers of the same `/theme/`
+URL and the same switcher template) → 17 passed, no regression.
+`poetry run pre-commit run --files assets/demo.css demo/settings.py demo/templates/base.html
+demo/templates/demo/theme_customization.html demo/static/css/theme-sunrise.css` → all hooks
+passed/skipped.
+Next: T014 — README and CHANGELOG.
+Watch: `demo/static/css/demo.css` is a committed build artifact (Article XV) and is included
+in this commit since its input (`assets/demo.css`) changed; `mvp/static/css/django-mvp.css`
+was not rebuilt or touched, it already carries `themes: all` from US1's T002.
+
+## 2026-08-13T15:58Z · Implementer US3 · T014
+
+Did: Added a CHANGELOG entry under `## [Unreleased]` covering the whole feature (FS-026,
+not just US3): every prebuilt daisyUI theme now ships, `MVP_CONFIG["theme"]` is new public
+API with its two keys and their defaults described, a project's own theme overriding a
+shipped one is mentioned, and a second bullet states default behaviour is unchanged for a
+project that configures nothing (Article XVI, quality bar). Rewrote README.md's "Styling &
+Theming" section: removed the stale "Want a named DaisyUI theme..." paragraph, whose only
+content was a jsDelivr CDN `<link>` and a link fragment
+(`docs/styling.md#want-a-named-theme-that-isnt-light-or-dark`) that T009 deleted, which
+would otherwise have shipped a 404 in this same PR. Replaced it with the actual mechanism
+(`MVP_CONFIG["theme"]["default"]`/`["choices"]`) and a link to the new docs/theming.md page.
+Verified: `poetry run pytest -q tests/test_smoke.py::TestStylingDocs` → 3 passed (README
+still references `mvp_tailwind` and `docs/styling.md`, both untouched by this task's edits).
+`git diff README.md CHANGELOG.md | grep -E "^\+" | grep -niE "delve|leverage|seamless|robust|comprehensive|powerful|—|; "`
+→ no matches.
+Next: none — T008-T014 (this dispatch's full task set) are complete. The full verify runs
+once, at the completion report.
+Watch: `skills/django-mvp/SKILL.md:489` still shows the old CDN `<link>` pattern for a named
+theme. It is not in any T008-T014 file list, so left untouched and named in `concerns`
+instead of fixed in scope.
+
+## 2026-08-13T16:10Z · Implementer US3 · T010 (conformance fix)
+
+Did: `forge verify`'s conformance check (run as this dispatch's mandatory final act) flagged
+`tests/test_docs.py` as an Article X violation: "mirrors no source module (expected
+mvp/docs.py or mvp/docs/__init__.py); a cross-cutting test belongs in the module of its
+subject as another Test* class." `docs/theming.md` is a markdown file, not a Python module,
+so there is no source module for a `test_docs.py` to mirror — plan.md's Structure Decision
+had named the file, but that section predates the conformance gate catching this. The
+established home for exactly this kind of check (cross-cutting, no single source module) is
+`tests/test_smoke.py`, which already carries `TestStylingDocs` for a near-identical
+docs/styling.md check. Moved `TestThemingDocVariableCoverage` into `tests/test_smoke.py` as
+a new class at the end of the file, reusing `_DAISYUI_THEME_DIR` (already defined there for
+T001/T005's class rather than redefining it), and deleted `tests/test_docs.py`.
+Verified: `poetry run pytest -q tests/test_smoke.py::TestThemingDocVariableCoverage -v` →
+2 passed. `poetry run pytest -q tests/test_smoke.py` (full file, checking for name
+collisions or import breakage from the move) → 72 passed. Re-ran
+`forge verify --repo .` → conformance: passed (previously failed on this one finding).
+Next: none — proceeding to the story's mandatory final verify.
+Watch: none.

@@ -9,7 +9,13 @@
   The demo loads its own stylesheet (assets/demo.css → demo/static/css/demo.css)
   rather than the shipped django-mvp.css, so demo pages can use utilities that
   aren't present in the mvp package without bloating the shipped build.
+
+  It also loads a project-written custom theme (demo/static/css/theme-sunrise.css)
+  the same way any project would: a plain CSS file, added as a second stylesheet
+  link, with no build step and nothing fetched from outside the project. See
+  docs/theming.md, whose worked example this file matches.
 {% endcomment %}
 {% block styles %}
   <link rel="stylesheet" href="{% static 'css/demo.css' %}" />
+  <link rel="stylesheet" href="{% static 'css/theme-sunrise.css' %}" />
 {% endblock styles %}

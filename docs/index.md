@@ -19,6 +19,7 @@ configuration through Django settings, customization through template overrides.
 | [Views](views.md) | List/form/detail/delete views and mixins |
 | [Formsets](formsets.md) | A parent record and its related rows, and the standalone formset case |
 | [Styling](styling.md) | Tailwind/DaisyUI, theming, and building your own CSS |
+| [Theming](theming.md) | Every theme variable, why the theme plugin computes nothing, and writing a custom theme from scratch |
 | [Utility Classes](utility-classes.md) | Every Tailwind utility and daisyUI component the packaged stylesheet ships pre-built |
 | [Integrations](integrations.md) | Optional third-party integrations (django-tables2, django-filter) |
 

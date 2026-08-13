@@ -22,7 +22,12 @@ class TestMVPTailwindCommand:
     def test_entry_contains_daisyui_and_preset_import(self):
         output = _run()
         assert '@import "tailwindcss" source(none);' in output
-        assert '@plugin "daisyui";' in output
+        assert '@plugin "daisyui" {\n  themes: all;\n}' in output, (
+            "the generated entry must enable every prebuilt theme, or a Tier 2 "
+            "project (one that builds its own CSS) ships fewer themes than a "
+            "Tier 1 project that uses the package's own prebuilt stylesheet "
+            "(FR-011, FR-013)"
+        )
         assert "mvp/tailwind/base.css" in output
         assert '@source "./templates";' in output
 

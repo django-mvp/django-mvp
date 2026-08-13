@@ -240,3 +240,25 @@ documented failure mode for scripts bound on `DOMContentLoaded`.
 beyond what T016's `@requires_browser` test already covers — at that point the source-level tests in
 this file stop being sufficient evidence and the file's own established convention should be
 revisited, not worked around task by task.
+
+## D13 — T010's test moved from a standalone tests/test_docs.py into tests/test_smoke.py (2026-08-13)
+
+`plan.md`'s Structure Decision and `tasks.md`'s T010 file list both name `tests/test_docs.py` as
+the home for the variable-coverage contract. Written there first, it failed `forge verify`'s
+conformance check on the story's mandatory final run: "mirrors no source module (expected
+mvp/docs.py or mvp/docs/__init__.py); a cross-cutting test belongs in the module of its subject as
+another Test\* class." `docs/theming.md` is markdown, not a Python module, so Article X's
+mirror-source-tree rule has nothing for a `test_docs.py` to mirror.
+
+`tests/test_smoke.py` already carries `TestStylingDocs`, a near-identical check against
+`docs/styling.md`, established as this repo's home for exactly this shape of cross-cutting
+documentation check. `TestThemingDocVariableCoverage` moved there instead, reusing the
+`_DAISYUI_THEME_DIR` module-level constant T001/T005's class already defines rather than
+duplicating it. The test's content and behaviour (RED/GREEN proof, the skip convention) are
+unchanged from the version described in progress.md's first T010 entry; only its file location and
+import surface (`re`, `Path`, `pytest`, `BASE_DIR` — all already imported in `tests/test_smoke.py`)
+changed.
+
+**Revisit if**: a `mvp/docs.py`-shaped module is ever introduced (unlikely — documentation content
+checks in this repo have never mirrored a source module), at which point this class could move
+again to mirror it properly.

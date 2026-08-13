@@ -5,8 +5,21 @@
 {% endblock page.actions %}
 {% block page.content %}
   <c-text muted tight class="text-lg">
-    The theme toggle in the navbar switches the DaisyUI theme for the whole
-    app. The two buttons above are here to show how page.actions renders
-    next to a page title — they carry no theme logic of their own.
+    The theme picker in the navbar offers five themes, set in this project's
+    MVP_CONFIG: four shipped with the package (light, dark, dracula,
+    synthwave) and sunrise, a theme this project wrote itself. sunrise is a
+    plain CSS file at demo/static/css/theme-sunrise.css, loaded the same way
+    any project would load one. Nothing about it is fetched from outside
+    this project, and it is the exact worked example from
+    <a href="https://github.com/django-mvp/django-mvp/blob/main/docs/theming.md"
+       class="link">the theming guide</a>. The two buttons above are here to
+    show how page.actions renders next to a page title. They carry no theme
+    logic of their own.
   </c-text>
+  <div class="mt-6 flex flex-wrap gap-2">
+    <c-button text="Primary" variant="primary" />
+    <c-button text="Secondary" variant="secondary" />
+    <c-button text="Accent" variant="accent" />
+    <c-button text="Neutral" variant="neutral" />
+  </div>
 {% endblock page.content %}
