@@ -45,15 +45,20 @@ class TestPrePaintThemeGuardDefault:
     """The guard's stored-value-or-fallback expression (SC-006, FR-003)."""
 
     @pytest.mark.django_db
-    def test_matches_v0_18_0_behaviour_with_nothing_configured(self, client):
-        """With the package's own default (``theme.default == "light"``, no
-        project override), the guard's expression is exactly what v0.18.0
-        hardcoded: the stored value if present, otherwise ``'light'``."""
-        assert MVP_CONFIG["theme"]["default"] == "light"
+    def test_falls_back_to_the_packaged_default_with_nothing_configured(self, client):
+        """With no project override, the guard's expression is the stored value
+        if present, otherwise the theme the package applies.
+
+        This asserted ``'light'`` — v0.18.0's hardcoded fallback — until the
+        package shipped a theme of its own and made it the default
+        (docs/adr/0012). The shape being checked is unchanged: a stored value
+        wins, and what it falls back to is configuration rather than a literal.
+        """
+        assert MVP_CONFIG["theme"]["default"] == "mvp"
         script = _guard_script(client.get("/").content.decode())
         assert script is not None
         assert "localStorage.getItem('theme')" in script
-        assert '"light"' in script
+        assert '"mvp"' in script
 
     @pytest.mark.django_db
     def test_configured_default_is_used_when_nothing_is_stored(self, client, monkeypatch):
@@ -111,12 +116,19 @@ class TestThemeControllerUnconfiguredShape:
     description of whatever the change produces."""
 
     @pytest.mark.django_db
-    def test_renders_the_v0_18_0_checkbox_toggle_unchanged(self, client):
+    def test_renders_the_checkbox_toggle_over_the_configured_pair(self, client):
+        """The unconfigured shape is still a two-state checkbox toggle.
+
+        It named ``dark,light`` literally until the package shipped its own
+        themes (docs/adr/0012); the pair now comes from ``theme.dark`` and
+        ``theme.default``, so a project replacing them keeps a working switch
+        instead of one pointing at names its stylesheet no longer defines.
+        """
         assert MVP_CONFIG["theme"]["choices"] == []
         content = client.get("/").content.decode()
         toggle = _theme_toggle_html(content)
         assert toggle is not None, "the checkbox toggle must render"
-        assert 'data-toggle-theme="dark,light"' in toggle
+        assert 'data-toggle-theme="mvp-dark,mvp"' in toggle
         assert 'data-act-class="swap-active"' in toggle
         assert "bi bi-sun" in toggle, "the light-mode icon must render"
         assert "bi bi-moon-stars-fill" in toggle, "the dark-mode icon must render"

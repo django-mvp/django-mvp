@@ -79,15 +79,30 @@ def _patch_icon(monkeypatch, resolver):
 
 
 class TestLogoUrlDefaultResolver:
-    """logo_url zero-config: bundled default resolver returns logo.svg for all themes."""
+    """logo_url zero-config: bundled default resolver routes light/dark/fallback."""
 
     def test_light_theme_returns_logo_svg(self):
         result = _render('{% logo_url height=40 theme="light" %}')
         assert result.endswith("logo.svg")
 
-    def test_dark_theme_falls_back_to_logo_svg(self):
-        """FR-009/FR-010: No dark logo asset bundled — falls back to logo.svg."""
+    def test_dark_theme_returns_logo_dark_svg(self):
+        """FR-009: a dark logo asset is bundled, so dark resolves to it.
+
+        This assertion is the inverse of the one it replaces. When this test was
+        written the package shipped no dark lockup and the resolver's dark branch
+        could only fall through; the brand delivery added one. The fallback that
+        assertion was really covering is still covered, one test down, with the
+        asset made absent explicitly instead of by accident of what ships.
+        """
         result = _render('{% logo_url height=40 theme="dark" %}')
+        assert result.endswith("logo_dark.svg")
+
+    def test_dark_theme_falls_back_to_logo_svg_when_no_dark_asset(self, monkeypatch):
+        """FR-010: a project shipping only one lockup gets it for every theme."""
+        monkeypatch.setattr("mvp.utils.finders.find", lambda path: None)
+
+        result = _render('{% logo_url height=40 theme="dark" %}')
+
         assert result.endswith("logo.svg")
 
     def test_no_theme_arg_returns_logo_svg(self):

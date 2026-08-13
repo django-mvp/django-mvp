@@ -1,8 +1,42 @@
 # Theming
 
-django-mvp ships every prebuilt DaisyUI theme, plus the mechanism to write your own. This
-page explains how theming actually works, lists every variable a theme can set, and walks
-through writing a theme from an empty file to a rendered page.
+django-mvp ships two themes of its own, every prebuilt DaisyUI theme, and the mechanism to
+write your own. This page explains how theming actually works, lists every variable a theme
+can set, and walks through writing a theme from an empty file to a rendered page.
+
+## The themes the package applies
+
+With nothing configured, pages render in `mvp`. Its partner is `mvp-dark`, and the packaged
+switcher moves between the two:
+
+```python
+MVP_CONFIG = {
+    "theme": {
+        "default": "mvp",       # applied when the visitor has expressed no preference
+        "dark": "mvp-dark",     # the other half of the toggle
+        "choices": [],          # a menu instead of a toggle, when non-empty
+    },
+}
+```
+
+Both are the package's own palette: near-black primary actions, one steel-blue accent used
+sparingly, warm paper rather than pure white, and flat surfaces. Dark is designed and audited
+in its own right rather than derived from light. Every colour pairing that carries text clears
+WCAG AA in both, and a test computes those ratios from the theme source on every run.
+
+Replacing them takes one setting. `"default": "light"` renders the prebuilt DaisyUI theme the
+package applied before it had one of its own, and nothing else needs to change:
+
+```python
+MVP_CONFIG = {"theme": {"default": "light", "dark": "dark"}}
+```
+
+Set `default` and `dark` together. The toggle switches between exactly those two names, so
+changing one alone leaves it moving between a theme you chose and one you did not.
+
+A visitor who has already used your site has their choice stored in `localStorage`, and that
+is read before `default`. Upgrading the package does not move them, by design, because a stored
+value is a choice someone made. They reach the new pair by using the switcher.
 
 ## What a theme is
 
