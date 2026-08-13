@@ -331,3 +331,23 @@ once, at the completion report.
 Watch: `skills/django-mvp/SKILL.md:489` still shows the old CDN `<link>` pattern for a named
 theme. It is not in any T008-T014 file list, so left untouched and named in `concerns`
 instead of fixed in scope.
+
+## 2026-08-13T16:10Z · Implementer US3 · T010 (conformance fix)
+
+Did: `forge verify`'s conformance check (run as this dispatch's mandatory final act) flagged
+`tests/test_docs.py` as an Article X violation: "mirrors no source module (expected
+mvp/docs.py or mvp/docs/__init__.py); a cross-cutting test belongs in the module of its
+subject as another Test* class." `docs/theming.md` is a markdown file, not a Python module,
+so there is no source module for a `test_docs.py` to mirror — plan.md's Structure Decision
+had named the file, but that section predates the conformance gate catching this. The
+established home for exactly this kind of check (cross-cutting, no single source module) is
+`tests/test_smoke.py`, which already carries `TestStylingDocs` for a near-identical
+docs/styling.md check. Moved `TestThemingDocVariableCoverage` into `tests/test_smoke.py` as
+a new class at the end of the file, reusing `_DAISYUI_THEME_DIR` (already defined there for
+T001/T005's class rather than redefining it), and deleted `tests/test_docs.py`.
+Verified: `poetry run pytest -q tests/test_smoke.py::TestThemingDocVariableCoverage -v` →
+2 passed. `poetry run pytest -q tests/test_smoke.py` (full file, checking for name
+collisions or import breakage from the move) → 72 passed. Re-ran
+`forge verify --repo .` → conformance: passed (previously failed on this one finding).
+Next: none — proceeding to the story's mandatory final verify.
+Watch: none.
