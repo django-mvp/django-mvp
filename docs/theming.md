@@ -65,10 +65,9 @@ and every shipped theme sets it.
 | `--depth` | `0` or `1`. At `1`, flat elements get a subtle inset highlight and shadow that reads as raised. At `0`, they render flat. |
 | `--noise` | `0` or `1`. At `1`, components that support it render a faint grain texture over their background. At `0`, the background is a plain fill. |
 
-This list was checked against a shipped theme definition rather than written from memory,
-and a test in `tests/test_docs.py` keeps it in step with the installed DaisyUI version: it
-extracts every custom property name from a shipped theme file and fails if one is missing
-from this table.
+This list was checked against a shipped theme definition rather than written from memory, and
+a test keeps it in step with the installed DaisyUI version: it extracts every custom property
+name from a shipped theme file and fails if one is missing from this table.
 
 ## The theme plugin is a pass-through
 
@@ -187,10 +186,10 @@ outside your project.
 
 A theme name that matches no `[data-theme="<name>"]` block anywhere on the page is not an
 error. django-mvp does not validate theme names against anything, so a typo or an unloaded
-stylesheet doesn't raise (see
-[decisions.md D5](../specs/026-ship-prebuilt-daisyui/decisions.md) for why). Instead the
-document falls back to the default theme through a zero-specificity `:where(:root)` rule and
-renders normally, just not in the theme you expected.
+stylesheet doesn't raise. It can't: your own theme lives in a CSS file the package never
+reads, so there is no list to check a name against that wouldn't also reject every custom
+theme. Instead the document falls back to the default theme through a zero-specificity
+`:where(:root)` rule and renders normally, just not in the theme you expected.
 
 If your theme isn't showing up, check, in order:
 
