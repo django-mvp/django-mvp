@@ -24,6 +24,17 @@ MVP_CONFIG = {
         "logo_resolver": "mvp.utils.logo_url",
         "icon_resolver": "mvp.utils.icon_url",
     },
+    "theme": {
+        # Applied when the visitor has expressed no preference. Any name a
+        # theme block exists for: one shipped with the package, or one the
+        # project loads from its own stylesheet. A name that matches nothing
+        # falls through to the default theme, and is not validated — see
+        # specs/026-ship-prebuilt-daisyui/decisions.md D5.
+        "default": "light",
+        # Themes the packaged switcher offers, in order. Empty keeps the
+        # existing light/dark toggle, so an upgrading project sees no change.
+        "choices": [],
+    },
     "layout": {
         "sidebar": {
             # Tailwind breakpoint at which the sidebar becomes persistent

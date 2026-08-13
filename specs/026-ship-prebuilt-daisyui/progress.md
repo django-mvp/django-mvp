@@ -52,3 +52,19 @@ Measured (Article XV discipline — one session, one tool, brotli quality 11 via
 post-change = 46,532 B. Growth = 4,862 B (4.75 KiB), under the 8 KB bound (SC-003).
 Next: T003 adds the `theme` block to `MVP_CONFIG`.
 Watch: none.
+
+## 2026-08-13T00:10Z · Implementer US1 · T003
+
+Did: Added `tests/test_config.py` (new file, mirrors `mvp/config.py` per Article X) covering
+`theme.default == "light"` / `theme.choices == []` with no override, and — exercised directly
+against `mergedeep.merge` since `MVP_CONFIG` is a process-wide singleton and `tests/settings.py`
+carries no `theme` override — that overriding one theme key leaves the other and sibling
+top-level blocks (`brand`, `layout`) untouched. Then added the `theme` block to `mvp/config.py` as
+a top-level sibling of `brand`, with the plan's comments including the fall-through/no-validation
+note pointing at decisions.md D5.
+Verified: `poetry run pytest -q tests/test_config.py` → before the production change, 5 failed
+(`KeyError: 'theme'`) — red for the right reason; after, 5 passed. Also ran
+`poetry run pytest -q tests/test_components/test_layout_config.py` (adjacent config consumer) →
+40 passed, no regression from the `mvp/config.py` edit.
+Next: T004 makes the pre-paint guard read `theme.default`.
+Watch: none.
