@@ -32,7 +32,9 @@ ENTRY_TEMPLATE = """\
  * Build:    npx @tailwindcss/cli -i <this file> -o static/css/app.css --minify
  */
 @import "tailwindcss" source(none);
-@plugin "daisyui";
+@plugin "daisyui" {{
+  themes: all;
+}}
 
 /* django-mvp preset: drawer-state variants, safelisted breakpoint classes,
    and icon-rail CSS. */

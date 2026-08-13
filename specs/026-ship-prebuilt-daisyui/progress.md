@@ -253,3 +253,22 @@ file back to confirm placement and that neighbouring entries' register (short de
 bold callouts, cross-reference) was matched.
 Next: T012 — Tier 2 parity in the generated entry file.
 Watch: none.
+
+## 2026-08-13T15:32Z · Implementer US3 · T012
+
+Did: Updated `test_entry_contains_daisyui_and_preset_import` in
+`tests/test_components/test_mvp_tailwind_command.py` (the exact-string assertion decisions.md
+D8 flagged as orphaned by this task) to require `@plugin "daisyui" {\n  themes: all;\n}`
+instead of the bare `@plugin "daisyui";`, confirmed it fails against the unmodified command,
+then changed `ENTRY_TEMPLATE` in `mvp/management/commands/mvp_tailwind.py` to emit the block
+form (curly braces doubled for `.format()`). Before this, a Tier 2 project — one that builds
+its own CSS — got only light and dark while a Tier 1 project (no build) got all 35, which
+inverted the tiering the docs describe. No new test module created: Article X keeps the
+command's tests in the one module that already covers it.
+Verified: `poetry run pytest -q tests/test_components/test_mvp_tailwind_command.py -v` before
+the template change → 1 failed (`test_entry_contains_daisyui_and_preset_import`, RED for the
+right reason — the old bare form doesn't contain the block), 3 passed. After the template
+change → 4 passed. `poetry run pre-commit run --files mvp/management/commands/mvp_tailwind.py`
+→ trailing-whitespace/end-of-file-fixer/ruff/ruff-format/mypy/deptry all passed.
+Next: T013 — show it in the demo.
+Watch: none.
