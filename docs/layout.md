@@ -23,6 +23,7 @@ MVP_CONFIG = {
             "collapse": "offcanvas",  # "offcanvas" | "icons"
             "title": None,            # text beside the brand icon (falsey = none)
             "footer": [],             # Cotton components in the sidebar footer
+            "boost": False,           # navigate sidebar links with htmx
         },
         "navbar": {
             "mobile": {"end": ["actions.theme-controller"]},
@@ -124,6 +125,47 @@ empty list (no footer actions).
 
 For deeper control of the footer, override the component template itself by dropping your
 own `templates/cotton/app/sidebar/footer.html`.
+
+## Boosted sidebar navigation
+
+`layout.sidebar.boost` adds htmx's `hx-boost` to the sidebar. Clicking a menu item then
+fetches the next page and swaps it into the document you are already on, instead of
+loading a new one. Pages stop flashing white between clicks and the back button still
+works, because htmx updates the URL as it goes. htmx already ships with the package, so
+the attribute is the whole change.
+
+```python
+MVP_CONFIG = {
+    "layout": {
+        "sidebar": {
+            "boost": True,
+        },
+    },
+}
+```
+
+It is off by default, because a swapped page is not quite a loaded one:
+
+- Scripts in `{% block extra_js %}` do not re-run, and anything that binds listeners
+  once at startup finds its elements gone. The controls django-mvp ships deal with this
+  themselves. Your own, and any third-party widget, may not.
+- `<head>` is not swapped, so a stylesheet or meta tag a page adds in `{% block head %}`
+  never arrives when that page is reached by a boosted link.
+- Only sidebar links are boosted. Links elsewhere on the page, and form submissions,
+  navigate normally. To boost the rest of the app, put `hx-boost` on your own `<body>`
+  in your base template.
+
+Below the sidebar breakpoint, a boosted link closes the mobile drawer on its way out,
+so the sidebar never sits over the page it just opened. At desktop widths the sidebar
+is persistent and stays exactly as you left it.
+
+Per-page override:
+
+```html
+{% block app.sidebar %}
+  <c-app.sidebar boost />
+{% endblock %}
+```
 
 ## Navbar widgets
 

@@ -481,3 +481,52 @@ class TestHeaderStickiness:
         assert "scrollY" not in html
         # the header still renders, just without the pinning behaviour
         assert "mvp-header w-full" in html
+
+
+# ---------------------------------------------------------------------------
+# Sidebar htmx boost (issue #188)
+# ---------------------------------------------------------------------------
+
+
+def _sidebar_aside_tag(html):
+    """Extract the opening ``<aside>`` tag of the app sidebar."""
+    match = re.search(r"<aside[^>]*class=\"mvp-sidebar[^\"]*\"[^>]*>", html, re.S)
+    return match.group(0) if match else None
+
+
+class TestSidebarHtmxBoost:
+    """``hx-boost`` on the sidebar is opt-in and off by default.
+
+    Boosting swaps the whole body in place of a full page load, which changes
+    how every listener, every deferred script and the drawer's own open state
+    behave. That is a decision a project makes for itself, so the package
+    ships the attribute absent and renders it only when asked.
+    """
+
+    def test_boost_defaults_to_off(self):
+        assert MVP_CONFIG["layout"]["sidebar"]["boost"] is False
+
+    @pytest.mark.django_db
+    def test_no_boost_attribute_by_default(self, client):
+        """The shipped default renders an ordinary sidebar — no hx-boost."""
+        aside = _sidebar_aside_tag(client.get("/").content.decode())
+        assert aside is not None, "the app sidebar must render"
+        assert "hx-boost" not in aside
+
+    @pytest.mark.django_db
+    def test_config_enables_the_boost_attribute(self, client, monkeypatch):
+        """``layout.sidebar.boost = True`` puts hx-boost on the sidebar root,
+        so every link inside it — menu items, brand link, footer actions —
+        inherits the boost rather than each needing its own attribute."""
+        monkeypatch.setitem(MVP_CONFIG["layout"]["sidebar"], "boost", True)
+        aside = _sidebar_aside_tag(client.get("/").content.decode())
+        assert aside is not None
+        assert 'hx-boost="true"' in aside
+
+    @pytest.mark.django_db
+    def test_boost_component_override(self):
+        """``<c-app.sidebar boost>`` beats the configured default, the same way
+        ``collapse`` and ``title`` do."""
+        aside = _sidebar_aside_tag(_render("tests/sidebar_boost_override.html"))
+        assert aside is not None
+        assert 'hx-boost="true"' in aside
