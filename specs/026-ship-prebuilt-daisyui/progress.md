@@ -239,3 +239,17 @@ Next: T011 — define *theme* in CONTEXT.md's glossary.
 Watch: this test reads `light.css` specifically as "a shipped theme definition" per the task
 wording; confirmed earlier (T008 research) that `dracula.css` defines the identical 28
 property set, so the choice of theme file doesn't change what gets checked.
+
+## 2026-08-13T15:24Z · Implementer US3 · T011
+
+Did: Added a `### Theme` entry to `CONTEXT.md`'s Core Concepts, placed after `### Config`
+(the block a theme is selected through). States what a theme is, that it carries no
+structure or layout and why that means a template never needs to change for one, and names
+both sources (shipped daisyUI themes, project-written CSS files), linking to
+`docs/theming.md` for the mechanics.
+Verified: no test in the suite reads `CONTEXT.md` (`grep -rln "CONTEXT.md" tests/` → no
+matches), so this is a documentation-only addition with nothing to run narrowly. Read the
+file back to confirm placement and that neighbouring entries' register (short definition,
+bold callouts, cross-reference) was matched.
+Next: T012 — Tier 2 parity in the generated entry file.
+Watch: none.
