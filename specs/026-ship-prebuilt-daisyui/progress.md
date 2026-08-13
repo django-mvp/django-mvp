@@ -31,3 +31,24 @@ Verified: `poetry run pytest -q tests/test_smoke.py::TestShippedStylesheetShipsE
 the expected reason: the stylesheet has not been rebuilt yet.
 Next: T002 rebuilds the stylesheet with `themes: all` to turn this green.
 Watch: none.
+
+## 2026-08-13T00:05Z · Implementer US1 · T002
+
+Did: Changed `assets/tailwind.css`'s bare `@plugin "daisyui";` to the block form with
+`themes: all;`, updated the stale adjoining comment that claimed themes "default to light/dark
+only", relaxed `tests/test_smoke.py`'s exact-string assertion from `'@plugin "daisyui";'` to
+`'@plugin "daisyui"'` (still guards the plugin line's presence, now tolerant of the block form),
+and rebuilt+committed `mvp/static/css/django-mvp.css` and its `.br` sibling with
+`poetry run invoke build-stylesheet`. That command also regenerated `demo/static/css/demo.css` as
+a side effect (single-line non-deterministic reordering, no content change — `assets/demo.css`
+still uses the bare, unmodified `@plugin "daisyui";`); reverted it with `git checkout --` since it
+is outside T002's file list.
+Verified: `poetry run pytest -q tests/test_smoke.py` → 65 passed, 0 failed — T001's completeness
+class is now fully green (34 discovery/invariant + parametrised theme cases), and the relaxed
+entry-css assertion passes.
+Measured (Article XV discipline — one session, one tool, brotli quality 11 via the repo's own
+`build_stylesheet` task): pre-change committed `django-mvp.css.br` = 41,670 B (verified via
+`git show HEAD~1:mvp/static/css/django-mvp.css.br`, matching decisions.md D3's recorded baseline);
+post-change = 46,532 B. Growth = 4,862 B (4.75 KiB), under the 8 KB bound (SC-003).
+Next: T003 adds the `theme` block to `MVP_CONFIG`.
+Watch: none.

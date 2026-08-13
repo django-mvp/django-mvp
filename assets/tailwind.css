@@ -2,7 +2,9 @@
    Consumer projects should generate their own entry with
    `python manage.py mvp_tailwind` instead of copying this file. */
 @import "tailwindcss" source(none);
-@plugin "daisyui";
+@plugin "daisyui" {
+  themes: all;
+}
 @plugin "@tailwindcss/typography";
 
 /* Shared preset (custom variants, safelist, rail-mode CSS) — packaged so
@@ -26,8 +28,9 @@
    component and utility source files as content forces every one of its
    classes into the build, independent of what mvp's templates reference.
    Named themes (dracula, synthwave, ...) are untouched by this — themes are
-   controlled by the `@plugin "daisyui"` line above, not by @source, and
-   default to light/dark only. */
+   controlled by the `@plugin "daisyui"` block above, not by @source. That
+   block ships every prebuilt theme (`themes: all`), not just light/dark
+   (issue #230). */
 @source "../node_modules/daisyui/components/**/*.js";
 @source "../node_modules/daisyui/utilities/**/*.js";
 

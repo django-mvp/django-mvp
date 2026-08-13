@@ -71,7 +71,7 @@ class TestStylingDocs:
     def test_entry_css_imports_packaged_preset(self):
         """The package's own Tailwind entry uses the same preset shipped to consumers."""
         entry = (BASE_DIR / "assets" / "tailwind.css").read_text(encoding="utf-8")
-        assert '@plugin "daisyui";' in entry, (
+        assert '@plugin "daisyui"' in entry, (
             "assets/tailwind.css must load the daisyui plugin — its removal once "
             "shipped a stylesheet with no DaisyUI classes at all."
         )
