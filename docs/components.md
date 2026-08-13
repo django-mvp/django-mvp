@@ -21,7 +21,7 @@ no attributes by design.
 | Component | Notes |
 | --- | --- |
 | `c-app` | drawer wrapper; attr: `breakpoint` |
-| `c-app.sidebar` | brand + AppMenu + user footer; attrs: `collapse`, `bg`, `brand-url`, `menu` |
+| `c-app.sidebar` | brand + AppMenu + user footer; attrs: `collapse`, `bg`, `brand-url`, `menu`, `title`, `boost` |
 | `c-app.header` / `c-app.header.navbar` | sticky header; slots: `above`, `below`, `right`, `tray` |
 | `c-app.main`, `c-app.footer`, `c-app.dock` | content area, footer, mobile bottom nav |
 

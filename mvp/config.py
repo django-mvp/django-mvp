@@ -41,6 +41,12 @@ MVP_CONFIG = {
             # e.g. "actions.theme-controller" -> <c-actions.theme-controller />.
             # Laid out as a horizontally centered, wrapping flex row.
             "footer": [],
+            # Whether sidebar links navigate with htmx instead of a full page
+            # load (hx-boost). Off by default: boosting swaps the body in
+            # place, which suits an app shell but changes how a project's own
+            # scripts and third-party widgets see the page. Opt in once the
+            # project's pages are happy being swapped rather than reloaded.
+            "boost": False,
         },
         "navbar": {
             # Cotton component names rendered at the end (right side) of the navbar,

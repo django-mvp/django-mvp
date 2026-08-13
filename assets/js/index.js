@@ -31,6 +31,26 @@ window.htmx = htmx;
 // applies the stored theme before first paint; this only wires the controls.
 themeChange();
 
+// theme-change binds click handlers to the controls that exist when it runs,
+// and it has no way to notice later ones. A boosted navigation (hx-boost on
+// the sidebar, MVP_CONFIG["layout"]["sidebar"]["boost"]) replaces the body
+// without a document load, so those controls are swapped out for identical
+// markup with no listeners: the theme toggle renders perfectly and stops
+// responding.
+//
+// Rebinding is only safe when *every* bound control went away with the swap.
+// theme-change attaches a fresh anonymous listener to each control each time
+// it runs, so a control that survived would end up with two — and two clicks
+// per click toggles the theme back to where it started, which is worse than
+// the bug this fixes. A swap whose target is the body is exactly the case
+// where nothing survives, so that, and not the request's boosted flag, is
+// what this keys on.
+document.addEventListener("htmx:afterSettle", (event) => {
+  if (event.detail?.target === document.body) {
+    themeChange(false);
+  }
+});
+
 // Plugins register before start(), which is why the CDN tags this replaces had
 // to be ordered with the plugins ahead of core.
 //

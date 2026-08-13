@@ -481,3 +481,73 @@ class TestHeaderStickiness:
         assert "scrollY" not in html
         # the header still renders, just without the pinning behaviour
         assert "mvp-header w-full" in html
+
+
+# ---------------------------------------------------------------------------
+# Sidebar htmx boost (issue #188)
+# ---------------------------------------------------------------------------
+
+
+def _sidebar_aside_tag(html):
+    """Extract the opening ``<aside>`` tag of the app sidebar."""
+    match = re.search(r"<aside[^>]*class=\"mvp-sidebar[^\"]*\"[^>]*>", html, re.S)
+    return match.group(0) if match else None
+
+
+class TestSidebarHtmxBoost:
+    """``hx-boost`` on the sidebar is opt-in and off by default.
+
+    Boosting swaps the whole body in place of a full page load, which changes
+    how every listener, every deferred script and the drawer's own open state
+    behave. That is a decision a project makes for itself, so the package
+    ships the attribute absent and renders it only when asked.
+    """
+
+    def test_boost_defaults_to_off(self):
+        assert MVP_CONFIG["layout"]["sidebar"]["boost"] is False
+
+    @pytest.mark.django_db
+    def test_no_boost_attribute_by_default(self, client):
+        """The shipped default renders an ordinary sidebar — no hx-boost."""
+        aside = _sidebar_aside_tag(client.get("/").content.decode())
+        assert aside is not None, "the app sidebar must render"
+        assert "hx-boost" not in aside
+
+    @pytest.mark.django_db
+    def test_config_enables_the_boost_attribute(self, client, monkeypatch):
+        """``layout.sidebar.boost = True`` puts hx-boost on the sidebar root,
+        so every link inside it — menu items, brand link, footer actions —
+        inherits the boost rather than each needing its own attribute."""
+        monkeypatch.setitem(MVP_CONFIG["layout"]["sidebar"], "boost", True)
+        aside = _sidebar_aside_tag(client.get("/").content.decode())
+        assert aside is not None
+        assert 'hx-boost="true"' in aside
+
+    @pytest.mark.django_db
+    def test_boosted_sidebar_closes_the_drawer_after_a_swap(self, client, monkeypatch):
+        """A boosted click must also close the mobile drawer.
+
+        htmx replaces the body without a navigation, so the checkbox that
+        holds the drawer open is swapped for a freshly rendered one — and the
+        server always renders it unchecked. The behaviour is asserted in a
+        real browser by ``test_sidebar_boost.py``; this pins the markup that
+        makes it possible, namely that the drawer lives inside the swapped
+        region rather than outside it.
+        """
+        monkeypatch.setitem(MVP_CONFIG["layout"]["sidebar"], "boost", True)
+        content = client.get("/").content.decode()
+        body_start = content.find("<body>")
+        drawer_pos = content.find('id="mvp-app"')
+        assert body_start != -1 and drawer_pos != -1
+        assert body_start < drawer_pos, (
+            "hx-boost swaps the body's innerHTML, so the drawer must sit "
+            "inside <body> for a boosted navigation to reset its open state"
+        )
+
+    @pytest.mark.django_db
+    def test_boost_component_override(self):
+        """``<c-app.sidebar boost>`` beats the configured default, the same way
+        ``collapse`` and ``title`` do."""
+        aside = _sidebar_aside_tag(_render("tests/sidebar_boost_override.html"))
+        assert aside is not None
+        assert 'hx-boost="true"' in aside
