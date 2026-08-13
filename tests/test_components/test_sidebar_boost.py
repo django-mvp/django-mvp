@@ -244,3 +244,43 @@ class TestControlsStillWorkAfterABoostedSwap:
             "double-binding the theme toggle left it working, so the "
             "partial-swap guard above proves nothing"
         )
+
+
+@pytest.mark.django_db
+class TestBoostedSidebarForms:
+    """``hx-boost`` boosts forms as well as links, and the sidebar footer is
+    where a project puts widgets that submit them.
+
+    The language switcher is the one that ships: a POST to ``set_language``
+    that answers with a redirect and sets the language cookie on the way. It
+    is worth pinning rather than reasoning about, because the failure would be
+    silent — the dropdown closes, the page comes back, and the language is
+    unchanged.
+    """
+
+    def test_the_language_switcher_still_switches_when_boosted(
+        self, page, live_server, boosted, monkeypatch
+    ):
+        monkeypatch.setitem(
+            MVP_CONFIG["layout"]["sidebar"], "footer", ["actions.language-switcher"]
+        )
+        page.set_viewport_size(DESKTOP)
+        page.goto(f"{live_server.url}/")
+        _mark_document(page)
+
+        sidebar = page.locator("aside.mvp-sidebar")
+        # The switcher sits behind a dropdown; open it before the language
+        # buttons are reachable.
+        sidebar.locator(".dropdown [role='button']").first.click()
+        sidebar.locator("button[name='language'][value='de']").click()
+        page.wait_for_function(
+            "() => document.cookie.includes('django_language=de')"
+        )
+
+        assert _document_survived(page), (
+            "the boosted language form fell back to a full page load"
+        )
+        cookies = {c["name"]: c["value"] for c in page.context.cookies()}
+        assert cookies.get("django_language") == "de", (
+            "the boosted POST to set_language did not set the language cookie"
+        )
