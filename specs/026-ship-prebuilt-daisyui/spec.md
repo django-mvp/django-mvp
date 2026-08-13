@@ -113,9 +113,12 @@ application renders in the new colours.
 
 ### Edge Cases
 
-- A project names a theme that neither ships with the package nor is provided by the project itself. The
-  application must say so plainly at start-up rather than rendering unstyled or failing at request time.
-- A project's declared switcher set contains a name that is not available. Same treatment as above.
+- A project names a theme that neither ships with the package nor is provided by the project itself. No
+  block matches, the default theme stays applied, and the page renders normally. The package does not
+  validate theme names, because a project's own theme is defined in a file the package never reads, so
+  any check would either reject valid custom themes or demand a registration list.
+- A project's declared switcher set contains a name that is not available. Same treatment: the entry is
+  offered, selecting it changes nothing visible.
 - A visitor's stored selection names a theme the project has since stopped offering, covered by US-2
   scenario 5.
 - A project already overrides the base template to set the theme by hand. That override must keep
@@ -159,10 +162,10 @@ application renders in the new colours.
 - **FR-013**: A project's own theme MUST be selectable through the same configuration as a prebuilt one,
   both as the applied theme and as a member of the switcher's set.
 
-**Failing loudly**
+**Unresolvable names**
 
-- **FR-014**: When a project names a theme that is neither shipped nor declared by the project, the
-  application MUST report it at start-up, naming the setting and the unavailable theme.
+- **FR-014**: A theme name that matches nothing MUST leave the default theme applied and the page
+  rendering normally. The package MUST NOT validate theme names.
 
 **Documentation**
 
@@ -176,16 +179,18 @@ application renders in the new colours.
 - **FR-018**: The documentation MUST carry a worked example that takes a reader from an empty file to a
   rendering custom theme, with no step omitted.
 - **FR-019**: The documentation MUST no longer instruct readers to load theme CSS from a third-party host.
-- **FR-020**: `CONTEXT.md` MUST define *theme* as a domain term, since the vocabulary is currently absent
+- **FR-020**: The documentation MUST state that a theme name which matches nothing falls through to the
+  default theme without an error, so a reader whose theme does not appear knows where to look.
+- **FR-021**: `CONTEXT.md` MUST define *theme* as a domain term, since the vocabulary is currently absent
   from the glossary.
 
 ### Requirement to story mapping
 
 | Story | Requirements |
 |---|---|
-| US-1 — Apply a prebuilt theme by configuration | FR-001, FR-002, FR-003, FR-004, FR-005, FR-006, FR-014, FR-019 |
+| US-1 — Apply a prebuilt theme by configuration | FR-001, FR-002, FR-003, FR-004, FR-005, FR-006, FR-014, FR-019, FR-020 |
 | US-2 — Let visitors choose from the themes a project offers | FR-007, FR-008, FR-009, FR-010 |
-| US-3 — Write and apply a theme of your own | FR-011, FR-012, FR-013, FR-015, FR-016, FR-017, FR-018, FR-020 |
+| US-3 — Write and apply a theme of your own | FR-011, FR-012, FR-013, FR-015, FR-016, FR-017, FR-018, FR-021 |
 
 ### Key Entities
 
@@ -215,8 +220,8 @@ application renders in the new colours.
   switcher behaviour as before.
 - **SC-007**: Every variable a theme may define appears in the documentation with a description, checked
   against the shipped theme definitions rather than by hand.
-- **SC-008**: Naming an unavailable theme produces a start-up message that names both the setting and the
-  theme, rather than a rendered page or a request-time failure.
+- **SC-008**: Naming a theme that matches nothing leaves the application rendering in its default theme,
+  with no error raised and no unstyled page.
 
 ## Assumptions
 
@@ -250,10 +255,16 @@ application renders in the new colours.
   and the offered set is a product decision that belongs to the project, not the package.
 
 - **Q: What happens when a configured theme name is not available?**
-  A: The application reports it at start-up, naming the setting and the theme (FR-014, SC-008). The
-  alternatives are worse: falling back silently hides a typo behind a plausible-looking page, and failing
-  at request time turns a configuration mistake into a production error. A configuration name that cannot
-  resolve is knowable before the first request, so it is reported then.
+  A: Nothing. The name is applied, no theme block matches it, and the default theme stays in effect
+  (FR-014, FR-020, SC-008). *Revised 2026-08-13 on the maintainer's ruling at the Spec gate; the original
+  answer required a start-up error.* The check cannot be built honestly: a project's own theme is a
+  block of custom properties in a CSS file the package never reads, so the package has no way to know
+  whether a name will resolve. Validating against the shipped set alone would reject every custom theme,
+  and the alternative is a registration list, which is configuration a project has to keep in step with
+  its own stylesheet for no benefit. Silent fall-through is also benign rather than broken: the default
+  theme is bound to `:where(:root)` at zero specificity, so an unmatched name renders the default rather
+  than an unstyled page. The documentation carries the behaviour instead, so a developer whose theme does
+  not appear knows where to look.
 
 - **Q: Is a project's own theme required to work without a build step, or may it require one?**
   A: Without one (FR-011). A theme is a block of custom properties that the browser reads at runtime, and

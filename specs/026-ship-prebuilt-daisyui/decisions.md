@@ -66,20 +66,31 @@ identical to the preceding release (FR-006, SC-006).
 That also settles the upgrade question. A project that upgrades and changes nothing sees no visual
 change, which is the only acceptable behaviour for a package at 0.x with real consumers.
 
-## D5 — An unavailable theme name is a start-up error, not a fallback
+## D5 — Theme names are not validated
 
-Three options were considered for a configured theme that neither ships nor is provided by the
-project:
+*Settled at the Spec gate, 2026-08-13, on the maintainer's ruling. The specification originally
+required a start-up error for a name that matched nothing.*
 
-1. Fall back silently to the default. Rejected: a typo renders a plausible-looking page, and the
-   developer's only signal is that their theme "did not work", with nothing naming the cause.
-2. Fail when the page is requested. Rejected: it converts a configuration mistake into a
-   production error, and it fails repeatedly rather than once.
-3. Report at start-up, naming the setting and the theme. Chosen (FR-014, SC-008).
+The check cannot be built honestly. A project's own theme is a block of custom properties in a CSS
+file the project loads and the package never reads, so the package cannot know whether a name will
+resolve. Validating against the shipped set alone would reject every custom theme, which is the case
+the feature exists to support. The only way to keep a check would be a registration list, and that is
+configuration a project has to keep in step with its own stylesheet, bought at the price of the
+mechanism that made custom themes free.
 
-The name is resolvable before the first request, so it is checked then. Django's system check
-framework is the established place for this in the ecosystem, though the mechanism is a planning
-decision rather than a requirement.
+Silent fall-through is benign rather than broken, which is what makes the ruling safe. In
+`mvp/static/css/django-mvp.css` the default theme is bound to
+`:where(:root),:root:has(input.theme-controller[value=light]:checked),[data-theme=light]`. The
+`:where(:root)` arm carries zero specificity and matches the document root unconditionally, so an
+unmatched `data-theme` value leaves the default theme in effect and the page renders normally. There
+is no unstyled state to protect against.
+
+What remains is a documentation obligation rather than a code one (FR-014, FR-020, SC-008): a
+developer whose theme does not appear needs to be told that the name simply matched nothing, or they
+will look for the fault in their CSS.
+
+The wider principle, worth keeping: a validation rule the package cannot evaluate completely is worse
+than none, because it converts an open extension point into a closed list.
 
 ## D6 — The switcher stays at light and dark until a project says otherwise
 
