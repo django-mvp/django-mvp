@@ -239,38 +239,95 @@
       "tasks": [
         {
           "id": "T008",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [],
+            "commands": [
+              "forge verify --repo . (conformance/lint/typecheck/build green; poetry:test 927 passed, 1 skipped, 1 failed — pre-existing tests/test_views/test_inline.py::TestLiveGuidanceHasNoRemovedInlineAttributes::test_changelog_unreleased_section_records_the_removal_as_breaking, issue #235, confirmed RED at the branch's own starting commit fbf421a, not this story's)"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T009",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": ["tests/test_smoke.py::TestStylingDocs"],
+            "commands": [
+              "forge verify --repo . (conformance/lint/typecheck/build green; poetry:test 927 passed, 1 skipped, 1 failed — pre-existing #235, not this story's)"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T010",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": ["tests/test_smoke.py::TestThemingDocVariableCoverage"],
+            "commands": [
+              "poetry run pytest -q tests/test_smoke.py::TestThemingDocVariableCoverage -v (RED confirmed by deleting --depth from docs/theming.md with sed, restored, re-ran green; skip confirmed by moving node_modules/daisyui/theme aside; 2 passed / 2 skipped respectively)",
+              "forge verify --repo . (conformance: passed after relocating the test from a standalone tests/test_docs.py, which failed Article X mirror-source-tree, into tests/test_smoke.py, which already hosts the same kind of cross-cutting doc check)"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T011",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [],
+            "commands": [
+              "grep -rln \"CONTEXT.md\" tests/ (no matches — no test reads this file)",
+              "forge verify --repo . (conformance/lint/typecheck/build green)"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T012",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": ["tests/test_components/test_mvp_tailwind_command.py::TestMVPTailwindCommand"],
+            "commands": [
+              "poetry run pytest -q tests/test_components/test_mvp_tailwind_command.py -v (RED before the template change: 1 failed, 3 passed; GREEN after: 4 passed)",
+              "poetry run pre-commit run --files mvp/management/commands/mvp_tailwind.py (all hooks passed)"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T013",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_demo/test_theme_customization.py::TestThemeCustomizationDemoPage"
+            ],
+            "commands": [
+              "git stash push on the five implementation files, then poetry run pytest -q tests/test_demo/test_theme_customization.py (RED: collection error, KeyError: 'theme'); git stash pop, re-ran (GREEN: 5 passed)",
+              "poetry run pytest -q tests/test_smoke.py::TestDemoPagesDontLeakTheScaffoldPlaceholder tests/test_components/test_theme_controller.py (17 passed, no regression on adjacent /theme/ and switcher consumers)",
+              "npm run build:demo:prod (rebuilt demo/static/css/demo.css only, not mvp/static/css/django-mvp.css)"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T014",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": ["tests/test_smoke.py::TestStylingDocs"],
+            "commands": [
+              "poetry run pytest -q tests/test_smoke.py::TestStylingDocs (3 passed)",
+              "forge verify --repo . (conformance/lint/typecheck/build green)"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T015",
