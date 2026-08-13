@@ -188,12 +188,17 @@ class TestThemeChangeStillWorks:
             .first
         )
         expect(switcher).to_be_visible()
-        switcher.get_by_role("button").first.click()
+        switcher.locator('[role="button"][tabindex="0"]').first.click()
 
         entry = switcher.locator('[data-set-theme="dracula"]')
         expect(entry).to_be_visible()
 
-        entry.click()
+        # Activated from the keyboard rather than by pointer. Entries are
+        # <button>, so Enter fires the click theme-change binds — which is the
+        # property that makes the switcher usable without a mouse, and the one
+        # a rendered-markup assertion cannot establish.
+        entry.focus()
+        entry.press("Enter")
         page.wait_for_function(
             "() => document.documentElement.getAttribute('data-theme') === 'dracula'"
         )
@@ -219,4 +224,37 @@ class TestThemeChangeStillWorks:
             "the selection did not survive a reload — the pre-paint guard "
             "reads localStorage.theme, so a selection inside the configured "
             "choices must come back on the next load"
+        )
+
+    def test_a_stored_theme_the_project_no_longer_offers_stays_rejected(
+        self, page, live_server, monkeypatch
+    ):
+        """A dropped theme must not come back after the page settles (FR-010).
+
+        The pre-paint guard resolving the right value is only half of it.
+        theme-change re-applies ``localStorage.theme`` on ``DOMContentLoaded``
+        with no membership check of its own, so a guard that sets the
+        attribute without rewriting the stored value is correct for one frame
+        and reverted immediately after. That is invisible to any assertion on
+        the guard's source, which is why this waits for the page to settle
+        before reading the attribute.
+        """
+        monkeypatch.setitem(MVP_CONFIG["theme"], "choices", ["light", "dark"])
+
+        page.goto(f"{live_server.url}/theme/")
+        page.evaluate("() => localStorage.setItem('theme', 'dracula')")
+
+        page.goto(f"{live_server.url}/theme/", wait_until="networkidle")
+
+        assert (
+            page.evaluate("() => document.documentElement.getAttribute('data-theme')")
+            == "light"
+        ), (
+            "a stored theme outside the configured choices was applied — the "
+            "guard must also rewrite localStorage, or theme-change restores "
+            "the dropped theme on DOMContentLoaded"
+        )
+        assert page.evaluate("() => localStorage.getItem('theme')") == "light", (
+            "the stale stored selection was left in place, so it would be "
+            "restored again on the next load"
         )

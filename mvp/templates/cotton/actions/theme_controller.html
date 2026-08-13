@@ -7,13 +7,14 @@
               size="{{ size }}"
               title="{% trans "Choose theme" %}"
               aria-label="{% trans "Choose theme" %}">
-    <ul class="menu menu-sm w-full">
+    {# c-menu.item renders a <button> when given no href, so each entry is
+       focusable and Enter/Space fires the click theme-change binds. A bare
+       <a> without href is not in the tab order and cannot be activated. #}
+    <c-menu label="{% trans "Choose theme" %}" class="menu-sm">
       {% for choice in mvp_config.theme.choices %}
-        <li>
-          <a data-set-theme="{{ choice }}">{{ choice }}</a>
-        </li>
+        <c-menu.item label="{{ choice }}" data-set-theme="{{ choice }}" />
       {% endfor %}
-    </ul>
+    </c-menu>
   </c-dropdown>
 {% else %}
   <label class="flex cursor-pointer items-center gap-2"

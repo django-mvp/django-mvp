@@ -166,17 +166,42 @@ class TestThemeControllerOfferedSetShape:
         assert "data-toggle-theme" not in content
 
     @pytest.mark.django_db
-    def test_each_entry_has_an_accessible_name(self, client, monkeypatch):
+    def test_each_entry_is_keyboard_reachable_with_an_accessible_name(
+        self, client, monkeypatch
+    ):
+        """Entries must be natively focusable, not just present.
+
+        theme-change binds a ``click`` listener and nothing else, so an entry
+        that is not in the tab order cannot be activated from the keyboard at
+        all. An ``<a>`` without ``href`` renders and reads correctly and is
+        not focusable, which is why this asserts the element type rather than
+        only its text (Article XIII).
+        """
         monkeypatch.setitem(MVP_CONFIG["theme"], "choices", self.CHOICES)
         content = client.get("/").content.decode()
         for name in self.CHOICES:
             match = re.search(
-                rf'<a[^>]*data-set-theme="{name}"[^>]*>([^<]*)</a>', content
+                rf'<button[^>]*data-set-theme="{name}"[^>]*>(.*?)</button>',
+                content,
+                re.S,
             )
-            assert match is not None, f"{name} entry must render as a link"
+            assert match is not None, (
+                f"the {name} entry must be a natively focusable element — a "
+                "bare <a> without href is not in the tab order"
+            )
             assert match.group(1).strip(), (
                 f"{name} entry must have a non-empty accessible name"
             )
+
+    @pytest.mark.django_db
+    def test_no_entry_is_a_non_focusable_anchor(self, client, monkeypatch):
+        monkeypatch.setitem(MVP_CONFIG["theme"], "choices", self.CHOICES)
+        content = client.get("/").content.decode()
+
+        assert not re.search(r"<a[^>]*data-set-theme=", content), (
+            "a theme entry rendered as an <a> without href, which is not "
+            "keyboard reachable"
+        )
 
     @pytest.mark.django_db
     def test_controls_own_label_is_translated(self, client, monkeypatch):

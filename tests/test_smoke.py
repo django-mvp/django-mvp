@@ -406,48 +406,93 @@ def _extract_custom_properties(css: str) -> set[str]:
     return set(_CUSTOM_PROPERTY_RE.findall(css))
 
 
+# SC-003: the compressed stylesheet a project downloads may grow by at most
+# 8 KB against the release this feature started from.
+V0_18_0_COMPRESSED_BYTES = 41670
+SC003_GROWTH_BUDGET_BYTES = 8192
+
+
 class TestThemingDocVariableCoverage:
     """Every custom property a shipped theme defines appears in
     docs/theming.md's variable table (FR-015, SC-007), checked mechanically
-    against the installed daisyUI version rather than by hand.
+    rather than by hand.
+
+    The ground truth is the *committed stylesheet*, not node_modules. Reading
+    the installed daisyUI would be equivalent — the two property sets match
+    exactly — but node_modules is gitignored and the Python CI job never runs
+    `npm ci`, so that version of this check skips in the one environment where
+    it has to hold. Reading the artifact keeps SC-007 asserted everywhere, and
+    checks what actually ships rather than what happens to be installed.
     """
 
     THEMING_DOC = BASE_DIR / "docs" / "theming.md"
-    SHIPPED_THEME_FILE = _DAISYUI_THEME_DIR / "light.css"
+    STYLESHEET = BASE_DIR / "mvp" / "static" / "css" / "django-mvp.css"
 
-    def test_shipped_theme_source_is_discoverable(self):
-        """Guards discovery before the next test reads from it. Skips
-        explicitly when node_modules/daisyui/theme is absent, so the suite
-        still runs for a contributor who hasn't installed the front-end
-        toolchain — the same convention
-        TestShippedStylesheetShipsEveryPrebuiltTheme above uses."""
-        if not _DAISYUI_THEME_DIR.is_dir():
-            pytest.skip(
-                "node_modules/daisyui/theme not installed — front-end "
-                "toolchain not present in this environment"
-            )
-        assert self.SHIPPED_THEME_FILE.is_file(), (
-            "node_modules/daisyui/theme is present but light.css is "
-            "missing from it"
+    def _shipped_default_theme_block(self):
+        """The :where(:root) default-theme block from the built stylesheet."""
+        content = self.STYLESHEET.read_text(encoding="utf-8")
+        start = content.find(":where(:root)")
+        assert start != -1, (
+            "the :where(:root) default-theme binding is missing from the "
+            "shipped stylesheet, so there is no theme block to read"
         )
+        return content[start : content.index("}", start)]
 
-    @pytest.mark.skipif(
-        not _DAISYUI_THEME_DIR.is_dir(),
-        reason="node_modules/daisyui/theme not installed",
-    )
-    def test_every_shipped_custom_property_is_documented(self):
-        """Every --custom-property name a shipped theme defines is named in
-        docs/theming.md, checked mechanically rather than by hand (SC-007)."""
-        theme_css = self.SHIPPED_THEME_FILE.read_text(encoding="utf-8")
-        properties = _extract_custom_properties(theme_css)
+    def _documented_variable_table(self):
+        """Rows of the variable table, not the whole page.
+
+        Scoping matters: the worked example further down sets every property
+        too, so a check for the name appearing *anywhere* in the file passes
+        with the table deleted outright. FR-015 asks for a table that says
+        what each variable controls, so that is what gets checked.
+        """
+        rows = [
+            line
+            for line in self.THEMING_DOC.read_text(encoding="utf-8").splitlines()
+            if line.startswith("| `")
+        ]
+        assert rows, "no variable table rows found in docs/theming.md"
+        return rows
+
+    def test_every_shipped_custom_property_is_in_the_variable_table(self):
+        properties = _extract_custom_properties(self._shipped_default_theme_block())
         assert properties, (
-            "no --custom-property names were extracted from "
-            f"{self.SHIPPED_THEME_FILE} — the extraction pattern itself "
-            "may be broken, not the documentation"
+            "no --custom-property names were extracted from the shipped "
+            "stylesheet's default theme block — the extraction pattern "
+            "itself may be broken, not the documentation"
         )
 
-        doc = self.THEMING_DOC.read_text(encoding="utf-8")
-        missing = sorted(prop for prop in properties if prop not in doc)
+        rows = self._documented_variable_table()
+        missing = sorted(
+            prop for prop in properties if not any(f"`{prop}`" in r for r in rows)
+        )
         assert not missing, (
-            f"docs/theming.md is missing these theme variables: {missing}"
+            "docs/theming.md's variable table is missing these theme "
+            f"variables: {missing}"
+        )
+
+    def test_each_documented_variable_says_what_it_controls(self):
+        """A row naming a variable with an empty description satisfies the
+        coverage check above while telling a reader nothing (FR-015)."""
+        for row in self._documented_variable_table():
+            cells = [c.strip() for c in row.strip("|").split("|")]
+            assert len(cells) >= 2 and cells[1], (
+                f"this variable table row has no description: {row}"
+            )
+
+    def test_the_compressed_stylesheet_stays_within_its_budget(self):
+        """SC-003: the payload a project downloads may grow by at most 8 KB.
+
+        Measured at 41,670 bytes before this feature and 46,532 after. The
+        bound exists to catch a later change that adds rules rather than
+        variables, so it is asserted rather than left as a one-off
+        measurement in a decision record.
+        """
+        compressed = BASE_DIR / "mvp" / "static" / "css" / "django-mvp.css.br"
+        size = compressed.stat().st_size
+
+        assert size <= V0_18_0_COMPRESSED_BYTES + SC003_GROWTH_BUDGET_BYTES, (
+            f"the compressed stylesheet is {size} bytes, more than "
+            f"{SC003_GROWTH_BUDGET_BYTES} above the {V0_18_0_COMPRESSED_BYTES}"
+            " byte baseline this feature started from (SC-003)"
         )

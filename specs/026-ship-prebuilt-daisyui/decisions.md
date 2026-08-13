@@ -300,3 +300,41 @@ same failure the toggle test beside it already documents, and the reason a rende
 could not have covered SC-004.
 
 **ADR:** none — how one task was executed, with no bearing on the package.
+
+## D15 — Four review findings, and one defect in my own remedy (2026-08-13)
+
+The code review returned `request_changes` with two high and two lower findings. Both highs were
+verified against the code before being accepted as work rather than taken on the reviewer's word.
+
+**A stale theme came back after first paint (high).** The pre-paint guard rejected a stored theme
+the project no longer offers, but never rewrote the stored value. The bundled theme-change library
+re-applies `localStorage.theme` on `DOMContentLoaded` with no membership check of its own —
+confirmed by reading the shipped bundle, which calls `setAttribute` guarded only by the key being
+truthy. So the requirement held for one frame and was reverted on every load, permanently. The
+tests missed it because they asserted on the guard's emitted source, where the logic is correct,
+and the browser test only ever selected a theme that was in the offered set. The fix writes the
+resolved theme back, deliberately only when a stored value was rejected: writing unconditionally
+would populate the key on a first visit to a project that configures nothing, which flips the
+toggle's active state and is a visible change for an upgrading project.
+
+**Switcher entries were not keyboard reachable (high).** They rendered as `<a>` with no `href`,
+which is not in the tab order, and theme-change binds only `click`. The switcher could be opened
+with a keyboard and not used. Fixed by rendering through the packaged `c-menu.item`, which already
+emits a `<button>` when given no href, so the entries became focusable and Article XI's reuse rule
+is satisfied as a side effect rather than by a second hand-rolled list.
+
+**The documentation check was skipped in the environment that needed it (medium)** and **the size
+budget had no test at all (low).** Both now read committed files, so both run in CI.
+
+**And a defect in my own remedy, found by testing it against the bug it was for.** Pointing the
+documentation check at the committed stylesheet was correct, but the assertion looked for each
+variable *anywhere in the page*, and the worked example sets all twenty-eight. The variable table
+could have been deleted outright with the check still green. It now reads the table's rows, and a
+second case asserts each row actually says what its variable controls, since a row with an empty
+description satisfies coverage while telling a reader nothing.
+
+Every remedy was proven against its defect before being accepted: reverting each fix in turn makes
+the corresponding test fail, and restoring it makes the test pass.
+
+**ADR:** none — remedies to findings against this feature's own code, each already carried by the
+test that guards it.

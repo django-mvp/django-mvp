@@ -10,6 +10,16 @@
           var stored = localStorage.getItem('theme');
           var storedIsOffered = offeredThemes.length === 0 || offeredThemes.indexOf(stored) !== -1;
           var theme = (stored && storedIsOffered) ? stored : configuredDefault;
+          // Rewrite a selection the project no longer offers. theme-change
+          // re-applies localStorage.theme on DOMContentLoaded with no
+          // membership check of its own, so setting the attribute alone would
+          // hold for one frame and then be reverted. Deliberately conditional:
+          // writing the key unconditionally would populate it on a first visit
+          // to a project that configures nothing, which flips the toggle's
+          // active state and is a visible change for an upgrading project.
+          if (stored && !storedIsOffered) {
+            localStorage.setItem('theme', configuredDefault);
+          }
           document.documentElement.setAttribute('data-theme', theme);
         } catch (e) {}
       })();
