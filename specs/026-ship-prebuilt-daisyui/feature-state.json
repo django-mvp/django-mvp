@@ -2,7 +2,7 @@
   "feature": "026-ship-prebuilt-daisyui",
   "branch": "026-ship-prebuilt-daisyui",
   "repo": "django-mvp/django-mvp",
-  "state": "CONVERGE",
+  "state": "PR_READY",
   "state_history": [
     {
       "state": "INTAKE",
@@ -48,6 +48,16 @@
       "state": "CONVERGE",
       "at": "2026-08-13T17:40:00Z",
       "note": "US1-US3 merged and independently verified; T016 implemented directly (D14); ADR verdicts written, 0010 and 0011 graduated"
+    },
+    {
+      "state": "REVIEW",
+      "at": "2026-08-13T18:20:00Z",
+      "note": "one reviewer, three lenses; request_changes with 2 high, 1 medium, 1 low; both highs verified against the code before being accepted"
+    },
+    {
+      "state": "PR_READY",
+      "at": "2026-08-13T18:55:00Z",
+      "note": "all four findings fixed and each proven by reverting it; a defect in my own remedy found the same way; public markdown humanised; PR body rewritten"
     }
   ],
   "gates": {
@@ -376,7 +386,7 @@
       "max": 2
     },
     "review_cycles": {
-      "used": 0,
+      "used": 1,
       "max": 1
     },
     "design_review_cycles": {
