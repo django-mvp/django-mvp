@@ -9,10 +9,13 @@ guard's actual contract.
 """
 
 import re
+from pathlib import Path
 
 import pytest
 
 from mvp.config import MVP_CONFIG
+
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 
 def _guard_script(html):
@@ -85,4 +88,46 @@ class TestPrePaintThemeGuardEscaping:
         assert head_before_styles.count("<script") == 1, (
             "an unescaped payload must not be able to inject an additional "
             "<script> element ahead of the stylesheet link"
+        )
+
+
+class TestUnmatchedThemeNameFallsThrough:
+    """A configured theme name matching no shipped or project theme block
+    leaves the page rendering under the ``:where(:root)`` default, and
+    nothing raises — the deliberate non-feature decisions.md D5 settled:
+    theme names are not validated, because the package cannot see a
+    project's own theme file. This is a regression guard on that decision:
+    without it, a later contributor reads the absence of validation as an
+    oversight and adds it back (FR-014, SC-008).
+    """
+
+    UNMATCHED_NAME = "totallynotarealtheme"
+
+    @pytest.mark.django_db
+    def test_unmatched_theme_name_renders_without_raising(self, client, monkeypatch):
+        monkeypatch.setitem(MVP_CONFIG["theme"], "default", self.UNMATCHED_NAME)
+        response = client.get("/")
+        assert response.status_code == 200
+
+    @pytest.mark.django_db
+    def test_unmatched_theme_name_is_emitted_unvalidated(self, client, monkeypatch):
+        """No render-time check rejects it — the guard emits whatever name
+        is configured, exactly as it does for a name that does match (T004),
+        because the package cannot evaluate whether a project's own theme
+        file defines it."""
+        monkeypatch.setitem(MVP_CONFIG["theme"], "default", self.UNMATCHED_NAME)
+        script = _guard_script(client.get("/").content.decode())
+        assert script is not None
+        assert f'"{self.UNMATCHED_NAME}"' in script
+
+    def test_default_theme_stays_bound_through_where_root(self):
+        """The zero-specificity :where(:root) arm is what makes the
+        fall-through safe: it matches the document root unconditionally, so
+        an unmatched data-theme value still resolves to the default theme's
+        styles instead of an unstyled page."""
+        stylesheet = BASE_DIR / "mvp" / "static" / "css" / "django-mvp.css"
+        content = stylesheet.read_text(encoding="utf-8")
+        assert ":where(:root)" in content, (
+            "the :where(:root) fall-through binding for the default theme "
+            "is missing from the shipped stylesheet"
         )

@@ -87,3 +87,23 @@ yet); after, 4 passed. Also ran
 Next: T005 — a name matching nothing falls through, no production code.
 Watch: T007 (not mine, Phase 3/US-2) adds the `theme.choices` membership arm to this same guard —
 this task deliberately implements only the default-fallback arm FR-003/FR-005/FR-006 need.
+
+## 2026-08-13T00:20Z · Implementer US1 · T005
+
+Did: Added `TestUnmatchedThemeNameFallsThrough` to
+`tests/test_components/test_theme_controller.py` (no production code, per the task): a configured
+theme name matching no shipped or project block (1) renders without raising, (2) is emitted
+unvalidated by the guard — same as a matching name — because the package cannot see a project's
+own theme file (decisions.md D5), and (3) the shipped stylesheet's `:where(:root)` fall-through
+binding, which is what makes that safe, is still present. This is the regression guard on the
+deliberate non-validation decision.
+Verified: `poetry run pytest -q tests/test_components/test_theme_controller.py` → 7 passed (all
+green immediately, as expected for a no-production-code coverage task — the behaviour it guards
+was already delivered by T002/T004). One self-correction during authoring: the first attempt used
+a hyphenated fixture name (`totally-not-a-real-theme`); `escapejs` escapes every `-` to the
+six-character sequence backslash-u-0-0-2-D (it guards against `--&gt;` breaking an HTML comment),
+so the literal-substring assertion failed for a reason unrelated to the guard's correctness. Switched to a hyphen-free fixture name
+(`totallynotarealtheme`, matching the un-hyphenated shape of every real daisyUI theme name) and
+reran green — not a same-file/same-error repeat, so craft-debugging was not invoked.
+Next: T003-T005 (US1) complete. Full-suite verify runs once, at the completion report.
+Watch: none.
