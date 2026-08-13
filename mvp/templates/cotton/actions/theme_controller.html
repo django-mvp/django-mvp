@@ -1,12 +1,29 @@
 {% load i18n %}
 <c-vars size="sm" />
-<label class="flex cursor-pointer items-center gap-2"
-       title="{% trans "Toggle dark mode" %}">
-  <c-icon name="theme.light" class="text-sm" aria-hidden="true" />
-  <input type="checkbox"
-         class="toggle toggle-{{ size }}"
-         data-toggle-theme="dark,light"
-         data-act-class="swap-active"
-         aria-label="{% trans "Toggle dark mode" %}" />
-  <c-icon name="theme.dark" class="text-sm" aria-hidden="true" />
-</label>
+{% if mvp_config.theme.choices %}
+  <c-dropdown halign="end"
+              ghost
+              icon="theme.light"
+              size="{{ size }}"
+              title="{% trans "Choose theme" %}"
+              aria-label="{% trans "Choose theme" %}">
+    <ul class="menu menu-sm w-full">
+      {% for choice in mvp_config.theme.choices %}
+        <li>
+          <a data-set-theme="{{ choice }}">{{ choice }}</a>
+        </li>
+      {% endfor %}
+    </ul>
+  </c-dropdown>
+{% else %}
+  <label class="flex cursor-pointer items-center gap-2"
+         title="{% trans "Toggle dark mode" %}">
+    <c-icon name="theme.light" class="text-sm" aria-hidden="true" />
+    <input type="checkbox"
+           class="toggle toggle-{{ size }}"
+           data-toggle-theme="dark,light"
+           data-act-class="swap-active"
+           aria-label="{% trans "Toggle dark mode" %}" />
+    <c-icon name="theme.dark" class="text-sm" aria-hidden="true" />
+  </label>
+{% endif %}
