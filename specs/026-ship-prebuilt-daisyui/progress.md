@@ -215,3 +215,27 @@ files back in full after editing. `grep -n "bloat\|only the default light\|cdn.j
 Next: T010 — make the variable coverage in docs/theming.md mechanical with a test.
 Watch: T010's test reads `docs/theming.md` directly, so it is unaffected by this task's
 changes to styling.md/index.md.
+
+## 2026-08-13T15:18Z · Implementer US3 · T010
+
+Did: Added `tests/test_docs.py` with `TestThemingDocVariableCoverage`, mirroring the
+node_modules-skip convention `tests/test_smoke.py` already uses: a discovery-guard test that
+skips explicitly when `node_modules/daisyui/theme` is absent, then a
+`@pytest.mark.skipif`-guarded test that extracts every `--custom-property` name from a
+shipped theme file (`light.css`) with a regex and asserts each appears in
+`docs/theming.md`, asserting the extracted set is non-empty first so a broken regex can't
+report green while checking nothing.
+Verified: wrote the test against the already-written `docs/theming.md` (T008), so getting a
+real RED meant proving the test actually detects a missing variable rather than trusting it.
+Backed up `docs/theming.md`, deleted every line containing `--depth` with `sed`, ran
+`poetry run pytest -q tests/test_docs.py -v` → 1 failed with `AssertionError: docs/theming.md
+is missing these theme variables: ['--depth']`, `1 passed` (the discovery guard, unaffected).
+Restored the doc from the backup (`diff` confirmed byte-identical), re-ran → `2 passed`.
+Separately confirmed the skip path: moved `node_modules/daisyui/theme` aside, ran the same
+command → `2 skipped`, moved it back. `poetry run ruff check tests/test_docs.py` → all
+checks passed; `poetry run ruff format tests/test_docs.py` reformatted one multi-line string
+join, re-ran the test after → `2 passed` still.
+Next: T011 — define *theme* in CONTEXT.md's glossary.
+Watch: this test reads `light.css` specifically as "a shipped theme definition" per the task
+wording; confirmed earlier (T008 research) that `dracula.css` defines the identical 28
+property set, so the choice of theme file doesn't change what gets checked.
