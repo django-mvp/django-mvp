@@ -15,6 +15,8 @@ works.
 import pytest
 from playwright.sync_api import expect
 
+from demo.settings import MVP_CONFIG as DEMO_MVP_CONFIG
+from mvp.config import MVP_CONFIG
 from tests.conftest import requires_browser
 
 pytestmark = [pytest.mark.e2e, requires_browser]
@@ -152,4 +154,69 @@ class TestThemeChangeStillWorks:
             "clicking [data-toggle-theme] did not change the theme — "
             "themeChange() binds on DOMContentLoaded, which a deferred bundle "
             "must still run before"
+        )
+
+    def test_a_dropdown_entry_sets_that_theme_and_it_survives_a_reload(
+        self, page, live_server, monkeypatch
+    ):
+        """A configured switcher entry actually applies its theme (SC-004).
+
+        ``data-set-theme`` is markup this package has not shipped before. The
+        rendered-markup tests prove the attribute is emitted and the bundle
+        test proves the string is in the bundle, and neither can tell whether
+        theme-change binds it — the same gap the toggle test above exists to
+        close. Persistence needs a real browser too: a ``localStorage`` write
+        read back by the pre-paint guard on the next load is not expressible
+        with the Django test client.
+
+        ``tests/settings.py`` pins a bare ``MVP_CONFIG`` with no
+        ``theme.choices``, so the demo's own configuration is applied for this
+        test's duration through the same ``monkeypatch.setitem`` seam
+        ``tests/test_demo/test_theme_customization.py`` uses.
+        """
+        monkeypatch.setitem(
+            MVP_CONFIG["theme"], "choices", DEMO_MVP_CONFIG["theme"]["choices"]
+        )
+
+        page.goto(f"{live_server.url}/theme/")
+
+        # The navbar renders a switcher for each breakpoint, so only one is
+        # visible at the viewport under test. Open that one, then pick from it.
+        switcher = (
+            page.locator('.dropdown:has([data-set-theme="dracula"])')
+            .locator("visible=true")
+            .first
+        )
+        expect(switcher).to_be_visible()
+        switcher.get_by_role("button").first.click()
+
+        entry = switcher.locator('[data-set-theme="dracula"]')
+        expect(entry).to_be_visible()
+
+        entry.click()
+        page.wait_for_function(
+            "() => document.documentElement.getAttribute('data-theme') === 'dracula'"
+        )
+
+        assert (
+            page.evaluate("() => document.documentElement.getAttribute('data-theme')")
+            == "dracula"
+        ), (
+            "clicking [data-set-theme=dracula] did not apply the theme — "
+            "theme-change binds data-set-theme on DOMContentLoaded, which the "
+            "deferred bundle must still run before"
+        )
+
+        page.reload()
+        page.wait_for_function(
+            "() => document.documentElement.getAttribute('data-theme') === 'dracula'"
+        )
+
+        assert (
+            page.evaluate("() => document.documentElement.getAttribute('data-theme')")
+            == "dracula"
+        ), (
+            "the selection did not survive a reload — the pre-paint guard "
+            "reads localStorage.theme, so a selection inside the configured "
+            "choices must come back on the next load"
         )

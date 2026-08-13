@@ -262,3 +262,18 @@ changed.
 **Revisit if**: a `mvp/docs.py`-shaped module is ever introduced (unlikely — documentation content
 checks in this repo have never mirrored a source module), at which point this class could move
 again to mirror it properly.
+
+## D14 — T016 implemented directly rather than dispatched (2026-08-13)
+
+One test, no design content, and it depends on T013, which belongs to a different story than the
+one T016 was filed under. Standing up a fourth worktree and provisioning two toolchains to add a
+single browser test costs more than it returns.
+
+Recorded because skipping dispatch is the exception, not the norm, and the exception is supposed to
+be visible.
+
+The test was proven against the failure it exists to catch, rather than accepted because it passed:
+with the JavaScript bundle blocked at the network layer — the state where `data-set-theme` is
+rendered correctly and nothing ever binds it — the test fails. Restored, it passes. That is the
+same failure the toggle test beside it already documents, and the reason a rendered-markup assertion
+could not have covered SC-004.
