@@ -1,12 +1,30 @@
 {% load i18n %}
 <c-vars size="sm" />
-<label class="flex cursor-pointer items-center gap-2"
-       title="{% trans "Toggle dark mode" %}">
-  <c-icon name="theme.light" class="text-sm" aria-hidden="true" />
-  <input type="checkbox"
-         class="toggle toggle-{{ size }}"
-         data-toggle-theme="dark,light"
-         data-act-class="swap-active"
-         aria-label="{% trans "Toggle dark mode" %}" />
-  <c-icon name="theme.dark" class="text-sm" aria-hidden="true" />
-</label>
+{% if mvp_config.theme.choices %}
+  <c-dropdown halign="end"
+              ghost
+              icon="theme.light"
+              size="{{ size }}"
+              title="{% trans "Choose theme" %}"
+              aria-label="{% trans "Choose theme" %}">
+    {# c-menu.item renders a <button> when given no href, so each entry is
+       focusable and Enter/Space fires the click theme-change binds. A bare
+       <a> without href is not in the tab order and cannot be activated. #}
+    <c-menu label="{% trans "Choose theme" %}" class="menu-sm">
+      {% for choice in mvp_config.theme.choices %}
+        <c-menu.item label="{{ choice }}" data-set-theme="{{ choice }}" />
+      {% endfor %}
+    </c-menu>
+  </c-dropdown>
+{% else %}
+  <label class="flex cursor-pointer items-center gap-2"
+         title="{% trans "Toggle dark mode" %}">
+    <c-icon name="theme.light" class="text-sm" aria-hidden="true" />
+    <input type="checkbox"
+           class="toggle toggle-{{ size }}"
+           data-toggle-theme="dark,light"
+           data-act-class="swap-active"
+           aria-label="{% trans "Toggle dark mode" %}" />
+    <c-icon name="theme.dark" class="text-sm" aria-hidden="true" />
+  </label>
+{% endif %}

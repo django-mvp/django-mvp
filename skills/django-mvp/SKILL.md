@@ -476,20 +476,19 @@ Two tiers:
 - **Tier 1 — no build.** The prebuilt stylesheet (`mvp/static/css/django-mvp.css`, loaded
   by `mvp/base.html`) ships the **complete DaisyUI 5 component set**, not just the ones
   mvp's own components use — a raw `<div class="chat chat-start">` renders styled with no
-  build step. Named themes are the exception: only light/dark ship by default. Customize via
-  component **attributes** and template overrides that **reuse packaged components**. Theme
-  changes (DaisyUI CSS-variable themes; `<c-actions.theme-controller>` for light/dark) stay
-  Tier 1.
-  - *Escape hatch:* a named theme other than light/dark (`dracula`, `synthwave`, …) isn't
-    shipped, but every DaisyUI theme is published as a standalone CSS file, so link it in a
-    `styles` block override (still no build):
-    ```django
-    {% block styles %}
-      {{ block.super }}
-      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daisyui@5/theme/dracula.css" />
-    {% endblock styles %}
+  build step. **Every prebuilt DaisyUI theme ships too**, so `dracula`, `synthwave` and the
+  rest are available by name with nothing to install or fetch. Customize via component
+  **attributes** and template overrides that **reuse packaged components**. Theme changes
+  (DaisyUI CSS-variable themes) stay Tier 1.
+  - *Selecting one:* set it in `MVP_CONFIG`, and list what the switcher offers:
+    ```python
+    MVP_CONFIG = {"theme": {"default": "dracula", "choices": ["light", "dark", "dracula"]}}
     ```
-    Self-host by copying `daisyui/theme/<name>.css` from the npm package into static instead.
+    With `choices` empty, `<c-actions.theme-controller>` stays the light/dark toggle.
+  - *Your own theme:* a theme is a plain `[data-theme="<name>"]` block of CSS custom
+    properties, so write the CSS, load it from a `styles` block override, and name it in
+    config. No build step, and it beats the packaged themes regardless of load order.
+    See `docs/theming.md` for the variable table and a worked example.
   - Tailwind **utility** classes (`class="grid grid-cols-3"`) not already emitted by mvp's own
     templates are still Tier 2 — only DaisyUI component coverage is complete in Tier 1.
 - **Tier 2 — own build.** The moment your own templates use their own Tailwind utility

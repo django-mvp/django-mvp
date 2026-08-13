@@ -63,6 +63,16 @@ to all templates as ``mvp_config``. Layout config resolution order: component
 attribute (per-page override, e.g. ``<c-app breakpoint="xl">`` or
 ``<c-app.sidebar collapse="icons">``) → ``MVP_CONFIG`` → package default.
 
+### Theme
+
+A named set of CSS custom properties (colors, corner radii, border width, base sizing, and
+the depth/noise surface effects) applied to the whole document at once through
+`[data-theme="<name>"]`. A theme carries no structure or layout, which is why changing one
+never requires a template change. Themes come from two sources: those shipped with the
+package (every prebuilt daisyUI theme) and those a project writes for itself as a plain CSS
+file. Selected through `MVP_CONFIG["theme"]`. See [Theming](docs/theming.md) for the full
+variable reference and how to write one.
+
 ### Related row
 
 One record belonging to a parent — a line item, a question. Rows are created, edited and

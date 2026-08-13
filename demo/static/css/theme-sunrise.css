@@ -1,0 +1,35 @@
+/* A project-written custom theme, loaded by demo/templates/base.html.
+   This is the exact worked example from docs/theming.md, kept in step so a
+   reader following that page has a running reference to check against.
+   Plain CSS: no build step, no @plugin, no third-party host. */
+[data-theme="sunrise"] {
+  color-scheme: light;
+  --color-base-100: oklch(98% 0.01 80);
+  --color-base-200: oklch(94% 0.02 80);
+  --color-base-300: oklch(89% 0.03 80);
+  --color-base-content: oklch(25% 0.02 80);
+  --color-primary: oklch(68% 0.19 40);
+  --color-primary-content: oklch(98% 0.01 40);
+  --color-secondary: oklch(70% 0.15 350);
+  --color-secondary-content: oklch(98% 0.01 350);
+  --color-accent: oklch(75% 0.17 200);
+  --color-accent-content: oklch(20% 0.02 200);
+  --color-neutral: oklch(30% 0.02 80);
+  --color-neutral-content: oklch(95% 0.01 80);
+  --color-info: oklch(74% 0.16 232);
+  --color-info-content: oklch(29% 0.07 232);
+  --color-success: oklch(76% 0.18 163);
+  --color-success-content: oklch(37% 0.08 163);
+  --color-warning: oklch(82% 0.19 84);
+  --color-warning-content: oklch(41% 0.11 84);
+  --color-error: oklch(71% 0.19 13);
+  --color-error-content: oklch(27% 0.11 13);
+  --radius-selector: 1rem;
+  --radius-field: 0.5rem;
+  --radius-box: 1rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 1;
+  --noise: 0;
+}

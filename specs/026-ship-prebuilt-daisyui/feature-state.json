@@ -1,0 +1,405 @@
+{
+  "feature": "026-ship-prebuilt-daisyui",
+  "branch": "026-ship-prebuilt-daisyui",
+  "repo": "django-mvp/django-mvp",
+  "state": "PR_READY",
+  "state_history": [
+    {
+      "state": "INTAKE",
+      "at": "2026-08-13T09:50:00Z",
+      "note": "free-text request; grilled to option A plus a documentation mandate"
+    },
+    {
+      "state": "SPECIFY",
+      "at": "2026-08-13T11:05:00Z",
+      "note": "spec.md, 3 stories, 21 requirements, 8 success criteria"
+    },
+    {
+      "state": "SETUP",
+      "at": "2026-08-13T11:40:00Z",
+      "note": "epic #230 promoted, stories #231-233, draft PR #234"
+    },
+    {
+      "state": "GATE_SPEC",
+      "at": "2026-08-13T12:30:00Z",
+      "note": "amended on the ruling against theme-name validation, then approved"
+    },
+    {
+      "state": "PLAN",
+      "at": "2026-08-13T13:25:37Z",
+      "note": "plan.md and tasks.md authored; FR-002 narrowed to the approved scope"
+    },
+    {
+      "state": "DESIGN_REVIEW",
+      "at": "2026-08-13T13:32:00Z",
+      "note": "one reviewer, three lenses, heavy tier; craft-skill gate green before dispatch"
+    },
+    {
+      "state": "DESIGN_REVIEW_REMEDIED",
+      "at": "2026-08-13T14:05:00Z",
+      "note": "request_changes, 3 medium findings, all verified against the repo and remedied; T016 added (decisions.md D8)"
+    },
+    {
+      "state": "IMPLEMENT",
+      "at": "2026-08-13T14:20:00Z",
+      "note": "plan veto window closed with explicit approval; US1 dispatch next"
+    },
+    {
+      "state": "CONVERGE",
+      "at": "2026-08-13T17:40:00Z",
+      "note": "US1-US3 merged and independently verified; T016 implemented directly (D14); ADR verdicts written, 0010 and 0011 graduated"
+    },
+    {
+      "state": "REVIEW",
+      "at": "2026-08-13T18:20:00Z",
+      "note": "one reviewer, three lenses; request_changes with 2 high, 1 medium, 1 low; both highs verified against the code before being accepted"
+    },
+    {
+      "state": "PR_READY",
+      "at": "2026-08-13T18:55:00Z",
+      "note": "all four findings fixed and each proven by reverting it; a defect in my own remedy found the same way; public markdown humanised; PR body rewritten"
+    }
+  ],
+  "gates": {
+    "spec": {
+      "approved_by": "Sam",
+      "at": "2026-08-13T12:30:00Z",
+      "self_resolved": [
+        "Default theme and switcher behaviour unchanged when nothing is configured; the default-theme question stays with R11 (#136)",
+        "The switcher offers light and dark until a project declares its own set",
+        "A custom theme requires no build step, because the theme plugin is a pass-through",
+        "A project's theme overrides a packaged one regardless of stylesheet load order, via cascade layers",
+        "Stylesheet growth bounded at 8 KB compressed against a measured cost of about 5 KB",
+        "Theme names are not validated: overruled by Sam at the gate, and the check cannot be evaluated by the package anyway (decisions.md D5)"
+      ]
+    },
+    "plan": {
+      "approved_by": "notified \u2014 Sam confirmed explicitly",
+      "at": "2026-08-13T14:20:00Z"
+    },
+    "merge": {
+      "approved_by": null,
+      "at": null
+    },
+    "design_review": {
+      "approved_by": "design-panel",
+      "at": "2026-08-13T13:43:11Z",
+      "self_resolved": [
+        "Orphaned exact-string assertions on '@plugin \"daisyui\";' in test_smoke.py:74 and test_mvp_tailwind_command.py:25 given owning tasks (T002, T012)",
+        "T012's file list repointed from a non-existent tests/test_management_commands.py to the module that already holds those tests (Article X)",
+        "T001's theme-completeness case made to skip explicitly when node_modules is absent, and to assert a non-empty glob before parametrising, so CI cannot report green while asserting nothing",
+        "SC-004 given a demonstrating task: T016, one browser test, because data-set-theme is markup the package has never shipped and a markup assertion cannot prove theme-change binds it"
+      ]
+    }
+  },
+  "stories": [
+    {
+      "id": "US1",
+      "priority": "P1",
+      "issue": 231,
+      "worktree": null,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T001",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_smoke.py::TestShippedStylesheetShipsEveryPrebuiltTheme",
+              "tests/test_config.py::TestThemeConfigDefaults",
+              "tests/test_config.py::TestThemeConfigOverrideMerge",
+              "tests/test_components/test_theme_controller.py"
+            ],
+            "commands": [
+              "forge verify --repo . (lint/typecheck/build green; 916 passed, 1 skipped, 1 deselected)",
+              "forge tamper-check --base 026-ship-prebuilt-daisyui (2 flags, both triaged as authorised)"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T002",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_smoke.py::TestShippedStylesheetShipsEveryPrebuiltTheme",
+              "tests/test_config.py::TestThemeConfigDefaults",
+              "tests/test_config.py::TestThemeConfigOverrideMerge",
+              "tests/test_components/test_theme_controller.py"
+            ],
+            "commands": [
+              "forge verify --repo . (lint/typecheck/build green; 916 passed, 1 skipped, 1 deselected)",
+              "forge tamper-check --base 026-ship-prebuilt-daisyui (2 flags, both triaged as authorised)"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T003",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_smoke.py::TestShippedStylesheetShipsEveryPrebuiltTheme",
+              "tests/test_config.py::TestThemeConfigDefaults",
+              "tests/test_config.py::TestThemeConfigOverrideMerge",
+              "tests/test_components/test_theme_controller.py"
+            ],
+            "commands": [
+              "forge verify --repo . (lint/typecheck/build green; 916 passed, 1 skipped, 1 deselected)",
+              "forge tamper-check --base 026-ship-prebuilt-daisyui (2 flags, both triaged as authorised)"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T004",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_smoke.py::TestShippedStylesheetShipsEveryPrebuiltTheme",
+              "tests/test_config.py::TestThemeConfigDefaults",
+              "tests/test_config.py::TestThemeConfigOverrideMerge",
+              "tests/test_components/test_theme_controller.py"
+            ],
+            "commands": [
+              "forge verify --repo . (lint/typecheck/build green; 916 passed, 1 skipped, 1 deselected)",
+              "forge tamper-check --base 026-ship-prebuilt-daisyui (2 flags, both triaged as authorised)"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T005",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_smoke.py::TestShippedStylesheetShipsEveryPrebuiltTheme",
+              "tests/test_config.py::TestThemeConfigDefaults",
+              "tests/test_config.py::TestThemeConfigOverrideMerge",
+              "tests/test_components/test_theme_controller.py"
+            ],
+            "commands": [
+              "forge verify --repo . (lint/typecheck/build green; 916 passed, 1 skipped, 1 deselected)",
+              "forge tamper-check --base 026-ship-prebuilt-daisyui (2 flags, both triaged as authorised)"
+            ],
+            "verified_by_ci": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "US2",
+      "priority": "P2",
+      "issue": 232,
+      "worktree": null,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T006",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_theme_controller.py::TestThemeControllerUnconfiguredShape",
+              "tests/test_components/test_theme_controller.py::TestThemeControllerOfferedSetShape",
+              "tests/test_components/test_theme_controller.py::TestPrePaintThemeGuardMembership"
+            ],
+            "commands": [
+              "forge verify --repo . (lint/typecheck/build green; 924 passed, 1 skipped, 1 deselected)",
+              "forge tamper-check (1 flag: file appended to, no pre-existing test lines removed)",
+              "rendered-markup inspection of the configured dropdown"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T007",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_theme_controller.py::TestThemeControllerUnconfiguredShape",
+              "tests/test_components/test_theme_controller.py::TestThemeControllerOfferedSetShape",
+              "tests/test_components/test_theme_controller.py::TestPrePaintThemeGuardMembership"
+            ],
+            "commands": [
+              "forge verify --repo . (lint/typecheck/build green; 924 passed, 1 skipped, 1 deselected)",
+              "forge tamper-check (1 flag: file appended to, no pre-existing test lines removed)",
+              "rendered-markup inspection of the configured dropdown"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T016",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_frontend_runtime_e2e.py::TestThemeChangeStillWorks::test_a_dropdown_entry_sets_that_theme_and_it_survives_a_reload"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_frontend_runtime_e2e.py::TestThemeChangeStillWorks (2 passed)",
+              "control: bundle blocked at the network layer -> test fails, as designed"
+            ],
+            "verified_by_ci": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "US3",
+      "priority": "P3",
+      "issue": 233,
+      "worktree": null,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T008",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [],
+            "commands": [
+              "forge verify --repo . (conformance/lint/typecheck/build green; poetry:test 927 passed, 1 skipped, 1 failed \u2014 pre-existing tests/test_views/test_inline.py::TestLiveGuidanceHasNoRemovedInlineAttributes::test_changelog_unreleased_section_records_the_removal_as_breaking, issue #235, confirmed RED at the branch's own starting commit fbf421a, not this story's)"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T009",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_smoke.py::TestStylingDocs"
+            ],
+            "commands": [
+              "forge verify --repo . (conformance/lint/typecheck/build green; poetry:test 927 passed, 1 skipped, 1 failed \u2014 pre-existing #235, not this story's)"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T010",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_smoke.py::TestThemingDocVariableCoverage"
+            ],
+            "commands": [
+              "poetry run pytest -q tests/test_smoke.py::TestThemingDocVariableCoverage -v (RED confirmed by deleting --depth from docs/theming.md with sed, restored, re-ran green; skip confirmed by moving node_modules/daisyui/theme aside; 2 passed / 2 skipped respectively)",
+              "forge verify --repo . (conformance: passed after relocating the test from a standalone tests/test_docs.py, which failed Article X mirror-source-tree, into tests/test_smoke.py, which already hosts the same kind of cross-cutting doc check)"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T011",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [],
+            "commands": [
+              "grep -rln \"CONTEXT.md\" tests/ (no matches \u2014 no test reads this file)",
+              "forge verify --repo . (conformance/lint/typecheck/build green)"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T012",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_mvp_tailwind_command.py::TestMVPTailwindCommand"
+            ],
+            "commands": [
+              "poetry run pytest -q tests/test_components/test_mvp_tailwind_command.py -v (RED before the template change: 1 failed, 3 passed; GREEN after: 4 passed)",
+              "poetry run pre-commit run --files mvp/management/commands/mvp_tailwind.py (all hooks passed)"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T013",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_demo/test_theme_customization.py::TestThemeCustomizationDemoPage"
+            ],
+            "commands": [
+              "git stash push on the five implementation files, then poetry run pytest -q tests/test_demo/test_theme_customization.py (RED: collection error, KeyError: 'theme'); git stash pop, re-ran (GREEN: 5 passed)",
+              "poetry run pytest -q tests/test_smoke.py::TestDemoPagesDontLeakTheScaffoldPlaceholder tests/test_components/test_theme_controller.py (17 passed, no regression on adjacent /theme/ and switcher consumers)",
+              "npm run build:demo:prod (rebuilt demo/static/css/demo.css only, not mvp/static/css/django-mvp.css)"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T014",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_smoke.py::TestStylingDocs"
+            ],
+            "commands": [
+              "poetry run pytest -q tests/test_smoke.py::TestStylingDocs (3 passed)",
+              "forge verify --repo . (conformance/lint/typecheck/build green)"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T015",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_frontend_runtime_e2e.py::TestThemeChangeStillWorks::test_a_dropdown_entry_sets_that_theme_and_it_survives_a_reload"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_frontend_runtime_e2e.py::TestThemeChangeStillWorks (2 passed)",
+              "control: bundle blocked at the network layer -> test fails, as designed"
+            ],
+            "verified_by_ci": false
+          }
+        }
+      ]
+    }
+  ],
+  "budgets": {
+    "converge_cycles": {
+      "used": 0,
+      "max": 2
+    },
+    "review_cycles": {
+      "used": 1,
+      "max": 1
+    },
+    "design_review_cycles": {
+      "used": 1,
+      "max": 1
+    },
+    "tokens": {
+      "used": 0,
+      "max": 4000000
+    }
+  },
+  "pr": {
+    "number": 234,
+    "draft": true
+  }
+}

@@ -15,6 +15,8 @@ works.
 import pytest
 from playwright.sync_api import expect
 
+from demo.settings import MVP_CONFIG as DEMO_MVP_CONFIG
+from mvp.config import MVP_CONFIG
 from tests.conftest import requires_browser
 
 pytestmark = [pytest.mark.e2e, requires_browser]
@@ -152,4 +154,107 @@ class TestThemeChangeStillWorks:
             "clicking [data-toggle-theme] did not change the theme — "
             "themeChange() binds on DOMContentLoaded, which a deferred bundle "
             "must still run before"
+        )
+
+    def test_a_dropdown_entry_sets_that_theme_and_it_survives_a_reload(
+        self, page, live_server, monkeypatch
+    ):
+        """A configured switcher entry actually applies its theme (SC-004).
+
+        ``data-set-theme`` is markup this package has not shipped before. The
+        rendered-markup tests prove the attribute is emitted and the bundle
+        test proves the string is in the bundle, and neither can tell whether
+        theme-change binds it — the same gap the toggle test above exists to
+        close. Persistence needs a real browser too: a ``localStorage`` write
+        read back by the pre-paint guard on the next load is not expressible
+        with the Django test client.
+
+        ``tests/settings.py`` pins a bare ``MVP_CONFIG`` with no
+        ``theme.choices``, so the demo's own configuration is applied for this
+        test's duration through the same ``monkeypatch.setitem`` seam
+        ``tests/test_demo/test_theme_customization.py`` uses.
+        """
+        monkeypatch.setitem(
+            MVP_CONFIG["theme"], "choices", DEMO_MVP_CONFIG["theme"]["choices"]
+        )
+
+        page.goto(f"{live_server.url}/theme/")
+
+        # The navbar renders a switcher for each breakpoint, so only one is
+        # visible at the viewport under test. Open that one, then pick from it.
+        switcher = (
+            page.locator('.dropdown:has([data-set-theme="dracula"])')
+            .locator("visible=true")
+            .first
+        )
+        expect(switcher).to_be_visible()
+        switcher.locator('[role="button"][tabindex="0"]').first.click()
+
+        entry = switcher.locator('[data-set-theme="dracula"]')
+        expect(entry).to_be_visible()
+
+        # Activated from the keyboard rather than by pointer. Entries are
+        # <button>, so Enter fires the click theme-change binds — which is the
+        # property that makes the switcher usable without a mouse, and the one
+        # a rendered-markup assertion cannot establish.
+        entry.focus()
+        entry.press("Enter")
+        page.wait_for_function(
+            "() => document.documentElement.getAttribute('data-theme') === 'dracula'"
+        )
+
+        assert (
+            page.evaluate("() => document.documentElement.getAttribute('data-theme')")
+            == "dracula"
+        ), (
+            "clicking [data-set-theme=dracula] did not apply the theme — "
+            "theme-change binds data-set-theme on DOMContentLoaded, which the "
+            "deferred bundle must still run before"
+        )
+
+        page.reload()
+        page.wait_for_function(
+            "() => document.documentElement.getAttribute('data-theme') === 'dracula'"
+        )
+
+        assert (
+            page.evaluate("() => document.documentElement.getAttribute('data-theme')")
+            == "dracula"
+        ), (
+            "the selection did not survive a reload — the pre-paint guard "
+            "reads localStorage.theme, so a selection inside the configured "
+            "choices must come back on the next load"
+        )
+
+    def test_a_stored_theme_the_project_no_longer_offers_stays_rejected(
+        self, page, live_server, monkeypatch
+    ):
+        """A dropped theme must not come back after the page settles (FR-010).
+
+        The pre-paint guard resolving the right value is only half of it.
+        theme-change re-applies ``localStorage.theme`` on ``DOMContentLoaded``
+        with no membership check of its own, so a guard that sets the
+        attribute without rewriting the stored value is correct for one frame
+        and reverted immediately after. That is invisible to any assertion on
+        the guard's source, which is why this waits for the page to settle
+        before reading the attribute.
+        """
+        monkeypatch.setitem(MVP_CONFIG["theme"], "choices", ["light", "dark"])
+
+        page.goto(f"{live_server.url}/theme/")
+        page.evaluate("() => localStorage.setItem('theme', 'dracula')")
+
+        page.goto(f"{live_server.url}/theme/", wait_until="networkidle")
+
+        assert (
+            page.evaluate("() => document.documentElement.getAttribute('data-theme')")
+            == "light"
+        ), (
+            "a stored theme outside the configured choices was applied — the "
+            "guard must also rewrite localStorage, or theme-change restores "
+            "the dropped theme on DOMContentLoaded"
+        )
+        assert page.evaluate("() => localStorage.getItem('theme')") == "light", (
+            "the stale stored selection was left in place, so it would be "
+            "restored again on the next load"
         )

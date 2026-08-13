@@ -71,7 +71,7 @@ class TestStylingDocs:
     def test_entry_css_imports_packaged_preset(self):
         """The package's own Tailwind entry uses the same preset shipped to consumers."""
         entry = (BASE_DIR / "assets" / "tailwind.css").read_text(encoding="utf-8")
-        assert '@plugin "daisyui";' in entry, (
+        assert '@plugin "daisyui"' in entry, (
             "assets/tailwind.css must load the daisyui plugin — its removal once "
             "shipped a stylesheet with no DaisyUI classes at all."
         )
@@ -153,21 +153,111 @@ class TestShippedStylesheetShipsCompleteDaisyUI:
             "component coverage regressed (#190)."
         )
 
-    @pytest.mark.parametrize(
-        "theme",
-        ["dracula", "synthwave", "cyberpunk", "retro", "valentine"],
-    )
-    def test_named_themes_are_not_shipped(self, theme):
-        """Shipping every component must not pull in daisyUI's ~30 named themes.
 
-        Only the default light/dark themes ship — daisyUI's own default when
-        `@plugin "daisyui"` carries no `themes` option, unrelated to and
-        unaffected by the component/utility @source additions this guards.
+# ---------------------------------------------------------------------------
+# The shipped stylesheet carries every prebuilt daisyUI theme (FS-026)
+# ---------------------------------------------------------------------------
+
+# node_modules is gitignored and the Python CI job never runs npm ci, so the
+# discovery below must skip explicitly rather than fail when the front-end
+# toolchain isn't installed — the same convention used elsewhere in this file
+# for build-artifact checks.
+_DAISYUI_THEME_DIR = BASE_DIR / "node_modules" / "daisyui" / "theme"
+_DAISYUI_THEME_NAMES = (
+    sorted(p.stem for p in _DAISYUI_THEME_DIR.glob("*.css"))
+    if _DAISYUI_THEME_DIR.is_dir()
+    else []
+)
+
+
+class TestShippedStylesheetShipsEveryPrebuiltTheme:
+    """Every theme the pinned daisyUI version publishes ships in the built
+    stylesheet, and the pre-existing default/dark-mode behaviour survives
+    enabling them (FS-026).
+
+    This is the deliberate inverse of the guard #190 added, which asserted
+    named themes were *absent* — right when shipping only light/dark was the
+    goal. #190's own reasoning (shipping every component regardless of what
+    mvp's templates use) is untouched above; only the themes guard flips,
+    because this feature makes shipping every prebuilt theme the point. See
+    decisions.md D1 in specs/026-ship-prebuilt-daisyui for the record of why.
+    """
+
+    STYLESHEET = BASE_DIR / "mvp" / "static" / "css" / "django-mvp.css"
+
+    def test_daisyui_theme_source_is_discoverable(self):
+        """Guards the discovery mechanism itself, before it parametrizes the
+        next test. Skips explicitly when node_modules/daisyui/theme is
+        absent. When present, the glob must be non-empty: an empty list
+        handed to parametrize produces pytest's empty-parameter-set skip,
+        which reports green while asserting nothing."""
+        if not _DAISYUI_THEME_DIR.is_dir():
+            pytest.skip(
+                "node_modules/daisyui/theme not installed — front-end "
+                "toolchain not present in this environment"
+            )
+        assert _DAISYUI_THEME_NAMES, (
+            "node_modules/daisyui/theme is present but no theme *.css files "
+            "were discovered under it"
+        )
+
+    @pytest.mark.skipif(
+        not _DAISYUI_THEME_DIR.is_dir(),
+        reason="node_modules/daisyui/theme not installed",
+    )
+    @pytest.mark.parametrize("theme", _DAISYUI_THEME_NAMES)
+    def test_every_daisyui_theme_ships(self, theme):
+        """Every theme daisyUI publishes has a [data-theme=<name>] block in
+        the shipped stylesheet (FR-001), so a project can select any of them
+        by name alone with no build step of its own."""
+        content = self.STYLESHEET.read_text(encoding="utf-8")
+        assert f"[data-theme={theme}]" in content, (
+            f"[data-theme={theme}] is missing from the shipped stylesheet — "
+            "every daisyUI theme must ship (FR-001, FR-006)."
+        )
+
+    # The five names #190's guard listed when it asserted the opposite. Kept as
+    # the unconditional arm because the completeness test above is skipped in
+    # CI, where node_modules is absent — without this, reverting `themes: all`
+    # would leave the suite green while shipping none of them (FR-001).
+    REPRESENTATIVE_THEMES = ("dracula", "synthwave", "cyberpunk", "retro", "valentine")
+
+    @pytest.mark.parametrize("theme", REPRESENTATIVE_THEMES)
+    def test_representative_named_themes_ship(self, theme):
+        """A named theme ships, asserted without needing node_modules.
+
+        The completeness test above is the real guard, but it can only run
+        where the front-end toolchain is installed. This one reads the
+        committed stylesheet alone, so FR-001 keeps a check in CI rather than
+        resting entirely on a case that is skipped there.
         """
         content = self.STYLESHEET.read_text(encoding="utf-8")
-        assert f"[data-theme={theme}]" not in content, (
-            f"[data-theme={theme}] found in the shipped stylesheet — issue #190 "
-            "asked for complete components while explicitly excluding themes."
+        assert f"[data-theme={theme}]" in content, (
+            f"[data-theme={theme}] is missing from the shipped stylesheet — "
+            "the prebuilt themes must ship inside the package (FR-001)."
+        )
+
+    def test_default_theme_still_bound_through_where_root(self):
+        """The default theme stays bound through the zero-specificity
+        :where(:root) arm, so a data-theme value matching nothing falls
+        through to it instead of rendering unstyled (FR-014, SC-008). Reads
+        only the committed stylesheet and stays unconditional — this is what
+        proves FR-006 in CI, where the completeness case above is skipped."""
+        content = self.STYLESHEET.read_text(encoding="utf-8")
+        assert ":where(:root)" in content, (
+            "the :where(:root) fall-through binding for the default theme "
+            "is missing from the shipped stylesheet"
+        )
+
+    def test_prefers_color_scheme_dark_block_still_emitted(self):
+        """The pre-existing @media (prefers-color-scheme: dark) block still
+        ships, so enabling every theme does not disturb dark-mode behaviour
+        (FR-006). Reads only the committed stylesheet and stays
+        unconditional, for the same reason as the test above."""
+        content = self.STYLESHEET.read_text(encoding="utf-8")
+        assert "@media (prefers-color-scheme:dark)" in content, (
+            "the @media (prefers-color-scheme: dark) block is missing from "
+            "the shipped stylesheet"
         )
 
 
@@ -305,3 +395,104 @@ class TestFormsetComponentDocPage:
 
 
 # ---------------------------------------------------------------------------
+# docs/theming.md's variable table stays honest against the installed daisyUI
+# version (FS-026 US-3, SC-007)
+# ---------------------------------------------------------------------------
+
+_CUSTOM_PROPERTY_RE = re.compile(r"--[a-zA-Z0-9-]+")
+
+
+def _extract_custom_properties(css: str) -> set[str]:
+    return set(_CUSTOM_PROPERTY_RE.findall(css))
+
+
+# SC-003: the compressed stylesheet a project downloads may grow by at most
+# 8 KB against the release this feature started from.
+V0_18_0_COMPRESSED_BYTES = 41670
+SC003_GROWTH_BUDGET_BYTES = 8192
+
+
+class TestThemingDocVariableCoverage:
+    """Every custom property a shipped theme defines appears in
+    docs/theming.md's variable table (FR-015, SC-007), checked mechanically
+    rather than by hand.
+
+    The ground truth is the *committed stylesheet*, not node_modules. Reading
+    the installed daisyUI would be equivalent — the two property sets match
+    exactly — but node_modules is gitignored and the Python CI job never runs
+    `npm ci`, so that version of this check skips in the one environment where
+    it has to hold. Reading the artifact keeps SC-007 asserted everywhere, and
+    checks what actually ships rather than what happens to be installed.
+    """
+
+    THEMING_DOC = BASE_DIR / "docs" / "theming.md"
+    STYLESHEET = BASE_DIR / "mvp" / "static" / "css" / "django-mvp.css"
+
+    def _shipped_default_theme_block(self):
+        """The :where(:root) default-theme block from the built stylesheet."""
+        content = self.STYLESHEET.read_text(encoding="utf-8")
+        start = content.find(":where(:root)")
+        assert start != -1, (
+            "the :where(:root) default-theme binding is missing from the "
+            "shipped stylesheet, so there is no theme block to read"
+        )
+        return content[start : content.index("}", start)]
+
+    def _documented_variable_table(self):
+        """Rows of the variable table, not the whole page.
+
+        Scoping matters: the worked example further down sets every property
+        too, so a check for the name appearing *anywhere* in the file passes
+        with the table deleted outright. FR-015 asks for a table that says
+        what each variable controls, so that is what gets checked.
+        """
+        rows = [
+            line
+            for line in self.THEMING_DOC.read_text(encoding="utf-8").splitlines()
+            if line.startswith("| `")
+        ]
+        assert rows, "no variable table rows found in docs/theming.md"
+        return rows
+
+    def test_every_shipped_custom_property_is_in_the_variable_table(self):
+        properties = _extract_custom_properties(self._shipped_default_theme_block())
+        assert properties, (
+            "no --custom-property names were extracted from the shipped "
+            "stylesheet's default theme block — the extraction pattern "
+            "itself may be broken, not the documentation"
+        )
+
+        rows = self._documented_variable_table()
+        missing = sorted(
+            prop for prop in properties if not any(f"`{prop}`" in r for r in rows)
+        )
+        assert not missing, (
+            "docs/theming.md's variable table is missing these theme "
+            f"variables: {missing}"
+        )
+
+    def test_each_documented_variable_says_what_it_controls(self):
+        """A row naming a variable with an empty description satisfies the
+        coverage check above while telling a reader nothing (FR-015)."""
+        for row in self._documented_variable_table():
+            cells = [c.strip() for c in row.strip("|").split("|")]
+            assert len(cells) >= 2 and cells[1], (
+                f"this variable table row has no description: {row}"
+            )
+
+    def test_the_compressed_stylesheet_stays_within_its_budget(self):
+        """SC-003: the payload a project downloads may grow by at most 8 KB.
+
+        Measured at 41,670 bytes before this feature and 46,532 after. The
+        bound exists to catch a later change that adds rules rather than
+        variables, so it is asserted rather than left as a one-off
+        measurement in a decision record.
+        """
+        compressed = BASE_DIR / "mvp" / "static" / "css" / "django-mvp.css.br"
+        size = compressed.stat().st_size
+
+        assert size <= V0_18_0_COMPRESSED_BYTES + SC003_GROWTH_BUDGET_BYTES, (
+            f"the compressed stylesheet is {size} bytes, more than "
+            f"{SC003_GROWTH_BUDGET_BYTES} above the {V0_18_0_COMPRESSED_BYTES}"
+            " byte baseline this feature started from (SC-003)"
+        )

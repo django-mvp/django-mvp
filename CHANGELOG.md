@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Every prebuilt daisyUI theme now ships with the package.** Previously only the
+  default light and dark pair were built into `mvp/static/css/django-mvp.css`. The
+  remaining ~30 (`dracula`, `synthwave`, ...) now ship too, adding about 5 KB compressed.
+  Set `MVP_CONFIG["theme"]["default"]` to any of them and it applies with no build step
+  and nothing fetched from outside your project. `MVP_CONFIG["theme"]` is new public API:
+  `default` (the applied theme, `"light"` unless set) and `choices` (the themes
+  `<c-actions.theme-controller />` offers, `[]` unless set, and an empty list keeps
+  today's light/dark toggle). A project can also write its own theme as a plain CSS
+  file, which overrides a shipped theme of the same name regardless of stylesheet load
+  order. See
+  [Theming](https://github.com/django-mvp/django-mvp/blob/main/docs/theming.md) for the
+  full variable reference and a worked example.
+- **Default behaviour is unchanged.** A project that sets no `theme` configuration sees
+  the same applied theme and the same switcher behaviour as before this release.
+
 ## [v0.18.0] - 2026-08-13
 
 ### Added
