@@ -6,7 +6,10 @@
       (function() {
         try {
           var configuredDefault = "{{ mvp_config.theme.default|escapejs }}";
-          var theme = localStorage.getItem('theme') || configuredDefault;
+          var offeredThemes = [{% for choice in mvp_config.theme.choices %}"{{ choice|escapejs }}"{% if not forloop.last %}, {% endif %}{% endfor %}];
+          var stored = localStorage.getItem('theme');
+          var storedIsOffered = offeredThemes.length === 0 || offeredThemes.indexOf(stored) !== -1;
+          var theme = (stored && storedIsOffered) ? stored : configuredDefault;
           document.documentElement.setAttribute('data-theme', theme);
         } catch (e) {}
       })();

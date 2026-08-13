@@ -225,3 +225,65 @@ class TestUnmatchedThemeNameFallsThrough:
             "the :where(:root) fall-through binding for the default theme "
             "is missing from the shipped stylesheet"
         )
+
+
+class TestPrePaintThemeGuardMembership:
+    """FR-010: once a project declares ``theme.choices``, a stored selection
+    that has fallen outside that set must not be honoured — the guard falls
+    back to ``theme.default`` instead. A stored value still inside the set
+    is honoured, and with ``theme.choices`` empty any stored value is
+    honoured, unchanged from v0.18.0 (already covered by
+    ``TestPrePaintThemeGuardDefault``).
+
+    This is *not* the validation decisions.md D5 rejected: D5 is about a
+    name the package was never given (``theme.default`` against a project's
+    own, unreadable stylesheet). Here the offered set is a list the project
+    itself declared in ``MVP_CONFIG``, so the package genuinely knows it.
+
+    Per the module docstring, the Django test client cannot exercise real
+    browser ``localStorage``, so — as for every other guard test in this
+    file — what's checked is the emitted script's source: the offered set
+    it must consult, and that it performs a membership check against the
+    stored value rather than an unconditional fall-through (decisions.md
+    D12 records why source inspection, not a JS runtime, is the seam used
+    here too)."""
+
+    CHOICES = ["dracula", "synthwave"]
+
+    @pytest.mark.django_db
+    def test_offered_set_reaches_the_guard_for_the_membership_check(
+        self, client, monkeypatch
+    ):
+        monkeypatch.setitem(MVP_CONFIG["theme"], "choices", self.CHOICES)
+        script = _guard_script(client.get("/").content.decode())
+        assert script is not None
+        for name in self.CHOICES:
+            assert f'"{name}"' in script, (
+                f"{name} must appear in the guard's offered-set array"
+            )
+
+    @pytest.mark.django_db
+    def test_guard_checks_stored_value_membership_before_honouring_it(
+        self, client, monkeypatch
+    ):
+        """A stored value is only honoured when it is inside the offered
+        set — the guard's expression must consult membership, not just
+        presence, once a set is configured."""
+        monkeypatch.setitem(MVP_CONFIG["theme"], "choices", self.CHOICES)
+        script = _guard_script(client.get("/").content.decode())
+        assert script is not None
+        has_membership_check = "indexOf(stored)" in script or "includes(stored)" in script
+        assert has_membership_check, (
+            "the guard must check the stored value's membership in the offered set"
+        )
+
+    @pytest.mark.django_db
+    def test_empty_offered_set_keeps_the_v0_18_0_short_circuit(self, client):
+        """With nothing configured (the package default), the emitted
+        offered-set array is empty — the membership check's own logic must
+        make that equivalent to 'any stored value is honoured' (SC-006),
+        not silently reject every stored value."""
+        assert MVP_CONFIG["theme"]["choices"] == []
+        script = _guard_script(client.get("/").content.decode())
+        assert script is not None
+        assert "[]" in script, "the empty offered set must reach the guard"

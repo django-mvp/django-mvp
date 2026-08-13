@@ -136,3 +136,29 @@ tests/test_components/test_theme_controller.py` → all hooks passed/skipped, no
 Next: T007 — the pre-paint guard's membership check.
 Watch: T007 depends on T006 only for the offered set already existing in `MVP_CONFIG` (it does,
 since US1) — no coupling to this task's template change.
+
+## 2026-08-13T00:35Z · Implementer US2 · T007
+
+Did: Added `TestPrePaintThemeGuardMembership` to `tests/test_components/test_theme_controller.py`
+(3 tests: offered set reaches the guard, guard checks stored-value membership before honouring it,
+empty offered set keeps the array present so the length-check short-circuit still applies) and
+confirmed RED against the unmodified `mvp/base.html` guard. Changed the guard: emits
+`mvp_config.theme.choices` as an inline array of individually `escapejs`-escaped string literals
+(`offeredThemes`), reads the stored value once, and only honours it when
+`offeredThemes.length === 0 || offeredThemes.indexOf(stored) !== -1` — with `choices` empty this
+reduces to the v0.18.0 `stored || default` expression exactly, so `TestPrePaintThemeGuardDefault`
+(US1, not touched) stays green unmodified. Recorded decisions.md D12: why the offered set is an
+inline escaped array rather than `json_script`, and why T007's tests stay at the source-inspection
+seam T004 already established in this file rather than shelling out to a JS runtime.
+Verified: `poetry run pytest -q tests/test_components/test_theme_controller.py::TestPrePaintThemeGuardMembership`
+→ 3 failed (before the base.html change, RED for the right reason — no `offeredThemes`/membership
+check in the emitted script). After the change: `poetry run pytest -q
+tests/test_components/test_theme_controller.py` → 15 passed. Also ran `poetry run pytest -q
+tests/test_components/test_layout_config.py tests/test_smoke.py` → 110 passed, no regression.
+`poetry run pre-commit run --files mvp/templates/mvp/base.html
+tests/test_components/test_theme_controller.py` → all hooks passed/skipped, no findings.
+Next: US2 (T006, T007) complete. Full-suite verify runs once, at the completion report. T016 is
+out of this dispatch (depends on T013, US3, not built).
+Watch: T016, when dispatched, needs a `[data-set-theme]` entry to click against — this task's
+dropdown markup provides it once `theme.choices` is configured in whatever fixture/settings T016
+uses.

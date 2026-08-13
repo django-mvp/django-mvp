@@ -210,3 +210,33 @@ green again.
 The general shape, which is not about themes: **a skip changes which assertions remain, and the
 remainder has to be checked on its own terms.** Reviewing the skip's correctness is not the same as
 reviewing what is left running, and here the two answers differed.
+
+## D12 — T007's offered set stays an inline escaped array; its tests stay source-level (2026-08-13)
+
+**The offered set reaches the guard as an inline JS array of individually escaped literals, not
+`json_script`.** `mvp/base.html`'s guard already emits `theme.default` as `"{{ ... |escapejs }}"`,
+a double-quoted JS string literal built the same way. `theme.choices` is a list, so the same
+technique applied per element — `[{% for choice in ... %}"{{ choice|escapejs }}"...{% endfor %}]`
+— keeps both values escaped by the identical mechanism, in the same script block, with no second
+element or `id` added to the page. `json_script` was the alternative: safer for arbitrary nested
+data, but it buys nothing here (every element is a short plain string, already safe under
+`escapejs`) at the cost of a second DOM node purely for guard bookkeeping, plus a JS parse step to
+read it back. Not used.
+
+**T007's new tests assert against the guard's emitted script source, exercising neither a real
+browser nor a JS runtime.** This is not a new choice for this file — `TestPrePaintThemeGuardPosition`,
+`TestPrePaintThemeGuardDefault` and `TestPrePaintThemeGuardEscaping` (T004) already established this
+seam, and the module docstring names why: the Django test client has no real `localStorage`, so the
+guard's actual contract, as tested here, is its source. T007 continues that pattern rather than
+introducing a second one (e.g. shelling out to the `node` binary already present for the frontend
+build, which is available but would exercise this one file differently from every other guard test
+in the same suite for no proportionate gain). The membership tests therefore check that the offered
+set reaches the script, and that a real membership expression (`indexOf`/`includes` against the
+stored value) is present, rather than exercising `localStorage` end to end — that end-to-end case
+is what T016 exists for, out of this dispatch's scope, using the browser harness that already has a
+documented failure mode for scripts bound on `DOMContentLoaded`.
+
+**Revisit if**: a future story needs to assert genuine runtime behaviour of `mvp/base.html`'s guard
+beyond what T016's `@requires_browser` test already covers — at that point the source-level tests in
+this file stop being sufficient evidence and the file's own established convention should be
+revisited, not worked around task by task.
