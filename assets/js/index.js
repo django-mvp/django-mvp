@@ -18,7 +18,6 @@
 
 import Alpine from "alpinejs";
 import persist from "@alpinejs/persist";
-import sort from "@alpinejs/sort";
 import htmx from "htmx.org";
 import { themeChange } from "theme-change";
 
@@ -34,8 +33,12 @@ themeChange();
 
 // Plugins register before start(), which is why the CDN tags this replaces had
 // to be ordered with the plugins ahead of core.
+//
+// Only persist is here. The CDN tags also loaded @alpinejs/sort, which nothing
+// in the package uses; it bundles SortableJS and cost a quarter of the built
+// output. A project that wants x-sort adds the plugin from its own base
+// template, and bringing it back here is two lines and a rebuild.
 Alpine.plugin(persist);
-Alpine.plugin(sort);
 
 // mvp/static/js/formset.js reaches for the global, as does any x-data in a
 // consuming project's own templates.

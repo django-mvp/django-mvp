@@ -1,10 +1,10 @@
 """The shipped front-end runtime boots, in a real browser, from local files.
 
-``tests/test_templates.py`` proves no shipped template *contains* a remote
-``<script>``. That is a source check, and a source check cannot tell whether
-the bundle it points at actually works — a bundle that fails to parse, or that
-forgets to register a plugin, leaves the templates looking correct and every
-Alpine component dead.
+``tests/test_frontend_runtime.py`` proves no shipped template *contains* a
+remote ``<script>``. That is a source check, and a source check cannot tell
+whether the bundle it points at actually works. A bundle that fails to parse,
+or that forgets to register a plugin, leaves the templates looking correct and
+every Alpine component dead.
 
 These tests load real demo pages and assert three things the source cannot:
 the libraries are present and started, nothing executable is fetched from a
@@ -68,12 +68,6 @@ class TestBundledRuntimeBoots:
             "before Alpine.start()"
         )
 
-    # The sort plugin registers only a directive, and Alpine exposes no way to
-    # enumerate those — binding `x-sort` to an element behaves identically
-    # whether or not the plugin loaded, so there is nothing to assert here that
-    # would fail if it were dropped. It is covered instead by the bundle
-    # composition test in tests/test_templates.py, which does fail when the
-    # plugin is removed from the entry point.
 
 
 class TestNothingExecutableComesFromAThirdParty:

@@ -91,7 +91,6 @@ class TestShippedFrontEndRuntime:
     LIBRARY_MARKERS = {
         "alpinejs": "alpine:init",
         "@alpinejs/persist": "$persist",
-        "@alpinejs/sort": "sortable",
         "htmx.org": "htmx",
         "theme-change": "data-toggle-theme",
     }
@@ -100,10 +99,10 @@ class TestShippedFrontEndRuntime:
     def test_every_declared_library_reaches_the_bundle(self, package, marker):
         """Each library in assets/js/index.js is actually in the output.
 
-        The sort plugin is why this test exists. Nothing in the package uses
-        ``x-sort`` and Alpine offers no way to detect a registered directive at
-        run time, so dropping it from the entry point would break consuming
-        projects that use it while every other test stayed green.
+        A library can vanish from the bundle without any other test noticing:
+        theme-change and persist only fail at the point a control or a
+        component reaches for them, and a stale committed artifact looks
+        identical to a fresh one. This is what catches both.
         """
         assert marker in self.BUNDLE.read_text(), (
             f"{package} is missing from the built bundle (no {marker!r}) — "

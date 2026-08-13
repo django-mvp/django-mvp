@@ -9,8 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **The front-end runtime ships with the package.** Alpine, its persist and sort plugins,
-  and theme-change were previously fetched from a public CDN on every page, three of them
+- **The front-end runtime ships with the package.** Alpine, its persist plugin and
+  theme-change were previously fetched from a public CDN on every page, three of them
   on a floating `3.x.x` tag that allowed the bytes to change without anything changing
   here. They are now bundled into `mvp/static/js/django-mvp.js`, a committed build
   artifact, and loaded from your own static files. Nothing executable is fetched from a
@@ -34,6 +34,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- **The Alpine `sort` plugin is no longer loaded.** It came down from the CDN on every
+  page and nothing in the package has ever used it, so it was carrying SortableJS into
+  every project for a feature none of them were offered. Dropping it takes about a
+  quarter off the runtime bundle. If your own templates use `x-sort`, add the plugin from
+  your base template.
 - **BREAKING: the `parallax` and `speed` attributes on `c-section.hero`.** The parallax
   effect came from a third-party script loaded from a CDN with no version pinned at all,
   and it is the one piece of the front end that was decoration rather than behaviour the
