@@ -21,10 +21,19 @@ FR-006:
 1. Every theme the pinned daisyUI version publishes has a `[data-theme=<name>]` block in
    `mvp/static/css/django-mvp.css`. Read the list from `node_modules/daisyui/theme/*.css` rather than
    hardcoding 35 names, so a daisyUI upgrade cannot silently drop one.
+
+   `node_modules/` is gitignored and the Python CI job never runs `npm ci`, so this case must
+   **skip explicitly** when `node_modules/daisyui/theme/` is absent — the same convention T010 uses.
+   Assert the discovered list is non-empty *before* parametrising over it: an empty glob makes
+   `parametrize` produce pytest's empty-parameter-set skip, which reports green while asserting
+   nothing.
 2. The default theme is still bound through `:where(:root)` — the zero-specificity arm that makes an
    unmatched `data-theme` value fall through (FR-014, SC-008).
 3. A `@media (prefers-color-scheme: dark)` block is still emitted, so the pre-existing dark-mode
    behaviour survives the build change.
+
+Invariants 2 and 3 read only the committed stylesheet and stay **unconditional** — they are what
+prove FR-006 in CI, where invariant 1 will be skipped.
 
 Record in `decisions.md` that the guard was reversed on purpose, citing #190 as the original intent
 and this spec as the superseding one. **Do not delete the original reasoning.**
@@ -37,7 +46,8 @@ and this spec as the superseding one. **Do not delete the original reasoning.**
 
 ### T002 — Enable every prebuilt theme in the stylesheet build
 
-**Files**: `assets/tailwind.css`, `mvp/static/css/django-mvp.css`, `mvp/static/css/django-mvp.css.br`
+**Files**: `assets/tailwind.css`, `mvp/static/css/django-mvp.css`, `mvp/static/css/django-mvp.css.br`,
+`tests/test_smoke.py`
 
 Change the bare `@plugin "daisyui";` to enable all themes:
 
@@ -51,6 +61,11 @@ Change the bare `@plugin "daisyui";` to enable all themes:
 and `dark` under `@media (prefers-color-scheme: dark)` before emitting the rest, which is exactly the
 bare default's behaviour plus the remaining themes. T001's invariants are what prove that here rather
 than on trust.
+
+`tests/test_smoke.py:74` asserts the exact string `@plugin "daisyui";` against `assets/tailwind.css`
+and goes red on this edit. Relax it to `@plugin "daisyui"` without the trailing semicolon — that still
+guards the intent its own failure message states (the plugin line was once removed entirely, shipping
+a stylesheet with no daisyUI classes) while tolerating both the bare and the block form.
 
 Rebuild the committed artifacts with `invoke build-stylesheet` and commit both.
 
@@ -159,6 +174,30 @@ declared, so the package genuinely knows it. A theme name it was never given rem
 
 ---
 
+### T016 — Prove a dropdown entry actually changes the theme
+
+*Added at the design-review gate. It belongs to Phase 3 and runs last within it; the number is
+appended rather than renumbering the plan.*
+
+**Files**: `tests/test_frontend_runtime_e2e.py`
+
+`data-set-theme` is a theme-change API this package has never shipped markup for. T006 asserts the
+attribute is present in the rendered markup and the existing runtime test asserts the string is
+present in the bundle, and neither can tell whether clicking an entry does anything — the failure
+`tests/test_frontend_runtime_e2e.py:152-154` already documents for `data-toggle-theme` (theme-change
+binds on `DOMContentLoaded`, which a deferred bundle can miss) applies unchanged to the new element.
+
+Add a `@requires_browser` test beside the existing `test_the_theme_toggle_flips_the_document_theme`:
+with a configured `choices` set, clicking a `[data-set-theme]` entry changes
+`document.documentElement`'s `data-theme` to that name, and the value survives a reload.
+
+This is Article XIV's permitted case, not an exception to it: a `localStorage` write followed by a
+pre-paint read on the next load is not expressible with the Django test client.
+
+**Verifies**: SC-004, FR-009 · **Depends on**: T006, T013
+
+---
+
 ## Phase 4 — US-3: Write and apply a theme of your own (P3)
 
 Delivers issue #233. Mostly documentation, with the two contracts that keep it honest.
@@ -240,11 +279,18 @@ Reference the two sources — shipped and project-written.
 
 ### T012 — Tier 2 parity in the generated entry file
 
-**Files**: `mvp/management/commands/mvp_tailwind.py`, `tests/test_management_commands.py`
+**Files**: `mvp/management/commands/mvp_tailwind.py`,
+`tests/test_components/test_mvp_tailwind_command.py`
 
 `ENTRY_TEMPLATE` emits a bare `@plugin "daisyui";`, so a project that builds its own stylesheet gets
 only light and dark while a no-build project gets all 35. That inverts the tiering: the project doing
 more work would get less. Emit the same `themes: all` block, and assert it.
+
+The command's tests already live in `tests/test_components/test_mvp_tailwind_command.py`, whose
+`test_entry_contains_daisyui_and_preset_import` asserts the exact string `@plugin "daisyui";` at
+line 25 and goes red on this edit. Update that assertion in place. **Do not create
+`tests/test_management_commands.py`** — Article X keeps one module per source module, and a second
+module for this command is the exact mismatch that article names.
 
 **Verifies**: FR-004, FR-011, FR-013 · **Depends on**: T002
 
@@ -294,7 +340,8 @@ T001 → T002 ─┬→ T005
 T003 ─┬→ T004 ─┬→ T005
       │        └→ T007
       └→ T006 ─┬→ T007
-               └→ T013
+               ├→ T013
+               └→ T016 ←─ T013
 T008 ─┬→ T009
       ├→ T010
       └→ T013

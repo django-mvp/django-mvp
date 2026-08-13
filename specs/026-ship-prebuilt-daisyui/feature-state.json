@@ -2,13 +2,15 @@
   "feature": "026-ship-prebuilt-daisyui",
   "branch": "026-ship-prebuilt-daisyui",
   "repo": "django-mvp/django-mvp",
-  "state": "PLAN",
+  "state": "DESIGN_REVIEW",
   "state_history": [
     { "state": "INTAKE", "at": "2026-08-13T09:50:00Z", "note": "free-text request; grilled to option A plus a documentation mandate" },
     { "state": "SPECIFY", "at": "2026-08-13T11:05:00Z", "note": "spec.md, 3 stories, 21 requirements, 8 success criteria" },
     { "state": "SETUP", "at": "2026-08-13T11:40:00Z", "note": "epic #230 promoted, stories #231-233, draft PR #234" },
     { "state": "GATE_SPEC", "at": "2026-08-13T12:30:00Z", "note": "amended on the ruling against theme-name validation, then approved" },
-    { "state": "PLAN", "at": "2026-08-13T13:25:37Z", "note": "plan.md and tasks.md authored; FR-002 narrowed to the approved scope" }
+    { "state": "PLAN", "at": "2026-08-13T13:25:37Z", "note": "plan.md and tasks.md authored; FR-002 narrowed to the approved scope" },
+    { "state": "DESIGN_REVIEW", "at": "2026-08-13T13:32:00Z", "note": "one reviewer, three lenses, heavy tier; craft-skill gate green before dispatch" },
+    { "state": "DESIGN_REVIEW_REMEDIED", "at": "2026-08-13T14:05:00Z", "note": "request_changes, 3 medium findings, all verified against the repo and remedied; T016 added (decisions.md D8)" }
   ],
   "gates": {
     "spec": {
@@ -51,7 +53,8 @@
       "replans": 0,
       "tasks": [
         { "id": "T006", "status": "todo", "attempts": 0 },
-        { "id": "T007", "status": "todo", "attempts": 0 }
+        { "id": "T007", "status": "todo", "attempts": 0 },
+        { "id": "T016", "status": "todo", "attempts": 0 }
       ]
     },
     {
@@ -76,7 +79,7 @@
   "budgets": {
     "converge_cycles": { "used": 0, "max": 2 },
     "review_cycles": { "used": 0, "max": 1 },
-    "design_review_cycles": { "used": 0, "max": 1 },
+    "design_review_cycles": { "used": 1, "max": 1 },
     "tokens": { "used": 0, "max": 4000000 }
   },
   "pr": { "number": 234, "draft": true }

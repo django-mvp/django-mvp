@@ -118,3 +118,28 @@ thing a feature notices and nobody owns.
 - **The remaining third-party asset fetch.** `mvp/templates/mvp/base.html:25` loads bootstrap-icons
   from a CDN, which G14 also forbids. It is unrelated to theming and belongs in its own change,
   where the icon set's weight and the packaging question get the attention they need.
+
+## D8 — Three remedies from the design-review gate (2026-08-13)
+
+The S3R design review returned `request_changes` with three medium findings, all verified against
+the repository before being accepted as work.
+
+- **Two exact-string assertions were left orphaned.** `tests/test_smoke.py:74` and
+  `tests/test_components/test_mvp_tailwind_command.py:25` both assert the literal `@plugin "daisyui";`,
+  which T002 and T012 each invalidate, and neither task's file list owned the update. T002 now owns
+  the smoke assertion and relaxes it to the plugin name without the trailing semicolon, which still
+  guards the intent its failure message states. T012's file list pointed at
+  `tests/test_management_commands.py`, which does not exist — creating it would have split one source
+  module's tests across two modules, against Article X. Repointed to the module that already holds
+  them.
+- **The completeness guard would have passed vacuously in CI.** `node_modules/` is gitignored and the
+  Python CI job never runs `npm ci`, so T001's theme-completeness case either errors at collection or,
+  parametrised over an empty glob, reports green while asserting nothing. It now skips explicitly and
+  asserts the discovered list is non-empty before parametrising. The two invariants that read only the
+  committed stylesheet stay unconditional, because they are what prove FR-006 in CI.
+- **SC-004 was demonstrated by no task.** The plan declined a browser test on the grounds that the
+  package's contract is its emitted attributes. That reasoning does not reach `data-set-theme`, which
+  is markup this package has never shipped: an attribute theme-change never binds passes every markup
+  assertion and does nothing when clicked, which is the failure the repository's own e2e module
+  documents for the deferred bundle. T016 adds one browser test. Article XIV's row in `plan.md` was
+  corrected rather than argued around.
