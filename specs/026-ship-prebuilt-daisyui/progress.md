@@ -162,3 +162,32 @@ out of this dispatch (depends on T013, US3, not built).
 Watch: T016, when dispatched, needs a `[data-set-theme]` entry to click against — this task's
 dropdown markup provides it once `theme.choices` is configured in whatever fixture/settings T016
 uses.
+
+## 2026-08-13T14:57Z · Implementer US3 · T008
+
+Did: Wrote `docs/theming.md`, the page the package has never had. Carries, in the order
+the acceptance scenario specifies: what a theme is (a block of CSS custom properties under
+`[data-theme="<name>"]`, read at runtime); the full variable table (28 custom properties plus
+`color-scheme`, each with what it controls); the plugin-is-a-pass-through explanation
+(`@plugin "daisyui/theme"` emits exactly what it's given and computes nothing); why a
+project's own theme wins regardless of load order (unlayered beats `@layer base`); a worked
+example from an empty `static/css/theme-sunrise.css` to a rendered page (write the file, load
+it via a `styles` block override, name it in `MVP_CONFIG`, reload); what to check when a
+theme does not appear (name match, stylesheet actually loading, selector shape); and where
+theming stops (color/radius/size/border/depth/noise only, never markup — links to
+styling.md and components.md for the rest). Variable names and their groupings were read
+from `node_modules/daisyui/theme/light.css` and cross-checked against `dracula.css` (same 28
+properties in both) and against which components reference each `--radius-*`/`--size-*`
+variable (`node_modules/daisyui/components/*/object.js`), not written from memory. Ran the
+humanizer skill over the draft afterward and removed 7 em dashes, converting each to two
+sentences or a parenthetical per house style.
+Verified: no test targets this task directly (T010 is its test, next). Read the file back in
+full after edits to confirm section order matches T008's acceptance scenario and that no
+banned word (delve/leverage/seamless/robust/comprehensive/powerful) or semicolon clause-join
+appears: `grep -niE "delve|leverage|seamless|robust|comprehensive|powerful" docs/theming.md`
+→ no matches. `grep -c "—" docs/theming.md` → 0.
+Next: T009 — rewrite the theming parts of docs/styling.md and link this page from
+docs/index.md.
+Watch: T010's mechanical coverage test will extract property names from a shipped theme file
+and assert each appears in this page's table — the table above uses the exact `--kebab-case`
+spelling from the CSS, not a paraphrase, so that test should pass without rework.
