@@ -68,3 +68,22 @@ Verified: `poetry run pytest -q tests/test_config.py` → before the production 
 40 passed, no regression from the `mvp/config.py` edit.
 Next: T004 makes the pre-paint guard read `theme.default`.
 Watch: none.
+
+## 2026-08-13T00:15Z · Implementer US1 · T004
+
+Did: Added `tests/test_components/test_theme_controller.py` (new file) covering the pre-paint
+guard's position (first thing in `<head>`, before any stylesheet link — FR-005), its
+stored-value-or-default expression against `theme.default` (SC-006, FR-003), and that a configured
+value containing a quote and a closing `</script>` tag cannot break out of the script (Article V).
+Then changed `mvp/templates/mvp/base.html`'s guard from the hardcoded
+`localStorage.getItem('theme') || 'light'` to reading `mvp_config.theme.default` through
+`{{ ... |escapejs }}` embedded as a double-quoted JS string literal, rather than raw interpolation.
+Verified: `poetry run pytest -q tests/test_components/test_theme_controller.py` → before the
+production change, 2 failed (default-expression tests, red for the right reason — script still
+hardcoded `'light'`), 2 passed (position + escaping, trivially, since the config value wasn't read
+yet); after, 4 passed. Also ran
+`poetry run pytest -q tests/test_components/test_layout_config.py tests/test_smoke.py` (adjacent
+`base.html` consumers) → 105 passed, no regression.
+Next: T005 — a name matching nothing falls through, no production code.
+Watch: T007 (not mine, Phase 3/US-2) adds the `theme.choices` membership arm to this same guard —
+this task deliberately implements only the default-fallback arm FR-003/FR-005/FR-006 need.
