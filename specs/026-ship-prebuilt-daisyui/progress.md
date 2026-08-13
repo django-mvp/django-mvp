@@ -191,3 +191,27 @@ docs/index.md.
 Watch: T010's mechanical coverage test will extract property names from a shipped theme file
 and assert each appears in this page's table — the table above uses the exact `--kebab-case`
 spelling from the CSS, not a paraphrase, so that test should pass without rework.
+
+## 2026-08-13T15:05Z · Implementer US3 · T009
+
+Did: Rewrote the theming parts of `docs/styling.md` and linked `docs/theming.md`. Removed
+the "Want a named theme that isn't light or dark?" section (its entire content was a
+jsDelivr CDN `<link>`, which FR-019 forbids recommending). Corrected the Tier 1 paragraph:
+it previously said only light/dark ship and that shipping the rest "would bloat the
+stylesheet for every project" — both false since T002, and the bloat claim was never
+measured (D3 measured it at ~5 KB compressed for all 35). Also fixed "fonts" in the nearby
+"Theme changes (colors, radius, fonts)" sentence — themes never set a font variable, so this
+was a pre-existing inaccuracy in the same sentence; replaced with "borders", which the
+variable table does cover. Rewrote the `## Theming` section to point at `docs/theming.md`
+for the mechanics rather than restating a shortened, now-outdated version of them (it
+previously told Tier 2 readers to "register custom themes" through the Tailwind plugin,
+which contradicts docs/theming.md's guidance to write the CSS file directly). Added a
+`docs/index.md` row for the new page, matching the existing table's style.
+Verified: `poetry run pytest -q tests/test_smoke.py::TestStylingDocs` → 3 passed (the
+existing doc-discoverability checks — docs/styling.md still exists, still mentions
+`mvp_tailwind`, README still links it — none of which this task's edits touch). Read both
+files back in full after editing. `grep -n "bloat\|only the default light\|cdn.jsdelivr\|isn't light or dark" docs/styling.md`
+→ no matches, confirming the three claims T009 required gone are gone.
+Next: T010 — make the variable coverage in docs/theming.md mechanical with a test.
+Watch: T010's test reads `docs/theming.md` directly, so it is unaffected by this task's
+changes to styling.md/index.md.

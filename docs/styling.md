@@ -16,12 +16,8 @@ one generated file.
 
 The packaged stylesheet (`mvp/static/css/django-mvp.css`) contains the
 **complete daisyUI 5 component set** — every component, not just the ones
-django-mvp's own templates happen to use — plus the sidebar breakpoint/rail
-classes. Themes are the exception: only the default light/dark themes ship;
-the ~30 additional named themes (`dracula`, `synthwave`, ...) do not, since
-shipping every color palette by default would bloat the stylesheet for every
-project regardless of which theme it actually uses. It is loaded automatically
-by `mvp/base.html`.
+django-mvp's own templates happen to use — plus every daisyUI theme and the
+sidebar breakpoint/rail classes. It is loaded automatically by `mvp/base.html`.
 
 The contract that makes this work: **customize through component attributes and
 template overrides that reuse packaged components — not raw utility classes**.
@@ -35,26 +31,8 @@ utility class outside that list, or an arbitrary value like `w-[37px]`, you're
 in Tier 2: those were never scanned from django-mvp's own templates and don't
 exist in the prebuilt stylesheet.
 
-Theme changes (colors, radius, fonts) do **not** require Tier 2 — DaisyUI
-themes are CSS variables. See [Theming](#theming) below.
-
-### Want a named theme that isn't light or dark?
-
-Each daisyUI named theme is a block of CSS custom properties, published as a
-[standalone plain-CSS file](https://daisyui.com/docs/themes/) you can add
-without a Tailwind build:
-
-```django
-{# templates/mvp/base.html is extended by your pages; override once in your own base #}
-{% block styles %}
-  {{ block.super }}
-  <link rel="stylesheet"
-        href="https://cdn.jsdelivr.net/npm/daisyui@5/theme/dracula.css" />
-{% endblock styles %}
-```
-
-Pin the same DaisyUI major version (`daisyui@5`) as django-mvp, or self-host
-the same file from the `daisyui` npm package (`daisyui/theme/<name>.css`).
+Theme changes (colors, radius, borders) do **not** require Tier 2. See
+[Theming](#theming) below.
 
 ## Tier 2: build your own stylesheet
 
@@ -99,14 +77,14 @@ templates weren't there. Rebuilding with both `@source` lines closes the gap.
 
 ## Theming
 
-DaisyUI themes are pure CSS custom properties, so they work in both tiers.
-Set the theme on the root element (django-mvp's FOUC guard script reads
-`localStorage.theme`), and use `<c-actions.theme-controller />` — included in
-the default navbar config — to let users switch light/dark.
+DaisyUI themes are pure CSS custom properties, so they apply with no build step in
+either tier. Set the applied theme and the switcher's offered set through
+`MVP_CONFIG["theme"]`, and use `<c-actions.theme-controller />` (included in the
+default navbar config) to let visitors switch between them.
 
-In Tier 2 you can register custom themes in your entry file with DaisyUI's
-`@plugin "daisyui" { themes: ... }` syntax; see the
-[DaisyUI theme docs](https://daisyui.com/docs/themes/).
+See [Theming](theming.md) for the full variable reference, why the theme plugin
+computes nothing, why a project's own theme overrides a packaged one regardless of
+load order, and a worked example of writing one from scratch.
 
 ## For django-mvp developers
 
