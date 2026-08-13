@@ -300,4 +300,3 @@ same failure the toggle test beside it already documents, and the reason a rende
 could not have covered SC-004.
 
 **ADR:** none — how one task was executed, with no bearing on the package.
-
