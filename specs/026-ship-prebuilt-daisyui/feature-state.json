@@ -188,13 +188,39 @@
       "tasks": [
         {
           "id": "T006",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_theme_controller.py::TestThemeControllerUnconfiguredShape",
+              "tests/test_components/test_theme_controller.py::TestThemeControllerOfferedSetShape",
+              "tests/test_components/test_theme_controller.py::TestPrePaintThemeGuardMembership"
+            ],
+            "commands": [
+              "forge verify --repo . (lint/typecheck/build green; 924 passed, 1 skipped, 1 deselected)",
+              "forge tamper-check (1 flag: file appended to, no pre-existing test lines removed)",
+              "rendered-markup inspection of the configured dropdown"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T007",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_theme_controller.py::TestThemeControllerUnconfiguredShape",
+              "tests/test_components/test_theme_controller.py::TestThemeControllerOfferedSetShape",
+              "tests/test_components/test_theme_controller.py::TestPrePaintThemeGuardMembership"
+            ],
+            "commands": [
+              "forge verify --repo . (lint/typecheck/build green; 924 passed, 1 skipped, 1 deselected)",
+              "forge tamper-check (1 flag: file appended to, no pre-existing test lines removed)",
+              "rendered-markup inspection of the configured dropdown"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T016",
