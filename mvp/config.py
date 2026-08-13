@@ -29,7 +29,7 @@ MVP_CONFIG = {
         # theme block exists for: one shipped with the package, or one the
         # project loads from its own stylesheet. A name that matches nothing
         # falls through to the default theme, and is not validated — see
-        # specs/026-ship-prebuilt-daisyui/decisions.md D5.
+        # docs/adr/0011-theme-names-are-not-validated.md.
         "default": "light",
         # Themes the packaged switcher offers, in order. Empty keeps the
         # existing light/dark toggle, so an upgrading project sees no change.
