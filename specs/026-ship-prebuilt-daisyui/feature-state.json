@@ -83,33 +83,98 @@
       "priority": "P1",
       "issue": 231,
       "worktree": null,
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
           "id": "T001",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_smoke.py::TestShippedStylesheetShipsEveryPrebuiltTheme",
+              "tests/test_config.py::TestThemeConfigDefaults",
+              "tests/test_config.py::TestThemeConfigOverrideMerge",
+              "tests/test_components/test_theme_controller.py"
+            ],
+            "commands": [
+              "forge verify --repo . (lint/typecheck/build green; 916 passed, 1 skipped, 1 deselected)",
+              "forge tamper-check --base 026-ship-prebuilt-daisyui (2 flags, both triaged as authorised)"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T002",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_smoke.py::TestShippedStylesheetShipsEveryPrebuiltTheme",
+              "tests/test_config.py::TestThemeConfigDefaults",
+              "tests/test_config.py::TestThemeConfigOverrideMerge",
+              "tests/test_components/test_theme_controller.py"
+            ],
+            "commands": [
+              "forge verify --repo . (lint/typecheck/build green; 916 passed, 1 skipped, 1 deselected)",
+              "forge tamper-check --base 026-ship-prebuilt-daisyui (2 flags, both triaged as authorised)"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T003",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_smoke.py::TestShippedStylesheetShipsEveryPrebuiltTheme",
+              "tests/test_config.py::TestThemeConfigDefaults",
+              "tests/test_config.py::TestThemeConfigOverrideMerge",
+              "tests/test_components/test_theme_controller.py"
+            ],
+            "commands": [
+              "forge verify --repo . (lint/typecheck/build green; 916 passed, 1 skipped, 1 deselected)",
+              "forge tamper-check --base 026-ship-prebuilt-daisyui (2 flags, both triaged as authorised)"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T004",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_smoke.py::TestShippedStylesheetShipsEveryPrebuiltTheme",
+              "tests/test_config.py::TestThemeConfigDefaults",
+              "tests/test_config.py::TestThemeConfigOverrideMerge",
+              "tests/test_components/test_theme_controller.py"
+            ],
+            "commands": [
+              "forge verify --repo . (lint/typecheck/build green; 916 passed, 1 skipped, 1 deselected)",
+              "forge tamper-check --base 026-ship-prebuilt-daisyui (2 flags, both triaged as authorised)"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T005",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_smoke.py::TestShippedStylesheetShipsEveryPrebuiltTheme",
+              "tests/test_config.py::TestThemeConfigDefaults",
+              "tests/test_config.py::TestThemeConfigOverrideMerge",
+              "tests/test_components/test_theme_controller.py"
+            ],
+            "commands": [
+              "forge verify --repo . (lint/typecheck/build green; 916 passed, 1 skipped, 1 deselected)",
+              "forge tamper-check --base 026-ship-prebuilt-daisyui (2 flags, both triaged as authorised)"
+            ],
+            "verified_by_ci": false
+          }
         }
       ]
     },
