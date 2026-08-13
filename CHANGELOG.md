@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **The front-end runtime ships with the package.** Alpine, its persist and sort plugins,
+  and theme-change were previously fetched from a public CDN on every page, three of them
+  on a floating `3.x.x` tag that allowed the bytes to change without anything changing
+  here. They are now bundled into `mvp/static/js/django-mvp.js`, a committed build
+  artifact, and loaded from your own static files. Nothing executable is fetched from a
+  third party at page load, so your pages no longer depend on a CDN staying up or the
+  packages behind it staying honest. Installing still needs no Node toolchain.
+- **htmx is now included in that bundle.** The package shipped `HtmxMixin` and
+  `HtmxFormMixin` and documented htmx support, but never loaded htmx itself — a project
+  using the form mixin had to add its own script tag. It is now part of the runtime and
+  available on every page.
 - **A default `base.html`.** The packaged view templates extend `base.html`, a name a
   project owns. A project that had not written one could not render `page_view.html` or
   anything under it, and neither could a reusable app, which has no way to write a
@@ -20,6 +31,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   packaged template, alongside the existing rule that `mvp` belongs above
   `crispy_tailwind`. The README's inline comment named `crispy_forms` as the app that
   must follow `mvp`; the template it refers to is crispy-tailwind's.
+
+### Removed
+
+- **BREAKING: the `parallax` and `speed` attributes on `c-section.hero`.** The parallax
+  effect came from a third-party script loaded from a CDN with no version pinned at all,
+  and it is the one piece of the front end that was decoration rather than behaviour the
+  components depend on. The script is gone and both attributes go with it. `bg-image` and
+  `height` were applied by that same script and are now applied directly by the component,
+  so a hero keeps its background image and its height — it just no longer scrolls at a
+  different rate to the page.
 
 ### Changed
 

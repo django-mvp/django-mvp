@@ -5,12 +5,21 @@
     "watch:css": "tailwindcss -i assets/tailwind.css -o mvp/static/css/django-mvp.css --watch",
     "build:demo": "tailwindcss -i assets/demo.css -o demo/static/css/demo.css",
     "build:demo:prod": "tailwindcss -i assets/demo.css -o demo/static/css/demo.css --minify",
-    "watch:demo": "tailwindcss -i assets/demo.css -o demo/static/css/demo.css --watch"
+    "watch:demo": "tailwindcss -i assets/demo.css -o demo/static/css/demo.css --watch",
+    "build:js": "esbuild assets/js/index.js --bundle --format=iife --target=es2020 --outfile=mvp/static/js/django-mvp.js",
+    "build:js:prod": "esbuild assets/js/index.js --bundle --format=iife --target=es2020 --minify --outfile=mvp/static/js/django-mvp.js",
+    "watch:js": "esbuild assets/js/index.js --bundle --format=iife --target=es2020 --outfile=mvp/static/js/django-mvp.js --watch"
   },
   "devDependencies": {
+    "@alpinejs/persist": "3.16.1",
+    "@alpinejs/sort": "3.16.1",
     "@tailwindcss/cli": "4.3.2",
     "@tailwindcss/typography": "0.5.20",
+    "alpinejs": "3.16.1",
     "daisyui": "5.6.18",
-    "tailwindcss": "4.3.2"
+    "esbuild": "0.28.2",
+    "htmx.org": "2.0.10",
+    "tailwindcss": "4.3.2",
+    "theme-change": "2.0.2"
   }
 }

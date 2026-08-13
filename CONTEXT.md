@@ -147,7 +147,7 @@ The basic building blocks of a page. Sections are **not** full-page layouts — 
 ```
 c-section
 
-c-section.hero          — full-width hero banner with background image, parallax support, and centered text layout
+c-section.hero          — full-width hero banner with background image and centered text layout
 
 ```
 

@@ -10,7 +10,6 @@
         } catch (e) {}
       })();
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/theme-change@2.0.2/index.js"></script>
     {% block head %}
       <meta charset="UTF-8" />
       <meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -31,12 +30,14 @@
         <link rel="stylesheet"
               href="{% static 'css/django-mvp.css' %}" />
       {% endblock styles %}
-      <script defer
-              src="https://cdn.jsdelivr.net/npm/@alpinejs/persist@3.x.x/dist/cdn.min.js"></script>
-      <script defer
-              src="https://cdn.jsdelivr.net/npm/@alpinejs/sort@3.x.x/dist/cdn.min.js"></script>
-      <script defer
-              src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+      {% comment %}
+        The front-end runtime the components are written against: Alpine with
+        its persist and sort plugins, htmx, and theme-change. Bundled and
+        shipped with the package rather than fetched at page load, so the UI
+        does not depend on a third party staying up. Add your own Alpine
+        plugins or htmx extensions by extending `head` in your base template.
+      {% endcomment %}
+      <script defer src="{% static 'js/django-mvp.js' %}"></script>
       {% comment %} temp fix for conditional hide based on theme {% endcomment %}
       <style>
         [data-theme="light"] .hide-on-light-theme {

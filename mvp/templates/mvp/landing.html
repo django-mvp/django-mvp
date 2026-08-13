@@ -1,14 +1,4 @@
 {% extends "page_view.html" %}
-{% load static mvp %}
-{% block head %}
-  {{ block.super }}
-  <link rel="stylesheet"
-        href="https://cdn.jsdelivr.net/npm/parallaxx-js/dist/parallax.css" />
-{% endblock head %}
-{% block extra_js %}
-  {{ block.super }}
-  <script src="https://cdn.jsdelivr.net/npm/parallaxx-js/dist/parallax.js"></script>
-{% endblock extra_js %}
 {% block content %}
   <c-page class="{{ page.class }}">
     <div class="mvp-header">

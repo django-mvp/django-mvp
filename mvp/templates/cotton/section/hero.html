@@ -1,15 +1,17 @@
-<c-vars parallax
-        speed="0.5"
-        bg-image=""
+<c-vars bg-image=""
         title
         subtitle
         actions
         opacity="0.5"
         height />
-<div class="mvp-hero {% if parallax %}parallax{% endif %} {{ class }}"
-     data-speed="{{ speed }}"
-     data-height="{{ height }}"
-     data-image="{{ bg_image }}">
+{% comment %}
+  `bg_image` and `height` used to be written out as data-attributes and applied
+  by a third-party parallax script loaded from a CDN. That script is gone, so
+  they are applied directly here. The `parallax` and `speed` attributes went
+  with it — see the CHANGELOG.
+{% endcomment %}
+<div class="mvp-hero {{ class }}"
+     {% if bg_image or height %}style="{% if bg_image %}background-image: url('{{ bg_image }}'); background-size: cover; background-position: center;{% endif %}{% if height %}min-height: {{ height }};{% endif %}"{% endif %}>
   {% if opacity %}<c-backdrop opacity="{{ opacity }}" />{% endif %}
   <div class="flex flex-col">
     {{ top }}
