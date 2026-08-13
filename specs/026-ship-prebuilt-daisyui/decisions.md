@@ -338,3 +338,29 @@ the corresponding test fail, and restoring it makes the test pass.
 
 **ADR:** none — remedies to findings against this feature's own code, each already carried by the
 test that guards it.
+
+## D16 — The changelog assertion was deleted, not repaired (2026-08-13)
+
+`test_changelog_unreleased_section_records_the_removal_as_breaking` failed on `main` and blocked
+every pull request in the repository, including this one.
+
+It was not a check on the changelog process. It was a one-time migration guard from the v0.18.0
+formset work, asserting that removing nine `inline_*` view attributes was announced as breaking and
+mapped each name to its replacement. The announcement was made, correctly and completely, and is in
+the `## [v0.18.0]` section today. The test read only `## [Unreleased]`, which was where that content
+sat while the work was unreleased and is not where it lives once a release ships.
+
+So the test was a one-time event pinned to a rotating location, and it was guaranteed to fail at the
+first release after it was written. No other repository in the family has any test that reads
+`CHANGELOG.md`.
+
+Repairing it to read the whole file was possible. The maintainer's call was to delete it instead,
+and that is the better answer: the thing it guarded is a historical record that nothing can now
+regress, and a test that reads prose to confirm prose was written buys less than it costs to keep
+correct.
+
+What stays is its sibling, `test_no_live_file_mentions_a_removed_identifier`, which asserts no
+*live* guidance still describes the removed attributes as supported. That one guards a real
+regression — documentation drifting back out of step with the code — and it reads no changelog.
+
+**ADR:** none — removing a stale test in another feature's area, with no bearing on the package.
