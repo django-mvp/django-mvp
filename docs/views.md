@@ -214,6 +214,14 @@ re-render only the form partial, successful ones return an `HX-Redirect` or a
 success partial, and server-triggered events go out via `HX-Trigger`. The views degrade
 gracefully when the request isn't from htmx.
 
+The htmx library itself ships with django-mvp, in the bundled front-end runtime, so you
+do not add a script tag for it. It runs on every page, which means `hx-*` attributes are
+live anywhere in your markup. If a page of yours renders HTML you did not author, such as
+user-submitted rich text, sanitize it as you already would, and be aware that `hx-*`
+attributes are now among the things worth stripping. htmx's own defaults
+apply unchanged, including `selfRequestsOnly`, which keeps htmx requests on your own
+origin.
+
 ## Error handlers
 
 ```python

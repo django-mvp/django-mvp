@@ -189,14 +189,13 @@ Two committed build outputs ship inside the package so that consumers need no bu
 Both are rebuilt and committed on the branch that changes their inputs.
 
 **Nothing executable is fetched from a third party at page load.** The runtime the components are
-written against — Alpine with its persist and sort plugins, htmx, and theme-change — is bundled
-into the JavaScript artifact rather than pulled from a CDN, so a project's front end does not
-depend on an external origin staying available or staying honest. The bundle is not configurable:
-these libraries are what the shipped markup requires, and a project extends it from its own base
-template rather than replacing it.
+written against is bundled into the JavaScript artifact rather than pulled from a CDN: Alpine with
+its persist and sort plugins, htmx, and theme-change. A project's front end therefore has no
+external origin to depend on. The bundle is not configurable. These libraries are what the shipped
+markup requires, and a project extends it from its own base template rather than replacing it.
 
-The two artifacts differ in how far a machine can police them, and the difference is worth stating
-because it decides what CI can be asked to prove:
+The two artifacts differ in how far a machine can police them, which decides what CI can be asked
+to prove:
 
 - The **stylesheet** build is non-deterministic. An identical toolchain produces different bytes on
   consecutive runs, so no byte comparison is possible. The `Stylesheet` workflow proves only that

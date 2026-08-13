@@ -287,5 +287,5 @@ MIT License — see [LICENSE](https://github.com/django-mvp/django-mvp/blob/main
 
 Built with [django-cotton](https://github.com/wrabit/django-cotton) by @wrabit,
 [DaisyUI](https://daisyui.com/), [Tailwind CSS](https://tailwindcss.com/),
-[Alpine.js](https://alpinejs.dev/) and
+[Alpine.js](https://alpinejs.dev/), [htmx](https://htmx.org/) and
 [Bootstrap Icons](https://icons.getbootstrap.com/).

@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   third party at page load, so your pages no longer depend on a CDN staying up or the
   packages behind it staying honest. Installing still needs no Node toolchain.
 - **htmx is now included in that bundle.** The package shipped `HtmxMixin` and
-  `HtmxFormMixin` and documented htmx support, but never loaded htmx itself — a project
+  `HtmxFormMixin` and documented htmx support, but never loaded htmx itself, so a project
   using the form mixin had to add its own script tag. It is now part of the runtime and
   available on every page.
 - **A default `base.html`.** The packaged view templates extend `base.html`, a name a
@@ -39,7 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and it is the one piece of the front end that was decoration rather than behaviour the
   components depend on. The script is gone and both attributes go with it. `bg-image` and
   `height` were applied by that same script and are now applied directly by the component,
-  so a hero keeps its background image and its height — it just no longer scrolls at a
+  so a hero keeps its background image and its height. It just no longer scrolls at a
   different rate to the page.
 
 ### Changed
