@@ -143,3 +143,24 @@ the repository before being accepted as work.
   assertion and does nothing when clicked, which is the failure the repository's own e2e module
   documents for the deferred bundle. T016 adds one browser test. Article XIV's row in `plan.md` was
   corrected rather than argued around.
+
+## D9 — T001 reverses the #190 named-theme exclusion guard on purpose
+
+`tests/test_smoke.py`'s `TestShippedStylesheetShipsCompleteDaisyUI` carried
+`test_named_themes_are_not_shipped`, asserting `[data-theme=<name>]` was *absent* for a handful of
+named themes. That assertion was correct for #190: the ask there was complete daisyUI *component*
+coverage regardless of what mvp's own templates reference, while deliberately keeping only the
+default light/dark theme pair, so the stylesheet stayed small. Its docstring said so explicitly.
+
+FS-026 changes what "correct" means for the same code path: the feature's entire point is that a
+project selects any prebuilt theme by setting one config value, which requires every theme's block to
+ship. The old assertion and the new requirement are direct opposites over the same evidence (the
+built stylesheet), so the guard could not be kept alongside the new one — it was replaced with its
+inverse rather than left to rot as a second, contradictory source of truth.
+
+The original reasoning is not deleted: `TestShippedStylesheetShipsCompleteDaisyUI` and its docstring,
+which explain #190's component-coverage ask, are untouched above the new class. Only the
+themes-are-excluded assertion — the one part of #190 this spec deliberately supersedes — is replaced,
+by `TestShippedStylesheetShipsEveryPrebuiltTheme`, which also adds the two invariants (default theme
+still bound through `:where(:root)`, `prefers-color-scheme: dark` still emitted) that prove FR-006
+holds through the reversal rather than assuming it.

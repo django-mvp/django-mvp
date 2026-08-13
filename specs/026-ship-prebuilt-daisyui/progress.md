@@ -14,3 +14,20 @@ Append-only stage and gate log. Gate outcomes are written here at the moment the
 | 2026-08-13 | SPEC GATE | **Approved** by the maintainer, on the amended specification. Scope frozen at 3 stories, 21 functional requirements, 8 success criteria. |
 | 2026-08-13 | S3 PLAN | `plan.md` (constitution check across 17 articles, all pass or N/A), `tasks.md` (15 tasks, 5 phases, test-first throughout), `feature-state.json` created and schema-valid. Two rejected alternatives recorded: per-theme static files, and a theme registry for validation. **Spec defect caught and corrected during planning:** FR-002 forbade fetching "a theme definition or stylesheet" from a third party, which the pre-existing icon-font link already violated and which the approved scope excludes. Narrowed to theme definitions, restoring the requirement to what the gate approved rather than widening the feature. SC-002 narrowed to match. |
 | 2026-08-13 | S3R DESIGN REVIEW | `request_changes`, risk medium, three findings, all verified against the repository before being accepted. Two orphaned exact-string assertions on `@plugin "daisyui";` given owning tasks, and T012's file list repointed away from a test module that does not exist and that Article X forbids creating. T001's theme-completeness guard given the skip-and-non-empty treatment T010 already carried, so it cannot report green on an empty glob in a CI job that never installs node_modules. SC-004 had no task: T016 added, one browser test for the `data-set-theme` path, and the Article XIV row in `plan.md` corrected rather than argued around. 16 tasks, 5 phases. Recorded as D8. |
+
+## Implementer US1 task log
+
+## 2026-08-13T00:00Z · Implementer US1 · T001
+
+Did: Replaced `TestShippedStylesheetShipsCompleteDaisyUI.test_named_themes_are_not_shipped` (the
+#190 named-theme exclusion guard) with a new class `TestShippedStylesheetShipsEveryPrebuiltTheme` in
+`tests/test_smoke.py`, asserting the inverse plus the two FR-006 invariants: theme names discovered
+from `node_modules/daisyui/theme/*.css` (skips explicitly and asserts non-empty before
+parametrising), the `:where(:root)` default binding, and the `@media (prefers-color-scheme: dark)`
+block. Recorded the reversal as D9 in decisions.md, citing #190 and this spec, without deleting the
+original #190 reasoning.
+Verified: `poetry run pytest -q tests/test_smoke.py::TestShippedStylesheetShipsEveryPrebuiltTheme` →
+33 failed (one per theme not yet shipped), 5 passed (discovery + both invariants), 0 errors — red for
+the expected reason: the stylesheet has not been rebuilt yet.
+Next: T002 rebuilds the stylesheet with `themes: all` to turn this green.
+Watch: none.
