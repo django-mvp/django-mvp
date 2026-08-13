@@ -7,7 +7,9 @@
 
    This is a superset of the production build: it scans ../mvp AND ../demo. */
 @import "tailwindcss" source(none);
-@plugin "daisyui";
+@plugin "daisyui" {
+  themes: all;
+}
 @plugin "@tailwindcss/typography";
 
 /* Same shared preset (custom variants, safelist, rail-mode CSS) as production. */

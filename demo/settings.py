@@ -128,6 +128,12 @@ CRISPY_TEMPLATE_PACK = "tailwind"
 # defaults (mvp/config.py). Unset keys keep their package defaults. Experiment
 # freely here; tests pin their own values in tests/settings.py.
 MVP_CONFIG = {
+    "theme": {
+        # A mix of prebuilt themes and "sunrise", the project-written custom
+        # theme loaded in demo/templates/base.html and documented at
+        # docs/theming.md — proof both sources work through the same config.
+        "choices": ["light", "dark", "dracula", "synthwave", "sunrise"],
+    },
     "layout": {
         "navbar": {
             "end": [

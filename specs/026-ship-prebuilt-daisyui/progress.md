@@ -272,3 +272,40 @@ change → 4 passed. `poetry run pre-commit run --files mvp/management/commands/
 → trailing-whitespace/end-of-file-fixer/ruff/ruff-format/mypy/deptry all passed.
 Next: T013 — show it in the demo.
 Watch: none.
+
+## 2026-08-13T15:48Z · Implementer US3 · T013
+
+Did: Enabled `themes: all` in `assets/demo.css` (parity with T002/T012) and rebuilt only the
+demo artifact with `npm run build:demo:prod` (not `invoke build-stylesheet`, which also
+rebuilds `mvp/static/css/django-mvp.css` — US1's committed artifact, not this task's to
+touch). Added `demo/static/css/theme-sunrise.css`, a project-written custom theme matching
+docs/theming.md's worked example byte-for-byte, so the demo is a running instance of that
+example rather than a second, drifting one. Loaded it as a second `<link>` in
+`demo/templates/base.html`'s `styles` block override. Configured
+`demo/settings.py`'s `MVP_CONFIG["theme"]["choices"]` to `["light", "dark", "dracula",
+"synthwave", "sunrise"]`, mixing shipped and custom. Extended
+`demo/templates/demo/theme_customization.html` to explain the mix and added a row of
+variant-coloured buttons so the theme's effect is visible on the page, not just in the
+switcher.
+Verified test-first: wrote `tests/test_demo/test_theme_customization.py` (5 tests: page
+renders, switcher offers every one of the demo's configured choices, the switcher includes
+"sunrise", the custom stylesheet is linked and no jsDelivr daisyUI theme URL appears, the
+custom CSS file itself defines `[data-theme="sunrise"]`), reading the choices from
+`demo.settings.MVP_CONFIG` rather than hardcoding a second copy, and applying them for the
+test's duration via `monkeypatch.setitem(MVP_CONFIG["theme"], "choices", ...)` — the same
+seam `tests/test_components/test_theme_controller.py` already uses, since
+`tests/settings.py` deliberately pins a bare `MVP_CONFIG` with no `theme.choices` so demo
+tweaks can't ripple into the rest of the suite. Confirmed RED for the right reason before
+implementing: `git stash push` on the five implementation files, ran
+`poetry run pytest -q tests/test_demo/test_theme_customization.py` → collection error,
+`KeyError: 'theme'` (demo/settings.py had no theme block yet). `git stash pop`, re-ran →
+`5 passed`. Also ran `poetry run pytest -q tests/test_smoke.py::TestDemoPagesDontLeakTheScaffoldPlaceholder
+tests/test_components/test_theme_controller.py` (adjacent consumers of the same `/theme/`
+URL and the same switcher template) → 17 passed, no regression.
+`poetry run pre-commit run --files assets/demo.css demo/settings.py demo/templates/base.html
+demo/templates/demo/theme_customization.html demo/static/css/theme-sunrise.css` → all hooks
+passed/skipped.
+Next: T014 — README and CHANGELOG.
+Watch: `demo/static/css/demo.css` is a committed build artifact (Article XV) and is included
+in this commit since its input (`assets/demo.css`) changed; `mvp/static/css/django-mvp.css`
+was not rebuilt or touched, it already carries `themes: all` from US1's T002.
