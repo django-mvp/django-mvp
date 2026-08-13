@@ -12,11 +12,12 @@ chosen and nobody could defend.
 
 That is a problem for a package whose pitch is that a developer hands over the UI decisions they
 would rather not make. Visible design care is the credential, and a default drawn from someone
-else's framework makes no claim at all. It also carries a measured defect: `text-error` on
-`light`'s page background is 2.87:1, which fails WCAG AA on the packaged form field's validation
-message (issue #136), and forms are the surface these applications are mostly made of.
+else's framework makes no claim at all. It was also visibly poor in one specific place:
+`text-error` on `light`'s page background is 2.87:1, so the packaged form field's validation
+message was hard to read (issue #136), and forms are the surface these applications are mostly
+made of.
 
-A brand palette now exists, with both a light and a dark set audited in their own right.
+A brand palette now exists, with a light and a dark set drawn in their own right.
 
 ## Decision
 
@@ -46,15 +47,21 @@ keeps seeing it. Two clicks of the toggle reaches `mvp`, because the toggle now 
 pair. Rewriting a stored preference on the visitor's behalf was rejected: the stored value is a
 choice the person made, and a package upgrade is not a reason to discard it.
 
-**#136 is fixed for the packaged themes and remains open for the prebuilt ones.** `text-error` is
-8.19:1 in `mvp` and 5.05:1 in `mvp-dark`. The prebuilt `light` theme is unchanged and still fails,
-because it is DaisyUI's file and not ours to edit. A project that has explicitly selected it is
-unaffected by this change in either direction.
+**The contrast floor applies to these two themes and to nothing else.** `text-error` is 8.19:1 in
+`mvp` and 5.05:1 in `mvp-dark`, against 2.87:1 on the prebuilt `light`. The prebuilt themes are
+DaisyUI's files and are not ours to edit, so most of them still put at least one brand colour below
+the text floor against their own page background.
 
-**The palette is gated rather than asserted.** `tests/test_brand_theme.py` computes every contrast
-ratio from the theme source and fails below the AA floor, and the check was verified by reinstating
-a failing colour and watching it go red. The design document's figures are evidence for the palette.
-They are not what the build trusts.
+That is deliberate rather than an outstanding task. The package does not undertake to deliver an
+accessible interface, because it cannot: a theme is one input to a page, and the markup, the
+copy and the images around it are the project's. A project carrying a contrast obligation writes
+a theme to it, which costs one CSS file and nothing else. `docs/theming.md` says so where someone
+choosing a theme will read it.
+
+**Our own palette is gated rather than asserted.** `tests/test_brand_theme.py` computes every
+contrast ratio from the theme source and fails below the floor, and the check was verified by
+reinstating a failing colour and watching it go red. The design document's figures are evidence for
+the palette. They are not what the build trusts.
 
 ## Alternatives considered
 

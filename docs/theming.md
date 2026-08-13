@@ -20,9 +20,17 @@ MVP_CONFIG = {
 ```
 
 Both are the package's own palette: near-black primary actions, one steel-blue accent used
-sparingly, warm paper rather than pure white, and flat surfaces. Dark is designed and audited
-in its own right rather than derived from light. Every colour pairing that carries text clears
-WCAG AA in both, and a test computes those ratios from the theme source on every run.
+sparingly, warm paper rather than pure white, and flat surfaces. Dark is drawn in its own right
+rather than derived from light.
+
+These two are held to a contrast floor, and a test computes the ratios from the theme source on
+every run so a later edit to the palette is checked rather than trusted. That is a floor on our
+own work, not a compliance claim on the package's behalf. **The prebuilt themes are DaisyUI's
+files and carry no such guarantee** — most of them put at least one brand colour below the AA
+text floor against their own page background, which matters because `text-error` and
+`border-*` render the raw fill value. If your project has a contrast obligation to meet, write
+a theme to it. That is what the mechanism below is for, and it is the only way to be sure,
+whatever theme you start from.
 
 Replacing them takes one setting. `"default": "light"` renders the prebuilt DaisyUI theme the
 package applied before it had one of its own, and nothing else needs to change:
