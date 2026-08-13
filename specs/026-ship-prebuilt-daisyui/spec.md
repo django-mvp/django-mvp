@@ -135,8 +135,11 @@ application renders in the new colours.
 
 - **FR-001**: The package MUST include the theme definitions for every prebuilt theme the design system
   publishes, served from the package's own static files.
-- **FR-002**: No page MUST request a theme definition or stylesheet from a host outside the project at
-  page load.
+- **FR-002**: No page MUST request a theme definition from a host outside the project at page load.
+  *(Narrowed 2026-08-13 during planning, from "a theme definition or stylesheet". The wider wording
+  was violated on arrival by the icon font the base template already loads from a third party, which
+  the approved scope excludes and which is recorded in `decisions.md` as its own change. Narrowing
+  restores the requirement to what the gate approved rather than widening the feature.)*
 - **FR-003**: A project MUST be able to set the theme that applies through the package's configuration
   dictionary, without overriding any packaged template.
 - **FR-004**: Applying a prebuilt theme MUST NOT require any front-end build tooling.
@@ -208,7 +211,7 @@ application renders in the new colours.
 - **SC-001**: A project changes one configuration value, reloads, and the application renders in a
   different prebuilt theme, on a machine with no front-end build tooling installed.
 - **SC-002**: Loading any page of the demo application issues zero requests to hosts outside the project
-  for theme or stylesheet CSS.
+  for a theme definition.
 - **SC-003**: The compressed stylesheet payload a project downloads grows by no more than 8 KB against
   the release preceding this feature.
 - **SC-004**: A visitor selects a theme, reloads, and navigates to a second page, and the selected theme
