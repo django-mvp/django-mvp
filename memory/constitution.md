@@ -178,16 +178,32 @@ browser. Anything expressible with the Django test client or a rendered-template
 written that way instead. A browser test that duplicates a template assertion is removed, not kept
 for confidence.
 
-### Article XV — The shipped stylesheet is a build artifact
+### Article XV — The shipped front-end assets are build artifacts
 
-`mvp/static/css/django-mvp.css` and its brotli sibling are committed build outputs of
-`assets/tailwind.css` and the templates, so that consumers need no build tooling. They are rebuilt
-with `invoke build-stylesheet` and committed on the branch that changes the templates.
+Two committed build outputs ship inside the package so that consumers need no build tooling:
 
-CI cannot police this by comparing bytes: the Tailwind and DaisyUI build is non-deterministic, so
-an identical toolchain produces different output on consecutive runs. The `Stylesheet` workflow
-therefore proves only that the CSS still compiles. Keeping the committed artifact current is an
-author and reviewer responsibility.
+- `mvp/static/css/django-mvp.css` and its brotli sibling, built from `assets/tailwind.css` and the
+  templates by `invoke build-stylesheet`.
+- `mvp/static/js/django-mvp.js`, built from `assets/js/index.js` by `invoke build-js`.
+
+Both are rebuilt and committed on the branch that changes their inputs.
+
+**Nothing executable is fetched from a third party at page load.** The runtime the components are
+written against is bundled into the JavaScript artifact rather than pulled from a CDN: Alpine with
+its persist plugin, htmx, and theme-change. A project's front end therefore has no
+external origin to depend on. The bundle is not configurable. These libraries are what the shipped
+markup requires, and a project extends it from its own base template rather than replacing it.
+
+The two artifacts differ in how far a machine can police them, which decides what CI can be asked
+to prove:
+
+- The **stylesheet** build is non-deterministic. An identical toolchain produces different bytes on
+  consecutive runs, so no byte comparison is possible. The `Stylesheet` workflow proves only that
+  the CSS still compiles, and keeping the committed artifact current is an author and reviewer
+  responsibility.
+- The **JavaScript** bundle is byte-reproducible. esbuild against the pinned lockfile produces
+  identical output every run, so drift here can be caught by rebuilding and comparing rather than
+  trusted to the author.
 
 ### Article XVI — Compatibility
 

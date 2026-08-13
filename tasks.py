@@ -40,9 +40,11 @@ def prerelease(c):
     print("🚀 Starting comprehensive pre-release checks...")
     print("=" * 60)
 
-    # Step 1: Build, minify and compress the stylesheets
+    # Step 1: Build the committed front-end artifacts
     print("\n🎨 Step 1: Building, minifying and compressing stylesheets")
     build_stylesheet(c)
+    print("\n📦 Step 1b: Building the JavaScript bundle")
+    build_js(c)
 
     # Step 2: Run comprehensive linting, type checking, and dependency analysis
     print(
@@ -96,3 +98,20 @@ def build_stylesheet(c):
     # demo pages (not shipped in the wheel), so no brotli step is needed.
     c.run("npm run build:demo:prod")
     print("Built demo stylesheet to demo/static/css/demo.css")
+
+
+@task
+def build_js(c):
+    """Build the shipped JavaScript bundle (a committed artifact).
+
+    Bundles Alpine with its persist and sort plugins, htmx and theme-change
+    into ``mvp/static/js/django-mvp.js``, so a project installs the package and
+    gets a working front end without a Node toolchain and without fetching
+    anything from a third party at page load.
+
+    Unlike the stylesheet, this build *is* byte-reproducible: esbuild against
+    the pinned lockfile produces identical output every run, so drift here can
+    be caught by comparing bytes rather than trusting the author to rebuild.
+    """
+    c.run("npm run build:js:prod")
+    print("Built JavaScript bundle to mvp/static/js/django-mvp.js")
