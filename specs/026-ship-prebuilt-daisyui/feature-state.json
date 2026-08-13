@@ -2,15 +2,48 @@
   "feature": "026-ship-prebuilt-daisyui",
   "branch": "026-ship-prebuilt-daisyui",
   "repo": "django-mvp/django-mvp",
-  "state": "DESIGN_REVIEW",
+  "state": "IMPLEMENT",
   "state_history": [
-    { "state": "INTAKE", "at": "2026-08-13T09:50:00Z", "note": "free-text request; grilled to option A plus a documentation mandate" },
-    { "state": "SPECIFY", "at": "2026-08-13T11:05:00Z", "note": "spec.md, 3 stories, 21 requirements, 8 success criteria" },
-    { "state": "SETUP", "at": "2026-08-13T11:40:00Z", "note": "epic #230 promoted, stories #231-233, draft PR #234" },
-    { "state": "GATE_SPEC", "at": "2026-08-13T12:30:00Z", "note": "amended on the ruling against theme-name validation, then approved" },
-    { "state": "PLAN", "at": "2026-08-13T13:25:37Z", "note": "plan.md and tasks.md authored; FR-002 narrowed to the approved scope" },
-    { "state": "DESIGN_REVIEW", "at": "2026-08-13T13:32:00Z", "note": "one reviewer, three lenses, heavy tier; craft-skill gate green before dispatch" },
-    { "state": "DESIGN_REVIEW_REMEDIED", "at": "2026-08-13T14:05:00Z", "note": "request_changes, 3 medium findings, all verified against the repo and remedied; T016 added (decisions.md D8)" }
+    {
+      "state": "INTAKE",
+      "at": "2026-08-13T09:50:00Z",
+      "note": "free-text request; grilled to option A plus a documentation mandate"
+    },
+    {
+      "state": "SPECIFY",
+      "at": "2026-08-13T11:05:00Z",
+      "note": "spec.md, 3 stories, 21 requirements, 8 success criteria"
+    },
+    {
+      "state": "SETUP",
+      "at": "2026-08-13T11:40:00Z",
+      "note": "epic #230 promoted, stories #231-233, draft PR #234"
+    },
+    {
+      "state": "GATE_SPEC",
+      "at": "2026-08-13T12:30:00Z",
+      "note": "amended on the ruling against theme-name validation, then approved"
+    },
+    {
+      "state": "PLAN",
+      "at": "2026-08-13T13:25:37Z",
+      "note": "plan.md and tasks.md authored; FR-002 narrowed to the approved scope"
+    },
+    {
+      "state": "DESIGN_REVIEW",
+      "at": "2026-08-13T13:32:00Z",
+      "note": "one reviewer, three lenses, heavy tier; craft-skill gate green before dispatch"
+    },
+    {
+      "state": "DESIGN_REVIEW_REMEDIED",
+      "at": "2026-08-13T14:05:00Z",
+      "note": "request_changes, 3 medium findings, all verified against the repo and remedied; T016 added (decisions.md D8)"
+    },
+    {
+      "state": "IMPLEMENT",
+      "at": "2026-08-13T14:20:00Z",
+      "note": "plan veto window closed with explicit approval; US1 dispatch next"
+    }
   ],
   "gates": {
     "spec": {
@@ -25,8 +58,24 @@
         "Theme names are not validated: overruled by Sam at the gate, and the check cannot be evaluated by the package anyway (decisions.md D5)"
       ]
     },
-    "plan": { "approved_by": null, "at": null },
-    "merge": { "approved_by": null, "at": null }
+    "plan": {
+      "approved_by": "notified \u2014 Sam confirmed explicitly",
+      "at": "2026-08-13T14:20:00Z"
+    },
+    "merge": {
+      "approved_by": null,
+      "at": null
+    },
+    "design_review": {
+      "approved_by": "design-panel",
+      "at": "2026-08-13T13:43:11Z",
+      "self_resolved": [
+        "Orphaned exact-string assertions on '@plugin \"daisyui\";' in test_smoke.py:74 and test_mvp_tailwind_command.py:25 given owning tasks (T002, T012)",
+        "T012's file list repointed from a non-existent tests/test_management_commands.py to the module that already holds those tests (Article X)",
+        "T001's theme-completeness case made to skip explicitly when node_modules is absent, and to assert a non-empty glob before parametrising, so CI cannot report green while asserting nothing",
+        "SC-004 given a demonstrating task: T016, one browser test, because data-set-theme is markup the package has never shipped and a markup assertion cannot prove theme-change binds it"
+      ]
+    }
   },
   "stories": [
     {
@@ -37,11 +86,31 @@
       "status": "todo",
       "replans": 0,
       "tasks": [
-        { "id": "T001", "status": "todo", "attempts": 0 },
-        { "id": "T002", "status": "todo", "attempts": 0 },
-        { "id": "T003", "status": "todo", "attempts": 0 },
-        { "id": "T004", "status": "todo", "attempts": 0 },
-        { "id": "T005", "status": "todo", "attempts": 0 }
+        {
+          "id": "T001",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T002",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T003",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T004",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T005",
+          "status": "todo",
+          "attempts": 0
+        }
       ]
     },
     {
@@ -52,9 +121,21 @@
       "status": "todo",
       "replans": 0,
       "tasks": [
-        { "id": "T006", "status": "todo", "attempts": 0 },
-        { "id": "T007", "status": "todo", "attempts": 0 },
-        { "id": "T016", "status": "todo", "attempts": 0 }
+        {
+          "id": "T006",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T007",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T016",
+          "status": "todo",
+          "attempts": 0
+        }
       ]
     },
     {
@@ -65,22 +146,69 @@
       "status": "todo",
       "replans": 0,
       "tasks": [
-        { "id": "T008", "status": "todo", "attempts": 0 },
-        { "id": "T009", "status": "todo", "attempts": 0 },
-        { "id": "T010", "status": "todo", "attempts": 0 },
-        { "id": "T011", "status": "todo", "attempts": 0 },
-        { "id": "T012", "status": "todo", "attempts": 0 },
-        { "id": "T013", "status": "todo", "attempts": 0 },
-        { "id": "T014", "status": "todo", "attempts": 0 },
-        { "id": "T015", "status": "todo", "attempts": 0 }
+        {
+          "id": "T008",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T009",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T010",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T011",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T012",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T013",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T014",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T015",
+          "status": "todo",
+          "attempts": 0
+        }
       ]
     }
   ],
   "budgets": {
-    "converge_cycles": { "used": 0, "max": 2 },
-    "review_cycles": { "used": 0, "max": 1 },
-    "design_review_cycles": { "used": 1, "max": 1 },
-    "tokens": { "used": 0, "max": 4000000 }
+    "converge_cycles": {
+      "used": 0,
+      "max": 2
+    },
+    "review_cycles": {
+      "used": 0,
+      "max": 1
+    },
+    "design_review_cycles": {
+      "used": 1,
+      "max": 1
+    },
+    "tokens": {
+      "used": 0,
+      "max": 4000000
+    }
   },
-  "pr": { "number": 234, "draft": true }
+  "pr": {
+    "number": 234,
+    "draft": true
+  }
 }

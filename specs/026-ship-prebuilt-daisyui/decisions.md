@@ -143,3 +143,21 @@ the repository before being accepted as work.
   assertion and does nothing when clicked, which is the failure the repository's own e2e module
   documents for the deferred bundle. T016 adds one browser test. Article XIV's row in `plan.md` was
   corrected rather than argued around.
+
+## D9 — US1 dispatched through the fallback subagent mechanism (2026-08-13)
+
+The gateway-tracked spawn mechanism returned "Unable to connect" on three consecutive attempts while
+`openclaw gateway status` reported the service running, the connectivity probe ok and admin
+capability present. The fault is in the tool bridge rather than the gateway.
+
+US1 was dispatched through the harness's own subagent tool instead, run synchronously so the child
+is awaited within the dispatching turn.
+
+What the standing directive protects is preserved: implementation still runs on the Sonnet tier
+rather than the orchestrator's model, the builder still does not review, accept, merge or push its
+own work, and the completion report is still re-verified independently before the ledger advances.
+What is lost is dashboard visibility of the child while it runs, which is an observability cost
+rather than a correctness one.
+
+**Revisit if**: the gateway-tracked mechanism returns. It is the default and this is a fallback, not
+a new preference.
