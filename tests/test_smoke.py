@@ -216,6 +216,27 @@ class TestShippedStylesheetShipsEveryPrebuiltTheme:
             "every daisyUI theme must ship (FR-001, FR-006)."
         )
 
+    # The five names #190's guard listed when it asserted the opposite. Kept as
+    # the unconditional arm because the completeness test above is skipped in
+    # CI, where node_modules is absent — without this, reverting `themes: all`
+    # would leave the suite green while shipping none of them (FR-001).
+    REPRESENTATIVE_THEMES = ("dracula", "synthwave", "cyberpunk", "retro", "valentine")
+
+    @pytest.mark.parametrize("theme", REPRESENTATIVE_THEMES)
+    def test_representative_named_themes_ship(self, theme):
+        """A named theme ships, asserted without needing node_modules.
+
+        The completeness test above is the real guard, but it can only run
+        where the front-end toolchain is installed. This one reads the
+        committed stylesheet alone, so FR-001 keeps a check in CI rather than
+        resting entirely on a case that is skipped there.
+        """
+        content = self.STYLESHEET.read_text(encoding="utf-8")
+        assert f"[data-theme={theme}]" in content, (
+            f"[data-theme={theme}] is missing from the shipped stylesheet — "
+            "the prebuilt themes must ship inside the package (FR-001)."
+        )
+
     def test_default_theme_still_bound_through_where_root(self):
         """The default theme stays bound through the zero-specificity
         :where(:root) arm, so a data-theme value matching nothing falls
