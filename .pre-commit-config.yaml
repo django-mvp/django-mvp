@@ -18,13 +18,18 @@ repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
-      # Built stylesheets are generated (minified, no trailing newline) — leave
-      # them alone, or these hooks fight the Tailwind build and the stylesheet
-      # compile check fails on the hook-added newline.
+      # Built assets are generated (minified, no trailing newline) — leave them
+      # alone, or these hooks fight the build. For the stylesheet the compile
+      # check fails on the hook-added newline; for the JavaScript bundle the
+      # hooks rewrite bytes esbuild produced, so the committed artifact stops
+      # matching a fresh build and Article XV's byte comparison never holds.
+      #
+      # Scoped to the built bundle by name: mvp/static/js/formset.js and
+      # list_view.js are hand-written and should still be fixed by these hooks.
       - id: trailing-whitespace
-        exclude: '^(mvp|demo)/static/css/.*\.(css|br)$'
+        exclude: '^(mvp|demo)/static/(css/.*\.(css|br)|js/django-mvp\.js)$'
       - id: end-of-file-fixer
-        exclude: '^(mvp|demo)/static/css/.*\.(css|br)$'
+        exclude: '^(mvp|demo)/static/(css/.*\.(css|br)|js/django-mvp\.js)$'
       - id: check-yaml
 
   - repo: https://github.com/python-poetry/poetry

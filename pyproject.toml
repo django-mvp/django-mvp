@@ -110,11 +110,18 @@ mvp = "mvp.fixtures"
 # tests/test_conftest.py exercises the test suite's own shared fixtures module,
 # tests/conftest.py. Its subject is test infrastructure, not a packaged module,
 # so the mirror check's guess of mvp/conftest.py can never exist either.
+# tests/test_frontend_runtime.py and its _e2e sibling exercise the shipped
+# JavaScript bundle (mvp/static/js/django-mvp.js) and the script tags in
+# mvp/templates/mvp/base.html. Their subject is a build artifact and a template,
+# so mvp/frontend_runtime.py can never exist — the same case as the entries
+# above, not misplaced tests.
 non-mirror-paths = [
     "tests/test_components/",
     "tests/test_demo/",
     "tests/test_templates.py",
     "tests/test_conftest.py",
+    "tests/test_frontend_runtime.py",
+    "tests/test_frontend_runtime_e2e.py",
 ]
 
 [tool.deptry]
