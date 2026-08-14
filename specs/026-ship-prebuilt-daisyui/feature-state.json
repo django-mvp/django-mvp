@@ -2,7 +2,7 @@
   "feature": "026-ship-prebuilt-daisyui",
   "branch": "026-ship-prebuilt-daisyui",
   "repo": "django-mvp/django-mvp",
-  "state": "PR_READY",
+  "state": "MERGED",
   "state_history": [
     {
       "state": "INTAKE",
@@ -58,6 +58,11 @@
       "state": "PR_READY",
       "at": "2026-08-13T18:55:00Z",
       "note": "all four findings fixed and each proven by reverting it; a defect in my own remedy found the same way; public markdown humanised; PR body rewritten"
+    },
+    {
+      "state": "MERGED",
+      "at": "2026-08-13T19:56:11Z",
+      "note": "PR #234 merged; approved by SamuelJennings"
     }
   ],
   "gates": {
@@ -78,8 +83,8 @@
       "at": "2026-08-13T14:20:00Z"
     },
     "merge": {
-      "approved_by": null,
-      "at": null
+      "approved_by": "SamuelJennings",
+      "at": "2026-08-13T19:54:37Z"
     },
     "design_review": {
       "approved_by": "design-panel",
@@ -400,6 +405,6 @@
   },
   "pr": {
     "number": 234,
-    "draft": true
+    "draft": false
   }
 }
