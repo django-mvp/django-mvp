@@ -15,8 +15,11 @@
    files in the working tree (coverage reports, tool caches, etc.).
 
    Only ../mvp is scanned here: this is the stylesheet that ships in the wheel,
-   so it must not carry demo-only utilities. The demo has its own build entry
-   (assets/demo.css → demo/static/css/demo.css). */
+   so it must not carry markup the package does not render. The demo runs on
+   this same build rather than a superset of its own, so a utility a demo page
+   needs and this file does not emit shows up as a broken demo page — which is
+   how the safelist gets found wanting before a release rather than after
+   (issue #238). */
 @source "../mvp";
 
 /* Ship the complete daisyUI component set, not just the subset mvp's own
@@ -70,8 +73,14 @@
 @source inline("{,md:,lg:,xl:}gap-{0,1,2,3,4,5,6,8,10,12}");
 @source inline("{,md:,lg:,xl:}gap-x-{0,1,2,3,4,5,6,8,10,12}");
 @source inline("{,md:,lg:,xl:}gap-y-{0,1,2,3,4,5,6,8,10,12}");
-@source inline("{,md:,lg:,xl:}{p,px,py,pt,pr,pb,pl}-{0,1,2,3,4,5,6,8,10,12}");
-@source inline("{,md:,lg:,xl:}{m,mx,my,mt,mr,mb,ml}-{0,1,2,3,4,5,6,8,10,12}");
+/* Inline-axis utilities use the logical `s`/`e` forms, never `l`/`r`. `ps-4`
+   is padding on the side the text starts, so it follows the writing direction
+   into an RTL locale; `pl-4` is padding on the left whatever the language, and
+   silently lands on the wrong side. The package is translated, so shipping the
+   physical pair would be shipping the bug. Block-axis (`pt`/`pb`, `mt`/`mb`)
+   is unaffected — there is no logical distinction to make. */
+@source inline("{,md:,lg:,xl:}{p,px,py,pt,pe,pb,ps}-{0,1,2,3,4,5,6,8,10,12}");
+@source inline("{,md:,lg:,xl:}{m,mx,my,mt,me,mb,ms}-{0,1,2,3,4,5,6,8,10,12}");
 @source inline("{,md:,lg:,xl:}{m,mx,my}-auto");
 @source inline("{,md:,lg:,xl:}w-{auto,full,screen,min,max,fit,1/2,1/3,2/3,1/4,3/4}");
 @source inline("{,md:,lg:,xl:}h-{auto,full,screen,min,max,fit}");
@@ -79,11 +88,11 @@
 @source inline("{,md:,lg:,xl:}min-w-{0,full}");
 @source inline("{,md:,lg:,xl:}max-h-{full,screen}");
 @source inline("{,md:,lg:,xl:}min-h-{0,full,screen}");
-@source inline("{,md:,lg:,xl:}text-{left,center,right,justify}");
+@source inline("{,md:,lg:,xl:}text-{start,center,end,justify}");
 @source inline("{,md:,lg:,xl:}text-{xs,sm,base,lg,xl,2xl,3xl,4xl,5xl,6xl}");
 @source inline("{,md:,lg:,xl:}{static,relative,absolute,fixed,sticky}");
 @source inline("{,md:,lg:,xl:}inset{,-x,-y}-0");
-@source inline("{,md:,lg:,xl:}{top,right,bottom,left}-{0,auto}");
+@source inline("{,md:,lg:,xl:}{top,bottom,start,end}-{0,auto}");
 @source inline("{,md:,lg:,xl:}overflow-{auto,hidden,visible,scroll}");
 @source inline("{,md:,lg:,xl:}overflow-{x,y}-auto");
 
@@ -91,9 +100,9 @@
    breakpoint variant buys nothing a consumer has ever asked for. */
 @source inline("z-{0,10,20,30,40,50,auto}");
 @source inline("border{,-0,-2,-4,-8}");
-@source inline("border-{t,r,b,l}");
+@source inline("border-{t,b,s,e}");
 @source inline("rounded-{none,sm,md,lg,xl,2xl,3xl,full}");
-@source inline("rounded-{t,r,b,l}-{sm,md,lg,xl,full}");
+@source inline("rounded-{t,b,s,e}-{sm,md,lg,xl,full}");
 @source inline("opacity-{0,25,50,75,100}");
 @source inline("font-{sans,serif,mono}");
 @source inline("font-{light,normal,medium,semibold,bold,extrabold}");

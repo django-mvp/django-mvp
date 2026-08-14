@@ -27,9 +27,9 @@ repos:
       # Scoped to the built bundle by name: mvp/static/js/formset.js and
       # list_view.js are hand-written and should still be fixed by these hooks.
       - id: trailing-whitespace
-        exclude: '^(mvp|demo)/static/(css/.*\.(css|br)|js/django-mvp\.js)$'
+        exclude: '^mvp/static/(css/.*\.(css|br)|js/django-mvp\.js)$'
       - id: end-of-file-fixer
-        exclude: '^(mvp|demo)/static/(css/.*\.(css|br)|js/django-mvp\.js)$'
+        exclude: '^mvp/static/(css/.*\.(css|br)|js/django-mvp\.js)$'
       - id: check-yaml
 
   - repo: https://github.com/python-poetry/poetry

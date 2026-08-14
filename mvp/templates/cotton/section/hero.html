@@ -1,31 +1,54 @@
-<c-vars bg-image=""
-        title
-        subtitle
-        actions
-        opacity="0.5"
-        height />
 {% comment %}
-  `bg_image` and `height` used to be written out as data-attributes and applied
-  by a third-party parallax script loaded from a CDN. That script is gone, so
-  they are applied directly here. The `parallax` and `speed` attributes went
-  with it — see the CHANGELOG.
+  ============================================================
+  <c-section.hero> — full-width hero banner
+
+  Built on daisyUI's hero component, so the layout comes from the shipped
+  stylesheet rather than from this template. The previous version rendered a
+  bare `.mvp-hero` div and relied on a parallax script loaded from a CDN to
+  position everything; when that script was dropped, the class was left with
+  no rule behind it anywhere and the banner stopped centring its content.
+
+  Props:
+    title      – heading text
+    subtitle   – short prose under the heading
+    bg-image   – background image URL; .hero already covers and centres it
+    opacity    – 0–1, how strongly the overlay dims the image (default 0.5)
+    height     – minimum height, any CSS length (e.g. "80vh")
+    class      – extra classes on the .hero surface
+
+  Slots:
+    top        – above the heading (a logo, an eyebrow line)
+    actions    – below the subtitle, centred as a button row
+    bottom     – below the actions
+
+  The root spreads no {{ attrs }}, deliberately: this component takes the
+  attributes declared below and nothing else, which is what keeps a removed one
+  (`parallax`, `speed`) inert rather than passing it through to the DOM as a
+  stray HTML attribute that looks like it still does something.
+  ============================================================
 {% endcomment %}
-<div class="mvp-hero {{ class }}"
-     {% if bg_image or height %}style="{% if bg_image %}background-image: url('{{ bg_image }}'); background-size: cover; background-position: center;{% endif %}{% if height %}min-height: {{ height }};{% endif %}"{% endif %}>
-  {% if opacity %}<c-backdrop opacity="{{ opacity }}" />{% endif %}
-  <div class="flex flex-col">
-    {{ top }}
-    <h1 class="text-5xl mb-6 font-bold">{{ title }}</h1>
-    {% if subtitle %}
-      <c-text size="xl">
-        {{ subtitle }}
-      </c-text>
-    {% endif %}
-    {% if actions %}
-      <c-group justify="center" class="pt-4">
-        {{ actions }}
-      </c-group>
-    {% endif %}
-    {{ bottom }}
+<c-vars bg-image="" title subtitle actions opacity="0.5" height class />
+<div class="hero {{ class }}"
+     {% if bg_image or height %}style="{% if bg_image %}background-image: url('{{ bg_image }}');{% endif %}{% if height %}min-height: {{ height }};{% endif %}"{% endif %}>
+  {% if bg_image and opacity %}
+    <div class="hero-overlay"
+         style="background-color: var(--color-neutral); opacity: {{ opacity }}"></div>
+  {% endif %}
+  <div class="hero-content text-center {% if bg_image %}text-neutral-content{% endif %}">
+    <div class="flex flex-col max-w-2xl">
+      {{ top }}
+      <h1 class="text-5xl mb-6 font-bold">{{ title }}</h1>
+      {% if subtitle %}
+        <c-text size="xl">
+          {{ subtitle }}
+        </c-text>
+      {% endif %}
+      {% if actions %}
+        <c-group justify="center" class="pt-4">
+          {{ actions }}
+        </c-group>
+      {% endif %}
+      {{ bottom }}
+    </div>
   </div>
 </div>

@@ -264,6 +264,39 @@
     }
   }
 
+  /* A dropdown panel gets the same treatment, and for the same reason (#209).
+     The rail hides labels because a 4rem-wide column has nowhere to put them.
+     A dropdown is a popover: it opens over the page at its own width, so its
+     rows have room and the icon-only rule has no business reaching inside.
+     The footer user menu is the case that reported it — every row in it was
+     blank but for an icon.
+
+     The restored values are daisyUI's own for these elements inside a .menu,
+     not a guess: `.menu :where(li)` is display:flex and `.badge` is
+     display:inline-flex.
+
+     .mvp-rail-hide is deliberately left hidden. That class is an author
+     marking an element "not in the rail", and honouring it wherever it appears
+     is more predictable than making it depend on what the element sits inside.
+     It is what hides the user name on the trigger itself. */
+  .dropdown-content {
+    :is(a, button, summary, [role="button"]) {
+      justify-content: flex-start;
+
+      > span {
+        display: inline;
+      }
+    }
+
+    .menu-title {
+      display: flex;
+    }
+
+    .badge {
+      display: inline-flex;
+    }
+  }
+
   /* Rail header (ChatGPT-style): only the brand icon shows; hovering the
      header swaps it for the sidebar toggle. Placed after the generic
      :is(a, button, ...) display rules so the hide rules win the tie. */

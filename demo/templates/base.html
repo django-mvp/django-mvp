@@ -1,21 +1,11 @@
 {% extends "mvp/base.html" %}
-{% load static %}
 {% comment %}
   Navbar widgets are configured via MVP_CONFIG["layout"]["navbar"]["end"] in
   settings.py. Use {% block app.header.widgets %} here only for page/project
   widgets that shouldn't come from settings.
-{% endcomment %}
-{% comment %}
-  The demo loads its own stylesheet (assets/demo.css → demo/static/css/demo.css)
-  rather than the shipped django-mvp.css, so demo pages can use utilities that
-  aren't present in the mvp package without bloating the shipped build.
 
-  It also loads a project-written custom theme (demo/static/css/theme-sunrise.css)
-  the same way any project would: a plain CSS file, added as a second stylesheet
-  link, with no build step and nothing fetched from outside the project. See
-  docs/theming.md, whose worked example this file matches.
+  This template deliberately defines no `styles` block. The demo runs on the
+  stylesheet the package ships and nothing else, so a utility missing from that
+  build shows up here as a broken demo page rather than being papered over by a
+  demo-only stylesheet — which is the point of developing against it.
 {% endcomment %}
-{% block styles %}
-  <link rel="stylesheet" href="{% static 'css/demo.css' %}" />
-  <link rel="stylesheet" href="{% static 'css/theme-sunrise.css' %}" />
-{% endblock styles %}

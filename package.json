@@ -3,9 +3,6 @@
     "build:css": "tailwindcss -i assets/tailwind.css -o mvp/static/css/django-mvp.css",
     "build:css:prod": "tailwindcss -i assets/tailwind.css -o mvp/static/css/django-mvp.css --minify",
     "watch:css": "tailwindcss -i assets/tailwind.css -o mvp/static/css/django-mvp.css --watch",
-    "build:demo": "tailwindcss -i assets/demo.css -o demo/static/css/demo.css",
-    "build:demo:prod": "tailwindcss -i assets/demo.css -o demo/static/css/demo.css --minify",
-    "watch:demo": "tailwindcss -i assets/demo.css -o demo/static/css/demo.css --watch",
     "build:js": "esbuild assets/js/index.js --bundle --format=iife --target=es2020 --outfile=mvp/static/js/django-mvp.js",
     "build:js:prod": "esbuild assets/js/index.js --bundle --format=iife --target=es2020 --minify --outfile=mvp/static/js/django-mvp.js",
     "watch:js": "esbuild assets/js/index.js --bundle --format=iife --target=es2020 --outfile=mvp/static/js/django-mvp.js --watch"
