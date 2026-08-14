@@ -11,6 +11,7 @@ project (``demo``) ships its own ``base.html`` and shadows the packaged one in
 the configured engine — which is what the last test asserts.
 """
 
+import re
 from pathlib import Path
 
 import pytest
@@ -21,6 +22,7 @@ from django.template.loader import get_template
 from django.template.loader_tags import BlockNode, ExtendsNode
 
 MVP_TEMPLATES = Path(apps.get_app_config("mvp").path) / "templates"
+DEMO_TEMPLATES = Path(apps.get_app_config("demo").path) / "templates"
 
 
 @pytest.fixture
@@ -89,3 +91,59 @@ class TestDefaultBaseTemplate:
 
         assert MVP_TEMPLATES not in Path(origin).parents
         assert Path(origin).parts[-3:] == ("demo", "templates", "base.html")
+
+
+def _template_files():
+    """Every .html template this repository owns, packaged and demo alike."""
+    return [path for root in (MVP_TEMPLATES, DEMO_TEMPLATES) for path in sorted(root.rglob("*.html"))]
+
+
+def multiline_brace_comments(source):
+    """Line numbers of every ``{# ... #}`` in ``source`` that spans a newline.
+
+    An unterminated ``{#`` counts too: it swallows the rest of the file the
+    same way, and there is no reading of it that is correct.
+    """
+    found = []
+    for match in re.finditer(r"\{#", source):
+        start = match.start()
+        end = source.find("#}", start)
+        comment = source[start:] if end == -1 else source[start : end + 2]
+        if "\n" in comment:
+            found.append(source.count("\n", 0, start) + 1)
+    return found
+
+
+class TestTemplateComments:
+    """``{# ... #}`` is single-line only, and a multiline one renders as text.
+
+    Django's lexer tokenises comments with ``{#.*?#}`` compiled without
+    ``re.DOTALL`` (``django/template/base.py``), so ``.`` never matches the
+    newline. A comment written across two lines is therefore not recognised as
+    a comment at all — it is emitted verbatim into the response and the reader
+    sees the note in the page. There is no error and no warning, which is why
+    three of them reached the shipped templates before anyone noticed.
+
+    Multi-line notes go in ``{% comment %} ... {% endcomment %}``, which is a
+    real tag pair and spans lines safely.
+    """
+
+    def test_the_lexer_really_does_leak_a_multiline_comment(self):
+        """The defect itself, pinned so this suite explains why it exists."""
+        rendered = engines["django"].from_string("A{# one\ntwo #}B").render({})
+
+        assert rendered == "A{# one\ntwo #}B"
+
+        single_line = engines["django"].from_string("A{# one #}B").render({})
+
+        assert single_line == "AB"
+
+    @pytest.mark.parametrize("path", _template_files(), ids=lambda p: p.name)
+    def test_no_template_has_a_multiline_brace_comment(self, path):
+        lines = multiline_brace_comments(path.read_text(encoding="utf-8"))
+
+        assert not lines, (
+            f"{path} has a {{# ... #}} comment spanning lines "
+            f"{lines} — it will render as visible text. "
+            "Use {% comment %} ... {% endcomment %} instead."
+        )

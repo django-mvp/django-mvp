@@ -16,7 +16,7 @@ def prerelease(c):
     Run comprehensive pre-release checks and update all required files.
 
     This task performs all necessary steps to prepare the repository for release:
-    1. Build, minify and brotli-compress the stylesheets (committed artifacts)
+    1. Build, minify and brotli-compress the stylesheet (a committed artifact)
     2. Run linting, formatting, type checking, and dependency checks via pre-commit hooks
     3. Run quality checks and tests
 
@@ -41,7 +41,7 @@ def prerelease(c):
     print("=" * 60)
 
     # Step 1: Build the committed front-end artifacts
-    print("\n🎨 Step 1: Building, minifying and compressing stylesheets")
+    print("\n🎨 Step 1: Building, minifying and compressing the stylesheet")
     build_stylesheet(c)
     print("\n📦 Step 1b: Building the JavaScript bundle")
     build_js(c)
@@ -93,11 +93,6 @@ def build_stylesheet(c):
     with open("mvp/static/css/django-mvp.css.br", "wb") as f:
         f.write(compressed)
     print("Built and compressed stylesheet to django-mvp.css.br")
-
-    # Demo site stylesheet: a superset scanning mvp + demo, used only by the
-    # demo pages (not shipped in the wheel), so no brotli step is needed.
-    c.run("npm run build:demo:prod")
-    print("Built demo stylesheet to demo/static/css/demo.css")
 
 
 @task

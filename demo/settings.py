@@ -130,11 +130,10 @@ CRISPY_TEMPLATE_PACK = "tailwind"
 MVP_CONFIG = {
     "theme": {
         # The package's own two themes first, so the demo opens in the brand
-        # and a reader can switch away and back. The rest is a mix of prebuilt
-        # themes and "sunrise", the project-written custom theme loaded in
-        # demo/templates/base.html and documented at docs/theming.md — proof
-        # all three sources work through the same config.
-        "choices": ["mvp", "mvp-dark", "light", "dracula", "synthwave", "sunrise"],
+        # and a reader can switch away and back, then three of the prebuilt
+        # themes that ship alongside them. Writing a theme of your own is
+        # covered in docs/theming.md.
+        "choices": ["mvp", "mvp-dark", "light", "dracula", "synthwave"],
     },
     "layout": {
         "navbar": {
@@ -145,6 +144,7 @@ MVP_CONFIG = {
             ],
         },
         "sidebar": {
+            "title": "DjangoMVP",
             "footer": [
                 "actions.theme-controller",
                 "actions.language-switcher-modal",
@@ -207,7 +207,6 @@ EASY_ICONS = {
             "person-circle": "bi bi-person-circle",
             "plus": "bi bi-plus-lg",
             "shirt": "bi bi-shirt",
-            "sort-desc": "bi bi-sort-down",
             "star": "bi bi-star-fill",
             "sidebar-left": "bi bi-layout-sidebar",
             "sidebar-right": "bi bi-layout-sidebar-right",

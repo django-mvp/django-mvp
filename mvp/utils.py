@@ -100,9 +100,12 @@ BS5_ICONS = {
     "arrow-right": "bi bi-arrow-right",
     "arrow-left": "bi bi-arrow-left",
     # ── Sorting ──────────────────────────────────────────────────────────
+    # A sort control that is not currently sorting anything uses "sort"; the
+    # directional pair is for a header that is showing the direction it sorted
+    # by, so each has to point the way it reads.
     "sort": "bi bi-sort-down",
-    "sort-asc": "bi bi-arrow-down-short",
-    "sort-desc": "bi bi-arrow-up-short",
+    "sort-asc": "bi bi-arrow-up-short",
+    "sort-desc": "bi bi-arrow-down-short",
     # ── People ───────────────────────────────────────────────────────────
     "person, user, account": "bi bi-person",
     "people, users": "bi bi-people",

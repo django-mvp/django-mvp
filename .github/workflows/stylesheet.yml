@@ -39,7 +39,5 @@ jobs:
       # so `npm ci` reproduces the same tool versions used by `invoke prerelease`.
       - run: npm ci
 
-      - name: Build the shipped and demo stylesheets
-        run: |
-          npm run build:css:prod
-          npm run build:demo:prod
+      - name: Build the shipped stylesheet
+        run: npm run build:css:prod

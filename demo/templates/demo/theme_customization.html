@@ -6,13 +6,12 @@
 {% block page.content %}
   <c-text muted tight class="text-lg">
     This page renders in mvp, the theme the package applies when a project
-    configures nothing. The picker in the navbar offers six themes, set in
+    configures nothing. The picker in the navbar offers five themes, set in
     this project's MVP_CONFIG: mvp and mvp-dark, which carry the package's own
-    palette; light, dracula and synthwave, three of the prebuilt themes that
-    ship alongside them; and sunrise, a theme this project wrote itself.
-    sunrise is a plain CSS file at demo/static/css/theme-sunrise.css, loaded
-    the same way any project would load one. Nothing about it is fetched from
-    outside this project, and it is the exact worked example from
+    palette, and light, dracula and synthwave, three of the prebuilt themes
+    that ship alongside them. Every one of them is defined inside the
+    stylesheet the package ships, so nothing is fetched from outside the
+    project. To write a palette of your own instead, follow
     <a href="https://github.com/django-mvp/django-mvp/blob/main/docs/theming.md"
        class="link">the theming guide</a>. The two buttons above are here to
     show how page.actions renders next to a page title. They carry no theme

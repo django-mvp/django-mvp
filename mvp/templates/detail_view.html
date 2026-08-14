@@ -1,8 +1,10 @@
 {% extends "page_view.html" %}
 {% load i18n %}
-{# The read page for a single object. Its header carries the edit and delete
-   links the view has already resolved. The body is left to the project, which
-   fills it by overriding page.content in <app>/<model>_detail.html. #}
+{% comment %}
+  The read page for a single object. Its header carries the edit and delete
+  links the view has already resolved. The body is left to the project, which
+  fills it by overriding page.content in <app>/<model>_detail.html.
+{% endcomment %}
 {% block page.actions %}
   {% if directory.update_url %}
     <c-button href="{{ directory.update_url }}"
