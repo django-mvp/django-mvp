@@ -15,8 +15,11 @@
    files in the working tree (coverage reports, tool caches, etc.).
 
    Only ../mvp is scanned here: this is the stylesheet that ships in the wheel,
-   so it must not carry demo-only utilities. The demo has its own build entry
-   (assets/demo.css → demo/static/css/demo.css). */
+   so it must not carry markup the package does not render. The demo runs on
+   this same build rather than a superset of its own, so a utility a demo page
+   needs and this file does not emit shows up as a broken demo page — which is
+   how the safelist gets found wanting before a release rather than after
+   (issue #238). */
 @source "../mvp";
 
 /* Ship the complete daisyUI component set, not just the subset mvp's own
@@ -72,9 +75,16 @@
 @source inline("{,md:,lg:,xl:}gap-y-{0,1,2,3,4,5,6,8,10,12}");
 @source inline("{,md:,lg:,xl:}{p,px,py,pt,pr,pb,pl}-{0,1,2,3,4,5,6,8,10,12}");
 @source inline("{,md:,lg:,xl:}{m,mx,my,mt,mr,mb,ml}-{0,1,2,3,4,5,6,8,10,12}");
-@source inline("{,md:,lg:,xl:}{m,mx,my}-auto");
+@source inline("{,md:,lg:,xl:}{ms,me}-{0,1,2,3,4,5,6,8,10,12}");
+@source inline("{,md:,lg:,xl:}{m,mx,my,ms,me}-auto");
 @source inline("{,md:,lg:,xl:}w-{auto,full,screen,min,max,fit,1/2,1/3,2/3,1/4,3/4}");
 @source inline("{,md:,lg:,xl:}h-{auto,full,screen,min,max,fit}");
+/* Fixed sizes on the spacing scale. Tier R already ships numeric gap-*, p-*
+   and m-*, and a consumer sizing a box around a component reaches for w-* and
+   h-* exactly as readily — the omission was an inconsistency, not a policy
+   (issue #238). Arbitrary values (h-[100px]) can never be safelisted; a
+   component attribute or an inline style covers those. */
+@source inline("{,md:,lg:,xl:}{w,h}-{0,1,2,3,4,5,6,8,10,12,16,20,24,32,40,48,56,64,72,80,96}");
 @source inline("{,md:,lg:,xl:}max-w-{xs,sm,md,lg,xl,2xl,3xl,4xl,5xl,6xl,7xl,full,none,prose}");
 @source inline("{,md:,lg:,xl:}min-w-{0,full}");
 @source inline("{,md:,lg:,xl:}max-h-{full,screen}");
@@ -102,6 +112,9 @@
 @source inline("{truncate,whitespace-nowrap,break-words,italic,uppercase,lowercase,capitalize,underline,no-underline}");
 @source inline("cursor-{pointer,not-allowed,default}");
 @source inline("{transition,select-none,pointer-events-none,align-middle}");
+/* Anchor offset. The shipped navbar is sticky, so a link to an #id on the
+   page lands with the heading underneath it without one of these. */
+@source inline("scroll-mt-{0,4,8,12,16,20,24,32}");
 @source inline("duration-{150,200,300}");
 @source inline("object-{cover,contain,fill}");
 @source inline("list-{none,disc,decimal}");

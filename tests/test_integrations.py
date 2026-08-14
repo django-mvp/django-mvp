@@ -5,6 +5,8 @@ under mvp.integrations that core never imports, so its third-party dependency
 is only required when a project explicitly imports the integration.
 """
 
+import re
+
 import pytest
 from django.core.exceptions import ImproperlyConfigured
 
@@ -81,6 +83,29 @@ class TestOptionalIntegrations:
         # the applied-filters context logic moved here from MVPListViewMixin
         assert hasattr(MVPFilteredListView, "get_active_filters")
         assert not hasattr(MVPListViewMixin, "get_active_filters")
+
+    @pytest.mark.django_db
+    def test_sortable_headers_point_each_direction_once(self, rf):
+        """Both sort glyphs render in every sortable header, so they must differ.
+
+        The header shows one at a time by CSS (``.asc``/``.desc`` on the cell),
+        which means a wrong or duplicated pair looks correct until a column is
+        actually clicked.
+        """
+        pytest.importorskip("django_tables2")
+        from django.template import Context, Template
+
+        from demo.tables import ProductTable
+
+        html = Template("{% load django_tables2 %}{% render_table table %}").render(
+            Context({"table": ProductTable([]), "request": rf.get("/")})
+        )
+
+        ascending = set(re.findall(r'<i class="([^"]*)\s+sort-icon sort-icon-asc"', html))
+        descending = set(re.findall(r'<i class="([^"]*)\s+sort-icon sort-icon-desc"', html))
+
+        assert ascending == {"bi bi-arrow-up-short"}
+        assert descending == {"bi bi-arrow-down-short"}
 
     @pytest.mark.django_db
     def test_filtered_list_view_injects_applied_filters(self, rf):

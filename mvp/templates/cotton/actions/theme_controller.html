@@ -7,9 +7,11 @@
               size="{{ size }}"
               title="{% trans "Choose theme" %}"
               aria-label="{% trans "Choose theme" %}">
-    {# c-menu.item renders a <button> when given no href, so each entry is
-       focusable and Enter/Space fires the click theme-change binds. A bare
-       <a> without href is not in the tab order and cannot be activated. #}
+    {% comment %}
+      c-menu.item renders a <button> when given no href, so each entry is
+      focusable and Enter/Space fires the click theme-change binds. A bare
+      <a> without href is not in the tab order and cannot be activated.
+    {% endcomment %}
     <c-menu label="{% trans "Choose theme" %}" class="menu-sm">
       {% for choice in mvp_config.theme.choices %}
         <c-menu.item label="{{ choice }}" data-set-theme="{{ choice }}" />
@@ -20,11 +22,13 @@
   <label class="flex cursor-pointer items-center gap-2"
          title="{% trans "Toggle dark mode" %}">
     <c-icon name="theme.light" class="text-sm" aria-hidden="true" />
-    {# theme-change reads this pair as "first,second": clicking while the first
-       is applied switches to the second, and anything else switches to the
-       first. Built from configuration so the toggle follows a project that
-       replaces the packaged themes, instead of stranding it on names the
-       stylesheet no longer defines. #}
+    {% comment %}
+      theme-change reads this pair as "first,second": clicking while the first
+      is applied switches to the second, and anything else switches to the
+      first. Built from configuration so the toggle follows a project that
+      replaces the packaged themes, instead of stranding it on names the
+      stylesheet no longer defines.
+    {% endcomment %}
     <input type="checkbox"
            class="toggle toggle-{{ size }}"
            data-toggle-theme="{{ mvp_config.theme.dark }},{{ mvp_config.theme.default }}"

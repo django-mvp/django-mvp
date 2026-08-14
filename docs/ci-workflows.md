@@ -41,7 +41,7 @@ set in `codecov.yml`.
 
 ### Stylesheet
 
-`stylesheet.yml` builds the shipped and demo stylesheets and fails if either stops compiling. It
+`stylesheet.yml` builds the shipped stylesheet and fails if it stops compiling. It
 does **not** compare the result against the committed CSS: the Tailwind and DaisyUI build is
 non-deterministic, so consecutive builds with an identical pinned toolchain produce different
 bytes. An earlier byte-comparison gate failed pull requests for drift no contributor could fix.

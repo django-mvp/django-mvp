@@ -7,7 +7,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **`c-section.hero` renders and centres again.** It was built on a `mvp-hero` class that
+  had no rule in any stylesheet — the positioning had come from the parallax script
+  removed in v0.17.0, so the banner had been left with no layout at all, no centring, and
+  nothing for its dimming overlay to sit against. It is now built on daisyUI's `hero`,
+  which the shipped stylesheet defines. The attributes are unchanged (`title`, `subtitle`,
+  `bg-image`, `opacity`, `height`, and the `top`, `actions` and `bottom` slots) and
+  `class` is now declared, so caller classes merge instead of being dropped. A project
+  that targeted `.mvp-hero` in its own CSS should target `.hero` instead.
+- **Table sort icons point the way they sort.** In the bundled `BS5_ICONS` pack `sort-asc`
+  resolved to a downward arrow and `sort-desc` to an upward one. A sorted column header
+  therefore showed the wrong direction, and the list view's generic "Sort" button borrowed
+  `sort-desc` to mean no direction at all. The pair is now the right way round, and the
+  Sort button uses the direction-free `sort` icon.
+- **Dropdown menus keep their labels in the icon-rail sidebar.** With
+  `MVP_CONFIG["layout"]["sidebar"]["collapse"] = "icons"`, the rule that hides labels in
+  the collapsed rail reached inside dropdown panels as well, so opening the account menu
+  showed a column of icons with no words next to them. A dropdown is a popover with its
+  own width, so its rows keep their labels.
+- **Multi-line `{# ... #}` template comments no longer ship.** Django's lexer matches
+  comments without `re.DOTALL`, so one written across two lines is not a comment at all —
+  it renders into the page as visible text. Three had reached the packaged templates. They
+  are now `{% comment %}` blocks, and a test fails on any that come back.
+
 ### Added
+
+- **Fixed sizes, logical margins and anchor offsets in the shipped utility safelist.**
+  `w-*` and `h-*` on the spacing scale, `ms-*`/`me-*` alongside `ml-*`/`mr-*`, and
+  `scroll-mt-*` for anchoring under the sticky navbar. Numeric `gap-*`, `p-*` and `m-*`
+  already shipped; leaving out the sizing equivalents was an inconsistency rather than a
+  policy. Shadow utilities remain deliberately unshipped.
+
+### Changed
+
+- **The demo runs on the shipped stylesheet.** It used to build its own superset
+  (`assets/demo.css` → `demo/static/css/demo.css`) and override the `styles` block to load
+  it instead of `django-mvp.css`, which meant the demo could not show a gap in the build it
+  is supposed to be demonstrating. That build and its artifact are gone, along with the
+  `build:demo` npm scripts and the demo step of `invoke build-stylesheet`.
+- **The demo's `sunrise` theme was removed.** It existed to prove a project can add a
+  palette of its own, which the packaged `mvp` and `mvp-dark` themes and the worked example
+  in the theming guide now cover between them.
 
 - **Every prebuilt daisyUI theme now ships with the package.** Previously only the
   default light and dark pair were built into `mvp/static/css/django-mvp.css`. The
