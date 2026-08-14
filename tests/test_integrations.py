@@ -85,12 +85,18 @@ class TestOptionalIntegrations:
         assert not hasattr(MVPListViewMixin, "get_active_filters")
 
     @pytest.mark.django_db
-    def test_sortable_headers_point_each_direction_once(self, rf):
-        """Both sort glyphs render in every sortable header, so they must differ.
+    def test_sortable_headers_render_two_distinct_sort_glyphs(self, rf):
+        """A sortable header carries both directions and shows one at a time.
 
-        The header shows one at a time by CSS (``.asc``/``.desc`` on the cell),
-        which means a wrong or duplicated pair looks correct until a column is
-        actually clicked.
+        Which one shows is decided by CSS from the ``.asc``/``.desc`` class
+        django-tables2 puts on the cell, so if the two resolve to the same
+        glyph the header looks right until a column is clicked and then never
+        changes. That is what was reported.
+
+        Deliberately asserts the two differ rather than naming the glyphs. The
+        icon classes are configuration a project is free to replace, so pinning
+        them here would fail the next time the pack changes without anything
+        being wrong.
         """
         pytest.importorskip("django_tables2")
         from django.template import Context, Template
@@ -104,8 +110,12 @@ class TestOptionalIntegrations:
         ascending = set(re.findall(r'<i class="([^"]*)\s+sort-icon sort-icon-asc"', html))
         descending = set(re.findall(r'<i class="([^"]*)\s+sort-icon sort-icon-desc"', html))
 
-        assert ascending == {"bi bi-arrow-up-short"}
-        assert descending == {"bi bi-arrow-down-short"}
+        assert len(ascending) == 1, f"headers disagree on the ascending icon: {ascending}"
+        assert len(descending) == 1, f"headers disagree on the descending icon: {descending}"
+        assert ascending != descending, (
+            f"both directions render the same glyph ({ascending}), so a sorted "
+            "column cannot show which way it sorted"
+        )
 
     @pytest.mark.django_db
     def test_filtered_list_view_injects_applied_filters(self, rf):

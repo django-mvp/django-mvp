@@ -32,21 +32,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   it renders into the page as visible text. Three had reached the packaged templates. They
   are now `{% comment %}` blocks, and a test fails on any that come back.
 
-### Added
-
-- **Fixed sizes, logical margins and anchor offsets in the shipped utility safelist.**
-  `w-*` and `h-*` on the spacing scale, `ms-*`/`me-*` alongside `ml-*`/`mr-*`, and
-  `scroll-mt-*` for anchoring under the sticky navbar. Numeric `gap-*`, `p-*` and `m-*`
-  already shipped; leaving out the sizing equivalents was an inconsistency rather than a
-  policy. Shadow utilities remain deliberately unshipped.
-
 ### Changed
 
+- **BREAKING: the shipped utility safelist uses logical inline-axis utilities.** `ps-*`,
+  `pe-*`, `ms-*`, `me-*`, `text-start`, `text-end`, `start-*`, `end-*`, `border-s`,
+  `border-e` and `rounded-s-*`/`rounded-e-*` now ship, and their physical counterparts
+  (`pl-*`, `pr-*`, `ml-*`, `mr-*`, `text-left`, `text-right`, `left-*`, `right-*`,
+  `border-l`, `border-r`, `rounded-l-*`, `rounded-r-*`) no longer do. `pl-4` is padding on
+  the left whatever the language; `ps-4` is padding on the side the text starts from, so it
+  follows the writing direction into an RTL locale. The package is translated, so shipping
+  the physical pair meant shipping a bug that only appears in someone else's language.
+  Block-axis utilities (`pt-*`, `pb-*`, `mt-*`, `mb-*`) are unchanged — there is no logical
+  distinction on that axis. A project using the physical forms in its own templates is
+  unaffected as long as it builds its own stylesheet, which scans those templates; a project
+  relying on the prebuilt file should switch to the logical names.
 - **The demo runs on the shipped stylesheet.** It used to build its own superset
   (`assets/demo.css` → `demo/static/css/demo.css`) and override the `styles` block to load
   it instead of `django-mvp.css`, which meant the demo could not show a gap in the build it
   is supposed to be demonstrating. That build and its artifact are gone, along with the
-  `build:demo` npm scripts and the demo step of `invoke build-stylesheet`.
+  `build:demo` npm scripts and the demo step of `invoke build-stylesheet`. The demo now
+  keeps to what the package emits.
 - **The demo's `sunrise` theme was removed.** It existed to prove a project can add a
   palette of its own, which the packaged `mvp` and `mvp-dark` themes and the worked example
   in the theming guide now cover between them.
