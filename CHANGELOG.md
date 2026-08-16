@@ -19,6 +19,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **The header's frosted-glass blur covers the whole header shell, not just the navbar
+  row.** `backdrop-blur` sat on the inner `.navbar` div, so the `app.header.tray` slot
+  and any padding a project applies around the navbar — both outside `.navbar` but
+  inside `.mvp-header` — showed unblurred page content behind them. The class now sits
+  on `.mvp-header` itself.
 - **The shipped stylesheet is linked once per page, not twice.** `base.html` linked both
   `django-mvp.css.br` and `django-mvp.css` unconditionally, so every page downloaded the
   same rules twice — once compressed, once not — and the larger uncompressed file arrived

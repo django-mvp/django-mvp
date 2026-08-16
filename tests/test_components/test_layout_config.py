@@ -186,6 +186,24 @@ class TestNavbarMobileDesktopSplit:
             assert marker in desktop_html
 
 
+class TestHeaderBackdropBlur:
+    """The frosted-glass effect must cover the whole header shell (issue
+    #248), not just the navbar row inside it: the tray slot and any padding
+    a project applies around the navbar both live in ``.mvp-header``,
+    outside ``.navbar``, so blur scoped to ``.navbar`` alone leaves them
+    showing unblurred page content behind."""
+
+    @pytest.mark.django_db
+    def test_backdrop_blur_is_on_the_header_shell(self, client):
+        content = client.get("/").content.decode()
+        match = re.search(r'<div class="([^"]*\bmvp-header\b[^"]*)"', content)
+        assert match, "mvp-header wrapper must render"
+        assert "backdrop-blur" in match.group(1).split(), (
+            "backdrop-blur must be on .mvp-header so it covers the tray "
+            "and any padding around the navbar, not just the .navbar row"
+        )
+
+
 # ---------------------------------------------------------------------------
 # Breakpoint templatetags
 # ---------------------------------------------------------------------------
@@ -470,7 +488,7 @@ class TestHeaderStickiness:
     def test_default_header_is_sticky(self, client):
         """With the default config the header pins on scroll (sticky + scroll shadow)."""
         content = client.get("/").content.decode()
-        assert "mvp-header w-full sticky z-10 top-0" in content
+        assert "mvp-header w-full backdrop-blur sticky z-10 top-0" in content
         assert "stuck = window.scrollY > 0" in content
 
     @pytest.mark.django_db
