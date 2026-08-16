@@ -77,6 +77,18 @@
     {% endblock head %}
   </head>
   <body>
+    {% comment %}
+      Declared outside the app shell so a project that fills it renders
+      content above the entire sidebar/header/content grid, in normal
+      document flow: it scrolls away with the page while the header inside
+      `app.header` keeps pinning independently, matching the pattern where an
+      announcement bar sits above a sticky navbar (issue #244). Empty by
+      default and opinionated about nothing — content is entirely the
+      project's call, the same way `app.header.tray` decides nothing on a
+      project's behalf.
+    {% endcomment %}
+    {% block announcement %}
+    {% endblock announcement %}
     {% block app %}
       {% comment %}
         Resolve the sidebar breakpoint/collapse knobs once, here in the shell,

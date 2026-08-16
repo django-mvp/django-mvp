@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`{% block announcement %}` for a banner outside the app shell.** It sits
+  before the sidebar/header/content grid, in normal document flow, so a
+  project that fills it renders content that scrolls away with the page
+  while the header's own sticky behaviour (`layout.navbar.sticky`) keeps
+  working independently. The block ships empty — no default markup, no
+  opinion on content — the same way `app.header.tray` leaves that decision
+  to the project. See [Layout: Announcement banner](docs/layout.md#announcement-banner).
+
 ### Fixed
 
 - **The shipped stylesheet is linked once per page, not twice.** `base.html` linked both
