@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **The shipped stylesheet is linked once per page, not twice.** `base.html` linked both
+  `django-mvp.css.br` and `django-mvp.css` unconditionally, so every page downloaded the
+  same rules twice — once compressed, once not — and the larger uncompressed file arrived
+  second and won the cascade. Only `django-mvp.css` is linked now. A static server that
+  negotiates brotli on that URL (whitenoise's precompressed storage, nginx
+  `brotli_static`, any CDN) still serves the compressed bytes; a server that does not
+  would have sent the uncompressed file regardless.
 - **`c-section.hero` renders and centres again.** It was built on a `mvp-hero` class that
   had no rule in any stylesheet — the positioning had come from the parallax script
   removed in v0.17.0, so the banner had been left with no layout at all, no centring, and
