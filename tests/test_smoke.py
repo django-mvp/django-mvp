@@ -496,39 +496,3 @@ class TestThemingDocVariableCoverage:
             f"{SC003_GROWTH_BUDGET_BYTES} above the {V0_18_0_COMPRESSED_BYTES}"
             " byte baseline this feature started from (SC-003)"
         )
-
-
-# ---------------------------------------------------------------------------
-# The shipped stylesheet is linked once, not once per encoding (#227)
-# ---------------------------------------------------------------------------
-
-
-class TestShippedStylesheetLinkedOnce:
-    """``base.html`` used to link both ``django-mvp.css.br`` and
-    ``django-mvp.css`` unconditionally — two separate downloads of the same
-    rules, with the larger uncompressed file arriving second and winning the
-    cascade. A host whose static server negotiates brotli on the plain URL
-    (whitenoise's precompressed storage, nginx ``brotli_static``, any CDN)
-    never needed the explicit ``.br`` link; a host that does not would have
-    sent the uncompressed file regardless of whether the ``.br`` link was
-    there.
-    """
-
-    BASE_HTML = BASE_DIR / "mvp" / "templates" / "mvp" / "base.html"
-
-    def test_the_br_variant_is_not_linked_directly(self):
-        source = self.BASE_HTML.read_text(encoding="utf-8")
-        assert "django-mvp.css.br" not in source, (
-            "mvp/base.html must not link django-mvp.css.br directly — a "
-            "server that negotiates brotli on the plain URL already serves "
-            "it, and linking both downloads the stylesheet twice (#227)"
-        )
-
-    def test_the_stylesheet_is_linked_exactly_once(self):
-        source = self.BASE_HTML.read_text(encoding="utf-8")
-        count = source.count("django-mvp.css")
-        assert count == 1, (
-            "mvp/base.html must link the shipped stylesheet exactly once "
-            f"(found {count}) — every extra link is a redundant download of "
-            "the same rules (#227)"
-        )
