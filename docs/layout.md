@@ -3,6 +3,7 @@
 django-mvp renders a complete application shell around your content:
 
 ```
+{% block announcement %}      empty by default, outside the shell (scrolls away)
 <c-app>                        DaisyUI drawer (sidebar + content)
 ├── <c-app.sidebar>            brand header, AppMenu, user footer
 ├── <c-app.header>             sticky header
@@ -295,6 +296,24 @@ Per-page override (use the `:` expression form so the value stays a real boolean
 {% endblock %}
 ```
 
+## Announcement banner
+
+`{% block announcement %}` sits outside the app shell entirely — before the
+sidebar/header/content grid, not inside it. Content placed there renders in
+normal document flow above the shell, so it scrolls away with the page while
+the header inside `app.header` keeps its own sticky behavior unaffected. It
+ships empty: declaring the slot is the whole feature, and what goes in it —
+a promotion, a release note, a one-time offer — is entirely your call, the
+same way `app.header.tray` decides nothing on your behalf.
+
+```html
+{% block announcement %}
+  <div class="alert alert-info rounded-none justify-center">
+    New in this release: dark mode. <a href="/changelog/" class="link">See what's new</a>.
+  </div>
+{% endblock %}
+```
+
 ## Overriding the layout per page
 
 `layout.sidebar.breakpoint` and `layout.sidebar.collapse` drive three regions that
@@ -328,6 +347,7 @@ when the choice is view- rather than template-driven.
 | Block | Replaces |
 | --- | --- |
 | `head`, `title`, `extra_js` | document head / scripts |
+| `announcement` | a banner slot outside the app shell (empty by default) |
 | `app` | the entire app shell |
 | `app.sidebar` | the sidebar (default: `<c-app.sidebar />`) |
 | `app.header` | the header |

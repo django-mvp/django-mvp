@@ -178,6 +178,7 @@ itself for anything deeper):
 | Block | Replaces |
 |---|---|
 | `head`, `title`, `styles`, `extra_js` | document head / stylesheet links / scripts |
+| `announcement` | a banner slot outside the app shell (empty by default) |
 | `app` | the entire shell |
 | `app.sidebar` | the sidebar (default `<c-app.sidebar />`) |
 | `app.header` / `app.header.widgets` / `app.header.tray` | header / extra navbar-end content / row below navbar |

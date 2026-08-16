@@ -1,0 +1,9 @@
+{% extends "mvp/base.html" %}
+{% comment %}
+  A page that fills the announcement block (issue #244). The block declares no
+  markup of its own, so this fixture supplies its own wrapper and content the
+  same way a project would.
+{% endcomment %}
+{% block announcement %}
+  <div class="announcement-banner-test">announcement-banner-content</div>
+{% endblock announcement %}

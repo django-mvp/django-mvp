@@ -484,6 +484,44 @@ class TestHeaderStickiness:
 
 
 # ---------------------------------------------------------------------------
+# Announcement banner block, outside the app shell (issue #244)
+# ---------------------------------------------------------------------------
+
+
+class TestAnnouncementBlock:
+    """A slot for an announcement banner outside the app shell.
+
+    Declaring the block is the whole feature: it ships with no default markup
+    and no opinion on content, the same way ``app.header.tray`` leaves that
+    decision to the project. It sits before ``{% block app %}`` so a page that
+    fills it renders content ahead of the entire drawer/sidebar/header shell —
+    the banner scrolls away with the page while the sticky header keeps
+    pinning independently of it, matching the pattern the issue linked.
+    """
+
+    @pytest.mark.django_db
+    def test_default_renders_nothing(self, client):
+        """An unfilled block adds no markup between <body> and the app shell."""
+        content = client.get("/").content.decode()
+        body_start = content.index("<body>") + len("<body>")
+        shell_start = content.index('<div id="mvp-app"')
+        assert content[body_start:shell_start].strip() == ""
+
+    @pytest.mark.django_db
+    def test_block_override_renders_before_the_app_shell(self):
+        """A project's override renders ahead of the sidebar/header/content shell."""
+        html = _render("tests/announcement_override.html")
+        announcement_pos = html.find("announcement-banner-content")
+        shell_pos = html.find('id="mvp-app"')
+        assert announcement_pos != -1, "block override must render"
+        assert shell_pos != -1
+        assert announcement_pos < shell_pos, (
+            "the announcement block must render outside (before) the app "
+            "shell so it scrolls away independently of the sticky header"
+        )
+
+
+# ---------------------------------------------------------------------------
 # Sidebar htmx boost (issue #188)
 # ---------------------------------------------------------------------------
 
