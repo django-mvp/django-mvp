@@ -3,6 +3,7 @@
 The shell wraps every page:
 
 ```
+{% block announcement %}      empty by default, outside the shell (scrolls away)
 <c-app>                        DaisyUI drawer (sidebar + content)
 ├── <c-app.sidebar>            brand header, AppMenu, footer widgets, user menu
 ├── <c-app.header>             header
@@ -119,11 +120,28 @@ come from the view context (e.g. `{"breakpoint": "xl"}`).
 > styles *that* component but does **not** reach the navbar toggle (a sibling). Resolve
 > them in the `app` block (or view context) so all three stay in sync.
 
+## Announcement banner
+
+`{% block announcement %}` sits outside the app shell — before the
+sidebar/header/content grid. Content placed there scrolls away with the page
+in normal document flow, independently of the sticky header inside
+`app.header`. It ships empty and opinionated about nothing: what goes in it
+is the project's call, the same way `app.header.tray` decides nothing for it.
+
+```html
+{% block announcement %}
+  <div class="alert alert-info rounded-none justify-center">
+    New in this release: dark mode. <a href="/changelog/" class="link">See what's new</a>.
+  </div>
+{% endblock %}
+```
+
 ## Template blocks
 
 | Block | Replaces |
 |---|---|
 | `head`, `title`, `styles`, `extra_js` | document head / stylesheet links / scripts |
+| `announcement` | a banner slot outside the app shell (empty by default) |
 | `app` | the entire shell |
 | `app.sidebar` | the sidebar (default `<c-app.sidebar />`) |
 | `app.header` | the header |
