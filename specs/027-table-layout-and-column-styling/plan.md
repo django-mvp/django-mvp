@@ -100,7 +100,10 @@ mvp/
 ├── static/css/django-mvp.css                    # rebuilt artifact (+ .br sibling)
 ├── integrations/django_tables/views.py          # ordering refused; default action set
 └── templates/
-    ├── table_view.html                          # rewritten: filled page, bars, no card
+    ├── table_view.html                          # rewritten: overrides the outer content block —
+    │                                            #   filled page, bars, no card; page_view.html's
+    │                                            #   container and toolbars are bypassed, and
+    │                                            #   page_view/list_view/container.html are unchanged
     ├── cotton/addons/django_table.html          # rewritten: the scroll container itself
     └── django_tables2/bootstrap5-mvp.html       # + pinned rows, + alignment tag on th/td
 

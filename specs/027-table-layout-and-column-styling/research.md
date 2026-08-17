@@ -102,6 +102,17 @@ already `flex-1 min-h-0 flex flex-col`, which is the flex-child scroll primitive
 between the page and the scroll container. The `min-h-0` matters: without it a flex child refuses to
 shrink below its content and the scroll container never scrolls.
 
+**The primitive only works under direct nesting, which this view does not currently have.** Both
+shipped precedents — `demo/templates/demo/full_page_map.html` and `demo/templates/tests/page_fill.html`,
+the two cases the existing end-to-end suite proves — put `<c-page.content>` as an immediate child of
+`<c-page fill>`. `table_view.html` does not: it extends `page_view.html`, which opens
+`<c-page>` and then wraps everything in `<c-container>`, with `<c-toolbar>` above and below. That
+container is a plain block `div` (`mvp/templates/cotton/container.html`) and stays one in its `fill`
+variant, which adds `h-full` and no flex. So `<c-page.content>`'s `flex-1 min-h-0` is inert there:
+its parent is not a flex container, the height never resolves, and nothing scrolls. The chain is
+solved, but it is only reachable from the outer `content` block, not from the `page.content-wrapper`
+block `table_view.html` overrides today.
+
 The `100dvh` floor rather than inheritance is deliberate and documented: above the sidebar
 breakpoint `.drawer-side` is a persistent `100dvh` grid column that `.drawer-content` stretches to
 match, but below it `.drawer-side` is `position: fixed` and out of flow, so a page relying on

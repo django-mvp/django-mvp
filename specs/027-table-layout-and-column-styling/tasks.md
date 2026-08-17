@@ -32,7 +32,10 @@ the story's report.
 - **T005** [P] `tests/test_table_layout.py::TestTableViewTemplate` — the page renders as a filled
   page, with an action bar carrying the page title and the view's actions, a pagination bar carrying
   the result count, and no card wrapper. Covers the unpaginated case rendering no empty bar, and the
-  no-footer case rendering no footer row. Red before T009.
+  no-footer case rendering no footer row. Also asserts the height chain and the block contract:
+  the scroll container's ancestors carry no non-flex wrapper between the filled page and the scroll
+  parent, and a project template overriding `page.header`, `page.title`, `page.actions`,
+  `page.content` or `page.footer` on a table view still has its content rendered. Red before T009.
 - **T006** [P] `tests/test_integrations.py::TestTableViewOrdering` — a table view class declaring an
   ordering fails with a message naming the table as where ordering belongs. Red before T010.
 - **T007** [P] `tests/test_integrations.py::TestTableViewActions` — the default action set is search,
@@ -48,6 +51,20 @@ the story's report.
   page title leading and the view's actions trailing, the component in the middle as the flex child
   that shrinks, the count-and-pagination bar below. No card. The middle child needs `min-h-0` or it
   will refuse to shrink and nothing will scroll (research R5).
+
+  **It overrides the outer `content` block, not `page.header` and `page.content-wrapper`.** Those
+  two sit inside `page_view.html`'s `<c-container>`, a plain block `div` between `<c-page fill>` and
+  `<c-page.content>` that breaks the flex chain the height depends on — so from there the filled
+  layout cannot be built at all (research R5). This view writes its own markup: the container and
+  the two toolbars are bypassed, not reused. Nothing in `page_view.html`, `list_view.html` or
+  `cotton/container.html` changes; a single consumer does not get to reshape a template every page
+  inherits.
+
+  **The block names survive the bypass.** Re-declare `page.header`, `page.title`, `page.actions`,
+  `page.content` and `page.footer` inside the new markup, in positions that make sense for this
+  layout, so a project overriding any of them on a table view keeps working. Django resolves a block
+  by name across the whole inheritance chain, so `list_view.html`'s `page.actions` still supplies the
+  default action set.
 - **T010** `mvp/integrations/django_tables/views.py`: refuse a declared ordering with the message
   from T006, and set the default action set from T007.
 - **T011** Add `table-pin-rows` to the table's own classes in
