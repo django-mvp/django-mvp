@@ -66,3 +66,29 @@ class TestThemeConfigOverrideMerge:
         assert config["theme"]["dark"] == "mvp-dark"
         assert config["brand"] == MVP_CONFIG["brand"]
         assert config["layout"] == MVP_CONFIG["layout"]
+
+
+class TestTableConfigDefaults:
+    """No project override: the table section's shipped default (issue #255)."""
+
+    def test_wrap_default_is_off(self):
+        assert MVP_CONFIG["table"]["wrap"] is False
+
+
+class TestTableConfigOverrideMerge:
+    """A project override of ``table.wrap`` merges without disturbing any
+    sibling top-level block — the same deep merge ``mvp/config.py`` performs
+    at import time via ``mergedeep.merge``."""
+
+    @staticmethod
+    def _defaults():
+        """A deep copy of the real package defaults, so merging into it can't
+        mutate the process-wide ``MVP_CONFIG`` other tests read."""
+        return copy.deepcopy(MVP_CONFIG)
+
+    def test_overriding_wrap_leaves_siblings_untouched(self):
+        config = self._defaults()
+        merge(config, {"table": {"wrap": True}})
+        assert config["table"]["wrap"] is True
+        assert config["theme"] == MVP_CONFIG["theme"]
+        assert config["layout"] == MVP_CONFIG["layout"]

@@ -78,6 +78,11 @@ urlpatterns = [
     path("articles/<int:pk>/", ArticleDetailView.as_view(), name="article-detail"),
     path("projects/create/", ProjectCreateView.as_view(), name="project-create"),
     path("django-tables2/", views.DataTablesView.as_view(), name="djangotables2"),
+    path(
+        "django-tables2/column-behaviour/",
+        views.ColumnBehaviourTableView.as_view(),
+        name="table-column-behaviour",
+    ),
     path("errors/400/", E400, name="error-preview-400"),
     path("errors/403/", E403, name="error-preview-403"),
     path("errors/404/", E404, name="error-preview-404"),

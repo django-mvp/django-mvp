@@ -35,6 +35,83 @@ exist in the prebuilt stylesheet.
 Theme changes (colors, radius, borders) do **not** require Tier 2. See
 [Theming](#theming) below.
 
+## Column behaviour classes
+
+A django-tables2 column says how it competes for width and treats its text
+the same way it says anything else about itself: by naming one or more of
+these classes in its `attrs`, not by writing raw CSS.
+
+```python
+import django_tables2 as tables
+
+
+class ProductTable(tables.Table):
+    name = tables.Column(attrs={"td": {"class": "mvp-col-grow"}})
+    sku = tables.Column(attrs={"td": {"class": "mvp-col-shrink"}})
+    description = tables.Column(
+        attrs={"td": {"class": "mvp-col-wrap mvp-col-max-md"}}
+    )
+```
+
+| Class | Effect |
+| --- | --- |
+| `mvp-col-grow` | Claims whatever width is left over once every other column has taken the width it needs. |
+| `mvp-col-shrink` | Takes no more width than the column's own content needs, so a short code or date column never stretches to match a longer neighbour. |
+| `mvp-col-wrap` | Lets a cell's text wrap onto more than one line instead of stretching the column to fit it on one. |
+| `mvp-col-nowrap` | Keeps a cell's text on a single line rather than wrapping the row taller. |
+| `mvp-col-max-xs` | Stops a column at a `8rem` maximum width once its text is allowed to wrap. |
+| `mvp-col-max-sm` | Stops a column at a `12rem` maximum width once its text is allowed to wrap. |
+| `mvp-col-max-md` | Stops a column at a `16rem` maximum width once its text is allowed to wrap. |
+| `mvp-col-max-lg` | Stops a column at a `24rem` maximum width once its text is allowed to wrap. |
+| `mvp-col-max-xl` | Stops a column at a `32rem` maximum width once its text is allowed to wrap. |
+
+Maximum width comes from this fixed set of named classes rather than a
+number the table author supplies — nothing here is generated at runtime, so
+every class a table can use already exists in the built stylesheet.
+
+Grow and shrink are opposites, and naming both on the same column is a
+contradiction the stylesheet does not resolve for you: the later declaration
+in the merged class list wins, which is an accident of ordering rather than
+a decision either name is allowed to rely on. Choose one.
+
+### Put the width classes on the heading too
+
+A table lays out with `table-layout: auto`, which negotiates each column's
+width across every cell in it — heading included. A heading longer than
+anything in the body will therefore win the argument, and `mvp-col-shrink`
+or `mvp-col-max-md` on the `td` alone comes out looking like it did nothing.
+Where a column's heading is the long part, name the class on both:
+
+```python
+sku = tables.Column(
+    attrs={"td": {"class": "mvp-col-shrink"}, "th": {"class": "mvp-col-shrink"}}
+)
+```
+
+The wrap classes are the exception, and deliberately: headings wrap whatever
+the project-wide default says, so that a column is never widened by its own
+title. Only cell text is held to one line, because cell text is
+arbitrary-length and keeping one row per record is what makes a long table
+scannable. Name `mvp-col-nowrap` on the `th` yourself if a particular
+heading must stay on one line.
+
+### The project-wide wrap default
+
+Whether a column wraps at all when it names neither `mvp-col-wrap` nor
+`mvp-col-nowrap` itself is a project setting, not a per-column guess:
+
+```python
+MVP_CONFIG = {
+    "table": {
+        "wrap": True,  # every column wraps unless it says mvp-col-nowrap
+    },
+}
+```
+
+The shipped default is `False` — a column stays on one line unless it or the
+project says otherwise. Resolution order is the column's own class first,
+then this setting, then the package default.
+
 ## Tier 2: build your own stylesheet
 
 Your build must scan **both** your templates **and** django-mvp's packaged

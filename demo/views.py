@@ -26,8 +26,8 @@ from demo.models import (
     ProjectNote,
     ProjectTask,
 )
-from demo.tables import ProductTable
-from mvp.integrations.django_tables.views import MVPTableViewMixin
+from demo.tables import ColumnBehaviourTable, ProductTable
+from mvp.integrations.django_tables.views import MVPTableView, MVPTableViewMixin
 from mvp.views import (
     InlineFormSet,
     MVPCreateView,
@@ -472,3 +472,12 @@ class DataTablesView(MVPTableViewMixin, FilterView):
     search_fields = ["name", "description"]
     show_create_action = True
     filterset_fields = ["name", "category__name", "price", "stock", "status"]
+
+
+class ColumnBehaviourTableView(MVPTableView):
+    """Demo page for the column behaviour classes (issue #255): shrink,
+    grow, wrap-with-a-maximum-width and no-wrap, each on its own column."""
+
+    model = Product
+    table_class = ColumnBehaviourTable
+    paginate_by = 25

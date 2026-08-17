@@ -1,0 +1,21 @@
+{% extends "table_view.html" %}
+{% comment %}
+  A project overriding every block a table view re-declares, exactly as it
+  would on any other page. Proves the blocks survive table_view.html's
+  bypass of page_view.html's <c-container> and toolbars (research R5).
+{% endcomment %}
+{% block page.title %}
+  <div id="override-title">Title override</div>
+  {% comment %}
+    page.header and page.actions are both nested inside page.title in
+    table_view.html — the breadcrumb trail ends in the heading, so the trail
+    and the title bar are one thing on this layout. Overriding the parent
+    block replaces its whole subtree, so a project that wants to keep the
+    nested blocks reconstructs them here, same as it would anywhere else in
+    Django template inheritance.
+  {% endcomment %}
+  {% block page.header %}<div id="override-header">Header override</div>{% endblock page.header %}
+  {% block page.actions %}<div id="override-actions">Actions override</div>{% endblock page.actions %}
+{% endblock page.title %}
+{% block page.content %}<div id="override-content">Content override</div>{% endblock page.content %}
+{% block page.footer %}<div id="override-footer">Footer override</div>{% endblock page.footer %}

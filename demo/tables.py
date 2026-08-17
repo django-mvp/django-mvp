@@ -9,7 +9,9 @@ from demo.models import Product
 class ProductTable(tables.Table):
     """Product table with Bootstrap 5 styling and ARIA compliance."""
 
-    name = tables.LinkColumn("product-update", args=[A("pk")])
+    # A static footer label, so the demo shows the footer row pinned to the
+    # bottom of the table area alongside the pinned heading (issue #254).
+    name = tables.LinkColumn("product-update", args=[A("pk")], footer="Total")
 
     # Column configurations with Bootstrap 5 alignment classes
     price = tables.Column(attrs={"td": {"class": "text-end"}})
@@ -42,5 +44,47 @@ class ProductTable(tables.Table):
             "release_date",
             "created_at",
             "updated_at",
+        )
+        empty_text = "No products available. Run 'poetry run python manage.py generate_dummy_data' to create sample data."
+
+
+class ColumnBehaviourTable(tables.Table):
+    """One column per behaviour class documented in docs/styling.md, against
+    data long enough to make each effect obvious (issue #255). Also carries
+    a numeric, a boolean and an action column with no class of their own,
+    so the alignment they render with is the inferred one (issue #256)."""
+
+    sku = tables.Column(attrs={"td": {"class": "mvp-col-shrink"}})
+    name = tables.Column(attrs={"td": {"class": "mvp-col-grow mvp-col-nowrap"}})
+    short_description = tables.Column(
+        verbose_name="Description",
+        attrs={"td": {"class": "mvp-col-wrap mvp-col-max-md"}},
+    )
+    release_date = tables.Column(attrs={"td": {"class": "mvp-col-nowrap"}})
+    actions = tables.TemplateColumn(
+        template_code='<a href="{% url "product-update" record.pk %}">Edit</a>',
+        orderable=False,
+        verbose_name="",
+    )
+
+    class Meta:
+        model = Product
+        template_name = "django_tables2/bootstrap5-mvp.html"
+        fields = (
+            "sku",
+            "name",
+            "short_description",
+            "price",
+            "is_featured",
+            "release_date",
+        )
+        sequence = (
+            "sku",
+            "name",
+            "short_description",
+            "price",
+            "is_featured",
+            "release_date",
+            "actions",
         )
         empty_text = "No products available. Run 'poetry run python manage.py generate_dummy_data' to create sample data."

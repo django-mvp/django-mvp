@@ -1,0 +1,8 @@
+{% extends "table_view.html" %}
+{% comment %}
+  page.content-wrapper wraps the whole title/table/pagination region, so it
+  gets its own fixture rather than joining the every-block one — overriding
+  it replaces the blocks nested inside it. The previous table_view.html
+  overrode this block, so a project may already be overriding it in turn.
+{% endcomment %}
+{% block page.content-wrapper %}<div id="override-content-wrapper">Wrapper override</div>{% endblock page.content-wrapper %}

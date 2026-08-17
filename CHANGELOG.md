@@ -15,8 +15,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `<c-app.main>` already carried `flex-1`, but DaisyUI makes `.drawer-content` a
   grid item, and a grid item is not a flex container — so the class did nothing,
   and a child asking for `h-full` computed to zero height. A page marked `fill`
-  now gets a flex column and a `100dvh` floor on `.drawer-content`, which is what
-  the chain was missing. The mobile dock joins the flow on such a page rather than
+  now gets a flex column and a `100dvh` height on `.drawer-content` — a ceiling as
+  well as a floor, because `min-height` alone lets content taller than the viewport
+  push the shell past it and hand the scrollbar back to the window. `<main>` and the
+  page element itself drop to `min-height: 0`, without which a flex item refuses to
+  shrink below its content and overflows anyway.
+  The mobile dock joins the flow on such a page rather than
   staying fixed over it, because a page that does not scroll leaves whatever sits
   under a fixed dock permanently unreachable. Pages without `fill` are untouched:
   the shell's markup is unchanged and the rule is scoped so that it never applies
@@ -29,6 +33,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   working independently. The block ships empty — no default markup, no
   opinion on content — the same way `app.header.tray` leaves that decision
   to the project. See [Layout: Announcement banner](docs/layout.md#announcement-banner).
+
+- **Table views fill the screen.** `MVPTableView` and `MVPTableViewMixin` now render
+  edge to edge instead of sitting in a card in the middle of a scrolling document. A
+  bar across the top carries the page title and the view's actions, the rows scroll
+  in a region of their own that owns both axes, and the row count and pagination sit
+  in a bar pinned below. The heading row stays put while the rows move under it, and
+  a table that declares a footer keeps that in view too. Nothing about a table class
+  changes — an existing one renders in the new layout untouched. The scrolling element
+  carries `role="region"`, an accessible name and `tabindex="0"`: an overflow container
+  is not a tab stop in Firefox or Safari, so without those a keyboard-only reader has
+  no way to scroll the rows at all. `<c-addons.django-table>` takes `label` and `role`
+  for that, so a page with two tables can name each one.
+  See [Integrations: django-tables2](docs/integrations.md#django-tables2).
+
+- **Column behaviour classes for tables.** `mvp-col-grow`, `mvp-col-shrink`,
+  `mvp-col-wrap`, `mvp-col-nowrap` and `mvp-col-max-{xs,sm,md,lg,xl}` ship in the
+  stylesheet and are applied the ordinary django-tables2 way, through a column's own
+  `attrs` — there is no column class to import and nothing to subclass.
+  `MVP_CONFIG["table"]["wrap"]` sets the project-wide default for columns that name
+  neither wrap class, and is off, so a dense table keeps one row per record until you
+  say otherwise. See [Styling: Column behaviour classes](docs/styling.md#column-behaviour-classes).
+
+- **Columns are aligned by what they hold.** Text leads and numbers trail, so a column
+  of figures lines up on its digits. Booleans and action columns are centred. All of it
+  comes from the model field behind the column, with nothing to declare. Where the kind
+  cannot be determined — a table built over data that is not a queryset, or a column
+  whose accessor resolves to no field — no alignment is imposed and the column renders
+  as it did before. An explicit alignment class in a column's `attrs` always wins. See
+  [Integrations: Inferred column alignment](docs/integrations.md#inferred-column-alignment).
 
 ### Fixed
 
@@ -68,6 +101,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   are now `{% comment %}` blocks, and a test fails on any that come back.
 
 ### Changed
+
+- **BREAKING: `<c-addons.django-table>` no longer takes `min_height`.** The component
+  is now the scroll region of the full-screen layout and takes its height from the
+  page, so a fixed minimum has nothing left to mean. An arbitrary height was never
+  really supported anyway — it was interpolated into an inline style, and the class it
+  would have wanted cannot be generated for a value the stylesheet build never sees.
+  Remove the attribute; mark the page `fill` if you want the table to fill the screen.
+
+- **BREAKING: a table view must not declare `order_by`.** `MVPTableViewMixin` now
+  raises `ImproperlyConfigured` for it, and drops sort from its default actions. A
+  table already sorts through its own column headers, against its own list of
+  sortable columns. Declaring an ordering on the view as well gave the same table two
+  competing sources for it. Move the ordering to the table class, as its own
+  `order_by` or `Meta.order_by`.
 
 - **BREAKING: the shipped utility safelist uses logical inline-axis utilities.** `ps-*`,
   `pe-*`, `ms-*`, `me-*`, `text-start`, `text-end`, `start-*`, `end-*`, `border-s`,

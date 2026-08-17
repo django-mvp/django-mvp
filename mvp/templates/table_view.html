@@ -1,20 +1,105 @@
 {% extends "list_view.html" %}
-{% load static %}
-{% load render_table from django_tables2 %}
-{% block page.header %}
-  <c-container fluid>
-    <c-breadcrumbs :items="page.breadcrumbs" class="py-2" />
-  </c-container>
-{% endblock page.header %}
-{% block page.content-wrapper %}
-  <c-page.content fluid>
-    <c-card tight>
-      {% block page.title %}
-        <c-toolbar />
-      {% endblock page.title %}
-      <div class="table-compact">
-        <c-addons.django-table min-height="65vh" class="table-compact" />
-      </div>
-    </c-card>
-  </c-page.content>
-{% endblock page.content-wrapper %}
+{% load i18n %}
+{% comment %}
+  Overrides the outer `content` block, not page.header/page.content-wrapper.
+  Those two sit inside page_view.html's <c-container>, a plain block div
+  between <c-page fill> and <c-page.content> that breaks the flex chain the
+  height depends on — from there the filled layout cannot be built at all
+  (specs/027-table-layout-and-column-styling/research.md R5). This view
+  writes its own markup instead: the container and the two toolbars are
+  bypassed, not reused.
+
+  All six block names page_view.html declares are re-declared below, in
+  positions that make sense for this layout, so a project overriding any of
+  them on a table view keeps working. page.actions does not use
+  {{ block.super }}, because its default (list_view.html's
+  search/sort/filter/create) includes sort, which a table view's own action
+  set must not (FR-007) — see MVPTableViewMixin.actions.
+
+  The breadcrumbs live inside the title bar rather than on a row of their own.
+  On a full-screen table the vertical budget is the whole point, and the trail
+  was spending a row to end in the same word as the heading below it. So the
+  trail carries the page's identity and its last crumb *is* the heading: the
+  <h1> moves into the final <li>, which keeps one heading per page rather than
+  trading accessibility for a row. page.header is the block that renders it.
+
+  Written out here rather than as a component. It is markup for one view, which
+  is the case Article XI exempts, and one caller does not justify the
+  abstraction Article III warns about. If a second view ever wants this bar, it
+  becomes a component then.
+
+  The bars are plain flex rows rather than <c-toolbar>, for two reasons. A
+  toolbar sizes each slot to its content, but these bars have to span the
+  table's full width to put the actions and the pagination at the trailing
+  edge. And a toolbar renders {{ actions }} in its trailing slot, where a
+  Cotton slot falls through to the context variable of the same name when the
+  caller fills no slot — so any page whose context carries an `actions` key
+  prints its repr there. The context key is `table_actions` now, but a bare row
+  keeps the trap shut whatever a project puts in its own context.
+
+  Padding sits on the bars, never on the page. The table is meant to reach the
+  edges of the space the shell gives it: its scrollbar hugs the shell edge and
+  its rows use the full width. Padding on <c-page fill> would inset the scroll
+  region along with everything else. <c-page.content> runs at gap="0" for the
+  same reason — a gap is space the bars do not control, and the table should
+  meet them rather than float between them. The bars own their own spacing.
+
+  app.footer is emptied. The shell's footer belongs to a page that ends; this
+  one does not — the viewport is fully spent on the table, and a footer under
+  it either steals rows or never comes into view. It is blanked here rather
+  than turned off in config, so it stays a per-view decision.
+{% endcomment %}
+{% block app.footer %}{% endblock app.footer %}
+{% block content %}
+  <c-page fill class="{{ page.class }}">
+    {% block page.content-wrapper %}
+      <c-page.content gap="0">
+        <div class="flex w-full px-4">
+          {% block page.title %}
+            <div class="page-title flex flex-col md:flex-row md:items-center md:justify-between gap-2 w-full">
+              <div class="flex flex-col gap-1">
+                {% block page.header %}
+                  <c-breadcrumbs>
+                    {% for crumb in page.breadcrumbs|slice:":-1" %}
+                      <c-breadcrumbs.item :attrs="crumb" />
+                    {% endfor %}
+                    <c-breadcrumbs.item>
+                      <h1 class="text-2xl font-bold leading-tight">{{ page.title }}</h1>
+                    </c-breadcrumbs.item>
+                  </c-breadcrumbs>
+                {% endblock page.header %}
+                {% if page.subtitle %}
+                  <p class="opacity-70 leading-relaxed max-w-prose">{{ page.subtitle }}</p>
+                {% endif %}
+              </div>
+              <div class="flex flex-wrap md:flex-nowrap gap-2 md:gap-1 md:justify-end md:items-center">
+                {% block page.actions %}
+                  <c-page.list.actions :actions="table_actions" />
+                {% endblock page.actions %}
+              </div>
+            </div>
+          {% endblock page.title %}
+        </div>
+        {% block page.content %}
+          <c-addons.django-table :table="table" class="flex-1 min-h-0" />
+        {% endblock page.content %}
+        <div class="flex w-full px-4 py-4">
+          {% block page.footer %}
+            {% if page_obj %}
+              <div class="flex flex-wrap items-center justify-between gap-2 w-full">
+                <c-text size="sm">
+                  {% with start=page_obj.start_index end=page_obj.end_index total=page_obj.paginator.count %}
+                    {% blocktrans with name_plural=model_info.verbose_name_plural %}
+                    Showing {{ start }}-{{ end }} of {{ total }} {{ name_plural }}
+                    {% endblocktrans %}
+                  {% endwith %}
+                </c-text>
+                <c-pagination :page_obj="page_obj" />
+              </div>
+            {% endif %}
+          {% endblock page.footer %}
+        </div>
+      </c-page.content>
+    {% endblock page.content-wrapper %}
+  </c-page>
+{% endblock content %}

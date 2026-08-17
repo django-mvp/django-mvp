@@ -13,6 +13,20 @@ from django.core.exceptions import ImproperlyConfigured
 from mvp.integrations import missing_dependency
 
 
+def _plain_table_view_class():
+    """A table view declared exactly as a project would, no ordering."""
+    pytest.importorskip("django_tables2")
+    from demo.models import Product
+    from demo.tables import ProductTable
+    from mvp.integrations.django_tables.views import MVPTableView
+
+    class PlainTableView(MVPTableView):
+        model = Product
+        table_class = ProductTable
+
+    return PlainTableView
+
+
 class TestIntegrationIsolation:
     """Core views never import an optional integration."""
 
@@ -134,3 +148,43 @@ class TestOptionalIntegrations:
         context = response.context_data
         assert "applied_filters" in context
         assert context["applied_filter_count"] == len(context["applied_filters"])
+
+
+class TestTableViewOrdering:
+    """A table view class must not declare its own ordering — that belongs
+    on the table class, which already has a safe, whitelisted mechanism for
+    it. Red before the view mixin refuses the declaration."""
+
+    def test_declaring_an_ordering_is_refused(self):
+        pytest.importorskip("django_tables2")
+        from demo.models import Product
+        from demo.tables import ProductTable
+        from mvp.integrations.django_tables.views import MVPTableView
+
+        class OrderedTableView(MVPTableView):
+            model = Product
+            table_class = ProductTable
+            order_by = [("name_asc", "Name (A-Z)", "name")]
+
+        with pytest.raises(ImproperlyConfigured, match="table"):
+            OrderedTableView()
+
+    def test_a_table_view_with_no_ordering_instantiates_cleanly(self):
+        view_class = _plain_table_view_class()
+        view_class()  # must not raise
+
+
+class TestTableViewActions:
+    """A table view's default action set drops sort — django-tables2's own
+    sortable column headers already cover it, so a separate sort control is
+    redundant on a table view specifically. Red before the default lands."""
+
+    def test_default_actions_are_search_filter_and_create(self):
+        view_class = _plain_table_view_class()
+        view = view_class()
+        assert view.actions == ["search", "filter", "create"]
+
+    def test_sort_is_absent_from_the_default_action_set(self):
+        view_class = _plain_table_view_class()
+        view = view_class()
+        assert "sort" not in view.actions
