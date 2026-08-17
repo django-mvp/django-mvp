@@ -322,6 +322,35 @@ class TestDocumentedClassesMatchShipped:
         assert documented <= shipped, f"documented but unshipped: {documented - shipped}"
 
 
+class TestColumnBehaviourDemoPage:
+    """The demo shows each column behaviour class against a column that
+    makes its effect obvious (FR-022). Red before T021."""
+
+    @pytest.mark.django_db
+    def test_renders_200(self, client, product):
+        pytest.importorskip("django_tables2")
+        from django.urls import reverse
+
+        response = client.get(reverse("table-column-behaviour"))
+        assert response.status_code == 200
+
+    @pytest.mark.django_db
+    def test_renders_a_column_for_each_behaviour_class(self, client, product):
+        pytest.importorskip("django_tables2")
+        from django.urls import reverse
+
+        response = client.get(reverse("table-column-behaviour"))
+        html = response.content.decode()
+        for klass in (
+            "mvp-col-grow",
+            "mvp-col-shrink",
+            "mvp-col-wrap",
+            "mvp-col-nowrap",
+            "mvp-col-max-md",
+        ):
+            assert klass in html
+
+
 class TestExistingViewsNeedNoChange:
     """SC-008's only evidence: a table view and table class written against
     the current integration, with no attribute added and nothing
