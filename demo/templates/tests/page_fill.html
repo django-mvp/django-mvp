@@ -1,0 +1,13 @@
+{% extends "mvp/base.html" %}
+{% comment %}
+  The full-page opt-in, exactly as a project writes it: one attribute on
+  <c-page>, inside the content block the page already owns. Nothing is
+  configured above this — the shell hands its height down on every page.
+{% endcomment %}
+{% block content %}
+  <c-page fill>
+    <c-page.content>
+      <div id="fill-probe" class="h-full w-full"></div>
+    </c-page.content>
+  </c-page>
+{% endblock content %}

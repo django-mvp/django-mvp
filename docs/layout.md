@@ -314,6 +314,44 @@ same way `app.header.tray` decides nothing on your behalf.
 {% endblock %}
 ```
 
+## Full-page content
+
+By default, page content scrolls with the window: `<c-app.main>` grows as tall as
+its content and the browser handles scrolling. Some content — a full-bleed map, most
+JavaScript-driven widgets — instead wants to fill the space the shell gives it and
+handle its own scrolling.
+
+Put `fill` on `<c-page>`. That is the whole opt-in:
+
+```html
+{% block content %}
+  <c-page fill>
+    <c-page.content>
+      <div id="map" class="h-full w-full"></div>
+    </c-page.content>
+  </c-page>
+{% endblock %}
+```
+
+There is nothing to configure above the page, and no setting for it. `fill` marks
+the page, and the shell responds to the mark: `drawer-content` becomes a flex
+column with a viewport-height floor, `<c-app.main>` is already `flex-1`, and
+`<c-page.content>` is already `flex-1 min-h-0`. Your content can then take
+`h-full` and scroll internally.
+
+The demo runs a Leaflet map this way at `/layout/full-page/`.
+
+Pages without `fill` are untouched. The shell's markup is identical either way —
+the rule is scoped to pages carrying the mark, so on every other page it does not
+apply at all.
+
+The floor is stated rather than inherited because the sidebar only supplies a
+height at some widths. At or above `layout.sidebar.breakpoint` the sidebar is a
+persistent `100dvh` column in the same grid row, and the content area stretches
+to match it. Below the breakpoint the sidebar is an overlay drawer, positioned
+out of the document flow, and contributes no height at all. A page that relied on
+inheriting one worked on a desktop and rendered into nothing on a phone.
+
 ## Overriding the layout per page
 
 `layout.sidebar.breakpoint` and `layout.sidebar.collapse` drive three regions that

@@ -180,6 +180,32 @@
 @source inline("{sm,md,lg,xl,2xl}:hidden");
 @source inline("{sm,md,lg,xl,2xl}:is-drawer-open:hidden");
 
+/* Full-page content (issue #247): `<c-page fill>` marks itself .mvp-page-fill,
+   and this is what the shell does about it.
+
+   Two things have to be true for a page to hand its own height to its content,
+   and neither was:
+
+   1. .drawer-content must be a flex container. DaisyUI makes .drawer a grid
+      and .drawer-content one of its grid items, so <c-app.main>'s flex-1 was
+      inert and a child asking for h-full computed to zero.
+   2. It must have a height to distribute. At desktop widths it inherits one:
+      .drawer-side is 100dvh and shares grid row 1, so .drawer-content
+      stretches to match. Below the sidebar breakpoint .drawer-side is
+      position:fixed, out of flow, and contributes nothing — which is why a
+      floor has to be stated here rather than relied on. 100dvh, not 100vh,
+      so a mobile browser's collapsing toolbar does not cut the page off.
+
+   Scoped to pages that ask, via :has(), rather than applied to .drawer-content
+   for everyone. Making the flex column a global default also pins the footer
+   to the bottom of the viewport on every short page in every project — a
+   change nobody asked for, to fix a case only some pages have. */
+.drawer-content:has(.mvp-page-fill) {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
 /* Icon-rail collapse mode (MVP_CONFIG layout.sidebar.collapse = "icons"):
    when the drawer is closed, the sidebar keeps its icons and hides labels,
    badges and section titles. Mark elements with .mvp-rail-hide to hide them

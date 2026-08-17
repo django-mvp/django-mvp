@@ -28,6 +28,7 @@ from .views import (
 urlpatterns = [
     path("", DemoHomeView.as_view(), name="home"),
     path("layout/", views.layout_demo, name="layout"),
+    path("layout/full-page/", views.full_page_map_demo, name="full-page-map"),
     path("theme/", views.theme_customization_demo, name="customization"),
     path("components/", views.components_demo, name="custom-components"),
     path(

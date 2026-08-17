@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% comment %}
+  The worked example from issue #247: a map that fills the app shell and owns
+  its own scrolling, instead of scrolling with the window.
+
+  The whole opt-in is `fill` on <c-page>. Nothing above it is configured — the
+  shell hands its height down on every page, and <c-page.content> is already a
+  `flex-1 min-h-0` column, so the map only has to ask for `h-full w-full`.
+
+  Leaflet comes from a CDN because it is a demo of somebody else's widget, not
+  a dependency django-mvp takes on. It is the class of library the issue is
+  about: it measures its container once at construction and renders into
+  whatever height it finds, so a container of height 0 produces a blank page
+  rather than an error.
+{% endcomment %}
+{% block title %}
+  Full-page map
+{% endblock title %}
+{% block head %}
+  {{ block.super }}
+  <link rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        crossorigin="anonymous" />
+  <script defer
+          src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+          crossorigin="anonymous"></script>
+{% endblock head %}
+{% block content %}
+  <c-page fill>
+    <c-page.content>
+      <div id="map" class="h-full w-full"></div>
+    </c-page.content>
+  </c-page>
+{% endblock content %}
+{% block extra_js %}
+  <script>
+    window.addEventListener('load', function () {
+      var map = L.map('map').setView([52.52, 13.405], 11);
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(map);
+      L.marker([52.52, 13.405]).addTo(map);
+    });
+  </script>
+{% endblock extra_js %}

@@ -37,6 +37,14 @@ AppMenu.extend(
             },
         ),
         MenuItem(
+            name="full-page-map",
+            view_name="full-page-map",
+            extra_context={
+                "label": "Full-page Map",
+                "icon": "map",
+            },
+        ),
+        MenuItem(
             name="customization",
             view_name="customization",
             extra_context={
