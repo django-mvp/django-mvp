@@ -106,7 +106,7 @@ Menus are normally rendered from Python via django-flex-menus — see
 | `c-placeholder.card` | `message`, `icon`, `height` — coming-soon card |
 | `c-mockup.browser`, `c-mockup.window`, `c-mockup.phone`, `c-mockup.code` | visual mockups |
 | `c-addons.share-dropdown` | social share menu (`url`, `title`, `size`) |
-| `c-addons.django-table` | scrollable region around a django-tables2 table, with its heading and footer rows pinned (`table`, `class`) |
+| `c-addons.django-table` | scrollable region around a django-tables2 table, with its heading and footer rows pinned (`table`, `class`, `label`, `role`) |
 
 ## Extending with your own components
 

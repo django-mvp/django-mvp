@@ -82,7 +82,7 @@
           <tfoot {{ table.attrs.tfoot.as_html }}>
             <tr>
               {% for column in table.columns %}
-                <td {{ column.attrs.tf.as_html }}>{{ column.footer }}
+                <td {% table_cell_attrs column table cell="tf" %}>{{ column.footer }}
                 </td>
               {% endfor %}
             </tr>

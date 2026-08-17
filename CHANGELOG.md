@@ -43,7 +43,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   changes — an existing one renders in the new layout untouched. The scrolling element
   carries `role="region"`, an accessible name and `tabindex="0"`: an overflow container
   is not a tab stop in Firefox or Safari, so without those a keyboard-only reader has
-  no way to scroll the rows at all.
+  no way to scroll the rows at all. `<c-addons.django-table>` takes `label` and `role`
+  for that, so a page with two tables can name each one.
   See [Integrations: django-tables2](docs/integrations.md#django-tables2).
 
 - **Column behaviour classes for tables.** `mvp-col-grow`, `mvp-col-shrink`,

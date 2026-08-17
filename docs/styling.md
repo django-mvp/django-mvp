@@ -74,6 +74,27 @@ contradiction the stylesheet does not resolve for you: the later declaration
 in the merged class list wins, which is an accident of ordering rather than
 a decision either name is allowed to rely on. Choose one.
 
+### Put the width classes on the heading too
+
+A table lays out with `table-layout: auto`, which negotiates each column's
+width across every cell in it — heading included. A heading longer than
+anything in the body will therefore win the argument, and `mvp-col-shrink`
+or `mvp-col-max-md` on the `td` alone comes out looking like it did nothing.
+Where a column's heading is the long part, name the class on both:
+
+```python
+sku = tables.Column(
+    attrs={"td": {"class": "mvp-col-shrink"}, "th": {"class": "mvp-col-shrink"}}
+)
+```
+
+The wrap classes are the exception, and deliberately: headings wrap whatever
+the project-wide default says, so that a column is never widened by its own
+title. Only cell text is held to one line, because cell text is
+arbitrary-length and keeping one row per record is what makes a long table
+scannable. Name `mvp-col-nowrap` on the `th` yourself if a particular
+heading must stay on one line.
+
 ### The project-wide wrap default
 
 Whether a column wraps at all when it names neither `mvp-col-wrap` nor

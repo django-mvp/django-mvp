@@ -185,3 +185,48 @@ class TestPaginationStaysReachable:
         )
         assert layout["paginationTop"] >= 0
         assert layout["paginationBottom"] <= layout["viewportHeight"]
+
+
+class TestTheBarsSpanTheTable:
+    """FR-006, FR-008: the title bar and the pagination bar are as wide as
+    the table, so the actions and the pagination sit at the trailing edge
+    rather than bunched against the title and the row count.
+
+    Only a browser settles this. Every wrapper involved carries `w-full`,
+    and `w-full` inside a shrink-to-fit parent still comes out the width of
+    the content — which is what a <c-toolbar> around either bar produces,
+    and what the rendered-HTML tests cannot see.
+    """
+
+    @pytest.mark.django_db
+    def test_the_title_and_pagination_bars_are_as_wide_as_the_table(
+        self, page, live_server
+    ):
+        ProductFactory.create_batch(PRODUCT_COUNT)
+        page.set_viewport_size(VIEWPORTS["desktop"])
+        page.goto(f"{live_server.url}{TABLE_PAGE}")
+        widths = page.evaluate("""
+            () => {
+              const w = el => el ? Math.round(el.getBoundingClientRect().width) : null;
+              const region = document.querySelector('[role="region"]');
+              const title = document.querySelector('.page-title');
+              return {
+                region: w(region),
+                title: w(title),
+                actions: w(title.lastElementChild),
+                actionsRight: Math.round(
+                  title.lastElementChild.getBoundingClientRect().right
+                ),
+                titleRight: Math.round(title.getBoundingClientRect().right),
+              };
+            }
+        """)
+
+        assert widths["region"] > 0
+        assert widths["title"] == widths["region"], (
+            "the title bar is narrower than the table it sits over"
+        )
+        # And the actions really are at the trailing edge of that bar, not
+        # merely inside a bar that happens to be wide.
+        assert widths["actionsRight"] == widths["titleRight"]
+        assert widths["actions"] < widths["title"]

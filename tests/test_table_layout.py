@@ -70,8 +70,30 @@ class TestTableArea:
         )
 
     def test_carries_the_pinned_row_class(self, cotton_render_string):
+        """On the scroll region itself, not merely somewhere in the markup:
+        bootstrap5-mvp.html puts the same class on the <table>, so a bare
+        substring check stays green with the region's copy deleted."""
         html = self._render(cotton_render_string)
-        assert "table-pin-rows" in html
+        region = _beautiful_soup()(html, "html.parser").find(attrs={"role": "region"})
+        assert region is not None
+        assert "table-pin-rows" in region.get("class", [])
+
+    def test_accessible_name_can_be_set_by_the_caller(self, cotton_render_string):
+        """A page with two tables needs two names. The default is emitted
+        before {{ attrs }} and HTML keeps the first of a repeated attribute,
+        so a caller's own aria-label has to replace it, not follow it."""
+        table = _empty_product_table()
+        html = cotton_render_string(
+            "<c-addons.django-table :table='table' label='Products' />",
+            context={"table": table},
+        )
+        region = _beautiful_soup()(html, "html.parser").find(attrs={"role": "region"})
+        assert region["aria-label"] == "Products"
+
+    def test_accessible_name_falls_back_to_a_default(self, cotton_render_string):
+        html = self._render(cotton_render_string)
+        region = _beautiful_soup()(html, "html.parser").find(attrs={"role": "region"})
+        assert region["aria-label"] == "Scrollable table"
 
     def test_scrolls_on_both_axes(self, cotton_render_string):
         html = self._render(cotton_render_string)
@@ -127,10 +149,29 @@ class TestTableViewTemplate:
 
     @pytest.mark.django_db
     def test_title_is_leading_and_actions_are_trailing(self, rf, product):
-        """Both live in the same bar; DOM order matches the leading/trailing
-        layout <c-page.title> already renders (title div, then actions)."""
+        """Both live in the same bar, and DOM order inside that bar is what
+        decides which end each sits at. Measured inside .page-title, not
+        across the document: page_view.html also renders the page title into
+        <head><title>, so a whole-document index comparison holds whatever
+        order the bar is in."""
         html = _render_table_view(rf)
-        assert html.index("Products") < html.index(">Add<")
+        bar = _beautiful_soup()(html, "html.parser").find(class_="page-title")
+        children = [c for c in bar.find_all("div", recursive=False)]
+        assert len(children) == 2
+        heading, actions = children
+        assert "Products" in heading.get_text()
+        assert "Add" in actions.get_text()
+
+    @pytest.mark.django_db
+    def test_the_bars_span_the_table_width(self, rf, product):
+        """The title and pagination bars have to be full-width for their
+        trailing halves to reach the trailing edge. A <c-toolbar> sizes each
+        slot to its content, so wrapping either bar in one silently parks the
+        actions next to the title instead."""
+        soup = _beautiful_soup()(_render_table_view(rf), "html.parser")
+        bar = soup.find(class_="page-title")
+        assert "w-full" in bar.get("class", [])
+        assert "w-full" in bar.parent.get("class", [])
 
     @pytest.mark.django_db
     def test_pagination_bar_carries_the_result_count(self, rf, product):
@@ -179,6 +220,31 @@ class TestTableViewTemplate:
         assert "Total" in html
 
     @pytest.mark.django_db
+    def test_footer_cells_are_styled_like_the_cells_above_them(self, rf, product):
+        """A totals row sits directly under the column it totals, so it has
+        to take the same alignment and wrap treatment. The footer cell is a
+        third cell kind django-tables2 renders from its own attrs dict, and
+        it is easy to leave behind when the heading and body cells move to a
+        shared code path."""
+        import django_tables2 as tables
+
+        from demo.models import Product
+
+        class FootedProductTable(tables.Table):
+            price = tables.Column(footer="Total")
+
+            class Meta:
+                model = Product
+                template_name = "django_tables2/bootstrap5-mvp.html"
+                fields = ("price",)
+
+        html = _render_table_view(rf, table_class=FootedProductTable)
+        soup = _beautiful_soup()(html, "html.parser")
+        cell = soup.find("tfoot").find("td")
+        assert "text-end" in cell.get("class", []), "DecimalField, so trailing"
+        assert "mvp-col-nowrap" in cell.get("class", [])
+
+    @pytest.mark.django_db
     def test_no_non_flex_wrapper_sits_between_the_page_and_the_scroll_container(
         self, rf, product
     ):
@@ -210,6 +276,19 @@ class TestTableViewTemplate:
         ):
             assert marker in html
 
+        assert 'role="region"' not in html, "the default table area is gone"
+
+    @pytest.mark.django_db
+    def test_project_can_override_the_content_wrapper(self, rf, product):
+        """page.content-wrapper wraps the whole title/table/pagination
+        region. The table view overrode it before this layout existed, so a
+        project may already be overriding it in turn — re-declaring it is
+        what keeps that working rather than rendering nothing, silently."""
+        html = _render_table_view(
+            rf, template_name="tests/table_view_content_wrapper_override.html"
+        )
+        assert "override-content-wrapper" in html
+        assert "mvp-page-fill" in html, "the shell wrapper survives the bypass"
         assert 'role="region"' not in html, "the default table area is gone"
 
 
@@ -360,9 +439,17 @@ class TestColumnBehaviourDemoPage:
         from django.urls import reverse
 
         response = client.get(reverse("table-column-behaviour"))
-        html = response.content.decode()
-        for klass in ("text-end", "text-center"):
-            assert klass in html
+        soup = _beautiful_soup()(response.content.decode(), "html.parser")
+        from demo.tables import ColumnBehaviourTable
+
+        names = list(ColumnBehaviourTable([]).columns.names())
+        row = soup.find("tbody").find("tr")
+        cells = dict(zip(names, row.find_all("td")))
+        # Asserted per column, not as substrings of the whole page: one
+        # working kind would otherwise stand in for all three.
+        assert "text-end" in cells["price"].get("class", [])
+        assert "text-center" in cells["is_featured"].get("class", [])
+        assert "text-center" in cells["actions"].get("class", [])
 
 
 class TestInferredAlignment:
@@ -459,6 +546,21 @@ class TestInferredAlignment:
         cells = self._cells_by_column(soup, table)
         assert "text-start" in cells["stock"].get("class", [])
         assert "text-end" not in cells["stock"].get("class", [])
+
+    @pytest.mark.django_db
+    def test_an_explicit_class_on_the_cells_carries_to_the_heading(
+        self, cotton_render_string, product
+    ):
+        """Declaring the class on "td" alone is how django-tables2 authors
+        write it, and the demo table does exactly that. The heading has to
+        follow it rather than fall back to the inference, or — worse — to no
+        alignment at all, which is the misalignment this feature exists to
+        remove (FR-019 with FR-020)."""
+        table = self._table()
+        soup = self._render(cotton_render_string, table)
+        heads = self._heads_by_column(soup, table)
+        assert "text-start" in heads["stock"].get("class", [])
+        assert "text-end" not in heads["stock"].get("class", [])
 
     def test_table_over_non_model_data_renders_unchanged(self, cotton_render_string):
         table_class = self._table_class()

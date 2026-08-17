@@ -1,9 +1,18 @@
 {% load i18n %}
 {% load render_table from django_tables2 %}
-<c-vars table class />
+{% comment %}
+  The scroll region of the table layout. It owns both axes, so overflow never
+  reaches the window.
+
+  role/tabindex/aria-label are declared as variables rather than written into
+  the tag, because anything hardcoded here would be emitted before {{ attrs }}
+  and HTML keeps the *first* of a repeated attribute — a caller passing its own
+  label would be silently ignored. A page with two tables needs two names.
+{% endcomment %}
+<c-vars table class label role="region" />
 <div class="overflow-auto table-pin-rows {{ class }}"
      style="scrollbar-gutter: stable"
      tabindex="0"
-     role="region"
-     aria-label="{% trans "Scrollable table" %}"
+     role="{{ role }}"
+     aria-label="{{ label|default:_('Scrollable table') }}"
      {{ attrs }}>{% render_table table %}</div>

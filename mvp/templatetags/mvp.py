@@ -90,22 +90,34 @@ def sidebar_navbar_toggle_class(bp, collapse):
     return f"{prefix}:is-drawer-open:hidden"
 
 
+#: The alignment classes the inference emits, and the ones an author declares
+#: to override it. Kept in sync with the text-{start,center,end} classes
+#: safelisted in mvp/tailwind/base.css.
+ALIGNMENT_CLASSES = ("text-start", "text-center", "text-end")
+
+#: The three cell kinds django-tables2 gives every bound column.
+CELL_KINDS = ("th", "td", "tf")
+
+
 @register.simple_tag
 def table_cell_attrs(column, table, cell="td", wrap=True):
     """Return a django-tables2 column's rendered cell attributes: the
     project's wrap default filled in when the column names neither
     "mvp-col-wrap" nor "mvp-col-nowrap" of its own (issue #255), and the
-    inferred alignment class filled in when neither cell names one of its
+    inferred alignment class filled in when the column declares none of its
     own (issue #256).
 
     Resolution order for wrap: the column's own class (already present in
     ``column.attrs[cell]``), then ``MVP_CONFIG["table"]["wrap"]``, then the
-    package default (no wrap). Pass ``wrap=False`` for a heading cell, which
-    carries no text to wrap. The emitted classes must stay in sync with the
-    behaviour and text-{start,center,end} classes safelisted in
-    mvp/tailwind/base.css.
+    package default (no wrap). Pass ``wrap=False`` for a heading cell: a
+    heading is a short label the author chose, and letting it wrap keeps a
+    column from being widened by its own title, where cell data is
+    arbitrary-length and holding it to one line is what keeps rows scannable.
+    The emitted classes must stay in sync with the behaviour and
+    text-{start,center,end} classes safelisted in mvp/tailwind/base.css.
     """
-    attrs = column.attrs[cell]
+    declared = column.attrs
+    attrs = declared[cell]
     classes = (attrs.get("class") or "").split()
 
     if wrap and "mvp-col-wrap" not in classes and "mvp-col-nowrap" not in classes:
@@ -113,7 +125,7 @@ def table_cell_attrs(column, table, cell="td", wrap=True):
             "mvp-col-wrap" if MVP_CONFIG["table"]["wrap"] else "mvp-col-nowrap"
         )
 
-    align = column_alignment_class(column, table)
+    align = column_alignment_class(column, table, cell=cell, declared=declared)
     if align:
         classes.append(align)
 
@@ -123,24 +135,47 @@ def table_cell_attrs(column, table, cell="td", wrap=True):
 
 
 @register.simple_tag
-def column_alignment_class(column, table):
-    """Return the alignment class inferred from a column's model field kind:
-    "text-start" for a text field, "text-end" for a numeric one (integer,
-    decimal or float), "text-center" for a boolean field or for a column
-    with no resolvable field that is not orderable (an action column, e.g.
-    buttons — issue #256). Returns "" — no alignment imposed — when the
-    table's data has no model to resolve a field from, or when a column is
-    unresolvable but still orderable, since its kind cannot be determined
-    (FR-017, FR-018, FR-021).
+def column_alignment_class(column, table, cell="td", declared=None):
+    """Return the alignment class for one of a column's cells, inferred from
+    the kind of model field behind it: "text-start" for a text field,
+    "text-end" for a numeric one (integer, decimal or float), "text-center"
+    for a boolean field or for a column with no resolvable field that is not
+    orderable (an action column, e.g. buttons — issue #256). Returns "" — no
+    alignment imposed — when the table's data has no model to resolve a field
+    from, or when a column is unresolvable but still orderable, since its kind
+    cannot be determined (FR-017, FR-018, FR-021).
 
     Takes the table as well as the column because ``BoundColumn._table`` is
-    private and unreachable from a template (research R2). Returns "" and
-    leaves the column untouched when its already-computed classes already
-    carry one of the three alignment classes, so an explicit class in the
-    column's own attrs wins (FR-019) and the tag stays idempotent. The
-    emitted class must stay in sync with the text-{start,center,end}
-    classes already safelisted in mvp/tailwind/base.css.
+    private and unreachable from a template (research R2).
+
+    An alignment class the author declared wins over the inference (FR-019),
+    and every cell of the column takes the same one, so a heading always sits
+    over cells aligned the way it is (FR-020). Declaring ``text-end`` on the
+    ``td`` alone is the usual way it is written, and it must not leave the
+    heading on the inferred alignment or, worse, on none at all. So: a cell
+    that already carries the declared class gets "" back and is left alone,
+    and every other cell of that column is given the same class rather than an
+    inferred one.
+
+    ``declared`` is ``column.attrs`` when the caller has already resolved it.
+    That property rebuilds all three cell dicts on every access and runs any
+    callable a project put in ``attrs``, so passing it keeps a render to one
+    evaluation per cell rather than two.
     """
+    if declared is None:
+        declared = column.attrs
+
+    own = (declared[cell].get("class") or "").split()
+    if any(c in own for c in ALIGNMENT_CLASSES):
+        return ""
+
+    for other in CELL_KINDS:
+        if other == cell:
+            continue
+        for klass in (declared[other].get("class") or "").split():
+            if klass in ALIGNMENT_CLASSES:
+                return klass
+
     model = table.data.model
     if model is None:
         return ""
@@ -149,26 +184,12 @@ def column_alignment_class(column, table):
 
     field = Accessor(column.accessor).get_field(model)
     if field is None:
-        klass = "text-center" if not column.orderable else ""
-    elif isinstance(field, models.BooleanField):
-        klass = "text-center"
-    elif isinstance(
-        field, (models.IntegerField, models.DecimalField, models.FloatField)
-    ):
-        klass = "text-end"
-    else:
-        klass = "text-start"
-
-    if not klass:
-        return ""
-
-    existing = " ".join(
-        column.attrs[cell].get("class") or "" for cell in ("td", "th")
-    ).split()
-    if any(c in existing for c in ("text-start", "text-center", "text-end")):
-        return ""
-
-    return klass
+        return "text-center" if not column.orderable else ""
+    if isinstance(field, models.BooleanField):
+        return "text-center"
+    if isinstance(field, (models.IntegerField, models.DecimalField, models.FloatField)):
+        return "text-end"
+    return "text-start"
 
 
 @register.simple_tag

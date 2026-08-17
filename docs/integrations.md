@@ -28,10 +28,34 @@ class ProductTableView(MVPTableView):
     search_fields = ["name"]
 ```
 
-`MVPTableView` combines the full MVP list behavior (search, ordering, pagination, page
-chrome) with django-tables2 rendering via the `table_view.html` base template and the
+`MVPTableView` combines the full MVP list behavior (search, pagination, page chrome)
+with django-tables2 rendering via the `table_view.html` base template and the
 [`c-addons.django-table`](components.md#actions-user-misc) component.
 `MVPTableViewMixin` is available for composing with other view classes.
+
+The page fills the screen: the rows scroll in a region of their own with the heading
+row — and the footer row, where the table declares one — staying in view, while the
+title bar above and the count and pagination below stay put.
+
+### Actions and sorting
+
+`actions` lists the controls in the bar above the table, and defaults to
+`["search", "filter", "create"]` — the same set a list view offers, minus sort.
+Override it on the view to change or reorder them:
+
+```python
+class ProductTableView(MVPTableView):
+    model = Product
+    table_class = ProductTable
+    actions = ["search", "create"]
+```
+
+Sorting is missing from that set on purpose, and a table view raises
+`ImproperlyConfigured` if you declare `order_by` on it. A table already sorts through
+its own column headers, against the list of sortable columns the table class defines.
+Declaring an ordering on the view as well gives the same table two competing sources
+for it. Put the ordering on the table class instead, as its own `order_by` or
+`Meta.order_by`.
 
 ### Inferred column alignment
 
