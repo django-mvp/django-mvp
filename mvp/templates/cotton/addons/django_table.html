@@ -1,4 +1,9 @@
+{% load i18n %}
 {% load render_table from django_tables2 %}
-<c-vars table min_height />
-<div class="table-container overflow-x-auto"
-     {% if min_height %}style="min-height: {{ min_height }}"{% endif %}>{% render_table table %}</div>
+<c-vars table class />
+<div class="overflow-auto table-pin-rows {{ class }}"
+     style="scrollbar-gutter: stable"
+     tabindex="0"
+     role="region"
+     aria-label="{% trans "Scrollable table" %}"
+     {{ attrs }}>{% render_table table %}</div>
