@@ -22,7 +22,7 @@
           <thead {{ table.attrs.thead.as_html }}>
             <tr>
               {% for column in table.columns %}
-                <th {{ column.attrs.th.as_html }} scope="col">
+                <th {% table_cell_attrs column table cell="th" wrap=False %} scope="col">
                   {% if column.orderable %}
                     <a href="{% querystring_replace table.prefixed_order_by_field=column.order_by_alias.next %}">
                       {{ column.header }}
@@ -44,7 +44,7 @@
             {% block table.tbody.row %}
               <tr {{ row.attrs.as_html }}>
                 {% for column, cell in row.items %}
-                  <td {% table_cell_attrs column %}>
+                  <td {% table_cell_attrs column table %}>
                     {% if column.localize == None %}
                       {{ cell }}
                     {% else %}

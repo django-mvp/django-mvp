@@ -91,22 +91,33 @@ def sidebar_navbar_toggle_class(bp, collapse):
 
 
 @register.simple_tag
-def table_cell_attrs(column, cell="td"):
-    """Return a django-tables2 column's rendered cell attributes, with the
+def table_cell_attrs(column, table, cell="td", wrap=True):
+    """Return a django-tables2 column's rendered cell attributes: the
     project's wrap default filled in when the column names neither
-    "mvp-col-wrap" nor "mvp-col-nowrap" of its own (issue #255).
+    "mvp-col-wrap" nor "mvp-col-nowrap" of its own (issue #255), and the
+    inferred alignment class filled in when neither cell names one of its
+    own (issue #256).
 
-    Resolution order: the column's own class (already present in
+    Resolution order for wrap: the column's own class (already present in
     ``column.attrs[cell]``), then ``MVP_CONFIG["table"]["wrap"]``, then the
-    package default (no wrap). The emitted class must stay in sync with the
-    behaviour classes safelisted in mvp/tailwind/base.css.
+    package default (no wrap). Pass ``wrap=False`` for a heading cell, which
+    carries no text to wrap. The emitted classes must stay in sync with the
+    behaviour and text-{start,center,end} classes safelisted in
+    mvp/tailwind/base.css.
     """
     attrs = column.attrs[cell]
     classes = (attrs.get("class") or "").split()
-    if "mvp-col-wrap" not in classes and "mvp-col-nowrap" not in classes:
+
+    if wrap and "mvp-col-wrap" not in classes and "mvp-col-nowrap" not in classes:
         classes.append(
             "mvp-col-wrap" if MVP_CONFIG["table"]["wrap"] else "mvp-col-nowrap"
         )
+
+    align = column_alignment_class(column, table)
+    if align:
+        classes.append(align)
+
+    if classes:
         attrs["class"] = " ".join(classes)
     return attrs.as_html()
 
