@@ -167,6 +167,14 @@ AppMenu.extend(
                         "icon": "table",
                     },
                 ),
+                MenuItem(
+                    name="table-column-behaviour",
+                    view_name="table-column-behaviour",
+                    extra_context={
+                        "label": "Column Behaviour",
+                        "icon": "table",
+                    },
+                ),
             ],
         ),
         MenuGroup(
