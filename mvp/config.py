@@ -79,6 +79,15 @@ MVP_CONFIG = {
             "sticky": True,
         },
     },
+    "table": {
+        # Whether a column's text wraps onto more than one line when the
+        # column names neither the "mvp-col-wrap" nor "mvp-col-nowrap" class
+        # of its own. False (the default) keeps every column on one line
+        # project-wide; a column overrides this for itself via its `attrs`
+        # (see docs/styling.md). Resolution order: the column's own class,
+        # then this setting, then the package default (no wrap).
+        "wrap": False,
+    },
 }
 
 merge(MVP_CONFIG, getattr(settings, "MVP_CONFIG", {}))
