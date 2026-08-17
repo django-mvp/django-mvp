@@ -211,6 +211,25 @@
   display: flex;
   flex-direction: column;
   min-height: 100dvh;
+  height: 100dvh;
+}
+
+/* A ceiling as well as a floor, and the room to honour it.
+
+   `min-height` alone only guarantees the page is *at least* as tall as the
+   viewport. Content taller than that — a table with more rows than fit, which
+   is every table worth scrolling — pushes the shell past it instead, and the
+   window scrolls after all. `height` states the ceiling the fill promise
+   already implied.
+
+   The ceiling is inert on its own, because a flex item's `min-height` is
+   `auto`: <main> refuses to shrink below its content and overflows the
+   container it was supposed to be bounded by. Both rungs between the shell
+   and <c-page.content> (which already carries `min-h-0`) have to release
+   that, or the height stops at the top of the chain and never arrives. */
+.drawer-content:has(.mvp-page-fill) > main,
+.mvp-page-fill {
+  min-height: 0;
 }
 
 /* The mobile dock joins the column instead of floating over it.

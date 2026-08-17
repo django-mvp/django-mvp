@@ -48,8 +48,12 @@ def _scroll_and_measure(page, url, viewport):
     return page.evaluate("""
         () => {
           const region = document.querySelector('[role="region"]');
-          const thead = region.querySelector('thead');
-          const tfoot = region.querySelector('tfoot');
+          // The row, not the section. DaisyUI pins `thead tr` and `tfoot tr`
+          // — the <thead> and <tfoot> boxes themselves stay with the table
+          // and travel off-screen with it, so measuring those reports a
+          // heading that scrolled away even while the visible one is pinned.
+          const thead = region.querySelector('thead tr');
+          const tfoot = region.querySelector('tfoot tr');
           const pagination = document.querySelector(
             'nav[aria-label="Navigation page results"]'
           );
@@ -69,6 +73,7 @@ def _scroll_and_measure(page, url, viewport):
             documentHeight: document.documentElement.scrollHeight,
             scrollYBefore: before,
             scrollYAfter: window.scrollY,
+            regionScrolled: Math.round(region.scrollTop),
             regionTop: Math.round(regionRect.top),
             regionBottom: Math.round(regionRect.bottom),
             theadTop: Math.round(theadRect.top),
@@ -110,6 +115,13 @@ class TestTheTableAreaOwnsItsScrolling:
             page, f"{live_server.url}{TABLE_PAGE}", viewport
         )
 
+        # Nothing below this means anything if the rows never moved. An
+        # earlier version of the layout let the window scroll instead, so
+        # `scrollTop = scrollHeight` was a no-op and every pinning assertion
+        # passed against an unscrolled table.
+        assert layout["regionScrolled"] > 0, (
+            "the table area did not scroll — pinning is untested"
+        )
         # Sticky to the container's own top, not merely "somewhere on
         # screen" — a heading that scrolled off with the rows would still
         # be "on screen" by a looser check right up until it wasn't.
@@ -126,6 +138,9 @@ class TestTheTableAreaOwnsItsScrolling:
             page, f"{live_server.url}{TABLE_PAGE}", viewport
         )
 
+        assert layout["regionScrolled"] > 0, (
+            "the table area did not scroll — pinning is untested"
+        )
         assert layout["tfootBottom"] is not None, (
             "no footer rendered — this proves nothing"
         )
@@ -144,6 +159,9 @@ class TestTheTableAreaOwnsItsScrolling:
             page, f"{live_server.url}{TABLE_PAGE}", viewport
         )
 
+        assert layout["regionScrolled"] > 0, (
+            "the table area did not scroll — pinning is untested"
+        )
         assert layout["regionTop"] == layout["theadTop"]
         assert layout["regionBottom"] == layout["tfootBottom"]
 
