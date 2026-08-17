@@ -202,6 +202,7 @@ EASY_ICONS = {
             "link": "bi bi-link-45deg",
             "list-ul": "bi bi-list-ul",
             "list": "bi bi-card-list",
+            "map": "bi bi-map",
             "newspaper": "bi bi-newspaper",
             "notification": "bi bi-bell-fill",
             "person-circle": "bi bi-person-circle",

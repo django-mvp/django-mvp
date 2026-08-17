@@ -102,6 +102,14 @@ AppMenu.extend(
                         "icon": "list-ul",
                     },
                 ),
+                MenuItem(
+                    name="full-page-map",
+                    view_name="full-page-map",
+                    extra_context={
+                        "label": "Full-page Map",
+                        "icon": "map",
+                    },
+                ),
                 MenuCollapse(
                     name="errors",
                     extra_context={

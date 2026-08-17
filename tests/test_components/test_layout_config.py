@@ -540,6 +540,62 @@ class TestAnnouncementBlock:
 
 
 # ---------------------------------------------------------------------------
+# Full-page content: opt-in fill (issue #247)
+# ---------------------------------------------------------------------------
+
+
+def _drawer_content_classes(html):
+    """Extract the class list of the ``drawer-content`` wrapper div."""
+    match = re.search(r'class="(drawer-content[^"]*)"', html)
+    return match.group(1).split() if match else None
+
+
+class TestFullPageFill:
+    """Full-page content, opted into with ``<c-page fill>``.
+
+    ``<c-app.main>`` already carried ``flex-1``, but DaisyUI makes
+    ``.drawer-content`` a grid item, and a grid item is not a flex container —
+    so that class did nothing and no page could hand the shell's height down
+    to its own content (issue #247).
+
+    The shell has no attribute and no setting for this. ``<c-page fill>``
+    marks itself ``.mvp-page-fill``, and one scoped rule in
+    ``mvp/tailwind/base.css`` gives the shell a flex column and a height floor
+    on those pages only. These tests cover the marker and the fact that the
+    shell's own markup is unchanged; ``tests/test_full_page_fill_e2e.py``
+    measures what the rule computes to, at both viewports, which is the
+    part that actually matters and that only a browser can check.
+    """
+
+    @pytest.mark.django_db
+    def test_the_shell_markup_is_unchanged(self, client):
+        """No class is added or removed anywhere in the shell — the whole
+        change lives in a stylesheet rule keyed off the page."""
+        content = client.get("/").content.decode()
+        assert _drawer_content_classes(content) == ["drawer-content"]
+
+    def test_page_fill_marks_itself_for_the_shell(self):
+        """The marker is the entire mechanism: <c-page> renders inside the
+        content block, long after the shell, so a rule keyed off the page is
+        the only way the shell can respond to it at all."""
+        html = _render("tests/page_fill.html")
+        assert "mvp-page-fill" in html
+        assert "h-full" in html
+
+    @pytest.mark.django_db
+    def test_an_ordinary_page_carries_no_marker(self, client):
+        content = client.get("/").content.decode()
+        assert "mvp-page-fill" not in content
+
+    def test_fill_drops_the_bottom_margin(self):
+        """`mb-16` under a page that is exactly as tall as the space it was
+        given is 4rem of overflow."""
+        html = _render("tests/page_fill.html")
+        page_div = html[html.index("mvp-page-fill") - 200 : html.index("mvp-page-fill")]
+        assert "mb-16" not in page_div
+
+
+# ---------------------------------------------------------------------------
 # Sidebar htmx boost (issue #188)
 # ---------------------------------------------------------------------------
 

@@ -1,5 +1,14 @@
 <c-vars fluid fill gap="6" class />
-<div class="flex flex-col mb-16 gap-{{ gap }} {% if fill %}h-full{% elif fluid %}w-full px-4{% else %} mx-auto {% endif %} {{ class }}"
+{% comment %}
+  `fill` marks the page as one that wants the shell's height rather than its
+  content's. `mvp-page-fill` is what the shell keys off (see the rule in
+  mvp/tailwind/base.css) — the shell cannot otherwise know, because this
+  component renders inside the content block, long after the shell around it.
+
+  It also drops `mb-16`: a bottom margin under a page that is already exactly
+  as tall as the space it was given is 4rem of overflow.
+{% endcomment %}
+<div class="flex flex-col gap-{{ gap }} {% if fill %}mvp-page-fill h-full{% else %}mb-16 {% if fluid %}w-full px-4{% else %} mx-auto {% endif %}{% endif %} {{ class }}"
      {{ attrs }}>
   {{ slot }}
 </div>

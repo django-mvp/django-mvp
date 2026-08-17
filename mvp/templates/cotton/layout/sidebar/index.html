@@ -50,5 +50,10 @@
            class="drawer-overlay"></label>
     {{ sidebar }}
   </div>
+  {% comment %}
+    Laid out as a flex column only on a page carrying <c-page fill>; see the
+    .mvp-page-fill rule in mvp/tailwind/base.css. Every other page renders
+    byte-identically to before (issue #247).
+  {% endcomment %}
   <div class="drawer-content">{{ slot }}</div>
 </div>

@@ -160,6 +160,13 @@ layout_demo = DemoTemplateView.as_view(
 theme_customization_demo = DemoTemplateView.as_view(
     template_name="theme_customization.html", page_title="Theme Customization"
 )
+# The full-page case from issue #247. Its template extends base.html directly
+# rather than page_view.html: the point of the page is that the content owns
+# the whole shell, so the standard breadcrumb/title chrome would work against
+# what is being demonstrated.
+full_page_map_demo = DemoTemplateView.as_view(
+    template_name="full_page_map.html", page_title="Full-page map"
+)
 E400 = DemoTemplateView.as_view(template_name="400.html")
 E403 = DemoTemplateView.as_view(template_name="403.html")
 E404 = DemoTemplateView.as_view(template_name="404.html")
