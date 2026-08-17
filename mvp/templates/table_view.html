@@ -40,12 +40,20 @@
   Padding sits on the bars, never on the page. The table is meant to reach the
   edges of the space the shell gives it: its scrollbar hugs the shell edge and
   its rows use the full width. Padding on <c-page fill> would inset the scroll
-  region along with everything else.
+  region along with everything else. <c-page.content> runs at gap="0" for the
+  same reason — a gap is space the bars do not control, and the table should
+  meet them rather than float between them. The bars own their own spacing.
+
+  app.footer is emptied. The shell's footer belongs to a page that ends; this
+  one does not — the viewport is fully spent on the table, and a footer under
+  it either steals rows or never comes into view. It is blanked here rather
+  than turned off in config, so it stays a per-view decision.
 {% endcomment %}
+{% block app.footer %}{% endblock app.footer %}
 {% block content %}
   <c-page fill class="{{ page.class }}">
     {% block page.content-wrapper %}
-      <c-page.content>
+      <c-page.content gap="0">
         <div class="flex w-full px-4">
           {% block page.title %}
             <div class="page-title flex flex-col md:flex-row md:items-center md:justify-between gap-2 w-full">
@@ -75,7 +83,7 @@
         {% block page.content %}
           <c-addons.django-table :table="table" class="flex-1 min-h-0" />
         {% endblock page.content %}
-        <div class="flex w-full px-4">
+        <div class="flex w-full px-4 py-4">
           {% block page.footer %}
             {% if page_obj %}
               <div class="flex flex-wrap items-center justify-between gap-2 w-full">

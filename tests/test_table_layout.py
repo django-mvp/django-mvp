@@ -197,6 +197,38 @@ class TestTableViewTemplate:
         assert not any("px-4" in a.get("class", []) for a in region.parents)
 
     @pytest.mark.django_db
+    def test_the_content_column_adds_no_gap_of_its_own(self, rf, product):
+        """A gap between the bars and the table is space neither controls.
+        The bars carry their own spacing, so the column runs at zero and the
+        table meets them."""
+        soup = _beautiful_soup()(_render_table_view(rf), "html.parser")
+        region = soup.find(attrs={"role": "region"})
+        content = region.parent
+        assert "gap-0" in content.get("class", [])
+        assert not any(
+            c.startswith("gap-") and c != "gap-0" for c in content.get("class", [])
+        )
+
+    @pytest.mark.django_db
+    def test_the_pagination_bar_is_padded_vertically(self, rf, product):
+        """px-4 alone leaves the count and the pagination controls sitting
+        hard against the table above them and the shell edge below."""
+        soup = _beautiful_soup()(_render_table_view(rf), "html.parser")
+        bar = soup.find(class_="mvp-page-fill").find_all("div", recursive=True)
+        footer_bar = [d for d in bar if "py-4" in d.get("class", [])]
+        assert footer_bar, "the pagination bar carries no vertical padding"
+        assert "Showing" in footer_bar[-1].get_text()
+
+    @pytest.mark.django_db
+    def test_the_app_footer_is_empty_on_a_table_view(self, rf, product):
+        """The shell's footer belongs to a page that ends. This one does not:
+        the viewport is fully spent on the table, so a footer under it either
+        steals rows or never comes into view."""
+        html = _render_table_view(rf)
+        soup = _beautiful_soup()(html, "html.parser")
+        assert soup.find("footer") is None
+
+    @pytest.mark.django_db
     def test_the_breadcrumb_trail_ends_in_the_heading(self, rf, product):
         """The trail and the heading said the same word on two rows. The last
         crumb is the heading now — one row, and still exactly one <h1>, which
