@@ -103,7 +103,9 @@ def table_cell_attrs(column, cell="td"):
     attrs = column.attrs[cell]
     classes = (attrs.get("class") or "").split()
     if "mvp-col-wrap" not in classes and "mvp-col-nowrap" not in classes:
-        classes.append("mvp-col-wrap" if MVP_CONFIG["table"]["wrap"] else "mvp-col-nowrap")
+        classes.append(
+            "mvp-col-wrap" if MVP_CONFIG["table"]["wrap"] else "mvp-col-nowrap"
+        )
         attrs["class"] = " ".join(classes)
     return attrs.as_html()
 
