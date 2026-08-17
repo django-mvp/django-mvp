@@ -16,7 +16,7 @@
 
       }
     </style>
-    <table {% render_attrs table.attrs class="table" %}>
+    <table {% render_attrs table.attrs class="table table-pin-rows" %}>
       {% block table.thead %}
         {% if table.show_header %}
           <thead {{ table.attrs.thead.as_html }}>
