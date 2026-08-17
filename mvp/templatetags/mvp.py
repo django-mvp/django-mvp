@@ -90,6 +90,25 @@ def sidebar_navbar_toggle_class(bp, collapse):
 
 
 @register.simple_tag
+def table_cell_attrs(column, cell="td"):
+    """Return a django-tables2 column's rendered cell attributes, with the
+    project's wrap default filled in when the column names neither
+    "mvp-col-wrap" nor "mvp-col-nowrap" of its own (issue #255).
+
+    Resolution order: the column's own class (already present in
+    ``column.attrs[cell]``), then ``MVP_CONFIG["table"]["wrap"]``, then the
+    package default (no wrap). The emitted class must stay in sync with the
+    behaviour classes safelisted in mvp/tailwind/base.css.
+    """
+    attrs = column.attrs[cell]
+    classes = (attrs.get("class") or "").split()
+    if "mvp-col-wrap" not in classes and "mvp-col-nowrap" not in classes:
+        classes.append("mvp-col-wrap" if MVP_CONFIG["table"]["wrap"] else "mvp-col-nowrap")
+        attrs["class"] = " ".join(classes)
+    return attrs.as_html()
+
+
+@register.simple_tag
 def avatar_url(user, size):
     """Returns the URL for a user's avatar image for a given size. Size is specified as "sm", "md", "lg", etc. The actual implementation is determined by the MVP_AVATAR_URL_FUNCTION setting, which should point to a function that accepts a user and size and returns a URL string.
 
