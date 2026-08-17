@@ -33,6 +33,31 @@ chrome) with django-tables2 rendering via the `table_view.html` base template an
 [`c-addons.django-table`](components.md#actions-user-misc) component.
 `MVPTableViewMixin` is available for composing with other view classes.
 
+### Inferred column alignment
+
+The shipped table template aligns a column by the kind of model field behind it, with
+nothing to declare:
+
+| Column holds | Alignment |
+|---|---|
+| Text (`CharField`, `TextField`, a date, a foreign key, …) | Leading (`text-start`) |
+| A number (`IntegerField`, `DecimalField`, `FloatField`) | Trailing (`text-end`) |
+| A boolean, or a column with no model field behind it that isn't orderable — an action column of buttons or links | Centred (`text-center`) |
+
+It declines rather than guesses: a table built over data that isn't a queryset has no
+model to resolve a field from, and a column whose accessor resolves to no field but
+*is* orderable is a plain unresolvable column, not an action column — its kind can't be
+determined either way. Both render with no alignment class imposed, exactly as they did
+before this inference existed.
+
+An explicit alignment class in a column's own `attrs` always wins:
+
+```python
+class ProductTable(tables.Table):
+    # Text by default, pinned to the right instead.
+    sku = tables.Column(attrs={"td": {"class": "text-end"}})
+```
+
 ## django-filter
 
 ```bash
