@@ -102,8 +102,15 @@ class TestTableViewTemplate:
 
     @pytest.mark.django_db
     def test_no_card_wraps_the_table(self, rf, product):
+        """No ancestor of the scroll container is a card. Checked by walking
+        ancestors rather than a blanket string search, because an action's
+        own modal (filter, create) legitimately uses card styling for its
+        dialog surface — that is not the table being wrapped in one."""
         html = _render_table_view(rf)
-        assert "card bg-base-100" not in html
+        soup = _beautiful_soup()(html, "html.parser")
+        region = soup.find(attrs={"role": "region"})
+        assert region is not None
+        assert not any("card" in a.get("class", []) for a in region.parents)
 
     @pytest.mark.django_db
     def test_action_bar_carries_the_page_title(self, rf, product):
@@ -187,3 +194,32 @@ class TestTableViewTemplate:
             assert marker in html
 
         assert 'role="region"' not in html, "the default table area is gone"
+
+
+class TestExistingViewsNeedNoChange:
+    """SC-008's only evidence: a table view and table class written against
+    the current integration, with no attribute added and nothing
+    subclassed, render the new layout. The only permitted edit anywhere in
+    this story is removing a declared ordering (see TestTableViewOrdering
+    in tests/test_integrations.py)."""
+
+    @pytest.mark.django_db
+    def test_the_demo_table_view_renders_the_new_layout_unmodified(
+        self, rf, product
+    ):
+        pytest.importorskip("django_tables2")
+        from demo.views import DataTablesView
+
+        view = DataTablesView()
+        view.setup(rf.get("/"))
+        response = view.get(view.request)
+        response.render()
+        html = response.content.decode()
+
+        assert "mvp-page-fill" in html
+        assert "table-pin-rows" in html
+
+        soup = _beautiful_soup()(html, "html.parser")
+        region = soup.find(attrs={"role": "region"})
+        assert region is not None
+        assert not any("card" in a.get("class", []) for a in region.parents)
