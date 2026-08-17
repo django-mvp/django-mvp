@@ -1,0 +1,169 @@
+"""The table area owns its own scrolling, in a real browser (issue #254).
+
+A rendered-HTML test can only assert which classes are on which element.
+The claim this feature makes is about *computed layout and scroll
+behaviour* — that the window never scrolls, that the heading and footer
+rows stay pinned against the scroll container as it scrolls, and that the
+pagination bar stays reachable without scrolling the window — and only a
+browser can settle that.
+
+Both viewports run, and that is the point rather than a detail, following
+tests/test_full_page_fill_e2e.py: at desktop widths the shell's height
+comes from `.drawer-side` sharing the sidebar's grid row, and below the
+sidebar breakpoint it comes from the `100dvh` floor instead, since
+`.drawer-side` is `position: fixed` there and contributes nothing
+(specs/027-table-layout-and-column-styling/research.md R5). A regression
+in either mechanism only shows up at the viewport that depends on it.
+"""
+
+import pytest
+
+from tests.conftest import requires_browser
+from tests.factories import ProductFactory
+
+pytestmark = [pytest.mark.e2e, requires_browser]
+
+TABLE_PAGE = "/django-tables2/"
+
+VIEWPORTS = {
+    "desktop": {"width": 1440, "height": 900},
+    "mobile": {"width": 390, "height": 844},
+}
+
+at_every_viewport = pytest.mark.parametrize(
+    "viewport", VIEWPORTS.values(), ids=list(VIEWPORTS)
+)
+
+# More than one page (paginate_by=25 on DataTablesView), so the page has
+# enough rows to overflow the table area at both viewports and pagination
+# has a second page to link to.
+PRODUCT_COUNT = 30
+
+
+def _scroll_and_measure(page, url, viewport):
+    """Load the table page, scroll its rows end to end, and report what the
+    browser computed."""
+    page.set_viewport_size(viewport)
+    page.goto(url)
+    return page.evaluate("""
+        () => {
+          const region = document.querySelector('[role="region"]');
+          const thead = region.querySelector('thead');
+          const tfoot = region.querySelector('tfoot');
+          const pagination = document.querySelector(
+            'nav[aria-label="Navigation page results"]'
+          );
+
+          const before = window.scrollY;
+          region.scrollTop = region.scrollHeight;
+
+          const regionRect = region.getBoundingClientRect();
+          const theadRect = thead.getBoundingClientRect();
+          const tfootRect = tfoot ? tfoot.getBoundingClientRect() : null;
+          const paginationRect = pagination
+            ? pagination.getBoundingClientRect()
+            : null;
+
+          return {
+            viewportHeight: window.innerHeight,
+            documentHeight: document.documentElement.scrollHeight,
+            scrollYBefore: before,
+            scrollYAfter: window.scrollY,
+            regionTop: Math.round(regionRect.top),
+            regionBottom: Math.round(regionRect.bottom),
+            theadTop: Math.round(theadRect.top),
+            theadBottom: Math.round(theadRect.bottom),
+            tfootTop: tfootRect ? Math.round(tfootRect.top) : null,
+            tfootBottom: tfootRect ? Math.round(tfootRect.bottom) : null,
+            paginationTop: paginationRect ? Math.round(paginationRect.top) : null,
+            paginationBottom: paginationRect
+              ? Math.round(paginationRect.bottom)
+              : null,
+          };
+        }
+    """)
+
+
+class TestTheTableAreaOwnsItsScrolling:
+    """FR-002, FR-003, FR-004, FR-005: the table area scrolls, the window
+    does not, and the heading/footer rows stay pinned against it."""
+
+    @pytest.mark.django_db
+    @at_every_viewport
+    def test_the_window_does_not_scroll(self, page, live_server, viewport):
+        ProductFactory.create_batch(PRODUCT_COUNT)
+        layout = _scroll_and_measure(
+            page, f"{live_server.url}{TABLE_PAGE}", viewport
+        )
+
+        assert layout["scrollYBefore"] == 0
+        assert layout["scrollYAfter"] == 0
+        assert layout["documentHeight"] == layout["viewportHeight"]
+
+    @pytest.mark.django_db
+    @at_every_viewport
+    def test_the_heading_row_stays_inside_the_table_area_after_scrolling(
+        self, page, live_server, viewport
+    ):
+        ProductFactory.create_batch(PRODUCT_COUNT)
+        layout = _scroll_and_measure(
+            page, f"{live_server.url}{TABLE_PAGE}", viewport
+        )
+
+        # Sticky to the container's own top, not merely "somewhere on
+        # screen" — a heading that scrolled off with the rows would still
+        # be "on screen" by a looser check right up until it wasn't.
+        assert layout["theadTop"] == layout["regionTop"]
+        assert layout["theadBottom"] <= layout["regionBottom"]
+
+    @pytest.mark.django_db
+    @at_every_viewport
+    def test_the_footer_row_stays_inside_the_table_area_after_scrolling(
+        self, page, live_server, viewport
+    ):
+        ProductFactory.create_batch(PRODUCT_COUNT)
+        layout = _scroll_and_measure(
+            page, f"{live_server.url}{TABLE_PAGE}", viewport
+        )
+
+        assert layout["tfootBottom"] is not None, (
+            "no footer rendered — this proves nothing"
+        )
+        assert layout["tfootBottom"] == layout["regionBottom"]
+        assert layout["tfootTop"] >= layout["regionTop"]
+
+    @pytest.mark.django_db
+    @at_every_viewport
+    def test_the_scrollbar_spans_the_full_height_of_the_table_area(
+        self, page, live_server, viewport
+    ):
+        """FR-005: the container is what scrolls, top to bottom — not a
+        separately-scrolling tbody starting below a static heading."""
+        ProductFactory.create_batch(PRODUCT_COUNT)
+        layout = _scroll_and_measure(
+            page, f"{live_server.url}{TABLE_PAGE}", viewport
+        )
+
+        assert layout["regionTop"] == layout["theadTop"]
+        assert layout["regionBottom"] == layout["tfootBottom"]
+
+
+class TestPaginationStaysReachable:
+    """FR-008: the pagination bar sits below the table area and is visible
+    without scrolling the window, whatever the row's scroll position."""
+
+    @pytest.mark.django_db
+    @at_every_viewport
+    def test_pagination_controls_are_visible_without_scrolling(
+        self, page, live_server, viewport
+    ):
+        ProductFactory.create_batch(PRODUCT_COUNT)
+        layout = _scroll_and_measure(
+            page, f"{live_server.url}{TABLE_PAGE}", viewport
+        )
+
+        assert layout["paginationTop"] is not None, (
+            "no pagination rendered — this proves nothing"
+        )
+        assert layout["paginationTop"] >= 0
+        assert layout["paginationBottom"] <= layout["viewportHeight"]
