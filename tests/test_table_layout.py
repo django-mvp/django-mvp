@@ -208,6 +208,87 @@ class TestTableViewTemplate:
         assert 'role="region"' not in html, "the default table area is gone"
 
 
+class TestColumnBehaviourClasses:
+    """A column's declared behaviour classes render on its cells, and the
+    project-wide wrap default (mvp.config.MVP_CONFIG['table']['wrap'])
+    fills in only for a column that names neither wrap class of its own —
+    a column-level class always wins (FR-012, FR-014, FR-015). Red before
+    T018."""
+
+    def _table(self):
+        pytest.importorskip("django_tables2")
+        import django_tables2 as tables
+
+        class BehaviourTable(tables.Table):
+            grow = tables.Column(attrs={"td": {"class": "mvp-col-grow"}})
+            shrink = tables.Column(attrs={"td": {"class": "mvp-col-shrink"}})
+            wrap = tables.Column(attrs={"td": {"class": "mvp-col-wrap"}})
+            nowrap = tables.Column(attrs={"td": {"class": "mvp-col-nowrap"}})
+            maxwidth = tables.Column(attrs={"td": {"class": "mvp-col-max-md"}})
+            plain = tables.Column()
+
+            class Meta:
+                template_name = "django_tables2/bootstrap5-mvp.html"
+
+        return BehaviourTable(
+            [
+                {
+                    "grow": "a",
+                    "shrink": "b",
+                    "wrap": "c",
+                    "nowrap": "d",
+                    "maxwidth": "e",
+                    "plain": "f",
+                }
+            ]
+        )
+
+    def _row_cells(self, cotton_render_string, table):
+        html = cotton_render_string(
+            "<c-addons.django-table :table='table' />", context={"table": table}
+        )
+        soup = _beautiful_soup()(html, "html.parser")
+        row = soup.find("tbody").find("tr")
+        return row.find_all("td")
+
+    def test_each_declared_behaviour_class_renders_on_its_cell(
+        self, cotton_render_string
+    ):
+        cells = self._row_cells(cotton_render_string, self._table())
+        assert "mvp-col-grow" in cells[0].get("class", [])
+        assert "mvp-col-shrink" in cells[1].get("class", [])
+        assert "mvp-col-wrap" in cells[2].get("class", [])
+        assert "mvp-col-nowrap" in cells[3].get("class", [])
+        assert "mvp-col-max-md" in cells[4].get("class", [])
+
+    def test_project_wrap_default_off_applies_to_a_column_declaring_neither_class(
+        self, cotton_render_string
+    ):
+        cells = self._row_cells(cotton_render_string, self._table())
+        assert "mvp-col-nowrap" in cells[5].get("class", [])
+        assert "mvp-col-wrap" not in cells[5].get("class", [])
+
+    def test_project_wrap_default_on_applies_to_a_column_declaring_neither_class(
+        self, cotton_render_string, monkeypatch
+    ):
+        from mvp.config import MVP_CONFIG
+
+        monkeypatch.setitem(MVP_CONFIG["table"], "wrap", True)
+        cells = self._row_cells(cotton_render_string, self._table())
+        assert "mvp-col-wrap" in cells[5].get("class", [])
+        assert "mvp-col-nowrap" not in cells[5].get("class", [])
+
+    def test_column_level_class_overrides_the_project_default(
+        self, cotton_render_string, monkeypatch
+    ):
+        from mvp.config import MVP_CONFIG
+
+        monkeypatch.setitem(MVP_CONFIG["table"], "wrap", True)
+        cells = self._row_cells(cotton_render_string, self._table())
+        assert "mvp-col-nowrap" in cells[3].get("class", [])
+        assert "mvp-col-wrap" not in cells[3].get("class", [])
+
+
 class TestExistingViewsNeedNoChange:
     """SC-008's only evidence: a table view and table class written against
     the current integration, with no attribute added and nothing
