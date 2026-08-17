@@ -8,9 +8,14 @@ chain this relies on, and R1/R6/R7 for the pinned-row and accessibility
 requirements this file tests.
 """
 
+import re
+from pathlib import Path
+
 import pytest
 
 from mvp.fixtures import _beautiful_soup
+
+REPO_ROOT = Path(__file__).resolve().parent.parent
 
 
 def _empty_product_table():
@@ -287,6 +292,34 @@ class TestColumnBehaviourClasses:
         cells = self._row_cells(cotton_render_string, self._table())
         assert "mvp-col-nowrap" in cells[3].get("class", [])
         assert "mvp-col-wrap" not in cells[3].get("class", [])
+
+
+class TestDocumentedClassesMatchShipped:
+    """Every column behaviour class docs/styling.md documents exists in the
+    built stylesheet, and every one the built stylesheet ships is documented
+    — checked in both directions (FR-016, SC-005). Red before T019."""
+
+    def _documented_classes(self):
+        text = (REPO_ROOT / "docs" / "styling.md").read_text()
+        return set(re.findall(r"`(mvp-col-[a-z0-9-]+)`", text))
+
+    def _shipped_classes(self):
+        text = (REPO_ROOT / "mvp" / "static" / "css" / "django-mvp.css").read_text()
+        return set(re.findall(r"\.(mvp-col-[a-z0-9-]+)\s*\{", text))
+
+    def test_shipped_set_is_not_empty(self):
+        """Sanity check on the extraction itself, independent of the docs."""
+        assert self._shipped_classes()
+
+    def test_every_shipped_class_is_documented(self):
+        shipped = self._shipped_classes()
+        documented = self._documented_classes()
+        assert shipped <= documented, f"undocumented: {shipped - documented}"
+
+    def test_every_documented_class_is_shipped(self):
+        shipped = self._shipped_classes()
+        documented = self._documented_classes()
+        assert documented <= shipped, f"documented but unshipped: {documented - shipped}"
 
 
 class TestExistingViewsNeedNoChange:
