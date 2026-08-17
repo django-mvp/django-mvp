@@ -11,46 +11,71 @@
 
   All six block names page_view.html declares are re-declared below, in
   positions that make sense for this layout, so a project overriding any of
-  them on a table view keeps working. page.header uses {{ block.super }} to
-  keep the default breadcrumbs; page.actions does not, because its default
-  (list_view.html's search/sort/filter/create) includes sort, which a table
-  view's own action set must not (FR-007) — see MVPTableViewMixin.actions.
+  them on a table view keeps working. page.actions does not use
+  {{ block.super }}, because its default (list_view.html's
+  search/sort/filter/create) includes sort, which a table view's own action
+  set must not (FR-007) — see MVPTableViewMixin.actions.
 
-  All three bars are plain flex rows rather than <c-toolbar>. A toolbar sizes
-  each of its slots to their content, which is right when it holds a heading
-  and a button group but wrong here: the bars have to span the table's full
-  width to put the actions and the pagination at the trailing edge.
-  page_view.html never puts <c-page.title> inside a toolbar either.
+  The breadcrumbs live inside the title bar rather than on a row of their own.
+  On a full-screen table the vertical budget is the whole point, and the trail
+  was spending a row to end in the same word as the heading below it. So the
+  trail carries the page's identity and its last crumb *is* the heading: the
+  <h1> moves into the final <li>, which keeps one heading per page rather than
+  trading accessibility for a row. page.header is the block that renders it.
 
-  The breadcrumb row is a plain row for a second reason. <c-toolbar> renders
-  {{ actions }} in its trailing slot, and a Cotton slot falls through to the
-  context variable of the same name when the caller fills no slot — so any
-  page whose context carries an `actions` key prints its repr there. The
-  context key is `table_actions` now, but the bare row keeps the trap shut
-  whatever a project puts in its own context.
+  Written out here rather than as a component. It is markup for one view, which
+  is the case Article XI exempts, and one caller does not justify the
+  abstraction Article III warns about. If a second view ever wants this bar, it
+  becomes a component then.
+
+  The bars are plain flex rows rather than <c-toolbar>, for two reasons. A
+  toolbar sizes each slot to its content, but these bars have to span the
+  table's full width to put the actions and the pagination at the trailing
+  edge. And a toolbar renders {{ actions }} in its trailing slot, where a
+  Cotton slot falls through to the context variable of the same name when the
+  caller fills no slot — so any page whose context carries an `actions` key
+  prints its repr there. The context key is `table_actions` now, but a bare row
+  keeps the trap shut whatever a project puts in its own context.
+
+  Padding sits on the bars, never on the page. The table is meant to reach the
+  edges of the space the shell gives it: its scrollbar hugs the shell edge and
+  its rows use the full width. Padding on <c-page fill> would inset the scroll
+  region along with everything else.
 {% endcomment %}
 {% block content %}
-  <c-page fill class="px-4 {{ page.class }}">
-    <div class="flex w-full">
-      {% block page.header %}{{ block.super }}{% endblock page.header %}
-    </div>
+  <c-page fill class="{{ page.class }}">
     {% block page.content-wrapper %}
       <c-page.content>
-        <div class="flex w-full">
+        <div class="flex w-full px-4">
           {% block page.title %}
-            <c-page.title :attrs="page">
-              <c-slot name="actions">
+            <div class="page-title flex flex-col md:flex-row md:items-center md:justify-between gap-2 w-full">
+              <div class="flex flex-col gap-1">
+                {% block page.header %}
+                  <c-breadcrumbs>
+                    {% for crumb in page.breadcrumbs|slice:":-1" %}
+                      <c-breadcrumbs.item :attrs="crumb" />
+                    {% endfor %}
+                    <c-breadcrumbs.item>
+                      <h1 class="text-2xl font-bold leading-tight">{{ page.title }}</h1>
+                    </c-breadcrumbs.item>
+                  </c-breadcrumbs>
+                {% endblock page.header %}
+                {% if page.subtitle %}
+                  <p class="opacity-70 leading-relaxed max-w-prose">{{ page.subtitle }}</p>
+                {% endif %}
+              </div>
+              <div class="flex flex-wrap md:flex-nowrap gap-2 md:gap-1 md:justify-end md:items-center">
                 {% block page.actions %}
                   <c-page.list.actions :actions="table_actions" />
                 {% endblock page.actions %}
-              </c-slot>
-            </c-page.title>
+              </div>
+            </div>
           {% endblock page.title %}
         </div>
         {% block page.content %}
           <c-addons.django-table :table="table" class="flex-1 min-h-0" />
         {% endblock page.content %}
-        <div class="flex w-full">
+        <div class="flex w-full px-4">
           {% block page.footer %}
             {% if page_obj %}
               <div class="flex flex-wrap items-center justify-between gap-2 w-full">

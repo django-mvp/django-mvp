@@ -212,6 +212,7 @@ class TestTheBarsSpanTheTable:
               const title = document.querySelector('.page-title');
               return {
                 region: w(region),
+                bar: w(title.parentElement),
                 title: w(title),
                 actions: w(title.lastElementChild),
                 actionsRight: Math.round(
@@ -223,8 +224,18 @@ class TestTheBarsSpanTheTable:
         """)
 
         assert widths["region"] > 0
-        assert widths["title"] == widths["region"], (
-            "the title bar is narrower than the table it sits over"
+        # The bar spans the table. Its *content* is inset by the bar's own
+        # padding, which the table deliberately does not carry: the table
+        # reaches the edges of the space the shell gives it so its scrollbar
+        # hugs that edge (Sam, 2026-08-17 — padding belongs on the bars, not
+        # on the table). So the row is table-width and the content inside it
+        # is narrower, rather than the two being equal as they were before
+        # the bars gained padding.
+        assert widths["bar"] == widths["region"], (
+            "the bar is narrower than the table it sits over"
+        )
+        assert widths["title"] < widths["bar"], (
+            "the bar's content is not inset — the padding is missing"
         )
         # And the actions really are at the trailing edge of that bar, not
         # merely inside a bar that happens to be wide.

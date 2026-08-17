@@ -176,14 +176,53 @@ class TestTableViewTemplate:
         assert "&#39;search&#39;" not in html
 
     @pytest.mark.django_db
-    def test_the_layout_has_horizontal_padding(self, rf, product):
+    def test_the_bars_are_padded_and_the_table_is_not(self, rf, product):
         """table_view.html bypasses <c-container>, which is where every other
-        page gets its px-4. Without this the breadcrumbs, heading, table and
-        pagination all sit flush against the shell edge."""
+        page picks up its px-4, so the bars have to carry it themselves. The
+        table must not: it reaches the edges of the space the shell gives it,
+        so its scrollbar hugs the shell edge and its rows use the full width.
+        Padding on the page would inset the scroll region along with the
+        bars, which is the thing this asserts against."""
         soup = _beautiful_soup()(_render_table_view(rf), "html.parser")
+
         page = soup.find(class_="mvp-page-fill")
         assert page is not None
-        assert "px-4" in page.get("class", [])
+        assert "px-4" not in page.get("class", [])
+
+        title_bar = soup.find(class_="page-title").parent
+        assert "px-4" in title_bar.get("class", [])
+
+        region = soup.find(attrs={"role": "region"})
+        assert "px-4" not in region.get("class", [])
+        assert not any("px-4" in a.get("class", []) for a in region.parents)
+
+    @pytest.mark.django_db
+    def test_the_breadcrumb_trail_ends_in_the_heading(self, rf, product):
+        """The trail and the heading said the same word on two rows. The last
+        crumb is the heading now — one row, and still exactly one <h1>, which
+        is the part that would have been quietly traded away by dropping the
+        heading instead."""
+        soup = _beautiful_soup()(_render_table_view(rf), "html.parser")
+        trail = soup.find("nav", class_="breadcrumbs")
+        assert trail is not None
+
+        headings = soup.find_all("h1")
+        assert len(headings) == 1
+        assert "Products" in headings[0].get_text()
+        assert headings[0].find_parent("nav", class_="breadcrumbs") is trail
+
+        crumbs = trail.find_all("li")
+        assert len(crumbs) >= 2, "the parent crumbs must survive the fold"
+        assert crumbs[-1].find("h1") is not None
+        assert "Home" in crumbs[0].get_text()
+
+    @pytest.mark.django_db
+    def test_the_trail_is_the_only_row_above_the_table(self, rf, product):
+        """One bar, not two. Asserted structurally rather than by counting
+        pixels: the breadcrumbs sit inside the title bar."""
+        soup = _beautiful_soup()(_render_table_view(rf), "html.parser")
+        bar = soup.find(class_="page-title")
+        assert bar.find("nav", class_="breadcrumbs") is not None
 
     @pytest.mark.django_db
     def test_the_bars_span_the_table_width(self, rf, product):
