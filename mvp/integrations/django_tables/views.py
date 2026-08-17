@@ -45,7 +45,13 @@ class MVPTableViewMixin(MVPListViewMixin, SingleTableMixin):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["actions"] = self.actions
+        # Deliberately not `actions`. Both <c-toolbar> and <c-page.title> expose a
+        # slot of that name, and a Cotton slot falls through to the context
+        # variable when the caller passes no slot — so a context key called
+        # `actions` renders its own repr into every toolbar on the page that
+        # does not fill the slot. That is what put "['search', 'filter',
+        # 'create']" next to the breadcrumbs.
+        context["table_actions"] = self.actions
         return context
 
 

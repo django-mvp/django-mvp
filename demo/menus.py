@@ -159,21 +159,30 @@ AppMenu.extend(
                 "label": "Integrations",
             },
             children=[
-                MenuItem(
+                MenuCollapse(
                     name="django-tables-2",
-                    view_name="djangotables2",
                     extra_context={
                         "label": "Django Tables 2",
                         "icon": "table",
                     },
-                ),
-                MenuItem(
-                    name="table-column-behaviour",
-                    view_name="table-column-behaviour",
-                    extra_context={
-                        "label": "Column Behaviour",
-                        "icon": "table",
-                    },
+                    children=[
+                        MenuItem(
+                            name="django-tables-2-table",
+                            view_name="djangotables2",
+                            extra_context={
+                                "label": "Full-page Table",
+                                "icon": "table",
+                            },
+                        ),
+                        MenuItem(
+                            name="table-column-behaviour",
+                            view_name="table-column-behaviour",
+                            extra_context={
+                                "label": "Column Behaviour",
+                                "icon": "table",
+                            },
+                        ),
+                    ],
                 ),
             ],
         ),

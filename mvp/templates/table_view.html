@@ -16,18 +16,24 @@
   (list_view.html's search/sort/filter/create) includes sort, which a table
   view's own action set must not (FR-007) — see MVPTableViewMixin.actions.
 
-  The title and footer bars are plain flex rows rather than <c-toolbar>.
-  A toolbar sizes each of its slots to their content, which is right when it
-  holds a heading and a button group but wrong here: both bars have to span
-  the table's full width to put the actions and the pagination at the
-  trailing edge. page_view.html never puts <c-page.title> inside a toolbar
-  either.
+  All three bars are plain flex rows rather than <c-toolbar>. A toolbar sizes
+  each of its slots to their content, which is right when it holds a heading
+  and a button group but wrong here: the bars have to span the table's full
+  width to put the actions and the pagination at the trailing edge.
+  page_view.html never puts <c-page.title> inside a toolbar either.
+
+  The breadcrumb row is a plain row for a second reason. <c-toolbar> renders
+  {{ actions }} in its trailing slot, and a Cotton slot falls through to the
+  context variable of the same name when the caller fills no slot — so any
+  page whose context carries an `actions` key prints its repr there. The
+  context key is `table_actions` now, but the bare row keeps the trap shut
+  whatever a project puts in its own context.
 {% endcomment %}
 {% block content %}
-  <c-page fill class="{{ page.class }}">
-    <c-toolbar>
+  <c-page fill class="px-4 {{ page.class }}">
+    <div class="flex w-full">
       {% block page.header %}{{ block.super }}{% endblock page.header %}
-    </c-toolbar>
+    </div>
     {% block page.content-wrapper %}
       <c-page.content>
         <div class="flex w-full">
@@ -35,7 +41,7 @@
             <c-page.title :attrs="page">
               <c-slot name="actions">
                 {% block page.actions %}
-                  <c-page.list.actions :actions="actions" />
+                  <c-page.list.actions :actions="table_actions" />
                 {% endblock page.actions %}
               </c-slot>
             </c-page.title>

@@ -163,6 +163,29 @@ class TestTableViewTemplate:
         assert "Add" in actions.get_text()
 
     @pytest.mark.django_db
+    def test_no_action_list_leaks_into_the_page(self, rf, product):
+        """The view's action set is a Python list in the template context, and
+        <c-toolbar> renders {{ actions }} in its trailing slot. A Cotton slot
+        falls through to the context variable of the same name when the caller
+        fills no slot, so a context key called `actions` printed its own repr
+        beside the breadcrumbs. Assert on the rendered repr rather than on the
+        context key, so the test still bites if the key comes back."""
+        html = _render_table_view(rf)
+        assert "['search'" not in html
+        assert "&#x27;search&#x27;" not in html
+        assert "&#39;search&#39;" not in html
+
+    @pytest.mark.django_db
+    def test_the_layout_has_horizontal_padding(self, rf, product):
+        """table_view.html bypasses <c-container>, which is where every other
+        page gets its px-4. Without this the breadcrumbs, heading, table and
+        pagination all sit flush against the shell edge."""
+        soup = _beautiful_soup()(_render_table_view(rf), "html.parser")
+        page = soup.find(class_="mvp-page-fill")
+        assert page is not None
+        assert "px-4" in page.get("class", [])
+
+    @pytest.mark.django_db
     def test_the_bars_span_the_table_width(self, rf, product):
         """The title and pagination bars have to be full-width for their
         trailing halves to reach the trailing edge. A <c-toolbar> sizes each
