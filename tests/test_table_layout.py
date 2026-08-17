@@ -351,6 +351,123 @@ class TestColumnBehaviourDemoPage:
             assert klass in html
 
 
+class TestInferredAlignment:
+    """The shipped table template infers a column's alignment from its
+    model field kind: text leading, numeric trailing, boolean and action
+    columns centred. The heading carries the same class as its cells, an
+    explicit alignment class in a column's attrs wins, and a table over
+    non-queryset data renders unchanged (FR-017-FR-021, issue #256). Red
+    before T025."""
+
+    def _table_class(self):
+        pytest.importorskip("django_tables2")
+        import django_tables2 as tables
+
+        from demo.models import Product
+
+        class AlignmentTable(tables.Table):
+            action = tables.Column(orderable=False, empty_values=())
+            # IntegerField would normally infer "text-end" -- pinned here to
+            # prove the column's own declared class wins over the inference.
+            stock = tables.Column(attrs={"td": {"class": "text-start"}})
+
+            class Meta:
+                model = Product
+                template_name = "django_tables2/bootstrap5-mvp.html"
+                fields = ("name", "price", "is_featured", "stock")
+
+        return AlignmentTable
+
+    def _table(self):
+        from demo.models import Product
+
+        return self._table_class()(Product.objects.all())
+
+    def _render(self, cotton_render_string, table):
+        html = cotton_render_string(
+            "<c-addons.django-table :table='table' />", context={"table": table}
+        )
+        return _beautiful_soup()(html, "html.parser")
+
+    def _cells_by_column(self, soup, table):
+        names = list(table.columns.names())
+        row = soup.find("tbody").find("tr")
+        return dict(zip(names, row.find_all("td")))
+
+    def _heads_by_column(self, soup, table):
+        names = list(table.columns.names())
+        head_row = soup.find("thead").find("tr")
+        return dict(zip(names, head_row.find_all("th")))
+
+    @pytest.mark.django_db
+    def test_text_column_cells_are_leading(self, cotton_render_string, product):
+        table = self._table()
+        soup = self._render(cotton_render_string, table)
+        cells = self._cells_by_column(soup, table)
+        assert "text-start" in cells["name"].get("class", [])
+
+    @pytest.mark.django_db
+    def test_numeric_column_cells_are_trailing(self, cotton_render_string, product):
+        table = self._table()
+        soup = self._render(cotton_render_string, table)
+        cells = self._cells_by_column(soup, table)
+        assert "text-end" in cells["price"].get("class", [])
+
+    @pytest.mark.django_db
+    def test_boolean_column_cells_are_centred(self, cotton_render_string, product):
+        table = self._table()
+        soup = self._render(cotton_render_string, table)
+        cells = self._cells_by_column(soup, table)
+        assert "text-center" in cells["is_featured"].get("class", [])
+
+    @pytest.mark.django_db
+    def test_action_column_cells_are_centred(self, cotton_render_string, product):
+        table = self._table()
+        soup = self._render(cotton_render_string, table)
+        cells = self._cells_by_column(soup, table)
+        assert "text-center" in cells["action"].get("class", [])
+
+    @pytest.mark.django_db
+    def test_heading_carries_the_same_alignment_as_its_cells(
+        self, cotton_render_string, product
+    ):
+        table = self._table()
+        soup = self._render(cotton_render_string, table)
+        heads = self._heads_by_column(soup, table)
+        assert "text-end" in heads["price"].get("class", [])
+
+    @pytest.mark.django_db
+    def test_explicit_column_class_wins_over_the_inferred_one(
+        self, cotton_render_string, product
+    ):
+        table = self._table()
+        soup = self._render(cotton_render_string, table)
+        cells = self._cells_by_column(soup, table)
+        assert "text-start" in cells["stock"].get("class", [])
+        assert "text-end" not in cells["stock"].get("class", [])
+
+    def test_table_over_non_model_data_renders_unchanged(self, cotton_render_string):
+        table_class = self._table_class()
+        table = table_class(
+            [
+                {
+                    "name": "a",
+                    "price": "1",
+                    "is_featured": True,
+                    "action": "x",
+                    "stock": "5",
+                }
+            ]
+        )
+        soup = self._render(cotton_render_string, table)
+        cells = self._cells_by_column(soup, table)
+        alignment_classes = {"text-start", "text-center", "text-end"}
+        for name in ("name", "price", "is_featured", "action"):
+            assert not alignment_classes & set(cells[name].get("class", []))
+        # "stock" keeps its own declared class -- untouched either way.
+        assert "text-start" in cells["stock"].get("class", [])
+
+
 class TestExistingViewsNeedNoChange:
     """SC-008's only evidence: a table view and table class written against
     the current integration, with no attribute added and nothing
