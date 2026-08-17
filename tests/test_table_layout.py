@@ -140,7 +140,19 @@ class TestTableViewTemplate:
 
     @pytest.mark.django_db
     def test_a_table_with_no_footer_renders_no_footer_row(self, rf, product):
-        html = _render_table_view(rf)
+        import django_tables2 as tables
+
+        from demo.models import Product
+
+        class FooterlessProductTable(tables.Table):
+            name = tables.Column()
+
+            class Meta:
+                model = Product
+                template_name = "django_tables2/bootstrap5-mvp.html"
+                fields = ("name",)
+
+        html = _render_table_view(rf, table_class=FooterlessProductTable)
         assert "<tfoot" not in html
 
     @pytest.mark.django_db

@@ -9,7 +9,9 @@ from demo.models import Product
 class ProductTable(tables.Table):
     """Product table with Bootstrap 5 styling and ARIA compliance."""
 
-    name = tables.LinkColumn("product-update", args=[A("pk")])
+    # A static footer label, so the demo shows the footer row pinned to the
+    # bottom of the table area alongside the pinned heading (issue #254).
+    name = tables.LinkColumn("product-update", args=[A("pk")], footer="Total")
 
     # Column configurations with Bootstrap 5 alignment classes
     price = tables.Column(attrs={"td": {"class": "text-end"}})
