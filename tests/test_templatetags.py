@@ -312,6 +312,101 @@ class TestHeightForwarding:
 # -------------------------------------------------------------------------
 
 
+class TestColumnAlignment:
+    """``column_alignment_class`` infers a column's alignment from the kind
+    of model field behind it: leading for text, trailing for a numeric
+    field, centred for boolean, and centred for a column with no resolvable
+    field that is not orderable (an action column). Nothing at all when the
+    table's data has no model, or when a column is unresolvable but still
+    orderable — its kind cannot be determined (FR-017–FR-021, issue #256).
+    Red before T024.
+    """
+
+    def _table_class(self):
+        pytest.importorskip("django_tables2")
+        import django_tables2 as tables
+
+        from demo.models import Product
+
+        class AlignmentTable(tables.Table):
+            action = tables.Column(orderable=False, empty_values=())
+            undetermined = tables.Column(empty_values=())
+
+            class Meta:
+                model = Product
+                fields = ("name", "price", "stock", "rating", "is_featured")
+
+        return AlignmentTable
+
+    def _table(self):
+        """An AlignmentTable over an (empty) Product queryset, so
+        ``table.data.model`` resolves to Product."""
+        from demo.models import Product
+
+        return self._table_class()(Product.objects.none())
+
+    def _tag(self):
+        from mvp.templatetags.mvp import column_alignment_class
+
+        return column_alignment_class
+
+    @pytest.mark.django_db
+    def test_text_field_is_leading(self):
+        table = self._table()
+        assert self._tag()(table.columns["name"], table) == "text-start"
+
+    @pytest.mark.django_db
+    def test_integer_field_is_trailing(self):
+        table = self._table()
+        assert self._tag()(table.columns["stock"], table) == "text-end"
+
+    @pytest.mark.django_db
+    def test_decimal_field_is_trailing(self):
+        table = self._table()
+        assert self._tag()(table.columns["price"], table) == "text-end"
+
+    @pytest.mark.django_db
+    def test_float_field_is_trailing(self, monkeypatch):
+        """django-tables2 has no numeric column class of its own (research
+        R2) — the model field is what distinguishes a number from text, so
+        this drives the inference straight off a FloatField rather than
+        relying on one of Product's own fields, none of which is a float."""
+        from django.db import models
+
+        field = models.FloatField()
+        field.set_attributes_from_name("weight")
+        monkeypatch.setattr(
+            "django_tables2.utils.Accessor.get_field", lambda self, model: field
+        )
+        table = self._table()
+        assert self._tag()(table.columns["name"], table) == "text-end"
+
+    @pytest.mark.django_db
+    def test_boolean_field_is_centred(self):
+        table = self._table()
+        assert self._tag()(table.columns["is_featured"], table) == "text-center"
+
+    @pytest.mark.django_db
+    def test_unresolvable_non_orderable_column_is_centred(self):
+        """The action-column signal: no field behind it, and not orderable
+        (research R2) — what a buttons column looks like."""
+        table = self._table()
+        assert self._tag()(table.columns["action"], table) == "text-center"
+
+    @pytest.mark.django_db
+    def test_unresolvable_orderable_column_gets_no_alignment(self):
+        """No field behind it, but orderable — a plain unresolvable text
+        column, not an action column. Kind cannot be determined (FR-018)."""
+        table = self._table()
+        assert self._tag()(table.columns["undetermined"], table) == ""
+
+    def test_no_model_gets_no_alignment(self):
+        """A table over non-queryset data has no model to resolve a field
+        from (FR-018, FR-021)."""
+        table = self._table_class()([{"name": "a", "price": "1"}])
+        assert self._tag()(table.columns["name"], table) == ""
+
+
 class TestBrandLogoShellIntegration:
     """The shell templates wire the brand logo onto a rendered page."""
 
