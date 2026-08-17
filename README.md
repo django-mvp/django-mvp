@@ -265,6 +265,16 @@ theming, and the packaged Tailwind preset).
 Start at [docs/index.md](https://github.com/django-mvp/django-mvp/blob/main/docs/index.md): Getting Started · Layout · Components ·
 Navigation · Views · Styling · Integrations.
 
+### Building with an AI coding assistant
+
+[`skills/django-mvp/`](https://github.com/django-mvp/django-mvp/tree/main/skills/django-mvp)
+is a skill file written for coding agents. Point your assistant at it, or copy the directory
+into wherever it loads skills from. `SKILL.md` is a short map — the decisions to get right
+first, then a routing table into `references/`. Those files cover setup, configuration,
+layout, menus, icons, views, forms, components, styling, integrations and troubleshooting,
+one topic each. Keeping it current is a condition of merging, so it will not point you at an
+API that has moved.
+
 ## Requirements
 
 - Python 3.12+
