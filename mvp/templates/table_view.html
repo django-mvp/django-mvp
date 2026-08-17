@@ -1,20 +1,57 @@
 {% extends "list_view.html" %}
-{% load static %}
-{% load render_table from django_tables2 %}
-{% block page.header %}
-  <c-container fluid>
-    <c-breadcrumbs :items="page.breadcrumbs" class="py-2" />
-  </c-container>
-{% endblock page.header %}
-{% block page.content-wrapper %}
-  <c-page.content fluid>
-    <c-card tight>
-      {% block page.title %}
-        <c-toolbar />
-      {% endblock page.title %}
-      <div class="table-compact">
-        <c-addons.django-table min-height="65vh" class="table-compact" />
-      </div>
-    </c-card>
-  </c-page.content>
-{% endblock page.content-wrapper %}
+{% load i18n %}
+{% comment %}
+  Overrides the outer `content` block, not page.header/page.content-wrapper.
+  Those two sit inside page_view.html's <c-container>, a plain block div
+  between <c-page fill> and <c-page.content> that breaks the flex chain the
+  height depends on — from there the filled layout cannot be built at all
+  (specs/027-table-layout-and-column-styling/research.md R5). This view
+  writes its own markup instead: the container and the two toolbars are
+  bypassed, not reused.
+
+  The five block names are re-declared below, in positions that make sense
+  for this layout, so a project overriding any of them on a table view keeps
+  working. page.header uses {{ block.super }} to keep the default
+  breadcrumbs; page.actions does not, because its default (list_view.html's
+  search/sort/filter/create) includes sort, which a table view's own action
+  set must not (FR-007) — see MVPTableViewMixin.actions.
+{% endcomment %}
+{% block content %}
+  <c-page fill class="{{ page.class }}">
+    <c-toolbar>
+      {% block page.header %}{{ block.super }}{% endblock page.header %}
+    </c-toolbar>
+    <c-page.content>
+      <c-toolbar>
+        {% block page.title %}
+          <c-page.title :attrs="page">
+            <c-slot name="actions">
+              {% block page.actions %}
+                <c-page.list.actions :actions="actions" />
+              {% endblock page.actions %}
+            </c-slot>
+          </c-page.title>
+        {% endblock page.title %}
+      </c-toolbar>
+      {% block page.content %}
+        <c-addons.django-table :table="table" class="flex-1 min-h-0" />
+      {% endblock page.content %}
+      <c-toolbar bottom>
+        {% block page.footer %}
+          {% if page_obj %}
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <c-text size="sm">
+                {% with start=page_obj.start_index end=page_obj.end_index total=page_obj.paginator.count %}
+                  {% blocktrans with name_plural=model_info.verbose_name_plural %}
+                  Showing {{ start }}-{{ end }} of {{ total }} {{ name_plural }}
+                  {% endblocktrans %}
+                {% endwith %}
+              </c-text>
+              <c-pagination :page_obj="page_obj" />
+            </div>
+          {% endif %}
+        {% endblock page.footer %}
+      </c-toolbar>
+    </c-page.content>
+  </c-page>
+{% endblock content %}
