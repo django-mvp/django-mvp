@@ -41,11 +41,19 @@ def _layout(page, url, viewport):
     page.goto(url)
     return page.evaluate("""
         () => {
-          const height = sel => {
+          const box = sel => {
             const el = document.querySelector(sel);
-            return el ? Math.round(el.getBoundingClientRect().height) : null;
+            if (!el) return null;
+            const rect = el.getBoundingClientRect();
+            return {
+              top: Math.round(rect.top),
+              bottom: Math.round(rect.bottom),
+              height: Math.round(rect.height),
+            };
           };
+          const height = sel => (box(sel) || {}).height ?? null;
           const style = getComputedStyle(document.querySelector('.drawer-content'));
+          const dock = document.querySelector('.dock');
           return {
             viewport: window.innerHeight,
             documentHeight: document.documentElement.scrollHeight,
@@ -55,6 +63,13 @@ def _layout(page, url, viewport):
             drawerContentHeight: height('.drawer-content'),
             mainHeight: height('main'),
             mapHeight: height('#map'),
+            map: box('#map'),
+            dock: box('.dock'),
+            dockPosition: dock ? getComputedStyle(dock).position : null,
+            // Not offsetParent: that is null for any position:fixed element,
+            // so it reports the fixed dock we are comparing against as absent.
+            dockIsVisible: dock ? dock.checkVisibility() : false,
+            footerCount: document.querySelectorAll('footer').length,
           };
         }
     """)
@@ -116,6 +131,66 @@ class TestFullPageContentFillsTheShell:
         layout = _layout(page, f"{live_server.url}{FILL_PAGE}", viewport)
 
         assert layout["documentHeight"] == layout["viewport"]
+
+
+class TestTheDockJoinsTheColumn:
+    """The mobile dock cannot stay fixed over a page that does not scroll.
+
+    DaisyUI docks are ``position: fixed`` at the bottom of the viewport. That
+    is fine on an ordinary page — the content scrolls underneath and its last
+    inch is reachable — but a filled page does not scroll, so a fixed dock
+    permanently covers the bottom 4rem of the content. On the demo map that is
+    Leaflet's zoom controls and attribution.
+    """
+
+    def test_the_dock_is_in_the_flow(self, page, live_server):
+        layout = _layout(page, f"{live_server.url}{FILL_PAGE}", VIEWPORTS["mobile"])
+
+        assert layout["dockIsVisible"], "no dock rendered — this proves nothing"
+        assert layout["dockPosition"] == "relative"
+
+    def test_the_dock_does_not_cover_the_content(self, page, live_server):
+        layout = _layout(page, f"{live_server.url}{FILL_PAGE}", VIEWPORTS["mobile"])
+
+        overlap = layout["map"]["bottom"] - layout["dock"]["top"]
+        assert overlap <= 0, (
+            f"the dock covers the bottom {overlap}px of the map — content "
+            "under a fixed dock on a page that cannot scroll is unreachable"
+        )
+
+    def test_the_dock_still_reaches_the_bottom_of_the_viewport(
+        self, page, live_server
+    ):
+        """In the flow it must still sit at the bottom, not float mid-page."""
+        layout = _layout(page, f"{live_server.url}{FILL_PAGE}", VIEWPORTS["mobile"])
+
+        assert layout["dock"]["bottom"] == layout["viewport"]
+
+    def test_an_ordinary_page_keeps_its_fixed_dock(self, page, live_server):
+        """Everywhere else the dock is unchanged: those pages scroll, so fixed
+        is right and the rule must not reach them."""
+        layout = _layout(page, f"{live_server.url}{ORDINARY_PAGE}", VIEWPORTS["mobile"])
+
+        assert layout["dockIsVisible"]
+        assert layout["dockPosition"] == "fixed"
+
+
+class TestTheDemoPageDropsTheFooter:
+    """A page given over to one widget has nothing a footer can say, and every
+    row it takes is a row the map does not get."""
+
+    @at_every_viewport
+    def test_no_footer_renders(self, page, live_server, viewport):
+        layout = _layout(page, f"{live_server.url}{FILL_PAGE}", viewport)
+
+        assert layout["footerCount"] == 0
+
+    @at_every_viewport
+    def test_an_ordinary_page_still_has_one(self, page, live_server, viewport):
+        """The override is the demo page's, not the shell's."""
+        layout = _layout(page, f"{live_server.url}{ORDINARY_PAGE}", viewport)
+
+        assert layout["footerCount"] == 1
 
 
 class TestOrdinaryPagesAreUntouched:

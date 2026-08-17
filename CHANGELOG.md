@@ -16,9 +16,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   grid item, and a grid item is not a flex container — so the class did nothing,
   and a child asking for `h-full` computed to zero height. A page marked `fill`
   now gets a flex column and a `100dvh` floor on `.drawer-content`, which is what
-  the chain was missing. Pages without `fill` are untouched: the shell's markup is
-  unchanged and the rule is scoped so that it never applies to them. See
-  [Layout: Full-page content](docs/layout.md#full-page-content).
+  the chain was missing. The mobile dock joins the flow on such a page rather than
+  staying fixed over it, because a page that does not scroll leaves whatever sits
+  under a fixed dock permanently unreachable. Pages without `fill` are untouched:
+  the shell's markup is unchanged and the rule is scoped so that it never applies
+  to them. See [Layout: Full-page content](docs/layout.md#full-page-content).
 
 - **`{% block announcement %}` for a banner outside the app shell.** It sits
   before the sidebar/header/content grid, in normal document flow, so a

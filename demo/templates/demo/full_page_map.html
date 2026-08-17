@@ -25,6 +25,17 @@
           src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
           crossorigin="anonymous"></script>
 {% endblock head %}
+{% comment %}
+  A page given over entirely to one widget has nothing a footer can usefully
+  say, and every row it takes is a row the map does not get. Overriding the
+  block with nothing is how a project drops it.
+
+  The dock is deliberately left in place: navigation still has to work here.
+  On a filled page the shell moves it into the flow, so it sits below the map
+  rather than on top of it.
+{% endcomment %}
+{% block app.footer %}
+{% endblock app.footer %}
 {% block content %}
   <c-page fill>
     <c-page.content>

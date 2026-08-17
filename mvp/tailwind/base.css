@@ -206,6 +206,22 @@
   min-height: 100dvh;
 }
 
+/* The mobile dock joins the column instead of floating over it.
+   DaisyUI docks are `position: fixed` at the bottom of the viewport, which
+   works everywhere else because the page scrolls underneath and its last
+   inch is reachable by scrolling. A filled page does not scroll, so a fixed
+   dock permanently covers the bottom 4rem of the content — on the demo map
+   that is Leaflet's zoom controls and attribution, unreachable.
+
+   In the flow it is a flex item like the header and the footer, so
+   <c-app.main>'s flex-1 gets the height that is actually left over and the
+   content ends where the dock begins. `relative` rather than `static` so
+   anything a project positions absolutely inside a dock item still anchors
+   to it. */
+.drawer-content:has(.mvp-page-fill) .dock {
+  position: relative;
+}
+
 /* Icon-rail collapse mode (MVP_CONFIG layout.sidebar.collapse = "icons"):
    when the drawer is closed, the sidebar keeps its icons and hides labels,
    badges and section titles. Mark elements with .mvp-rail-hide to hide them

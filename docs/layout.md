@@ -352,6 +352,27 @@ to match it. Below the breakpoint the sidebar is an overlay drawer, positioned
 out of the document flow, and contributes no height at all. A page that relied on
 inheriting one worked on a desktop and rendered into nothing on a phone.
 
+The mobile dock moves into the flow on a filled page, so it sits below your
+content instead of over it. Everywhere else the dock is fixed to the bottom of
+the viewport, which works because the page scrolls underneath it and its last
+inch is still reachable. A filled page does not scroll, so a fixed dock would
+permanently cover the bottom 4rem — on the demo map, Leaflet's zoom controls and
+attribution. Nothing to configure: `fill` carries this too.
+
+### Dropping the footer
+
+A page given over to one widget often has nothing for a footer to say, and every
+row it takes is a row the content does not get. Override the block with nothing:
+
+```html
+{% block app.footer %}
+{% endblock %}
+```
+
+The demo map page does exactly this. Leave the dock alone unless navigation is
+genuinely unwanted on that page — it is the only navigation below the sidebar
+breakpoint.
+
 ## Overriding the layout per page
 
 `layout.sidebar.breakpoint` and `layout.sidebar.collapse` drive three regions that
