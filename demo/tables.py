@@ -50,7 +50,9 @@ class ProductTable(tables.Table):
 
 class ColumnBehaviourTable(tables.Table):
     """One column per behaviour class documented in docs/styling.md, against
-    data long enough to make each effect obvious (issue #255)."""
+    data long enough to make each effect obvious (issue #255). Also carries
+    a numeric, a boolean and an action column with no class of their own,
+    so the alignment they render with is the inferred one (issue #256)."""
 
     sku = tables.Column(attrs={"td": {"class": "mvp-col-shrink"}})
     name = tables.Column(attrs={"td": {"class": "mvp-col-grow mvp-col-nowrap"}})
@@ -59,9 +61,30 @@ class ColumnBehaviourTable(tables.Table):
         attrs={"td": {"class": "mvp-col-wrap mvp-col-max-md"}},
     )
     release_date = tables.Column(attrs={"td": {"class": "mvp-col-nowrap"}})
+    actions = tables.TemplateColumn(
+        template_code='<a href="{% url "product-update" record.pk %}">Edit</a>',
+        orderable=False,
+        verbose_name="",
+    )
 
     class Meta:
         model = Product
         template_name = "django_tables2/bootstrap5-mvp.html"
-        fields = ("sku", "name", "short_description", "release_date")
+        fields = (
+            "sku",
+            "name",
+            "short_description",
+            "price",
+            "is_featured",
+            "release_date",
+        )
+        sequence = (
+            "sku",
+            "name",
+            "short_description",
+            "price",
+            "is_featured",
+            "release_date",
+            "actions",
+        )
         empty_text = "No products available. Run 'poetry run python manage.py generate_dummy_data' to create sample data."

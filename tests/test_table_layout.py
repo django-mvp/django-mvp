@@ -350,6 +350,20 @@ class TestColumnBehaviourDemoPage:
         ):
             assert klass in html
 
+    @pytest.mark.django_db
+    def test_renders_inferred_alignment_on_undeclared_columns(self, client, product):
+        """The price, is_featured and actions columns declare no alignment
+        class of their own -- FR-017's numeric, boolean and action kinds
+        are inferred rather than set by hand (issue #256). Red before
+        T026."""
+        pytest.importorskip("django_tables2")
+        from django.urls import reverse
+
+        response = client.get(reverse("table-column-behaviour"))
+        html = response.content.decode()
+        for klass in ("text-end", "text-center"):
+            assert klass in html
+
 
 class TestInferredAlignment:
     """The shipped table template infers a column's alignment from its
