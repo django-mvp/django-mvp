@@ -102,6 +102,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **The skill file at `skills/django-mvp/` is now a map over focused references, and
+  is accurate again.** It had drifted a long way from the code: it promised that the
+  legacy `has_<action>_permission` flags were removed in 0.18 when they are still
+  honoured and still take precedence, it documented a `form_renderer` attribute that
+  has never existed, it described crispy-forms as an optional runtime-detected extra
+  rather than a hard dependency, it gave the pre-#176 flat `navbar.end` shape as the
+  current default, and it covered none of the formset, inline or table surface. It also
+  told readers that `{% block content %}` was the override point on pages that are
+  rendered by a view, where that block is already filled.
+  `SKILL.md` is now orientation, the decisions to get right first, a routing table and
+  a quickstart. The depth moved into eleven independently loadable files under
+  `references/`, one each for setup, configuration, layout, menus, icons, views, forms,
+  components, styling, integrations and troubleshooting. `references/menu-patterns.md`
+  is replaced by `references/menus.md`.
+  Keeping it current is now a condition of merging a change to the public surface,
+  recorded as Article XVIII of the project constitution.
+
 - **BREAKING: `<c-addons.django-table>` no longer takes `min_height`.** The component
   is now the scroll region of the full-screen layout and takes its height from the
   page, so a fixed minimum has nothing left to mean. An arbitrary height was never
