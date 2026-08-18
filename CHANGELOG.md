@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.19.0] - 2026-08-18
+
 ### Added
 
 - **Full-page content, with `fill` on `<c-page>`.** A full-bleed map, or any of
