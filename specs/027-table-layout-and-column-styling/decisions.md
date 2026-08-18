@@ -20,6 +20,9 @@ exactly that case. The alternative — leaving it as an unfocusable div — make
 unusable without a pointing device on two of three engines, which is not a defensible default for
 a package whose tables are the main surface of an application.
 
+**ADR:** docs/adr/0013-a-scrollable-region-is-focusable-and-named.md — graduated. The rule is about scrollable regions, not tables, and binds every one the package ships from here on.
+
+
 ## D2 — Maximum column width comes from named classes, never an author-supplied value
 
 **Unclear**: FR-012 asked for a way to cap a column's width without saying whether the author
@@ -40,6 +43,9 @@ states the number.
 
 The existing component's `min_height` attribute is the same pattern, interpolated into an inline
 `style`. It is removed rather than reproduced.
+
+**ADR:** docs/adr/0014-sizing-comes-from-named-classes-not-runtime-values.md — graduated. It constrains how any component accepts a dimension, and the build-scan reason is not something a reader would reconstruct.
+
 
 ## D3 — The component becomes the table area; the page template owns the bars
 
@@ -62,6 +68,9 @@ container that derives its height from its parent cannot also hold a fixed viewp
 floor; the two sizing rules contradict each other, and the floor is the one that existed only to
 work around the absence of the parent height.
 
+**ADR:** none — local to this feature. Where the seam between one component and one page template falls binds nothing downstream, and the template comment carries the reasoning for whoever edits it next.
+
+
 ## D4 — A wide table on a small screen scrolls sideways
 
 **Unclear**: FR-011 required the layout to hold at phone widths without saying what a table too
@@ -77,6 +86,9 @@ survive, what the card looks like, how sorting works when there are no headings)
 already answers "show this data as cards on a phone" with the list view. Shipping a half-considered
 transform inside this feature would be the wrong abstraction Article III warns about.
 
+**ADR:** none — a scope boundary, not an architectural decision. It records what this feature declined to build; a future responsive-table feature answers the question on its own terms rather than inheriting this.
+
+
 ## D5 — Declaring an ordering on a table view is an error, not a no-op
 
 **Unclear**: the intake said the view class should not allow ordering to be declared. Silently
@@ -90,6 +102,9 @@ rows in a different order, and has no way to discover why — the declaration si
 class looking correct. That is the same shape as a setting that is read, stored and never
 consulted, which is a recurring source of lost time in Django projects. An error at the point of
 declaration costs one clear message and cannot be misread.
+
+**ADR:** none — one class's behaviour, not yet a package stance. The general form (a mixin refuses configuration it cannot honour rather than ignoring it) would be worth an ADR, but one instance does not establish it. Graduate when a second mixin needs the same rule.
+
 
 ## D6 — Alignment inference reads the model field, not the column class
 
@@ -109,3 +124,42 @@ FR-021's promise that a table the template cannot read renders exactly as it doe
 Registering the package's own column classes so they win the dispatch was considered and rejected
 at intake: it would make correct alignment depend on the author importing something, which is the
 opposite of the requirement.
+
+**ADR:** none — an implementation route forced by the library, not a choice this package gets to make. The rejected alternative is recorded above and the tag's docstring carries the reason.
+
+## D7 — A filled page is bounded, not merely at least as tall as the viewport
+
+**Unclear**: nothing was unclear at planning time. This decision was forced during implementation,
+when the browser evidence for US-1 came back red.
+
+**Chosen**: the filled-page rule shipped with #247 states a `height` ceiling as well as its
+`min-height` floor, and the two rungs between the shell and the page content release their
+automatic minimum height so the bound propagates. Filled pages clip and hand scrolling to their
+content.
+
+**Why**: a floor only guarantees the page is *at least* viewport-tall. The mechanism's first
+consumer with overflowing content pushed the shell past it, and the window scrolled — the one
+behaviour a filled page exists to prevent. The map the mechanism was built for is never taller than
+it is told to be, so floor and ceiling agreed and the gap never showed.
+
+**ADR:** docs/adr/0015-a-filled-page-is-bounded-not-merely-at-least-as-tall.md — graduated. It
+changes a shared mechanism's behaviour for every filled page in every consuming project.
+
+## D8 — A view's context key must not collide with a component slot name
+
+**Unclear**: nothing, until the rendered page showed `['search', 'filter', 'create']` beside the
+breadcrumbs.
+
+**Chosen**: the table view's context key is `table_actions`, and the breadcrumb row is a plain flex
+row rather than a `<c-toolbar>`.
+
+**Why**: a Cotton slot falls through to the context variable of the same name when the caller fills
+no slot. `<c-toolbar>` renders `{{ actions }}` in its trailing slot, so a context key called
+`actions` printed its own repr into every toolbar on the page that did not fill that slot. Renaming
+the key fixes this view; the bare row keeps it fixed whatever a project later puts in its own
+context.
+
+**ADR:** none — this is a library behaviour to document and guard, not a decision to record. The
+general case reaches every component slot name (`actions`, `slot`, `above`, `below`) and every view
+that adds context, so it belongs in the component documentation and a tracker issue rather than in
+an architecture record. Only this view is closed today; the wider sweep is filed separately.

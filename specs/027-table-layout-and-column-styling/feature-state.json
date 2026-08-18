@@ -3,7 +3,7 @@
   "feature": "027-table-layout-and-column-styling",
   "branch": "027-table-layout-and-column-styling",
   "repo": "django-mvp/django-mvp",
-  "state": "DESIGN_REVIEW",
+  "state": "MERGED",
   "state_history": [
     {
       "state": "SPECIFY",
@@ -24,6 +24,26 @@
     {
       "state": "DESIGN_REVIEW",
       "at": "2026-08-17T13:01:41Z"
+    },
+    {
+      "state": "IMPLEMENT",
+      "at": "2026-08-17T13:10:00Z"
+    },
+    {
+      "state": "CONVERGE",
+      "at": "2026-08-17T15:40:00Z"
+    },
+    {
+      "state": "REVIEW",
+      "at": "2026-08-17T16:00:00Z"
+    },
+    {
+      "state": "PR_READY",
+      "at": "2026-08-17T16:20:00Z"
+    },
+    {
+      "state": "MERGED",
+      "at": "2026-08-17T16:26:30Z"
     }
   ],
   "gates": {
@@ -38,20 +58,29 @@
       ]
     },
     "plan": {
-      "approved_by": null,
-      "at": null
+      "approved_by": "notified",
+      "at": "2026-08-17T13:07:00Z"
     },
     "merge": {
-      "approved_by": null,
-      "at": null
+      "approved_by": "SamuelJennings",
+      "at": "2026-08-17T16:26:20Z"
     },
     "design_review": {
-      "approved_by": null,
-      "at": null
+      "approved_by": "design-panel",
+      "at": "2026-08-17T13:07:00Z",
+      "self_resolved": [
+        "design review ran on the Sonnet tier rather than the orchestration tier; recorded in the retro"
+      ]
     },
     "review": {
-      "approved_by": null,
-      "at": null
+      "approved_by": "code-review",
+      "at": "2026-08-17T16:05:00Z",
+      "self_resolved": [
+        "six findings remedied in b8245fa",
+        "three maintainer findings remedied in 7862a49 (action-list leak, missing padding, sidebar grouping)",
+        "padding relocated to the bars and breadcrumbs folded into the title row in 8f96f8f",
+        "content gap zeroed, pagination bar padded, shell footer emptied in 55bf56f"
+      ]
     }
   },
   "stories": [
@@ -60,93 +89,224 @@
       "priority": "P1",
       "issue": 254,
       "worktree": null,
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
           "id": "T001",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "git show b1ec98a"
+            ],
+            "verified_by_ci": true
+          }
         },
         {
           "id": "T002",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "git show b1ec98a"
+            ],
+            "verified_by_ci": true
+          }
         },
         {
           "id": "T003",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "git show b1ec98a"
+            ],
+            "verified_by_ci": true
+          }
         },
         {
           "id": "T004",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "git show bfd1ed9"
+            ],
+            "verified_by_ci": true,
+            "tests": [
+              "tests/test_table_layout.py"
+            ]
+          }
         },
         {
           "id": "T005",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "git show 0a1929a"
+            ],
+            "verified_by_ci": true,
+            "tests": [
+              "tests/test_table_layout.py"
+            ]
+          }
         },
         {
           "id": "T006",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "git show 8173f67"
+            ],
+            "verified_by_ci": true,
+            "tests": [
+              "tests/test_integrations.py"
+            ]
+          }
         },
         {
           "id": "T007",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "git show 8173f67"
+            ],
+            "verified_by_ci": true,
+            "tests": [
+              "tests/test_integrations.py"
+            ]
+          }
         },
         {
           "id": "T008",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "git show bfd1ed9"
+            ],
+            "verified_by_ci": true
+          }
         },
         {
           "id": "T009",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "git show 0a1929a",
+              "git show 8f96f8f",
+              "git show 55bf56f"
+            ],
+            "verified_by_ci": true,
+            "tests": [
+              "tests/test_table_layout.py"
+            ]
+          }
         },
         {
           "id": "T010",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "git show 8173f67"
+            ],
+            "verified_by_ci": true,
+            "tests": [
+              "tests/test_integrations.py"
+            ]
+          }
         },
         {
           "id": "T011",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "git show 42f44b1"
+            ],
+            "verified_by_ci": true
+          }
         },
         {
           "id": "T012",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "git show 935a72b"
+            ],
+            "verified_by_ci": true
+          }
         },
         {
           "id": "T013",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "git show db1e98b"
+            ],
+            "verified_by_ci": true,
+            "tests": [
+              "tests/test_table_layout.py"
+            ]
+          }
         },
         {
           "id": "T014",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "git show 1348187",
+              "git show fa54fc6"
+            ],
+            "verified_by_ci": true,
+            "tests": [
+              "tests/test_table_layout_e2e.py"
+            ]
+          }
         },
         {
           "id": "T028",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "git show fca6d0b"
+            ],
+            "verified_by_ci": true
+          }
         },
         {
           "id": "T029",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "git show b8245fa",
+              "git show 7862a49",
+              "git show 55bf56f"
+            ],
+            "verified_by_ci": true
+          }
         },
         {
           "id": "T030",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "git show b1ec98a"
+            ],
+            "verified_by_ci": true
+          }
         }
       ]
     },
@@ -155,43 +315,102 @@
       "priority": "P2",
       "issue": 255,
       "worktree": null,
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
           "id": "T015",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "git show 31c5f9d"
+            ],
+            "verified_by_ci": true,
+            "tests": [
+              "tests/test_config.py"
+            ]
+          }
         },
         {
           "id": "T016",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "git show 5e32a40"
+            ],
+            "verified_by_ci": true,
+            "tests": [
+              "tests/test_table_layout.py"
+            ]
+          }
         },
         {
           "id": "T017",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "git show 4490554"
+            ],
+            "verified_by_ci": true,
+            "tests": [
+              "tests/test_config.py"
+            ]
+          }
         },
         {
           "id": "T018",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "git show 5cce65f",
+              "git show d5aed07"
+            ],
+            "verified_by_ci": true,
+            "tests": [
+              "tests/test_table_layout.py"
+            ]
+          }
         },
         {
           "id": "T019",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "git show 24475f7"
+            ],
+            "verified_by_ci": true
+          }
         },
         {
           "id": "T020",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "git show 9bf9c4a"
+            ],
+            "verified_by_ci": true,
+            "tests": [
+              "tests/test_table_layout.py"
+            ]
+          }
         },
         {
           "id": "T021",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "git show 1b15039",
+              "git show 4fd0822"
+            ],
+            "verified_by_ci": true
+          }
         }
       ]
     },
@@ -200,38 +419,86 @@
       "priority": "P3",
       "issue": 256,
       "worktree": null,
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
           "id": "T022",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "git show 0729a94"
+            ],
+            "verified_by_ci": true,
+            "tests": [
+              "tests/test_templatetags.py"
+            ]
+          }
         },
         {
           "id": "T023",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "git show 0ff77ba"
+            ],
+            "verified_by_ci": true,
+            "tests": [
+              "tests/test_table_layout.py"
+            ]
+          }
         },
         {
           "id": "T024",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "git show 17a1563"
+            ],
+            "verified_by_ci": true,
+            "tests": [
+              "tests/test_templatetags.py"
+            ]
+          }
         },
         {
           "id": "T025",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "git show 5ecbfb8"
+            ],
+            "verified_by_ci": true,
+            "tests": [
+              "tests/test_table_layout.py"
+            ]
+          }
         },
         {
           "id": "T026",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "git show 4a5ed3a"
+            ],
+            "verified_by_ci": true
+          }
         },
         {
           "id": "T027",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "git show 6f53a84"
+            ],
+            "verified_by_ci": true
+          }
         }
       ]
     }
@@ -256,7 +523,7 @@
   },
   "pr": {
     "number": 258,
-    "draft": true
+    "draft": false
   },
   "escalations": []
 }
