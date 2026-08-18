@@ -212,12 +212,46 @@ between minor versions, and every such change is recorded in the CHANGELOG. Defa
 stable across patch releases. Supported versions are the currently-supported Django releases and
 Python 3.12 or later; dropping either is a minor-version change with a CHANGELOG entry.
 
+### Article XVIII — The skill is part of the product
+
+`skills/django-mvp/` is a shipped interface, not a convenience copy of the documentation. It is
+the first thing a coding agent reads before writing anything against this package. A stale claim
+in it is a defect of the same class as a stale docstring, and it is fixed in the pull request that
+made it stale.
+
+**A change to the public surface updates the skill in the same pull request.** Public surface
+means a setting or an `MVP_CONFIG` key, a component or one of its attributes, a template block, a
+view class or any of its documented attributes and hooks, a management command, a template tag, an
+error handler, or what the shipped stylesheet covers. Adding, renaming, removing or changing the
+default of any of those leaves the work unfinished until the skill says so. This sits beside the
+README and CHANGELOG obligation in Article VI and is checked the same way, at review.
+
+**Structure is a table of contents over focused references.** `SKILL.md` carries orientation, the
+decisions a reader has to get right first, a routing table and a quickstart. Depth lives in
+`skills/django-mvp/references/`, one file per concern, each independently loadable. A reference
+does not link to another reference: a reader who must chain two loads to answer one question has
+been charged twice for it.
+
+**References are written to be cheap to read.** Every one of these files is loaded into a context
+window that has other work to do. Prefer a table to a paragraph, one worked example to three, and
+the shortest snippet that carries the idea.
+
+**Never document a promise.** The skill describes what the code does now, never what a roadmap
+item, a deprecation notice or a changelog entry says will happen. This rule exists because the
+skill spent two minor versions telling readers that the legacy `has_<action>_permission` flags had
+been removed, on the strength of a changelog entry announcing it. They had not been, and they are
+still honoured today. An announced change that was not carried out is documented as the behavior
+that ships.
+
+**The skill documents using the package.** Material about working *on* this repository belongs in
+`.github/skills/` instead.
+
 ## Quality bar
 
 Read at planning and at review; applies to every change.
 
 - Test coverage: **project ≥ 90%, patch ≥ 85%**, per `codecov.yml`. These are floors, not a ratchet toward 100%.
-- Every public API change updates README and CHANGELOG in the same pull request.
+- Every public API change updates README, CHANGELOG and `skills/django-mvp/` in the same pull request.
 - `ruff check`, `ruff format --check`, `mypy` and `deptry` pass.
 - The package builds and its metadata is valid, and the README renders on the package index.
 
@@ -235,4 +269,4 @@ that need ignore rules first. Do not cite it as an enforced standard until it ru
 
 ---
 
-**Version**: 4.1.0 | **Ratified**: 2026-01-05 | **Last Amended**: 2026-08-05
+**Version**: 4.2.0 | **Ratified**: 2026-01-05 | **Last Amended**: 2026-08-17
