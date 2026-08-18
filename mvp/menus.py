@@ -1,134 +1,128 @@
-"""Menu definitions for django-mvp application.
+"""The menus a project builds its navigation from.
 
-This module provides the core menu infrastructure for django-mvp's navigation system.
-It exports the main AppMenu instance and helper classes that developers use to
-define their application's site navigation menu structure.
+Navigation is a tree of ``MenuItem`` objects held in two singletons this module
+exports. A project imports them, appends its own items, and a renderer turns
+the tree into markup. The renderers live in :mod:`mvp.renderers` and are
+registered under ``FLEX_MENUS["renderers"]``.
 
-The menu system is built on django-flex-menus and provides:
-- Hierarchical menu structure with unlimited nesting
-- Active state detection and menu expansion
-- Icon and badge support via Bootstrap Icons
-- AdminLTE 4 compatible rendering
-- Multi-app menu composition
+- ``AppMenu`` — the sidebar tree. Ships empty.
+- ``MobileFooterMenu`` — the mobile dock. Ships with the sidebar toggle only.
 
-Example usage in your app's menus.py:
+Each item carries its display data in ``extra_context``: ``label`` and ``icon``
+are read by every renderer, ``badge`` by the sidebar templates, and ``toggle``
+by the dock. An item resolves its URL from ``view_name`` or ``url``, and an
+item whose URL will not resolve is dropped from the rendered menu, so a project
+adding an item is responsible for the URL name existing.
 
-    from mvp.menus import AppMenu, MenuGroup, MenuCollapse
+Example, in your app's ``menus.py``::
+
     from flex_menu import MenuItem
 
-    # Add single menu items
-    AppMenu.children.extend([
-        MenuItem(
-            name="dashboard",
-            view_name="yourapp:dashboard",
-            extra_context={"label": "Dashboard", "icon": "speedometer"}
-        ),
-    ])
+    from mvp.menus import AppMenu, MenuCollapse, MenuGroup
 
-    # Add menu sections with headers
-    MenuGroup(
-        name="section_header",
-        extra_context={"label": "ADMINISTRATION", "component_type": "menu.group"},
-        ,
-        children=[
-            MenuItem(name="users", view_name="admin:users"),
-            MenuItem(name="settings", view_name="admin:settings"),
+    AppMenu.extend(
+        [
+            MenuItem(
+                name="dashboard",
+                view_name="yourapp:dashboard",
+                extra_context={"label": "Dashboard", "icon": "speedometer"},
+            ),
+            MenuGroup(
+                name="administration",
+                extra_context={"label": "Administration"},
+                children=[
+                    MenuItem(name="users", view_name="admin:users"),
+                    MenuItem(name="settings", view_name="admin:settings"),
+                ],
+            ),
+            MenuCollapse(
+                name="reports",
+                extra_context={"label": "Reports", "icon": "chart-bar"},
+                children=[
+                    MenuItem(name="sales", view_name="reports:sales"),
+                ],
+            ),
         ]
     )
 
-    # Add collapsible menu groups
-    MenuCollapse(
-        name="reports",
-        extra_context={"label": "Reports", "icon": "chart-bar", "component_type": "menu.collapse"},
-        ,
-        children=[
-            MenuItem(name="sales", view_name="reports:sales"),
-        ]
-    )
+Import that module from your app config's ``ready()`` so the items are
+registered before the first request.
 
-Architecture:
-    - AppMenu: Root menu container (singleton instance)
-    - MenuGroup: Section headers that create visual groupings
-    - MenuCollapse: Expandable/collapsible menu sections
-    - MenuItem: Individual menu items (imported from django-flex-menus)
-
-Active State:
-    Menu items automatically detect and display active state based on:
-    - Current URL matching menu item URL
-    - Current view name matching menu item view_name
-    - Parent menus expand when children are active
-
-Rendering:
-    Menus are rendered using the custom AdminLTERenderer which provides:
-    - Bootstrap 5 compatible HTML structure
-    - AdminLTE 4 CSS classes and layout
-    - Cotton component integration
-    - Badge and icon rendering support
+An item marks itself active when the current URL or view name matches it, and
+a parent expands when one of its children is active.
 """
 
 from flex_menu import Menu, MenuItem
 
 
 class MenuGroup(MenuItem):
-    """MenuItem subclass for section headers with items below.
+    """A labelled section header with items beneath it.
 
-    Renders as a non-clickable section header (nav-header) followed by its children.
-    Used for grouping related menu items under a labeled section.
+    Renders as non-clickable text followed by its children, which is how a
+    long sidebar gets divided into named sections.
 
-    Example:
+    Example::
+
         MenuGroup(
             name="user_management",
-            extra_context={"label": "USER MANAGEMENT"},
+            extra_context={"label": "User management"},
             children=[
                 MenuItem(name="users", view_name="users:list"),
                 MenuItem(name="roles", view_name="roles:list"),
-            ]
+            ],
         )
     """
 
 
 class MenuCollapse(MenuItem):
-    """MenuItem subclass for expandable dropdown menus.
+    """A parent item that expands and collapses to reveal its children.
 
-    Renders as a clickable parent item that expands/collapses to show/hide children.
-    Includes chevron icon and AdminLTE treeview behavior.
+    Renders through the ``<details>``/``<summary>`` pair, so it needs no
+    JavaScript. Setting ``collapsible`` is the whole difference from a plain
+    parent item, and this class exists so a project never has to know that
+    key's name.
 
-    Example:
+    Example::
+
         MenuCollapse(
             name="reports",
             extra_context={"label": "Reports", "icon": "chart-bar"},
             children=[
                 MenuItem(name="sales", view_name="reports:sales"),
                 MenuItem(name="inventory", view_name="reports:inventory"),
-            ]
+            ],
         )
     """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Inject component_type into extra_context
-        if "extra_context" not in kwargs:
-            self.extra_context = {}
-        self.extra_context["collapsible"] = True
+        # A fresh dict rather than a write into the one that arrived: callers
+        # reuse context literals across items, and the flag belongs to this
+        # item alone.
+        self.extra_context = {**self.extra_context, "collapsible": True}
 
 
-# Global menu instance for application navigation
-# Initially empty - users extend by importing and adding MenuItem instances
+#: The sidebar navigation tree. Empty until a project extends it.
 AppMenu = Menu("AppMenu", children=[])
 
-# Mobile footer navigation menu — pre-populated with sidebar toggle item.
-# Developers may append additional MenuItem instances to this singleton.
-# Example:
-#     from mvp.menus import MobileFooterMenu
-#     MobileFooterMenu.children.append(MenuItem(name="home", ...))
+#: The mobile dock, shown below the small-screen breakpoint.
+#:
+#: Ships with the sidebar toggle alone, because that is the only item whose
+#: destination the package can know. Append your own::
+#:
+#:     from flex_menu import MenuItem
+#:
+#:     from mvp.menus import MobileFooterMenu
+#:
+#:     MobileFooterMenu.append(
+#:         MenuItem(
+#:             name="home",
+#:             view_name="home",
+#:             extra_context={"label": "Home", "icon": "home"},
+#:         )
+#:     )
 MobileFooterMenu = Menu(
     "MobileFooterMenu",
-    extra_context={
-        "text": "Mobile Navigation",
-        "type": "underline",
-        "fill": True,
-        "gap": 0,
-    },
     children=[
         MenuItem(
             name="sidebar_toggle",
@@ -136,43 +130,11 @@ MobileFooterMenu = Menu(
                 "label": "Menu",
                 "icon": "menu",
                 # Renders as a <label for="mvp-app-toggle"> that flips the
-                # daisyUI drawer checkbox — same mechanism as the navbar
+                # drawer checkbox — the same mechanism as the navbar
                 # hamburger. The value is the drawer toggle's element id
                 # (c-layout.sidebar id="mvp-app" -> checkbox id "mvp-app-toggle").
                 "toggle": "mvp-app-toggle",
             },
         ),
-        MenuItem(
-            name="home",
-            view_name="home",
-            extra_context={
-                "label": "Home",
-                "icon": "home",
-            },
-        ),
-        # Uncomment to test more mobile nav-items
-        # MenuItem(
-        #     name="sidebar_toggle",
-        #     extra_context={
-        #         "label": "Menu",
-        #         "icon": "menu",
-        #         "show_text": True,
-        #         "attrs": {
-        #             "data-lte-toggle": "sidebar",
-        #         },
-        #         "sidebar_toggle": True,
-        #     },
-        # ),
-        # MenuItem(
-        #     name="sidebar_toggle",
-        #     extra_context={
-        #         "label": "Menu",
-        #         "icon": "menu",
-        #         "attrs": {
-        #             "data-lte-toggle": "sidebar",
-        #         },
-        #         "sidebar_toggle": True,
-        #     },
-        # ),
     ],
 )

@@ -229,10 +229,9 @@ returns the processed tree without rendering it.
 To point the sidebar at a different menu, pass its name to the shell component:
 `<c-app.sidebar menu="AdminMenu" />`.
 
-`mvp.renderers` also defines `NavRenderer` for horizontal navigation. Do not register it:
-its wrapper expects a navigation component the package no longer ships, and its leaf
-template still emits Bootstrap-era utility classes, so it is not styled for the current
-stylesheet.
+`SidebarRenderer` and `MobileFooterNavRenderer` are the only renderers the package
+ships. For horizontal navigation, build it from the `c-menu` components directly or
+write a renderer of your own.
 
 ## Common mistakes
 

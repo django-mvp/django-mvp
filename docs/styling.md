@@ -179,7 +179,11 @@ writing one from scratch.
 - Build: `invoke build-stylesheet` (runs `npm run build:css:prod` and
   brotli-compresses the output). Both artifacts are committed.
 - CI: `.github/workflows/stylesheet.yml` rebuilds the CSS on every PR and
-  fails if the committed `django-mvp.css` is stale — never hand-edit the
-  built files.
+  fails if it no longer compiles. It cannot check the committed
+  `django-mvp.css` against that rebuild, because the Tailwind and daisyUI
+  build is not byte-reproducible — an identical toolchain gives different
+  bytes on consecutive runs. Keeping the committed artifact current is
+  therefore the author's job, not the pipeline's. Never hand-edit the built
+  files: rebuild them.
 - The rail-mode CSS in the preset is intentionally **unlayered** so it beats
   DaisyUI's `@layer` rules; don't move it into `@layer components`.

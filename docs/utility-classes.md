@@ -77,6 +77,7 @@ and `underline` under both prefixes.
 The packaged stylesheet ships daisyUI 5's **complete component set** — every component,
 not just the ones django-mvp's own templates use — so classes like `carousel`, `kbd`,
 `chat`, `timeline`, and the rest of the [daisyUI component
-list](https://daisyui.com/components/) work out of the box. Themes are the exception: the
-default light and dark themes are included, not the additional named themes (`dracula`,
-`synthwave`, ...), which are one CSS file you can add yourself.
+list](https://daisyui.com/components/) work out of the box. Every prebuilt daisyUI theme
+ships too — `dracula`, `synthwave` and the rest — alongside the package's own `mvp` and
+`mvp-dark`, so switching theme is a `data-theme` value rather than another build. See
+[ADR 0010](adr/0010-every-prebuilt-theme-ships-in-the-package.md).

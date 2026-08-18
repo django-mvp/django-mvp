@@ -4,7 +4,7 @@
 
 This document was designed against [GOALS.md](../GOALS.md). See also [CONTEXT.md](../CONTEXT.md) for domain terminology and [memory/constitution.md](../memory/constitution.md) for project standards.
 
-The package is at 0.15.0, so the early items below are already delivered and are carried here to keep the build sequence whole.
+The package is at 0.19.0, so the early items below are already delivered and are carried here to keep the build sequence whole.
 
 ## Versioning
 

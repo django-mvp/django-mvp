@@ -52,19 +52,3 @@ class SidebarRenderer(BaseRenderer):
             "leaf": "menus/sidebar/item.html",
         },
     }
-
-
-class NavRenderer(BaseRenderer):
-    """Renderer for navigation menus.
-
-    Maps menu item types to their corresponding navigation templates.
-    Supports regular links, dropdowns with headers and items.
-    """
-
-    templates = {
-        0: {"default": "menus/nav/wrapper.html"},
-        1: {
-            "parent": "menus/nav/wrapper.html",
-            "leaf": "menus/nav/link.html",
-        },
-    }

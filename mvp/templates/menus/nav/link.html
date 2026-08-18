@@ -1,9 +1,0 @@
-{% load easy_icons %}
-<li class="nav-item">
-  <c-link href="{{ url }}"
-          :active="selected"
-          class="{% if not selected %}px-2{% endif %} ">
-    {% icon icon %}
-    <span class="{% if not selected %}d-none{% endif %} d-md-inline-block">{{ label }}</span>
-  </c-link>
-</li>
