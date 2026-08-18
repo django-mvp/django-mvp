@@ -14,7 +14,8 @@ django-mvp renders a complete application shell around your content:
 ```
 
 Everything is configured from `settings.MVP_CONFIG` — similar in spirit to
-pydata-sphinx-theme's layout options. Package defaults:
+pydata-sphinx-theme's layout options. Its `layout` section is what this page covers,
+and the package defaults are:
 
 ```python
 MVP_CONFIG = {
@@ -27,13 +28,22 @@ MVP_CONFIG = {
             "boost": False,           # navigate sidebar links with htmx
         },
         "navbar": {
-            "mobile": {"end": ["actions.theme-controller"]},
-            "desktop": {"end": ["actions.theme-controller"]},
+            "mobile": {"end": ["actions.theme-controller", "actions.login"]},
+            "desktop": {"end": ["actions.theme-controller", "actions.login"]},
             "sticky": True,           # True: pinned | False: scrolls away
         },
     },
 }
 ```
+
+`layout` is one of five top-level sections. `theme` is covered in
+[Theming](theming.md), `table` in [Styling](styling.md) and `view_names` in
+[Views](views.md). The fifth, `brand`, holds three dotted paths —
+`avatar_resolver`, `logo_resolver` and `icon_resolver` — that the brand and avatar
+components call to find their images. Their defaults serve `brand/logo.svg` and
+`brand/icon.svg` from your static files, preferring a `_dark` sibling under a dark
+theme where one exists, and resolve no avatar at all until you point
+`avatar_resolver` at your own function.
 
 Configuration resolves in this order everywhere:
 **component attribute (per-page) → `MVP_CONFIG` (project) → package default.**

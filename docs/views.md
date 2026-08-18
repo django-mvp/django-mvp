@@ -102,9 +102,11 @@ class ProductUpdateView(MVPUpdateView):
     form_class = ProductForm
 ```
 
-- **Renderer auto-detection** — forms render via django-crispy-forms or django-formset
-  when installed, falling back to Django's standard rendering. Override per view with
-  `form_renderer = "crispy" | "formset" | "django"`.
+- **Form rendering** — always through django-crispy-forms with the Tailwind template
+  pack, which is a hard runtime dependency rather than an optional integration (see
+  [ADR 0006](adr/0006-crispy-forms-is-a-runtime-dependency.md)). A form carrying a
+  `helper` is rendered through it; otherwise the default crispy rendering applies.
+  There is no per-view renderer setting.
 - **Success URL chain** — explicit `success_url` → the object's detail view → the list
   view → back where you came from. A validated `?next=` parameter (open-redirect safe,
   via `NextURLMixin`) wins over all of them.

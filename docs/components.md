@@ -35,7 +35,7 @@ Empty, unopinionated building blocks — you provide the content.
 | `c-grid` | `cols`, `sm`, `md`, `lg`, `xl`, `xxl` (column counts 1–6, 12), `gap` |
 | `c-group` | `row`, `collapse`, `wrap`, `gap` — flex group |
 | `c-toolbar` | `row` (True or breakpoint), `gap`; slots: default (left), `actions` (right) |
-| `c-divider` | `horizontal`, `variant`, `position`, `class` — a section break, with room for a label |
+| `c-divider` | `vertical` (True or a breakpoint), `variant`, `position`, `class` — a section break, with room for a label |
 | `c-rule` | `class` — a hairline between items in one list, where a divider would be too loud |
 | `c-backdrop` | `opacity` — absolute overlay (e.g. over hero images) |
 | `c-layout.sidebar` | `id`, `breakpoint` — reusable drawer shell (what `c-app` uses) |
@@ -49,7 +49,7 @@ Empty, unopinionated building blocks — you provide the content.
 | `c-page.content`, `c-page.toolbar` | body / page-level toolbar |
 | `c-page.list` | list-view wrapper used by `MVPListView` templates |
 | `c-page.list.empty` | `icon`, `heading`, `message` — empty state |
-| `c-page.list.actions` | `actions` — renders the action components below, default `['search','sort','create','filter']` |
+| `c-page.list.actions` | `actions` — renders the action components below, default `['search','sort','filter','create']` |
 | `c-page.list.actions.{search,sort,create,filter,share}` | individual list actions |
 | `c-section` | `title`, `icon`, `level` (heading level 1–4); slot `actions` |
 | `c-section.hero` | `bg-image`, `title`, `subtitle`, `opacity`, `height`, `class`; slots `top`, `actions`, `bottom` — daisyUI hero |
@@ -61,14 +61,14 @@ Empty, unopinionated building blocks — you provide the content.
 | Component | Attributes |
 | --- | --- |
 | `c-card` | `title`, `icon` |
-| `c-button` | `text`, `icon`, `variant` (DaisyUI color names), `size` (`sm`/`md`/`lg`), `outline`, `ghost`, `reverse`, `align`, `gap`, `condition` |
+| `c-button` | `text`, `icon`, `variant` (DaisyUI color names), `size` (`sm`/`md`/`lg`), `outline`, `ghost`, `full` (full width), `reverse`, `align` (default `center`), `condition` (render at all, default True), `class` |
 | `c-link` | `href`, `text`, `variant` (DaisyUI color names), `hover` (underline on hover only) — a styled inline text link, for prose rather than actions |
 | `c-badge` | `text`, `size` (`sm`/`lg`) |
 | `c-icon` | `name` (required) |
-| `c-text` | `impact`, `muted`, `small`, `center`, `tight`, `bold`, `upper` |
+| `c-text` | `text`, `size` (default `base`), `align` (`left`/`center`/`right`), `muted`, `tight`, `bold`, `upper`, `class` |
 | `c-alert` | `soft`, `outline`, `dash` |
 | `c-data-field` | key–value display |
-| `c-messages` | Django messages list; `dismissible`, `animate` |
+| `c-messages` | Django messages list; `dismissible`, `delay` (auto-dismiss milliseconds, default 2000) |
 | `c-modal` | modal dialog |
 | `c-dropdown` | `valign` (`top/bottom/left/right`), `halign` (`start/center/end`); slot `button` = trigger |
 | `c-avatar` / `c-avatar.group` | user avatar(s) |
@@ -95,6 +95,7 @@ Menus are normally rendered from Python via django-flex-menus — see
 | --- | --- |
 | `c-actions.theme-controller` | light/dark theme toggle (`size`) |
 | `c-actions.language-switcher` | i18n language dropdown (needs `set_language` URL) |
+| `c-actions.language-switcher-modal` | the same switcher as a modal, for the sidebar footer where a dropdown would be cramped |
 | `c-actions.search` | navbar search input |
 | `c-actions.login` | navbar log-in button (needs `login` URL); renders only when anonymous |
 | `c-user.sidebar-menu` | account dropdown for the sidebar footer |

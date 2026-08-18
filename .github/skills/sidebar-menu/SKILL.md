@@ -106,7 +106,6 @@ No imports or registration needed beyond this file — `flex_menu.apps.FlexMenuC
 | `label` | str | item `name` | Display text |
 | `icon` | str | `"circle"` | Bootstrap Icon name (without `bi-` prefix) |
 | `badge` | str | `""` | Badge text (e.g. "New", "3") |
-| `badge_classes` | str | `"text-bg-secondary"` | Bootstrap badge CSS classes |
 
 ## URL Resolution
 
@@ -208,7 +207,6 @@ AppMenu.extend([
             "label": "Dashboard",
             "icon": "speedometer",
             "badge": "New",
-            "badge_classes": "text-bg-primary",
         },
     ),
     MenuCollapse(

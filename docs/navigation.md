@@ -99,9 +99,9 @@ Any registered menu can be rendered with a flex-menus renderer:
 {% render_menu "AppMenu" renderer="sidebar" %}
 ```
 
-Renderers shipped by django-mvp (`mvp.renderers`): `SidebarRenderer`,
-`MobileFooterNavRenderer`, and `NavRenderer`. Register them (plus any of your own) in
-settings — the app shell expects the `"sidebar"` and `"dock"` keys:
+Renderers shipped by django-mvp (`mvp.renderers`): `SidebarRenderer` and
+`MobileFooterNavRenderer`. Register them (plus any of your own) in settings — the app
+shell expects the `"sidebar"` and `"dock"` keys:
 
 ```python
 FLEX_MENUS = {

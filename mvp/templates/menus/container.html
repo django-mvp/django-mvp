@@ -1,8 +1,0 @@
-{# Root menu container template for AdminLTE 4 sidebar navigation #}
-{# Depth 0: Contains the nav wrapper and sidebar-menu ul #}
-{% load flex_menu %}
-<c-app.sidebar.menu>
-  {% for child in children %}
-    {% render_item child renderer=renderer %}
-  {% endfor %}
-</c-app.sidebar.menu>

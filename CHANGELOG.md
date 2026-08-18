@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+
+- **`mvp.renderers.NavRenderer`**, along with the `menus/nav/` templates behind it.
+  Its wrapper rendered a `<c-nav>` component the package stopped shipping at the
+  DaisyUI migration, and its leaf template still emitted Bootstrap classes, so
+  registering it produced an unstyled and partly unrendered menu. Nothing in the
+  package referenced it. Build horizontal navigation from the `c-menu` components,
+  or write a renderer of your own.
+- **The `menus/container.html`, `menus/item.html` and `menus/parent.html`
+  templates**, which addressed sidebar components that no longer exist and which no
+  renderer named. With them go the `component_type` and `badge_classes` context
+  keys, whose only readers they were.
+- **The `home` item from the shipped `MobileFooterMenu`.** It pointed at a URL named
+  `home`, which a project need not define, and an item whose URL will not resolve is
+  dropped from the render without a message. The dock now ships with the sidebar
+  toggle alone; add your own items with `MobileFooterMenu.append(...)`.
+
+### Fixed
+
+- **`MenuCollapse` no longer discards its context or edits the caller's.** Passing
+  `extra_context` positionally left the item with an empty context, so its label and
+  icon silently vanished; passing it by keyword wrote the `collapsible` flag back
+  into the caller's own dict, which a shared context literal then carried to every
+  other item built from it.
+
 ## [v0.19.0] - 2026-08-18
 
 ### Added
