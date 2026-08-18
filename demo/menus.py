@@ -18,19 +18,6 @@ from flex_menu import MenuItem
 from demo.component_docs import COMPONENTS
 from mvp.menus import AppMenu, MenuCollapse, MenuGroup, MobileFooterMenu
 
-# The dock ships with the sidebar toggle only, so the demo adds the one link
-# it wants beside it.
-MobileFooterMenu.append(
-    MenuItem(
-        name="home",
-        view_name="home",
-        extra_context={
-            "label": "Home",
-            "icon": "home",
-        },
-    )
-)
-
 AppMenu.extend(
     [
         MenuItem(
@@ -222,4 +209,17 @@ AppMenu.extend(
             ],
         ),
     ]
+)
+
+# The dock ships with the sidebar toggle alone, so the demo adds the one link
+# it wants beside it.
+MobileFooterMenu.append(
+    MenuItem(
+        name="home",
+        view_name="home",
+        extra_context={
+            "label": "Home",
+            "icon": "home",
+        },
+    )
 )

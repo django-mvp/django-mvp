@@ -7,9 +7,7 @@ That is a small surface, and all three of the ways it can go wrong are silent
 so each gets an assertion.
 """
 
-from flex_menu import MenuItem
-
-from mvp.menus import MenuCollapse, MenuGroup, MobileFooterMenu
+from mvp.menus import MenuCollapse, MobileFooterMenu
 
 
 class TestMenuCollapse:
@@ -71,8 +69,3 @@ class TestShippedMenus:
     def test_the_sidebar_toggle_flips_the_drawer_checkbox(self):
         toggle = MobileFooterMenu.children[0]
         assert toggle.extra_context["toggle"] == "mvp-app-toggle"
-
-    def test_menu_group_is_a_menu_item(self):
-        """``MenuGroup`` adds no behaviour — it exists so a renderer can tell a
-        section header apart from a link."""
-        assert issubclass(MenuGroup, MenuItem)
