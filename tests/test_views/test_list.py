@@ -15,6 +15,7 @@ from django.test import RequestFactory
 from django.views.generic import ListView
 
 from demo.models import Category, Product
+from mvp.fixtures import _beautiful_soup
 from mvp.views.list import (
     MVPListView,
     MVPListViewMixin,
@@ -846,8 +847,12 @@ class TestMVPListViewMixinEmptyState:
     """[015-US3] Empty state context is always present and configurable."""
 
     def test_empty_state_present_in_context_with_defaults(self, db):
-        """[015-US3] empty_state in context with non-empty heading and message."""
-        view = _make_list_view()
+        """[015-US3] empty_state in context with non-empty heading and message.
+
+        Asked of a view whose create action is visible, since the message is
+        deliberately dropped when it is not (see [#271] below).
+        """
+        view = _make_list_view(extra_attrs={"show_create_action": True})
         view.object_list = view.get_queryset()
         ctx = view.get_context_data()
         assert "empty_state" in ctx
@@ -874,6 +879,34 @@ class TestMVPListViewMixinEmptyState:
         view.object_list = view.get_queryset()
         ctx = view.get_context_data()
         assert ctx["empty_state"]["heading"] is None
+
+    def test_empty_state_message_invites_creation_when_permitted(self, db):
+        """[#271] Default message stands unchanged when the user can create."""
+        view = _make_list_view(extra_attrs={"show_create_action": True})
+        view.object_list = view.get_queryset()
+        ctx = view.get_context_data()
+        assert ctx["empty_state"]["message"] == MVPListViewMixin.empty_state_message
+
+    def test_empty_state_message_dropped_when_not_permitted(self, db):
+        """[#271] No message at all when the user cannot create."""
+        view = _make_list_view()  # show_create_action=False by default
+        view.object_list = view.get_queryset()
+        ctx = view.get_context_data()
+        assert ctx["empty_state"]["message"] is None
+        assert ctx["empty_state"]["heading"], "the heading still explains the page"
+
+    def test_custom_empty_state_message_also_dropped_when_not_permitted(self, db):
+        """[#271] The message is the create button's caption, so a custom one
+        goes the same way as the default when there is no button."""
+        view = _make_list_view(
+            extra_attrs={
+                "empty_state_message": "Custom copy.",
+                "show_create_action": False,
+            }
+        )
+        view.object_list = view.get_queryset()
+        ctx = view.get_context_data()
+        assert ctx["empty_state"]["message"] is None
 
 
 # ---------------------------------------------------------------------------
@@ -1222,3 +1255,50 @@ class TestListViewInlineCreate:
         assert "list_item_template" in ctx
         assert "directory" in ctx
         assert "page" in ctx
+
+
+# ---------------------------------------------------------------------------
+# Empty state rendering — permission-aware message (issue #271)
+# ---------------------------------------------------------------------------
+
+
+def _render_empty_list_view(rf, show_create_action):
+    """Instantiate, dispatch and fully render an empty MVPListView, as HTML."""
+    view_cls = type(
+        "StubEmptyStateListView",
+        (MVPListView,),
+        {
+            "model": Product,
+            "show_create_action": show_create_action,
+        },
+    )
+    view = view_cls()
+    view.setup(rf.get("/"))
+    response = view.get(view.request)
+    response.render()
+    return response.content.decode()
+
+
+class TestEmptyStateMessageRendering:
+    """[#271] The rendered empty-state message and call-to-action depend on
+    whether the requesting user has create permission on the view."""
+
+    def test_cta_message_and_button_render_when_permitted(self, rf, db):
+        """[#271] With create permission, the invitation text and the
+        'Add new' button both render."""
+        html = _render_empty_list_view(rf, show_create_action=True)
+        soup = _beautiful_soup()(html, "html.parser")
+        assert "Click the button below to get started" in soup.get_text()
+        assert soup.find("a", href="/products/create/") is not None
+
+    def test_no_message_and_no_button_when_not_permitted(self, rf, db):
+        """[#271] Without create permission the heading stands alone: no
+        invitation, no empty paragraph left behind, and no 'Add new' button."""
+        html = _render_empty_list_view(rf, show_create_action=False)
+        soup = _beautiful_soup()(html, "html.parser")
+        text = soup.get_text()
+        assert "button below" not in text
+        assert soup.find("a", href="/products/create/") is None
+        assert "There's nothing here yet" in text, "the heading still renders"
+        empty_state = soup.find("h3").parent
+        assert empty_state.find("p") is None, "no empty paragraph is rendered"

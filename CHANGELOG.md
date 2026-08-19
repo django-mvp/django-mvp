@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- **The `c-page.list.footer` component.** No template referenced it. It described the
+  count-and-pagination bar that `list_view.html` and `table_view.html` each write
+  themselves, but it had drifted from both: it said "entries" where they name the
+  model, and it passed both the count and the pagination into `c-toolbar`'s default
+  slot with nothing in `actions`, so the two would have rendered crowded together on
+  the left rather than at either end of the row.
+
 - **`mvp.renderers.NavRenderer`**, along with the `menus/nav/` templates behind it.
   Its wrapper rendered a `<c-nav>` component the package stopped shipping at the
   DaisyUI migration, and its leaf template still emitted Bootstrap classes, so
@@ -26,6 +33,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **The list view's empty state no longer points a user at a button they cannot
+  see.** Its message told every visitor to "click the button below to get started",
+  including one with no permission to create anything, whose page has no such button.
+  The message exists to name that button, so it is now dropped entirely when the
+  create action is hidden and the heading stands on its own. Override
+  `get_empty_state_message()` if you would rather say something to those visitors.
+- **`empty_state_message = None` now really does suppress the paragraph.** The
+  attribute has always been documented as doing so, but `c-page.list.empty` rendered
+  its `<p>` unconditionally, leaving an empty one behind.
+- **The record count under a table no longer sits low in its row.** It carried
+  `<c-text>`'s default bottom margin, which pushed it out of line with the
+  pagination controls beside it.
 - **`MenuCollapse` no longer discards its context or edits the caller's.** Passing
   `extra_context` positionally left the item with an empty context, so its label and
   icon silently vanished; passing it by keyword wrote the `collapsible` flag back

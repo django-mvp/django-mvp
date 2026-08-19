@@ -87,7 +87,7 @@
           {% block page.footer %}
             {% if page_obj %}
               <div class="flex flex-wrap items-center justify-between gap-2 w-full">
-                <c-text size="sm">
+                <c-text size="sm" tight>
                   {% with start=page_obj.start_index end=page_obj.end_index total=page_obj.paginator.count %}
                     {% blocktrans with name_plural=model_info.verbose_name_plural %}
                     Showing {{ start }}-{{ end }} of {{ total }} {{ name_plural }}

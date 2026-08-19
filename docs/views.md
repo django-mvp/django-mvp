@@ -87,6 +87,24 @@ see [`c-page.list.actions`](components.md#page-structure)), the grid, the empty 
 and pagination. `SearchMixin`, `OrderMixin` and `SearchOrderMixin` are also usable on
 any plain Django `ListView`.
 
+The empty state follows the create action. Its message is there to point at the "Add
+new" button, so a user whose create action is hidden sees the heading on its own:
+
+```python
+from django.utils.translation import gettext_lazy as _
+
+
+class ProductListView(MVPListView):
+    model = Product
+
+    empty_state_heading = _("No products")
+    empty_state_message = _("Add your first product to get started.")
+```
+
+Set `empty_state_message` to `None` to drop the paragraph for everyone and leave the
+heading alone. To say something to read-only visitors instead, override
+`get_empty_state_message()`.
+
 For filtering with django-filter or table rendering with django-tables2, see
 [Integrations](integrations.md).
 

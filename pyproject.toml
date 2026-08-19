@@ -119,6 +119,12 @@ mvp = "mvp.fixtures"
 # mvp/tailwind/base.css, the brand SVGs under mvp/static/brand/, and the built
 # stylesheet. A Tailwind entry, a set of static files and a build artifact,
 # none of which has an mvp/brand_theme.py behind it — the same case again.
+# tests/test_table_layout.py and its _e2e sibling exercise the shipped table
+# templates — table_view.html and cotton/addons/django_table.html — and the
+# markup they emit. The Python they lean on lives in mvp/templatetags/mvp.py
+# and is mirrored by tests/test_templatetags.py; what is left here is the
+# templates' own output, so there is no mvp/table_layout.py and there cannot
+# be, the same case as the entries above.
 non-mirror-paths = [
     "tests/test_components/",
     "tests/test_demo/",
@@ -127,6 +133,8 @@ non-mirror-paths = [
     "tests/test_frontend_runtime.py",
     "tests/test_frontend_runtime_e2e.py",
     "tests/test_brand_theme.py",
+    "tests/test_table_layout.py",
+    "tests/test_table_layout_e2e.py",
 ]
 
 [tool.deptry]

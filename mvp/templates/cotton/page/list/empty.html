@@ -8,7 +8,7 @@
   <div class="text-center py-5">
     <c-icon name="{{ icon }}" class="{{ icon_class }}" />
     <h3 class="text-base-content/60">{{ heading }}</h3>
-    <p class="text-base-content/60">{{ message }}</p>
+    {% if message %}<p class="text-base-content/60">{{ message }}</p>{% endif %}
     {% if directory.create_url %}
       <c-button variant="primary"
                 size="lg"

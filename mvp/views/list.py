@@ -296,8 +296,10 @@ class MVPListViewMixin(
             as ``grid_config``. Default: ``{}``.
         empty_state_heading (str | None): Heading shown when the queryset is empty.
             Default: ``_("There's nothing here yet")``.
-        empty_state_message (str | None): Body text shown when the queryset is empty. Set to
-            ``None`` to suppress the paragraph entirely. Default: translated library string.
+        empty_state_message (str | None): Body text shown when the queryset is empty and the
+            user may create a record. A user who may not sees the heading alone, since the
+            message exists to point at the create button. Set to ``None`` to suppress the
+            paragraph for everyone. Default: translated library string.
         page_title (str | Promise): Overrides the model-derived page title. When falsy, the
             title falls back to ``model._meta.verbose_name_plural.title()``.
         search_fields (list[str] | None): Inherited from ``SearchMixin``. Default: ``None``.
@@ -432,6 +434,14 @@ class MVPListViewMixin(
         return self.empty_state_heading
 
     def get_empty_state_message(self) -> str | Promise | None:
+        """Return the empty-state body text, or ``None`` to show none.
+
+        The message points the reader at the create button, so it is dropped
+        for a user whose create action is hidden: the heading already says
+        the page is empty, and there is no button for the message to name.
+        """
+        if not self.show_action("create"):
+            return None
         return self.empty_state_message
 
     def get_grid_config(self):

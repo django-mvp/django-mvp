@@ -386,6 +386,22 @@ class TestTableViewTemplate:
         assert 'role="region"' not in html, "the default table area is gone"
 
 
+class TestTableViewFooterTextAlignment:
+    """The count text in the pagination bar sits in a flex row alongside the
+    pagination controls, with ``items-center``. ``<c-text>``'s default
+    bottom margin threw that row out of vertical alignment (issue #272);
+    ``tight`` removes it."""
+
+    @pytest.mark.django_db
+    def test_the_pagination_count_text_carries_no_bottom_margin(self, rf, product):
+        soup = _beautiful_soup()(_render_table_view(rf), "html.parser")
+        count_texts = [
+            p for p in soup.find_all("p") if "Showing 1-1 of" in p.get_text()
+        ]
+        assert len(count_texts) == 1, "the count text should render exactly once"
+        assert "mb-3" not in count_texts[0].get("class", [])
+
+
 class TestColumnBehaviourClasses:
     """A column's declared behaviour classes render on its cells, and the
     project-wide wrap default (mvp.config.MVP_CONFIG['table']['wrap'])
