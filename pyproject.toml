@@ -56,13 +56,13 @@ classifiers = [
 requires-poetry = '>=2.0,<3.0'
 
 [tool.poetry.group.test.dependencies]
-Django = ">=5.2.16"
+Django = ">=5.2.17.17"
 mvp-shared = { git = "https://github.com/django-mvp/shared.git", rev = "v0.3.2", extras = [
     "test",
 ] }
 
 [tool.poetry.group.dev.dependencies]
-Django = ">=5.2.16"
+Django = ">=5.2.17"
 django-distill = "^3.0"
 django-filter = "^26.1"
 django-tables2 = "^3.0.0"
