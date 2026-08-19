@@ -69,25 +69,26 @@ class ProductTableView(MVPTableView):
     paginate_by = 50
 ```
 
-The view itself does not paginate a second time. One page means the row query, and
-any `select_related` or `prefetch_related` on it, runs once per page rather than
-twice, and the count under the table always describes the rows above it — including
-under a column sort, which is applied when the table is built.
+The view does not paginate a second time. With one page, the row query and any
+`select_related` or `prefetch_related` on it run once per page rather than twice, and
+the count under the table describes the rows above it. That holds under a column sort
+too, which is applied when the table is built.
 
-Two consequences are worth knowing before you rely on the context:
+Two things follow for anything that reads the context:
 
-- `page_obj` **is** the table's page, so its `object_list` holds table rows. Each row
-  carries the model instance as `row.record`.
-- `object_list` and `<model>_list` hold the view's full queryset rather than a page of
-  it. It stays unevaluated unless a template asks for it, so nothing queries the whole
-  table on your behalf — but iterate the table, not that queryset, to render rows.
+- `page_obj` is the table's page, so its `object_list` holds table rows rather than
+  model instances. Each row carries its instance as `row.record`.
+- `object_list` and `<model>_list` hold the view's whole queryset rather than a page of
+  it. Nothing evaluates it unless a template asks, so it costs nothing, but render rows
+  from the table and not from there.
 
 Leaving `paginate_by` unset means no pagination: the table renders every row, and the
 count and links go with it. `table_pagination = False` says the same thing explicitly,
-and overrides `paginate_by` where a view sets both.
+and wins where a view sets both.
 
-A `?page=` that names no page — past the last one, or not a number — is a 404, rather
-than a quiet fall back to the first or last page. An absent or empty one is page one.
+A `?page=` that names no page, whether past the last one or not a number at all, is a
+404 rather than a quiet fall back to the first or last page. An absent or empty one is
+page one.
 
 ### Inferred column alignment
 
