@@ -74,11 +74,12 @@ class MVPTableViewMixin(MVPListViewMixin, SingleTableMixin):
         """Build the table, answering a page that cannot exist with a 404.
 
         Left to itself, django-tables2 ignores a page number it cannot read
-        and falls back to the last page for one past the end. Two kinds of
-        view in one package should not answer the same URL differently.
+        and falls back to the last page for one past the end, where a list
+        view in this package raises 404 for both. An absent or empty ``page``
+        is page one, as it is anywhere else.
         """
         page = self.request.GET.get(getattr(self, "page_kwarg", "page"))
-        if page is not None and not page.isdigit():
+        if page and not page.isdigit():
             raise Http404(_("Page %(page)s is not a page number.") % {"page": page})
         try:
             return super().get_table(**kwargs)

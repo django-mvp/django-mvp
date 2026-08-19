@@ -86,8 +86,8 @@ Leaving `paginate_by` unset means no pagination: the table renders every row, an
 count and links go with it. `table_pagination = False` says the same thing explicitly,
 and overrides `paginate_by` where a view sets both.
 
-A `?page=` that names no page — past the last one, or not a number — is a 404, the
-same answer a list view in this package gives the same URL.
+A `?page=` that names no page — past the last one, or not a number — is a 404, rather
+than a quiet fall back to the first or last page. An absent or empty one is page one.
 
 ### Inferred column alignment
 

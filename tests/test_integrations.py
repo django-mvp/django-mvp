@@ -258,7 +258,7 @@ class TestTableViewPagination:
         by_name = list(Product.objects.order_by("name").values_list("name", flat=True))
         assert rendered == by_name[expected_slice]
 
-    @pytest.mark.parametrize("page", ["999", "not-a-number"])
+    @pytest.mark.parametrize("page", ["999", "0", "not-a-number"])
     def test_a_page_that_does_not_exist_is_a_missing_page(self, db, rf, page):
         """A list view in this package answers ``?page=999`` with a 404, and a
         table view has to agree — django-tables2 would otherwise land quietly
@@ -269,6 +269,14 @@ class TestTableViewPagination:
 
         with pytest.raises(Http404):
             _table_view_context(rf, f"?page={page}")
+
+    def test_an_empty_page_parameter_is_the_first_page(self, db, rf):
+        """``?page=`` names no page rather than a bad one, exactly as an
+        absent parameter does."""
+        ProductFactory.create_batch(8)
+        context = _table_view_context(rf, "?page=")
+
+        assert context["page_obj"].number == 1
 
     @pytest.mark.parametrize(
         "config",
