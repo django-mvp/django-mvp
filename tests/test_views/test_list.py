@@ -15,6 +15,7 @@ from django.test import RequestFactory
 from django.views.generic import ListView
 
 from demo.models import Category, Product
+from mvp.fixtures import _beautiful_soup
 from mvp.views.list import (
     MVPListView,
     MVPListViewMixin,
@@ -875,6 +876,35 @@ class TestMVPListViewMixinEmptyState:
         ctx = view.get_context_data()
         assert ctx["empty_state"]["heading"] is None
 
+    def test_empty_state_message_invites_creation_when_permitted(self, db):
+        """[#271] Default message stands unchanged when the user can create."""
+        view = _make_list_view(extra_attrs={"show_create_action": True})
+        view.object_list = view.get_queryset()
+        ctx = view.get_context_data()
+        assert ctx["empty_state"]["message"] == MVPListViewMixin.empty_state_message
+
+    def test_empty_state_message_has_no_cta_when_not_permitted(self, db):
+        """[#271] Default message differs from the CTA text when the user cannot create."""
+        view = _make_list_view()  # show_create_action=False by default
+        view.object_list = view.get_queryset()
+        ctx = view.get_context_data()
+        assert ctx["empty_state"]["message"] != MVPListViewMixin.empty_state_message
+        assert ctx["empty_state"]["message"] == (
+            MVPListViewMixin.empty_state_message_readonly
+        )
+
+    def test_explicit_empty_state_message_wins_regardless_of_permission(self, db):
+        """[#271] A custom empty_state_message overrides the permission-based default."""
+        view = _make_list_view(
+            extra_attrs={
+                "empty_state_message": "Custom copy.",
+                "show_create_action": False,
+            }
+        )
+        view.object_list = view.get_queryset()
+        ctx = view.get_context_data()
+        assert ctx["empty_state"]["message"] == "Custom copy."
+
 
 # ---------------------------------------------------------------------------
 # US4 - "Create" Action Link from the List Page (T026-T029)
@@ -1222,3 +1252,51 @@ class TestListViewInlineCreate:
         assert "list_item_template" in ctx
         assert "directory" in ctx
         assert "page" in ctx
+
+
+# ---------------------------------------------------------------------------
+# Empty state rendering — permission-aware message (issue #271)
+# ---------------------------------------------------------------------------
+
+
+def _render_empty_list_view(rf, show_create_action):
+    """Instantiate, dispatch and fully render an empty MVPListView, as HTML."""
+    view_cls = type(
+        "StubEmptyStateListView",
+        (MVPListView,),
+        {
+            "model": Product,
+            "show_create_action": show_create_action,
+        },
+    )
+    view = view_cls()
+    view.setup(rf.get("/"))
+    response = view.get(view.request)
+    response.render()
+    return response.content.decode()
+
+
+class TestEmptyStateMessageRendering:
+    """[#271] The rendered empty-state message and call-to-action depend on
+    whether the requesting user has create permission on the view."""
+
+    def test_cta_message_and_button_render_when_permitted(self, rf, db):
+        """[#271] With create permission, the invitation text and the
+        'Add new' button both render."""
+        html = _render_empty_list_view(rf, show_create_action=True)
+        soup = _beautiful_soup()(html, "html.parser")
+        assert "Click the button below to get started" in soup.get_text()
+        assert soup.find("a", href="/products/create/") is not None
+
+    def test_readonly_message_renders_and_no_button_when_not_permitted(
+        self, rf, db
+    ):
+        """[#271] Without create permission, the message names no button and
+        no 'Add new' button renders."""
+        html = _render_empty_list_view(rf, show_create_action=False)
+        soup = _beautiful_soup()(html, "html.parser")
+        assert "Click the button below to get started" not in soup.get_text()
+        assert "button below" not in soup.get_text()
+        assert soup.find("a", href="/products/create/") is None
+        # A read-only viewer still sees an explanatory message, not a blank area.
+        assert "no records" in soup.get_text().lower()

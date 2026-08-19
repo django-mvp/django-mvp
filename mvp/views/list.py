@@ -296,8 +296,14 @@ class MVPListViewMixin(
             as ``grid_config``. Default: ``{}``.
         empty_state_heading (str | None): Heading shown when the queryset is empty.
             Default: ``_("There's nothing here yet")``.
-        empty_state_message (str | None): Body text shown when the queryset is empty. Set to
-            ``None`` to suppress the paragraph entirely. Default: translated library string.
+        empty_state_message (str | None): Body text shown when the queryset is empty, for a
+            user who can create a record. Set to ``None`` to suppress the paragraph entirely,
+            regardless of create permission. Default: translated library string inviting the
+            user to use the create button.
+        empty_state_message_readonly (str | None): Body text shown when the queryset is empty
+            and the user has no create permission. Only used when ``empty_state_message`` is
+            left at its default — an explicit ``empty_state_message`` (including ``None``)
+            always wins. Default: translated library string with no call to action.
         page_title (str | Promise): Overrides the model-derived page title. When falsy, the
             title falls back to ``model._meta.verbose_name_plural.title()``.
         search_fields (list[str] | None): Inherited from ``SearchMixin``. Default: ``None``.
@@ -357,6 +363,9 @@ class MVPListViewMixin(
     empty_state_heading: str | Promise | None = _("There's nothing here yet")
     empty_state_message: str | Promise | None = _(
         "You haven't added any records yet. Click the button below to get started."
+    )
+    empty_state_message_readonly: str | Promise | None = _(
+        "There are no records to show yet."
     )
     create_form_class = None
     create_modal_title = None
@@ -432,6 +441,22 @@ class MVPListViewMixin(
         return self.empty_state_heading
 
     def get_empty_state_message(self) -> str | Promise | None:
+        """Return the empty-state body text, gated on create permission.
+
+        The default message invites the user to use the create button, which
+        does not exist for a user without create permission. When
+        ``empty_state_message`` is still the class default (untouched by a
+        subclass) and the user cannot create, the read-only default from
+        ``empty_state_message_readonly`` is used instead. A subclass that sets
+        ``empty_state_message`` explicitly — including to ``None``, to
+        suppress the paragraph — always gets exactly that value back,
+        regardless of permission.
+        """
+        if (
+            self.empty_state_message is MVPListViewMixin.empty_state_message
+            and not self.show_action("create")
+        ):
+            return self.empty_state_message_readonly
         return self.empty_state_message
 
     def get_grid_config(self):
