@@ -12,8 +12,8 @@
     {% endif %}
   </button>
 {% else %}
-  <a class="join-item btn {% variation size "btn" "sm,md,lg" %}{% if active %} btn-active{% endif %} {{ class }}"
-     href="?{{ page_param|default:"page" }}={{ page }}"
+  <a class="join-item btn {% variation size "btn" "sm,md,lg" %}{% if active %} btn-active btn-primary{% endif %} {{ class }}"
+     href="{% querystring page=page %}"
      {% if active %}aria-current="page"{% endif %}
      {{ attrs }}>
     {% if slot %}
