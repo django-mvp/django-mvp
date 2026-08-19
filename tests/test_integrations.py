@@ -8,9 +8,11 @@ is only required when a project explicitly imports the integration.
 import re
 
 import pytest
+from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ImproperlyConfigured
 
 from mvp.integrations import missing_dependency
+from tests.factories import ProductFactory
 
 
 def _plain_table_view_class():
@@ -25,6 +27,37 @@ def _plain_table_view_class():
         table_class = ProductTable
 
     return PlainTableView
+
+
+def _prefetching_table_view_class(paginate_by=5, table_pagination=None):
+    """A paginated table view whose queryset carries a prefetch, so a repeated
+    row query shows up as a repeated prefetch too."""
+    pytest.importorskip("django_tables2")
+    from demo.models import Product
+    from demo.tables import ProductTable
+    from mvp.integrations.django_tables.views import MVPTableView
+
+    resolved_paginate_by = paginate_by
+    resolved_table_pagination = table_pagination
+
+    class PrefetchingTableView(MVPTableView):
+        model = Product
+        table_class = ProductTable
+        paginate_by = resolved_paginate_by
+        table_pagination = resolved_table_pagination
+
+        def get_queryset(self):
+            return super().get_queryset().prefetch_related("category")
+
+    return PrefetchingTableView
+
+
+def _table_view_context(rf, query="", **kwargs):
+    """Dispatch a table view and return the context it built."""
+    view = _prefetching_table_view_class(**kwargs)()
+    view.setup(rf.get(f"/{query}"))
+    view.request.user = AnonymousUser()
+    return view.get(view.request).context_data
 
 
 class TestIntegrationIsolation:
@@ -172,6 +205,87 @@ class TestTableViewOrdering:
     def test_a_table_view_with_no_ordering_instantiates_cleanly(self):
         view_class = _plain_table_view_class()
         view_class()  # must not raise
+
+
+class TestTableViewPagination:
+    """A table page runs its row query, and any prefetches on it, once.
+
+    Red before the mixin owns a single paginator: ``ListView`` slices the
+    queryset for ``page_obj`` and django-tables2 slices it again for the
+    table, and a slice of a queryset cannot reuse the first slice's result
+    cache (issue #276).
+    """
+
+    def test_row_query_and_prefetches_run_once_per_page(
+        self, db, rf, django_assert_num_queries
+    ):
+        ProductFactory.create_batch(8)
+        view = _prefetching_table_view_class()()
+        view.setup(rf.get("/"))
+        view.request.user = AnonymousUser()
+
+        # One COUNT for the paginator, one SELECT for the page's rows, one
+        # SELECT for the prefetched categories.
+        with django_assert_num_queries(3):
+            view.get(view.request).render()
+
+    @pytest.mark.parametrize("query", ["", "?sort=name", "?sort=-name"])
+    def test_footer_describes_the_rows_that_are_on_the_page(self, db, rf, query):
+        """The footer reads ``page_obj``, so its page has to be the table's
+        page — including under a column sort, which only the table applies."""
+        ProductFactory.create_batch(8)
+        context = _table_view_context(rf, query)
+
+        assert context["page_obj"] is context["table"].page
+        assert context["page_obj"].paginator.count == 8
+        assert (context["page_obj"].start_index(), context["page_obj"].end_index()) == (
+            1,
+            5,
+        )
+
+    @pytest.mark.parametrize("page,expected_slice", [(1, slice(0, 5)), (2, slice(5, 8))])
+    def test_a_column_sort_orders_the_page_the_footer_counts(
+        self, db, rf, page, expected_slice
+    ):
+        """Under a sort, a page holds its own rows in that order — not the
+        equivalent slice of the view's own ordering."""
+        from demo.models import Product
+
+        ProductFactory.create_batch(8)
+        context = _table_view_context(rf, f"?sort=name&page={page}")
+
+        rendered = [row.record.name for row in context["page_obj"].object_list]
+        by_name = list(Product.objects.order_by("name").values_list("name", flat=True))
+        assert rendered == by_name[expected_slice]
+
+    @pytest.mark.parametrize("page", ["999", "not-a-number"])
+    def test_a_page_that_does_not_exist_is_a_missing_page(self, db, rf, page):
+        """A list view in this package answers ``?page=999`` with a 404, and a
+        table view has to agree — django-tables2 would otherwise land quietly
+        on the last page."""
+        from django.http import Http404
+
+        ProductFactory.create_batch(8)
+
+        with pytest.raises(Http404):
+            _table_view_context(rf, f"?page={page}")
+
+    @pytest.mark.parametrize(
+        "config",
+        [{"table_pagination": False}, {"paginate_by": None}],
+        ids=["pagination-off", "no-page-size"],
+    )
+    def test_an_unpaginated_view_paginates_nowhere(self, db, rf, config):
+        """Turning pagination off, or naming no page size at all, leaves the
+        table whole and the page chrome with nothing to describe. Red before
+        the mixin owned the decision: the table paginated at its own default
+        while the view believed it was unpaginated."""
+        ProductFactory.create_batch(8)
+        context = _table_view_context(rf, "", **config)
+
+        assert context["page_obj"] is None
+        assert context["is_paginated"] is False
+        assert len(context["table"].rows) == 8
 
 
 class TestTableViewActions:

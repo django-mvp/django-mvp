@@ -11,6 +11,9 @@ Usage::
 """
 
 from django.core.exceptions import ImproperlyConfigured
+from django.core.paginator import InvalidPage
+from django.http import Http404
+from django.utils.translation import gettext_lazy as _
 from django.views.generic.list import ListView
 
 from mvp.integrations import missing_dependency
@@ -29,6 +32,11 @@ class MVPTableViewMixin(MVPListViewMixin, SingleTableMixin):
     mechanism, and declaring one on the view too would be a second, competing
     surface for the same thing. The default action set drops sort for the
     same reason — the table's own sortable column headers already cover it.
+
+    Pagination follows the same rule. The table paginates; the list view does
+    not, and the page context the footer reads is republished from the table's
+    own page. ``paginate_by`` is the one control: it sets the page size, and
+    leaving it unset means no pagination rather than a size nobody chose.
     """
 
     base_template_name = "table_view.html"
@@ -43,6 +51,51 @@ class MVPTableViewMixin(MVPListViewMixin, SingleTableMixin):
                 "own 'order_by' or Meta.order_by."
             )
 
+    def get_table_pagination(self, table):
+        """Let the view's own configuration decide, including against.
+
+        django-tables2 falls back to a page size of its own when a view names
+        none, so a view that set neither ``paginate_by`` nor
+        ``table_pagination`` was paginated at a size it had never chosen.
+        Here that means no pagination at all.
+        """
+        if self.table_pagination is None and self.get_paginate_by(table.data) is None:
+            return False
+        pagination = super().get_table_pagination(table)
+        if not isinstance(pagination, dict):  # table_pagination = False
+            return False
+        # Report an out-of-range page rather than landing quietly on the last
+        # one — get_table turns that into the 404 a list view in this package
+        # answers the same URL with.
+        pagination["silent"] = False
+        return pagination
+
+    def get_table(self, **kwargs):
+        """Build the table, answering a page that cannot exist with a 404.
+
+        Left to itself, django-tables2 ignores a page number it cannot read
+        and falls back to the last page for one past the end. Two kinds of
+        view in one package should not answer the same URL differently.
+        """
+        page = self.request.GET.get(getattr(self, "page_kwarg", "page"))
+        if page is not None and not page.isdigit():
+            raise Http404(_("Page %(page)s is not a page number.") % {"page": page})
+        try:
+            return super().get_table(**kwargs)
+        except InvalidPage as e:
+            raise Http404(str(e)) from e
+
+    def paginate_queryset(self, queryset, page_size):
+        """Leave the queryset whole — the table is the only paginator here.
+
+        Two paginators over one queryset means two slices, and a slice is a
+        new queryset with an empty result cache: the row query and every
+        prefetch on it run again for the second slice. The table's page is
+        also the ordered one, since a column sort is applied when the table
+        is built, after the list view would have taken its slice.
+        """
+        return None, None, queryset, False
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         # Deliberately not `actions`. Both <c-toolbar> and <c-page.title> expose a
@@ -52,6 +105,16 @@ class MVPTableViewMixin(MVPListViewMixin, SingleTableMixin):
         # does not fill the slot. That is what put "['search', 'filter',
         # 'create']" next to the breadcrumbs.
         context["table_actions"] = self.actions
+
+        # Republish the table's page under the names the page chrome reads, so
+        # the count and the pagination links describe the rows on screen. A
+        # table with pagination turned off has no page, and then neither does
+        # the view.
+        page = getattr(context["table"], "page", None)
+        if page is not None:
+            context["paginator"] = page.paginator
+            context["page_obj"] = page
+            context["is_paginated"] = page.has_other_pages()
         return context
 
 

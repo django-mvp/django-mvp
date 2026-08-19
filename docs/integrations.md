@@ -57,6 +57,38 @@ Declaring an ordering on the view as well gives the same table two competing sou
 for it. Put the ordering on the table class instead, as its own `order_by` or
 `Meta.order_by`.
 
+### Pagination
+
+The table paginates, and the count and links below it describe the table's page.
+`paginate_by` sets the page size as it does on any list view:
+
+```python
+class ProductTableView(MVPTableView):
+    model = Product
+    table_class = ProductTable
+    paginate_by = 50
+```
+
+The view itself does not paginate a second time. One page means the row query, and
+any `select_related` or `prefetch_related` on it, runs once per page rather than
+twice, and the count under the table always describes the rows above it — including
+under a column sort, which is applied when the table is built.
+
+Two consequences are worth knowing before you rely on the context:
+
+- `page_obj` **is** the table's page, so its `object_list` holds table rows. Each row
+  carries the model instance as `row.record`.
+- `object_list` and `<model>_list` hold the view's full queryset rather than a page of
+  it. It stays unevaluated unless a template asks for it, so nothing queries the whole
+  table on your behalf — but iterate the table, not that queryset, to render rows.
+
+Leaving `paginate_by` unset means no pagination: the table renders every row, and the
+count and links go with it. `table_pagination = False` says the same thing explicitly,
+and overrides `paginate_by` where a view sets both.
+
+A `?page=` that names no page — past the last one, or not a number — is a 404, the
+same answer a list view in this package gives the same URL.
+
 ### Inferred column alignment
 
 The shipped table template aligns a column by the kind of model field behind it, with
