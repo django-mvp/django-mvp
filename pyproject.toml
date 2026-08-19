@@ -121,9 +121,10 @@ mvp = "mvp.fixtures"
 # none of which has an mvp/brand_theme.py behind it — the same case again.
 # tests/test_table_layout.py and its _e2e sibling exercise the shipped table
 # templates — table_view.html and cotton/addons/django_table.html — and the
-# classes they emit, including the alignment a column infers from its field
-# kind, which the template decides rather than any Python. There is no
-# mvp/table_layout.py and there cannot be, the same case as the entries above.
+# markup they emit. The Python they lean on lives in mvp/templatetags/mvp.py
+# and is mirrored by tests/test_templatetags.py; what is left here is the
+# templates' own output, so there is no mvp/table_layout.py and there cannot
+# be, the same case as the entries above.
 non-mirror-paths = [
     "tests/test_components/",
     "tests/test_demo/",
