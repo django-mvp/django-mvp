@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.19.1] - 2026-08-19
+
 ### Removed
 
 - **The `c-page.list.footer` component.** No template referenced it. It described the
