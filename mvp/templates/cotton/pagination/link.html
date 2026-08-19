@@ -12,7 +12,7 @@
     {% endif %}
   </button>
 {% else %}
-  <a class="join-item btn {% variation size "btn" "sm,md,lg" %}{% if active %} btn-active btn-primary{% endif %} {{ class }}"
+  <a class="join-item btn {% variation size "btn" "sm,md,lg" %}{% if active %} btn-primary{% endif %} {{ class }}"
      href="{% querystring page=page %}"
      {% if active %}aria-current="page"{% endif %}
      {{ attrs }}>

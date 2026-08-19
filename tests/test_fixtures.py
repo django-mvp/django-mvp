@@ -80,6 +80,39 @@ class TestCottonRenderStringSoup:
         assert "Contextual" in soup.get_text()
 
 
+class TestRequestAwareTags:
+    """Both inline renderers must satisfy tags that read ``context.request``.
+
+    ``{% querystring %}`` reads the attribute a ``RequestContext`` sets, not the
+    ``request`` context variable, and ``c-pagination.link`` builds its href with
+    it. A plain ``Context`` raises ``AttributeError`` from inside the tag, which
+    would break these fixtures for every consuming project.
+    """
+
+    def test_string_renderer_supplies_the_request_attribute(
+        self, cotton_render_string
+    ):
+        html = cotton_render_string('<c-pagination.link :page="2" text="2" />')
+        assert "page=2" in html
+
+    def test_soup_renderer_supplies_the_request_attribute(
+        self, cotton_render_string_soup
+    ):
+        soup = cotton_render_string_soup('<c-pagination.link :page="2" text="2" />')
+        assert "page=2" in soup.find("a")["href"]
+
+    def test_a_caller_supplied_request_is_honoured(self, cotton_render_string):
+        """A caller passing its own request keeps that request's query string,
+        which is the only way to exercise a component that reads ``?`` state."""
+        from django.test import RequestFactory
+
+        html = cotton_render_string(
+            '<c-pagination.link :page="2" text="2" />',
+            context={"request": RequestFactory().get("/items/?q=widget")},
+        )
+        assert "q=widget" in html
+
+
 class TestBeautifulSoupGuard:
     """beautifulsoup4 is not a runtime dependency, so the import is deferred."""
 

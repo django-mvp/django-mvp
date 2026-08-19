@@ -59,7 +59,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **The current pagination page is now visually distinct.** `btn-active` alone
   resolves to the same background a plain button already has, so the selected
   page looked identical to the rest even though it carried `aria-current="page"`.
-  It now also gets `btn-primary`.
+  It now carries `btn-primary` instead.
+- **The `cotton_render_string` and `cotton_render_string_soup` fixtures now satisfy
+  tags that read the request.** Both built a plain `Context`, which has no `request`
+  attribute, so `{% querystring %}` raised `AttributeError` inside any component
+  using it. They also overwrote a caller's own request, which made a component that
+  reads query-string state impossible to exercise; a request you pass in is now
+  respected.
 
 ## [v0.19.0] - 2026-08-18
 
