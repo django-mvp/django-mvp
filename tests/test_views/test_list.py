@@ -847,8 +847,12 @@ class TestMVPListViewMixinEmptyState:
     """[015-US3] Empty state context is always present and configurable."""
 
     def test_empty_state_present_in_context_with_defaults(self, db):
-        """[015-US3] empty_state in context with non-empty heading and message."""
-        view = _make_list_view()
+        """[015-US3] empty_state in context with non-empty heading and message.
+
+        Asked of a view whose create action is visible, since the message is
+        deliberately dropped when it is not (see [#271] below).
+        """
+        view = _make_list_view(extra_attrs={"show_create_action": True})
         view.object_list = view.get_queryset()
         ctx = view.get_context_data()
         assert "empty_state" in ctx
@@ -883,18 +887,17 @@ class TestMVPListViewMixinEmptyState:
         ctx = view.get_context_data()
         assert ctx["empty_state"]["message"] == MVPListViewMixin.empty_state_message
 
-    def test_empty_state_message_has_no_cta_when_not_permitted(self, db):
-        """[#271] Default message differs from the CTA text when the user cannot create."""
+    def test_empty_state_message_dropped_when_not_permitted(self, db):
+        """[#271] No message at all when the user cannot create."""
         view = _make_list_view()  # show_create_action=False by default
         view.object_list = view.get_queryset()
         ctx = view.get_context_data()
-        assert ctx["empty_state"]["message"] != MVPListViewMixin.empty_state_message
-        assert ctx["empty_state"]["message"] == (
-            MVPListViewMixin.empty_state_message_readonly
-        )
+        assert ctx["empty_state"]["message"] is None
+        assert ctx["empty_state"]["heading"], "the heading still explains the page"
 
-    def test_explicit_empty_state_message_wins_regardless_of_permission(self, db):
-        """[#271] A custom empty_state_message overrides the permission-based default."""
+    def test_custom_empty_state_message_also_dropped_when_not_permitted(self, db):
+        """[#271] The message is the create button's caption, so a custom one
+        goes the same way as the default when there is no button."""
         view = _make_list_view(
             extra_attrs={
                 "empty_state_message": "Custom copy.",
@@ -903,7 +906,7 @@ class TestMVPListViewMixinEmptyState:
         )
         view.object_list = view.get_queryset()
         ctx = view.get_context_data()
-        assert ctx["empty_state"]["message"] == "Custom copy."
+        assert ctx["empty_state"]["message"] is None
 
 
 # ---------------------------------------------------------------------------
@@ -1288,15 +1291,14 @@ class TestEmptyStateMessageRendering:
         assert "Click the button below to get started" in soup.get_text()
         assert soup.find("a", href="/products/create/") is not None
 
-    def test_readonly_message_renders_and_no_button_when_not_permitted(
-        self, rf, db
-    ):
-        """[#271] Without create permission, the message names no button and
-        no 'Add new' button renders."""
+    def test_no_message_and_no_button_when_not_permitted(self, rf, db):
+        """[#271] Without create permission the heading stands alone: no
+        invitation, no empty paragraph left behind, and no 'Add new' button."""
         html = _render_empty_list_view(rf, show_create_action=False)
         soup = _beautiful_soup()(html, "html.parser")
-        assert "Click the button below to get started" not in soup.get_text()
-        assert "button below" not in soup.get_text()
+        text = soup.get_text()
+        assert "button below" not in text
         assert soup.find("a", href="/products/create/") is None
-        # A read-only viewer still sees an explanatory message, not a blank area.
-        assert "no records" in soup.get_text().lower()
+        assert "There's nothing here yet" in text, "the heading still renders"
+        empty_state = soup.find("h3").parent
+        assert empty_state.find("p") is None, "no empty paragraph is rendered"
