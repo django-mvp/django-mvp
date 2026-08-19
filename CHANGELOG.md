@@ -26,6 +26,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **The list view's empty state no longer points a user at a button they cannot
+  see.** Its message told every visitor to "click the button below to get started",
+  including one with no permission to create anything, whose page has no such button.
+  When the create action is hidden, the message now comes from the new
+  `empty_state_message_readonly` and says only that there is nothing to show. An
+  `empty_state_message` you set yourself still wins either way, `None` included.
+- **The record count under a table no longer sits low in its row.** It carried
+  `<c-text>`'s default bottom margin, which pushed it out of line with the
+  pagination controls beside it.
 - **`MenuCollapse` no longer discards its context or edits the caller's.** Passing
   `extra_context` positionally left the item with an empty context, so its label and
   icon silently vanished; passing it by keyword wrote the `collapsible` flag back
