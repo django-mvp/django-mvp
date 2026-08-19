@@ -50,6 +50,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   icon silently vanished; passing it by keyword wrote the `collapsible` flag back
   into the caller's own dict, which a shared context literal then carried to every
   other item built from it.
+- **Pagination links no longer drop a sort, a search or a filter on page change.**
+  `c-pagination.link` built every href as `?page=N`, replacing the whole query
+  string, so changing pages silently reset any other active list state. It now
+  changes only `page` via Django's `{% querystring %}` tag and leaves everything
+  else in place. The undocumented, unconfigurable `page_param` fallback is gone
+  with it.
+- **The current pagination page is now visually distinct.** `btn-active` alone
+  resolves to the same background a plain button already has, so the selected
+  page looked identical to the rest even though it carried `aria-current="page"`.
+  It now carries `btn-primary` instead.
+- **The `cotton_render_string` and `cotton_render_string_soup` fixtures now satisfy
+  tags that read the request.** Both built a plain `Context`, which has no `request`
+  attribute, so `{% querystring %}` raised `AttributeError` inside any component
+  using it. They also overwrote a caller's own request, which made a component that
+  reads query-string state impossible to exercise; a request you pass in is now
+  respected.
 
 ## [v0.19.0] - 2026-08-18
 

@@ -146,7 +146,7 @@ def cotton_render_string():
         """
         if context is None:
             context = {}
-        request = factory.get("/")
+        request = context.get("request") or factory.get("/")
         context["request"] = request
 
         # Compile Cotton component syntax into Django template syntax
@@ -155,6 +155,9 @@ def cotton_render_string():
         # Render through Django's Template system
         django_template = Template(compiled_template)
         django_context = Context(context)
+        # Tags such as {% querystring %} read context.request, the attribute a
+        # RequestContext sets, rather than the "request" context variable.
+        django_context.request = request
         return django_template.render(django_context)
 
     return _render
@@ -218,7 +221,7 @@ def cotton_render_string_soup():
         """
         if context is None:
             context = {}
-        request = factory.get("/")
+        request = context.get("request") or factory.get("/")
         context["request"] = request
 
         # Compile Cotton component syntax into Django template syntax
@@ -227,6 +230,9 @@ def cotton_render_string_soup():
         # Render through Django's Template system
         django_template = Template(compiled_template)
         django_context = Context(context)
+        # Tags such as {% querystring %} read context.request, the attribute a
+        # RequestContext sets, rather than the "request" context variable.
+        django_context.request = request
         html = django_template.render(django_context)
 
         # Parse with BeautifulSoup for easy DOM traversal

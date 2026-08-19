@@ -1,0 +1,5 @@
+{% comment %}
+  Renders <c-pagination> in isolation so the test suite can assert on its
+  page links (issue #270).
+{% endcomment %}
+<c-pagination :page_obj="page_obj" />
