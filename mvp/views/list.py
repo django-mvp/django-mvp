@@ -21,10 +21,17 @@ class SearchMixin:
     the queryset is returned unmodified. The context sentinels ``is_searchable``
     and ``search_query`` are **always** injected regardless of configuration.
 
+    Only the first ``max_search_words`` words of a term are searched. One
+    ``Q`` object is built per word per field, so an unbounded term lets the
+    requester set the depth of the expression tree — deep enough, on SQLite,
+    for the database to refuse the query outright.
+
     Config:
         search_fields (list[str] | None): ORM field paths to search across.
             Supports relationship traversal (e.g. ``"category__name"``).
             Default: ``None`` (mixin is a no-op).
+        max_search_words (int): How many words of ``?q=`` are searched.
+            Words past the limit are ignored. Default: ``10``.
 
     Override hooks:
         get_search_fields(): Return the effective field list dynamically.
@@ -45,6 +52,7 @@ class SearchMixin:
     """
 
     search_fields = None
+    max_search_words = 10
 
     def get_search_fields(self):
         """Return the list of fields to search across.
@@ -76,6 +84,10 @@ class SearchMixin:
         across all specified fields using case-insensitive contains lookups.
         For multi-word searches, applies OR matching across all words and fields.
 
+        Only the first ``max_search_words`` words are used. The tree this
+        builds is one branch per word per field, and the term arrives from the
+        query string, so without a bound its depth belongs to the requester.
+
         Args:
             queryset: The queryset to filter
             search_term: The search string (can contain multiple words)
@@ -86,7 +98,7 @@ class SearchMixin:
         search_query = Q()
 
         # Split search term by any whitespace to support multi-word OR matching
-        words = search_term.split()
+        words = search_term.split()[: self.max_search_words]
 
         for word in words:
             for field in self.get_search_fields():
@@ -288,6 +300,11 @@ class MVPListViewMixin(
     Detail, update, and delete URLs belong on object pages, not list pages.
 
     Config:
+        actions (list[str]): Which controls the action row renders, in order.
+            Each name resolves to a ``page.list.actions.<name>`` component, and
+            each still applies its own condition — naming ``"search"`` on a view
+            with no ``search_fields`` renders nothing. Default:
+            ``["search", "sort", "filter", "create"]``.
         base_template_name (str): Fallback template. Default: ``"list_view.html"``.
         list_item_template (str | None): Explicit path to the partial template for each item.
             When ``None`` (the default), the path is derived from the model's app label and
@@ -352,6 +369,7 @@ class MVPListViewMixin(
             list_item_template = "shop/product_card.html"
     """
 
+    actions = ["search", "sort", "filter", "create"]
     base_template_name = "list_view.html"
     directory = ["create"]
     list_item_template = None
@@ -368,8 +386,15 @@ class MVPListViewMixin(
 
         Adds:
             grid_config (GridConfig): Configuration for grid layout
+            list_actions (list[str]): Which action-row controls to render
         """
         context = super().get_context_data(**kwargs)
+        # Deliberately not `actions`. Both <c-toolbar> and <c-page.title> expose
+        # a slot of that name, and a Cotton slot falls through to the context
+        # variable when the caller passes no slot — so a context key called
+        # `actions` renders its own repr into every toolbar on the page that
+        # does not fill the slot.
+        context["list_actions"] = self.actions
         context["grid_config"] = self.get_grid_config()
         context["empty_state"] = {
             "heading": self.get_empty_state_heading(),

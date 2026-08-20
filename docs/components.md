@@ -49,8 +49,9 @@ Empty, unopinionated building blocks — you provide the content.
 | `c-page.content`, `c-page.toolbar` | body / page-level toolbar |
 | `c-page.list` | list-view wrapper used by `MVPListView` templates |
 | `c-page.list.empty` | `icon`, `heading`, `message` — empty state |
-| `c-page.list.actions` | `actions` — renders the action components below, default `['search','sort','filter','create']` |
+| `c-page.list.actions` | `actions` — renders the action components below, default `['search','sort','filter','create']`; an MVP list view feeds it from its own `actions` attribute |
 | `c-page.list.actions.{search,sort,create,filter,share}` | individual list actions |
+| `c-page.list.actions.search` | `placeholder`, `label` — the search box and its submit button's text |
 | `c-section` | `title`, `icon`, `level` (heading level 1–4); slot `actions` |
 | `c-section.hero` | `bg-image`, `title`, `subtitle`, `opacity`, `height`, `class`; slots `top`, `actions`, `bottom` — daisyUI hero |
 | `c-entrance` | `size` (`sm`/`md`/`lg`/`xl`/`2xl`/`3xl`/`4xl`/`full`, default `2xl`), `full-height` — the centered card for anonymous-facing pages; `small` is its deprecated predecessor |

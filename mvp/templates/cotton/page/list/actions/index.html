@@ -1,10 +1,11 @@
 <c-vars :actions="['search','sort','filter','create']" />
 {% if not filter %}
-  {% if is_searchable or order_by_choices %}
+  {% if 'search' in actions and is_searchable or 'sort' in actions and order_by_choices %}
     {% comment %}
       The filter action's own template owns #filterForm when it renders. Search
       and sort submit to that same id regardless of whether filtering is
-      configured, so without a filter this stands in as their target.
+      configured, so without a filter this stands in as their target. It is
+      only worth rendering when one of the two is actually on the page.
     {% endcomment %}
     <form id="filterForm" method="get" action="{{ action|default:"." }}" class="hidden"></form>
   {% endif %}

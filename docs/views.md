@@ -73,6 +73,9 @@ class ProductListView(MVPListView):
         ("newest",    "Newest first", "-created"),
     ]
 
+    # Which controls appear in the action row, and in what order
+    actions = ["search", "sort", "create"]
+
     # Card grid + per-item template ("<app>/<model>_list_item.html" by default)
     grid = {"md": 2, "xl": 3}
     list_item_template = "shop/product_card.html"
@@ -82,10 +85,18 @@ class ProductListView(MVPListView):
     show_create_action = lambda self, user: user.is_staff
 ```
 
-The list template renders the action row (`search`, `sort`, `create`, `filter` —
-see [`c-page.list.actions`](components.md#page-structure)), the grid, the empty state,
-and pagination. `SearchMixin`, `OrderMixin` and `SearchOrderMixin` are also usable on
-any plain Django `ListView`.
+The list template renders the action row (see
+[`c-page.list.actions`](components.md#page-structure)), the grid, the empty state, and
+pagination. `actions` chooses which controls appear and defaults to all four —
+`["search", "sort", "filter", "create"]`. Each one still applies its own condition, so
+naming a control the view has not configured renders nothing rather than an empty one.
+`SearchMixin`, `OrderMixin` and `SearchOrderMixin` are also usable on any plain Django
+`ListView`.
+
+Search reads the first ten words of `?q=` and ignores the rest. The query grows by one
+branch per word per field and the term arrives from the URL, so the limit keeps its size
+out of a visitor's hands. Raise `max_search_words` on the view if longer terms are
+genuinely useful.
 
 The empty state follows the create action. Its message is there to point at the "Add
 new" button, so a user whose create action is hidden sees the heading on its own:

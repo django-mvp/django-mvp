@@ -149,6 +149,7 @@ page.
 
 | Attribute | Default | Meaning |
 |---|---|---|
+| `actions` | `["search", "sort", "filter", "create"]` | Which controls the action row renders, in order. Each still applies its own condition, so naming one the view has not configured renders nothing. |
 | `paginate_by` | `24` | Page size. Divisible by 1–4, so it fills 1-, 2-, 3- and 4-column grids evenly. |
 | `base_template_name` | `"list_view.html"` | Fallback template, tried after Django's own `<app>/<model>_list.html`. |
 | `directory` | `["create"]` | CRUD links offered in the header. Detail, update and delete belong on object pages. |
@@ -159,6 +160,7 @@ page.
 | `create_form_class` | `None` | A form class enables the inline "Add" modal on the list page. |
 | `create_modal_title` | `None` | Injected into context but read by no packaged template — currently has no effect. |
 | `search_fields` | `None` | ORM field paths for `?q=`. `None` or empty disables search entirely. |
+| `max_search_words` | `10` | How many words of `?q=` are searched. Words past the limit are ignored. |
 | `order_by` | `None` | Whitelist of orderings for `?o=`. `None` or empty disables ordering. |
 | `page_title` | `""` | When empty, falls back to `verbose_name_plural.title()`. |
 
@@ -174,7 +176,7 @@ box never renders — set `search_fields` to something truthy as well.
 `get_list_item_template()` raises `AttributeError` when the view has no `model` and no explicit
 `list_item_template` — the derived name has nothing to derive from.
 
-Context added: `list_item_template`, `empty_state` (`{"heading", "message"}`), `grid_config`,
+Context added: `list_actions`, `list_item_template`, `empty_state` (`{"heading", "message"}`), `grid_config`,
 `directory`, `model_info`, `search_query`, `is_searchable`, and Django's own `object_list` /
 `page_obj` / `paginator`. `order_by_choices` and `current_ordering` are added only when
 `order_by` is configured. `create_form` is added only when `create_form_class` is set *and*
@@ -185,6 +187,11 @@ Context added: `list_item_template`, `empty_state` (`{"heading", "message"}`), `
 `?q=` runs a case-insensitive `icontains` match across every `search_fields` path, splitting on
 whitespace and OR-ing every word against every field, then calling `.distinct()`. Relationship
 traversal works (`"category__name"`).
+
+Only the first `max_search_words` words are searched — ten by default. One branch is added to
+the query per word per field, and the term comes from the URL, so an unbounded one lets the
+requester choose how deep the expression tree gets. Raise the limit on the view if a project
+genuinely needs longer terms.
 
 `?o=` is whitelist-only. Each `order_by` entry is a three-tuple:
 

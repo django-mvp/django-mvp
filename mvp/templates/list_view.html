@@ -1,7 +1,7 @@
 {% extends "page_view.html" %}
 {% load i18n static crispy_forms_tags mvp %}
 {% block page.actions %}
-  <c-page.list.actions />
+  <c-page.list.actions :actions="list_actions" />
 {% endblock page.actions %}
 {% block page.content %}
   <div class="mt-5">

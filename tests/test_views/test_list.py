@@ -227,6 +227,60 @@ class TestSearchMixin:
         assert view.get_queryset().count() == 2
 
 
+class TestSearchMixinWordLimit:
+    """[#281] The number of words taken from ``?q=`` is bounded.
+
+    One ``Q`` object is built per word per search field, and the requester
+    sets the word count. Past a few hundred words the resulting expression
+    tree is deep enough for SQLite to refuse it outright, which surfaces as
+    an unhandled 500 on any list view a visitor can reach.
+    """
+
+    def test_a_very_long_query_still_returns_a_page(self, db, cat):
+        """[#281] A four-thousand-word ?q= is answered, not raised on."""
+        _product(cat, "Alpha", description="widget")
+        term = " ".join(f"w{i}" for i in range(4000))
+        view = _make_search_view(
+            params={"q": term},
+            extra_attrs={"search_fields": ["name", "description"]},
+        )
+        assert list(view.get_queryset()) == []
+
+    def test_only_the_first_words_are_searched(self, db, cat):
+        """[#281] Words past the limit are dropped rather than searched."""
+        _product(cat, "Alpha")
+        _product(cat, "Beta")
+        words = ["alpha"] + [f"w{i}" for i in range(SearchMixin.max_search_words)]
+        view = _make_search_view(
+            params={"q": " ".join([*words, "beta"])},
+            extra_attrs={"search_fields": ["name"]},
+        )
+        qs = view.get_queryset()
+        assert list(qs.values_list("name", flat=True)) == ["Alpha"]
+
+    def test_the_limit_is_raisable_per_project(self, db, cat):
+        """[#281] A project that genuinely needs a longer term can say so.
+
+        The same term under the default limit loses its last word, and under
+        a raised one keeps it.
+        """
+        _product(cat, "Alpha")
+        _product(cat, "Beta")
+        term = " ".join(["alpha", *[f"w{i}" for i in range(20)], "beta"])
+
+        default_view = _make_search_view(
+            params={"q": term},
+            extra_attrs={"search_fields": ["name"]},
+        )
+        raised_view = _make_search_view(
+            params={"q": term},
+            extra_attrs={"search_fields": ["name"], "max_search_words": 50},
+        )
+
+        assert default_view.get_queryset().count() == 1
+        assert raised_view.get_queryset().count() == 2
+
+
 class TestSearchMixinNoConfig:
     """[US1] SearchMixin is a complete no-op when search_fields is not configured."""
 
@@ -1380,3 +1434,70 @@ class TestSearchSortControlsWithoutFilterSet:
         soup = _beautiful_soup()(response.content.decode(), "html.parser")
 
         assert len(soup.find_all(id="filterForm")) == 1
+
+
+# ---------------------------------------------------------------------------
+# Choosing which actions render (issue #282)
+# ---------------------------------------------------------------------------
+
+
+class TestListViewActionSelection:
+    """[#282] Which controls appear in the action row is a view-level choice.
+
+    A table view already declares its set through ``actions``. A list view had
+    no equivalent, so a project wanting a subset had to override the template
+    block that renders the row.
+    """
+
+    def _render(self, rf, **attrs):
+        view_cls = type(
+            "StubActionsListView",
+            (MVPListView,),
+            {
+                "model": Product,
+                "search_fields": ["name"],
+                "order_by": [("name_asc", "Name (A-Z)", "name")],
+                **attrs,
+            },
+        )
+        view = view_cls()
+        view.setup(rf.get("/"))
+        response = view.get(view.request)
+        response.render()
+        return response.content.decode()
+
+    def test_the_default_set_renders_every_action(self, rf, db):
+        """[#282] Leaving ``actions`` alone keeps today's behaviour."""
+        html = self._render(rf)
+        assert 'name="q"' in html, "search renders"
+        assert "ordering-option" in html, "sort renders"
+
+    def test_naming_a_subset_drops_the_rest(self, rf, db):
+        """[#282] A view asking for search alone gets no sort control."""
+        html = self._render(rf, actions=["search"])
+        assert 'name="q"' in html, "search still renders"
+        assert "ordering-option" not in html, "sort is gone"
+
+    def test_a_dropped_action_leaves_no_orphaned_form_reference(self, rf, db):
+        """[#282] Narrowing the set keeps every ``form=`` pointing somewhere real."""
+        html = self._render(rf, actions=["sort"])
+        soup = _beautiful_soup()(html, "html.parser")
+
+        form_ids = {form.get("id") for form in soup.find_all("form") if form.get("id")}
+        referring_ids = {el.get("form") for el in soup.find_all(attrs={"form": True})}
+
+        assert not referring_ids - form_ids
+
+    def test_the_component_falls_back_when_no_view_supplies_the_list(self):
+        """[#282] ``list_view.html`` passes a context key a plain view will not
+        set. The component's own default has to survive that, or the row
+        empties out on any page not served by this mixin."""
+        from django import template
+        from django.template.context import Context
+        from django_cotton.compiler_regex import CottonCompiler
+
+        source = '<c-page.list.actions :actions="list_actions" />'
+        compiled = template.Template(CottonCompiler().process(source))
+        html = compiled.render(Context({"is_searchable": True}))
+
+        assert 'name="q"' in html, "search renders on the component's own default"

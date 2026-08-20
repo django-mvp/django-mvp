@@ -199,6 +199,7 @@ class ProductListView(MVPListView):
     model = Product
     search_fields = ["name", "description"]              # ?q= multi-word search
     order_by = [("name_asc", "Name (A-Z)", "name")]      # ?o= whitelisted ordering
+    actions = ["search", "sort", "create"]               # which controls the row shows
 
 
 class ProductCreateView(MVPCreateView):
