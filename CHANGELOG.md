@@ -7,8 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+
+- **`actions` on table views, and the `table_actions` context key.** Which
+  controls appear above a table is decided the same way it is above a list:
+  each one draws itself when the view configures the thing it drives. A list
+  naming them was a second place to say that, and the two could disagree. The
+  sort control is still absent from a table page — `order_by` is refused there,
+  so the ordering choices the sort menu reads are never present. A project that
+  set `actions` can drop the attribute; a template overriding
+  `{% block page.actions %}` should render `<c-page.list.actions />` with no
+  argument.
+
 ### Fixed
 
+- **A long search term no longer returns a server error.** The search query grew
+  by one branch per word per search field with no limit on the word count, and the
+  term came straight from `?q=`. Past a few hundred words the resulting query was
+  deep enough for SQLite to refuse — around 500 words on a two-field view, which
+  fits comfortably inside an ordinary request. Only the first ten words are
+  searched now, and `max_search_words` on the view raises that where a project
+  needs it.
+- **The search button's label can be translated and replaced.** It was written as
+  a literal, so the only way to change it was to ship a copy of the template. It
+  now reads the component's `label` attribute, which defaults to a translated
+  "Search" like every other string in the row.
 - **Search and sort controls no longer stop working when a list view has no
   filter.** Both submit to a form identified as `filterForm`, but that form was
   declared only by the filter action's own template, so a list view configuring

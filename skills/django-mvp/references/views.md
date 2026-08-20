@@ -159,6 +159,7 @@ page.
 | `create_form_class` | `None` | A form class enables the inline "Add" modal on the list page. |
 | `create_modal_title` | `None` | Injected into context but read by no packaged template — currently has no effect. |
 | `search_fields` | `None` | ORM field paths for `?q=`. `None` or empty disables search entirely. |
+| `max_search_words` | `10` | How many words of `?q=` are searched. Words past the limit are ignored. |
 | `order_by` | `None` | Whitelist of orderings for `?o=`. `None` or empty disables ordering. |
 | `page_title` | `""` | When empty, falls back to `verbose_name_plural.title()`. |
 
@@ -185,6 +186,11 @@ Context added: `list_item_template`, `empty_state` (`{"heading", "message"}`), `
 `?q=` runs a case-insensitive `icontains` match across every `search_fields` path, splitting on
 whitespace and OR-ing every word against every field, then calling `.distinct()`. Relationship
 traversal works (`"category__name"`).
+
+Only the first `max_search_words` words are searched — ten by default. One branch is added to
+the query per word per field, and the term comes from the URL, so an unbounded one lets the
+requester choose how deep the expression tree gets. Raise the limit on the view if a project
+genuinely needs longer terms.
 
 `?o=` is whitelist-only. Each `order_by` entry is a three-tuple:
 

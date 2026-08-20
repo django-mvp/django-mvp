@@ -227,6 +227,60 @@ class TestSearchMixin:
         assert view.get_queryset().count() == 2
 
 
+class TestSearchMixinWordLimit:
+    """[#281] The number of words taken from ``?q=`` is bounded.
+
+    One ``Q`` object is built per word per search field, and the requester
+    sets the word count. Past a few hundred words the resulting expression
+    tree is deep enough for SQLite to refuse it outright, which surfaces as
+    an unhandled 500 on any list view a visitor can reach.
+    """
+
+    def test_a_very_long_query_still_returns_a_page(self, db, cat):
+        """[#281] A four-thousand-word ?q= is answered, not raised on."""
+        _product(cat, "Alpha", description="widget")
+        term = " ".join(f"w{i}" for i in range(4000))
+        view = _make_search_view(
+            params={"q": term},
+            extra_attrs={"search_fields": ["name", "description"]},
+        )
+        assert list(view.get_queryset()) == []
+
+    def test_only_the_first_words_are_searched(self, db, cat):
+        """[#281] Words past the limit are dropped rather than searched."""
+        _product(cat, "Alpha")
+        _product(cat, "Beta")
+        words = ["alpha"] + [f"w{i}" for i in range(SearchMixin.max_search_words)]
+        view = _make_search_view(
+            params={"q": " ".join([*words, "beta"])},
+            extra_attrs={"search_fields": ["name"]},
+        )
+        qs = view.get_queryset()
+        assert list(qs.values_list("name", flat=True)) == ["Alpha"]
+
+    def test_the_limit_is_raisable_per_project(self, db, cat):
+        """[#281] A project that genuinely needs a longer term can say so.
+
+        The same term under the default limit loses its last word, and under
+        a raised one keeps it.
+        """
+        _product(cat, "Alpha")
+        _product(cat, "Beta")
+        term = " ".join(["alpha", *[f"w{i}" for i in range(20)], "beta"])
+
+        default_view = _make_search_view(
+            params={"q": term},
+            extra_attrs={"search_fields": ["name"]},
+        )
+        raised_view = _make_search_view(
+            params={"q": term},
+            extra_attrs={"search_fields": ["name"], "max_search_words": 50},
+        )
+
+        assert default_view.get_queryset().count() == 1
+        assert raised_view.get_queryset().count() == 2
+
+
 class TestSearchMixinNoConfig:
     """[US1] SearchMixin is a complete no-op when search_fields is not configured."""
 
@@ -1380,3 +1434,78 @@ class TestSearchSortControlsWithoutFilterSet:
         soup = _beautiful_soup()(response.content.decode(), "html.parser")
 
         assert len(soup.find_all(id="filterForm")) == 1
+
+
+# ---------------------------------------------------------------------------
+# Each action follows its own view configuration (issue #282)
+# ---------------------------------------------------------------------------
+
+
+class TestActionsFollowViewConfiguration:
+    """[#282] A control appears when the view configures the thing it drives.
+
+    There is no separate list saying which controls to draw. ``search_fields``
+    decides the search box, ``order_by`` the sort menu, a ``FilterSet`` the
+    filter dialog, and ``show_create_action`` the add button. Dropping one is
+    a matter of not configuring it, so the row cannot disagree with the view
+    behind it.
+    """
+
+    def _render(self, rf, **attrs):
+        view_cls = type("StubActionsListView", (MVPListView,), {"model": Product, **attrs})
+        view = view_cls()
+        view.setup(rf.get("/"))
+        response = view.get(view.request)
+        response.render()
+        return response.content.decode()
+
+    def test_search_follows_search_fields(self, rf, db):
+        """[#282] The box appears with ``search_fields`` and not without it."""
+        assert 'name="q"' in self._render(rf, search_fields=["name"])
+        assert 'name="q"' not in self._render(rf, search_fields=None)
+
+    def test_sort_follows_order_by(self, rf, db):
+        """[#282] The menu appears with ``order_by`` and not without it."""
+        orderings = [("name_asc", "Name (A-Z)", "name")]
+        assert "ordering-option" in self._render(rf, order_by=orderings)
+        assert "ordering-option" not in self._render(rf, order_by=None)
+
+    def test_create_follows_show_create_action(self, rf, db):
+        """[#282] The add button appears only when the view offers the action."""
+        shown = self._render(rf, show_create_action=True)
+        hidden = self._render(rf, show_create_action=False)
+        assert _beautiful_soup()(shown, "html.parser").find(
+            "a", href="/products/create/"
+        ) is not None
+        assert _beautiful_soup()(hidden, "html.parser").find(
+            "a", href="/products/create/"
+        ) is None
+
+    def test_filter_follows_the_filterset(self, rf, db):
+        """[#282] The dialog appears only when a FilterSet is configured."""
+        from django_filters.views import FilterView
+
+        view_cls = type(
+            "StubFilteredActionsView",
+            (MVPListViewMixin, FilterView),
+            {"model": Product, "filterset_fields": ["category"]},
+        )
+        view = view_cls()
+        view.setup(rf.get("/"))
+        response = view.get(view.request)
+        response.render()
+        filtered = _beautiful_soup()(response.content.decode(), "html.parser")
+
+        assert filtered.find(id="filterModal") is not None
+        unfiltered = _beautiful_soup()(self._render(rf), "html.parser")
+        assert unfiltered.find(id="filterModal") is None
+
+    def test_a_bare_list_view_draws_no_controls_at_all(self, rf, db):
+        """[#282] Configure nothing and the row is empty rather than broken."""
+        html = self._render(rf)
+        soup = _beautiful_soup()(html, "html.parser")
+
+        assert 'name="q"' not in html
+        assert "ordering-option" not in html
+        assert soup.find(id="filterModal") is None
+        assert soup.find(id="filterForm") is None

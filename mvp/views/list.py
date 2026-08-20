@@ -21,10 +21,17 @@ class SearchMixin:
     the queryset is returned unmodified. The context sentinels ``is_searchable``
     and ``search_query`` are **always** injected regardless of configuration.
 
+    Only the first ``max_search_words`` words of a term are searched. One
+    ``Q`` object is built per word per field, so an unbounded term lets the
+    requester set the depth of the expression tree — deep enough, on SQLite,
+    for the database to refuse the query outright.
+
     Config:
         search_fields (list[str] | None): ORM field paths to search across.
             Supports relationship traversal (e.g. ``"category__name"``).
             Default: ``None`` (mixin is a no-op).
+        max_search_words (int): How many words of ``?q=`` are searched.
+            Words past the limit are ignored. Default: ``10``.
 
     Override hooks:
         get_search_fields(): Return the effective field list dynamically.
@@ -45,6 +52,7 @@ class SearchMixin:
     """
 
     search_fields = None
+    max_search_words = 10
 
     def get_search_fields(self):
         """Return the list of fields to search across.
@@ -76,6 +84,10 @@ class SearchMixin:
         across all specified fields using case-insensitive contains lookups.
         For multi-word searches, applies OR matching across all words and fields.
 
+        Only the first ``max_search_words`` words are used. The tree this
+        builds is one branch per word per field, and the term arrives from the
+        query string, so without a bound its depth belongs to the requester.
+
         Args:
             queryset: The queryset to filter
             search_term: The search string (can contain multiple words)
@@ -86,7 +98,7 @@ class SearchMixin:
         search_query = Q()
 
         # Split search term by any whitespace to support multi-word OR matching
-        words = search_term.split()
+        words = search_term.split()[: self.max_search_words]
 
         for word in words:
             for field in self.get_search_fields():

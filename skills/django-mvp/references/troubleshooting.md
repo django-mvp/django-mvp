@@ -163,8 +163,7 @@ Drop the attribute and mark the page `fill`.
 A context key called `actions` was added by a view. `<c-toolbar>` and `<c-page.title>`
 expose a slot of that name, and a Cotton slot falls through to the context variable when
 the caller fills no slot, so the list renders its own repr.
-Name the context key something else — the table view uses `table_actions` for exactly
-this reason.
+Name the context key something else. Nothing this package ships puts one there.
 
 **A width class on a table column looks like it did nothing.**
 Tables lay out with the browser's default automatic algorithm, which negotiates a column's

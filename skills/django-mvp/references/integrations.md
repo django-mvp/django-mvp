@@ -51,18 +51,20 @@ class ProductTable(tables.Table):
         order_by = ("-created",)   # or set order_by on the table instance
 ```
 
-### Actions, and the context key they arrive under
+### Actions
 
-`actions` lists the controls in the bar above the table, defaulting to
-`["search", "filter", "create"]` — a list view's set minus sort, dropped for the same
-reason the `order_by` guard exists. Set `actions = ["search", "create"]` on the view to
-change or reorder them.
+The bar above the table renders `<c-page.list.actions>`, the same component a list page
+uses, and each control appears when the view configures what it drives — `search_fields`,
+a `FilterSet`, `show_create_action`. No list on the view names them, on a table view or a
+list view.
 
-The view puts that list in the context as **`table_actions`**, deliberately not
-`actions`. Both `<c-toolbar>` and `<c-page.title>` expose a slot named `actions`, and a
-Cotton slot falls through to the context variable of the same name when the caller fills
-no slot — so a context key called `actions` prints its own repr into every toolbar on the
-page. If you override `{% block page.actions %}` on a table page, pass `table_actions`.
+No sort control appears, because `order_by` is refused here and the sort action draws from
+`order_by_choices`, which a view that cannot declare `order_by` never has.
+
+Never put a context key called `actions` on a table page. Both `<c-toolbar>` and
+`<c-page.title>` expose a slot of that name, and a Cotton slot falls through to the
+context variable when the caller fills no slot, so the key prints its own repr into every
+toolbar on the page.
 
 ### The full-screen layout
 

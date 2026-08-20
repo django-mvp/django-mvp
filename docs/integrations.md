@@ -39,22 +39,17 @@ title bar above and the count and pagination below stay put.
 
 ### Actions and sorting
 
-`actions` lists the controls in the bar above the table, and defaults to
-`["search", "filter", "create"]` — the same set a list view offers, minus sort.
-Override it on the view to change or reorder them:
+The bar above the table draws the same controls a list page does, and decides on them
+the same way: each one appears when the view configures the thing it drives. Give the
+view `search_fields` and the search box appears, a `FilterSet` and the filter dialog
+does, `show_create_action` and the add button does. There is no list to override.
 
-```python
-class ProductTableView(MVPTableView):
-    model = Product
-    table_class = ProductTable
-    actions = ["search", "create"]
-```
-
-Sorting is missing from that set on purpose, and a table view raises
-`ImproperlyConfigured` if you declare `order_by` on it. A table already sorts through
-its own column headers, against the list of sortable columns the table class defines.
-Declaring an ordering on the view as well gives the same table two competing sources
-for it. Put the ordering on the table class instead, as its own `order_by` or
+No sort control appears on a table page, and that is a consequence rather than a
+separate decision. A table view raises `ImproperlyConfigured` if you declare `order_by`
+on it, so the ordering choices the sort menu draws from are never there. A table
+already sorts through its own column headers, against the sortable columns the table
+class defines, and an ordering on the view as well would give the same table two
+competing sources for it. Put the ordering on the table class, as its own `order_by` or
 `Meta.order_by`.
 
 ### Pagination

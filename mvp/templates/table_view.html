@@ -34,8 +34,8 @@
   edge. And a toolbar renders {{ actions }} in its trailing slot, where a
   Cotton slot falls through to the context variable of the same name when the
   caller fills no slot — so any page whose context carries an `actions` key
-  prints its repr there. The context key is `table_actions` now, but a bare row
-  keeps the trap shut whatever a project puts in its own context.
+  prints its repr there. Nothing here puts one in context, but a bare row keeps
+  the trap shut whatever a project puts in its own.
 
   Padding sits on the bars, never on the page. The table is meant to reach the
   edges of the space the shell gives it: its scrollbar hugs the shell edge and
@@ -74,7 +74,7 @@
               </div>
               <div class="flex flex-wrap md:flex-nowrap gap-2 md:gap-1 md:justify-end md:items-center">
                 {% block page.actions %}
-                  <c-page.list.actions :actions="table_actions" />
+                  <c-page.list.actions />
                 {% endblock page.actions %}
               </div>
             </div>

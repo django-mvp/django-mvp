@@ -225,16 +225,22 @@ mixins), not dropped into an arbitrary template.
 | `<c-page.list>` | The result grid: one item template per object, or the empty state when there are none | `list` (plus `list_item_template`) | `list`, `empty_state` |
 | `<c-page.list.empty>` | The "nothing here" panel, with an add button when the view offers a create URL | — (`directory.create_url` gates the button) | `icon` (`search`), `heading`, `message`, `icon_class`, `class` |
 | `<c-page.list.footer>` | Result count and pager beneath a list | `page_obj` | — |
-| `<c-page.list.actions>` | Renders the action components in order | — | `actions` (`['search','sort','filter','create']`) |
-| `<c-page.list.actions.search>` | Search box bound to the filter form | `is_searchable` (from `SearchMixin`) | `placeholder`, `label` (declared, currently unused) |
+| `<c-page.list.actions>` | Renders the action components in order | — (each action needs its own key) | `actions` (`['search','sort','filter','create']`) |
+| `<c-page.list.actions.search>` | Search box bound to the filter form | `is_searchable` (from `SearchMixin`) | `placeholder` (`Search`), `label` (`Search`, the submit button's text) |
 | `<c-page.list.actions.sort>` | Sort menu that resubmits the filter form on choice | `order_by_choices` (from `OrderMixin`) | — |
 | `<c-page.list.actions.filter>` | Filter button and dialog, with a badge counting applied filters | `filter` (from the django-filter integration) | `label` (`Filter`), `icon` (`filter`) |
 | `<c-page.list.actions.create>` | Add button — a dialog when the view supplies an inline create form, a link otherwise | `directory.create_url`, optionally `create_form` | `label` (`Add`), `icon` (`add`, declared but the button hard-codes `add`) |
 | `<c-page.list.actions.share>` | Share menu for the list page | — (always renders) | — |
 
-The search, sort and filter actions all write into a single form with the id `filterForm`,
-which `<c-page.list.actions.filter>` renders. Using search or sort without the filter
-action leaves their controls with nothing to submit to.
+The search, sort and filter actions all write into a single form with the id `filterForm`.
+The filter action renders it when a `FilterSet` is configured, and `<c-page.list.actions>`
+renders an empty hidden one otherwise, so search and sort work in any combination.
+
+Each action draws itself only when the view configures what it drives — `search_fields`,
+`order_by`, a `FilterSet`, `show_create_action`. Naming all four is therefore the safe
+default, and a view drops a control by not configuring it rather than by shortening this
+list. `share` is the exception: it takes no context and always renders, so it appears only
+where a caller asks for it.
 
 ```html
 <c-page>

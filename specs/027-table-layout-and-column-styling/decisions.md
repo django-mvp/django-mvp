@@ -150,8 +150,13 @@ changes a shared mechanism's behaviour for every filled page in every consuming 
 **Unclear**: nothing, until the rendered page showed `['search', 'filter', 'create']` beside the
 breadcrumbs.
 
-**Chosen**: the table view's context key is `table_actions`, and the breadcrumb row is a plain flex
-row rather than a `<c-toolbar>`.
+**Chosen**: ~~the table view's context key is `table_actions`~~, and the breadcrumb row is a plain
+flex row rather than a `<c-toolbar>`.
+
+> Superseded in part, 2026-08-20 (#282). The table view no longer publishes an action list under
+> any key: which controls appear is decided by whether the view configured what each one drives,
+> the same as on a list page. The half of this decision that still holds is the bare flex row,
+> which is what actually keeps the collision shut whatever a project puts in its own context.
 
 **Why**: a Cotton slot falls through to the context variable of the same name when the caller fills
 no slot. `<c-toolbar>` renders `{{ actions }}` in its trailing slot, so a context key called

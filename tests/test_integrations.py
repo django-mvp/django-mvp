@@ -297,16 +297,33 @@ class TestTableViewPagination:
 
 
 class TestTableViewActions:
-    """A table view's default action set drops sort — django-tables2's own
-    sortable column headers already cover it, so a separate sort control is
-    redundant on a table view specifically. Red before the default lands."""
+    """A table view draws no sort control, and does so for the same reason a
+    list view does — nothing configured it.
 
-    def test_default_actions_are_search_filter_and_create(self):
-        view_class = _plain_table_view_class()
-        view = view_class()
-        assert view.actions == ["search", "filter", "create"]
+    ``order_by`` is refused on a table view, so ``order_by_choices`` is never
+    in its context and the sort action's own condition is false. This used to
+    be stated twice: once by that refusal, and again by a shorter action list
+    on the view. The list is gone, so the two can no longer disagree."""
 
-    def test_sort_is_absent_from_the_default_action_set(self):
+    def _render(self, rf, **attrs):
         view_class = _plain_table_view_class()
-        view = view_class()
-        assert "sort" not in view.actions
+        view = type("RenderedTableView", (view_class,), attrs)()
+        view.setup(rf.get("/"))
+        response = view.get(view.request)
+        response.render()
+        return response.content.decode()
+
+    def test_no_sort_control_is_drawn(self, rf, db):
+        assert "ordering-option" not in self._render(rf)
+
+    def test_search_still_draws_when_the_view_configures_it(self, rf, db):
+        assert 'name="q"' in self._render(rf, search_fields=["name"])
+        assert 'name="q"' not in self._render(rf)
+
+    def test_the_view_carries_no_action_list_of_its_own(self):
+        """The list view sets none either — both read the same sub-components."""
+        from mvp.views.list import MVPListViewMixin
+
+        view = _plain_table_view_class()()
+        assert not hasattr(view, "actions")
+        assert not hasattr(MVPListViewMixin, "actions")
