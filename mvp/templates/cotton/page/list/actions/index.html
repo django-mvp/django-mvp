@@ -1,2 +1,10 @@
 <c-vars :actions="['search','sort','filter','create']" />
+{% if not filter %}
+  {% if is_searchable or order_by_choices %}
+    {# The filter action's own template owns #filterForm when it renders. Search and
+       sort submit to that same id regardless of whether filtering is configured, so
+       without a filter this stands in as their target. #}
+    <form id="filterForm" method="get" action="{{ action|default:"." }}" class="hidden"></form>
+  {% endif %}
+{% endif %}
 {% for action_item in actions %}<c-component is="page.list.actions.{{ action_item }}" />{% endfor %}
