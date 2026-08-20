@@ -30,8 +30,10 @@ class MVPTableViewMixin(MVPListViewMixin, SingleTableMixin):
 
     Ordering is refused: a table already has its own whitelisted ``order_by``
     mechanism, and declaring one on the view too would be a second, competing
-    surface for the same thing. The default action set drops sort for the
-    same reason — the table's own sortable column headers already cover it.
+    surface for the same thing. The sort control disappears as a consequence
+    rather than by a separate decision — it draws itself from
+    ``order_by_choices``, which a view that cannot declare ``order_by`` never
+    has. The table's own sortable column headers cover it.
 
     Pagination follows the same rule. The table paginates; the list view does
     not, and the page context the footer reads is republished from the table's
@@ -40,7 +42,6 @@ class MVPTableViewMixin(MVPListViewMixin, SingleTableMixin):
     """
 
     base_template_name = "table_view.html"
-    actions = ["search", "filter", "create"]
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -99,14 +100,6 @@ class MVPTableViewMixin(MVPListViewMixin, SingleTableMixin):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Deliberately not `actions`. Both <c-toolbar> and <c-page.title> expose a
-        # slot of that name, and a Cotton slot falls through to the context
-        # variable when the caller passes no slot — so a context key called
-        # `actions` renders its own repr into every toolbar on the page that
-        # does not fill the slot. That is what put "['search', 'filter',
-        # 'create']" next to the breadcrumbs.
-        context["table_actions"] = self.actions
-
         # Republish the table's page under the names the page chrome reads, so
         # the count and the pagination links describe the rows on screen. A
         # table with pagination turned off has no page, and then neither does

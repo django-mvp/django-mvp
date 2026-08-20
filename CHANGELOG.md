@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+
+- **`actions` on table views, and the `table_actions` context key.** Which
+  controls appear above a table is decided the same way it is above a list:
+  each one draws itself when the view configures the thing it drives. A list
+  naming them was a second place to say that, and the two could disagree. The
+  sort control is still absent from a table page — `order_by` is refused there,
+  so the ordering choices the sort menu reads are never present. A project that
+  set `actions` can drop the attribute; a template overriding
+  `{% block page.actions %}` should render `<c-page.list.actions />` with no
+  argument.
+
 ### Fixed
 
 - **A long search term no longer returns a server error.** The search query grew
