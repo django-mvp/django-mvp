@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Search and sort controls no longer stop working when a list view has no
+  filter.** Both submit to a form identified as `filterForm`, but that form was
+  declared only by the filter action's own template, so a list view configuring
+  `search_fields` or `order_by` without a `FilterSet` rendered controls pointing
+  at an element that did not exist on the page — pressing them did nothing. The
+  list actions now provide that form themselves whenever search or sort is
+  active and no filter already supplies one.
+
 ## [v0.19.1] - 2026-08-19
 
 ### Removed

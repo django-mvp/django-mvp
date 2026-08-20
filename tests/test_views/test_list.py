@@ -1302,3 +1302,81 @@ class TestEmptyStateMessageRendering:
         assert "There's nothing here yet" in text, "the heading still renders"
         empty_state = soup.find("h3").parent
         assert empty_state.find("p") is None, "no empty paragraph is rendered"
+
+
+# ---------------------------------------------------------------------------
+# Search/sort form association without a FilterSet (issue #275)
+# ---------------------------------------------------------------------------
+
+
+def _render_search_sort_list_view(rf):
+    """Render a full, empty MVPListView with search + ordering but no FilterSet."""
+    view_cls = type(
+        "StubSearchSortListView",
+        (MVPListView,),
+        {
+            "model": Product,
+            "search_fields": ["name"],
+            "order_by": [("name_asc", "Name (A-Z)", "name")],
+        },
+    )
+    view = view_cls()
+    view.setup(rf.get("/"))
+    response = view.get(view.request)
+    response.render()
+    return response.content.decode()
+
+
+class TestSearchSortControlsWithoutFilterSet:
+    """[#275] The search and sort controls must submit to a form that exists
+    in the rendered page, whether or not the view also configures a
+    FilterSet. Both controls point at ``form="filterForm"``, and that id was
+    previously declared only by the filter action's own template."""
+
+    def test_form_referenced_by_search_and_sort_exists_in_the_page(self, rf, db):
+        """[#275] Every element pointing at form="filterForm" resolves to an
+        actual <form id="filterForm"> in the document."""
+        html = _render_search_sort_list_view(rf)
+        soup = _beautiful_soup()(html, "html.parser")
+
+        form_ids = {form.get("id") for form in soup.find_all("form") if form.get("id")}
+        referring_ids = {el.get("form") for el in soup.find_all(attrs={"form": True})}
+
+        assert referring_ids, "expected search/sort controls to reference a form"
+        orphaned = referring_ids - form_ids
+        assert not orphaned, f"controls reference form ids that do not exist: {orphaned}"
+
+    def test_no_fallback_form_when_neither_search_nor_sort_configured(self, rf, db):
+        """[#275] A plain zero-config list (no search, no sort, no filter) gets
+        no #filterForm at all — nothing on the page needs it."""
+        view_cls = type("StubPlainListView", (MVPListView,), {"model": Product})
+        view = view_cls()
+        view.setup(rf.get("/"))
+        response = view.get(view.request)
+        response.render()
+        soup = _beautiful_soup()(response.content.decode(), "html.parser")
+
+        assert soup.find(id="filterForm") is None
+
+    def test_no_duplicate_filter_form_when_filterset_is_configured(self, rf, db):
+        """[#275] When a FilterSet is present it still owns #filterForm alone —
+        the fallback does not also render and collide with it."""
+        from django_filters.views import FilterView
+
+        view_cls = type(
+            "StubFilteredListView",
+            (MVPListViewMixin, FilterView),
+            {
+                "model": Product,
+                "filterset_fields": ["category"],
+                "search_fields": ["name"],
+                "order_by": [("name_asc", "Name (A-Z)", "name")],
+            },
+        )
+        view = view_cls()
+        view.setup(rf.get("/"))
+        response = view.get(view.request)
+        response.render()
+        soup = _beautiful_soup()(response.content.decode(), "html.parser")
+
+        assert len(soup.find_all(id="filterForm")) == 1
