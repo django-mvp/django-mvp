@@ -300,11 +300,6 @@ class MVPListViewMixin(
     Detail, update, and delete URLs belong on object pages, not list pages.
 
     Config:
-        actions (list[str]): Which controls the action row renders, in order.
-            Each name resolves to a ``page.list.actions.<name>`` component, and
-            each still applies its own condition — naming ``"search"`` on a view
-            with no ``search_fields`` renders nothing. Default:
-            ``["search", "sort", "filter", "create"]``.
         base_template_name (str): Fallback template. Default: ``"list_view.html"``.
         list_item_template (str | None): Explicit path to the partial template for each item.
             When ``None`` (the default), the path is derived from the model's app label and
@@ -369,7 +364,6 @@ class MVPListViewMixin(
             list_item_template = "shop/product_card.html"
     """
 
-    actions = ["search", "sort", "filter", "create"]
     base_template_name = "list_view.html"
     directory = ["create"]
     list_item_template = None
@@ -386,15 +380,8 @@ class MVPListViewMixin(
 
         Adds:
             grid_config (GridConfig): Configuration for grid layout
-            list_actions (list[str]): Which action-row controls to render
         """
         context = super().get_context_data(**kwargs)
-        # Deliberately not `actions`. Both <c-toolbar> and <c-page.title> expose
-        # a slot of that name, and a Cotton slot falls through to the context
-        # variable when the caller passes no slot — so a context key called
-        # `actions` renders its own repr into every toolbar on the page that
-        # does not fill the slot.
-        context["list_actions"] = self.actions
         context["grid_config"] = self.get_grid_config()
         context["empty_state"] = {
             "heading": self.get_empty_state_heading(),

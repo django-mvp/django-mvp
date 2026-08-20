@@ -73,9 +73,6 @@ class ProductListView(MVPListView):
         ("newest",    "Newest first", "-created"),
     ]
 
-    # Which controls appear in the action row, and in what order
-    actions = ["search", "sort", "create"]
-
     # Card grid + per-item template ("<app>/<model>_list_item.html" by default)
     grid = {"md": 2, "xl": 3}
     list_item_template = "shop/product_card.html"
@@ -87,11 +84,13 @@ class ProductListView(MVPListView):
 
 The list template renders the action row (see
 [`c-page.list.actions`](components.md#page-structure)), the grid, the empty state, and
-pagination. `actions` chooses which controls appear and defaults to all four —
-`["search", "sort", "filter", "create"]`. Each one still applies its own condition, so
-naming a control the view has not configured renders nothing rather than an empty one.
-`SearchMixin`, `OrderMixin` and `SearchOrderMixin` are also usable on any plain Django
-`ListView`.
+pagination. `SearchMixin`, `OrderMixin` and `SearchOrderMixin` are also usable on any
+plain Django `ListView`.
+
+Each control in the action row follows the thing it drives, so there is no separate list
+to keep in step with the view. `search_fields` draws the search box, `order_by` the sort
+menu, a `FilterSet` the filter dialog, and `show_create_action` the add button. Leave one
+unconfigured and its control does not appear.
 
 Search reads the first ten words of `?q=` and ignores the rest. The query grows by one
 branch per word per field and the term arrives from the URL, so the limit keeps its size

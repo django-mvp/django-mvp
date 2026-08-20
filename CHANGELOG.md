@@ -7,17 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
-
-- **`actions` on list views.** A list view can now name which controls appear in
-  its action row, and in what order, the way a table view already could. The
-  default is unchanged — search, sort, filter and create — and each control still
-  applies its own condition, so naming one the view has not configured renders
-  nothing. Choosing a subset previously meant overriding the template block that
-  draws the row.
-- **`list_actions` in the list view context**, carrying that attribute through to
-  `c-page.list.actions`.
-
 ### Fixed
 
 - **A long search term no longer returns a server error.** The search query grew

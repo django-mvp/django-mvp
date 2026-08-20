@@ -1437,67 +1437,75 @@ class TestSearchSortControlsWithoutFilterSet:
 
 
 # ---------------------------------------------------------------------------
-# Choosing which actions render (issue #282)
+# Each action follows its own view configuration (issue #282)
 # ---------------------------------------------------------------------------
 
 
-class TestListViewActionSelection:
-    """[#282] Which controls appear in the action row is a view-level choice.
+class TestActionsFollowViewConfiguration:
+    """[#282] A control appears when the view configures the thing it drives.
 
-    A table view already declares its set through ``actions``. A list view had
-    no equivalent, so a project wanting a subset had to override the template
-    block that renders the row.
+    There is no separate list saying which controls to draw. ``search_fields``
+    decides the search box, ``order_by`` the sort menu, a ``FilterSet`` the
+    filter dialog, and ``show_create_action`` the add button. Dropping one is
+    a matter of not configuring it, so the row cannot disagree with the view
+    behind it.
     """
 
     def _render(self, rf, **attrs):
-        view_cls = type(
-            "StubActionsListView",
-            (MVPListView,),
-            {
-                "model": Product,
-                "search_fields": ["name"],
-                "order_by": [("name_asc", "Name (A-Z)", "name")],
-                **attrs,
-            },
-        )
+        view_cls = type("StubActionsListView", (MVPListView,), {"model": Product, **attrs})
         view = view_cls()
         view.setup(rf.get("/"))
         response = view.get(view.request)
         response.render()
         return response.content.decode()
 
-    def test_the_default_set_renders_every_action(self, rf, db):
-        """[#282] Leaving ``actions`` alone keeps today's behaviour."""
+    def test_search_follows_search_fields(self, rf, db):
+        """[#282] The box appears with ``search_fields`` and not without it."""
+        assert 'name="q"' in self._render(rf, search_fields=["name"])
+        assert 'name="q"' not in self._render(rf, search_fields=None)
+
+    def test_sort_follows_order_by(self, rf, db):
+        """[#282] The menu appears with ``order_by`` and not without it."""
+        orderings = [("name_asc", "Name (A-Z)", "name")]
+        assert "ordering-option" in self._render(rf, order_by=orderings)
+        assert "ordering-option" not in self._render(rf, order_by=None)
+
+    def test_create_follows_show_create_action(self, rf, db):
+        """[#282] The add button appears only when the view offers the action."""
+        shown = self._render(rf, show_create_action=True)
+        hidden = self._render(rf, show_create_action=False)
+        assert _beautiful_soup()(shown, "html.parser").find(
+            "a", href="/products/create/"
+        ) is not None
+        assert _beautiful_soup()(hidden, "html.parser").find(
+            "a", href="/products/create/"
+        ) is None
+
+    def test_filter_follows_the_filterset(self, rf, db):
+        """[#282] The dialog appears only when a FilterSet is configured."""
+        from django_filters.views import FilterView
+
+        view_cls = type(
+            "StubFilteredActionsView",
+            (MVPListViewMixin, FilterView),
+            {"model": Product, "filterset_fields": ["category"]},
+        )
+        view = view_cls()
+        view.setup(rf.get("/"))
+        response = view.get(view.request)
+        response.render()
+        filtered = _beautiful_soup()(response.content.decode(), "html.parser")
+
+        assert filtered.find(id="filterModal") is not None
+        unfiltered = _beautiful_soup()(self._render(rf), "html.parser")
+        assert unfiltered.find(id="filterModal") is None
+
+    def test_a_bare_list_view_draws_no_controls_at_all(self, rf, db):
+        """[#282] Configure nothing and the row is empty rather than broken."""
         html = self._render(rf)
-        assert 'name="q"' in html, "search renders"
-        assert "ordering-option" in html, "sort renders"
-
-    def test_naming_a_subset_drops_the_rest(self, rf, db):
-        """[#282] A view asking for search alone gets no sort control."""
-        html = self._render(rf, actions=["search"])
-        assert 'name="q"' in html, "search still renders"
-        assert "ordering-option" not in html, "sort is gone"
-
-    def test_a_dropped_action_leaves_no_orphaned_form_reference(self, rf, db):
-        """[#282] Narrowing the set keeps every ``form=`` pointing somewhere real."""
-        html = self._render(rf, actions=["sort"])
         soup = _beautiful_soup()(html, "html.parser")
 
-        form_ids = {form.get("id") for form in soup.find_all("form") if form.get("id")}
-        referring_ids = {el.get("form") for el in soup.find_all(attrs={"form": True})}
-
-        assert not referring_ids - form_ids
-
-    def test_the_component_falls_back_when_no_view_supplies_the_list(self):
-        """[#282] ``list_view.html`` passes a context key a plain view will not
-        set. The component's own default has to survive that, or the row
-        empties out on any page not served by this mixin."""
-        from django import template
-        from django.template.context import Context
-        from django_cotton.compiler_regex import CottonCompiler
-
-        source = '<c-page.list.actions :actions="list_actions" />'
-        compiled = template.Template(CottonCompiler().process(source))
-        html = compiled.render(Context({"is_searchable": True}))
-
-        assert 'name="q"' in html, "search renders on the component's own default"
+        assert 'name="q"' not in html
+        assert "ordering-option" not in html
+        assert soup.find(id="filterModal") is None
+        assert soup.find(id="filterForm") is None

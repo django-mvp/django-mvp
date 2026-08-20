@@ -149,7 +149,6 @@ page.
 
 | Attribute | Default | Meaning |
 |---|---|---|
-| `actions` | `["search", "sort", "filter", "create"]` | Which controls the action row renders, in order. Each still applies its own condition, so naming one the view has not configured renders nothing. |
 | `paginate_by` | `24` | Page size. Divisible by 1–4, so it fills 1-, 2-, 3- and 4-column grids evenly. |
 | `base_template_name` | `"list_view.html"` | Fallback template, tried after Django's own `<app>/<model>_list.html`. |
 | `directory` | `["create"]` | CRUD links offered in the header. Detail, update and delete belong on object pages. |
@@ -176,7 +175,7 @@ box never renders — set `search_fields` to something truthy as well.
 `get_list_item_template()` raises `AttributeError` when the view has no `model` and no explicit
 `list_item_template` — the derived name has nothing to derive from.
 
-Context added: `list_actions`, `list_item_template`, `empty_state` (`{"heading", "message"}`), `grid_config`,
+Context added: `list_item_template`, `empty_state` (`{"heading", "message"}`), `grid_config`,
 `directory`, `model_info`, `search_query`, `is_searchable`, and Django's own `object_list` /
 `page_obj` / `paginator`. `order_by_choices` and `current_ordering` are added only when
 `order_by` is configured. `create_form` is added only when `create_form_class` is set *and*
