@@ -186,25 +186,52 @@ class TestOptionalIntegrations:
 class TestTableViewOrdering:
     """A table view class must not declare its own ordering — that belongs
     on the table class, which already has a safe, whitelisted mechanism for
-    it. Red before the view mixin refuses the declaration."""
+    it. The refusal happens as the class is defined, so a misconfigured view
+    fails when Django imports the module rather than on the first request to
+    its URL."""
 
-    def test_declaring_an_ordering_is_refused(self):
+    def test_declaring_an_ordering_is_refused_at_class_definition(self):
         pytest.importorskip("django_tables2")
         from demo.models import Product
         from demo.tables import ProductTable
         from mvp.integrations.django_tables.views import MVPTableView
 
-        class OrderedTableView(MVPTableView):
-            model = Product
-            table_class = ProductTable
-            order_by = [("name_asc", "Name (A-Z)", "name")]
-
         with pytest.raises(ImproperlyConfigured, match="table"):
-            OrderedTableView()
 
-    def test_a_table_view_with_no_ordering_instantiates_cleanly(self):
+            class OrderedTableView(MVPTableView):
+                model = Product
+                table_class = ProductTable
+                order_by = [("name_asc", "Name (A-Z)", "name")]
+
+    def test_the_message_names_the_class_and_where_the_ordering_belongs(self):
+        pytest.importorskip("django_tables2")
+        from demo.models import Product
+        from demo.tables import ProductTable
+        from mvp.integrations.django_tables.views import MVPTableView
+
+        with pytest.raises(ImproperlyConfigured) as excinfo:
+
+            class BadlyOrderedTableView(MVPTableView):
+                model = Product
+                table_class = ProductTable
+                order_by = [("name_asc", "Name (A-Z)", "name")]
+
+        message = str(excinfo.value)
+        assert "BadlyOrderedTableView" in message
+        assert "Meta.order_by" in message
+
+    def test_a_table_view_with_no_ordering_defines_and_instantiates_cleanly(self):
         view_class = _plain_table_view_class()
         view_class()  # must not raise
+
+    def test_the_mixin_and_its_concrete_view_define_without_raising(self):
+        """The check runs on subclasses, so the package's own classes — which
+        inherit ``order_by = None`` — must not trip it as they are imported."""
+        pytest.importorskip("django_tables2")
+        from mvp.integrations.django_tables.views import MVPTableView, MVPTableViewMixin
+
+        assert MVPTableViewMixin.order_by is None
+        assert MVPTableView.order_by is None
 
 
 class TestTableViewPagination:

@@ -43,11 +43,17 @@ class MVPTableViewMixin(MVPListViewMixin, SingleTableMixin):
 
     base_template_name = "table_view.html"
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        if self.order_by:
+    def __init_subclass__(cls, **kwargs):
+        """Refuse a view-level ordering as the class is defined.
+
+        Checking here rather than in ``__init__`` means Django raises while
+        importing the module that declares the view, instead of on the first
+        request to its URL.
+        """
+        super().__init_subclass__(**kwargs)
+        if cls.order_by:
             raise ImproperlyConfigured(
-                f"{self.__class__.__name__} declares 'order_by', but a table "
+                f"{cls.__name__} declares 'order_by', but a table "
                 "view must not — ordering belongs on the table class, via its "
                 "own 'order_by' or Meta.order_by."
             )

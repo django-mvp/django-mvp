@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **A table view declaring `order_by` now fails as the class is defined**, rather
+  than the first time the view is instantiated. The message and the rule are
+  unchanged — ordering belongs on the table class — but a misconfigured view is
+  caught while Django imports the module holding it, instead of waiting for a
+  request to reach that URL. The check also stops running once per request.
+
 ### Removed
 
 - **`actions` on table views, and the `table_actions` context key.** Which

@@ -38,10 +38,11 @@ the `<c-addons.django-table>` component.
 
 ### Ordering belongs on the table class
 
-A table view **must not declare `order_by`**. `MVPTableViewMixin.__init__` raises
-`ImproperlyConfigured` if it finds one: a table already sorts through its own column
-headers, against its own list of sortable columns, so a view-level ordering would be a
-second surface for the same job.
+A table view **must not declare `order_by`**. `MVPTableViewMixin.__init_subclass__` raises
+`ImproperlyConfigured` if it finds one, so the failure happens as Django imports the
+module holding the view rather than on the first request to its URL. A table already
+sorts through its own column headers, against its own list of sortable columns, so a
+view-level ordering would be a second surface for the same job.
 
 ```python
 # myapp/tables.py — put the ordering here, not on the view

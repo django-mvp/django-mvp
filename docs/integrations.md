@@ -52,6 +52,10 @@ class defines, and an ordering on the view as well would give the same table two
 competing sources for it. Put the ordering on the table class, as its own `order_by` or
 `Meta.order_by`.
 
+The refusal happens as the class is defined, so a view that declares an ordering fails
+when Django imports the module holding it, naming the class in the message. You find out
+at startup rather than the first time someone opens that page.
+
 ### Pagination
 
 The table paginates, and the count and links below it describe the table's page.
