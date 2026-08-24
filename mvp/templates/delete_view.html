@@ -1,64 +1,61 @@
 {% extends "form_view.html" %}
 {% load i18n %}
 {% block before_form %}
+  {% comment %}
+    An alert lays its direct children out as columns, so everything each one
+    says goes inside a single element. Splitting a sentence around a <strong>
+    puts each fragment in a column of its own and spreads it across the width.
+  {% endcomment %}
   {% if is_protected %}
     {# ===== Scenario 3: Object is PROTECT-blocked - no delete button ===== #}
     <c-alert variant="error">
-      <strong>{% trans "This record cannot be deleted." %}</strong>
-      <c-text>
-        {% trans "It is referenced by the following records, which must be removed or updated first:" %}
-      </c-text>
-      <ul class="mb-0">
-        {% for obj in protected_objects %}<li>{{ obj }}</li>{% endfor %}
-      </ul>
+      <div>
+        <strong>{% trans "This record cannot be deleted." %}</strong>
+        <c-text>
+          {% trans "It is referenced by the following records, which must be removed or updated first:" %}
+        </c-text>
+        <ul class="list-disc ms-4">
+          {% for obj in protected_objects %}<li>{{ obj }}</li>{% endfor %}
+        </ul>
+      </div>
     </c-alert>
   {% else %}
     {# ===== Scenarios 1, 2, 4: Object is safe to delete ===== #}
     <c-alert variant="warning">
-      {% blocktrans %}
-      You are about to <strong>permanently</strong> delete this record. This action cannot be undone.
-      {% endblocktrans %}
+      <span>
+        {% blocktrans %}You are about to <strong>permanently</strong> delete this record. This action cannot be undone.{% endblocktrans %}
+      </span>
     </c-alert>
     {% if related_objects %}
       {# ===== Scenario 2: Related-objects summary (opt-in) ===== #}
       <c-alert variant="info">
-        <strong>{% trans "The following related records will also be permanently deleted:" %}</strong>
-        {% for label, objs, overflow in related_objects %}
-          <c-text text="{{ label }}" bold />
-          <ul class="mb-0">
-            {% for obj in objs %}<li>{{ obj }}</li>{% endfor %}
-          </ul>
-          {% if overflow %}
-            <c-text size="sm">
-              {% blocktrans %}
-              … and {{ overflow }} more
-              {% endblocktrans %}
-            </c-text>
-          {% endif %}
-        {% endfor %}
+        <div>
+          <strong>{% trans "The following related records will also be permanently deleted:" %}</strong>
+          {% for label, objs, overflow in related_objects %}
+            <c-text text="{{ label }}" bold />
+            <ul class="list-disc ms-4">
+              {% for obj in objs %}<li>{{ obj }}</li>{% endfor %}
+            </ul>
+            {% if overflow %}
+              <c-text size="sm">
+                {% blocktrans %}… and {{ overflow }} more{% endblocktrans %}
+              </c-text>
+            {% endif %}
+          {% endfor %}
+        </div>
       </c-alert>
     {% endif %}
     {% if require_confirmation %}
-      {# ===== Scenario 4: Type-to-confirm input (opt-in) ===== #}
-      {% if form.errors.confirmation %}
-        <c-alert variant="error">
-          {% for error in form.errors.confirmation %}
-            {{ error }}
-            {% if not forloop.last %}{% endif %}
-          {% endfor %}
-        </c-alert>
-      {% endif %}
+      {# ===== Scenario 4: Type-to-confirm prompt (opt-in) ===== #}
+      {% comment %}
+        The input itself is the form's own bound field, rendered inside the
+        <form> below. Drawing one here as well gave the page two controls with
+        the same name and id: the user typed into this one, and the one that
+        was posted and validated stayed empty.
+      {% endcomment %}
       <c-text>
         {% blocktrans with val=confirmation_value %}To confirm, type <strong class="font-monospace">{{ val }}</strong> below:{% endblocktrans %}
       </c-text>
-      <c-form.field id="id_confirmation"
-                    type="text"
-                    name="confirmation"
-                    placeholder="{{ confirmation_label }}"
-                    label="{{ confirmation_label }}"
-                    autocomplete="off"
-                    hide-label
-                    only />
     {% endif %}
   {% endif %}
 {% endblock before_form %}

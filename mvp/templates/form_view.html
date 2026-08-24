@@ -7,7 +7,11 @@
   {% for inline in inlines %}{{ inline.media.css }}{% endfor %}
 {% endblock head %}
 {% block page.content %}
-  <div class="w-full lg:max-w-4xl">
+  {% comment %}
+    The gap spaces anything a page puts before or after the form, and spaces
+    those pieces from each other — several stacked alerts, most often.
+  {% endcomment %}
+  <div class="w-full lg:max-w-4xl flex flex-col gap-4">
     {% block before_form %}
     {% endblock before_form %}
     <c-form title="{{ page.title }}"

@@ -10,9 +10,11 @@ class DeleteConfirmForm(forms.Form):
         widget=forms.TextInput(attrs={"autocomplete": "off"}),
     )
 
-    def __init__(self, *args, confirmation_value=None, **kwargs):
+    def __init__(self, *args, confirmation_value=None, confirmation_label=None, **kwargs):
         super().__init__(*args, **kwargs)
         self._confirmation_value = confirmation_value
+        if confirmation_label:
+            self.fields["confirmation"].label = confirmation_label
 
     def clean_confirmation(self):
         value = self.cleaned_data["confirmation"].strip()

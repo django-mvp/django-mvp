@@ -1811,6 +1811,48 @@ class TestMVPDeleteViewTypeToConfirm:
         response = client.get(url)
         assert response.context["confirmation_value"] == ""
 
+    def test_page_renders_exactly_one_confirmation_input(self, client, product):
+        """One field the user types into, and it is the one that is submitted.
+
+        The page used to draw its own input outside the ``<form>`` element while
+        the form drew a second one inside it. Both carried ``name="confirmation"``
+        and ``id="id_confirmation"``, so the prompt, the styling and the script
+        that enables the Delete button all attached to the input that is never
+        posted, and the one that is validated stayed empty.
+        """
+        url = reverse("product-delete-confirm", kwargs={"pk": product.pk})
+        soup = BeautifulSoup(client.get(url).content, "html.parser")
+        inputs = soup.find_all("input", attrs={"name": "confirmation"})
+        assert len(inputs) == 1
+        assert inputs[0]["id"] == "id_confirmation"
+
+    def test_confirmation_input_is_inside_the_form(self, client, product):
+        """The input the user types into is the one the browser posts."""
+        url = reverse("product-delete-confirm", kwargs={"pk": product.pk})
+        soup = BeautifulSoup(client.get(url).content, "html.parser")
+        field = soup.find("input", attrs={"name": "confirmation"})
+        assert field.find_parent("form") is not None
+
+    def test_confirmation_label_reaches_the_rendered_field(self, client, product):
+        """``confirmation_label`` labels the field that exists, not a discarded one."""
+        url = reverse("product-delete-confirm", kwargs={"pk": product.pk})
+        soup = BeautifulSoup(client.get(url).content, "html.parser")
+        label = soup.find("label", attrs={"for": "id_confirmation"})
+        assert "Type the name to confirm" in label.get_text()
+
+    def test_protected_record_renders_no_confirmation_input(self, client, product):
+        """A record that cannot be deleted asks for no confirmation.
+
+        The Delete button is already hidden in this state, so an input inviting
+        the user to type the record's name leads nowhere.
+        """
+        OrderLine.objects.create(product=product, quantity=1)
+        url = reverse("product-delete-confirm", kwargs={"pk": product.pk})
+        response = client.get(url)
+        soup = BeautifulSoup(response.content, "html.parser")
+        assert response.context["is_protected"] is True
+        assert soup.find_all("input", attrs={"name": "confirmation"}) == []
+
 
 # ---------------------------------------------------------------------------
 # Public API

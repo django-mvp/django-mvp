@@ -542,10 +542,11 @@ class MVPDeleteView(MVPModelFormBase, generic.DeleteView):
         return super().get_form_class()
 
     def get_form_kwargs(self):
-        """Inject confirmation_value into form kwargs when require_confirmation is True."""
+        """Inject the confirmation value and label when require_confirmation is True."""
         kwargs = super().get_form_kwargs()
         if self.require_confirmation:
             kwargs["confirmation_value"] = self.get_confirmation_value()
+            kwargs["confirmation_label"] = self.confirmation_label
         return kwargs
 
     def form_valid(self, form):
@@ -623,6 +624,12 @@ class MVPDeleteView(MVPModelFormBase, generic.DeleteView):
             self.get_confirmation_value() if self.require_confirmation else ""
         )
         context["confirmation_label"] = self.confirmation_label
+
+        # A protected record cannot be deleted, so the page offers no Delete
+        # button — and the confirmation field that would sit above it has
+        # nothing to submit to. Drop the form so the page renders neither.
+        if protected_objects:
+            context["form"] = None
 
         if self.show_related_objects and not protected_objects:
             cap = self.related_objects_max_per_group
