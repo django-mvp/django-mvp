@@ -132,7 +132,27 @@ class ProductListView(MVPFilteredListView):
 
 On top of `MVPListView` behavior, the view injects `applied_filters` /
 `applied_filter_count` into the context, which the list page's filter button uses to
-badge the number of active filters.
+badge the number of active filters. When at least one filter is applied, it also injects
+`clear_filters_url` — the current list URL with only the filterset's own fields removed,
+preserving an active search (`?q=`) or ordering (`?o=`) and resetting pagination. The
+filter modal shows a "Clear filters" link next to "Apply filters" whenever that URL is
+present.
+
+`MVPFilteredListView` is shorthand for `MVPListViewMixin` plus `FilterView`. Compose
+those yourself — which is what you do to add filtering to a table view — and the badge
+and the clear link come with it:
+
+```python
+from django_filters.views import FilterView
+
+from mvp.integrations.django_tables.views import MVPTableViewMixin
+
+
+class ProductTableView(MVPTableViewMixin, FilterView):
+    model = Product
+    table_class = ProductTable
+    filterset_fields = ["name", "category__name", "status"]
+```
 
 ## Crispy forms
 

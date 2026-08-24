@@ -20,33 +20,10 @@ except ImportError as e:
 
 
 class MVPFilteredListView(MVPListViewMixin, FilterView):
-    """List view combining MVP list behavior with django-filter's FilterView."""
+    """List view combining MVP list behavior with django-filter's FilterView.
 
-    def get_context_data(self, **kwargs):
-        """Add ``applied_filters`` / ``applied_filter_count`` to the context.
-
-        Consumed by ``c-page.list.actions.filter`` to badge the filter button
-        with the number of active filters.
-        """
-        context = super().get_context_data(**kwargs)
-        if context.get("filter", None):
-            active = self.get_active_filters()
-            context["applied_filters"] = active
-            context["applied_filter_count"] = len(active)
-        return context
-
-    def get_active_filters(self):
-        """Return a dict of filters that are actually applied.
-
-        Filters out empty / null / default-like values.
-        """
-        active = {}
-        if not hasattr(self.filterset.form, "cleaned_data"):
-            return active
-
-        for name, value in self.filterset.form.cleaned_data.items():
-            if value in (None, "", [], (), False):
-                continue
-            active[name] = value
-
-        return active
+    The filter chrome — the button's applied-count badge and the modal's
+    "Clear filters" link — comes from ``FilterContextMixin``, which
+    ``MVPListViewMixin`` carries. Composing that mixin with ``FilterView``
+    yourself gets the same behavior; this class is the shorthand.
+    """

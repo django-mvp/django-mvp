@@ -17,7 +17,7 @@ from .list import MVPListView
 #   from mvp.views.base import PageMixin, BaseTemplateNameMixin, ModelInfoMixin
 #   from mvp.views.detail import CRUDDirectoryMixin, PageObjectMixin
 #   from mvp.views.edit import NextURLMixin
-#   from mvp.views.list import SearchMixin, OrderMixin
+#   from mvp.views.list import SearchMixin, OrderMixin, FilterContextMixin
 # Views built on optional third-party packages live in mvp.integrations and
 # are intentionally NOT exported here:
 #   from mvp.integrations.django_tables.views import MVPTableView

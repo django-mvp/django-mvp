@@ -127,9 +127,15 @@ class TestOptionalIntegrations:
 
         assert issubclass(MVPFilteredListView, MVPListViewMixin)
         assert issubclass(MVPFilteredListView, FilterView)
-        # the applied-filters context logic moved here from MVPListViewMixin
+        # The applied-filters context logic belongs to the core mixin, so that a
+        # view composing it with FilterView gets the filter chrome too. Keeping
+        # that logic on this class alone is what left the demo's own pages
+        # without a filter badge. Isolation is a rule about imports, not about
+        # where the code sits, and
+        # TestIntegrationIsolation.test_core_views_have_no_optional_dependency_imports
+        # is what enforces it.
         assert hasattr(MVPFilteredListView, "get_active_filters")
-        assert not hasattr(MVPListViewMixin, "get_active_filters")
+        assert hasattr(MVPListViewMixin, "get_active_filters")
 
     @pytest.mark.django_db
     def test_sortable_headers_render_two_distinct_sort_glyphs(self, rf):
@@ -181,6 +187,166 @@ class TestOptionalIntegrations:
         context = response.context_data
         assert "applied_filters" in context
         assert context["applied_filter_count"] == len(context["applied_filters"])
+
+    @pytest.mark.django_db
+    def test_filtered_list_view_has_no_clear_filters_url_when_nothing_applied(self, rf):
+        """No filters applied means nothing to clear, so the link stays hidden."""
+        pytest.importorskip("django_filters")
+        from demo.models import Product
+        from mvp.integrations.django_filters.views import MVPFilteredListView
+
+        class ProductFilteredView(MVPFilteredListView):
+            model = Product
+            filterset_fields = ["name"]
+
+        view = ProductFilteredView()
+        view.setup(rf.get("/"))
+        response = view.get(view.request)
+        assert "clear_filters_url" not in response.context_data
+
+    @pytest.mark.django_db
+    def test_filtered_list_view_clear_filters_url_drops_only_filter_fields(self, rf):
+        """Clearing filters preserves search and ordering, and resets pagination.
+
+        ``q`` (search) and ``o`` (ordering) share the same query string as the
+        filterset's own fields, but they're a different concern — a bug report
+        asked specifically what a "clear filters" control should and shouldn't
+        touch, and this is the behaviour decided for it.
+        """
+        pytest.importorskip("django_filters")
+        from demo.models import Product
+        from mvp.integrations.django_filters.views import MVPFilteredListView
+
+        class ProductFilteredView(MVPFilteredListView):
+            model = Product
+            filterset_fields = ["name"]
+            search_fields = ["name"]
+            order_by = [("name_asc", "Name (A-Z)", "name")]
+            paginate_by = 5
+
+        ProductFactory.create_batch(6, name="Widget")
+        view = ProductFilteredView()
+        view.setup(
+            rf.get(
+                "/",
+                {"name": "Widget", "q": "widget", "o": "name_asc", "page": "2"},
+            )
+        )
+        response = view.get(view.request)
+        context = response.context_data
+        assert context["applied_filter_count"] == 1
+        clear_url = context["clear_filters_url"]
+        assert clear_url.startswith("/?")
+        query = clear_url.split("?", 1)[1]
+        params = dict(pair.split("=") for pair in query.split("&"))
+        assert "name" not in params
+        assert "page" not in params
+        assert params["q"] == "widget"
+        assert params["o"] == "name_asc"
+
+    @pytest.mark.django_db
+    def test_filter_action_template_renders_clear_link_only_when_filters_applied(self, rf):
+        """The rendered filter modal shows the clear link exactly when a filter is active."""
+        pytest.importorskip("django_filters")
+        from demo.models import Product
+        from mvp.integrations.django_filters.views import MVPFilteredListView
+
+        class ProductFilteredView(MVPFilteredListView):
+            model = Product
+            filterset_fields = ["name"]
+            template_name = "cotton/page/list/actions/filter.html"
+
+        unfiltered = ProductFilteredView()
+        unfiltered.setup(rf.get("/"))
+        unfiltered_html = unfiltered.get(unfiltered.request).render().content.decode()
+        assert "Clear filters" not in unfiltered_html
+
+        filtered = ProductFilteredView()
+        filtered.setup(rf.get("/", {"name": "Widget"}))
+        filtered_html = filtered.get(filtered.request).render().content.decode()
+        assert "Clear filters" in filtered_html
+
+
+class TestFilterChromeOnAComposedView:
+    """The filter chrome has to reach a view that composes the list mixin with
+    ``FilterView`` itself, not only the packaged ``MVPFilteredListView``.
+
+    That composition is documented on ``MVPListViewMixin`` and is what the demo
+    site's own pages use. While the badge and the clear link were built on the
+    packaged class alone, both pages rendered a filter modal with no badge and
+    no way out of an applied filter, and every test still passed.
+    """
+
+    @pytest.fixture
+    def filtered_view(self):
+        pytest.importorskip("django_filters")
+        from django_filters.views import FilterView
+
+        from demo.models import Product
+        from mvp.views.list import MVPListViewMixin
+
+        class ComposedProductView(MVPListViewMixin, FilterView):
+            model = Product
+            filterset_fields = ["name", "price"]
+            search_fields = ["name"]
+            template_name = "cotton/page/list/actions/filter.html"
+
+        return ComposedProductView
+
+    def render(self, view_class, rf, params):
+        view = view_class()
+        view.setup(rf.get("/", params))
+        return view.get(view.request).render().content.decode()
+
+    @pytest.mark.django_db
+    def test_the_button_is_badged_with_the_number_of_applied_filters(
+        self, filtered_view, rf
+    ):
+        view = filtered_view()
+        view.setup(rf.get("/", {"name": "Widget", "price": "9.99"}))
+        context = view.get(view.request).context_data
+        assert context["applied_filter_count"] == 2
+
+    @pytest.mark.django_db
+    def test_the_modal_offers_a_way_to_clear_an_applied_filter(
+        self, filtered_view, rf
+    ):
+        html = self.render(filtered_view, rf, {"name": "Widget"})
+        assert "Clear filters" in html
+
+    @pytest.mark.django_db
+    def test_neither_is_drawn_when_no_filter_is_applied(self, filtered_view, rf):
+        view = filtered_view()
+        view.setup(rf.get("/"))
+        response = view.get(view.request)
+        assert response.context_data["applied_filter_count"] == 0
+        assert "clear_filters_url" not in response.context_data
+        assert "Clear filters" not in response.render().content.decode()
+
+    @pytest.mark.django_db
+    def test_clearing_keeps_the_search_and_drops_the_filters(
+        self, filtered_view, rf
+    ):
+        view = filtered_view()
+        view.setup(rf.get("/", {"q": "code", "name": "Widget", "page": "3"}))
+        clear_url = view.get(view.request).context_data["clear_filters_url"]
+        assert clear_url == "/?q=code"
+
+    @pytest.mark.django_db
+    def test_a_view_with_no_filterset_gets_no_filter_context(self, rf):
+        """The mixin is inert on an ordinary list view, which has no filterset."""
+        from demo.models import Product
+        from mvp.views.list import MVPListView
+
+        class PlainProductView(MVPListView):
+            model = Product
+
+        view = PlainProductView()
+        view.setup(rf.get("/"))
+        context = view.get(view.request).context_data
+        assert "applied_filters" not in context
+        assert "applied_filter_count" not in context
+        assert "clear_filters_url" not in context
 
 
 class TestTableViewOrdering:

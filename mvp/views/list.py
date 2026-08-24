@@ -287,8 +287,81 @@ class SearchOrderMixin(SearchMixin, OrderMixin):
     pass
 
 
+class FilterContextMixin:
+    """Publish the state of an active filterset to the filter control.
+
+    A no-op unless something else in the MRO puts a filterset in the context
+    as ``filter`` — which is what ``django_filters.views.FilterView`` does.
+    That keeps django-filter an optional dependency: this mixin reads the
+    context key and never imports the package.
+
+    It lives here, rather than on the packaged filtered list view, because
+    composing ``MVPListViewMixin`` with ``FilterView`` directly is a supported
+    and documented way to build a filtered page. A view built that way is a
+    filtered list view in every respect the reader can see, so it gets the
+    same filter chrome.
+
+    Context (only when a filterset is present):
+        applied_filters (dict): Field name to value, for filters actually set.
+        applied_filter_count (int): ``len(applied_filters)`` — the button badge.
+        clear_filters_url (str): Present only when at least one filter is
+            applied. The current URL with the filterset's own fields removed.
+    """
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        filterset = context.get("filter", None)
+        if filterset is None:
+            return context
+
+        active = self.get_active_filters(filterset)
+        context["applied_filters"] = active
+        context["applied_filter_count"] = len(active)
+        if active:
+            context["clear_filters_url"] = self.get_clear_filters_url(filterset)
+        return context
+
+    def get_active_filters(self, filterset):
+        """Return the subset of the filterset's fields that are actually set.
+
+        Empty, null and false-like values are what an untouched filter field
+        cleans to, so they are not applied filters and are dropped here.
+        """
+        active = {}
+        if not hasattr(filterset.form, "cleaned_data"):
+            return active
+
+        for name, value in filterset.form.cleaned_data.items():
+            if value in (None, "", [], (), False):
+                continue
+            active[name] = value
+
+        return active
+
+    def get_clear_filters_url(self, filterset):
+        """Return the current URL with only the filterset's fields removed.
+
+        Search (``?q=``) and ordering (``?o=``) are a separate concern from
+        the filterset and share the same query string, so they're preserved.
+        Clearing filters shouldn't also drop an unrelated search. Pagination
+        is reset, since the cleared result set may not have as many pages.
+        """
+        querydict = self.request.GET.copy()
+        for name in filterset.form.fields:
+            querydict.pop(name, None)
+        querydict.pop(getattr(self, "page_kwarg", "page"), None)
+        query_string = querydict.urlencode()
+        return (
+            f"{self.request.path}?{query_string}" if query_string else self.request.path
+        )
+
+
 class MVPListViewMixin(
-    BaseTemplateNameMixin, SearchOrderMixin, CRUDDirectoryMixin, PageMixin
+    BaseTemplateNameMixin,
+    SearchOrderMixin,
+    FilterContextMixin,
+    CRUDDirectoryMixin,
+    PageMixin,
 ):
     """Foundation mixin for paginated, searchable, orderable list pages with AdminLTE styling.
 
@@ -350,6 +423,8 @@ class MVPListViewMixin(
             ``create_form_class`` is set and ``show_create_action`` is ``True``).
         create_modal_title (str): Resolved modal title for inline create (only when
             ``create_form`` is also injected).
+        applied_filters / applied_filter_count / clear_filters_url: Injected by
+            ``FilterContextMixin`` when composed with a filtered view — see there.
 
     Example::
 
