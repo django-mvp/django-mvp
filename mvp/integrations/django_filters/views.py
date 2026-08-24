@@ -26,13 +26,16 @@ class MVPFilteredListView(MVPListViewMixin, FilterView):
         """Add ``applied_filters`` / ``applied_filter_count`` to the context.
 
         Consumed by ``c-page.list.actions.filter`` to badge the filter button
-        with the number of active filters.
+        with the number of active filters, and to show a "clear filters" link
+        once at least one is applied.
         """
         context = super().get_context_data(**kwargs)
         if context.get("filter", None):
             active = self.get_active_filters()
             context["applied_filters"] = active
             context["applied_filter_count"] = len(active)
+            if active:
+                context["clear_filters_url"] = self.get_clear_filters_url()
         return context
 
     def get_active_filters(self):
@@ -50,3 +53,20 @@ class MVPFilteredListView(MVPListViewMixin, FilterView):
             active[name] = value
 
         return active
+
+    def get_clear_filters_url(self):
+        """Return the current list URL with only the filterset's fields removed.
+
+        Search (``?q=``) and ordering (``?o=``) are a separate concern from
+        the filterset and share the same query string, so they're preserved;
+        clearing filters shouldn't also drop an unrelated search. Pagination
+        is reset, since the cleared result set may not have as many pages.
+        """
+        querydict = self.request.GET.copy()
+        for name in self.filterset.form.fields:
+            querydict.pop(name, None)
+        querydict.pop(self.page_kwarg, None)
+        query_string = querydict.urlencode()
+        return (
+            f"{self.request.path}?{query_string}" if query_string else self.request.path
+        )

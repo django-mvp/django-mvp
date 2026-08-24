@@ -182,6 +182,84 @@ class TestOptionalIntegrations:
         assert "applied_filters" in context
         assert context["applied_filter_count"] == len(context["applied_filters"])
 
+    @pytest.mark.django_db
+    def test_filtered_list_view_has_no_clear_filters_url_when_nothing_applied(self, rf):
+        """No filters applied means nothing to clear, so the link stays hidden."""
+        pytest.importorskip("django_filters")
+        from demo.models import Product
+        from mvp.integrations.django_filters.views import MVPFilteredListView
+
+        class ProductFilteredView(MVPFilteredListView):
+            model = Product
+            filterset_fields = ["name"]
+
+        view = ProductFilteredView()
+        view.setup(rf.get("/"))
+        response = view.get(view.request)
+        assert "clear_filters_url" not in response.context_data
+
+    @pytest.mark.django_db
+    def test_filtered_list_view_clear_filters_url_drops_only_filter_fields(self, rf):
+        """Clearing filters preserves search and ordering, and resets pagination.
+
+        ``q`` (search) and ``o`` (ordering) share the same query string as the
+        filterset's own fields, but they're a different concern — a bug report
+        asked specifically what a "clear filters" control should and shouldn't
+        touch, and this is the behaviour decided for it.
+        """
+        pytest.importorskip("django_filters")
+        from demo.models import Product
+        from mvp.integrations.django_filters.views import MVPFilteredListView
+
+        class ProductFilteredView(MVPFilteredListView):
+            model = Product
+            filterset_fields = ["name"]
+            search_fields = ["name"]
+            order_by = [("name_asc", "Name (A-Z)", "name")]
+            paginate_by = 5
+
+        ProductFactory.create_batch(6, name="Widget")
+        view = ProductFilteredView()
+        view.setup(
+            rf.get(
+                "/",
+                {"name": "Widget", "q": "widget", "o": "name_asc", "page": "2"},
+            )
+        )
+        response = view.get(view.request)
+        context = response.context_data
+        assert context["applied_filter_count"] == 1
+        clear_url = context["clear_filters_url"]
+        assert clear_url.startswith("/?")
+        query = clear_url.split("?", 1)[1]
+        params = dict(pair.split("=") for pair in query.split("&"))
+        assert "name" not in params
+        assert "page" not in params
+        assert params["q"] == "widget"
+        assert params["o"] == "name_asc"
+
+    @pytest.mark.django_db
+    def test_filter_action_template_renders_clear_link_only_when_filters_applied(self, rf):
+        """The rendered filter modal shows the clear link exactly when a filter is active."""
+        pytest.importorskip("django_filters")
+        from demo.models import Product
+        from mvp.integrations.django_filters.views import MVPFilteredListView
+
+        class ProductFilteredView(MVPFilteredListView):
+            model = Product
+            filterset_fields = ["name"]
+            template_name = "cotton/page/list/actions/filter.html"
+
+        unfiltered = ProductFilteredView()
+        unfiltered.setup(rf.get("/"))
+        unfiltered_html = unfiltered.get(unfiltered.request).render().content.decode()
+        assert "Clear filters" not in unfiltered_html
+
+        filtered = ProductFilteredView()
+        filtered.setup(rf.get("/", {"name": "Widget"}))
+        filtered_html = filtered.get(filtered.request).render().content.decode()
+        assert "Clear filters" in filtered_html
+
 
 class TestTableViewOrdering:
     """A table view class must not declare its own ordering — that belongs

@@ -21,6 +21,14 @@
             :form-obj="filter.form"
             only>
     </c-form>
+    {% if clear_filters_url %}
+      <c-slot name="footer">
+        <c-button text="{% trans "Clear filters" %}"
+                  href="{{ clear_filters_url }}"
+                  icon="x"
+                  ghost />
+      </c-slot>
+    {% endif %}
     <c-slot name="footer_end">
       <c-button text="{% trans "Apply filters" %}"
                 form="filterForm"
