@@ -138,6 +138,22 @@ preserving an active search (`?q=`) or ordering (`?o=`) and resetting pagination
 filter modal shows a "Clear filters" link next to "Apply filters" whenever that URL is
 present.
 
+`MVPFilteredListView` is shorthand for `MVPListViewMixin` plus `FilterView`. Compose
+those yourself — which is what you do to add filtering to a table view — and the badge
+and the clear link come with it:
+
+```python
+from django_filters.views import FilterView
+
+from mvp.integrations.django_tables.views import MVPTableViewMixin
+
+
+class ProductTableView(MVPTableViewMixin, FilterView):
+    model = Product
+    table_class = ProductTable
+    filterset_fields = ["name", "category__name", "status"]
+```
+
 ## Crispy forms
 
 Form rendering isn't an integration in the sense above: `django-crispy-forms` and

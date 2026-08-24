@@ -127,9 +127,15 @@ class TestOptionalIntegrations:
 
         assert issubclass(MVPFilteredListView, MVPListViewMixin)
         assert issubclass(MVPFilteredListView, FilterView)
-        # the applied-filters context logic moved here from MVPListViewMixin
+        # The applied-filters context logic belongs to the core mixin, so that a
+        # view composing it with FilterView gets the filter chrome too. Keeping
+        # that logic on this class alone is what left the demo's own pages
+        # without a filter badge. Isolation is a rule about imports, not about
+        # where the code sits, and
+        # TestIntegrationIsolation.test_core_views_have_no_optional_dependency_imports
+        # is what enforces it.
         assert hasattr(MVPFilteredListView, "get_active_filters")
-        assert not hasattr(MVPListViewMixin, "get_active_filters")
+        assert hasattr(MVPListViewMixin, "get_active_filters")
 
     @pytest.mark.django_db
     def test_sortable_headers_render_two_distinct_sort_glyphs(self, rf):
@@ -259,6 +265,88 @@ class TestOptionalIntegrations:
         filtered.setup(rf.get("/", {"name": "Widget"}))
         filtered_html = filtered.get(filtered.request).render().content.decode()
         assert "Clear filters" in filtered_html
+
+
+class TestFilterChromeOnAComposedView:
+    """The filter chrome has to reach a view that composes the list mixin with
+    ``FilterView`` itself, not only the packaged ``MVPFilteredListView``.
+
+    That composition is documented on ``MVPListViewMixin`` and is what the demo
+    site's own pages use. While the badge and the clear link were built on the
+    packaged class alone, both pages rendered a filter modal with no badge and
+    no way out of an applied filter, and every test still passed.
+    """
+
+    @pytest.fixture
+    def filtered_view(self):
+        pytest.importorskip("django_filters")
+        from django_filters.views import FilterView
+
+        from demo.models import Product
+        from mvp.views.list import MVPListViewMixin
+
+        class ComposedProductView(MVPListViewMixin, FilterView):
+            model = Product
+            filterset_fields = ["name", "price"]
+            search_fields = ["name"]
+            template_name = "cotton/page/list/actions/filter.html"
+
+        return ComposedProductView
+
+    def render(self, view_class, rf, params):
+        view = view_class()
+        view.setup(rf.get("/", params))
+        return view.get(view.request).render().content.decode()
+
+    @pytest.mark.django_db
+    def test_the_button_is_badged_with_the_number_of_applied_filters(
+        self, filtered_view, rf
+    ):
+        view = filtered_view()
+        view.setup(rf.get("/", {"name": "Widget", "price": "9.99"}))
+        context = view.get(view.request).context_data
+        assert context["applied_filter_count"] == 2
+
+    @pytest.mark.django_db
+    def test_the_modal_offers_a_way_to_clear_an_applied_filter(
+        self, filtered_view, rf
+    ):
+        html = self.render(filtered_view, rf, {"name": "Widget"})
+        assert "Clear filters" in html
+
+    @pytest.mark.django_db
+    def test_neither_is_drawn_when_no_filter_is_applied(self, filtered_view, rf):
+        view = filtered_view()
+        view.setup(rf.get("/"))
+        response = view.get(view.request)
+        assert response.context_data["applied_filter_count"] == 0
+        assert "clear_filters_url" not in response.context_data
+        assert "Clear filters" not in response.render().content.decode()
+
+    @pytest.mark.django_db
+    def test_clearing_keeps_the_search_and_drops_the_filters(
+        self, filtered_view, rf
+    ):
+        view = filtered_view()
+        view.setup(rf.get("/", {"q": "code", "name": "Widget", "page": "3"}))
+        clear_url = view.get(view.request).context_data["clear_filters_url"]
+        assert clear_url == "/?q=code"
+
+    @pytest.mark.django_db
+    def test_a_view_with_no_filterset_gets_no_filter_context(self, rf):
+        """The mixin is inert on an ordinary list view, which has no filterset."""
+        from demo.models import Product
+        from mvp.views.list import MVPListView
+
+        class PlainProductView(MVPListView):
+            model = Product
+
+        view = PlainProductView()
+        view.setup(rf.get("/"))
+        context = view.get(view.request).context_data
+        assert "applied_filters" not in context
+        assert "applied_filter_count" not in context
+        assert "clear_filters_url" not in context
 
 
 class TestTableViewOrdering:
