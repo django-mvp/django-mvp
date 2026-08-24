@@ -2274,3 +2274,51 @@ class TestDeletePageSpacing:
         page.goto(f"{live_server.url}{path}")
 
         assert gap_above_form(page) > 0
+
+
+@pytest.mark.e2e
+@requires_browser
+@pytest.mark.django_db(transaction=True)
+class TestDeletePageTypeToConfirmInteraction:
+    """Typing into the field the page points at is what enables and submits.
+
+    The page used to carry two controls with the same name and id. The script
+    read the first, which is outside the form, so this whole path ran against a
+    field the browser never posted.
+    """
+
+    def _open(self, page, live_server, product):
+        path = reverse("product-delete-confirm", kwargs={"pk": product.pk})
+        page.set_viewport_size(DESKTOP)
+        page.goto(f"{live_server.url}{path}")
+        return page.locator("#id_confirmation"), page.locator("#delete-submit-btn")
+
+    def test_delete_button_starts_disabled(self, page, live_server, product):
+        _, button = self._open(page, live_server, product)
+
+        assert button.is_disabled()
+
+    def test_wrong_value_leaves_the_button_disabled(self, page, live_server, product):
+        field, button = self._open(page, live_server, product)
+
+        field.fill("not the name")
+
+        assert button.is_disabled()
+
+    def test_matching_value_enables_the_button(self, page, live_server, product):
+        field, button = self._open(page, live_server, product)
+
+        field.fill(str(product))
+
+        assert button.is_enabled()
+
+    def test_submitting_the_typed_value_deletes_the_record(
+        self, page, live_server, product
+    ):
+        field, button = self._open(page, live_server, product)
+
+        field.fill(str(product))
+        button.click()
+        page.wait_for_url(f"{live_server.url}{reverse('product-list')}")
+
+        assert not Product.objects.filter(pk=product.pk).exists()

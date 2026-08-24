@@ -67,7 +67,7 @@ Empty, unopinionated building blocks — you provide the content.
 | `c-badge` | `text`, `size` (`sm`/`lg`) |
 | `c-icon` | `name` (required) |
 | `c-text` | `text`, `size` (default `base`), `align` (`left`/`center`/`right`), `muted`, `tight`, `bold`, `upper`, `class` |
-| `c-alert` | `variant` (DaisyUI color names), `icon`, `soft`, `outline`, `dash`, `dismissible`, `delay` — see the content rule below |
+| `c-alert` | `variant` (DaisyUI color names), `icon`, `soft`, `outline`, `dash`, `dismissible`, `delay` (auto-dismiss milliseconds), `class` — see the content rule below |
 | `c-data-field` | key–value display |
 | `c-messages` | Django messages list; `dismissible`, `delay` (auto-dismiss milliseconds, default 2000) |
 | `c-modal` | modal dialog |

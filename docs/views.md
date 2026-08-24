@@ -182,13 +182,13 @@ before the Delete button becomes active. The string they must type defaults to
 `confirmation_label` to change the field's label.
 
 ```python
-class ProjectDeleteView(MVPDeleteView):
-    model = Project
+class ProductDeleteView(MVPDeleteView):
+    model = Product
     require_confirmation = True
-    confirmation_label = _("Project name")
+    confirmation_label = _("Product SKU")
 
     def get_confirmation_value(self):
-        return self.object.slug
+        return self.object.sku
 ```
 
 The check is enforced on the server as well as in the browser: a POST whose value does
