@@ -27,6 +27,7 @@ from demo.forms import ContactForm, ProductForm
 from demo.models import Category, OrderLine, Product
 from mvp.forms import DeleteConfirmForm
 from mvp.views.edit import MVPCreateView, MVPFormView, MVPUpdateView, NextURLMixin
+from tests.conftest import requires_browser
 
 User = get_user_model()
 
@@ -1811,6 +1812,48 @@ class TestMVPDeleteViewTypeToConfirm:
         response = client.get(url)
         assert response.context["confirmation_value"] == ""
 
+    def test_page_renders_exactly_one_confirmation_input(self, client, product):
+        """One field the user types into, and it is the one that is submitted.
+
+        The page used to draw its own input outside the ``<form>`` element while
+        the form drew a second one inside it. Both carried ``name="confirmation"``
+        and ``id="id_confirmation"``, so the prompt, the styling and the script
+        that enables the Delete button all attached to the input that is never
+        posted, and the one that is validated stayed empty.
+        """
+        url = reverse("product-delete-confirm", kwargs={"pk": product.pk})
+        soup = BeautifulSoup(client.get(url).content, "html.parser")
+        inputs = soup.find_all("input", attrs={"name": "confirmation"})
+        assert len(inputs) == 1
+        assert inputs[0]["id"] == "id_confirmation"
+
+    def test_confirmation_input_is_inside_the_form(self, client, product):
+        """The input the user types into is the one the browser posts."""
+        url = reverse("product-delete-confirm", kwargs={"pk": product.pk})
+        soup = BeautifulSoup(client.get(url).content, "html.parser")
+        field = soup.find("input", attrs={"name": "confirmation"})
+        assert field.find_parent("form") is not None
+
+    def test_confirmation_label_reaches_the_rendered_field(self, client, product):
+        """``confirmation_label`` labels the field that exists, not a discarded one."""
+        url = reverse("product-delete-confirm", kwargs={"pk": product.pk})
+        soup = BeautifulSoup(client.get(url).content, "html.parser")
+        label = soup.find("label", attrs={"for": "id_confirmation"})
+        assert "Type the name to confirm" in label.get_text()
+
+    def test_protected_record_renders_no_confirmation_input(self, client, product):
+        """A record that cannot be deleted asks for no confirmation.
+
+        The Delete button is already hidden in this state, so an input inviting
+        the user to type the record's name leads nowhere.
+        """
+        OrderLine.objects.create(product=product, quantity=1)
+        url = reverse("product-delete-confirm", kwargs={"pk": product.pk})
+        response = client.get(url)
+        soup = BeautifulSoup(response.content, "html.parser")
+        assert response.context["is_protected"] is True
+        assert soup.find_all("input", attrs={"name": "confirmation"}) == []
+
 
 # ---------------------------------------------------------------------------
 # Public API
@@ -2128,3 +2171,154 @@ class TestFormViewStandaloneFormset:
         response.render()
         html = response.content.decode()
         assert 'name="form-TOTAL_FORMS"' in html
+
+
+# ---------------------------------------------------------------------------
+# Delete-page layout, in a real browser (issue #268)
+# ---------------------------------------------------------------------------
+#
+# Both claims below are about computed layout, which is why they run in a
+# browser. A rendered-HTML assertion can say which elements are present and
+# which classes they carry, but neither defect is visible at that level:
+#
+# - An alert is a column grid, so every direct child becomes its own column. A
+#   message written as text with an emphasised word inside it produced three
+#   columns, and the browser spread them across the alert's width. The markup
+#   was correct in every other sense.
+# - The content above the form and the form itself sat flush against each
+#   other. Nothing in the markup says so — only the boxes the browser computed.
+
+DESKTOP = {"width": 1440, "height": 900}
+
+# The icon plus one content column. Anything more means the message was split.
+EXPECTED_ALERT_COLUMNS = 2
+
+
+def alert_columns(page):
+    """Return the alert's resolved grid columns, as a list of track sizes."""
+    return page.evaluate("""
+        () => getComputedStyle(document.querySelector('[role=alert]'))
+                .gridTemplateColumns.split(' ')
+    """)
+
+
+def gap_above_form(page):
+    """Return the vertical distance between the content above the form and it."""
+    return page.evaluate("""
+        () => {
+          const form = document.querySelector('.mvp-delete-page form');
+          const previous = form.previousElementSibling;
+          return Math.round(form.getBoundingClientRect().top
+                            - previous.getBoundingClientRect().bottom);
+        }
+    """)
+
+
+@pytest.mark.e2e
+@requires_browser
+@pytest.mark.django_db(transaction=True)
+class TestDeletePageAlertLayout:
+    """The warning message reads as one paragraph, not as spread-out columns."""
+
+    def test_warning_alert_has_one_content_column(self, page, live_server, product):
+        path = reverse("product-delete", kwargs={"pk": product.pk})
+        page.set_viewport_size(DESKTOP)
+        page.goto(f"{live_server.url}{path}")
+
+        columns = alert_columns(page)
+
+        assert len(columns) == EXPECTED_ALERT_COLUMNS, (
+            f"alert resolved to {len(columns)} columns ({columns}); the message "
+            "is being split across them instead of flowing as one block"
+        )
+
+    def test_blocked_alert_has_one_content_column(self, page, live_server, product):
+        """The same claim for the alert listing what is blocking deletion.
+
+        It carries a heading, a sentence and a list, which is three columns
+        under the same rule.
+        """
+        OrderLine.objects.create(product=product, quantity=1)
+        path = reverse("product-delete", kwargs={"pk": product.pk})
+        page.set_viewport_size(DESKTOP)
+        page.goto(f"{live_server.url}{path}")
+
+        columns = alert_columns(page)
+
+        assert len(columns) == EXPECTED_ALERT_COLUMNS, (
+            f"alert resolved to {len(columns)} columns ({columns})"
+        )
+
+
+@pytest.mark.e2e
+@requires_browser
+@pytest.mark.django_db(transaction=True)
+class TestDeletePageSpacing:
+    """The content above the form is not flush against it."""
+
+    def test_form_is_spaced_from_the_content_above_it(self, page, live_server, product):
+        path = reverse("product-delete", kwargs={"pk": product.pk})
+        page.set_viewport_size(DESKTOP)
+        page.goto(f"{live_server.url}{path}")
+
+        assert gap_above_form(page) > 0, (
+            "the form starts where the warning ends, so the actions read as part "
+            "of the alert"
+        )
+
+    def test_confirmation_page_is_spaced_from_the_content_above_it(
+        self, page, live_server, product
+    ):
+        path = reverse("product-delete-confirm", kwargs={"pk": product.pk})
+        page.set_viewport_size(DESKTOP)
+        page.goto(f"{live_server.url}{path}")
+
+        assert gap_above_form(page) > 0
+
+
+@pytest.mark.e2e
+@requires_browser
+@pytest.mark.django_db(transaction=True)
+class TestDeletePageTypeToConfirmInteraction:
+    """Typing into the field the page points at is what enables and submits.
+
+    The page used to carry two controls with the same name and id. The script
+    read the first, which is outside the form, so this whole path ran against a
+    field the browser never posted.
+    """
+
+    def _open(self, page, live_server, product):
+        path = reverse("product-delete-confirm", kwargs={"pk": product.pk})
+        page.set_viewport_size(DESKTOP)
+        page.goto(f"{live_server.url}{path}")
+        return page.locator("#id_confirmation"), page.locator("#delete-submit-btn")
+
+    def test_delete_button_starts_disabled(self, page, live_server, product):
+        _, button = self._open(page, live_server, product)
+
+        assert button.is_disabled()
+
+    def test_wrong_value_leaves_the_button_disabled(self, page, live_server, product):
+        field, button = self._open(page, live_server, product)
+
+        field.fill("not the name")
+
+        assert button.is_disabled()
+
+    def test_matching_value_enables_the_button(self, page, live_server, product):
+        field, button = self._open(page, live_server, product)
+
+        field.fill(str(product))
+
+        assert button.is_enabled()
+
+    def test_submitting_the_typed_value_deletes_the_record(
+        self, page, live_server, product
+    ):
+        field, button = self._open(page, live_server, product)
+
+        field.fill(str(product))
+        button.click()
+        page.wait_for_url(f"{live_server.url}{reverse('product-list')}")
+
+        assert not Product.objects.filter(pk=product.pk).exists()

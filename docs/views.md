@@ -174,6 +174,30 @@ at all.
 - blocks deletion (with an explanatory page) when protected relations exist,
 - optional type-to-confirm for dangerous deletes (`require_confirmation = True`).
 
+### Type-to-confirm
+
+Set `require_confirmation = True` and the page asks the user to type the record's name
+before the Delete button becomes active. The string they must type defaults to
+`str(object)`; override `get_confirmation_value()` to ask for something else, and
+`confirmation_label` to change the field's label.
+
+```python
+class ProductDeleteView(MVPDeleteView):
+    model = Product
+    require_confirmation = True
+    confirmation_label = _("Product SKU")
+
+    def get_confirmation_value(self):
+        return self.object.sku
+```
+
+The check is enforced on the server as well as in the browser: a POST whose value does
+not match — including an empty one — re-renders the page with an error and deletes
+nothing. The browser only decides whether the button is clickable.
+
+A record that is blocked by a protected relation asks for no confirmation, because it
+offers no Delete button to enable.
+
 ## Detail pages and CRUD URLs
 
 `MVPDetailView` (via `CRUDDirectoryMixin`) builds a `directory` of CRUD URLs for the

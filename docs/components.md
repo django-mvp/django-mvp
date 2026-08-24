@@ -67,13 +67,44 @@ Empty, unopinionated building blocks — you provide the content.
 | `c-badge` | `text`, `size` (`sm`/`lg`) |
 | `c-icon` | `name` (required) |
 | `c-text` | `text`, `size` (default `base`), `align` (`left`/`center`/`right`), `muted`, `tight`, `bold`, `upper`, `class` |
-| `c-alert` | `soft`, `outline`, `dash` |
+| `c-alert` | `variant` (DaisyUI color names), `icon`, `soft`, `outline`, `dash`, `dismissible`, `delay` (auto-dismiss milliseconds), `class` — see the content rule below |
 | `c-data-field` | key–value display |
 | `c-messages` | Django messages list; `dismissible`, `delay` (auto-dismiss milliseconds, default 2000) |
 | `c-modal` | modal dialog |
 | `c-dropdown` | `valign` (`top/bottom/left/right`), `halign` (`start/center/end`); slot `button` = trigger |
 | `c-avatar` / `c-avatar.group` | user avatar(s) |
 | `c-brand.logo` / `c-brand.icon` | brand images via the configured resolvers |
+
+### Alert content goes in one element
+
+An alert lays its direct children out side by side — that is what puts the status icon
+beside the message, and what lets a trailing button sit at the end of the row. So each
+thing the alert says needs to be a single element:
+
+```html
+<c-alert variant="warning">
+  <span>This cannot be undone.</span>
+</c-alert>
+
+<c-alert variant="info">
+  <span>We use cookies to improve your experience.</span>
+  <c-button text="Accept" variant="primary" size="sm" />
+</c-alert>
+```
+
+Passing bare text works until the message contains markup. A sentence with a `<strong>`
+in the middle of it is three children, so it is laid out as three columns and reads as
+fragments spread across the alert's width:
+
+```html
+<!-- Don't: three columns, not one sentence -->
+<c-alert variant="warning">
+  You are about to <strong>permanently</strong> delete this.
+</c-alert>
+```
+
+Anything richer than a sentence — a heading, a paragraph and a list — goes in a `<div>`
+for the same reason.
 
 ## Navigation
 
