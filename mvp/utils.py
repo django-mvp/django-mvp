@@ -136,7 +136,6 @@ BS5_ICONS = {
     # ── People ───────────────────────────────────────────────────────────
     "person, user, account": "bi bi-person",
     "people, users": "bi bi-people",
-    "account_center, account-settings": "bi bi-person-gear",
     # ── Settings & theme ─────────────────────────────────────────────────
     "settings, gear, cog, gears": "bi bi-gear",
     "theme.auto": "bi bi-circle-half",

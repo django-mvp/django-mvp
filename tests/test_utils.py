@@ -9,9 +9,13 @@ consuming projects and django-mvp's own shipped templates depend on to
 resolve an ``icon="..."`` name to a real Bootstrap Icons class. #294 reported
 ``icon("import") -> ""``: an unregistered name renders as an empty string
 rather than an error, so a gap in this dict is silent everywhere it is used.
-Auditing the package's own templates against the map (below) found the same
-failure already shipping in mvp/templates/cotton/user/sidebar_menu.html,
-whose ``icon="account_center"`` had never resolved to anything.
+
+Auditing the package's own templates against the map (below) also surfaced
+``icon="account_center"`` in mvp/templates/cotton/user/sidebar_menu.html —
+not a gap: that item renders only when a companion package supplies the
+"account-center" URL, and django-accounts-center already registers the icon
+itself (see SUPPLIED_BY_A_COMPANION_PACKAGE below). BS5_ICONS deliberately
+does not carry it.
 
 The class list a value is checked against is vendored at
 tests/fixtures/bootstrap-icons-1.13.1-names.txt, matching the release pinned
@@ -111,12 +115,9 @@ class TestBS5IconsData:
 class TestBS5IconsResolution:
     """The reported symptom, reproduced through the real renderer config."""
 
-    @pytest.mark.parametrize(
-        "name", ["import", "upload", "export", "download", "account_center"]
-    )
+    @pytest.mark.parametrize("name", ["import", "upload", "export", "download"])
     def test_previously_unregistered_name_now_resolves(self, name):
-        """icon("import") -> "" was the exact repro in #294; account_center
-        is the same failure already present in a shipped template."""
+        """icon("import") -> "" was the exact repro in #294."""
         rendered = icon(name)
 
         assert rendered != "", f'icon("{name}") rendered nothing'
@@ -129,12 +130,23 @@ class TestBS5IconsResolution:
         assert icon(name) != ""
 
 
+#: Names a shipped mvp template references that a companion package's own
+#: icon pack supplies, not BS5_ICONS. mvp/templates/cotton/user/sidebar_menu.html
+#: renders its Account Center item only when a URL named "account-center"
+#: resolves — i.e. only when django-accounts-center is installed — and that
+#: package defines the icon itself (dac/icons.py's DAC_ICONS, layered on top
+#: of BS5_ICONS per docs/getting-started.md's "packs" mechanism). BS5_ICONS
+#: staying silent on "account_center" is the intended division, not a gap.
+SUPPLIED_BY_A_COMPANION_PACKAGE = frozenset({"account_center"})
+
+
 class TestPackageTemplatesReferenceKnownIcons:
-    """django-mvp's own components only ever use icons the pack defines.
+    """django-mvp's own components only ever use icons BS5_ICONS defines,
+    or a name a companion package's own pack is known to supply.
 
     This is docs/getting-started.md's claim made into a check: a name any
-    shipped cotton template hands to icon="..." has to resolve, or a
-    consumer using django-mvp's own components gets the same silent gap
+    shipped cotton template hands to icon="..." has to resolve somewhere, or
+    a consumer using django-mvp's own components gets the same silent gap
     #294 reported from a third-party call site.
     """
 
@@ -142,11 +154,16 @@ class TestPackageTemplatesReferenceKnownIcons:
         expanded = _expanded_aliases()
         referenced = _icon_names_referenced_in_package_templates()
 
-        unregistered = {name for name in referenced if name not in expanded}
+        unregistered = {
+            name
+            for name in referenced
+            if name not in expanded and name not in SUPPLIED_BY_A_COMPANION_PACKAGE
+        }
 
         assert not unregistered, (
             f"mvp's own templates reference icon name(s) {sorted(unregistered)} "
-            "that BS5_ICONS does not define — each renders as an empty string"
+            "that neither BS5_ICONS nor a documented companion pack defines — "
+            "each renders as an empty string"
         )
 
     def test_the_scan_itself_finds_something(self):
@@ -154,6 +171,13 @@ class TestPackageTemplatesReferenceKnownIcons:
         finding zero templates to check, which is not the same as finding
         zero problems."""
         assert len(_icon_names_referenced_in_package_templates()) > 10
+
+    def test_the_companion_package_exemption_is_still_referenced(self):
+        """A stale exemption would hide a real future gap under the same
+        name — if no template uses it, it isn't exempting anything real."""
+        referenced = _icon_names_referenced_in_package_templates()
+
+        assert SUPPLIED_BY_A_COMPANION_PACKAGE <= referenced
 
 
 class TestAppIsInstalled:
