@@ -104,6 +104,10 @@ Renders one form of a formset as a row.
 Added by #296. A presentation choice over the machinery above, not a second implementation:
 every clause of both rendered contracts still holds under it.
 
+`screenshots/` alongside this file holds the demo page's own formset section in all three
+states: `stacked-wide.png`, `tabular-wide.png` and `tabular-narrow.png`. The first two are the
+same two fields at the same width, and the count of rows each one fits is the whole argument.
+
 1. The set renders a heading row above its rows, one heading per visible field of
    `empty_form` other than `DELETE`, in field order, plus an empty cell holding the remove
    column open when `formset.can_delete`. `empty_form` is the source because it is the only
