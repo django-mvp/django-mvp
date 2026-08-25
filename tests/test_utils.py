@@ -129,6 +129,16 @@ class TestBS5IconsResolution:
         caller using it, with the same empty-string symptom as a gap."""
         assert icon(name) != ""
 
+    @pytest.mark.parametrize("level_tag", ["info", "success", "warning", "error"])
+    def test_django_message_level_resolves(self, level_tag):
+        """mvp/templates/cotton/messages.html passes message.level_tag
+        straight through as both the alert variant and the icon name (with
+        "debug" remapped to "info" first, since DaisyUI has no debug alert).
+        Django's own four other levels — messages.constants.DEFAULT_TAGS —
+        are exactly this set; there is no "debug" or "danger" entry to
+        check because neither ever reaches the icon lookup as itself."""
+        assert icon(level_tag) != ""
+
 
 #: Names a shipped mvp template references that a companion package's own
 #: icon pack supplies, not BS5_ICONS. mvp/templates/cotton/user/sidebar_menu.html
