@@ -10,18 +10,16 @@ forms reference.
 # views.py — the whole public surface of mvp.views
 from mvp.views import (
     InlineFormSet,        # formset declaration class (forms reference)
-    MVPCreateView,
+    MVPCreateView,         # InlinesMixin is on this by default — set `inlines` for row sets
     MVPDeleteView,
     MVPDetailView,
     MVPFormBase,          # base class, for building your own form view
     MVPFormView,
     MVPHomeView,
-    MVPInlineCreateView,
-    MVPInlineUpdateView,
     MVPListView,
     MVPModelFormBase,     # base class, for building your own model form view
     MVPTemplateView,
-    MVPUpdateView,
+    MVPUpdateView,         # InlinesMixin is on this by default — set `inlines` for row sets
     bad_request, not_found, permission_denied, server_error,
 )
 ```
@@ -34,6 +32,7 @@ compose one with a base class the package does not ship a view for:
 from mvp.views.base import BaseTemplateNameMixin, ModelInfoMixin, PageMixin
 from mvp.views.detail import CRUDDirectoryMixin, PageObjectMixin
 from mvp.views.edit import NextURLMixin
+from mvp.views.inline import InlinesMixin  # already on MVPCreateView/MVPUpdateView by default
 from mvp.views.list import MVPListViewMixin, OrderMixin, SearchMixin, SearchOrderMixin
 ```
 
