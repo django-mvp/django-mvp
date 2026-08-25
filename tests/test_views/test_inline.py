@@ -1,4 +1,6 @@
-"""Tests for InlineFormSet, InlinesMixin, MVPInlineCreateView and MVPInlineUpdateView.
+"""Tests for InlineFormSet and InlinesMixin, exercised through MVPCreateView
+and MVPUpdateView — the mixin is on both by default (mvp/views/edit.py), so
+there is no separate entrance point into row-set editing to test through.
 
 Covers User Story 1 (specs/025-multiple-related-sets): a row set declared as
 its own class, one set end to end — the parent's form and one related
@@ -20,12 +22,8 @@ from django.core.exceptions import ImproperlyConfigured
 from django.test import RequestFactory
 
 from demo.models import OrderLine, Product, Project, ProjectNote, ProjectTask
-from mvp.views.inline import (
-    InlineFormSet,
-    InlinesMixin,
-    MVPInlineCreateView,
-    MVPInlineUpdateView,
-)
+from mvp.views.edit import MVPCreateView, MVPUpdateView
+from mvp.views.inline import InlineFormSet, InlinesMixin
 from tests.factories import (
     ProductFactory,
     ProjectFactory,
@@ -94,11 +92,11 @@ def _stub_attrs(**overrides):
 
 
 def _inline_update_view_class(**attrs):
-    return type("StubInlineUpdateView", (MVPInlineUpdateView,), _stub_attrs(**attrs))
+    return type("StubInlineUpdateView", (MVPUpdateView,), _stub_attrs(**attrs))
 
 
 def _inline_create_view_class(**attrs):
-    return type("StubInlineCreateView", (MVPInlineCreateView,), _stub_attrs(**attrs))
+    return type("StubInlineCreateView", (MVPCreateView,), _stub_attrs(**attrs))
 
 
 class _StubInlinesView(InlinesMixin):
@@ -805,26 +803,35 @@ class TestSortFormsIsDisplayOnly:
 
 # ---------------------------------------------------------------------------
 # T024 — InlineFormsetMixin and the six inline_* attributes are gone;
-# InlineFormSet is exported, MVPInlineCreateView/MVPInlineUpdateView keep
-# their names (FR-024)
+# InlineFormSet is exported, InlinesMixin is not (FR-024). #313: the two
+# concrete inline view classes are gone outright — inlines live on
+# MVPCreateView/MVPUpdateView instead, so there is no separate view surface
+# left to export.
 # ---------------------------------------------------------------------------
 
 
 class TestInlineViewsPublicAPI:
-    """``mvp.views`` exports the declaration class and the two concrete
-    views, not ``InlinesMixin`` — the rule already stated in
-    ``mvp/views/__init__.py``: the package exports views, not mixins."""
+    """``mvp.views`` exports the declaration class, not ``InlinesMixin`` —
+    the rule already stated in ``mvp/views/__init__.py``: the package
+    exports views, not mixins — and not the two removed concrete inline
+    views, which no longer exist at all."""
 
     def test_inline_form_set_is_exported(self):
         from mvp.views import InlineFormSet as ExportedInlineFormSet
 
         assert ExportedInlineFormSet is InlineFormSet
 
-    def test_create_and_update_views_keep_their_names(self):
-        from mvp.views import MVPInlineCreateView, MVPInlineUpdateView
+    def test_create_and_update_inline_views_are_gone(self):
+        import mvp.views
 
-        assert MVPInlineCreateView is not None
-        assert MVPInlineUpdateView is not None
+        assert not hasattr(mvp.views, "MVPInlineCreateView")
+        assert not hasattr(mvp.views, "MVPInlineUpdateView")
+
+    def test_create_and_update_inline_views_are_gone_from_the_inline_module(self):
+        import mvp.views.inline
+
+        assert not hasattr(mvp.views.inline, "MVPInlineCreateView")
+        assert not hasattr(mvp.views.inline, "MVPInlineUpdateView")
 
     def test_inlines_mixin_is_not_exported(self):
         import mvp.views
@@ -1779,7 +1786,7 @@ class OrderLineRowInline(InlineFormSet):
 def _rows_only_product_view_class(**attrs):
     return type(
         "StubRowsOnlyProductView",
-        (MVPInlineUpdateView,),
+        (MVPUpdateView,),
         {
             "model": Product,
             "fields": [],

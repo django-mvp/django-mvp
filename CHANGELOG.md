@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- **BREAKING: `MVPInlineCreateView` and `MVPInlineUpdateView` are gone.** `InlinesMixin` is
+  mixed into `MVPCreateView` and `MVPUpdateView` by default now, so a page carrying a parent
+  record and one or more sets of related rows sets `inlines` on the create or update view it
+  already has, rather than starting from a separate base class. Leaving `inlines` unset is a
+  no-op: the view behaves exactly like a plain `MVPCreateView`/`MVPUpdateView` — including a
+  `form_class`-only create view with no `model`/`queryset` set, which the mixin now leaves
+  untouched instead of raising `ImproperlyConfigured`. `InlineFormSet` and every declaration
+  attribute are unchanged. See
+  [ADR 0018](docs/adr/0018-row-sets-are-available-on-every-model-form-page.md) and
+  [Formsets](docs/formsets.md).
+
+  **On upgrade**, rebase each view: `MVPInlineCreateView` → `MVPCreateView`,
+  `MVPInlineUpdateView` → `MVPUpdateView`. Nothing else about the view changes.
+
 - **The `mvp` and `mvp-dark` themes no longer ship, and are no longer applied by
   default.** They carried django-mvp's own branding, and a theme is the whole
   visible surface of an application — putting ours on a page by default made the

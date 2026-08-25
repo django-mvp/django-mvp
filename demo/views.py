@@ -36,8 +36,6 @@ from mvp.views import (
     MVPDetailView,
     MVPFormView,
     MVPHomeView,
-    MVPInlineCreateView,
-    MVPInlineUpdateView,
     MVPTemplateView,
     MVPUpdateView,
 )
@@ -296,7 +294,7 @@ class OrderLineInline(InlineFormSet):
     )
 
 
-class ProductOrderLinesView(MVPInlineUpdateView):
+class ProductOrderLinesView(MVPUpdateView):
     """A product and its order lines, validated and saved together.
 
     The worked example docs/formsets.md walks through: one view, no template
@@ -311,7 +309,7 @@ class ProductOrderLinesView(MVPInlineUpdateView):
     show_detail_action = True
 
 
-class ProductOrderLinesRowsOnlyView(MVPInlineUpdateView):
+class ProductOrderLinesRowsOnlyView(MVPUpdateView):
     """A product's order lines, with no parent fields on the page at all.
 
     ``fields = []`` selects the rows-only page: the parent form is never
@@ -351,7 +349,7 @@ class ProjectNoteInline(InlineFormSet):
     extra = 1
 
 
-class ProjectCreateView(MVPInlineCreateView):
+class ProjectCreateView(MVPCreateView):
     """A project created together with its tasks and notes — two row sets
     on one page, each under its own default heading.
 

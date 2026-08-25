@@ -10,8 +10,10 @@ the rows-only case. It ends with the standalone case: a formset with no parent r
 
 A set of related rows is declared as its own class, one per related model: subclass
 `InlineFormSet` (`mvp.views`), set `model` to the related model, and configure the rest as
-class attributes. List the declaration on a view's `inlines` and it renders, validates and
-saves alongside the parent record.
+class attributes. List the declaration on `inlines` — an attribute every `MVPCreateView` and
+`MVPUpdateView` already has — and it renders, validates and saves alongside the parent record.
+Leaving `inlines` unset is a no-op: the view behaves exactly like a plain
+`MVPCreateView`/`MVPUpdateView`.
 
 ```python
 # models.py
@@ -29,7 +31,7 @@ class OrderLine(models.Model):
 # views.py
 from django.utils.translation import gettext_lazy as _
 
-from mvp.views import InlineFormSet, MVPInlineUpdateView
+from mvp.views import InlineFormSet, MVPUpdateView
 
 from .models import OrderLine, Product
 
@@ -42,7 +44,7 @@ class OrderLineInline(InlineFormSet):
     description = _("Add a row per order, or remove one to drop it when you save.")
 
 
-class ProductOrderLinesView(MVPInlineUpdateView):
+class ProductOrderLinesView(MVPUpdateView):
     model = Product
     fields = ["name", "category"]
     inlines = [OrderLineInline]
@@ -86,7 +88,7 @@ half-persisted.
 # views.py
 from django.utils.translation import gettext_lazy as _
 
-from mvp.views import InlineFormSet, MVPInlineCreateView
+from mvp.views import InlineFormSet, MVPCreateView
 
 from .models import Project, ProjectNote, ProjectTask
 
@@ -104,7 +106,7 @@ class ProjectNoteInline(InlineFormSet):
     extra = 1
 
 
-class ProjectCreateView(MVPInlineCreateView):
+class ProjectCreateView(MVPCreateView):
     model = Project
     fields = ["name"]
     inlines = [ProjectTaskInline, ProjectNoteInline]
@@ -219,7 +221,7 @@ class OrderLineInline(InlineFormSet):
     extra = 1
 
 
-class ProductOrderLinesRowsOnlyView(MVPInlineUpdateView):
+class ProductOrderLinesRowsOnlyView(MVPUpdateView):
     model = Product
     fields = []
     inlines = [OrderLineInline]
@@ -237,9 +239,8 @@ class ProductOrderLinesRowsOnlyView(MVPInlineUpdateView):
   page was loaded — silently discarding any change another request made to a different column
   in between. The rows-only page never calls it.
 - **Create still requires parent fields.** There's no loaded record to hang rows off on a
-  create page, so `fields = []` on `MVPInlineCreateView` raises `ImproperlyConfigured` rather
-  than creating the one record nobody asked to create. The rows-only page is an update-page
-  concept.
+  create page, so `fields = []` on `MVPCreateView` raises `ImproperlyConfigured` rather than
+  creating the one record nobody asked to create. The rows-only page is an update-page concept.
 
 ### `touch_parent`
 
@@ -352,5 +353,5 @@ defaults both to `False` and a bound on its own rejects nothing.
 
 - [`<c-form.formset>` and `<c-form.formset.row>`](components.md#actions-user-misc) — the components this
   guide's examples render through.
-- [`InlineFormSet`, `MVPInlineCreateView` and `MVPInlineUpdateView`](views.md#a-parent-and-its-related-rows) —
-  the declaration class and the configured views for the parent-and-rows case.
+- [`InlineFormSet`, `MVPCreateView` and `MVPUpdateView`](views.md#a-parent-and-its-related-rows) —
+  the declaration class and the views `inlines` is set on for the parent-and-rows case.

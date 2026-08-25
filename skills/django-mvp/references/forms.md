@@ -1,14 +1,13 @@
 # Forms — reference
 
 The form views: create, update, delete, the plain form view, and the parent-plus-related-rows
-inline formset views. Covers page titles, success messages, the redirect chain, `?next=`
-handling and how a form is rendered.
+row sets `MVPCreateView`/`MVPUpdateView` carry by default. Covers page titles, success messages,
+the redirect chain, `?next=` handling and how a form is rendered.
 
 ```python
 # views.py
 from mvp.views import (
-    InlineFormSet, MVPCreateView, MVPDeleteView, MVPFormView,
-    MVPInlineCreateView, MVPInlineUpdateView, MVPUpdateView,
+    InlineFormSet, MVPCreateView, MVPDeleteView, MVPFormView, MVPUpdateView,
 )
 ```
 
@@ -107,7 +106,7 @@ Breadcrumbs on update are list → detail → page title, each CRUD link gated b
 
 ### The success-URL chain
 
-For `MVPCreateView`, `MVPUpdateView` and the inline views:
+For `MVPCreateView` and `MVPUpdateView`, with or without `inlines` set:
 
 1. **`get_next_url()`** — a validated same-origin `?next=` (or `next` in the POST), or a
    resolved CRUD shorthand.
@@ -209,11 +208,13 @@ class ArticleDeleteView(MVPDeleteView):
     show_list_action = True       # needed for the "list" shorthand to resolve
 ```
 
-## Inline formsets
+## Row sets — `inlines` on `MVPCreateView`/`MVPUpdateView`
 
 A parent record and one or more sets of related rows on one page. Declare each set as an
-`InlineFormSet` subclass, list them on the view's `inlines`, and the page renders, validates and
-saves them with no template markup and no save code.
+`InlineFormSet` subclass, list them on the view's `inlines` — an attribute every `MVPCreateView`
+and `MVPUpdateView` already has — and the page renders, validates and saves them with no
+template markup and no save code. Leaving `inlines` unset is a no-op: the view behaves exactly
+like a plain `MVPCreateView`/`MVPUpdateView`.
 
 ### `InlineFormSet`
 
@@ -257,16 +258,20 @@ With `exclude` rather than an explicit `fields`, only *this set's own* foreign k
 with the parent-bound field. Any other foreign key still renders as a chooser over every parent
 record. Name `fields` explicitly on a model with more than one relation to the parent.
 
-### `MVPInlineCreateView` and `MVPInlineUpdateView`
+### `InlinesMixin`
+
+Mixed into `MVPCreateView` and `MVPUpdateView` by default (first in each class's bases). Not
+exported from `mvp.views` — the package exports views, not mixins — import it from
+`mvp.views.inline` only to compose it with some other base class.
 
 | Attribute | Default | Meaning |
 |---|---|---|
 | `inlines` | `[]` | Declaration classes, rendered in the order listed. |
 | `touch_parent` | `True` | On a rows-only page, whether a valid submission writes the parent's `auto_now` field(s). |
 
-Everything else is inherited from `MVPCreateView` / `MVPUpdateView`, including the redirect
-chain and the success message. The formsets are added to the context as `inlines`, and each
-carries its own `title` and `description`.
+With `inlines` set, the formsets are added to the context as `inlines`, each carrying its own
+`title` and `description`. With `inlines` left at `[]`, every method below is a no-op and the
+view behaves exactly as it would without this mixin.
 
 - **Atomic save.** Every set is validated with `all_valid()`, which does not short-circuit, so
   every set accumulates its own errors. The parent and all sets then save inside one
@@ -291,7 +296,7 @@ class OrderLineInline(InlineFormSet):
     description = _("Add a row per order, or remove one to drop it when you save.")
 
 
-class ProductOrderLinesView(MVPInlineUpdateView):
+class ProductOrderLinesView(MVPUpdateView):
     model = Product
     fields = ["name", "category"]
     inlines = [OrderLineInline]
