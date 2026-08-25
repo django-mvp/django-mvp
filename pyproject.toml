@@ -91,6 +91,19 @@ build-backend = "poetry.core.masonry.api"
 mvp = "mvp.fixtures"
 
 
+[tool.forge.docs]
+# mvp/templatetags/ is the plumbing behind the packaged components, not a
+# surface a consuming project writes against. Every name in it is registered as
+# a filter or tag because a template has no other way to call a function, and
+# each one exists to serve one component: formset_columns and formset_grid_style
+# are read by <c-form.formset>, column_alignment_class by the table components,
+# logo_url and icon_url by the navbar. What gets documented is the component and
+# its attributes — docs/components.md, docs/formsets.md, docs/navigation.md.
+# Declared rather than filled in: documenting two dozen internal helpers would
+# not tell a reader anything they can act on, and it would advertise as API a
+# set of functions whose signatures follow whatever the templates need next.
+exempt-paths = ["mvp/templatetags/"]
+
 [tool.forge.conformance]
 # tests/test_components/ exercises Cotton templates under mvp/templates/cotton/.
 # Those have no Python module behind them — there is no mvp/components/ package
@@ -299,6 +312,7 @@ namespace_packages = true
 module = [
     "flex_menu",
     "flex_menu.*",
+    "crispy_forms.*",
     "django_cotton.*",
     "django_filters.*",
     "django_tables2.*",

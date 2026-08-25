@@ -106,6 +106,15 @@ class ComponentDocView(DemoTemplateView):
                 OrderLine, fields=["product", "quantity"], extra=2
             )
             context["formset"] = OrderLineFormSet(queryset=OrderLine.objects.none())
+            # A second set for the tabular section. Its own prefix, because two
+            # sets sharing one would collide on the management form's field
+            # names; can_delete so the remove column is on show.
+            TabularFormSet = modelformset_factory(
+                OrderLine, fields=["product", "quantity"], extra=3, can_delete=True
+            )
+            context["tabular_formset"] = TabularFormSet(
+                queryset=OrderLine.objects.none(), prefix="tabular"
+            )
         return context
 
 

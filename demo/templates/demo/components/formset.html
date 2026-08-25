@@ -7,4 +7,11 @@
       <c-form.formset :formset="formset" />
     {% endcotton:verbatim %}
   </c-components.section>
+
+  <c-components.section title="Tabular"
+                        description="The same set laid out as columns, for rows carrying two or three short fields. The field labels become headings rendered once at the top instead of once per row, and the remove control takes a narrow trailing column. Narrow the window past the sm breakpoint and every row reverts to the stacked layout above — three columns of inputs are unusable on a phone. Nothing else changes: same management form, same add and remove behaviour, same empty-form template.">
+    {% cotton:verbatim %}
+      <c-form.formset :formset="tabular_formset" layout="tabular" />
+    {% endcotton:verbatim %}
+  </c-components.section>
 {% endblock component.docs %}

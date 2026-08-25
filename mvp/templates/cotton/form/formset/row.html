@@ -51,6 +51,11 @@
   reader; a column header is not associated with the cells beneath it and does
   not do that job. See the `as_crispy_cell` filter.
 
+  Help text goes the same way as the label and for the same reason: restating
+  it under every cell of a column costs more height than the layout saves. The
+  set's heading row carries one copy, and the `<small>` crispy renders it in is
+  hidden here from the same breakpoint. Errors are `<p>` and are untouched.
+
   Errors keep their stacked treatment on purpose. A field's error renders in
   its own cell under the control, and the form's non-field errors render full
   width above the grid, so an invalid row grows taller than its neighbours.
@@ -96,7 +101,7 @@
     {% endcomment %}
     {# djlint:off #}
     {% if layout == "tabular" %}
-      <div class="space-y-4 sm:grid sm:items-start sm:gap-x-4 sm:space-y-0" style="{{ grid_style }}">
+      <div class="space-y-4 sm:grid sm:items-start sm:gap-x-4 sm:space-y-0 sm:[&_small]:hidden" style="{{ grid_style }}">
     {% endif %}
     {% for field in form.visible_fields %}
       {% if field.name == "DELETE" %}

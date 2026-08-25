@@ -64,10 +64,18 @@
     {% firstof formset|formset_grid_style as grid_style %}
     {% if layout == "tabular" %}
       <div class="hidden sm:grid sm:items-end sm:gap-x-4" style="{{ grid_style }}">
+        {% comment %}
+          A column's help text belongs here for the same reason its label does:
+          once at the top of the column, rather than restated under every cell
+          in it. The rows suppress their own copy at this breakpoint.
+        {% endcomment %}
         {% for field in formset|formset_columns %}
-          <c-text tight bold size="sm">
-            {{ field.label }}{% if field.field.required %}<span class="text-error" aria-hidden="true">*</span>{% endif %}
-          </c-text>
+          <div>
+            <c-text tight bold size="sm">
+              {{ field.label }}{% if field.field.required %}<span class="text-error" aria-hidden="true">*</span>{% endif %}
+            </c-text>
+            {% if field.help_text %}<c-text tight muted size="xs">{{ field.help_text }}</c-text>{% endif %}
+          </div>
         {% endfor %}
         {% comment %}
           An empty cell holding the remove column open. `sr-only` would not do

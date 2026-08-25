@@ -1051,6 +1051,16 @@ class TwoFieldRowForm(forms.Form):
 
 TwoFieldFormSet = forms.formset_factory(TwoFieldRowForm, can_delete=True, extra=2)
 
+HELP_TEXT = "How many units were ordered."
+
+
+class HelpTextRowForm(forms.Form):
+    kind = forms.CharField(label="Kind")
+    value = forms.CharField(label="Value", help_text=HELP_TEXT)
+
+
+HelpTextFormSet = forms.formset_factory(HelpTextRowForm, can_delete=True, extra=2)
+
 
 def _tabular(formset, **context):
     return render(
@@ -1165,6 +1175,54 @@ class TestFormsetTabularLabels:
 
         label = soup.select_one('label[for="id_form-0-kind"]')
         assert "sm:sr-only" not in label.get("class", [])
+
+
+class TestFormsetTabularHelpText:
+    """Help text is promoted with the label, not repeated under every cell."""
+
+    def _formset(self):
+        return HelpTextFormSet()
+
+    def test_the_heading_carries_the_columns_help_text(self):
+        soup = BeautifulSoup(_tabular(self._formset()), "html.parser")
+
+        heading_row = soup.select_one("div[style*='grid-template-columns']")
+        assert HELP_TEXT in heading_row.get_text()
+
+    def test_the_rows_own_copy_is_suppressed_where_the_heading_carries_it(self):
+        soup = BeautifulSoup(_tabular(self._formset()), "html.parser")
+
+        grid = soup.select("div.group div[style*='grid-template-columns']")[0]
+        assert "sm:[&_small]:hidden" in grid.get("class", []), (
+            "crispy renders help text in a <small> under each control; at the "
+            "width where the heading names the column it is redundant there"
+        )
+
+    def test_the_stacked_layout_keeps_help_text_under_every_field(self):
+        html = render(
+            '<c-form.formset :formset="formset" />', formset=self._formset()
+        )
+
+        # Two extra rows and the empty-form template, and no heading to hold
+        # a shared copy — the stacked layout puts it under every control.
+        assert html.count(HELP_TEXT) == 3
+        assert "sm:[&_small]:hidden" not in html
+
+    def test_errors_are_not_swept_up_with_the_help_text(self):
+        """Crispy renders an error in a <p>, so hiding <small> cannot hide it."""
+        soup = BeautifulSoup(_tabular(TwoFieldFormSet()), "html.parser")
+
+        source = (
+            Path(mvp.__path__[0])
+            / "templates"
+            / "cotton"
+            / "form"
+            / "formset"
+            / "row.html"
+        ).read_text()
+        assert "sm:[&_small]:hidden" in source
+        assert "sm:[&_p]:hidden" not in source
+        assert soup.select_one("div.group") is not None
 
 
 class TestFormsetTabularRowChrome:
