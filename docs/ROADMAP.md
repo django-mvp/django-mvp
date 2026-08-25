@@ -134,20 +134,15 @@ Components that assemble a class name from an attribute at render time produce c
 
 Serves G6 and G5. Classes a consuming project builds in its own templates stay out of scope, since those are covered by the generated build entry point.
 
-### R11 — A shipped theme that meets contrast requirements
+### ~~R11 — A shipped theme that meets contrast requirements~~
 
-*feature · advances G5*
+*Rejected · see [ADR 0017](adr/0017-colour-contrast-in-a-theme-is-the-projects-concern.md)*
 
-The package ships no theme of its own, so a stock theme applies, and on it the error colour fails WCAG AA against the page background. That lands on form validation: both the message text and the input border a user is meant to notice are the pairings that fail. A survey of the stock themes found no replacement that fixes it, so the fix is a theme the package owns. G5 promises a polished look out of the box, and an inaccessible error state is not one.
+This item asked for a theme the package ships and applies, built to WCAG AA, because the error colour on a stock theme fails against the page background and that lands on form validation. It was built and then withdrawn: the themes are gone from the distribution ([ADR 0016](adr/0016-branded-themes-belong-to-the-demo-site.md)) and the decision is not to build them again.
 
-**Deliverables:**
+A theme is the first thing a project replaces, and the documentation tells them to. A compliant palette therefore serves only projects that change nothing, and no one else. The package holds itself to the standard in what it emits whatever theme is applied — semantic markup, focus order, labels and accessible names, keyboard reachability — and leaves colour values to the project. `docs/theming.md` says so where someone choosing a theme reads it.
 
-- A theme shipped and applied by default, meeting WCAG AA contrast for text and for the interface colours the components rely on.
-- Light and dark variants, both meeting the same bar.
-- A check that fails when a colour pairing the components use drops below the bar.
-- A project's own theme still overriding the shipped one without touching templates.
-
-Serves G5. The wider theming and branding story is R18.
+Kept here rather than deleted, so that the next reader who finds the contrast problem finds the answer with it.
 
 ### R12 — Optional dependencies behave the way they are documented
 
@@ -247,7 +242,7 @@ Serves G8.
 
 *feature · advances G8*
 
-Once a theme ships with the package (R11), the question becomes how a project departs from it. G8 asks for that to happen without copying templates: colour, typography and density adjusted through the design system's own theming surface, with the packaged components picking the changes up. This is the step between the default look and a project bringing its own CSS.
+The package applies a stock theme and ships none of its own, so the question is how a project departs from it. G8 asks for that to happen without copying templates: colour, typography and density adjusted through the design system's own theming surface, with the packaged components picking the changes up. This is the step between the default look and a project bringing its own CSS, and R11's rejection makes it the whole of the theming story rather than the second half of one.
 
 **Deliverables:**
 

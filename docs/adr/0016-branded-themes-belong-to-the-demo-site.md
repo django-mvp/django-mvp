@@ -58,6 +58,10 @@ project's. What changes here is that the zero-configuration case is no longer th
 `docs/theming.md` says so where someone choosing a theme will read it, and writing a theme to a
 contrast obligation costs one CSS file.
 
+[ADR 0017](0017-colour-contrast-in-a-theme-is-the-projects-concern.md) settled what follows from
+that: a theme's colour values are the project's concern and the package will not ship a palette to
+fix them. Read as scope rather than as the cost recorded above.
+
 **A project's appearance changes on upgrade,** for the second time and in the opposite direction.
 Anything rendering `mvp` renders `light`. A project that wants the previous appearance copies
 `demo/static/css/themes.css` into its own static files and names the pair, which is the same two
