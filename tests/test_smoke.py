@@ -394,6 +394,27 @@ class TestFormsetComponentDocPage:
         assert 'name="form-TOTAL_FORMS"' in content
 
 
+class TestFormComponentDocPage:
+    """The form component doc page (#311) — <c-form.render>'s FormHelper path had
+    no worked example anywhere, so nobody could see what Layout objects like
+    Fieldset produce. Two examples: the helper-less default, and a form whose
+    helper groups fields into Fieldsets with a Row/Column pair inside one of them.
+    """
+
+    @pytest.mark.django_db
+    def test_page_renders_the_default_and_layout_examples(self, client):
+        response = client.get("/components/form/")
+
+        assert response.status_code == 200
+        content = response.content.decode()
+        assert "<fieldset" in content
+        assert "Contact details" in content
+        assert "Shipping address" in content
+        # id_email is unique to ContactForm/LayoutDemoForm's shared field name,
+        # so its help text confirms the helper-less example rendered too.
+        assert "We&#x27;ll never share your email" in content
+
+
 # ---------------------------------------------------------------------------
 # docs/theming.md's variable table stays honest against the installed daisyUI
 # version (FS-026 US-3, SC-007)

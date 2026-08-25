@@ -1,0 +1,17 @@
+{% extends "demo/components/base.html" %}
+
+{% block component.docs %}
+  <c-components.section title="Default"
+                        description="A form with no helper renders through crispy's helper-less path: every field, in field order, no <form> tag and no submit button — wrap it in your own <form>, or use <c-form>, which does that for a real page.">
+    {% cotton:verbatim %}
+      <c-form.render :form="contact_form" />
+    {% endcotton:verbatim %}
+  </c-components.section>
+
+  <c-components.section title="Layout objects: Fieldset, Row/Column and HTML"
+                        description="Give the form a FormHelper with a Layout and <c-form.render> switches to crispy's {% crispy form %} tag automatically. Fieldset groups related fields under a legend; Row/Column lay fields side by side; HTML drops in arbitrary markup between them. The Layout below nests a Row inside the second Fieldset.">
+    {% cotton:verbatim %}
+      <c-form.render :form="layout_form" />
+    {% endcotton:verbatim %}
+  </c-components.section>
+{% endblock component.docs %}

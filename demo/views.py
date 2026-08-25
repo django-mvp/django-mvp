@@ -42,7 +42,7 @@ from mvp.views import (
 from mvp.views.htmx import HtmxFormMixin
 from mvp.views.list import MVPListViewMixin
 
-from .forms import ProductForm
+from .forms import ContactForm, LayoutDemoForm, ProductForm
 
 
 class DemoHomeView(MVPHomeView):
@@ -115,6 +115,9 @@ class ComponentDocView(DemoTemplateView):
             context["tabular_formset"] = TabularFormSet(
                 queryset=OrderLine.objects.none(), prefix="tabular"
             )
+        elif self.component.slug == "form":
+            context["contact_form"] = ContactForm()
+            context["layout_form"] = LayoutDemoForm()
         return context
 
 
