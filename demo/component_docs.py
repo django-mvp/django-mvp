@@ -54,13 +54,6 @@ COMPONENTS = [
         "A labelled read-only value for detail pages.",
     ),
     ComponentDoc(
-        "form",
-        "Form",
-        "form",
-        "A whole form, rendered through crispy_forms — including Fieldset, "
-        "Row/Column and HTML layout objects.",
-    ),
-    ComponentDoc(
         "form-field",
         "Form Field",
         "input-cursor",

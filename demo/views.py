@@ -11,6 +11,7 @@ from pathlib import Path
 
 from django.forms import modelformset_factory
 from django.http import Http404
+from django.urls import reverse_lazy
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 from django_filters.views import FilterView
@@ -33,6 +34,7 @@ from mvp.views import (
     MVPCreateView,
     MVPDeleteView,
     MVPDetailView,
+    MVPFormView,
     MVPHomeView,
     MVPInlineCreateView,
     MVPInlineUpdateView,
@@ -42,7 +44,7 @@ from mvp.views import (
 from mvp.views.htmx import HtmxFormMixin
 from mvp.views.list import MVPListViewMixin
 
-from .forms import ContactForm, LayoutDemoForm, ProductForm
+from .forms import LayoutDemoForm, ProductForm
 
 
 class DemoHomeView(MVPHomeView):
@@ -115,9 +117,6 @@ class ComponentDocView(DemoTemplateView):
             context["tabular_formset"] = TabularFormSet(
                 queryset=OrderLine.objects.none(), prefix="tabular"
             )
-        elif self.component.slug == "form":
-            context["contact_form"] = ContactForm()
-            context["layout_form"] = LayoutDemoForm()
         return context
 
 
@@ -363,6 +362,18 @@ class ProjectCreateView(MVPInlineCreateView):
     fields = ["name"]
     inlines = [ProjectTaskInline, ProjectNoteInline]
     success_url = "/"
+
+
+class ComplexFormDemoView(MVPFormView):
+    """MVPFormView driving LayoutDemoForm, whose FormHelper groups fields
+    into Fieldsets — the crispy helper path <c-form.render> takes whenever
+    form.helper is set — with one Fieldset laid out via Row/Column (#311).
+    """
+
+    form_class = LayoutDemoForm
+    page_title = _("Complex Form")
+    success_url = reverse_lazy("complex-form-demo")
+    success_message = _("Form submitted successfully.")
 
 
 class ProductDeleteView(MVPDeleteView):

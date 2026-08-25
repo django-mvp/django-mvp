@@ -394,25 +394,48 @@ class TestFormsetComponentDocPage:
         assert 'name="form-TOTAL_FORMS"' in content
 
 
-class TestFormComponentDocPage:
-    """The form component doc page (#311) — <c-form.render>'s FormHelper path had
-    no worked example anywhere, so nobody could see what Layout objects like
-    Fieldset produce. Two examples: the helper-less default, and a form whose
-    helper groups fields into Fieldsets with a Row/Column pair inside one of them.
+class TestComplexFormDemoPage:
+    """The Complex Form demo page (#311) — a full MVPFormView page, not a
+    component doc entry, driving LayoutDemoForm's FormHelper Layout: three
+    Fieldsets (one laid out with Row/Column) and an HTML block.
     """
 
     @pytest.mark.django_db
-    def test_page_renders_the_default_and_layout_examples(self, client):
-        response = client.get("/components/form/")
+    def test_page_renders_every_fieldset_and_the_layout(self, client):
+        response = client.get("/forms/complex/")
 
         assert response.status_code == 200
         content = response.content.decode()
-        assert "<fieldset" in content
         assert "Contact details" in content
         assert "Shipping address" in content
-        # "Subscribe to newsletter" only exists on ContactForm, so its presence
-        # confirms the helper-less default example rendered too.
-        assert "Subscribe to newsletter" in content
+        assert "Preferences" in content
+        # Fieldset's legend carries the same divider treatment as a formset's
+        # own heading (mvp/templates/tailwind/layout/fieldset.html).
+        assert content.count('<legend class="divider') == 3
+        # <c-form> (form_view.html) is the only real <form> wrapping the
+        # fields — form_tag=False must stop crispy nesting a second one
+        # inside it. x-data="{form: {}}" is <c-form>'s own signature
+        # attribute; the page also carries unrelated chrome forms (the
+        # language switcher, a couple of dialogs), so counting every <form>
+        # on the page would not isolate this.
+        assert content.count('<form x-data="{form: {}}"') == 1
+
+    @pytest.mark.django_db
+    def test_valid_submission_redirects_and_flashes_success(self, client):
+        response = client.post(
+            "/forms/complex/",
+            {
+                "name": "Jane Doe",
+                "email": "jane@example.com",
+                "address": "1 Example Street",
+                "city": "Springfield",
+                "postal_code": "12345",
+                "shipping_method": "standard",
+            },
+        )
+
+        assert response.status_code == 302
+        assert response.url == "/forms/complex/"
 
 
 # ---------------------------------------------------------------------------

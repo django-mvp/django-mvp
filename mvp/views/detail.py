@@ -141,10 +141,10 @@ class CRUDDirectoryMixin(ModelInfoMixin):
         if url_kwargs is None:
             return None
 
-        url_name = self._get_view_name(action)
-
         if not self.show_action(action):
             return None
+
+        url_name = self._get_view_name(action)
 
         return reverse(url_name, kwargs=url_kwargs)
 
@@ -168,11 +168,9 @@ class PageObjectMixin(CRUDDirectoryMixin, PageMixin):
     list_view_title = ""
 
     def get_page_class(self):
-        return " ".join(
-            filter(
-                None, [super().get_page_class(), self.model_meta.model_name + "-page"]
-            )
-        )
+        model = self.get_model_class_or_none()
+        model_page_class = f"{model._meta.model_name}-page" if model else None
+        return " ".join(filter(None, [super().get_page_class(), model_page_class]))
 
     def get_list_title(self):
         """Return the title to use for the list view link in the form header.
@@ -185,19 +183,24 @@ class PageObjectMixin(CRUDDirectoryMixin, PageMixin):
     def get_breadcrumbs(self):
         """Return the list of breadcrumb items for the form view.
 
-        By default, includes a link back to the list view and a final item for the current form.
+        By default, includes a link back to the list view and a final item for
+        the current form. The list-view crumb is omitted entirely on a
+        model-less view (a plain ``MVPFormView``, by design) — there is no
+        list view for it to link to.
 
         Returns:
             list[dict]: List of breadcrumb items with 'text' and optional 'href'
         """
 
-        breadcrumbs = [
-            {
-                "text": self.get_list_title(),
-                "href": self.resolve_crud_url("list") or "",
-            },
-            {"text": self.get_page_title()},
-        ]
+        breadcrumbs = []
+        if self.get_model_class_or_none() is not None:
+            breadcrumbs.append(
+                {
+                    "text": self.get_list_title(),
+                    "href": self.resolve_crud_url("list") or "",
+                }
+            )
+        breadcrumbs.append({"text": self.get_page_title()})
         return breadcrumbs
 
 

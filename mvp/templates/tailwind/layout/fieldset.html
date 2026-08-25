@@ -1,0 +1,23 @@
+{% comment %}
+  Override of crispy_tailwind's tailwind/layout/fieldset.html.
+
+  Gives a Fieldset's <legend> the same daisyUI divider look
+  <c-form.formset> uses to separate a set of rows from the form around it
+  (mvp/templates/cotton/form/formset/index.html) — one section break, however
+  Django groups the fields behind it (#311). <legend> stays the actual
+  element, not a <div>, so the fieldset keeps its accessible group name; only
+  its class list changes. Tailwind's preflight resets fieldset's native
+  border to none, so there is no border for the legend to visually overlap.
+
+  This file must stay at this same relative path so Django's app_dirs
+  template loader picks it up ahead of crispy_tailwind's own copy — `mvp` is
+  listed before `crispy_tailwind` in INSTALLED_APPS. See
+  mvp/templates/tailwind/layout/help_text.html for the same override pattern
+  applied to a different vendored template.
+{% endcomment %}
+<fieldset {% if fieldset.css_id %}id="{{ fieldset.css_id }}"{% endif %}
+    {% if fieldset.css_class or form_style %}class="{{ fieldset.css_class }} {{ form_style }}"{% endif %}
+    {{ fieldset.flat_attrs|safe }}>
+    {% if legend %}<legend class="divider my-8">{{ legend|safe }}</legend>{% endif %}
+    {{ fields|safe }}
+</fieldset>

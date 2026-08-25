@@ -97,7 +97,16 @@ class BaseTemplateNameMixin:
             raise ImproperlyConfigured(
                 f"{self.__class__.__name__} requires a 'base_template_name' attribute to be set."
             )
-        template_names = super().get_template_names()
+        try:
+            template_names = super().get_template_names()
+        except ImproperlyConfigured:
+            # Django's own TemplateResponseMixin (unlike the model-based
+            # SingleObjectTemplateResponseMixin/MultipleObjectTemplateResponseMixin)
+            # raises here rather than returning no candidates when `template_name`
+            # is unset — the case a plain, model-less MVPFormView is always in.
+            # This mixin already guarantees base_template_name as a fallback, so
+            # "no view-specific candidates" is not an error for it.
+            template_names = []
         template_names.append(self.base_template_name)
         return template_names
 
@@ -334,6 +343,18 @@ class ModelInfoMixin:
             "Set `model`, `queryset`, use a ModelForm `form_class` or override the `get_model_class()` method."
         )
 
+    def get_model_class_or_none(self):
+        """Like ``get_model_class()``, but returns ``None`` instead of raising.
+
+        For page chrome that has a sensible model-less fallback — a plain
+        ``MVPFormView`` carries no model by design (see its own docstring),
+        but still shares ``PageObjectMixin`` with the model-based views.
+        """
+        try:
+            return self.get_model_class()
+        except ImproperlyConfigured:
+            return None
+
     def get_model_info(self):
         """Return a dict of details about the model for use in templates.
 
@@ -353,5 +374,6 @@ class ModelInfoMixin:
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["model_info"] = self.get_model_info()
+        model = self.get_model_class_or_none()
+        context["model_info"] = self.get_model_info() if model is not None else None
         return context

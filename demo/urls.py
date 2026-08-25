@@ -12,6 +12,7 @@ from .views import (
     ArticleDetailView,
     CategoryDeleteWithRelatedView,
     CategoryUpdateView,
+    ComplexFormDemoView,
     DemoHomeView,
     ProductCreateView,
     ProductDeleteView,
@@ -77,6 +78,7 @@ urlpatterns = [
     ),
     path("articles/<int:pk>/", ArticleDetailView.as_view(), name="article-detail"),
     path("projects/create/", ProjectCreateView.as_view(), name="project-create"),
+    path("forms/complex/", ComplexFormDemoView.as_view(), name="complex-form-demo"),
     path("django-tables2/", views.DataTablesView.as_view(), name="djangotables2"),
     path(
         "django-tables2/column-behaviour/",

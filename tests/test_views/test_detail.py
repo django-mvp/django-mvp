@@ -97,6 +97,30 @@ class TestPageObjectMixin:
         breadcrumbs = view.get_breadcrumbs()
         assert breadcrumbs[0]["text"] == "All Orders"
 
+    def test_get_page_class_without_a_model(self):
+        """Regression (#311): a plain MVPFormView shares PageObjectMixin with
+        the model-based views but carries no model by design. get_page_class()
+        used to read self.model_meta unconditionally and crash."""
+        view = make_page_object_view(extra_attrs={"model": None})
+        assert view.get_page_class() == "mvp-page"
+
+    def test_get_breadcrumbs_without_a_model_omits_the_list_crumb(self):
+        """Regression (#311): no model means no list view to link to, so the
+        list crumb is dropped entirely rather than rendered with empty text."""
+        view = make_page_object_view(
+            extra_attrs={"model": None, "page_title": "Complex Form"}
+        )
+        assert view.get_breadcrumbs() == [{"text": "Complex Form"}]
+
+    def test_resolve_crud_url_hidden_action_short_circuits_without_a_model(self):
+        """Regression (#311): resolve_crud_url() computed the CRUD view name
+        (which needs the model) before checking whether the action was even
+        shown, so a hidden action still crashed on a model-less view."""
+        view = make_page_object_view(
+            extra_attrs={"model": None}
+        )  # show_list_action defaults to False
+        assert view.resolve_crud_url("list") is None
+
 
 # ---------------------------------------------------------------------------
 # TestMVPDetailView — US2

@@ -33,6 +33,19 @@ class BareTemplateNameMixin(BaseTemplateNameMixin, TemplateView):
     template_name = "specific.html"
 
 
+class NoTemplateNameView(BaseTemplateNameMixin, TemplateView):
+    """base_template_name set, template_name unset — MVPFormView's own shape.
+
+    Django's TemplateResponseMixin.get_template_names() raises when
+    template_name is None, unlike the model-based SingleObject/MultipleObject
+    variants CreateView/UpdateView/DetailView build on, which degrade to a
+    model-derived name instead. Regression for #311: this is the shape every
+    plain MVPFormView subclass is in, and nothing had ever rendered one.
+    """
+
+    base_template_name = "base.html"
+
+
 class ConcretePage(PageMixin, TemplateView):
     """Minimal concrete PageMixin subclass with no overrides."""
 
@@ -64,6 +77,10 @@ class TestBaseTemplateNameMixin:
     def test_base_template_name_in_list(self):
         view = ConcreteTemplateView()
         assert "base.html" in view.get_template_names()
+
+    def test_returns_base_template_alone_when_no_template_name_is_set(self):
+        view = NoTemplateNameView()
+        assert view.get_template_names() == ["base.html"]
 
 
 # ---------------------------------------------------------------------------
@@ -351,6 +368,35 @@ class TestModelInfoMixin:
 
         with pytest.raises(ImproperlyConfigured):
             V().get_model_class()
+
+    # --- get_model_class_or_none / model-less get_context_data (#311) -------
+
+    def test_get_model_class_or_none_returns_model_when_resolvable(self):
+        class V(ModelInfoMixin):
+            model = Product
+
+        assert V().get_model_class_or_none() is Product
+
+    def test_get_model_class_or_none_returns_none_when_unresolvable(self):
+        class V(ModelInfoMixin):
+            form_class = _PlainForm
+
+        assert V().get_model_class_or_none() is None
+
+    def test_context_data_model_info_is_none_without_a_model(self):
+        """Regression: a plain (model-less) FormView crashed here — the base
+        ModelInfoMixin.get_context_data() called get_model_info(), which
+        always needs a model, unconditionally."""
+
+        class V(ModelInfoMixin, TemplateView):
+            form_class = _PlainForm
+            template_name = "base.html"
+
+        v = V()
+        v.request = RequestFactory().get("/")
+        v.kwargs = {}
+        v.args = []
+        assert v.get_context_data()["model_info"] is None
 
 
 # ---------------------------------------------------------------------------

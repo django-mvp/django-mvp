@@ -103,6 +103,14 @@ AppMenu.extend(
                     },
                 ),
                 MenuItem(
+                    name="complex-form-demo",
+                    view_name="complex-form-demo",
+                    extra_context={
+                        "label": "Complex Form",
+                        "icon": "form",
+                    },
+                ),
+                MenuItem(
                     name="full-page-map",
                     view_name="full-page-map",
                     extra_context={
