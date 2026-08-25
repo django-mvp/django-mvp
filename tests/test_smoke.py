@@ -409,9 +409,13 @@ class TestComplexFormDemoPage:
         assert "Contact details" in content
         assert "Shipping address" in content
         assert "Preferences" in content
-        # Fieldset's legend carries the same divider treatment as a formset's
-        # own heading (mvp/templates/tailwind/layout/fieldset.html).
-        assert content.count('<legend class="divider') == 3
+        # Fieldset's visible heading is the same daisyUI divider a formset
+        # uses for its own — a <div>, not the <legend> (a <legend> does not
+        # honour display:flex, so a divider-classed legend renders as bare
+        # text with no lines either side; caught visually, #311). <legend>
+        # stays, sr-only, purely for the fieldset's accessible group name.
+        assert content.count('<div class="divider my-8" aria-hidden="true">') == 3
+        assert content.count('<legend class="sr-only">') == 3
         # <c-form> (form_view.html) is the only real <form> wrapping the
         # fields — form_tag=False must stop crispy nesting a second one
         # inside it. x-data="{form: {}}" is <c-form>'s own signature

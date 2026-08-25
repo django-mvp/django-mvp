@@ -1,13 +1,21 @@
 {% comment %}
   Override of crispy_tailwind's tailwind/layout/fieldset.html.
 
-  Gives a Fieldset's <legend> the same daisyUI divider look
-  <c-form.formset> uses to separate a set of rows from the form around it
+  Gives a Fieldset the same daisyUI divider look <c-form.formset> uses to
+  separate a set of rows from the form around it
   (mvp/templates/cotton/form/formset/index.html) — one section break, however
-  Django groups the fields behind it (#311). <legend> stays the actual
-  element, not a <div>, so the fieldset keeps its accessible group name; only
-  its class list changes. Tailwind's preflight resets fieldset's native
-  border to none, so there is no border for the legend to visually overlap.
+  Django groups the fields behind it (#311).
+
+  The divider is a <div>, not the <legend>. <legend> carries special
+  fieldset-border-straddling layout that browsers do not lift even when its
+  `display` is overridden to `flex` — the divider's `::before`/`::after` line
+  pseudo-elements never generate on it, so a `class="divider"` legend renders
+  as bare text with no lines either side (caught visually, not by the
+  render_to_string tests, which only ever asserted the legend's text and
+  class list, not its computed layout). <legend> stays, `sr-only`, purely so
+  the fieldset keeps its accessible group name for screen readers; the
+  visible divider is a sibling <div>, `aria-hidden` so the heading is not
+  announced twice.
 
   This file must stay at this same relative path so Django's app_dirs
   template loader picks it up ahead of crispy_tailwind's own copy — `mvp` is
@@ -18,6 +26,9 @@
 <fieldset {% if fieldset.css_id %}id="{{ fieldset.css_id }}"{% endif %}
     {% if fieldset.css_class or form_style %}class="{{ fieldset.css_class }} {{ form_style }}"{% endif %}
     {{ fieldset.flat_attrs|safe }}>
-    {% if legend %}<legend class="divider my-8">{{ legend|safe }}</legend>{% endif %}
+    {% if legend %}
+      <legend class="sr-only">{{ legend|safe }}</legend>
+      <div class="divider my-8" aria-hidden="true">{{ legend|safe }}</div>
+    {% endif %}
     {{ fields|safe }}
 </fieldset>
