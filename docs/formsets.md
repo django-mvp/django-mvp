@@ -291,6 +291,49 @@ The component itself doesn't know or care whether its formset came from
 app's Formset component page renders exactly this: a bound `OrderLine` formset with no
 parent view around it at all.
 
+## Laying rows out as columns
+
+A row renders as a stacked block of full-width fields, headed by the related object's label.
+That works well when the row carries several fields, or long ones — a description, an address,
+a note.
+
+It works badly when the row is two or three short fields. A set of identifiers is a type and a
+value. A set of dates is a type and a date. Stacked, each of those spends four or five lines of
+height on two inputs, nothing lines up between one row and the next, and the heading repeats the
+type the reader has already read in the first field.
+
+Pass `layout="tabular"` for those:
+
+```django
+<c-form.formset :formset="formset" layout="tabular" />
+```
+
+The field labels are promoted to headings drawn once at the top of the set, each row lays its
+fields out on those columns, and the remove control moves into a narrow trailing column. The
+per-row heading goes, since the row says what it is across its own columns.
+
+A field's help text is promoted with its label, for the same reason. Restating it under every
+cell of a column costs more height than the columns save, so the heading carries one copy and
+the rows stop drawing their own.
+
+Below the `sm` breakpoint the set reverts to the stacked layout in full — headings, per-row
+label, remove control and all. Three columns of inputs are not usable on a phone, and the
+stacked rows already read well at that width. Each field keeps its own label in the page at
+every width, drawn below the breakpoint and left for screen readers above it, because a column
+heading names a column and nothing associates it with the cells underneath.
+
+Everything else is unchanged. The layout is a presentation choice over the same machinery:
+
+- the same management form,
+- the same add and remove behaviour,
+- the same empty-form template,
+- the same handling of a row marked for removal.
+
+Errors keep their stacked treatment. A field's error renders under its own control and a row's
+non-field errors render full width above its columns, so an invalid row is taller than its
+neighbours. That is deliberate — Django's own admin makes the same trade in its tabular inlines,
+and an error that disturbed nothing would be an error nobody noticed.
+
 ## What you get either way
 
 Every row's fields render through the same crispy field template a single form's fields use,

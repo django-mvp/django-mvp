@@ -20,6 +20,7 @@ error belonging to the set as a whole, one row per form, and the controls that a
 | `formset` | — | The formset to render. Required in practice; absent renders nothing. |
 | `title` | model in plural | Heading in the divider that opens the set. Falls back to `formset.title`, then to the set's model's plural name. |
 | `description` | — | Help text under the heading. Falls back to `formset.description`. Omitted entirely when unset. |
+| `layout` | `"stacked"` | `"tabular"` lays each row's fields out on shared column tracks and heads the set with the field labels. Added by #296; see "Tabular layout" below. |
 | `add-label` | `"Add row"` | Text on the add control, which also carries a plus icon. |
 | `remove-label` | `"Remove"` | Accessible name for each row's remove control, passed through to rows. |
 | `class` | — | Merged onto the root element. Declared so the caller's classes are not dropped. |
@@ -76,6 +77,8 @@ Renders one form of a formset as a row.
 | `label` | the object | Heading for the row. Defaults to the instance's string once saved, and to `New <model>` before that, since `str()` on an unsaved model reads `Thing object (None)`. Empty for a non-model form. |
 | `remove-label` | `"Remove"` | Accessible name for the remove control, which renders as a trash icon with no visible text. |
 | `can-delete` | `False` | Whether to offer a remove control. Set by the parent from `formset.can_delete`. |
+| `layout` | `"stacked"` | Set by the parent. Under `"tabular"` the row renders its fields on the set's column tracks from `sm` up, and as stacked fields below. |
+| `grid-style` | — | The `grid-template-columns` the set's rows and headings share. Set by the parent; meaningless on its own. |
 | `class` | — | Merged onto the root element. |
 
 ### Rendered contract
@@ -93,6 +96,44 @@ Renders one form of a formset as a row.
 6. A removed row is hidden, not detached. Its inputs stay in the document with their submitted
    values, which is what keeps the formset's indices contiguous and what makes a removal
    survive an invalid submission (R2).
+
+---
+
+## Tabular layout
+
+Added by #296. A presentation choice over the machinery above, not a second implementation:
+every clause of both rendered contracts still holds under it.
+
+`screenshots/` alongside this file holds the demo page's own formset section in all three
+states: `stacked-wide.png`, `tabular-wide.png` and `tabular-narrow.png`. The first two are the
+same two fields at the same width, and the count of rows each one fits is the whole argument.
+
+1. The set renders a heading row above its rows, one heading per visible field of
+   `empty_form` other than `DELETE`, in field order, plus an empty cell holding the remove
+   column open when `formset.can_delete`. `empty_form` is the source because it is the only
+   form a set always has, and because `can_delete_extra=False` gives initial and extra rows
+   different fields.
+2. The heading row and every row of the set, including the one inside the empty-form
+   `<template>`, carry the same `grid-template-columns` — one `minmax(0, 1fr)` track per
+   column, plus `auto` for the remove column. It is an inline style rather than a utility
+   class because the column count is known only at render time, and Tailwind emits classes it
+   can find as literal text at build time. Rows are separate grids rather than one grid the
+   rows span, so that a row keeps its own hairline, hover state and error line. Equal
+   fractional tracks resolve identically across siblings of the same width either way.
+3. The columns are drawn from the `sm` breakpoint up. Below it the set renders as the stacked
+   layout in full — heading row suppressed, per-row heading and remove control restored,
+   per-field labels drawn. The row template renders both, rather than the set choosing once.
+4. Each field keeps its own `<label>` at every width, screen-reader-only above the breakpoint.
+   A column heading is not associated with the cells beneath it, so the label is the only thing
+   naming the input to assistive technology. **Do not replace it with the heading.**
+5. A field's help text is promoted to its heading and suppressed in the cells above the
+   breakpoint. Unlike the label it has no accessibility role to keep it in every row, and
+   repeating it under each cell costs more height than the columns save.
+6. Errors keep their stacked placement: a field's error inside its own cell, a row's non-field
+   errors full width above the row's columns. An invalid row is therefore taller than its
+   neighbours, which is the same trade Django's admin makes in `edit_inline/tabular.html`.
+7. The set is not a `<table>`. Table semantics do not survive the collapse in clause 3, and
+   they buy nothing here, because clause 4 already gives every input its name.
 
 ---
 
