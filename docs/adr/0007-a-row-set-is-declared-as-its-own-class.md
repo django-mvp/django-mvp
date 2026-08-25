@@ -1,10 +1,16 @@
 # ADR 0007 — A row set is declared as its own class, named after Django's admin inlines
 
-**Status:** accepted
+**Status:** accepted; partly superseded by
+[ADR 0018](0018-row-sets-are-available-on-every-model-form-page.md)
 
 **Supersedes:** [ADR 0002](0002-formset-rendering-is-generic-the-configured-view-is-not.md), in the
 half that limited the configured view to one related set. The other half of 0002 — that rendering
 is generic and no configured view is packaged for a standalone formset — still holds.
+
+> **Superseded 2026-08-26, in part.** The base class in the example below no longer exists: row
+> sets are declared on `MVPCreateView` and `MVPUpdateView` themselves. Everything this decision
+> says about the declaration — the admin-derived attribute names, the two kwarg dictionaries,
+> `get_form_kwargs(index)`, `sort_forms()`, prefixes and collisions — still holds unchanged.
 
 ## Decision
 
@@ -17,7 +23,7 @@ class OrderLineInline(InlineFormSet):
     extra = 2
 
 
-class OrderUpdateView(MVPInlineUpdateView):
+class OrderUpdateView(MVPInlineUpdateView):  # superseded: now MVPUpdateView (ADR 0018)
     model = Order
     fields = ["reference", "customer"]
     inlines = [OrderLineInline, ShippingAddressInline]
@@ -81,7 +87,9 @@ The `inline_*` attributes are gone, with no compatibility shim: the two surfaces
 The package was pre-1.0, so the removal shipped in the same release as its replacement, with the
 changelog mapping each removed attribute to what replaces it.
 
-The view class names did not change. An upgrading project rewrites configuration, not imports.
+~~The view class names did not change. An upgrading project rewrites configuration, not imports.~~
+*(Superseded by ADR 0018: the two classes were later removed, and an upgrading project does rewrite
+its imports.)*
 
 A set declared with `exclude` on a model that reaches its parent through more than one relation
 will render the sibling relation as a chooser over every parent record, because Django only
