@@ -165,7 +165,7 @@ are part of the required setup — see
 See [Views — forms](views.md#forms-create--update--generic) for the renderer
 resolution order.
 
-Give a form a `helper` and its `Layout` — `Fieldset`, `Row`/`Column`, `HTML`, and the
+Give a form a `helper` whose `Layout` — `Fieldset`, `Row`/`Column`, `HTML`, and the
 rest of `crispy_forms.layout` — controls the markup instead. The demo's Form
 component page (`/components/form/`) is a worked example.
 

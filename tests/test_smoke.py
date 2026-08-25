@@ -410,9 +410,9 @@ class TestFormComponentDocPage:
         assert "<fieldset" in content
         assert "Contact details" in content
         assert "Shipping address" in content
-        # id_email is unique to ContactForm/LayoutDemoForm's shared field name,
-        # so its help text confirms the helper-less example rendered too.
-        assert "We&#x27;ll never share your email" in content
+        # "Subscribe to newsletter" only exists on ContactForm, so its presence
+        # confirms the helper-less default example rendered too.
+        assert "Subscribe to newsletter" in content
 
 
 # ---------------------------------------------------------------------------

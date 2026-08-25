@@ -3,6 +3,7 @@
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Column, Fieldset, Layout, Row
 from django import forms
+from django.utils.translation import gettext_lazy as _
 
 from .models import Product
 
@@ -58,11 +59,11 @@ class LayoutDemoForm(forms.Form):
     Row/Column pair inside the second, and an HTML block between them (#311).
     """
 
-    name = forms.CharField(max_length=100, help_text="Your full name")
-    email = forms.EmailField(help_text="We'll never share your email")
-    address = forms.CharField(max_length=200, label="Street address")
+    name = forms.CharField(max_length=100, help_text=_("Your full name"))
+    email = forms.EmailField(help_text=_("We'll never share your email"))
+    address = forms.CharField(max_length=200, label=_("Street address"))
     city = forms.CharField(max_length=100)
-    postal_code = forms.CharField(max_length=20, label="Postal code")
+    postal_code = forms.CharField(max_length=20, label=_("Postal code"))
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -71,10 +72,12 @@ class LayoutDemoForm(forms.Form):
         # cotton/form/render.html's own comment requires this of every helper.
         self.helper.form_tag = False
         self.helper.layout = Layout(
-            Fieldset("Contact details", "name", "email"),
-            HTML('<p class="text-sm opacity-70">Where should we ship your order?</p>'),
+            Fieldset(_("Contact details"), "name", "email"),
+            HTML(
+                f'<p class="text-sm opacity-70">{_("Where should we ship your order?")}</p>'
+            ),
             Fieldset(
-                "Shipping address",
+                _("Shipping address"),
                 "address",
                 Row(
                     Column("city", css_class="w-1/2"),
