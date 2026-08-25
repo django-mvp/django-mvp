@@ -19,12 +19,27 @@
   substitution and TOTAL_FORMS - never decremented) and `visible` (rows not
   marked for removal, compared against `formset.max_num` by the add control).
   See contracts/formset-component.md and specs/024-formset-pages/CONTEXT.md.
+
+  `layout` chooses the presentation and defaults to today's, so an existing
+  caller renders byte-for-byte what it did before. Under `tabular` the set
+  gains a row of column headings and every row lays its fields out on shared
+  column tracks - the right shape when a row is two or three short fields,
+  where stacking spends five lines of height on two inputs and leaves nothing
+  aligned between one row and the next.
+
+  The headings are read from the empty form, the only form a set is guaranteed
+  to have, and drawn from `sm` up alongside the grid they name. They are plain
+  text, not a <table>: the layout has to be able to collapse back to the
+  stacked rows on a narrow screen, and that is not something table semantics
+  survive. Nothing is lost by it, because what names an input to a screen
+  reader is the input's own label, which every row still carries.
 {% endcomment %}
 {% load i18n l10n static mvp %}
 <c-vars formset
         title
         description
         class
+        layout="stacked"
         add-label="{% trans "Add row" %}"
         remove-label="{% trans "Remove" %}" />
 {% if formset %}
@@ -46,15 +61,36 @@
            name="{{ formset.management_form.TOTAL_FORMS.html_name }}"
            value="{{ formset.management_form.TOTAL_FORMS.value|unlocalize }}"
            :value="total">
+    {% firstof formset|formset_grid_style as grid_style %}
+    {% if layout == "tabular" %}
+      <div class="hidden sm:grid sm:items-end sm:gap-x-4" style="{{ grid_style }}">
+        {% for field in formset|formset_columns %}
+          <c-text tight bold size="sm">
+            {{ field.label }}{% if field.field.required %}<span class="text-error" aria-hidden="true">*</span>{% endif %}
+          </c-text>
+        {% endfor %}
+        {% comment %}
+          An empty cell holding the remove column open. `sr-only` would not do
+          it: that takes the element out of flow, so the track it should be
+          occupying would collapse and every row would sit one column wider
+          than its own heading.
+        {% endcomment %}
+        {% if formset.can_delete %}<span aria-hidden="true"></span>{% endif %}
+      </div>
+    {% endif %}
     {% for form in formset.forms %}
       <c-form.formset.row :form="form"
                            :first="forloop.first"
                            :can-delete="formset.can_delete"
+                           :layout="layout"
+                           :grid-style="grid_style"
                            :remove-label="remove_label" />
     {% endfor %}
     <template>
       <c-form.formset.row :form="formset.empty_form"
                            :can-delete="formset.can_delete"
+                           :layout="layout"
+                           :grid-style="grid_style"
                            :remove-label="remove_label" />
     </template>
     <c-button type="button"

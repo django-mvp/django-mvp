@@ -1035,3 +1035,234 @@ class TestFormsetUsesPackagedComponents:
             "daisyUI's divider is a thick line with generous margin; "
             "repeating it between the rows of one set is far too loud"
         )
+
+
+# ---------------------------------------------------------------------------
+# Tabular layout — the same machinery, presented as columns. See #296.
+# ---------------------------------------------------------------------------
+
+
+class TwoFieldRowForm(forms.Form):
+    """The shape the tabular layout exists for: a type and a value."""
+
+    kind = forms.CharField(label="Kind")
+    value = forms.CharField(label="Value", required=False)
+
+
+TwoFieldFormSet = forms.formset_factory(TwoFieldRowForm, can_delete=True, extra=2)
+
+
+def _tabular(formset, **context):
+    return render(
+        '<c-form.formset :formset="formset" layout="tabular" />',
+        formset=formset,
+        **context,
+    )
+
+
+class TestFormsetLayoutDefault:
+    """The choice is opt-in: an existing caller is untouched by it."""
+
+    def test_default_layout_renders_exactly_what_it_did_before(self):
+        # A fresh set per render: crispy-tailwind appends its classes to the
+        # widget it is given, so rendering one set twice compounds them.
+        assert render(
+            '<c-form.formset :formset="formset" />', formset=TwoFieldFormSet()
+        ) == render(
+            '<c-form.formset :formset="formset" layout="stacked" />',
+            formset=TwoFieldFormSet(),
+        )
+
+    def test_stacked_emits_no_column_tracks(self):
+        html = render('<c-form.formset :formset="formset" />', formset=TwoFieldFormSet())
+
+        assert "grid-template-columns" not in html
+
+
+class TestFormsetTabularHeadings:
+    """The field labels are promoted to headings rendered once for the set."""
+
+    def test_one_heading_per_visible_field_in_field_order(self):
+        soup = BeautifulSoup(_tabular(TwoFieldFormSet()), "html.parser")
+
+        heading_row = soup.select_one("div[style*='grid-template-columns']")
+        assert heading_row is not None
+        headings = [text.get_text(strip=True) for text in heading_row.select("p")]
+        assert headings == ["Kind*", "Value"]
+
+    def test_delete_gets_no_heading_of_its_own(self):
+        html = _tabular(TwoFieldFormSet())
+
+        assert "Delete" not in html
+
+    def test_the_heading_row_is_drawn_only_where_the_columns_are(self):
+        """Below the breakpoint the rows are stacked and label themselves."""
+        soup = BeautifulSoup(_tabular(TwoFieldFormSet()), "html.parser")
+
+        heading_row = soup.select_one("div[style*='grid-template-columns']")
+        classes = heading_row.get("class", [])
+        assert "hidden" in classes
+        assert "sm:grid" in classes
+
+
+class TestFormsetTabularColumnTracks:
+    """Every row shares one column definition, so the columns line up."""
+
+    def test_tracks_cover_every_visible_field_plus_the_remove_column(self):
+        html = _tabular(TwoFieldFormSet())
+
+        assert "grid-template-columns: repeat(2, minmax(0, 1fr)) auto;" in html
+
+    def test_a_set_that_cannot_delete_reserves_no_trailing_track(self):
+        formset = forms.formset_factory(TwoFieldRowForm, can_delete=False, extra=1)()
+
+        html = _tabular(formset)
+
+        assert "grid-template-columns: repeat(2, minmax(0, 1fr));" in html
+
+    def test_the_rows_and_their_headings_use_the_same_tracks(self):
+        soup = BeautifulSoup(_tabular(TwoFieldFormSet()), "html.parser")
+
+        tracks = {
+            grid["style"] for grid in soup.select("div[style*='grid-template-columns']")
+        }
+        assert len(tracks) == 1, "a row on different tracks would not line up"
+
+    def test_the_empty_form_template_is_on_the_same_tracks(self):
+        """A row cloned in the browser has to land in the same columns."""
+        soup = BeautifulSoup(_tabular(TwoFieldFormSet()), "html.parser")
+
+        template = soup.find("template")
+        assert template.decode_contents().count("grid-template-columns") == 1
+
+
+class TestFormsetTabularLabels:
+    """A column heading names a column; only a label names an input."""
+
+    def test_every_field_keeps_its_own_label(self):
+        soup = BeautifulSoup(_tabular(TwoFieldFormSet()), "html.parser")
+
+        labelled = {
+            label["for"] for label in soup.select("label[for]") if label.get("for")
+        }
+        assert "id_form-0-kind" in labelled
+        assert "id_form-0-value" in labelled
+
+    def test_the_label_is_demoted_rather_than_dropped(self):
+        soup = BeautifulSoup(_tabular(TwoFieldFormSet()), "html.parser")
+
+        label = soup.select_one('label[for="id_form-0-kind"]')
+        assert "sm:sr-only" in label.get("class", []), (
+            "the label must stay available to a screen reader at every width, "
+            "and stay drawn below the breakpoint where the row is stacked"
+        )
+
+    def test_the_stacked_layout_leaves_labels_alone(self):
+        soup = BeautifulSoup(
+            render('<c-form.formset :formset="formset" />', formset=TwoFieldFormSet()),
+            "html.parser",
+        )
+
+        label = soup.select_one('label[for="id_form-0-kind"]')
+        assert "sm:sr-only" not in label.get("class", [])
+
+
+class TestFormsetTabularRowChrome:
+    """The per-row heading gives way to the columns; the control moves."""
+
+    def test_the_row_heading_is_hidden_where_the_columns_are_drawn(self):
+        formset = forms.modelformset_factory(
+            Product, fields=["name"], extra=0, can_delete=True
+        )(queryset=Product.objects.none())
+
+        soup = BeautifulSoup(_tabular(formset), "html.parser")
+        for heading in soup.select("div.group > div.justify-between"):
+            assert "sm:hidden" in heading.get("class", [])
+
+    def test_the_remove_control_gets_the_trailing_column(self):
+        soup = BeautifulSoup(_tabular(TwoFieldFormSet()), "html.parser")
+
+        grid = soup.select("div.group div[style*='grid-template-columns']")[0]
+        trailing = grid.find_all("div", recursive=False)[-1]
+        assert "sm:block" in trailing.get("class", [])
+        assert trailing.find("button") is not None
+
+    def test_exactly_one_remove_control_is_drawn_at_any_width(self):
+        """Both are in the document; display:none keeps one out of the tree."""
+        soup = BeautifulSoup(_tabular(TwoFieldFormSet()), "html.parser")
+
+        row = soup.select_one("div.group")
+        controls = row.select('button[aria-label="Remove"]')
+        assert len(controls) == 2
+        narrow, wide = controls
+        assert "sm:hidden" in narrow.find_parent("div").get("class", [])
+        assert "hidden" in wide.find_parent("div").get("class", [])
+
+    def test_delete_is_still_a_hidden_input_never_a_column(self):
+        html = _tabular(TwoFieldFormSet())
+
+        assert 'name="form-0-DELETE"' in html
+        assert 'type="hidden" name="form-0-DELETE"' in html
+
+
+class TestFormsetTabularErrors:
+    """An invalid row breaks the column rhythm on purpose."""
+
+    def test_a_field_error_renders_in_its_own_cell(self):
+        data = {
+            "form-TOTAL_FORMS": "1",
+            "form-INITIAL_FORMS": "0",
+            "form-MIN_NUM_FORMS": "0",
+            "form-MAX_NUM_FORMS": "1000",
+            "form-0-kind": "",
+            "form-0-value": "12",
+        }
+        formset = TwoFieldFormSet(data)
+        formset.is_valid()
+
+        soup = BeautifulSoup(_tabular(formset), "html.parser")
+        grid = soup.select_one("div.group div[style*='grid-template-columns']")
+        cell = grid.find_all("div", recursive=False)[0]
+        assert "This field is required" in cell.get_text()
+
+    def test_a_non_field_error_renders_full_width_above_the_columns(self):
+        formset = ErrorRowFormSet(
+            {
+                "form-TOTAL_FORMS": "1",
+                "form-INITIAL_FORMS": "0",
+                "form-MIN_NUM_FORMS": "0",
+                "form-MAX_NUM_FORMS": "1000",
+                "form-0-name": "Widget",
+            }
+        )
+        formset.is_valid()
+
+        soup = BeautifulSoup(_tabular(formset), "html.parser")
+        row = soup.select_one("div.group")
+        grid = row.select_one("div[style*='grid-template-columns']")
+        message = "Something is wrong with this row."
+
+        assert message in row.get_text()
+        assert message not in grid.get_text(), (
+            "the error belongs to the row, not to one of its columns, "
+            "so it sits above the grid rather than inside a cell"
+        )
+        assert row.get_text().index(message) < row.get_text().index("Name")
+
+
+class TestFormsetTabularMachineryIsUnchanged:
+    """A presentation choice over the same machinery, per #296."""
+
+    def test_the_management_form_add_control_and_prefix_all_survive(self):
+        html = _tabular(TwoFieldFormSet())
+
+        assert 'name="form-TOTAL_FORMS"' in html
+        assert "form-__prefix__-kind" in html
+        assert "addRow()" in html
+        assert "mvpFormset(" in html
+
+    def test_removed_but_not_detached_semantics_survive(self):
+        html = _tabular(TwoFieldFormSet())
+
+        assert 'x-show="!removed"' in html
+        assert "removed ? 'on' : ''" in html

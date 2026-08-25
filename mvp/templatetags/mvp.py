@@ -2,6 +2,7 @@
 
 import textwrap
 
+from crispy_forms.templatetags.crispy_forms_filters import as_crispy_field
 from django import template
 from django.core.exceptions import ImproperlyConfigured
 from django.db import models
@@ -431,6 +432,65 @@ def formset_label(formset):
     if model is None:
         return ""
     return model._meta.verbose_name_plural.title()
+
+
+@register.filter
+def formset_columns(formset):
+    """Return the fields a tabular set shows as columns, in render order.
+
+    Read from ``empty_form`` rather than a bound form, because it is the one
+    form a set always has: an unbound set with no extras has no rows to read
+    the columns off, and under ``can_delete_extra=False`` the fields differ
+    between initial and extra rows. ``DELETE`` is excluded for the same reason
+    a row does not render it as a field — it drives the remove control, which
+    gets a column of its own.
+    """
+    empty_form = getattr(formset, "empty_form", None)
+    if empty_form is None:
+        return []
+    return [field for field in empty_form.visible_fields() if field.name != "DELETE"]
+
+
+@register.filter
+def formset_grid_style(formset):
+    """Return the ``grid-template-columns`` a tabular set's rows share.
+
+    One equal-width track per column plus a narrow trailing one for the remove
+    control, as an inline style rather than a utility class because the column
+    count is only known at render time and Tailwind emits classes it can find
+    as literal text at build time.
+
+    Every row is its own grid rather than the set being one grid with rows
+    spanning it: ``minmax(0, 1fr)`` tracks resolve identically across sibling
+    grids of the same width, so the columns line up either way, and a row that
+    keeps its own box can carry its own hairline, hover state and error line.
+    """
+    columns = formset_columns(formset)
+    if not columns:
+        return ""
+    tracks = f"repeat({len(columns)}, minmax(0, 1fr))"
+    if getattr(formset, "can_delete", False):
+        tracks = f"{tracks} auto"
+    return f"grid-template-columns: {tracks};"
+
+
+@register.filter
+def as_crispy_cell(field):
+    """Render one field for a tabular row: the same control, label demoted.
+
+    Goes through crispy's own filter rather than a copy of its template, so a
+    cell's control stays identical to the same field on a single form. Two
+    presentation arguments differ:
+
+    ``sm:sr-only`` keeps the label in the document at every width — it is what
+    names the input to a screen reader, and a column header does not, because
+    nothing associates the two. It only stops being drawn once the layout is
+    wide enough for the header row to carry the name for sighted readers.
+
+    ``sm:mb-0`` drops crispy's per-field bottom margin at the same breakpoint,
+    where the grid's own row gap takes over spacing.
+    """
+    return as_crispy_field(field, label_class="sm:sr-only", field_class="mb-3 sm:mb-0")
 
 
 @register.filter
