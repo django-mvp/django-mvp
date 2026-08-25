@@ -49,16 +49,17 @@ class TestPrePaintThemeGuardDefault:
         """With no project override, the guard's expression is the stored value
         if present, otherwise the theme the package applies.
 
-        This asserted ``'light'`` — v0.18.0's hardcoded fallback — until the
-        package shipped a theme of its own and made it the default
-        (docs/adr/0012). The shape being checked is unchanged: a stored value
-        wins, and what it falls back to is configuration rather than a literal.
+        The configured default is ``light``, which is also v0.18.0's hardcoded
+        fallback, so this test cannot tell configuration from a literal on its
+        own. ``test_configured_default_is_used_when_nothing_is_stored`` below
+        is what does. The shape being checked here is that a stored value wins
+        and something sensible sits behind it.
         """
-        assert MVP_CONFIG["theme"]["default"] == "mvp"
+        assert MVP_CONFIG["theme"]["default"] == "light"
         script = _guard_script(client.get("/").content.decode())
         assert script is not None
         assert "localStorage.getItem('theme')" in script
-        assert '"mvp"' in script
+        assert '"light"' in script
 
     @pytest.mark.django_db
     def test_configured_default_is_used_when_nothing_is_stored(self, client, monkeypatch):
@@ -119,16 +120,17 @@ class TestThemeControllerUnconfiguredShape:
     def test_renders_the_checkbox_toggle_over_the_configured_pair(self, client):
         """The unconfigured shape is still a two-state checkbox toggle.
 
-        It named ``dark,light`` literally until the package shipped its own
-        themes (docs/adr/0012); the pair now comes from ``theme.dark`` and
-        ``theme.default``, so a project replacing them keeps a working switch
-        instead of one pointing at names its stylesheet no longer defines.
+        It named ``dark,light`` literally once. The pair now comes from
+        ``theme.dark`` and ``theme.default``, which happen to be those two
+        names again — so the assertion below is only meaningful because the
+        template reads the configuration rather than the literals, which
+        ``test_the_toggle_follows_a_replaced_pair`` is what actually proves.
         """
         assert MVP_CONFIG["theme"]["choices"] == []
         content = client.get("/").content.decode()
         toggle = _theme_toggle_html(content)
         assert toggle is not None, "the checkbox toggle must render"
-        assert 'data-toggle-theme="mvp-dark,mvp"' in toggle
+        assert 'data-toggle-theme="dark,light"' in toggle
         assert 'data-act-class="swap-active"' in toggle
         assert "bi bi-sun" in toggle, "the light-mode icon must render"
         assert "bi bi-moon-stars-fill" in toggle, "the dark-mode icon must render"
@@ -137,6 +139,23 @@ class TestThemeControllerUnconfiguredShape:
         assert "data-set-theme" not in toggle, (
             "the unconfigured shape must not carry the offered-set API"
         )
+
+    @pytest.mark.django_db
+    def test_the_toggle_follows_a_replaced_pair(self, client, monkeypatch):
+        """Replacing the pair moves the toggle with it.
+
+        This is the assertion the one above cannot make. The shipped pair is
+        ``light``/``dark``, which is character-for-character the string the
+        template used to hardcode, so a template that had stopped reading
+        configuration would pass every assertion above unchanged. Naming two
+        themes nothing else in the tree mentions is what separates the two.
+        """
+        monkeypatch.setitem(MVP_CONFIG["theme"], "default", "sunrise")
+        monkeypatch.setitem(MVP_CONFIG["theme"], "dark", "midnight")
+        toggle = _theme_toggle_html(client.get("/").content.decode())
+
+        assert toggle is not None, "the checkbox toggle must render"
+        assert 'data-toggle-theme="midnight,sunrise"' in toggle
 
 
 class TestThemeControllerOfferedSetShape:

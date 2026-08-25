@@ -129,10 +129,16 @@ CRISPY_TEMPLATE_PACK = "tailwind"
 # freely here; tests pin their own values in tests/settings.py.
 MVP_CONFIG = {
     "theme": {
-        # The package's own two themes first, so the demo opens in the brand
-        # and a reader can switch away and back, then three of the prebuilt
-        # themes that ship alongside them. Writing a theme of your own is
-        # covered in docs/theming.md.
+        # This site's own two themes, defined in demo/static/css/themes.css and
+        # loaded by demo/templates/base.html. They are named here because the
+        # package applies a prebuilt DaisyUI theme unless a project says
+        # otherwise — which is exactly the two settings a project pairs with its
+        # own theme file, so the demo is a worked example of docs/theming.md.
+        "default": "mvp",
+        "dark": "mvp-dark",
+        # The site's pair first, so the demo opens in the brand and a reader can
+        # switch away and back, then three of the prebuilt themes the package
+        # ships alongside them.
         "choices": ["mvp", "mvp-dark", "light", "dracula", "synthwave"],
     },
     "layout": {

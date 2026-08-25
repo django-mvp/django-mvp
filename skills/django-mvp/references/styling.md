@@ -17,9 +17,9 @@ Tier 1 is not "components only". The packaged stylesheet is loaded for you by
 - **The complete daisyUI 5 component set** — every component, not only the ones the
   package's own templates render. `carousel`, `kbd`, `chat`, `timeline` and the rest work
   out of the box.
-- **Every prebuilt daisyUI theme**, plus the package's own `mvp` and `mvp-dark`. All of
-  `dracula`, `synthwave`, `cupcake`, `nord`, `retro`, `abyss`, `silk` and the others are in
-  the shipped file.
+- **Every prebuilt daisyUI theme.** All of `light`, `dark`, `dracula`, `synthwave`,
+  `cupcake`, `nord`, `retro`, `abyss`, `silk` and the others are in the shipped file. The
+  package adds none of its own: a theme is branding, and that is the project's.
 - **The Tailwind typography plugin.** `prose` works, and so does `not-prose` — it is not a
   generated utility but part of every `.prose` selector, so it is always there. The size and
   colour modifiers (`prose-lg`, `prose-invert`) do not ship.
@@ -145,8 +145,8 @@ one changes which block matches. There is no build step in either tier.
 
 | `MVP_CONFIG["theme"]` key | Default | What it does |
 | --- | --- | --- |
-| `default` | `"mvp"` | Applied when the visitor has expressed no preference |
-| `dark` | `"mvp-dark"` | The other half of the two-state toggle |
+| `default` | `"light"` | Applied when the visitor has expressed no preference |
+| `dark` | `"dark"` | The other half of the two-state toggle |
 | `choices` | `[]` | Themes the packaged switcher offers, in order |
 
 The three interact: **`dark` is consulted only while `choices` is empty.** With `choices`

@@ -19,13 +19,13 @@ from mvp.config import MVP_CONFIG
 class TestThemeConfigDefaults:
     """No project override: the shipped defaults ``MVP_CONFIG`` exposes."""
 
-    def test_theme_default_is_the_packaged_theme(self):
-        """``light`` until the package shipped a theme of its own
-        (docs/adr/0012)."""
-        assert MVP_CONFIG["theme"]["default"] == "mvp"
+    def test_theme_default_is_a_prebuilt_theme(self):
+        """The package ships no palette of its own, so the applied theme is one
+        of DaisyUI's (docs/adr/0016)."""
+        assert MVP_CONFIG["theme"]["default"] == "light"
 
-    def test_theme_dark_is_the_packaged_dark_theme(self):
-        assert MVP_CONFIG["theme"]["dark"] == "mvp-dark"
+    def test_theme_dark_is_a_prebuilt_theme(self):
+        assert MVP_CONFIG["theme"]["dark"] == "dark"
 
     def test_theme_choices_is_empty(self):
         assert MVP_CONFIG["theme"]["choices"] == []
@@ -62,8 +62,8 @@ class TestThemeConfigOverrideMerge:
         config = self._defaults()
         merge(config, {"theme": {"choices": ["light", "dark", "dracula"]}})
         assert config["theme"]["choices"] == ["light", "dark", "dracula"]
-        assert config["theme"]["default"] == "mvp"
-        assert config["theme"]["dark"] == "mvp-dark"
+        assert config["theme"]["default"] == "light"
+        assert config["theme"]["dark"] == "dark"
         assert config["brand"] == MVP_CONFIG["brand"]
         assert config["layout"] == MVP_CONFIG["layout"]
 

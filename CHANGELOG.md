@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+
+- **The `mvp` and `mvp-dark` themes no longer ship, and are no longer applied by
+  default.** They carried django-mvp's own branding, and a theme is the whole
+  visible surface of an application — putting ours on a page by default made the
+  identity a project inherited by not deciding. `MVP_CONFIG["theme"]` is back to
+  `{"default": "light", "dark": "dark"}`, both daisyUI's. Every prebuilt theme
+  still ships, so no name a project already uses has gone away.
+
+  **Two things follow for a project that configured nothing.** Its pages now
+  render in `light`, which also renders `text-error` at 2.87:1 against the page —
+  below the WCAG AA text floor, and that is what a form validation message is
+  drawn in. Most prebuilt themes have at least one pairing like it. If you have a
+  contrast obligation, write a theme to it; `docs/theming.md` walks through it and
+  it costs one CSS file. A visitor with a stored preference is not moved, because
+  the stored value is read before the configured default.
+
+  **To keep the previous appearance**, copy `demo/static/css/themes.css` into your
+  own static files, link it from your base template's `styles` block, and set
+  `{"default": "mvp", "dark": "mvp-dark"}`. That palette now belongs to the demo
+  site, which does exactly those three things and is a worked example of the
+  theming guide. See `docs/adr/0016-branded-themes-belong-to-the-demo-site.md`.
+
 ## [v0.19.3] - 2026-08-25
 
 ## [v0.19.2] - 2026-08-24

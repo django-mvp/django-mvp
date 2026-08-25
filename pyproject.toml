@@ -145,7 +145,7 @@ non-mirror-paths = [
     "tests/test_conftest.py",
     "tests/test_frontend_runtime.py",
     "tests/test_frontend_runtime_e2e.py",
-    "tests/test_brand_theme.py",
+    "tests/test_brand_assets.py",
     "tests/test_table_layout.py",
     "tests/test_table_layout_e2e.py",
 ]

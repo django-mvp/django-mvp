@@ -1,8 +1,16 @@
 # 0012 — The package ships its own theme and applies it by default
 
-**Status:** accepted
+**Status:** superseded by
+[0016 — Branded themes belong to the demo site, not to the package](0016-branded-themes-belong-to-the-demo-site.md)
 
 **Date:** 2026-08-13
+
+> The two themes below are no longer in the wheel and are no longer applied by default. They live
+> in `demo/static/css/themes.css` and belong to the demo site. The palette, the contrast floor and
+> the reasoning about derived dark themes all survived the move; what changed is that a theme is
+> branding, and this package's branding does not belong on a page it does not own. The record
+> below is left as written, because the decision it replaced is still the one a reader needs to
+> follow the sequence.
 
 ## Context
 

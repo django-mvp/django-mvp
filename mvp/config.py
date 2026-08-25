@@ -26,16 +26,22 @@ MVP_CONFIG = {
     },
     "theme": {
         # Applied when the visitor has expressed no preference. Any name a
-        # theme block exists for: one shipped with the package, or one the
-        # project loads from its own stylesheet. A name that matches nothing
-        # falls through to the default theme, and is not validated — see
-        # docs/adr/0011-theme-names-are-not-validated.md.
-        "default": "mvp",
+        # theme block exists for: one of the prebuilt DaisyUI themes that ship
+        # with the package, or one the project loads from its own stylesheet.
+        # A name that matches nothing falls through to the default theme, and
+        # is not validated — see docs/adr/0011-theme-names-are-not-validated.md.
+        #
+        # "light" is DaisyUI's, not a palette this package drew. The package
+        # ships no theme of its own, deliberately: a theme is branding, and the
+        # branding on an application is the project's rather than its
+        # dependency's. Point these two keys at your own pair — writing one is
+        # a CSS file and a setting, and docs/theming.md walks through it.
+        "default": "light",
         # The theme the packaged toggle switches to, and back from. Paired with
         # "default": the toggle moves between the two, so a project that
         # replaces one usually replaces both. Only consulted while "choices"
         # is empty; with choices set, the switcher is a menu instead.
-        "dark": "mvp-dark",
+        "dark": "dark",
         # Themes the packaged switcher offers, in order. Empty keeps the
         # two-theme toggle over "default" and "dark".
         "choices": [],

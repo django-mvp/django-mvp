@@ -5,13 +5,15 @@
 {% endblock page.actions %}
 {% block page.content %}
   <c-text muted tight class="text-lg">
-    This page renders in mvp, the theme the package applies when a project
-    configures nothing. The picker in the navbar offers five themes, set in
-    this project's MVP_CONFIG: mvp and mvp-dark, which carry the package's own
-    palette, and light, dracula and synthwave, three of the prebuilt themes
-    that ship alongside them. Every one of them is defined inside the
-    stylesheet the package ships, so nothing is fetched from outside the
-    project. To write a palette of your own instead, follow
+    This page renders in mvp, one of two themes this demo wrote for itself.
+    The package ships none of its own — with nothing configured it applies
+    light, one of daisyUI's. The picker in the navbar offers five themes, set
+    in this project's MVP_CONFIG: mvp and mvp-dark, defined in one CSS file
+    under demo/static/, and light, dracula and synthwave, three of the prebuilt
+    themes the package ships. Every one of them is defined inside the project,
+    so nothing is fetched from outside it. This page is therefore a worked
+    example of the technique itself: two settings and a stylesheet. To write a
+    palette of your own, follow
     <a href="https://github.com/django-mvp/django-mvp/blob/main/docs/theming.md"
        class="link">the theming guide</a>. The two buttons above are here to
     show how page.actions renders next to a page title. They carry no theme
