@@ -24,7 +24,7 @@ from django_cotton.compiler_regex import CottonCompiler
 from playwright.sync_api import expect
 
 from demo.models import OrderLine, Product
-from mvp.views import InlineFormSet, MVPInlineCreateView, MVPInlineUpdateView
+from mvp.views import InlineFormSet, MVPCreateView, MVPUpdateView
 from tests.conftest import requires_browser
 from tests.factories import OrderLineFactory, ProductFactory
 from tests.test_views.test_inline import _dispatch, _field_value, _rendered_html
@@ -466,7 +466,7 @@ class TestFormsetPageLevelErrorPlacement:
 
     @pytest.mark.django_db
     def test_invalid_submission_avoids_a_page_level_summary_and_preserves_values(self):
-        view_cls = _order_line_view_class(MVPInlineCreateView, success_url="list")
+        view_cls = _order_line_view_class(MVPCreateView, success_url="list")
         data = {
             "name": "Valid Parent Name",
             "order_lines-TOTAL_FORMS": "1",
@@ -528,7 +528,7 @@ class TestFormsetAddRemoveRowsE2E:
         kept = OrderLineFactory(product=product, quantity=7)
         removed_existing = OrderLineFactory(product=product, quantity=5)
         view_cls = _order_line_view_class(
-            MVPInlineUpdateView,
+            MVPUpdateView,
             success_url="/formset-e2e/",
             extra=0,
         )
@@ -614,7 +614,7 @@ class TestFormsetAddRemoveRowsE2E:
         OrderLineFactory(product=product, quantity=1)
         OrderLineFactory(product=product, quantity=2)
         view_cls = _order_line_view_class(
-            MVPInlineUpdateView,
+            MVPUpdateView,
             success_url="/formset-cap/",
             extra=0,
             max_num=2,

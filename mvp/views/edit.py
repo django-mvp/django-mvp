@@ -18,6 +18,7 @@ from django.views import generic
 from ..forms import DeleteConfirmForm
 from .base import BaseTemplateNameMixin
 from .detail import PageObjectMixin
+from .inline import InlinesMixin
 
 logger = logging.getLogger(__name__)
 
@@ -315,8 +316,13 @@ class MVPFormView(MVPFormBase, generic.FormView):
         return camel_case_to_spaces(self.__class__.__name__).title()
 
 
-class MVPCreateView(MVPModelFormBase, generic.CreateView):
-    """CreateView with AdminLTE layout and auto-detected form rendering."""
+class MVPCreateView(InlinesMixin, MVPModelFormBase, generic.CreateView):
+    """CreateView with AdminLTE layout and auto-detected form rendering.
+
+    Set ``inlines`` to add one or more related row sets to the page — see
+    ``InlinesMixin``. Leaving ``inlines`` unset is a no-op: the view behaves
+    exactly like a plain ``CreateView``.
+    """
 
     page_title = _("Create %(verbose_name)s")
     page_class = "mvp-form-page mvp-create-page"
@@ -334,13 +340,17 @@ class MVPCreateView(MVPModelFormBase, generic.CreateView):
         return self.success_message % data
 
 
-class MVPUpdateView(MVPModelFormBase, generic.UpdateView):
+class MVPUpdateView(InlinesMixin, MVPModelFormBase, generic.UpdateView):
     """Concrete model update view with zero-config AdminLTE layout integration.
 
     A minimal subclass needs only ``model`` and ``fields``; everything else is
     auto-derived from the model's ``verbose_name``.  The page title, breadcrumb,
     and delete-button visibility all adapt automatically to whatever CRUD directory
     the developer has configured.
+
+    Set ``inlines`` to add one or more related row sets to the page — see
+    ``InlinesMixin``. Leaving ``inlines`` unset is a no-op: the view behaves
+    exactly like a plain ``UpdateView``.
 
     Config:
         page_title (str | lazy str): Interpolation template for the page heading.

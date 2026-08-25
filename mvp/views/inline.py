@@ -1,4 +1,10 @@
-"""A parent record and one or more sets of related rows on one page.
+"""One or more sets of related rows on a create or update page.
+
+``InlinesMixin`` is mixed into ``MVPCreateView`` and ``MVPUpdateView`` by
+default (see ``mvp/views/edit.py``), so adding rows to a page a project
+already has is a matter of setting ``inlines`` on that same view — no
+separate entrance point into editing. Declaring no ``inlines`` is a no-op:
+the view behaves exactly as it would without this module.
 
 The prior art for this is django-extra-views (MIT, Andrew Ingram), which has
 solved the parent-and-rows page through a class-based view for far longer than
@@ -18,8 +24,6 @@ from django.db import transaction
 from django.forms import inlineformset_factory
 from django.forms.formsets import all_valid
 from django.http import HttpResponseRedirect
-
-from .edit import MVPCreateView, MVPUpdateView
 
 
 class InlineFormSet:
@@ -205,10 +209,12 @@ class InlinesMixin:
     """Builds and validates one or more ``InlineFormSet`` declarations
     alongside a single-object form.
 
-    Not exported from ``mvp.views`` - compose it with ``MVPCreateView`` or
-    ``MVPUpdateView`` (see ``MVPInlineCreateView`` and ``MVPInlineUpdateView``)
-    rather than using it directly, matching the rule already stated in
-    ``mvp/views/__init__.py``: the package exports views, not mixins.
+    Mixed into ``MVPCreateView`` and ``MVPUpdateView`` by default (see
+    ``mvp/views/edit.py``). Not exported from ``mvp.views`` on its own,
+    matching the rule already stated in ``mvp/views/__init__.py``: the
+    package exports views, not mixins. With no ``inlines`` declared, every
+    method here is a no-op and the view behaves exactly as it would without
+    this mixin.
     """
 
     inlines: list[type[InlineFormSet]] = []
@@ -275,6 +281,15 @@ class InlinesMixin:
         ``self.object`` is ``None`` throughout a create page's construction
         and always the loaded instance on an update page, so it is what
         distinguishes the two here.
+
+        With no declarations at all — ``InlinesMixin`` is on every
+        ``MVPCreateView``/``MVPUpdateView`` by default, and most pages set no
+        ``inlines`` — this returns ``[]`` without resolving a parent model or
+        building anything. ``get_parent_model()`` falls through to
+        ``self.get_queryset().model`` when neither ``model`` nor ``queryset``
+        is set, which is exactly the shape of a plain ``form_class``-only
+        page and would otherwise turn a page that never asked for rows into
+        one that requires a resolvable queryset.
         """
         if not hasattr(self, "_inline_formsets"):
             declarations = self.get_inlines()
@@ -291,6 +306,9 @@ class InlinesMixin:
                     f"'inlines', so the page could edit nothing. Set 'inlines' "
                     f"to at least one 'InlineFormSet'."
                 )
+            if not declarations:
+                self._inline_formsets = []
+                return self._inline_formsets
             parent_model = self.get_parent_model()
             formsets = [
                 declaration_cls(
@@ -339,8 +357,15 @@ class InlinesMixin:
         research R12). ``self.object`` is already the loaded instance in
         that case, and there is nothing else for the parent form to
         contribute.
+
+        With no formsets declared, defers to ``super().form_valid()`` — the
+        ordinary Django save path — untouched: no transaction wrapping a
+        single save, no ``touch_parent_timestamp()`` call, nothing this
+        mixin would otherwise add to a page that declares no rows.
         """
         formsets = self.construct_inlines()
+        if not formsets:
+            return super().form_valid(form)
         if not all_valid(formsets):
             return self.form_invalid(form)
 
@@ -409,22 +434,18 @@ class InlinesMixin:
         what was submitted and refused (US3 s3, FR-010). On create,
         ``self.object`` carries no primary key yet, so there is nothing to
         re-read.
+
+        With no formsets declared, defers to ``super().form_invalid()``
+        directly: there is no set's write to undo, so the
+        ``refresh_from_db()`` below must not run on a page that declares no
+        rows — it would silently discard whatever ``form.is_valid()``'s own
+        ``_post_clean`` just wrote onto ``self.object`` for Django's own
+        invalid-form re-render to show.
         """
         formsets = self.construct_inlines()
+        if not formsets:
+            return super().form_invalid(form)
         all_valid(formsets)
         if self.object is not None and self.object.pk:
             self.object.refresh_from_db()
         return super().form_invalid(form)
-
-
-class MVPInlineCreateView(InlinesMixin, MVPCreateView):
-    """A create page carrying one record and its declared row sets.
-
-    On create, each set's formset is built against an unsaved parent
-    instance, which is what ``BaseInlineFormSet`` does when given no
-    instance.
-    """
-
-
-class MVPInlineUpdateView(InlinesMixin, MVPUpdateView):
-    """An update page carrying one record and its declared row sets."""

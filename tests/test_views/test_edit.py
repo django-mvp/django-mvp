@@ -18,6 +18,8 @@ import pytest
 from bs4 import BeautifulSoup
 from django import forms as django_forms
 from django.contrib.auth import get_user_model
+from django.contrib.messages.middleware import MessageMiddleware
+from django.contrib.sessions.middleware import SessionMiddleware
 from django.test import RequestFactory, override_settings
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
@@ -28,6 +30,7 @@ from demo.models import Category, OrderLine, Product
 from mvp.forms import DeleteConfirmForm
 from mvp.views.edit import MVPCreateView, MVPFormView, MVPUpdateView, NextURLMixin
 from tests.conftest import requires_browser
+from tests.factories import ProductFactory
 
 User = get_user_model()
 
@@ -2171,6 +2174,144 @@ class TestFormViewStandaloneFormset:
         response.render()
         html = response.content.decode()
         assert 'name="form-TOTAL_FORMS"' in html
+
+
+# ---------------------------------------------------------------------------
+# InlinesMixin is a default no-op on MVPCreateView/MVPUpdateView (#313)
+#
+# InlinesMixin is mixed into both views by default (mvp/views/edit.py) so a
+# project adds rows to a page it already has by setting `inlines` on that
+# same view. Declaring no `inlines` must leave the view behaving exactly as
+# it would without the mixin — these tests are that guarantee.
+# ---------------------------------------------------------------------------
+
+
+def _dispatch_with_messages(view_cls, method="GET", data=None, view_kwargs=None):
+    """Build a request carrying working session and messages storage, then
+    dispatch it through ``view_cls`` via ``as_view()``.
+
+    ``as_view()`` is called directly (no middleware runs), but ``form_valid``
+    needs ``request._messages`` to queue the success flash, so session and
+    messages middleware are applied to the request by hand.
+    """
+    rf = RequestFactory()
+    request = rf.post("/", data=data or {}) if method == "POST" else rf.get("/")
+    SessionMiddleware(lambda r: None).process_request(request)
+    request.session.save()
+    MessageMiddleware(lambda r: None).process_request(request)
+    return view_cls.as_view()(request, **(view_kwargs or {}))
+
+
+class TestCreateViewWithOnlyFormClassIsUnaffectedByInlinesMixin:
+    """A create page configured the way ``ModelFormMixin`` has always allowed
+    — ``form_class`` set, no ``model``/``queryset`` — is not broken by
+    ``InlinesMixin`` being mixed into ``MVPCreateView`` by default.
+
+    Before the no-op guard, ``InlinesMixin.construct_inlines()`` called
+    ``get_parent_model()`` unconditionally, which falls through to
+    ``self.get_queryset().model`` when ``self.model`` is unset — and
+    Django's own ``get_queryset()`` raises ``ImproperlyConfigured`` when
+    neither ``model`` nor ``queryset`` is configured. This is exactly that
+    case, with no ``inlines`` declared at all.
+    """
+
+    def _view_class(self):
+        return type(
+            "StubFormClassOnlyCreateView",
+            (MVPCreateView,),
+            {
+                "form_class": ProductForm,
+                "template_name": "form_view.html",
+                "success_url": "/done/",
+                "show_list_action": False,
+                "show_detail_action": False,
+            },
+        )
+
+    @pytest.mark.django_db
+    def test_renders(self):
+        response = _dispatch_with_messages(self._view_class())
+        assert response.status_code == 200
+
+    @pytest.mark.django_db
+    def test_saves_on_valid_submission(self):
+        response = _dispatch_with_messages(
+            self._view_class(),
+            method="POST",
+            data={"name": "New Product", "description": "", "price": ""},
+        )
+        assert response.status_code == 302
+        assert Product.objects.filter(name="New Product").exists()
+
+
+class TestUpdateViewWithNoInlinesIsUnaffectedByInlinesMixin:
+    """An update page declaring no ``inlines`` behaves exactly as it did
+    before ``InlinesMixin`` was mixed into ``MVPUpdateView`` by default."""
+
+    def _view_class(self, **extra_attrs):
+        return type(
+            "StubNoInlinesUpdateView",
+            (MVPUpdateView,),
+            {
+                "model": Product,
+                "fields": ["name"],
+                "template_name": "form_view.html",
+                "success_url": "/done/",
+                "show_list_action": False,
+                "show_detail_action": False,
+                **extra_attrs,
+            },
+        )
+
+    @pytest.mark.django_db
+    def test_valid_submission_redirects_messages_and_saves(self):
+        product = ProductFactory(name="Original")
+
+        response = _dispatch_with_messages(
+            self._view_class(),
+            method="POST",
+            data={"name": "Renamed"},
+            view_kwargs={"pk": product.pk},
+        )
+
+        assert response.status_code == 302
+        assert response["Location"] == "/done/"
+        product.refresh_from_db()
+        assert product.name == "Renamed"
+
+    @pytest.mark.django_db
+    def test_invalid_submission_does_not_re_read_the_object_from_the_database(
+        self, monkeypatch
+    ):
+        product = ProductFactory(name="Original")
+        refresh_calls = []
+        original_refresh = Product.refresh_from_db
+
+        def counting_refresh(self, *args, **kwargs):
+            refresh_calls.append(kwargs)
+            return original_refresh(self, *args, **kwargs)
+
+        monkeypatch.setattr(Product, "refresh_from_db", counting_refresh)
+
+        response = _dispatch_with_messages(
+            self._view_class(),
+            method="POST",
+            data={"name": ""},  # required field left blank — invalid
+            view_kwargs={"pk": product.pk},
+        )
+
+        assert response.status_code == 200
+        assert refresh_calls == []
+
+    @pytest.mark.django_db
+    def test_context_inlines_is_empty(self):
+        product = ProductFactory()
+
+        response = _dispatch_with_messages(
+            self._view_class(), view_kwargs={"pk": product.pk}
+        )
+
+        assert response.context_data["inlines"] == []
 
 
 # ---------------------------------------------------------------------------

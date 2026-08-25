@@ -9,7 +9,7 @@ from .edit import (
 )
 from .error import bad_request, not_found, permission_denied, server_error
 from .extra import MVPHomeView, MVPTemplateView
-from .inline import InlineFormSet, MVPInlineCreateView, MVPInlineUpdateView
+from .inline import InlineFormSet
 from .list import MVPListView
 
 # Public API — concrete views and error handlers only.
@@ -17,6 +17,7 @@ from .list import MVPListView
 #   from mvp.views.base import PageMixin, BaseTemplateNameMixin, ModelInfoMixin
 #   from mvp.views.detail import CRUDDirectoryMixin, PageObjectMixin
 #   from mvp.views.edit import NextURLMixin
+#   from mvp.views.inline import InlinesMixin
 #   from mvp.views.list import SearchMixin, OrderMixin, FilterContextMixin
 # Views built on optional third-party packages live in mvp.integrations and
 # are intentionally NOT exported here:
@@ -31,8 +32,6 @@ __all__ = [
     "MVPFormBase",
     "MVPFormView",
     "MVPHomeView",
-    "MVPInlineCreateView",
-    "MVPInlineUpdateView",
     "MVPListView",
     "MVPModelFormBase",
     "MVPTemplateView",
