@@ -43,8 +43,8 @@ overrides the project setting for that one tag only.
 | `brand.avatar_resolver` | dotted import path | `"mvp.utils.avatar_url"` | Callable that returns a user's avatar URL |
 | `brand.logo_resolver` | dotted import path | `"mvp.utils.logo_url"` | Callable that returns the brand logo URL |
 | `brand.icon_resolver` | dotted import path | `"mvp.utils.icon_url"` | Callable that returns the brand mark URL |
-| `theme.default` | theme name | `"mvp"` | Theme applied when the visitor has expressed no preference |
-| `theme.dark` | theme name | `"mvp-dark"` | The other half of the two-theme toggle |
+| `theme.default` | theme name | `"light"` | Theme applied when the visitor has expressed no preference |
+| `theme.dark` | theme name | `"dark"` | The other half of the two-theme toggle |
 | `theme.choices` | list of theme names | `[]` | Non-empty turns the theme control into a menu of these |
 | `layout.sidebar.breakpoint` | `sm`&#124;`md`&#124;`lg`&#124;`xl`&#124;`2xl`&#124;`never`&#124;`none` | `"lg"` | Viewport width at which the sidebar becomes persistent |
 | `layout.sidebar.collapse` | `"offcanvas"` &#124; `"icons"` | `"offcanvas"` | How the sidebar collapses when toggled at or above that width |
@@ -61,7 +61,7 @@ A worked override, changing four things and inheriting the rest:
 ```python
 # settings.py
 MVP_CONFIG = {
-    "theme": {"choices": ["mvp", "mvp-dark", "dracula"]},
+    "theme": {"choices": ["light", "dark", "dracula"]},
     "layout": {
         "sidebar": {"title": "Acme", "footer": ["actions.theme-controller"]},
         "navbar": {"desktop": {"end": ["actions.search", "actions.login"]}},
@@ -127,9 +127,9 @@ Theme names are **not validated**. An ADR records this as a deliberate decision,
 since the package cannot see a theme a project defines in its own stylesheet. A
 typo is therefore silent: the name is written to the document as given, nothing
 matches it, and the page renders in the default theme. If a theme "does nothing",
-check the spelling before you check your CSS. Two themes ship under the names
-`mvp` and `mvp-dark`, and every prebuilt theme ships alongside them, so a name
-like `dracula` needs nothing installed.
+check the spelling before you check your CSS. Every prebuilt daisyUI theme
+ships, so a name like `dracula` needs nothing installed. The package ships no
+theme of its own — the palette is the project's to choose.
 
 ## Widget lists take component names, not template paths
 

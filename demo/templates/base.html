@@ -1,11 +1,23 @@
 {% extends "mvp/base.html" %}
+{% load static %}
 {% comment %}
   Navbar widgets are configured via MVP_CONFIG["layout"]["navbar"]["end"] in
   settings.py. Use {% block app.header.widgets %} here only for page/project
   widgets that shouldn't come from settings.
 
-  This template deliberately defines no `styles` block. The demo runs on the
-  stylesheet the package ships and nothing else, so a utility missing from that
-  build shows up here as a broken demo page rather than being papered over by a
-  demo-only stylesheet — which is the point of developing against it.
+  The `styles` block below adds one file and nothing else: the two themes this
+  site is branded in, which are the demo's own rather than the package's. It
+  keeps {{ block.super }}, so the demo still runs on the utilities the packaged
+  stylesheet emits and nothing more — a class missing from that build shows up
+  here as a broken demo page rather than being papered over locally, which is
+  the point of developing against it. A file of theme variables cannot paper
+  over a missing utility, which is why this one is not the exception it looks
+  like.
+
+  It is also the pattern docs/theming.md tells a reader to follow for a theme of
+  their own, so the demo is a worked example of its own guide.
 {% endcomment %}
+{% block styles %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'css/themes.css' %}" />
+{% endblock styles %}

@@ -1,43 +1,47 @@
 # Theming
 
-django-mvp ships two themes of its own, every prebuilt DaisyUI theme, and the mechanism to
-write your own. This page explains how theming actually works, lists every variable a theme
-can set, and walks through writing a theme from an empty file to a rendered page.
+django-mvp ships every prebuilt DaisyUI theme and the mechanism to write your own. It ships no
+theme of its own, deliberately. This page explains how theming actually works, lists every
+variable a theme can set, and walks through writing a theme from an empty file to a rendered
+page.
 
-## The themes the package applies
+## The theme the package applies
 
-With nothing configured, pages render in `mvp`. Its partner is `mvp-dark`, and the packaged
+With nothing configured, pages render in `light`. Its partner is `dark`, and the packaged
 switcher moves between the two:
 
 ```python
 MVP_CONFIG = {
     "theme": {
-        "default": "mvp",       # applied when the visitor has expressed no preference
-        "dark": "mvp-dark",     # the other half of the toggle
+        "default": "light",     # applied when the visitor has expressed no preference
+        "dark": "dark",         # the other half of the toggle
         "choices": [],          # a menu instead of a toggle, when non-empty
     },
 }
 ```
 
-Both are the package's own palette: near-black primary actions, one steel-blue accent used
-sparingly, warm paper rather than pure white, and flat surfaces. Dark is drawn in its own right
-rather than derived from light.
+Both are DaisyUI's, not palettes this package drew. That is on purpose: a theme is the entire
+visible surface of your application, and the identity on it should be one you chose rather than
+one your dependency picked. The package's job is the mechanism and the components; the palette is
+yours.
 
-These two are held to a contrast floor, and a test computes the ratios from the theme source on
-every run so a later edit to the palette is checked rather than trusted. That is a floor on our
-own work, not a compliance claim on the package's behalf. **The prebuilt themes are DaisyUI's
-files and carry no such guarantee** — most of them put at least one brand colour below the AA
-text floor against their own page background, which matters because `text-error` and
-`border-*` render the raw fill value. If your project has a contrast obligation to meet, write
-a theme to it. That is what the mechanism below is for, and it is the only way to be sure,
-whatever theme you start from.
+Which means **the applied theme carries no contrast guarantee, including the default**. The
+prebuilt themes are DaisyUI's files, and most of them put at least one brand colour below the WCAG
+AA text floor against their own page background — `light` renders `text-error` at 2.87:1, which is
+what a form validation message is drawn in. That matters because `text-*` and `border-*` render
+the raw fill value rather than a pairing someone checked.
 
-Replacing them takes one setting. `"default": "light"` renders the prebuilt DaisyUI theme the
-package applied before it had one of its own, and nothing else needs to change:
+If your project has a contrast obligation to meet, write a theme to it. That is what the mechanism
+below is for, and it is the only way to be sure, whatever theme you start from. It costs one CSS
+file and one setting, and [the worked example](#a-worked-example) is the whole of it.
 
-```python
-MVP_CONFIG = {"theme": {"default": "light", "dark": "dark"}}
-```
+The demo site does exactly this, and its two themes are a working example you can copy:
+[`demo/static/css/themes.css`](https://github.com/django-mvp/django-mvp/blob/main/demo/static/css/themes.css)
+holds the palette, [`demo/settings.py`](https://github.com/django-mvp/django-mvp/blob/main/demo/settings.py)
+names the pair, and the demo's `base.html` links the file. Those two themes, `mvp` and `mvp-dark`,
+were part of the package once and were the applied default — see
+[ADR 0016](adr/0016-branded-themes-belong-to-the-demo-site.md) for why they no longer are. If your
+project was rendering in them, copying that file across restores the appearance exactly.
 
 Set `default` and `dark` together. The toggle switches between exactly those two names, so
 changing one alone leaves it moving between a theme you chose and one you did not.

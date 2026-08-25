@@ -122,7 +122,7 @@ MVP_CONFIG = {
         "sidebar": {"breakpoint": "lg", "collapse": "icons", "title": "Acme"},
         "navbar": {"desktop": {"end": ["actions.theme-controller", "actions.login"]}},
     },
-    "theme": {"default": "mvp", "choices": ["mvp", "mvp-dark", "dracula"]},
+    "theme": {"default": "dracula", "choices": ["light", "dark", "dracula"]},
 }
 ```
 

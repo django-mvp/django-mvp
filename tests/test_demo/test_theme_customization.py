@@ -7,14 +7,15 @@ docs/theming.md against. The switcher offers the demo's actual configured set
 of themes, and no theme definition is requested from a host outside the
 project.
 
-The demo used to configure a sixth theme, ``sunrise``, hand-written into
-``demo/static/css/theme-sunrise.css`` and linked from the demo's own base
-template. It was there to prove a project can add a palette of its own. The
-package now ships its own ``mvp`` and ``mvp-dark`` themes and docs/theming.md
-teaches the same technique, so the extra file was removed and the two tests
-that only asserted its presence went with it (issue #239). The claim worth
-keeping — that no theme comes from a third party — is asserted below against
-whatever the demo configures.
+Two of the five themes on offer, ``mvp`` and ``mvp-dark``, are the demo's own:
+they carry django-mvp's branding, so they live in
+``demo/static/css/themes.css`` rather than in the wheel (docs/adr/0016), and
+the demo's base template links them alongside the packaged stylesheet. That
+makes the page a live worked example of the technique docs/theming.md
+describes, which is what a sixth hand-written theme called ``sunrise`` used to
+be here for (issue #239). The palette itself is gated in
+tests/test_demo/test_demo_themes.py. What is asserted below is the page: every
+configured theme is offered, and none of them comes from a third party.
 
 ``tests/settings.py`` deliberately pins a bare ``MVP_CONFIG`` with no
 ``theme.choices`` (its own docstring: "visual tweaks to the demo don't ripple
@@ -61,19 +62,26 @@ class TestThemeCustomizationDemoPage:
                 "the demo's configured theme.choices"
             )
 
-    def test_the_packaged_themes_are_offered_first(self, client, demo_theme_choices):
+    def test_the_sites_own_themes_are_offered_first(self, client, demo_theme_choices):
         """The demo opens in the brand, so mvp and mvp-dark lead the picker."""
         assert DEMO_THEME_CHOICES[:2] == ["mvp", "mvp-dark"]
 
     def test_no_theme_definition_comes_from_outside_the_project(
         self, client, demo_theme_choices
     ):
-        """SC-002. Every offered theme is defined in the shipped stylesheet."""
+        """SC-002. Between the two stylesheets the page loads, every offered
+        theme is defined locally: the prebuilt three by the package, the
+        demo's own pair by the demo."""
         response = client.get(reverse("customization"))
         content = response.content.decode()
 
         assert "cdn.jsdelivr.net/npm/daisyui" not in content
         assert "css/django-mvp.css" in content, (
-            "the page must load the packaged stylesheet, which is where every "
-            "offered theme is defined"
+            "the page must load the packaged stylesheet, which is where the "
+            "prebuilt themes are defined"
+        )
+        assert "css/themes.css" in content, (
+            "the page must load the demo's own stylesheet, which is where mvp "
+            "and mvp-dark are defined — without it the first two entries in "
+            "the picker render as an unstyled fallback and nothing raises"
         )
