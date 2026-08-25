@@ -210,7 +210,7 @@ EASY_ICONS = {
             "shirt": "bi bi-shirt",
             "star": "bi bi-star-fill",
             "sidebar-left": "bi bi-layout-sidebar",
-            "sidebar-right": "bi bi-layout-sidebar-right",
+            "sidebar-right": "bi bi-layout-sidebar-reverse",
             "submit": "bi bi-check-lg",
             "support": "bi bi-life-preserver",
             "pencil": "bi bi-pencil",
