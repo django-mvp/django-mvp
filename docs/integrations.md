@@ -165,6 +165,12 @@ are part of the required setup — see
 See [Views — forms](views.md#forms-create--update--generic) for the renderer
 resolution order.
 
+Give a form a `helper` whose `Layout` — `Fieldset`, `Row`/`Column`, `HTML`, and the
+rest of `crispy_forms.layout` — controls the markup instead. The demo's Complex
+Form page (`/forms/complex/`) is a worked example. A `Fieldset`'s `<legend>`
+carries the same divider styling as a formset's own heading, for a consistent
+look between the two ways a form groups its fields.
+
 ## Writing your own integration
 
 Follow the same pattern in your project (or in a PR):

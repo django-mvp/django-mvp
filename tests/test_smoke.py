@@ -394,6 +394,54 @@ class TestFormsetComponentDocPage:
         assert 'name="form-TOTAL_FORMS"' in content
 
 
+class TestComplexFormDemoPage:
+    """The Complex Form demo page (#311) — a full MVPFormView page, not a
+    component doc entry, driving LayoutDemoForm's FormHelper Layout: three
+    Fieldsets (one laid out with Row/Column) and an HTML block.
+    """
+
+    @pytest.mark.django_db
+    def test_page_renders_every_fieldset_and_the_layout(self, client):
+        response = client.get("/forms/complex/")
+
+        assert response.status_code == 200
+        content = response.content.decode()
+        assert "Contact details" in content
+        assert "Shipping address" in content
+        assert "Preferences" in content
+        # Fieldset's visible heading is the same daisyUI divider a formset
+        # uses for its own — a <div>, not the <legend> (a <legend> does not
+        # honour display:flex, so a divider-classed legend renders as bare
+        # text with no lines either side; caught visually, #311). <legend>
+        # stays, sr-only, purely for the fieldset's accessible group name.
+        assert content.count('<div class="divider my-8" aria-hidden="true">') == 3
+        assert content.count('<legend class="sr-only">') == 3
+        # <c-form> (form_view.html) is the only real <form> wrapping the
+        # fields — form_tag=False must stop crispy nesting a second one
+        # inside it. x-data="{form: {}}" is <c-form>'s own signature
+        # attribute; the page also carries unrelated chrome forms (the
+        # language switcher, a couple of dialogs), so counting every <form>
+        # on the page would not isolate this.
+        assert content.count('<form x-data="{form: {}}"') == 1
+
+    @pytest.mark.django_db
+    def test_valid_submission_redirects_and_flashes_success(self, client):
+        response = client.post(
+            "/forms/complex/",
+            {
+                "name": "Jane Doe",
+                "email": "jane@example.com",
+                "address": "1 Example Street",
+                "city": "Springfield",
+                "postal_code": "12345",
+                "shipping_method": "standard",
+            },
+        )
+
+        assert response.status_code == 302
+        assert response.url == "/forms/complex/"
+
+
 # ---------------------------------------------------------------------------
 # docs/theming.md's variable table stays honest against the installed daisyUI
 # version (FS-026 US-3, SC-007)
