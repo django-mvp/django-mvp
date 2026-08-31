@@ -3,7 +3,7 @@
  *
  * Everything the components need at page load is bundled here and built into
  * mvp/static/js/django-mvp.js, a committed artifact (see Article XV of
- * memory/constitution.md). Nothing is fetched from a third party at run time,
+ * CONSTITUTION.md). Nothing is fetched from a third party at run time,
  * so a project that installs the package gets a front end that works without
  * depending on a CDN staying up or staying honest.
  *

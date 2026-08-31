@@ -4,7 +4,7 @@ Thank you for your interest in contributing to Django MVP! This guide will help 
 
 ## Core Principles
 
-This project follows the principles defined in [.specify/memory/constitution.md](.specify/memory/constitution.md). Please read it before contributing.
+This project follows the principles defined in [CONSTITUTION.md](CONSTITUTION.md). Please read it before contributing.
 
 **Key requirements:**
 
@@ -144,7 +144,7 @@ When creating or modifying Cotton components:
 
 ## Questions?
 
-- Check the [constitution](memory/constitution.md) for project rules
+- Check the [constitution](CONSTITUTION.md) for project rules
 - Read the *Scope & philosophy* section of the [README](README.md) for what belongs here
 - See [GOALS.md](GOALS.md) for the directions the package is working toward
 - Review existing components and tests for examples
