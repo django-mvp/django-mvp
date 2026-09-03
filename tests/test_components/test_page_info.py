@@ -7,6 +7,8 @@ component's template file directly never triggers that extraction, so the
 action dicts would not be spread onto ``c-button`` at all.
 """
 
+from html import unescape
+
 from django import template
 from django.template.context import Context
 from django.utils.safestring import mark_safe
@@ -68,6 +70,16 @@ class TestPageInfoTrigger:
         html = render('<c-page.info text="Body" />')
         assert "bi-info-circle-fill" in html
 
+    def test_trigger_is_icon_only(self):
+        """The text belongs in the dialog and nowhere else.
+
+        ``c-button`` declares a ``text`` prop of its own, so without an isolated
+        context it picks this component's ``text`` out of the surrounding scope
+        and renders the whole explanation inside a 32px circular button.
+        """
+        rendered = render('<c-page.info text="What this page is for." />')
+        assert rendered.count("What this page is for.") == 1
+
 
 class TestPageInfoText:
     """A plain string is escaped; a safe string renders as markup."""
@@ -119,6 +131,27 @@ class TestPageInfoActions:
         assert "btn-primary" in html
         assert "bi-box-arrow-up-right" in html
         assert 'target="_blank"' in html
+
+    def test_action_dicts_are_never_printed_raw(self):
+        """The dialog draws buttons, never the list it was given.
+
+        ``c-modal`` forwards a variable named ``actions`` to the card's header
+        slot. This component declares its own ``actions`` prop, so without an
+        isolated context the list leaks into that slot and Django writes its
+        repr into the dialog as text.
+        """
+        rendered = render(
+            '<c-page.info text="Body" :actions="actions" />',
+            actions=[{"text": "Read the docs", "href": "/docs/"}],
+        )
+        assert "'text':" not in unescape(rendered)
+
+    def test_body_text_survives_alongside_actions(self):
+        rendered = render(
+            '<c-page.info text="What this page is for." :actions="actions" />',
+            actions=[{"text": "Read the docs", "href": "/docs/"}],
+        )
+        assert "What this page is for." in rendered
 
     def test_every_action_is_rendered(self):
         html = render(

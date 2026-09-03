@@ -45,6 +45,26 @@ renders `<c-actions.theme-controller />`.
 </c-card>
 ```
 
+### Put `only` on a component nested inside another component
+
+A component reads its props from the surrounding template context when they are not passed
+explicitly, so a component that wraps another one hands it every variable in scope. Where the
+names collide, the child silently takes the wrapper's value: a wrapper with its own `text` prop
+gives `<c-button>` a `text` it was never meant to have, and one with an `actions` prop fills
+`<c-modal>`'s header slot with it. Neither raises — the value is simply rendered somewhere it
+does not belong.
+
+Add `only` to the nested tag and it sees nothing but what you pass it. Slot content still
+renders in the calling context, so `{{ my_var }}` inside the slot keeps working.
+
+```html
+<c-vars text actions />
+<c-button icon="info" aria-label="{% trans "About this page" %}" only />
+<c-modal id="helpModal" title="{{ title }}" only>
+  <div>{{ text }}</div>
+</c-modal>
+```
+
 ## Shared attribute vocabulary
 
 A handful of attribute names mean the same thing everywhere they appear.

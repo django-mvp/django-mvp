@@ -18,14 +18,23 @@
 {# ============================================================ #}
 <c-vars text title actions />
 {% if text %}
+  {% comment %}
+    `only` on both children is load-bearing, not tidiness. This component's
+    props share their names with props the children declare: c-button has its
+    own `text`, and c-modal forwards a variable named `actions` into the card's
+    header slot. Without an isolated context each child picks the value out of
+    the surrounding scope — the whole explanation renders inside a 32px circular
+    button, and the action list is written into the dialog as its repr.
+  {% endcomment %}
   <c-button icon="info"
             ghost
             size="sm"
             class="btn-circle"
             type="button"
             aria-label="{% trans "About this page" %}"
-            onclick="pageInfoModal.showModal()" />
-  <c-modal id="pageInfoModal" title="{{ title }}" icon="info" closable fade>
+            onclick="pageInfoModal.showModal()"
+            only />
+  <c-modal id="pageInfoModal" title="{{ title }}" icon="info" closable fade only>
     <div class="max-w-prose">{{ text }}</div>
     {% if actions %}
       <c-slot name="footer_end">
