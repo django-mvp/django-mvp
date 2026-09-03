@@ -100,6 +100,19 @@ function upgrade(wrapper) {
 
   panel.setAttribute("popover", "auto");
 
+  // Open and closed stop being visible to assistive technology the moment the
+  // script takes the panel over. daisyUI opens on `:focus-within`, so before
+  // this ran the state was carried by focus and a screen reader could infer it.
+  // A popover toggled from script has no such tell, and `role="button"` says
+  // only that the trigger is a button. Article XIII asks for the ARIA that the
+  // markup itself does not convey, and this is that case.
+  //
+  // It is set here rather than in the template because it would be a lie there:
+  // without this script the panel opens on hover and focus without anything
+  // updating the attribute, and a control reporting "closed" while its panel is
+  // open is worse for a screen reader than one reporting nothing at all.
+  trigger.setAttribute("aria-expanded", "false");
+
   const position = () =>
     computePosition(trigger, panel, {
       placement,
@@ -129,6 +142,8 @@ function upgrade(wrapper) {
   let stop = null;
 
   panel.addEventListener("toggle", (event) => {
+    trigger.setAttribute("aria-expanded", String(event.newState === "open"));
+
     if (event.newState === "open") {
       // autoUpdate re-runs the calculation while the panel is open: the page
       // scrolls, the window resizes, the trigger moves. It costs a set of

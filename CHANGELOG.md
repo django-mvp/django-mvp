@@ -23,6 +23,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   dropdown opens on the declared side whether or not it fits, exactly as before. See
   [Components](docs/components.md).
 
+- A dropdown trigger now reports whether its panel is open, so a screen reader announces
+  the state rather than describing the control as a plain button. This applies wherever
+  the bundle runs, which is where the script owns opening and closing.
+
 - `@floating-ui/dom` is bundled into `mvp/static/js/django-mvp.js`. It is a build
   dependency like the rest of the runtime, so it adds nothing to install and nothing is
   fetched from a third party at page load.

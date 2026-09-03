@@ -58,6 +58,7 @@ def open_bottom_dropdown_at_the_foot_of_the_window(page, live_server):
       };
       return {
         open: panel.matches(':popover-open'),
+        expanded: trigger.getAttribute('aria-expanded'),
         placement: trigger.parentElement.dataset.mvpPlacement,
         trigger: box(trigger),
         panel: box(panel),
@@ -117,3 +118,46 @@ class TestDropdownFlipsWhenTheDeclaredSideDoesNotFit:
             f"{needed}px, so it would have fitted where it was told to go and "
             "this scenario is not exercising placement at all"
         )
+
+
+class TestDropdownReportsItsStateToAssistiveTechnology:
+    """``aria-expanded`` on the trigger follows the panel.
+
+    Once the script owns opening and closing, focus no longer tracks the panel's
+    state and nothing in the markup carries it. The attribute is written by the
+    script for that reason, so it can only be asserted with the script running.
+    """
+
+    def test_the_trigger_reports_closed_before_it_is_opened(self, page, live_server):
+        page.set_viewport_size(VIEWPORT)
+        page.goto(f"{live_server.url}/components/dropdown/")
+
+        trigger = page.get_by_role("button", name="Bottom", exact=True)
+
+        assert trigger.get_attribute("aria-expanded") == "false"
+
+    def test_the_trigger_reports_expanded_while_the_panel_is_open(
+        self, page, live_server
+    ):
+        laid_out = open_bottom_dropdown_at_the_foot_of_the_window(page, live_server)
+
+        assert laid_out["open"], "the panel never opened, so there is no state to report"
+        assert laid_out["expanded"] == "true"
+
+    def test_dismissing_the_panel_returns_the_trigger_to_closed(
+        self, page, live_server
+    ):
+        """Escape, rather than a second click on the trigger.
+
+        Light dismissal is the browser's own path and does not go through the
+        script's click handler at all, so it is the one that would leave the
+        attribute stale if it were written there instead of on the toggle.
+        """
+        open_bottom_dropdown_at_the_foot_of_the_window(page, live_server)
+
+        trigger = page.get_by_role("button", name="Bottom", exact=True)
+        assert trigger.get_attribute("aria-expanded") == "true"
+
+        page.keyboard.press("Escape")
+
+        assert trigger.get_attribute("aria-expanded") == "false"
