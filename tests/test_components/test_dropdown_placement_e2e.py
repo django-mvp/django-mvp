@@ -16,6 +16,7 @@ trigger is against the bottom edge of the window. Its declared placement is
 """
 
 import pytest
+from playwright.sync_api import expect
 
 from tests.conftest import requires_browser
 
@@ -58,7 +59,6 @@ def open_bottom_dropdown_at_the_foot_of_the_window(page, live_server):
       };
       return {
         open: panel.matches(':popover-open'),
-        expanded: trigger.getAttribute('aria-expanded'),
         placement: trigger.parentElement.dataset.mvpPlacement,
         trigger: box(trigger),
         panel: box(panel),
@@ -126,6 +126,14 @@ class TestDropdownReportsItsStateToAssistiveTechnology:
     Once the script owns opening and closing, focus no longer tracks the panel's
     state and nothing in the markup carries it. The attribute is written by the
     script for that reason, so it can only be asserted with the script running.
+
+    These use ``expect`` rather than a bare ``get_attribute``, because the
+    attribute is written from the panel's ``toggle`` handler and ``toggle`` is
+    queued as a task rather than dispatched inline. A panel therefore reads as
+    open a moment before its trigger reads as expanded, and reading both in the
+    same breath is a race: it passed locally and on three of the four version
+    combinations CI runs, and failed on the fourth. ``expect`` retries until the
+    attribute settles or the timeout is up.
     """
 
     def test_the_trigger_reports_closed_before_it_is_opened(self, page, live_server):
@@ -134,7 +142,7 @@ class TestDropdownReportsItsStateToAssistiveTechnology:
 
         trigger = page.get_by_role("button", name="Bottom", exact=True)
 
-        assert trigger.get_attribute("aria-expanded") == "false"
+        expect(trigger).to_have_attribute("aria-expanded", "false")
 
     def test_the_trigger_reports_expanded_while_the_panel_is_open(
         self, page, live_server
@@ -142,7 +150,10 @@ class TestDropdownReportsItsStateToAssistiveTechnology:
         laid_out = open_bottom_dropdown_at_the_foot_of_the_window(page, live_server)
 
         assert laid_out["open"], "the panel never opened, so there is no state to report"
-        assert laid_out["expanded"] == "true"
+
+        trigger = page.get_by_role("button", name="Bottom", exact=True)
+
+        expect(trigger).to_have_attribute("aria-expanded", "true")
 
     def test_dismissing_the_panel_returns_the_trigger_to_closed(
         self, page, live_server
@@ -156,8 +167,8 @@ class TestDropdownReportsItsStateToAssistiveTechnology:
         open_bottom_dropdown_at_the_foot_of_the_window(page, live_server)
 
         trigger = page.get_by_role("button", name="Bottom", exact=True)
-        assert trigger.get_attribute("aria-expanded") == "true"
+        expect(trigger).to_have_attribute("aria-expanded", "true")
 
         page.keyboard.press("Escape")
 
-        assert trigger.get_attribute("aria-expanded") == "false"
+        expect(trigger).to_have_attribute("aria-expanded", "false")
