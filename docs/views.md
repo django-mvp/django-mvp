@@ -20,7 +20,8 @@ from mvp.views import (
 ## Page basics
 
 Every MVP view includes `PageMixin`, which injects a `page` context dict
-(`title`, `subtitle`, `class`, `breadcrumbs`) consumed by the page templates:
+(`title`, `subtitle`, `class`, `breadcrumbs`, `info`, `info_actions`) consumed by
+the page templates:
 
 ```python
 class AboutView(MVPTemplateView):
@@ -31,6 +32,57 @@ class AboutView(MVPTemplateView):
 
 `MVPHomeView` renders a dashboard template for authenticated users and a landing
 template for anonymous visitors.
+
+### Explaining what a page is for
+
+`page_info` is text describing the page itself — what it shows, how to use it,
+what a reader is expected to do with it. Setting it puts an info icon beside the
+page title; the icon opens a dialog holding the text. Leave it unset and no icon
+is drawn, which is the default on every page.
+
+```python
+class ProductListView(MVPListView):
+    model = Product
+    page_info = _("Every product in the catalogue. Search by name, filter by price.")
+```
+
+`page_info_actions` adds buttons to the foot of that dialog. Each entry is passed
+straight to the `c-button` component, so it takes any attribute that component
+takes — this is how a page points at fuller documentation rather than restating
+it:
+
+```python
+class ProductListView(MVPListView):
+    page_info = _("Every product in the catalogue.")
+    page_info_actions = [
+        {
+            "text": _("Read the guide"),
+            "href": "https://example.com/guide/",
+            "icon": "external-link",
+            "target": "_blank",
+        }
+    ]
+```
+
+Actions on their own render nothing: the dialog exists because there is something
+to say, and the buttons follow it.
+
+For text that has to be built when the request is served, override
+`get_page_info()`. Its return value goes through the template layer like any
+other context value, so a plain string is escaped and a string marked safe is
+written out as markup — which is what lets a view render a template or a Markdown
+source into the dialog:
+
+```python
+class ProductListView(MVPListView):
+    def get_page_info(self):
+        return render_to_string("products/help.html", request=self.request)
+```
+
+Only mark text safe when you control it. A value marked safe is written into the
+page unescaped, so passing user-supplied content through this hook without
+escaping it is an injection. `get_page_info_actions()` is the matching hook for
+actions built at request time.
 
 ### Placeholder default
 

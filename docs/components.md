@@ -46,6 +46,7 @@ Empty, unopinionated building blocks — you provide the content.
 | --- | --- |
 | `c-page` | page wrapper |
 | `c-page.title` | title/subtitle block (fed by `PageMixin` context) |
+| `c-page.info` | `text`, `title`, `actions` — info icon beside the title, opening a dialog that explains the page; drawn by `c-page.title` from `page_info`, and nothing renders without `text` |
 | `c-page.content`, `c-page.toolbar` | body / page-level toolbar |
 | `c-page.list` | list-view wrapper used by `MVPListView` templates |
 | `c-page.list.empty` | `icon`, `heading`, `message` — empty state |

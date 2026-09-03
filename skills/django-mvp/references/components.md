@@ -65,7 +65,8 @@ Boolean attributes are set by presence: `<c-alert dismissible>`, not `dismissibl
 |---|---|---|---|
 | `<c-page>` | Root wrapper for a page's content, stacking its children with a consistent gap | `fluid`, `fill`, `gap` (`6`), `class` | default |
 | `<c-page.content>` | A flexible region inside a page that absorbs leftover height | `gap` (`4`), `class` | default |
-| `<c-page.title>` | Page heading with optional subtitle and a right-aligned action row | `title`, `subtitle`, `class` (declared, currently unused) | default, `actions` |
+| `<c-page.title>` | Page heading with optional subtitle and a right-aligned action row | `title`, `subtitle`, `info`, `info_actions`, `class` (declared, currently unused) | default, `actions` |
+| `<c-page.info>` | Info icon beside the heading, opening a dialog explaining the page. Renders nothing without `text`, so a page with no explanation gets no icon | `text`, `title`, `actions` | — |
 | `<c-page.toolbar>` | A row of controls that renders nothing at all when given no children | `class` | default |
 | `<c-container>` | Centred, width-constrained content band | `fluid`, `fill`, `class` | default |
 | `<c-section>` | A titled block of a page, with an optional heading icon and actions | `title`, `icon`, `level` (`2`) | default, `actions` |

@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **A page can explain itself.** Setting `page_info` on any view puts an info icon beside the
+  page title, opening a dialog that holds the text — so a page carries guidance on what it
+  shows and how to use it without the layout changing to make room for it. `page_info_actions`
+  adds buttons to the foot of that dialog, each dict passed straight to `c-button`, which is
+  how a page links out to fuller documentation instead of restating it. Both are unset by
+  default and draw no icon. `get_page_info()` is the hook for text built when the request is
+  served: its return value goes through the template layer, so a plain string is escaped and a
+  string marked safe is written out as markup. The dialog itself is the new `c-page.info`
+  component. See [Views](docs/views.md).
+
 ## [v0.20.0] - 2026-08-25
 
 ### Removed
