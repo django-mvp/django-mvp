@@ -282,6 +282,47 @@
   scrollbar-gutter: stable;
 }
 
+/* A dropdown panel that assets/js/dropdown.js has promoted into the top layer.
+   Unlayered on purpose, for both of the reasons this file uses elsewhere: it
+   has to beat DaisyUI's layered `.dropdown-content { position: absolute }`, and
+   it has to beat the browser's own `[popover]` defaults.
+
+   Those defaults are written for a popover that centres itself on the screen —
+   `inset: 0` with `margin: auto` — and Floating UI writes `left`/`top`, so the
+   two have to be cleared or the panel ignores every calculation and sits in the
+   middle of the page. `color` and `padding` are cleared for a different reason:
+   the panel inherited its text colour and had no padding of its own until the
+   moment it became a popover, and the browser default would repaint it in the
+   system colour, which in a dark theme is dark text on a dark panel.
+
+   The open state has to be stated because DaisyUI hides `.dropdown-content`
+   whenever the wrapper is neither hovered nor focused within, and a panel
+   opened from script is regularly neither — a hover-opened panel, or one whose
+   focus has moved on. Popover state is what decides visibility now. */
+.dropdown-content[popover] {
+  position: fixed;
+  inset: auto;
+  margin: 0;
+  padding: 0;
+  color: inherit;
+}
+
+.dropdown-content[popover]:popover-open {
+  display: block;
+  opacity: 1;
+  scale: 1;
+}
+
+/* DaisyUI closes an open dropdown by making the focused trigger transparent to
+   the pointer, so a second click lands on the wrapper behind it and blurs the
+   trigger. That mechanism is replaced once the panel is a popover — the script
+   toggles it on the trigger's own click — and leaving it in place means the
+   trigger stops receiving clicks the moment it has focus, which is to say from
+   the first click onwards. */
+.dropdown:has(> .dropdown-content[popover]) > [tabindex]:first-child {
+  pointer-events: auto;
+}
+
 /* Column behaviour classes (issue #255): a table author says how a column
    competes for width the way django-tables2 already asks them to say
    anything about a column — by naming these in the column's `attrs`. Named
