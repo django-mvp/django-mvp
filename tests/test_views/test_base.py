@@ -169,6 +169,48 @@ class TestPageMixinPageInfo:
 
 
 # ---------------------------------------------------------------------------
+# TestPageInfoRendersThroughARealPage
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+class TestPageInfoRendersThroughARealPage:
+    """The whole path a project uses: view attribute → page context → templates.
+
+    The component tests exercise ``c-page.info`` directly. Only rendering a real
+    page proves the value reaches it, since ``c-page.title`` is fed by spreading
+    the ``page`` dict and a key that dict never gained would go nowhere silently.
+    """
+
+    def _render(self, **attrs):
+        from django.contrib.auth.models import AnonymousUser
+
+        from mvp.views import MVPTemplateView
+
+        view = MVPTemplateView.as_view(template_name="page_view.html", **attrs)
+        request = RequestFactory().get("/")
+        request.user = AnonymousUser()
+        return view(request).render().content.decode()
+
+    def test_no_dialog_when_the_view_sets_no_info(self):
+        assert "<dialog" not in self._render(page_title="Products")
+
+    def test_dialog_carries_the_views_text(self):
+        html = self._render(page_title="Products", page_info="What this page is for.")
+        assert "<dialog" in html
+        assert "What this page is for." in html
+
+    def test_dialog_carries_the_views_actions(self):
+        html = self._render(
+            page_title="Products",
+            page_info="Body",
+            page_info_actions=[{"text": "Read the guide", "href": "/guide/"}],
+        )
+        assert 'href="/guide/"' in html
+        assert "Read the guide" in html
+
+
+# ---------------------------------------------------------------------------
 # TestPageMixinGetContextData
 # ---------------------------------------------------------------------------
 
