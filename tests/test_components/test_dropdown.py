@@ -48,9 +48,9 @@ PLACEMENTS = {
     ("right", "end"): "right-end",
 }
 
-every_placement = pytest.mark.parametrize(
-    "valign,halign,placement",
-    [(valign, halign, out) for (valign, halign), out in PLACEMENTS.items()],
+every_pair = pytest.mark.parametrize(
+    "valign,halign",
+    list(PLACEMENTS),
     ids=[f"{valign}-{halign}" for valign, halign in PLACEMENTS],
 )
 
@@ -67,15 +67,13 @@ class TestDropdownUpgradeHook:
             "script would upgrade the same dropdown twice"
         )
 
-    @every_placement
-    def test_every_accepted_pair_resolves_to_its_placement(
-        self, valign, halign, placement
-    ):
+    @every_pair
+    def test_every_accepted_pair_resolves_to_its_placement(self, valign, halign):
         html = render(
             f'<c-dropdown valign="{valign}" halign="{halign}">{PANEL}</c-dropdown>'
         )
 
-        assert f'data-mvp-placement="{placement}"' in html
+        assert f'data-mvp-placement="{PLACEMENTS[(valign, halign)]}"' in html
 
     def test_the_defaults_resolve_to_bottom_start(self):
         """``valign="bottom"``/``halign="start"`` are the component's defaults,
@@ -120,10 +118,8 @@ class TestDropdownKeepsItsDaisyUIMarkup:
             ' shadow-lg border border-base-300 "'
         ) in html
 
-    @every_placement
-    def test_every_accepted_pair_still_emits_its_daisyui_classes(
-        self, valign, halign, placement
-    ):
+    @every_pair
+    def test_every_accepted_pair_still_emits_its_daisyui_classes(self, valign, halign):
         html = render(
             f'<c-dropdown valign="{valign}" halign="{halign}">{PANEL}</c-dropdown>'
         )
