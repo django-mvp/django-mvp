@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.20.1] - 2026-09-03
+
 ### Added
 
 - **A page can explain itself.** Setting `page_info` on any view puts an info icon beside the
