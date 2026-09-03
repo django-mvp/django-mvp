@@ -201,6 +201,19 @@ class ProductListView(MVPListViewMixin, FilterView):
     create_form_class = ProductForm
     show_create_action = True
     page_subtitle = "Check out our amazing products!"
+    page_info = _(
+        "Every product in the catalogue. Search by name or description, narrow the "
+        "list with the filters, and sort it with the ordering control. Selecting a "
+        "product opens its detail page."
+    )
+    page_info_actions = [
+        {
+            "text": _("List view documentation"),
+            "href": "https://github.com/django-mvp/django-mvp/blob/main/docs/views.md",
+            "icon": "external-link",
+            "target": "_blank",
+        }
+    ]
     list_item_template = "cards/product_card.html"
     grid = {"cols": 1, "md": 2, "xl": 3, "gap": 2}
     paginate_by = 10

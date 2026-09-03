@@ -114,18 +114,19 @@ class BaseTemplateNameMixin:
 class PageMixin:
     """Mixin that injects a ``page`` context dict into every template rendered by the view.
 
-    Groups all page-level rendering metadata (title, subtitle, caption, icon, CSS class, breadcrumbs)
-    under a single ``page`` key in the template context. This keeps the main context
-    namespace clean and makes it easy to identify where each variable originates.
+    Groups all page-level rendering metadata (title, subtitle, CSS class, breadcrumbs and the
+    page's explanatory text) under a single ``page`` key in the template context. This keeps
+    the main context namespace clean and makes it easy to identify where each variable
+    originates.
 
     In templates, access page data as::
 
         {{ page.title }}
         {{ page.subtitle }}
-        {{ page.caption }}
-        {{ page.icon }}
         {{ page.class }}
+        {{ page.info }}
         {% for crumb in page.breadcrumbs %}...{% endfor %}
+        {% for action in page.info_actions %}...{% endfor %}
 
     Each attribute has a corresponding ``get_*()`` method. Use the class attribute for
     static values known at class-definition time; override the method for values that
@@ -138,6 +139,12 @@ class PageMixin:
             mandatory ``"mvp-page"`` prefix. Defaults to ``""``.
         breadcrumbs (list): List of breadcrumb dicts. Each dict has a ``"text"`` key and
             an optional ``"href"`` key. Defaults to ``[]``.
+        page_info (str | Promise): Text explaining what the page is for. When set, an info
+            icon appears beside the page title and opens a dialog containing this text.
+            Defaults to ``""``, which renders no icon.
+        page_info_actions (list): Buttons shown at the foot of that dialog. Each dict is
+            passed straight to the ``c-button`` component, so it accepts any attribute that
+            component accepts. Defaults to ``[]``.
 
     Primary consumers:
         - ``MVPTemplateView`` (``mvp.views.base``)
@@ -162,6 +169,8 @@ class PageMixin:
     page_subtitle: str | Promise = ""
     page_class = ""
     breadcrumbs: list = []
+    page_info: str | Promise = ""
+    page_info_actions: list = []
 
     def get_context_data(self, **kwargs):
         """Add the ``page`` context dict to the template context.
@@ -193,12 +202,16 @@ class PageMixin:
                 - ``"subtitle"`` — from ``get_page_subtitle()``
                 - ``"class"`` — from ``get_page_class()`` (always starts with ``"mvp-page"``)
                 - ``"breadcrumbs"`` — from ``get_breadcrumbs()``
+                - ``"info"`` — from ``get_page_info()``
+                - ``"info_actions"`` — from ``get_page_info_actions()``
         """
         return {
             "title": self.get_page_title(),
             "subtitle": self.get_page_subtitle(),
             "class": self.get_page_class(),
             "breadcrumbs": self.get_breadcrumbs(),
+            "info": self.get_page_info(),
+            "info_actions": self.get_page_info_actions(),
         }
 
     def get_page_title(self):
@@ -271,6 +284,64 @@ class PageMixin:
                     ]
         """
         return self.breadcrumbs
+
+    def get_page_info(self):
+        """Return the text explaining what this page is for.
+
+        An empty return value means the page offers no explanation, and no info icon is
+        drawn beside the title. To set static text, assign ``page_info`` as a class
+        attribute instead.
+
+        The return value goes through Django's template layer like any other context
+        value: a plain string is escaped, and a string marked safe is written out as
+        markup. That is the hook for text built at request time — a rendered template, a
+        Markdown source, a value read from the database.
+
+        Returns:
+            str | Promise: The value of ``self.page_info``.
+
+        Example::
+
+            # Static text — use the class attribute:
+            class ProductListView(MVPListView):
+                page_info = _("Every product currently on sale.")
+
+
+            # Built at request time — override this method:
+            class ProductListView(MVPListView):
+                def get_page_info(self):
+                    return render_to_string("products/help.html", request=self.request)
+        """
+        return self.page_info
+
+    def get_page_info_actions(self):
+        """Return the buttons shown at the foot of the page-info dialog.
+
+        Each item is a dict passed straight to the ``c-button`` component, so it takes any
+        attribute that component takes — ``text``, ``href``, ``icon``, ``variant``,
+        ``target`` and the rest. This is how a page points at fuller documentation instead
+        of restating it in the dialog.
+
+        This method is the override hook for dynamic values. To set static actions, assign
+        ``page_info_actions`` as a class attribute instead.
+
+        Returns:
+            list: The value of ``self.page_info_actions``.
+
+        Example::
+
+            class ProductListView(MVPListView):
+                page_info = _("Every product currently on sale.")
+                page_info_actions = [
+                    {
+                        "text": _("Read the guide"),
+                        "href": "https://example.com/guide/",
+                        "icon": "external-link",
+                        "target": "_blank",
+                    }
+                ]
+        """
+        return self.page_info_actions
 
     def get_page_class(self):
         """Return the CSS class string to apply to the page container element.

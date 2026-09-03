@@ -6,6 +6,7 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import ImproperlyConfigured
 from django.db import models as db_models
 from django.test import RequestFactory
+from django.utils.safestring import SafeString, mark_safe
 from django.views.generic import TemplateView
 
 from demo.models import Category, Product
@@ -92,7 +93,14 @@ class TestPageMixinGetPageContext:
     def test_get_page_context_returns_dict_with_required_keys(self):
         view = ConcretePage()
         ctx = view.get_page_context()
-        assert set(ctx.keys()) == {"title", "subtitle", "class", "breadcrumbs"}
+        assert set(ctx.keys()) == {
+            "title",
+            "subtitle",
+            "class",
+            "breadcrumbs",
+            "info",
+            "info_actions",
+        }
 
     def test_get_page_context_delegates_to_getters(self):
         view = ConcretePage()
@@ -104,6 +112,102 @@ class TestPageMixinGetPageContext:
         assert ctx["title"] == "Test"
         assert ctx["subtitle"] == "Sub"
         assert ctx["breadcrumbs"] == [{"text": "Home"}]
+
+
+# ---------------------------------------------------------------------------
+# TestPageMixinPageInfo
+# ---------------------------------------------------------------------------
+
+
+class TestPageMixinPageInfo:
+    """The explanatory text a view offers about its own page (issue #321)."""
+
+    def test_no_info_by_default(self):
+        assert ConcretePage().get_page_info() == ""
+
+    def test_no_actions_by_default(self):
+        assert ConcretePage().get_page_info_actions() == []
+
+    def test_info_absent_from_page_context_by_default(self):
+        assert ConcretePage().get_page_context()["info"] == ""
+
+    def test_attribute_reaches_the_page_context(self):
+        view = ConcretePage()
+        view.page_info = "What this page is for."
+        assert view.get_page_context()["info"] == "What this page is for."
+
+    def test_actions_attribute_reaches_the_page_context(self):
+        view = ConcretePage()
+        view.page_info_actions = [{"text": "Docs", "href": "/docs/"}]
+        assert view.get_page_context()["info_actions"] == [
+            {"text": "Docs", "href": "/docs/"}
+        ]
+
+    def test_override_supplies_rich_text(self):
+        """The documented extension point: build the body at request time.
+
+        A view that renders a template or a Markdown source returns a safe
+        string from here, and the template layer writes it out as markup.
+        """
+
+        class RichInfoPage(ConcretePage):
+            def get_page_info(self):
+                return mark_safe("<p>Built at <strong>request time</strong>.</p>")
+
+        ctx = RichInfoPage().get_page_context()
+        assert ctx["info"] == "<p>Built at <strong>request time</strong>.</p>"
+        assert isinstance(ctx["info"], SafeString)
+
+    def test_override_supplies_actions(self):
+        class ActionPage(ConcretePage):
+            def get_page_info_actions(self):
+                return [{"text": "Guide", "href": "/guide/"}]
+
+        assert ActionPage().get_page_context()["info_actions"] == [
+            {"text": "Guide", "href": "/guide/"}
+        ]
+
+
+# ---------------------------------------------------------------------------
+# TestPageInfoRendersThroughARealPage
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+class TestPageInfoRendersThroughARealPage:
+    """The whole path a project uses: view attribute → page context → templates.
+
+    The component tests exercise ``c-page.info`` directly. Only rendering a real
+    page proves the value reaches it, since ``c-page.title`` is fed by spreading
+    the ``page`` dict and a key that dict never gained would go nowhere silently.
+    """
+
+    def _render(self, **attrs):
+        from django.contrib.auth.models import AnonymousUser
+
+        from mvp.views import MVPTemplateView
+
+        view = MVPTemplateView.as_view(template_name="page_view.html", **attrs)
+        request = RequestFactory().get("/")
+        request.user = AnonymousUser()
+        return view(request).render().content.decode()
+
+    def test_no_dialog_when_the_view_sets_no_info(self):
+        assert "<dialog" not in self._render(page_title="Products")
+
+    def test_dialog_carries_the_views_text(self):
+        html = self._render(page_title="Products", page_info="What this page is for.")
+        assert "<dialog" in html
+        assert "What this page is for." in html
+
+    def test_dialog_carries_the_views_actions(self):
+        html = self._render(
+            page_title="Products",
+            page_info="Body",
+            page_info_actions=[{"text": "Read the guide", "href": "/guide/"}],
+        )
+        assert 'href="/guide/"' in html
+        assert "Read the guide" in html
 
 
 # ---------------------------------------------------------------------------

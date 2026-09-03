@@ -1,9 +1,17 @@
-<c-vars title subtitle class actions />
+<c-vars title subtitle class actions info info_actions />
 <!-- Top row: title + actions -->
 <div class="page-title flex flex-col md:flex-row md:items-start md:justify-between gap-2 w-full">
   <!-- Title + subtitle -->
   <div class="flex flex-col gap-1">
-    <h1 class="text-3xl font-bold leading-tight">{{ title }}</h1>
+    {% comment %}
+      The info trigger sits beside the heading, never inside it: an interactive
+      control within the heading element becomes part of the heading's announced
+      text.
+    {% endcomment %}
+    <div class="flex items-center gap-2">
+      <h1 class="text-3xl font-bold leading-tight">{{ title }}</h1>
+      <c-page.info :text="info" :title="title" :actions="info_actions" />
+    </div>
     {% if subtitle %}<p class="opacity-70 text-lg leading-relaxed max-w-prose">{{ subtitle }}</p>{% endif %}
   </div>
   <!-- Actions -->

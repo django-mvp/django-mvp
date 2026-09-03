@@ -42,8 +42,8 @@ Views built on optional third-party packages are not exported either. They live 
 ## `PageMixin` — the `page` context dict
 
 Every packaged view mixes this in. It adds one context key, `page`, with the metadata the
-shell templates read: `{{ page.title }}`, `{{ page.subtitle }}`, `{{ page.class }}` and
-`{% for crumb in page.breadcrumbs %}`.
+shell templates read: `{{ page.title }}`, `{{ page.subtitle }}`, `{{ page.class }}`,
+`{{ page.info }}` and `{% for crumb in page.breadcrumbs %}`.
 
 | Attribute | Default | Meaning |
 |---|---|---|
@@ -51,11 +51,14 @@ shell templates read: `{{ page.title }}`, `{{ page.subtitle }}`, `{{ page.class 
 | `page_subtitle` | `""` | Secondary line under the heading. Omitted when empty. |
 | `page_class` | `""` | Extra classes on the page container. The result is always prefixed `mvp-page`. |
 | `breadcrumbs` | `[]` | List of breadcrumb dicts. |
+| `page_info` | `""` | Text explaining the page. When set, an info icon beside the title opens a dialog holding it. Empty draws no icon. |
+| `page_info_actions` | `[]` | Buttons at the foot of that dialog. Each dict is spread onto `c-button`. |
 
 Set the class attribute for a value known at class-definition time. Override the matching hook
-— `get_page_title()`, `get_page_subtitle()`, `get_page_class()`, `get_breadcrumbs()` — for
-anything that depends on the request or the loaded object. `get_page_context()` assembles the
-four into the dict, so override that to add a key of your own.
+— `get_page_title()`, `get_page_subtitle()`, `get_page_class()`, `get_breadcrumbs()`,
+`get_page_info()`, `get_page_info_actions()` — for anything that depends on the request or the
+loaded object. `get_page_context()` assembles them into the dict, so override that to add a key
+of your own.
 
 A breadcrumb is a dict with a required `text` key and an optional `href`. An item with no
 `href` renders as plain text, which is how the trailing current-page crumb is drawn.
@@ -75,6 +78,35 @@ class ProductDetailView(MVPDetailView):
 
 There is no page icon. Two packaged templates reference `page.icon`, but nothing populates it
 and no `page_icon` attribute exists, so it always renders empty.
+
+### Page info
+
+`page_info` is what the page is for, not what a field means. It renders into a dialog behind an
+info icon, so the page layout is unchanged whether it is set or not.
+
+```python
+class ProductListView(MVPListView):
+    model = Product
+    page_info = _("Every product in the catalogue. Search by name, filter by price.")
+    page_info_actions = [
+        {"text": _("Read the guide"), "href": "/guide/", "icon": "external-link"},
+    ]
+```
+
+Action dicts reach `c-button` untouched, so `variant`, `icon`, `target` and anything else that
+component accepts work here. Actions without `page_info` render nothing at all.
+
+`get_page_info()` returns whatever the dialog should hold, so a view that builds its text at
+request time overrides it:
+
+```python
+def get_page_info(self):
+    return render_to_string("products/help.html", request=self.request)
+```
+
+The return value goes through the template layer unchanged: a plain string is escaped, a string
+marked safe is written out as markup. Mark text safe only when you control it — a value marked
+safe is not escaped, so user-supplied content passed through here unescaped is an injection.
 
 ## `MVPTemplateView`
 
