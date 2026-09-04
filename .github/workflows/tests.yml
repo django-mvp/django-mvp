@@ -18,7 +18,7 @@ on:
 
 jobs:
   call-tests:
-    uses: django-mvp/shared/.github/workflows/tests.yml@v0.4.0
+    uses: django-mvp/shared/.github/workflows/tests.yml@v0.4.1
     with:
       coverage-package: mvp
       # Downloads chromium so the browser tests actually run. Without it they
