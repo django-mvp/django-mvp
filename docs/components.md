@@ -72,7 +72,7 @@ Empty, unopinionated building blocks — you provide the content.
 | `c-data-field` | key–value display |
 | `c-messages` | Django messages list; `dismissible`, `delay` (auto-dismiss milliseconds, default 2000) |
 | `c-modal` | modal dialog |
-| `c-dropdown` | `valign` (`top/bottom/left/right`), `halign` (`start/center/end`); slot `button` = trigger |
+| `c-dropdown` | `valign` (`top/bottom/left/right`), `halign` (`start/center/end`), `full` (panel matches the trigger's width), `hover` (open on hover), `class`, `content_class`; slot `button` = trigger — see the placement note below |
 | `c-avatar` / `c-avatar.group` | user avatar(s) |
 | `c-brand.logo` / `c-brand.icon` | brand images via the configured resolvers |
 
@@ -106,6 +106,33 @@ fragments spread across the alert's width:
 
 Anything richer than a sentence — a heading, a paragraph and a list — goes in a `<div>`
 for the same reason.
+
+### A dropdown opens where it was told, unless it cannot
+
+`valign` and `halign` say which side of the trigger the panel prefers, and that side is
+used whenever there is room for it. When there is not, because the trigger is near the
+foot of the window or hard against one edge, the panel takes the opposite side rather
+than opening off-screen, and slides along the edge it is aligned to rather than
+overhanging it. The panel is also drawn above the rest of the page, so a dropdown inside
+a scrolling region or a card with clipped overflow is no longer cut off at the boundary:
+
+```html
+<!-- Prefers to open downwards, aligned to the trigger's end. Near the bottom
+     of the window it opens upwards instead, with no change here. -->
+<c-dropdown valign="bottom" halign="end" text="Options">
+  <c-menu>
+    <c-menu.item label="Edit" href="#" />
+  </c-menu>
+</c-dropdown>
+```
+
+The preference is honoured rather than second-guessed, so the same dropdown does not
+swap sides while the page scrolls under it — it changes only when the side it asked for
+genuinely will not fit.
+
+The browser does the measuring, so this needs the package's JavaScript bundle, which
+`mvp/base.html` already loads. Where the bundle never runs, a dropdown opens on the
+declared side whether or not it fits, exactly as it always used to.
 
 ## Navigation
 

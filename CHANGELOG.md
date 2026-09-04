@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **A dropdown panel now opens where there is room for it.** `valign` and `halign` still
+  say which side the panel prefers, and that side is still used whenever it fits. When it
+  does not, because the trigger is near the foot of the window or hard against an edge,
+  the panel takes the opposite side instead of opening off-screen, and slides along the
+  edge it is aligned to instead of overhanging it. The panel is also drawn above the rest
+  of the page, so a dropdown inside a scrolling region, a card with clipped overflow, or
+  under the sticky navbar is no longer cut off. The declared side is honoured rather than
+  second-guessed, so a dropdown does not swap sides while the page scrolls under it.
+  Nothing changes in a template: no attribute is added, removed or reinterpreted, and the
+  five dropdowns the package ships are untouched. The browser does the measuring, so this
+  needs the JavaScript bundle `mvp/base.html` already loads. Where that never runs, a
+  dropdown opens on the declared side whether or not it fits, exactly as before. See
+  [Components](docs/components.md).
+
+- A dropdown trigger now reports whether its panel is open, so a screen reader announces
+  the state rather than describing the control as a plain button. This applies wherever
+  the bundle runs, which is where the script owns opening and closing.
+
+- `@floating-ui/dom` is bundled into `mvp/static/js/django-mvp.js`. It is a build
+  dependency like the rest of the runtime, so it adds nothing to install and nothing is
+  fetched from a third party at page load.
+
 ## [v0.20.1] - 2026-09-03
 
 ### Added

@@ -24,10 +24,24 @@
 {#   hover         – open on hover instead of click            #}
 {#   class         – extra classes on the .dropdown wrapper    #}
 {#   content_class – extra classes on the .dropdown-content    #}
+{#                                                              #}
+{# data-mvp-dropdown / data-mvp-placement:                      #}
+{#   assets/js/dropdown.js upgrades each marked wrapper at run  #}
+{#   time, moving the panel into the top layer and positioning  #}
+{#   it against the space actually available. The daisyUI       #}
+{#   classes above stay because they are what places the panel  #}
+{#   when that script never runs — which is why the `popover`   #}
+{#   attribute is added by the script and not written here.     #}
+{#   data-mvp-placement is halign/valign already resolved into  #}
+{#   the placement string Floating UI takes; `center` has no    #}
+{#   suffix because a centred alignment is spelled as the bare  #}
+{#   side.                                                      #}
 {# ============================================================ #}
 {% load mvp %}
 <c-vars valign="bottom" halign="start" full hover class content_class />
 <div class="dropdown {% variation valign "dropdown" "top,bottom,left,right" %} {% variation halign "dropdown" "start,center,end" %}{% if hover %} dropdown-hover{% endif %} {{ class }}"
+     data-mvp-dropdown
+     data-mvp-placement="{{ valign }}{% if halign != "center" %}-{{ halign }}{% endif %}"
      {% if button %}{{ attrs }}{% endif %}>
   {% if button %}
     {{ button }}

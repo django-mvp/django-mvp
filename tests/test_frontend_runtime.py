@@ -93,6 +93,10 @@ class TestShippedFrontEndRuntime:
         "@alpinejs/persist": "$persist",
         "htmx.org": "htmx",
         "theme-change": "data-toggle-theme",
+        # The default `boundary` its collision detection measures against. The
+        # placement strings would have been the obvious choice and are useless
+        # here, because assets/js/dropdown.js writes the same literals itself.
+        "@floating-ui/dom": "clippingAncestors",
     }
 
     @pytest.mark.parametrize("package,marker", sorted(LIBRARY_MARKERS.items()))
