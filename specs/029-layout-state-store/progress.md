@@ -321,3 +321,20 @@ this task.
 
 T010, T011, T012 done. Ran the repository's full verify once, per the protocol — see the
 completion report for exact commands and results.
+
+## 2026-09-14 — US-2 complete
+
+The store's resolved configuration is documented, tested from a browser, and reflects a per-page
+override rather than the project default. T010 to T012 done.
+
+T010 needed no code: the previous story had already built the shape, including the
+never-persistent case and the viewport flag. The story recorded why that shape is the one worth
+supporting rather than writing it again — `decisions.md` D10 — and spent the effort on the tests
+and the documentation, which were genuinely missing.
+
+One browser test was intermittent and the cause was a real unreachable control rather than timing
+noise. Fixed along with five fixed sleeps and an unwaited resize; see `decisions.md` D11. Three
+consecutive runs green afterwards.
+
+Independently verified: conformance, documentation, lint, type check, the full suite and the build
+all green, and the committed bundle rebuilds byte-identically.
