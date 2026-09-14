@@ -1,11 +1,14 @@
 # Navigation
 
-django-mvp renders two menus from Python definitions, using
+django-mvp renders three menus from Python definitions, using
 [django-flex-menus](https://github.com/SamuelJennings/django-flex-menus):
 
 - **`AppMenu`** — the sidebar navigation.
 - **`MobileFooterMenu`** — the bottom dock on small screens (pre-populated with a
   sidebar toggle).
+- **`AccountCenterMenu`** — the [Account Center](account-center.md)'s own navigation,
+  rendered beside its pages. Ships with the entry for its own landing page; extend it
+  the same way as `AppMenu`.
 
 ## Defining the sidebar menu
 

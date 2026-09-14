@@ -34,6 +34,22 @@ The template chain matters when you decide where to put an override:
 | `table_view.html` | `list_view.html` | Re-declares the `page.*` blocks in its own markup |
 | `delete_view.html` | `form_view.html` | Fills the form blocks |
 | `mvp/entrance.html`, `mvp/error_base.html` | `mvp/base.html` | Replace the shell with a centred card |
+| `mvp/account/base.html` | `base.html` | The [Account Center](../../../docs/account-center.md)'s layout. Owns `account.content`, and draws `AccountCenterMenu` beside it. |
+| `mvp/account/overview.html` | `mvp/account/base.html` | The area's landing page. Fills `account.content`. |
+
+Mounting `mvp.urls` gives the area an address, not a link: the sidebar footer ships empty.
+`"actions.login"` and `"user.sidebar-menu"` in `MVP_CONFIG["layout"]["sidebar"]["footer"]`
+are the complementary pair — the first renders for a visitor, the second for a signed-in
+person and carries the Account Center row.
+
+An installed app puts a card on the landing page by shipping its own copy of
+`mvp/account/overview.html`, extending the same name, and adding to its
+`{% block account.cards %}` through `{{ block.super }}` — no page or menu entry required.
+Django resolves the same-name `{% extends %}` to the next template of that name in the
+loader path, so several apps chain this way; list a contributing app before `mvp` in
+`INSTALLED_APPS` or its override is never reached. A card renders as part of the same
+template as the rest of the page — the page's context, not one of its own. See [Contributing
+a card](../../../docs/account-center.md#contributing-a-card) for the full worked example.
 
 Because the view templates extend the unqualified name `base.html`, a
 `templates/base.html` of your own is picked up automatically by every MVP view.

@@ -1,0 +1,26 @@
+{% extends "mvp/account/base.html" %}
+{% load i18n %}
+{% block title %}
+  {{ page.title }}
+{% endblock title %}
+{% block account.content %}
+  <c-page>
+    <c-page.title :title="page.title" :subtitle="page.subtitle" />
+    {% comment %}
+      No fallback listing of the menu here — the menu is already on the
+      page, beside this content (D5, FR-019). Empty when no installed app
+      contributes a card.
+
+      An installed app contributes by shipping its own copy of this
+      template, extending "mvp/account/overview.html" — the same name — and
+      adding to this block through {{ block.super }}. Django resolves a
+      same-name extends to the next template in the loader path, so several
+      apps chain (Refined 2026-09-14). The package declares no attribute, no
+      registry and no template tag for it.
+    {% endcomment %}
+    <div id="account-center-cards"
+         class="grid gap-4 sm:grid-cols-2">
+      {% block account.cards %}{% endblock account.cards %}
+    </div>
+  </c-page>
+{% endblock account.content %}

@@ -10,12 +10,18 @@ resolve an ``icon="..."`` name to a real Bootstrap Icons class. #294 reported
 ``icon("import") -> ""``: an unregistered name renders as an empty string
 rather than an error, so a gap in this dict is silent everywhere it is used.
 
-Auditing the package's own templates against the map (below) also surfaced
-``icon="account_center"`` in mvp/templates/cotton/user/sidebar_menu.html —
-not a gap: that item renders only when a companion package supplies the
-"account-center" URL, and django-accounts-center already registers the icon
-itself (see SUPPLIED_BY_A_COMPANION_PACKAGE below). BS5_ICONS deliberately
-does not carry it.
+Auditing the package's own templates against the map also surfaced
+``icon="account_center"`` in mvp/templates/cotton/user/sidebar_menu.html:
+at the time, not a gap, because that item rendered only when
+django-accounts-center was installed, and that package registered the icon
+itself. FS-028 closed the gap the other way — the Account Center is
+shell surface now, so BS5_ICONS carries ``account_center`` and ``overview``
+directly (mvp/utils.py). django-accounts-center's own pack still wins for a
+project with both installed, under easy-icons' last-wins merge order
+(decision D8 in specs/028-move-account-center/decisions.md) — SUPPLIED_BY_A_COMPANION_PACKAGE
+below is what is left of that history, kept because it still names a real
+exemption for any *other* icon a companion package might one day be the
+only definer of.
 
 The class list a value is checked against is vendored at
 tests/fixtures/bootstrap-icons-1.13.1-names.txt, matching the release pinned
@@ -140,13 +146,14 @@ class TestBS5IconsResolution:
         assert icon(level_tag) != ""
 
 
-#: Names a shipped mvp template references that a companion package's own
-#: icon pack supplies, not BS5_ICONS. mvp/templates/cotton/user/sidebar_menu.html
-#: renders its Account Center item only when a URL named "account-center"
-#: resolves — i.e. only when django-accounts-center is installed — and that
-#: package defines the icon itself (dac/icons.py's DAC_ICONS, layered on top
-#: of BS5_ICONS per docs/getting-started.md's "packs" mechanism). BS5_ICONS
-#: staying silent on "account_center" is the intended division, not a gap.
+#: Names a shipped mvp template references where a companion package's own
+#: icon pack can win the glyph even though BS5_ICONS also defines the name.
+#: "account_center" is the case on record: BS5_ICONS has carried it directly
+#: since FS-028, but a project running django-accounts-center too still sees
+#: that package's glyph, under easy-icons' last-wins pack order (decision D8,
+#: specs/028-move-account-center/decisions.md). Redundant with `expanded` for
+#: that one name today, kept as the record of the overlap and as the seam
+#: for a future name BS5_ICONS does not define itself.
 SUPPLIED_BY_A_COMPANION_PACKAGE = frozenset({"account_center"})
 
 
@@ -187,7 +194,19 @@ class TestPackageTemplatesReferenceKnownIcons:
         name — if no template uses it, it isn't exempting anything real."""
         referenced = _icon_names_referenced_in_package_templates()
 
-        assert SUPPLIED_BY_A_COMPANION_PACKAGE <= referenced
+        assert referenced >= SUPPLIED_BY_A_COMPANION_PACKAGE
+
+
+class TestAccountCenterIcons:
+    """``account_center`` and ``overview`` resolve through the packaged icon
+    pack (FR-011). Pinned by name — a test that only asserted the pack is
+    non-empty would prove nothing about these two specific keys."""
+
+    def test_account_center_resolves(self):
+        assert icon("account_center") != ""
+
+    def test_overview_resolves(self):
+        assert icon("overview") != ""
 
 
 class TestAppIsInstalled:

@@ -1,0 +1,17 @@
+{% extends "mvp/account/overview.html" %}
+{% load i18n %}
+{% block account.cards %}
+  {{ block.super }}
+  <c-card title="{% trans "Component Library" %}"
+          icon="overview">
+    <c-text>
+      {% trans "Every packaged component the shell ships, with the markup that renders it." %}
+    </c-text>
+    <c-slot name="footer">
+      <c-button href="{% url 'layout' %}"
+                text="{% trans "Browse components" %}"
+                icon="arrow-right"
+                reverse />
+    </c-slot>
+  </c-card>
+{% endblock account.cards %}

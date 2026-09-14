@@ -1,0 +1,454 @@
+{
+  "$schema": "../../../../.openclaw/workspaces/forge/engineering-org/kit/schemas/feature-state.schema.json",
+  "feature": "028-move-account-center",
+  "branch": "028-move-account-center",
+  "repo": "django-mvp/django-mvp",
+  "state": "PR_READY",
+  "state_history": [
+    {
+      "state": "SPECIFY",
+      "at": "2026-09-14T09:30:00Z"
+    },
+    {
+      "state": "SETUP",
+      "at": "2026-09-14T10:05:00Z"
+    },
+    {
+      "state": "GATE_SPEC",
+      "at": "2026-09-14T10:25:00Z"
+    },
+    {
+      "state": "PLAN",
+      "at": "2026-09-14T10:02:08Z"
+    },
+    {
+      "state": "DESIGN_REVIEW",
+      "at": "2026-09-14T10:11:24Z"
+    },
+    {
+      "state": "IMPLEMENT",
+      "at": "2026-09-14T10:14:48Z"
+    },
+    {
+      "state": "CONVERGE",
+      "at": "2026-09-14T11:53:47Z",
+      "note": "all three stories done and accepted"
+    },
+    {
+      "state": "REVIEW",
+      "at": "2026-09-14T11:58:47Z",
+      "note": "converge complete: ADR verdicts, changelog, gates green"
+    },
+    {
+      "state": "PR_READY",
+      "at": "2026-09-14T12:22:28Z",
+      "note": "review findings closed, PR body rewritten"
+    },
+    {
+      "state": "IMPLEMENT",
+      "at": "2026-09-14T13:40:47Z",
+      "note": "merge-gate kickback: maintainer cut two pieces of API"
+    },
+    {
+      "state": "PR_READY",
+      "at": "2026-09-14T14:09:10Z",
+      "note": "maintainer's cuts applied, re-verified"
+    }
+  ],
+  "gates": {
+    "spec": {
+      "approved_by": "SamuelJennings",
+      "at": "2026-09-14T10:25:00Z",
+      "self_resolved": [
+        "the menu keeps the name django-accounts-center uses; the overlap ends in that package's own release",
+        "the area arrives as an includable URLconf with an un-namespaced URL name",
+        "mounting the URLconf is the only switch; no setting disables or relocates the area",
+        "the area gates its own landing page only; a contributed page gates itself",
+        "an empty landing page shows a heading and an empty card region, not a list of the menu"
+      ]
+    },
+    "plan": {
+      "approved_by": "notified",
+      "at": "2026-09-14T10:14:48Z"
+    },
+    "merge": {
+      "approved_by": null,
+      "at": null
+    },
+    "design_review": {
+      "approved_by": "design-panel",
+      "at": "2026-09-14T10:11:24Z",
+      "self_resolved": [
+        "ARC-001 test-isolation trap fixed in the task graph (T021/T024)",
+        "ARC-002 icon-key overlap recorded as D8 and folded into the changelog task",
+        "SPC-001 FR-008 reorder/remove coverage added to T016 rather than changing the approved spec"
+      ]
+    },
+    "review": {
+      "approved_by": "code-review",
+      "at": "2026-09-14T12:22:24Z",
+      "self_resolved": [
+        "COR-001 card contexts merged into the page context: fixed in b8a7a90, regression test proved both ways",
+        "COR-002 documentation described only the card-versus-card half: fixed with it",
+        "COR-003 leading-underscore helper: declined, the package's own convention is the opposite",
+        "COR-004 menu processed twice per render: filed as issue #344",
+        "maintainer's merge-gate review: card wrapper deleted, raw markup replaced with packaged components, stylesheet returned to main's file",
+        "maintainer's cut: AccountPageMixin, get_active_section and the url_names convention deleted; a page declares its own breadcrumbs",
+        "maintainer's cut: card application-configuration hooks deleted; cards arrive through a template block apps extend with block.super",
+        "issue #344 closed by the first cut \u2014 the menu is processed once again"
+      ]
+    }
+  },
+  "stories": [
+    {
+      "id": "US1",
+      "priority": "P1",
+      "issue": 339,
+      "worktree": null,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T001",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "forge verify --repo /home/sam/projects/django-mvp/django-mvp --base origin/main"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T002",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "forge verify --repo /home/sam/projects/django-mvp/django-mvp --base origin/main"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T003",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "forge verify --repo /home/sam/projects/django-mvp/django-mvp --base origin/main"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T004",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "forge verify --repo /home/sam/projects/django-mvp/django-mvp --base origin/main"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T005",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "forge verify --repo /home/sam/projects/django-mvp/django-mvp --base origin/main"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T006",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "forge verify --repo /home/sam/projects/django-mvp/django-mvp --base origin/main"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T007",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "forge verify --repo /home/sam/projects/django-mvp/django-mvp --base origin/main"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T008",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "forge verify --repo /home/sam/projects/django-mvp/django-mvp --base origin/main"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T009",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "forge verify --repo /home/sam/projects/django-mvp/django-mvp --base origin/main"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T010",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "forge verify --repo /home/sam/projects/django-mvp/django-mvp --base origin/main"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T011",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "forge verify --repo /home/sam/projects/django-mvp/django-mvp --base origin/main"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T012",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "forge verify --repo /home/sam/projects/django-mvp/django-mvp --base origin/main"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T013",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "forge verify --repo /home/sam/projects/django-mvp/django-mvp --base origin/main"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T014",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "forge verify --repo /home/sam/projects/django-mvp/django-mvp --base origin/main"
+            ],
+            "verified_by_ci": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "US2",
+      "priority": "P2",
+      "issue": 340,
+      "worktree": null,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T015",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "forge verify --repo /home/sam/projects/django-mvp/django-mvp --base origin/main"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T016",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "forge verify --repo /home/sam/projects/django-mvp/django-mvp --base origin/main"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T017",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "forge verify --repo /home/sam/projects/django-mvp/django-mvp --base origin/main"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T018",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "forge verify --repo /home/sam/projects/django-mvp/django-mvp --base origin/main"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T019",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "forge verify --repo /home/sam/projects/django-mvp/django-mvp --base origin/main"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T020",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "forge verify --repo /home/sam/projects/django-mvp/django-mvp --base origin/main"
+            ],
+            "verified_by_ci": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "US3",
+      "priority": "P3",
+      "issue": 341,
+      "worktree": null,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T021",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "forge verify --repo /home/sam/projects/django-mvp/django-mvp --base origin/main"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T022",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "forge verify --repo /home/sam/projects/django-mvp/django-mvp --base origin/main"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T023",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "forge verify --repo /home/sam/projects/django-mvp/django-mvp --base origin/main"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T024",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "forge verify --repo /home/sam/projects/django-mvp/django-mvp --base origin/main"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T025",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "forge verify --repo /home/sam/projects/django-mvp/django-mvp --base origin/main"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T026",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "forge verify --repo /home/sam/projects/django-mvp/django-mvp --base origin/main"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T027",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "forge verify --repo /home/sam/projects/django-mvp/django-mvp --base origin/main"
+            ],
+            "verified_by_ci": false
+          }
+        }
+      ]
+    }
+  ],
+  "budgets": {
+    "converge_cycles": {
+      "used": 1,
+      "max": 2
+    },
+    "review_cycles": {
+      "used": 1,
+      "max": 1
+    },
+    "design_review_cycles": {
+      "used": 0,
+      "max": 1
+    },
+    "tokens": {
+      "used": 0,
+      "max": 4000000
+    }
+  },
+  "pr": {
+    "number": 342,
+    "draft": true
+  },
+  "escalations": []
+}

@@ -65,9 +65,10 @@ writing the front end first.
   syntax; this package provides components built with it.
 - **A project scaffold.** You install it as a dependency and upgrade it, rather than generating
   a starter project you then own outright.
-- **An authentication system.** Account management lives in
-  [django-accounts-center](https://github.com/django-mvp/django-accounts-center), which builds
-  on these components.
+- **An authentication system.** It provides the [Account Center](docs/account-center.md), the
+  area itself. Account management — sign-in, sign-up, password and multi-factor flows — still
+  lives in [django-accounts-center](https://github.com/django-mvp/django-accounts-center), which
+  builds on these components.
 - **A JavaScript application.** Pages are server-rendered, with Alpine and htmx where
   interaction calls for it. No build step, no single-page frontend.
 - **An API layer.** Django REST Framework and django-ninja already cover that ground.
