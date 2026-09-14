@@ -34,6 +34,8 @@ The template chain matters when you decide where to put an override:
 | `table_view.html` | `list_view.html` | Re-declares the `page.*` blocks in its own markup |
 | `delete_view.html` | `form_view.html` | Fills the form blocks |
 | `mvp/entrance.html`, `mvp/error_base.html` | `mvp/base.html` | Replace the shell with a centred card |
+| `mvp/account/base.html` | `base.html` | The [Account Center](../../../docs/account-center.md)'s layout. Owns `account.content`, and puts `<c-account.nav>` beside it. |
+| `mvp/account/overview.html` | `mvp/account/base.html` | The area's landing page. Fills `account.content`. |
 
 Because the view templates extend the unqualified name `base.html`, a
 `templates/base.html` of your own is picked up automatically by every MVP view.

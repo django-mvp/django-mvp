@@ -1,6 +1,6 @@
 # Menus — reference
 
-Navigation for a project that installs django-mvp: the two menus the app shell renders, the
+Navigation for a project that installs django-mvp: the three menus the app shell renders, the
 classes you build them from, the `extra_context` keys each renderer reads, and the rules
 for active state and visibility.
 
@@ -11,6 +11,11 @@ renders `AppMenu` in the sidebar and `MobileFooterMenu` in the mobile dock, each
 renderer you register by name in settings. `MobileFooterMenu` is not empty: it ships with
 two items already attached, a sidebar-toggle item (`name="sidebar_toggle"`) and a home
 link (`name="home"`, `view_name="home"`).
+
+`AccountCenterMenu` is the third: the [Account Center](../../../docs/account-center.md)'s
+own navigation, rendered beside its pages by `<c-account.nav>`. It ships with only the
+entry for its own landing page — extend it the same way as `AppMenu`, from any installed
+app's `menus.py`.
 
 Everything is built on [django-flex-menus](https://github.com/SamuelJennings/django-flex-menus).
 django-mvp supplies the renderers, the templates and two `MenuItem` subclasses.
@@ -73,6 +78,7 @@ from mvp.menus import AppMenu, MobileFooterMenu, MenuCollapse, MenuGroup
 | `MenuCollapse` | `mvp.menus` | `MenuItem` subclass. An expandable group. Sets `extra_context["collapsible"] = True` for you. |
 | `AppMenu` | `mvp.menus` | The sidebar menu instance. Ships empty. |
 | `MobileFooterMenu` | `mvp.menus` | The mobile dock menu instance. Ships with the two items above. |
+| `AccountCenterMenu` | `mvp.menus` | The Account Center's own navigation. Ships with the entry for its own landing page. |
 
 `MenuItem`, `MenuGroup` and `MenuCollapse` share one signature:
 
