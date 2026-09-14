@@ -297,3 +297,48 @@ already has an open issue about browser tests failing under the parallel matrix.
 minutes now and is unbounded later.
 
 **ADR:** none — test-hygiene inside this feature's own diff.
+
+## D12 — A file outside the brief's list also asserted the removed class strings
+
+**The situation.** T015's brief named `tests/test_views/test_account.py` and the tag-level tests in
+`tests/test_components/test_layout_config.py` as needing restatement or deletion once
+`navbar_wide_only_class`, `navbar_narrow_only_class` and `sidebar_navbar_toggle_class` were deleted.
+A grep for the three names, run before deleting them, found two more casualties the brief's file list
+did not mention: `TestNavbarToggle` in `test_layout_config.py` (issue #114's regression, asserting
+`"lg:is-drawer-open:hidden"` etc. on the navbar toggle) and the whole of `TestTheBrandMarkAppearsOnce`
+plus two tests in `TestTheActionsGiveWayToTheTrail` in `tests/test_components/test_app_header.py` —
+a file the brief's scope list does not name at all.
+
+**Chosen:** restate all of them on the same basis the brief already authorised for
+`test_account.py`'s two lines: the *subject* (the region hides/shows correctly) is unchanged and
+still real; the *mechanism* the assertion named (a class string) is what is being deleted, so the
+assertion has to change or the test simply asserts something that no longer exists. `TestNavbarToggle`
+was deleted rather than restated — see below — everything else was restated in place, keeping each
+test's name and docstring intent.
+
+**Why this is not scope creep.** `craft-increments` prohibits touching files the story does not
+require; it does not protect a file from a change the deletion the brief explicitly ordered
+necessarily causes. Leaving `test_app_header.py` red at the end of this task would violate "the tree
+is green between slices," and the story's own governing rule (D7, plan.md "How the substitution is
+proved") already establishes the principle: a test asserting the replaced mechanism by name is
+expected to change. This is that principle applied to two files the brief's author did not think to
+grep for, not a new principle.
+
+**Why `TestNavbarToggle` was deleted rather than restated.** Its two tests exist to prove one thing:
+a per-page breakpoint/collapse override reaches the navbar toggle, not only the drawer and the rail
+(issue #114). After T015 the toggle's own class is static (`mvp-sidebar-echo`) regardless of any
+override — restating the assertion to check for that class present would be true unconditionally
+and would not distinguish an override from the default, so it would guard nothing. The same
+regression is now provably covered two other ways: `TestDrawerRendersLayoutAttributes` (T014,
+`tests/test_components/test_layout_config.py`) proves the override reaches the drawer element's own
+`data-mvp-breakpoint`/`data-mvp-collapse` attributes, using the same fixture
+(`tests/app_shell_override.html`) this test used; and
+`tests/test_components/test_responsive_visibility.py::TestSidebarEchoRegion` proves, in a browser,
+that computed visibility actually follows both attributes at every breakpoint and both collapse
+modes. Keeping a third, now-vacuous test would be padding, not coverage.
+
+**Revisit if** another pre-existing test surfaces later asserting one of these three class strings —
+this diff's own grep covered `tests/` only; a project's own test suite (outside this repository)
+built against the removed tags is the actual audience D3's breaking-change entry is for.
+
+**ADR:** none — test-fallout triage scoped to this story's own required deletion.

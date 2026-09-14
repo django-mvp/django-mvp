@@ -383,3 +383,35 @@ task's changes (checked by stashing) — the same pre-existing flake US-2's prog
 recorded, not something T014 introduced and not a file this story may touch.
 
 Next: T015 — move the three tags' rules into the stylesheet and delete the tags.
+
+## 2026-09-14T23:45:00Z · Implementer US-3 · T015
+
+Did: Added `mvp-wide-only`, `mvp-narrow-only` and `mvp-sidebar-echo` to `mvp/tailwind/base.css`,
+selected on the drawer element's `data-mvp-breakpoint`/`data-mvp-collapse` attributes (T014); deleted
+`navbar_wide_only_class`, `navbar_narrow_only_class`, `sidebar_navbar_toggle_class` and the
+now-unused `_breakpoint_disabled` from `mvp/templatetags/mvp.py`, and the three safelist entries that
+existed only for the classes those tags assembled. `mvp/templates/cotton/app/header/navbar.html` and
+`mvp/templates/mvp/account/base.html` carry the new classes directly; the `{% load %}`/`<c-vars>`/
+`{% firstof %}` plumbing that existed only to feed the deleted tags is gone with them. Rebuilt
+`mvp/static/css/django-mvp.css` and its compressed sibling now, not deferred to T016 — the browser
+characterisation suite (T013) exercises the shipped stylesheet, so I could not otherwise prove this
+task correct.
+
+A grep for the three tag names before deleting them found casualties beyond the brief's own file
+list: `TestNavbarToggle` in `test_layout_config.py` and most of `TestTheBrandMarkAppearsOnce` /
+`TestTheActionsGiveWayToTheTrail` in `tests/test_components/test_app_header.py` (a file the brief
+does not mention at all) assert the same class strings directly. Restated all of them on the same
+"subject survives, mechanism named in the assertion does not" basis the brief already authorised for
+`test_account.py`'s two lines — recorded as `decisions.md` D12, including why `TestNavbarToggle` was
+deleted outright rather than restated (its regression is now provably covered by T014's attribute
+test and T013's browser test, and a restatement against the now-static toggle class would guard
+nothing).
+
+Verified: `CI=true poetry run pytest tests/test_components/test_responsive_visibility.py -q` — 27
+passed, **unmodified from T013** — the correctness condition for this whole story.
+`poetry run pytest tests/test_views/test_account.py tests/test_components/test_app_header.py tests/test_components/test_layout_config.py tests/test_components/test_responsive_safelist.py -q`
+— 103 passed. `poetry run ruff check` / `ruff format --check` on every file this task touched (two
+pre-existing, unrelated errors in `test_responsive_safelist.py` — see concerns). `poetry run mypy
+mvp` — clean.
+
+Next: T016 — one no-JS browser test, and confirm the stylesheet rebuild is byte-identical.
