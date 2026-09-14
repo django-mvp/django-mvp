@@ -2,21 +2,21 @@
 
 ## 2026-09-14
 
-- **S0 INTAKE** — feature grilled from a free-text request; interpretation restated and confirmed.
+- **Intake** — feature grilled from a free-text request; interpretation restated and confirmed.
   The generic version of the two-column layout, and a general way to attach a menu to a view class
   or a group of addresses, were raised and deferred by the maintainer in the same exchange. Issue
   #338 filed.
-- **S1 SPECIFY** — `spec.md` written: three stories, 26 functional requirements, 6 success
+- **Specification** — `spec.md` written: three stories, 26 functional requirements, 6 success
   criteria. Five ambiguities found by the coverage scan and self-resolved; rationale in
   `decisions.md`. Spec lint green (no unresolved markers, every requirement mapped to a story).
-- **S2 SETUP** — spec pushed on `028-move-account-center` as the bot. Issue #338 promoted to the
+- **Setup** — spec pushed on `028-move-account-center` as the bot. Issue #338 promoted to the
   epic in place. Story sub-issues #339 (P1), #340 (P2), #341 (P3) created and linked. Draft pull
   request #342 opened by the bot, milestone `v1.0.0`, description carrying one `Closes` line per
   issue. Title lint green.
 - **Spec gate — APPROVED** by Sam at 2026-09-14, in session, without changes. Recorded here at the
-  moment of approval; copied into `feature-state.json` when S3 creates the ledger.
+  moment of approval; copied into `feature-state.json` when the ledger is created.
 
-## 2026-09-14 · Implementer US1 · T001
+## 2026-09-14 · US-1 · T001
 
 Did: added `tests/test_menus.py::TestAccountCenterMenu` — exact child-count assertion for
 `AccountCenterMenu`, plus the child's name and `view_name`.
@@ -24,7 +24,7 @@ Verified: `poetry run pytest tests/test_menus.py::TestAccountCenterMenu -q` — 
 `ImportError: cannot import name 'AccountCenterMenu'`, confirming red for the right reason.
 Next: T002. Watch: —
 
-## 2026-09-14 · Implementer US1 · T002
+## 2026-09-14 · US-1 · T002
 
 Did: added `tests/test_views/test_account.py::TestAccountCenterView` — anonymous redirect, signed-in
 render with the navigation panel, an empty card region, heading and introduction text. Mounted
@@ -34,7 +34,7 @@ Verified: `poetry run pytest tests/test_views/test_account.py::TestAccountCenter
 failed with `ModuleNotFoundError: No module named 'mvp.urls'`.
 Next: T003. Watch: this file's tests stay collection-red until T007/T008/T009 all land.
 
-## 2026-09-14 · Implementer US1 · T003
+## 2026-09-14 · US-1 · T003
 
 Did: added `tests/test_components/test_account_nav.py::TestAccountNav` and the fixture
 `demo/templates/tests/account_nav.html`, following `test_layout_config.py`'s render pattern.
@@ -43,14 +43,14 @@ Verified: `poetry run pytest tests/test_components/test_account_nav.py -q` —
 `cotton/account/nav.html` attempt failed the same way).
 Next: T004. Watch: —
 
-## 2026-09-14 · Implementer US1 · T004
+## 2026-09-14 · US-1 · T004
 
 Did: added `TestAccountLayout` to `tests/test_views/test_account.py` and the fixture
 `demo/templates/tests/account_layout_content.html`.
 Verified: same file, still collection-red on `mvp.urls`.
 Next: T005. Watch: —
 
-## 2026-09-14 · Implementer US1 · T005
+## 2026-09-14 · US-1 · T005
 
 Did: added `tests/test_utils.py::TestAccountCenterIcons`, pinning `icon("account_center")` and
 `icon("overview")` by name.
@@ -60,7 +60,7 @@ during tests, so `EASY_ICONS_FAIL_SILENTLY` defaults false too — a harder fail
 string" #294 symptom the module docstring describes, but red for the same underlying reason).
 Next: T006 — all five tests-first tasks are now confirmed red. Watch: —
 
-## 2026-09-14 · Implementer US1 · T006
+## 2026-09-14 · US-1 · T006
 
 Did: declared `AccountCenterMenu` in `mvp/menus.py` beside `AppMenu`/`MobileFooterMenu`, carrying
 the single `overview` entry (`view_name="account-center"`, translatable label); extended the module
@@ -70,7 +70,7 @@ clean.
 Next: T008 (taken ahead of T007 — see decisions.md D9: writing the urlconf before the view it
 imports would leave an unimportable module on this commit). Watch: —
 
-## 2026-09-14 · Implementer US1 · T007/T008
+## 2026-09-14 · US-1 · T007/T008
 
 Did: `mvp/views/account.py` (`AccountCenterView`, `LoginRequiredMixin` + `MVPTemplateView`,
 translatable title/subtitle), exported from `mvp/views/__init__.py` and `__all__` (T008); then
@@ -82,7 +82,7 @@ passes; the rest fail on `TemplateDoesNotExist: mvp/account/base.html`, the corr
 `ruff check`/`ruff format --check` clean on both new/changed `.py` files.
 Next: T009. Watch: —
 
-## 2026-09-14 · Implementer US1 · T009
+## 2026-09-14 · US-1 · T009
 
 Did: `mvp/templates/mvp/account/base.html` (extends `base.html`, two-column `content` override,
 `account.content` block for a page to fill), `mvp/templates/mvp/account/overview.html` (heading,
@@ -100,7 +100,7 @@ Verified: `poetry run pytest tests/test_views/test_account.py tests/test_compone
 Next: T010. Watch: this confirms T003's "red before T009" marker undersold the dependency — the
 nav item's `icon="overview"` needs T010 too before the suite is fully green (decisions.md D11).
 
-## 2026-09-14 · Implementer US1 · T010
+## 2026-09-14 · US-1 · T010
 
 Did: added `account_center` (`bi-person-gear`) and `overview` (`bi-grid`) to `BS5_ICONS` in
 `mvp/utils.py`, matching django-accounts-center's own values for the overlap (D8). Also corrected
@@ -111,7 +111,7 @@ Verified: `poetry run pytest tests/test_utils.py tests/test_views/test_account.p
 — 347 passed. `ruff check`/`ruff format --check` clean.
 Next: T011. Watch: —
 
-## 2026-09-14 · Implementer US1 · T011
+## 2026-09-14 · US-1 · T011
 
 Did: mounted `path("account/", include("mvp.urls"))` in `demo/urls.py`.
 Verified: `poetry run pytest -q` (full suite, once, to catch any regression from a global mount) —
@@ -119,7 +119,7 @@ Verified: `poetry run pytest -q` (full suite, once, to catch any regression from
 `demo.settings`/`demo.urls` directly (no override needed). `ruff check`/`ruff format --check` clean.
 Next: T012. Watch: —
 
-## 2026-09-14 · Implementer US1 · T012
+## 2026-09-14 · US-1 · T012
 
 Did: `docs/account-center.md` (what the area is, mounting it, signing in, the empty-state rule, a
 stub for the two sections US-2/US-3 add); added it to `docs/index.md`'s guide table; named
@@ -130,7 +130,7 @@ Verified: read-through against the branch as it stands — the mounting example 
 `mvp/urls.py`/`demo/urls.py` exactly.
 Next: T013. Watch: —
 
-## 2026-09-14 · Implementer US1 · T013
+## 2026-09-14 · US-1 · T013
 
 Did: `skills/django-mvp/references/menus.md` — "two menus" → "three", `AccountCenterMenu` bullet
 and classes-table row; `skills/django-mvp/references/layout.md` — two rows in the template-chain
@@ -138,7 +138,7 @@ table for `mvp/account/base.html` and `mvp/account/overview.html`.
 Verified: read-through against `docs/account-center.md` and `docs/navigation.md` for consistency.
 Next: T014. Watch: —
 
-## 2026-09-14 · Implementer US1 · T014
+## 2026-09-14 · US-1 · T014
 
 Did: `poetry run invoke build-stylesheet`; committed the rebuilt `mvp/static/css/django-mvp.css`
 and `.br` sibling. Added `tests/test_smoke.py::TestStylesheetShipsAccountCenterClasses` — an
@@ -150,7 +150,7 @@ Verified: `poetry run pytest tests/test_smoke.py -q` — 81 passed. `ruff check`
 clean.
 Next: verify (§5), completion report. Watch: —
 
-## 2026-09-14 · Implementer US2 · T015
+## 2026-09-14 · US-2 · T015
 
 Did: `tests/testapp_account/` — a minimal installed app (`apps.py`, not importing `menus` from
 `ready()`) with `menus.build_entries()` returning four fresh top-level entries per call (plain,
@@ -167,7 +167,7 @@ to confirm the app registers without an import error.
 Next: T016. Watch: fixture views intentionally don't use `AccountPageMixin` yet — T019 adds it to
 their bases once it exists, which is what T017's trail assertions depend on turning green.
 
-## 2026-09-14 · Implementer US2 · T016
+## 2026-09-14 · US-2 · T016
 
 Did: `tests/test_menus.py::TestAccountMenuContribution` — seven tests against `AccountCenterMenu`
 processed with the fixture app's entries applied: exact-count presence alongside the landing-page
@@ -183,7 +183,7 @@ tests/test_menus.py -q` — 17 passed. `poetry run ruff check`/`ruff format --ch
 autofix applied to `tests/test_menus.py`'s import block).
 Next: T017. Watch: —
 
-## 2026-09-14 · Implementer US2 · T017
+## 2026-09-14 · US-2 · T017
 
 Did: `tests/test_views/test_account.py::TestAccountSectionTrail` — four tests against a fixture
 urlconf (`mvp.urls` + `tests.testapp_account.urls` + `demo.urls`, the last needed because the
@@ -202,7 +202,7 @@ Next: T018 (`get_active_section`), then T019 turns these three green.
 Watch: T019 must also add `AccountPageMixin` to `tests/testapp_account/views.py`'s bases (D15) —
 without it these three tests stay red past T018 too.
 
-## 2026-09-14 · Implementer US2 · T018
+## 2026-09-14 · US-2 · T018
 
 Did: `mvp/menus.py` — `get_active_section(request)` and its `_iter_leaves` helper, mirroring
 django-accounts-center's `dac/menus.py:41-71` (read as reference, not imported): processes
@@ -220,7 +220,7 @@ returns exactly the three shapes T017 expects: `is_current=True` on the section'
 Next: T019 — `AccountPageMixin`, plus wiring it into `tests/testapp_account/views.py` (D15), is
 what turns T017's three red tests green. Watch: —
 
-## 2026-09-14 · Implementer US2 · T019
+## 2026-09-14 · US-2 · T019
 
 Did: `mvp/views/account.py` — `AccountPageMixin.get_breadcrumbs()`: the single unlinked area crumb
 when `get_active_section` returns `None`, otherwise `[area(linked to account-center), section]`
@@ -236,7 +236,7 @@ tests/test_views/test_account.py tests/test_components/test_account_nav.py -q` �
 `python manage.py makemigrations --check --dry-run` — no changes detected.
 Next: T020 (docs). Watch: —
 
-## 2026-09-14 · Implementer US2 · T020
+## 2026-09-14 · US-2 · T020
 
 Did: `docs/account-center.md` — replaced the "Where the later sections go" placeholder with
 "Adding a menu entry and a page", four worked examples (a menu entry, a page against the layout
@@ -257,7 +257,7 @@ matches `mvp/views/account.py` exactly, and the `url_names` example matches the 
 working `("grouped",)` declaration in shape.
 Next: §5 — the full verify, then the completion report. Watch: —
 
-## 2026-09-14 · Implementer US3 · T024
+## 2026-09-14 · US-3 · T024
 
 Did: Two card-contributing fixture apps, separate from `tests/testapp_account/`:
 `tests/testapp_card_no_menu/` (only `account_center_card_template` +
@@ -274,7 +274,7 @@ Verified: manual `override_settings(INSTALLED_APPS=...)` probe (see D16) confirm
 `ruff format --check` clean on all new files and `tests/conftest.py`.
 Next: T021 — the red test using these fixtures. Watch: —
 
-## 2026-09-14 · Implementer US3 · T021
+## 2026-09-14 · US-3 · T021
 
 Did: `tests/test_views/test_account.py::TestAccountCenterCards`, four tests against
 `ACCOUNT_FIXTURE_URLCONF`: a card renders with its app's context reaching the template; two
@@ -288,7 +288,7 @@ doesn't collect anything yet. `poetry run ruff check`/`ruff format --check` clea
 Next: T022 — the view side that turns the `KeyError`s into real (if still content-incomplete)
 context. Watch: —
 
-## 2026-09-14 · Implementer US3 · T022
+## 2026-09-14 · US-3 · T022
 
 Did: `mvp/views/account.py` — `AccountCenterView.get_context_data` walks
 `django.apps.apps.get_app_configs()`, collecting `account_center_card_template`, calling
@@ -301,7 +301,7 @@ HTML) — the context list itself is now correct, confirming this task's slice i
 turns the remaining 3 green. `poetry run ruff check`/`ruff format --check` clean.
 Next: T023 — `<c-account.card>` and the card region loop. Watch: —
 
-## 2026-09-14 · Implementer US3 · T023
+## 2026-09-14 · US-3 · T023
 
 Did: `mvp/templates/cotton/account/card.html` — `<c-account.card>`, built from `<c-card>` alone (no
 raw utility class standing in for it). `mvp/templates/mvp/account/overview.html` — the card region
@@ -319,7 +319,7 @@ Next: T025 — the demo's own card. Watch: contributing a card to `demo`'s main 
 also contribute it under `tests/settings.py` (which inherits `demo/settings.py`'s
 `INSTALLED_APPS` wholesale), turning `test_signed_in_request_shows_no_cards` red — see D16.
 
-## 2026-09-14 · Implementer US3 · T025
+## 2026-09-14 · US-3 · T025
 
 Did: `demo/account_showcase/` — a new, small `AppConfig` (`account_center_card_template` only, no
 context method) contributing a "Component Library" card linking to the demo's existing `layout`
@@ -336,7 +336,7 @@ resolves). `DJANGO_SETTINGS_MODULE=tests.settings poetry run python -c "..."` �
 check`/`ruff format --check` clean on all new/changed files.
 Next: T026 — docs. Watch: —
 
-## 2026-09-14 · Implementer US3 · T026
+## 2026-09-14 · US-3 · T026
 
 Did: `docs/account-center.md` — replaced the "Where the next section goes" placeholder with
 "Contributing a card": the `AppConfig` attribute pair, the card's own template, the
@@ -351,7 +351,7 @@ the demo's own `demo/account_showcase` already implement the identical pattern t
 proven working by T021's and T025's own test/manual runs.
 Next: T027 — the closing check. Watch: —
 
-## 2026-09-14 · Implementer US3 · T027
+## 2026-09-14 · US-3 · T027
 
 Did: the story's closing check.
 Verified: `poetry run pytest -q` — 1870 passed, 1 skipped (pre-existing Playwright skip), 0 failed.

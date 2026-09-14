@@ -16,6 +16,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   signed-in user. `AccountCenterMenu`, declared beside `AppMenu` and `MobileFooterMenu`, is
   how an installed app adds to it. See [Account Center](docs/account-center.md).
 
+  An installed app adds a page to the area with two declarations: an entry appended to
+  `AccountCenterMenu` from its own `menus.py`, and a page extending
+  `mvp/account/base.html`. That page comes back carrying the area's navigation panel, its
+  entry marked as the one being viewed, and the trail in the app header. `AccountPageMixin`
+  supplies that trail and nothing else, so the app keeps its own access rules. An entry can
+  carry a per-request check and appear only for the people it applies to, and it can name
+  the URL-name prefixes of its own sub-pages so a page below it still names its section.
+
+  An app puts a card on the landing page by declaring `account_center_card_template` on its
+  application configuration, with an optional `account_center_card_context(request)`
+  supplying what the card shows. Any installed app can contribute one, whether or not it
+  also adds a menu entry.
+
   `AccountCenterMenu` shares its name, and `account_center`/`overview` share their icon
   keys, with django-accounts-center's own declarations. Releases of that package through
   v0.7.1 still declare both; whichever one a project has installed last wins the name

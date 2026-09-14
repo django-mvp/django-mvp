@@ -3,7 +3,7 @@
   "feature": "028-move-account-center",
   "branch": "028-move-account-center",
   "repo": "django-mvp/django-mvp",
-  "state": "IMPLEMENT",
+  "state": "CONVERGE",
   "state_history": [
     {
       "state": "SPECIFY",
@@ -28,6 +28,11 @@
     {
       "state": "IMPLEMENT",
       "at": "2026-09-14T10:14:48Z"
+    },
+    {
+      "state": "CONVERGE",
+      "at": "2026-09-14T11:53:47Z",
+      "note": "all three stories done and accepted"
     }
   ],
   "gates": {
@@ -306,7 +311,7 @@
       "priority": "P3",
       "issue": 341,
       "worktree": null,
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
@@ -391,7 +396,7 @@
   ],
   "budgets": {
     "converge_cycles": {
-      "used": 0,
+      "used": 1,
       "max": 2
     },
     "review_cycles": {

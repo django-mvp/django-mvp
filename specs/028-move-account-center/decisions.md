@@ -20,6 +20,8 @@ area is called the Account Center. Article XVI permits the change pre-1.0 agains
 entry. The maintainer's instruction at intake was explicit that django-accounts-center's reduced
 scope is decided separately and is not this feature's concern.
 
+**ADR:** none — a transitional compatibility call that ends when django-accounts-center adopts this surface. The standing record is the changelog entry, not an architectural rule.
+
 ## D2 — An includable URLconf, un-namespaced
 
 **Ambiguous:** the package ships no URLconf at all today, so nothing establishes how a project
@@ -33,6 +35,8 @@ page any project has written against django-accounts-center. Namespacing would b
 gain the package can name today. The prefix is the project's because the package has no basis to
 choose one, and every link the area draws reverses by name rather than assuming a path.
 
+**ADR:** docs/adr/0019-a-packaged-area-is-reached-by-including-a-urlconf.md
+
 ## D3 — Mounting is the only switch
 
 **Ambiguous:** whether the area needs a setting to disable or relocate it.
@@ -44,6 +48,8 @@ change without touching templates. Presence of a URL is not that: Django project
 what exists by what they include. A disable setting would also have to be consulted by every
 reverse in shipped markup, where a missing URL name is already the natural signal and is already
 handled conditionally.
+
+**ADR:** docs/adr/0019-a-packaged-area-is-reached-by-including-a-urlconf.md
 
 ## D4 — The area gates its own page and nothing else
 
@@ -57,6 +63,8 @@ request path of another app's view, so an inherited guarantee would be one the p
 keep. The honest mechanism already exists for the visible half: an entry carries a check and is
 hidden from people it does not apply to.
 
+**ADR:** docs/adr/0020-an-area-gates-its-own-pages-and-no-others.md
+
 ## D5 — The landing page lists cards, not menu entries
 
 **Ambiguous:** what the landing page shows when no app has contributed a card.
@@ -66,6 +74,8 @@ hidden from people it does not apply to.
 **Why defensible:** the menu is on the same page, so a fallback listing would draw the same links
 twice, in two visual languages, and would change what the page means depending on what is
 installed. Article II asks for the simplest design that satisfies the spec.
+
+**ADR:** none — how one page presents itself when nothing is contributed; nothing downstream inherits it.
 
 ## D6 — The layout stays account-specific
 
@@ -77,6 +87,8 @@ serve any section of an application.
 **Why defensible:** raised at intake and deferred by the maintainer in the same exchange, together
 with the general question of attaching a menu to a view class or a group of addresses. Designing
 for a generalisation that has not been specified is the abstraction Article III rules out.
+
+**ADR:** none — a deferral, recorded in the specification's assumptions. An ADR would record a rule where there is only a not-yet.
 
 ## D7 — The trail rides the shell's header, not a second bar in the content
 
@@ -93,6 +105,8 @@ second trail would put two of them on one page in two visual languages. The cost
 comes from a view rather than a template, so a contributed page gets it by using the packaged page
 mixin; a page that uses neither still renders correctly, without a trail.
 
+**ADR:** none — applies the existing decision to draw the trail in the app header (v0.21.0) to this area. It introduces no rule of its own.
+
 ## D8 — The icon keys overlap the same way the menu name does
 
 **Ambiguous:** the two icon keys this package adds are also defined in django-accounts-center's
@@ -106,6 +120,8 @@ documented settings its glyphs win.
 different picture rather than a broken page, and the alternative is leaving the shell naming an
 icon that no pack in this package defines — which is the defect US-1 exists to close.
 
+**ADR:** none — the same transitional overlap as D1, and recorded in the same changelog entry.
+
 ## D9 — Implemented T008 before T007
 
 **Ambiguous:** `tasks.md` lists T007 (`mvp/urls.py`) before T008 (`mvp/views/account.py`), but
@@ -114,11 +130,13 @@ icon that no pack in this package defines — which is the defect US-1 exists to
 **Chosen:** implement T008 first, so every commit's tree stays importable, and commit each under
 its own task id regardless of the swap.
 
-**Why defensible:** `craft-increments` requires the tree to parse and lint between slices; writing
+**Why defensible:** the tree has to parse and lint between slices; writing
 `urls.py` first would commit a module that raises `ModuleNotFoundError` on import. The task graph's
 numbering is a presentation order, not a dependency graph — nothing in the brief or the tasks
 themselves says T007 must land first, and the commit messages and `progress.md` still tie each
 change to its task id.
+
+**ADR:** none — the order two commits landed in, inside one story.
 
 ## D10 — The navigation panel builds its own landmark rather than delegating to the shared sidebar container
 
@@ -147,6 +165,8 @@ sidebar.
 this and the app sidebar's own wrapping become two callers of one abstraction, which is when
 Article III says building it is justified.
 
+**ADR:** none — a local workaround for a defect in the shared renderer, filed as issue #343. The fix belongs there, not in a rule about this panel.
+
 ## D11 — The icon dependency makes "red before T009" read as "red before T010" in practice
 
 **Observed, not chosen:** `tasks.md` marks T002/T003/T004 "Red before T009", but every one of them
@@ -161,6 +181,8 @@ files to go green.
 commit apart, so this did not change the plan, only the point at which "confirmed green" actually
 lands — recorded here so a future run does not read "red before T009" as a promise the suite goes
 green the moment T009's commit lands.
+
+**ADR:** none — an observation about a task's stated dependencies, not a decision anything inherits.
 
 ## D12 — The empty card region is a static anchor, not app-walk logic
 
@@ -181,6 +203,8 @@ cards" test asserts against this exact div via regex, which stays meaningful onc
 rendering cards inside it — a card appearing between the tags is what turns that specific
 assertion red, which is the point of the div's id existing at all.
 
+**ADR:** none — markup detail inside one template.
+
 ## D13 — The introduction reuses `page_subtitle`, not a new field
 
 **Ambiguous:** FR-019 and the acceptance scenarios ask for a "heading and introduction", which
@@ -195,12 +219,14 @@ uses for this. Adding an `page_introduction` field alongside it would be a secon
 concept, which Article III's anti-abstraction rule and CONTEXT.md's one-name-per-concept rule both
 rule out before a second, differently-shaped caller exists.
 
+**ADR:** none — reuses a field the package already has rather than adding one.
+
 ## D14 — Corrected `tests/test_utils.py`'s stale companion-package prose, touched nothing else in it
 
 **Ambiguous:** the module docstring and the `SUPPLIED_BY_A_COMPANION_PACKAGE` comment both stated,
 as fact, that `BS5_ICONS` "deliberately does not carry" `account_center` — true before T010, false
-after it. `craft-tdd`/the Implementer protocol forbid modifying or deleting a test authored in an
-earlier story; this file predates FS-028 entirely.
+after it. A story may not modify or delete a test authored in an earlier one, and this file
+predates FS-028 entirely.
 
 **Chosen:** rewrote the two explanatory comments to describe the post-T010 reality (D8's overlap),
 without touching a single assertion, the `SUPPLIED_BY_A_COMPANION_PACKAGE` frozenset's membership,
@@ -216,7 +242,9 @@ wins the glyph when both are installed (D8), and removing it changes what
 `test_the_companion_package_exemption_is_still_referenced` actually verifies even though it would
 still pass.
 
-## Design review (S3R) — dispositions
+**ADR:** none — a prose correction in one test file.
+
+## Design review — dispositions
 
 One reviewer, three lenses, over `spec.md`, `plan.md`, `research.md`, `tasks.md`, the constitution
 and targeted reads of the code the plan names. Verdict `approve`, risk medium, no critical or high
@@ -244,8 +272,8 @@ T015. T019 edits this file to add `AccountPageMixin` to their bases once that mi
 
 **Why:** `AccountPageMixin` is T019's own deliverable. Importing it from the fixture at T015 would
 leave the tree with a broken import the moment anything resolves `tests.testapp_account.urls` —
-`craft-increments`' "never leave the package in a state where an import fails" is a hard rule
-between commits, and it outranks having the fixture "complete" a few commits early. T017's trail
+never leaving the package in a state where an import fails is a hard rule between commits, and it
+outranks having the fixture "complete" a few commits early. T017's trail
 tests still get a correct red: with the mixin absent, `page.breadcrumbs` is the `PageMixin` default
 (`[]`), so the assertions against the expected trail fail on their own terms — an assertion
 failure, not a collection error — until T019 wires the mixin in.
@@ -253,6 +281,8 @@ failure, not a collection error — until T019 wires the mixin in.
 **Revisit if:** a future story needs the fixture's breadcrumbs before T019 lands, e.g. a reordered
 task graph. Then either bring the mixin's creation forward or stub a matching
 `get_breadcrumbs()` on the fixture view directly, rather than importing ahead of its own task.
+
+**ADR:** none — fixture wiring inside one story.
 
 ## D16 — The demo's card lives in its own `demo.account_showcase` app, excluded from `tests/settings.py`
 
@@ -286,3 +316,6 @@ test that uses `demo`'s models, far outside this story's scope; (3) modifying
 **Revisit if:** a future story wants the demo to showcase two or more cards, or wants the demo's
 card content to react to demo data (a product count, say) — the satellite-app shape still holds,
 it would just gain an `account_center_card_context`.
+
+**ADR:** none — demo wiring; the demo is not part of the shipped package.
+
