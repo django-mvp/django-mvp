@@ -269,3 +269,31 @@ as an accident and the naming should be reconsidered as a set, not patched again
 
 **ADR:** none — a naming judgement scoped to this feature's own store shape, already partly settled
 by D6.
+
+## D11 — The browser tests wait for a condition, never for a duration
+
+**The situation.** One test in `tests/test_components/test_layout_store.py` failed once and passed
+on re-run, reported as a flake. It was not a flake. At mobile width an open drawer lays its overlay
+across the header, so the navbar control the test clicked a second time is genuinely unreachable —
+the click was racing the drawer's transition and winning most of the time. The module also carried
+five fixed two-hundred-millisecond sleeps standing in for "the bundle has booted by now".
+
+**Chosen**: the module waits for conditions.
+
+- Closing the drawer goes through the overlay, which is the documented way out of an open mobile
+  drawer and a plain label wired to the same checkbox. The test now exercises what a person can
+  actually reach.
+- The sleeps became one helper that blocks until the layout store is registered. The bundle is
+  deferred and stores register during start, so a loaded page is not a booted one, and a fixed
+  sleep is a flake waiting for a slower machine — of which continuous integration is one.
+- The never-persistent case waits for the browser to confirm the resize landed before asserting the
+  viewport flag stayed false. Asserting on a resize that has not happened yet proves nothing.
+
+Run three times in a row after the change, twelve passed each time.
+
+**Why this was not left for the reviewer.** An intermittent test that lands is worse than a missing
+one: it trains everyone reading the pipeline to re-run rather than to look, and this repository
+already has an open issue about browser tests failing under the parallel matrix. Hardening it costs
+minutes now and is unbounded later.
+
+**ADR:** none — test-hygiene inside this feature's own diff.

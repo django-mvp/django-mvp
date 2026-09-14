@@ -27,6 +27,17 @@ def _toggle(page):
     return page.locator("#mvp-app-toggle")
 
 
+def _wait_for_store(page):
+    """Block until the layout store is registered.
+
+    The bundle is deferred and Alpine registers its stores during start(), so a
+    page that has finished loading has not necessarily finished booting. A
+    fixed sleep would be a flake waiting for a slower machine; this waits for
+    the thing the assertion actually needs.
+    """
+    page.wait_for_function("() => window.Alpine && Alpine.store('layout')")
+
+
 @pytest.mark.django_db
 class TestTheStoreExistsAndReports:
     """A shell page always registers `Alpine.store('layout')`."""
@@ -36,7 +47,7 @@ class TestTheStoreExistsAndReports:
     ):
         page.set_viewport_size(DESKTOP)
         page.goto(f"{live_server.url}/")
-        page.wait_for_timeout(200)
+        _wait_for_store(page)
 
         store = page.evaluate(
             "() => ({ sidebarOpen: Alpine.store('layout').sidebarOpen, "
@@ -166,13 +177,21 @@ class TestTheShellWorksWithoutJavaScript:
             # unchecked. The sidebar starts closed.
             expect(toggle).not_to_be_checked()
 
-            navbar_toggle = page.locator(
+            page.locator(
                 "label[for='mvp-app-toggle'][aria-label='Open sidebar']"
-            )
-            navbar_toggle.click()
+            ).click()
             expect(toggle).to_be_checked()
 
-            navbar_toggle.click()
+            # Closing goes through the overlay, not back through the navbar
+            # control: at this width an open drawer lays its overlay across the
+            # header, so the navbar control is genuinely not the thing a person
+            # can reach. Clicking it anyway is a race against the drawer's
+            # transition, and it is the race that made this test intermittent.
+            # The overlay is the documented way out of an open mobile drawer,
+            # and it is a plain label wired to the same checkbox.
+            page.locator(
+                "label[for='mvp-app-toggle'][aria-label='Close sidebar']"
+            ).click()
             expect(toggle).not_to_be_checked()
         finally:
             context.close()
@@ -185,7 +204,7 @@ class TestConfigReportsThePerPageOverride:
 
     def test_a_page_override_beats_the_project_default(self, page, live_server):
         page.goto(f"{live_server.url}/layout/store/?breakpoint=xl")
-        page.wait_for_timeout(200)
+        _wait_for_store(page)
 
         config = page.evaluate("() => ({ ...Alpine.store('layout').config })")
         assert config["breakpoint"] == "xl"
@@ -222,15 +241,19 @@ class TestTheNeverPersistentCaseReportsCorrectly:
         self, page, live_server
     ):
         page.goto(f"{live_server.url}/layout/store/?breakpoint=never")
-        page.wait_for_timeout(200)
+        _wait_for_store(page)
 
         config = page.evaluate("() => ({ ...Alpine.store('layout').config })")
         assert config["persistent"] is False
         assert config["breakpoint_px"] is None
         assert page.evaluate("() => Alpine.store('layout').isWide") is False
 
+        # Widen to a viewport that would make a normally-configured shell
+        # report wide, and wait for the browser to agree the resize landed
+        # before asserting the flag stayed put. Without that wait the assertion
+        # could pass on a resize that had not happened yet, proving nothing.
         page.set_viewport_size(DESKTOP)
-        page.wait_for_timeout(200)
+        page.wait_for_function("() => window.matchMedia('(min-width: 1024px)').matches")
         assert page.evaluate("() => Alpine.store('layout').isWide") is False
 
 
@@ -243,7 +266,7 @@ class TestAPageWithNoShellStillGetsAStore:
         page.on("pageerror", lambda exc: errors.append(str(exc)))
 
         page.goto(f"{live_server.url}/errors/404/")
-        page.wait_for_timeout(200)
+        _wait_for_store(page)
 
         store = page.evaluate(
             "() => ({ sidebarOpen: Alpine.store('layout').sidebarOpen, "
