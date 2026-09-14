@@ -49,9 +49,13 @@ ACCOUNT_URLCONF = _urlconf()
 
 
 @pytest.mark.django_db
-@override_settings(ROOT_URLCONF=ACCOUNT_URLCONF)
 class TestAccountCenterView:
     """The landing page: who it lets in, and what it shows once they're in."""
+
+    @pytest.fixture(autouse=True)
+    def _account_urlconf(self):
+        with override_settings(ROOT_URLCONF=ACCOUNT_URLCONF):
+            yield
 
     def test_anonymous_request_is_redirected_to_sign_in(self, client):
         response = client.get(reverse("account-center"))
