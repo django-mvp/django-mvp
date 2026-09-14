@@ -155,6 +155,56 @@ class TestShippedStylesheetShipsCompleteDaisyUI:
 
 
 # ---------------------------------------------------------------------------
+# The Account Center's templates rebuilt the stylesheet (FS-028 T014)
+# ---------------------------------------------------------------------------
+
+
+class TestStylesheetShipsAccountCenterClasses:
+    """Unlike the forced daisyUI component set above, these classes reach the
+    build the ordinary way — the Tailwind JIT scanner finds them by reading
+    the templates that use them — so committing the templates without
+    rebuilding the stylesheet would ship markup the CSS does not style."""
+
+    STYLESHEET = BASE_DIR / "mvp" / "static" / "css" / "django-mvp.css"
+
+    @staticmethod
+    def _class_present(content: str, css_class: str) -> bool:
+        """A responsive class is committed with its colon escaped
+        (``lg:flex-row`` -> ``lg\\:flex-row``), so matching the bare class
+        name against the built file always finds nothing. The escape has to
+        be reproduced here, in the pattern, not just avoided by picking
+        classes that happen not to need it."""
+        escaped_class = re.escape(css_class.replace(":", "\\:"))
+        return re.search(rf"\.{escaped_class}\b", content) is not None
+
+    def test_absent_control_class_is_not_present(self):
+        """A class nothing in the package uses, checked absent with the same
+        technique the cases below use present — proving the technique can
+        also report "missing" correctly, not only "found"."""
+        content = self.STYLESHEET.read_text(encoding="utf-8")
+        assert not self._class_present(content, "not-a-real-django-mvp-class")
+
+    @pytest.mark.parametrize(
+        "css_class",
+        [
+            "lg:flex-row",
+            "lg:items-start",
+            "lg:gap-6",
+            "sm:grid-cols-2",
+            "lg:shrink-0",
+        ],
+    )
+    def test_account_center_template_class_is_present(self, css_class):
+        """Each of these is introduced by the Account Center's templates
+        (mvp/templates/mvp/account/*.html, cotton/account/nav.html)."""
+        content = self.STYLESHEET.read_text(encoding="utf-8")
+        assert self._class_present(content, css_class), (
+            f".{css_class} is missing from the shipped stylesheet — rebuild it "
+            "with `invoke build-stylesheet` (Article XV)."
+        )
+
+
+# ---------------------------------------------------------------------------
 # The shipped stylesheet carries every prebuilt daisyUI theme (FS-026)
 # ---------------------------------------------------------------------------
 
