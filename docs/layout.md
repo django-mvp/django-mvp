@@ -455,6 +455,32 @@ when the choice is view- rather than template-driven.
 > (a sibling region) — resolve them in the `app` block as above so all three stay in
 > sync.
 
+## Reading the resolved layout in Python
+
+By the time a page renders, the layout settings above have been through a resolution
+step: a page-level override has replaced the project default where there is one, a
+breakpoint name has become a pixel width, and `never` has become a flag rather than a
+width. `LayoutConfig` is where that happens, and it is the only place it happens.
+
+```python
+from mvp.layout import LayoutConfig
+
+config = LayoutConfig("xl", collapse="icons")
+config.breakpoint      # "xl"
+config.breakpoint_px   # 1280
+config.persistent      # True
+config.as_dict()       # every value above, as plain data
+```
+
+It normalises two cases you would otherwise have to handle yourself. `never` and `none`
+in any capitalisation mean the sidebar is an overlay at every width, so `persistent` is
+`False` and `breakpoint_px` is `None` — there is no width to report. A breakpoint name
+the package does not recognise falls back to `lg` rather than raising, so a typo in
+`MVP_CONFIG` costs you the default rather than the page.
+
+`as_dict()` is what the shell hands to the browser, so the names above are the same
+names client-side code reads.
+
 ## Template blocks
 
 `mvp/base.html` exposes blocks for coarse-grained control:
