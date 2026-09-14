@@ -319,3 +319,31 @@ it would just gain an `account_center_card_context`.
 
 **ADR:** none — demo wiring; the demo is not part of the shipped package.
 
+## Code review — dispositions
+
+One reviewer over the feature diff, carrying correctness, spec compliance, security and
+documentation lenses. Verdict `request_changes`, risk medium, one verified high finding.
+
+- **COR-001 (high, verified) — fixed.** Every contributing app's card context was merged into the
+  landing page's own template context, so a card naming `user`, `page` or another card's key
+  replaced it for the whole render, with a 200 in the log and no error anywhere. The reviewer
+  reproduced it: a card context returning a string for `user` left the page rendering without its
+  signed-in user. Cards are now rendered one at a time, each against its own context and with the
+  request, and the page receives finished markup. A regression test asserts the view's own context
+  no longer carries a card's key; it was proved red against the merging version and green against
+  the fix.
+- **COR-002 (low, verified) — fixed with it.** The documentation described only the narrower
+  card-versus-card collision. Both the guide and the shipped skill now state the isolation rule
+  and why it exists.
+- **COR-003 (low, verified) — declined.** The finding is that `_iter_leaves` carries a leading
+  underscore. The package's own convention is the opposite of the reviewer's premise:
+  `mvp/config.py`, `mvp/fixtures.py` and `mvp/templatetags/mvp.py` all name module-level helpers
+  that way. Renaming one of four would make the package less consistent, and renaming all four is
+  not this feature's work.
+- **COR-004 (low, likely) — recorded as issue #344.** The menu is processed twice per render of an
+  account page, once for the trail and once for the panel, so every entry's visibility check runs
+  twice. Harmless at today's menu sizes and with today's checks, and the fix changes how the view
+  and the panel share state, which is more than this feature needs.
+
+**ADR:** none — review dispositions, not a decision anything inherits. The rule COR-001 established
+is recorded where it binds: in `AccountCenterView`'s docstring and in the card documentation.

@@ -7,6 +7,7 @@ area's URLconf).
 
 from django.apps import apps
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
@@ -61,11 +62,19 @@ class AccountCenterView(LoginRequiredMixin, AccountPageMixin, MVPTemplateView):
     section resolution.
 
     ``get_context_data`` walks every installed application configuration
-    collecting ``account_center_card_template``, calling
-    ``account_center_card_context(request)`` where it exists and merging what
-    it returns, the same shape django-accounts-center's own
-    ``AccountCenterView`` uses (``dac/views.py``) — an app declaring neither
-    attribute contributes nothing (US-3, FR-018, FR-019, FR-020).
+    collecting ``account_center_card_template``, renders each one against the
+    context its own ``account_center_card_context(request)`` returns, and hands
+    the rendered cards to the page — an app declaring neither attribute
+    contributes nothing (US-3, FR-018, FR-019, FR-020).
+
+    **A card is rendered in a context of its own.** What one app's card
+    context returns reaches that card and nothing else: not the page around
+    it, and not another app's card. Merging every contributor's context into
+    the page's own would let a card name ``user``, ``page`` or another card's
+    key and silently replace it for the whole render, which is a card
+    breaking the page that hosts it. Each card still gets the request and
+    everything the project's context processors put there, because it is
+    rendered with the request.
     """
 
     template_name = "mvp/account/overview.html"
@@ -74,14 +83,15 @@ class AccountCenterView(LoginRequiredMixin, AccountPageMixin, MVPTemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        card_templates = []
+        cards = []
         for app_config in apps.get_app_configs():
             template_name = getattr(app_config, "account_center_card_template", None)
             if not template_name:
                 continue
-            get_extra_context = getattr(app_config, "account_center_card_context", None)
-            if get_extra_context:
-                context.update(get_extra_context(self.request))
-            card_templates.append(template_name)
-        context["account_center_cards"] = card_templates
+            get_card_context = getattr(app_config, "account_center_card_context", None)
+            card_context = get_card_context(self.request) if get_card_context else {}
+            cards.append(
+                render_to_string(template_name, card_context, request=self.request)
+            )
+        context["account_center_cards"] = cards
         return context

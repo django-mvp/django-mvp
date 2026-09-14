@@ -217,8 +217,13 @@ An app that declares no `account_center_card_template` contributes nothing, and 
 simply has one fewer card. Contributing a card and adding a menu entry are independent —
 neither requires the other.
 
-`account_center_card_context(request)`'s return value is merged directly into the landing
-page's own template context, the same way any other context dict is. Two apps whose
-context uses the same key collide — whichever app is collected last overwrites the one
-before it — so prefix your keys with your app's name, the way `yourapp_thing_count` does
-above, rather than something generic like `count`.
+Each card is rendered in a context of its own. What `account_center_card_context(request)`
+returns reaches your card and nothing else: not the page around it, and not another app's
+card. Your card is rendered with the request, so it still has everything your project's
+context processors provide, including `request` and `request.user`.
+
+That isolation is deliberate. A card is code from one app rendered inside a page owned by
+another, and a shared context would let any card name `user`, `page` or another app's key
+and replace it for the whole render — a card breaking the page hosting it, silently and
+with a 200 in the log. Naming a key `count` is a matter of taste now, rather than a way to
+break somebody else's card.

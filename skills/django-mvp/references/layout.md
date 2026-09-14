@@ -40,8 +40,9 @@ The template chain matters when you decide where to put an override:
 An installed app puts a card on `mvp/account/overview.html` by declaring
 `account_center_card_template` (and optionally `account_center_card_context(request)`) on its
 `AppConfig` — no page or menu entry required. `AccountCenterView` collects one from every
-installed app and renders it inside `<c-account.card>`. Two apps' context colliding on the same
-key means prefix your keys with your app's name. See [Contributing a
+installed app and renders it inside `<c-account.card>`. Each card is rendered in a context of
+its own — what an app's card context returns reaches that card alone, never the page or another
+app's card — and with the request, so context processors still apply. See [Contributing a
 card](../../../docs/account-center.md#contributing-a-card) for the full worked example.
 
 Because the view templates extend the unqualified name `base.html`, a

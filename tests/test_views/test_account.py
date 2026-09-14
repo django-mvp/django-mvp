@@ -14,6 +14,7 @@ import re
 from pathlib import Path
 
 import pytest
+from django.apps import apps as django_apps
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.template.loader import render_to_string
@@ -241,9 +242,7 @@ class TestAccountCenterCards:
             INSTALLED_APPS=[*settings.INSTALLED_APPS, self.CARD_NO_MENU_APP]
         ):
             response = client.get(reverse("account-center"))
-        assert response.context["account_center_cards"] == [
-            "testapp_card_no_menu/card.html"
-        ]
+        assert len(response.context["account_center_cards"]) == 1
         content = response.content.decode()
         assert 'data-testid="testapp-card-no-menu"' in content
         assert "No Menu Card" in content
@@ -258,10 +257,7 @@ class TestAccountCenterCards:
             ]
         ):
             response = client.get(reverse("account-center"))
-        assert response.context["account_center_cards"] == [
-            "testapp_card_with_menu/card.html",
-            "testapp_card_no_menu/card.html",
-        ]
+        assert len(response.context["account_center_cards"]) == 2
         content = response.content.decode()
         assert 'data-testid="testapp-card-with-menu"' in content
         assert 'data-testid="testapp-card-no-menu"' in content
@@ -279,9 +275,8 @@ class TestAccountCenterCards:
         ):
             response = client.get(reverse("account-center"))
         assert response.status_code == 200
-        assert response.context["account_center_cards"] == [
-            "testapp_card_no_menu/card.html"
-        ]
+        assert len(response.context["account_center_cards"]) == 1
+        assert 'data-testid="testapp-card-no-menu"' in response.content.decode()
 
     def test_a_menu_entry_alongside_a_card_does_not_disturb_collection(
         self, client, django_user_model, card_with_menu_entries
@@ -294,10 +289,38 @@ class TestAccountCenterCards:
             INSTALLED_APPS=[*settings.INSTALLED_APPS, self.CARD_WITH_MENU_APP]
         ):
             response = client.get(reverse("account-center"))
-        assert response.context["account_center_cards"] == [
-            "testapp_card_with_menu/card.html"
-        ]
+        assert len(response.context["account_center_cards"]) == 1
         content = response.content.decode()
         assert 'data-testid="testapp-card-with-menu"' in content
         assert "With Menu Card" in content
         assert "Card With Menu Fixture" in content
+
+    def test_a_cards_context_cannot_replace_the_pages_own(
+        self, client, django_user_model, monkeypatch
+    ):
+        """A card is rendered in a context of its own, so a card context that
+        names a key the page itself uses — ``user`` is the one with teeth,
+        since the shell's user menu and avatar resolve it — changes what that
+        card sees and nothing else. Merging card contexts into the page's own
+        made this silently replace the signed-in user for the whole render:
+        the page returned 200 with the user display gone."""
+        self._login(client, django_user_model, "victim")
+        with override_settings(
+            INSTALLED_APPS=[*settings.INSTALLED_APPS, self.CARD_NO_MENU_APP]
+        ):
+            app_config = django_apps.get_app_config("testapp_card_no_menu")
+            monkeypatch.setattr(
+                app_config,
+                "account_center_card_context",
+                lambda request: {"user": "I AM NOT A USER OBJECT"},
+                raising=False,
+            )
+            response = client.get(reverse("account-center"))
+
+        assert response.status_code == 200
+        # The view's own context dict — what the page and the shell around it
+        # render from. Merging card contexts into it put the card's value here,
+        # replacing the signed-in user for the whole render.
+        assert "user" not in response.context_data
+        # The card still received what its own app supplied.
+        assert 'data-testid="testapp-card-no-menu"' in response.content.decode()
