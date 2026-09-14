@@ -1,0 +1,11 @@
+{% extends "mvp/account/base.html" %}
+{% comment %}
+  Fixture for FS-029 US-3 T013/T016: renders the account layout (the fourth
+  governed region) inside the full shell, so the same page also carries the
+  navbar's mobile/desktop widget lists and sidebar-toggle/site-icon (the
+  other three) — one page load exercises all four regions for a given
+  breakpoint/collapse combination.
+{% endcomment %}
+{% block account.content %}
+  responsive-visibility-regions-content
+{% endblock account.content %}
