@@ -10,9 +10,9 @@
  * synchronously while it registers stores, before it walks the DOM. By the
  * time init() below reads the drawer checkbox, the blocking pre-paint
  * script in mvp/templates/cotton/layout/sidebar/index.html has already set
- * its checked state. Once the checkbox itself binds to this store (T005),
- * the checked state Alpine then applies is the same value this store just
- * read from that checkbox — so nothing moves. See
+ * its checked state. The checkbox's own x-model binding is applied during
+ * Alpine's later DOM walk, and it writes back the value this store already
+ * read from that same checkbox — so nothing moves. See
  * specs/029-layout-state-store/decisions.md D5.
  *
  * A page that renders no shell (the entrance page, the error pages) has no
@@ -51,18 +51,39 @@ function parseConfig() {
   }
 }
 
+// The blocking pre-paint script is the single definition of the persisted
+// default and the storage key (FR-006): it resolves the value before first
+// paint and renders both the key (data-mvp-persist-key) and the value it
+// resolved (data-mvp-persist-open) onto the checkbox. Reading them here,
+// rather than restating either as a literal, is what keeps the definition
+// singular.
+function persistedDesktopOpen(toggle) {
+  const key = toggle?.dataset.mvpPersistKey;
+  if (!key) {
+    return { key: "mvp-app-drawer-open", initial: true };
+  }
+  let initial = true;
+  if (toggle.dataset.mvpPersistOpen !== undefined) {
+    try {
+      initial = JSON.parse(toggle.dataset.mvpPersistOpen);
+    } catch (e) {}
+  }
+  return { key, initial };
+}
+
 export function registerLayoutStore(Alpine) {
+  const toggle = findDrawerToggle();
+  const { key, initial } = persistedDesktopOpen(toggle);
+
   Alpine.store("layout", {
     config: { ...DEFAULT_CONFIG },
     sidebarOpen: false,
-    desktopOpen: Alpine.$persist(true).as("mvp-app-drawer-open"),
+    desktopOpen: Alpine.$persist(initial).as(key),
     isWide: false,
     headerStuck: false,
 
     init() {
       this.config = parseConfig();
-
-      const toggle = findDrawerToggle();
       this.sidebarOpen = toggle ? toggle.checked : false;
 
       if (this.config.persistent && this.config.breakpoint_px) {
@@ -72,6 +93,32 @@ export function registerLayoutStore(Alpine) {
           this.isWide = event.matches;
         });
       }
+
+      // Mirrors the sidebar's open state into the persisted desktop state,
+      // only at/above the breakpoint — the same guard the drawer's own
+      // $watch used before this state moved into the store. Alpine.watch
+      // does not fire on registration, only on a later change, so the
+      // checkbox's already-correct initial state is never written back.
+      Alpine.watch(
+        () => this.sidebarOpen,
+        (value) => {
+          if (this.isWide) {
+            this.desktopOpen = value;
+          }
+        },
+      );
+    },
+
+    // Called from index.js's htmx:afterSettle handler when a boosted
+    // navigation replaced <body>. The fresh drawer's checkbox is server-
+    // rendered closed, and the drawer itself is a new element — so
+    // re-derive the resting position rather than letting a stale
+    // sidebarOpen (a mobile overlay left open, say) carry over: open only
+    // when the viewport is wide and the remembered desktop state says so.
+    // This reproduces today's behaviour exactly — a mobile overlay closes
+    // on navigation, a desktop sidebar does not.
+    rebindAfterNavigation() {
+      this.sidebarOpen = this.isWide && this.desktopOpen;
     },
   });
 }

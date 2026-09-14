@@ -62,6 +62,11 @@ document.addEventListener("htmx:afterSettle", (event) => {
   if (event.detail?.target === document.body) {
     themeChange(false);
     startDropdowns();
+    // The swapped-in drawer is a new element with a fresh, server-closed
+    // checkbox; re-derive the sidebar's resting position rather than
+    // leaving the global store's sidebarOpen at whatever it held before
+    // the swap. See assets/js/layout.js.
+    Alpine.store("layout").rebindAfterNavigation();
   }
 });
 
