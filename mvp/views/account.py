@@ -5,6 +5,7 @@ Source: mvp/menus.py (AccountCenterMenu, get_active_section), mvp/urls.py (the
 area's URLconf).
 """
 
+from django.apps import apps
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
@@ -58,8 +59,29 @@ class AccountCenterView(LoginRequiredMixin, AccountPageMixin, MVPTemplateView):
     here. ``AccountPageMixin`` yields the single, unlinked area crumb here,
     since ``get_active_section`` excludes the area's own landing page from
     section resolution.
+
+    ``get_context_data`` walks every installed application configuration
+    collecting ``account_center_card_template``, calling
+    ``account_center_card_context(request)`` where it exists and merging what
+    it returns, the same shape django-accounts-center's own
+    ``AccountCenterView`` uses (``dac/views.py``) — an app declaring neither
+    attribute contributes nothing (US-3, FR-018, FR-019, FR-020).
     """
 
     template_name = "mvp/account/overview.html"
     page_title = _("Account Center")
     page_subtitle = _("Manage your account and see what's available to you here.")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        card_templates = []
+        for app_config in apps.get_app_configs():
+            template_name = getattr(app_config, "account_center_card_template", None)
+            if not template_name:
+                continue
+            get_extra_context = getattr(app_config, "account_center_card_context", None)
+            if get_extra_context:
+                context.update(get_extra_context(self.request))
+            card_templates.append(template_name)
+        context["account_center_cards"] = card_templates
+        return context
