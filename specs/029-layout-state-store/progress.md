@@ -300,3 +300,24 @@ touching it.
 Next: T012 — document every key in `docs/layout.md` and
 `skills/django-mvp/references/layout.md` as a table; the `config` row currently there names the six
 keys without saying what each means.
+
+## 2026-09-14T23:05:00Z · Implementer US-2 · T012
+
+Did: Documented every key the store carries as a table in both `docs/layout.md` and
+`skills/django-mvp/references/layout.md`. The existing `config` row in `docs/layout.md` named its
+six keys without saying what each meant — broke it out into its own table under a new "Reading the
+resolved configuration" subsection, cross-referencing the sections that already document each
+underlying `MVP_CONFIG` setting. The skill reference's store section was prose only (no table at
+all) — converted it to one table covering both the four reactive properties and the six `config`
+keys, since T012 asks for every key, not only the new ones. Both files note briefly why `config`
+stays nested (pointing at `decisions.md` D10) and mention the demo's new `?breakpoint=` parameter.
+
+Verified: read both files back after editing; every example given (`$store.layout.config.breakpoint`,
+`.breakpoint_px`, `.isWide`) matches a property `assets/js/layout.js` actually exposes, and the
+`/layout/store/?breakpoint=xl` / `?breakpoint=never` URLs match the T011 view. No code changed in
+this task.
+
+## 2026-09-14T23:08:00Z · Implementer US-2 · story complete
+
+T010, T011, T012 done. Ran the repository's full verify once, per the protocol — see the
+completion report for exact commands and results.
