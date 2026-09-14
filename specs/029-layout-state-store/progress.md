@@ -29,4 +29,5 @@ Title lint: green.
 
 ## 2026-09-14 — Specification sign-off
 
-Awaiting the maintainer's decision.
+Approved by the maintainer, unchanged. Planning starts. The maintainer also waived the
+post-planning notification, so the next point he is involved is the merge decision.
