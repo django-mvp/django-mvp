@@ -14,6 +14,8 @@ import re
 from pathlib import Path
 
 import pytest
+from bs4 import BeautifulSoup
+from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.template.loader import render_to_string
 from django.test import RequestFactory, override_settings
@@ -181,3 +183,109 @@ class TestAccountMenuCurrentItem:
         assert re.search(r"menu-active[^>]*>.*?Fixture Plain", content, re.DOTALL), (
             "the fixture's own entry should be marked as the one being viewed"
         )
+
+
+def _installed_apps_with(*card_apps):
+    """``settings.INSTALLED_APPS`` with ``card_apps`` inserted immediately
+    before ``"mvp"``.
+
+    The block-and-extend pattern (FR-018) resolves the *first* app in
+    INSTALLED_APPS order that ships ``mvp/account/overview.html`` — the
+    standard Django app-template-override convention. A contributing app
+    installed after ``mvp`` is never reached: the app_directories loader
+    returns mvp's own copy on the very first lookup and never tries the
+    rest. Appending — the way the old attribute-based mechanism's tests
+    did — does not compose these templates; this precedes ``mvp`` instead.
+    """
+    installed_apps = list(settings.INSTALLED_APPS)
+    mvp_index = installed_apps.index("mvp")
+    return [*installed_apps[:mvp_index], *card_apps, *installed_apps[mvp_index:]]
+
+
+@pytest.mark.django_db
+class TestAccountCenterCards:
+    """The landing page's card region (US-3, T021, reworked T030): an
+    installed app contributes by shipping its own copy of
+    ``mvp/account/overview.html``, extending the package's template of the
+    same name, and adding to ``{% block account.cards %}`` through
+    ``{{ block.super }}`` (Refined 2026-09-14). The two fixture apps,
+    ``tests.testapp_card_with_menu`` and ``tests.testapp_card_no_menu``
+    (T024), are activated per test with ``override_settings(INSTALLED_APPS=...)``
+    — never installed globally, so
+    ``TestAccountCenterView.test_signed_in_request_shows_no_cards`` above stays
+    green (ARC-001). Mounted through ``ACCOUNT_FIXTURE_URLCONF`` so
+    ``testapp_account:plain`` — the target ``testapp_card_with_menu``'s entry
+    points at — resolves.
+    """
+
+    CARD_WITH_MENU_APP = "tests.testapp_card_with_menu"
+    CARD_NO_MENU_APP = "tests.testapp_card_no_menu"
+
+    @pytest.fixture(autouse=True)
+    def _account_fixture_urlconf(self):
+        with override_settings(ROOT_URLCONF=ACCOUNT_FIXTURE_URLCONF):
+            yield
+
+    def _login(self, client, django_user_model, username):
+        user = django_user_model.objects.create_user(
+            username=username, password="pass123!"
+        )
+        client.force_login(user)
+
+    def _cards(self, content):
+        """The ``<c-card>`` surfaces actually rendered inside the card
+        region — counted from the real markup, not a context list the view
+        no longer builds."""
+        soup = BeautifulSoup(content, "html.parser")
+        region = soup.find(id="account-center-cards")
+        return region.find_all(class_="card")
+
+    def test_with_neither_app_installed_the_region_is_empty(
+        self, client, django_user_model
+    ):
+        self._login(client, django_user_model, "cardsuser0")
+        response = client.get(reverse("account-center"))
+        assert self._cards(response.content.decode()) == []
+
+    def test_one_contributing_app_renders_its_card_alone(
+        self, client, django_user_model
+    ):
+        self._login(client, django_user_model, "cardsuser1")
+        with override_settings(
+            INSTALLED_APPS=_installed_apps_with(self.CARD_NO_MENU_APP)
+        ):
+            response = client.get(reverse("account-center"))
+        content = response.content.decode()
+        assert len(self._cards(content)) == 1
+        assert 'data-testid="testapp-card-no-menu"' in content
+        assert "No Menu Card" in content
+
+    def test_two_contributing_apps_both_get_their_card(self, client, django_user_model):
+        self._login(client, django_user_model, "cardsuser2")
+        with override_settings(
+            INSTALLED_APPS=_installed_apps_with(
+                self.CARD_WITH_MENU_APP, self.CARD_NO_MENU_APP
+            )
+        ):
+            response = client.get(reverse("account-center"))
+        content = response.content.decode()
+        assert len(self._cards(content)) == 2
+        assert 'data-testid="testapp-card-with-menu"' in content
+        assert 'data-testid="testapp-card-no-menu"' in content
+
+    def test_a_menu_entry_alongside_a_card_does_not_disturb_it(
+        self, client, django_user_model, card_with_menu_entries
+    ):
+        """FR-020, from the other direction: ``testapp_card_with_menu`` has a
+        real, resolvable menu entry attached here, and it does not prevent,
+        duplicate, or otherwise disturb its own card contribution."""
+        self._login(client, django_user_model, "cardsuser3")
+        with override_settings(
+            INSTALLED_APPS=_installed_apps_with(self.CARD_WITH_MENU_APP)
+        ):
+            response = client.get(reverse("account-center"))
+        content = response.content.decode()
+        assert len(self._cards(content)) == 1
+        assert 'data-testid="testapp-card-with-menu"' in content
+        assert "With Menu Card" in content
+        assert "Card With Menu Fixture" in content

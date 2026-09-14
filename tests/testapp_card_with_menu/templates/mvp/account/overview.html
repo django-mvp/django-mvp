@@ -1,0 +1,7 @@
+{% extends "mvp/account/overview.html" %}
+{% block account.cards %}
+  {{ block.super }}
+  <c-card title="With Menu Card">
+    <c-text data-testid="testapp-card-with-menu">With Menu Card</c-text>
+  </c-card>
+{% endblock account.cards %}
