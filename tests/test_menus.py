@@ -7,7 +7,7 @@ That is a small surface, and all three of the ways it can go wrong are silent
 so each gets an assertion.
 """
 
-from mvp.menus import MenuCollapse, MobileFooterMenu
+from mvp.menus import AccountCenterMenu, MenuCollapse, MobileFooterMenu
 
 
 class TestMenuCollapse:
@@ -69,3 +69,20 @@ class TestShippedMenus:
     def test_the_sidebar_toggle_flips_the_drawer_checkbox(self):
         toggle = MobileFooterMenu.children[0]
         assert toggle.extra_context["toggle"] == "mvp-app-toggle"
+
+
+class TestAccountCenterMenu:
+    """``AccountCenterMenu`` ships carrying only its own landing-page entry
+    (FR-007) — everything else belongs to whichever app adds to it (US-2)."""
+
+    def test_ships_exactly_one_child(self):
+        """Asserted as an exact count, not "at least one": a second packaged
+        entry would be a page the area itself decided to add, which is the
+        job left to an installed app."""
+        assert len(AccountCenterMenu.children) == 1
+
+    def test_the_one_child_is_named_overview(self):
+        assert AccountCenterMenu.children[0].name == "overview"
+
+    def test_the_overview_child_points_at_the_landing_page(self):
+        assert AccountCenterMenu.children[0].view_name == "account-center"
