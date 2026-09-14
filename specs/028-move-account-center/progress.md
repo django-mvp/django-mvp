@@ -235,3 +235,24 @@ tests/test_views/test_account.py tests/test_components/test_account_nav.py -q` �
 `poetry run ruff check`/`ruff format --check` clean on both changed files.
 `python manage.py makemigrations --check --dry-run` — no changes detected.
 Next: T020 (docs). Watch: —
+
+## 2026-09-14 · Implementer US2 · T020
+
+Did: `docs/account-center.md` — replaced the "Where the later sections go" placeholder with
+"Adding a menu entry and a page", four worked examples (a menu entry, a page against the layout
+composing `AccountPageMixin`, per-request visibility via `check`, and declaring section membership
+via `extra_context["url_names"]`) plus a shortened stub for the still-unbuilt US-3 section.
+Corrected the `url_names` example while writing it: the prefix match is against
+`request.resolver_match.url_name`, which excludes the app's namespace, so the worked example uses
+`"notifications"` rather than `"yourapp:notifications"` — verified against `mvp/menus.py`'s actual
+`get_active_section` and T018's manual check, not assumed. Mirrored into
+`skills/django-mvp/references/menus.md`'s `AccountCenterMenu` paragraph: `url_names`, the
+unnamespaced-match caveat, and a cross-reference to the full docs example. Left `CHANGELOG.md`,
+`docs/views.md` and `docs/navigation.md` untouched — none are in this story's declared file scope.
+Verified: `python3 kit/forge docs-check --repo . --base origin/main` (run from the engineering
+workspace) — clean, 0 findings; confirms every new public name this story added
+(`AccountPageMixin`, `get_active_section`) is quoted as code somewhere under `docs/`. Read-through
+of both changed pages against the branch as it stands — the `AccountPageMixin` composition example
+matches `mvp/views/account.py` exactly, and the `url_names` example matches the fixture app's own
+working `("grouped",)` declaration in shape.
+Next: §5 — the full verify, then the completion report. Watch: —
