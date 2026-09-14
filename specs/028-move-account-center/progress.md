@@ -318,3 +318,35 @@ skip, unrelated). `poetry run djlint --check` clean on both templates. `poetry r
 Next: T025 — the demo's own card. Watch: contributing a card to `demo`'s main `AppConfig` would
 also contribute it under `tests/settings.py` (which inherits `demo/settings.py`'s
 `INSTALLED_APPS` wholesale), turning `test_signed_in_request_shows_no_cards` red — see D16.
+
+## 2026-09-14 · Implementer US3 · T025
+
+Did: `demo/account_showcase/` — a new, small `AppConfig` (`account_center_card_template` only, no
+context method) contributing a "Component Library" card linking to the demo's existing `layout`
+page. Added to `demo/settings.py`'s `INSTALLED_APPS`; filtered back out in `tests/settings.py`
+with a one-line list comprehension mirroring the file's existing "pin things independent of demo"
+style (D16).
+Verified: `DJANGO_SETTINGS_MODULE=demo.settings poetry run python -c "..."` — confirms
+`demo.account_showcase` is installed and its card template is in `apps.get_app_configs()` under
+`demo.settings`, and renders cleanly standalone (`render_to_string`, `{% url 'layout' %}`
+resolves). `DJANGO_SETTINGS_MODULE=tests.settings poetry run python -c "..."` — confirms
+`demo.account_showcase` is absent from `tests.settings.INSTALLED_APPS` while `demo` itself remains.
+`poetry run pytest tests/test_views/test_account.py -q` — 16 passed, including
+`test_signed_in_request_shows_no_cards`. `poetry run djlint --check`/`--reformat` and `ruff
+check`/`ruff format --check` clean on all new/changed files.
+Next: T026 — docs. Watch: —
+
+## 2026-09-14 · Implementer US3 · T026
+
+Did: `docs/account-center.md` — replaced the "Where the next section goes" placeholder with
+"Contributing a card": the `AppConfig` attribute pair, the card's own template, the
+independent-of-menu-entries note, and the context key-collision/prefix note. Mirrored a short
+version into `skills/django-mvp/references/layout.md`, placed after the landing-page table row (the
+same spot T020 used for the menu-entry/page mirror), linking back to the full docs example.
+Left `CHANGELOG.md` untouched — not in this story's declared file scope.
+Verified: the doc's `account_center_card_context(self, request)` signature matches
+`mvp/views/account.py`'s `getattr(app_config, "account_center_card_context", None)` call shape
+exactly, and both fixture apps (`tests/testapp_card_no_menu`, `tests/testapp_card_with_menu`) and
+the demo's own `demo/account_showcase` already implement the identical pattern the doc describes,
+proven working by T021's and T025's own test/manual runs.
+Next: T027 — the closing check. Watch: —
