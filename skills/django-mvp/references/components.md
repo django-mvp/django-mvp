@@ -286,7 +286,7 @@ know what you are looking at when you override one. Configure the shell through
 | Tag | What it is | Attributes (default) | Slots |
 |---|---|---|---|
 | `<c-app>` | The whole shell: a drawer holding the sidebar beside the page content | `breakpoint` (from config) | default |
-| `<c-layout.sidebar>` | The drawer mechanism `<c-app>` is built on: the toggle, the overlay, and desktop open-state persistence | `id`, `breakpoint` (from config), `class` | default, `sidebar` |
+| `<c-layout.sidebar>` | The drawer mechanism `<c-app>` is built on: the toggle, the overlay, desktop open-state persistence, and the resolved layout it publishes to the browser | `id`, `breakpoint`, `collapse`, `sticky`, `boost` (all from config), `class` | default, `sidebar` |
 | `<c-app.header>` | The header band, optionally pinned to the top on scroll | `sticky`, `breakpoint`, `collapse` (all from config) | `above`, `right`, `tray`, `below` |
 | `<c-app.header.navbar>` | Inside the header: sidebar toggle, site name, then the configured navbar widgets — separate mobile and desktop lists | `breakpoint`, `collapse` (from config) | `right` |
 | `<c-app.sidebar>` | The sidebar itself: brand header, `AppMenu`, footer widgets | `menu` (`AppMenu`), `brand-url` (`/`), `bg`, `collapse`, `title`, `boost` (from config), `class` | — |

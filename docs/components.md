@@ -38,7 +38,7 @@ Empty, unopinionated building blocks — you provide the content.
 | `c-divider` | `vertical` (True or a breakpoint), `variant`, `position`, `class` — a section break, with room for a label |
 | `c-rule` | `class` — a hairline between items in one list, where a divider would be too loud |
 | `c-backdrop` | `opacity` — absolute overlay (e.g. over hero images) |
-| `c-layout.sidebar` | `id`, `breakpoint` — reusable drawer shell (what `c-app` uses) |
+| `c-layout.sidebar` | `id`, `breakpoint`, `collapse`, `sticky`, `boost` — reusable drawer shell (what `c-app` uses). The last four default to their `MVP_CONFIG` values and are the resolved layout it publishes to the browser |
 
 ## Page structure
 
