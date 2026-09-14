@@ -2,7 +2,7 @@
   "feature": "029-layout-state-store",
   "branch": "029-layout-state-store",
   "repo": "django-mvp/django-mvp",
-  "state": "CONVERGE",
+  "state": "REVIEW",
   "state_history": [
     {
       "state": "INTAKE",
@@ -43,6 +43,11 @@
       "state": "CONVERGE",
       "at": "2026-09-15T00:30:00Z",
       "note": "cleanup pass, two ADRs graduated, verify green"
+    },
+    {
+      "state": "REVIEW",
+      "at": "2026-09-15T02:00:00Z",
+      "note": "one round; 10 findings, all verified and all fixed"
     }
   ],
   "gates": {
@@ -82,6 +87,22 @@
         "ARCH-001 medium: the store must register after the persist plugin, not merely before Alpine starts",
         "ARCH-002 medium: the payload was planned for the template D4 rejected \u2014 moved to the drawer component",
         "SPEC-008 low: breakpoint_px returns 1024 under never and nothing asserts it \u2014 pinned in T002"
+      ]
+    },
+    "review": {
+      "approved_by": "reviewer",
+      "at": "2026-09-15T02:00:00Z",
+      "self_resolved": [
+        "RVW-001 high: the Account Center layout depended on an ancestor attribute a project-owned base.html need not render \u2014 the row now carries it itself",
+        "RVW-002 medium: two documentation passages said setting the breakpoint on <c-app> does not reach the navbar toggle, which is no longer true \u2014 corrected",
+        "RVW-003 medium: the header forwarded a breakpoint and collapse mode the navbar no longer reads \u2014 removed, and the shipped skill's tables corrected",
+        "RVW-004 medium: max-width complements left a gap at fractional viewport widths \u2014 all five now use the exact complement form",
+        "RVW-005 medium: the store's default configuration described a state the server cannot produce \u2014 made consistent and pinned by a test",
+        "RVW-006 low: the visibility classes set display:flex and sit outside the utility layer \u2014 documented",
+        "RVW-007 low: the header's stuck state was not re-derived after a boosted navigation \u2014 fixed and tested",
+        "RVW-008 low: two fixed sleeps and a store read before the store existed \u2014 replaced with waits on conditions",
+        "RVW-009 low: two characterisation tests never exercised the drawer state they named \u2014 both now do",
+        "RVW-010 low: the storage key was restated as a literal in the bundle \u2014 the fallback no longer persists at all"
       ]
     }
   },
@@ -353,7 +374,7 @@
       "max": 2
     },
     "review_cycles": {
-      "used": 0,
+      "used": 1,
       "max": 1
     },
     "design_review_cycles": {
