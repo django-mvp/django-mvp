@@ -31,3 +31,18 @@ Title lint: green.
 
 Approved by the maintainer, unchanged. Planning starts. The maintainer also waived the
 post-planning notification, so the next point he is involved is the merge decision.
+
+## 2026-09-14T21:55:00Z · Implementer US0 · T001
+
+Did: Added `mvp/layout.py` with `LayoutConfig` — one class carrying `breakpoint`, `persistent`,
+`breakpoint_px`, `collapse`, `sticky`, `boost` and `as_dict()`. Normalisation (never/none in any
+case, unrecognised name falls back to `lg`) lives only in this class's `breakpoint`/`persistent`/
+`breakpoint_px` properties.
+
+Verified: `poetry run pytest tests/test_layout.py -x` → 15 passed. `poetry run ruff check` and
+`poetry run ruff format --check` on both new files → clean. `poetry run mypy mvp/layout.py` →
+clean.
+
+Next: T002 — the surviving tags read the resolver.
+
+Watch: none.
