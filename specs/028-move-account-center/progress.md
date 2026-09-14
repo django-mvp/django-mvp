@@ -219,3 +219,19 @@ returns exactly the three shapes T017 expects: `is_current=True` on the section'
 `is_current=False` one level below it, `None` on the overview page.
 Next: T019 — `AccountPageMixin`, plus wiring it into `tests/testapp_account/views.py` (D15), is
 what turns T017's three red tests green. Watch: —
+
+## 2026-09-14 · Implementer US2 · T019
+
+Did: `mvp/views/account.py` — `AccountPageMixin.get_breadcrumbs()`: the single unlinked area crumb
+when `get_active_section` returns `None`, otherwise `[area(linked to account-center), section]`
+with the section crumb linked or unlinked per `is_current`. `AccountCenterView` now composes it
+(`LoginRequiredMixin, AccountPageMixin, MVPTemplateView`) ahead of `MVPTemplateView` in the MRO so
+it overrides `PageMixin`'s default `get_breadcrumbs`. Docstring states the composition contract —
+a contributing app supplies its own access mixin, this one supplies none (D4, FR-004). Closed out
+D15: `tests/testapp_account/views.py`'s three fixture views now compose `AccountPageMixin` too.
+Verified: `poetry run pytest tests/test_views/test_account.py -q` — 12 passed (T017's three
+previously-red tests now green, the other 9 undisturbed). `poetry run pytest tests/test_menus.py
+tests/test_views/test_account.py tests/test_components/test_account_nav.py -q` — 35 passed.
+`poetry run ruff check`/`ruff format --check` clean on both changed files.
+`python manage.py makemigrations --check --dry-run` — no changes detected.
+Next: T020 (docs). Watch: —

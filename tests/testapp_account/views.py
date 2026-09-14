@@ -1,31 +1,31 @@
 """Fixture pages proving a page outside ``mvp`` can extend the Account
 Center's layout and pick up its trail (US-2).
 
-Extend ``MVPTemplateView`` alone for now — T019 adds ``AccountPageMixin`` to
-these bases once it exists, which is what turns their ``page.breadcrumbs``
-from the default empty list into the trail ``TestAccountSectionTrail`` (T017)
-asserts. Not gated with ``LoginRequiredMixin`` either: the area imposes no
-access rule of its own (D4, FR-004), and these pages exist only to prove the
-layout/menu/trail integration, so they stay reachable by an anonymous test
-client.
+Compose ``AccountPageMixin`` (D15: added here at T019, once it exists, rather
+than at T015 — importing it earlier would have left the tree with a broken
+import between commits). Not gated with ``LoginRequiredMixin``: the area
+imposes no access rule of its own (D4, FR-004), and these pages exist only to
+prove the layout/menu/trail integration, so they stay reachable by an
+anonymous test client.
 """
 
+from mvp.views.account import AccountPageMixin
 from mvp.views.extra import MVPTemplateView
 
 
-class FixturePlainView(MVPTemplateView):
+class FixturePlainView(AccountPageMixin, MVPTemplateView):
     """The page ``fixture_plain`` points at."""
 
     template_name = "testapp_account/plain.html"
 
 
-class FixtureGroupedView(MVPTemplateView):
+class FixtureGroupedView(AccountPageMixin, MVPTemplateView):
     """The page ``fixture_grouped_item`` points at — a section's own address."""
 
     template_name = "testapp_account/grouped.html"
 
 
-class FixtureGroupedDetailView(MVPTemplateView):
+class FixtureGroupedDetailView(AccountPageMixin, MVPTemplateView):
     """A page below the section's address, naming no entry of its own.
 
     Its URL name, ``grouped-detail``, starts with the ``grouped`` prefix
