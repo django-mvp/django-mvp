@@ -269,9 +269,8 @@
               "poetry run pytest tests/test_components/test_layout_store.py -q"
             ],
             "code": [
-              "specs/029-layout-state-store/decisions.md:D10"
-            ],
-            "note": "No change to assets/js/layout.js or the bundle: T004 already built the resolved config surface and isWide. The task was the judgement call (D10) plus the demo view's ?breakpoint= support that T011's tests need."
+              "specs/029-layout-state-store/decisions.md:233"
+            ]
           }
         },
         {
@@ -288,7 +287,7 @@
               "poetry run pytest tests/test_components/test_layout_store.py -q"
             ],
             "code": [
-              "demo/views.py:LayoutStoreDemoView"
+              "demo/views.py:185"
             ]
           }
         },
@@ -302,8 +301,7 @@
             "code": [
               "docs/layout.md:514",
               "skills/django-mvp/references/layout.md:276"
-            ],
-            "note": "Documentation only; no test scope, verified by reading both files back against assets/js/layout.js."
+            ]
           }
         }
       ]
