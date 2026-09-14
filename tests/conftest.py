@@ -13,9 +13,28 @@ from django.contrib.auth import get_user_model
 from django.test import RequestFactory
 from django.views.generic import TemplateView
 
+from mvp.menus import AccountCenterMenu
 from tests.factories import ArticleFactory, CategoryFactory, ProductFactory
+from tests.testapp_account.menus import build_entries
 
 User = get_user_model()
+
+
+@pytest.fixture
+def testapp_account_entries():
+    """Apply the Account Center fixture app's entries to ``AccountCenterMenu``
+    for the duration of one test, then detach them (ARC-001).
+
+    Yields a ``{name: MenuItem}`` dict for lookup by name. See
+    ``tests/testapp_account/menus.py`` for what each entry proves.
+    """
+    entries = build_entries()
+    AccountCenterMenu.extend(entries)
+    try:
+        yield {entry.name: entry for entry in entries}
+    finally:
+        for entry in entries:
+            entry.parent = None
 
 
 # ---------------------------------------------------------------------------
