@@ -10,6 +10,14 @@ break the tests.
 
 from demo.settings import *
 
+# The demo's own Account Center card (US-3, T025, demo/account_showcase/): shown
+# only when browsing the demo project directly, so a human sees a populated card
+# region (G9). Filtered back out of the inherited INSTALLED_APPS here — not
+# appended, removed — so the test suite's card counts stay deterministic and
+# TestAccountCenterView.test_signed_in_request_shows_no_cards (US-1) stays green
+# regardless of what the demo showcases (D16).
+INSTALLED_APPS = [app for app in INSTALLED_APPS if app != "demo.account_showcase"]
+
 # The Account Center fixture app (US-2, tests/testapp_account/): proves a page
 # outside mvp can add a menu entry and a page. Appended here rather than in
 # demo/settings.py because it exists only to be exercised by the test suite.

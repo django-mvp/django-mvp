@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django.contrib.humanize",
     "demo",
+    "demo.account_showcase",
     "mvp",
     "easy_icons",
     "crispy_forms",
