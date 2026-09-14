@@ -145,39 +145,105 @@
       "id": "US1",
       "priority": "P1",
       "issue": 347,
-      "worktree": null,
+      "worktree": "/home/sam/projects/django-mvp/django-mvp",
       "status": "todo",
       "replans": 0,
       "tasks": [
         {
           "id": "T004",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_layout_store.py::TestTheStoreExistsAndReports"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_components/test_layout_store.py -q"
+            ],
+            "code": [
+              "assets/js/layout.js:76"
+            ]
+          }
         },
         {
           "id": "T005",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_sidebar_persisted_state.py::TestPersistedDefaultDefinedOnce"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_components/test_sidebar_persisted_state.py -q"
+            ],
+            "code": [
+              "mvp/templates/cotton/layout/sidebar/index.html:52"
+            ]
+          }
         },
         {
           "id": "T006",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_layout_store.py::TestTheStoreExistsAndReports::test_the_stuck_state_follows_scrolling"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_components/test_layout_store.py -q"
+            ],
+            "code": [
+              "mvp/templates/cotton/app/header/index.html:9"
+            ]
+          }
         },
         {
           "id": "T007",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_layout_store.py::TestBoostedNavigationLeavesTheStoreCorrect"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_components/test_layout_store.py -q"
+            ],
+            "code": [
+              "assets/js/layout.js:118"
+            ]
+          }
         },
         {
           "id": "T008",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_layout_store.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_components/test_layout_store.py tests/test_components/test_sidebar_persisted_state.py -q"
+            ],
+            "code": [
+              "tests/test_components/test_layout_store.py:31"
+            ]
+          }
         },
         {
           "id": "T009",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_layout_config.py"
+            ],
+            "commands": [
+              "forge verify --repo . --base origin/main"
+            ],
+            "code": [
+              "docs/layout.md:458"
+            ]
+          }
         }
       ]
     },
