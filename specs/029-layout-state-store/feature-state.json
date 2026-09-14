@@ -2,7 +2,7 @@
   "feature": "029-layout-state-store",
   "branch": "029-layout-state-store",
   "repo": "django-mvp/django-mvp",
-  "state": "IMPLEMENT",
+  "state": "CONVERGE",
   "state_history": [
     {
       "state": "INTAKE",
@@ -38,6 +38,11 @@
       "state": "IMPLEMENT",
       "at": "2026-09-14T02:10:00Z",
       "note": "re-planned; Phase 0 first"
+    },
+    {
+      "state": "CONVERGE",
+      "at": "2026-09-15T00:30:00Z",
+      "note": "cleanup pass, two ADRs graduated, verify green"
     }
   ],
   "gates": {
