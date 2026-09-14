@@ -190,6 +190,18 @@ class TestPackageTemplatesReferenceKnownIcons:
         assert SUPPLIED_BY_A_COMPANION_PACKAGE <= referenced
 
 
+class TestAccountCenterIcons:
+    """``account_center`` and ``overview`` resolve through the packaged icon
+    pack (FR-011). Pinned by name — a test that only asserted the pack is
+    non-empty would prove nothing about these two specific keys."""
+
+    def test_account_center_resolves(self):
+        assert icon("account_center") != ""
+
+    def test_overview_resolves(self):
+        assert icon("overview") != ""
+
+
 class TestAppIsInstalled:
     def test_true_for_an_installed_app(self):
         assert app_is_installed("mvp") is True
