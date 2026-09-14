@@ -36,6 +36,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   under django-flex-menus' lookup and the icon under django-easy-icons' pack merging. A
   future django-accounts-center release drops its own copies in favor of these.
 
+- **The shell publishes its layout state and configuration to the page**, as a single Alpine
+  store named `layout`. Your own markup can respond to the shell it sits inside —
+  `x-show="$store.layout.sidebarOpen"` on a floating button that should step aside, say —
+  without reimplementing the logic against the package's internal markup or hard-coding a
+  pixel width your own settings can change underneath it.
+
+  The store reports whether the sidebar is open, its remembered desktop state, whether the
+  header has scrolled, whether the viewport is at or above the configured breakpoint, and
+  the resolved layout configuration behind all of it: the breakpoint, its width in pixels,
+  the collapse mode, whether the header is sticky, and whether sidebar navigation is
+  boosted. Those values are the ones the page resolved, so a page that overrides the
+  breakpoint for itself is what you read.
+
+  It reports state it does not own. The drawer's checkbox still decides whether the sidebar
+  is open and the stylesheet still reacts to it directly, so nothing about the first paint
+  waits for the bundle. A page that renders no shell still gets a store, reporting the
+  package defaults. See [Layout](docs/layout.md) and
+  [ADR 0022](docs/adr/0022-the-layout-store-mirrors-state-it-does-not-own.md).
+
 ### Removed
 
 - **BREAKING: `navbar_wide_only_class`, `navbar_narrow_only_class` and
@@ -46,7 +65,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   in sync with a `@source inline()` safelist entry by a comment rather than by anything that
   would fail if the two drifted. Responsive visibility for all four is now static rules in
   `mvp/tailwind/base.css`, selected by `data-mvp-breakpoint`/`data-mvp-collapse` attributes
-  the shell already renders on the drawer element — nothing a project's own template needs
+  the packaged layouts render for themselves — nothing a project's own template needs
   to set. What a page looks like, at every breakpoint and both collapse modes, is unchanged.
 
   **On upgrade**, nothing — no packaged or project template called any of the three by name
