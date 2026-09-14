@@ -68,6 +68,16 @@
         "ARC-002 icon-key overlap recorded as D8 and folded into the changelog task",
         "SPC-001 FR-008 reorder/remove coverage added to T016 rather than changing the approved spec"
       ]
+    },
+    "review": {
+      "approved_by": "code-review",
+      "at": "2026-09-14T12:22:24Z",
+      "self_resolved": [
+        "COR-001 card contexts merged into the page context: fixed in b8a7a90, regression test proved both ways",
+        "COR-002 documentation described only the card-versus-card half: fixed with it",
+        "COR-003 leading-underscore helper: declined, the package's own convention is the opposite",
+        "COR-004 menu processed twice per render: filed as issue #344"
+      ]
     }
   },
   "stories": [
