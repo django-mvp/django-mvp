@@ -240,3 +240,17 @@ config fixture regardless of the store) — then restored it and rebuilt again. 
 the T007 commit confirms the restore is byte-identical.
 
 Verified: `poetry run pytest tests/test_components/test_layout_store.py` — 9 passed.
+
+## 2026-09-14 — US-1 complete
+
+The layout store exists and the shell's own sidebar and header read it. T004 to T009 done.
+
+Five older tests broke: each asserted a literal fragment of an expression this story removed from
+the markup. Triaged and repointed at what the markup carries now, with the behaviours they stood
+for covered end to end in a browser instead — see `decisions.md` D9. None was deleted, weakened or
+skipped, and the guardrail's second flag was the additive extension of the #178 regression tests
+its own task called for.
+
+Independently verified after the work landed: conformance, documentation, lint, type check, the
+full suite and the build all green, the store and persisted-state browser tests pass, and the
+committed JavaScript bundle rebuilds byte-identically from source.
