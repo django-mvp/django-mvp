@@ -14,6 +14,7 @@ import re
 from pathlib import Path
 
 import pytest
+from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.template.loader import render_to_string
 from django.test import RequestFactory, override_settings
@@ -203,3 +204,100 @@ class TestAccountSectionTrail:
         assert re.search(r"menu-active[^>]*>.*?Fixture Plain", content, re.DOTALL), (
             "the fixture's own entry should be marked as the one being viewed"
         )
+
+
+@pytest.mark.django_db
+class TestAccountCenterCards:
+    """The landing page's card region (US-3, T021): what an installed app's
+    ``account_center_card_template``/``account_center_card_context`` attributes
+    put there. The two fixture apps, ``tests.testapp_card_with_menu`` and
+    ``tests.testapp_card_no_menu`` (T024), are activated per test with
+    ``override_settings(INSTALLED_APPS=...)`` — never installed globally, so
+    ``TestAccountCenterView.test_signed_in_request_shows_no_cards`` above stays
+    green (ARC-001). Mounted through ``ACCOUNT_FIXTURE_URLCONF`` so
+    ``testapp_account:plain`` — the target ``testapp_card_with_menu``'s entry
+    points at — resolves.
+    """
+
+    CARD_WITH_MENU_APP = "tests.testapp_card_with_menu"
+    CARD_NO_MENU_APP = "tests.testapp_card_no_menu"
+
+    @pytest.fixture(autouse=True)
+    def _account_fixture_urlconf(self):
+        with override_settings(ROOT_URLCONF=ACCOUNT_FIXTURE_URLCONF):
+            yield
+
+    def _login(self, client, django_user_model, username):
+        user = django_user_model.objects.create_user(
+            username=username, password="pass123!"
+        )
+        client.force_login(user)
+
+    def test_a_card_renders_with_the_context_its_app_supplies(
+        self, client, django_user_model
+    ):
+        self._login(client, django_user_model, "cardsuser1")
+        with override_settings(
+            INSTALLED_APPS=[*settings.INSTALLED_APPS, self.CARD_NO_MENU_APP]
+        ):
+            response = client.get(reverse("account-center"))
+        assert response.context["account_center_cards"] == [
+            "testapp_card_no_menu/card.html"
+        ]
+        content = response.content.decode()
+        assert 'data-testid="testapp-card-no-menu"' in content
+        assert "No Menu Card" in content
+
+    def test_two_contributing_apps_both_get_their_card(self, client, django_user_model):
+        self._login(client, django_user_model, "cardsuser2")
+        with override_settings(
+            INSTALLED_APPS=[
+                *settings.INSTALLED_APPS,
+                self.CARD_WITH_MENU_APP,
+                self.CARD_NO_MENU_APP,
+            ]
+        ):
+            response = client.get(reverse("account-center"))
+        assert response.context["account_center_cards"] == [
+            "testapp_card_with_menu/card.html",
+            "testapp_card_no_menu/card.html",
+        ]
+        content = response.content.decode()
+        assert 'data-testid="testapp-card-with-menu"' in content
+        assert 'data-testid="testapp-card-no-menu"' in content
+
+    def test_an_app_declaring_no_card_contributes_nothing_and_the_page_still_renders(
+        self, client, django_user_model
+    ):
+        """Only ``testapp_card_no_menu`` declares a card here; every other
+        installed app (``testapp_account``, ``demo``, the Django contrib
+        apps) declares none, so exactly one card renders and the page still
+        returns 200 rather than erroring on an app with nothing to collect."""
+        self._login(client, django_user_model, "cardsuser3")
+        with override_settings(
+            INSTALLED_APPS=[*settings.INSTALLED_APPS, self.CARD_NO_MENU_APP]
+        ):
+            response = client.get(reverse("account-center"))
+        assert response.status_code == 200
+        assert response.context["account_center_cards"] == [
+            "testapp_card_no_menu/card.html"
+        ]
+
+    def test_a_menu_entry_alongside_a_card_does_not_disturb_collection(
+        self, client, django_user_model, card_with_menu_entries
+    ):
+        """FR-020, from the other direction: ``testapp_card_with_menu`` has a
+        real, resolvable menu entry attached here, and it does not prevent,
+        duplicate, or otherwise disturb its own card being collected."""
+        self._login(client, django_user_model, "cardsuser4")
+        with override_settings(
+            INSTALLED_APPS=[*settings.INSTALLED_APPS, self.CARD_WITH_MENU_APP]
+        ):
+            response = client.get(reverse("account-center"))
+        assert response.context["account_center_cards"] == [
+            "testapp_card_with_menu/card.html"
+        ]
+        content = response.content.decode()
+        assert 'data-testid="testapp-card-with-menu"' in content
+        assert "With Menu Card" in content
+        assert "Card With Menu Fixture" in content
