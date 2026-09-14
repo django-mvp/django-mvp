@@ -77,3 +77,52 @@ serve any section of an application.
 **Why defensible:** raised at intake and deferred by the maintainer in the same exchange, together
 with the general question of attaching a menu to a view class or a group of addresses. Designing
 for a generalisation that has not been specified is the abstraction Article III rules out.
+
+## D7 — The trail rides the shell's header, not a second bar in the content
+
+**Ambiguous:** FR-015 asks for a trail above the content naming the area and the current section.
+django-accounts-center draws one inside the page, which is where the package's own trail used to
+be.
+
+**Chosen:** supply `page.breadcrumbs`, which the shell renders in its header, and draw nothing in
+the layout.
+
+**Why defensible:** `mvp/templates/cotton/app/header/navbar.html` renders the trail for every page
+that sets one, and `mvp/templates/page_view.html` records the move out of the content. Drawing a
+second trail would put two of them on one page in two visual languages. The cost is that the trail
+comes from a view rather than a template, so a contributed page gets it by using the packaged page
+mixin; a page that uses neither still renders correctly, without a trail.
+
+## D8 — The icon keys overlap the same way the menu name does
+
+**Ambiguous:** the two icon keys this package adds are also defined in django-accounts-center's
+pack, and django-easy-icons merges packs with last-wins precedence
+(`easy_icons/utils.py::load_and_merge_packs`), so in a project running both under that package's
+documented settings its glyphs win.
+
+**Chosen:** add the keys anyway and state the overlap in the changelog beside the menu name.
+
+**Why defensible:** both keys resolve to a valid glyph either way, so the consequence is a
+different picture rather than a broken page, and the alternative is leaving the shell naming an
+icon that no pack in this package defines — which is the defect US-1 exists to close.
+
+## Design review (S3R) — dispositions
+
+One reviewer, three lenses, over `spec.md`, `plan.md`, `research.md`, `tasks.md`, the constitution
+and targeted reads of the code the plan names. Verdict `approve`, risk medium, no critical or high
+findings, so no re-plan. The security lens reported nothing: the only new surface is the landing
+page, card content is trusted app-authored code rather than user input, and no dependency or
+setting is added. Findings file:
+`engineering-org/runs/django-mvp/028-move-account-center/design-review-findings.json` in the
+engineering workspace.
+
+- **ARC-001 (medium, verified) — fixed in the task graph.** The fixture app carrying US-2's menu
+  entries was also going to carry US-3's card, which would have turned T002's "renders with no
+  cards" assertion red two stories after it was written, with no task owning the repair. T024 now
+  uses separate card-contributing apps, activated per test rather than installed globally, and T021
+  says so.
+- **ARC-002 (low, verified) — recorded as D8** and folded into T012's changelog entry.
+- **SPC-001 (low, verified) — closed by a test rather than a spec change.** FR-008 claims entries
+  can be reordered and removed, and no acceptance scenario exercised either. T016 now covers both,
+  which is the smallest thing that makes the requirement provable under SC-006. The requirement
+  itself is unchanged, so the approved spec stands.

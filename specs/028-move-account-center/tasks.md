@@ -57,8 +57,8 @@ leaves behind, so there is nothing that has to exist before the first story star
 - **T012** Documentation — `docs/account-center.md` covering what the area is, mounting it, and
   where the later sections will go; add it to the documentation index; name the third menu in
   `docs/navigation.md`; restate the README's "deliberately not an authentication system" bullet
-  (FR-026); add the changelog entry, including the django-accounts-center version relationship
-  (FR-023).
+  (FR-026); add the changelog entry, covering the django-accounts-center version relationship for
+  the menu name and for the two icon keys that package also defines (FR-023, decision D1).
 - **T013** [P] `skills/django-mvp/references/menus.md` and `references/layout.md` — the same surface
   for the agent-facing skill (Article XVIII).
 - **T014** Rebuild the stylesheet (`invoke build-stylesheet`) and commit `django-mvp.css` and its
@@ -81,7 +81,8 @@ leaves behind, so there is nothing that has to exist before the first story star
   alongside the landing-page entry, a grouped entry renders under its label, an entry whose check
   answers no for the request is absent while the same entry is present for a request it answers yes
   for, and an entry pointing at an unresolvable address is omitted without disturbing the rest.
-  Assert exact entry counts. Red before T017.
+  Also cover the other half of FR-008: an app that reorders the entries, and one that removes an
+  entry it does not want, both get what they asked for. Assert exact entry counts. Red before T017.
 - **T017** [P] `tests/test_views/test_account.py::TestAccountSectionTrail` — the trail the shell
   draws in its header names the area and the current section, the last crumb carrying no link; a
   page below a section's own address names that section and links to it; a page in the area that no
@@ -106,8 +107,9 @@ leaves behind, so there is nothing that has to exist before the first story star
 
 ### Tests first
 
-- **T021** `tests/test_views/test_account.py::TestAccountCards` — a card declared by an installed
-  app renders in the landing page's card region; information that app supplies for its card reaches
+- **T021** `tests/test_views/test_account.py::TestAccountCards` — with the card fixture apps of
+  T024 activated for these tests only: a card declared by an installed app renders in the landing
+  page's card region; information that app supplies for its card reaches
   the card's template; two contributing apps both get their card; an app declaring no card
   contributes nothing and the page still renders; an app that contributes a card without adding a
   menu entry is still collected. Assert the exact number of cards rendered. Red before T022.
@@ -120,8 +122,12 @@ leaves behind, so there is nothing that has to exist before the first story star
 - **T023** `mvp/templates/cotton/account/card.html` (`<c-account.card>`, the shared outer shape a
   contributed card renders inside) and the card region in
   `mvp/templates/mvp/account/overview.html`.
-- **T024** [P] `tests/testapp_account/` — contribute a card, and a second minimal app that
-  contributes a card without a menu entry, to prove FR-020 from outside the package.
+- **T024** [P] Card-contributing fixture apps — two of them, separate from `testapp_account`: one
+  that also has a menu entry and one that has none, proving FR-020 from outside the package. They
+  are **activated per test with `override_settings(INSTALLED_APPS=…)`, never installed globally**,
+  so no fixture app contributes a card to every render. Growing `testapp_account` itself would turn
+  T002's "renders with no cards" assertion red two stories after it was written, and no task would
+  own the fix.
 - **T025** [P] `demo/` — the demo application contributes one card, so the landing page in the demo
   shows what a populated area looks like (G9).
 - **T026** [P] `docs/account-center.md` — the section on contributing a card, with a worked example
