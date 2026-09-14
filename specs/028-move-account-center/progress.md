@@ -182,3 +182,22 @@ assertion failed for the right reason (3 failed), then restored it. `poetry run 
 tests/test_menus.py -q` — 17 passed. `poetry run ruff check`/`ruff format --check` clean (one
 autofix applied to `tests/test_menus.py`'s import block).
 Next: T017. Watch: —
+
+## 2026-09-14 · Implementer US2 · T017
+
+Did: `tests/test_views/test_account.py::TestAccountSectionTrail` — four tests against a fixture
+urlconf (`mvp.urls` + `tests.testapp_account.urls` + `demo.urls`, the last needed because the
+shell's sidebar renders `AppMenu` and several of `demo/menus.py`'s entries resolve against it — a
+urlconf missing it 500s on any full-page render): a page at a section's own address gets
+`[area(linked), section(unlinked)]`; a page below it gets `[area(linked), section(linked)]`; a page
+no entry points at (the landing page itself, no fixture entries applied) gets the single unlinked
+area crumb; the fixture's own entry is marked `menu-active` when its page is current.
+Verified: `poetry run pytest tests/test_views/test_account.py::TestAccountSectionTrail -q` — 3
+failed (`[] == [...]`, `page.breadcrumbs` still the `PageMixin` default empty list — the right
+reason, since `AccountPageMixin` doesn't exist until T019) and 1 passed (the current-page marking:
+pre-existing `flex_menu`/`menu-active` behaviour from US-1, nothing new to implement there).
+`poetry run pytest tests/test_views/test_account.py -q` — 3 failed, 9 passed (the other 9 are
+US-1's, untouched). `poetry run ruff check`/`ruff format --check` clean (one autofix applied).
+Next: T018 (`get_active_section`), then T019 turns these three green.
+Watch: T019 must also add `AccountPageMixin` to `tests/testapp_account/views.py`'s bases (D15) —
+without it these three tests stay red past T018 too.
