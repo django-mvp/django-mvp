@@ -13,7 +13,7 @@ two items already attached, a sidebar-toggle item (`name="sidebar_toggle"`) and 
 link (`name="home"`, `view_name="home"`).
 
 `AccountCenterMenu` is the third: the [Account Center](../../../docs/account-center.md)'s
-own navigation, rendered beside its pages by `<c-account.nav>`. It ships with only the
+own navigation, drawn beside its pages by `mvp/account/base.html`. It ships with only the
 entry for its own landing page — extend it the same way as `AppMenu`, from any installed
 app's `menus.py`.
 

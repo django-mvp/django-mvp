@@ -7,9 +7,9 @@ registered under ``FLEX_MENUS["renderers"]``.
 
 - ``AppMenu`` — the sidebar tree. Ships empty.
 - ``MobileFooterMenu`` — the mobile dock. Ships with the sidebar toggle only.
-- ``AccountCenterMenu`` — the Account Center's own navigation, rendered beside
-  its pages by ``<c-account.nav>``. Ships with the entry for its own landing
-  page. An app that wants a page in the area appends to it the same way it
+- ``AccountCenterMenu`` — the Account Center's own navigation, drawn beside
+  its pages by ``mvp/account/base.html``. Ships with the entry for its own
+  landing page. An app that wants a page in the area appends to it the same way it
   extends ``AppMenu``::
 
       from flex_menu import MenuItem
@@ -156,8 +156,8 @@ MobileFooterMenu = Menu(
     ],
 )
 
-#: The Account Center's own navigation, rendered beside its pages by
-#: ``<c-account.nav>``. Ships with only the entry for its own landing page
+#: The Account Center's own navigation, drawn beside its pages by
+#: ``mvp/account/base.html``. Ships with only the entry for its own landing page
 #: (FR-007) — everything else belongs to whichever app adds to it.
 AccountCenterMenu = Menu(
     "AccountCenterMenu",

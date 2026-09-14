@@ -145,13 +145,53 @@ class TestAccountCenterView:
 
 
 class TestAccountLayout:
-    """``mvp/account/base.html`` — the layout a page in the area extends
-    (FR-012, FR-013)."""
+    """``mvp/account/base.html`` — the layout a page in the area extends,
+    which declares the navigation itself (FR-012, FR-013)."""
+
+    @pytest.fixture(autouse=True)
+    def _account_urlconf(self):
+        """The area mounted, independent of whether the demo app also mounts
+        it (T011): the "overview" entry's ``view_name="account-center"`` has
+        to resolve for the navigation to draw it at all."""
+        with override_settings(ROOT_URLCONF=ACCOUNT_URLCONF):
+            yield
 
     def test_page_content_renders_beside_the_navigation_panel(self):
         html = _render("tests/account_layout_content.html")
         assert "account-layout-test-content" in html
         assert 'aria-label="Account navigation"' in html
+
+    def test_the_navigation_is_a_landmark_with_an_accessible_name(self):
+        html = _render("tests/account_layout_content.html")
+        assert 'role="navigation"' in html
+        assert 'aria-label="Account navigation"' in html
+
+    def test_it_draws_the_entry_for_the_landing_page(self):
+        html = _render("tests/account_layout_content.html")
+        assert "Overview" in html
+
+    def test_a_persistent_card_renders_at_the_configured_breakpoint(self):
+        """Above ``lg`` (the test suite's configured breakpoint) the
+        navigation is a persistent block. ``navbar_wide_only_class`` is the
+        same mechanism the header's own desktop/mobile widget split uses."""
+        html = _render("tests/account_layout_content.html")
+        assert "hidden lg:flex" in html
+
+    def test_a_collapsed_control_renders_below_the_breakpoint(self):
+        html = _render("tests/account_layout_content.html")
+        assert "flex lg:hidden" in html
+
+    def test_the_collapsed_control_is_the_packaged_dropdown(self):
+        html = _render("tests/account_layout_content.html")
+        assert "dropdown" in html
+        assert "dropdown-content" in html
+
+    def test_the_menu_is_processed_once_for_both_sites(self):
+        """One pass over the tree feeds both render sites. Processing it a
+        second time runs every entry's visibility check again for markup that
+        has to agree with the first copy anyway."""
+        source = ACCOUNT_BASE_TEMPLATE.read_text()
+        assert source.count("{% process_menu") == 1
 
     def test_the_wide_panel_follows_the_content_and_the_collapsed_one_precedes_it(
         self,

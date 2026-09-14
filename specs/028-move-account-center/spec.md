@@ -16,9 +16,14 @@
 
 ## Refined 2026-09-14
 
-The maintainer cut two pieces of API while reviewing the delivering pull request, and the
+The maintainer cut three pieces of API while reviewing the delivering pull request, and the
 requirements they came from are struck through above with what replaced them.
 
+- **No packaged component for the navigation.** Both render sites are declared in the layout
+  itself, from one pass over the menu. A component placed once by one template was indirection
+  for its own sake, and splitting the two sites across the page — the collapsed control above
+  the content, the persistent card after it so it sits on the right of the row — needed them to
+  be separately placeable anyway.
 - **No packaged mixin for the trail.** `PageMixin` already lets any view declare its breadcrumbs,
   and a second way to get a trail — resolved from the menu, with a URL-name prefix convention
   attached — was surface the package did not need. It also processed the menu a second time on

@@ -196,7 +196,7 @@ class TestStylesheetShipsAccountCenterClasses:
     )
     def test_account_center_template_class_is_present(self, css_class):
         """Each of these is introduced by the Account Center's templates
-        (mvp/templates/mvp/account/*.html, cotton/account/nav.html)."""
+        (mvp/templates/mvp/account/*.html)."""
         content = self.STYLESHEET.read_text(encoding="utf-8")
         assert self._class_present(content, css_class), (
             f".{css_class} is missing from the shipped stylesheet — rebuild it "
