@@ -166,3 +166,26 @@ on. The count of safelist entries being retired was three, not four.
 **ADR:** none — the corrections refine how this feature is built and nothing downstream inherits
 them. D1, D4 and D5 already carry the architectural decisions, and their verdicts are recorded in
 their own sections at convergence.
+
+## D8 — Two corrections at the foundational phase's acceptance
+
+**The guardrail that flags changes to pre-existing tests fired on
+`tests/test_components/test_layout_config.py`.** Triaged and cleared: the change is purely
+additive. The diff removes no line, and every test that existed before the refactor still reads
+exactly as it did. That is the point of those tests — they are the evidence that moving
+normalisation into one class changed no behaviour, and a refactor that needed them edited would
+have been the wrong refactor. The flag is file-level, not assertion-level, so an addition to a file
+containing older tests raises it by construction.
+
+**The new resolver was undocumented and used underscore-prefixed names.** Both were fixed at
+acceptance rather than sent back, and both trace to the brief rather than to the work: the brief
+did not list `docs/` among the files the story could write, so the documentation the protocol asks
+for had nowhere to go, and it did not state the naming convention.
+
+`docs/layout.md` now carries a section on reading the resolved layout in Python. `LayoutConfig`
+sheds `_raw_breakpoint` and `_disabled`: this codebase does not mark names private with a leading
+underscore, and dropping the second one also removed it, since `persistent` already expressed the
+same fact and the two other properties now read it.
+
+**ADR:** none — both are corrections to one story's handover, with nothing downstream inheriting
+them.

@@ -85,8 +85,8 @@
       "id": "US0",
       "priority": "P0",
       "issue": null,
-      "worktree": null,
-      "status": "todo",
+      "worktree": "/home/sam/projects/django-mvp/django-mvp",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {

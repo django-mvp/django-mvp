@@ -89,3 +89,29 @@ Watch: `docs/components.md` and `skills/django-mvp/references/components.md` doc
 `collapse`, `sticky` and `boost`. Neither file is in this story's scope
 (`files_you_may_create_or_edit`); flagged in the completion report's `concerns` for whichever story
 or pass owns docs next.
+
+## 2026-09-14 — Design review
+
+Reviewed before implementation, across three lenses. Ten findings: six high, three medium, one
+low. No critical, none about security. Every finding was checked against the code before being
+acted on, and all six high findings were real.
+
+Two of them changed the shape of the work. The collapse mode does not reach the element the
+stylesheet rules need it on, so threading it through is now part of the task list. And the
+characterisation tests could not have proved what they claimed — the class strings they would have
+asserted on are the mechanism under substitution — so they assert computed visibility in a browser
+instead.
+
+The rest: the configuration payload moved into the foundational phase, the stories were declared
+sequential, the persisted sidebar default got a single definition, and three task file lists were
+corrected. Reasoning in `decisions.md` D7.
+
+## 2026-09-14 — Foundational phase complete
+
+T001, T002 and T003 done. `LayoutConfig` resolves the shell's layout facts once, the three
+surviving template tags read it instead of reimplementing normalisation, and the drawer component
+emits the resolved values to the client as escaped JSON.
+
+Independently verified on the resulting commit: conformance, documentation, lint, type check, the
+full test suite and the package build all green. The pre-existing-test guardrail flagged one file
+and was cleared as additive. Two corrections were applied at acceptance — see `decisions.md` D8.
