@@ -161,7 +161,12 @@ MVP_CONFIG = {
             "footer": [
                 "actions.theme-controller",
                 "actions.language-switcher-modal",
+                # The pair that covers both states: the log-in button renders
+                # for a visitor, the user menu for somebody signed in. The
+                # user menu is how a person reaches the Account Center, so a
+                # demo without it has the area and no way to walk to it.
                 "actions.login",
+                "user.sidebar-menu",
             ],
         },
     },
