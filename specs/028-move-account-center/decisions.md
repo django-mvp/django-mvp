@@ -106,6 +106,95 @@ documented settings its glyphs win.
 different picture rather than a broken page, and the alternative is leaving the shell naming an
 icon that no pack in this package defines — which is the defect US-1 exists to close.
 
+## D9 — Implemented T008 before T007
+
+**Ambiguous:** `tasks.md` lists T007 (`mvp/urls.py`) before T008 (`mvp/views/account.py`), but
+`mvp/urls.py` imports `AccountCenterView` from the module T008 creates.
+
+**Chosen:** implement T008 first, so every commit's tree stays importable, and commit each under
+its own task id regardless of the swap.
+
+**Why defensible:** `craft-increments` requires the tree to parse and lint between slices; writing
+`urls.py` first would commit a module that raises `ModuleNotFoundError` on import. The task graph's
+numbering is a presentation order, not a dependency graph — nothing in the brief or the tasks
+themselves says T007 must land first, and the commit messages and `progress.md` still tie each
+change to its task id.
+
+## D10 — The navigation panel builds its own landmark rather than delegating to the shared sidebar container
+
+**Ambiguous:** `{% render_menu "AccountCenterMenu" renderer="sidebar" %}` is the one-line way to
+render a menu through the packaged sidebar renderer, and it is what django-accounts-center's own
+implementation calls (`dac/templates/dac/base.html`). But the renderer's depth-0 template,
+`menus/sidebar/container.html`, hardcodes `<c-menu label="{% trans "Main Navigation" %}">` — every
+menu rendered through it gets that exact label, regardless of which menu it is.
+
+**Chosen:** `<c-account.nav>` calls `{% process_menu "AccountCenterMenu" as account_menu %}`
+directly and iterates `account_menu.visible_children` with `{% render_item child renderer="sidebar" %}`,
+wrapped in its own `<c-menu label="{% trans "Account navigation" %}">` — built twice, once per
+breakpoint region, rather than through the shared container.
+
+**Why defensible:** T003's acceptance criterion is a landmark with an accessible name for *this*
+panel, and the app shell's own sidebar already renders a landmark labelled "Main Navigation" on
+every page the Account Center appears on (`mvp/templates/cotton/app/sidebar/index.html` ->
+`menus/sidebar/container.html`). Reusing the same hardcoded label would put two navigation
+landmarks with an identical accessible name on one page — worse accessibility than what django-
+accounts-center shipped, not parity with it. `process_menu`/`render_item` are the documented public
+seam for exactly this (`skills/django-mvp/references/menus.md` "Rendering a menu elsewhere"), so
+this is not new machinery, just skipping the one template that assumes it is always the app's main
+sidebar.
+
+**Revisit if:** a later story wants a shared "menu panel with landmark" component — at that point
+this and the app sidebar's own wrapping become two callers of one abstraction, which is when
+Article III says building it is justified.
+
+## D11 — The icon dependency makes "red before T009" read as "red before T010" in practice
+
+**Observed, not chosen:** `tasks.md` marks T002/T003/T004 "Red before T009", but every one of them
+renders `<c-account.nav>`, whose `overview` menu entry carries `icon="overview"`. `easy_icons.icon()`
+raises `IconNotFoundError` for an unregistered name whenever `EASY_ICONS_FAIL_SILENTLY` is false —
+and pytest-django forces `DEBUG=False` during tests regardless of `demo/settings.py`'s own
+`DEBUG=True`, so `fail_silently` (which defaults to `DEBUG`) is false in every test run. T009's
+templates alone are not enough; T010's icon registration is load-bearing for the same three test
+files to go green.
+
+**Left as-is:** the task graph's ordering (T009 immediately before T010) already puts them one
+commit apart, so this did not change the plan, only the point at which "confirmed green" actually
+lands — recorded here so a future run does not read "red before T009" as a promise the suite goes
+green the moment T009's commit lands.
+
+## D12 — The empty card region is a static anchor, not app-walk logic
+
+**Ambiguous:** the plan's Design section describes `AccountCenterView.get_context_data` walking
+installed app configs to collect cards, and lists `overview.html`'s card region as part of that
+same description — but T022 (US-3) is the task that actually implements the walk, and this
+story's prohibitions rule out building US-2/US-3 mechanisms early.
+
+**Chosen:** `overview.html` renders `<div id="account-center-cards" class="grid gap-4 sm:grid-cols-2"></div>`
+with nothing inside it — no context variable, no loop, no app-config walk. FR-019's "empty card
+region" is satisfied because nothing populates it yet, not because a mechanism is proven to
+produce zero results.
+
+**Why defensible:** this is a landing-page template decision (T009's own scope) that gives T023
+(US-3) a concrete, already-tested anchor to render into, without guessing at the context variable
+name US-3 will actually choose or building any part of the collection logic itself. `T002`'s "no
+cards" test asserts against this exact div via regex, which stays meaningful once T023 starts
+rendering cards inside it — a card appearing between the tags is what turns that specific
+assertion red, which is the point of the div's id existing at all.
+
+## D13 — The introduction reuses `page_subtitle`, not a new field
+
+**Ambiguous:** FR-019 and the acceptance scenarios ask for a "heading and introduction", which
+`PageMixin` has no field named for.
+
+**Chosen:** `AccountCenterView.page_subtitle` carries the introduction text, rendered through the
+existing `<c-page.title :subtitle="page.subtitle" />`.
+
+**Why defensible:** `page_subtitle` already renders as a paragraph under the heading — exactly the
+shape "introduction" describes — and `PageMixin` is already the mechanism every other MVP view
+uses for this. Adding an `page_introduction` field alongside it would be a second name for the same
+concept, which Article III's anti-abstraction rule and CONTEXT.md's one-name-per-concept rule both
+rule out before a second, differently-shaped caller exists.
+
 ## Design review (S3R) — dispositions
 
 One reviewer, three lenses, over `spec.md`, `plan.md`, `research.md`, `tasks.md`, the constitution

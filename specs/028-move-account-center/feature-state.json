@@ -3,7 +3,7 @@
   "feature": "028-move-account-center",
   "branch": "028-move-account-center",
   "repo": "django-mvp/django-mvp",
-  "state": "PLAN",
+  "state": "IMPLEMENT",
   "state_history": [
     {
       "state": "SPECIFY",
@@ -20,6 +20,14 @@
     {
       "state": "PLAN",
       "at": "2026-09-14T10:02:08Z"
+    },
+    {
+      "state": "DESIGN_REVIEW",
+      "at": "2026-09-14T10:11:24Z"
+    },
+    {
+      "state": "IMPLEMENT",
+      "at": "2026-09-14T10:14:48Z"
     }
   ],
   "gates": {
@@ -35,12 +43,21 @@
       ]
     },
     "plan": {
-      "approved_by": null,
-      "at": null
+      "approved_by": "notified",
+      "at": "2026-09-14T10:14:48Z"
     },
     "merge": {
       "approved_by": null,
       "at": null
+    },
+    "design_review": {
+      "approved_by": "design-panel",
+      "at": "2026-09-14T10:11:24Z",
+      "self_resolved": [
+        "ARC-001 test-isolation trap fixed in the task graph (T021/T024)",
+        "ARC-002 icon-key overlap recorded as D8 and folded into the changelog task",
+        "SPC-001 FR-008 reorder/remove coverage added to T016 rather than changing the approved spec"
+      ]
     }
   },
   "stories": [
@@ -49,78 +66,151 @@
       "priority": "P1",
       "issue": 339,
       "worktree": null,
-      "status": "todo",
+      "status": "in_progress",
       "replans": 0,
       "tasks": [
         {
           "id": "T001",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": ["tests/test_menus.py::TestAccountCenterMenu"],
+            "commands": ["poetry run pytest tests/test_menus.py::TestAccountCenterMenu -q"]
+          }
         },
         {
           "id": "T002",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": ["tests/test_views/test_account.py::TestAccountCenterView"],
+            "commands": ["poetry run pytest tests/test_views/test_account.py::TestAccountCenterView -q"]
+          }
         },
         {
           "id": "T003",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": ["tests/test_components/test_account_nav.py::TestAccountNav"],
+            "commands": ["poetry run pytest tests/test_components/test_account_nav.py -q"]
+          }
         },
         {
           "id": "T004",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": ["tests/test_views/test_account.py::TestAccountLayout"],
+            "commands": ["poetry run pytest tests/test_views/test_account.py::TestAccountLayout -q"]
+          }
         },
         {
           "id": "T005",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": ["tests/test_utils.py::TestAccountCenterIcons"],
+            "commands": ["poetry run pytest tests/test_utils.py::TestAccountCenterIcons -q"]
+          }
         },
         {
           "id": "T006",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": ["mvp/menus.py:76"],
+            "tests": ["tests/test_menus.py::TestAccountCenterMenu"],
+            "commands": ["poetry run pytest tests/test_menus.py -q"]
+          }
         },
         {
           "id": "T007",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": ["mvp/urls.py:19"],
+            "commands": ["poetry run pytest tests/test_views/test_account.py -q"]
+          }
         },
         {
           "id": "T008",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": ["mvp/views/account.py:13"],
+            "commands": ["poetry run pytest tests/test_views/test_account.py -q"]
+          }
         },
         {
           "id": "T009",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "mvp/templates/mvp/account/base.html:14",
+              "mvp/templates/mvp/account/overview.html:1",
+              "mvp/templates/cotton/account/nav.html:1"
+            ],
+            "tests": [
+              "tests/test_views/test_account.py::TestAccountCenterView",
+              "tests/test_views/test_account.py::TestAccountLayout",
+              "tests/test_components/test_account_nav.py::TestAccountNav"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_views/test_account.py tests/test_components/test_account_nav.py -q"
+            ]
+          }
         },
         {
           "id": "T010",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": ["mvp/utils.py:110"],
+            "tests": ["tests/test_utils.py::TestAccountCenterIcons"],
+            "commands": ["poetry run pytest tests/test_utils.py -q"]
+          }
         },
         {
           "id": "T011",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": ["demo/urls.py:32"],
+            "commands": ["poetry run pytest -q"]
+          }
         },
         {
           "id": "T012",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": ["docs/account-center.md:1"]
+          }
         },
         {
           "id": "T013",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "skills/django-mvp/references/menus.md:11",
+              "skills/django-mvp/references/layout.md:37"
+            ]
+          }
         },
         {
           "id": "T014",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": ["tests/test_smoke.py::TestStylesheetShipsAccountCenterClasses"],
+            "commands": [
+              "poetry run invoke build-stylesheet",
+              "poetry run pytest tests/test_smoke.py -q"
+            ]
+          }
         }
       ]
     },
