@@ -1,0 +1,91 @@
+"""Tests for ``mvp.views.account`` — the Account Center's landing page.
+
+Source: mvp/views/account.py, mvp/urls.py, mvp/templates/mvp/account/*.html
+
+Mounted here through a purpose-built urlconf (mirroring
+``tests/test_views/test_extra.py``'s ``_urlconf``) rather than through
+``demo/urls.py``: T011 mounts the area in the demo app so a human has
+something to look at, but this package's own URLconf (``mvp/urls.py``,
+decision D2) is the contract this test exercises, independent of where a
+project chooses to mount it.
+"""
+
+import re
+
+import pytest
+from django.test import override_settings
+from django.urls import include, path, reverse
+
+
+def _urlconf():
+    """The demo site's URLs, with the Account Center mounted under ``account/``."""
+    patterns = [
+        path("account/", include("mvp.urls")),
+        path("", include("demo.urls")),
+    ]
+    return type("_URLConf", (), {"urlpatterns": patterns})
+
+
+ACCOUNT_URLCONF = _urlconf()
+
+
+@pytest.mark.django_db
+@override_settings(ROOT_URLCONF=ACCOUNT_URLCONF)
+class TestAccountCenterView:
+    """The landing page: who it lets in, and what it shows once they're in."""
+
+    def test_anonymous_request_is_redirected_to_sign_in(self, client):
+        response = client.get(reverse("account-center"))
+        assert response.status_code == 302
+        assert response.url.startswith("/accounts/login/")
+
+    def test_signed_in_request_renders_inside_the_shell(
+        self, client, django_user_model
+    ):
+        """The area changes nothing about the sidebar, navbar or dock (FR-005)."""
+        user = django_user_model.objects.create_user(
+            username="accountcenteruser1", password="pass123!"
+        )
+        client.force_login(user)
+        content = client.get(reverse("account-center")).content.decode()
+        assert "mvp-sidebar" in content
+        assert "mvp-header" in content
+
+    def test_signed_in_request_shows_the_navigation_panel(
+        self, client, django_user_model
+    ):
+        user = django_user_model.objects.create_user(
+            username="accountcenteruser2", password="pass123!"
+        )
+        client.force_login(user)
+        content = client.get(reverse("account-center")).content.decode()
+        assert 'aria-label="Account navigation"' in content
+
+    def test_signed_in_request_shows_no_cards(self, client, django_user_model):
+        """No app has contributed a card, so the card region renders empty
+        rather than falling back to listing the menu (D5, FR-019)."""
+        user = django_user_model.objects.create_user(
+            username="accountcenteruser3", password="pass123!"
+        )
+        client.force_login(user)
+        content = client.get(reverse("account-center")).content.decode()
+        assert re.search(r'<div id="account-center-cards"[^>]*>\s*</div>', content), (
+            "the card region must render present but empty, not a fallback menu "
+            "listing and not omitted entirely"
+        )
+
+    def test_response_carries_the_heading(self, client, django_user_model):
+        user = django_user_model.objects.create_user(
+            username="accountcenteruser4", password="pass123!"
+        )
+        client.force_login(user)
+        content = client.get(reverse("account-center")).content.decode()
+        assert "Account Center" in content
+
+    def test_response_carries_the_introduction(self, client, django_user_model):
+        user = django_user_model.objects.create_user(
+            username="accountcenteruser5", password="pass123!"
+        )
+        client.force_login(user)
+        content = client.get(reverse("account-center")).content.decode()
+        assert "Manage your account" in content
