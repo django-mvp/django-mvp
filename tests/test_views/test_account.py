@@ -128,5 +128,7 @@ class TestAccountLayout:
         ``mvp/base.html`` directly, so a project's own base override still
         applies underneath the account layout."""
         source = ACCOUNT_BASE_TEMPLATE.read_text()
-        assert '{% extends "base.html" %}' in source
-        assert "mvp/base.html" not in source
+        extends_line = next(
+            line for line in source.splitlines() if "{% extends" in line
+        )
+        assert extends_line.strip() == '{% extends "base.html" %}'

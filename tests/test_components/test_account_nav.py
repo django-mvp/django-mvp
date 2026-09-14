@@ -7,9 +7,22 @@ Fixture: ``demo/templates/tests/account_nav.html``.
 breakpoint assertions this file follows.
 """
 
+import pytest
 from django.contrib.auth.models import AnonymousUser
 from django.template.loader import render_to_string
-from django.test import RequestFactory
+from django.test import RequestFactory, override_settings
+from django.urls import include, path
+
+
+def _urlconf():
+    """The Account Center mounted, independent of whether the demo app also
+    mounts it (T011): the "overview" entry's ``view_name="account-center"``
+    has to resolve for the panel to draw it at all."""
+    patterns = [path("account/", include("mvp.urls"))]
+    return type("_URLConf", (), {"urlpatterns": patterns})
+
+
+ACCOUNT_URLCONF = _urlconf()
 
 
 def _render(template_name):
@@ -22,6 +35,11 @@ def _render(template_name):
 class TestAccountNav:
     """The panel renders as a nav landmark, draws every entry, and renders
     twice for the two breakpoints (FR-013)."""
+
+    @pytest.fixture(autouse=True)
+    def _account_urlconf(self):
+        with override_settings(ROOT_URLCONF=ACCOUNT_URLCONF):
+            yield
 
     def test_renders_as_a_nav_landmark_with_an_accessible_name(self):
         html = _render("tests/account_nav.html")

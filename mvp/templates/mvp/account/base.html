@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% comment %}
+  The Account Center's layout: the navigation panel beside the page's own
+  content. Extends the unqualified `base.html` a project owns, not
+  `mvp/base.html` directly, so a project's own base override still applies
+  underneath this layout (FR-012).
+
+  A page in the area extends this template and fills `account.content`,
+  the block declared below — not `content`, which this layout has already
+  taken to build the two-column arrangement.
+{% endcomment %}
+{% block content %}
+  <c-container class="py-4">
+    <div class="flex flex-col lg:flex-row lg:items-start gap-4 lg:gap-6">
+      <c-account.nav />
+      <div class="grow min-w-0">
+        {% block account.content %}
+        {% endblock account.content %}
+      </div>
+    </div>
+  </c-container>
+{% endblock content %}

@@ -1,0 +1,33 @@
+{# ============================================================ #}
+{# <c-account.nav> — the Account Center's navigation panel      #}
+{#                                                              #}
+{# Renders AccountCenterMenu through the packaged sidebar        #}
+{# renderer, from one processed tree, at two render sites: a    #}
+{# persistent card at and above the shell's configured sidebar  #}
+{# breakpoint, and a collapsed <c-dropdown> below it (FR-013).  #}
+{# ============================================================ #}
+{% load i18n flex_menu mvp %}
+<c-vars :breakpoint="mvp_config.layout.sidebar.breakpoint" />
+{% process_menu "AccountCenterMenu" as account_menu %}
+<div class="{% navbar_wide_only_class breakpoint %} w-full lg:w-65 lg:shrink-0">
+  <c-card.wrapper class="p-2 w-full">
+    <c-menu label="{% trans "Account navigation" %}">
+      {% for child in account_menu.visible_children %}
+        {% render_item child renderer="sidebar" %}
+      {% endfor %}
+    </c-menu>
+  </c-card.wrapper>
+</div>
+<div class="{% navbar_narrow_only_class breakpoint %} w-full">
+  <c-dropdown full
+              class="w-full"
+              content_class="p-2"
+              text="{% trans "Account navigation" %}"
+              icon="chevron-down">
+    <c-menu label="{% trans "Account navigation" %}">
+      {% for child in account_menu.visible_children %}
+        {% render_item child renderer="sidebar" %}
+      {% endfor %}
+    </c-menu>
+  </c-dropdown>
+</div>

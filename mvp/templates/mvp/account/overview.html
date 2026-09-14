@@ -1,0 +1,17 @@
+{% extends "mvp/account/base.html" %}
+{% load i18n %}
+{% block title %}
+  {{ page.title }}
+{% endblock title %}
+{% block account.content %}
+  <c-page>
+    <c-page.title :title="page.title" :subtitle="page.subtitle" />
+    {% comment %}
+      Empty until an installed app contributes a card (US-3, T022/T023). No
+      fallback listing of the menu here — the menu is already on the page,
+      beside this content (D5, FR-019).
+    {% endcomment %}
+    <div id="account-center-cards"
+         class="grid gap-4 sm:grid-cols-2"></div>
+  </c-page>
+{% endblock account.content %}
