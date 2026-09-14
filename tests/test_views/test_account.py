@@ -11,10 +11,29 @@ project chooses to mount it.
 """
 
 import re
+from pathlib import Path
 
 import pytest
-from django.test import override_settings
+from django.contrib.auth.models import AnonymousUser
+from django.template.loader import render_to_string
+from django.test import RequestFactory, override_settings
 from django.urls import include, path, reverse
+
+ACCOUNT_BASE_TEMPLATE = (
+    Path(__file__).resolve().parent.parent.parent
+    / "mvp"
+    / "templates"
+    / "mvp"
+    / "account"
+    / "base.html"
+)
+
+
+def _render(template_name):
+    """Render a template with full request context (anonymous user)."""
+    request = RequestFactory().get("/")
+    request.user = AnonymousUser()
+    return render_to_string(template_name, request=request)
 
 
 def _urlconf():
@@ -89,3 +108,21 @@ class TestAccountCenterView:
         client.force_login(user)
         content = client.get(reverse("account-center")).content.decode()
         assert "Manage your account" in content
+
+
+class TestAccountLayout:
+    """``mvp/account/base.html`` — the layout a page in the area extends
+    (FR-012, FR-013)."""
+
+    def test_page_content_renders_beside_the_navigation_panel(self):
+        html = _render("tests/account_layout_content.html")
+        assert "account-layout-test-content" in html
+        assert 'aria-label="Account navigation"' in html
+
+    def test_the_layout_extends_the_projects_own_base_not_the_shell_directly(self):
+        """Extends ``base.html`` — the unqualified name a project owns — not
+        ``mvp/base.html`` directly, so a project's own base override still
+        applies underneath the account layout."""
+        source = ACCOUNT_BASE_TEMPLATE.read_text()
+        assert '{% extends "base.html" %}' in source
+        assert "mvp/base.html" not in source
