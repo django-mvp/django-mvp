@@ -153,13 +153,21 @@ class TestAccountLayout:
         assert "account-layout-test-content" in html
         assert 'aria-label="Account navigation"' in html
 
-    def test_the_panel_follows_the_content_in_the_markup(self):
-        """The panel is emitted after the page's content, which is what puts
-        it on the right in a row and below the page when the columns stack."""
+    def test_the_wide_panel_follows_the_content_and_the_collapsed_one_precedes_it(
+        self,
+    ):
+        """Markup order is what places the panel: the wide card after the
+        page's content so it sits on the right of the row, the collapsed
+        control before it so it stays above the page when the two stack."""
         html = _render("tests/account_layout_content.html")
-        assert html.index("account-layout-test-content") < html.index(
-            'aria-label="Account navigation"'
-        )
+        content = html.index("account-layout-test-content")
+        sites = [
+            match.start()
+            for match in re.finditer(r'aria-label="Account navigation"', html)
+        ]
+        assert len(sites) == 2
+        collapsed, card = min(sites), max(sites)
+        assert collapsed < content < card
 
     def test_the_layout_extends_the_projects_own_base_not_the_shell_directly(self):
         """Extends ``base.html`` — the unqualified name a project owns — not

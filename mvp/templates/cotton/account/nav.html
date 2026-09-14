@@ -5,10 +5,16 @@
 {# renderer, from one processed tree, at two render sites: a    #}
 {# persistent card at and above the shell's configured sidebar  #}
 {# breakpoint, and a collapsed <c-dropdown> below it (FR-013).  #}
+{#                                                              #}
+{# `site` picks one of the two when the layout needs them in    #}
+{# different places in the document: the collapsed control      #}
+{# above the page, the persistent card after it so it lands on  #}
+{# the right of the row. Left alone, both render here.          #}
 {# ============================================================ #}
 {% load i18n flex_menu mvp %}
-<c-vars :breakpoint="mvp_config.layout.sidebar.breakpoint" />
+<c-vars :breakpoint="mvp_config.layout.sidebar.breakpoint" site="both" />
 {% process_menu "AccountCenterMenu" as account_menu %}
+{% if site != "narrow" %}
 <div class="{% navbar_wide_only_class breakpoint %} w-full lg:w-1/4 lg:shrink-0">
   <c-card.wrapper class="p-2 w-full">
     <c-menu label="{% trans "Account navigation" %}">
@@ -18,6 +24,8 @@
     </c-menu>
   </c-card.wrapper>
 </div>
+{% endif %}
+{% if site != "wide" %}
 <div class="{% navbar_narrow_only_class breakpoint %} w-full">
   <c-dropdown full
               class="w-full"
@@ -31,3 +39,4 @@
     </c-menu>
   </c-dropdown>
 </div>
+{% endif %}

@@ -10,16 +10,19 @@
   taken to build the two-column arrangement.
 
   The panel follows the content in the document, which puts it on the right
-  from the breakpoint up and below the page when the two columns stack.
+  of the row from the breakpoint up. Below the breakpoint the panel is a
+  collapsed control rather than a column, so that half renders before the
+  content and stays above the page when the two stack.
 {% endcomment %}
 {% block content %}
   <c-container class="py-4">
     <div class="flex flex-col lg:flex-row lg:items-start gap-4 lg:gap-6">
+      <c-account.nav site="narrow" />
       <div class="grow min-w-0">
         {% block account.content %}
         {% endblock account.content %}
       </div>
-      <c-account.nav />
+      <c-account.nav site="wide" />
     </div>
   </c-container>
 {% endblock content %}
