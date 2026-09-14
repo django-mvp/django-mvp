@@ -17,6 +17,8 @@
 {% endcomment %}
 <div id="{{ id }}"
      class="drawer {% sidebar_breakpoint_class breakpoint %} {{ class }}"
+     data-mvp-breakpoint="{{ layout.breakpoint }}"
+     data-mvp-collapse="{{ layout.collapse }}"
      x-data
      {{ attrs }}>
   <input id="{{ id }}-toggle"

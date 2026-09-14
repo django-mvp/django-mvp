@@ -1,4 +1,5 @@
-<c-vars :breakpoint="mvp_config.layout.sidebar.breakpoint" />
-<c-layout.sidebar id="mvp-app" :breakpoint="breakpoint">
+<c-vars :breakpoint="mvp_config.layout.sidebar.breakpoint"
+        :collapse="mvp_config.layout.sidebar.collapse" />
+<c-layout.sidebar id="mvp-app" :breakpoint="breakpoint" :collapse="collapse">
   {{ slot }}
 </c-layout.sidebar>

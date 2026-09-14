@@ -99,7 +99,7 @@
       {% endcomment %}
       {% firstof breakpoint mvp_config.layout.sidebar.breakpoint as breakpoint %}
       {% firstof collapse mvp_config.layout.sidebar.collapse as collapse %}
-      <c-app :breakpoint="breakpoint">
+      <c-app :breakpoint="breakpoint" :collapse="collapse">
         <c-slot name="sidebar">
           {% block app.sidebar %}
             <c-app.sidebar :collapse="collapse" />

@@ -112,7 +112,9 @@ class TestNavbarMobileDesktopSplit:
         """A widget configured only for one breakpoint must not leak into
         the other breakpoint's markup."""
         monkeypatch.setitem(
-            MVP_CONFIG["layout"]["navbar"]["mobile"], "end", ["actions.theme-controller"]
+            MVP_CONFIG["layout"]["navbar"]["mobile"],
+            "end",
+            ["actions.theme-controller"],
         )
         monkeypatch.setitem(
             MVP_CONFIG["layout"]["navbar"]["desktop"],
@@ -262,7 +264,7 @@ class TestBreakpointTags:
 
     @pytest.mark.parametrize("bp", ["never", "none", "NEVER"])
     def test_header_actions_survive_a_disabled_breakpoint(self, bp):
-        """"never"/"none" says the sidebar is an overlay at every width — it
+        """ "never"/"none" says the sidebar is an overlay at every width — it
         says nothing about viewport size, so there is no width at which to
         hide the actions. They stay visible and the mobile region, which would
         otherwise duplicate them, does not render."""
@@ -709,6 +711,57 @@ class TestLayoutConfigPayload:
         assert payload is not None, "the layout config payload must render"
         assert payload["breakpoint"] == "xl"
         assert payload["breakpoint_px"] == 1280
+
+
+# ---------------------------------------------------------------------------
+# The drawer renders the resolved layout as attributes (T014)
+# ---------------------------------------------------------------------------
+
+
+def _drawer_attrs(html):
+    """The ``id="mvp-app"`` drawer element's opening tag, so its attributes
+    can be asserted on directly rather than searched for anywhere in the
+    page."""
+    match = re.search(r'<div id="mvp-app"[^>]*>', html, re.S)
+    return match.group(0) if match else None
+
+
+class TestDrawerRendersLayoutAttributes:
+    """The drawer element carries the resolved breakpoint and collapse mode
+    as attributes, so the stylesheet (T015) can select on them the same way
+    every other governed region already reads ``breakpoint``/``collapse``
+    from the shell. The collapse mode does not reach the drawer before this
+    task: ``mvp/base.html`` sends it to the sidebar rail and the header only,
+    and ``cotton/app/index.html`` declares no such variable to forward."""
+
+    @pytest.mark.django_db
+    def test_default_page_renders_both_attributes(self, client):
+        tag = _drawer_attrs(client.get("/").content.decode())
+        assert tag is not None, "the drawer element must render"
+        assert 'data-mvp-breakpoint="lg"' in tag
+        assert 'data-mvp-collapse="offcanvas"' in tag
+
+    def test_a_per_page_override_of_both_knobs_is_what_renders(self):
+        """<c-app breakpoint="xl">/<c-app.sidebar collapse="icons"> set through
+        mvp/base.html's {% with %} override (tests/app_shell_override.html)
+        reach the drawer the same way they already reach the sidebar rail and
+        the navbar toggle."""
+        tag = _drawer_attrs(_render("tests/app_shell_override.html"))
+        assert tag is not None
+        assert 'data-mvp-breakpoint="xl"' in tag
+        assert 'data-mvp-collapse="icons"' in tag
+
+    def test_an_unrecognised_breakpoint_is_rendered_already_normalised(self):
+        """LayoutConfig folds an unrecognised name to `lg` before render
+        (mvp/layout.py), so the stylesheet never sees the raw value."""
+        tag = _drawer_attrs(_render("tests/app_breakpoint_bogus.html"))
+        assert tag is not None
+        assert 'data-mvp-breakpoint="lg"' in tag
+
+    def test_the_never_breakpoint_is_rendered_literally(self):
+        tag = _drawer_attrs(_render("tests/app_breakpoint_never.html"))
+        assert tag is not None
+        assert 'data-mvp-breakpoint="never"' in tag
 
 
 # ---------------------------------------------------------------------------

@@ -103,11 +103,11 @@ def regions_server(live_server):
         yield live_server
 
 
-def _goto(page, regions_server, *, breakpoint=None, collapse=None, viewport):
+def _goto(page, regions_server, *, bp=None, collapse=None, viewport):
     page.set_viewport_size({"width": viewport, "height": VIEWPORT_HEIGHT})
     params = []
-    if breakpoint is not None:
-        params.append(f"breakpoint={breakpoint}")
+    if bp is not None:
+        params.append(f"breakpoint={bp}")
     if collapse is not None:
         params.append(f"collapse={collapse}")
     url = f"{regions_server.url}/responsive-visibility-regions/"
@@ -166,9 +166,9 @@ def _close_drawer(page):
     # A native click() rather than a coordinate-based one: at desktop widths
     # the overlay label sits behind other content and a coordinate click can
     # miss it (mirrors test_layout_store.py's TestAnElementBoundToTheStore...).
-    page.locator(
-        'label[for="mvp-app-toggle"][aria-label="Close sidebar"]'
-    ).evaluate("el => el.click()")
+    page.locator('label[for="mvp-app-toggle"][aria-label="Close sidebar"]').evaluate(
+        "el => el.click()"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -185,7 +185,7 @@ class TestNarrowOnlyRegions:
 
     @pytest.mark.parametrize(("bp", "px"), REAL_BREAKPOINTS.items())
     def test_shown_below_hidden_at_or_above(self, page, regions_server, bp, px):
-        _goto(page, regions_server, breakpoint=bp, viewport=px - 1)
+        _goto(page, regions_server, bp=bp, viewport=px - 1)
         assert _display(_mobile_widgets(page)) != "none"
         assert _display(_account_narrow(page)) != "none"
 
@@ -195,13 +195,13 @@ class TestNarrowOnlyRegions:
 
     def test_hidden_at_every_width_when_never(self, page, regions_server):
         for width in NEVER_WIDTHS:
-            _goto(page, regions_server, breakpoint="never", viewport=width)
+            _goto(page, regions_server, bp="never", viewport=width)
             assert _display(_mobile_widgets(page)) == "none"
             assert _display(_account_narrow(page)) == "none"
 
     def test_unrecognised_breakpoint_falls_back_to_lg(self, page, regions_server):
         lg_px = REAL_BREAKPOINTS["lg"]
-        _goto(page, regions_server, breakpoint="bogus", viewport=lg_px - 1)
+        _goto(page, regions_server, bp="bogus", viewport=lg_px - 1)
         assert _display(_mobile_widgets(page)) != "none"
 
         _resize(page, lg_px)
@@ -221,7 +221,7 @@ class TestWideOnlyRegions:
 
     @pytest.mark.parametrize(("bp", "px"), REAL_BREAKPOINTS.items())
     def test_hidden_below_shown_at_or_above(self, page, regions_server, bp, px):
-        _goto(page, regions_server, breakpoint=bp, viewport=px - 1)
+        _goto(page, regions_server, bp=bp, viewport=px - 1)
         assert _display(_desktop_widgets(page)) == "none"
         assert _display(_account_wide(page)) == "none"
 
@@ -231,13 +231,13 @@ class TestWideOnlyRegions:
 
     def test_shown_at_every_width_when_never(self, page, regions_server):
         for width in NEVER_WIDTHS:
-            _goto(page, regions_server, breakpoint="never", viewport=width)
+            _goto(page, regions_server, bp="never", viewport=width)
             assert _display(_desktop_widgets(page)) != "none"
             assert _display(_account_wide(page)) != "none"
 
     def test_unrecognised_breakpoint_falls_back_to_lg(self, page, regions_server):
         lg_px = REAL_BREAKPOINTS["lg"]
-        _goto(page, regions_server, breakpoint="bogus", viewport=lg_px - 1)
+        _goto(page, regions_server, bp="bogus", viewport=lg_px - 1)
         assert _display(_desktop_widgets(page)) == "none"
 
         _resize(page, lg_px)
@@ -261,7 +261,7 @@ class TestSidebarEchoRegion:
     def test_icons_mode_hides_at_or_above_unconditionally(
         self, page, regions_server, bp, px
     ):
-        _goto(page, regions_server, breakpoint=bp, collapse="icons", viewport=px - 1)
+        _goto(page, regions_server, bp=bp, collapse="icons", viewport=px - 1)
         assert _display(_toggle_label(page)) != "none"
         assert _display(_site_icon(page)) != "none"
 
@@ -273,9 +273,7 @@ class TestSidebarEchoRegion:
     def test_offcanvas_mode_shown_below_regardless_of_drawer_state(
         self, page, regions_server, bp, px
     ):
-        _goto(
-            page, regions_server, breakpoint=bp, collapse="offcanvas", viewport=px - 1
-        )
+        _goto(page, regions_server, bp=bp, collapse="offcanvas", viewport=px - 1)
         assert _display(_toggle_label(page)) != "none"
         assert _display(_site_icon(page)) != "none"
 
@@ -286,9 +284,7 @@ class TestSidebarEchoRegion:
         the drawer-state dependency itself; the rule is structurally
         identical at every other breakpoint (D7)."""
         lg_px = REAL_BREAKPOINTS["lg"]
-        _goto(
-            page, regions_server, breakpoint="lg", collapse="offcanvas", viewport=lg_px
-        )
+        _goto(page, regions_server, bp="lg", collapse="offcanvas", viewport=lg_px)
         # A persistent drawer defaults open on a fresh load (issue #178's
         # pre-paint script) — the precondition for the "hidden while open"
         # half of this test.
@@ -307,7 +303,7 @@ class TestSidebarEchoRegion:
                 _goto(
                     page,
                     regions_server,
-                    breakpoint="never",
+                    bp="never",
                     collapse=collapse,
                     viewport=width,
                 )
@@ -319,7 +315,7 @@ class TestSidebarEchoRegion:
         _goto(
             page,
             regions_server,
-            breakpoint="bogus",
+            bp="bogus",
             collapse="icons",
             viewport=lg_px - 1,
         )
