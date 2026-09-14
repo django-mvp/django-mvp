@@ -29,6 +29,30 @@ one) stays conditional, and the link is simply absent.
 The landing page's URL name is `account-center`, deliberately left un-namespaced so
 that markup already written against it keeps resolving.
 
+## The landing page view
+
+The URLconf points at `AccountCenterView`, exported from `mvp.views`. Most projects never
+name it: including the URLconf is enough. Reach for it when you want the area's landing
+page to say something of your own — a different title, or context your own template needs:
+
+```python
+# urls.py
+from django.urls import path
+from mvp.views import AccountCenterView
+
+
+class MyAccountCenterView(AccountCenterView):
+    page_title = "Your account"
+
+
+urlpatterns = [
+    path("account/", MyAccountCenterView.as_view(), name="account-center"),
+]
+```
+
+Keep the `account-center` name if you do this, because the shell's user menu and every
+contributed page's trail reverse it.
+
 ## Signing in
 
 The landing page requires a signed-in user and sends an anonymous visitor to your

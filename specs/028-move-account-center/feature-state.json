@@ -66,7 +66,7 @@
       "priority": "P1",
       "issue": 339,
       "worktree": null,
-      "status": "in_progress",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
@@ -74,8 +74,10 @@
           "status": "done",
           "attempts": 1,
           "evidence": {
-            "tests": ["tests/test_menus.py::TestAccountCenterMenu"],
-            "commands": ["poetry run pytest tests/test_menus.py::TestAccountCenterMenu -q"]
+            "commands": [
+              "forge verify --repo /home/sam/projects/django-mvp/django-mvp --base origin/main"
+            ],
+            "verified_by_ci": false
           }
         },
         {
@@ -83,8 +85,10 @@
           "status": "done",
           "attempts": 1,
           "evidence": {
-            "tests": ["tests/test_views/test_account.py::TestAccountCenterView"],
-            "commands": ["poetry run pytest tests/test_views/test_account.py::TestAccountCenterView -q"]
+            "commands": [
+              "forge verify --repo /home/sam/projects/django-mvp/django-mvp --base origin/main"
+            ],
+            "verified_by_ci": false
           }
         },
         {
@@ -92,8 +96,10 @@
           "status": "done",
           "attempts": 1,
           "evidence": {
-            "tests": ["tests/test_components/test_account_nav.py::TestAccountNav"],
-            "commands": ["poetry run pytest tests/test_components/test_account_nav.py -q"]
+            "commands": [
+              "forge verify --repo /home/sam/projects/django-mvp/django-mvp --base origin/main"
+            ],
+            "verified_by_ci": false
           }
         },
         {
@@ -101,8 +107,10 @@
           "status": "done",
           "attempts": 1,
           "evidence": {
-            "tests": ["tests/test_views/test_account.py::TestAccountLayout"],
-            "commands": ["poetry run pytest tests/test_views/test_account.py::TestAccountLayout -q"]
+            "commands": [
+              "forge verify --repo /home/sam/projects/django-mvp/django-mvp --base origin/main"
+            ],
+            "verified_by_ci": false
           }
         },
         {
@@ -110,8 +118,10 @@
           "status": "done",
           "attempts": 1,
           "evidence": {
-            "tests": ["tests/test_utils.py::TestAccountCenterIcons"],
-            "commands": ["poetry run pytest tests/test_utils.py::TestAccountCenterIcons -q"]
+            "commands": [
+              "forge verify --repo /home/sam/projects/django-mvp/django-mvp --base origin/main"
+            ],
+            "verified_by_ci": false
           }
         },
         {
@@ -119,9 +129,10 @@
           "status": "done",
           "attempts": 1,
           "evidence": {
-            "code": ["mvp/menus.py:76"],
-            "tests": ["tests/test_menus.py::TestAccountCenterMenu"],
-            "commands": ["poetry run pytest tests/test_menus.py -q"]
+            "commands": [
+              "forge verify --repo /home/sam/projects/django-mvp/django-mvp --base origin/main"
+            ],
+            "verified_by_ci": false
           }
         },
         {
@@ -129,8 +140,10 @@
           "status": "done",
           "attempts": 1,
           "evidence": {
-            "code": ["mvp/urls.py:19"],
-            "commands": ["poetry run pytest tests/test_views/test_account.py -q"]
+            "commands": [
+              "forge verify --repo /home/sam/projects/django-mvp/django-mvp --base origin/main"
+            ],
+            "verified_by_ci": false
           }
         },
         {
@@ -138,8 +151,10 @@
           "status": "done",
           "attempts": 1,
           "evidence": {
-            "code": ["mvp/views/account.py:13"],
-            "commands": ["poetry run pytest tests/test_views/test_account.py -q"]
+            "commands": [
+              "forge verify --repo /home/sam/projects/django-mvp/django-mvp --base origin/main"
+            ],
+            "verified_by_ci": false
           }
         },
         {
@@ -147,19 +162,10 @@
           "status": "done",
           "attempts": 1,
           "evidence": {
-            "code": [
-              "mvp/templates/mvp/account/base.html:14",
-              "mvp/templates/mvp/account/overview.html:1",
-              "mvp/templates/cotton/account/nav.html:1"
-            ],
-            "tests": [
-              "tests/test_views/test_account.py::TestAccountCenterView",
-              "tests/test_views/test_account.py::TestAccountLayout",
-              "tests/test_components/test_account_nav.py::TestAccountNav"
-            ],
             "commands": [
-              "poetry run pytest tests/test_views/test_account.py tests/test_components/test_account_nav.py -q"
-            ]
+              "forge verify --repo /home/sam/projects/django-mvp/django-mvp --base origin/main"
+            ],
+            "verified_by_ci": false
           }
         },
         {
@@ -167,9 +173,10 @@
           "status": "done",
           "attempts": 1,
           "evidence": {
-            "code": ["mvp/utils.py:110"],
-            "tests": ["tests/test_utils.py::TestAccountCenterIcons"],
-            "commands": ["poetry run pytest tests/test_utils.py -q"]
+            "commands": [
+              "forge verify --repo /home/sam/projects/django-mvp/django-mvp --base origin/main"
+            ],
+            "verified_by_ci": false
           }
         },
         {
@@ -177,8 +184,10 @@
           "status": "done",
           "attempts": 1,
           "evidence": {
-            "code": ["demo/urls.py:32"],
-            "commands": ["poetry run pytest -q"]
+            "commands": [
+              "forge verify --repo /home/sam/projects/django-mvp/django-mvp --base origin/main"
+            ],
+            "verified_by_ci": false
           }
         },
         {
@@ -186,7 +195,10 @@
           "status": "done",
           "attempts": 1,
           "evidence": {
-            "code": ["docs/account-center.md:1"]
+            "commands": [
+              "forge verify --repo /home/sam/projects/django-mvp/django-mvp --base origin/main"
+            ],
+            "verified_by_ci": false
           }
         },
         {
@@ -194,10 +206,10 @@
           "status": "done",
           "attempts": 1,
           "evidence": {
-            "code": [
-              "skills/django-mvp/references/menus.md:11",
-              "skills/django-mvp/references/layout.md:37"
-            ]
+            "commands": [
+              "forge verify --repo /home/sam/projects/django-mvp/django-mvp --base origin/main"
+            ],
+            "verified_by_ci": false
           }
         },
         {
@@ -205,11 +217,10 @@
           "status": "done",
           "attempts": 1,
           "evidence": {
-            "tests": ["tests/test_smoke.py::TestStylesheetShipsAccountCenterClasses"],
             "commands": [
-              "poetry run invoke build-stylesheet",
-              "poetry run pytest tests/test_smoke.py -q"
-            ]
+              "forge verify --repo /home/sam/projects/django-mvp/django-mvp --base origin/main"
+            ],
+            "verified_by_ci": false
           }
         }
       ]
