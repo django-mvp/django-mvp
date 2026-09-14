@@ -223,6 +223,25 @@ stop being reachable, and the navbar toggle falls back to the configured breakpo
 and collapse mode instead of the values resolved at the top of the `app` block —
 the desynchronisation described above.
 
+## Responsive visibility classes
+
+The drawer element (`<c-app>`'s root, wrapping sidebar + header + content) carries
+`data-mvp-breakpoint` (`sm`/`md`/`lg`/`xl`/`2xl`/`never`, already normalised) and
+`data-mvp-collapse` (`offcanvas`/`icons`). `mvp/tailwind/base.css` selects on both;
+three classes are available for a descendant to reuse the pattern:
+
+- `mvp-wide-only` — shown at/above the breakpoint, hidden below it (and never under
+  `never`, which has no width to key off).
+- `mvp-narrow-only` — the inverse, and always hidden under `never` so it never
+  doubles up with `mvp-wide-only`'s unconditionally-shown copy.
+- `mvp-sidebar-echo` — hidden wherever the sidebar header shows the same thing:
+  unconditionally at/above the breakpoint in `icons` mode, only while the drawer is
+  open in `offcanvas` mode.
+
+The navbar's widget lists, the account layout's collapsed/persistent navigation, and
+the navbar's own sidebar-toggle/site-icon are all built from these three classes —
+no template tag needed.
+
 ## Full-page content: `fill` on `<c-page>`
 
 New in `[Unreleased]`. By default a page grows as tall as its content and the

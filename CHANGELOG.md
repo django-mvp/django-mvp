@@ -36,6 +36,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   under django-flex-menus' lookup and the icon under django-easy-icons' pack merging. A
   future django-accounts-center release drops its own copies in favor of these.
 
+### Removed
+
+- **BREAKING: `navbar_wide_only_class`, `navbar_narrow_only_class` and
+  `sidebar_navbar_toggle_class` are gone.** The header's desktop/mobile widget split, the
+  account layout's collapsed/persistent navigation split, and the navbar's own copy of the
+  sidebar-toggle button and site icon were all governed by classes these tags assembled at
+  render time — reachable from any project template through `{% load mvp %}`, and each kept
+  in sync with a `@source inline()` safelist entry by a comment rather than by anything that
+  would fail if the two drifted. Responsive visibility for all four is now static rules in
+  `mvp/tailwind/base.css`, selected by `data-mvp-breakpoint`/`data-mvp-collapse` attributes
+  the shell already renders on the drawer element — nothing a project's own template needs
+  to set. What a page looks like, at every breakpoint and both collapse modes, is unchanged.
+
+  **On upgrade**, nothing — no packaged or project template called any of the three by name
+  outside this repository's own test suite. A project that did call one directly should
+  switch to the semantic class the region now carries instead: `mvp-wide-only` (replaces
+  `navbar_wide_only_class`), `mvp-narrow-only` (replaces `navbar_narrow_only_class`), or
+  `mvp-sidebar-echo` (replaces `sidebar_navbar_toggle_class`) — applied directly, with no
+  breakpoint or collapse argument to pass, since the rule now reads both off the shell.
+
 ## [v0.21.0] - 2026-09-07
 
 ### Added

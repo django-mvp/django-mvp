@@ -481,6 +481,25 @@ the package does not recognise falls back to `lg` rather than raising, so a typo
 `as_dict()` is what the shell hands to the browser, so the names above are the same
 names client-side code reads.
 
+## Responsive visibility
+
+The drawer element — the one wrapping the sidebar, header and page content — carries
+the resolved layout as two attributes: `data-mvp-breakpoint` (`sm`, `md`, `lg`, `xl`,
+`2xl` or `never`, already normalised the same way `LayoutConfig.breakpoint` is above)
+and `data-mvp-collapse` (`offcanvas` or `icons`). `mvp/tailwind/base.css` selects on
+both to decide what shows at which width, and three classes are available for your own
+markup to reuse the same rules instead of writing new media queries:
+
+| Class | Shown | Hidden |
+| --- | --- | --- |
+| `mvp-wide-only` | at and above the configured breakpoint | below it — and, since `breakpoint="never"` has no width to key off, never |
+| `mvp-narrow-only` | below the configured breakpoint | at and above it — and always under `breakpoint="never"`, so it never doubles up with the (unconditionally shown) `mvp-wide-only` region |
+| `mvp-sidebar-echo` | wherever the sidebar header does not already show the same thing | at and above the breakpoint: unconditionally in `icons` mode, only while the drawer is open in `offcanvas` mode |
+
+Any descendant of the drawer element can carry one — the navbar's widget lists, the
+account layout's collapsed/persistent navigation split, and the navbar's own copy of
+the sidebar-toggle button and site icon are all built from these three.
+
 ## The layout store
 
 Every shell page registers an Alpine store named `layout`, so any element inside the shell can
