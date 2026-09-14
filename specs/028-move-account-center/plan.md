@@ -81,6 +81,13 @@ No violations, so **Complexity Tracking is empty**.
 
 ## Design
 
+> **Superseded in part, 2026-09-14.** The maintainer cut two pieces of this design while reviewing
+> the delivering pull request: the page mixin and section resolution described under *The views*
+> and *The menu*, and the application-configuration card hooks described under *The views*. The
+> replacements, and the reasoning, are in `spec.md` under *Refined 2026-09-14*. The text below is
+> kept as the record of what was planned.
+
+
 ### The menu — `mvp/menus.py`
 
 `AccountCenterMenu = Menu("AccountCenterMenu", children=[MenuItem(name="overview", …)])`, declared

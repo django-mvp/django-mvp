@@ -105,7 +105,11 @@ second trail would put two of them on one page in two visual languages. The cost
 comes from a view rather than a template, so a contributed page gets it by using the packaged page
 mixin; a page that uses neither still renders correctly, without a trail.
 
-**ADR:** none — applies the existing decision to draw the trail in the app header (v0.21.0) to this area. It introduces no rule of its own.
+**Withdrawn 2026-09-14** by the maintainer, with the mixin that carried it. A page in the area
+declares its own `breadcrumbs` through `PageMixin`, like every other page in a project built on
+this package. The area's landing page names itself; nothing resolves a trail from the menu.
+
+**ADR:** none — the decision it recorded no longer stands.
 
 ## D8 — The icon keys overlap the same way the menu name does
 
@@ -265,7 +269,7 @@ engineering workspace.
   which is the smallest thing that makes the requirement provable under SC-006. The requirement
   itself is unchanged, so the approved spec stands.
 
-## D15 — Fixture views compose `AccountPageMixin` at T019, not T015
+## D15 — Fixture views compose `AccountPageMixin` at T019, not T015 *(both the mixin and this decision were withdrawn on 2026-09-14)*
 
 **Decision:** `tests/testapp_account/views.py`'s three pages extend `MVPTemplateView` alone at
 T015. T019 edits this file to add `AccountPageMixin` to their bases once that mixin exists.
@@ -284,7 +288,7 @@ task graph. Then either bring the mixin's creation forward or stub a matching
 
 **ADR:** none — fixture wiring inside one story.
 
-## D16 — The demo's card lives in its own `demo.account_showcase` app, excluded from `tests/settings.py`
+## D16 — The demo's card lives in its own `demo.account_showcase` app, excluded from `tests/settings.py` *(still stands; the app now contributes through the card block rather than an application-configuration attribute)*
 
 **Decision:** T025's "the demo application contributes one card" (G9) is not implemented by adding
 `account_center_card_template` to `demo`'s own `DemoConfig`. It is a separate, tiny app,

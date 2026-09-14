@@ -3,7 +3,7 @@
   "feature": "028-move-account-center",
   "branch": "028-move-account-center",
   "repo": "django-mvp/django-mvp",
-  "state": "PR_READY",
+  "state": "IMPLEMENT",
   "state_history": [
     {
       "state": "SPECIFY",
@@ -43,6 +43,11 @@
       "state": "PR_READY",
       "at": "2026-09-14T12:22:28Z",
       "note": "review findings closed, PR body rewritten"
+    },
+    {
+      "state": "IMPLEMENT",
+      "at": "2026-09-14T13:40:47Z",
+      "note": "merge-gate kickback: maintainer cut two pieces of API"
     }
   ],
   "gates": {
