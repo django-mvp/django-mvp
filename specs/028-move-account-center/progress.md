@@ -383,3 +383,15 @@ page and `AccountCenterMenu` but not the card-contribution surface T021–T026 a
 is not in this story's declared file scope, so left untouched — flagging for Forge to reconcile
 before the feature's PR lands.
 Next: the completion report. Watch: —
+
+## 2026-09-14 · Ready for review
+
+Review closed: one verified high finding fixed (card contexts could replace the page's own),
+one low fixed with it, one declined against the package's own naming convention, one filed as
+issue #344. Dispositions in `decisions.md`.
+
+Independent verification on the branch: 1871 passed, 1 skipped; lint, formatting, type
+checking, dependency check, packaging, documentation and structure checks green. All seven
+required checks green on the pull request, plus the coverage and stylesheet checks.
+
+Pull request #342 is out of draft and waiting on the merge decision.
