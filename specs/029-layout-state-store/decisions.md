@@ -189,3 +189,43 @@ same fact and the two other properties now read it.
 
 **ADR:** none — both are corrections to one story's handover, with nothing downstream inheriting
 them.
+
+## D9 — Five assertions rewritten when the state they pinned moved
+
+**The situation.** Moving the sidebar's open state and the header's stuck state into the store
+broke five tests that had nothing to do with either behaviour. Each asserted a literal fragment of
+the expression that used to sit in the markup — `$persist`, `desktopOpen`, `{ open: false }`,
+`$watch`, `stuck = window.scrollY > 0`, and a `localStorage` call with the storage key spelled out
+inside it. The behaviours those fragments stood for are unchanged. The fragments are not.
+
+**Chosen**: rewrite the five assertions to name what the markup now carries, keeping every test's
+subject, docstring intent and name. None was deleted, weakened or skipped.
+
+**Why this is not a test being bent to fit a regression.** The distinction that matters is whether
+the behaviour survived, and whether something independent proves it did. Both hold here:
+
+- The pre-paint script is still there, still runs before the drawer-side markup, and still resolves
+  the remembered state before the first frame. It now reads the storage key from the checkbox
+  instead of repeating it, which is what made the key single-definition in the first place — so the
+  assertion that broke is the one the requirement asked us to break.
+- `tests/test_components/test_sidebar_persisted_state.py` proves, in a browser, that no width
+  transition plays on a restoring load, that the sidebar is already open on the first frame, and
+  that the store agrees with the checkbox at that moment. That is issue #178's actual guarantee,
+  tested at the level the defect lives at.
+- `tests/test_components/test_layout_store.py` proves the remaining behaviours end to end: the
+  store follows every control the shell ships, a boosted navigation leaves it correct at a wide
+  viewport and closes it at a narrow one, the shell still works with JavaScript off, and a page
+  with no shell gets a store reporting defaults rather than an exception.
+
+Every one of those is a stronger statement than the string it replaces. A test that reads an
+expression out of rendered HTML cannot tell whether the expression works.
+
+**Why the builder did not do it.** An Implementer may not modify a test it did not author, and it
+was right to stop and report rather than edit its way to green. Triaging that report is the
+orchestrator's job, and this is the triage.
+
+**Revisit if** a future change moves this state again. The rewritten assertions name markup the
+store reads, so they will break again the same way — which is the point at which someone should ask
+whether they earn their place at all, given the browser coverage now standing behind them.
+
+**ADR:** none — a testing judgement scoped to this feature's own diff.

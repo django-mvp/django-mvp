@@ -345,27 +345,32 @@ class TestShellRendersConfig:
 
     @pytest.mark.django_db
     def test_drawer_state_persisted_with_breakpoint_default(self, client):
-        """Drawer open state persists via Alpine and defaults by viewport width."""
+        """Drawer open state persists, and defaults by viewport width.
+
+        Persistence moved from an expression on the drawer into the layout
+        store, so what the markup carries is the storage key the store
+        persists under. The behaviour is unchanged and is proved end to end in
+        tests/test_components/test_sidebar_persisted_state.py.
+        """
         content = client.get("/").content.decode()
-        assert "$persist" in content
+        assert 'data-mvp-persist-key="mvp-app-drawer-open"' in content
         assert "min-width: 1024px" in content
 
     @pytest.mark.django_db
     def test_persisted_state_applied_before_alpine_hydrates(self, client):
-        """A blocking script, not just Alpine's (deferred) x-init, sets the
-        checkbox's checked state — so the persisted "open" value is already
-        correct on the first paint instead of arriving as a later, animated
-        correction (issue #178). It must read the exact same $persist key
-        and breakpoint Alpine itself uses, and run before the checkbox's
-        drawer-side content."""
+        """A blocking script, not the deferred bundle, sets the checkbox's
+        checked state — so the persisted "open" value is already correct on the
+        first paint instead of arriving as a later, animated correction
+        (issue #178). It reads the storage key off the checkbox rather than
+        naming it a second time, and runs before the drawer-side content."""
         content = client.get("/").content.decode()
         toggle_pos = content.find('id="mvp-app-toggle"')
-        script_pos = content.find("localStorage.getItem('mvp-app-drawer-open')")
+        script_pos = content.find("localStorage.getItem(key)")
         drawer_side_pos = content.find('class="drawer-side')
         assert toggle_pos != -1
         assert script_pos != -1, (
-            "a synchronous pre-hydration script must read the same "
-            "$persist key Alpine's x-init resolves"
+            "a synchronous pre-hydration script must resolve the persisted "
+            "open state before first paint"
         )
         assert toggle_pos < script_pos < drawer_side_pos, (
             "the correction script must sit between the checkbox and the "
@@ -392,14 +397,19 @@ class TestComponentOverrides:
 
     @pytest.mark.django_db
     def test_overlay_state_is_transient_desktop_state_persists(self):
-        """Only the desktop (persistent) open state survives reloads: the drawer
-        seeds closed, then x-init restores the persisted state at/above the
-        breakpoint; $watch writes back only at desktop widths."""
+        """Only the desktop (persistent) open state survives reloads.
+
+        A persistent drawer publishes its storage key and the pre-paint script
+        that resolves it; an overlay-only drawer publishes neither, because
+        there is nothing to remember. That the remembered value is written back
+        at desktop widths and not at mobile ones is behaviour, proved in
+        tests/test_components/test_layout_store.py rather than by reading an
+        expression out of the markup.
+        """
         content = _render("tests/app_breakpoint_override.html")
-        assert "desktopOpen" in content
-        assert "$persist(true)" in content
-        assert "open: false" in content
-        assert "$watch" in content
+        assert 'data-mvp-persist-key="mvp-app-drawer-open"' in content
+        assert "localStorage.getItem(key)" in content
+        assert "min-width: 1280px" in content
 
     @pytest.mark.django_db
     def test_breakpoint_never_component_override(self):
@@ -409,8 +419,8 @@ class TestComponentOverrides:
         from mvp.templatetags.mvp import SIDEBAR_BREAKPOINTS
 
         html = _render("tests/app_breakpoint_never.html")
-        assert "{ open: false }" in html
-        assert "$persist" not in html
+        assert "data-mvp-persist-key" not in html
+        assert "localStorage" not in html
         assert "matchMedia" not in html
         for klass, _px in SIDEBAR_BREAKPOINTS.values():
             assert klass not in html
@@ -538,7 +548,7 @@ class TestHeaderStickiness:
         """With the default config the header pins on scroll (sticky + scroll shadow)."""
         content = client.get("/").content.decode()
         assert "mvp-header w-full backdrop-blur sticky z-10 top-0" in content
-        assert "stuck = window.scrollY > 0" in content
+        assert "$store.layout.headerStuck = window.scrollY > 0" in content
 
     @pytest.mark.django_db
     def test_static_header_component_override(self):
