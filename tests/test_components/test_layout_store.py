@@ -31,7 +31,9 @@ def _toggle(page):
 class TestTheStoreExistsAndReports:
     """A shell page always registers `Alpine.store('layout')`."""
 
-    def test_the_store_reports_sidebar_collapse_and_stuck_state(self, page, live_server):
+    def test_the_store_reports_sidebar_collapse_and_stuck_state(
+        self, page, live_server
+    ):
         page.set_viewport_size(DESKTOP)
         page.goto(f"{live_server.url}/")
         page.wait_for_timeout(200)
@@ -98,9 +100,9 @@ class TestAnElementBoundToTheStoreFollowsEveryControl:
         # DaisyUI/stylesheet concern outside this story's scope. What this
         # test proves is that the label's `for` attribute really does wire
         # it to the checkbox the store is bound to.
-        page.locator("label[for='mvp-app-toggle'][aria-label='Close sidebar']").evaluate(
-            "el => el.click()"
-        )
+        page.locator(
+            "label[for='mvp-app-toggle'][aria-label='Close sidebar']"
+        ).evaluate("el => el.click()")
 
         expect(_toggle(page)).not_to_be_checked()
         assert _store_sidebar_open(page) is False
@@ -149,7 +151,9 @@ class TestTheShellWorksWithoutJavaScript:
     """The drawer's control is a native `<label for>` / checkbox pair — the
     sidebar must open and close with the bundle never running at all."""
 
-    def test_the_sidebar_opens_and_closes_without_javascript(self, browser, live_server):
+    def test_the_sidebar_opens_and_closes_without_javascript(
+        self, browser, live_server
+    ):
         context = browser.new_context(java_script_enabled=False)
         try:
             page = context.new_page()

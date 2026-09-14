@@ -133,8 +133,7 @@ class TestSidebarStateSettledBeforeFirstPaint:
 
         store_open = page.evaluate("() => Alpine.store('layout').sidebarOpen")
         assert store_open == checked, (
-            "the store's sidebarOpen disagreed with the checkbox actually "
-            "on screen"
+            "the store's sidebarOpen disagreed with the checkbox actually on screen"
         )
 
 
