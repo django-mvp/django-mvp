@@ -14,6 +14,7 @@ from django.utils.translation import gettext_lazy as _
 from django_cotton.compiler_regex import CottonCompiler
 
 from ..config import MVP_CONFIG
+from ..layout import LayoutConfig
 
 register = template.Library()
 
@@ -46,7 +47,7 @@ def sidebar_has_breakpoint(bp):
     False when the breakpoint is set to "never" (or "none"), meaning the
     sidebar stays an off-canvas overlay at every width.
     """
-    return not _breakpoint_disabled(bp)
+    return LayoutConfig(bp).persistent
 
 
 @register.simple_tag
@@ -56,15 +57,32 @@ def sidebar_breakpoint_class(bp):
     Returns "" for the "never"/"none" breakpoint (the sidebar never becomes
     persistent). Falls back to the ``lg`` breakpoint for unknown values.
     """
-    if _breakpoint_disabled(bp):
+    config = LayoutConfig(bp)
+    if not config.persistent:
         return ""
-    return SIDEBAR_BREAKPOINTS.get(bp, SIDEBAR_BREAKPOINTS["lg"])[0]
+    return SIDEBAR_BREAKPOINTS[config.breakpoint][0]
 
 
 @register.simple_tag
 def breakpoint_px(bp):
-    """Return the min-width in pixels for a configured sidebar breakpoint."""
-    return SIDEBAR_BREAKPOINTS.get(bp, SIDEBAR_BREAKPOINTS["lg"])[1]
+    """Return the min-width in pixels for a configured sidebar breakpoint.
+
+    Returns the ``lg`` width (1024) for the "never"/"none" breakpoint: it is
+    not a recognised breakpoint name, so it takes the same fallback an
+    unrecognised name does. This is a deliberate, pre-existing behaviour of
+    the tag, distinct from ``LayoutConfig.breakpoint_px``, which reports
+    ``None`` for "never" — the honest value the client payload needs.
+    """
+    return SIDEBAR_BREAKPOINTS.get(
+        LayoutConfig(bp).breakpoint, SIDEBAR_BREAKPOINTS["lg"]
+    )[1]
+
+
+@register.simple_tag
+def resolve_layout_config(bp, collapse, sticky, boost):
+    """Resolve one LayoutConfig for a template to read layout facts from and
+    emit the client payload from."""
+    return LayoutConfig(bp, collapse, sticky, boost)
 
 
 @register.simple_tag

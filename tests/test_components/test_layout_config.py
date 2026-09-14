@@ -14,10 +14,12 @@ from django.test import RequestFactory
 
 from mvp.config import MVP_CONFIG
 from mvp.context_processors import mvp_config as mvp_config_processor
+from mvp.layout import LayoutConfig
 from mvp.templatetags.mvp import (
     breakpoint_px,
     navbar_narrow_only_class,
     navbar_wide_only_class,
+    resolve_layout_config,
     sidebar_breakpoint_class,
     sidebar_has_breakpoint,
     sidebar_navbar_toggle_class,
@@ -265,6 +267,34 @@ class TestBreakpointTags:
         otherwise duplicate them, does not render."""
         assert navbar_wide_only_class(bp) == "flex"
         assert navbar_narrow_only_class(bp) == "hidden"
+
+
+# ---------------------------------------------------------------------------
+# The tags read LayoutConfig instead of reimplementing normalisation (T002)
+# ---------------------------------------------------------------------------
+
+
+class TestTagsReadLayoutConfig:
+    """The surviving tags become thin readers of LayoutConfig."""
+
+    def test_breakpoint_px_keeps_returning_the_lg_width_for_never(self):
+        """The tag's pre-existing behaviour for "never" is pinned deliberately:
+        it is not a recognised breakpoint name, so it takes the same lg
+        fallback an unrecognised name does — unlike LayoutConfig's own
+        breakpoint_px, which reports the honest nullable value for the
+        client payload. The difference is intentional, not a bug carried
+        forward by accident."""
+        assert breakpoint_px("never") == 1024
+        assert LayoutConfig("never").breakpoint_px is None
+
+    def test_resolve_layout_config_tag_returns_a_layout_config(self):
+        """The tag that resolves a LayoutConfig for a template to use."""
+        config = resolve_layout_config("xl", "icons", False, True)
+        assert isinstance(config, LayoutConfig)
+        assert config.breakpoint == "xl"
+        assert config.collapse == "icons"
+        assert config.sticky is False
+        assert config.boost is True
 
 
 # ---------------------------------------------------------------------------
