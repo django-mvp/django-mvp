@@ -228,9 +228,15 @@ documentation included.
 
 | Story | Requirements |
 |---|---|
+| Foundational work every story reads | FR-011, FR-012 |
 | US-1 — layout state on the store | FR-001, FR-002, FR-003, FR-004, FR-005, FR-006, FR-007, FR-008, FR-021, FR-023 |
-| US-2 — resolved configuration on the store | FR-009, FR-010, FR-011, FR-012, FR-013, FR-014 |
+| US-2 — resolved configuration on the store | FR-009, FR-010, FR-013, FR-014 |
 | US-3 — visibility from the stylesheet | FR-015, FR-016, FR-017, FR-018, FR-019, FR-020, FR-022 |
+
+FR-011 and FR-012 govern how the configuration reaches the client at all. The payload they describe
+has to exist before the store can read it and is built from the same resolver the stylesheet
+attributes use, so it is delivered as shared groundwork rather than inside one story. Nothing was
+added or dropped in the correction.
 
 ### Key Entities
 

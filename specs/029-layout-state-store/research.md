@@ -35,10 +35,18 @@ that is itself an interceptor, and a call to `initInterceptors` for a plain obje
 and initialises any interceptor found on a property.
 
 **Finding**: both the whole-store and the single-property forms are supported. A store may hold a
-persisted property alongside ordinary ones.
+persisted property alongside ordinary ones. Two details decide where the code goes:
+
+- The property's key and initial value are needed when the store object is constructed, before
+  `init()` runs. The bundle is deferred, so the document is parsed and the markup can be read at
+  that point — the key and the resolved value can come from the drawer's own attributes rather
+  than being written down a second time in script.
+- `Alpine.$persist` is defined by the persist plugin, on the plugin call. The store must therefore
+  be registered after `Alpine.plugin(persist)`, not merely before `Alpine.start()`.
 
 **Consequence for the plan**: the remembered desktop state stays a persisted property, now on the
-store. The storage key does not change, so an upgrading project keeps whatever its users had.
+store, keyed and seeded from markup. The storage key does not change, so an upgrading project
+keeps whatever its users had.
 
 ## R3 — Where can the stylesheet's rules find the configured breakpoint?
 
@@ -51,14 +59,21 @@ being removed.
 **Finding**: all four governed regions are descendants of the element the drawer component renders.
 The header, the page content and the Account Center's layout all sit inside the drawer's content
 pane, and the navbar's toggle and site icon sit inside the header. That element is rendered by a
-component, and it already receives both the breakpoint and the collapse mode as attributes, with
-per-page overrides already applied.
+component, and it already receives the resolved breakpoint, with per-page overrides applied.
 
 It is also the element the existing drawer-state selectors key on, which is what lets one rule
 express "hidden at this width only while the drawer is open" without a second attribute host.
 
-**Consequence for the plan**: the attributes go on the drawer element. A project that replaces
-`base.html` still renders `<c-app>`, and therefore still gets them.
+**But the collapse mode does not reach it today.** `mvp/templates/mvp/base.html` resolves both
+values and passes only the breakpoint to `<c-app>`; the collapse mode goes to the sidebar and the
+header instead. `mvp/templates/cotton/app/index.html` declares no `collapse` variable and cannot
+forward what it never received. The stylesheet rule for the sidebar's duplicated controls needs
+both values on one element, so the value has to be threaded through two components that do not
+currently carry it.
+
+**Consequence for the plan**: the attributes go on the drawer element, and threading the collapse
+mode through `<c-app>` is part of the work rather than something already in place. A project that
+replaces `base.html` still renders `<c-app>`, and therefore still gets both attributes.
 
 ## What was not researched, and why
 

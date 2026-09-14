@@ -2,13 +2,43 @@
   "feature": "029-layout-state-store",
   "branch": "029-layout-state-store",
   "repo": "django-mvp/django-mvp",
-  "state": "PLAN",
+  "state": "IMPLEMENT",
   "state_history": [
-    { "state": "INTAKE", "at": "2026-09-14T00:00:00Z", "note": "#346 and #345 assessed together" },
-    { "state": "SPECIFY", "at": "2026-09-14T00:10:00Z", "note": "spec.md, decisions.md" },
-    { "state": "SETUP", "at": "2026-09-14T00:30:00Z", "note": "epic #346, stories #347-#349, draft PR #351" },
-    { "state": "GATE_SPEC", "at": "2026-09-14T00:45:00Z", "note": "approved unchanged" },
-    { "state": "PLAN", "at": "2026-09-14T01:00:00Z", "note": "plan.md, research.md, tasks.md" }
+    {
+      "state": "INTAKE",
+      "at": "2026-09-14T00:00:00Z",
+      "note": "#346 and #345 assessed together"
+    },
+    {
+      "state": "SPECIFY",
+      "at": "2026-09-14T00:10:00Z",
+      "note": "spec.md, decisions.md"
+    },
+    {
+      "state": "SETUP",
+      "at": "2026-09-14T00:30:00Z",
+      "note": "epic #346, stories #347-#349, draft PR #351"
+    },
+    {
+      "state": "GATE_SPEC",
+      "at": "2026-09-14T00:45:00Z",
+      "note": "approved unchanged"
+    },
+    {
+      "state": "PLAN",
+      "at": "2026-09-14T01:00:00Z",
+      "note": "plan.md, research.md, tasks.md"
+    },
+    {
+      "state": "DESIGN_REVIEW",
+      "at": "2026-09-14T02:00:00Z",
+      "note": "request_changes; 6 high findings all verified and applied as plan edits"
+    },
+    {
+      "state": "IMPLEMENT",
+      "at": "2026-09-14T02:10:00Z",
+      "note": "re-planned; Phase 0 first"
+    }
   ],
   "gates": {
     "spec": {
@@ -29,7 +59,26 @@
         "Notification waived by the maintainer at spec sign-off; next involvement is the merge decision"
       ]
     },
-    "merge": { "approved_by": null, "at": null }
+    "merge": {
+      "approved_by": null,
+      "at": null
+    },
+    "design_review": {
+      "approved_by": "design-panel",
+      "at": "2026-09-14T02:00:00Z",
+      "self_resolved": [
+        "SPEC-001 high: collapse mode never reaches the drawer element \u2014 threading it is now T014",
+        "SPEC-002 high: narrow-only region is hidden under the never setting \u2014 explicit rule added to T015",
+        "SPEC-003 high: characterisation tests cannot assert class strings \u2014 T013 now asserts computed visibility",
+        "SPEC-004 high: stories share a bundle artifact and four modules \u2014 dispatch is sequential",
+        "SPEC-005 high: the boosted-navigation task needed a payload from a later story \u2014 payload moved to T003",
+        "SPEC-006 high: FR-006 unsatisfied as planned \u2014 the blocking script becomes the single definition, T005",
+        "SPEC-007 medium: tests/test_views/test_account.py asserts the removed tags' output \u2014 added to T015",
+        "ARCH-001 medium: the store must register after the persist plugin, not merely before Alpine starts",
+        "ARCH-002 medium: the payload was planned for the template D4 rejected \u2014 moved to the drawer component",
+        "SPEC-008 low: breakpoint_px returns 1024 under never and nothing asserts it \u2014 pinned in T002"
+      ]
+    }
   },
   "stories": [
     {
@@ -40,8 +89,21 @@
       "status": "todo",
       "replans": 0,
       "tasks": [
-        { "id": "T001", "status": "todo", "attempts": 0 },
-        { "id": "T002", "status": "todo", "attempts": 0 }
+        {
+          "id": "T001",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T002",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T003",
+          "status": "todo",
+          "attempts": 0
+        }
       ]
     },
     {
@@ -52,12 +114,36 @@
       "status": "todo",
       "replans": 0,
       "tasks": [
-        { "id": "T003", "status": "todo", "attempts": 0 },
-        { "id": "T004", "status": "todo", "attempts": 0 },
-        { "id": "T005", "status": "todo", "attempts": 0 },
-        { "id": "T006", "status": "todo", "attempts": 0 },
-        { "id": "T007", "status": "todo", "attempts": 0 },
-        { "id": "T008", "status": "todo", "attempts": 0 }
+        {
+          "id": "T004",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T005",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T006",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T007",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T008",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T009",
+          "status": "todo",
+          "attempts": 0
+        }
       ]
     },
     {
@@ -68,10 +154,21 @@
       "status": "todo",
       "replans": 0,
       "tasks": [
-        { "id": "T009", "status": "todo", "attempts": 0 },
-        { "id": "T010", "status": "todo", "attempts": 0 },
-        { "id": "T011", "status": "todo", "attempts": 0 },
-        { "id": "T012", "status": "todo", "attempts": 0 }
+        {
+          "id": "T010",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T011",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T012",
+          "status": "todo",
+          "attempts": 0
+        }
       ]
     },
     {
@@ -82,19 +179,54 @@
       "status": "todo",
       "replans": 0,
       "tasks": [
-        { "id": "T013", "status": "todo", "attempts": 0 },
-        { "id": "T014", "status": "todo", "attempts": 0 },
-        { "id": "T015", "status": "todo", "attempts": 0 },
-        { "id": "T016", "status": "todo", "attempts": 0 },
-        { "id": "T017", "status": "todo", "attempts": 0 }
+        {
+          "id": "T013",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T014",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T015",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T016",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T017",
+          "status": "todo",
+          "attempts": 0
+        }
       ]
     }
   ],
   "budgets": {
-    "converge_cycles": { "used": 0, "max": 2 },
-    "review_cycles": { "used": 0, "max": 1 },
-    "design_review_cycles": { "used": 0, "max": 1 },
-    "tokens": { "used": 0, "max": 120 }
+    "converge_cycles": {
+      "used": 0,
+      "max": 2
+    },
+    "review_cycles": {
+      "used": 0,
+      "max": 1
+    },
+    "design_review_cycles": {
+      "used": 1,
+      "max": 1
+    },
+    "tokens": {
+      "used": 0,
+      "max": 120
+    }
   },
-  "pr": { "number": 351, "draft": true }
+  "pr": {
+    "number": 351,
+    "draft": true
+  }
 }

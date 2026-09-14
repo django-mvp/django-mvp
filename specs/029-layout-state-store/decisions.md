@@ -70,7 +70,11 @@ extension, and a project that does so writes its own `<body>`. The rules would t
 attribute to select on and the header's trailing regions would never hide — a silent, width-
 dependent failure of exactly the kind this feature is trying to reduce. Every one of the four
 regions is already a descendant of the element the shell's drawer component renders, and that
-component resolves the breakpoint and collapse mode itself.
+component already resolves the breakpoint. The collapse mode is threaded through to it as part of
+this work — see D7.
+
+The same argument applies to the configuration payload the store reads, which is emitted from the
+drawer component for the same reason and was corrected there after the design review.
 
 ## D5 — The store mirrors the drawer's control rather than owning it
 
@@ -105,3 +109,60 @@ view names and table defaults — are read on the server to decide what to rende
 the page reacts to them. Publishing them would add public surface the package must then keep
 stable, in exchange for no capability. If a later feature needs one, adding a key to a store that
 already exists is cheap.
+
+## D7 — What the design review changed, and what it did not
+
+The design was reviewed before any of it was built. Ten findings came back, six of them at high
+severity, none critical and none about security. Every one was checked against the code before it
+was acted on. All six were real, and all six cost an edit to the plan rather than a rework of a
+branch, which is what reviewing a design before it exists is for.
+
+**Corrections to a false premise.** The plan and `research.md` both stated that the drawer element
+already receives the collapse mode. It does not: `mvp/templates/mvp/base.html` resolves it and
+sends it to the sidebar and the header, and `mvp/templates/cotton/app/index.html` declares no such
+variable. The stylesheet rule for the sidebar's duplicated controls needs the breakpoint and the
+collapse mode on one element, so threading the value through is now part of the work.
+
+**A behaviour the substitution would have changed.** Under the `never` setting, two of the three
+replaced rules want their unconditional state and get it by no media query matching. The third does
+not — the narrow-only region is *hidden* under `never`, so a project reads one set of header
+actions instead of two stacked copies. Falling back to shown would have put the mobile copy on
+screen at every width, in the one setting nobody exercises by accident. The preset now carries that
+rule explicitly and the characterisation matrix covers the setting for all four regions.
+
+**The proof method was not sound.** The characterisation tests were to be written against the
+current package and stand unchanged afterwards, and this repository's habit is to assert class
+strings in rendered HTML. The class strings are the mechanism being substituted, so such an
+assertion either pins the old mechanism and has to be rewritten — at which point it is no longer a
+regression test — or pins the new one and never said anything about the old. The tests now assert
+computed visibility in a real browser, which is indifferent to how visibility is achieved. That is
+a deliberate exception under Article XIV and the reason is recorded in the test module itself.
+
+**Two sequencing faults.** The boosted-navigation task needed the viewport flag, which needed the
+pixel width, which arrived only with a payload planned for a later story. And the three stories
+shared a single committed bundle artifact, a store module, two test modules, a template and two
+documentation pages — enough that parallel worktrees would collide by construction. The payload
+moved into the foundational phase, where the plan's own through-line already put it, and the
+stories are dispatched one at a time.
+
+**A requirement the plan did not actually satisfy.** FR-006 asks that the persisted open state be
+defined in exactly one place. Moving the persisted expression onto the store would have carried the
+duplication with it, because the default and the storage key are written once in the blocking
+pre-paint script and again beside it. The blocking script is now the single definition: it resolves
+the value before first paint and renders the key and the value into the markup, and the store reads
+both from there.
+
+**Two medium findings applied rather than carried.** The store must register after the persist
+plugin is installed, not merely before Alpine starts, because the plugin is what defines the
+persisted-property helper. And the configuration payload was planned for `mvp/base.html`, the
+template D4 had just rejected as an attribute host for the same reason — a project overriding it
+would get a store with no configuration. Both were one-line corrections that remove a real defect,
+so neither was left as a watch item.
+
+**What the review confirmed.** Both Alpine claims in `research.md` were checked independently
+against the bundled library and hold, including the ordering the whole first-paint argument rests
+on. The count of safelist entries being retired was three, not four.
+
+**ADR:** none — the corrections refine how this feature is built and nothing downstream inherits
+them. D1, D4 and D5 already carry the architectural decisions, and their verdicts are recorded in
+their own sections at convergence.
