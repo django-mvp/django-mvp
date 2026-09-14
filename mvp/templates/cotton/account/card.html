@@ -1,0 +1,12 @@
+{# ============================================================ #}
+{# <c-account.card> — the shared outer shape a contributed card #}
+{# renders inside on the Account Center's landing page (US-3).  #}
+{#                                                              #}
+{# Built from <c-card>, the package's own opinionated layout,   #}
+{# so a contributed card gets the shell's standard card surface #}
+{# without reproducing it. Wraps only — the contributing app's  #}
+{# own template supplies everything inside.                     #}
+{# ============================================================ #}
+<c-card>
+  {{ slot }}
+</c-card>

@@ -7,11 +7,17 @@
   <c-page>
     <c-page.title :title="page.title" :subtitle="page.subtitle" />
     {% comment %}
-      Empty until an installed app contributes a card (US-3, T022/T023). No
-      fallback listing of the menu here — the menu is already on the page,
-      beside this content (D5, FR-019).
+      No fallback listing of the menu here — the menu is already on the
+      page, beside this content (D5, FR-019). Empty when no installed app
+      contributes a card.
     {% endcomment %}
     <div id="account-center-cards"
-         class="grid gap-4 sm:grid-cols-2"></div>
+         class="grid gap-4 sm:grid-cols-2">
+      {% for card_template in account_center_cards %}
+        <c-account.card>
+          {% include card_template %}
+        </c-account.card>
+      {% endfor %}
+    </div>
   </c-page>
 {% endblock account.content %}
