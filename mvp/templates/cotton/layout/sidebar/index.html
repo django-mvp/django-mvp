@@ -1,6 +1,12 @@
 {% load i18n mvp %}
-<c-vars id :breakpoint="mvp_config.layout.sidebar.breakpoint" class />
+<c-vars id
+        :breakpoint="mvp_config.layout.sidebar.breakpoint"
+        :collapse="mvp_config.layout.sidebar.collapse"
+        :sticky="mvp_config.layout.navbar.sticky"
+        :boost="mvp_config.layout.sidebar.boost"
+        class />
 {% sidebar_has_breakpoint breakpoint as persistent %}
+{% resolve_layout_config breakpoint collapse sticky boost as layout %}
 {% comment %}
   Open-state persistence is desktop-only: the persistent sidebar remembers
   open/collapsed across reloads (desktopOpen), while the overlay drawer
@@ -21,6 +27,15 @@
          type="checkbox"
          x-model="open"
          class="drawer-toggle" />
+  {% comment %}
+    The client's whole configuration payload, so a project overriding
+    mvp/base.html keeps it wherever it keeps <c-app> — see D4/D6 in
+    decisions.md. Not from mvp/base.html itself, which a project overriding
+    replaces without necessarily rebuilding this.
+  {% endcomment %}
+  {% with layout_config_id=id|add:"-layout-config" %}
+  {{ layout.as_dict|json_script:layout_config_id }}
+  {% endwith %}
   {% if persistent %}
   {% comment %}
     Alpine's persist scripts are deferred, so x-init only corrects the

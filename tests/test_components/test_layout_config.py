@@ -6,6 +6,7 @@ Covers the three configurable layout concerns:
 3. Navbar end widgets rendered from the component-name registry
 """
 
+import json
 import re
 
 import pytest
@@ -641,6 +642,63 @@ class TestFullPageFill:
         html = _render("tests/page_fill.html")
         page_div = html[html.index("mvp-page-fill") - 200 : html.index("mvp-page-fill")]
         assert "mb-16" not in page_div
+
+
+# ---------------------------------------------------------------------------
+# The configuration payload emitted for the client (T003)
+# ---------------------------------------------------------------------------
+
+
+def _layout_config_payload(html, script_id="mvp-app-layout-config"):
+    """Extract and parse the JSON layout-config payload from rendered HTML."""
+    match = re.search(
+        rf'<script id="{re.escape(script_id)}" type="application/json">(.*?)</script>',
+        html,
+        re.S,
+    )
+    return json.loads(match.group(1)) if match else None
+
+
+class TestLayoutConfigPayload:
+    """The drawer component emits LayoutConfig.as_dict() through json_script."""
+
+    @pytest.mark.django_db
+    def test_default_page_emits_the_payload(self, client):
+        content = client.get("/").content.decode()
+        assert _layout_config_payload(content) is not None, (
+            "the layout config payload must render"
+        )
+
+    @pytest.mark.django_db
+    def test_payload_carries_every_documented_key(self, client):
+        content = client.get("/").content.decode()
+        payload = _layout_config_payload(content)
+        assert set(payload) == {
+            "breakpoint",
+            "persistent",
+            "breakpoint_px",
+            "collapse",
+            "sticky",
+            "boost",
+        }
+
+    @pytest.mark.django_db
+    def test_payload_reflects_the_project_default(self, client):
+        content = client.get("/").content.decode()
+        payload = _layout_config_payload(content)
+        assert payload["breakpoint"] == "lg"
+        assert payload["breakpoint_px"] == 1024
+        assert payload["collapse"] == "offcanvas"
+
+    @pytest.mark.django_db
+    def test_payload_reflects_a_per_page_breakpoint_override(self):
+        """<c-app breakpoint="xl"> reaches the payload the same way it
+        reaches the drawer-open class (T003 acceptance)."""
+        html = _render("tests/app_breakpoint_override.html")
+        payload = _layout_config_payload(html)
+        assert payload is not None, "the layout config payload must render"
+        assert payload["breakpoint"] == "xl"
+        assert payload["breakpoint_px"] == 1280
 
 
 # ---------------------------------------------------------------------------
