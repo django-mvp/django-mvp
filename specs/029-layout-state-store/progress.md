@@ -254,3 +254,49 @@ its own task called for.
 Independently verified after the work landed: conformance, documentation, lint, type check, the
 full suite and the build all green, the store and persisted-state browser tests pass, and the
 committed JavaScript bundle rebuilds byte-identically from source.
+
+## 2026-09-14T22:55:00Z · Implementer US-2 · T010/T011
+
+Did: Read `assets/js/layout.js` before planning, per the brief — T004 (US-1) already parses the
+resolved configuration into `this.config` and already derives `isWide` from a `matchMedia` listener
+on `config.breakpoint_px`, including the never-persistent case reporting `null` rather than a width.
+T010's actual work was the judgement call the brief named: whether that nested shape is the surface
+to document and support. Decided to keep it nested — recorded as `decisions.md` D10 — because it
+separates the store's reactive state (`sidebarOpen`, `desktopOpen`, `isWide`, `headerStuck`) from
+values resolved once per render. No change to `assets/js/layout.js` or the bundle followed from that
+decision; `git diff` against the story's base commit for both is empty.
+
+T011: added `?breakpoint=` support to the `/layout/store/` demo view (`LayoutStoreDemoView` in
+`demo/views.py`) so a browser test can reach a per-page override and the never case without a new
+template — the existing `demo/templates/tests/app_breakpoint_*.html` fixtures render only template
+fragments via `_render()`, not full pages a browser can load the bundle against. Added three test
+classes to `tests/test_components/test_layout_store.py`: a per-page override beating the project
+default, `isWide` flipping both directions across the breakpoint without a reload, and the
+never-persistent case reporting no pixel width and a flag that stays `false` even at a wide
+viewport.
+
+Verified: `poetry run pytest tests/test_components/test_layout_store.py` — 12 passed (3 new + 9
+existing), run three times to rule out the one transient failure below. `poetry run ruff check` and
+`poetry run ruff format --check` on both changed Python files — clean.
+
+Probed rather than trusted, per `craft-tdd`'s "probed, not just read" rule, since two of the three
+new tests exercise behaviour T004 already built:
+- Commented out the `matchMedia` listener's `addEventListener` call in `assets/js/layout.js`,
+  rebuilt with `npm run build:js:prod`, and confirmed `TestTheViewportFlagFollowsTheWindow` timed
+  out waiting for `isWide` to flip. Restored from a backup and rebuilt again; `git diff` against the
+  bundle is empty, confirming a byte-identical restore.
+- Set `context["breakpoint"] = None` in the new view (ignoring the query string), and confirmed both
+  `TestConfigReportsThePerPageOverride` and `TestTheNeverPersistentCaseReportsCorrectly` fail for the
+  right reason (`persistent` and `breakpoint` report the project default, not the override).
+  Reverted.
+
+Watch: `TestTheShellWorksWithoutJavaScript::test_the_sidebar_opens_and_closes_without_javascript`
+failed once on a full-file run with a pointer-interception error (an icon inside `drawer-side`
+intercepting the toggle's click), then passed on three immediate re-runs of the same full file and
+in isolation, both with and without this story's changes present (checked by stashing). Not a test
+this story authored or touched — flagging as a pre-existing flake in `concerns` rather than
+touching it.
+
+Next: T012 — document every key in `docs/layout.md` and
+`skills/django-mvp/references/layout.md` as a table; the `config` row currently there names the six
+keys without saying what each means.
