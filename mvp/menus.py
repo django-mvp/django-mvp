@@ -30,6 +30,30 @@ by the dock. An item resolves its URL from ``view_name`` or ``url``, and an
 item whose URL will not resolve is dropped from the rendered menu, so a project
 adding an item is responsible for the URL name existing.
 
+An ``AccountCenterMenu`` entry is also where section membership is declared,
+for :func:`get_active_section` and the trail ``AccountPageMixin``
+(:mod:`mvp.views.account`) builds from it. An entry that is itself a section
+root names the URL-name prefixes of the pages below it in
+``extra_context["url_names"]``, a tuple::
+
+    AccountCenterMenu.append(
+        MenuItem(
+            name="notifications",
+            view_name="yourapp:notifications",
+            extra_context={
+                "label": "Notifications",
+                "icon": "bell",
+                "url_names": ("yourapp:notifications",),
+            },
+        )
+    )
+
+A request whose URL name starts with one of those prefixes resolves to that
+entry's section even when the request isn't the entry's own page — this is
+how ``yourapp:notifications-detail`` still names "Notifications" in the trail.
+An entry with no ``url_names`` is only ever its own section, never a page
+below it.
+
 Example, in your app's ``menus.py``::
 
     from flex_menu import MenuItem
@@ -169,3 +193,63 @@ AccountCenterMenu = Menu(
         ),
     ],
 )
+
+
+def _iter_leaves(item):
+    """Yield ``item``'s leaf descendants, descending through processed groups.
+
+    Only called on an already-:meth:`~flex_menu.menu.MenuItem.process`-ed
+    tree, so ``visible_children`` — not the static ``children`` — is what
+    each level descends through: a group with no visible children yields
+    nothing, and one whose children were filtered by a check yields only
+    the survivors.
+    """
+    children = item.visible_children
+    if children:
+        for child in children:
+            yield from _iter_leaves(child)
+    else:
+        yield item
+
+
+def get_active_section(request):
+    """Return the ``AccountCenterMenu`` section ``request`` belongs to.
+
+    Processes the menu for ``request`` and looks at its leaf entries —
+    descending through any grouped entry, since a group is not itself a
+    section. Returns ``{"label": …, "url": …, "is_current": bool}``:
+    ``is_current`` is ``True`` when the request is the section's own page
+    (render its crumb as plain text) and ``False`` when the request is a page
+    below it, resolved through the entry's declared ``url_names`` prefixes
+    (render the crumb as a link). Returns ``None`` on the area's own landing
+    page or a page no entry names — the caller renders the area alone.
+
+    The entry named ``"overview"`` — the area's own landing page — is
+    excluded from consideration: it names the area, not a section within it.
+    """
+    processed = AccountCenterMenu.process(request)
+    leaves = [
+        item
+        for item in _iter_leaves(processed)
+        if item.visible and item.name != "overview"
+    ]
+
+    for item in leaves:
+        if item.selected:
+            return {
+                "label": item.extra_context.get("label", item.name),
+                "url": item.url,
+                "is_current": True,
+            }
+
+    url_name = getattr(request.resolver_match, "url_name", None)
+    if url_name:
+        for item in leaves:
+            for prefix in item.extra_context.get("url_names", ()):
+                if url_name.startswith(prefix):
+                    return {
+                        "label": item.extra_context.get("label", item.name),
+                        "url": item.url,
+                        "is_current": False,
+                    }
+    return None

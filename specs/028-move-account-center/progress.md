@@ -201,3 +201,21 @@ US-1's, untouched). `poetry run ruff check`/`ruff format --check` clean (one aut
 Next: T018 (`get_active_section`), then T019 turns these three green.
 Watch: T019 must also add `AccountPageMixin` to `tests/testapp_account/views.py`'s bases (D15) —
 without it these three tests stay red past T018 too.
+
+## 2026-09-14 · Implementer US2 · T018
+
+Did: `mvp/menus.py` — `get_active_section(request)` and its `_iter_leaves` helper, mirroring
+django-accounts-center's `dac/menus.py:41-71` (read as reference, not imported): processes
+`AccountCenterMenu`, excludes the `"overview"` entry from section consideration, returns the
+selected leaf (`is_current=True`) or the leaf whose declared `extra_context["url_names"]` prefixes
+the request's URL name (`is_current=False`), or `None`. Descends through grouped entries via
+`visible_children` rather than dac's `_processed_children` — the public equivalent. Documented
+`url_names` in the module docstring (T018's own requirement: it's the public half of section
+membership) alongside a worked example.
+Verified: `poetry run ruff check`/`ruff format --check mvp/menus.py` clean. `poetry run pytest
+tests/test_menus.py -q` — 17 passed, no regression. Manually exercised `get_active_section` against
+the fixture app's section/below-section/overview pages outside the test suite (not committed) —
+returns exactly the three shapes T017 expects: `is_current=True` on the section's own page,
+`is_current=False` one level below it, `None` on the overview page.
+Next: T019 — `AccountPageMixin`, plus wiring it into `tests/testapp_account/views.py` (D15), is
+what turns T017's three red tests green. Watch: —
