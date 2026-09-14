@@ -253,3 +253,36 @@ failure, not a collection error — until T019 wires the mixin in.
 **Revisit if:** a future story needs the fixture's breadcrumbs before T019 lands, e.g. a reordered
 task graph. Then either bring the mixin's creation forward or stub a matching
 `get_breadcrumbs()` on the fixture view directly, rather than importing ahead of its own task.
+
+## D16 — The demo's card lives in its own `demo.account_showcase` app, excluded from `tests/settings.py`
+
+**Decision:** T025's "the demo application contributes one card" (G9) is not implemented by adding
+`account_center_card_template` to `demo`'s own `DemoConfig`. It is a separate, tiny app,
+`demo/account_showcase/`, added to `demo/settings.py`'s `INSTALLED_APPS` and explicitly filtered
+back out in `tests/settings.py`.
+
+**Why:** `AccountCenterView.get_context_data` (T022) walks *every* installed app config with no
+scoping — that is the spec (FR-018) and the reference shape (`dac/views.py:25-37`). `demo` is
+installed in `tests/settings.py` for every test in the suite (it owns the `Product`/`Category`/
+`Article` models `tests/factories.py` builds on), via `from demo.settings import *`. Putting the
+card attributes directly on `DemoConfig` would therefore make `demo` contribute a card to *every*
+account-center test that doesn't explicitly override `INSTALLED_APPS` — including
+`TestAccountCenterView.test_signed_in_request_shows_no_cards` (US-1, not mine to change, D5,
+ARC-001) and every one of T021's `TestAccountCenterCards` list-equality assertions, which depend on
+`account_center_cards` containing exactly the fixtures each test installs. A satellite app that
+`demo/settings.py` lists and `tests/settings.py` filters out gets the demo project a real, visible
+card (a human running `manage.py runserver` sees it) without `demo` itself — the app the rest of
+the suite depends on — ever declaring the attribute. This mirrors T024's own reasoning for keeping
+the card fixtures separate from `testapp_account` (ARC-001), applied to the demo project instead of
+the test suite.
+
+**Alternatives rejected:** (1) a settings flag (e.g. `DEMO_ACCOUNT_CARD_ENABLED`) checked in
+`DemoConfig.ready()`, defaulted differently per settings module — functionally equivalent but
+invents a new mechanism where the story already has one (a separate app, exactly like T024's
+fixtures); (2) removing `demo` from `tests/settings.py`'s `INSTALLED_APPS` entirely — breaks every
+test that uses `demo`'s models, far outside this story's scope; (3) modifying
+`test_signed_in_request_shows_no_cards` — prohibited outright.
+
+**Revisit if:** a future story wants the demo to showcase two or more cards, or wants the demo's
+card content to react to demo data (a product count, say) — the satellite-app shape still holds,
+it would just gain an `account_center_card_context`.

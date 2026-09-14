@@ -256,3 +256,65 @@ of both changed pages against the branch as it stands — the `AccountPageMixin`
 matches `mvp/views/account.py` exactly, and the `url_names` example matches the fixture app's own
 working `("grouped",)` declaration in shape.
 Next: §5 — the full verify, then the completion report. Watch: —
+
+## 2026-09-14 · Implementer US3 · T024
+
+Did: Two card-contributing fixture apps, separate from `tests/testapp_account/`:
+`tests/testapp_card_no_menu/` (only `account_center_card_template` +
+`account_center_card_context`) and `tests/testapp_card_with_menu/` (the same pair, plus
+`menus.py::build_entries()` pointing its entry at the existing `testapp_account:plain` page rather
+than adding a view/URL of its own). Neither appends to `AccountCenterMenu` from `ready()` — same
+ARC-001 reasoning as `testapp_account`. Added `card_with_menu_entries` to `tests/conftest.py`,
+mirroring `testapp_account_entries`, to apply/detach the with-menu entry per test. Committed ahead
+of T021 in task-ID order: the red test needs both apps importable as real `INSTALLED_APPS` entries
+before it can fail for the right reason rather than an `ImportError` — same ordering
+`ba0e254`/`61799d9` (US-2, T015 before T016) already established for this story.
+Verified: manual `override_settings(INSTALLED_APPS=...)` probe (see D16) confirms both apps'
+`account_center_card_template` is visible via `apps.get_app_configs()`. `poetry run ruff check`/
+`ruff format --check` clean on all new files and `tests/conftest.py`.
+Next: T021 — the red test using these fixtures. Watch: —
+
+## 2026-09-14 · Implementer US3 · T021
+
+Did: `tests/test_views/test_account.py::TestAccountCenterCards`, four tests against
+`ACCOUNT_FIXTURE_URLCONF`: a card renders with its app's context reaching the template; two
+contributing apps both get their card, in `INSTALLED_APPS` order; an app declaring no card
+contributes nothing and the page still 200s; and (FR-020, from the with-menu side) a real,
+resolved menu entry alongside a card disturbs neither. Asserts both `response.context
+["account_center_cards"]` (the exact list, order and count) and rendered `data-testid` markers.
+Verified: `poetry run pytest tests/test_views/test_account.py::TestAccountCenterCards -v` — 4
+failed, each `KeyError: 'account_center_cards'` — the right reason, since `AccountCenterView`
+doesn't collect anything yet. `poetry run ruff check`/`ruff format --check` clean.
+Next: T022 — the view side that turns the `KeyError`s into real (if still content-incomplete)
+context. Watch: —
+
+## 2026-09-14 · Implementer US3 · T022
+
+Did: `mvp/views/account.py` — `AccountCenterView.get_context_data` walks
+`django.apps.apps.get_app_configs()`, collecting `account_center_card_template`, calling
+`account_center_card_context(request)` where present and merging its return value into the page
+context, then hands the collected template names to the page as `account_center_cards`. Same shape
+as `dac/views.py:25-37` (read for reference only, not imported).
+Verified: `poetry run pytest tests/test_views/test_account.py -q` — 13 passed, 3 failed. The 3
+failures are exactly T021's content-marker assertions (`data-testid="..."` not yet in the rendered
+HTML) — the context list itself is now correct, confirming this task's slice is done; T023 is what
+turns the remaining 3 green. `poetry run ruff check`/`ruff format --check` clean.
+Next: T023 — `<c-account.card>` and the card region loop. Watch: —
+
+## 2026-09-14 · Implementer US3 · T023
+
+Did: `mvp/templates/cotton/account/card.html` — `<c-account.card>`, built from `<c-card>` alone (no
+raw utility class standing in for it). `mvp/templates/mvp/account/overview.html` — the card region
+now loops `account_center_cards`, wrapping each collected template's `{% include %}` in
+`<c-account.card>`; removed the now-stale T022/T023 forward-reference from the region's comment.
+`djlint --reformat` moved `{{ slot }}` and `{% include %}` to their own lines in both files.
+Verified: `poetry run pytest tests/test_views/test_account.py -q` — 16 passed (T021's four tests
+now fully green, US-1's and US-2's twelve undisturbed — including
+`test_signed_in_request_shows_no_cards`, whose empty-div regex still matches the djlint-reformatted
+whitespace). Wider scope: `poetry run pytest tests/test_views/ tests/test_menus.py
+tests/test_components/ tests/test_utils.py -q` — 1339 passed, 1 skipped (pre-existing Playwright
+skip, unrelated). `poetry run djlint --check` clean on both templates. `poetry run ruff check`/
+`ruff format --check` clean.
+Next: T025 — the demo's own card. Watch: contributing a card to `demo`'s main `AppConfig` would
+also contribute it under `tests/settings.py` (which inherits `demo/settings.py`'s
+`INSTALLED_APPS` wholesale), turning `test_signed_in_request_shows_no_cards` red — see D16.
