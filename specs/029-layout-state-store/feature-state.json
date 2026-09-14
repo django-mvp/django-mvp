@@ -91,18 +91,53 @@
       "tasks": [
         {
           "id": "T001",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_layout.py::TestLayoutConfigBreakpoint",
+              "tests/test_layout.py::TestLayoutConfigAsDict"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_layout.py -x"
+            ],
+            "code": [
+              "mvp/layout.py:19"
+            ]
+          }
         },
         {
           "id": "T002",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_layout_config.py::TestBreakpointTags",
+              "tests/test_components/test_layout_config.py::TestTagsReadLayoutConfig"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_components/test_layout_config.py -q"
+            ],
+            "code": [
+              "mvp/templatetags/mvp.py:43"
+            ]
+          }
         },
         {
           "id": "T003",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_layout_config.py::TestLayoutConfigPayload"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_components/test_layout_config.py -q"
+            ],
+            "code": [
+              "mvp/templates/cotton/layout/sidebar/index.html:1"
+            ]
+          }
         }
       ]
     },
