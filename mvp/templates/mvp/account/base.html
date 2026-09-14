@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load i18n flex_menu mvp %}
+{% load i18n flex_menu %}
 {% comment %}
   The Account Center's layout: the navigation beside the page's own content.
   Extends the unqualified `base.html` a project owns, not `mvp/base.html`
@@ -19,11 +19,10 @@
   changes per request.
 {% endcomment %}
 {% block content %}
-  {% firstof breakpoint mvp_config.layout.sidebar.breakpoint as breakpoint %}
   {% process_menu "AccountCenterMenu" as account_menu %}
   <c-container class="py-4">
     <div class="flex flex-col lg:flex-row lg:items-start gap-4 lg:gap-6">
-      <div class="{% navbar_narrow_only_class breakpoint %} w-full">
+      <div class="mvp-narrow-only w-full">
         <c-dropdown full
                     class="w-full"
                     content_class="p-2"
@@ -40,7 +39,7 @@
         {% block account.content %}
         {% endblock account.content %}
       </div>
-      <div class="{% navbar_wide_only_class breakpoint %} w-full lg:w-1/4 lg:shrink-0">
+      <div class="mvp-wide-only w-full lg:w-1/4 lg:shrink-0">
         <c-card.wrapper class="p-2 w-full">
           <c-menu label="{% trans "Account navigation" %}">
             {% for child in account_menu.visible_children %}

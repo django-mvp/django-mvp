@@ -63,17 +63,6 @@
    from its `row` attribute. */
 @source inline("{sm,md,lg,xl,2xl}:{flex-row,justify-between,items-center}");
 
-/* Safelist: navbar sidebar-toggle visibility classes are emitted by the
-   sidebar_navbar_toggle_class templatetag (mvp/templatetags/mvp.py). */
-@source inline("{sm,md,lg,xl,2xl}:hidden");
-@source inline("{sm,md,lg,xl,2xl}:is-drawer-open:hidden");
-
-/* Safelist: the header's trailing regions are shown either only at or above
-   the sidebar breakpoint or only below it, from the navbar_wide_only_class and
-   navbar_narrow_only_class templatetags (mvp/templatetags/mvp.py). The
-   unprefixed halves and `{bp}:hidden` are covered above and by the scanner. */
-@source inline("{sm,md,lg,xl,2xl}:flex");
-
 /* Full-page content (issue #247): `<c-page fill>` marks itself .mvp-page-fill,
    and this is what the shell does about it.
 
@@ -303,6 +292,147 @@
   max-height: 100dvh;
   overflow-y: auto;
   scrollbar-gutter: stable;
+}
+
+/* Responsive visibility, selected on the shell's resolved layout instead of
+   assembled per-render (T015 — replaces navbar_wide_only_class,
+   navbar_narrow_only_class and sidebar_navbar_toggle_class in
+   mvp/templatetags/mvp.py). data-mvp-breakpoint/data-mvp-collapse are
+   rendered on the drawer element by <c-app>/<c-layout.sidebar> (T014); every
+   governed region is one of its descendants (D4), so the attribute selectors
+   below reach all of them without repeating the values a page resolved.
+
+   mvp-wide-only and mvp-sidebar-echo are both shown by default, including
+   under `never` — which has no width to key off and matches none of the
+   selectors below, so they simply keep their default (D1/D7). mvp-narrow-only
+   is shown by default too, but `never` needs it hidden instead (so the
+   header does not carry both the wide and the narrow copy of the same
+   actions at once) — the one explicit rule below states that exception. */
+.mvp-wide-only {
+  display: flex;
+}
+
+.mvp-narrow-only {
+  display: flex;
+}
+
+[data-mvp-breakpoint="never"] .mvp-narrow-only {
+  display: none;
+}
+
+@media (max-width: 639px) {
+  [data-mvp-breakpoint="sm"] .mvp-wide-only {
+    display: none;
+  }
+}
+
+@media (min-width: 640px) {
+  [data-mvp-breakpoint="sm"] .mvp-narrow-only {
+    display: none;
+  }
+
+  .drawer[data-mvp-breakpoint="sm"][data-mvp-collapse="icons"] .mvp-sidebar-echo {
+    display: none;
+  }
+
+  .drawer[data-mvp-breakpoint="sm"]:not([data-mvp-collapse="icons"]):has(
+      > .drawer-toggle:checked
+    )
+    .mvp-sidebar-echo {
+    display: none;
+  }
+}
+
+@media (max-width: 767px) {
+  [data-mvp-breakpoint="md"] .mvp-wide-only {
+    display: none;
+  }
+}
+
+@media (min-width: 768px) {
+  [data-mvp-breakpoint="md"] .mvp-narrow-only {
+    display: none;
+  }
+
+  .drawer[data-mvp-breakpoint="md"][data-mvp-collapse="icons"] .mvp-sidebar-echo {
+    display: none;
+  }
+
+  .drawer[data-mvp-breakpoint="md"]:not([data-mvp-collapse="icons"]):has(
+      > .drawer-toggle:checked
+    )
+    .mvp-sidebar-echo {
+    display: none;
+  }
+}
+
+@media (max-width: 1023px) {
+  [data-mvp-breakpoint="lg"] .mvp-wide-only {
+    display: none;
+  }
+}
+
+@media (min-width: 1024px) {
+  [data-mvp-breakpoint="lg"] .mvp-narrow-only {
+    display: none;
+  }
+
+  .drawer[data-mvp-breakpoint="lg"][data-mvp-collapse="icons"] .mvp-sidebar-echo {
+    display: none;
+  }
+
+  .drawer[data-mvp-breakpoint="lg"]:not([data-mvp-collapse="icons"]):has(
+      > .drawer-toggle:checked
+    )
+    .mvp-sidebar-echo {
+    display: none;
+  }
+}
+
+@media (max-width: 1279px) {
+  [data-mvp-breakpoint="xl"] .mvp-wide-only {
+    display: none;
+  }
+}
+
+@media (min-width: 1280px) {
+  [data-mvp-breakpoint="xl"] .mvp-narrow-only {
+    display: none;
+  }
+
+  .drawer[data-mvp-breakpoint="xl"][data-mvp-collapse="icons"] .mvp-sidebar-echo {
+    display: none;
+  }
+
+  .drawer[data-mvp-breakpoint="xl"]:not([data-mvp-collapse="icons"]):has(
+      > .drawer-toggle:checked
+    )
+    .mvp-sidebar-echo {
+    display: none;
+  }
+}
+
+@media (max-width: 1535px) {
+  [data-mvp-breakpoint="2xl"] .mvp-wide-only {
+    display: none;
+  }
+}
+
+@media (min-width: 1536px) {
+  [data-mvp-breakpoint="2xl"] .mvp-narrow-only {
+    display: none;
+  }
+
+  .drawer[data-mvp-breakpoint="2xl"][data-mvp-collapse="icons"] .mvp-sidebar-echo {
+    display: none;
+  }
+
+  .drawer[data-mvp-breakpoint="2xl"]:not([data-mvp-collapse="icons"]):has(
+      > .drawer-toggle:checked
+    )
+    .mvp-sidebar-echo {
+    display: none;
+  }
 }
 
 /* A dropdown panel that assets/js/dropdown.js has promoted into the top layer.

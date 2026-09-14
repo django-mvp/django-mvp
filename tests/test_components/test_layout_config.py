@@ -18,12 +18,9 @@ from mvp.context_processors import mvp_config as mvp_config_processor
 from mvp.layout import LayoutConfig
 from mvp.templatetags.mvp import (
     breakpoint_px,
-    navbar_narrow_only_class,
-    navbar_wide_only_class,
     resolve_layout_config,
     sidebar_breakpoint_class,
     sidebar_has_breakpoint,
-    sidebar_navbar_toggle_class,
 )
 
 
@@ -34,19 +31,6 @@ def _render(template_name):
     request = RequestFactory().get("/")
     request.user = AnonymousUser()
     return render_to_string(template_name, request=request)
-
-
-def _navbar_toggle_class(html):
-    """Extract the class list of the navbar's sidebar-toggle button.
-
-    That toggle is the one carrying the "Open sidebar" aria-label (the sidebar
-    header and the drawer overlay reuse the same ``for`` target with different
-    labels).
-    """
-    match = re.search(
-        r'<label[^>]*aria-label="Open sidebar"[^>]*?class="([^"]*)"', html, re.S
-    )
-    return " ".join(match.group(1).split()) if match else None
 
 
 # ---------------------------------------------------------------------------
@@ -152,30 +136,32 @@ class TestNavbarMobileDesktopSplit:
         assert content.count('id="mvp-navbar-widgets-desktop"') == 1
 
     @pytest.mark.django_db
-    def test_mobile_wrapper_hides_at_the_desktop_breakpoint(self, client):
-        """The mobile wrapper is visible below ``lg`` and display:none at/above
-        it, the inverse of the region holding the desktop widgets."""
+    def test_mobile_wrapper_carries_the_narrow_only_class(self, client):
+        """The mobile wrapper is visible below the configured breakpoint and
+        hidden at/above it — the inverse of the region holding the desktop
+        widgets. The rule itself lives in the stylesheet (T015), selected by
+        the resolved breakpoint attribute the drawer element carries rather
+        than assembled here; what the rendered markup can still show is which
+        semantic class the wrapper carries."""
         content = client.get("/").content.decode()
         match = re.search(
             r'<div\s+id="mvp-navbar-widgets-mobile"\s+class="([^"]*)"', content
         )
         assert match is not None
         classes = match.group(1).split()
-        assert "flex" in classes
-        assert "lg:hidden" in classes
+        assert "mvp-narrow-only" in classes
 
     @pytest.mark.django_db
-    def test_desktop_wrapper_hides_below_the_desktop_breakpoint(self, client):
-        """The desktop wrapper is display:none below ``lg`` and visible at/above
-        it — the inverse of the mobile wrapper."""
+    def test_desktop_wrapper_carries_the_wide_only_class(self, client):
+        """The desktop wrapper's inverse rule (T015): hidden below the
+        breakpoint, visible at/above it."""
         content = client.get("/").content.decode()
         match = re.search(
             r'<div\s+id="mvp-navbar-widgets-desktop"\s+class="([^"]*)"', content
         )
         assert match is not None
         classes = match.group(1).split()
-        assert "hidden" in classes
-        assert "lg:flex" in classes
+        assert "mvp-wide-only" in classes
 
     @pytest.mark.django_db
     def test_flat_legacy_config_renders_the_same_widgets_on_both(self, client):
@@ -238,38 +224,9 @@ class TestBreakpointTags:
 
     @pytest.mark.parametrize("bp", ["never", "none", "NEVER"])
     def test_breakpoint_never_disables_persistent_sidebar(self, bp):
-        """ "never"/"none" emit no drawer-open class and no navbar-toggle hiding."""
+        """ "never"/"none" emits no drawer-open class and reports not persistent."""
         assert sidebar_breakpoint_class(bp) == ""
         assert sidebar_has_breakpoint(bp) is False
-        assert sidebar_navbar_toggle_class(bp, "offcanvas") == ""
-        assert sidebar_navbar_toggle_class(bp, "icons") == ""
-
-    def test_navbar_toggle_class_hides_at_breakpoint(self):
-        """Navbar toggle hides at the breakpoint: always for the icons rail,
-        only while open for offcanvas (a hidden sidebar has no toggle left)."""
-        assert sidebar_navbar_toggle_class("md", "icons") == "md:hidden"
-        assert (
-            sidebar_navbar_toggle_class("md", "offcanvas") == "md:is-drawer-open:hidden"
-        )
-        # unknown breakpoints fall back to lg, mirroring sidebar_breakpoint_class
-        assert sidebar_navbar_toggle_class("bogus", "icons") == "lg:hidden"
-
-    def test_header_regions_split_at_the_breakpoint(self):
-        """The header's trailing regions are inverses of each other: the
-        actions from the breakpoint up, the mobile widgets below it."""
-        assert navbar_wide_only_class("md") == "hidden md:flex"
-        assert navbar_narrow_only_class("md") == "flex md:hidden"
-        assert navbar_wide_only_class("bogus") == "hidden lg:flex"
-        assert navbar_narrow_only_class("bogus") == "flex lg:hidden"
-
-    @pytest.mark.parametrize("bp", ["never", "none", "NEVER"])
-    def test_header_actions_survive_a_disabled_breakpoint(self, bp):
-        """ "never"/"none" says the sidebar is an overlay at every width — it
-        says nothing about viewport size, so there is no width at which to
-        hide the actions. They stay visible and the mobile region, which would
-        otherwise duplicate them, does not render."""
-        assert navbar_wide_only_class(bp) == "flex"
-        assert navbar_narrow_only_class(bp) == "hidden"
 
 
 # ---------------------------------------------------------------------------
@@ -495,42 +452,6 @@ class TestSidebarBrandIconSizing:
             "brand icon must use object-contain so a fixed box doesn't distort "
             "non-square assets"
         )
-
-
-# ---------------------------------------------------------------------------
-# Navbar sidebar-toggle follows the resolved layout knobs (issue #114)
-# ---------------------------------------------------------------------------
-
-
-class TestNavbarToggle:
-    """Navbar toggle visibility."""
-
-    @pytest.mark.django_db
-    def test_default_navbar_toggle_matches_config(self, client):
-        """With no override the navbar toggle mirrors the config default: the
-        offcanvas sidebar hides its navbar toggle only while open, at ``lg``."""
-        toggle = _navbar_toggle_class(client.get("/").content.decode())
-        assert toggle is not None
-        assert "lg:is-drawer-open:hidden" in toggle
-
-    @pytest.mark.django_db
-    def test_navbar_toggle_follows_shell_override(self):
-        """A per-page shell override of breakpoint+collapse reaches the navbar
-        toggle, not just the drawer/sidebar (regression for issue #114).
-
-        breakpoint=xl + collapse=icons => the toggle hides at ``xl`` unconditionally
-        (the icon rail keeps its own toggle), i.e. ``xl:hidden`` — never the default
-        ``lg:``-prefixed class."""
-        html = _render("tests/app_shell_override.html")
-        # sanity: the drawer and rail honour the override too
-        assert "xl:drawer-open" in html
-        assert "mvp-sidebar--icons" in html
-        # the navbar toggle must agree with them
-        toggle = _navbar_toggle_class(html)
-        assert toggle is not None
-        assert "xl:hidden" in toggle
-        assert "lg:" not in toggle
-        assert "is-drawer-open" not in toggle
 
 
 # ---------------------------------------------------------------------------

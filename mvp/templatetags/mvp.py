@@ -36,10 +36,6 @@ SIDEBAR_BREAKPOINTS = {
 NO_BREAKPOINT_VALUES = {"never", "none"}
 
 
-def _breakpoint_disabled(bp):
-    return isinstance(bp, str) and bp.lower() in NO_BREAKPOINT_VALUES
-
-
 @register.simple_tag
 def sidebar_has_breakpoint(bp):
     """Return whether the sidebar becomes persistent at some viewport width.
@@ -83,77 +79,6 @@ def resolve_layout_config(bp, collapse, sticky, boost):
     """Resolve one LayoutConfig for a template to read layout facts from and
     emit the client payload from."""
     return LayoutConfig(bp, collapse, sticky, boost)
-
-
-@register.simple_tag
-def sidebar_navbar_toggle_class(bp, collapse):
-    """Return visibility classes for a navbar element the sidebar header duplicates.
-
-    Two elements share this rule, because they are the same two the sidebar
-    header draws: the sidebar-toggle button and the site icon. Wherever the
-    sidebar header is on screen showing its own copy, the navbar's is hidden,
-    so the brand mark and the toggle each appear once.
-
-    Below the sidebar breakpoint both are always shown (the sidebar is an
-    off-canvas overlay there, so its header is not on screen). At or above it
-    they are hidden: always in ``icons`` mode (the collapsed rail still shows
-    the brand icon, and a toggle on hover), and only while the drawer is open
-    in ``offcanvas`` mode (a fully hidden sidebar has neither left).
-
-    With the "never"/"none" breakpoint the sidebar is an overlay everywhere,
-    so both stay shown (the open overlay covers the navbar).
-
-    The name predates the site icon joining the rule; it is kept because the
-    tag is exercised by name in the packaged templates and the test suite.
-
-    The emitted classes must stay in sync with the @source inline() safelist
-    in mvp/tailwind/base.css.
-    """
-    if _breakpoint_disabled(bp):
-        return ""
-    prefix = bp if bp in SIDEBAR_BREAKPOINTS else "lg"
-    if collapse == "icons":
-        return f"{prefix}:hidden"
-    return f"{prefix}:is-drawer-open:hidden"
-
-
-@register.simple_tag
-def navbar_wide_only_class(bp):
-    """Return visibility classes for a header region shown only from `bp` up.
-
-    The header's trailing region holds the site-wide actions. Below the sidebar
-    breakpoint the row is already carrying the sidebar toggle, the site icon and
-    the breadcrumb trail, and the actions are what gives way — a narrow header
-    that keeps its trail readable is worth more than one that keeps every
-    control (issue #333).
-
-    With the "never"/"none" breakpoint there is no width to key off: the sidebar
-    is an overlay everywhere, so that setting says nothing about viewport size.
-    The actions stay visible rather than disappearing at every width, which is
-    the reading that never silently costs a project a control it configured.
-
-    The emitted classes must stay in sync with the @source inline() safelist
-    in mvp/tailwind/base.css.
-    """
-    if _breakpoint_disabled(bp):
-        return "flex"
-    prefix = bp if bp in SIDEBAR_BREAKPOINTS else "lg"
-    return f"hidden {prefix}:flex"
-
-
-@register.simple_tag
-def navbar_narrow_only_class(bp):
-    """Return visibility classes for a header region shown only below `bp`.
-
-    The counterpart to :func:`navbar_wide_only_class`, for the mobile widget
-    list. Under the "never"/"none" breakpoint it returns "hidden" so that the
-    two regions never both render: the wide region is unconditional there, and
-    a project reads one set of actions rather than two stacked copies.
-    """
-    if _breakpoint_disabled(bp):
-        return "hidden"
-    prefix = bp if bp in SIDEBAR_BREAKPOINTS else "lg"
-    return f"flex {prefix}:hidden"
 
 
 #: The alignment classes the inference emits, and the ones an author declares

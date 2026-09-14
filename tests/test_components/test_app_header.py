@@ -125,39 +125,53 @@ class TestTheBrandMarkAppearsOnce:
         assert toggle is not None
         return toggle.get("class", [])
 
-    def test_the_icon_hides_while_the_sidebar_is_open(self, client):
-        """Default `offcanvas` collapse: the sidebar slides fully away, so the
-        icon stands down only while the drawer is actually open."""
-        assert "lg:is-drawer-open:hidden" in self._brand_classes(client)
+    def test_the_icon_carries_the_sidebar_echo_class(self, client):
+        """The stylesheet rule that hides this element under the shell's
+        resolved layout (T015 — replaces sidebar_navbar_toggle_class,
+        mvp/templatetags/mvp.py) selects on the drawer element's
+        data-mvp-breakpoint/data-mvp-collapse attributes rather than a class
+        built here. Computed-visibility proof, across every collapse mode
+        and breakpoint, lives in
+        tests/test_components/test_responsive_visibility.py
+        (TestSidebarEchoRegion). What rendered markup can still show is that
+        the icon carries the marker class that rule selects on."""
+        assert "mvp-sidebar-echo" in self._brand_classes(client)
 
-    def test_the_icon_hides_outright_on_an_icon_rail(self, client, monkeypatch):
+    def test_the_icon_reflects_a_config_level_collapse_override(
+        self, client, monkeypatch
+    ):
         """`icons` collapse: the collapsed rail still shows the brand icon, so
-        there is no state at or above the breakpoint where the header needs
-        its own."""
+        the stylesheet rule needs the resolved collapse mode, not just the
+        breakpoint — proved by the drawer element (the shared ancestor the
+        rule selects through) carrying it."""
         monkeypatch.setitem(MVP_CONFIG["layout"]["sidebar"], "collapse", "icons")
-        assert "lg:hidden" in self._brand_classes(client)
+        content = client.get(PAGE_WITH_TRAIL).content.decode()
+        assert 'data-mvp-collapse="icons"' in content
+        assert "mvp-sidebar-echo" in self._brand_classes(client)
 
-    def test_the_icon_follows_the_configured_breakpoint(self, client, monkeypatch):
+    def test_the_icon_reflects_a_config_level_breakpoint_override(
+        self, client, monkeypatch
+    ):
         monkeypatch.setitem(MVP_CONFIG["layout"]["sidebar"], "breakpoint", "md")
-        classes = self._brand_classes(client)
-        assert "md:is-drawer-open:hidden" in classes
-        assert "lg:is-drawer-open:hidden" not in classes
+        content = client.get(PAGE_WITH_TRAIL).content.decode()
+        assert 'data-mvp-breakpoint="md"' in content
+        assert "mvp-sidebar-echo" in self._brand_classes(client)
 
-    def test_the_icon_and_the_toggle_hide_together(self, client):
+    def test_the_icon_and_the_toggle_share_the_same_visibility_class(self, client):
         """They are the two things the sidebar header duplicates, and they
-        appear and disappear on exactly the same condition. Asserted as one
-        rule so the two cannot drift apart."""
-        brand = set(self._brand_classes(client))
-        toggle = set(self._toggle_classes(client))
-        visibility = {c for c in brand | toggle if "hidden" in c}
-        assert visibility, "expected a visibility rule on both"
-        assert visibility <= brand and visibility <= toggle
+        appear and disappear on exactly the same condition — the stylesheet
+        rule (T015) selects both of them by this one class."""
+        assert "mvp-sidebar-echo" in self._brand_classes(client)
+        assert "mvp-sidebar-echo" in self._toggle_classes(client)
 
-    def test_the_icon_survives_a_disabled_breakpoint(self, client, monkeypatch):
+    def test_the_icon_reflects_a_disabled_breakpoint(self, client, monkeypatch):
         """With no breakpoint the sidebar is an overlay at every width, so its
-        header is never sitting beside the navbar and the icon always shows."""
+        header is never sitting beside the navbar and the icon always shows —
+        proved end to end in test_responsive_visibility.py
+        (TestSidebarEchoRegion::test_shown_at_every_width_when_never)."""
         monkeypatch.setitem(MVP_CONFIG["layout"]["sidebar"], "breakpoint", "never")
-        assert not [c for c in self._brand_classes(client) if "hidden" in c]
+        content = client.get(PAGE_WITH_TRAIL).content.decode()
+        assert 'data-mvp-breakpoint="never"' in content
 
 
 @pytest.mark.django_db
@@ -172,20 +186,25 @@ class TestTheActionsGiveWayToTheTrail:
         assert match is not None, "the header's action region must render"
         return match.group(1).split()
 
-    def test_actions_are_hidden_below_the_breakpoint(self, client):
+    def test_actions_carry_the_wide_only_class(self, client):
+        """The visibility rule itself lives in the stylesheet (T015 —
+        replaces navbar_wide_only_class), selected by the drawer element's
+        resolved breakpoint attribute."""
         classes = self._actions_classes(client)
-        assert "hidden" in classes
-        assert "lg:flex" in classes
+        assert "mvp-wide-only" in classes
 
-    def test_the_region_follows_the_configured_breakpoint(self, client, monkeypatch):
+    def test_the_region_follows_a_config_level_breakpoint_override(
+        self, client, monkeypatch
+    ):
         """The visibility rule is keyed off `layout.sidebar.breakpoint`, so a
         project that moves the sidebar's breakpoint moves this with it rather
-        than being left with a hardcoded `lg`."""
+        than being left with a hardcoded `lg` — proved by the drawer element
+        (the shared ancestor the stylesheet rule selects through) carrying
+        the override."""
         monkeypatch.setitem(MVP_CONFIG["layout"]["sidebar"], "breakpoint", "md")
-        classes = self._actions_classes(client)
-        assert "hidden" in classes
-        assert "md:flex" in classes
-        assert "lg:flex" not in classes
+        content = client.get(PAGE_WITH_TRAIL).content.decode()
+        assert 'data-mvp-breakpoint="md"' in content
+        assert "mvp-wide-only" in self._actions_classes(client)
 
     def test_project_header_content_gives_way_with_the_widgets(self, client):
         """The `right` slot shares the configured widgets' region rather than
@@ -221,5 +240,4 @@ class TestTheActionsGiveWayToTheTrail:
         )
         assert match is not None
         classes = match.group(1).split()
-        assert "flex" in classes
-        assert "lg:hidden" in classes
+        assert "mvp-narrow-only" in classes
