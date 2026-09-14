@@ -85,7 +85,7 @@ class TestSidebarStateSettledBeforeFirstPaint:
             page.goto(f"{live_server.url}/sidebar-persisted-state-e2e/")
             # Alpine's persist scripts are deferred; give hydration + the
             # transition's own 200ms duration time to run before asserting.
-            page.wait_for_timeout(600)
+            page.wait_for_function("() => window.Alpine && Alpine.store('layout')")
 
         assert page.evaluate("window.__widthTransitions") == [], (
             "the sidebar's width must already be correct on first paint — "
@@ -103,7 +103,7 @@ class TestSidebarStateSettledBeforeFirstPaint:
         page.set_viewport_size(DESKTOP)
         with override_settings(ROOT_URLCONF=sidebar_shell_urlconf):
             page.goto(f"{live_server.url}/sidebar-persisted-state-e2e/")
-            page.wait_for_timeout(600)
+            page.wait_for_function("() => window.Alpine && Alpine.store('layout')")
 
         sidebar = page.locator("aside.mvp-sidebar")
         expect(sidebar).to_be_visible()
@@ -126,7 +126,7 @@ class TestSidebarStateSettledBeforeFirstPaint:
         page.set_viewport_size(DESKTOP)
         with override_settings(ROOT_URLCONF=sidebar_shell_urlconf):
             page.goto(f"{live_server.url}/sidebar-persisted-state-e2e/")
-            page.wait_for_timeout(600)
+            page.wait_for_function("() => window.Alpine && Alpine.store('layout')")
 
         checked = page.locator("#mvp-app-toggle").is_checked()
         assert checked is True, "precondition: the desktop sidebar defaults open"
@@ -151,7 +151,7 @@ class TestPersistedDefaultDefinedOnce:
         page.set_viewport_size(DESKTOP)
         with override_settings(ROOT_URLCONF=sidebar_shell_urlconf):
             page.goto(f"{live_server.url}/sidebar-persisted-state-e2e/")
-            page.wait_for_timeout(600)
+            page.wait_for_function("() => window.Alpine && Alpine.store('layout')")
 
         html = page.content()
         assert html.count("mvp-app-drawer-open") == 1, (

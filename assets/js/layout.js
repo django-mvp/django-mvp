@@ -22,10 +22,14 @@
 
 const CONFIG_SELECTOR = 'script[id$="-layout-config"]';
 
+// The package defaults, exactly as the server would resolve them. A page that
+// renders no shell reports these, and the documentation promises they are the
+// package defaults — so they have to be a state the server could actually
+// produce. `lg` with persistent false and no width is not one of them.
 const DEFAULT_CONFIG = {
   breakpoint: "lg",
-  persistent: false,
-  breakpoint_px: null,
+  persistent: true,
+  breakpoint_px: 1024,
   collapse: "offcanvas",
   sticky: true,
   boost: false,
@@ -60,7 +64,12 @@ function parseConfig() {
 function persistedDesktopOpen(toggle) {
   const key = toggle?.dataset.mvpPersistKey;
   if (!key) {
-    return { key: "mvp-app-drawer-open", initial: true };
+    // No key means no persistent drawer on this page — a shell-less page, or
+    // one whose sidebar is an overlay at every width. There is nothing to
+    // remember, so the store holds a plain value and writes no storage entry.
+    // Naming a key here would both restate the template's rule and seed an
+    // entry under a persistent drawer's key from a page that has none.
+    return { key: null, initial: true };
   }
   let initial = true;
   if (toggle.dataset.mvpPersistOpen !== undefined) {
@@ -78,7 +87,10 @@ export function registerLayoutStore(Alpine) {
   Alpine.store("layout", {
     config: { ...DEFAULT_CONFIG },
     sidebarOpen: false,
-    desktopOpen: Alpine.$persist(initial).as(key),
+    // Persisted only where a persistent drawer published a key to persist
+    // under. Everywhere else this is an ordinary value: nothing on the page
+    // remembers an overlay drawer's state, and nothing should write one.
+    desktopOpen: key ? Alpine.$persist(initial).as(key) : initial,
     isWide: false,
     headerStuck: false,
 
@@ -119,6 +131,10 @@ export function registerLayoutStore(Alpine) {
     // on navigation, a desktop sidebar does not.
     rebindAfterNavigation() {
       this.sidebarOpen = this.isWide && this.desktopOpen;
+      // The header's handler only writes on the next scroll event, and the
+      // swapped-in page starts at the top. Without this the shadow survives a
+      // navigation that scrolled the reader back up (FR-007).
+      this.headerStuck = window.scrollY > 0;
     },
   });
 }

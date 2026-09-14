@@ -354,3 +354,44 @@ this diff's own grep covered `tests/` only; a project's own test suite (outside 
 built against the removed tags is the actual audience D3's breaking-change entry is for.
 
 **ADR:** none — test-fallout triage scoped to this story's own required deletion.
+
+## D13 — Every review finding was fixed, including the low ones
+
+Ten findings came back from the code review: one high, four medium, five low. All ten were checked
+against the code before being acted on, all ten held, and all ten were fixed. A finding left open
+because of its severity still has to be read by whoever merges, and is cheaper to close now than to
+carry.
+
+**The high one was the feature repeating its own mistake.** D4 rejected the document body as the
+host for the attributes the stylesheet selects on, because a project that writes its own
+`base.html` would silently lose them. The Account Center's layout then ended up depending on
+exactly that: it extends the unqualified `base.html`, which a project may own and which need not
+render the shell at all, and it had given up the breakpoint resolution that used to make it
+self-sufficient. Both copies of its navigation would have shown at once, at some widths, in a
+configuration the getting-started page explicitly supports. The row now carries the attributes
+itself. Inside the shell the nested host resolves the same value from the same context, so nothing
+changes there.
+
+**One finding was a genuine gap in CSS, not in the code's intent.** The five media blocks used
+`max-width: N-1px` as the complement of `min-width: Npx`. Between those two values lies every
+fractional viewport width that browser zoom and display scaling produce, and at those widths
+neither query matched and the region kept its default. Tailwind emits `not all and (min-width: N)`
+for its own `max-*` variants for this reason. Five token changes.
+
+**Two were dead weight the substitution left behind.** The header component still declared and
+forwarded a breakpoint and a collapse mode to a navbar that no longer reads either, and the shipped
+skill documented both as live attributes — so a project setting one would have got silence. And the
+store's default configuration described a state the server cannot produce: the `lg` breakpoint with
+persistence off and no pixel width, where the documentation promises the package defaults.
+
+**Two more were about the tests proving less than they claimed.** One characterisation test says
+"unconditionally" but never closed the drawer, so a rule wrongly gated on the drawer being open
+would have passed it. Another names the drawer state in its title and never opened the drawer. Both
+now do what their names say.
+
+The rest: two fixed sleeps that survived D11, a store read that ran before the store existed, a
+storage key restated as a literal in the bundle, and one documentation caveat about these classes
+setting `display: flex` and sitting outside Tailwind's utility layer.
+
+**ADR:** none — corrections within this feature's own diff. The rule the high finding violated is
+already recorded in `docs/adr/0021-responsive-visibility-is-resolved-by-the-browser.md`.

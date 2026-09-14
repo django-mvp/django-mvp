@@ -193,21 +193,19 @@ Either may be set alone and the other keeps its configured value. The same
 variables can come from the view context instead, for example
 `context["breakpoint"] = "xl"`.
 
-Setting them as attributes on `<c-app>` or `<c-app.sidebar>` does **not** work.
-Those attributes reach the component you put them on, but the navbar toggle lives
-in the header, which is a sibling. It falls back to its own default, the configured
-value, and then shows or hides at a different width than the sidebar it controls.
-Resolve them in the `app` block or the view context so all three stay in step.
+Setting them on `<c-app>` works: it renders the resolved values onto the shell's
+drawer element, and the navbar toggle takes its visibility from a stylesheet rule
+that selects on them. Setting them on `<c-app.sidebar>` reaches only that component.
+Resolving them in the `app` block or the view context is still the clearest form,
+because it is the one place every region reads.
 
-`sticky` has no such coupling, so it can be set on the component directly. Use the
-dynamic form so it stays a real boolean. Overriding `app.header` replaces the whole
-block, so restate what the base template wires up — the resolved `breakpoint` and
-`collapse`, and the `right` and `tray` slots that carry `app.header.widgets` and
-`app.header.tray`:
+`sticky` is the header's own attribute. Use the dynamic form so it stays a real
+boolean. Overriding `app.header` replaces the whole block, so restate the `right` and
+`tray` slots that carry `app.header.widgets` and `app.header.tray`:
 
 ```django
 {% block app.header %}
-  <c-app.header :breakpoint="breakpoint" :collapse="collapse" :sticky="False">
+  <c-app.header :sticky="False">
     <c-slot name="right">
       {% block app.header.widgets %}{% endblock app.header.widgets %}
     </c-slot>
@@ -218,10 +216,8 @@ block, so restate what the base template wires up — the resolved `breakpoint` 
 {% endblock app.header %}
 ```
 
-The one-line form `<c-app.header :sticky="False" />` drops all four. The two slots
-stop being reachable, and the navbar toggle falls back to the configured breakpoint
-and collapse mode instead of the values resolved at the top of the `app` block —
-the desynchronisation described above.
+The one-line form `<c-app.header :sticky="False" />` drops both slots, so anything a
+page put in `app.header.widgets` or `app.header.tray` stops being reachable.
 
 ## Responsive visibility classes
 
@@ -237,6 +233,8 @@ three classes are available for a descendant to reuse the pattern:
 - `mvp-sidebar-echo` — hidden wherever the sidebar header shows the same thing:
   unconditionally at/above the breakpoint in `icons` mode, only while the drawer is
   open in `offcanvas` mode.
+
+`mvp-wide-only` and `mvp-narrow-only` set `display: flex` when shown, and the package's rules sit outside Tailwind's utility layer, so they beat a display utility whatever its specificity. Wrap them rather than combining them with one.
 
 The navbar's widget lists, the account layout's collapsed/persistent navigation, and
 the navbar's own sidebar-toggle/site-icon are all built from these three classes —

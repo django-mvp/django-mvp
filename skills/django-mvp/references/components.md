@@ -287,8 +287,8 @@ know what you are looking at when you override one. Configure the shell through
 |---|---|---|---|
 | `<c-app>` | The whole shell: a drawer holding the sidebar beside the page content | `breakpoint` (from config) | default |
 | `<c-layout.sidebar>` | The drawer mechanism `<c-app>` is built on: the toggle, the overlay, desktop open-state persistence, and the resolved layout it publishes to the browser | `id`, `breakpoint`, `collapse`, `sticky`, `boost` (all from config), `class` | default, `sidebar` |
-| `<c-app.header>` | The header band, optionally pinned to the top on scroll | `sticky`, `breakpoint`, `collapse` (all from config) | `above`, `right`, `tray`, `below` |
-| `<c-app.header.navbar>` | Inside the header: sidebar toggle, site name, then the configured navbar widgets — separate mobile and desktop lists | `breakpoint`, `collapse` (from config) | `right` |
+| `<c-app.header>` | The header band, optionally pinned to the top on scroll | `sticky` (from config) | `above`, `right`, `tray`, `below` |
+| `<c-app.header.navbar>` | Inside the header: sidebar toggle, site name, then the configured navbar widgets — separate mobile and desktop lists. Which widgets show at which width is a stylesheet rule keyed off the drawer, so it takes no attributes | — | `right` |
 | `<c-app.sidebar>` | The sidebar itself: brand header, `AppMenu`, footer widgets | `menu` (`AppMenu`), `brand-url` (`/`), `bg`, `collapse`, `title`, `boost` (from config), `class` | — |
 | `<c-app.sidebar.header>` | The sidebar's top strip: brand icon, optional title, collapse toggle | `link` (`/`), `bg`, `title` (from config) | — |
 | `<c-app.sidebar.footer>` | The pinned strip at the sidebar's foot, holding the configured footer widgets | — | — |

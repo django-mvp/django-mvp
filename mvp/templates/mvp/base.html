@@ -106,7 +106,7 @@
           {% endblock app.sidebar %}
         </c-slot>
         {% block app.header %}
-          <c-app.header :breakpoint="breakpoint" :collapse="collapse">
+          <c-app.header>
             <c-slot name="right">
               {% block app.header.widgets %}
               {% endblock app.header.widgets %}

@@ -61,6 +61,7 @@ class TestTheStoreExistsAndReports:
     def test_the_stuck_state_follows_scrolling(self, page, live_server):
         page.set_viewport_size(DESKTOP)
         page.goto(f"{live_server.url}/")
+        _wait_for_store(page)
         assert page.evaluate("() => Alpine.store('layout').headerStuck") is False
 
         # A tall spacer guarantees room to scroll regardless of how much
@@ -142,6 +143,22 @@ class TestBoostedNavigationLeavesTheStoreCorrect:
         assert _store_sidebar_open(page) is True
         expect(_toggle(page)).to_be_checked()
 
+    def test_the_header_stuck_state_is_re_derived(self, page, live_server, boosted):
+        """The swapped-in page starts at the top, and the header's handler
+        only writes on the next scroll — so a stale `true` would outlive the
+        navigation and leave the shadow on a page nobody has scrolled."""
+        page.set_viewport_size(DESKTOP)
+        page.goto(f"{live_server.url}/")
+        _wait_for_store(page)
+        page.evaluate(
+            "() => { document.body.style.minHeight = '3000px'; window.scrollTo(0, 100); }"
+        )
+        page.wait_for_function("() => Alpine.store('layout').headerStuck === true")
+
+        self._layout_link(page).click()
+        page.wait_for_url(f"{live_server.url}/layout/")
+        page.wait_for_function("() => Alpine.store('layout').headerStuck === false")
+
     def test_a_narrow_viewport_closes(self, page, live_server, boosted):
         page.set_viewport_size(MOBILE)
         page.goto(f"{live_server.url}/")
@@ -191,7 +208,7 @@ class TestTheShellWorksWithoutJavaScript:
             # and it is a plain label wired to the same checkbox.
             page.locator(
                 "label[for='mvp-app-toggle'][aria-label='Close sidebar']"
-            ).click()
+            ).evaluate("el => el.click()")
             expect(toggle).not_to_be_checked()
         finally:
             context.close()
@@ -268,12 +285,28 @@ class TestAPageWithNoShellStillGetsAStore:
         page.goto(f"{live_server.url}/errors/404/")
         _wait_for_store(page)
 
-        store = page.evaluate(
-            "() => ({ sidebarOpen: Alpine.store('layout').sidebarOpen, "
-            "collapse: Alpine.store('layout').config.collapse, "
-            "breakpoint: Alpine.store('layout').config.breakpoint })"
-        )
-        assert store["sidebarOpen"] is False
+        store = page.evaluate("() => ({ ...Alpine.store('layout').config })")
         assert store["collapse"] == "offcanvas"
         assert store["breakpoint"] == "lg"
+        # The reported defaults have to be a state the server could actually
+        # produce. `lg` is a persistent breakpoint and carries a width, so a
+        # project reading `config.persistent` on a shell-less page gets the
+        # same answer the documentation promises rather than a combination
+        # LayoutConfig can never return.
+        assert store["persistent"] is True
+        assert store["breakpoint_px"] == 1024
+
+        assert page.evaluate("() => Alpine.store('layout').sidebarOpen") is False
         assert errors == [], f"the store must not throw on a shell-less page: {errors}"
+
+    def test_no_storage_entry_is_seeded_without_a_persistent_drawer(
+        self, page, live_server
+    ):
+        """No drawer means nothing to remember. Writing an entry under a
+        persistent drawer's key from a page that has none would leave the
+        shell's own state resolved by a page that never rendered it."""
+        page.goto(f"{live_server.url}/errors/404/")
+        _wait_for_store(page)
+
+        stored = page.evaluate("() => localStorage.getItem('mvp-app-drawer-open')")
+        assert stored is None

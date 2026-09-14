@@ -171,6 +171,14 @@ def _close_drawer(page):
     )
 
 
+def _open_drawer(page):
+    # Same reasoning as _close_drawer: drive the native control directly
+    # rather than racing the drawer's transition for a clickable point.
+    page.locator('label[for="mvp-app-toggle"][aria-label="Open sidebar"]').first.evaluate(
+        "el => el.click()"
+    )
+
+
 # ---------------------------------------------------------------------------
 # Region 1 + region 4 (narrow half): navbar_narrow_only_class
 # ---------------------------------------------------------------------------
@@ -269,11 +277,25 @@ class TestSidebarEchoRegion:
         assert _display(_toggle_label(page)) == "none"
         assert _display(_site_icon(page)) == "none"
 
+        # "Unconditionally" is the word this test has to earn. A persistent
+        # drawer defaults open, so without closing it a rule wrongly gated on
+        # the drawer being open would pass here too.
+        _close_drawer(page)
+        assert _display(_toggle_label(page)) == "none"
+        assert _display(_site_icon(page)) == "none"
+
     @pytest.mark.parametrize(("bp", "px"), REAL_BREAKPOINTS.items())
     def test_offcanvas_mode_shown_below_regardless_of_drawer_state(
         self, page, regions_server, bp, px
     ):
         _goto(page, regions_server, bp=bp, collapse="offcanvas", viewport=px - 1)
+        assert _display(_toggle_label(page)) != "none"
+        assert _display(_site_icon(page)) != "none"
+
+        # Below the breakpoint the drawer is an overlay, and opening it must
+        # not hide either control — the rule that does the hiding is inside a
+        # width query, and dropping that query would go unnoticed without this.
+        _open_drawer(page)
         assert _display(_toggle_label(page)) != "none"
         assert _display(_site_icon(page)) != "none"
 

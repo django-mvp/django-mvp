@@ -450,10 +450,11 @@ Either knob may be set on its own; the other keeps its `MVP_CONFIG` default. The
 variables can instead be supplied from the view context (e.g. `{"breakpoint": "xl"}`)
 when the choice is view- rather than template-driven.
 
-> Setting `breakpoint`/`collapse` as attributes on `<c-app>` or `<c-app.sidebar>`
-> directly still styles *that* component, but it does **not** reach the navbar toggle
-> (a sibling region) — resolve them in the `app` block as above so all three stay in
-> sync.
+> Setting them on `<c-app>` works: it renders the resolved values onto the shell's
+> drawer, and the navbar toggle reads them from there. Setting them on
+> `<c-app.sidebar>` styles only that component and reaches nothing else. Resolving
+> them in the `app` block as above is still the clearest form, because it is the one
+> place every region reads.
 
 ## Reading the resolved layout in Python
 
@@ -495,6 +496,8 @@ markup to reuse the same rules instead of writing new media queries:
 | `mvp-wide-only` | at and above the configured breakpoint | below it — and, since `breakpoint="never"` has no width to key off, never |
 | `mvp-narrow-only` | below the configured breakpoint | at and above it — and always under `breakpoint="never"`, so it never doubles up with the (unconditionally shown) `mvp-wide-only` region |
 | `mvp-sidebar-echo` | wherever the sidebar header does not already show the same thing | at and above the breakpoint: unconditionally in `icons` mode, only while the drawer is open in `offcanvas` mode |
+
+**These two set `display: flex` when shown.** An element that needs a different display box should wrap one of them rather than combine it with a display utility: the package's rules sit outside Tailwind's utility layer and win against it whatever the specificity, so `class="mvp-narrow-only hidden"` resolves to `flex`.
 
 Any descendant of the drawer element can carry one — the navbar's widget lists, the
 account layout's collapsed/persistent navigation split, and the navbar's own copy of
