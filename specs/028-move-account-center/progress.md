@@ -350,3 +350,36 @@ exactly, and both fixture apps (`tests/testapp_card_no_menu`, `tests/testapp_car
 the demo's own `demo/account_showcase` already implement the identical pattern the doc describes,
 proven working by T021's and T025's own test/manual runs.
 Next: T027 — the closing check. Watch: —
+
+## 2026-09-14 · Implementer US3 · T027
+
+Did: the story's closing check.
+Verified: `poetry run pytest -q` — 1870 passed, 1 skipped (pre-existing Playwright skip), 0 failed.
+`poetry run mypy` — no issues, 30 source files. `poetry run deptry .` — no dependency issues, 53
+files scanned. `poetry run pre-commit run --all-files` — every hook passed (trim trailing
+whitespace, end-of-file, check yaml, poetry-check, ruff lint, ruff format, mypy, deptry); it also
+auto-fixed an import-sort in `tests/test_components/test_form_formset.py`, a file outside this
+story's scope — reverted with `git checkout --` before continuing, confirmed by a clean `git
+status` afterward (Article on scope containment: tamper-check runs against the story's own diff,
+not the wider tree, so this collateral edit would have been an out-of-scope finding had it landed).
+Re-verified scoped: `git diff --name-only origin/main...HEAD -- '*.py' | xargs poetry run ruff
+check` and `... ruff format --check` — both clean, 26 files. `git diff --name-only
+origin/main...HEAD -- '*.html' | xargs poetry run djlint --check` — clean, 12 files.
+`DJANGO_SETTINGS_MODULE=tests.settings poetry run python manage.py makemigrations --check
+--dry-run` — no changes detected. `poetry run invoke build-stylesheet` then `git status --short
+mvp/static/css/` — no diff, confirming no template in this story introduced a class the build
+hadn't already seen (verified by actually rebuilding, not by inspection alone).
+Documentation examples: `docs/account-center.md`'s new "Contributing a card" `YourAppConfig`
+snippet run standalone against `mvp/views/account.py`'s actual collection logic (getattr +
+`account_center_card_context(request)` + template render) — renders as documented. The section's
+shape is also the exact pattern three real, tested implementations already use
+(`tests/testapp_card_no_menu`, `tests/testapp_card_with_menu`, `demo/account_showcase`), each
+covered by T021's or T025's own runs. US-1's and US-2's doc sections (menu entry, page,
+`url_names`, per-request visibility) were not touched by this story and remain covered by their own
+stories' full-suite runs (still green above). `python3 kit/forge docs-check --repo . --base
+origin/main` (from the engineering workspace) — clean, 0 findings.
+Concerns: `CHANGELOG.md`'s Unreleased entry (added earlier in this feature) describes the landing
+page and `AccountCenterMenu` but not the card-contribution surface T021–T026 added. `CHANGELOG.md`
+is not in this story's declared file scope, so left untouched — flagging for Forge to reconcile
+before the feature's PR lands.
+Next: the completion report. Watch: —
