@@ -138,3 +138,25 @@ leaves behind, so there is nothing that has to exist before the first story star
 
 - **T027** Full suite, lint, format, type-check and dependency check green; stylesheet rebuilt and
   committed if any later story introduced a class; every documented example run against the branch.
+
+## Post-review changes — maintainer's cuts at the merge gate (2026-09-14)
+
+The specification's *Refined 2026-09-14* note carries the reasoning. Both are deletions with a
+small amount of template plumbing in place of what goes.
+
+- **T028** Remove `AccountPageMixin` from `mvp/views/account.py`, `get_active_section` and its
+  leaf-walking helper from `mvp/menus.py`, and the `url_names` section convention from the module
+  docstring. `AccountCenterView` declares its own single unlinked crumb through `PageMixin`.
+  Delete the tests that asserted section resolution outright rather than leaving them passing on a
+  technicality.
+- **T029** Replace the card collection with a block: `mvp/templates/mvp/account/overview.html`
+  declares `{% block account.cards %}`, shipping empty, and `AccountCenterView` loses
+  `get_context_data` entirely — no app-config walk, no `account_center_card_template`, no
+  `account_center_card_context`.
+- **T030** Rework the card fixtures: two apps that each ship their own
+  `mvp/account/overview.html`, extend the same name, and add a card through `{{ block.super }}`.
+  Tests assert both cards render together, one alone renders alone, and the region is empty with
+  neither installed. Exact counts, apps activated per test.
+- **T031** Documentation: the card section documents the block-and-extend pattern with a worked
+  example and the ordering note; the trail section documents declaring `breadcrumbs` on your own
+  view; no page mentions the removed names. Changelog matches.

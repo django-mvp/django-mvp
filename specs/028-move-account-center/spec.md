@@ -4,7 +4,7 @@
 
 **Created**: 2026-09-14
 
-**Status**: Draft
+**Status**: Draft · Refined 2026-09-14 (see the note below)
 
 **Serves**: G1 (a complete, responsive application shell that a project configures rather than builds), G7 (customization that never dead-ends, from view configuration through component override to a project's own CSS)
 
@@ -13,6 +13,20 @@
 **Issue**: #338
 
 **Input**: A project that wants to give people somewhere to manage their own account has to adopt django-accounts-center to get one, because the sub-navigation, the page layout, the landing page and the address they live at all belong to that package. The Account Center should be part of the shell instead, so that any installed app can add a page to it, and django-accounts-center becomes one consumer of that surface rather than its owner.
+
+## Refined 2026-09-14
+
+The maintainer cut two pieces of API while reviewing the delivering pull request, and the
+requirements they came from are struck through above with what replaced them.
+
+- **No packaged mixin for the trail.** `PageMixin` already lets any view declare its breadcrumbs,
+  and a second way to get a trail — resolved from the menu, with a URL-name prefix convention
+  attached — was surface the package did not need. It also processed the menu a second time on
+  every render.
+- **Cards arrive by template inheritance, not by application-configuration attributes.** Django
+  resolves a same-name `{% extends %}` to the next template in the loader path, so apps chain
+  through one block and `{{ block.super }}`. That composes across several apps, which was the
+  reason the attribute walk existed in the first place.
 
 ## Clarifications
 
@@ -117,9 +131,11 @@ installed.
    **Then** it carries the area's navigation panel and the shell around it, with only the app's
    own content inside.
 3. **Given** that app's page is the one being viewed, **When** it renders, **Then** its menu entry
-   is marked as current and the trail above the content names the area and that page.
-4. **Given** a page below one of those entries rather than at the entry's own address, **When** it
-   renders, **Then** the trail names the section the page belongs to and links back to it.
+   is marked as current. *(Refined 2026-09-14: the trail is the page's own, declared on its view
+   like any other page's.)*
+4. ~~**Given** a page below one of those entries rather than at the entry's own address, **When**
+   it renders, **Then** the trail names the section the page belongs to and links back to it.~~
+   *(Refined 2026-09-14: withdrawn with FR-016.)*
 5. **Given** a menu entry carrying a check that answers no for the person making the request,
    **When** the area renders for them, **Then** the entry is absent; **Given** a request the check
    answers yes for, **Then** the entry is present.
@@ -147,13 +163,13 @@ other's card renders.
 
 **Acceptance Scenarios**:
 
-1. **Given** an installed app declaring a card for the area, **When** a signed-in person opens the
-   landing page, **Then** the card renders in the page's card region.
-2. **Given** that app also supplies extra information for its card, **When** the landing page
-   renders, **Then** the card can show that information.
-3. **Given** two installed apps each declaring a card, **When** the landing page renders, **Then**
-   both cards render.
-4. **Given** an app that declares no card, **When** the landing page renders, **Then** nothing is
+1. **Given** an installed app adding to the landing page's card block, **When** a signed-in person
+   opens the landing page, **Then** the card renders in the page's card region.
+2. **Given** that app's card shows information of its own, **When** the landing page renders,
+   **Then** the card's own template supplies it, in the page's context.
+3. **Given** two installed apps each adding to that block, **When** the landing page renders,
+   **Then** both cards render.
+4. **Given** an app that adds nothing, **When** the landing page renders, **Then** nothing is
    contributed on its behalf and no error occurs.
 
 ---
@@ -215,22 +231,31 @@ other's card renders.
   at wide viewports and a collapsed control below the shell's navigation breakpoint, from one
   declaration of the menu rather than two.
 - **FR-014**: The layout MUST mark the entry matching the current page as the one being viewed.
-- **FR-015**: The layout MUST render a trail above the content naming the area and, where the
-  current page is one of the area's sections, that section.
-- **FR-016**: A page below a section's own address MUST resolve to that section in the trail, with
-  the section named and linked, through a declaration the section's own entry carries.
+- **FR-015**: ~~The layout MUST render a trail above the content naming the area and, where the
+  current page is one of the area's sections, that section.~~ **Refined 2026-09-14:** the area's
+  own landing page names itself in the trail. A page an app contributes declares its own trail,
+  the way every other page in a project built on this package already does. The package ships
+  nothing that resolves a trail from the menu.
+- **FR-016**: ~~A page below a section's own address MUST resolve to that section in the trail,
+  with the section named and linked, through a declaration the section's own entry carries.~~
+  **Refined 2026-09-14:** withdrawn with FR-015. A page below a section names its section in its
+  own trail.
 - **FR-017**: The layout MUST be built from the package's existing components, with no raw utility
   classes standing in for a component (Article XI).
 
 **The landing page**
 
-- **FR-018**: The landing page MUST render cards contributed by installed apps, through two
+- **FR-018**: ~~The landing page MUST render cards contributed by installed apps, through two
   optional attributes an app declares on its application configuration: one naming a template to
-  render, one supplying additional information for it.
+  render, one supplying additional information for it.~~ **Refined 2026-09-14:** the landing page
+  MUST declare a block for cards. An installed app contributes by shipping its own copy of the
+  landing-page template, extending the same name, and adding to that block through
+  `{{ block.super }}`. Several apps chain this way, in template resolution order. The package
+  declares no attributes, no registry and no template tag for it.
 - **FR-019**: With no app contributing a card, the landing page MUST render its own heading and
   introduction with an empty card region, and MUST NOT fall back to listing the menu.
 - **FR-020**: Any installed app MUST be able to contribute a card, not only an app that also adds
-  a menu entry.
+  a menu entry, and two contributing apps MUST both get their card.
 
 **Shipping it**
 
