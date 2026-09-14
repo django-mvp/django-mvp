@@ -1,0 +1,100 @@
+{
+  "feature": "029-layout-state-store",
+  "branch": "029-layout-state-store",
+  "repo": "django-mvp/django-mvp",
+  "state": "PLAN",
+  "state_history": [
+    { "state": "INTAKE", "at": "2026-09-14T00:00:00Z", "note": "#346 and #345 assessed together" },
+    { "state": "SPECIFY", "at": "2026-09-14T00:10:00Z", "note": "spec.md, decisions.md" },
+    { "state": "SETUP", "at": "2026-09-14T00:30:00Z", "note": "epic #346, stories #347-#349, draft PR #351" },
+    { "state": "GATE_SPEC", "at": "2026-09-14T00:45:00Z", "note": "approved unchanged" },
+    { "state": "PLAN", "at": "2026-09-14T01:00:00Z", "note": "plan.md, research.md, tasks.md" }
+  ],
+  "gates": {
+    "spec": {
+      "approved_by": "SamuelJennings",
+      "at": "2026-09-14T00:45:00Z",
+      "self_resolved": [
+        "Responsive visibility stays resolved by the browser, not by client-side expressions",
+        "sidebar_navbar_toggle_class joins the two tags named in #345",
+        "The three tags are removed outright rather than deprecated",
+        "The store carries the layout settings subtree only",
+        "The drawer checkbox stays authoritative; the store mirrors it"
+      ]
+    },
+    "plan": {
+      "approved_by": "SamuelJennings",
+      "at": "2026-09-14T00:45:00Z",
+      "self_resolved": [
+        "Notification waived by the maintainer at spec sign-off; next involvement is the merge decision"
+      ]
+    },
+    "merge": { "approved_by": null, "at": null }
+  },
+  "stories": [
+    {
+      "id": "US0",
+      "priority": "P0",
+      "issue": null,
+      "worktree": null,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        { "id": "T001", "status": "todo", "attempts": 0 },
+        { "id": "T002", "status": "todo", "attempts": 0 }
+      ]
+    },
+    {
+      "id": "US1",
+      "priority": "P1",
+      "issue": 347,
+      "worktree": null,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        { "id": "T003", "status": "todo", "attempts": 0 },
+        { "id": "T004", "status": "todo", "attempts": 0 },
+        { "id": "T005", "status": "todo", "attempts": 0 },
+        { "id": "T006", "status": "todo", "attempts": 0 },
+        { "id": "T007", "status": "todo", "attempts": 0 },
+        { "id": "T008", "status": "todo", "attempts": 0 }
+      ]
+    },
+    {
+      "id": "US2",
+      "priority": "P2",
+      "issue": 348,
+      "worktree": null,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        { "id": "T009", "status": "todo", "attempts": 0 },
+        { "id": "T010", "status": "todo", "attempts": 0 },
+        { "id": "T011", "status": "todo", "attempts": 0 },
+        { "id": "T012", "status": "todo", "attempts": 0 }
+      ]
+    },
+    {
+      "id": "US3",
+      "priority": "P3",
+      "issue": 349,
+      "worktree": null,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        { "id": "T013", "status": "todo", "attempts": 0 },
+        { "id": "T014", "status": "todo", "attempts": 0 },
+        { "id": "T015", "status": "todo", "attempts": 0 },
+        { "id": "T016", "status": "todo", "attempts": 0 },
+        { "id": "T017", "status": "todo", "attempts": 0 }
+      ]
+    }
+  ],
+  "budgets": {
+    "converge_cycles": { "used": 0, "max": 2 },
+    "review_cycles": { "used": 0, "max": 1 },
+    "design_review_cycles": { "used": 0, "max": 1 },
+    "tokens": { "used": 0, "max": 120 }
+  },
+  "pr": { "number": 351, "draft": true }
+}
