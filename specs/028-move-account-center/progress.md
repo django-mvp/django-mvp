@@ -395,3 +395,22 @@ checking, dependency check, packaging, documentation and structure checks green.
 required checks green on the pull request, plus the coverage and stylesheet checks.
 
 Pull request #342 is out of draft and waiting on the merge decision.
+
+## 2026-09-14 · Maintainer's review at the merge gate
+
+Five points raised. Three were defects and were fixed directly: the card wrapper component that
+only re-emitted `<c-card>` and hid its attributes, raw markup in the demo card, the test fixtures
+and the documented example where components exist, and one stylesheet rule (`.lg:w-65`) that was
+this feature's entire CSS diff — the navigation panel now uses a width already shipped and the
+committed stylesheet matches main.
+
+Two were API cuts, made as a separate dispatch: `AccountPageMixin`, `get_active_section` and the
+`url_names` convention are deleted, and the card application-configuration hooks are replaced by a
+template block apps extend with `{{ block.super }}`. The specification records both under
+*Refined 2026-09-14*. Issue #344 is closed by the first of them.
+
+One thing the change missed and was repaired here: the demo's showcase app still declared the
+deleted hook, so the demo's landing page had lost its card.
+
+Verification after all of it: 1866 passed, 1 skipped, with lint, formatting, type checking, the
+dependency check, packaging, documentation and structure checks green.

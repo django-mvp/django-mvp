@@ -86,7 +86,11 @@
         "COR-001 card contexts merged into the page context: fixed in b8a7a90, regression test proved both ways",
         "COR-002 documentation described only the card-versus-card half: fixed with it",
         "COR-003 leading-underscore helper: declined, the package's own convention is the opposite",
-        "COR-004 menu processed twice per render: filed as issue #344"
+        "COR-004 menu processed twice per render: filed as issue #344",
+        "maintainer's merge-gate review: card wrapper deleted, raw markup replaced with packaged components, stylesheet returned to main's file",
+        "maintainer's cut: AccountPageMixin, get_active_section and the url_names convention deleted; a page declares its own breadcrumbs",
+        "maintainer's cut: card application-configuration hooks deleted; cards arrive through a template block apps extend with block.super",
+        "issue #344 closed by the first cut \u2014 the menu is processed once again"
       ]
     }
   },
