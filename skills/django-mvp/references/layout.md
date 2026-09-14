@@ -273,6 +273,18 @@ and toggling it never writes back, so opening the mobile drawer cannot clobber t
 saved desktop state. With `breakpoint` set to `never` or `none` the sidebar is an
 overlay at every width and nothing is persisted at all.
 
+## Layout store
+
+Every shell page registers `Alpine.store("layout", ...)`, read from any element as
+`$store.layout`: `sidebarOpen`, `desktopOpen`, `isWide`, `headerStuck`, and the
+resolved `config` (`breakpoint`, `persistent`, `breakpoint_px`, `collapse`,
+`sticky`, `boost`). The drawer's checkbox stays the source of truth for whether the
+sidebar is open — the store mirrors it, not the reverse — and a shell-less page
+still gets one, reporting defaults rather than throwing. Full reference and a
+worked example:
+[docs/layout.md#the-layout-store](../../../docs/layout.md#the-layout-store); the
+demo runs it at `/layout/store/`.
+
 ---
 
 Back to [SKILL.md](../SKILL.md).

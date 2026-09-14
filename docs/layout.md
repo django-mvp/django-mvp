@@ -481,6 +481,36 @@ the package does not recognise falls back to `lg` rather than raising, so a typo
 `as_dict()` is what the shell hands to the browser, so the names above are the same
 names client-side code reads.
 
+## The layout store
+
+Every shell page registers an Alpine store named `layout`, so any element inside the shell can
+read or react to the sidebar, header and breakpoint state through `$store.layout`:
+
+| Property | Type | What it holds |
+| --- | --- | --- |
+| `sidebarOpen` | boolean | Whether the sidebar is currently open — the mobile overlay below the breakpoint, the persistent panel at/above it. Bound to the drawer's own checkbox; reading it never lags what is on screen. |
+| `desktopOpen` | boolean | The remembered desktop-width open state (what `sidebarOpen` is restored to on a later visit, at/above the breakpoint). Persisted to `localStorage`. |
+| `isWide` | boolean | Whether the viewport is currently at or above `layout.sidebar.breakpoint`. Permanently `false` when the sidebar is set to `never`/`none`. |
+| `headerStuck` | boolean | Whether the sticky header has scrolled off its resting position (the same state that draws its shadow). Always `false` when `layout.navbar.sticky` is `False`. |
+| `config` | object | The resolved [`LayoutConfig`](#reading-the-resolved-layout-in-python) for this page, as plain data: `breakpoint`, `persistent`, `breakpoint_px`, `collapse`, `sticky`, `boost`. |
+
+A page that renders no shell — the entrance page, the error pages — still gets a store: `config`
+holds the package defaults, `sidebarOpen` and `headerStuck` are `false`, and nothing throws.
+
+```html
+<div x-data class="badge" :class="$store.layout.sidebarOpen ? 'badge-success' : 'badge-ghost'"
+     x-text="$store.layout.sidebarOpen ? 'open' : 'closed'"></div>
+```
+
+The demo runs this, alongside the collapse mode and the header's stuck state, at
+`/layout/store/`.
+
+The sidebar checkbox is the source of truth for whether it is open — the store mirrors it, rather
+than the other way around — so write to `sidebarOpen` only by driving that checkbox (the shipped
+controls all do). Writing `desktopOpen` directly works the same way `$persist` always has, but the
+shell already keeps it in sync with `sidebarOpen` above the breakpoint; there is normally nothing
+to write yourself.
+
 ## Template blocks
 
 `mvp/base.html` exposes blocks for coarse-grained control:

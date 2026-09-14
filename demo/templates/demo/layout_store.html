@@ -1,0 +1,26 @@
+{% extends "page_view.html" %}
+{% block page.content %}
+  <c-text muted tight class="text-lg">
+    <code>$store.layout</code> is public surface: any element on a shell page can read it or
+    react to it, the same way the elements below do. Open the sidebar, resize the window past its
+    breakpoint, or scroll this page, and the values update.
+  </c-text>
+  <div x-data class="mt-6 grid max-w-sm gap-2 rounded-box border border-base-300 p-4">
+    <p>
+      Sidebar:
+      <span class="badge"
+            :class="$store.layout.sidebarOpen ? 'badge-success' : 'badge-ghost'"
+            x-text="$store.layout.sidebarOpen ? 'open' : 'closed'"></span>
+    </p>
+    <p>
+      Collapse mode:
+      <span class="badge badge-ghost" x-text="$store.layout.config.collapse"></span>
+    </p>
+    <p>
+      Header:
+      <span class="badge"
+            :class="$store.layout.headerStuck ? 'badge-success' : 'badge-ghost'"
+            x-text="$store.layout.headerStuck ? 'stuck' : 'not stuck'"></span>
+    </p>
+  </div>
+{% endblock page.content %}

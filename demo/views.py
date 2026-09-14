@@ -177,6 +177,12 @@ theme_customization_demo = DemoTemplateView.as_view(
 full_page_map_demo = DemoTemplateView.as_view(
     template_name="full_page_map.html", page_title="Full-page map"
 )
+# The worked example docs/layout.md points readers at for $store.layout
+# (FS-029 US-1, T009): a page an example in the documentation can actually
+# run, rather than a snippet nobody executes.
+layout_store_demo = DemoTemplateView.as_view(
+    template_name="layout_store.html", page_title="Layout Store"
+)
 E400 = DemoTemplateView.as_view(template_name="400.html")
 E403 = DemoTemplateView.as_view(template_name="403.html")
 E404 = DemoTemplateView.as_view(template_name="404.html")
