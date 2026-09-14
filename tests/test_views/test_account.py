@@ -131,6 +131,18 @@ class TestAccountCenterView:
         content = client.get(reverse("account-center")).content.decode()
         assert "Manage your account" in content
 
+    def test_response_carries_a_single_unlinked_breadcrumb(
+        self, client, django_user_model
+    ):
+        """The landing page declares its own trail through ``PageMixin`` —
+        no mixin resolves it from the menu (Refined 2026-09-14)."""
+        user = django_user_model.objects.create_user(
+            username="accountcenteruser6", password="pass123!"
+        )
+        client.force_login(user)
+        response = client.get(reverse("account-center"))
+        assert response.context["page"]["breadcrumbs"] == [{"text": "Account Center"}]
+
 
 class TestAccountLayout:
     """``mvp/account/base.html`` — the layout a page in the area extends
@@ -153,50 +165,16 @@ class TestAccountLayout:
 
 
 @pytest.mark.django_db
-class TestAccountSectionTrail:
-    """``page.breadcrumbs`` for a page in the area (US-2, T017): the area
-    itself, then the active section ``get_active_section`` resolves, with the
-    last crumb carrying no link (FR-014, FR-015, FR-016)."""
+class TestAccountMenuCurrentItem:
+    """The menu marks the entry matching the current page (FR-014). A page's
+    own trail is its own affair — declared with ``breadcrumbs`` on the view,
+    like any other page built on ``PageMixin`` (Refined 2026-09-14) — and is
+    covered by ``TestAccountCenterView`` below, not here."""
 
     @pytest.fixture(autouse=True)
     def _account_fixture_urlconf(self):
         with override_settings(ROOT_URLCONF=ACCOUNT_FIXTURE_URLCONF):
             yield
-
-    def test_a_page_at_a_sections_own_address_names_the_area_and_that_section(
-        self, client, testapp_account_entries
-    ):
-        response = client.get(reverse("testapp_account:grouped"))
-        assert response.context["page"]["breadcrumbs"] == [
-            {"text": "Account Center", "href": reverse("account-center")},
-            {"text": "Fixture Grouped Item"},
-        ]
-
-    def test_a_page_below_a_sections_address_names_that_section_and_links_to_it(
-        self, client, testapp_account_entries
-    ):
-        response = client.get(reverse("testapp_account:grouped-detail"))
-        assert response.context["page"]["breadcrumbs"] == [
-            {"text": "Account Center", "href": reverse("account-center")},
-            {
-                "text": "Fixture Grouped Item",
-                "href": reverse("testapp_account:grouped"),
-            },
-        ]
-
-    def test_a_page_no_entry_points_at_renders_a_trail_naming_the_area_alone(
-        self, client, django_user_model
-    ):
-        """No fixture entries applied here (no ``testapp_account_entries``
-        fixture requested), and the landing page's own "overview" entry is
-        excluded from section resolution by design — it names the area, not
-        a section below it (FR-015 scenario 7)."""
-        user = django_user_model.objects.create_user(
-            username="trailuser1", password="pass123!"
-        )
-        client.force_login(user)
-        response = client.get(reverse("account-center"))
-        assert response.context["page"]["breadcrumbs"] == [{"text": "Account Center"}]
 
     def test_the_entry_matching_the_current_page_is_marked_as_current(
         self, client, testapp_account_entries

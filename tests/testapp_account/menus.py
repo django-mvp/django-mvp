@@ -17,9 +17,7 @@ FR-009, FR-010):
 - ``fixture_plain`` — an ordinary entry pointing at a page of its own.
 - ``fixture_group`` — a labelled ``MenuGroup`` (imported from ``mvp.menus``,
   the package's own public menu-authoring surface — not from
-  django-accounts-center) wrapping one entry, ``fixture_grouped_item``, which
-  declares ``url_names`` so a page below its own address still resolves to it
-  as a section (T018).
+  django-accounts-center) wrapping one entry, ``fixture_grouped_item``.
 - ``fixture_checked`` — carries a per-request check reading
   ``request.GET[CHECKED_FLAG]``, so a test can turn its visibility on and off
   without touching auth.
@@ -54,10 +52,7 @@ def build_entries():
                 MenuItem(
                     name="fixture_grouped_item",
                     view_name="testapp_account:grouped",
-                    extra_context={
-                        "label": "Fixture Grouped Item",
-                        "url_names": ("grouped",),
-                    },
+                    extra_context={"label": "Fixture Grouped Item"},
                 ),
             ],
         ),
