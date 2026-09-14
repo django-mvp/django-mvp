@@ -98,13 +98,19 @@ or an explicit import in `AppConfig.ready()`. See [Navigation](navigation.md).
 ```python
 # yourapp/views.py
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.urls import reverse
 
-from mvp.views.account import AccountPageMixin
 from mvp.views.extra import MVPTemplateView
 
 
-class NotificationsView(LoginRequiredMixin, AccountPageMixin, MVPTemplateView):
+class NotificationsView(LoginRequiredMixin, MVPTemplateView):
     template_name = "yourapp/notifications.html"
+
+    def get_breadcrumbs(self):
+        return [
+            {"text": "Account Center", "href": reverse("account-center")},
+            {"text": "Notifications"},
+        ]
 ```
 
 ```django
@@ -118,10 +124,11 @@ class NotificationsView(LoginRequiredMixin, AccountPageMixin, MVPTemplateView):
 {% endblock account.content %}
 ```
 
-`AccountPageMixin` supplies `page.breadcrumbs` from `mvp.menus.get_active_section(request)`
-— the trail above the content, naming the area and, once the entry above resolves to a
-section, that section. It imposes no access rule of its own: compose your own,
-`LoginRequiredMixin` here, because the area does not decide another app's access rules.
+The area supplies no mixin for the trail: a page declares its own `breadcrumbs`, the same
+way any other page built on `PageMixin` does — a static list for a fixed trail, or
+`get_breadcrumbs()` where a crumb needs the request or another view's state, as above.
+`NotificationsView` composes its own access-control mixin, `LoginRequiredMixin` here,
+because the area does not decide another app's access rules.
 
 ### Per-request visibility
 
@@ -143,90 +150,65 @@ An entry whose `view_name` cannot be resolved is dropped without affecting the r
 menu — the same rule every django-mvp menu already follows, not something the Account
 Center adds.
 
-### Declaring section membership for pages below a section
+### A page below your entry's own address
 
-A page below your entry's own address still names your section in the trail, and links back
-to it, once your entry declares the URL-name prefixes of the pages beneath it in
-`extra_context["url_names"]`:
-
-```python
-# yourapp/urls.py
-urlpatterns = [
-    path("", NotificationsView.as_view(), name="notifications"),
-    path("<int:pk>/", NotificationDetailView.as_view(), name="notifications-detail"),
-]
-```
+A page below your entry — a detail view, say — names its own trail the same way: declare
+`breadcrumbs` or `get_breadcrumbs()` on that view too, linking back to the entry above it.
+There's nothing to declare on the menu entry itself for this; the area resolves no trail
+from the menu at all (Refined 2026-09-14).
 
 ```python
-AccountCenterMenu.append(
-    MenuItem(
-        name="notifications",
-        view_name="yourapp:notifications",
-        extra_context={
-            "label": "Notifications",
-            "icon": "bell",
-            "url_names": ("notifications",),
-        },
-    )
-)
-```
+class NotificationDetailView(LoginRequiredMixin, MVPTemplateView):
+    template_name = "yourapp/notification_detail.html"
 
-The prefixes in `url_names` match against `request.resolver_match.url_name` — the pattern's
-own `name=`, without the app's namespace — so a request on `notifications-detail` resolves
-to "Notifications" in the trail, linked back to the entry's own page. On the entry's own
-page, the same crumb renders unlinked, because it names the page you're already on. An entry
-with no `url_names` is only ever its own section, never a page below it. Because the match is
-unnamespaced, pick a prefix distinctive enough that another installed app's URL names won't
-also start with it.
+    def get_breadcrumbs(self):
+        return [
+            {"text": "Account Center", "href": reverse("account-center")},
+            {"text": "Notifications", "href": reverse("yourapp:notifications")},
+            {"text": "Detail"},
+        ]
+```
 
 ## Contributing a card
 
-An installed app puts a card on the landing page by declaring two optional attributes on
-its `AppConfig` — no menu entry, no page of its own, and no import from any other account
-package required:
-
-```python
-# yourapp/apps.py
-from django.apps import AppConfig
-
-
-class YourAppConfig(AppConfig):
-    default_auto_field = "django.db.models.BigAutoField"
-    name = "yourapp"
-
-    account_center_card_template = "yourapp/account_card.html"
-
-    def account_center_card_context(self, request):
-        return {"yourapp_thing_count": request.user.your_things.count()}
-```
-
-`AccountCenterView` collects `account_center_card_template` from every installed
-application configuration, calls `account_center_card_context(request)` where it exists,
-and renders each collected template into the card region. Your template renders its own
-card surface, which means `<c-card>` and its attributes are yours to use:
+An installed app puts a card on the landing page by shipping its own copy of the landing
+page's template, extending the same name, and adding to its card block — no menu entry, no
+`AppConfig` attribute, and no import from any other account package required:
 
 ```django
-{# yourapp/templates/yourapp/account_card.html #}
+{# yourapp/templates/mvp/account/overview.html #}
+{% extends "mvp/account/overview.html" %}
 {% load i18n %}
-<c-card title="{% trans "Your Things" %}" icon="overview">
-  <c-text>{% blocktrans %}You have {{ yourapp_thing_count }} things.{% endblocktrans %}</c-text>
-  <c-slot name="footer">
-    <c-button href="{% url 'yourapp:things' %}" text="{% trans "Manage" %}" />
-  </c-slot>
-</c-card>
+{% block account.cards %}
+  {{ block.super }}
+  <c-card title="{% trans "Your Things" %}" icon="overview">
+    <c-text>{% trans "Keep track of what you own." %}</c-text>
+    <c-slot name="footer">
+      <c-button href="{% url 'yourapp:things' %}" text="{% trans "Manage" %}" />
+    </c-slot>
+  </c-card>
+{% endblock account.cards %}
 ```
 
-An app that declares no `account_center_card_template` contributes nothing, and the region
-simply has one fewer card. Contributing a card and adding a menu entry are independent —
-neither requires the other.
+Django resolves `{% extends "mvp/account/overview.html" %}` to the *next* template of that
+name in the loader path, not back to itself — so several apps can each ship this same
+filename, each adding their own card, chaining through `{{ block.super }}`. Put
+`{{ block.super }}` first in the block, as above, so your card appears after whatever an
+earlier app in the chain already added; put it last to appear before. The chain always ends
+at django-mvp's own template, which declares the block empty, so an app that ships no
+override changes nothing.
 
-Each card is rendered in a context of its own. What `account_center_card_context(request)`
-returns reaches your card and nothing else: not the page around it, and not another app's
-card. Your card is rendered with the request, so it still has everything your project's
-context processors provide, including `request` and `request.user`.
+**Ordering matters.** The template loader returns the *first* app in your project's
+`INSTALLED_APPS` that ships a template with this name — that's the copy the view actually
+renders, and the one whose `{% extends %}` starts the chain. List an app that contributes a
+card *before* `"mvp"` in `INSTALLED_APPS`; an app listed after it is never reached, and its
+card never renders. This is the ordinary Django convention for overriding a packaged
+template from your own app, not something the Account Center adds — most projects already
+list their own apps ahead of their third-party ones.
 
-That isolation is deliberate. A card is code from one app rendered inside a page owned by
-another, and a shared context would let any card name `user`, `page` or another app's key
-and replace it for the whole render — a card breaking the page hosting it, silently and
-with a 200 in the log. Naming a key `count` is a matter of taste now, rather than a way to
-break somebody else's card.
+A card's template is part of the same render as the rest of the page — the same context,
+not a context of its own. `request`, `user`, `page` and anything your project's context
+processors provide are all visible to it, the same as any other block on the page. If your
+card needs data beyond what that context already carries, fetch it in the template — a
+custom template tag or filter is the natural place — since the block shares its context
+with the page around it rather than getting one of its own.

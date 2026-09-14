@@ -27,8 +27,9 @@ An area requires a signed-in person for the pages it serves itself. The Account 
 page does, and sends an anonymous visitor to the project's configured sign-in location.
 
 A page an app contributes to an area decides its own access rules, exactly as any other view in
-that project does. `AccountPageMixin` supplies the page's trail and nothing else; a contributing
-app composes it with `LoginRequiredMixin` or whatever its own rule is.
+that project does. The area supplies no mixin for the page at all — not for access, and not for
+its trail either, which the page declares itself — so a contributing app composes
+`LoginRequiredMixin` or whatever its own rule is onto a plain view of its own.
 
 A visibility check on a menu entry controls whether the entry is drawn, and is never described as
 protecting the page behind it.

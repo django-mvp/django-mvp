@@ -37,14 +37,14 @@ The template chain matters when you decide where to put an override:
 | `mvp/account/base.html` | `base.html` | The [Account Center](../../../docs/account-center.md)'s layout. Owns `account.content`, and puts `<c-account.nav>` beside it. |
 | `mvp/account/overview.html` | `mvp/account/base.html` | The area's landing page. Fills `account.content`. |
 
-An installed app puts a card on `mvp/account/overview.html` by declaring
-`account_center_card_template` (and optionally `account_center_card_context(request)`) on its
-`AppConfig` — no page or menu entry required. `AccountCenterView` collects one from every
-installed app and renders it into the card region; the app's own template renders the card
-surface, normally `<c-card>`. Each card is rendered in a context of
-its own — what an app's card context returns reaches that card alone, never the page or another
-app's card — and with the request, so context processors still apply. See [Contributing a
-card](../../../docs/account-center.md#contributing-a-card) for the full worked example.
+An installed app puts a card on the landing page by shipping its own copy of
+`mvp/account/overview.html`, extending the same name, and adding to its
+`{% block account.cards %}` through `{{ block.super }}` — no page or menu entry required.
+Django resolves the same-name `{% extends %}` to the next template of that name in the
+loader path, so several apps chain this way; list a contributing app before `mvp` in
+`INSTALLED_APPS` or its override is never reached. A card renders as part of the same
+template as the rest of the page — the page's context, not one of its own. See [Contributing
+a card](../../../docs/account-center.md#contributing-a-card) for the full worked example.
 
 Because the view templates extend the unqualified name `base.html`, a
 `templates/base.html` of your own is picked up automatically by every MVP view.

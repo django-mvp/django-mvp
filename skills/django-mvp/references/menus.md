@@ -17,16 +17,10 @@ own navigation, rendered beside its pages by `<c-account.nav>`. It ships with on
 entry for its own landing page — extend it the same way as `AppMenu`, from any installed
 app's `menus.py`.
 
-An `AccountCenterMenu` entry can also declare section membership, for
-`mvp.menus.get_active_section(request)` and the trail `AccountPageMixin`
-(`mvp.views.account`) builds from it: an entry that is itself a section root names the
-URL-name prefixes of the pages below it in `extra_context["url_names"]`, a tuple. A request
-whose URL name — `request.resolver_match.url_name`, **without** the app's namespace —
-starts with one of those prefixes resolves to that entry's section even when the request
-isn't the entry's own page. An entry with no `url_names` is only ever its own section, never
-a page below it. See [Adding a menu entry and a
-page](../../../docs/account-center.md#adding-a-menu-entry-and-a-page) for the full worked
-example, including the view side (`AccountPageMixin`).
+The area resolves no trail from the menu: a page that extends the layout declares its own
+`breadcrumbs`, the way any other page built on `PageMixin` does. See [Adding a menu entry and
+a page](../../../docs/account-center.md#adding-a-menu-entry-and-a-page) for the full worked
+example, including the view side.
 
 Everything is built on [django-flex-menus](https://github.com/SamuelJennings/django-flex-menus).
 django-mvp supplies the renderers, the templates and two `MenuItem` subclasses.
