@@ -338,3 +338,48 @@ consecutive runs green afterwards.
 
 Independently verified: conformance, documentation, lint, type check, the full suite and the build
 all green, and the committed bundle rebuilds byte-identically.
+
+## 2026-09-14T23:20:00Z · Implementer US-3 · T013
+
+Did: Wrote `tests/test_components/test_responsive_visibility.py`, characterising
+`navbar_wide_only_class`, `navbar_narrow_only_class` and `sidebar_navbar_toggle_class` against the
+package as it stands today, before touching any of them. Added one fixture,
+`demo/templates/tests/responsive_visibility_regions.html`, extending the account layout inside the
+full shell so a single page load exercises all four governed regions for one breakpoint/collapse
+combination; a module-local `TemplateView` (mirroring `demo.views.LayoutStoreDemoView`) drives
+`?breakpoint=`/`?collapse=` rather than adding a permanent demo route. Widths are exercised by
+resizing the viewport rather than reloading, since every rule under test is pure CSS. Per D11, no
+test in this module waits at all — nothing asserted depends on the deferred bundle.
+
+Verified: `CI=true poetry run pytest tests/test_components/test_responsive_visibility.py -q` — 27
+passed, against the unmodified package. This is the task's whole point: a red run here, or a run
+that only goes green after T015, would mean the characterisation was worthless.
+
+Next: T014 — thread the collapse mode to the drawer and render both resolved attributes.
+
+## 2026-09-14T23:30:00Z · Implementer US-3 · T014
+
+Did: `mvp/templates/cotton/app/index.html` (`<c-app>`) now declares `:collapse` in its `<c-vars>`
+(previously only `:breakpoint`) and forwards it to `<c-layout.sidebar>`; `mvp/templates/mvp/base.html`
+passes its already-resolved `collapse` context variable through to `<c-app>` the same way it already
+does for the sidebar rail and the header. The drawer element
+(`mvp/templates/cotton/layout/sidebar/index.html`) now renders `data-mvp-breakpoint` and
+`data-mvp-collapse` from the `LayoutConfig` it already resolves. Added
+`demo/templates/tests/app_breakpoint_bogus.html` (an unrecognised-breakpoint fixture, matching the
+existing `app_breakpoint_never.html`/`app_breakpoint_override.html` pattern) and a
+`TestDrawerRendersLayoutAttributes` class in `tests/test_components/test_layout_config.py` covering
+the default page, a per-page override of both knobs (`tests/app_shell_override.html`), the
+unrecognised-breakpoint fallback, and the `never` literal.
+
+Verified: `poetry run pytest tests/test_components/test_layout_config.py -q` — 61 passed.
+`CI=true poetry run pytest tests/test_components/test_responsive_visibility.py -q` — 27 passed,
+unmodified from T013 (the correctness condition this whole story rests on). `poetry run ruff check`
+and `poetry run ruff format --check` on every file this task touched — clean (one incidental
+flake8-builtins fix in T013's own test file, recorded in that commit).
+
+Watch: `TestTheShellWorksWithoutJavaScript::test_the_sidebar_opens_and_closes_without_javascript`
+(`tests/test_components/test_layout_store.py`) failed on this machine both with and without this
+task's changes (checked by stashing) — the same pre-existing flake US-2's progress notes already
+recorded, not something T014 introduced and not a file this story may touch.
+
+Next: T015 — move the three tags' rules into the stylesheet and delete the tags.
