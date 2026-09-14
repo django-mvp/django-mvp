@@ -32,6 +32,8 @@ are assembled at render time, which the stylesheet build cannot see, and the pac
 with safelist entries and a test guarding them. That is the actual cost, and moving the rules into
 the preset removes it without moving them into script.
 
+**ADR:** `docs/adr/0021-responsive-visibility-is-resolved-by-the-browser.md` — graduated. The rule outlives this feature: it settles where any future responsive decision in the shell is expressed, and the reasoning is not obvious from the code it produces.
+
 ## D2 — The third tag joins the two named in the issue
 
 **Ambiguous because** neither issue names `sidebar_navbar_toggle_class`, and the standing rule is
@@ -44,6 +46,8 @@ breakpoint, covered by entries in the same safelist block, carrying the same "ke
 comment. Removing two of three would leave the safelist, the comments and the render-time
 construction standing, so the cost the feature exists to remove would survive it.
 
+**ADR:** none — a scope ruling for this feature, made by Sam. ADR 0021 carries the rule the three tags were removed under.
+
 ## D3 — Removal without a deprecation period
 
 **Ambiguous because** the three tags are reachable from any project template through
@@ -55,6 +59,8 @@ construction standing, so the cost the feature exists to remove would survive it
 between minor versions with a changelog entry. A search of `docs/`, `README.md` and the shipped
 skill finds no mention of any of the three, so a deprecation cycle would be announcing the
 withdrawal of something never announced in the first place. Sam ruled on this directly.
+
+**ADR:** none — an application of Article XVI, which already states the policy. Recorded in the changelog as a breaking change.
 
 ## D4 — The attributes the stylesheet selects on go on a component-rendered element
 
@@ -76,6 +82,8 @@ this work — see D7.
 The same argument applies to the configuration payload the store reads, which is emitted from the
 drawer component for the same reason and was corrected there after the design review.
 
+**ADR:** `docs/adr/0021-responsive-visibility-is-resolved-by-the-browser.md` — the attribute host is part of the rule that ADR states, and the reason it is a component rather than the base template is recorded there.
+
 ## D5 — The store mirrors the drawer's control rather than owning it
 
 **Ambiguous because** "one store holding layout state" reads as though the store should be the
@@ -96,6 +104,8 @@ reactive mirror of a fact with one owner. The duplication the feature removes is
 separate: the sidebar's persisted default is currently spelled out once in the blocking script and
 again in the persisted expression beside it.
 
+**ADR:** `docs/adr/0022-the-layout-store-mirrors-state-it-does-not-own.md` — graduated. It constrains every future addition to the store, and a reader of the store alone would not see why it reads rather than owns.
+
 ## D6 — The store carries the layout settings only
 
 **Ambiguous because** #346 says "app configuration", which could mean the whole merged
@@ -109,6 +119,8 @@ view names and table defaults — are read on the server to decide what to rende
 the page reacts to them. Publishing them would add public surface the package must then keep
 stable, in exchange for no capability. If a later feature needs one, adding a key to a store that
 already exists is cheap.
+
+**ADR:** `docs/adr/0022-the-layout-store-mirrors-state-it-does-not-own.md` — what the store carries is a boundary on public surface, and that ADR states it.
 
 ## D7 — What the design review changed, and what it did not
 

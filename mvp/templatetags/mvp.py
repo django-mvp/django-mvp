@@ -14,26 +14,20 @@ from django.utils.translation import gettext_lazy as _
 from django_cotton.compiler_regex import CottonCompiler
 
 from ..config import MVP_CONFIG
-from ..layout import LayoutConfig
+from ..layout import BREAKPOINT_WIDTHS, LayoutConfig
 
 register = template.Library()
 
 compiler = CottonCompiler()
 
 # Tailwind breakpoints supported for sidebar expansion. Maps breakpoint name to
-# (drawer-open variant class, min-width in px). The class strings must stay in
-# sync with the @source inline() safelist in assets/tailwind.css.
+# (drawer-open variant class, min-width in px). The widths come from
+# mvp.layout, which is where a breakpoint name becomes anything else — writing
+# them again here is how the two drift. The class strings must stay in sync
+# with the @source inline() safelist in mvp/tailwind/base.css.
 SIDEBAR_BREAKPOINTS = {
-    "sm": ("sm:drawer-open", 640),
-    "md": ("md:drawer-open", 768),
-    "lg": ("lg:drawer-open", 1024),
-    "xl": ("xl:drawer-open", 1280),
-    "2xl": ("2xl:drawer-open", 1536),
+    name: (f"{name}:drawer-open", width) for name, width in BREAKPOINT_WIDTHS.items()
 }
-
-# Breakpoint values (case-insensitive) that disable the persistent sidebar
-# entirely: the sidebar is an off-canvas overlay at every viewport width.
-NO_BREAKPOINT_VALUES = {"never", "none"}
 
 
 @register.simple_tag

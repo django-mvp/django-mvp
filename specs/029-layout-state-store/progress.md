@@ -415,3 +415,37 @@ pre-existing, unrelated errors in `test_responsive_safelist.py` — see concerns
 mvp` — clean.
 
 Next: T016 — one no-JS browser test, and confirm the stylesheet rebuild is byte-identical.
+
+## 2026-09-15 — US-3 complete
+
+Responsive visibility comes from the stylesheet. The three tags, their safelist entries and the
+test guarding them are gone, and nothing a page renders looks different.
+
+The proof held: twenty-seven computed-visibility assertions went green against the package as it
+stood, and the same assertions are green after the substitution, unchanged. The only edits to that
+module afterwards were a parameter rename and the JavaScript-disabled case added on top.
+
+Four test files asserted the removed tags by name, one of which had not been spotted when the story
+was scoped — all repointed at what the markup carries now, with the behavioural proof living in the
+computed-visibility matrix. See `decisions.md` D12.
+
+Independently verified: conformance, documentation, lint, type check, the full suite and the build
+all green. The new rules, including the `never` case, are present in the shipped stylesheet.
+
+## 2026-09-15 — Convergence
+
+No migrations on this branch, so nothing to consolidate.
+
+Cleanup pass over the feature's own diff: the breakpoint pixel widths were being written down
+twice, once in the resolver and once in the template tags' table, and the constant that told the
+removed tags which values disable the sidebar was left behind with nothing reading it. The table
+now derives its widths from the resolver and the dead constant is gone. A comment pointing at the
+wrong stylesheet file was corrected in passing.
+
+Two decisions graduated to architecture records, because both outlive this feature and neither is
+visible in the code it produced:
+
+- `docs/adr/0021-responsive-visibility-is-resolved-by-the-browser.md`
+- `docs/adr/0022-the-layout-store-mirrors-state-it-does-not-own.md`
+
+The remaining ten decisions are scoped to this feature and say so.
