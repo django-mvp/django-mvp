@@ -179,8 +179,46 @@ with no `url_names` is only ever its own section, never a page below it. Because
 unnamespaced, pick a prefix distinctive enough that another installed app's URL names won't
 also start with it.
 
-## Where the next section goes
+## Contributing a card
 
-**Contributing a card to the landing page** — an installed app declares two optional
-attributes on its `AppConfig` to put a card on the landing page. Documented here once the
-app that adds it exists.
+An installed app puts a card on the landing page by declaring two optional attributes on
+its `AppConfig` — no menu entry, no page of its own, and no import from any other account
+package required:
+
+```python
+# yourapp/apps.py
+from django.apps import AppConfig
+
+
+class YourAppConfig(AppConfig):
+    default_auto_field = "django.db.models.BigAutoField"
+    name = "yourapp"
+
+    account_center_card_template = "yourapp/account_card.html"
+
+    def account_center_card_context(self, request):
+        return {"yourapp_thing_count": request.user.your_things.count()}
+```
+
+`AccountCenterView` collects `account_center_card_template` from every installed
+application configuration, calls `account_center_card_context(request)` where it exists,
+and renders each collected template inside `<c-account.card>` — the shared outer shape
+every contributed card gets, so no two apps need to agree on borders, padding or shadow
+themselves:
+
+```django
+{# yourapp/templates/yourapp/account_card.html #}
+{% load i18n %}
+<h2 class="card-title">{% trans "Your Things" %}</h2>
+<p>{% blocktrans %}You have {{ yourapp_thing_count }} things.{% endblocktrans %}</p>
+```
+
+An app that declares no `account_center_card_template` contributes nothing, and the region
+simply has one fewer card. Contributing a card and adding a menu entry are independent —
+neither requires the other.
+
+`account_center_card_context(request)`'s return value is merged directly into the landing
+page's own template context, the same way any other context dict is. Two apps whose
+context uses the same key collide — whichever app is collected last overwrites the one
+before it — so prefix your keys with your app's name, the way `yourapp_thing_count` does
+above, rather than something generic like `count`.

@@ -37,6 +37,13 @@ The template chain matters when you decide where to put an override:
 | `mvp/account/base.html` | `base.html` | The [Account Center](../../../docs/account-center.md)'s layout. Owns `account.content`, and puts `<c-account.nav>` beside it. |
 | `mvp/account/overview.html` | `mvp/account/base.html` | The area's landing page. Fills `account.content`. |
 
+An installed app puts a card on `mvp/account/overview.html` by declaring
+`account_center_card_template` (and optionally `account_center_card_context(request)`) on its
+`AppConfig` — no page or menu entry required. `AccountCenterView` collects one from every
+installed app and renders it inside `<c-account.card>`. Two apps' context colliding on the same
+key means prefix your keys with your app's name. See [Contributing a
+card](../../../docs/account-center.md#contributing-a-card) for the full worked example.
+
 Because the view templates extend the unqualified name `base.html`, a
 `templates/base.html` of your own is picked up automatically by every MVP view.
 That is the file to put project-wide `app.*` overrides in.
