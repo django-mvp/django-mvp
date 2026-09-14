@@ -166,3 +166,19 @@ tests/testapp_account/templates/` clean after one reflow. Sanity-loaded `tests.s
 to confirm the app registers without an import error.
 Next: T016. Watch: fixture views intentionally don't use `AccountPageMixin` yet — T019 adds it to
 their bases once it exists, which is what T017's trail assertions depend on turning green.
+
+## 2026-09-14 · Implementer US2 · T016
+
+Did: `tests/test_menus.py::TestAccountMenuContribution` — seven tests against `AccountCenterMenu`
+processed with the fixture app's entries applied: exact-count presence alongside the landing-page
+entry, a grouped entry's label and its one visible child, the checked entry absent/present across
+two requests, the unresolvable entry dropped without disturbing the rest, and FR-008's other
+half — reordering via `children` assignment and removal via `.pop()` — both plain
+django-flex-menus behaviour, asserted rather than implemented (plan.md "The menu"). No production
+code changed: T016 characterises capability the library already provides.
+Verified: probed before trusting the green run — flipped the checked entry's `check` to always-True
+and confirmed `test_an_entry_whose_check_answers_no_is_absent` and the unresolvable-entry exact-count
+assertion failed for the right reason (3 failed), then restored it. `poetry run pytest
+tests/test_menus.py -q` — 17 passed. `poetry run ruff check`/`ruff format --check` clean (one
+autofix applied to `tests/test_menus.py`'s import block).
+Next: T017. Watch: —
