@@ -108,6 +108,8 @@ BS5_ICONS = {
     # ── Navigation & layout ──────────────────────────────────────────────
     "home, house": "bi bi-house",
     "menu": "bi bi-list",
+    "account_center": "bi bi-person-gear",
+    "overview": "bi bi-grid",
     "navbar": "bi bi-window",
     "table": "bi bi-table",
     "sidebar-left": "bi bi-layout-sidebar",

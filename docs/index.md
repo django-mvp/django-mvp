@@ -16,6 +16,7 @@ configuration through Django settings, customization through template overrides.
 | [Layout](layout.md) | The app shell and its `MVP_CONFIG` configuration — sidebar breakpoint, collapse modes, navbar widgets |
 | [Components](components.md) | The Cotton component library reference |
 | [Navigation](navigation.md) | Sidebar and mobile-dock menus via django-flex-menus |
+| [Account Center](account-center.md) | The account area any installed app can add a page to |
 | [Views](views.md) | List/form/detail/delete views and mixins |
 | [Formsets](formsets.md) | A parent record and its related rows, and the standalone formset case |
 | [Styling](styling.md) | Tailwind/DaisyUI, theming, and building your own CSS |

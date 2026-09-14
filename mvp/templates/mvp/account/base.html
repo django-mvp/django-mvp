@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% load i18n flex_menu mvp %}
+{% comment %}
+  The Account Center's layout: the navigation beside the page's own content.
+  Extends the unqualified `base.html` a project owns, not `mvp/base.html`
+  directly, so a project's own base override still applies underneath this
+  layout (FR-012).
+
+  A page in the area extends this template and fills `account.content`,
+  the block declared below — not `content`, which this layout has already
+  taken to build the two-column arrangement.
+
+  AccountCenterMenu is processed once and drawn at two sites (FR-013): a
+  collapsed control below the shell's sidebar breakpoint, declared before the
+  content so it stays above the page when the two stack, and a persistent card
+  from the breakpoint up, declared after the content so it sits on the right of
+  the row. Two sites rather than one toggled with CSS, or the entries in the
+  collapsed copy would go stale the moment a visibility check or an ordering
+  changes per request.
+{% endcomment %}
+{% block content %}
+  {% firstof breakpoint mvp_config.layout.sidebar.breakpoint as breakpoint %}
+  {% process_menu "AccountCenterMenu" as account_menu %}
+  <c-container class="py-4">
+    <div class="flex flex-col lg:flex-row lg:items-start gap-4 lg:gap-6">
+      <div class="{% navbar_narrow_only_class breakpoint %} w-full">
+        <c-dropdown full
+                    class="w-full"
+                    content_class="p-2"
+                    text="{% trans "Account navigation" %}"
+                    icon="chevron-down">
+          <c-menu label="{% trans "Account navigation" %}">
+            {% for child in account_menu.visible_children %}
+              {% render_item child renderer="sidebar" %}
+            {% endfor %}
+          </c-menu>
+        </c-dropdown>
+      </div>
+      <div class="grow min-w-0">
+        {% block account.content %}
+        {% endblock account.content %}
+      </div>
+      <div class="{% navbar_wide_only_class breakpoint %} w-full lg:w-1/4 lg:shrink-0">
+        <c-card.wrapper class="p-2 w-full">
+          <c-menu label="{% trans "Account navigation" %}">
+            {% for child in account_menu.visible_children %}
+              {% render_item child renderer="sidebar" %}
+            {% endfor %}
+          </c-menu>
+        </c-card.wrapper>
+      </div>
+    </div>
+  </c-container>
+{% endblock content %}

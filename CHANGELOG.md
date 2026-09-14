@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **The Account Center**: an account area that comes with the shell, so any installed app
+  can add a page to it without adopting django-accounts-center first. A project includes
+  the new `mvp.urls` at a prefix of its own choosing; the landing page renders inside the
+  usual application shell, with a navigation panel beside its content, and requires a
+  signed-in user. `AccountCenterMenu`, declared beside `AppMenu` and `MobileFooterMenu`, is
+  how an installed app adds to it. See [Account Center](docs/account-center.md).
+
+  An installed app adds a page to the area with two declarations: an entry appended to
+  `AccountCenterMenu` from its own `menus.py`, and a page extending
+  `mvp/account/base.html`. That page comes back carrying the area's navigation panel and
+  its entry marked as the one being viewed. The trail above the content is the page's own
+  affair, declared with `breadcrumbs` the way any other page built on this package already
+  is — the area supplies no mixin for it. An entry can carry a per-request check and appear
+  only for the people it applies to.
+
+  An app puts a card on the landing page by shipping its own copy of the landing page's
+  template, extending the same name, and adding to its card block through
+  `{{ block.super }}`. Django resolves a same-name `{% extends %}` to the next template in
+  the loader path, so several apps chain this way. Any installed app can contribute one,
+  whether or not it also adds a menu entry.
+
+  `AccountCenterMenu` shares its name, and `account_center`/`overview` share their icon
+  keys, with django-accounts-center's own declarations. Releases of that package through
+  v0.7.1 still declare both; whichever one a project has installed last wins the name
+  under django-flex-menus' lookup and the icon under django-easy-icons' pack merging. A
+  future django-accounts-center release drops its own copies in favor of these.
+
 ## [v0.21.0] - 2026-09-07
 
 ### Added

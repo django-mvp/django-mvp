@@ -1,3 +1,4 @@
+from .account import AccountCenterView
 from .detail import MVPDetailView
 from .edit import (
     MVPCreateView,
@@ -25,6 +26,7 @@ from .list import MVPListView
 #   from mvp.integrations.django_filters.views import MVPFilteredListView
 
 __all__ = [
+    "AccountCenterView",
     "InlineFormSet",
     "MVPCreateView",
     "MVPDeleteView",

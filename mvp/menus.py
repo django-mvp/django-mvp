@@ -1,12 +1,28 @@
 """The menus a project builds its navigation from.
 
-Navigation is a tree of ``MenuItem`` objects held in two singletons this module
+Navigation is a tree of ``MenuItem`` objects held in three singletons this module
 exports. A project imports them, appends its own items, and a renderer turns
 the tree into markup. The renderers live in :mod:`mvp.renderers` and are
 registered under ``FLEX_MENUS["renderers"]``.
 
 - ``AppMenu`` — the sidebar tree. Ships empty.
 - ``MobileFooterMenu`` — the mobile dock. Ships with the sidebar toggle only.
+- ``AccountCenterMenu`` — the Account Center's own navigation, drawn beside
+  its pages by ``mvp/account/base.html``. Ships with the entry for its own
+  landing page. An app that wants a page in the area appends to it the same way it
+  extends ``AppMenu``::
+
+      from flex_menu import MenuItem
+
+      from mvp.menus import AccountCenterMenu
+
+      AccountCenterMenu.append(
+          MenuItem(
+              name="notifications",
+              view_name="yourapp:notifications",
+              extra_context={"label": "Notifications", "icon": "bell"},
+          )
+      )
 
 Each item carries its display data in ``extra_context``: ``label`` and ``icon``
 are read by every renderer, ``badge`` by the sidebar templates, and ``toggle``
@@ -52,6 +68,7 @@ An item marks itself active when the current URL or view name matches it, and
 a parent expands when one of its children is active.
 """
 
+from django.utils.translation import gettext_lazy as _
 from flex_menu import Menu, MenuItem
 
 
@@ -135,6 +152,20 @@ MobileFooterMenu = Menu(
                 # (c-layout.sidebar id="mvp-app" -> checkbox id "mvp-app-toggle").
                 "toggle": "mvp-app-toggle",
             },
+        ),
+    ],
+)
+
+#: The Account Center's own navigation, drawn beside its pages by
+#: ``mvp/account/base.html``. Ships with only the entry for its own landing page
+#: (FR-007) — everything else belongs to whichever app adds to it.
+AccountCenterMenu = Menu(
+    "AccountCenterMenu",
+    children=[
+        MenuItem(
+            name="overview",
+            view_name="account-center",
+            extra_context={"label": _("Overview"), "icon": "overview"},
         ),
     ],
 )
