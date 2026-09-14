@@ -16,6 +16,9 @@ from django.views.generic import TemplateView
 from mvp.menus import AccountCenterMenu
 from tests.factories import ArticleFactory, CategoryFactory, ProductFactory
 from tests.testapp_account.menus import build_entries
+from tests.testapp_card_with_menu.menus import (
+    build_entries as build_card_with_menu_entries,
+)
 
 User = get_user_model()
 
@@ -29,6 +32,22 @@ def testapp_account_entries():
     ``tests/testapp_account/menus.py`` for what each entry proves.
     """
     entries = build_entries()
+    AccountCenterMenu.extend(entries)
+    try:
+        yield {entry.name: entry for entry in entries}
+    finally:
+        for entry in entries:
+            entry.parent = None
+
+
+@pytest.fixture
+def card_with_menu_entries():
+    """Apply ``tests.testapp_card_with_menu``'s entry to ``AccountCenterMenu``
+    for one test, then detach it (ARC-001) — the same pattern as
+    ``testapp_account_entries``, for the card fixture (US-3, T021/T024) that
+    proves a menu entry alongside a card doesn't disturb either.
+    """
+    entries = build_card_with_menu_entries()
     AccountCenterMenu.extend(entries)
     try:
         yield {entry.name: entry for entry in entries}
