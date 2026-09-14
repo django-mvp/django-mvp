@@ -492,7 +492,7 @@ read or react to the sidebar, header and breakpoint state through `$store.layout
 | `desktopOpen` | boolean | The remembered desktop-width open state (what `sidebarOpen` is restored to on a later visit, at/above the breakpoint). Persisted to `localStorage`. |
 | `isWide` | boolean | Whether the viewport is currently at or above `layout.sidebar.breakpoint`. Permanently `false` when the sidebar is set to `never`/`none`. |
 | `headerStuck` | boolean | Whether the sticky header has scrolled off its resting position (the same state that draws its shadow). Always `false` when `layout.navbar.sticky` is `False`. |
-| `config` | object | The resolved [`LayoutConfig`](#reading-the-resolved-layout-in-python) for this page, as plain data: `breakpoint`, `persistent`, `breakpoint_px`, `collapse`, `sticky`, `boost`. |
+| `config` | object | The resolved [`LayoutConfig`](#reading-the-resolved-layout-in-python) for this page, as plain data. See the table below for its keys. |
 
 A page that renders no shell — the entrance page, the error pages — still gets a store: `config`
 holds the package defaults, `sidebarOpen` and `headerStuck` are `false`, and nothing throws.
@@ -510,6 +510,39 @@ than the other way around — so write to `sidebarOpen` only by driving that che
 controls all do). Writing `desktopOpen` directly works the same way `$persist` always has, but the
 shell already keeps it in sync with `sidebarOpen` above the breakpoint; there is normally nothing
 to write yourself.
+
+### Reading the resolved configuration
+
+`$store.layout.config` carries every key `LayoutConfig.as_dict()` resolves for the current page —
+the per-page override where one exists, otherwise the `MVP_CONFIG` default, otherwise the package
+default, in that order. It is nested under `config`
+rather than sitting alongside `sidebarOpen` and the rest deliberately: those four are reactive state
+that Alpine tracks and that changes while the page is open, while `config`'s values are resolved
+once, server-side, and stay fixed for the life of the page. `isWide` is the one exception that
+proves the rule — it is *derived* from `config.breakpoint_px` by a `matchMedia` listener, so it
+behaves like state and stands alongside the rest rather than inside `config`. The reasoning is
+recorded in full in `specs/029-layout-state-store/decisions.md` D10.
+
+| Key | Type | What it holds |
+| --- | --- | --- |
+| `breakpoint` | string | The normalised sidebar breakpoint name for this page: `sm`, `md`, `lg`, `xl`, `2xl`, or `never`. An unrecognised name already fell back to `lg` server-side, before this payload was built. |
+| `breakpoint_px` | number or `null` | The breakpoint's width in pixels (see the [breakpoint table](#sidebar-breakpoint)) — `null` when `breakpoint` is `never`, since there is no width to report. This is what `isWide`'s `matchMedia` listener watches. |
+| `persistent` | boolean | Whether the sidebar ever becomes a persistent panel at some width. `false` only when `breakpoint` is `never`; `isWide` then stays permanently `false` too, because no listener is attached. |
+| `collapse` | string | `"offcanvas"` or `"icons"` — see [Sidebar collapse mode](#sidebar-collapse-mode). |
+| `sticky` | boolean | Whether the header pins to the top of the viewport — see [Navbar position](#navbar-position). |
+| `boost` | boolean | Whether sidebar links use `hx-boost` — see [Boosted sidebar navigation](#boosted-sidebar-navigation). |
+
+```html
+<div x-data class="text-sm">
+  <span x-text="$store.layout.config.breakpoint"></span> ·
+  <span x-text="$store.layout.config.breakpoint_px ?? 'none'"></span>px ·
+  <span x-text="$store.layout.isWide ? 'wide' : 'narrow'"></span>
+</div>
+```
+
+The demo's `/layout/store/` page accepts a `?breakpoint=` query parameter for exercising a per-page
+override or the `never` case against a real page — `/layout/store/?breakpoint=xl` and
+`/layout/store/?breakpoint=never`.
 
 ## Template blocks
 
