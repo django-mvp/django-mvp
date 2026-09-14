@@ -2,7 +2,7 @@
   "feature": "029-layout-state-store",
   "branch": "029-layout-state-store",
   "repo": "django-mvp/django-mvp",
-  "state": "REVIEW",
+  "state": "PR_READY",
   "state_history": [
     {
       "state": "INTAKE",
@@ -48,6 +48,11 @@
       "state": "REVIEW",
       "at": "2026-09-15T02:00:00Z",
       "note": "one round; 10 findings, all verified and all fixed"
+    },
+    {
+      "state": "PR_READY",
+      "at": "2026-09-15T03:00:00Z",
+      "note": "seven required checks green; PR out of draft for the merge gate"
     }
   ],
   "gates": {
@@ -388,6 +393,6 @@
   },
   "pr": {
     "number": 351,
-    "draft": true
+    "draft": false
   }
 }

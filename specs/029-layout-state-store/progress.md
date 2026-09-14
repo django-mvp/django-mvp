@@ -449,3 +449,17 @@ visible in the code it produced:
 - `docs/adr/0022-the-layout-store-mirrors-state-it-does-not-own.md`
 
 The remaining ten decisions are scoped to this feature and say so.
+
+## 2026-09-15 — Code review and pull request ready
+
+One review round: ten findings, one high, four medium, five low. Every one was checked against the
+code before being acted on, every one held, and every one was fixed. The high finding was this
+feature repeating a mistake its own design record warns about — the Account Center's layout had
+come to depend on an attribute the shell renders, and a project that owns `base.html` need not
+render the shell. See `decisions.md` D13 and the write-up on the pull request.
+
+The security lens was not run: the diff adds no request parameter, form, serializer, upload,
+outbound fetch, raw SQL or dependency, and touches no permission path.
+
+Seven required checks green on the remote. The pull request is out of draft and waiting on the
+merge decision.
