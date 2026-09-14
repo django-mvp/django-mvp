@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **The Account Center**: an account area that comes with the shell, so any installed app
+  can add a page to it without adopting django-accounts-center first. A project includes
+  the new `mvp.urls` at a prefix of its own choosing; the landing page renders inside the
+  usual application shell, with a navigation panel beside its content, and requires a
+  signed-in user. `AccountCenterMenu`, declared beside `AppMenu` and `MobileFooterMenu`, is
+  how an installed app adds to it. See [Account Center](docs/account-center.md).
+
+  `AccountCenterMenu` shares its name, and `account_center`/`overview` share their icon
+  keys, with django-accounts-center's own declarations. Releases of that package through
+  v0.7.1 still declare both; whichever one a project has installed last wins the name
+  under django-flex-menus' lookup and the icon under django-easy-icons' pack merging. A
+  future django-accounts-center release drops its own copies in favor of these.
+
 ## [v0.21.0] - 2026-09-07
 
 ### Added
