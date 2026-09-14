@@ -46,3 +46,25 @@ clean.
 Next: T002 — the surviving tags read the resolver.
 
 Watch: none.
+
+## 2026-09-14T22:05:00Z · Implementer US0 · T002
+
+Did: `sidebar_breakpoint_class`, `breakpoint_px` and `sidebar_has_breakpoint` in
+`mvp/templatetags/mvp.py` now construct a `LayoutConfig` and read its `breakpoint`/`persistent`
+properties instead of calling `_breakpoint_disabled` and repeating the `SIDEBAR_BREAKPOINTS`
+lg-fallback lookup inline. Added `resolve_layout_config`, the tag T003 uses to resolve a
+`LayoutConfig` for a template. Left `_breakpoint_disabled`, `SIDEBAR_BREAKPOINTS` and the three
+visibility tags (`sidebar_navbar_toggle_class`, `navbar_wide_only_class`,
+`navbar_narrow_only_class`) untouched — they are a later story's to remove and still use the
+helper.
+
+Verified: `poetry run pytest tests/test_components/test_layout_config.py -q` → 53 passed,
+including every pre-existing test in the file, unmodified. `poetry run ruff check` and
+`poetry run mypy` on `mvp/templatetags/mvp.py` → clean.
+
+Next: T003 — the configuration payload.
+
+Watch: `tests/test_components/test_layout_config.py` already failed `ruff format --check` before
+this story touched it (two pre-existing lines, unrelated to T002) — confirmed by checking the
+file at the pre-story commit. Left as-is per scope containment; noted in the completion report's
+`concerns`.
