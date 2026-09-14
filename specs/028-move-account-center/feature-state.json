@@ -3,7 +3,7 @@
   "feature": "028-move-account-center",
   "branch": "028-move-account-center",
   "repo": "django-mvp/django-mvp",
-  "state": "REVIEW",
+  "state": "PR_READY",
   "state_history": [
     {
       "state": "SPECIFY",
@@ -38,6 +38,11 @@
       "state": "REVIEW",
       "at": "2026-09-14T11:58:47Z",
       "note": "converge complete: ADR verdicts, changelog, gates green"
+    },
+    {
+      "state": "PR_READY",
+      "at": "2026-09-14T12:22:28Z",
+      "note": "review findings closed, PR body rewritten"
     }
   ],
   "gates": {
