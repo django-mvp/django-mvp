@@ -187,7 +187,7 @@ class TestStylesheetShipsAccountCenterClasses:
     @pytest.mark.parametrize(
         "css_class",
         [
-            "lg:flex-row",
+            "lg:flex-row-reverse",
             "lg:items-start",
             "lg:gap-6",
             "sm:grid-cols-2",

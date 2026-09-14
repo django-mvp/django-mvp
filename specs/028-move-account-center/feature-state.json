@@ -3,7 +3,7 @@
   "feature": "028-move-account-center",
   "branch": "028-move-account-center",
   "repo": "django-mvp/django-mvp",
-  "state": "IMPLEMENT",
+  "state": "PR_READY",
   "state_history": [
     {
       "state": "SPECIFY",
@@ -48,6 +48,11 @@
       "state": "IMPLEMENT",
       "at": "2026-09-14T13:40:47Z",
       "note": "merge-gate kickback: maintainer cut two pieces of API"
+    },
+    {
+      "state": "PR_READY",
+      "at": "2026-09-14T14:09:10Z",
+      "note": "maintainer's cuts applied, re-verified"
     }
   ],
   "gates": {

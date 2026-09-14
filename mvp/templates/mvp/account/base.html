@@ -8,10 +8,16 @@
   A page in the area extends this template and fills `account.content`,
   the block declared below — not `content`, which this layout has already
   taken to build the two-column arrangement.
+
+  The panel comes first in the document and sits on the right from the
+  breakpoint up: `flex-row-reverse` puts it there without moving it in the
+  markup, so the reading order stays navigation-then-content at every width,
+  including the stacked one where the panel is a collapsed control above the
+  page.
 {% endcomment %}
 {% block content %}
   <c-container class="py-4">
-    <div class="flex flex-col lg:flex-row lg:items-start gap-4 lg:gap-6">
+    <div class="flex flex-col lg:flex-row-reverse lg:items-start gap-4 lg:gap-6">
       <c-account.nav />
       <div class="grow min-w-0">
         {% block account.content %}
