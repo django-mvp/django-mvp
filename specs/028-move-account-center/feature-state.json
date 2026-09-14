@@ -311,38 +311,80 @@
       "tasks": [
         {
           "id": "T021",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "forge verify --repo /home/sam/projects/django-mvp/django-mvp --base origin/main"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T022",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "forge verify --repo /home/sam/projects/django-mvp/django-mvp --base origin/main"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T023",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "forge verify --repo /home/sam/projects/django-mvp/django-mvp --base origin/main"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T024",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "forge verify --repo /home/sam/projects/django-mvp/django-mvp --base origin/main"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T025",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "forge verify --repo /home/sam/projects/django-mvp/django-mvp --base origin/main"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T026",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "forge verify --repo /home/sam/projects/django-mvp/django-mvp --base origin/main"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T027",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "forge verify --repo /home/sam/projects/django-mvp/django-mvp --base origin/main"
+            ],
+            "verified_by_ci": false
+          }
         }
       ]
     }
