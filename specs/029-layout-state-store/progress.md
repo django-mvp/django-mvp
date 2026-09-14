@@ -68,3 +68,24 @@ Watch: `tests/test_components/test_layout_config.py` already failed `ruff format
 this story touched it (two pre-existing lines, unrelated to T002) — confirmed by checking the
 file at the pre-story commit. Left as-is per scope containment; noted in the completion report's
 `concerns`.
+
+## 2026-09-14T22:15:00Z · Implementer US0 · T003
+
+Did: `mvp/templates/cotton/layout/sidebar/index.html` (the drawer, `<c-layout.sidebar>`) gained
+three new component attributes — `collapse`, `sticky`, `boost` — each defaulting to its
+`MVP_CONFIG["layout"]` value, and resolves a `LayoutConfig` via `resolve_layout_config`. Emits
+`layout.as_dict()` through Django's `json_script` filter at id `"{{ id }}-layout-config"`, placed
+next to the drawer checkbox rather than in `mvp/base.html` (D4/D6: a project overriding the base
+template keeps `<c-app>` and therefore keeps the payload).
+
+Verified: `poetry run pytest tests/test_components/test_layout_config.py -q` → 57 passed
+(53 pre-existing + 4 new), pre-existing tests unmodified. `poetry run ruff check` on the test file
+→ clean. `poetry run mypy mvp` → clean, 31 source files.
+
+Next: none — US0 is Phase 0's last task. Handing off for the story's full verify.
+
+Watch: `docs/components.md` and `skills/django-mvp/references/components.md` document
+`<c-layout.sidebar>`'s attributes as `id`, `breakpoint`, `class` — now stale, since this task added
+`collapse`, `sticky` and `boost`. Neither file is in this story's scope
+(`files_you_may_create_or_edit`); flagged in the completion report's `concerns` for whichever story
+or pass owns docs next.
