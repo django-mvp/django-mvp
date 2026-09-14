@@ -37,6 +37,11 @@ The template chain matters when you decide where to put an override:
 | `mvp/account/base.html` | `base.html` | The [Account Center](../../../docs/account-center.md)'s layout. Owns `account.content`, and puts `<c-account.nav>` beside it. |
 | `mvp/account/overview.html` | `mvp/account/base.html` | The area's landing page. Fills `account.content`. |
 
+Mounting `mvp.urls` gives the area an address, not a link: the sidebar footer ships empty.
+`"actions.login"` and `"user.sidebar-menu"` in `MVP_CONFIG["layout"]["sidebar"]["footer"]`
+are the complementary pair — the first renders for a visitor, the second for a signed-in
+person and carries the Account Center row.
+
 An installed app puts a card on the landing page by shipping its own copy of
 `mvp/account/overview.html`, extending the same name, and adding to its
 `{% block account.cards %}` through `{{ block.super }}` — no page or menu entry required.
