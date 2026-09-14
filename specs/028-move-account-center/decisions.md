@@ -236,3 +236,20 @@ engineering workspace.
   can be reordered and removed, and no acceptance scenario exercised either. T016 now covers both,
   which is the smallest thing that makes the requirement provable under SC-006. The requirement
   itself is unchanged, so the approved spec stands.
+
+## D15 — Fixture views compose `AccountPageMixin` at T019, not T015
+
+**Decision:** `tests/testapp_account/views.py`'s three pages extend `MVPTemplateView` alone at
+T015. T019 edits this file to add `AccountPageMixin` to their bases once that mixin exists.
+
+**Why:** `AccountPageMixin` is T019's own deliverable. Importing it from the fixture at T015 would
+leave the tree with a broken import the moment anything resolves `tests.testapp_account.urls` —
+`craft-increments`' "never leave the package in a state where an import fails" is a hard rule
+between commits, and it outranks having the fixture "complete" a few commits early. T017's trail
+tests still get a correct red: with the mixin absent, `page.breadcrumbs` is the `PageMixin` default
+(`[]`), so the assertions against the expected trail fail on their own terms — an assertion
+failure, not a collection error — until T019 wires the mixin in.
+
+**Revisit if:** a future story needs the fixture's breadcrumbs before T019 lands, e.g. a reordered
+task graph. Then either bring the mixin's creation forward or stub a matching
+`get_breadcrumbs()` on the fixture view directly, rather than importing ahead of its own task.

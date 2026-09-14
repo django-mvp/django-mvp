@@ -149,3 +149,20 @@ reusing the file's existing `_class_present` helper, which does not.
 Verified: `poetry run pytest tests/test_smoke.py -q` — 81 passed. `ruff check`/`ruff format --check`
 clean.
 Next: verify (§5), completion report. Watch: —
+
+## 2026-09-14 · Implementer US2 · T015
+
+Did: `tests/testapp_account/` — a minimal installed app (`apps.py`, not importing `menus` from
+`ready()`) with `menus.build_entries()` returning four fresh top-level entries per call (plain,
+grouped-with-one-child, per-request-checked, unresolvable); three fixture views extending
+`mvp/account/base.html` via `MVPTemplateView` (not yet `AccountPageMixin`, which T019 adds); its
+own `urls.py`/templates. Registered in `tests/settings.py`'s `INSTALLED_APPS`. Added
+`testapp_account_entries` to `tests/conftest.py`: applies `build_entries()` to `AccountCenterMenu`
+and detaches every entry in a `finally`, so nothing outlives the test that asked for it (ARC-001).
+Verified: `poetry run pytest tests/test_menus.py -q` — 10 passed, `TestAccountCenterMenu`'s
+exact-count assertion still green with the fixture app installed and no test applying its entries.
+`poetry run ruff check`/`ruff format --check` clean; `poetry run djlint --check
+tests/testapp_account/templates/` clean after one reflow. Sanity-loaded `tests.settings` directly
+to confirm the app registers without an import error.
+Next: T016. Watch: fixture views intentionally don't use `AccountPageMixin` yet — T019 adds it to
+their bases once it exists, which is what T017's trail assertions depend on turning green.
