@@ -33,6 +33,14 @@
         "the area gates its own landing page only; a contributed page gates itself",
         "an empty landing page shows a heading and an empty card region, not a list of the menu"
       ]
+    },
+    "plan": {
+      "approved_by": null,
+      "at": null
+    },
+    "merge": {
+      "approved_by": null,
+      "at": null
     }
   },
   "stories": [
