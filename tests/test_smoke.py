@@ -160,10 +160,10 @@ class TestShippedStylesheetShipsCompleteDaisyUI:
 
 
 class TestStylesheetShipsAccountCenterClasses:
-    """Unlike the forced daisyUI component set above, these classes reach the
-    build the ordinary way — the Tailwind JIT scanner finds them by reading
-    the templates that use them — so committing the templates without
-    rebuilding the stylesheet would ship markup the CSS does not style."""
+    """The Account Center's templates use only classes the shipped stylesheet
+    already carries, which is why this feature changed no CSS. These are the
+    ones it leans on: if a future edit reaches for a class the build has never
+    seen, the templates and the stylesheet have drifted apart and this fails."""
 
     STYLESHEET = BASE_DIR / "mvp" / "static" / "css" / "django-mvp.css"
 

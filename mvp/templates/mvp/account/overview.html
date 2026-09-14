@@ -17,9 +17,10 @@
         {% comment %}
           Each card arrives already rendered, in a context of its own, so one
           app's card context can reach neither this page nor another app's
-          card. See AccountCenterView.get_context_data.
+          card. See AccountCenterView.get_context_data. The contributing app's
+          own template renders the card surface it wants — normally <c-card>.
         {% endcomment %}
-        <c-account.card>{{ card }}</c-account.card>
+        {{ card }}
       {% endfor %}
     </div>
   </c-page>

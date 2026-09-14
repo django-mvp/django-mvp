@@ -202,15 +202,18 @@ class YourAppConfig(AppConfig):
 
 `AccountCenterView` collects `account_center_card_template` from every installed
 application configuration, calls `account_center_card_context(request)` where it exists,
-and renders each collected template inside `<c-account.card>` — the shared outer shape
-every contributed card gets, so no two apps need to agree on borders, padding or shadow
-themselves:
+and renders each collected template into the card region. Your template renders its own
+card surface, which means `<c-card>` and its attributes are yours to use:
 
 ```django
 {# yourapp/templates/yourapp/account_card.html #}
 {% load i18n %}
-<h2 class="card-title">{% trans "Your Things" %}</h2>
-<p>{% blocktrans %}You have {{ yourapp_thing_count }} things.{% endblocktrans %}</p>
+<c-card title="{% trans "Your Things" %}" icon="overview">
+  <c-text>{% blocktrans %}You have {{ yourapp_thing_count }} things.{% endblocktrans %}</c-text>
+  <c-slot name="footer">
+    <c-button href="{% url 'yourapp:things' %}" text="{% trans "Manage" %}" />
+  </c-slot>
+</c-card>
 ```
 
 An app that declares no `account_center_card_template` contributes nothing, and the region

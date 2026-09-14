@@ -9,7 +9,7 @@
 {% load i18n flex_menu mvp %}
 <c-vars :breakpoint="mvp_config.layout.sidebar.breakpoint" />
 {% process_menu "AccountCenterMenu" as account_menu %}
-<div class="{% navbar_wide_only_class breakpoint %} w-full lg:w-65 lg:shrink-0">
+<div class="{% navbar_wide_only_class breakpoint %} w-full lg:w-1/4 lg:shrink-0">
   <c-card.wrapper class="p-2 w-full">
     <c-menu label="{% trans "Account navigation" %}">
       {% for child in account_menu.visible_children %}
