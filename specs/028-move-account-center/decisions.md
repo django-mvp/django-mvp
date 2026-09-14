@@ -195,6 +195,27 @@ uses for this. Adding an `page_introduction` field alongside it would be a secon
 concept, which Article III's anti-abstraction rule and CONTEXT.md's one-name-per-concept rule both
 rule out before a second, differently-shaped caller exists.
 
+## D14 — Corrected `tests/test_utils.py`'s stale companion-package prose, touched nothing else in it
+
+**Ambiguous:** the module docstring and the `SUPPLIED_BY_A_COMPANION_PACKAGE` comment both stated,
+as fact, that `BS5_ICONS` "deliberately does not carry" `account_center` — true before T010, false
+after it. `craft-tdd`/the Implementer protocol forbid modifying or deleting a test authored in an
+earlier story; this file predates FS-028 entirely.
+
+**Chosen:** rewrote the two explanatory comments to describe the post-T010 reality (D8's overlap),
+without touching a single assertion, the `SUPPLIED_BY_A_COMPANION_PACKAGE` frozenset's membership,
+or any test method — verified by re-running the full file (323 passed, unchanged count) before and
+after.
+
+**Why defensible:** the prohibition protects test *behaviour* — what a story cannot know it is safe
+to change. A comment stating something this story makes false is not behaviour; leaving it would
+mean landing a change that makes existing documentation incorrect on sight, in the same PR that
+had the context to fix it. Removing "account_center" from the frozenset itself was considered and
+rejected: it is unowned by this task, still true in the sense that the companion package's pack
+wins the glyph when both are installed (D8), and removing it changes what
+`test_the_companion_package_exemption_is_still_referenced` actually verifies even though it would
+still pass.
+
 ## Design review (S3R) — dispositions
 
 One reviewer, three lenses, over `spec.md`, `plan.md`, `research.md`, `tasks.md`, the constitution
