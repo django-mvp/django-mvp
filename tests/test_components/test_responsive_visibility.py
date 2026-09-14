@@ -323,3 +323,45 @@ class TestSidebarEchoRegion:
 
         _resize(page, lg_px)
         assert _display(_toggle_label(page)) == "none"
+
+
+# ---------------------------------------------------------------------------
+# Without JavaScript (T016)
+# ---------------------------------------------------------------------------
+
+
+class TestVisibilityWithoutJavaScript:
+    """One representative setting, with JavaScript disabled entirely, proving
+    computed visibility is identical to every other test in this module.
+    `lg`/`icons` is representative because none of the four regions' rules
+    depend on anything JavaScript sets up — every rule this module exercises
+    is pure CSS, keyed off attributes the server already rendered."""
+
+    def test_visibility_is_identical_with_javascript_disabled(
+        self, browser, regions_server
+    ):
+        context = browser.new_context(java_script_enabled=False)
+        try:
+            page = context.new_page()
+            lg_px = REAL_BREAKPOINTS["lg"]
+            page.set_viewport_size({"width": lg_px - 1, "height": VIEWPORT_HEIGHT})
+            page.goto(
+                f"{regions_server.url}/responsive-visibility-regions/"
+                "?breakpoint=lg&collapse=icons"
+            )
+            assert _display(_mobile_widgets(page)) != "none"
+            assert _display(_desktop_widgets(page)) == "none"
+            assert _display(_account_narrow(page)) != "none"
+            assert _display(_account_wide(page)) == "none"
+            assert _display(_toggle_label(page)) != "none"
+            assert _display(_site_icon(page)) != "none"
+
+            page.set_viewport_size({"width": lg_px, "height": VIEWPORT_HEIGHT})
+            assert _display(_mobile_widgets(page)) == "none"
+            assert _display(_desktop_widgets(page)) != "none"
+            assert _display(_account_narrow(page)) == "none"
+            assert _display(_account_wide(page)) != "none"
+            assert _display(_toggle_label(page)) == "none"
+            assert _display(_site_icon(page)) == "none"
+        finally:
+            context.close()
