@@ -179,6 +179,62 @@ class TestTheShellWorksWithoutJavaScript:
 
 
 @pytest.mark.django_db
+class TestConfigReportsThePerPageOverride:
+    """The store's `config` reflects a per-page breakpoint override rather
+    than the project default (T010/T011)."""
+
+    def test_a_page_override_beats_the_project_default(self, page, live_server):
+        page.goto(f"{live_server.url}/layout/store/?breakpoint=xl")
+        page.wait_for_timeout(200)
+
+        config = page.evaluate("() => ({ ...Alpine.store('layout').config })")
+        assert config["breakpoint"] == "xl"
+        assert config["breakpoint_px"] == 1280
+        assert config["persistent"] is True
+
+
+@pytest.mark.django_db
+class TestTheViewportFlagFollowsTheWindow:
+    """`isWide` tracks the resolved breakpoint via `matchMedia`, in both
+    directions, without a reload (T010/T011)."""
+
+    def test_isWide_flips_both_directions_across_the_breakpoint(
+        self, page, live_server
+    ):
+        page.set_viewport_size(MOBILE)
+        page.goto(f"{live_server.url}/")
+        assert page.evaluate("() => Alpine.store('layout').isWide") is False
+
+        page.set_viewport_size(DESKTOP)
+        page.wait_for_function("() => Alpine.store('layout').isWide === true")
+
+        page.set_viewport_size(MOBILE)
+        page.wait_for_function("() => Alpine.store('layout').isWide === false")
+
+
+@pytest.mark.django_db
+class TestTheNeverPersistentCaseReportsCorrectly:
+    """`breakpoint="never"` means no pixel width to report and a viewport
+    flag that never goes true, rather than a width that means nothing
+    (T010/T011)."""
+
+    def test_never_reports_no_width_and_a_flag_that_stays_false(
+        self, page, live_server
+    ):
+        page.goto(f"{live_server.url}/layout/store/?breakpoint=never")
+        page.wait_for_timeout(200)
+
+        config = page.evaluate("() => ({ ...Alpine.store('layout').config })")
+        assert config["persistent"] is False
+        assert config["breakpoint_px"] is None
+        assert page.evaluate("() => Alpine.store('layout').isWide") is False
+
+        page.set_viewport_size(DESKTOP)
+        page.wait_for_timeout(200)
+        assert page.evaluate("() => Alpine.store('layout').isWide") is False
+
+
+@pytest.mark.django_db
 class TestAPageWithNoShellStillGetsAStore:
     """The entrance/error pages render no drawer and no config payload."""
 

@@ -229,3 +229,43 @@ store reads, so they will break again the same way — which is the point at whi
 whether they earn their place at all, given the browser coverage now standing behind them.
 
 **ADR:** none — a testing judgement scoped to this feature's own diff.
+
+## D10 — The resolved configuration stays a nested `config` object
+
+**The question.** T010 asked whether a project should read the resolved configuration
+(`breakpoint`, `breakpoint_px`, `collapse`, `sticky`, `boost`, `persistent`) off `$store.layout`
+as a nested `config` object — the shape it already has, carried over unchanged from T004 — or
+whether it should be flattened onto the store or exposed through named accessors.
+
+**Chosen: leave it nested, and keep it that way deliberately rather than by omission.**
+
+**Why.** The store already draws a line the flattening options would blur. `sidebarOpen`,
+`desktopOpen`, `isWide` and `headerStuck` are reactive: Alpine tracks them, they mutate over the
+page's lifetime (a click, a resize, a scroll), and `isWide` in particular is *derived* state built
+from `config.breakpoint_px` by the `matchMedia` listener rather than being config itself. `config`'s
+six values are resolved once, server-side, at render time, and never change for the life of the
+page. Flattening `config` onto the store would mix a page's fixed facts in with the properties
+Alpine actually watches, and a reader skimming the store's own keys couldn't tell which was which
+without opening the source. Nesting the resolved values under one name states the distinction the
+store already relies on: `isWide` stands alone because it behaves like state, `config.breakpoint_px`
+stays nested because it does not.
+
+Named accessors were the other option and were rejected as an unneeded layer: `config` is already
+`LayoutConfig.as_dict()` (`mvp/layout.py`), the same plain-data shape the server resolves and the
+client parses — an accessor method would wrap a value already sitting on a plain object for no
+reader benefit, and this codebase's simplicity standard asks for the plain read over the wrapper
+when both cost the same.
+
+**What this means for T011/T012.** Tests read `Alpine.store('layout').config.<key>`; the
+documentation table below describes the same six keys under that same name. Nothing in `layout.js`
+changed for this decision — T004 already built the shape T010 asks for, including the never-
+persistent case (`breakpoint_px` is `null` off `LayoutConfig.breakpoint_px`, not a meaningless
+width) and the `matchMedia`-driven `isWide` flag. T010's work was confirming that shape deliberately
+and extending the demo/`layout/store/` page to accept `?breakpoint=` so a browser test can reach a
+per-page override and the never case without a new template.
+
+**Revisit if** the store grows a second nested settings group — at that point one exception reads
+as an accident and the naming should be reconsidered as a set, not patched again in isolation.
+
+**ADR:** none — a naming judgement scoped to this feature's own store shape, already partly settled
+by D6.

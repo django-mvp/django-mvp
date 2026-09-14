@@ -177,10 +177,24 @@ theme_customization_demo = DemoTemplateView.as_view(
 full_page_map_demo = DemoTemplateView.as_view(
     template_name="full_page_map.html", page_title="Full-page map"
 )
+
+
 # The worked example docs/layout.md points readers at for $store.layout
 # (FS-029 US-1, T009): a page an example in the documentation can actually
 # run, rather than a snippet nobody executes.
-layout_store_demo = DemoTemplateView.as_view(
+class LayoutStoreDemoView(DemoTemplateView):
+    """Accepts `?breakpoint=` so browser tests can exercise a per-page
+    override and the never-persistent case against a real page (FS-029
+    US-2, T011), the same way `mvp/base.html` resolves the context variable
+    for any project view."""
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["breakpoint"] = self.request.GET.get("breakpoint")
+        return context
+
+
+layout_store_demo = LayoutStoreDemoView.as_view(
     template_name="layout_store.html", page_title="Layout Store"
 )
 E400 = DemoTemplateView.as_view(template_name="400.html")
