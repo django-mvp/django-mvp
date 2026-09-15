@@ -7,16 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`<c-actions.theme-controller>` takes `compact`, `valign` and `halign`.** `compact`
+  renders the two-theme switcher as a single square icon button instead of an icon, a
+  checkbox and a second icon side by side, which is what lets it sit in the sidebar
+  footer beside the user's name. `valign` and `halign` place the panel of the menu
+  form, so a control near the bottom of the page can open upward. The existing shape
+  is unchanged where none of the three is passed.
+
 ### Changed
 
 - **The sidebar footer is a fixed composition**: a row holding the signed-in user's
   menu (or a log-in button for a visitor), a theme control and a language control,
-  filling the sidebar's width. Composing it from settings never let a project's
-  markup override just this one region without also losing the flex-row wrapper
-  the packaged footer supplied, so the only thing a project could actually reach for
-  was a full template override anyway — `MVP_CONFIG["layout"]["sidebar"]["footer"]`
-  is now that override's replacement rather than an alternative to it. Change what
-  the footer shows by overriding `templates/cotton/app/sidebar/footer.html`.
+  filling the sidebar's width. A footer's composition is presentation, and a
+  template override already expresses it completely, so a settings list was the
+  wrong mechanism for the job. Change what the footer shows by overriding
+  `templates/cotton/app/sidebar/footer.html`.
 
 - **The signed-in user's sidebar-footer trigger is one compact line**: avatar plus
   name, no email. The wider row this replaces was designed for a footer with room

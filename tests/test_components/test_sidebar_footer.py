@@ -60,3 +60,27 @@ class TestSidebarFooterAnonymous:
         assert "dropdown-content" not in html, (
             "no user-menu dropdown panel must render for an anonymous request"
         )
+
+
+class TestSidebarFooterThemeControlIsCompact:
+    """The theme control is a square icon button, in either theme configuration.
+
+    Without ``theme.choices`` the switcher normally renders an icon, a
+    checkbox and a second icon side by side. That row needs about 77px, and
+    the footer spends its width on the user's name instead, so the footer
+    asks for the compact form. ``theme.choices`` is empty by package
+    default, which makes this the shape most installs get.
+    """
+
+    @pytest.mark.django_db
+    def test_renders_no_checkbox_when_no_theme_choices_are_configured(self):
+        user = get_user_model().objects.create_user(username="carol", password="pw")
+        html = _render(user)
+
+        assert 'type="checkbox"' not in html, (
+            "the footer's theme control must not render the wide toggle row"
+        )
+        assert "btn-square" in html, "the theme control must be a square icon button"
+        assert "data-toggle-theme" in html, (
+            "the compact button must still carry the theme-change binding"
+        )

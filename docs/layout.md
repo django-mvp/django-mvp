@@ -122,15 +122,24 @@ To change what the footer shows, override the component template in your project
 <div class="bg-base-200 w-full sticky bottom-0 mt-auto z-20 flex items-center gap-2 px-4 py-2">
   <c-user.sidebar-menu />
   <c-actions.login />
-  <c-actions.theme-controller valign="top" />
+  <c-actions.theme-controller valign="top" compact />
   <myapp.support-link />
 </div>
 ```
 
 `<c-user.sidebar-menu>` and `<c-actions.login>` each guard on
 `request.user.is_authenticated` internally, so drop both in unguarded — exactly one
-renders per request. See [docs/adr/0023](adr/0023-the-sidebar-footer-is-a-fixed-composition.md)
-for why this moved from a setting to a template override.
+renders per request.
+
+The two attributes on the theme control are both about living in a footer. `valign="top"`
+opens its panel upward, since there is no room below it. `compact` renders the two-theme
+switcher as a single square icon button rather than an icon, a checkbox and a second
+icon side by side. That row needs about 77px, which the footer would rather spend on the
+user's name. It matters by default: `theme.choices` is empty unless a project sets it, so
+the wide form is what most installs would otherwise get.
+
+See [docs/adr/0023](adr/0023-the-sidebar-footer-is-a-fixed-composition.md) for why this
+moved from a setting to a template override.
 
 ## Boosted sidebar navigation
 

@@ -208,7 +208,7 @@ unmet.
 
 | Tag | Purpose | Attributes (default) | Renders when |
 |---|---|---|---|
-| `<c-actions.theme-controller>` | Theme menu when `theme.choices` is configured, otherwise a two-theme toggle | `size` (`sm`) | always |
+| `<c-actions.theme-controller>` | Theme menu when `theme.choices` is configured, otherwise a two-theme toggle | `size` (`sm`), `valign` (`bottom`), `halign` (`end`), `compact` (off — squares the two-theme switcher into one icon button) | always |
 | `<c-actions.language-switcher>` | Language chooser as a dropdown list | — | `LocaleMiddleware` is installed **and** `set_language` is routed |
 | `<c-actions.language-switcher-modal>` | Language chooser as a dialog with a tappable grid — the phone-friendly alternative | `id` (`languageModal`) | `LocaleMiddleware` is installed **and** `set_language` is routed |
 | `<c-actions.login>` | Log-in button, preferring allauth's URL over Django's | — | visitor is anonymous **and** `account_login` or `login` reverses |

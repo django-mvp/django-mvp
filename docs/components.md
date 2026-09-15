@@ -153,7 +153,7 @@ Menus are normally rendered from Python via django-flex-menus — see
 
 | Component | Notes |
 | --- | --- |
-| `c-actions.theme-controller` | light/dark theme toggle (`size`) |
+| `c-actions.theme-controller` | light/dark theme toggle (`size`, `valign`, `halign`, `compact`). `compact` renders the two-theme switcher as one square icon button instead of the icon/checkbox/icon row, for narrow slots like the sidebar footer |
 | `c-actions.language-switcher` | i18n language dropdown (needs `set_language` URL) |
 | `c-actions.language-switcher-modal` | the same switcher as a modal, better for narrow slots like the sidebar footer where a dropdown would be cramped — the variant the fixed sidebar footer uses |
 | `c-actions.search` | navbar search input |
