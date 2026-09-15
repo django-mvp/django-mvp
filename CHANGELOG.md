@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.23.0] - 2026-09-15
+
 ### Added
 
 - **A table declares which of its columns identify a row, with `row_headers` on its
