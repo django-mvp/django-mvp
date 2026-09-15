@@ -63,6 +63,20 @@ class TestSidebarFooterAnonymous:
             "no user-menu dropdown panel must render for an anonymous request"
         )
 
+    @pytest.mark.django_db
+    def test_the_log_in_button_fills_the_row_and_carries_emphasis(self):
+        """Signing in is the one thing this footer wants a visitor to do."""
+        html = _render(AnonymousUser())
+
+        link = re.search(r'<a class="([^"]*)"[^>]*>\s*<span>Log in</span>', html)
+        if link is None:
+            link = re.search(r'<a class="([^"]*)"[^>]*>(?:(?!</a>).)*Log in', html, re.S)
+        assert link is not None, "the log-in button must render as a link"
+
+        classes = link.group(1)
+        assert "btn-primary" in classes, f"expected the primary variant, got {classes}"
+        assert "btn-block" in classes, f"expected it to fill its row, got {classes}"
+
 
 class TestSidebarFooterThemeControlIsCompact:
     """The theme control is a square icon button, in either theme configuration.

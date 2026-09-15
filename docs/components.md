@@ -157,7 +157,7 @@ Menus are normally rendered from Python via django-flex-menus — see
 | `c-actions.language-switcher` | i18n language dropdown (needs `set_language` URL) |
 | `c-actions.language-switcher-modal` | the same switcher as a modal, better for narrow slots like the sidebar footer where a dropdown would be cramped — the variant the fixed sidebar footer uses (`id`, `size`) |
 | `c-actions.search` | navbar search input |
-| `c-actions.login` | log-in button (needs `login` URL); renders only when anonymous — used in the navbar and in the fixed sidebar footer |
+| `c-actions.login` | log-in button (needs `login` URL); renders only when anonymous — used in the navbar and in the fixed sidebar footer (`variant`, `full`) |
 | `c-user.sidebar-menu` | account dropdown; part of the fixed sidebar footer |
 | `c-user.display.compact` | avatar + name row |
 | `c-form`, `c-form.render` | form wrapper / renderer dispatch |

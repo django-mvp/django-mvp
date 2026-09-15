@@ -211,7 +211,7 @@ unmet.
 | `<c-actions.theme-controller>` | Theme menu when `theme.choices` is configured, otherwise a two-theme toggle | `size` (`sm`), `valign` (`bottom`), `halign` (`end`), `compact` (off — squares the two-theme switcher into one icon button) | always |
 | `<c-actions.language-switcher>` | Language chooser as a dropdown list | — | `LocaleMiddleware` is installed **and** `set_language` is routed |
 | `<c-actions.language-switcher-modal>` | Language chooser as a dialog with a tappable grid — the phone-friendly alternative | `id` (`languageModal`), `size` (unset — set it to match a control beside it) | `LocaleMiddleware` is installed **and** `set_language` is routed |
-| `<c-actions.login>` | Log-in button, preferring allauth's URL over Django's | — | visitor is anonymous **and** `account_login` or `login` reverses |
+| `<c-actions.login>` | Log-in button, preferring allauth's URL over Django's | `variant` (unset), `full` (off) — the sidebar footer uses `primary` and `full` | visitor is anonymous **and** `account_login` or `login` reverses |
 | `<c-actions.search>` | A standalone search box | — | always |
 | `<c-user.sidebar-menu>` | The signed-in user's menu: account centre, your own extra entries, log out | — | user is authenticated |
 | `<c-user.display.compact>` | Avatar plus name, for use inside a user menu or panel | — | always |

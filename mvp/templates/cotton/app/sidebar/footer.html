@@ -4,9 +4,15 @@
 {% endcomment %}
 <c-vars bg="bg-base-200" />
 <div class="{{ bg }} w-full sticky bottom-0 mt-auto z-20 flex items-center gap-2 is-drawer-close:flex-col px-4 is-drawer-close:px-2 py-2">
-  <div class="min-w-0 flex-1">
+  {% comment %}
+    is-drawer-open:me-2 sits on top of the row's own gap, so the user's
+    name is not crowded against the theme control. It is scoped to the
+    open state because the rail stacks this column instead of laying it
+    out in a row, where a trailing margin would only shift it off centre.
+  {% endcomment %}
+  <div class="min-w-0 flex-1 is-drawer-open:me-2">
     <c-user.sidebar-menu />
-    <c-actions.login />
+    <c-actions.login variant="primary" full />
   </div>
   {% comment %}
     Both controls take the same size so they read as one pair. Without it

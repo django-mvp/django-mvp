@@ -20,6 +20,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   renders at `c-button`'s default, which is 40px square — visibly larger than a
   neighbouring control set to `sm`. Unset, it behaves as before.
 
+- **`<c-actions.login>` takes `variant` and `full`.** The sidebar footer draws it as a
+  filled primary button, because signing in is the one thing that footer wants a
+  signed-out visitor to do. Both unset, it renders exactly as it did, which is what
+  the navbar keeps.
+
 ### Changed
 
 - **The sidebar footer is a fixed composition**: a row holding the signed-in user's
