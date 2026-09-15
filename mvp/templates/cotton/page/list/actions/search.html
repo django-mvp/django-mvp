@@ -6,7 +6,7 @@
                   label=""
                   name="q"
                   form="filterForm"
-                  class="join-item grow md:w-[220px]"
+                  class="join-item grow md:w-[220px] input-sm"
                   placeholder="{{ placeholder }}"
                   value="{{ search_query|default:'' }}"
                   aria-label="{{ placeholder }}">
@@ -16,6 +16,7 @@
     </c-form.field>
     <c-button type="submit"
               class="join-item"
+              size="sm"
               form="filterForm"
               text="{{ label }}" />
   </div>

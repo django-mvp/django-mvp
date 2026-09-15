@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **A long breadcrumb trail shrinks instead of drawing a horizontal scrollbar.** Each
+  crumb now gives up width and ellipsises its own text before the next one does, so the
+  whole path and its separators stay visible at widths where the trail previously had
+  less room than it needed. Horizontal scrolling is still there as the last resort, for
+  a width where even every crumb truncated will not fit.
+
+- **Every menu rendered through the sidebar renderer now carries its own accessible
+  name**, instead of every one of them announcing "Main Navigation" regardless of which
+  menu it was. `AppMenu` and `AccountCenterMenu` carry a real, translated name; a
+  project rendering a second menu through the same renderer gives it one the same way.
+  Also fixed a second, unnamed navigation landmark this uncovered around the sidebar's
+  menu.
+
+- **The list view's action row is consistently sized.** The filter, create and sort
+  controls, and the search action's submit button, passed `small`/`large` — attributes
+  `c-button` does not declare — which Cotton forwarded straight through as invalid HTML
+  and left every one of them at the button's default size. They now use the declared
+  `size` attribute, and the row is small throughout to match the share dropdown, which
+  already was.
+
 ## [v0.22.0] - 2026-09-15
 
 ### Added

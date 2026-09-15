@@ -17,8 +17,8 @@
        {% if boost %}hx-boost="true"{% endif %}
        {{ attrs }}>
   <c-app.sidebar.header link="{{ brand_url }}" :bg="bg" :title="title" />
-  <nav class="flex w-full">
+  <div class="flex w-full">
     {% render_menu menu renderer="sidebar" %}
-  </nav>
+  </div>
   <c-app.sidebar.footer :bg="bg" />
 </aside>

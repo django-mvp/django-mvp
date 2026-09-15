@@ -535,3 +535,38 @@
 .mvp-col-max-xl {
   max-width: 32rem;
 }
+
+/* A long breadcrumb trail shrinks its crumbs instead of scrolling the header
+   (#354). `.breadcrumbs{overflow-x:auto}` is still there as the last resort
+   for a width where even truncated crumbs will not fit, but the header
+   should not reach for it while a crumb still has text to give up.
+
+   `min-width: 0` on the crumb <li> and its <a> is what lets flex shrinking
+   reach the text at all: a flex item's automatic minimum width is its
+   content's natural width, not zero, so without this every crumb refuses to
+   shrink below its full text and the trail overflows exactly as before. */
+.breadcrumbs li,
+.breadcrumbs li > a {
+  min-width: 0;
+}
+
+/* The crumb's text, in its own span (cotton/breadcrumbs/item.html) so only
+   the text ellipsises — a crumb's slot may hold an icon, which sits outside
+   this span and must stay whole. `overflow: hidden` also gives the span
+   itself an automatic minimum size of 0 as a flex item, the same fix the
+   rule above makes explicit for its ancestors.
+
+   Specificity: daisyUI's `.breadcrumbs>ul>li>*` matches this span directly
+   for a crumb with no href (the span is then a direct child of <li>), and
+   sets `display: flex`. A bare `.mvp-breadcrumb-text` class loses that fight
+   on specificity, which is why this is written against the descendant
+   selector below instead — `cursor: inherit` on top of it stops that same
+   crumb picking up the pointer cursor daisyUI's rule sets for a direct
+   child, which the current (non-link) crumb has never had. */
+.breadcrumbs li .mvp-breadcrumb-text {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: inherit;
+}

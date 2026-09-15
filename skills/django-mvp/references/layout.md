@@ -141,6 +141,10 @@ already puts there, so a view declares its trail through `breadcrumbs` or
 - No page template draws a trail of its own. `page.header` is empty everywhere.
 - To move it, override `app.header` and place `<c-breadcrumbs :items="page.breadcrumbs" />`
   where you want it.
+- A long trail shrinks rather than scrolling: each crumb ellipsises its own text
+  before the next one gives up any width, so the whole path stays visible. Horizontal
+  scrolling only takes over at a width where every crumb is already truncated and the
+  trail still does not fit.
 
 ## What no block can suppress
 

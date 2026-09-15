@@ -89,7 +89,7 @@ Serves G3, and G2 for the components the page needs. A field-rendering API on th
 
 ### R8 — Formsets that render and work — **delivered**
 
-*feature · advances G4*
+*delivered in [#162](https://github.com/django-mvp/django-mvp/issues/162), [#194](https://github.com/django-mvp/django-mvp/issues/194) · advances G4*
 
 ~~G4 is the only Essential goal with nothing behind it, and formsets are the example the package's own scope statement uses: Django ships the backend machinery and leaves you with nothing to render or drive it with. Nothing in the package refers to formsets today. Until this lands, the claim that the package fills in where Django stops has no instance to point at.~~
 
@@ -238,11 +238,13 @@ A project's logo, icon and avatar presentation are resolved from configuration a
 
 Serves G8.
 
-### R18 — Theming and branding without forking templates
+### R18 — Theming and branding without forking templates — **delivered**
 
-*feature · advances G8*
+*delivered in [#230](https://github.com/django-mvp/django-mvp/issues/230) · advances G8*
 
-The package applies a stock theme and ships none of its own, so the question is how a project departs from it. G8 asks for that to happen without copying templates: colour, typography and density adjusted through the design system's own theming surface, with the packaged components picking the changes up. This is the step between the default look and a project bringing its own CSS, and R11's rejection makes it the whole of the theming story rather than the second half of one.
+~~The package applies a stock theme and ships none of its own, so the question is how a project departs from it. G8 asks for that to happen without copying templates: colour, typography and density adjusted through the design system's own theming surface, with the packaged components picking the changes up. This is the step between the default look and a project bringing its own CSS, and R11's rejection makes it the whole of the theming story rather than the second half of one.~~
+
+Delivered. Every prebuilt daisyUI theme ships inside the package, so a project picks one through `MVP_CONFIG["theme"]` with no build step and nothing fetched from outside it. `choices` gives `<c-actions.theme-controller />` a runtime switch, a visitor's stored preference outranks the configured default, and a project writes a theme of its own as a plain CSS file that overrides a shipped theme of the same name. [Theming](theming.md) walks through writing one, including writing to a contrast obligation. The package applies no branding of its own: the `mvp` and `mvp-dark` palettes belong to the demo site, per `docs/adr/0016-branded-themes-belong-to-the-demo-site.md`.
 
 **Deliverables:**
 

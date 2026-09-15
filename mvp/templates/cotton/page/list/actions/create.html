@@ -2,7 +2,7 @@
 <c-vars label="{% trans "Add" %}" icon="add" />
 {% if directory.create_url and create_form %}
   <c-button text="{{ label }}"
-            small
+            size="sm"
             @click="createModal.showModal()" />
   <c-modal id="createModal"
            title="{{ label }}"
@@ -21,14 +21,14 @@
                 reverse
                 icon="arrow-right"
                 variant="primary"
-                large
+                size="lg"
                 type="submit" />
     </c-slot>
   </c-modal>
 {% elif directory.create_url %}
   <c-button text="{{ label }}"
             icon="add"
-            small
+            size="sm"
             ghost
             href="{{ directory.create_url }}" />
 {% endif %}

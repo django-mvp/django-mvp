@@ -6,6 +6,8 @@ it was written as a literal, so a project could only change it by shipping
 its own copy of the template.
 """
 
+import re
+
 from django import template
 from django.template.context import Context
 from django.utils import translation
@@ -39,3 +41,23 @@ class TestSearchActionButtonLabel:
             is_searchable=True,
         )
         assert "Find products" in html
+
+
+class TestSearchActionSize:
+    """[#328] The search join matches the rest of the small action row: the
+    submit button carries the declared `size="sm"`, and the input half of the
+    join gets daisyUI's matching `input-sm` (`c-form.field` has no `size`
+    attribute, so that goes through its `class`)."""
+
+    def test_the_submit_button_is_small(self):
+        html = render("<c-page.list.actions.search />", is_searchable=True)
+        assert "btn-sm" in html
+
+    def test_the_input_matches_the_buttons_size(self):
+        html = render("<c-page.list.actions.search />", is_searchable=True)
+        assert "input-sm" in html
+
+    def test_no_element_carries_a_bare_small_or_large_attribute(self):
+        html = render("<c-page.list.actions.search />", is_searchable=True)
+        assert not re.search(r"<(button|input)[^>]*\bsmall\b[^>]*>", html)
+        assert not re.search(r"<(button|input)[^>]*\blarge\b[^>]*>", html)

@@ -194,8 +194,10 @@ class ProductDetailView(MVPDetailView):
 
 A page that declares no trail — the entrance, the error pages, anything not built on
 an MVP view — renders no navigation landmark at all, rather than an empty one for a
-screen reader to announce. A long trail shrinks and scrolls sideways rather than
-pushing the widgets off the row.
+screen reader to announce. A long trail shrinks rather than pushing the widgets off
+the row: each crumb gives up width and ellipsises its own text before the next one
+does, so the whole path stays visible. Horizontal scrolling is the last resort, for a
+width where even every crumb truncated still will not fit.
 
 The site icon beside it stands down wherever the sidebar's own header is on screen
 showing the same mark — at or above the breakpoint with the drawer open, or at any

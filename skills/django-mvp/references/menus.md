@@ -244,6 +244,18 @@ To point the sidebar at a different menu, pass its name to the shell component:
 ships. For horizontal navigation, build it from the `c-menu` components directly or
 write a renderer of your own.
 
+The sidebar renderer's container renders `c-menu` (`<ul role="navigation">`), and its
+accessible name comes from the template context in the same precedence order
+`BaseRenderer.get_context_data` already resolves `label` in: a `label` keyword passed
+to `{% render_menu %}`, then the menu's own `extra_context["label"]`, then its name.
+`AppMenu` and `AccountCenterMenu` both carry one; a project rendering a second menu
+through this renderer gives it its own, or every menu on the page shares one landmark
+name:
+
+```python
+AdminMenu = Menu("AdminMenu", extra_context={"label": _("Administration")})
+```
+
 ## Common mistakes
 
 - **Item never appears.** The module was never imported (app missing from
