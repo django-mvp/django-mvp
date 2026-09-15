@@ -20,9 +20,9 @@ next to each other, and a list of names is a poor tool for that. Reordering mean
 list. Changing a wrapping, centered row to something else meant a template override regardless,
 because no attribute or setting controlled the row's layout — it was hard-coded in
 `templates/cotton/app/sidebar/footer.html`. So a project that actually wanted a different
-footer was already overriding the template; the setting only ever satisfied the case where the
+footer was already overriding the template. The setting only ever satisfied the case where the
 default row's layout was fine and only the guest list changed, and even that case still needed a
-customer component's dotted-path name, imports resolved by convention rather than declared.
+custom component's dotted-path name, resolved by convention rather than declared.
 
 The package's own constitution already answers where a decision like this belongs. Article XII
 reserves Python-level configuration for structural concerns — one that changes what a project's
