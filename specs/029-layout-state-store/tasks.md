@@ -281,3 +281,57 @@ A breaking-change entry naming the three tags and stating what replaced them.
 
 No change to what the shell renders or how it looks. No new configuration key. No new dependency.
 No change to the drawer-open class or the drawer-state variants.
+
+
+---
+
+## T018 — The store becomes `mvp`, grouped by component
+
+Requested at the merge gate, before anything shipped. Public surface is cheapest to name correctly
+while it is still unreleased.
+
+**Files**: `mvp/layout.py`, `assets/js/layout.js`, `assets/js/index.js`,
+`mvp/templates/cotton/layout/sidebar/index.html`, `mvp/templates/cotton/app/header/index.html`,
+`mvp/static/js/django-mvp.js`, `demo/`, the three test modules that read the store,
+`docs/layout.md`, `skills/django-mvp/references/layout.md`, `CHANGELOG.md`,
+`docs/adr/0022-the-layout-store-mirrors-state-it-does-not-own.md`
+
+The store registers as `mvp`, not `layout`. It is a global in a namespace the consuming project
+also writes to, and `layout` is a word a project would plausibly claim for a store of its own — a
+second registration under the same name replaces the first silently. Naming it after the package
+also gives future client state somewhere to live without claiming a second global.
+
+Its shape groups by the component the value belongs to, and drops the `config` tier: whether a fact
+came from settings or from a click is not what a consumer is asking. Keys are camelCase
+throughout, including the ones the server emits.
+
+```json
+{
+  "sidebar": {
+    "open": true,
+    "desktopOpen": true,
+    "breakpoint": "lg",
+    "breakpointPx": 1024,
+    "persistent": true,
+    "collapse": "offcanvas",
+    "boost": false
+  },
+  "header": { "stuck": false, "sticky": true },
+  "isWide": true
+}
+```
+
+`isWide` stays at the top level deliberately. It is derived from the sidebar's breakpoint but what
+it reports is the viewport, and the things that read it — a toolbar that changes shape, a panel
+that stacks — have nothing to do with the sidebar.
+
+`header.sticky` comes from `MVP_CONFIG["layout"]["navbar"]["sticky"]`. The store follows the
+component the setting actually controls; the settings key keeps its name.
+
+`LayoutConfig.as_dict()` emits this grouped, camelCase shape, so the payload and the store are the
+same document.
+
+**Documentation format, as the maintainer asked for it.** `docs/layout.md` and the shipped skill
+present the store as one complete JSON object followed by a short line per attribute saying what it
+is. Not paragraphs. A reader should be able to see every available value at once and then read one
+line about any of them.
