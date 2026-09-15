@@ -153,8 +153,9 @@ things a set is built from:
 
 Anything Django's factory accepts that the shorthands don't expose —
 `can_order`, for instance — is reached through `factory_kwargs` (class-level) or
-`formset_kwargs` (instance-level), both dictionaries folded in after the shorthands, so an
-explicit key in either one wins over its shorthand on the same name:
+`formset_kwargs` (instance-level), and the two resolve opposite ways against the shorthands.
+`factory_kwargs` is folded in last, so an explicit key there wins over a shorthand setting the
+same name:
 
 ```python
 class TaskInline(InlineFormSet):
@@ -163,9 +164,16 @@ class TaskInline(InlineFormSet):
     factory_kwargs = {"can_order": True}
 ```
 
+`formset_kwargs` goes the other way: it is the base dict, and `prefix`, `initial`, `form_kwargs`,
+plus the parent instance and, on a POST, `data` and `files`, are all laid on top of it afterward.
+A key `formset_kwargs` shares with any of those never takes effect — put it there only for a
+key none of the shorthands cover, such as `save_as_new`.
+
 For anything `factory_kwargs`/`formset_kwargs` can't express as a static value, override
 `get_factory_kwargs()` or `get_formset_kwargs()`, call `super()` and mutate the result — the
-same super-and-extend pattern Django's own `get_form_kwargs` uses.
+same super-and-extend pattern Django's own `get_form_kwargs` uses. `title` and `description` have
+the same escape hatch: override `get_title()` or `get_description()` for a heading or help text
+computed from the request or the instance rather than a fixed string.
 
 ## Per-form arguments — `get_form_kwargs(index)`
 
@@ -241,6 +249,8 @@ class ProductOrderLinesRowsOnlyView(MVPUpdateView):
 - **Create still requires parent fields.** There's no loaded record to hang rows off on a
   create page, so `fields = []` on `MVPCreateView` raises `ImproperlyConfigured` rather than
   creating the one record nobody asked to create. The rows-only page is an update-page concept.
+- **An update page still needs at least one set.** `fields = []` with no `inlines` at all also
+  raises `ImproperlyConfigured` — there would be nothing left on the page to edit.
 
 ### `touch_parent`
 

@@ -13,39 +13,10 @@ django-mvp renders a complete application shell around your content:
 └── <c-app.dock>               mobile bottom navigation
 ```
 
-Everything is configured from `settings.MVP_CONFIG` — similar in spirit to
-pydata-sphinx-theme's layout options. Its `layout` section is what this page covers,
-and the package defaults are:
-
-```python
-MVP_CONFIG = {
-    "layout": {
-        "sidebar": {
-            "breakpoint": "lg",       # sm | md | lg | xl | 2xl
-            "collapse": "offcanvas",  # "offcanvas" | "icons"
-            "title": None,            # text beside the brand icon (falsey = none)
-            "boost": False,           # navigate sidebar links with htmx
-        },
-        "navbar": {
-            "mobile": {"end": []},    # widgets below the sidebar breakpoint
-            "desktop": {"end": ["actions.theme-controller", "actions.login"]},
-            "sticky": True,           # True: pinned | False: scrolls away
-        },
-    },
-}
-```
-
-`layout` is one of five top-level sections. `theme` is covered in
-[Theming](theming.md), `table` in [Styling](styling.md) and `view_names` in
-[Views](views.md). The fifth, `brand`, holds three dotted paths —
-`avatar_resolver`, `logo_resolver` and `icon_resolver` — that the brand and avatar
-components call to find their images. Their defaults serve `brand/logo.svg` and
-`brand/icon.svg` from your static files, preferring a `_dark` sibling under a dark
-theme where one exists, and resolve no avatar at all until you point
-`avatar_resolver` at your own function.
-
-Configuration resolves in this order everywhere:
-**component attribute (per-page) → `MVP_CONFIG` (project) → package default.**
+The shell is driven by `settings.MVP_CONFIG["layout"]` — similar in spirit to
+pydata-sphinx-theme's layout options. See [Configuration](configuration.md) for
+every key, its default, and how a value resolves. This page covers what each
+setting changes on screen and how to override the shell for one page.
 
 ## Sidebar breakpoint
 
@@ -72,7 +43,9 @@ At or above the breakpoint, the navbar toggle collapses the sidebar.
   full width.
 - **`"icons"`** — the sidebar collapses to a 4rem icon rail: menu labels, badges and
   section titles hide, icons center, and hovering an item shows its label as a tooltip.
-  The brand logo swaps for the brand icon.
+  The brand logo swaps for the brand icon. A collapsible menu group becomes a hover
+  fly-out instead of an indented inline list — the disclosure caret has nowhere to
+  point at rail width, so the group's items open as a popover beside the icon instead.
 
 In your own sidebar content, control rail visibility with two utility classes:
 
@@ -569,7 +542,23 @@ nothing to write yourself.
 
 ## Template blocks
 
-`mvp/base.html` exposes blocks for coarse-grained control:
+`mvp/base.html` is the shell, and every view template chains from it, directly
+or by way of `page_view.html`:
+
+| Template | Extends | Role |
+| --- | --- | --- |
+| `mvp/base.html` | — | The shell. Owns every `app.*` block. |
+| `base.html` (packaged) | `mvp/base.html` | A forwarder that defines nothing. Because view templates extend the unqualified name `base.html`, a `templates/base.html` of your own is picked up automatically and replaces this one everywhere — the file to put project-wide `app.*` overrides in. |
+| `page_view.html` | `base.html` | Standard page chrome. Owns every `page.*` block. |
+| `list_view.html`, `detail_view.html`, `form_view.html`, `mvp/dashboard.html`, `mvp/landing.html`, `mvp/placeholder_view.html` | `page_view.html` | Fill some of those blocks |
+| `table_view.html` | `list_view.html` | Re-declares the `page.*` blocks in its own markup — see [Table pages are laid out differently](#table-pages-are-laid-out-differently) |
+| `delete_view.html` | `form_view.html` | Fills the form blocks |
+| `mvp/entrance.html`, `mvp/error_base.html` | `mvp/base.html` | Replace the shell with a centred card |
+
+The [Account Center](account-center.md) has its own layout, `mvp/account/base.html`,
+which extends `base.html` rather than `page_view.html`.
+
+### Layer 1 — shell blocks, from `mvp/base.html`
 
 | Block | Replaces |
 | --- | --- |
@@ -585,3 +574,102 @@ nothing to write yourself.
 
 For anything deeper, override the component template itself (e.g. drop your own
 `templates/cotton/app/sidebar/footer.html`) — that is the intended extension path.
+
+### Layer 2 — `page.*` blocks
+
+**If your page is backed by an MVP view, `{% block content %}` is already spent.**
+`page_view.html` fills it with the page chrome — the container, the title bar,
+the content region and the footer toolbar. Overriding `content` in a template
+that extends an MVP view template throws all of that away and leaves you with
+a bare region inside the shell. Override a `page.*` block instead.
+
+| Block | Declared in | Region |
+| --- | --- | --- |
+| `page.header` | `page_view.html` | Above the title. Empty by default — the breadcrumb trail moved to the app header |
+| `page.content-wrapper` | `page_view.html` | The content region, title bar included |
+| `page.title` | `page_view.html` | The title bar: heading, subtitle and actions |
+| `page.actions` | `page_view.html` | The action buttons in the title bar |
+| `page.content` | `page_view.html` | **The page body. This is the usual override.** |
+| `page.footer` | `page_view.html` | The toolbar below the content |
+| `page.hero` | `mvp/landing.html` | A full-width band above the content region |
+| `entrance` | `mvp/entrance.html` | The centred card itself, restated when you want a different width |
+| `before_form` | `form_view.html` | Above the form, inside `page.content` |
+| `formset` | `form_view.html` | The formset rows inside the form |
+| `actions` | `form_view.html` | The form's submit and delete buttons |
+| `after_form` | `form_view.html` | Below the form, inside `page.content` |
+
+What the shipped views already put in these:
+
+- `list_view.html` fills `page.content` with the result count, the list and the
+  pagination, and `page.actions` with search, sort, filter and create.
+- `detail_view.html` fills `page.actions` with edit and delete links and leaves
+  `page.content` deliberately empty — that empty block is where your own
+  detail template goes.
+- `form_view.html` fills `page.content` with the form, and extends `head` and
+  `extra_js` with the form's own media.
+- `mvp/landing.html` overrides `content` wholesale, so it has `page.hero`,
+  `page.content-wrapper`, `page.content` and `page.footer` but **not**
+  `page.header`, `page.title` or `page.actions`.
+- `mvp/error_base.html` replaces the `app` block with a centred card and
+  exposes `error_code`, `heading`, `description` and `actions` instead of any
+  `page.*` block.
+
+### Table pages are laid out differently
+
+`table_view.html` also overrides `content` wholesale rather than reusing
+`page_view.html`'s markup, because the intermediate container breaks the chain
+the full-height layout depends on. All six `page.*` names are re-declared, so
+an override you wrote still applies. It lands in a different position, though,
+and the defaults around it are different:
+
+- `page.header` is empty, as it is on every other page. The heading is a plain
+  `<h1>` in the title bar; the breadcrumb trail is drawn by the app header.
+- `page.actions` does not call `{{ block.super }}`, and its default action set
+  deliberately excludes sort.
+- `page.footer` holds the row count and pagination, in a bar pinned below the
+  rows.
+- `app.footer` is blanked to an empty block. The shell footer does not render
+  on a table page. Restore it in your own template if you want it back.
+
+### What no block can suppress
+
+Two things inside the shell have no enclosing block of their own:
+
+- **The message toasts.** They are emitted inside `<c-app.main>`, after
+  `content`. The nearest block is `app.main`, so removing or relocating them
+  means overriding `app.main` and restating the main region and
+  `{% block content %}` yourself.
+- **The mobile dock.** It is emitted as the last child of `<c-app>`, outside
+  every block. Suppressing it means overriding the whole `app` block.
+
+### Header slots versus header blocks
+
+`<c-app.header>` has four slots and the base template only wires up two of them:
+
+| Slot | Position | Reached by |
+| --- | --- | --- |
+| `above` | Above the navbar, inside the header region | Restating `<c-app.header>` in the `app.header` block |
+| `right` | Trailing edge of the navbar, before the configured widgets | `{% block app.header.widgets %}` |
+| `tray` | Below the navbar, full width, inside the header region | `{% block app.header.tray %}` |
+| `below` | Below the tray, same region | Restating `<c-app.header>` in the `app.header` block |
+
+So `app.header.tray` feeds the `tray` slot specifically, not `below`. The two
+render in the same region and differ only in order. To reach `above` or
+`below`, override `app.header` and write the component out with the slots you
+want. `sticky` is the header's own attribute — use the dynamic form so it
+stays a real boolean — and restating `app.header` replaces the whole block,
+so carry the `right` and `tray` slots along with it or anything a page put in
+`app.header.widgets`/`app.header.tray` stops being reachable:
+
+```html
+{% block app.header %}
+  <c-app.header :sticky="False">
+    <c-slot name="right">
+      {% block app.header.widgets %}{% endblock app.header.widgets %}
+    </c-slot>
+    <c-slot name="tray">
+      {% block app.header.tray %}{% endblock app.header.tray %}
+    </c-slot>
+  </c-app.header>
+{% endblock app.header %}
+```

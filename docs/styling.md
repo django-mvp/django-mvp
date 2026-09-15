@@ -34,6 +34,16 @@ exist in the prebuilt stylesheet.
 Theme changes (colors, radius, borders) do **not** require Tier 2. See
 [Theming](#theming) below.
 
+### Repainting the sidebar
+
+`<c-app.sidebar bg="...">` passes the same value to the sidebar's header and
+footer, so one attribute repaints the whole rail and its two strips keep
+matching it. No CSS is involved, and nothing needs targeting from a stylesheet.
+
+Changing anything else about the header or the footer means overriding that
+template in your project, which is the extension point everywhere else in the
+package too.
+
 ## Column behaviour classes
 
 A django-tables2 column says how it competes for width and treats its text
@@ -127,8 +137,30 @@ python manage.py mvp_tailwind > assets/tailwind.css
 npx @tailwindcss/cli -i assets/tailwind.css -o static/css/app.css --minify
 ```
 
+The generated paths are absolute and specific to the machine that generated
+them, pointing into the installed package inside your environment. Re-run
+the command after upgrading django-mvp, after rebuilding a virtualenv, and
+in any new environment — a stale path silently stops the packaged templates
+from being scanned, and components lose their classes with no error.
+
 Then load your stylesheet instead of the packaged one by overriding the
-`head` block (or just the stylesheet links) of `mvp/base.html`.
+`styles` block of `mvp/base.html` and calling `{{ block.super }}` first to
+keep it, or dropping `{{ block.super }}` to replace it outright:
+
+```django
+{% extends "mvp/base.html" %}
+{% load static %}
+{% block styles %}
+  <link rel="stylesheet" href="{% static 'css/app.css' %}" />
+{% endblock styles %}
+```
+
+The `styles` block contains only the packaged stylesheet's `<link>`, which
+is what makes it safe to override on its own. Overriding `head` instead
+takes the charset, viewport and title tags, both favicon links, the
+Bootstrap Icons webfont link, and the JavaScript bundle's `<script>` tag
+down with it — the page renders unstyled, with no icons and no
+interactivity, unless you copy the packaged block's contents forward.
 
 The generated entry file:
 
@@ -151,6 +183,65 @@ two package paths (preset CSS, templates directory) and nothing else.
 Tailwind generates only the classes it finds in scanned source files. The
 prebuilt stylesheet was scanned against django-mvp's templates — your
 templates weren't there. Rebuilding with both `@source` lines closes the gap.
+
+### What the generated entry doesn't restore
+
+The entry file `mvp_tailwind` writes is not a superset of the packaged
+build. It carries the drawer-state variants, the component-attribute
+safelist and the icon-rail CSS, and it registers every daisyUI theme
+(`themes: all`) — but it omits the Tailwind typography plugin, the blanket
+`@source` scan of daisyUI's own component and utility files, and the
+curated utility pack documented in [Utility Classes](utility-classes.md).
+Your own templates are scanned now, so anything you write yourself is
+emitted, physical utilities and arbitrary values included — but a class
+that worked in Tier 1 only because it was safelisted, not because your
+templates used it, stops working. Moving to Tier 2 to gain one class can
+quietly take away others you already had.
+
+To keep them, add these lines to the generated entry, after the
+`@plugin "daisyui"` block. `@source` paths resolve relative to the entry
+file, not the project root:
+
+```css
+/* assets/tailwind.css — restore what Tier 1 gave you */
+@plugin "@tailwindcss/typography";                          /* prose */
+@source "../node_modules/daisyui/components/**/*.js";       /* every component */
+@source "../node_modules/daisyui/utilities/**/*.js";
+@source "../yourapp/tables.py";                              /* classes named in Python */
+```
+
+A path at the wrong depth matches nothing and reports nothing —
+`./node_modules/...` from `assets/tailwind.css` looks inside `assets/` and
+quietly finds no files. For the utility pack itself, either copy the
+`@source inline(...)` block from the package's own `assets/tailwind.css`,
+or do nothing: Tailwind now emits whatever your own templates use.
+
+## Bundled JavaScript
+
+`mvp/static/js/django-mvp.js` is a committed bundle of four libraries:
+Alpine.js, the `@alpinejs/persist` plugin, htmx and theme-change. `mvp/base.html`
+loads it from your own static files with `<script defer>`, so nothing is
+fetched from a third party at page load. Two globals are exposed:
+`window.Alpine` and `window.htmx`.
+
+Packaged behaviour that depends on them:
+
+| Feature | Needs |
+| --- | --- |
+| Sidebar collapse state, remembered across page loads | Alpine + `persist` |
+| Dismissible alerts and messages, with optional auto-dismiss | Alpine |
+| Sticky header picking up a shadow once the page scrolls | Alpine |
+| Formset add/remove rows | Alpine (`mvp/static/js/formset.js` reaches for the global) |
+| Theme toggle and theme dropdown | theme-change |
+| `hx-boost` sidebar navigation, when enabled | htmx |
+
+The bundle is not configurable — the packaged components are written
+against these versions, so a project can't swap or drop one without
+breaking packaged markup. Add your own Alpine plugins or htmx extensions
+from your own base template, by extending `{% block head %}` with
+`{{ block.super }}`, rather than replacing the bundle. And because htmx and
+Alpine are already loaded, don't add a CDN script tag for either — a second
+copy double-binds every `hx-*` attribute and fires each request twice.
 
 ## Theming
 

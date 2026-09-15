@@ -1,11 +1,10 @@
-import warnings
 from typing import Any
 
+from django.core.exceptions import ImproperlyConfigured
 from django.urls import reverse
 from django.views import generic
 
 from ..config import MVP_CONFIG
-from ..warnings import MVPDeprecationWarning
 from .base import BaseTemplateNameMixin, ModelInfoMixin, PageMixin
 
 _UNSET = object()
@@ -41,11 +40,9 @@ class CRUDDirectoryMixin(ModelInfoMixin):
 
     Each attribute accepts a boolean or a callable taking the request user.
 
-    .. deprecated:: 0.16
-        The former ``has_<action>_permission`` names are still honoured and still
-        decide visibility, with an ``MVPDeprecationWarning``. They are read rather
-        than ignored on purpose: ignoring one would reveal a link the project had
-        hidden. Removed in 0.18.
+    The pre-0.16 ``has_<action>_permission`` names are no longer read. A view that
+    still sets one raises ``ImproperlyConfigured`` naming the replacement, because
+    the alternative — ignoring it — would draw a link the project had hidden.
     """
 
     crud_views = MVP_CONFIG["view_names"]
@@ -107,22 +104,22 @@ class CRUDDirectoryMixin(ModelInfoMixin):
 
         This is a display decision. It has no bearing on whether the target view
         accepts the request — see the class docstring.
+
+        Raises ``ImproperlyConfigured`` when the view still sets the pre-0.16
+        ``has_<action>_permission`` name. Ignoring it silently would reveal a link
+        the project had chosen to hide, so it fails instead.
         """
         legacy_name = f"has_{action}_permission"
-        legacy = getattr(self, legacy_name, _UNSET)
-        if legacy is not _UNSET:
-            warnings.warn(
-                f"{legacy_name} is deprecated and will be removed in 0.18; "
-                f"rename it to show_{action}_action. Either way it decides only "
-                f"whether the link is drawn — it does not restrict access to the "
-                f"{action} view, which needs its own access mixin.",
-                MVPDeprecationWarning,
-                stacklevel=2,
+        if getattr(self, legacy_name, _UNSET) is not _UNSET:
+            raise ImproperlyConfigured(
+                f"{type(self).__name__} sets {legacy_name}. That attribute was "
+                f"renamed to show_{action}_action in 0.16 and is no longer read. "
+                f"Rename it. Either way it decides only whether the link is drawn — "
+                f"it does not restrict access to the {action} view, which needs its "
+                f"own access mixin."
             )
-            flag = legacy
-        else:
-            flag = getattr(self, f"show_{action}_action", None)
 
+        flag = getattr(self, f"show_{action}_action", None)
         if flag is None:
             return False
         return bool(flag(self.request.user)) if callable(flag) else bool(flag)  # type: ignore[attr-defined]

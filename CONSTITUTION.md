@@ -212,12 +212,40 @@ between minor versions, and every such change is recorded in the CHANGELOG. Defa
 stable across patch releases. Supported versions are the currently-supported Django releases and
 Python 3.12 or later; dropping either is a minor-version change with a CHANGELOG entry.
 
-### Article XVIII — The skill is part of the product
+### Article XVIII — One corpus, and a map over it
 
-`skills/django-mvp/` is a shipped interface, not a convenience copy of the documentation. It is
-the first thing a coding agent reads before writing anything against this package. A stale claim
-in it is a defect of the same class as a stale docstring, and it is fixed in the pull request that
-made it stale.
+`docs/` is the documentation. Any public surface is described in exactly one place there,
+whoever is reading: a person following a guide and a coding assistant answering a question get
+the same page, so a correction lands once and reaches both. A stale claim on a page is a defect
+of the same class as a stale docstring, and it is fixed in the pull request that made it stale.
+
+`skills/django-mvp/SKILL.md` is a map over `docs/` — what to get right first, a quickstart, and a
+routing table naming the page that answers each kind of question. It carries no reference material
+of its own. A second copy of a fact is a second thing to keep true, and the copy that drifts is
+always the one nobody happened to be reading. This repository kept two hand-written corpora until
+0.23 and paid for it twice over: the same eleven wrong claims were found, months apart, in each.
+
+**A change to the public surface updates the documentation in the same pull request.** Public
+surface means a setting or an `MVP_CONFIG` key, a component or one of its attributes, a template
+block, a view class or any of its documented attributes and hooks, a management command, a
+template tag, an error handler, or what the shipped stylesheet covers. Adding, renaming, removing
+or changing the default of any of those leaves the work unfinished until the page describing it
+says so. This sits beside the README and CHANGELOG obligation in Article VI and is checked the
+same way, at review.
+
+**Pages are written to be cheap to read.** A page is reached by someone who already has a
+question, and is often loaded whole into a context window that has other work to do. Prefer a
+table to a paragraph, one worked example to three, and the shortest snippet that carries the idea.
+
+**Never document a promise.** The documentation describes what the code does now, never what a
+roadmap item, a deprecation notice or a changelog entry says will happen. This rule exists because
+four places in this repository spent six minor releases telling readers that the legacy
+`has_<action>_permission` flags had been removed, on the strength of a changelog entry announcing
+it. They had not been. An announced change that has not been carried out is documented as the
+behaviour that ships.
+
+**The documentation is about using the package.** Material about working *on* this repository
+belongs in `.github/skills/` instead.
 
 ### Article XIX — Views forward component attributes as a dict
 
@@ -235,39 +263,12 @@ A view attribute outside the dict is for something the view itself decides: whet
 renders at all, what it collects, a limit applied before rendering. Presentation of a component
 the view already owns belongs in the dict.
 
-**A change to the public surface updates the skill in the same pull request.** Public surface
-means a setting or an `MVP_CONFIG` key, a component or one of its attributes, a template block, a
-view class or any of its documented attributes and hooks, a management command, a template tag, an
-error handler, or what the shipped stylesheet covers. Adding, renaming, removing or changing the
-default of any of those leaves the work unfinished until the skill says so. This sits beside the
-README and CHANGELOG obligation in Article VI and is checked the same way, at review.
-
-**Structure is a table of contents over focused references.** `SKILL.md` carries orientation, the
-decisions a reader has to get right first, a routing table and a quickstart. Depth lives in
-`skills/django-mvp/references/`, one file per concern, each independently loadable. A reference
-does not link to another reference: a reader who must chain two loads to answer one question has
-been charged twice for it.
-
-**References are written to be cheap to read.** Every one of these files is loaded into a context
-window that has other work to do. Prefer a table to a paragraph, one worked example to three, and
-the shortest snippet that carries the idea.
-
-**Never document a promise.** The skill describes what the code does now, never what a roadmap
-item, a deprecation notice or a changelog entry says will happen. This rule exists because the
-skill spent two minor versions telling readers that the legacy `has_<action>_permission` flags had
-been removed, on the strength of a changelog entry announcing it. They had not been, and they are
-still honoured today. An announced change that was not carried out is documented as the behavior
-that ships.
-
-**The skill documents using the package.** Material about working *on* this repository belongs in
-`.github/skills/` instead.
-
 ## Quality bar
 
 Read at planning and at review; applies to every change.
 
 - Test coverage: **project ≥ 90%, patch ≥ 85%**, per `codecov.yml`. These are floors, not a ratchet toward 100%.
-- Every public API change updates README, CHANGELOG and `skills/django-mvp/` in the same pull request.
+- Every public API change updates README, CHANGELOG and the `docs/` page describing it, in the same pull request.
 - `ruff check`, `ruff format --check`, `mypy` and `deptry` pass.
 - The package builds and its metadata is valid, and the README renders on the package index.
 

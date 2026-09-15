@@ -56,6 +56,12 @@ The refusal happens as the class is defined, so a view that declares an ordering
 when Django imports the module holding it, naming the class in the message. You find out
 at startup rather than the first time someone opens that page.
 
+Don't put a context key called `actions` on a table page. The bar above and the one below
+the table are plain flex rows rather than `<c-toolbar>`, because a toolbar renders
+`{{ actions }}` in its trailing slot, and a Cotton slot falls through to the context
+variable of the same name when the caller fills no slot — a page whose context carries an
+`actions` key would print its repr there instead.
+
 ### Pagination
 
 The table paginates, and the count and links below it describe the table's page.
@@ -138,6 +144,11 @@ preserving an active search (`?q=`) or ordering (`?o=`) and resetting pagination
 filter modal shows a "Clear filters" link next to "Apply filters" whenever that URL is
 present.
 
+`applied_filters` comes from `get_active_filters()`, which reads the filterset form's
+`cleaned_data` and drops `None`, `""`, `[]`, `()` and `False` — what an untouched filter
+field cleans to. Override the hook on the view when one of those values is a real choice
+in your filterset, an unchecked boolean the user deliberately picked, say.
+
 `MVPFilteredListView` is shorthand for `MVPListViewMixin` plus `FilterView`. Compose
 those yourself — which is what you do to add filtering to a table view — and the badge
 and the clear link come with it:
@@ -153,6 +164,74 @@ class ProductTableView(MVPTableViewMixin, FilterView):
     table_class = ProductTable
     filterset_fields = ["name", "category__name", "status"]
 ```
+
+## htmx
+
+```bash
+pip install django-htmx
+```
+
+The htmx mixins live in `mvp.views.htmx`, not `mvp.integrations`, and aren't a guarded
+module: they import `django_htmx` directly, so importing the module without
+**django-htmx** installed raises a plain `ImportError` rather than the `ImproperlyConfigured`
+the integrations above raise.
+
+The htmx *library* is a separate matter from the package. It ships in django-mvp's bundled
+front-end runtime and runs on every page, so there's no script tag to add — which also
+means `hx-*` attributes are live anywhere in your markup. Strip them along with anything
+else you already sanitize on a page that renders HTML you didn't author.
+
+`HtmxMixin` is the lightweight base, usable on any view. It injects `htmx_enabled = True`
+into the context on every request, htmx or not, so a template can render `hx-*` attributes
+conditionally. It never reads `request.htmx` itself, so it works without
+`django_htmx.middleware.HtmxMiddleware` registered.
+
+| Attribute | Default | Purpose |
+|---|---|---|
+| `htmx_trigger` | `None` | Event name, or a `{name: params}` dict, sent as an `HX-Trigger` family header. Falsy means no header. |
+| `htmx_trigger_after` | `"receive"` | Phase the event fires in: `"receive"`, `"settle"` or `"swap"`. |
+
+`HtmxFormMixin` subclasses `HtmxMixin` and adds htmx-aware form handling. Put it *before*
+the base view class so its `form_valid()` and `form_invalid()` intercept first:
+
+```python
+from mvp.views import MVPCreateView
+from mvp.views.htmx import HtmxFormMixin
+
+
+class ProductCreateView(HtmxFormMixin, MVPCreateView):
+    model = Product
+    fields = ["name", "price"]
+    htmx_success_component = "ui.product-created"
+    htmx_trigger = {"product-created": {}}
+    success_url = "list"
+```
+
+Unlike the plain mixin, this one needs `HtmxMiddleware` in `MIDDLEWARE`: its `form_valid()`
+and `form_invalid()` branch on `request.htmx`, which that middleware sets.
+
+| Attribute | Default | Purpose |
+|---|---|---|
+| `htmx_success_component` | `None` | Cotton component for the success partial, dot notation: `"ui.product-created"` → `cotton/ui/product_created.html`. |
+| `htmx_success_components` | `()` | Allowlist of `(alias, component)` pairs the requesting element may choose between via an `X-Success-Component` request header. |
+| `htmx_form_component` | `"form"` | Cotton component for the form-error partial. |
+| `htmx_redirect_on_success` | `False` | Return a client-side redirect to the success URL instead of a partial. |
+
+The client picks an allowlisted component with the header, matched against the aliases:
+
+```django
+<form hx-post="{% url 'product-create' %}"
+      hx-headers='{"X-Success-Component": "list"}'>
+```
+
+An unknown alias, or no header, falls through to `htmx_success_component`. Resolving
+neither raises `ImproperlyConfigured` unless `htmx_redirect_on_success` is set.
+
+On a valid htmx POST the form saves, the Django message queue is drained so messages don't
+reappear on the next full-page load, and either a client redirect or the rendered success
+partial goes back with any trigger headers attached. An invalid form re-renders the form
+component at HTTP 200. Both paths delegate straight to `super()` when the request isn't
+from htmx, so the view keeps working as an ordinary form view.
 
 ## Crispy forms
 

@@ -16,9 +16,10 @@ components, class-based views that search, order, paginate and run CRUD, menus d
 Python, and icons referenced by name. The stylesheet and the front-end runtime are
 prebuilt and shipped with the package, so a project needs no Node build step.
 
-This file is a map. Each section below is a summary plus a pointer. Load the reference for
-the topic you are working on rather than reading everything. `references/…` is relative to
-this file.
+This file is a map over the package's documentation. Each section below is a summary plus a
+pointer; open the page for the topic you are working on rather than reading everything. The
+links are relative to this file. If you have this file on its own, every page is also at
+`https://github.com/django-mvp/django-mvp/blob/main/docs/<name>.md`.
 
 > **Version note.** The package migrated from AdminLTE 4 / Bootstrap 5 to DaisyUI 5 /
 > Tailwind v4. If you see `settings.MVP`, `cotton_bs5`, an `adminlte` renderer, or a
@@ -35,33 +36,37 @@ Get these right before writing anything. Each one is a mistake that looks like i
 | Breadcrumbs | declare them on the view; the app header draws them from `page.breadcrumbs` | adding `<c-breadcrumbs>` to a page template — the header already has one |
 | A plain content page | extend `mvp/base.html`, fill `{% block content %}` | re-composing the shell yourself |
 | A page behind an MVP view | override the `page.*` blocks | overriding `content`, which the packaged page template has already filled |
-| Icons | an `EASY_ICONS` default renderer, the `mvp.utils.BS5_ICONS` pack, your own names on top | assuming the pack covers every name the package uses — `account_center` is not in it |
+| The sidebar footer | override `templates/cotton/app/sidebar/footer.html` | `MVP_CONFIG["layout"]["sidebar"]["footer"]` — no longer read |
+| Icons | an `EASY_ICONS` default renderer, the `mvp.utils.BS5_ICONS` pack, your own names on top | assuming a name you have not registered resolves — an unknown name raises unless `EASY_ICONS_FAIL_SILENTLY` |
 | Menu renderers | `sidebar` → `SidebarRenderer`, `dock` → `MobileFooterNavRenderer` | `adminlte` → `AdminLTERenderer` |
-| CRUD link visibility | `show_<action>_action` | `has_<action>_permission` — renamed in 0.16, still honoured, and still wins when both are set |
+| CRUD link visibility | `show_<action>_action` | `has_<action>_permission` — renamed in 0.16, and a view that still sets one raises `ImproperlyConfigured` |
 | Authorising a CRUD action | a permission mixin on the target view | the `show_*` flags, which only draw the link |
 | Form rendering | crispy-forms with the tailwind pack, on every install | a `form_renderer` attribute — no such setting exists |
 | Table ordering | `order_by` on the table class | `order_by` on the view — it raises `ImproperlyConfigured` |
 | Menu classes | `AppMenu`, `MobileFooterMenu`, `MenuGroup`, `MenuCollapse` from `mvp.menus` | — |
 
-## Reference map
+## Where to look
 
-| Load | When you are |
+| Open | When you are |
 |---|---|
-| `references/setup.md` | Installing the package: apps, context processors, form settings, error handlers, first page, verification |
-| `references/config.md` | Setting anything in `MVP_CONFIG` — view names, brand resolvers, theme, sidebar, navbar, tables |
-| `references/layout.md` | Changing the shell: which block wraps what, per-page overrides, full-height pages |
-| `references/menus.md` | Declaring the sidebar or dock menu, choosing renderers, or asking why an item is not highlighted |
-| `references/icons.md` | Registering icon names, or an icon is not drawing |
-| `references/views.md` | Building template, home, list or detail views — attributes, hooks, context keys |
-| `references/forms.md` | Building create, update or delete views, handling `?next=`, or adding inline formsets |
-| `references/components.md` | Choosing a component or checking an attribute — the full catalogue |
-| `references/styling.md` | Writing CSS classes, picking or writing a theme, or touching the front-end build |
-| `references/integrations.md` | Using django-tables2, django-filter or htmx |
-| `references/troubleshooting.md` | Something renders wrong, silently does nothing, or raises |
+| [`../../docs/getting-started.md`](../../docs/getting-started.md) | Installing the package: apps, context processors, form settings, error handlers, first page |
+| [`../../docs/configuration.md`](../../docs/configuration.md) | Setting anything in `MVP_CONFIG` — view names, brand resolvers, theme, sidebar, navbar, tables |
+| [`../../docs/layout.md`](../../docs/layout.md) | Changing the shell: which block wraps what, per-page overrides, full-height pages |
+| [`../../docs/navigation.md`](../../docs/navigation.md) | Declaring the sidebar or dock menu, choosing renderers, or asking why an item is not highlighted |
+| [`../../docs/icons.md`](../../docs/icons.md) | Registering icon names, changing icon set, or an icon is not drawing |
+| [`../../docs/views.md`](../../docs/views.md) | Building template, home, list, detail, create, update or delete views — attributes, hooks, context keys |
+| [`../../docs/formsets.md`](../../docs/formsets.md) | A parent record and its related rows, or a formset with no parent |
+| [`../../docs/components.md`](../../docs/components.md) | Choosing a component or checking an attribute — the full catalogue |
+| [`../../docs/styling.md`](../../docs/styling.md) | Writing CSS classes, the two build tiers, or the shell's class hooks |
+| [`../../docs/theming.md`](../../docs/theming.md) | Picking a theme or writing one from scratch |
+| [`../../docs/utility-classes.md`](../../docs/utility-classes.md) | Checking whether a Tailwind class ships in the prebuilt stylesheet |
+| [`../../docs/integrations.md`](../../docs/integrations.md) | Using django-tables2, django-filter or htmx |
+| [`../../docs/account-center.md`](../../docs/account-center.md) | Mounting the account area or contributing a page to it |
+| [`../../docs/troubleshooting.md`](../../docs/troubleshooting.md) | Something renders wrong, silently does nothing, or raises |
 
 ## Quickstart
 
-Enough to boot. Every step has a reference behind it.
+Enough to boot. Every step has a page behind it.
 
 **1. Settings.** Your own apps go above `mvp` so your templates win. `mvp` goes above
 `crispy_tailwind` so its help-text override wins.

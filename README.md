@@ -263,18 +263,19 @@ theming, and the packaged Tailwind preset).
 
 ## Documentation
 
-Start at [docs/index.md](https://github.com/django-mvp/django-mvp/blob/main/docs/index.md): Getting Started · Layout · Components ·
-Navigation · Views · Styling · Integrations.
+Start at [docs/index.md](https://github.com/django-mvp/django-mvp/blob/main/docs/index.md):
+Getting Started · Configuration · Layout · Components · Navigation · Icons · Views · Formsets ·
+Styling · Integrations · Troubleshooting. Keeping a page current is a condition of merging the
+change it describes, so it will not point you at an API that has moved.
 
 ### Building with an AI coding assistant
 
-[`skills/django-mvp/`](https://github.com/django-mvp/django-mvp/tree/main/skills/django-mvp)
-is a skill file written for coding agents. Point your assistant at it, or copy the directory
-into wherever it loads skills from. `SKILL.md` is a short map — the decisions to get right
-first, then a routing table into `references/`. Those files cover setup, configuration,
-layout, menus, icons, views, forms, components, styling, integrations and troubleshooting,
-one topic each. Keeping it current is a condition of merging, so it will not point you at an
-API that has moved.
+[`skills/django-mvp/SKILL.md`](https://github.com/django-mvp/django-mvp/blob/main/skills/django-mvp/SKILL.md)
+is a short map written for coding agents: the decisions to get right first, a quickstart, and a
+routing table naming the `docs/` page that answers each kind of question. Point your assistant at
+it, or copy it into wherever it loads skills from — it links each page by URL as well as by path,
+so it works from a checkout or on its own. The documentation it routes into is the same
+documentation a person reads, which is what keeps the two from disagreeing.
 
 ## Requirements
 
