@@ -19,7 +19,7 @@
     {% endif %}
     <c-button text="{{ label }}"
               icon="{{ icon }}"
-              small
+              size="sm"
               @click="filterModal.showModal()" />
   </div>
   <c-modal id="filterModal"
@@ -46,7 +46,7 @@
                 form="filterForm"
                 icon="arrow-right"
                 reverse
-                large
+                size="lg"
                 variant="primary"
                 type="submit" />
     </c-slot>
