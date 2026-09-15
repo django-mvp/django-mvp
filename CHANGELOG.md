@@ -16,6 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   form, so a control near the bottom of the page can open upward. The existing shape
   is unchanged where none of the three is passed.
 
+- **`<c-actions.language-switcher-modal>` takes `size`.** Its globe button otherwise
+  renders at `c-button`'s default, which is 40px square — visibly larger than a
+  neighbouring control set to `sm`. Unset, it behaves as before.
+
 ### Changed
 
 - **The sidebar footer is a fixed composition**: a row holding the signed-in user's

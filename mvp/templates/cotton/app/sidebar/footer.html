@@ -8,6 +8,11 @@
     <c-user.sidebar-menu />
     <c-actions.login />
   </div>
-  <c-actions.theme-controller valign="top" compact />
-  <c-actions.language-switcher-modal />
+  {% comment %}
+    Both controls take the same size so they read as one pair. Without it
+    the globe renders at c-button's default and the theme control at "sm",
+    putting a 40px button beside a 32px one.
+  {% endcomment %}
+  <c-actions.theme-controller valign="top" size="sm" compact />
+  <c-actions.language-switcher-modal size="sm" />
 </div>

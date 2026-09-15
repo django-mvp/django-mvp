@@ -6,6 +6,8 @@ matches the request), a theme control and a language control. Rendered via
 tests/sidebar_footer.html.
 """
 
+import re
+
 import pytest
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
@@ -83,4 +85,22 @@ class TestSidebarFooterThemeControlIsCompact:
         assert "btn-square" in html, "the theme control must be a square icon button"
         assert "data-toggle-theme" in html, (
             "the compact button must still carry the theme-change binding"
+        )
+
+    @pytest.mark.django_db
+    def test_the_theme_and_language_controls_are_the_same_size(self):
+        """They sit side by side, so a size on one without the other shows.
+
+        ``c-button`` defaults to its medium size, which is 40px square
+        against the theme control's 32px at ``sm``.
+        """
+        user = get_user_model().objects.create_user(username="dave", password="pw")
+        html = _render(user)
+
+        squares = re.findall(r'class="([^"]*\bbtn-square\b[^"]*)"', html)
+        assert len(squares) == 2, (
+            f"expected the theme and language controls, found {len(squares)} square buttons"
+        )
+        assert all("btn-sm" in classes for classes in squares), (
+            f"both footer controls must render at the same size, got {squares}"
         )
