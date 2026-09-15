@@ -71,6 +71,37 @@ class TestBreadcrumbItemHrefAttribute:
         assert "Current Page" in html
 
 
+class TestTheItemTextSpan:
+    """[#354] The crumb's text lives in its own span, so the stylesheet can
+    ellipsis a long crumb without touching the slot — which may hold an icon,
+    and must not be truncated along with the text."""
+
+    def test_the_link_branch_wraps_its_text_in_the_span(self):
+        html = render('<c-breadcrumbs.item text="Products" href="/products/" />')
+        assert '<span class="mvp-breadcrumb-text">Products</span>' in html
+
+    def test_the_non_link_branch_wraps_its_text_in_the_span(self):
+        html = render('<c-breadcrumbs.item text="Current Page" />')
+        assert '<span class="mvp-breadcrumb-text">Current Page</span>' in html
+
+    def test_the_slot_stays_outside_the_span(self):
+        html = render(
+            '<c-breadcrumbs.item text="Products" href="/products/">'
+            "<b>marker</b>"
+            "</c-breadcrumbs.item>"
+        )
+        assert html.index("</span>") < html.index("<b>marker</b>")
+
+    def test_href_class_and_attrs_still_land_where_they_did(self):
+        html = render(
+            '<c-breadcrumbs.item text="Products" href="/products/" '
+            'class="foo" data-x="1" />'
+        )
+        assert attrs_named_on(html, "a", "href") == ["/products/"]
+        assert attrs_named_on(html, "li", "class") == ["foo"]
+        assert attrs_named_on(html, "a", "data-x") == ["1"]
+
+
 class TestTheTrailsClassStaysOnTheTrail:
     """A class given to ``c-breadcrumbs`` styles the trail, not its items.
 

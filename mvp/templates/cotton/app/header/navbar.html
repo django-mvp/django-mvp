@@ -16,7 +16,7 @@
   empty.
 {% endcomment %}
 <div class="navbar gap-2 px-3 w-full transition-shadow duration-100 print:hidden">
-  <div class="navbar-start min-w-0 gap-1">
+  <div class="navbar-start w-auto grow min-w-0 gap-1">
     <label for="mvp-app-toggle"
            aria-label="{% trans "Open sidebar" %}"
            class="btn btn-ghost btn-square shrink-0 mvp-sidebar-hidden-only">
@@ -39,7 +39,7 @@
       <c-breadcrumbs :items="page.breadcrumbs" class="min-w-0" />
     {% endif %}
   </div>
-  <div class="navbar-end shrink-0 gap-3">
+  <div class="navbar-end w-auto shrink-0 gap-3">
     {# Mobile and desktop widget lists (issue #176) render as two separate #}
     {# regions toggled by Tailwind's responsive display utilities, keyed off #}
     {# the configured sidebar breakpoint rather than a hardcoded one. #}

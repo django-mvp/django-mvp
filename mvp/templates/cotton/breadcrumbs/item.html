@@ -1,8 +1,8 @@
 <c-vars text class href />
 {% if href %}
   <li class="{{ class }}">
-    <a href="{{ href }}" {{ attrs }}>{{ text }}{{ slot }}</a>
+    <a href="{{ href }}" {{ attrs }}><span class="mvp-breadcrumb-text">{{ text }}</span>{{ slot }}</a>
   </li>
 {% else %}
-  <li class="{{ class }}">{{ text }}{{ slot }}</li>
+  <li class="{{ class }}"><span class="mvp-breadcrumb-text">{{ text }}</span>{{ slot }}</li>
 {% endif %}
