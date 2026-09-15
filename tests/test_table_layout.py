@@ -9,6 +9,8 @@ requirements this file tests.
 """
 
 import re
+from datetime import date
+from decimal import Decimal
 from pathlib import Path
 
 import pytest
@@ -720,3 +722,181 @@ class TestExistingViewsNeedNoChange:
         region = soup.find(attrs={"role": "region"})
         assert region is not None
         assert not any("card" in a.get("class", []) for a in region.parents)
+
+
+class TestRowHeaderCells:
+    """A column named in the table's ``Meta.row_headers`` renders its body
+    cell as ``<th scope="row">`` rather than ``<td>``. That is the markup a
+    screen reader announces the rest of the row against, and the markup
+    daisyUI's ``table-pin-cols`` needs before it can keep a column in view
+    (issue #320)."""
+
+    def _table(self, row_headers=None):
+        pytest.importorskip("django_tables2")
+        import django_tables2 as tables
+
+        declared = row_headers
+
+        class RowHeaderTable(tables.Table):
+            icon = tables.Column(attrs={"td": {"class": "mvp-col-shrink"}})
+            name = tables.Column()
+            price = tables.Column()
+
+            class Meta:
+                template_name = "django_tables2/bootstrap5-mvp.html"
+                if declared is not None:
+                    row_headers = declared
+
+        return RowHeaderTable([{"icon": "i", "name": "a", "price": "1"}])
+
+    def _row(self, cotton_render_string, table):
+        html = cotton_render_string(
+            "<c-addons.django-table :table='table' />", context={"table": table}
+        )
+        return _beautiful_soup()(html, "html.parser").find("tbody").find("tr")
+
+    def test_a_declared_column_renders_as_a_row_header(self, cotton_render_string):
+        row = self._row(cotton_render_string, self._table(("icon",)))
+        headers = row.find_all("th")
+        assert len(headers) == 1
+        assert headers[0].get("scope") == "row"
+        assert headers[0].get_text(strip=True) == "i"
+
+    def test_every_other_column_stays_a_data_cell(self, cotton_render_string):
+        row = self._row(cotton_render_string, self._table(("icon",)))
+        cells = row.find_all("td")
+        assert [cell.get_text(strip=True) for cell in cells] == ["a", "1"]
+
+    def test_a_table_declaring_none_renders_no_row_headers(
+        self, cotton_render_string
+    ):
+        row = self._row(cotton_render_string, self._table())
+        assert row.find_all("th") == []
+        assert len(row.find_all("td")) == 3
+
+    def test_a_row_header_keeps_the_column_behaviour_classes_of_its_cells(
+        self, cotton_render_string
+    ):
+        """The cell moved from <td> to <th>, not from the body to the
+        heading: it still takes the column's ``td`` attributes, so a column
+        does not lose its width behaviour by becoming a row header."""
+        row = self._row(cotton_render_string, self._table(("icon",)))
+        classes = row.find("th").get("class", [])
+        assert "mvp-col-shrink" in classes
+
+    def test_several_columns_can_be_declared(self, cotton_render_string):
+        row = self._row(cotton_render_string, self._table(("icon", "name")))
+        assert [th.get_text(strip=True) for th in row.find_all("th")] == ["i", "a"]
+
+    def test_a_single_name_may_be_given_as_a_string(self, cotton_render_string):
+        row = self._row(cotton_render_string, self._table("icon"))
+        assert [th.get_text(strip=True) for th in row.find_all("th")] == ["i"]
+
+    def test_the_column_heading_is_still_a_column_header(
+        self, cotton_render_string
+    ):
+        """scope="col" in the heading row is untouched by any of this — a
+        row header in the body does not make the heading above it one."""
+        html = cotton_render_string(
+            "<c-addons.django-table :table='table' />",
+            context={"table": self._table(("icon",))},
+        )
+        soup = _beautiful_soup()(html, "html.parser")
+        headings = soup.find("thead").find_all("th")
+        assert [heading.get("scope") for heading in headings] == ["col"] * 3
+
+    @pytest.mark.parametrize("localize", [None, True, False])
+    @pytest.mark.parametrize("value", [Decimal("12345.6"), date(2026, 9, 15)])
+    def test_a_row_header_renders_its_value_the_way_a_data_cell_does(
+        self, cotton_render_string, localize, value
+    ):
+        """The heading and data branches of the body loop write the cell out
+        separately, because rendering a variable applies formatting that
+        handing it to a tag does not. Two columns holding one value must
+        still print the same thing under either element — this is what
+        catches the two branches drifting apart.
+
+        Read under a German locale, where each of the three localize settings
+        produces a visibly different string. Under English they all agree, and
+        a comparison between two of them proves nothing."""
+        pytest.importorskip("django_tables2")
+        import django_tables2 as tables
+        from django.utils.translation import override
+
+        class ParityTable(tables.Table):
+            pinned = tables.Column(localize=localize)
+            plain = tables.Column(localize=localize)
+
+            class Meta:
+                template_name = "django_tables2/bootstrap5-mvp.html"
+                row_headers = ("pinned",)
+
+        table = ParityTable([{"pinned": value, "plain": value}])
+        with override("de"):
+            row = self._row(cotton_render_string, table)
+        assert row.find("th").get_text(strip=True) == row.find("td").get_text(
+            strip=True
+        )
+
+    def test_an_unknown_column_name_is_refused(self, cotton_render_string):
+        """A name that is not a column of this table would otherwise be
+        ignored the way django-tables2 ignores any Meta option it does not
+        know — the silent no-op this feature exists to remove."""
+        from django.core.exceptions import ImproperlyConfigured
+
+        with pytest.raises(ImproperlyConfigured, match="nonexistent"):
+            self._row(cotton_render_string, self._table(("icon", "nonexistent")))
+
+
+class TestFalseyColumnHeading:
+    """A column heading that resolves to a falsey value renders as an empty
+    heading cell instead of printing the value. The cell stays, so the
+    column keeps its width and its position, and an orderable column keeps
+    its sort control (issue #319)."""
+
+    def _headings(self, cotton_render_string):
+        pytest.importorskip("django_tables2")
+        import django_tables2 as tables
+
+        class HeadingTable(tables.Table):
+            named = tables.Column()
+            false_heading = tables.Column(verbose_name=False)
+            empty_heading = tables.Column(verbose_name="")
+            unsortable = tables.Column(verbose_name=False, orderable=False)
+
+            class Meta:
+                template_name = "django_tables2/bootstrap5-mvp.html"
+
+        table = HeadingTable([{"named": "a", "false_heading": "b",
+                               "empty_heading": "c", "unsortable": "d"}])
+        html = cotton_render_string(
+            "<c-addons.django-table :table='table' />", context={"table": table}
+        )
+        soup = _beautiful_soup()(html, "html.parser")
+        return soup.find("thead").find_all("th")
+
+    def test_a_false_heading_prints_nothing(self, cotton_render_string):
+        assert self._headings(cotton_render_string)[1].get_text(strip=True) == ""
+
+    def test_an_empty_heading_prints_nothing(self, cotton_render_string):
+        assert self._headings(cotton_render_string)[2].get_text(strip=True) == ""
+
+    def test_a_false_heading_on_an_unsortable_column_prints_nothing(
+        self, cotton_render_string
+    ):
+        assert self._headings(cotton_render_string)[3].get_text(strip=True) == ""
+
+    def test_the_heading_cell_itself_is_still_rendered(self, cotton_render_string):
+        """Suppressing the text must not collapse the column: four columns
+        in, four heading cells out."""
+        assert len(self._headings(cotton_render_string)) == 4
+
+    def test_an_orderable_column_keeps_its_sort_control(self, cotton_render_string):
+        """Deliberately not solved here: a column worth sorting is a column
+        worth naming, and suppressing the heading must not also suppress the
+        way the reader sorts by it."""
+        heading = self._headings(cotton_render_string)[1]
+        assert heading.find("a") is not None
+
+    def test_a_named_heading_still_prints(self, cotton_render_string):
+        assert self._headings(cotton_render_string)[0].get_text(strip=True) == "Named"

@@ -121,6 +121,11 @@ The shipped default is `False` — a column stays on one line unless it or the
 project says otherwise. Resolution order is the column's own class first,
 then this setting, then the package default.
 
+Which columns are row headers, and how a column with no heading behaves, are
+in [Integrations](integrations.md#django-tables2) with the rest of the table's
+markup. `table-pin-cols` is safelisted in the preset, so it survives both
+tiers the way `table-pin-rows` does.
+
 ## Tier 2: build your own stylesheet
 
 Your build must scan **both** your templates **and** django-mvp's packaged

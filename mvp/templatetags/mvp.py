@@ -178,6 +178,51 @@ def column_alignment_class(column, table, cell="td", declared=None):
 
 
 @register.simple_tag
+def row_header_columns(table):
+    """Return the names of the columns a table declares as row headers, as a
+    tuple, read from its ``Meta.row_headers`` (issue #320)::
+
+        class SampleTable(tables.Table):
+            class Meta:
+                row_headers = ("dataset", "location")
+
+    A column named here has its body cells rendered as ``<th scope="row">``
+    rather than ``<td>``. A column that identifies the row — an icon linking
+    to the record, a name, a reference — is a row header, and that is the
+    markup a screen reader announces the rest of the row against. It is also
+    what daisyUI's ``table-pin-cols`` selects on, so a column declared here
+    is one that can be kept in view while a wide table scrolls sideways.
+
+    Declared on the table rather than on the column, because whether a column
+    identifies a row is a fact about the table: the same column class is
+    reused across tables where it identifies in one and not in the other.
+    Naming columns on ``Meta`` is also how django-tables2 already spells
+    ``fields``, ``sequence`` and ``exclude``, and it works for every column
+    class without asking a project to subclass one.
+
+    A single name may be given as a plain string, because a string is itself
+    a sequence and taking one at face value would test every column against
+    its characters. A name that is no column of this table raises, rather
+    than being dropped the way django-tables2 drops any ``Meta`` option it
+    does not recognise — a declaration that quietly does nothing is the
+    failure this feature exists to remove.
+    """
+    declared = getattr(getattr(table, "Meta", None), "row_headers", ())
+    names = (declared,) if isinstance(declared, str) else tuple(declared)
+
+    unknown = [name for name in names if name not in table.base_columns]
+    if unknown:
+        named = ", ".join(repr(name) for name in unknown)
+        verb = "name" if len(unknown) > 1 else "names"
+        columns = ", ".join(table.base_columns)
+        raise ImproperlyConfigured(
+            f"{type(table).__name__} declares row_headers {named}, which "
+            f"{verb} no column of the table. Its columns are: {columns}."
+        )
+    return names
+
+
+@register.simple_tag
 def avatar_url(user, size):
     """Returns the URL for a user's avatar image for a given size. Size is specified as "sm", "md", "lg", etc. The actual implementation is determined by the MVP_AVATAR_URL_FUNCTION setting, which should point to a function that accepts a user and size and returns a URL string.
 
