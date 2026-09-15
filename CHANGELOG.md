@@ -36,6 +36,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   under django-flex-menus' lookup and the icon under django-easy-icons' pack merging. A
   future django-accounts-center release drops its own copies in favor of these.
 
+- **The shell publishes its layout state and configuration to the page**, as a single Alpine
+  store named `mvp`, grouped by component. Your own markup can respond to the shell it sits
+  inside — `x-show="$store.mvp.sidebar.open"` on a floating button that should step aside, say —
+  without reimplementing the logic against the package's internal markup or hard-coding a
+  pixel width your own settings can change underneath it.
+
+  `$store.mvp.sidebar` reports whether the sidebar is open, its remembered desktop state, and
+  the resolved layout configuration behind it: the breakpoint, its width in pixels, the collapse
+  mode, and whether sidebar navigation is boosted. `$store.mvp.header` reports whether the header
+  has scrolled and whether it is sticky. `$store.mvp.isWide` reports whether the viewport is at
+  or above the configured breakpoint — at the top level rather than under `sidebar`, since it
+  describes the viewport rather than the sidebar. Those values are the ones the page resolved, so
+  a page that overrides the breakpoint for itself is what you read.
+
+  It reports state it does not own. The drawer's checkbox still decides whether the sidebar
+  is open and the stylesheet still reacts to it directly, so nothing about the first paint
+  waits for the bundle. A page that renders no shell still gets a store, reporting the
+  package defaults. See [Layout](docs/layout.md) and
+  [ADR 0022](docs/adr/0022-the-layout-store-mirrors-state-it-does-not-own.md).
+
+### Removed
+
+- **BREAKING: `navbar_wide_only_class`, `navbar_narrow_only_class` and
+  `sidebar_navbar_toggle_class` are gone.** The header's desktop/mobile widget split, the
+  account layout's collapsed/persistent navigation split, and the navbar's own copy of the
+  sidebar-toggle button and site icon were all governed by classes these tags assembled at
+  render time — reachable from any project template through `{% load mvp %}`, and each kept
+  in sync with a `@source inline()` safelist entry by a comment rather than by anything that
+  would fail if the two drifted. Responsive visibility for all four is now static rules in
+  `mvp/tailwind/base.css`, selected by `data-mvp-breakpoint`/`data-mvp-collapse` attributes
+  the packaged layouts render for themselves — nothing a project's own template needs
+  to set. What a page looks like, at every breakpoint and both collapse modes, is unchanged.
+
+  **On upgrade**, nothing — no packaged or project template called any of the three by name
+  outside this repository's own test suite. A project that did call one directly should
+  switch to the semantic class the region now carries instead: `mvp-desktop-only` (replaces
+  `navbar_wide_only_class`), `mvp-mobile-only` (replaces `navbar_narrow_only_class`), or
+  `mvp-sidebar-hidden-only` (replaces `sidebar_navbar_toggle_class`) — applied directly, with no
+  breakpoint or collapse argument to pass, since the rule now reads both off the shell.
+
 ## [v0.21.0] - 2026-09-07
 
 ### Added

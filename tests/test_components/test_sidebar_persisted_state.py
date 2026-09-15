@@ -85,7 +85,7 @@ class TestSidebarStateSettledBeforeFirstPaint:
             page.goto(f"{live_server.url}/sidebar-persisted-state-e2e/")
             # Alpine's persist scripts are deferred; give hydration + the
             # transition's own 200ms duration time to run before asserting.
-            page.wait_for_timeout(600)
+            page.wait_for_function("() => window.Alpine && Alpine.store('mvp')")
 
         assert page.evaluate("window.__widthTransitions") == [], (
             "the sidebar's width must already be correct on first paint — "
@@ -103,7 +103,7 @@ class TestSidebarStateSettledBeforeFirstPaint:
         page.set_viewport_size(DESKTOP)
         with override_settings(ROOT_URLCONF=sidebar_shell_urlconf):
             page.goto(f"{live_server.url}/sidebar-persisted-state-e2e/")
-            page.wait_for_timeout(600)
+            page.wait_for_function("() => window.Alpine && Alpine.store('mvp')")
 
         sidebar = page.locator("aside.mvp-sidebar")
         expect(sidebar).to_be_visible()
@@ -112,4 +112,54 @@ class TestSidebarStateSettledBeforeFirstPaint:
         assert box["width"] > 200, (
             "the icon-rail sidebar should have settled at its open (w-65) "
             "width, not stayed collapsed at the icon-rail (w-16) width"
+        )
+
+    def test_the_store_agrees_with_the_checkbox_on_first_frame(
+        self, page, live_server, sidebar_shell_urlconf
+    ):
+        """The layout store's ``sidebar.open`` must already agree with the
+        checkbox by the time Alpine has settled (T005/FR-005) — a store
+        computing its own, independent answer could disagree with what is
+        actually on screen even though neither one animates."""
+        from django.test import override_settings
+
+        page.set_viewport_size(DESKTOP)
+        with override_settings(ROOT_URLCONF=sidebar_shell_urlconf):
+            page.goto(f"{live_server.url}/sidebar-persisted-state-e2e/")
+            page.wait_for_function("() => window.Alpine && Alpine.store('mvp')")
+
+        checked = page.locator("#mvp-app-toggle").is_checked()
+        assert checked is True, "precondition: the desktop sidebar defaults open"
+
+        store_open = page.evaluate("() => Alpine.store('mvp').sidebar.open")
+        assert store_open == checked, (
+            "the store's sidebar.open disagreed with the checkbox actually on screen"
+        )
+
+
+@pytest.mark.django_db
+class TestPersistedDefaultDefinedOnce:
+    """FR-006 / SC-002: the persisted sidebar default and its storage key
+    each have exactly one definition — the blocking pre-paint script — not a
+    second, independent expression restating either (T005)."""
+
+    def test_the_key_and_default_are_not_declared_twice(
+        self, page, live_server, sidebar_shell_urlconf
+    ):
+        from django.test import override_settings
+
+        page.set_viewport_size(DESKTOP)
+        with override_settings(ROOT_URLCONF=sidebar_shell_urlconf):
+            page.goto(f"{live_server.url}/sidebar-persisted-state-e2e/")
+            page.wait_for_function("() => window.Alpine && Alpine.store('mvp')")
+
+        html = page.content()
+        assert html.count("mvp-app-drawer-open") == 1, (
+            "the storage key must be rendered in exactly one place in the "
+            "page; a second occurrence means it is declared independently "
+            "somewhere else"
+        )
+        assert "$persist(" not in html, (
+            "the persisted default must not be declared inline in the "
+            "markup — assets/js/layout.js is its only owner"
         )

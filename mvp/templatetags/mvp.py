@@ -14,29 +14,20 @@ from django.utils.translation import gettext_lazy as _
 from django_cotton.compiler_regex import CottonCompiler
 
 from ..config import MVP_CONFIG
+from ..layout import BREAKPOINT_WIDTHS, LayoutConfig
 
 register = template.Library()
 
 compiler = CottonCompiler()
 
 # Tailwind breakpoints supported for sidebar expansion. Maps breakpoint name to
-# (drawer-open variant class, min-width in px). The class strings must stay in
-# sync with the @source inline() safelist in assets/tailwind.css.
+# (drawer-open variant class, min-width in px). The widths come from
+# mvp.layout, which is where a breakpoint name becomes anything else — writing
+# them again here is how the two drift. The class strings must stay in sync
+# with the @source inline() safelist in mvp/tailwind/base.css.
 SIDEBAR_BREAKPOINTS = {
-    "sm": ("sm:drawer-open", 640),
-    "md": ("md:drawer-open", 768),
-    "lg": ("lg:drawer-open", 1024),
-    "xl": ("xl:drawer-open", 1280),
-    "2xl": ("2xl:drawer-open", 1536),
+    name: (f"{name}:drawer-open", width) for name, width in BREAKPOINT_WIDTHS.items()
 }
-
-# Breakpoint values (case-insensitive) that disable the persistent sidebar
-# entirely: the sidebar is an off-canvas overlay at every viewport width.
-NO_BREAKPOINT_VALUES = {"never", "none"}
-
-
-def _breakpoint_disabled(bp):
-    return isinstance(bp, str) and bp.lower() in NO_BREAKPOINT_VALUES
 
 
 @register.simple_tag
@@ -46,7 +37,7 @@ def sidebar_has_breakpoint(bp):
     False when the breakpoint is set to "never" (or "none"), meaning the
     sidebar stays an off-canvas overlay at every width.
     """
-    return not _breakpoint_disabled(bp)
+    return LayoutConfig(bp).persistent
 
 
 @register.simple_tag
@@ -56,86 +47,32 @@ def sidebar_breakpoint_class(bp):
     Returns "" for the "never"/"none" breakpoint (the sidebar never becomes
     persistent). Falls back to the ``lg`` breakpoint for unknown values.
     """
-    if _breakpoint_disabled(bp):
+    config = LayoutConfig(bp)
+    if not config.persistent:
         return ""
-    return SIDEBAR_BREAKPOINTS.get(bp, SIDEBAR_BREAKPOINTS["lg"])[0]
+    return SIDEBAR_BREAKPOINTS[config.breakpoint][0]
 
 
 @register.simple_tag
 def breakpoint_px(bp):
-    """Return the min-width in pixels for a configured sidebar breakpoint."""
-    return SIDEBAR_BREAKPOINTS.get(bp, SIDEBAR_BREAKPOINTS["lg"])[1]
+    """Return the min-width in pixels for a configured sidebar breakpoint.
+
+    Returns the ``lg`` width (1024) for the "never"/"none" breakpoint: it is
+    not a recognised breakpoint name, so it takes the same fallback an
+    unrecognised name does. This is a deliberate, pre-existing behaviour of
+    the tag, distinct from ``LayoutConfig.breakpoint_px``, which reports
+    ``None`` for "never" — the honest value the client payload needs.
+    """
+    return SIDEBAR_BREAKPOINTS.get(
+        LayoutConfig(bp).breakpoint, SIDEBAR_BREAKPOINTS["lg"]
+    )[1]
 
 
 @register.simple_tag
-def sidebar_navbar_toggle_class(bp, collapse):
-    """Return visibility classes for a navbar element the sidebar header duplicates.
-
-    Two elements share this rule, because they are the same two the sidebar
-    header draws: the sidebar-toggle button and the site icon. Wherever the
-    sidebar header is on screen showing its own copy, the navbar's is hidden,
-    so the brand mark and the toggle each appear once.
-
-    Below the sidebar breakpoint both are always shown (the sidebar is an
-    off-canvas overlay there, so its header is not on screen). At or above it
-    they are hidden: always in ``icons`` mode (the collapsed rail still shows
-    the brand icon, and a toggle on hover), and only while the drawer is open
-    in ``offcanvas`` mode (a fully hidden sidebar has neither left).
-
-    With the "never"/"none" breakpoint the sidebar is an overlay everywhere,
-    so both stay shown (the open overlay covers the navbar).
-
-    The name predates the site icon joining the rule; it is kept because the
-    tag is exercised by name in the packaged templates and the test suite.
-
-    The emitted classes must stay in sync with the @source inline() safelist
-    in mvp/tailwind/base.css.
-    """
-    if _breakpoint_disabled(bp):
-        return ""
-    prefix = bp if bp in SIDEBAR_BREAKPOINTS else "lg"
-    if collapse == "icons":
-        return f"{prefix}:hidden"
-    return f"{prefix}:is-drawer-open:hidden"
-
-
-@register.simple_tag
-def navbar_wide_only_class(bp):
-    """Return visibility classes for a header region shown only from `bp` up.
-
-    The header's trailing region holds the site-wide actions. Below the sidebar
-    breakpoint the row is already carrying the sidebar toggle, the site icon and
-    the breadcrumb trail, and the actions are what gives way — a narrow header
-    that keeps its trail readable is worth more than one that keeps every
-    control (issue #333).
-
-    With the "never"/"none" breakpoint there is no width to key off: the sidebar
-    is an overlay everywhere, so that setting says nothing about viewport size.
-    The actions stay visible rather than disappearing at every width, which is
-    the reading that never silently costs a project a control it configured.
-
-    The emitted classes must stay in sync with the @source inline() safelist
-    in mvp/tailwind/base.css.
-    """
-    if _breakpoint_disabled(bp):
-        return "flex"
-    prefix = bp if bp in SIDEBAR_BREAKPOINTS else "lg"
-    return f"hidden {prefix}:flex"
-
-
-@register.simple_tag
-def navbar_narrow_only_class(bp):
-    """Return visibility classes for a header region shown only below `bp`.
-
-    The counterpart to :func:`navbar_wide_only_class`, for the mobile widget
-    list. Under the "never"/"none" breakpoint it returns "hidden" so that the
-    two regions never both render: the wide region is unconditional there, and
-    a project reads one set of actions rather than two stacked copies.
-    """
-    if _breakpoint_disabled(bp):
-        return "hidden"
-    prefix = bp if bp in SIDEBAR_BREAKPOINTS else "lg"
-    return f"flex {prefix}:hidden"
+def resolve_layout_config(bp, collapse, sticky, boost):
+    """Resolve one LayoutConfig for a template to read layout facts from and
+    emit the client payload from."""
+    return LayoutConfig(bp, collapse, sticky, boost)
 
 
 #: The alignment classes the inference emits, and the ones an author declares

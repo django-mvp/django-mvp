@@ -1,6 +1,4 @@
-{% load i18n mvp %}
-<c-vars :breakpoint="mvp_config.layout.sidebar.breakpoint"
-        :collapse="mvp_config.layout.sidebar.collapse" />
+{% load i18n %}
 {% comment %}
   The header row: where you are on the left, what you can do on the right.
 
@@ -21,7 +19,7 @@
   <div class="navbar-start min-w-0 gap-1">
     <label for="mvp-app-toggle"
            aria-label="{% trans "Open sidebar" %}"
-           class="btn btn-ghost btn-square shrink-0 {% sidebar_navbar_toggle_class breakpoint collapse %}">
+           class="btn btn-ghost btn-square shrink-0 mvp-sidebar-hidden-only">
       <c-icon name="menu" />
     </label>
     {# The site icon takes the same visibility rule as the toggle above it, #}
@@ -30,7 +28,7 @@
     {# mark appears once. #}
     <a href="/"
        aria-label="{% trans "Home" %}"
-       class="mvp-navbar-brand flex shrink-0 items-center px-1 {% sidebar_navbar_toggle_class breakpoint collapse %}">
+       class="mvp-navbar-brand flex shrink-0 items-center px-1 mvp-sidebar-hidden-only">
       <c-brand.icon max-height="1.5rem" class="size-8 object-contain" />
     </a>
     {# min-w-0 is what lets a long trail shrink rather than push the actions #}
@@ -50,7 +48,7 @@
     {# aria-hidden of its own. #}
     {% if mvp_config.layout.navbar.mobile.end %}
       <div id="mvp-navbar-widgets-mobile"
-           class="{% navbar_narrow_only_class breakpoint %} items-center gap-3">
+           class="mvp-mobile-only items-center gap-3">
         {% for widget in mvp_config.layout.navbar.mobile.end %}
           <c-component :is="widget" />
         {% endfor %}
@@ -60,7 +58,7 @@
     {# having one of its own: a project's own header content is an action like #}
     {# any other, and gives way at the same width the configured ones do. #}
     <div id="mvp-navbar-widgets-desktop"
-         class="{% navbar_wide_only_class breakpoint %} items-center gap-3">
+         class="mvp-desktop-only items-center gap-3">
       {{ right }}
       {% for widget in mvp_config.layout.navbar.desktop.end %}
         <c-component :is="widget" />

@@ -172,14 +172,15 @@ class TestAccountLayout:
 
     def test_a_persistent_card_renders_at_the_configured_breakpoint(self):
         """Above ``lg`` (the test suite's configured breakpoint) the
-        navigation is a persistent block. ``navbar_wide_only_class`` is the
-        same mechanism the header's own desktop/mobile widget split uses."""
+        navigation is a persistent block. ``mvp-desktop-only`` is the same
+        stylesheet rule (T015) the header's own desktop/mobile widget split
+        uses."""
         html = _render("tests/account_layout_content.html")
-        assert "hidden lg:flex" in html
+        assert "mvp-desktop-only" in html
 
     def test_a_collapsed_control_renders_below_the_breakpoint(self):
         html = _render("tests/account_layout_content.html")
-        assert "flex lg:hidden" in html
+        assert "mvp-mobile-only" in html
 
     def test_the_collapsed_control_is_the_packaged_dropdown(self):
         html = _render("tests/account_layout_content.html")

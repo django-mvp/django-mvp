@@ -193,21 +193,19 @@ Either may be set alone and the other keeps its configured value. The same
 variables can come from the view context instead, for example
 `context["breakpoint"] = "xl"`.
 
-Setting them as attributes on `<c-app>` or `<c-app.sidebar>` does **not** work.
-Those attributes reach the component you put them on, but the navbar toggle lives
-in the header, which is a sibling. It falls back to its own default, the configured
-value, and then shows or hides at a different width than the sidebar it controls.
-Resolve them in the `app` block or the view context so all three stay in step.
+Setting them on `<c-app>` works: it renders the resolved values onto the shell's
+drawer element, and the navbar toggle takes its visibility from a stylesheet rule
+that selects on them. Setting them on `<c-app.sidebar>` reaches only that component.
+Resolving them in the `app` block or the view context is still the clearest form,
+because it is the one place every region reads.
 
-`sticky` has no such coupling, so it can be set on the component directly. Use the
-dynamic form so it stays a real boolean. Overriding `app.header` replaces the whole
-block, so restate what the base template wires up — the resolved `breakpoint` and
-`collapse`, and the `right` and `tray` slots that carry `app.header.widgets` and
-`app.header.tray`:
+`sticky` is the header's own attribute. Use the dynamic form so it stays a real
+boolean. Overriding `app.header` replaces the whole block, so restate the `right` and
+`tray` slots that carry `app.header.widgets` and `app.header.tray`:
 
 ```django
 {% block app.header %}
-  <c-app.header :breakpoint="breakpoint" :collapse="collapse" :sticky="False">
+  <c-app.header :sticky="False">
     <c-slot name="right">
       {% block app.header.widgets %}{% endblock app.header.widgets %}
     </c-slot>
@@ -218,10 +216,36 @@ block, so restate what the base template wires up — the resolved `breakpoint` 
 {% endblock app.header %}
 ```
 
-The one-line form `<c-app.header :sticky="False" />` drops all four. The two slots
-stop being reachable, and the navbar toggle falls back to the configured breakpoint
-and collapse mode instead of the values resolved at the top of the `app` block —
-the desynchronisation described above.
+The one-line form `<c-app.header :sticky="False" />` drops both slots, so anything a
+page put in `app.header.widgets` or `app.header.tray` stops being reachable.
+
+## Responsive visibility classes
+
+The drawer element (`<c-app>`'s root, wrapping sidebar + header + content) carries
+`data-mvp-breakpoint` (`sm`/`md`/`lg`/`xl`/`2xl`/`never`, already normalised) and
+`data-mvp-collapse` (`offcanvas`/`icons`). `mvp/tailwind/base.css` selects on both;
+three classes are available for a descendant to reuse the pattern:
+
+- `mvp-desktop-only` — shown at/above the breakpoint, hidden below it (and never under
+  `never`, which has no width to key off).
+- `mvp-mobile-only` — the inverse, and always hidden under `never` so it never
+  doubles up with `mvp-desktop-only`'s unconditionally-shown copy.
+- `mvp-sidebar-hidden-only` — shown only while the sidebar is not on screen. Hidden from
+  the breakpoint up: always in `icons` mode, since the rail is always there, and in
+  `offcanvas` mode only while the drawer is open. Put it on a duplicate of something the
+  sidebar header already draws, and it stands down whenever the original is visible. The
+  packaged navbar uses it for the brand icon and the sidebar toggle, both of which the
+  sidebar header carries too.
+
+"Desktop" and "mobile" mean what they mean everywhere in this package: mobile is where the
+sidebar is an off-canvas overlay, desktop is where it sits in the page's flow. The
+configured breakpoint is the line between them.
+
+`mvp-desktop-only` and `mvp-mobile-only` set `display: flex` when shown, and the package's rules sit outside Tailwind's utility layer, so they beat a display utility whatever its specificity. Wrap them rather than combining them with one.
+
+The navbar's widget lists, the account layout's collapsed/persistent navigation, and
+the navbar's own sidebar-toggle/site-icon are all built from these three classes —
+no template tag needed.
 
 ## Full-page content: `fill` on `<c-page>`
 
@@ -272,6 +296,49 @@ Below the breakpoint the sidebar is a transient overlay. It always starts closed
 and toggling it never writes back, so opening the mobile drawer cannot clobber the
 saved desktop state. With `breakpoint` set to `never` or `none` the sidebar is an
 overlay at every width and nothing is persisted at all.
+
+## Layout store
+
+Every shell page registers `Alpine.store("mvp", ...)`, read from any element as `$store.mvp`.
+The drawer's checkbox stays the source of truth for whether the sidebar is open — the store
+mirrors it, not the reverse — and a shell-less page still gets one, reporting defaults rather
+than throwing. Its shape, with representative values:
+
+```json
+{
+  "sidebar": {
+    "open": true,
+    "desktopOpen": true,
+    "breakpoint": "lg",
+    "breakpointPx": 1024,
+    "persistent": true,
+    "collapse": "offcanvas",
+    "boost": false
+  },
+  "header": {
+    "stuck": false,
+    "sticky": true
+  },
+  "isWide": true
+}
+```
+
+- `sidebar.open` — whether the sidebar is open right now: overlay below the breakpoint, persistent panel at/above it.
+- `sidebar.desktopOpen` — the remembered desktop-width open state, persisted to `localStorage`.
+- `sidebar.breakpoint` — the resolved sidebar breakpoint for this page: `sm`, `md`, `lg`, `xl`, `2xl`, or `never`.
+- `sidebar.breakpointPx` — the breakpoint's pixel width, or `null` when `never` — there is no width to report.
+- `sidebar.persistent` — whether the sidebar ever becomes a persistent panel at some width. `false` only when `breakpoint` is `never`.
+- `sidebar.collapse` — `"offcanvas"` or `"icons"`.
+- `sidebar.boost` — whether sidebar links use `hx-boost`.
+- `header.stuck` — whether the sticky header has scrolled off its resting position.
+- `header.sticky` — whether the header pins to the top of the viewport, from `MVP_CONFIG["layout"]["navbar"]["sticky"]`.
+- `isWide` — whether the viewport is at/above `sidebar.breakpointPx`, via a `matchMedia` listener. Permanently `false` when `sidebar.breakpoint` is `never`. Stands at the top level, not under `sidebar`, because it reports the viewport rather than the sidebar itself.
+
+Grouped by component rather than flattened, dropping the earlier `config` tier: whether a value
+came from settings or from a click is not what a consumer of the store is asking — see
+`specs/029-layout-state-store/decisions.md` D14. Full reference and a worked example:
+[docs/layout.md#the-layout-store](../../../docs/layout.md#the-layout-store); the demo runs it at
+`/layout/store/`, and accepts `?breakpoint=` for exercising a per-page override or the `never` case.
 
 ---
 

@@ -22,6 +22,7 @@ import htmx from "htmx.org";
 import { themeChange } from "theme-change";
 
 import { startDropdowns } from "./dropdown.js";
+import { registerLayoutStore } from "./layout.js";
 
 // htmx reads hx-* attributes off the DOM itself; the global is what its own
 // documentation, `hx-on:` handlers and browser-console debugging expect to find.
@@ -61,6 +62,11 @@ document.addEventListener("htmx:afterSettle", (event) => {
   if (event.detail?.target === document.body) {
     themeChange(false);
     startDropdowns();
+    // The swapped-in drawer is a new element with a fresh, server-closed
+    // checkbox; re-derive the sidebar's resting position rather than
+    // leaving the global store's sidebar.open at whatever it held before
+    // the swap. See assets/js/layout.js.
+    Alpine.store("mvp").rebindAfterNavigation();
   }
 });
 
@@ -72,6 +78,12 @@ document.addEventListener("htmx:afterSettle", (event) => {
 // output. A project that wants x-sort adds the plugin from its own base
 // template, and bringing it back here is two lines and a rebuild.
 Alpine.plugin(persist);
+
+// Registered here, after the persist plugin and before start(): the plugin
+// is what defines Alpine.$persist, which the store's desktop-open property
+// needs at construction. See assets/js/layout.js for the store itself and
+// why its init() ordering matters.
+registerLayoutStore(Alpine);
 
 // mvp/static/js/formset.js reaches for the global, as does any x-data in a
 // consuming project's own templates.

@@ -17,13 +17,26 @@
   the row. Two sites rather than one toggled with CSS, or the entries in the
   collapsed copy would go stale the moment a visibility check or an ordering
   changes per request.
+
+  The row below carries the resolved breakpoint itself rather than reading it
+  off an ancestor. The stylesheet rules that show one copy and hide the other
+  select on that attribute, and the shell's drawer is the usual place it comes
+  from — but this layout extends the unqualified `base.html`, which a project
+  may own and which need not render the shell at all. A layout that depended on
+  the shell would show both copies at once in exactly that case, silently and
+  only at some viewport widths. Inside the shell the two hosts resolve the same
+  value from the same context, so the nested one changes nothing.
 {% endcomment %}
 {% block content %}
   {% firstof breakpoint mvp_config.layout.sidebar.breakpoint as breakpoint %}
+  {% firstof collapse mvp_config.layout.sidebar.collapse as collapse %}
+  {% resolve_layout_config breakpoint collapse None None as account_layout %}
   {% process_menu "AccountCenterMenu" as account_menu %}
   <c-container class="py-4">
-    <div class="flex flex-col lg:flex-row lg:items-start gap-4 lg:gap-6">
-      <div class="{% navbar_narrow_only_class breakpoint %} w-full">
+    <div class="flex flex-col lg:flex-row lg:items-start gap-4 lg:gap-6"
+         data-mvp-breakpoint="{{ account_layout.breakpoint }}"
+         data-mvp-collapse="{{ account_layout.collapse }}">
+      <div class="mvp-mobile-only w-full">
         <c-dropdown full
                     class="w-full"
                     content_class="p-2"
@@ -40,7 +53,7 @@
         {% block account.content %}
         {% endblock account.content %}
       </div>
-      <div class="{% navbar_wide_only_class breakpoint %} w-full lg:w-1/4 lg:shrink-0">
+      <div class="mvp-desktop-only w-full lg:w-1/4 lg:shrink-0">
         <c-card.wrapper class="p-2 w-full">
           <c-menu label="{% trans "Account navigation" %}">
             {% for child in account_menu.visible_children %}

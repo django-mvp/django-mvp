@@ -1,0 +1,431 @@
+{
+  "feature": "029-layout-state-store",
+  "branch": "029-layout-state-store",
+  "repo": "django-mvp/django-mvp",
+  "state": "PR_READY",
+  "state_history": [
+    {
+      "state": "INTAKE",
+      "at": "2026-09-14T00:00:00Z",
+      "note": "#346 and #345 assessed together"
+    },
+    {
+      "state": "SPECIFY",
+      "at": "2026-09-14T00:10:00Z",
+      "note": "spec.md, decisions.md"
+    },
+    {
+      "state": "SETUP",
+      "at": "2026-09-14T00:30:00Z",
+      "note": "epic #346, stories #347-#349, draft PR #351"
+    },
+    {
+      "state": "GATE_SPEC",
+      "at": "2026-09-14T00:45:00Z",
+      "note": "approved unchanged"
+    },
+    {
+      "state": "PLAN",
+      "at": "2026-09-14T01:00:00Z",
+      "note": "plan.md, research.md, tasks.md"
+    },
+    {
+      "state": "DESIGN_REVIEW",
+      "at": "2026-09-14T02:00:00Z",
+      "note": "request_changes; 6 high findings all verified and applied as plan edits"
+    },
+    {
+      "state": "IMPLEMENT",
+      "at": "2026-09-14T02:10:00Z",
+      "note": "re-planned; Phase 0 first"
+    },
+    {
+      "state": "CONVERGE",
+      "at": "2026-09-15T00:30:00Z",
+      "note": "cleanup pass, two ADRs graduated, verify green"
+    },
+    {
+      "state": "REVIEW",
+      "at": "2026-09-15T02:00:00Z",
+      "note": "one round; 10 findings, all verified and all fixed"
+    },
+    {
+      "state": "PR_READY",
+      "at": "2026-09-15T03:00:00Z",
+      "note": "seven required checks green; PR out of draft for the merge gate"
+    },
+    {
+      "state": "IMPLEMENT",
+      "at": "2026-09-15T04:00:00Z",
+      "note": "merge-gate change request: store renamed to mvp and grouped by component"
+    },
+    {
+      "state": "PR_READY",
+      "at": "2026-09-15T05:00:00Z",
+      "note": "store reshaped to mvp and grouped by component; verify green"
+    }
+  ],
+  "gates": {
+    "spec": {
+      "approved_by": "SamuelJennings",
+      "at": "2026-09-14T00:45:00Z",
+      "self_resolved": [
+        "Responsive visibility stays resolved by the browser, not by client-side expressions",
+        "sidebar_navbar_toggle_class joins the two tags named in #345",
+        "The three tags are removed outright rather than deprecated",
+        "The store carries the layout settings subtree only",
+        "The drawer checkbox stays authoritative; the store mirrors it"
+      ]
+    },
+    "plan": {
+      "approved_by": "SamuelJennings",
+      "at": "2026-09-14T00:45:00Z",
+      "self_resolved": [
+        "Notification waived by the maintainer at spec sign-off; next involvement is the merge decision"
+      ]
+    },
+    "merge": {
+      "approved_by": null,
+      "at": null
+    },
+    "design_review": {
+      "approved_by": "design-panel",
+      "at": "2026-09-14T02:00:00Z",
+      "self_resolved": [
+        "SPEC-001 high: collapse mode never reaches the drawer element \u2014 threading it is now T014",
+        "SPEC-002 high: narrow-only region is hidden under the never setting \u2014 explicit rule added to T015",
+        "SPEC-003 high: characterisation tests cannot assert class strings \u2014 T013 now asserts computed visibility",
+        "SPEC-004 high: stories share a bundle artifact and four modules \u2014 dispatch is sequential",
+        "SPEC-005 high: the boosted-navigation task needed a payload from a later story \u2014 payload moved to T003",
+        "SPEC-006 high: FR-006 unsatisfied as planned \u2014 the blocking script becomes the single definition, T005",
+        "SPEC-007 medium: tests/test_views/test_account.py asserts the removed tags' output \u2014 added to T015",
+        "ARCH-001 medium: the store must register after the persist plugin, not merely before Alpine starts",
+        "ARCH-002 medium: the payload was planned for the template D4 rejected \u2014 moved to the drawer component",
+        "SPEC-008 low: breakpoint_px returns 1024 under never and nothing asserts it \u2014 pinned in T002"
+      ]
+    },
+    "review": {
+      "approved_by": "reviewer",
+      "at": "2026-09-15T02:00:00Z",
+      "self_resolved": [
+        "RVW-001 high: the Account Center layout depended on an ancestor attribute a project-owned base.html need not render \u2014 the row now carries it itself",
+        "RVW-002 medium: two documentation passages said setting the breakpoint on <c-app> does not reach the navbar toggle, which is no longer true \u2014 corrected",
+        "RVW-003 medium: the header forwarded a breakpoint and collapse mode the navbar no longer reads \u2014 removed, and the shipped skill's tables corrected",
+        "RVW-004 medium: max-width complements left a gap at fractional viewport widths \u2014 all five now use the exact complement form",
+        "RVW-005 medium: the store's default configuration described a state the server cannot produce \u2014 made consistent and pinned by a test",
+        "RVW-006 low: the visibility classes set display:flex and sit outside the utility layer \u2014 documented",
+        "RVW-007 low: the header's stuck state was not re-derived after a boosted navigation \u2014 fixed and tested",
+        "RVW-008 low: two fixed sleeps and a store read before the store existed \u2014 replaced with waits on conditions",
+        "RVW-009 low: two characterisation tests never exercised the drawer state they named \u2014 both now do",
+        "RVW-010 low: the storage key was restated as a literal in the bundle \u2014 the fallback no longer persists at all"
+      ]
+    }
+  },
+  "stories": [
+    {
+      "id": "US0",
+      "priority": "P0",
+      "issue": null,
+      "worktree": "/home/sam/projects/django-mvp/django-mvp",
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T001",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_layout.py::TestLayoutConfigBreakpoint",
+              "tests/test_layout.py::TestLayoutConfigAsDict"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_layout.py -x"
+            ],
+            "code": [
+              "mvp/layout.py:19"
+            ]
+          }
+        },
+        {
+          "id": "T002",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_layout_config.py::TestBreakpointTags",
+              "tests/test_components/test_layout_config.py::TestTagsReadLayoutConfig"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_components/test_layout_config.py -q"
+            ],
+            "code": [
+              "mvp/templatetags/mvp.py:43"
+            ]
+          }
+        },
+        {
+          "id": "T003",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_layout_config.py::TestLayoutConfigPayload"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_components/test_layout_config.py -q"
+            ],
+            "code": [
+              "mvp/templates/cotton/layout/sidebar/index.html:1"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "US1",
+      "priority": "P1",
+      "issue": 347,
+      "worktree": "/home/sam/projects/django-mvp/django-mvp",
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T004",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_layout_store.py::TestTheStoreExistsAndReports"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_components/test_layout_store.py -q"
+            ],
+            "code": [
+              "assets/js/layout.js:76"
+            ]
+          }
+        },
+        {
+          "id": "T005",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_sidebar_persisted_state.py::TestPersistedDefaultDefinedOnce"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_components/test_sidebar_persisted_state.py -q"
+            ],
+            "code": [
+              "mvp/templates/cotton/layout/sidebar/index.html:52"
+            ]
+          }
+        },
+        {
+          "id": "T006",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_layout_store.py::TestTheStoreExistsAndReports::test_the_stuck_state_follows_scrolling"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_components/test_layout_store.py -q"
+            ],
+            "code": [
+              "mvp/templates/cotton/app/header/index.html:9"
+            ]
+          }
+        },
+        {
+          "id": "T007",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_layout_store.py::TestBoostedNavigationLeavesTheStoreCorrect"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_components/test_layout_store.py -q"
+            ],
+            "code": [
+              "assets/js/layout.js:118"
+            ]
+          }
+        },
+        {
+          "id": "T008",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_layout_store.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_components/test_layout_store.py tests/test_components/test_sidebar_persisted_state.py -q"
+            ],
+            "code": [
+              "tests/test_components/test_layout_store.py:31"
+            ]
+          }
+        },
+        {
+          "id": "T009",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_layout_config.py"
+            ],
+            "commands": [
+              "forge verify --repo . --base origin/main"
+            ],
+            "code": [
+              "docs/layout.md:458"
+            ]
+          }
+        },
+        {
+          "id": "T018",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_layout.py::TestLayoutConfigAsDict",
+              "tests/test_components/test_layout_config.py::TestLayoutConfigPayload",
+              "tests/test_components/test_layout_config.py::TestHeaderStickiness",
+              "tests/test_components/test_layout_store.py",
+              "tests/test_components/test_sidebar_persisted_state.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_layout.py tests/test_components/test_layout_config.py -q",
+              "poetry run pytest tests/test_components/test_layout_store.py tests/test_components/test_sidebar_persisted_state.py -q",
+              "poetry run invoke build-js"
+            ],
+            "code": [
+              "mvp/layout.py:60",
+              "assets/js/layout.js:103"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "US2",
+      "priority": "P2",
+      "issue": 348,
+      "worktree": null,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T010",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_layout_store.py::TestConfigReportsThePerPageOverride",
+              "tests/test_components/test_layout_store.py::TestTheViewportFlagFollowsTheWindow",
+              "tests/test_components/test_layout_store.py::TestTheNeverPersistentCaseReportsCorrectly"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_components/test_layout_store.py -q"
+            ],
+            "code": [
+              "specs/029-layout-state-store/decisions.md:233"
+            ]
+          }
+        },
+        {
+          "id": "T011",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_layout_store.py::TestConfigReportsThePerPageOverride",
+              "tests/test_components/test_layout_store.py::TestTheViewportFlagFollowsTheWindow",
+              "tests/test_components/test_layout_store.py::TestTheNeverPersistentCaseReportsCorrectly"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_components/test_layout_store.py -q"
+            ],
+            "code": [
+              "demo/views.py:185"
+            ]
+          }
+        },
+        {
+          "id": "T012",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [],
+            "commands": [],
+            "code": [
+              "docs/layout.md:514",
+              "skills/django-mvp/references/layout.md:276"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "US3",
+      "priority": "P3",
+      "issue": 349,
+      "worktree": null,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T013",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T014",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T015",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T016",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T017",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
+    }
+  ],
+  "budgets": {
+    "converge_cycles": {
+      "used": 0,
+      "max": 2
+    },
+    "review_cycles": {
+      "used": 1,
+      "max": 1
+    },
+    "design_review_cycles": {
+      "used": 1,
+      "max": 1
+    },
+    "tokens": {
+      "used": 0,
+      "max": 120
+    }
+  },
+  "pr": {
+    "number": 351,
+    "draft": false
+  }
+}

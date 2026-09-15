@@ -6,6 +6,7 @@ Covers the three configurable layout concerns:
 3. Navbar end widgets rendered from the component-name registry
 """
 
+import json
 import re
 
 import pytest
@@ -14,13 +15,12 @@ from django.test import RequestFactory
 
 from mvp.config import MVP_CONFIG
 from mvp.context_processors import mvp_config as mvp_config_processor
+from mvp.layout import LayoutConfig
 from mvp.templatetags.mvp import (
     breakpoint_px,
-    navbar_narrow_only_class,
-    navbar_wide_only_class,
+    resolve_layout_config,
     sidebar_breakpoint_class,
     sidebar_has_breakpoint,
-    sidebar_navbar_toggle_class,
 )
 
 
@@ -31,19 +31,6 @@ def _render(template_name):
     request = RequestFactory().get("/")
     request.user = AnonymousUser()
     return render_to_string(template_name, request=request)
-
-
-def _navbar_toggle_class(html):
-    """Extract the class list of the navbar's sidebar-toggle button.
-
-    That toggle is the one carrying the "Open sidebar" aria-label (the sidebar
-    header and the drawer overlay reuse the same ``for`` target with different
-    labels).
-    """
-    match = re.search(
-        r'<label[^>]*aria-label="Open sidebar"[^>]*?class="([^"]*)"', html, re.S
-    )
-    return " ".join(match.group(1).split()) if match else None
 
 
 # ---------------------------------------------------------------------------
@@ -109,7 +96,9 @@ class TestNavbarMobileDesktopSplit:
         """A widget configured only for one breakpoint must not leak into
         the other breakpoint's markup."""
         monkeypatch.setitem(
-            MVP_CONFIG["layout"]["navbar"]["mobile"], "end", ["actions.theme-controller"]
+            MVP_CONFIG["layout"]["navbar"]["mobile"],
+            "end",
+            ["actions.theme-controller"],
         )
         monkeypatch.setitem(
             MVP_CONFIG["layout"]["navbar"]["desktop"],
@@ -147,30 +136,32 @@ class TestNavbarMobileDesktopSplit:
         assert content.count('id="mvp-navbar-widgets-desktop"') == 1
 
     @pytest.mark.django_db
-    def test_mobile_wrapper_hides_at_the_desktop_breakpoint(self, client):
-        """The mobile wrapper is visible below ``lg`` and display:none at/above
-        it, the inverse of the region holding the desktop widgets."""
+    def test_mobile_wrapper_carries_the_narrow_only_class(self, client):
+        """The mobile wrapper is visible below the configured breakpoint and
+        hidden at/above it — the inverse of the region holding the desktop
+        widgets. The rule itself lives in the stylesheet (T015), selected by
+        the resolved breakpoint attribute the drawer element carries rather
+        than assembled here; what the rendered markup can still show is which
+        semantic class the wrapper carries."""
         content = client.get("/").content.decode()
         match = re.search(
             r'<div\s+id="mvp-navbar-widgets-mobile"\s+class="([^"]*)"', content
         )
         assert match is not None
         classes = match.group(1).split()
-        assert "flex" in classes
-        assert "lg:hidden" in classes
+        assert "mvp-mobile-only" in classes
 
     @pytest.mark.django_db
-    def test_desktop_wrapper_hides_below_the_desktop_breakpoint(self, client):
-        """The desktop wrapper is display:none below ``lg`` and visible at/above
-        it — the inverse of the mobile wrapper."""
+    def test_desktop_wrapper_carries_the_wide_only_class(self, client):
+        """The desktop wrapper's inverse rule (T015): hidden below the
+        breakpoint, visible at/above it."""
         content = client.get("/").content.decode()
         match = re.search(
             r'<div\s+id="mvp-navbar-widgets-desktop"\s+class="([^"]*)"', content
         )
         assert match is not None
         classes = match.group(1).split()
-        assert "hidden" in classes
-        assert "lg:flex" in classes
+        assert "mvp-desktop-only" in classes
 
     @pytest.mark.django_db
     def test_flat_legacy_config_renders_the_same_widgets_on_both(self, client):
@@ -233,38 +224,37 @@ class TestBreakpointTags:
 
     @pytest.mark.parametrize("bp", ["never", "none", "NEVER"])
     def test_breakpoint_never_disables_persistent_sidebar(self, bp):
-        """ "never"/"none" emit no drawer-open class and no navbar-toggle hiding."""
+        """ "never"/"none" emits no drawer-open class and reports not persistent."""
         assert sidebar_breakpoint_class(bp) == ""
         assert sidebar_has_breakpoint(bp) is False
-        assert sidebar_navbar_toggle_class(bp, "offcanvas") == ""
-        assert sidebar_navbar_toggle_class(bp, "icons") == ""
 
-    def test_navbar_toggle_class_hides_at_breakpoint(self):
-        """Navbar toggle hides at the breakpoint: always for the icons rail,
-        only while open for offcanvas (a hidden sidebar has no toggle left)."""
-        assert sidebar_navbar_toggle_class("md", "icons") == "md:hidden"
-        assert (
-            sidebar_navbar_toggle_class("md", "offcanvas") == "md:is-drawer-open:hidden"
-        )
-        # unknown breakpoints fall back to lg, mirroring sidebar_breakpoint_class
-        assert sidebar_navbar_toggle_class("bogus", "icons") == "lg:hidden"
 
-    def test_header_regions_split_at_the_breakpoint(self):
-        """The header's trailing regions are inverses of each other: the
-        actions from the breakpoint up, the mobile widgets below it."""
-        assert navbar_wide_only_class("md") == "hidden md:flex"
-        assert navbar_narrow_only_class("md") == "flex md:hidden"
-        assert navbar_wide_only_class("bogus") == "hidden lg:flex"
-        assert navbar_narrow_only_class("bogus") == "flex lg:hidden"
+# ---------------------------------------------------------------------------
+# The tags read LayoutConfig instead of reimplementing normalisation (T002)
+# ---------------------------------------------------------------------------
 
-    @pytest.mark.parametrize("bp", ["never", "none", "NEVER"])
-    def test_header_actions_survive_a_disabled_breakpoint(self, bp):
-        """"never"/"none" says the sidebar is an overlay at every width — it
-        says nothing about viewport size, so there is no width at which to
-        hide the actions. They stay visible and the mobile region, which would
-        otherwise duplicate them, does not render."""
-        assert navbar_wide_only_class(bp) == "flex"
-        assert navbar_narrow_only_class(bp) == "hidden"
+
+class TestTagsReadLayoutConfig:
+    """The surviving tags become thin readers of LayoutConfig."""
+
+    def test_breakpoint_px_keeps_returning_the_lg_width_for_never(self):
+        """The tag's pre-existing behaviour for "never" is pinned deliberately:
+        it is not a recognised breakpoint name, so it takes the same lg
+        fallback an unrecognised name does — unlike LayoutConfig's own
+        breakpoint_px, which reports the honest nullable value for the
+        client payload. The difference is intentional, not a bug carried
+        forward by accident."""
+        assert breakpoint_px("never") == 1024
+        assert LayoutConfig("never").breakpoint_px is None
+
+    def test_resolve_layout_config_tag_returns_a_layout_config(self):
+        """The tag that resolves a LayoutConfig for a template to use."""
+        config = resolve_layout_config("xl", "icons", False, True)
+        assert isinstance(config, LayoutConfig)
+        assert config.breakpoint == "xl"
+        assert config.collapse == "icons"
+        assert config.sticky is False
+        assert config.boost is True
 
 
 # ---------------------------------------------------------------------------
@@ -314,27 +304,32 @@ class TestShellRendersConfig:
 
     @pytest.mark.django_db
     def test_drawer_state_persisted_with_breakpoint_default(self, client):
-        """Drawer open state persists via Alpine and defaults by viewport width."""
+        """Drawer open state persists, and defaults by viewport width.
+
+        Persistence moved from an expression on the drawer into the layout
+        store, so what the markup carries is the storage key the store
+        persists under. The behaviour is unchanged and is proved end to end in
+        tests/test_components/test_sidebar_persisted_state.py.
+        """
         content = client.get("/").content.decode()
-        assert "$persist" in content
+        assert 'data-mvp-persist-key="mvp-app-drawer-open"' in content
         assert "min-width: 1024px" in content
 
     @pytest.mark.django_db
     def test_persisted_state_applied_before_alpine_hydrates(self, client):
-        """A blocking script, not just Alpine's (deferred) x-init, sets the
-        checkbox's checked state — so the persisted "open" value is already
-        correct on the first paint instead of arriving as a later, animated
-        correction (issue #178). It must read the exact same $persist key
-        and breakpoint Alpine itself uses, and run before the checkbox's
-        drawer-side content."""
+        """A blocking script, not the deferred bundle, sets the checkbox's
+        checked state — so the persisted "open" value is already correct on the
+        first paint instead of arriving as a later, animated correction
+        (issue #178). It reads the storage key off the checkbox rather than
+        naming it a second time, and runs before the drawer-side content."""
         content = client.get("/").content.decode()
         toggle_pos = content.find('id="mvp-app-toggle"')
-        script_pos = content.find("localStorage.getItem('mvp-app-drawer-open')")
+        script_pos = content.find("localStorage.getItem(key)")
         drawer_side_pos = content.find('class="drawer-side')
         assert toggle_pos != -1
         assert script_pos != -1, (
-            "a synchronous pre-hydration script must read the same "
-            "$persist key Alpine's x-init resolves"
+            "a synchronous pre-hydration script must resolve the persisted "
+            "open state before first paint"
         )
         assert toggle_pos < script_pos < drawer_side_pos, (
             "the correction script must sit between the checkbox and the "
@@ -361,14 +356,19 @@ class TestComponentOverrides:
 
     @pytest.mark.django_db
     def test_overlay_state_is_transient_desktop_state_persists(self):
-        """Only the desktop (persistent) open state survives reloads: the drawer
-        seeds closed, then x-init restores the persisted state at/above the
-        breakpoint; $watch writes back only at desktop widths."""
+        """Only the desktop (persistent) open state survives reloads.
+
+        A persistent drawer publishes its storage key and the pre-paint script
+        that resolves it; an overlay-only drawer publishes neither, because
+        there is nothing to remember. That the remembered value is written back
+        at desktop widths and not at mobile ones is behaviour, proved in
+        tests/test_components/test_layout_store.py rather than by reading an
+        expression out of the markup.
+        """
         content = _render("tests/app_breakpoint_override.html")
-        assert "desktopOpen" in content
-        assert "$persist(true)" in content
-        assert "open: false" in content
-        assert "$watch" in content
+        assert 'data-mvp-persist-key="mvp-app-drawer-open"' in content
+        assert "localStorage.getItem(key)" in content
+        assert "min-width: 1280px" in content
 
     @pytest.mark.django_db
     def test_breakpoint_never_component_override(self):
@@ -378,8 +378,8 @@ class TestComponentOverrides:
         from mvp.templatetags.mvp import SIDEBAR_BREAKPOINTS
 
         html = _render("tests/app_breakpoint_never.html")
-        assert "{ open: false }" in html
-        assert "$persist" not in html
+        assert "data-mvp-persist-key" not in html
+        assert "localStorage" not in html
         assert "matchMedia" not in html
         for klass, _px in SIDEBAR_BREAKPOINTS.values():
             assert klass not in html
@@ -455,42 +455,6 @@ class TestSidebarBrandIconSizing:
 
 
 # ---------------------------------------------------------------------------
-# Navbar sidebar-toggle follows the resolved layout knobs (issue #114)
-# ---------------------------------------------------------------------------
-
-
-class TestNavbarToggle:
-    """Navbar toggle visibility."""
-
-    @pytest.mark.django_db
-    def test_default_navbar_toggle_matches_config(self, client):
-        """With no override the navbar toggle mirrors the config default: the
-        offcanvas sidebar hides its navbar toggle only while open, at ``lg``."""
-        toggle = _navbar_toggle_class(client.get("/").content.decode())
-        assert toggle is not None
-        assert "lg:is-drawer-open:hidden" in toggle
-
-    @pytest.mark.django_db
-    def test_navbar_toggle_follows_shell_override(self):
-        """A per-page shell override of breakpoint+collapse reaches the navbar
-        toggle, not just the drawer/sidebar (regression for issue #114).
-
-        breakpoint=xl + collapse=icons => the toggle hides at ``xl`` unconditionally
-        (the icon rail keeps its own toggle), i.e. ``xl:hidden`` — never the default
-        ``lg:``-prefixed class."""
-        html = _render("tests/app_shell_override.html")
-        # sanity: the drawer and rail honour the override too
-        assert "xl:drawer-open" in html
-        assert "mvp-sidebar--icons" in html
-        # the navbar toggle must agree with them
-        toggle = _navbar_toggle_class(html)
-        assert toggle is not None
-        assert "xl:hidden" in toggle
-        assert "lg:" not in toggle
-        assert "is-drawer-open" not in toggle
-
-
-# ---------------------------------------------------------------------------
 # Navbar sticky vs static header
 # ---------------------------------------------------------------------------
 
@@ -507,7 +471,7 @@ class TestHeaderStickiness:
         """With the default config the header pins on scroll (sticky + scroll shadow)."""
         content = client.get("/").content.decode()
         assert "mvp-header w-full backdrop-blur sticky z-10 top-0" in content
-        assert "stuck = window.scrollY > 0" in content
+        assert "$store.mvp.header.stuck = window.scrollY > 0" in content
 
     @pytest.mark.django_db
     def test_static_header_component_override(self):
@@ -611,6 +575,116 @@ class TestFullPageFill:
         html = _render("tests/page_fill.html")
         page_div = html[html.index("mvp-page-fill") - 200 : html.index("mvp-page-fill")]
         assert "mb-16" not in page_div
+
+
+# ---------------------------------------------------------------------------
+# The configuration payload emitted for the client (T003)
+# ---------------------------------------------------------------------------
+
+
+def _layout_config_payload(html, script_id="mvp-app-layout-config"):
+    """Extract and parse the JSON layout-config payload from rendered HTML."""
+    match = re.search(
+        rf'<script id="{re.escape(script_id)}" type="application/json">(.*?)</script>',
+        html,
+        re.S,
+    )
+    return json.loads(match.group(1)) if match else None
+
+
+class TestLayoutConfigPayload:
+    """The drawer component emits LayoutConfig.as_dict() through json_script:
+    grouped by component, camelCase (T018)."""
+
+    @pytest.mark.django_db
+    def test_default_page_emits_the_payload(self, client):
+        content = client.get("/").content.decode()
+        assert _layout_config_payload(content) is not None, (
+            "the layout config payload must render"
+        )
+
+    @pytest.mark.django_db
+    def test_payload_carries_every_documented_key(self, client):
+        content = client.get("/").content.decode()
+        payload = _layout_config_payload(content)
+        assert set(payload) == {"sidebar", "header"}
+        assert set(payload["sidebar"]) == {
+            "breakpoint",
+            "persistent",
+            "breakpointPx",
+            "collapse",
+            "boost",
+        }
+        assert set(payload["header"]) == {"sticky"}
+
+    @pytest.mark.django_db
+    def test_payload_reflects_the_project_default(self, client):
+        content = client.get("/").content.decode()
+        payload = _layout_config_payload(content)
+        assert payload["sidebar"]["breakpoint"] == "lg"
+        assert payload["sidebar"]["breakpointPx"] == 1024
+        assert payload["sidebar"]["collapse"] == "offcanvas"
+
+    @pytest.mark.django_db
+    def test_payload_reflects_a_per_page_breakpoint_override(self):
+        """<c-app breakpoint="xl"> reaches the payload the same way it
+        reaches the drawer-open class (T003 acceptance)."""
+        html = _render("tests/app_breakpoint_override.html")
+        payload = _layout_config_payload(html)
+        assert payload is not None, "the layout config payload must render"
+        assert payload["sidebar"]["breakpoint"] == "xl"
+        assert payload["sidebar"]["breakpointPx"] == 1280
+
+
+# ---------------------------------------------------------------------------
+# The drawer renders the resolved layout as attributes (T014)
+# ---------------------------------------------------------------------------
+
+
+def _drawer_attrs(html):
+    """The ``id="mvp-app"`` drawer element's opening tag, so its attributes
+    can be asserted on directly rather than searched for anywhere in the
+    page."""
+    match = re.search(r'<div id="mvp-app"[^>]*>', html, re.S)
+    return match.group(0) if match else None
+
+
+class TestDrawerRendersLayoutAttributes:
+    """The drawer element carries the resolved breakpoint and collapse mode
+    as attributes, so the stylesheet (T015) can select on them the same way
+    every other governed region already reads ``breakpoint``/``collapse``
+    from the shell. The collapse mode does not reach the drawer before this
+    task: ``mvp/base.html`` sends it to the sidebar rail and the header only,
+    and ``cotton/app/index.html`` declares no such variable to forward."""
+
+    @pytest.mark.django_db
+    def test_default_page_renders_both_attributes(self, client):
+        tag = _drawer_attrs(client.get("/").content.decode())
+        assert tag is not None, "the drawer element must render"
+        assert 'data-mvp-breakpoint="lg"' in tag
+        assert 'data-mvp-collapse="offcanvas"' in tag
+
+    def test_a_per_page_override_of_both_knobs_is_what_renders(self):
+        """<c-app breakpoint="xl">/<c-app.sidebar collapse="icons"> set through
+        mvp/base.html's {% with %} override (tests/app_shell_override.html)
+        reach the drawer the same way they already reach the sidebar rail and
+        the navbar toggle."""
+        tag = _drawer_attrs(_render("tests/app_shell_override.html"))
+        assert tag is not None
+        assert 'data-mvp-breakpoint="xl"' in tag
+        assert 'data-mvp-collapse="icons"' in tag
+
+    def test_an_unrecognised_breakpoint_is_rendered_already_normalised(self):
+        """LayoutConfig folds an unrecognised name to `lg` before render
+        (mvp/layout.py), so the stylesheet never sees the raw value."""
+        tag = _drawer_attrs(_render("tests/app_breakpoint_bogus.html"))
+        assert tag is not None
+        assert 'data-mvp-breakpoint="lg"' in tag
+
+    def test_the_never_breakpoint_is_rendered_literally(self):
+        tag = _drawer_attrs(_render("tests/app_breakpoint_never.html"))
+        assert tag is not None
+        assert 'data-mvp-breakpoint="never"' in tag
 
 
 # ---------------------------------------------------------------------------

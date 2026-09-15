@@ -1,44 +1,68 @@
 {% load i18n mvp %}
-<c-vars id :breakpoint="mvp_config.layout.sidebar.breakpoint" class />
+<c-vars id
+        :breakpoint="mvp_config.layout.sidebar.breakpoint"
+        :collapse="mvp_config.layout.sidebar.collapse"
+        :sticky="mvp_config.layout.navbar.sticky"
+        :boost="mvp_config.layout.sidebar.boost"
+        class />
 {% sidebar_has_breakpoint breakpoint as persistent %}
+{% resolve_layout_config breakpoint collapse sticky boost as layout %}
 {% comment %}
   Open-state persistence is desktop-only: the persistent sidebar remembers
-  open/collapsed across reloads (desktopOpen), while the overlay drawer
-  (below the breakpoint, or breakpoint="never") is transient and always
-  starts closed. $watch only writes back at/above the breakpoint, so
-  toggling the mobile overlay never clobbers the saved desktop state.
+  open/collapsed across reloads (the layout store's desktopOpen), while the
+  overlay drawer (below the breakpoint, or breakpoint="never") is transient
+  and always starts closed. The store only writes the remembered state back
+  at/above the breakpoint, so toggling the mobile overlay never clobbers the
+  saved desktop state — see decisions.md D5.
 {% endcomment %}
 <div id="{{ id }}"
      class="drawer {% sidebar_breakpoint_class breakpoint %} {{ class }}"
-     {% if persistent %}
-     x-data="{ mq: window.matchMedia('(min-width: {% breakpoint_px breakpoint %}px)'), open: false, desktopOpen: $persist(true).as('{{ id }}-drawer-open') }"
-     x-init="open = mq.matches && desktopOpen; $watch('open', v => { if (mq.matches) desktopOpen = v })"
-     {% else %}
-     x-data="{ open: false }"
-     {% endif %}
+     data-mvp-breakpoint="{{ layout.breakpoint }}"
+     data-mvp-collapse="{{ layout.collapse }}"
+     x-data
      {{ attrs }}>
   <input id="{{ id }}-toggle"
          type="checkbox"
-         x-model="open"
+         x-model="$store.mvp.sidebar.open"
+         {% if persistent %}data-mvp-persist-key="{{ id }}-drawer-open"{% endif %}
          class="drawer-toggle" />
+  {% comment %}
+    The client's whole configuration payload, so a project overriding
+    mvp/base.html keeps it wherever it keeps <c-app> — see D4/D6 in
+    decisions.md. Not from mvp/base.html itself, which a project overriding
+    replaces without necessarily rebuilding this.
+  {% endcomment %}
+  {% with layout_config_id=id|add:"-layout-config" %}
+  {{ layout.as_dict|json_script:layout_config_id }}
+  {% endwith %}
   {% if persistent %}
   {% comment %}
-    Alpine's persist scripts are deferred, so x-init only corrects the
-    checkbox after the browser's first paint — by then the sidebar's width
-    transition has already been active for a frame, and the correction
-    plays as a visible animation (#178). This blocking script runs
-    immediately, mid-parse, before that first paint, and sets the same
-    checked state x-init would derive, so there is nothing left to correct
-    once Alpine hydrates.
+    The layout store's own hydration is deferred, so it would only correct
+    the checkbox after the browser's first paint — by then the sidebar's
+    width transition has already been active for a frame, and the
+    correction plays as a visible animation (#178). This blocking script
+    runs immediately, mid-parse, before that first paint, and sets the same
+    checked state the store would derive, so there is nothing left to
+    correct once Alpine hydrates.
+
+    It is also the single definition of the persisted default and the
+    storage key (FR-006, SC-002): the key comes from the checkbox's own
+    data-mvp-persist-key attribute above rather than being restated here,
+    and the value this script resolves is written to the checkbox's
+    data-mvp-persist-open attribute for assets/js/layout.js to read at
+    registration, rather than the store hardcoding a default of its own.
   {% endcomment %}
   <script>
     (function () {
       try {
-        var stored = localStorage.getItem('{{ id }}-drawer-open');
+        var toggle = document.getElementById('{{ id }}-toggle');
+        var key = toggle.dataset.mvpPersistKey;
+        var stored = localStorage.getItem(key);
         var wasOpen = stored === null ? true : JSON.parse(stored);
         var isDesktop = window.matchMedia('(min-width: {% breakpoint_px breakpoint %}px)').matches;
+        toggle.dataset.mvpPersistOpen = JSON.stringify(wasOpen);
         if (isDesktop && wasOpen) {
-          document.getElementById('{{ id }}-toggle').checked = true;
+          toggle.checked = true;
         }
       } catch (e) {}
     })();

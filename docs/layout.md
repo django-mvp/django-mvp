@@ -450,10 +450,123 @@ Either knob may be set on its own; the other keeps its `MVP_CONFIG` default. The
 variables can instead be supplied from the view context (e.g. `{"breakpoint": "xl"}`)
 when the choice is view- rather than template-driven.
 
-> Setting `breakpoint`/`collapse` as attributes on `<c-app>` or `<c-app.sidebar>`
-> directly still styles *that* component, but it does **not** reach the navbar toggle
-> (a sibling region) — resolve them in the `app` block as above so all three stay in
-> sync.
+> Setting them on `<c-app>` works: it renders the resolved values onto the shell's
+> drawer, and the navbar toggle reads them from there. Setting them on
+> `<c-app.sidebar>` styles only that component and reaches nothing else. Resolving
+> them in the `app` block as above is still the clearest form, because it is the one
+> place every region reads.
+
+## Reading the resolved layout in Python
+
+By the time a page renders, the layout settings above have been through a resolution
+step: a page-level override has replaced the project default where there is one, a
+breakpoint name has become a pixel width, and `never` has become a flag rather than a
+width. `LayoutConfig` is where that happens, and it is the only place it happens.
+
+```python
+from mvp.layout import LayoutConfig
+
+config = LayoutConfig("xl", collapse="icons")
+config.breakpoint      # "xl"
+config.breakpoint_px   # 1280
+config.persistent      # True
+config.as_dict()       # every value above, as plain data
+```
+
+It normalises two cases you would otherwise have to handle yourself. `never` and `none`
+in any capitalisation mean the sidebar is an overlay at every width, so `persistent` is
+`False` and `breakpoint_px` is `None` — there is no width to report. A breakpoint name
+the package does not recognise falls back to `lg` rather than raising, so a typo in
+`MVP_CONFIG` costs you the default rather than the page.
+
+`as_dict()` is what the shell hands to the browser: grouped by component and camelCase —
+the same document [the layout store](#the-layout-store) reads, so the payload and the store
+never have two shapes to keep in agreement.
+
+## Responsive visibility
+
+The drawer element — the one wrapping the sidebar, header and page content — carries
+the resolved layout as two attributes: `data-mvp-breakpoint` (`sm`, `md`, `lg`, `xl`,
+`2xl` or `never`, already normalised the same way `LayoutConfig.breakpoint` is above)
+and `data-mvp-collapse` (`offcanvas` or `icons`). `mvp/tailwind/base.css` selects on
+both to decide what shows at which width, and three classes are available for your own
+markup to reuse the same rules instead of writing new media queries:
+
+"Desktop" and "mobile" here mean what they mean everywhere else in this package: mobile is
+where the sidebar is an off-canvas overlay, desktop is where it sits in the page's flow.
+The configured breakpoint is the line between them.
+
+| Class | Shown | Hidden |
+| --- | --- | --- |
+| `mvp-desktop-only` | desktop — at and above the configured breakpoint | on mobile. Under `breakpoint="never"` there is no desktop, so it is shown at every width rather than hidden at every width |
+| `mvp-mobile-only` | mobile — below the configured breakpoint | on desktop, and at every width under `breakpoint="never"`, so it never doubles up with the unconditionally shown `mvp-desktop-only` region |
+| `mvp-sidebar-hidden-only` | while the sidebar is not on screen | while it is: always in `icons` mode from the breakpoint up, since the rail is always there, and in `offcanvas` mode only while the drawer is open |
+
+`mvp-sidebar-hidden-only` exists because the shell draws two controls twice. The sidebar's
+own header carries the brand icon and a toggle button, and the navbar carries its own copy
+of both — so that a page still has them when the sidebar is not on screen to provide them.
+Put this class on a duplicate of something the sidebar already shows, and it will stand
+down whenever the original is visible. The packaged navbar uses it for exactly those two.
+
+**These two set `display: flex` when shown.** An element that needs a different display box should wrap one of them rather than combine it with a display utility: the package's rules sit outside Tailwind's utility layer and win against it whatever the specificity, so `class="mvp-mobile-only hidden"` resolves to `flex`.
+
+Any descendant of the drawer element can carry one — the navbar's widget lists, the
+account layout's collapsed/persistent navigation split, and the navbar's own copy of
+the sidebar-toggle button and site icon are all built from these three.
+
+## The layout store
+
+Every shell page registers an Alpine store named `mvp`, so any element inside the shell can read
+or react to the sidebar, header and viewport state through `$store.mvp`. Its shape, with
+representative values:
+
+```json
+{
+  "sidebar": {
+    "open": true,
+    "desktopOpen": true,
+    "breakpoint": "lg",
+    "breakpointPx": 1024,
+    "persistent": true,
+    "collapse": "offcanvas",
+    "boost": false
+  },
+  "header": {
+    "stuck": false,
+    "sticky": true
+  },
+  "isWide": true
+}
+```
+
+- `sidebar.open` — whether the sidebar is open right now: the mobile overlay below the breakpoint, the persistent panel at/above it. Bound to the drawer's own checkbox; reading it never lags what is on screen.
+- `sidebar.desktopOpen` — the remembered desktop-width open state (what `sidebar.open` is restored to on a later visit, at/above the breakpoint). Persisted to `localStorage`.
+- `sidebar.breakpoint` — the normalised sidebar breakpoint for this page: `sm`, `md`, `lg`, `xl`, `2xl`, or `never`. An unrecognised name already fell back to `lg` server-side.
+- `sidebar.breakpointPx` — the breakpoint's width in pixels (see the [breakpoint table](#sidebar-breakpoint)) — `null` when `breakpoint` is `never`, since there is no width to report. This is what `isWide`'s `matchMedia` listener watches.
+- `sidebar.persistent` — whether the sidebar ever becomes a persistent panel at some width. `false` only when `breakpoint` is `never`; `isWide` then stays permanently `false` too, because no listener is attached.
+- `sidebar.collapse` — `"offcanvas"` or `"icons"`, see [Sidebar collapse mode](#sidebar-collapse-mode).
+- `sidebar.boost` — whether sidebar links use `hx-boost`, see [Boosted sidebar navigation](#boosted-sidebar-navigation).
+- `header.stuck` — whether the sticky header has scrolled off its resting position (the same state that draws its shadow). Always `false` when `header.sticky` is `false`.
+- `header.sticky` — whether the header pins to the top of the viewport, see [Navbar position](#navbar-position). Sourced from `MVP_CONFIG["layout"]["navbar"]["sticky"]`, unchanged by the store's own grouping.
+- `isWide` — whether the viewport is currently at or above `sidebar.breakpointPx`. Permanently `false` when the sidebar is `never`/`none`. Reported at the top level rather than under `sidebar` because it describes the viewport, not the sidebar — the things that read it have nothing to do with the sidebar itself.
+
+A page that renders no shell — the entrance page, the error pages — still gets a store reporting
+the values above (`sidebar.open` and `header.stuck` both `false`), and nothing throws.
+
+```html
+<div x-data class="badge" :class="$store.mvp.sidebar.open ? 'badge-success' : 'badge-ghost'"
+     x-text="$store.mvp.sidebar.open ? 'open' : 'closed'"></div>
+```
+
+The demo runs this, alongside the collapse mode and the header's stuck state, at
+`/layout/store/` — pass `?breakpoint=` to exercise a per-page override or the `never` case,
+e.g. `/layout/store/?breakpoint=xl` and `/layout/store/?breakpoint=never`.
+
+The sidebar checkbox is the source of truth for whether it is open — the store mirrors it, rather
+than the other way around — so write to `sidebar.open` only by driving that checkbox (the shipped
+controls all do). Writing `sidebar.desktopOpen` directly works the same way `$persist` always has,
+but the shell already keeps it in sync with `sidebar.open` above the breakpoint; there is normally
+nothing to write yourself.
 
 ## Template blocks
 
