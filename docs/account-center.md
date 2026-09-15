@@ -31,28 +31,15 @@ that markup already written against it keeps resolving.
 
 ## Giving people a way there
 
-Mounting the URLconf puts the area at an address. It does not put a link to it on screen:
-the sidebar footer ships empty, so nothing draws one until you say so. The packaged user
-menu is the route the shell already knows about — it renders an Account Center row for a
-signed-in person, and nothing at all for a visitor:
+Mounting the URLconf puts the area at an address, and the sidebar footer's fixed
+composition already puts a link to it on screen: it renders the log-in button for a
+visitor, or the user menu for a signed-in person — and the user menu is what draws the
+Account Center row. Nothing further to configure; the two are complements the shell
+already wires together, one per authentication state.
 
-```python
-# settings.py
-MVP_CONFIG = {
-    "layout": {
-        "sidebar": {
-            "footer": [
-                "actions.login",       # the visitor's half: renders only when signed out
-                "user.sidebar-menu",   # the signed-in half: account centre, then log out
-            ],
-        },
-    },
-}
-```
-
-Those two are complements, and a project that configures one without the other leaves the
-other state with nothing. The demo application configures both, which is the quickest place
-to see the result.
+To change what the footer shows instead, override
+`templates/cotton/app/sidebar/footer.html` — see
+[layout.md](layout.md#sidebar-footer).
 
 ## The landing page view
 

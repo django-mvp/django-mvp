@@ -115,7 +115,7 @@ c-app
     c-app.header.navbar — top navbar (sidebar toggle, brand, configured widgets)
   c-app.sidebar         — application sidebar (provides default slot content: main application menu)
     c-app.sidebar.header
-    c-app.sidebar.footer
+    c-app.sidebar.footer — fixed row: user menu or log-in, theme, language
   c-app.main            — main content area
   c-app.footer          — application footer bar
   c-app.dock            — application mobile navigation

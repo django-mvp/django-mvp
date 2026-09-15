@@ -10,7 +10,7 @@ Extending the base template gets you the whole shell, already composed:
 ```
 {% block announcement %}   empty, outside the shell, scrolls with the page
 <c-app>                    the sidebar/header/content frame
-├── <c-app.sidebar>        brand header, the AppMenu, configured footer widgets
+├── <c-app.sidebar>        brand header, the AppMenu, fixed footer
 ├── <c-app.header>         header region: navbar, plus above/tray/below slots
 │                          navbar: sidebar toggle, site icon, breadcrumbs, actions
 │                          toggle and icon hide where the sidebar header shows them
@@ -37,10 +37,10 @@ The template chain matters when you decide where to put an override:
 | `mvp/account/base.html` | `base.html` | The [Account Center](../../../docs/account-center.md)'s layout. Owns `account.content`, and draws `AccountCenterMenu` beside it. |
 | `mvp/account/overview.html` | `mvp/account/base.html` | The area's landing page. Fills `account.content`. |
 
-Mounting `mvp.urls` gives the area an address, not a link: the sidebar footer ships empty.
-`"actions.login"` and `"user.sidebar-menu"` in `MVP_CONFIG["layout"]["sidebar"]["footer"]`
-are the complementary pair — the first renders for a visitor, the second for a signed-in
-person and carries the Account Center row.
+The sidebar footer's fixed composition already renders the complementary pair — a
+log-in button for a visitor, the user menu (carrying the Account Center row) for a
+signed-in person — so mounting `mvp.urls` is what gives that link an address, not
+something you need to configure.
 
 An installed app puts a card on the landing page by shipping its own copy of
 `mvp/account/overview.html`, extending the same name, and adding to its

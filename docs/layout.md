@@ -5,7 +5,7 @@ django-mvp renders a complete application shell around your content:
 ```
 {% block announcement %}      empty by default, outside the shell (scrolls away)
 <c-app>                        DaisyUI drawer (sidebar + content)
-├── <c-app.sidebar>            brand header, AppMenu, user footer
+├── <c-app.sidebar>            brand header, AppMenu, fixed footer
 ├── <c-app.header>             sticky header
 │   └── <c-app.header.navbar>  sidebar toggle, site icon, breadcrumbs, widgets
 ├── <c-app.main>               your {% block content %} + flash messages
@@ -24,7 +24,6 @@ MVP_CONFIG = {
             "breakpoint": "lg",       # sm | md | lg | xl | 2xl
             "collapse": "offcanvas",  # "offcanvas" | "icons"
             "title": None,            # text beside the brand icon (falsey = none)
-            "footer": [],             # Cotton components in the sidebar footer
             "boost": False,           # navigate sidebar links with htmx
         },
         "navbar": {
@@ -110,32 +109,28 @@ Per-page override:
 {% endblock %}
 ```
 
-## Sidebar footer widgets
+## Sidebar footer
 
-`layout.sidebar.footer` is a list of **Cotton component names** rendered in the sidebar
-footer, above the user menu. They are laid out as a **horizontally centered, wrapping
-flex row**, so they reflow gracefully as the sidebar narrows:
+The sidebar footer is a fixed composition, not a configured widget list: it always
+renders the signed-in user's menu (or a log-in button for a visitor), a theme control
+and a language control, in a single row that fills the sidebar's width.
 
-```python
-MVP_CONFIG = {
-    "layout": {
-        "sidebar": {
-            "footer": [
-                "actions.theme-controller",     # light/dark toggle
-                "actions.language-switcher",    # i18n language menu
-                "myapp.support-link",           # your own component
-            ],
-        },
-    },
-}
+To change what the footer shows, override the component template in your project:
+
+```html
+{# templates/cotton/app/sidebar/footer.html #}
+<div class="bg-base-200 w-full sticky bottom-0 mt-auto z-20 flex items-center gap-2 px-4 py-2">
+  <c-user.sidebar-menu />
+  <c-actions.login />
+  <c-actions.theme-controller valign="top" />
+  <myapp.support-link />
+</div>
 ```
 
-Names map to Cotton templates the same way as [navbar widgets](#navbar-widgets):
-`"myapp.support-link"` → `templates/cotton/myapp/support_link.html`. The default is an
-empty list (no footer actions).
-
-For deeper control of the footer, override the component template itself by dropping your
-own `templates/cotton/app/sidebar/footer.html`.
+`<c-user.sidebar-menu>` and `<c-actions.login>` each guard on
+`request.user.is_authenticated` internally, so drop both in unguarded — exactly one
+renders per request. See [docs/adr/0023](adr/0023-the-sidebar-footer-is-a-fixed-composition.md)
+for why this moved from a setting to a template override.
 
 ## Boosted sidebar navigation
 
@@ -226,8 +221,8 @@ header row is spent on the sidebar toggle, the site icon and the
 [breadcrumb trail](#breadcrumbs), and a narrow header that keeps the trail readable
 is worth more than one that keeps every control. A widget you list on `mobile.end`
 is the deliberate exception that earns that width back — and a control your visitors
-need on a phone belongs either there or in `sidebar.footer`, which the drawer reaches
-at every width.
+need on a phone belongs either there or in the [sidebar footer](#sidebar-footer),
+whose theme and language controls the drawer already reaches at every width.
 
 ```python
 MVP_CONFIG = {
@@ -294,20 +289,13 @@ Two i18n language pickers ship as widgets — use whichever fits the slot:
 - **`actions.language-switcher-modal`** — a globe button that opens a centered modal with
   a responsive, tappable grid of languages (one column on phones, two from `sm` up), the
   active language highlighted. Better for touch and for narrow slots like the
-  [sidebar footer](#sidebar-footer-widgets), where a dropdown would be cramped.
+  [sidebar footer](#sidebar-footer), where a dropdown would be cramped. It's the variant
+  the sidebar footer ships with by default, for that reason.
 
 Both post to Django's `set_language` view and preserve the current path, so they are
-interchangeable:
-
-```python
-MVP_CONFIG = {
-    "layout": {
-        "sidebar": {
-            "footer": ["actions.language-switcher-modal"],
-        },
-    },
-}
-```
+interchangeable. Placing either in the navbar is a `MVP_CONFIG` setting (above); placing
+one in the sidebar footer instead of the packaged one means overriding
+`templates/cotton/app/sidebar/footer.html` — see [Sidebar footer](#sidebar-footer).
 
 If you place the modal switcher in more than one slot on the same page, give the extra
 instances a distinct dialog id so they don't collide — this needs a wrapper component,

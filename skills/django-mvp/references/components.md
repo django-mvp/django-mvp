@@ -18,9 +18,9 @@ A component's tag name is its path under `templates/cotton/`, with two rules:
   `<name>.html` first and falls back to `<name>/index.html`.
 
 This matters beyond authoring templates: the widget lists in `MVP_CONFIG`
-(`layout.navbar.mobile.end`, `layout.navbar.desktop.end`, `layout.sidebar.footer`) are
-lists of **component names**, not template paths. `"actions.theme-controller"` in settings
-renders `<c-actions.theme-controller />`.
+(`layout.navbar.mobile.end`, `layout.navbar.desktop.end`) are lists of **component
+names**, not template paths. `"actions.theme-controller"` in settings renders
+`<c-actions.theme-controller />`.
 
 ## Extending a component
 
@@ -200,8 +200,11 @@ content. Reach for `<c-form.render>` when you have a whole Django form.
 ## Widgets you place by name
 
 These are designed to be listed in `MVP_CONFIG` — `layout.navbar.mobile.end`,
-`layout.navbar.desktop.end`, `layout.sidebar.footer` — rather than written into a page.
-Each renders nothing when its precondition is unmet.
+`layout.navbar.desktop.end` — rather than written into a page. The sidebar footer is a
+fixed composition rather than a configured list (see `<c-app.sidebar.footer>` below), but
+several of the same components are what it's built from, and you'll still reach for them
+by name if you override that template. Each renders nothing when its precondition is
+unmet.
 
 | Tag | Purpose | Attributes (default) | Renders when |
 |---|---|---|---|
@@ -211,7 +214,7 @@ Each renders nothing when its precondition is unmet.
 | `<c-actions.login>` | Log-in button, preferring allauth's URL over Django's | — | visitor is anonymous **and** `account_login` or `login` reverses |
 | `<c-actions.search>` | A standalone search box | — | always |
 | `<c-user.sidebar-menu>` | The signed-in user's menu: account centre, your own extra entries, log out | — | user is authenticated |
-| `<c-user.display.compact>` | Avatar plus name and email, for use inside a user menu or panel | — | always |
+| `<c-user.display.compact>` | Avatar plus name, for use inside a user menu or panel | — | always |
 
 `<c-actions.search>` renders an input that is not wired to a form or a view — it submits
 nothing on its own. Treat it as markup to build on, not a working search.
@@ -289,9 +292,9 @@ know what you are looking at when you override one. Configure the shell through
 | `<c-layout.sidebar>` | The drawer mechanism `<c-app>` is built on: the toggle, the overlay, desktop open-state persistence, and the resolved layout it publishes to the browser | `id`, `breakpoint`, `collapse`, `sticky`, `boost` (all from config), `class` | default, `sidebar` |
 | `<c-app.header>` | The header band, optionally pinned to the top on scroll | `sticky` (from config) | `above`, `right`, `tray`, `below` |
 | `<c-app.header.navbar>` | Inside the header: sidebar toggle, site name, then the configured navbar widgets — separate mobile and desktop lists. Which widgets show at which width is a stylesheet rule keyed off the drawer, so it takes no attributes | — | `right` |
-| `<c-app.sidebar>` | The sidebar itself: brand header, `AppMenu`, footer widgets | `menu` (`AppMenu`), `brand-url` (`/`), `bg`, `collapse`, `title`, `boost` (from config), `class` | — |
+| `<c-app.sidebar>` | The sidebar itself: brand header, `AppMenu`, fixed footer | `menu` (`AppMenu`), `brand-url` (`/`), `bg`, `collapse`, `title`, `boost` (from config), `class` | — |
 | `<c-app.sidebar.header>` | The sidebar's top strip: brand icon, optional title, collapse toggle | `link` (`/`), `bg`, `title` (from config) | — |
-| `<c-app.sidebar.footer>` | The pinned strip at the sidebar's foot, holding the configured footer widgets | — | — |
+| `<c-app.sidebar.footer>` | The pinned strip at the sidebar's foot: a fixed row of the user menu (or log-in button), the theme control and the language control. Override the template to change it | `bg` (from the sidebar) | — |
 | `<c-app.main>` | The main content region the page's `{% block content %}` renders into | — | default |
 | `<c-app.footer>` | The site footer under the content | `class` | default |
 | `<c-app.dock>` | The bottom navigation bar on small screens, rendered from `MobileFooterMenu` | — | — |
