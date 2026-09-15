@@ -2,7 +2,7 @@
   "feature": "029-layout-state-store",
   "branch": "029-layout-state-store",
   "repo": "django-mvp/django-mvp",
-  "state": "PR_READY",
+  "state": "MERGED",
   "state_history": [
     {
       "state": "INTAKE",
@@ -63,6 +63,11 @@
       "state": "PR_READY",
       "at": "2026-09-15T05:00:00Z",
       "note": "store reshaped to mvp and grouped by component; verify green"
+    },
+    {
+      "state": "MERGED",
+      "at": "2026-09-15T09:39:00Z",
+      "note": "PR #351 merged; approved by SamuelJennings"
     }
   ],
   "gates": {
@@ -85,8 +90,8 @@
       ]
     },
     "merge": {
-      "approved_by": null,
-      "at": null
+      "approved_by": "SamuelJennings",
+      "at": "2026-09-15T09:38:49Z"
     },
     "design_review": {
       "approved_by": "design-panel",
