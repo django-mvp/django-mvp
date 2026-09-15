@@ -43,6 +43,7 @@ Get these right before writing anything. Each one is a mistake that looks like i
 | Authorising a CRUD action | a permission mixin on the target view | the `show_*` flags, which only draw the link |
 | Form rendering | crispy-forms with the tailwind pack, on every install | a `form_renderer` attribute — no such setting exists |
 | Table ordering | `order_by` on the table class | `order_by` on the view — it raises `ImproperlyConfigured` |
+| A column that identifies the row | name it in `row_headers` on the table's `Meta` | assuming the leading column — it is not always the identifying one |
 | Menu classes | `AppMenu`, `MobileFooterMenu`, `MenuGroup`, `MenuCollapse` from `mvp.menus` | — |
 
 ## Where to look

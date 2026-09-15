@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **A table declares which of its columns identify a row, with `row_headers` on its
+  `Meta`.** Those columns' body cells render as `<th scope="row">` rather than `<td>` —
+  the markup a screen reader announces the rest of the row against, and the markup
+  daisyUI's `table-pin-cols` needs before it can keep a column in view while a wide
+  table scrolls sideways. `table-pin-cols` is safelisted for projects that build their
+  own stylesheet. A name that is no column of the table raises rather than being ignored.
+
 - **`<c-actions.theme-controller>` takes `compact`, `valign` and `halign`.** `compact`
   renders the two-theme switcher as a single square icon button instead of an icon, a
   checkbox and a second icon side by side, which is what lets it sit in the sidebar
@@ -78,6 +85,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   is one description of this package" above.
 
 ### Fixed
+
+- **A column heading that resolves to a falsey value renders an empty heading cell
+  instead of printing the value.** A column declared `verbose_name=False` printed the
+  word "False". The cell itself is unchanged, so the column keeps its width and its
+  position, and an orderable column keeps its sort control.
 
 - **A long breadcrumb trail shrinks instead of drawing a horizontal scrollbar.** Each
   crumb now gives up width and ellipsises its own text before the next one does, so the

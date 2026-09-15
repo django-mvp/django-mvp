@@ -47,6 +47,12 @@
    packaged table markup without the rules it depends on. */
 @source inline("table-pin-rows");
 
+/* Safelist: row-header columns stay in view while the body scrolls sideways
+   (issue #320). A project adds this class itself, so nothing in this package's
+   own templates mentions it and the scanner cannot see it — same reason as
+   table-pin-rows above, and same consequence without it. */
+@source inline("table-pin-cols");
+
 /* Safelist: c-menu `responsive` modifiers (cotton/menu/index.html). */
 @source inline("{md,lg,xl}:menu-horizontal");
 

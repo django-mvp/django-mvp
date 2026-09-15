@@ -425,3 +425,77 @@ class TestBrandLogoShellIntegration:
         assert 'src=""' not in html, (
             "An <img> with an empty src rendered on the home page"
         )
+
+
+class TestRowHeaderColumns:
+    """``row_header_columns`` reads the names a table declares in
+    ``Meta.row_headers``, accepts a single name as a plain string, and
+    refuses a name that is not a column of the table rather than ignoring
+    it the way django-tables2 ignores an unrecognised Meta option
+    (issue #320)."""
+
+    def _table(self, declared=..., **meta):
+        pytest.importorskip("django_tables2")
+        import django_tables2 as tables
+
+        attrs = {
+            "icon": tables.Column(),
+            "name": tables.Column(),
+            "Meta": type("Meta", (), {} if declared is ... else {"row_headers": declared}),
+        }
+        table_class = type("RowHeaderTable", (tables.Table,), attrs)
+        return table_class([{"icon": "i", "name": "a"}])
+
+    def _tag(self):
+        from mvp.templatetags.mvp import row_header_columns
+
+        return row_header_columns
+
+    def test_a_table_declaring_nothing_has_no_row_headers(self):
+        assert self._tag()(self._table()) == ()
+
+    def test_a_table_with_no_meta_at_all_has_no_row_headers(self):
+        pytest.importorskip("django_tables2")
+        import django_tables2 as tables
+
+        class Bare(tables.Table):
+            icon = tables.Column()
+
+        assert self._tag()(Bare([{"icon": "i"}])) == ()
+
+    def test_declared_names_are_returned_in_order(self):
+        assert self._tag()(self._table(("name", "icon"))) == ("name", "icon")
+
+    def test_a_single_name_may_be_given_as_a_string(self):
+        """A bare string is a sequence of characters, so taking it at face
+        value would test every cell against 'i', 'c', 'o', 'n'."""
+        assert self._tag()(self._table("icon")) == ("icon",)
+
+    def test_a_list_is_accepted(self):
+        assert self._tag()(self._table(["icon"])) == ("icon",)
+
+    def test_an_unknown_name_is_refused(self):
+        from django.core.exceptions import ImproperlyConfigured
+
+        with pytest.raises(ImproperlyConfigured) as raised:
+            self._tag()(self._table(("icon", "nonexistent")))
+        message = str(raised.value)
+        assert "nonexistent" in message
+        assert message.index("nonexistent") < message.index("Its columns are")
+        assert message.endswith("Its columns are: icon, name.")
+
+    def test_a_hidden_column_may_still_be_named(self):
+        """``visible=False`` keeps a column out of ``table.columns`` but it
+        is still a column of the table, so naming it is a declaration about
+        a column that exists rather than a typo."""
+        pytest.importorskip("django_tables2")
+        import django_tables2 as tables
+
+        class Hidden(tables.Table):
+            icon = tables.Column(visible=False)
+            name = tables.Column()
+
+            class Meta:
+                row_headers = ("icon",)
+
+        assert self._tag()(Hidden([{"icon": "i", "name": "a"}])) == ("icon",)

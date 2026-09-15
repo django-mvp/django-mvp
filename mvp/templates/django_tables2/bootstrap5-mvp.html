@@ -23,14 +23,22 @@
             <tr>
               {% for column in table.columns %}
                 <th {% table_cell_attrs column table cell="th" wrap=False %} scope="col">
+                  {% comment %}
+                    A heading that resolves to a falsey value prints nothing
+                    rather than printing the value (issue #319). The cell
+                    itself stays, so the column keeps its width and its
+                    position, and an orderable column keeps its sort control:
+                    suppressing a heading is not a request to stop offering the
+                    sort.
+                  {% endcomment %}
                   {% if column.orderable %}
                     <a href="{% querystring_replace table.prefixed_order_by_field=column.order_by_alias.next %}">
-                      {{ column.header }}
+                      {{ column.header|default:"" }}
                       <c-icon name="sort-asc" class="sort-icon sort-icon-asc" />
                       <c-icon name="sort-desc" class="sort-icon sort-icon-desc" />
                     </a>
                   {% else %}
-                    {{ column.header }}
+                    {{ column.header|default:"" }}
                   {% endif %}
                 </th>
               {% endfor %}
@@ -39,22 +47,46 @@
         {% endif %}
       {% endblock table.thead %}
       {% block table.tbody %}
+        {% comment %}
+          Columns the table names in Meta.row_headers identify the row rather
+          than carrying one of its values, so their cells are th scope="row"
+          (issue #320). The cell content is written out under both elements
+          rather than built once and placed into either: rendering a variable
+          applies the timezone and locale formatting that a tag returning the
+          same value does not, so routing it through one would format dates and
+          numbers differently from every other cell in the table.
+        {% endcomment %}
+        {% row_header_columns table as row_headers %}
         <tbody {{ table.attrs.tbody.as_html }}>
           {% for row in table.paginated_rows %}
             {% block table.tbody.row %}
               <tr {{ row.attrs.as_html }}>
                 {% for column, cell in row.items %}
-                  <td {% table_cell_attrs column table %}>
-                    {% if column.localize == None %}
-                      {{ cell }}
-                    {% else %}
-                      {% if column.localize %}
-                        {{ cell|localize }}
+                  {% if column.name in row_headers %}
+                    <th {% table_cell_attrs column table %} scope="row">
+                      {% if column.localize == None %}
+                        {{ cell }}
                       {% else %}
-                        {{ cell|unlocalize }}
+                        {% if column.localize %}
+                          {{ cell|localize }}
+                        {% else %}
+                          {{ cell|unlocalize }}
+                        {% endif %}
                       {% endif %}
-                    {% endif %}
-                  </td>
+                    </th>
+                  {% else %}
+                    <td {% table_cell_attrs column table %}>
+                      {% if column.localize == None %}
+                        {{ cell }}
+                      {% else %}
+                        {% if column.localize %}
+                          {{ cell|localize }}
+                        {% else %}
+                          {{ cell|unlocalize }}
+                        {% endif %}
+                      {% endif %}
+                    </td>
+                  {% endif %}
                 {% endfor %}
               </tr>
             {% endblock table.tbody.row %}

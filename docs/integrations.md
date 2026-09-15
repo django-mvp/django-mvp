@@ -120,6 +120,50 @@ class ProductTable(tables.Table):
     sku = tables.Column(attrs={"td": {"class": "text-end"}})
 ```
 
+The width and wrapping classes a column can name are in
+[Styling](styling.md#column-behaviour-classes).
+
+### Columns that identify the row
+
+A column carrying the record's icon, its name or its reference does not hold one of
+the row's values, it says which row this is. Name those columns on the table's `Meta`
+and their body cells render as `<th scope="row">` instead of `<td>`:
+
+```python
+class SampleTable(tables.Table):
+    icon = tables.TemplateColumn(template_name="sample/icon.html", verbose_name="")
+    name = tables.Column()
+    depth = tables.Column()
+
+    class Meta:
+        row_headers = ("icon", "name")
+```
+
+A single name may be given on its own: `row_headers = "name"`. The cell keeps the
+column's `td` attributes, so a column loses none of its width behaviour by becoming a
+row header. Naming a column the table does not have raises `ImproperlyConfigured` when
+it renders, rather than being ignored.
+
+Two things follow. A screen reader announces the rest of the row against a row header,
+so "1250 metres" is read as the depth of the sample the header names rather than as a
+number in a grid. And daisyUI's `table-pin-cols` selects on exactly this markup, so a
+column declared here is one that can be kept in view while a wide table scrolls
+sideways. Add that class to the table area to turn the pinning on:
+
+```django
+{% block page.content %}
+  <c-addons.django-table :table="table" class="flex-1 min-h-0 table-pin-cols" />
+{% endblock page.content %}
+```
+
+### A column with no heading
+
+A column whose heading resolves to nothing renders an empty heading cell. The cell
+stays, so the column keeps its width and its position in the row, and an orderable
+column keeps the control that sorts by it — a column worth sorting is a column worth
+naming, and hiding the name is not a request to take the sort away. `verbose_name=""`
+is the usual way to say it.
+
 ## django-filter
 
 ```bash
