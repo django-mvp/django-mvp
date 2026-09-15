@@ -6,8 +6,10 @@ an opt-in ``<c-vars>`` boolean, default ``False``; the sidebar renderer
 passes it explicitly.
 """
 
+from django.contrib.auth.models import AnonymousUser
 from django.template import Context, Template
 from django.template.loader import render_to_string
+from django.test import RequestFactory
 from django_cotton.compiler_regex import CottonCompiler
 
 from mvp.config import MVP_CONFIG
@@ -83,9 +85,6 @@ class TestTheSidebarDrawsOneNavigationLandmark:
         role, with no ``role`` attribute to find — so this counts both an
         explicit ``role="navigation"`` and a plain ``<nav>`` tag, or the
         wrapper this fix removes would go uncounted."""
-        from django.contrib.auth.models import AnonymousUser
-        from django.test import RequestFactory
-
         request = RequestFactory().get("/")
         request.user = AnonymousUser()
         html = render_to_string("cotton/app/sidebar/index.html", request=request)
