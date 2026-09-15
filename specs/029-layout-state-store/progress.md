@@ -492,3 +492,16 @@ Watch: `tests/test_components/test_layout_store.py` and
 `page.evaluate()` return value, not store paths) — left as-is; they read from
 `Alpine.store('mvp').sidebar.open` / `.header.stuck` correctly and renaming the aliases
 would touch lines outside this rename's purpose.
+
+## 2026-09-15 — Store reshaped at the maintainer's request
+
+Registered as `mvp` rather than `layout`, grouped by the component each value belongs to, camelCase
+throughout, with the viewport flag at the top level. Names only — every test that asserts what the
+store does passes with its access path updated and nothing else.
+
+Also integrated a Dependabot Django bump that the merge sweep merged into this branch while the run
+was in progress. The suite is green on it.
+
+One rebase went wrong on the way: a bare `git fetch origin` leaves `FETCH_HEAD` pointing at whatever
+ref came last, and rebasing onto it replayed the branch onto an unrelated feature. Aborted with no
+loss. Name the remote-tracking ref.

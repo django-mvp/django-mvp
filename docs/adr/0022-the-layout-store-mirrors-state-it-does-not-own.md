@@ -12,8 +12,11 @@ copy of the sidebar's remembered default in a script that ran before either. Non
 readable from anywhere else, so a project that wanted its own markup to respond to the shell had to
 reimplement the logic against the package's internal structure.
 
-Publishing that state as one store is the obvious fix. The question the fix raises is whether the
-store should then *own* the state — whether it becomes the single source of truth that everything
+Publishing that state as one store is the obvious fix. It is registered as `mvp`, after the
+package rather than after the layout, so that later client state has somewhere to live without
+claiming a second global and so that a project's own store cannot silently replace it. The question
+the fix raises is whether the store should then *own* the state — whether it becomes the single
+source of truth that everything
 else, including the markup, follows.
 
 It cannot, for the same reason responsive visibility cannot be script-driven

@@ -2,7 +2,7 @@
   "feature": "029-layout-state-store",
   "branch": "029-layout-state-store",
   "repo": "django-mvp/django-mvp",
-  "state": "IMPLEMENT",
+  "state": "PR_READY",
   "state_history": [
     {
       "state": "INTAKE",
@@ -58,6 +58,11 @@
       "state": "IMPLEMENT",
       "at": "2026-09-15T04:00:00Z",
       "note": "merge-gate change request: store renamed to mvp and grouped by component"
+    },
+    {
+      "state": "PR_READY",
+      "at": "2026-09-15T05:00:00Z",
+      "note": "store reshaped to mvp and grouped by component; verify green"
     }
   ],
   "gates": {
@@ -182,7 +187,7 @@
       "priority": "P1",
       "issue": 347,
       "worktree": "/home/sam/projects/django-mvp/django-mvp",
-      "status": "in_progress",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
@@ -421,6 +426,6 @@
   },
   "pr": {
     "number": 351,
-    "draft": true
+    "draft": false
   }
 }
