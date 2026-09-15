@@ -6,6 +6,7 @@ Run individual stories with: pytest -k US1, -k US2, -k US3, etc.
 
 import pytest
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ImproperlyConfigured
 from django.test import RequestFactory
 from django.urls import NoReverseMatch, reverse
 from django.views.generic import TemplateView
@@ -13,7 +14,6 @@ from django.views.generic import TemplateView
 from demo.models import Article, Product
 from mvp.config import MVP_CONFIG
 from mvp.views.detail import CRUDDirectoryMixin, MVPDetailView, PageObjectMixin
-from mvp.warnings import MVPDeprecationWarning
 from tests.conftest import make_stub_view as _make_stub_view
 
 User = get_user_model()
@@ -293,7 +293,7 @@ class TestUS1Directory:
         view = make_stub_view(
             extra_attrs={
                 "directory": ["nonexistent"],
-                "has_nonexistent_permission": True,
+                "show_nonexistent_action": True,
             },
             kwargs={"pk": 1},
         )
@@ -401,13 +401,13 @@ class TestUS2PermissionGating:
 
     def test_US2_absent_permission_attribute_excludes_url_no_error(self):
         """[US2] Undeclared permission attribute (custom action) → URL excluded, no AttributeError."""
-        # 'archive' is not a standard action, so has_archive_permission doesn't exist
+        # 'archive' is not a standard action, so show_archive_action doesn't exist
         custom_crud = {**MVP_CONFIG["view_names"], "archive": "{model_name}-delete"}
         view = make_stub_view(
             extra_attrs={
                 "directory": ["archive"],
                 "crud_views": custom_crud,
-                # has_archive_permission deliberately not set
+                # show_archive_action deliberately not set
             },
             kwargs={"pk": 1},
         )
@@ -764,21 +764,29 @@ class TestActionVisibilityAttributes:
 
 @pytest.mark.django_db
 class TestLegacyPermissionAttributes:
-    """The pre-0.16 ``has_<action>_permission`` names still decide visibility.
+    """The pre-0.16 ``has_<action>_permission`` names are no longer read.
 
-    They are honoured rather than ignored on purpose. Dropping them silently would
-    *reveal* links a project had hidden, which is the failure the rename exists to
-    prevent (issue #142).
+    They were honoured for six minor releases rather than ignored, because
+    ignoring one would *reveal* a link a project had hidden — the failure the
+    rename exists to prevent (issue #142). Raising keeps that guarantee while
+    dropping the name: an unmigrated project gets an error naming the
+    replacement, never a link it had switched off.
     """
 
-    def test_legacy_true_still_includes_url(self):
+    def test_a_legacy_name_raises_instead_of_deciding_visibility(self):
         view = make_stub_view(
             extra_attrs={"directory": ["list"], "has_list_permission": True}, kwargs={}
         )
-        with pytest.warns(MVPDeprecationWarning, match="show_list_action"):
-            assert "list_url" in view.get_directory()
+        with pytest.raises(ImproperlyConfigured):
+            view.get_directory()
 
-    def test_legacy_false_still_hides_url(self):
+    def test_a_hidden_link_is_never_revealed_by_the_removal(self):
+        """The case that decided the design: hidden yesterday, error today.
+
+        ``has_list_permission = False`` with the new name absent is a project
+        that hid the link and never migrated. Reading the new name alone would
+        draw it.
+        """
         view = make_stub_view(
             extra_attrs={
                 "directory": ["list"],
@@ -787,10 +795,10 @@ class TestLegacyPermissionAttributes:
             },
             kwargs={},
         )
-        with pytest.warns(MVPDeprecationWarning):
-            assert "list_url" not in view.get_directory()
+        with pytest.raises(ImproperlyConfigured):
+            view.get_directory()
 
-    def test_legacy_callable_still_honoured(self):
+    def test_a_legacy_callable_raises_too(self):
         view = make_stub_view(
             extra_attrs={
                 "directory": ["create"],
@@ -798,27 +806,27 @@ class TestLegacyPermissionAttributes:
             },
             kwargs={},
         )
-        with pytest.warns(MVPDeprecationWarning):
-            assert "create_url" not in view.get_directory()
+        with pytest.raises(ImproperlyConfigured):
+            view.get_directory()
 
-    def test_warning_names_the_replacement_and_the_limitation(self):
+    def test_the_error_names_the_view_the_replacement_and_the_limitation(self):
         view = make_stub_view(
             extra_attrs={"directory": ["delete"], "has_delete_permission": True},
             kwargs={"pk": 1},
         )
-        with pytest.warns(MVPDeprecationWarning) as record:
+        with pytest.raises(ImproperlyConfigured) as exc:
             view.get_directory()
-        message = str(record[0].message)
+        message = str(exc.value)
         assert "has_delete_permission" in message
         assert "show_delete_action" in message
         assert "does not restrict access" in message
+        assert type(view).__name__ in message
 
-    def test_warning_is_filterable_without_unmasking_other_packages(self):
-        """The category is a django-mvp subclass, so a project can target it alone."""
-        assert issubclass(MVPDeprecationWarning, DeprecationWarning)
+    def test_nothing_warns_any_more(self, recwarn):
+        """The deprecation period is over, so there is no warning to filter."""
         view = make_stub_view(
             extra_attrs={"directory": ["list"], "has_list_permission": True}, kwargs={}
         )
-        with pytest.warns(MVPDeprecationWarning) as record:
+        with pytest.raises(ImproperlyConfigured):
             view.get_directory()
-        assert record[0].category is MVPDeprecationWarning
+        assert [w for w in recwarn.list if issubclass(w.category, DeprecationWarning)] == []

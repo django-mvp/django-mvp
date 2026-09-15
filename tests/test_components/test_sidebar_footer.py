@@ -3,7 +3,8 @@
 <c-app.sidebar.footer> no longer reads a widget list from settings (docs/adr/
 0023): it always renders the user menu or the log-in button (whichever
 matches the request), a theme control and a language control. Rendered via
-tests/sidebar_footer.html.
+tests/sidebar_footer.html, and tests/sidebar_footer_bg.html where a passed
+background is what is under test.
 """
 
 import re
@@ -16,12 +17,12 @@ from django.test import RequestFactory
 from django.utils import translation
 
 
-def _render(user):
+def _render(user, template="tests/sidebar_footer.html"):
     request = RequestFactory().get("/some/path/")
     request.user = user
     request.LANGUAGE_CODE = "en"
     with translation.override("en"):
-        return render_to_string("tests/sidebar_footer.html", request=request)
+        return render_to_string(template, request=request)
 
 
 class TestSidebarFooterAuthenticated:
@@ -117,4 +118,31 @@ class TestSidebarFooterThemeControlIsCompact:
         )
         assert all("btn-sm" in classes for classes in squares), (
             f"both footer controls must render at the same size, got {squares}"
+        )
+
+
+class TestSidebarFooterTakesTheSidebarsBackground:
+    """The footer looks like the sidebar it sits in, without being told twice.
+
+    ``<c-app.sidebar>`` hands its own ``bg`` to its header and its footer, so
+    repainting the rail is one attribute. A background hard-coded here would
+    leave a strip of the old colour across the bottom of a repainted sidebar.
+    Anything beyond the colour is an override of this template, by design —
+    see docs/adr/0023-the-sidebar-footer-is-a-fixed-composition.md.
+    """
+
+    @pytest.mark.django_db
+    def test_a_passed_background_replaces_the_default(self):
+        html = _render(AnonymousUser(), template="tests/sidebar_footer_bg.html")
+
+        # The component's own element is the first one the fixture renders.
+        # Controls inside it carry base colours of their own, so the assertion
+        # has to be about this element rather than the whole fragment.
+        root = re.search(r"<div class=\"([^\"]*)\"", html)
+        assert root is not None, "the footer must render an element of its own"
+
+        classes = root.group(1)
+        assert "bg-primary" in classes, f"expected the background it was given, got {classes}"
+        assert "bg-base-200" not in classes, (
+            f"the default background must not survive alongside it, got {classes}"
         )

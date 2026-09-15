@@ -4,10 +4,11 @@ django-mvp ships enhanced class-based views so common pages work out of the box:
 consistent page chrome (title, breadcrumbs), list pages with search/ordering/pagination,
 styled forms with smart rendering, and safe delete flows.
 
-**Composition model:** concrete views (`MVP*View`) are exported from `mvp.views`;
-the mixins they're built from are importable from their modules
-(`mvp.views.base`, `mvp.views.list`, ...) for composing your own views — the standard
-Django pattern, no factories.
+**Composition model:** concrete views (`MVP*View`) are exported from `mvp.views`, along with
+`MVPFormBase` and `MVPModelFormBase` — base classes for building a form view on top of a
+Django base class the package doesn't ship one for. The mixins they're all built from are
+importable from their own modules (`mvp.views.base`, `mvp.views.list`, ...) for composing
+your own views — the standard Django pattern, no factories.
 
 ```python
 from mvp.views import (
@@ -31,8 +32,27 @@ class AboutView(MVPTemplateView):
     page_subtitle = "Who we are"
 ```
 
+`page_class` works the same way: `get_page_class()` always prefixes it with `mvp-page`, so
+`page_class = "products-list"` renders as `class="mvp-page products-list"`. There's no
+`page_icon` — a couple of packaged templates read `page.icon`, but nothing sets it, so it
+always renders empty.
+
 `MVPHomeView` renders a dashboard template for authenticated users and a landing
-template for anonymous visitors.
+template for anonymous visitors, from the one URL, with no redirect. Override
+`dashboard_template_name` and `landing_template_name` to point at your own templates;
+setting either to `None` raises `ImproperlyConfigured` instead of silently disabling that
+half of the view. `get_dashboard_context()` and `get_landing_context()` are the matching
+hooks — each takes the already-built context and must return it:
+
+```python
+class HomeView(MVPHomeView):
+    landing_template_name = "myapp/landing.html"
+    dashboard_template_name = "myapp/dashboard.html"
+
+    def get_dashboard_context(self, context):
+        context["recent"] = Order.objects.filter(user=self.request.user)[:5]
+        return context  # returning None blanks the context
+```
 
 ### Explaining what a page is for
 
@@ -168,6 +188,10 @@ Set `empty_state_message` to `None` to drop the paragraph for everyone and leave
 heading alone. To say something to read-only visitors instead, override
 `get_empty_state_message()`.
 
+Overriding `get_search_fields()` alone filters `?q=` without drawing the search box — the
+box's visibility reads the `search_fields` attribute directly, not the hook. Set
+`search_fields` to something truthy too if you need the box to show.
+
 For filtering with django-filter or table rendering with django-tables2, see
 [Integrations](integrations.md).
 
@@ -188,11 +212,55 @@ class ProductUpdateView(MVPUpdateView):
   [ADR 0006](adr/0006-crispy-forms-is-a-runtime-dependency.md)). A form carrying a
   `helper` is rendered through it; otherwise the default crispy rendering applies.
   There is no per-view renderer setting.
-- **Success URL chain** — explicit `success_url` → the object's detail view → the list
-  view → back where you came from. A validated `?next=` parameter (open-redirect safe,
-  via `NextURLMixin`) wins over all of them.
+- **Success URL chain** — a validated `?next=` (open-redirect safe, via `NextURLMixin`)
+  wins first. Failing that, `success_url` is tried as a CRUD shorthand (`"list"`,
+  `"detail"`, ...) through the same resolver that builds the action links, gated by the
+  same `show_<action>_action` flags; when it isn't a recognised shorthand, or the flag is
+  off, the raw value is used verbatim as a URL path instead. Failing that,
+  `self.object.get_absolute_url()` is used if the model defines it. With nothing left to
+  try, the view raises `ImproperlyConfigured`.
 - Model form views derive page titles and success messages from the model's
   `verbose_name`.
+
+Three ways to change what a form looks like, cheapest first: give the form a crispy
+`helper` for layouts, rows and field ordering — set `helper.form_tag = False` since the
+page already renders the `<form>` element, the submit buttons and the CSRF token; drop
+`c-form.*` components into a template block and compose the parts by hand; or give the
+view a `template_name` extending `form_view.html` and override its `before_form`,
+`formset`, `actions` or `after_form` blocks.
+
+### Plain form pages
+
+`MVPFormView` is a non-model form page — Django's `FormView` with the packaged chrome.
+It needs no `model`, just a `form_class` and a `success_url`:
+
+```python
+class ContactView(MVPFormView):
+    form_class = ContactForm
+    success_url = "/contact/success/"
+    page_title = "Contact Us"
+```
+
+Its redirect chain is shorter than the model views', and its `success_url` step works
+differently: `?next=` first, then `success_url` used verbatim as a URL path — unlike
+`MVPCreateView`/`MVPUpdateView`, it is never tried as a CRUD shorthand first — then
+`ImproperlyConfigured`. Leave `page_title` unset and it's derived from the class name
+instead of a model's `verbose_name`: `ContactUsView` becomes "Contact Us View".
+
+Page chrome that would otherwise need a model — the CSS class suffix, the list-view
+breadcrumb — is simply absent on a plain `MVPFormView`, rather than erroring: no
+model-derived class, and a breadcrumb trail with just the page title, no link back to a
+list. Give the page a model to derive that chrome from anyway by overriding
+`get_model_class()`:
+
+```python
+class ContactView(MVPFormView):
+    form_class = ContactForm  # a plain forms.Form
+    success_url = "/thanks/"
+
+    def get_model_class(self):
+        return Enquiry  # any model — feeds the title, breadcrumb and CSS class
+```
 
 ### A parent and its related rows
 
@@ -227,6 +295,13 @@ at all.
 - shows a summary of related objects that will be deleted with the target,
 - blocks deletion (with an explanatory page) when protected relations exist,
 - optional type-to-confirm for dangerous deletes (`require_confirmation = True`).
+
+A blocked delete re-renders the same page with a 200 rather than redirecting or raising —
+the POST that triggered it never reaches Django's own `ProtectedError`.
+
+A successful delete's redirect chain differs from the other form views' at its last step:
+without an explicit `success_url`, it lands on the registered list URL rather than
+`get_absolute_url()` — there's no object left to link a detail page to once it's deleted.
 
 ### Related-objects summary
 
@@ -274,6 +349,17 @@ nothing. The browser only decides whether the button is clickable.
 A record that is blocked by a protected relation asks for no confirmation, because it
 offers no Delete button to enable.
 
+### Reaching it from the update page
+
+`MVPUpdateView` draws its own Delete button next to the save buttons, from a `delete_url`
+context key gated by `show_delete_action` — empty, and the button absent, when that flag
+is off. The link carries two query parameters the delete page reads back: `back`, this
+update page's own URL (resolved directly, not gated by `show_update_action`, so leaving
+that flag at its default `False` doesn't blank the link), and `next`, the list URL.
+`get_back_url()` on the delete view reads `back`, validates it against the current host,
+and falls back to the list URL when it's absent; `next` feeds the usual `?next=` handling
+for the post-delete redirect.
+
 ## Detail pages and CRUD URLs
 
 `MVPDetailView` (via `CRUDDirectoryMixin`) builds a `directory` of CRUD URLs for the
@@ -292,6 +378,19 @@ MVP_CONFIG = {
     },
 }
 ```
+
+`MVPDetailView`'s own page title is `str(self.object)`, and its CSS class carries a
+`<model_name>-page` suffix alongside `mvp-page`. Its `directory` defaults to
+`["update", "delete"]` — list is deliberately absent, since the breadcrumb trail already
+links it. `list_view_title` overrides the label on that breadcrumb link; left unset, it
+falls back to `verbose_name_plural.title()`.
+
+Each action's URL kwargs come from `get_url_kwargs(action)`, which defaults to `{}` for
+`list` and `create` and `self.kwargs` for everything else. Override it for nested URL
+patterns, branching on `action`; returning `None` suppresses that action's link silently,
+with no error. Short of that, a shown action whose URL name isn't registered raises
+`NoReverseMatch` instead of quietly dropping the link, so a misconfigured route surfaces
+rather than vanishing.
 
 ### Action links are not access control
 
@@ -329,12 +428,12 @@ def show_delete_action(self, user):
     return user.has_perm("shop.delete_product")
 ```
 
-> **Renamed in 0.16.** These attributes were `has_<action>_permission`. The old names
-> still work and still decide visibility, and are removed in 0.18. Using one raises
-> `mvp.warnings.MVPDeprecationWarning`. Python ignores that by default, as it does any
-> `DeprecationWarning`, so add
-> `filterwarnings = ["error::mvp.warnings.MVPDeprecationWarning"]` to your pytest config
-> to find every call site at once.
+> **Renamed in 0.16, and the old names are no longer read.** These attributes
+> were `has_<action>_permission`. A view that still sets one raises
+> `ImproperlyConfigured` naming the view and the attribute to rename. It raises
+> rather than ignoring the old name, because ignoring it would draw a link the
+> project had switched off. Renaming the attribute is the whole migration — the
+> accepted values and the callable signature are unchanged.
 
 ## htmx
 

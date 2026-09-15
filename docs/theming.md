@@ -20,6 +20,11 @@ MVP_CONFIG = {
 }
 ```
 
+Setting `choices` to a non-empty list changes what `<c-actions.theme-controller />` renders:
+a dropdown of exactly those names instead of a toggle between `default` and `dark`. `dark`
+goes unused once `choices` is set, and a theme left out of `choices` can no longer be reached
+through the switcher, whatever `dark` says.
+
 Both are DaisyUI's, not palettes this package drew. That is on purpose: a theme is the entire
 visible surface of your application, and the identity on it should be one you chose rather than
 one your dependency picked. The package's job is the mechanism and the components; the palette is
@@ -69,6 +74,22 @@ changes which block matches, the browser recalculates `var()` lookups, and the p
 re-renders with the new values. This is why you can switch a theme with plain JavaScript
 (`document.documentElement.setAttribute('data-theme', 'dracula')`) and why writing a theme
 of your own is just writing CSS.
+
+## How the theme is applied
+
+`mvp/base.html` opens `<head>` with a small inline script, before the `head` block and
+before any stylesheet. It reads `localStorage.theme`, checks it against `choices` if
+`choices` is set, and falls back to `default` if there's no stored value or the stored one
+isn't offered. It then sets `data-theme` on `<html>`.
+
+The script is deliberately blocking and inline: an external or deferred script runs after
+first paint, so the page would render in `default` and visibly flip to the visitor's stored
+theme on every navigation. A stored theme the project no longer offers is rewritten back to
+`default` in `localStorage` at the same time, rather than just for that one render.
+
+The bundled theme-change library binds the `data-set-theme` / `data-toggle-theme` controls
+afterwards, once the deferred JavaScript bundle runs — it only wires the controls; the inline
+script above is what applies the theme before the page paints.
 
 ## The full variable table
 

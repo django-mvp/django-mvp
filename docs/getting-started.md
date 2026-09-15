@@ -56,6 +56,30 @@ TEMPLATES = [
 ]
 ```
 
+Without `django.template.context_processors.request`, menu rendering raises `KeyError:
+'request'` — the sidebar and dock read `request` from the template context directly.
+Without `mvp.context_processors.mvp_config`, every settings-driven option resolves to
+nothing: no theme applied on first paint, no sidebar breakpoint, empty navbar widget
+lists.
+
+## Sites and the site name
+
+The shell prints `request.site.name` in the page `<title>` and the navbar. That
+attribute is set by `CurrentSiteMiddleware`, not by `django.contrib.sites` alone, so add
+the middleware and the site ID too:
+
+```python
+MIDDLEWARE = [
+    "django.contrib.sites.middleware.CurrentSiteMiddleware",
+    # ... the rest of your middleware
+]
+
+SITE_ID = 1
+```
+
+Skip either piece and nothing raises — the site name in the title and navbar just
+renders empty.
+
 ## Configure icons
 
 django-mvp resolves icon names through
@@ -77,6 +101,9 @@ EASY_ICONS = {
     },
 }
 ```
+
+`EASY_ICONS` needs a `default` renderer entry — leave the setting unset and the first
+icon on the page raises `ImproperlyConfigured`.
 
 The bundled pack registers common icons under several synonyms — `add`, `plus` and
 `create` all resolve to the same glyph, as do `delete`/`remove`/`trash`,
@@ -108,6 +135,9 @@ FLEX_MENUS = {
 }
 ```
 
+Neither key is checked at startup — `manage.py check` passes without them, and a page
+fails only when it tries to render a menu through an unregistered renderer name.
+
 ## Configure form rendering
 
 django-mvp's form pages render through
@@ -138,6 +168,10 @@ content area, footer, mobile dock):
   </c-container>
 {% endblock %}
 ```
+
+Fill `block content`; don't recompose `<c-app>` in your own template. The sidebar,
+header, main region, footer and dock are assembled by the shell, and hand-composing them
+means every layout setting stops reaching the page.
 
 The packaged page templates — `page_view.html` and the list, detail, form, delete and
 table pages that build on it — extend the unqualified `base.html` instead. That name is
@@ -192,7 +226,9 @@ See [Layout](layout.md) for every option.
 
 ## Error pages
 
-Wire django-mvp's styled error handlers in your root `urls.py`:
+Wire django-mvp's styled error handlers in your root `urls.py` — Django reads
+`handler400`, `handler403`, `handler404` and `handler500` only from the module named by
+`ROOT_URLCONF`, so setting them in an included app's `urls.py` has no effect:
 
 ```python
 handler400 = "mvp.views.bad_request"
@@ -200,3 +236,49 @@ handler403 = "mvp.views.permission_denied"
 handler404 = "mvp.views.not_found"
 handler500 = "mvp.views.server_error"
 ```
+
+Each handler renders an unqualified template name (`400.html`, `403.html`, `404.html`,
+`500.html`). The packaged copies extend `mvp/error_base.html`, which replaces the entire
+shell — an error page has no sidebar, navbar or dock. Restyle one by putting a template
+of the same name in an app listed above `mvp` and extending the same base:
+
+```html
+<!-- your_app/templates/404.html -->
+{% extends "mvp/error_base.html" %}
+{% block error_code %}404{% endblock %}
+{% block heading %}Nothing here.{% endblock %}
+{% block description %}That page has moved or never existed.{% endblock %}
+```
+
+| Block | Default | Notes |
+| --- | --- | --- |
+| `title` | `"Error"` in the base, per-code in each page | Rendered inside the shared `<title>`. |
+| `error_code` | empty | The large numeral. |
+| `heading` | empty | The `<h1>`. |
+| `description` | empty | Body text under the heading. |
+| `actions` | a "Return to site" button to `/` | Use `{{ block.super }}` to keep it and add your own. |
+
+The 500 page adds a `mailto:` support button whenever `settings.DEFAULT_FROM_EMAIL` is
+truthy. Django's own global default for that setting is `webmaster@localhost`, so an
+unconfigured project ships a 500 page inviting visitors to mail `webmaster@localhost` —
+set it to a real address, or to `""` to drop the button. If you override the 500
+template, keep it free of database queries: the handler runs while the request that
+crashed is already broken.
+
+With `DEBUG = True`, Django serves its own 404 and 500 pages instead of the ones above;
+`handler403` still runs in debug, so a `PermissionDenied` always shows the styled 403.
+
+## Verify
+
+```bash
+python manage.py check
+```
+
+Then load a page and confirm:
+
+- The shell renders: sidebar, header, content area, footer.
+- The `<title>` and navbar show your site's name.
+- Sidebar items appear, each links to a resolving URL, and the current one is highlighted.
+- Every icon draws a glyph, not an empty box.
+- A page with a form renders styled fields rather than raising `TemplateSyntaxError`.
+- With `DEBUG = False`, an unknown URL returns the styled 404 rather than Django's own.

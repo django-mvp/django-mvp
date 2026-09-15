@@ -11,9 +11,20 @@ without a second set of rules. The physical forms are not in the packaged styles
 build your own with `python manage.py mvp_tailwind`, Tailwind scans your templates and emits
 whatever you actually use, physical forms included.
 
+Because these classes are built in rather than scanned, only a whole class name written
+literally in a template matches one. A class assembled at render time —
+`class="text-{{ level }}"`, a class name built in a view, a utility named in a
+django-tables2 column's `attrs` through string formatting — is invisible to what shipped,
+even if the finished string happens to name a class from this page. Write the whole class
+name in the template.
+
 ## Responsive utilities (base, `md:`, `lg:`, `xl:`)
 
-These ship at four breakpoint variants each: unprefixed, `md:`, `lg:`, `xl:`.
+These ship at four breakpoint variants each: unprefixed, `md:`, `lg:`, `xl:`. `sm:` and
+`2xl:` are not part of this pack — a handful of classes ship at those prefixes because a
+packaged component builds them from its own attributes (a responsive `grid-cols-*` on a
+menu, `drawer-open` on the sidebar breakpoint classes), not because they're available
+generally. Reach for `md:`, `lg:` or `xl:`.
 
 | Group | Classes |
 | --- | --- |
@@ -51,6 +62,20 @@ These ship unprefixed only.
 | Interaction | `transition`, `select-none`, `pointer-events-none`, `align-middle`, `duration-{150,200,300}` |
 | Object fit | `object-{cover,contain,fill}` |
 | List style | `list-{none,disc,decimal}` |
+
+Shadow utilities (`shadow-md`, `shadow-2xl`, and any prefixed form like `hover:shadow-lg`)
+are deliberately left out, and a missing one is silent — the element renders flat with no
+error. `shadow-sm`, `shadow-lg`, `shadow-xl` and `shadow-none` exist anyway, as a
+by-product of how daisyUI's own source is scanned; don't build on that, since `shadow-md`
+right next to them matches nothing. The omission is easy to miss because the components
+carry their own shadows internally — a `<c-card>` looks raised whether or not a `shadow-lg`
+you added did anything.
+
+## Typography
+
+The Tailwind typography plugin ships too. `prose` works, and so does `not-prose` — it isn't
+a generated utility but part of every `.prose` selector, so it's always present. The size
+and colour modifiers, `prose-lg` and `prose-invert`, don't ship.
 
 ## Colour utilities (base only)
 

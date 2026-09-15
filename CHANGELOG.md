@@ -25,6 +25,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   signed-out visitor to do. Both unset, it renders exactly as it did, which is what
   the navbar keeps.
 
+- **`docs/configuration.md`, `docs/icons.md` and `docs/troubleshooting.md`.** The
+  complete `MVP_CONFIG` key reference, how an icon name resolves and what to change
+  to use a different set, and the common symptoms with their causes. All three were
+  previously documented only for coding assistants.
+
 ### Changed
 
 - **The sidebar footer is a fixed composition**: a row holding the signed-in user's
@@ -39,6 +44,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   to spare, which the fixed composition above no longer has once it shares the row
   with the theme and language controls.
 
+- **There is one description of this package, and `docs/` is it.** Every public
+  surface is now documented there and nowhere else. `skills/django-mvp/SKILL.md`
+  remains, as a map over those pages — what to get right first, a quickstart, and a
+  routing table — and carries no reference material of its own. Two hand-written
+  descriptions of the same code drifted apart twice in six months, and the same
+  eleven wrong claims had to be found separately in each. Nothing a project depends
+  on changed; the pages a reader is sent to are the ones that were already there,
+  now complete.
+
 ### Removed
 
 - **BREAKING: `MVP_CONFIG["layout"]["sidebar"]["footer"]` no longer has any effect.**
@@ -47,6 +61,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   **On upgrade**, a project that sets it gets an `MVPDeprecationWarning` naming the
   replacement, and the setting is discarded — no template reads it. Move whatever
   the list configured into an overridden `templates/cotton/app/sidebar/footer.html`.
+
+- **BREAKING: `has_<action>_permission` is no longer read.** The five attributes
+  were renamed to `show_<action>_action` in 0.16 and kept working since, which the
+  release notes of the time said would end at 0.18. It did not, and four places went
+  on saying otherwise for six minor releases.
+
+  **On upgrade**, a view that still sets one of the old names raises
+  `ImproperlyConfigured` naming the view and the attribute to rename. It raises
+  rather than ignoring the name, because ignoring it would draw a link the project
+  had switched off — an error is the only outcome that cannot quietly reveal
+  something. Renaming the attribute is the whole migration: the accepted values and
+  the callable signature are unchanged.
+
+- **`skills/django-mvp/references/`.** Its contents now live in `docs/`. See "There
+  is one description of this package" above.
 
 ### Fixed
 

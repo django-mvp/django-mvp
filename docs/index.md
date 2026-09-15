@@ -13,16 +13,19 @@ configuration through Django settings, customization through template overrides.
 | Guide | What it covers |
 | --- | --- |
 | [Getting Started](getting-started.md) | Installation, settings, your first page |
-| [Layout](layout.md) | The app shell and its `MVP_CONFIG` configuration — sidebar breakpoint, collapse modes, navbar widgets |
+| [Configuration](configuration.md) | Every `MVP_CONFIG` key, its default, and how a value resolves |
+| [Layout](layout.md) | The app shell — template blocks, breadcrumbs, per-page overrides, full-height pages |
 | [Components](components.md) | The Cotton component library reference |
 | [Navigation](navigation.md) | Sidebar and mobile-dock menus via django-flex-menus |
+| [Icons](icons.md) | How a name resolves, what the packaged set defines, and using a different one |
 | [Account Center](account-center.md) | The account area any installed app can add a page to |
 | [Views](views.md) | List/form/detail/delete views and mixins |
 | [Formsets](formsets.md) | A parent record and its related rows, and the standalone formset case |
-| [Styling](styling.md) | Tailwind/DaisyUI, theming, and building your own CSS |
+| [Styling](styling.md) | Tailwind/DaisyUI, the two build tiers, and the shell's class hooks |
 | [Theming](theming.md) | Every theme variable, why the theme plugin computes nothing, and writing a custom theme from scratch |
 | [Utility Classes](utility-classes.md) | Every Tailwind utility and daisyUI component the packaged stylesheet ships pre-built |
-| [Integrations](integrations.md) | Optional third-party integrations (django-tables2, django-filter) |
+| [Integrations](integrations.md) | Optional third-party integrations (django-tables2, django-filter, htmx) |
+| [Troubleshooting](troubleshooting.md) | Common symptoms, their causes, and the fix |
 
 ## Design philosophy
 
