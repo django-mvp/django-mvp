@@ -292,27 +292,44 @@ overlay at every width and nothing is persisted at all.
 
 ## Layout store
 
-Every shell page registers `Alpine.store("layout", ...)`, read from any element as
-`$store.layout`. The drawer's checkbox stays the source of truth for whether the
-sidebar is open — the store mirrors it, not the reverse — and a shell-less page
-still gets one, reporting defaults rather than throwing.
+Every shell page registers `Alpine.store("mvp", ...)`, read from any element as `$store.mvp`.
+The drawer's checkbox stays the source of truth for whether the sidebar is open — the store
+mirrors it, not the reverse — and a shell-less page still gets one, reporting defaults rather
+than throwing. Its shape, with representative values:
 
-| Key | Type | What it holds |
-| --- | --- | --- |
-| `sidebarOpen` | boolean | Whether the sidebar is open right now — overlay below the breakpoint, persistent panel at/above it. |
-| `desktopOpen` | boolean | The remembered desktop-width open state, persisted to `localStorage`. |
-| `isWide` | boolean | Whether the viewport is at/above `config.breakpoint_px`, via a `matchMedia` listener. Permanently `false` when `config.breakpoint` is `never`. |
-| `headerStuck` | boolean | Whether the sticky header has scrolled off its resting position. |
-| `config.breakpoint` | string | The resolved sidebar breakpoint for this page: `sm`, `md`, `lg`, `xl`, `2xl`, or `never`. |
-| `config.breakpoint_px` | number or `null` | The breakpoint's pixel width, or `null` when `never` — there is no width to report. |
-| `config.persistent` | boolean | Whether the sidebar ever becomes a persistent panel at some width. `false` only when `breakpoint` is `never`. |
-| `config.collapse` | string | `"offcanvas"` or `"icons"`. |
-| `config.sticky` | boolean | Whether the header pins to the top of the viewport. |
-| `config.boost` | boolean | Whether sidebar links use `hx-boost`. |
+```json
+{
+  "sidebar": {
+    "open": true,
+    "desktopOpen": true,
+    "breakpoint": "lg",
+    "breakpointPx": 1024,
+    "persistent": true,
+    "collapse": "offcanvas",
+    "boost": false
+  },
+  "header": {
+    "stuck": false,
+    "sticky": true
+  },
+  "isWide": true
+}
+```
 
-`config` is nested rather than flattened onto the store because its values resolve once per render
-and stay fixed, unlike the four reactive properties above it — see
-`specs/029-layout-state-store/decisions.md` D10. Full reference and a worked example:
+- `sidebar.open` — whether the sidebar is open right now: overlay below the breakpoint, persistent panel at/above it.
+- `sidebar.desktopOpen` — the remembered desktop-width open state, persisted to `localStorage`.
+- `sidebar.breakpoint` — the resolved sidebar breakpoint for this page: `sm`, `md`, `lg`, `xl`, `2xl`, or `never`.
+- `sidebar.breakpointPx` — the breakpoint's pixel width, or `null` when `never` — there is no width to report.
+- `sidebar.persistent` — whether the sidebar ever becomes a persistent panel at some width. `false` only when `breakpoint` is `never`.
+- `sidebar.collapse` — `"offcanvas"` or `"icons"`.
+- `sidebar.boost` — whether sidebar links use `hx-boost`.
+- `header.stuck` — whether the sticky header has scrolled off its resting position.
+- `header.sticky` — whether the header pins to the top of the viewport, from `MVP_CONFIG["layout"]["navbar"]["sticky"]`.
+- `isWide` — whether the viewport is at/above `sidebar.breakpointPx`, via a `matchMedia` listener. Permanently `false` when `sidebar.breakpoint` is `never`. Stands at the top level, not under `sidebar`, because it reports the viewport rather than the sidebar itself.
+
+Grouped by component rather than flattened, dropping the earlier `config` tier: whether a value
+came from settings or from a click is not what a consumer of the store is asking — see
+`specs/029-layout-state-store/decisions.md` D14. Full reference and a worked example:
 [docs/layout.md#the-layout-store](../../../docs/layout.md#the-layout-store); the demo runs it at
 `/layout/store/`, and accepts `?breakpoint=` for exercising a per-page override or the `never` case.
 

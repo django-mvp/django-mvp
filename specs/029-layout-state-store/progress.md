@@ -463,3 +463,32 @@ outbound fetch, raw SQL or dependency, and touches no permission path.
 
 Seven required checks green on the remote. The pull request is out of draft and waiting on the
 merge decision.
+
+## 2026-09-15T08:53:00Z · Implementer US-1 · T018
+
+Did: renamed the Alpine store from `layout` to `mvp` and reshaped it from four reactive
+properties plus a nested `config` object into two component groups — `sidebar` (open,
+desktopOpen, breakpoint, breakpointPx, persistent, collapse, boost) and `header` (stuck,
+sticky) — with `isWide` left standing alone at the top level. `LayoutConfig.as_dict()`
+(`mvp/layout.py`) now emits the same grouped, camelCase shape. Updated every reader:
+`assets/js/layout.js`, `assets/js/index.js`, the sidebar and header drawer templates, the
+demo store page and view comment, `docs/layout.md`, `skills/django-mvp/references/layout.md`,
+`CONTEXT.md`, `CHANGELOG.md`. Rebuilt and committed the bundle
+(`poetry run invoke build-js`). See `decisions.md` D14.
+
+Verified: `poetry run pytest tests/test_layout.py tests/test_components/test_layout_config.py`
+(69 passed), `poetry run pytest tests/test_components/test_layout_store.py
+tests/test_components/test_sidebar_persisted_state.py` (18 passed, real browser),
+`poetry run pytest tests/test_components/test_responsive_visibility.py` (28 passed,
+untouched — confirms the frozen characterisation matrix reads nothing off the store).
+`poetry run ruff check`, `poetry run ruff format --check` and `poetry run mypy mvp` on
+every changed Python file, all clean.
+
+Next: none — T018 was the only task in this dispatch.
+
+Watch: `tests/test_components/test_layout_store.py` and
+`tests/test_components/test_sidebar_persisted_state.py` read local JS object keys named
+`sidebarOpen`/`headerStuck` inside `page.evaluate()` calls (aliases chosen for the
+`page.evaluate()` return value, not store paths) — left as-is; they read from
+`Alpine.store('mvp').sidebar.open` / `.header.stuck` correctly and renaming the aliases
+would touch lines outside this rename's purpose.

@@ -37,17 +37,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   future django-accounts-center release drops its own copies in favor of these.
 
 - **The shell publishes its layout state and configuration to the page**, as a single Alpine
-  store named `layout`. Your own markup can respond to the shell it sits inside —
-  `x-show="$store.layout.sidebarOpen"` on a floating button that should step aside, say —
+  store named `mvp`, grouped by component. Your own markup can respond to the shell it sits
+  inside — `x-show="$store.mvp.sidebar.open"` on a floating button that should step aside, say —
   without reimplementing the logic against the package's internal markup or hard-coding a
   pixel width your own settings can change underneath it.
 
-  The store reports whether the sidebar is open, its remembered desktop state, whether the
-  header has scrolled, whether the viewport is at or above the configured breakpoint, and
-  the resolved layout configuration behind all of it: the breakpoint, its width in pixels,
-  the collapse mode, whether the header is sticky, and whether sidebar navigation is
-  boosted. Those values are the ones the page resolved, so a page that overrides the
-  breakpoint for itself is what you read.
+  `$store.mvp.sidebar` reports whether the sidebar is open, its remembered desktop state, and
+  the resolved layout configuration behind it: the breakpoint, its width in pixels, the collapse
+  mode, and whether sidebar navigation is boosted. `$store.mvp.header` reports whether the header
+  has scrolled and whether it is sticky. `$store.mvp.isWide` reports whether the viewport is at
+  or above the configured breakpoint — at the top level rather than under `sidebar`, since it
+  describes the viewport rather than the sidebar. Those values are the ones the page resolved, so
+  a page that overrides the breakpoint for itself is what you read.
 
   It reports state it does not own. The drawer's checkbox still decides whether the sidebar
   is open and the stylesheet still reacts to it directly, so nothing about the first paint

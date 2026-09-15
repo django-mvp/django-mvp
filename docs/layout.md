@@ -479,8 +479,9 @@ in any capitalisation mean the sidebar is an overlay at every width, so `persist
 the package does not recognise falls back to `lg` rather than raising, so a typo in
 `MVP_CONFIG` costs you the default rather than the page.
 
-`as_dict()` is what the shell hands to the browser, so the names above are the same
-names client-side code reads.
+`as_dict()` is what the shell hands to the browser: grouped by component and camelCase —
+the same document [the layout store](#the-layout-store) reads, so the payload and the store
+never have two shapes to keep in agreement.
 
 ## Responsive visibility
 
@@ -505,66 +506,57 @@ the sidebar-toggle button and site icon are all built from these three.
 
 ## The layout store
 
-Every shell page registers an Alpine store named `layout`, so any element inside the shell can
-read or react to the sidebar, header and breakpoint state through `$store.layout`:
+Every shell page registers an Alpine store named `mvp`, so any element inside the shell can read
+or react to the sidebar, header and viewport state through `$store.mvp`. Its shape, with
+representative values:
 
-| Property | Type | What it holds |
-| --- | --- | --- |
-| `sidebarOpen` | boolean | Whether the sidebar is currently open — the mobile overlay below the breakpoint, the persistent panel at/above it. Bound to the drawer's own checkbox; reading it never lags what is on screen. |
-| `desktopOpen` | boolean | The remembered desktop-width open state (what `sidebarOpen` is restored to on a later visit, at/above the breakpoint). Persisted to `localStorage`. |
-| `isWide` | boolean | Whether the viewport is currently at or above `layout.sidebar.breakpoint`. Permanently `false` when the sidebar is set to `never`/`none`. |
-| `headerStuck` | boolean | Whether the sticky header has scrolled off its resting position (the same state that draws its shadow). Always `false` when `layout.navbar.sticky` is `False`. |
-| `config` | object | The resolved [`LayoutConfig`](#reading-the-resolved-layout-in-python) for this page, as plain data. See the table below for its keys. |
+```json
+{
+  "sidebar": {
+    "open": true,
+    "desktopOpen": true,
+    "breakpoint": "lg",
+    "breakpointPx": 1024,
+    "persistent": true,
+    "collapse": "offcanvas",
+    "boost": false
+  },
+  "header": {
+    "stuck": false,
+    "sticky": true
+  },
+  "isWide": true
+}
+```
 
-A page that renders no shell — the entrance page, the error pages — still gets a store: `config`
-holds the package defaults, `sidebarOpen` and `headerStuck` are `false`, and nothing throws.
+- `sidebar.open` — whether the sidebar is open right now: the mobile overlay below the breakpoint, the persistent panel at/above it. Bound to the drawer's own checkbox; reading it never lags what is on screen.
+- `sidebar.desktopOpen` — the remembered desktop-width open state (what `sidebar.open` is restored to on a later visit, at/above the breakpoint). Persisted to `localStorage`.
+- `sidebar.breakpoint` — the normalised sidebar breakpoint for this page: `sm`, `md`, `lg`, `xl`, `2xl`, or `never`. An unrecognised name already fell back to `lg` server-side.
+- `sidebar.breakpointPx` — the breakpoint's width in pixels (see the [breakpoint table](#sidebar-breakpoint)) — `null` when `breakpoint` is `never`, since there is no width to report. This is what `isWide`'s `matchMedia` listener watches.
+- `sidebar.persistent` — whether the sidebar ever becomes a persistent panel at some width. `false` only when `breakpoint` is `never`; `isWide` then stays permanently `false` too, because no listener is attached.
+- `sidebar.collapse` — `"offcanvas"` or `"icons"`, see [Sidebar collapse mode](#sidebar-collapse-mode).
+- `sidebar.boost` — whether sidebar links use `hx-boost`, see [Boosted sidebar navigation](#boosted-sidebar-navigation).
+- `header.stuck` — whether the sticky header has scrolled off its resting position (the same state that draws its shadow). Always `false` when `header.sticky` is `false`.
+- `header.sticky` — whether the header pins to the top of the viewport, see [Navbar position](#navbar-position). Sourced from `MVP_CONFIG["layout"]["navbar"]["sticky"]`, unchanged by the store's own grouping.
+- `isWide` — whether the viewport is currently at or above `sidebar.breakpointPx`. Permanently `false` when the sidebar is `never`/`none`. Reported at the top level rather than under `sidebar` because it describes the viewport, not the sidebar — the things that read it have nothing to do with the sidebar itself.
+
+A page that renders no shell — the entrance page, the error pages — still gets a store reporting
+the values above (`sidebar.open` and `header.stuck` both `false`), and nothing throws.
 
 ```html
-<div x-data class="badge" :class="$store.layout.sidebarOpen ? 'badge-success' : 'badge-ghost'"
-     x-text="$store.layout.sidebarOpen ? 'open' : 'closed'"></div>
+<div x-data class="badge" :class="$store.mvp.sidebar.open ? 'badge-success' : 'badge-ghost'"
+     x-text="$store.mvp.sidebar.open ? 'open' : 'closed'"></div>
 ```
 
 The demo runs this, alongside the collapse mode and the header's stuck state, at
-`/layout/store/`.
+`/layout/store/` — pass `?breakpoint=` to exercise a per-page override or the `never` case,
+e.g. `/layout/store/?breakpoint=xl` and `/layout/store/?breakpoint=never`.
 
 The sidebar checkbox is the source of truth for whether it is open — the store mirrors it, rather
-than the other way around — so write to `sidebarOpen` only by driving that checkbox (the shipped
-controls all do). Writing `desktopOpen` directly works the same way `$persist` always has, but the
-shell already keeps it in sync with `sidebarOpen` above the breakpoint; there is normally nothing
-to write yourself.
-
-### Reading the resolved configuration
-
-`$store.layout.config` carries every key `LayoutConfig.as_dict()` resolves for the current page —
-the per-page override where one exists, otherwise the `MVP_CONFIG` default, otherwise the package
-default, in that order. It is nested under `config`
-rather than sitting alongside `sidebarOpen` and the rest deliberately: those four are reactive state
-that Alpine tracks and that changes while the page is open, while `config`'s values are resolved
-once, server-side, and stay fixed for the life of the page. `isWide` is the one exception that
-proves the rule — it is *derived* from `config.breakpoint_px` by a `matchMedia` listener, so it
-behaves like state and stands alongside the rest rather than inside `config`. The reasoning is
-recorded in full in `specs/029-layout-state-store/decisions.md` D10.
-
-| Key | Type | What it holds |
-| --- | --- | --- |
-| `breakpoint` | string | The normalised sidebar breakpoint name for this page: `sm`, `md`, `lg`, `xl`, `2xl`, or `never`. An unrecognised name already fell back to `lg` server-side, before this payload was built. |
-| `breakpoint_px` | number or `null` | The breakpoint's width in pixels (see the [breakpoint table](#sidebar-breakpoint)) — `null` when `breakpoint` is `never`, since there is no width to report. This is what `isWide`'s `matchMedia` listener watches. |
-| `persistent` | boolean | Whether the sidebar ever becomes a persistent panel at some width. `false` only when `breakpoint` is `never`; `isWide` then stays permanently `false` too, because no listener is attached. |
-| `collapse` | string | `"offcanvas"` or `"icons"` — see [Sidebar collapse mode](#sidebar-collapse-mode). |
-| `sticky` | boolean | Whether the header pins to the top of the viewport — see [Navbar position](#navbar-position). |
-| `boost` | boolean | Whether sidebar links use `hx-boost` — see [Boosted sidebar navigation](#boosted-sidebar-navigation). |
-
-```html
-<div x-data class="text-sm">
-  <span x-text="$store.layout.config.breakpoint"></span> ·
-  <span x-text="$store.layout.config.breakpoint_px ?? 'none'"></span>px ·
-  <span x-text="$store.layout.isWide ? 'wide' : 'narrow'"></span>
-</div>
-```
-
-The demo's `/layout/store/` page accepts a `?breakpoint=` query parameter for exercising a per-page
-override or the `never` case against a real page — `/layout/store/?breakpoint=xl` and
-`/layout/store/?breakpoint=never`.
+than the other way around — so write to `sidebar.open` only by driving that checkbox (the shipped
+controls all do). Writing `sidebar.desktopOpen` directly works the same way `$persist` always has,
+but the shell already keeps it in sync with `sidebar.open` above the breakpoint; there is normally
+nothing to write yourself.
 
 ## Template blocks
 

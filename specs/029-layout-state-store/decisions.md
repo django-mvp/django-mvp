@@ -395,3 +395,54 @@ setting `display: flex` and sitting outside Tailwind's utility layer.
 
 **ADR:** none — corrections within this feature's own diff. The rule the high finding violated is
 already recorded in `docs/adr/0021-responsive-visibility-is-resolved-by-the-browser.md`.
+
+## D14 — T018: the store renamed to `mvp`, grouped by component, `config` dropped
+
+**The question.** A merge-gate request, not a design review finding: rename `Alpine.store("layout",
+...)` to `Alpine.store("mvp", ...)`, and reshape it from four reactive properties plus one nested
+`config` object into two component groups (`sidebar`, `header`) with `isWide` standing alone at the
+top level.
+
+**Chosen: both, exactly as requested, with no other behaviour change.**
+
+**Why.** `layout` is a word a consuming project could plausibly register a store of its own under —
+Alpine silently replaces the first registration with the second, so a naming collision would fail
+quietly. `mvp` is the package's own namespace and nothing else has a reason to claim it. The store
+is public surface from the moment this feature merges (D5, D6, ADR 0022); renaming it after release
+would be a breaking change bought for nothing, so the maintainer asked for the correct name before
+that happens rather than after.
+
+The reshape is D10's own "Revisit if" clause firing: that decision kept `config` nested and named
+`isWide` as the one exception standing outside it, on the reasoning that `config`'s six values
+resolve once server-side while the rest are properties Alpine actively watches. Grouping by
+component asks a different, better question — not "did this come from settings or from a click"
+but "which part of the shell does this describe" — and it answers it more legibly: `sidebar.open`
+and `sidebar.breakpoint` read as one subject instead of two properties in unrelated places that
+happen to both be about the sidebar. `isWide` stays outside every group, exactly as D10 left it,
+because grouping by component does not change what it describes: it reports the viewport, derived
+from the sidebar's breakpoint but read by things that have nothing to do with the sidebar itself.
+Moving it under `sidebar` would misdescribe it the same way flattening `config` onto the store
+would have.
+
+`LayoutConfig.as_dict()` (`mvp/layout.py`) now emits the same grouped, camelCase shape the store
+groups its own state into — `sidebar` (minus `open`/`desktopOpen`, which have no settings-side
+value) and `header` — so the server payload and the client store are one document instead of two
+that have to be kept in agreement by hand. `MVP_CONFIG["layout"]["navbar"]["sticky"]` keeps its own
+name: the store follows the component the setting controls, not the other way around.
+
+**What this means going forward.** Every existing test asserting what the store *does* was updated
+only at its access path — `$store.layout.sidebarOpen` to `$store.mvp.sidebar.open`,
+`$store.layout.config.breakpoint_px` to `$store.mvp.sidebar.breakpointPx`, and so on throughout
+`tests/test_layout.py`, `tests/test_components/test_layout_config.py`,
+`tests/test_components/test_layout_store.py` and `tests/test_components/test_sidebar_persisted_state.py`.
+No assertion about behaviour changed. `docs/adr/0022-the-layout-store-mirrors-state-it-does-not-own.md`
+discusses the store's obligations in the abstract, naming no key or property, so it needed no edit —
+this decision, D6 and D10 are where the shape lived and is recorded.
+
+**Revisit if** a future addition to the store needs a settings/state split within one component
+group — at that point `config` returns, but scoped to the one group that needs it rather than the
+whole store, since D10's original reasoning about the read-once/reactive distinction still holds
+inside a group even though it no longer holds across the whole store.
+
+**ADR:** none — the store's shape is a naming and grouping judgement scoped to this feature's own
+public surface, same as D10 before it.

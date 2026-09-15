@@ -75,12 +75,13 @@ variable reference and how to write one.
 
 ### Layout store
 
-An Alpine store (`Alpine.store("layout", ...)`, read as `$store.layout`) that every shell page
-registers, carrying the sidebar's open state, the remembered desktop-width state, whether the
-viewport is currently at the sidebar breakpoint, whether the sticky header has scrolled, and the
-resolved [`LayoutConfig`](docs/layout.md#reading-the-resolved-layout-in-python) as plain data. The
-drawer's own checkbox stays the source of truth for whether the sidebar is open; the store mirrors
-it rather than the reverse. See [The layout store](docs/layout.md#the-layout-store).
+An Alpine store (`Alpine.store("mvp", ...)`, read as `$store.mvp`) that every shell page
+registers, grouped by component (`sidebar`, `header`) plus a top-level `isWide`: the sidebar's
+open state, the remembered desktop-width state, the resolved
+[`LayoutConfig`](docs/layout.md#reading-the-resolved-layout-in-python) values behind the sidebar
+and header, and whether the viewport is currently at the sidebar breakpoint. The drawer's own
+checkbox stays the source of truth for whether the sidebar is open; the store mirrors it rather
+than the reverse. See [The layout store](docs/layout.md#the-layout-store).
 
 ### Related row
 

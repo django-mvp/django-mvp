@@ -283,8 +283,26 @@
         },
         {
           "id": "T018",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_layout.py::TestLayoutConfigAsDict",
+              "tests/test_components/test_layout_config.py::TestLayoutConfigPayload",
+              "tests/test_components/test_layout_config.py::TestHeaderStickiness",
+              "tests/test_components/test_layout_store.py",
+              "tests/test_components/test_sidebar_persisted_state.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_layout.py tests/test_components/test_layout_config.py -q",
+              "poetry run pytest tests/test_components/test_layout_store.py tests/test_components/test_sidebar_persisted_state.py -q",
+              "poetry run invoke build-js"
+            ],
+            "code": [
+              "mvp/layout.py:60",
+              "assets/js/layout.js:103"
+            ]
+          }
         }
       ]
     },
