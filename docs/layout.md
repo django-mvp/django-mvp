@@ -492,13 +492,23 @@ and `data-mvp-collapse` (`offcanvas` or `icons`). `mvp/tailwind/base.css` select
 both to decide what shows at which width, and three classes are available for your own
 markup to reuse the same rules instead of writing new media queries:
 
+"Desktop" and "mobile" here mean what they mean everywhere else in this package: mobile is
+where the sidebar is an off-canvas overlay, desktop is where it sits in the page's flow.
+The configured breakpoint is the line between them.
+
 | Class | Shown | Hidden |
 | --- | --- | --- |
-| `mvp-wide-only` | at and above the configured breakpoint | below it — and, since `breakpoint="never"` has no width to key off, never |
-| `mvp-narrow-only` | below the configured breakpoint | at and above it — and always under `breakpoint="never"`, so it never doubles up with the (unconditionally shown) `mvp-wide-only` region |
-| `mvp-sidebar-echo` | wherever the sidebar header does not already show the same thing | at and above the breakpoint: unconditionally in `icons` mode, only while the drawer is open in `offcanvas` mode |
+| `mvp-desktop-only` | desktop — at and above the configured breakpoint | on mobile. Under `breakpoint="never"` there is no desktop, so it is shown at every width rather than hidden at every width |
+| `mvp-mobile-only` | mobile — below the configured breakpoint | on desktop, and at every width under `breakpoint="never"`, so it never doubles up with the unconditionally shown `mvp-desktop-only` region |
+| `mvp-sidebar-hidden-only` | while the sidebar is not on screen | while it is: always in `icons` mode from the breakpoint up, since the rail is always there, and in `offcanvas` mode only while the drawer is open |
 
-**These two set `display: flex` when shown.** An element that needs a different display box should wrap one of them rather than combine it with a display utility: the package's rules sit outside Tailwind's utility layer and win against it whatever the specificity, so `class="mvp-narrow-only hidden"` resolves to `flex`.
+`mvp-sidebar-hidden-only` exists because the shell draws two controls twice. The sidebar's
+own header carries the brand icon and a toggle button, and the navbar carries its own copy
+of both — so that a page still has them when the sidebar is not on screen to provide them.
+Put this class on a duplicate of something the sidebar already shows, and it will stand
+down whenever the original is visible. The packaged navbar uses it for exactly those two.
+
+**These two set `display: flex` when shown.** An element that needs a different display box should wrap one of them rather than combine it with a display utility: the package's rules sit outside Tailwind's utility layer and win against it whatever the specificity, so `class="mvp-mobile-only hidden"` resolves to `flex`.
 
 Any descendant of the drawer element can carry one — the navbar's widget lists, the
 account layout's collapsed/persistent navigation split, and the navbar's own copy of

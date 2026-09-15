@@ -36,7 +36,7 @@
     <div class="flex flex-col lg:flex-row lg:items-start gap-4 lg:gap-6"
          data-mvp-breakpoint="{{ account_layout.breakpoint }}"
          data-mvp-collapse="{{ account_layout.collapse }}">
-      <div class="mvp-narrow-only w-full">
+      <div class="mvp-mobile-only w-full">
         <c-dropdown full
                     class="w-full"
                     content_class="p-2"
@@ -53,7 +53,7 @@
         {% block account.content %}
         {% endblock account.content %}
       </div>
-      <div class="mvp-wide-only w-full lg:w-1/4 lg:shrink-0">
+      <div class="mvp-desktop-only w-full lg:w-1/4 lg:shrink-0">
         <c-card.wrapper class="p-2 w-full">
           <c-menu label="{% trans "Account navigation" %}">
             {% for child in account_menu.visible_children %}

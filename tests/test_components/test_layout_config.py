@@ -149,7 +149,7 @@ class TestNavbarMobileDesktopSplit:
         )
         assert match is not None
         classes = match.group(1).split()
-        assert "mvp-narrow-only" in classes
+        assert "mvp-mobile-only" in classes
 
     @pytest.mark.django_db
     def test_desktop_wrapper_carries_the_wide_only_class(self, client):
@@ -161,7 +161,7 @@ class TestNavbarMobileDesktopSplit:
         )
         assert match is not None
         classes = match.group(1).split()
-        assert "mvp-wide-only" in classes
+        assert "mvp-desktop-only" in classes
 
     @pytest.mark.django_db
     def test_flat_legacy_config_renders_the_same_widgets_on_both(self, client):

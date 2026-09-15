@@ -213,9 +213,9 @@ Regions take semantic classes instead of assembled utilities:
 
 | Class | Replaces | Rule |
 |---|---|---|
-| `mvp-wide-only` | `navbar_wide_only_class` | hidden below the breakpoint |
-| `mvp-narrow-only` | `navbar_narrow_only_class` | hidden at and above the breakpoint |
-| `mvp-sidebar-echo` | `sidebar_navbar_toggle_class` | hidden where the sidebar header shows its own copy |
+| `mvp-desktop-only` | `navbar_wide_only_class` | hidden below the breakpoint |
+| `mvp-mobile-only` | `navbar_narrow_only_class` | hidden at and above the breakpoint |
+| `mvp-sidebar-hidden-only` | `sidebar_navbar_toggle_class` | hidden where the sidebar header shows its own copy |
 
 `mvp/tailwind/base.css` gains one media block per supported breakpoint, each selecting on the
 matching attribute value. The third rule needs the collapse mode as well: under `icons` the region

@@ -135,7 +135,7 @@ class TestTheBrandMarkAppearsOnce:
         tests/test_components/test_responsive_visibility.py
         (TestSidebarEchoRegion). What rendered markup can still show is that
         the icon carries the marker class that rule selects on."""
-        assert "mvp-sidebar-echo" in self._brand_classes(client)
+        assert "mvp-sidebar-hidden-only" in self._brand_classes(client)
 
     def test_the_icon_reflects_a_config_level_collapse_override(
         self, client, monkeypatch
@@ -147,7 +147,7 @@ class TestTheBrandMarkAppearsOnce:
         monkeypatch.setitem(MVP_CONFIG["layout"]["sidebar"], "collapse", "icons")
         content = client.get(PAGE_WITH_TRAIL).content.decode()
         assert 'data-mvp-collapse="icons"' in content
-        assert "mvp-sidebar-echo" in self._brand_classes(client)
+        assert "mvp-sidebar-hidden-only" in self._brand_classes(client)
 
     def test_the_icon_reflects_a_config_level_breakpoint_override(
         self, client, monkeypatch
@@ -155,14 +155,14 @@ class TestTheBrandMarkAppearsOnce:
         monkeypatch.setitem(MVP_CONFIG["layout"]["sidebar"], "breakpoint", "md")
         content = client.get(PAGE_WITH_TRAIL).content.decode()
         assert 'data-mvp-breakpoint="md"' in content
-        assert "mvp-sidebar-echo" in self._brand_classes(client)
+        assert "mvp-sidebar-hidden-only" in self._brand_classes(client)
 
     def test_the_icon_and_the_toggle_share_the_same_visibility_class(self, client):
         """They are the two things the sidebar header duplicates, and they
         appear and disappear on exactly the same condition — the stylesheet
         rule (T015) selects both of them by this one class."""
-        assert "mvp-sidebar-echo" in self._brand_classes(client)
-        assert "mvp-sidebar-echo" in self._toggle_classes(client)
+        assert "mvp-sidebar-hidden-only" in self._brand_classes(client)
+        assert "mvp-sidebar-hidden-only" in self._toggle_classes(client)
 
     def test_the_icon_reflects_a_disabled_breakpoint(self, client, monkeypatch):
         """With no breakpoint the sidebar is an overlay at every width, so its
@@ -191,7 +191,7 @@ class TestTheActionsGiveWayToTheTrail:
         replaces navbar_wide_only_class), selected by the drawer element's
         resolved breakpoint attribute."""
         classes = self._actions_classes(client)
-        assert "mvp-wide-only" in classes
+        assert "mvp-desktop-only" in classes
 
     def test_the_region_follows_a_config_level_breakpoint_override(
         self, client, monkeypatch
@@ -204,7 +204,7 @@ class TestTheActionsGiveWayToTheTrail:
         monkeypatch.setitem(MVP_CONFIG["layout"]["sidebar"], "breakpoint", "md")
         content = client.get(PAGE_WITH_TRAIL).content.decode()
         assert 'data-mvp-breakpoint="md"' in content
-        assert "mvp-wide-only" in self._actions_classes(client)
+        assert "mvp-desktop-only" in self._actions_classes(client)
 
     def test_project_header_content_gives_way_with_the_widgets(self, client):
         """The `right` slot shares the configured widgets' region rather than
@@ -240,4 +240,4 @@ class TestTheActionsGiveWayToTheTrail:
         )
         assert match is not None
         classes = match.group(1).split()
-        assert "mvp-narrow-only" in classes
+        assert "mvp-mobile-only" in classes

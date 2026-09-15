@@ -71,9 +71,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
   **On upgrade**, nothing — no packaged or project template called any of the three by name
   outside this repository's own test suite. A project that did call one directly should
-  switch to the semantic class the region now carries instead: `mvp-wide-only` (replaces
-  `navbar_wide_only_class`), `mvp-narrow-only` (replaces `navbar_narrow_only_class`), or
-  `mvp-sidebar-echo` (replaces `sidebar_navbar_toggle_class`) — applied directly, with no
+  switch to the semantic class the region now carries instead: `mvp-desktop-only` (replaces
+  `navbar_wide_only_class`), `mvp-mobile-only` (replaces `navbar_narrow_only_class`), or
+  `mvp-sidebar-hidden-only` (replaces `sidebar_navbar_toggle_class`) — applied directly, with no
   breakpoint or collapse argument to pass, since the rule now reads both off the shell.
 
 ## [v0.21.0] - 2026-09-07

@@ -226,15 +226,22 @@ The drawer element (`<c-app>`'s root, wrapping sidebar + header + content) carri
 `data-mvp-collapse` (`offcanvas`/`icons`). `mvp/tailwind/base.css` selects on both;
 three classes are available for a descendant to reuse the pattern:
 
-- `mvp-wide-only` — shown at/above the breakpoint, hidden below it (and never under
+- `mvp-desktop-only` — shown at/above the breakpoint, hidden below it (and never under
   `never`, which has no width to key off).
-- `mvp-narrow-only` — the inverse, and always hidden under `never` so it never
-  doubles up with `mvp-wide-only`'s unconditionally-shown copy.
-- `mvp-sidebar-echo` — hidden wherever the sidebar header shows the same thing:
-  unconditionally at/above the breakpoint in `icons` mode, only while the drawer is
-  open in `offcanvas` mode.
+- `mvp-mobile-only` — the inverse, and always hidden under `never` so it never
+  doubles up with `mvp-desktop-only`'s unconditionally-shown copy.
+- `mvp-sidebar-hidden-only` — shown only while the sidebar is not on screen. Hidden from
+  the breakpoint up: always in `icons` mode, since the rail is always there, and in
+  `offcanvas` mode only while the drawer is open. Put it on a duplicate of something the
+  sidebar header already draws, and it stands down whenever the original is visible. The
+  packaged navbar uses it for the brand icon and the sidebar toggle, both of which the
+  sidebar header carries too.
 
-`mvp-wide-only` and `mvp-narrow-only` set `display: flex` when shown, and the package's rules sit outside Tailwind's utility layer, so they beat a display utility whatever its specificity. Wrap them rather than combining them with one.
+"Desktop" and "mobile" mean what they mean everywhere in this package: mobile is where the
+sidebar is an off-canvas overlay, desktop is where it sits in the page's flow. The
+configured breakpoint is the line between them.
+
+`mvp-desktop-only` and `mvp-mobile-only` set `display: flex` when shown, and the package's rules sit outside Tailwind's utility layer, so they beat a display utility whatever its specificity. Wrap them rather than combining them with one.
 
 The navbar's widget lists, the account layout's collapsed/persistent navigation, and
 the navbar's own sidebar-toggle/site-icon are all built from these three classes —

@@ -338,7 +338,7 @@ grep for, not a new principle.
 
 **Why `TestNavbarToggle` was deleted rather than restated.** Its two tests exist to prove one thing:
 a per-page breakpoint/collapse override reaches the navbar toggle, not only the drawer and the rail
-(issue #114). After T015 the toggle's own class is static (`mvp-sidebar-echo`) regardless of any
+(issue #114). After T015 the toggle's own class is static (`mvp-sidebar-hidden-only`) regardless of any
 override — restating the assertion to check for that class present would be true unconditionally
 and would not distinguish an override from the default, so it would guard nothing. The same
 regression is now provably covered two other ways: `TestDrawerRendersLayoutAttributes` (T014,
@@ -446,3 +446,29 @@ inside a group even though it no longer holds across the whole store.
 
 **ADR:** none — the store's shape is a naming and grouping judgement scoped to this feature's own
 public surface, same as D10 before it.
+
+## D14 — The visibility classes take the project's own vocabulary
+
+**Chosen**, on the maintainer's instruction: `mvp-desktop-only`, `mvp-mobile-only` and
+`mvp-sidebar-hidden-only`, replacing `mvp-wide-only`, `mvp-narrow-only` and `mvp-sidebar-echo`.
+
+**Desktop and mobile are the right words here, not a loose analogy.** They are how this project
+talks about its own layout: mobile is where the sidebar is an off-canvas overlay, desktop is where
+it sits in the page's flow. The configured breakpoint is the line between those two states and
+nothing else, so naming the classes after viewport width was the vaguer choice, not the safer one.
+Both documentation pages now say what the two words mean before using them.
+
+**`mvp-sidebar-echo` was a bad name and the explanation around it was worse.** "Echo" carried the
+whole idea and carried it only for someone who already knew it, and the prose beside it said the
+class hides an element "wherever the sidebar header is already showing the same thing" without ever
+saying what that thing is. It is two controls: the sidebar's header draws the brand icon and a
+toggle button, and the navbar draws its own copy of each, so that a page still has them when the
+sidebar is not on screen to provide them. The class stands those copies down whenever the original
+is visible.
+
+`mvp-sidebar-hidden-only` states that as a condition a reader can check — shown only while the
+sidebar is not on screen — and matches the `-only` suffix the other two use. The documentation now
+names the two duplicated controls outright rather than gesturing at them.
+
+**ADR:** none — a naming decision inside this feature's own diff. The rule the classes implement is
+recorded in `docs/adr/0021-responsive-visibility-is-resolved-by-the-browser.md`.

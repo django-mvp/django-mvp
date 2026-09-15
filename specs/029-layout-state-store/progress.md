@@ -386,7 +386,7 @@ Next: T015 — move the three tags' rules into the stylesheet and delete the tag
 
 ## 2026-09-14T23:45:00Z · Implementer US-3 · T015
 
-Did: Added `mvp-wide-only`, `mvp-narrow-only` and `mvp-sidebar-echo` to `mvp/tailwind/base.css`,
+Did: Added `mvp-desktop-only`, `mvp-mobile-only` and `mvp-sidebar-hidden-only` to `mvp/tailwind/base.css`,
 selected on the drawer element's `data-mvp-breakpoint`/`data-mvp-collapse` attributes (T014); deleted
 `navbar_wide_only_class`, `navbar_narrow_only_class`, `sidebar_navbar_toggle_class` and the
 now-unused `_breakpoint_disabled` from `mvp/templatetags/mvp.py`, and the three safelist entries that
