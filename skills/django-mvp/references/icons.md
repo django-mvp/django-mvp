@@ -66,8 +66,9 @@ exception**. `<c-user.sidebar-menu>` renders an "Account Center" row with
 `icon="account_center"`, and that name is defined nowhere in the pack or the package.
 
 The row is guarded by `{% url "account-center" %}`, so it only renders in a project that
-has a URL of that name. If yours does, and you put `<c-user.sidebar-menu>` in the sidebar,
-register the name yourself:
+has a URL of that name. `<c-user.sidebar-menu>` is part of the sidebar footer's fixed
+composition, rendering for every signed-in visitor — so if your project mounts
+`mvp.urls`, register the name yourself:
 
 ```python
 # settings.py
@@ -81,9 +82,8 @@ EASY_ICONS = {
 ```
 
 Skip it and the consequence depends on `DEBUG`: an invisible gap in development, an
-`IconNotFoundError` in production. Neither reaches a project that has not opted in. The
-component is not in the packaged sidebar, so the row only renders once you have placed
-`<c-user.sidebar-menu>` yourself, the visitor is authenticated, and `account-center`
+`IconNotFoundError` in production. Neither reaches a project that has not mounted
+`mvp.urls` — the row only renders once the visitor is authenticated and `account-center`
 resolves.
 
 ## What the pack defines

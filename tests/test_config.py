@@ -10,10 +10,13 @@ override to exercise that path against.
 """
 
 import copy
+import warnings
 
+import pytest
 from mergedeep import merge  # type: ignore[import-untyped]
 
-from mvp.config import MVP_CONFIG
+from mvp.config import MVP_CONFIG, _warn_on_removed_sidebar_footer_setting
+from mvp.warnings import MVPDeprecationWarning
 
 
 class TestThemeConfigDefaults:
@@ -92,3 +95,32 @@ class TestTableConfigOverrideMerge:
         assert config["table"]["wrap"] is True
         assert config["theme"] == MVP_CONFIG["theme"]
         assert config["layout"] == MVP_CONFIG["layout"]
+
+
+class TestRemovedSidebarFooterSetting:
+    """``layout.sidebar.footer`` (docs/adr/0023): a project that still sets
+    it gets a deprecation warning and the key is popped, so no template can
+    read a value that no longer has any effect."""
+
+    @staticmethod
+    def _config_with_footer_override():
+        config = copy.deepcopy(MVP_CONFIG)
+        config["layout"]["sidebar"]["footer"] = ["actions.theme-controller"]
+        return config
+
+    def test_warns_when_the_setting_is_present(self):
+        config = self._config_with_footer_override()
+        with pytest.warns(MVPDeprecationWarning, match="layout.*sidebar.*footer"):
+            _warn_on_removed_sidebar_footer_setting(config)
+
+    def test_pops_the_setting_so_no_template_can_read_it(self):
+        config = self._config_with_footer_override()
+        with pytest.warns(MVPDeprecationWarning):
+            _warn_on_removed_sidebar_footer_setting(config)
+        assert "footer" not in config["layout"]["sidebar"]
+
+    def test_does_not_warn_when_the_setting_is_absent(self):
+        config = copy.deepcopy(MVP_CONFIG)
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", MVPDeprecationWarning)
+            _warn_on_removed_sidebar_footer_setting(config)

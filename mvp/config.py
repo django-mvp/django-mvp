@@ -8,8 +8,12 @@ Consumers import it directly::
 
 """
 
+import warnings
+
 from django.conf import settings
 from mergedeep import merge  # type: ignore[import-untyped]
+
+from mvp.warnings import MVPDeprecationWarning
 
 MVP_CONFIG = {
     "view_names": {
@@ -59,10 +63,6 @@ MVP_CONFIG = {
             # Text shown beside the brand icon in the sidebar header. Falsey
             # (the default) renders no title. Hidden while collapsed to an icon rail.
             "title": None,
-            # Cotton component names rendered in the sidebar footer, in order,
-            # e.g. "actions.theme-controller" -> <c-actions.theme-controller />.
-            # Laid out as a horizontally centered, wrapping flex row.
-            "footer": [],
             # Whether sidebar links navigate with htmx instead of a full page
             # load (hx-boost). Off by default: boosting swaps the body in
             # place, which suits an app shell but changes how a project's own
@@ -123,3 +123,33 @@ def _apply_legacy_flat_navbar_config(config):
 
 
 _apply_legacy_flat_navbar_config(MVP_CONFIG)
+
+
+def _warn_on_removed_sidebar_footer_setting(config):
+    """Pop a project's ``layout.sidebar.footer`` override and warn.
+
+    Before the sidebar footer became a fixed composition (docs/adr/0023),
+    ``layout.sidebar.footer`` was a list of Cotton component names rendered
+    in a centered, wrapping flex row. Choosing what fills a template's
+    footer is presentation, not a structural concern, so it belongs behind
+    a template override rather than a Python-level setting — a project that
+    wants a different footer now overrides
+    ``templates/cotton/app/sidebar/footer.html`` directly. A project's own
+    ``settings.MVP_CONFIG`` may still set the removed key; pop it so no
+    template can read a value that no longer means anything, and warn so
+    the project learns why its footer looks unchanged.
+    """
+    sidebar = config["layout"]["sidebar"]
+    if "footer" in sidebar:
+        sidebar.pop("footer")
+        warnings.warn(
+            "MVP_CONFIG['layout']['sidebar']['footer'] no longer has any "
+            "effect: the sidebar footer is a fixed composition. Override "
+            "templates/cotton/app/sidebar/footer.html in your project "
+            "instead.",
+            MVPDeprecationWarning,
+            stacklevel=2,
+        )
+
+
+_warn_on_removed_sidebar_footer_setting(MVP_CONFIG)

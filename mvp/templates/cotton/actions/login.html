@@ -1,4 +1,14 @@
 {% load i18n %}
+{% comment %}
+  Props:
+    variant – c-button variant (primary, secondary, …). Unset renders the
+              plain button this has always been, which is what the navbar
+              wants. The sidebar footer asks for "primary": there the
+              button is the one thing a signed-out visitor should reach
+              for, so it is worth the emphasis.
+    full    – stretch to the width of whatever contains it.
+{% endcomment %}
+<c-vars variant full />
 {% if not request.user.is_authenticated %}
   {% comment %} Prefer allauth's login URL when present, else Django's. {% endcomment %}
   {% url "account_login" as login_url %}
@@ -10,6 +20,8 @@
               href="{{ login_url }}"
               icon="login"
               reverse
-              size="sm" />
+              size="sm"
+              variant="{{ variant }}"
+              :full="full" />
   {% endif %}
 {% endif %}

@@ -7,6 +7,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`<c-actions.theme-controller>` takes `compact`, `valign` and `halign`.** `compact`
+  renders the two-theme switcher as a single square icon button instead of an icon, a
+  checkbox and a second icon side by side, which is what lets it sit in the sidebar
+  footer beside the user's name. `valign` and `halign` place the panel of the menu
+  form, so a control near the bottom of the page can open upward. The existing shape
+  is unchanged where none of the three is passed.
+
+- **`<c-actions.language-switcher-modal>` takes `size`.** Its globe button otherwise
+  renders at `c-button`'s default, which is 40px square — visibly larger than a
+  neighbouring control set to `sm`. Unset, it behaves as before.
+
+- **`<c-actions.login>` takes `variant` and `full`.** The sidebar footer draws it as a
+  filled primary button, because signing in is the one thing that footer wants a
+  signed-out visitor to do. Both unset, it renders exactly as it did, which is what
+  the navbar keeps.
+
+### Changed
+
+- **The sidebar footer is a fixed composition**: a row holding the signed-in user's
+  menu (or a log-in button for a visitor), a theme control and a language control,
+  filling the sidebar's width. A footer's composition is presentation, and a
+  template override already expresses it completely, so a settings list was the
+  wrong mechanism for the job. Change what the footer shows by overriding
+  `templates/cotton/app/sidebar/footer.html`.
+
+- **The signed-in user's sidebar-footer trigger is one compact line**: avatar plus
+  name, no email. The wider row this replaces was designed for a footer with room
+  to spare, which the fixed composition above no longer has once it shares the row
+  with the theme and language controls.
+
+### Removed
+
+- **BREAKING: `MVP_CONFIG["layout"]["sidebar"]["footer"]` no longer has any effect.**
+  See "The sidebar footer is a fixed composition" above.
+
+  **On upgrade**, a project that sets it gets an `MVPDeprecationWarning` naming the
+  replacement, and the setting is discarded — no template reads it. Move whatever
+  the list configured into an overridden `templates/cotton/app/sidebar/footer.html`.
+
 ### Fixed
 
 - **A long breadcrumb trail shrinks instead of drawing a horizontal scrollbar.** Each

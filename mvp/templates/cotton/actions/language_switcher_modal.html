@@ -6,12 +6,17 @@
 {# <dialog> holding a responsive, tappable grid of languages —  #}
 {# comfortable on both phones and desktops.                     #}
 {#                                                              #}
-{# Prop:                                                        #}
-{#   id – dialog id (default "languageModal"); override when    #}
-{#        placing more than one instance on a page.             #}
+{# Props:                                                       #}
+{#   id   – dialog id (default "languageModal"); override when  #}
+{#          placing more than one instance on a page.           #}
+{#   size – sm|md|lg for the globe button, matching c-button's  #}
+{#          own sizes. Unset leaves it at c-button's default.   #}
+{#          Set it where the button sits beside another control #}
+{#          that is sized, so the two match — the sidebar       #}
+{#          footer pairs it with the theme control at "sm".     #}
 {# ============================================================ #}
 {% load i18n %}
-<c-vars id="languageModal" />
+<c-vars id="languageModal" size />
 {% if request.LANGUAGE_CODE %}
   {% get_current_language as CURRENT_LANGUAGE %}
   {% get_available_languages as LANGUAGES %}
@@ -19,6 +24,7 @@
   {% if set_language_url %}
     <c-button ghost
               icon="globe"
+              size="{{ size }}"
               class="btn-square"
               aria-label="{% trans "Select a language" %}"
               @click="{{ id }}.showModal()" />

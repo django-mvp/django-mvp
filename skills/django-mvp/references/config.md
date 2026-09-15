@@ -12,7 +12,7 @@ strategy:
 
 - Nested dicts recurse. Set only the keys you are changing and every sibling keeps
   its default.
-- A list or a scalar replaces the default outright. Setting `layout.sidebar.footer`
+- A list or a scalar replaces the default outright. Setting `layout.navbar.desktop.end`
   replaces the whole list, it does not extend it.
 
 Register the context processor, or nothing settings-driven reaches a template:
@@ -49,12 +49,16 @@ overrides the project setting for that one tag only.
 | `layout.sidebar.breakpoint` | `sm`&#124;`md`&#124;`lg`&#124;`xl`&#124;`2xl`&#124;`never`&#124;`none` | `"lg"` | Viewport width at which the sidebar becomes persistent |
 | `layout.sidebar.collapse` | `"offcanvas"` &#124; `"icons"` | `"offcanvas"` | How the sidebar collapses when toggled at or above that width |
 | `layout.sidebar.title` | string or falsey | `None` | Text beside the brand mark in the sidebar header |
-| `layout.sidebar.footer` | list of component names | `[]` | Widgets in the sidebar footer, in order |
 | `layout.sidebar.boost` | bool | `False` | Navigate sidebar links without a full page load |
 | `layout.navbar.mobile.end` | list of component names | `["actions.theme-controller", "actions.login"]` | Widgets at the trailing edge of the navbar below the wide breakpoint |
 | `layout.navbar.desktop.end` | list of component names | same as `mobile.end` | Same, at wide widths |
 | `layout.navbar.sticky` | bool | `True` | Whether the header stays pinned as the page scrolls |
 | `table.wrap` | bool | `False` | Project-wide default for whether table cell text wraps |
+
+There is no `layout.sidebar.footer` key. The sidebar footer is a fixed composition
+rather than a configured widget list — see [layout.md](../../../docs/layout.md#sidebar-footer)
+and [docs/adr/0023](../../../docs/adr/0023-the-sidebar-footer-is-a-fixed-composition.md). A
+project that still sets it gets an `MVPDeprecationWarning` and the key is popped.
 
 A worked override, changing four things and inheriting the rest:
 
@@ -63,7 +67,7 @@ A worked override, changing four things and inheriting the rest:
 MVP_CONFIG = {
     "theme": {"choices": ["light", "dark", "dracula"]},
     "layout": {
-        "sidebar": {"title": "Acme", "footer": ["actions.theme-controller"]},
+        "sidebar": {"title": "Acme"},
         "navbar": {"desktop": {"end": ["actions.search", "actions.login"]}},
     },
 }
@@ -133,10 +137,9 @@ theme of its own — the palette is the project's to choose.
 
 ## Widget lists take component names, not template paths
 
-`layout.navbar.mobile.end`, `layout.navbar.desktop.end` and
-`layout.sidebar.footer` are lists of **Cotton component names**. Each is rendered
-dynamically, so the string is exactly what you would write between `<c-` and `>`.
-The mapping to a file is Cotton's own:
+`layout.navbar.mobile.end` and `layout.navbar.desktop.end` are lists of **Cotton
+component names**. Each is rendered dynamically, so the string is exactly what you would
+write between `<c-` and `>`. The mapping to a file is Cotton's own:
 
 1. Dots become directory separators.
 2. Hyphens become underscores (Cotton's default naming, `COTTON_SNAKE_CASED_NAMES`).

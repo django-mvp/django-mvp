@@ -259,20 +259,18 @@ class TestBoostedSidebarForms:
     """
 
     def test_the_language_switcher_still_switches_when_boosted(
-        self, page, live_server, boosted, monkeypatch
+        self, page, live_server, boosted
     ):
-        monkeypatch.setitem(
-            MVP_CONFIG["layout"]["sidebar"], "footer", ["actions.language-switcher"]
-        )
         page.set_viewport_size(DESKTOP)
         page.goto(f"{live_server.url}/")
         _mark_document(page)
 
         sidebar = page.locator("aside.mvp-sidebar")
-        # The switcher sits behind a dropdown; open it before the language
-        # buttons are reachable.
-        sidebar.locator(".dropdown [role='button']").first.click()
-        sidebar.locator("button[name='language'][value='de']").click()
+        # The switcher's fixed sidebar-footer form (docs/adr/0023) sits
+        # behind a modal dialog; open it before the language buttons are
+        # reachable.
+        sidebar.get_by_label("Select a language").click()
+        page.locator("#languageModal button[name='language'][value='de']").click()
         page.wait_for_function(
             "() => document.cookie.includes('django_language=de')"
         )

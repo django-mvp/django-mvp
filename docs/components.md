@@ -21,7 +21,7 @@ no attributes by design.
 | Component | Notes |
 | --- | --- |
 | `c-app` | drawer wrapper; attr: `breakpoint` |
-| `c-app.sidebar` | brand + AppMenu + user footer; attrs: `collapse`, `bg`, `brand-url`, `menu`, `title`, `boost` |
+| `c-app.sidebar` | brand + AppMenu + fixed footer; attrs: `collapse`, `bg`, `brand-url`, `menu`, `title`, `boost` |
 | `c-app.header` / `c-app.header.navbar` | sticky header — site icon and [breadcrumb trail](layout.md#breadcrumbs) leading, actions trailing; slots: `above`, `below`, `right`, `tray` |
 | `c-app.main`, `c-app.footer`, `c-app.dock` | content area, footer, mobile bottom nav |
 
@@ -153,12 +153,12 @@ Menus are normally rendered from Python via django-flex-menus — see
 
 | Component | Notes |
 | --- | --- |
-| `c-actions.theme-controller` | light/dark theme toggle (`size`) |
+| `c-actions.theme-controller` | light/dark theme toggle (`size`, `valign`, `halign`, `compact`). `compact` renders the two-theme switcher as one square icon button instead of the icon/checkbox/icon row, for narrow slots like the sidebar footer |
 | `c-actions.language-switcher` | i18n language dropdown (needs `set_language` URL) |
-| `c-actions.language-switcher-modal` | the same switcher as a modal, for the sidebar footer where a dropdown would be cramped |
+| `c-actions.language-switcher-modal` | the same switcher as a modal, better for narrow slots like the sidebar footer where a dropdown would be cramped — the variant the fixed sidebar footer uses (`id`, `size`) |
 | `c-actions.search` | navbar search input |
-| `c-actions.login` | navbar log-in button (needs `login` URL); renders only when anonymous |
-| `c-user.sidebar-menu` | account dropdown for the sidebar footer |
+| `c-actions.login` | log-in button (needs `login` URL); renders only when anonymous — used in the navbar and in the fixed sidebar footer (`variant`, `full`) |
+| `c-user.sidebar-menu` | account dropdown; part of the fixed sidebar footer |
 | `c-user.display.compact` | avatar + name row |
 | `c-form`, `c-form.render` | form wrapper / renderer dispatch |
 | `c-form.field` | single presentational field: `type` (text-like, `textarea`, `select`, `file`, `checkbox`, `radio`, `toggle`), `label`, `hide-label`, `help-text`, `errors`, `prelabel`, `postlabel`, `wrapper-class`; `label`/`help_text`/`errors` also accept named slots |

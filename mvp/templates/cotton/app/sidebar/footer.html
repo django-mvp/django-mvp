@@ -1,9 +1,24 @@
-<div class="bg-base-200 w-full sticky bottom-0 mt-auto z-20 items-center gap-2 px-4 is-drawer-close:px-2 py-2 ">
-  {% if mvp_config.layout.sidebar.footer %}
-    <div class="flex flex-wrap items-center justify-center gap-2">
-      {% for widget in mvp_config.layout.sidebar.footer %}
-        <c-component :is="widget" />
-      {% endfor %}
-    </div>
-  {% endif %}
+{% comment %}
+  Fixed composition — see docs/adr/0023-the-sidebar-footer-is-a-fixed-composition.md.
+  Override this template in your project to change what the footer shows.
+{% endcomment %}
+<c-vars bg="bg-base-200" />
+<div class="{{ bg }} w-full sticky bottom-0 mt-auto z-20 flex items-center gap-2 is-drawer-close:flex-col px-4 is-drawer-close:px-2 py-2">
+  {% comment %}
+    is-drawer-open:me-2 sits on top of the row's own gap, so the user's
+    name is not crowded against the theme control. It is scoped to the
+    open state because the rail stacks this column instead of laying it
+    out in a row, where a trailing margin would only shift it off centre.
+  {% endcomment %}
+  <div class="min-w-0 flex-1 is-drawer-open:me-2">
+    <c-user.sidebar-menu />
+    <c-actions.login variant="primary" full />
+  </div>
+  {% comment %}
+    Both controls take the same size so they read as one pair. Without it
+    the globe renders at c-button's default and the theme control at "sm",
+    putting a 40px button beside a 32px one.
+  {% endcomment %}
+  <c-actions.theme-controller valign="top" size="sm" compact />
+  <c-actions.language-switcher-modal size="sm" />
 </div>

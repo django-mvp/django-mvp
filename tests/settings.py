@@ -34,10 +34,5 @@ MVP_CONFIG = {
                 "actions.language-switcher",
             ],
         },
-        "sidebar": {
-            "footer": [
-                "actions.theme-controller",
-            ],
-        },
     },
 }
