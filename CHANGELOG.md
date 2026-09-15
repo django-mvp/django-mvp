@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.22.0] - 2026-09-15
+
 ### Added
 
 - **The Account Center**: an account area that comes with the shell, so any installed app
