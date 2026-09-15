@@ -120,7 +120,7 @@ class MenuCollapse(MenuItem):
 
 
 #: The sidebar navigation tree. Empty until a project extends it.
-AppMenu = Menu("AppMenu", children=[])
+AppMenu = Menu("AppMenu", children=[], extra_context={"label": _("Main navigation")})
 
 #: The mobile dock, shown below the small-screen breakpoint.
 #:
@@ -168,4 +168,5 @@ AccountCenterMenu = Menu(
             extra_context={"label": _("Overview"), "icon": "overview"},
         ),
     ],
+    extra_context={"label": _("Account navigation")},
 )

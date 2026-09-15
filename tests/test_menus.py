@@ -11,7 +11,7 @@ import pytest
 from django.test import RequestFactory, override_settings
 from django.urls import include, path
 
-from mvp.menus import AccountCenterMenu, MenuCollapse, MobileFooterMenu
+from mvp.menus import AccountCenterMenu, AppMenu, MenuCollapse, MobileFooterMenu
 from tests.testapp_account.menus import CHECKED_FLAG
 
 
@@ -87,6 +87,20 @@ class TestShippedMenus:
     def test_the_sidebar_toggle_flips_the_drawer_checkbox(self):
         toggle = MobileFooterMenu.children[0]
         assert toggle.extra_context["toggle"] == "mvp-app-toggle"
+
+
+class TestShippedMenusCarryAHumanName:
+    """[#343] Every menu the sidebar renderer draws reads its accessible name
+    from ``extra_context["label"]`` now, so the two menus this package ships
+    need a real, translated one — otherwise the default is the internal menu
+    name (``AppMenu``, ``AccountCenterMenu``), not something a screen reader
+    should announce."""
+
+    def test_app_menu_has_a_translated_label(self):
+        assert str(AppMenu.extra_context["label"]) == "Main navigation"
+
+    def test_account_center_menu_has_a_translated_label(self):
+        assert str(AccountCenterMenu.extra_context["label"]) == "Account navigation"
 
 
 class TestAccountCenterMenu:

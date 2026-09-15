@@ -120,3 +120,22 @@ template override changes the markup without touching your Python menu definitio
 
 For fully hand-built menus, use the [`c-menu` components](components.md#navigation)
 directly.
+
+## A menu's accessible name
+
+The sidebar renderer's container renders `c-menu`, which is a `<ul role="navigation">` —
+a landmark a screen reader announces by name. That name comes from the menu's own
+`extra_context["label"]`, so a project rendering a second menu through the sidebar
+renderer gives it one, the same way `AppMenu` and `AccountCenterMenu` already do:
+
+```python
+# myapp/menus.py
+from flex_menu import Menu
+from django.utils.translation import gettext_lazy as _
+
+AdminMenu = Menu("AdminMenu", extra_context={"label": _("Administration")})
+```
+
+Two landmarks with the same name — or no name at all — leave a screen reader user
+unable to tell them apart. A `label` passed directly to `{% render_menu %}` overrides
+the menu's own, for the one call that needs it.
