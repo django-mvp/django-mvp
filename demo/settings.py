@@ -146,8 +146,11 @@ MVP_CONFIG = {
         "navbar": {
             # Desktop only, with nothing configured for mobile: below the
             # sidebar breakpoint the header row is the breadcrumb trail and
-            # little else. The sidebar footer below is how these three reach a
-            # phone, through the drawer.
+            # little else. The sidebar's fixed footer is how these three reach
+            # a phone, through the drawer: it always renders a theme control
+            # and a language control, plus the log-in button for a visitor or
+            # the user menu for somebody signed in — the user menu is how a
+            # person reaches the Account Center.
             "desktop": {
                 "end": [
                     "actions.theme-controller",
@@ -158,16 +161,6 @@ MVP_CONFIG = {
         },
         "sidebar": {
             "title": "DjangoMVP",
-            "footer": [
-                "actions.theme-controller",
-                "actions.language-switcher-modal",
-                # The pair that covers both states: the log-in button renders
-                # for a visitor, the user menu for somebody signed in. The
-                # user menu is how a person reaches the Account Center, so a
-                # demo without it has the area and no way to walk to it.
-                "actions.login",
-                "user.sidebar-menu",
-            ],
         },
     },
 }

@@ -49,7 +49,6 @@ class TestLayoutConfigResolution:
         assert layout["sidebar"]["title"] is None
         assert isinstance(layout["navbar"]["mobile"]["end"], list)
         assert isinstance(layout["navbar"]["desktop"]["end"], list)
-        assert isinstance(layout["sidebar"]["footer"], list)
 
     def test_settings_override_replaces_navbar_list(self):
         """tests/settings.py's flat, pre-split ``navbar.end`` override (issue #176
@@ -292,15 +291,18 @@ class TestShellRendersConfig:
         assert theme_pos < lang_pos, "widgets must render in configured order"
 
     @pytest.mark.django_db
-    def test_sidebar_footer_widgets_render_from_config(self, client):
-        """Configured sidebar footer components render in a centered, wrapping row."""
+    def test_sidebar_footer_renders_its_fixed_row(self, client):
+        """The sidebar footer is a fixed composition (docs/adr/0023), no
+        longer assembled from a configured widget list — it still renders
+        in a single flex row inside the sidebar."""
         content = client.get("/").content.decode()
-        # the footer actions live in a centered wrapping flex row
-        assert re.search(
-            r'<div class="flex flex-wrap items-center justify-center gap-2">', content
-        ), "sidebar footer must wrap its actions in a centered wrapping flex row"
-        # the configured component renders (theme controller marker)
-        assert "data-toggle-theme" in content
+        footer_start = content.find("sticky bottom-0")
+        assert footer_start != -1, "the sidebar footer must render"
+        footer_html = content[footer_start : content.find("</aside>", footer_start)]
+        assert "flex items-center gap-2" in footer_html
+        assert "data-toggle-theme" in footer_html, (
+            "the theme control must render in the footer"
+        )
 
     @pytest.mark.django_db
     def test_drawer_state_persisted_with_breakpoint_default(self, client):

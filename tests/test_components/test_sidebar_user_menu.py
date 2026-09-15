@@ -35,6 +35,18 @@ def _login_in_browser(page, live_server, user):
     )
 
 
+def _user_menu_trigger(sidebar, username):
+    """The footer's user-menu trigger, scoped by the signed-in user's name.
+
+    The fixed footer (docs/adr/0023) always renders a theme control
+    alongside the user menu, and the theme control's own trigger can also
+    carry ``role="button"`` — a bare ``[role="button"]`` locator is
+    ambiguous. The compact user display always shows the username, so
+    filtering on it identifies the user-menu trigger specifically.
+    """
+    return sidebar.locator('[role="button"]').filter(has_text=username)
+
+
 @pytest.mark.django_db
 class TestSidebarUserMenuIconRail:
     """The footer user-menu dropdown when the sidebar is collapsed to its icon rail."""
@@ -44,9 +56,6 @@ class TestSidebarUserMenuIconRail:
     ):
         """Opening the trigger in icon-rail mode must not push the panel off-screen."""
         monkeypatch.setitem(MVP_CONFIG["layout"]["sidebar"], "collapse", "icons")
-        monkeypatch.setitem(
-            MVP_CONFIG["layout"]["sidebar"], "footer", ["user.sidebar-menu"]
-        )
         user = get_user_model().objects.create_user(username="railuser", password="pw")
         _login_in_browser(page, live_server, user)
 
@@ -58,7 +67,7 @@ class TestSidebarUserMenuIconRail:
         expect(page.locator("#mvp-app-toggle")).not_to_be_checked()
 
         sidebar = page.locator("aside.mvp-sidebar")
-        trigger = sidebar.locator('[role="button"]')
+        trigger = _user_menu_trigger(sidebar, user.username)
         trigger.click()
 
         panel = sidebar.locator(".dropdown-content")
@@ -79,9 +88,6 @@ class TestSidebarUserMenuIconRail:
         width, so its labels have to survive.
         """
         monkeypatch.setitem(MVP_CONFIG["layout"]["sidebar"], "collapse", "icons")
-        monkeypatch.setitem(
-            MVP_CONFIG["layout"]["sidebar"], "footer", ["user.sidebar-menu"]
-        )
         user = get_user_model().objects.create_user(username="railuser3", password="pw")
         _login_in_browser(page, live_server, user)
 
@@ -92,7 +98,7 @@ class TestSidebarUserMenuIconRail:
         expect(page.locator("#mvp-app-toggle")).not_to_be_checked()
 
         sidebar = page.locator("aside.mvp-sidebar")
-        sidebar.locator('[role="button"]').click()
+        _user_menu_trigger(sidebar, user.username).click()
 
         panel = sidebar.locator(".dropdown-content")
         expect(panel).to_be_visible()
@@ -109,12 +115,18 @@ class TestSidebarUserMenuIconRail:
     def test_dropdown_panel_still_spans_the_trigger_when_expanded(
         self, page, live_server, monkeypatch
     ):
-        """Regression guard: the icon-rail fix must not change the expanded layout,
-        where the panel already matched the trigger's full width."""
+        """Regression guard: the icon-rail fix must not change the expanded
+        layout.
+
+        The footer is now a fixed row shared with the theme and language
+        controls (docs/adr/0023), so the compact user-menu trigger can
+        render narrower than the panel's own ``min-w-52`` floor — matching
+        the panel's width to the trigger's exactly is no longer the
+        invariant to hold. What must still hold is that the panel stays
+        anchored to the trigger's leading edge and never renders narrower
+        than it (which would clip the menu against its own trigger).
+        """
         monkeypatch.setitem(MVP_CONFIG["layout"]["sidebar"], "collapse", "icons")
-        monkeypatch.setitem(
-            MVP_CONFIG["layout"]["sidebar"], "footer", ["user.sidebar-menu"]
-        )
         user = get_user_model().objects.create_user(username="railuser2", password="pw")
         _login_in_browser(page, live_server, user)
 
@@ -123,7 +135,7 @@ class TestSidebarUserMenuIconRail:
         # sidebar stays expanded (no toggle click) — persistent open defaults to true
 
         sidebar = page.locator("aside.mvp-sidebar")
-        trigger = sidebar.locator('[role="button"]')
+        trigger = _user_menu_trigger(sidebar, user.username)
         trigger.click()
 
         panel = sidebar.locator(".dropdown-content")
@@ -132,4 +144,6 @@ class TestSidebarUserMenuIconRail:
         trigger_box = trigger.bounding_box()
         assert panel_box is not None and trigger_box is not None
         assert panel_box["x"] == pytest.approx(trigger_box["x"], abs=1)
-        assert panel_box["width"] == pytest.approx(trigger_box["width"], abs=1)
+        assert panel_box["width"] >= trigger_box["width"], (
+            "the panel must never render narrower than its own trigger"
+        )

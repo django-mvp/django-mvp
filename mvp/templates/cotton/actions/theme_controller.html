@@ -1,12 +1,17 @@
 {% load i18n %}
-<c-vars size="sm" />
+<c-vars size="sm" valign="bottom" halign="end" />
 {% if mvp_config.theme.choices %}
-  <c-dropdown halign="end"
-              ghost
-              icon="theme.light"
-              size="{{ size }}"
-              title="{% trans "Choose theme" %}"
-              aria-label="{% trans "Choose theme" %}">
+  <c-dropdown valign="{{ valign }}" halign="{{ halign }}">
+    <c-slot name="button">
+      <c-button ghost
+                icon="theme.light"
+                size="{{ size }}"
+                class="btn-square"
+                tabindex="0"
+                role="button"
+                title="{% trans "Choose theme" %}"
+                aria-label="{% trans "Choose theme" %}" />
+    </c-slot>
     {% comment %}
       c-menu.item renders a <button> when given no href, so each entry is
       focusable and Enter/Space fires the click theme-change binds. A bare

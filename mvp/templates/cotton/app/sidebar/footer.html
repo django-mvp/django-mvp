@@ -1,9 +1,11 @@
-<div class="bg-base-200 w-full sticky bottom-0 mt-auto z-20 items-center gap-2 px-4 is-drawer-close:px-2 py-2 ">
-  {% if mvp_config.layout.sidebar.footer %}
-    <div class="flex flex-wrap items-center justify-center gap-2">
-      {% for widget in mvp_config.layout.sidebar.footer %}
-        <c-component :is="widget" />
-      {% endfor %}
-    </div>
-  {% endif %}
+{# Fixed composition — see docs/adr/0023-the-sidebar-footer-is-a-fixed-composition.md.
+   Override this template in your project to change what the footer shows. #}
+<c-vars bg="bg-base-200" />
+<div class="{{ bg }} w-full sticky bottom-0 mt-auto z-20 flex items-center gap-2 is-drawer-close:flex-col px-4 is-drawer-close:px-2 py-2">
+  <div class="min-w-0 flex-1">
+    <c-user.sidebar-menu />
+    <c-actions.login />
+  </div>
+  <c-actions.theme-controller valign="top" />
+  <c-actions.language-switcher-modal />
 </div>
