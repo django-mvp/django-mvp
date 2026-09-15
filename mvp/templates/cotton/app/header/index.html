@@ -5,7 +5,7 @@
   header has scrolled — the shadow behaviour itself is unchanged (T006).
 {% endcomment %}
 <div class="mvp-header w-full backdrop-blur{% if sticky %} sticky z-10 top-0{% endif %}"
-     {% if sticky %}x-data @scroll.window="$store.layout.headerStuck = window.scrollY > 0" :class="{ 'shadow-xs': $store.layout.headerStuck }"{% endif %}>
+     {% if sticky %}x-data @scroll.window="$store.mvp.header.stuck = window.scrollY > 0" :class="{ 'shadow-xs': $store.mvp.header.stuck }"{% endif %}>
   {{ above }}
   <c-app.header.navbar>
     <c-slot name="right">{{ right }}</c-slot>

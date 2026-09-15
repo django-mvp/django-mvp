@@ -1,7 +1,7 @@
 {% extends "page_view.html" %}
 {% block page.content %}
   <c-text muted tight class="text-lg">
-    <code>$store.layout</code> is public surface: any element on a shell page can read it or
+    <code>$store.mvp</code> is public surface: any element on a shell page can read it or
     react to it, the same way the elements below do. Open the sidebar, resize the window past its
     breakpoint, or scroll this page, and the values update.
   </c-text>
@@ -9,18 +9,18 @@
     <p>
       Sidebar:
       <span class="badge"
-            :class="$store.layout.sidebarOpen ? 'badge-success' : 'badge-ghost'"
-            x-text="$store.layout.sidebarOpen ? 'open' : 'closed'"></span>
+            :class="$store.mvp.sidebar.open ? 'badge-success' : 'badge-ghost'"
+            x-text="$store.mvp.sidebar.open ? 'open' : 'closed'"></span>
     </p>
     <p>
       Collapse mode:
-      <span class="badge badge-ghost" x-text="$store.layout.config.collapse"></span>
+      <span class="badge badge-ghost" x-text="$store.mvp.sidebar.collapse"></span>
     </p>
     <p>
       Header:
       <span class="badge"
-            :class="$store.layout.headerStuck ? 'badge-success' : 'badge-ghost'"
-            x-text="$store.layout.headerStuck ? 'stuck' : 'not stuck'"></span>
+            :class="$store.mvp.header.stuck ? 'badge-success' : 'badge-ghost'"
+            x-text="$store.mvp.header.stuck ? 'stuck' : 'not stuck'"></span>
     </p>
   </div>
 {% endblock page.content %}

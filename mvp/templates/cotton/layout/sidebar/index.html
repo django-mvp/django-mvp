@@ -23,7 +23,7 @@
      {{ attrs }}>
   <input id="{{ id }}-toggle"
          type="checkbox"
-         x-model="$store.layout.sidebarOpen"
+         x-model="$store.mvp.sidebar.open"
          {% if persistent %}data-mvp-persist-key="{{ id }}-drawer-open"{% endif %}
          class="drawer-toggle" />
   {% comment %}

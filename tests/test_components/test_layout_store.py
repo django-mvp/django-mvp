@@ -20,7 +20,7 @@ MOBILE = {"width": 800, "height": 900}
 
 
 def _store_sidebar_open(page):
-    return page.evaluate("() => Alpine.store('layout').sidebarOpen")
+    return page.evaluate("() => Alpine.store('mvp').sidebar.open")
 
 
 def _toggle(page):
@@ -35,12 +35,12 @@ def _wait_for_store(page):
     fixed sleep would be a flake waiting for a slower machine; this waits for
     the thing the assertion actually needs.
     """
-    page.wait_for_function("() => window.Alpine && Alpine.store('layout')")
+    page.wait_for_function("() => window.Alpine && Alpine.store('mvp')")
 
 
 @pytest.mark.django_db
 class TestTheStoreExistsAndReports:
-    """A shell page always registers `Alpine.store('layout')`."""
+    """A shell page always registers `Alpine.store('mvp')`."""
 
     def test_the_store_reports_sidebar_collapse_and_stuck_state(
         self, page, live_server
@@ -50,9 +50,9 @@ class TestTheStoreExistsAndReports:
         _wait_for_store(page)
 
         store = page.evaluate(
-            "() => ({ sidebarOpen: Alpine.store('layout').sidebarOpen, "
-            "collapse: Alpine.store('layout').config.collapse, "
-            "headerStuck: Alpine.store('layout').headerStuck })"
+            "() => ({ sidebarOpen: Alpine.store('mvp').sidebar.open, "
+            "collapse: Alpine.store('mvp').sidebar.collapse, "
+            "headerStuck: Alpine.store('mvp').header.stuck })"
         )
         assert store["sidebarOpen"] is True, "the default desktop sidebar starts open"
         assert store["collapse"] == MVP_CONFIG["layout"]["sidebar"]["collapse"]
@@ -62,22 +62,22 @@ class TestTheStoreExistsAndReports:
         page.set_viewport_size(DESKTOP)
         page.goto(f"{live_server.url}/")
         _wait_for_store(page)
-        assert page.evaluate("() => Alpine.store('layout').headerStuck") is False
+        assert page.evaluate("() => Alpine.store('mvp').header.stuck") is False
 
         # A tall spacer guarantees room to scroll regardless of how much
         # content the demo home page happens to carry.
         page.evaluate(
             "() => { document.body.style.minHeight = '3000px'; window.scrollTo(0, 100); }"
         )
-        page.wait_for_function("() => Alpine.store('layout').headerStuck === true")
+        page.wait_for_function("() => Alpine.store('mvp').header.stuck === true")
 
         page.evaluate("() => window.scrollTo(0, 0)")
-        page.wait_for_function("() => Alpine.store('layout').headerStuck === false")
+        page.wait_for_function("() => Alpine.store('mvp').header.stuck === false")
 
 
 @pytest.mark.django_db
 class TestAnElementBoundToTheStoreFollowsEveryControl:
-    """The checkbox is bound to `$store.layout.sidebarOpen` (T005); proving
+    """The checkbox is bound to `$store.mvp.sidebar.open` (T005); proving
     it follows every control the shell ships is proving the store stays
     correct no matter which one moved it."""
 
@@ -153,11 +153,11 @@ class TestBoostedNavigationLeavesTheStoreCorrect:
         page.evaluate(
             "() => { document.body.style.minHeight = '3000px'; window.scrollTo(0, 100); }"
         )
-        page.wait_for_function("() => Alpine.store('layout').headerStuck === true")
+        page.wait_for_function("() => Alpine.store('mvp').header.stuck === true")
 
         self._layout_link(page).click()
         page.wait_for_url(f"{live_server.url}/layout/")
-        page.wait_for_function("() => Alpine.store('layout').headerStuck === false")
+        page.wait_for_function("() => Alpine.store('mvp').header.stuck === false")
 
     def test_a_narrow_viewport_closes(self, page, live_server, boosted):
         page.set_viewport_size(MOBILE)
@@ -169,7 +169,7 @@ class TestBoostedNavigationLeavesTheStoreCorrect:
         page.wait_for_url(f"{live_server.url}/layout/")
         # htmx's afterSettle (and this store's re-derivation) fires after
         # the swap, asynchronously — wait for it rather than racing it.
-        page.wait_for_function("() => Alpine.store('layout').sidebarOpen === false")
+        page.wait_for_function("() => Alpine.store('mvp').sidebar.open === false")
 
         expect(_toggle(page)).not_to_be_checked()
 
@@ -216,16 +216,16 @@ class TestTheShellWorksWithoutJavaScript:
 
 @pytest.mark.django_db
 class TestConfigReportsThePerPageOverride:
-    """The store's `config` reflects a per-page breakpoint override rather
+    """The store's `sidebar` reflects a per-page breakpoint override rather
     than the project default (T010/T011)."""
 
     def test_a_page_override_beats_the_project_default(self, page, live_server):
         page.goto(f"{live_server.url}/layout/store/?breakpoint=xl")
         _wait_for_store(page)
 
-        config = page.evaluate("() => ({ ...Alpine.store('layout').config })")
+        config = page.evaluate("() => ({ ...Alpine.store('mvp').sidebar })")
         assert config["breakpoint"] == "xl"
-        assert config["breakpoint_px"] == 1280
+        assert config["breakpointPx"] == 1280
         assert config["persistent"] is True
 
 
@@ -239,13 +239,13 @@ class TestTheViewportFlagFollowsTheWindow:
     ):
         page.set_viewport_size(MOBILE)
         page.goto(f"{live_server.url}/")
-        assert page.evaluate("() => Alpine.store('layout').isWide") is False
+        assert page.evaluate("() => Alpine.store('mvp').isWide") is False
 
         page.set_viewport_size(DESKTOP)
-        page.wait_for_function("() => Alpine.store('layout').isWide === true")
+        page.wait_for_function("() => Alpine.store('mvp').isWide === true")
 
         page.set_viewport_size(MOBILE)
-        page.wait_for_function("() => Alpine.store('layout').isWide === false")
+        page.wait_for_function("() => Alpine.store('mvp').isWide === false")
 
 
 @pytest.mark.django_db
@@ -260,10 +260,10 @@ class TestTheNeverPersistentCaseReportsCorrectly:
         page.goto(f"{live_server.url}/layout/store/?breakpoint=never")
         _wait_for_store(page)
 
-        config = page.evaluate("() => ({ ...Alpine.store('layout').config })")
+        config = page.evaluate("() => ({ ...Alpine.store('mvp').sidebar })")
         assert config["persistent"] is False
-        assert config["breakpoint_px"] is None
-        assert page.evaluate("() => Alpine.store('layout').isWide") is False
+        assert config["breakpointPx"] is None
+        assert page.evaluate("() => Alpine.store('mvp').isWide") is False
 
         # Widen to a viewport that would make a normally-configured shell
         # report wide, and wait for the browser to agree the resize landed
@@ -271,7 +271,7 @@ class TestTheNeverPersistentCaseReportsCorrectly:
         # could pass on a resize that had not happened yet, proving nothing.
         page.set_viewport_size(DESKTOP)
         page.wait_for_function("() => window.matchMedia('(min-width: 1024px)').matches")
-        assert page.evaluate("() => Alpine.store('layout').isWide") is False
+        assert page.evaluate("() => Alpine.store('mvp').isWide") is False
 
 
 @pytest.mark.django_db
@@ -285,18 +285,18 @@ class TestAPageWithNoShellStillGetsAStore:
         page.goto(f"{live_server.url}/errors/404/")
         _wait_for_store(page)
 
-        store = page.evaluate("() => ({ ...Alpine.store('layout').config })")
+        store = page.evaluate("() => ({ ...Alpine.store('mvp').sidebar })")
         assert store["collapse"] == "offcanvas"
         assert store["breakpoint"] == "lg"
         # The reported defaults have to be a state the server could actually
         # produce. `lg` is a persistent breakpoint and carries a width, so a
-        # project reading `config.persistent` on a shell-less page gets the
+        # project reading `sidebar.persistent` on a shell-less page gets the
         # same answer the documentation promises rather than a combination
         # LayoutConfig can never return.
         assert store["persistent"] is True
-        assert store["breakpoint_px"] == 1024
+        assert store["breakpointPx"] == 1024
 
-        assert page.evaluate("() => Alpine.store('layout').sidebarOpen") is False
+        assert page.evaluate("() => Alpine.store('mvp').sidebar.open") is False
         assert errors == [], f"the store must not throw on a shell-less page: {errors}"
 
     def test_no_storage_entry_is_seeded_without_a_persistent_drawer(

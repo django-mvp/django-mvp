@@ -471,7 +471,7 @@ class TestHeaderStickiness:
         """With the default config the header pins on scroll (sticky + scroll shadow)."""
         content = client.get("/").content.decode()
         assert "mvp-header w-full backdrop-blur sticky z-10 top-0" in content
-        assert "$store.layout.headerStuck = window.scrollY > 0" in content
+        assert "$store.mvp.header.stuck = window.scrollY > 0" in content
 
     @pytest.mark.django_db
     def test_static_header_component_override(self):
@@ -593,7 +593,8 @@ def _layout_config_payload(html, script_id="mvp-app-layout-config"):
 
 
 class TestLayoutConfigPayload:
-    """The drawer component emits LayoutConfig.as_dict() through json_script."""
+    """The drawer component emits LayoutConfig.as_dict() through json_script:
+    grouped by component, camelCase (T018)."""
 
     @pytest.mark.django_db
     def test_default_page_emits_the_payload(self, client):
@@ -606,22 +607,23 @@ class TestLayoutConfigPayload:
     def test_payload_carries_every_documented_key(self, client):
         content = client.get("/").content.decode()
         payload = _layout_config_payload(content)
-        assert set(payload) == {
+        assert set(payload) == {"sidebar", "header"}
+        assert set(payload["sidebar"]) == {
             "breakpoint",
             "persistent",
-            "breakpoint_px",
+            "breakpointPx",
             "collapse",
-            "sticky",
             "boost",
         }
+        assert set(payload["header"]) == {"sticky"}
 
     @pytest.mark.django_db
     def test_payload_reflects_the_project_default(self, client):
         content = client.get("/").content.decode()
         payload = _layout_config_payload(content)
-        assert payload["breakpoint"] == "lg"
-        assert payload["breakpoint_px"] == 1024
-        assert payload["collapse"] == "offcanvas"
+        assert payload["sidebar"]["breakpoint"] == "lg"
+        assert payload["sidebar"]["breakpointPx"] == 1024
+        assert payload["sidebar"]["collapse"] == "offcanvas"
 
     @pytest.mark.django_db
     def test_payload_reflects_a_per_page_breakpoint_override(self):
@@ -630,8 +632,8 @@ class TestLayoutConfigPayload:
         html = _render("tests/app_breakpoint_override.html")
         payload = _layout_config_payload(html)
         assert payload is not None, "the layout config payload must render"
-        assert payload["breakpoint"] == "xl"
-        assert payload["breakpoint_px"] == 1280
+        assert payload["sidebar"]["breakpoint"] == "xl"
+        assert payload["sidebar"]["breakpointPx"] == 1280
 
 
 # ---------------------------------------------------------------------------

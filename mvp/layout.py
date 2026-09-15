@@ -59,12 +59,21 @@ class LayoutConfig:
         return BREAKPOINT_WIDTHS[self.breakpoint]
 
     def as_dict(self):
-        """The payload handed to the client via ``json_script``."""
+        """The payload handed to the client via ``json_script``: grouped by
+        component and camelCase, the same shape the client store (``mvp``,
+        see ``assets/js/layout.js``) groups its own state into, so the
+        payload and the store are one document rather than two that have to
+        agree.
+        """
         return {
-            "breakpoint": self.breakpoint,
-            "persistent": self.persistent,
-            "breakpoint_px": self.breakpoint_px,
-            "collapse": self.collapse,
-            "sticky": self.sticky,
-            "boost": self.boost,
+            "sidebar": {
+                "breakpoint": self.breakpoint,
+                "persistent": self.persistent,
+                "breakpointPx": self.breakpoint_px,
+                "collapse": self.collapse,
+                "boost": self.boost,
+            },
+            "header": {
+                "sticky": self.sticky,
+            },
         }

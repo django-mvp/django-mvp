@@ -52,26 +52,35 @@ class TestLayoutConfigBreakpoint:
 
 
 class TestLayoutConfigAsDict:
-    """The client payload's exact shape."""
+    """The client payload's exact shape: grouped by component, camelCase —
+    the same document the client store groups its own state into (T018)."""
 
     def test_as_dict_carries_exactly_the_documented_keys(self):
         config = LayoutConfig("md", "icons", False, True)
         assert config.as_dict() == {
-            "breakpoint": "md",
-            "persistent": True,
-            "breakpoint_px": 768,
-            "collapse": "icons",
-            "sticky": False,
-            "boost": True,
+            "sidebar": {
+                "breakpoint": "md",
+                "persistent": True,
+                "breakpointPx": 768,
+                "collapse": "icons",
+                "boost": True,
+            },
+            "header": {
+                "sticky": False,
+            },
         }
 
     def test_as_dict_reflects_a_disabled_breakpoint(self):
         config = LayoutConfig("never", "offcanvas", True, False)
         assert config.as_dict() == {
-            "breakpoint": "never",
-            "persistent": False,
-            "breakpoint_px": None,
-            "collapse": "offcanvas",
-            "sticky": True,
-            "boost": False,
+            "sidebar": {
+                "breakpoint": "never",
+                "persistent": False,
+                "breakpointPx": None,
+                "collapse": "offcanvas",
+                "boost": False,
+            },
+            "header": {
+                "sticky": True,
+            },
         }

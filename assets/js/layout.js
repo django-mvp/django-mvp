@@ -1,10 +1,17 @@
 /*
- * The layout store — Alpine.store("layout", ...).
+ * The layout store — Alpine.store("mvp", ...).
  *
  * Registered from assets/js/index.js, after Alpine.plugin(persist) and
  * before Alpine.start() — the persist plugin is what defines Alpine.$persist,
  * so a store registered any earlier could not hold a persisted property at
  * all. See index.js for where that happens.
+ *
+ * Named "mvp" rather than "layout": it is a global in a namespace the
+ * consuming project also writes to, and "layout" is a word a project would
+ * plausibly claim for a store of its own — a second registration under the
+ * same name would replace the first silently. Grouped by the component the
+ * value belongs to (sidebar, header), the same shape LayoutConfig.as_dict()
+ * emits — see mvp/layout.py.
  *
  * The ordering that keeps issue #178 fixed: Alpine calls a store's init()
  * synchronously while it registers stores, before it walks the DOM. By the
@@ -27,12 +34,16 @@ const CONFIG_SELECTOR = 'script[id$="-layout-config"]';
 // package defaults — so they have to be a state the server could actually
 // produce. `lg` with persistent false and no width is not one of them.
 const DEFAULT_CONFIG = {
-  breakpoint: "lg",
-  persistent: true,
-  breakpoint_px: 1024,
-  collapse: "offcanvas",
-  sticky: true,
-  boost: false,
+  sidebar: {
+    breakpoint: "lg",
+    persistent: true,
+    breakpointPx: 1024,
+    collapse: "offcanvas",
+    boost: false,
+  },
+  header: {
+    sticky: true,
+  },
 };
 
 function findDrawerToggle() {
@@ -45,13 +56,18 @@ function findDrawerToggle() {
 
 function parseConfig() {
   const configScript = document.querySelector(CONFIG_SELECTOR);
+  const defaults = { sidebar: { ...DEFAULT_CONFIG.sidebar }, header: { ...DEFAULT_CONFIG.header } };
   if (!configScript) {
-    return { ...DEFAULT_CONFIG };
+    return defaults;
   }
   try {
-    return { ...DEFAULT_CONFIG, ...JSON.parse(configScript.textContent) };
+    const parsed = JSON.parse(configScript.textContent);
+    return {
+      sidebar: { ...defaults.sidebar, ...parsed.sidebar },
+      header: { ...defaults.header, ...parsed.header },
+    };
   } catch (e) {
-    return { ...DEFAULT_CONFIG };
+    return defaults;
   }
 }
 
@@ -84,22 +100,31 @@ export function registerLayoutStore(Alpine) {
   const toggle = findDrawerToggle();
   const { key, initial } = persistedDesktopOpen(toggle);
 
-  Alpine.store("layout", {
-    config: { ...DEFAULT_CONFIG },
-    sidebarOpen: false,
-    // Persisted only where a persistent drawer published a key to persist
-    // under. Everywhere else this is an ordinary value: nothing on the page
-    // remembers an overlay drawer's state, and nothing should write one.
-    desktopOpen: key ? Alpine.$persist(initial).as(key) : initial,
+  Alpine.store("mvp", {
+    sidebar: {
+      ...DEFAULT_CONFIG.sidebar,
+      open: false,
+      // Persisted only where a persistent drawer published a key to persist
+      // under. Everywhere else this is an ordinary value: nothing on the page
+      // remembers an overlay drawer's state, and nothing should write one.
+      desktopOpen: key ? Alpine.$persist(initial).as(key) : initial,
+    },
+    header: { ...DEFAULT_CONFIG.header, stuck: false },
     isWide: false,
-    headerStuck: false,
 
     init() {
-      this.config = parseConfig();
-      this.sidebarOpen = toggle ? toggle.checked : false;
+      // Merged field by field, rather than replacing `this.sidebar`/
+      // `this.header` wholesale: `sidebar.desktopOpen` above is a $persist
+      // interceptor Alpine resolved into a storage-backed getter/setter when
+      // this object was first handed to Alpine.store(), and reassigning the
+      // object would discard that.
+      const config = parseConfig();
+      Object.assign(this.sidebar, config.sidebar);
+      Object.assign(this.header, config.header);
+      this.sidebar.open = toggle ? toggle.checked : false;
 
-      if (this.config.persistent && this.config.breakpoint_px) {
-        const mq = window.matchMedia(`(min-width: ${this.config.breakpoint_px}px)`);
+      if (this.sidebar.persistent && this.sidebar.breakpointPx) {
+        const mq = window.matchMedia(`(min-width: ${this.sidebar.breakpointPx}px)`);
         this.isWide = mq.matches;
         mq.addEventListener("change", (event) => {
           this.isWide = event.matches;
@@ -112,10 +137,10 @@ export function registerLayoutStore(Alpine) {
       // does not fire on registration, only on a later change, so the
       // checkbox's already-correct initial state is never written back.
       Alpine.watch(
-        () => this.sidebarOpen,
+        () => this.sidebar.open,
         (value) => {
           if (this.isWide) {
-            this.desktopOpen = value;
+            this.sidebar.desktopOpen = value;
           }
         },
       );
@@ -125,16 +150,16 @@ export function registerLayoutStore(Alpine) {
     // navigation replaced <body>. The fresh drawer's checkbox is server-
     // rendered closed, and the drawer itself is a new element — so
     // re-derive the resting position rather than letting a stale
-    // sidebarOpen (a mobile overlay left open, say) carry over: open only
+    // sidebar.open (a mobile overlay left open, say) carry over: open only
     // when the viewport is wide and the remembered desktop state says so.
     // This reproduces today's behaviour exactly — a mobile overlay closes
     // on navigation, a desktop sidebar does not.
     rebindAfterNavigation() {
-      this.sidebarOpen = this.isWide && this.desktopOpen;
+      this.sidebar.open = this.isWide && this.sidebar.desktopOpen;
       // The header's handler only writes on the next scroll event, and the
       // swapped-in page starts at the top. Without this the shadow survives a
       // navigation that scrolled the reader back up (FR-007).
-      this.headerStuck = window.scrollY > 0;
+      this.header.stuck = window.scrollY > 0;
     },
   });
 }

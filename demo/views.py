@@ -179,7 +179,7 @@ full_page_map_demo = DemoTemplateView.as_view(
 )
 
 
-# The worked example docs/layout.md points readers at for $store.layout
+# The worked example docs/layout.md points readers at for $store.mvp
 # (FS-029 US-1, T009): a page an example in the documentation can actually
 # run, rather than a snippet nobody executes.
 class LayoutStoreDemoView(DemoTemplateView):
