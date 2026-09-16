@@ -1,12 +1,8 @@
 # Roadmap — django-mvp
 
-**Written:** 2026-08-03 · **Revised:** 2026-09-16
-
 This document was designed against [GOALS.md](../GOALS.md). See also [CONTEXT.md](../CONTEXT.md) for domain terminology and [CONSTITUTION.md](../CONSTITUTION.md) for project standards.
 
 The package is at 0.23.0, so the early items below are already delivered and are carried here to keep the build sequence whole.
-
-Counts quoted in an item's prose are evidence from the day it was last revised, not a live figure. Where one has moved since, a dated note under the item says so rather than the original being edited away.
 
 ## Versioning
 
@@ -25,7 +21,7 @@ Two rules govern the mapping. A goal is not one minor: some goals take several m
 
 Everything needed to reach a release that is safe to depend on.
 
-**On the items reading "needs verification".** Eight items carry that tag: R1 through R6, R16 and R17. It means the item was recorded as delivered from a read-only audit of the code rather than against a written specification, so the claim has never been checked. The tag is dropped by a verification pass, and as of 2026-09-16 that pass has not run for any of them.
+**On the items reading "needs verification".** Eight items carry that tag: R1 through R6, R16 and R17. It means the item was recorded as delivered from a read-only audit of the code rather than against a written specification, so the claim has never been checked. The tag is dropped by a verification pass, and that pass has not run for any of them.
 
 This matters more than it reads. The 1.0.0 gate is a claim that the Essential goals are delivered, and eight of the items behind it are asserted rather than verified. Those eight include the application shell, the component library and the model-to-pages path, which is most of what the package is. `specs/` already holds written specifications covering most of them. R3, navigation declared in Python, is the one with nothing behind it.
 
@@ -35,7 +31,7 @@ This matters more than it reads. The 1.0.0 gate is a claim that the Essential go
 
 Sidebar, navbar, content area, footer and mobile dock render around every page, with the collapse behaviour, breakpoint and navbar widgets chosen from project settings rather than assembled by hand.
 
-**Extended 2026-09-15** by [#346](https://github.com/django-mvp/django-mvp/issues/346): the shell publishes its resolved layout state, so a project's own markup reacts to the sidebar's position and the configured breakpoint instead of re-deriving either, and responsive visibility comes from the stylesheet rather than from classes assembled at render time.
+The shell also publishes its resolved layout state ([#346](https://github.com/django-mvp/django-mvp/issues/346)), so a project's own markup reacts to the sidebar's position and the configured breakpoint instead of re-deriving either, and responsive visibility comes from the stylesheet rather than from classes assembled at render time.
 
 Serves G1 and G5.
 
@@ -99,7 +95,7 @@ Serves G3, and G2 for the components the page needs. A field-rendering API on th
 
 *delivered in [#162](https://github.com/django-mvp/django-mvp/issues/162), [#194](https://github.com/django-mvp/django-mvp/issues/194) · advances G4*
 
-~~G4 is the only Essential goal with nothing behind it, and formsets are the example the package's own scope statement uses: Django ships the backend machinery and leaves you with nothing to render or drive it with. Nothing in the package refers to formsets today. Until this lands, the claim that the package fills in where Django stops has no instance to point at.~~
+Formsets are the example the package's own scope statement uses: Django ships the backend machinery and leaves you with nothing to render or drive it with.
 
 Delivered. `<c-form.formset>` and `<c-form.formset.row>` render any Django formset with the packaged look, an `inlines` attribute on `MVPCreateView`/`MVPUpdateView` puts a parent record and its related rows on one page, and [Formsets](formsets.md) walks the path from two models to a rendered page. G4 now has an instance to point at.
 
@@ -117,15 +113,15 @@ Serves G4. Formsets rendered outside the packaged form components stay out of sc
 
 *feature · advances G7, G2*
 
-~~Four open reports are one defect: a component hardcodes an attribute and also spreads the attributes it was given, so the browser silently drops the duplicate and the passed value disappears. A class passed to a text or breadcrumb component does nothing, and a boolean that was never given a default quietly picks up an unrelated value from the surrounding page. Three of the four reports independently ask for the rest of the library to be checked for the same shape.~~
+A component hardcodes an attribute and also spreads the attributes it was given, so the browser silently drops the duplicate and the passed value disappears. A class passed to a text or breadcrumb component does nothing, and a boolean that was never given a default quietly picks up an unrelated value from the surrounding page.
 
-**Revised 2026-09-16.** The reported cases are fixed and closed ([#121](https://github.com/django-mvp/django-mvp/issues/121) and its peers), with `tests/test_components/test_class_attribute_merge.py` covering each component that audit named. What remains is the part those reports asked for and did not get: the audit was report-driven, so it reached the components someone happened to notice, and the test enumerates that same list rather than sweeping the library. A component added tomorrow can carry the defect and nothing fails.
+The reported cases are fixed and closed ([#121](https://github.com/django-mvp/django-mvp/issues/121) and its peers), with `tests/test_components/test_class_attribute_merge.py` covering each component that audit named. What remains is the part those reports asked for and did not get. The audit was report-driven, so it reached the components someone happened to notice, and the test enumerates that same list rather than sweeping the library. A component added tomorrow can carry the defect and nothing fails.
 
-This still blocks G7 at its second step: when the packaged look is not right, passing your own classes is supposed to be the next move, and today a component nobody has audited fails at it without an error.
+This blocks G7 at its second step: when the packaged look is not right, passing your own classes is supposed to be the next move, and today a component nobody has audited fails at it without an error.
 
 **Deliverables:**
 
-- ~~The defect fixed wherever it occurs, found by a sweep of the library rather than report by report.~~ The reported occurrences are fixed. The sweep across all shipped components has not run.
+- The defect fixed wherever it occurs, found by a sweep of the library rather than report by report. The reported occurrences are fixed and the sweep has not run.
 - Every component declaring the attributes it consumes, so nothing is emitted twice.
 - Boolean attributes given explicit defaults, so no component inherits a value from the page around it.
 - A check that fails when a component reintroduces either shape — parameterised over every component template, not over a fixed list.
@@ -138,21 +134,19 @@ Related and open in the other direction: [#263](https://github.com/django-mvp/dj
 
 *feature · advances G6, G5*
 
-Components that assemble a class name from an attribute at render time produce classes the stylesheet build never sees, so the markup is correct and the styling is absent. ~~One reported case has four of five responsive variants missing, with the fifth working only because that exact string happens to appear in an unrelated docstring.~~ An earlier instance of the same fault was fixed in isolation and this one appeared anyway. It is silent by construction: nothing fails, the page just renders wrong, which makes it the sharpest threat to the no-build-tooling promise.
+Components that assemble a class name from an attribute at render time produce classes the stylesheet build never sees, so the markup is correct and the styling is absent. It is silent by construction: nothing fails, the page just renders wrong, which makes it the sharpest threat to the no-build-tooling promise. The fault has now been reported and fixed twice in isolation, and the second instance arrived after the first was closed.
 
-**Revised 2026-09-16.** The reported case is fixed and closed ([#137](https://github.com/django-mvp/django-mvp/issues/137)), and `tests/test_components/test_responsive_safelist.py` proves the method works: it parses the same `@source inline()` declarations Tailwind reads, brace expansion included, so a class missing from the safelist fails the test the same way it would be missing from the shipped CSS. The method is built and the coverage is not. The test names two components across five breakpoints, which satisfies the third deliverable below and neither of the first two. [#349](https://github.com/django-mvp/django-mvp/issues/349) removed one further source of the fault by moving responsive visibility into the stylesheet.
-
-That this fault has now recurred twice after being fixed once is the argument for finishing it: each isolated fix leaves the next instance free to arrive unannounced.
+The detection method exists. `tests/test_components/test_responsive_safelist.py` parses the same `@source inline()` declarations Tailwind reads, brace expansion included, so a class missing from the safelist fails the test the same way it would be missing from the shipped CSS. What it lacks is reach: it names two components across five breakpoints, which satisfies the third deliverable below and neither of the first two. [#349](https://github.com/django-mvp/django-mvp/issues/349) removed one further source of the fault by moving responsive visibility into the stylesheet.
 
 **Deliverables:**
 
-- Every class the library can build at render time made reachable by the stylesheet build — found by enumerating the components that assemble a class, not by waiting for a report.
+- Every class the library can build at render time made reachable by the stylesheet build, found by enumerating the components that assemble a class rather than waiting for a report.
 - A check that fails when a component can produce a class the build would not generate, applied to every such component.
-- ~~The check proven against the reported case before it becomes a gate.~~ Done: the check exists and holds against the reported case.
+- The check proven against a real case before it becomes a gate. Done, against [#137](https://github.com/django-mvp/django-mvp/issues/137).
 
 Serves G6 and G5. Classes a consuming project builds in its own templates stay out of scope, since those are covered by the generated build entry point.
 
-### ~~R11 — A shipped theme that meets contrast requirements~~
+### R11 — A shipped theme that meets contrast requirements
 
 *Rejected · see [ADR 0017](adr/0017-colour-contrast-in-a-theme-is-the-projects-concern.md)*
 
@@ -166,21 +160,13 @@ Kept here rather than deleted, so that the next reader who finds the contrast pr
 
 *feature · advances G3, G7, G10*
 
-The package is deliberate about optional dependencies, and ~~three~~ **two** places do not follow it. ~~Form and list pages load a third-party template library unconditionally, so a project that installs the package as documented and renders a form gets a template error rather than the promised working page.~~
+The package is deliberate about optional dependencies, and one place does not follow it. `mvp/views/htmx.py` imports `django_htmx.http` at module level with none of the guarding `mvp/integrations/` has, so the failure is a bare import error rather than a message naming the package to install. That turns a configuration question into a crash.
 
-**Settled by this feature, 2026-08-05**: django-crispy-forms and crispy-tailwind are now declared runtime dependencies rather than an implicit requirement of the packaged form rendering. The list page loads the same distribution as the form page, so declaring it settles both at once — a project that installs the package as documented no longer hits this on either one.
-
-One view module imports an optional package at module level with none of the guarding the others have, so the failure is a bare import error instead of a message saying what to install. ~~And a documented setting for choosing how forms render does not exist in the code at all.~~ Each one turns a configuration question into a crash.
-
-**Revised 2026-09-16.** One bullet is left of the three. The documented form-rendering setting is settled: `docs/views.md` now states plainly that there is no per-view renderer setting, which was the right half of "built or removed". The module-level import is unchanged. `mvp/views/htmx.py` still imports `django_htmx.http` at module level, while `mvp/integrations/` guards its own imports and reports the missing package by name.
+Two related problems this item began with are settled. django-crispy-forms and crispy-tailwind are declared runtime dependencies rather than an implicit requirement of the packaged form rendering, so neither the form page nor the list page carries an undeclared dependency. And `docs/views.md` states plainly that there is no per-view renderer setting, which was the right resolution of a setting that had been documented but never existed.
 
 **Deliverables:**
 
-- Every optional dependency either declared, or guarded so its absence produces a message naming the package to install. **Open:** `mvp/views/htmx.py` is the remaining unguarded module-level import.
-- ~~Form and list pages rendering without any undeclared dependency, at a reduced but working level of polish.~~
-
-  **Settled by this feature, 2026-08-05**: both pages load django-crispy-forms and crispy-tailwind as declared dependencies now, not conditionally, so there is no undeclared dependency left to guard against and no reduced-polish fallback left to build toward — installing the two apps gets the full packaged look on both pages.
-- ~~The documented form-rendering choice either built or removed from the documentation, whichever is right.~~ **Settled 2026-09-16**: removed. `docs/views.md` records that no per-view renderer setting exists.
+- Every optional dependency either declared, or guarded so its absence produces a message naming the package to install. `mvp/views/htmx.py` is the one still open.
 - A check covering every optional dependency, not the two it covers today.
 
 Serves G3, G7 and G10.
@@ -189,7 +175,7 @@ Serves G3, G7 and G10.
 
 *multi-feature · advances G2*
 
-As of August 2026, thirty of the design system's sixty-one components had a wrapper here. The absent ones include most of the pieces a data-centric page is built from:
+The package ships 82 component templates, and the gaps are concentrated in the pieces a data-centric page is built from. Nothing under `mvp/templates/cotton/` covers:
 
 - statistic tiles, list rows and timelines, for presenting records
 - tabs and step indicators, for splitting a page or a process
@@ -198,7 +184,7 @@ As of August 2026, thirty of the design system's sixty-one components had a wrap
 
 Three more are used inside other components but have no reusable wrapper of their own, so a developer cannot reach them. Comparable libraries in this space ship seventy or more components and treat this set as the baseline. G2 asks for coverage of what a data-centric web application needs, and the gap is concentrated exactly there.
 
-**Rechecked 2026-09-16.** The library has grown to 82 component templates, and every gap named above is still open: nothing under `mvp/templates/cotton/` matches a statistic tile, tab set, step indicator, timeline, progress, loading, skeleton or keyboard-key component. The growth since August went into the shell and the form and table surfaces, not into this list.
+The library keeps growing without closing this list. Recent work went into the shell and the form and table surfaces instead, so every gap above is as open as it was when the item was written.
 
 **Deliverables:**
 
@@ -214,16 +200,16 @@ Serves G2. Presentation and marketing components stay out, including carousels, 
 
 *multi-feature · advances G2, G11*
 
-Every component is covered by a test that renders it and checks it does not raise. That test says so itself: it is a floor, not a specification. ~~Four components of seventy-eight have a test that verifies what their attributes actually do.~~ The 1.0.0 gate is a claim that the component library is delivered and its surface is safe to depend on, and that claim cannot rest on proof that the templates do not crash.
+Every component is covered by a test that renders it and checks it does not raise. That test says so itself: it is a floor, not a specification. The 1.0.0 gate is a claim that the component library is delivered and its surface is safe to depend on, and that claim cannot rest on proof that the templates do not crash.
 
-**Revised 2026-09-16.** The figure has moved a long way: `tests/test_components/` now holds 35 modules beyond the floor test, most of them written alongside the features that added or changed a component. What has not moved is the shape of the coverage. It follows what was worked on rather than what carries the widest API. Of the four components this item named, only the button has gained a contract test. The avatar and the grid still have none at all, and the alert appears only in a regression test for a different defect.
+`tests/test_components/` holds 35 modules beyond the floor test, most of them written alongside the features that added or changed a component. The volume is no longer the problem. The shape of the coverage is: it follows what was worked on rather than what carries the widest API. Of the widest four, only the button has a contract test. The avatar and the grid have none at all, and the alert appears only in a regression test for a different defect.
 
-So the item stands, with its second deliverable now the whole of it: the remaining gap is not volume, it is that nothing directs the next test at the component that most needs one.
+The remaining gap is that nothing directs the next test at the component that most needs one.
 
 **Deliverables:**
 
 - A verified attribute contract for each component: what each attribute changes in the rendered markup, and what the defaults are.
-- The components with the widest attribute APIs covered first — avatar, grid and alert are the named ones still open.
+- The components with the widest attribute APIs covered first. Avatar, grid and alert are open.
 - The one component with no coverage at all brought up to the same bar as the rest.
 - Component tests organised so a missing contract is visible rather than implied.
 
@@ -233,7 +219,7 @@ Serves G2 and G11. Browser-driven testing stays out. These are markup contracts.
 
 *feature · advances G5, G2*
 
-~~Nineteen of the seventy-eight component templates carry any accessibility attribute.~~ **As of 2026-09-16: 23 of 82**, so the proportion is unchanged after six weeks of work. The contributing guide asks for them and nothing checks, so the practice depends on whoever wrote the component. Interactive components are where this costs most. Dropdowns, modals, the sidebar toggle and the pagination controls all need their state and relationships expressed for assistive technology, not just for sighted users. Comparable libraries in this space lead with accessibility as a property of every component, so it is expected of the category rather than a finishing touch, and it belongs with G5's promise of a finished look.
+23 of the 82 component templates carry any accessibility attribute, and that proportion has held steady while the library grew. The contributing guide asks for them and nothing checks, so the practice depends on whoever wrote the component. Interactive components are where this costs most. Dropdowns, modals, the sidebar toggle and the pagination controls all need their state and relationships expressed for assistive technology, not just for sighted users. Comparable libraries in this space lead with accessibility as a property of every component, so it is expected of the category rather than a finishing touch, and it belongs with G5's promise of a finished look.
 
 **Deliverables:**
 
@@ -250,8 +236,6 @@ Open and in scope: [#295](https://github.com/django-mvp/django-mvp/issues/295) �
 
 *delivered in [#170](https://github.com/django-mvp/django-mvp/issues/170) · advances G14*
 
-*Added 2026-09-16.* G14 was added to GOALS.md on 2026-08-13 and the roadmap was never given an item for it, so an Essential goal has been sitting without one for a month while the work that serves it shipped.
-
 The front-end runtime was loaded from a CDN, unpinned and unverified, which put a third party in the page-load path of every project using the package and made the version a project actually ran depend on what that host served that day. It now ships inside the distribution and is versioned with it. Together with the prebuilt stylesheet from R6, a page renders from files that came out of the same install.
 
 Serves G14. R6 covers the stylesheet half of the same promise, and the two are deliberately kept as separate items because they answer to different goals. R6 answers to installing without a build step, and this one to what the browser fetches at page load.
@@ -259,8 +243,6 @@ Serves G14. R6 covers the stylesheet half of the same promise, and the two are d
 ### R27 — An account area the shell provides and any app can extend — **delivered**
 
 *delivered in [#338](https://github.com/django-mvp/django-mvp/issues/338) · advances G1, G7*
-
-*Added 2026-09-16.* Delivered as FS-028 on 2026-09-14 with no roadmap item behind it.
 
 Every project builds the same account area: a landing page, a set of settings pages, and a place for an installed app to add one of its own. Before this, each project built that by hand. The shell now provides it. A project gets the area by configuring it, an installed app contributes its own page and a card on the landing page without the project wiring either, and the pages carry the packaged look like any other.
 
@@ -292,7 +274,7 @@ Serves G8.
 
 *delivered in [#230](https://github.com/django-mvp/django-mvp/issues/230) · advances G8*
 
-~~The package applies a stock theme and ships none of its own, so the question is how a project departs from it. G8 asks for that to happen without copying templates: colour, typography and density adjusted through the design system's own theming surface, with the packaged components picking the changes up. This is the step between the default look and a project bringing its own CSS, and R11's rejection makes it the whole of the theming story rather than the second half of one.~~
+G8 asks for a project to depart from the packaged look without copying templates: colour, typography and density adjusted through the design system's own theming surface, with the packaged components picking the changes up. R11's rejection makes this the whole of the theming story rather than the second half of one.
 
 Delivered. Every prebuilt daisyUI theme ships inside the package, so a project picks one through `MVP_CONFIG["theme"]` with no build step and nothing fetched from outside it. `choices` gives `<c-actions.theme-controller />` a runtime switch, a visitor's stored preference outranks the configured default, and a project writes a theme of its own as a plain CSS file that overrides a shipped theme of the same name. [Theming](theming.md) walks through writing one, including writing to a contrast obligation. The package applies no branding of its own: the `mvp` and `mvp-dark` palettes belong to the demo site, per `docs/adr/0016-branded-themes-belong-to-the-demo-site.md`.
 
@@ -308,9 +290,9 @@ Serves G8.
 
 *feature · advances G11*
 
-~~The changelog has version headings for 0.1.0 and for unreleased work, and for nothing in between, though twenty or more releases have shipped. Roughly two hundred lines of release notes sit under no heading at all, and several published releases read "no changes".~~ Nothing in the package marks anything as deprecated, and only one module states what it exports. G11 asks for a surface that becomes safe to depend on across releases, and today a consumer cannot find out what changed in a release, let alone what is going away.
+Nothing in the package marks anything as deprecated, and only one module states what it exports. G11 asks for a surface that becomes safe to depend on across releases, and today a consumer cannot find out what is going away.
 
-**Revised 2026-09-16.** The changelog has been correct from v0.16.0 onward since the release flow was wired, so the problem is now bounded rather than general. Of 35 tags, 14 have an entry and 21 do not, and the gap is one unbroken run from v0.1.1 to v0.15.0. Every release that shipped under the current process is recorded, and nothing before it is. The rest of the item is untouched: one `__all__` in the whole package, and no deprecation policy anywhere in the documentation.
+The changelog is part of the same problem, though a bounded part. It has been correct from v0.16.0 onward since the release flow was wired: of 35 tags, 14 have an entry and 21 do not, and the gap is one unbroken run from v0.1.1 to v0.15.0. Every release that shipped under the current process is recorded, and nothing before it is.
 
 Whether the historical run is worth reconstructing is a judgement this item should make rather than assume. The releases in it predate the design-system move, so their notes describe a package that no longer exists, and the value of the entry is a reader's ability to find out what changed between two versions they might be on. Nobody is on 0.13.
 
@@ -327,9 +309,9 @@ Serves G11. This is the item that makes the 1.0.0 promise checkable.
 
 *feature · advances G9, G11*
 
-The documentation describes several things the package does not do and omits several it does. ~~A setting for choosing how forms render is documented and absent.~~ The rule for where a form sends the user after submitting is documented with two steps the code does not have. Components appear in the reference that have no template behind them. In the other direction, the testing fixtures the package ships to every consumer are documented nowhere, ~~ten of its fourteen template tags are undocumented~~, and one shipped tag cannot work outside this repository because the template it renders lives only in the demo. Documentation that is wrong in both directions is worse than thin documentation, because it is trusted.
+The documentation describes several things the package does not do and omits several it does. The rule for where a form sends the user after submitting is documented with two steps the code does not have. Components appear in the reference that have no template behind them. In the other direction, the testing fixtures the package ships to every consumer are documented nowhere, `mvp/templatetags/mvp.py` registers 24 tags and filters of which 18 appear nowhere in `docs/`, and one shipped tag cannot work outside this repository: `show_code` renders `cotton/documentation.html`, which exists only under `demo/templates/`. Documentation that is wrong in both directions is worse than thin documentation, because it is trusted.
 
-**Revised 2026-09-16.** The documented-but-absent direction has improved: the form-rendering setting is gone, and `docs/views.md` now says outright that no per-view renderer setting exists. The undocumented direction has got worse, because the library kept growing and the reference did not. `mvp/templatetags/mvp.py` registers 24 tags and filters and 18 of them appear nowhere in `docs/`, so the ratio moved from ten in fourteen to eighteen in twenty-four. The repository-only tag is unchanged: `show_code` ships in the package and renders `cotton/documentation.html`, which exists only under `demo/templates/`.
+The undocumented direction is the one getting worse, because the library keeps growing and the reference does not.
 
 **Deliverables:**
 
@@ -344,7 +326,7 @@ Serves G9 and G11.
 
 *feature · advances G9*
 
-The demo application has a component gallery, and ~~it covers thirteen of roughly seventy-eight components~~ **as of 2026-09-16 it covers 16 of 82**. G9 asks for a demo that shows every component in use, and the value of a gallery is that a developer can find what exists without reading the source. As R13 adds components, a gallery covering a fifth of them falls further behind.
+The demo application has a component gallery, and it covers 16 of 82 components. G9 asks for a demo that shows every component in use, and the value of a gallery is that a developer can find what exists without reading the source. As R13 adds components, a gallery covering a fifth of them falls further behind.
 
 **Deliverables:**
 
@@ -372,23 +354,21 @@ Serves G10, and prepares G13.
 
 *resolve · mostly delivered · advances G11*
 
-~~Thirteen of the twenty-six open issues describe work against markup the package no longer has: they name classes and toggles from the Bootstrap-era look that the design-system move replaced. One of them describes work the changelog says shipped.~~ The stored feature records have two folders sharing a number, one with no number at all, and one still titled after the framework that was replaced. An issue tracker that mostly describes a package that no longer exists cannot be read as declared intent, which is what G11's predictability rests on.
+A backlog that describes a package which no longer exists cannot be read as declared intent, which is what G11's predictability rests on. The tracker itself is now clean: sixteen issues are open, every one describes the current package, and every one carries both a kind label and a triage label.
 
-**Revised 2026-09-16.** The tracker half is done. Sixteen issues are open, every one of them describes the current package, and every one carries both a kind label and a triage label. The records half is not: `specs/` still has two folders numbered `008-`, one called `00x-layout-configuration` with no number at all, and `018-vendor-adminlte-scss` named after the framework that was replaced.
+The stored feature records are not. `specs/` has two folders numbered `008-`, one called `00x-layout-configuration` with no number at all, and `018-vendor-adminlte-scss` named after the framework the design-system move replaced.
 
 **Deliverables:**
 
-- ~~Every open issue either restated against the current package or closed as superseded, with the reason recorded.~~ Done.
-- The stored feature records given consistent identifiers and titles. **Open**, for the three named above.
-- ~~The remaining backlog labelled, so what is accepted work is distinguishable from what is untriaged.~~ Done.
+- Every open issue either restated against the current package or closed as superseded, with the reason recorded. Done.
+- The stored feature records given consistent identifiers and titles. Open, for the three named above.
+- The remaining backlog labelled, so what is accepted work is distinguishable from what is untriaged. Done.
 
 Serves G11.
 
 ### R28 — Tables that fill the shell, with column behaviour a table author chooses — **delivered**
 
 *delivered in [#253](https://github.com/django-mvp/django-mvp/issues/253) · advances G10, G1*
-
-*Added 2026-09-16.* Delivered as FS-027 on 2026-08-17 with no roadmap item behind it.
 
 A table is the page in a data-centric application, and a table rendered into the standard content column wastes most of the screen it is given. A table view now fills the application shell, a table author chooses a column's alignment, width and wrapping behaviour where the column is declared rather than through per-project CSS, and sensible alignment is applied without anyone asking for it.
 
