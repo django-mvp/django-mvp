@@ -1,6 +1,7 @@
 """Demo App URL configuration."""
 
 from django.conf import settings
+from django.contrib import admin
 from django.urls import include, path
 
 from . import views
@@ -29,6 +30,7 @@ from .views import (
 
 urlpatterns = [
     path("", DemoHomeView.as_view(), name="home"),
+    path("admin/", admin.site.urls),
     path("account/", include("mvp.urls")),
     path("layout/", views.layout_demo, name="layout"),
     path("layout/full-page/", views.full_page_map_demo, name="full-page-map"),

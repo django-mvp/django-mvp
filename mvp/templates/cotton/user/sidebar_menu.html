@@ -15,6 +15,14 @@
                      icon="account_center"
                      href="{{ account_center_url }}" />
       {% endif %}
+      {% if request.user.is_staff %}
+        {% url "admin:index" as admin_url %}
+        {% if admin_url %}
+          <c-menu.item label="{% trans "Admin Site" %}"
+                       icon="admin-site"
+                       href="{{ admin_url }}" />
+        {% endif %}
+      {% endif %}
       {{ slot }}
       {% if slot or account_center_url %}<c-menu.divider />{% endif %}
       <c-menu.item label="{% trans "Log out" %}"

@@ -120,6 +120,7 @@ BS5_ICONS = {
     "home, house": "bi bi-house",
     "menu": "bi bi-list",
     "account_center": "bi bi-person-gear",
+    "admin-site": "bi bi-sliders",
     "overview": "bi bi-grid",
     "navbar": "bi bi-window",
     "table": "bi bi-table",

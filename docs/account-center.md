@@ -37,6 +37,12 @@ visitor, or the user menu for a signed-in person — and the user menu is what d
 Account Center row. Nothing further to configure; the two are complements the shell
 already wires together, one per authentication state.
 
+The same user menu draws an "Admin Site" row directly below the Account Center one for a
+staff user, once `django.contrib.admin`'s URLs are mounted — being in `INSTALLED_APPS`
+alone is not enough. Both conditions are checked the same way the Account Center row
+checks its own: a reverse of `admin:index` that resolves to nothing leaves the row absent
+rather than a broken link.
+
 To change what the footer shows instead, override
 `templates/cotton/app/sidebar/footer.html` — see
 [layout.md](layout.md#sidebar-footer).
