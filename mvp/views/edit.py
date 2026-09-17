@@ -628,7 +628,7 @@ class MVPDeleteView(MVPModelFormBase, generic.DeleteView):
             try:
                 return get_absolute_url() or ""
             except Exception:
-                pass
+                return ""
 
         return ""
 
