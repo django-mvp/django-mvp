@@ -139,10 +139,13 @@ class ProductListView(MVPListView):
     # Django-admin-style multi-word search (?q=)
     search_fields = ["name", "description", "owner__username"]
 
-    # Whitelist-only ordering (?o=) — raw query values never reach the ORM
+    # Whitelist-only ordering (?o=) — raw query values never reach the ORM.
+    # A sequence unpacks into multiple order_by() arguments, so an entry can
+    # declare a tiebreak: a single column is not a total order unless it is
+    # unique, and rows tying on it can move between pages without one.
     order_by = [
-        ("name_asc",  "Name (A-Z)", "name"),
-        ("name_desc", "Name (Z-A)", "-name"),
+        ("name_asc",  "Name (A-Z)", ["name", "pk"]),
+        ("name_desc", "Name (Z-A)", ["-name", "-pk"]),
         ("newest",    "Newest first", "-created"),
     ]
 

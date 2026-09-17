@@ -11,6 +11,7 @@ Source: mvp/views/list.py
 """
 
 import pytest
+from django.db.models.functions import Lower
 from django.test import RequestFactory
 from django.views.generic import ListView
 
@@ -431,6 +432,34 @@ class TestOrderMixin:
         qs = list(view.get_queryset())
         assert qs[0].name == "Beta"
         assert qs[1].name == "Alpha"
+
+
+class TestOrderMixinTiebreak:
+    """[#290] An orm_expression may be a sequence as well as a single value,
+    unpacked into queryset.order_by(*expression) — a single-column ordering
+    is not a total order unless that column is unique, so a stable default
+    ordering needs a tiebreak to stay stable under pagination."""
+
+    def test_a_sequence_orm_expression_applies_every_field(self, db, cat):
+        _product(cat, "Charlie", price="5.00")
+        _product(cat, "Alpha", price="5.00")
+        choices = [("name_asc", "Name (A-Z)", [Lower("name"), "pk"])]
+        view = _make_order_view(
+            params={"o": "name_asc"}, extra_attrs={"order_by": choices}
+        )
+        qs = list(view.get_queryset())
+        assert [p.name for p in qs] == ["Alpha", "Charlie"]
+
+    def test_tiebreak_breaks_the_tie_deterministically_and_completely(self, db, cat):
+        """Three rows tying on the primary sort column still come back in a
+        complete, deterministic order — not merely without raising."""
+        tied = [_product(cat, "Same", slug=f"same-{i}") for i in range(3)]
+        choices = [("name_asc", "Name (A-Z)", [Lower("name"), "pk"])]
+        view = _make_order_view(
+            params={"o": "name_asc"}, extra_attrs={"order_by": choices}
+        )
+        qs = list(view.get_queryset())
+        assert [p.pk for p in qs] == [p.pk for p in tied]
 
 
 class TestOrderMixinSecurity:

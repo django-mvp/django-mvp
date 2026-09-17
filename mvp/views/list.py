@@ -127,8 +127,10 @@ class OrderMixin:
     * ``public_key`` — matched against the ``?o=`` query parameter; may be any
       URL-safe string and need not match a database column name.
     * ``label`` — human-readable display string for ordering UI controls.
-    * ``orm_expression`` — the value passed to ``queryset.order_by()``. This is
-      a developer-declared constant and is **never** exposed in the URL.
+    * ``orm_expression`` — the value passed to ``queryset.order_by()``. A
+      sequence is unpacked into multiple ``order_by()`` arguments, which is
+      how an entry declares a tiebreak. This is a developer-declared
+      constant and is **never** exposed in the URL.
 
     **Security guarantee**: the raw ``?o=`` value is never passed to the ORM.
     Only the ``orm_expression`` of the matching whitelist entry is used.
@@ -138,9 +140,10 @@ class OrderMixin:
     Context variables are only injected when ``order_by`` is configured.
 
     Config:
-        order_by (list[tuple[str, str, str]] | None): Whitelist of permitted
-            ordering options. Each entry is ``(public_key, label, orm_expression)``.
-            Default: ``None`` (mixin is a no-op).
+        order_by (list[tuple[str, str, str | Sequence[str]]] | None): Whitelist
+            of permitted ordering options. Each entry is
+            ``(public_key, label, orm_expression)``. Default: ``None`` (mixin
+            is a no-op).
 
     Override hooks:
         get_order_by_choices(): Return the effective whitelist dynamically.
@@ -158,10 +161,14 @@ class OrderMixin:
         class ProductListView(OrderMixin, ListView):
             model = Product
             order_by = [
-                ("name_asc", "Name (A-Z)", "name"),
-                ("name_desc", "Name (Z-A)", "-name"),
+                ("name_asc", "Name (A-Z)", ["name", "pk"]),
+                ("name_desc", "Name (Z-A)", ["-name", "-pk"]),
                 ("newest", "Newest First", "-created_at"),
             ]
+
+    A single column is not a total order unless it is unique, so a stable
+    default ordering — one that survives pagination without a row appearing
+    on two pages or on neither — needs a tiebreak, usually the primary key.
     """
 
     order_by = None
@@ -205,7 +212,10 @@ class OrderMixin:
         """
         for choice in self.get_order_by_choices():
             if choice[0] == ordering:
-                return queryset.order_by(choice[2])
+                expression = choice[2]
+                if isinstance(expression, (list, tuple)):
+                    return queryset.order_by(*expression)
+                return queryset.order_by(expression)
 
         return queryset
 
