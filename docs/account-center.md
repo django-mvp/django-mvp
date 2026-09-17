@@ -224,3 +224,18 @@ processors provide are all visible to it, the same as any other block on the pag
 card needs data beyond what that context already carries, fetch it in the template — a
 custom template tag or filter is the natural place — since the block shares its context
 with the page around it rather than getting one of its own.
+
+A card that depends on an optional app often needs to tell "nothing here yet" apart from
+"this project doesn't have that app at all" — a connected-accounts card, for instance, wants
+a different empty state when `allauth.mfa` isn't installed than when it is installed and
+simply has no rows. The `app_is_installed` filter answers that from the template, the same
+question `mvp.utils.app_is_installed` answers from Python:
+
+```django
+{% load i18n mvp %}
+{% if "allauth.mfa"|app_is_installed %}
+  <c-card title="{% trans "Two-Factor Authentication" %}" icon="lock">
+    ...
+  </c-card>
+{% endif %}
+```
