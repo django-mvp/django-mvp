@@ -1,2 +1,12 @@
 {% load flex_menu i18n %}
-<div class="md:hidden">{% render_menu "MobileFooterMenu" renderer="dock" %}</div>
+{% comment %}
+  flex_menu's process_menu reads context["request"] directly and raises
+  KeyError when it is absent — the context Django renders an error page in
+  (#367). A bare {% if request %} is false and harmless in that case, so
+  guard the call rather than draw a menu that would raise instead.
+{% endcomment %}
+<div class="md:hidden">
+  {% if request %}
+    {% render_menu "MobileFooterMenu" renderer="dock" %}
+  {% endif %}
+</div>
