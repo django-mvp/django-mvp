@@ -181,89 +181,12 @@ DEP004 = ["django_filters", "django_tables2", "django_htmx", "markdown_it"]
 #   own "Utility Classes" page; demo-only, never a runtime dependency of mvp.
 
 [tool.ruff]
-# line-length is deliberately unset: Ruff's default is 88, matching Black, which
-# is what Django, pytest and httpx ship. PEP 8 caps a team's own preference at 99.
-# target-version is deliberately unset too: Ruff infers it from requires-python,
-# so it cannot drift above the versions this package actually supports.
-exclude = [
-    ".bzr",
-    ".direnv",
-    ".eggs",
-    ".git",
-    ".git-rewrite",
-    ".hg",
-    ".mypy_cache",
-    ".nox",
-    ".pants.d",
-    ".pytype",
-    ".ruff_cache",
-    ".svn",
-    ".tox",
-    ".venv",
-    "__pypackages__",
-    "_build",
-    "buck-out",
-    "build",
-    "dist",
-    "node_modules",
-    "venv",
-    "*/migrations/*.py",
-    "staticfiles/*",
-    "docs/",
-    ".github/",
-]
-fix = true
-
-[tool.ruff.lint]
-select = [
-    # flake8-2020
-    "YTT",
-    # flake8-bandit
-    "S",
-    # flake8-bugbear
-    "B",
-    # flake8-builtins
-    "A",
-    # flake8-comprehensions
-    "C4",
-    # flake8-debugger
-    "T10",
-    # flake8-simplify
-    "SIM",
-    # isort
-    "I",
-    # mccabe
-    "C90",
-    # pycodestyle
-    "E",
-    "W",
-    # pyflakes
-    "F",
-    # pygrep-hooks
-    "PGH",
-    # pyupgrade
-    "UP",
-    # ruff
-    "RUF",
-    # tryceratops
-    "TRY",
-]
-ignore = [
-    # LineTooLong
-    "E501",
-    # DoNotAssignLambda
-    "E731",
-    # ClassAttributesShouldBeAnnotated
-    "RUF012",
-    "TRY003",
+extend = "ruff-base.toml"
+extend-ignore = [
     # Use of mark_safe
     "S308",
     # Use of standard pseudo-random generators
     "S311",
-    "A003",
-    "F403",
-    "F405",
-    "C901",
 ]
 
 [tool.ruff.lint.per-file-ignores]
@@ -274,14 +197,10 @@ ignore = [
 # RUF002/RUF003: prose punctuation in test docstrings and comments is not a defect
 # (the rules stay enabled for the package itself).
 "tests/**" = ["S101", "S105", "S106", "RUF002", "RUF003"]
+# Settings module inherits the demo project's settings wholesale via `import *`.
+"tests/settings.py" = ["F403", "F405"]
 # Demo/dev settings carry an intentional non-secret placeholder SECRET_KEY.
 "**/demo/settings.py" = ["S105"]
-
-[tool.ruff.format]
-docstring-code-format = true
-docstring-code-line-length = "dynamic"
-line-ending = "lf"
-exclude = ["*/migrations/*.py"]
 
 [tool.djlint]
 blank_line_after_tag = "c-vars"
