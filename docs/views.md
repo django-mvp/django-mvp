@@ -139,11 +139,14 @@ class ProductListView(MVPListView):
     # Django-admin-style multi-word search (?q=)
     search_fields = ["name", "description", "owner__username"]
 
-    # Whitelist-only ordering (?o=) — raw query values never reach the ORM
+    # Whitelist-only ordering (?o=) — raw query values never reach the ORM.
+    # A sequence unpacks into multiple order_by() arguments, so an entry can
+    # declare a tiebreak: a single column is not a total order unless it is
+    # unique, and rows tying on it can move between pages without one.
     order_by = [
-        ("name_asc",  "Name (A-Z)", "name"),
-        ("name_desc", "Name (Z-A)", "-name"),
-        ("newest",    "Newest first", "-created"),
+        ("name_asc",  "Name (A-Z)", ["name", "pk"]),
+        ("name_desc", "Name (Z-A)", ["-name", "-pk"]),
+        ("newest",    "Newest first", ["-created", "-pk"]),
     ]
 
     # Card grid + per-item template ("<app>/<model>_list_item.html" by default)
@@ -357,8 +360,10 @@ is off. The link carries two query parameters the delete page reads back: `back`
 update page's own URL (resolved directly, not gated by `show_update_action`, so leaving
 that flag at its default `False` doesn't blank the link), and `next`, the list URL.
 `get_back_url()` on the delete view reads `back`, validates it against the current host,
-and falls back to the list URL when it's absent; `next` feeds the usual `?next=` handling
-for the post-delete redirect.
+and falls back to the list URL when it's absent, then to the object's own
+`get_absolute_url()` when there is no list URL either — the record still exists at the
+moment the page is drawn. No Back button renders when neither is available; `next` feeds
+the usual `?next=` handling for the post-delete redirect.
 
 ## Detail pages and CRUD URLs
 

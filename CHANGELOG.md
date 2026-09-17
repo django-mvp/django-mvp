@@ -7,12 +7,54 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`app_is_installed` is exposed to templates as a filter.** Wraps
+  `mvp.utils.app_is_installed` unchanged, so a template can ask
+  `{% if "allauth.mfa"|app_is_installed %}` — the question the Account Center's own
+  card mechanism needs, to tell "nothing here yet" apart from "this project doesn't
+  have that app at all."
+
+- **The sidebar user menu shows an "Admin Site" link for staff**, directly below
+  Account Center, once `django.contrib.admin`'s URLs are mounted — being in
+  `INSTALLED_APPS` alone is not enough.
+
+### Changed
+
+- **A declared `order_by` may carry a tiebreak.** `OrderMixin`'s `orm_expression`
+  accepts a sequence as well as a single value, unpacked into
+  `queryset.order_by(*expression)`. A single-column ordering is not a total order
+  unless that column is unique, so a stable default ordering needs a tiebreak to stay
+  stable under pagination. Every existing single-value declaration keeps working
+  unchanged.
+
 ### Fixed
+
+- **The sidebar user menu's log-out row is drawn only when it can work.** The row is a
+  submit button bound to a hidden form, and that form was already conditional on
+  `account_logout` reversing while the button was not — so a project without that URL
+  name got a log-out row that silently ignored every click. The row now follows the same
+  rule as every other row in the menu, and the divider above it renders only when it has
+  something to separate. The `account_logout` requirement is documented for the first
+  time in `docs/account-center.md`.
 
 - **`MVPDeleteView` refuses a delete blocked by `on_delete=RESTRICT`, instead of raising.**
   It already caught Django's `ProtectedError` for `PROTECT` relations and rendered the
   refusal page; `RestrictedError` reached neither the GET nor the POST handler and
   surfaced as a 500 on both.
+
+- **The default avatar resolver names its size parameter `size`, not `height`.** Nothing
+  passed a height — the template tag hands it the size token it received (`"sm"`,
+  `"md"`, ...), and `docs/configuration.md` already documented the signature as
+  `(user, size)`. A project copying this resolver's shape for its own
+  `brand.avatar_resolver` read `height` as the parameter name to use.
+
+- **The delete confirmation page's Back button no longer renders with an empty
+  `href`.** On a page whose action directory carries no `list` entry, the button used
+  to fall back to `""`, reloading the current page — the worst possible dead control on
+  a page whose point is letting someone cancel. It now falls back to the object's own
+  `get_absolute_url()` before giving up, and the template renders no Back button at all
+  when neither is available.
 
 ## [v0.23.0] - 2026-09-15
 

@@ -45,6 +45,7 @@ from mvp.views.edit import (
 )
 from tests.conftest import requires_browser
 from tests.factories import (
+    OrderLineFactory,
     ProductFactory,
     ProjectFactory,
     ProjectNoteFactory,
@@ -1576,6 +1577,57 @@ class TestMVPDeleteViewBackUrl:
         url = reverse("product-delete", kwargs={"pk": product.pk})
         response = client.get(url, {"back": update_url})
         assert response.context["back_url"] == update_url
+
+    def test_falls_back_to_the_objects_absolute_url_when_no_list_action(self, product):
+        """[#309] A delete page whose directory has no list action falls back
+        to the object's own page, not to an empty href."""
+        view_cls = type("StubDeleteView", (MVPDeleteView,), {"model": Product})
+        view = view_cls()
+        view.request = RequestFactory().get("/")
+        view.object = product
+
+        assert view.get_back_url() == product.get_absolute_url()
+
+    def test_back_param_still_wins_over_the_objects_absolute_url(self, product):
+        """[#309] An explicit ?back still wins even when the object has an
+        absolute URL to fall back to."""
+        other = f"/products/{product.pk}/edit/"
+        view_cls = type("StubDeleteView", (MVPDeleteView,), {"model": Product})
+        view = view_cls()
+        view.request = RequestFactory().get("/", {"back": other})
+        view.object = product
+
+        assert view.get_back_url() == other
+
+    def test_off_host_back_param_is_rejected_in_favour_of_the_absolute_url(self, product):
+        """[#309] An off-host ?back is still rejected (open-redirect guard),
+        falling through to the object's absolute URL rather than the list."""
+        view_cls = type("StubDeleteView", (MVPDeleteView,), {"model": Product})
+        view = view_cls()
+        view.request = RequestFactory().get("/", {"back": "https://evil.com/"})
+        view.object = product
+
+        assert view.get_back_url() == product.get_absolute_url()
+
+    def test_no_back_button_when_object_has_no_absolute_url_and_no_list_action(self):
+        """[#309] Neither an absolute URL nor a list action → the template
+        renders no Back button at all. An absent button beats a dead one."""
+        order_line = OrderLineFactory()
+        view_cls = type("StubDeleteView", (MVPDeleteView,), {"model": OrderLine})
+        request = RequestFactory().get("/")
+
+        response = view_cls.as_view()(request, pk=order_line.pk)
+        response.render()
+
+        assert "Back" not in response.content.decode()
+
+    def test_back_button_still_renders_when_a_list_action_exists(self, client, product):
+        """[#309] Existing behaviour, unchanged: a page with a list action
+        still renders a working Back button."""
+        url = reverse("product-delete", kwargs={"pk": product.pk})
+        response = client.get(url)
+
+        assert f'href="{reverse("product-list")}"' in response.content.decode()
 
     def test_back_url_rejects_external_url(self, client, product):
         """?back=https://evil.com/ → back_url falls back to list URL (open-redirect guard)."""

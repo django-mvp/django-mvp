@@ -13,6 +13,7 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 from django_cotton.compiler_regex import CottonCompiler
 
+from .. import utils
 from ..config import MVP_CONFIG
 from ..layout import BREAKPOINT_WIDTHS, LayoutConfig
 
@@ -220,6 +221,20 @@ def row_header_columns(table):
             f"{verb} no column of the table. Its columns are: {columns}."
         )
     return names
+
+
+@register.filter
+def app_is_installed(app_name):
+    """Return whether an app is installed, for use inside ``{% if %}``::
+
+        {% load mvp %}
+        {% if "allauth.mfa"|app_is_installed %}
+          ...
+        {% endif %}
+
+    Wraps ``mvp.utils.app_is_installed`` unchanged.
+    """
+    return utils.app_is_installed(app_name)
 
 
 @register.simple_tag

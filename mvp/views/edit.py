@@ -9,7 +9,7 @@ from django.contrib.messages.views import SuccessMessageMixin
 from django.core.exceptions import ImproperlyConfigured
 from django.db.models.deletion import Collector, ProtectedError, RestrictedError
 from django.http import HttpResponseRedirect
-from django.urls import reverse
+from django.urls import NoReverseMatch, reverse
 from django.utils.functional import Promise
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.text import camel_case_to_spaces
@@ -437,8 +437,6 @@ class MVPUpdateView(InlinesMixin, MVPModelFormBase, generic.UpdateView):
         Returns:
             str: URL for the delete view link, or empty string when suppressed.
         """
-        from django.urls import NoReverseMatch
-
         url = self.resolve_crud_url("delete")
         if not url:
             return ""
@@ -486,7 +484,9 @@ class MVPDeleteView(MVPModelFormBase, generic.DeleteView):
         get_confirmation_value(): Returns the string the user must type.
             Defaults to ``str(self.object)``.
         get_back_url(): Returns the URL for the Go Back button.
-            Reads ``?back`` from the query string, falling back to the list URL.
+            Reads ``?back`` from the query string, falling back to the list URL,
+            then to ``object.get_absolute_url()`` when there is no list URL. No
+            button renders when neither is available.
         get_breadcrumbs(): Returns a three-item breadcrumb list: List → Detail → Delete.
         get_success_url(): Redirect priority: ``?next=`` → ``success_url`` → list URL.
             Does NOT use ``object.get_absolute_url()`` (the object no longer exists
@@ -597,10 +597,16 @@ class MVPDeleteView(MVPModelFormBase, generic.DeleteView):
         """Return the URL for the Go Back button.
 
         Reads ``?back`` from the GET query string, validates it against the
-        current host, and falls back to the list URL.
+        current host, and falls back to the list URL. When the page's action
+        directory carries no list entry, falls back further to the object's
+        own ``get_absolute_url()`` — the record still exists at the moment a
+        deletion confirmation page is drawn, so there is always a sensible
+        destination. Returns ``""`` (no button rendered) only when neither is
+        available.
 
         Returns:
-            str: Validated back URL, or list URL as fallback.
+            str: Validated back URL, list URL, the object's absolute URL, or
+                ``""``.
         """
         candidate = self.request.GET.get("back")
         if candidate and url_has_allowed_host_and_scheme(
@@ -609,7 +615,24 @@ class MVPDeleteView(MVPModelFormBase, generic.DeleteView):
             require_https=self.request.is_secure(),
         ):
             return candidate
-        return self.resolve_crud_url("list") or ""
+
+        list_url = self.resolve_crud_url("list")
+        if list_url:
+            return list_url
+
+        obj = getattr(self, "object", None)
+        get_absolute_url = getattr(obj, "get_absolute_url", None)
+        if callable(get_absolute_url):
+            try:
+                return get_absolute_url() or ""
+            except NoReverseMatch:
+                # A model may declare get_absolute_url for a route the project
+                # never mounted. That is the one failure worth tolerating here;
+                # anything else raised by a consumer's own method is a bug in it
+                # and must not be swallowed by a button's fallback chain.
+                return ""
+
+        return ""
 
     def get_success_url(self):
         """Redirect using ?next= → success_url → list URL priority chain.
