@@ -51,8 +51,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   form template to render the error container under that second id.
   crispy-tailwind's own templates still mint `error_{counter}_{auto_id}`, so
   `{auto_id}_error` was never rendered and a screen reader announced a field as
-  invalid without ever reading why. The per-error paragraphs keep their existing ids
-  as well as gaining the container.
+  invalid without ever reading why. **Breaking:** the old per-error
+  `error_{counter}_{auto_id}` ids (for example `error_1_id_myfile`) are gone —
+  the error container now carries only `{auto_id}_error`, with no id on the
+  individual `<p>` elements inside it.
 
 - **The sidebar user menu's log-out row is drawn only when it can work.** The row is a
   submit button bound to a hidden form, and that form was already conditional on

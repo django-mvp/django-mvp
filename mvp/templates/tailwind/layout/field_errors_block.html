@@ -15,10 +15,11 @@
   ships them as identical files that diverge only by which one gets
   included.
 
-  The per-error paragraphs keep their existing error_{{ forloop.counter }}_{{
-  field.auto_id }} ids as well as gaining the container: nothing in this
-  repository reads them, but a consuming project may have styled or tested
-  against them, and keeping them costs one attribute.
+  The per-error paragraphs carry no id of their own. crispy-tailwind's old
+  error_{counter}_{auto_id} scheme is dropped rather than kept alongside the
+  container — a clean API change, not a compatibility alias. A consuming
+  project that depended on the old ids learns about it from CHANGELOG.md or
+  from its own failing tests.
 
   This file must stay at this same relative path so Django's app_dirs
   template loader picks it up ahead of crispy_tailwind's own copy — `mvp`
@@ -29,7 +30,7 @@
 {% if form_show_errors and field.errors %}
     <div id="{{ field.auto_id }}_error">
         {% for error in field.errors %}
-            <p id="error_{{ forloop.counter }}_{{ field.auto_id }}" class="text-red-500 text-xs italic"><strong>{{ error }}</strong></p>
+            <p class="text-red-500 text-xs italic"><strong>{{ error }}</strong></p>
         {% endfor %}
     </div>
 {% endif %}

@@ -90,10 +90,12 @@ class TestFieldErrorsAnnounceWhyAFieldIsInvalid:
         assert helptext is not None
         assert "Upload something" in helptext.get_text()
 
-    def test_the_old_per_error_id_is_still_present(self):
+    def test_the_old_per_error_id_is_gone(self):
+        """Pinned, not incidental: the old error_{counter}_{auto_id} scheme
+        is dropped, not aliased alongside the container."""
         html = _render_invalid()
 
-        assert 'id="error_1_id_myfile"' in html
+        assert 'id="error_1_id_myfile"' not in html
 
     def test_a_valid_field_renders_no_error_container(self):
         form = FileForm(
