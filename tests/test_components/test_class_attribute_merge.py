@@ -19,6 +19,12 @@ Covers every component the audit for #121 found with this exact shape:
 c-text, c-menu, c-menu.item, c-dock.item, c-page.list.empty and
 c-layout.sidebar. Peers that already merge ``{{ class }}`` correctly
 (c-button, c-badge, c-alert, ...) are unaffected and untouched here.
+
+c-page.title was added later, from #263. It is the same defect one step
+further along: it declared ``class``, so Cotton stripped the caller's value
+out of ``{{ attrs }}``, and then it neither read ``{{ class }}`` nor spread
+``{{ attrs }}``, so nothing wrote it back. Nothing the caller set reached the
+element at all.
 """
 
 from html.parser import HTMLParser
@@ -141,3 +147,20 @@ class TestClassAttributeMerge:
         assert len(attrs) == 1, f"expected one class attribute, found {attrs}"
         assert "my-sidebar" in attrs[0]
         assert "drawer" in attrs[0]
+
+    def test_page_title_merges_caller_class(self):
+        """The audit for #121 missed this one. It declared ``class``, wrote
+        its own class list without reading it, and spread no ``attrs`` either,
+        so a caller's class was stripped out of the pass-through and then
+        never written back — dropped rather than duplicated."""
+        html = render('<c-page.title title="Products" class="mb-8" />')
+        attrs = class_attrs_on(html, "div")
+        assert len(attrs) == 1, f"expected one class attribute, found {attrs}"
+        assert "mb-8" in attrs[0]
+        assert "page-title" in attrs[0]
+
+    def test_page_title_passes_other_attributes_through(self):
+        """``class`` was only half of it: no attribute reached the element."""
+        parser = _FirstTagAttrs("div")
+        parser.feed(render('<c-page.title title="Products" id="product-heading" />'))
+        assert ("id", "product-heading") in parser.attrs

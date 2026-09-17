@@ -28,6 +28,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   stable under pagination. Every existing single-value declaration keeps working
   unchanged.
 
+- **`c-page.list` takes its row template from its `card` attribute.** It used to reach
+  past that attribute for a `list_item_template` key in the surrounding view context, so
+  the component only worked on a page served by a view that set that key. A project that
+  overrode `list_view.html` and kept the `card` attribute needs no change; one that
+  wrote its own `<c-page.list>` relying on the context key must now pass `card`.
+
+- **`c-modal` no longer accepts `fade`.** It was Bootstrap's animation class and nothing
+  has read it since the move to daisyUI, which animates a dialog itself. Passing it did
+  nothing, and — because the component declared it — it did not reach the element either.
+
 ### Fixed
 
 - **The shell no longer raises `KeyError: 'request'` when rendered without a
@@ -55,6 +65,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `error_{counter}_{auto_id}` ids (for example `error_1_id_myfile`) are gone —
   the error container now carries only `{auto_id}_error`, with no id on the
   individual `<p>` elements inside it.
+  
+- **Six components declared attributes their templates never read.** Setting one did
+  nothing, and because a declared name is held back from the attribute pass-through, it
+  never reached the rendered element either — there was no error and nothing on the page
+  to show the value had been discarded. `c-page.title` now writes a caller's `class` and
+  every other attribute onto its root element; `c-mockup.code.line` takes its prompt
+  character from `prefix`; `c-page.list.actions.create` draws the glyph named by `icon`;
+  `c-pagination` passes `label` to the `<nav>` it draws, which is how a page with two
+  pagers gives each one a distinct accessible name. A test now fails the build when a
+  component declares a name its own template does not read.
+
+- **The page title block carries only the attributes it draws with.** `page_view.html`
+  used to hand it the whole page context, which was harmless while the block wrote
+  nothing it was given and would otherwise have put the breadcrumb trail into an HTML
+  attribute on every page. It is now handed the title, the subtitle and the page info,
+  one named attribute at a time.
+
+- **The inline create modal is headed by the view's `create_modal_title`.** The view had
+  been resolving that title into the context and no template read it, so every create
+  dialog was headed with the button's short label — "Add" rather than "Add Product".
+  `create_modal_title` is documented for the first time in `docs/views.md`.
 
 - **The sidebar user menu's log-out row is drawn only when it can work.** The row is a
   submit button bound to a hidden form, and that form was already conditional on
