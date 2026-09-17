@@ -115,7 +115,26 @@ The packaged `logo_resolver` and `icon_resolver` serve `brand/logo.svg` and
 `brand/icon.svg` from your static files, preferring a `_dark.svg` sibling
 under the dark theme where one exists and falling back to the light asset
 otherwise. The packaged `avatar_resolver` returns `None` unconditionally —
-point it at your own function to serve real avatars.
+point it at your own function to serve real avatars:
+
+```python
+# myproject/avatars.py
+SIZES = {"sm": 32, "md": 48, "lg": 96}
+
+
+def avatar_url(user, size):
+    if not user.is_authenticated:
+        return None
+    return f"https://avatars.example.com/{user.pk}?px={SIZES.get(size, 48)}"
+```
+
+```python
+MVP_CONFIG = {"brand": {"avatar_resolver": "myproject.avatars.avatar_url"}}
+```
+
+The second argument is a size token, never a number — `"sm"`, `"md"` and the
+like, whatever the avatar component asked for. Map it to pixels yourself if
+your source needs a dimension, as above.
 
 ## `theme.*`
 
