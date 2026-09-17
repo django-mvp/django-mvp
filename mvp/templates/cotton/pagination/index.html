@@ -1,6 +1,11 @@
 {% load i18n %}
-<c-vars label
-        page_obj
+{% comment %}
+  `label` is deliberately undeclared: it belongs to the <nav> that
+  c-pagination.wrapper draws, and reaches it through `attrs` below. Declaring
+  it here would strip it from that pass-through and leave callers unable to
+  name the navigation landmark at all.
+{% endcomment %}
+<c-vars page_obj
         page_window="5"
         use_icons
         show_first_and_last />

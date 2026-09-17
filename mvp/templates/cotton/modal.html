@@ -23,7 +23,7 @@
 {# All other attributes and the title / icon / actions /        #}
 {# footer / footer_end slots pass through to the inner <c-card>.#}
 {# ============================================================ #}
-<c-vars id size="md" position closable fade class />
+<c-vars id size="md" position closable class />
 <dialog {% if id %}id="{{ id }}"{% endif %}
         class="modal {% variation position "modal" "top,bottom,start,end" %}">
   <div class="modal-box bg-transparent p-0 shadow-none {% if position == "top" or position == "bottom" %}w-full max-w-none{% else %}w-11/12 {% if size == "sm" %}max-w-md{% elif size == "lg" %}max-w-4xl{% elif size == "xl" %}max-w-6xl{% elif size == "full" %}max-w-none{% else %}max-w-2xl{% endif %}{% endif %}">

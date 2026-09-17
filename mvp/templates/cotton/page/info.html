@@ -34,7 +34,7 @@
             aria-label="{% trans "About this page" %}"
             onclick="pageInfoModal.showModal()"
             only />
-  <c-modal id="pageInfoModal" title="{{ title }}" icon="info" closable fade only>
+  <c-modal id="pageInfoModal" title="{{ title }}" icon="info" closable only>
     <div class="max-w-prose">{{ text }}</div>
     {% if actions %}
       <c-slot name="footer_end">
