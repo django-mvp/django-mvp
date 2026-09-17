@@ -1,0 +1,45 @@
+{% comment %}
+  Override of crispy_tailwind's tailwind/layout/select.html.
+
+  crispy-tailwind's own copy writes the <select> element itself, from the
+  field's choices and build_attrs, instead of asking the widget to render.
+  So any widget whose behaviour lives in its own template — django-tomselect
+  is the reported case, whose template is a <select> followed by the script
+  that configures the control — arrives as a bare select carrying the right
+  attributes and nothing else, because the widget is never actually
+  rendered (#337).
+
+  A widget with its own template_name renders through {{ field }} instead.
+  Every Django built-in widget's template starts "django/", so the
+  default:"" only matters for a widget with no template_name set at all —
+  without it, the comparison would raise or misfire for such a widget.
+
+  This file must stay at this same relative path so Django's app_dirs
+  template loader picks it up ahead of crispy_tailwind's own copy — `mvp`
+  is listed before `crispy_tailwind` in INSTALLED_APPS. See
+  mvp/templates/tailwind/layout/help_text.html for the same override
+  pattern applied to a different vendored template.
+{% endcomment %}
+{% load crispy_forms_filters %}
+{% load tailwind_filters %}
+{% load l10n %}
+{% if field.field.widget.template_name|default:""|slice:":7" != "django/" %}
+    {{ field }}
+{% else %}
+    <div class="relative">
+        <select class="bg-white focus:outline-none border {% if field.errors %}border-red-500 {% else %}border-gray-300 {% endif %}rounded-lg py-2 px-4 block w-full appearance-none leading-normal text-gray-700" name="{{ field.html_name }}" {{ field|build_attrs }}>
+            {% for group, options, index in field|optgroups %}
+                {% if group %}<optgroup label="{{ group }}">{% endif %}
+                {% for option in options %}
+                    {% include "tailwind/layout/select_option.html" %}
+                {% endfor %}
+                {% if group %}</optgroup>{% endif %}
+            {% endfor %}
+        </select>
+        {% if not field.field.widget.allow_multiple_selected %}
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+            </div>
+        {% endif %}
+    </div>
+{% endif %}

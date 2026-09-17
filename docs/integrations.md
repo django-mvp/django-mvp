@@ -294,6 +294,13 @@ Form page (`/forms/complex/`) is a worked example. A `Fieldset`'s `<legend>`
 carries the same divider styling as a formset's own heading, for a consistent
 look between the two ways a form groups its fields.
 
+A `Select` field whose widget ships its own template — a third-party control such
+as django-tomselect, whose template renders a `<select>` plus the script that
+configures it — renders that widget as-is instead of crispy-tailwind's own bare
+`<select>` markup. An ordinary `ChoiceField` or `MultipleChoiceField`, using one of
+Django's built-in widgets, is unaffected and still renders through crispy-tailwind's
+markup.
+
 ## Writing your own integration
 
 Follow the same pattern in your project (or in a PR):
