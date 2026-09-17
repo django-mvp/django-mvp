@@ -622,7 +622,8 @@ class MVPDeleteView(MVPModelFormBase, generic.DeleteView):
         if list_url:
             return list_url
 
-        get_absolute_url = getattr(getattr(self, "object", None), "get_absolute_url", None)
+        obj = getattr(self, "object", None)
+        get_absolute_url = getattr(obj, "get_absolute_url", None)
         if callable(get_absolute_url):
             try:
                 return get_absolute_url() or ""
