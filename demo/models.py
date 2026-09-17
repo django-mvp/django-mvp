@@ -254,6 +254,35 @@ class OrderLine(models.Model):
         return f"Order line for {self.product.name} (qty {self.quantity})"
 
 
+class ShipmentLine(models.Model):
+    """Shipment line — demonstrates on_delete=RESTRICT on Product.
+
+    Exists solely to give MVPDeleteView tests a model that blocks deletion
+    the same way OrderLine does, but through Django's RESTRICT handler
+    rather than PROTECT.
+    """
+
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.RESTRICT,
+        related_name="shipment_lines",
+        verbose_name=_("product"),
+        help_text=_("The product this shipment line is for."),
+    )
+    quantity = models.PositiveIntegerField(
+        default=1,
+        verbose_name=_("quantity"),
+        help_text=_("How many units of the product were shipped."),
+    )
+
+    class Meta:
+        verbose_name = _("shipment line")
+        verbose_name_plural = _("shipment lines")
+
+    def __str__(self):
+        return f"Shipment line for {self.product.name} (qty {self.quantity})"
+
+
 class Project(models.Model):
     """A parent record carrying two related models, one of which reaches it
     by two relations — ``ProjectTask`` and ``ProjectNote`` below.

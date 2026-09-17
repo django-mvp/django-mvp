@@ -18,6 +18,7 @@ from demo.models import (
     Project,
     ProjectNote,
     ProjectTask,
+    ShipmentLine,
     Task,
 )
 
@@ -65,6 +66,14 @@ class TaskFactory(DjangoModelFactory):
 class OrderLineFactory(DjangoModelFactory):
     class Meta:
         model = OrderLine
+
+    product = factory.SubFactory(ProductFactory)
+    quantity = 1
+
+
+class ShipmentLineFactory(DjangoModelFactory):
+    class Meta:
+        model = ShipmentLine
 
     product = factory.SubFactory(ProductFactory)
     quantity = 1
