@@ -3,7 +3,18 @@ from django.contrib.staticfiles import finders
 from django.templatetags.static import static
 
 
-def avatar_url(user, height):
+def avatar_url(user, size):
+    """Default avatar resolver.
+
+    Args:
+        user: The user to resolve an avatar for.
+        size: Size token requested by the avatar component, e.g. "sm", "md".
+            Unused by the default resolver.
+
+    Returns:
+        None, unconditionally, so the avatar component falls back to its
+        anonymous-user glyph.
+    """
     return None
 
 
