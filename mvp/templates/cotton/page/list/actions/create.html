@@ -5,12 +5,11 @@
             size="sm"
             @click="createModal.showModal()" />
   <c-modal id="createModal"
-           title="{{ label }}"
-           icon="add"
-           fade
+           title="{{ create_modal_title|default:label }}"
+           icon="{{ icon }}"
            only>
     <c-form id="createForm"
-            icon="add"
+            icon="{{ icon }}"
             method="post"
             action="{{ directory.create_url }}?next={{ request.path }}"
             :form-obj="create_form">
@@ -27,7 +26,7 @@
   </c-modal>
 {% elif directory.create_url %}
   <c-button text="{{ label }}"
-            icon="add"
+            icon="{{ icon }}"
             size="sm"
             ghost
             href="{{ directory.create_url }}" />

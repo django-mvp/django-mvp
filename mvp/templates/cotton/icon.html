@@ -1,3 +1,8 @@
 {% load easy_icons %}
-<c-vars name class />
+{% comment %}
+  `class` is deliberately undeclared. Every attribute a caller passes reaches
+  `attrs.dict`, which is handed straight to the icon tag, so declaring it here
+  would only add a name this template never reads.
+{% endcomment %}
+<c-vars name />
 {% icon name defaults=attrs.dict %}

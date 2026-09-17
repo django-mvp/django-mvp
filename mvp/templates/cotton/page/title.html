@@ -1,6 +1,7 @@
 <c-vars title subtitle class actions info info_actions />
 <!-- Top row: title + actions -->
-<div class="page-title flex flex-col md:flex-row md:items-start md:justify-between gap-2 w-full">
+<div class="page-title flex flex-col md:flex-row md:items-start md:justify-between gap-2 w-full {{ class }}"
+     {{ attrs }}>
   <!-- Title + subtitle -->
   <div class="flex flex-col gap-1">
     {% comment %}

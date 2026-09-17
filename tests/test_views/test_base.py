@@ -178,8 +178,9 @@ class TestPageInfoRendersThroughARealPage:
     """The whole path a project uses: view attribute → page context → templates.
 
     The component tests exercise ``c-page.info`` directly. Only rendering a real
-    page proves the value reaches it, since ``c-page.title`` is fed by spreading
-    the ``page`` dict and a key that dict never gained would go nowhere silently.
+    page proves the value reaches it: ``page_view.html`` hands ``c-page.title``
+    one named attribute per key it needs, so a key that never arrives goes
+    nowhere silently.
     """
 
     def _render(self, **attrs):
@@ -208,6 +209,18 @@ class TestPageInfoRendersThroughARealPage:
         )
         assert 'href="/guide/"' in html
         assert "Read the guide" in html
+
+    def test_the_title_block_carries_only_what_it_reads(self):
+        """``c-page.title`` writes every attribute it is handed onto its root
+        element, so the page context is handed to it one key at a time. Spread
+        whole, it would put the breadcrumb trail — a list of dicts — into an
+        HTML attribute on every page in the package."""
+        html = self._render(page_title="Products")
+
+        title_block = html[html.index('class="page-title') :]
+        title_block = title_block[: title_block.index(">") + 1]
+        assert "breadcrumbs" not in title_block
+        assert "mvp-page" not in title_block
 
 
 # ---------------------------------------------------------------------------

@@ -31,8 +31,7 @@
     <c-modal id="{{ id }}"
              title="{% trans "Select a language" %}"
              icon="globe"
-             closable
-             fade>
+             closable>
       <form action="{{ set_language_url }}" method="post">
         {% csrf_token %}
         <input type="hidden" name="next" value="{{ request.get_full_path }}" />

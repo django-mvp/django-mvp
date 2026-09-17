@@ -158,6 +158,11 @@ class ProductListView(MVPListView):
     show_create_action = lambda self, user: user.is_staff
 ```
 
+That modal is headed "Add Product", built from the model's verbose name. Set
+`create_modal_title` on the view to write the heading yourself. The button that opens it
+keeps its own short label either way, so a crowded action row stays readable while the
+dialog still says what it creates.
+
 The list template renders the action row (see
 [`c-page.list.actions`](components.md#page-structure)), the grid, the empty state, and
 pagination. `SearchMixin`, `OrderMixin` and `SearchOrderMixin` are also usable on any

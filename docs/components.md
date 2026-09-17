@@ -111,7 +111,7 @@ defaults to `md`.
 | Component | Attributes / notes |
 | --- | --- |
 | `c-page` | `fluid`, `fill`, `gap` (`6`), `class` — page wrapper |
-| `c-page.title` | title/subtitle block (fed by `PageMixin` context); attrs `title`, `subtitle`, `info`, `info_actions` — `class` is declared but currently has no effect |
+| `c-page.title` | title/subtitle block (fed by `PageMixin` context); attrs `title`, `subtitle`, `info`, `info_actions`, `class` — any other attribute lands on the block's root element |
 | `c-page.info` | `text`, `title`, `actions` — info icon beside the title, opening a dialog that explains the page; drawn by `c-page.title` from `page_info`, and nothing renders without `text`. A plain `text` string is escaped; a safe string is written out as markup |
 | `c-page.content` | `gap` (`4`), `class` — flexible body region that absorbs leftover height |
 | `c-page.toolbar` | `class` — page-level toolbar; renders nothing at all when given no children |
@@ -138,7 +138,7 @@ predates `size` — pass one or the other, never both.
 | `c-button` | `text`, `icon`, `variant` (DaisyUI color names), `size` (`sm`/`md`/`lg`), `outline`, `ghost`, `full` (full width), `reverse`, `align` (default `center`), `condition` (render at all, default True), `class` |
 | `c-link` | `href`, `text`, `variant` (DaisyUI color names), `hover` (underline on hover only) — a styled inline text link, for prose rather than actions |
 | `c-badge` | `text`, `variant` (DaisyUI color names), `size` (`sm`/`lg`), `outline`, `class` |
-| `c-icon` | `name` (required) |
+| `c-icon` | `name` (required); every other attribute reaches the rendered icon element, so `class`, `height` and the rest are set on the tag |
 | `c-text` | `text`, `size` (default `base`), `align` (`left`/`center`/`right`), `muted`, `tight`, `bold`, `upper`, `class` |
 | `c-alert` | `variant` (DaisyUI color names), `icon`, `soft`, `outline`, `dash`, `dismissible`, `delay` (auto-dismiss milliseconds), `class` — see the content rule below |
 | `c-data-field` | `label`, `value`, `help_text`, `missing` (default `–`) — key–value display; links the value when it has a URL |
@@ -149,7 +149,7 @@ predates `size` — pass one or the other, never both.
 | `c-avatar.group` | `size` (default `md`) — overlapping row of avatars |
 | `c-brand.logo` / `c-brand.icon` | `max-height`, `class` — brand images via the configured resolvers |
 | `c-placeholder.card` | `message` (default `Coming soon...`), `icon`, `height`, `class` — a card-shaped stand-in for a region that isn't built yet |
-| `c-mockup.browser` / `c-mockup.window` / `c-mockup.phone` / `c-mockup.code` | visual mockups; `c-mockup.browser` takes `url`; `c-mockup.code` holds `c-mockup.code.line` children |
+| `c-mockup.browser` / `c-mockup.window` / `c-mockup.phone` / `c-mockup.code` | visual mockups; `c-mockup.browser` takes `url`; `c-mockup.code` holds `c-mockup.code.line` children, each taking `text` and a `prefix` for the prompt character (default `$`, empty for an output line) |
 
 Without a `button` slot, `<c-dropdown>` forwards its undeclared attributes to an inner
 `<c-button>` that becomes the trigger, so `text`, `icon`, `variant` and `size` configure
@@ -227,7 +227,7 @@ declared side whether or not it fits, exactly as it always used to.
 | `c-menu.collapse` | a thin pass-through to `c-menu.item` that also takes children — every attribute is forwarded |
 | `c-menu.divider` | separator between menu entries |
 | `c-breadcrumbs` / `c-breadcrumbs.item` | breadcrumb trail — `items`, `class`; the shell already draws one in the header from `page.breadcrumbs`. Takes either an `items` list of attribute dicts or hand-written `c-breadcrumbs.item` children (`text`, `href`, `class`) — `items` wins when both are given |
-| `c-pagination` | `page_obj`, `page_window` (default `5`), `use_icons`, `show_first_and_last` — renders nothing when there's only one page; `show_first_and_last` swaps the First/Last text controls for the first and last page numbers |
+| `c-pagination` | `page_obj`, `page_window` (default `5`), `use_icons`, `show_first_and_last`, `label` (the `<nav>`'s accessible name, default `Navigation page results`) — renders nothing when there's only one page; `show_first_and_last` swaps the First/Last text controls for the first and last page numbers |
 | `c-pagination.link` / `c-pagination.wrapper` | building blocks for a hand-built pager: `page`, `text`, `active`, `disabled`, `size`, `class` on the link; `label`, `class` on the labelled wrapper it sits in |
 | `c-dock` / `c-dock.item` | `size` (`xs`–`xl`); bottom dock navigation. An item is a drawer toggle with `toggle`, a link with `href`, otherwise a button; attrs: `label`, `icon`, `href`, `toggle`, `active`, `class` |
 
@@ -287,13 +287,13 @@ mixins), not dropped into an arbitrary template.
 
 | Component | Context key it needs | Attributes |
 | --- | --- | --- |
-| `c-page.list` | `list` (plus `list_item_template`, read from the surrounding context rather than passed as an attribute) | undeclared attributes pass to the grid it renders, so column counts and gaps are set on the tag itself; `empty_state` takes a dict of attributes forwarded to `c-page.list.empty` when the result set is empty |
+| `c-page.list` | `list` | `card` names the template each row is rendered with; undeclared attributes pass to the grid it renders, so column counts and gaps are set on the tag itself; `empty_state` takes a dict of attributes forwarded to `c-page.list.empty` when the result set is empty |
 | `c-page.list.empty` | — (`directory.create_url` gates the add button) | `icon` (default `search`), `heading`, `message`, `class` |
 | `c-page.list.actions` | — (each action needs its own key) | `actions` (default `['search','sort','filter','create']`) |
 | `c-page.list.actions.search` | `is_searchable` (from `SearchMixin`) | `placeholder` (default `Search`), `label` (default `Search`, the submit button's text) |
 | `c-page.list.actions.sort` | `order_by_choices` (from `OrderMixin`) | — |
 | `c-page.list.actions.filter` | `filter` (from the django-filter integration) | `label` (default `Filter`), `icon` (default `filter`) |
-| `c-page.list.actions.create` | `directory.create_url`, optionally `create_form` | `label` (default `Add`), `icon` — declared but the button hard-codes `add` |
+| `c-page.list.actions.create` | `directory.create_url`, optionally `create_form` and `create_modal_title` | `label` (default `Add`, the button's text), `icon` (default `add`) |
 | `c-page.list.actions.share` | — (always renders) | — |
 
 The search, sort and filter actions all write into a single form with the id
@@ -312,7 +312,7 @@ renders, so it appears only where a caller asks for it.
   <c-page.title title="{{ page.title }}">
     <c-slot name="actions"><c-page.list.actions /></c-slot>
   </c-page.title>
-  <c-page.list :list="object_list" md="2" lg="3" />
+  <c-page.list :list="object_list" :card="list_item_template" md="2" lg="3" />
   {% if page_obj %}<c-pagination :page_obj="page_obj" />{% endif %}
 </c-page>
 ```
