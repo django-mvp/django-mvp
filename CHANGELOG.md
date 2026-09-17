@@ -50,6 +50,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   pagers gives each one a distinct accessible name. A test now fails the build when a
   component declares a name its own template does not read.
 
+- **The page title block carries only the attributes it draws with.** `page_view.html`
+  used to hand it the whole page context, which was harmless while the block wrote
+  nothing it was given and would otherwise have put the breadcrumb trail into an HTML
+  attribute on every page. It is now handed the title, the subtitle and the page info,
+  one named attribute at a time.
+
 - **The inline create modal is headed by the view's `create_modal_title`.** The view had
   been resolving that title into the context and no template read it, so every create
   dialog was headed with the button's short label — "Add" rather than "Add Product".

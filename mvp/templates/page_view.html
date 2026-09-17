@@ -19,7 +19,16 @@
       {% block page.content-wrapper %}
         <c-page.content center gap=3 class="py-4">
           {% block page.title %}
-            <c-page.title :attrs="page">
+            {% comment %}
+              Named one at a time rather than spread from `page`. The title
+              block writes every attribute it is handed onto its root element,
+              and `page` also carries the breadcrumb trail, drawn in the app
+              header, and the page class, already on `c-page` above.
+            {% endcomment %}
+            <c-page.title :title="page.title"
+                          :subtitle="page.subtitle"
+                          :info="page.info"
+                          :info_actions="page.info_actions">
               <c-slot name="actions">
                 {% block page.actions %}
                 {% endblock page.actions %}
