@@ -2,6 +2,7 @@
 
 from django.conf import settings
 from django.contrib import admin
+from django.contrib.auth.views import LogoutView
 from django.urls import include, path
 
 from . import views
@@ -31,6 +32,11 @@ from .views import (
 urlpatterns = [
     path("", DemoHomeView.as_view(), name="home"),
     path("admin/", admin.site.urls),
+    # The shell's user menu reverses "account_logout" for its log-out control.
+    # An allauth project gets that name from allauth; this demo has no allauth,
+    # so it provides the name itself with Django's own view. Declared before the
+    # Account Center include so the more specific path is matched first.
+    path("account/logout/", LogoutView.as_view(), name="account_logout"),
     path("account/", include("mvp.urls")),
     path("layout/", views.layout_demo, name="layout"),
     path("layout/full-page/", views.full_page_map_demo, name="full-page-map"),

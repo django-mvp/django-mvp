@@ -30,6 +30,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **The sidebar user menu's log-out row is drawn only when it can work.** The row is a
+  submit button bound to a hidden form, and that form was already conditional on
+  `account_logout` reversing while the button was not — so a project without that URL
+  name got a log-out row that silently ignored every click. The row now follows the same
+  rule as every other row in the menu, and the divider above it renders only when it has
+  something to separate. The `account_logout` requirement is documented for the first
+  time in `docs/account-center.md`.
+
 - **`MVPDeleteView` refuses a delete blocked by `on_delete=RESTRICT`, instead of raising.**
   It already caught Django's `ProtectedError` for `PROTECT` relations and rendered the
   refusal page; `RestrictedError` reached neither the GET nor the POST handler and

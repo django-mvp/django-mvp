@@ -43,6 +43,21 @@ alone is not enough. Both conditions are checked the same way the Account Center
 checks its own: a reverse of `admin:index` that resolves to nothing leaves the row absent
 rather than a broken link.
 
+The menu's last row signs the person out, and it needs a URL named `account_logout` to
+point at. It posts there rather than following a link, because signing out changes state.
+An allauth project already has that name. A project without allauth provides it itself:
+
+```python
+from django.contrib.auth.views import LogoutView
+
+urlpatterns = [
+    path("account/logout/", LogoutView.as_view(), name="account_logout"),
+]
+```
+
+With no such name there is nothing to post to, so the row is left out — the same rule
+every other row in this menu follows.
+
 To change what the footer shows instead, override
 `templates/cotton/app/sidebar/footer.html` — see
 [layout.md](layout.md#sidebar-footer).
