@@ -60,10 +60,12 @@
   {% endif %}
 {% endblock before_form %}
 {% block actions %}
-  <c-button text="{% trans "Back" %}"
-            href="{{ back_url }}"
-            outline
-            icon="arrow-left" />
+  {% if back_url %}
+    <c-button text="{% trans "Back" %}"
+              href="{{ back_url }}"
+              outline
+              icon="arrow-left" />
+  {% endif %}
   {% if not is_protected %}
     {% if require_confirmation %}
       <c-button text="{% trans "Delete" %}"

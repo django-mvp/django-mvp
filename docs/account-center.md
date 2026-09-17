@@ -37,6 +37,27 @@ visitor, or the user menu for a signed-in person — and the user menu is what d
 Account Center row. Nothing further to configure; the two are complements the shell
 already wires together, one per authentication state.
 
+The same user menu draws an "Admin Site" row directly below the Account Center one for a
+staff user, once `django.contrib.admin`'s URLs are mounted — being in `INSTALLED_APPS`
+alone is not enough. Both conditions are checked the same way the Account Center row
+checks its own: a reverse of `admin:index` that resolves to nothing leaves the row absent
+rather than a broken link.
+
+The menu's last row signs the person out, and it needs a URL named `account_logout` to
+point at. It posts there rather than following a link, because signing out changes state.
+An allauth project already has that name. A project without allauth provides it itself:
+
+```python
+from django.contrib.auth.views import LogoutView
+
+urlpatterns = [
+    path("account/logout/", LogoutView.as_view(), name="account_logout"),
+]
+```
+
+With no such name there is nothing to post to, so the row is left out — the same rule
+every other row in this menu follows.
+
 To change what the footer shows instead, override
 `templates/cotton/app/sidebar/footer.html` — see
 [layout.md](layout.md#sidebar-footer).
@@ -224,3 +245,18 @@ processors provide are all visible to it, the same as any other block on the pag
 card needs data beyond what that context already carries, fetch it in the template — a
 custom template tag or filter is the natural place — since the block shares its context
 with the page around it rather than getting one of its own.
+
+A card that depends on an optional app often needs to tell "nothing here yet" apart from
+"this project doesn't have that app at all" — a connected-accounts card, for instance, wants
+a different empty state when `allauth.mfa` isn't installed than when it is installed and
+simply has no rows. The `app_is_installed` filter answers that from the template, the same
+question `mvp.utils.app_is_installed` answers from Python:
+
+```django
+{% load i18n mvp %}
+{% if "allauth.mfa"|app_is_installed %}
+  <c-card title="{% trans "Two-Factor Authentication" %}" icon="lock">
+    ...
+  </c-card>
+{% endif %}
+```

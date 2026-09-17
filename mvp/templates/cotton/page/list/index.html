@@ -2,7 +2,7 @@
 <c-vars list empty_state card />
 <c-grid :attrs="attrs">
   {% for object in list %}
-    {% render_list_item object list_item_template %}
+    {% render_list_item object card %}
   {% empty %}
     <c-page.list.empty :attrs="empty_state" />
   {% endfor %}

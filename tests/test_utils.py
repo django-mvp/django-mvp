@@ -37,7 +37,7 @@ from pathlib import Path
 import pytest
 from easy_icons import icon
 
-from mvp.utils import BS5_ICONS, app_is_installed
+from mvp.utils import BS5_ICONS, app_is_installed, avatar_url
 
 FIXTURES_DIR = Path(__file__).resolve().parent / "fixtures"
 VALID_BOOTSTRAP_ICON_NAMES = frozenset(
@@ -207,6 +207,18 @@ class TestAccountCenterIcons:
 
     def test_overview_resolves(self):
         assert icon("overview") != ""
+
+
+class TestAvatarUrl:
+    """issue #363: the packaged resolver named its size parameter ``height``,
+    although mvp/templatetags/mvp.py:232 calls it with the size token it
+    received ("sm", "md", ...) and docs/configuration.md documents the
+    signature as ``(user, size)``. A project copying this resolver's shape
+    for its own ``brand.avatar_resolver`` reads ``size`` as the parameter
+    name to use."""
+
+    def test_accepts_the_size_token_by_keyword(self):
+        assert avatar_url(user=None, size="md") is None
 
 
 class TestAppIsInstalled:

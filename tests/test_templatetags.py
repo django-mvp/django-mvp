@@ -427,6 +427,27 @@ class TestBrandLogoShellIntegration:
         )
 
 
+class TestAppIsInstalledFilter:
+    """issue #355: ``app_is_installed`` exposed as a filter so a template can
+    ask a question only Python could ask before — whether an optional app is
+    installed at all (docs/account-center.md's "no connected accounts" vs.
+    "this project has no social login" distinction). Wraps
+    ``mvp.utils.app_is_installed`` (tested directly in
+    ``tests/test_utils.py::TestAppIsInstalled``) unchanged; this class is the
+    filter, a separate subject."""
+
+    def test_installed_app_is_true_inside_an_if(self):
+        result = _render('{% if "mvp"|app_is_installed %}yes{% else %}no{% endif %}')
+        assert result == "yes"
+
+    def test_absent_app_is_false_inside_an_if(self):
+        result = _render(
+            '{% if "not_a_real_app_anyone_installed"|app_is_installed %}'
+            "yes{% else %}no{% endif %}"
+        )
+        assert result == "no"
+
+
 class TestRowHeaderColumns:
     """``row_header_columns`` reads the names a table declares in
     ``Meta.row_headers``, accepts a single name as a plain string, and

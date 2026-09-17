@@ -8,21 +8,43 @@
         <c-user.display.compact />
       </div>
     </c-slot>
+    {% comment %}
+      Each row is drawn only when its own destination resolves, and the
+      divider only when there is something on both sides of it. The log-out
+      control needs its form to exist to do anything at all, so it is bound
+      to the same condition as the form: a project that provides no
+      `account_logout` URL gets no log-out row rather than a button that
+      silently does nothing when clicked.
+
+      The admin lookup sits inside the staff check on purpose. `{% url as %}`
+      leaves the name unset when the branch does not run, which is what lets
+      the divider condition below ask whether that row was actually drawn
+      rather than whether the admin happens to be mounted.
+    {% endcomment %}
+    {% url "account-center" as account_center_url %}
+    {% url "account_logout" as logout_url %}
+    {% if request.user.is_staff %}{% url "admin:index" as admin_url %}{% endif %}
     <c-menu>
-      {% url "account-center" as account_center_url %}
       {% if account_center_url %}
         <c-menu.item label="{% trans "Account Center" %}"
                      icon="account_center"
                      href="{{ account_center_url }}" />
       {% endif %}
+      {% if admin_url %}
+        <c-menu.item label="{% trans "Admin Site" %}"
+                     icon="admin-site"
+                     href="{{ admin_url }}" />
+      {% endif %}
       {{ slot }}
-      {% if slot or account_center_url %}<c-menu.divider />{% endif %}
-      <c-menu.item label="{% trans "Log out" %}"
-                   type="submit"
-                   form="logoutForm"
-                   icon="logout" />
+      {% firstof account_center_url admin_url slot as has_rows_above %}
+      {% if logout_url and has_rows_above %}<c-menu.divider />{% endif %}
+      {% if logout_url %}
+        <c-menu.item label="{% trans "Log out" %}"
+                     type="submit"
+                     form="logoutForm"
+                     icon="logout" />
+      {% endif %}
     </c-menu>
-    {% url "account_logout" as logout_url %}
     {% if logout_url %}
       <form method="post"
             id="logoutForm"
