@@ -9,7 +9,7 @@ from django.contrib.messages.views import SuccessMessageMixin
 from django.core.exceptions import ImproperlyConfigured
 from django.db.models.deletion import Collector, ProtectedError, RestrictedError
 from django.http import HttpResponseRedirect
-from django.urls import reverse
+from django.urls import NoReverseMatch, reverse
 from django.utils.functional import Promise
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.text import camel_case_to_spaces
@@ -437,8 +437,6 @@ class MVPUpdateView(InlinesMixin, MVPModelFormBase, generic.UpdateView):
         Returns:
             str: URL for the delete view link, or empty string when suppressed.
         """
-        from django.urls import NoReverseMatch
-
         url = self.resolve_crud_url("delete")
         if not url:
             return ""
@@ -627,7 +625,11 @@ class MVPDeleteView(MVPModelFormBase, generic.DeleteView):
         if callable(get_absolute_url):
             try:
                 return get_absolute_url() or ""
-            except Exception:
+            except NoReverseMatch:
+                # A model may declare get_absolute_url for a route the project
+                # never mounted. That is the one failure worth tolerating here;
+                # anything else raised by a consumer's own method is a bug in it
+                # and must not be swallowed by a button's fallback chain.
                 return ""
 
         return ""

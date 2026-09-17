@@ -146,7 +146,7 @@ class ProductListView(MVPListView):
     order_by = [
         ("name_asc",  "Name (A-Z)", ["name", "pk"]),
         ("name_desc", "Name (Z-A)", ["-name", "-pk"]),
-        ("newest",    "Newest first", "-created"),
+        ("newest",    "Newest first", ["-created", "-pk"]),
     ]
 
     # Card grid + per-item template ("<app>/<model>_list_item.html" by default)

@@ -163,7 +163,7 @@ class OrderMixin:
             order_by = [
                 ("name_asc", "Name (A-Z)", ["name", "pk"]),
                 ("name_desc", "Name (Z-A)", ["-name", "-pk"]),
-                ("newest", "Newest First", "-created_at"),
+                ("newest", "Newest First", ["-created_at", "-pk"]),
             ]
 
     A single column is not a total order unless it is unique, so a stable
