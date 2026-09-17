@@ -1,0 +1,35 @@
+{% comment %}
+  Override of crispy_tailwind's tailwind/layout/field_errors_block.html.
+
+  Django 5.2 composes aria-describedby in BoundField.build_widget_attrs from
+  the help-text id and "{auto_id}_error", and expects the form template to
+  render the error container under that second id. crispy-tailwind's own
+  copy still mints its own scheme, error_{counter}_{auto_id} — so
+  {auto_id}_error is never rendered, and a screen reader announces the
+  field as invalid without ever reading why (#295).
+
+  This is the sibling of field_errors.html that help_text_and_errors.html
+  actually includes whenever error_text_inline is not explicitly turned on
+  — which is every {{ form|crispy }} render with no FormHelper.Layout, the
+  common case in this project. Both need the same fix: crispy-tailwind
+  ships them as identical files that diverge only by which one gets
+  included.
+
+  The per-error paragraphs keep their existing error_{{ forloop.counter }}_{{
+  field.auto_id }} ids as well as gaining the container: nothing in this
+  repository reads them, but a consuming project may have styled or tested
+  against them, and keeping them costs one attribute.
+
+  This file must stay at this same relative path so Django's app_dirs
+  template loader picks it up ahead of crispy_tailwind's own copy — `mvp`
+  is listed before `crispy_tailwind` in INSTALLED_APPS. See
+  mvp/templates/tailwind/layout/help_text.html for the same override
+  pattern applied to a different vendored template.
+{% endcomment %}
+{% if form_show_errors and field.errors %}
+    <div id="{{ field.auto_id }}_error">
+        {% for error in field.errors %}
+            <p id="error_{{ forloop.counter }}_{{ field.auto_id }}" class="text-red-500 text-xs italic"><strong>{{ error }}</strong></p>
+        {% endfor %}
+    </div>
+{% endif %}
