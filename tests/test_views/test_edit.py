@@ -2277,6 +2277,30 @@ class TestDeleteViewProtected:
         assert response.context["is_protected"] is True
         assert b"delete-submit-btn" not in response.content
 
+    @pytest.mark.django_db
+    def test_restrict_blocked_page_shows_protection_alert_on_get(self, client, product):
+        """GET the delete page for a RESTRICT-blocked record — refusal alert, no 500."""
+        from demo.models import ShipmentLine
+
+        ShipmentLine.objects.create(product=product, quantity=1)
+        url = reverse("product-delete", kwargs={"pk": product.pk})
+        response = client.get(url)
+        assert response.status_code == 200
+        assert response.context["is_protected"] is True
+        assert b"cannot be deleted" in response.content
+
+    @pytest.mark.django_db
+    def test_restrict_blocked_page_refuses_post(self, client, product):
+        """POST the delete page for a RESTRICT-blocked record — refused, not deleted, no 500."""
+        from demo.models import Product, ShipmentLine
+
+        ShipmentLine.objects.create(product=product, quantity=1)
+        url = reverse("product-delete", kwargs={"pk": product.pk})
+        response = client.post(url)
+        assert response.status_code == 200
+        assert response.context["is_protected"] is True
+        assert Product.objects.filter(pk=product.pk).exists()
+
 
 # ---------------------------------------------------------------------------
 # US4 â€” Type-to-confirm (T023)

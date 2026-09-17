@@ -293,11 +293,11 @@ at all.
 `MVPDeleteView` handles the hard parts of deletion:
 
 - shows a summary of related objects that will be deleted with the target,
-- blocks deletion (with an explanatory page) when protected relations exist,
+- blocks deletion (with an explanatory page) when `PROTECT` or `RESTRICT` relations exist,
 - optional type-to-confirm for dangerous deletes (`require_confirmation = True`).
 
 A blocked delete re-renders the same page with a 200 rather than redirecting or raising —
-the POST that triggered it never reaches Django's own `ProtectedError`.
+the POST that triggered it never reaches Django's own `ProtectedError` or `RestrictedError`.
 
 A successful delete's redirect chain differs from the other form views' at its last step:
 without an explicit `success_url`, it lands on the registered list URL rather than

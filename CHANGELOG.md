@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **`MVPDeleteView` refuses a delete blocked by `on_delete=RESTRICT`, instead of raising.**
+  It already caught Django's `ProtectedError` for `PROTECT` relations and rendered the
+  refusal page; `RestrictedError` reached neither the GET nor the POST handler and
+  surfaced as a 500 on both.
+
 ## [v0.23.0] - 2026-09-15
 
 ### Added

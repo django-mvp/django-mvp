@@ -7,7 +7,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.messages.views import SuccessMessageMixin
 from django.core.exceptions import ImproperlyConfigured
-from django.db.models.deletion import Collector, ProtectedError
+from django.db.models.deletion import Collector, ProtectedError, RestrictedError
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.utils.functional import Promise
@@ -539,8 +539,8 @@ class MVPDeleteView(MVPModelFormBase, generic.DeleteView):
             tuple[dict, list]:
                 - related: ``{model: [instances]}`` for cascade relations
                   (excluding the object itself). Empty dict when protected.
-                - protected: list of objects blocking deletion via PROTECT.
-                  Empty list when deletion is safe.
+                - protected: list of objects blocking deletion via PROTECT or
+                  RESTRICT. Empty list when deletion is safe.
         """
 
         using = self.object._state.db
@@ -549,6 +549,8 @@ class MVPDeleteView(MVPModelFormBase, generic.DeleteView):
             collector.collect([self.object])
         except ProtectedError as exc:
             return {}, list(exc.protected_objects)
+        except RestrictedError as exc:
+            return {}, list(exc.restricted_objects)
 
         related = defaultdict(list)
         for model, instances in collector.data.items():
@@ -685,11 +687,11 @@ class MVPDeleteView(MVPModelFormBase, generic.DeleteView):
         return context
 
     def post(self, request, *args, **kwargs):
-        """Handle DELETE confirmation — validates type-to-confirm and catches ProtectedError.
+        """Handle DELETE confirmation — validates type-to-confirm and refuses a blocked delete.
 
         Uses Django's form machinery: if ``require_confirmation=True`` the request
         data is validated through ``DeleteConfirmForm``; if the object is
-        PROTECT-blocked the deletion is aborted before any form processing.
+        PROTECT- or RESTRICT-blocked the deletion is aborted before any form processing.
         """
         self.object = self.get_object()
         _, protected = self._collect_deletion_data()
