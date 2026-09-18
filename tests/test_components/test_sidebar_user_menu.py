@@ -5,6 +5,8 @@ computation (`.dropdown-content`'s `min-w-52` floor against a ~48px icon-rail
 trigger) that only a live layout render exposes.
 """
 
+import re
+
 import pytest
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -147,3 +149,47 @@ class TestSidebarUserMenuIconRail:
         assert panel_box["width"] >= trigger_box["width"], (
             "the panel must never render narrower than its own trigger"
         )
+
+
+@pytest.mark.django_db
+class TestSidebarUserMenuLongUsername:
+    """[#368] A long username let the trigger grow past its row instead of
+    truncating, and the overflow sat on top of the theme and language
+    controls beside it — a live click is what actually proves whether a
+    control is still reachable, not a class on the markup."""
+
+    def test_theme_control_stays_clickable_with_a_long_username(
+        self, page, live_server
+    ):
+        user = get_user_model().objects.create_user(
+            username="a-username-far-too-long-to-fit-in-the-sidebar-footer-row",
+            password="pw",
+        )
+        _login_in_browser(page, live_server, user)
+
+        page.set_viewport_size(DESKTOP)
+        page.goto(live_server.url)
+
+        sidebar = page.locator("aside.mvp-sidebar")
+        theme_toggle = sidebar.get_by_role("button", name="Toggle dark mode")
+        theme_toggle.click()
+
+        expect(theme_toggle).to_have_class(re.compile(r"\bswap-active\b"))
+
+    def test_language_control_stays_clickable_with_a_long_username(
+        self, page, live_server
+    ):
+        user = get_user_model().objects.create_user(
+            username="a-username-far-too-long-to-fit-in-the-sidebar-footer-row",
+            password="pw",
+        )
+        _login_in_browser(page, live_server, user)
+
+        page.set_viewport_size(DESKTOP)
+        page.goto(live_server.url)
+
+        sidebar = page.locator("aside.mvp-sidebar")
+        language_button = sidebar.get_by_role("button", name="Select a language")
+        language_button.click()
+
+        expect(page.locator("#languageModal")).to_be_visible()
