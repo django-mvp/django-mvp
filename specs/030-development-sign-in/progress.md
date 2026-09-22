@@ -91,3 +91,18 @@ password-bearing default parameter, fixed by making the test helper require the 
 explicitly rather than defaulting it). `poetry run mypy mvp/views/account.py` — no issues.
 
 Next: T005 (the `next` allow-list and the anonymous-visitor round trip).
+
+## 2026-09-22T13:15:00Z · Implementer US-1 · T005
+
+Did: `TestSignInViewNextRedirect` in `tests/test_views/test_account.py` — an off-site `next` is
+refused in favour of the default destination, an in-site `next` is honoured, and the full round
+trip a person actually makes: with `settings.LOGIN_URL = "account_login"`, an anonymous request
+for the Account Center is redirected to the packaged sign-in page, and signing in arrives back at
+the Account Center (US-1 scenario 6, FR-008). No production code change — the allow-list is
+`django.utils.http.url_has_allowed_host_and_scheme` inside Django's own `LoginView`, asserted
+rather than reimplemented, exactly as the task expects.
+
+Verified: `poetry run pytest tests/test_views/test_account.py::TestSignInViewNextRedirect -v` — 3
+passed. `poetry run ruff check` and `poetry run ruff format --check` on the touched file — clean.
+
+Next: T006 (a signed-in person is not shown the form).

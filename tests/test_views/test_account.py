@@ -178,6 +178,69 @@ class TestSignInViewDefaultRedirect:
 
 
 @pytest.mark.django_db
+class TestSignInViewNextRedirect:
+    """The ``next`` allow-list, and the round trip a person actually makes
+    (T005, FR-008, Article V)."""
+
+    @pytest.fixture(autouse=True)
+    def _account_urlconf(self):
+        with override_settings(ROOT_URLCONF=ACCOUNT_URLCONF):
+            yield
+
+    def test_an_off_site_next_is_refused(self, client, django_user_model, settings):
+        settings.LOGIN_REDIRECT_URL = global_settings.LOGIN_REDIRECT_URL
+        django_user_model.objects.create_user(
+            username="nextuser1", password="correct-pass"
+        )
+        response = client.post(
+            reverse("account_login"),
+            {
+                "username": "nextuser1",
+                "password": "correct-pass",
+                "next": "https://evil.example/",
+            },
+        )
+
+        assert response.status_code == 302
+        assert response.url == reverse("account-center")
+
+    def test_an_in_site_next_is_honoured(self, client, django_user_model):
+        django_user_model.objects.create_user(
+            username="nextuser2", password="correct-pass"
+        )
+        response = client.post(
+            reverse("account_login"),
+            {"username": "nextuser2", "password": "correct-pass", "next": "/products/"},
+        )
+
+        assert response.status_code == 302
+        assert response.url == "/products/"
+
+    def test_the_full_round_trip_from_a_protected_page_back_to_it(
+        self, client, django_user_model, settings
+    ):
+        """US-1 scenario 6, end to end: with ``LOGIN_URL`` configured the way
+        T010 documents, an anonymous visitor to the Account Center reaches
+        the packaged sign-in page, and signing in returns them there."""
+        settings.LOGIN_URL = "account_login"
+        django_user_model.objects.create_user(
+            username="nextuser3", password="correct-pass"
+        )
+
+        anonymous_visit = client.get(reverse("account-center"))
+        assert anonymous_visit.status_code == 302
+        assert anonymous_visit.url.startswith(reverse("account_login"))
+
+        signed_in = client.post(
+            anonymous_visit.url,
+            {"username": "nextuser3", "password": "correct-pass"},
+        )
+
+        assert signed_in.status_code == 302
+        assert signed_in.url == reverse("account-center")
+
+
+@pytest.mark.django_db
 class TestAccountCenterView:
     """The landing page: who it lets in, and what it shows once they're in."""
 
