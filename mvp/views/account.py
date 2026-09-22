@@ -39,11 +39,8 @@ class AccountCenterView(LoginRequiredMixin, MVPTemplateView):
 
 
 class SignInView(LoginView):
-    """The Account Center's sign-in page, registered as ``account_login``.
-
-    A project that installs account management (``allauth.account``) gets
-    that package's own sign-in page instead — see ``mvp/urls.py``.
-    """
+    """The Account Center's sign-in page, registered as ``account_login``
+    for development — see docs/account-center.md."""
 
     template_name = "mvp/account/login.html"
     redirect_authenticated_user = True
@@ -60,13 +57,11 @@ class SignInView(LoginView):
 
 
 class SignOutView(LogoutView):
-    """The Account Center's sign-out page, registered as ``account_logout``.
+    """The Account Center's sign-out page, registered as ``account_logout``
+    for development — see docs/account-center.md.
 
     Renders ``template_name`` rather than redirecting (no ``next_page``,
-    decision D8): the packaged signed-out page is what carries the
-    development notice US-3 requires. A project that installs account
-    management (``allauth.account``) gets that package's own sign-out page
-    instead — see ``mvp/urls.py``. POST-only is Django's own, since 5.0.
+    decision D8). POST-only is Django's own, since 5.0.
     """
 
     template_name = "mvp/account/logout.html"

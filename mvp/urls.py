@@ -12,6 +12,11 @@ The landing page's URL name is left un-namespaced, ``account-center``
 (decision D2): the shell's own user menu already reverses that bare name, and
 namespacing it would break every page already written against it. Do not add
 an ``app_name`` here.
+
+Mounting this also registers ``account_login`` and ``account_logout`` — a
+development-only sign-in and sign-out, so a page guarded by
+``LoginRequiredMixin`` is reachable before a project installs an
+account-management app. See docs/account-center.md.
 """
 
 from django.urls import path

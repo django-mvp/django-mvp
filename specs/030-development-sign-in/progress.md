@@ -202,3 +202,28 @@ catch any interaction between the `TEMPLATES` override and the classes around it
 ruff check` and `poetry run ruff format --check` on the touched Python file — clean.
 
 Next: T010 (documentation).
+
+## 2026-09-22T13:49:00Z · Implementer US-1 · T010
+
+Did: `docs/account-center.md` — expanded "Signing in" into "Signing in during development"
+(FR-013): what mounting the URLconf now gives a project, the `LOGIN_URL = "account_login"`
+setting and why it is needed, what the pages deliberately do not do, what installing
+`allauth.account` changes, and one sentence on backends/non-disclosure. Replaced the
+"Giving people a way there" section's now-outdated manual `account_logout` registration example
+— mounting the URLconf already provides it. Updated the intro paragraph to acknowledge the two
+new pages without overstating them against `django-accounts-center`'s full account management.
+`README.md`'s scope statement gained the same acknowledgement. `CHANGELOG.md` gained an `### Added`
+entry. Docstrings in `mvp/views/account.py` and `mvp/urls.py` revised: removed claims about the
+`allauth.account` stand-down behaviour from the two view docstrings and the notice from
+`SignOutView`'s, since neither exists yet in this story's own code (both are US-2/US-3 work) —
+kept in `docs/account-center.md` instead, which describes the complete, already-decided feature
+design (D1, D9) rather than this single commit's code.
+
+Verified: `poetry run pytest tests/test_views/test_account.py tests/test_urls.py -q` — 37 passed
+(no behaviour changed, checked anyway since two view docstrings and the urls.py module docstring
+were edited). `poetry run ruff check` and `poetry run ruff format --check` on the touched Python
+files — clean. `poetry run mypy mvp/views/account.py mvp/urls.py` — no issues. Markdown not
+machine-checked; read start to end for a dead cross-reference or a claim the code doesn't back
+(the `#signing-in-during-development` anchor matches the heading it targets).
+
+Next: T016 (the demo uses the packaged pages) — the last task in this story.
