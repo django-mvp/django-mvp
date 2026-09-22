@@ -118,3 +118,38 @@ Verified: `poetry run pytest tests/test_views/test_account.py -k SignIn -v` — 
 mvp/views/account.py` — no issues.
 
 Next: T007 (sign-out requires a submission and renders the signed-out page).
+
+## 2026-09-22T13:26:00Z · Implementer US-1 · T007
+
+Did: `SignOutView(LogoutView)` in `mvp/views/account.py` — `template_name =
+"mvp/account/logout.html"`, no `next_page` (D8). Registered as `account_logout` in `mvp/urls.py`.
+New template `mvp/templates/mvp/account/logout.html`, same layout as the sign-in page. Three
+tests in `TestSignOutView`: a POST by a signed-in client ends the session and renders the packaged
+page; a GET does not end the session (POST-only is Django's own, since 5.0 — no code, per the
+task); an anonymous POST is not an error. The two 200-asserting tests set
+`settings.LOGOUT_REDIRECT_URL` to Django's own global default (`None`) explicitly — the demo's own
+value (`"/"`, D12) is a project preference this test is not about, and `LogoutView` honours it
+ahead of `template_name` when left in place, which is exactly why T016 removes it from the demo.
+
+Verified: `poetry run pytest tests/test_views/test_account.py::TestSignOutView -v` — 3 passed.
+`poetry run ruff check` and `poetry run ruff format --check` on the touched Python files — clean.
+`poetry run mypy mvp/views/account.py mvp/urls.py` — no issues. `poetry run djlint
+mvp/templates/mvp/account/logout.html mvp/templates/mvp/account/login.html --check` — clean (not
+part of the story's gate, run for its own sake since two new templates landed).
+
+**Concern, not blocked — flagged for Forge to triage.** `mvp.urls` now registers `account_logout`
+unconditionally (the `app_is_installed` guard is US-2/T011's addition, not this story's — see the
+T002 watch note). Ran the full `tests/test_components/` and `tests/test_views/` directories plus
+`tests/test_urls.py` (1216 passed, 1 failed, 1 skipped) specifically to check for this: one
+pre-existing test breaks as a direct, foreseeable consequence —
+`tests/test_components/test_sidebar_user_menu_admin_link.py::TestSidebarUserMenuLogOut::test_no_log_out_row_when_the_project_has_no_logout_url`.
+It mounts `tests/urls_without_logout.py`, which includes `mvp.urls` and was written, correctly, on
+the premise that doing so provided no `account_logout` name — true before this story, false now
+that `mvp.urls` provides it whenever allauth is absent. Neither `tests/urls_without_logout.py` nor
+the failing test are in this story's file scope (not in the brief's file list, and the test is
+pre-existing — I did not author it and the prohibitions bar changing either). Not touched. This is
+the log-out row correctly appearing where the fixture's docstring says it should not, given the
+premise the fixture was built on no longer holds — a fixture update, not a defect in this story's
+code.
+
+Next: T008 (the shell's controls draw themselves once the names resolve).

@@ -263,6 +263,52 @@ class TestSignInViewAuthenticatedVisitor:
 
 
 @pytest.mark.django_db
+class TestSignOutView:
+    """``account_logout`` — the sign-out page (T007, FR-004, D8)."""
+
+    @pytest.fixture(autouse=True)
+    def _account_urlconf(self):
+        with override_settings(ROOT_URLCONF=ACCOUNT_URLCONF):
+            yield
+
+    def test_a_post_by_a_signed_in_client_ends_the_session_and_renders_the_signed_out_page(
+        self, client, django_user_model, settings
+    ):
+        """``LOGOUT_REDIRECT_URL`` set to Django's own global default: a
+        project that has chosen nothing, which is what T007's ``no next_page``
+        claim is about. The demo sets its own value (D12, removed by T016) —
+        that is a project preference, not this test's subject."""
+        settings.LOGOUT_REDIRECT_URL = global_settings.LOGOUT_REDIRECT_URL
+        user = django_user_model.objects.create_user(
+            username="signoutuser1", password="correct-pass"
+        )
+        client.force_login(user)
+
+        response = client.post(reverse("account_logout"))
+
+        assert response.status_code == 200
+        assert response.wsgi_request.user.is_anonymous
+        assert response.templates[0].name == "mvp/account/logout.html"
+
+    def test_a_get_does_not_end_the_session(self, client, django_user_model):
+        user = django_user_model.objects.create_user(
+            username="signoutuser2", password="correct-pass"
+        )
+        client.force_login(user)
+
+        client.get(reverse("account_logout"))
+
+        assert client.session.get("_auth_user_id") is not None
+
+    def test_an_anonymous_post_is_not_an_error(self, client, settings):
+        settings.LOGOUT_REDIRECT_URL = global_settings.LOGOUT_REDIRECT_URL
+
+        response = client.post(reverse("account_logout"))
+
+        assert response.status_code == 200
+
+
+@pytest.mark.django_db
 class TestAccountCenterView:
     """The landing page: who it lets in, and what it shows once they're in."""
 

@@ -16,9 +16,10 @@ an ``app_name`` here.
 
 from django.urls import path
 
-from .views.account import AccountCenterView, SignInView
+from .views.account import AccountCenterView, SignInView, SignOutView
 
 urlpatterns = [
     path("", AccountCenterView.as_view(), name="account-center"),
     path("login/", SignInView.as_view(), name="account_login"),
+    path("logout/", SignOutView.as_view(), name="account_logout"),
 ]

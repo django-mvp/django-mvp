@@ -1,0 +1,17 @@
+{% extends "mvp/entrance.html" %}
+{% load i18n %}
+{% comment %}
+  Overrides {% block entrance %} rather than {% block content %} so the
+  signed-out confirmation can ask for the same narrower card as the sign-in
+  page.
+{% endcomment %}
+{% block entrance %}
+  <c-entrance size="md" full-height>
+    {% block content %}
+      <h2 class="text-center mb-6">{% trans "You have signed out" %}</h2>
+      <c-link href="{% url 'account_login' %}"
+              text="{% trans "Sign in again" %}"
+              class="block text-center" />
+    {% endblock content %}
+  </c-entrance>
+{% endblock entrance %}
