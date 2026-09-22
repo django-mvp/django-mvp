@@ -40,6 +40,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **The shell no longer raises `KeyError: 'request'` when rendered without a request.**
+  It draws no menu instead. Django renders the production error page in exactly that
+  context — `django.views.defaults.server_error` calls `template.render()` with no
+  context and no request — so a project building its error page on this shell lost the
+  real error at exactly the moment it mattered most. The cause was in django-flex-menus,
+  whose `process_menu` read `context["request"]` directly, and the floor moves to 0.4.5
+  to pick up the fix.
+
 - **A select widget carrying its own template now renders that template**, instead
   of crispy-tailwind's bare `<select>` built from the field's choices and
   attributes. django-tomselect is the reported case: its template is a `<select>`

@@ -685,24 +685,24 @@ files = [
 
 [[package]]
 name = "django"
-version = "5.2.17"
+version = "6.1.1"
 description = "A high-level Python web framework that encourages rapid development and clean, pragmatic design."
 optional = false
-python-versions = ">=3.10"
+python-versions = ">=3.12"
 groups = ["main", "dev", "test"]
 files = [
-    {file = "django-5.2.17-py3-none-any.whl", hash = "sha256:f04fb3b36ee119e1af4fa1d397d5fd6cf12700f49321e84d4f4c642c5b1973db"},
-    {file = "django-5.2.17.tar.gz", hash = "sha256:9d4d93be539a18ab80d058eb515900e10951e04c537c5a6b394fc49528d3251f"},
+    {file = "django-6.1.1-py3-none-any.whl", hash = "sha256:585fb82bf15053c42cf52e67c2f1b54a032dca384759315fd6678ab1870d1d72"},
+    {file = "django-6.1.1.tar.gz", hash = "sha256:7ab93536d8e677aa14554c56426290c69480bf2ee68d7513d4a22f57d6bfeb84"},
 ]
 
 [package.dependencies]
-asgiref = ">=3.8.1"
-sqlparse = ">=0.3.1"
+asgiref = ">=3.9.1"
+sqlparse = ">=0.5.0"
 tzdata = {version = "*", markers = "sys_platform == \"win32\""}
 
 [package.extras]
-argon2 = ["argon2-cffi (>=19.1.0)"]
-bcrypt = ["bcrypt"]
+argon2 = ["argon2-cffi (>=23.1.0)"]
+bcrypt = ["bcrypt (>=4.1.1)"]
 
 [[package]]
 name = "django-browser-reload"
@@ -868,19 +868,19 @@ drf = ["djangorestframework"]
 
 [[package]]
 name = "django-flex-menus"
-version = "0.4.3"
+version = "0.4.5"
 description = "Flexible site menus for Django"
 optional = false
-python-versions = "<4.0,>=3.11"
+python-versions = "<4.0,>=3.12"
 groups = ["main"]
 files = [
-    {file = "django_flex_menus-0.4.3-py3-none-any.whl", hash = "sha256:35de7cdbc3d7798ac35cd661f87b0197bcaba35f5f5bd62732ab3654d9f9f534"},
-    {file = "django_flex_menus-0.4.3.tar.gz", hash = "sha256:26a6f0d627c8e6108041cfc1f997bd09d130b86ab07ace78349f6dbe312e3417"},
+    {file = "django_flex_menus-0.4.5-py3-none-any.whl", hash = "sha256:e4070df161bc5fe94408fdf044c9507f7fcdee62c798e10cdd4d30588c7a2bf6"},
+    {file = "django_flex_menus-0.4.5.tar.gz", hash = "sha256:3d3cb1145dcfed2e2ce15d12baf6ecade35dee9b18a2d3667f409c82779f2548"},
 ]
 
 [package.dependencies]
 anytree = ">2"
-django = ">=4.2,<5.3"
+django = ">=6.1.1"
 
 [[package]]
 name = "django-htmx"
@@ -3269,4 +3269,4 @@ dev = ["pytest", "setuptools"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<4.0"
-content-hash = "b156c1cdf252acd4bec2758b2efc95579626e52bbea21bdc9de347ce930b9504"
+content-hash = "a4947d02d83ff47065ec85cfe1d2f16abb0bedbbc45b65dda85ddcbd93c4e742"
