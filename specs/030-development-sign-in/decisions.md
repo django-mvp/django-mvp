@@ -113,3 +113,82 @@ the fallback continues to behave exactly as it does today, so nothing regresses.
 feature to arbitrate between the package's pages and Django's auth URLconf would change behaviour
 for projects that never asked for these pages. It is recorded as an edge case in `spec.md` so
 that planning reads it rather than rediscovering it.
+
+---
+
+Decisions from planning (S3). Same bar as the entries above: what was unclear, what was chosen,
+and why the choice is defensible on evidence already in this repository.
+
+## D7 — allauth becomes a test dependency of this package
+
+**Ambiguous because** FR-003 is a claim about what happens when allauth is installed, and allauth
+is not a dependency of this package in any group.
+
+**Chosen**: `django-allauth` joins the **test** dependency group. The published runtime
+dependency set does not change.
+
+**Why.** `override_settings(INSTALLED_APPS=[..., "allauth.account"])` calls
+`apps.set_installed_apps()`, which imports the app, so there is no way to execute FR-003's claim
+without allauth present. The alternative is to assert the guard against a fabricated app list,
+which tests the helper rather than the requirement and leaves the requirement itself unexecuted.
+D1 exists precisely because this failure is silent — a sign-in page that renders, submits and
+creates a session while everything the project installed allauth for is missing. An untested
+claim about allauth is the same class of thing D1 was written to prevent.
+
+Article VII asks for a stated justification and gets one; `deptry`'s `DEP001` ignore list gains
+`allauth` beside `pytest` and `bs4`, which are there for the same reason.
+
+## D8 — Signing out renders a page rather than redirecting
+
+**Ambiguous because** Django's `LogoutView` can either redirect to `next_page` or render a
+template, and `demo/settings.py` already sets `LOGOUT_REDIRECT_URL = "/"`.
+
+**Chosen**: the packaged view sets `template_name` and no `next_page`, so a successful sign-out
+renders `mvp/account/logout.html`.
+
+**Why.** FR-011 requires the notice on *both* packaged pages, and a redirect leaves only one page
+to put it on. The moment after signing out is also the moment a developer is most likely to be
+looking at what these pages are, which is where the notice is worth its space. A project that
+prefers a redirect sets `LOGOUT_REDIRECT_URL` and gets one, because Django's own view honours it
+ahead of the template.
+
+## D9 — The notice is an included partial, not a Cotton component
+
+**Ambiguous because** this package's answer to reusable markup is normally a Cotton component,
+and the notice appears on two pages.
+
+**Chosen**: `mvp/templates/mvp/account/_development_notice.html`, included by both pages.
+
+**Why.** Article XI makes a component this package's public API — something a project is invited
+to use, compose with and override by name. The notice is none of those: it exists to be read once
+by a developer and then to stop existing, because installing account management takes the pages
+away. Shipping it as a component would publish an interface with no consumer and no successor.
+The override point a project actually needs is the page template, which it already has.
+
+## D10 — "The project has not chosen a destination" is decided against Django's global default
+
+**Ambiguous because** FR-007 makes the Account Center a default that a project's own
+`LOGIN_REDIRECT_URL` beats, and `LOGIN_REDIRECT_URL` always has a value.
+
+**Chosen**: compare `settings.LOGIN_REDIRECT_URL` with
+`django.conf.global_settings.LOGIN_REDIRECT_URL`, and use the Account Center only when they are
+equal.
+
+**Why.** A project that has expressed no preference has exactly the framework's default, so the
+comparison is a fact rather than a guess. Importing the default from `global_settings` rather
+than writing `"/accounts/profile/"` into this package keeps it a fact if Django ever changes it.
+
+## D11 — One repair to the base, recorded because it is not this feature's work
+
+**Ambiguous because** the conformance check was already red on `main` when this branch was cut,
+and a feature branch is not where unrelated drift belongs.
+
+**Chosen**: declare `tests/test_full_page_fill_e2e.py` under `[tool.forge.conformance]
+non-mirror-paths` on this branch, and nothing else.
+
+**Why.** That module measures computed layout in a real browser; its subject is a stylesheet and
+two templates, so the Python module the mirror rule looks for can never exist. Every sibling in
+that position — the other `_e2e` modules, the template and brand-asset suites — is already
+declared there for the same reason. The declaration is one line and the accurate statement about
+that file; leaving the check red would have meant either building on an ungated base or fixing
+something larger inside a feature branch.

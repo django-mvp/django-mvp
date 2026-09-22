@@ -1,0 +1,100 @@
+{
+  "feature": "030-development-sign-in",
+  "branch": "030-development-sign-in",
+  "repo": "django-mvp/django-mvp",
+  "state": "PLAN",
+  "state_history": [
+    {
+      "state": "QUEUED",
+      "at": "2026-09-22T10:51:09Z",
+      "note": "specification merged to main in PR #382, merge commit 16e70a242359fc8c282f5648944f3877e89cb0c2; epic #381, stories #383-#385"
+    },
+    {
+      "state": "PLAN",
+      "at": "2026-09-22T13:10:00Z",
+      "note": "plan.md, research.md, tasks.md"
+    }
+  ],
+  "gates": {
+    "spec": {
+      "approved_by": "SamuelJennings",
+      "at": "2026-09-22T10:51:09Z",
+      "self_resolved": []
+    },
+    "plan": {
+      "approved_by": null,
+      "at": null,
+      "self_resolved": []
+    },
+    "merge": {
+      "approved_by": null,
+      "at": null,
+      "self_resolved": []
+    }
+  },
+  "stories": [
+    {
+      "id": "US0",
+      "priority": "P0",
+      "issue": null,
+      "worktree": "/home/sam/projects/django-mvp/dm-030-development-sign-in",
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {"id": "T001", "status": "todo", "attempts": 0}
+      ]
+    },
+    {
+      "id": "US1",
+      "priority": "P1",
+      "issue": 383,
+      "worktree": "/home/sam/projects/django-mvp/dm-030-development-sign-in",
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {"id": "T002", "status": "todo", "attempts": 0},
+        {"id": "T003", "status": "todo", "attempts": 0},
+        {"id": "T004", "status": "todo", "attempts": 0},
+        {"id": "T005", "status": "todo", "attempts": 0},
+        {"id": "T006", "status": "todo", "attempts": 0},
+        {"id": "T007", "status": "todo", "attempts": 0},
+        {"id": "T008", "status": "todo", "attempts": 0},
+        {"id": "T009", "status": "todo", "attempts": 0},
+        {"id": "T010", "status": "todo", "attempts": 0},
+        {"id": "T016", "status": "todo", "attempts": 0}
+      ]
+    },
+    {
+      "id": "US2",
+      "priority": "P2",
+      "issue": 384,
+      "worktree": "/home/sam/projects/django-mvp/dm-030-development-sign-in",
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {"id": "T011", "status": "todo", "attempts": 0},
+        {"id": "T012", "status": "todo", "attempts": 0},
+        {"id": "T013", "status": "todo", "attempts": 0}
+      ]
+    },
+    {
+      "id": "US3",
+      "priority": "P3",
+      "issue": 385,
+      "worktree": "/home/sam/projects/django-mvp/dm-030-development-sign-in",
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {"id": "T014", "status": "todo", "attempts": 0},
+        {"id": "T015", "status": "todo", "attempts": 0}
+      ]
+    }
+  ],
+  "budgets": {
+    "converge_cycles": {"used": 0, "max": 2},
+    "review_cycles": {"used": 0, "max": 1},
+    "design_review_cycles": {"used": 0, "max": 1},
+    "tokens": {"used": 0, "max": 120}
+  },
+  "pr": {"number": null, "draft": true}
+}
