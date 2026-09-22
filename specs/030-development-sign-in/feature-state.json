@@ -2,7 +2,7 @@
   "feature": "030-development-sign-in",
   "branch": "030-development-sign-in",
   "repo": "django-mvp/django-mvp",
-  "state": "PLAN",
+  "state": "DESIGN_REVIEW",
   "state_history": [
     {
       "state": "QUEUED",
@@ -11,8 +11,13 @@
     },
     {
       "state": "PLAN",
-      "at": "2026-09-22T13:10:00Z",
+      "at": "2026-09-22T12:35:00Z",
       "note": "plan.md, research.md, tasks.md"
+    },
+    {
+      "state": "DESIGN_REVIEW",
+      "at": "2026-09-22T12:45:00Z",
+      "note": "design reviewer dispatched, three lenses, one round"
     }
   ],
   "gates": {
@@ -30,6 +35,18 @@
       "approved_by": null,
       "at": null,
       "self_resolved": []
+    },
+    "design_review": {
+      "approved_by": "design-panel",
+      "at": "2026-09-22T12:55:00Z",
+      "self_resolved": [
+        "DR-001 high: nothing pointed LOGIN_URL at the packaged page, so a zero-configuration project sent an anonymous visitor from a protected page to a 404 \u2014 documented in T010 and proved end to end in T005",
+        "DR-002 high: demo/settings.py's LOGOUT_REDIRECT_URL made the packaged signed-out page unreachable in the demo \u2014 the setting is removed in T016 (D12)",
+        "DR-003 high: reloading mvp.urls alone reads a stale cached resolver and leaves the process broken for later tests \u2014 T011 now specifies the full fixture, and T012, T013 and T015 use it",
+        "DR-004 medium: allauth's own test configuration was left for the Implementer to discover \u2014 T001 now reads it and writes it down before US-2 starts",
+        "DR-005 low: a next pointing back at the sign-in page hits Django's own loop detector \u2014 accepted as inherited (D13)",
+        "DR-006 low: non-disclosure depends on the project's backend rejecting inactive users \u2014 documented in T010 (D14)"
+      ]
     }
   },
   "stories": [
@@ -41,7 +58,11 @@
       "status": "todo",
       "replans": 0,
       "tasks": [
-        {"id": "T001", "status": "todo", "attempts": 0}
+        {
+          "id": "T001",
+          "status": "todo",
+          "attempts": 0
+        }
       ]
     },
     {
@@ -52,16 +73,56 @@
       "status": "todo",
       "replans": 0,
       "tasks": [
-        {"id": "T002", "status": "todo", "attempts": 0},
-        {"id": "T003", "status": "todo", "attempts": 0},
-        {"id": "T004", "status": "todo", "attempts": 0},
-        {"id": "T005", "status": "todo", "attempts": 0},
-        {"id": "T006", "status": "todo", "attempts": 0},
-        {"id": "T007", "status": "todo", "attempts": 0},
-        {"id": "T008", "status": "todo", "attempts": 0},
-        {"id": "T009", "status": "todo", "attempts": 0},
-        {"id": "T010", "status": "todo", "attempts": 0},
-        {"id": "T016", "status": "todo", "attempts": 0}
+        {
+          "id": "T002",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T003",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T004",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T005",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T006",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T007",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T008",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T009",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T010",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T016",
+          "status": "todo",
+          "attempts": 0
+        }
       ]
     },
     {
@@ -72,9 +133,21 @@
       "status": "todo",
       "replans": 0,
       "tasks": [
-        {"id": "T011", "status": "todo", "attempts": 0},
-        {"id": "T012", "status": "todo", "attempts": 0},
-        {"id": "T013", "status": "todo", "attempts": 0}
+        {
+          "id": "T011",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T012",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T013",
+          "status": "todo",
+          "attempts": 0
+        }
       ]
     },
     {
@@ -85,16 +158,39 @@
       "status": "todo",
       "replans": 0,
       "tasks": [
-        {"id": "T014", "status": "todo", "attempts": 0},
-        {"id": "T015", "status": "todo", "attempts": 0}
+        {
+          "id": "T014",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T015",
+          "status": "todo",
+          "attempts": 0
+        }
       ]
     }
   ],
   "budgets": {
-    "converge_cycles": {"used": 0, "max": 2},
-    "review_cycles": {"used": 0, "max": 1},
-    "design_review_cycles": {"used": 0, "max": 1},
-    "tokens": {"used": 0, "max": 120}
+    "converge_cycles": {
+      "used": 0,
+      "max": 2
+    },
+    "review_cycles": {
+      "used": 0,
+      "max": 1
+    },
+    "design_review_cycles": {
+      "used": 1,
+      "max": 1
+    },
+    "tokens": {
+      "used": 0,
+      "max": 120
+    }
   },
-  "pr": {"number": null, "draft": true}
+  "pr": {
+    "number": 386,
+    "draft": true
+  }
 }

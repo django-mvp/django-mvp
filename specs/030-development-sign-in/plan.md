@@ -22,7 +22,9 @@ proving each claim with a test.
 
 ## Technical Context
 
-**Language/Version**: Python 3.12+ / Django 5.2+ (CI also runs 3.13 and Django 6.0)
+**Language/Version**: Python 3.12+ / Django 5.2+. CI runs Python 3.12 and 3.13 against Django 5.2
+and 6.0; this branch's virtualenv resolves Python 3.14 and Django 6.1.1, so a claim checked only
+locally is checked ahead of the supported matrix.
 
 **Primary Dependencies**: Django, django-cotton, django-crispy-forms + crispy-tailwind (all
 already present). One new **test-group** dependency: `django-allauth` — see research R8.
@@ -86,6 +88,19 @@ No violations. Complexity Tracking is empty.
   `USERNAME_FIELD` (FR-005), the non-disclosing `invalid_login` message (FR-006) — is inherited
   and asserted, never reimplemented.
 
+Two inherited behaviours are accepted as they are rather than guarded, and are recorded in
+`decisions.md` as D13 and D14: a `next` pointing back at the sign-in page itself makes Django's
+own loop detector raise for an already-signed-in visitor, and non-disclosure depends on the
+project's authentication backend rejecting inactive users, as Django's default does. Both are
+documented rather than coded around.
+
+**`LOGIN_URL` is the project's, and the documentation says so.** Django's global default is
+`/accounts/login/`, which this URLconf does not register, so a project that sets nothing sends an
+anonymous visitor from any `LoginRequiredMixin` page — including this package's own Account
+Center — to a 404. The package does not write a consumer's settings; `LOGIN_URL = "account_login"`
+is documented beside the include (T010) and proved by a test that drives the whole round trip
+(T005).
+
 `SignOutView(LogoutView)`:
 
 - `template_name = "mvp/account/logout.html"`, and **no** `next_page`, so a successful sign-out
@@ -132,8 +147,13 @@ documented mount order puts this URLconf first.
 Delete its `account_logout` path, its `django.contrib.auth.urls` include and
 `demo/templates/registration/login.html`; repoint the one `{% url 'login' %}` in
 `demo/templates/demo/components/link.html` at `account_login` (research R9).
-`LOGIN_REDIRECT_URL = "/"` stays: it is a project preference, and leaving it is what shows
-FR-007's precedence working in the thing a person can open.
+
+`demo/settings.py` gains `LOGIN_URL = "account_login"` and loses `LOGOUT_REDIRECT_URL = "/"`.
+Django's `LogoutView` honours `LOGOUT_REDIRECT_URL` ahead of `template_name`, so leaving it means
+the demo redirects home on sign-out and the packaged signed-out page — the one carrying the FR-011
+notice — is never rendered where a person can see it. `LOGIN_REDIRECT_URL = "/"` stays: it is a
+project preference, and leaving it is what shows FR-007's precedence working in the thing a person
+can open.
 
 ## Project Structure
 

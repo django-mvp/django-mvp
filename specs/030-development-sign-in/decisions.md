@@ -192,3 +192,53 @@ that position — the other `_e2e` modules, the template and brand-asset suites 
 declared there for the same reason. The declaration is one line and the accurate statement about
 that file; leaving the check red would have meant either building on an ungated base or fixing
 something larger inside a feature branch.
+
+## D12 — The demo drops `LOGOUT_REDIRECT_URL`, and gains `LOGIN_URL`
+
+**Ambiguous because** FR-014 says the demo must use the packaged pages, and the demo already has
+settings that decide where sign-in and sign-out land.
+
+**Chosen**: `LOGOUT_REDIRECT_URL = "/"` is removed from `demo/settings.py` and
+`LOGIN_URL = "account_login"` is added. `LOGIN_REDIRECT_URL = "/"` stays.
+
+**Why.** Django's `LogoutView` returns `resolve_url(settings.LOGOUT_REDIRECT_URL)` whenever
+`next_page` is unset and that setting is truthy, and only falls through to rendering its template
+when it is not. With the setting in place the demo redirects to the home page on sign-out, so the
+packaged signed-out page — the one carrying the notice FR-011 requires — is never rendered
+anywhere a person can look. FR-014 exists to make the demo show what the package does, and that
+setting is what stops it.
+
+`LOGIN_URL` is added for the opposite reason: without it the demo is not configured the way the
+documentation tells a consumer to configure a project, and the first protected page a visitor
+opens sends them to Django's global default, which this URLconf does not register.
+
+`LOGIN_REDIRECT_URL` stays because it is the one of the three that is genuinely a project
+preference, and leaving it is what demonstrates FR-007's precedence in something that can be
+opened rather than only in a test.
+
+## D13 — A `next` that points back at the sign-in page is left to Django
+
+**Ambiguous because** `redirect_authenticated_user` plus an attacker-supplied `next` pointing at
+the sign-in address makes Django's own loop detector raise `ValueError` for a signed-in visitor.
+
+**Chosen**: inherited and left alone.
+
+**Why.** It is `LoginView.dispatch`'s own guard, it requires a same-host URL that a person has to
+be handed, and the consequence is a 500 for the person who followed it, not a security boundary
+crossed. Overriding `dispatch` to catch it would be a second mechanism no requirement asks for,
+against a constitution that asks for the simplest design satisfying the spec. Recorded so the
+next reader knows it was seen rather than missed.
+
+## D14 — Non-disclosure is stated against the backend the package ships for
+
+**Ambiguous because** FR-006 requires that a failed sign-in not reveal whether an account exists,
+and `AuthenticationForm.confirm_login_allowed` raises a distinct "This account is inactive"
+message when a backend authenticates an inactive user.
+
+**Chosen**: no code, and one sentence in the documentation naming the condition.
+
+**Why.** Django's default `ModelBackend` rejects inactive users before that branch is reachable,
+so under the configuration this package ships against both failure cases collapse to the same
+message and FR-006 holds. A project configuring `AllowAllUsersModelBackend` has chosen the other
+behaviour. A package cannot decide a consumer's authentication backend, and pretending otherwise
+by overriding the form would override a decision that is properly the project's.
