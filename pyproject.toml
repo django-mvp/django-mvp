@@ -60,6 +60,7 @@ Django = ">=5.2.17.17"
 mvp-shared = { git = "https://github.com/django-mvp/shared.git", rev = "v0.4.1", extras = [
     "test",
 ] }
+django-allauth = "^65.19.4"
 
 [tool.poetry.group.dev.dependencies]
 Django = ">=5.2.17"

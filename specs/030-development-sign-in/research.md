@@ -105,3 +105,26 @@ the sidebar-menu component tests, and `tests/test_views/test_account.py` builds 
 inline rather than leaning on `demo/urls.py`.
 
 **Settles**: the new URL-resolution tests follow the pattern that is already there.
+
+## R11 — The test configuration allauth needs, read from the installed package (T001)
+
+`django-allauth` 65.19.4 is now in the test dependency group. Read from the resolved package
+rather than its documentation:
+
+- **`allauth/account/apps.py:14-20`** — `AccountConfig.ready()` raises `ImproperlyConfigured`
+  unless `allauth.account.middleware.AccountMiddleware` is in `settings.MIDDLEWARE`. This runs
+  when the app registry populates, so it fires on the way *into* a settings override, not later.
+- **`django/test/utils.py:497-505`** — `override_settings.enable()` calls
+  `apps.set_installed_apps()` **before** it installs any other overridden value. A single
+  `override_settings(INSTALLED_APPS=[...], MIDDLEWARE=[...])` therefore populates the app registry
+  while `MIDDLEWARE` still holds its original value, and allauth's check raises.
+
+  **The two overrides must be nested**: `MIDDLEWARE` outside, `INSTALLED_APPS` inside. Verified
+  both ways against the resolved packages — one combined override raises, the nested pair gives
+  `apps.is_installed("allauth.account") is True` inside and `False` after.
+- **`allauth/account/urls.py:10-13`** — the URLconf US-2 mounts is `allauth.account.urls`, and it
+  registers `account_login` at `login/` and `account_logout` at `logout/`, the two names this
+  feature's entries would otherwise duplicate.
+- `allauth.account` alone is enough for the app registry, confirmed by probe. The test
+  configuration installs `allauth` beside it as well, because that is what a real project does and
+  it is where allauth's own templates come from.

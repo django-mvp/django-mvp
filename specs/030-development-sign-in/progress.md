@@ -15,3 +15,22 @@ was touched.
 
 Planned: `plan.md`, `research.md`, `tasks.md`. Sixteen tasks over a foundational phase and three
 stories, run sequentially — all three stories touch the same four files.
+
+## 2026-09-22 — S3R DESIGN_REVIEW
+
+One reviewer, three lenses, one round. Verdict `request_changes`: three verified high findings,
+one medium, two low. All six applied — three as plan edits (T005, T010, T011, T016), three as
+decisions (D12, D13, D14). Editorial notes swept into `plan.md` and `tasks.md`.
+
+## 2026-09-22 — S4 IMPLEMENT
+
+**T001 done.** `django-allauth` 65.19.4 added to the test dependency group; `deptry` is clean
+without a per-rule ignore, so none was added — the entry the task anticipated would have silenced
+a finding that does not exist. Research R11 records the test configuration read out of the
+installed package, including the one thing that would otherwise have been discovered failure by
+failure: `override_settings` populates the app registry before it installs any other overridden
+value, so allauth's middleware check fires against the un-overridden `MIDDLEWARE` unless the two
+overrides are nested.
+
+Implemented directly rather than dispatched: one task, a dependency addition and a written
+finding, with no design content.
