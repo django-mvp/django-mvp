@@ -10,6 +10,7 @@ decision D2) is the contract this test exercises, independent of where a
 project chooses to mount it.
 """
 
+import copy
 import re
 from pathlib import Path
 
@@ -28,6 +29,14 @@ ACCOUNT_BASE_TEMPLATE = (
     / "mvp"
     / "account"
     / "base.html"
+)
+
+# A project's own template at the same path: mirrors mvp/templates/mvp/account/login.html
+# in demo/templates/tests/, the loader's DIRS checked ahead of any app's own APP_DIRS
+# entry (T009, FR-010) — scoped to the one test that needs it via override_settings
+# rather than a permanent shadow every other test in this module would then sit under.
+PROJECT_OVERRIDE_TEMPLATES_DIR = (
+    Path(__file__).resolve().parent.parent.parent / "demo" / "templates" / "tests"
 )
 
 
@@ -306,6 +315,29 @@ class TestSignOutView:
         response = client.post(reverse("account_logout"))
 
         assert response.status_code == 200
+
+
+@pytest.mark.django_db
+class TestPackagedTemplatesAreOverridable:
+    """A project shipping its own template at the same path decides what
+    renders (T009, FR-010). Asserted for the sign-in page — the sign-out
+    page shares the same loader behaviour and does not need asserting
+    twice."""
+
+    @pytest.fixture(autouse=True)
+    def _account_urlconf(self):
+        with override_settings(ROOT_URLCONF=ACCOUNT_URLCONF):
+            yield
+
+    def test_a_projects_own_sign_in_template_is_used_instead(self, client, settings):
+        templates_config = copy.deepcopy(settings.TEMPLATES)
+        templates_config[0]["DIRS"] = [str(PROJECT_OVERRIDE_TEMPLATES_DIR)]
+
+        with override_settings(TEMPLATES=templates_config):
+            response = client.get(reverse("account_login"))
+
+        assert response.status_code == 200
+        assert response.content.decode().strip() == "project-overridden-sign-in-page"
 
 
 @pytest.mark.django_db

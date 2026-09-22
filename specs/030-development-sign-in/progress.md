@@ -179,3 +179,26 @@ watch note's pre-existing conflict, unchanged by this task). `poetry run ruff ch
 run ruff format --check` on both touched files — clean.
 
 Next: T009 (both packaged templates can be overridden by a project).
+
+## 2026-09-22T13:41:00Z · Implementer US-1 · T009
+
+Did: `TestPackagedTemplatesAreOverridable` in `tests/test_views/test_account.py`, new fixture
+`demo/templates/tests/mvp/account/login.html`. Asserted for the sign-in page only, per the task —
+the sign-out page shares the same loader behaviour (FR-010).
+
+Mechanism: Django's default `TEMPLATES` loader order checks `DIRS` before `APP_DIRS`, so
+`override_settings(TEMPLATES=...)` with `DIRS` pointed at `demo/templates/tests` — where the
+fixture sits at the packaged template's own relative path, `mvp/account/login.html` — makes the
+project's copy win, scoped to the one test rather than shadowing the real page for every other
+test in this module (`demo` already precedes `mvp` in `INSTALLED_APPS`, so an unscoped shadow at
+that path would have broken T002–T008's own tests). Verified empirically before writing the test
+(a throwaway probe against `engines['django'].get_template`), and confirmed non-tautological by
+temporarily removing the fixture and watching the test fail on the real packaged page's content
+before restoring it. No production code change — this is Django's own template loader, asserted
+per the task's design ("it needs a test, not a mechanism" — research R6).
+
+Verified: `poetry run pytest tests/test_views/test_account.py -q` — 35 passed (the whole file, to
+catch any interaction between the `TEMPLATES` override and the classes around it). `poetry run
+ruff check` and `poetry run ruff format --check` on the touched Python file — clean.
+
+Next: T010 (documentation).
