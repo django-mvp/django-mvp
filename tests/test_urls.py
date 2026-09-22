@@ -193,3 +193,27 @@ class TestAllauthAnswersRegardlessOfMountOrder:
             assert resolve(reverse("account_login")).func.view_class is LoginView
             assert resolve(reverse("account_logout")).func.view_class is LogoutView
             assert client.get(reverse("account_login")).status_code == 200
+
+
+@pytest.mark.django_db
+class TestEachNameIsRegisteredExactlyOnce:
+    """``account_login`` and ``account_logout`` each resolve to exactly one
+    pattern, in every supported combination: with allauth in both mount
+    orders, and without allauth (T013, FR-003, SC-004)."""
+
+    def test_without_allauth_the_packaged_pages_are_present_and_answer(self, client):
+        assert _count_registrations(ACCOUNT_URLCONF, "account_login") == 1
+        assert _count_registrations(ACCOUNT_URLCONF, "account_logout") == 1
+        with override_settings(ROOT_URLCONF=ACCOUNT_URLCONF):
+            assert client.get(reverse("account_login")).status_code == 200
+            assert client.post(reverse("account_logout")).status_code == 200
+
+    def test_with_allauth_mvp_mounted_first(self, allauth_installed):
+        urlconf = _urlconf_mvp_then_allauth()
+        assert _count_registrations(urlconf, "account_login") == 1
+        assert _count_registrations(urlconf, "account_logout") == 1
+
+    def test_with_allauth_allauth_mounted_first(self, allauth_installed):
+        urlconf = _urlconf_allauth_then_mvp()
+        assert _count_registrations(urlconf, "account_login") == 1
+        assert _count_registrations(urlconf, "account_logout") == 1
