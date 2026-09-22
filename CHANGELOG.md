@@ -40,15 +40,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- **The shell no longer raises `KeyError: 'request'` when rendered without a
-  request.** `flex_menu`'s `process_menu` reads `context["request"]` directly, and
-  the sidebar, the dock and the Account Center layout all called it unconditionally.
-  This is exactly the context Django renders an error page in —
-  `django.views.defaults.server_error` calls `template.render()` with no context and
-  no request — so a project building its error page on this shell lost the real
-  error at exactly the moment it mattered most. The three call sites now guard with
-  `{% if request %}` and draw no menu instead of raising.
-
 - **A select widget carrying its own template now renders that template**, instead
   of crispy-tailwind's bare `<select>` built from the field's choices and
   attributes. django-tomselect is the reported case: its template is a `<select>`
@@ -65,7 +56,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `error_{counter}_{auto_id}` ids (for example `error_1_id_myfile`) are gone —
   the error container now carries only `{auto_id}_error`, with no id on the
   individual `<p>` elements inside it.
-  
+
 - **Six components declared attributes their templates never read.** Setting one did
   nothing, and because a declared name is held back from the attribute pass-through, it
   never reached the rendered element either — there was no error and nothing on the page

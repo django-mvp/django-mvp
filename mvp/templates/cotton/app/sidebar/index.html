@@ -18,15 +18,7 @@
        {{ attrs }}>
   <c-app.sidebar.header link="{{ brand_url }}" :bg="bg" :title="title" />
   <div class="flex w-full">
-    {% comment %}
-      flex_menu's process_menu reads context["request"] directly and raises
-      KeyError when it is absent — the context Django renders an error page
-      in (#367). A bare {% if request %} is false and harmless in that case,
-      so guard the call rather than draw a menu that would raise instead.
-    {% endcomment %}
-    {% if request %}
-      {% render_menu menu renderer="sidebar" %}
-    {% endif %}
+    {% render_menu menu renderer="sidebar" %}
   </div>
   <c-app.sidebar.footer :bg="bg" />
 </aside>

@@ -31,17 +31,7 @@
   {% firstof breakpoint mvp_config.layout.sidebar.breakpoint as breakpoint %}
   {% firstof collapse mvp_config.layout.sidebar.collapse as collapse %}
   {% resolve_layout_config breakpoint collapse None None as account_layout %}
-  {% comment %}
-    flex_menu's process_menu reads context["request"] directly and raises
-    KeyError when it is absent — the context Django renders an error page
-    in (#367). A bare {% if request %} is false and harmless in that case,
-    so guard the call: account_menu stays undefined and the two
-    visible_children loops below silently draw nothing, rather than the
-    call raising.
-  {% endcomment %}
-  {% if request %}
-    {% process_menu "AccountCenterMenu" as account_menu %}
-  {% endif %}
+  {% process_menu "AccountCenterMenu" as account_menu %}
   <c-container class="py-4">
     <div class="flex flex-col lg:flex-row lg:items-start gap-4 lg:gap-6"
          data-mvp-breakpoint="{{ account_layout.breakpoint }}"
