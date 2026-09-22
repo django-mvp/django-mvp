@@ -4,15 +4,19 @@ Standardized per Phase 2: all model fixtures and view factory helpers live here
 so individual test files stay focused on assertions, not setup boilerplate.
 """
 
+import importlib
 import importlib.util
 import os
 from pathlib import Path
 
 import pytest
+from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.test import RequestFactory
+from django.test import RequestFactory, override_settings
+from django.urls import clear_url_caches
 from django.views.generic import TemplateView
 
+import mvp.urls as mvp_urls
 from mvp.menus import AccountCenterMenu
 from tests.factories import ArticleFactory, CategoryFactory, ProductFactory
 from tests.testapp_account.menus import build_entries
@@ -21,6 +25,62 @@ from tests.testapp_card_with_menu.menus import (
 )
 
 User = get_user_model()
+
+
+def _reload_urlconfs(module):
+    """Rebuild every resolver in ``module`` against ``mvp.urls``'s current
+    ``urlpatterns`` (T011, D17).
+
+    ``include("mvp.urls")`` hands a ``URLResolver`` the module object, and
+    the resolver's ``url_patterns`` is a ``cached_property`` frozen to the
+    list it first read. Reloading ``mvp.urls`` alone rebinds
+    ``mvp.urls.urlpatterns`` but leaves any resolver that already read the
+    old list stale, so ``module`` — the test module that built its own
+    urlconf by calling ``include("mvp.urls")`` at import time, the way
+    ``tests/test_urls.py`` and ``tests/test_views/test_account.py`` both do
+    — is reloaded too, rebuilding it with a resolver whose cached property
+    has not been read yet. ``clear_url_caches()`` drops ``get_resolver()``'s
+    cache, which is keyed by urlconf identity.
+    """
+    importlib.reload(mvp_urls)
+    importlib.reload(module)
+    clear_url_caches()
+
+
+@pytest.fixture
+def allauth_installed(request):
+    """Installs allauth's account application for the duration of one test
+    (T011, T012, T013, T015).
+
+    R11: ``override_settings.enable()`` populates the app registry from
+    ``INSTALLED_APPS`` before any other overridden setting takes effect, and
+    allauth's ``AccountConfig.ready()`` requires ``AccountMiddleware`` in
+    ``MIDDLEWARE`` at that moment — so the two overrides are applied nested,
+    ``MIDDLEWARE`` outside, already in place when ``INSTALLED_APPS`` triggers
+    the check.
+
+    Reloads ``request.module`` — the requesting test's own module — rather
+    than a name fixed at definition time, so the same fixture rebuilds
+    whichever module-level urlconf the calling test file built (D17).
+    """
+    middleware = override_settings(
+        MIDDLEWARE=[
+            *settings.MIDDLEWARE,
+            "allauth.account.middleware.AccountMiddleware",
+        ]
+    )
+    installed_apps = override_settings(
+        INSTALLED_APPS=[*settings.INSTALLED_APPS, "allauth", "allauth.account"]
+    )
+    middleware.enable()
+    installed_apps.enable()
+    _reload_urlconfs(request.module)
+    try:
+        yield
+    finally:
+        installed_apps.disable()
+        middleware.disable()
+        _reload_urlconfs(request.module)
 
 
 @pytest.fixture

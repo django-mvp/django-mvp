@@ -332,3 +332,23 @@ issues (no Python outside the test file changed).
 
 Next: T015 — a project that has replaced or overridden the pages sees no notice of ours. Needs
 D17's move of `allauth_installed` out of `tests/test_urls.py` into `tests/conftest.py` first.
+
+## 2026-09-22T15:22:00Z · Implementer US-3 · D17 refactor
+
+Did: moved `allauth_installed` and `_reload_urlconfs` from `tests/test_urls.py` into
+`tests/conftest.py` (D17, authorised in the brief as an exception to the no-touching-existing-tests
+guardrail). `_reload_urlconfs` now takes the module to reload as a parameter and the fixture passes
+`request.module` instead of the old `sys.modules[__name__]`, so the same fixture rebuilds whichever
+test module actually requested it — `tests/test_urls.py`'s own `ACCOUNT_URLCONF` or
+`tests/test_views/test_account.py`'s. No assertion in `tests/test_urls.py` changed; only the
+now-unused `importlib`, `sys`, `clear_url_caches` and `mvp.urls` imports were dropped from it.
+
+Verified: `poetry run pytest tests/test_urls.py -v -p no:randomly` — 9 passed, all seven
+allauth-dependent tests included. `poetry run pytest tests/test_urls.py -q` (random order) — 9
+passed, run five times to build confidence in the reload/teardown sequence under different
+orderings. `poetry run pytest tests/test_urls.py tests/test_views/test_account.py -q` — 46 passed,
+no collateral from the conftest change. `poetry run ruff check --no-fix tests/conftest.py
+tests/test_urls.py` and `poetry run ruff format --check tests/conftest.py tests/test_urls.py` —
+clean. `poetry run mypy mvp/urls.py` — no issues (no production code touched).
+
+Next: T015's own tests, now that `allauth_installed` is reachable from `tests/test_views/test_account.py`.

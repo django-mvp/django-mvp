@@ -299,3 +299,25 @@ require reverting D12.
 `tests/test_components/test_sidebar_user_menu_admin_link.py` are flagged for modified lines that
 are `ruff format` line-wrapping of assertions whose text is byte-identical, alongside new test
 classes. No assertion changed meaning.
+
+## D17 — `allauth_installed` moves into `tests/conftest.py`, keyed off `request.module`
+
+**Ambiguous because** the guardrail on touching a pre-existing test exists to stop a story quietly
+reaching into test infrastructure it does not own, and `allauth_installed` (T011) lived at module
+scope in `tests/test_urls.py` — invisible to `tests/test_views/test_account.py`, which T015 needs
+it from.
+
+**Chosen**: move `allauth_installed` and its `_reload_urlconfs` helper to `tests/conftest.py`.
+`_reload_urlconfs` now takes the module to rebuild as a parameter instead of reading
+`sys.modules[__name__]`, and the fixture passes `request.module` — pytest's own name for the
+module of the test currently requesting it. No assertion in `tests/test_urls.py` changed; its
+seven allauth-dependent tests pass in both fixed and random order after the move.
+
+**Why.** Importing a fixture across test modules is worse than moving it: it hides where the
+fixture actually lives from anyone reading either file, and pytest's own convention for a fixture
+more than one module needs is `conftest.py`. `sys.modules[__name__]`, evaluated where the function
+was originally *defined*, only ever meant "`tests/test_urls.py`" — moved as-is to `conftest.py` it
+would silently reload the wrong module for every caller. `request.module` is the caller's module
+regardless of where the fixture is defined, which is exactly "the test's own URLconf module" this
+mechanism was already built to describe (T011), generalising to both callers with no special case
+for either.

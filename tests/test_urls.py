@@ -3,24 +3,18 @@
 Source: mvp/urls.py
 """
 
-import importlib
-import sys
 from pathlib import Path
 
 import pytest
-from django.conf import settings
 from django.test import override_settings
 from django.urls import (
     NoReverseMatch,
-    clear_url_caches,
     get_resolver,
     include,
     path,
     resolve,
     reverse,
 )
-
-import mvp.urls as mvp_urls
 
 LOGIN_TEMPLATE = (
     Path(__file__).resolve().parent.parent
@@ -61,56 +55,6 @@ def _urlconf_allauth_then_mvp():
         path("account/", include("mvp.urls")),
     ]
     return type("_URLConf", (), {"urlpatterns": patterns})
-
-
-def _reload_urlconfs():
-    """Rebuild every resolver in this module against ``mvp.urls``'s current
-    ``urlpatterns`` (T011).
-
-    ``include("mvp.urls")`` hands a ``URLResolver`` the module object, and the
-    resolver's ``url_patterns`` is a ``cached_property`` frozen to the list it
-    first read. Reloading ``mvp.urls`` alone rebinds ``mvp.urls.urlpatterns``
-    but leaves any resolver that already read the old list stale, so this
-    module — which builds ``ACCOUNT_URLCONF`` by calling ``include("mvp.urls")``
-    at import time — is reloaded too, rebuilding it with a resolver whose
-    cached property has not been read yet. ``clear_url_caches()`` drops
-    ``get_resolver()``'s cache, which is keyed by urlconf identity.
-    """
-    importlib.reload(mvp_urls)
-    importlib.reload(sys.modules[__name__])
-    clear_url_caches()
-
-
-@pytest.fixture
-def allauth_installed():
-    """Installs allauth's account application for the duration of one test
-    (T011, T012, T013).
-
-    R11: ``override_settings.enable()`` populates the app registry from
-    ``INSTALLED_APPS`` before any other overridden setting takes effect, and
-    allauth's ``AccountConfig.ready()`` requires ``AccountMiddleware`` in
-    ``MIDDLEWARE`` at that moment — so the two overrides are applied nested,
-    ``MIDDLEWARE`` outside, already in place when ``INSTALLED_APPS`` triggers
-    the check.
-    """
-    middleware = override_settings(
-        MIDDLEWARE=[
-            *settings.MIDDLEWARE,
-            "allauth.account.middleware.AccountMiddleware",
-        ]
-    )
-    installed_apps = override_settings(
-        INSTALLED_APPS=[*settings.INSTALLED_APPS, "allauth", "allauth.account"]
-    )
-    middleware.enable()
-    installed_apps.enable()
-    _reload_urlconfs()
-    try:
-        yield
-    finally:
-        installed_apps.disable()
-        middleware.disable()
-        _reload_urlconfs()
 
 
 def _count_registrations(urlconf, name):
