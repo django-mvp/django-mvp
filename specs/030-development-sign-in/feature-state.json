@@ -66,7 +66,16 @@
         {
           "id": "T001",
           "status": "done",
-          "attempts": 1
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run deptry .",
+              "poetry run pytest --collect-only -q"
+            ],
+            "code": [
+              "pyproject.toml:1"
+            ]
+          }
         }
       ]
     },
@@ -81,52 +90,177 @@
         {
           "id": "T002",
           "status": "done",
-          "attempts": 1
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_urls.py::TestAccountLoginURL::test_reversing_account_login_serves_a_sign_in_form",
+              "tests/test_urls.py::TestAccountLoginURL::test_the_identifying_fields_label_is_not_hard_coded"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_urls.py -v",
+              "poetry run ruff check mvp/views/account.py mvp/urls.py tests/test_urls.py",
+              "poetry run ruff format --check mvp/views/account.py mvp/urls.py tests/test_urls.py",
+              "poetry run mypy mvp/views/account.py mvp/urls.py"
+            ]
+          }
         },
         {
           "id": "T003",
           "status": "done",
-          "attempts": 1
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_views/test_account.py::TestSignInView::test_wrong_password_for_an_existing_account_re_renders_the_form",
+              "tests/test_views/test_account.py::TestSignInView::test_an_unknown_username_gets_the_same_treatment",
+              "tests/test_views/test_account.py::TestSignInView::test_the_message_is_identical_whether_the_account_exists_or_not"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_views/test_account.py::TestSignInView -v",
+              "poetry run ruff check tests/test_views/test_account.py",
+              "poetry run ruff format --check tests/test_views/test_account.py"
+            ]
+          }
         },
         {
           "id": "T004",
           "status": "done",
-          "attempts": 1
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_views/test_account.py::TestSignInViewDefaultRedirect::test_lands_on_the_account_center_when_the_project_has_not_chosen_a_destination",
+              "tests/test_views/test_account.py::TestSignInViewDefaultRedirect::test_a_projects_own_login_redirect_url_wins",
+              "tests/test_views/test_account.py::TestSignInViewDefaultRedirect::test_a_next_on_the_request_beats_both"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_views/test_account.py::TestSignInView tests/test_views/test_account.py::TestSignInViewDefaultRedirect -v",
+              "poetry run ruff check mvp/views/account.py tests/test_views/test_account.py",
+              "poetry run ruff format --check mvp/views/account.py tests/test_views/test_account.py",
+              "poetry run mypy mvp/views/account.py"
+            ]
+          }
         },
         {
           "id": "T005",
           "status": "done",
-          "attempts": 1
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_views/test_account.py::TestSignInViewNextRedirect::test_an_off_site_next_is_refused",
+              "tests/test_views/test_account.py::TestSignInViewNextRedirect::test_an_in_site_next_is_honoured",
+              "tests/test_views/test_account.py::TestSignInViewNextRedirect::test_the_full_round_trip_from_a_protected_page_back_to_it"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_views/test_account.py::TestSignInViewNextRedirect -v",
+              "poetry run ruff check tests/test_views/test_account.py",
+              "poetry run ruff format --check tests/test_views/test_account.py"
+            ]
+          }
         },
         {
           "id": "T006",
           "status": "done",
-          "attempts": 1
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_views/test_account.py::TestSignInViewAuthenticatedVisitor::test_a_signed_in_client_requesting_the_sign_in_address_is_redirected"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_views/test_account.py -k SignIn -v",
+              "poetry run ruff check mvp/views/account.py tests/test_views/test_account.py",
+              "poetry run ruff format --check mvp/views/account.py tests/test_views/test_account.py",
+              "poetry run mypy mvp/views/account.py"
+            ]
+          }
         },
         {
           "id": "T007",
           "status": "done",
-          "attempts": 1
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_views/test_account.py::TestSignOutView::test_a_post_by_a_signed_in_client_ends_the_session_and_renders_the_signed_out_page",
+              "tests/test_views/test_account.py::TestSignOutView::test_a_get_does_not_end_the_session",
+              "tests/test_views/test_account.py::TestSignOutView::test_an_anonymous_post_is_not_an_error"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_views/test_account.py::TestSignOutView -v",
+              "poetry run ruff check mvp/views/account.py mvp/urls.py tests/test_views/test_account.py",
+              "poetry run ruff format --check mvp/views/account.py mvp/urls.py tests/test_views/test_account.py",
+              "poetry run mypy mvp/views/account.py mvp/urls.py"
+            ]
+          }
         },
         {
           "id": "T008",
           "status": "done",
-          "attempts": 1
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_sidebar_footer.py::TestSidebarFooterLogInButtonResolvesAccountLogin::test_an_anonymous_request_draws_the_log_in_button_at_account_login",
+              "tests/test_components/test_sidebar_user_menu_admin_link.py::TestSidebarUserMenuLogOutResolvesAccountLogout::test_a_signed_in_request_draws_the_log_out_row_and_form_at_account_logout"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_components/test_sidebar_footer.py -v",
+              "poetry run pytest tests/test_components/test_sidebar_user_menu_admin_link.py::TestSidebarUserMenuLogOutResolvesAccountLogout -v",
+              "poetry run ruff check tests/test_components/test_sidebar_footer.py tests/test_components/test_sidebar_user_menu_admin_link.py",
+              "poetry run ruff format --check tests/test_components/test_sidebar_footer.py tests/test_components/test_sidebar_user_menu_admin_link.py"
+            ]
+          }
         },
         {
           "id": "T009",
           "status": "done",
-          "attempts": 1
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_views/test_account.py::TestPackagedTemplatesAreOverridable::test_a_projects_own_sign_in_template_is_used_instead"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_views/test_account.py::TestPackagedTemplatesAreOverridable -v",
+              "poetry run pytest tests/test_views/test_account.py -q",
+              "poetry run ruff check tests/test_views/test_account.py",
+              "poetry run ruff format --check tests/test_views/test_account.py"
+            ]
+          }
         },
         {
           "id": "T010",
           "status": "done",
-          "attempts": 1
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/test_views/test_account.py tests/test_urls.py -q",
+              "poetry run ruff check mvp/views/account.py mvp/urls.py",
+              "poetry run ruff format --check mvp/views/account.py mvp/urls.py",
+              "poetry run mypy mvp/views/account.py mvp/urls.py"
+            ]
+          }
         },
         {
           "id": "T016",
           "status": "done",
-          "attempts": 1
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_demo/test_urls.py::TestDemoCarriesNoAuthWiringOfItsOwn::test_the_demos_own_account_logout_path_is_gone",
+              "tests/test_demo/test_urls.py::TestDemoCarriesNoAuthWiringOfItsOwn::test_djangos_auth_urls_are_no_longer_included",
+              "tests/test_demo/test_urls.py::TestDemoCarriesNoAuthWiringOfItsOwn::test_reversing_djangos_own_login_name_no_longer_resolves",
+              "tests/test_demo/test_urls.py::TestDemoCarriesNoAuthWiringOfItsOwn::test_the_registration_login_template_is_gone",
+              "tests/test_demo/test_urls.py::TestDemoCarriesNoAuthWiringOfItsOwn::test_the_component_doc_example_points_at_account_login",
+              "tests/test_demo/test_urls.py::TestDemoCarriesNoAuthWiringOfItsOwn::test_settings_match_decision_d12",
+              "tests/test_demo/test_urls.py::TestTheDemoShowsThePackagedPages::test_a_protected_page_sends_an_anonymous_visitor_to_the_packaged_sign_in_page",
+              "tests/test_demo/test_urls.py::TestTheDemoShowsThePackagedPages::test_signing_in_without_a_next_lands_on_home",
+              "tests/test_demo/test_urls.py::TestTheDemoShowsThePackagedPages::test_signing_out_renders_the_packaged_signed_out_page"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_demo/test_urls.py -v",
+              "poetry run pytest tests/test_demo/ -q",
+              "poetry run ruff check demo/urls.py demo/settings.py tests/test_demo/test_urls.py",
+              "poetry run ruff format --check demo/urls.py demo/settings.py tests/test_demo/test_urls.py",
+              "poetry run mypy mvp",
+              "poetry run deptry ."
+            ]
+          }
         }
       ]
     },
@@ -135,23 +269,59 @@
       "priority": "P2",
       "issue": 384,
       "worktree": "/home/sam/projects/django-mvp/dm-030-development-sign-in",
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
           "id": "T011",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_urls.py::TestPackagedEntriesStandDownWhenAllauthIsInstalled::test_without_allauth_both_names_are_present_and_answer",
+              "tests/test_urls.py::TestPackagedEntriesStandDownWhenAllauthIsInstalled::test_with_allauth_installed_neither_name_is_registered"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_urls.py -v",
+              "poetry run ruff check --no-fix mvp/urls.py tests/test_urls.py",
+              "poetry run ruff format --check mvp/urls.py tests/test_urls.py",
+              "poetry run mypy mvp/urls.py"
+            ]
+          }
         },
         {
           "id": "T012",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_urls.py::TestAllauthAnswersRegardlessOfMountOrder::test_mvp_mounted_before_allauth",
+              "tests/test_urls.py::TestAllauthAnswersRegardlessOfMountOrder::test_allauth_mounted_before_mvp"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_urls.py -v -p no:randomly",
+              "poetry run ruff check --no-fix tests/test_urls.py",
+              "poetry run ruff format --check tests/test_urls.py"
+            ]
+          }
         },
         {
           "id": "T013",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_urls.py::TestEachNameIsRegisteredExactlyOnce::test_without_allauth_the_packaged_pages_are_present_and_answer",
+              "tests/test_urls.py::TestEachNameIsRegisteredExactlyOnce::test_with_allauth_mvp_mounted_first",
+              "tests/test_urls.py::TestEachNameIsRegisteredExactlyOnce::test_with_allauth_allauth_mounted_first"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_urls.py -v -p no:randomly",
+              "poetry run ruff check --no-fix tests/test_urls.py",
+              "poetry run ruff format --check tests/test_urls.py",
+              "poetry run mypy mvp/urls.py"
+            ]
+          }
         }
       ]
     },
