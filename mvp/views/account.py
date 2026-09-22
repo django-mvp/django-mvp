@@ -4,8 +4,10 @@ a page to.
 Source: mvp/menus.py (AccountCenterMenu), mvp/urls.py (the area's URLconf).
 """
 
+from django.conf import global_settings, settings
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView
+from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
 from .extra import MVPTemplateView
@@ -44,3 +46,13 @@ class SignInView(LoginView):
     """
 
     template_name = "mvp/account/login.html"
+
+    def get_default_redirect_url(self):
+        """Land on the Account Center when the project has expressed no
+        preference of its own (FR-007, decision D4): compared against
+        Django's own global default rather than the literal
+        ``"/accounts/profile/"``, so the comparison stays true if Django
+        ever changes it."""
+        if settings.LOGIN_REDIRECT_URL == global_settings.LOGIN_REDIRECT_URL:
+            return reverse("account-center")
+        return super().get_default_redirect_url()

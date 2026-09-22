@@ -15,7 +15,7 @@ from pathlib import Path
 
 import pytest
 from bs4 import BeautifulSoup
-from django.conf import settings
+from django.conf import global_settings, settings
 from django.contrib.auth.models import AnonymousUser
 from django.template.loader import render_to_string
 from django.test import RequestFactory, override_settings
@@ -122,6 +122,59 @@ class TestSignInView:
         assert wrong_password_alert.get_text(strip=True) == (
             unknown_username_alert.get_text(strip=True)
         )
+
+
+@pytest.mark.django_db
+class TestSignInViewDefaultRedirect:
+    """Where a successful sign-in lands (T004, FR-007, D4)."""
+
+    @pytest.fixture(autouse=True)
+    def _account_urlconf(self):
+        with override_settings(ROOT_URLCONF=ACCOUNT_URLCONF):
+            yield
+
+    def _sign_in(self, client, username, password, next_url=None):
+        data = {"username": username, "password": password}
+        if next_url is not None:
+            data["next"] = next_url
+        return client.post(reverse("account_login"), data)
+
+    def test_lands_on_the_account_center_when_the_project_has_not_chosen_a_destination(
+        self, client, django_user_model, settings
+    ):
+        """The demo sets ``LOGIN_REDIRECT_URL`` itself (D12); a project that
+        has made no choice is Django's own global default (D10)."""
+        settings.LOGIN_REDIRECT_URL = global_settings.LOGIN_REDIRECT_URL
+        django_user_model.objects.create_user(
+            username="redirectuser1", password="correct-pass"
+        )
+        response = self._sign_in(client, "redirectuser1", "correct-pass")
+
+        assert response.status_code == 302
+        assert response.url == reverse("account-center")
+
+    def test_a_projects_own_login_redirect_url_wins(
+        self, client, django_user_model, settings
+    ):
+        settings.LOGIN_REDIRECT_URL = "/products/"
+        django_user_model.objects.create_user(
+            username="redirectuser2", password="correct-pass"
+        )
+        response = self._sign_in(client, "redirectuser2", "correct-pass")
+
+        assert response.status_code == 302
+        assert response.url == "/products/"
+
+    def test_a_next_on_the_request_beats_both(self, client, django_user_model):
+        django_user_model.objects.create_user(
+            username="redirectuser3", password="correct-pass"
+        )
+        response = self._sign_in(
+            client, "redirectuser3", "correct-pass", next_url="/products/"
+        )
+
+        assert response.status_code == 302
+        assert response.url == "/products/"
 
 
 @pytest.mark.django_db

@@ -70,3 +70,24 @@ Next: T004 (default redirect destination).
 Watch: `mvp.urls` now registers `account_login` unconditionally (the `app_is_installed` guard is
 US-2/T011's addition per plan.md, not this task's). No fixture outside this story's scope reverses
 that name yet, so no effect observed at this task.
+
+## 2026-09-22T13:11:00Z · Implementer US-1 · T004
+
+Did: `SignInView.get_default_redirect_url()` in `mvp/views/account.py` — returns
+`reverse("account-center")` when `settings.LOGIN_REDIRECT_URL` still equals
+`django.conf.global_settings.LOGIN_REDIRECT_URL`, defers to `super()` otherwise (FR-007, D4, D10).
+
+Three tests in `TestSignInViewDefaultRedirect`: the untouched-setting case (`settings` fixture set
+to the actual global default, since the demo sets its own `LOGIN_REDIRECT_URL = "/"` per D12 and
+`tests/settings.py` inherits it) lands on the Account Center; a project's own value wins; a `next`
+on the request beats both. The second and third already passed on first run — both are Django's own
+`LoginView` behaviour, inherited rather than reimplemented — only the untouched-setting case drove
+a code change.
+
+Verified: `poetry run pytest tests/test_views/test_account.py::TestSignInView
+tests/test_views/test_account.py::TestSignInViewDefaultRedirect -v` — 6 passed. `poetry run ruff
+check` and `poetry run ruff format --check` on the touched files — clean (one `S107` hit on a
+password-bearing default parameter, fixed by making the test helper require the password
+explicitly rather than defaulting it). `poetry run mypy mvp/views/account.py` — no issues.
+
+Next: T005 (the `next` allow-list and the anonymous-visitor round trip).
