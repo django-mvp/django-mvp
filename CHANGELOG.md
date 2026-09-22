@@ -40,6 +40,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **The shell no longer raises `KeyError: 'request'` when rendered without a request.**
+  It draws no menu instead. Django renders the production error page in exactly that
+  context — `django.views.defaults.server_error` calls `template.render()` with no
+  context and no request — so a project building its error page on this shell lost the
+  real error at exactly the moment it mattered most. The cause was in django-flex-menus,
+  whose `process_menu` read `context["request"]` directly, and the floor moves to 0.4.5
+  to pick up the fix.
+
+- **A select widget carrying its own template now renders that template**, instead
+  of crispy-tailwind's bare `<select>` built from the field's choices and
+  attributes. django-tomselect is the reported case: its template is a `<select>`
+  followed by the script that configures the control, and the script never arrived.
+  An ordinary `ChoiceField` or `MultipleChoiceField`, using one of Django's built-in
+  widgets, still renders through crispy-tailwind's own markup.
+
+- **A field's error text is announced by screen readers again.** Django 5.2 composes
+  `aria-describedby` from the help-text id and `{auto_id}_error`, and expects the
+  form template to render the error container under that second id.
+  crispy-tailwind's own templates still mint `error_{counter}_{auto_id}`, so
+  `{auto_id}_error` was never rendered and a screen reader announced a field as
+  invalid without ever reading why. **Breaking:** the old per-error
+  `error_{counter}_{auto_id}` ids (for example `error_1_id_myfile`) are gone —
+  the error container now carries only `{auto_id}_error`, with no id on the
+  individual `<p>` elements inside it.
+
 - **Six components declared attributes their templates never read.** Setting one did
   nothing, and because a declared name is held back from the attribute pass-through, it
   never reached the rendered element either — there was no error and nothing on the page

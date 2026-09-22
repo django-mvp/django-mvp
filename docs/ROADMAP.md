@@ -230,7 +230,7 @@ Serves G2 and G11. Browser-driven testing stays out. These are markup contracts.
 
 Serves G5 and G2. A full audit against the accessibility guidelines across composed pages stays out. This covers the components the package ships.
 
-Open and in scope: [#295](https://github.com/django-mvp/django-mvp/issues/295) — a field's error text is not announced, because its `aria-describedby` points at an id nothing renders. An accessibility attribute that references nothing is the failure mode a check would catch, so it is worth treating as this item's proving case.
+[#295](https://github.com/django-mvp/django-mvp/issues/295) is fixed: a field's error text was not announced, because its `aria-describedby` pointed at an id nothing rendered. An accessibility attribute that references nothing is the failure mode this item's check needs to catch, so it served as the proving case — but the check itself, and the rest of this item's deliverables, remain open.
 
 ### R26 — Every front-end asset ships with the package — **delivered**
 
