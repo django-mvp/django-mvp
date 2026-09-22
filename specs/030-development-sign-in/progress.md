@@ -153,3 +153,29 @@ premise the fixture was built on no longer holds — a fixture update, not a def
 code.
 
 Next: T008 (the shell's controls draw themselves once the names resolve).
+
+## 2026-09-22T13:34:00Z · Implementer US-1 · T008
+
+Did: two new `Test*` classes, no production code (the task's own point — the two shell controls
+were already correct, only waiting on the names). `TestSidebarFooterLogInButtonResolvesAccountLogin`
+in `tests/test_components/test_sidebar_footer.py` — in a project that mounts only `mvp.urls`, an
+anonymous request draws the log-in button pointing at `account_login`.
+`TestSidebarUserMenuLogOutResolvesAccountLogout` in `tests/test_components/test_sidebar_user_menu_admin_link.py`
+— a signed-in request draws the log-out row and its POST form pointing at `account_logout`, same
+urlconf. Both mount an inline urlconf local to their own module (`account/` → `mvp.urls` only), the
+pattern `tests/test_urls.py` already uses, rather than a new standalone `tests/urls_*.py` fixture
+file outside this story's scope.
+
+A `git stash pop`, run mid-task on an unrelated experiment to confirm this task's tests are not
+tautological, restored a pre-existing stash entry unconnected to this story
+(`tests/test_full_page_fill_e2e.py`, an `only_first_party_requests` fixture). Not mine, not in
+scope, not committed — re-stashed immediately under a labelled message
+(`recovered from accidental pop during US-1 T008 (Implementer) — pre-existing WIP unrelated to
+this story`) rather than discarded, and flagged here for whoever owns that WIP.
+
+Verified: `poetry run pytest tests/test_components/test_sidebar_footer.py
+tests/test_components/test_sidebar_user_menu_admin_link.py -v` — 17 passed, 1 failed (the T007
+watch note's pre-existing conflict, unchanged by this task). `poetry run ruff check` and `poetry
+run ruff format --check` on both touched files — clean.
+
+Next: T009 (both packaged templates can be overridden by a project).
