@@ -261,3 +261,48 @@ mypy mvp` — no issues. `poetry run deptry .` — no dependency issues. Wider s
 passed, 2 failed (both flagged, both pre-existing, neither touched), 1 skipped.
 
 This is the last task in US-1. Story complete pending the §5 full verify run.
+
+## 2026-09-22T14:05:00Z · Implementer US-1 · §5 full verify
+
+Ran the repo's full verify once, per protocol.
+
+`poetry run pytest -n auto --dist loadscope` (2163 collected): 2160 passed, 2 failed, 1 skipped.
+The two failures are exactly T007's and T016's already-flagged pre-existing conflicts and nothing
+else — the parallel full-tree run surfaced no new failure beyond the scoped sweeps already run at
+those two tasks.
+
+`poetry run mypy mvp`: clean. `poetry run deptry .`: clean.
+
+**`poetry run ruff check .` and `poetry run ruff format --check .` are not clean on this branch,
+and neither is the verified base commit itself — flagged for Forge to triage, distinct from the
+two test conflicts above.** `ruff check .` finds 13 errors (1 auto-fixable) across six files:
+`tests/test_components/test_declared_attributes.py`,
+`tests/test_components/test_field_errors_aria_describedby.py`,
+`tests/test_components/test_responsive_safelist.py`, `tests/test_table_layout.py`,
+`tests/test_views/test_extra.py`, `tests/test_views/test_inline.py`. `ruff format --check .` finds
+28 files that would be reformatted. None of the 34 file paths across both are anywhere in this
+story's diff or file scope. Checked against `context.verified_base` directly rather than assumed:
+`git worktree add --detach /tmp/base-check 5a16fae` (the exact commit the brief certified "ruff
+clean") and ran the identical `ruff check .` / `ruff format --check .` there, in isolation — 12
+errors and 29 reformattable files, the same population, confirming the discrepancy predates every
+commit in this story rather than being introduced by one. `ruff-base.toml` sets `fix = true`, so a
+plain `ruff check .` silently rewrites files on every run; discovered when it modified
+`tests/test_components/test_form_formset.py` (an import-order fix, also present on the base, also
+outside this story's scope) — reverted with `git checkout --` both times it happened, confirmed
+with `git status --short` immediately after. Not fixed: 34 files with no relation to this story's
+domain is a repo-wide lint/format debt, not something a five-task story owns, and touching them
+would be its own untraceable diff on top of an already-flagged base-verification gap.
+
+A `git stash pop`, run mid-T008 to confirm a test wasn't tautological, surfaced a pre-existing
+stash entry unconnected to this story or its base commit
+(`tests/test_full_page_fill_e2e.py` — an `only_first_party_requests` fixture). Re-stashed
+immediately under a labelled message
+(`recovered from accidental pop during US-1 T008 (Implementer) — pre-existing WIP unrelated to
+this story`) rather than discarded or committed; still sitting in the stash stack
+(`git stash list`) at the end of this story, for whoever owns that WIP to reclaim.
+
+**Summary for the report:** every task's own acceptance is green. Three things need Forge's
+attention beyond this story's own diff: the `urls_without_logout.py` fixture conflict (T007), the
+`LOGIN_URL` ambient-default conflict (T016), and this base-state lint/format discrepancy (§5) —
+none caused by this story's code, none fixable inside this story's file scope, all reproduced and
+attributed precisely enough to act on directly.
