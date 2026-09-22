@@ -16,8 +16,9 @@ an ``app_name`` here.
 
 from django.urls import path
 
-from .views.account import AccountCenterView
+from .views.account import AccountCenterView, SignInView
 
 urlpatterns = [
     path("", AccountCenterView.as_view(), name="account-center"),
+    path("login/", SignInView.as_view(), name="account_login"),
 ]

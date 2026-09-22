@@ -5,6 +5,7 @@ Source: mvp/menus.py (AccountCenterMenu), mvp/urls.py (the area's URLconf).
 """
 
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.views import LoginView
 from django.utils.translation import gettext_lazy as _
 
 from .extra import MVPTemplateView
@@ -33,3 +34,13 @@ class AccountCenterView(LoginRequiredMixin, MVPTemplateView):
     page_title = _("Account Center")
     page_subtitle = _("Manage your account and see what's available to you here.")
     breadcrumbs = [{"text": _("Account Center")}]
+
+
+class SignInView(LoginView):
+    """The Account Center's sign-in page, registered as ``account_login``.
+
+    A project that installs account management (``allauth.account``) gets
+    that package's own sign-in page instead — see ``mvp/urls.py``.
+    """
+
+    template_name = "mvp/account/login.html"

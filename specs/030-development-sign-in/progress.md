@@ -34,3 +34,21 @@ overrides are nested.
 
 Implemented directly rather than dispatched: one task, a dependency addition and a written
 finding, with no design content.
+
+## 2026-09-22T13:03:41Z · Implementer US-1 · T002
+
+Did: `SignInView(LoginView)` in `mvp/views/account.py`, registered as `account_login` in
+`mvp/urls.py`. New template `mvp/templates/mvp/account/login.html`, derived from
+`demo/templates/registration/login.html`, with the identifying field's `label` read from
+`form.username.label` rather than the hard-coded `"Username"` (FR-005) and its form action
+pointed at `account_login`.
+
+Verified: `poetry run pytest tests/test_urls.py -v` — 2 passed. `poetry run ruff check` and
+`poetry run ruff format --check` on the touched files — clean. `poetry run mypy mvp/views/account.py
+mvp/urls.py` — no issues.
+
+Next: T003 (failed sign-in re-renders without disclosing why).
+
+Watch: `mvp.urls` now registers `account_login` unconditionally (the `app_is_installed` guard is
+US-2/T011's addition per plan.md, not this task's). No fixture outside this story's scope reverses
+that name yet, so no effect observed at this task.
