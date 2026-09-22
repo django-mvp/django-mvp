@@ -19,13 +19,9 @@ development-only sign-in and sign-out, so a page guarded by
 account-management app. See docs/account-center.md.
 
 Once allauth's account application is installed, this URLconf contributes
-neither name. Django resolves a request by taking the first matching
-pattern and reverses a name by taking the last registration of it, so a
-name registered by both this URLconf and allauth's would answer a request
-from whichever is mounted first while every link built with ``reverse()``
-points at allauth's registration — and every documented way of mounting the
-two puts this URLconf first. Standing the packaged entries down entirely
-keeps which view answers those addresses independent of mount order.
+neither name, so which view answers those two addresses never depends on the
+order two URLconfs were mounted in. The reasoning is in
+docs/adr/0024-a-stand-in-page-withdraws-when-the-real-app-arrives.md.
 """
 
 from django.urls import path

@@ -32,9 +32,9 @@ It also contradicts the notice. Telling a reader to install account management b
 production only means something if the pages would otherwise still be there. A gate turns that
 sentence into a falsehood the code quietly corrects.
 
-The failure the gate is imagined to prevent — someone shipping these as their real sign-in — is a
-decision a person makes, not an accident the framework can catch. The honest place to intervene is
-the page they are looking at while they make it.
+The failure the gate is imagined to prevent is someone shipping these as their real sign-in. That
+is a decision a person makes, not an accident the framework can catch, and the honest place to
+intervene is the page they are looking at while they make it.
 
 ## Consequences
 

@@ -27,8 +27,7 @@ app for. Nothing raises, and nothing warns.
 ## Decision
 
 When `allauth.account` is in `INSTALLED_APPS`, `mvp/urls.py` does not register `account_login` or
-`account_logout` at all. It is a guard around the two `path()` entries, not a reordering and not a
-subclass:
+`account_logout` at all. It is a guard around the two `path()` entries:
 
 ```python
 if not app_is_installed("allauth.account"):
