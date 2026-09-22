@@ -8,6 +8,7 @@
 {% block entrance %}
   <c-entrance size="md" full-height>
     {% block content %}
+      {% include "mvp/account/_development_notice.html" %}
       <h2 class="text-center mb-6">{% trans "You have signed out" %}</h2>
       <c-link href="{% url 'account_login' %}"
               text="{% trans "Sign in again" %}"

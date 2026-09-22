@@ -341,6 +341,37 @@ class TestPackagedTemplatesAreOverridable:
 
 
 @pytest.mark.django_db
+class TestDevelopmentNotice:
+    """Both packaged pages carry a notice naming what they do not do and
+    pointing at django-accounts-center as what to install for a production
+    site (T014, FR-011, FR-012, D9)."""
+
+    @pytest.fixture(autouse=True)
+    def _account_urlconf(self):
+        with override_settings(ROOT_URLCONF=ACCOUNT_URLCONF):
+            yield
+
+    def test_the_sign_in_page_carries_the_notice(self, client):
+        content = client.get(reverse("account_login")).content.decode()
+
+        assert "development" in content
+        assert "sign-up" in content
+        assert "django-accounts-center" in content
+
+    def test_the_sign_out_page_carries_the_notice(self, client, django_user_model):
+        user = django_user_model.objects.create_user(
+            username="noticeuser1", password="correct-pass"
+        )
+        client.force_login(user)
+
+        content = client.post(reverse("account_logout")).content.decode()
+
+        assert "development" in content
+        assert "sign-up" in content
+        assert "django-accounts-center" in content
+
+
+@pytest.mark.django_db
 class TestAccountCenterView:
     """The landing page: who it lets in, and what it shows once they're in."""
 

@@ -306,3 +306,29 @@ attention beyond this story's own diff: the `urls_without_logout.py` fixture con
 `LOGIN_URL` ambient-default conflict (T016), and this base-state lint/format discrepancy (§5) —
 none caused by this story's code, none fixable inside this story's file scope, all reproduced and
 attributed precisely enough to act on directly.
+
+## 2026-09-22T15:10:00Z · Implementer US-3 · T014
+
+Did: `mvp/templates/mvp/account/_development_notice.html` (new) — an included partial, not a
+Cotton component (D9): the comment at its top says why. Two paragraphs of `{% blocktrans %}` text
+inside a `<c-alert variant="warning">` naming what the pages do not do (sign-up, password reset,
+multi-factor authentication — matching `docs/account-center.md`'s own wording) and naming
+django-accounts-center as what to install for a production site (FR-011). Included by both
+`login.html` and `logout.html` at the top of `{% block content %}`, ahead of the existing
+form-error alert on the sign-in page so the development notice reads first.
+
+Red first: `TestDevelopmentNotice`, two tests in `tests/test_views/test_account.py` asserting the
+rendered content of each page for "development", "sign-up" and "django-accounts-center" — run and
+watched fail against the pages as US-1 left them, for the right reason (the strings are plain
+absent), before the partial existed.
+
+Verified: `poetry run pytest tests/test_views/test_account.py::TestDevelopmentNotice -v` — 2
+passed. `poetry run pytest tests/test_views/test_account.py -q` — 37 passed (no regression in the
+rest of the module). `poetry run ruff check --no-fix tests/test_views/test_account.py` and
+`poetry run ruff format --check tests/test_views/test_account.py` — clean (ruff does not lint
+`.html`; passing template paths to it explicitly forces it to parse them as Python and errors —
+not run against the templates for that reason). `poetry run mypy mvp/views/account.py` — no
+issues (no Python outside the test file changed).
+
+Next: T015 — a project that has replaced or overridden the pages sees no notice of ours. Needs
+D17's move of `allauth_installed` out of `tests/test_urls.py` into `tests/conftest.py` first.

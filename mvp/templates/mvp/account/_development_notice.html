@@ -1,0 +1,15 @@
+{% load i18n %}
+{% comment %}
+  Included by login.html and logout.html, not a Cotton component (D9):
+  this exists to be read once by a developer and then to stop existing,
+  not to be composed with or overridden by name the way a component is.
+{% endcomment %}
+<c-alert variant="warning" class="mb-6">
+  <p>{% trans "These pages are for local development only." %}</p>
+  <p>
+    {% blocktrans %}They do not support sign-up, password reset or multi-factor authentication.{% endblocktrans %}
+  </p>
+  <p>
+    {% blocktrans %}Install django-accounts-center for account management ready for a production site.{% endblocktrans %}
+  </p>
+</c-alert>

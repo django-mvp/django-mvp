@@ -7,6 +7,7 @@
 {% block entrance %}
   <c-entrance size="md" full-height>
     {% block content %}
+      {% include "mvp/account/_development_notice.html" %}
       {% if form.errors %}
         <c-alert variant="error" class="mb-6">
           <span>{% trans "Invalid username or password." %}</span>
