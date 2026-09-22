@@ -242,3 +242,30 @@ so under the configuration this package ships against both failure cases collaps
 message and FR-006 holds. A project configuring `AllowAllUsersModelBackend` has chosen the other
 behaviour. A package cannot decide a consumer's authentication backend, and pretending otherwise
 by overriding the form would override a decision that is properly the project's.
+
+## D15 — T009's override test uses a scoped `TEMPLATES` `DIRS` override, not a fixture app
+
+**Ambiguous because** FR-010 needs a test proving a project's own template at the same path wins,
+and the codebase's one existing precedent for that shape (`TestAccountCenterCards`, overriding
+`mvp/account/overview.html`) uses a dedicated fixture app inserted into `INSTALLED_APPS` ahead of
+`mvp` via `override_settings`. `demo` already precedes `mvp` in `INSTALLED_APPS`, so a template
+placed at `demo/templates/mvp/account/login.html` would shadow the packaged page permanently, for
+every test in the module — including T002 through T008's own assertions against the real page,
+run in the same file.
+
+**Chosen**: `demo/templates/tests/mvp/account/login.html`, reached only through
+`override_settings(TEMPLATES=...)` with `DIRS` pointed at `demo/templates/tests` for the one test
+that needs it. Django's default `TEMPLATES` loader order checks `DIRS` before each app's own
+`APP_DIRS` entry, so the fixture wins there without touching `INSTALLED_APPS` at all.
+
+**Why.** A fixture app would have worked too, but costs a new `tests/testapp_*` package for a
+single assertion, and reordering `INSTALLED_APPS` for one test — even scoped — reads as if
+`INSTALLED_APPS` order is what this story's override point depends on, when the real, documented
+mechanism (`docs/account-center.md`, research R6) is the ordinary Django app-template convention.
+Verified empirically before writing the test: a throwaway probe against
+`engines['django'].get_template`, and confirmed non-tautological by removing the fixture and
+watching the test fail against the real packaged page's content before restoring it.
+
+**Revisit if**: a later story needs to override more than one packaged template in the same test
+module — at that point a small fixture app pays for itself and this per-test `DIRS` override stops
+being the cheaper option.
