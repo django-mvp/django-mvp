@@ -16,6 +16,7 @@ from django.urls import (
     get_resolver,
     include,
     path,
+    resolve,
     reverse,
 )
 
@@ -166,3 +167,29 @@ class TestPackagedEntriesStandDownWhenAllauthIsInstalled:
                 reverse("account_login")
             with pytest.raises(NoReverseMatch):
                 reverse("account_logout")
+
+
+@pytest.mark.django_db
+class TestAllauthAnswersRegardlessOfMountOrder:
+    """allauth's view answers the sign-in and sign-out addresses whichever
+    order the two URLconfs were mounted in — the order this project's own
+    documentation and django-accounts-center's example both use, and the
+    opposite (T012, US-2 scenarios 2 and 3, SC-003)."""
+
+    def test_mvp_mounted_before_allauth(self, client, allauth_installed):
+        # Local import: allauth.account is only importable once INSTALLED_APPS
+        # carries it (R11), which allauth_installed has just arranged.
+        from allauth.account.views import LoginView, LogoutView
+
+        with override_settings(ROOT_URLCONF=_urlconf_mvp_then_allauth()):
+            assert resolve(reverse("account_login")).func.view_class is LoginView
+            assert resolve(reverse("account_logout")).func.view_class is LogoutView
+            assert client.get(reverse("account_login")).status_code == 200
+
+    def test_allauth_mounted_before_mvp(self, client, allauth_installed):
+        from allauth.account.views import LoginView, LogoutView
+
+        with override_settings(ROOT_URLCONF=_urlconf_allauth_then_mvp()):
+            assert resolve(reverse("account_login")).func.view_class is LoginView
+            assert resolve(reverse("account_logout")).func.view_class is LogoutView
+            assert client.get(reverse("account_login")).status_code == 200
