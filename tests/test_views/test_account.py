@@ -371,6 +371,49 @@ class TestDevelopmentNotice:
         assert "django-accounts-center" in content
 
 
+def _urlconf_with_allauth():
+    """``mvp.urls`` mounted alongside allauth's own URLconf, the same order
+    ``tests/test_urls.py``'s T012 exercises: the packaged pages stand down
+    and allauth's own answer instead (T015, US-3 scenario 3). Not built at
+    module scope: ``allauth.account`` is only importable once it is in
+    ``INSTALLED_APPS`` (R11)."""
+    patterns = [
+        path("account/", include("mvp.urls")),
+        path("account/", include("allauth.account.urls")),
+        path("", include("demo.urls")),
+    ]
+    return type("_URLConf", (), {"urlpatterns": patterns})
+
+
+@pytest.mark.django_db
+class TestDevelopmentNoticeAbsence:
+    """Where the notice does not appear (T015, US-3 scenarios 3 and 4)."""
+
+    def test_with_allauth_installed_the_sign_in_page_carries_no_notice_of_ours(
+        self, client, allauth_installed
+    ):
+        """The packaged sign-in page is not reached at all — allauth's own
+        page answers instead, and it carries no notice of ours."""
+        with override_settings(ROOT_URLCONF=_urlconf_with_allauth()):
+            content = client.get(reverse("account_login")).content.decode()
+
+        assert "django-accounts-center" not in content
+
+    def test_a_projects_own_template_carries_no_notice_of_ours(self, client, settings):
+        """T009 already proves the override point; reused here rather than
+        rebuilt (US-3 scenario 4) — the project's template decides, and its
+        template is the bare fixture content T009 already asserts against."""
+        templates_config = copy.deepcopy(settings.TEMPLATES)
+        templates_config[0]["DIRS"] = [str(PROJECT_OVERRIDE_TEMPLATES_DIR)]
+
+        with override_settings(
+            ROOT_URLCONF=ACCOUNT_URLCONF, TEMPLATES=templates_config
+        ):
+            content = client.get(reverse("account_login")).content.decode()
+
+        assert "django-accounts-center" not in content
+
+
 @pytest.mark.django_db
 class TestAccountCenterView:
     """The landing page: who it lets in, and what it shows once they're in."""

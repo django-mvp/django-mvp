@@ -352,3 +352,34 @@ tests/test_urls.py` and `poetry run ruff format --check tests/conftest.py tests/
 clean. `poetry run mypy mvp/urls.py` — no issues (no production code touched).
 
 Next: T015's own tests, now that `allauth_installed` is reachable from `tests/test_views/test_account.py`.
+
+## 2026-09-22T15:38:00Z · Implementer US-3 · T015
+
+Did: two tests in `tests/test_views/test_account.py`. `TestDevelopmentNoticeAbsence` —
+`test_with_allauth_installed_the_sign_in_page_carries_no_notice_of_ours` mounts `mvp.urls`
+alongside allauth's own URLconf (a local `_urlconf_with_allauth`, mirroring
+`tests/test_urls.py`'s `_urlconf_mvp_then_allauth`, built lazily for the same
+`allauth.account`-importability reason, R11) using the `allauth_installed` fixture now reachable
+from `tests/conftest.py` (D17); `test_a_projects_own_template_carries_no_notice_of_ours` reuses
+T009's `TEMPLATES` `DIRS` override fixture rather than rebuilding one, per the task's own
+instruction — the override point is already proved, and the fixture template's content
+(`project-overridden-sign-in-page`) has never contained our notice.
+
+No production code needed: absence follows from mechanisms T011 and T009 already built, the same
+"no implementation expected" pattern as US-2's T012/T013. Verified non-tautological rather than
+assumed, since both tests passed on first run: for the first, `mvp/urls.py`'s
+`app_is_installed("allauth.account")` guard was temporarily replaced with `if True:` — with
+`mvp.urls` now always registering the packaged view first regardless of allauth, the test failed
+exactly as expected, on `"django-accounts-center" not in content`, then `git checkout --
+mvp/urls.py` restored it (confirmed byte-identical against a copy taken before the edit). For the
+second, the test's own `TEMPLATES[0]["DIRS"]` override line was temporarily commented out — with
+the packaged template reached instead of the fixture, the same assertion failed the same way —
+then the test was restored to its real body by hand and re-run green.
+
+Verified: `poetry run pytest tests/test_views/test_account.py::TestDevelopmentNoticeAbsence -v` —
+2 passed. `poetry run pytest tests/test_views/test_account.py -q` — 39 passed. `poetry run pytest
+tests/test_urls.py tests/test_views/test_account.py -v -p no:randomly` and the same in random
+order — 48 passed both ways. `poetry run ruff check --no-fix tests/test_views/test_account.py`
+and `poetry run ruff format --check tests/test_views/test_account.py` — clean.
+
+This is the last task in US-3. Story complete pending the full suite run both ways.
