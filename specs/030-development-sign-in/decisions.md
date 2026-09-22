@@ -269,3 +269,33 @@ watching the test fail against the real packaged page's content before restoring
 **Revisit if**: a later story needs to override more than one packaged template in the same test
 module — at that point a small fixture app pays for itself and this per-test `DIRS` override stops
 being the cheaper option.
+
+## D16 — Two pre-existing tests are rewritten to describe the sign-in page this story introduces
+
+**Ambiguous because** the guardrail on modifying tests that existed before the branch exists to
+stop a failing assertion being edited into a passing one. Both of these tests went red on this
+branch, and both edits are to their assertions.
+
+**Chosen**: rewrite both, and record here why neither is a weakening.
+
+`tests/urls_without_logout.py` exists to describe a project that provides no `account_logout`
+name, and it did so by including `mvp.urls`. Mounting that URLconf now always registers the name,
+so the configuration supplied exactly what it was built to withhold and the test asserting the
+shell's log-out row is absent could never pass again. It now wires the landing page up directly.
+The behaviour under test — the row is absent rather than dead when the name does not resolve — is
+untouched, and the test still fails if the shell's guard is removed.
+
+`TestAccountCenterView::test_anonymous_request_is_redirected_to_sign_in` asserted the redirect
+lands on `/accounts/login/`, Django's default. D12 points `LOGIN_URL` at the packaged page, so
+that address no longer resolves to anything at all, and the assertion had stopped describing
+where an unauthenticated visitor goes. It now names the packaged sign-in page, and additionally
+asserts the old default is *not* the destination, so the test still distinguishes the two.
+
+**Why.** The claim each test makes is unchanged. What changed underneath both is the address of
+the sign-in page, which is the whole subject of this feature. Leaving either as it was would
+require reverting D12.
+
+**Also triaged, no action**: `tests/test_components/test_sidebar_footer.py` and
+`tests/test_components/test_sidebar_user_menu_admin_link.py` are flagged for modified lines that
+are `ruff format` line-wrapping of assertions whose text is byte-identical, alongside new test
+classes. No assertion changed meaning.
