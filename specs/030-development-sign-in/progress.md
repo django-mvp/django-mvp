@@ -52,3 +52,21 @@ Next: T003 (failed sign-in re-renders without disclosing why).
 Watch: `mvp.urls` now registers `account_login` unconditionally (the `app_is_installed` guard is
 US-2/T011's addition per plan.md, not this task's). No fixture outside this story's scope reverses
 that name yet, so no effect observed at this task.
+
+## 2026-09-22T13:07:00Z · Implementer US-1 · T003
+
+Did: `TestSignInView` in `tests/test_views/test_account.py` — a wrong password for an existing
+account and an unknown username each re-render the form at 200, leave the request anonymous, and
+carry the same non-disclosing message (FR-006). No production code changed: `SignInView` inherits
+`AuthenticationForm`'s non-disclosing `invalid_login` message from Django, so the tests passed on
+first run, exactly as the task expects — they assert inherited behaviour rather than driving new
+code.
+
+Verified: `poetry run pytest tests/test_views/test_account.py::TestSignInView -v` — 3 passed.
+`poetry run ruff check` and `poetry run ruff format --check` on the touched file — clean.
+
+Next: T004 (default redirect destination).
+
+Watch: `mvp.urls` now registers `account_login` unconditionally (the `app_is_installed` guard is
+US-2/T011's addition per plan.md, not this task's). No fixture outside this story's scope reverses
+that name yet, so no effect observed at this task.

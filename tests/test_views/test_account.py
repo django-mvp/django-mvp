@@ -67,6 +67,64 @@ ACCOUNT_FIXTURE_URLCONF = _fixture_urlconf()
 
 
 @pytest.mark.django_db
+class TestSignInView:
+    """``account_login`` — the sign-in page (T003, FR-006)."""
+
+    @pytest.fixture(autouse=True)
+    def _account_urlconf(self):
+        with override_settings(ROOT_URLCONF=ACCOUNT_URLCONF):
+            yield
+
+    def _post(self, client, username, password):
+        return client.post(
+            reverse("account_login"), {"username": username, "password": password}
+        )
+
+    def test_wrong_password_for_an_existing_account_re_renders_the_form(
+        self, client, django_user_model
+    ):
+        django_user_model.objects.create_user(
+            username="signinuser1", password="correct-pass"
+        )
+        response = self._post(client, "signinuser1", "wrong-pass")
+
+        assert response.status_code == 200
+        assert response.wsgi_request.user.is_anonymous
+        assert "Invalid username or password." in response.content.decode()
+
+    def test_an_unknown_username_gets_the_same_treatment(self, client):
+        response = self._post(client, "no-such-user", "whatever")
+
+        assert response.status_code == 200
+        assert response.wsgi_request.user.is_anonymous
+        assert "Invalid username or password." in response.content.decode()
+
+    def test_the_message_is_identical_whether_the_account_exists_or_not(
+        self, client, django_user_model
+    ):
+        """FR-006: non-disclosure — a failed sign-in must not reveal whether
+        the account exists. That equality is the requirement."""
+        django_user_model.objects.create_user(
+            username="signinuser2", password="correct-pass"
+        )
+        wrong_password = self._post(client, "signinuser2", "wrong-pass")
+        unknown_username = self._post(client, "no-such-user", "whatever")
+
+        wrong_password_alert = BeautifulSoup(
+            wrong_password.content.decode(), "html.parser"
+        ).find(attrs={"role": "alert"})
+        unknown_username_alert = BeautifulSoup(
+            unknown_username.content.decode(), "html.parser"
+        ).find(attrs={"role": "alert"})
+
+        assert wrong_password_alert is not None
+        assert unknown_username_alert is not None
+        assert wrong_password_alert.get_text(strip=True) == (
+            unknown_username_alert.get_text(strip=True)
+        )
+
+
+@pytest.mark.django_db
 class TestAccountCenterView:
     """The landing page: who it lets in, and what it shows once they're in."""
 
