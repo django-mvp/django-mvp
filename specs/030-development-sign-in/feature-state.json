@@ -330,18 +330,48 @@
       "priority": "P3",
       "issue": 385,
       "worktree": "/home/sam/projects/django-mvp/dm-030-development-sign-in",
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
           "id": "T014",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_views/test_account.py::TestDevelopmentNotice::test_the_sign_in_page_carries_the_notice",
+              "tests/test_views/test_account.py::TestDevelopmentNotice::test_the_sign_out_page_carries_the_notice"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_views/test_account.py::TestDevelopmentNotice -v",
+              "poetry run pytest tests/test_views/test_account.py -q",
+              "poetry run ruff check --no-fix tests/test_views/test_account.py",
+              "poetry run ruff format --check tests/test_views/test_account.py",
+              "poetry run mypy mvp/views/account.py"
+            ]
+          }
         },
         {
           "id": "T015",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_views/test_account.py::TestDevelopmentNoticeAbsence::test_with_allauth_installed_the_sign_in_page_carries_no_notice_of_ours",
+              "tests/test_views/test_account.py::TestDevelopmentNoticeAbsence::test_a_projects_own_template_carries_no_notice_of_ours"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_urls.py -v -p no:randomly",
+              "poetry run pytest tests/test_urls.py -q",
+              "poetry run pytest tests/test_views/test_account.py::TestDevelopmentNoticeAbsence -v",
+              "poetry run pytest tests/test_views/test_account.py -q",
+              "poetry run pytest tests/test_urls.py tests/test_views/test_account.py -v -p no:randomly",
+              "poetry run pytest tests/test_urls.py tests/test_views/test_account.py -q",
+              "poetry run ruff check --no-fix tests/conftest.py tests/test_urls.py tests/test_views/test_account.py",
+              "poetry run ruff format --check tests/conftest.py tests/test_urls.py tests/test_views/test_account.py",
+              "poetry run mypy mvp/urls.py"
+            ]
+          }
         }
       ]
     }
