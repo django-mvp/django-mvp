@@ -6,6 +6,8 @@ defensible on evidence already in this repository.
 
 ## D1 — The packaged pages stand down when allauth is installed, rather than being shadowed by mount order
 
+**ADR:** docs/adr/0024-a-stand-in-page-withdraws-when-the-real-app-arrives.md
+
 **Ambiguous because** the obvious reading of "register the same URL names and let the
 account-management package take over" is that mount order decides which view answers. It does
 not, and the way it fails is silent.
@@ -45,6 +47,8 @@ a project may install allauth directly.
 
 ## D2 — The pages are not gated on `DEBUG`
 
+**ADR:** docs/adr/0025-shipped-behaviour-is-not-gated-on-debug.md
+
 **Ambiguous because** the pages exist for development, which invites a debug gate to keep them
 out of production.
 
@@ -61,6 +65,8 @@ when they make it.
 
 ## D3 — The pages live in the Account Center's URLconf, not a second include
 
+**ADR:** none — an application of ADR 0019, which already settles that a packaged area arrives as one includable URLconf.
+
 **Ambiguous because** a separate includable URLconf would let a project take the pages without
 taking the Account Center.
 
@@ -76,6 +82,8 @@ the three already travel together.
 
 ## D4 — Signing in lands on the Account Center by default
 
+**ADR:** none — the default destination of one page. Nothing downstream inherits it.
+
 **Ambiguous because** Django has a default for this and the feature statement did not mention it.
 
 **Chosen**: the Account Center, unless the project has set its own destination, which wins.
@@ -87,6 +95,8 @@ Deferring to `LOGIN_REDIRECT_URL` when the project has set one keeps this a defa
 policy.
 
 ## D5 — The notice has no setting to suppress it
+
+**ADR:** none — local to this notice. The general stance it follows from is ADR 0025.
 
 **Ambiguous because** a project that has deliberately chosen to keep these pages might want the
 notice gone.
@@ -100,6 +110,8 @@ That requires the project to own the page, which is the appropriate price for re
 warning on it.
 
 ## D6 — Django's own auth URL names are left alone
+
+**ADR:** none — it decides to change nothing, so there is no standing rule for future work to abide by.
 
 **Ambiguous because** `c-actions.login` falls back to a URL named `login` when the
 account-management name does not resolve, and `django.contrib.auth.urls` registers that name, so
@@ -121,6 +133,8 @@ and why the choice is defensible on evidence already in this repository.
 
 ## D7 — allauth becomes a test dependency of this package
 
+**ADR:** none — a test-group dependency local to this feature, with its reason recorded beside it in pyproject.toml.
+
 **Ambiguous because** FR-003 is a claim about what happens when allauth is installed, and allauth
 is not a dependency of this package in any group.
 
@@ -140,6 +154,8 @@ Article VII asks for a stated justification and gets one; `deptry`'s `DEP001` ig
 
 ## D8 — Signing out renders a page rather than redirecting
 
+**ADR:** none — the response one view returns. Nothing downstream inherits it.
+
 **Ambiguous because** Django's `LogoutView` can either redirect to `next_page` or render a
 template, and `demo/settings.py` already sets `LOGOUT_REDIRECT_URL = "/"`.
 
@@ -154,6 +170,8 @@ ahead of the template.
 
 ## D9 — The notice is an included partial, not a Cotton component
 
+**ADR:** docs/adr/0026-a-component-is-public-api-internal-markup-is-a-partial.md
+
 **Ambiguous because** this package's answer to reusable markup is normally a Cotton component,
 and the notice appears on two pages.
 
@@ -167,6 +185,8 @@ The override point a project actually needs is the page template, which it alrea
 
 ## D10 — "The project has not chosen a destination" is decided against Django's global default
 
+**ADR:** none — the technique implementing D4, sealed inside one method.
+
 **Ambiguous because** FR-007 makes the Account Center a default that a project's own
 `LOGIN_REDIRECT_URL` beats, and `LOGIN_REDIRECT_URL` always has a value.
 
@@ -179,6 +199,8 @@ comparison is a fact rather than a guess. Importing the default from `global_set
 than writing `"/accounts/profile/"` into this package keeps it a fact if Django ever changes it.
 
 ## D11 — One repair to the base, recorded because it is not this feature's work
+
+**ADR:** none — a repair to pre-existing code, not a decision this feature's design rests on.
 
 **Ambiguous because** the conformance check was already red on `main` when this branch was cut,
 and a feature branch is not where unrelated drift belongs.
@@ -194,6 +216,8 @@ that file; leaving the check red would have meant either building on an ungated 
 something larger inside a feature branch.
 
 ## D12 — The demo drops `LOGOUT_REDIRECT_URL`, and gains `LOGIN_URL`
+
+**ADR:** none — configuration of the demo project, which ships as an example rather than as a public interface.
 
 **Ambiguous because** FR-014 says the demo must use the packaged pages, and the demo already has
 settings that decide where sign-in and sign-out land.
@@ -218,6 +242,8 @@ opened rather than only in a test.
 
 ## D13 — A `next` that points back at the sign-in page is left to Django
 
+**ADR:** none — it accepts Django's own behaviour unchanged, so there is nothing here to abide by.
+
 **Ambiguous because** `redirect_authenticated_user` plus an attacker-supplied `next` pointing at
 the sign-in address makes Django's own loop detector raise `ValueError` for a signed-in visitor.
 
@@ -230,6 +256,8 @@ against a constitution that asks for the simplest design satisfying the spec. Re
 next reader knows it was seen rather than missed.
 
 ## D14 — Non-disclosure is stated against the backend the package ships for
+
+**ADR:** none — a documented caveat about a project's own choice of authentication backend, with no code behind it.
 
 **Ambiguous because** FR-006 requires that a failed sign-in not reveal whether an account exists,
 and `AuthenticationForm.confirm_login_allowed` raises a distinct "This account is inactive"
@@ -244,6 +272,8 @@ behaviour. A package cannot decide a consumer's authentication backend, and pret
 by overriding the form would override a decision that is properly the project's.
 
 ## D15 — T009's override test uses a scoped `TEMPLATES` `DIRS` override, not a fixture app
+
+**ADR:** none — a testing technique, local to one test module.
 
 **Ambiguous because** FR-010 needs a test proving a project's own template at the same path wins,
 and the codebase's one existing precedent for that shape (`TestAccountCenterCards`, overriding
@@ -271,6 +301,8 @@ module — at that point a small fixture app pays for itself and this per-test `
 being the cheaper option.
 
 ## D16 — Two pre-existing tests are rewritten to describe the sign-in page this story introduces
+
+**ADR:** none — test maintenance following the address change that ADR 0024 records.
 
 **Ambiguous because** the guardrail on modifying tests that existed before the branch exists to
 stop a failing assertion being edited into a passing one. Both of these tests went red on this
@@ -301,6 +333,8 @@ are `ruff format` line-wrapping of assertions whose text is byte-identical, alon
 classes. No assertion changed meaning.
 
 ## D17 — `allauth_installed` moves into `tests/conftest.py`, keyed off `request.module`
+
+**ADR:** none — where a test fixture lives, sealed inside the test suite.
 
 **Ambiguous because** the guardrail on touching a pre-existing test exists to stop a story quietly
 reaching into test infrastructure it does not own, and `allauth_installed` (T011) lived at module
