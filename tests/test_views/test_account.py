@@ -350,9 +350,13 @@ class TestAccountCenterView:
             yield
 
     def test_anonymous_request_is_redirected_to_sign_in(self, client):
+        """The destination is the packaged sign-in page. Django's
+        ``/accounts/login/`` default is no longer where an unauthenticated
+        visitor is sent, and no longer resolves to anything."""
         response = client.get(reverse("account-center"))
         assert response.status_code == 302
-        assert response.url.startswith("/accounts/login/")
+        assert response.url.startswith(reverse("account_login"))
+        assert not response.url.startswith("/accounts/login/")
 
     def test_signed_in_request_renders_inside_the_shell(
         self, client, django_user_model
