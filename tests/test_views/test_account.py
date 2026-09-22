@@ -17,6 +17,7 @@ from pathlib import Path
 import pytest
 from bs4 import BeautifulSoup
 from django.conf import global_settings, settings
+from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.models import AnonymousUser
 from django.template.loader import render_to_string
 from django.test import RequestFactory, override_settings
@@ -698,3 +699,45 @@ class TestAccountCenterCards:
         assert 'data-testid="testapp-card-with-menu"' in content
         assert "With Menu Card" in content
         assert "Card With Menu Fixture" in content
+
+
+@pytest.mark.django_db
+class TestSignInFieldNaming:
+    """FR-005: the sign-in form asks for the field the user model declares,
+    and says so consistently.
+
+    The label already reads ``form.username.label``. The placeholder inside
+    the same input is the other half of the same promise: a project whose
+    people are identified by email address must not be shown a box labelled
+    "Email address" with "Username" written inside it.
+    """
+
+    @pytest.fixture(autouse=True)
+    def _account_urlconf(self):
+        with override_settings(ROOT_URLCONF=ACCOUNT_URLCONF):
+            yield
+
+    def _render_with_label(self, label):
+        """Render the real page against a form whose identifying field
+        carries ``label``, standing in for a user model that names it
+        something other than ``username``."""
+        form = AuthenticationForm()
+        form.fields["username"].label = label
+        request = RequestFactory().get(reverse("account_login"))
+        request.user = AnonymousUser()
+        return render_to_string(
+            "mvp/account/login.html", {"form": form, "next": ""}, request=request
+        )
+
+    def test_the_placeholder_names_the_field_the_model_declares(self):
+        html = self._render_with_label("Email address")
+
+        assert 'placeholder="Email address"' in html
+        assert 'placeholder="Username"' not in html
+
+    def test_the_default_user_model_is_unaffected(self):
+        """The default model does call it "Username", so nothing a project
+        sees today changes."""
+        html = self._render_with_label("Username")
+
+        assert 'placeholder="Username"' in html

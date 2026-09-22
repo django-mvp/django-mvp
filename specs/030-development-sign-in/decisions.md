@@ -149,8 +149,10 @@ D1 exists precisely because this failure is silent — a sign-in page that rende
 creates a session while everything the project installed allauth for is missing. An untested
 claim about allauth is the same class of thing D1 was written to prevent.
 
-Article VII asks for a stated justification and gets one; `deptry`'s `DEP001` ignore list gains
-`allauth` beside `pytest` and `bs4`, which are there for the same reason.
+Article VII asks for a stated justification and gets one. `deptry`'s `DEP001` ignore list needs no
+entry for it. Deptry reads the installed distribution's own top-level-module metadata, so
+`django-allauth` resolves to `allauth` without help. The names already on that list are there
+because their distribution and module names disagree in a way it cannot work out.
 
 ## D8 — Signing out renders a page rather than redirecting
 

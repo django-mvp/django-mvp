@@ -21,7 +21,7 @@
                       label="{{ form.username.label }}"
                       id="{{ form.username.id_for_label }}"
                       name="{{ form.username.html_name }}"
-                      placeholder="{% trans "Username" %}"
+                      placeholder="{{ form.username.label }}"
                       autocomplete="username"
                       :errors="form.username.errors"
                       required />
