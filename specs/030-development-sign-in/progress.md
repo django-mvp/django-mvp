@@ -227,3 +227,37 @@ machine-checked; read start to end for a dead cross-reference or a claim the cod
 (the `#signing-in-during-development` anchor matches the heading it targets).
 
 Next: T016 (the demo uses the packaged pages) — the last task in this story.
+
+## 2026-09-22T13:58:00Z · Implementer US-1 · T016
+
+Did: `demo/urls.py` — removed the demo's own `account/logout/` path, the `LogoutView` import,
+and the `django.contrib.auth.urls` include. Deleted `demo/templates/registration/login.html`
+(and its now-empty `registration/` directory). Repointed the one `{% url 'login' %}` in
+`demo/templates/demo/components/link.html` at `account_login` (research R9). `demo/settings.py`
+gained `LOGIN_URL = "account_login"` and lost `LOGOUT_REDIRECT_URL = "/"`; `LOGIN_REDIRECT_URL =
+"/"` stays (D12). New `tests/test_demo/test_urls.py`, mirroring `demo/urls.py`: structural
+assertions for everything FR-014's acceptance criterion names (the old wiring is gone, the
+component-doc example points at `account_login`, settings match D12) plus the round trip against
+the demo's own real, un-overridden settings — a protected page sends an anonymous visitor to the
+packaged sign-in page, signing in without a `next` lands on home, signing out renders the packaged
+signed-out page.
+
+**Concern, not blocked — flagged for Forge to triage, same pattern as T007's.** Setting
+`LOGIN_URL = "account_login"` in `demo/settings.py` is exactly what D12 and `docs/account-center.md`
+specify, and `tests/settings.py` inherits it (`from demo.settings import *`). One pre-existing
+test built on the ambient Django default breaks as a direct, foreseeable consequence:
+`tests/test_views/test_account.py::TestAccountCenterView::test_anonymous_request_is_redirected_to_sign_in`
+asserts `response.url.startswith("/accounts/login/")` — Django's raw default, and the literal
+address this feature exists to stop being a dead end. I did not author this test and the
+prohibitions bar changing it; not touched. Ran the wider `tests/test_demo/ tests/test_views/
+tests/test_components/ tests/test_urls.py` sweep specifically to catch this class of collateral
+before the story-level verify — it is the only new failure beyond T007's already-flagged one.
+
+Verified: `poetry run pytest tests/test_demo/test_urls.py -v` — 9 passed. `poetry run pytest
+tests/test_demo/ -q` — 70 passed (no regression in the rest of the demo's own suite). `poetry run
+ruff check` and `poetry run ruff format --check` on the touched Python files — clean. `poetry run
+mypy mvp` — no issues. `poetry run deptry .` — no dependency issues. Wider sweep
+(`tests/test_demo/ tests/test_views/ tests/test_components/ tests/test_urls.py`, 1291 tests): 1288
+passed, 2 failed (both flagged, both pre-existing, neither touched), 1 skipped.
+
+This is the last task in US-1. Story complete pending the §5 full verify run.
