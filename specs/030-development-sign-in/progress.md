@@ -106,3 +106,15 @@ Verified: `poetry run pytest tests/test_views/test_account.py::TestSignInViewNex
 passed. `poetry run ruff check` and `poetry run ruff format --check` on the touched file — clean.
 
 Next: T006 (a signed-in person is not shown the form).
+
+## 2026-09-22T13:19:00Z · Implementer US-1 · T006
+
+Did: `redirect_authenticated_user = True` on `SignInView` (FR-009). `TestSignInViewAuthenticatedVisitor`
+asserts a signed-in client requesting the sign-in address is redirected rather than served a form.
+
+Verified: `poetry run pytest tests/test_views/test_account.py -k SignIn -v` — 10 passed (the full
+`SignInView` scope, confirming no regression alongside T003–T005). `poetry run ruff check` and
+`poetry run ruff format --check` on the touched files — clean. `poetry run mypy
+mvp/views/account.py` — no issues.
+
+Next: T007 (sign-out requires a submission and renders the signed-out page).

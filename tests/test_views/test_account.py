@@ -241,6 +241,28 @@ class TestSignInViewNextRedirect:
 
 
 @pytest.mark.django_db
+class TestSignInViewAuthenticatedVisitor:
+    """A signed-in person is not shown the form (T006, FR-009)."""
+
+    @pytest.fixture(autouse=True)
+    def _account_urlconf(self):
+        with override_settings(ROOT_URLCONF=ACCOUNT_URLCONF):
+            yield
+
+    def test_a_signed_in_client_requesting_the_sign_in_address_is_redirected(
+        self, client, django_user_model
+    ):
+        user = django_user_model.objects.create_user(
+            username="alreadysignedin", password="correct-pass"
+        )
+        client.force_login(user)
+
+        response = client.get(reverse("account_login"))
+
+        assert response.status_code == 302
+
+
+@pytest.mark.django_db
 class TestAccountCenterView:
     """The landing page: who it lets in, and what it shows once they're in."""
 

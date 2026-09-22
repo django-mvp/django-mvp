@@ -46,6 +46,7 @@ class SignInView(LoginView):
     """
 
     template_name = "mvp/account/login.html"
+    redirect_authenticated_user = True
 
     def get_default_redirect_url(self):
         """Land on the Account Center when the project has expressed no
