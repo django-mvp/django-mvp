@@ -2,8 +2,10 @@
 
 The Account Center is a place in the shell for a person to manage their own account:
 a landing page, a navigation panel beside it, and a menu any installed app can add a
-page or a menu entry to. django-mvp provides the area itself. Account management —
-sign-in, sign-up, password and multi-factor flows — still lives in
+page or a menu entry to. django-mvp provides the area itself, plus development-only
+sign-in and sign-out pages so a page guarded by `LoginRequiredMixin` is reachable
+before your project installs anything else. Full account management — sign-up,
+password and multi-factor flows, and production-ready sign-in and sign-out — lives in
 [django-accounts-center](https://github.com/django-mvp/django-accounts-center), which
 is the first app that adds pages to this area.
 
@@ -45,18 +47,10 @@ rather than a broken link.
 
 The menu's last row signs the person out, and it needs a URL named `account_logout` to
 point at. It posts there rather than following a link, because signing out changes state.
-An allauth project already has that name. A project without allauth provides it itself:
-
-```python
-from django.contrib.auth.views import LogoutView
-
-urlpatterns = [
-    path("account/logout/", LogoutView.as_view(), name="account_logout"),
-]
-```
-
-With no such name there is nothing to post to, so the row is left out — the same rule
-every other row in this menu follows.
+Mounting the Account Center's own URLconf already provides that name — see
+[Signing in during development](#signing-in-during-development) — so nothing further
+needs registering. With no such name resolving at all, the row is left out, the same
+rule every other row in this menu follows.
 
 To change what the footer shows instead, override
 `templates/cotton/app/sidebar/footer.html` — see
@@ -86,12 +80,48 @@ urlpatterns = [
 Keep the `account-center` name if you do this, because the shell's user menu and every
 contributed page's trail reverse it.
 
-## Signing in
+## Signing in during development
 
 The landing page requires a signed-in user and sends an anonymous visitor to your
-project's configured sign-in location. The area does not gate any page a contributing
-app adds to it — a contributed page decides its own access rules, the same way any
-other view in your project does.
+project's configured sign-in location. Mounting the URLconf gives you that location
+for free: two more pages alongside the landing page, `account_login` and
+`account_logout`, meant for local development — the shell's own controls already point
+at them, so a guarded page is not a dead end while you are building.
+
+```python
+# settings.py
+LOGIN_URL = "account_login"
+```
+
+Set this beside the include. Django's own default, `/accounts/login/`, is an address
+this package does not register, so without it an anonymous visitor to any page guarded
+by `LoginRequiredMixin` — including the Account Center itself — is sent to a page that
+does not exist.
+
+Both pages carry a notice naming what they do not do and pointing at
+[django-accounts-center](https://github.com/django-mvp/django-accounts-center) as what
+to install for a production site: no sign-up, no password reset, no multi-factor flow,
+and no styling beyond the shell's own entrance page. Installing `allauth.account`
+stands them down entirely — the URLconf answers with allauth's own pages at the same
+two names instead, and django-accounts-center is the app that wires that in.
+
+They authenticate through whichever backends your project configures. The guarantee
+that a failed sign-in does not disclose whether an account exists holds for a backend
+that rejects inactive users, as Django's default `ModelBackend` does.
+
+Behind the two names are `SignInView` and `SignOutView` in `mvp.views.account`,
+subclasses of Django's own `LoginView` and `LogoutView` that point at the packaged
+templates and change almost nothing else. `SignInView` sends you to the Account Center
+after a successful sign-in unless your project set `LOGIN_REDIRECT_URL`, and
+`SignOutView` renders a signed-out page instead of redirecting. Unlike
+`AccountCenterView`, neither is exported from `mvp.views`, and neither is meant to be
+subclassed: a project that needs more from its sign-in page wants a real
+account-management app, not a subclass of a page designed to stand down when one
+arrives. To restyle either, put your own template at `mvp/account/login.html` or
+`mvp/account/logout.html` and yours will be found first.
+
+The area does not gate any page a contributing app adds to it — a contributed page
+decides its own access rules, the same way any other view in your project does.
 
 ## What it looks like with nothing installed
 

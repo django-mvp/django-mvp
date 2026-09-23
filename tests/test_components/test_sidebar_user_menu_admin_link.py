@@ -10,14 +10,23 @@ being installed does not mean a project mounted its URLs).
 import pytest
 from django.contrib.auth import get_user_model
 from django.template.loader import render_to_string
-from django.test import RequestFactory
-from django.urls import reverse
+from django.test import RequestFactory, override_settings
+from django.urls import include, path, reverse
 
 
 def _render(user):
     request = RequestFactory().get("/")
     request.user = user
     return render_to_string("tests/sidebar_menu.html", request=request)
+
+
+def _mvp_urls_only():
+    """A project that mounts only the Account Center (T008)."""
+    patterns = [path("account/", include("mvp.urls"))]
+    return type("_MvpUrlsOnly", (), {"urlpatterns": patterns})
+
+
+MVP_URLS_ONLY = _mvp_urls_only()
 
 
 class TestSidebarUserMenuAdminLink:
@@ -98,3 +107,22 @@ class TestSidebarUserMenuLogOut:
 
         assert "Log out" in html
         assert "divider" not in html
+
+
+class TestSidebarUserMenuLogOutResolvesAccountLogout:
+    """The log-out row and its form draw themselves once ``account_logout``
+    resolves (T008, FR-002, US-1 scenario 5) — nothing in
+    ``user/sidebar_menu.html`` changes."""
+
+    @pytest.mark.django_db
+    def test_a_signed_in_request_draws_the_log_out_row_and_form_at_account_logout(
+        self,
+    ):
+        with override_settings(ROOT_URLCONF=MVP_URLS_ONLY):
+            user = get_user_model().objects.create_user(
+                username="departing", password="pw"
+            )
+            html = _render(user)
+
+            assert "Log out" in html
+            assert f'action="{reverse("account_logout")}"' in html

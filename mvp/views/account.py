@@ -4,7 +4,10 @@ a page to.
 Source: mvp/menus.py (AccountCenterMenu), mvp/urls.py (the area's URLconf).
 """
 
+from django.conf import global_settings, settings
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.views import LoginView, LogoutView
+from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
 from .extra import MVPTemplateView
@@ -33,3 +36,32 @@ class AccountCenterView(LoginRequiredMixin, MVPTemplateView):
     page_title = _("Account Center")
     page_subtitle = _("Manage your account and see what's available to you here.")
     breadcrumbs = [{"text": _("Account Center")}]
+
+
+class SignInView(LoginView):
+    """The Account Center's sign-in page, registered as ``account_login``
+    for development — see docs/account-center.md."""
+
+    template_name = "mvp/account/login.html"
+    redirect_authenticated_user = True
+
+    def get_default_redirect_url(self):
+        """Land on the Account Center when the project has expressed no
+        preference of its own (FR-007, decision D4): compared against
+        Django's own global default rather than the literal
+        ``"/accounts/profile/"``, so the comparison stays true if Django
+        ever changes it."""
+        if settings.LOGIN_REDIRECT_URL == global_settings.LOGIN_REDIRECT_URL:
+            return reverse("account-center")
+        return super().get_default_redirect_url()
+
+
+class SignOutView(LogoutView):
+    """The Account Center's sign-out page, registered as ``account_logout``
+    for development — see docs/account-center.md.
+
+    Renders ``template_name`` rather than redirecting (no ``next_page``,
+    decision D8). POST-only is Django's own, since 5.0.
+    """
+
+    template_name = "mvp/account/logout.html"

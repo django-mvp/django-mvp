@@ -66,9 +66,11 @@ writing the front end first.
 - **A project scaffold.** You install it as a dependency and upgrade it, rather than generating
   a starter project you then own outright.
 - **An authentication system.** It provides the [Account Center](docs/account-center.md), the
-  area itself. Account management — sign-in, sign-up, password and multi-factor flows — still
-  lives in [django-accounts-center](https://github.com/django-mvp/django-accounts-center), which
-  builds on these components.
+  area itself, and development-only sign-in and sign-out pages so a guarded page is reachable
+  while you build. Full account management — sign-up, password and multi-factor flows, and
+  production-ready sign-in and sign-out — still lives in
+  [django-accounts-center](https://github.com/django-mvp/django-accounts-center), which builds
+  on these components.
 - **A JavaScript application.** Pages are server-rendered, with Alpine and htmx where
   interaction calls for it. No build step, no single-page frontend.
 - **An API layer.** Django REST Framework and django-ninja already cover that ground.

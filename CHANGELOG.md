@@ -19,6 +19,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Account Center, once `django.contrib.admin`'s URLs are mounted — being in
   `INSTALLED_APPS` alone is not enough.
 
+- **Packaged sign-in and sign-out pages, for development.** Mounting the Account
+  Center's URLconf now also registers `account_login` and `account_logout`, so a page
+  guarded by `LoginRequiredMixin` is reachable before your project installs an
+  account-management app. Set `LOGIN_URL = "account_login"` beside the include — see
+  [Account Center](docs/account-center.md#signing-in-during-development). Installing
+  `allauth.account` stands the packaged pages down in favour of its own.
+
 ### Changed
 
 - **A declared `order_by` may carry a tiebreak.** `OrderMixin`'s `orm_expression`
@@ -51,6 +58,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `MVP_CONFIG["layout"]["sidebar"]["breakpoint"]` to anything other than `md` — `lg`,
   the shipped default, included — had a viewport band where neither the dock nor the
   desktop header widgets were visible.
+  
+- **`{% show_code %}` no longer raises `TemplateDoesNotExist` outside this repository.**
+  The tag rendered through `cotton/documentation.html`, which existed only in the demo
+  project and was never part of the distributed package — any project that installed
+  django-mvp and called the tag got a 500. The template now ships at
+  `mvp/templates/cotton/documentation.html`, alongside the package's other components,
+  and a project that wants a different presentation can override it at the same path.
 
 - **The shell no longer raises `KeyError: 'request'` when rendered without a request.**
   It draws no menu instead. Django renders the production error page in exactly that

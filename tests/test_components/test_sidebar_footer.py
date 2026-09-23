@@ -13,7 +13,8 @@ import pytest
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
 from django.template.loader import render_to_string
-from django.test import RequestFactory
+from django.test import RequestFactory, override_settings
+from django.urls import include, path, reverse
 from django.utils import translation
 
 
@@ -23,6 +24,16 @@ def _render(user, template="tests/sidebar_footer.html"):
     request.LANGUAGE_CODE = "en"
     with translation.override("en"):
         return render_to_string(template, request=request)
+
+
+def _mvp_urls_only():
+    """A project that mounts only the Account Center — nothing else the
+    shell's own controls could fall back to (T008)."""
+    patterns = [path("account/", include("mvp.urls"))]
+    return type("_MvpUrlsOnly", (), {"urlpatterns": patterns})
+
+
+MVP_URLS_ONLY = _mvp_urls_only()
 
 
 class TestSidebarFooterAuthenticated:
@@ -71,7 +82,9 @@ class TestSidebarFooterAnonymous:
 
         link = re.search(r'<a class="([^"]*)"[^>]*>\s*<span>Log in</span>', html)
         if link is None:
-            link = re.search(r'<a class="([^"]*)"[^>]*>(?:(?!</a>).)*Log in', html, re.S)
+            link = re.search(
+                r'<a class="([^"]*)"[^>]*>(?:(?!</a>).)*Log in', html, re.S
+            )
         assert link is not None, "the log-in button must render as a link"
 
         classes = link.group(1)
@@ -142,7 +155,22 @@ class TestSidebarFooterTakesTheSidebarsBackground:
         assert root is not None, "the footer must render an element of its own"
 
         classes = root.group(1)
-        assert "bg-primary" in classes, f"expected the background it was given, got {classes}"
+        assert "bg-primary" in classes, (
+            f"expected the background it was given, got {classes}"
+        )
         assert "bg-base-200" not in classes, (
             f"the default background must not survive alongside it, got {classes}"
         )
+
+
+class TestSidebarFooterLogInButtonResolvesAccountLogin:
+    """The log-in button draws itself once ``account_login`` resolves (T008,
+    FR-002, US-1 scenario 5) — nothing in ``actions/login.html`` changes."""
+
+    @pytest.mark.django_db
+    def test_an_anonymous_request_draws_the_log_in_button_at_account_login(self):
+        with override_settings(ROOT_URLCONF=MVP_URLS_ONLY):
+            html = _render(AnonymousUser())
+
+            assert "Log in" in html
+            assert f'href="{reverse("account_login")}"' in html
