@@ -371,6 +371,23 @@ class TestDevelopmentNotice:
         assert "sign-up" in content
         assert "django-accounts-center" in content
 
+    def test_the_notice_shares_one_column_instead_of_three(self, client):
+        """An alert lays its direct children out as columns (delete_view.html
+        documents the same rule on the same component), so the notice's three
+        sentences must share a single child rather than spreading across the
+        alert as three columns of their own."""
+        content = client.get(reverse("account_login")).content.decode()
+        soup = BeautifulSoup(content, "html.parser")
+
+        alert = soup.find(class_="alert-warning")
+        text_columns = [
+            child
+            for child in alert.find_all(recursive=False)
+            if child.name not in ("svg", "i")
+        ]
+
+        assert len(text_columns) == 1
+
 
 def _urlconf_with_allauth():
     """``mvp.urls`` mounted alongside allauth's own URLconf, the same order
