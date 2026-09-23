@@ -3,13 +3,19 @@
   Included by login.html and logout.html, not a Cotton component (D9):
   this exists to be read once by a developer and then to stop existing,
   not to be composed with or overridden by name the way a component is.
+
+  An alert lays its direct children out as columns (delete_view.html's own
+  comment on the same component), so the three sentences below share one
+  <ul> rather than each getting a <p> of their own.
 {% endcomment %}
 <c-alert variant="warning" class="mb-6">
-  <p>{% trans "These pages are for local development only." %}</p>
-  <p>
-    {% blocktrans %}They do not support sign-up, password reset or multi-factor authentication.{% endblocktrans %}
-  </p>
-  <p>
-    {% blocktrans %}Install django-accounts-center for account management ready for a production site.{% endblocktrans %}
-  </p>
+  <ul class="list-disc ms-4">
+    <li>{% trans "These pages are for local development only." %}</li>
+    <li>
+      {% blocktrans %}They do not support sign-up, password reset or multi-factor authentication.{% endblocktrans %}
+    </li>
+    <li>
+      {% blocktrans %}Install django-accounts-center for account management ready for a production site.{% endblocktrans %}
+    </li>
+  </ul>
 </c-alert>
