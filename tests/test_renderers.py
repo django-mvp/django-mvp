@@ -13,6 +13,7 @@ installed; in CI the workflow installs one, so a missing browser is an error.
 import pytest
 from playwright.sync_api import expect
 
+from mvp.config import MVP_CONFIG
 from tests.conftest import requires_browser
 
 pytestmark = [pytest.mark.e2e, requires_browser]
@@ -34,6 +35,37 @@ class TestMobileDockVisibility:
         page.set_viewport_size(DESKTOP)
         page.goto(live_server.url)
         expect(page.locator("div.dock")).to_be_hidden()
+
+    def test_dock_visible_below_the_configured_sidebar_breakpoint(
+        self, page, live_server
+    ):
+        """[#372] The dock was hidden at Tailwind's own ``md`` breakpoint
+        (768px), a value it never read from configuration, while the
+        desktop header widgets follow the project's configured sidebar
+        breakpoint (``lg`` / 1024px by default — see ``mvp/config.py``).
+        A viewport between the two widths showed neither: not narrow enough
+        for the dock's hardcoded cutoff, not wide enough for the header's
+        configured one."""
+        page.set_viewport_size({"width": 900, "height": 800})
+        page.goto(live_server.url)
+        expect(page.locator("div.dock")).to_be_visible()
+
+    def test_dock_visible_at_every_width_when_the_sidebar_breakpoint_is_never(
+        self, page, live_server, monkeypatch
+    ):
+        """[#372] The dock's own class used to be ``mvp-mobile-only``, which
+        is hidden at every width once the sidebar breakpoint is ``never`` —
+        a rule written for the navbar's widget row, where the desktop copy
+        stays shown unconditionally and the mobile one would otherwise
+        double up with it. The dock has no such unconditionally-shown
+        counterpart: under ``never`` the sidebar is an off-canvas overlay at
+        every width, and the dock is what a project in that mode has
+        instead of a persistent one, so it keeps showing rather than
+        disappearing."""
+        monkeypatch.setitem(MVP_CONFIG["layout"]["sidebar"], "breakpoint", "never")
+        page.set_viewport_size(DESKTOP)
+        page.goto(live_server.url)
+        expect(page.locator("div.dock")).to_be_visible()
 
     def test_dock_pinned_to_bottom_after_scroll(self, page, live_server):
         page.set_viewport_size(MOBILE)

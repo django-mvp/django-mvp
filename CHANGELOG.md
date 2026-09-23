@@ -47,6 +47,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Dock menu items forward `attrs` to the rendered element.** `menus/dock/item.html`
+  only passed `label`, `icon`, `href`, `active` and `toggle` to `<c-dock.item>`, so an
+  `attrs` key in a menu item's `extra_context` — an Alpine directive to open a modal, an
+  `aria-label` override, a `data-*` hook — never reached the page. A dock item could
+  only navigate or toggle the sidebar drawer.
+
+- **The dock now hides and shows at the configured sidebar breakpoint**, instead of a
+  hardcoded `md` (768px) of its own. A project configuring
+  `MVP_CONFIG["layout"]["sidebar"]["breakpoint"]` to anything other than `md` — `lg`,
+  the shipped default, included — had a viewport band where neither the dock nor the
+  desktop header widgets were visible.
+
 - **`{% show_code %}` no longer raises `TemplateDoesNotExist` outside this repository.**
   The tag rendered through `cotton/documentation.html`, which existed only in the demo
   project and was never part of the distributed package — any project that installed

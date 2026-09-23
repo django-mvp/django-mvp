@@ -461,7 +461,7 @@ The drawer element — the one wrapping the sidebar, header and page content —
 the resolved layout as two attributes: `data-mvp-breakpoint` (`sm`, `md`, `lg`, `xl`,
 `2xl` or `never`, already normalised the same way `LayoutConfig.breakpoint` is above)
 and `data-mvp-collapse` (`offcanvas` or `icons`). `mvp/tailwind/base.css` selects on
-both to decide what shows at which width, and three classes are available for your own
+both to decide what shows at which width, and four classes are available for your own
 markup to reuse the same rules instead of writing new media queries:
 
 "Desktop" and "mobile" here mean what they mean everywhere else in this package: mobile is
@@ -472,6 +472,7 @@ The configured breakpoint is the line between them.
 | --- | --- | --- |
 | `mvp-desktop-only` | desktop — at and above the configured breakpoint | on mobile. Under `breakpoint="never"` there is no desktop, so it is shown at every width rather than hidden at every width |
 | `mvp-mobile-only` | mobile — below the configured breakpoint | on desktop, and at every width under `breakpoint="never"`, so it never doubles up with the unconditionally shown `mvp-desktop-only` region |
+| `mvp-dock-only` | mobile — below the configured breakpoint | on desktop. Under `breakpoint="never"` it keeps showing at every width, unlike `mvp-mobile-only`: it has no unconditionally-shown desktop counterpart to avoid doubling up with, and the sidebar is an overlay at every width in that mode |
 | `mvp-sidebar-hidden-only` | while the sidebar is not on screen | while it is: always in `icons` mode from the breakpoint up, since the rail is always there, and in `offcanvas` mode only while the drawer is open |
 
 `mvp-sidebar-hidden-only` exists because the shell draws two controls twice. The sidebar's
@@ -480,11 +481,11 @@ of both — so that a page still has them when the sidebar is not on screen to p
 Put this class on a duplicate of something the sidebar already shows, and it will stand
 down whenever the original is visible. The packaged navbar uses it for exactly those two.
 
-**These two set `display: flex` when shown.** An element that needs a different display box should wrap one of them rather than combine it with a display utility: the package's rules sit outside Tailwind's utility layer and win against it whatever the specificity, so `class="mvp-mobile-only hidden"` resolves to `flex`.
+**The first three set `display: flex` when shown.** An element that needs a different display box should wrap one of them rather than combine it with a display utility: the package's rules sit outside Tailwind's utility layer and win against it whatever the specificity, so `class="mvp-mobile-only hidden"` resolves to `flex`.
 
 Any descendant of the drawer element can carry one — the navbar's widget lists, the
-account layout's collapsed/persistent navigation split, and the navbar's own copy of
-the sidebar-toggle button and site icon are all built from these three.
+account layout's collapsed/persistent navigation split, the navbar's own copy of the
+sidebar-toggle button and site icon, and the mobile dock are all built from these four.
 
 ## The layout store
 
