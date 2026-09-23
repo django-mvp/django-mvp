@@ -7,6 +7,7 @@
 {% block entrance %}
   <c-entrance size="md" full-height>
     {% block content %}
+      {% include "mvp/account/_development_notice.html" %}
       {% if form.errors %}
         <c-alert variant="error" class="mb-6">
           <span>{% trans "Invalid username or password." %}</span>
@@ -14,13 +15,13 @@
       {% endif %}
       <h2 class="text-center mb-6">{% trans "Sign in to your account" %}</h2>
       <c-form method="post"
-              action="{% url 'login' %}"
+              action="{% url 'account_login' %}"
               class="space-y-4">
         <c-form.field type="text"
-                      label="{% trans "Username" %}"
+                      label="{{ form.username.label }}"
                       id="{{ form.username.id_for_label }}"
                       name="{{ form.username.html_name }}"
-                      placeholder="{% trans "Username" %}"
+                      placeholder="{{ form.username.label }}"
                       autocomplete="username"
                       :errors="form.username.errors"
                       required />

@@ -10,12 +10,14 @@ decision D2) is the contract this test exercises, independent of where a
 project chooses to mount it.
 """
 
+import copy
 import re
 from pathlib import Path
 
 import pytest
 from bs4 import BeautifulSoup
-from django.conf import settings
+from django.conf import global_settings, settings
+from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.models import AnonymousUser
 from django.template.loader import render_to_string
 from django.test import RequestFactory, override_settings
@@ -28,6 +30,14 @@ ACCOUNT_BASE_TEMPLATE = (
     / "mvp"
     / "account"
     / "base.html"
+)
+
+# A project's own template at the same path: mirrors mvp/templates/mvp/account/login.html
+# in demo/templates/tests/, the loader's DIRS checked ahead of any app's own APP_DIRS
+# entry (T009, FR-010) — scoped to the one test that needs it via override_settings
+# rather than a permanent shadow every other test in this module would then sit under.
+PROJECT_OVERRIDE_TEMPLATES_DIR = (
+    Path(__file__).resolve().parent.parent.parent / "demo" / "templates" / "tests"
 )
 
 
@@ -67,6 +77,345 @@ ACCOUNT_FIXTURE_URLCONF = _fixture_urlconf()
 
 
 @pytest.mark.django_db
+class TestSignInView:
+    """``account_login`` — the sign-in page (T003, FR-006)."""
+
+    @pytest.fixture(autouse=True)
+    def _account_urlconf(self):
+        with override_settings(ROOT_URLCONF=ACCOUNT_URLCONF):
+            yield
+
+    def _post(self, client, username, password):
+        return client.post(
+            reverse("account_login"), {"username": username, "password": password}
+        )
+
+    def test_wrong_password_for_an_existing_account_re_renders_the_form(
+        self, client, django_user_model
+    ):
+        django_user_model.objects.create_user(
+            username="signinuser1", password="correct-pass"
+        )
+        response = self._post(client, "signinuser1", "wrong-pass")
+
+        assert response.status_code == 200
+        assert response.wsgi_request.user.is_anonymous
+        assert "Invalid username or password." in response.content.decode()
+
+    def test_an_unknown_username_gets_the_same_treatment(self, client):
+        response = self._post(client, "no-such-user", "whatever")
+
+        assert response.status_code == 200
+        assert response.wsgi_request.user.is_anonymous
+        assert "Invalid username or password." in response.content.decode()
+
+    def test_the_message_is_identical_whether_the_account_exists_or_not(
+        self, client, django_user_model
+    ):
+        """FR-006: non-disclosure — a failed sign-in must not reveal whether
+        the account exists. That equality is the requirement."""
+        django_user_model.objects.create_user(
+            username="signinuser2", password="correct-pass"
+        )
+        wrong_password = self._post(client, "signinuser2", "wrong-pass")
+        unknown_username = self._post(client, "no-such-user", "whatever")
+
+        wrong_password_alert = BeautifulSoup(
+            wrong_password.content.decode(), "html.parser"
+        ).find(attrs={"role": "alert"})
+        unknown_username_alert = BeautifulSoup(
+            unknown_username.content.decode(), "html.parser"
+        ).find(attrs={"role": "alert"})
+
+        assert wrong_password_alert is not None
+        assert unknown_username_alert is not None
+        assert wrong_password_alert.get_text(strip=True) == (
+            unknown_username_alert.get_text(strip=True)
+        )
+
+
+@pytest.mark.django_db
+class TestSignInViewDefaultRedirect:
+    """Where a successful sign-in lands (T004, FR-007, D4)."""
+
+    @pytest.fixture(autouse=True)
+    def _account_urlconf(self):
+        with override_settings(ROOT_URLCONF=ACCOUNT_URLCONF):
+            yield
+
+    def _sign_in(self, client, username, password, next_url=None):
+        data = {"username": username, "password": password}
+        if next_url is not None:
+            data["next"] = next_url
+        return client.post(reverse("account_login"), data)
+
+    def test_lands_on_the_account_center_when_the_project_has_not_chosen_a_destination(
+        self, client, django_user_model, settings
+    ):
+        """The demo sets ``LOGIN_REDIRECT_URL`` itself (D12); a project that
+        has made no choice is Django's own global default (D10)."""
+        settings.LOGIN_REDIRECT_URL = global_settings.LOGIN_REDIRECT_URL
+        django_user_model.objects.create_user(
+            username="redirectuser1", password="correct-pass"
+        )
+        response = self._sign_in(client, "redirectuser1", "correct-pass")
+
+        assert response.status_code == 302
+        assert response.url == reverse("account-center")
+
+    def test_a_projects_own_login_redirect_url_wins(
+        self, client, django_user_model, settings
+    ):
+        settings.LOGIN_REDIRECT_URL = "/products/"
+        django_user_model.objects.create_user(
+            username="redirectuser2", password="correct-pass"
+        )
+        response = self._sign_in(client, "redirectuser2", "correct-pass")
+
+        assert response.status_code == 302
+        assert response.url == "/products/"
+
+    def test_a_next_on_the_request_beats_both(self, client, django_user_model):
+        django_user_model.objects.create_user(
+            username="redirectuser3", password="correct-pass"
+        )
+        response = self._sign_in(
+            client, "redirectuser3", "correct-pass", next_url="/products/"
+        )
+
+        assert response.status_code == 302
+        assert response.url == "/products/"
+
+
+@pytest.mark.django_db
+class TestSignInViewNextRedirect:
+    """The ``next`` allow-list, and the round trip a person actually makes
+    (T005, FR-008, Article V)."""
+
+    @pytest.fixture(autouse=True)
+    def _account_urlconf(self):
+        with override_settings(ROOT_URLCONF=ACCOUNT_URLCONF):
+            yield
+
+    def test_an_off_site_next_is_refused(self, client, django_user_model, settings):
+        settings.LOGIN_REDIRECT_URL = global_settings.LOGIN_REDIRECT_URL
+        django_user_model.objects.create_user(
+            username="nextuser1", password="correct-pass"
+        )
+        response = client.post(
+            reverse("account_login"),
+            {
+                "username": "nextuser1",
+                "password": "correct-pass",
+                "next": "https://evil.example/",
+            },
+        )
+
+        assert response.status_code == 302
+        assert response.url == reverse("account-center")
+
+    def test_an_in_site_next_is_honoured(self, client, django_user_model):
+        django_user_model.objects.create_user(
+            username="nextuser2", password="correct-pass"
+        )
+        response = client.post(
+            reverse("account_login"),
+            {"username": "nextuser2", "password": "correct-pass", "next": "/products/"},
+        )
+
+        assert response.status_code == 302
+        assert response.url == "/products/"
+
+    def test_the_full_round_trip_from_a_protected_page_back_to_it(
+        self, client, django_user_model, settings
+    ):
+        """US-1 scenario 6, end to end: with ``LOGIN_URL`` configured the way
+        T010 documents, an anonymous visitor to the Account Center reaches
+        the packaged sign-in page, and signing in returns them there."""
+        settings.LOGIN_URL = "account_login"
+        django_user_model.objects.create_user(
+            username="nextuser3", password="correct-pass"
+        )
+
+        anonymous_visit = client.get(reverse("account-center"))
+        assert anonymous_visit.status_code == 302
+        assert anonymous_visit.url.startswith(reverse("account_login"))
+
+        signed_in = client.post(
+            anonymous_visit.url,
+            {"username": "nextuser3", "password": "correct-pass"},
+        )
+
+        assert signed_in.status_code == 302
+        assert signed_in.url == reverse("account-center")
+
+
+@pytest.mark.django_db
+class TestSignInViewAuthenticatedVisitor:
+    """A signed-in person is not shown the form (T006, FR-009)."""
+
+    @pytest.fixture(autouse=True)
+    def _account_urlconf(self):
+        with override_settings(ROOT_URLCONF=ACCOUNT_URLCONF):
+            yield
+
+    def test_a_signed_in_client_requesting_the_sign_in_address_is_redirected(
+        self, client, django_user_model
+    ):
+        user = django_user_model.objects.create_user(
+            username="alreadysignedin", password="correct-pass"
+        )
+        client.force_login(user)
+
+        response = client.get(reverse("account_login"))
+
+        assert response.status_code == 302
+
+
+@pytest.mark.django_db
+class TestSignOutView:
+    """``account_logout`` — the sign-out page (T007, FR-004, D8)."""
+
+    @pytest.fixture(autouse=True)
+    def _account_urlconf(self):
+        with override_settings(ROOT_URLCONF=ACCOUNT_URLCONF):
+            yield
+
+    def test_a_post_by_a_signed_in_client_ends_the_session_and_renders_the_signed_out_page(
+        self, client, django_user_model, settings
+    ):
+        """``LOGOUT_REDIRECT_URL`` set to Django's own global default: a
+        project that has chosen nothing, which is what T007's ``no next_page``
+        claim is about. The demo sets its own value (D12, removed by T016) —
+        that is a project preference, not this test's subject."""
+        settings.LOGOUT_REDIRECT_URL = global_settings.LOGOUT_REDIRECT_URL
+        user = django_user_model.objects.create_user(
+            username="signoutuser1", password="correct-pass"
+        )
+        client.force_login(user)
+
+        response = client.post(reverse("account_logout"))
+
+        assert response.status_code == 200
+        assert response.wsgi_request.user.is_anonymous
+        assert response.templates[0].name == "mvp/account/logout.html"
+
+    def test_a_get_does_not_end_the_session(self, client, django_user_model):
+        user = django_user_model.objects.create_user(
+            username="signoutuser2", password="correct-pass"
+        )
+        client.force_login(user)
+
+        client.get(reverse("account_logout"))
+
+        assert client.session.get("_auth_user_id") is not None
+
+    def test_an_anonymous_post_is_not_an_error(self, client, settings):
+        settings.LOGOUT_REDIRECT_URL = global_settings.LOGOUT_REDIRECT_URL
+
+        response = client.post(reverse("account_logout"))
+
+        assert response.status_code == 200
+
+
+@pytest.mark.django_db
+class TestPackagedTemplatesAreOverridable:
+    """A project shipping its own template at the same path decides what
+    renders (T009, FR-010). Asserted for the sign-in page — the sign-out
+    page shares the same loader behaviour and does not need asserting
+    twice."""
+
+    @pytest.fixture(autouse=True)
+    def _account_urlconf(self):
+        with override_settings(ROOT_URLCONF=ACCOUNT_URLCONF):
+            yield
+
+    def test_a_projects_own_sign_in_template_is_used_instead(self, client, settings):
+        templates_config = copy.deepcopy(settings.TEMPLATES)
+        templates_config[0]["DIRS"] = [str(PROJECT_OVERRIDE_TEMPLATES_DIR)]
+
+        with override_settings(TEMPLATES=templates_config):
+            response = client.get(reverse("account_login"))
+
+        assert response.status_code == 200
+        assert response.content.decode().strip() == "project-overridden-sign-in-page"
+
+
+@pytest.mark.django_db
+class TestDevelopmentNotice:
+    """Both packaged pages carry a notice naming what they do not do and
+    pointing at django-accounts-center as what to install for a production
+    site (T014, FR-011, FR-012, D9)."""
+
+    @pytest.fixture(autouse=True)
+    def _account_urlconf(self):
+        with override_settings(ROOT_URLCONF=ACCOUNT_URLCONF):
+            yield
+
+    def test_the_sign_in_page_carries_the_notice(self, client):
+        content = client.get(reverse("account_login")).content.decode()
+
+        assert "development" in content
+        assert "sign-up" in content
+        assert "django-accounts-center" in content
+
+    def test_the_sign_out_page_carries_the_notice(self, client, django_user_model):
+        user = django_user_model.objects.create_user(
+            username="noticeuser1", password="correct-pass"
+        )
+        client.force_login(user)
+
+        content = client.post(reverse("account_logout")).content.decode()
+
+        assert "development" in content
+        assert "sign-up" in content
+        assert "django-accounts-center" in content
+
+
+def _urlconf_with_allauth():
+    """``mvp.urls`` mounted alongside allauth's own URLconf, the same order
+    ``tests/test_urls.py``'s T012 exercises: the packaged pages stand down
+    and allauth's own answer instead (T015, US-3 scenario 3). Not built at
+    module scope: ``allauth.account`` is only importable once it is in
+    ``INSTALLED_APPS`` (R11)."""
+    patterns = [
+        path("account/", include("mvp.urls")),
+        path("account/", include("allauth.account.urls")),
+        path("", include("demo.urls")),
+    ]
+    return type("_URLConf", (), {"urlpatterns": patterns})
+
+
+@pytest.mark.django_db
+class TestDevelopmentNoticeAbsence:
+    """Where the notice does not appear (T015, US-3 scenarios 3 and 4)."""
+
+    def test_with_allauth_installed_the_sign_in_page_carries_no_notice_of_ours(
+        self, client, allauth_installed
+    ):
+        """The packaged sign-in page is not reached at all — allauth's own
+        page answers instead, and it carries no notice of ours."""
+        with override_settings(ROOT_URLCONF=_urlconf_with_allauth()):
+            content = client.get(reverse("account_login")).content.decode()
+
+        assert "django-accounts-center" not in content
+
+    def test_a_projects_own_template_carries_no_notice_of_ours(self, client, settings):
+        """T009 already proves the override point; reused here rather than
+        rebuilt (US-3 scenario 4) — the project's template decides, and its
+        template is the bare fixture content T009 already asserts against."""
+        templates_config = copy.deepcopy(settings.TEMPLATES)
+        templates_config[0]["DIRS"] = [str(PROJECT_OVERRIDE_TEMPLATES_DIR)]
+
+        with override_settings(
+            ROOT_URLCONF=ACCOUNT_URLCONF, TEMPLATES=templates_config
+        ):
+            content = client.get(reverse("account_login")).content.decode()
+
+        assert "django-accounts-center" not in content
+
+
+@pytest.mark.django_db
 class TestAccountCenterView:
     """The landing page: who it lets in, and what it shows once they're in."""
 
@@ -76,9 +425,13 @@ class TestAccountCenterView:
             yield
 
     def test_anonymous_request_is_redirected_to_sign_in(self, client):
+        """The destination is the packaged sign-in page. Django's
+        ``/accounts/login/`` default is no longer where an unauthenticated
+        visitor is sent, and no longer resolves to anything."""
         response = client.get(reverse("account-center"))
         assert response.status_code == 302
-        assert response.url.startswith("/accounts/login/")
+        assert response.url.startswith(reverse("account_login"))
+        assert not response.url.startswith("/accounts/login/")
 
     def test_signed_in_request_renders_inside_the_shell(
         self, client, django_user_model
@@ -346,3 +699,45 @@ class TestAccountCenterCards:
         assert 'data-testid="testapp-card-with-menu"' in content
         assert "With Menu Card" in content
         assert "Card With Menu Fixture" in content
+
+
+@pytest.mark.django_db
+class TestSignInFieldNaming:
+    """FR-005: the sign-in form asks for the field the user model declares,
+    and says so consistently.
+
+    The label already reads ``form.username.label``. The placeholder inside
+    the same input is the other half of the same promise: a project whose
+    people are identified by email address must not be shown a box labelled
+    "Email address" with "Username" written inside it.
+    """
+
+    @pytest.fixture(autouse=True)
+    def _account_urlconf(self):
+        with override_settings(ROOT_URLCONF=ACCOUNT_URLCONF):
+            yield
+
+    def _render_with_label(self, label):
+        """Render the real page against a form whose identifying field
+        carries ``label``, standing in for a user model that names it
+        something other than ``username``."""
+        form = AuthenticationForm()
+        form.fields["username"].label = label
+        request = RequestFactory().get(reverse("account_login"))
+        request.user = AnonymousUser()
+        return render_to_string(
+            "mvp/account/login.html", {"form": form, "next": ""}, request=request
+        )
+
+    def test_the_placeholder_names_the_field_the_model_declares(self):
+        html = self._render_with_label("Email address")
+
+        assert 'placeholder="Email address"' in html
+        assert 'placeholder="Username"' not in html
+
+    def test_the_default_user_model_is_unaffected(self):
+        """The default model does call it "Username", so nothing a project
+        sees today changes."""
+        html = self._render_with_label("Username")
+
+        assert 'placeholder="Username"' in html

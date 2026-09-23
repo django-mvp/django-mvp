@@ -19,6 +19,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Account Center, once `django.contrib.admin`'s URLs are mounted — being in
   `INSTALLED_APPS` alone is not enough.
 
+- **Packaged sign-in and sign-out pages, for development.** Mounting the Account
+  Center's URLconf now also registers `account_login` and `account_logout`, so a page
+  guarded by `LoginRequiredMixin` is reachable before your project installs an
+  account-management app. Set `LOGIN_URL = "account_login"` beside the include — see
+  [Account Center](docs/account-center.md#signing-in-during-development). Installing
+  `allauth.account` stands the packaged pages down in favour of its own.
+
 ### Changed
 
 - **A declared `order_by` may carry a tiebreak.** `OrderMixin`'s `orm_expression`
