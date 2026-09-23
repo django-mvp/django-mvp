@@ -58,7 +58,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `MVP_CONFIG["layout"]["sidebar"]["breakpoint"]` to anything other than `md` — `lg`,
   the shipped default, included — had a viewport band where neither the dock nor the
   desktop header widgets were visible.
-  
+
 - **`{% show_code %}` no longer raises `TemplateDoesNotExist` outside this repository.**
   The tag rendered through `cotton/documentation.html`, which existed only in the demo
   project and was never part of the distributed package — any project that installed
