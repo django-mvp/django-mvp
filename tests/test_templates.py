@@ -93,6 +93,16 @@ class TestDefaultBaseTemplate:
         assert Path(origin).parts[-3:] == ("demo", "templates", "base.html")
 
 
+class TestShowCodeTemplate:
+    """``{% show_code %}`` (``mvp/templatetags/mvp.py``) renders through
+    ``cotton/documentation.html`` — a host that installs django-mvp and writes
+    no template of its own must still be able to resolve it (issue #379).
+    """
+
+    def test_the_package_ships_the_template_the_tag_renders(self, package_only_engine):
+        assert package_only_engine.get_template("cotton/documentation.html") is not None
+
+
 def _template_files():
     """Every .html template this repository owns, packaged and demo alike."""
     return [path for root in (MVP_TEMPLATES, DEMO_TEMPLATES) for path in sorted(root.rglob("*.html"))]
