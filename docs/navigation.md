@@ -221,9 +221,20 @@ control that flips a drawer element by id (the shipped `sidebar_toggle` item use
 `"mvp-app-toggle"`, the sidebar's drawer), a resolvable URL produces a navigation link,
 and neither produces an inert placeholder button.
 
-The dock's own visibility is hard-coded to hide from the `md` breakpoint up. It does
-not follow `MVP_CONFIG["layout"]["sidebar"]["breakpoint"]`. If you need a different
-threshold, override the `cotton/app/dock.html` template in your project.
+An `attrs` key is handed straight to the rendered element, the same pass-through every
+other component supports — an Alpine directive to open a modal, an `aria-label`
+override, a `data-*` hook:
+
+```python
+MenuItem(name="log-episode", extra_context={
+    "label": "Log episode", "icon": "plus",
+    "attrs": {"x-on:click": "modalOpen = true"},
+})
+```
+
+The dock's own visibility follows `MVP_CONFIG["layout"]["sidebar"]["breakpoint"]`, the
+same setting the desktop header widgets key off. If you need a different threshold,
+override the `cotton/app/dock.html` template in your project.
 
 To drop the pre-seeded sidebar-toggle item, assign
 `MobileFooterMenu.children = [ ...yours... ]` or pop it by name, the same way described

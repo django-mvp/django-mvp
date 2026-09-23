@@ -1,2 +1,9 @@
 {% load flex_menu i18n %}
-<div class="md:hidden">{% render_menu "MobileFooterMenu" renderer="dock" %}</div>
+{# mvp-dock-only keys off the drawer's resolved data-mvp-breakpoint #}
+{# attribute (mvp/tailwind/base.css) instead of a hardcoded Tailwind #}
+{# breakpoint of its own, which used to leave a band between `md` and a #}
+{# project's configured breakpoint where neither the dock nor the desktop #}
+{# widgets showed. It is its own class rather than mvp-mobile-only: the #}
+{# dock has no unconditionally-shown desktop counterpart, so it does not #}
+{# take that class's "hidden under a never-persistent sidebar" exception. #}
+<div class="mvp-dock-only">{% render_menu "MobileFooterMenu" renderer="dock" %}</div>

@@ -313,12 +313,20 @@
    selectors below, so they simply keep their default (D1/D7). mvp-mobile-only
    is shown by default too, but `never` needs it hidden instead (so the
    header does not carry both the wide and the narrow copy of the same
-   actions at once) — the one explicit rule below states that exception. */
+   actions at once) — the one explicit rule below states that exception.
+
+   mvp-dock-only follows the same "hidden at/above the breakpoint" rule as
+   mvp-mobile-only, without that exception: the dock has no unconditionally-
+   shown wide counterpart to avoid doubling up with, so under `never` it
+   keeps its default and stays visible at every width — the sidebar is an
+   overlay at every width in that mode, and the dock is what a project in
+   that mode has instead of a persistent one (#372). */
 .mvp-desktop-only {
   display: flex;
 }
 
-.mvp-mobile-only {
+.mvp-mobile-only,
+.mvp-dock-only {
   display: flex;
 }
 
@@ -333,7 +341,8 @@
 }
 
 @media (min-width: 640px) {
-  [data-mvp-breakpoint="sm"] .mvp-mobile-only {
+  [data-mvp-breakpoint="sm"] .mvp-mobile-only,
+  [data-mvp-breakpoint="sm"] .mvp-dock-only {
     display: none;
   }
 
@@ -356,7 +365,8 @@
 }
 
 @media (min-width: 768px) {
-  [data-mvp-breakpoint="md"] .mvp-mobile-only {
+  [data-mvp-breakpoint="md"] .mvp-mobile-only,
+  [data-mvp-breakpoint="md"] .mvp-dock-only {
     display: none;
   }
 
@@ -379,7 +389,8 @@
 }
 
 @media (min-width: 1024px) {
-  [data-mvp-breakpoint="lg"] .mvp-mobile-only {
+  [data-mvp-breakpoint="lg"] .mvp-mobile-only,
+  [data-mvp-breakpoint="lg"] .mvp-dock-only {
     display: none;
   }
 
@@ -402,7 +413,8 @@
 }
 
 @media (min-width: 1280px) {
-  [data-mvp-breakpoint="xl"] .mvp-mobile-only {
+  [data-mvp-breakpoint="xl"] .mvp-mobile-only,
+  [data-mvp-breakpoint="xl"] .mvp-dock-only {
     display: none;
   }
 
@@ -425,7 +437,8 @@
 }
 
 @media (min-width: 1536px) {
-  [data-mvp-breakpoint="2xl"] .mvp-mobile-only {
+  [data-mvp-breakpoint="2xl"] .mvp-mobile-only,
+  [data-mvp-breakpoint="2xl"] .mvp-dock-only {
     display: none;
   }
 

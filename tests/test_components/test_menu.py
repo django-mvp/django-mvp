@@ -93,3 +93,57 @@ class TestTheSidebarDrawsOneNavigationLandmark:
             lambda tag: tag.name == "nav" or tag.get("role") == "navigation"
         )
         assert len(landmarks) == 1
+
+
+class TestDockItemForwardsAttrs:
+    """[#372] ``menus/dock/item.html`` only forwarded label, icon, href,
+    active and toggle to ``<c-dock.item>``, so anything a project put in a
+    menu item's ``extra_context["attrs"]`` — an Alpine ``x-on:click`` to open
+    a modal, an ``aria-label`` override, a ``data-*`` hook — never reached the
+    rendered element. ``c-dock.item`` already renders ``{{ attrs }}`` on all
+    three of its branches (see ``test_class_attribute_merge.py``); the gap was
+    this renderer template never passing any through, exactly as
+    ``flex_menu.renderers.BaseRenderer.get_context_data`` already exposes
+    ``extra_context`` keys — including ``attrs`` — directly in context."""
+
+    def test_button_variant_forwards_attrs(self):
+        html = render_to_string(
+            "menus/dock/item.html",
+            {
+                "label": "Log episode",
+                "icon": "plus",
+                "url": None,
+                "selected": False,
+                "toggle": None,
+                "attrs": {"x-on:click": "modalOpen = true"},
+            },
+        )
+        assert 'x-on:click="modalOpen = true"' in html
+
+    def test_href_variant_forwards_attrs(self):
+        html = render_to_string(
+            "menus/dock/item.html",
+            {
+                "label": "Home",
+                "icon": "house",
+                "url": "/",
+                "selected": False,
+                "toggle": None,
+                "attrs": {"data-testid": "dock-home"},
+            },
+        )
+        assert 'data-testid="dock-home"' in html
+
+    def test_toggle_variant_forwards_attrs(self):
+        html = render_to_string(
+            "menus/dock/item.html",
+            {
+                "label": "Menu",
+                "icon": "list",
+                "url": None,
+                "selected": False,
+                "toggle": "mvp-app-toggle",
+                "attrs": {"data-testid": "dock-toggle"},
+            },
+        )
+        assert 'data-testid="dock-toggle"' in html
