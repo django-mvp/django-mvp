@@ -97,3 +97,17 @@ new imports and new test classes only, and no existing assertion changed.
 - **Verified:** poetry run pytest tests/test_demo/test_installable_app.py — 4 passed, exit 0 (was 1 failed before the images existed). Full suite: poetry run pytest — 2262 passed, 1 skipped, exit 0.
 - **Next:** Forge re-verifies.
 - **Watch:** The demo has no brand/icon.svg of its own, so its images are rendered from the package's mark.
+
+## 2026-09-24T10:20Z · Implementer US3 · T011
+
+- **Did:** resolve() returns a configured `service_worker` as `worker_url`, else the reversed packaged worker. Added tests for each override alone (resolver and manifest), configured colours in the manifest and the theme-color tag, no colours for an unshipped theme, the configured worker in the head, and a project `mvp/pwa/head.html` (tests/pwa_templates) replacing the packaged one.
+- **Verified:** `poetry run pytest tests/test_pwa tests/test_templates.py -p no:playwright` — 253 passed, exit 0. The two worker tests were red first (`/sw.js` instead of `/my-worker.js`). The other new tests passed on first run, since the overrides existed from US-1.
+- **Next:** T012 documentation.
+- **Watch:** none.
+
+## 2026-09-24T10:30Z · Implementer US3 · T012
+
+- **Did:** documented `pwa.service_worker` in docs/configuration.md; added "Colours for a theme of your own" and "Bringing your own worker" to docs/installable-app.md; CHANGELOG Unreleased/Added, README feature line; demo sets theme_color and background_color to its light page colour (#f8f6f2); regenerated the demo images with mvp_pwa_icons.
+- **Verified:** see the full-verify results in the completion report.
+- **Next:** Forge re-verifies.
+- **Watch:** only the apple-touch and maskable images changed, since the others have transparent backgrounds.

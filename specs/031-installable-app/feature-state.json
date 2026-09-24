@@ -207,13 +207,40 @@
       "tasks": [
         {
           "id": "T011",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_pwa/test_resolver.py::TestResolveEachOverrideAlone",
+              "tests/test_pwa/test_resolver.py::TestResolveServiceWorker",
+              "tests/test_pwa/test_views.py::TestManifestOverrides",
+              "tests/test_templates.py::TestShellHeadWithConfiguredValues"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_pwa tests/test_templates.py -p no:playwright (253 passed)"
+            ],
+            "code": [
+              "mvp/pwa/resolver.py:50"
+            ]
+          }
         },
         {
           "id": "T012",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_demo/test_installable_app.py"
+            ],
+            "commands": [
+              "poetry run python manage.py mvp_pwa_icons --settings=demo.settings --output-dir demo/static (4 images written)"
+            ],
+            "code": [
+              "docs/installable-app.md:42",
+              "docs/configuration.md:65",
+              "demo/settings.py:136"
+            ]
+          }
         }
       ]
     }
