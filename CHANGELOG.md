@@ -23,13 +23,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`mvp.utils.reverse_or_none` and `mvp.utils.site_name`**, small helpers for reversing a URL
   name without raising and reading the current site's name with a host fallback.
 
-- **`manifest.webmanifest` and `sw.js` in `mvp.urls`**, beside the Account Center, only while
-  `MVP_CONFIG["pwa"]` is set. The worker
-  is sent with a `Service-Worker-Allowed` header naming the site root, so it controls every
-  page wherever `mvp.urls` is mounted.
+- **`manifest.webmanifest` and `sw.js` in `mvp.urls`**, at the site root, only while
+  `MVP_CONFIG["pwa"]` is set. The worker is also sent with a `Service-Worker-Allowed` header
+  naming the site root, so it controls every page even if `mvp.urls` is mounted elsewhere.
+
+- **A loading spinner in the header** that shows while any htmx request is in flight, at
+  every width. It reacts to htmx's own `htmx-request` class, so a project's own indicators
+  keep working. See [Loading indicator](docs/layout.md#loading-indicator).
 
 - **`mvp_pwa_icons`, a management command** that renders the app's icons and Apple touch
   icon from the project's `brand/icon.svg`.
+
+### Changed
+
+- **`mvp.urls` is mounted at the site root.** Include it as `path("", include("mvp.urls"))`.
+  The URLconf now places the Account Center under `account/` itself, so the landing page,
+  sign-in and sign-out keep their `/account/`, `/account/login/` and `/account/logout/`
+  addresses, and the package can serve other routes at the addresses they need. A project that
+  includes it as `path("account/", include("mvp.urls"))` gets `/account/account/` and has to
+  change the prefix to `""`. URL names are unchanged.
+
+### Fixed
+
+- **An empty `MenuGroup` or `MenuCollapse` no longer draws as a dead button.** A group or
+  collapse with no visible children, whether it never had any or lost them all to their checks,
+  is left out of the menu, so a section can be declared before its first page exists.
+- **`c-menu.item` writes no `href` when it has none.** An item without a URL used to render as
+  `<button href="None">`.
 
 ## [v0.24.0] - 2026-09-23
 

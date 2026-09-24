@@ -31,7 +31,7 @@ from .views import (
 urlpatterns = [
     path("", DemoHomeView.as_view(), name="home"),
     path("admin/", admin.site.urls),
-    path("account/", include("mvp.urls")),
+    path("", include("mvp.urls")),
     path("layout/", views.layout_demo, name="layout"),
     path("layout/full-page/", views.full_page_map_demo, name="full-page-map"),
     path("layout/store/", views.layout_store_demo, name="layout-store"),

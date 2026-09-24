@@ -155,6 +155,21 @@ Per-page override:
 {% endblock %}
 ```
 
+## Loading indicator
+
+The header shows a small spinner at the start of its actions while any htmx request is in
+flight: a boosted sidebar link, or anything of your own that carries `hx-*` attributes. It
+is shown at every width, and invisible the rest of the time.
+
+htmx marks whichever element is making a request with the `htmx-request` class, and the
+spinner shows while any element on the page carries it. The rule lives in the package's
+stylesheet (and in the Tailwind preset, for a project that builds its own). Nothing is added
+to your elements, so an `hx-indicator` or an in-element `.htmx-indicator` of your own keeps
+working as htmx documents it, and shows alongside the header's spinner.
+
+To hide the header spinner, override the header's markup or add
+`#mvp-htmx-indicator { display: none; }` to your own stylesheet.
+
 ## Breadcrumbs
 
 The breadcrumb trail is drawn in the header, beside the site icon, at the leading

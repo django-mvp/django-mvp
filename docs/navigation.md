@@ -196,6 +196,10 @@ AppMenu.extend([
 ])
 ```
 
+A `MenuGroup` or `MenuCollapse` with no visible children is left out of the menu, whether it
+was declared empty or every child is hidden by its `check`. You can declare a section before
+its first page exists, and it appears once a page is added to it.
+
 Use `AppMenu.extend([...])` or `AppMenu.append(item)` to attach items. `AppMenu.children`
 is a tuple, so `AppMenu.children.extend([...])` raises `AttributeError`. Assigning
 `AppMenu.children = [...]` replaces the whole list, and `AppMenu.pop("name")` detaches
@@ -311,7 +315,7 @@ the menu's own, for the one call that needs it.
   `--name AppMenu` for one menu.
 - **Sidebar renders but is empty.** Every item was filtered out. A leaf whose
   `view_name` will not reverse is hidden, a leaf whose `check` returns false is
-  hidden, and a container left with no visible children hides itself. Set
+  hidden, and a container with no visible children hides itself. Set
   `FLEX_MENUS["log_url_failures"] = True` to see the reversal failures.
 - **`view_name` does not resolve.** The name is wrong, unnamespaced (`"user-list"`
   where the app defines `"users:list"`), or the pattern needs arguments. Pass those

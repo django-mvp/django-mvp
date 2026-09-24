@@ -22,7 +22,7 @@ def _render(user):
 
 def _mvp_urls_only():
     """A project that mounts only the Account Center (T008)."""
-    patterns = [path("account/", include("mvp.urls"))]
+    patterns = [path("", include("mvp.urls"))]
     return type("_MvpUrlsOnly", (), {"urlpatterns": patterns})
 
 

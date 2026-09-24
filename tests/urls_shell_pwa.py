@@ -1,4 +1,4 @@
-"""The demo's URLs, so a shell page renders, with ``mvp.urls`` mounted at ``account/``.
+"""The demo's URLs, so a shell page renders, with ``mvp.urls`` mounted.
 
 ``urlpatterns_without_mvp_urls`` is the same set without that include, for the
 case where a project turns the feature on and forgets to mount it.

@@ -1,12 +1,17 @@
-"""The Account Center's URLs.
+"""The package's URLs.
 
-A project includes this at a prefix of its own choosing::
+A project includes this once, at the site root::
 
     from django.urls import include, path
 
     urlpatterns = [
-        path("account/", include("mvp.urls")),
+        path("", include("mvp.urls")),
     ]
+
+Each route here chooses its own address, so a project never has to put the
+package's pages behind a prefix it picked for one of them. The Account
+Center's pages live under ``account/``. The installable-app files sit at the
+root, where a service worker has to be served from to control every page.
 
 The landing page's URL name is left un-namespaced, ``account-center``
 (decision D2): the shell's own user menu already reverses that bare name, and
@@ -19,9 +24,8 @@ development-only sign-in and sign-out, so a page guarded by
 account-management app. See docs/account-center.md.
 
 While ``MVP_CONFIG["pwa"]`` is set, mounting this also serves the
-installable-app files, ``manifest.webmanifest`` and ``sw.js``, beside the
-landing page, whatever prefix it is mounted at. With the setting off those
-two routes do not exist. See docs/installable-app.md.
+installable-app files, ``manifest.webmanifest`` and ``sw.js``. With the setting
+off those two routes do not exist. See docs/installable-app.md.
 
 Once allauth's account application is installed, this URLconf contributes
 neither name, so which view answers those two addresses never depends on the
@@ -37,7 +41,7 @@ from .utils import app_is_installed
 from .views.account import AccountCenterView, SignInView, SignOutView
 
 urlpatterns = [
-    path("", AccountCenterView.as_view(), name="account-center"),
+    path("account/", AccountCenterView.as_view(), name="account-center"),
 ]
 
 if MVP_CONFIG["pwa"]:
@@ -48,6 +52,6 @@ if MVP_CONFIG["pwa"]:
 
 if not app_is_installed("allauth.account"):
     urlpatterns += [
-        path("login/", SignInView.as_view(), name="account_login"),
-        path("logout/", SignOutView.as_view(), name="account_logout"),
+        path("account/login/", SignInView.as_view(), name="account_login"),
+        path("account/logout/", SignOutView.as_view(), name="account_logout"),
     ]

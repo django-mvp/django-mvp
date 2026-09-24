@@ -1,6 +1,6 @@
 # 0019 — A packaged area is reached by including a URLconf, and its URL names are not namespaced
 
-**Status:** accepted
+**Status:** accepted. How the URLconf is mounted is superseded by [ADR 0027](0027-the-package-urlconf-is-mounted-at-the-site-root.md).
 
 **Date:** 2026-09-14
 

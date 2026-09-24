@@ -589,3 +589,20 @@
   white-space: nowrap;
   cursor: inherit;
 }
+
+/* The header's htmx indicator (cotton/app/header/navbar.html). htmx puts
+   `htmx-request` on whichever element is making a request, so the spinner
+   shows while any element on the page carries it. It is deliberately not
+   wired through `hx-indicator`: an inherited `hx-indicator` moves that class
+   off the requesting element, and a project's own in-element indicators
+   would stop showing. */
+#mvp-htmx-indicator {
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 200ms ease-in, visibility 0s 200ms;
+}
+:root:has(.htmx-request) #mvp-htmx-indicator {
+  visibility: visible;
+  opacity: 1;
+  transition: opacity 200ms ease-in;
+}

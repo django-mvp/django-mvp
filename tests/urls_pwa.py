@@ -1,7 +1,7 @@
-"""URLconf mounting ``mvp.urls`` at ``account/``, the way the demo and a project do."""
+"""URLconf mounting ``mvp.urls`` at the site root, the way the demo and a project do."""
 
 from django.urls import include, path
 
 urlpatterns = [
-    path("account/", include("mvp.urls")),
+    path("", include("mvp.urls")),
 ]

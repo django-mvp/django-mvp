@@ -11,17 +11,23 @@ is the first app that adds pages to this area.
 
 ## Mounting it
 
-The area ships as an includable URLconf. Include it at a prefix of your own choosing:
+The area ships in the package's URLconf, `mvp.urls`. Include it once, at the site root:
 
 ```python
 # urls.py
 from django.urls import include, path
 
 urlpatterns = [
+    path("", include("mvp.urls")),
     ...
-    path("account/", include("mvp.urls")),
 ]
 ```
+
+The URLconf places its own routes. The Account Center's pages sit under `account/`: the
+landing page at `/account/`, and the development sign-in and sign-out pages at
+`/account/login/` and `/account/logout/`. Anything else the package serves, such as the
+[installable-app](installable-app.md) files, sits at the address it needs, so none of it ends
+up behind a prefix that was chosen for the Account Center.
 
 That is the only switch — there is no `MVP_CONFIG` key that enables, disables or
 relocates it. A project that never includes the URLconf sees no failure: every reverse
@@ -64,7 +70,7 @@ page to say something of your own — a different title, or context your own tem
 
 ```python
 # urls.py
-from django.urls import path
+from django.urls import include, path
 from mvp.views import AccountCenterView
 
 
@@ -74,10 +80,12 @@ class MyAccountCenterView(AccountCenterView):
 
 urlpatterns = [
     path("account/", MyAccountCenterView.as_view(), name="account-center"),
+    path("", include("mvp.urls")),
 ]
 ```
 
-Keep the `account-center` name if you do this, because the shell's user menu and every
+List your route ahead of the include, so it answers `/account/` first. Keep the
+`account-center` name if you do this, because the shell's user menu and every
 contributed page's trail reverse it.
 
 ## Signing in during development
