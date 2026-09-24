@@ -76,6 +76,13 @@
         "COR-002 low: error page during a database outage; documented, set pwa.name",
         "notes: worker_url docs corrected; unused static load removed"
       ]
+    },
+    "walkthrough": {
+      "approved_by": "SamuelJennings",
+      "at": "2026-09-24T08:40:54Z",
+      "self_resolved": [
+        "installed on iPhone: icon and name correct; asked whether a splash screen should show — no change, Apple splash screens are out of scope per the spec"
+      ]
     }
   },
   "stories": [
