@@ -232,3 +232,28 @@ into `mvp/utils.py` and `tests/test_utils.py`, and import them from there. No al
   script prefix included), `display` (always `standalone`), `background_color` (same as the theme
   colour) and `service_worker` (a project replaces the worker by overriding `mvp/pwa/sw.js`, or
   the head by overriding `mvp/pwa/head.html`).
+
+### T015 — No stylesheet parsing, no template tag, and the URLs ride on `mvp.urls`
+
+**Files**: `mvp/pwa/colors.py` (deleted), `mvp/pwa/urls.py` (deleted), `mvp/urls.py`,
+`mvp/pwa/resolver.py`, `mvp/pwa/views.py`, `mvp/pwa/checks.py`,
+`mvp/templatetags/mvp.py`, `mvp/templates/mvp/pwa/head.html`,
+`mvp/management/commands/mvp_pwa_icons.py`, the feature's tests and test URLconfs,
+`demo/urls.py`, `docs/installable-app.md`, `docs/configuration.md`, `CHANGELOG.md`
+
+- **Colour**: read `MVP_CONFIG["pwa"]["theme_color"]` directly. No stylesheet parsing, and no
+  fallback to the default theme. `colors.py` and its tests go. The docs say the colour is
+  required. Without it, the manifest and the head leave the colour out and the padded images
+  use white.
+- **Head**: `head.html` is plain template code with no custom tag. The manifest and worker URLs
+  come from `{% url … as … %}`, which yields nothing rather than raising when the name isn't
+  registered. The name is `{% firstof mvp_config.short_name mvp_config.site_name request.site.name request.get_host %}`.
+  The colour is `mvp_config.pwa.theme_color`, and the icon comes from `{% static %}`. The
+  registration passes `{scope: "<script prefix>/"}`, with the prefix taken from
+  `request.META.SCRIPT_NAME`. The `mvp_pwa` tag and its test go.
+- **URLs**: `manifest.webmanifest` and `sw.js` are registered in `mvp/urls.py` beside the
+  Account Center, so mounting `mvp.urls` (at whatever prefix) is the whole setup. `mvp/pwa/urls.py`
+  and the demo's root include go. The worker view sends `Service-Worker-Allowed: <script
+  prefix>`, so a worker served from under the prefix may control the whole site.
+- **Warning**: `mvp.W001` fires when the feature is on and `mvp.urls` isn't mounted, meaning the
+  worker URL doesn't reverse. The mount point no longer matters.
