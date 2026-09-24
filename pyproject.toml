@@ -167,7 +167,7 @@ django-filter = ["django_filters"]
 django-easy-icons = ["easy_icons"]
 
 [tool.deptry.per_rule_ignores]
-DEP001 = ["invoke", "bs4", "pytest", "resvg_py"]
+DEP001 = ["invoke", "bs4", "pytest"]
 # These packages are used indirectly (INSTALLED_APPS, templates)
 DEP002 = [
     "django-flex-menus",
@@ -182,12 +182,12 @@ DEP002 = [
 #   pytest itself, so pytest is guaranteed present wherever that module loads.
 # bs4: an optional extra in both call sites (mvp/fixtures.py and the component
 #   documentation tag), imported lazily inside a try/except with a fallback.
-# resvg_py: optional renderer for the mvp_pwa_icons command, imported lazily
-#   inside handle() and installed only in the test group.
 DEP003 = ["invoke", "pytest", "bs4"]
-DEP004 = ["django_filters", "django_tables2", "django_htmx", "markdown_it"]
+DEP004 = ["django_filters", "django_tables2", "django_htmx", "markdown_it", "resvg_py"]
 # markdown_it: demo/views.py renders docs/utility-classes.md into the demo app's
 #   own "Utility Classes" page; demo-only, never a runtime dependency of mvp.
+# resvg_py: optional renderer for the mvp_pwa_icons command, imported lazily
+#   inside handle() and installed only in the test group.
 
 [tool.ruff]
 extend = "ruff-base.toml"
