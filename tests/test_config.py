@@ -124,3 +124,23 @@ class TestRemovedSidebarFooterSetting:
         with warnings.catch_warnings():
             warnings.simplefilter("error", MVPDeprecationWarning)
             _warn_on_removed_sidebar_footer_setting(config)
+
+
+class TestPwaConfigDefaults:
+    """The ``pwa`` block: off by default, every other key unset."""
+
+    def test_the_feature_is_off(self):
+        assert MVP_CONFIG["pwa"]["enabled"] is False
+
+    def test_names_and_colours_are_unset(self):
+        pwa = MVP_CONFIG["pwa"]
+
+        assert pwa["name"] is None
+        assert pwa["short_name"] is None
+        assert pwa["start_url"] is None
+        assert pwa["theme_color"] is None
+        assert pwa["background_color"] is None
+        assert pwa["service_worker"] is None
+
+    def test_display_is_standalone(self):
+        assert MVP_CONFIG["pwa"]["display"] == "standalone"

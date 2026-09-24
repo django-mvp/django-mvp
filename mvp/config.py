@@ -98,6 +98,25 @@ MVP_CONFIG = {
         # then this setting, then the package default (no wrap).
         "wrap": False,
     },
+    "pwa": {
+        # Off by default: with it off, no page carries anything from this block.
+        # Turning it on also needs the root include, see docs/installable-app.md.
+        "enabled": False,
+        # None takes the current site's name (the request host without the
+        # sites framework).
+        "name": None,
+        # None takes the resolved name.
+        "short_name": None,
+        # None takes the site root, script prefix included.
+        "start_url": None,
+        "display": "standalone",
+        # None takes the default theme's base colour, when the package ships
+        # that theme. A project's own theme has no colour to offer.
+        "theme_color": None,
+        "background_color": None,
+        # None registers the packaged worker.
+        "service_worker": None,
+    },
 }
 
 merge(MVP_CONFIG, getattr(settings, "MVP_CONFIG", {}))

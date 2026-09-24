@@ -18,3 +18,17 @@ low findings were applied to the plan: a missing root include no longer breaks p
 colours come from the committed stylesheet instead of a generated file, the head reaches the
 resolver through a template tag, and the colour test uses independent reference values. Recorded
 as D1–D4.
+
+## 2026-09-24T07:43Z · Implementer US1 · T001
+
+- **Did:** Pinned the shell head with the feature off: tests/fixtures/base_head_off.html and TestShellHeadWithInstallableAppOff.
+- **Verified:** poetry run pytest tests/test_templates.py — 181 passed, exit 0.
+- **Next:** T002.
+- **Watch:** The fixture has no trailing newline; regenerate it as the test docstring says.
+
+## 2026-09-24T07:43Z · Implementer US1 · T002
+
+- **Did:** Added the pwa config block and mvp.pwa.resolve().
+- **Verified:** poetry run pytest tests/test_pwa/test_init.py tests/test_config.py — 26 passed, exit 0.
+- **Next:** T003: theme colours.
+- **Watch:** resolve() returns colours only from config until T003; the service_worker key is defined but not read until US-3.
