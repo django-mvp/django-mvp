@@ -37,6 +37,8 @@ the box. **Things should just work.**
 - **Icons by name** — every icon resolves through
   [django-easy-icons](https://github.com/SamuelJennings/django-easy-icons); swap the
   icon set from settings without touching templates.
+- **Installable as an app** — one setting and one URL include give the browser a manifest,
+  icons and a service worker, so visitors can add the site to their home screen.
 - **No build tooling required** — a prebuilt stylesheet ships with the package. When
   your own templates need their own Tailwind classes, one management command generates
   the build config.

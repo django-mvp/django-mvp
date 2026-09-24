@@ -61,6 +61,45 @@ response meant for another.
 It does not make the site work offline. Because it is a template, a project can replace it by
 adding `mvp/pwa/sw.js` to its own templates.
 
+## Colours for a theme of your own
+
+The package reads the browser toolbar and launch colours from the default theme, but only for
+themes it ships. A theme of your own has no colour the package can read, so the manifest and the
+`theme-color` tag carry none until you set them:
+
+```python
+MVP_CONFIG = {
+    "pwa": {
+        "enabled": True,
+        "theme_color": "#f8f6f2",
+        "background_color": "#f8f6f2",
+    },
+}
+```
+
+Keep the two in step with your theme's page colour. After changing `background_color`, run
+`mvp_pwa_icons` again so the padded backgrounds of the images match (see
+[Generating the images](#generating-the-images)).
+
+## Bringing your own worker
+
+Set `pwa.service_worker` to the URL of your own worker and the page registers that instead of
+the packaged one:
+
+```python
+MVP_CONFIG = {"pwa": {"enabled": True, "service_worker": "/my-worker.js"}}
+```
+
+The worker has to be served from the site root, for the reason given in
+[Why the include is at the root](#why-the-include-is-at-the-root): a worker only controls pages at
+or below its own path, so one served from `/static/` would control nothing but static files. The
+manifest link still comes from the root include.
+
+To change the worker without replacing it, or to change what the page head carries, override a
+template by path instead. Add `mvp/pwa/sw.js` to your own templates to replace the packaged
+worker, or `mvp/pwa/head.html` to replace the manifest link, theme colour, touch icon and
+registration script in the head.
+
 ## The images
 
 The manifest and the page head name four files, looked up through Django's static files finders:

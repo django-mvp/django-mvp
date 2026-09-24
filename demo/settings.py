@@ -133,7 +133,13 @@ MVP_CONFIG = {
     # are mounted at the root in demo/urls.py, and the images it names arrive
     # from `python manage.py mvp_pwa_icons`, so the startup check for them warns
     # until then. See docs/installable-app.md.
-    "pwa": {"enabled": True},
+    # The demo's default theme is its own, so the package has no colour to read
+    # from it; these two match its light theme's page colour.
+    "pwa": {
+        "enabled": True,
+        "theme_color": "#f8f6f2",
+        "background_color": "#f8f6f2",
+    },
     "theme": {
         # This site's own two themes, defined in demo/static/css/themes.css and
         # loaded by demo/templates/base.html. They are named here because the

@@ -62,6 +62,7 @@ site overrides the project setting for that one tag only.
 | `pwa.display` | manifest display mode | `"standalone"` | How the installed app's window looks |
 | `pwa.theme_color` | CSS hex colour or `None` | `None` | Browser toolbar colour; `None` takes the default theme's colour when the package ships it |
 | `pwa.background_color` | CSS hex colour or `None` | `None` | Launch background; resolved like `theme_color` |
+| `pwa.service_worker` | URL path or `None` | `None` | The service worker the page registers; `None` registers the packaged one. See [bringing your own worker](installable-app.md#bringing-your-own-worker) |
 
 There is no `layout.sidebar.footer` key. The sidebar footer is a fixed
 composition rather than a configured widget list — see

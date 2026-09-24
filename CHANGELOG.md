@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Installable app.** Set `MVP_CONFIG["pwa"]["enabled"]` and mount `mvp.pwa.urls` at the
+  site root, and the browser offers to install the project as an app. The `pwa` block
+  also takes `name`, `short_name`, `start_url`, `display`, `theme_color`,
+  `background_color` and `service_worker`, so each value can be set without overriding a
+  template. See [Installable app](docs/installable-app.md).
+
+- **`mvp.pwa.urls`, a root include** serving `/manifest.webmanifest` and the packaged
+  `/sw.js`. The worker has to answer from the site root to control every page.
+
+- **`mvp_pwa_icons`, a management command** that renders the app's icons and Apple touch
+  icon from the project's `brand/icon.svg`.
+
 ## [v0.24.0] - 2026-09-23
 
 ### Added
