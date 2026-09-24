@@ -73,6 +73,20 @@ package (every prebuilt daisyUI theme) and those a project writes for itself as 
 file. Selected through `MVP_CONFIG["theme"]`. See [Theming](docs/theming.md) for the full
 variable reference and how to write one.
 
+### Installable app
+
+A project that a browser offers to install: it opens in its own window and has its own icon.
+A project gets one by setting `MVP_CONFIG["pwa"]["enabled"]` and mounting `mvp.pwa.urls` at the
+root of its URLconf. Every shell page then links a web app manifest and registers a
+[service worker](#service-worker). See [Installable app](docs/installable-app.md).
+
+### Service worker
+
+A script the browser runs in the background for a site, served from `/sw.js` so it covers every
+page. The one django-mvp packages listens for `install` and `activate` only and has no `fetch`
+listener, so every request still goes to the network. A project replaces it by overriding the
+template `mvp/pwa/sw.js`.
+
 ### Layout store
 
 An Alpine store (`Alpine.store("mvp", ...)`, read as `$store.mvp`) that every shell page

@@ -55,6 +55,13 @@ site overrides the project setting for that one tag only.
 | `layout.navbar.desktop.end` | list of component names | `["actions.theme-controller", "actions.login"]` | Same, at and above the breakpoint |
 | `layout.navbar.sticky` | bool | `True` | Whether the header stays pinned as the page scrolls |
 | `table.wrap` | bool | `False` | Project-wide default for whether table cell text wraps |
+| `pwa.enabled` | bool | `False` | Make the project installable as an app; needs the root include described in [Installable app](installable-app.md) |
+| `pwa.name` | string or `None` | `None` | The app's name; `None` takes the current site's name |
+| `pwa.short_name` | string or `None` | `None` | The label under the icon; `None` takes the name |
+| `pwa.start_url` | URL path or `None` | `None` | Where the app opens; `None` takes the site root |
+| `pwa.display` | manifest display mode | `"standalone"` | How the installed app's window looks |
+| `pwa.theme_color` | CSS hex colour or `None` | `None` | Browser toolbar colour; `None` takes the default theme's colour when the package ships it |
+| `pwa.background_color` | CSS hex colour or `None` | `None` | Launch background; resolved like `theme_color` |
 
 There is no `layout.sidebar.footer` key. The sidebar footer is a fixed
 composition rather than a configured widget list — see

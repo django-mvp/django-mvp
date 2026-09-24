@@ -60,3 +60,10 @@ as D1–D4.
 - **Verified:** poetry run pytest tests/test_pwa/test_checks.py — 8 passed, exit 0. Probe: removing the ready() import made 5 tests fail.
 - **Next:** T007: docs and demo.
 - **Watch:** Tests pin STATICFILES_FINDERS to the file-system finder so images the demo gains in US-2 cannot satisfy the missing-image test.
+
+## 2026-09-24T07:48Z · Implementer US1 · T007
+
+- **Did:** Wrote docs/installable-app.md, linked it from docs/index.md, added the pwa keys to docs/configuration.md, added Installable app and Service worker to CONTEXT.md, turned the feature on in demo/settings.py and mounted mvp.pwa.urls in demo/urls.py; tests/test_demo/test_installable_app.py.
+- **Verified:** poetry run pytest tests/test_demo tests/test_smoke.py — 154 passed, exit 0.
+- **Next:** Full verify, then the report.
+- **Watch:** The demo warns mvp.W002 until US-2 supplies images; the demo test does not assert its absence.
