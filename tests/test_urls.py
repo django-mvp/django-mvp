@@ -29,7 +29,7 @@ LOGIN_TEMPLATE = (
 def _urlconf():
     """A project that mounts only the Account Center, the way ``mvp/urls.py``'s
     own docstring shows a project doing it."""
-    patterns = [path("account/", include("mvp.urls"))]
+    patterns = [path("", include("mvp.urls"))]
     return type("_URLConf", (), {"urlpatterns": patterns})
 
 
@@ -39,10 +39,10 @@ ACCOUNT_URLCONF = _urlconf()
 def _urlconf_mvp_then_allauth():
     """The mount order this project's documentation and django-accounts-center's
     own example both use: the Account Center first, allauth's own URLconf
-    second, at the same prefix. Not built at module scope: ``allauth.account``
+    second, under ``account/``. Not built at module scope: ``allauth.account``
     is only importable once it is in ``INSTALLED_APPS`` (R11)."""
     patterns = [
-        path("account/", include("mvp.urls")),
+        path("", include("mvp.urls")),
         path("account/", include("allauth.account.urls")),
     ]
     return type("_URLConf", (), {"urlpatterns": patterns})
@@ -52,7 +52,7 @@ def _urlconf_allauth_then_mvp():
     """The opposite mount order (US-2 scenario 2's second half)."""
     patterns = [
         path("account/", include("allauth.account.urls")),
-        path("account/", include("mvp.urls")),
+        path("", include("mvp.urls")),
     ]
     return type("_URLConf", (), {"urlpatterns": patterns})
 
@@ -71,6 +71,25 @@ def _count_registrations(urlconf, name):
         return count
 
     return _walk(get_resolver(urlconf).url_patterns)
+
+
+class TestMountedAtTheSiteRoot:
+    """[#396] A project includes ``mvp.urls`` at the site root, and the
+    URLconf places each of its own routes: the Account Center's pages under
+    ``account/``, the installable-app files at the root, where a service
+    worker has to sit to control every page."""
+
+    def test_the_account_pages_sit_under_account(self):
+        with override_settings(ROOT_URLCONF=ACCOUNT_URLCONF):
+            assert reverse("account-center") == "/account/"
+            assert reverse("account_login") == "/account/login/"
+            assert reverse("account_logout") == "/account/logout/"
+
+    @pytest.mark.usefixtures("pwa_enabled")
+    def test_the_installable_app_files_sit_at_the_root(self):
+        with override_settings(ROOT_URLCONF="tests.urls_pwa"):
+            assert reverse("mvp-pwa-manifest") == "/manifest.webmanifest"
+            assert reverse("mvp-pwa-service-worker") == "/sw.js"
 
 
 class TestAccountLoginURL:
@@ -176,11 +195,11 @@ class TestPwaUrls:
     @override_settings(ROOT_URLCONF="tests.urls_pwa")
     @pytest.mark.usefixtures("pwa_enabled")
     def test_the_two_routes_have_fixed_names_and_paths(self):
-        assert reverse("mvp-pwa-manifest") == "/account/manifest.webmanifest"
-        assert reverse("mvp-pwa-service-worker") == "/account/sw.js"
+        assert reverse("mvp-pwa-manifest") == "/manifest.webmanifest"
+        assert reverse("mvp-pwa-service-worker") == "/sw.js"
 
     @override_settings(ROOT_URLCONF="tests.urls_pwa")
     @pytest.mark.usefixtures("pwa_enabled")
     def test_the_routes_resolve_to_the_packaged_views(self):
-        assert resolve("/account/manifest.webmanifest").func.__name__ == "manifest"
-        assert resolve("/account/sw.js").func.__name__ == "service_worker"
+        assert resolve("/manifest.webmanifest").func.__name__ == "manifest"
+        assert resolve("/sw.js").func.__name__ == "service_worker"

@@ -29,7 +29,7 @@ def _render(user, template="tests/sidebar_footer.html"):
 def _mvp_urls_only():
     """A project that mounts only the Account Center — nothing else the
     shell's own controls could fall back to (T008)."""
-    patterns = [path("account/", include("mvp.urls"))]
+    patterns = [path("", include("mvp.urls"))]
     return type("_MvpUrlsOnly", (), {"urlpatterns": patterns})
 
 

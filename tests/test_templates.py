@@ -214,7 +214,7 @@ class TestShellHeadWithPwaOn:
     def test_it_links_the_manifest(self):
         link = head_soup().find("link", rel="manifest")
 
-        assert link["href"] == "/account/manifest.webmanifest"
+        assert link["href"] == "/manifest.webmanifest"
 
     def test_it_links_the_apple_touch_icon(self):
         link = head_soup().find("link", rel="apple-touch-icon")
@@ -246,7 +246,7 @@ class TestShellHeadWithPwaOn:
             if script.string and "serviceWorker.register" in script.string
         ]
 
-        assert json.loads(data.string) == "/account/sw.js"
+        assert json.loads(data.string) == "/sw.js"
         assert len(registration) == 1
 
     def test_it_registers_the_worker_with_the_site_root_as_its_scope(self):
@@ -270,7 +270,7 @@ class TestShellHeadWithPwaOn:
 
         assert json.loads(soup.find("script", id="mvp-pwa-worker-scope").string) == "/app/"
         assert json.loads(soup.find("script", id="mvp-pwa-worker-url").string) == (
-            "/app/account/sw.js"
+            "/app/sw.js"
         )
 
     def test_the_apple_title_is_the_site_name_without_a_configured_name(self):

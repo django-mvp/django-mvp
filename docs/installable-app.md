@@ -30,12 +30,12 @@ doesn't mount `mvp.urls` yet:
 from django.urls import include, path
 
 urlpatterns = [
-    path("account/", include("mvp.urls")),
+    path("", include("mvp.urls")),
     ...
 ]
 ```
 
-Mount it at any prefix. Every shell page then links a web app manifest, sets the browser's theme
+The manifest is then at `/manifest.webmanifest` and the worker at `/sw.js`. Every shell page then links a web app manifest, sets the browser's theme
 colour and registers a service worker. The manifest and the tags are built from three things:
 
 | Value | Where it comes from |
@@ -51,10 +51,11 @@ uses the `standalone` display mode.
 
 ## Why the worker controls the whole site
 
-A service worker normally controls only pages at or below the path it is served from, and the
-worker here is served from wherever you mounted `mvp.urls`, for example `/account/sw.js`. The
-view sends a `Service-Worker-Allowed` header naming the site root (the script prefix, when there
-is one), and the page registers the worker with that scope, so it covers every page of the site.
+A service worker controls only pages at or below the path it is served from, which is why
+`mvp.urls` serves the worker at the site root, `/sw.js`. The view also sends a
+`Service-Worker-Allowed` header naming the site root (the script prefix, when there is one), and
+the page registers the worker with that scope, so it still covers every page if a project mounts
+`mvp.urls` somewhere other than the root.
 
 A site served under a script prefix (for example `/app/`) has `/app/` as the manifest's
 `start_url` and `scope`, and as the worker's scope.

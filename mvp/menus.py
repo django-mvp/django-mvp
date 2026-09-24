@@ -88,16 +88,28 @@ class MenuGroup(MenuItem):
                 MenuItem(name="roles", view_name="roles:list"),
             ],
         )
+
+    A group with no visible children is left out of the menu, so a section can
+    be declared before its first page exists.
     """
 
+    def process(self, request, **kwargs):
+        processed = super().process(request, **kwargs)
+        # flex_menu hides a URL-less parent only once it has lost children to
+        # their checks. One that never had any would otherwise fall through to
+        # the leaf template and draw as a link to nowhere.
+        if not processed.has_url and not processed.visible_children:
+            processed.visible = False
+        return processed
 
-class MenuCollapse(MenuItem):
+
+class MenuCollapse(MenuGroup):
     """A parent item that expands and collapses to reveal its children.
 
     Renders through the ``<details>``/``<summary>`` pair, so it needs no
-    JavaScript. Setting ``collapsible`` is the whole difference from a plain
-    parent item, and this class exists so a project never has to know that
-    key's name.
+    JavaScript. Setting ``collapsible`` is the whole difference from a
+    ``MenuGroup``, and this class exists so a project never has to know that
+    key's name. Like a group, it is left out while it has no visible children.
 
     Example::
 

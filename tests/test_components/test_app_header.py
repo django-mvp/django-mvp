@@ -241,3 +241,43 @@ class TestTheActionsGiveWayToTheTrail:
         assert match is not None
         classes = match.group(1).split()
         assert "mvp-mobile-only" in classes
+
+
+@pytest.mark.django_db
+class TestTheHeaderShowsWhenHtmxIsWorking:
+    """[#397] The header carries one loading spinner that shows while any htmx
+    request is in flight, so a project using the package's own htmx
+    behaviour, such as the boosted sidebar, needs no indicator of its own."""
+
+    def test_the_header_draws_the_indicator(self, client):
+        indicator = _soup(client, PAGE_WITH_TRAIL).find(id="mvp-htmx-indicator")
+
+        assert indicator is not None
+        assert indicator.find_parent(class_="mvp-header") is not None
+        assert {"htmx-indicator", "loading", "loading-spinner"} <= set(
+            indicator["class"]
+        )
+
+    def test_the_indicator_sits_at_the_start_of_the_actions(self, client):
+        soup = _soup(client, PAGE_WITH_TRAIL)
+        actions = soup.find(class_="navbar-end")
+        first = actions.find(True)
+
+        assert first["id"] == "mvp-htmx-indicator"
+
+    def test_the_indicator_is_outside_the_width_dependent_regions(self, client):
+        """Shown at every width: the desktop and mobile widget regions each
+        disappear at one side of the sidebar breakpoint."""
+        indicator = _soup(client, PAGE_WITH_TRAIL).find(id="mvp-htmx-indicator")
+
+        assert indicator.find_parent(id="mvp-navbar-widgets-desktop") is None
+        assert indicator.find_parent(id="mvp-navbar-widgets-mobile") is None
+        assert "mvp-desktop-only" not in indicator["class"]
+        assert "mvp-mobile-only" not in indicator["class"]
+
+    def test_every_htmx_request_on_the_page_points_at_it(self, client):
+        """``hx-indicator`` is inherited, so declaring it on the body covers
+        every htmx element on the page, boosted links included."""
+        body = _soup(client, PAGE_WITH_TRAIL).find("body")
+
+        assert body["hx-indicator"] == "#mvp-htmx-indicator"

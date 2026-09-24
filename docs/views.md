@@ -459,7 +459,8 @@ live anywhere in your markup. If a page of yours renders HTML you did not author
 user-submitted rich text, sanitize it as you already would, and be aware that `hx-*`
 attributes are now among the things worth stripping. htmx's own defaults
 apply unchanged, including `selfRequestsOnly`, which keeps htmx requests on your own
-origin.
+origin. While a request is in flight the header shows a spinner, described in
+[Loading indicator](layout.md#loading-indicator).
 
 ## Error handlers
 

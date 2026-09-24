@@ -49,9 +49,9 @@ def _render(template_name):
 
 
 def _urlconf():
-    """The demo site's URLs, with the Account Center mounted under ``account/``."""
+    """The demo site's URLs, with ``mvp.urls`` mounted."""
     patterns = [
-        path("account/", include("mvp.urls")),
+        path("", include("mvp.urls")),
         path("", include("demo.urls")),
     ]
     return type("_URLConf", (), {"urlpatterns": patterns})
@@ -66,7 +66,7 @@ def _fixture_urlconf():
     ``demo/menus.py`` resolves several entries against ``demo.urls`` — a
     urlconf missing it 500s on any full-page render, not just this story's."""
     patterns = [
-        path("account/", include("mvp.urls")),
+        path("", include("mvp.urls")),
         path("testapp-account/", include("tests.testapp_account.urls")),
         path("", include("demo.urls")),
     ]
@@ -396,7 +396,7 @@ def _urlconf_with_allauth():
     module scope: ``allauth.account`` is only importable once it is in
     ``INSTALLED_APPS`` (R11)."""
     patterns = [
-        path("account/", include("mvp.urls")),
+        path("", include("mvp.urls")),
         path("account/", include("allauth.account.urls")),
         path("", include("demo.urls")),
     ]

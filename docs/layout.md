@@ -155,6 +155,22 @@ Per-page override:
 {% endblock %}
 ```
 
+## Loading indicator
+
+The header shows a small spinner at the start of its actions while any htmx request is in
+flight: a boosted sidebar link, a live search, a formset row, or anything of your own that
+carries `hx-*` attributes. It is shown at every width, and it is invisible the rest of the
+time.
+
+It works through htmx's own indicator mechanism. `mvp/base.html` puts
+`hx-indicator="#mvp-htmx-indicator"` on `<body>`, every element on the page inherits it, and
+htmx shows the element with that id while a request is running. There is nothing to
+configure.
+
+To give one element an indicator of its own, set `hx-indicator` on that element and it takes
+precedence over the header's. To stop the header spinner showing for a request, point that
+element's `hx-indicator` somewhere else.
+
 ## Breadcrumbs
 
 The breadcrumb trail is drawn in the header, beside the site icon, at the leading

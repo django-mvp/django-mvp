@@ -24,6 +24,24 @@ def render(source, **context):
     return Template(compiler.process(source)).render(Context(context))
 
 
+class TestMenuItemWithoutAnHref:
+    """[#380] ``c-menu.item`` passed ``href`` straight through ``{{ attrs }}``,
+    so a caller handing it ``None`` got a ``<button href="None">``."""
+
+    def test_no_href_attribute_is_written_when_href_is_none(self):
+        html = render('<c-menu.item :href="url" label="Placeholder" />', url=None)
+        button = _beautiful_soup()(html, "html.parser").find("button")
+
+        assert button is not None
+        assert not button.has_attr("href")
+
+    def test_an_href_draws_a_link_carrying_it(self):
+        html = render('<c-menu.item href="/page/" label="Page" />')
+        link = _beautiful_soup()(html, "html.parser").find("a")
+
+        assert link["href"] == "/page/"
+
+
 class TestMenuGrow:
     def test_grow_is_off_by_default(self):
         html = render('<c-menu label="Nav">item</c-menu>')

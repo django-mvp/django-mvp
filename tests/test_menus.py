@@ -11,7 +11,16 @@ import pytest
 from django.test import RequestFactory, override_settings
 from django.urls import include, path
 
-from mvp.menus import AccountCenterMenu, AppMenu, MenuCollapse, MobileFooterMenu
+from flex_menu import Menu, MenuItem
+
+from mvp.menus import (
+    AccountCenterMenu,
+    AppMenu,
+    MenuCollapse,
+    MenuGroup,
+    MobileFooterMenu,
+)
+from mvp.renderers import SidebarRenderer
 from tests.testapp_account.menus import CHECKED_FLAG
 
 
@@ -19,7 +28,7 @@ def _urlconf():
     """``mvp.urls`` (so the landing-page entry still resolves) plus the
     fixture app's own URLs, mounted independently of ``demo/urls.py``."""
     patterns = [
-        path("account/", include("mvp.urls")),
+        path("", include("mvp.urls")),
         path("testapp-account/", include("tests.testapp_account.urls")),
     ]
     return type("_URLConf", (), {"urlpatterns": patterns})
@@ -64,6 +73,70 @@ class TestMenuCollapse:
     def test_works_without_any_context(self):
         item = MenuCollapse(name="reports")
         assert item.extra_context == {"collapsible": True}
+
+
+def _sidebar_html(*items):
+    """Process ``items`` in a throwaway menu and draw it through the sidebar
+    renderer, the way ``{% render_menu %}`` does for ``AppMenu``."""
+    menu = Menu("EmptyContainerMenu", children=list(items))
+    request = RequestFactory().get("/")
+    return SidebarRenderer().render(menu.process(request))
+
+
+class TestAContainerWithNoChildrenIsHidden:
+    """[#380] A ``MenuGroup`` or ``MenuCollapse`` declared with no children
+    used to fall through to the leaf template and draw as an inert
+    ``<button href="None">``. A section that has no pages yet is left out of
+    the sidebar until its first page is added."""
+
+    @pytest.mark.parametrize("container", [MenuGroup, MenuCollapse])
+    def test_an_empty_container_is_not_drawn(self, container):
+        html = _sidebar_html(
+            container(name="empty", extra_context={"label": "EmptySection"})
+        )
+
+        assert "EmptySection" not in html
+        assert 'href="None"' not in html
+
+    @pytest.mark.parametrize("container", [MenuGroup, MenuCollapse])
+    def test_a_container_whose_children_are_all_hidden_is_not_drawn(
+        self, container
+    ):
+        html = _sidebar_html(
+            container(
+                name="hidden",
+                extra_context={"label": "HiddenSection"},
+                children=[MenuItem(name="page", url="/page/", check=False)],
+            )
+        )
+
+        assert "HiddenSection" not in html
+
+    @pytest.mark.parametrize("container", [MenuGroup, MenuCollapse])
+    def test_a_container_with_a_child_is_drawn(self, container):
+        html = _sidebar_html(
+            container(
+                name="filled",
+                extra_context={"label": "FilledSection"},
+                children=[
+                    MenuItem(
+                        name="page", url="/page/", extra_context={"label": "Page"}
+                    )
+                ],
+            )
+        )
+
+        assert "FilledSection" in html
+        assert 'href="/page/"' in html
+
+    def test_an_empty_container_does_not_disturb_its_siblings(self):
+        html = _sidebar_html(
+            MenuGroup(name="empty", extra_context={"label": "EmptySection"}),
+            MenuItem(name="home", url="/", extra_context={"label": "Home"}),
+        )
+
+        assert "EmptySection" not in html
+        assert "Home" in html
 
 
 class TestShippedMenus:
