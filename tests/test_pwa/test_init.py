@@ -6,6 +6,7 @@ from django.contrib.sites.models import Site
 from django.test import override_settings
 from django.urls import set_script_prefix
 
+from mvp.config import MVP_CONFIG
 from mvp.pwa import resolve
 
 
@@ -118,3 +119,22 @@ def _pwa_config():
     from mvp.config import MVP_CONFIG
 
     return MVP_CONFIG["pwa"]
+
+
+@pytest.mark.django_db
+class TestResolveThemeColours:
+    def test_colours_come_from_the_default_theme(self, request_):
+        result = resolve(request_)
+
+        assert result["theme_color"] == "#ffffff"
+        assert result["background_color"] == "#ffffff"
+
+    def test_a_theme_the_package_does_not_ship_has_no_colour(
+        self, request_, monkeypatch
+    ):
+        monkeypatch.setitem(MVP_CONFIG["theme"], "default", "brand")
+
+        result = resolve(request_)
+
+        assert result["theme_color"] is None
+        assert result["background_color"] is None

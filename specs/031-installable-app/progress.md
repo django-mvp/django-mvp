@@ -32,3 +32,10 @@ as D1–D4.
 - **Verified:** poetry run pytest tests/test_pwa/test_init.py tests/test_config.py — 26 passed, exit 0.
 - **Next:** T003: theme colours.
 - **Watch:** resolve() returns colours only from config until T003; the service_worker key is defined but not read until US-3.
+
+## 2026-09-24T07:44Z · Implementer US1 · T003
+
+- **Did:** Added ThemeColors (mvp/pwa/colors.py) and wired the default theme's colour into resolve().
+- **Verified:** poetry run pytest tests/test_pwa tests/test_config.py — 33 passed, exit 0; 35 themes resolve; light/dark/cupcake match the reference values.
+- **Next:** T004: views and URLconf.
+- **Watch:** Colours read the base-100 value from the committed stylesheet; a rebuilt stylesheet changes them, by design (D2).

@@ -5,6 +5,7 @@ from django.templatetags.static import static
 from django.urls import NoReverseMatch, get_script_prefix, reverse
 
 from mvp.config import MVP_CONFIG
+from mvp.pwa.colors import ThemeColors
 
 MANIFEST_URL_NAME = "mvp-pwa-manifest"
 WORKER_URL_NAME = "mvp-pwa-service-worker"
@@ -35,6 +36,7 @@ def resolve(request):
     """
     config = MVP_CONFIG["pwa"]
     prefix = get_script_prefix()
+    theme_color = ThemeColors.for_theme(MVP_CONFIG["theme"]["default"])
     name = config["name"] or get_current_site(request).name
     return {
         "name": name,
@@ -42,8 +44,8 @@ def resolve(request):
         "start_url": config["start_url"] or prefix,
         "scope": prefix,
         "display": config["display"],
-        "theme_color": config["theme_color"],
-        "background_color": config["background_color"],
+        "theme_color": config["theme_color"] or theme_color,
+        "background_color": config["background_color"] or theme_color,
         "manifest_url": reverse_or_none(MANIFEST_URL_NAME),
         "worker_url": reverse_or_none(WORKER_URL_NAME),
         **{key: static(IMAGE_DIRECTORY + file) for key, file in IMAGES.items()},
