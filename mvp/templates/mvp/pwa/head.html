@@ -2,7 +2,7 @@
 {% url 'mvp-pwa-manifest' as manifest_url %}
 {% url 'mvp-pwa-service-worker' as worker_url %}
 {% if manifest_url %}<link rel="manifest" href="{{ manifest_url }}" />{% endif %}
-{% if mvp_config.pwa.theme_color %}<meta name="theme-color" content="{{ mvp_config.pwa.theme_color }}" />{% endif %}
+<meta name="theme-color" content="{{ mvp_config.pwa.theme_color }}" />
 <link rel="apple-touch-icon" href="{% static 'brand/pwa/apple-touch-icon.png' %}" />
 <meta name="apple-mobile-web-app-title" content="{% firstof mvp_config.short_name mvp_config.site_name request.site.name request.get_host %}" />
 <meta name="mobile-web-app-capable" content="yes" />

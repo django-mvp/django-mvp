@@ -188,6 +188,15 @@ class TestShellHeadWithInstallableAppOff:
         """
         assert render_shell_head() == BASE_HEAD_FIXTURE.read_text(encoding="utf-8")
 
+    def test_head_carries_no_install_tags(self):
+        head = render_shell_head()
+        soup = head_soup()
+
+        assert soup.find("link", rel="manifest") is None
+        assert soup.find("meta", attrs={"name": "theme-color"}) is None
+        assert soup.find("link", rel="apple-touch-icon") is None
+        assert "serviceWorker" not in head
+
 
 def head_soup():
     from bs4 import BeautifulSoup
