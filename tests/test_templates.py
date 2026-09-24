@@ -300,3 +300,42 @@ class TestShellHeadWithoutTheRootInclude:
 
         assert soup.find("link", rel="manifest") is None
         assert "serviceWorker" not in head
+
+
+@pytest.mark.django_db
+@pytest.mark.usefixtures("installable_app_on")
+class TestShellHeadWithConfiguredValues:
+    @pytest.fixture(autouse=True)
+    def root_include_mounted(self, settings):
+        settings.ROOT_URLCONF = "tests.urls_shell_pwa"
+
+    def test_configured_colour_reaches_the_theme_colour_meta_tag(self, monkeypatch):
+        from mvp.config import MVP_CONFIG
+
+        monkeypatch.setitem(MVP_CONFIG["theme"], "default", "brand")
+        monkeypatch.setitem(MVP_CONFIG["pwa"], "theme_color", "#123456")
+
+        meta = head_soup().find("meta", attrs={"name": "theme-color"})
+
+        assert meta["content"] == "#123456"
+
+    def test_configured_worker_is_the_one_the_head_registers(self, monkeypatch):
+        from mvp.config import MVP_CONFIG
+
+        monkeypatch.setitem(MVP_CONFIG["pwa"], "service_worker", "/my-worker.js")
+
+        data = head_soup().find("script", id="mvp-pwa-worker-url")
+
+        assert json.loads(data.string) == "/my-worker.js"
+
+    def test_a_project_head_template_replaces_the_packaged_one(self, settings):
+        project_templates = Path(__file__).parent / "pwa_templates"
+        engine = settings.TEMPLATES[0]
+        settings.TEMPLATES = [
+            {**engine, "DIRS": [str(project_templates), *engine.get("DIRS", [])]}
+        ]
+
+        soup = head_soup()
+
+        assert soup.find("meta", attrs={"name": "project-head"})["content"] == "mine"
+        assert soup.find("link", rel="manifest") is None

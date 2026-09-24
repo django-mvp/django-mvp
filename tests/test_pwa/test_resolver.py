@@ -138,3 +138,55 @@ class TestResolveThemeColours:
 
         assert result["theme_color"] is None
         assert result["background_color"] is None
+
+
+@pytest.mark.django_db
+class TestResolveEachOverrideAlone:
+    """Each value set on its own changes only itself (scenario 1)."""
+
+    KEYS = (
+        "name",
+        "short_name",
+        "start_url",
+        "display",
+        "theme_color",
+        "background_color",
+    )
+
+    @pytest.mark.parametrize(
+        ("key", "value"),
+        [
+            ("name", "Configured"),
+            ("short_name", "Short"),
+            ("start_url", "/home/"),
+            ("display", "minimal-ui"),
+            ("theme_color", "#123456"),
+            ("background_color", "#abcdef"),
+        ],
+    )
+    def test_only_that_value_changes(self, request_, monkeypatch, key, value):
+        before = resolve(request_)
+        monkeypatch.setitem(MVP_CONFIG["pwa"], key, value)
+
+        after = resolve(request_)
+
+        assert after[key] == value
+        changed = {k for k in before if before[k] != after[k]}
+        # An unset short_name follows the name, so overriding the name moves both.
+        expected = {key, "short_name"} if key == "name" else {key}
+        assert changed == expected
+
+
+@pytest.mark.django_db
+class TestResolveServiceWorker:
+    @override_settings(ROOT_URLCONF="tests.urls_pwa")
+    def test_the_packaged_worker_is_used_by_default(self, request_):
+        assert resolve(request_)["worker_url"] == "/sw.js"
+
+    @override_settings(ROOT_URLCONF="tests.urls_pwa")
+    def test_a_configured_worker_replaces_the_packaged_one(
+        self, request_, monkeypatch
+    ):
+        monkeypatch.setitem(MVP_CONFIG["pwa"], "service_worker", "/my-worker.js")
+
+        assert resolve(request_)["worker_url"] == "/my-worker.js"

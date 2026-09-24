@@ -112,3 +112,43 @@ class TestServiceWorkerView:
         monkeypatch.setitem(MVP_CONFIG["pwa"], "enabled", True)
 
         assert client.get("/sw.js").status_code == 200
+
+
+@pytest.mark.django_db
+class TestManifestOverrides:
+    @pytest.mark.parametrize(
+        ("key", "value"),
+        [
+            ("name", "Configured"),
+            ("short_name", "Short"),
+            ("start_url", "/home/"),
+            ("display", "browser"),
+            ("theme_color", "#123456"),
+            ("background_color", "#abcdef"),
+        ],
+    )
+    def test_each_value_reaches_the_manifest(self, client, monkeypatch, key, value):
+        monkeypatch.setitem(MVP_CONFIG["pwa"], key, value)
+
+        manifest = client.get("/manifest.webmanifest").json()
+
+        assert manifest[key] == value
+
+    def test_configured_colours_replace_the_theme_colours(self, client, monkeypatch):
+        monkeypatch.setitem(MVP_CONFIG["theme"], "default", "brand")
+        monkeypatch.setitem(MVP_CONFIG["pwa"], "theme_color", "#123456")
+        monkeypatch.setitem(MVP_CONFIG["pwa"], "background_color", "#abcdef")
+
+        manifest = client.get("/manifest.webmanifest").json()
+
+        assert manifest["theme_color"] == "#123456"
+        assert manifest["background_color"] == "#abcdef"
+
+    def test_no_colour_is_invented_for_an_unshipped_theme(self, client, monkeypatch):
+        monkeypatch.setitem(MVP_CONFIG["theme"], "default", "brand")
+        monkeypatch.setitem(MVP_CONFIG["pwa"], "name", "Configured")
+
+        manifest = client.get("/manifest.webmanifest").json()
+
+        assert "theme_color" not in manifest
+        assert "background_color" not in manifest

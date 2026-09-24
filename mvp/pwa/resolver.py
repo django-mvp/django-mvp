@@ -47,6 +47,6 @@ def resolve(request):
         "theme_color": config["theme_color"] or theme_color,
         "background_color": config["background_color"] or theme_color,
         "manifest_url": reverse_or_none(MANIFEST_URL_NAME),
-        "worker_url": reverse_or_none(WORKER_URL_NAME),
+        "worker_url": config["service_worker"] or reverse_or_none(WORKER_URL_NAME),
         **{key: static(IMAGE_DIRECTORY + file) for key, file in IMAGES.items()},
     }
