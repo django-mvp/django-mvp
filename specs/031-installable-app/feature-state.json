@@ -144,7 +144,7 @@
       "priority": "P2",
       "issue": 393,
       "worktree": "/home/sam/projects/django-mvp/dm-031-installable-app",
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
@@ -156,8 +156,8 @@
               "poetry run deptry . (no issues)"
             ],
             "code": [
-              "pyproject.toml",
-              "poetry.lock"
+              "pyproject.toml:1",
+              "poetry.lock:1"
             ]
           }
         },
@@ -173,7 +173,7 @@
               "poetry run pytest tests/test_management -p no:playwright (16 passed)"
             ],
             "code": [
-              "mvp/management/commands/mvp_pwa_icons.py"
+              "mvp/management/commands/mvp_pwa_icons.py:1"
             ]
           }
         },
@@ -190,8 +190,8 @@
               "poetry run pytest (2262 passed, 1 skipped, exit 0)"
             ],
             "code": [
-              "docs/installable-app.md",
-              "demo/static/brand/pwa/"
+              "docs/installable-app.md:1",
+              "demo/static/brand/pwa:1"
             ]
           }
         }
