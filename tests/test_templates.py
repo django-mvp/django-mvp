@@ -11,6 +11,7 @@ project (``demo``) ships its own ``base.html`` and shadows the packaged one in
 the configured engine — which is what the last test asserts.
 """
 
+import json
 import re
 from pathlib import Path
 
@@ -186,3 +187,116 @@ class TestShellHeadWithInstallableAppOff:
         value to that file (as UTF-8, no trailing newline) and review the diff.
         """
         assert render_shell_head() == BASE_HEAD_FIXTURE.read_text(encoding="utf-8")
+
+
+def head_soup():
+    from bs4 import BeautifulSoup
+
+    return BeautifulSoup(render_shell_head(), "html.parser")
+
+
+@pytest.fixture
+def installable_app_on(monkeypatch):
+    from mvp.config import MVP_CONFIG
+
+    monkeypatch.setitem(MVP_CONFIG["pwa"], "enabled", True)
+
+
+@pytest.mark.django_db
+@pytest.mark.usefixtures("installable_app_on")
+class TestShellHeadWithInstallableAppOn:
+    @pytest.fixture(autouse=True)
+    def root_include_mounted(self, settings):
+        settings.ROOT_URLCONF = "tests.urls_shell_pwa"
+
+    def test_it_links_the_manifest(self):
+        link = head_soup().find("link", rel="manifest")
+
+        assert link["href"] == "/manifest.webmanifest"
+
+    def test_it_sets_the_theme_colour_for_a_shipped_theme(self):
+        meta = head_soup().find("meta", attrs={"name": "theme-color"})
+
+        assert meta["content"] == "#ffffff"
+
+    def test_it_sets_no_theme_colour_for_an_unknown_theme(self, monkeypatch):
+        from mvp.config import MVP_CONFIG
+
+        monkeypatch.setitem(MVP_CONFIG["theme"], "default", "brand")
+
+        assert head_soup().find("meta", attrs={"name": "theme-color"}) is None
+
+    def test_it_links_the_apple_touch_icon(self):
+        link = head_soup().find("link", rel="apple-touch-icon")
+
+        assert link["href"] == "/static/brand/pwa/apple-touch-icon.png"
+
+    def test_the_apple_title_carries_the_short_name(self, monkeypatch):
+        from mvp.config import MVP_CONFIG
+
+        monkeypatch.setitem(MVP_CONFIG["pwa"], "short_name", "Shop")
+        monkeypatch.setitem(MVP_CONFIG["pwa"], "name", "The Corner Shop")
+
+        meta = head_soup().find("meta", attrs={"name": "apple-mobile-web-app-title"})
+
+        assert meta["content"] == "Shop"
+
+    def test_it_marks_the_page_as_a_web_app(self):
+        meta = head_soup().find("meta", attrs={"name": "mobile-web-app-capable"})
+
+        assert meta["content"] == "yes"
+
+    def test_it_registers_the_worker_by_its_reversed_url(self):
+        soup = head_soup()
+
+        data = soup.find("script", id="mvp-pwa-worker-url")
+        registration = [
+            script.string
+            for script in soup.find_all("script")
+            if script.string and "serviceWorker.register" in script.string
+        ]
+
+        assert json.loads(data.string) == "/sw.js"
+        assert len(registration) == 1
+
+    def test_a_hostile_name_stays_escaped(self):
+        from django.contrib.sites.models import Site
+
+        name = 'A "b" </script><img src=x onerror=alert(1)>'
+        Site.objects.filter(pk=settings.SITE_ID).update(name=name)
+        head = render_shell_head()
+        soup = head_soup()
+
+        title = soup.find("meta", attrs={"name": "apple-mobile-web-app-title"})
+
+        assert title["content"] == name
+        assert "<img src=x" not in head
+
+    def test_it_adds_no_url_to_another_host(self):
+        from bs4 import BeautifulSoup
+
+        on = head_soup()
+        off = BeautifulSoup(
+            BASE_HEAD_FIXTURE.read_text(encoding="utf-8"), "html.parser"
+        )
+
+        def urls(soup):
+            tags = soup.find_all(["link", "script"])
+            return {t.get("href") or t.get("src") for t in tags} - {None}
+
+        assert all(url.startswith("/") for url in urls(on) - urls(off))
+
+
+@pytest.mark.django_db
+@pytest.mark.usefixtures("installable_app_on")
+class TestShellHeadWithoutTheRootInclude:
+    @pytest.fixture(autouse=True)
+    def root_include_unmounted(self, settings):
+        settings.ROOT_URLCONF = "tests.urls_shell_no_pwa"
+
+    def test_the_page_renders_without_a_manifest_or_registration(self):
+        head = render_shell_head()
+        soup = head_soup()
+
+        assert soup.find("link", rel="manifest") is None
+        assert "serviceWorker" not in head

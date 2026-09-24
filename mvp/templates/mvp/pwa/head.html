@@ -1,0 +1,15 @@
+{% load static mvp %}
+{% mvp_pwa as pwa %}
+{% if pwa.manifest_url %}<link rel="manifest" href="{{ pwa.manifest_url }}" />{% endif %}
+{% if pwa.theme_color %}<meta name="theme-color" content="{{ pwa.theme_color }}" />{% endif %}
+<link rel="apple-touch-icon" href="{{ pwa.apple_touch_icon }}" />
+<meta name="apple-mobile-web-app-title" content="{{ pwa.short_name }}" />
+<meta name="mobile-web-app-capable" content="yes" />
+{% if pwa.worker_url %}
+  {{ pwa.worker_url|json_script:"mvp-pwa-worker-url" }}
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register(JSON.parse(document.getElementById("mvp-pwa-worker-url").textContent));
+    }
+  </script>
+{% endif %}

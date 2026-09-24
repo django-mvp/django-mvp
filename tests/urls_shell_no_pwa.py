@@ -1,0 +1,5 @@
+"""The demo's URLs, so a shell page renders, without ``mvp.pwa.urls``."""
+
+from tests.urls_shell_pwa import urlpatterns_without_pwa
+
+urlpatterns = urlpatterns_without_pwa

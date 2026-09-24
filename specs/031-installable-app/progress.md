@@ -46,3 +46,10 @@ as D1–D4.
 - **Verified:** poetry run pytest tests/test_pwa — 34 passed, exit 0.
 - **Next:** T005: head template.
 - **Watch:** The worker template has no fetch listener; the test asserts the word 'fetch' is absent from the body.
+
+## 2026-09-24T07:46Z · Implementer US1 · T005
+
+- **Did:** Added the mvp_pwa tag, mvp/pwa/head.html and the include on the dark favicon line of base.html; tests in tests/test_templates.py and tests/test_templatetags.py, plus two shell URLconfs (tests/urls_shell_pwa.py, urls_shell_no_pwa.py) because the shell page needs the demo's URL names.
+- **Verified:** poetry run pytest tests/test_templates.py tests/test_templatetags.py — 241 passed, exit 0; the off-state golden test passes.
+- **Next:** T006: system checks.
+- **Watch:** djlint (not a pre-commit hook) would move the include onto its own line; the brief's placement is kept.
