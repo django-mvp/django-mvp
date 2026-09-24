@@ -257,3 +257,22 @@ into `mvp/utils.py` and `tests/test_utils.py`, and import them from there. No al
   prefix>`, so a worker served from under the prefix may control the whole site.
 - **Warning**: `mvp.W001` fires when the feature is on and `mvp.urls` isn't mounted, meaning the
   worker URL doesn't reverse. The mount point no longer matters.
+
+### T016 — No checks, no resolver class, routes only when the feature is on
+
+**Files**: `mvp/pwa/checks.py` (deleted), `mvp/pwa/resolver.py` (deleted), `mvp/apps.py`,
+`mvp/pwa/__init__.py`, `mvp/pwa/views.py`, `mvp/urls.py`, `mvp/templates/mvp/base.html`,
+`mvp/management/commands/mvp_pwa_icons.py`, `tests/conftest.py`, the feature's tests and test
+URLconfs, `tests/fixtures/base_head_off.html`, `docs/installable-app.md`,
+`docs/configuration.md`, `CHANGELOG.md`
+
+- **No system checks.** `mvp.W001` and its registration go.
+- **No resolver.** `mvp/pwa/resolver.py` and `InstallableApp` go. The manifest view builds its
+  data inline, and the image constants live in `mvp/pwa/__init__.py`.
+- **The colour is required.** `MVP_CONFIG["pwa"]` is falsey (off) or `{"theme_color": "#…"}`,
+  and the colour is read as `MVP_CONFIG["pwa"]["theme_color"]`.
+- **Routes only when on.** `manifest.webmanifest` and `sw.js` are added to `mvp/urls.py` only
+  when `MVP_CONFIG["pwa"]` is truthy.
+- **The include gets its own line.** `base.html` puts `{% if mvp_config.pwa %}…{% endif %}` on
+  its own line after the favicon links. The off-state fixture is regenerated. The head with the
+  feature off gains one whitespace line and carries no install tag.

@@ -2,7 +2,7 @@
   "feature": "031-installable-app",
   "branch": "031-installable-app",
   "repo": "django-mvp/django-mvp",
-  "state": "PR_READY",
+  "state": "IMPLEMENT",
   "state_history": [
     {
       "state": "QUEUED",
@@ -58,6 +58,11 @@
       "state": "PR_READY",
       "at": "2026-09-24T10:36:08Z",
       "note": "second merge-gate change set landed"
+    },
+    {
+      "state": "IMPLEMENT",
+      "at": "2026-09-24T10:50:10Z",
+      "note": "third merge-gate change set"
     }
   ],
   "gates": {
