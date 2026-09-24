@@ -72,7 +72,44 @@ The manifest and the page head name four files, looked up through Django's stati
 | `brand/pwa/icon-maskable-512.png` | The manifest's maskable icon |
 | `brand/pwa/apple-touch-icon.png` | The `apple-touch-icon` link in the page head |
 
-Put them in a directory listed in `STATICFILES_DIRS`, or in an app's `static/` directory.
+Put them in a directory listed in `STATICFILES_DIRS`, or in an app's `static/` directory, or
+generate them from your brand mark as described next.
+
+## Generating the images
+
+`mvp_pwa_icons` renders all four images from your brand mark:
+
+```bash
+pip install resvg-py        # or: poetry add --group dev resvg-py
+python manage.py mvp_pwa_icons
+```
+
+The renderer is optional. django-mvp does not depend on `resvg-py`, so install it wherever you run
+the command. Without it the command stops and names the package.
+
+The command asks nothing, so it runs in a build pipeline:
+
+```bash
+python manage.py mvp_pwa_icons
+python manage.py collectstatic --noinput
+```
+
+**Run it before `collectstatic`.** `collectstatic` copies what exists at that moment, so images
+generated afterwards are not served. With a manifest static files storage (for example
+`ManifestStaticFilesStorage`) the consequence is worse than a missing icon: the page head names
+the images through the static tag, and a file that is not in the manifest makes that tag raise, so
+pages fail to render.
+
+| Detail | Behaviour |
+| --- | --- |
+| Source | `brand/icon.svg`, found through the static files finders. The command reads this file whatever the configured icon resolver is. `brand/icon_dark.svg` is never used. |
+| Package mark | When the file found is the one shipped inside django-mvp, the command says so. Put your own `brand/icon.svg` in your static files to use it instead. |
+| Destination | `--output-dir` if given, otherwise the first entry of `STATICFILES_DIRS` (a `(prefix, path)` entry uses its path). With neither, the command stops and asks for `--output-dir`. Files go in `<directory>/brand/pwa/`, which is created if missing. Existing images are overwritten. |
+| Proportions | A mark that is not square is centred, never stretched. |
+| Plain icons | 192 px and 512 px, the mark filling the square on a transparent background. |
+| Maskable and Apple icons | 512 px and 180 px, the mark in the central 80% on an opaque background. The background is `pwa.background_color`, else the default theme's colour, else white. |
+
+Run it again whenever the mark changes.
 
 ## The two warnings
 
@@ -82,7 +119,7 @@ runs with the feature off.
 | Id | Meaning | Fix |
 | --- | --- | --- |
 | `mvp.W001` | `mvp.pwa.urls` is not included, or is included somewhere other than the root. | Add `path("", include("mvp.pwa.urls"))` to the root URLconf. |
-| `mvp.W002` | One or more of the four images is missing from the static files. Each missing file is named. | Add the files. `python manage.py mvp_pwa_icons` is the command the hint points at for generating them. |
+| `mvp.W002` | One or more of the four images is missing from the static files. Each missing file is named. | Add the files, or generate them with `python manage.py mvp_pwa_icons` (see [Generating the images](#generating-the-images)). |
 
 A page keeps rendering when the include is missing: the head then carries no manifest link and no
 registration script, and `mvp.W001` tells you why.

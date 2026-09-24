@@ -22,3 +22,16 @@ class TestDemoInstallableApp:
     @pytest.mark.django_db
     def test_the_worker_answers_at_the_root(self, client):
         assert client.get("/sw.js").status_code == 200
+
+
+class TestDemoInstallableAppImages:
+    def test_the_demo_raises_no_missing_image_warning(self, monkeypatch):
+        from django.core.checks import run_checks
+
+        from mvp.config import MVP_CONFIG
+
+        # The test settings pin their own MVP_CONFIG, so turn the feature on
+        # the way the demo does and read what the checks say about its files.
+        monkeypatch.setitem(MVP_CONFIG["pwa"], "enabled", True)
+
+        assert "mvp.W002" not in [message.id for message in run_checks()]
