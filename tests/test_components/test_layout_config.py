@@ -505,7 +505,8 @@ class TestAnnouncementBlock:
     def test_default_renders_nothing(self, client):
         """An unfilled block adds no markup between <body> and the app shell."""
         content = client.get("/").content.decode()
-        body_start = content.index("<body>") + len("<body>")
+        # The end of the opening tag, which carries attributes of its own.
+        body_start = content.index(">", content.index("<body")) + 1
         shell_start = content.index('<div id="mvp-app"')
         assert content[body_start:shell_start].strip() == ""
 
