@@ -1,8 +1,12 @@
 """Demo App URL configuration."""
 
+from pathlib import Path
+
 from django.conf import settings
 from django.contrib import admin
 from django.urls import include, path
+
+from mvp.integrations.sphinx_view.views import MVPDocumentationView
 
 from . import views
 from .views import (
@@ -41,6 +45,13 @@ urlpatterns = [
         "components/<slug:slug>/",
         views.ComponentDocView.as_view(),
         name="component-doc",
+    ),
+    path(
+        "docs<path:path>",
+        MVPDocumentationView.as_view(
+            json_build_dir=Path(__file__).parent / "sphinx_docs" / "_build" / "json"
+        ),
+        name="docs",
     ),
     path("utility-classes/", views.utility_classes_demo, name="utility-classes"),
     path("products/", ProductListView.as_view(), name="product-list"),

@@ -75,6 +75,14 @@ AppMenu.extend(
             ],
         ),
         MenuItem(
+            name="docs",
+            url="/docs/",
+            extra_context={
+                "label": "Documentation",
+                "icon": "book",
+            },
+        ),
+        MenuItem(
             name="utility-classes",
             view_name="utility-classes",
             extra_context={

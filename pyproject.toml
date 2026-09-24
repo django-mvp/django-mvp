@@ -90,6 +90,8 @@ dev = [
     # declared explicitly here because the demo app now imports it directly.
     # Demo-only: never a runtime dependency of the mvp package itself.
     "markdown-it-py>=4.2.0,<5",
+    "django-sphinx-view>=26.1",
+    "sphinx>=9.1.0",
 ]
 
 [tool.uv.sources]

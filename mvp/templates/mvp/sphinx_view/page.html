@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}
+  {{ page.title }}
+{% endblock title %}
+{% block content %}
+  <c-page>
+    <c-container>
+      <div class="mvp-sphinx grid gap-x-10 py-4 {% if doc.toctree %}lg:grid-cols-[15rem_minmax(0,1fr)]{% endif %} {% if doc.display_toc %}xl:grid-cols-[15rem_minmax(0,1fr)_13rem]{% endif %}">
+        {% if doc.toctree %}
+          <nav class="mvp-sphinx-nav hidden lg:block"
+               aria-label="{% trans "Documentation" %}">
+            <div class="sticky top-20 max-h-[calc(100dvh-6rem)] overflow-y-auto">
+              <ul class="menu w-full p-0">
+                <li>
+                  <a href="{{ docs_root }}"
+                     {% if doc.current_page_name == "index" %}class="current" aria-current="page"{% endif %}>{% trans "Overview" %}</a>
+                </li>
+              </ul>
+              <div class="menu w-full p-0">{{ doc.toctree|safe }}</div>
+            </div>
+          </nav>
+        {% endif %}
+        <div class="min-w-0">
+          {% if doc.toctree %}
+            <details class="mvp-sphinx-nav collapse collapse-arrow border border-base-300 bg-base-100 mb-6 lg:hidden">
+              <summary class="collapse-title font-medium">{% trans "Contents" %}</summary>
+              <nav class="collapse-content" aria-label="{% trans "Documentation" %}">
+                <ul class="menu w-full p-0">
+                  <li>
+                    <a href="{{ docs_root }}">{% trans "Overview" %}</a>
+                  </li>
+                </ul>
+                <div class="menu w-full p-0">{{ doc.toctree|safe }}</div>
+              </nav>
+            </details>
+          {% endif %}
+          <article class="prose max-w-[75ch]">
+            {{ doc.body|safe }}
+          </article>
+          {% if doc.prev or doc.next %}
+            <nav class="grid gap-4 sm:grid-cols-2 max-w-[75ch] mt-12 pt-6 border-t border-base-300"
+                 aria-label="{% trans "Previous and next page" %}">
+              {% if doc.prev %}
+                <a href="{{ doc.prev.link }}"
+                   rel="prev"
+                   class="flex flex-col gap-1 rounded-box border border-base-300 p-4 hover:bg-base-200 focus-visible:bg-base-200">
+                  <span class="text-sm opacity-70">{% trans "Previous" %}</span>
+                  <span class="font-medium">{{ doc.prev.title|safe }}</span>
+                </a>
+              {% endif %}
+              {% if doc.next %}
+                <a href="{{ doc.next.link }}"
+                   rel="next"
+                   class="flex flex-col gap-1 rounded-box border border-base-300 p-4 text-end hover:bg-base-200 focus-visible:bg-base-200 sm:col-start-2">
+                  <span class="text-sm opacity-70">{% trans "Next" %}</span>
+                  <span class="font-medium">{{ doc.next.title|safe }}</span>
+                </a>
+              {% endif %}
+            </nav>
+          {% endif %}
+        </div>
+        {% if doc.display_toc %}
+          <aside class="mvp-sphinx-toc hidden xl:block">
+            <nav class="sticky top-20 max-h-[calc(100dvh-6rem)] overflow-y-auto text-sm"
+                 aria-labelledby="mvp-sphinx-toc-heading">
+              <p id="mvp-sphinx-toc-heading" class="font-semibold mb-2">{% trans "On this page" %}</p>
+              {{ doc.toc|safe }}
+            </nav>
+          </aside>
+        {% endif %}
+      </div>
+    </c-container>
+  </c-page>
+{% endblock content %}
