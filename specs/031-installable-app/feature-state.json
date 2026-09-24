@@ -2,7 +2,7 @@
   "feature": "031-installable-app",
   "branch": "031-installable-app",
   "repo": "django-mvp/django-mvp",
-  "state": "IMPLEMENT",
+  "state": "PR_READY",
   "state_history": [
     {
       "state": "QUEUED",
@@ -43,6 +43,11 @@
       "state": "IMPLEMENT",
       "at": "2026-09-24T10:00:52Z",
       "note": "merge-gate changes from Sam: helpers to mvp.utils, smaller pwa configuration"
+    },
+    {
+      "state": "PR_READY",
+      "at": "2026-09-24T10:09:55Z",
+      "note": "merge-gate changes landed"
     }
   ],
   "gates": {
