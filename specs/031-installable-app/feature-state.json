@@ -65,38 +65,38 @@
       "tasks": [
         {
           "id": "T001",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1
         },
         {
           "id": "T002",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1
         },
         {
           "id": "T003",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1
         },
         {
           "id": "T004",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1
         },
         {
           "id": "T005",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1
         },
         {
           "id": "T006",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1
         },
         {
           "id": "T007",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1
         }
       ]
     },
