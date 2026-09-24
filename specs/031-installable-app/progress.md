@@ -111,3 +111,11 @@ new imports and new test classes only, and no existing assertion changed.
 - **Verified:** see the full-verify results in the completion report.
 - **Next:** Forge re-verifies.
 - **Watch:** only the apple-touch and maskable images changed, since the others have transparent backgrounds.
+
+## 2026-09-24 — S5 CONVERGE
+
+Every FR and SC maps to delivered, tested behaviour, so no gap tasks were needed. The
+cleanup pass left two defects fixed test-first. Theme lightness written without a percent sign
+would have parsed as a hundredth of its value. The image command would have written into a
+prefixed static directory, where the manifest never looks. It now uses the first unprefixed
+entry, or asks for `--output-dir`. No decision met the ADR bar, and each one records why.
