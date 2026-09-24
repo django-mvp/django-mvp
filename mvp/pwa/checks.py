@@ -5,7 +5,8 @@ from django.core import checks
 from django.urls import get_script_prefix
 
 from mvp.config import MVP_CONFIG
-from mvp.pwa.resolver import IMAGE_DIRECTORY, IMAGES, WORKER_URL_NAME, reverse_or_none
+from mvp.pwa.resolver import IMAGE_DIRECTORY, IMAGES, WORKER_URL_NAME
+from mvp.utils import reverse_or_none
 
 
 class InstallableAppChecks:

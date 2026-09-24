@@ -180,7 +180,7 @@ same values.
 
   In a template, `{% mvp_pwa as pwa %}` from the `mvp` tag library gives you the same
   dictionary.
-- `mvp.pwa.resolver.reverse_or_none(name)` reverses a URL name, and returns `None` instead of
+- `mvp.utils.reverse_or_none(name)` reverses a URL name, and returns `None` instead of
   raising when the name isn't registered. The page head and the startup warnings both use it
   to find out whether the root include is mounted.
 - `mvp.pwa.colors.ThemeColors.for_theme(name)` returns the `#rrggbb` background colour of one of
@@ -188,4 +188,4 @@ same values.
   colour from the package's own stylesheet, so it always matches what the page shows.
 - `mvp.pwa.views.manifest` and `mvp.pwa.views.service_worker` are the two views `mvp.pwa.urls`
   mounts, at `manifest.webmanifest` and `sw.js`.
-- `mvp.pwa.resolver.site_name(request)` returns the current site's name. When no `Site` matches, or the name is empty, it returns the request's host instead. This is the default application name.
+- `mvp.utils.site_name(request)` returns the current site's name. When no `Site` matches, or the name is empty, it returns the request's host instead. This is the default application name.

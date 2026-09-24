@@ -119,3 +119,10 @@ cleanup pass left two defects fixed test-first. Theme lightness written without 
 would have parsed as a hundredth of its value. The image command would have written into a
 prefixed static directory, where the manifest never looks. It now uses the first unprefixed
 entry, or asks for `--output-dir`. No decision met the ADR bar, and each one records why.
+
+## 2026-09-24T12:20Z · Implementer US3 · T013
+
+- **Did:** moved `reverse_or_none` and `site_name` from `mvp/pwa/resolver.py` to `mvp/utils.py`; the resolver and the checks import them from there, with no alias left behind. Added `TestReverseOrNone` and `TestSiteName` to `tests/test_utils.py` (red first on the missing import). The Python reference in docs/installable-app.md names the new location.
+- **Verified:** `poetry run pytest tests/test_utils.py tests/test_pwa -q` → 396 passed.
+- **Next:** T014.
+- **Watch:** the resolver's own name tests still go through `resolve()`.

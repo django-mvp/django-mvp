@@ -35,9 +35,18 @@ import re
 from pathlib import Path
 
 import pytest
+from django.conf import settings
+from django.contrib.sites.models import Site
+from django.test import override_settings
 from easy_icons import icon
 
-from mvp.utils import BS5_ICONS, app_is_installed, avatar_url
+from mvp.utils import (
+    BS5_ICONS,
+    app_is_installed,
+    avatar_url,
+    reverse_or_none,
+    site_name,
+)
 
 FIXTURES_DIR = Path(__file__).resolve().parent / "fixtures"
 VALID_BOOTSTRAP_ICON_NAMES = frozenset(
@@ -230,3 +239,42 @@ class TestAppIsInstalled:
 
     def test_false_for_an_uninstalled_app(self):
         assert app_is_installed("not_a_real_app_anyone_installed") is False
+
+
+class TestReverseOrNone:
+    def test_returns_the_url_of_a_registered_name(self):
+        assert reverse_or_none("mvp-pwa-manifest") == "/manifest.webmanifest"
+
+    def test_returns_none_for_a_name_that_is_not_registered(self):
+        assert reverse_or_none("no-such-url-name") is None
+
+
+@pytest.fixture
+def request_(rf):
+    return rf.get("/", HTTP_HOST="shop.example.org")
+
+
+@pytest.mark.django_db
+class TestSiteName:
+    def test_is_the_current_site_name_with_the_sites_framework(self, request_):
+        Site.objects.filter(pk=settings.SITE_ID).update(name="Corner Shop")
+        Site.objects.clear_cache()
+
+        assert site_name(request_) == "Corner Shop"
+
+    def test_is_the_request_host_without_the_sites_framework(self, request_):
+        apps = [a for a in settings.INSTALLED_APPS if a != "django.contrib.sites"]
+        with override_settings(INSTALLED_APPS=apps):
+            assert site_name(request_) == "shop.example.org"
+
+    def test_falls_back_to_the_host_when_no_site_matches(self, request_):
+        Site.objects.all().delete()
+        Site.objects.clear_cache()
+
+        assert site_name(request_) == "shop.example.org"
+
+    def test_falls_back_to_the_host_when_the_site_name_is_empty(self, request_):
+        Site.objects.filter(pk=settings.SITE_ID).update(name="")
+        Site.objects.clear_cache()
+
+        assert site_name(request_) == "shop.example.org"

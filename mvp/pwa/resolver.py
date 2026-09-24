@@ -1,12 +1,11 @@
 """Installable-app support: the values behind the manifest and the page head."""
 
-from django.contrib.sites.shortcuts import get_current_site
-from django.core.exceptions import ObjectDoesNotExist
 from django.templatetags.static import static
-from django.urls import NoReverseMatch, get_script_prefix, reverse
+from django.urls import get_script_prefix
 
 from mvp.config import MVP_CONFIG
 from mvp.pwa.colors import ThemeColors
+from mvp.utils import reverse_or_none, site_name
 
 MANIFEST_URL_NAME = "mvp-pwa-manifest"
 WORKER_URL_NAME = "mvp-pwa-service-worker"
@@ -18,28 +17,6 @@ IMAGES = {
     "icon_maskable_512": "icon-maskable-512.png",
     "apple_touch_icon": "apple-touch-icon.png",
 }
-
-
-def reverse_or_none(name):
-    """The URL for ``name``, or ``None`` when the root include is not mounted."""
-    try:
-        return reverse(name)
-    except NoReverseMatch:
-        return None
-
-
-def site_name(request):
-    """The current site's name, or the request host when there is none to read.
-
-    ``get_current_site`` raises when the sites framework is installed but no
-    ``Site`` matches, and a ``Site`` may carry an empty name. Either way the
-    application still needs a name, so a page never fails over it.
-    """
-    try:
-        name = get_current_site(request).name
-    except ObjectDoesNotExist:
-        name = ""
-    return name or request.get_host()
 
 
 def resolve(request):
