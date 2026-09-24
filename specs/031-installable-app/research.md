@@ -158,7 +158,7 @@ Contents when on:
   URL is the configured `service_worker` or the reverse of `mvp-pwa-service-worker`, passed
   through `json_script` or `escapejs`.
 
-The resolved values (name, colours, worker URL) come from one function, `mvp.pwa.resolve(request)`,
+The resolved values (name, colours, worker URL) come from one function, `mvp.pwa.resolver.resolve(request)`,
 which both the manifest view and the head template call, so the two can never disagree. The
 template reaches it through a new simple tag in the existing `mvp` template-tag library
 (`{% mvp_pwa as pwa %}`). `base.html` already loads that library. The context processor is not

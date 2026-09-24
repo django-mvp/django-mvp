@@ -86,3 +86,27 @@ runs with the feature off.
 
 A page keeps rendering when the include is missing: the head then carries no manifest link and no
 registration script, and `mvp.W001` tells you why.
+
+## Python reference
+
+You only need these if you override `mvp/pwa/head.html` or build something of your own on the
+same values.
+
+- `mvp.pwa.resolver.resolve(request)` returns a dictionary with every value the manifest and the
+  page head use. The keys are:
+  - `name`, `short_name`, `start_url`, `scope` and `display`
+  - `theme_color` and `background_color`, each `None` when no colour can be resolved
+  - `manifest_url` and `worker_url`, each `None` when `mvp.pwa.urls` is not mounted
+  - `icon_192`, `icon_512`, `icon_maskable_512` and `apple_touch_icon`, the static URLs of the
+    four images
+
+  In a template, `{% mvp_pwa as pwa %}` from the `mvp` tag library gives you the same
+  dictionary.
+- `mvp.pwa.resolver.reverse_or_none(name)` reverses a URL name, and returns `None` instead of
+  raising when the name isn't registered. The page head and the startup warnings both use it
+  to find out whether the root include is mounted.
+- `mvp.pwa.colors.ThemeColors.for_theme(name)` returns the `#rrggbb` background colour of one of
+  the daisyUI themes that ship with the package, or `None` for any other name. It reads the
+  colour from the package's own stylesheet, so it always matches what the page shows.
+- `mvp.pwa.views.manifest` and `mvp.pwa.views.service_worker` are the two views `mvp.pwa.urls`
+  mounts, at `manifest.webmanifest` and `sw.js`.

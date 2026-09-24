@@ -4,7 +4,7 @@ import pytest
 from django.core.checks import run_checks
 
 from mvp.config import MVP_CONFIG
-from mvp.pwa import IMAGE_DIRECTORY, IMAGES
+from mvp.pwa.resolver import IMAGE_DIRECTORY, IMAGES
 
 
 def mvp_warnings():

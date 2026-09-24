@@ -3,7 +3,7 @@
 from django.http import JsonResponse
 from django.shortcuts import render
 
-from mvp.pwa import resolve
+from mvp.pwa.resolver import resolve
 
 
 def manifest(request):

@@ -5,7 +5,7 @@ from django.test import override_settings
 from django.urls import resolve as resolve_url
 from django.urls import reverse
 
-from mvp.pwa import resolve
+from mvp.pwa.resolver import resolve
 
 
 class TestPwaUrls:

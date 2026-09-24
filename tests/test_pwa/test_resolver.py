@@ -1,4 +1,4 @@
-"""Tests for ``mvp.pwa.resolve``, the one place installable-app values are worked out."""
+"""Tests for ``mvp.pwa.resolver.resolve``, the one place installable-app values are worked out."""
 
 import pytest
 from django.conf import settings
@@ -7,7 +7,7 @@ from django.test import override_settings
 from django.urls import set_script_prefix
 
 from mvp.config import MVP_CONFIG
-from mvp.pwa import resolve
+from mvp.pwa.resolver import resolve
 
 
 @pytest.fixture

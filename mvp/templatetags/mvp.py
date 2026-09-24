@@ -13,9 +13,10 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 from django_cotton.compiler_regex import CottonCompiler
 
-from .. import pwa, utils
+from .. import utils
 from ..config import MVP_CONFIG
 from ..layout import BREAKPOINT_WIDTHS, LayoutConfig
+from ..pwa import resolver
 
 register = template.Library()
 
@@ -556,4 +557,4 @@ def mvp_pwa(context):
     Used as ``{% mvp_pwa as pwa %}`` by ``mvp/pwa/head.html``, so the page head
     and the manifest read the same resolver.
     """
-    return pwa.resolve(context["request"])
+    return resolver.resolve(context["request"])
