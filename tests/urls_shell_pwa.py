@@ -12,7 +12,8 @@ from demo import urls as demo_urls
 urlpatterns_without_pwa = [
     pattern
     for pattern in demo_urls.urlpatterns
-    if getattr(pattern, "urlconf_name", None) != "mvp.pwa.urls"
+    if getattr(getattr(pattern, "urlconf_name", None), "__name__", None)
+    != "mvp.pwa.urls"
 ]
 
 urlpatterns = [path("", include("mvp.pwa.urls")), *urlpatterns_without_pwa]
