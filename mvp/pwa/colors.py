@@ -9,7 +9,7 @@ STYLESHEET = Path(__file__).parents[1] / "static" / "css" / "django-mvp.css"
 
 BASE_100 = re.compile(
     r"\[data-theme=(?P<name>[\w-]+)\]\{[^}]*?"
-    r"--color-base-100:oklch\((?P<l>[\d.]+)%? (?P<c>[\d.]+) (?P<h>[\d.]+)\)"
+    r"--color-base-100:oklch\((?P<l>[\d.]+)(?P<percent>%?) (?P<c>[\d.]+) (?P<h>[\d.]+)\)"
 )
 
 
@@ -33,7 +33,9 @@ class ThemeColors:
         css = STYLESHEET.read_text(encoding="utf-8")
         return {
             match["name"]: cls.to_hex(
-                float(match["l"]) / 100, float(match["c"]), float(match["h"])
+                float(match["l"]) / (100 if match["percent"] else 1),
+                float(match["c"]),
+                float(match["h"]),
             )
             for match in BASE_100.finditer(css)
         }

@@ -33,5 +33,29 @@ class TestThemeColors:
     def test_known_themes_match_their_reference_colour(self, theme, expected):
         assert ThemeColors.for_theme(theme) == expected
 
+    @pytest.mark.parametrize(
+        ("declaration", "expected"),
+        [
+            ("oklch(100% 0 0)", "#ffffff"),
+            ("oklch(1 0 0)", "#ffffff"),
+            ("oklch(25.33% .016 252.42)", "#1d232a"),
+            ("oklch(.2533 .016 252.42)", "#1d232a"),
+        ],
+    )
+    def test_lightness_parses_as_a_percentage_or_a_number(
+        self, declaration, expected, tmp_path, monkeypatch
+    ):
+        # A minifier may write the lightness either way; both mean the same colour.
+        stylesheet = tmp_path / "django-mvp.css"
+        stylesheet.write_text(
+            "[data-theme=probe]{color-scheme:light;--color-base-100:%s}" % declaration
+        )
+        monkeypatch.setattr("mvp.pwa.colors.STYLESHEET", stylesheet)
+        ThemeColors.table.cache_clear()
+        try:
+            assert ThemeColors.for_theme("probe") == expected
+        finally:
+            ThemeColors.table.cache_clear()
+
     def test_an_unknown_theme_has_no_colour(self):
         assert ThemeColors.for_theme("not-a-shipped-theme") is None

@@ -143,7 +143,7 @@ pages fail to render.
 | --- | --- |
 | Source | `brand/icon.svg`, found through the static files finders. The command reads this file whatever the configured icon resolver is. `brand/icon_dark.svg` is never used. |
 | Package mark | When the file found is the one shipped inside django-mvp, the command says so. Put your own `brand/icon.svg` in your static files to use it instead. |
-| Destination | `--output-dir` if given, otherwise the first entry of `STATICFILES_DIRS` (a `(prefix, path)` entry uses its path). With neither, the command stops and asks for `--output-dir`. Files go in `<directory>/brand/pwa/`, which is created if missing. Existing images are overwritten. |
+| Destination | `--output-dir` if given, otherwise the first entry of `STATICFILES_DIRS` that has no prefix. A `(prefix, path)` entry is skipped, because its files are served under the prefix, where the manifest doesn't look. With no usable entry, the command stops and asks for `--output-dir`. Files go in `<directory>/brand/pwa/`, which is created if missing. Existing images are overwritten. |
 | Proportions | A mark that is not square is centred, never stretched. |
 | Plain icons | 192 px and 512 px, the mark filling the square on a transparent background. |
 | Maskable and Apple icons | 512 px and 180 px, the mark in the central 80% on an opaque background. The background is `pwa.background_color`, else the default theme's colour, else white. |

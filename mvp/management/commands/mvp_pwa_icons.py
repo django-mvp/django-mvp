@@ -45,7 +45,7 @@ class Command(BaseCommand):
         parser.add_argument(
             "--output-dir",
             help="Static directory to write brand/pwa/ into. "
-            "Defaults to the first entry of STATICFILES_DIRS.",
+            "Defaults to the first STATICFILES_DIRS entry without a prefix.",
         )
 
     def handle(self, *args, **options):
@@ -97,14 +97,15 @@ class Command(BaseCommand):
     def output_root(output_dir):
         if output_dir:
             return Path(output_dir)
-        if not settings.STATICFILES_DIRS:
-            raise CommandError(
-                "STATICFILES_DIRS is empty; pass --output-dir to say where "
-                "to write the images."
-            )
-        first = settings.STATICFILES_DIRS[0]
-        # An entry may be a (prefix, path) tuple.
-        return Path(first[1] if isinstance(first, (list, tuple)) else first)
+        # A (prefix, path) entry is served under its prefix, where the
+        # manifest never looks, so only an unprefixed entry will do.
+        for entry in settings.STATICFILES_DIRS:
+            if not isinstance(entry, (list, tuple)):
+                return Path(entry)
+        raise CommandError(
+            "STATICFILES_DIRS has no entry without a prefix; pass --output-dir "
+            "to say where to write the images."
+        )
 
     @staticmethod
     def background():

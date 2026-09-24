@@ -2,7 +2,7 @@
   "feature": "031-installable-app",
   "branch": "031-installable-app",
   "repo": "django-mvp/django-mvp",
-  "state": "IMPLEMENT",
+  "state": "CONVERGE",
   "state_history": [
     {
       "state": "QUEUED",
@@ -23,6 +23,11 @@
       "state": "IMPLEMENT",
       "at": "2026-09-24T07:39:55Z",
       "note": "US-1, US-2, US-3 sequentially in one worktree"
+    },
+    {
+      "state": "CONVERGE",
+      "at": "2026-09-24T08:08:52Z",
+      "note": "all three stories done"
     }
   ],
   "gates": {
@@ -247,7 +252,7 @@
   ],
   "budgets": {
     "converge_cycles": {
-      "used": 0,
+      "used": 1,
       "max": 2
     },
     "review_cycles": {

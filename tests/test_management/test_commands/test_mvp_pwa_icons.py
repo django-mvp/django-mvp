@@ -181,14 +181,26 @@ class TestMvpPwaIcons:
 
         assert (brand_dir.parent / IMAGE_DIRECTORY / IMAGES["icon_192"]).exists()
 
-    def test_a_prefixed_static_directory_uses_its_path(
+    def test_a_prefixed_static_directory_is_skipped(
+        self, mark, brand_dir, tmp_path, settings
+    ):
+        # Files in a prefixed entry are served under the prefix, where the
+        # manifest never looks, so the first unprefixed entry is used instead.
+        plain = tmp_path / "plain"
+        settings.STATICFILES_DIRS = [("assets", brand_dir.parent), plain]
+
+        call_command("mvp_pwa_icons", stdout=io.StringIO())
+
+        assert (plain / IMAGE_DIRECTORY / IMAGES["icon_192"]).exists()
+        assert not (brand_dir.parent / IMAGE_DIRECTORY / IMAGES["icon_192"]).exists()
+
+    def test_only_prefixed_static_directories_name_the_option(
         self, mark, brand_dir, settings
     ):
         settings.STATICFILES_DIRS = [("assets", brand_dir.parent)]
 
-        call_command("mvp_pwa_icons", stdout=io.StringIO())
-
-        assert (brand_dir.parent / IMAGE_DIRECTORY / IMAGES["icon_192"]).exists()
+        with pytest.raises(CommandError, match="--output-dir"):
+            call_command("mvp_pwa_icons", stdout=io.StringIO())
 
     def test_a_pathlib_static_directory_is_accepted(self, mark, brand_dir, settings):
         settings.STATICFILES_DIRS = [Path(brand_dir.parent)]
