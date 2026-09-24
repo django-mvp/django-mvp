@@ -1,3 +1,3 @@
-"""URLconf that does not mount ``mvp.pwa.urls`` at all."""
+"""URLconf that does not mount ``mvp.urls`` at all."""
 
 urlpatterns: list = []

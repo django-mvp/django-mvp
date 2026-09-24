@@ -206,13 +206,13 @@ def installable_app_on(monkeypatch):
 @pytest.mark.usefixtures("installable_app_on")
 class TestShellHeadWithInstallableAppOn:
     @pytest.fixture(autouse=True)
-    def root_include_mounted(self, settings):
+    def urls_mounted(self, settings):
         settings.ROOT_URLCONF = "tests.urls_shell_pwa"
 
     def test_it_links_the_manifest(self):
         link = head_soup().find("link", rel="manifest")
 
-        assert link["href"] == "/manifest.webmanifest"
+        assert link["href"] == "/account/manifest.webmanifest"
 
     def test_it_sets_the_theme_colour_for_a_shipped_theme(self):
         meta = head_soup().find("meta", attrs={"name": "theme-color"})
@@ -256,7 +256,7 @@ class TestShellHeadWithInstallableAppOn:
             if script.string and "serviceWorker.register" in script.string
         ]
 
-        assert json.loads(data.string) == "/sw.js"
+        assert json.loads(data.string) == "/account/sw.js"
         assert len(registration) == 1
 
     def test_a_hostile_name_stays_escaped(self):
@@ -289,9 +289,9 @@ class TestShellHeadWithInstallableAppOn:
 
 @pytest.mark.django_db
 @pytest.mark.usefixtures("installable_app_on")
-class TestShellHeadWithoutTheRootInclude:
+class TestShellHeadWithoutMvpUrls:
     @pytest.fixture(autouse=True)
-    def root_include_unmounted(self, settings):
+    def urls_unmounted(self, settings):
         settings.ROOT_URLCONF = "tests.urls_shell_no_pwa"
 
     def test_the_page_renders_without_a_manifest_or_registration(self):
@@ -306,7 +306,7 @@ class TestShellHeadWithoutTheRootInclude:
 @pytest.mark.usefixtures("installable_app_on")
 class TestShellHeadWithConfiguredValues:
     @pytest.fixture(autouse=True)
-    def root_include_mounted(self, settings):
+    def urls_mounted(self, settings):
         settings.ROOT_URLCONF = "tests.urls_shell_pwa"
 
     def test_configured_colour_reaches_the_theme_colour_meta_tag(self, monkeypatch):

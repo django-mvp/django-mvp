@@ -154,7 +154,7 @@ class TestResolveShape:
     @pytest.mark.django_db
     @override_settings(ROOT_URLCONF="tests.urls_pwa")
     def test_the_worker_is_the_packaged_one(self, request_):
-        assert resolve(request_)["worker_url"] == "/sw.js"
+        assert resolve(request_)["worker_url"] == "/account/sw.js"
 
 
 class TestInstallableApp:

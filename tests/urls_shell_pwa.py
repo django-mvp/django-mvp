@@ -1,19 +1,15 @@
-"""The demo's URLs, so a shell page renders, with ``mvp.pwa.urls`` at the root.
+"""The demo's URLs, so a shell page renders, with ``mvp.urls`` mounted at ``account/``.
 
-``urlpatterns_without_pwa`` is the same set without the include, for the case
-where a project turns the feature on and forgets to mount it. Whatever the demo
-itself mounts is filtered out first, so neither case depends on the demo.
+``urlpatterns_without_mvp_urls`` is the same set without that include, for the
+case where a project turns the feature on and forgets to mount it.
 """
-
-from django.urls import include, path
 
 from demo import urls as demo_urls
 
-urlpatterns_without_pwa = [
+urlpatterns = demo_urls.urlpatterns
+
+urlpatterns_without_mvp_urls = [
     pattern
     for pattern in demo_urls.urlpatterns
-    if getattr(getattr(pattern, "urlconf_name", None), "__name__", None)
-    != "mvp.pwa.urls"
+    if getattr(getattr(pattern, "urlconf_name", None), "__name__", None) != "mvp.urls"
 ]
-
-urlpatterns = [path("", include("mvp.pwa.urls")), *urlpatterns_without_pwa]

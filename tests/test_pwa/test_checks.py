@@ -45,21 +45,17 @@ class TestChecksWithTheFeatureOff:
 
 
 @pytest.mark.usefixtures("feature_on")
-class TestRootIncludeWarning:
-    def test_a_missing_include_is_reported(self, settings, images):
+class TestUnmountedWarning:
+    def test_an_unmounted_account_center_is_reported(self, settings, images):
         settings.ROOT_URLCONF = "tests.urls_pwa_absent"
 
         warnings = mvp_warnings()
 
         assert [w.id for w in warnings] == ["mvp.W001"]
-        assert "mvp.pwa.urls" in warnings[0].msg
+        assert "include('mvp.urls')" in warnings[0].hint
+        assert "mvp.pwa.urls" not in warnings[0].msg + warnings[0].hint
 
-    def test_an_include_under_a_sub_path_is_reported(self, settings, images):
-        settings.ROOT_URLCONF = "tests.urls_pwa_subpath"
-
-        assert [w.id for w in mvp_warnings()] == ["mvp.W001"]
-
-    def test_an_include_at_the_root_is_accepted(self, settings, images):
+    def test_mvp_urls_under_any_prefix_is_accepted(self, settings, images):
         settings.ROOT_URLCONF = "tests.urls_pwa"
 
         assert mvp_warnings() == []

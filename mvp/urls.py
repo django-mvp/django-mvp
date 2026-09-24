@@ -18,6 +18,10 @@ development-only sign-in and sign-out, so a page guarded by
 ``LoginRequiredMixin`` is reachable before a project installs an
 account-management app. See docs/account-center.md.
 
+Mounting this also serves the installable-app files, ``manifest.webmanifest``
+and ``sw.js``, beside the landing page, whatever prefix it is mounted at. See
+docs/installable-app.md.
+
 Once allauth's account application is installed, this URLconf contributes
 neither name, so which view answers those two addresses never depends on the
 order two URLconfs were mounted in. The reasoning is in
@@ -26,11 +30,14 @@ docs/adr/0024-a-stand-in-page-withdraws-when-the-real-app-arrives.md.
 
 from django.urls import path
 
+from .pwa.views import manifest, service_worker
 from .utils import app_is_installed
 from .views.account import AccountCenterView, SignInView, SignOutView
 
 urlpatterns = [
     path("", AccountCenterView.as_view(), name="account-center"),
+    path("manifest.webmanifest", manifest, name="mvp-pwa-manifest"),
+    path("sw.js", service_worker, name="mvp-pwa-service-worker"),
 ]
 
 if not app_is_installed("allauth.account"):

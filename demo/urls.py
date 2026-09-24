@@ -29,9 +29,6 @@ from .views import (
 )
 
 urlpatterns = [
-    # At the root, not under a prefix: a service worker only controls pages at
-    # or below its own path. See docs/installable-app.md.
-    path("", include("mvp.pwa.urls")),
     path("", DemoHomeView.as_view(), name="home"),
     path("admin/", admin.site.urls),
     path("account/", include("mvp.urls")),

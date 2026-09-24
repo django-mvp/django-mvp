@@ -2,6 +2,7 @@
 
 from django.http import JsonResponse
 from django.shortcuts import render
+from django.urls import get_script_prefix
 
 from mvp.pwa.resolver import resolve
 
@@ -32,7 +33,12 @@ def manifest(request):
 
 
 def service_worker(request):
-    """The packaged worker, served from the root so it controls every page."""
+    """The packaged worker.
+
+    ``Service-Worker-Allowed`` widens its scope from the folder it is served
+    from to the whole site, so it controls every page.
+    """
     response = render(request, "mvp/pwa/sw.js", content_type="text/javascript")
     response["Cache-Control"] = "no-cache"
+    response["Service-Worker-Allowed"] = get_script_prefix()
     return response
