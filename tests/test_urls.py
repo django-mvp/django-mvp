@@ -164,14 +164,23 @@ class TestEachNameIsRegisteredExactlyOnce:
 
 
 class TestInstallableAppUrls:
-    """The manifest and the worker ride on ``mvp.urls``, at whatever prefix it is mounted."""
+    """The manifest and the worker ride on ``mvp.urls`` while ``pwa`` is on."""
 
     @override_settings(ROOT_URLCONF="tests.urls_pwa")
+    def test_the_routes_are_absent_when_the_feature_is_off(self):
+        with pytest.raises(NoReverseMatch):
+            reverse("mvp-pwa-manifest")
+        with pytest.raises(NoReverseMatch):
+            reverse("mvp-pwa-service-worker")
+
+    @override_settings(ROOT_URLCONF="tests.urls_pwa")
+    @pytest.mark.usefixtures("pwa_enabled")
     def test_the_two_routes_have_fixed_names_and_paths(self):
         assert reverse("mvp-pwa-manifest") == "/account/manifest.webmanifest"
         assert reverse("mvp-pwa-service-worker") == "/account/sw.js"
 
     @override_settings(ROOT_URLCONF="tests.urls_pwa")
+    @pytest.mark.usefixtures("pwa_enabled")
     def test_the_routes_resolve_to_the_packaged_views(self):
         assert resolve("/account/manifest.webmanifest").func.__name__ == "manifest"
         assert resolve("/account/sw.js").func.__name__ == "service_worker"

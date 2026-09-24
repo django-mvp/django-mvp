@@ -3,6 +3,7 @@
 import json
 
 import pytest
+from django.conf import settings
 from django.contrib.sites.models import Site
 from django.test import override_settings
 
@@ -10,7 +11,7 @@ from mvp.config import MVP_CONFIG
 
 
 @pytest.fixture(autouse=True)
-def mounted_at_root():
+def mounted_at_root(pwa_enabled):
     with override_settings(ROOT_URLCONF="tests.urls_pwa"):
         yield
 
@@ -54,22 +55,42 @@ class TestManifestView:
             },
         ]
 
-    def test_it_omits_colours_when_none_is_configured(self, client, monkeypatch):
-        monkeypatch.setitem(MVP_CONFIG, "pwa", True)
-
+    def test_the_theme_and_background_colour_are_the_configured_colour(self, client):
         manifest = client.get("/account/manifest.webmanifest").json()
 
-        assert "theme_color" not in manifest
-        assert "background_color" not in manifest
+        assert manifest["theme_color"] == "#123456"
+        assert manifest["background_color"] == "#123456"
 
-    def test_it_answers_with_the_feature_off(self, client):
-        assert MVP_CONFIG["pwa"] is False
-        assert client.get("/account/manifest.webmanifest").status_code == 200
+    def test_the_short_name_defaults_to_the_name(self, client):
+        manifest = client.get("/account/manifest.webmanifest").json()
 
-    def test_it_answers_with_the_feature_on(self, client, monkeypatch):
-        monkeypatch.setitem(MVP_CONFIG, "pwa", True)
+        assert manifest["short_name"] == manifest["name"]
 
-        assert client.get("/account/manifest.webmanifest").status_code == 200
+    def test_the_name_is_the_current_site_name_with_the_sites_framework(self, client):
+        Site.objects.filter(pk=settings.SITE_ID).update(name="Corner Shop")
+        Site.objects.clear_cache()
+
+        assert client.get("/account/manifest.webmanifest").json()["name"] == "Corner Shop"
+
+    def test_the_name_is_the_request_host_without_the_sites_framework(self, client):
+        apps = [a for a in settings.INSTALLED_APPS if a != "django.contrib.sites"]
+        with override_settings(INSTALLED_APPS=apps):
+            manifest = client.get(
+                "/account/manifest.webmanifest", HTTP_HOST="shop.example.org"
+            ).json()
+
+        assert manifest["name"] == "shop.example.org"
+
+    def test_the_names_fall_back_to_the_host_when_the_site_name_is_empty(self, client):
+        Site.objects.filter(pk=settings.SITE_ID).update(name="")
+        Site.objects.clear_cache()
+
+        manifest = client.get(
+            "/account/manifest.webmanifest", HTTP_HOST="shop.example.org"
+        ).json()
+
+        assert manifest["name"] == "shop.example.org"
+        assert manifest["short_name"] == "shop.example.org"
 
     def test_a_hostile_site_name_round_trips_exactly(self, client):
         name = 'Bob\'s "Shop" </script><b>&amp;'
@@ -101,11 +122,6 @@ class TestServiceWorkerView:
         body = client.get("/account/sw.js").content.decode()
 
         assert "fetch" not in body
-
-    def test_it_answers_with_the_feature_on(self, client, monkeypatch):
-        monkeypatch.setitem(MVP_CONFIG, "pwa", True)
-
-        assert client.get("/account/sw.js").status_code == 200
 
     def test_it_widens_its_scope_to_the_site_root(self, client):
         assert client.get("/account/sw.js")["Service-Worker-Allowed"] == "/"
@@ -141,16 +157,6 @@ class TestManifestOverrides:
         manifest = client.get("/account/manifest.webmanifest").json()
 
         assert manifest["short_name"] == "Configured"
-
-    def test_one_configured_colour_is_both_the_theme_and_background_colour(
-        self, client, monkeypatch
-    ):
-        monkeypatch.setitem(MVP_CONFIG, "pwa", {"theme_color": "#123456"})
-
-        manifest = client.get("/account/manifest.webmanifest").json()
-
-        assert manifest["theme_color"] == "#123456"
-        assert manifest["background_color"] == "#123456"
 
     def test_the_start_url_and_scope_follow_the_script_prefix(self, client):
         from django.urls import set_script_prefix

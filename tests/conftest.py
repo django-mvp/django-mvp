@@ -17,6 +17,7 @@ from django.urls import clear_url_caches
 from django.views.generic import TemplateView
 
 import mvp.urls as mvp_urls
+from mvp.config import MVP_CONFIG
 from mvp.menus import AccountCenterMenu
 from tests.factories import ArticleFactory, CategoryFactory, ProductFactory
 from tests.testapp_account.menus import build_entries
@@ -81,6 +82,46 @@ def allauth_installed(request):
         installed_apps.disable()
         middleware.disable()
         _reload_urlconfs(request.module)
+
+
+PWA_URLCONF_MODULES = (
+    "demo.urls",
+    "tests.urls_pwa",
+    "tests.urls_shell_pwa",
+)
+
+
+def reload_pwa_urlconfs(request_module):
+    """Rebuild ``mvp.urls`` and every URLconf that includes it, so the manifest
+    and worker routes follow ``MVP_CONFIG["pwa"]`` as it now stands.
+
+    ``mvp.urls`` reads the setting once, at import. Each module below built a
+    resolver from the old ``urlpatterns``, so each is reloaded, in dependency
+    order, before Django's resolver cache is cleared.
+    """
+    importlib.reload(mvp_urls)
+    for name in PWA_URLCONF_MODULES:
+        importlib.reload(importlib.import_module(name))
+    importlib.reload(request_module)
+    clear_url_caches()
+
+
+@pytest.fixture
+def pwa_enabled(request):
+    """Turn the installable app on for one test, routes included.
+
+    Sets ``MVP_CONFIG["pwa"]`` to a colour, reloads the URLconfs that mount
+    ``mvp.urls``, and on teardown undoes the setting first and reloads them
+    again so no later test sees the routes.
+    """
+    patch = pytest.MonkeyPatch()
+    patch.setitem(MVP_CONFIG, "pwa", {"theme_color": "#123456"})
+    reload_pwa_urlconfs(request.module)
+    try:
+        yield
+    finally:
+        patch.undo()
+        reload_pwa_urlconfs(request.module)
 
 
 @pytest.fixture

@@ -242,6 +242,7 @@ class TestAppIsInstalled:
 
 
 class TestReverseOrNone:
+    @pytest.mark.usefixtures("pwa_enabled")
     def test_returns_the_url_of_a_registered_name(self):
         assert reverse_or_none("mvp-pwa-manifest") == "/account/manifest.webmanifest"
 

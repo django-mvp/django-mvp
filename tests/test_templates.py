@@ -195,15 +195,8 @@ def head_soup():
     return BeautifulSoup(render_shell_head(), "html.parser")
 
 
-@pytest.fixture
-def installable_app_on(monkeypatch):
-    from mvp.config import MVP_CONFIG
-
-    monkeypatch.setitem(MVP_CONFIG, "pwa", True)
-
-
 @pytest.mark.django_db
-@pytest.mark.usefixtures("installable_app_on")
+@pytest.mark.usefixtures("pwa_enabled")
 class TestShellHeadWithInstallableAppOn:
     @pytest.fixture(autouse=True)
     def urls_mounted(self, settings):
@@ -213,9 +206,6 @@ class TestShellHeadWithInstallableAppOn:
         link = head_soup().find("link", rel="manifest")
 
         assert link["href"] == "/account/manifest.webmanifest"
-
-    def test_it_sets_no_theme_colour_when_none_is_configured(self):
-        assert head_soup().find("meta", attrs={"name": "theme-color"}) is None
 
     def test_it_links_the_apple_touch_icon(self):
         link = head_soup().find("link", rel="apple-touch-icon")
@@ -300,11 +290,7 @@ class TestShellHeadWithInstallableAppOn:
 
         assert meta["content"] == "testserver"
 
-    def test_it_sets_the_theme_colour_when_one_is_configured(self, monkeypatch):
-        from mvp.config import MVP_CONFIG
-
-        monkeypatch.setitem(MVP_CONFIG, "pwa", {"theme_color": "#123456"})
-
+    def test_it_sets_the_configured_theme_colour(self):
         meta = head_soup().find("meta", attrs={"name": "theme-color"})
 
         assert meta["content"] == "#123456"
@@ -338,7 +324,7 @@ class TestShellHeadWithInstallableAppOn:
 
 
 @pytest.mark.django_db
-@pytest.mark.usefixtures("installable_app_on")
+@pytest.mark.usefixtures("pwa_enabled")
 class TestShellHeadWithoutMvpUrls:
     @pytest.fixture(autouse=True)
     def urls_unmounted(self, settings):
@@ -353,20 +339,11 @@ class TestShellHeadWithoutMvpUrls:
 
 
 @pytest.mark.django_db
-@pytest.mark.usefixtures("installable_app_on")
+@pytest.mark.usefixtures("pwa_enabled")
 class TestShellHeadWithConfiguredValues:
     @pytest.fixture(autouse=True)
     def urls_mounted(self, settings):
         settings.ROOT_URLCONF = "tests.urls_shell_pwa"
-
-    def test_configured_colour_reaches_the_theme_colour_meta_tag(self, monkeypatch):
-        from mvp.config import MVP_CONFIG
-
-        monkeypatch.setitem(MVP_CONFIG, "pwa", {"theme_color": "#123456"})
-
-        meta = head_soup().find("meta", attrs={"name": "theme-color"})
-
-        assert meta["content"] == "#123456"
 
     def test_a_project_head_template_replaces_the_packaged_one(self, settings):
         project_templates = Path(__file__).parent / "pwa_templates"

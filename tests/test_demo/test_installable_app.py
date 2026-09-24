@@ -13,6 +13,7 @@ class TestDemoInstallableApp:
         assert demo_settings.MVP_CONFIG["pwa"] == {"theme_color": "#f8f6f2"}
 
     @pytest.mark.django_db
+    @pytest.mark.usefixtures("pwa_enabled")
     def test_the_manifest_answers_beside_the_account_center(self, client):
         response = client.get("/account/manifest.webmanifest")
 
@@ -20,5 +21,6 @@ class TestDemoInstallableApp:
         assert response["Content-Type"] == "application/manifest+json"
 
     @pytest.mark.django_db
+    @pytest.mark.usefixtures("pwa_enabled")
     def test_the_worker_answers_beside_the_account_center(self, client):
         assert client.get("/account/sw.js").status_code == 200
