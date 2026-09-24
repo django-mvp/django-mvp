@@ -202,7 +202,7 @@
       "priority": "P3",
       "issue": 394,
       "worktree": "/home/sam/projects/django-mvp/dm-031-installable-app",
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
