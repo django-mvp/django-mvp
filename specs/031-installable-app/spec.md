@@ -216,8 +216,9 @@ Render a page and confirm the head registers the project's worker instead of the
 - **FR-019**: The package MUST document how to turn the feature on, the root include, the image
   command, every configuration key it adds, and how to supply a service worker of the project's
   own. The domain glossary MUST define *installable app* and *service worker*.
-- **FR-020**: The demo application MUST turn the feature on, mount the root include and carry
-  the generated images, so that what ships is what the package is shown to do.
+- **FR-020**: The demo application MUST turn the feature on, mount the root include and
+  generate its images with the package's own command rather than committing them, so that what
+  ships is what the package is shown to do.
 
 ### Key Entities
 

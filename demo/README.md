@@ -91,13 +91,24 @@ To clear existing data and regenerate:
 poetry run python manage.py generate_dummy_data --clear
 ```
 
-### 2. Run the Development Server
+### 2. Generate the App Images
+
+The demo can be installed as an app, and the images that needs are generated rather than
+committed. Run this once after checkout, and again whenever the brand mark changes:
+
+```bash
+poetry run python manage.py mvp_pwa_icons --output-dir demo/static
+```
+
+Until then, the development server starts with a warning (`mvp.W002`) naming the missing files.
+
+### 3. Run the Development Server
 
 ```bash
 poetry run python manage.py runserver
 ```
 
-### 3. Access the Examples
+### 4. Access the Examples
 
 Navigate to:
 - **Products List**: http://localhost:8000/products/
