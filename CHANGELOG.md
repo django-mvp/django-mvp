@@ -28,8 +28,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   naming the site root, so it controls every page even if `mvp.urls` is mounted elsewhere.
 
 - **A loading spinner in the header** that shows while any htmx request is in flight, at
-  every width. `mvp/base.html` points every htmx request at it with `hx-indicator` on
-  `<body>`. See [Loading indicator](docs/layout.md#loading-indicator).
+  every width. It reacts to htmx's own `htmx-request` class, so a project's own indicators
+  keep working. See [Loading indicator](docs/layout.md#loading-indicator).
 
 - **`mvp_pwa_icons`, a management command** that renders the app's icons and Apple touch
   icon from the project's `brand/icon.svg`.

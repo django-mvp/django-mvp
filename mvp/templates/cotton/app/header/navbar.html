@@ -40,11 +40,11 @@
     {% endif %}
   </div>
   <div class="navbar-end w-auto shrink-0 gap-3">
-    {# The page-wide htmx indicator. The body's hx-indicator points every htmx #}
-    {# request here, so it shows while any request is in flight. It sits #}
-    {# outside both widget regions because it is shown at every width. #}
+    {# The page-wide htmx indicator, shown while any htmx request is in #}
+    {# flight by the rule in mvp/tailwind/base.css. It sits outside both #}
+    {# widget regions because it is shown at every width. #}
     <span id="mvp-htmx-indicator"
-          class="htmx-indicator loading loading-spinner loading-sm"
+          class="loading loading-spinner loading-sm"
           aria-hidden="true"></span>
     {# Mobile and desktop widget lists (issue #176) render as two separate #}
     {# regions toggled by Tailwind's responsive display utilities, keyed off #}

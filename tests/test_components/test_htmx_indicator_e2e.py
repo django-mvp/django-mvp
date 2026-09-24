@@ -1,9 +1,9 @@
 """The header's htmx indicator shows while a request is in flight (#397).
 
-The rendered-markup tests in test_app_header.py prove the spinner and the
-body's ``hx-indicator`` exist. Whether htmx actually lights the spinner up
-depends on attribute inheritance and on the stylesheet htmx injects, and only a
-browser can settle that. Each test holds the request open until the spinner
+The rendered-markup tests in test_app_header.py prove the spinner exists.
+Whether it shows depends on htmx putting ``htmx-request`` on the requesting
+element and on the ``:has()`` rule in mvp/tailwind/base.css reacting to it, and
+only a browser can settle that. Each test holds the request open until the spinner
 has been seen on screen, then lets it finish and waits for it to go away.
 """
 
@@ -49,9 +49,7 @@ class TestTheIndicatorShowsDuringARequest:
     @pytest.mark.parametrize("viewport", [DESKTOP, MOBILE], ids=["desktop", "mobile"])
     def test_the_spinner_shows_at_every_width(self, page, live_server, viewport):
         """The widget regions beside it each disappear at one side of the
-        sidebar breakpoint, and the spinner must not go with them. A request
-        sent from the body lights it up with or without ``hx-indicator``,
-        so the boosted-link test above is the one that proves the attribute."""
+        sidebar breakpoint, and the spinner must not go with them."""
         page.set_viewport_size(viewport)
         page.goto(live_server.url)
         indicator = page.locator("#mvp-htmx-indicator")
@@ -66,3 +64,31 @@ class TestTheIndicatorShowsDuringARequest:
         expect(indicator).to_have_css("opacity", "1")
         held[0].continue_()
         expect(indicator).to_be_hidden()
+
+    def test_a_projects_own_indicator_still_shows(self, page, live_server):
+        """An inherited ``hx-indicator`` would move htmx's request class off the
+        element making the request, and an indicator inside that element would
+        never show. Both have to show: the project's and the header's."""
+        page.set_viewport_size(DESKTOP)
+        page.goto(live_server.url)
+        page.evaluate(
+            """() => {
+              const button = document.createElement("button");
+              button.id = "own";
+              button.setAttribute("hx-get", "/layout/");
+              button.setAttribute("hx-swap", "none");
+              button.innerHTML = '<span id="own-indicator" class="htmx-indicator">…</span>';
+              document.querySelector("main, body").prepend(button);
+              htmx.process(button);
+            }"""
+        )
+        own = page.locator("#own-indicator")
+        header = page.locator("#mvp-htmx-indicator")
+
+        held = _hold(page, "**/layout/")
+        page.locator("#own").click()
+
+        expect(own).to_have_css("opacity", "1")
+        expect(header).to_be_visible()
+        held[0].continue_()
+        expect(header).to_be_hidden()

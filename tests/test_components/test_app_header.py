@@ -254,9 +254,8 @@ class TestTheHeaderShowsWhenHtmxIsWorking:
 
         assert indicator is not None
         assert indicator.find_parent(class_="mvp-header") is not None
-        assert {"htmx-indicator", "loading", "loading-spinner"} <= set(
-            indicator["class"]
-        )
+        assert {"loading", "loading-spinner"} <= set(indicator["class"])
+        assert indicator["aria-hidden"] == "true"
 
     def test_the_indicator_sits_at_the_start_of_the_actions(self, client):
         soup = _soup(client, PAGE_WITH_TRAIL)
@@ -274,10 +273,3 @@ class TestTheHeaderShowsWhenHtmxIsWorking:
         assert indicator.find_parent(id="mvp-navbar-widgets-mobile") is None
         assert "mvp-desktop-only" not in indicator["class"]
         assert "mvp-mobile-only" not in indicator["class"]
-
-    def test_every_htmx_request_on_the_page_points_at_it(self, client):
-        """``hx-indicator`` is inherited, so declaring it on the body covers
-        every htmx element on the page, boosted links included."""
-        body = _soup(client, PAGE_WITH_TRAIL).find("body")
-
-        assert body["hx-indicator"] == "#mvp-htmx-indicator"
