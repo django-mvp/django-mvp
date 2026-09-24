@@ -2,7 +2,7 @@
   "feature": "031-installable-app",
   "branch": "031-installable-app",
   "repo": "django-mvp/django-mvp",
-  "state": "REVIEW",
+  "state": "PR_READY",
   "state_history": [
     {
       "state": "QUEUED",
@@ -33,6 +33,11 @@
       "state": "REVIEW",
       "at": "2026-09-24T08:11:03Z",
       "note": "one reviewer, correctness and security lenses"
+    },
+    {
+      "state": "PR_READY",
+      "at": "2026-09-24T08:20:34Z",
+      "note": "PR #395 ready, walkthrough sent"
     }
   ],
   "gates": {
@@ -284,6 +289,6 @@
   },
   "pr": {
     "number": 395,
-    "draft": true
+    "draft": false
   }
 }
