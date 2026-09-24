@@ -568,14 +568,14 @@ wheels = [
 
 [[package]]
 name = "django-cotton"
-version = "2.6.1"
+version = "2.7.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "django" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/11/c1/0df4b01255626897f5e74bdcef407ba88753ca92898c912caf2f9e73ba33/django_cotton-2.6.1.tar.gz", hash = "sha256:bedfa4561e2505fca5b88396acb9bdfaea85167eeef11813676fedab45906088", size = 31147, upload-time = "2026-01-13T12:06:00.142Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/02/cd/5c467a1495b756f56246a6d8d36425517cd01bd3aa4bc6209a821f83ec74/django_cotton-2.7.2.tar.gz", hash = "sha256:7e050042873f724beaa5824e86d5034ced2f7de1c5478c3a9d8c053e05caa8ac", size = 33171, upload-time = "2026-06-01T22:52:00.314Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/3d/d2/dea85f1931de0b2da4746f6ad669c7da1f5c8569bee144fe6620c8d98d61/django_cotton-2.6.1-py3-none-any.whl", hash = "sha256:775dda0336c08d33a6daf10557eb261746b1b8e5f260b669cc6b37115571cb08", size = 30563, upload-time = "2026-01-13T12:05:59.162Z" },
+    { url = "https://files.pythonhosted.org/packages/8b/9b/d75158f6280906befada54f9cb17c10d5e0eac078d8d2e189e2f90da0fc1/django_cotton-2.7.2-py3-none-any.whl", hash = "sha256:1b293037ead54ab228362654da00ededc5ca52b2ff407b6087a81cfd9390850e", size = 32084, upload-time = "2026-06-01T22:52:01.238Z" },
 ]
 
 [[package]]
@@ -631,13 +631,16 @@ wheels = [
 
 [[package]]
 name = "django-distill"
-version = "3.2.7"
+version = "4.0.4"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "django" },
-    { name = "requests" },
+    { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/19/c8/ece20c91129314a1ec407ecc7df87102524a32615ea0c43be5b3ae54cc4b/django_distill-3.2.7.tar.gz", hash = "sha256:b0aaf6f9bb7a36cda5ce169fd51e862718a924c5a85e382a7c208c12ff8e3ee2", size = 38170, upload-time = "2024-08-30T14:07:07.259Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/db/b6/cd1841383ad3fda00673e82e22083e52c5c066de2a2b1598a933cebc507d/django_distill-4.0.4.tar.gz", hash = "sha256:d6726ee89bc8ee97a9c0f502dc8668674f87cfb611a6e98aba2f67bf39b0cd6d", size = 47534, upload-time = "2026-08-22T06:22:01.695Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/96/b3/66963a0749565702900878cb30b2fc6b961d783dc32baab75ade4a049f63/django_distill-4.0.4-py3-none-any.whl", hash = "sha256:8dd85757c21311ae27fd099f5237daaf7047c1aca998eece207368dfdcce512c", size = 48485, upload-time = "2026-08-22T06:22:00.307Z" },
+]
 
 [[package]]
 name = "django-easy-icons"
@@ -749,7 +752,7 @@ dev = [
 requires-dist = [
     { name = "crispy-tailwind", specifier = ">=1.0.3,<2.0" },
     { name = "django", specifier = ">=5.2" },
-    { name = "django-cotton", specifier = "==2.6.1" },
+    { name = "django-cotton", specifier = "==2.7.2" },
     { name = "django-crispy-forms", specifier = ">=2.7,<3.0" },
     { name = "django-easy-icons", specifier = ">=0.6" },
     { name = "django-flex-menus", specifier = ">=0.4.5" },
@@ -761,7 +764,7 @@ dev = [
     { name = "brotli", specifier = ">=1.2.0,<2" },
     { name = "django", specifier = ">=5.2.17" },
     { name = "django-allauth", specifier = ">=65.19.4,<66" },
-    { name = "django-distill", specifier = ">=3.0,<4" },
+    { name = "django-distill", specifier = ">=3.0,<5" },
     { name = "django-filter", specifier = ">=26.1,<27" },
     { name = "django-htmx", specifier = ">=1.28.0,<2.0" },
     { name = "django-tables2", specifier = ">=3.0.0,<4" },
