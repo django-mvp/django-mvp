@@ -45,7 +45,7 @@ class ProductTable(tables.Table):
             "created_at",
             "updated_at",
         )
-        empty_text = "No products available. Run 'poetry run python manage.py generate_dummy_data' to create sample data."
+        empty_text = "No products available. Run 'uv run python manage.py generate_dummy_data' to create sample data."
 
 
 class ColumnBehaviourTable(tables.Table):
@@ -87,4 +87,4 @@ class ColumnBehaviourTable(tables.Table):
             "release_date",
             "actions",
         )
-        empty_text = "No products available. Run 'poetry run python manage.py generate_dummy_data' to create sample data."
+        empty_text = "No products available. Run 'uv run python manage.py generate_dummy_data' to create sample data."

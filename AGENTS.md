@@ -10,14 +10,16 @@ vocabulary this repository uses.
 
 ## Stack & commands
 
-- **Stack:** Python 3.12+ / Django 5.2+, Poetry-managed. Tailwind CSS v4 + DaisyUI 5 for the
+- **Stack:** Python 3.12+ / Django 5.2+, uv-managed (hatchling build backend). Tailwind CSS v4 + DaisyUI 5 for the
   shipped stylesheet (Node, via npm).
-- **Install:** `poetry install --with dev,test`
-- **Test:** `poetry run pytest`
-- **Lint:** `poetry run ruff check .` and `poetry run ruff format --check .`
-- **Type-check:** `poetry run mypy mvp`
-- **Dependencies:** `poetry run deptry .`
-- **Build:** `poetry build`
+- **Install:** `uv sync`
+- **Test:** `uv run pytest`
+- **Lint:** `uv run ruff check .` and `uv run ruff format --check .`
+- **Type-check:** `uv run mypy mvp`
+- **Dependencies:** `uv run deptry .`
+- **Build:** `uv build`
+- **Bump the version:** `uv version` — never edit `pyproject.toml` alone, because `uv.lock`
+  records this package's own version too
 - **Stylesheet:** `invoke build-stylesheet` (needs Node; the built CSS is a committed artifact)
 - **Everything before a release pull request:** `invoke prerelease`
 

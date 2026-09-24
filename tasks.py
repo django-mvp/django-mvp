@@ -35,7 +35,7 @@ def prerelease(c):
     - Code formatting (Ruff)
     - Type checking (mypy)
     - Dependency analysis (deptry)
-    - Poetry validation
+    - uv lockfile validation
     """
     print("🚀 Starting comprehensive pre-release checks...")
     print("=" * 60)
@@ -51,18 +51,18 @@ def prerelease(c):
         "\n🧹 Step 2: Running comprehensive linting, type checking, and dependency analysis"
     )
     print("🚀 Running pre-commit hooks (includes mypy and deptry)")
-    c.run("poetry run pre-commit run -a")
+    c.run("uv run pre-commit run -a")
 
-    # Step 3: Check Poetry lock file consistency
-    print("\n🔍 Step 3: Checking Poetry lock file consistency")
-    print("🚀 Checking Poetry lock file consistency with 'pyproject.toml'")
-    c.run("poetry check --lock")
+    # Step 3: Check uv lock file consistency
+    print("\n🔍 Step 3: Checking uv lock file consistency")
+    print("🚀 Checking uv.lock consistency with 'pyproject.toml'")
+    c.run("uv lock --check")
 
     # Step 4: Run comprehensive test suite
     print("\n🧪 Step 4: Running comprehensive test suite")
     print("🚀 Running pytest with coverage")
     c.run(
-        "poetry run pytest --cov --cov-config=pyproject.toml --cov-report=html --cov-report=term --tb=no -qq"
+        "uv run pytest --cov --cov-config=pyproject.toml --cov-report=html --cov-report=term --tb=no -qq"
     )
 
     print("\n" + "=" * 60)

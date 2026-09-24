@@ -20,7 +20,7 @@ calls at a pinned release tag. That is why the status checks are named `call-tes
 
 ## Checks on a pull request
 
-Tests and Build both run on every pull request, and between them produce the seven required
+Tests and Build both run on every pull request, and between them produce the nine required
 status checks:
 
 - `call-build / Code Quality` — lockfile consistency and `pre-commit run --all-files`
@@ -28,8 +28,10 @@ status checks:
 - `call-build / Build Package`
 - `call-tests / Test Python 3.12, Django 5.2`
 - `call-tests / Test Python 3.12, Django 6.0`
+- `call-tests / Test Python 3.12, Django 6.1`
 - `call-tests / Test Python 3.13, Django 5.2`
 - `call-tests / Test Python 3.13, Django 6.0`
+- `call-tests / Test Python 3.13, Django 6.1`
 
 Neither workflow filters on paths for the `pull_request` event. A path-filtered check does not
 report at all on a pull request that misses its paths, and a required check that never reports
@@ -77,4 +79,4 @@ secret to lift that, or run *Publish* manually.
 | No paths filter on `pull_request` | A path-filtered required check never reports on an out-of-scope pull request, which deadlocks the merge. |
 | No auto-commit of pre-commit fixes | Auto-committing back means the release builds from different code than was tested. Fixes belong in the author's commits. |
 | Stylesheet compiles, not byte-compares | The Tailwind build is non-deterministic, so a byte comparison fails for drift nobody can fix. |
-| Dependabot rather than a scheduled update job | Dependabot groups updates, respects the lockfile, and opens one pull request per ecosystem. The previous weekly `poetry update` job did the same job less well. |
+| Dependabot rather than a scheduled update job | Dependabot groups updates, respects the lockfile, and opens one pull request per ecosystem. The previous weekly lockfile update job did the same job less well. |

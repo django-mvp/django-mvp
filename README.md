@@ -284,7 +284,7 @@ documentation a person reads, which is what keeps the two from disagreeing.
 ## Requirements
 
 - Python 3.12+
-- Django 5.2+ (currently supported Django releases)
+- Django 5.2+ (currently supported Django releases, tested on 5.2, 6.0 and 6.1)
 - django-cotton, django-flex-menus, django-easy-icons (installed automatically)
 
 ## Contributing

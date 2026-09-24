@@ -82,19 +82,19 @@ This app also provides comprehensive dummy content to demonstrate various list v
 To populate the database with example data:
 
 ```bash
-poetry run python manage.py generate_dummy_data
+uv run python manage.py generate_dummy_data
 ```
 
 To clear existing data and regenerate:
 
 ```bash
-poetry run python manage.py generate_dummy_data --clear
+uv run python manage.py generate_dummy_data --clear
 ```
 
 ### 2. Run the Development Server
 
 ```bash
-poetry run python manage.py runserver
+uv run python manage.py runserver
 ```
 
 ### 3. Access the Examples
