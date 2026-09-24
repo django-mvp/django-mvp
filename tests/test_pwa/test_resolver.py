@@ -52,6 +52,23 @@ class TestResolveName:
         with override_settings(INSTALLED_APPS=apps):
             assert resolve(request_)["name"] == "shop.example.org"
 
+    def test_name_falls_back_to_the_host_when_no_site_matches(self, request_):
+        Site.objects.all().delete()
+        Site.objects.clear_cache()
+
+        assert resolve(request_)["name"] == "shop.example.org"
+
+    def test_name_falls_back_to_the_host_when_the_site_name_is_empty(
+        self, request_
+    ):
+        Site.objects.filter(pk=settings.SITE_ID).update(name="")
+        Site.objects.clear_cache()
+
+        result = resolve(request_)
+
+        assert result["name"] == "shop.example.org"
+        assert result["short_name"] == "shop.example.org"
+
     def test_configured_name_wins(self, request_, monkeypatch):
         monkeypatch.setitem(_pwa_config(), "name", "Configured")
 

@@ -32,7 +32,7 @@ service worker. The manifest and the tags are built from three things:
 
 | Value | Where it comes from |
 | --- | --- |
-| Name | The current site's name (`Site.name`). Without `django.contrib.sites`, the request's host. |
+| Name | The current site's name (`Site.name`). Without `django.contrib.sites`, or when no `Site` matches or its name is empty, the request's host. Set `pwa.name` if the styled error page has to survive a database outage: reading the site name can need the database, and an error page that can't render falls back to the server's bare one. |
 | Colour | The `base-100` colour of the default theme (`MVP_CONFIG["theme"]["default"]`), for a theme the package ships. A theme your project writes has no colour the package can read, so no colour is set. |
 | Images | Four PNG files under `brand/pwa/` in your static files (see [The images](#the-images)). |
 
@@ -160,8 +160,9 @@ runs with the feature off.
 | `mvp.W001` | `mvp.pwa.urls` is not included, or is included somewhere other than the root. | Add `path("", include("mvp.pwa.urls"))` to the root URLconf. |
 | `mvp.W002` | One or more of the four images is missing from the static files. Each missing file is named. | Add the files, or generate them with `python manage.py mvp_pwa_icons` (see [Generating the images](#generating-the-images)). |
 
-A page keeps rendering when the include is missing: the head then carries no manifest link and no
-registration script, and `mvp.W001` tells you why.
+A page keeps rendering when the include is missing. The head then carries no manifest link,
+and `mvp.W001` tells you why. It also carries no registration script, unless `pwa.service_worker`
+names a worker of your own, which is registered either way.
 
 ## Python reference
 
@@ -172,7 +173,8 @@ same values.
   page head use. The keys are:
   - `name`, `short_name`, `start_url`, `scope` and `display`
   - `theme_color` and `background_color`, each `None` when no colour can be resolved
-  - `manifest_url` and `worker_url`, each `None` when `mvp.pwa.urls` is not mounted
+  - `manifest_url`, which is `None` when `mvp.pwa.urls` is not mounted
+  - `worker_url`, which is the configured `pwa.service_worker` when one is set, and is otherwise `None` when `mvp.pwa.urls` is not mounted
   - `icon_192`, `icon_512`, `icon_maskable_512` and `apple_touch_icon`, the static URLs of the
     four images
 
@@ -186,3 +188,4 @@ same values.
   colour from the package's own stylesheet, so it always matches what the page shows.
 - `mvp.pwa.views.manifest` and `mvp.pwa.views.service_worker` are the two views `mvp.pwa.urls`
   mounts, at `manifest.webmanifest` and `sw.js`.
+- `mvp.pwa.resolver.site_name(request)` returns the current site's name. When no `Site` matches, or the name is empty, it returns the request's host instead. This is the default application name.

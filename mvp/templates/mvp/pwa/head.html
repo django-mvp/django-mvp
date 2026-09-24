@@ -1,4 +1,4 @@
-{% load static mvp %}
+{% load mvp %}
 {% mvp_pwa as pwa %}
 {% if pwa.manifest_url %}<link rel="manifest" href="{{ pwa.manifest_url }}" />{% endif %}
 {% if pwa.theme_color %}<meta name="theme-color" content="{{ pwa.theme_color }}" />{% endif %}

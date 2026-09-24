@@ -1,6 +1,7 @@
 """Installable-app support: the values behind the manifest and the page head."""
 
 from django.contrib.sites.shortcuts import get_current_site
+from django.core.exceptions import ObjectDoesNotExist
 from django.templatetags.static import static
 from django.urls import NoReverseMatch, get_script_prefix, reverse
 
@@ -27,6 +28,20 @@ def reverse_or_none(name):
         return None
 
 
+def site_name(request):
+    """The current site's name, or the request host when there is none to read.
+
+    ``get_current_site`` raises when the sites framework is installed but no
+    ``Site`` matches, and a ``Site`` may carry an empty name. Either way the
+    application still needs a name, so a page never fails over it.
+    """
+    try:
+        name = get_current_site(request).name
+    except ObjectDoesNotExist:
+        name = ""
+    return name or request.get_host()
+
+
 def resolve(request):
     """Work out every installable-app value for ``request``.
 
@@ -37,7 +52,7 @@ def resolve(request):
     config = MVP_CONFIG["pwa"]
     prefix = get_script_prefix()
     theme_color = ThemeColors.for_theme(MVP_CONFIG["theme"]["default"])
-    name = config["name"] or get_current_site(request).name
+    name = config["name"] or site_name(request)
     return {
         "name": name,
         "short_name": config["short_name"] or name,
