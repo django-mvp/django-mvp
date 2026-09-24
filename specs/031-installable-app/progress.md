@@ -53,3 +53,10 @@ as D1–D4.
 - **Verified:** poetry run pytest tests/test_templates.py tests/test_templatetags.py — 241 passed, exit 0; the off-state golden test passes.
 - **Next:** T006: system checks.
 - **Watch:** djlint (not a pre-commit hook) would move the include onto its own line; the brief's placement is kept.
+
+## 2026-09-24T07:47Z · Implementer US1 · T006
+
+- **Did:** Added mvp.W001 and mvp.W002 (mvp/pwa/checks.py), registered from MvpConfig.ready().
+- **Verified:** poetry run pytest tests/test_pwa/test_checks.py — 8 passed, exit 0. Probe: removing the ready() import made 5 tests fail.
+- **Next:** T007: docs and demo.
+- **Watch:** Tests pin STATICFILES_FINDERS to the file-system finder so images the demo gains in US-2 cannot satisfy the missing-image test.
