@@ -34,17 +34,18 @@ and keeping them in step with the project's name and branding, is the kind of wo
 round to.
 
 The shell already knows the project's name, its brand mark and its theme. This story has it use
-them. The developer turns the feature on, adds one URL include at the root of the site, and the
-browser offers to install the application.
+them. The developer turns the feature on and sets the application's colour, and the browser
+offers to install the application. The addresses it needs come with the Account Center's URL
+configuration, which the project already mounts.
 
 **Why this priority**: It is the capability the feature exists for. The other two stories make
 it easier to reach and easier to adjust, and neither delivers anything without it.
 
-**Independent Test**: In a project that has the application images in place, turn the feature
-on and mount the root include. Request a page and confirm the head carries the manifest and the
+**Independent Test**: In a project that mounts the Account Center's URL configuration, turn the
+feature on with a colour. Request a page and confirm the head carries the manifest and the
 registration. Request the manifest and confirm it names the site, points at the images and
-carries the default theme's colours. Request the service worker and confirm it is served from
-the root with a script content type. Then turn the feature off and confirm none of those tags
+carries the configured colour. Request the service worker and confirm it is served as a script
+and allowed to control the whole site. Then turn the feature off and confirm none of those tags
 appear.
 
 **Acceptance Scenarios**:
@@ -52,18 +53,19 @@ appear.
 1. **Given** a project that has not turned the feature on, **When** any page of the shell
    renders, **Then** the page carries no manifest link, no service worker registration and no
    other install-related tag, exactly as before this feature.
-2. **Given** a project that has turned the feature on and mounted the root include, **When** a
+2. **Given** a project that has turned the feature on and mounts the Account Center's URL
+   configuration, **When** a
    page of the shell renders, **Then** the document head links the manifest and the page
    registers the service worker.
 3. **Given** that project, **When** the manifest is requested, **Then** it is served with the web
    app manifest content type and names the application after the site's name, opens at the
    site's root in its own window, and lists the application images at the sizes install prompts
    require.
-4. **Given** that project with a default theme the package ships, **When** the manifest is
-   requested, **Then** its theme and background colours match that theme without further
-   configuration.
-5. **Given** that project, **When** the service worker is requested, **Then** it is served from
-   the root of the site as JavaScript, so that it controls every page of the site.
+4. **Given** that project with a configured colour, **When** the manifest is requested, **Then**
+   its theme and background colours are that colour.
+5. **Given** that project, **When** the service worker is requested, **Then** it is served as
+   JavaScript and permitted to control every page of the site, wherever the Account Center's
+   URL configuration is mounted.
 6. **Given** the packaged service worker is active, **When** any page, form submission or
    request is made, **Then** the response is exactly what the network returns. The worker
    stores nothing and serves nothing from storage.
@@ -114,16 +116,13 @@ install and a non-zero exit status.
 
 ### User Story 3 - A project adjusts what it installs as (Priority: P3)
 
-The defaults suit a project whose site name is what people call the application and whose theme
-is one the package ships. Plenty of projects are not that project. The site name is long and
-needs a shorter label under an icon. The theme is the project's own, so there is no colour the
-package can read from it. The team already has a service worker of its own, or wants to start
-one now.
+The defaults suit a project whose site name is what people call the application. Plenty of
+projects are not that project. The site name is long and needs a shorter label under an icon.
+The team already has a service worker of its own, or wants to start one now.
 
 This story keeps the settings to the few a project genuinely needs. The application's name and
 short name are set once, at the top level of the shell's configuration, because they name the
-application everywhere, not only when it is installed. One colour can be set for a theme the
-package cannot read. Anything beyond that, such as a different worker or different head tags, is
+application everywhere, not only when it is installed. Anything beyond that, such as a different worker or different head tags, is
 done by overriding the packaged template, the same way as everywhere else in the package.
 
 **Why this priority**: The feature is complete for a project that fits the defaults. This widens
@@ -142,9 +141,9 @@ project's.
 2. **Given** a project that configures a colour, **When** the manifest is requested and a page
    renders, **Then** the manifest's theme and background colours and the page's colour tag all
    carry it.
-3. **Given** a project whose default theme is its own rather than one the package ships, and
-   which configures no colour, **When** the manifest is requested, **Then** it carries no
-   colour entries rather than a guess, and the browser falls back to its own defaults.
+3. **Given** a project that configures no colour, **When** the manifest is requested, **Then**
+   it carries no colour entries rather than a guess, and the browser falls back to its own
+   defaults.
 4. **Given** a project that overrides the packaged worker template, **When** the worker is
    requested, **Then** the project's worker is served.
 5. **Given** a project that wants to change the head tags themselves, **When** it overrides the
@@ -153,16 +152,15 @@ project's.
 
 ### Edge Cases
 
-- The feature is on but the root include is not mounted. The manifest link and the worker
-  registration would point at addresses that do not exist. The developer needs to find out at
+- The feature is on but the Account Center's URL configuration is not mounted. The manifest link
+  and the worker registration have no addresses to point at. The developer needs to find out at
   startup, not from a browser console.
 - The feature is on but the application images do not exist in the project's static files, as
   in development. Generating them is a deployment step, so nothing reports their absence.
 - The project has a dark variant of its brand mark. The images are rendered from the light mark
   only, because an installed app has one icon regardless of theme.
 - The site is served under a path prefix rather than at the root of its domain. The worker has
-  to be served at the root of what the site controls, and the start address has to include the
-  prefix.
+  to control everything under that prefix, and the start address has to include it.
 - The project does not use Django's sites framework, so there is no site name to read. The
   application still needs a name.
 - The configured name contains characters that are special in JSON or HTML.
@@ -177,17 +175,18 @@ project's.
   tag, link or script the feature adds.
 - **FR-002**: With the feature on, every page of the shell MUST link the web app manifest from
   the document head and register the service worker.
-- **FR-003**: The package MUST provide the manifest and the service worker through a URL
-  configuration that a project mounts at the root of its site, so that the worker controls every
-  page. Mounting that configuration MUST be the only URL setup the feature requires.
+- **FR-003**: The package MUST serve the manifest and the service worker from the Account
+  Center's URL configuration, so a project needs no URL setup of its own for the feature. The
+  worker MUST be permitted to control every page of the site wherever that configuration is
+  mounted.
 - **FR-004**: The manifest MUST be served with the web app manifest content type and the service
   worker as JavaScript.
 - **FR-005**: By default the manifest MUST name the application after the site's name, start at
   the site's root and open in a standalone window. Where the site has no name to read, a
   non-empty name MUST still be provided.
-- **FR-006**: When the configured default theme is one the package ships, the manifest's theme
-  and background colours MUST match that theme by default. When it is not, and no colours are
-  configured, the manifest MUST omit them.
+- **FR-006**: The manifest's theme and background colours and the page's colour tag MUST be the
+  colour the project configures. The package MUST NOT derive a colour from a theme. When no
+  colour is configured, they MUST be omitted.
 - **FR-007**: The manifest MUST list application images at 192 and 512 pixels and a padded image
   for masked display, and the page head MUST carry an Apple home-screen image, all read from a
   fixed location in the project's static files.
@@ -218,11 +217,11 @@ project's.
 - **FR-017**: Every value written into the manifest or the head MUST be escaped for the format
   it is written into.
 - **FR-018**: Anything the feature serves MUST NOT be fetched from a third party.
-- **FR-019**: The package MUST document how to turn the feature on, the root include, the image
-  command, every configuration key it adds, and how to supply a service worker of the project's
-  own. The domain glossary MUST define *installable app* and *service worker*.
-- **FR-020**: The demo application MUST turn the feature on, mount the root include and
-  generate its images with the package's own command rather than committing them, so that what
+- **FR-019**: The package MUST document how to turn the feature on, where its addresses come
+  from, the image command, every configuration key it adds, and how to supply a service worker of
+  the project's own. The domain glossary MUST define *installable app* and *service worker*.
+- **FR-020**: The demo application MUST turn the feature on with a colour and generate its
+  images with the package's own command rather than committing them, so that what
   ships is what the package is shown to do.
 
 ### Key Entities
@@ -233,8 +232,8 @@ Not applicable. This feature stores nothing and introduces no model.
 
 ### Measurable Outcomes
 
-- **SC-001**: A project that turns the feature on, mounts one URL include and runs one command
-  is offered for installation by a browser that supports installing web apps, with no
+- **SC-001**: A project that mounts the Account Center, turns the feature on and runs one command
+  at deployment is offered for installation by a browser that supports installing web apps, with no
   template, view or static file written by hand.
 - **SC-002**: A project that does not turn the feature on renders byte-identical page heads
   before and after upgrading.
@@ -244,8 +243,8 @@ Not applicable. This feature stores nothing and introduces no model.
   with no other step.
 - **SC-005**: Every manifest value the package derives can be changed from the shell's
   configuration without overriding a template.
-- **SC-006**: An unmounted root include, which would leave the application uninstallable, is
-  reported when the project starts.
+- **SC-006**: An unmounted Account Center URL configuration, which would leave the application
+  uninstallable, is reported when the project starts.
 
 ## Clarifications
 
@@ -255,11 +254,11 @@ records what was ambiguous and what was chosen.
 
 **Q1 — Where do the manifest colours come from, when a theme is a stylesheet rather than a
 setting?**
-From the theme's own colour values, for the themes the package ships. A project's own theme is
-a CSS file that nothing on the server reads, so the package has no colour to offer for it. It
-omits the entry rather than guess, and the project sets the colours in configuration if it wants
-them. Keeping them in step with a visitor's theme choice is the project's concern and out of
-scope. Integrated as FR-006 and US-3 scenario 3.
+From configuration only. A theme is CSS the server never reads. A colour read from the package's
+own copy of a shipped theme would be wrong the moment a project customised that theme, so the
+package derives nothing and the project states its colour. Without one, the entries are omitted
+rather than guessed. Keeping the colour in step with a visitor's theme choice is the project's
+concern and out of scope. Integrated as FR-006 and US-3 scenario 3.
 
 **Q2 — Where do the application images live, and does the manifest point at the brand mark
 itself?**

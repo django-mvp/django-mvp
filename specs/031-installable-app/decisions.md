@@ -5,40 +5,52 @@ escalation. Every question raised while specifying was answered in the spec's ow
 Clarifications section and integrated into the requirement it affects, so this file starts
 empty. Planning adds to it.
 
-## D1 — A missing root include leaves pages rendering, and a warning reports it
+## D1 — Pages keep rendering when the addresses can't be found
 
-**Ambiguous because** the head template reverses the manifest and worker URLs, and a reverse
-that fails raises, which would turn every page into an error the moment a project enables the
-setting without mounting the include.
+**Ambiguous because** the head needs the manifest and worker URLs, and a reverse that fails
+raises. Turning the feature on in a project that doesn't mount `mvp.urls` would then break every
+page.
 
-**Chosen**: the resolver catches `NoReverseMatch` and the head omits the manifest link and the
-registration script. The `mvp.W001` system check is how the developer finds out.
+**Chosen**: the head uses `{% url … as … %}`, which yields nothing instead of raising, and omits
+the manifest link and the registration script. The `mvp.W001` system check reports it.
 
-**Why**: the spec's first edge case describes exactly this state as one the developer learns
-about at startup, which presumes the pages still work. A warning cannot stop a deploy, so a
-raising reverse would take a live site down over a missing line of URL configuration.
+**Why**: a startup warning cannot stop a deploy, so a raising reverse would take a live site down
+over a missing line of URL configuration.
 
 **ADR:** none — a local failure mode of this feature, recorded in its docs and tests.
 
-## D2 — Theme colours are read from the committed stylesheet, not a generated file
+## D2 — The theme colour comes from configuration only
 
-**Chosen**: parse `--color-base-100` per `[data-theme=…]` block from
-`mvp/static/css/django-mvp.css` at first use and cache it per process. See research R4.
+**Chosen**: `MVP_CONFIG["pwa"]["theme_color"]`. No colour is derived from any theme. See
+research R4.
 
-**Why**: the stylesheet already carries every shipped theme's colours, so a second generated
-file would duplicate it and could drift after a daisyUI upgrade with every test still passing.
-Reading the stylesheet keeps one source.
+**Why**: the server never reads a theme's CSS. The package's own copy of a shipped theme is
+wrong as soon as a project recolours it, so a derived colour is right only for projects that
+never touched their theme. A stated colour is always right. Decided with the maintainer at the
+walkthrough.
 
-**ADR:** none — an implementation choice inside this feature, reversible without touching any
-public surface.
+**ADR:** none — local to this feature.
 
-## D3 — The head template gets its values from a template tag, not the context processor
+## D3 — The head template is plain template code
 
-**Chosen**: a `{% mvp_pwa as pwa %}` simple tag in the existing `mvp` library.
+**Chosen**: no custom template tag. The URLs, the name, the colour and the icon are all
+expressible with `{% url … as %}`, `{% firstof %}`, `mvp_config` and `{% static %}`. See
+research R8.
 
-**Why**: the context processor runs on every render, including htmx partials and projects with
-the feature off. A tag runs only where `head.html` is rendered, which is only when the feature is
-on. A project that overrides `head.html` can use the same tag.
+**Why**: once the colour stopped being derived, nothing in the head needed Python. A tag would
+be one more public name to document and keep.
+
+**ADR:** none — local to this feature.
+
+## D6 — The installable-app addresses are part of `mvp.urls`
+
+**Chosen**: `manifest.webmanifest` and `sw.js` are registered in `mvp/urls.py`, and the worker
+sends `Service-Worker-Allowed` so it controls the whole site from under that prefix. See research
+R2.
+
+**Why**: every project already mounts `mvp.urls` for the Account Center. A second include that
+had to sit at the site root was setup a project could get wrong, and the header is the web
+platform's own mechanism for exactly this case. Decided with the maintainer at the walkthrough.
 
 **ADR:** none — local to this feature.
 

@@ -15,10 +15,9 @@ chosen, and the evidence behind it.
 
 The name and short name sit at the top level because they name the application everywhere: the
 page title uses `site_name` too. The feature itself is turned on by `MVP_CONFIG["pwa"]` being
-truthy, with no separate switch. The one colour it can carry covers the manifest's theme and
-background colours, the page's colour tag and the padded image backgrounds. It is only needed
-when the default theme is the project's own, or a shipped theme it has recoloured, because the
-package cannot read either. The start address is always the site root, and the display is always
+truthy, with no separate switch. The one colour it carries covers the manifest's theme and
+background colours, the page's colour tag and the padded image backgrounds. It is required: the
+package derives no colour of its own (R4). The start address is always the site root, and the display is always
 standalone. A different worker or different head tags come from overriding
 `mvp/pwa/sw.js` or `mvp/pwa/head.html`, not from a setting. This was decided with the
 maintainer at the walkthrough, after an earlier draft carried eight keys.
@@ -29,25 +28,22 @@ what a project gets when the block is on.
 
 ## R2 — Where the manifest and the worker are served from
 
-A service worker controls only the pages at or below the path it is served from. Serving it from
-`/static/…` would limit it to static files. So both are views, in a URLconf the project mounts at
-the root of its own URLconf:
-
-```python
-urlpatterns = [
-    path("", include("mvp.pwa.urls")),
-    ...
-]
-```
+**Chosen**: from `mvp/urls.py`, the Account Center's URL configuration, which every project
+already mounts. There is no second include.
 
 - `manifest.webmanifest`, name `mvp-pwa-manifest`, content type `application/manifest+json`.
 - `sw.js`, name `mvp-pwa-service-worker`, content type `text/javascript`, `Cache-Control: no-cache`
   so browsers pick up an updated worker promptly.
 
-**Path prefix edge case**: Django's `reverse()` already includes the script prefix, so a site
-served under `/app/` serves the worker at `/app/sw.js` and the manifest's `start_url` and `scope`
-default to `/app/`. Nothing prefix-specific needs writing. The tests cover it with
-`set_script_prefix`.
+A service worker normally controls only the pages at or below the path it is served from, so a
+worker at `/account/sw.js` would control only `/account/`. The standard `Service-Worker-Allowed`
+response header lifts that limit: the worker view sends `Service-Worker-Allowed: <script prefix>`,
+and the page registers the worker with that scope. The worker then controls the whole site
+wherever `mvp.urls` is mounted.
+
+**Path prefix edge case**: a site served under `/app/` gets `Service-Worker-Allowed: /app/`, a
+registration scope of `/app/` (the request's `SCRIPT_NAME` plus a slash), and a manifest whose
+`start_url` and `scope` are `/app/`. The tests cover it with `set_script_prefix`.
 
 ## R3 — What the application is called
 
@@ -56,32 +52,15 @@ installed that is the `Site.name`, which is what `base.html`'s `<title>` already
 it, Django returns a `RequestSite` whose name is the request's host, which is never empty. That
 satisfies FR-005's non-empty fallback without a packaged string.
 
-## R4 — Where the theme colours come from
+## R4 — Where the theme colour comes from
 
-DaisyUI 5 declares each theme's colours as `oklch()` custom properties. A project's own theme is
-CSS the server never parses, so the package can only offer a colour for the themes it ships.
+**Chosen**: from `MVP_CONFIG["pwa"]["theme_color"]`, and nowhere else. Without it, the colour
+entries are omitted and the padded images use white.
 
-**Chosen**: read them from the package's own committed stylesheet,
-`mvp/static/css/django-mvp.css`, by package path rather than through staticfiles. Every prebuilt
-theme has a `[data-theme=<name>]{…}` block there carrying `--color-base-100:oklch(…)`. All 35
-parse with one regular expression; this was checked on the base commit during planning. The
-value is converted OKLCH → OKLab → linear sRGB → gamma-encoded sRGB, clamped to the gamut, and
-returned as `#rrggbb`. The parse and the conversion live on one class in `mvp/pwa/`
-(Article XVII). The parsed table is cached once per process.
-
-- **No new build artifact.** An earlier draft generated a JSON file from `node_modules`. The
-  design review showed it duplicated data the committed stylesheet already carries, and it could
-  go stale after a daisyUI bump without any test noticing. Reading the stylesheet means the
-  colours can never disagree with the CSS the page actually uses.
-- **Hex, not oklch**: browsers parse manifest colours differently, and older engines, Apple's
-  `theme-color` handling among them, do not understand `oklch`. Hex is safe everywhere.
-- **base-100 for both colours**: the header and the page body both sit on `base-100` in the
-  shell. The installed window's title bar then matches the header and the launch background
-  matches the page.
-- **Reference values** (computed independently of the implementation with the published
-  OKLab matrices, and matching daisyUI's long-standing hex values for these themes):
-  `light` → `#ffffff`, `dark` (`oklch(25.33% .016 252.42)`) → `#1d232a`, `cupcake`
-  (`oklch(97.788% .004 56.375)`) → `#faf7f5`.
+A theme is CSS the server never reads. An earlier draft parsed each shipped theme's colour out of
+the package's committed stylesheet. It was dropped at the walkthrough: it only worked for a
+theme exactly as daisyUI ships it, and returned a wrong colour the moment a project recoloured
+that theme in its own CSS. A colour the project states is always right.
 
 ## R5 — Rendering the images
 
@@ -126,8 +105,7 @@ The runtime dependency set does not change (Article VII).
 One Django system check, registered from `MvpConfig.ready()`, and run only when
 `MVP_CONFIG["pwa"]` is truthy:
 
-- `mvp.W001`: `reverse("mvp-pwa-service-worker")` fails, or does not resolve to
-  `<script prefix>sw.js`. The root include is missing or mounted under a sub-path.
+- `mvp.W001`: `reverse("mvp-pwa-service-worker")` fails, so `mvp.urls` is not mounted.
 
 Missing images are deliberately not checked. They are generated at deployment, so a development
 checkout never has them, and a warning on every development start would be noise. This was
@@ -143,7 +121,7 @@ expected to override it (ADR 0026). `base.html` includes it from inside `{% bloc
 after the favicon links, **on the same line as the existing dark favicon `<link>`**:
 
 ```django
-            href="{% icon_url "16px" "dark" %}" />{% if mvp_config.pwa.enabled %}{% include "mvp/pwa/head.html" %}{% endif %}
+            href="{% icon_url "16px" "dark" %}" />{% if mvp_config.pwa %}{% include "mvp/pwa/head.html" %}{% endif %}
 ```
 
 A tag on a line of its own leaves a newline and indentation in the output even when the
@@ -151,30 +129,23 @@ condition is false. That would break SC-002, which requires the page head to be 
 for a project that doesn't turn the feature on. A golden-file test pins the off-state render
 against a copy captured from `main`.
 
-Contents when on:
+The template is plain template code, with no custom tag:
 
-- `<link rel="manifest" href="{% url 'mvp-pwa-manifest' %}">`
-- `<meta name="theme-color" content="…">`, only when a colour resolves
-- `<link rel="apple-touch-icon" href="{% static 'brand/pwa/apple-touch-icon.png' %}">`
-- `<meta name="apple-mobile-web-app-title" content="…">`
-- `<meta name="mobile-web-app-capable" content="yes">`
-- a small inline `<script>` that registers the worker when `'serviceWorker' in navigator`. The
-  URL is the configured `service_worker` or the reverse of `mvp-pwa-service-worker`, passed
-  through `json_script` or `escapejs`.
+- `{% url 'mvp-pwa-manifest' as manifest_url %}` and the same for the worker. The `as` form
+  yields nothing rather than raising when `mvp.urls` isn't mounted, so pages keep rendering and
+  `mvp.W001` is how the developer finds out.
+- The manifest link, only when `manifest_url` resolved.
+- `<meta name="theme-color">` from `mvp_config.pwa.theme_color`, only when set.
+- The Apple home-screen icon through `{% static %}`.
+- `apple-mobile-web-app-title` from
+  `{% firstof mvp_config.short_name mvp_config.site_name request.site.name request.get_host %}`,
+  the label shown under the icon.
+- `mobile-web-app-capable`.
+- An inline registration script, only when `worker_url` resolved. The URL and the scope are
+  passed through `json_script`.
 
-The resolved values (name, colours, worker URL) come from one function, `mvp.pwa.resolver.resolve(request)`,
-which both the manifest view and the head template call, so the two can never disagree. The
-template reaches it through a new simple tag in the existing `mvp` template-tag library
-(`{% mvp_pwa as pwa %}`). `base.html` already loads that library. The context processor is not
-touched, so nothing runs on renders with the feature off.
-
-**When the root include isn't mounted**, `resolve()` catches `NoReverseMatch` and returns no
-manifest or worker URL, and `head.html` then omits the manifest link and the registration
-script. Pages keep rendering, and `mvp.W001` is how the developer finds out. A setting turned on
-without its include must not take every page down.
-
-`apple-mobile-web-app-title` carries the resolved **short name**, the label shown under the
-icon.
+The manifest view computes the same values in Python (`mvp.pwa.resolver.resolve`), because it
+builds JSON rather than rendering a template.
 
 ## R9 — The packaged worker
 

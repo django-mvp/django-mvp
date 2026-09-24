@@ -161,3 +161,17 @@ class TestEachNameIsRegisteredExactlyOnce:
         urlconf = _urlconf_allauth_then_mvp()
         assert _count_registrations(urlconf, "account_login") == 1
         assert _count_registrations(urlconf, "account_logout") == 1
+
+
+class TestInstallableAppUrls:
+    """The manifest and the worker ride on ``mvp.urls``, at whatever prefix it is mounted."""
+
+    @override_settings(ROOT_URLCONF="tests.urls_pwa")
+    def test_the_two_routes_have_fixed_names_and_paths(self):
+        assert reverse("mvp-pwa-manifest") == "/account/manifest.webmanifest"
+        assert reverse("mvp-pwa-service-worker") == "/account/sw.js"
+
+    @override_settings(ROOT_URLCONF="tests.urls_pwa")
+    def test_the_routes_resolve_to_the_packaged_views(self):
+        assert resolve("/account/manifest.webmanifest").func.__name__ == "manifest"
+        assert resolve("/account/sw.js").func.__name__ == "service_worker"

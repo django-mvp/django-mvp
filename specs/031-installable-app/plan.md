@@ -10,10 +10,9 @@ A new `mvp/pwa/` package serves a web app manifest and a service worker from a U
 project mounts at its root. `base.html` includes one overridable head template when
 `MVP_CONFIG["pwa"]["enabled"]` is true. With it off, the page head is byte-identical to today's.
 The manifest's name comes from the current site, and its colours come from the prebuilt daisyUI
-themes' `base-100` colour, read from the committed stylesheet. Its images come from four PNGs
+colour the project configures. Its images come from four PNGs
 rendered by a new `mvp_pwa_icons` management command. The command uses an optional `resvg-py`
-dependency. Two system checks warn when the feature is on but the root include or the images
-are missing. Research R1–R9 records each choice.
+dependency. One system check warns when the feature is on but `mvp.urls` isn't mounted. Research R1–R9 records each choice.
 
 ## Technical Context
 
@@ -36,7 +35,7 @@ bytes 16–24 of a PNG). No browser test, because nothing here is a claim about 
 fetched from a third party (FR-018, Article XV). The runtime dependency set does not grow
 (Article VII).
 
-**Scale/Scope**: One new subpackage (config resolution, colours, two views, URLconf, checks). Two templates, one template tag, one management command, one docs page, a glossary
+**Scale/Scope**: One new subpackage (config resolution, two views, a check), two routes added to `mvp.urls`. Two templates, one management command, one docs page, a glossary
 entry, and demo wiring.
 
 ## Constitution Check
@@ -44,9 +43,9 @@ entry, and demo wiring.
 | Article | How this plan satisfies it |
 |---|---|
 | I — Test-First | Every task names its failing test first. The golden-file test for the off state is written before `base.html` is touched. |
-| II — Simplicity | One resolver function feeds both the manifest and the head. The worker is two event listeners. No settings hook beyond a URL string. |
+| II — Simplicity | The head is plain template code and the manifest reads one resolver. The worker is two event listeners. Three settings. |
 | III — Anti-Abstraction | No base view class, no registry. Two function views. |
-| IV — Integration-First | Tests mount `mvp.pwa.urls` at the root of a test URLconf, the same way a project does, and request real URLs through the test client. |
+| IV — Integration-First | Tests mount `mvp.urls` in a test URLconf, the same way a project does, and request real URLs through the test client. |
 | V — Security | Every configured value reaches JSON through `JsonResponse` and reaches HTML through autoescape or `json_script`. A test feeds a name containing `</script>`, `"` and `&` through both. The worker caches nothing, so it cannot serve one user's response to another. |
 | VI — Documentation | Each story documents what it introduces, in the same story (new page `docs/installable-app.md`, keys in `docs/configuration.md`, glossary in `CONTEXT.md`). |
 | VII — Dependencies | `resvg-py` is test-group only and lazily imported. Its absence raises a message naming it. `deptry` stays clean with a reasoned `DEP001` entry. |
@@ -54,7 +53,7 @@ entry, and demo wiring.
 | XI — Components are public API | No new component. The head template is an overridable template, not a component (ADR 0026). |
 | XII — Configuration-driven layout | Everything is set through `MVP_CONFIG["pwa"]`. |
 | XIII — Rendered markup is a contract | The head tags and the manifest keys are asserted exactly. |
-| XV — Build artifacts | No new artifact. Theme colours are read from the committed stylesheet (research R4). |
+| XV — Build artifacts | No new artifact. |
 | XVI — Compatibility | Off by default. No existing key or template path changes. |
 
 ## Project Structure
@@ -62,22 +61,20 @@ entry, and demo wiring.
 ```text
 mvp/
   apps.py                         # ready() imports mvp.pwa.checks
-  config.py                       # new "pwa" defaults block
+  config.py                       # site_name, short_name, pwa
+  urls.py                         # manifest.webmanifest and sw.js, beside the Account Center
+  utils.py                        # reverse_or_none, site_name
   pwa/
-    __init__.py                   # resolve(request) → name, short_name, start_url, scope,
-                                  #   display, theme_color, background_color, worker_url, icons
-    colors.py                     # theme colours from the committed stylesheet (R4)
-    urls.py                       # manifest.webmanifest, sw.js
+    resolver.py                   # the manifest's values; InstallableApp reads MVP_CONFIG["pwa"]
     views.py                      # manifest(), service_worker()
-    checks.py                     # mvp.W001, mvp.W002
+    checks.py                     # mvp.W001
   management/commands/mvp_pwa_icons.py
   templates/mvp/base.html         # one include, on an existing line (R8)
-  templatetags/mvp.py             # the mvp_pwa simple tag (R8)
-  templates/mvp/pwa/head.html
+  templates/mvp/pwa/head.html     # plain template code
   templates/mvp/pwa/sw.js
-demo/settings.py, demo/urls.py, demo/static/brand/pwa/*.png
+demo/settings.py, demo/README.md
 docs/installable-app.md, docs/index.md, docs/configuration.md, CONTEXT.md, README.md, CHANGELOG.md
-tests/test_pwa/  test_init.py test_colors.py test_views.py test_urls.py test_checks.py
+tests/test_pwa/  test_resolver.py test_views.py test_checks.py
 tests/test_management/test_commands/test_mvp_pwa_icons.py   # mirrors the source path
 tests/test_templates.py           # off-state golden file + on-state include
 tests/fixtures/base_head_off.html # captured from main at 507c5a0
@@ -87,7 +84,7 @@ tests/fixtures/base_head_off.html # captured from main at 507c5a0
 
 Sequential: US-1, then US-2, then US-3, in one worktree. US-1 builds the resolver, views and
 head that US-3 makes configurable, and US-2's image paths are the ones US-1's manifest and
-checks name. Parallel worktrees would edit `mvp/pwa/__init__.py` and `head.html` three times
+checks name. Parallel worktrees would edit the resolver and `head.html` three times
 over.
 
 ## Complexity Tracking
