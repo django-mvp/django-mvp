@@ -133,3 +133,11 @@ entry, or asks for `--output-dir`. No decision met the ADR bar, and each one rec
 - **Verified:** `poetry run pytest tests -q -n auto --dist loadscope` → 2294 passed, 1 skipped. Full verify results are in the completion report.
 - **Next:** Forge re-verifies.
 - **Watch:** the manifest view writes `background_color` from the same colour as `theme_color`.
+
+## 2026-09-24 — Merge-gate changes accepted
+
+Re-verified independently. The docs check was red on one undocumented name, `InstallableApp`,
+which now has an entry in the Python reference. The same pass corrected the reference's claim
+that shipped-theme colours always match the page: a theme recoloured in a project's own CSS does
+not. Spec FR-001, FR-010, FR-011 and US-3, and research R1, now describe the smaller
+configuration.

@@ -173,7 +173,11 @@ same values.
   to find out whether the root include is mounted.
 - `mvp.pwa.colors.ThemeColors.for_theme(name)` returns the `#rrggbb` background colour of one of
   the daisyUI themes that ship with the package, or `None` for any other name. It reads the
-  colour from the package's own stylesheet, so it always matches what the page shows.
+  colour from the package's own stylesheet, so a shipped theme you have recoloured in your own
+  CSS still returns daisyUI's original. Set `theme_color` for that case.
 - `mvp.pwa.views.manifest` and `mvp.pwa.views.service_worker` are the two views `mvp.pwa.urls`
   mounts, at `manifest.webmanifest` and `sw.js`.
 - `mvp.utils.site_name(request)` returns the current site's name. When no `Site` matches, or the name is empty, it returns the request's host instead. This is the default application name.
+- `mvp.pwa.resolver.InstallableApp` reads `MVP_CONFIG["pwa"]`. `InstallableApp.enabled()` is true
+  when the setting is truthy. `InstallableApp.theme_color()` returns the configured
+  `theme_color`, or the default theme's colour when the package ships that theme, or `None`.

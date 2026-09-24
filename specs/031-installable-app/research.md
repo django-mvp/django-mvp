@@ -5,21 +5,23 @@ chosen, and the evidence behind it.
 
 ## R1 — Where the settings live
 
-**Chosen**: a new `MVP_CONFIG["pwa"]` block, deep-merged like every other block in
-`mvp/config.py`:
+**Chosen**: three keys in `mvp/config.py`, all off or empty by default.
 
 ```python
-"pwa": {
-    "enabled": False,
-    "name": None,              # None → the current site's name
-    "short_name": None,        # None → the resolved name
-    "start_url": None,         # None → the site root, script prefix included
-    "display": "standalone",
-    "theme_color": None,       # None → the default theme's colour, when the package ships it
-    "background_color": None,  # same resolution as theme_color
-    "service_worker": None,    # None → the packaged worker; a URL registers the project's own
-},
+"site_name": None,   # the application's name; None → the current site's name, else the host
+"short_name": None,  # the label under the icon; None → the resolved name
+"pwa": False,        # falsey → off; True → on; {"theme_color": "#…"} → on, with that colour
 ```
+
+The name and short name sit at the top level because they name the application everywhere: the
+page title uses `site_name` too. The feature itself is turned on by `MVP_CONFIG["pwa"]` being
+truthy, with no separate switch. The one colour it can carry covers the manifest's theme and
+background colours, the page's colour tag and the padded image backgrounds. It is only needed
+when the default theme is the project's own, or a shipped theme it has recoloured, because the
+package cannot read either. The start address is always the site root, and the display is always
+standalone. A different worker or different head tags come from overriding
+`mvp/pwa/sw.js` or `mvp/pwa/head.html`, not from a setting. This was decided with the
+maintainer at the walkthrough, after an earlier draft carried eight keys.
 
 **Why "pwa"**: it is the word the request uses and the word the web platform documentation uses
 for the whole set (manifest, worker, install). The glossary entry defines *installable app* as

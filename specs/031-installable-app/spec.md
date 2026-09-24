@@ -118,30 +118,35 @@ The defaults suit a project whose site name is what people call the application 
 is one the package ships. Plenty of projects are not that project. The site name is long and
 needs a shorter label under an icon. The theme is the project's own, so there is no colour the
 package can read from it. The team already has a service worker of its own, or wants to start
-one now, and needs the page to register that one instead.
+one now.
 
-This story lets each of those be set in the configuration the project already uses for the
-shell, without overriding a template.
+This story keeps the settings to the few a project genuinely needs. The application's name and
+short name are set once, at the top level of the shell's configuration, because they name the
+application everywhere, not only when it is installed. One colour can be set for a theme the
+package cannot read. Anything beyond that, such as a different worker or different head tags, is
+done by overriding the packaged template, the same way as everywhere else in the package.
 
 **Why this priority**: The feature is complete for a project that fits the defaults. This widens
 who it fits.
 
-**Independent Test**: Set a short name, a start address, both colours and a service worker of
-the project's own in the configuration. Request the manifest and confirm each value appears.
-Render a page and confirm the head registers the project's worker instead of the packaged one.
+**Independent Test**: Set a site name, a short name and a colour in the configuration. Request
+the manifest and confirm each value appears, and render a page and confirm the title and head
+carry them. Override the packaged worker template and confirm the worker served is the
+project's.
 
 **Acceptance Scenarios**:
 
-1. **Given** a project that configures a name, a short name, a start address or a display mode,
-   **When** the manifest is requested, **Then** each configured value replaces the packaged
-   default and every value left unset keeps its default.
-2. **Given** a project that configures theme and background colours, **When** the manifest is
-   requested and a page renders, **Then** both carry the configured colours.
+1. **Given** a project that configures a site name or a short name, **When** the manifest is
+   requested and a page renders, **Then** each configured value replaces its default, the site
+   name also appears in the page title, and a value left unset keeps its default.
+2. **Given** a project that configures a colour, **When** the manifest is requested and a page
+   renders, **Then** the manifest's theme and background colours and the page's colour tag all
+   carry it.
 3. **Given** a project whose default theme is its own rather than one the package ships, and
-   which configures no colours, **When** the manifest is requested, **Then** it carries no
+   which configures no colour, **When** the manifest is requested, **Then** it carries no
    colour entries rather than a guess, and the browser falls back to its own defaults.
-4. **Given** a project that configures a service worker of its own, **When** a page renders,
-   **Then** the page registers that worker rather than the packaged one.
+4. **Given** a project that overrides the packaged worker template, **When** the worker is
+   requested, **Then** the project's worker is served.
 5. **Given** a project that wants to change the head tags themselves, **When** it overrides the
    template that renders them, **Then** its template decides what the head carries, the same way
    every other packaged template is overridden.
@@ -168,9 +173,9 @@ Render a page and confirm the head registers the project's worker instead of the
 
 ### Functional Requirements
 
-- **FR-001**: The feature MUST be off unless a project turns it on with a single setting in the
-  shell's configuration. With it off, pages MUST NOT carry any tag, link or script the
-  feature adds.
+- **FR-001**: The feature MUST be off unless a project turns it on by giving the feature's own
+  setting in the shell's configuration a truthy value. With it off, pages MUST NOT carry any
+  tag, link or script the feature adds.
 - **FR-002**: With the feature on, every page of the shell MUST link the web app manifest from
   the document head and register the service worker.
 - **FR-003**: The package MUST provide the manifest and the service worker through a URL
@@ -192,11 +197,12 @@ Render a page and confirm the head registers the project's worker instead of the
 - **FR-009**: The packaged service worker MUST pass every request straight to the network and
   MUST NOT store or serve any response. It MUST be written so that caching can be added to it
   later without replacing it.
-- **FR-010**: A project MUST be able to set the name, short name, start address, display mode
-  and both colours in the shell's configuration, each independently, with every unset value
-  keeping its default.
-- **FR-011**: A project MUST be able to configure a service worker of its own, which the page
-  registers in place of the packaged one.
+- **FR-010**: A project MUST be able to set the application's name and short name at the top
+  level of the shell's configuration, and one colour in the feature's own setting, each
+  independently, with every unset value keeping its default. The start address is always the
+  site root and the display is always a standalone window.
+- **FR-011**: A project MUST be able to replace the packaged service worker by overriding its
+  template, with no setting involved.
 - **FR-012**: The head tags MUST be rendered by a template a project can override at the same
   path, the same way every other packaged template is.
 - **FR-013**: The package MUST provide a management command that renders the full image set of

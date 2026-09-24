@@ -277,6 +277,40 @@
               "demo/settings.py:136"
             ]
           }
+        },
+        {
+          "id": "T013",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_utils.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_utils.py tests/test_pwa"
+            ],
+            "code": [
+              "mvp/utils.py:1"
+            ]
+          }
+        },
+        {
+          "id": "T014",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_pwa/test_resolver.py",
+              "tests/test_templates.py"
+            ],
+            "commands": [
+              "forge verify --base 507c5a0 (all steps green)"
+            ],
+            "code": [
+              "mvp/pwa/resolver.py:1",
+              "mvp/config.py:104"
+            ]
+          }
         }
       ]
     }
