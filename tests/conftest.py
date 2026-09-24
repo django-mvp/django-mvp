@@ -13,7 +13,7 @@ import pytest
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.test import RequestFactory, override_settings
-from django.urls import clear_url_caches
+from django.urls import URLResolver, clear_url_caches
 from django.views.generic import TemplateView
 
 import mvp.urls as mvp_urls
@@ -87,27 +87,37 @@ def allauth_installed(request):
 PWA_URLCONF_MODULES = (
     "demo.urls",
     "tests.urls_pwa",
-    "tests.urls_shell_pwa",
 )
 
 
-def reload_pwa_urlconfs(request_module):
-    """Rebuild ``mvp.urls`` and every URLconf that includes it, so the manifest
-    and worker routes follow ``MVP_CONFIG["pwa"]`` as it now stands.
+def reload_pwa_urlconfs():
+    """Rebuild ``mvp.urls`` and swap a fresh include of it into every URLconf
+    that mounts it, so the manifest and worker routes follow ``MVP_CONFIG["pwa"]``.
 
-    ``mvp.urls`` reads the setting once, at import. Each module below built a
-    resolver from the old ``urlpatterns``, so each is reloaded, in dependency
-    order, before Django's resolver cache is cleared.
+    ``mvp.urls`` reads the setting once, at import. A resolver built from an
+    earlier import caches the old ``urlpatterns``, so each include of it is
+    replaced in place. The URLconf modules themselves are not reloaded:
+    ``demo.urls`` adds routes at import that depend on ``DEBUG``, and reloading
+    it inside a test, where ``DEBUG`` is off, would drop them for every later
+    test in the process.
     """
     importlib.reload(mvp_urls)
     for name in PWA_URLCONF_MODULES:
-        importlib.reload(importlib.import_module(name))
-    importlib.reload(request_module)
+        patterns = importlib.import_module(name).urlpatterns
+        for index, pattern in enumerate(patterns):
+            if getattr(pattern, "urlconf_name", None) is mvp_urls:
+                patterns[index] = URLResolver(
+                    pattern.pattern,
+                    mvp_urls,
+                    pattern.default_kwargs,
+                    pattern.app_name,
+                    pattern.namespace,
+                )
     clear_url_caches()
 
 
 @pytest.fixture
-def pwa_enabled(request):
+def pwa_enabled():
     """Turn the installable app on for one test, routes included.
 
     Sets ``MVP_CONFIG["pwa"]`` to a colour, reloads the URLconfs that mount
@@ -116,12 +126,12 @@ def pwa_enabled(request):
     """
     patch = pytest.MonkeyPatch()
     patch.setitem(MVP_CONFIG, "pwa", {"theme_color": "#123456"})
-    reload_pwa_urlconfs(request.module)
+    reload_pwa_urlconfs()
     try:
         yield
     finally:
         patch.undo()
-        reload_pwa_urlconfs(request.module)
+        reload_pwa_urlconfs()
 
 
 @pytest.fixture
