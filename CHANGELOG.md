@@ -9,8 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Installable app.** Set `MVP_CONFIG["pwa"]` to `True` and mount `mvp.pwa.urls` at the
-  site root, and the browser offers to install the project as an app. `MVP_CONFIG["site_name"]` and
+- **Installable app.** Set `MVP_CONFIG["pwa"]` to `True` and the browser offers to
+  install the project as an app; the manifest and worker are served by `mvp.urls`, so a
+  project needs no second include. `MVP_CONFIG["site_name"]` and
   `MVP_CONFIG["short_name"]` name the application, and a `pwa` dict takes one key,
   `theme_color`, used for the manifest's theme and background colours, the `theme-color` tag
   and the padded images. A project replaces the worker or the head by overriding
@@ -22,8 +23,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`mvp.utils.reverse_or_none` and `mvp.utils.site_name`**, small helpers for reversing a URL
   name without raising and reading the current site's name with a host fallback.
 
-- **`mvp.pwa.urls`, a root include** serving `/manifest.webmanifest` and the packaged
-  `/sw.js`. The worker has to answer from the site root to control every page.
+- **`manifest.webmanifest` and `sw.js` in `mvp.urls`**, beside the Account Center. The worker
+  is sent with a `Service-Worker-Allowed` header naming the site root, so it controls every
+  page wherever `mvp.urls` is mounted.
 
 - **`mvp_pwa_icons`, a management command** that renders the app's icons and Apple touch
   icon from the project's `brand/icon.svg`.

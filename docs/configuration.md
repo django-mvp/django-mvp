@@ -57,8 +57,8 @@ site overrides the project setting for that one tag only.
 | `table.wrap` | bool | `False` | Project-wide default for whether table cell text wraps |
 | `site_name` | string or `None` | `None` | The application's name, used for the page title suffix and the installed app's name; `None` takes the current site's name (the request host without the sites framework) |
 | `short_name` | string or `None` | `None` | The installed app's label under its icon; `None` takes the application's name |
-| `pwa` | bool or dict | `False` | Make the project installable as an app. `True` turns it on with defaults, and a dict turns it on too; needs the root include described in [Installable app](installable-app.md) |
-| `pwa.theme_color` | CSS hex colour | the default theme's colour when the package ships it, else none | The one key a `pwa` dict takes: the browser toolbar and launch background colour, the `theme-color` tag and the background of the padded images |
+| `pwa` | bool or dict | `False` | Make the project installable as an app. `True` turns it on with defaults, and a dict turns it on too; needs `mvp.urls` mounted, as described in [Installable app](installable-app.md) |
+| `pwa.theme_color` | CSS hex colour | none | The one key a `pwa` dict takes: the browser toolbar and launch background colour, the `theme-color` tag and the background of the padded images |
 
 There is no `layout.sidebar.footer` key. The sidebar footer is a fixed
 composition rather than a configured widget list — see

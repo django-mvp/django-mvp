@@ -53,7 +53,6 @@ class TestUnmountedWarning:
 
         assert [w.id for w in warnings] == ["mvp.W001"]
         assert "include('mvp.urls')" in warnings[0].hint
-        assert "mvp.pwa.urls" not in warnings[0].msg + warnings[0].hint
 
     def test_mvp_urls_under_any_prefix_is_accepted(self, settings, images):
         settings.ROOT_URLCONF = "tests.urls_pwa"

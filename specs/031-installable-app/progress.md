@@ -148,3 +148,10 @@ At Sam's direction, generating the app images is a deployment step only. The `mv
 its tests are gone, the demo README no longer asks developers to generate them, and spec FR-016,
 SC-006, the edge case, Q4 and research R7 now say missing images are not reported. Done directly
 rather than dispatched, because it is a removal of one check and its references.
+
+## 2026-09-24T12:50Z · Implementer US3 · T015
+
+- **Did:** `manifest.webmanifest` and `sw.js` are registered in `mvp/urls.py`, and `mvp/pwa/urls.py` and the demo's root include are gone. The worker view sends `Service-Worker-Allowed` set to the script prefix. `MVP_CONFIG["pwa"]["theme_color"]` is read directly, so `mvp/pwa/colors.py` and its tests are deleted, and `mvp.W001` now fires only when the worker URL does not reverse. `head.html` is plain template code (`{% url ... as ... %}`, `firstof`, `json_script` for the worker URL and scope), and the `mvp_pwa` tag and its test are removed. The resolver no longer returns manifest or worker URLs. Docs and CHANGELOG match.
+- **Verified:** narrow runs per slice (tests/test_pwa, tests/test_templates.py, tests/test_templatetags.py, tests/test_management, tests/test_demo/test_installable_app.py) green; `tests/fixtures/base_head_off.html` passes unmodified. Full verify results are in the completion report.
+- **Next:** Forge re-verifies.
+- **Watch:** with no colour configured the manifest omits `theme_color` and `background_color`, and the padded images are white.
