@@ -214,16 +214,7 @@ class TestShellHeadWithInstallableAppOn:
 
         assert link["href"] == "/account/manifest.webmanifest"
 
-    def test_it_sets_the_theme_colour_for_a_shipped_theme(self):
-        meta = head_soup().find("meta", attrs={"name": "theme-color"})
-
-        assert meta["content"] == "#ffffff"
-
-    def test_it_sets_no_theme_colour_for_an_unknown_theme(self, monkeypatch):
-        from mvp.config import MVP_CONFIG
-
-        monkeypatch.setitem(MVP_CONFIG["theme"], "default", "brand")
-
+    def test_it_sets_no_theme_colour_when_none_is_configured(self):
         assert head_soup().find("meta", attrs={"name": "theme-color"}) is None
 
     def test_it_links_the_apple_touch_icon(self):
@@ -312,7 +303,6 @@ class TestShellHeadWithConfiguredValues:
     def test_configured_colour_reaches_the_theme_colour_meta_tag(self, monkeypatch):
         from mvp.config import MVP_CONFIG
 
-        monkeypatch.setitem(MVP_CONFIG["theme"], "default", "brand")
         monkeypatch.setitem(MVP_CONFIG, "pwa", {"theme_color": "#123456"})
 
         meta = head_soup().find("meta", attrs={"name": "theme-color"})

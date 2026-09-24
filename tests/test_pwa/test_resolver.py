@@ -108,39 +108,20 @@ class TestResolveUrls:
 
 @pytest.mark.django_db
 class TestResolveThemeColours:
-    def test_colours_come_from_the_default_theme(self, request_):
-        result = resolve(request_)
+    def test_there_is_no_colour_by_default(self, request_, monkeypatch):
+        monkeypatch.setitem(MVP_CONFIG, "pwa", True)
 
-        assert result["theme_color"] == "#ffffff"
+        assert resolve(request_)["theme_color"] is None
 
-    def test_a_theme_the_package_does_not_ship_has_no_colour(
-        self, request_, monkeypatch
-    ):
-        monkeypatch.setitem(MVP_CONFIG["theme"], "default", "brand")
-
-        result = resolve(request_)
-
-        assert result["theme_color"] is None
-
-    def test_a_configured_colour_wins(self, request_, monkeypatch):
+    def test_a_configured_colour_is_used(self, request_, monkeypatch):
         monkeypatch.setitem(MVP_CONFIG, "pwa", {"theme_color": "#123456"})
 
         assert resolve(request_)["theme_color"] == "#123456"
 
-    def test_a_configured_colour_is_used_for_a_theme_the_package_does_not_ship(
-        self, request_, monkeypatch
-    ):
-        monkeypatch.setitem(MVP_CONFIG["theme"], "default", "brand")
-        monkeypatch.setitem(MVP_CONFIG, "pwa", {"theme_color": "#123456"})
+    def test_the_default_theme_does_not_supply_a_colour(self, request_, monkeypatch):
+        monkeypatch.setitem(MVP_CONFIG, "pwa", {})
 
-        assert resolve(request_)["theme_color"] == "#123456"
-
-    def test_a_dict_without_a_colour_falls_back_to_the_theme(
-        self, request_, monkeypatch
-    ):
-        monkeypatch.setitem(MVP_CONFIG, "pwa", {"theme_color": None})
-
-        assert resolve(request_)["theme_color"] == "#ffffff"
+        assert resolve(request_)["theme_color"] is None
 
 
 class TestResolveShape:
@@ -170,11 +151,11 @@ class TestInstallableApp:
         assert MVP_CONFIG["pwa"] is False
         assert InstallableApp.enabled() is False
 
-    def test_true_is_on_with_the_theme_colour(self, monkeypatch):
+    def test_true_is_on_with_no_colour(self, monkeypatch):
         monkeypatch.setitem(MVP_CONFIG, "pwa", True)
 
         assert InstallableApp.enabled() is True
-        assert InstallableApp.theme_color() == "#ffffff"
+        assert InstallableApp.theme_color() is None
 
     def test_a_dict_is_on_and_supplies_the_colour(self, monkeypatch):
         monkeypatch.setitem(MVP_CONFIG, "pwa", {"theme_color": "#123456"})
@@ -182,10 +163,7 @@ class TestInstallableApp:
         assert InstallableApp.enabled() is True
         assert InstallableApp.theme_color() == "#123456"
 
-    def test_the_colour_is_none_for_a_theme_the_package_does_not_ship(
-        self, monkeypatch
-    ):
-        monkeypatch.setitem(MVP_CONFIG, "pwa", True)
-        monkeypatch.setitem(MVP_CONFIG["theme"], "default", "brand")
+    def test_a_dict_without_a_colour_has_none(self, monkeypatch):
+        monkeypatch.setitem(MVP_CONFIG, "pwa", {"theme_color": None})
 
         assert InstallableApp.theme_color() is None

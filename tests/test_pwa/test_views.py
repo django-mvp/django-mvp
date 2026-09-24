@@ -54,14 +54,8 @@ class TestManifestView:
             },
         ]
 
-    def test_it_carries_colours_for_a_shipped_theme(self, client):
-        manifest = client.get("/account/manifest.webmanifest").json()
-
-        assert manifest["theme_color"] == "#ffffff"
-        assert manifest["background_color"] == "#ffffff"
-
-    def test_it_omits_colours_for_an_unknown_theme(self, client, monkeypatch):
-        monkeypatch.setitem(MVP_CONFIG["theme"], "default", "brand")
+    def test_it_omits_colours_when_none_is_configured(self, client, monkeypatch):
+        monkeypatch.setitem(MVP_CONFIG, "pwa", True)
 
         manifest = client.get("/account/manifest.webmanifest").json()
 
@@ -151,22 +145,12 @@ class TestManifestOverrides:
     def test_one_configured_colour_is_both_the_theme_and_background_colour(
         self, client, monkeypatch
     ):
-        monkeypatch.setitem(MVP_CONFIG["theme"], "default", "brand")
         monkeypatch.setitem(MVP_CONFIG, "pwa", {"theme_color": "#123456"})
 
         manifest = client.get("/account/manifest.webmanifest").json()
 
         assert manifest["theme_color"] == "#123456"
         assert manifest["background_color"] == "#123456"
-
-    def test_no_colour_is_invented_for_an_unshipped_theme(self, client, monkeypatch):
-        monkeypatch.setitem(MVP_CONFIG["theme"], "default", "brand")
-        monkeypatch.setitem(MVP_CONFIG, "site_name", "Configured")
-
-        manifest = client.get("/account/manifest.webmanifest").json()
-
-        assert "theme_color" not in manifest
-        assert "background_color" not in manifest
 
     def test_the_start_url_and_scope_follow_the_script_prefix(self, client):
         from django.urls import set_script_prefix

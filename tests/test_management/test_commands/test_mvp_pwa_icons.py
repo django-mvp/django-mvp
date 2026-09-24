@@ -154,11 +154,10 @@ class TestMvpPwaIcons:
         row = first_row(images["icon_maskable_512"])
         assert row[len(row) // 2] != (255, 0, 0, 255)
 
-    def test_the_background_falls_back_to_the_theme_colour_then_white(
+    def test_the_background_is_white_without_a_configured_colour(
         self, mark, output_dir, monkeypatch
     ):
         monkeypatch.setitem(MVP_CONFIG, "pwa", True)
-        monkeypatch.setitem(MVP_CONFIG["theme"], "default", "no-such-theme")
 
         call_command("mvp_pwa_icons", output_dir=str(output_dir), stdout=io.StringIO())
 

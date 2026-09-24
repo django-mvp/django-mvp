@@ -4,7 +4,6 @@ from django.templatetags.static import static
 from django.urls import get_script_prefix
 
 from mvp.config import MVP_CONFIG
-from mvp.pwa.colors import ThemeColors
 from mvp.utils import reverse_or_none, site_name
 
 MANIFEST_URL_NAME = "mvp-pwa-manifest"
@@ -28,10 +27,9 @@ class InstallableApp:
 
     @staticmethod
     def theme_color():
-        """The configured colour, else the default theme's, else ``None``."""
+        """The configured colour, or ``None`` when there is none."""
         setting = MVP_CONFIG["pwa"]
-        configured = setting.get("theme_color") if isinstance(setting, dict) else None
-        return configured or ThemeColors.for_theme(MVP_CONFIG["theme"]["default"])
+        return setting.get("theme_color") if isinstance(setting, dict) else None
 
 
 def resolve(request):
