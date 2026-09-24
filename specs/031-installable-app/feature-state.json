@@ -60,43 +60,82 @@
       "priority": "P1",
       "issue": 392,
       "worktree": "/home/sam/projects/django-mvp/dm-031-installable-app",
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
           "id": "T001",
           "status": "done",
-          "attempts": 1
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/test_templates.py (181 passed)"
+            ]
+          }
         },
         {
           "id": "T002",
           "status": "done",
-          "attempts": 1
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/test_pwa/test_resolver.py tests/test_config.py (26 passed)"
+            ]
+          }
         },
         {
           "id": "T003",
           "status": "done",
-          "attempts": 1
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/test_pwa tests/test_config.py (33 passed)"
+            ]
+          }
         },
         {
           "id": "T004",
           "status": "done",
-          "attempts": 1
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/test_pwa (34 passed)"
+            ]
+          }
         },
         {
           "id": "T005",
           "status": "done",
-          "attempts": 1
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/test_templates.py tests/test_templatetags.py (241 passed)"
+            ]
+          }
         },
         {
           "id": "T006",
           "status": "done",
-          "attempts": 1
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/test_pwa/test_checks.py (8 passed)"
+            ]
+          }
         },
         {
           "id": "T007",
           "status": "done",
-          "attempts": 1
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/test_demo tests/test_smoke.py (154 passed)",
+              "poetry run pytest -q -p no:sugar (2245 passed, 1 skipped, exit 0)",
+              "poetry run pre-commit run --all-files (all hooks passed)",
+              "poetry run mypy mvp (no issues in 36 files)",
+              "poetry run deptry . (no issues)"
+            ]
+          }
         }
       ]
     },

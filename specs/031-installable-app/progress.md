@@ -67,3 +67,12 @@ as D1–D4.
 - **Verified:** poetry run pytest tests/test_demo tests/test_smoke.py — 154 passed, exit 0.
 - **Next:** Full verify, then the report.
 - **Watch:** The demo warns mvp.W002 until US-2 supplies images; the demo test does not assert its absence.
+
+## 2026-09-24 — US-1 accepted
+
+Re-verified independently at the story's tip. Conformance and docs were red on the returned
+work: the resolver sat in the package's `__init__.py`, which has no test module to mirror, and
+four new public names had no page. The resolver moved to `mvp/pwa/resolver.py` with its tests
+in `tests/test_pwa/test_resolver.py`, and `docs/installable-app.md` gained a Python reference
+section. After that, every step was green. The tamper flag on `tests/test_templates.py` covers
+new imports and new test classes only, and no existing assertion changed.
