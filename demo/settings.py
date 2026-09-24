@@ -135,12 +135,8 @@ MVP_CONFIG = {
     # once after checkout, and the startup check for them warns until you do.
     # See docs/installable-app.md.
     # The demo's default theme is its own, so the package has no colour to read
-    # from it; these two match its light theme's page colour.
-    "pwa": {
-        "enabled": True,
-        "theme_color": "#f8f6f2",
-        "background_color": "#f8f6f2",
-    },
+    # from it; this matches its light theme's page colour.
+    "pwa": {"theme_color": "#f8f6f2"},
     "theme": {
         # This site's own two themes, defined in demo/static/css/themes.css and
         # loaded by demo/templates/base.html. They are named here because the

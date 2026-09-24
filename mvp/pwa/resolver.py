@@ -19,6 +19,21 @@ IMAGES = {
 }
 
 
+class InstallableApp:
+    """Reads ``MVP_CONFIG["pwa"]``, which is on when truthy and may be a dict."""
+
+    @staticmethod
+    def enabled():
+        return bool(MVP_CONFIG["pwa"])
+
+    @staticmethod
+    def theme_color():
+        """The configured colour, else the default theme's, else ``None``."""
+        setting = MVP_CONFIG["pwa"]
+        configured = setting.get("theme_color") if isinstance(setting, dict) else None
+        return configured or ThemeColors.for_theme(MVP_CONFIG["theme"]["default"])
+
+
 def resolve(request):
     """Work out every installable-app value for ``request``.
 
@@ -26,19 +41,15 @@ def resolve(request):
     disagree. ``manifest_url`` and ``worker_url`` are ``None`` when
     ``mvp.pwa.urls`` is not mounted, so a page still renders without them.
     """
-    config = MVP_CONFIG["pwa"]
     prefix = get_script_prefix()
-    theme_color = ThemeColors.for_theme(MVP_CONFIG["theme"]["default"])
-    name = config["name"] or site_name(request)
+    name = MVP_CONFIG["site_name"] or site_name(request)
     return {
         "name": name,
-        "short_name": config["short_name"] or name,
-        "start_url": config["start_url"] or prefix,
+        "short_name": MVP_CONFIG["short_name"] or name,
+        "start_url": prefix,
         "scope": prefix,
-        "display": config["display"],
-        "theme_color": config["theme_color"] or theme_color,
-        "background_color": config["background_color"] or theme_color,
+        "theme_color": InstallableApp.theme_color(),
         "manifest_url": reverse_or_none(MANIFEST_URL_NAME),
-        "worker_url": config["service_worker"] or reverse_or_none(WORKER_URL_NAME),
+        "worker_url": reverse_or_none(WORKER_URL_NAME),
         **{key: static(IMAGE_DIRECTORY + file) for key, file in IMAGES.items()},
     }

@@ -140,7 +140,7 @@ class TestMvpPwaIcons:
         self, mark, output_dir, monkeypatch
     ):
         mark.write_text(ROUND_MARK)
-        monkeypatch.setitem(MVP_CONFIG["pwa"], "background_color", "#00ff00")
+        monkeypatch.setitem(MVP_CONFIG, "pwa", {"theme_color": "#00ff00"})
 
         call_command("mvp_pwa_icons", output_dir=str(output_dir), stdout=io.StringIO())
 
@@ -157,7 +157,7 @@ class TestMvpPwaIcons:
     def test_the_background_falls_back_to_the_theme_colour_then_white(
         self, mark, output_dir, monkeypatch
     ):
-        monkeypatch.setitem(MVP_CONFIG["pwa"], "background_color", None)
+        monkeypatch.setitem(MVP_CONFIG, "pwa", True)
         monkeypatch.setitem(MVP_CONFIG["theme"], "default", "no-such-theme")
 
         call_command("mvp_pwa_icons", output_dir=str(output_dir), stdout=io.StringIO())

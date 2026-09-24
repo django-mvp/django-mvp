@@ -71,3 +71,13 @@ package code (DEP004), the same case as `markdown_it`. The brief named DEP001; t
 allowance.
 
 **ADR:** none — local to this feature.
+
+## The `pwa` setting is read through one class
+
+**Decision**: `InstallableApp` in `mvp/pwa/resolver.py` holds `enabled()` and `theme_color()`, and every reader of `MVP_CONFIG["pwa"]` (the resolver, the checks, the icon command) goes through it. Templates test `mvp_config.pwa` directly for truthiness.
+
+**Why**: the setting is a bool or a dict, so reading a key off it directly fails for `True`. One reader keeps the falsey, `True` and dict cases in one place.
+
+**Revisit if**: the block regains a second key.
+
+**ADR:** none — local to this feature.

@@ -69,11 +69,11 @@ class TestManifestView:
         assert "background_color" not in manifest
 
     def test_it_answers_with_the_feature_off(self, client):
-        assert MVP_CONFIG["pwa"]["enabled"] is False
+        assert MVP_CONFIG["pwa"] is False
         assert client.get("/manifest.webmanifest").status_code == 200
 
     def test_it_answers_with_the_feature_on(self, client, monkeypatch):
-        monkeypatch.setitem(MVP_CONFIG["pwa"], "enabled", True)
+        monkeypatch.setitem(MVP_CONFIG, "pwa", True)
 
         assert client.get("/manifest.webmanifest").status_code == 200
 
@@ -109,7 +109,7 @@ class TestServiceWorkerView:
         assert "fetch" not in body
 
     def test_it_answers_with_the_feature_on(self, client, monkeypatch):
-        monkeypatch.setitem(MVP_CONFIG["pwa"], "enabled", True)
+        monkeypatch.setitem(MVP_CONFIG, "pwa", True)
 
         assert client.get("/sw.js").status_code == 200
 
@@ -118,37 +118,50 @@ class TestServiceWorkerView:
 class TestManifestOverrides:
     @pytest.mark.parametrize(
         ("key", "value"),
-        [
-            ("name", "Configured"),
-            ("short_name", "Short"),
-            ("start_url", "/home/"),
-            ("display", "browser"),
-            ("theme_color", "#123456"),
-            ("background_color", "#abcdef"),
-        ],
+        [("site_name", "Configured"), ("short_name", "Short")],
     )
-    def test_each_value_reaches_the_manifest(self, client, monkeypatch, key, value):
-        monkeypatch.setitem(MVP_CONFIG["pwa"], key, value)
+    def test_each_name_reaches_the_manifest(self, client, monkeypatch, key, value):
+        monkeypatch.setitem(MVP_CONFIG, key, value)
 
         manifest = client.get("/manifest.webmanifest").json()
 
-        assert manifest[key] == value
+        assert manifest["short_name" if key == "short_name" else "name"] == value
 
-    def test_configured_colours_replace_the_theme_colours(self, client, monkeypatch):
+    def test_the_short_name_follows_a_configured_site_name(self, client, monkeypatch):
+        monkeypatch.setitem(MVP_CONFIG, "site_name", "Configured")
+
+        manifest = client.get("/manifest.webmanifest").json()
+
+        assert manifest["short_name"] == "Configured"
+
+    def test_one_configured_colour_is_both_the_theme_and_background_colour(
+        self, client, monkeypatch
+    ):
         monkeypatch.setitem(MVP_CONFIG["theme"], "default", "brand")
-        monkeypatch.setitem(MVP_CONFIG["pwa"], "theme_color", "#123456")
-        monkeypatch.setitem(MVP_CONFIG["pwa"], "background_color", "#abcdef")
+        monkeypatch.setitem(MVP_CONFIG, "pwa", {"theme_color": "#123456"})
 
         manifest = client.get("/manifest.webmanifest").json()
 
         assert manifest["theme_color"] == "#123456"
-        assert manifest["background_color"] == "#abcdef"
+        assert manifest["background_color"] == "#123456"
 
     def test_no_colour_is_invented_for_an_unshipped_theme(self, client, monkeypatch):
         monkeypatch.setitem(MVP_CONFIG["theme"], "default", "brand")
-        monkeypatch.setitem(MVP_CONFIG["pwa"], "name", "Configured")
+        monkeypatch.setitem(MVP_CONFIG, "site_name", "Configured")
 
         manifest = client.get("/manifest.webmanifest").json()
 
         assert "theme_color" not in manifest
         assert "background_color" not in manifest
+
+    def test_the_start_url_and_scope_follow_the_script_prefix(self, client):
+        from django.urls import set_script_prefix
+
+        set_script_prefix("/app/")
+        try:
+            manifest = client.get("/manifest.webmanifest").json()
+        finally:
+            set_script_prefix("/")
+
+        assert manifest["start_url"] == "/app/"
+        assert manifest["scope"] == "/app/"

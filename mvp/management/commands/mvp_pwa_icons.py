@@ -19,9 +19,7 @@ from django.contrib.staticfiles import finders
 from django.core.management.base import BaseCommand, CommandError
 
 import mvp
-from mvp.config import MVP_CONFIG
-from mvp.pwa.colors import ThemeColors
-from mvp.pwa.resolver import IMAGE_DIRECTORY, IMAGES
+from mvp.pwa.resolver import IMAGE_DIRECTORY, IMAGES, InstallableApp
 
 PACKAGE_STATIC = Path(next(iter(mvp.__path__))).resolve() / "static"
 MARK = "brand/icon.svg"
@@ -109,8 +107,4 @@ class Command(BaseCommand):
 
     @staticmethod
     def background():
-        return (
-            MVP_CONFIG["pwa"]["background_color"]
-            or ThemeColors.for_theme(MVP_CONFIG["theme"]["default"])
-            or FALLBACK_BACKGROUND
-        )
+        return InstallableApp.theme_color() or FALLBACK_BACKGROUND

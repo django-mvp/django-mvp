@@ -12,7 +12,7 @@ from demo import settings as demo_settings
 
 class TestDemoInstallableApp:
     def test_the_demo_settings_turn_the_feature_on(self):
-        assert demo_settings.MVP_CONFIG["pwa"]["enabled"] is True
+        assert demo_settings.MVP_CONFIG["pwa"] == {"theme_color": "#f8f6f2"}
 
     @pytest.mark.django_db
     def test_the_manifest_answers_at_the_root(self, client):
@@ -40,7 +40,7 @@ class TestDemoInstallableAppImages:
 
         # The test settings pin their own MVP_CONFIG, so turn the feature on
         # the way the demo does.
-        monkeypatch.setitem(MVP_CONFIG["pwa"], "enabled", True)
+        monkeypatch.setitem(MVP_CONFIG, "pwa", True)
         settings.STATICFILES_DIRS = [tmp_path]
         finders.get_finder.cache_clear()
         try:

@@ -127,20 +127,18 @@ class TestRemovedSidebarFooterSetting:
 
 
 class TestPwaConfigDefaults:
-    """The ``pwa`` block: off by default, every other key unset."""
+    """The feature is off by default, and the application's names are unset."""
 
     def test_the_feature_is_off(self):
-        assert MVP_CONFIG["pwa"]["enabled"] is False
+        assert MVP_CONFIG["pwa"] is False
 
-    def test_names_and_colours_are_unset(self):
-        pwa = MVP_CONFIG["pwa"]
+    def test_the_application_names_are_unset(self):
+        assert MVP_CONFIG["site_name"] is None
+        assert MVP_CONFIG["short_name"] is None
 
-        assert pwa["name"] is None
-        assert pwa["short_name"] is None
-        assert pwa["start_url"] is None
-        assert pwa["theme_color"] is None
-        assert pwa["background_color"] is None
-        assert pwa["service_worker"] is None
+    def test_a_project_turns_the_feature_on_with_true_or_a_dict(self):
+        for value in (True, {"theme_color": "#123456"}):
+            config = copy.deepcopy(MVP_CONFIG)
+            merge(config, {"pwa": value})
 
-    def test_display_is_standalone(self):
-        assert MVP_CONFIG["pwa"]["display"] == "standalone"
+            assert config["pwa"] == value

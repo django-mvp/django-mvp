@@ -11,7 +11,7 @@ With the setting off, nothing changes. Pages render exactly as they did before.
 ```python
 # settings.py
 MVP_CONFIG = {
-    "pwa": {"enabled": True},
+    "pwa": True,
 }
 ```
 
@@ -32,12 +32,14 @@ service worker. The manifest and the tags are built from three things:
 
 | Value | Where it comes from |
 | --- | --- |
-| Name | The current site's name (`Site.name`). Without `django.contrib.sites`, or when no `Site` matches or its name is empty, the request's host. Set `pwa.name` if the styled error page has to survive a database outage: reading the site name can need the database, and an error page that can't render falls back to the server's bare one. |
+| Name | `MVP_CONFIG["site_name"]` when set, otherwise the current site's name (`Site.name`). Without `django.contrib.sites`, or when no `Site` matches or its name is empty, the request's host. Set `MVP_CONFIG["site_name"]` if the styled error page has to survive a database outage: reading the site name can need the database, and an error page that can't render falls back to the server's bare one. |
 | Colour | The `base-100` colour of the default theme (`MVP_CONFIG["theme"]["default"]`), for a theme the package ships. A theme your project writes has no colour the package can read, so no colour is set. |
 | Images | Four PNG files under `brand/pwa/` in your static files (see [The images](#the-images)). |
 
-The other keys in the `pwa` block, `short_name`, `start_url`, `display`, `theme_color`,
-`background_color` and `service_worker`, are listed in [Configuration](configuration.md).
+`MVP_CONFIG["short_name"]` sets the label under the icon, and takes the name when unset. The
+application name and short name are top-level settings, listed in [Configuration](configuration.md).
+Every other value is fixed: the app opens at the site root (the script prefix included) and
+uses the `standalone` display mode.
 
 ## Why the include is at the root
 
@@ -46,10 +48,10 @@ A service worker only controls pages at or below the path it is served from. Ser
 answer at `/sw.js` for every page of the site to be covered.
 
 A site served under a script prefix (for example `/app/`) serves the worker at `/app/sw.js`, and
-the manifest's `start_url` and `scope` default to `/app/`.
+the manifest's `start_url` and `scope` are `/app/`.
 
 Mounting the include is your project's own act, so the two URLs answer whether or not
-`pwa.enabled` is on.
+`MVP_CONFIG["pwa"]` is on.
 
 ## What the packaged worker does
 
@@ -65,40 +67,27 @@ adding `mvp/pwa/sw.js` to its own templates.
 
 The package reads the browser toolbar and launch colours from the default theme, but only for
 themes it ships. A theme of your own has no colour the package can read, so the manifest and the
-`theme-color` tag carry none until you set them:
+`theme-color` tag carry none until you set one. Give `pwa` a dict with its one key:
 
 ```python
 MVP_CONFIG = {
-    "pwa": {
-        "enabled": True,
-        "theme_color": "#f8f6f2",
-        "background_color": "#f8f6f2",
-    },
+    "pwa": {"theme_color": "#f8f6f2"},
 }
 ```
 
-Keep the two in step with your theme's page colour. After changing `background_color`, run
+That colour is the manifest's theme and background colour, the `theme-color` tag's content and
+the background of the padded images. Match it to your theme's page colour. After changing it, run
 `mvp_pwa_icons` again so the padded backgrounds of the images match (see
 [Generating the images](#generating-the-images)).
 
-## Bringing your own worker
+## Replacing the worker or the head
 
-Set `pwa.service_worker` to the URL of your own worker and the page registers that instead of
-the packaged one:
-
-```python
-MVP_CONFIG = {"pwa": {"enabled": True, "service_worker": "/my-worker.js"}}
-```
-
-The worker has to be served from the site root, for the reason given in
+The worker and the head are templates, so a project replaces them by path. Add `mvp/pwa/sw.js`
+to your own templates to replace the packaged worker, or `mvp/pwa/head.html` to replace the
+manifest link, theme colour, touch icon and registration script in the head. A worker still has to
+be served from the site root, for the reason given in
 [Why the include is at the root](#why-the-include-is-at-the-root): a worker only controls pages at
-or below its own path, so one served from `/static/` would control nothing but static files. The
-manifest link still comes from the root include.
-
-To change the worker without replacing it, or to change what the page head carries, override a
-template by path instead. Add `mvp/pwa/sw.js` to your own templates to replace the packaged
-worker, or `mvp/pwa/head.html` to replace the manifest link, theme colour, touch icon and
-registration script in the head.
+or below its own path, so one served from `/static/` would control nothing but static files.
 
 ## The images
 
@@ -146,13 +135,13 @@ pages fail to render.
 | Destination | `--output-dir` if given, otherwise the first entry of `STATICFILES_DIRS` that has no prefix. A `(prefix, path)` entry is skipped, because its files are served under the prefix, where the manifest doesn't look. With no usable entry, the command stops and asks for `--output-dir`. Files go in `<directory>/brand/pwa/`, which is created if missing. Existing images are overwritten. |
 | Proportions | A mark that is not square is centred, never stretched. |
 | Plain icons | 192 px and 512 px, the mark filling the square on a transparent background. |
-| Maskable and Apple icons | 512 px and 180 px, the mark in the central 80% on an opaque background. The background is `pwa.background_color`, else the default theme's colour, else white. |
+| Maskable and Apple icons | 512 px and 180 px, the mark in the central 80% on an opaque background. The background is `pwa.theme_color`, else the default theme's colour, else white. |
 
 Run it again whenever the mark changes.
 
 ## The two warnings
 
-When `pwa.enabled` is on, Django's system checks report a setup that is not finished. Neither
+When `MVP_CONFIG["pwa"]` is on, Django's system checks report a setup that is not finished. Neither
 runs with the feature off.
 
 | Id | Meaning | Fix |
@@ -161,8 +150,7 @@ runs with the feature off.
 | `mvp.W002` | One or more of the four images is missing from the static files. Each missing file is named. | Add the files, or generate them with `python manage.py mvp_pwa_icons` (see [Generating the images](#generating-the-images)). |
 
 A page keeps rendering when the include is missing. The head then carries no manifest link,
-and `mvp.W001` tells you why. It also carries no registration script, unless `pwa.service_worker`
-names a worker of your own, which is registered either way.
+and `mvp.W001` tells you why. It also carries no registration script.
 
 ## Python reference
 
@@ -171,10 +159,10 @@ same values.
 
 - `mvp.pwa.resolver.resolve(request)` returns a dictionary with every value the manifest and the
   page head use. The keys are:
-  - `name`, `short_name`, `start_url`, `scope` and `display`
-  - `theme_color` and `background_color`, each `None` when no colour can be resolved
+  - `name`, `short_name`, `start_url` and `scope`
+  - `theme_color`, which is `None` when no colour can be resolved
   - `manifest_url`, which is `None` when `mvp.pwa.urls` is not mounted
-  - `worker_url`, which is the configured `pwa.service_worker` when one is set, and is otherwise `None` when `mvp.pwa.urls` is not mounted
+  - `worker_url`, which is `None` when `mvp.pwa.urls` is not mounted
   - `icon_192`, `icon_512`, `icon_maskable_512` and `apple_touch_icon`, the static URLs of the
     four images
 

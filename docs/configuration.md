@@ -55,14 +55,10 @@ site overrides the project setting for that one tag only.
 | `layout.navbar.desktop.end` | list of component names | `["actions.theme-controller", "actions.login"]` | Same, at and above the breakpoint |
 | `layout.navbar.sticky` | bool | `True` | Whether the header stays pinned as the page scrolls |
 | `table.wrap` | bool | `False` | Project-wide default for whether table cell text wraps |
-| `pwa.enabled` | bool | `False` | Make the project installable as an app; needs the root include described in [Installable app](installable-app.md) |
-| `pwa.name` | string or `None` | `None` | The app's name; `None` takes the current site's name |
-| `pwa.short_name` | string or `None` | `None` | The label under the icon; `None` takes the name |
-| `pwa.start_url` | URL path or `None` | `None` | Where the app opens; `None` takes the site root |
-| `pwa.display` | manifest display mode | `"standalone"` | How the installed app's window looks |
-| `pwa.theme_color` | CSS hex colour or `None` | `None` | Browser toolbar colour; `None` takes the default theme's colour when the package ships it |
-| `pwa.background_color` | CSS hex colour or `None` | `None` | Launch background; resolved like `theme_color` |
-| `pwa.service_worker` | URL path or `None` | `None` | The service worker the page registers; `None` registers the packaged one. See [bringing your own worker](installable-app.md#bringing-your-own-worker) |
+| `site_name` | string or `None` | `None` | The application's name, used for the page title suffix and the installed app's name; `None` takes the current site's name (the request host without the sites framework) |
+| `short_name` | string or `None` | `None` | The installed app's label under its icon; `None` takes the application's name |
+| `pwa` | bool or dict | `False` | Make the project installable as an app. `True` turns it on with defaults, and a dict turns it on too; needs the root include described in [Installable app](installable-app.md) |
+| `pwa.theme_color` | CSS hex colour | the default theme's colour when the package ships it, else none | The one key a `pwa` dict takes: the browser toolbar and launch background colour, the `theme-color` tag and the background of the padded images |
 
 There is no `layout.sidebar.footer` key. The sidebar footer is a fixed
 composition rather than a configured widget list — see

@@ -14,7 +14,7 @@ def manifest(request):
         "short_name": app["short_name"],
         "start_url": app["start_url"],
         "scope": app["scope"],
-        "display": app["display"],
+        "display": "standalone",
         "icons": [
             {"src": app["icon_192"], "sizes": "192x192", "type": "image/png"},
             {"src": app["icon_512"], "sizes": "512x512", "type": "image/png"},
@@ -26,9 +26,8 @@ def manifest(request):
             },
         ],
     }
-    for key in ("theme_color", "background_color"):
-        if app[key]:
-            data[key] = app[key]
+    if app["theme_color"]:
+        data["theme_color"] = data["background_color"] = app["theme_color"]
     return JsonResponse(data, content_type="application/manifest+json")
 
 

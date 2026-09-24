@@ -76,7 +76,7 @@ variable reference and how to write one.
 ### Installable app
 
 A project that a browser offers to install: it opens in its own window and has its own icon.
-A project gets one by setting `MVP_CONFIG["pwa"]["enabled"]` and mounting `mvp.pwa.urls` at the
+A project gets one by setting `MVP_CONFIG["pwa"]` to `True` (or a dict with a `theme_color`) and mounting `mvp.pwa.urls` at the
 root of its URLconf. Every shell page then links a web app manifest and registers a
 [service worker](#service-worker). See [Installable app](docs/installable-app.md).
 

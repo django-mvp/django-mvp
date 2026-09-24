@@ -4,8 +4,12 @@ from django.contrib.staticfiles import finders
 from django.core import checks
 from django.urls import get_script_prefix
 
-from mvp.config import MVP_CONFIG
-from mvp.pwa.resolver import IMAGE_DIRECTORY, IMAGES, WORKER_URL_NAME
+from mvp.pwa.resolver import (
+    IMAGE_DIRECTORY,
+    IMAGES,
+    WORKER_URL_NAME,
+    InstallableApp,
+)
 from mvp.utils import reverse_or_none
 
 
@@ -20,7 +24,7 @@ class InstallableAppChecks:
             return []
         return [
             checks.Warning(
-                "MVP_CONFIG['pwa']['enabled'] is on, but mvp.pwa.urls is not "
+                "MVP_CONFIG['pwa'] is on, but mvp.pwa.urls is not "
                 "included at the root of the URLconf.",
                 hint=(
                     "A service worker only controls pages at or below its own path. "
@@ -42,7 +46,7 @@ class InstallableAppChecks:
             return []
         return [
             checks.Warning(
-                "MVP_CONFIG['pwa']['enabled'] is on, but these images are missing "
+                "MVP_CONFIG['pwa'] is on, but these images are missing "
                 "from the static files: " + ", ".join(missing) + ".",
                 hint="Generate them with: python manage.py mvp_pwa_icons",
                 id="mvp.W002",
@@ -52,6 +56,6 @@ class InstallableAppChecks:
 
 @checks.register()
 def check_installable_app(app_configs, **kwargs):
-    if not MVP_CONFIG["pwa"]["enabled"]:
+    if not InstallableApp.enabled():
         return []
     return [*InstallableAppChecks.root_include(), *InstallableAppChecks.images()]

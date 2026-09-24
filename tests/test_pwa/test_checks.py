@@ -32,7 +32,7 @@ def images(static_dir):
 
 @pytest.fixture
 def feature_on(monkeypatch):
-    monkeypatch.setitem(MVP_CONFIG["pwa"], "enabled", True)
+    monkeypatch.setitem(MVP_CONFIG, "pwa", True)
 
 
 class TestChecksWithTheFeatureOff:

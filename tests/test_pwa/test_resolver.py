@@ -7,7 +7,7 @@ from django.test import override_settings
 from django.urls import set_script_prefix
 
 from mvp.config import MVP_CONFIG
-from mvp.pwa.resolver import resolve
+from mvp.pwa.resolver import InstallableApp, resolve
 
 
 @pytest.fixture
@@ -17,9 +17,6 @@ def request_(rf):
 
 @pytest.mark.django_db
 class TestResolveDefaults:
-    def test_display_is_standalone(self, request_):
-        assert resolve(request_)["display"] == "standalone"
-
     def test_short_name_defaults_to_the_name(self, request_):
         result = resolve(request_)
 
@@ -69,13 +66,13 @@ class TestResolveName:
         assert result["name"] == "shop.example.org"
         assert result["short_name"] == "shop.example.org"
 
-    def test_configured_name_wins(self, request_, monkeypatch):
-        monkeypatch.setitem(_pwa_config(), "name", "Configured")
+    def test_configured_site_name_wins(self, request_, monkeypatch):
+        monkeypatch.setitem(MVP_CONFIG, "site_name", "Configured")
 
         assert resolve(request_)["name"] == "Configured"
 
     def test_configured_short_name_wins(self, request_, monkeypatch):
-        monkeypatch.setitem(_pwa_config(), "short_name", "Short")
+        monkeypatch.setitem(MVP_CONFIG, "short_name", "Short")
 
         result = resolve(request_)
 
@@ -98,17 +95,6 @@ class TestResolveScriptPrefix:
         assert result["start_url"] == "/app/"
         assert result["scope"] == "/app/"
 
-    def test_configured_start_url_wins_but_scope_stays_the_prefix(
-        self, request_, monkeypatch
-    ):
-        set_script_prefix("/app/")
-        monkeypatch.setitem(_pwa_config(), "start_url", "/app/home/")
-
-        result = resolve(request_)
-
-        assert result["start_url"] == "/app/home/"
-        assert result["scope"] == "/app/"
-
 
 @pytest.mark.django_db
 class TestResolveUrls:
@@ -121,30 +107,11 @@ class TestResolveUrls:
 
 
 @pytest.mark.django_db
-class TestResolveColours:
-    def test_configured_colours_win(self, request_, monkeypatch):
-        monkeypatch.setitem(_pwa_config(), "theme_color", "#123456")
-        monkeypatch.setitem(_pwa_config(), "background_color", "#abcdef")
-
-        result = resolve(request_)
-
-        assert result["theme_color"] == "#123456"
-        assert result["background_color"] == "#abcdef"
-
-
-def _pwa_config():
-    from mvp.config import MVP_CONFIG
-
-    return MVP_CONFIG["pwa"]
-
-
-@pytest.mark.django_db
 class TestResolveThemeColours:
     def test_colours_come_from_the_default_theme(self, request_):
         result = resolve(request_)
 
         assert result["theme_color"] == "#ffffff"
-        assert result["background_color"] == "#ffffff"
 
     def test_a_theme_the_package_does_not_ship_has_no_colour(
         self, request_, monkeypatch
@@ -154,56 +121,71 @@ class TestResolveThemeColours:
         result = resolve(request_)
 
         assert result["theme_color"] is None
-        assert result["background_color"] is None
 
+    def test_a_configured_colour_wins(self, request_, monkeypatch):
+        monkeypatch.setitem(MVP_CONFIG, "pwa", {"theme_color": "#123456"})
 
-@pytest.mark.django_db
-class TestResolveEachOverrideAlone:
-    """Each value set on its own changes only itself (scenario 1)."""
+        assert resolve(request_)["theme_color"] == "#123456"
 
-    KEYS = (
-        "name",
-        "short_name",
-        "start_url",
-        "display",
-        "theme_color",
-        "background_color",
-    )
-
-    @pytest.mark.parametrize(
-        ("key", "value"),
-        [
-            ("name", "Configured"),
-            ("short_name", "Short"),
-            ("start_url", "/home/"),
-            ("display", "minimal-ui"),
-            ("theme_color", "#123456"),
-            ("background_color", "#abcdef"),
-        ],
-    )
-    def test_only_that_value_changes(self, request_, monkeypatch, key, value):
-        before = resolve(request_)
-        monkeypatch.setitem(MVP_CONFIG["pwa"], key, value)
-
-        after = resolve(request_)
-
-        assert after[key] == value
-        changed = {k for k in before if before[k] != after[k]}
-        # An unset short_name follows the name, so overriding the name moves both.
-        expected = {key, "short_name"} if key == "name" else {key}
-        assert changed == expected
-
-
-@pytest.mark.django_db
-class TestResolveServiceWorker:
-    @override_settings(ROOT_URLCONF="tests.urls_pwa")
-    def test_the_packaged_worker_is_used_by_default(self, request_):
-        assert resolve(request_)["worker_url"] == "/sw.js"
-
-    @override_settings(ROOT_URLCONF="tests.urls_pwa")
-    def test_a_configured_worker_replaces_the_packaged_one(
+    def test_a_configured_colour_is_used_for_a_theme_the_package_does_not_ship(
         self, request_, monkeypatch
     ):
-        monkeypatch.setitem(MVP_CONFIG["pwa"], "service_worker", "/my-worker.js")
+        monkeypatch.setitem(MVP_CONFIG["theme"], "default", "brand")
+        monkeypatch.setitem(MVP_CONFIG, "pwa", {"theme_color": "#123456"})
 
-        assert resolve(request_)["worker_url"] == "/my-worker.js"
+        assert resolve(request_)["theme_color"] == "#123456"
+
+    def test_a_dict_without_a_colour_falls_back_to_the_theme(
+        self, request_, monkeypatch
+    ):
+        monkeypatch.setitem(MVP_CONFIG, "pwa", {"theme_color": None})
+
+        assert resolve(request_)["theme_color"] == "#ffffff"
+
+
+class TestResolveShape:
+    @pytest.mark.django_db
+    def test_it_carries_no_display_or_background_colour(self, request_):
+        result = resolve(request_)
+
+        assert "display" not in result
+        assert "background_color" not in result
+
+    @pytest.mark.django_db
+    @override_settings(ROOT_URLCONF="tests.urls_pwa")
+    def test_the_worker_is_the_packaged_one(self, request_):
+        assert resolve(request_)["worker_url"] == "/sw.js"
+
+
+class TestInstallableApp:
+    """``MVP_CONFIG["pwa"]`` is on when truthy, and its colour is the one key."""
+
+    @pytest.mark.parametrize("value", [False, None, {}])
+    def test_a_falsey_value_is_off(self, monkeypatch, value):
+        monkeypatch.setitem(MVP_CONFIG, "pwa", value)
+
+        assert InstallableApp.enabled() is False
+
+    def test_the_default_is_off(self):
+        assert MVP_CONFIG["pwa"] is False
+        assert InstallableApp.enabled() is False
+
+    def test_true_is_on_with_the_theme_colour(self, monkeypatch):
+        monkeypatch.setitem(MVP_CONFIG, "pwa", True)
+
+        assert InstallableApp.enabled() is True
+        assert InstallableApp.theme_color() == "#ffffff"
+
+    def test_a_dict_is_on_and_supplies_the_colour(self, monkeypatch):
+        monkeypatch.setitem(MVP_CONFIG, "pwa", {"theme_color": "#123456"})
+
+        assert InstallableApp.enabled() is True
+        assert InstallableApp.theme_color() == "#123456"
+
+    def test_the_colour_is_none_for_a_theme_the_package_does_not_ship(
+        self, monkeypatch
+    ):
+        monkeypatch.setitem(MVP_CONFIG, "pwa", True)
+        monkeypatch.setitem(MVP_CONFIG["theme"], "default", "brand")
+
+        assert InstallableApp.theme_color() is None

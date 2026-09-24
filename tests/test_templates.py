@@ -178,7 +178,7 @@ def render_shell_head():
 @pytest.mark.django_db
 class TestShellHeadWithInstallableAppOff:
     def test_head_matches_the_pinned_render_byte_for_byte(self):
-        """The head of a shell page is unchanged when ``pwa`` is not enabled.
+        """The head of a shell page is unchanged when ``pwa`` is off.
 
         ``tests/fixtures/base_head_off.html`` is the ``<head>`` rendered by
         ``mvp/base.html`` for an anonymous ``GET /`` on host ``testserver``
@@ -199,7 +199,7 @@ def head_soup():
 def installable_app_on(monkeypatch):
     from mvp.config import MVP_CONFIG
 
-    monkeypatch.setitem(MVP_CONFIG["pwa"], "enabled", True)
+    monkeypatch.setitem(MVP_CONFIG, "pwa", True)
 
 
 @pytest.mark.django_db
@@ -234,8 +234,8 @@ class TestShellHeadWithInstallableAppOn:
     def test_the_apple_title_carries_the_short_name(self, monkeypatch):
         from mvp.config import MVP_CONFIG
 
-        monkeypatch.setitem(MVP_CONFIG["pwa"], "short_name", "Shop")
-        monkeypatch.setitem(MVP_CONFIG["pwa"], "name", "The Corner Shop")
+        monkeypatch.setitem(MVP_CONFIG, "short_name", "Shop")
+        monkeypatch.setitem(MVP_CONFIG, "site_name", "The Corner Shop")
 
         meta = head_soup().find("meta", attrs={"name": "apple-mobile-web-app-title"})
 
@@ -313,20 +313,11 @@ class TestShellHeadWithConfiguredValues:
         from mvp.config import MVP_CONFIG
 
         monkeypatch.setitem(MVP_CONFIG["theme"], "default", "brand")
-        monkeypatch.setitem(MVP_CONFIG["pwa"], "theme_color", "#123456")
+        monkeypatch.setitem(MVP_CONFIG, "pwa", {"theme_color": "#123456"})
 
         meta = head_soup().find("meta", attrs={"name": "theme-color"})
 
         assert meta["content"] == "#123456"
-
-    def test_configured_worker_is_the_one_the_head_registers(self, monkeypatch):
-        from mvp.config import MVP_CONFIG
-
-        monkeypatch.setitem(MVP_CONFIG["pwa"], "service_worker", "/my-worker.js")
-
-        data = head_soup().find("script", id="mvp-pwa-worker-url")
-
-        assert json.loads(data.string) == "/my-worker.js"
 
     def test_a_project_head_template_replaces_the_packaged_one(self, settings):
         project_templates = Path(__file__).parent / "pwa_templates"
@@ -339,3 +330,21 @@ class TestShellHeadWithConfiguredValues:
 
         assert soup.find("meta", attrs={"name": "project-head"})["content"] == "mine"
         assert soup.find("link", rel="manifest") is None
+
+
+@pytest.mark.django_db
+class TestShellTitle:
+    def title(self):
+        from bs4 import BeautifulSoup
+
+        return " ".join(BeautifulSoup(render_shell_head(), "html.parser").title.text.split())
+
+    def test_the_suffix_is_the_site_name_by_default(self):
+        assert self.title() == "| example.com"
+
+    def test_the_suffix_is_the_configured_site_name(self, monkeypatch):
+        from mvp.config import MVP_CONFIG
+
+        monkeypatch.setitem(MVP_CONFIG, "site_name", "The Corner Shop")
+
+        assert self.title() == "| The Corner Shop"

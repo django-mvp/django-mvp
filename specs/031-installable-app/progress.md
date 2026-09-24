@@ -126,3 +126,10 @@ entry, or asks for `--output-dir`. No decision met the ADR bar, and each one rec
 - **Verified:** `poetry run pytest tests/test_utils.py tests/test_pwa -q` → 396 passed.
 - **Next:** T014.
 - **Watch:** the resolver's own name tests still go through `resolve()`.
+
+## 2026-09-24T12:50Z · Implementer US3 · T014
+
+- **Did:** `MVP_CONFIG` gains top-level `site_name` and `short_name` and `pwa` becomes `False`, `True` or a dict whose one key is `theme_color`. `InstallableApp` in `mvp/pwa/resolver.py` reads the setting; the resolver, checks, manifest view and icon command go through it. `base.html` tests `mvp_config.pwa` and takes its title suffix from `site_name` when set. Tests for removed keys were rewritten to the new shape or deleted; the golden head fixture is untouched. Demo settings, docs/configuration.md, docs/installable-app.md, CHANGELOG and CONTEXT.md describe the new shape.
+- **Verified:** `poetry run pytest tests -q -n auto --dist loadscope` → 2294 passed, 1 skipped. Full verify results are in the completion report.
+- **Next:** Forge re-verifies.
+- **Watch:** the manifest view writes `background_color` from the same colour as `theme_color`.
