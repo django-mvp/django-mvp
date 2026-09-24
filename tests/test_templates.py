@@ -17,9 +17,12 @@ from pathlib import Path
 import pytest
 from django.apps import apps
 from django.conf import settings
+from django.contrib.auth.models import AnonymousUser
+from django.contrib.sites.shortcuts import get_current_site
 from django.template import Engine, engines
-from django.template.loader import get_template
+from django.template.loader import get_template, render_to_string
 from django.template.loader_tags import BlockNode, ExtendsNode
+from django.test import RequestFactory
 
 MVP_TEMPLATES = Path(apps.get_app_config("mvp").path) / "templates"
 DEMO_TEMPLATES = Path(apps.get_app_config("demo").path) / "templates"
@@ -157,3 +160,29 @@ class TestTemplateComments:
             f"{lines} — it will render as visible text. "
             "Use {% comment %} ... {% endcomment %} instead."
         )
+
+
+BASE_HEAD_FIXTURE = Path(__file__).parent / "fixtures" / "base_head_off.html"
+
+
+def render_shell_head():
+    """Render the ``<head>`` of a shell page for a fixed anonymous request."""
+    request = RequestFactory().get("/", HTTP_HOST="testserver")
+    request.user = AnonymousUser()
+    request.site = get_current_site(request)
+    page = render_to_string("mvp/base.html", request=request)
+    return page[page.index("<head>") : page.index("</head>") + len("</head>")]
+
+
+@pytest.mark.django_db
+class TestShellHeadWithInstallableAppOff:
+    def test_head_matches_the_pinned_render_byte_for_byte(self):
+        """The head of a shell page is unchanged when ``pwa`` is not enabled.
+
+        ``tests/fixtures/base_head_off.html`` is the ``<head>`` rendered by
+        ``mvp/base.html`` for an anonymous ``GET /`` on host ``testserver``
+        with the test settings and the default site. After a deliberate change
+        to the head, regenerate it by writing ``render_shell_head()``'s return
+        value to that file (as UTF-8, no trailing newline) and review the diff.
+        """
+        assert render_shell_head() == BASE_HEAD_FIXTURE.read_text(encoding="utf-8")
