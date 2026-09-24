@@ -1,4 +1,4 @@
-"""Tests for the two startup warnings, run through Django's check framework."""
+"""Tests for the startup warning, run through Django's check framework."""
 
 import pytest
 from django.core.checks import run_checks
@@ -66,29 +66,10 @@ class TestRootIncludeWarning:
 
 
 @pytest.mark.usefixtures("feature_on")
-class TestMissingImagesWarning:
-    @pytest.fixture(autouse=True)
-    def include_mounted(self, settings):
+class TestMissingImagesAreNotReported:
+    def test_missing_images_raise_no_warning(self, settings, static_dir):
+        # The images are a deployment step, so development starts clean
+        # without them.
         settings.ROOT_URLCONF = "tests.urls_pwa"
 
-    def test_every_missing_image_is_named(self, static_dir):
-        warnings = mvp_warnings()
-
-        assert [w.id for w in warnings] == ["mvp.W002"]
-        for file in IMAGES.values():
-            assert IMAGE_DIRECTORY + file in warnings[0].msg
-
-    def test_only_the_missing_image_is_named(self, images):
-        (images / "icon-512.png").unlink()
-
-        warnings = mvp_warnings()
-
-        assert [w.id for w in warnings] == ["mvp.W002"]
-        assert "brand/pwa/icon-512.png" in warnings[0].msg
-        assert "icon-192.png" not in warnings[0].msg
-
-    def test_the_hint_names_the_command_that_makes_them(self, static_dir):
-        assert "python manage.py mvp_pwa_icons" in mvp_warnings()[0].hint
-
-    def test_nothing_is_reported_when_everything_is_in_place(self, images):
         assert mvp_warnings() == []

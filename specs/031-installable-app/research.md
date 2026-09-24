@@ -121,17 +121,19 @@ The runtime dependency set does not change (Article VII).
   otherwise the first entry of `STATICFILES_DIRS`. If neither exists, the command raises
   `CommandError` saying to pass `--output-dir`. It never guesses.
 
-## R7 — Startup warnings
+## R7 — Startup warning
 
-Django system checks, registered from `MvpConfig.ready()`, and run only when
-`MVP_CONFIG["pwa"]["enabled"]` is true:
+One Django system check, registered from `MvpConfig.ready()`, and run only when
+`MVP_CONFIG["pwa"]` is truthy:
 
 - `mvp.W001`: `reverse("mvp-pwa-service-worker")` fails, or does not resolve to
   `<script prefix>sw.js`. The root include is missing or mounted under a sub-path.
-- `mvp.W002`: any of the four images in R5 is missing from the static files finders. The hint
-  names `python manage.py mvp_pwa_icons`.
 
-These are the package's first system checks, so there is nothing existing to renumber.
+Missing images are deliberately not checked. They are generated at deployment, so a development
+checkout never has them, and a warning on every development start would be noise. This was
+decided with the maintainer at the walkthrough.
+
+This is the package's first system check, so there is nothing existing to renumber.
 
 ## R8 — The head tags, and leaving projects that don't turn it on untouched
 

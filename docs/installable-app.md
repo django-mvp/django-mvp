@@ -139,15 +139,15 @@ pages fail to render.
 
 Run it again whenever the mark changes.
 
-## The two warnings
+## The startup warning
 
-When `MVP_CONFIG["pwa"]` is on, Django's system checks report a setup that is not finished. Neither
-runs with the feature off.
+When `MVP_CONFIG["pwa"]` is on, Django's system checks report an include that is missing or in
+the wrong place. The check doesn't run with the feature off. Missing images aren't reported,
+because generating them is a deployment step and development doesn't need them.
 
 | Id | Meaning | Fix |
 | --- | --- | --- |
 | `mvp.W001` | `mvp.pwa.urls` is not included, or is included somewhere other than the root. | Add `path("", include("mvp.pwa.urls"))` to the root URLconf. |
-| `mvp.W002` | One or more of the four images is missing from the static files. Each missing file is named. | Add the files, or generate them with `python manage.py mvp_pwa_icons` (see [Generating the images](#generating-the-images)). |
 
 A page keeps rendering when the include is missing. The head then carries no manifest link,
 and `mvp.W001` tells you why. It also carries no registration script.
@@ -169,7 +169,7 @@ same values.
   In a template, `{% mvp_pwa as pwa %}` from the `mvp` tag library gives you the same
   dictionary.
 - `mvp.utils.reverse_or_none(name)` reverses a URL name, and returns `None` instead of
-  raising when the name isn't registered. The page head and the startup warnings both use it
+  raising when the name isn't registered. The page head and the startup warning both use it
   to find out whether the root include is mounted.
 - `mvp.pwa.colors.ThemeColors.for_theme(name)` returns the `#rrggbb` background colour of one of
   the daisyUI themes that ship with the package, or `None` for any other name. It reads the

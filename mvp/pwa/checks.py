@@ -1,20 +1,14 @@
-"""System checks that warn when the installable app is on but not fully set up."""
+"""The system check that warns when the installable app is on but not mounted."""
 
-from django.contrib.staticfiles import finders
 from django.core import checks
 from django.urls import get_script_prefix
 
-from mvp.pwa.resolver import (
-    IMAGE_DIRECTORY,
-    IMAGES,
-    WORKER_URL_NAME,
-    InstallableApp,
-)
+from mvp.pwa.resolver import WORKER_URL_NAME, InstallableApp
 from mvp.utils import reverse_or_none
 
 
 class InstallableAppChecks:
-    """The two ways turning ``MVP_CONFIG["pwa"]`` on can be left half done."""
+    """What turning ``MVP_CONFIG["pwa"]`` on can leave half done."""
 
     @staticmethod
     def root_include():
@@ -34,28 +28,9 @@ class InstallableAppChecks:
             )
         ]
 
-    @staticmethod
-    def images():
-        """``mvp.W002``: an image the manifest and page head name is not in static files."""
-        missing = [
-            IMAGE_DIRECTORY + file
-            for file in IMAGES.values()
-            if not finders.find(IMAGE_DIRECTORY + file)
-        ]
-        if not missing:
-            return []
-        return [
-            checks.Warning(
-                "MVP_CONFIG['pwa'] is on, but these images are missing "
-                "from the static files: " + ", ".join(missing) + ".",
-                hint="Generate them with: python manage.py mvp_pwa_icons",
-                id="mvp.W002",
-            )
-        ]
-
 
 @checks.register()
 def check_installable_app(app_configs, **kwargs):
     if not InstallableApp.enabled():
         return []
-    return [*InstallableAppChecks.root_include(), *InstallableAppChecks.images()]
+    return InstallableAppChecks.root_include()

@@ -156,9 +156,8 @@ project's.
 - The feature is on but the root include is not mounted. The manifest link and the worker
   registration would point at addresses that do not exist. The developer needs to find out at
   startup, not from a browser console.
-- The feature is on but the application images do not exist in the project's static files. The
-  application would install with a missing icon or not be offered for install at all. This also
-  needs to show at startup, naming the command that produces them.
+- The feature is on but the application images do not exist in the project's static files, as
+  in development. Generating them is a deployment step, so nothing reports their absence.
 - The project has a dark variant of its brand mark. The images are rendered from the light mark
   only, because an installed app has one icon regardless of theme.
 - The site is served under a path prefix rather than at the root of its domain. The worker has
@@ -214,8 +213,8 @@ project's.
 - **FR-015**: When the project has no brand mark of its own, the command MUST render from the
   mark the package ships and say so in its output.
 - **FR-016**: With the feature on, the project MUST be warned at startup when the root URL
-  configuration is not mounted or when any image FR-007 names is missing, and the image warning
-  MUST name the command that produces them.
+  configuration is not mounted. Missing images MUST NOT be reported, because generating them is
+  a deployment step that development does without.
 - **FR-017**: Every value written into the manifest or the head MUST be escaped for the format
   it is written into.
 - **FR-018**: Anything the feature serves MUST NOT be fetched from a third party.
@@ -245,8 +244,8 @@ Not applicable. This feature stores nothing and introduces no model.
   with no other step.
 - **SC-005**: Every manifest value the package derives can be changed from the shell's
   configuration without overriding a template.
-- **SC-006**: A misconfiguration that would leave the application uninstallable, either an
-  unmounted root include or missing images, is reported when the project starts.
+- **SC-006**: An unmounted root include, which would leave the application uninstallable, is
+  reported when the project starts.
 
 ## Clarifications
 
@@ -267,7 +266,7 @@ itself?**
 At one fixed location under the project's static files, next to the brand mark the shell
 already reads. The manifest points at the rendered images, not at the vector mark, because Apple
 home screens and several install prompts do not accept a vector icon. A fixed location is what
-lets the command, the manifest and the startup check agree without a setting. Integrated as
+lets the command and the manifest agree without a setting. Integrated as
 FR-007 and FR-013.
 
 **Q3 — What is the application called when the project does not use Django's sites
@@ -279,9 +278,9 @@ case.
 
 **Q4 — How does a developer learn that the feature is on but cannot work?**
 Through a warning when the project starts, following Django's own practice of reporting
-configuration mistakes through its system checks rather than at request time. The two failures
-that leave an application silently uninstallable are the unmounted root include and the missing
-images, and both are reported. Integrated as FR-016 and SC-006.
+configuration mistakes through its system checks rather than at request time. The unmounted root
+include is reported. Missing images are not, because they are produced at deployment and a
+development checkout never has them. Integrated as FR-016 and SC-006.
 
 **Q5 — Which brand mark is rendered when a project has both a light and a dark one?**
 The light one. An installed application has a single icon on the home screen or dock,

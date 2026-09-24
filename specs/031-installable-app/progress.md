@@ -141,3 +141,10 @@ which now has an entry in the Python reference. The same pass corrected the refe
 that shipped-theme colours always match the page: a theme recoloured in a project's own CSS does
 not. Spec FR-001, FR-010, FR-011 and US-3, and research R1, now describe the smaller
 configuration.
+
+## 2026-09-24 — Image warning removed
+
+At Sam's direction, generating the app images is a deployment step only. The `mvp.W002` check and
+its tests are gone, the demo README no longer asks developers to generate them, and spec FR-016,
+SC-006, the edge case, Q4 and research R7 now say missing images are not reported. Done directly
+rather than dispatched, because it is a removal of one check and its references.
