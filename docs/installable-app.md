@@ -100,7 +100,7 @@ generate them from your brand mark as described next.
 `mvp_pwa_icons` renders all four images from your brand mark:
 
 ```bash
-pip install resvg-py        # or: poetry add --group dev resvg-py
+pip install resvg-py        # or: uv add --dev resvg-py
 python manage.py mvp_pwa_icons
 ```
 

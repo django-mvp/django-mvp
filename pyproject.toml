@@ -13,7 +13,22 @@ keywords = [
     "data",
     "scaffold",
 ]
-dynamic = ["version", "classifiers"]
+version = "0.24.0"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Framework :: Django",
+    "Framework :: Django :: 5.2",
+    "Framework :: Django :: 6.0",
+    "Framework :: Django :: 6.1",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
 readme = "README.md"
 authors = [{ name = "Sam", email = "samuel.scott.jennings@gmail.com" }]
 requires-python = '>=3.12,<4.0'
@@ -33,65 +48,56 @@ dependencies = [
 # form rendering requires them on every install.
 
 [project.urls]
-homepage = "https://github.com/django-mvp/django-mvp"
-repository = "https://github.com/django-mvp/django-mvp"
+Homepage = "https://github.com/django-mvp/django-mvp"
+Repository = "https://github.com/django-mvp/django-mvp"
 
 
-[tool.poetry]
-version = "0.24.0"
-packages = [{ include = "mvp" }]
-classifiers = [
-    "Development Status :: 3 - Alpha",
-    "Framework :: Django",
-    "Framework :: Django :: 5.2",
-    "Framework :: Django :: 6.0",
-    "Intended Audience :: Developers",
-    "Operating System :: OS Independent",
-    "Programming Language :: Python",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
-    "Topic :: Software Development :: Libraries :: Python Modules",
-]
-requires-poetry = '>=2.0,<3.0'
-
-[tool.poetry.group.test.dependencies]
-Django = ">=5.2.17.17"
-mvp-shared = { git = "https://github.com/django-mvp/shared.git", rev = "v0.4.1", extras = [
-    "test",
-] }
-django-allauth = "^65.19.4"
-resvg-py = "^0.5.0"
-
-[tool.poetry.group.dev.dependencies]
-Django = ">=5.2.17"
-django-distill = "^3.0"
-django-filter = "^26.1"
-django-tables2 = "^3.0.0"
-django-htmx = ">=1.28.0,<2.0"
-mvp-shared = { git = "https://github.com/django-mvp/shared.git", rev = "v0.4.1", extras = [
-    "dev",
-] }
-django-tailwind = { extras = [
-    "cookiecutter",
-    "honcho",
-    "reload",
-], version = "^4.4.2" }
-brotli = "^1.2.0"
-# Renders docs/utility-classes.md inside the demo app's own "Utility Classes"
-# page, so the docs stay one source of truth instead of being copied into a
-# template. Already present transitively (pulled in by rich, via django-distill);
-# declared explicitly here because the demo app now imports it directly.
-# Demo-only: never a runtime dependency of the mvp package itself.
-markdown-it-py = "^4.2.0"
-
-[build-system]
-requires = ['poetry-core (>=2.0,<3.0)']
-build-backend = "poetry.core.masonry.api"
-
-[tool.poetry.plugins."pytest11"]
+[project.entry-points.pytest11]
 mvp = "mvp.fixtures"
 
+[tool.hatch.build.targets.wheel]
+packages = ["mvp"]
+
+# Hatchling's default source distribution is the whole working tree: tests, the
+# demonstration project, documentation, CI configuration and the repository's
+# own records. Listing what ships keeps it to the package, the readme and the
+# licence. The leading slashes anchor each entry to the repository root; without
+# them "mvp" and "README.md" also match nested copies such as demo/README.md and
+# tests/pwa_templates/mvp/. Hatchling adds .gitignore itself, so that a build from the source
+# distribution leaves out what the repository does.
+[tool.hatch.build.targets.sdist]
+include = ["/mvp", "/README.md", "/LICENSE"]
+
+[dependency-groups]
+# Everything a contributor needs, in the one group `uv sync` installs by default.
+# mvp-shared is the shared toolchain bundle from django-mvp/shared, pinned to a
+# release tag below: ruff, mypy, deptry, pre-commit, pytest, pytest-django,
+# coverage and django-stubs.
+dev = [
+    "mvp-shared[dev,test]",
+    "django>=5.2.17",
+    "django-allauth>=65.19.4,<66",
+    "resvg-py>=0.5.0,<0.6",
+    "django-distill>=3.0,<4",
+    "django-filter>=26.1,<27",
+    "django-tables2>=3.0.0,<4",
+    "django-htmx>=1.28.0,<2.0",
+    "django-tailwind[cookiecutter,honcho,reload]>=4.4.2,<5",
+    "brotli>=1.2.0,<2",
+    # Renders docs/utility-classes.md inside the demo app's own "Utility Classes"
+    # page, so the docs stay one source of truth instead of being copied into a
+    # template. Already present transitively (pulled in by rich, via django-distill);
+    # declared explicitly here because the demo app now imports it directly.
+    # Demo-only: never a runtime dependency of the mvp package itself.
+    "markdown-it-py>=4.2.0,<5",
+]
+
+[tool.uv.sources]
+mvp-shared = { git = "https://github.com/django-mvp/shared.git", tag = "v0.6.0" }
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [tool.forge.docs]
 # mvp/templatetags/ is the plumbing behind the packaged components, not a
@@ -114,7 +120,7 @@ exempt-paths = ["mvp/templatetags/"]
 # is that no source module exists to mirror, not that the tests are misplaced.
 # tests/test_demo/ exercises demo/, the example project used to develop and
 # showcase the package. demo/ is a top-level app, not a submodule of mvp/ —
-# the only package this repo ships, per tool.poetry.packages above — so the
+# the only package this repo ships, per wheel packages setting above — so the
 # mirror check's guess of mvp/demo/<module>.py can never exist. Declared here
 # for the same reason as the entry above: the mismatch is by design, not
 # drift to fix.

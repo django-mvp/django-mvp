@@ -15,16 +15,16 @@ This project follows the principles defined in [CONSTITUTION.md](CONSTITUTION.md
 ## Development Setup
 
 1. Clone the repository
-2. Install dependencies with Poetry:
+2. Install dependencies with [uv](https://docs.astral.sh/uv/):
 
    ```bash
-   poetry install
+   uv sync
    ```
 
 3. Run tests to verify setup:
 
    ```bash
-   poetry run pytest
+   uv run pytest
    ```
 
 ## Testing Requirements
@@ -65,16 +65,16 @@ def test_my_component(mock_request):
 
 ```bash
 # Run all tests
-poetry run pytest
+uv run pytest
 
 # Run with coverage
-poetry run pytest --cov=mvp
+uv run pytest --cov=mvp
 
 # Run specific test file
-poetry run pytest tests/test_app_components.py
+uv run pytest tests/test_app_components.py
 
 # Run with verbose output
-poetry run pytest -xvs
+uv run pytest -xvs
 ```
 
 ## Code Quality
@@ -84,25 +84,25 @@ Before submitting a pull request:
 1. **Run tests:**
 
    ```bash
-   poetry run pytest
+   uv run pytest
    ```
 
 2. **Run linting:**
 
    ```bash
-   poetry run ruff check .
+   uv run ruff check .
    ```
 
 3. **Format code:**
 
    ```bash
-   poetry run ruff format .
+   uv run ruff format .
    ```
 
 4. **Format templates:**
 
    ```bash
-   poetry run djlint mvp/templates --reformat
+   uv run djlint mvp/templates --reformat
    ```
 
 ## Pull Request Process

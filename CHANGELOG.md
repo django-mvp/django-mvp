@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Django 6.1 is supported, and tested on every change alongside 5.2 and 6.0.
+
 - **Installable app.** Set `MVP_CONFIG["pwa"] = {"theme_color": "#..."}` and the browser
   offers to install the project as an app; the manifest and worker are served by `mvp.urls`,
   so a project needs no second include. `MVP_CONFIG["site_name"]` and
@@ -35,6 +37,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   icon from the project's `brand/icon.svg`.
 
 ### Changed
+
+- The package is built with hatchling instead of poetry-core, and developed with uv instead of
+  Poetry. The wheel contains the same files as before. The source distribution does too, plus the
+  repository's `.gitignore`, which hatchling includes so that a build from it leaves out the same
+  files.
 
 - **`mvp.urls` is mounted at the site root.** Include it as `path("", include("mvp.urls"))`.
   The URLconf now places the Account Center under `account/` itself, so the landing page,

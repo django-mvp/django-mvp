@@ -7,7 +7,7 @@ on:
     paths:
       - 'mvp/**'
       - 'pyproject.toml'
-      - 'poetry.lock'
+      - 'uv.lock'
       - '.pre-commit-config.yaml'
       - '.github/workflows/build.yml'
   # No paths filter on pull_request: these checks are ruleset-required, and a
@@ -18,7 +18,7 @@ on:
 
 jobs:
   call-build:
-    uses: django-mvp/shared/.github/workflows/build.yml@v0.4.1
+    uses: django-mvp/shared/.github/workflows/build.yml@v0.6.0
     with:
       source-dir: mvp
     secrets: inherit
