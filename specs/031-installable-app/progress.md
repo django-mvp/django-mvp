@@ -76,3 +76,24 @@ four new public names had no page. The resolver moved to `mvp/pwa/resolver.py` w
 in `tests/test_pwa/test_resolver.py`, and `docs/installable-app.md` gained a Python reference
 section. After that, every step was green. The tamper flag on `tests/test_templates.py` covers
 new imports and new test classes only, and no existing assertion changed.
+
+## 2026-09-24T08:05Z · Implementer US2 · T008
+
+- **Did:** Added resvg-py to the test group (poetry.lock updated) and to the deptry allowances in pyproject.toml.
+- **Verified:** poetry run deptry . — no issues. Runtime dependency set unchanged.
+- **Next:** T009: the command.
+- **Watch:** The allowance moved from DEP001 to DEP004 in T009, see D5.
+
+## 2026-09-24T08:15Z · Implementer US2 · T009
+
+- **Did:** Added mvp/management/commands/mvp_pwa_icons.py and tests/test_management/test_commands/test_mvp_pwa_icons.py (16 tests; PNG size from IHDR, corner and edge pixels from the first scanline with the standard library).
+- **Verified:** poetry run pytest tests/test_management -p no:playwright — 16 passed, exit 0. Probe: widening the maskable padding to 100% made the safe-zone test fail. Started red with "Unknown command".
+- **Next:** T010: docs and demo images.
+- **Watch:** deptry reported DEP004 on the lazy import; moved the allowance (D5).
+
+## 2026-09-24T08:22Z · Implementer US2 · T010
+
+- **Did:** Added the "Generating the images" section to docs/installable-app.md, generated demo/static/brand/pwa/*.png with `python manage.py mvp_pwa_icons --output-dir demo/static`, and added a demo test that mvp.W002 is absent.
+- **Verified:** poetry run pytest tests/test_demo/test_installable_app.py — 4 passed, exit 0 (was 1 failed before the images existed). Full suite: poetry run pytest — 2262 passed, 1 skipped, exit 0.
+- **Next:** Forge re-verifies.
+- **Watch:** The demo has no brand/icon.svg of its own, so its images are rendered from the package's mark.

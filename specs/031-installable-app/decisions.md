@@ -56,3 +56,18 @@ response to the network, so FR-009 holds.
 
 **ADR:** none — the worker is a template a project can override, and this choice is expected to
 change when offline support arrives.
+
+## D5 — `resvg_py` is listed under DEP004, not DEP001
+
+**Decision**: the deptry allowance for `resvg_py` sits in `DEP004`, with its reason beside the
+existing entries. `DEP001` does not list it.
+
+**Why**: the package is installed (test group), so deptry does not call it missing (DEP001). It
+reports the lazy import inside the packaged command as a development dependency imported from
+package code (DEP004), the same case as `markdown_it`. The brief named DEP001; that entry made
+`poetry run deptry .` fail with DEP004, so the entry went where the rule fires.
+
+**Revisit if**: `resvg-py` becomes a declared optional extra, which would drop the need for an
+allowance.
+
+**ADR:** none — local to this feature.

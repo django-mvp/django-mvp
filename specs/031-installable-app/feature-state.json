@@ -149,18 +149,51 @@
       "tasks": [
         {
           "id": "T008",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run deptry . (no issues)"
+            ],
+            "code": [
+              "pyproject.toml",
+              "poetry.lock"
+            ]
+          }
         },
         {
           "id": "T009",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_management/test_commands/test_mvp_pwa_icons.py (16 tests)"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_management -p no:playwright (16 passed)"
+            ],
+            "code": [
+              "mvp/management/commands/mvp_pwa_icons.py"
+            ]
+          }
         },
         {
           "id": "T010",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_demo/test_installable_app.py::TestDemoInstallableAppImages"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_demo/test_installable_app.py (4 passed)",
+              "poetry run pytest (2262 passed, 1 skipped, exit 0)"
+            ],
+            "code": [
+              "docs/installable-app.md",
+              "demo/static/brand/pwa/"
+            ]
+          }
         }
       ]
     },
