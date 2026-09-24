@@ -9,8 +9,8 @@
 A new `mvp/pwa/` package serves a web app manifest and a service worker from a URLconf the
 project mounts at its root. `base.html` includes one overridable head template when
 `MVP_CONFIG["pwa"]["enabled"]` is true. With it off, the page head is byte-identical to today's.
-The manifest's name comes from the current site, and its colours come from a committed JSON
-artifact of the prebuilt daisyUI themes' `base-100` colour. Its images come from four PNGs
+The manifest's name comes from the current site, and its colours come from the prebuilt daisyUI
+themes' `base-100` colour, read from the committed stylesheet. Its images come from four PNGs
 rendered by a new `mvp_pwa_icons` management command. The command uses an optional `resvg-py`
 dependency. Two system checks warn when the feature is on but the root include or the images
 are missing. Research R1–R9 records each choice.
@@ -36,8 +36,7 @@ bytes 16–24 of a PNG). No browser test, because nothing here is a claim about 
 fetched from a third party (FR-018, Article XV). The runtime dependency set does not grow
 (Article VII).
 
-**Scale/Scope**: One new subpackage (config resolution, two views, URLconf, checks, colours
-artifact). Two templates, one management command, one invoke task, one docs page, a glossary
+**Scale/Scope**: One new subpackage (config resolution, colours, two views, URLconf, checks). Two templates, one template tag, one management command, one docs page, a glossary
 entry, and demo wiring.
 
 ## Constitution Check
@@ -55,7 +54,7 @@ entry, and demo wiring.
 | XI — Components are public API | No new component. The head template is an overridable template, not a component (ADR 0026). |
 | XII — Configuration-driven layout | Everything is set through `MVP_CONFIG["pwa"]`. |
 | XIII — Rendered markup is a contract | The head tags and the manifest keys are asserted exactly. |
-| XV — Build artifacts | `mvp/pwa/theme_colors.json` becomes a third committed artifact with an invoke task, added to `invoke prerelease`. It is byte-reproducible from the pinned daisyUI, like the JS bundle. |
+| XV — Build artifacts | No new artifact. Theme colours are read from the committed stylesheet (research R4). |
 | XVI — Compatibility | Off by default. No existing key or template path changes. |
 
 ## Project Structure
@@ -67,18 +66,18 @@ mvp/
   pwa/
     __init__.py                   # resolve(request) → name, short_name, start_url, scope,
                                   #   display, theme_color, background_color, worker_url, icons
-    theme_colors.json             # build artifact (R4)
+    colors.py                     # theme colours from the committed stylesheet (R4)
     urls.py                       # manifest.webmanifest, sw.js
     views.py                      # manifest(), service_worker()
     checks.py                     # mvp.W001, mvp.W002
   management/commands/mvp_pwa_icons.py
   templates/mvp/base.html         # one include, on an existing line (R8)
+  templatetags/mvp.py             # the mvp_pwa simple tag (R8)
   templates/mvp/pwa/head.html
   templates/mvp/pwa/sw.js
-tasks.py                          # build-theme-colors; prerelease calls it
 demo/settings.py, demo/urls.py, demo/static/brand/pwa/*.png
-docs/installable-app.md, docs/index.md, docs/configuration.md, CONTEXT.md, README.md
-tests/test_pwa/  test_init.py test_views.py test_urls.py test_checks.py
+docs/installable-app.md, docs/index.md, docs/configuration.md, CONTEXT.md, README.md, CHANGELOG.md
+tests/test_pwa/  test_init.py test_colors.py test_views.py test_urls.py test_checks.py
 tests/test_management/test_commands/test_mvp_pwa_icons.py   # mirrors the source path
 tests/test_templates.py           # off-state golden file + on-state include
 tests/fixtures/base_head_off.html # captured from main at 507c5a0

@@ -2,7 +2,7 @@
   "feature": "031-installable-app",
   "branch": "031-installable-app",
   "repo": "django-mvp/django-mvp",
-  "state": "PLAN",
+  "state": "IMPLEMENT",
   "state_history": [
     {
       "state": "QUEUED",
@@ -13,6 +13,16 @@
       "state": "PLAN",
       "at": "2026-09-24T07:32:54Z",
       "note": "plan.md, research.md, tasks.md"
+    },
+    {
+      "state": "DESIGN_REVIEW",
+      "at": "2026-09-24T07:33:49Z",
+      "note": "design reviewer dispatched, three lenses, one round"
+    },
+    {
+      "state": "IMPLEMENT",
+      "at": "2026-09-24T07:39:55Z",
+      "note": "US-1, US-2, US-3 sequentially in one worktree"
     }
   ],
   "gates": {
@@ -22,14 +32,26 @@
       "self_resolved": []
     },
     "plan": {
-      "approved_by": null,
-      "at": null,
+      "approved_by": "notified",
+      "at": "2026-09-24T07:47:00Z",
       "self_resolved": []
     },
     "merge": {
       "approved_by": null,
       "at": null,
       "self_resolved": []
+    },
+    "design_review": {
+      "approved_by": "design-panel",
+      "at": "2026-09-24T07:45:00Z",
+      "self_resolved": [
+        "DR-001 medium: an unmounted root include would have made every page raise; resolver now returns None and the head omits the tags (D1, T002, T005)",
+        "DR-002 medium: the white fixed point could not catch a wrong conversion; reference values for dark and cupcake added to T003",
+        "DR-003 medium: generated colours file dropped; colours read from the committed stylesheet (D2, R4, T003)",
+        "DR-004 medium: resolver reaches the head through a template tag, not the context processor (D3, T005)",
+        "DR-005 low: collectstatic ordering and manifest storage documented in T010",
+        "DR-006 low: CHANGELOG and README added to T012"
+      ]
     }
   },
   "stories": [
@@ -134,12 +156,16 @@
       "max": 1
     },
     "design_review_cycles": {
-      "used": 0,
+      "used": 1,
       "max": 1
     },
     "tokens": {
       "used": 0,
       "max": 120
     }
+  },
+  "pr": {
+    "number": 395,
+    "draft": true
   }
 }

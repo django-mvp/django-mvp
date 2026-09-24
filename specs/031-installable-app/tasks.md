@@ -27,7 +27,7 @@ request, and save it as the fixture. Add a test asserting that the same render s
 byte for byte. It passes now, and it must keep passing through every later task (SC-002, US-1
 scenario 1).
 
-### T002 — Configuration defaults and the resolver
+### T002 — Configuration defaults and the resolver (colours stubbed until T003)
 
 **Files**: `mvp/config.py`, `mvp/pwa/__init__.py`, `tests/test_pwa/test_init.py`,
 `tests/test_config.py`
@@ -40,22 +40,23 @@ Tests:
 - defaults
 - name from `Site` with the sites framework installed, and from the request host without it
 - the prefix under `set_script_prefix("/app/")`
-- colours for a shipped theme and `None` for an unknown one
+- colours for a shipped theme and `None` for an unknown one (after T003)
+- with the root include unmounted, the manifest and worker URLs resolve to `None` rather than
+  raising (research R8)
 
-### T003 — The theme colours artifact and its build task
+### T003 — Theme colours read from the committed stylesheet
 
-**Files**: `tasks.py`, `mvp/pwa/theme_colors.json`, `tests/test_pwa/test_theme_colors.py`
-(add it to `non-mirror-paths` only if the conformance check says a JSON file has no mirror)
+**Files**: `mvp/pwa/colors.py` (or the resolver module, one class holding the parse and the
+conversion), `tests/test_pwa/test_colors.py`
 
-Write `invoke build-theme-colors` per R4: OKLCH → sRGB hex in plain Python, reading
-`node_modules/daisyui/theme/*.css`, writing sorted, stable JSON. Add it to `prerelease`.
-Generate and commit the artifact.
+Implement research R4. No build task and no generated file.
 
 Tests:
-- one entry per `[data-theme=…]` name in the committed stylesheet, with no extras
-- every value matches `^#[0-9a-f]{6}$`
-- `light` is `#ffffff`. Its base-100 is `oklch(100% 0 0)`, which is a fixed point that checks the
-  conversion.
+- every `[data-theme=…]` name in the committed stylesheet resolves to a value matching
+  `^#[0-9a-f]{6}$`, and there are 35 of them
+- the reference values in R4: `light` → `#ffffff`, `dark` → `#1d232a`, `cupcake` → `#faf7f5`.
+  These come from an independent conversion. Never regenerate them from the code under test.
+- an unknown theme name returns `None`
 
 ### T004 — Manifest and worker views, and the root URLconf
 
@@ -78,7 +79,8 @@ Tests:
 ### T005 — The head template and its include
 
 **Files**: `mvp/templates/mvp/pwa/head.html`, `mvp/templates/mvp/base.html`,
-`tests/test_templates.py`
+`mvp/templatetags/mvp.py` (the `mvp_pwa` simple tag, research R8), `tests/test_templates.py`,
+`tests/test_templatetags.py`
 
 Include it exactly as research R8 shows, on the existing favicon line.
 
@@ -87,7 +89,10 @@ Tests:
   an unknown one), the `apple-touch-icon`, `apple-mobile-web-app-title`, `mobile-web-app-capable`
   and the registration script naming the reversed worker URL (US-1 scenarios 2 and 7).
 - A name containing `</script>` stays escaped in the head (FR-017).
-- T001's golden-file test still passes with the feature off.
+- `apple-mobile-web-app-title` carries the short name.
+- With the feature on and the root include unmounted, a shell page still returns 200 and carries
+  no manifest link and no registration script (research R8).
+- T001's golden-file test still passes with the feature off. Its docstring says how to regenerate the fixture after a deliberate change to the head.
 - The head carries no absolute URL to any host other than the site's own (FR-018).
 
 ### T006 — Startup warnings
@@ -155,7 +160,10 @@ Tests, reading PNG dimensions from the IHDR header:
 
 **Files**: `docs/installable-app.md`, `demo/static/brand/pwa/*.png`, `tests/test_demo/`
 
-Document the command, the optional install, `--output-dir`, and running it in CI. Generate the
+Document the command, the optional install, `--output-dir`, and running it in CI. Say that it
+must run **before** `collectstatic`, and that with manifest static storage a missing image makes
+pages fail rather than just losing the icon. Also say that the command reads `brand/icon.svg`
+whatever the configured icon resolver is. Generate the
 demo's four images with the command and commit them. The demo test now asserts no `mvp.W002`.
 
 ---
@@ -181,8 +189,12 @@ Tests:
 
 ### T012 — US-3 documentation
 
-**Files**: `docs/installable-app.md`, `docs/configuration.md`
+**Files**: `docs/installable-app.md`, `docs/configuration.md`, `CHANGELOG.md`, `README.md`,
+`demo/settings.py`
 
-Document every `pwa.*` key in the configuration reference, and on the page: bringing your own
+Set `theme_color` and `background_color` in the demo's `pwa` settings. The demo's default theme
+is its own, so this is the worked example of US-3 scenario 2. Add the `Unreleased → Added`
+CHANGELOG entry for the setting, the root include and the command. Add one line to the README
+feature list. Document every `pwa.*` key in the configuration reference, and on the page: bringing your own
 worker (including why it has to be served from the root to control the site), overriding
 `mvp/pwa/head.html` and `mvp/pwa/sw.js`, and keeping colours in step with your own theme.
