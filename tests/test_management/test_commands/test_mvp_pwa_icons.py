@@ -15,7 +15,7 @@ from django.core.management import call_command
 from django.core.management.base import CommandError
 
 from mvp.config import MVP_CONFIG
-from mvp.pwa.resolver import IMAGE_DIRECTORY, IMAGES
+from mvp.pwa import IMAGE_DIRECTORY, IMAGES
 
 RED_SQUARE = (
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10">'
@@ -71,6 +71,11 @@ def first_row(data):
         elif method == 4:
             line[i] = (line[i] + left) & 0xFF
     return [tuple(line[i : i + 4]) for i in range(0, len(line), 4)]
+
+
+@pytest.fixture(autouse=True)
+def pwa_on(monkeypatch):
+    monkeypatch.setitem(MVP_CONFIG, "pwa", {"theme_color": "#ffffff"})
 
 
 @pytest.fixture
@@ -154,15 +159,15 @@ class TestMvpPwaIcons:
         row = first_row(images["icon_maskable_512"])
         assert row[len(row) // 2] != (255, 0, 0, 255)
 
-    def test_the_background_is_white_without_a_configured_colour(
-        self, mark, output_dir, monkeypatch
-    ):
-        monkeypatch.setitem(MVP_CONFIG, "pwa", True)
+    def test_it_refuses_to_run_with_pwa_off(self, mark, output_dir, monkeypatch):
+        monkeypatch.setitem(MVP_CONFIG, "pwa", False)
 
-        call_command("mvp_pwa_icons", output_dir=str(output_dir), stdout=io.StringIO())
+        with pytest.raises(CommandError, match="theme_color"):
+            call_command(
+                "mvp_pwa_icons", output_dir=str(output_dir), stdout=io.StringIO()
+            )
 
-        data = (output_dir / IMAGE_DIRECTORY / IMAGES["apple_touch_icon"]).read_bytes()
-        assert first_row(data)[0] == (255, 255, 255, 255)
+        assert not output_dir.exists()
 
     def test_the_output_directory_is_created_and_existing_files_overwritten(
         self, mark, output_dir

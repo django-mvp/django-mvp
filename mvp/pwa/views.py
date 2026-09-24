@@ -2,33 +2,46 @@
 
 from django.http import JsonResponse
 from django.shortcuts import render
+from django.templatetags.static import static
 from django.urls import get_script_prefix
 
-from mvp.pwa.resolver import resolve
+from mvp.config import MVP_CONFIG
+from mvp.pwa import IMAGE_DIRECTORY, IMAGES
+from mvp.utils import site_name
 
 
 def manifest(request):
-    """The web app manifest, built from the same values the page head uses."""
-    app = resolve(request)
+    """The web app manifest, built from ``MVP_CONFIG`` and the current site."""
+    name = MVP_CONFIG["site_name"] or site_name(request)
+    prefix = get_script_prefix()
+    color = MVP_CONFIG["pwa"]["theme_color"]
     data = {
-        "name": app["name"],
-        "short_name": app["short_name"],
-        "start_url": app["start_url"],
-        "scope": app["scope"],
+        "name": name,
+        "short_name": MVP_CONFIG["short_name"] or name,
+        "start_url": prefix,
+        "scope": prefix,
         "display": "standalone",
+        "theme_color": color,
+        "background_color": color,
         "icons": [
-            {"src": app["icon_192"], "sizes": "192x192", "type": "image/png"},
-            {"src": app["icon_512"], "sizes": "512x512", "type": "image/png"},
             {
-                "src": app["icon_maskable_512"],
+                "src": static(IMAGE_DIRECTORY + IMAGES["icon_192"]),
+                "sizes": "192x192",
+                "type": "image/png",
+            },
+            {
+                "src": static(IMAGE_DIRECTORY + IMAGES["icon_512"]),
+                "sizes": "512x512",
+                "type": "image/png",
+            },
+            {
+                "src": static(IMAGE_DIRECTORY + IMAGES["icon_maskable_512"]),
                 "sizes": "512x512",
                 "type": "image/png",
                 "purpose": "maskable",
             },
         ],
     }
-    if app["theme_color"]:
-        data["theme_color"] = data["background_color"] = app["theme_color"]
     return JsonResponse(data, content_type="application/manifest+json")
 
 

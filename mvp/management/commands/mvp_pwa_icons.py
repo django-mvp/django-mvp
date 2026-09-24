@@ -19,11 +19,11 @@ from django.contrib.staticfiles import finders
 from django.core.management.base import BaseCommand, CommandError
 
 import mvp
-from mvp.pwa.resolver import IMAGE_DIRECTORY, IMAGES, InstallableApp
+from mvp.config import MVP_CONFIG
+from mvp.pwa import IMAGE_DIRECTORY, IMAGES
 
 PACKAGE_STATIC = Path(next(iter(mvp.__path__))).resolve() / "static"
 MARK = "brand/icon.svg"
-FALLBACK_BACKGROUND = "#ffffff"
 
 # Image key -> (side in pixels, share of the side the mark fills, opaque?)
 # Maskable icons are cropped to a shape by the platform, so the mark stays in
@@ -47,6 +47,11 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
+        if not MVP_CONFIG["pwa"]:
+            raise CommandError(
+                "MVP_CONFIG['pwa'] must be set with a theme_color, "
+                "for example {'theme_color': '#ffffff'}."
+            )
         try:
             import resvg_py
         except ImportError as error:
@@ -59,7 +64,7 @@ class Command(BaseCommand):
         destination = self.output_root(options["output_dir"]) / IMAGE_DIRECTORY
         destination.mkdir(parents=True, exist_ok=True)
         data = base64.b64encode(mark.read_bytes()).decode("ascii")
-        background = self.background()
+        background = MVP_CONFIG["pwa"]["theme_color"]
 
         for key, (side, share, opaque) in SPECS.items():
             inner = side * share
@@ -104,7 +109,3 @@ class Command(BaseCommand):
             "STATICFILES_DIRS has no entry without a prefix; pass --output-dir "
             "to say where to write the images."
         )
-
-    @staticmethod
-    def background():
-        return InstallableApp.theme_color() or FALLBACK_BACKGROUND
