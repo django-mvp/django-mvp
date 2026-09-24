@@ -198,3 +198,37 @@ CHANGELOG entry for the setting, the root include and the command. Add one line 
 feature list. Document every `pwa.*` key in the configuration reference, and on the page: bringing your own
 worker (including why it has to be served from the root to control the site), overriding
 `mvp/pwa/head.html` and `mvp/pwa/sw.js`, and keeping colours in step with your own theme.
+
+---
+
+## Merge-gate changes (requested at the walkthrough)
+
+### T013 — `reverse_or_none` and `site_name` move to `mvp/utils.py`
+
+**Files**: `mvp/utils.py`, `mvp/pwa/resolver.py`, `mvp/pwa/checks.py`, `tests/test_utils.py`,
+`tests/test_pwa/test_resolver.py`, `docs/installable-app.md` (Python reference)
+
+Both are general helpers the rest of the package can use. Move them unchanged, with their tests,
+into `mvp/utils.py` and `tests/test_utils.py`, and import them from there. No alias is left in
+`mvp.pwa.resolver`.
+
+### T014 — The configuration shrinks to what a project actually needs
+
+**Files**: `mvp/config.py`, `mvp/pwa/resolver.py`, `mvp/pwa/views.py`,
+`mvp/templates/mvp/base.html`, `mvp/templates/mvp/pwa/head.html`, `mvp/pwa/checks.py`,
+`mvp/management/commands/mvp_pwa_icons.py`, the feature's tests, `demo/settings.py`,
+`docs/installable-app.md`, `docs/configuration.md`, `CHANGELOG.md`
+
+- `MVP_CONFIG["site_name"]` and `MVP_CONFIG["short_name"]` become top-level keys (default
+  `None`). `site_name` names the application: the page `<title>` suffix uses it when set and falls
+  back to `request.site.name` exactly as today, and the manifest uses it, falling back to
+  `mvp.utils.site_name(request)`. `short_name` falls back to the resolved name.
+- `MVP_CONFIG["pwa"]` is off when falsey (default `False`). `True` turns it on with defaults. A
+  dict turns it on too, and its only key is `theme_color`. That one colour is used for the
+  manifest's theme and background colours, the `theme-color` meta tag and the padded image
+  backgrounds. When it isn't set, the colour comes from the default theme if the package ships
+  that theme, and is otherwise left out.
+- Removed: `enabled`, `name`, `short_name` (now top level), `start_url` (always the site root,
+  script prefix included), `display` (always `standalone`), `background_color` (same as the theme
+  colour) and `service_worker` (a project replaces the worker by overriding `mvp/pwa/sw.js`, or
+  the head by overriding `mvp/pwa/head.html`).
