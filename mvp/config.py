@@ -98,6 +98,21 @@ MVP_CONFIG = {
         # then this setting, then the package default (no wrap).
         "wrap": False,
     },
+    # The application's name. None takes the current site's name (the request
+    # host without the sites framework). Used for the page title suffix and
+    # the installed app's name.
+    "site_name": None,
+    # The installed app's short name, shown under its icon. None takes the
+    # application's name.
+    "short_name": None,
+    # Falsey (the default) turns installing off: no page carries anything from
+    # it. True turns it on with defaults; a dict turns it on too, and its one
+    # key is "theme_color", used for the manifest's theme and background
+    # colours, the theme-color meta tag and the padded images. Without it the
+    # colour comes from the default theme when the package ships that theme,
+    # and is left out otherwise. Turning it on also needs the root include, see
+    # docs/installable-app.md.
+    "pwa": False,
 }
 
 merge(MVP_CONFIG, getattr(settings, "MVP_CONFIG", {}))

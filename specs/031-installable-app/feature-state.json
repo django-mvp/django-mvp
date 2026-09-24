@@ -1,0 +1,403 @@
+{
+  "feature": "031-installable-app",
+  "branch": "031-installable-app",
+  "repo": "django-mvp/django-mvp",
+  "state": "PR_READY",
+  "state_history": [
+    {
+      "state": "QUEUED",
+      "at": "2026-09-24T07:23:46Z",
+      "note": "specification merged to main in PR #391, merge commit 507c5a017a12f56a2360b8ece1afafc2cf27a180; epic #186, stories #392-#394"
+    },
+    {
+      "state": "PLAN",
+      "at": "2026-09-24T07:32:54Z",
+      "note": "plan.md, research.md, tasks.md"
+    },
+    {
+      "state": "DESIGN_REVIEW",
+      "at": "2026-09-24T07:33:49Z",
+      "note": "design reviewer dispatched, three lenses, one round"
+    },
+    {
+      "state": "IMPLEMENT",
+      "at": "2026-09-24T07:39:55Z",
+      "note": "US-1, US-2, US-3 sequentially in one worktree"
+    },
+    {
+      "state": "CONVERGE",
+      "at": "2026-09-24T08:08:52Z",
+      "note": "all three stories done"
+    },
+    {
+      "state": "REVIEW",
+      "at": "2026-09-24T08:11:03Z",
+      "note": "one reviewer, correctness and security lenses"
+    },
+    {
+      "state": "PR_READY",
+      "at": "2026-09-24T08:20:34Z",
+      "note": "PR #395 ready, walkthrough sent"
+    },
+    {
+      "state": "IMPLEMENT",
+      "at": "2026-09-24T10:00:52Z",
+      "note": "merge-gate changes from Sam: helpers to mvp.utils, smaller pwa configuration"
+    },
+    {
+      "state": "PR_READY",
+      "at": "2026-09-24T10:09:55Z",
+      "note": "merge-gate changes landed"
+    },
+    {
+      "state": "IMPLEMENT",
+      "at": "2026-09-24T10:27:18Z",
+      "note": "second merge-gate change set"
+    },
+    {
+      "state": "PR_READY",
+      "at": "2026-09-24T10:36:08Z",
+      "note": "second merge-gate change set landed"
+    },
+    {
+      "state": "IMPLEMENT",
+      "at": "2026-09-24T10:50:10Z",
+      "note": "third merge-gate change set"
+    },
+    {
+      "state": "PR_READY",
+      "at": "2026-09-24T11:09:35Z",
+      "note": "third merge-gate change set landed"
+    }
+  ],
+  "gates": {
+    "spec": {
+      "approved_by": "SamuelJennings",
+      "at": "2026-09-24T07:23:46Z",
+      "self_resolved": []
+    },
+    "plan": {
+      "approved_by": "notified",
+      "at": "2026-09-24T07:47:00Z",
+      "self_resolved": []
+    },
+    "merge": {
+      "approved_by": null,
+      "at": null,
+      "self_resolved": []
+    },
+    "design_review": {
+      "approved_by": "design-panel",
+      "at": "2026-09-24T07:45:00Z",
+      "self_resolved": [
+        "DR-001 medium: an unmounted root include would have made every page raise; resolver now returns None and the head omits the tags (D1, T002, T005)",
+        "DR-002 medium: the white fixed point could not catch a wrong conversion; reference values for dark and cupcake added to T003",
+        "DR-003 medium: generated colours file dropped; colours read from the committed stylesheet (D2, R4, T003)",
+        "DR-004 medium: resolver reaches the head through a template tag, not the context processor (D3, T005)",
+        "DR-005 low: collectstatic ordering and manifest storage documented in T010",
+        "DR-006 low: CHANGELOG and README added to T012"
+      ]
+    },
+    "review": {
+      "approved_by": "review-panel",
+      "at": "2026-09-24T08:40:00Z",
+      "self_resolved": [
+        "COR-001 medium: site-name lookup could raise on every page; falls back to the request host, two tests added",
+        "COR-002 low: error page during a database outage; documented, set pwa.name",
+        "notes: worker_url docs corrected; unused static load removed"
+      ]
+    },
+    "walkthrough": {
+      "approved_by": "SamuelJennings",
+      "at": "2026-09-24T08:40:54Z",
+      "self_resolved": [
+        "installed on iPhone: icon and name correct; asked whether a splash screen should show \u2014 no change, Apple splash screens are out of scope per the spec"
+      ]
+    }
+  },
+  "stories": [
+    {
+      "id": "US1",
+      "priority": "P1",
+      "issue": 392,
+      "worktree": "/home/sam/projects/django-mvp/dm-031-installable-app",
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T001",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/test_templates.py (181 passed)"
+            ]
+          }
+        },
+        {
+          "id": "T002",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/test_pwa/test_resolver.py tests/test_config.py (26 passed)"
+            ]
+          }
+        },
+        {
+          "id": "T003",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/test_pwa tests/test_config.py (33 passed)"
+            ]
+          }
+        },
+        {
+          "id": "T004",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/test_pwa (34 passed)"
+            ]
+          }
+        },
+        {
+          "id": "T005",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/test_templates.py tests/test_templatetags.py (241 passed)"
+            ]
+          }
+        },
+        {
+          "id": "T006",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/test_pwa/test_checks.py (8 passed)"
+            ]
+          }
+        },
+        {
+          "id": "T007",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run pytest tests/test_demo tests/test_smoke.py (154 passed)",
+              "poetry run pytest -q -p no:sugar (2245 passed, 1 skipped, exit 0)",
+              "poetry run pre-commit run --all-files (all hooks passed)",
+              "poetry run mypy mvp (no issues in 36 files)",
+              "poetry run deptry . (no issues)"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "US2",
+      "priority": "P2",
+      "issue": 393,
+      "worktree": "/home/sam/projects/django-mvp/dm-031-installable-app",
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T008",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "poetry run deptry . (no issues)"
+            ],
+            "code": [
+              "pyproject.toml:1",
+              "poetry.lock:1"
+            ]
+          }
+        },
+        {
+          "id": "T009",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_management/test_commands/test_mvp_pwa_icons.py (16 tests)"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_management -p no:playwright (16 passed)"
+            ],
+            "code": [
+              "mvp/management/commands/mvp_pwa_icons.py:1"
+            ]
+          }
+        },
+        {
+          "id": "T010",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_demo/test_installable_app.py::TestDemoInstallableAppImages"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_demo/test_installable_app.py (4 passed)",
+              "poetry run pytest (2262 passed, 1 skipped, exit 0)"
+            ],
+            "code": [
+              "docs/installable-app.md:1",
+              "demo/static/brand/pwa:1"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "US3",
+      "priority": "P3",
+      "issue": 394,
+      "worktree": "/home/sam/projects/django-mvp/dm-031-installable-app",
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T011",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_pwa/test_resolver.py::TestResolveEachOverrideAlone",
+              "tests/test_pwa/test_resolver.py::TestResolveServiceWorker",
+              "tests/test_pwa/test_views.py::TestManifestOverrides",
+              "tests/test_templates.py::TestShellHeadWithConfiguredValues"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_pwa tests/test_templates.py -p no:playwright (253 passed)"
+            ],
+            "code": [
+              "mvp/pwa/resolver.py:50"
+            ]
+          }
+        },
+        {
+          "id": "T012",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_demo/test_installable_app.py"
+            ],
+            "commands": [
+              "poetry run python manage.py mvp_pwa_icons --settings=demo.settings --output-dir demo/static (4 images written)"
+            ],
+            "code": [
+              "docs/installable-app.md:42",
+              "docs/configuration.md:65",
+              "demo/settings.py:136"
+            ]
+          }
+        },
+        {
+          "id": "T013",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_utils.py"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_utils.py tests/test_pwa"
+            ],
+            "code": [
+              "mvp/utils.py:1"
+            ]
+          }
+        },
+        {
+          "id": "T014",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_pwa/test_resolver.py",
+              "tests/test_templates.py"
+            ],
+            "commands": [
+              "forge verify --base 507c5a0 (all steps green)"
+            ],
+            "code": [
+              "mvp/pwa/resolver.py:1",
+              "mvp/config.py:104"
+            ]
+          }
+        },
+        {
+          "id": "T015",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_urls.py",
+              "tests/test_pwa/test_views.py",
+              "tests/test_templates.py"
+            ],
+            "commands": [
+              "forge verify --base 507c5a0 (all steps green)"
+            ],
+            "code": [
+              "mvp/urls.py:1",
+              "mvp/templates/mvp/pwa/head.html:1"
+            ]
+          }
+        },
+        {
+          "id": "T016",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_urls.py",
+              "tests/test_pwa/test_views.py",
+              "tests/test_templates.py"
+            ],
+            "commands": [
+              "forge verify --base 507c5a0 (all steps green)"
+            ],
+            "code": [
+              "mvp/urls.py:1",
+              "mvp/pwa/views.py:1"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "budgets": {
+    "converge_cycles": {
+      "used": 1,
+      "max": 2
+    },
+    "review_cycles": {
+      "used": 1,
+      "max": 1
+    },
+    "design_review_cycles": {
+      "used": 1,
+      "max": 1
+    },
+    "tokens": {
+      "used": 0,
+      "max": 120
+    }
+  },
+  "pr": {
+    "number": 395,
+    "draft": false
+  }
+}

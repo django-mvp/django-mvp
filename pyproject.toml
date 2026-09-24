@@ -61,6 +61,7 @@ mvp-shared = { git = "https://github.com/django-mvp/shared.git", rev = "v0.4.1",
     "test",
 ] }
 django-allauth = "^65.19.4"
+resvg-py = "^0.5.0"
 
 [tool.poetry.group.dev.dependencies]
 Django = ">=5.2.17"
@@ -182,9 +183,11 @@ DEP002 = [
 # bs4: an optional extra in both call sites (mvp/fixtures.py and the component
 #   documentation tag), imported lazily inside a try/except with a fallback.
 DEP003 = ["invoke", "pytest", "bs4"]
-DEP004 = ["django_filters", "django_tables2", "django_htmx", "markdown_it"]
+DEP004 = ["django_filters", "django_tables2", "django_htmx", "markdown_it", "resvg_py"]
 # markdown_it: demo/views.py renders docs/utility-classes.md into the demo app's
 #   own "Utility Classes" page; demo-only, never a runtime dependency of mvp.
+# resvg_py: optional renderer for the mvp_pwa_icons command, imported lazily
+#   inside handle() and installed only in the test group.
 
 [tool.ruff]
 extend = "ruff-base.toml"

@@ -129,6 +129,13 @@ CRISPY_TEMPLATE_PACK = "tailwind"
 # defaults (mvp/config.py). Unset keys keep their package defaults. Experiment
 # freely here; tests pin their own values in tests/settings.py.
 MVP_CONFIG = {
+    # Installable: the browser offers to install the demo as an app. The URLs
+    # are mounted at the root in demo/urls.py. The app images are a deployment
+    # step (`python manage.py mvp_pwa_icons`), never committed. See
+    # docs/installable-app.md.
+    # The demo's default theme is its own, so the package has no colour to read
+    # from it; this matches its light theme's page colour.
+    "pwa": {"theme_color": "#f8f6f2"},
     "theme": {
         # This site's own two themes, defined in demo/static/css/themes.css and
         # loaded by demo/templates/base.html. They are named here because the

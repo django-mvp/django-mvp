@@ -1,6 +1,9 @@
 from django.apps import apps
+from django.contrib.sites.shortcuts import get_current_site
 from django.contrib.staticfiles import finders
+from django.core.exceptions import ObjectDoesNotExist
 from django.templatetags.static import static
+from django.urls import NoReverseMatch, reverse
 
 
 def avatar_url(user, size):
@@ -207,3 +210,25 @@ BS5_ICONS = {
     "warning": "bi bi-exclamation-triangle-fill",
     "error": "bi bi-x-circle-fill",
 }
+
+
+def reverse_or_none(name):
+    """The URL for ``name``, or ``None`` when the root include is not mounted."""
+    try:
+        return reverse(name)
+    except NoReverseMatch:
+        return None
+
+
+def site_name(request):
+    """The current site's name, or the request host when there is none to read.
+
+    ``get_current_site`` raises when the sites framework is installed but no
+    ``Site`` matches, and a ``Site`` may carry an empty name. Either way the
+    application still needs a name, so a page never fails over it.
+    """
+    try:
+        name = get_current_site(request).name
+    except ObjectDoesNotExist:
+        name = ""
+    return name or request.get_host()

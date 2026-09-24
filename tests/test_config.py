@@ -124,3 +124,21 @@ class TestRemovedSidebarFooterSetting:
         with warnings.catch_warnings():
             warnings.simplefilter("error", MVPDeprecationWarning)
             _warn_on_removed_sidebar_footer_setting(config)
+
+
+class TestPwaConfigDefaults:
+    """The feature is off by default, and the application's names are unset."""
+
+    def test_the_feature_is_off(self):
+        assert MVP_CONFIG["pwa"] is False
+
+    def test_the_application_names_are_unset(self):
+        assert MVP_CONFIG["site_name"] is None
+        assert MVP_CONFIG["short_name"] is None
+
+    def test_a_project_turns_the_feature_on_with_true_or_a_dict(self):
+        for value in (True, {"theme_color": "#123456"}):
+            config = copy.deepcopy(MVP_CONFIG)
+            merge(config, {"pwa": value})
+
+            assert config["pwa"] == value

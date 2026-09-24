@@ -1,0 +1,59 @@
+<head>
+    <script>
+      (function() {
+        try {
+          var configuredDefault = "light";
+          var offeredThemes = [];
+          var stored = localStorage.getItem('theme');
+          var storedIsOffered = offeredThemes.length === 0 || offeredThemes.indexOf(stored) !== -1;
+          var theme = (stored && storedIsOffered) ? stored : configuredDefault;
+          // Rewrite a selection the project no longer offers. theme-change
+          // re-applies localStorage.theme on DOMContentLoaded with no
+          // membership check of its own, so setting the attribute alone would
+          // hold for one frame and then be reverted. Deliberately conditional:
+          // writing the key unconditionally would populate it on a first visit
+          // to a project that configures nothing, which flips the toggle's
+          // active state and is a visible change for an upgrading project.
+          if (stored && !storedIsOffered) {
+            localStorage.setItem('theme', configuredDefault);
+          }
+          document.documentElement.setAttribute('data-theme', theme);
+        } catch (e) {}
+      })();
+    </script>
+    
+      <meta charset="UTF-8" />
+      <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+      <title>
+        
+        
+        | example.com
+      </title>
+      <meta name="viewport"
+            content="width=device-width, initial-scale=1, viewport-fit=cover" />
+      
+      <link rel="icon" href="/static/brand/icon.svg" />
+      <link rel="icon"
+            media="(prefers-color-scheme: dark)"
+            href="/static/brand/icon_dark.svg" />
+      
+      <link rel="stylesheet"
+            href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css"
+            crossorigin="anonymous" />
+      
+        <link rel="stylesheet" href="/static/css/django-mvp.css" />
+      
+      
+      <script defer src="/static/js/django-mvp.js"></script>
+      
+      <style>
+        [data-theme="light"] .hide-on-light-theme {
+          display: none !important
+        }
+
+        [data-theme="dark"] .hide-on-dark-theme {
+          display: none !important
+        }
+      </style>
+    
+  </head>

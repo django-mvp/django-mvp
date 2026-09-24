@@ -11,15 +11,19 @@ project (``demo``) ships its own ``base.html`` and shadows the packaged one in
 the configured engine — which is what the last test asserts.
 """
 
+import json
 import re
 from pathlib import Path
 
 import pytest
 from django.apps import apps
 from django.conf import settings
+from django.contrib.auth.models import AnonymousUser
+from django.contrib.sites.shortcuts import get_current_site
 from django.template import Engine, engines
-from django.template.loader import get_template
+from django.template.loader import get_template, render_to_string
 from django.template.loader_tags import BlockNode, ExtendsNode
+from django.test import RequestFactory
 
 MVP_TEMPLATES = Path(apps.get_app_config("mvp").path) / "templates"
 DEMO_TEMPLATES = Path(apps.get_app_config("demo").path) / "templates"
@@ -157,3 +161,225 @@ class TestTemplateComments:
             f"{lines} — it will render as visible text. "
             "Use {% comment %} ... {% endcomment %} instead."
         )
+
+
+BASE_HEAD_FIXTURE = Path(__file__).parent / "fixtures" / "base_head_off.html"
+
+
+def render_shell_head(script_name=""):
+    """Render the ``<head>`` of a shell page for a fixed anonymous request."""
+    request = RequestFactory().get("/", HTTP_HOST="testserver", SCRIPT_NAME=script_name)
+    request.user = AnonymousUser()
+    request.site = get_current_site(request)
+    page = render_to_string("mvp/base.html", request=request)
+    return page[page.index("<head>") : page.index("</head>") + len("</head>")]
+
+
+@pytest.mark.django_db
+class TestShellHeadWithPwaOff:
+    def test_head_matches_the_pinned_render_byte_for_byte(self):
+        """The head of a shell page is unchanged when ``pwa`` is off.
+
+        ``tests/fixtures/base_head_off.html`` is the ``<head>`` rendered by
+        ``mvp/base.html`` for an anonymous ``GET /`` on host ``testserver``
+        with the test settings and the default site. After a deliberate change
+        to the head, regenerate it by writing ``render_shell_head()``'s return
+        value to that file (as UTF-8, no trailing newline) and review the diff.
+        """
+        assert render_shell_head() == BASE_HEAD_FIXTURE.read_text(encoding="utf-8")
+
+    def test_head_carries_no_install_tags(self):
+        head = render_shell_head()
+        soup = head_soup()
+
+        assert soup.find("link", rel="manifest") is None
+        assert soup.find("meta", attrs={"name": "theme-color"}) is None
+        assert soup.find("link", rel="apple-touch-icon") is None
+        assert "serviceWorker" not in head
+
+
+def head_soup():
+    from bs4 import BeautifulSoup
+
+    return BeautifulSoup(render_shell_head(), "html.parser")
+
+
+@pytest.mark.django_db
+@pytest.mark.usefixtures("pwa_enabled")
+class TestShellHeadWithPwaOn:
+    @pytest.fixture(autouse=True)
+    def urls_mounted(self, settings):
+        settings.ROOT_URLCONF = "tests.urls_shell_pwa"
+
+    def test_it_links_the_manifest(self):
+        link = head_soup().find("link", rel="manifest")
+
+        assert link["href"] == "/account/manifest.webmanifest"
+
+    def test_it_links_the_apple_touch_icon(self):
+        link = head_soup().find("link", rel="apple-touch-icon")
+
+        assert link["href"] == "/static/brand/pwa/apple-touch-icon.png"
+
+    def test_the_apple_title_carries_the_short_name(self, monkeypatch):
+        from mvp.config import MVP_CONFIG
+
+        monkeypatch.setitem(MVP_CONFIG, "short_name", "Shop")
+        monkeypatch.setitem(MVP_CONFIG, "site_name", "The Corner Shop")
+
+        meta = head_soup().find("meta", attrs={"name": "apple-mobile-web-app-title"})
+
+        assert meta["content"] == "Shop"
+
+    def test_it_marks_the_page_as_a_web_app(self):
+        meta = head_soup().find("meta", attrs={"name": "mobile-web-app-capable"})
+
+        assert meta["content"] == "yes"
+
+    def test_it_registers_the_worker_by_its_reversed_url(self):
+        soup = head_soup()
+
+        data = soup.find("script", id="mvp-pwa-worker-url")
+        registration = [
+            script.string
+            for script in soup.find_all("script")
+            if script.string and "serviceWorker.register" in script.string
+        ]
+
+        assert json.loads(data.string) == "/account/sw.js"
+        assert len(registration) == 1
+
+    def test_it_registers_the_worker_with_the_site_root_as_its_scope(self):
+        data = head_soup().find("script", id="mvp-pwa-worker-scope")
+
+        assert json.loads(data.string) == "/"
+        assert "{scope:" in "".join(
+            script.string for script in head_soup().find_all("script") if script.string
+        ).replace(" ", "")
+
+    def test_the_scope_follows_the_script_prefix(self):
+        from bs4 import BeautifulSoup
+        from django.urls import set_script_prefix
+
+        set_script_prefix("/app/")
+        try:
+            head = render_shell_head(script_name="/app")
+        finally:
+            set_script_prefix("/")
+        soup = BeautifulSoup(head, "html.parser")
+
+        assert json.loads(soup.find("script", id="mvp-pwa-worker-scope").string) == "/app/"
+        assert json.loads(soup.find("script", id="mvp-pwa-worker-url").string) == (
+            "/app/account/sw.js"
+        )
+
+    def test_the_apple_title_is_the_site_name_without_a_configured_name(self):
+        meta = head_soup().find("meta", attrs={"name": "apple-mobile-web-app-title"})
+
+        assert meta["content"] == "example.com"
+
+    def test_the_apple_title_is_the_configured_site_name_without_a_short_name(
+        self, monkeypatch
+    ):
+        from mvp.config import MVP_CONFIG
+
+        monkeypatch.setitem(MVP_CONFIG, "site_name", "The Corner Shop")
+
+        meta = head_soup().find("meta", attrs={"name": "apple-mobile-web-app-title"})
+
+        assert meta["content"] == "The Corner Shop"
+
+    def test_the_apple_title_is_the_host_when_the_site_has_no_name(self):
+        from django.contrib.sites.models import Site
+
+        Site.objects.filter(pk=settings.SITE_ID).update(name="")
+        Site.objects.clear_cache()
+
+        meta = head_soup().find("meta", attrs={"name": "apple-mobile-web-app-title"})
+
+        assert meta["content"] == "testserver"
+
+    def test_it_sets_the_configured_theme_colour(self):
+        meta = head_soup().find("meta", attrs={"name": "theme-color"})
+
+        assert meta["content"] == "#123456"
+
+    def test_a_hostile_name_stays_escaped(self):
+        from django.contrib.sites.models import Site
+
+        name = 'A "b" </script><img src=x onerror=alert(1)>'
+        Site.objects.filter(pk=settings.SITE_ID).update(name=name)
+        head = render_shell_head()
+        soup = head_soup()
+
+        title = soup.find("meta", attrs={"name": "apple-mobile-web-app-title"})
+
+        assert title["content"] == name
+        assert "<img src=x" not in head
+
+    def test_it_adds_no_url_to_another_host(self):
+        from bs4 import BeautifulSoup
+
+        on = head_soup()
+        off = BeautifulSoup(
+            BASE_HEAD_FIXTURE.read_text(encoding="utf-8"), "html.parser"
+        )
+
+        def urls(soup):
+            tags = soup.find_all(["link", "script"])
+            return {t.get("href") or t.get("src") for t in tags} - {None}
+
+        assert all(url.startswith("/") for url in urls(on) - urls(off))
+
+
+@pytest.mark.django_db
+@pytest.mark.usefixtures("pwa_enabled")
+class TestShellHeadWithoutMvpUrls:
+    @pytest.fixture(autouse=True)
+    def urls_unmounted(self, settings):
+        settings.ROOT_URLCONF = "tests.urls_shell_no_pwa"
+
+    def test_the_page_renders_without_a_manifest_or_registration(self):
+        head = render_shell_head()
+        soup = head_soup()
+
+        assert soup.find("link", rel="manifest") is None
+        assert "serviceWorker" not in head
+
+
+@pytest.mark.django_db
+@pytest.mark.usefixtures("pwa_enabled")
+class TestShellHeadWithConfiguredValues:
+    @pytest.fixture(autouse=True)
+    def urls_mounted(self, settings):
+        settings.ROOT_URLCONF = "tests.urls_shell_pwa"
+
+    def test_a_project_head_template_replaces_the_packaged_one(self, settings):
+        project_templates = Path(__file__).parent / "pwa_templates"
+        engine = settings.TEMPLATES[0]
+        settings.TEMPLATES = [
+            {**engine, "DIRS": [str(project_templates), *engine.get("DIRS", [])]}
+        ]
+
+        soup = head_soup()
+
+        assert soup.find("meta", attrs={"name": "project-head"})["content"] == "mine"
+        assert soup.find("link", rel="manifest") is None
+
+
+@pytest.mark.django_db
+class TestShellTitle:
+    def title(self):
+        from bs4 import BeautifulSoup
+
+        return " ".join(BeautifulSoup(render_shell_head(), "html.parser").title.text.split())
+
+    def test_the_suffix_is_the_site_name_by_default(self):
+        assert self.title() == "| example.com"
+
+    def test_the_suffix_is_the_configured_site_name(self, monkeypatch):
+        from mvp.config import MVP_CONFIG
+
+        monkeypatch.setitem(MVP_CONFIG, "site_name", "The Corner Shop")
+
+        assert self.title() == "| The Corner Shop"

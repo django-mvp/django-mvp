@@ -24,6 +24,7 @@ configuration through Django settings, customization through template overrides.
 | [Styling](styling.md) | Tailwind/DaisyUI, the two build tiers, and the shell's class hooks |
 | [Theming](theming.md) | Every theme variable, why the theme plugin computes nothing, and writing a custom theme from scratch |
 | [Utility Classes](utility-classes.md) | Every Tailwind utility and daisyUI component the packaged stylesheet ships pre-built |
+| [Installable app](installable-app.md) | Letting people install the project as an app: the setting, the root include, the packaged worker and the warnings |
 | [Integrations](integrations.md) | Optional third-party integrations (django-tables2, django-filter, htmx) |
 | [Troubleshooting](troubleshooting.md) | Common symptoms, their causes, and the fix |
 
