@@ -350,6 +350,25 @@
               "mvp/templates/mvp/pwa/head.html:1"
             ]
           }
+        },
+        {
+          "id": "T016",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_urls.py",
+              "tests/test_pwa/test_views.py",
+              "tests/test_templates.py"
+            ],
+            "commands": [
+              "forge verify --base 507c5a0 (all steps green)"
+            ],
+            "code": [
+              "mvp/urls.py:1",
+              "mvp/pwa/views.py:1"
+            ]
+          }
         }
       ]
     }

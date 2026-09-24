@@ -52,7 +52,7 @@ appear.
 
 1. **Given** a project that has not turned the feature on, **When** any page of the shell
    renders, **Then** the page carries no manifest link, no service worker registration and no
-   other install-related tag, exactly as before this feature.
+   other install-related tag.
 2. **Given** a project that has turned the feature on and mounts the Account Center's URL
    configuration, **When** a
    page of the shell renders, **Then** the document head links the manifest and the page
@@ -138,23 +138,20 @@ project's.
 1. **Given** a project that configures a site name or a short name, **When** the manifest is
    requested and a page renders, **Then** each configured value replaces its default, the site
    name also appears in the page title, and a value left unset keeps its default.
-2. **Given** a project that configures a colour, **When** the manifest is requested and a page
-   renders, **Then** the manifest's theme and background colours and the page's colour tag all
-   carry it.
-3. **Given** a project that configures no colour, **When** the manifest is requested, **Then**
-   it carries no colour entries rather than a guess, and the browser falls back to its own
-   defaults.
-4. **Given** a project that overrides the packaged worker template, **When** the worker is
+2. **Given** a project that turns the feature on with its colour, **When** the manifest is
+   requested and a page renders, **Then** the manifest's theme and background colours and the
+   page's colour tag all carry it.
+3. **Given** a project that overrides the packaged worker template, **When** the worker is
    requested, **Then** the project's worker is served.
-5. **Given** a project that wants to change the head tags themselves, **When** it overrides the
+4. **Given** a project that wants to change the head tags themselves, **When** it overrides the
    template that renders them, **Then** its template decides what the head carries, the same way
    every other packaged template is overridden.
 
 ### Edge Cases
 
 - The feature is on but the Account Center's URL configuration is not mounted. The manifest link
-  and the worker registration have no addresses to point at. The developer needs to find out at
-  startup, not from a browser console.
+  and the worker registration have no addresses to point at, so the head leaves them out and
+  pages keep rendering.
 - The feature is on but the application images do not exist in the project's static files, as
   in development. Generating them is a deployment step, so nothing reports their absence.
 - The project has a dark variant of its brand mark. The images are rendered from the light mark
@@ -170,9 +167,9 @@ project's.
 
 ### Functional Requirements
 
-- **FR-001**: The feature MUST be off unless a project turns it on by giving the feature's own
-  setting in the shell's configuration a truthy value. With it off, pages MUST NOT carry any
-  tag, link or script the feature adds.
+- **FR-001**: The feature MUST be off unless a project turns it on by setting the feature's own
+  entry in the shell's configuration to the application's colour. With it off, pages MUST NOT
+  carry any tag, link or script the feature adds, and its addresses MUST NOT exist.
 - **FR-002**: With the feature on, every page of the shell MUST link the web app manifest from
   the document head and register the service worker.
 - **FR-003**: The package MUST serve the manifest and the service worker from the Account
@@ -185,8 +182,8 @@ project's.
   the site's root and open in a standalone window. Where the site has no name to read, a
   non-empty name MUST still be provided.
 - **FR-006**: The manifest's theme and background colours and the page's colour tag MUST be the
-  colour the project configures. The package MUST NOT derive a colour from a theme. When no
-  colour is configured, they MUST be omitted.
+  colour the project configures, which is required to turn the feature on. The package MUST NOT
+  derive a colour from a theme.
 - **FR-007**: The manifest MUST list application images at 192 and 512 pixels and a padded image
   for masked display, and the page head MUST carry an Apple home-screen image, all read from a
   fixed location in the project's static files.
@@ -211,9 +208,8 @@ project's.
   what to install and a non-zero exit status.
 - **FR-015**: When the project has no brand mark of its own, the command MUST render from the
   mark the package ships and say so in its output.
-- **FR-016**: With the feature on, the project MUST be warned at startup when the root URL
-  configuration is not mounted. Missing images MUST NOT be reported, because generating them is
-  a deployment step that development does without.
+- **FR-016**: The feature MUST NOT add startup checks. Missing images and an unmounted URL
+  configuration are not reported.
 - **FR-017**: Every value written into the manifest or the head MUST be escaped for the format
   it is written into.
 - **FR-018**: Anything the feature serves MUST NOT be fetched from a third party.
@@ -235,16 +231,15 @@ Not applicable. This feature stores nothing and introduces no model.
 - **SC-001**: A project that mounts the Account Center, turns the feature on and runs one command
   at deployment is offered for installation by a browser that supports installing web apps, with no
   template, view or static file written by hand.
-- **SC-002**: A project that does not turn the feature on renders byte-identical page heads
-  before and after upgrading.
+- **SC-002**: A project that does not turn the feature on renders page heads with no
+  install-related tag, and its URL configuration gains no address.
 - **SC-003**: The packaged service worker changes no response the application returns. Every
   page and form behaves the same with it active as without it.
 - **SC-004**: Changing the brand mark and re-running the command updates every installed image
   with no other step.
 - **SC-005**: Every manifest value the package derives can be changed from the shell's
   configuration without overriding a template.
-- **SC-006**: An unmounted Account Center URL configuration, which would leave the application
-  uninstallable, is reported when the project starts.
+- **SC-006**: An unmounted Account Center URL configuration leaves every page rendering.
 
 ## Clarifications
 
@@ -256,9 +251,9 @@ records what was ambiguous and what was chosen.
 setting?**
 From configuration only. A theme is CSS the server never reads. A colour read from the package's
 own copy of a shipped theme would be wrong the moment a project customised that theme, so the
-package derives nothing and the project states its colour. Without one, the entries are omitted
-rather than guessed. Keeping the colour in step with a visitor's theme choice is the project's
-concern and out of scope. Integrated as FR-006 and US-3 scenario 3.
+package derives nothing and the project states its colour. Setting it is what turns the feature
+on. Keeping the colour in step with a visitor's theme choice is the project's concern and out of
+scope. Integrated as FR-001, FR-006 and US-3 scenario 2.
 
 **Q2 — Where do the application images live, and does the manifest point at the brand mark
 itself?**
@@ -276,10 +271,10 @@ configuration. The specific fallback is a planning decision. Integrated as FR-00
 case.
 
 **Q4 — How does a developer learn that the feature is on but cannot work?**
-Through a warning when the project starts, following Django's own practice of reporting
-configuration mistakes through its system checks rather than at request time. The unmounted root
-include is reported. Missing images are not, because they are produced at deployment and a
-development checkout never has them. Integrated as FR-016 and SC-006.
+From the documentation, not from a warning. Startup checks were built and then removed at the
+walkthrough: missing images are normal in development because they are produced at deployment,
+and the Account Center's URL configuration is mounted by every project that uses the shell.
+Pages keep rendering either way. Integrated as FR-016 and SC-006.
 
 **Q5 — Which brand mark is rendered when a project has both a light and a dark one?**
 The light one. An installed application has a single icon on the home screen or dock,

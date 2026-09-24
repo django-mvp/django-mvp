@@ -12,10 +12,10 @@ raises. Turning the feature on in a project that doesn't mount `mvp.urls` would 
 page.
 
 **Chosen**: the head uses `{% url … as … %}`, which yields nothing instead of raising, and omits
-the manifest link and the registration script. The `mvp.W001` system check reports it.
+the manifest link and the registration script. Nothing warns about it.
 
-**Why**: a startup warning cannot stop a deploy, so a raising reverse would take a live site down
-over a missing line of URL configuration.
+**Why**: a raising reverse would take a live site down over a missing line of URL
+configuration. A startup check was built for this and removed at the walkthrough as noise.
 
 **ADR:** none — a local failure mode of this feature, recorded in its docs and tests.
 
@@ -84,12 +84,13 @@ allowance.
 
 **ADR:** none — local to this feature.
 
-## The `pwa` setting is read through one class
+## D7 — The routes exist only while the feature is on
 
-**Decision**: `InstallableApp` in `mvp/pwa/resolver.py` holds `enabled()` and `theme_color()`, and every reader of `MVP_CONFIG["pwa"]` (the resolver, the checks, the icon command) goes through it. Templates test `mvp_config.pwa` directly for truthiness.
+**Chosen**: `mvp/urls.py` adds `manifest.webmanifest` and `sw.js` only when `MVP_CONFIG["pwa"]`
+is set, the same way it adds the sign-in pages only when allauth is absent. The setting is a
+colour or nothing, and it is read directly, with no wrapper.
 
-**Why**: the setting is a bool or a dict, so reading a key off it directly fails for `True`. One reader keeps the falsey, `True` and dict cases in one place.
-
-**Revisit if**: the block regains a second key.
+**Why**: a project that hasn't turned the feature on should not serve its files. Decided with the
+maintainer at the walkthrough.
 
 **ADR:** none — local to this feature.
