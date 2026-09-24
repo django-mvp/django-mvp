@@ -4,9 +4,8 @@ from django.templatetags.static import static
 from django.urls import get_script_prefix
 
 from mvp.config import MVP_CONFIG
-from mvp.utils import reverse_or_none, site_name
+from mvp.utils import site_name
 
-MANIFEST_URL_NAME = "mvp-pwa-manifest"
 WORKER_URL_NAME = "mvp-pwa-service-worker"
 
 IMAGE_DIRECTORY = "brand/pwa/"
@@ -33,12 +32,7 @@ class InstallableApp:
 
 
 def resolve(request):
-    """Work out every installable-app value for ``request``.
-
-    The manifest view and the page head both read this, so the two cannot
-    disagree. ``manifest_url`` and ``worker_url`` are ``None`` when
-    ``mvp.pwa.urls`` is not mounted, so a page still renders without them.
-    """
+    """Work out every value the manifest needs for ``request``."""
     prefix = get_script_prefix()
     name = MVP_CONFIG["site_name"] or site_name(request)
     return {
@@ -47,7 +41,5 @@ def resolve(request):
         "start_url": prefix,
         "scope": prefix,
         "theme_color": InstallableApp.theme_color(),
-        "manifest_url": reverse_or_none(MANIFEST_URL_NAME),
-        "worker_url": reverse_or_none(WORKER_URL_NAME),
         **{key: static(IMAGE_DIRECTORY + file) for key, file in IMAGES.items()},
     }

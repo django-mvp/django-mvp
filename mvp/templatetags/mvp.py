@@ -16,7 +16,6 @@ from django_cotton.compiler_regex import CottonCompiler
 from .. import utils
 from ..config import MVP_CONFIG
 from ..layout import BREAKPOINT_WIDTHS, LayoutConfig
-from ..pwa import resolver
 
 register = template.Library()
 
@@ -548,13 +547,3 @@ def any_multipart(formsets):
     multipart set, which browsers accept and the markup contract does not.
     """
     return any(formset.is_multipart() for formset in formsets or [])
-
-
-@register.simple_tag(takes_context=True)
-def mvp_pwa(context):
-    """The installable-app values for the current request.
-
-    Used as ``{% mvp_pwa as pwa %}`` by ``mvp/pwa/head.html``, so the page head
-    and the manifest read the same resolver.
-    """
-    return resolver.resolve(context["request"])

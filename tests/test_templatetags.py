@@ -520,18 +520,3 @@ class TestRowHeaderColumns:
                 row_headers = ("icon",)
 
         assert self._tag()(Hidden([{"icon": "i", "name": "a"}])) == ("icon",)
-
-
-class TestMvpPwaTag:
-    """``{% mvp_pwa as pwa %}`` hands the template the resolver's values."""
-
-    @pytest.mark.django_db
-    def test_it_returns_the_resolved_values(self, rf):
-        template = Template(
-            "{% load mvp %}{% mvp_pwa as pwa %}{{ pwa.name }}|{{ pwa.start_url }}"
-        )
-        request = rf.get("/", HTTP_HOST="shop.example.org")
-
-        rendered = template.render(Context({"request": request}))
-
-        assert rendered == "example.com|/"

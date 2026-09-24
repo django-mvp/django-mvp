@@ -1,15 +1,20 @@
-{% load mvp %}
-{% mvp_pwa as pwa %}
-{% if pwa.manifest_url %}<link rel="manifest" href="{{ pwa.manifest_url }}" />{% endif %}
-{% if pwa.theme_color %}<meta name="theme-color" content="{{ pwa.theme_color }}" />{% endif %}
-<link rel="apple-touch-icon" href="{{ pwa.apple_touch_icon }}" />
-<meta name="apple-mobile-web-app-title" content="{{ pwa.short_name }}" />
+{% load static %}
+{% url 'mvp-pwa-manifest' as manifest_url %}
+{% url 'mvp-pwa-service-worker' as worker_url %}
+{% if manifest_url %}<link rel="manifest" href="{{ manifest_url }}" />{% endif %}
+{% if mvp_config.pwa.theme_color %}<meta name="theme-color" content="{{ mvp_config.pwa.theme_color }}" />{% endif %}
+<link rel="apple-touch-icon" href="{% static 'brand/pwa/apple-touch-icon.png' %}" />
+<meta name="apple-mobile-web-app-title" content="{% firstof mvp_config.short_name mvp_config.site_name request.site.name request.get_host %}" />
 <meta name="mobile-web-app-capable" content="yes" />
-{% if pwa.worker_url %}
-  {{ pwa.worker_url|json_script:"mvp-pwa-worker-url" }}
+{% if worker_url %}
+  {{ worker_url|json_script:"mvp-pwa-worker-url" }}
+  {% with scope=request.META.SCRIPT_NAME|add:"/" %}{{ scope|json_script:"mvp-pwa-worker-scope" }}{% endwith %}
   <script>
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register(JSON.parse(document.getElementById("mvp-pwa-worker-url").textContent));
+      navigator.serviceWorker.register(
+        JSON.parse(document.getElementById("mvp-pwa-worker-url").textContent),
+        {scope: JSON.parse(document.getElementById("mvp-pwa-worker-scope").textContent)}
+      );
     }
   </script>
 {% endif %}

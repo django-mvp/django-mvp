@@ -166,9 +166,9 @@ class TestTemplateComments:
 BASE_HEAD_FIXTURE = Path(__file__).parent / "fixtures" / "base_head_off.html"
 
 
-def render_shell_head():
+def render_shell_head(script_name=""):
     """Render the ``<head>`` of a shell page for a fixed anonymous request."""
-    request = RequestFactory().get("/", HTTP_HOST="testserver")
+    request = RequestFactory().get("/", HTTP_HOST="testserver", SCRIPT_NAME=script_name)
     request.user = AnonymousUser()
     request.site = get_current_site(request)
     page = render_to_string("mvp/base.html", request=request)
@@ -249,6 +249,65 @@ class TestShellHeadWithInstallableAppOn:
 
         assert json.loads(data.string) == "/account/sw.js"
         assert len(registration) == 1
+
+    def test_it_registers_the_worker_with_the_site_root_as_its_scope(self):
+        data = head_soup().find("script", id="mvp-pwa-worker-scope")
+
+        assert json.loads(data.string) == "/"
+        assert "{scope:" in "".join(
+            script.string for script in head_soup().find_all("script") if script.string
+        ).replace(" ", "")
+
+    def test_the_scope_follows_the_script_prefix(self):
+        from bs4 import BeautifulSoup
+        from django.urls import set_script_prefix
+
+        set_script_prefix("/app/")
+        try:
+            head = render_shell_head(script_name="/app")
+        finally:
+            set_script_prefix("/")
+        soup = BeautifulSoup(head, "html.parser")
+
+        assert json.loads(soup.find("script", id="mvp-pwa-worker-scope").string) == "/app/"
+        assert json.loads(soup.find("script", id="mvp-pwa-worker-url").string) == (
+            "/app/account/sw.js"
+        )
+
+    def test_the_apple_title_is_the_site_name_without_a_configured_name(self):
+        meta = head_soup().find("meta", attrs={"name": "apple-mobile-web-app-title"})
+
+        assert meta["content"] == "example.com"
+
+    def test_the_apple_title_is_the_configured_site_name_without_a_short_name(
+        self, monkeypatch
+    ):
+        from mvp.config import MVP_CONFIG
+
+        monkeypatch.setitem(MVP_CONFIG, "site_name", "The Corner Shop")
+
+        meta = head_soup().find("meta", attrs={"name": "apple-mobile-web-app-title"})
+
+        assert meta["content"] == "The Corner Shop"
+
+    def test_the_apple_title_is_the_host_when_the_site_has_no_name(self):
+        from django.contrib.sites.models import Site
+
+        Site.objects.filter(pk=settings.SITE_ID).update(name="")
+        Site.objects.clear_cache()
+
+        meta = head_soup().find("meta", attrs={"name": "apple-mobile-web-app-title"})
+
+        assert meta["content"] == "testserver"
+
+    def test_it_sets_the_theme_colour_when_one_is_configured(self, monkeypatch):
+        from mvp.config import MVP_CONFIG
+
+        monkeypatch.setitem(MVP_CONFIG, "pwa", {"theme_color": "#123456"})
+
+        meta = head_soup().find("meta", attrs={"name": "theme-color"})
+
+        assert meta["content"] == "#123456"
 
     def test_a_hostile_name_stays_escaped(self):
         from django.contrib.sites.models import Site

@@ -97,16 +97,6 @@ class TestResolveScriptPrefix:
 
 
 @pytest.mark.django_db
-class TestResolveUrls:
-    @override_settings(ROOT_URLCONF="tests.urls_pwa_absent")
-    def test_urls_are_none_when_the_include_is_unmounted(self, request_):
-        result = resolve(request_)
-
-        assert result["manifest_url"] is None
-        assert result["worker_url"] is None
-
-
-@pytest.mark.django_db
 class TestResolveThemeColours:
     def test_there_is_no_colour_by_default(self, request_, monkeypatch):
         monkeypatch.setitem(MVP_CONFIG, "pwa", True)
@@ -131,11 +121,6 @@ class TestResolveShape:
 
         assert "display" not in result
         assert "background_color" not in result
-
-    @pytest.mark.django_db
-    @override_settings(ROOT_URLCONF="tests.urls_pwa")
-    def test_the_worker_is_the_packaged_one(self, request_):
-        assert resolve(request_)["worker_url"] == "/account/sw.js"
 
 
 class TestInstallableApp:
