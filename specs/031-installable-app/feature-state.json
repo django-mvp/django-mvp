@@ -62,6 +62,15 @@
         "DR-005 low: collectstatic ordering and manifest storage documented in T010",
         "DR-006 low: CHANGELOG and README added to T012"
       ]
+    },
+    "review": {
+      "approved_by": "review-panel",
+      "at": "2026-09-24T08:40:00Z",
+      "self_resolved": [
+        "COR-001 medium: site-name lookup could raise on every page; falls back to the request host, two tests added",
+        "COR-002 low: error page during a database outage; documented, set pwa.name",
+        "notes: worker_url docs corrected; unused static load removed"
+      ]
     }
   },
   "stories": [
