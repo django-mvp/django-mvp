@@ -155,3 +155,10 @@ rather than dispatched, because it is a removal of one check and its references.
 - **Verified:** narrow runs per slice (tests/test_pwa, tests/test_templates.py, tests/test_templatetags.py, tests/test_management, tests/test_demo/test_installable_app.py) green; `tests/fixtures/base_head_off.html` passes unmodified. Full verify results are in the completion report.
 - **Next:** Forge re-verifies.
 - **Watch:** with no colour configured the manifest omits `theme_color` and `background_color`, and the padded images are white.
+
+## 2026-09-24 · Implementer US3 · T016
+
+- **Did:** Removed the startup check (`mvp/pwa/checks.py`, `ready()` in `mvp/apps.py`, its tests and URLconf). Removed `mvp/pwa/resolver.py` and `InstallableApp`: `mvp/pwa/__init__.py` holds the image names, the manifest view computes its values inline, and `mvp_pwa_icons` reads `MVP_CONFIG["pwa"]["theme_color"]` and stops with an error when the setting is off. `mvp/urls.py` registers the manifest and worker routes only while `MVP_CONFIG["pwa"]` is truthy. `base.html` puts the include on its own line, and `head.html` always sets `theme-color`. A `pwa_enabled` fixture in `tests/conftest.py` turns the feature on and reloads the URLconfs that mount `mvp.urls`. Resolver tests that describe real behaviour moved into `tests/test_pwa/test_views.py`. Docs and CHANGELOG match.
+- **Verified:** narrow runs per slice (tests/test_urls.py, tests/test_pwa, tests/test_templates.py, tests/test_management, tests/test_utils.py, tests/test_demo); full verify results are in the completion report.
+- **Next:** Forge re-verifies.
+- **Watch:** a test that sets `MVP_CONFIG["pwa"]` with its own `monkeypatch` while `pwa_enabled` is active can leave the value set after teardown, depending on fixture order; such tests rely on the fixture's colour instead.

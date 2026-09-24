@@ -176,7 +176,7 @@ def render_shell_head(script_name=""):
 
 
 @pytest.mark.django_db
-class TestShellHeadWithInstallableAppOff:
+class TestShellHeadWithPwaOff:
     def test_head_matches_the_pinned_render_byte_for_byte(self):
         """The head of a shell page is unchanged when ``pwa`` is off.
 
@@ -206,7 +206,7 @@ def head_soup():
 
 @pytest.mark.django_db
 @pytest.mark.usefixtures("pwa_enabled")
-class TestShellHeadWithInstallableAppOn:
+class TestShellHeadWithPwaOn:
     @pytest.fixture(autouse=True)
     def urls_mounted(self, settings):
         settings.ROOT_URLCONF = "tests.urls_shell_pwa"

@@ -163,7 +163,7 @@ class TestEachNameIsRegisteredExactlyOnce:
         assert _count_registrations(urlconf, "account_logout") == 1
 
 
-class TestInstallableAppUrls:
+class TestPwaUrls:
     """The manifest and the worker ride on ``mvp.urls`` while ``pwa`` is on."""
 
     @override_settings(ROOT_URLCONF="tests.urls_pwa")

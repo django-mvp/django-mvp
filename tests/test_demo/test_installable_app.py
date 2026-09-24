@@ -8,7 +8,7 @@ import pytest
 from demo import settings as demo_settings
 
 
-class TestDemoInstallableApp:
+class TestDemoPwa:
     def test_the_demo_settings_turn_the_feature_on(self):
         assert demo_settings.MVP_CONFIG["pwa"] == {"theme_color": "#f8f6f2"}
 

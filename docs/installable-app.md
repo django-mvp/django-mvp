@@ -2,8 +2,8 @@
 
 A project built on django-mvp can be installed from the browser as an app: it gets its own
 window and an icon on the home screen or desktop, and stays out of the tab strip. One setting
-turns it on, and the Account Center's URLs, which your project already mounts, serve the two files
-a browser needs.
+turns it on, and the Account Center's URLs, which your project already mounts, then serve the two
+files a browser needs.
 
 With the setting off, nothing changes. Pages render exactly as they did before.
 
@@ -16,12 +16,14 @@ MVP_CONFIG = {
 }
 ```
 
-`theme_color` is the colour of the browser toolbar and the launch screen. Match it to your
-theme's page colour. Without it the manifest and the `theme-color` tag carry no colour, and the
-padded images use white. `"pwa": True` turns the feature on with no colour.
+`theme_color` is required. It is the colour of the browser toolbar and the launch screen, so
+match it to your theme's page colour. Any other value that is on, such as `True`, fails when the
+manifest is built.
 
 The manifest and the worker are served by `mvp.urls`, the same URLconf that serves the Account
-Center. If your project doesn't mount it yet:
+Center. Those two routes exist only while `MVP_CONFIG["pwa"]` is set: with it off, reversing
+their names raises `NoReverseMatch`, and the page head carries no install tags. If your project
+doesn't mount `mvp.urls` yet:
 
 ```python
 # urls.py
@@ -56,9 +58,6 @@ is one), and the page registers the worker with that scope, so it covers every p
 
 A site served under a script prefix (for example `/app/`) has `/app/` as the manifest's
 `start_url` and `scope`, and as the worker's scope.
-
-Mounting `mvp.urls` is your project's own act, so the two URLs answer whether or not
-`MVP_CONFIG["pwa"]` is on.
 
 ## What the packaged worker does
 
@@ -127,38 +126,16 @@ pages fail to render.
 | Destination | `--output-dir` if given, otherwise the first entry of `STATICFILES_DIRS` that has no prefix. A `(prefix, path)` entry is skipped, because its files are served under the prefix, where the manifest doesn't look. With no usable entry, the command stops and asks for `--output-dir`. Files go in `<directory>/brand/pwa/`, which is created if missing. Existing images are overwritten. |
 | Proportions | A mark that is not square is centred, never stretched. |
 | Plain icons | 192 px and 512 px, the mark filling the square on a transparent background. |
-| Maskable and Apple icons | 512 px and 180 px, the mark in the central 80% on an opaque background. The background is `pwa.theme_color`, else white. |
+| Maskable and Apple icons | 512 px and 180 px, the mark in the central 80% on an opaque background. The background is `pwa.theme_color`. The command stops with an error when `MVP_CONFIG["pwa"]` is not set. |
 
 Run it again whenever the mark changes.
-
-## The startup warning
-
-When `MVP_CONFIG["pwa"]` is on, Django's system checks report a missing include. The check doesn't run with the feature off. Missing images aren't reported,
-because generating them is a deployment step and development doesn't need them.
-
-| Id | Meaning | Fix |
-| --- | --- | --- |
-| `mvp.W001` | `mvp.urls` is not included, so the manifest and the worker have no URL. | Add `path("account/", include("mvp.urls"))` to the root URLconf. |
-
-A page keeps rendering when the include is missing. The head then carries no manifest link,
-and `mvp.W001` tells you why. It also carries no registration script.
 
 ## Python reference
 
 You only need these if you build something of your own on the same values.
 
-- `mvp.pwa.resolver.resolve(request)` returns a dictionary with every value the manifest uses.
-  The keys are:
-  - `name`, `short_name`, `start_url` and `scope`
-  - `theme_color`, which is `None` when none is configured
-  - `icon_192`, `icon_512`, `icon_maskable_512` and `apple_touch_icon`, the static URLs of the
-    four images
 - `mvp.utils.reverse_or_none(name)` reverses a URL name, and returns `None` instead of
-  raising when the name isn't registered. The startup warning uses it to find out whether
-  `mvp.urls` is mounted.
+  raising when the name isn't registered.
 - `mvp.pwa.views.manifest` and `mvp.pwa.views.service_worker` are the two views `mvp.urls`
   serves, at `manifest.webmanifest` and `sw.js`.
 - `mvp.utils.site_name(request)` returns the current site's name. When no `Site` matches, or the name is empty, it returns the request's host instead. This is the default application name.
-- `mvp.pwa.resolver.InstallableApp` reads `MVP_CONFIG["pwa"]`. `InstallableApp.enabled()` is true
-  when the setting is truthy. `InstallableApp.theme_color()` returns the configured
-  `theme_color`, or `None`.
