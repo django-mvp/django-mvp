@@ -39,3 +39,10 @@ as D1–D4.
 - **Verified:** poetry run pytest tests/test_pwa tests/test_config.py — 33 passed, exit 0; 35 themes resolve; light/dark/cupcake match the reference values.
 - **Next:** T004: views and URLconf.
 - **Watch:** Colours read the base-100 value from the committed stylesheet; a rebuilt stylesheet changes them, by design (D2).
+
+## 2026-09-24T07:44Z · Implementer US1 · T004
+
+- **Did:** Added mvp/pwa/views.py, urls.py, the packaged worker template and tests through a root-mounted test URLconf.
+- **Verified:** poetry run pytest tests/test_pwa — 34 passed, exit 0.
+- **Next:** T005: head template.
+- **Watch:** The worker template has no fetch listener; the test asserts the word 'fetch' is absent from the body.
