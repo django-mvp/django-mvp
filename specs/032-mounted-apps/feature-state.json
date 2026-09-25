@@ -70,49 +70,82 @@
           "id": "T001",
           "status": "done",
           "attempts": 1,
-          "evidence": "uv run pytest tests/test_mounted.py -q: 2 passed"
+          "evidence": {
+            "commands": [
+              "uv run pytest tests/test_mounted.py -q: 2 passed"
+            ]
+          }
         },
         {
           "id": "T002",
           "status": "done",
           "attempts": 1,
-          "evidence": "uv run pytest tests/test_mounted.py -q: 8 passed"
+          "evidence": {
+            "commands": [
+              "uv run pytest tests/test_mounted.py -q: 8 passed"
+            ]
+          }
         },
         {
           "id": "T003",
           "status": "done",
           "attempts": 2,
-          "evidence": "uv run pytest tests/test_mounted.py -q: 30 passed"
+          "evidence": {
+            "commands": [
+              "uv run pytest tests/test_mounted.py -q: 30 passed"
+            ]
+          }
         },
         {
           "id": "T004",
           "status": "done",
           "attempts": 1,
-          "evidence": "uv run pytest tests/test_mounted.py -q: 40 passed"
+          "evidence": {
+            "commands": [
+              "uv run pytest tests/test_mounted.py -q: 40 passed"
+            ]
+          }
         },
         {
           "id": "T005",
           "status": "done",
           "attempts": 1,
-          "evidence": "uv run pytest tests/test_templatetags.py tests/test_mounted.py -q: 100 passed"
+          "evidence": {
+            "commands": [
+              "uv run pytest tests/test_templatetags.py tests/test_mounted.py -q: 100 passed"
+            ]
+          }
         },
         {
           "id": "T006",
           "status": "done",
           "attempts": 1,
-          "evidence": "uv run pytest tests/test_mounted.py tests/test_components/test_app_sidebar.py -q: green"
+          "evidence": {
+            "commands": [
+              "uv run pytest tests/test_mounted.py tests/test_components/test_app_sidebar.py -q: green"
+            ]
+          }
         },
         {
           "id": "T007",
           "status": "done",
           "attempts": 1,
-          "evidence": "uv run pytest tests/test_mounted.py -q: 60 passed"
+          "evidence": {
+            "commands": [
+              "uv run pytest tests/test_mounted.py -q: 60 passed"
+            ]
+          }
         },
         {
           "id": "T008",
-          "status": "blocked",
+          "status": "done",
           "attempts": 1,
-          "evidence": "uv run pytest tests/test_demo/test_library.py -q: 11 passed; full suite 1 pre-existing e2e test red (dock link count)"
+          "evidence": {
+            "commands": [
+              "uv run pytest tests/test_demo/test_library.py -q: 11 passed; full suite 1 pre-existing e2e test red (dock link count)",
+              "forge verify after dropping the demo dock entry: lint, typecheck, test, build passed"
+            ]
+          }
         }
       ]
     },
