@@ -90,3 +90,15 @@
 - Verified: `uv run pre-commit run --all-files` passes. The docs have no test of their own.
 - Next: full verify, then the report.
 - Watch: none.
+
+## 2026-09-25T17:50Z · Implementer US4 · T015
+- Did: `MountedApp.refusal(request)` (anonymous → `redirect_to_login`, signed in → `PermissionDenied`) called by both `bind()` wrappers; `menu_item()` passes an entry check calling `permits()`; `for_request()` answers `None` for a refused request; `claiming_menu()` skips a refusing app. Fixtures: `testapp_mounted_staff`, `forbidden` view and template, `tests/urls_mounted_checked.py`. Tests: `TestMountedAppCheck`, `TestMountedAppCheckOnOtherPaths` in `tests/test_mounted.py`. Async wrapper runs the check synchronously (D24).
+- Verified: `uv run pytest tests/test_mounted.py -q` → 99 passed. Removing the `for_request()` filter turned three tests red; removing the entry check turned two red; removing the `claiming_menu()` skip turned one red.
+- Next: T016.
+- Watch: the async tests use `asyncio.run` because no async pytest plugin is installed.
+
+## 2026-09-25T17:55Z · Implementer US4 · T016
+- Did: `docs/mounted-apps.md` gains "Limiting who can reach an app"; `CHANGELOG.md` Unreleased Added entry.
+- Verified: `uv run pre-commit run --all-files` passes. The docs have no test of their own.
+- Next: full verify, then the report.
+- Watch: none.

@@ -236,3 +236,19 @@ main-app branch: pages and `menu_item()` still do not enforce the check.
 
 **Revisit if:** US-4 wants a different name or signature for the visibility rule.
 **ADR:** none.
+
+## D24. The check runs synchronously in an async view's wrapper
+
+**Decision:** `bind()`'s async wrapper calls `permits()` directly rather than through `sync_to_async`. The docstring on `MountedApp` says a check must not touch the database from an async view.
+
+**Why:** `asgiref` is not a declared dependency, and importing it is refused by deptry. Adding a dependency is outside this story.
+
+**Revisit if:** `asgiref` is declared. A check reading `request.user` on a lazily loaded session user would then be safe in an async view.
+
+## D25. `for_request()` returns `None` for a refused request, after the lookup
+
+**Decision:** `for_request()` resolves the app as before, then answers `None` when that app's `permits()` is false. `claiming_menu()` also skips an app whose check fails, so the next app whose menu marks the page current can claim it.
+
+**Why:** D15. A refused request shows no app in any template, including a project's own 403 page. Skipping in `claiming_menu()` keeps a refusing app from hiding a page another app's menu also links.
+
+**Revisit if:** never.
