@@ -52,6 +52,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **The Account Center shows its menu in the sidebar, not beside the page.** The Account Center is
+  now a mounted app: on its pages the sidebar draws `AccountCenterMenu` under a "Back to *site
+  name*" link instead of `AppMenu`, and the navigation panel beside the content (a card on wide
+  screens, a dropdown on narrow ones) is gone. `mvp/account/base.html` keeps its name and its
+  `account.content` block, so a page written against it renders unchanged, now inside a container
+  that draws nothing else. The landing page's tab title is `Account Center | <site name>`, and the
+  landing's URL name is still `account-center`. A page an installed app adds to the Account
+  Center from its own URLs joins it when `AccountCenterMenu` has an entry for it, with no change
+  to the app. A page that draws its own copy of `AccountCenterMenu` now shows the menu twice, in
+  the sidebar and in its own copy, and should drop its copy. See
+  [Account Center](docs/account-center.md) and [Mounted apps](docs/mounted-apps.md).
+
 - **`<c-app.sidebar>`'s `menu` attribute defaults to empty instead of `"AppMenu"`.** An empty
   `menu` still draws `AppMenu`, so a page that passes nothing renders as before. `mvp/base.html`
   now wraps the title filter in a `head.title` block, and `mvp/error_base.html` overrides that

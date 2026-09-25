@@ -7,7 +7,7 @@ django-mvp renders three menus from Python definitions, using
 - **`MobileFooterMenu`** — the bottom dock on small screens (pre-populated with a
   sidebar toggle).
 - **`AccountCenterMenu`** — the [Account Center](account-center.md)'s own navigation,
-  rendered beside its pages. Ships with the entry for its own landing page; extend it
+  drawn in the sidebar on its pages. Ships with the entry for its own landing page; extend it
   the same way as `AppMenu`.
 
 A package that runs inside another django-mvp project brings a menu of its own too, drawn in

@@ -1,8 +1,9 @@
 # Account Center
 
 The Account Center is a place in the shell for a person to manage their own account:
-a landing page, a navigation panel beside it, and a menu any installed app can add a
-page or a menu entry to. django-mvp provides the area itself, plus development-only
+a landing page, and a menu any installed app can add a page or a menu entry to. While a
+person is in the area, the sidebar shows that menu under a "Back to *site name*" link.
+django-mvp provides the area itself, plus development-only
 sign-in and sign-out pages so a page guarded by `LoginRequiredMixin` is reachable
 before your project installs anything else. Full account management — sign-up,
 password and multi-factor flows, and production-ready sign-in and sign-out — lives in
@@ -135,8 +136,26 @@ decides its own access rules, the same way any other view in your project does.
 
 With no app contributing anything, the landing page renders its own heading and
 introduction, and an empty region where a contributed card will appear later. It does
-not fall back to listing the menu — the menu is already on the page, beside the
-content.
+not fall back to listing the menu — the menu is already in the sidebar.
+
+## The sidebar in the area
+
+The Account Center is a [mounted app](mounted-apps.md), the package's own example of one.
+`mvp.urls` mounts it at `account/`, so on its landing page the sidebar draws
+`AccountCenterMenu` and none of `AppMenu`, under a link that goes back to the site's home
+page. The page carries no second navigation of its own: the layout used to draw the menu a
+second time beside the content, and no longer does. The browser tab reads
+`Account Center | <site name>`.
+
+A page an installed app adds to the area is served from that app's own URLs, not from the
+area's, so it is not reached through the mount. It is treated as part of the area when
+`AccountCenterMenu` has an entry for it, which is why adding the entry from the previous
+section is all it takes for the sidebar on that page to show the area's menu, with the entry
+marked as current. A contributed page with no menu entry keeps the host's sidebar.
+
+The sign-in and sign-out pages are outside the area's mount, so they keep the host's sidebar.
+The area itself carries no visibility check: the landing page requires a signed-in person,
+and a contributed page decides its own access.
 
 ## Adding a menu entry and a page
 
@@ -165,6 +184,10 @@ Import this module the same way `AppMenu` picks up an app's own entries — auto
 or an explicit import in `AppConfig.ready()`. See [Navigation](navigation.md).
 
 ### A page against the layout
+
+The layout is `mvp/account/base.html`. It puts your `account.content` block inside a
+container and draws nothing else, because the navigation is the sidebar's. Do not render
+`AccountCenterMenu` again on the page: a page that does now shows it twice.
 
 ```python
 # yourapp/views.py

@@ -72,3 +72,9 @@
 - Verified: `uv run pytest tests/test_views/test_account.py tests/test_components/test_responsive_visibility.py -q` green; `uv run invoke build-stylesheet` changed nothing committed.
 - Next: T012.
 - Watch: the four breakpoint cases assert against the merged `MVP_CONFIG` through `monkeypatch.setitem`.
+
+## 2026-09-25T16:20Z · Implementer US2 · T012
+- Did: `docs/account-center.md` describes the sidebar swap (new "The sidebar in the area" section, a note on the layout's container, no panel); `docs/navigation.md` and `docs/layout.md` no longer describe the panel; `docs/mounted-apps.md` states the two-step rule and names the Account Center as the package's own example; `CHANGELOG.md` Unreleased Changed entry, with the note about a page drawing its own copy of `AccountCenterMenu`. No stylesheet change: `uv run invoke build-stylesheet` left the committed CSS identical.
+- Verified: `uv run pre-commit run --all-files` passes. The docs have no test of their own.
+- Next: full verify, then the report.
+- Watch: none.

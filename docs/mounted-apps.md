@@ -104,10 +104,32 @@ urlpatterns = [
 reverses correctly under whichever prefix the host picks, so `mount("shelf/library/", library)`
 works as well.
 
-Which app a page belongs to is decided from the URL patterns that matched the request, not by
-comparing the path with a prefix. A language prefix, a project served under a sub-path, or an app
-mounted at `""` cannot confuse it, and pages of the host that happen to sit beside the app's are
-never treated as the app's.
+Which app a page belongs to is decided in two steps, and neither compares the path with a
+prefix. A language prefix, a project served under a sub-path, or an app mounted at `""` cannot
+confuse them.
+
+1. **A page belongs to the app whose mount served it**, decided from the URL patterns that
+   matched the request. Pages of the host that sit beside the app's are not the app's.
+2. **If no mount served the page, it belongs to the first mounted app whose menu marks it as
+   current**, meaning one of the app's menu entries links to that page. The order is the order
+   of the mounts in the URLconf. This is how a page an installed app adds to another app's
+   menu, from its own URLs, ends up inside that app: the [Account Center](account-center.md)
+   works this way. If two apps' menus both link one page, the first mount wins.
+
+A host page that no mounted app's menu links to belongs to no app.
+
+## The Account Center is a mounted app
+
+django-mvp's own [Account Center](account-center.md) is the package's example of a mounted app.
+It is declared in `mvp/views/account.py` as `account_center`, with `AccountCenterMenu` as its
+menu and `account-center` as its landing, and `mvp.urls` mounts it at `account/`. On its pages
+the sidebar draws the area's menu under "Back to *site name*", and the title reads
+`Account Center | <site name>`. The landing's URL name stays `account-center`, with no
+namespace, so `reverse("account-center")` still gives `/account/`.
+
+Pages other installed apps add to the Account Center are served from those apps' own URLs. They
+belong to the Account Center by the second rule above, because `AccountCenterMenu` has an entry
+for each of them.
 
 ## Adding the entry to the host's menus
 
