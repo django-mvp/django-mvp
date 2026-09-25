@@ -226,3 +226,13 @@ Assertions on the panel's two regions dropped from `tests/test_components/test_r
 **Why:** T010's title test (`Account Center | <site name>` exactly) cannot pass while the override is there, and each commit has to leave the tree green.
 
 **Revisit if:** never; the change is the one T011 asks for, made one commit earlier.
+
+## D23. The main app's check is read through `MountedApp.permits()`
+
+D14 says a main app whose check refuses the request is not drawn. The tag calls
+`MountedApp.permits(request)` (no `check` means everyone) and falls back to `AppMenu` when it
+returns false. `permits()` is the single place US-4 fills in. It is called only from the tag's
+main-app branch: pages and `menu_item()` still do not enforce the check.
+
+**Revisit if:** US-4 wants a different name or signature for the visibility rule.
+**ADR:** none.

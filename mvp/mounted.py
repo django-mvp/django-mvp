@@ -197,10 +197,33 @@ class MountedApp:
     def claiming_menu(cls, request: HttpRequest) -> MountedApp | None:
         """Return the first mounted app whose menu marks ``request`` current."""
         for mount_ in cls.mounts(request):
-            # US-3: a main app's menu does not claim pages. Skip it here.
+            if mount_.main:
+                # The main app's menu draws on every unclaimed page already;
+                # letting it claim them would give those pages a back link.
+                continue
             if mount_.app.menu.process(request).selected:
                 return mount_.app
         return None
+
+    @classmethod
+    def main(cls, request: HttpRequest | None = None) -> MountedApp | None:
+        """Return the app mounted with ``main=True``, or ``None``.
+
+        Looked up in the URLconf ``request`` is served from, the same walk as
+        :meth:`mounts`.
+        """
+        for mount_ in cls.mounts(request):
+            if mount_.main:
+                return mount_.app
+        return None
+
+    def permits(self, request: HttpRequest) -> bool:
+        """Say whether this app's ``check`` lets ``request`` see the app.
+
+        An app with no ``check`` permits everyone. This is the one place the
+        rule lives; only the main app's menu consults it so far.
+        """
+        return self.check is None or bool(self.check(request))
 
     @classmethod
     def mounts(cls, request: HttpRequest | None = None) -> list[MountedAppResolver]:
@@ -251,6 +274,12 @@ class MountedApp:
                     f'The app "{pattern.app.name}" is mounted more than once. '
                     "Mount each app in one place."
                 )
+            first_main = next((mount for mount in found if mount.main), None)
+            if pattern.main and first_main is not None:
+                raise ImproperlyConfigured(
+                    f'The apps "{first_main.app.name}" and "{pattern.app.name}" '
+                    "are both mounted with main=True. A project has one main app."
+                )
             found.append(pattern)
             cls.scan(pattern, pattern.app, found)
         return found
@@ -284,12 +313,15 @@ def mount(route: str, app: MountedApp, main: bool = False) -> MountedAppResolver
     Args:
         route: The prefix the app's pages live under, as ``path()`` takes it.
         app: The declaration to mount.
-        main: Accepted and stored. It has no behaviour yet.
+        main: Run the app as the project's own site. Its menu is then the
+            sidebar on every page that belongs to no other mounted app, its own
+            pages included, with no back link and no app name in the title.
+            Only one app may be main.
 
     Example::
 
         urlpatterns = [
-            mount("literature/", literature),
+            mount("", literature, main=True),
         ]
     """
     urlconf_module, app_name, namespace = include(app.urls)

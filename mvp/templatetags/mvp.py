@@ -38,7 +38,9 @@ class MountedShell(NamedTuple):
 
     ``app`` is the app to name in the page title and the back link. ``menu`` is
     the menu the sidebar draws. Both are ``None`` when the page belongs to no
-    app, and the sidebar then falls back to ``AppMenu``.
+    app, and the sidebar then falls back to ``AppMenu``. In a project with a
+    main app, a page that belongs to no other app draws the main app's menu
+    with no ``app``, so no back link and no title segment.
     """
 
     app: MountedApp | None
@@ -58,7 +60,14 @@ def mounted_app(context):
     yields neither.
     """
     request = context.get("request")
-    app = MountedApp.for_request(request) if request is not None else None
+    if request is None:
+        return MountedShell(None, None)
+    app = MountedApp.for_request(request)
+    main = MountedApp.main(request)
+    if main is not None and app in (None, main):
+        # A main app is named nowhere. One that refuses the request is not
+        # drawn either, and the page falls back to AppMenu (decision D14).
+        return MountedShell(None, main.menu if main.permits(request) else None)
     return MountedShell(app, app.menu if app is not None else None)
 
 

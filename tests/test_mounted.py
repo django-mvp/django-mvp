@@ -691,3 +691,157 @@ class TestPageClaimedByAMenu:
         app.menu.children[0].parent = None
 
         assert MountedApp.for_request(request) is first
+
+
+MAIN_URLCONF = "tests.urls_mounted_main"
+
+
+@pytest.mark.django_db
+@pytest.mark.urls(MAIN_URLCONF)
+class TestMainApp:
+    """An app mounted with ``main=True`` is the site's own menu (FR-016, FR-017)."""
+
+    def test_host_page_draws_the_main_apps_menu_and_none_of_the_app_menu(self, client):
+        labels = menu_labels(client.get("/layout/"))
+
+        assert "Mounted Index" in labels
+        assert "Mounted Detail" in labels
+        assert "Layout" not in labels
+
+    def test_host_page_has_no_back_link(self, client):
+        response = client.get("/layout/")
+
+        assert b"data-back-link" not in response.content
+
+    def test_host_page_title_is_the_same_as_without_a_main_app(self, client, settings):
+        with_main = normalised_title(client.get("/layout/"))
+        settings.ROOT_URLCONF = PLAIN_URLCONF
+        without_main = normalised_title(client.get("/layout/"))
+
+        assert with_main == without_main
+        assert "Mounted Fixture" not in with_main
+
+    def test_main_apps_own_page_draws_its_menu_without_a_back_link(self, client):
+        response = client.get("/detail/")
+
+        assert response.status_code == 200
+        assert b'id="testapp-mounted-detail"' in response.content
+        assert "Mounted Index" in menu_labels(response)
+        assert b"data-back-link" not in response.content
+
+    def test_main_apps_own_page_title_carries_no_app_name(self, client):
+        assert "Mounted Fixture" not in normalised_title(client.get("/detail/"))
+
+    def test_account_center_swaps_to_its_own_menu_with_a_back_link(
+        self, admin_client
+    ):
+        response = admin_client.get("/account/")
+        labels = menu_labels(response)
+
+        assert response.status_code == 200
+
+        assert b"data-back-link" in response.content
+        assert "Overview" in labels
+        assert "Mounted Index" not in labels
+        assert "Mounted Detail" not in labels
+
+    def test_app_menu_is_not_drawn_on_any_page(self, client):
+        assert "Layout" not in menu_labels(client.get("/detail/"))
+
+    def test_main_app_refusing_the_request_falls_back_to_the_app_menu(
+        self, client, monkeypatch
+    ):
+        monkeypatch.setattr(testapp_mounted, "check", lambda request: False)
+
+        labels = menu_labels(client.get("/layout/"))
+
+        assert "Layout" in labels
+        assert "Mounted Index" not in labels
+
+    def test_main_app_menu_linking_a_host_page_does_not_claim_it(self, client):
+        response = client.get("/layout/")
+
+        assert MountedApp.for_request(response.wsgi_request) is None
+
+
+@pytest.mark.django_db
+@pytest.mark.urls("tests.urls_mounted_root")
+class TestAppMountedWithoutMain:
+    """The same app without ``main`` behaves as in US-1 (scenario 4)."""
+
+    def test_host_page_draws_the_host_menu(self, client):
+        labels = menu_labels(client.get("/layout/"))
+
+        assert "Layout" in labels
+        assert "Mounted Index" not in labels
+
+    def test_apps_own_page_draws_a_back_link(self, client):
+        response = client.get("/detail/")
+
+        assert b"data-back-link" in response.content
+        assert "Mounted Fixture" in normalised_title(response)
+
+
+class TestMainAppRegistry:
+    """Two main apps are refused, and ``main`` belongs to the mount (FR-018)."""
+
+    def test_the_main_app_is_found_among_the_mounts(self):
+        main = named_app("Main")
+        urlconf = urlconf_of(
+            mount("other/", named_app("Other")), mount("", main, main=True)
+        )
+
+        with override_settings(ROOT_URLCONF=urlconf):
+            assert MountedApp.main() is main
+
+    def test_no_main_app_is_none(self):
+        urlconf = urlconf_of(mount("one/", named_app("One")))
+
+        with override_settings(ROOT_URLCONF=urlconf):
+            assert MountedApp.main() is None
+
+    def test_two_main_apps_are_one_error_naming_both(self):
+        urlconf = urlconf_of(
+            mount("a/", named_app("First"), main=True),
+            mount("b/", named_app("Second"), main=True),
+        )
+
+        with override_settings(ROOT_URLCONF=urlconf):
+            errors = check_mounted_apps(None)
+
+        assert len(errors) == 1
+        assert isinstance(errors[0], Error)
+        assert "First" in errors[0].msg
+        assert "Second" in errors[0].msg
+        assert "main" in errors[0].msg
+
+    def test_two_main_apps_raise_from_the_registry_walk(self):
+        urlconf = urlconf_of(
+            mount("a/", named_app("First"), main=True),
+            mount("b/", named_app("Second"), main=True),
+        )
+
+        with override_settings(ROOT_URLCONF=urlconf):
+            with pytest.raises(ImproperlyConfigured, match="First.*Second"):
+                MountedApp.mounts()
+
+    def test_one_main_app_among_others_passes_the_check(self):
+        urlconf = urlconf_of(
+            mount("a/", named_app("First"), main=True),
+            mount("b/", named_app("Second")),
+        )
+
+        with override_settings(ROOT_URLCONF=urlconf):
+            assert check_mounted_apps(None) == []
+
+    def test_main_is_a_mount_keyword_and_not_a_mounted_app_one(self):
+        with pytest.raises(TypeError):
+            MountedApp(  # type: ignore[call-arg]
+                name="Main",
+                icon="box",
+                menu=TestappMountedMenu,
+                urls=[],
+                landing="index",
+                main=True,
+            )
+        assert "main" in inspect.signature(mount).parameters

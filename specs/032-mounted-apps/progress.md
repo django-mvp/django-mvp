@@ -78,3 +78,9 @@
 - Verified: `uv run pre-commit run --all-files` passes. The docs have no test of their own.
 - Next: full verify, then the report.
 - Watch: none.
+
+## 2026-09-25T17:10Z · Implementer US3 · T013
+- Did: `mount(..., main=True)` now behaves. `MountedApp.main(request)` finds the main app, `permits(request)` reads the stored check (D23), `scan()` refuses a second main app naming both, `claiming_menu()` skips the main app, and `{% mounted_app %}` yields `app=None` with the main app's menu on unclaimed pages and the main app's own pages, or nothing when the main app refuses the request. New `tests/urls_mounted_main.py`; new classes `TestMainApp`, `TestAppMountedWithoutMain`, `TestMainAppRegistry` in `tests/test_mounted.py`. The sidebar template needed no change.
+- Verified: `uv run pytest tests/test_mounted.py -q` → 84 passed; `uv run pre-commit run --all-files` passed; `uv run mypy mvp` clean. Making `claiming_menu()` stop skipping the main app turned four new tests red.
+- Next: T014.
+- Watch: the refused-request test sets `testapp_mounted.check` with `monkeypatch`.
