@@ -38,9 +38,10 @@ import inspect
 from collections.abc import Callable
 from typing import Any
 
+from django.contrib.auth.views import redirect_to_login
 from django.core.checks import CheckMessage, Error
-from django.core.exceptions import ImproperlyConfigured
-from django.http import HttpRequest
+from django.core.exceptions import ImproperlyConfigured, PermissionDenied
+from django.http import HttpRequest, HttpResponse
 from django.urls import get_resolver, include
 from django.urls.resolvers import ResolverMatch, RoutePattern, URLResolver
 from flex_menu import Menu, MenuItem
@@ -70,7 +71,11 @@ class MountedApp:
             is reversed as ``app_name:name`` wherever it is mounted.
         landing: The URL name of the app's first page.
         check: Optional ``callable(request) -> bool`` deciding who may see the
-            app. Stored here; a request it refuses is not yet turned away.
+            app. A request it refuses gets no menu entry and no app in the
+            page, and its pages send an anonymous visitor to the sign-in page
+            and refuse a signed-in person as forbidden. With no ``check`` the
+            app is open to everyone. A check must not touch the database from
+            an async view.
 
     Example::
 
@@ -118,12 +123,18 @@ class MountedApp:
 
             @functools.wraps(view)
             async def bound(request, *args, **kwargs):
+                refusal = self.refusal(request)
+                if refusal is not None:
+                    return refusal
                 return await view(request, *args, **kwargs)
 
         else:
 
             @functools.wraps(view)
             def bound(request, *args, **kwargs):
+                refusal = self.refusal(request)
+                if refusal is not None:
+                    return refusal
                 return view(request, *args, **kwargs)
 
         setattr(bound, VIEW_ATTRIBUTE, self)
@@ -161,9 +172,13 @@ class MountedApp:
                 )
                 return self.selected
 
+        def entry_check(request: HttpRequest | None, **kwargs: Any) -> bool:
+            return request is None or app.permits(request)
+
         return MountedAppMenuItem(
             name=name or app.landing.replace(":", "-"),
             view_name=app.landing,
+            check=entry_check,
             extra_context={"label": app.name, "icon": app.icon, **extra_context},
         )
 
@@ -190,6 +205,10 @@ class MountedApp:
             # walking the menus again.
             request._mounted_app = None  # type: ignore[attr-defined]
             app = cls.claiming_menu(request)
+        if app is not None and not app.permits(request):
+            # A refused request shows no app anywhere, a project's own 403 page
+            # included (decision D15).
+            app = None
         request._mounted_app = app  # type: ignore[attr-defined]
         return app  # type: ignore[no-any-return]
 
@@ -200,6 +219,8 @@ class MountedApp:
             if mount_.main:
                 # The main app's menu draws on every unclaimed page already;
                 # letting it claim them would give those pages a back link.
+                continue
+            if not mount_.app.permits(request):
                 continue
             if mount_.app.menu.process(request).selected:
                 return mount_.app
@@ -221,9 +242,26 @@ class MountedApp:
         """Say whether this app's ``check`` lets ``request`` see the app.
 
         An app with no ``check`` permits everyone. This is the one place the
-        rule lives; only the main app's menu consults it so far.
+        rule lives: the view wrapper, the host's menu entry, the lookup of a
+        request's app and the main app's menu all ask it.
         """
         return self.check is None or bool(self.check(request))
+
+    def refusal(self, request: HttpRequest) -> HttpResponse | None:
+        """Turn away a request the check refuses, or return ``None``.
+
+        An anonymous visitor is redirected to the sign-in page and comes back to
+        the page they asked for. A signed-in person gets
+        :class:`~django.core.exceptions.PermissionDenied`, so the project's own
+        403 page answers. This is the branch of Django's ``AccessMixin``, and
+        never a 404.
+        """
+        if self.permits(request):
+            return None
+        user = getattr(request, "user", None)
+        if user is None or not user.is_authenticated:
+            return redirect_to_login(request.get_full_path())
+        raise PermissionDenied
 
     @classmethod
     def mounts(cls, request: HttpRequest | None = None) -> list[MountedAppResolver]:

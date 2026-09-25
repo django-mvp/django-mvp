@@ -3,6 +3,7 @@
 Source: mvp/mounted.py
 """
 
+import asyncio
 import inspect
 
 import pytest
@@ -13,7 +14,7 @@ from django.core.checks.registry import registry
 from django.core.exceptions import ImproperlyConfigured
 from django.http import HttpResponse
 from django.template import Context, Template
-from django.test import override_settings
+from django.test import AsyncRequestFactory, override_settings
 from django.urls import Resolver404, path, resolve, reverse
 from django.views.decorators.csrf import csrf_exempt
 from flex_menu import Menu, MenuItem
@@ -23,7 +24,7 @@ from demo.urls import urlpatterns as demo_patterns
 from mvp.menus import AppMenu
 from mvp.mounted import MountedApp, check_mounted_apps, mount
 from tests.testapp_mounted.menus import TestappMountedMenu
-from tests.testapp_mounted.mounted import testapp_mounted
+from tests.testapp_mounted.mounted import testapp_mounted, testapp_mounted_staff
 from tests.testapp_mounted.views import IndexView
 
 PLAIN_URLCONF = "tests.urls_mounted_plain"
@@ -845,3 +846,160 @@ class TestMainAppRegistry:
                 main=True,
             )
         assert "main" in inspect.signature(mount).parameters
+
+
+CHECKED_URLCONF = "tests.urls_mounted_checked"
+
+
+@pytest.fixture
+def staff_user(django_user_model):
+    return django_user_model.objects.create_user(
+        "staff", password="pw", is_staff=True
+    )
+
+
+@pytest.fixture
+def regular_user(django_user_model):
+    return django_user_model.objects.create_user("regular", password="pw")
+
+
+def entry_visible_to(user, path="/layout/", *, client, app=testapp_mounted_staff):
+    """Whether the host's sidebar draws ``app``'s entry for ``user``."""
+    if user is not None:
+        client.force_login(user)
+    request = client.get(path).wsgi_request
+    template = Template("{% load flex_menu %}{% render_menu menu renderer='sidebar' %}")
+    menu = Menu("CheckedHostMenu", children=[app.menu_item()])
+    context = Context({"request": request, "menu": menu})
+    return bool(BeautifulSoup(template.render(context), "html.parser").select("a"))
+
+
+@pytest.mark.django_db
+@pytest.mark.urls(CHECKED_URLCONF)
+class TestMountedAppCheck:
+    """An app's ``check`` hides it from, and refuses, everyone it excludes
+    (FR-012, FR-013, decision D4)."""
+
+    def test_host_entry_is_shown_to_staff(self, client, staff_user):
+        assert entry_visible_to(staff_user, client=client) is True
+
+    def test_host_entry_is_absent_for_a_regular_user(self, client, regular_user):
+        assert entry_visible_to(regular_user, client=client) is False
+
+    def test_host_entry_is_absent_for_an_anonymous_visitor(self, client):
+        assert entry_visible_to(None, client=client) is False
+
+    def test_anonymous_visitor_is_sent_to_sign_in_with_next(self, client):
+        response = client.get("/mounted/detail/")
+
+        assert response.status_code == 302
+        assert response["Location"] == "/account/login/?next=/mounted/detail/"
+
+    def test_signed_in_person_the_check_refuses_is_forbidden(
+        self, client, regular_user
+    ):
+        client.force_login(regular_user)
+
+        response = client.get("/mounted/")
+
+        assert response.status_code == 403
+
+    def test_forbidden_page_title_names_no_app(self, client, regular_user):
+        client.force_login(regular_user)
+
+        response = client.get("/mounted/")
+
+        assert "Staff Fixture" not in normalised_title(response)
+
+    def test_a_project_403_page_draws_app_menu_not_the_apps(
+        self, client, regular_user
+    ):
+        client.force_login(regular_user)
+
+        response = client.get("/mounted/")
+
+        assert b'id="testapp-mounted-forbidden"' in response.content
+        labels = menu_labels(response)
+        assert "Mounted Index" not in labels
+        assert "Mounted Detail" not in labels
+        assert b"data-back-link" not in response.content
+
+    def test_staff_see_the_page_and_the_apps_sidebar(self, client, staff_user):
+        client.force_login(staff_user)
+
+        response = client.get("/mounted/")
+
+        assert response.status_code == 200
+        assert "Mounted Index" in menu_labels(response)
+
+    def test_lookup_finds_no_app_for_a_refused_request(self, client, regular_user):
+        client.force_login(regular_user)
+
+        response = client.get("/mounted/")
+
+        assert MountedApp.for_request(response.wsgi_request) is None
+
+    @pytest.mark.urls("tests.urls_mounted")
+    def test_an_app_with_no_check_is_open_to_everyone(self, client):
+        assert client.get("/mounted/").status_code == 200
+        assert entry_visible_to(None, client=client, app=testapp_mounted) is True
+
+
+@pytest.mark.django_db
+class TestMountedAppCheckOnOtherPaths:
+    """The check also decides menu claims and async views."""
+
+    def test_menu_claim_skips_an_app_whose_check_fails(
+        self, client, settings, regular_user
+    ):
+        app = host_linking_app("Linker", ("layout", "layout"))
+        app.check = lambda request: request.user.is_staff
+        settings.ROOT_URLCONF = host_urlconf(mount("own/", app))
+        client.force_login(regular_user)
+
+        assert for_path(client, "/layout/") is None
+
+    def test_menu_claim_holds_for_a_person_the_check_admits(
+        self, client, settings, staff_user
+    ):
+        app = host_linking_app("Linker", ("layout", "layout"))
+        app.check = lambda request: request.user.is_staff
+        settings.ROOT_URLCONF = host_urlconf(mount("own/", app))
+        client.force_login(staff_user)
+
+        assert for_path(client, "/layout/") is app
+
+    def test_menu_claim_passes_over_a_refusing_app_to_the_next(
+        self, client, settings, regular_user
+    ):
+        first = host_linking_app("First", ("layout", "layout"))
+        first.check = lambda request: request.user.is_staff
+        second = host_linking_app("Second", ("layout", "layout"))
+        settings.ROOT_URLCONF = host_urlconf(
+            mount("first/", first), mount("second/", second)
+        )
+        client.force_login(regular_user)
+
+        assert for_path(client, "/layout/") is second
+
+    def test_async_view_behind_a_failing_check_is_refused(self):
+        app = throwaway_app(path("x/", async_ok_view, name="x"))
+        app.check = lambda request: False
+        match = resolve("/m/x/", urlconf=urlconf_of(mount("m/", app)))
+        request = AsyncRequestFactory().get("/m/x/")
+        request.user = AnonymousUser()
+
+        response = asyncio.run(match.func(request))
+
+        assert response.status_code == 302
+
+    def test_async_view_behind_a_passing_check_runs(self):
+        app = throwaway_app(path("x/", async_ok_view, name="x"))
+        app.check = lambda request: True
+        match = resolve("/m/x/", urlconf=urlconf_of(mount("m/", app)))
+        request = AsyncRequestFactory().get("/m/x/")
+        request.user = AnonymousUser()
+
+        response = asyncio.run(match.func(request))
+
+        assert response.content == b"ok"
