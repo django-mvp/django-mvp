@@ -76,8 +76,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the sidebar and in its own copy, and should drop its copy. See
   [Account Center](docs/account-center.md) and [Mounted apps](docs/mounted-apps.md).
 
+- **Include `mvp.urls` once.** It mounts the Account Center, and a second include mounts it twice,
+  which is refused at startup with `mvp.E001`.
+
 - **`<c-app.sidebar>`'s `menu` attribute defaults to empty instead of `"AppMenu"`.** An empty
-  `menu` still draws `AppMenu`, so a page that passes nothing renders as before. `mvp/base.html`
+  `menu` still draws `AppMenu`. A project that overrides the `app.sidebar` block must pass
+  `:menu="mounted.menu" :mounted-app="mounted.app"` for its mounted apps and the Account Center to
+  keep their menu, as the default block does. `mvp/base.html`
   now wraps the title filter in a `head.title` block, and `mvp/error_base.html` overrides that
   block instead of `title`. A project that overrides `mvp/error_base.html` and sets its own
   `title` block is unaffected.

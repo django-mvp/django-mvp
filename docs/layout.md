@@ -78,7 +78,10 @@ Per-page override:
 
 ```html
 {% block app.sidebar %}
-  <c-app.sidebar title="Acme Admin" />
+  <c-app.sidebar title="Acme Admin"
+                 :collapse="collapse"
+                 :menu="mounted.menu"
+                 :mounted-app="mounted.app" />
 {% endblock %}
 ```
 
@@ -151,7 +154,10 @@ Per-page override:
 
 ```html
 {% block app.sidebar %}
-  <c-app.sidebar boost />
+  <c-app.sidebar boost
+                 :collapse="collapse"
+                 :menu="mounted.menu"
+                 :mounted-app="mounted.app" />
 {% endblock %}
 ```
 
@@ -582,7 +588,7 @@ block in a container. It draws no navigation of its own; the sidebar carries the
 | `head`, `title`, `extra_js` | document head / scripts |
 | `announcement` | a banner slot outside the app shell (empty by default) |
 | `app` | the entire app shell |
-| `app.sidebar` | the sidebar (default: `<c-app.sidebar />`) |
+| `app.sidebar` | the sidebar (default: `<c-app.sidebar :collapse="collapse" :menu="mounted.menu" :mounted-app="mounted.app" />`; an override that leaves out `menu` and `mounted-app` draws `AppMenu` on every page, inside a [mounted app](mounted-apps.md) too) |
 | `app.header` | the header |
 | `app.header.widgets` | extra navbar-end content (hidden below the sidebar breakpoint, with the configured widgets) |
 | `app.header.tray` | a row below the navbar |

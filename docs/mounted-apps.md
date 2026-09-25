@@ -60,6 +60,7 @@ The app's menu is an ordinary menu, built the way [Navigation](navigation.md) de
 
 ```python
 # library/menus.py
+from django.utils.translation import gettext_lazy as _
 from flex_menu import Menu, MenuItem
 
 LibraryMenu = Menu(
@@ -68,12 +69,12 @@ LibraryMenu = Menu(
         MenuItem(
             name="library-catalogue",
             view_name="library:catalogue",
-            extra_context={"label": "Catalogue", "icon": "book"},
+            extra_context={"label": _("Catalogue"), "icon": "book"},
         ),
         MenuItem(
             name="library-reading-list",
             view_name="library:reading-list",
-            extra_context={"label": "Reading list", "icon": "list"},
+            extra_context={"label": _("Reading list"), "icon": "list"},
         ),
     ],
 )
@@ -135,7 +136,8 @@ including the main app's own pages. Those pages draw no back link, and the page 
 gain the app's name, because the app is the site. Other mounted apps, the Account Center among
 them, still swap the sidebar to their own menu under a back link.
 
-`AppMenu` is not drawn in a project with a main app, so the project adds its own entries to the
+`AppMenu` is not drawn in a project with a main app (unless the main app's own check refuses the
+request, when `AppMenu` is drawn instead), so the project adds its own entries to the
 main app's menu instead. A project has one main app: mounting two with `main=True` is refused
 when the project starts, with error `mvp.E001` naming both apps. `main` is an argument of
 `mount()` only, so an app the project has not mounted cannot be named main. The same app mounted
@@ -195,7 +197,10 @@ On a page served through the mount:
   no app in the title and no sidebar.
 
 A page that passes `menu=` to `<c-app.sidebar>` explicitly keeps that menu with no back link, even
-inside an app. Overriding the `app.sidebar` block this way is how a page opts out.
+inside an app. Overriding the `app.sidebar` block this way is how a page opts out. An override
+that should keep the swap passes the resolved values on, as the default block does:
+`<c-app.sidebar :menu="mounted.menu" :mounted-app="mounted.app" />`. An override that passes
+neither draws `AppMenu` everywhere.
 
 Pages outside every mounted app, and every project that mounts none, render as they always have.
 
@@ -210,7 +215,7 @@ library = MountedApp(
     icon="book",
     menu=LibraryMenu,
     urls="library.urls",
-    landing="library:index",
+    landing="library:catalogue",
     check=lambda request: request.user.is_staff,
 )
 ```
@@ -228,13 +233,16 @@ A refused request shows no app anywhere. The 403 page's title carries no app nam
 app with no `check` is open to everyone, as before.
 
 The check runs before the view, for a synchronous or an asynchronous one. It is called on the
-event loop for an asynchronous view, so it must not query the database there. A page an app's
-menu claims (see above) is claimed only for people the check admits. The Account Center has no
-check.
+event loop for an asynchronous view, so there it must not query the database, and the user it
+reads must already be loaded. Deciding between the sign-in redirect and the 403 reads
+`request.user` the same way. A page an app's
+menu claims (see above) is claimed only for people the check admits, and the check does not
+guard it: only pages served through the mount are refused, so a page the app's menu claims from
+other URLs must protect itself. The Account Center has no check.
 
 ## What is refused
 
-Three shapes are turned away when the project starts, because either would make the choice of
+Three shapes are turned away when the project starts, because each would make the choice of
 sidebar depend on the order of URL patterns:
 
 - **The same app mounted twice.**

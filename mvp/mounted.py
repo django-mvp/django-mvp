@@ -379,5 +379,14 @@ def check_mounted_apps(app_configs: Any, **kwargs: Any) -> list[CheckMessage]:
     try:
         MountedApp.mounts()
     except ImproperlyConfigured as error:
-        return [Error(str(error), id="mvp.E001")]
+        return [
+            Error(
+                str(error),
+                hint=(
+                    "Mount each app once. Including mvp.urls mounts the Account "
+                    "Center, so include it only once."
+                ),
+                id="mvp.E001",
+            )
+        ]
     return []
