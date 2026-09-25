@@ -1,5 +1,7 @@
 """The mounted fixture app's two pages."""
 
+from django.http import Http404
+
 from mvp.views.extra import MVPTemplateView
 
 
@@ -13,3 +15,8 @@ class DetailView(MVPTemplateView):
     """A second page, titled ``Detail``."""
 
     template_name = "testapp_mounted/detail.html"
+
+
+def missing(request):
+    """A page that is not there, raised from inside the mounted app."""
+    raise Http404("nothing here")

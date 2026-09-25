@@ -26,3 +26,9 @@
 - Verified: `uv run pytest tests/test_mounted.py -q` → 40 passed; removing the `ready()` registration turned the registration test red; `uv run python manage.py check` clean.
 - Next: T005.
 - Watch: `bind()` is inlined rather than split into a leading-underscore helper, per the naming rule.
+
+## 2026-09-25T17:50Z · Implementer US1 · T005
+- Did: `{% mounted_app as shell %}` returns `.app` and `.menu` (both empty with no request); `mounted_title` filter escapes the app name; `mvp/base.html` resolves once and wraps the title in `head.title`; `mvp/error_base.html` overrides that block so error pages name no app. Fixture app gained a `missing/` page for the 404 case.
+- Verified: `uv run pytest tests/test_templatetags.py tests/test_mounted.py -q` → 100 passed. A host page's `<title>` markup is unchanged byte for byte (read the raw `<title>` and compared it with what the old template produces).
+- Next: T006.
+- Watch: `title` is now nested inside `head.title`; error_base's default `Error` title moved into its `head.title` override, since a block name can appear once per template.

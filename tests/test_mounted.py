@@ -415,3 +415,31 @@ class TestMountedRegistry:
     def test_check_is_registered_for_the_urls_tag(self):
         assert check_mounted_apps in registry.registered_checks
         assert Tags.urls in check_mounted_apps.tags
+
+
+@pytest.mark.django_db
+@pytest.mark.urls("tests.urls_mounted")
+class TestMountedPageTitle:
+    """A page in a mounted app names the app in its title (FR-008)."""
+
+    def test_titled_page_reads_page_then_app_then_site(self, client):
+        response = client.get("/mounted/detail/")
+
+        assert normalised_title(response) == "Detail | Mounted Fixture | example.com"
+
+    def test_untitled_page_reads_app_then_site(self, client):
+        response = client.get("/mounted/")
+
+        assert normalised_title(response) == "Mounted Fixture | example.com"
+
+    def test_host_page_title_is_unchanged(self, client):
+        response = client.get("/layout/")
+
+        assert normalised_title(response) == "Layout Demo | example.com"
+
+    def test_404_raised_inside_a_mounted_view_names_no_app(self, client):
+        response = client.get("/mounted/missing/")
+
+        assert response.status_code == 404
+        assert "Mounted Fixture" not in normalised_title(response)
+        assert normalised_title(response) == "404 — Page Not Found | example.com"
