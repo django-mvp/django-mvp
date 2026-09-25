@@ -2,7 +2,7 @@
   "feature": "032-mounted-apps",
   "branch": "032-mounted-apps",
   "repo": "django-mvp/django-mvp",
-  "state": "PLAN",
+  "state": "DESIGN_REVIEW",
   "state_history": [
     {
       "state": "QUEUED",
@@ -13,6 +13,11 @@
       "state": "PLAN",
       "at": "2026-09-25T14:04:05Z",
       "note": "plan.md, research.md, tasks.md"
+    },
+    {
+      "state": "DESIGN_REVIEW",
+      "at": "2026-09-25T14:05:02Z",
+      "note": "design reviewer dispatched, three lenses, one round"
     }
   ],
   "gates": {
@@ -22,14 +27,29 @@
       "self_resolved": []
     },
     "plan": {
-      "approved_by": null,
-      "at": null,
+      "approved_by": "notified",
+      "at": "2026-09-25T14:13:42Z",
       "self_resolved": []
     },
     "merge": {
       "approved_by": null,
       "at": null,
       "self_resolved": []
+    },
+    "design_review": {
+      "approved_by": "design-panel",
+      "at": "2026-09-25T14:13:42Z",
+      "self_resolved": [
+        "SPEC-001 medium: landing title \u2014 overview.html drops its title override; T010 pins exact text",
+        "SPEC-002 medium: dac's own panel doubles the menu \u2014 D12, changelog, merge-gate flag",
+        "SEC-001 medium: refused request resolves to no app anywhere \u2014 D15, T015",
+        "ARCH-001 medium: flex_menu request copy loses subclass state \u2014 T007 names where the app lives",
+        "ARCH-002 medium: for_request re-entrancy \u2014 request cache seeded with None, T009 test",
+        "ARCH-003 medium: cotton context isolation \u2014 base.html passes values as attributes, T006",
+        "ARCH-004 low: tag returns app-to-name and menu-to-draw from T005",
+        "SEC-002 low: filter output not autoescaped \u2014 conditional_escape, plan row V",
+        "SPEC-003 low / ARCH-005 low: docs items folded into T008/T014"
+      ]
     }
   },
   "stories": [
@@ -164,12 +184,16 @@
       "max": 1
     },
     "design_review_cycles": {
-      "used": 0,
+      "used": 1,
       "max": 1
     },
     "tokens": {
       "used": 0,
       "max": 120
     }
+  },
+  "pr": {
+    "number": 408,
+    "draft": true
   }
 }

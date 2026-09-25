@@ -48,7 +48,7 @@ Center. One docs page, glossary entries, a skill routing row, a changelog entry,
 | II — Simplicity | One class, one function, one tag. The registry is derived from the URL tree rather than maintained. |
 | III — Anti-Abstraction | `MountedAppResolver` exists because Django's `path()` cannot mark a match (R3). No base class for apps, no registry object. |
 | IV — Integration-First | Tests mount a real test app through a test URLconf and request its pages through the client. |
-| V — Security | The check refuses before the view runs, as Django's access mixins do (R6). The app name reaches HTML through autoescape. Error pages carry no app name, so a refused person does not learn it from the title. |
+| V — Security | The check refuses before the view runs, as Django's access mixins do (R6). The title filter `conditional_escape()`s the app name, because `{% filter %}` output is not autoescaped (SEC-002). Error pages carry no app name, so a refused person does not learn it from the title. |
 | VI — Documentation | `docs/mounted-apps.md` lands with US-1 and each later story adds its section. Docstrings on every public name. |
 | VIII — i18n | "Back to %(site_name)s" is translatable. The app's name is the package's own lazy string. |
 | XI — Components are public API | `<c-app.sidebar>` keeps every attribute. `menu` loses its literal default, and an explicit value still wins (R5). |

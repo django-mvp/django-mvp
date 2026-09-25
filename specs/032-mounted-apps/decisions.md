@@ -78,3 +78,86 @@ FS-028 decided that the Account Center gates its own landing page and nothing el
 another app contributes answers access for itself. A check on the whole app would gate those pages
 too, which would change behaviour an app has already been written against. The landing page keeps
 its own requirement for a signed-in person (FR-022).
+
+## D9. A mounted app is marked on the matched view, not found by namespace or route
+
+**Chosen:** `mount()` returns a URL resolver that wraps the view it resolves. The wrapper
+carries the app and runs the app's check (research R3, R6). The same mechanism answers "which
+app is this page in" and "may this person see it".
+
+**Rejected:** namespaces, because the Account Center's landing page is deliberately
+un-namespaced. Route strings, because they are prefix comparisons under another name. A
+middleware, because it would be a second edit for the host.
+
+**ADR:** to graduate at S5 if it survives implementation unchanged. It is durable, it
+constrains every future mounted app, and it isn't obvious from the code alone.
+
+## D10. The set of mounted apps is read from the URL tree
+
+`mount()` writes nothing global. The registry is found by walking the resolved URLconf and is
+cached on its resolver, so it follows `ROOT_URLCONF` changes and per-request URLconfs (research
+R4).
+
+**ADR:** none. It follows from D1 and D9 and is local to `mvp/mounted.py`.
+
+## D11. The main app is a flag on its mount line
+
+`mount("", app, main=True)` (research R8). The design review agreed it is the simplest shape the
+spec allows. FR-016 and FR-018 require the main app to be mounted, and overriding the sidebar
+block would break US-3 scenario 3.
+
+FR-018's second refusal, naming an app the project has not mounted, has nothing to refuse under
+this design: the flag exists only on a mount. Its test proves `main` is a `mount()` argument and
+nothing else. **Flag for the merge gate:** half of FR-018 holds by construction rather than by a
+check.
+
+In a project with a main app, `AppMenu` is not drawn. The project adds its own entries to the
+main app's menu.
+
+**ADR:** none. It is recorded in `docs/mounted-apps.md`, and D1 already carries the reasoning
+for putting it in `urls.py`.
+
+## D12. A page that draws its own Account Center panel now shows the menu twice
+
+`django-accounts-center` extends `mvp/base.html` directly and draws `AccountCenterMenu` beside
+its content, as a workaround for #358. Once the sidebar carries that menu, its pages show it
+twice until it drops its panel. The pages still work (FR-021). The changelog says so, and a
+follow-up is due in `django-accounts-center`. Without the panel, the Account Center layout no
+longer needs `{% block content %}` for itself, which clears the cause of #358. #358 stays
+separate work.
+
+**Flag for the merge gate:** the FR-020 and FR-021 interaction with django-accounts-center.
+
+**ADR:** none. It is a consequence of D7.
+
+## D13. Two apps whose menus both link one page: the first mount wins
+
+Research R7's menu rule can find two apps for one page only when two apps' menus link the same
+host page. The first mount in URL order wins. Accepted rather than refused: it cannot be
+detected at startup, and no current app does it. Refusing it at request time would turn a
+navigation choice into an error page.
+
+**ADR:** none. It is an edge of R7, documented on the page.
+
+## D14. A main app whose check refuses the request is not drawn
+
+The spec doesn't cover it. Drawing a menu whose every link answers 403 is worse than drawing the
+host's own `AppMenu`, so those pages fall back to `AppMenu`.
+
+**ADR:** none. Local to this feature.
+
+## D15. A refused request resolves to no app anywhere
+
+`for_request()` returns no app for a request the app's check refuses, whether a mount or a menu
+claimed the page. A project's own `403.html` then cannot name the app or draw its menu to a
+person it has just refused (design review SEC-001).
+
+**ADR:** none. It is part of D9's contract and documented with it.
+
+## D16. The demo mounts a small app
+
+`demo/library/` has no requirement of its own behind it. It exists because the Account Center
+cannot show the host's menu entry or the dock entry being current (US-1 scenarios 5 and 6), and
+the walkthrough needs a running page for both.
+
+**ADR:** none. Demo only.
