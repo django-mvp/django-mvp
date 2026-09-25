@@ -184,3 +184,45 @@ An existing browser test pins the demo dock to one link. The dock entry being cu
 app's pages is proved by `tests/test_mounted.py`, so the demo keeps its sidebar entry only.
 
 **ADR:** none. Demo only.
+
+## D20. Pre-existing tests removed or changed because the panel is gone (FR-020)
+
+**Decision:** the tests whose subject was the Account Center's second navigation panel are removed, and the assertions about that panel inside shared browser tests are dropped. Nothing else about those tests changed.
+
+Removed from `tests/test_views/test_account.py`:
+- `TestAccountCenterView::test_signed_in_request_shows_the_navigation_panel`
+- `TestAccountLayout::test_page_content_renders_beside_the_navigation_panel`
+- `TestAccountLayout::test_the_navigation_is_a_landmark_with_an_accessible_name`
+- `TestAccountLayout::test_it_draws_the_entry_for_the_landing_page`
+- `TestAccountLayout::test_a_persistent_card_renders_at_the_configured_breakpoint`
+- `TestAccountLayout::test_a_collapsed_control_renders_below_the_breakpoint`
+- `TestAccountLayout::test_the_collapsed_control_is_the_packaged_dropdown`
+- `TestAccountLayout::test_the_menu_is_processed_once_for_both_sites`
+- `TestAccountLayout::test_the_wide_panel_follows_the_content_and_the_collapsed_one_precedes_it`
+
+Assertions on the panel's two regions dropped from `tests/test_components/test_responsive_visibility.py`, with the helpers that located them and the docstrings that counted four regions instead of three:
+- `TestNarrowOnlyRegions::test_shown_below_hidden_at_or_above` (parametrised)
+- `TestNarrowOnlyRegions::test_hidden_at_every_width_when_never`
+- `TestWideOnlyRegions::test_hidden_below_shown_at_or_above` (parametrised)
+- `TestWideOnlyRegions::test_shown_at_every_width_when_never`
+- `TestVisibilityWithoutJavaScript::test_visibility_is_identical_with_javascript_disabled`
+
+**Why:** the spec removes the panel (FR-020), so a test that asserts the panel is present asserts removed behaviour. The navbar regions those browser tests also cover keep every assertion.
+
+**Revisit if:** the panel returns in any form.
+
+## D21. Two test URLconf helpers stop including `mvp.urls` a second time
+
+**Decision:** in `tests/test_views/test_account.py`, `_urlconf()` and `_fixture_urlconf()` drop their own `path("", include("mvp.urls"))`. Each already includes `demo.urls`, which includes `mvp.urls`. No test body or assertion changed.
+
+**Why:** the Account Center is now a mounted app, and a project that mounts one app twice fails the startup check and any request that reads the mounts. Nine tests in that file were red only because their helper mounted it twice.
+
+**Revisit if:** a helper needs `mvp.urls` ahead of `demo.urls`. `_urlconf_with_allauth()` in the same file still includes it twice, ahead of allauth by design; the tests using it do not read the mounts, so it stays green, and it is flagged in the report.
+
+## D22. The landing's title override goes in the mount commit
+
+**Decision:** `overview.html` loses its `{% block title %}` override in T010, not T011.
+
+**Why:** T010's title test (`Account Center | <site name>` exactly) cannot pass while the override is there, and each commit has to leave the tree green.
+
+**Revisit if:** never; the change is the one T011 asks for, made one commit earlier.

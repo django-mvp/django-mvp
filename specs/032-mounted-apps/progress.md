@@ -54,3 +54,21 @@
 ## 2026-09-25T19:35Z · Implementer US1 · T008 (verify result)
 - Verified: `uv run pytest -n auto --dist loadscope -q` → 2367 passed, 1 skipped, 1 failed. The failure is `tests/test_renderers.py::TestMobileDockSidebarToggle::test_dock_has_a_toggle_and_a_home_link[chromium]`, a test not written in this story. It expects exactly one link in the demo's dock, and the demo's dock now has two: Home and the library entry the story asks for.
 - Left alone: changing that test is outside this story's rights. It needs a decision on whether the test selects the Home link by address or the dock entry goes.
+
+## 2026-09-25T15:10Z · Implementer US2 · T009
+- Did: `MountedApp.for_request()` now falls back, for a request no mount served, to `claiming_menu()`: the first mount in URL order whose processed menu is `selected`. The request cache holds `None` before the menus are walked, so a `menu_item()` entry in a mounted app's menu gets `None` back instead of recursing. A comment marks where US-3 skips the main app.
+- Verified: `uv run pytest tests/test_mounted.py -q` → 67 passed. Removing the `None` seed turned the recursion test and its sibling red.
+- Next: T010.
+- Watch: D13, first mount wins.
+
+## 2026-09-25T15:30Z · Implementer US2 · T010
+- Did: `account_center = MountedApp(...)` beside `AccountCenterView`; `mvp/urls.py` mounts it at `account/`, sign-in and sign-out stay outside. `overview.html` loses its title override (D22). `urlpatterns` is annotated because `mount()` returns a resolver. Nine tests went red because two test URLconf helpers mounted `mvp.urls` twice (D21).
+- Verified: `uv run pytest tests/test_urls.py tests/test_views/test_account.py tests/test_mounted.py tests/test_pwa tests/test_menus.py -q` → 173 passed.
+- Next: T011.
+- Watch: `_urlconf_with_allauth()` in test_account.py still includes `mvp.urls` twice.
+
+## 2026-09-25T16:00Z · Implementer US2 · T011
+- Did: `mvp/account/base.html` is now a container around `account.content`, with no menu processing, dropdown, card or breakpoint plumbing. Replaced the panel tests with `TestAccountLayout` (sidebar swap, no second navigation at four breakpoints, the fixture `plain` page current in the sidebar, container, no menu in the template, extends `base.html`). `AccountCenterMenu`'s docstring and comment describe the sidebar. Removed tests are listed in D20.
+- Verified: `uv run pytest tests/test_views/test_account.py tests/test_components/test_responsive_visibility.py -q` green; `uv run invoke build-stylesheet` changed nothing committed.
+- Next: T012.
+- Watch: the four breakpoint cases assert against the merged `MVP_CONFIG` through `monkeypatch.setitem`.
