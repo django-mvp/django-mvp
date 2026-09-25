@@ -159,23 +159,43 @@
       "tasks": [
         {
           "id": "T009",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "uv run pytest tests/test_mounted.py -q: 67 passed; removing the None seed turned 2 tests red"
+            ]
+          }
         },
         {
           "id": "T010",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "uv run pytest tests/test_urls.py tests/test_views/test_account.py tests/test_mounted.py tests/test_pwa tests/test_menus.py -q: 173 passed"
+            ]
+          }
         },
         {
           "id": "T011",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "uv run pytest tests/test_views/test_account.py tests/test_menus.py tests/test_components/test_responsive_visibility.py -q: 99 passed"
+            ]
+          }
         },
         {
           "id": "T012",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "uv run pre-commit run --all-files: passed; uv run invoke build-stylesheet: no change to committed CSS"
+            ]
+          }
         }
       ]
     },
