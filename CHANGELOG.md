@@ -20,6 +20,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   sidebar, the back link and the host's entry in its sidebar. See
   [Mounted apps](docs/mounted-apps.md).
 
+- **A mounted app can be the site.** `mount("", literature, main=True)` makes the app's menu the
+  sidebar on every page that belongs to no other mounted app, with no back link and no app name
+  in the title. The Account Center and other mounted apps still swap to their own menu. `AppMenu`
+  is not drawn in a project with a main app. Two apps mounted with `main=True` are refused when
+  the project starts. See [Mounted apps](docs/mounted-apps.md).
+
 - **`{% mounted_app as shell %}`**, a template tag that gives `shell.app` and `shell.menu` for
   the current page.
 

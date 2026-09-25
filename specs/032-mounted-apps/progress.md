@@ -84,3 +84,9 @@
 - Verified: `uv run pytest tests/test_mounted.py -q` → 84 passed; `uv run pre-commit run --all-files` passed; `uv run mypy mvp` clean. Making `claiming_menu()` stop skipping the main app turned four new tests red.
 - Next: T014.
 - Watch: the refused-request test sets `testapp_mounted.check` with `monkeypatch`.
+
+## 2026-09-25T17:25Z · Implementer US3 · T014
+- Did: `docs/mounted-apps.md` gains "Running an app as a site of its own" with the one-line example, the sentence that `AppMenu` is not drawn with a main app, the two-main-apps refusal and its message; the tag paragraph notes `shell.app` is `None` for the main app. `CHANGELOG.md` Unreleased Added entry for `main=True`.
+- Verified: `uv run pre-commit run --all-files` passes. The docs have no test of their own.
+- Next: full verify, then the report.
+- Watch: none.

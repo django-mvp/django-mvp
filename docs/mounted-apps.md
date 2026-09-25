@@ -118,6 +118,29 @@ confuse them.
 
 A host page that no mounted app's menu links to belongs to no app.
 
+## Running an app as a site of its own
+
+A package can also be the whole site. The project mounts it at the root with `main=True`:
+
+```python
+# host project's urls.py
+urlpatterns = [
+    path("", include("mvp.urls")),
+    mount("", library, main=True),
+]
+```
+
+The main app's menu is then the sidebar on every page that belongs to no other mounted app,
+including the main app's own pages. Those pages draw no back link, and the page title does not
+gain the app's name, because the app is the site. Other mounted apps, the Account Center among
+them, still swap the sidebar to their own menu under a back link.
+
+`AppMenu` is not drawn in a project with a main app, so the project adds its own entries to the
+main app's menu instead. A project has one main app: mounting two with `main=True` is refused
+when the project starts, with error `mvp.E001` naming both apps. `main` is an argument of
+`mount()` only, so an app the project has not mounted cannot be named main. The same app mounted
+without `main=True`, in another project, behaves as described above.
+
 ## The Account Center is a mounted app
 
 django-mvp's own [Account Center](account-center.md) is the package's example of a mounted app.
@@ -178,11 +201,12 @@ Pages outside every mounted app, and every project that mounts none, render as t
 
 ## What is refused
 
-Two shapes are turned away when the project starts, because either would make the choice of
+Three shapes are turned away when the project starts, because either would make the choice of
 sidebar depend on the order of URL patterns:
 
 - **The same app mounted twice.**
 - **An app mounted inside another mounted app's URLs.**
+- **Two apps mounted with `main=True`.**
 
 ```python
 urlpatterns = [
@@ -204,13 +228,19 @@ A nested mount names both apps:
 The app "Reading room" is mounted inside the app "Library". A mounted app cannot contain another one.
 ```
 
+Two main apps name both:
+
+```text
+The apps "Library" and "Reading room" are both mounted with main=True. A project has one main app.
+```
+
 A server started with checks turned off raises `ImproperlyConfigured` with the same message the
 first time it needs to know which apps are mounted.
 
 ## Reading the current app in a template
 
 `{% mounted_app as shell %}` resolves the current page's app once. `shell.app` is the app to
-name (`None` outside an app), and `shell.menu` is the menu to draw. The shell itself uses it in
+name (`None` outside an app, and for the main app), and `shell.menu` is the menu to draw. The shell itself uses it in
 `mvp/base.html`, and a project's own base template can do the same:
 
 ```html
