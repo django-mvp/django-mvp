@@ -38,13 +38,18 @@ import inspect
 from collections.abc import Callable
 from typing import Any
 
+from django.core.checks import CheckMessage, Error
+from django.core.exceptions import ImproperlyConfigured
 from django.http import HttpRequest
-from django.urls import include
+from django.urls import get_resolver, include
 from django.urls.resolvers import ResolverMatch, RoutePattern, URLResolver
 from flex_menu import Menu
 
 #: Attribute a bound view carries to say which app it was served for.
 VIEW_ATTRIBUTE = "mounted_app"
+
+#: Attribute on a root URL resolver holding the mounts found beneath it.
+REGISTRY_ATTRIBUTE = "mounted_apps"
 
 
 class MountedApp:
@@ -105,27 +110,25 @@ class MountedApp:
         (``view_class``, ``csrf_exempt``, ``__name__``), stays a coroutine
         function when the view is one, and is made once per view.
         """
-        bound = self._bound_views.get(view)
-        if bound is None:
-            bound = self._bound_views[view] = self._wrap(view)
-        return bound
+        cached = self._bound_views.get(view)
+        if cached is not None:
+            return cached
 
-    def _wrap(self, view: Callable[..., Any]) -> Callable[..., Any]:
-        wrapper: Callable[..., Any]
         if inspect.iscoroutinefunction(view):
 
             @functools.wraps(view)
-            async def wrapper(request, *args, **kwargs):
+            async def bound(request, *args, **kwargs):
                 return await view(request, *args, **kwargs)
 
         else:
 
             @functools.wraps(view)
-            def wrapper(request, *args, **kwargs):
+            def bound(request, *args, **kwargs):
                 return view(request, *args, **kwargs)
 
-        setattr(wrapper, VIEW_ATTRIBUTE, self)
-        return wrapper
+        setattr(bound, VIEW_ATTRIBUTE, self)
+        self._bound_views[view] = bound
+        return bound
 
     @classmethod
     def for_request(cls, request: HttpRequest) -> MountedApp | None:
@@ -143,6 +146,59 @@ class MountedApp:
         app = getattr(getattr(match, "func", None), VIEW_ATTRIBUTE, None)
         request._mounted_app = app  # type: ignore[attr-defined]
         return app  # type: ignore[no-any-return]
+
+    @classmethod
+    def mounts(cls, request: HttpRequest | None = None) -> list[MountedAppResolver]:
+        """Return every mount in the URLconf ``request`` is served from.
+
+        Nothing is recorded when :func:`mount` runs. The mounts are found by
+        walking the resolved URLconf and kept on its root resolver, so a
+        changed ``ROOT_URLCONF`` or a per-request ``urlconf`` gets its own
+        answer with nothing to reset.
+
+        Raises:
+            ImproperlyConfigured: The same app is mounted twice, or one is
+                mounted inside another.
+        """
+        root = get_resolver(getattr(request, "urlconf", None))
+        found: list[MountedAppResolver] | None = getattr(root, REGISTRY_ATTRIBUTE, None)
+        if found is None:
+            found = cls.scan(root)
+            setattr(root, REGISTRY_ATTRIBUTE, found)
+        return list(found)
+
+    @classmethod
+    def scan(
+        cls,
+        resolver: URLResolver,
+        inside: MountedApp | None = None,
+        found: list[MountedAppResolver] | None = None,
+    ) -> list[MountedAppResolver]:
+        """Walk ``resolver``'s patterns for mounts, refusing the two bad shapes.
+
+        ``inside`` is the app whose patterns are being walked, and ``found``
+        the mounts met so far. Callers leave both out.
+        """
+        found = [] if found is None else found
+        for pattern in resolver.url_patterns:
+            if not isinstance(pattern, URLResolver):
+                continue
+            if not isinstance(pattern, MountedAppResolver):
+                cls.scan(pattern, inside, found)
+                continue
+            if inside is not None:
+                raise ImproperlyConfigured(
+                    f'The app "{pattern.app.name}" is mounted inside the app '
+                    f'"{inside.name}". A mounted app cannot contain another one.'
+                )
+            if any(mount.app is pattern.app for mount in found):
+                raise ImproperlyConfigured(
+                    f'The app "{pattern.app.name}" is mounted more than once. '
+                    "Mount each app in one place."
+                )
+            found.append(pattern)
+            cls.scan(pattern, pattern.app, found)
+        return found
 
 
 class MountedAppResolver(URLResolver):
@@ -191,3 +247,12 @@ def mount(route: str, app: MountedApp, main: bool = False) -> MountedAppResolver
         app=app,
         main=main,
     )
+
+
+def check_mounted_apps(app_configs: Any, **kwargs: Any) -> list[CheckMessage]:
+    """System check: refuse a bad set of mounts when the project starts."""
+    try:
+        MountedApp.mounts()
+    except ImproperlyConfigured as error:
+        return [Error(str(error), id="mvp.E001")]
+    return []

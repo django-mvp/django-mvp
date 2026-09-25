@@ -20,3 +20,9 @@
 - Verified: `uv run pytest tests/test_mounted.py -q` → 30 passed. Mutation probe: replacing the `match.func` rebind with `pass` turned 4 tests red; restored, 30 passed.
 - Next: T004.
 - Watch: wrappers are cached per app in `MountedApp._bound_views`, keyed by the view, which makes the cache key `(app, view)`.
+
+## 2026-09-25T17:25Z · Implementer US1 · T004
+- Did: `MountedApp.mounts()` walks the resolved URLconf, caches on the root resolver, refuses a duplicate mount and a nested mount with `ImproperlyConfigured`; `check_mounted_apps` reports it as `mvp.E001` under the `urls` tag, registered from `MvpConfig.ready()`.
+- Verified: `uv run pytest tests/test_mounted.py -q` → 40 passed; removing the `ready()` registration turned the registration test red; `uv run python manage.py check` clean.
+- Next: T005.
+- Watch: `bind()` is inlined rather than split into a leading-underscore helper, per the naming rule.

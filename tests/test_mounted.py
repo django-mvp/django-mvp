@@ -8,12 +8,16 @@ import inspect
 import pytest
 from bs4 import BeautifulSoup
 from django.contrib.auth.models import AnonymousUser
+from django.core.checks import Error, Tags
+from django.core.checks.registry import registry
+from django.core.exceptions import ImproperlyConfigured
 from django.http import HttpResponse
+from django.test import override_settings
 from django.urls import Resolver404, path, resolve, reverse
 from django.views.decorators.csrf import csrf_exempt
 
 from mvp.menus import AppMenu
-from mvp.mounted import MountedApp, mount
+from mvp.mounted import MountedApp, check_mounted_apps, mount
 from tests.testapp_mounted.menus import TestappMountedMenu
 from tests.testapp_mounted.mounted import testapp_mounted
 from tests.testapp_mounted.views import IndexView
@@ -305,3 +309,109 @@ class TestHostMenusUntouched:
 
         assert "testapp_mounted_index" not in names
         assert "testapp_mounted_detail" not in names
+
+
+def named_app(name, *patterns):
+    """A mounted app called ``name`` serving ``patterns``."""
+    return MountedApp(
+        name=name,
+        icon="box",
+        menu=TestappMountedMenu,
+        urls=list(patterns) or [path("", ok_view, name="index")],
+        landing="index",
+    )
+
+
+class TestMountedRegistry:
+    """The mounted apps are read back from the URL tree, and bad trees refused."""
+
+    def test_clean_urlconf_lists_its_mounts_in_order(self):
+        one, two = named_app("One"), named_app("Two")
+        urlconf = urlconf_of(mount("one/", one), mount("two/", two))
+
+        with override_settings(ROOT_URLCONF=urlconf):
+            mounts = MountedApp.mounts()
+
+        assert [resolver.app for resolver in mounts] == [one, two]
+
+    def test_clean_urlconf_passes_the_check(self):
+        urlconf = urlconf_of(mount("one/", named_app("One")))
+
+        with override_settings(ROOT_URLCONF=urlconf):
+            assert check_mounted_apps(None) == []
+
+    def test_urlconf_with_no_mounts_passes_the_check(self):
+        with override_settings(ROOT_URLCONF=urlconf_of(path("", ok_view))):
+            assert check_mounted_apps(None) == []
+            assert MountedApp.mounts() == []
+
+    def test_same_app_mounted_twice_is_one_error_naming_it(self):
+        app = named_app("Twice")
+        urlconf = urlconf_of(mount("a/", app), mount("b/", app))
+
+        with override_settings(ROOT_URLCONF=urlconf):
+            errors = check_mounted_apps(None)
+
+        assert len(errors) == 1
+        assert isinstance(errors[0], Error)
+        assert "Twice" in errors[0].msg
+        assert "more than once" in errors[0].msg
+
+    def test_app_mounted_inside_another_is_one_error_naming_both(self):
+        inner = named_app("Inner")
+        outer = named_app("Outer", mount("inner/", inner))
+        urlconf = urlconf_of(mount("outer/", outer))
+
+        with override_settings(ROOT_URLCONF=urlconf):
+            errors = check_mounted_apps(None)
+
+        assert len(errors) == 1
+        assert "Inner" in errors[0].msg
+        assert "Outer" in errors[0].msg
+        assert "inside" in errors[0].msg
+
+    def test_server_started_without_checks_raises_the_same_message(self):
+        app = named_app("Twice")
+        urlconf = urlconf_of(mount("a/", app), mount("b/", app))
+
+        with override_settings(ROOT_URLCONF=urlconf):
+            message = check_mounted_apps(None)[0].msg
+            with pytest.raises(ImproperlyConfigured) as raised:
+                MountedApp.mounts()
+
+        assert str(raised.value) == message
+
+    def test_overriding_root_urlconf_switches_the_registry(self):
+        one, two = named_app("One"), named_app("Two")
+
+        with override_settings(ROOT_URLCONF=urlconf_of(mount("one/", one))):
+            first = [resolver.app for resolver in MountedApp.mounts()]
+        with override_settings(ROOT_URLCONF=urlconf_of(mount("two/", two))):
+            second = [resolver.app for resolver in MountedApp.mounts()]
+
+        assert first == [one]
+        assert second == [two]
+
+    def test_a_bad_urlconf_leaves_no_stale_error_behind(self):
+        app = named_app("Twice")
+        bad = urlconf_of(mount("a/", app), mount("b/", app))
+        good = urlconf_of(mount("a/", app))
+
+        with override_settings(ROOT_URLCONF=bad):
+            assert len(check_mounted_apps(None)) == 1
+        with override_settings(ROOT_URLCONF=good):
+            assert check_mounted_apps(None) == []
+
+    def test_a_per_request_urlconf_gets_its_own_mounts(self, rf):
+        one, two = named_app("One"), named_app("Two")
+        request = rf.get("/")
+        request.urlconf = urlconf_of(mount("two/", two))
+
+        with override_settings(ROOT_URLCONF=urlconf_of(mount("one/", one))):
+            mounts = MountedApp.mounts(request)
+
+        assert [resolver.app for resolver in mounts] == [two]
+
+    def test_check_is_registered_for_the_urls_tag(self):
+        assert check_mounted_apps in registry.registered_checks
+        assert Tags.urls in check_mounted_apps.tags
