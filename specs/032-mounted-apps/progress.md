@@ -14,3 +14,9 @@
 - Verified: `uv run pytest tests/test_mounted.py -q` → 8 passed.
 - Next: T003.
 - Watch: the sidebar pin compares against `AppMenu` rather than a literal list, so the demo entry T008 adds does not break it.
+
+## 2026-09-25T17:05Z · Implementer US1 · T003
+- Did: `mvp/mounted.py` with `MountedApp`, `MountedAppResolver` and `mount()`; the fixture app's `mounted.py`; three test URLconfs (plain prefix, another prefix, site root).
+- Verified: `uv run pytest tests/test_mounted.py -q` → 30 passed. Mutation probe: replacing the `match.func` rebind with `pass` turned 4 tests red; restored, 30 passed.
+- Next: T004.
+- Watch: wrappers are cached per app in `MountedApp._bound_views`, keyed by the view, which makes the cache key `(app, view)`.
