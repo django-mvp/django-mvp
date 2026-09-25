@@ -161,3 +161,19 @@ cannot show the host's menu entry or the dock entry being current (US-1 scenario
 the walkthrough needs a running page for both.
 
 **ADR:** none. Demo only.
+
+## D17. With no site name the back link reads "Back"
+
+**Decision:** the back link is labelled "Back to <site name>", and "Back" when neither `MVP_CONFIG["site_name"]` nor the current site has a name.
+
+**Why:** the title puts the site name last and reads as an empty segment when there is none, so it has no text to fall back to. "Back to" with nothing after it points nowhere, and "Back" is the honest remainder. Both strings are translatable.
+
+**Revisit if:** a project with no site name wants a different label. Overriding `cotton/app/sidebar/back.html` is the route today.
+
+## D18. The back link is a menu row in a plain list
+
+**Decision:** `cotton/app/sidebar/back.html` renders one `<c-menu.item>` inside a bare `<ul class="menu">`.
+
+**Why:** the row lines up with the entries under it and takes the icon rail's behaviour for free (centred icon, tooltip). The label span is hidden in the rail, so the label is also set as the link's `aria-label`. `<c-menu>` is not used because it adds `role="navigation"`, and the sidebar is tested to carry one navigation landmark.
+
+**Revisit if:** a design pass wants the back link to look unlike a menu row.

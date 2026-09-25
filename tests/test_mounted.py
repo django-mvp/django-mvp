@@ -443,3 +443,65 @@ class TestMountedPageTitle:
         assert response.status_code == 404
         assert "Mounted Fixture" not in normalised_title(response)
         assert normalised_title(response) == "404 — Page Not Found | example.com"
+
+
+def menu_labels(response):
+    """The brand link, then every link in a sidebar menu, by text."""
+    soup = BeautifulSoup(response.content, "html.parser")
+    links = soup.select("aside.mvp-sidebar a.mvp-sidebar-brand, aside.mvp-sidebar ul a")
+    return [a.get_text(" ", strip=True) for a in links]
+
+
+def dock_links(response):
+    """Every ``(text, href)`` in the mobile dock."""
+    soup = BeautifulSoup(response.content, "html.parser")
+    return [
+        (a.get_text(" ", strip=True), a["href"]) for a in soup.select(".dock a[href]")
+    ]
+
+
+@pytest.mark.django_db
+@pytest.mark.urls("tests.urls_mounted")
+class TestMountedPageSidebar:
+    """The sidebar swaps to the app's menu under a back link (FR-005, FR-007)."""
+
+    def test_app_page_draws_the_app_menu_and_none_of_the_host_menu(self, client):
+        labels = menu_labels(client.get("/mounted/"))
+
+        assert labels[2:] == ["Mounted Index", "Mounted Detail"]
+        assert "Home" not in labels
+        assert "Layout" not in labels
+
+    def test_every_page_of_the_app_draws_the_app_menu(self, client):
+        labels = menu_labels(client.get("/mounted/detail/"))
+
+        assert labels[2:] == ["Mounted Index", "Mounted Detail"]
+
+    def test_back_link_reads_back_to_the_site_name_and_goes_to_the_brand_url(
+        self, client
+    ):
+        soup = BeautifulSoup(client.get("/mounted/").content, "html.parser")
+        back = soup.select_one("aside.mvp-sidebar a[data-back-link]")
+        brand = soup.select_one("aside.mvp-sidebar a.mvp-sidebar-brand")
+
+        assert back.get_text(" ", strip=True) == "Back to example.com"
+        assert back["href"] == brand["href"] == "/"
+
+    def test_back_link_comes_first_in_the_menu_area(self, client):
+        assert menu_labels(client.get("/mounted/"))[1] == "Back to example.com"
+
+    def test_host_page_draws_the_host_menu_and_no_back_link(self, client):
+        response = client.get("/layout/")
+
+        assert "Layout" in menu_labels(response)
+        assert b"data-back-link" not in response.content
+        assert "Mounted Index" not in menu_labels(response)
+
+    def test_dock_is_the_same_on_an_app_page_as_on_a_host_page(self, client):
+        assert dock_links(client.get("/mounted/")) == dock_links(client.get("/layout/"))
+
+    def test_error_page_inside_the_app_draws_no_back_link(self, client):
+        response = client.get("/mounted/missing/")
+
+        assert response.status_code == 404
+        assert b"data-back-link" not in response.content

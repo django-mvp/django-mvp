@@ -8,12 +8,12 @@ TestappMountedMenu = Menu(
         MenuItem(
             name="testapp_mounted_index",
             view_name="testapp_mounted:index",
-            extra_context={"label": "Mounted Index", "icon": "house"},
+            extra_context={"label": "Mounted Index", "icon": "home"},
         ),
         MenuItem(
             name="testapp_mounted_detail",
             view_name="testapp_mounted:detail",
-            extra_context={"label": "Mounted Detail", "icon": "file-text"},
+            extra_context={"label": "Mounted Detail", "icon": "list"},
         ),
     ],
 )

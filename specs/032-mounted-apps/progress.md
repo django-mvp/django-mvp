@@ -32,3 +32,9 @@
 - Verified: `uv run pytest tests/test_templatetags.py tests/test_mounted.py -q` → 100 passed. A host page's `<title>` markup is unchanged byte for byte (read the raw `<title>` and compared it with what the old template produces).
 - Next: T006.
 - Watch: `title` is now nested inside `head.title`; error_base's default `Error` title moved into its `head.title` override, since a block name can appear once per template.
+
+## 2026-09-25T18:20Z · Implementer US1 · T006
+- Did: `<c-app.sidebar>` takes `menu` (default empty) and `mounted-app`; `mvp/base.html` passes both from `{% mounted_app %}`; new `cotton/app/sidebar/back.html` draws "Back to <site name>" above the menu. Explicit `menu` draws that menu with no back link; an app with nothing visible draws the back link alone. No committed CSS class was missing (`pb-0` present).
+- Verified: `uv run pytest tests/test_mounted.py tests/test_components/test_app_sidebar.py tests/test_templatetags.py -q`; removing `:mounted-app` from base.html turned 4 tests red. Fixture menu icons changed to ones the icon set has (`home`, `list`).
+- Next: T007.
+- Watch: the site-name-less fallback label and the plain-list choice are in decisions.md D17 and D18.

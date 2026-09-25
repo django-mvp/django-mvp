@@ -103,7 +103,9 @@
       <c-app :breakpoint="breakpoint" :collapse="collapse">
         <c-slot name="sidebar">
           {% block app.sidebar %}
-            <c-app.sidebar :collapse="collapse" />
+            <c-app.sidebar :collapse="collapse"
+                           :menu="mounted.menu"
+                           :mounted-app="mounted.app" />
           {% endblock app.sidebar %}
         </c-slot>
         {% block app.header %}
