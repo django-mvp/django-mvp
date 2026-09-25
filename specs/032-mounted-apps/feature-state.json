@@ -2,7 +2,7 @@
   "feature": "032-mounted-apps",
   "branch": "032-mounted-apps",
   "repo": "django-mvp/django-mvp",
-  "state": "IMPLEMENT",
+  "state": "CONVERGE",
   "state_history": [
     {
       "state": "QUEUED",
@@ -23,6 +23,11 @@
       "state": "IMPLEMENT",
       "at": "2026-09-25T14:13:54Z",
       "note": "US-1, US-2, US-3, US-4 sequentially in one worktree"
+    },
+    {
+      "state": "CONVERGE",
+      "at": "2026-09-25T14:58:03Z",
+      "note": "all four stories done"
     }
   ],
   "gates": {
@@ -234,7 +239,7 @@
       "priority": "P3",
       "issue": 407,
       "worktree": "/home/sam/projects/django-mvp/dm-032-mounted-apps",
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
@@ -266,7 +271,7 @@
   ],
   "budgets": {
     "converge_cycles": {
-      "used": 0,
+      "used": 1,
       "max": 2
     },
     "review_cycles": {
