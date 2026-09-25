@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   entry for the app, marked as current on every page of the app. Pages outside the app render as
   before. Mounting the same app twice, or inside another mounted app, is refused when the project
   starts. The demo mounts a small library app from `demo/library/` so the running demo shows the
-  sidebar, the back link and the host's entries in the sidebar and the dock. See
+  sidebar, the back link and the host's entry in its sidebar. See
   [Mounted apps](docs/mounted-apps.md).
 
 - **`{% mounted_app as shell %}`**, a template tag that gives `shell.app` and `shell.menu` for

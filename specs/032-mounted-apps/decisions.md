@@ -177,3 +177,10 @@ the walkthrough needs a running page for both.
 **Why:** the row lines up with the entries under it and takes the icon rail's behaviour for free (centred icon, tooltip). The label span is hidden in the rail, so the label is also set as the link's `aria-label`. `<c-menu>` is not used because it adds `role="navigation"`, and the sidebar is tested to carry one navigation landmark.
 
 **Revisit if:** a design pass wants the back link to look unlike a menu row.
+
+## D19. The demo's dock carries no library entry
+
+An existing browser test pins the demo dock to one link. The dock entry being current on an
+app's pages is proved by `tests/test_mounted.py`, so the demo keeps its sidebar entry only.
+
+**ADR:** none. Demo only.

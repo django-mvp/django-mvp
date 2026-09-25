@@ -222,7 +222,7 @@ AppMenu.extend(
 )
 
 # The dock ships with the sidebar toggle alone, so the demo adds the links it
-# wants beside it: the home page, and the library app it mounts.
+# wants beside it: the home page.
 MobileFooterMenu.append(
     MenuItem(
         name="home",
@@ -233,4 +233,3 @@ MobileFooterMenu.append(
         },
     )
 )
-MobileFooterMenu.append(library.menu_item(name="library"))

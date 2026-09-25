@@ -8,7 +8,7 @@ browser tab names the app. Every other page renders exactly as before.
 
 The examples below use a small library app. The demo project ships the same thing in
 `demo/library/`, mounted at `library/`: open `/library/` to see the sidebar, the back link and
-the tab title, and look at the demo's own sidebar and dock for the host's entry.
+the tab title, and look at the demo's own sidebar for the host's entry.
 
 ## Declaring an app
 

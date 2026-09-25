@@ -1,7 +1,7 @@
 """Tests for the demo's ``library`` app, mounted at ``library/`` (FS-032, R10).
 
-It exists so the running demo shows the host's menu entry and the dock entry
-being current inside a mounted app.
+It exists so the running demo shows the host's menu entry being current inside
+a mounted app.
 
 Source: demo/library/, demo/urls.py, demo/menus.py
 """
@@ -60,23 +60,10 @@ class TestLibraryPages:
 
 @pytest.mark.django_db
 class TestLibraryEntriesInTheHostMenus:
-    """The demo adds its own entries for the app, in the sidebar and the dock."""
+    """The demo adds its own entry for the app to the sidebar."""
 
     def test_sidebar_carries_a_library_entry_on_a_host_page(self, client):
         assert ("Library", "/library/") in sidebar_links(client.get("/layout/"))
-
-    def test_dock_carries_a_library_entry_on_a_host_page(self, client):
-        dock = soup(client.get("/layout/")).select(".dock a[href='/library/']")
-
-        assert len(dock) == 1
-        assert "dock-active" not in dock[0]["class"]
-
-    def test_dock_entry_is_current_on_the_reading_list_page(self, client):
-        dock = soup(client.get("/library/reading-list/")).select(
-            ".dock a[href='/library/']"
-        )
-
-        assert "dock-active" in dock[0]["class"]
 
     def test_sidebar_entry_is_current_on_a_host_page_only_when_in_the_app(self, client):
         host = soup(client.get("/layout/")).select_one("aside a[href='/library/']")
