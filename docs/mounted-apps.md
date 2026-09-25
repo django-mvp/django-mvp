@@ -199,6 +199,39 @@ inside an app. Overriding the `app.sidebar` block this way is how a page opts ou
 
 Pages outside every mounted app, and every project that mounts none, render as they always have.
 
+## Limiting who can reach an app
+
+Give the declaration a `check`, a function that takes the request and says whether that person
+may see the app. This one keeps the library to staff:
+
+```python
+library = MountedApp(
+    name=_("Library"),
+    icon="book",
+    menu=LibraryMenu,
+    urls="library.urls",
+    landing="library:index",
+    check=lambda request: request.user.is_staff,
+)
+```
+
+Everyone the check excludes loses the app in two ways:
+
+- **The host's menu entry is absent.** `library.menu_item()` is drawn for staff and left out of
+  every menu, the sidebar and the dock alike, for anyone else.
+- **Its pages are refused**, the way Django's access mixins refuse. An anonymous visitor is sent
+  to the sign-in page (`LOGIN_URL`) and returns to the page they asked for. A signed-in person
+  the check excludes gets a 403 answered by the project's own `403.html`. It is never a 404.
+
+A refused request shows no app anywhere. The 403 page's title carries no app name, and a
+`403.html` that extends `mvp/base.html` draws `AppMenu` in the sidebar, not the app's menu. An
+app with no `check` is open to everyone, as before.
+
+The check runs before the view, for a synchronous or an asynchronous one. It is called on the
+event loop for an asynchronous view, so it must not query the database there. A page an app's
+menu claims (see above) is claimed only for people the check admits. The Account Center has no
+check.
+
 ## What is refused
 
 Three shapes are turned away when the project starts, because either would make the choice of

@@ -26,6 +26,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   is not drawn in a project with a main app. Two apps mounted with `main=True` are refused when
   the project starts. See [Mounted apps](docs/mounted-apps.md).
 
+- **Limiting who can reach a mounted app.** Give a `MountedApp` a `check`, a function of the
+  request, such as `check=lambda request: request.user.is_staff`. Everyone it excludes gets no
+  entry from `menu_item()` in any host menu, an anonymous visitor is sent to the sign-in page
+  from the app's pages, and a signed-in person gets a 403. An app with no `check` is open to
+  everyone. See [Mounted apps](docs/mounted-apps.md).
+
 - **`{% mounted_app as shell %}`**, a template tag that gives `shell.app` and `shell.menu` for
   the current page.
 
