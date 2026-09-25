@@ -12,6 +12,8 @@ loop over. That puts the mount path in two places, the setting and the address t
 at. It also moves the URL prefix, the pattern order and the namespace out of the project's URLs,
 which is where a Django developer looks for them.
 
+**ADR:** docs/adr/0028-a-mounted-app-is-known-by-the-view-its-mount-resolved.md
+
 ## D2. A page belongs to an app because of the URLs it was served through
 
 **Chosen:** the package decides which app a page belongs to from the URL patterns that matched the
@@ -21,6 +23,8 @@ request (FR-006).
 on language-prefixed URLs and on a project served under a sub-path. It also cannot tell two mounts
 apart when one prefix begins with the other, and it misreads an app mounted at the site root as
 owning every page.
+
+**ADR:** docs/adr/0028-a-mounted-app-is-known-by-the-view-its-mount-resolved.md
 
 ## D3. The back link and the title use the site name
 
@@ -36,6 +40,8 @@ The maintainer asked for `<app name> | <site name>` on an app's pages. Keeping t
 in front follows the shape every page already has, and a page with no title of its own reads
 exactly as asked.
 
+**ADR:** none — a presentation choice local to the shell's title and back link.
+
 ## D4. A failed visibility check refuses the way Django already does
 
 **Chosen:** an anonymous visitor goes to the sign-in page and a signed-in person gets a forbidden
@@ -45,12 +51,16 @@ response (FR-013).
 this way, so a project gets the error pages and sign-in flow it already has, and a person who
 could gain access by signing in is told how.
 
+**ADR:** none — it follows Django's own access mixins, so nothing about it is non-obvious.
+
 ## D5. Mounting twice, and mounting inside a mounted app, are refused at startup
 
 The maintainer has no current use for either, and ruled them out of scope until one appears.
 Refusing them loudly, rather than tolerating them, keeps the choice of sidebar from ever depending
 on the order of URL patterns. Adding support later loosens the rule without breaking any project
 that works today.
+
+**ADR:** docs/adr/0028-a-mounted-app-is-known-by-the-view-its-mount-resolved.md
 
 ## D6. A standalone deployment names a main app
 
@@ -64,6 +74,8 @@ needs a way to say "this app's menu is my menu". Mounting the app at the site ro
 that, because the project's other pages, and pages of apps like the Account Center, are not the
 app's pages.
 
+**ADR:** none — covered by D11 and documented in docs/mounted-apps.md.
+
 ## D7. The Account Center loses its second navigation panel
 
 The maintainer wants the Account Center to behave as a mounted app and has never liked the panel
@@ -72,12 +84,16 @@ content would draw the same links twice. The layout's content block keeps its na
 app has written against the layout renders unchanged (FR-021). The package is pre-1.0, so
 Article XVI allows the change to the layout with a changelog entry (FR-025).
 
+**ADR:** none — a layout change recorded in the changelog. No future work has to abide by it.
+
 ## D8. The Account Center carries no visibility check
 
 FS-028 decided that the Account Center gates its own landing page and nothing else, and that a page
 another app contributes answers access for itself. A check on the whole app would gate those pages
 too, which would change behaviour an app has already been written against. The landing page keeps
 its own requirement for a signed-in person (FR-022).
+
+**ADR:** none — carries FS-028's existing access rule forward unchanged.
 
 ## D9. A mounted app is marked on the matched view, not found by namespace or route
 
@@ -89,8 +105,7 @@ app is this page in" and "may this person see it".
 un-namespaced. Route strings, because they are prefix comparisons under another name. A
 middleware, because it would be a second edit for the host.
 
-**ADR:** to graduate at S5 if it survives implementation unchanged. It is durable, it
-constrains every future mounted app, and it isn't obvious from the code alone.
+**ADR:** docs/adr/0028-a-mounted-app-is-known-by-the-view-its-mount-resolved.md
 
 ## D10. The set of mounted apps is read from the URL tree
 
@@ -170,6 +185,8 @@ the walkthrough needs a running page for both.
 
 **Revisit if:** a project with no site name wants a different label. Overriding `cotton/app/sidebar/back.html` is the route today.
 
+**ADR:** none — a label fallback local to one template.
+
 ## D18. The back link is a menu row in a plain list
 
 **Decision:** `cotton/app/sidebar/back.html` renders one `<c-menu.item>` inside a bare `<ul class="menu">`.
@@ -177,6 +194,8 @@ the walkthrough needs a running page for both.
 **Why:** the row lines up with the entries under it and takes the icon rail's behaviour for free (centred icon, tooltip). The label span is hidden in the rail, so the label is also set as the link's `aria-label`. `<c-menu>` is not used because it adds `role="navigation"`, and the sidebar is tested to carry one navigation landmark.
 
 **Revisit if:** a design pass wants the back link to look unlike a menu row.
+
+**ADR:** none — markup detail inside one template.
 
 ## D19. The demo's dock carries no library entry
 
@@ -211,6 +230,8 @@ Assertions on the panel's two regions dropped from `tests/test_components/test_r
 
 **Revisit if:** the panel returns in any form.
 
+**ADR:** none — a test-suite consequence of FR-020.
+
 ## D21. Two test URLconf helpers stop including `mvp.urls` a second time
 
 **Decision:** in `tests/test_views/test_account.py`, `_urlconf()` and `_fixture_urlconf()` drop their own `path("", include("mvp.urls"))`. Each already includes `demo.urls`, which includes `mvp.urls`. No test body or assertion changed.
@@ -218,6 +239,8 @@ Assertions on the panel's two regions dropped from `tests/test_components/test_r
 **Why:** the Account Center is now a mounted app, and a project that mounts one app twice fails the startup check and any request that reads the mounts. Nine tests in that file were red only because their helper mounted it twice.
 
 **Revisit if:** a helper needs `mvp.urls` ahead of `demo.urls`. `_urlconf_with_allauth()` in the same file still includes it twice, ahead of allauth by design; the tests using it do not read the mounts, so it stays green, and it is flagged in the report.
+
+**ADR:** none — test helpers only.
 
 ## D22. The landing's title override goes in the mount commit
 
@@ -227,6 +250,8 @@ Assertions on the panel's two regions dropped from `tests/test_components/test_r
 
 **Revisit if:** never; the change is the one T011 asks for, made one commit earlier.
 
+**ADR:** none — commit ordering only.
+
 ## D23. The main app's check is read through `MountedApp.permits()`
 
 D14 says a main app whose check refuses the request is not drawn. The tag calls
@@ -235,7 +260,7 @@ returns false. `permits()` is the single place US-4 fills in. It is called only 
 main-app branch: pages and `menu_item()` still do not enforce the check.
 
 **Revisit if:** US-4 wants a different name or signature for the visibility rule.
-**ADR:** none.
+**ADR:** none — the name of one method, local to mvp/mounted.py.
 
 ## D24. The check runs synchronously in an async view's wrapper
 
@@ -245,6 +270,8 @@ main-app branch: pages and `menu_item()` still do not enforce the check.
 
 **Revisit if:** `asgiref` is declared. A check reading `request.user` on a lazily loaded session user would then be safe in an async view.
 
+**ADR:** none — a documented limitation local to bind(). Revisit with the asgiref question.
+
 ## D25. `for_request()` returns `None` for a refused request, after the lookup
 
 **Decision:** `for_request()` resolves the app as before, then answers `None` when that app's `permits()` is false. `claiming_menu()` also skips an app whose check fails, so the next app whose menu marks the page current can claim it.
@@ -252,3 +279,5 @@ main-app branch: pages and `menu_item()` still do not enforce the check.
 **Why:** D15. A refused request shows no app in any template, including a project's own 403 page. Skipping in `claiming_menu()` keeps a refusing app from hiding a page another app's menu also links.
 
 **Revisit if:** never.
+
+**ADR:** none — part of D15's contract, local to for_request().

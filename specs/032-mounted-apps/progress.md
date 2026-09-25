@@ -102,3 +102,4 @@
 - Verified: `uv run pre-commit run --all-files` passes. The docs have no test of their own.
 - Next: full verify, then the report.
 - Watch: none.
+- 2026-09-25 — Converge: all 28 FRs traced to tests or docs; every decision carries an ADR verdict; D1/D2/D5/D9 graduated to ADR 0028.
