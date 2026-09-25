@@ -16,6 +16,9 @@ from django.urls import (
     reverse,
 )
 
+from mvp.menus import AccountCenterMenu
+from mvp.views.account import AccountCenterView, account_center
+
 LOGIN_TEMPLATE = (
     Path(__file__).resolve().parent.parent
     / "mvp"
@@ -203,3 +206,36 @@ class TestPwaUrls:
     def test_the_routes_resolve_to_the_packaged_views(self):
         assert resolve("/manifest.webmanifest").func.__name__ == "manifest"
         assert resolve("/sw.js").func.__name__ == "service_worker"
+
+
+class TestAccountCenterMount:
+    """``mvp.urls`` mounts the Account Center as a mounted app at ``account/``."""
+
+    @pytest.fixture(autouse=True)
+    def _account_urlconf(self):
+        with override_settings(ROOT_URLCONF=ACCOUNT_URLCONF):
+            yield
+
+    def test_the_landing_name_stays_un_namespaced(self):
+        assert reverse("account-center") == "/account/"
+
+    def test_the_landing_resolves_to_the_account_center_view(self):
+
+        assert resolve("/account/").func.view_class is AccountCenterView
+
+    def test_the_landing_is_served_for_the_account_center(self):
+
+        assert resolve("/account/").func.mounted_app is account_center
+
+    def test_the_sign_in_page_is_outside_the_mount(self):
+        match = resolve("/account/login/")
+
+        assert getattr(match.func, "mounted_app", None) is None
+
+    def test_the_declaration_names_the_area_and_its_landing(self):
+
+
+        assert str(account_center.name) == "Account Center"
+        assert account_center.icon == "account_center"
+        assert account_center.menu is AccountCenterMenu
+        assert account_center.landing == "account-center"

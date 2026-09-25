@@ -49,9 +49,9 @@ def _render(template_name):
 
 
 def _urlconf():
-    """The demo site's URLs, with ``mvp.urls`` mounted."""
+    """The demo site's URLs, which include ``mvp.urls``. Including it a second
+    time would mount the Account Center twice, which the package refuses."""
     patterns = [
-        path("", include("mvp.urls")),
         path("", include("demo.urls")),
     ]
     return type("_URLConf", (), {"urlpatterns": patterns})
@@ -61,12 +61,12 @@ ACCOUNT_URLCONF = _urlconf()
 
 
 def _fixture_urlconf():
-    """``mvp.urls`` and the Account Center fixture app's own URLs, plus
-    ``demo.urls``: the shell's sidebar renders ``AppMenu``, and
+    """The Account Center fixture app's own URLs, plus
+    ``demo.urls`` (which includes ``mvp.urls``): the shell's sidebar renders
+    ``AppMenu``, and
     ``demo/menus.py`` resolves several entries against ``demo.urls`` — a
     urlconf missing it 500s on any full-page render, not just this story's."""
     patterns = [
-        path("", include("mvp.urls")),
         path("testapp-account/", include("tests.testapp_account.urls")),
         path("", include("demo.urls")),
     ]
@@ -471,6 +471,15 @@ class TestAccountCenterView:
         client.force_login(user)
         content = client.get(reverse("account-center")).content.decode()
         assert 'aria-label="Account navigation"' in content
+
+    def test_the_title_is_the_area_then_the_site(self, client, django_user_model):
+        user = django_user_model.objects.create_user(
+            username="accountcentertitle", password="pass123!"
+        )
+        client.force_login(user)
+        response = client.get(reverse("account-center"))
+        soup = BeautifulSoup(response.content, "html.parser")
+        assert " ".join(soup.title.get_text().split()) == "Account Center | example.com"
 
     def test_signed_in_request_shows_no_cards(self, client, django_user_model):
         """No app has contributed a card, so the card region renders empty

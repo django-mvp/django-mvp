@@ -7,9 +7,11 @@ Source: mvp/menus.py (AccountCenterMenu), mvp/urls.py (the area's URLconf).
 from django.conf import global_settings, settings
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView, LogoutView
-from django.urls import reverse
+from django.urls import path, reverse
 from django.utils.translation import gettext_lazy as _
 
+from ..menus import AccountCenterMenu
+from ..mounted import MountedApp
 from .extra import MVPTemplateView
 
 
@@ -36,6 +38,18 @@ class AccountCenterView(LoginRequiredMixin, MVPTemplateView):
     page_title = _("Account Center")
     page_subtitle = _("Manage your account and see what's available to you here.")
     breadcrumbs = [{"text": _("Account Center")}]
+
+
+#: The Account Center as a mounted app: ``mvp/urls.py`` mounts it at
+#: ``account/``. Its landing name stays un-namespaced (FS-028 D2), so the
+#: declaration carries no ``app_name``. Sign-in and sign-out stay outside it.
+account_center = MountedApp(
+    name=_("Account Center"),
+    icon="account_center",
+    menu=AccountCenterMenu,
+    urls=[path("", AccountCenterView.as_view(), name="account-center")],
+    landing="account-center",
+)
 
 
 class SignInView(LoginView):
