@@ -43,7 +43,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.http import HttpRequest
 from django.urls import get_resolver, include
 from django.urls.resolvers import ResolverMatch, RoutePattern, URLResolver
-from flex_menu import Menu
+from flex_menu import Menu, MenuItem
 
 #: Attribute a bound view carries to say which app it was served for.
 VIEW_ATTRIBUTE = "mounted_app"
@@ -129,6 +129,43 @@ class MountedApp:
         setattr(bound, VIEW_ATTRIBUTE, self)
         self._bound_views[view] = bound
         return bound
+
+    def menu_item(self, name: str | None = None, **extra_context: Any) -> MenuItem:
+        """Return the host's menu entry for this app, to add to its own menus.
+
+        The entry points at the app's landing page and carries the app's name
+        and icon as its label and icon. It is current on every page of the app,
+        not only the landing page, in whichever menu it is drawn: the sidebar
+        or the mobile dock.
+
+        Args:
+            name: The entry's name in the menu. Defaults to one made from the
+                landing's URL name.
+            **extra_context: More display data for the entry, such as ``badge``.
+                ``label`` and ``icon`` set here replace the app's.
+
+        Example::
+
+            AppMenu.append(literature.menu_item())
+        """
+        app = self
+
+        class MountedAppMenuItem(MenuItem):
+            """flex_menu processes a copy built from constructor arguments alone,
+            so the app is held on this per-app class, which the copy keeps."""
+
+            def match_url(self) -> bool:
+                request = self.request
+                self.selected = request is not None and (
+                    MountedApp.for_request(request) is app
+                )
+                return self.selected
+
+        return MountedAppMenuItem(
+            name=name or app.landing.replace(":", "-"),
+            view_name=app.landing,
+            extra_context={"label": app.name, "icon": app.icon, **extra_context},
+        )
 
     @classmethod
     def for_request(cls, request: HttpRequest) -> MountedApp | None:

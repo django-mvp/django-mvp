@@ -10,7 +10,7 @@ from .menus import TestappMountedMenu
 
 testapp_mounted = MountedApp(
     name="Mounted Fixture",
-    icon="box",
+    icon="book",
     menu=TestappMountedMenu,
     urls="tests.testapp_mounted.urls",
     landing="testapp_mounted:index",

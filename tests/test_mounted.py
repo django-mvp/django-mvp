@@ -12,9 +12,11 @@ from django.core.checks import Error, Tags
 from django.core.checks.registry import registry
 from django.core.exceptions import ImproperlyConfigured
 from django.http import HttpResponse
+from django.template import Context, Template
 from django.test import override_settings
 from django.urls import Resolver404, path, resolve, reverse
 from django.views.decorators.csrf import csrf_exempt
+from flex_menu import Menu
 
 from mvp.menus import AppMenu
 from mvp.mounted import MountedApp, check_mounted_apps, mount
@@ -505,3 +507,84 @@ class TestMountedPageSidebar:
 
         assert response.status_code == 404
         assert b"data-back-link" not in response.content
+
+
+HostMenu = Menu("MountedHostTestMenu", children=[testapp_mounted.menu_item()])
+
+
+def render_host_menu(request, renderer):
+    """Draw ``HostMenu`` the way a host's sidebar or dock draws its own menu."""
+    template = Template("{% load flex_menu %}{% render_menu menu renderer=renderer %}")
+    context = Context({"request": request, "menu": HostMenu, "renderer": renderer})
+    return BeautifulSoup(template.render(context), "html.parser")
+
+
+@pytest.mark.django_db
+@pytest.mark.urls("tests.urls_mounted")
+class TestMountedAppMenuItem:
+    """The host's own entry for a mounted app (FR-004, FR-009)."""
+
+    def test_entry_shows_the_apps_name_icon_and_landing_address(self, client):
+        request = client.get("/layout/").wsgi_request
+
+        link = render_host_menu(request, "sidebar").select_one("a")
+
+        assert link["href"] == "/mounted/"
+        assert link.get_text(" ", strip=True) == "Mounted Fixture"
+        assert link.select_one("i.bi-book") is not None
+
+    def test_entry_is_current_on_the_apps_landing_page(self, client):
+        request = client.get("/mounted/").wsgi_request
+
+        link = render_host_menu(request, "sidebar").select_one("a")
+
+        assert "menu-active" in link["class"]
+
+    def test_entry_is_current_on_every_page_of_the_app_not_just_the_landing(
+        self, client
+    ):
+        request = client.get("/mounted/detail/").wsgi_request
+
+        link = render_host_menu(request, "sidebar").select_one("a")
+
+        assert "menu-active" in link["class"]
+
+    def test_dock_entry_is_current_on_a_detail_page(self, client):
+        request = client.get("/mounted/detail/").wsgi_request
+
+        link = render_host_menu(request, "dock").select_one("a")
+
+        assert "dock-active" in link["class"]
+        assert link["aria-current"] == "page"
+
+    def test_entry_is_not_current_on_a_host_page(self, client):
+        request = client.get("/layout/").wsgi_request
+
+        sidebar = render_host_menu(request, "sidebar").select_one("a")
+        dock = render_host_menu(request, "dock").select_one("a")
+
+        assert "menu-active" not in sidebar["class"]
+        assert "dock-active" not in dock["class"]
+
+    def test_entry_is_not_current_for_another_apps_page(self, client):
+        other = named_app("Other")
+        entry = other.menu_item()
+        request = client.get("/mounted/detail/").wsgi_request
+
+        assert entry.process(request).selected is False
+
+    def test_entry_takes_a_name_and_extra_context(self):
+        entry = testapp_mounted.menu_item(name="library", badge="3")
+
+        assert entry.name == "library"
+        assert entry.extra_context["badge"] == "3"
+        assert entry.extra_context["label"] == "Mounted Fixture"
+        assert entry.extra_context["icon"] == "book"
+
+    def test_entry_defaults_its_name_from_the_landing(self):
+        assert testapp_mounted.menu_item().name == "testapp_mounted-index"
+
+    def test_entry_without_a_request_is_not_current(self):
+        entry = testapp_mounted.menu_item()
+
+        assert entry.process(None).selected is False

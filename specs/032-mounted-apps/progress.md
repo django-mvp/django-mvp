@@ -38,3 +38,9 @@
 - Verified: `uv run pytest tests/test_mounted.py tests/test_components/test_app_sidebar.py tests/test_templatetags.py -q`; removing `:mounted-app` from base.html turned 4 tests red. Fixture menu icons changed to ones the icon set has (`home`, `list`).
 - Next: T007.
 - Watch: the site-name-less fallback label and the plain-list choice are in decisions.md D17 and D18.
+
+## 2026-09-25T18:40Z · Implementer US1 · T007
+- Did: `MountedApp.menu_item(name=None, **extra_context)` returns a per-app `MenuItem` subclass (the app lives on the class, which flex_menu's request copy keeps), whose `match_url()` is current on every page `for_request()` attributes to the app. The fixture's icon is now `book`, because the icon set has no `box`.
+- Verified: `uv run pytest tests/test_mounted.py -q` → 60 passed; replacing the current-page test with `False` turned the current-page tests red. Tests draw through `render_menu` with the sidebar and dock renderers.
+- Next: T008.
+- Watch: the entry does not adapt the app's `check` into flex_menu's `check(request, **kwargs)`. Enforcing the check is US-4's, and the brief for this story says to store it only.
