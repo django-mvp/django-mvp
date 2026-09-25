@@ -45,14 +45,14 @@
       "approved_by": "design-panel",
       "at": "2026-09-25T14:13:42Z",
       "self_resolved": [
-        "SPEC-001 medium: landing title \u2014 overview.html drops its title override; T010 pins exact text",
-        "SPEC-002 medium: dac's own panel doubles the menu \u2014 D12, changelog, merge-gate flag",
-        "SEC-001 medium: refused request resolves to no app anywhere \u2014 D15, T015",
-        "ARCH-001 medium: flex_menu request copy loses subclass state \u2014 T007 names where the app lives",
-        "ARCH-002 medium: for_request re-entrancy \u2014 request cache seeded with None, T009 test",
-        "ARCH-003 medium: cotton context isolation \u2014 base.html passes values as attributes, T006",
+        "SPEC-001 medium: landing title — overview.html drops its title override; T010 pins exact text",
+        "SPEC-002 medium: dac's own panel doubles the menu — D12, changelog, merge-gate flag",
+        "SEC-001 medium: refused request resolves to no app anywhere — D15, T015",
+        "ARCH-001 medium: flex_menu request copy loses subclass state — T007 names where the app lives",
+        "ARCH-002 medium: for_request re-entrancy — request cache seeded with None, T009 test",
+        "ARCH-003 medium: cotton context isolation — base.html passes values as attributes, T006",
         "ARCH-004 low: tag returns app-to-name and menu-to-draw from T005",
-        "SEC-002 low: filter output not autoescaped \u2014 conditional_escape, plan row V",
+        "SEC-002 low: filter output not autoescaped — conditional_escape, plan row V",
         "SPEC-003 low / ARCH-005 low: docs items folded into T008/T014"
       ]
     }
@@ -209,13 +209,23 @@
       "tasks": [
         {
           "id": "T013",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "uv run pytest tests/test_mounted.py -q: 84 passed"
+            ]
+          }
         },
         {
           "id": "T014",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "uv run pre-commit run --all-files: passed"
+            ]
+          }
         }
       ]
     },
