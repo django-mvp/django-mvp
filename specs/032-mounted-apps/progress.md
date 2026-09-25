@@ -2,3 +2,9 @@
 
 - 2026-09-25 — Planning started on a fresh branch off main (f187b2b). Base suite green: 2093 passed, 3 skipped.
 - 2026-09-25 — Design review: approve, no critical/high. Nine medium/low findings folded into tasks.md and decisions.md D9–D16.
+
+## 2026-09-25T16:40Z · Implementer US1 · T001
+- Did: added `tests/testapp_mounted/` (two pages, `TestappMountedMenu`), listed it in `tests/settings.py`, and a plain-include URLconf `tests/urls_mounted_plain.py`. `mounted.py` for the app follows with T003.
+- Verified: `uv run pytest tests/test_mounted.py -q` → 2 passed.
+- Next: T002.
+- Watch: the fixture is test-only, so its tests pass on first run by design.
