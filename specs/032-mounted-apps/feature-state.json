@@ -204,7 +204,7 @@
       "priority": "P2",
       "issue": 406,
       "worktree": "/home/sam/projects/django-mvp/dm-032-mounted-apps",
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
