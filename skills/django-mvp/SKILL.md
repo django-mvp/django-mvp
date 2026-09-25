@@ -62,6 +62,7 @@ Get these right before writing anything. Each one is a mistake that looks like i
 | [`../../docs/theming.md`](../../docs/theming.md) | Picking a theme or writing one from scratch |
 | [`../../docs/utility-classes.md`](../../docs/utility-classes.md) | Checking whether a Tailwind class ships in the prebuilt stylesheet |
 | [`../../docs/integrations.md`](../../docs/integrations.md) | Using django-tables2, django-filter or htmx |
+| [`../../docs/mounted-apps.md`](../../docs/mounted-apps.md) | Running a package inside another django-mvp project: declaring a mounted app, mounting it, the host's menu entry, or asking why the sidebar swapped |
 | [`../../docs/account-center.md`](../../docs/account-center.md) | Mounting the account area or contributing a page to it |
 | [`../../docs/troubleshooting.md`](../../docs/troubleshooting.md) | Something renders wrong, silently does nothing, or raises |
 

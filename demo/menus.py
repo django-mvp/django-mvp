@@ -16,6 +16,7 @@ from django.urls import reverse_lazy
 from flex_menu import MenuItem
 
 from demo.component_docs import COMPONENTS
+from demo.library.mounted import library
 from mvp.menus import AppMenu, MenuCollapse, MenuGroup, MobileFooterMenu
 
 AppMenu.extend(
@@ -74,6 +75,7 @@ AppMenu.extend(
                 ],
             ],
         ),
+        library.menu_item(name="library"),
         MenuItem(
             name="utility-classes",
             view_name="utility-classes",
@@ -219,8 +221,8 @@ AppMenu.extend(
     ]
 )
 
-# The dock ships with the sidebar toggle alone, so the demo adds the one link
-# it wants beside it.
+# The dock ships with the sidebar toggle alone, so the demo adds the links it
+# wants beside it: the home page, and the library app it mounts.
 MobileFooterMenu.append(
     MenuItem(
         name="home",
@@ -231,3 +233,4 @@ MobileFooterMenu.append(
         },
     )
 )
+MobileFooterMenu.append(library.menu_item(name="library"))

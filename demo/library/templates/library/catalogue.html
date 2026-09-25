@@ -1,0 +1,10 @@
+{% extends "page_view.html" %}
+{% block page.content %}
+  <c-text muted tight class="text-lg">
+    This page belongs to a mounted app. The sidebar carries the app's own menu
+    under a link back to the demo, and the tab names the app. The demo's own
+    menu and the mobile dock still list the app: those entries are the demo's,
+    added from the app's declaration.
+  </c-text>
+  <c-link :href="'{% url "library:reading-list" %}'" text="Open the reading list" />
+{% endblock page.content %}

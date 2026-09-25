@@ -44,3 +44,13 @@
 - Verified: `uv run pytest tests/test_mounted.py -q` → 60 passed; replacing the current-page test with `False` turned the current-page tests red. Tests draw through `render_menu` with the sidebar and dock renderers.
 - Next: T008.
 - Watch: the entry does not adapt the app's `check` into flex_menu's `check(request, **kwargs)`. Enforcing the check is US-4's, and the brief for this story says to store it only.
+
+## 2026-09-25T19:20Z · Implementer US1 · T008
+- Did: `docs/mounted-apps.md` (declaring, mounting, the host's entry, what changes inside an app, what is refused, reading the app in a template), linked from `docs/index.md` and `docs/navigation.md`; `CONTEXT.md` defines Mounted app and Host project; skill routing row; changelog Added and Changed entries; `demo/library/` mounted at `library/` with entries in `AppMenu` and the dock; `tests/test_demo/test_library.py`.
+- Verified: `uv run pytest tests/test_demo/test_library.py -q` → 11 passed; `uv run invoke build-stylesheet` produced no change to the committed CSS, so every class used was already there.
+- Next: full verify, then the report.
+- Watch: the back-link strings are checked through Django's own `templatize`, the extractor `makemessages` uses.
+
+## 2026-09-25T19:35Z · Implementer US1 · T008 (verify result)
+- Verified: `uv run pytest -n auto --dist loadscope -q` → 2367 passed, 1 skipped, 1 failed. The failure is `tests/test_renderers.py::TestMobileDockSidebarToggle::test_dock_has_a_toggle_and_a_home_link[chromium]`, a test not written in this story. It expects exactly one link in the demo's dock, and the demo's dock now has two: Home and the library entry the story asks for.
+- Left alone: changing that test is outside this story's rights. It needs a decision on whether the test selects the Home link by address or the dock entry goes.

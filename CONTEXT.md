@@ -87,6 +87,21 @@ page. The one django-mvp packages listens for `install` and `activate` only and 
 listener, so every request still goes to the network. A project replaces it by overriding the
 template `mvp/pwa/sw.js`.
 
+### Mounted app
+
+A package built on django-mvp that can run inside another django-mvp project without changing
+its code. It declares itself once, as a `MountedApp` with a name, an icon, its own `flex_menu`
+`Menu`, its URLs, a landing URL name and an optional check. The [host project](#host-project)
+mounts it with `mount("literature/", literature)` in its own `urls.py`. On the app's pages the
+sidebar draws the app's menu under a "Back to *site name*" link and the browser title names the
+app. Everywhere else nothing changes. See [Mounted apps](docs/mounted-apps.md).
+
+### Host project
+
+The django-mvp project that mounts a [mounted app](#mounted-app). It owns the URL prefix, adds its
+own menu entry for the app, and keeps its own `AppMenu` on every page outside the app: a mounted
+app never writes into the host's menus.
+
 ### Layout store
 
 An Alpine store (`Alpine.store("mvp", ...)`, read as `$store.mvp`) that every shell page

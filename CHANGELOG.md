@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Mounted apps.** A package built on django-mvp declares itself as a `MountedApp` (a name, an
+  icon, its own menu, its URLs and a landing URL name), and a project runs it with one line in
+  its own `urls.py`: `mount("literature/", literature)`. On the app's pages the sidebar draws the
+  app's menu under a "Back to *site name*" link, and the page title becomes
+  `<page title> | <app name> | <site name>`. `literature.menu_item()` returns the host's own menu
+  entry for the app, marked as current on every page of the app. Pages outside the app render as
+  before. Mounting the same app twice, or inside another mounted app, is refused when the project
+  starts. The demo mounts a small library app from `demo/library/` so the running demo shows the
+  sidebar, the back link and the host's entries in the sidebar and the dock. See
+  [Mounted apps](docs/mounted-apps.md).
+
+- **`{% mounted_app as shell %}`**, a template tag that gives `shell.app` and `shell.menu` for
+  the current page.
+
 - Django 6.1 is supported, and tested on every change alongside 5.2 and 6.0.
 
 - **Installable app.** Set `MVP_CONFIG["pwa"] = {"theme_color": "#..."}` and the browser
@@ -37,6 +51,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   icon from the project's `brand/icon.svg`.
 
 ### Changed
+
+- **`<c-app.sidebar>`'s `menu` attribute defaults to empty instead of `"AppMenu"`.** An empty
+  `menu` still draws `AppMenu`, so a page that passes nothing renders as before. `mvp/base.html`
+  now wraps the title filter in a `head.title` block, and `mvp/error_base.html` overrides that
+  block instead of `title`. A project that overrides `mvp/error_base.html` and sets its own
+  `title` block is unaffected.
 
 - The package is built with hatchling instead of poetry-core, and developed with uv instead of
   Poetry. The wheel contains the same files as before. The source distribution does too, plus the

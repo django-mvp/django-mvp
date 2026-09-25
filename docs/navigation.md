@@ -10,6 +10,9 @@ django-mvp renders three menus from Python definitions, using
   rendered beside its pages. Ships with the entry for its own landing page; extend it
   the same way as `AppMenu`.
 
+A package that runs inside another django-mvp project brings a menu of its own too, drawn in
+the sidebar on that package's pages. See [Mounted apps](mounted-apps.md).
+
 Each is a tree of nodes built at import time and turned into markup by a renderer
 registered under `FLEX_MENUS["renderers"]` in settings.
 
