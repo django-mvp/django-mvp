@@ -173,7 +173,10 @@ class MountedApp:
 
         Decided from the view Django resolved, never from the path, so a
         language prefix, a sub-path deployment or an app mounted at the root
-        cannot mislead it. The answer is kept on the request.
+        cannot mislead it. A page no mount served, such as one an installed app
+        adds to the Account Center from its own URLs, belongs to the first
+        mounted app in URL order whose menu marks it current. The answer is
+        kept on the request.
         """
         try:
             return request._mounted_app  # type: ignore[attr-defined,no-any-return]
@@ -181,8 +184,23 @@ class MountedApp:
             pass
         match = getattr(request, "resolver_match", None)
         app = getattr(getattr(match, "func", None), VIEW_ATTRIBUTE, None)
+        if app is None and match is not None:
+            # An entry built by menu_item() asks for this request's app from
+            # its own match_url(). Answering None first stops that call from
+            # walking the menus again.
+            request._mounted_app = None  # type: ignore[attr-defined]
+            app = cls.claiming_menu(request)
         request._mounted_app = app  # type: ignore[attr-defined]
         return app  # type: ignore[no-any-return]
+
+    @classmethod
+    def claiming_menu(cls, request: HttpRequest) -> MountedApp | None:
+        """Return the first mounted app whose menu marks ``request`` current."""
+        for mount_ in cls.mounts(request):
+            # US-3: a main app's menu does not claim pages. Skip it here.
+            if mount_.app.menu.process(request).selected:
+                return mount_.app
+        return None
 
     @classmethod
     def mounts(cls, request: HttpRequest | None = None) -> list[MountedAppResolver]:

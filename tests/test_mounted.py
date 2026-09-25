@@ -16,7 +16,9 @@ from django.template import Context, Template
 from django.test import override_settings
 from django.urls import Resolver404, path, resolve, reverse
 from django.views.decorators.csrf import csrf_exempt
-from flex_menu import Menu
+from flex_menu import Menu, MenuItem
+
+from demo.urls import urlpatterns as demo_patterns
 
 from mvp.menus import AppMenu
 from mvp.mounted import MountedApp, check_mounted_apps, mount
@@ -588,3 +590,104 @@ class TestMountedAppMenuItem:
         entry = testapp_mounted.menu_item()
 
         assert entry.process(None).selected is False
+
+
+def host_linking_app(name, *entries):
+    """A mounted app whose menu links ``entries``, each a ``(name, view_name)``.
+
+    The app serves one page of its own and is mounted at ``own/``; the menu
+    entries may point anywhere in the URLconf, host pages included.
+    """
+    menu = Menu(
+        f"{name}Menu",
+        children=[
+            MenuItem(name=entry, view_name=view_name, extra_context={"label": entry})
+            for entry, view_name in entries
+        ],
+    )
+    return MountedApp(
+        name=name,
+        icon="book",
+        menu=menu,
+        urls=[path("", ok_view, name="index")],
+        landing="index",
+    )
+
+
+def host_urlconf(*mounts):
+    """The demo's URLs with ``mounts`` added, as a URLconf ``override_settings`` takes."""
+    return urlconf_of(*demo_patterns, *mounts)
+
+
+@pytest.mark.django_db
+class TestPageClaimedByAMenu:
+    """A page no mount served belongs to the first app whose menu marks it current
+    (FR-019, decision D13)."""
+
+    def test_host_page_linked_from_the_apps_menu_is_the_app(self, client, settings):
+        app = host_linking_app("Linker", ("layout", "layout"))
+        settings.ROOT_URLCONF = host_urlconf(mount("own/", app))
+
+        assert for_path(client, "/layout/") is app
+
+    def test_host_page_no_menu_links_is_no_app(self, client, settings):
+        app = host_linking_app("Linker", ("layout", "layout"))
+        settings.ROOT_URLCONF = host_urlconf(mount("own/", app))
+
+        assert for_path(client, "/theme/") is None
+
+    def test_page_served_through_a_mount_beats_a_menu_that_claims_it(
+        self, client, settings
+    ):
+        claimer = host_linking_app("Claimer", ("own", "index"))
+        owner = host_linking_app("Owner")
+        settings.ROOT_URLCONF = host_urlconf(
+            mount("claimer/", claimer), mount("owner/", owner)
+        )
+
+        assert for_path(client, "/owner/") is owner
+
+    def test_first_mount_in_url_order_wins_when_two_menus_link_the_page(
+        self, client, settings
+    ):
+        first = host_linking_app("First", ("layout", "layout"))
+        second = host_linking_app("Second", ("layout", "layout"))
+        settings.ROOT_URLCONF = host_urlconf(
+            mount("first/", first), mount("second/", second)
+        )
+
+        assert for_path(client, "/layout/") is first
+
+    def test_menu_holding_another_apps_entry_resolves_without_recursion(
+        self, client, settings
+    ):
+        other = host_linking_app("Other")
+        holder = host_linking_app("Holder", ("layout", "layout"))
+        holder.menu.append(other.menu_item())
+        settings.ROOT_URLCONF = host_urlconf(
+            mount("holder/", holder), mount("other/", other)
+        )
+
+        assert for_path(client, "/layout/") is holder
+
+    def test_menu_holding_another_apps_entry_alone_claims_nothing(
+        self, client, settings
+    ):
+        other = host_linking_app("Other")
+        holder = host_linking_app("Holder")
+        holder.menu.append(other.menu_item())
+        settings.ROOT_URLCONF = host_urlconf(
+            mount("holder/", holder), mount("other/", other)
+        )
+
+        assert for_path(client, "/theme/") is None
+
+    def test_the_answer_is_kept_on_the_request(self, client, settings):
+        app = host_linking_app("Linker", ("layout", "layout"))
+        settings.ROOT_URLCONF = host_urlconf(mount("own/", app))
+        request = client.get("/layout/").wsgi_request
+
+        first = MountedApp.for_request(request)
+        app.menu.children[0].parent = None
+
+        assert MountedApp.for_request(request) is first
