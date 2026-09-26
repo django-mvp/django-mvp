@@ -128,3 +128,4 @@
 - Verified: see the completion report for the final run.
 - Next: report.
 - Watch: none.
+- 2026-09-26 — Walkthrough changes T017–T019 done and independently verified: 2437 passed, 1 skipped; lint, types, deps, build green. Keyword rule widened to any non-method class attribute (D28); docs show the host creating the instance.

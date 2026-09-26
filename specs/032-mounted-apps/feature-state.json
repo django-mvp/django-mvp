@@ -2,7 +2,7 @@
   "feature": "032-mounted-apps",
   "branch": "032-mounted-apps",
   "repo": "django-mvp/django-mvp",
-  "state": "IMPLEMENT",
+  "state": "REVIEW",
   "state_history": [
     {
       "state": "QUEUED",
@@ -43,6 +43,16 @@
       "state": "IMPLEMENT",
       "at": "2026-09-26T05:37:50Z",
       "note": "walkthrough changes: T017-T019"
+    },
+    {
+      "state": "CONVERGE",
+      "at": "2026-09-26T05:52:50Z",
+      "note": "walkthrough changes T017-T019 accepted; verified by orchestrator (reviews are single-round)"
+    },
+    {
+      "state": "REVIEW",
+      "at": "2026-09-26T05:52:50Z",
+      "note": "walkthrough changes T017-T019 accepted; verified by orchestrator (reviews are single-round)"
     }
   ],
   "gates": {
@@ -92,7 +102,7 @@
       "priority": "P1",
       "issue": 404,
       "worktree": "/home/sam/projects/django-mvp/dm-032-mounted-apps",
-      "status": "in_progress",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
@@ -327,11 +337,11 @@
   ],
   "budgets": {
     "converge_cycles": {
-      "used": 1,
+      "used": 2,
       "max": 2
     },
     "review_cycles": {
-      "used": 1,
+      "used": 2,
       "max": 1
     },
     "design_review_cycles": {
