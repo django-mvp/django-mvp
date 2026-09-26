@@ -499,8 +499,8 @@ down whenever the original is visible. The packaged navbar uses it for exactly t
 **The first three set `display: flex` when shown.** An element that needs a different display box should wrap one of them rather than combine it with a display utility: the package's rules sit outside Tailwind's utility layer and win against it whatever the specificity, so `class="mvp-mobile-only hidden"` resolves to `flex`.
 
 Any descendant of the drawer element can carry one — the navbar's widget lists, the
-account layout's collapsed/persistent navigation split, the navbar's own copy of the
-sidebar-toggle button and site icon, and the mobile dock are all built from these four.
+navbar's own copy of the sidebar-toggle button and site icon, and the mobile dock are all
+built from these four.
 
 ## The layout store
 
@@ -571,8 +571,9 @@ or by way of `page_view.html`:
 | `delete_view.html` | `form_view.html` | Fills the form blocks |
 | `mvp/entrance.html`, `mvp/error_base.html` | `mvp/base.html` | Replace the shell with a centred card |
 
-The [Account Center](account-center.md) has its own layout, `mvp/account/base.html`,
-which extends `base.html` rather than `page_view.html`.
+The [Account Center](account-center.md) has its own layout, `mvp/account/base.html`, which
+extends `base.html` rather than `page_view.html` and wraps the page's `account.content`
+block in a container. It draws no navigation of its own; the sidebar carries the area's menu.
 
 ### Layer 1 — shell blocks, from `mvp/base.html`
 
@@ -581,7 +582,7 @@ which extends `base.html` rather than `page_view.html`.
 | `head`, `title`, `extra_js` | document head / scripts |
 | `announcement` | a banner slot outside the app shell (empty by default) |
 | `app` | the entire app shell |
-| `app.sidebar` | the sidebar (default: `<c-app.sidebar />`) |
+| `app.sidebar` | the sidebar (default: `<c-app.sidebar />`; it reads the current [mounted app](mounted-apps.md) from the context on its own) |
 | `app.header` | the header |
 | `app.header.widgets` | extra navbar-end content (hidden below the sidebar breakpoint, with the configured widgets) |
 | `app.header.tray` | a row below the navbar |

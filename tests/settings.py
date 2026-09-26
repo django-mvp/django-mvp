@@ -23,6 +23,10 @@ INSTALLED_APPS = [app for app in INSTALLED_APPS if app != "demo.account_showcase
 # demo/settings.py because it exists only to be exercised by the test suite.
 INSTALLED_APPS = [*INSTALLED_APPS, "tests.testapp_account"]
 
+# The mounted-app fixture (FS-032, tests/testapp_mounted/): two pages and a menu
+# of its own, mounted through test URLconfs the way a host project would.
+INSTALLED_APPS = [*INSTALLED_APPS, "tests.testapp_mounted"]
+
 # django-mvp layout config the test suite asserts on. Defined here — NOT read
 # from demo/settings.py — so visual tweaks to the demo don't ripple into tests.
 # See tests/test_components/test_layout_config.py.

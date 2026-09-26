@@ -28,8 +28,8 @@
       <meta charset="UTF-8" />
       <meta http-equiv="X-UA-Compatible" content="IE=edge" />
       <title>
-        {% block title %}
-        {% endblock title %}
+        {% block head.title %}{% block title %}
+        {% endblock title %}{% if mounted_app %} | {{ mounted_app.name }}{% endif %}{% endblock head.title %}
         | {% firstof mvp_config.site_name request.site.name %}
       </title>
       <meta name="viewport"

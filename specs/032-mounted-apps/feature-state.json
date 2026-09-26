@@ -1,0 +1,365 @@
+{
+  "feature": "032-mounted-apps",
+  "branch": "032-mounted-apps",
+  "repo": "django-mvp/django-mvp",
+  "state": "PR_READY",
+  "state_history": [
+    {
+      "state": "QUEUED",
+      "at": "2026-09-25T13:52:56Z",
+      "note": "specification merged to main in PR #403, merge commit f187b2b314f6a8e82bdfe546e8adf018ec8689e3; epic #402, stories #404-#407"
+    },
+    {
+      "state": "PLAN",
+      "at": "2026-09-25T14:04:05Z",
+      "note": "plan.md, research.md, tasks.md"
+    },
+    {
+      "state": "DESIGN_REVIEW",
+      "at": "2026-09-25T14:05:02Z",
+      "note": "design reviewer dispatched, three lenses, one round"
+    },
+    {
+      "state": "IMPLEMENT",
+      "at": "2026-09-25T14:13:54Z",
+      "note": "US-1, US-2, US-3, US-4 sequentially in one worktree"
+    },
+    {
+      "state": "CONVERGE",
+      "at": "2026-09-25T14:58:03Z",
+      "note": "all four stories done"
+    },
+    {
+      "state": "REVIEW",
+      "at": "2026-09-25T15:00:00Z",
+      "note": "one reviewer, correctness, spec and security lenses"
+    },
+    {
+      "state": "PR_READY",
+      "at": "2026-09-25T15:12:04Z",
+      "note": "PR #408 ready, walkthrough sent"
+    },
+    {
+      "state": "IMPLEMENT",
+      "at": "2026-09-26T05:37:50Z",
+      "note": "walkthrough changes: T017-T019"
+    },
+    {
+      "state": "CONVERGE",
+      "at": "2026-09-26T05:52:50Z",
+      "note": "walkthrough changes T017-T019 accepted; verified by orchestrator (reviews are single-round)"
+    },
+    {
+      "state": "REVIEW",
+      "at": "2026-09-26T05:52:50Z",
+      "note": "walkthrough changes T017-T019 accepted; verified by orchestrator (reviews are single-round)"
+    },
+    {
+      "state": "PR_READY",
+      "at": "2026-09-26T05:57:29Z",
+      "note": "walkthrough changes landed; PR #408 ready"
+    }
+  ],
+  "gates": {
+    "spec": {
+      "approved_by": "SamuelJennings",
+      "at": "2026-09-25T13:52:56Z",
+      "self_resolved": []
+    },
+    "plan": {
+      "approved_by": "notified",
+      "at": "2026-09-25T14:13:42Z",
+      "self_resolved": []
+    },
+    "merge": {
+      "approved_by": null,
+      "at": null,
+      "self_resolved": []
+    },
+    "design_review": {
+      "approved_by": "design-panel",
+      "at": "2026-09-25T14:13:42Z",
+      "self_resolved": [
+        "SPEC-001 medium: landing title \u2014 overview.html drops its title override; T010 pins exact text",
+        "SPEC-002 medium: dac's own panel doubles the menu \u2014 D12, changelog, merge-gate flag",
+        "SEC-001 medium: refused request resolves to no app anywhere \u2014 D15, T015",
+        "ARCH-001 medium: flex_menu request copy loses subclass state \u2014 T007 names where the app lives",
+        "ARCH-002 medium: for_request re-entrancy \u2014 request cache seeded with None, T009 test",
+        "ARCH-003 medium: cotton context isolation \u2014 base.html passes values as attributes, T006",
+        "ARCH-004 low: tag returns app-to-name and menu-to-draw from T005",
+        "SEC-002 low: filter output not autoescaped \u2014 conditional_escape, plan row V",
+        "SPEC-003 low / ARCH-005 low: docs items folded into T008/T014"
+      ]
+    },
+    "walkthrough": {
+      "approved_by": "SamuelJennings",
+      "at": "2026-09-26T05:37:50Z",
+      "self_resolved": [
+        "host customises a mounted app per instance or by subclassing \u2014 class declaration, T017",
+        "no restriction on mounting an app twice \u2014 T018",
+        "context processor instead of a template tag and filter \u2014 T019"
+      ]
+    }
+  },
+  "stories": [
+    {
+      "id": "US1",
+      "priority": "P1",
+      "issue": 404,
+      "worktree": "/home/sam/projects/django-mvp/dm-032-mounted-apps",
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T001",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "uv run pytest tests/test_mounted.py -q: 2 passed"
+            ]
+          }
+        },
+        {
+          "id": "T002",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "uv run pytest tests/test_mounted.py -q: 8 passed"
+            ]
+          }
+        },
+        {
+          "id": "T003",
+          "status": "done",
+          "attempts": 2,
+          "evidence": {
+            "commands": [
+              "uv run pytest tests/test_mounted.py -q: 30 passed"
+            ]
+          }
+        },
+        {
+          "id": "T004",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "uv run pytest tests/test_mounted.py -q: 40 passed"
+            ]
+          }
+        },
+        {
+          "id": "T005",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "uv run pytest tests/test_templatetags.py tests/test_mounted.py -q: 100 passed"
+            ]
+          }
+        },
+        {
+          "id": "T006",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "uv run pytest tests/test_mounted.py tests/test_components/test_app_sidebar.py -q: green"
+            ]
+          }
+        },
+        {
+          "id": "T007",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "uv run pytest tests/test_mounted.py -q: 60 passed"
+            ]
+          }
+        },
+        {
+          "id": "T008",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "uv run pytest tests/test_demo/test_library.py -q: 11 passed; full suite 1 pre-existing e2e test red (dock link count)",
+              "forge verify after dropping the demo dock entry: lint, typecheck, test, build passed"
+            ]
+          }
+        },
+        {
+          "id": "T017",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "uv run pytest tests/test_mounted.py tests/test_urls.py tests/test_components/test_app_sidebar.py tests/test_demo -q: 230 passed",
+              "uv run mypy mvp: no issues"
+            ]
+          }
+        },
+        {
+          "id": "T018",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "uv run pytest tests/test_mounted.py -q: 113 passed"
+            ]
+          }
+        },
+        {
+          "id": "T019",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "uv run pytest tests/test_context_processors.py tests/test_components/test_app_sidebar.py tests/test_mounted.py tests/test_templatetags.py -q: 185 passed",
+              "uv run pytest -n auto -q: 2432 passed, 1 skipped"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "US2",
+      "priority": "P2",
+      "issue": 405,
+      "worktree": "/home/sam/projects/django-mvp/dm-032-mounted-apps",
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T009",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "uv run pytest tests/test_mounted.py -q: 67 passed; removing the None seed turned 2 tests red"
+            ]
+          }
+        },
+        {
+          "id": "T010",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "uv run pytest tests/test_urls.py tests/test_views/test_account.py tests/test_mounted.py tests/test_pwa tests/test_menus.py -q: 173 passed"
+            ]
+          }
+        },
+        {
+          "id": "T011",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "uv run pytest tests/test_views/test_account.py tests/test_menus.py tests/test_components/test_responsive_visibility.py -q: 99 passed"
+            ]
+          }
+        },
+        {
+          "id": "T012",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "uv run pre-commit run --all-files: passed; uv run invoke build-stylesheet: no change to committed CSS"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "US3",
+      "priority": "P2",
+      "issue": 406,
+      "worktree": "/home/sam/projects/django-mvp/dm-032-mounted-apps",
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T013",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "uv run pytest tests/test_mounted.py -q: 84 passed"
+            ]
+          }
+        },
+        {
+          "id": "T014",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "uv run pre-commit run --all-files: passed"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "US4",
+      "priority": "P3",
+      "issue": 407,
+      "worktree": "/home/sam/projects/django-mvp/dm-032-mounted-apps",
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T015",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "uv run pytest tests/test_mounted.py -q: 99 passed",
+              "uv run pytest -n auto -q: 2413 passed, 1 skipped",
+              "uv run pre-commit run --all-files: passed",
+              "uv run mypy mvp: passed",
+              "uv run deptry .: passed"
+            ]
+          }
+        },
+        {
+          "id": "T016",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "uv run pre-commit run --all-files: passed"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "budgets": {
+    "converge_cycles": {
+      "used": 2,
+      "max": 2
+    },
+    "review_cycles": {
+      "used": 2,
+      "max": 1
+    },
+    "design_review_cycles": {
+      "used": 1,
+      "max": 1
+    },
+    "tokens": {
+      "used": 0,
+      "max": 120
+    }
+  },
+  "pr": {
+    "number": 408,
+    "draft": false
+  }
+}

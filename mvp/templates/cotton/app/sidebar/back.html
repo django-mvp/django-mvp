@@ -1,0 +1,27 @@
+{% load i18n %}
+{% comment %}
+  The link a mounted app's sidebar opens with, back to the host project's home
+  page. It reads "Back to <site name>", with the site name resolved the way the
+  page title resolves it. A project with no site name gets "Back": a bare
+  "Back to" would point nowhere.
+
+  Drawn as a menu row so it lines up with the entries beneath it and behaves
+  as they do in the icon rail. The rail hides the label, so the label is also
+  the link's accessible name. It sits in a plain list rather than `c-menu`,
+  which would add a second navigation landmark beside the app's own menu.
+{% endcomment %}
+<c-vars url="/" />
+{% firstof mvp_config.site_name request.site.name as site_name %}
+{% if site_name %}
+  {% blocktranslate asvar label %}Back to {{ site_name }}{% endblocktranslate %}
+{% else %}
+  {% translate "Back" as label %}
+{% endif %}
+<ul class="menu w-full pb-0">
+  <c-menu.item :href="url"
+               icon="arrow-left"
+               label="{{ label }}"
+               tip="{{ label }}"
+               aria-label="{{ label }}"
+               data-back-link />
+</ul>

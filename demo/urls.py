@@ -4,7 +4,10 @@ from django.conf import settings
 from django.contrib import admin
 from django.urls import include, path
 
+from mvp.mounted import mount
+
 from . import views
+from .library.mounted import library
 from .views import (
     E400,
     E403,
@@ -32,6 +35,7 @@ urlpatterns = [
     path("", DemoHomeView.as_view(), name="home"),
     path("admin/", admin.site.urls),
     path("", include("mvp.urls")),
+    mount("library/", library),
     path("layout/", views.layout_demo, name="layout"),
     path("layout/full-page/", views.full_page_map_demo, name="full-page-map"),
     path("layout/store/", views.layout_store_demo, name="layout-store"),

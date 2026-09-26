@@ -91,6 +91,13 @@ To clear existing data and regenerate:
 uv run python manage.py generate_dummy_data --clear
 ```
 
+To create the sign-in accounts `regular.user`, `staff.user` and `super.user`, each with the
+password `password`:
+
+```bash
+uv run python manage.py seed_accounts
+```
+
 ### 2. Run the Development Server
 
 ```bash

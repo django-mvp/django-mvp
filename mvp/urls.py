@@ -33,15 +33,16 @@ order two URLconfs were mounted in. The reasoning is in
 docs/adr/0024-a-stand-in-page-withdraws-when-the-real-app-arrives.md.
 """
 
-from django.urls import path
+from django.urls import URLPattern, URLResolver, path
 
 from .config import MVP_CONFIG
+from .mounted import mount
 from .pwa.views import manifest, service_worker
 from .utils import app_is_installed
-from .views.account import AccountCenterView, SignInView, SignOutView
+from .views.account import SignInView, SignOutView, account_center
 
-urlpatterns = [
-    path("account/", AccountCenterView.as_view(), name="account-center"),
+urlpatterns: list[URLPattern | URLResolver] = [
+    mount("account/", account_center),
 ]
 
 if MVP_CONFIG["pwa"]:

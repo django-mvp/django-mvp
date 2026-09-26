@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     "django.contrib.humanize",
     "demo",
     "demo.account_showcase",
+    "demo.library",
     "mvp",
     "easy_icons",
     "crispy_forms",

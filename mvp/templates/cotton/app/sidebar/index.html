@@ -2,7 +2,7 @@
 <c-vars bg="bg-base-200"
         brand-url="/"
         class
-        menu="AppMenu"
+        menu=""
         :collapse="mvp_config.layout.sidebar.collapse"
         :title="mvp_config.layout.sidebar.title"
         :boost="mvp_config.layout.sidebar.boost" />
@@ -17,8 +17,25 @@
        {% if boost %}hx-boost="true"{% endif %}
        {{ attrs }}>
   <c-app.sidebar.header link="{{ brand_url }}" :bg="bg" :title="title" />
-  <div class="flex w-full">
-    {% render_menu menu renderer="sidebar" %}
-  </div>
+  {% comment %}
+    `menu` is empty unless a page passes one, and a page that does gets that
+    menu with no back link. Otherwise the sidebar reads `mounted_app` and
+    `mounted_menu` from the context: the values `mvp.context_processors.mvp_config`
+    adds, which reach a component under Cotton's context isolation too, because
+    Cotton builds a request context for it and that runs the processor again.
+    With neither, the sidebar draws `AppMenu`.
+  {% endcomment %}
+  {% if menu is None or menu == "" %}
+    {% if mounted_app %}<c-app.sidebar.back :url="brand_url" />{% endif %}
+    <div class="flex w-full">
+      {% if mounted_menu %}
+        {% render_menu mounted_menu renderer="sidebar" %}
+      {% else %}
+        {% render_menu "AppMenu" renderer="sidebar" %}
+      {% endif %}
+    </div>
+  {% else %}
+    <div class="flex w-full">{% render_menu menu renderer="sidebar" %}</div>
+  {% endif %}
   <c-app.sidebar.footer :bg="bg" />
 </aside>

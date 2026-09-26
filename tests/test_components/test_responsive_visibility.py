@@ -18,18 +18,15 @@ visibility moves into the stylesheet, so these tests instead assert
 **computed visibility in a real browser** — the resolved ``display`` of each
 governed region — which is indifferent to how visibility is achieved.
 
-The four governed regions (mvp/templates/cotton/app/header/navbar.html and
-mvp/templates/mvp/account/base.html):
+The three governed regions (mvp/templates/cotton/app/header/navbar.html):
 
 1. the navbar's mobile widget list (``navbar_narrow_only_class``)
 2. the navbar's desktop widget list and ``right`` slot (``navbar_wide_only_class``)
 3. the navbar's sidebar-toggle button and site icon (``sidebar_navbar_toggle_class``)
-4. the account layout's collapsed navigation control (``navbar_narrow_only_class``)
-   and persistent card (``navbar_wide_only_class``)
 
 One fixture page (``tests/responsive_visibility_regions.html``, rendered by
-``_RegionsView`` below) extends the account layout inside the full shell, so
-a single page load exercises all four regions for one breakpoint/collapse
+``_RegionsView`` below) renders the full shell, so
+a single page load exercises all three regions for one breakpoint/collapse
 combination. Widths are exercised by resizing the viewport rather than
 reloading: every rule under test is pure CSS (media queries, and — for the
 sidebar-toggle region in ``offcanvas`` mode — the drawer checkbox's current
@@ -63,7 +60,7 @@ NEVER_WIDTHS = (375, 1920)
 
 
 class _RegionsView(TemplateView):
-    """Renders the four-region fixture with breakpoint/collapse from the
+    """Renders the three-region fixture with breakpoint/collapse from the
     query string — the same pattern ``demo.views.LayoutStoreDemoView`` uses,
     scoped to this test module rather than added to the demo's own routes."""
 
@@ -80,7 +77,7 @@ def _regions_urlconf():
     """The project's own urlconf with the fixture route prepended — mirrors
     ``tests/test_components/test_sidebar_persisted_state.py``'s
     ``sidebar_shell_urlconf``. Prepending rather than replacing keeps
-    ``mvp.urls`` mounted, which the account layout's menu needs to reverse."""
+    ``mvp.urls`` mounted."""
     from importlib import import_module
 
     from django.conf import settings
@@ -142,22 +139,6 @@ def _site_icon(page):
     return page.locator("a.mvp-navbar-brand")
 
 
-def _account_nav_container(page):
-    return page.locator("div.lg\\:items-start")
-
-
-def _account_narrow(page):
-    """The collapsed account-navigation control: the first of the
-    container's three children (dropdown, page content, card)."""
-    return _account_nav_container(page).locator("> div").first
-
-
-def _account_wide(page):
-    """The persistent account-navigation card: the last of the container's
-    three children."""
-    return _account_nav_container(page).locator("> div").last
-
-
 def _drawer_checkbox(page):
     return page.locator("#mvp-app-toggle")
 
@@ -180,32 +161,28 @@ def _open_drawer(page):
 
 
 # ---------------------------------------------------------------------------
-# Region 1 + region 4 (narrow half): navbar_narrow_only_class
+# Region 1: navbar_narrow_only_class
 # ---------------------------------------------------------------------------
 
 
 class TestNarrowOnlyRegions:
-    """The navbar's mobile widget list and the account layout's collapsed
-    navigation control: shown below the configured breakpoint, hidden at and
-    above it. Under `never` — asymmetrically — hidden at every width, so the
-    mobile copy never doubles up with the (unconditionally shown) wide
-    region (D7)."""
+    """The navbar's mobile widget list: shown below the configured breakpoint,
+    hidden at and above it. Under `never` — asymmetrically — hidden at every
+    width, so the mobile copy never doubles up with the (unconditionally shown)
+    wide region (D7)."""
 
     @pytest.mark.parametrize(("bp", "px"), REAL_BREAKPOINTS.items())
     def test_shown_below_hidden_at_or_above(self, page, regions_server, bp, px):
         _goto(page, regions_server, bp=bp, viewport=px - 1)
         assert _display(_mobile_widgets(page)) != "none"
-        assert _display(_account_narrow(page)) != "none"
 
         _resize(page, px)
         assert _display(_mobile_widgets(page)) == "none"
-        assert _display(_account_narrow(page)) == "none"
 
     def test_hidden_at_every_width_when_never(self, page, regions_server):
         for width in NEVER_WIDTHS:
             _goto(page, regions_server, bp="never", viewport=width)
             assert _display(_mobile_widgets(page)) == "none"
-            assert _display(_account_narrow(page)) == "none"
 
     def test_unrecognised_breakpoint_falls_back_to_lg(self, page, regions_server):
         lg_px = REAL_BREAKPOINTS["lg"]
@@ -217,31 +194,27 @@ class TestNarrowOnlyRegions:
 
 
 # ---------------------------------------------------------------------------
-# Region 2 + region 4 (wide half): navbar_wide_only_class
+# Region 2: navbar_wide_only_class
 # ---------------------------------------------------------------------------
 
 
 class TestWideOnlyRegions:
-    """The navbar's desktop widget list (and ``right`` slot) and the account
-    layout's persistent card: hidden below the configured breakpoint, shown
-    at and above it. Under `never` there is no width to key off, so both
-    stay unconditionally shown (D1)."""
+    """The navbar's desktop widget list (and ``right`` slot): hidden below the
+    configured breakpoint, shown at and above it. Under `never` there is no
+    width to key off, so it stays unconditionally shown (D1)."""
 
     @pytest.mark.parametrize(("bp", "px"), REAL_BREAKPOINTS.items())
     def test_hidden_below_shown_at_or_above(self, page, regions_server, bp, px):
         _goto(page, regions_server, bp=bp, viewport=px - 1)
         assert _display(_desktop_widgets(page)) == "none"
-        assert _display(_account_wide(page)) == "none"
 
         _resize(page, px)
         assert _display(_desktop_widgets(page)) != "none"
-        assert _display(_account_wide(page)) != "none"
 
     def test_shown_at_every_width_when_never(self, page, regions_server):
         for width in NEVER_WIDTHS:
             _goto(page, regions_server, bp="never", viewport=width)
             assert _display(_desktop_widgets(page)) != "none"
-            assert _display(_account_wide(page)) != "none"
 
     def test_unrecognised_breakpoint_falls_back_to_lg(self, page, regions_server):
         lg_px = REAL_BREAKPOINTS["lg"]
@@ -355,7 +328,7 @@ class TestSidebarEchoRegion:
 class TestVisibilityWithoutJavaScript:
     """One representative setting, with JavaScript disabled entirely, proving
     computed visibility is identical to every other test in this module.
-    `lg`/`icons` is representative because none of the four regions' rules
+    `lg`/`icons` is representative because none of the three regions' rules
     depend on anything JavaScript sets up — every rule this module exercises
     is pure CSS, keyed off attributes the server already rendered."""
 
@@ -373,16 +346,12 @@ class TestVisibilityWithoutJavaScript:
             )
             assert _display(_mobile_widgets(page)) != "none"
             assert _display(_desktop_widgets(page)) == "none"
-            assert _display(_account_narrow(page)) != "none"
-            assert _display(_account_wide(page)) == "none"
             assert _display(_toggle_label(page)) != "none"
             assert _display(_site_icon(page)) != "none"
 
             page.set_viewport_size({"width": lg_px, "height": VIEWPORT_HEIGHT})
             assert _display(_mobile_widgets(page)) == "none"
             assert _display(_desktop_widgets(page)) != "none"
-            assert _display(_account_narrow(page)) == "none"
-            assert _display(_account_wide(page)) != "none"
             assert _display(_toggle_label(page)) == "none"
             assert _display(_site_icon(page)) == "none"
         finally:

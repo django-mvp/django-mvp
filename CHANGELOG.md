@@ -9,6 +9,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Mounted apps.** A package built on django-mvp declares itself as a `MountedApp` subclass (a
+  name, an icon, its own menu, its URLs and a landing URL name as class attributes) . A project
+  creates an instance and mounts it with one line in its own `urls.py`:
+  `mount("literature/", LiteratureApp())`. It can change the instance with keyword arguments, such
+  as `LiteratureApp(icon="journal")` (only attributes the class defines are accepted, and any
+  other raises `TypeError`), or by subclassing. On the app's pages the sidebar draws the
+  app's menu under a "Back to *site name*" link, and the page title becomes
+  `<page title> | <app name> | <site name>` (` | <app name> | <site name>` for a page with no
+  title). `literature.menu_item()` returns the host's own menu
+  entry for the app, marked as current on every page of the app. Pages outside the app render as
+  before. Mounting an app inside another mounted app is refused when the project starts.
+  Mounting one app twice is unsupported, and not checked. The demo mounts a small library app from `demo/library/` so the running demo shows the
+  sidebar, the back link and the host's entry in its sidebar. See
+  [Mounted apps](docs/mounted-apps.md).
+
+- **A mounted app can be the site.** `mount("", literature, main=True)` makes the app's menu the
+  sidebar on every page that belongs to no other mounted app, with no back link and no app name
+  in the title. The Account Center and other mounted apps still swap to their own menu. `AppMenu`
+  is not drawn in a project with a main app. Two apps mounted with `main=True` are refused when
+  the project starts. See [Mounted apps](docs/mounted-apps.md).
+
+- **Limiting who can reach a mounted app.** Give a `MountedApp` a `check`: `True`, `False`, or a
+  function of the request, such as `check=lambda request: request.user.is_staff`. Override
+  `has_permission(request)` for a rule a function cannot express. Everyone it excludes gets no
+  entry from `menu_item()` in any host menu, an anonymous visitor is sent to the sign-in page
+  from the app's pages, and a signed-in person gets a 403. An app left at `check = True`
+  is open to everyone. See [Mounted apps](docs/mounted-apps.md).
+
+- **`mounted_app` and `mounted_menu` in every template.** The context processor
+  `mvp.context_processors.mvp_config` adds the current page's mounted app and the menu to draw.
+  Both are lazy, so nothing is looked up unless a template reads one. The sidebar reads them
+  itself, so a `{% block app.sidebar %}` override that passes no `menu` keeps the swap.
+
 - Django 6.1 is supported, and tested on every change alongside 5.2 and 6.0.
 
 - **Installable app.** Set `MVP_CONFIG["pwa"] = {"theme_color": "#..."}` and the browser
@@ -37,6 +70,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   icon from the project's `brand/icon.svg`.
 
 ### Changed
+
+- **The Account Center shows its menu in the sidebar, not beside the page.** The Account Center is
+  now a mounted app: on its pages the sidebar draws `AccountCenterMenu` under a "Back to *site
+  name*" link instead of `AppMenu`, and the navigation panel beside the content (a card on wide
+  screens, a dropdown on narrow ones) is gone. `mvp/account/base.html` keeps its name and its
+  `account.content` block, so a page written against it renders unchanged, now inside a container
+  that draws nothing else. The landing page's tab title is `| Account Center | <site name>`, and the
+  landing's URL name is still `account-center`. A page an installed app adds to the Account
+  Center from its own URLs joins it when `AccountCenterMenu` has an entry for it, with no change
+  to the app. A page that draws its own copy of `AccountCenterMenu` now shows the menu twice, in
+  the sidebar and in its own copy, and should drop its copy. See
+  [Account Center](docs/account-center.md) and [Mounted apps](docs/mounted-apps.md).
+
+- **`<c-app.sidebar>`'s `menu` attribute defaults to empty instead of `"AppMenu"`.** An empty
+  `menu` draws the current mounted app's menu, read from the context processor's
+  `mounted_menu`, and `AppMenu` on every other page. A page that passes `menu` explicitly keeps
+  that menu, with no back link. `mvp/base.html` now wraps the title in a `head.title` block, and
+  `mvp/error_base.html` overrides that block instead of `title`. A project that overrides
+  `mvp/error_base.html` and sets its own `title` block is unaffected.
 
 - The package is built with hatchling instead of poetry-core, and developed with uv instead of
   Poetry. The wheel contains the same files as before. The source distribution does too, plus the

@@ -1,67 +1,18 @@
 {% extends "base.html" %}
-{% load i18n flex_menu mvp %}
 {% comment %}
-  The Account Center's layout: the navigation beside the page's own content.
-  Extends the unqualified `base.html` a project owns, not `mvp/base.html`
-  directly, so a project's own base override still applies underneath this
-  layout (FR-012).
+  The Account Center's layout. Extends the unqualified `base.html` a project
+  owns, not `mvp/base.html` directly, so a project's own base override still
+  applies underneath this layout (FR-012).
 
-  A page in the area extends this template and fills `account.content`,
-  the block declared below — not `content`, which this layout has already
-  taken to build the two-column arrangement.
+  The area's navigation is the shell's sidebar, which swaps to
+  AccountCenterMenu on these pages, so this layout draws none of its own.
 
-  AccountCenterMenu is processed once and drawn at two sites (FR-013): a
-  collapsed control below the shell's sidebar breakpoint, declared before the
-  content so it stays above the page when the two stack, and a persistent card
-  from the breakpoint up, declared after the content so it sits on the right of
-  the row. Two sites rather than one toggled with CSS, or the entries in the
-  collapsed copy would go stale the moment a visibility check or an ordering
-  changes per request.
-
-  The row below carries the resolved breakpoint itself rather than reading it
-  off an ancestor. The stylesheet rules that show one copy and hide the other
-  select on that attribute, and the shell's drawer is the usual place it comes
-  from — but this layout extends the unqualified `base.html`, which a project
-  may own and which need not render the shell at all. A layout that depended on
-  the shell would show both copies at once in exactly that case, silently and
-  only at some viewport widths. Inside the shell the two hosts resolve the same
-  value from the same context, so the nested one changes nothing.
+  A page in the area extends this template and fills `account.content`, the
+  block declared below, which sits inside a container within `content`.
 {% endcomment %}
 {% block content %}
-  {% firstof breakpoint mvp_config.layout.sidebar.breakpoint as breakpoint %}
-  {% firstof collapse mvp_config.layout.sidebar.collapse as collapse %}
-  {% resolve_layout_config breakpoint collapse None None as account_layout %}
-  {% process_menu "AccountCenterMenu" as account_menu %}
   <c-container class="py-4">
-    <div class="flex flex-col lg:flex-row lg:items-start gap-4 lg:gap-6"
-         data-mvp-breakpoint="{{ account_layout.breakpoint }}"
-         data-mvp-collapse="{{ account_layout.collapse }}">
-      <div class="mvp-mobile-only w-full">
-        <c-dropdown full
-                    class="w-full"
-                    content_class="p-2"
-                    text="{% trans "Account navigation" %}"
-                    icon="chevron-down">
-          <c-menu label="{% trans "Account navigation" %}">
-            {% for child in account_menu.visible_children %}
-              {% render_item child renderer="sidebar" %}
-            {% endfor %}
-          </c-menu>
-        </c-dropdown>
-      </div>
-      <div class="grow min-w-0">
-        {% block account.content %}
-        {% endblock account.content %}
-      </div>
-      <div class="mvp-desktop-only w-full lg:w-1/4 lg:shrink-0">
-        <c-card.wrapper class="p-2 w-full">
-          <c-menu label="{% trans "Account navigation" %}">
-            {% for child in account_menu.visible_children %}
-              {% render_item child renderer="sidebar" %}
-            {% endfor %}
-          </c-menu>
-        </c-card.wrapper>
-      </div>
-    </div>
+    {% block account.content %}
+    {% endblock account.content %}
   </c-container>
 {% endblock content %}

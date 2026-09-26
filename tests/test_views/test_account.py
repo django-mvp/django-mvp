@@ -23,6 +23,8 @@ from django.template.loader import render_to_string
 from django.test import RequestFactory, override_settings
 from django.urls import include, path, reverse
 
+from mvp.config import MVP_CONFIG
+
 ACCOUNT_BASE_TEMPLATE = (
     Path(__file__).resolve().parent.parent.parent
     / "mvp"
@@ -49,9 +51,9 @@ def _render(template_name):
 
 
 def _urlconf():
-    """The demo site's URLs, with ``mvp.urls`` mounted."""
+    """The demo site's URLs, which include ``mvp.urls``. Including it a second
+    time would mount the Account Center twice, which the package refuses."""
     patterns = [
-        path("", include("mvp.urls")),
         path("", include("demo.urls")),
     ]
     return type("_URLConf", (), {"urlpatterns": patterns})
@@ -61,12 +63,12 @@ ACCOUNT_URLCONF = _urlconf()
 
 
 def _fixture_urlconf():
-    """``mvp.urls`` and the Account Center fixture app's own URLs, plus
-    ``demo.urls``: the shell's sidebar renders ``AppMenu``, and
+    """The Account Center fixture app's own URLs, plus
+    ``demo.urls`` (which includes ``mvp.urls``): the shell's sidebar renders
+    ``AppMenu``, and
     ``demo/menus.py`` resolves several entries against ``demo.urls`` — a
     urlconf missing it 500s on any full-page render, not just this story's."""
     patterns = [
-        path("", include("mvp.urls")),
         path("testapp-account/", include("tests.testapp_account.urls")),
         path("", include("demo.urls")),
     ]
@@ -462,15 +464,16 @@ class TestAccountCenterView:
         assert "mvp-sidebar" in content
         assert "mvp-header" in content
 
-    def test_signed_in_request_shows_the_navigation_panel(
-        self, client, django_user_model
-    ):
+    def test_the_title_is_a_bar_then_the_area_then_the_site(self, client, django_user_model):
         user = django_user_model.objects.create_user(
-            username="accountcenteruser2", password="pass123!"
+            username="accountcentertitle", password="pass123!"
         )
         client.force_login(user)
-        content = client.get(reverse("account-center")).content.decode()
-        assert 'aria-label="Account navigation"' in content
+        response = client.get(reverse("account-center"))
+        soup = BeautifulSoup(response.content, "html.parser")
+        assert " ".join(soup.title.get_text().split()) == (
+            "| Account Center | example.com"
+        )
 
     def test_signed_in_request_shows_no_cards(self, client, django_user_model):
         """No app has contributed a card, so the card region renders empty
@@ -514,71 +517,102 @@ class TestAccountCenterView:
         assert response.context["page"]["breadcrumbs"] == [{"text": "Account Center"}]
 
 
+def sidebar_labels(response):
+    """The brand link, then every link in a sidebar menu, by text."""
+    soup = BeautifulSoup(response.content, "html.parser")
+    sidebar = soup.select_one("aside.mvp-sidebar")
+    links = sidebar.select("a.mvp-sidebar-brand, ul a")
+    return [a.get_text(" ", strip=True) for a in links]
+
+
+def main_content(response):
+    """The page's ``<main>`` element."""
+    return BeautifulSoup(response.content, "html.parser").select_one("main")
+
+
+@pytest.mark.django_db
 class TestAccountLayout:
-    """``mvp/account/base.html`` — the layout a page in the area extends,
-    which declares the navigation itself (FR-012, FR-013)."""
+    """``mvp/account/base.html`` — the layout a page in the area extends. The
+    area's navigation is the sidebar's; the layout draws no navigation of its
+    own (FR-020, FR-021)."""
 
     @pytest.fixture(autouse=True)
-    def _account_urlconf(self):
-        """The area mounted, independent of whether the demo app also mounts
-        it (T011): the "overview" entry's ``view_name="account-center"`` has
-        to resolve for the navigation to draw it at all."""
-        with override_settings(ROOT_URLCONF=ACCOUNT_URLCONF):
+    def _account_fixture_urlconf(self):
+        with override_settings(ROOT_URLCONF=ACCOUNT_FIXTURE_URLCONF):
             yield
 
-    def test_page_content_renders_beside_the_navigation_panel(self):
-        html = _render("tests/account_layout_content.html")
-        assert "account-layout-test-content" in html
-        assert 'aria-label="Account navigation"' in html
+    @pytest.fixture
+    def signed_in(self, client, django_user_model):
+        user = django_user_model.objects.create_user(
+            username="accountlayoutuser", password="pass123!"
+        )
+        client.force_login(user)
+        return client
 
-    def test_the_navigation_is_a_landmark_with_an_accessible_name(self):
-        html = _render("tests/account_layout_content.html")
-        assert 'role="navigation"' in html
-        assert 'aria-label="Account navigation"' in html
-
-    def test_it_draws_the_entry_for_the_landing_page(self):
-        html = _render("tests/account_layout_content.html")
-        assert "Overview" in html
-
-    def test_a_persistent_card_renders_at_the_configured_breakpoint(self):
-        """Above ``lg`` (the test suite's configured breakpoint) the
-        navigation is a persistent block. ``mvp-desktop-only`` is the same
-        stylesheet rule (T015) the header's own desktop/mobile widget split
-        uses."""
-        html = _render("tests/account_layout_content.html")
-        assert "mvp-desktop-only" in html
-
-    def test_a_collapsed_control_renders_below_the_breakpoint(self):
-        html = _render("tests/account_layout_content.html")
-        assert "mvp-mobile-only" in html
-
-    def test_the_collapsed_control_is_the_packaged_dropdown(self):
-        html = _render("tests/account_layout_content.html")
-        assert "dropdown" in html
-        assert "dropdown-content" in html
-
-    def test_the_menu_is_processed_once_for_both_sites(self):
-        """One pass over the tree feeds both render sites. Processing it a
-        second time runs every entry's visibility check again for markup that
-        has to agree with the first copy anyway."""
-        source = ACCOUNT_BASE_TEMPLATE.read_text()
-        assert source.count("{% process_menu") == 1
-
-    def test_the_wide_panel_follows_the_content_and_the_collapsed_one_precedes_it(
-        self,
+    def test_the_landing_sidebar_carries_the_account_menu_under_a_back_link(
+        self, signed_in
     ):
-        """Markup order is what places the panel: the wide card after the
-        page's content so it sits on the right of the row, the collapsed
-        control before it so it stays above the page when the two stack."""
+        labels = sidebar_labels(signed_in.get(reverse("account-center")))
+
+        assert labels[1:3] == ["Back to example.com", "Overview"]
+
+    def test_the_landing_sidebar_carries_none_of_the_host_menu(self, signed_in):
+        labels = sidebar_labels(signed_in.get(reverse("account-center")))
+
+        assert "Home" not in labels
+        assert "Layout" not in labels
+
+    @pytest.mark.parametrize("breakpoint", ["sm", "lg", "2xl", "never"])
+    def test_no_second_navigation_is_drawn_in_the_main_content(
+        self, signed_in, monkeypatch, breakpoint
+    ):
+        monkeypatch.setitem(MVP_CONFIG["layout"]["sidebar"], "breakpoint", breakpoint)
+
+        main = main_content(signed_in.get(reverse("account-center")))
+
+        assert main.select(".dropdown, .menu") == []
+        assert "Account navigation" not in str(main)
+
+    def test_a_page_written_against_the_layout_renders_inside_the_area(
+        self, signed_in, testapp_account_entries
+    ):
+        response = signed_in.get(reverse("testapp_account:plain"))
+
+        assert response.status_code == 200
+        assert b'id="testapp-account-plain-content"' in response.content
+
+    def test_that_pages_entry_is_current_in_the_sidebar(
+        self, signed_in, testapp_account_entries
+    ):
+        response = signed_in.get(reverse("testapp_account:plain"))
+        soup = BeautifulSoup(response.content, "html.parser")
+
+        current = soup.select("aside.mvp-sidebar a.menu-active")
+
+        assert [a.get_text(" ", strip=True) for a in current] == ["Fixture Plain"]
+
+    def test_that_pages_sidebar_is_the_account_menu_under_a_back_link(
+        self, signed_in, testapp_account_entries
+    ):
+        labels = sidebar_labels(signed_in.get(reverse("testapp_account:plain")))
+
+        assert labels[1:3] == ["Back to example.com", "Overview"]
+        assert "Fixture Plain" in labels
+        assert "Home" not in labels
+
+    def test_the_content_block_renders_inside_a_container(self):
         html = _render("tests/account_layout_content.html")
-        content = html.index("account-layout-test-content")
-        sites = [
-            match.start()
-            for match in re.finditer(r'aria-label="Account navigation"', html)
-        ]
-        assert len(sites) == 2
-        collapsed, card = min(sites), max(sites)
-        assert collapsed < content < card
+        soup = BeautifulSoup(html, "html.parser")
+        content = soup.find(string=re.compile("account-layout-test-content"))
+
+        assert content.find_parent(class_="container") is not None
+
+    def test_the_layout_draws_no_menu_of_its_own(self):
+        source = ACCOUNT_BASE_TEMPLATE.read_text()
+
+        assert "process_menu" not in source
+        assert "c-dropdown" not in source
+        assert "c-card" not in source
 
     def test_the_layout_extends_the_projects_own_base_not_the_shell_directly(self):
         """Extends ``base.html`` — the unqualified name a project owns — not
@@ -589,7 +623,6 @@ class TestAccountLayout:
             line for line in source.splitlines() if "{% extends" in line
         )
         assert extends_line.strip() == '{% extends "base.html" %}'
-
 
 @pytest.mark.django_db
 class TestAccountMenuCurrentItem:

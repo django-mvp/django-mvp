@@ -18,6 +18,7 @@ configuration through Django settings, customization through template overrides.
 | [Components](components.md) | The Cotton component library reference |
 | [Navigation](navigation.md) | Sidebar and mobile-dock menus via django-flex-menus |
 | [Icons](icons.md) | How a name resolves, what the packaged set defines, and using a different one |
+| [Mounted apps](mounted-apps.md) | Running one django-mvp app inside another project: declaring, mounting, the host's menu entry, and what changes on the app's pages |
 | [Account Center](account-center.md) | The account area any installed app can add a page to |
 | [Views](views.md) | List/form/detail/delete views and mixins |
 | [Formsets](formsets.md) | A parent record and its related rows, and the standalone formset case |
