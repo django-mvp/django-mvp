@@ -3,9 +3,9 @@
 Each entry records a design choice the plan rests on, the evidence behind it, and what was
 rejected.
 
-## R1. The declaration is one class, `MountedApp`, in a new module `mvp/mounted.py`
+## R1. The package declares a `MountedApp` subclass, and the host mounts an instance of it
 
-A package writes:
+A package writes a class, with its settings as class attributes:
 
 ```python
 # literature/mounted.py
@@ -14,19 +14,26 @@ from mvp.mounted import MountedApp
 
 from .menus import LiteratureMenu
 
-literature = MountedApp(
-    name=_("Literature"),
-    icon="book",
-    menu=LiteratureMenu,          # a flex_menu Menu, declared by the package
-    urls="literature.urls",       # a dotted module path or a list of patterns
-    landing="literature:index",   # a URL name inside those URLs
-    check=None,                   # optional callable(request) -> bool (US-4)
-)
+
+class LiteratureApp(MountedApp):
+    name = _("Literature")
+    icon = "book"
+    menu = LiteratureMenu          # a flex_menu Menu, declared by the package
+    urls = "literature.urls"       # a dotted module path or a list of patterns
+    landing = "literature:index"   # a URL name inside those URLs
+    check = True                   # a bool or a callable(request) -> bool (US-4)
 ```
 
+The host creates the instance it mounts, and customises it either per instance, through keyword
+arguments that must name an attribute the class already defines (`LiteratureApp(icon="journal")`,
+refused with a `TypeError` otherwise, as `View.as_view()` refuses), or by subclassing. The check
+is decided by `has_permission(request)`, which a subclass overrides. This follows class-based
+views (`as_view(**initkwargs)` plus subclassing) and `ModelAdmin`'s `has_*_permission` methods
+(decisions.md D26).
+
 `MountedApp` holds the declaration and every behaviour that shares it: building the host's menu
-entry (`menu_item()`), running the check (`allows(request)`), and binding a view to the app when
-a request is resolved. The lookup of the current app for a request is a classmethod on the same
+entry (`menu_item()`), running the check (`has_permission(request)`), and binding a view to the
+app when a request is resolved. The lookup of the current app for a request is a classmethod on the same
 class. Article XVII: one subject, one class. No base class, no registry object, no hierarchy.
 
 The module name avoids `apps.py`, which Django owns for `AppConfig`.
@@ -92,10 +99,9 @@ root `URLResolver` object. `get_resolver()` caches that object per `ROOT_URLCONF
 `clear_url_caches()` drops it, so the registry follows URLconf changes in tests without a reset
 hook of its own.
 
-The walk refuses, with `ImproperlyConfigured` naming the app:
+The walk refuses, with `ImproperlyConfigured` naming the apps:
 
-- the same `MountedApp` found twice (FR-014);
-- a `MountedAppResolver` inside another one's patterns, naming both (FR-015);
+- a `MountedAppResolver` inside another one's patterns (FR-015);
 - more than one mount with `main=True` (FR-018).
 
 A system check (`Tags.urls`) runs the walk, so `runserver`, `check` and `migrate` refuse a bad
@@ -104,19 +110,26 @@ request that needs the registry.
 
 **Rejected:** a module-level list appended to by `mount()`. The test suite reloads `mvp.urls`
 (`tests/conftest.py`) and switches `ROOT_URLCONF` per test, so an import-time list would carry
-mounts from one URLconf into the next and report duplicates that are not there.
+mounts from one URLconf into the next.
+
+Mounting one app twice is not refused (D5). It is unsupported, and a project that tries it gets
+whatever the walk and the resolver make of it.
 
 ## R5. The sidebar, back link and title read one resolved value (FR-005, FR-007, FR-008, FR-010)
 
-A template tag, `{% mounted_app as mounted_app %}`, placed once at the top of `mvp/base.html`,
-resolves the current request's app. The shell reads that one value:
+The package's existing context processor, `mvp.context_processors.mvp_config`, which every
+project already installs, exposes the current request's app and the menu to draw as lazy values.
+Nothing is computed unless a template reads them (D27). The shell reads them from context:
 
 - `<c-app.sidebar>` draws the app's menu and a "Back to <site name>" link, which goes to the
-  sidebar's own `brand_url`, the host's home page (FR-007).
-- The page title renders `<page title> | <app name> | <site name>` through a `{% filter %}` around
-  the existing `title` block. A filter sees the block's rendered text, so an empty block becomes
-  `<app name> | <site name>` rather than ` | <app name> | ...`. With no app the filter returns its
-  input unchanged, so FR-010 holds byte for byte.
+  sidebar's own `brand_url`, the host's home page (FR-007). Cotton hands a component the parent
+  context, and under `COTTON_ENABLE_CONTEXT_ISOLATION` it builds a `RequestContext` for the
+  request, which runs the context processors again
+  (`django_cotton/templatetags/_component.py`, `_create_partial_context`). So the values reach
+  the component in both modes without `base.html` passing them down.
+- The page title is an `{% if %}` in `mvp/base.html` that appends ` | <app name>` after the
+  `title` block. A title-less page therefore reads ` | <app name> | <site name>`, the same way a
+  title-less page reads today (FR-008). With no app nothing is appended, so FR-010 holds.
 - `mvp/error_base.html` renders the title with no app segment. The error pages already replace
   the whole shell (`{% block app %}`) and draw no sidebar, so the title is the only place an app
   could leak onto one, including onto the 403 a failed check produces.

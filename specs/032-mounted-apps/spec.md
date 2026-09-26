@@ -18,7 +18,9 @@ and FairDM are the motivating pair. Each is deployable on its own and fills the 
 own navigation, and FairDM also wants to include django-literature as one part of itself. Today
 the only option is for the host to fold the other package's menu into its own, which means a large
 menu drawn on every page and a long integration guide. A package declares itself a mounted app,
-with a name, an icon, its own menu, its URLs and an optional check on who may see it. On its own
+with a name, an icon, its own menu, its URLs and an optional check on who may see it. The host
+mounts an instance of that declaration, and can change its name, icon, menu and check without
+changing the package. On its own
 pages the sidebar swaps to the app's menu, headed by a link back to the host, and every other page
 keeps the host's menu. The built-in Account Center becomes the first mounted app.
 
@@ -32,8 +34,9 @@ in `decisions.md`.
 
 - **Q: What does the browser title read on a mounted app's pages?**
   A: The title today reads `<page title> | <site name>`. Inside a mounted app, the app's name goes
-  before the site name: `<page title> | <app name> | <site name>`. A page with no title of its own,
-  such as the app's landing page, reads `<app name> | <site name>`. Recorded as FR-008.
+  before the site name: `<page title> | <app name> | <site name>`. A page with no title of its own
+  reads the way a title-less page reads today, with the leading separator:
+  ` | <app name> | <site name>`. Recorded as FR-008.
 
 - **Q: Which name does the link back to the host carry, and where does it go?**
   A: The host's site name, the same name the page title already ends with. It goes to the host's
@@ -47,9 +50,9 @@ in `decisions.md`.
 
 - **Q: What happens if a project mounts the same app twice, or mounts an app inside another
   mounted app?**
-  A: Neither is supported. Both are refused when the project starts, with an error that names the
-  app. Silently picking one of two mounts would make the sidebar depend on URL order. Recorded as
-  FR-014 and FR-015.
+  A: Neither is supported. Mounting an app inside another mounted app is refused when the project
+  starts, with an error that names both apps. Mounting one app twice is not refused: a project
+  that tries it gets whatever results. Recorded as FR-015.
 
 - **Q: How does a package that is also a site in its own right show its menu as the main sidebar?**
   A: The project names one mounted app as its main app. That app's menu becomes the sidebar on
@@ -91,7 +94,8 @@ app's is not.
    **Then** the sidebar renders the host's menu and the app's menu is not rendered.
 4. **Given** a page in the app that declares its own title, **When** it renders, **Then** the
    browser title reads `<page title> | <app name> | <site name>`. **Given** a page in the app with
-   no title of its own, **Then** it reads `<app name> | <site name>`.
+   no title of its own, **Then** it reads ` | <app name> | <site name>`, the way a title-less page
+   outside any app reads ` | <site name>`.
 5. **Given** a host that adds an entry for the app to one of its menus from the app's declaration,
    **When** that menu renders, **Then** the entry carries the app's name, icon and landing address
    without the host restating them.
@@ -101,6 +105,11 @@ app's is not.
    **Then** every link the app's menu draws still resolves.
 8. **Given** a project that mounts no app, **When** any page renders, **Then** the sidebar, title
    and menus are exactly what they were before this feature.
+9. **Given** a host that mounts the app with a different icon or name, passed when it creates the
+   instance it mounts or set on a subclass of the package's declaration, **When** the host's entry
+   and a page of the app render, **Then** they carry the host's values, and the package is
+   unchanged. **Given** a keyword the declaration does not define, **Then** creating the instance
+   fails with an error naming it.
 
 ---
 
@@ -241,6 +250,9 @@ regular user and as staff, and confirm the three responses.
   anything to the host's menus.
 - **FR-004**: A host MUST be able to add an entry for a mounted app to any of its menus from the
   app's declaration, with the entry carrying the app's name, icon and landing address.
+- **FR-014**: A host MUST be able to change a mounted app's name, icon, menu and check without
+  changing the package, either for the one instance it mounts or by subclassing the package's
+  declaration. A setting the declaration does not define MUST be refused with an error naming it.
 
 **Pages inside a mounted app**
 
@@ -252,8 +264,8 @@ regular user and as staff, and confirm the three responses.
   "Back to <site name>" that goes to the host's home page. The site name MUST be the one the page
   title already uses.
 - **FR-008**: On a page served by a mounted app, the browser title MUST read
-  `<page title> | <app name> | <site name>`, or `<app name> | <site name>` for a page with no
-  title of its own.
+  `<page title> | <app name> | <site name>`. A page with no title of its own reads
+  ` | <app name> | <site name>`, the same way a title-less page outside any app reads.
 - **FR-009**: Any host menu entry for a mounted app that is drawn on the app's own pages, such as
   one in the mobile dock, MUST be marked as current there.
 - **FR-010**: On every page that belongs to no mounted app, the sidebar, title and menus MUST
@@ -271,8 +283,6 @@ regular user and as staff, and confirm the three responses.
 
 **What is refused**
 
-- **FR-014**: Mounting the same app more than once in one project MUST be refused when the project
-  starts, with an error that names the app.
 - **FR-015**: Mounting an app inside the URLs of another mounted app MUST be refused when the
   project starts, with an error that names both apps.
 
@@ -325,8 +335,8 @@ its own surface and records its change in the changelog. FR-024 lands with the f
 ### Key Entities
 
 - **Mounted app**: a package built on django-mvp that declares a name, an icon, its own menu, its
-  URLs, its landing page and optionally a visibility check, so that a host project can place it
-  under an address of its choosing.
+  URLs, its landing page and optionally a visibility check, so that a host project can place an
+  instance of it under an address of its choosing and adjust that instance to fit.
 - **Host project**: the Django project that mounts one or more mounted apps. It owns everything
   outside them: its own menu, header, brand, footer, theme, user menu and mobile dock.
 - **Main app**: the one mounted app, if any, whose menu a project uses as its sidebar everywhere
@@ -354,7 +364,8 @@ its own surface and records its change in the changelog. FR-024 lands with the f
 ## Assumptions
 
 - Mounting is one level deep. An app mounted inside another mounted app is refused rather than
-  supported, and so is mounting one app twice. Both wait until a project needs them.
+  supported. Mounting one app twice is not supported either, but it isn't refused. Both wait
+  until a project needs them.
 - Installing a mounted app's package works as it does today, including its entry in
   `INSTALLED_APPS` and any settings it needs. This feature covers how the app's pages are placed
   and navigated, not how the package is installed.

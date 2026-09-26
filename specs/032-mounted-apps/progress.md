@@ -103,3 +103,4 @@
 - Next: full verify, then the report.
 - Watch: none.
 - 2026-09-25 — Converge: all 28 FRs traced to tests or docs; every decision carries an ADR verdict; D1/D2/D5/D9 graduated to ADR 0028.
+- 2026-09-26 — Walkthrough: behaviour approved. Sam asked for three API changes (class declaration customised by the host, no duplicate-mount refusal, context processor instead of tag). spec.md, decisions.md (D5, D21, D23, D26, D27), research.md and plan.md amended; T017–T019 added.

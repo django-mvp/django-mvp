@@ -2,7 +2,7 @@
   "feature": "032-mounted-apps",
   "branch": "032-mounted-apps",
   "repo": "django-mvp/django-mvp",
-  "state": "PR_READY",
+  "state": "IMPLEMENT",
   "state_history": [
     {
       "state": "QUEUED",
@@ -38,6 +38,11 @@
       "state": "PR_READY",
       "at": "2026-09-25T15:12:04Z",
       "note": "PR #408 ready, walkthrough sent"
+    },
+    {
+      "state": "IMPLEMENT",
+      "at": "2026-09-26T05:37:50Z",
+      "note": "walkthrough changes: T017-T019"
     }
   ],
   "gates": {
@@ -70,6 +75,15 @@
         "SEC-002 low: filter output not autoescaped \u2014 conditional_escape, plan row V",
         "SPEC-003 low / ARCH-005 low: docs items folded into T008/T014"
       ]
+    },
+    "walkthrough": {
+      "approved_by": "SamuelJennings",
+      "at": "2026-09-26T05:37:50Z",
+      "self_resolved": [
+        "host customises a mounted app per instance or by subclassing \u2014 class declaration, T017",
+        "no restriction on mounting an app twice \u2014 T018",
+        "context processor instead of a template tag and filter \u2014 T019"
+      ]
     }
   },
   "stories": [
@@ -78,7 +92,7 @@
       "priority": "P1",
       "issue": 404,
       "worktree": "/home/sam/projects/django-mvp/dm-032-mounted-apps",
-      "status": "done",
+      "status": "in_progress",
       "replans": 0,
       "tasks": [
         {
@@ -161,6 +175,21 @@
               "forge verify after dropping the demo dock entry: lint, typecheck, test, build passed"
             ]
           }
+        },
+        {
+          "id": "T017",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T018",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T019",
+          "status": "todo",
+          "attempts": 0
         }
       ]
     },

@@ -304,3 +304,79 @@ Tests (staff-only check):
 **Files**: `docs/mounted-apps.md`, `CHANGELOG.md`
 
 A "Limiting who can reach an app" section with a staff-only example.
+
+---
+
+## Changes from the walkthrough (US-1, US-4)
+
+Issue: #404 (and #407 for the check). Delivers FR-014 as it now reads, and FR-008's title as it
+now reads. Decisions D5, D26 and D27. One implementer, in order.
+
+### T017 — The package declares a class, and the host mounts an instance it can adjust (FR-014, D26)
+
+**Files**: `mvp/mounted.py`, `mvp/views/account.py`, `mvp/urls.py`, `tests/testapp_mounted/`,
+`demo/library/`, `demo/menus.py`, `demo/urls.py`, `tests/test_mounted.py`, test URLconfs,
+`docs/mounted-apps.md`, `docs/account-center.md`, `docs/adr/0028-…`, `CHANGELOG.md`,
+`CONTEXT.md` if its entry describes the old form
+
+`MountedApp` becomes a base class with class attributes `name`, `icon`, `menu`, `urls`,
+`landing` and `check = True`. `__init__(**kwargs)` accepts only names the class already defines,
+sets them on the instance, and raises `TypeError` naming any other keyword, as
+`View.as_view()` does. `has_permission(self, request)`: if `check` is callable, return
+`bool(check(request))`, else `bool(check)`. Test for a callable first. A plain function assigned
+as the class attribute `check` must be called with the request alone, never bound as a method.
+Every place that used `permits()` calls `has_permission()`. `mount()` takes an instance.
+Per-instance state (the bound-view cache) is created in `__init__`. The Account Center becomes
+`class AccountCenterApp(MountedApp)`, and `mvp.urls` mounts an instance of it. Keep a
+module-level instance that `mvp.urls` mounts, so a host can still call `menu_item()` on it.
+
+Tests:
+- a subclass declared the package's way mounts and behaves as before (every existing test,
+  moved to the class form)
+- a host instance with `icon="journal"` and one with a different `name`: the host's entry and
+  the page title carry the host's values, and the package class is unchanged (US-1 scenario 9)
+- a host subclass overriding `name` and `has_permission()` (calling `super()`) behaves the same
+- an unknown keyword raises `TypeError` naming it (scenario 9)
+- `check` as `True`, `False`, a callable returning each, and a plain function set as the class
+  attribute
+- the host's entry built from the mounted instance is current on its pages
+
+### T018 — Mounting one app twice is no longer refused (D5)
+
+**Files**: `mvp/mounted.py`, `tests/test_mounted.py`, `docs/mounted-apps.md`, `CHANGELOG.md`
+
+Remove the duplicate-mount refusal from `scan()` and the tests asserting it. Remove the
+"include `mvp.urls` only once" part of the `mvp.E001` hint and the changelog line saying a second
+include is refused. Keep the nested-mount and two-main-apps refusals and their tests. The docs
+say mounting twice is unsupported, not that it is refused.
+
+Tests:
+- a URLconf mounting one app twice passes the system check (replacing the old refusal test)
+
+### T019 — The context processor replaces the tag and the title filter (FR-008, D27)
+
+**Files**: `mvp/context_processors.py`, `mvp/templatetags/mvp.py`, `mvp/templates/mvp/base.html`,
+`mvp/templates/mvp/error_base.html`, `mvp/templates/cotton/app/sidebar/index.html`,
+`tests/test_templatetags.py`, `tests/test_mounted.py`, a mirror test module for the context
+processor, `docs/mounted-apps.md`, `docs/layout.md`, `CHANGELOG.md`
+
+`mvp_config` adds two lazy values, built with `SimpleLazyObject` or equivalent so nothing is
+computed unless read: the app to name (title and back link; `None` for no app and for a main
+app) and the menu to draw. Pick names that read well in a template, such as `mounted_app` and
+`mounted_menu`. Note that a lazy `None` must still be false in `{% if %}`. Remove the
+`{% mounted_app %}` tag, the `mounted_title` filter and their tests. `<c-app.sidebar>` reads the
+values from context when its own `menu` attribute is empty. An explicit `menu` still wins with
+no back link. `mvp/base.html` stops passing `menu` and `mounted-app` to `<c-app.sidebar>`, and
+the `docs/layout.md` override examples go back to what they were before this feature. The title is
+`{% block title %}{% endblock title %}` followed by an `{% if %}` appending ` | <app name>`,
+inside a block that `mvp/error_base.html` overrides so error pages name no app. A title-less
+page in an app reads ` | <app name> | <site name>`.
+
+Tests:
+- the sidebar swap, back link and explicit-menu tests pass unchanged in behaviour
+- **Cotton isolation:** with `COTTON_ENABLE_CONTEXT_ISOLATION = True` via `override_settings`,
+  an app page still draws the app's menu and the back link
+- a page that renders nothing reading the values runs no lookup: patch the lookup and assert it
+  was not called
+- title-less app page: ` | <app name> | <site name>` (whitespace-normalised)
+- a no-app page's `<title>` still matches the pinned output (T002)

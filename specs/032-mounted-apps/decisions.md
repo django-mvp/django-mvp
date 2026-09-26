@@ -53,12 +53,13 @@ could gain access by signing in is told how.
 
 **ADR:** none — it follows Django's own access mixins, so nothing about it is non-obvious.
 
-## D5. Mounting twice, and mounting inside a mounted app, are refused at startup
+## D5. Mounting inside a mounted app is refused; mounting one app twice is left alone
 
-The maintainer has no current use for either, and ruled them out of scope until one appears.
-Refusing them loudly, rather than tolerating them, keeps the choice of sidebar from ever depending
-on the order of URL patterns. Adding support later loosens the rule without breaking any project
-that works today.
+The maintainer has no current use for either, and ruled both out of scope until one appears.
+Mounting an app inside another mounted app is refused at startup, because the sidebar would then
+have two apps to choose between on one page. Mounting the same app twice is not supported, but
+it isn't prevented either: the maintainer does not want a restriction placed on it, and a project
+that wants to experiment with it can.
 
 **ADR:** docs/adr/0028-a-mounted-app-is-known-by-the-view-its-mount-resolved.md
 
@@ -236,7 +237,7 @@ Assertions on the panel's two regions dropped from `tests/test_components/test_r
 
 **Decision:** in `tests/test_views/test_account.py`, `_urlconf()` and `_fixture_urlconf()` drop their own `path("", include("mvp.urls"))`. Each already includes `demo.urls`, which includes `mvp.urls`. No test body or assertion changed.
 
-**Why:** the Account Center is now a mounted app, and a project that mounts one app twice fails the startup check and any request that reads the mounts. Nine tests in that file were red only because their helper mounted it twice.
+**Why:** the Account Center is now a mounted app, so including `mvp.urls` twice mounts it twice, which is unsupported (D5). Each helper already reached `mvp.urls` through `demo.urls`, so its own include was redundant.
 
 **Revisit if:** a helper needs `mvp.urls` ahead of `demo.urls`. `_urlconf_with_allauth()` in the same file still includes it twice, ahead of allauth by design; the tests using it do not read the mounts, so it stays green, and it is flagged in the report.
 
@@ -252,19 +253,18 @@ Assertions on the panel's two regions dropped from `tests/test_components/test_r
 
 **ADR:** none — commit ordering only.
 
-## D23. The main app's check is read through `MountedApp.permits()`
+## D23. The main app's check is read through `MountedApp.has_permission()`
 
-D14 says a main app whose check refuses the request is not drawn. The tag calls
-`MountedApp.permits(request)` (no `check` means everyone) and falls back to `AppMenu` when it
-returns false. `permits()` is the single place US-4 fills in. It is called only from the tag's
-main-app branch: pages and `menu_item()` still do not enforce the check.
+D14 says a main app whose check refuses the request is not drawn. The lookup of the menu to
+draw calls `MountedApp.has_permission(request)` and falls back to `AppMenu` when it returns
+false. The same method is what the view wrapper, the host's menu entry and the request's app
+lookup ask (D26).
 
-**Revisit if:** US-4 wants a different name or signature for the visibility rule.
 **ADR:** none — the name of one method, local to mvp/mounted.py.
 
 ## D24. The check runs synchronously in an async view's wrapper
 
-**Decision:** `bind()`'s async wrapper calls `permits()` directly rather than through `sync_to_async`. The docstring on `MountedApp` says a check must not touch the database from an async view.
+**Decision:** `bind()`'s async wrapper calls `has_permission()` directly rather than through `sync_to_async`. The docstring on `MountedApp` says a check must not touch the database from an async view.
 
 **Why:** `asgiref` is not a declared dependency, and importing it is refused by deptry. Adding a dependency is outside this story.
 
@@ -274,10 +274,51 @@ main-app branch: pages and `menu_item()` still do not enforce the check.
 
 ## D25. `for_request()` returns `None` for a refused request, after the lookup
 
-**Decision:** `for_request()` resolves the app as before, then answers `None` when that app's `permits()` is false. `claiming_menu()` also skips an app whose check fails, so the next app whose menu marks the page current can claim it.
+**Decision:** `for_request()` resolves the app as before, then answers `None` when that app's `has_permission()` is false. `claiming_menu()` also skips an app whose check fails, so the next app whose menu marks the page current can claim it.
 
 **Why:** D15. A refused request shows no app in any template, including a project's own 403 page. Skipping in `claiming_menu()` keeps a refusing app from hiding a page another app's menu also links.
 
 **Revisit if:** never.
 
 **ADR:** none — part of D15's contract, local to for_request().
+
+## D26. The package declares a class, and the host mounts an instance it can adjust
+
+**Decision:** a package declares its app as a `MountedApp` subclass, with `name`, `icon`,
+`menu`, `urls`, `landing` and `check` as class attributes. The host always mounts an instance:
+`mount("literature/", LiteratureApp(icon="journal"))`. It changes the name, icon, menu or check
+without touching the package, either per instance, through keyword arguments that must name an
+attribute the class already defines (anything else is a `TypeError` naming the keyword), or by
+subclassing. `check` is a bool or a callable. `has_permission(self, request)` decides access and
+is the method a subclass overrides, calling `super()` if it wants the declared check too. By
+default it calls `check` with the request when it is callable, and otherwise uses its truth
+value. The callable test comes first, because a function is always truthy. The host builds its
+menu entry from the same instance it mounted: `literature.menu_item()`.
+
+**Why:** an app instantiated by its own package left the host no say. A host whose icons clash, or
+which wants its own rule about who may see the app, had to fork or monkey-patch. This follows two
+Django precedents a Django developer already knows. Class-based views take per-instance settings
+through `as_view(**initkwargs)`, which refuses a keyword the class does not define, and they take
+larger changes through subclassing. `ModelAdmin` decides access in `has_*_permission` methods that
+a subclass overrides.
+
+**ADR:** docs/adr/0028-a-mounted-app-is-known-by-the-view-its-mount-resolved.md
+
+## D27. The current app reaches templates through the package's context processor
+
+**Decision:** `mvp.context_processors.mvp_config`, which every project using the shell already
+installs, adds the current request's mounted app and the menu the sidebar should draw, as lazy
+values. Neither is computed unless a template reads it. `<c-app.sidebar>` reads them from context
+the way it already reads `mvp_config`, and `mvp/base.html` appends the app's name to the title with
+an `{% if %}`. There is no template tag or filter for it.
+
+**Why:** the maintainer asked for the context processor when the idea was first discussed, and
+does not want the template tag library to grow. The first build used a tag and a title filter
+with no decision recorded for either. The filter existed only to drop the leading separator on a
+page with no title. The title now reads the way a title-less page already reads, which removes
+the filter's reason to exist. Cotton passes the parent context to a component, and under context
+isolation it builds a `RequestContext` for the request, which runs the processors again. So the
+values reach the sidebar in both modes without `base.html` passing them down.
+
+**ADR:** none — how a value reaches the templates, local to the shell and recorded here.
+
