@@ -49,8 +49,8 @@ class TestLibraryPages:
 
         assert "Layout" not in labels
 
-    def test_landing_title_is_the_app_then_the_site(self, client):
-        assert normalised_title(client.get("/library/")) == "Library | example.com"
+    def test_landing_title_is_a_bar_then_the_app_then_the_site(self, client):
+        assert normalised_title(client.get("/library/")) == "| Library | example.com"
 
     def test_reading_list_title_is_the_page_then_the_app_then_the_site(self, client):
         response = client.get("/library/reading-list/")

@@ -76,7 +76,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   name*" link instead of `AppMenu`, and the navigation panel beside the content (a card on wide
   screens, a dropdown on narrow ones) is gone. `mvp/account/base.html` keeps its name and its
   `account.content` block, so a page written against it renders unchanged, now inside a container
-  that draws nothing else. The landing page's tab title is `Account Center | <site name>`, and the
+  that draws nothing else. The landing page's tab title is `| Account Center | <site name>`, and the
   landing's URL name is still `account-center`. A page an installed app adds to the Account
   Center from its own URLs joins it when `AccountCenterMenu` has an entry for it, with no change
   to the app. A page that draws its own copy of `AccountCenterMenu` now shows the menu twice, in

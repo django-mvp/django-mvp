@@ -122,3 +122,9 @@
 - Verified: the new tests failed first (`KeyError: 'mounted_app'`; the isolation tests drew no app menu). After the change `uv run pytest tests/test_context_processors.py tests/test_components/test_app_sidebar.py tests/test_mounted.py tests/test_templatetags.py -q` → 185 passed.
 - Next: full verify, then the report.
 - Watch: under `COTTON_ENABLE_CONTEXT_ISOLATION` the menu renderer's item labels come out empty for an explicit menu too, so the isolation tests assert on link addresses.
+
+## 2026-09-26T07:40Z · Implementer US1 · full verify
+- Did: the full run found two tests whose subject is the old title-less title (`tests/test_views/test_account.py`, `tests/test_demo/test_library.py`, both authored in this feature); they now expect ` | <app name> | <site name>`. The docs' Account Center tab title reads `| Account Center | <site name>`.
+- Verified: see the completion report for the final run.
+- Next: report.
+- Watch: none.

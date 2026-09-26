@@ -175,7 +175,7 @@ It is declared in `mvp/views/account.py` as the class `AccountCenterApp`, with a
 `account_center`, that `mvp.urls` mounts. It uses `AccountCenterMenu` as its
 menu and `account-center` as its landing, and `mvp.urls` mounts it at `account/`. On its pages
 the sidebar draws the area's menu under "Back to *site name*", and the title reads
-`Account Center | <site name>`. The landing's URL name stays `account-center`, with no
+`| Account Center | <site name>`. The landing's URL name stays `account-center`, with no
 namespace, so `reverse("account-center")` still gives `/account/`.
 
 Pages other installed apps add to the Account Center are served from those apps' own URLs. They

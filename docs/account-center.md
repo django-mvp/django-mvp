@@ -145,7 +145,7 @@ The Account Center is a [mounted app](mounted-apps.md), the package's own exampl
 `AccountCenterMenu` and none of `AppMenu`, under a link that goes back to the site's home
 page. The page carries no second navigation of its own: the layout used to draw the menu a
 second time beside the content, and no longer does. The browser tab reads
-`Account Center | <site name>`.
+`| Account Center | <site name>`.
 
 A page an installed app adds to the area is served from that app's own URLs, not from the
 area's, so it is not reached through the mount. It is treated as part of the area when

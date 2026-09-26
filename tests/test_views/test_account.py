@@ -464,14 +464,16 @@ class TestAccountCenterView:
         assert "mvp-sidebar" in content
         assert "mvp-header" in content
 
-    def test_the_title_is_the_area_then_the_site(self, client, django_user_model):
+    def test_the_title_is_a_bar_then_the_area_then_the_site(self, client, django_user_model):
         user = django_user_model.objects.create_user(
             username="accountcentertitle", password="pass123!"
         )
         client.force_login(user)
         response = client.get(reverse("account-center"))
         soup = BeautifulSoup(response.content, "html.parser")
-        assert " ".join(soup.title.get_text().split()) == "Account Center | example.com"
+        assert " ".join(soup.title.get_text().split()) == (
+            "| Account Center | example.com"
+        )
 
     def test_signed_in_request_shows_no_cards(self, client, django_user_model):
         """No app has contributed a card, so the card region renders empty
