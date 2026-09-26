@@ -5,6 +5,7 @@ Source: mvp/mounted.py
 
 import asyncio
 import inspect
+import re
 
 import pytest
 from bs4 import BeautifulSoup
@@ -556,10 +557,21 @@ class TestMountedPageTitle:
 
         assert normalised_title(response) == "Detail | Mounted Fixture | example.com"
 
-    def test_untitled_page_reads_app_then_site(self, client):
+    def test_untitled_page_reads_a_bar_then_app_then_site(self, client):
         response = client.get("/mounted/")
 
-        assert normalised_title(response) == "Mounted Fixture | example.com"
+        assert normalised_title(response) == "| Mounted Fixture | example.com"
+
+    def test_app_name_is_escaped_in_the_title(self, client):
+        host = MountedFixtureApp(name="<b>Lib</b> & co")
+
+        with override_settings(ROOT_URLCONF=urlconf_of(mount("j/", host))):
+            response = client.get("/j/detail/")
+
+        title = re.search(r"<title>(.*?)</title>", response.content.decode(), re.S)
+        assert " ".join(title.group(1).split()) == (
+            "Detail | &lt;b&gt;Lib&lt;/b&gt; &amp; co | example.com"
+        )
 
     def test_host_page_title_is_unchanged(self, client):
         response = client.get("/layout/")

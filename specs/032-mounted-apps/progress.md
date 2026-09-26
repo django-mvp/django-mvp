@@ -116,3 +116,9 @@
 - Verified: the two new tests failed first (the refusal was still raised; the hint still named `mvp.urls`). `uv run pytest tests/test_mounted.py -q` → 113 passed.
 - Next: T019.
 - Watch: none.
+
+## 2026-09-26T07:20Z · Implementer US1 · T019
+- Did: `mvp_config` adds lazy `mounted_app` and `mounted_menu` (`SimpleLazyObject` over the new `MountedApp.shell(request)`, which holds what the tag used to compute). Removed the `{% mounted_app %}` tag and the `mounted_title` filter from `mvp/templatetags/mvp.py`. `<c-app.sidebar>` reads the values from context when its own `menu` is empty and has no `mounted-app` attribute; `mvp/base.html` passes nothing to it. The title is the `title` block plus `{% if mounted_app %} | <name>{% endif %}` inside `head.title`, which `error_base.html` already overrides. `docs/layout.md` override examples are back to `<c-app.sidebar title="Acme Admin" />`, `<c-app.sidebar boost />` and `<c-app.sidebar />`. New `tests/test_context_processors.py`; new `TestSidebarUnderContextIsolation` in `tests/test_components/test_app_sidebar.py`.
+- Verified: the new tests failed first (`KeyError: 'mounted_app'`; the isolation tests drew no app menu). After the change `uv run pytest tests/test_context_processors.py tests/test_components/test_app_sidebar.py tests/test_mounted.py tests/test_templatetags.py -q` → 185 passed.
+- Next: full verify, then the report.
+- Watch: under `COTTON_ENABLE_CONTEXT_ISOLATION` the menu renderer's item labels come out empty for an explicit menu too, so the isolation tests assert on link addresses.

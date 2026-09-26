@@ -1,4 +1,4 @@
-{% load static mvp %}{% mounted_app as mounted %}
+{% load static mvp %}
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -28,8 +28,8 @@
       <meta charset="UTF-8" />
       <meta http-equiv="X-UA-Compatible" content="IE=edge" />
       <title>
-        {% block head.title %}{% filter mounted_title:mounted.app %}{% block title %}
-        {% endblock title %}{% endfilter %}{% endblock head.title %}
+        {% block head.title %}{% block title %}
+        {% endblock title %}{% if mounted_app %} | {{ mounted_app.name }}{% endif %}{% endblock head.title %}
         | {% firstof mvp_config.site_name request.site.name %}
       </title>
       <meta name="viewport"
@@ -103,9 +103,7 @@
       <c-app :breakpoint="breakpoint" :collapse="collapse">
         <c-slot name="sidebar">
           {% block app.sidebar %}
-            <c-app.sidebar :collapse="collapse"
-                           :menu="mounted.menu"
-                           :mounted-app="mounted.app" />
+            <c-app.sidebar :collapse="collapse" />
           {% endblock app.sidebar %}
         </c-slot>
         {% block app.header %}

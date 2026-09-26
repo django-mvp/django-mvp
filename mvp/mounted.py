@@ -41,7 +41,7 @@ from __future__ import annotations
 import functools
 import inspect
 from collections.abc import Callable
-from typing import Any
+from typing import Any, NamedTuple
 
 from django.contrib.auth.views import redirect_to_login
 from django.core.checks import CheckMessage, Error
@@ -56,6 +56,20 @@ VIEW_ATTRIBUTE = "mounted_app"
 
 #: Attribute on a root URL resolver holding the mounts found beneath it.
 REGISTRY_ATTRIBUTE = "mounted_apps"
+
+
+class MountedShell(NamedTuple):
+    """What the shell reads about the current page's mounted app.
+
+    ``app`` is the app to name in the page title and the back link. ``menu`` is
+    the menu the sidebar draws. Both are ``None`` when the page belongs to no
+    app, and the sidebar then falls back to ``AppMenu``. In a project with a
+    main app, a page that belongs to no other app draws the main app's menu
+    with no ``app``, so no back link and no title segment.
+    """
+
+    app: MountedApp | None
+    menu: Menu | None
 
 
 class MountedApp:
@@ -240,6 +254,21 @@ class MountedApp:
             app = None
         request._mounted_app = app  # type: ignore[attr-defined]
         return app  # type: ignore[no-any-return]
+
+    @classmethod
+    def shell(cls, request: HttpRequest) -> MountedShell:
+        """Return what the shell draws for ``request``: the app to name and the menu.
+
+        A main app is named nowhere. One that refuses the request is not drawn
+        either, and the page falls back to ``AppMenu`` (decision D14).
+        """
+        app = cls.for_request(request)
+        main = cls.main(request)
+        if main is not None and app in (None, main):
+            return MountedShell(
+                None, main.menu if main.has_permission(request) else None
+            )
+        return MountedShell(app, app.menu if app is not None else None)
 
     @classmethod
     def claiming_menu(cls, request: HttpRequest) -> MountedApp | None:

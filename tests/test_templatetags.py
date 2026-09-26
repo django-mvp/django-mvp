@@ -13,10 +13,7 @@ import re
 import pytest
 from django.core.exceptions import ImproperlyConfigured
 from django.template import Context, Template
-from django.urls import resolve
 from django.utils.safestring import SafeData
-
-from mvp.mounted import MountedApp
 
 # ---------------------------------------------------------------------------
 # Module-level callables used as custom resolvers in tests.
@@ -523,65 +520,3 @@ class TestRowHeaderColumns:
                 row_headers = ("icon",)
 
         assert self._tag()(Hidden([{"icon": "i", "name": "a"}])) == ("icon",)
-
-
-class TestMountedAppTag:
-    """``{% mounted_app %}`` says which app to name and which menu to draw."""
-
-    TEMPLATE = (
-        "{% load mvp %}{% mounted_app as shell %}"
-        "{{ shell.app.name|default:'-' }}|{{ shell.menu.name|default:'-' }}"
-    )
-
-    def test_no_request_yields_neither(self):
-        rendered = Template(self.TEMPLATE).render(Context({}))
-
-        assert rendered == "-|-"
-
-    def test_host_request_yields_neither(self, rf):
-        request = rf.get("/layout/")
-        request.resolver_match = resolve("/layout/", urlconf="demo.urls")
-
-        rendered = Template(self.TEMPLATE).render(Context({"request": request}))
-
-        assert rendered == "-|-"
-
-    def test_app_request_yields_the_app_and_its_menu(self, rf):
-        request = rf.get("/mounted/")
-        request.resolver_match = resolve("/mounted/", urlconf="tests.urls_mounted")
-
-        rendered = Template(self.TEMPLATE).render(Context({"request": request}))
-
-        assert rendered == "Mounted Fixture|TestappMountedMenu"
-
-
-class TestMountedTitleFilter:
-    """The title filter adds the app's name after the page's own title."""
-
-    def render(self, title, name):
-        app = MountedApp(name=name, icon="box", menu=None, urls=[], landing="x")
-        template = Template(
-            "{% load mvp %}{% filter mounted_title:app %}{{ title }}{% endfilter %}"
-        )
-        return template.render(Context({"title": title, "app": app}))
-
-    def test_titled_page_gains_the_app_name(self):
-        assert self.render("Detail", "Library") == "Detail | Library"
-
-    def test_untitled_page_reads_the_app_name_alone(self):
-        assert self.render("", "Library") == "Library"
-
-    def test_whitespace_around_the_title_is_dropped(self):
-        assert self.render("\n  Detail\n  ", "Library") == "Detail | Library"
-
-    def test_no_app_returns_the_text_unchanged(self):
-        template = Template(
-            "{% load mvp %}{% filter mounted_title:none %}\n Detail\n{% endfilter %}"
-        )
-
-        assert template.render(Context({"none": None})) == "\n Detail\n"
-
-    def test_app_name_is_escaped(self):
-        assert self.render("Detail", "<b>Lib</b> & co") == (
-            "Detail | &lt;b&gt;Lib&lt;/b&gt; &amp; co"
-        )

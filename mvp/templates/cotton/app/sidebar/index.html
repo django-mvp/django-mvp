@@ -3,7 +3,6 @@
         brand-url="/"
         class
         menu=""
-        mounted-app=""
         :collapse="mvp_config.layout.sidebar.collapse"
         :title="mvp_config.layout.sidebar.title"
         :boost="mvp_config.layout.sidebar.boost" />
@@ -20,18 +19,23 @@
   <c-app.sidebar.header link="{{ brand_url }}" :bg="bg" :title="title" />
   {% comment %}
     `menu` is empty unless a page passes one, and a page that does gets that
-    menu with no back link. `mounted-app` is what `mvp/base.html` passes for a
-    page served by a mounted app, with that app's menu as `menu`. With neither,
-    the sidebar draws `AppMenu`. Both arrive as attributes: a component reads
-    nothing from its parent's context under Cotton's context isolation.
+    menu with no back link. Otherwise the sidebar reads `mounted_app` and
+    `mounted_menu` from the context: the values `mvp.context_processors.mvp_config`
+    adds, which reach a component under Cotton's context isolation too, because
+    Cotton builds a request context for it and that runs the processor again.
+    With neither, the sidebar draws `AppMenu`.
   {% endcomment %}
-  {% if mounted_app %}<c-app.sidebar.back :url="brand_url" />{% endif %}
-  <div class="flex w-full">
-    {% if menu is None or menu == "" %}
-      {% render_menu "AppMenu" renderer="sidebar" %}
-    {% else %}
-      {% render_menu menu renderer="sidebar" %}
-    {% endif %}
-  </div>
+  {% if menu is None or menu == "" %}
+    {% if mounted_app %}<c-app.sidebar.back :url="brand_url" />{% endif %}
+    <div class="flex w-full">
+      {% if mounted_menu %}
+        {% render_menu mounted_menu renderer="sidebar" %}
+      {% else %}
+        {% render_menu "AppMenu" renderer="sidebar" %}
+      {% endif %}
+    </div>
+  {% else %}
+    <div class="flex w-full">{% render_menu menu renderer="sidebar" %}</div>
+  {% endif %}
   <c-app.sidebar.footer :bg="bg" />
 </aside>

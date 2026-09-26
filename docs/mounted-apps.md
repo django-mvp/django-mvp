@@ -217,16 +217,15 @@ On a page served through the mount:
   accessible name. If the app's menu has nothing visible for the current person, the back link
   is all the sidebar shows.
 - **The title names the app**: `Detail | Library | Example` for a page titled "Detail", and
-  `Library | Example` for a page with no title of its own.
+  ` | Library | Example` for a page with no title of its own.
 - **The mobile dock is unchanged.**
 - **Error pages name no app.** A 404 raised inside the app renders the ordinary error page, with
   no app in the title and no sidebar.
 
 A page that passes `menu=` to `<c-app.sidebar>` explicitly keeps that menu with no back link, even
 inside an app. Overriding the `app.sidebar` block this way is how a page opts out. An override
-that should keep the swap passes the resolved values on, as the default block does:
-`<c-app.sidebar :menu="mounted.menu" :mounted-app="mounted.app" />`. An override that passes
-neither draws `AppMenu` everywhere.
+that passes no `menu` keeps the swap, because the sidebar reads the current app from the
+context by itself.
 
 Pages outside every mounted app, and every project that mounts none, render as they always have.
 
@@ -299,14 +298,17 @@ first time it needs to know which apps are mounted.
 
 ## Reading the current app in a template
 
-`{% mounted_app as shell %}` resolves the current page's app once. `shell.app` is the app to
-name (`None` outside an app, and for the main app), and `shell.menu` is the menu to draw. The shell itself uses it in
-`mvp/base.html`, and a project's own base template can do the same:
+The package's context processor, `mvp.context_processors.mvp_config`, adds two values to every
+template context. `mounted_app` is the app to name (false outside an app, and for the main app),
+and `mounted_menu` is the menu to draw (false when the page belongs to no app). The sidebar and
+the page title read them, and a project's own templates can do the same:
 
 ```html
-{% load mvp %}
-{% mounted_app as shell %}
-{% if shell.app %}You are in {{ shell.app.name }}.{% endif %}
+{% if mounted_app %}You are in {{ mounted_app.name }}.{% endif %}
 ```
+
+Both are lazy, so a page that never reads them does no lookup. They reach the sidebar under
+Cotton's context isolation as well, because Cotton builds a request context for each component
+and that runs the processor again.
 
 `MountedApp.for_request(request)` answers the same question in Python.

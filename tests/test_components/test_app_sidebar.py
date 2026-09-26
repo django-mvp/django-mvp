@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.sites.models import Site
 from django.template import engines
-from django.test import RequestFactory
+from django.test import RequestFactory, override_settings
 from django.urls import resolve
 from django_cotton.compiler_regex import CottonCompiler
 from flex_menu import Menu, MenuItem
@@ -39,6 +39,13 @@ def sidebar_labels(soup):
     return [a.get_text(" ", strip=True) for a in links]
 
 
+def menu_hrefs(soup):
+    """Where every link in a menu goes. Under Cotton's context isolation the
+    menu renderer's own item labels are empty, so this is what proves which
+    menu was drawn."""
+    return [a["href"] for a in soup.select("aside.mvp-sidebar ul a")]
+
+
 def back_link(soup):
     """The sidebar's back link, or ``None``."""
     return soup.select_one("aside.mvp-sidebar a[data-back-link]")
@@ -50,7 +57,7 @@ class TestSidebarMenuChoice:
     """An explicit ``menu`` wins; otherwise the resolved menu; otherwise ``AppMenu``."""
 
     def test_no_menu_and_no_app_draws_app_menu(self):
-        soup = render_sidebar("<c-app.sidebar />")
+        soup = render_sidebar("<c-app.sidebar />", path="/layout/")
 
         labels = sidebar_labels(soup)
 
@@ -68,11 +75,7 @@ class TestSidebarMenuChoice:
         assert back_link(soup) is None
 
     def test_resolved_menu_and_app_draw_the_menu_under_a_back_link(self):
-        soup = render_sidebar(
-            '<c-app.sidebar :menu="menu" :mounted-app="app" />',
-            menu=testapp_mounted.menu,
-            app=testapp_mounted,
-        )
+        soup = render_sidebar("<c-app.sidebar />")
 
         labels = sidebar_labels(soup)
 
@@ -80,10 +83,7 @@ class TestSidebarMenuChoice:
         assert "Home" not in labels
 
     def test_explicit_menu_beats_the_resolved_pair(self):
-        soup = render_sidebar(
-            '<c-app.sidebar menu="AppMenu" :mounted-app="app" />',
-            app=testapp_mounted,
-        )
+        soup = render_sidebar('<c-app.sidebar menu="AppMenu" />')
 
         assert "Home" in sidebar_labels(soup)
         assert "Mounted Index" not in sidebar_labels(soup)
@@ -98,19 +98,13 @@ class TestSidebarMenuChoice:
         app = MountedApp(name="Hidden", icon="box", menu=hidden, urls=[], landing="x")
 
         soup = render_sidebar(
-            '<c-app.sidebar :menu="menu" :mounted-app="app" />',
-            menu=hidden,
-            app=app,
+            "<c-app.sidebar />", mounted_menu=hidden, mounted_app=app
         )
 
         assert sidebar_labels(soup)[1:] == [BACK_TEXT]
 
     def test_back_link_is_in_the_sidebar_above_the_menu(self):
-        soup = render_sidebar(
-            '<c-app.sidebar :menu="menu" :mounted-app="app" />',
-            menu=testapp_mounted.menu,
-            app=testapp_mounted,
-        )
+        soup = render_sidebar("<c-app.sidebar />")
 
         anchors = soup.select(
             "aside.mvp-sidebar a.mvp-sidebar-brand, aside.mvp-sidebar ul a"
@@ -120,11 +114,7 @@ class TestSidebarMenuChoice:
         assert anchors[2].get_text(strip=True) == "Mounted Index"
 
     def test_sidebar_still_draws_one_navigation_landmark_beside_a_back_link(self):
-        soup = render_sidebar(
-            '<c-app.sidebar :menu="menu" :mounted-app="app" />',
-            menu=testapp_mounted.menu,
-            app=testapp_mounted,
-        )
+        soup = render_sidebar("<c-app.sidebar />")
 
         landmarks = soup.find_all(
             lambda tag: tag.name == "nav" or tag.get("role") == "navigation"
@@ -135,16 +125,35 @@ class TestSidebarMenuChoice:
 
 @pytest.mark.django_db
 @pytest.mark.urls("tests.urls_mounted")
+class TestSidebarUnderContextIsolation:
+    """A component reads nothing from its parent under Cotton's context
+    isolation, but the values still reach it: Cotton builds a request context
+    for it, which runs the processor again (decision D27)."""
+
+    @override_settings(COTTON_ENABLE_CONTEXT_ISOLATION=True)
+    def test_an_app_page_still_draws_the_menu_and_the_back_link(self):
+        soup = render_sidebar("<c-app.sidebar />")
+
+        assert menu_hrefs(soup) == ["/", "/mounted/", "/mounted/detail/"]
+        assert back_link(soup)["href"] == "/"
+
+    @override_settings(COTTON_ENABLE_CONTEXT_ISOLATION=True)
+    def test_a_host_page_still_draws_the_app_menu_with_no_back_link(self):
+        soup = render_sidebar("<c-app.sidebar />", path="/layout/")
+
+        assert "/layout/" in menu_hrefs(soup)
+        assert "/mounted/" not in menu_hrefs(soup)
+        assert back_link(soup) is None
+
+
+@pytest.mark.django_db
+@pytest.mark.urls("tests.urls_mounted")
 class TestSidebarBackLink:
     """The back link's address, label and accessible name."""
 
     def render(self, **context):
         return render_sidebar(
-            '<c-app.sidebar :menu="menu" :mounted-app="app" {{ extra }} />'.replace(
-                "{{ extra }}", context.pop("extra", "")
-            ),
-            menu=testapp_mounted.menu,
-            app=testapp_mounted,
+            "<c-app.sidebar {{ extra }} />".replace("{{ extra }}", context.pop("extra", "")),
             **context,
         )
 

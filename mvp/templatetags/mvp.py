@@ -1,14 +1,13 @@
 """Template tags and filters for MVP navbar widgets."""
 
 import textwrap
-from typing import NamedTuple
 
 from crispy_forms.templatetags.crispy_forms_filters import as_crispy_field
 from django import template
 from django.core.exceptions import ImproperlyConfigured
 from django.db import models
 from django.template.loader import render_to_string
-from django.utils.html import conditional_escape, escape
+from django.utils.html import escape
 from django.utils.module_loading import import_string
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
@@ -17,7 +16,6 @@ from django_cotton.compiler_regex import CottonCompiler
 from .. import utils
 from ..config import MVP_CONFIG
 from ..layout import BREAKPOINT_WIDTHS, LayoutConfig
-from ..mounted import MountedApp
 
 register = template.Library()
 
@@ -31,60 +29,6 @@ compiler = CottonCompiler()
 SIDEBAR_BREAKPOINTS = {
     name: (f"{name}:drawer-open", width) for name, width in BREAKPOINT_WIDTHS.items()
 }
-
-
-class MountedShell(NamedTuple):
-    """What the shell reads about the current page's mounted app.
-
-    ``app`` is the app to name in the page title and the back link. ``menu`` is
-    the menu the sidebar draws. Both are ``None`` when the page belongs to no
-    app, and the sidebar then falls back to ``AppMenu``. In a project with a
-    main app, a page that belongs to no other app draws the main app's menu
-    with no ``app``, so no back link and no title segment.
-    """
-
-    app: MountedApp | None
-    menu: object | None
-
-
-@register.simple_tag(takes_context=True)
-def mounted_app(context):
-    """Resolve the current page's mounted app once, for the shell to read.
-
-    Use it with ``as`` and read ``.app`` and ``.menu`` off the result::
-
-        {% mounted_app as shell %}
-        {{ shell.app.name }} {{ shell.menu.name }}
-
-    A context with no request, such as Django's production error page,
-    yields neither.
-    """
-    request = context.get("request")
-    if request is None:
-        return MountedShell(None, None)
-    app = MountedApp.for_request(request)
-    main = MountedApp.main(request)
-    if main is not None and app in (None, main):
-        # A main app is named nowhere. One that refuses the request is not
-        # drawn either, and the page falls back to AppMenu (decision D14).
-        return MountedShell(None, main.menu if main.has_permission(request) else None)
-    return MountedShell(app, app.menu if app is not None else None)
-
-
-@register.filter
-def mounted_title(title, app):
-    """Add a mounted app's name after a page title: ``Detail | Library``.
-
-    A page with no title of its own reads as the app's name alone. With no app
-    the title is returned untouched, so a page outside every app renders as it
-    always has. ``{% filter %}`` output is not autoescaped, so the name is
-    escaped here.
-    """
-    if app is None:
-        return title
-    name = conditional_escape(app.name)
-    text = str(title).strip()
-    return mark_safe(f"{text} | {name}" if text else name)
 
 
 @register.simple_tag

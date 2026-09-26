@@ -16,7 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   arguments such as `LiteratureApp(icon="journal")` (only the declared attributes are accepted,
   and any other raises `TypeError`), or by subclassing. On the app's pages the sidebar draws the
   app's menu under a "Back to *site name*" link, and the page title becomes
-  `<page title> | <app name> | <site name>`. `literature.menu_item()` returns the host's own menu
+  `<page title> | <app name> | <site name>` (` | <app name> | <site name>` for a page with no
+  title). `literature.menu_item()` returns the host's own menu
   entry for the app, marked as current on every page of the app. Pages outside the app render as
   before. Mounting an app inside another mounted app is refused when the project starts.
   Mounting one app twice is unsupported, and not checked. The demo mounts a small library app from `demo/library/` so the running demo shows the
@@ -36,8 +37,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   from the app's pages, and a signed-in person gets a 403. An app left at `check = True`
   is open to everyone. See [Mounted apps](docs/mounted-apps.md).
 
-- **`{% mounted_app as shell %}`**, a template tag that gives `shell.app` and `shell.menu` for
-  the current page.
+- **`mounted_app` and `mounted_menu` in every template.** The context processor
+  `mvp.context_processors.mvp_config` adds the current page's mounted app and the menu to draw.
+  Both are lazy, so nothing is looked up unless a template reads one. The sidebar reads them
+  itself, so a `{% block app.sidebar %}` override that passes no `menu` keeps the swap.
 
 - Django 6.1 is supported, and tested on every change alongside 5.2 and 6.0.
 
