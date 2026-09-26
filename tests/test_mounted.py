@@ -467,17 +467,13 @@ class TestMountedRegistry:
             assert check_mounted_apps(None) == []
             assert MountedApp.mounts() == []
 
-    def test_same_app_mounted_twice_is_one_error_naming_it(self):
+    def test_same_app_mounted_twice_passes_the_check(self):
         app = named_app("Twice")
         urlconf = urlconf_of(mount("a/", app), mount("b/", app))
 
         with override_settings(ROOT_URLCONF=urlconf):
-            errors = check_mounted_apps(None)
-
-        assert len(errors) == 1
-        assert isinstance(errors[0], Error)
-        assert "Twice" in errors[0].msg
-        assert "more than once" in errors[0].msg
+            assert check_mounted_apps(None) == []
+            assert [resolver.app for resolver in MountedApp.mounts()] == [app, app]
 
     def test_app_mounted_inside_another_is_one_error_naming_both(self):
         inner = named_app("Inner")
@@ -493,8 +489,9 @@ class TestMountedRegistry:
         assert "inside" in errors[0].msg
 
     def test_server_started_without_checks_raises_the_same_message(self):
-        app = named_app("Twice")
-        urlconf = urlconf_of(mount("a/", app), mount("b/", app))
+        inner = named_app("Inner")
+        outer = named_app("Outer", mount("inner/", inner))
+        urlconf = urlconf_of(mount("outer/", outer))
 
         with override_settings(ROOT_URLCONF=urlconf):
             message = check_mounted_apps(None)[0].msg
@@ -515,14 +512,24 @@ class TestMountedRegistry:
         assert second == [two]
 
     def test_a_bad_urlconf_leaves_no_stale_error_behind(self):
-        app = named_app("Twice")
-        bad = urlconf_of(mount("a/", app), mount("b/", app))
-        good = urlconf_of(mount("a/", app))
+        inner = named_app("Inner")
+        bad = urlconf_of(mount("o/", named_app("Outer", mount("i/", inner))))
+        good = urlconf_of(mount("i/", inner))
 
         with override_settings(ROOT_URLCONF=bad):
             assert len(check_mounted_apps(None)) == 1
         with override_settings(ROOT_URLCONF=good):
             assert check_mounted_apps(None) == []
+
+    def test_the_error_hint_does_not_tell_a_project_to_include_mvp_urls_once(self):
+        urlconf = urlconf_of(
+            mount("o/", named_app("Outer", mount("i/", named_app("Inner"))))
+        )
+
+        with override_settings(ROOT_URLCONF=urlconf):
+            hint = check_mounted_apps(None)[0].hint
+
+        assert "mvp.urls" not in hint
 
     def test_a_per_request_urlconf_gets_its_own_mounts(self, rf):
         one, two = named_app("One"), named_app("Two")

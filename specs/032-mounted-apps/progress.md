@@ -110,3 +110,9 @@
 - Verified: the new classes failed at collection (`MountedFixtureApp()` raised for missing arguments) before the change. After it, `uv run pytest tests/test_mounted.py tests/test_urls.py tests/test_components/test_app_sidebar.py tests/test_demo -q` → 230 passed; `uv run mypy mvp` clean; `uv run pre-commit run --all-files` passes.
 - Next: T018.
 - Watch: `main` is a classmethod on `MountedApp`, so `hasattr`-based keyword acceptance would have let `main=True` through; hence the explicit `settable` tuple (decisions.md D28).
+
+## 2026-09-26T06:30Z · Implementer US1 · T018
+- Did: removed the duplicate-mount refusal from `MountedApp.scan()`. The `mvp.E001` hint no longer mentions including `mvp.urls` once; it says to mount apps side by side and mark at most one `main=True`. `docs/mounted-apps.md`, ADR 0028 and `CHANGELOG.md` say mounting twice is unsupported, and the changelog line telling projects to include `mvp.urls` once is gone. In `tests/test_mounted.py` the refusal test became `test_same_app_mounted_twice_passes_the_check`, two tests that used the double mount to provoke an error now use a nested mount, and a hint test was added.
+- Verified: the two new tests failed first (the refusal was still raised; the hint still named `mvp.urls`). `uv run pytest tests/test_mounted.py -q` → 113 passed.
+- Next: T019.
+- Watch: none.

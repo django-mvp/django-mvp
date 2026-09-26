@@ -45,8 +45,8 @@ it wraps the matched view in a thin function that carries the app and runs the a
 wrapper becomes `request.resolver_match.func`, and `MountedApp.for_request()` reads the app from
 it. Nothing is written to a global list when `mount()` runs. The set of mounted apps is found by
 walking the resolved URLconf and cached on its root resolver. The same walk refuses an app
-mounted twice, an app mounted inside another, and a second `main=True` mount, both from a system
-check and on first use.
+mounted inside another and a second `main=True` mount, both from a system check and on first use.
+Mounting one app twice is not refused: it is unsupported.
 
 ## Why
 

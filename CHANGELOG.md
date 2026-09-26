@@ -18,8 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   app's menu under a "Back to *site name*" link, and the page title becomes
   `<page title> | <app name> | <site name>`. `literature.menu_item()` returns the host's own menu
   entry for the app, marked as current on every page of the app. Pages outside the app render as
-  before. Mounting the same app twice, or inside another mounted app, is refused when the project
-  starts. The demo mounts a small library app from `demo/library/` so the running demo shows the
+  before. Mounting an app inside another mounted app is refused when the project starts.
+  Mounting one app twice is unsupported, and not checked. The demo mounts a small library app from `demo/library/` so the running demo shows the
   sidebar, the back link and the host's entry in its sidebar. See
   [Mounted apps](docs/mounted-apps.md).
 
@@ -79,9 +79,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   to the app. A page that draws its own copy of `AccountCenterMenu` now shows the menu twice, in
   the sidebar and in its own copy, and should drop its copy. See
   [Account Center](docs/account-center.md) and [Mounted apps](docs/mounted-apps.md).
-
-- **Include `mvp.urls` once.** It mounts the Account Center, and a second include mounts it twice,
-  which is refused at startup with `mvp.E001`.
 
 - **`<c-app.sidebar>`'s `menu` attribute defaults to empty instead of `"AppMenu"`.** An empty
   `menu` still draws `AppMenu`. A project that overrides the `app.sidebar` block must pass

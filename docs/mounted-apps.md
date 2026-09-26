@@ -272,28 +272,17 @@ other URLs must protect itself. The Account Center has no check.
 
 ## What is refused
 
-Three shapes are turned away when the project starts, because each would make the choice of
+Two shapes are turned away when the project starts, because each would make the choice of
 sidebar depend on the order of URL patterns:
 
-- **The same app mounted twice.**
 - **An app mounted inside another mounted app's URLs.**
 - **Two apps mounted with `main=True`.**
 
-```python
-urlpatterns = [
-    mount("library/", library),
-    mount("shelf/", library),  # refused
-]
-```
+Mounting one app twice is unsupported, not prevented. Nothing checks for it and nothing defines
+which of its mounts a page belongs to, so mount each app in one place.
 
-`manage.py check`, `runserver` and `migrate` report the problem as error `mvp.E001`, naming the
-app:
-
-```text
-The app "Library" is mounted more than once. Mount each app in one place.
-```
-
-A nested mount names both apps:
+`manage.py check`, `runserver` and `migrate` report the problem as error `mvp.E001`. A nested
+mount names both apps:
 
 ```text
 The app "Reading room" is mounted inside the app "Library". A mounted app cannot contain another one.

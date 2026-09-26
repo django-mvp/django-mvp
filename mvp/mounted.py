@@ -308,8 +308,8 @@ class MountedApp:
         answer with nothing to reset.
 
         Raises:
-            ImproperlyConfigured: The same app is mounted twice, or one is
-                mounted inside another.
+            ImproperlyConfigured: One app is mounted inside another, or two
+                are mounted with ``main=True``.
         """
         root = get_resolver(getattr(request, "urlconf", None))
         found: list[MountedAppResolver] | None = getattr(root, REGISTRY_ATTRIBUTE, None)
@@ -327,6 +327,9 @@ class MountedApp:
     ) -> list[MountedAppResolver]:
         """Walk ``resolver``'s patterns for mounts, refusing the two bad shapes.
 
+        An app mounted twice is not refused: it is unsupported, and which mount
+        a page belongs to is not defined.
+
         ``inside`` is the app whose patterns are being walked, and ``found``
         the mounts met so far. Callers leave both out.
         """
@@ -341,11 +344,6 @@ class MountedApp:
                 raise ImproperlyConfigured(
                     f'The app "{pattern.app.name}" is mounted inside the app '
                     f'"{inside.name}". A mounted app cannot contain another one.'
-                )
-            if any(mount.app is pattern.app for mount in found):
-                raise ImproperlyConfigured(
-                    f'The app "{pattern.app.name}" is mounted more than once. '
-                    "Mount each app in one place."
                 )
             first_main = next((mount for mount in found if mount.main), None)
             if pattern.main and first_main is not None:
@@ -418,8 +416,8 @@ def check_mounted_apps(app_configs: Any, **kwargs: Any) -> list[CheckMessage]:
             Error(
                 str(error),
                 hint=(
-                    "Mount each app once. Including mvp.urls mounts the Account "
-                    "Center, so include it only once."
+                    "Mount apps side by side in the project's URLs, and mark at "
+                    "most one of them main=True."
                 ),
                 id="mvp.E001",
             )
