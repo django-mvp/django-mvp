@@ -30,10 +30,9 @@ class LibraryApp(MountedApp):
     menu = LibraryMenu
     urls = "library.urls"
     landing = "library:catalogue"
-
-
-library = LibraryApp()
 ```
+
+The package declares the class and nothing else. The host creates the instance it mounts.
 
 | Attribute | What it is |
 | --- | --- |
@@ -46,16 +45,22 @@ library = LibraryApp()
 
 ### Adjusting an instance
 
-The host mounts an instance, and can change any of these attributes on it by keyword argument,
-the way `View.as_view()` takes them. This host shows the library under another name and icon,
-and the package's `LibraryApp` is left as it was:
+The host creates the instance it mounts, in a module of its own so that its URLs and its menus
+use the same one. It can change any of these attributes on it by keyword argument, the way
+`View.as_view()` takes them. This host shows the library under another name and icon, and the
+package's `LibraryApp` is left as it was:
 
 ```python
-journal = LibraryApp(name=_("Journal"), icon="journal")
+# host project's mounted.py
+from django.utils.translation import gettext_lazy as _
+
+from library.mounted import LibraryApp
+
+library = LibraryApp(name=_("Journal"), icon="journal")
 ```
 
-Only `name`, `icon`, `menu`, `urls`, `landing` and `check` are accepted. Any other keyword raises
-a `TypeError` naming it. A host that needs more than that, such as its own permission rule,
+A keyword must name an attribute the class already defines, including one a subclass adds, and
+never a method. Any other keyword raises a `TypeError` naming it. A host that needs more than that, such as its own permission rule,
 subclasses the package's class:
 
 ```python
@@ -117,8 +122,9 @@ The host mounts the app in its own `urls.py`, with `mount()` where it would othe
 # host project's urls.py
 from django.urls import include, path
 
-from library.mounted import library
 from mvp.mounted import mount
+
+from .mounted import library
 
 urlpatterns = [
     path("", include("mvp.urls")),
@@ -184,13 +190,14 @@ for each of them.
 
 ## Adding the entry to the host's menus
 
-The host adds its own entry for the app from the declaration, in whichever menus it wants it:
+The host adds its own entry for the app from the instance it mounted, in whichever menus it
+wants it:
 
 ```python
 # host project's menus.py
 from mvp.menus import AppMenu, MobileFooterMenu
 
-from library.mounted import library
+from .mounted import library
 
 AppMenu.append(library.menu_item())
 MobileFooterMenu.append(library.menu_item(name="library-dock"))

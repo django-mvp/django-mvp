@@ -1,7 +1,7 @@
 """Mount one django-mvp app inside another.
 
 A package built on django-mvp declares itself once, as a :class:`MountedApp`
-subclass in its own ``mounted.py``, and ships an instance of it::
+subclass in its own ``mounted.py``::
 
     from django.utils.translation import gettext_lazy as _
     from mvp.mounted import MountedApp
@@ -16,20 +16,21 @@ subclass in its own ``mounted.py``, and ships an instance of it::
         urls = "literature.urls"
         landing = "literature:index"
 
-
-    literature = LiteratureApp()
-
-The project that hosts it mounts the instance with one line in its own
-``urls.py``, and may change it first: ``LiteratureApp(icon="journal")``, or a
-subclass of its own::
+The project that hosts it creates the instance and mounts it with one line in
+its own ``urls.py``. It may change the instance first, by keyword argument or
+with a subclass of its own::
 
     from mvp.mounted import mount
 
-    from literature.mounted import literature
+    from literature.mounted import LiteratureApp
+
+    literature = LiteratureApp(icon="journal")
 
     urlpatterns = [
         mount("literature/", literature),
     ]
+
+It builds its menu entry from the same instance: ``literature.menu_item()``.
 
 Pages served through that mount belong to the app. The package never writes
 into the host's menus: the host adds its own entry from the declaration.
@@ -77,9 +78,9 @@ class MountedApp:
 
     A package subclasses it and sets the class attributes below. The host
     mounts an instance, and changes what it likes on that instance by keyword
-    argument, in the way ``View.as_view()`` takes them: only the declaration's
-    own names (``settable``) are accepted, and any other raises ``TypeError``. A host
-    that needs more subclasses the package's class instead.
+    argument, in the way ``View.as_view()`` takes them: only an attribute the
+    class already defines is accepted, and any other name, or a method's, raises
+    ``TypeError``. A host that needs more subclasses the package's class instead.
 
     The class holds the declaration and every behaviour that shares it: binding
     a view to the app when a request is resolved, and looking the app up again
@@ -114,8 +115,8 @@ class MountedApp:
             landing = "literature:index"
 
 
-        literature = LiteratureApp()
-        journal = LiteratureApp(icon="journal", name=_("Journal"))
+        # in the host project
+        literature = LiteratureApp(icon="journal", name=_("Journal"))
     """
 
     name: Any = ""
@@ -127,8 +128,6 @@ class MountedApp:
 
     #: The names an instance may set by keyword. A subclass that declares an
     #: attribute of its own adds it here.
-    settable: tuple[str, ...] = ("name", "icon", "menu", "urls", "landing", "check")
-
     def __init_subclass__(cls, **kwargs: Any) -> None:
         super().__init_subclass__(**kwargs)
         declared = cls.__dict__.get("check")
@@ -139,14 +138,27 @@ class MountedApp:
 
     def __init__(self, **kwargs: Any) -> None:
         for key, value in kwargs.items():
-            if key not in self.settable:
+            if not self.is_setting(key):
                 raise TypeError(
                     f"{type(self).__name__}() received an unexpected keyword "
-                    f'argument "{key}". Only '
-                    f"{', '.join(self.settable)} can be set."
+                    f'argument "{key}". Only an attribute the class already '
+                    "defines can be set, and never a method."
                 )
             setattr(self, key, value)
         self._bound_views: dict[Callable[..., Any], Callable[..., Any]] = {}
+
+    @classmethod
+    def is_setting(cls, key: str) -> bool:
+        """Say whether ``key`` names an attribute a keyword may set.
+
+        ``check`` always qualifies, since it may itself be a function. Any other
+        attribute qualifies when the class defines it and it is not a method.
+        """
+        if key == "check":
+            return True
+        if key.startswith("_") or not hasattr(cls, key):
+            return False
+        return not inspect.isroutine(inspect.getattr_static(cls, key))
 
     def __repr__(self) -> str:
         return f"<{type(self).__name__} {self.name!s}>"

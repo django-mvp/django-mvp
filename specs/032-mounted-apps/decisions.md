@@ -322,10 +322,10 @@ values reach the sidebar in both modes without `base.html` passing them down.
 
 **ADR:** none — how a value reaches the templates, local to the shell and recorded here.
 
-## D28 — An instance takes keywords from an explicit list, not from `hasattr`
+## D28 — An instance takes a keyword for any attribute the class defines, except a method
 
-**Decision:** `MountedApp.settable` names the attributes a keyword may set (`name`, `icon`, `menu`, `urls`, `landing`, `check`). Any other keyword raises `TypeError`.
+**Decision:** `MountedApp(**kwargs)` accepts a keyword when the class, or the package's or host's subclass, already defines that attribute and it is not a method. `check` is always accepted, because it may itself be a function. Anything else raises `TypeError` naming the keyword.
 
-**Why:** `View.as_view()` uses `hasattr`, but `MountedApp` has classmethods such as `main`, so `hasattr` would accept `main=True` and overwrite a method, and an existing test requires `main` to be refused as a keyword.
+**Why:** this is `View.as_view()`'s rule, "only names the class already defines", and it lets a subclass add a setting of its own that a host can then pass by keyword. Methods are excluded because `MountedApp` has classmethods such as `main` and methods such as `menu_item()`, and a keyword must not replace one.
 
-**Revisit if:** a host needs to set an attribute of its own subclass by keyword; the subclass extends `settable`.
+**ADR:** none — the detail of D26's rule, local to `MountedApp.__init__`.

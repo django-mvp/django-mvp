@@ -10,11 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **Mounted apps.** A package built on django-mvp declares itself as a `MountedApp` subclass (a
-  name, an icon, its own menu, its URLs and a landing URL name as class attributes) and ships an
-  instance of it. A project runs that instance with one line in its own `urls.py`:
-  `mount("literature/", literature)`. The project can change the instance first, with keyword
-  arguments such as `LiteratureApp(icon="journal")` (only the declared attributes are accepted,
-  and any other raises `TypeError`), or by subclassing. On the app's pages the sidebar draws the
+  name, an icon, its own menu, its URLs and a landing URL name as class attributes) . A project
+  creates an instance and mounts it with one line in its own `urls.py`:
+  `mount("literature/", LiteratureApp())`. It can change the instance with keyword arguments, such
+  as `LiteratureApp(icon="journal")` (only attributes the class defines are accepted, and any
+  other raises `TypeError`), or by subclassing. On the app's pages the sidebar draws the
   app's menu under a "Back to *site name*" link, and the page title becomes
   `<page title> | <app name> | <site name>` (` | <app name> | <site name>` for a page with no
   title). `literature.menu_item()` returns the host's own menu

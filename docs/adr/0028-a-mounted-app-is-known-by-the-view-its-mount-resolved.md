@@ -26,14 +26,14 @@ class LiteratureApp(MountedApp):
     menu = LiteratureMenu
     urls = "literature.urls"
     landing = "literature:index"
-
-
-literature = LiteratureApp()
 ```
 
 ```python
 # the host's urls.py
+from literature.mounted import LiteratureApp
 from mvp.mounted import mount
+
+literature = LiteratureApp(icon="journal")
 
 urlpatterns = [
     mount("literature/", literature),

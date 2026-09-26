@@ -225,6 +225,17 @@ class TestClassDeclaration:
         with pytest.raises(TypeError, match="main"):
             MountedFixtureApp(main=True)
 
+    def test_an_attribute_a_subclass_declares_can_be_set_by_keyword(self):
+        class BadgedApp(MountedFixtureApp):
+            badge = "new"
+
+        assert BadgedApp(badge="beta").badge == "beta"
+
+    @pytest.mark.parametrize("method", ["menu_item", "has_permission", "bind", "shell"])
+    def test_a_method_cannot_be_replaced_by_keyword(self, method):
+        with pytest.raises(TypeError, match=method):
+            MountedFixtureApp(**{method: lambda *args: None})
+
 
 class TestHasPermission:
     """``check`` is a bool, a callable, or a plain function set on the class."""
