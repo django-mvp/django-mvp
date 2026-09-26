@@ -178,18 +178,35 @@
         },
         {
           "id": "T017",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "uv run pytest tests/test_mounted.py tests/test_urls.py tests/test_components/test_app_sidebar.py tests/test_demo -q: 230 passed",
+              "uv run mypy mvp: no issues"
+            ]
+          }
         },
         {
           "id": "T018",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "uv run pytest tests/test_mounted.py -q: 113 passed"
+            ]
+          }
         },
         {
           "id": "T019",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "uv run pytest tests/test_context_processors.py tests/test_components/test_app_sidebar.py tests/test_mounted.py tests/test_templatetags.py -q: 185 passed",
+              "uv run pytest -n auto -q: 2432 passed, 1 skipped"
+            ]
+          }
         }
       ]
     },
