@@ -2,7 +2,7 @@
   "feature": "032-mounted-apps",
   "branch": "032-mounted-apps",
   "repo": "django-mvp/django-mvp",
-  "state": "PR_READY",
+  "state": "MERGED",
   "state_history": [
     {
       "state": "QUEUED",
@@ -58,6 +58,11 @@
       "state": "PR_READY",
       "at": "2026-09-26T05:57:29Z",
       "note": "walkthrough changes landed; PR #408 ready"
+    },
+    {
+      "state": "MERGED",
+      "at": "2026-09-26T06:09:51Z",
+      "note": "PR #408 merged; approved by SamuelJennings"
     }
   ],
   "gates": {
@@ -72,9 +77,8 @@
       "self_resolved": []
     },
     "merge": {
-      "approved_by": null,
-      "at": null,
-      "self_resolved": []
+      "approved_by": "SamuelJennings",
+      "at": "2026-09-26T06:09:43Z"
     },
     "design_review": {
       "approved_by": "design-panel",
@@ -354,7 +358,7 @@
       "max": 1
     },
     "tokens": {
-      "used": 0,
+      "used": 36.27,
       "max": 120
     }
   },
