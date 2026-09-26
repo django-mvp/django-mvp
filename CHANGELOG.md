@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.25.0] - 2026-09-26
+
 ### Added
 
 - **Mounted apps.** A package built on django-mvp declares itself as a `MountedApp` subclass (a
