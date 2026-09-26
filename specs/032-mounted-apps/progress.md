@@ -104,3 +104,9 @@
 - Watch: none.
 - 2026-09-25 — Converge: all 28 FRs traced to tests or docs; every decision carries an ADR verdict; D1/D2/D5/D9 graduated to ADR 0028.
 - 2026-09-26 — Walkthrough: behaviour approved. Sam asked for three API changes (class declaration customised by the host, no duplicate-mount refusal, context processor instead of tag). spec.md, decisions.md (D5, D21, D23, D26, D27), research.md and plan.md amended; T017–T019 added.
+
+## 2026-09-26T06:10Z · Implementer US1 · T017
+- Did: `MountedApp` is a base class with class attributes `name`, `icon`, `menu`, `urls`, `landing` and `check = True`. `__init__(**kwargs)` takes only the names in `settable` and raises `TypeError` naming any other keyword. `has_permission(request)` replaces `permits()` (callable test first). `__init_subclass__` wraps a plain function assigned as `check` in `staticmethod`. The Account Center, `tests/testapp_mounted`, and `demo/library` use the class form. Docs, ADR 0028, CONTEXT and CHANGELOG describe it. New tests: `TestClassDeclaration`, `TestHasPermission`, `TestHostEntryFromInstance` in `tests/test_mounted.py`.
+- Verified: the new classes failed at collection (`MountedFixtureApp()` raised for missing arguments) before the change. After it, `uv run pytest tests/test_mounted.py tests/test_urls.py tests/test_components/test_app_sidebar.py tests/test_demo -q` → 230 passed; `uv run mypy mvp` clean; `uv run pre-commit run --all-files` passes.
+- Next: T018.
+- Watch: `main` is a classmethod on `MountedApp`, so `hasattr`-based keyword acceptance would have let `main=True` through; hence the explicit `settable` tuple (decisions.md D28).

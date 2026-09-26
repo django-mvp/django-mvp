@@ -67,7 +67,7 @@ def mounted_app(context):
     if main is not None and app in (None, main):
         # A main app is named nowhere. One that refuses the request is not
         # drawn either, and the page falls back to AppMenu (decision D14).
-        return MountedShell(None, main.menu if main.permits(request) else None)
+        return MountedShell(None, main.menu if main.has_permission(request) else None)
     return MountedShell(app, app.menu if app is not None else None)
 
 

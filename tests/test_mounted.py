@@ -24,7 +24,11 @@ from demo.urls import urlpatterns as demo_patterns
 from mvp.menus import AppMenu
 from mvp.mounted import MountedApp, check_mounted_apps, mount
 from tests.testapp_mounted.menus import TestappMountedMenu
-from tests.testapp_mounted.mounted import testapp_mounted, testapp_mounted_staff
+from tests.testapp_mounted.mounted import (
+    MountedFixtureApp,
+    testapp_mounted,
+    testapp_mounted_staff,
+)
 from tests.testapp_mounted.views import IndexView
 
 PLAIN_URLCONF = "tests.urls_mounted_plain"
@@ -164,6 +168,119 @@ def throwaway_app(*patterns):
         urls=list(patterns),
         landing="throwaway",
     )
+
+
+@pytest.mark.django_db
+class TestClassDeclaration:
+    """A package declares a class and the host mounts an instance it can adjust
+    (FR-014, decision D26)."""
+
+    def test_a_subclass_declared_the_packages_way_mounts_and_serves(self, client):
+        with override_settings(ROOT_URLCONF=urlconf_of(mount("m/", MountedFixtureApp()))):
+            response = client.get("/m/")
+
+        assert response.status_code == 200
+
+    def test_a_host_instance_changes_the_entry_without_changing_the_class(self):
+        host = MountedFixtureApp(icon="journal", name="Journal")
+
+        entry = host.menu_item()
+
+        assert entry.extra_context["icon"] == "journal"
+        assert entry.extra_context["label"] == "Journal"
+        assert MountedFixtureApp.icon == "book"
+        assert MountedFixtureApp.name == "Mounted Fixture"
+        assert testapp_mounted.icon == "book"
+
+    def test_a_host_instance_changes_the_page_title(self, client):
+        host = MountedFixtureApp(name="Journal")
+
+        with override_settings(ROOT_URLCONF=urlconf_of(mount("j/", host))):
+            response = client.get("/j/detail/")
+
+        assert "Detail | Journal | example.com" == normalised_title(response)
+
+    def test_a_host_subclass_overrides_a_name_and_has_permission(self, rf):
+        class HostApp(MountedFixtureApp):
+            name = "Host's"
+
+            def has_permission(self, request):
+                return super().has_permission(request) and request.user.is_staff
+
+        request = rf.get("/")
+        request.user = type("U", (), {"is_staff": False})()
+        staff = rf.get("/")
+        staff.user = type("U", (), {"is_staff": True})()
+
+        assert HostApp().name == "Host's"
+        assert HostApp().has_permission(request) is False
+        assert HostApp().has_permission(staff) is True
+
+    def test_an_unknown_keyword_raises_a_type_error_naming_it(self):
+        with pytest.raises(TypeError, match="colour"):
+            MountedFixtureApp(colour="red")
+
+    def test_a_keyword_is_only_taken_when_the_class_defines_it(self):
+        with pytest.raises(TypeError, match="main"):
+            MountedFixtureApp(main=True)
+
+
+class TestHasPermission:
+    """``check`` is a bool, a callable, or a plain function set on the class."""
+
+    def request(self, rf, **user):
+        request = rf.get("/")
+        request.user = type("U", (), user)()
+        return request
+
+    def test_the_default_check_permits_everyone(self, rf):
+        assert MountedApp().has_permission(rf.get("/")) is True
+
+    def test_a_true_check_permits(self, rf):
+        assert MountedFixtureApp(check=True).has_permission(rf.get("/")) is True
+
+    def test_a_false_check_refuses(self, rf):
+        assert MountedFixtureApp(check=False).has_permission(rf.get("/")) is False
+
+    def test_a_callable_check_is_called_with_the_request(self, rf):
+        app = MountedFixtureApp(check=lambda request: request.user.is_staff)
+
+        assert app.has_permission(self.request(rf, is_staff=True)) is True
+        assert app.has_permission(self.request(rf, is_staff=False)) is False
+
+    def test_a_plain_function_on_the_class_gets_the_request_alone(self, rf):
+        class Staff(MountedFixtureApp):
+            def check(request):
+                return request.user.is_staff
+
+        assert Staff().has_permission(self.request(rf, is_staff=True)) is True
+        assert Staff().has_permission(self.request(rf, is_staff=False)) is False
+
+    def test_a_falsy_callable_result_refuses(self, rf):
+        app = MountedFixtureApp(check=lambda request: None)
+
+        assert app.has_permission(rf.get("/")) is False
+
+
+@pytest.mark.django_db
+class TestHostEntryFromInstance:
+    """The host's entry, built from the mounted instance, is current on its pages."""
+
+    def test_entry_is_current_on_the_apps_pages(self, client):
+        host = MountedFixtureApp(name="Journal")
+        urlconf = urlconf_of(*demo_patterns, mount("j/", host))
+        template = Template(
+            "{% load flex_menu %}{% render_menu menu renderer='sidebar' %}"
+        )
+
+        with override_settings(ROOT_URLCONF=urlconf):
+            request = client.get("/j/detail/").wsgi_request
+            menu = Menu("JournalHostMenu", children=[host.menu_item()])
+            html = template.render(Context({"request": request, "menu": menu}))
+
+        link = BeautifulSoup(html, "html.parser").select_one("a")
+        assert "Journal" in link.get_text()
+        assert "menu-active" in link["class"]
 
 
 @pytest.mark.django_db

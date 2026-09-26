@@ -90,9 +90,10 @@ template `mvp/pwa/sw.js`.
 ### Mounted app
 
 A package built on django-mvp that can run inside another django-mvp project without changing
-its code. It declares itself once, as a `MountedApp` with a name, an icon, its own `flex_menu`
-`Menu`, its URLs, a landing URL name and an optional check. The [host project](#host-project)
-mounts it with `mount("literature/", literature)` in its own `urls.py`. On the app's pages the
+its code. It declares itself once, as a `MountedApp` subclass with a name, an icon, its own `flex_menu`
+`Menu`, its URLs, a landing URL name and an optional check, and ships an instance of it. The
+[host project](#host-project) mounts that instance with `mount("literature/", literature)` in
+its own `urls.py`, and may adjust it by keyword argument or by subclassing. On the app's pages the
 sidebar draws the app's menu under a "Back to *site name*" link and the browser title names the
 app. Everywhere else nothing changes. See [Mounted apps](docs/mounted-apps.md).
 

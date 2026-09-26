@@ -9,9 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Mounted apps.** A package built on django-mvp declares itself as a `MountedApp` (a name, an
-  icon, its own menu, its URLs and a landing URL name), and a project runs it with one line in
-  its own `urls.py`: `mount("literature/", literature)`. On the app's pages the sidebar draws the
+- **Mounted apps.** A package built on django-mvp declares itself as a `MountedApp` subclass (a
+  name, an icon, its own menu, its URLs and a landing URL name as class attributes) and ships an
+  instance of it. A project runs that instance with one line in its own `urls.py`:
+  `mount("literature/", literature)`. The project can change the instance first, with keyword
+  arguments such as `LiteratureApp(icon="journal")` (only the declared attributes are accepted,
+  and any other raises `TypeError`), or by subclassing. On the app's pages the sidebar draws the
   app's menu under a "Back to *site name*" link, and the page title becomes
   `<page title> | <app name> | <site name>`. `literature.menu_item()` returns the host's own menu
   entry for the app, marked as current on every page of the app. Pages outside the app render as
@@ -26,11 +29,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   is not drawn in a project with a main app. Two apps mounted with `main=True` are refused when
   the project starts. See [Mounted apps](docs/mounted-apps.md).
 
-- **Limiting who can reach a mounted app.** Give a `MountedApp` a `check`, a function of the
-  request, such as `check=lambda request: request.user.is_staff`. Everyone it excludes gets no
+- **Limiting who can reach a mounted app.** Give a `MountedApp` a `check`: `True`, `False`, or a
+  function of the request, such as `check=lambda request: request.user.is_staff`. Override
+  `has_permission(request)` for a rule a function cannot express. Everyone it excludes gets no
   entry from `menu_item()` in any host menu, an anonymous visitor is sent to the sign-in page
-  from the app's pages, and a signed-in person gets a 403. An app with no `check` is open to
-  everyone. See [Mounted apps](docs/mounted-apps.md).
+  from the app's pages, and a signed-in person gets a 403. An app left at `check = True`
+  is open to everyone. See [Mounted apps](docs/mounted-apps.md).
 
 - **`{% mounted_app as shell %}`**, a template tag that gives `shell.app` and `shell.menu` for
   the current page.

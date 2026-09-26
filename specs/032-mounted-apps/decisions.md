@@ -322,3 +322,10 @@ values reach the sidebar in both modes without `base.html` passing them down.
 
 **ADR:** none — how a value reaches the templates, local to the shell and recorded here.
 
+## D28 — An instance takes keywords from an explicit list, not from `hasattr`
+
+**Decision:** `MountedApp.settable` names the attributes a keyword may set (`name`, `icon`, `menu`, `urls`, `landing`, `check`). Any other keyword raises `TypeError`.
+
+**Why:** `View.as_view()` uses `hasattr`, but `MountedApp` has classmethods such as `main`, so `hasattr` would accept `main=True` and overwrite a method, and an existing test requires `main` to be refused as a keyword.
+
+**Revisit if:** a host needs to set an attribute of its own subclass by keyword; the subclass extends `settable`.

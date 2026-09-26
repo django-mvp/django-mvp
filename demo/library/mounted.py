@@ -10,10 +10,15 @@ from mvp.mounted import MountedApp
 
 from .menus import LibraryMenu
 
-library = MountedApp(
-    name=_("Library"),
-    icon="book",
-    menu=LibraryMenu,
-    urls="demo.library.urls",
-    landing="library:catalogue",
-)
+
+class LibraryApp(MountedApp):
+    """The library app, declared as a package declares its own."""
+
+    name = _("Library")
+    icon = "book"
+    menu = LibraryMenu
+    urls = "demo.library.urls"
+    landing = "library:catalogue"
+
+
+library = LibraryApp()

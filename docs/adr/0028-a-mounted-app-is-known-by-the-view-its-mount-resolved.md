@@ -12,9 +12,27 @@ host says it is including the app, and how a request is later tied back to the a
 
 ## Decision
 
-A host mounts an app with one line in its own `urls.py`:
+A package declares its app as a `MountedApp` subclass with class attributes, and ships an
+instance. A host mounts that instance with one line in its own `urls.py`:
 
 ```python
+# literature/mounted.py
+from mvp.mounted import MountedApp
+
+
+class LiteratureApp(MountedApp):
+    name = "Literature"
+    icon = "book"
+    menu = LiteratureMenu
+    urls = "literature.urls"
+    landing = "literature:index"
+
+
+literature = LiteratureApp()
+```
+
+```python
+# the host's urls.py
 from mvp.mounted import mount
 
 urlpatterns = [

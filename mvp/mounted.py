@@ -1,22 +1,27 @@
 """Mount one django-mvp app inside another.
 
 A package built on django-mvp declares itself once, as a :class:`MountedApp`
-in its own ``mounted.py``::
+subclass in its own ``mounted.py``, and ships an instance of it::
 
     from django.utils.translation import gettext_lazy as _
     from mvp.mounted import MountedApp
 
     from .menus import LiteratureMenu
 
-    literature = MountedApp(
-        name=_("Literature"),
-        icon="book",
-        menu=LiteratureMenu,
-        urls="literature.urls",
-        landing="literature:index",
-    )
 
-The project that hosts it mounts it with one line in its own ``urls.py``::
+    class LiteratureApp(MountedApp):
+        name = _("Literature")
+        icon = "book"
+        menu = LiteratureMenu
+        urls = "literature.urls"
+        landing = "literature:index"
+
+
+    literature = LiteratureApp()
+
+The project that hosts it mounts the instance with one line in its own
+``urls.py``, and may change it first: ``LiteratureApp(icon="journal")``, or a
+subclass of its own::
 
     from mvp.mounted import mount
 
@@ -56,11 +61,17 @@ REGISTRY_ATTRIBUTE = "mounted_apps"
 class MountedApp:
     """A django-mvp app that can run inside another django-mvp project.
 
-    Holds the declaration and every behaviour that shares it: binding a view to
-    the app when a request is resolved, and looking the app up again from a
-    request.
+    A package subclasses it and sets the class attributes below. The host
+    mounts an instance, and changes what it likes on that instance by keyword
+    argument, in the way ``View.as_view()`` takes them: only the declaration's
+    own names (``settable``) are accepted, and any other raises ``TypeError``. A host
+    that needs more subclasses the package's class instead.
 
-    Args:
+    The class holds the declaration and every behaviour that shares it: binding
+    a view to the app when a request is resolved, and looking the app up again
+    from a request.
+
+    Attributes:
         name: What people call the app. Shown in the page title and the host's
             menu entry. Usually a lazy translation.
         icon: The icon name for the host's menu entry.
@@ -70,43 +81,61 @@ class MountedApp:
             exactly what ``include()`` takes. A module declaring ``app_name``
             is reversed as ``app_name:name`` wherever it is mounted.
         landing: The URL name of the app's first page.
-        check: Optional ``callable(request) -> bool`` deciding who may see the
-            app. A request it refuses gets no menu entry and no app in the
-            page, and its pages send an anonymous visitor to the sign-in page
-            and refuse a signed-in person as forbidden. With no ``check`` the
-            app is open to everyone. A check must not touch the database from
-            an async view.
+        check: Who may see the app: ``True`` (everyone, the default), ``False``
+            (no one), or a ``callable(request) -> bool``. A request it refuses
+            gets no menu entry and no app in the page, and its pages send an
+            anonymous visitor to the sign-in page and refuse a signed-in person
+            as forbidden. A plain function set as the class attribute is called
+            with the request alone. Override :meth:`has_permission` for anything
+            a callable cannot say. A check must not touch the database from an
+            async view.
 
     Example::
 
-        literature = MountedApp(
-            name=_("Literature"),
-            icon="book",
-            menu=LiteratureMenu,
-            urls="literature.urls",
-            landing="literature:index",
-        )
+        class LiteratureApp(MountedApp):
+            name = _("Literature")
+            icon = "book"
+            menu = LiteratureMenu
+            urls = "literature.urls"
+            landing = "literature:index"
+
+
+        literature = LiteratureApp()
+        journal = LiteratureApp(icon="journal", name=_("Journal"))
     """
 
-    def __init__(
-        self,
-        name: Any,
-        icon: str,
-        menu: Menu,
-        urls: str | list[Any],
-        landing: str,
-        check: Callable[[HttpRequest], bool] | None = None,
-    ) -> None:
-        self.name = name
-        self.icon = icon
-        self.menu = menu
-        self.urls = urls
-        self.landing = landing
-        self.check = check
+    name: Any = ""
+    icon: str = ""
+    menu: Menu = None  # type: ignore[assignment]
+    urls: str | list[Any] = []
+    landing: str = ""
+    check: bool | Callable[[HttpRequest], bool] = True
+
+    #: The names an instance may set by keyword. A subclass that declares an
+    #: attribute of its own adds it here.
+    settable: tuple[str, ...] = ("name", "icon", "menu", "urls", "landing", "check")
+
+    def __init_subclass__(cls, **kwargs: Any) -> None:
+        super().__init_subclass__(**kwargs)
+        declared = cls.__dict__.get("check")
+        if inspect.isfunction(declared):
+            # A plain function is the check itself, not a method: reading it
+            # off the instance would otherwise pass the app as the request.
+            cls.check = staticmethod(declared)  # type: ignore[assignment]
+
+    def __init__(self, **kwargs: Any) -> None:
+        for key, value in kwargs.items():
+            if key not in self.settable:
+                raise TypeError(
+                    f"{type(self).__name__}() received an unexpected keyword "
+                    f'argument "{key}". Only '
+                    f"{', '.join(self.settable)} can be set."
+                )
+            setattr(self, key, value)
         self._bound_views: dict[Callable[..., Any], Callable[..., Any]] = {}
 
     def __repr__(self) -> str:
-        return f"<MountedApp {self.name!s}>"
+        return f"<{type(self).__name__} {self.name!s}>"
 
     def bind(self, view: Callable[..., Any]) -> Callable[..., Any]:
         """Return ``view`` wrapped so the request it serves knows this app.
@@ -173,7 +202,7 @@ class MountedApp:
                 return self.selected
 
         def entry_check(request: HttpRequest | None, **kwargs: Any) -> bool:
-            return request is None or app.permits(request)
+            return request is None or app.has_permission(request)
 
         return MountedAppMenuItem(
             name=name or app.landing.replace(":", "-"),
@@ -205,7 +234,7 @@ class MountedApp:
             # walking the menus again.
             request._mounted_app = None  # type: ignore[attr-defined]
             app = cls.claiming_menu(request)
-        if app is not None and not app.permits(request):
+        if app is not None and not app.has_permission(request):
             # A refused request shows no app anywhere, a project's own 403 page
             # included (decision D15).
             app = None
@@ -220,7 +249,7 @@ class MountedApp:
                 # The main app's menu draws on every unclaimed page already;
                 # letting it claim them would give those pages a back link.
                 continue
-            if not mount_.app.permits(request):
+            if not mount_.app.has_permission(request):
                 continue
             if mount_.app.menu.process(request).selected:
                 return mount_.app
@@ -238,14 +267,20 @@ class MountedApp:
                 return mount_.app
         return None
 
-    def permits(self, request: HttpRequest) -> bool:
-        """Say whether this app's ``check`` lets ``request`` see the app.
+    def has_permission(self, request: HttpRequest) -> bool:
+        """Say whether ``request`` may see this app.
 
-        An app with no ``check`` permits everyone. This is the one place the
-        rule lives: the view wrapper, the host's menu entry, the lookup of a
-        request's app and the main app's menu all ask it.
+        A callable ``check`` is called with the request, and anything else is
+        taken as the answer itself, so an app left at ``check = True`` permits
+        everyone. This is the one place the rule lives: the view wrapper, the
+        host's menu entry, the lookup of a request's app and the main app's menu
+        all ask it. Override it to decide from more than the request alone,
+        calling ``super()`` to keep the check.
         """
-        return self.check is None or bool(self.check(request))
+        check = self.check
+        if callable(check):
+            return bool(check(request))
+        return bool(check)
 
     def refusal(self, request: HttpRequest) -> HttpResponse | None:
         """Turn away a request the check refuses, or return ``None``.
@@ -256,7 +291,7 @@ class MountedApp:
         403 page answers. This is the branch of Django's ``AccessMixin``, and
         never a 404.
         """
-        if self.permits(request):
+        if self.has_permission(request):
             return None
         user = getattr(request, "user", None)
         if user is None or not user.is_authenticated:

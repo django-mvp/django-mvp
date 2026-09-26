@@ -2,8 +2,8 @@
 
 A package built on django-mvp can run inside another django-mvp project without changing its
 code. The package declares itself once as a **mounted app**. The project that hosts it, the
-**host project**, mounts it with one line in its own `urls.py` and adds its own menu entry for
-it. On the app's pages the sidebar swaps to the app's own menu under a "Back to" link, and the
+**host project**, mounts an instance of it with one line in its own `urls.py`, adjusts it if it
+wants to, and adds its own menu entry for it. On the app's pages the sidebar swaps to the app's own menu under a "Back to" link, and the
 browser tab names the app. Every other page renders exactly as before.
 
 The examples below use a small library app. The demo project ships the same thing in
@@ -12,7 +12,8 @@ the tab title, and look at the demo's own sidebar for the host's entry.
 
 ## Declaring an app
 
-The package writes one `MountedApp` in a module of its own, usually `mounted.py`:
+The package subclasses `MountedApp` in a module of its own, usually `mounted.py`, sets the
+class attributes, and ships one instance for a host to mount:
 
 ```python
 # library/mounted.py
@@ -22,22 +23,46 @@ from mvp.mounted import MountedApp
 
 from .menus import LibraryMenu
 
-library = MountedApp(
-    name=_("Library"),
-    icon="book",
-    menu=LibraryMenu,
-    urls="library.urls",
-    landing="library:catalogue",
-)
+
+class LibraryApp(MountedApp):
+    name = _("Library")
+    icon = "book"
+    menu = LibraryMenu
+    urls = "library.urls"
+    landing = "library:catalogue"
+
+
+library = LibraryApp()
 ```
 
-| Argument | What it is |
+| Attribute | What it is |
 | --- | --- |
 | `name` | What people call the app. Shown in the page title and on the host's menu entry. Use a lazy translation. |
 | `icon` | An [icon name](icons.md) for the host's menu entry. |
 | `menu` | The app's own [flex-menus](navigation.md) `Menu`. It is drawn in the sidebar on the app's pages. |
 | `urls` | The app's URLs: a dotted module path or a list of patterns, exactly what `include()` takes. |
 | `landing` | The URL name of the app's first page. The host's menu entry points here. |
+| `check` | Who may see the app: `True` (everyone, the default), `False`, or a function of the request. See [Limiting who can reach an app](#limiting-who-can-reach-an-app). |
+
+### Adjusting an instance
+
+The host mounts an instance, and can change any of these attributes on it by keyword argument,
+the way `View.as_view()` takes them. This host shows the library under another name and icon,
+and the package's `LibraryApp` is left as it was:
+
+```python
+journal = LibraryApp(name=_("Journal"), icon="journal")
+```
+
+Only `name`, `icon`, `menu`, `urls`, `landing` and `check` are accepted. Any other keyword raises
+a `TypeError` naming it. A host that needs more than that, such as its own permission rule,
+subclasses the package's class:
+
+```python
+class StaffLibraryApp(LibraryApp):
+    def has_permission(self, request):
+        return super().has_permission(request) and request.user.is_staff
+```
 
 The app's URL module sets `app_name`, so its pages reverse as `library:catalogue` wherever the
 host mounts it:
@@ -146,7 +171,8 @@ without `main=True`, in another project, behaves as described above.
 ## The Account Center is a mounted app
 
 django-mvp's own [Account Center](account-center.md) is the package's example of a mounted app.
-It is declared in `mvp/views/account.py` as `account_center`, with `AccountCenterMenu` as its
+It is declared in `mvp/views/account.py` as the class `AccountCenterApp`, with an instance,
+`account_center`, that `mvp.urls` mounts. It uses `AccountCenterMenu` as its
 menu and `account-center` as its landing, and `mvp.urls` mounts it at `account/`. On its pages
 the sidebar draws the area's menu under "Back to *site name*", and the title reads
 `Account Center | <site name>`. The landing's URL name stays `account-center`, with no
@@ -206,19 +232,23 @@ Pages outside every mounted app, and every project that mounts none, render as t
 
 ## Limiting who can reach an app
 
-Give the declaration a `check`, a function that takes the request and says whether that person
-may see the app. This one keeps the library to staff:
+Set `check` on the class, or on an instance, to `True` (open to everyone, the default), `False`
+(no one), or a function that takes the request and says whether that person may see the app. A
+plain function set as the class attribute is called with the request alone. This one keeps the
+library to staff:
 
 ```python
-library = MountedApp(
-    name=_("Library"),
-    icon="book",
-    menu=LibraryMenu,
-    urls="library.urls",
-    landing="library:catalogue",
-    check=lambda request: request.user.is_staff,
-)
+class LibraryApp(MountedApp):
+    ...
+
+    def check(request):
+        return request.user.is_staff
 ```
+
+The same on one instance: `LibraryApp(check=lambda request: request.user.is_staff)`. For a rule
+a function of the request cannot express, override `has_permission(self, request)`. It is the one
+method everything asks, and its default is `bool(check(request))` when `check` is callable and
+`bool(check)` otherwise.
 
 Everyone the check excludes loses the app in two ways:
 
@@ -230,7 +260,7 @@ Everyone the check excludes loses the app in two ways:
 
 A refused request shows no app anywhere. The 403 page's title carries no app name, and a
 `403.html` that extends `mvp/base.html` draws `AppMenu` in the sidebar, not the app's menu. An
-app with no `check` is open to everyone, as before.
+app left at `check = True` is open to everyone, as before.
 
 The check runs before the view, for a synchronous or an asynchronous one. It is called on the
 event loop for an asynchronous view, so there it must not query the database, and the user it

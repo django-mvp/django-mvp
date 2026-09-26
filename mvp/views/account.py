@@ -43,13 +43,17 @@ class AccountCenterView(LoginRequiredMixin, MVPTemplateView):
 #: The Account Center as a mounted app: ``mvp/urls.py`` mounts it at
 #: ``account/``. Its landing name stays un-namespaced (FS-028 D2), so the
 #: declaration carries no ``app_name``. Sign-in and sign-out stay outside it.
-account_center = MountedApp(
-    name=_("Account Center"),
-    icon="account_center",
-    menu=AccountCenterMenu,
-    urls=[path("", AccountCenterView.as_view(), name="account-center")],
-    landing="account-center",
-)
+class AccountCenterApp(MountedApp):
+    """The Account Center, declared the way any package declares its app."""
+
+    name = _("Account Center")
+    icon = "account_center"
+    menu = AccountCenterMenu
+    urls = [path("", AccountCenterView.as_view(), name="account-center")]
+    landing = "account-center"
+
+
+account_center = AccountCenterApp()
 
 
 class SignInView(LoginView):
