@@ -2,7 +2,7 @@
   "feature": "032-mounted-apps",
   "branch": "032-mounted-apps",
   "repo": "django-mvp/django-mvp",
-  "state": "REVIEW",
+  "state": "PR_READY",
   "state_history": [
     {
       "state": "QUEUED",
@@ -53,6 +53,11 @@
       "state": "REVIEW",
       "at": "2026-09-26T05:52:50Z",
       "note": "walkthrough changes T017-T019 accepted; verified by orchestrator (reviews are single-round)"
+    },
+    {
+      "state": "PR_READY",
+      "at": "2026-09-26T05:57:29Z",
+      "note": "walkthrough changes landed; PR #408 ready"
     }
   ],
   "gates": {

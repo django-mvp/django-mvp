@@ -84,12 +84,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   [Account Center](docs/account-center.md) and [Mounted apps](docs/mounted-apps.md).
 
 - **`<c-app.sidebar>`'s `menu` attribute defaults to empty instead of `"AppMenu"`.** An empty
-  `menu` still draws `AppMenu`. A project that overrides the `app.sidebar` block must pass
-  `:menu="mounted.menu" :mounted-app="mounted.app"` for its mounted apps and the Account Center to
-  keep their menu, as the default block does. `mvp/base.html`
-  now wraps the title filter in a `head.title` block, and `mvp/error_base.html` overrides that
-  block instead of `title`. A project that overrides `mvp/error_base.html` and sets its own
-  `title` block is unaffected.
+  `menu` draws the current mounted app's menu, read from the context processor's
+  `mounted_menu`, and `AppMenu` on every other page. A page that passes `menu` explicitly keeps
+  that menu, with no back link. `mvp/base.html` now wraps the title in a `head.title` block, and
+  `mvp/error_base.html` overrides that block instead of `title`. A project that overrides
+  `mvp/error_base.html` and sets its own `title` block is unaffected.
 
 - The package is built with hatchling instead of poetry-core, and developed with uv instead of
   Poetry. The wheel contains the same files as before. The source distribution does too, plus the
