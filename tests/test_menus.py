@@ -192,6 +192,16 @@ class TestAccountCenterMenu:
     def test_the_overview_child_points_at_the_landing_page(self):
         assert AccountCenterMenu.children[0].view_name == "account-center"
 
+    def test_the_landing_page_entry_is_labelled_account_center(self):
+        assert str(AccountCenterMenu.children[0].extra_context["label"]) == (
+            "Account Center"
+        )
+
+    def test_the_landing_page_entry_uses_the_account_center_icon(self):
+        assert AccountCenterMenu.children[0].extra_context["icon"] == (
+            "account_center"
+        )
+
 
 class TestAccountMenuContribution:
     """An installed app's contribution to ``AccountCenterMenu`` (US-2, FR-008,
