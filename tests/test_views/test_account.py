@@ -554,7 +554,7 @@ class TestAccountLayout:
     ):
         labels = sidebar_labels(signed_in.get(reverse("account-center")))
 
-        assert labels[1:3] == ["Back to example.com", "Overview"]
+        assert labels[1:3] == ["Back to example.com", "Account Center"]
 
     def test_the_landing_sidebar_carries_none_of_the_host_menu(self, signed_in):
         labels = sidebar_labels(signed_in.get(reverse("account-center")))
@@ -596,7 +596,7 @@ class TestAccountLayout:
     ):
         labels = sidebar_labels(signed_in.get(reverse("testapp_account:plain")))
 
-        assert labels[1:3] == ["Back to example.com", "Overview"]
+        assert labels[1:3] == ["Back to example.com", "Account Center"]
         assert "Fixture Plain" in labels
         assert "Home" not in labels
 

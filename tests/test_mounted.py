@@ -889,7 +889,7 @@ class TestMainApp:
         assert response.status_code == 200
 
         assert b"data-back-link" in response.content
-        assert "Overview" in labels
+        assert "Account Center" in labels
         assert "Mounted Index" not in labels
         assert "Mounted Detail" not in labels
 
