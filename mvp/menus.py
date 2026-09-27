@@ -177,7 +177,7 @@ AccountCenterMenu = Menu(
         MenuItem(
             name="overview",
             view_name="account-center",
-            extra_context={"label": _("Overview"), "icon": "overview"},
+            extra_context={"label": _("Account Center"), "icon": "account_center"},
         ),
     ],
     extra_context={"label": _("Account navigation")},

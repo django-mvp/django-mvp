@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- The Account Center's sidebar entry for its landing page is labelled "Account Center" instead of
+  "Overview", and uses the `account_center` icon.
+
 ## [v0.25.0] - 2026-09-26
 
 ### Added
