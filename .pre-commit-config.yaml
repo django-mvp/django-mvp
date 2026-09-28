@@ -2,13 +2,12 @@
 # templates/pre-commit-config.yaml), with the built-stylesheet exclusions this
 # repository needs on top.
 #
-# The Python tools (ruff, mypy, deptry) run as *local* hooks through `uv run`,
-# so their versions come from the mvp-shared[dev] bundle — one version source
-# for every repository, instead of per-repo `rev:` pins that drift under
-# autoupdate. `uv run <tool>` at a terminal behaves identically to the hook.
+# Python tools run as *local* hooks through `uv run` so their versions come
+# from the mvp-shared[dev] bundle, one version source for every repository
+# instead of per-repo `rev:` pins that drift under autoupdate.
 #
-# black and pyupgrade are deliberately absent: `ruff format` is a drop-in black
-# replacement, and ruff's UP rules (enabled in [tool.ruff.lint]) cover pyupgrade.
+# black and pyupgrade are absent: `ruff format` replaces black, and ruff's
+# UP rules ([tool.ruff.lint]) cover pyupgrade.
 
 exclude: "^docs/|/migrations/|^tests/"
 default_stages: [pre-commit]
@@ -18,14 +17,12 @@ repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
-      # Built assets are generated (minified, no trailing newline) — leave them
-      # alone, or these hooks fight the build. For the stylesheet the compile
-      # check fails on the hook-added newline; for the JavaScript bundle the
-      # hooks rewrite bytes esbuild produced, so the committed artifact stops
-      # matching a fresh build and Article XV's byte comparison never holds.
+      # Built assets are generated (minified, no trailing newline): the
+      # stylesheet's compile check fails on a hook-added newline, and
+      # rewriting the JS bundle's bytes breaks its byte-for-byte drift check.
       #
       # Scoped to the built bundle by name: mvp/static/js/formset.js and
-      # list_view.js are hand-written and should still be fixed by these hooks.
+      # list_view.js are hand-written and still get fixed by these hooks.
       - id: trailing-whitespace
         exclude: '^mvp/static/(css/.*\.(css|br)|js/django-mvp\.js)$'
       - id: end-of-file-fixer
@@ -59,10 +56,8 @@ repos:
         name: mypy
         entry: uv run mypy
         language: system
-        # Without require_serial, pre-commit splits the file list into parallel
-        # batches, and concurrent mypy processes race on the shared .mypy_cache —
-        # INTERNAL ERROR on a cold cache. One serial invocation is also what
-        # mirrors-mypy ships.
+        # Without this, parallel batches race on the shared .mypy_cache —
+        # INTERNAL ERROR on a cold cache. Matches what mirrors-mypy ships.
         require_serial: true
         types: [python]
         files: ^mvp/

@@ -14,14 +14,7 @@ class DemoConfig(AppConfig):
     name = "demo"
 
     def ready(self):
-        """Initialize the app when Django starts.
-
-        This method is called once Django has finished loading all apps.
-        It's the perfect place to import menu definitions and other
-        app initialization code.
-        """
-        # Import menu definitions to register them with AppMenu
-        # This must happen in ready() to ensure all apps are loaded
+        """Import menu definitions so they register with AppMenu once apps are loaded."""
         import contextlib
 
         with contextlib.suppress(ImportError):

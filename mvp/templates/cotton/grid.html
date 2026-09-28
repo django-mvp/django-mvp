@@ -1,3 +1,13 @@
+{# @description A responsive CSS grid wrapper with per-breakpoint column counts. #}
+{# @prop cols:number | default:1 | description:"Column count at the base breakpoint." #}
+{# @prop gap:number | default:4 | description:"Gap between grid items." #}
+{# @prop sm:number | description:"Column count at the sm breakpoint." #}
+{# @prop md:number | description:"Column count at the md breakpoint." #}
+{# @prop lg:number | description:"Column count at the lg breakpoint." #}
+{# @prop xl:number | description:"Column count at the xl breakpoint." #}
+{# @prop xxl:number | description:"Column count at the 2xl breakpoint." #}
+{# @prop class:text | description:"Extra classes appended to the grid element." #}
+{# @slot Grid items go here. — The grid's children, laid out in the column grid. #}
 <c-vars cols="1" gap="4" sm md lg xl xxl class />
 <div class="grid{% if cols %} grid-cols-{{ cols }}{% endif %}{% if sm %} sm:grid-cols-{{ sm }}{% endif %}{% if md %} md:grid-cols-{{ md }}{% endif %}{% if lg %} lg:grid-cols-{{ lg }}{% endif %}{% if xl %} xl:grid-cols-{{ xl }}{% endif %}{% if xxl %} 2xl:grid-cols-{{ xxl }}{% endif %}{% if gap %} gap-{{ gap }}{% endif %} {{ class }}"
      {{ attrs }}>

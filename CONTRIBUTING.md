@@ -4,13 +4,13 @@ Thank you for your interest in contributing to Django MVP! This guide will help 
 
 ## Core Principles
 
-This project follows the principles defined in [CONSTITUTION.md](CONSTITUTION.md). Please read it before contributing.
+This project follows the rules in [CONSTITUTION.md](CONSTITUTION.md). Please read it before contributing,
+together with the two standards it makes binding:
 
-**Key requirements:**
-
-- **Design-First**: Implementation and design verification MUST occur before writing tests
-- **Documentation-First**: Public behavior changes MUST include documentation updates
-- **Component Quality**: All components MUST be accessible and use semantic HTML
+- [Testing standards](docs/contributing/standards/testing.md): what gets a test and what does not,
+  the test-first cycle, test structure and fixtures, and the coverage floors.
+- [Code documentation standards](docs/contributing/standards/code-documentation.md): docstrings,
+  component annotations and comments.
 
 ## Development Setup
 
@@ -71,7 +71,7 @@ uv run pytest
 uv run pytest --cov=mvp
 
 # Run specific test file
-uv run pytest tests/test_app_components.py
+uv run pytest tests/test_components/test_app_header.py
 
 # Run with verbose output
 uv run pytest -xvs
@@ -108,23 +108,14 @@ Before submitting a pull request:
 ## Pull Request Process
 
 1. Create a feature branch from `main`
-2. Implement the feature/design
-3. Verify the design meets expectations (use the playwright-cli skill in a real
-   browser for UI changes)
-4. Write comprehensive tests for the verified implementation
-5. Update documentation
-6. Run all quality checks
-7. Submit PR with:
+2. Write a failing test for the behaviour, then the code that makes it pass
+3. Update documentation
+4. Run all quality checks
+5. Submit PR with:
    - Clear description of changes
    - Link to any related issues
    - Confirmation that tests pass
    - Note any breaking changes
-
-For UI-impacting changes, the PR MUST include behavior-level verification evidence
-from playwright-cli skill steps aligned to acceptance criteria. Page-load-only checks
-are insufficient. Screenshot-file analysis is fallback-only for multi-viewport
-differences, configuration-driven visual diffs, subtle layout/CSS regressions, or
-explicit reviewer request.
 
 ## Component Development
 
@@ -137,10 +128,11 @@ registration and drops straight in alongside these.
 When creating or modifying Cotton components:
 
 1. **Use snake_case/kebab-case for filenames:** `small-box.html`, `info_box.html`
-2. **Document all c-vars** with comments in the component
+2. **Annotate the component** with its `@description`, `@prop` and `@slot` lines, as the
+   code documentation standards describe
 3. **Provide default values** for optional c-vars
 4. **Use semantic HTML** with appropriate ARIA attributes
-5. **Test all component states:** default, with custom c-vars, with slots
+5. **Test the markup the component publishes:** its element, classes, attributes and slots
 
 ## Questions?
 

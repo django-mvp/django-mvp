@@ -85,7 +85,6 @@ def output_dir(tmp_path):
 
 @pytest.fixture
 def brand_dir(tmp_path, settings):
-    """A project static directory holding the project's own mark."""
     static = tmp_path / "project-static"
     (static / "brand").mkdir(parents=True)
     settings.STATICFILES_DIRS = [static]
@@ -101,7 +100,6 @@ def mark(brand_dir):
 
 @pytest.fixture
 def images(output_dir, mark):
-    """Run the command and read the four images back, keyed like ``IMAGES``."""
     call_command("mvp_pwa_icons", output_dir=str(output_dir), stdout=io.StringIO())
     directory = output_dir / IMAGE_DIRECTORY
     return {key: (directory / file).read_bytes() for key, file in IMAGES.items()}
@@ -127,7 +125,9 @@ class TestMvpPwaIcons:
 
         call_command("mvp_pwa_icons", output_dir=str(output_dir), stdout=io.StringIO())
 
-        row = first_row((output_dir / IMAGE_DIRECTORY / IMAGES["icon_512"]).read_bytes())
+        row = first_row(
+            (output_dir / IMAGE_DIRECTORY / IMAGES["icon_512"]).read_bytes()
+        )
         assert row[0][3] == 0
         assert row[-1][3] == 0
         assert row[len(row) // 2] == (255, 0, 0, 255)
@@ -153,9 +153,7 @@ class TestMvpPwaIcons:
             data = (output_dir / IMAGE_DIRECTORY / IMAGES[key]).read_bytes()
             assert first_row(data)[0] == (0, 255, 0, 255)
 
-    def test_the_padded_images_keep_the_mark_inside_the_safe_zone(
-        self, images
-    ):
+    def test_the_padded_images_keep_the_mark_inside_the_safe_zone(self, images):
         row = first_row(images["icon_maskable_512"])
         assert row[len(row) // 2] != (255, 0, 0, 255)
 
@@ -219,9 +217,7 @@ class TestMvpPwaIcons:
         with pytest.raises(CommandError, match="--output-dir"):
             call_command("mvp_pwa_icons", stdout=io.StringIO())
 
-    def test_a_missing_renderer_names_the_package(
-        self, mark, output_dir, monkeypatch
-    ):
+    def test_a_missing_renderer_names_the_package(self, mark, output_dir, monkeypatch):
         monkeypatch.setitem(sys.modules, "resvg_py", None)
 
         with pytest.raises(CommandError, match="resvg-py"):

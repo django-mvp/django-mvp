@@ -1,6 +1,7 @@
+{# @description Renders a Django form's fields, honouring its crispy-forms helper when it has one. #}
 {% load crispy_forms_tags %}
 {% load tailwind_filters %}
-{% comment %} If the form has a helper method, we MUST use the crispy tag. However, user must be sure to set form_tag = False {% endcomment %}
+{% comment %} A form with a helper must use the crispy tag rather than the filter, and the helper must set form_tag = False or the tag renders a nested <form>. {% endcomment %}
 {% if form.helper %}
   {% crispy form %}
 {% else %}

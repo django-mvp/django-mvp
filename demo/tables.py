@@ -9,11 +9,10 @@ from demo.models import Product
 class ProductTable(tables.Table):
     """Product table with Bootstrap 5 styling and ARIA compliance."""
 
-    # A static footer label, so the demo shows the footer row pinned to the
-    # bottom of the table area alongside the pinned heading (issue #254).
+    # Static footer label demonstrates the footer row pinned to the bottom
+    # of the table area alongside the pinned heading (issue #254).
     name = tables.LinkColumn("product-update", args=[A("pk")], footer="Total")
 
-    # Column configurations with Bootstrap 5 alignment classes
     price = tables.Column(attrs={"td": {"class": "text-end"}})
     stock = tables.Column(attrs={"td": {"class": "text-end"}})
     rating = tables.Column(attrs={"td": {"class": "text-end"}})
@@ -49,10 +48,13 @@ class ProductTable(tables.Table):
 
 
 class ColumnBehaviourTable(tables.Table):
-    """One column per behaviour class documented in docs/styling.md, against
-    data long enough to make each effect obvious (issue #255). Also carries
-    a numeric, a boolean and an action column with no class of their own,
-    so the alignment they render with is the inferred one (issue #256)."""
+    """One column per behaviour class documented in docs/styling.md.
+
+    Data is long enough to make each effect obvious (issue #255). Also
+    carries a numeric, a boolean and an action column with no class of
+    their own, so the alignment they render with is the inferred one
+    (issue #256).
+    """
 
     sku = tables.Column(attrs={"td": {"class": "mvp-col-shrink"}})
     name = tables.Column(attrs={"td": {"class": "mvp-col-grow mvp-col-nowrap"}})

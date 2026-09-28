@@ -1,5 +1,4 @@
-"""
-Demo views: the concrete views behind the demo site's pages.
+"""Demo views: the concrete views behind the demo site's pages.
 
 Most of these instantiate a packaged django-mvp view directly (MVPListView,
 MVPDetailView, MVPCreateView, …) to show what a project gets with no
@@ -46,18 +45,24 @@ from .forms import LayoutDemoForm, ProductForm
 
 
 class DemoHomeView(MVPHomeView):
+    """The demo site's home page, with its own landing and dashboard templates."""
+
     landing_template_name = "demo/landing.html"
     dashboard_template_name = "demo/dashboard.html"
 
 
 class DemoTemplateView(MVPTemplateView):
+    """Base for the demo's static pages, resolving templates under ``demo/``."""
+
     def get_template_names(self):
+        """Try the demo app's own template directory before the package's."""
         return [
             f"demo/{self.template_name}",
             self.template_name,
         ]
 
     def get_breadcrumbs(self):
+        """Add a fixed Home crumb ahead of the page's own title."""
         return [{"text": "Home", "href": "/"}, {"text": self.page_title}]
 
 
@@ -68,6 +73,7 @@ class ComponentIndexView(DemoTemplateView):
     page_title = "Components"
 
     def get_context_data(self, **kwargs):
+        """Add the full component list for the index cards."""
         context = super().get_context_data(**kwargs)
         context["components"] = COMPONENTS
         return context
@@ -81,6 +87,7 @@ class ComponentDocView(DemoTemplateView):
     """
 
     def setup(self, request, *args, slug=None, **kwargs):
+        """Resolve the slug to a component, 404 on an unknown one, and set the page title."""
         super().setup(request, *args, **kwargs)
         self.component = COMPONENTS_BY_SLUG.get(slug)
         if self.component is None:
@@ -89,6 +96,7 @@ class ComponentDocView(DemoTemplateView):
         self.page_title = self.component.label
 
     def get_breadcrumbs(self):
+        """Add Home and Components crumbs ahead of this component's own."""
         return [
             {"text": "Home", "href": "/"},
             {"text": "Components", "href": "/components/"},
@@ -96,6 +104,7 @@ class ComponentDocView(DemoTemplateView):
         ]
 
     def get_context_data(self, **kwargs):
+        """Add the component list plus the resolved component being documented."""
         context = super().get_context_data(**kwargs)
         context["components"] = COMPONENTS
         context["component"] = self.component
@@ -140,6 +149,7 @@ class UtilityClassesView(DemoTemplateView):
     page_title = "Utility Classes"
 
     def get_breadcrumbs(self):
+        """Add Home and Components crumbs ahead of this page's own."""
         return [
             {"text": "Home", "href": "/"},
             {"text": "Components", "href": "/components/"},
@@ -147,6 +157,7 @@ class UtilityClassesView(DemoTemplateView):
         ]
 
     def get_context_data(self, **kwargs):
+        """Render the utility-classes doc's markdown into HTML for the page."""
         context = super().get_context_data(**kwargs)
         markdown_source = (_DOCS_DIR / "utility-classes.md").read_text(encoding="utf-8")
         # The file's own H1 titles it as a standalone document; here the page
@@ -183,12 +194,14 @@ full_page_map_demo = DemoTemplateView.as_view(
 # (FS-029 US-1, T009): a page an example in the documentation can actually
 # run, rather than a snippet nobody executes.
 class LayoutStoreDemoView(DemoTemplateView):
-    """Accepts `?breakpoint=` so browser tests can exercise a per-page
-    override and the never-persistent case against a real page (FS-029
-    US-2, T011), the same way `mvp/base.html` resolves the context variable
-    for any project view."""
+    """Accept `?breakpoint=` for browser tests to exercise a per-page override.
+
+    Resolves the same context variable `mvp/base.html` uses for any project
+    view, including the never-persistent case (FS-029 US-2, T011).
+    """
 
     def get_context_data(self, **kwargs):
+        """Expose the `?breakpoint=` query param to the template."""
         context = super().get_context_data(**kwargs)
         context["breakpoint"] = self.request.GET.get("breakpoint")
         return context
@@ -204,18 +217,10 @@ E500 = DemoTemplateView.as_view(template_name="500.html")
 
 
 class ProductListView(MVPListViewMixin, FilterView):
-    """
-    Demo page showing a list view of Products.
+    """Demo page showing a list view of Products.
 
-    User Story 1: Viewing Product List Page
-
-    Features:
-        - List of products with name and price
-        - Bootstrap 5 responsive styling
-        - Layout configuration via query parameters
-
-    Template: mvp/list_view.html
-    URL Pattern: /list-view/
+    Search, filter and sort controls, and a create action, all wired through
+    MVPListViewMixin with no view-level plumbing of their own.
     """
 
     model = Product
@@ -248,16 +253,8 @@ class ProductListView(MVPListViewMixin, FilterView):
     ]
 
 
-# ======== CRUD Views for Product model ========
-
-
 class ProductCreateView(MVPCreateView):
-    """
-    Demo product creation form for MVPCreateView verification.
-
-    Tests model form create view with auto-detection of form renderer
-    and AdminLTE card-based layout integration.
-    """
+    """Demo product creation form, auto-detecting its form renderer and layout."""
 
     model = Product
     fields = ["name", "slug", "category", "description", "price", "stock", "status"]
@@ -267,8 +264,7 @@ class ProductCreateView(MVPCreateView):
 
 
 class ProductDetailView(MVPDetailView):
-    """
-    Demo product detail page that supplies its own body.
+    """Demo product detail page that supplies its own body.
 
     The edit and delete buttons come from the packaged template and are gated on the
     flags below, so staff users see them and read-only users do not. Hiding a button
@@ -283,15 +279,16 @@ class ProductDetailView(MVPDetailView):
     show_detail_action = True
 
     def show_update_action(self, user):
+        """Show the edit action to staff only."""
         return user.is_staff
 
     def show_delete_action(self, user):
+        """Show the delete action to staff only."""
         return user.is_staff
 
 
 class ArticleDetailView(MVPDetailView):
-    """
-    Demo article detail page with no template override at all.
+    """Demo article detail page with no template override at all.
 
     Shows what MVPDetailView gives a project for free: breadcrumbs, the object's
     own title as the heading, and an empty body waiting to be filled.
@@ -301,12 +298,7 @@ class ArticleDetailView(MVPDetailView):
 
 
 class ProductUpdateView(MVPUpdateView):
-    """
-    Demo product edit form for MVPUpdateView verification.
-
-    Tests model form edit view with pre-populated data, auto-detection
-    of form renderer, and AdminLTE card-based layout integration.
-    """
+    """Demo product edit form, pre-populated and auto-detecting its layout."""
 
     model = Product
     fields = ["name", "slug", "category", "description", "price", "stock", "status"]
@@ -384,9 +376,9 @@ class ProjectNoteInline(InlineFormSet):
 
 
 class ProjectCreateView(MVPCreateView):
-    """A project created together with its tasks and notes — two row sets
-    on one page, each under its own default heading.
+    """A project created together with its tasks and notes.
 
+    Two row sets on one page, each under its own default heading —
     docs/formsets.md walks through this exact page.
     """
 
@@ -397,9 +389,11 @@ class ProjectCreateView(MVPCreateView):
 
 
 class ComplexFormDemoView(MVPFormView):
-    """MVPFormView driving LayoutDemoForm, whose FormHelper groups fields
-    into Fieldsets — the crispy helper path <c-form.render> takes whenever
-    form.helper is set — with one Fieldset laid out via Row/Column (#311).
+    """MVPFormView driving LayoutDemoForm.
+
+    FormHelper groups fields into Fieldsets — the crispy helper path
+    <c-form.render> takes whenever form.helper is set — with one Fieldset
+    laid out via Row/Column (#311).
     """
 
     form_class = LayoutDemoForm
@@ -409,12 +403,7 @@ class ComplexFormDemoView(MVPFormView):
 
 
 class ProductDeleteView(MVPDeleteView):
-    """
-    Demo product delete confirmation view for MVPDeleteView verification.
-
-    Tests model form delete view with auto-detection of form renderer
-    and AdminLTE card-based layout integration.
-    """
+    """Demo product delete confirmation, auto-detecting its form renderer and layout."""
 
     model = Product
     show_list_action = True
@@ -471,7 +460,6 @@ class HtmxProductCreateView(HtmxFormMixin, MVPCreateView):
         if not instance.slug:
             slug_base = re.sub(r"[^\w\s-]", "", instance.name.lower())
             slug_base = re.sub(r"[\s_-]+", "-", slug_base).strip("-")
-            # Ensure uniqueness by appending a short timestamp if needed
             from django.utils import timezone
 
             instance.slug = f"{slug_base}-{int(timezone.now().timestamp())}"
@@ -510,18 +498,14 @@ class CategoryDeleteWithRelatedView(MVPDeleteView):
     model = Category
     show_related_objects = True
     related_objects_max_per_group = 3
-    success_url = "/"  # No category list URL; redirect to home after deletion
-    show_list_action = False  # no category list URL registered
+    success_url = "/"  # No category list URL registered, so redirect home instead
+    show_list_action = False
 
 
 class CategoryDeleteWithRelatedWarningView(CategoryDeleteWithRelatedView):
     """Same as above, with a stronger presentation for a more consequential cascade."""
 
     related_objects_attrs = {"variant": "warning"}
-
-
-# ==================== Addons ======================
-# Additional views that support third-party packages
 
 
 class DataTablesView(MVPTableViewMixin, FilterView):
@@ -536,8 +520,10 @@ class DataTablesView(MVPTableViewMixin, FilterView):
 
 
 class ColumnBehaviourTableView(MVPTableView):
-    """Demo page for the column behaviour classes (issue #255): shrink,
-    grow, wrap-with-a-maximum-width and no-wrap, each on its own column."""
+    """Demo page for the column behaviour classes (issue #255).
+
+    Shrink, grow, wrap-with-a-maximum-width and no-wrap, each on its own column.
+    """
 
     model = Product
     table_class = ColumnBehaviourTable

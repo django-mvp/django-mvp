@@ -112,17 +112,8 @@ class _StubInlinesView(InlinesMixin):
         return self.queryset
 
 
-# ---------------------------------------------------------------------------
-# T001 — fixture models and factories for the whole feature
-# ---------------------------------------------------------------------------
-
-
 @pytest.mark.django_db
 class TestRowSetFixtures:
-    """The fixture models this feature's tests build on: a parent (``Project``)
-    with two distinct related models (``ProjectTask``, ``ProjectNote``), one of
-    which (``ProjectNote``) reaches the parent by a second relation."""
-
     def test_project_task_belongs_to_a_project(self):
         project = ProjectFactory()
         task = ProjectTaskFactory(project=project)
@@ -145,15 +136,7 @@ class TestRowSetFixtures:
         assert Project._meta.get_field("name")
 
 
-# ---------------------------------------------------------------------------
-# T002 — a declaration naming no model raises ImproperlyConfigured (FR-006)
-# ---------------------------------------------------------------------------
-
-
 class TestInlineFormSetRequiresModel:
-    """A declaration class that does not name a related model raises
-    ``ImproperlyConfigured`` naming the declaration class (FR-006, US1 s3)."""
-
     def test_missing_model_raises_improperly_configured_naming_the_class(self):
         class TaskInline(InlineFormSet):
             fields = ["title"]
@@ -162,15 +145,7 @@ class TestInlineFormSetRequiresModel:
             TaskInline(parent_model=Project, request=None, instance=None, view=None)
 
 
-# ---------------------------------------------------------------------------
-# T004 — get_factory_kwargs() folds the shorthands in (FR-002, FR-013, R9)
-# ---------------------------------------------------------------------------
-
-
 class TestGetFactoryKwargs:
-    """``get_factory_kwargs()`` assembles the kwargs ``inlineformset_factory``
-    builds the formset class from, folding the shorthand attributes in."""
-
     def _declaration(self, **attrs):
         cls = type("TaskInline", (InlineFormSet,), {"model": ProjectTask, **attrs})
         return cls(parent_model=Project, request=None, instance=None, view=None)
@@ -215,17 +190,8 @@ class TestGetFactoryKwargs:
         assert with_floor.get_factory_kwargs()["min_num"] == 1
 
 
-# ---------------------------------------------------------------------------
-# T006 — a set declaring min_num rejects a submission with fewer rows
-# (FR-023, US1 s9)
-# ---------------------------------------------------------------------------
-
-
 @pytest.mark.django_db
 class TestMinNumRejectsFewerRows:
-    """A set declaring ``min_num`` rejects a submission carrying fewer rows
-    than the minimum."""
-
     def _post_formset(self, project, min_rows, total_forms, quantities):
         cls = type(
             "TaskInline",
@@ -264,20 +230,10 @@ class TestMinNumRejectsFewerRows:
         assert formset.is_valid()
 
 
-# ---------------------------------------------------------------------------
-# T007 — get_formset_kwargs() (FR-004, R3, R6)
-# ---------------------------------------------------------------------------
-
-
 @pytest.mark.django_db
 class TestGetFormsetKwargs:
-    """``get_formset_kwargs()`` carries the instance-level kwargs the
-    formset is constructed from."""
-
     def _declaration(self, request=None, **attrs):
-        cls = type(
-            "TaskInline", (InlineFormSet,), {"model": ProjectTask, **attrs}
-        )
+        cls = type("TaskInline", (InlineFormSet,), {"model": ProjectTask, **attrs})
         return cls(
             parent_model=Project,
             request=request or RequestFactory().get("/"),
@@ -349,15 +305,7 @@ class TestGetFormsetKwargs:
         assert second.get_formset_kwargs()["form_kwargs"] == {"label_suffix": "!"}
 
 
-# ---------------------------------------------------------------------------
-# T009 — get_title() defaults to verbose_name_plural (FR-011)
-# ---------------------------------------------------------------------------
-
-
 class TestGetTitle:
-    """``get_title()`` defaults to the related model's ``verbose_name_plural``
-    and an explicit ``title`` overrides it."""
-
     def _declaration(self, **attrs):
         cls = type("TaskInline", (InlineFormSet,), {"model": ProjectTask, **attrs})
         return cls(parent_model=Project, request=None, instance=None, view=None)
@@ -383,17 +331,8 @@ class TestGetTitle:
         assert declaration.get_description() == "Help text"
 
 
-# ---------------------------------------------------------------------------
-# T011 — get_parent_model() resolution (FR-007, US1 s5)
-# ---------------------------------------------------------------------------
-
-
 @pytest.mark.django_db
 class TestGetParentModel:
-    """``get_parent_model()`` resolves the parent the way Django's own
-    model-form pages resolve it: ``self.model``, then the loaded object's
-    class, then the queryset's model."""
-
     def test_resolves_from_model_attribute(self):
         stub = _StubInlinesView(model=Project, object=None)
 
@@ -412,17 +351,8 @@ class TestGetParentModel:
         assert stub.get_parent_model() is Project
 
 
-# ---------------------------------------------------------------------------
-# T013 — an update page with one declaration renders the parent form and the
-# set's rows through the packaged components, from a real request (US1 s1)
-# ---------------------------------------------------------------------------
-
-
 @pytest.mark.django_db
 class TestInlineUpdatePageRendering:
-    """A GET renders the parent's form and the declared set's rows through
-    the packaged formset components (US1 s1)."""
-
     def test_renders_parent_form_and_existing_rows(self):
         project = ProjectFactory(name="Website revamp")
         ProjectTaskFactory(project=project, title="Design mockups")
@@ -436,7 +366,9 @@ class TestInlineUpdatePageRendering:
         assert soup.find(attrs={"name": "name"}).get("value") == "Website revamp"
         titles = [
             tag.get("value")
-            for tag in soup.find_all(attrs={"name": lambda n: n and n.endswith("-title")})
+            for tag in soup.find_all(
+                attrs={"name": lambda n: n and n.endswith("-title")}
+            )
         ]
         assert "Design mockups" in titles
         assert "Build the homepage" in titles
@@ -449,12 +381,6 @@ class TestInlineUpdatePageRendering:
 
         assert len(response.context_data["inlines"]) == 1
         assert response.context_data["inlines"][0].title == "project tasks"
-
-
-# ---------------------------------------------------------------------------
-# T016 — a row form whose widget carries media renders that media
-# (S3R SPEC-004, Article XIII)
-# ---------------------------------------------------------------------------
 
 
 class _WidgetWithMedia(forms.TextInput):
@@ -477,10 +403,6 @@ class TaskInlineWithMedia(InlineFormSet):
 
 @pytest.mark.django_db
 class TestInlineRowMediaRenders:
-    """A row form whose widget carries media renders that media on the page
-    — the media blocks iterate the sets as well as the standalone formset,
-    so a list of inlines does not silently drop them."""
-
     def test_row_widget_media_renders_on_the_page(self):
         project = ProjectFactory()
         view_cls = _inline_update_view_class(
@@ -494,17 +416,8 @@ class TestInlineRowMediaRenders:
         assert "custom-row-widget.js" in html
 
 
-# ---------------------------------------------------------------------------
-# T017-T018 — a valid submission saves the parent and the set's rows and
-# redirects; the parent is saved exactly once (US1 s2, R9's second decision)
-# ---------------------------------------------------------------------------
-
-
 @pytest.mark.django_db
 class TestInlineValidSubmission:
-    """A valid submission saves the parent and the declared set's rows
-    together, in one transaction, and redirects."""
-
     def test_update_valid_submission_persists_parent_and_rows(self):
         project = ProjectFactory(name="Original")
         existing = ProjectTaskFactory(project=project, title="Existing task")
@@ -553,9 +466,7 @@ class TestInlineValidSubmission:
             "tasks-0-title": "One task",
         }
 
-        _dispatch(
-            view_cls, method="POST", data=data, view_kwargs={"pk": project.pk}
-        )
+        _dispatch(view_cls, method="POST", data=data, view_kwargs={"pk": project.pk})
 
         assert len(save_calls) == 1
 
@@ -575,24 +486,13 @@ class TestInlineValidSubmission:
 
         assert response.status_code == 302
         new_project = Project.objects.get(name="Fresh Project")
-        assert set(
-            new_project.tasks.values_list("title", flat=True)
-        ) == {"First task", "Second task"}
-
-
-# ---------------------------------------------------------------------------
-# T019 — overriding get_factory_kwargs() reaches a parameter the shorthands
-# do not expose: can_order (FR-020, US1 s6)
-# ---------------------------------------------------------------------------
+        assert set(new_project.tasks.values_list("title", flat=True)) == {
+            "First task",
+            "Second task",
+        }
 
 
 class TestGetFactoryKwargsOverride:
-    """A subclass overriding ``get_factory_kwargs()`` — the super-and-extend
-    pattern — reaches a formset-class parameter with no attribute of its
-    own. ``can_order`` is the worked case: it is deliberately not an
-    ``InlineFormSet`` attribute (it is a distinct, user-driven reordering
-    feature, unlike FR-022's display order)."""
-
     def test_can_order_reaches_the_formset_through_the_override(self):
         class OrderedTaskInline(InlineFormSet):
             model = ProjectTask
@@ -615,17 +515,8 @@ class TestGetFactoryKwargsOverride:
         assert not hasattr(InlineFormSet, "can_order")
 
 
-# ---------------------------------------------------------------------------
-# T020-T021 — get_form_kwargs(index): Django's own per-form hook
-# (FR-021, US1 s7, R13)
-# ---------------------------------------------------------------------------
-
-
 @pytest.mark.django_db
 class TestGetFormKwargsPerForm:
-    """``get_form_kwargs(index)`` is called once per form with that form's
-    index, and with ``None`` for the blank template form."""
-
     def test_called_once_per_form_with_its_index_and_none_for_the_empty_form(self):
         project = ProjectFactory()
         ProjectTaskFactory(project=project)
@@ -665,7 +556,9 @@ class TestGetFormKwargsPerForm:
 
             def get_form_kwargs(self, index):
                 kwargs = super().get_form_kwargs(index)
-                kwargs["label_suffix"] = f"row-{index}" if index is not None else "blank"
+                kwargs["label_suffix"] = (
+                    f"row-{index}" if index is not None else "blank"
+                )
                 return kwargs
 
         declaration = VaryingTaskInline(
@@ -701,11 +594,6 @@ class TestGetFormKwargsPerForm:
         assert formset.empty_form.label_suffix == "shared"
 
 
-# ---------------------------------------------------------------------------
-# T022-T023 — sort_forms() decides display order only (FR-022, US1 s8)
-# ---------------------------------------------------------------------------
-
-
 class _ReversedTaskInline(InlineFormSet):
     model = ProjectTask
     fields = ["title"]
@@ -717,9 +605,6 @@ class _ReversedTaskInline(InlineFormSet):
 
 @pytest.mark.django_db
 class TestSortFormsIsDisplayOnly:
-    """A declaration reversing the given order renders in that order, and
-    the order rows are validated and saved in is unchanged."""
-
     def test_reversed_declaration_renders_in_reverse(self):
         project = ProjectFactory()
         first = ProjectTaskFactory(project=project, title="First")
@@ -734,7 +619,9 @@ class TestSortFormsIsDisplayOnly:
         soup = BeautifulSoup(html, "html.parser")
         titles_in_order = [
             tag.get("value")
-            for tag in soup.find_all(attrs={"name": lambda n: n and n.endswith("-title")})
+            for tag in soup.find_all(
+                attrs={"name": lambda n: n and n.endswith("-title")}
+            )
             if tag.get("value")
         ]
 
@@ -770,10 +657,6 @@ class TestSortFormsIsDisplayOnly:
         assert second.title == "Updated Second"
 
     def test_a_new_row_alongside_an_existing_one_still_saves(self):
-        """The initial/extra boundary is where display order reaching the save
-        path does damage: Django tells an existing row from a new one by its
-        position in ``formset.forms``, not by whether it carries an id. Reorder
-        that list before saving and the new row is silently dropped."""
         project = ProjectFactory()
         existing = ProjectTaskFactory(project=project, title="First")
         view_cls = _inline_update_view_class(
@@ -801,21 +684,14 @@ class TestSortFormsIsDisplayOnly:
         assert ProjectTask.objects.filter(project=project, title="Brand New").exists()
 
 
-# ---------------------------------------------------------------------------
 # T024 — InlineFormsetMixin and the six inline_* attributes are gone;
 # InlineFormSet is exported, InlinesMixin is not (FR-024). #313: the two
 # concrete inline view classes are gone outright — inlines live on
 # MVPCreateView/MVPUpdateView instead, so there is no separate view surface
 # left to export.
-# ---------------------------------------------------------------------------
 
 
 class TestInlineViewsPublicAPI:
-    """``mvp.views`` exports the declaration class, not ``InlinesMixin`` —
-    the rule already stated in ``mvp/views/__init__.py``: the package
-    exports views, not mixins — and not the two removed concrete inline
-    views, which no longer exist at all."""
-
     def test_inline_form_set_is_exported(self):
         from mvp.views import InlineFormSet as ExportedInlineFormSet
 
@@ -854,17 +730,8 @@ class TestInlineViewsPublicAPI:
             "inline_description",
             "inline_form_class",
         }
-        present = removed & set(dir(InlineFormSet)) | removed & set(
-            dir(InlinesMixin)
-        )
+        present = removed & set(dir(InlineFormSet)) | removed & set(dir(InlinesMixin))
         assert present == set()
-
-
-# ---------------------------------------------------------------------------
-# Shared multi-set declarations (US2). ``ProjectNote`` reaches ``Project`` by
-# two relations, so a declaration over it must name which one it uses
-# (``fk_name``) or Django's own factory raises for the ambiguity.
-# ---------------------------------------------------------------------------
 
 
 class NoteViaProjectInline(InlineFormSet):
@@ -879,17 +746,8 @@ class NoteViaRelatedProjectInline(InlineFormSet):
     fk_name = "related_project"
 
 
-# ---------------------------------------------------------------------------
-# T025 — two declarations render as two sets, each under its own heading, in
-# the declared order (US2 s1)
-# ---------------------------------------------------------------------------
-
-
 @pytest.mark.django_db
 class TestTwoInlineSetsRenderInOrder:
-    """A view listing two declaration classes renders both sets, each under
-    its own heading, in the order the view lists them."""
-
     def test_both_sets_render_under_their_own_headings_in_declared_order(self):
         project = ProjectFactory()
         view_cls = _inline_update_view_class(
@@ -917,18 +775,8 @@ class TestTwoInlineSetsRenderInOrder:
         assert inlines[1].title == "project notes"
 
 
-# ---------------------------------------------------------------------------
-# T027 — two sets over the same related model through different relations
-# both build, with different prefixes, neither declaring one (US2 s6, R3)
-# ---------------------------------------------------------------------------
-
-
 @pytest.mark.django_db
 class TestSameModelDifferentRelationsGetDifferentPrefixes:
-    """Two sets naming ``ProjectNote`` through two different foreign keys
-    both build, and their default prefixes differ without either
-    declaration setting ``prefix`` (R3's claim)."""
-
     def test_both_sets_build_with_different_default_prefixes(self):
         project = ProjectFactory()
         view_cls = _inline_update_view_class(
@@ -950,13 +798,6 @@ class TestSameModelDifferentRelationsGetDifferentPrefixes:
         assert NoteViaRelatedProjectInline.prefix is None
 
 
-# ---------------------------------------------------------------------------
-# T028-T029 — two declarations resolving to the same prefix raise
-# ImproperlyConfigured naming both and the fix, at page-build time
-# (FR-005, US2 s5)
-# ---------------------------------------------------------------------------
-
-
 class _DuplicateTaskInline(InlineFormSet):
     """Same related model, same relation, no prefix override — collides
     with ``TaskInline``'s default prefix."""
@@ -967,10 +808,6 @@ class _DuplicateTaskInline(InlineFormSet):
 
 @pytest.mark.django_db
 class TestDuplicatePrefixRaisesAtBuildTime:
-    """Two declarations resolving to the same prefix raise
-    ``ImproperlyConfigured`` naming both declaration classes and the fix,
-    when the page is built — not merely when it is rendered."""
-
     def test_raises_naming_both_declarations_and_the_fix(self):
         project = ProjectFactory()
         view_cls = _inline_update_view_class(
@@ -986,8 +823,6 @@ class TestDuplicatePrefixRaisesAtBuildTime:
         assert "prefix" in message
 
     def test_raises_from_as_view_not_from_a_template_render(self):
-        """Built through ``as_view()`` alone — the error must fire before
-        any template touches the sets, matching FR-005."""
         project = ProjectFactory()
         view_cls = _inline_update_view_class(
             success_url="/done/", inlines=[TaskInline, _DuplicateTaskInline]
@@ -998,17 +833,8 @@ class TestDuplicatePrefixRaisesAtBuildTime:
             view_cls.as_view()(request, pk=project.pk)
 
 
-# ---------------------------------------------------------------------------
-# T030 — a submission adding a row to each set saves both against the
-# parent (US2 s2)
-# ---------------------------------------------------------------------------
-
-
 @pytest.mark.django_db
 class TestMultiSetValidSubmission:
-    """A submission adding a row to each of two sets saves both, and both
-    rows belong to the parent record."""
-
     def test_rows_added_to_both_sets_are_saved_against_the_parent(self):
         project = ProjectFactory(name="Original")
         view_cls = _inline_update_view_class(
@@ -1038,19 +864,8 @@ class TestMultiSetValidSubmission:
         assert set(project.notes.values_list("text", flat=True)) == {"New note"}
 
 
-# ---------------------------------------------------------------------------
-# T031 — a row invalid in the second set leaves nothing saved (US2 s3,
-# FR-009)
-# ---------------------------------------------------------------------------
-
-
 @pytest.mark.django_db
 class TestInvalidSecondSetLeavesNothingSaved:
-    """A row invalid in the second set leaves nothing saved: not the first
-    set's rows, not the parent's own change. Asserted by counting rows and
-    re-reading the parent from the database, never by trusting the
-    response."""
-
     def test_nothing_is_saved_when_the_second_set_has_an_invalid_row(self):
         project = ProjectFactory(name="Original")
         view_cls = _inline_update_view_class(
@@ -1083,12 +898,6 @@ class TestInvalidSecondSetLeavesNothingSaved:
         assert project.notes.count() == 0
 
 
-# ---------------------------------------------------------------------------
-# T032 — two sets carrying a same-named field each receive only their own
-# rows' values (US2 s4)
-# ---------------------------------------------------------------------------
-
-
 class _PrimaryTaskInline(InlineFormSet):
     model = ProjectTask
     fields = ["title"]
@@ -1103,10 +912,6 @@ class _SecondaryTaskInline(InlineFormSet):
 
 @pytest.mark.django_db
 class TestSameNamedFieldAcrossSetsStaysScoped:
-    """Two sets sharing a field name (``title``, on the same related model
-    through the same relation, distinguished only by an explicit prefix)
-    each receive only their own rows' submitted values."""
-
     def test_each_set_receives_only_its_own_values(self):
         project = ProjectFactory(name="Original")
         view_cls = _inline_update_view_class(
@@ -1138,12 +943,6 @@ class TestSameNamedFieldAcrossSetsStaysScoped:
         }
 
 
-# ---------------------------------------------------------------------------
-# T033 — a page where one set among several needs multipart encodes the
-# form for uploads (FR-012, US2 s7, S3R ARCH-002)
-# ---------------------------------------------------------------------------
-
-
 class _UploadTaskForm(forms.ModelForm):
     upload = forms.FileField(required=False)
 
@@ -1160,9 +959,6 @@ class _UploadTaskInline(InlineFormSet):
 
 @pytest.mark.django_db
 class TestMultipartWhenAnySetNeedsIt:
-    """A page carrying several sets is encoded for uploads when any one of
-    them needs it, even when the others do not."""
-
     def test_form_is_multipart_when_one_of_several_sets_needs_it(self):
         project = ProjectFactory()
         view_cls = _inline_update_view_class(
@@ -1175,12 +971,6 @@ class TestMultipartWhenAnySetNeedsIt:
         assert 'enctype="multipart/form-data"' in html
 
 
-# ---------------------------------------------------------------------------
-# T034 — two sets with different max_num caps: a submission within one and
-# above the other rejects only the set that is over (FR-013, US2 s8, R9)
-# ---------------------------------------------------------------------------
-
-
 class _CappedTaskInline(InlineFormSet):
     model = ProjectTask
     fields = ["title"]
@@ -1190,10 +980,6 @@ class _CappedTaskInline(InlineFormSet):
 
 @pytest.mark.django_db
 class TestPerSetCapsIndependent:
-    """Two sets with different row caps: a submission within one cap and
-    above the other rejects only the set that is over, and a submission
-    within a cap after row removals is accepted."""
-
     def _data(self, project, task_titles, note_texts):
         data = {
             "name": project.name,
@@ -1267,17 +1053,8 @@ class TestPerSetCapsIndependent:
         assert set(project.tasks.values_list("title", flat=True)) == {"Keep"}
 
 
-# ---------------------------------------------------------------------------
-# T036 — a declaration naming fk_name builds against that relation and
-# reaches its rows (FR-019, US2 s9)
-# ---------------------------------------------------------------------------
-
-
 @pytest.mark.django_db
 class TestFkNameBuildsAgainstNamedRelation:
-    """A declaration naming ``fk_name`` builds against that relation and its
-    rows are those the named relation reaches, not the other one."""
-
     def test_reaches_only_rows_through_the_named_relation(self):
         project = ProjectFactory()
         other = ProjectFactory()
@@ -1295,22 +1072,8 @@ class TestFkNameBuildsAgainstNamedRelation:
         assert list(formset.queryset) == [cross_note]
 
 
-# ---------------------------------------------------------------------------
-# T037 — two sets each with an invalid row both report their own errors on
-# redisplay (US3 s1, FR-008)
-# ---------------------------------------------------------------------------
-
-
 @pytest.mark.django_db
 class TestBothSetsReportErrorsOnRedisplay:
-    """Two sets each carrying an invalid row: the redisplayed page shows an
-    error against both rows, asserted from the response context's formsets.
-
-    The parent form here is valid, so this path already runs through
-    ``form_valid``'s ``all_valid`` call (US1/US2) — no production change is
-    expected; this test pins the behaviour that already generalised.
-    """
-
     def test_both_sets_report_their_own_row_errors(self):
         project = ProjectFactory(name="Original")
         view_cls = _inline_update_view_class(
@@ -1342,28 +1105,8 @@ class TestBothSetsReportErrorsOnRedisplay:
         assert inlines[1].forms[0].errors
 
 
-# ---------------------------------------------------------------------------
-# T038 — an invalid parent form together with invalid sets shows both
-# (US3 s2, R11, S3R SPEC-002)
-# ---------------------------------------------------------------------------
-
-
 @pytest.mark.django_db
 class TestInvalidParentFormStillValidatesSets:
-    """An invalid parent form together with invalid sets shows both: Django's
-    ``ProcessFormView.post`` routes straight to ``form_invalid`` when the
-    parent form fails, so nothing calls ``is_valid()`` on the sets unless
-    the view does that itself on this path too.
-
-    The assertion reads ``formset._errors is not None`` rather than
-    ``formset.errors``/``formset.non_form_errors``. Both of those are
-    properties that call ``full_clean()`` on access
-    (``django/forms/formsets.py``), so an assertion against them would pass
-    whether or not the view validated the sets — the vacuous-test shape
-    FS-024's design review caught. ``_errors`` is populated only if
-    something already called ``is_valid()``.
-    """
-
     def test_sets_are_validated_even_when_the_parent_form_is_invalid(self):
         project = ProjectFactory(name="Original")
         view_cls = _inline_update_view_class(
@@ -1396,22 +1139,8 @@ class TestInvalidParentFormStillValidatesSets:
         assert inlines[1].forms[0].errors
 
 
-# ---------------------------------------------------------------------------
-# T040 — a refused submission redisplays every set with the submitted
-# values, while the page's object-derived parts show the stored record
-# (US3 s3, FR-010)
-# ---------------------------------------------------------------------------
-
-
 @pytest.mark.django_db
 class TestRefusedSubmissionKeepsObjectDerivedPartsOnTheStoredRecord:
-    """A refused submission redisplays a set carrying the submitted values,
-    while the page's object-derived parts (the breadcrumb naming the
-    record) show the stored record — even though the parent form's own
-    fields validated individually, since Django's ``_post_clean`` still
-    writes them onto ``self.object`` in place before the page as a whole is
-    refused for a failing set."""
-
     def test_set_keeps_submitted_value_while_breadcrumb_shows_stored_name(self):
         project = ProjectFactory(name="Original")
         view_cls = _inline_update_view_class(
@@ -1442,13 +1171,11 @@ class TestRefusedSubmissionKeepsObjectDerivedPartsOnTheStoredRecord:
         assert breadcrumbs[1]["text"] == "Original"
 
 
-# ---------------------------------------------------------------------------
 # Guards carried over from FS-024, restored against the new surface: the
 # declaration classes replaced the `inline_*` attributes, but FR-009's single
 # transaction, the remove control and the create page's refusal path are
 # unchanged requirements, and the rewrite of this file left each of them with
 # no test (D15).
-# ---------------------------------------------------------------------------
 
 
 class _SimulatedRowFailure(Exception):
@@ -1457,14 +1184,6 @@ class _SimulatedRowFailure(Exception):
 
 @pytest.mark.django_db
 class TestSaveFailurePartwayThroughRollsBackEverything:
-    """A failure raised while saving rows leaves the parent's changes
-    unpersisted and queues no success message (FR-009, SC-002).
-
-    A row that fails *validation* never reaches the transaction at all, so it
-    cannot tell whether ``form_valid`` wraps the writes or merely orders them.
-    Only a failure raised after the block is entered does.
-    """
-
     def test_row_save_failure_rolls_back_parent_and_queues_no_message(
         self, monkeypatch
     ):
@@ -1510,10 +1229,6 @@ class _DeletableTaskInline(InlineFormSet):
 
 @pytest.mark.django_db
 class TestSubmittedRemoveFlagRemovesTheRow:
-    """The server-side half of the remove control: what a submitted ``DELETE``
-    flag does to a related record, and what it does to a row added in the same
-    submission (the count FR-013 excludes from a cap)."""
-
     def test_delete_on_an_existing_row_deletes_that_record(self):
         project = ProjectFactory(name="Existing")
         existing = ProjectTaskFactory(project=project, title="Doomed")
@@ -1564,14 +1279,6 @@ class TestSubmittedRemoveFlagRemovesTheRow:
 
 @pytest.mark.django_db
 class TestCreatePageRefusedByItsParentFormPersistsNothing:
-    """On a create page, an invalid parent form with a valid row persists
-    neither part, and the page comes back carrying every submitted value.
-
-    The update-page equivalent is covered above; create is the path where
-    ``self.object`` is ``None`` throughout, so the refusal runs through
-    different state.
-    """
-
     def test_invalid_parent_persists_nothing_and_preserves_both_parts(self):
         view_cls = _inline_create_view_class(success_url="/done/")
         too_long_name = "x" * 250  # Project.name has max_length=200
@@ -1594,25 +1301,8 @@ class TestCreatePageRefusedByItsParentFormPersistsNothing:
         assert ProjectTask.objects.count() == 0
 
 
-# ---------------------------------------------------------------------------
-# US4 — a page that edits only the related rows (#213)
-#
-# `fields = []` on an update view is the whole configuration: no new view
-# class, no page-selecting attribute (plan.md "The rows-only page").
-# ---------------------------------------------------------------------------
-
-
-# ---------------------------------------------------------------------------
-# T042 — a rows-only page renders no parent field, and every set against the
-# record the URL identifies (FR-014, US4 s1)
-# ---------------------------------------------------------------------------
-
-
 @pytest.mark.django_db
 class TestRowsOnlyPageRendersNoParentFields:
-    """An update view configured with ``fields = []`` renders no parent
-    field, and every configured set against the record the URL identifies."""
-
     def test_no_parent_field_input_renders(self):
         project = ProjectFactory(name="Website revamp")
         view_cls = _inline_update_view_class(success_url="/done/", fields=[])
@@ -1638,18 +1328,8 @@ class TestRowsOnlyPageRendersNoParentFields:
         } == {"Mine"}
 
 
-# ---------------------------------------------------------------------------
-# T043 — `fields = None` still raises Django's own error: only an empty
-# collection selects the rows-only page (plan risk 4)
-# ---------------------------------------------------------------------------
-
-
 @pytest.mark.django_db
 class TestFieldsNoneStillRaisesDjangosOwnError:
-    """``fields = None`` (Django's "not configured") is not treated as
-    ``fields = []`` (this feature's "deliberately none"). The unconfigured
-    page still raises Django's own error, not this feature's."""
-
     def test_unconfigured_fields_raises_djangos_own_message(self):
         project = ProjectFactory()
         view_cls = _inline_update_view_class(success_url="/done/", fields=None)
@@ -1660,28 +1340,16 @@ class TestFieldsNoneStillRaisesDjangosOwnError:
         assert "without the 'fields' attribute is prohibited" in str(excinfo.value)
 
 
-# ---------------------------------------------------------------------------
 # T044 — the rows-only branch: no parent form fields, sets bound to the
 # loaded instance. No new view class, no page-selecting attribute. Verified
 # by T042/T043 above needing no production code — both already green,
 # because `fields = []` renders through Django's own empty-form machinery
 # and every set already binds to `self.object` via the existing multi-set
 # construction (US1-3). Nothing to add here.
-# ---------------------------------------------------------------------------
-
-
-# ---------------------------------------------------------------------------
-# T045 — a valid submission saves the rows and leaves the record's own
-# field values unchanged (FR-015, US4 s2)
-# ---------------------------------------------------------------------------
 
 
 @pytest.mark.django_db
 class TestRowsOnlySavesRowsLeavesParentFieldValuesUnchanged:
-    """A valid submission on a rows-only page saves the rows against the
-    URL's record, and every one of the parent's own columns reads what it
-    read before the submission."""
-
     def test_rows_land_and_parent_field_values_are_unchanged(self):
         project = ProjectFactory(name="Original")
         view_cls = _inline_update_view_class(success_url="/done/", fields=[])
@@ -1703,43 +1371,14 @@ class TestRowsOnlySavesRowsLeavesParentFieldValuesUnchanged:
         assert set(project.tasks.values_list("title", flat=True)) == {"New task"}
 
 
-# ---------------------------------------------------------------------------
-# T047 — the concurrency test: a change another writer makes to the
-# parent's own field while the rows-only page is open survives the
-# submission (FR-015, US4 s4, research R12)
-# ---------------------------------------------------------------------------
-
-
 @pytest.mark.django_db
 class TestConcurrentWriteToParentFieldSurvivesTheSubmission:
-    """Load the rows-only page for a parent, have another writer change one
-    of that parent's own fields while the page is open, then post the
-    submission from the page that was loaded. That other change must
-    survive — this is red against a naive ``form.save()`` implementation
-    and green against never saving the parent form (FR-015, R12).
-
-    Django's own ``UpdateView.post()`` re-fetches the object fresh at the
-    start of every request, so the race this simulates is not "another
-    request landed between GET and POST" (a fresh POST already sees that)
-    but the narrower, real window every writer has to contend with: another
-    writer's change lands after this request has already read its own copy
-    of the record and before this request writes anything back. Monkey-
-    patching ``get_object`` to perform that second write immediately after
-    the read is what puts a genuinely stale value in this request's memory.
-    """
-
     @pytest.mark.parametrize("empty_fields", [[], ()], ids=["list", "tuple"])
     def test_concurrent_change_to_parent_field_survives(
         self, monkeypatch, empty_fields
     ):
-        """Run against both spellings of empty ``fields``. Django accepts a
-        tuple wherever it accepts a list, and a rows-only page declared
-        ``fields = ()`` that fell onto the parent-editing path would save the
-        parent form and lose the other writer's change without a word."""
         project = ProjectFactory(name="Original")
-        view_cls = _inline_update_view_class(
-            success_url="/done/", fields=empty_fields
-        )
+        view_cls = _inline_update_view_class(success_url="/done/", fields=empty_fields)
         original_get_object = view_cls.get_object
 
         def get_object_then_concurrent_write(self, queryset=None):
@@ -1767,13 +1406,6 @@ class TestConcurrentWriteToParentFieldSurvivesTheSubmission:
         project.refresh_from_db()
         assert project.name == "Changed By Someone Else"
         assert set(project.tasks.values_list("title", flat=True)) == {"New task"}
-
-
-# ---------------------------------------------------------------------------
-# T048 — the parent touch: on by default where the parent carries an
-# auto_now field, switchable off, a genuine no-op where it does not
-# (FR-016, US4 s3, research R12)
-# ---------------------------------------------------------------------------
 
 
 class OrderLineRowInline(InlineFormSet):
@@ -1811,11 +1443,6 @@ def _order_line_submission_data(quantity="3"):
 
 @pytest.mark.django_db
 class TestRowsOnlyPageTouchesParentAutoNowField:
-    """A valid submission on a rows-only page records the change on the
-    parent's own ``auto_now`` field by default, a developer can switch that
-    off, and where the parent carries no such field neither setting writes
-    anything at all."""
-
     def test_default_bumps_the_parents_auto_now_field(self):
         product = ProductFactory()
         original_updated_at = product.updated_at
@@ -1886,18 +1513,8 @@ class TestRowsOnlyPageTouchesParentAutoNowField:
         assert save_calls == []
 
 
-# ---------------------------------------------------------------------------
-# T050 — a refused submission redisplays with the set's errors and still
-# no parent fields (US4 s5)
-# ---------------------------------------------------------------------------
-
-
 @pytest.mark.django_db
 class TestRowsOnlyRefusedSubmissionStillNoParentFields:
-    """A submission refused on a set's own errors redisplays that error,
-    and the page still shows no parent fields — the ``form_invalid`` path
-    US3 added does not reintroduce them on redisplay."""
-
     def test_refused_submission_shows_set_errors_and_no_parent_fields(self):
         project = ProjectFactory(name="Original")
         view_cls = _inline_update_view_class(success_url="/done/", fields=[])
@@ -1923,18 +1540,8 @@ class TestRowsOnlyRefusedSubmissionStillNoParentFields:
         assert project.tasks.count() == 0
 
 
-# ---------------------------------------------------------------------------
-# T051-T052 — a create page with no parent fields raises, and an update
-# page with neither parent fields nor any set raises. Both at page-build
-# time, naming the class and the fix (FR-017, FR-018, US4 s6/s7)
-# ---------------------------------------------------------------------------
-
-
 @pytest.mark.django_db
 class TestRowsOnlyConfigurationGuards:
-    """Both misconfigurations report at page-build time, naming the class
-    and the fix — the prefix-collision guard's shape."""
-
     def test_create_with_no_parent_fields_raises(self):
         view_cls = _inline_create_view_class(success_url="/done/", fields=[])
         request = _build_request(method="GET")
@@ -1961,8 +1568,6 @@ class TestRowsOnlyConfigurationGuards:
         assert "inlines" in message
 
     def test_update_with_no_parent_fields_but_a_set_does_not_raise(self):
-        """The negative case: a rows-only update page with at least one set
-        is exactly what US4 delivers, and must not trip either guard."""
         project = ProjectFactory()
         view_cls = _inline_update_view_class(success_url="/done/", fields=[])
         request = _build_request(method="GET")
@@ -1971,11 +1576,6 @@ class TestRowsOnlyConfigurationGuards:
 
         assert response.status_code == 200
 
-
-# ---------------------------------------------------------------------------
-# T053 — live guidance no longer describes the removed inline_* attribute
-# surface as supported configuration (FR-025, US5 s4)
-# ---------------------------------------------------------------------------
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 
@@ -2024,10 +1624,6 @@ def _iter_live_files():
 
 
 class TestLiveGuidanceHasNoRemovedInlineAttributes:
-    """No file a developer reads to configure a page today still describes a
-    removed ``inline_*`` attribute, or ``get_formset_factory_kwargs``, as
-    supported configuration."""
-
     def test_no_live_file_mentions_a_removed_identifier(self):
         offenders = {}
         for path in _iter_live_files():

@@ -13,7 +13,7 @@ Append-only stage and gate log. Gate outcomes are written here at the moment the
 | 2026-08-13 | SPEC GATE | Brief posted to #230. Maintainer overruled the start-up validation of theme names: the package cannot evaluate the check, because a project's own theme lives in a file the package never reads. Specification amended — the requirement is now that an unmatched name falls through to the default theme and is documented rather than validated. Decision record D5 rewritten, requirements renumbered to FR-021, SC-008 restated, story issues #231 and #233 re-synced. Spec lint re-run green. Re-gated. |
 | 2026-08-13 | SPEC GATE | **Approved** by the maintainer, on the amended specification. Scope frozen at 3 stories, 21 functional requirements, 8 success criteria. |
 | 2026-08-13 | S3 PLAN | `plan.md` (constitution check across 17 articles, all pass or N/A), `tasks.md` (15 tasks, 5 phases, test-first throughout), `feature-state.json` created and schema-valid. Two rejected alternatives recorded: per-theme static files, and a theme registry for validation. **Spec defect caught and corrected during planning:** FR-002 forbade fetching "a theme definition or stylesheet" from a third party, which the pre-existing icon-font link already violated and which the approved scope excludes. Narrowed to theme definitions, restoring the requirement to what the gate approved rather than widening the feature. SC-002 narrowed to match. |
-| 2026-08-13 | S3R DESIGN REVIEW | `request_changes`, risk medium, three findings, all verified against the repository before being accepted. Two orphaned exact-string assertions on `@plugin "daisyui";` given owning tasks, and T012's file list repointed away from a test module that does not exist and that Article X forbids creating. T001's theme-completeness guard given the skip-and-non-empty treatment T010 already carried, so it cannot report green on an empty glob in a CI job that never installs node_modules. SC-004 had no task: T016 added, one browser test for the `data-set-theme` path, and the Article XIV row in `plan.md` corrected rather than argued around. 16 tasks, 5 phases. Recorded as D8. |
+| 2026-08-13 | S3R DESIGN REVIEW | `request_changes`, risk medium, three findings, all verified against the repository before being accepted. Two orphaned exact-string assertions on `@plugin "daisyui";` given owning tasks, and T012's file list repointed away from a test module that does not exist and that the testing standard forbids creating. T001's theme-completeness guard given the skip-and-non-empty treatment T010 already carried, so it cannot report green on an empty glob in a CI job that never installs node_modules. SC-004 had no task: T016 added, one browser test for the `data-set-theme` path, and the Article XIV row in `plan.md` corrected rather than argued around. 16 tasks, 5 phases. Recorded as D8. |
 
 ## Implementer US1 task log
 
@@ -55,7 +55,7 @@ Watch: none.
 
 ## 2026-08-13T00:10Z · Implementer US1 · T003
 
-Did: Added `tests/test_config.py` (new file, mirrors `mvp/config.py` per Article X) covering
+Did: Added `tests/test_config.py` (new file, mirrors `mvp/config.py` per the testing standard) covering
 `theme.default == "light"` / `theme.choices == []` with no override, and — exercised directly
 against `mergedeep.merge` since `MVP_CONFIG` is a process-wide singleton and `tests/settings.py`
 carries no `theme` override — that overriding one theme key leaves the other and sibling
@@ -263,7 +263,7 @@ instead of the bare `@plugin "daisyui";`, confirmed it fails against the unmodif
 then changed `ENTRY_TEMPLATE` in `mvp/management/commands/mvp_tailwind.py` to emit the block
 form (curly braces doubled for `.format()`). Before this, a Tier 2 project — one that builds
 its own CSS — got only light and dark while a Tier 1 project (no build) got all 35, which
-inverted the tiering the docs describe. No new test module created: Article X keeps the
+inverted the tiering the docs describe. No new test module created: The testing standard keeps the
 command's tests in the one module that already covers it.
 Verified: `poetry run pytest -q tests/test_components/test_mvp_tailwind_command.py -v` before
 the template change → 1 failed (`test_entry_contains_daisyui_and_preset_import`, RED for the
@@ -335,7 +335,7 @@ instead of fixed in scope.
 ## 2026-08-13T16:10Z · Implementer US3 · T010 (conformance fix)
 
 Did: `forge verify`'s conformance check (run as this dispatch's mandatory final act) flagged
-`tests/test_docs.py` as an Article X violation: "mirrors no source module (expected
+`tests/test_docs.py` as a violation of the testing standard: "mirrors no source module (expected
 mvp/docs.py or mvp/docs/__init__.py); a cross-cutting test belongs in the module of its
 subject as another Test* class." `docs/theming.md` is a markdown file, not a Python module,
 so there is no source module for a `test_docs.py` to mirror — plan.md's Structure Decision

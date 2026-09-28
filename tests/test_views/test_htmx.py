@@ -24,9 +24,6 @@ from mvp.views.htmx import HtmxFormMixin, HtmxMixin
 
 User = get_user_model()
 
-# ---------------------------------------------------------------------------
-# Test helpers
-# ---------------------------------------------------------------------------
 
 HTMX_HEADERS = {"HTTP_HX_REQUEST": "true"}
 
@@ -110,16 +107,8 @@ def make_htmx_view(
     return view
 
 
-# ---------------------------------------------------------------------------
-# Phase 9: HtmxMixin standalone
-# ---------------------------------------------------------------------------
-
-
 class TestHtmxContext:
-    """The mixin exposes htmx_enabled in the template context."""
-
     def test_htmx_mixin_standalone_injects_htmx_enabled(self):
-        """HtmxMixin alone (no HtmxFormMixin) injects htmx_enabled=True into context."""
         from django.views.generic import TemplateView
 
         rf = RequestFactory()
@@ -136,20 +125,14 @@ class TestHtmxContext:
         context = view.get_context_data()
         assert context.get("htmx_enabled") is True
 
-    # ---------------------------------------------------------------------------
-    # Phase 2: htmx_enabled context injection
-    # ---------------------------------------------------------------------------
-
     @pytest.mark.django_db
     def test_htmx_enabled_in_context(self):
-        """get_context_data() injects htmx_enabled=True when the mixin is active."""
         view = make_htmx_view(method="GET")
         view.object = None
         context = view.get_context_data()
         assert context.get("htmx_enabled") is True
 
     def test_htmx_enabled_not_in_context_without_mixin(self):
-        """A plain MVPCreateView (no mixin) does not inject htmx_enabled."""
         rf = RequestFactory()
         request = rf.get("/")
         request.user = User()
@@ -166,17 +149,9 @@ class TestHtmxContext:
         assert "htmx_enabled" not in context
 
 
-# ---------------------------------------------------------------------------
-# US1: Submit a Form Without a Full Page Reload
-# ---------------------------------------------------------------------------
-
-
 class TestHtmxFormResponses:
-    """Partial versus full-page responses on valid and invalid submissions."""
-
     @pytest.mark.django_db
     def test_form_valid_htmx_returns_success_partial(self):
-        """Valid htmx POST returns HttpResponse with success partial content, not a redirect."""
         from unittest.mock import patch
 
         view = make_htmx_view(data={"name": "Widget A"})
@@ -200,7 +175,6 @@ class TestHtmxFormResponses:
 
     @pytest.mark.django_db
     def test_form_invalid_htmx_returns_form_partial_at_200(self):
-        """Invalid htmx POST returns HttpResponse at status 200 with form partial content."""
         from unittest.mock import patch
 
         view = make_htmx_view(data={"name": ""})  # name is required
@@ -217,7 +191,6 @@ class TestHtmxFormResponses:
 
     @pytest.mark.django_db
     def test_form_valid_non_htmx_redirects(self):
-        """Non-htmx valid POST delegates to the base view (standard redirect on success)."""
         view = make_htmx_view(data={"name": "Widget B"}, htmx=False)
         form_cls = view.get_form_class()
         form = form_cls(data={"name": "Widget B"})
@@ -231,7 +204,6 @@ class TestHtmxFormResponses:
 
     @pytest.mark.django_db
     def test_form_invalid_non_htmx_full_page(self):
-        """Non-htmx invalid POST delegates to the base view (full-page re-render)."""
         view = make_htmx_view(data={"name": ""}, htmx=False)
         form_cls = view.get_form_class()
         form = form_cls(data={"name": ""})
@@ -250,7 +222,6 @@ class TestHtmxFormResponses:
 
     @pytest.mark.django_db
     def test_messages_drained_on_htmx_success_path(self):
-        """After a valid htmx POST the Django message queue is empty."""
         from unittest.mock import patch
 
         from django.contrib.messages import get_messages
@@ -274,17 +245,9 @@ class TestHtmxFormResponses:
         assert len(remaining) == 0, f"Expected empty queue; got {remaining}"
 
 
-# ---------------------------------------------------------------------------
-# US2: Wire Up with Minimal Configuration
-# ---------------------------------------------------------------------------
-
-
 class TestHtmxComponentConfiguration:
-    """Component configuration and its required-setting errors."""
-
     @pytest.mark.django_db
     def test_missing_success_component_raises_improperly_configured(self):
-        """htmx POST with valid data on a view missing htmx_success_component raises ImproperlyConfigured."""
         from django.core.exceptions import ImproperlyConfigured
 
         view = make_htmx_view(
@@ -303,7 +266,6 @@ class TestHtmxComponentConfiguration:
 
     @pytest.mark.django_db
     def test_missing_form_component_raises_improperly_configured(self):
-        """htmx POST with invalid data on a view where htmx_form_component is explicitly None raises ImproperlyConfigured."""
         from django.core.exceptions import ImproperlyConfigured
 
         view = make_htmx_view(
@@ -319,7 +281,6 @@ class TestHtmxComponentConfiguration:
 
     @pytest.mark.django_db
     def test_get_htmx_success_component_override_used(self):
-        """Subclass overriding get_htmx_success_component() has that name used by render_component."""
         from unittest.mock import patch
 
         view = make_htmx_view(
@@ -343,7 +304,6 @@ class TestHtmxComponentConfiguration:
 
     @pytest.mark.django_db
     def test_get_htmx_form_component_override_used(self):
-        """Subclass overriding get_htmx_form_component() has that name used by render_component."""
         from unittest.mock import patch
 
         view = make_htmx_view(data={"name": ""})
@@ -362,10 +322,6 @@ class TestHtmxComponentConfiguration:
         assert called_template == custom_template
 
 
-# ---------------------------------------------------------------------------
-# htmx_success_components allowlist + X-Success-Component header
-# ---------------------------------------------------------------------------
-
 ALLOWLIST = (
     ("list", "product.list-item"),
     ("detail", "product.detail-card"),
@@ -373,11 +329,8 @@ ALLOWLIST = (
 
 
 class TestHtmxComponentAllowlist:
-    """The X-Success-Component header is resolved through the allowlist."""
-
     @pytest.mark.django_db
     def test_x_success_component_header_resolves_via_allowlist(self):
-        """X-Success-Component header alias found in allowlist overrides htmx_success_component."""
         from unittest.mock import patch
 
         view = make_htmx_view(
@@ -401,7 +354,6 @@ class TestHtmxComponentAllowlist:
 
     @pytest.mark.django_db
     def test_x_success_component_unknown_alias_falls_through_to_default(self):
-        """Unknown X-Success-Component alias is silently ignored; server default is used."""
         from unittest.mock import patch
 
         view = make_htmx_view(
@@ -424,7 +376,6 @@ class TestHtmxComponentAllowlist:
 
     @pytest.mark.django_db
     def test_x_success_component_header_ignored_when_allowlist_empty(self):
-        """X-Success-Component header is ignored when htmx_success_components is empty."""
         from unittest.mock import patch
 
         view = make_htmx_view(
@@ -445,7 +396,6 @@ class TestHtmxComponentAllowlist:
 
     @pytest.mark.django_db
     def test_x_success_component_no_header_uses_server_default(self):
-        """Allowlist configured but no X-Success-Component header sent → server default used."""
         from unittest.mock import patch
 
         view = make_htmx_view(
@@ -467,17 +417,9 @@ class TestHtmxComponentAllowlist:
             assert mock_render.call_args[0][1] == "demo.htmx-product-created"
 
 
-# ---------------------------------------------------------------------------
-# US3: Return an HX-Redirect Header on Success
-# ---------------------------------------------------------------------------
-
-
 class TestHtmxRedirect:
-    """Client-side redirects take precedence over a success component."""
-
     @pytest.mark.django_db
     def test_htmx_redirect_on_success_returns_client_redirect(self):
-        """Valid htmx POST with htmx_redirect_on_success=True returns HttpResponseClientRedirect."""
         from django_htmx.http import HttpResponseClientRedirect
 
         view = make_htmx_view(
@@ -495,7 +437,6 @@ class TestHtmxRedirect:
 
     @pytest.mark.django_db
     def test_redirect_takes_precedence_over_success_component(self):
-        """When both htmx_redirect_on_success=True and htmx_success_component are set, redirect wins."""
         from django_htmx.http import HttpResponseClientRedirect
 
         view = make_htmx_view(
@@ -516,17 +457,9 @@ class TestHtmxRedirect:
         assert "HX-Redirect" in response
 
 
-# ---------------------------------------------------------------------------
-# US4: Emit HTMX Response Triggers on Success
-# ---------------------------------------------------------------------------
-
-
 class TestHtmxTriggerHeaders:
-    """HX-Trigger headers in each supported form."""
-
     @pytest.mark.django_db
     def test_htmx_trigger_string_adds_hx_trigger_header(self):
-        """Valid htmx POST with htmx_trigger='itemCreated' adds HX-Trigger header."""
         from unittest.mock import patch
 
         view = make_htmx_view(
@@ -545,7 +478,6 @@ class TestHtmxTriggerHeaders:
 
     @pytest.mark.django_db
     def test_htmx_trigger_dict_adds_events_for_each_key(self):
-        """htmx_trigger as dict results in both events in the trigger header."""
         from unittest.mock import patch
 
         view = make_htmx_view(
@@ -565,7 +497,6 @@ class TestHtmxTriggerHeaders:
 
     @pytest.mark.django_db
     def test_htmx_trigger_after_settle_uses_correct_header(self):
-        """htmx_trigger_after='settle' produces HX-Trigger-After-Settle header."""
         from unittest.mock import patch
 
         view = make_htmx_view(
@@ -587,7 +518,6 @@ class TestHtmxTriggerHeaders:
 
     @pytest.mark.django_db
     def test_htmx_trigger_after_swap_uses_correct_header(self):
-        """htmx_trigger_after='swap' produces HX-Trigger-After-Swap header."""
         from unittest.mock import patch
 
         view = make_htmx_view(
@@ -608,7 +538,6 @@ class TestHtmxTriggerHeaders:
 
     @pytest.mark.django_db
     def test_htmx_trigger_none_adds_no_trigger_header(self):
-        """When htmx_trigger is None, no HX-Trigger family header is added."""
         from unittest.mock import patch
 
         view = make_htmx_view(

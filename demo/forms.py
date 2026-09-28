@@ -55,9 +55,11 @@ class ContactForm(forms.Form):
 
 
 class LayoutDemoForm(forms.Form):
-    """Backs the Complex Form demo page (#311): three Fieldsets — one of them
-    laid out with a Row/Column pair — and an HTML block between the first two,
-    exercising crispy_forms.layout beyond a single flat form.
+    """Back the Complex Form demo page.
+
+    Three Fieldsets — one of them laid out with a Row/Column pair — and an
+    HTML block between the first two, exercising crispy_forms.layout beyond
+    a single flat form (#311).
     """
 
     SHIPPING_METHOD_CHOICES = [

@@ -1,42 +1,17 @@
-{# ============================================================ #}
-{# <c-dropdown> — daisyUI dropdown (trigger + panel)           #}
-{#                                                              #}
-{# Trigger:                                                     #}
-{#   By default, any extra attributes on <c-dropdown> are      #}
-{#   forwarded to an inner <c-button> that becomes the         #}
-{#   trigger — e.g. text, icon, variant, size.                 #}
-{#                                                              #}
-{#     <c-dropdown text="Options" icon="gears" variant="primary"> #}
-{#       <ul class="menu w-full">…</ul>                        #}
-{#     </c-dropdown>                                            #}
-{#                                                              #}
-{#   For full control, supply the trigger in the `button`      #}
-{#   slot. In that case extra attributes fall through to the   #}
-{#   dropdown wrapper instead (handy for x-data, id, …), and   #}
-{#   you own the trigger's tabindex/role.                      #}
-{#                                                              #}
-{# Props:                                                       #}
-{#   halign        – start|center|end (default: start)         #}
-{#   valign        – top|bottom|left|right (default: bottom)   #}
-{#   full          – stretch the panel to the trigger's width  #}
-{#                   (w-full); otherwise it sizes to its       #}
-{#                   content with a sensible min-width         #}
-{#   hover         – open on hover instead of click            #}
-{#   class         – extra classes on the .dropdown wrapper    #}
-{#   content_class – extra classes on the .dropdown-content    #}
-{#                                                              #}
-{# data-mvp-dropdown / data-mvp-placement:                      #}
-{#   assets/js/dropdown.js upgrades each marked wrapper at run  #}
-{#   time, moving the panel into the top layer and positioning  #}
-{#   it against the space actually available. The daisyUI       #}
-{#   classes above stay because they are what places the panel  #}
-{#   when that script never runs — which is why the `popover`   #}
-{#   attribute is added by the script and not written here.     #}
-{#   data-mvp-placement is halign/valign already resolved into  #}
-{#   the placement string Floating UI takes; `center` has no    #}
-{#   suffix because a centred alignment is spelled as the bare  #}
-{#   side.                                                      #}
-{# ============================================================ #}
+{# @description DaisyUI dropdown: a trigger and a panel. #}
+{# @prop valign:select['top','bottom','left','right'] | default:"bottom" | description:"Preferred side of the trigger the panel opens on." #}
+{# @prop halign:select['start','center','end'] | default:"start" | description:"Preferred alignment of the panel along that side." #}
+{# @prop full:boolean | description:"Stretch the panel to the trigger's width instead of sizing to its content." #}
+{# @prop hover:boolean | description:"Open on hover instead of click." #}
+{# @prop class:text | description:"Extra classes on the .dropdown wrapper." #}
+{# @prop content_class:text | description:"Extra classes on the .dropdown-content panel." #}
+{# @slot:button Options — Trigger; falls back to a c-button built from undeclared attributes when omitted. #}
+{# @slot Menu markup — The panel's content. #}
+{% comment %}
+  assets/js/dropdown.js upgrades the marked wrapper at runtime, positioning
+  the panel against available space; the daisyUI classes above are the
+  fallback for when that script never runs.
+{% endcomment %}
 {% load mvp %}
 <c-vars valign="bottom" halign="start" full hover class content_class />
 <div class="dropdown {% variation valign "dropdown" "top,bottom,left,right" %} {% variation halign "dropdown" "start,center,end" %}{% if hover %} dropdown-hover{% endif %} {{ class }}"

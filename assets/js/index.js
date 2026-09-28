@@ -2,10 +2,9 @@
  * The shipped front-end runtime.
  *
  * Everything the components need at page load is bundled here and built into
- * mvp/static/js/django-mvp.js, a committed artifact (see Article XV of
- * CONSTITUTION.md). Nothing is fetched from a third party at run time,
- * so a project that installs the package gets a front end that works without
- * depending on a CDN staying up or staying honest.
+ * mvp/static/js/django-mvp.js, a committed artifact. Nothing is fetched from
+ * a third party at run time, so a project that installs the package gets a
+ * front end that works without depending on a CDN staying up or staying honest.
  *
  * The bundle is not configurable. These libraries are what the components are
  * written against, so a project cannot swap or drop one without breaking the
@@ -28,61 +27,44 @@ import { registerLayoutStore } from "./layout.js";
 // documentation, `hx-on:` handlers and browser-console debugging expect to find.
 window.htmx = htmx;
 
-// Binds the [data-toggle-theme] / [data-set-theme] / [data-choose-theme]
-// controls. Defaults to attaching on DOMContentLoaded, which still fires after
-// this bundle runs because the tag is deferred. The inline script in base.html
-// applies the stored theme before first paint; this only wires the controls.
+// Attaches on DOMContentLoaded, which still fires since the tag is deferred.
+// The inline script in base.html applies the stored theme before first
+// paint; this call only wires the [data-*-theme] controls.
 themeChange();
 
-// Moves each dropdown panel into the top layer and hands its placement to
-// Floating UI, so a panel opens where there is room for it rather than where
-// its classes said at authoring time. See assets/js/dropdown.js for why this
-// is done here and not written into the template.
+// Moves each dropdown panel into the top layer so it opens where there is
+// room for it. See assets/js/dropdown.js for why this runs here rather
+// than being written into the template.
 startDropdowns();
 
-// theme-change binds click handlers to the controls that exist when it runs,
-// and it has no way to notice later ones. A boosted navigation (hx-boost on
-// the sidebar, MVP_CONFIG["layout"]["sidebar"]["boost"]) replaces the body
-// without a document load, so those controls are swapped out for identical
-// markup with no listeners: the theme toggle renders perfectly and stops
-// responding.
+// theme-change can't notice controls added after it runs, and a boosted
+// navigation swaps the body for identical markup with no listeners: the
+// toggle renders but stops responding.
 //
-// Rebinding is only safe when *every* bound control went away with the swap.
-// theme-change attaches a fresh anonymous listener to each control each time
-// it runs, so a control that survived would end up with two — and two clicks
-// per click toggles the theme back to where it started, which is worse than
-// the bug this fixes. A swap whose target is the body is exactly the case
-// where nothing survives, so that, and not the request's boosted flag, is
-// what this keys on.
+// Rebinding is safe only when *every* bound control went with the swap —
+// a surviving one would get a second listener, and two clicks per click
+// un-toggles the theme. A body-targeted swap is exactly that case.
 //
-// The dropdowns are in exactly the same position and are rebound on the same
-// terms: their listeners went out with the old body, and a narrower swap would
-// leave already-upgraded panels in place for a second set to be attached to.
+// Dropdowns are rebound on the same terms: a narrower swap would leave
+// already-upgraded panels for a second listener set to attach to.
 document.addEventListener("htmx:afterSettle", (event) => {
   if (event.detail?.target === document.body) {
     themeChange(false);
     startDropdowns();
-    // The swapped-in drawer is a new element with a fresh, server-closed
-    // checkbox; re-derive the sidebar's resting position rather than
-    // leaving the global store's sidebar.open at whatever it held before
-    // the swap. See assets/js/layout.js.
+    // The swapped-in drawer is a new, server-closed element; re-derive the
+    // resting position rather than keep whatever it held before the swap.
     Alpine.store("mvp").rebindAfterNavigation();
   }
 });
 
-// Plugins register before start(), which is why the CDN tags this replaces had
-// to be ordered with the plugins ahead of core.
-//
-// Only persist is here. The CDN tags also loaded @alpinejs/sort, which nothing
-// in the package uses; it bundles SortableJS and cost a quarter of the built
-// output. A project that wants x-sort adds the plugin from its own base
-// template, and bringing it back here is two lines and a rebuild.
+// Plugins must register before start(). Only persist is bundled — the CDN
+// tags this replaces also loaded @alpinejs/sort, unused in the package and
+// a quarter of the built output; a project wanting x-sort adds it itself.
 Alpine.plugin(persist);
 
-// Registered here, after the persist plugin and before start(): the plugin
-// is what defines Alpine.$persist, which the store's desktop-open property
-// needs at construction. See assets/js/layout.js for the store itself and
-// why its init() ordering matters.
+// Registered after the persist plugin and before start(): the plugin
+// defines Alpine.$persist, which the store's desktop-open property needs
+// at construction. See assets/js/layout.js.
 registerLayoutStore(Alpine);
 
 // mvp/static/js/formset.js reaches for the global, as does any x-data in a

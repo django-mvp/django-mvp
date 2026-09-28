@@ -32,8 +32,6 @@ TEMPLATES = sorted(
 
 
 class TestComponentRenderSmoke:
-    """Every packaged Cotton component template renders."""
-
     def test_inventory_is_nonempty(self):
         assert len(TEMPLATES) > 50, "cotton template discovery looks broken"
 

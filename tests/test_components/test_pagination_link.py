@@ -58,8 +58,6 @@ def collect_anchors(html):
 
 
 class TestPaginationLinkPreservesQueryString:
-    """A page link changes only `page`, keeping every other parameter."""
-
     def test_page_link_preserves_sort_and_search(self):
         request = RequestFactory().get("/items/?o=name&q=widget")
         html = render('<c-pagination.link :page="2" text="2" />', request)
@@ -77,9 +75,6 @@ class TestPaginationLinkPreservesQueryString:
 
 
 class TestPaginationWrapperLinksAllPreserveQueryString:
-    """First, Previous, numbered, Next and Last links share one component,
-    so the fix applies uniformly to every one of them."""
-
     def test_every_rendered_link_preserves_the_current_query_string(self):
         request = RequestFactory().get("/items/?o=name&q=widget")
         paginator = Paginator(range(9), 3)
@@ -98,8 +93,6 @@ class TestPaginationWrapperLinksAllPreserveQueryString:
 
 
 class TestPaginationCurrentPageIndicator:
-    """The active page link is visually distinct, not just marked up."""
-
     def test_active_link_gets_a_colour_modifier_no_sibling_has(self):
         request = RequestFactory().get("/items/")
         paginator = Paginator(range(9), 3)

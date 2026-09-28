@@ -21,8 +21,6 @@ def render(source, **context):
 
 
 class TestButtonCondition:
-    """`condition` defaults to True and fully suppresses output when False."""
-
     def test_default_condition_renders_the_button(self):
         html = render('<c-button text="Save" />')
         assert "<button" in html
@@ -34,13 +32,6 @@ class TestButtonCondition:
 
 
 class TestButtonSize:
-    """[#328] `size` is the only attribute that changes a button's size.
-
-    `small` and `large` are not declared in `<c-vars>`, so Cotton forwards
-    them straight through to the rendered element as bare, invalid HTML
-    attributes instead of applying any sizing class.
-    """
-
     def test_size_sm_applies_the_small_class(self):
         html = render('<c-button text="Save" size="sm" />')
         assert "btn-sm" in html

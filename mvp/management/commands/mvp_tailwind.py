@@ -50,6 +50,8 @@ ENTRY_TEMPLATE = """\
 
 
 class Command(BaseCommand):
+    """Print a Tailwind v4 entry file with the package's paths resolved."""
+
     help = (
         "Print a Tailwind v4 entry stylesheet that scans django-mvp's packaged "
         "templates alongside your own. Redirect to a file, e.g. "
@@ -57,6 +59,7 @@ class Command(BaseCommand):
     )
 
     def add_arguments(self, parser):
+        """Add ``--paths``."""
         parser.add_argument(
             "--paths",
             action="store_true",
@@ -67,6 +70,7 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
+        """Print the entry file, or only the package paths with ``--paths``."""
         preset = (PACKAGE_DIR / "tailwind" / "base.css").as_posix()
         templates = (PACKAGE_DIR / "templates").as_posix()
 

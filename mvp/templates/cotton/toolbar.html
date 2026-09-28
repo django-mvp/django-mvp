@@ -1,30 +1,9 @@
-{# ============================================================ #}
-{# <c-toolbar> — responsive toolbar with heading and actions    #}
-{#                                                              #}
-{# A flexible toolbar that displays a heading/content area on  #}
-{# the left and action buttons on the right. Stacks vertically #}
-{# on mobile, switches to horizontal layout at breakpoint.     #}
-{#                                                              #}
-{# Props:                                                       #}
-{#   row        – True|sm|md|lg|xl|2xl (default: md)           #}
-{#                True = always row, breakpoint = row at/above #}
-{#   gap        – Tailwind gap size (default: 2)               #}
-{#   class      – Additional classes on wrapper                #}
-{#                                                              #}
-{# Slots:                                                       #}
-{#   (default)  – Left content (heading, breadcrumbs, etc)     #}
-{#   actions    – Right content (buttons, action group)        #}
-{#                                                              #}
-{# Examples:                                                    #}
-{#   <c-toolbar row>                                           #}
-{#     <h1>Page Title</h1>                                     #}
-{#     <c-slot name="actions">                                 #}
-{#       <button class="btn">Action</button>                   #}
-{#     </c-slot>                                               #}
-{#   </c-toolbar>                                              #}
-{#                                                              #}
-{#   <c-toolbar row="lg">...</c-toolbar>                       #}
-{# ============================================================ #}
+{# @description A responsive toolbar: left content and right-aligned actions, stacking vertically below its breakpoint. #}
+{# @prop row:text | default:"md" | description:"True for always a row, or a breakpoint name for row layout at/above that width." #}
+{# @prop gap:text | default:"2" | description:"Tailwind gap size between the two sides." #}
+{# @prop class:text | description:"Extra classes on the wrapper." #}
+{# @slot <h1>Page Title</h1> — Left content: heading, breadcrumbs, etc. #}
+{# @slot:actions <button class="btn">Action</button> — Right content: buttons, action group. #}
 <c-vars row="md" gap="2" class />
 <div class="flex {% if row is True %}flex-row justify-between items-center{% else %}flex-col {{ row }}:flex-row {{ row }}:justify-between {{ row }}:items-center{% endif %} w-full gap-{{ gap }} {{ class }}"
      {{ attrs }}>

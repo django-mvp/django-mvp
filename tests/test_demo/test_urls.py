@@ -59,9 +59,6 @@ class TestDemoCarriesNoAuthWiringOfItsOwn:
 
 @pytest.mark.django_db
 class TestTheDemoShowsThePackagedPages:
-    """The round trip a person actually makes against the demo's real,
-    un-overridden settings (FR-014, SC-006)."""
-
     def test_a_protected_page_sends_an_anonymous_visitor_to_the_packaged_sign_in_page(
         self, client
     ):

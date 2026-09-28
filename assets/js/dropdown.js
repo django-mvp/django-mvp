@@ -39,22 +39,17 @@ import {
   size,
 } from "@floating-ui/dom";
 
-// The gap between the trigger and the panel. daisyUI leaves them touching and
-// consumers add a margin utility when they want air, but a margin on an
-// element the browser is positioning itself fights the position, so the gap
-// belongs in the placement calculation instead.
+// daisyUI leaves trigger and panel touching; a margin utility would fight
+// the browser's own positioning, so the gap belongs in the calculation.
 const GAP = 8;
 
 // How close a panel may come to the edge of the viewport before shift() pulls
 // it back and size() starts capping its height.
 const VIEWPORT_PADDING = 8;
 
-// The placements the component's halign/valign pairs resolve to. An unknown
-// value reaches Floating UI as an unknown side, which it does not reject — it
-// just returns coordinates that put the panel on top of its own trigger. Today
-// a bogus valign drops the daisyUI class and leaves the panel at daisyUI's own
-// default, so the fallback below is what keeps that behaviour rather than
-// trading a mildly wrong dropdown for a visibly broken one.
+// Floating UI does not reject an unknown side — it stacks the panel on its
+// own trigger. The fallback below keeps today's behaviour (a bogus valign
+// drops the daisyUI class, panel stays at daisyUI's default) instead.
 const PLACEMENTS = [
   "top",
   "top-start",
@@ -72,13 +67,9 @@ const PLACEMENTS = [
 
 const DEFAULT_PLACEMENT = "bottom-start";
 
-// Every autoUpdate loop currently running. A panel that is open when a boosted
-// navigation replaces the body is removed from the document while showing, and
-// the specification closes it *without* firing `toggle` — so the per-panel
-// teardown below never runs, and that panel's scroll and resize listeners
-// would outlive the markup they were tracking. Clicking a link inside an open
-// dropdown is the ordinary way to leave a page, so this is the common case
-// rather than a corner of one.
+// Every autoUpdate loop currently running. A panel open when a boosted
+// navigation replaces the body is removed without firing `toggle`, so its
+// teardown never runs and its listeners would outlive the markup.
 const tracking = new Set();
 
 function upgrade(wrapper) {
@@ -92,25 +83,20 @@ function upgrade(wrapper) {
   const declared = wrapper.dataset.mvpPlacement;
   const placement = PLACEMENTS.includes(declared) ? declared : DEFAULT_PLACEMENT;
 
-  // `full` means "as wide as the trigger", which the template says with
-  // `w-full`. That worked while the panel was a child of the trigger's box.
-  // In the top layer it is not, and `w-full` would resolve against the
-  // viewport, so the width has to be measured and applied instead.
+  // `w-full` worked while the panel was a child of the trigger's box; in the
+  // top layer it would resolve against the viewport instead, so it has to
+  // be measured and applied manually.
   const matchTriggerWidth = panel.classList.contains("w-full");
 
   panel.setAttribute("popover", "auto");
 
-  // Open and closed stop being visible to assistive technology the moment the
-  // script takes the panel over. daisyUI opens on `:focus-within`, so before
-  // this ran the state was carried by focus and a screen reader could infer it.
-  // A popover toggled from script has no such tell, and `role="button"` says
-  // only that the trigger is a button. Article XIII asks for the ARIA that the
-  // markup itself does not convey, and this is that case.
+  // Open/closed state stops being inferrable from focus once the script
+  // takes the panel over (daisyUI opens on `:focus-within`), so a popover
+  // toggled from script needs its own ARIA.
   //
-  // It is set here rather than in the template because it would be a lie there:
-  // without this script the panel opens on hover and focus without anything
-  // updating the attribute, and a control reporting "closed" while its panel is
-  // open is worse for a screen reader than one reporting nothing at all.
+  // Set here and not in the template: without this script running, adding
+  // it there would report "closed" on a hover/focus-opened panel — worse
+  // than reporting nothing.
   trigger.setAttribute("aria-expanded", "false");
 
   const position = () =>
@@ -127,10 +113,9 @@ function upgrade(wrapper) {
             if (matchTriggerWidth) {
               elements.floating.style.width = `${rects.reference.width}px`;
             }
-            // A panel taller than the room below it used to run off the
-            // bottom of the page. The top layer does not scroll with the
-            // document, so capping it here and letting it scroll internally
-            // is the only way the last item stays reachable.
+            // The top layer does not scroll with the document, so capping
+            // height here and scrolling internally keeps the last item
+            // reachable instead of letting it run off the page.
             elements.floating.style.maxHeight = `${availableHeight}px`;
           },
         }),
@@ -145,10 +130,8 @@ function upgrade(wrapper) {
     trigger.setAttribute("aria-expanded", String(event.newState === "open"));
 
     if (event.newState === "open") {
-      // autoUpdate re-runs the calculation while the panel is open: the page
-      // scrolls, the window resizes, the trigger moves. It costs a set of
-      // listeners and two observers per panel, which is why it is started
-      // here and not once at upgrade time.
+      // Costs a set of listeners and two observers per panel, so started
+      // here rather than once at upgrade time.
       stop = autoUpdate(trigger, panel, position);
       tracking.add(stop);
       return;
@@ -161,13 +144,9 @@ function upgrade(wrapper) {
     }
   });
 
-  // The browser dismisses an open popover on pointerdown anywhere outside it,
-  // and the trigger is outside it. A click handler that read the state after
-  // that had happened would find the panel closed and open it straight back
-  // up, so the trigger could never close what it opened. Reading the state as
-  // the pointer goes down, before dismissal runs, is what tells the two apart.
-  // Keyboard activation fires click with no pointerdown ahead of it, so the
-  // live state is consulted as well rather than instead.
+  // Reading state at click would always find the popover already dismissed
+  // by the browser's own pointerdown handling. Live state is also checked,
+  // for keyboard activation, which fires click with no pointerdown first.
   let openAtPointerDown = false;
 
   trigger.addEventListener("pointerdown", () => {
@@ -186,11 +165,9 @@ function upgrade(wrapper) {
   });
 
   if (wrapper.classList.contains("dropdown-hover")) {
-    // The panel draws in the top layer but stays a descendant of the wrapper
-    // in the DOM, so pointer traffic over the panel still reads as inside the
-    // wrapper. That is what lets a single pair of listeners on the wrapper
-    // cover the trigger and the panel both, and it is why moving the pointer
-    // from one to the other does not close the dropdown on the way.
+    // The panel stays a DOM descendant of the wrapper despite drawing in the
+    // top layer, so one listener pair here covers trigger and panel, and
+    // moving between them does not close the dropdown on the way.
     wrapper.addEventListener("mouseenter", () => panel.showPopover());
     wrapper.addEventListener("mouseleave", () => panel.hidePopover());
   }

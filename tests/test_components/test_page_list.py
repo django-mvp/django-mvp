@@ -29,11 +29,6 @@ class TestPageListCard:
     def test_the_surrounding_context_no_longer_decides(
         self, cotton_render_string_soup, product
     ):
-        """A stale ``list_item_template`` in context must not be reached for.
-
-        It names a template that does not exist, so rendering raises if the
-        component still prefers it over its own attribute.
-        """
         soup = cotton_render_string_soup(
             f'<c-page.list :list="items" card="{CARD}" />',
             context={"items": [product], "list_item_template": "no/such/card.html"},
@@ -42,10 +37,7 @@ class TestPageListCard:
         assert product.name in soup.get_text()
 
     @pytest.mark.django_db
-    def test_an_unknown_card_is_not_swallowed(
-        self, cotton_render_string_soup, product
-    ):
-        """The attribute is load-bearing, so a wrong value has to say so."""
+    def test_an_unknown_card_is_not_swallowed(self, cotton_render_string_soup, product):
         with pytest.raises(TemplateDoesNotExist):
             cotton_render_string_soup(
                 '<c-page.list :list="items" card="no/such/card.html" />',
@@ -57,8 +49,7 @@ class TestPageListCard:
         self, cotton_render_string_soup
     ):
         soup = cotton_render_string_soup(
-            f'<c-page.list :list="items" card="{CARD}" '
-            ':empty_state="empty_state" />',
+            f'<c-page.list :list="items" card="{CARD}" :empty_state="empty_state" />',
             context={"items": [], "empty_state": {"heading": "Nothing here yet"}},
         )
 

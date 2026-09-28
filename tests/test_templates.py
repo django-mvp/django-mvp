@@ -31,11 +31,6 @@ DEMO_TEMPLATES = Path(apps.get_app_config("demo").path) / "templates"
 
 @pytest.fixture
 def package_only_engine():
-    """An engine that can see django-mvp's templates and nothing else.
-
-    Stands in for a host that installed django-mvp and wrote no template of
-    its own — the case the issue reported.
-    """
     configured = engines["django"].engine
     return Engine(
         dirs=[str(MVP_TEMPLATES)],
@@ -58,7 +53,6 @@ class TestDefaultBaseTemplate:
         assert extends[0].parent_name.var == "mvp/base.html"
 
     def test_it_defines_nothing_of_its_own(self, package_only_engine):
-        """Forwarding only. A block here would silently override the shell's."""
         template = package_only_engine.get_template("base.html")
         extends = next(n for n in template.nodelist if isinstance(n, ExtendsNode))
 
@@ -68,7 +62,6 @@ class TestDefaultBaseTemplate:
     def test_the_packaged_page_chain_resolves_without_a_project_template(
         self, package_only_engine
     ):
-        """The reported symptom: ``page_view.html`` could not find its parent."""
         for name in (
             "page_view.html",
             "list_view.html",
@@ -83,11 +76,6 @@ class TestDefaultBaseTemplate:
             assert package_only_engine.get_template(extends.parent_name.var)
 
     def test_an_app_listed_above_mvp_still_wins(self):
-        """The override rule getting-started documents, exercised for real.
-
-        ``demo`` ships its own ``base.html`` and sits above ``mvp`` in
-        ``INSTALLED_APPS``, so the app template loader reaches it first.
-        """
         installed = settings.INSTALLED_APPS
         assert installed.index("demo") < installed.index("mvp")
 
@@ -98,18 +86,17 @@ class TestDefaultBaseTemplate:
 
 
 class TestShowCodeTemplate:
-    """``{% show_code %}`` (``mvp/templatetags/mvp.py``) renders through
-    ``cotton/documentation.html`` — a host that installs django-mvp and writes
-    no template of its own must still be able to resolve it (issue #379).
-    """
-
     def test_the_package_ships_the_template_the_tag_renders(self, package_only_engine):
         assert package_only_engine.get_template("cotton/documentation.html") is not None
 
 
 def _template_files():
     """Every .html template this repository owns, packaged and demo alike."""
-    return [path for root in (MVP_TEMPLATES, DEMO_TEMPLATES) for path in sorted(root.rglob("*.html"))]
+    return [
+        path
+        for root in (MVP_TEMPLATES, DEMO_TEMPLATES)
+        for path in sorted(root.rglob("*.html"))
+    ]
 
 
 def multiline_brace_comments(source):
@@ -129,21 +116,7 @@ def multiline_brace_comments(source):
 
 
 class TestTemplateComments:
-    """``{# ... #}`` is single-line only, and a multiline one renders as text.
-
-    Django's lexer tokenises comments with ``{#.*?#}`` compiled without
-    ``re.DOTALL`` (``django/template/base.py``), so ``.`` never matches the
-    newline. A comment written across two lines is therefore not recognised as
-    a comment at all — it is emitted verbatim into the response and the reader
-    sees the note in the page. There is no error and no warning, which is why
-    three of them reached the shipped templates before anyone noticed.
-
-    Multi-line notes go in ``{% comment %} ... {% endcomment %}``, which is a
-    real tag pair and spans lines safely.
-    """
-
     def test_the_lexer_really_does_leak_a_multiline_comment(self):
-        """The defect itself, pinned so this suite explains why it exists."""
         rendered = engines["django"].from_string("A{# one\ntwo #}B").render({})
 
         assert rendered == "A{# one\ntwo #}B"
@@ -178,14 +151,6 @@ def render_shell_head(script_name=""):
 @pytest.mark.django_db
 class TestShellHeadWithPwaOff:
     def test_head_matches_the_pinned_render_byte_for_byte(self):
-        """The head of a shell page is unchanged when ``pwa`` is off.
-
-        ``tests/fixtures/base_head_off.html`` is the ``<head>`` rendered by
-        ``mvp/base.html`` for an anonymous ``GET /`` on host ``testserver``
-        with the test settings and the default site. After a deliberate change
-        to the head, regenerate it by writing ``render_shell_head()``'s return
-        value to that file (as UTF-8, no trailing newline) and review the diff.
-        """
         assert render_shell_head() == BASE_HEAD_FIXTURE.read_text(encoding="utf-8")
 
     def test_head_carries_no_install_tags(self):
@@ -268,7 +233,9 @@ class TestShellHeadWithPwaOn:
             set_script_prefix("/")
         soup = BeautifulSoup(head, "html.parser")
 
-        assert json.loads(soup.find("script", id="mvp-pwa-worker-scope").string) == "/app/"
+        assert (
+            json.loads(soup.find("script", id="mvp-pwa-worker-scope").string) == "/app/"
+        )
         assert json.loads(soup.find("script", id="mvp-pwa-worker-url").string) == (
             "/app/sw.js"
         )
@@ -372,7 +339,9 @@ class TestShellTitle:
     def title(self):
         from bs4 import BeautifulSoup
 
-        return " ".join(BeautifulSoup(render_shell_head(), "html.parser").title.text.split())
+        return " ".join(
+            BeautifulSoup(render_shell_head(), "html.parser").title.text.split()
+        )
 
     def test_the_suffix_is_the_site_name_by_default(self):
         assert self.title() == "| example.com"

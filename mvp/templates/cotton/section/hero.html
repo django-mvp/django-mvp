@@ -1,31 +1,18 @@
+{# @description Full-width daisyUI hero banner, with an optional background image and dimming overlay. #}
+{# @prop bg-image:text | default:"" | description:"Background image URL; the hero already covers and centres it." #}
+{# @prop title:text | description:"Heading text." #}
+{# @prop subtitle:text | description:"Short prose under the heading." #}
+{# @prop actions:text | hidden | description:"Filled by the actions named slot; not passed as a plain attribute." #}
+{# @prop opacity:number | default:0.5 | description:"How strongly the overlay dims the background image, 0 to 1." #}
+{# @prop height:text | description:"Minimum height, any CSS length, e.g. \"80vh\"." #}
+{# @prop class:text | description:"Extra classes on the .hero surface." #}
+{# @slot:top <content> — Above the heading, e.g. a logo or eyebrow line. #}
+{# @slot:actions <content> — Below the subtitle, centred as a button row. #}
+{# @slot:bottom <content> — Below the actions. #}
 {% comment %}
-  ============================================================
-  <c-section.hero> — full-width hero banner
-
-  Built on daisyUI's hero component, so the layout comes from the shipped
-  stylesheet rather than from this template. The previous version rendered a
-  bare `.mvp-hero` div and relied on a parallax script loaded from a CDN to
-  position everything; when that script was dropped, the class was left with
-  no rule behind it anywhere and the banner stopped centring its content.
-
-  Props:
-    title      – heading text
-    subtitle   – short prose under the heading
-    bg-image   – background image URL; .hero already covers and centres it
-    opacity    – 0–1, how strongly the overlay dims the image (default 0.5)
-    height     – minimum height, any CSS length (e.g. "80vh")
-    class      – extra classes on the .hero surface
-
-  Slots:
-    top        – above the heading (a logo, an eyebrow line)
-    actions    – below the subtitle, centred as a button row
-    bottom     – below the actions
-
-  The root spreads no {{ attrs }}, deliberately: this component takes the
-  attributes declared below and nothing else, which is what keeps a removed one
-  (`parallax`, `speed`) inert rather than passing it through to the DOM as a
-  stray HTML attribute that looks like it still does something.
-  ============================================================
+  The root spreads no {{ attrs }}: only the declared attributes are read, so
+  a removed one (`parallax`, `speed`) is inert rather than a stray HTML
+  attribute on the DOM that looks like it still does something.
 {% endcomment %}
 <c-vars bg-image="" title subtitle actions opacity="0.5" height class />
 <div class="hero {{ class }}"

@@ -37,7 +37,6 @@ class TestSidebarUserMenuAdminLink:
         )
         html = _render(user)
 
-        assert "Admin Site" in html
         assert f'href="{reverse("admin:index")}"' in html
 
     @pytest.mark.django_db
@@ -45,7 +44,7 @@ class TestSidebarUserMenuAdminLink:
         user = get_user_model().objects.create_user(username="regular", password="pw")
         html = _render(user)
 
-        assert "Admin Site" not in html
+        assert f'href="{reverse("admin:index")}"' not in html
 
     @pytest.mark.django_db
     def test_staff_user_still_sees_account_center_and_log_out(self):
@@ -54,28 +53,19 @@ class TestSidebarUserMenuAdminLink:
         )
         html = _render(user)
 
-        assert "Account Center" in html
-        assert "Log out" in html
+        assert f'href="{reverse("account-center")}"' in html
+        assert 'form="logoutForm"' in html
 
     @pytest.mark.django_db
     def test_non_staff_user_still_sees_account_center_and_log_out(self):
         user = get_user_model().objects.create_user(username="regular2", password="pw")
         html = _render(user)
 
-        assert "Account Center" in html
-        assert "Log out" in html
+        assert f'href="{reverse("account-center")}"' in html
+        assert 'form="logoutForm"' in html
 
 
 class TestSidebarUserMenuLogOut:
-    """The log-out row is bound to the same condition as the form it submits.
-
-    The control is a ``<button type="submit" form="logoutForm">``, which does
-    nothing at all unless an element with that id is in the document. The form
-    has always been guarded on ``account_logout`` resolving while the button
-    was drawn unconditionally, so a project without that URL name got a
-    log-out button that silently did nothing when clicked.
-    """
-
     @pytest.mark.django_db
     def test_the_log_out_row_submits_a_form_that_exists(self):
         user = get_user_model().objects.create_user(username="leaver", password="pw")
@@ -87,33 +77,24 @@ class TestSidebarUserMenuLogOut:
 
     @pytest.mark.django_db
     def test_no_log_out_row_when_the_project_has_no_logout_url(self, settings):
-        """With no ``account_logout`` name there is no form to submit, so the
-        row is absent rather than dead."""
         settings.ROOT_URLCONF = "tests.urls_without_logout"
         user = get_user_model().objects.create_user(username="stayer", password="pw")
         html = _render(user)
 
-        assert "Log out" not in html
         assert 'form="logoutForm"' not in html
+        assert 'id="logoutForm"' not in html
 
     @pytest.mark.django_db
     def test_no_dangling_divider_when_log_out_is_the_only_row(self, settings):
-        """The divider separates the rows above from the log-out row. With
-        neither an Account Center nor an admin row there is nothing for it to
-        separate, so it must not render."""
         settings.ROOT_URLCONF = "tests.urls_logout_only"
         user = get_user_model().objects.create_user(username="lonely", password="pw")
         html = _render(user)
 
-        assert "Log out" in html
+        assert 'form="logoutForm"' in html
         assert "divider" not in html
 
 
 class TestSidebarUserMenuLogOutResolvesAccountLogout:
-    """The log-out row and its form draw themselves once ``account_logout``
-    resolves (T008, FR-002, US-1 scenario 5) — nothing in
-    ``user/sidebar_menu.html`` changes."""
-
     @pytest.mark.django_db
     def test_a_signed_in_request_draws_the_log_out_row_and_form_at_account_logout(
         self,
@@ -124,5 +105,5 @@ class TestSidebarUserMenuLogOutResolvesAccountLogout:
             )
             html = _render(user)
 
-            assert "Log out" in html
+            assert 'form="logoutForm"' in html
             assert f'action="{reverse("account_logout")}"' in html

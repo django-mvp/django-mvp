@@ -26,7 +26,6 @@ class TestCodeLinePrefix:
         assert soup.find("pre")["data-prefix"] == "#"
 
     def test_the_prompt_can_be_emptied(self, cotton_render_string_soup):
-        """Output lines in a terminal mockup carry no prompt at all."""
         soup = cotton_render_string_soup(
             '<c-mockup.code.line prefix="" text="Successfully installed" />'
         )

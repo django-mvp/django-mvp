@@ -37,8 +37,6 @@ MVP_URLS_ONLY = _mvp_urls_only()
 
 
 class TestSidebarFooterAuthenticated:
-    """A signed-in request gets the user menu, never the log-in button."""
-
     @pytest.mark.django_db
     def test_renders_the_user_menu_theme_control_and_language_control(self):
         user = get_user_model().objects.create_user(username="alice", password="pw")
@@ -53,17 +51,15 @@ class TestSidebarFooterAuthenticated:
         user = get_user_model().objects.create_user(username="bob", password="pw")
         html = _render(user)
 
-        assert "Log in" not in html
+        assert f'href="{reverse("account_login")}"' not in html
 
 
 class TestSidebarFooterAnonymous:
-    """An anonymous request gets the log-in button, never the user menu."""
-
     @pytest.mark.django_db
     def test_renders_the_log_in_button_theme_control_and_language_control(self):
         html = _render(AnonymousUser())
 
-        assert "Log in" in html
+        assert f'href="{reverse("account_login")}"' in html
         assert "data-toggle-theme" in html, "the theme control must render"
         assert "showModal()" in html, "the language control must render"
 
@@ -77,14 +73,12 @@ class TestSidebarFooterAnonymous:
 
     @pytest.mark.django_db
     def test_the_log_in_button_fills_the_row_and_carries_emphasis(self):
-        """Signing in is the one thing this footer wants a visitor to do."""
         html = _render(AnonymousUser())
 
-        link = re.search(r'<a class="([^"]*)"[^>]*>\s*<span>Log in</span>', html)
-        if link is None:
-            link = re.search(
-                r'<a class="([^"]*)"[^>]*>(?:(?!</a>).)*Log in', html, re.S
-            )
+        login_href = reverse("account_login")
+        link = re.search(
+            rf'<a class="([^"]*)"[^>]*href="{re.escape(login_href)}"', html
+        )
         assert link is not None, "the log-in button must render as a link"
 
         classes = link.group(1)
@@ -93,15 +87,6 @@ class TestSidebarFooterAnonymous:
 
 
 class TestSidebarFooterThemeControlIsCompact:
-    """The theme control is a square icon button, in either theme configuration.
-
-    Without ``theme.choices`` the switcher normally renders an icon, a
-    checkbox and a second icon side by side. That row needs about 77px, and
-    the footer spends its width on the user's name instead, so the footer
-    asks for the compact form. ``theme.choices`` is empty by package
-    default, which makes this the shape most installs get.
-    """
-
     @pytest.mark.django_db
     def test_renders_no_checkbox_when_no_theme_choices_are_configured(self):
         user = get_user_model().objects.create_user(username="carol", password="pw")
@@ -117,11 +102,6 @@ class TestSidebarFooterThemeControlIsCompact:
 
     @pytest.mark.django_db
     def test_the_theme_and_language_controls_are_the_same_size(self):
-        """They sit side by side, so a size on one without the other shows.
-
-        ``c-button`` defaults to its medium size, which is 40px square
-        against the theme control's 32px at ``sm``.
-        """
         user = get_user_model().objects.create_user(username="dave", password="pw")
         html = _render(user)
 
@@ -135,15 +115,6 @@ class TestSidebarFooterThemeControlIsCompact:
 
 
 class TestSidebarFooterTakesTheSidebarsBackground:
-    """The footer looks like the sidebar it sits in, without being told twice.
-
-    ``<c-app.sidebar>`` hands its own ``bg`` to its header and its footer, so
-    repainting the rail is one attribute. A background hard-coded here would
-    leave a strip of the old colour across the bottom of a repainted sidebar.
-    Anything beyond the colour is an override of this template, by design —
-    see docs/adr/0023-the-sidebar-footer-is-a-fixed-composition.md.
-    """
-
     @pytest.mark.django_db
     def test_a_passed_background_replaces_the_default(self):
         html = _render(AnonymousUser(), template="tests/sidebar_footer_bg.html")
@@ -164,9 +135,6 @@ class TestSidebarFooterTakesTheSidebarsBackground:
 
 
 class TestSidebarFooterLogInButtonResolvesAccountLogin:
-    """The log-in button draws itself once ``account_login`` resolves (T008,
-    FR-002, US-1 scenario 5) — nothing in ``actions/login.html`` changes."""
-
     @pytest.mark.django_db
     def test_an_anonymous_request_draws_the_log_in_button_at_account_login(self):
         with override_settings(ROOT_URLCONF=MVP_URLS_ONLY):

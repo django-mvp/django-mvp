@@ -1,3 +1,8 @@
+{# @description Width-constraint wrapper for page content. #}
+{# @prop fluid:boolean | description:"Full width with no max-width constraint." #}
+{# @prop fill:boolean | description:"Full width and height with no max-width constraint." #}
+{# @prop class:text | description:"Extra classes on the root element." #}
+{# @slot Page content — The wrapped content. #}
 <c-vars fluid fill class />
 <div class="{% if fluid %}w-full px-4{% elif fill %}w-full h-full px-4{% else %}container mx-auto px-4{% endif %} {{ class }}"
      {{ attrs }}>

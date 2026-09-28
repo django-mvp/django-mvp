@@ -88,7 +88,7 @@ specs/029-layout-state-store/
 
 ```text
 mvp/
-├── layout.py                              NEW — the resolver (Article XVII: one class)
+├── layout.py                              NEW — the resolver (Article X: one class)
 ├── templatetags/mvp.py                    three tags removed, one tag added
 ├── tailwind/base.css                      static visibility rules in, safelist entries out
 ├── templates/
@@ -140,7 +140,7 @@ any case means not persistent, and an unrecognised name falls back to `lg`. It h
 
 The surviving tags (`sidebar_breakpoint_class`, `breakpoint_px`, `sidebar_has_breakpoint`) become
 thin readers of this class rather than three independent implementations of the same rules, which
-is what Article XVII asks for and what makes "the fallback is defined once" checkable.
+is what Article X asks for and what makes "the fallback is defined once" checkable.
 
 ### What reaches the client, and how
 

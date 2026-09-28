@@ -22,8 +22,6 @@ def render(source, **context):
 
 
 class TestGroupDefaults:
-    """With no attributes and no ambient context, the group is a column."""
-
     def test_default_is_a_column(self):
         html = render("<c-group>content</c-group>")
         assert "flex-col" in html
@@ -32,8 +30,6 @@ class TestGroupDefaults:
 
 
 class TestGroupAttributes:
-    """Explicit attributes still control row/collapse behaviour."""
-
     def test_row_attribute_forces_a_row(self):
         html = render("<c-group row>content</c-group>")
         assert "flex-row" in html
@@ -45,11 +41,7 @@ class TestGroupAttributes:
 
 
 class TestGroupAmbientContextIsolation:
-    """An unrelated `collapse`/`row` var in the caller's context must not leak in."""
-
     def test_ambient_collapse_var_is_not_inherited(self):
-        """A bare <c-group> ignores a same-named `collapse` var already in
-        scope (e.g. the shell's sidebar-mode variable) and stays a column."""
         html = render("<c-group>content</c-group>", collapse="offcanvas")
         assert "lg:flex-row" not in html
         assert "flex-col" in html

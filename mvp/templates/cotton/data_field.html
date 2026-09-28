@@ -1,3 +1,9 @@
+{# @description Key-value display; links the value when it has a URL. #}
+{# @prop label:text | description:"Field label, shown above the value." #}
+{# @prop value:text | description:"Field value; linked when it has get_absolute_url." #}
+{# @prop help_text:text | description:"Tooltip text shown on the label." #}
+{# @prop missing:text | default:"–" | description:"Placeholder shown when value and the slot are both empty." #}
+{# @slot Extra value content — Rendered alongside the value when given. #}
 <c-vars label value help_text missing="–" />
 <div class="mb-3">
   <h6 class="text-base-content/60 text-xs uppercase font-semibold{% if help_text %} tooltip tooltip-right{% endif %}"

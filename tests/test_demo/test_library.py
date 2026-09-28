@@ -23,31 +23,29 @@ def normalised_title(response):
     return " ".join(soup(response).title.get_text().split())
 
 
-def sidebar_links(response):
+def sidebar_hrefs(response):
     links = soup(response).select(
         "aside.mvp-sidebar a.mvp-sidebar-brand, aside.mvp-sidebar ul a"
     )
-    return [(a.get_text(" ", strip=True), a["href"]) for a in links]
+    return [a["href"] for a in links]
 
 
 @pytest.mark.django_db
 class TestLibraryPages:
-    """The library app's two pages render inside the mounted-app shell."""
-
     def test_landing_draws_the_library_menu_and_the_back_link(self, client):
         response = client.get("/library/")
 
         assert response.status_code == 200
-        assert sidebar_links(response)[1:] == [
-            ("Back to example.com", "/"),
-            ("Catalogue", "/library/"),
-            ("Reading list", "/library/reading-list/"),
+        assert sidebar_hrefs(response)[1:] == [
+            "/",
+            "/library/",
+            "/library/reading-list/",
         ]
 
     def test_landing_draws_none_of_the_demo_menu(self, client):
-        labels = [text for text, _href in sidebar_links(client.get("/library/"))]
+        hrefs = sidebar_hrefs(client.get("/library/"))
 
-        assert "Layout" not in labels
+        assert "/layout/" not in hrefs
 
     def test_landing_title_is_a_bar_then_the_app_then_the_site(self, client):
         assert normalised_title(client.get("/library/")) == "| Library | example.com"
@@ -60,10 +58,8 @@ class TestLibraryPages:
 
 @pytest.mark.django_db
 class TestLibraryEntriesInTheHostMenus:
-    """The demo adds its own entry for the app to the sidebar."""
-
     def test_sidebar_carries_a_library_entry_on_a_host_page(self, client):
-        assert ("Library", "/library/") in sidebar_links(client.get("/layout/"))
+        assert "/library/" in sidebar_hrefs(client.get("/layout/"))
 
     def test_sidebar_entry_is_current_on_a_host_page_only_when_in_the_app(self, client):
         host = soup(client.get("/layout/")).select_one("aside a[href='/library/']")
@@ -72,8 +68,6 @@ class TestLibraryEntriesInTheHostMenus:
 
 
 class TestBackLinkIsTranslatable:
-    """``makemessages`` would extract the back link's strings (FR-026)."""
-
     def test_both_labels_are_in_the_extracted_catalogue(self):
         source = (
             ROOT / "mvp" / "templates" / "cotton" / "app" / "sidebar" / "back.html"
@@ -86,9 +80,6 @@ class TestBackLinkIsTranslatable:
 
 
 class TestDemoAppIsDocumented:
-    """The changelog and the guide say the demo has a mounted app (US-1
-    scenarios 5 and 6)."""
-
     def test_changelog_names_the_demo_app(self):
         changelog = (ROOT / "CHANGELOG.md").read_text()
 

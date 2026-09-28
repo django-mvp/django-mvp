@@ -1,17 +1,14 @@
+{# @description Tabbed display surface for the show_code tag: live preview, Cotton source, and HTML output. #}
+{# @prop rendered:text | description:"The live, compiled component (safe HTML)." #}
+{# @prop code:text | description:"Escaped Cotton source for the Cotton tab." #}
+{# @prop html:text | description:"Escaped, prettified HTML output for the HTML tab." #}
 {% comment %}
-  Display surface for the {% show_code %} tag. Receives:
-    rendered – the live, compiled component (safe HTML)
-    code     – escaped Cotton source for the "Cotton" tab
-    html     – escaped, prettified HTML output for the "HTML" tab
-
-  Rendered via render_to_string(), so plain Django + Alpine only (no c- tags),
-  which keeps it safe to use while documenting the components themselves.
+  Rendered via render_to_string(), so plain Django + Alpine only (no c- tags)
+  - safe to use while documenting the components themselves.
 {% endcomment %}
 <div class="card border border-base-300 bg-base-100"
      x-data="{ tab: 'cotton', copied: false, copy() { const el = this.$refs[this.tab]; navigator.clipboard.writeText(el.innerText.trim()); this.copied = true; setTimeout(() => this.copied = false, 1500); } }">
-  {# Live preview #}
   <div class="p-6 border-b border-base-300 bg-base-100">{{ rendered }}</div>
-  {# Tab bar #}
   <div class="flex items-center gap-1 px-2 py-2 bg-base-200 border-b border-base-300">
     <button type="button"
             class="btn btn-sm btn-ghost gap-2"
@@ -34,7 +31,6 @@
       <span x-text="copied ? 'Copied!' : 'Copy'"></span>
     </button>
   </div>
-  {# Code panels #}
   <div class="text-sm">
     <pre x-show="tab === 'cotton'"
          class="overflow-x-auto p-4 m-0 bg-base-200"><code x-ref="cotton" class="language-html">{{ code }}</code></pre>

@@ -20,8 +20,6 @@ DESKTOP = {"width": 1280, "height": 800}
 
 
 class TestModalPositioning:
-    """The modal-box surface fills the axis its edge position implies."""
-
     @pytest.mark.parametrize("position", ["top", "bottom"])
     def test_edge_position_spans_full_width(self, page, live_server, position):
         page.set_viewport_size(DESKTOP)

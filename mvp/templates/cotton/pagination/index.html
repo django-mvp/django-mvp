@@ -1,9 +1,14 @@
+{# @description Full pager built from a Django Paginator page: first/previous/numbered/next/last links. #}
+{# @prop page_obj:text | description:"The Django Page object to paginate." #}
+{# @prop page_window:number | default:5 | description:"How many page numbers to show on either side of the current page." #}
+{# @prop use_icons:boolean | description:"Show arrow icons instead of text on the first/previous/next/last controls." #}
+{# @prop show_first_and_last:boolean | description:"Swap the First/Last text controls for the first and last page numbers." #}
+{# @prop label:text | default:"Navigation page results" | description:"Accessible name for the pagination <nav>, passed through to c-pagination.wrapper via attrs." #}
 {% load i18n %}
 {% comment %}
-  `label` is deliberately undeclared: it belongs to the <nav> that
-  c-pagination.wrapper draws, and reaches it through `attrs` below. Declaring
-  it here would strip it from that pass-through and leave callers unable to
-  name the navigation landmark at all.
+  `label` is deliberately undeclared here: declaring it would strip it from
+  the `attrs` pass-through to c-pagination.wrapper's <nav>, leaving callers
+  unable to name the navigation landmark.
 {% endcomment %}
 <c-vars page_obj
         page_window="5"
@@ -11,7 +16,6 @@
         show_first_and_last />
 {% if page_obj.paginator.num_pages > 1 %}
   <c-pagination.wrapper :attrs="attrs">
-    {# --- First page --- #}
     {% if not show_first_and_last %}
       <c-pagination.link :page="1"
                          :disabled="{{ page_obj.has_previous|yesno:"False,True" }}"
@@ -29,7 +33,6 @@
         {% endif %}
       </c-pagination.link>
     {% endif %}
-    {# --- Previous page --- #}
     <c-pagination.link :page="{% if page_obj.has_previous %}{{ page_obj.previous_page_number }}{% endif %}"
                        :disabled="{{ page_obj.has_previous|yesno:"False,True" }}"
                        text="{% trans "Previous" %}">
@@ -59,7 +62,6 @@
         {% endif %}
       {% endfor %}
     {% endwith %}
-    {# --- Next page --- #}
     <c-pagination.link :page="{% if page_obj.has_next %}{{ page_obj.next_page_number }}{% endif %}"
                        :disabled="{{ page_obj.has_next|yesno:"False,True" }}"
                        text="{% trans "Next" %}">
@@ -75,7 +77,6 @@
       {% endif %}
     </c-pagination.link>
     {% if not show_first_and_last %}
-      {# --- Last page --- #}
       <c-pagination.link :page="{{ page_obj.paginator.num_pages }}"
                          :disabled="{{ page_obj.has_next|yesno:"False,True" }}"
                          text="{% trans "Last" %}">

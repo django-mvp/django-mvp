@@ -1,5 +1,4 @@
-"""
-Demo / development Django settings.
+"""Demo / development Django settings.
 
 This is the configuration `manage.py runserver` uses to run the demo app. It is
 the place to experiment: tweak ``MVP_CONFIG``, swap widgets, try layouts. The
@@ -20,7 +19,6 @@ ALLOWED_HOSTS = ["*"]
 
 USE_I18N = True
 
-# Minimal app configuration for the demo
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -39,12 +37,11 @@ INSTALLED_APPS = [
     "crispy_tailwind",
     "flex_menu",
     "django_cotton",
-    "django_browser_reload",  # Optional, commented for testing
+    "django_browser_reload",
     "django_watchfiles",
 ]
 
 
-# Add django-tables2 if installed (optional dependency)
 try:
     import django_tables2  # noqa: F401
 
@@ -118,7 +115,6 @@ STORAGES = {
 
 CACHES = {
     "default": {
-        # "BACKEND": "django.core.cache.backends.dummy.DummyCache",
         "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
     },
 }
@@ -130,35 +126,25 @@ CRISPY_TEMPLATE_PACK = "tailwind"
 # defaults (mvp/config.py). Unset keys keep their package defaults. Experiment
 # freely here; tests pin their own values in tests/settings.py.
 MVP_CONFIG = {
-    # Installable: the browser offers to install the demo as an app. The URLs
-    # are mounted at the root in demo/urls.py. The app images are a deployment
-    # step (`python manage.py mvp_pwa_icons`), never committed. See
-    # docs/installable-app.md.
-    # The demo's default theme is its own, so the package has no colour to read
-    # from it; this matches its light theme's page colour.
+    # App images are a deployment step (`manage.py mvp_pwa_icons`), never
+    # committed — see docs/installable-app.md. Colour matches the demo's own
+    # light theme, since the package has no theme colour of its own to read.
     "pwa": {"theme_color": "#f8f6f2"},
     "theme": {
-        # This site's own two themes, defined in demo/static/css/themes.css and
-        # loaded by demo/templates/base.html. They are named here because the
-        # package applies a prebuilt DaisyUI theme unless a project says
-        # otherwise — which is exactly the two settings a project pairs with its
-        # own theme file, so the demo is a worked example of docs/theming.md.
+        # Named here because the package applies a prebuilt DaisyUI theme
+        # unless a project says otherwise — a worked example of
+        # docs/theming.md, defined in demo/static/css/themes.css.
         "default": "mvp",
         "dark": "mvp-dark",
-        # The site's pair first, so the demo opens in the brand and a reader can
-        # switch away and back, then three of the prebuilt themes the package
-        # ships alongside them.
+        # Site pair first so the demo opens in the brand; the rest are the
+        # package's prebuilt themes.
         "choices": ["mvp", "mvp-dark", "light", "dracula", "synthwave"],
     },
     "layout": {
         "navbar": {
-            # Desktop only, with nothing configured for mobile: below the
-            # sidebar breakpoint the header row is the breadcrumb trail and
-            # little else. The sidebar's fixed footer is how these three reach
-            # a phone, through the drawer: it always renders a theme control
-            # and a language control, plus the log-in button for a visitor or
-            # the user menu for somebody signed in — the user menu is how a
-            # person reaches the Account Center.
+            # Desktop only: below the sidebar breakpoint these three reach a
+            # phone through the drawer's fixed footer instead, which is also
+            # how a signed-in visitor reaches the Account Center.
             "desktop": {
                 "end": [
                     "actions.theme-controller",
@@ -173,7 +159,6 @@ MVP_CONFIG = {
     },
 }
 
-# Easy Icons configuration
 EASY_ICONS = {
     "default": {
         "renderer": "easy_icons.renderers.ProviderRenderer",
@@ -181,7 +166,6 @@ EASY_ICONS = {
         "packs": [
             "mvp.utils.BS5_ICONS",
         ],
-        # place icons here that are not critical for the deployed application
         "icons": {
             "add": "bi bi-plus-circle",
             "arrow-left": "bi bi-arrow-left",
@@ -242,7 +226,6 @@ EASY_ICONS = {
     },
 }
 
-# Flex Menu configuration
 FLEX_MENUS = {
     "renderers": {
         "sidebar": "mvp.renderers.SidebarRenderer",

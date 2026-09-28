@@ -1,17 +1,13 @@
 {% extends "base.html" %}
 {% comment %}
-  The worked example from issue #247: a map that fills the app shell and owns
-  its own scrolling, instead of scrolling with the window.
-
-  The whole opt-in is `fill` on <c-page>. Nothing above it is configured — the
-  shell hands its height down on every page, and <c-page.content> is already a
-  `flex-1 min-h-0` column, so the map only has to ask for `h-full w-full`.
-
-  Leaflet comes from a CDN because it is a demo of somebody else's widget, not
-  a dependency django-mvp takes on. It is the class of library the issue is
-  about: it measures its container once at construction and renders into
-  whatever height it finds, so a container of height 0 produces a blank page
-  rather than an error.
+  Worked example from #247: `fill` on <c-page> is the whole opt-in — the shell
+  already hands height down and <c-page.content> is a `flex-1 min-h-0` column,
+  so the map only asks for `h-full w-full`.
+{% endcomment %}
+{% comment %}
+  Leaflet is a CDN demo of somebody else's widget, not a django-mvp
+  dependency, and the class of library #247 is about: it measures its
+  container once and renders into whatever height it finds — 0 if unset.
 {% endcomment %}
 {% block title %}
   Full-page map
@@ -26,13 +22,9 @@
           crossorigin="anonymous"></script>
 {% endblock head %}
 {% comment %}
-  A page given over entirely to one widget has nothing a footer can usefully
-  say, and every row it takes is a row the map does not get. Overriding the
-  block with nothing is how a project drops it.
-
-  The dock is deliberately left in place: navigation still has to work here.
-  On a filled page the shell moves it into the flow, so it sits below the map
-  rather than on top of it.
+  A page given over to one widget has nothing a footer can usefully say, and
+  every row it takes is a row the map does not get — override with nothing.
+  The dock stays: navigation still works, moved into the flow below the map.
 {% endcomment %}
 {% block app.footer %}
 {% endblock app.footer %}

@@ -1,3 +1,8 @@
+{# @description Social share menu (social networks, email, copy link), plain markup over hard-coded social URLs — renders anywhere. #}
+{# @prop url:text | default:"{{ request.build_absolute_uri }}" | description:"The page URL to share. Defaults to the current page." #}
+{# @prop title:text | default:"{{ page.title|default:'' }}" | description:"The page title used in share text. Defaults to page.title." #}
+{# @prop size:text | description:"Size of the trigger button." #}
+{# @prop class:text | description:"Extra classes on the dropdown wrapper." #}
 {% load i18n %}
 <c-vars url="{{ request.build_absolute_uri }}"
         title="{{ page.title|default:'' }}"

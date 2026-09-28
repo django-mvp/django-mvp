@@ -65,10 +65,6 @@ def _crumb_texts(page, url, viewport):
 
 @pytest.mark.django_db(transaction=True)
 class TestTheTrailDoesNotScroll:
-    """Measured in Chromium at 1280/1920/900/390px: the trail's content never
-    exceeds its own box at any of these widths, so the browser draws no
-    scrollbar at the sizes a real page is actually viewed at."""
-
     @at_every_viewport
     def test_a_long_trail_fits_the_row(self, page, live_server, viewport):
         product = ProductFactory(name=LONG_NAME)
@@ -83,14 +79,6 @@ class TestTheTrailDoesNotScroll:
 
 @pytest.mark.django_db(transaction=True)
 class TestALongTrailShrinksInsteadOfScrolling:
-    """[#354] At 390px — measured: each crumb's own text is clipped by the
-    browser (an ellipsis is showing) while the trail itself still does not
-    overflow, and every crumb stays laid out in the row rather than being
-    pushed out of it. Below roughly 280px the crumbs and the separators
-    between them can no longer shrink any further and the trail does start to
-    overflow — the scrollbar is still there for that width, but 390px (an
-    ordinary phone viewport) is not it, which is what this test pins."""
-
     def test_each_crumb_is_visibly_truncated(self, page, live_server):
         product = ProductFactory(name=LONG_NAME)
         crumbs = _crumb_texts(
@@ -118,10 +106,6 @@ class TestALongTrailShrinksInsteadOfScrolling:
         )
 
     def test_every_crumb_stays_in_the_row(self, page, live_server):
-        """Truncation must not come at the cost of a later crumb being pushed
-        out of the row — each one still renders with real width, however
-        small, rather than collapsing to nothing or being clipped out of the
-        flex row entirely."""
         product = ProductFactory(name=LONG_NAME)
         crumbs = _crumb_texts(
             page,

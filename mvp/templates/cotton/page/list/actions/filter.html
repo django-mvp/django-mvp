@@ -1,17 +1,13 @@
+{# @description The list-view "filter" action: a button, with an applied-filter count badge, that opens a filter modal. #}
+{# @prop label:text | default:"Filter" | description:"The button's text." #}
+{# @prop icon:text | default:"filter" | description:"The button's icon." #}
 {% load i18n %}
 <c-vars label="{% trans "Filter" %}" icon="filter" />
 {% if filter %}
   {% comment %}
-    The applied-filter badge is a daisyUI indicator-item (#287): positioned
-    outside the button's own box, half above its top edge. Under the app
-    header — sticky, z-index: 10, with a backdrop filter — the badge's own
-    z-index: 1 loses that comparison and the top half is drawn behind it.
-
-    mvp/tailwind/base.css raises the badge's z-index, scoped to
-    `.mvp-page-fill`: the one layout where nothing ever scrolls the badge
-    toward the header, so the fix cannot reintroduce the problem it was
-    scoped to avoid — a badge riding above the header as an ordinary,
-    scrolling page passes underneath it.
+    The badge's own z-index loses to the sticky app header's (#287).
+    mvp/tailwind/base.css raises it, scoped to `.mvp-page-fill` — the one
+    layout where nothing ever scrolls the badge toward the header.
   {% endcomment %}
   <div class="indicator">
     {% if applied_filters %}

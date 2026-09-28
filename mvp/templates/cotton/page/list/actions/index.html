@@ -1,3 +1,5 @@
+{# @description Renders the configured list-page action controls (search, sort, filter, create, share). #}
+{# @prop :actions:text | default:"['search','sort','filter','create']" | description:"Which list actions to render, in order." #}
 <c-vars :actions="['search','sort','filter','create']" />
 {% if not filter %}
   {% if is_searchable or order_by_choices %}

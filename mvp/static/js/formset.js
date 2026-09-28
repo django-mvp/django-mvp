@@ -63,12 +63,9 @@ document.addEventListener("alpine:init", () => {
       this.announceRemoval();
     },
 
-    // The set owns `visible`, and a row cannot reach it directly: Alpine 3 has
-    // no `$parent` magic, and inside an Alpine.data method `this` is the row's
-    // own data rather than the merged scope chain, so a parent property read
-    // through `this` is undefined and an assignment through it silently
-    // creates an own property on the row. The event bubbles to the set's root,
-    // which decrements the counter itself.
+    // The set owns `visible`, unreachable directly: Alpine 3 has no `$parent`
+    // magic, so `this` inside an Alpine.data method is the row's own data,
+    // not the scope chain. The event bubbles to the set's root instead.
     announceRemoval() {
       this.$dispatch("mvp-formset-row-removed");
     },

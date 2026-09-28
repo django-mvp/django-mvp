@@ -40,8 +40,6 @@ def _wait_for_store(page):
 
 @pytest.mark.django_db
 class TestTheStoreExistsAndReports:
-    """A shell page always registers `Alpine.store('mvp')`."""
-
     def test_the_store_reports_sidebar_collapse_and_stuck_state(
         self, page, live_server
     ):
@@ -77,10 +75,6 @@ class TestTheStoreExistsAndReports:
 
 @pytest.mark.django_db
 class TestAnElementBoundToTheStoreFollowsEveryControl:
-    """The checkbox is bound to `$store.mvp.sidebar.open` (T005); proving
-    it follows every control the shell ships is proving the store stays
-    correct no matter which one moved it."""
-
     @pytest.mark.usefixtures("mobile_navbar_toggle")
     def test_the_navbar_toggle_opens_it(self, page, live_server):
         page.set_viewport_size(MOBILE)
@@ -124,9 +118,6 @@ class TestAnElementBoundToTheStoreFollowsEveryControl:
 
 @pytest.mark.django_db
 class TestBoostedNavigationLeavesTheStoreCorrect:
-    """T007's re-derivation, proved through the store rather than only the
-    checkbox — at both a wide and a narrow viewport."""
-
     @pytest.fixture
     def boosted(self, monkeypatch):
         monkeypatch.setitem(MVP_CONFIG["layout"]["sidebar"], "boost", True)
@@ -146,9 +137,6 @@ class TestBoostedNavigationLeavesTheStoreCorrect:
         expect(_toggle(page)).to_be_checked()
 
     def test_the_header_stuck_state_is_re_derived(self, page, live_server, boosted):
-        """The swapped-in page starts at the top, and the header's handler
-        only writes on the next scroll — so a stale `true` would outlive the
-        navigation and leave the shadow on a page nobody has scrolled."""
         page.set_viewport_size(DESKTOP)
         page.goto(f"{live_server.url}/")
         _wait_for_store(page)
@@ -179,9 +167,6 @@ class TestBoostedNavigationLeavesTheStoreCorrect:
 
 @pytest.mark.django_db
 class TestTheShellWorksWithoutJavaScript:
-    """The drawer's control is a native `<label for>` / checkbox pair — the
-    sidebar must open and close with the bundle never running at all."""
-
     @pytest.mark.usefixtures("mobile_navbar_toggle")
     def test_the_sidebar_opens_and_closes_without_javascript(
         self, browser, live_server
@@ -220,9 +205,6 @@ class TestTheShellWorksWithoutJavaScript:
 
 @pytest.mark.django_db
 class TestConfigReportsThePerPageOverride:
-    """The store's `sidebar` reflects a per-page breakpoint override rather
-    than the project default (T010/T011)."""
-
     def test_a_page_override_beats_the_project_default(self, page, live_server):
         page.goto(f"{live_server.url}/layout/store/?breakpoint=xl")
         _wait_for_store(page)
@@ -235,9 +217,6 @@ class TestConfigReportsThePerPageOverride:
 
 @pytest.mark.django_db
 class TestTheViewportFlagFollowsTheWindow:
-    """`isWide` tracks the resolved breakpoint via `matchMedia`, in both
-    directions, without a reload (T010/T011)."""
-
     def test_isWide_flips_both_directions_across_the_breakpoint(
         self, page, live_server
     ):
@@ -254,10 +233,6 @@ class TestTheViewportFlagFollowsTheWindow:
 
 @pytest.mark.django_db
 class TestTheNeverPersistentCaseReportsCorrectly:
-    """`breakpoint="never"` means no pixel width to report and a viewport
-    flag that never goes true, rather than a width that means nothing
-    (T010/T011)."""
-
     def test_never_reports_no_width_and_a_flag_that_stays_false(
         self, page, live_server
     ):
@@ -280,8 +255,6 @@ class TestTheNeverPersistentCaseReportsCorrectly:
 
 @pytest.mark.django_db
 class TestAPageWithNoShellStillGetsAStore:
-    """The entrance/error pages render no drawer and no config payload."""
-
     def test_defaults_reported_without_throwing(self, page, live_server):
         errors = []
         page.on("pageerror", lambda exc: errors.append(str(exc)))
@@ -306,9 +279,6 @@ class TestAPageWithNoShellStillGetsAStore:
     def test_no_storage_entry_is_seeded_without_a_persistent_drawer(
         self, page, live_server
     ):
-        """No drawer means nothing to remember. Writing an entry under a
-        persistent drawer's key from a page that has none would leave the
-        shell's own state resolved by a page that never rendered it."""
         page.goto(f"{live_server.url}/errors/404/")
         _wait_for_store(page)
 

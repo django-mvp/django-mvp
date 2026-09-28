@@ -60,7 +60,7 @@ leaves behind, so there is nothing that has to exist before the first story star
   (FR-026); add the changelog entry, covering the django-accounts-center version relationship for
   the menu name and for the two icon keys that package also defines (FR-023, decision D1).
 - **T013** [P] `skills/django-mvp/references/menus.md` and `references/layout.md` — the same surface
-  for the agent-facing skill (Article XVIII).
+  for the agent-facing skill (Article XVII).
 - **T014** Rebuild the stylesheet (`invoke build-stylesheet`) and commit `django-mvp.css` and its
   brotli sibling. Assert by grep that classes the new templates introduce are present in the built
   artifact, using a class known to be absent as the control.

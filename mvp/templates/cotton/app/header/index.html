@@ -1,9 +1,13 @@
+{# @description The sticky app header: site icon and breadcrumb trail leading, actions trailing. #}
+{# @prop :sticky:boolean | description:"Whether the header sticks to the top of the viewport on scroll." #}
+{# @slot:above — Content placed above the navbar row. #}
+{# @slot:below — Content placed below the navbar row. #}
+{# @slot:right — Extra header content; shares the desktop widget list's visibility rule. #}
+{# @slot:tray — Content placed after the navbar row, e.g. a search tray. #}
 <c-vars :sticky="mvp_config.layout.navbar.sticky" />
-{% comment %}
-  The scroll handler writes to the layout store (assets/js/layout.js)
-  instead of local component state, so other regions can read whether the
-  header has scrolled — the shadow behaviour itself is unchanged (T006).
-{% endcomment %}
+{# The scroll handler writes to the layout store (assets/js/layout.js) #}
+{# instead of local component state, so other regions can read whether #}
+{# the header has scrolled. #}
 <div class="mvp-header w-full backdrop-blur{% if sticky %} sticky z-10 top-0{% endif %}"
      {% if sticky %}x-data @scroll.window="$store.mvp.header.stuck = window.scrollY > 0" :class="{ 'shadow-xs': $store.mvp.header.stuck }"{% endif %}>
   {{ above }}

@@ -1,16 +1,4 @@
-"""Example menu configuration showing all django-mvp menu features.
-
-This file demonstrates how to use the AppMenu system to create comprehensive
-navigation menus with all available features:
-
-- Single menu items with icons
-- Hierarchical menu groups and sections
-- Badge support for notifications
-- Active state detection
-- URL resolution (view names and direct URLs)
-- Multi-level nesting
-- Menu sections with headers
-"""
+"""The demo site's sidebar and dock menus, built with the AppMenu system."""
 
 from django.urls import reverse_lazy
 from flex_menu import MenuItem

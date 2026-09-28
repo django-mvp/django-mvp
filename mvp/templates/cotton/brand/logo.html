@@ -1,3 +1,6 @@
+{# @description The brand logo image, via the configured logo resolver. #}
+{# @prop class:text | description:"Extra classes on the img element." #}
+{# @prop max-height:text | description:"Max height passed to the logo resolver." #}
 {% load i18n mvp %}
 <c-vars class max-height />
 {% logo_url max_height as logo %}

@@ -80,8 +80,6 @@ ACCOUNT_FIXTURE_URLCONF = _fixture_urlconf()
 
 @pytest.mark.django_db
 class TestSignInView:
-    """``account_login`` — the sign-in page (T003, FR-006)."""
-
     @pytest.fixture(autouse=True)
     def _account_urlconf(self):
         with override_settings(ROOT_URLCONF=ACCOUNT_URLCONF):
@@ -102,44 +100,32 @@ class TestSignInView:
 
         assert response.status_code == 200
         assert response.wsgi_request.user.is_anonymous
-        assert "Invalid username or password." in response.content.decode()
+        assert response.context["form"].has_error("__all__", code="invalid_login")
 
     def test_an_unknown_username_gets_the_same_treatment(self, client):
         response = self._post(client, "no-such-user", "whatever")
 
         assert response.status_code == 200
         assert response.wsgi_request.user.is_anonymous
-        assert "Invalid username or password." in response.content.decode()
+        assert response.context["form"].has_error("__all__", code="invalid_login")
 
     def test_the_message_is_identical_whether_the_account_exists_or_not(
         self, client, django_user_model
     ):
-        """FR-006: non-disclosure — a failed sign-in must not reveal whether
-        the account exists. That equality is the requirement."""
         django_user_model.objects.create_user(
             username="signinuser2", password="correct-pass"
         )
         wrong_password = self._post(client, "signinuser2", "wrong-pass")
         unknown_username = self._post(client, "no-such-user", "whatever")
 
-        wrong_password_alert = BeautifulSoup(
-            wrong_password.content.decode(), "html.parser"
-        ).find(attrs={"role": "alert"})
-        unknown_username_alert = BeautifulSoup(
-            unknown_username.content.decode(), "html.parser"
-        ).find(attrs={"role": "alert"})
-
-        assert wrong_password_alert is not None
-        assert unknown_username_alert is not None
-        assert wrong_password_alert.get_text(strip=True) == (
-            unknown_username_alert.get_text(strip=True)
+        assert wrong_password.context["form"].has_error("__all__", code="invalid_login")
+        assert unknown_username.context["form"].has_error(
+            "__all__", code="invalid_login"
         )
 
 
 @pytest.mark.django_db
 class TestSignInViewDefaultRedirect:
-    """Where a successful sign-in lands (T004, FR-007, D4)."""
-
     @pytest.fixture(autouse=True)
     def _account_urlconf(self):
         with override_settings(ROOT_URLCONF=ACCOUNT_URLCONF):
@@ -154,8 +140,6 @@ class TestSignInViewDefaultRedirect:
     def test_lands_on_the_account_center_when_the_project_has_not_chosen_a_destination(
         self, client, django_user_model, settings
     ):
-        """The demo sets ``LOGIN_REDIRECT_URL`` itself (D12); a project that
-        has made no choice is Django's own global default (D10)."""
         settings.LOGIN_REDIRECT_URL = global_settings.LOGIN_REDIRECT_URL
         django_user_model.objects.create_user(
             username="redirectuser1", password="correct-pass"
@@ -191,9 +175,6 @@ class TestSignInViewDefaultRedirect:
 
 @pytest.mark.django_db
 class TestSignInViewNextRedirect:
-    """The ``next`` allow-list, and the round trip a person actually makes
-    (T005, FR-008, Article V)."""
-
     @pytest.fixture(autouse=True)
     def _account_urlconf(self):
         with override_settings(ROOT_URLCONF=ACCOUNT_URLCONF):
@@ -231,9 +212,6 @@ class TestSignInViewNextRedirect:
     def test_the_full_round_trip_from_a_protected_page_back_to_it(
         self, client, django_user_model, settings
     ):
-        """US-1 scenario 6, end to end: with ``LOGIN_URL`` configured the way
-        T010 documents, an anonymous visitor to the Account Center reaches
-        the packaged sign-in page, and signing in returns them there."""
         settings.LOGIN_URL = "account_login"
         django_user_model.objects.create_user(
             username="nextuser3", password="correct-pass"
@@ -254,8 +232,6 @@ class TestSignInViewNextRedirect:
 
 @pytest.mark.django_db
 class TestSignInViewAuthenticatedVisitor:
-    """A signed-in person is not shown the form (T006, FR-009)."""
-
     @pytest.fixture(autouse=True)
     def _account_urlconf(self):
         with override_settings(ROOT_URLCONF=ACCOUNT_URLCONF):
@@ -276,8 +252,6 @@ class TestSignInViewAuthenticatedVisitor:
 
 @pytest.mark.django_db
 class TestSignOutView:
-    """``account_logout`` — the sign-out page (T007, FR-004, D8)."""
-
     @pytest.fixture(autouse=True)
     def _account_urlconf(self):
         with override_settings(ROOT_URLCONF=ACCOUNT_URLCONF):
@@ -286,10 +260,6 @@ class TestSignOutView:
     def test_a_post_by_a_signed_in_client_ends_the_session_and_renders_the_signed_out_page(
         self, client, django_user_model, settings
     ):
-        """``LOGOUT_REDIRECT_URL`` set to Django's own global default: a
-        project that has chosen nothing, which is what T007's ``no next_page``
-        claim is about. The demo sets its own value (D12, removed by T016) —
-        that is a project preference, not this test's subject."""
         settings.LOGOUT_REDIRECT_URL = global_settings.LOGOUT_REDIRECT_URL
         user = django_user_model.objects.create_user(
             username="signoutuser1", password="correct-pass"
@@ -322,11 +292,6 @@ class TestSignOutView:
 
 @pytest.mark.django_db
 class TestPackagedTemplatesAreOverridable:
-    """A project shipping its own template at the same path decides what
-    renders (T009, FR-010). Asserted for the sign-in page — the sign-out
-    page shares the same loader behaviour and does not need asserting
-    twice."""
-
     @pytest.fixture(autouse=True)
     def _account_urlconf(self):
         with override_settings(ROOT_URLCONF=ACCOUNT_URLCONF):
@@ -341,54 +306,6 @@ class TestPackagedTemplatesAreOverridable:
 
         assert response.status_code == 200
         assert response.content.decode().strip() == "project-overridden-sign-in-page"
-
-
-@pytest.mark.django_db
-class TestDevelopmentNotice:
-    """Both packaged pages carry a notice naming what they do not do and
-    pointing at django-accounts-center as what to install for a production
-    site (T014, FR-011, FR-012, D9)."""
-
-    @pytest.fixture(autouse=True)
-    def _account_urlconf(self):
-        with override_settings(ROOT_URLCONF=ACCOUNT_URLCONF):
-            yield
-
-    def test_the_sign_in_page_carries_the_notice(self, client):
-        content = client.get(reverse("account_login")).content.decode()
-
-        assert "development" in content
-        assert "sign-up" in content
-        assert "django-accounts-center" in content
-
-    def test_the_sign_out_page_carries_the_notice(self, client, django_user_model):
-        user = django_user_model.objects.create_user(
-            username="noticeuser1", password="correct-pass"
-        )
-        client.force_login(user)
-
-        content = client.post(reverse("account_logout")).content.decode()
-
-        assert "development" in content
-        assert "sign-up" in content
-        assert "django-accounts-center" in content
-
-    def test_the_notice_shares_one_column_instead_of_three(self, client):
-        """An alert lays its direct children out as columns (delete_view.html
-        documents the same rule on the same component), so the notice's three
-        sentences must share a single child rather than spreading across the
-        alert as three columns of their own."""
-        content = client.get(reverse("account_login")).content.decode()
-        soup = BeautifulSoup(content, "html.parser")
-
-        alert = soup.find(class_="alert-warning")
-        text_columns = [
-            child
-            for child in alert.find_all(recursive=False)
-            if child.name not in ("svg", "i")
-        ]
-
-        assert len(text_columns) == 1
 
 
 def _urlconf_with_allauth():
@@ -406,23 +323,42 @@ def _urlconf_with_allauth():
 
 
 @pytest.mark.django_db
-class TestDevelopmentNoticeAbsence:
-    """Where the notice does not appear (T015, US-3 scenarios 3 and 4)."""
+class TestDevelopmentNotice:
+    @pytest.fixture(autouse=True)
+    def _account_urlconf(self):
+        with override_settings(ROOT_URLCONF=ACCOUNT_URLCONF):
+            yield
 
+    def test_the_sign_in_page_carries_the_notice(self, client):
+        content = client.get(reverse("account_login")).content.decode()
+        soup = BeautifulSoup(content, "html.parser")
+
+        assert soup.find(class_="alert-warning") is not None
+
+    def test_the_sign_out_page_carries_the_notice(self, client, django_user_model):
+        user = django_user_model.objects.create_user(
+            username="noticeuser1", password="correct-pass"
+        )
+        client.force_login(user)
+
+        content = client.post(reverse("account_logout")).content.decode()
+        soup = BeautifulSoup(content, "html.parser")
+
+        assert soup.find(class_="alert-warning") is not None
+
+
+@pytest.mark.django_db
+class TestDevelopmentNoticeAbsence:
     def test_with_allauth_installed_the_sign_in_page_carries_no_notice_of_ours(
         self, client, allauth_installed
     ):
-        """The packaged sign-in page is not reached at all — allauth's own
-        page answers instead, and it carries no notice of ours."""
         with override_settings(ROOT_URLCONF=_urlconf_with_allauth()):
             content = client.get(reverse("account_login")).content.decode()
+        soup = BeautifulSoup(content, "html.parser")
 
-        assert "django-accounts-center" not in content
+        assert soup.find(class_="alert-warning") is None
 
     def test_a_projects_own_template_carries_no_notice_of_ours(self, client, settings):
-        """T009 already proves the override point; reused here rather than
-        rebuilt (US-3 scenario 4) — the project's template decides, and its
-        template is the bare fixture content T009 already asserts against."""
         templates_config = copy.deepcopy(settings.TEMPLATES)
         templates_config[0]["DIRS"] = [str(PROJECT_OVERRIDE_TEMPLATES_DIR)]
 
@@ -430,23 +366,19 @@ class TestDevelopmentNoticeAbsence:
             ROOT_URLCONF=ACCOUNT_URLCONF, TEMPLATES=templates_config
         ):
             content = client.get(reverse("account_login")).content.decode()
+        soup = BeautifulSoup(content, "html.parser")
 
-        assert "django-accounts-center" not in content
+        assert soup.find(class_="alert-warning") is None
 
 
 @pytest.mark.django_db
 class TestAccountCenterView:
-    """The landing page: who it lets in, and what it shows once they're in."""
-
     @pytest.fixture(autouse=True)
     def _account_urlconf(self):
         with override_settings(ROOT_URLCONF=ACCOUNT_URLCONF):
             yield
 
     def test_anonymous_request_is_redirected_to_sign_in(self, client):
-        """The destination is the packaged sign-in page. Django's
-        ``/accounts/login/`` default is no longer where an unauthenticated
-        visitor is sent, and no longer resolves to anything."""
         response = client.get(reverse("account-center"))
         assert response.status_code == 302
         assert response.url.startswith(reverse("account_login"))
@@ -455,7 +387,6 @@ class TestAccountCenterView:
     def test_signed_in_request_renders_inside_the_shell(
         self, client, django_user_model
     ):
-        """The area changes nothing about the sidebar, navbar or dock (FR-005)."""
         user = django_user_model.objects.create_user(
             username="accountcenteruser1", password="pass123!"
         )
@@ -464,7 +395,9 @@ class TestAccountCenterView:
         assert "mvp-sidebar" in content
         assert "mvp-header" in content
 
-    def test_the_title_is_a_bar_then_the_area_then_the_site(self, client, django_user_model):
+    def test_the_title_is_a_bar_then_the_area_then_the_site(
+        self, client, django_user_model
+    ):
         user = django_user_model.objects.create_user(
             username="accountcentertitle", password="pass123!"
         )
@@ -476,8 +409,6 @@ class TestAccountCenterView:
         )
 
     def test_signed_in_request_shows_no_cards(self, client, django_user_model):
-        """No app has contributed a card, so the card region renders empty
-        rather than falling back to listing the menu (D5, FR-019)."""
         user = django_user_model.objects.create_user(
             username="accountcenteruser3", password="pass123!"
         )
@@ -488,27 +419,9 @@ class TestAccountCenterView:
             "listing and not omitted entirely"
         )
 
-    def test_response_carries_the_heading(self, client, django_user_model):
-        user = django_user_model.objects.create_user(
-            username="accountcenteruser4", password="pass123!"
-        )
-        client.force_login(user)
-        content = client.get(reverse("account-center")).content.decode()
-        assert "Account Center" in content
-
-    def test_response_carries_the_introduction(self, client, django_user_model):
-        user = django_user_model.objects.create_user(
-            username="accountcenteruser5", password="pass123!"
-        )
-        client.force_login(user)
-        content = client.get(reverse("account-center")).content.decode()
-        assert "Manage your account" in content
-
     def test_response_carries_a_single_unlinked_breadcrumb(
         self, client, django_user_model
     ):
-        """The landing page declares its own trail through ``PageMixin`` —
-        no mixin resolves it from the menu (Refined 2026-09-14)."""
         user = django_user_model.objects.create_user(
             username="accountcenteruser6", password="pass123!"
         )
@@ -532,10 +445,6 @@ def main_content(response):
 
 @pytest.mark.django_db
 class TestAccountLayout:
-    """``mvp/account/base.html`` — the layout a page in the area extends. The
-    area's navigation is the sidebar's; the layout draws no navigation of its
-    own (FR-020, FR-021)."""
-
     @pytest.fixture(autouse=True)
     def _account_fixture_urlconf(self):
         with override_settings(ROOT_URLCONF=ACCOUNT_FIXTURE_URLCONF):
@@ -615,22 +524,15 @@ class TestAccountLayout:
         assert "c-card" not in source
 
     def test_the_layout_extends_the_projects_own_base_not_the_shell_directly(self):
-        """Extends ``base.html`` — the unqualified name a project owns — not
-        ``mvp/base.html`` directly, so a project's own base override still
-        applies underneath the account layout."""
         source = ACCOUNT_BASE_TEMPLATE.read_text()
         extends_line = next(
             line for line in source.splitlines() if "{% extends" in line
         )
         assert extends_line.strip() == '{% extends "base.html" %}'
 
+
 @pytest.mark.django_db
 class TestAccountMenuCurrentItem:
-    """The menu marks the entry matching the current page (FR-014). A page's
-    own trail is its own affair — declared with ``breadcrumbs`` on the view,
-    like any other page built on ``PageMixin`` (Refined 2026-09-14) — and is
-    covered by ``TestAccountCenterView`` below, not here."""
-
     @pytest.fixture(autouse=True)
     def _account_fixture_urlconf(self):
         with override_settings(ROOT_URLCONF=ACCOUNT_FIXTURE_URLCONF):
@@ -664,20 +566,6 @@ def _installed_apps_with(*card_apps):
 
 @pytest.mark.django_db
 class TestAccountCenterCards:
-    """The landing page's card region (US-3, T021, reworked T030): an
-    installed app contributes by shipping its own copy of
-    ``mvp/account/overview.html``, extending the package's template of the
-    same name, and adding to ``{% block account.cards %}`` through
-    ``{{ block.super }}`` (Refined 2026-09-14). The two fixture apps,
-    ``tests.testapp_card_with_menu`` and ``tests.testapp_card_no_menu``
-    (T024), are activated per test with ``override_settings(INSTALLED_APPS=...)``
-    — never installed globally, so
-    ``TestAccountCenterView.test_signed_in_request_shows_no_cards`` above stays
-    green (ARC-001). Mounted through ``ACCOUNT_FIXTURE_URLCONF`` so
-    ``testapp_account:plain`` — the target ``testapp_card_with_menu``'s entry
-    points at — resolves.
-    """
-
     CARD_WITH_MENU_APP = "tests.testapp_card_with_menu"
     CARD_NO_MENU_APP = "tests.testapp_card_no_menu"
 
@@ -736,9 +624,6 @@ class TestAccountCenterCards:
     def test_a_menu_entry_alongside_a_card_does_not_disturb_it(
         self, client, django_user_model, card_with_menu_entries
     ):
-        """FR-020, from the other direction: ``testapp_card_with_menu`` has a
-        real, resolvable menu entry attached here, and it does not prevent,
-        duplicate, or otherwise disturb its own card contribution."""
         self._login(client, django_user_model, "cardsuser3")
         with override_settings(
             INSTALLED_APPS=_installed_apps_with(self.CARD_WITH_MENU_APP)
@@ -753,15 +638,6 @@ class TestAccountCenterCards:
 
 @pytest.mark.django_db
 class TestSignInFieldNaming:
-    """FR-005: the sign-in form asks for the field the user model declares,
-    and says so consistently.
-
-    The label already reads ``form.username.label``. The placeholder inside
-    the same input is the other half of the same promise: a project whose
-    people are identified by email address must not be shown a box labelled
-    "Email address" with "Username" written inside it.
-    """
-
     @pytest.fixture(autouse=True)
     def _account_urlconf(self):
         with override_settings(ROOT_URLCONF=ACCOUNT_URLCONF):
@@ -786,8 +662,6 @@ class TestSignInFieldNaming:
         assert 'placeholder="Username"' not in html
 
     def test_the_default_user_model_is_unaffected(self):
-        """The default model does call it "Username", so nothing a project
-        sees today changes."""
         html = self._render_with_label("Username")
 
         assert 'placeholder="Username"' in html

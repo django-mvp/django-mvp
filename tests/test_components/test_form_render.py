@@ -23,14 +23,7 @@ class HelpTextForm(forms.Form):
 
 @pytest.mark.django_db
 class TestCrispyHelpTextSpacing:
-    """Help text must read as separate from its control, not flush against it."""
-
     def test_help_text_is_block_level_with_top_margin(self):
-        """Regression for #125: crispy-tailwind's default (non-inline) help
-        text renders as a bare <small>, an inline element whose vertical
-        margin is not rendered — so a top-margin utility alone is not
-        enough. The element also needs `block` before the margin can create
-        any visible gap from the control above it."""
         html = render_to_string("cotton/form/render.html", {"form": HelpTextForm()})
 
         assert 'id="id_password_helptext"' in html

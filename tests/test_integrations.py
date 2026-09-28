@@ -61,8 +61,6 @@ def _table_view_context(rf, query="", **kwargs):
 
 
 class TestIntegrationIsolation:
-    """Core views never import an optional integration."""
-
     def test_missing_dependency_message_names_module_and_pip_package(self):
         err = missing_dependency("django_tables", "django-tables2")
         assert isinstance(err, ImproperlyConfigured)
@@ -70,7 +68,6 @@ class TestIntegrationIsolation:
         assert "pip install django-tables2" in str(err)
 
     def test_core_views_do_not_export_integration_views(self):
-        """Integration views must not leak into the core public API."""
         import mvp.views
 
         assert not hasattr(mvp.views, "MVPFilteredListView")
@@ -78,11 +75,6 @@ class TestIntegrationIsolation:
         assert "MVPFilteredListView" not in mvp.views.__all__
 
     def test_core_views_have_no_optional_dependency_imports(self):
-        """No module under mvp/views/ may contain an import of an optional package.
-
-        Optional-package imports belong exclusively in mvp/integrations/ — that is
-        the whole point of the guarded-module design.
-        """
         import ast
         from pathlib import Path
 
@@ -107,10 +99,7 @@ class TestIntegrationIsolation:
 
 
 class TestOptionalIntegrations:
-    """Each guarded integration module imports and works when its package is present."""
-
     def test_django_tables_integration_imports(self):
-        """With django-tables2 installed (dev env), the integration works."""
         pytest.importorskip("django_tables2")
         from mvp.integrations.django_tables.views import MVPTableView, MVPTableViewMixin
 
@@ -118,7 +107,6 @@ class TestOptionalIntegrations:
         assert issubclass(MVPTableView, MVPTableViewMixin)
 
     def test_django_filters_integration_imports(self):
-        """With django-filter installed (dev env), the integration works."""
         pytest.importorskip("django_filters")
         from django_filters.views import FilterView
 
@@ -139,18 +127,6 @@ class TestOptionalIntegrations:
 
     @pytest.mark.django_db
     def test_sortable_headers_render_two_distinct_sort_glyphs(self, rf):
-        """A sortable header carries both directions and shows one at a time.
-
-        Which one shows is decided by CSS from the ``.asc``/``.desc`` class
-        django-tables2 puts on the cell, so if the two resolve to the same
-        glyph the header looks right until a column is clicked and then never
-        changes. That is what was reported.
-
-        Deliberately asserts the two differ rather than naming the glyphs. The
-        icon classes are configuration a project is free to replace, so pinning
-        them here would fail the next time the pack changes without anything
-        being wrong.
-        """
         pytest.importorskip("django_tables2")
         from django.template import Context, Template
 
@@ -160,11 +136,19 @@ class TestOptionalIntegrations:
             Context({"table": ProductTable([]), "request": rf.get("/")})
         )
 
-        ascending = set(re.findall(r'<i class="([^"]*)\s+sort-icon sort-icon-asc"', html))
-        descending = set(re.findall(r'<i class="([^"]*)\s+sort-icon sort-icon-desc"', html))
+        ascending = set(
+            re.findall(r'<i class="([^"]*)\s+sort-icon sort-icon-asc"', html)
+        )
+        descending = set(
+            re.findall(r'<i class="([^"]*)\s+sort-icon sort-icon-desc"', html)
+        )
 
-        assert len(ascending) == 1, f"headers disagree on the ascending icon: {ascending}"
-        assert len(descending) == 1, f"headers disagree on the descending icon: {descending}"
+        assert len(ascending) == 1, (
+            f"headers disagree on the ascending icon: {ascending}"
+        )
+        assert len(descending) == 1, (
+            f"headers disagree on the descending icon: {descending}"
+        )
         assert ascending != descending, (
             f"both directions render the same glyph ({ascending}), so a sorted "
             "column cannot show which way it sorted"
@@ -172,7 +156,6 @@ class TestOptionalIntegrations:
 
     @pytest.mark.django_db
     def test_filtered_list_view_injects_applied_filters(self, rf):
-        """MVPFilteredListView adds applied_filters context for the filter badge."""
         pytest.importorskip("django_filters")
         from demo.models import Product
         from mvp.integrations.django_filters.views import MVPFilteredListView
@@ -190,7 +173,6 @@ class TestOptionalIntegrations:
 
     @pytest.mark.django_db
     def test_filtered_list_view_has_no_clear_filters_url_when_nothing_applied(self, rf):
-        """No filters applied means nothing to clear, so the link stays hidden."""
         pytest.importorskip("django_filters")
         from demo.models import Product
         from mvp.integrations.django_filters.views import MVPFilteredListView
@@ -206,13 +188,6 @@ class TestOptionalIntegrations:
 
     @pytest.mark.django_db
     def test_filtered_list_view_clear_filters_url_drops_only_filter_fields(self, rf):
-        """Clearing filters preserves search and ordering, and resets pagination.
-
-        ``q`` (search) and ``o`` (ordering) share the same query string as the
-        filterset's own fields, but they're a different concern — a bug report
-        asked specifically what a "clear filters" control should and shouldn't
-        touch, and this is the behaviour decided for it.
-        """
         pytest.importorskip("django_filters")
         from demo.models import Product
         from mvp.integrations.django_filters.views import MVPFilteredListView
@@ -245,8 +220,9 @@ class TestOptionalIntegrations:
         assert params["o"] == "name_asc"
 
     @pytest.mark.django_db
-    def test_filter_action_template_renders_clear_link_only_when_filters_applied(self, rf):
-        """The rendered filter modal shows the clear link exactly when a filter is active."""
+    def test_filter_action_template_renders_clear_link_only_when_filters_applied(
+        self, rf
+    ):
         pytest.importorskip("django_filters")
         from demo.models import Product
         from mvp.integrations.django_filters.views import MVPFilteredListView
@@ -258,25 +234,20 @@ class TestOptionalIntegrations:
 
         unfiltered = ProductFilteredView()
         unfiltered.setup(rf.get("/"))
-        unfiltered_html = unfiltered.get(unfiltered.request).render().content.decode()
-        assert "Clear filters" not in unfiltered_html
+        unfiltered_response = unfiltered.get(unfiltered.request)
+        unfiltered_html = unfiltered_response.render().content.decode()
+        assert "clear_filters_url" not in unfiltered_response.context_data
+        assert 'href="/?' not in unfiltered_html
 
         filtered = ProductFilteredView()
         filtered.setup(rf.get("/", {"name": "Widget"}))
-        filtered_html = filtered.get(filtered.request).render().content.decode()
-        assert "Clear filters" in filtered_html
+        filtered_response = filtered.get(filtered.request)
+        filtered_html = filtered_response.render().content.decode()
+        clear_url = filtered_response.context_data["clear_filters_url"]
+        assert f'href="{clear_url}"' in filtered_html
 
 
 class TestFilterChromeOnAComposedView:
-    """The filter chrome has to reach a view that composes the list mixin with
-    ``FilterView`` itself, not only the packaged ``MVPFilteredListView``.
-
-    That composition is documented on ``MVPListViewMixin`` and is what the demo
-    site's own pages use. While the badge and the clear link were built on the
-    packaged class alone, both pages rendered a filter modal with no badge and
-    no way out of an applied filter, and every test still passed.
-    """
-
     @pytest.fixture
     def filtered_view(self):
         pytest.importorskip("django_filters")
@@ -308,11 +279,13 @@ class TestFilterChromeOnAComposedView:
         assert context["applied_filter_count"] == 2
 
     @pytest.mark.django_db
-    def test_the_modal_offers_a_way_to_clear_an_applied_filter(
-        self, filtered_view, rf
-    ):
-        html = self.render(filtered_view, rf, {"name": "Widget"})
-        assert "Clear filters" in html
+    def test_the_modal_offers_a_way_to_clear_an_applied_filter(self, filtered_view, rf):
+        view = filtered_view()
+        view.setup(rf.get("/", {"name": "Widget"}))
+        response = view.get(view.request)
+        clear_url = response.context_data["clear_filters_url"]
+        html = response.render().content.decode()
+        assert f'href="{clear_url}"' in html
 
     @pytest.mark.django_db
     def test_neither_is_drawn_when_no_filter_is_applied(self, filtered_view, rf):
@@ -321,12 +294,9 @@ class TestFilterChromeOnAComposedView:
         response = view.get(view.request)
         assert response.context_data["applied_filter_count"] == 0
         assert "clear_filters_url" not in response.context_data
-        assert "Clear filters" not in response.render().content.decode()
 
     @pytest.mark.django_db
-    def test_clearing_keeps_the_search_and_drops_the_filters(
-        self, filtered_view, rf
-    ):
+    def test_clearing_keeps_the_search_and_drops_the_filters(self, filtered_view, rf):
         view = filtered_view()
         view.setup(rf.get("/", {"q": "code", "name": "Widget", "page": "3"}))
         clear_url = view.get(view.request).context_data["clear_filters_url"]
@@ -334,7 +304,6 @@ class TestFilterChromeOnAComposedView:
 
     @pytest.mark.django_db
     def test_a_view_with_no_filterset_gets_no_filter_context(self, rf):
-        """The mixin is inert on an ordinary list view, which has no filterset."""
         from demo.models import Product
         from mvp.views.list import MVPListView
 
@@ -350,12 +319,6 @@ class TestFilterChromeOnAComposedView:
 
 
 class TestTableViewOrdering:
-    """A table view class must not declare its own ordering — that belongs
-    on the table class, which already has a safe, whitelisted mechanism for
-    it. The refusal happens as the class is defined, so a misconfigured view
-    fails when Django imports the module rather than on the first request to
-    its URL."""
-
     def test_declaring_an_ordering_is_refused_at_class_definition(self):
         pytest.importorskip("django_tables2")
         from demo.models import Product
@@ -391,8 +354,6 @@ class TestTableViewOrdering:
         view_class()  # must not raise
 
     def test_the_mixin_and_its_concrete_view_define_without_raising(self):
-        """The check runs on subclasses, so the package's own classes — which
-        inherit ``order_by = None`` — must not trip it as they are imported."""
         pytest.importorskip("django_tables2")
         from mvp.integrations.django_tables.views import MVPTableView, MVPTableViewMixin
 
@@ -401,14 +362,6 @@ class TestTableViewOrdering:
 
 
 class TestTableViewPagination:
-    """A table page runs its row query, and any prefetches on it, once.
-
-    Red before the mixin owns a single paginator: ``ListView`` slices the
-    queryset for ``page_obj`` and django-tables2 slices it again for the
-    table, and a slice of a queryset cannot reuse the first slice's result
-    cache (issue #276).
-    """
-
     def test_row_query_and_prefetches_run_once_per_page(
         self, db, rf, django_assert_num_queries
     ):
@@ -424,8 +377,6 @@ class TestTableViewPagination:
 
     @pytest.mark.parametrize("query", ["", "?sort=name", "?sort=-name"])
     def test_footer_describes_the_rows_that_are_on_the_page(self, db, rf, query):
-        """The footer reads ``page_obj``, so its page has to be the table's
-        page — including under a column sort, which only the table applies."""
         ProductFactory.create_batch(8)
         context = _table_view_context(rf, query)
 
@@ -436,12 +387,12 @@ class TestTableViewPagination:
             5,
         )
 
-    @pytest.mark.parametrize("page,expected_slice", [(1, slice(0, 5)), (2, slice(5, 8))])
+    @pytest.mark.parametrize(
+        "page,expected_slice", [(1, slice(0, 5)), (2, slice(5, 8))]
+    )
     def test_a_column_sort_orders_the_page_the_footer_counts(
         self, db, rf, page, expected_slice
     ):
-        """Under a sort, a page holds its own rows in that order — not the
-        equivalent slice of the view's own ordering."""
         from demo.models import Product
 
         ProductFactory.create_batch(8)
@@ -453,9 +404,6 @@ class TestTableViewPagination:
 
     @pytest.mark.parametrize("page", ["999", "0", "not-a-number"])
     def test_a_page_that_does_not_exist_is_a_missing_page(self, db, rf, page):
-        """A list view in this package answers ``?page=999`` with a 404, and a
-        table view has to agree — django-tables2 would otherwise land quietly
-        on the last page."""
         from django.http import Http404
 
         ProductFactory.create_batch(8)
@@ -464,8 +412,6 @@ class TestTableViewPagination:
             _table_view_context(rf, f"?page={page}")
 
     def test_an_empty_page_parameter_is_the_first_page(self, db, rf):
-        """``?page=`` names no page rather than a bad one, exactly as an
-        absent parameter does."""
         ProductFactory.create_batch(8)
         context = _table_view_context(rf, "?page=")
 
@@ -477,10 +423,6 @@ class TestTableViewPagination:
         ids=["pagination-off", "no-page-size"],
     )
     def test_an_unpaginated_view_paginates_nowhere(self, db, rf, config):
-        """Turning pagination off, or naming no page size at all, leaves the
-        table whole and the page chrome with nothing to describe. Red before
-        the mixin owned the decision: the table paginated at its own default
-        while the view believed it was unpaginated."""
         ProductFactory.create_batch(8)
         context = _table_view_context(rf, "", **config)
 
@@ -490,14 +432,6 @@ class TestTableViewPagination:
 
 
 class TestTableViewActions:
-    """A table view draws no sort control, and does so for the same reason a
-    list view does — nothing configured it.
-
-    ``order_by`` is refused on a table view, so ``order_by_choices`` is never
-    in its context and the sort action's own condition is false. This used to
-    be stated twice: once by that refusal, and again by a shorter action list
-    on the view. The list is gone, so the two can no longer disagree."""
-
     def _render(self, rf, **attrs):
         view_class = _plain_table_view_class()
         view = type("RenderedTableView", (view_class,), attrs)()
@@ -514,7 +448,6 @@ class TestTableViewActions:
         assert 'name="q"' not in self._render(rf)
 
     def test_the_view_carries_no_action_list_of_its_own(self):
-        """The list view sets none either — both read the same sub-components."""
         from mvp.views.list import MVPListViewMixin
 
         view = _plain_table_view_class()()

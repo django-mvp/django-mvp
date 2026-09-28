@@ -1,3 +1,13 @@
+{# @description A styled paragraph of body text. #}
+{# @prop muted:boolean | description:"Reduce text opacity for de-emphasised content." #}
+{# @prop text:text | description:"Text content, used together with or instead of the default slot." #}
+{# @prop align:select['left','center','right'] | description:"Text alignment." #}
+{# @prop size:text | default:"base" | description:"Text size, a Tailwind text-size suffix." #}
+{# @prop tight:boolean | description:"Remove the bottom margin below the paragraph." #}
+{# @prop bold:boolean | description:"Render the text semibold." #}
+{# @prop upper:boolean | description:"Uppercase the text." #}
+{# @prop class:text | description:"Extra classes on the paragraph." #}
+{# @slot More prose after the text prop. #}
 <c-vars muted text align size="base" tight bold upper class />
 <p class="text-{{ size }}{% if align %} text-{{ align }}{% endif %}{% if muted %} text-base-content/60{% endif %}{% if tight %} mb-0{% else %} mb-3{% endif %}{% if bold %} font-semibold{% endif %}{% if upper %} uppercase{% endif %} {{ class }}"
    {{ attrs }}>

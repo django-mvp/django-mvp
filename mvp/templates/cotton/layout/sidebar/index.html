@@ -1,3 +1,12 @@
+{# @description The drawer shell: toggle, overlay, desktop open-state persistence, and the resolved layout it publishes to the browser. #}
+{# @prop id:text | description:"Element id, used to derive the toggle checkbox id and the persisted storage key." #}
+{# @prop :breakpoint:text | description:"Viewport width at which the sidebar becomes a persistent panel instead of an overlay drawer." #}
+{# @prop :collapse:text | description:"offcanvas or icons — how the sidebar behaves when collapsed at/above the breakpoint." #}
+{# @prop :sticky:boolean | description:"Whether the header pins to the top of the viewport." #}
+{# @prop :boost:boolean | description:"Adds hx-boost to the sidebar so its links navigate with htmx." #}
+{# @prop class:text | description:"Extra classes appended to the drawer root element." #}
+{# @slot:sidebar <c-app.sidebar /> — The sidebar panel drawn in the drawer's side region. #}
+{# @slot The page content. — The drawer's main content region. #}
 {% load i18n mvp %}
 <c-vars id
         :breakpoint="mvp_config.layout.sidebar.breakpoint"
@@ -8,12 +17,9 @@
 {% sidebar_has_breakpoint breakpoint as persistent %}
 {% resolve_layout_config breakpoint collapse sticky boost as layout %}
 {% comment %}
-  Open-state persistence is desktop-only: the persistent sidebar remembers
-  open/collapsed across reloads (the layout store's desktopOpen), while the
-  overlay drawer (below the breakpoint, or breakpoint="never") is transient
-  and always starts closed. The store only writes the remembered state back
-  at/above the breakpoint, so toggling the mobile overlay never clobbers the
-  saved desktop state — see decisions.md D5.
+  The store only writes the remembered open state back at/above the
+  breakpoint, so toggling the transient mobile overlay never clobbers the
+  saved desktop state (docs/adr/0022-the-layout-store-mirrors-state-it-does-not-own.md).
 {% endcomment %}
 <div id="{{ id }}"
      class="drawer {% sidebar_breakpoint_class breakpoint %} {{ class }}"
@@ -27,30 +33,18 @@
          {% if persistent %}data-mvp-persist-key="{{ id }}-drawer-open"{% endif %}
          class="drawer-toggle" />
   {% comment %}
-    The client's whole configuration payload, so a project overriding
-    mvp/base.html keeps it wherever it keeps <c-app> — see D4/D6 in
-    decisions.md. Not from mvp/base.html itself, which a project overriding
-    replaces without necessarily rebuilding this.
+    Emitted here rather than from mvp/base.html so a project overriding the
+    base template keeps this payload wherever it keeps <c-app>
+    (docs/adr/0021-responsive-visibility-is-resolved-by-the-browser.md).
   {% endcomment %}
   {% with layout_config_id=id|add:"-layout-config" %}
   {{ layout.as_dict|json_script:layout_config_id }}
   {% endwith %}
   {% if persistent %}
   {% comment %}
-    The layout store's own hydration is deferred, so it would only correct
-    the checkbox after the browser's first paint — by then the sidebar's
-    width transition has already been active for a frame, and the
-    correction plays as a visible animation (#178). This blocking script
-    runs immediately, mid-parse, before that first paint, and sets the same
-    checked state the store would derive, so there is nothing left to
-    correct once Alpine hydrates.
-
-    It is also the single definition of the persisted default and the
-    storage key (FR-006, SC-002): the key comes from the checkbox's own
-    data-mvp-persist-key attribute above rather than being restated here,
-    and the value this script resolves is written to the checkbox's
-    data-mvp-persist-open attribute for assets/js/layout.js to read at
-    registration, rather than the store hardcoding a default of its own.
+    Runs blocking, mid-parse, before first paint: the store's own hydration
+    is deferred and would only correct the checkbox after the sidebar's
+    width transition already played as a visible animation (#178).
   {% endcomment %}
   <script>
     (function () {

@@ -27,8 +27,7 @@ from django.http import HttpResponseRedirect
 
 
 class InlineFormSet:
-    """Declares one set of related rows: the related model and how its
-    formset is built, instance and displayed.
+    """Declares one set of related rows and how its formset is built and displayed.
 
     One declaration class per related model, listed on a view's ``inlines``.
     ``model`` keeps meaning the related model for its whole life — never
@@ -135,8 +134,7 @@ class InlineFormSet:
         )
 
     def get_formset_kwargs(self):
-        """Return instance-level kwargs: ``instance``, and ``data``/``files``
-        on a POST.
+        """Return instance-level kwargs: ``instance``, and ``data``/``files`` on a POST.
 
         Both ``formset_kwargs`` and its nested ``form_kwargs`` are copied at
         both levels, so mutating the returned dict never mutates the
@@ -160,8 +158,7 @@ class InlineFormSet:
         return kwargs
 
     def get_title(self):
-        """Return the heading for the set, defaulting to the related model's
-        ``verbose_name_plural``."""
+        """Return the heading for the set, defaulting to ``verbose_name_plural``."""
         if self.title:
             return self.title
         return self.model._meta.verbose_name_plural
@@ -182,8 +179,7 @@ class InlineFormSet:
         return dict(self.form_kwargs) if self.form_kwargs else {}
 
     def sort_forms(self, forms):
-        """Return the sequence forms are displayed in. Defaults to the order
-        given.
+        """Return the sequence forms are displayed in. Defaults to the order given.
 
         Display only — must never reach the order rows are validated or
         saved in, since reordering that would change which submitted row
@@ -192,10 +188,7 @@ class InlineFormSet:
         return forms
 
     def construct_formset(self):
-        """Build the formset, wiring this declaration's ``get_form_kwargs``
-        and ``sort_forms`` through so Django's own per-form hook and the
-        page's rendering reach them, and attaching ``title``/``description``
-        so a template rendering the formset needs no second variable."""
+        """Build the formset, wiring in this declaration's kwargs, sorting and title."""
         formset_class = self.get_formset_class()
         formset = formset_class(**self.get_formset_kwargs())
         formset.get_form_kwargs = self.get_form_kwargs
@@ -206,8 +199,7 @@ class InlineFormSet:
 
 
 class InlinesMixin:
-    """Builds and validates one or more ``InlineFormSet`` declarations
-    alongside a single-object form.
+    """Builds and validates one or more ``InlineFormSet`` declarations with a parent.
 
     Mixed into ``MVPCreateView`` and ``MVPUpdateView`` by default (see
     ``mvp/views/edit.py``). Not exported from ``mvp.views`` on its own,
@@ -227,8 +219,7 @@ class InlinesMixin:
     """
 
     def is_rows_only(self):
-        """Whether this page edits only the related rows, leaving the parent's
-        own fields off it entirely (FR-014).
+        """Whether this page edits only rows, with the parent's fields off (FR-014).
 
         Empty and ``None`` are different configurations, so this cannot be a
         plain truthiness test: ``fields = None`` is Django's "you configured
@@ -247,9 +238,11 @@ class InlinesMixin:
         return list(self.inlines)
 
     def get_parent_model(self):
-        """Return the parent model, matching how Django's own model-form
-        pages resolve it (``ModelFormMixin.get_form_class``): ``self.model``
-        first, then the loaded object's class, then the queryset's model."""
+        """Return the parent model, matching Django's own model-form resolution order.
+
+        Tries ``self.model`` first, then the loaded object's class, then the
+        queryset's model, mirroring ``ModelFormMixin.get_form_class``.
+        """
         if self.model is not None:
             return self.model
         obj = getattr(self, "object", None)
@@ -258,8 +251,7 @@ class InlinesMixin:
         return self.get_queryset().model
 
     def construct_inlines(self):
-        """Return one formset per declaration, built once per request and
-        reused.
+        """Return one formset per declaration, built once per request and reused.
 
         The memoisation is not an optimisation: on an invalid submission,
         ``form_invalid`` re-renders through ``get_context_data``, and a
@@ -330,6 +322,7 @@ class InlinesMixin:
         return self._inline_formsets
 
     def get_context_data(self, **kwargs):
+        """Add the constructed inline formsets, sorted for display, to the context."""
         context = super().get_context_data(**kwargs)
         formsets = self.construct_inlines()
         for formset in formsets:
@@ -338,39 +331,19 @@ class InlinesMixin:
         return context
 
     def form_valid(self, form):
-        """Validate every set with Django's ``all_valid``, then save the
-        parent and every set inside one ``transaction.atomic()``.
-
-        ``all_valid`` is used rather than a hand-rolled loop specifically
-        because its list comprehension defeats ``all()``'s short-circuit, so
-        every set is validated even after an earlier one has failed
-        (research R5). The success URL, the message and the redirect are all
-        produced after the block exits, and never by calling
-        ``super().form_valid()``: that would save the parent a second time
-        outside the transaction.
-
-        On a rows-only page (see ``is_rows_only``) the parent form is never
-        saved: it is always valid and carries no submitted values, so its
-        ``save()`` would issue a full ``UPDATE`` of every column from
-        whatever was in memory when the object was loaded for this request,
-        discarding a concurrent change to any other column (FR-015,
-        research R12). ``self.object`` is already the loaded instance in
-        that case, and there is nothing else for the parent form to
-        contribute.
-
-        With no formsets declared, defers to ``super().form_valid()`` — the
-        ordinary Django save path — untouched: no transaction wrapping a
-        single save, no ``touch_parent_timestamp()`` call, nothing this
-        mixin would otherwise add to a page that declares no rows.
-        """
+        """Validate and save every set alongside the parent, inside one transaction."""
         formsets = self.construct_inlines()
         if not formsets:
             return super().form_valid(form)
+        # all_valid()'s list comprehension defeats all()'s short-circuit, so every
+        # set is validated even after an earlier one has failed (research R5).
         if not all_valid(formsets):
             return self.form_invalid(form)
 
         with transaction.atomic():
             if self.is_rows_only():
+                # Rows-only: no submitted parent values, so save() would UPDATE
+                # every column from stale in-memory state (FR-015, research R12).
                 self.touch_parent_timestamp()
             else:
                 self.object = form.save()
@@ -383,8 +356,7 @@ class InlinesMixin:
         return HttpResponseRedirect(success_url)
 
     def touch_parent_timestamp(self):
-        """Record the rows' change on the parent's own ``auto_now`` field(s),
-        without saving the parent form (FR-015, FR-016, research R12).
+        """Record the rows' change on the parent's own ``auto_now`` field(s) only.
 
         Writes only those fields, via ``save(update_fields=[...])``, inside
         the caller's transaction — never a full ``save()``, which would
@@ -409,43 +381,15 @@ class InlinesMixin:
             self.object.save(update_fields=auto_now_fields)
 
     def form_invalid(self, form):
-        """Validate every set even on the path where the parent form itself
-        is invalid, refresh ``self.object`` from the database, then
-        redisplay.
-
-        Django's ``ProcessFormView.post`` calls this directly when
-        ``form.is_valid()`` is ``False``, so on that path nothing has called
-        ``is_valid()`` on the sets before now (US3 s2, research R11) — left
-        unvalidated, a set's errors would reach the page only by lazy
-        evaluation during rendering, alongside the parent's, rather than
-        being guaranteed to. ``all_valid`` runs here for the same reason
-        ``form_valid`` uses it above (research R5): its list comprehension
-        defeats ``all()``'s short-circuit, so every set accumulates its own
-        errors regardless of what came before it.
-
-        This is also reached from ``form_valid`` above when the parent form
-        is individually valid but a set is not — and on an update, ``self.
-        object`` *is* ``form.instance``, so ``form.is_valid()`` has already
-        run ``_post_clean``, which writes every submitted value that passed
-        its own field clean onto that instance in place, whether or not the
-        page as a whole is refused. Re-reading ``self.object`` here undoes
-        that write before the page renders, so the object-derived context
-        (title, breadcrumbs) reflects what is actually stored rather than
-        what was submitted and refused (US3 s3, FR-010). On create,
-        ``self.object`` carries no primary key yet, so there is nothing to
-        re-read.
-
-        With no formsets declared, defers to ``super().form_invalid()``
-        directly: there is no set's write to undo, so the
-        ``refresh_from_db()`` below must not run on a page that declares no
-        rows — it would silently discard whatever ``form.is_valid()``'s own
-        ``_post_clean`` just wrote onto ``self.object`` for Django's own
-        invalid-form re-render to show.
-        """
+        """Validate every set, refresh ``self.object``, then redisplay."""
         formsets = self.construct_inlines()
         if not formsets:
             return super().form_invalid(form)
+        # form.is_valid() hasn't run on the sets yet on this path (research R11);
+        # all_valid()'s short-circuit-defeating comprehension validates every one.
         all_valid(formsets)
+        # On update, form.is_valid() already wrote submitted values onto self.object
+        # via _post_clean; undo that so the redisplay reflects what is stored (FR-010).
         if self.object is not None and self.object.pk:
             self.object.refresh_from_db()
         return super().form_invalid(form)

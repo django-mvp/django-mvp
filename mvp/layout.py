@@ -4,6 +4,8 @@
 anything else: a normalised name, a pixel width, or a persistence flag.
 """
 
+from typing import Any
+
 #: Supported sidebar breakpoints, mapped to their Tailwind min-width in px.
 BREAKPOINT_WIDTHS = {
     "sm": 640,
@@ -26,9 +28,17 @@ class LayoutConfig:
     ``MVP_CONFIG`` default). Normalisation lives here and nowhere else:
     ``never``/``none`` in any case means the sidebar is never persistent,
     and an unrecognised breakpoint name falls back to ``lg``.
+
+    Args:
+        bp: The sidebar breakpoint name as configured, before normalisation.
+        collapse: How the sidebar collapses: ``offcanvas`` or ``icons``.
+        sticky: Whether the header sticks to the top of the viewport.
+        boost: Whether sidebar links load through hx-boost.
     """
 
-    def __init__(self, bp, collapse=None, sticky=None, boost=None):
+    def __init__(
+        self, bp: Any, collapse: Any = None, sticky: Any = None, boost: Any = None
+    ):
         self.raw_breakpoint = bp
         self.collapse = collapse
         self.sticky = sticky
@@ -59,11 +69,15 @@ class LayoutConfig:
         return BREAKPOINT_WIDTHS[self.breakpoint]
 
     def as_dict(self):
-        """The payload handed to the client via ``json_script``: grouped by
-        component and camelCase, the same shape the client store (``mvp``,
-        see ``assets/js/layout.js``) groups its own state into, so the
+        """Return the payload handed to the client via ``json_script``.
+
+        Grouped by component and camelCase, the same shape the client store
+        (``mvp``, see ``assets/js/layout.js``) groups its own state into, so the
         payload and the store are one document rather than two that have to
         agree.
+
+        Returns:
+            The layout facts, keyed by component.
         """
         return {
             "sidebar": {

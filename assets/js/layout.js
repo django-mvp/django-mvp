@@ -29,10 +29,8 @@
 
 const CONFIG_SELECTOR = 'script[id$="-layout-config"]';
 
-// The package defaults, exactly as the server would resolve them. A page that
-// renders no shell reports these, and the documentation promises they are the
-// package defaults — so they have to be a state the server could actually
-// produce. `lg` with persistent false and no width is not one of them.
+// Must be a state the server could actually resolve: a shell-less page
+// reports these, and the docs promise they are the package defaults.
 const DEFAULT_CONFIG = {
   sidebar: {
     breakpoint: "lg",
@@ -72,19 +70,14 @@ function parseConfig() {
 }
 
 // The blocking pre-paint script is the single definition of the persisted
-// default and the storage key (FR-006): it resolves the value before first
-// paint and renders both the key (data-mvp-persist-key) and the value it
-// resolved (data-mvp-persist-open) onto the checkbox. Reading them here,
-// rather than restating either as a literal, is what keeps the definition
-// singular.
+// default and storage key (FR-006): read its resolved values off the
+// checkbox rather than restating either as a literal here.
 function persistedDesktopOpen(toggle) {
   const key = toggle?.dataset.mvpPersistKey;
   if (!key) {
-    // No key means no persistent drawer on this page — a shell-less page, or
-    // one whose sidebar is an overlay at every width. There is nothing to
-    // remember, so the store holds a plain value and writes no storage entry.
-    // Naming a key here would both restate the template's rule and seed an
-    // entry under a persistent drawer's key from a page that has none.
+    // No key means no persistent drawer on this page, so there is nothing
+    // to remember — naming one here would seed a storage entry under a
+    // persistent drawer's key from a page that has none.
     return { key: null, initial: true };
   }
   let initial = true;
@@ -104,8 +97,7 @@ export function registerLayoutStore(Alpine) {
     sidebar: {
       ...DEFAULT_CONFIG.sidebar,
       open: false,
-      // Persisted only where a persistent drawer published a key to persist
-      // under. Everywhere else this is an ordinary value: nothing on the page
+      // Persisted only where a persistent drawer published a key: nothing
       // remembers an overlay drawer's state, and nothing should write one.
       desktopOpen: key ? Alpine.$persist(initial).as(key) : initial,
     },
@@ -113,11 +105,9 @@ export function registerLayoutStore(Alpine) {
     isWide: false,
 
     init() {
-      // Merged field by field, rather than replacing `this.sidebar`/
-      // `this.header` wholesale: `sidebar.desktopOpen` above is a $persist
-      // interceptor Alpine resolved into a storage-backed getter/setter when
-      // this object was first handed to Alpine.store(), and reassigning the
-      // object would discard that.
+      // Merged field by field, not replaced wholesale: `sidebar.desktopOpen`
+      // is a $persist interceptor Alpine already resolved into a storage-
+      // backed getter/setter, and reassigning the object would discard that.
       const config = parseConfig();
       Object.assign(this.sidebar, config.sidebar);
       Object.assign(this.header, config.header);
@@ -131,11 +121,9 @@ export function registerLayoutStore(Alpine) {
         });
       }
 
-      // Mirrors the sidebar's open state into the persisted desktop state,
-      // only at/above the breakpoint — the same guard the drawer's own
-      // $watch used before this state moved into the store. Alpine.watch
-      // does not fire on registration, only on a later change, so the
-      // checkbox's already-correct initial state is never written back.
+      // Mirrors open into the persisted desktop state at/above the breakpoint
+      // only, the same guard the drawer's own $watch used before this state
+      // moved into the store. Alpine.watch never fires on registration.
       Alpine.watch(
         () => this.sidebar.open,
         (value) => {
@@ -146,14 +134,9 @@ export function registerLayoutStore(Alpine) {
       );
     },
 
-    // Called from index.js's htmx:afterSettle handler when a boosted
-    // navigation replaced <body>. The fresh drawer's checkbox is server-
-    // rendered closed, and the drawer itself is a new element — so
-    // re-derive the resting position rather than letting a stale
-    // sidebar.open (a mobile overlay left open, say) carry over: open only
-    // when the viewport is wide and the remembered desktop state says so.
-    // This reproduces today's behaviour exactly — a mobile overlay closes
-    // on navigation, a desktop sidebar does not.
+    // Called after a boosted navigation replaces <body> with a fresh,
+    // server-closed drawer: re-derive the resting position rather than
+    // carrying over a stale sidebar.open (a mobile overlay left open, say).
     rebindAfterNavigation() {
       this.sidebar.open = this.isWide && this.sidebar.desktopOpen;
       // The header's handler only writes on the next scroll event, and the

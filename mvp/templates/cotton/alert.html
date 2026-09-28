@@ -1,3 +1,13 @@
+{# @description A message banner, with an icon and the default slot laid out side by side. #}
+{# @prop variant:select['primary','secondary','accent','neutral','info','success','warning','error'] | description:"Colour variant. Also selects the icon shown when no icon is given." #}
+{# @prop icon:text | description:"Icon name. Defaults to the variant's own icon when unset." #}
+{# @prop soft:boolean | description:"Use the soft alert style." #}
+{# @prop outline:boolean | description:"Use the outline alert style." #}
+{# @prop dash:boolean | description:"Use the dashed-border alert style." #}
+{# @prop dismissible:boolean | description:"Add a dismiss button that hides the alert." #}
+{# @prop delay:number | description:"Auto-dismiss the alert after this many milliseconds." #}
+{# @prop class:text | description:"Extra classes on the alert's root element." #}
+{# @slot Your changes were saved. — The alert content. Keep it to a single element — the alert lays direct children out side by side. #}
 <c-vars variant icon soft outline dash dismissible delay class />
 <div role="alert"
      class="alert{% if variant %} alert-{{ variant }}{% endif %}{% if soft %} alert-soft{% endif %}{% if outline %} alert-outline{% endif %}{% if dash %} alert-dash{% endif %} {{ class }}"

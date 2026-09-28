@@ -23,8 +23,6 @@ pytestmark = [pytest.mark.e2e, requires_browser]
 
 
 class TestBundledRuntimeBoots:
-    """Alpine, its plugins, htmx and theme-change all come up from the bundle."""
-
     def test_alpine_starts_and_exposes_the_global(self, page, live_server):
         page.goto(f"{live_server.url}/components/")
 
@@ -47,12 +45,6 @@ class TestBundledRuntimeBoots:
         assert version.startswith("2."), f"unexpected htmx major version: {version}"
 
     def test_the_persist_plugin_is_registered(self, page, live_server):
-        """``$persist`` is what the sidebar drawer state is built on.
-
-        A plugin that is bundled but never passed to ``Alpine.plugin()`` fails
-        only at the point a component uses it, which is why this is asserted
-        directly rather than inferred from the bundle contents.
-        """
         page.goto(f"{live_server.url}/components/")
 
         registered = page.evaluate(
@@ -71,17 +63,8 @@ class TestBundledRuntimeBoots:
         )
 
 
-
 class TestNothingExecutableComesFromAThirdParty:
-    """The property the whole change exists to establish."""
-
     def test_no_script_is_fetched_from_a_remote_origin(self, page, live_server):
-        """Watches the network rather than the markup.
-
-        This is the test that would have caught the original defect, and it
-        catches a reintroduction by any route — a template, an included
-        component, or a script that injects another script at run time.
-        """
         remote_scripts = []
 
         def record(request):
@@ -99,11 +82,6 @@ class TestNothingExecutableComesFromAThirdParty:
         )
 
     def test_the_watcher_would_notice_a_remote_script(self, page, live_server):
-        """A true-positive control for the test above.
-
-        Without it, a watcher that never fires — wrong event name, wrong
-        resource type — reports a clean page forever.
-        """
         remote_scripts = []
 
         def record(request):
@@ -130,8 +108,6 @@ class TestNothingExecutableComesFromAThirdParty:
 
 
 class TestThemeChangeStillWorks:
-    """theme-change moved from an eager CDN tag into the deferred bundle."""
-
     def test_the_theme_toggle_flips_the_document_theme(self, page, live_server):
         page.goto(f"{live_server.url}/components/")
 
@@ -159,21 +135,6 @@ class TestThemeChangeStillWorks:
     def test_a_dropdown_entry_sets_that_theme_and_it_survives_a_reload(
         self, page, live_server, monkeypatch
     ):
-        """A configured switcher entry actually applies its theme (SC-004).
-
-        ``data-set-theme`` is markup this package has not shipped before. The
-        rendered-markup tests prove the attribute is emitted and the bundle
-        test proves the string is in the bundle, and neither can tell whether
-        theme-change binds it — the same gap the toggle test above exists to
-        close. Persistence needs a real browser too: a ``localStorage`` write
-        read back by the pre-paint guard on the next load is not expressible
-        with the Django test client.
-
-        ``tests/settings.py`` pins a bare ``MVP_CONFIG`` with no
-        ``theme.choices``, so the demo's own configuration is applied for this
-        test's duration through the same ``monkeypatch.setitem`` seam
-        ``tests/test_demo/test_theme_customization.py`` uses.
-        """
         monkeypatch.setitem(
             MVP_CONFIG["theme"], "choices", DEMO_MVP_CONFIG["theme"]["choices"]
         )
@@ -229,16 +190,6 @@ class TestThemeChangeStillWorks:
     def test_a_stored_theme_the_project_no_longer_offers_stays_rejected(
         self, page, live_server, monkeypatch
     ):
-        """A dropped theme must not come back after the page settles (FR-010).
-
-        The pre-paint guard resolving the right value is only half of it.
-        theme-change re-applies ``localStorage.theme`` on ``DOMContentLoaded``
-        with no membership check of its own, so a guard that sets the
-        attribute without rewriting the stored value is correct for one frame
-        and reverted immediately after. That is invisible to any assertion on
-        the guard's source, which is why this waits for the page to settle
-        before reading the attribute.
-        """
         monkeypatch.setitem(MVP_CONFIG["theme"], "choices", ["light", "dark"])
         # Pin the default inside this scenario's own choices. It used to be
         # "light" package-wide, so the fixture read as self-consistent without

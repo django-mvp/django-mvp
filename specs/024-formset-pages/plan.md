@@ -150,13 +150,13 @@ README.md                                     # MODIFIED: required setup
 `mvp/templates/cotton/form/formset/` because the directory is the Cotton namespace, matching
 `cotton/page/list/actions/`. The view goes in a new `mvp/views/inline.py` rather than into
 `mvp/views/edit.py`, which already carries four view classes across roughly six hundred lines —
-see R7. Tests mirror that split under Article X.
+see R7. Tests mirror that split under the testing standard.
 
 **No new test directory.** The one browser test lives in `tests/test_components/test_form_formset.py`
 as its own class, carrying the `e2e` marker and the playwright `skipif` at class level. That is the
 precedent `tests/test_views/test_error.py` already sets, it keeps the test beside the components it
 exercises, and it avoids declaring a second `non-mirror-path` for a directory with no source module
-behind it. Article X's warning is about *module-level* `pytestmark` hiding the unit tests underneath
+behind it. The testing standard's warning is about *module-level* `pytestmark` hiding the unit tests underneath
 it, which a class-level marker does not do — a separate module was never the remedy it called for.
 
 ## Phase breakdown

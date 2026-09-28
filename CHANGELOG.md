@@ -793,7 +793,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   components, styling, integrations and troubleshooting. `references/menu-patterns.md`
   is replaced by `references/menus.md`.
   Keeping it current is now a condition of merging a change to the public surface,
-  recorded as Article XVIII of the project constitution.
+  recorded as Article XVII of the project constitution.
 
 - **BREAKING: `<c-addons.django-table>` no longer takes `min_height`.** The component
   is now the scroll region of the full-screen layout and takes its height from the

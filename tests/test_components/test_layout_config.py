@@ -33,16 +33,8 @@ def _render(template_name):
     return render_to_string(template_name, request=request)
 
 
-# ---------------------------------------------------------------------------
-# Config schema and context processor
-# ---------------------------------------------------------------------------
-
-
 class TestLayoutConfigResolution:
-    """Defaults, settings overrides and what the context processor exposes."""
-
     def test_layout_defaults_present(self):
-        """Package defaults define breakpoint, collapse mode and navbar widgets."""
         layout = MVP_CONFIG["layout"]
         assert layout["sidebar"]["breakpoint"] == "lg"
         assert layout["sidebar"]["collapse"] == "offcanvas"
@@ -51,13 +43,9 @@ class TestLayoutConfigResolution:
         assert isinstance(layout["navbar"]["desktop"]["end"], list)
 
     def test_the_mobile_header_toggle_is_off_by_default(self):
-        """[#416] The dock carries a sidebar toggle, so the header's copy is
-        opt-in below the breakpoint."""
         assert MVP_CONFIG["layout"]["navbar"]["mobile"]["sidebar_toggle"] is False
 
     def test_settings_override_replaces_navbar_list(self):
-        """tests/settings.py's flat, pre-split ``navbar.end`` override (issue #176
-        backward compatibility) applies to both mobile and desktop."""
         expected = [
             "actions.theme-controller",
             "actions.language-switcher",
@@ -70,35 +58,15 @@ class TestLayoutConfigResolution:
         assert MVP_CONFIG["layout"]["sidebar"]["breakpoint"] == "lg"
 
     def test_context_processor_exposes_structured_config(self):
-        """The context processor provides MVP_CONFIG as a dict, not JSON."""
         context = mvp_config_processor(RequestFactory().get("/"))
         assert context["mvp_config"] is MVP_CONFIG
 
 
-# ---------------------------------------------------------------------------
-# Navbar mobile/desktop split (issue #176)
-# ---------------------------------------------------------------------------
-
-
 class TestNavbarMobileDesktopSplit:
-    """A widget list configured differently for mobile and desktop must reach
-    the right screen size only, without exposing the hidden copy to
-    assistive technology.
-
-    Both variants render server-side (a config-driven widget list can't be
-    resolved from the request alone) and are toggled with Tailwind's
-    responsive display utilities. Browsers and screen readers already drop a
-    ``display:none`` element from the accessibility tree, so the ``hidden``/
-    ``flex`` utility pair below is sufficient on its own — no ``aria-hidden``
-    is needed on top of it.
-    """
-
     @pytest.mark.django_db
     def test_mobile_and_desktop_widget_lists_render_independently(
         self, client, monkeypatch
     ):
-        """A widget configured only for one breakpoint must not leak into
-        the other breakpoint's markup."""
         monkeypatch.setitem(
             MVP_CONFIG["layout"]["navbar"]["mobile"],
             "end",
@@ -134,19 +102,12 @@ class TestNavbarMobileDesktopSplit:
 
     @pytest.mark.django_db
     def test_wrapper_ids_are_unique(self, client):
-        """The two wrappers get distinct ids — no duplicate DOM id."""
         content = client.get("/").content.decode()
         assert content.count('id="mvp-navbar-widgets-mobile"') == 1
         assert content.count('id="mvp-navbar-widgets-desktop"') == 1
 
     @pytest.mark.django_db
     def test_mobile_wrapper_carries_the_narrow_only_class(self, client):
-        """The mobile wrapper is visible below the configured breakpoint and
-        hidden at/above it — the inverse of the region holding the desktop
-        widgets. The rule itself lives in the stylesheet (T015), selected by
-        the resolved breakpoint attribute the drawer element carries rather
-        than assembled here; what the rendered markup can still show is which
-        semantic class the wrapper carries."""
         content = client.get("/").content.decode()
         match = re.search(
             r'<div\s+id="mvp-navbar-widgets-mobile"\s+class="([^"]*)"', content
@@ -157,8 +118,6 @@ class TestNavbarMobileDesktopSplit:
 
     @pytest.mark.django_db
     def test_desktop_wrapper_carries_the_wide_only_class(self, client):
-        """The desktop wrapper's inverse rule (T015): hidden below the
-        breakpoint, visible at/above it."""
         content = client.get("/").content.decode()
         match = re.search(
             r'<div\s+id="mvp-navbar-widgets-desktop"\s+class="([^"]*)"', content
@@ -169,9 +128,6 @@ class TestNavbarMobileDesktopSplit:
 
     @pytest.mark.django_db
     def test_flat_legacy_config_renders_the_same_widgets_on_both(self, client):
-        """The suite's own tests/settings.py still uses the flat pre-split
-        ``navbar.end`` shape — confirming the backward-compatible mapping is
-        exercised by the whole existing suite, not just a dedicated test."""
         content = client.get("/").content.decode()
         mobile_start = content.find('id="mvp-navbar-widgets-mobile"')
         desktop_start = content.find('id="mvp-navbar-widgets-desktop"')
@@ -183,12 +139,6 @@ class TestNavbarMobileDesktopSplit:
 
 
 class TestHeaderBackdropBlur:
-    """The frosted-glass effect must cover the whole header shell (issue
-    #248), not just the navbar row inside it: the tray slot and any padding
-    a project applies around the navbar both live in ``.mvp-header``,
-    outside ``.navbar``, so blur scoped to ``.navbar`` alone leaves them
-    showing unblurred page content behind."""
-
     @pytest.mark.django_db
     def test_backdrop_blur_is_on_the_header_shell(self, client):
         content = client.get("/").content.decode()
@@ -200,14 +150,7 @@ class TestHeaderBackdropBlur:
         )
 
 
-# ---------------------------------------------------------------------------
-# Breakpoint templatetags
-# ---------------------------------------------------------------------------
-
-
 class TestBreakpointTags:
-    """Breakpoint template tags and their fallbacks."""
-
     @pytest.mark.parametrize(
         ("bp", "klass", "px"),
         [
@@ -228,31 +171,16 @@ class TestBreakpointTags:
 
     @pytest.mark.parametrize("bp", ["never", "none", "NEVER"])
     def test_breakpoint_never_disables_persistent_sidebar(self, bp):
-        """ "never"/"none" emits no drawer-open class and reports not persistent."""
         assert sidebar_breakpoint_class(bp) == ""
         assert sidebar_has_breakpoint(bp) is False
 
 
-# ---------------------------------------------------------------------------
-# The tags read LayoutConfig instead of reimplementing normalisation (T002)
-# ---------------------------------------------------------------------------
-
-
 class TestTagsReadLayoutConfig:
-    """The surviving tags become thin readers of LayoutConfig."""
-
     def test_breakpoint_px_keeps_returning_the_lg_width_for_never(self):
-        """The tag's pre-existing behaviour for "never" is pinned deliberately:
-        it is not a recognised breakpoint name, so it takes the same lg
-        fallback an unrecognised name does — unlike LayoutConfig's own
-        breakpoint_px, which reports the honest nullable value for the
-        client payload. The difference is intentional, not a bug carried
-        forward by accident."""
         assert breakpoint_px("never") == 1024
         assert LayoutConfig("never").breakpoint_px is None
 
     def test_resolve_layout_config_tag_returns_a_layout_config(self):
-        """The tag that resolves a LayoutConfig for a template to use."""
         config = resolve_layout_config("xl", "icons", False, True)
         assert isinstance(config, LayoutConfig)
         assert config.breakpoint == "xl"
@@ -261,31 +189,21 @@ class TestTagsReadLayoutConfig:
         assert config.boost is True
 
 
-# ---------------------------------------------------------------------------
-# Rendered layout: defaults from config
-# ---------------------------------------------------------------------------
-
-
 class TestShellRendersConfig:
-    """The rendered shell reflects the configured layout."""
-
     @pytest.mark.django_db
     def test_default_breakpoint_renders_lg_drawer(self, client):
-        """With no override, the drawer uses the configured lg breakpoint."""
         response = client.get("/")
         content = response.content.decode()
         assert "lg:drawer-open" in content
 
     @pytest.mark.django_db
     def test_default_collapse_is_offcanvas(self, client):
-        """Default collapse mode slides the sidebar fully away (w-0, no rail)."""
         content = client.get("/").content.decode()
         assert "is-drawer-close:w-0" in content
         assert "mvp-sidebar--icons" not in content
 
     @pytest.mark.django_db
     def test_navbar_widgets_render_from_config(self, client):
-        """Configured navbar end components render, in declaration order."""
         content = client.get("/").content.decode()
         # theme controller marker
         theme_pos = content.find("data-toggle-theme")
@@ -297,9 +215,6 @@ class TestShellRendersConfig:
 
     @pytest.mark.django_db
     def test_sidebar_footer_renders_its_fixed_row(self, client):
-        """The sidebar footer is a fixed composition (docs/adr/0023), no
-        longer assembled from a configured widget list — it still renders
-        in a single flex row inside the sidebar."""
         content = client.get("/").content.decode()
         footer_start = content.find("sticky bottom-0")
         assert footer_start != -1, "the sidebar footer must render"
@@ -311,24 +226,12 @@ class TestShellRendersConfig:
 
     @pytest.mark.django_db
     def test_drawer_state_persisted_with_breakpoint_default(self, client):
-        """Drawer open state persists, and defaults by viewport width.
-
-        Persistence moved from an expression on the drawer into the layout
-        store, so what the markup carries is the storage key the store
-        persists under. The behaviour is unchanged and is proved end to end in
-        tests/test_components/test_sidebar_persisted_state.py.
-        """
         content = client.get("/").content.decode()
         assert 'data-mvp-persist-key="mvp-app-drawer-open"' in content
         assert "min-width: 1024px" in content
 
     @pytest.mark.django_db
     def test_persisted_state_applied_before_alpine_hydrates(self, client):
-        """A blocking script, not the deferred bundle, sets the checkbox's
-        checked state — so the persisted "open" value is already correct on the
-        first paint instead of arriving as a later, animated correction
-        (issue #178). It reads the storage key off the checkbox rather than
-        naming it a second time, and runs before the drawer-side content."""
         content = client.get("/").content.decode()
         toggle_pos = content.find('id="mvp-app-toggle"')
         script_pos = content.find("localStorage.getItem(key)")
@@ -345,17 +248,9 @@ class TestShellRendersConfig:
         assert "min-width: 1024px" in content[script_pos : drawer_side_pos + 1]
 
 
-# ---------------------------------------------------------------------------
-# Rendered layout: per-page component attribute overrides
-# ---------------------------------------------------------------------------
-
-
 class TestComponentOverrides:
-    """Per-page component attributes override the configured layout."""
-
     @pytest.mark.django_db
     def test_breakpoint_component_override(self):
-        """<c-app breakpoint="xl"> beats the configured default."""
         html = _render("tests/app_breakpoint_override.html")
         assert "xl:drawer-open" in html
         assert "lg:drawer-open" not in html
@@ -363,15 +258,6 @@ class TestComponentOverrides:
 
     @pytest.mark.django_db
     def test_overlay_state_is_transient_desktop_state_persists(self):
-        """Only the desktop (persistent) open state survives reloads.
-
-        A persistent drawer publishes its storage key and the pre-paint script
-        that resolves it; an overlay-only drawer publishes neither, because
-        there is nothing to remember. That the remembered value is written back
-        at desktop widths and not at mobile ones is behaviour, proved in
-        tests/test_components/test_layout_store.py rather than by reading an
-        expression out of the markup.
-        """
         content = _render("tests/app_breakpoint_override.html")
         assert 'data-mvp-persist-key="mvp-app-drawer-open"' in content
         assert "localStorage.getItem(key)" in content
@@ -379,9 +265,6 @@ class TestComponentOverrides:
 
     @pytest.mark.django_db
     def test_breakpoint_never_component_override(self):
-        """<c-app breakpoint="never"> renders an overlay-only drawer: no
-        *:drawer-open class, a closed initial Alpine state, and no persistence
-        (overlay drawers are transient)."""
         from mvp.templatetags.mvp import SIDEBAR_BREAKPOINTS
 
         html = _render("tests/app_breakpoint_never.html")
@@ -393,41 +276,25 @@ class TestComponentOverrides:
 
     @pytest.mark.django_db
     def test_collapse_icons_component_override(self):
-        """<c-app.sidebar collapse="icons"> renders the icon rail classes."""
         html = _render("tests/sidebar_icons_override.html")
         assert "mvp-sidebar--icons" in html
         assert "is-drawer-close:w-16" in html
         assert "is-drawer-close:w-0" not in html
 
 
-# ---------------------------------------------------------------------------
-# Sidebar title beside the brand icon
-# ---------------------------------------------------------------------------
-
-
 class TestSidebarTitle:
-    """Sidebar title rendering."""
-
     @pytest.mark.django_db
     def test_default_title_renders_nothing(self, client):
-        """The default None title renders no title element in the sidebar header."""
         content = client.get("/").content.decode()
         assert "mvp-sidebar-title" not in content
 
     @pytest.mark.django_db
     def test_title_component_override(self):
-        """<c-app.sidebar title="..."> renders the text beside the brand icon,
-        marked mvp-rail-hide so it hides when collapsed to an icon rail."""
         html = _render("tests/sidebar_title_override.html")
         match = re.search(r'<span class="mvp-sidebar-title[^"]*">([^<]*)</span>', html)
         assert match is not None, "title span must render when title is set"
         assert match.group(1).strip() == "Acme Admin"
         assert "mvp-rail-hide" in match.group(0)
-
-
-# ---------------------------------------------------------------------------
-# Sidebar brand icon sizing (issue #123)
-# ---------------------------------------------------------------------------
 
 
 def _brand_icon_tag(html):
@@ -438,17 +305,8 @@ def _brand_icon_tag(html):
 
 
 class TestSidebarBrandIconSizing:
-    """The sidebar brand icon must fill its slot, not just cap out at it.
-
-    ``max-h-*``/``max-w-*`` are upper bounds only: they shrink an oversized
-    image but never grow an undersized one, so a brand SVG with small
-    intrinsic dimensions rendered as a tiny mark instead of filling the
-    reserved slot (issue #123)."""
-
     @pytest.mark.django_db
     def test_brand_icon_has_a_fixed_size_not_only_a_maximum(self, client):
-        """The rendered <img> carries an actual size (e.g. size-9), so an
-        undersized SVG scales up to fill the slot instead of staying tiny."""
         tag = _brand_icon_tag(client.get("/").content.decode())
         assert tag is not None, "sidebar header must render the brand icon <img>"
         assert "size-9" in tag, (
@@ -461,28 +319,18 @@ class TestSidebarBrandIconSizing:
         )
 
 
-# ---------------------------------------------------------------------------
-# Navbar sticky vs static header
-# ---------------------------------------------------------------------------
-
-
 class TestHeaderStickiness:
-    """Sticky versus static header."""
-
     def test_navbar_sticky_default_present(self):
-        """Package default pins the header to the top of the viewport."""
         assert MVP_CONFIG["layout"]["navbar"]["sticky"] is True
 
     @pytest.mark.django_db
     def test_default_header_is_sticky(self, client):
-        """With the default config the header pins on scroll (sticky + scroll shadow)."""
         content = client.get("/").content.decode()
         assert "mvp-header w-full backdrop-blur sticky z-10 top-0" in content
         assert "$store.mvp.header.stuck = window.scrollY > 0" in content
 
     @pytest.mark.django_db
     def test_static_header_component_override(self):
-        """<c-app.header :sticky="False"> drops the sticky classes and scroll logic."""
         html = _render("tests/header_static_override.html")
         assert "sticky z-10 top-0" not in html
         assert "scrollY" not in html
@@ -490,25 +338,9 @@ class TestHeaderStickiness:
         assert "mvp-header w-full" in html
 
 
-# ---------------------------------------------------------------------------
-# Announcement banner block, outside the app shell (issue #244)
-# ---------------------------------------------------------------------------
-
-
 class TestAnnouncementBlock:
-    """A slot for an announcement banner outside the app shell.
-
-    Declaring the block is the whole feature: it ships with no default markup
-    and no opinion on content, the same way ``app.header.tray`` leaves that
-    decision to the project. It sits before ``{% block app %}`` so a page that
-    fills it renders content ahead of the entire drawer/sidebar/header shell —
-    the banner scrolls away with the page while the sticky header keeps
-    pinning independently of it, matching the pattern the issue linked.
-    """
-
     @pytest.mark.django_db
     def test_default_renders_nothing(self, client):
-        """An unfilled block adds no markup between <body> and the app shell."""
         content = client.get("/").content.decode()
         body_start = content.index("<body>") + len("<body>")
         shell_start = content.index('<div id="mvp-app"')
@@ -516,7 +348,6 @@ class TestAnnouncementBlock:
 
     @pytest.mark.django_db
     def test_block_override_renders_before_the_app_shell(self):
-        """A project's override renders ahead of the sidebar/header/content shell."""
         html = _render("tests/announcement_override.html")
         announcement_pos = html.find("announcement-banner-content")
         shell_pos = html.find('id="mvp-app"')
@@ -528,11 +359,6 @@ class TestAnnouncementBlock:
         )
 
 
-# ---------------------------------------------------------------------------
-# Full-page content: opt-in fill (issue #247)
-# ---------------------------------------------------------------------------
-
-
 def _drawer_content_classes(html):
     """Extract the class list of the ``drawer-content`` wrapper div."""
     match = re.search(r'class="(drawer-content[^"]*)"', html)
@@ -540,33 +366,12 @@ def _drawer_content_classes(html):
 
 
 class TestFullPageFill:
-    """Full-page content, opted into with ``<c-page fill>``.
-
-    ``<c-app.main>`` already carried ``flex-1``, but DaisyUI makes
-    ``.drawer-content`` a grid item, and a grid item is not a flex container —
-    so that class did nothing and no page could hand the shell's height down
-    to its own content (issue #247).
-
-    The shell has no attribute and no setting for this. ``<c-page fill>``
-    marks itself ``.mvp-page-fill``, and one scoped rule in
-    ``mvp/tailwind/base.css`` gives the shell a flex column and a height floor
-    on those pages only. These tests cover the marker and the fact that the
-    shell's own markup is unchanged; ``tests/test_full_page_fill_e2e.py``
-    measures what the rule computes to, at both viewports, which is the
-    part that actually matters and that only a browser can check.
-    """
-
     @pytest.mark.django_db
     def test_the_shell_markup_is_unchanged(self, client):
-        """No class is added or removed anywhere in the shell — the whole
-        change lives in a stylesheet rule keyed off the page."""
         content = client.get("/").content.decode()
         assert _drawer_content_classes(content) == ["drawer-content"]
 
     def test_page_fill_marks_itself_for_the_shell(self):
-        """The marker is the entire mechanism: <c-page> renders inside the
-        content block, long after the shell, so a rule keyed off the page is
-        the only way the shell can respond to it at all."""
         html = _render("tests/page_fill.html")
         assert "mvp-page-fill" in html
         assert "h-full" in html
@@ -577,16 +382,9 @@ class TestFullPageFill:
         assert "mvp-page-fill" not in content
 
     def test_fill_drops_the_bottom_margin(self):
-        """`mb-16` under a page that is exactly as tall as the space it was
-        given is 4rem of overflow."""
         html = _render("tests/page_fill.html")
         page_div = html[html.index("mvp-page-fill") - 200 : html.index("mvp-page-fill")]
         assert "mb-16" not in page_div
-
-
-# ---------------------------------------------------------------------------
-# The configuration payload emitted for the client (T003)
-# ---------------------------------------------------------------------------
 
 
 def _layout_config_payload(html, script_id="mvp-app-layout-config"):
@@ -600,9 +398,6 @@ def _layout_config_payload(html, script_id="mvp-app-layout-config"):
 
 
 class TestLayoutConfigPayload:
-    """The drawer component emits LayoutConfig.as_dict() through json_script:
-    grouped by component, camelCase (T018)."""
-
     @pytest.mark.django_db
     def test_default_page_emits_the_payload(self, client):
         content = client.get("/").content.decode()
@@ -634,18 +429,11 @@ class TestLayoutConfigPayload:
 
     @pytest.mark.django_db
     def test_payload_reflects_a_per_page_breakpoint_override(self):
-        """<c-app breakpoint="xl"> reaches the payload the same way it
-        reaches the drawer-open class (T003 acceptance)."""
         html = _render("tests/app_breakpoint_override.html")
         payload = _layout_config_payload(html)
         assert payload is not None, "the layout config payload must render"
         assert payload["sidebar"]["breakpoint"] == "xl"
         assert payload["sidebar"]["breakpointPx"] == 1280
-
-
-# ---------------------------------------------------------------------------
-# The drawer renders the resolved layout as attributes (T014)
-# ---------------------------------------------------------------------------
 
 
 def _drawer_attrs(html):
@@ -657,13 +445,6 @@ def _drawer_attrs(html):
 
 
 class TestDrawerRendersLayoutAttributes:
-    """The drawer element carries the resolved breakpoint and collapse mode
-    as attributes, so the stylesheet (T015) can select on them the same way
-    every other governed region already reads ``breakpoint``/``collapse``
-    from the shell. The collapse mode does not reach the drawer before this
-    task: ``mvp/base.html`` sends it to the sidebar rail and the header only,
-    and ``cotton/app/index.html`` declares no such variable to forward."""
-
     @pytest.mark.django_db
     def test_default_page_renders_both_attributes(self, client):
         tag = _drawer_attrs(client.get("/").content.decode())
@@ -672,18 +453,12 @@ class TestDrawerRendersLayoutAttributes:
         assert 'data-mvp-collapse="offcanvas"' in tag
 
     def test_a_per_page_override_of_both_knobs_is_what_renders(self):
-        """<c-app breakpoint="xl">/<c-app.sidebar collapse="icons"> set through
-        mvp/base.html's {% with %} override (tests/app_shell_override.html)
-        reach the drawer the same way they already reach the sidebar rail and
-        the navbar toggle."""
         tag = _drawer_attrs(_render("tests/app_shell_override.html"))
         assert tag is not None
         assert 'data-mvp-breakpoint="xl"' in tag
         assert 'data-mvp-collapse="icons"' in tag
 
     def test_an_unrecognised_breakpoint_is_rendered_already_normalised(self):
-        """LayoutConfig folds an unrecognised name to `lg` before render
-        (mvp/layout.py), so the stylesheet never sees the raw value."""
         tag = _drawer_attrs(_render("tests/app_breakpoint_bogus.html"))
         assert tag is not None
         assert 'data-mvp-breakpoint="lg"' in tag
@@ -694,11 +469,6 @@ class TestDrawerRendersLayoutAttributes:
         assert 'data-mvp-breakpoint="never"' in tag
 
 
-# ---------------------------------------------------------------------------
-# Sidebar htmx boost (issue #188)
-# ---------------------------------------------------------------------------
-
-
 def _sidebar_aside_tag(html):
     """Extract the opening ``<aside>`` tag of the app sidebar."""
     match = re.search(r"<aside[^>]*class=\"mvp-sidebar[^\"]*\"[^>]*>", html, re.S)
@@ -706,29 +476,17 @@ def _sidebar_aside_tag(html):
 
 
 class TestSidebarHtmxBoost:
-    """``hx-boost`` on the sidebar is opt-in and off by default.
-
-    Boosting swaps the whole body in place of a full page load, which changes
-    how every listener, every deferred script and the drawer's own open state
-    behave. That is a decision a project makes for itself, so the package
-    ships the attribute absent and renders it only when asked.
-    """
-
     def test_boost_defaults_to_off(self):
         assert MVP_CONFIG["layout"]["sidebar"]["boost"] is False
 
     @pytest.mark.django_db
     def test_no_boost_attribute_by_default(self, client):
-        """The shipped default renders an ordinary sidebar — no hx-boost."""
         aside = _sidebar_aside_tag(client.get("/").content.decode())
         assert aside is not None, "the app sidebar must render"
         assert "hx-boost" not in aside
 
     @pytest.mark.django_db
     def test_config_enables_the_boost_attribute(self, client, monkeypatch):
-        """``layout.sidebar.boost = True`` puts hx-boost on the sidebar root,
-        so every link inside it — menu items, brand link, footer actions —
-        inherits the boost rather than each needing its own attribute."""
         monkeypatch.setitem(MVP_CONFIG["layout"]["sidebar"], "boost", True)
         aside = _sidebar_aside_tag(client.get("/").content.decode())
         assert aside is not None
@@ -736,8 +494,6 @@ class TestSidebarHtmxBoost:
 
     @pytest.mark.django_db
     def test_boost_component_override(self):
-        """``<c-app.sidebar boost>`` beats the configured default, the same way
-        ``collapse`` and ``title`` do."""
         aside = _sidebar_aside_tag(_render("tests/sidebar_boost_override.html"))
         assert aside is not None
         assert 'hx-boost="true"' in aside

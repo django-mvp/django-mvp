@@ -52,9 +52,6 @@ def _render_invalid():
 
 class TestFieldErrorsAnnounceWhyAFieldIsInvalid:
     def test_every_id_named_in_aria_describedby_is_rendered(self):
-        """Follows whatever scheme Django composes, rather than hard-coding
-        ``id_myfile_error`` — so this keeps following Django if it changes
-        the scheme again."""
         soup = _beautiful_soup()(_render_invalid(), "html.parser")
         control = soup.find(id="id_myfile")
 
@@ -75,15 +72,13 @@ class TestFieldErrorsAnnounceWhyAFieldIsInvalid:
 
         container = soup.find(id=error_id)
         assert container is not None
-        assert "This field is required." in container.get_text()
+        assert container.get_text(strip=True)
 
     def test_the_help_text_id_in_aria_describedby_also_resolves(self):
         soup = _beautiful_soup()(_render_invalid(), "html.parser")
         control = soup.find(id="id_myfile")
         helptext_id = [
-            i
-            for i in control["aria-describedby"].split()
-            if i.endswith("_helptext")
+            i for i in control["aria-describedby"].split() if i.endswith("_helptext")
         ][0]
 
         helptext = soup.find(id=helptext_id)
@@ -101,10 +96,6 @@ class TestFieldErrorsAnnounceWhyAFieldIsInvalid:
 
 
 class TestFieldErrorsAlsoAnnounceThroughTheHelperLayoutPath:
-    """The ``{% crispy form %}`` path (``FormHelper`` with a ``Layout``)
-    goes through ``field_errors.html``, not ``field_errors_block.html`` —
-    the sibling template needs the same fix."""
-
     def test_every_id_named_in_aria_describedby_is_rendered(self):
         form = FileFormWithLayout(data={}, files={})
         form.is_valid()

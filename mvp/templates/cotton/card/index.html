@@ -1,31 +1,14 @@
-{# ============================================================ #}
-{# <c-card> — opinionated card layout                          #}
-{#                                                              #}
-{# The standard layout that covers most cards:                  #}
-{#   • header — icon + title, then the `badges` slot, on the    #}
-{#     left; the `actions` slot (buttons, dropdown…) on the     #}
-{#     right                                                    #}
-{#   • body   — the default slot                                #}
-{#   • footer — `footer` slot at the start, `footer_end` slot   #}
-{#     at the end                                               #}
-{#                                                              #}
-{# Every section is optional; the card renders only what it is  #}
-{# given. For a fully custom surface, use <c-card.wrapper>.     #}
-{#                                                              #}
-{# Props:                                                       #}
-{#   title      – heading text                                  #}
-{#   icon       – leading icon name for the heading             #}
-{#   tight      – remove body padding (full-bleed tables/lists) #}
-{#   class      – extra classes on the .card surface            #}
-{#   body_class – extra classes on the .card-body               #}
-{#                                                              #}
-{# Slots:                                                       #}
-{#   (default)  – card body content                             #}
-{#   badges     – header, just after the title (status, counts) #}
-{#   actions    – header, end-aligned (buttons, dropdown…)      #}
-{#   footer     – footer, start-aligned                         #}
-{#   footer_end – footer, end-aligned                           #}
-{# ============================================================ #}
+{# @description Opinionated card: header (icon/title, badges, actions), body, footer. #}
+{# @prop title:text | default:"" | description:"Heading text." #}
+{# @prop icon:text | default:"" | description:"Leading icon name for the heading." #}
+{# @prop tight:boolean | description:"Remove body padding, for full-bleed tables/lists." #}
+{# @prop class:text | description:"Extra classes on the .card surface." #}
+{# @prop body_class:text | description:"Extra classes on the .card-body." #}
+{# @slot Card body content — The main card content. #}
+{# @slot:badges Status, counts — Header, just after the title. #}
+{# @slot:actions Buttons, dropdown — Header, end-aligned. #}
+{# @slot:footer Footer content — Footer, start-aligned. #}
+{# @slot:footer_end Footer content — Footer, end-aligned. #}
 <c-vars title="" icon="" tight class body_class />
 <c-card.wrapper class="{{ class }}" :attrs="attrs">
   <div class="card-body {% if tight %}p-0{% endif %} {{ body_class }}">

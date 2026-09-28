@@ -59,10 +59,6 @@ def sidebar_shell_urlconf():
 
 @pytest.mark.django_db
 class TestSidebarStateSettledBeforeFirstPaint:
-    """Loading a page with a persistent, icon-collapsed sidebar must never
-    play a width transition — the persisted state has to be visually
-    correct from the very first painted frame (#178)."""
-
     def test_no_width_transition_plays_on_load(
         self, page, live_server, sidebar_shell_urlconf
     ):
@@ -95,9 +91,6 @@ class TestSidebarStateSettledBeforeFirstPaint:
     def test_sidebar_is_already_open_on_first_frame(
         self, page, live_server, sidebar_shell_urlconf
     ):
-        """A first-time visitor defaults to an open desktop sidebar
-        (``$persist(true)``); the rendered rail must already show it at
-        full width once Alpine has settled, not merely eventually."""
         from django.test import override_settings
 
         page.set_viewport_size(DESKTOP)
@@ -117,10 +110,6 @@ class TestSidebarStateSettledBeforeFirstPaint:
     def test_the_store_agrees_with_the_checkbox_on_first_frame(
         self, page, live_server, sidebar_shell_urlconf
     ):
-        """The layout store's ``sidebar.open`` must already agree with the
-        checkbox by the time Alpine has settled (T005/FR-005) — a store
-        computing its own, independent answer could disagree with what is
-        actually on screen even though neither one animates."""
         from django.test import override_settings
 
         page.set_viewport_size(DESKTOP)
@@ -139,10 +128,6 @@ class TestSidebarStateSettledBeforeFirstPaint:
 
 @pytest.mark.django_db
 class TestPersistedDefaultDefinedOnce:
-    """FR-006 / SC-002: the persisted sidebar default and its storage key
-    each have exactly one definition — the blocking pre-paint script — not a
-    second, independent expression restating either (T005)."""
-
     def test_the_key_and_default_are_not_declared_twice(
         self, page, live_server, sidebar_shell_urlconf
     ):

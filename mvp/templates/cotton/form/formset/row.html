@@ -1,66 +1,16 @@
+{# @description One row of a formset: a leading hairline, a header naming the row, its fields, and a remove control. #}
+{# @prop form:text | description:"The row's Django form." #}
+{# @prop label:text | description:"Row label; defaults to the object's string, or its model name when unsaved." #}
+{# @prop class:text | description:"Extra classes on the root element." #}
+{# @prop first:boolean | default:False | description:"Suppresses the leading hairline for the first row." #}
+{# @prop can-delete:boolean | default:False | description:"Show the remove control, when this row also has a DELETE field." #}
+{# @prop layout:select['stacked','tabular'] | default:"stacked" | description:"Row presentation; tabular aligns fields to the set's column grid from sm up." #}
+{# @prop grid-style:text | description:"Column-track CSS passed down from the set, for tabular layout." #}
+{# @prop remove-label:text | default:"Remove" | description:"Accessible name for the remove control." #}
 {% comment %}
-  One row of a formset. Minimal markup: a hairline and a header are all that
-  set one related object apart from the next, rather than a card or a box.
-
-  A row opens with a header: the object's own label on the left, the remove
-  control on the right. The label matters because a row usually edits a
-  related record, and "which one am I editing" is otherwise unanswerable from
-  the page. A saved row shows the object's string; an unsaved one is named by
-  its model, since str() on an unsaved instance reads `Thing object (None)`.
-
-  Above the header, every row but the first carries a hairline <c-rule>. The
-  rule leads the row rather than sitting between rows, so that a removed row
-  takes its own separator with it; a rule rendered between two rows would be
-  orphaned the moment either was hidden. `first` comes from the set's loop,
-  and defaults to False so that a row cloned from the empty-form template -
-  which is only ever appended after the others - always gets one.
-
-  Then every hidden field, every visible field except DELETE rendered through
-  crispy (so a row's field matches a single form's field exactly), and DELETE
-  as a hidden input rather than a checkbox. The form's own non-field errors
-  render above its fields.
-
-  The remove control is an icon alone. Its text survives as the accessible
-  name, and it is transparent until the row is hovered or something inside it
-  takes focus - `group-focus-within`, not hover alone, or the control would be
-  unreachable by keyboard.
-
-  The removed state is the `mvpFormsetRow` Alpine component in
-  mvp/static/js/formset.js; the x-data attribute only seeds it from
-  form.DELETE.value. A removed row is hidden, never detached - its inputs stay
-  in the document so the removal survives an invalid submission and re-render.
-  Removing dispatches an event the set listens for (context.delete_semantics).
-
-  The control needs BOTH `can-delete` and a DELETE field on this row. Under
-  `can_delete_extra=False` Django gives DELETE only to the initial forms while
-  `formset.can_delete` stays True, so the set-wide flag alone would put a
-  Remove button on an extra row that has no way to record the removal - the
-  row would hide and its data would still save.
-
-  `layout` picks between the two presentations, and the row renders both
-  rather than the set choosing once, because the choice is per width as well
-  as per developer. Under `tabular`, from the `sm` breakpoint up, the fields
-  become one grid row on the column tracks in `grid-style`, each field's own
-  label goes screen-reader-only because the set's header row now names the
-  column, and the remove control moves into the trailing column. Below `sm`
-  every one of those reverts and the row is the stacked row exactly - three
-  columns of inputs are unusable on a phone, and the stacked layout is already
-  the right answer at that width, so it is reused rather than reinvented.
-
-  The label is demoted, never dropped. It is what names the input to a screen
-  reader; a column header is not associated with the cells beneath it and does
-  not do that job. See the `as_crispy_cell` filter.
-
-  Help text goes the same way as the label and for the same reason: restating
-  it under every cell of a column costs more height than the layout saves. The
-  set's heading row carries one copy, and the `<small>` crispy renders it in is
-  hidden here from the same breakpoint. Errors are `<p>` and are untouched.
-
-  Errors keep their stacked treatment on purpose. A field's error renders in
-  its own cell under the control, and the form's non-field errors render full
-  width above the grid, so an invalid row grows taller than its neighbours.
-  Django's own admin makes the same trade in `edit_inline/tabular.html`: an
-  error that broke no rhythm would be an error nobody noticed.
+  The rule leads rather than trails so a removed row takes its own separator
+  with it. `first` defaults False so a row cloned from the empty-form
+  template - always appended after the others - still gets one.
 {% endcomment %}
 {% load i18n crispy_forms_filters mvp %}
 <c-vars form
@@ -72,16 +22,29 @@
         grid-style
         remove-label="{% trans "Remove" %}" />
 {% if form %}
+  {% comment %}
+    Removed is hidden, never detached, so removal survives an invalid
+    resubmit. See docs/adr/0004-row-removal-uses-the-delete-flag-and-never-reindexes.md.
+  {% endcomment %}
   <div class="group space-y-4 {{ class }}"
        x-data="mvpFormsetRow({{ form.DELETE.value|yesno:'true,false,false' }})"
        x-show="!removed"
        {{ attrs }}>
     {% if not first %}<c-rule />{% endif %}
     {% firstof label form|formset_row_label as row_label %}
+    {% comment %}
+      Requires BOTH `can-delete` and a DELETE field on this row: under
+      `can_delete_extra=False` Django withholds DELETE from extra forms even
+      though `formset.can_delete` stays True on the set.
+    {% endcomment %}
     {% if row_label or can_delete and form.DELETE %}
       <div class="flex items-start justify-between gap-2{% if layout == "tabular" %} sm:hidden{% endif %}">
         <c-text tight bold>{{ row_label }}</c-text>
         {% if can_delete and form.DELETE %}
+          {% comment %}
+            `group-focus-within`, not hover alone, or the control is
+            unreachable by keyboard - its icon-only text is the accessible name.
+          {% endcomment %}
           <c-button type="button"
                     size="sm"
                     ghost
@@ -100,6 +63,10 @@
       cotton/form/field.html. djlint cannot pair tags across a branch.
     {% endcomment %}
     {# djlint:off #}
+    {% comment %}
+      `[&_small]:hidden` drops crispy's inline help-text <small> from sm up:
+      the set's heading row already carries one copy per column.
+    {% endcomment %}
     {% if layout == "tabular" %}
       <div class="space-y-4 sm:grid sm:items-start sm:gap-x-4 sm:space-y-0 sm:[&_small]:hidden" style="{{ grid_style }}">
     {% endif %}
@@ -113,10 +80,8 @@
       {% endif %}
     {% endfor %}
     {% comment %}
-      The trailing column is present on every row of a set that can delete, so
-      the columns before it line up whether or not this particular row has a
-      DELETE field to record a removal with. Below `sm` the row's own header
-      carries the control instead, so this one is not drawn there.
+      Trailing column is present on every row of a set that can delete, so
+      columns line up whether or not this row has a DELETE field to record.
     {% endcomment %}
     {% if layout == "tabular" %}
       {% if can_delete %}

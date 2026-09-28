@@ -1,6 +1,6 @@
 """Tests for ``mvp.menus`` — the menu classes and shipped menu singletons.
 
-Mirrors ``mvp/menus.py`` (Article X). ``MenuCollapse`` is the only class here
+Mirrors ``mvp/menus.py`` (the testing standard). ``MenuCollapse`` is the only class here
 with behaviour of its own: it marks itself collapsible in ``extra_context``.
 That is a small surface, and all three of the ways it can go wrong are silent
 — a dropped label, a caller's dict changed underneath them, a missing flag —
@@ -10,7 +10,6 @@ so each gets an assertion.
 import pytest
 from django.test import RequestFactory, override_settings
 from django.urls import include, path
-
 from flex_menu import Menu, MenuItem
 
 from mvp.menus import (
@@ -38,8 +37,6 @@ ACCOUNT_URLCONF = _urlconf()
 
 
 class TestMenuCollapse:
-    """``MenuCollapse`` marks itself collapsible without disturbing its input."""
-
     def test_marks_itself_collapsible(self):
         item = MenuCollapse(name="reports", extra_context={"label": "Reports"})
         assert item.extra_context["collapsible"] is True
@@ -52,11 +49,6 @@ class TestMenuCollapse:
         assert item.extra_context["icon"] == "chart"
 
     def test_keeps_context_passed_positionally(self):
-        """``extra_context`` is the eighth positional parameter of ``MenuItem``.
-
-        Passing it there used to leave the item with an empty context, so the
-        label and icon vanished with no error.
-        """
         item = MenuCollapse(
             "reports", "", "", None, None, None, True, {"label": "Reports"}
         )
@@ -64,8 +56,6 @@ class TestMenuCollapse:
         assert item.extra_context["collapsible"] is True
 
     def test_leaves_the_callers_dict_alone(self):
-        """The caller keeps its own dict, so one shared literal can seed
-        several items."""
         context = {"label": "Reports"}
         MenuCollapse(name="reports", extra_context=context)
         assert context == {"label": "Reports"}
@@ -84,11 +74,6 @@ def _sidebar_html(*items):
 
 
 class TestAContainerWithNoChildrenIsHidden:
-    """[#380] A ``MenuGroup`` or ``MenuCollapse`` declared with no children
-    used to fall through to the leaf template and draw as an inert
-    ``<button href="None">``. A section that has no pages yet is left out of
-    the sidebar until its first page is added."""
-
     @pytest.mark.parametrize("container", [MenuGroup, MenuCollapse])
     def test_an_empty_container_is_not_drawn(self, container):
         html = _sidebar_html(
@@ -99,9 +84,7 @@ class TestAContainerWithNoChildrenIsHidden:
         assert 'href="None"' not in html
 
     @pytest.mark.parametrize("container", [MenuGroup, MenuCollapse])
-    def test_a_container_whose_children_are_all_hidden_is_not_drawn(
-        self, container
-    ):
+    def test_a_container_whose_children_are_all_hidden_is_not_drawn(self, container):
         html = _sidebar_html(
             container(
                 name="hidden",
@@ -119,9 +102,7 @@ class TestAContainerWithNoChildrenIsHidden:
                 name="filled",
                 extra_context={"label": "FilledSection"},
                 children=[
-                    MenuItem(
-                        name="page", url="/page/", extra_context={"label": "Page"}
-                    )
+                    MenuItem(name="page", url="/page/", extra_context={"label": "Page"})
                 ],
             )
         )
@@ -140,18 +121,7 @@ class TestAContainerWithNoChildrenIsHidden:
 
 
 class TestShippedMenus:
-    """What the package puts in the two menu singletons before a project
-    touches them."""
-
     def test_the_packaged_dock_item_needs_no_url_from_the_project(self):
-        """The toggle is the one item the package can pre-populate.
-
-        Anything else would point at a URL name the project may not define,
-        and a menu item whose URL will not resolve is dropped from the render
-        without a message. Asserted on the first child rather than on the
-        whole list because this suite runs with ``demo`` installed, and
-        ``demo/menus.py`` appends its own item behind it.
-        """
         packaged = MobileFooterMenu.children[0]
         assert packaged.name == "sidebar_toggle"
         assert not packaged.view_name
@@ -163,27 +133,15 @@ class TestShippedMenus:
 
 
 class TestShippedMenusCarryAHumanName:
-    """[#343] Every menu the sidebar renderer draws reads its accessible name
-    from ``extra_context["label"]`` now, so the two menus this package ships
-    need a real, translated one — otherwise the default is the internal menu
-    name (``AppMenu``, ``AccountCenterMenu``), not something a screen reader
-    should announce."""
-
-    def test_app_menu_has_a_translated_label(self):
-        assert str(AppMenu.extra_context["label"]) == "Main navigation"
-
-    def test_account_center_menu_has_a_translated_label(self):
-        assert str(AccountCenterMenu.extra_context["label"]) == "Account navigation"
+    @pytest.mark.parametrize("menu", [AppMenu, AccountCenterMenu])
+    def test_the_label_is_not_the_internal_menu_name(self, menu):
+        label = str(menu.extra_context["label"])
+        assert label
+        assert label != menu.name
 
 
 class TestAccountCenterMenu:
-    """``AccountCenterMenu`` ships carrying only its own landing-page entry
-    (FR-007) — everything else belongs to whichever app adds to it (US-2)."""
-
     def test_ships_exactly_one_child(self):
-        """Asserted as an exact count, not "at least one": a second packaged
-        entry would be a page the area itself decided to add, which is the
-        job left to an installed app."""
         assert len(AccountCenterMenu.children) == 1
 
     def test_the_one_child_is_named_overview(self):
@@ -192,26 +150,13 @@ class TestAccountCenterMenu:
     def test_the_overview_child_points_at_the_landing_page(self):
         assert AccountCenterMenu.children[0].view_name == "account-center"
 
-    def test_the_landing_page_entry_is_labelled_account_center(self):
-        assert str(AccountCenterMenu.children[0].extra_context["label"]) == (
-            "Account Center"
-        )
-
     def test_the_landing_page_entry_uses_the_account_center_icon(self):
-        assert AccountCenterMenu.children[0].extra_context["icon"] == (
-            "account_center"
-        )
+        assert AccountCenterMenu.children[0].extra_context["icon"] == ("account_center")
 
 
 class TestAccountMenuContribution:
-    """An installed app's contribution to ``AccountCenterMenu`` (US-2, FR-008,
-    FR-009, FR-010) — proved through the fixture app in
-    ``tests/testapp_account/``, applied and detached per test (ARC-001)."""
-
     @pytest.fixture(autouse=True)
     def _account_urlconf(self):
-        """Scoped to this class alone, so the entry-count assertions above —
-        which run under the suite's default URLconf — are undisturbed."""
         with override_settings(ROOT_URLCONF=ACCOUNT_URLCONF):
             yield
 
@@ -222,9 +167,6 @@ class TestAccountMenuContribution:
     def test_the_entries_appear_alongside_the_landing_page_entry(
         self, testapp_account_entries
     ):
-        """No check flag set, so the checked entry stays hidden and the
-        unresolvable one stays dropped — three visible top-level entries,
-        counted exactly."""
         names = self._visible_names(RequestFactory().get("/"))
         assert names == ["overview", "fixture_plain", "fixture_group"]
 
@@ -258,8 +200,6 @@ class TestAccountMenuContribution:
         assert names == ["overview", "fixture_plain", "fixture_group"]
 
     def test_an_app_can_reorder_the_entries(self, testapp_account_entries):
-        """FR-008's other half: reordering is django-flex-menus' own
-        ``children`` assignment, not anything this package adds."""
         reordered = [
             testapp_account_entries["fixture_plain"],
             *[

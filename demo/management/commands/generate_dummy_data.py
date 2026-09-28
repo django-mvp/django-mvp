@@ -17,7 +17,7 @@ class Command(BaseCommand):
     help = "Generate dummy data for examples"
 
     def add_arguments(self, parser):
-        """Add command arguments."""
+        """Add the ``--clear`` flag to wipe existing data first."""
         parser.add_argument(
             "--clear",
             action="store_true",
@@ -25,7 +25,7 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        """Execute the command."""
+        """Optionally clear existing data, then generate a full set of demo records."""
         if options["clear"]:
             self.stdout.write("Clearing existing data...")
             Product.objects.all().delete()
@@ -36,19 +36,15 @@ class Command(BaseCommand):
 
         self.stdout.write("Generating dummy data...")
 
-        # Create categories
         categories = self.create_categories()
         self.stdout.write(self.style.SUCCESS(f"✓ Created {len(categories)} categories"))
 
-        # Create products
         products = self.create_products(categories)
         self.stdout.write(self.style.SUCCESS(f"✓ Created {len(products)} products"))
 
-        # Create articles
         articles = self.create_articles(categories)
         self.stdout.write(self.style.SUCCESS(f"✓ Created {len(articles)} articles"))
 
-        # Create tasks
         tasks = self.create_tasks(categories)
         self.stdout.write(self.style.SUCCESS(f"✓ Created {len(tasks)} tasks"))
 
@@ -57,7 +53,7 @@ class Command(BaseCommand):
         )
 
     def create_categories(self):
-        """Create category instances."""
+        """Create or fetch the fixed set of demo categories, one per product domain."""
         category_data = [
             {
                 "name": "Electronics",
@@ -126,7 +122,7 @@ class Command(BaseCommand):
         return categories
 
     def create_products(self, categories):
-        """Create product instances."""
+        """Create demo products with randomised pricing, stock and status."""
         product_names = [
             "Wireless Headphones",
             "Smart Watch",
@@ -164,9 +160,7 @@ class Command(BaseCommand):
 
         products = []
         for i, name in enumerate(product_names):
-            category = random.choice(
-                categories[:5]
-            )  # Use first 5 categories for products
+            category = random.choice(categories[:5])
             product, _created = Product.objects.get_or_create(
                 slug=slugify(f"{name}-{i}"),
                 defaults={
@@ -210,7 +204,7 @@ class Command(BaseCommand):
         return products
 
     def create_articles(self, categories):
-        """Create article instances."""
+        """Create demo articles with generated body text and random authors."""
         article_titles = [
             "Getting Started with Django",
             "10 Tips for Better Code",
@@ -245,9 +239,7 @@ class Command(BaseCommand):
 
         articles = []
         for _i, title in enumerate(article_titles):
-            category = random.choice(
-                categories[5:]
-            )  # Use last 3 categories for articles
+            category = random.choice(categories[5:])
             article, _created = Article.objects.get_or_create(
                 slug=slugify(title),
                 defaults={
@@ -288,7 +280,7 @@ class Command(BaseCommand):
         return articles
 
     def create_tasks(self, categories):
-        """Create task instances."""
+        """Create demo tasks with randomised status, priority and assignee."""
         task_titles = [
             "Fix navigation menu bug",
             "Update documentation",

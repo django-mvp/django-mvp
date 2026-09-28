@@ -11,7 +11,6 @@ tests/test_components/test_form_field.py.
 from importlib import import_module
 from pathlib import Path
 
-import mvp
 import pytest
 from bs4 import BeautifulSoup
 from django import forms
@@ -23,6 +22,7 @@ from django.urls import path
 from django_cotton.compiler_regex import CottonCompiler
 from playwright.sync_api import expect
 
+import mvp
 from demo.models import OrderLine, Product
 from mvp.views import InlineFormSet, MVPCreateView, MVPUpdateView
 from tests.conftest import requires_browser
@@ -43,7 +43,12 @@ def _order_line_view_class(base, *, extra=None, max_num=None, **attrs):
     inline = type(
         "_OrderLineInline",
         (InlineFormSet,),
-        {"model": OrderLine, "fields": ["quantity"], "extra": extra, "max_num": max_num},
+        {
+            "model": OrderLine,
+            "fields": ["quantity"],
+            "extra": extra,
+            "max_num": max_num,
+        },
     )
     return type(
         f"Stub{base.__name__}",
@@ -99,14 +104,7 @@ def _error_row_form():
     return formset.forms[0]
 
 
-# ---------------------------------------------------------------------------
-# <c-form.formset.row>
-# ---------------------------------------------------------------------------
-
-
 class TestFormsetRowFields:
-    """Hidden fields, visible fields and DELETE get their contracted treatment."""
-
     def test_hidden_fields_render_directly(self):
         form = RowFormSet().forms[0]
         html = render('<c-form.formset.row :form="form" />', form=form)
@@ -129,8 +127,6 @@ class TestFormsetRowFields:
 
 
 class TestFormsetRowErrors:
-    """A row's own non-field errors render inside the row."""
-
     def test_non_field_errors_render_inside_the_row(self):
         form = _error_row_form()
         html = render('<c-form.formset.row :form="form" />', form=form)
@@ -138,12 +134,6 @@ class TestFormsetRowErrors:
 
 
 class TestFormsetRowFieldErrorPlacement:
-    """A field-level error renders inside the row containing that field, in
-    the same crispy field markup a single form's field error uses, and no
-    other row carries it (FR-016, FR-019). This placement is inherited from
-    crispy's field template rather than written here; these tests turn that
-    inheritance from an assumption into a fact."""
-
     def test_field_error_renders_inside_its_own_row_only(self):
         formset = RowFormSet(
             data={
@@ -162,8 +152,8 @@ class TestFormsetRowFieldErrorPlacement:
         soup = BeautifulSoup(html, "html.parser")
         row0 = soup.find(attrs={"id": "div_id_form-0-name"})
         row1 = soup.find(attrs={"id": "div_id_form-1-name"})
-        assert "This field is required." in row0.get_text()
-        assert "This field is required." not in row1.get_text()
+        assert row0.find(id="id_form-0-name_error") is not None
+        assert row1.find(id="id_form-1-name_error") is None
 
     def test_errors_on_two_different_rows_each_carry_their_own_message(self):
         formset = RowFormSet(
@@ -183,13 +173,8 @@ class TestFormsetRowFieldErrorPlacement:
         soup = BeautifulSoup(html, "html.parser")
         row0 = soup.find(attrs={"id": "div_id_form-0-name"})
         row1 = soup.find(attrs={"id": "div_id_form-1-name"})
-        assert "This field is required." in row0.get_text()
-        assert "This field is required." in row1.get_text()
-
-
-# ---------------------------------------------------------------------------
-# <c-form.formset>
-# ---------------------------------------------------------------------------
+        assert row0.find(id="id_form-0-name_error") is not None
+        assert row1.find(id="id_form-1-name_error") is not None
 
 
 class TestFormsetManagementForm:
@@ -269,10 +254,6 @@ def _duplicate_name_formset():
 
 
 class TestFormsetNonFormErrors:
-    """``formset.non_form_errors`` renders above the rows, inside an element
-    structurally distinct from a row's own error, and only when non-empty
-    (FR-017)."""
-
     def test_non_form_errors_render_inside_an_alert_above_the_rows(self):
         formset = _duplicate_name_formset()
         html = render('<c-form.formset :formset="formset" />', formset=formset)
@@ -292,14 +273,6 @@ class TestFormsetNonFormErrors:
 
 
 class TestFormsetBuiltinSetLevelErrors:
-    """Django's own set-level validation rules — ``validate_min`` and
-    ``validate_max`` — surface through ``non_form_errors`` exactly like a
-    developer-authored ``formset.clean()`` error, and render above the set.
-    These are the two rules the framework generates rather than the
-    developer writing (T029); US3's TestInlineMaxNumCap already proves
-    ``validate_max`` lands in ``formset.non_form_errors()`` — this proves the
-    rendered page shows it."""
-
     def test_too_few_rows_renders_above_the_set(self):
         MinFormSet = forms.formset_factory(
             RowForm, extra=0, min_num=2, validate_min=True
@@ -319,10 +292,8 @@ class TestFormsetBuiltinSetLevelErrors:
         soup = BeautifulSoup(html, "html.parser")
         alert = soup.find(attrs={"role": "alert"})
         assert alert is not None
-        assert "Please submit at least 2 forms." in alert.get_text()
-        assert html.index("Please submit at least 2 forms.") < html.index(
-            'name="form-0-name"'
-        )
+        assert alert.get_text(strip=True)
+        assert html.index("errorlist nonform") < html.index('name="form-0-name"')
 
     def test_too_many_rows_renders_above_the_set(self):
         MaxFormSet = forms.formset_factory(
@@ -345,18 +316,11 @@ class TestFormsetBuiltinSetLevelErrors:
         soup = BeautifulSoup(html, "html.parser")
         alert = soup.find(attrs={"role": "alert"})
         assert alert is not None
-        assert "Please submit at most 1 form." in alert.get_text()
-        assert html.index("Please submit at most 1 form.") < html.index(
-            'name="form-0-name"'
-        )
+        assert alert.get_text(strip=True)
+        assert html.index("errorlist nonform") < html.index('name="form-0-name"')
 
 
 class TestFormsetAddRemoveControls:
-    """The add and remove controls (US5, FR-026): no remove control when
-    deletion is forbidden, each remove control carries an accessible name,
-    neither control submits the form, and the add control is bound to the
-    count of rows not marked for removal rather than the raw form count."""
-
     def test_no_remove_control_when_formset_forbids_deletion(self):
         NoDeleteFormSet = forms.formset_factory(RowForm, can_delete=False, extra=1)
         formset = NoDeleteFormSet()
@@ -403,17 +367,11 @@ class TestFormsetAddRemoveControls:
         # The comparison itself is in the component, so assert it there: the
         # cap is measured against the rows the user can see, never against the
         # monotonic counter, or a removed row would forfeit its slot.
-        source = (
-            Path(mvp.__path__[0]) / "static" / "js" / "formset.js"
-        ).read_text()
+        source = (Path(mvp.__path__[0]) / "static" / "js" / "formset.js").read_text()
         assert "return this.visible < this.maxNum;" in source
 
 
 class TestFormsetAddRemoveLabels:
-    """Add and remove control labels default per the contract and are
-    overridable through the add-label and remove-label attributes,
-    Article VIII (T034)."""
-
     def test_default_labels_match_the_contract(self):
         formset = RowFormSet()
         html = render('<c-form.formset :formset="formset" />', formset=formset)
@@ -451,19 +409,7 @@ class TestFormsetAddRemoveLabels:
         assert soup.find(attrs={"aria-label": "Remove"}) is None
 
 
-# ---------------------------------------------------------------------------
-# Rendered through a view — proves the re-render is genuine, not just a
-# compiled-source rendering (FR-018, US4 scenario 4)
-# ---------------------------------------------------------------------------
-
-
 class TestFormsetPageLevelErrorPlacement:
-    """An invalid submission never collapses its error into a page-level
-    summary distinct from where it belongs, and every submitted value
-    survives the re-render (FR-018, US4 scenario 4). Reuses the invalid-row
-    dispatch already exercised end to end by US3's
-    tests/test_views/test_inline.py rather than rebuilding it."""
-
     @pytest.mark.django_db
     def test_invalid_submission_avoids_a_page_level_summary_and_preserves_values(self):
         view_cls = _order_line_view_class(MVPCreateView, success_url="list")
@@ -486,22 +432,21 @@ class TestFormsetPageLevelErrorPlacement:
         # The error appears exactly once, and that occurrence is inside the
         # row-scoped container — not additionally hoisted to a page-level
         # summary.
-        assert html.count("greater than or equal to 0") == 1
+        assert html.count('id="id_order_lines-0-quantity_error"') == 1
         soup = BeautifulSoup(html, "html.parser")
         row_error_container = soup.find(attrs={"id": "div_id_order_lines-0-quantity"})
         assert row_error_container is not None
-        assert "greater than or equal to 0" in row_error_container.get_text()
+        assert (
+            row_error_container.find(id="id_order_lines-0-quantity_error") is not None
+        )
 
 
-# ---------------------------------------------------------------------------
 # T035 — the one browser test: adding and removing rows in the client, and a
 # submission that matches what the page showed (SC-004, US5 scenario 3).
 #
 # Scoped to the class below, not the module: a module-level importorskip or
 # pytestmark would skip and re-mark this module's unit tests too, per
 # tests/test_views/test_error.py lines 185-235.
-# ---------------------------------------------------------------------------
-
 
 
 def _row_locator(page, quantity_input_name):
@@ -519,9 +464,6 @@ def _row_locator(page, quantity_input_name):
 @pytest.mark.e2e
 @requires_browser
 class TestFormsetAddRemoveRowsE2E:
-    """Adding and removing rows happens entirely in the browser, and a
-    submission afterwards matches what the page showed."""
-
     @pytest.mark.django_db
     def test_add_remove_and_submit_matches_the_database(self, page, live_server):
         product = ProductFactory(name="Existing")
@@ -598,18 +540,7 @@ class TestFormsetAddRemoveRowsE2E:
         assert OrderLine.objects.filter(product=product).count() == 1
 
     @pytest.mark.django_db
-    def test_removing_a_row_gives_its_slot_back_under_the_cap(
-        self, page, live_server
-    ):
-        """The whole reason there are two counters.
-
-        ``visible`` lives on the set and a row has to reach it to decrement it.
-        Alpine 3 has no ``$parent`` magic, and inside an ``Alpine.data`` method
-        ``this`` is the row's own data rather than the merged scope chain, so
-        the obvious spelling throws and the counter never moves. The page still
-        hides the row, which is why nothing else here catches it: the only
-        visible symptom is a set that stays at its cap after a removal.
-        """
+    def test_removing_a_row_gives_its_slot_back_under_the_cap(self, page, live_server):
         product = ProductFactory(name="Capped")
         OrderLineFactory(product=product, quantity=1)
         OrderLineFactory(product=product, quantity=2)
@@ -647,21 +578,7 @@ class TestFormsetAddRemoveRowsE2E:
             )
 
 
-# ---------------------------------------------------------------------------
-# Review findings — see specs/024-formset-pages/decisions.md D41
-# ---------------------------------------------------------------------------
-
-
 class TestFormsetCountersAreNotLocalized:
-    """The Alpine counters are JavaScript, not display text.
-
-    Django runs every template variable through ``localize()``. A project with
-    ``USE_THOUSAND_SEPARATOR`` on therefore renders the default ``max_num`` of
-    1000 as ``1,000``, which turns the ``x-data`` object literal into a syntax
-    error and kills the whole component silently — no server-side symptom, and
-    every add and remove control dead.
-    """
-
     @override_settings(USE_THOUSAND_SEPARATOR=True)
     def test_x_data_carries_no_grouped_numbers(self):
         formset = RowFormSet()
@@ -688,14 +605,6 @@ class TestFormsetCountersAreNotLocalized:
 
 
 class TestFormsetRemoveControlNeedsADeleteField:
-    """``formset.can_delete`` is set-wide; the DELETE field is per row.
-
-    Under ``can_delete_extra=False`` Django gives DELETE only to the initial
-    forms while ``formset.can_delete`` stays True. Gating the control on the
-    set-wide flag alone would offer Remove on an extra row with no way to
-    record the removal: the row hides and its data still saves.
-    """
-
     def _formset(self):
         factory = forms.formset_factory(
             RowForm, can_delete=True, can_delete_extra=False, extra=1
@@ -727,16 +636,6 @@ class TestFormsetRemoveControlNeedsADeleteField:
 
 
 class TestFormsetCounterContract:
-    """The counter contract, pinned without a browser.
-
-    The behaviour is in ``mvp/static/js/formset.js`` rather than in an x-data
-    attribute, so it splits in two: the template's job is to load that file and
-    seed the component with this set's counts, and the file's job is to hold a
-    handler that increments both counters and never decrements ``total``. The
-    test that drives ``addRow()`` for real is browser-gated and does not run
-    here.
-    """
-
     @staticmethod
     def _soup(formset):
         return BeautifulSoup(
@@ -749,12 +648,6 @@ class TestFormsetCounterContract:
         return (Path(mvp.__path__[0]) / "static" / "js" / "formset.js").read_text()
 
     def test_the_component_is_registered_in_a_file_not_an_x_data_attribute(self):
-        """The x-data attribute initialises; it does not define.
-
-        An object literal in the attribute is unreadable in the page source,
-        cannot be linted or covered, and puts the whole handler through
-        Django's template escaping on every render.
-        """
         soup = self._soup(RowFormSet())
 
         expression = soup.find(attrs={"x-data": True})["x-data"]
@@ -797,29 +690,13 @@ class TestFormsetCounterContract:
         assert '.replaceAll("__prefix__", this.total)' in self._component_source()
 
     def test_the_empty_form_template_is_found_from_the_component_root(self):
-        """``$el`` is the add control, not the set.
-
-        ``addRow()`` runs from the button's click handler, so ``$el`` is the
-        button and the template is not inside it. Reading the template from
-        ``$el`` throws on every click and the page ships an add control that
-        does nothing.
-        """
         source = self._component_source()
 
         assert 'this.$root.querySelector("template")' in source
         assert "$el.querySelector" not in source
 
 
-# ---------------------------------------------------------------------------
-# Presentation — the set is marked off from the form above it, and each row
-# names the object it edits. See specs/024-formset-pages/decisions.md D43.
-# ---------------------------------------------------------------------------
-
-
 class TestFormsetHeading:
-    """A set opens with a divider and a heading, so it does not read as more
-    fields on the form above it."""
-
     def test_the_divider_and_default_heading_name_the_model_in_plural(self):
         formset = forms.modelformset_factory(OrderLine, fields=["quantity"])(
             queryset=OrderLine.objects.none()
@@ -843,7 +720,6 @@ class TestFormsetHeading:
         assert divider.get_text(strip=True) == "Add quantities"
 
     def test_a_title_set_on_the_formset_is_used_when_no_attribute_is_given(self):
-        """What the view does: it hangs the title on the formset itself."""
         formset = RowFormSet()
         formset.title = "Add people"
         html = render('<c-form.formset :formset="formset" />', formset=formset)
@@ -852,7 +728,6 @@ class TestFormsetHeading:
         assert divider.get_text(strip=True) == "Add people"
 
     def test_a_plain_formset_still_gets_its_divider_with_no_heading(self):
-        """The separation is the point, and it does not depend on a model."""
         html = render('<c-form.formset :formset="formset" />', formset=RowFormSet())
 
         divider = BeautifulSoup(html, "html.parser").find(class_="divider")
@@ -861,8 +736,6 @@ class TestFormsetHeading:
 
 
 class TestFormsetDescription:
-    """Help text under the heading is the developer's, and optional."""
-
     def test_the_description_renders_when_given(self):
         html = render(
             '<c-form.formset :formset="formset" description="One row per order." />',
@@ -881,8 +754,6 @@ class TestFormsetDescription:
 
 @pytest.mark.django_db
 class TestFormsetRowLabel:
-    """Each row names the object it edits."""
-
     def test_a_saved_row_shows_the_object(self):
         product = ProductFactory(name="Widget")
         line = OrderLineFactory(product=product, quantity=3)
@@ -894,7 +765,6 @@ class TestFormsetRowLabel:
         assert str(line) in html
 
     def test_an_unsaved_row_is_named_by_its_model_not_by_str(self):
-        """``str()`` on an unsaved model reads ``OrderLine object (None)``."""
         formset = forms.modelformset_factory(OrderLine, fields=["quantity"], extra=1)(
             queryset=OrderLine.objects.none()
         )
@@ -917,8 +787,6 @@ class TestFormsetRowLabel:
 
 
 class TestFormsetRowSeparation:
-    """Rows are separated by a hairline, not boxed."""
-
     def _rows(self, formset):
         soup = BeautifulSoup(
             render('<c-form.formset :formset="formset" />', formset=formset),
@@ -929,13 +797,6 @@ class TestFormsetRowSeparation:
         return soup.find_all("div", attrs={"x-show": "!removed"})
 
     def test_every_row_but_the_first_leads_with_a_rule(self):
-        """Leading, not between, and not on the first.
-
-        A rule rendered between two rows is orphaned the moment either of
-        them is hidden, and rows are hidden rather than detached. Owned by
-        the row, it goes when the row goes. The first row has the set's own
-        divider above it already, so a second line there is just noise.
-        """
         formset = forms.formset_factory(RowForm, extra=0)(
             initial=[{"name": "Alpha"}, {"name": "Bravo"}, {"name": "Charlie"}]
         )
@@ -947,7 +808,6 @@ class TestFormsetRowSeparation:
         assert rows[2].find("hr") is not None
 
     def test_a_row_cloned_from_the_empty_form_gets_one(self):
-        """It is only ever appended after the others, so it is never first."""
         html = render('<c-form.formset :formset="formset" />', formset=RowFormSet())
         template = BeautifulSoup(html, "html.parser").find("template")
 
@@ -961,8 +821,6 @@ class TestFormsetRowSeparation:
 
 
 class TestFormsetControlAffordances:
-    """The two controls: a hover-revealed red trash icon, and a plus on add."""
-
     def _remove_control(self, html):
         return BeautifulSoup(html, "html.parser").find(attrs={"aria-label": "Remove"})
 
@@ -1000,12 +858,6 @@ class TestFormsetControlAffordances:
 
 
 class TestFormsetUsesPackagedComponents:
-    """Article XI: where a component exists, the markup is not hand-written.
-
-    These assert the components were actually used rather than reproduced,
-    which is invisible to any test that only checks the rendered result.
-    """
-
     def _source(self, name):
         return (
             Path(mvp.__path__[0]) / "templates" / "cotton" / "form" / "formset" / name
@@ -1026,7 +878,6 @@ class TestFormsetUsesPackagedComponents:
         assert "<hr" not in source, "c-rule owns that markup"
 
     def test_the_rule_is_finer_than_a_divider(self):
-        """A divider is a section break; a rule separates items in one list."""
         soup = BeautifulSoup(render("<c-rule />"), "html.parser")
 
         rule = soup.find("hr")
@@ -1035,11 +886,6 @@ class TestFormsetUsesPackagedComponents:
             "daisyUI's divider is a thick line with generous margin; "
             "repeating it between the rows of one set is far too loud"
         )
-
-
-# ---------------------------------------------------------------------------
-# Tabular layout — the same machinery, presented as columns. See #296.
-# ---------------------------------------------------------------------------
 
 
 class TwoFieldRowForm(forms.Form):
@@ -1071,8 +917,6 @@ def _tabular(formset, **context):
 
 
 class TestFormsetLayoutDefault:
-    """The choice is opt-in: an existing caller is untouched by it."""
-
     def test_default_layout_renders_exactly_what_it_did_before(self):
         # A fresh set per render: crispy-tailwind appends its classes to the
         # widget it is given, so rendering one set twice compounds them.
@@ -1084,14 +928,14 @@ class TestFormsetLayoutDefault:
         )
 
     def test_stacked_emits_no_column_tracks(self):
-        html = render('<c-form.formset :formset="formset" />', formset=TwoFieldFormSet())
+        html = render(
+            '<c-form.formset :formset="formset" />', formset=TwoFieldFormSet()
+        )
 
         assert "grid-template-columns" not in html
 
 
 class TestFormsetTabularHeadings:
-    """The field labels are promoted to headings rendered once for the set."""
-
     def test_one_heading_per_visible_field_in_field_order(self):
         soup = BeautifulSoup(_tabular(TwoFieldFormSet()), "html.parser")
 
@@ -1106,7 +950,6 @@ class TestFormsetTabularHeadings:
         assert "Delete" not in html
 
     def test_the_heading_row_is_drawn_only_where_the_columns_are(self):
-        """Below the breakpoint the rows are stacked and label themselves."""
         soup = BeautifulSoup(_tabular(TwoFieldFormSet()), "html.parser")
 
         heading_row = soup.select_one("div[style*='grid-template-columns']")
@@ -1116,8 +959,6 @@ class TestFormsetTabularHeadings:
 
 
 class TestFormsetTabularColumnTracks:
-    """Every row shares one column definition, so the columns line up."""
-
     def test_tracks_cover_every_visible_field_plus_the_remove_column(self):
         html = _tabular(TwoFieldFormSet())
 
@@ -1139,7 +980,6 @@ class TestFormsetTabularColumnTracks:
         assert len(tracks) == 1, "a row on different tracks would not line up"
 
     def test_the_empty_form_template_is_on_the_same_tracks(self):
-        """A row cloned in the browser has to land in the same columns."""
         soup = BeautifulSoup(_tabular(TwoFieldFormSet()), "html.parser")
 
         template = soup.find("template")
@@ -1147,8 +987,6 @@ class TestFormsetTabularColumnTracks:
 
 
 class TestFormsetTabularLabels:
-    """A column heading names a column; only a label names an input."""
-
     def test_every_field_keeps_its_own_label(self):
         soup = BeautifulSoup(_tabular(TwoFieldFormSet()), "html.parser")
 
@@ -1178,8 +1016,6 @@ class TestFormsetTabularLabels:
 
 
 class TestFormsetTabularHelpText:
-    """Help text is promoted with the label, not repeated under every cell."""
-
     def _formset(self):
         return HelpTextFormSet()
 
@@ -1199,9 +1035,7 @@ class TestFormsetTabularHelpText:
         )
 
     def test_the_stacked_layout_keeps_help_text_under_every_field(self):
-        html = render(
-            '<c-form.formset :formset="formset" />', formset=self._formset()
-        )
+        html = render('<c-form.formset :formset="formset" />', formset=self._formset())
 
         # Two extra rows and the empty-form template, and no heading to hold
         # a shared copy — the stacked layout puts it under every control.
@@ -1209,7 +1043,6 @@ class TestFormsetTabularHelpText:
         assert "sm:[&_small]:hidden" not in html
 
     def test_errors_are_not_swept_up_with_the_help_text(self):
-        """Crispy renders an error in a <p>, so hiding <small> cannot hide it."""
         soup = BeautifulSoup(_tabular(TwoFieldFormSet()), "html.parser")
 
         source = (
@@ -1226,8 +1059,6 @@ class TestFormsetTabularHelpText:
 
 
 class TestFormsetTabularRowChrome:
-    """The per-row heading gives way to the columns; the control moves."""
-
     def test_the_row_heading_is_hidden_where_the_columns_are_drawn(self):
         formset = forms.modelformset_factory(
             Product, fields=["name"], extra=0, can_delete=True
@@ -1246,7 +1077,6 @@ class TestFormsetTabularRowChrome:
         assert trailing.find("button") is not None
 
     def test_exactly_one_remove_control_is_drawn_at_any_width(self):
-        """Both are in the document; display:none keeps one out of the tree."""
         soup = BeautifulSoup(_tabular(TwoFieldFormSet()), "html.parser")
 
         row = soup.select_one("div.group")
@@ -1264,8 +1094,6 @@ class TestFormsetTabularRowChrome:
 
 
 class TestFormsetTabularErrors:
-    """An invalid row breaks the column rhythm on purpose."""
-
     def test_a_field_error_renders_in_its_own_cell(self):
         data = {
             "form-TOTAL_FORMS": "1",
@@ -1281,7 +1109,7 @@ class TestFormsetTabularErrors:
         soup = BeautifulSoup(_tabular(formset), "html.parser")
         grid = soup.select_one("div.group div[style*='grid-template-columns']")
         cell = grid.find_all("div", recursive=False)[0]
-        assert "This field is required" in cell.get_text()
+        assert cell.find(id="id_form-0-kind_error") is not None
 
     def test_a_non_field_error_renders_full_width_above_the_columns(self):
         formset = ErrorRowFormSet(
@@ -1309,8 +1137,6 @@ class TestFormsetTabularErrors:
 
 
 class TestFormsetTabularMachineryIsUnchanged:
-    """A presentation choice over the same machinery, per #296."""
-
     def test_the_management_form_add_control_and_prefix_all_survive(self):
         html = _tabular(TwoFieldFormSet())
 

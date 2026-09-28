@@ -29,6 +29,13 @@ configuration through Django settings, customization through template overrides.
 | [Integrations](integrations.md) | Optional third-party integrations (django-tables2, django-filter, htmx) |
 | [Troubleshooting](troubleshooting.md) | Common symptoms, their causes, and the fix |
 
+## Contributing
+
+| Page | What it covers |
+| --- | --- |
+| [Testing standards](contributing/standards/testing.md) | What gets a test, the test-first cycle, test structure and fixtures, and the coverage floors |
+| [Code documentation standards](contributing/standards/code-documentation.md) | Docstrings, component annotations and comments |
+
 ## Design philosophy
 
 1. **Configuration-driven** — layout and behavior are controlled from `settings.MVP_CONFIG`,

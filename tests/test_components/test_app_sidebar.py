@@ -14,7 +14,6 @@ from django_cotton.compiler_regex import CottonCompiler
 from flex_menu import Menu, MenuItem
 
 from mvp.mounted import MountedApp
-from tests.testapp_mounted.mounted import testapp_mounted
 
 BACK_TEXT = "Back to example.com"
 
@@ -54,8 +53,6 @@ def back_link(soup):
 @pytest.mark.django_db
 @pytest.mark.urls("tests.urls_mounted")
 class TestSidebarMenuChoice:
-    """An explicit ``menu`` wins; otherwise the resolved menu; otherwise ``AppMenu``."""
-
     def test_no_menu_and_no_app_draws_app_menu(self):
         soup = render_sidebar("<c-app.sidebar />", path="/layout/")
 
@@ -97,9 +94,7 @@ class TestSidebarMenuChoice:
         )
         app = MountedApp(name="Hidden", icon="box", menu=hidden, urls=[], landing="x")
 
-        soup = render_sidebar(
-            "<c-app.sidebar />", mounted_menu=hidden, mounted_app=app
-        )
+        soup = render_sidebar("<c-app.sidebar />", mounted_menu=hidden, mounted_app=app)
 
         assert sidebar_labels(soup)[1:] == [BACK_TEXT]
 
@@ -126,10 +121,6 @@ class TestSidebarMenuChoice:
 @pytest.mark.django_db
 @pytest.mark.urls("tests.urls_mounted")
 class TestSidebarUnderContextIsolation:
-    """A component reads nothing from its parent under Cotton's context
-    isolation, but the values still reach it: Cotton builds a request context
-    for it, which runs the processor again (decision D27)."""
-
     @override_settings(COTTON_ENABLE_CONTEXT_ISOLATION=True)
     def test_an_app_page_still_draws_the_menu_and_the_back_link(self):
         soup = render_sidebar("<c-app.sidebar />")
@@ -167,11 +158,11 @@ class TestSidebarUnderContextIsolation:
 @pytest.mark.django_db
 @pytest.mark.urls("tests.urls_mounted")
 class TestSidebarBackLink:
-    """The back link's address, label and accessible name."""
-
     def render(self, **context):
         return render_sidebar(
-            "<c-app.sidebar {{ extra }} />".replace("{{ extra }}", context.pop("extra", "")),
+            "<c-app.sidebar {{ extra }} />".replace(
+                "{{ extra }}", context.pop("extra", "")
+            ),
             **context,
         )
 

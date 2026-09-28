@@ -1,3 +1,10 @@
+{# @description A styled inline text link, for prose rather than actions. #}
+{# @prop href:text | default:"#" | description:"The link target." #}
+{# @prop text:text | description:"The link's text." #}
+{# @prop variant:select['primary','secondary','accent','neutral','info','success','warning','error'] | description:"Colour variant." #}
+{# @prop hover:boolean | description:"Underline on hover only, instead of always." #}
+{# @prop class:text | description:"Extra classes appended to the link element." #}
+{# @slot Learn more — Link text, used instead of text when richer markup is needed. #}
 <c-vars href="#"
         text
         variant

@@ -17,8 +17,6 @@ def _run(*args):
 
 
 class TestMVPTailwindCommand:
-    """The mvp_tailwind command emits a usable Tailwind entry file."""
-
     def test_entry_contains_daisyui_and_preset_import(self):
         output = _run()
         assert '@import "tailwindcss" source(none);' in output

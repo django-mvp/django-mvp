@@ -1,12 +1,14 @@
+{# @description The page wrapper. #}
+{# @prop fluid:boolean | description:"Use the full available width instead of a centred, constrained width." #}
+{# @prop fill:boolean | description:"Mark the page as wanting the shell's height instead of its content's height." #}
+{# @prop gap:number | default:6 | description:"Gap between the page's children." #}
+{# @prop class:text | description:"Extra classes appended to the page's root element." #}
+{# @slot The page's title, content and other regions. — The page's children. #}
 <c-vars fluid fill gap="6" class />
 {% comment %}
-  `fill` marks the page as one that wants the shell's height rather than its
-  content's. `mvp-page-fill` is what the shell keys off (see the rule in
-  mvp/tailwind/base.css) — the shell cannot otherwise know, because this
-  component renders inside the content block, long after the shell around it.
-
-  It also drops `mb-16`: a bottom margin under a page that is already exactly
-  as tall as the space it was given is 4rem of overflow.
+  `mvp-page-fill` is what the shell keys off (mvp/tailwind/base.css) since
+  this renders inside the content block, long after the shell around it.
+  `fill` also drops `mb-16`, already overflow at that height.
 {% endcomment %}
 <div class="flex flex-col gap-{{ gap }} {% if fill %}mvp-page-fill h-full{% else %}mb-16 {% if fluid %}w-full px-4{% else %} mx-auto {% endif %}{% endif %} {{ class }}"
      {{ attrs }}>

@@ -42,8 +42,4 @@ class TestShellRendersWithoutARequest:
         loader.get_template("mvp/account/base.html").render()
 
     def test_a_project_base_extending_the_shell_renders_without_raising(self):
-        """The scenario the issue is really about. A project builds its
-        error page on the unqualified ``base.html`` (FR-012), not on
-        ``mvp/base.html`` directly, and Django renders that page with no
-        context and no request."""
         loader.get_template("base.html").render()

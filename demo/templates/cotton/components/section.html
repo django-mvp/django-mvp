@@ -1,17 +1,7 @@
 {% comment %}
-  <c-components.section> — one documented example on a component page.
-
-  Renders a heading (with an anchor link), an optional description, and the
-  example itself passed through {% show_code %}, which shows the live preview
-  plus Cotton / HTML source tabs.
-
-  IMPORTANT: wrap the example markup in {% cotton:verbatim %}...{% endcotton:verbatim %}
-  on the page so django-cotton passes the literal source through to show_code
-  instead of compiling it first.
-
-  Props:
-    title       – heading text (also used to build the #anchor)
-    description – short prose shown under the heading (slot or attr)
+  Wrap the example markup in {% cotton:verbatim %}...{% endcotton:verbatim %} on
+  the page, or django-cotton compiles it instead of passing the literal source
+  through to {% show_code %}.
 {% endcomment %}
 {% load mvp %}
 <c-vars title description />

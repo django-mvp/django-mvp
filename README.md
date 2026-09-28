@@ -1,4 +1,4 @@
-# Django MVP
+# django-mvp
 
 [![Tests](https://github.com/django-mvp/django-mvp/actions/workflows/tests.yml/badge.svg)](https://github.com/django-mvp/django-mvp/actions/workflows/tests.yml)
 [![Build](https://github.com/django-mvp/django-mvp/actions/workflows/build.yml/badge.svg)](https://github.com/django-mvp/django-mvp/actions/workflows/build.yml)
@@ -17,6 +17,22 @@ the box. **Things should just work.**
 
 > **Note:** django-mvp is in active development (0.x). Import paths and component APIs
 > may change between minor versions — see the [CHANGELOG](https://github.com/django-mvp/django-mvp/blob/main/CHANGELOG.md).
+
+## Contents
+
+- [What you get](#what-you-get)
+- [Scope & philosophy](#scope--philosophy)
+- [Quick start](#quick-start)
+- [Configure the layout from settings](#configure-the-layout-from-settings)
+- [Views in one line each](#views-in-one-line-each)
+- [Menus in Python](#menus-in-python)
+- [Optional integrations](#optional-integrations)
+- [Styling & Theming](#styling--theming)
+- [Documentation](#documentation)
+- [Requirements](#requirements)
+- [Contributing](#contributing)
+- [License](#license)
+- [Acknowledgments](#acknowledgments)
 
 ## What you get
 
@@ -67,7 +83,7 @@ writing the front end first.
   syntax; this package provides components built with it.
 - **A project scaffold.** You install it as a dependency and upgrade it, rather than generating
   a starter project you then own outright.
-- **An authentication system.** It provides the [Account Center](docs/account-center.md), the
+- **An authentication system.** It provides the [Account Center](https://github.com/django-mvp/django-mvp/blob/main/docs/account-center.md), the
   area itself, and development-only sign-in and sign-out pages so a guarded page is reachable
   while you build. Full account management — sign-up, password and multi-factor flows, and
   production-ready sign-in and sign-out — still lives in
@@ -124,7 +140,7 @@ override the Django admin's templates.
 Note that it does not follow that `mvp` belongs at the bottom of the list. `mvp` has to
 stay above `crispy_tailwind`, whose help-text template it overrides by the same
 mechanism. Raise your own apps rather than lowering `mvp`. See
-[Getting Started](docs/getting-started.md) for both halves of the rule.
+[Getting Started](https://github.com/django-mvp/django-mvp/blob/main/docs/getting-started.md) for both halves of the rule.
 
 ```python
 # settings.py, continued
@@ -289,11 +305,9 @@ documentation a person reads, which is what keeps the two from disagreeing.
 
 ## Contributing
 
-Contributions welcome! When adding components: use `<c-vars />` for defaults, no ghost
-attributes, include ARIA attributes, and add tests (`tests/test_components/` renders
-every packaged component). Rebuild the stylesheet with `invoke build-stylesheet` when
-templates change classes, and commit the result — the built CSS ships in the wheel, and
-CI only checks that it still compiles, so keeping it current is up to the author.
+Contributions are welcome. See [CONTRIBUTING.md](https://github.com/django-mvp/django-mvp/blob/main/CONTRIBUTING.md) for the setup, and the
+[testing](https://github.com/django-mvp/django-mvp/blob/main/docs/contributing/standards/testing.md) and
+[code documentation](https://github.com/django-mvp/django-mvp/blob/main/docs/contributing/standards/code-documentation.md) standards every change follows.
 
 ## License
 

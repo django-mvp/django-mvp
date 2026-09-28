@@ -7,12 +7,9 @@
 {% block page.title %}
   <div id="override-title">Title override</div>
   {% comment %}
-    page.header and page.actions are both nested inside page.title in
-    table_view.html — the breadcrumb trail ends in the heading, so the trail
-    and the title bar are one thing on this layout. Overriding the parent
-    block replaces its whole subtree, so a project that wants to keep the
-    nested blocks reconstructs them here, same as it would anywhere else in
-    Django template inheritance.
+    page.header and page.actions nest inside page.title in table_view.html,
+    so overriding the parent replaces their whole subtree — a project keeping
+    them reconstructs them here, same as anywhere else in Django inheritance.
   {% endcomment %}
   {% block page.header %}<div id="override-header">Header override</div>{% endblock page.header %}
   {% block page.actions %}<div id="override-actions">Actions override</div>{% endblock page.actions %}

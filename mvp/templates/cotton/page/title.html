@@ -1,3 +1,10 @@
+{# @description The page-heading block: title, subtitle, an optional info dialog trigger, and an actions row. #}
+{# @prop title:text | description:"Page heading text." #}
+{# @prop subtitle:text | description:"Short prose shown under the heading." #}
+{# @prop class:text | description:"Extra classes on the wrapper element." #}
+{# @prop actions:text | description:"Content rendered at the end of the title row (buttons, action group)." #}
+{# @prop info:text | description:"Text shown in the info dialog opened from the icon beside the heading." #}
+{# @prop info_actions:text | description:"Actions rendered in the info dialog's footer." #}
 <c-vars title subtitle class actions info info_actions />
 <!-- Top row: title + actions -->
 <div class="page-title flex flex-col md:flex-row md:items-start md:justify-between gap-2 w-full {{ class }}"

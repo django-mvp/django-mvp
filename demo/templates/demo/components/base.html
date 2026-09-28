@@ -1,10 +1,8 @@
 {% extends "page_view.html" %}
 {% comment %}
-  Shared shell for a single component's documentation page.
-
-  Provides the lead description and a vertical stack for the examples. Concrete
-  pages fill {% block component.docs %} with <c-components.section> blocks, each
-  wrapping its example in {% cotton:verbatim %} so the source shows verbatim.
+  Concrete pages fill {% block component.docs %} with <c-components.section>
+  blocks, each wrapping its example in {% cotton:verbatim %} so the source
+  shows verbatim rather than being compiled.
 {% endcomment %}
 
 {% block page.actions %}

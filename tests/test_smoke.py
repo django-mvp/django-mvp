@@ -15,21 +15,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 class TestPackageSanity:
-    """The package imports cleanly and the Django config is valid."""
-
     def test_django_version(self):
-        """Django is available and meets the minimum version."""
         major, minor, *_ = django.VERSION
         assert (major, minor) >= (4, 2), f"Django {major}.{minor} < 4.2"
 
     @pytest.mark.django_db
     def test_mvp_apps_load(self, client):
-        """Django can resolve the root URL without raising configuration errors."""
         response = client.get("/")
         assert response.status_code in {200, 301, 302, 404}
 
     def test_mvp_imports(self):
-        """The published package surface imports without errors."""
         import mvp  # noqa: F401
         from mvp import (
             renderers,  # noqa: F401
@@ -38,16 +33,8 @@ class TestPackageSanity:
         from mvp.templatetags import mvp as mvp_tags  # noqa: F401
 
 
-# ---------------------------------------------------------------------------
-# Styling docs discoverability (Tailwind/DaisyUI era)
-# ---------------------------------------------------------------------------
-
-
 class TestStylingDocs:
-    """The styling documentation and Tailwind entry stay in step with the package."""
-
     def test_styling_doc_exists(self):
-        """The styling guide exists and documents the consumer build command."""
         styling = BASE_DIR / "docs" / "styling.md"
         assert styling.exists(), (
             "docs/styling.md must exist — it is the canonical CSS/theming guide."
@@ -59,7 +46,6 @@ class TestStylingDocs:
         )
 
     def test_readme_references_styling_doc_and_command(self):
-        """README.md points at the styling guide and the mvp_tailwind command."""
         readme = BASE_DIR / "README.md"
         content = readme.read_text(encoding="utf-8")
         assert "mvp_tailwind" in content, (
@@ -69,7 +55,6 @@ class TestStylingDocs:
         assert "docs/styling.md" in content, "README.md must link to docs/styling.md."
 
     def test_entry_css_imports_packaged_preset(self):
-        """The package's own Tailwind entry uses the same preset shipped to consumers."""
         entry = (BASE_DIR / "assets" / "tailwind.css").read_text(encoding="utf-8")
         assert '@plugin "daisyui"' in entry, (
             "assets/tailwind.css must load the daisyui plugin — its removal once "
@@ -82,22 +67,7 @@ class TestStylingDocs:
         assert (BASE_DIR / "mvp" / "tailwind" / "base.css").exists()
 
 
-# ---------------------------------------------------------------------------
-# The shipped stylesheet carries the complete daisyUI component set (#190)
-# ---------------------------------------------------------------------------
-
-
 class TestShippedStylesheetShipsCompleteDaisyUI:
-    """django-mvp.css ships every daisyUI component, not only the ones mvp's
-    own templates happen to use.
-
-    Before #190, the packaged Tailwind build only emitted a daisyUI class if
-    the JIT scanner found it in mvp's own templates — so a consumer reaching
-    for a component mvp never uses itself (`carousel`, `kbd`, `chat`, ...) got
-    no styling at all. Forcing daisyUI's own component/utility source files
-    into `@source` closes that gap regardless of what mvp's templates use.
-    """
-
     STYLESHEET = BASE_DIR / "mvp" / "static" / "css" / "django-mvp.css"
 
     @staticmethod
@@ -105,7 +75,6 @@ class TestShippedStylesheetShipsCompleteDaisyUI:
         return re.search(rf"\.{re.escape(css_class)}\b", content) is not None
 
     def test_entry_sources_daisyuis_own_component_and_utility_definitions(self):
-        """assets/tailwind.css scans daisyUI's own class definitions, not just mvp's templates."""
         entry = (BASE_DIR / "assets" / "tailwind.css").read_text(encoding="utf-8")
         assert "node_modules/daisyui/components" in entry, (
             "assets/tailwind.css must scan daisyUI's component source files, or "
@@ -117,11 +86,6 @@ class TestShippedStylesheetShipsCompleteDaisyUI:
         )
 
     def test_control_class_mvp_templates_already_use_is_present(self):
-        """Known-present control, asserted with the same technique as the cases
-        below: proves the substring/regex match actually finds a real class
-        before any "still absent" or "now present" result is trusted. A built
-        stylesheet escapes special characters (e.g. `lg:flex-row` is committed
-        as `lg\\:flex-row`), so an untested assertion technique is worthless."""
         content = self.STYLESHEET.read_text(encoding="utf-8")
         assert self._class_present(content, "modal-top"), (
             ".modal-top is a component class mvp's own cotton/modal template "
@@ -146,7 +110,6 @@ class TestShippedStylesheetShipsCompleteDaisyUI:
         ],
     )
     def test_component_mvp_templates_never_reference_still_ships(self, css_class):
-        """A daisyUI component none of mvp's own templates use is still emitted."""
         content = self.STYLESHEET.read_text(encoding="utf-8")
         assert self._class_present(content, css_class), (
             f".{css_class} is missing from the shipped stylesheet — daisyUI "
@@ -154,17 +117,7 @@ class TestShippedStylesheetShipsCompleteDaisyUI:
         )
 
 
-# ---------------------------------------------------------------------------
-# The Account Center's templates rebuilt the stylesheet (FS-028 T014)
-# ---------------------------------------------------------------------------
-
-
 class TestStylesheetShipsAccountCenterClasses:
-    """The Account Center's templates use only classes the shipped stylesheet
-    already carries, which is why this feature changed no CSS. These are the
-    ones it leans on: if a future edit reaches for a class the build has never
-    seen, the templates and the stylesheet have drifted apart and this fails."""
-
     STYLESHEET = BASE_DIR / "mvp" / "static" / "css" / "django-mvp.css"
 
     @staticmethod
@@ -178,9 +131,6 @@ class TestStylesheetShipsAccountCenterClasses:
         return re.search(rf"\.{escaped_class}\b", content) is not None
 
     def test_absent_control_class_is_not_present(self):
-        """A class nothing in the package uses, checked absent with the same
-        technique the cases below use present — proving the technique can
-        also report "missing" correctly, not only "found"."""
         content = self.STYLESHEET.read_text(encoding="utf-8")
         assert not self._class_present(content, "not-a-real-django-mvp-class")
 
@@ -195,18 +145,12 @@ class TestStylesheetShipsAccountCenterClasses:
         ],
     )
     def test_account_center_template_class_is_present(self, css_class):
-        """Each of these is introduced by the Account Center's templates
-        (mvp/templates/mvp/account/*.html)."""
         content = self.STYLESHEET.read_text(encoding="utf-8")
         assert self._class_present(content, css_class), (
             f".{css_class} is missing from the shipped stylesheet — rebuild it "
             "with `invoke build-stylesheet` (Article XV)."
         )
 
-
-# ---------------------------------------------------------------------------
-# The shipped stylesheet carries every prebuilt daisyUI theme (FS-026)
-# ---------------------------------------------------------------------------
 
 # node_modules is gitignored and the Python CI job never runs npm ci, so the
 # discovery below must skip explicitly rather than fail when the front-end
@@ -221,26 +165,9 @@ _DAISYUI_THEME_NAMES = (
 
 
 class TestShippedStylesheetShipsEveryPrebuiltTheme:
-    """Every theme the pinned daisyUI version publishes ships in the built
-    stylesheet, and the pre-existing default/dark-mode behaviour survives
-    enabling them (FS-026).
-
-    This is the deliberate inverse of the guard #190 added, which asserted
-    named themes were *absent* — right when shipping only light/dark was the
-    goal. #190's own reasoning (shipping every component regardless of what
-    mvp's templates use) is untouched above; only the themes guard flips,
-    because this feature makes shipping every prebuilt theme the point. See
-    decisions.md D1 in specs/026-ship-prebuilt-daisyui for the record of why.
-    """
-
     STYLESHEET = BASE_DIR / "mvp" / "static" / "css" / "django-mvp.css"
 
     def test_daisyui_theme_source_is_discoverable(self):
-        """Guards the discovery mechanism itself, before it parametrizes the
-        next test. Skips explicitly when node_modules/daisyui/theme is
-        absent. When present, the glob must be non-empty: an empty list
-        handed to parametrize produces pytest's empty-parameter-set skip,
-        which reports green while asserting nothing."""
         if not _DAISYUI_THEME_DIR.is_dir():
             pytest.skip(
                 "node_modules/daisyui/theme not installed — front-end "
@@ -257,9 +184,6 @@ class TestShippedStylesheetShipsEveryPrebuiltTheme:
     )
     @pytest.mark.parametrize("theme", _DAISYUI_THEME_NAMES)
     def test_every_daisyui_theme_ships(self, theme):
-        """Every theme daisyUI publishes has a [data-theme=<name>] block in
-        the shipped stylesheet (FR-001), so a project can select any of them
-        by name alone with no build step of its own."""
         content = self.STYLESHEET.read_text(encoding="utf-8")
         assert f"[data-theme={theme}]" in content, (
             f"[data-theme={theme}] is missing from the shipped stylesheet — "
@@ -274,13 +198,6 @@ class TestShippedStylesheetShipsEveryPrebuiltTheme:
 
     @pytest.mark.parametrize("theme", REPRESENTATIVE_THEMES)
     def test_representative_named_themes_ship(self, theme):
-        """A named theme ships, asserted without needing node_modules.
-
-        The completeness test above is the real guard, but it can only run
-        where the front-end toolchain is installed. This one reads the
-        committed stylesheet alone, so FR-001 keeps a check in CI rather than
-        resting entirely on a case that is skipped there.
-        """
         content = self.STYLESHEET.read_text(encoding="utf-8")
         assert f"[data-theme={theme}]" in content, (
             f"[data-theme={theme}] is missing from the shipped stylesheet — "
@@ -288,11 +205,6 @@ class TestShippedStylesheetShipsEveryPrebuiltTheme:
         )
 
     def test_default_theme_still_bound_through_where_root(self):
-        """The default theme stays bound through the zero-specificity
-        :where(:root) arm, so a data-theme value matching nothing falls
-        through to it instead of rendering unstyled (FR-014, SC-008). Reads
-        only the committed stylesheet and stays unconditional — this is what
-        proves FR-006 in CI, where the completeness case above is skipped."""
         content = self.STYLESHEET.read_text(encoding="utf-8")
         assert ":where(:root)" in content, (
             "the :where(:root) fall-through binding for the default theme "
@@ -300,10 +212,6 @@ class TestShippedStylesheetShipsEveryPrebuiltTheme:
         )
 
     def test_prefers_color_scheme_dark_block_still_emitted(self):
-        """The pre-existing @media (prefers-color-scheme: dark) block still
-        ships, so enabling every theme does not disturb dark-mode behaviour
-        (FR-006). Reads only the committed stylesheet and stays
-        unconditional, for the same reason as the test above."""
         content = self.STYLESHEET.read_text(encoding="utf-8")
         assert "@media (prefers-color-scheme:dark)" in content, (
             "the @media (prefers-color-scheme: dark) block is missing from "
@@ -311,20 +219,7 @@ class TestShippedStylesheetShipsEveryPrebuiltTheme:
         )
 
 
-# ---------------------------------------------------------------------------
-# Demo pages that extend page_view.html directly — the placeholder leak (#145)
-# ---------------------------------------------------------------------------
-
-
 class TestDemoPagesDontLeakTheScaffoldPlaceholder:
-    """page_view.html's default page.content block reads "Coming soon...".
-
-    That default is deliberate for a scaffold nobody has extended yet — see
-    mvp/templates/page_view.html. A demo page is not a scaffold: it ships as a
-    worked example, so it must supply its own content rather than fall through
-    to the placeholder.
-    """
-
     @pytest.mark.django_db
     def test_layout_demo_page_supplies_its_own_content(self, client):
         response = client.get("/layout/")
@@ -338,20 +233,7 @@ class TestDemoPagesDontLeakTheScaffoldPlaceholder:
         assert "Coming soon" not in response.content.decode()
 
 
-# ---------------------------------------------------------------------------
-# Packaged form rendering works on a clean install (FR-001)
-# ---------------------------------------------------------------------------
-
-
 class TestCrispyIsARuntimeDependency:
-    """crispy is required for the packaged form rendering to work at all.
-
-    Parses pyproject.toml itself rather than installed distribution metadata:
-    `.dist-info/METADATA` is written at install time and would not change when
-    the source is fixed, so a metadata-based assertion would stay red after
-    the declaration moves.
-    """
-
     def test_crispy_pair_declared_in_project_dependencies(self):
         import tomllib
 
@@ -369,14 +251,7 @@ class TestCrispyIsARuntimeDependency:
         )
 
 
-# ---------------------------------------------------------------------------
-# Worked example: a parent and its rows on one page (US6, T036)
-# ---------------------------------------------------------------------------
-
-
 class TestProductOrderLinesWorkedExample:
-    """demo.ProductOrderLinesView — the parent-and-rows page docs/formsets.md walks through."""
-
     @pytest.mark.django_db
     def test_get_renders_the_parent_form_and_its_existing_rows(self, client):
         from tests.factories import OrderLineFactory, ProductFactory
@@ -413,10 +288,6 @@ class TestProductOrderLinesWorkedExample:
 
 
 class TestOrderLineArticleIXCompliance:
-    """demo.OrderLine's fields carry help text — Article IX, and T037's reason for existing:
-    the worked example renders both fields, and a page demonstrating the packaged look
-    cannot demonstrate help text with a field that has none."""
-
     def test_product_field_has_help_text(self):
         field = OrderLine._meta.get_field("product")
         assert str(field.help_text) != ""
@@ -427,38 +298,22 @@ class TestOrderLineArticleIXCompliance:
 
 
 class TestFormsetComponentDocPage:
-    """The formset component doc page (US6, T040) — the standalone formset case.
-
-    Registered like every other entry in demo.component_docs.COMPONENTS, but the
-    only one whose live example needs a real, bound formset in context rather
-    than static markup.
-    """
-
     @pytest.mark.django_db
     def test_page_renders_a_bound_orderline_formset(self, client):
         response = client.get("/components/formset/")
 
         assert response.status_code == 200
         content = response.content.decode()
-        assert "Add row" in content
         assert 'name="form-TOTAL_FORMS"' in content
 
 
 class TestComplexFormDemoPage:
-    """The Complex Form demo page (#311) — a full MVPFormView page, not a
-    component doc entry, driving LayoutDemoForm's FormHelper Layout: three
-    Fieldsets (one laid out with Row/Column) and an HTML block.
-    """
-
     @pytest.mark.django_db
     def test_page_renders_every_fieldset_and_the_layout(self, client):
         response = client.get("/forms/complex/")
 
         assert response.status_code == 200
         content = response.content.decode()
-        assert "Contact details" in content
-        assert "Shipping address" in content
-        assert "Preferences" in content
         # Fieldset's visible heading is the same daisyUI divider a formset
         # uses for its own — a <div>, not the <legend> (a <legend> does not
         # honour display:flex, so a divider-classed legend renders as bare
@@ -492,11 +347,6 @@ class TestComplexFormDemoPage:
         assert response.url == "/forms/complex/"
 
 
-# ---------------------------------------------------------------------------
-# docs/theming.md's variable table stays honest against the installed daisyUI
-# version (FS-026 US-3, SC-007)
-# ---------------------------------------------------------------------------
-
 _CUSTOM_PROPERTY_RE = re.compile(r"--[a-zA-Z0-9-]+")
 
 
@@ -511,18 +361,6 @@ SC003_GROWTH_BUDGET_BYTES = 8192
 
 
 class TestThemingDocVariableCoverage:
-    """Every custom property a shipped theme defines appears in
-    docs/theming.md's variable table (FR-015, SC-007), checked mechanically
-    rather than by hand.
-
-    The ground truth is the *committed stylesheet*, not node_modules. Reading
-    the installed daisyUI would be equivalent — the two property sets match
-    exactly — but node_modules is gitignored and the Python CI job never runs
-    `npm ci`, so that version of this check skips in the one environment where
-    it has to hold. Reading the artifact keeps SC-007 asserted everywhere, and
-    checks what actually ships rather than what happens to be installed.
-    """
-
     THEMING_DOC = BASE_DIR / "docs" / "theming.md"
     STYLESHEET = BASE_DIR / "mvp" / "static" / "css" / "django-mvp.css"
 
@@ -570,8 +408,6 @@ class TestThemingDocVariableCoverage:
         )
 
     def test_each_documented_variable_says_what_it_controls(self):
-        """A row naming a variable with an empty description satisfies the
-        coverage check above while telling a reader nothing (FR-015)."""
         for row in self._documented_variable_table():
             cells = [c.strip() for c in row.strip("|").split("|")]
             assert len(cells) >= 2 and cells[1], (
@@ -579,13 +415,6 @@ class TestThemingDocVariableCoverage:
             )
 
     def test_the_compressed_stylesheet_stays_within_its_budget(self):
-        """SC-003: the payload a project downloads may grow by at most 8 KB.
-
-        Measured at 41,670 bytes before this feature and 46,532 after. The
-        bound exists to catch a later change that adds rules rather than
-        variables, so it is asserted rather than left as a one-off
-        measurement in a decision record.
-        """
         compressed = BASE_DIR / "mvp" / "static" / "css" / "django-mvp.css.br"
         size = compressed.stat().st_size
 

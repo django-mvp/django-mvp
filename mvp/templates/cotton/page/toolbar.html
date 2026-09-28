@@ -1,3 +1,6 @@
+{# @description Page-level toolbar row; renders nothing at all when given no children. #}
+{# @prop class:text | description:"Extra classes on the wrapper element." #}
+{# @slot Filter, sort — page-level actions and controls. #}
 {% load mvp %}
 <c-vars class />
 {% if not slot|slot_is_empty %}

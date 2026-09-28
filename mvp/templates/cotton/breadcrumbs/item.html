@@ -1,3 +1,8 @@
+{# @description One crumb in a breadcrumb trail. #}
+{# @prop text:text | description:"Crumb label text." #}
+{# @prop class:text | description:"Extra classes on the li element." #}
+{# @prop href:text | description:"Link target; renders an anchor instead of plain text when given." #}
+{# @slot — Extra content after the crumb's text. #}
 <c-vars text class href />
 {% if href %}
   <li class="{{ class }}">

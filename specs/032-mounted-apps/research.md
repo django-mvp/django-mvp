@@ -34,7 +34,7 @@ views (`as_view(**initkwargs)` plus subclassing) and `ModelAdmin`'s `has_*_permi
 `MountedApp` holds the declaration and every behaviour that shares it: building the host's menu
 entry (`menu_item()`), running the check (`has_permission(request)`), and binding a view to the
 app when a request is resolved. The lookup of the current app for a request is a classmethod on the same
-class. Article XVII: one subject, one class. No base class, no registry object, no hierarchy.
+class. Article X: one subject, one class. No base class, no registry object, no hierarchy.
 
 The module name avoids `apps.py`, which Django owns for `AppConfig`.
 
@@ -51,7 +51,7 @@ urlpatterns = [
 ]
 ```
 
-`mount()` is the thin module-level wrapper Article XVII allows. It builds what `path(route,
+`mount()` is the thin module-level wrapper Article X allows. It builds what `path(route,
 include(app.urls))` builds, but as a `MountedAppResolver`, a `URLResolver` subclass that knows
 its app. Django's `path()` cannot return a subclass, which is why the host calls `mount()`
 instead of `path(..., include(...))`. The namespace works exactly as `include()` sets it: an app

@@ -7,21 +7,11 @@
 
 ## Core articles
 
-### Article I — Test-First
+### Article I — Testing
 
-Every behavior change follows the traffic-light cycle:
-
-- **Red.** Write a test and watch it fail.
-- **Green.** Write the least code that makes it pass.
-- **Refactor.** Clean up with the tests staying green.
-
-No implementation before a failing test exists for the behavior. Pre-existing tests are never
-modified or deleted without a recorded, approved decision.
-
-This replaces the previous constitution's design-first principle, which put visual verification
-ahead of tests. Front-end work still benefits from seeing the thing before specifying it in
-detail, and that belongs in the spec and clarification stages. It does not license writing the
-implementation first.
+Every change follows [`docs/contributing/standards/testing.md`](docs/contributing/standards/testing.md):
+what gets a test and what does not, the test-first cycle, test structure and fixtures, and the
+coverage floors.
 
 ### Article II — Simplicity
 
@@ -48,8 +38,10 @@ instructions. Auth, permissions, and crypto changes are never fast-lane work.
 
 ### Article VI — Documentation
 
-Public API changes ship their docs in the same pull request: README and CHANGELOG updated,
-docstrings on public surfaces. Documentation is part of the product surface, not a follow-up:
+Public API changes ship their docs in the same pull request: README and CHANGELOG updated.
+Docstrings, component annotations and code comments follow
+[`docs/contributing/standards/code-documentation.md`](docs/contributing/standards/code-documentation.md).
+Documentation is part of the product surface, not a follow-up:
 
 - Every public setting, template block, and component has at least one working usage example.
 - Examples reflect current recommended usage. A docstring that documents a removed era is a defect.
@@ -82,35 +74,7 @@ possible before the pull request is submitted; data migrations are exempt from t
 This article applies to the `demo/` application and to any future model the package ships. The
 package itself is deliberately model-free.
 
-### Article X — Test structure & fixtures
-
-Tests mirror the source tree: `mvp/views/list.py` is exercised by `tests/test_views/test_list.py`.
-Where one source module defines several things — `mvp/views/edit.py` holds the form, create, update
-and delete views — the tests stay in **one** module and split by class, never into extra files. The
-class is what you target when debugging (`pytest tests/test_views/test_edit.py::TestDeleteView`), and
-a `test_delete.py` with no `mvp/views/delete.py` behind it is the mismatch this rule prevents.
-
-Related tests are grouped into `Test<Subject>` classes. Each demo model has exactly one
-`factory_boy` factory in `tests/factories.py`, with variants expressed by overriding fields at the
-call site rather than by subclassing. Fixtures in `conftest.py` are thin wrappers over those
-factories; test modules hold assertions, not construction boilerplate. Database access goes through
-the `db` fixture or `@pytest.mark.django_db`, requests through `client` or `rf`, and query-count
-guards through `django_assert_num_queries` rather than wall-clock timing.
-
-**A test whose subject is not a Python module has nothing to mirror.** `tests/factories.py` and
-`tests/test_smoke.py` are exempt everywhere. Beyond those, a suite testing templates or another
-non-module artifact is exempt only when this repository declares it in `pyproject.toml` under
-`[tool.forge.conformance] non-mirror-paths`. `tests/test_components/` is declared there because it
-exercises Cotton templates under `mvp/templates/cotton/`, which have no Python module behind them.
-That is a statement that no source module exists to mirror, not a waiver — declaring a path whose
-subject *is* a Python module is a review failure.
-
-**Module-level `pytestmark` and `pytest.importorskip` apply to the whole module.** In a module that
-mixes unit and browser tests, scope them to the class instead. A module-level `importorskip` also
-aborts collection of the entire module, which hides the tests underneath it rather than reporting
-them as skipped.
-
-### Article XVII — Cohesion (Python)
+### Article X — Cohesion (Python)
 Related behaviour is grouped in a class, not scattered across module-level functions.
 
 **The test:** two or more module-level functions that share a *subject* belong on a class. They
@@ -212,7 +176,7 @@ between minor versions, and every such change is recorded in the CHANGELOG. Defa
 stable across patch releases. Supported versions are the currently-supported Django releases and
 Python 3.12 or later; dropping either is a minor-version change with a CHANGELOG entry.
 
-### Article XVIII — One corpus, and a map over it
+### Article XVII — One corpus, and a map over it
 
 `docs/` is the documentation. Any public surface is described in exactly one place there,
 whoever is reading: a person following a guide and a coding assistant answering a question get
@@ -245,9 +209,10 @@ it. They had not been. An announced change that has not been carried out is docu
 behaviour that ships.
 
 **The documentation is about using the package.** Material about working *on* this repository
-belongs in `.github/skills/` instead.
+belongs in `.github/skills/` instead, apart from the contributor standards under
+`docs/contributing/`.
 
-### Article XIX — Views forward component attributes as a dict
+### Article XVIII — Views forward component attributes as a dict
 
 Where a view renders a packaged component and a project needs to change how that component looks,
 the view exposes one dict attribute, named `<thing>_attrs`, handed to the component with
@@ -267,7 +232,7 @@ the view already owns belongs in the dict.
 
 Read at planning and at review; applies to every change.
 
-- Test coverage: **project ≥ 90%, patch ≥ 85%**, per `codecov.yml`. These are floors, not a ratchet toward 100%.
+- Test coverage meets the floors in `docs/contributing/standards/testing.md`, set in `codecov.yml`.
 - Every public API change updates README, CHANGELOG and the `docs/` page describing it, in the same pull request.
 - `ruff check`, `ruff format --check`, `mypy` and `deptry` pass.
 - The package builds and its metadata is valid, and the README renders on the package index.
@@ -286,4 +251,4 @@ that need ignore rules first. Do not cite it as an enforced standard until it ru
 
 ---
 
-**Version**: 4.3.0 | **Ratified**: 2026-01-05 | **Last Amended**: 2026-09-07
+**Version**: 5.0.0 | **Ratified**: 2026-01-05 | **Last Amended**: 2026-09-28

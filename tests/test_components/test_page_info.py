@@ -23,8 +23,6 @@ def render(source, **context):
 
 
 class TestPageInfoRendersOnlyWhenThereIsText:
-    """No text means no affordance — not an icon that opens an empty dialog."""
-
     def test_no_dialog_without_text(self):
         html = render("<c-page.info />")
         assert "<dialog" not in html
@@ -48,8 +46,6 @@ class TestPageInfoRendersOnlyWhenThereIsText:
 
 
 class TestPageInfoTrigger:
-    """The trigger is a real button, labelled for assistive technology."""
-
     def test_trigger_opens_the_dialog(self):
         html = render('<c-page.info text="Body" />')
         assert "pageInfoModal.showModal()" in html
@@ -71,19 +67,11 @@ class TestPageInfoTrigger:
         assert "bi-info-circle-fill" in html
 
     def test_trigger_is_icon_only(self):
-        """The text belongs in the dialog and nowhere else.
-
-        ``c-button`` declares a ``text`` prop of its own, so without an isolated
-        context it picks this component's ``text`` out of the surrounding scope
-        and renders the whole explanation inside a 32px circular button.
-        """
         rendered = render('<c-page.info text="What this page is for." />')
         assert rendered.count("What this page is for.") == 1
 
 
 class TestPageInfoText:
-    """A plain string is escaped; a safe string renders as markup."""
-
     def test_plain_text_is_escaped(self):
         html = render(
             '<c-page.info :text="text" />',
@@ -105,8 +93,6 @@ class TestPageInfoText:
 
 
 class TestPageInfoActions:
-    """Action dicts are spread straight onto ``c-button``."""
-
     def test_action_renders_as_a_link(self):
         html = render(
             '<c-page.info text="Body" :actions="actions" />',
@@ -133,13 +119,6 @@ class TestPageInfoActions:
         assert 'target="_blank"' in html
 
     def test_action_dicts_are_never_printed_raw(self):
-        """The dialog draws buttons, never the list it was given.
-
-        ``c-modal`` forwards a variable named ``actions`` to the card's header
-        slot. This component declares its own ``actions`` prop, so without an
-        isolated context the list leaks into that slot and Django writes its
-        repr into the dialog as text.
-        """
         rendered = render(
             '<c-page.info text="Body" :actions="actions" />',
             actions=[{"text": "Read the docs", "href": "/docs/"}],
@@ -166,8 +145,6 @@ class TestPageInfoActions:
 
 
 class TestPageTitleWiring:
-    """``c-page.title`` is where the page's info reaches the component."""
-
     def test_no_info_leaves_the_title_unchanged(self):
         html = render('<c-page.title title="Products" />')
         assert "<dialog" not in html
@@ -198,9 +175,6 @@ class TestPageTitleWiring:
         assert "Read the docs" in html
 
     def test_heading_holds_only_the_title(self):
-        """The trigger sits beside the heading, not inside it — an interactive
-        control inside an ``<h1>`` becomes part of the heading's announced text.
-        """
         html = render(
             '<c-page.title title="Products" :info="info" />',
             info="Body",

@@ -144,7 +144,7 @@ the repository before being accepted as work.
   the smoke assertion and relaxes it to the plugin name without the trailing semicolon, which still
   guards the intent its failure message states. T012's file list pointed at
   `tests/test_management_commands.py`, which does not exist — creating it would have split one source
-  module's tests across two modules, against Article X. Repointed to the module that already holds
+  module's tests across two modules, against the testing standard. Repointed to the module that already holds
   them.
 - **The completeness guard would have passed vacuously in CI.** `node_modules/` is gitignored and the
   Python CI job never runs `npm ci`, so T001's theme-completeness case either errors at collection or,
@@ -266,7 +266,7 @@ revisited, not worked around task by task.
 the home for the variable-coverage contract. Written there first, it failed `forge verify`'s
 conformance check on the story's mandatory final run: "mirrors no source module (expected
 mvp/docs.py or mvp/docs/__init__.py); a cross-cutting test belongs in the module of its subject as
-another Test\* class." `docs/theming.md` is markdown, not a Python module, so Article X's
+another Test\* class." `docs/theming.md` is markdown, not a Python module, so the testing standard's
 mirror-source-tree rule has nothing for a `test_docs.py` to mirror.
 
 `tests/test_smoke.py` already carries `TestStylingDocs`, a near-identical check against

@@ -1,15 +1,10 @@
-{# ============================================================ #}
-{# <c-dock.item> — one item in the mobile dock                  #}
-{#                                                              #}
-{# Renders as whichever element matches its role:               #}
-{#   toggle  -> <label for="{{ toggle }}"> flips a drawer       #}
-{#             checkbox (e.g. the sidebar), like the navbar     #}
-{#             hamburger                                         #}
-{#   href    -> <a href="{{ href }}"> navigates                 #}
-{#   neither -> <button> (inert placeholder)                    #}
-{#                                                              #}
-{# Props: label, icon, href, toggle, active                     #}
-{# ============================================================ #}
+{# @description One item in the mobile dock: a drawer toggle, a link, or an inert button. #}
+{# @prop active:boolean | description:"Marks the item as the current page." #}
+{# @prop icon:text | description:"Icon name." #}
+{# @prop label:text | description:"Item label, shown under the icon." #}
+{# @prop href:text | description:"Link target; renders an anchor when given and toggle is not." #}
+{# @prop toggle:text | description:"id of the drawer checkbox this item flips; renders a label when given." #}
+{# @prop class:text | description:"Extra classes on the root element." #}
 {% load i18n %}
 <c-vars active icon label href toggle class />
 {% if toggle %}

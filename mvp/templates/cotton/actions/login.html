@@ -1,13 +1,7 @@
+{# @description Log-in button; renders only when anonymous and account_login or login reverses. #}
+{# @prop variant:text | description:"c-button variant. Unset renders the plain button the navbar wants; the sidebar footer asks for primary, the one thing a signed-out visitor should reach for." #}
+{# @prop full:boolean | description:"Stretch to the width of whatever contains it." #}
 {% load i18n %}
-{% comment %}
-  Props:
-    variant – c-button variant (primary, secondary, …). Unset renders the
-              plain button this has always been, which is what the navbar
-              wants. The sidebar footer asks for "primary": there the
-              button is the one thing a signed-out visitor should reach
-              for, so it is worth the emphasis.
-    full    – stretch to the width of whatever contains it.
-{% endcomment %}
 <c-vars variant full />
 {% if not request.user.is_authenticated %}
   {% comment %} Prefer allauth's login URL when present, else Django's. {% endcomment %}

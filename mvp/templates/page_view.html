@@ -7,12 +7,9 @@
   <c-page class="{{ page.class }}">
     <c-container>
       {% comment %}
-        The breadcrumb trail used to open the page here, on a row of its own,
-        ending in the same word as the heading directly below it. It is drawn in
-        the app header now, beside the site icon, and the page starts at its
-        title. `page.header` survives as the extension point it always was, for
-        a project that puts something of its own above the title — it just no
-        longer has a default of its own to draw.
+        The breadcrumb trail draws in the app header, not here. `page.header`
+        stays as an extension point for a project's own content above the
+        title, with no default of its own to draw.
       {% endcomment %}
       {% block page.header %}
       {% endblock page.header %}
@@ -20,10 +17,9 @@
         <c-page.content center gap=3 class="py-4">
           {% block page.title %}
             {% comment %}
-              Named one at a time rather than spread from `page`. The title
-              block writes every attribute it is handed onto its root element,
-              and `page` also carries the breadcrumb trail, drawn in the app
-              header, and the page class, already on `c-page` above.
+              Named one at a time, not spread from `page`: the title block
+              writes every attribute onto its root, and `page` also carries
+              the breadcrumb trail and page class, already placed elsewhere.
             {% endcomment %}
             <c-page.title :title="page.title"
                           :subtitle="page.subtitle"

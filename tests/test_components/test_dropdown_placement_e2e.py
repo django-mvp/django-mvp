@@ -68,8 +68,6 @@ def open_bottom_dropdown_at_the_foot_of_the_window(page, live_server):
 
 
 class TestDropdownFlipsWhenTheDeclaredSideDoesNotFit:
-    """The panel ends up on screen, and it only could have by flipping."""
-
     def test_the_panel_stays_inside_the_viewport(self, page, live_server):
         laid_out = open_bottom_dropdown_at_the_foot_of_the_window(page, live_server)
 
@@ -99,15 +97,6 @@ class TestDropdownFlipsWhenTheDeclaredSideDoesNotFit:
         )
 
     def test_the_declared_side_genuinely_had_no_room(self, page, live_server):
-        """The control for the test above.
-
-        Without this, a scroll that stopped short would leave the panel opening
-        downwards into plenty of space, passing every assertion and proving
-        nothing about collisions. Measuring the panel the browser actually laid
-        out against the gap below the trigger is what establishes that the
-        declared side was impossible before the fact that it was not used
-        becomes interesting.
-        """
         laid_out = open_bottom_dropdown_at_the_foot_of_the_window(page, live_server)
 
         room_below = laid_out["viewport"]["height"] - laid_out["trigger"]["bottom"]
@@ -121,21 +110,6 @@ class TestDropdownFlipsWhenTheDeclaredSideDoesNotFit:
 
 
 class TestDropdownReportsItsStateToAssistiveTechnology:
-    """``aria-expanded`` on the trigger follows the panel.
-
-    Once the script owns opening and closing, focus no longer tracks the panel's
-    state and nothing in the markup carries it. The attribute is written by the
-    script for that reason, so it can only be asserted with the script running.
-
-    These use ``expect`` rather than a bare ``get_attribute``, because the
-    attribute is written from the panel's ``toggle`` handler and ``toggle`` is
-    queued as a task rather than dispatched inline. A panel therefore reads as
-    open a moment before its trigger reads as expanded, and reading both in the
-    same breath is a race: it passed locally and on three of the four version
-    combinations CI runs, and failed on the fourth. ``expect`` retries until the
-    attribute settles or the timeout is up.
-    """
-
     def test_the_trigger_reports_closed_before_it_is_opened(self, page, live_server):
         page.set_viewport_size(VIEWPORT)
         page.goto(f"{live_server.url}/components/dropdown/")
@@ -149,7 +123,9 @@ class TestDropdownReportsItsStateToAssistiveTechnology:
     ):
         laid_out = open_bottom_dropdown_at_the_foot_of_the_window(page, live_server)
 
-        assert laid_out["open"], "the panel never opened, so there is no state to report"
+        assert laid_out["open"], (
+            "the panel never opened, so there is no state to report"
+        )
 
         trigger = page.get_by_role("button", name="Bottom", exact=True)
 
@@ -158,12 +134,6 @@ class TestDropdownReportsItsStateToAssistiveTechnology:
     def test_dismissing_the_panel_returns_the_trigger_to_closed(
         self, page, live_server
     ):
-        """Escape, rather than a second click on the trigger.
-
-        Light dismissal is the browser's own path and does not go through the
-        script's click handler at all, so it is the one that would leave the
-        attribute stale if it were written there instead of on the toggle.
-        """
         open_bottom_dropdown_at_the_foot_of_the_window(page, live_server)
 
         trigger = page.get_by_role("button", name="Bottom", exact=True)

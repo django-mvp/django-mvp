@@ -1,6 +1,7 @@
 """Template tags and filters for MVP navbar widgets."""
 
 import textwrap
+from typing import Any
 
 from crispy_forms.templatetags.crispy_forms_filters import as_crispy_field
 from django import template
@@ -71,8 +72,7 @@ def breakpoint_px(bp):
 
 @register.simple_tag
 def resolve_layout_config(bp, collapse, sticky, boost):
-    """Resolve one LayoutConfig for a template to read layout facts from and
-    emit the client payload from."""
+    """Resolve one LayoutConfig for a template's layout facts and client payload."""
     return LayoutConfig(bp, collapse, sticky, boost)
 
 
@@ -87,11 +87,12 @@ CELL_KINDS = ("th", "td", "tf")
 
 @register.simple_tag
 def table_cell_attrs(column, table, cell="td", wrap=True):
-    """Return a django-tables2 column's rendered cell attributes: the
-    project's wrap default filled in when the column names neither
+    """Return a django-tables2 column's cell attributes, wrap and alignment filled in.
+
+    Fills in the project's wrap default when the column names neither
     "mvp-col-wrap" nor "mvp-col-nowrap" of its own (issue #255), and the
-    inferred alignment class filled in when the column declares none of its
-    own (issue #256).
+    inferred alignment class when the column declares none of its own
+    (issue #256).
 
     Resolution order for wrap: the column's own class (already present in
     ``column.attrs[cell]``), then ``MVP_CONFIG["table"]["wrap"]``, then the
@@ -122,14 +123,15 @@ def table_cell_attrs(column, table, cell="td", wrap=True):
 
 @register.simple_tag
 def column_alignment_class(column, table, cell="td", declared=None):
-    """Return the alignment class for one of a column's cells, inferred from
-    the kind of model field behind it: "text-start" for a text field,
-    "text-end" for a numeric one (integer, decimal or float), "text-center"
-    for a boolean field or for a column with no resolvable field that is not
-    orderable (an action column, e.g. buttons — issue #256). Returns "" — no
-    alignment imposed — when the table's data has no model to resolve a field
-    from, or when a column is unresolvable but still orderable, since its kind
-    cannot be determined (FR-017, FR-018, FR-021).
+    """Return the alignment class for a column's cell, inferred from its model field.
+
+    "text-start" for a text field, "text-end" for a numeric one (integer,
+    decimal or float), "text-center" for a boolean field or for a column
+    with no resolvable field that is not orderable (an action column, e.g.
+    buttons — issue #256). Returns "" — no alignment imposed — when the
+    table's data has no model to resolve a field from, or when a column is
+    unresolvable but still orderable, since its kind cannot be determined
+    (FR-017, FR-018, FR-021).
 
     Takes the table as well as the column because ``BoundColumn._table`` is
     private and unreachable from a template (research R2).
@@ -180,8 +182,9 @@ def column_alignment_class(column, table, cell="td", declared=None):
 
 @register.simple_tag
 def row_header_columns(table):
-    """Return the names of the columns a table declares as row headers, as a
-    tuple, read from its ``Meta.row_headers`` (issue #320)::
+    """Return the column names a table declares as row headers.
+
+    Declared as (issue #320)::
 
         class SampleTable(tables.Table):
             class Meta:
@@ -225,7 +228,9 @@ def row_header_columns(table):
 
 @register.filter
 def app_is_installed(app_name):
-    """Return whether an app is installed, for use inside ``{% if %}``::
+    """Return whether an app is installed, for use inside ``{% if %}``.
+
+    Example::
 
         {% load mvp %}
         {% if "allauth.mfa"|app_is_installed %}
@@ -238,32 +243,51 @@ def app_is_installed(app_name):
 
 
 @register.simple_tag
-def avatar_url(user, size):
-    """Returns the URL for a user's avatar image for a given size. Size is specified as "sm", "md", "lg", etc. The actual implementation is determined by the MVP_AVATAR_URL_FUNCTION setting, which should point to a function that accepts a user and size and returns a URL string.
+def avatar_url(user: Any, size: str):
+    """Return the URL for a user's avatar image at a given size.
 
-    Note: The default implementation of avatar_url returns None, which will cause the avatar component to fall back to displaying an anonymouse user svg icon.
+    The implementation is resolved from the ``MVP_AVATAR_URL_FUNCTION``
+    setting, a callable accepting a user and size and returning a URL
+    string. The default implementation returns ``None``, which falls back
+    to an anonymous-user SVG icon in the avatar component.
+
+    Args:
+        user: The user to resolve an avatar for.
+        size: Size keyword, e.g. "sm", "md", "lg".
+
+    Returns:
+        The avatar image URL, or ``None`` if unresolved.
     """
-    func = import_string(MVP_CONFIG["brand"]["avatar_resolver"])
+    func = import_string(MVP_CONFIG["brand"]["avatar_resolver"])  # type: ignore[index]
     return func(user, size)
 
 
 @register.simple_tag(takes_context=True)
-def logo_url(context, height, theme="light"):
-    """Returns the URL for the brand logo image for a given height and theme.
+def logo_url(context: template.Context, height: int, theme: str = "light"):
+    """Return the URL for the brand logo image at a given height and theme.
 
-    The resolver callable is determined by the MVP_LOGO_RESOLVER setting, which
-    should point to a function that accepts (request, height, theme) and returns
-    a URL string or None. Defaults to mvp.utils.logo_url (light-theme fallback
-    for all themes — no dark logo asset is bundled).
+    The resolver callable is read from the ``MVP_LOGO_RESOLVER`` setting,
+    accepting ``(request, height, theme)`` and returning a URL string or
+    ``None``. Defaults to ``mvp.utils.logo_url`` (light-theme fallback for
+    all themes — no dark logo asset is bundled).
 
-    Raises ImproperlyConfigured if MVP_LOGO_RESOLVER is set to a non-existent
-    import path. Returns "" silently if the resolver raises a runtime exception.
+    Args:
+        context: The template context, used to read the request.
+        height: Requested logo height.
+        theme: "light" or "dark".
+
+    Returns:
+        The logo image URL, or "" if unresolved or the resolver errors.
+
+    Raises:
+        ImproperlyConfigured: ``MVP_LOGO_RESOLVER`` names a non-existent
+            import path.
     """
     try:
-        func = import_string(MVP_CONFIG["brand"]["logo_resolver"])
+        func = import_string(MVP_CONFIG["brand"]["logo_resolver"])  # type: ignore[index]
     except ImportError as exc:
         raise ImproperlyConfigured(
-            f"MVP_CONFIG['brand']['logo_resolver'] '{MVP_CONFIG['brand']['logo_resolver']}' could not be imported: {exc}"
+            f"MVP_CONFIG['brand']['logo_resolver'] '{MVP_CONFIG['brand']['logo_resolver']}' could not be imported: {exc}"  # type: ignore[index]
         ) from exc
     try:
         result = func(context.get("request"), height, theme)
@@ -273,22 +297,32 @@ def logo_url(context, height, theme="light"):
 
 
 @register.simple_tag(takes_context=True)
-def icon_url(context, height, theme="light"):
-    """Returns the URL for the brand icon image for a given height and theme.
+def icon_url(context: template.Context, height: int, theme: str = "light"):
+    """Return the URL for the brand icon image at a given height and theme.
 
-    The resolver callable is determined by the MVP_ICON_RESOLVER setting, which
-    should point to a function that accepts (request, height, theme) and returns
-    a URL string or None. Defaults to mvp.utils.icon_url (light/dark routing via
-    icon_light.svg / icon_dark.svg; falls back to icon.svg for unknown themes).
+    The resolver callable is read from the ``MVP_ICON_RESOLVER`` setting,
+    accepting ``(request, height, theme)`` and returning a URL string or
+    ``None``. Defaults to ``mvp.utils.icon_url`` (light/dark routing via
+    icon_light.svg / icon_dark.svg; falls back to icon.svg for unknown
+    themes).
 
-    Raises ImproperlyConfigured if MVP_ICON_RESOLVER is set to a non-existent
-    import path. Returns "" silently if the resolver raises a runtime exception.
+    Args:
+        context: The template context, used to read the request.
+        height: Requested icon height.
+        theme: "light" or "dark".
+
+    Returns:
+        The icon image URL, or "" if unresolved or the resolver errors.
+
+    Raises:
+        ImproperlyConfigured: ``MVP_ICON_RESOLVER`` names a non-existent
+            import path.
     """
     try:
-        func = import_string(MVP_CONFIG["brand"]["icon_resolver"])
+        func = import_string(MVP_CONFIG["brand"]["icon_resolver"])  # type: ignore[index]
     except ImportError as exc:
         raise ImproperlyConfigured(
-            f"MVP_CONFIG['brand']['icon_resolver'] '{MVP_CONFIG['brand']['icon_resolver']}' could not be imported: {exc}"
+            f"MVP_CONFIG['brand']['icon_resolver'] '{MVP_CONFIG['brand']['icon_resolver']}' could not be imported: {exc}"  # type: ignore[index]
         ) from exc
     try:
         result = func(context.get("request"), height, theme)
@@ -298,15 +332,23 @@ def icon_url(context, height, theme="light"):
 
 
 @register.simple_tag(takes_context=True)
-def render_list_item(context, item, template_name):
+def render_list_item(context: template.Context, item: Any, template_name: str):
+    """Render one list item template, with ``item`` bound as "object" and by model name.
+
+    Args:
+        context: The template context (unused, required by ``takes_context``).
+        item: The object to render.
+        template_name: The template to render.
+
+    Returns:
+        The rendered template as a string.
+    """
     new = {}
-    # Always provide a generic name
     new["object"] = item
 
     if hasattr(item, "_meta"):
-        # If it's a model, provide the model-specific name
         name = item._meta.model_name
-        new["model"] = item._meta  # provide the model meta class, can be useful.
+        new["model"] = item._meta
     else:
         name = item.__class__.__name__.lower()
 
@@ -316,7 +358,16 @@ def render_list_item(context, item, template_name):
 
 
 @register.filter
-def slot_is_empty(slot):
+def slot_is_empty(slot: Any):
+    """Return whether a Cotton slot has no content.
+
+    Args:
+        slot: The slot value.
+
+    Returns:
+        ``True`` if ``slot`` is a blank string, ``False`` if non-blank, or
+        ``None`` for a non-string slot.
+    """
     if isinstance(slot, str):
         return slot.strip() == ""
 
@@ -328,34 +379,62 @@ def slot_exists(*args):
 
 
 @register.tag(name="show_code")
-def show_code(parser, token):
+def show_code(parser: template.base.Parser, token: template.base.Token):
+    """Parse a ``{% show_code %}...{% endshow_code %}`` block into a ``ShowCodeNode``.
+
+    Args:
+        parser: The template parser.
+        token: The tag's token.
+
+    Returns:
+        The node that renders the block's source, preview and HTML.
+    """
     nodelist = parser.parse(("endshow_code",))
     parser.delete_first_token()
     return ShowCodeNode(nodelist)
 
 
 @register.filter
-def nrange(start, end):
-    """Generate a range of numbers for iteration in templates.
+def nrange(start: Any, end: Any):
+    """Return a range of numbers for iteration in templates.
 
-    Usage:
+    Example::
+
         {% for i in 0|nrange:5 %}
             {{ i }}  {# Outputs 0, 1, 2, 3, 4 #}
         {% endfor %}
+
+    Args:
+        start: The range's start value.
+        end: The range's exclusive end value.
+
+    Returns:
+        A ``range`` from ``start`` to ``end``.
     """
     return range(int(start), int(end))
 
 
 @register.simple_tag(takes_context=True)
-def resolve_attr(context, options, default=""):
-    """In django-cotton, we often want to modify the behavior or look of a component by specifying boolean attrs on the component. If there are multiple options, the canonical way is to declare size="xs", size="sm", size="md", etc."""
-    # attrs are all the attributes passed directly to a component
+def resolve_attr(context: template.Context, options: dict, default: str = ""):
+    """Return the first component attr present in ``options`` that has a truthy value.
+
+    Lets a Cotton component vary its look by which boolean attr the caller
+    set, e.g. ``size="xs"``, ``size="sm"``, ``size="md"``.
+
+    Args:
+        context: The template context, read for the component's ``attrs``.
+        options: Mapping of option names to their values, including
+            "default" for the fallback.
+        default: Unused; present for tag-call compatibility.
+
+    Returns:
+        The value of the first matching option, or ``options["default"]``.
+    """
     attrs = context.get("attrs", {})
     if not attrs:
         return options.get("default")
 
     for option in options:
-        # if the option is present in attrs and has a truthy value, return it. This allows for affirmative and negative booleans.
         if attrs.get(option):
             return attrs[option]
 
@@ -363,28 +442,44 @@ def resolve_attr(context, options, default=""):
 
 
 @register.simple_tag
-def responsive(var, klass):
-    """Returns a base class if the var is True, and a responsive class variant if the var is a string.
+def responsive(var: bool | str, klass: str):
+    """Return ``klass`` unprefixed for ``True``, breakpoint-prefixed for a string.
 
-    E.g., responsive(True, "divider-horizontal") -> "divider-horizontal"
-          responsive("md", "divider-horizontal") -> "md:divider-horizontal"
+    Example::
 
+        responsive(True, "divider-horizontal") -> "divider-horizontal"
+        responsive("md", "divider-horizontal") -> "md:divider-horizontal"
+
+    Args:
+        var: ``True``, a breakpoint name, or a falsy value.
+        klass: The base class to emit.
+
+    Returns:
+        ``klass``, ``"{var}:{klass}"``, or "" if ``var`` is falsy.
     """
     if var is True:
         return klass
     elif isinstance(var, str) and var:
         return f"{var}:{klass}"
 
-    return ""  # Return empty string if var is falsy (incl. "") or not a string/boolean
+    return ""
 
 
 @register.simple_tag
-def variation(var, klass, allowed):
-    """Returns a base class if the var is True, and a responsive class variant if the var is a string.
+def variation(var: Any, klass: str, allowed: str | list):
+    """Return ``klass`` suffixed with ``var`` when ``var`` is one of the allowed values.
 
-    E.g., responsive(True, "divider-horizontal") -> "divider-horizontal"
-          responsive("md", "divider-horizontal") -> "md:divider-horizontal"
+    Example::
 
+        variation("lg", "btn", "sm,md,lg") -> "btn-lg"
+
+    Args:
+        var: The variant value to test.
+        klass: The base class to suffix.
+        allowed: Allowed values, as a list or a comma-separated string.
+
+    Returns:
+        ``"{klass}-{var}"`` if ``var`` is allowed, otherwise "".
     """
     if isinstance(allowed, str):
         allowed = allowed.split(",")
@@ -413,6 +508,7 @@ class ShowCodeNode(template.Node):
         self.nodelist = nodelist
 
     def render(self, context):
+        """Render the captured block's source, live preview and prettified HTML."""
         raw = self.nodelist.render(context)
 
         # Normalize indentation and trim surrounding blank lines so the snippet

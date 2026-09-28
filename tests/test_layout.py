@@ -12,8 +12,6 @@ from mvp.layout import LayoutConfig
 
 
 class TestLayoutConfigBreakpoint:
-    """Breakpoint normalisation and the pixel width it resolves to."""
-
     @pytest.mark.parametrize(
         ("bp", "px"),
         [
@@ -52,9 +50,6 @@ class TestLayoutConfigBreakpoint:
 
 
 class TestLayoutConfigAsDict:
-    """The client payload's exact shape: grouped by component, camelCase —
-    the same document the client store groups its own state into (T018)."""
-
     def test_as_dict_carries_exactly_the_documented_keys(self):
         config = LayoutConfig("md", "icons", False, True)
         assert config.as_dict() == {

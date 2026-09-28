@@ -37,9 +37,12 @@ SPECS = {
 
 
 class Command(BaseCommand):
+    """Write the installable app's PNG images, drawn from the brand mark."""
+
     help = "Render the installable app's images from the project's brand mark."
 
     def add_arguments(self, parser):
+        """Add ``--output-dir``."""
         parser.add_argument(
             "--output-dir",
             help="Static directory to write brand/pwa/ into. "
@@ -47,6 +50,7 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
+        """Render each image in ``SPECS`` and write it under ``brand/pwa/``."""
         if not MVP_CONFIG["pwa"]:
             raise CommandError(
                 "MVP_CONFIG['pwa'] must be set with a theme_color, "
@@ -85,6 +89,17 @@ class Command(BaseCommand):
             self.stdout.write(f"Wrote {destination / IMAGES[key]}")
 
     def find_mark(self):
+        """Return the path of the brand mark the static files serve.
+
+        Says so when the mark found is the package's own rather than the
+        project's.
+
+        Returns:
+            The resolved path of ``brand/icon.svg``.
+
+        Raises:
+            CommandError: No ``brand/icon.svg`` is in the static files.
+        """
         found = finders.find(MARK)
         if not found:
             raise CommandError(f"No {MARK} found in the static files.")
@@ -97,7 +112,20 @@ class Command(BaseCommand):
         return mark
 
     @staticmethod
-    def output_root(output_dir):
+    def output_root(output_dir: str | None):
+        """Return the static directory to write ``brand/pwa/`` into.
+
+        Args:
+            output_dir: The ``--output-dir`` value, or ``None`` to use the first
+                ``STATICFILES_DIRS`` entry without a prefix.
+
+        Returns:
+            The directory to write into.
+
+        Raises:
+            CommandError: No directory was given and every ``STATICFILES_DIRS``
+                entry has a prefix.
+        """
         if output_dir:
             return Path(output_dir)
         # A (prefix, path) entry is served under its prefix, where the

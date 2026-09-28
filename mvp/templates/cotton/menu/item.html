@@ -1,3 +1,12 @@
+{# @description A menu entry: a link when given href, otherwise a button. #}
+{# @prop href:text | description:"Renders the item as a link to this URL, instead of a button." #}
+{# @prop icon:text | description:"Icon shown before the label." #}
+{# @prop label:text | description:"The item's text." #}
+{# @prop active:boolean | description:"Marks the item as the current selection." #}
+{# @prop badge:text | description:"Badge text shown at the end of the item." #}
+{# @prop tip:text | description:"Tooltip shown when the sidebar is collapsed to its icon rail." #}
+{# @prop class:text | description:"Extra classes appended to the item's link/button element." #}
+{# @slot Nested items, when active. — Children rendered as an open submenu. #}
 <c-vars href icon label active badge tip class />
 {% with element=href|yesno:"a,button" %}
   <li class="{% if slot and active %}menu-open{% endif %}">

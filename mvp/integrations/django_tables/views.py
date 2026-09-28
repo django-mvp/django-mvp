@@ -105,11 +105,9 @@ class MVPTableViewMixin(MVPListViewMixin, SingleTableMixin):
         return None, None, queryset, False
 
     def get_context_data(self, **kwargs):
+        """Republish the table's page under the names the page chrome reads."""
         context = super().get_context_data(**kwargs)
-        # Republish the table's page under the names the page chrome reads, so
-        # the count and the pagination links describe the rows on screen. A
-        # table with pagination turned off has no page, and then neither does
-        # the view.
+        # A table with pagination turned off has no page, and then neither does the view.
         page = getattr(context["table"], "page", None)
         if page is not None:
             context["paginator"] = page.paginator

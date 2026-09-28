@@ -17,14 +17,11 @@ from django.core.paginator import Paginator
 
 @pytest.fixture
 def page_obj():
-    """Page two of three, so every branch of the component draws."""
     return Paginator(list(range(30)), 10).page(2)
 
 
 class TestPaginationLabel:
-    def test_the_landmark_has_a_default_name(
-        self, cotton_render_string_soup, page_obj
-    ):
+    def test_the_landmark_has_a_default_name(self, cotton_render_string_soup, page_obj):
         soup = cotton_render_string_soup(
             '<c-pagination :page_obj="page_obj" />', context={"page_obj": page_obj}
         )
@@ -40,7 +37,6 @@ class TestPaginationLabel:
         assert soup.find("nav")["aria-label"] == "Search results pages"
 
     def test_the_landmark_is_named_once(self, cotton_render_string_soup, page_obj):
-        """A second ``aria-label`` would be dropped by the browser in silence."""
         html = cotton_render_string_soup(
             '<c-pagination label="Search results pages" :page_obj="page_obj" />',
             context={"page_obj": page_obj},

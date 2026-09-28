@@ -199,7 +199,7 @@ tests/
 
 **Structure Decision**: the package's existing layout, unchanged. The sign-in and sign-out views
 join the module that already holds this area's view, and their tests join the module that already
-mirrors it (Article X). `mvp/urls.py` gains its own mirrored test module because this feature is
+mirrors it (the testing standard). `mvp/urls.py` gains its own mirrored test module because this feature is
 the first to make that file's contents conditional, and the condition is the feature's central
 claim.
 

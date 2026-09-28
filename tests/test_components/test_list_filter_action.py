@@ -55,11 +55,6 @@ def _render_action(rf, params=None):
 
 
 class TestTheOverrideBeatsTheHeader:
-    """The stylesheet rule this fix depends on, checked against the source
-    preset rather than the built artifact: Article XV's stylesheet build is
-    non-deterministic, so only the source is a stable thing to assert against.
-    """
-
     def test_the_badges_z_index_override_outranks_the_headers(self):
         css = BASE_CSS.read_text(encoding="utf-8")
         override = re.search(
@@ -86,11 +81,6 @@ class TestTheOverrideBeatsTheHeader:
 
 
 class TestFilterActionButtonSize:
-    """[#328] The trigger and its modal both use the `size` attribute
-    `c-button` declares, not the undeclared `small`/`large` the templates used
-    to pass — those forward straight through as bare, invalid HTML attributes
-    and change nothing about the rendered size."""
-
     @pytest.mark.django_db
     def test_the_trigger_button_is_small(self, rf):
         html = _render_action(rf, {"name": "Widget", "price": "9.99"})
@@ -118,11 +108,6 @@ class TestFilterActionButtonSize:
 
 
 class TestAppliedFilterCount:
-    """The action's own markup: unchanged in shape from before this fix — the
-    badge is still a sibling of the button, not drawn inside it. The fix lives
-    entirely in the stylesheet, scoped by ancestor, so nothing about this
-    component's own output should move."""
-
     @pytest.mark.django_db
     def test_the_badge_is_an_indicator_item_beside_the_button(self, rf):
         soup = _beautiful_soup()(
@@ -147,10 +132,6 @@ class TestAppliedFilterCount:
 
 
 class TestAppliedFilterCountOnATableView:
-    """[#287] The reported page, end to end: the badge that needs the
-    stylesheet override is actually reachable by the selector that raises it.
-    """
-
     @pytest.mark.django_db
     def test_the_badge_sits_inside_the_filled_page_the_override_targets(
         self, rf, product
@@ -175,13 +156,6 @@ class TestAppliedFilterCountOnATableView:
 
 
 class TestAppliedFilterCountOnAnOrdinaryListView:
-    """The override's scoping only matters if it is genuinely narrower than
-    'everywhere'. An ordinary list page (not a table view) never marks
-    itself `.mvp-page-fill`, so its badge is exactly where it always was and
-    the override does not reach it — which is the point: that page already
-    has room for the badge, and reaching it anyway is what would let the
-    badge ride above the header while the page scrolls underneath it."""
-
     @pytest.mark.django_db
     def test_the_badge_is_not_inside_a_filled_page(self, rf, product):
         pytest.importorskip("django_filters")

@@ -27,8 +27,6 @@ class TestCompactUserDisplay:
 
     @pytest.mark.django_db
     def test_does_not_render_the_users_email(self):
-        """A test that only checks the name still passes if the email is
-        also there — assert its absence explicitly."""
         user = get_user_model().objects.create_user(
             username="dave", password="pw", email="dave@example.com"
         )

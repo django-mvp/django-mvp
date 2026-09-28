@@ -144,7 +144,7 @@ component changes. Render in a project that mounts only `mvp.urls`: an anonymous
 sign-in button pointing at `account_login`, a signed-in request draws the user menu with a log-out
 row and its POST form pointing at `account_logout` (FR-002, US-1 scenario 5).
 
-New `Test*` classes in those two existing modules, never new files (Article X).
+New `Test*` classes in those two existing modules, never new files (the testing standard).
 
 ### T009 — Both packaged templates can be overridden by a project
 

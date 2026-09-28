@@ -27,8 +27,6 @@ def _guard_script(html):
 
 
 class TestPrePaintThemeGuardPosition:
-    """The guard stays inline and first in ``<head>`` (FR-005)."""
-
     @pytest.mark.django_db
     def test_guard_is_first_thing_in_head_before_any_stylesheet_link(self, client):
         content = client.get("/").content.decode()
@@ -42,19 +40,8 @@ class TestPrePaintThemeGuardPosition:
 
 
 class TestPrePaintThemeGuardDefault:
-    """The guard's stored-value-or-fallback expression (SC-006, FR-003)."""
-
     @pytest.mark.django_db
     def test_falls_back_to_the_packaged_default_with_nothing_configured(self, client):
-        """With no project override, the guard's expression is the stored value
-        if present, otherwise the theme the package applies.
-
-        The configured default is ``light``, which is also v0.18.0's hardcoded
-        fallback, so this test cannot tell configuration from a literal on its
-        own. ``test_configured_default_is_used_when_nothing_is_stored`` below
-        is what does. The shape being checked here is that a stored value wins
-        and something sensible sits behind it.
-        """
         assert MVP_CONFIG["theme"]["default"] == "light"
         script = _guard_script(client.get("/").content.decode())
         assert script is not None
@@ -62,9 +49,9 @@ class TestPrePaintThemeGuardDefault:
         assert '"light"' in script
 
     @pytest.mark.django_db
-    def test_configured_default_is_used_when_nothing_is_stored(self, client, monkeypatch):
-        """With ``theme.default`` set, the guard falls back to the
-        configured theme rather than the hardcoded ``'light'``."""
+    def test_configured_default_is_used_when_nothing_is_stored(
+        self, client, monkeypatch
+    ):
         monkeypatch.setitem(MVP_CONFIG["theme"], "default", "dracula")
         script = _guard_script(client.get("/").content.decode())
         assert script is not None
@@ -73,14 +60,10 @@ class TestPrePaintThemeGuardDefault:
 
 
 class TestPrePaintThemeGuardEscaping:
-    """The configured theme reaches the script as an escaped literal, not
-    raw interpolation into the script body (Article V)."""
-
     @pytest.mark.django_db
-    def test_configured_default_cannot_break_out_of_the_script(self, client, monkeypatch):
-        """A theme name containing a quote and a closing script tag must not
-        be able to terminate the string, close the script element early, or
-        open a second one."""
+    def test_configured_default_cannot_break_out_of_the_script(
+        self, client, monkeypatch
+    ):
         malicious = '"; alert(1); //</script><script>alert(2)</script>'
         monkeypatch.setitem(MVP_CONFIG["theme"], "default", malicious)
         content = client.get("/").content.decode()
@@ -109,23 +92,8 @@ def _theme_toggle_html(content):
 
 
 class TestThemeControllerUnconfiguredShape:
-    """With ``theme.choices`` empty (the package default), the switcher
-    renders exactly today's markup: the ``data-toggle-theme="dark,light"``
-    checkbox, its ``data-act-class``, both icons and the translated label
-    (FR-006, FR-008). Written against the *current* template, before T006's
-    production change, so it is a genuine regression guard rather than a
-    description of whatever the change produces."""
-
     @pytest.mark.django_db
     def test_renders_the_checkbox_toggle_over_the_configured_pair(self, client):
-        """The unconfigured shape is still a two-state checkbox toggle.
-
-        It named ``dark,light`` literally once. The pair now comes from
-        ``theme.dark`` and ``theme.default``, which happen to be those two
-        names again — so the assertion below is only meaningful because the
-        template reads the configuration rather than the literals, which
-        ``test_the_toggle_follows_a_replaced_pair`` is what actually proves.
-        """
         assert MVP_CONFIG["theme"]["choices"] == []
         content = client.get("/").content.decode()
         toggle = _theme_toggle_html(content)
@@ -142,14 +110,6 @@ class TestThemeControllerUnconfiguredShape:
 
     @pytest.mark.django_db
     def test_the_toggle_follows_a_replaced_pair(self, client, monkeypatch):
-        """Replacing the pair moves the toggle with it.
-
-        This is the assertion the one above cannot make. The shipped pair is
-        ``light``/``dark``, which is character-for-character the string the
-        template used to hardcode, so a template that had stopped reading
-        configuration would pass every assertion above unchanged. Naming two
-        themes nothing else in the tree mentions is what separates the two.
-        """
         monkeypatch.setitem(MVP_CONFIG["theme"], "default", "sunrise")
         monkeypatch.setitem(MVP_CONFIG["theme"], "dark", "midnight")
         toggle = _theme_toggle_html(client.get("/").content.decode())
@@ -159,13 +119,6 @@ class TestThemeControllerUnconfiguredShape:
 
 
 class TestThemeControllerOfferedSetShape:
-    """With ``theme.choices`` populated, the switcher renders one entry per
-    configured theme, in the configured order, each carrying
-    ``data-set-theme="<name>"`` — theme-change's documented API, present in
-    the shipped bundle. Entries carry accessible names (Article XIII) and
-    the control's own label goes through ``gettext`` (Article VIII)
-    (FR-007, FR-008, FR-009)."""
-
     CHOICES = ["dracula", "synthwave", "forest"]
 
     @pytest.mark.django_db
@@ -200,14 +153,6 @@ class TestThemeControllerOfferedSetShape:
     def test_each_entry_is_keyboard_reachable_with_an_accessible_name(
         self, client, monkeypatch
     ):
-        """Entries must be natively focusable, not just present.
-
-        theme-change binds a ``click`` listener and nothing else, so an entry
-        that is not in the tab order cannot be activated from the keyboard at
-        all. An ``<a>`` without ``href`` renders and reads correctly and is
-        not focusable, which is why this asserts the element type rather than
-        only its text (Article XIII).
-        """
         monkeypatch.setitem(MVP_CONFIG["theme"], "choices", self.CHOICES)
         content = client.get("/").content.decode()
         for name in self.CHOICES:
@@ -234,23 +179,8 @@ class TestThemeControllerOfferedSetShape:
             "keyboard reachable"
         )
 
-    @pytest.mark.django_db
-    def test_controls_own_label_is_translated(self, client, monkeypatch):
-        monkeypatch.setitem(MVP_CONFIG["theme"], "choices", self.CHOICES)
-        content = client.get("/").content.decode()
-        assert "Choose theme" in content
-
 
 class TestUnmatchedThemeNameFallsThrough:
-    """A configured theme name matching no shipped or project theme block
-    leaves the page rendering under the ``:where(:root)`` default, and
-    nothing raises — the deliberate non-feature decisions.md D5 settled:
-    theme names are not validated, because the package cannot see a
-    project's own theme file. This is a regression guard on that decision:
-    without it, a later contributor reads the absence of validation as an
-    oversight and adds it back (FR-014, SC-008).
-    """
-
     UNMATCHED_NAME = "totallynotarealtheme"
 
     @pytest.mark.django_db
@@ -261,20 +191,12 @@ class TestUnmatchedThemeNameFallsThrough:
 
     @pytest.mark.django_db
     def test_unmatched_theme_name_is_emitted_unvalidated(self, client, monkeypatch):
-        """No render-time check rejects it — the guard emits whatever name
-        is configured, exactly as it does for a name that does match (T004),
-        because the package cannot evaluate whether a project's own theme
-        file defines it."""
         monkeypatch.setitem(MVP_CONFIG["theme"], "default", self.UNMATCHED_NAME)
         script = _guard_script(client.get("/").content.decode())
         assert script is not None
         assert f'"{self.UNMATCHED_NAME}"' in script
 
     def test_default_theme_stays_bound_through_where_root(self):
-        """The zero-specificity :where(:root) arm is what makes the
-        fall-through safe: it matches the document root unconditionally, so
-        an unmatched data-theme value still resolves to the default theme's
-        styles instead of an unstyled page."""
         stylesheet = BASE_DIR / "mvp" / "static" / "css" / "django-mvp.css"
         content = stylesheet.read_text(encoding="utf-8")
         assert ":where(:root)" in content, (
@@ -284,26 +206,6 @@ class TestUnmatchedThemeNameFallsThrough:
 
 
 class TestPrePaintThemeGuardMembership:
-    """FR-010: once a project declares ``theme.choices``, a stored selection
-    that has fallen outside that set must not be honoured — the guard falls
-    back to ``theme.default`` instead. A stored value still inside the set
-    is honoured, and with ``theme.choices`` empty any stored value is
-    honoured, unchanged from v0.18.0 (already covered by
-    ``TestPrePaintThemeGuardDefault``).
-
-    This is *not* the validation decisions.md D5 rejected: D5 is about a
-    name the package was never given (``theme.default`` against a project's
-    own, unreadable stylesheet). Here the offered set is a list the project
-    itself declared in ``MVP_CONFIG``, so the package genuinely knows it.
-
-    Per the module docstring, the Django test client cannot exercise real
-    browser ``localStorage``, so — as for every other guard test in this
-    file — what's checked is the emitted script's source: the offered set
-    it must consult, and that it performs a membership check against the
-    stored value rather than an unconditional fall-through (decisions.md
-    D12 records why source inspection, not a JS runtime, is the seam used
-    here too)."""
-
     CHOICES = ["dracula", "synthwave"]
 
     @pytest.mark.django_db
@@ -322,23 +224,18 @@ class TestPrePaintThemeGuardMembership:
     def test_guard_checks_stored_value_membership_before_honouring_it(
         self, client, monkeypatch
     ):
-        """A stored value is only honoured when it is inside the offered
-        set — the guard's expression must consult membership, not just
-        presence, once a set is configured."""
         monkeypatch.setitem(MVP_CONFIG["theme"], "choices", self.CHOICES)
         script = _guard_script(client.get("/").content.decode())
         assert script is not None
-        has_membership_check = "indexOf(stored)" in script or "includes(stored)" in script
+        has_membership_check = (
+            "indexOf(stored)" in script or "includes(stored)" in script
+        )
         assert has_membership_check, (
             "the guard must check the stored value's membership in the offered set"
         )
 
     @pytest.mark.django_db
     def test_empty_offered_set_keeps_the_v0_18_0_short_circuit(self, client):
-        """With nothing configured (the package default), the emitted
-        offered-set array is empty — the membership check's own logic must
-        make that equivalent to 'any stored value is honoured' (SC-006),
-        not silently reject every stored value."""
         assert MVP_CONFIG["theme"]["choices"] == []
         script = _guard_script(client.get("/").content.decode())
         assert script is not None

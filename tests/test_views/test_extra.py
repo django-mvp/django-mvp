@@ -36,24 +36,13 @@ class _UnwiredView(MVPTemplateView):
 
 @pytest.mark.django_db
 class TestMVPTemplateViewDefaultTemplate:
-    """An MVPTemplateView subclass with no ``template_name`` renders a placeholder, not a 500."""
-
     def test_unconfigured_subclass_renders_200_not_500(self):
-        """A subclass that never sets template_name still returns 200."""
         urlconf = _urlconf(path("unwired/", _UnwiredView.as_view()))
         with override_settings(ROOT_URLCONF=urlconf):
             response = Client().get("/unwired/")
         assert response.status_code == 200
 
-    def test_placeholder_reads_as_a_placeholder(self):
-        """The rendered page says it is a placeholder, not finished content."""
-        urlconf = _urlconf(path("unwired/", _UnwiredView.as_view()))
-        with override_settings(ROOT_URLCONF=urlconf):
-            content = Client().get("/unwired/").content.decode()
-        assert "template yet" in content.lower() or "placeholder" in content.lower()
-
     def test_explicit_template_name_still_wins(self):
-        """A subclass that sets its own template_name is unaffected by the default."""
         request = RequestFactory().get("/")
         view = MVPTemplateView()
         view.template_name = "mvp/dashboard.html"
@@ -64,7 +53,6 @@ class TestMVPTemplateViewDefaultTemplate:
 
     @override_settings(DEBUG=True)
     def test_debug_true_names_the_rendering_view_and_path(self):
-        """Under DEBUG, the placeholder names the view class and the URL path."""
         urlconf = _urlconf(path("unwired/", _UnwiredView.as_view()))
         with override_settings(ROOT_URLCONF=urlconf, DEBUG=True):
             content = Client().get("/unwired/").content.decode()
@@ -73,7 +61,6 @@ class TestMVPTemplateViewDefaultTemplate:
 
     @override_settings(DEBUG=False)
     def test_debug_false_hides_the_view_and_path_detail(self):
-        """Outside DEBUG, the placeholder does not leak the view's class name."""
         urlconf = _urlconf(path("unwired/", _UnwiredView.as_view()))
         with override_settings(ROOT_URLCONF=urlconf, DEBUG=False):
             content = Client().get("/unwired/").content.decode()

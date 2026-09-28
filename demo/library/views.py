@@ -12,8 +12,10 @@ class CatalogueView(MVPTemplateView):
 
 
 class ReadingListView(MVPTemplateView):
-    """A second page with a title, so the tab reads
-    ``Reading list | Library | <site>``."""
+    """A second page with a title set.
+
+    The tab reads ``Reading list | Library | <site>``.
+    """
 
     template_name = "library/reading_list.html"
     page_title = _("Reading list")
