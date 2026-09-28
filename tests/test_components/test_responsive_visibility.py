@@ -230,19 +230,7 @@ class TestWideOnlyRegions:
 # ---------------------------------------------------------------------------
 
 
-@pytest.fixture
-def mobile_toggle_on(monkeypatch):
-    """The header toggle is off below the breakpoint by default (#416). The
-    tests that use this are about *when the sidebar echo stands down*, which
-    can only be seen on a toggle that is drawn at those widths."""
-    from mvp.config import MVP_CONFIG
-
-    monkeypatch.setitem(
-        MVP_CONFIG["layout"]["navbar"]["mobile"], "sidebar_toggle", True
-    )
-
-
-@pytest.mark.usefixtures("mobile_toggle_on")
+@pytest.mark.usefixtures("mobile_navbar_toggle")
 class TestSidebarEchoRegion:
     """The navbar's own copies of the sidebar-toggle button and the site
     icon: hidden wherever the sidebar header already shows its own copy of
@@ -385,7 +373,7 @@ class TestMobileSidebarToggleSetting:
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.usefixtures("mobile_toggle_on")
+@pytest.mark.usefixtures("mobile_navbar_toggle")
 class TestVisibilityWithoutJavaScript:
     """One representative setting, with JavaScript disabled entirely, proving
     computed visibility is identical to every other test in this module.

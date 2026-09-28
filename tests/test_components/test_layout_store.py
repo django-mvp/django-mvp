@@ -81,6 +81,7 @@ class TestAnElementBoundToTheStoreFollowsEveryControl:
     it follows every control the shell ships is proving the store stays
     correct no matter which one moved it."""
 
+    @pytest.mark.usefixtures("mobile_navbar_toggle")
     def test_the_navbar_toggle_opens_it(self, page, live_server):
         page.set_viewport_size(MOBILE)
         page.goto(f"{live_server.url}/")
@@ -101,6 +102,7 @@ class TestAnElementBoundToTheStoreFollowsEveryControl:
         expect(_toggle(page)).not_to_be_checked()
         assert _store_sidebar_open(page) is False
 
+    @pytest.mark.usefixtures("mobile_navbar_toggle")
     def test_the_drawer_overlay_closes_it(self, page, live_server):
         page.set_viewport_size(MOBILE)
         page.goto(f"{live_server.url}/")
@@ -159,6 +161,7 @@ class TestBoostedNavigationLeavesTheStoreCorrect:
         page.wait_for_url(f"{live_server.url}/layout/")
         page.wait_for_function("() => Alpine.store('mvp').header.stuck === false")
 
+    @pytest.mark.usefixtures("mobile_navbar_toggle")
     def test_a_narrow_viewport_closes(self, page, live_server, boosted):
         page.set_viewport_size(MOBILE)
         page.goto(f"{live_server.url}/")
@@ -179,6 +182,7 @@ class TestTheShellWorksWithoutJavaScript:
     """The drawer's control is a native `<label for>` / checkbox pair — the
     sidebar must open and close with the bundle never running at all."""
 
+    @pytest.mark.usefixtures("mobile_navbar_toggle")
     def test_the_sidebar_opens_and_closes_without_javascript(
         self, browser, live_server
     ):
