@@ -82,7 +82,7 @@ no attributes by design. The shell places them; a page never writes them by hand
 | `c-app.sidebar` | brand header + `AppMenu` + fixed footer; attrs: `collapse`, `bg`, `brand-url`, `menu`, `title`, `boost`. `boost` sets `hx-boost` on the sidebar root, so every link inside it — menu items, the brand link, the footer actions — navigates with htmx instead of a full page load; off by default, because it changes how the page's own scripts see navigation |
 | `c-app.sidebar.header` | the sidebar's top strip: brand icon, optional title, collapse toggle; attrs: `link` (`/`), `bg`, `title` (from config) |
 | `c-app.sidebar.footer` | the pinned strip at the sidebar's foot: user menu (or log-in button), theme control, language control; attr: `bg` (from the sidebar). Override the template to change it |
-| `c-app.main`, `c-app.footer`, `c-app.dock` | content area, footer (`class`), mobile bottom nav rendered from `MobileFooterMenu` |
+| `c-app.main`, `c-app.footer`, `c-app.dock` | content area, and the containing block for [absolutely positioned page content](layout.md#positioning-inside-the-main-area); footer (`class`), mobile bottom nav rendered from `MobileFooterMenu` |
 
 `c-app.sidebar` and `c-app.dock` render menus by name through django-flex-menus, so
 changing what's in them is a menu change, not a template change.
