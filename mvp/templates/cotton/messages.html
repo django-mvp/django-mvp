@@ -1,3 +1,6 @@
+{# @description The Django messages list, rendered as stacked toast alerts. #}
+{# @prop dismissible:boolean | description:"Add a dismiss button to each message." #}
+{# @prop :delay:number | default:2000 | description:"Auto-dismiss delay in milliseconds." #}
 <c-vars dismissible :delay=2000 />
 <div class="toast toast-top toast-end z-50">
   {% for message in messages %}

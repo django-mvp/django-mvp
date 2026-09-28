@@ -1,59 +1,38 @@
 {% extends "list_view.html" %}
 {% load i18n %}
 {% comment %}
-  Overrides the outer `content` block, not page.header/page.content-wrapper.
-  Those two sit inside page_view.html's <c-container>, a plain block div
-  between <c-page fill> and <c-page.content> that breaks the flex chain the
-  height depends on — from there the filled layout cannot be built at all
-  (specs/027-table-layout-and-column-styling/research.md R5). This view
-  writes its own markup instead: the container and the two toolbars are
-  bypassed, not reused.
-
-  All six block names page_view.html declares are re-declared below, in
-  positions that make sense for this layout, so a project overriding any of
-  them on a table view keeps working. page.actions does not use
-  {{ block.super }}, because its default (list_view.html's
-  search/sort/filter/create) includes sort, which a table view's own action
-  set must not (FR-007) — see MVPTableViewMixin.actions.
-
-  The trail used to be folded into this title bar, with the <h1> as its final
-  crumb, so that a full-screen table did not spend a row restating its own
-  heading. The trail is drawn in the app header now, which buys that row back
-  on every page rather than only this one, so the heading is a plain <h1> again
-  and page.header has nothing of its own left to draw. The block stays
-  declared, because a project may have filled it.
-
-  Written out here rather than as a component. It is markup for one view, which
-  is the case Article XI exempts, and one caller does not justify the
-  abstraction Article III warns about. If a second view ever wants this bar, it
-  becomes a component then.
-
-  The bars are plain flex rows rather than <c-toolbar>, for two reasons. A
-  toolbar sizes each slot to its content, but these bars have to span the
-  table's full width to put the actions and the pagination at the trailing
-  edge. And a toolbar renders {{ actions }} in its trailing slot, where a
-  Cotton slot falls through to the context variable of the same name when the
-  caller fills no slot — so any page whose context carries an `actions` key
-  prints its repr there. Nothing here puts one in context, but a bare row keeps
-  the trap shut whatever a project puts in its own.
-
-  Padding sits on the bars, never on the page. The table is meant to reach the
-  edges of the space the shell gives it: its scrollbar hugs the shell edge and
-  its rows use the full width. Padding on <c-page fill> would inset the scroll
-  region along with everything else. <c-page.content> runs at gap="0" for the
-  same reason — a gap is space the bars do not control, and the table should
-  meet them rather than float between them. The bars own their own spacing.
-
-  app.footer is emptied. The shell's footer belongs to a page that ends; this
-  one does not — the viewport is fully spent on the table, and a footer under
-  it either steals rows or never comes into view. It is blanked here rather
-  than turned off in config, so it stays a per-view decision.
+  Overrides the outer `content` block, not page.header/page.content-wrapper:
+  those sit inside page_view.html's <c-container>, a plain div that breaks
+  the flex chain a filled layout needs (specs/027-table-layout-and-column-styling/research.md R5).
+{% endcomment %}
+{% comment %}
+  page.actions skips {{ block.super }}: list_view.html's default includes
+  sort, which a table view's own action set must not (FR-007) — see
+  MVPTableViewMixin.actions.
+{% endcomment %}
+{% comment %}
+  The breadcrumb trail draws in the app header, not here, so page.header has
+  nothing of its own to draw — it stays declared for a project that filled it.
+{% endcomment %}
+{% comment %}
+  app.footer is emptied: the shell's footer belongs to a page that ends, and
+  this one does not — the table spends the whole viewport, so a footer under
+  it either steals rows or never comes into view.
 {% endcomment %}
 {% block app.footer %}{% endblock app.footer %}
 {% block content %}
   <c-page fill class="{{ page.class }}">
     {% block page.content-wrapper %}
+      {% comment %}
+        gap="0" and padding on the bars, never the page: the table meets the
+        shell edges, so a gap or page padding would inset the scroll region.
+      {% endcomment %}
       <c-page.content gap="0">
+        {% comment %}
+          Plain flex row, not <c-toolbar>: a toolbar's trailing slot falls
+          through to a context `actions` variable when unfilled, printing its
+          repr — a bare row keeps that trap shut regardless of page context.
+        {% endcomment %}
         <div class="flex w-full px-4">
           {% block page.title %}
             <div class="page-title flex flex-col md:flex-row md:items-center md:justify-between gap-2 w-full">

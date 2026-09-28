@@ -7,7 +7,6 @@
     puts each fragment in a column of its own and spreads it across the width.
   {% endcomment %}
   {% if is_protected %}
-    {# ===== Scenario 3: Object is PROTECT-blocked - no delete button ===== #}
     <c-alert variant="error">
       <div>
         <strong>{% trans "This record cannot be deleted." %}</strong>
@@ -20,14 +19,12 @@
       </div>
     </c-alert>
   {% else %}
-    {# ===== Scenarios 1, 2, 4: Object is safe to delete ===== #}
     <c-alert variant="warning">
       <span>
         {% blocktrans %}You are about to <strong>permanently</strong> delete this record. This action cannot be undone.{% endblocktrans %}
       </span>
     </c-alert>
     {% if related_objects %}
-      {# ===== Scenario 2: Related-objects summary (opt-in) ===== #}
       <c-alert :attrs="related_objects_attrs">
         <div>
           <strong>{% trans "The following related records will also be permanently deleted:" %}</strong>
@@ -46,12 +43,10 @@
       </c-alert>
     {% endif %}
     {% if require_confirmation %}
-      {# ===== Scenario 4: Type-to-confirm prompt (opt-in) ===== #}
       {% comment %}
-        The input itself is the form's own bound field, rendered inside the
-        <form> below. Drawing one here as well gave the page two controls with
-        the same name and id: the user typed into this one, and the one that
-        was posted and validated stayed empty.
+        No input drawn here: it's the form's own bound field inside <form>
+        below. A second one here shared its name/id, so typing landed on the
+        wrong element and the posted, validated field stayed empty.
       {% endcomment %}
       <c-text>
         {% blocktrans with val=confirmation_value %}To confirm, type <strong class="font-monospace">{{ val }}</strong> below:{% endblocktrans %}

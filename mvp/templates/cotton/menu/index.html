@@ -1,3 +1,11 @@
+{# @description A DaisyUI menu list. #}
+{# @prop label:text | description:"Accessible name for the menu's navigation landmark." #}
+{# @prop class:text | description:"Extra classes appended to the menu element." #}
+{# @prop horizontal:boolean | description:"Lay the menu out horizontally instead of vertically." #}
+{# @prop responsive:text | description:"Breakpoint at which a vertical menu turns horizontal." #}
+{# @prop paged:boolean | description:"Enable DaisyUI's paged menu mode." #}
+{# @prop grow:boolean | default:False | description:"Stretch the menu to fill a flex parent." #}
+{# @slot <c-menu.item /> — The menu's items. #}
 <c-vars label class horizontal responsive paged grow=False />
 <ul class="menu w-full{% if grow %} grow{% endif %}{% if horizontal %} menu-horizontal{% endif %}{% if responsive %} menu-vertical {{ responsive }}:menu-horizontal{% endif %}{% if paged %} menu-paged{% endif %} {{ class }}"
     role="navigation"

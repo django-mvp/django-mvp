@@ -125,9 +125,8 @@ MVP_CONFIG = {
 merge(MVP_CONFIG, getattr(settings, "MVP_CONFIG", {}))
 
 
-def _apply_legacy_flat_navbar_config(config):
-    """Map a flat, pre-#176 ``layout.navbar.end`` override onto both
-    ``navbar.mobile.end`` and ``navbar.desktop.end``.
+def _apply_legacy_flat_navbar_config(config: dict) -> None:
+    """Map a flat, pre-#176 ``navbar.end`` override onto both mobile and desktop lists.
 
     Before the mobile/desktop split, ``MVP_CONFIG["layout"]["navbar"]["end"]``
     was the only widget list, applied at every screen size. A project's
@@ -136,6 +135,9 @@ def _apply_legacy_flat_navbar_config(config):
     "desktop" keys rather than replacing them. Normalize it here so templates
     read one shape: a flat override replaces both breakpoints' lists, exactly
     what it did before the split.
+
+    Args:
+        config: The merged config dict, mutated in place.
     """
     navbar = config["layout"]["navbar"]
     legacy_end = navbar.pop("end", None)

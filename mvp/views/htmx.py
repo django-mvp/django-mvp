@@ -1,5 +1,4 @@
-"""
-HTMX mixins for Django MVP views.
+"""HTMX mixins for Django MVP views.
 
 Provides two classes:
 
@@ -47,9 +46,7 @@ class HtmxMixin:
     htmx_trigger_after = "receive"
 
     def get_context_data(self, **kwargs):
-        """Inject ``htmx_enabled = True`` so templates can conditionally render
-        htmx-specific attributes (``hx-post``, ``hx-target``, ``hx-swap``).
-        """
+        """Add ``htmx_enabled = True`` to the context."""
         context = super().get_context_data(**kwargs)
         context["htmx_enabled"] = True
         return context
@@ -72,7 +69,7 @@ class HtmxMixin:
             )
         return response
 
-    def _resolve_component(self, attr, allowlist_attr, header_name):
+    def _resolve_component(self, attr: str, allowlist_attr: str, header_name: str):
         """Resolve a Cotton component name using the client-header / allowlist pattern.
 
         Resolution order:
@@ -82,13 +79,18 @@ class HtmxMixin:
            Return the paired component if the alias matches.
         2. Fall through to ``getattr(self, attr, None)`` as the server default.
 
+        Args:
+            attr: Name of the server-default component attribute.
+            allowlist_attr: Name of the ``(alias, component)`` allowlist attribute.
+            header_name: Request header carrying the client's chosen alias.
+
         Returns:
-            str | None: The resolved component name, or ``None`` if neither
-                the allowlist nor the server-default attribute is set.
+            The resolved component name, or ``None`` if neither the
+            allowlist nor the server-default attribute is set.
         """
         allowlist = getattr(self, allowlist_attr, ())
         if allowlist:
-            alias = self.request.headers.get(header_name, "").strip()
+            alias = self.request.headers.get(header_name, "").strip()  # type: ignore[attr-defined]
             if alias:
                 component = dict(allowlist).get(alias)
                 if component:
@@ -145,10 +147,6 @@ class HtmxFormMixin(HtmxMixin):
     htmx_form_component = "form"
     htmx_redirect_on_success = False
 
-    # ------------------------------------------------------------------
-    # Component getters
-    # ------------------------------------------------------------------
-
     def get_htmx_success_component(self):
         """Return the Cotton component name for the success partial.
 
@@ -156,8 +154,11 @@ class HtmxFormMixin(HtmxMixin):
         Resolution order: client ``X-Success-Component`` header (allowlist
         lookup) → server default ``htmx_success_component``.
 
+        Returns:
+            The resolved Cotton component name.
+
         Raises:
-            ImproperlyConfigured: if no component can be resolved and
+            ImproperlyConfigured: No component can be resolved and
                 ``htmx_redirect_on_success`` is also falsy.
         """
         component = self._resolve_component(
@@ -172,10 +173,13 @@ class HtmxFormMixin(HtmxMixin):
     def get_htmx_form_component(self):
         """Return the Cotton component name for the form-error partial.
 
+        Returns:
+            The resolved Cotton component name.
+
         Raises:
-            ImproperlyConfigured: if ``htmx_form_component`` is falsy (only
-                when it has been explicitly cleared from its default ``"form"``
-                value).
+            ImproperlyConfigured: ``htmx_form_component`` is falsy (only
+                when it has been explicitly cleared from its default
+                ``"form"`` value).
         """
         if self.htmx_form_component:
             return self.htmx_form_component
@@ -183,24 +187,8 @@ class HtmxFormMixin(HtmxMixin):
             "HtmxFormMixin requires 'htmx_form_component' to be set."
         )
 
-    # ------------------------------------------------------------------
-    # Form handling
-    # ------------------------------------------------------------------
-
     def form_valid(self, form):
-        """Handle a valid form submission.
-
-        Non-htmx path: delegates entirely to ``super().form_valid(form)``.
-
-        Htmx path:
-            1. Calls ``super().form_valid(form)`` to save the object and queue
-               any success message (the redirect response is discarded).
-            2. Drains the Django message queue.
-            3. If ``htmx_redirect_on_success`` is truthy, returns
-               ``HttpResponseClientRedirect(success_url)``.
-            4. Otherwise renders the success partial via ``render_component()``.
-            5. Applies any ``HX-Trigger`` family headers before returning.
-        """
+        """On an htmx POST, render or redirect to the success partial; else defer up."""
         if not self.request.htmx:
             return super().form_valid(form)
 
@@ -220,13 +208,7 @@ class HtmxFormMixin(HtmxMixin):
         return self._apply_htmx_triggers(response)
 
     def form_invalid(self, form):
-        """Handle an invalid form submission.
-
-        Non-htmx path: delegates entirely to ``super().form_invalid(form)``.
-
-        Htmx path: renders the form-error partial at HTTP 200 via
-        ``render_component()``.
-        """
+        """On an htmx POST, render the form-error partial at HTTP 200; else defer up."""
         if not self.request.htmx:
             return super().form_invalid(form)
 

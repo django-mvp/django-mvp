@@ -22,10 +22,7 @@ def render(source, **context):
 
 
 class TestSearchActionButtonLabel:
-    """[#282] The submit button's label is an attribute, not a literal."""
-
     def test_the_default_label_is_translated(self):
-        """[#282] With no attribute the label goes through the catalogue."""
         with translation.override("de"):
             html = render(
                 "<c-page.list.actions.search />",
@@ -35,7 +32,6 @@ class TestSearchActionButtonLabel:
         assert "Search" not in html
 
     def test_a_caller_can_replace_the_label(self):
-        """[#282] The label is replaceable without overriding the template."""
         html = render(
             '<c-page.list.actions.search label="Find products" />',
             is_searchable=True,
@@ -44,11 +40,6 @@ class TestSearchActionButtonLabel:
 
 
 class TestSearchActionSize:
-    """[#328] The search join matches the rest of the small action row: the
-    submit button carries the declared `size="sm"`, and the input half of the
-    join gets daisyUI's matching `input-sm` (`c-form.field` has no `size`
-    attribute, so that goes through its `class`)."""
-
     def test_the_submit_button_is_small(self):
         html = render("<c-page.list.actions.search />", is_searchable=True)
         assert "btn-sm" in html

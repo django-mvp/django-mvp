@@ -75,9 +75,6 @@ def class_attrs_on(html, tag):
 
 
 class TestClassAttributeMerge:
-    """A caller-supplied ``class`` merges into the built-in classes instead
-    of producing a second, browser-ignored ``class`` attribute."""
-
     def test_text_merges_caller_class(self):
         html = render('<c-text class="dac-prose">hi</c-text>')
         attrs = class_attrs_on(html, "p")
@@ -86,12 +83,6 @@ class TestClassAttributeMerge:
         assert "text-base" in attrs[0]
 
     def test_divider_merges_caller_class(self):
-        """Added when <c-form.formset> needed more room around its heading.
-
-        Until then the component declared no ``class`` and spread no
-        ``attrs``, so it could not be adjusted at all — and per Article XI
-        its attributes are the only supported way to customize it.
-        """
         html = render('<c-divider class="my-8">Order lines</c-divider>')
         attrs = class_attrs_on(html, "div")
         assert len(attrs) == 1, f"expected one class attribute, found {attrs}"
@@ -149,10 +140,6 @@ class TestClassAttributeMerge:
         assert "drawer" in attrs[0]
 
     def test_page_title_merges_caller_class(self):
-        """The audit for #121 missed this one. It declared ``class``, wrote
-        its own class list without reading it, and spread no ``attrs`` either,
-        so a caller's class was stripped out of the pass-through and then
-        never written back — dropped rather than duplicated."""
         html = render('<c-page.title title="Products" class="mb-8" />')
         attrs = class_attrs_on(html, "div")
         assert len(attrs) == 1, f"expected one class attribute, found {attrs}"
@@ -160,7 +147,6 @@ class TestClassAttributeMerge:
         assert "page-title" in attrs[0]
 
     def test_page_title_passes_other_attributes_through(self):
-        """``class`` was only half of it: no attribute reached the element."""
         parser = _FirstTagAttrs("div")
         parser.feed(render('<c-page.title title="Products" id="product-heading" />'))
         assert ("id", "product-heading") in parser.attrs

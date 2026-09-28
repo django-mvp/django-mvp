@@ -1,39 +1,11 @@
-{% comment %}
-  A whole Django formset: a divider and heading marking it off from the form
-  above, an optional description, any error belonging to the set as a whole,
-  the management form Django needs to read the submission back, one row per
-  form in formset order, the inert empty-form template cloned to add rows in
-  the browser, and the add-row control.
-
-  The divider is unconditional. A set of related rows sitting flush against
-  the parent form's fields reads as more of the same form, and the point of
-  the heading is to say that this part of the page edits something else.
-  `title` defaults to the set's model in plural; `description` is the
-  developer's own help text and has no default.
-
-  The browser behaviour is the `mvpFormset` Alpine component in
-  mvp/static/js/formset.js, loaded by the <script> at the bottom of this file.
-  The x-data attribute only initialises it with this set's counts.
-
-  Two counters drive the set: `total` (monotonic, seeds `__prefix__`
-  substitution and TOTAL_FORMS - never decremented) and `visible` (rows not
-  marked for removal, compared against `formset.max_num` by the add control).
-  See contracts/formset-component.md and specs/024-formset-pages/CONTEXT.md.
-
-  `layout` chooses the presentation and defaults to today's, so an existing
-  caller renders byte-for-byte what it did before. Under `tabular` the set
-  gains a row of column headings and every row lays its fields out on shared
-  column tracks - the right shape when a row is two or three short fields,
-  where stacking spends five lines of height on two inputs and leaves nothing
-  aligned between one row and the next.
-
-  The headings are read from the empty form, the only form a set is guaranteed
-  to have, and drawn from `sm` up alongside the grid they name. They are plain
-  text, not a <table>: the layout has to be able to collapse back to the
-  stacked rows on a narrow screen, and that is not something table semantics
-  survive. Nothing is lost by it, because what names an input to a screen
-  reader is the input's own label, which every row still carries.
-{% endcomment %}
+{# @description A whole Django formset: heading, description, set-level errors, management form, one row per form, and the add-row control. #}
+{# @prop formset:text | description:"The Django formset to render; nothing renders without it." #}
+{# @prop title:text | description:"Heading text; defaults to the set's model in plural." #}
+{# @prop description:text | description:"Developer-supplied help text under the heading." #}
+{# @prop class:text | description:"Extra classes on the root element." #}
+{# @prop layout:select['stacked','tabular'] | default:"stacked" | description:"Row presentation; tabular adds column headings from the empty form." #}
+{# @prop add-label:text | default:"Add row" | description:"Text for the add-row button." #}
+{# @prop remove-label:text | default:"Remove" | description:"Text for each row's remove control." #}
 {% load i18n l10n static mvp %}
 <c-vars formset
         title
@@ -43,11 +15,20 @@
         add-label="{% trans "Add row" %}"
         remove-label="{% trans "Remove" %}" />
 {% if formset %}
+  {% comment %}
+    Alpine behaviour is `mvpFormset` in mvp/static/js/formset.js; `total`
+    (monotonic, seeds TOTAL_FORMS) and `visible` (not marked for removal,
+    checked against max_num) are its two counters. See contracts/formset-component.md.
+  {% endcomment %}
   <div class="space-y-4 {{ class }}"
        x-data="mvpFormset({{ formset.total_form_count|unlocalize }}, {{ formset.max_num|unlocalize }})"
        x-on:mvp-formset-row-removed="visible--"
        {{ attrs }}>
     {% firstof title formset.title formset|formset_label as heading %}
+    {% comment %}
+      Unconditional: rows flush against the parent form's fields read as
+      more of the same form without a divider marking the set off.
+    {% endcomment %}
     <c-divider class="my-8">{{ heading }}</c-divider>
     {% firstof description formset.description as help_text %}
     {% if help_text %}<c-text muted size="sm">{{ help_text }}</c-text>{% endif %}
@@ -78,10 +59,8 @@
           </div>
         {% endfor %}
         {% comment %}
-          An empty cell holding the remove column open. `sr-only` would not do
-          it: that takes the element out of flow, so the track it should be
-          occupying would collapse and every row would sit one column wider
-          than its own heading.
+          Empty cell holding the remove column open. `sr-only` takes it out of
+          flow, collapsing the track and widening every row past its heading.
         {% endcomment %}
         {% if formset.can_delete %}<span aria-hidden="true"></span>{% endif %}
       </div>
@@ -111,10 +90,8 @@
               x-on:click="addRow()" />
   </div>
   {% comment %}
-    Not `defer`: Alpine is deferred in the base template, so a deferred tag
-    here would run after `alpine:init` had already fired and neither component
-    would register. A page with several formsets loads the same URL more than
-    once, which re-registers the same two names and is harmless.
+    Not `defer`: the base template already defers Alpine, so a deferred tag
+    here would run after `alpine:init` fired and never register.
   {% endcomment %}
   <script src="{% static 'js/formset.js' %}"></script>
 {% endif %}

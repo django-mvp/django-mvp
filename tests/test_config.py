@@ -1,6 +1,6 @@
 """Tests for ``mvp.config`` — the merged ``MVP_CONFIG`` dict.
 
-Mirrors ``mvp/config.py`` (Article X). Covers the ``theme`` block FS-026 US1
+Mirrors ``mvp/config.py`` (the testing standard). Covers the ``theme`` block FS-026 US1
 adds: the package defaults, and the deep-merge behaviour a project override
 gets. The merge itself is exercised directly against ``mergedeep.merge`` —
 the same function ``mvp/config.py`` calls to build ``MVP_CONFIG`` at import
@@ -20,11 +20,7 @@ from mvp.warnings import MVPDeprecationWarning
 
 
 class TestThemeConfigDefaults:
-    """No project override: the shipped defaults ``MVP_CONFIG`` exposes."""
-
     def test_theme_default_is_a_prebuilt_theme(self):
-        """The package ships no palette of its own, so the applied theme is one
-        of DaisyUI's (docs/adr/0016)."""
         assert MVP_CONFIG["theme"]["default"] == "light"
 
     def test_theme_dark_is_a_prebuilt_theme(self):
@@ -34,19 +30,12 @@ class TestThemeConfigDefaults:
         assert MVP_CONFIG["theme"]["choices"] == []
 
     def test_theme_is_a_top_level_sibling_of_brand_not_nested_in_layout(self):
-        """A theme is appearance, not a structural layout concern (plan.md
-        Design: 'The configuration block')."""
         assert "theme" in MVP_CONFIG
         assert "theme" not in MVP_CONFIG["layout"]
         assert set(MVP_CONFIG["theme"]) == {"default", "dark", "choices"}
 
 
 class TestThemeConfigOverrideMerge:
-    """A project override of one ``theme`` key merges without disturbing the
-    other ``theme`` key or any sibling top-level block — the same deep merge
-    ``mvp/config.py`` performs at import time via ``mergedeep.merge``.
-    """
-
     @staticmethod
     def _defaults():
         """A deep copy of the real package defaults, so merging into it can't
@@ -72,17 +61,11 @@ class TestThemeConfigOverrideMerge:
 
 
 class TestTableConfigDefaults:
-    """No project override: the table section's shipped default (issue #255)."""
-
     def test_wrap_default_is_off(self):
         assert MVP_CONFIG["table"]["wrap"] is False
 
 
 class TestTableConfigOverrideMerge:
-    """A project override of ``table.wrap`` merges without disturbing any
-    sibling top-level block — the same deep merge ``mvp/config.py`` performs
-    at import time via ``mergedeep.merge``."""
-
     @staticmethod
     def _defaults():
         """A deep copy of the real package defaults, so merging into it can't
@@ -98,10 +81,6 @@ class TestTableConfigOverrideMerge:
 
 
 class TestRemovedSidebarFooterSetting:
-    """``layout.sidebar.footer`` (docs/adr/0023): a project that still sets
-    it gets a deprecation warning and the key is popped, so no template can
-    read a value that no longer has any effect."""
-
     @staticmethod
     def _config_with_footer_override():
         config = copy.deepcopy(MVP_CONFIG)
@@ -115,7 +94,7 @@ class TestRemovedSidebarFooterSetting:
 
     def test_pops_the_setting_so_no_template_can_read_it(self):
         config = self._config_with_footer_override()
-        with pytest.warns(MVPDeprecationWarning):
+        with pytest.warns(MVPDeprecationWarning, match="layout.*sidebar.*footer"):
             _warn_on_removed_sidebar_footer_setting(config)
         assert "footer" not in config["layout"]["sidebar"]
 
@@ -127,8 +106,6 @@ class TestRemovedSidebarFooterSetting:
 
 
 class TestPwaConfigDefaults:
-    """The feature is off by default, and the application's names are unset."""
-
     def test_the_feature_is_off(self):
         assert MVP_CONFIG["pwa"] is False
 

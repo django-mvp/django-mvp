@@ -127,7 +127,7 @@ tests/
 ```
 
 **Structure Decision**: the package's existing layout, unchanged. Template tags stay in the single
-`mvp` library per Article XVII's framework-dictated exception; a new `mvp/tables.py` appears only if
+`mvp` library per Article X's framework-dictated exception; a new `mvp/tables.py` appears only if
 the kind-resolution logic outgrows one tag function, and the tag stays the thin wrapper over it.
 
 ## Phase plan

@@ -1,13 +1,14 @@
+{# @description Scrollable region around a django-tables2 table, with its heading and footer rows pinned. #}
+{# @prop table:text | description:"The django-tables2 Table instance to render." #}
+{# @prop class:text | description:"Extra classes on the scroll region." #}
+{# @prop label:text | description:"Accessible name for the region. Give it a distinct value on any page with more than one table." #}
+{# @prop role:text | default:"region" | description:"ARIA role on the scroll region." #}
 {% load i18n %}
 {% load render_table from django_tables2 %}
 {% comment %}
-  The scroll region of the table layout. It owns both axes, so overflow never
-  reaches the window.
-
-  role/tabindex/aria-label are declared as variables rather than written into
-  the tag, because anything hardcoded here would be emitted before {{ attrs }}
-  and HTML keeps the *first* of a repeated attribute — a caller passing its own
-  label would be silently ignored. A page with two tables needs two names.
+  role/tabindex/aria-label are variables, not written into the tag: anything
+  hardcoded here would be emitted before {{ attrs }}, and HTML keeps the
+  *first* of a repeated attribute, so a caller's own label would be ignored.
 {% endcomment %}
 <c-vars table class label role="region" />
 <div class="overflow-auto table-pin-rows {{ class }}"

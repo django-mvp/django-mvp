@@ -1,12 +1,17 @@
+"""Default resolvers, icon aliases and small helpers for django-mvp."""
+
+from typing import Any
+
 from django.apps import apps
 from django.contrib.sites.shortcuts import get_current_site
 from django.contrib.staticfiles import finders
 from django.core.exceptions import ObjectDoesNotExist
+from django.http import HttpRequest
 from django.templatetags.static import static
 from django.urls import NoReverseMatch, reverse
 
 
-def avatar_url(user, size):
+def avatar_url(user: Any, size: str) -> None:
     """Default avatar resolver.
 
     Args:
@@ -21,7 +26,7 @@ def avatar_url(user, size):
     return None
 
 
-def logo_url(request, height, theme):
+def logo_url(request: HttpRequest | None, height: int, theme: str) -> str:
     """Default logo resolver.
 
     Returns brand/logo.svg for light theme. For dark theme, returns
@@ -34,7 +39,7 @@ def logo_url(request, height, theme):
         theme: Theme identifier ('light', 'dark', or any other string).
 
     Returns:
-        str: Static URL for the appropriate brand logo asset.
+        Static URL for the appropriate brand logo asset.
     """
     if theme == "dark" and finders.find("brand/logo_dark.svg"):
         return static("brand/logo_dark.svg")
@@ -42,7 +47,7 @@ def logo_url(request, height, theme):
     return static("brand/logo.svg")
 
 
-def icon_url(request, height, theme):
+def icon_url(request: HttpRequest | None, height: int, theme: str) -> str:
     """Default icon resolver.
 
     Returns brand/icon.svg for light theme and unrecognised themes. For dark
@@ -55,7 +60,7 @@ def icon_url(request, height, theme):
         theme: Theme identifier ('light', 'dark', or any other string).
 
     Returns:
-        str: Static URL for the appropriate brand icon asset.
+        Static URL for the appropriate brand icon asset.
     """
     if theme == "dark" and finders.find("brand/icon_dark.svg"):
         return static("brand/icon_dark.svg")
@@ -64,16 +69,14 @@ def icon_url(request, height, theme):
 
 
 def app_is_installed(app_name: str) -> bool:
-    """
-    Check if a Django app is installed.
+    """Return whether a Django app is installed.
 
     Args:
-        app_name: The app name or app config label to check for.
-                  Can be either the full path (e.g., "crispy_forms")
-                  or a label (e.g., "admin").
+        app_name: The app name or app config label to check for. Either
+            the full path (e.g., "crispy_forms") or a label (e.g., "admin").
 
     Returns:
-        bool: True if the app is installed in INSTALLED_APPS, False otherwise.
+        True if the app is installed in INSTALLED_APPS, False otherwise.
 
     Example:
         >>> from mvp.utils import app_is_installed
@@ -84,18 +87,11 @@ def app_is_installed(app_name: str) -> bool:
     return apps.is_installed(app_name)
 
 
-# Comma-separated keys declare several aliases for one icon (expanded by
-# django-easy-icons); surrounding whitespace is stripped. Every alias below
-# resolves to the same Bootstrap Icons class, keeping the pack flexible for
-# callers while grouping synonyms onto single, manageable lines.
-#
-# Classes are checked against the pinned Bootstrap Icons release
-# (mvp/templates/mvp/base.html) in tests/test_utils.py, against a vendored
-# name list at tests/fixtures/bootstrap-icons-1.13.1-names.txt. Bumping that
-# template's version means regenerating the fixture from the matching
-# https://cdn.jsdelivr.net/npm/bootstrap-icons@<version>/font/bootstrap-icons.json.
+# Comma-separated keys declare aliases for one icon (expanded by django-easy-icons).
+# Classes are checked in tests/test_utils.py against a vendored name list keyed to
+# the Bootstrap Icons version pinned in mvp/templates/mvp/base.html.
 BS5_ICONS = {
-    # ── Actions ──────────────────────────────────────────────────────────
+    # Actions
     "add, plus, create": "bi bi-plus",
     "minus, dash": "bi bi-dash",
     "delete, remove, trash": "bi bi-trash",
@@ -119,7 +115,7 @@ BS5_ICONS = {
     "undo": "bi bi-arrow-counterclockwise",
     "archive": "bi bi-archive",
     "drag, move, grip": "bi bi-grip-vertical",
-    # ── Navigation & layout ──────────────────────────────────────────────
+    # Navigation & layout
     "home, house": "bi bi-house",
     "menu": "bi bi-list",
     "account_center": "bi bi-person-gear",
@@ -143,32 +139,32 @@ BS5_ICONS = {
     "list-view": "bi bi-view-list",
     "more, options, kebab": "bi bi-three-dots-vertical",
     "external-link": "bi bi-box-arrow-up-right",
-    # ── Sorting ──────────────────────────────────────────────────────────
+    # Sorting
     # A sort control that is not currently sorting anything uses "sort"; the
     # directional pair is for a header that is showing the direction it sorted
     # by, so each has to point the way it reads.
     "sort": "bi bi-sort-down",
     "sort-asc": "bi bi-arrow-up-short",
     "sort-desc": "bi bi-arrow-down-short",
-    # ── People ───────────────────────────────────────────────────────────
+    # People
     "person, user, account": "bi bi-person",
     "people, users": "bi bi-people",
-    # ── Settings & theme ─────────────────────────────────────────────────
+    # Settings & theme
     "settings, gear, cog, gears": "bi bi-gear",
     "theme.auto": "bi bi-circle-half",
     "theme.dark": "bi bi-moon-stars-fill",
     "theme.light": "bi bi-sun",
-    # ── Communication ────────────────────────────────────────────────────
+    # Communication
     "email, envelope": "bi bi-envelope",
     "phone, telephone": "bi bi-telephone",
     "chat, message, comment": "bi bi-chat-dots",
     "notification, bell": "bi bi-bell",
     "attachment, paperclip": "bi bi-paperclip",
-    # ── Time & location ──────────────────────────────────────────────────
+    # Time & location
     "calendar, date": "bi bi-calendar",
     "clock, time": "bi bi-clock",
     "location, map, map-pin": "bi bi-geo-alt",
-    # ── Files & media ────────────────────────────────────────────────────
+    # Files & media
     "document, file": "bi bi-file-earmark",
     "folder": "bi bi-folder",
     "image, photo": "bi bi-image",
@@ -177,11 +173,11 @@ BS5_ICONS = {
     "pdf": "bi bi-file-earmark-pdf",
     "database": "bi bi-database",
     "cloud": "bi bi-cloud",
-    # ── Security ─────────────────────────────────────────────────────────
+    # Security
     "lock, locked": "bi bi-lock",
     "unlock, unlocked": "bi bi-unlock",
     "key, password": "bi bi-key",
-    # ── Social ───────────────────────────────────────────────────────────
+    # Social
     "github": "bi bi-github",
     "facebook": "bi bi-facebook",
     "twitter": "bi bi-twitter-x",
@@ -196,15 +192,15 @@ BS5_ICONS = {
     "bluesky": "bi bi-bluesky",
     "discord": "bi bi-discord",
     "slack": "bi bi-slack",
-    # ── Misc glyphs ──────────────────────────────────────────────────────
+    # Misc glyphs
     "circle": "bi bi-circle",
     "globe": "bi bi-globe",
     "life-preserver": "bi bi-life-preserver",
     "help, question": "bi bi-question-circle",
     "star, favorite": "bi bi-star",
     "bookmark": "bi bi-bookmark",
-    # ── Status (keyed to alert/badge variant names so a component can pass
-    #    its variant straight through to <c-icon>) ─────────────────────────
+    # Status (keyed to alert/badge variant names so a component can pass
+    #    its variant straight through to <c-icon>)
     "info": "bi bi-info-circle-fill",
     "success, dropdown_check": "bi bi-check-circle-fill",
     "warning": "bi bi-exclamation-triangle-fill",

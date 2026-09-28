@@ -1,10 +1,8 @@
 {% extends "mvp/base.html" %}
 {% load i18n %}
 {% comment %}
-  Error pages name no app, even when the failing request was served through
-  one: a refused or broken request should not tell the visitor what it was
-  trying to reach. Overriding `head.title` opts out of the shell's app segment,
-  and `title` is still the block a page overrides to set its own.
+  A refused or broken request should not tell the visitor what app it was
+  trying to reach, so `head.title` opts out of the shell's app segment here.
 {% endcomment %}
 {% block head.title %}
   {% block title %}

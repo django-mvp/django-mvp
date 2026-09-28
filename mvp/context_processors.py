@@ -1,12 +1,13 @@
 """Context processors for django-mvp."""
 
+from django.http import HttpRequest
 from django.utils.functional import SimpleLazyObject
 
 from .config import MVP_CONFIG
 from .mounted import MountedApp
 
 
-def mvp_config(request):
+def mvp_config(request: HttpRequest) -> dict:
     """Provide MVP configuration and the current mounted app to all templates.
 
     Exposes the merged MVP_CONFIG dict as ``mvp_config`` so templates and
@@ -20,8 +21,13 @@ def mvp_config(request):
     a page that never asks pays nothing::
 
         {% if mounted_app %}{{ mounted_app.name }}{% endif %}
-    """
 
+    Args:
+        request: The current request.
+
+    Returns:
+        A dict with "mvp_config", "mounted_app" and "mounted_menu".
+    """
     return {
         "mvp_config": MVP_CONFIG,
         "mounted_app": SimpleLazyObject(lambda: MountedApp.shell(request).app),

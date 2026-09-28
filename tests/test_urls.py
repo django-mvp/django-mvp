@@ -77,11 +77,6 @@ def _count_registrations(urlconf, name):
 
 
 class TestMountedAtTheSiteRoot:
-    """[#396] A project includes ``mvp.urls`` at the site root, and the
-    URLconf places each of its own routes: the Account Center's pages under
-    ``account/``, the installable-app files at the root, where a service
-    worker has to sit to control every page."""
-
     def test_the_account_pages_sit_under_account(self):
         with override_settings(ROOT_URLCONF=ACCOUNT_URLCONF):
             assert reverse("account-center") == "/account/"
@@ -96,8 +91,6 @@ class TestMountedAtTheSiteRoot:
 
 
 class TestAccountLoginURL:
-    """``account_login`` — the sign-in page (T002)."""
-
     @pytest.mark.django_db
     def test_reversing_account_login_serves_a_sign_in_form(self, client):
         with override_settings(ROOT_URLCONF=ACCOUNT_URLCONF):
@@ -109,19 +102,11 @@ class TestAccountLoginURL:
         assert 'type="password"' in content
 
     def test_the_identifying_fields_label_is_not_hard_coded(self):
-        """FR-005: the field's label comes from ``form.username.label`` —
-        whatever the user model calls its identifying field — never a
-        literal string in the template."""
         assert "form.username.label" in LOGIN_TEMPLATE.read_text()
 
 
 @pytest.mark.django_db
 class TestPackagedEntriesStandDownWhenAllauthIsInstalled:
-    """``mvp.urls`` contributes neither ``account_login`` nor
-    ``account_logout`` once allauth's account application is installed, so
-    which view answers those addresses never depends on mount order (T011,
-    FR-003, D1)."""
-
     def test_without_allauth_both_names_are_present_and_answer(self, client):
         with override_settings(ROOT_URLCONF=ACCOUNT_URLCONF):
             assert client.get(reverse("account_login")).status_code == 200
@@ -137,11 +122,6 @@ class TestPackagedEntriesStandDownWhenAllauthIsInstalled:
 
 @pytest.mark.django_db
 class TestAllauthAnswersRegardlessOfMountOrder:
-    """allauth's view answers the sign-in and sign-out addresses whichever
-    order the two URLconfs were mounted in — the order this project's own
-    documentation and django-accounts-center's example both use, and the
-    opposite (T012, US-2 scenarios 2 and 3, SC-003)."""
-
     def test_mvp_mounted_before_allauth(self, client, allauth_installed):
         # Local import: allauth.account is only importable once INSTALLED_APPS
         # carries it (R11), which allauth_installed has just arranged.
@@ -163,10 +143,6 @@ class TestAllauthAnswersRegardlessOfMountOrder:
 
 @pytest.mark.django_db
 class TestEachNameIsRegisteredExactlyOnce:
-    """``account_login`` and ``account_logout`` each resolve to exactly one
-    pattern, in every supported combination: with allauth in both mount
-    orders, and without allauth (T013, FR-003, SC-004)."""
-
     def test_without_allauth_the_packaged_pages_are_present_and_answer(self, client):
         assert _count_registrations(ACCOUNT_URLCONF, "account_login") == 1
         assert _count_registrations(ACCOUNT_URLCONF, "account_logout") == 1
@@ -186,8 +162,6 @@ class TestEachNameIsRegisteredExactlyOnce:
 
 
 class TestPwaUrls:
-    """The manifest and the worker ride on ``mvp.urls`` while ``pwa`` is on."""
-
     @override_settings(ROOT_URLCONF="tests.urls_pwa")
     def test_the_routes_are_absent_when_the_feature_is_off(self):
         with pytest.raises(NoReverseMatch):
@@ -209,8 +183,6 @@ class TestPwaUrls:
 
 
 class TestAccountCenterMount:
-    """``mvp.urls`` mounts the Account Center as a mounted app at ``account/``."""
-
     @pytest.fixture(autouse=True)
     def _account_urlconf(self):
         with override_settings(ROOT_URLCONF=ACCOUNT_URLCONF):
@@ -233,7 +205,6 @@ class TestAccountCenterMount:
         assert getattr(match.func, "mounted_app", None) is None
 
     def test_the_declaration_names_the_area_and_its_landing(self):
-
 
         assert str(account_center.name) == "Account Center"
         assert account_center.icon == "account_center"

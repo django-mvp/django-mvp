@@ -26,11 +26,8 @@ def _render(language_code="en"):
 
 
 class TestLanguageSwitcherModal:
-    """Markup contract for the language switcher modal."""
-
     @pytest.mark.django_db
     def test_renders_trigger_and_dialog(self):
-        """A globe trigger opens the dialog; the dialog posts set_language."""
         html = _render()
         # trigger button opens the modal via the native dialog API
         assert "showModal()" in html
@@ -42,7 +39,6 @@ class TestLanguageSwitcherModal:
 
     @pytest.mark.django_db
     def test_lists_available_languages_as_submit_buttons(self):
-        """Each available language is a submit button posting its code."""
         html = _render()
         codes = re.findall(
             r'<button type="submit"\s+name="language"\s+value="([^"]+)"', html
@@ -54,7 +50,6 @@ class TestLanguageSwitcherModal:
 
     @pytest.mark.django_db
     def test_active_language_is_marked(self):
-        """The current language gets aria-current and the primary highlight; only one."""
         html = _render("fr")
         assert html.count('aria-current="true"') == 1
         # the active option carries the primary highlight classes
@@ -68,7 +63,6 @@ class TestLanguageSwitcherModal:
 
     @pytest.mark.django_db
     def test_id_prop_overrides_dialog_id(self):
-        """The id prop lets more than one instance coexist on a page."""
         from django.contrib.auth.models import AnonymousUser
 
         request = RequestFactory().get("/")

@@ -1,20 +1,17 @@
-{% comment %}
-  A single, presentational form field: one control plus an optional label, help
-  text, and errors. It renders entirely from explicit attributes — to render a
-  whole Django form use <c-form.render> instead.
-
-  type — any text-like input (text, email, tel, password, number, date, …)
-  plus textarea, select, file, checkbox, radio and toggle.
-
-  label, help-text and errors accept an attribute or a named slot of the same
-  name (a slot allows rich content, e.g. badges inside the label). errors also
-  accepts a list (e.g. :errors="form.email.errors") and switches the control
-  to its error style. The default slot fills the textarea value, the select
-  options, or extra content inside a text input (e.g. a <kbd> hint).
-
-  Everything else (name, id, value, placeholder, required, disabled, checked,
-  rows, …) passes straight through to the control element.
-{% endcomment %}
+{# @description A single presentational form field: control plus optional label, help text, and errors. #}
+{# @prop type:text | default:"text" | description:"Any text-like input type, or textarea, select, file, checkbox, radio, toggle." #}
+{# @prop label:text | description:"Field label; also accepts a named slot of the same name for rich content." #}
+{# @prop hide-label:boolean | description:"Visually hide the label while keeping it accessible." #}
+{# @prop help-text:text | description:"Help text shown below the control; also accepts a named slot." #}
+{# @prop errors:text | description:"A string or list of errors; switches the control to its error style. Also accepts a named slot." #}
+{# @prop prelabel:text | description:"Inline label before the control (select/text inputs)." #}
+{# @prop postlabel:text | description:"Inline label after the control (select/text inputs)." #}
+{# @prop class:text | description:"Extra classes on the control element." #}
+{# @prop wrapper-class:text | description:"Extra classes on the fieldset wrapper." #}
+{# @slot Extra control content — Fills the textarea value, select options, or extra inline content. #}
+{# @slot:label Rich label markup — Alternative to label for rich content, e.g. a badge. #}
+{# @slot:help_text Rich help text markup — Alternative to help-text. #}
+{# @slot:errors Rich error markup — Alternative to errors. #}
 
 <c-vars type="text"
         label

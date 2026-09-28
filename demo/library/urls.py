@@ -1,5 +1,8 @@
-"""The library app's URLs. ``app_name`` makes the landing ``library:catalogue``
-wherever a project mounts it."""
+"""The library app's URLs.
+
+``app_name`` makes the landing ``library:catalogue`` wherever a project
+mounts it.
+"""
 
 from django.urls import path
 

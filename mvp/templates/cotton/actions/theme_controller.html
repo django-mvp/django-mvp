@@ -1,11 +1,9 @@
+{# @description Light/dark theme toggle. #}
+{# @prop size:select['sm','md','lg'] | default:"sm" | description:"Icon button / toggle size." #}
+{# @prop valign:select['top','bottom','left','right'] | default:"bottom" | description:"Dropdown vertical placement, used only when theme.choices is configured." #}
+{# @prop halign:select['start','center','end'] | default:"end" | description:"Dropdown horizontal placement, used only when theme.choices is configured." #}
+{# @prop compact:boolean | description:"Render the two-theme switcher as one square icon button instead of the icon/checkbox/icon row, for narrow slots. No effect when theme.choices is set, since that branch is already a square icon button." #}
 {% load i18n %}
-{% comment %}
-  compact — render the two-theme switcher as a single square icon button
-  rather than the icon/toggle/icon row. The row needs about 77px, which is
-  more than a control sharing a sidebar footer with a name can spend. Has
-  no effect when theme.choices is set, because that branch is already a
-  square icon button.
-{% endcomment %}
 <c-vars size="sm" valign="bottom" halign="end" compact />
 {% if mvp_config.theme.choices %}
   <c-dropdown valign="{{ valign }}" halign="{{ halign }}">
@@ -32,11 +30,8 @@
   </c-dropdown>
 {% else %}
   {% comment %}
-    theme-change reads this pair as "first,second": clicking while the first
-    is applied switches to the second, and anything else switches to the
-    first. Built from configuration so the toggle follows a project that
-    replaces the packaged themes, instead of stranding it on names the
-    stylesheet no longer defines.
+    theme-change reads this pair as "first,second". Built from configuration
+    so the toggle follows a project that replaces the packaged themes.
   {% endcomment %}
   {% if compact %}
     <c-button ghost

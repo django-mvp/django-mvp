@@ -76,15 +76,10 @@ def _layout(page, url, viewport):
 
 
 class TestFullPageContentFillsTheShell:
-    """The feature, on the demo page that exists to demonstrate it."""
-
     @at_every_viewport
     def test_the_shell_becomes_a_flex_column_with_a_height(
         self, page, live_server, viewport
     ):
-        """Both halves of the fix. The flex column is what makes
-        <c-app.main>'s flex-1 mean anything; the min-height is the floor it
-        grows into where the sidebar is not supplying one."""
         layout = _layout(page, f"{live_server.url}{FILL_PAGE}", viewport)
 
         assert layout["display"] == "flex"
@@ -95,15 +90,6 @@ class TestFullPageContentFillsTheShell:
     def test_the_container_never_computes_to_zero_height(
         self, page, live_server, viewport
     ):
-        """The failure mode issue #247 describes.
-
-        A library that measures its container once at construction renders
-        into nothing if that container computes to zero — which is what
-        ``h-full`` did before, with no error to show for it. ``#map`` carries
-        ``h-full w-full``, so this is the end of the chain being checked, and
-        it is CSS only: no CDN and no tile server, so it holds in CI whether
-        or not Leaflet itself loaded.
-        """
         layout = _layout(page, f"{live_server.url}{FILL_PAGE}", viewport)
 
         assert layout["mapHeight"] > 0, (
@@ -126,23 +112,12 @@ class TestFullPageContentFillsTheShell:
 
     @at_every_viewport
     def test_the_window_does_not_scroll(self, page, live_server, viewport):
-        """The point of filling is that the content owns its scrolling, so the
-        document must not have grown past the viewport."""
         layout = _layout(page, f"{live_server.url}{FILL_PAGE}", viewport)
 
         assert layout["documentHeight"] == layout["viewport"]
 
 
 class TestTheDockJoinsTheColumn:
-    """The mobile dock cannot stay fixed over a page that does not scroll.
-
-    DaisyUI docks are ``position: fixed`` at the bottom of the viewport. That
-    is fine on an ordinary page — the content scrolls underneath and its last
-    inch is reachable — but a filled page does not scroll, so a fixed dock
-    permanently covers the bottom 4rem of the content. On the demo map that is
-    Leaflet's zoom controls and attribution.
-    """
-
     def test_the_dock_is_in_the_flow(self, page, live_server):
         layout = _layout(page, f"{live_server.url}{FILL_PAGE}", VIEWPORTS["mobile"])
 
@@ -158,17 +133,12 @@ class TestTheDockJoinsTheColumn:
             "under a fixed dock on a page that cannot scroll is unreachable"
         )
 
-    def test_the_dock_still_reaches_the_bottom_of_the_viewport(
-        self, page, live_server
-    ):
-        """In the flow it must still sit at the bottom, not float mid-page."""
+    def test_the_dock_still_reaches_the_bottom_of_the_viewport(self, page, live_server):
         layout = _layout(page, f"{live_server.url}{FILL_PAGE}", VIEWPORTS["mobile"])
 
         assert layout["dock"]["bottom"] == layout["viewport"]
 
     def test_an_ordinary_page_keeps_its_fixed_dock(self, page, live_server):
-        """Everywhere else the dock is unchanged: those pages scroll, so fixed
-        is right and the rule must not reach them."""
         layout = _layout(page, f"{live_server.url}{ORDINARY_PAGE}", VIEWPORTS["mobile"])
 
         assert layout["dockIsVisible"]
@@ -176,9 +146,6 @@ class TestTheDockJoinsTheColumn:
 
 
 class TestTheDemoPageDropsTheFooter:
-    """A page given over to one widget has nothing a footer can say, and every
-    row it takes is a row the map does not get."""
-
     @at_every_viewport
     def test_no_footer_renders(self, page, live_server, viewport):
         layout = _layout(page, f"{live_server.url}{FILL_PAGE}", viewport)
@@ -187,21 +154,12 @@ class TestTheDemoPageDropsTheFooter:
 
     @at_every_viewport
     def test_an_ordinary_page_still_has_one(self, page, live_server, viewport):
-        """The override is the demo page's, not the shell's."""
         layout = _layout(page, f"{live_server.url}{ORDINARY_PAGE}", viewport)
 
         assert layout["footerCount"] == 1
 
 
 class TestOrdinaryPagesAreUntouched:
-    """The regression question issue #247 asked to have investigated.
-
-    The rule is scoped with ``:has(.mvp-page-fill)``, so a page that does not
-    opt in is not merely unchanged in effect — the declarations never apply to
-    it at all. That is checkable directly, which is a stronger claim than
-    comparing measurements.
-    """
-
     @at_every_viewport
     def test_the_shell_keeps_its_original_layout(self, page, live_server, viewport):
         layout = _layout(page, f"{live_server.url}{ORDINARY_PAGE}", viewport)

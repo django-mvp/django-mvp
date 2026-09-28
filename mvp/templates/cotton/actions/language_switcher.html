@@ -1,3 +1,4 @@
+{# @description i18n language dropdown; renders only when LocaleMiddleware is installed and set_language reverses. #}
 {% if request.LANGUAGE_CODE %}
   {% load i18n %}
   {% get_current_language as CURRENT_LANGUAGE %}

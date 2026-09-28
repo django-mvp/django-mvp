@@ -26,9 +26,6 @@ def _has_field(html, field_name):
 
 @pytest.mark.django_db
 class TestProjectCreateViewRendersTwoSets:
-    """The two-set demo page renders a project's task and note sets, each
-    under its own default heading."""
-
     def test_renders_200(self, client):
         response = client.get(reverse("project-create"))
 
@@ -45,8 +42,6 @@ class TestProjectCreateViewRendersTwoSets:
 
 @pytest.mark.django_db
 class TestProjectCreateViewSubmission:
-    """A valid submission creates the project and both sets' rows together."""
-
     def test_submission_creates_the_project_and_both_sets_rows(self, client):
         response = client.post(
             reverse("project-create"),
@@ -77,9 +72,6 @@ class TestProjectCreateViewSubmission:
 
 @pytest.mark.django_db
 class TestProductOrderLinesRowsOnlyViewRendersNoParentField:
-    """The rows-only demo page renders no input for any of the parent
-    product's own fields."""
-
     def test_renders_200(self, client):
         product = ProductFactory()
 
@@ -115,9 +107,6 @@ class TestProductOrderLinesRowsOnlyViewRendersNoParentField:
 
 @pytest.mark.django_db
 class TestProductOrderLinesRowsOnlyViewSubmission:
-    """A valid submission on the rows-only page saves its rows and leaves
-    the product's own field values unchanged."""
-
     def test_submission_saves_rows_and_leaves_the_products_own_fields_unchanged(
         self, client
     ):

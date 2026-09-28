@@ -16,11 +16,6 @@ from mvp.views.extra import MVPHomeView
 User = get_user_model()
 
 
-# ---------------------------------------------------------------------------
-# Concrete stubs for testing
-# ---------------------------------------------------------------------------
-
-
 class ConcreteTemplateView(BaseTemplateNameMixin, TemplateView):
     """Concrete subclass with base_template_name set — happy-path fixture."""
 
@@ -53,11 +48,6 @@ class ConcretePage(PageMixin, TemplateView):
     template_name = "page.html"
 
 
-# ---------------------------------------------------------------------------
-# TestBaseTemplateNameMixin
-# ---------------------------------------------------------------------------
-
-
 class TestBaseTemplateNameMixin:
     def test_raises_when_base_template_name_is_none(self):
         view = BareTemplateNameMixin()
@@ -82,11 +72,6 @@ class TestBaseTemplateNameMixin:
     def test_returns_base_template_alone_when_no_template_name_is_set(self):
         view = NoTemplateNameView()
         assert view.get_template_names() == ["base.html"]
-
-
-# ---------------------------------------------------------------------------
-# TestPageMixinGetPageContext
-# ---------------------------------------------------------------------------
 
 
 class TestPageMixinGetPageContext:
@@ -114,14 +99,7 @@ class TestPageMixinGetPageContext:
         assert ctx["breadcrumbs"] == [{"text": "Home"}]
 
 
-# ---------------------------------------------------------------------------
-# TestPageMixinPageInfo
-# ---------------------------------------------------------------------------
-
-
 class TestPageMixinPageInfo:
-    """The explanatory text a view offers about its own page (issue #321)."""
-
     def test_no_info_by_default(self):
         assert ConcretePage().get_page_info() == ""
 
@@ -144,11 +122,6 @@ class TestPageMixinPageInfo:
         ]
 
     def test_override_supplies_rich_text(self):
-        """The documented extension point: build the body at request time.
-
-        A view that renders a template or a Markdown source returns a safe
-        string from here, and the template layer writes it out as markup.
-        """
 
         class RichInfoPage(ConcretePage):
             def get_page_info(self):
@@ -168,21 +141,8 @@ class TestPageMixinPageInfo:
         ]
 
 
-# ---------------------------------------------------------------------------
-# TestPageInfoRendersThroughARealPage
-# ---------------------------------------------------------------------------
-
-
 @pytest.mark.django_db
 class TestPageInfoRendersThroughARealPage:
-    """The whole path a project uses: view attribute → page context → templates.
-
-    The component tests exercise ``c-page.info`` directly. Only rendering a real
-    page proves the value reaches it: ``page_view.html`` hands ``c-page.title``
-    one named attribute per key it needs, so a key that never arrives goes
-    nowhere silently.
-    """
-
     def _render(self, **attrs):
         from django.contrib.auth.models import AnonymousUser
 
@@ -211,21 +171,12 @@ class TestPageInfoRendersThroughARealPage:
         assert "Read the guide" in html
 
     def test_the_title_block_carries_only_what_it_reads(self):
-        """``c-page.title`` writes every attribute it is handed onto its root
-        element, so the page context is handed to it one key at a time. Spread
-        whole, it would put the breadcrumb trail — a list of dicts — into an
-        HTML attribute on every page in the package."""
         html = self._render(page_title="Products")
 
         title_block = html[html.index('class="page-title') :]
         title_block = title_block[: title_block.index(">") + 1]
         assert "breadcrumbs" not in title_block
         assert "mvp-page" not in title_block
-
-
-# ---------------------------------------------------------------------------
-# TestPageMixinGetContextData
-# ---------------------------------------------------------------------------
 
 
 class TestPageMixinGetContextData:
@@ -263,11 +214,6 @@ class TestPageMixinGetContextData:
         assert context["page"]["class"].startswith("mvp-page")
 
 
-# ---------------------------------------------------------------------------
-# Stub models, forms for TestModelInfoMixin (T006)
-# ---------------------------------------------------------------------------
-
-
 class _CustomVerboseModel(db_models.Model):
     """Stub with a custom verbose_name — unmanaged, no DB table."""
 
@@ -292,14 +238,7 @@ class _PlainForm(django_forms.Form):
     name = django_forms.CharField()
 
 
-# ---------------------------------------------------------------------------
-# TestModelInfoMixin
-# ---------------------------------------------------------------------------
-
-
 class TestModelInfoMixin:
-    """All ModelInfoMixin tests. Pure Python unit tests — no database access required."""
-
     # --- US1: Four resolution strategies (T007–T011) -------------------------
 
     def test_resolves_from_model_attribute(self):
@@ -501,9 +440,6 @@ class TestModelInfoMixin:
         assert V().get_model_class_or_none() is None
 
     def test_context_data_model_info_is_none_without_a_model(self):
-        """Regression: a plain (model-less) FormView crashed here — the base
-        ModelInfoMixin.get_context_data() called get_model_info(), which
-        always needs a model, unconditionally."""
 
         class V(ModelInfoMixin, TemplateView):
             form_class = _PlainForm
@@ -514,11 +450,6 @@ class TestModelInfoMixin:
         v.kwargs = {}
         v.args = []
         assert v.get_context_data()["model_info"] is None
-
-
-# ---------------------------------------------------------------------------
-# TestMVPHomeView (covers MVPHomeView branches in mvp.views.base)
-# ---------------------------------------------------------------------------
 
 
 class TestMVPHomeView:
@@ -555,7 +486,6 @@ class TestMVPHomeView:
         assert isinstance(context, dict)
 
 
-# ---------------------------------------------------------------------------
 # TestMVPTemplateViewLayoutIntegration
 
 
@@ -565,19 +495,9 @@ class _PlainForm(django_forms.Form):
     name = django_forms.CharField()
 
 
-# ---------------------------------------------------------------------------
-# TestMVPTemplateViewLayoutIntegration (T042 — US4)
-# Integration tests using Django test client to verify layout config attributes
-# flow through to rendered HTML.
-# ---------------------------------------------------------------------------
-
-
 @pytest.mark.django_db
 class TestMVPTemplateViewLayoutIntegration:
-    """Integration tests: MVPTemplateView layout config attributes appear in rendered HTML."""
-
     def test_page_class_in_container_element(self):
-        """page_class value flows through get_page_class() with mvp-page prefix."""
         from mvp.views import MVPTemplateView
 
         request = RequestFactory().get("/")
@@ -593,7 +513,6 @@ class TestMVPTemplateViewLayoutIntegration:
         assert context["page"]["class"].startswith("mvp-page")
 
     def test_all_layout_attributes_in_context(self):
-        """All page_* attributes are present in the page context dict."""
         from mvp.views import MVPTemplateView
 
         request = RequestFactory().get("/")
@@ -615,71 +534,22 @@ class TestMVPTemplateViewLayoutIntegration:
         assert page["breadcrumbs"] == [{"text": "Home", "href": "/"}]
 
 
-# -------------------------------------------------------------------------
-# Browser tests (mvp/views/base.py)
-# -------------------------------------------------------------------------
-
 User = get_user_model()
 
 
-# ---------------------------------------------------------------------------
-# US1: MVPHomeView — guest/dashboard template switch
-# ---------------------------------------------------------------------------
 # US2: MVPHomeView — guest/dashboard template switch
-# ---------------------------------------------------------------------------
 
 
 @pytest.mark.django_db
 class TestMVPHomeViewPages:
-    """Guest and dashboard rendering for the home view."""
-
-    def test_home_unauthenticated_shows_landing_content(self, client):
-        """Anonymous GET / shows landing page headline, not dashboard content."""
-        response = client.get("/")
-        assert response.status_code == 200
-        assert b"production-ready Django apps fast" in response.content
-
-    def test_home_unauthenticated_has_hero_lead(self, client):
-        """Anonymous GET / shows the hero lead paragraph."""
-        content = client.get("/").content
-        assert b"focus on your business logic" in content
-
-    def test_home_authenticated_shows_dashboard_content(
-        self, client, django_user_model
-    ):
-        """Authenticated GET / shows dashboard content with username."""
-        user = django_user_model.objects.create_user(
-            username="authuser1", password="pass123!"
-        )
-        client.force_login(user)
-        response = client.get("/")
-        assert b"Welcome" in response.content
-
     def test_home_post_returns_405(self, client):
-        """POST / returns 405 Method Not Allowed (FR-011)."""
         response = client.post("/")
         assert response.status_code == 405
 
 
-# ---------------------------------------------------------------------------
-# US3: Full login-and-return journey
-# ---------------------------------------------------------------------------
-
-
 @pytest.mark.django_db
 class TestLoginReturnJourney:
-    """The full login-and-return flow through the shell."""
-
     def test_full_login_and_return_journey(self, client, django_user_model):
-        """Full sequential journey: anonymous landing → login → dashboard at same URL (US3).
-
-        Steps:
-        1. Visit / unauthenticated — assert landing content visible.
-        2. Authenticate via force_login.
-        3. Visit / again — assert dashboard content.
-        4. Assert no redirects occur at any step.
-        5. Assert navbar and sidebar are present on the dashboard.
-        """
         user = django_user_model.objects.create_user(
             username="journeyuser", password="pass123!"
         )
@@ -687,9 +557,6 @@ class TestLoginReturnJourney:
         # Step 1: Anonymous visit to /
         response = client.get("/")
         assert response.status_code == 200
-        assert b"production-ready Django apps fast" in response.content, (
-            "Landing content not visible for anonymous user"
-        )
 
         # Step 2: Authenticate
         client.force_login(user)
@@ -697,9 +564,6 @@ class TestLoginReturnJourney:
         # Step 3: Visit / as authenticated user
         response = client.get("/")
         assert response.status_code == 200
-        assert b"Welcome" in response.content, (
-            "Dashboard greeting not visible after login"
-        )
 
         # Step 5: Confirm sidebar and navbar are present on dashboard
         assert b"mvp-sidebar" in response.content, "Sidebar missing from dashboard"

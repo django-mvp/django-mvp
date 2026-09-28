@@ -24,12 +24,9 @@
               {% for column in table.columns %}
                 <th {% table_cell_attrs column table cell="th" wrap=False %} scope="col">
                   {% comment %}
-                    A heading that resolves to a falsey value prints nothing
-                    rather than printing the value (issue #319). The cell
-                    itself stays, so the column keeps its width and its
-                    position, and an orderable column keeps its sort control:
-                    suppressing a heading is not a request to stop offering the
-                    sort.
+                    A falsey heading prints nothing rather than the value
+                    (#319); the cell and its sort control stay — suppressing
+                    the heading is not a request to drop ordering too.
                   {% endcomment %}
                   {% if column.orderable %}
                     <a href="{% querystring_replace table.prefixed_order_by_field=column.order_by_alias.next %}">
@@ -48,13 +45,9 @@
       {% endblock table.thead %}
       {% block table.tbody %}
         {% comment %}
-          Columns the table names in Meta.row_headers identify the row rather
-          than carrying one of its values, so their cells are th scope="row"
-          (issue #320). The cell content is written out under both elements
-          rather than built once and placed into either: rendering a variable
-          applies the timezone and locale formatting that a tag returning the
-          same value does not, so routing it through one would format dates and
-          numbers differently from every other cell in the table.
+          Meta.row_headers columns get th scope="row" cells (#320). Content
+          is written under both branches, not shared, since rendering a
+          variable applies locale/timezone formatting a tag return would not.
         {% endcomment %}
         {% row_header_columns table as row_headers %}
         <tbody {{ table.attrs.tbody.as_html }}>
@@ -101,9 +94,6 @@
                                        create_url="{{ table.context.create_url }}" />
                   </td>
                 </tr>
-                {% comment %} <tr>
-                    <td colspan="{{ table.columns|length }}">{{ table.empty_text }}</td>
-                </tr> {% endcomment %}
               {% endblock table.tbody.empty_text %}
             {% endif %}
           {% endfor %}

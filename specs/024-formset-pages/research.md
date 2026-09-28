@@ -275,7 +275,7 @@ template would have carried one line and left the standalone case unsolved.
 `mvp/views/__init__.py`; the mixin is not, matching the existing rule stated in that file.
 Tests live in `tests/test_views/test_inline.py`.
 
-**Rationale**: Article X requires tests to mirror the source tree and to split by class within
+**Rationale**: The testing standard requires tests to mirror the source tree and to split by class within
 one module rather than across files. Either placement satisfies it, so the choice is about
 cohesion: `mvp/views/edit.py` already carries the form, create, update and delete views across
 roughly six hundred lines, and the parent-and-rows page is a distinct concern with its own

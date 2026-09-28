@@ -48,6 +48,8 @@ Required status checks on the default branch (exact names):
 - `call-tests / Test Python 3.12, Django 6.0`
 - `call-tests / Test Python 3.13, Django 5.2`
 - `call-tests / Test Python 3.13, Django 6.0`
+- `call-tests / Test Python 3.12, Django 6.1`
+- `call-tests / Test Python 3.13, Django 6.1`
 
 Both workflows call reusable workflows from `django-mvp/shared`, pinned to a release tag, which
 is why the check names carry the `call-build` / `call-tests` prefix. Neither has a paths filter

@@ -26,16 +26,12 @@ def request_for(rf, path, urlconf):
 
 
 class TestMvpConfig:
-    """The processor still exposes the merged configuration."""
-
     def test_exposes_the_merged_configuration(self, rf):
         assert mvp_config(rf.get("/"))["mvp_config"] is MVP_CONFIG
 
 
 @pytest.mark.urls("tests.urls_mounted")
 class TestMountedValues:
-    """The current app and the menu to draw, for the sidebar and the title."""
-
     def test_an_app_page_carries_the_app_and_its_menu(self, rf):
         context = mvp_config(request_for(rf, "/mounted/", "tests.urls_mounted"))
 
@@ -56,9 +52,7 @@ class TestMountedValues:
 
     def test_the_main_app_is_never_named_but_its_menu_is_drawn(self, rf):
         with override_settings(ROOT_URLCONF="tests.urls_mounted_main"):
-            context = mvp_config(
-                request_for(rf, "/detail/", "tests.urls_mounted_main")
-            )
+            context = mvp_config(request_for(rf, "/detail/", "tests.urls_mounted_main"))
             app, menu = context["mounted_app"], context["mounted_menu"]
 
             assert not app

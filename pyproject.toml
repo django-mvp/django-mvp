@@ -41,11 +41,9 @@ dependencies = [
     "django-crispy-forms (>=2.7,<3.0)",
     "crispy-tailwind (>=1.0.3,<2.0)",
 ]
-# Optional integrations (django-tables2, django-filter, ...) are NOT extras —
-# they live in guarded modules under mvp.integrations and require the
-# corresponding package only when explicitly imported. django-crispy-forms and
-# crispy-tailwind above are plain runtime dependencies, not an integration:
-# form rendering requires them on every install.
+# Optional integrations (django-tables2, django-filter, ...) are NOT extras:
+# they live in guarded modules under mvp.integrations, required only when
+# explicitly imported. crispy-forms/crispy-tailwind above are plain runtime deps.
 
 [project.urls]
 Homepage = "https://github.com/django-mvp/django-mvp"
@@ -58,21 +56,16 @@ mvp = "mvp.fixtures"
 [tool.hatch.build.targets.wheel]
 packages = ["mvp"]
 
-# Hatchling's default source distribution is the whole working tree: tests, the
-# demonstration project, documentation, CI configuration and the repository's
-# own records. Listing what ships keeps it to the package, the readme and the
-# licence. The leading slashes anchor each entry to the repository root; without
-# them "mvp" and "README.md" also match nested copies such as demo/README.md and
-# tests/pwa_templates/mvp/. Hatchling adds .gitignore itself, so that a build from the source
-# distribution leaves out what the repository does.
+# Hatchling's default sdist is the whole working tree; this narrows it to the
+# package, readme and licence. Leading slashes anchor each entry to the repo
+# root, or "mvp"/"README.md" also match nested copies like demo/README.md.
 [tool.hatch.build.targets.sdist]
 include = ["/mvp", "/README.md", "/LICENSE"]
 
 [dependency-groups]
 # Everything a contributor needs, in the one group `uv sync` installs by default.
-# mvp-shared is the shared toolchain bundle from django-mvp/shared, pinned to a
-# release tag below: ruff, mypy, deptry, pre-commit, pytest, pytest-django,
-# coverage and django-stubs.
+# mvp-shared is the shared toolchain bundle from django-mvp/shared (ruff, mypy,
+# deptry, pre-commit, pytest and friends), pinned to a release tag below.
 dev = [
     "mvp-shared[dev,test]",
     "django>=5.2.17",
@@ -84,11 +77,9 @@ dev = [
     "django-htmx>=1.28.0,<2.0",
     "django-tailwind[cookiecutter,honcho,reload]>=4.4.2,<5",
     "brotli>=1.2.0,<2",
-    # Renders docs/utility-classes.md inside the demo app's own "Utility Classes"
-    # page, so the docs stay one source of truth instead of being copied into a
-    # template. Already present transitively (pulled in by rich, via django-distill);
-    # declared explicitly here because the demo app now imports it directly.
-    # Demo-only: never a runtime dependency of the mvp package itself.
+    # Renders docs/utility-classes.md inside the demo app (demo-only, never a
+    # runtime dependency of mvp itself). Already present transitively via
+    # django-distill/rich; declared explicitly since the demo imports it directly.
     "markdown-it-py>=4.2.0,<5",
 ]
 
@@ -100,56 +91,15 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.forge.docs]
-# mvp/templatetags/ is the plumbing behind the packaged components, not a
-# surface a consuming project writes against. Every name in it is registered as
-# a filter or tag because a template has no other way to call a function, and
-# each one exists to serve one component: formset_columns and formset_grid_style
-# are read by <c-form.formset>, column_alignment_class by the table components,
-# logo_url and icon_url by the navbar. What gets documented is the component and
-# its attributes — docs/components.md, docs/formsets.md, docs/navigation.md.
-# Declared rather than filled in: documenting two dozen internal helpers would
-# not tell a reader anything they can act on, and it would advertise as API a
-# set of functions whose signatures follow whatever the templates need next.
+# Plumbing behind the packaged components, not a surface a project writes
+# against — each name exists to serve one component, documented as that
+# component's attributes in docs/components.md, docs/formsets.md, docs/navigation.md.
 exempt-paths = ["mvp/templatetags/"]
 
 [tool.forge.conformance]
-# tests/test_components/ exercises Cotton templates under mvp/templates/cotton/.
-# Those have no Python module behind them — there is no mvp/components/ package
-# and there should not be — so the mirror-the-source-tree rule has nothing to
-# match. Declared here rather than carried as accepted drift, because the point
-# is that no source module exists to mirror, not that the tests are misplaced.
-# tests/test_demo/ exercises demo/, the example project used to develop and
-# showcase the package. demo/ is a top-level app, not a submodule of mvp/ —
-# the only package this repo ships, per wheel packages setting above — so the
-# mirror check's guess of mvp/demo/<module>.py can never exist. Declared here
-# for the same reason as the entry above: the mismatch is by design, not
-# drift to fix.
-# tests/test_templates.py exercises the packaged template chain's own wiring —
-# which names resolve, and what they extend — against raw .html files under
-# mvp/templates/. There is no mvp/templates.py and there cannot be, for the same
-# reason as the first entry above.
-# tests/test_conftest.py exercises the test suite's own shared fixtures module,
-# tests/conftest.py. Its subject is test infrastructure, not a packaged module,
-# so the mirror check's guess of mvp/conftest.py can never exist either.
-# tests/test_frontend_runtime.py and its _e2e sibling exercise the shipped
-# JavaScript bundle (mvp/static/js/django-mvp.js) and the script tags in
-# mvp/templates/mvp/base.html. Their subject is a build artifact and a template,
-# so mvp/frontend_runtime.py can never exist — the same case as the entries
-# above, not misplaced tests.
-# tests/test_brand_theme.py exercises the packaged themes declared in
-# mvp/tailwind/base.css, the brand SVGs under mvp/static/brand/, and the built
-# stylesheet. A Tailwind entry, a set of static files and a build artifact,
-# none of which has an mvp/brand_theme.py behind it — the same case again.
-# tests/test_table_layout.py and its _e2e sibling exercise the shipped table
-# templates — table_view.html and cotton/addons/django_table.html — and the
-# markup they emit. The Python they lean on lives in mvp/templatetags/mvp.py
-# and is mirrored by tests/test_templatetags.py; what is left here is the
-# templates' own output, so there is no mvp/table_layout.py and there cannot
-# be, the same case as the entries above.
-# tests/test_full_page_fill_e2e.py measures, in a real browser, the height a
-# full-page template is given by the shell's CSS grid. Its subject is the
-# stylesheet and two templates, so mvp/full_page_fill_e2e.py can never exist —
-# the same case as the entries above.
+# Each entry's subject is a template, a build artifact, demo/ (a top-level
+# app, not an mvp/ submodule) or test infrastructure — none has a matching
+# Python module for the mirror-the-source-tree rule to find by design.
 non-mirror-paths = [
     "tests/test_components/",
     "tests/test_demo/",
@@ -262,11 +212,9 @@ python_files = ["test_*.py"]
 testpaths = ["tests"]
 addopts = ["--strict-markers", "--tb=short"]
 markers = ["e2e: End-to-end tests using Playwright"]
-# pytest-playwright's sync API keeps an asyncio event loop running on the main
-# thread, which makes Django's async-safety guard fire a false positive
-# SynchronousOnlyOperation during pytest-django's (synchronous) DB setup for any
-# live_server browser test. This is a sync Django app with no async views, so
-# the guard has no real work to do here — disable it for the test run.
+# pytest-playwright's sync API keeps an event loop on the main thread, which
+# trips Django's async-safety guard as a false positive during pytest-django's
+# DB setup for a live_server test. No async views here, so it's safe to disable.
 env = ["DJANGO_ALLOW_ASYNC_UNSAFE=1"]
 
 

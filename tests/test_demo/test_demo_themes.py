@@ -75,20 +75,12 @@ def theme(request):
 
 
 class TestDemoThemesAreWiredUp:
-    """The stylesheet, the settings and the template have to agree, and none of
-    them raises when they don't — a theme name matches a block or it silently
-    falls back (ADR 0011)."""
-
     @pytest.mark.parametrize("name", THEME_NAMES)
     def test_the_theme_is_defined(self, name):
         assert _theme_properties(name)
 
     @pytest.mark.parametrize("name", THEME_NAMES)
     def test_the_theme_is_defined_exactly_once(self, name):
-        """Two blocks for one name is correct-by-source-order, which is a thing
-        that quietly stops being true when someone edits the wrong one. The
-        browser would take the last; every assertion below reads the first.
-        """
         source = THEME_CSS.read_text(encoding="utf-8")
 
         assert source.count(f'[data-theme="{name}"]') == 1
@@ -101,9 +93,9 @@ class TestDemoThemesAreWiredUp:
         assert DEMO_MVP_CONFIG["theme"]["choices"][:2] == list(THEME_NAMES)
 
     def test_the_base_template_loads_the_stylesheet(self):
-        """Without the `<link>` the site names two themes nothing defines, and
-        every page renders in the fallback with no error anywhere."""
-        base = (REPO_ROOT / "demo" / "templates" / "base.html").read_text(encoding="utf-8")
+        base = (REPO_ROOT / "demo" / "templates" / "base.html").read_text(
+            encoding="utf-8"
+        )
 
         assert "css/themes.css" in base
         assert "block.super" in base, (
@@ -113,8 +105,6 @@ class TestDemoThemesAreWiredUp:
 
 
 class TestDemoThemeContrast:
-    """Every pairing that carries text clears WCAG AA in both themes."""
-
     def test_body_text_on_the_page(self, theme):
         name, props = theme
         ratio = _contrast(props["--color-base-content"], props["--color-base-100"])
@@ -122,23 +112,28 @@ class TestDemoThemeContrast:
         assert ratio >= AA_TEXT, f"{name}: base-content on base-100 is {ratio:.2f}:1"
 
     @pytest.mark.parametrize(
-        "role", ["primary", "secondary", "accent", "neutral", "info", "success", "warning", "error"]
+        "role",
+        [
+            "primary",
+            "secondary",
+            "accent",
+            "neutral",
+            "info",
+            "success",
+            "warning",
+            "error",
+        ],
     )
     def test_content_colour_on_its_own_fill(self, theme, role):
-        """What a filled button, badge or alert renders as."""
         name, props = theme
         ratio = _contrast(props[f"--color-{role}-content"], props[f"--color-{role}"])
 
         assert ratio >= AA_TEXT, f"{name}: {role}-content on {role} is {ratio:.2f}:1"
 
-    @pytest.mark.parametrize("role", ["primary", "accent", "info", "success", "warning", "error"])
+    @pytest.mark.parametrize(
+        "role", ["primary", "accent", "info", "success", "warning", "error"]
+    )
     def test_role_colour_as_text_on_the_page(self, theme, role):
-        """What `text-error` on a form field renders as — the shape of #136.
-
-        A role colour is a foreground as well as a fill: DaisyUI emits
-        `text-<role>` and `link-<role>` utilities from the same variable, and
-        the packaged form field uses `text-error` for a validation message.
-        """
         name, props = theme
         ratio = _contrast(props[f"--color-{role}"], props["--color-base-100"])
 
@@ -148,23 +143,12 @@ class TestDemoThemeContrast:
         )
 
     def test_muted_text_on_the_page(self, theme):
-        """`secondary` is the muted role, so it is held to the same floor as
-        anything else carrying words rather than to the large-text one."""
         name, props = theme
         ratio = _contrast(props["--color-secondary"], props["--color-base-100"])
 
         assert ratio >= AA_TEXT, f"{name}: secondary on base-100 is {ratio:.2f}:1"
 
     def test_borders_and_dividers_are_perceivable(self, theme):
-        """base-300 draws borders, dividers and table rules against the page.
-
-        Deliberately not the 3:1 user-interface floor. That floor is for a
-        control's boundary, where the boundary is what tells you the control is
-        there; these are separators between two surfaces, and a palette built on
-        restraint would have to shout to clear 3:1. What is worth catching is a
-        separator that has become invisible, so the floor here is low and its
-        only job is to fail when the two colours have converged.
-        """
         name, props = theme
         ratio = _contrast(props["--color-base-300"], props["--color-base-100"])
 
@@ -174,18 +158,10 @@ class TestDemoThemeContrast:
         )
 
     def test_the_contrast_helper_rejects_a_failing_pair(self):
-        """The gate above is only worth having if it can fail.
-
-        Grey on white at 2.3:1 is roughly what the prebuilt `light` theme
-        renders a form error at, which is the defect this file exists to keep
-        out of the demo. Asserting the helper flags it proves the floor works.
-        """
         assert _contrast("#8a8a8a", "#ffffff") < AA_TEXT
         assert _contrast("#000000", "#ffffff") == pytest.approx(21.0, abs=0.01)
 
     def test_shape_tokens_are_identical_in_both_themes(self, theme):
-        """Switching theme changes colour, never geometry. A radius that moves
-        with the toggle reads as the layout shifting rather than the palette."""
         _, props = theme
         shape = {
             "--radius-selector": "0.25rem",

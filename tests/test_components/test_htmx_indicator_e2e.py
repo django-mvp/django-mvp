@@ -48,8 +48,6 @@ class TestTheIndicatorShowsDuringARequest:
 
     @pytest.mark.parametrize("viewport", [DESKTOP, MOBILE], ids=["desktop", "mobile"])
     def test_the_spinner_shows_at_every_width(self, page, live_server, viewport):
-        """The widget regions beside it each disappear at one side of the
-        sidebar breakpoint, and the spinner must not go with them."""
         page.set_viewport_size(viewport)
         page.goto(live_server.url)
         indicator = page.locator("#mvp-htmx-indicator")
@@ -66,9 +64,6 @@ class TestTheIndicatorShowsDuringARequest:
         expect(indicator).to_be_hidden()
 
     def test_a_projects_own_indicator_still_shows(self, page, live_server):
-        """An inherited ``hx-indicator`` would move htmx's request class off the
-        element making the request, and an indicator inside that element would
-        never show. Both have to show: the project's and the header's."""
         page.set_viewport_size(DESKTOP)
         page.goto(live_server.url)
         page.evaluate(

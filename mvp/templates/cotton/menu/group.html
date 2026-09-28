@@ -1,3 +1,11 @@
+{# @description A section header for a menu, or a collapsible <details> group. #}
+{# @prop label:text | description:"The group's heading text." #}
+{# @prop collapse:boolean | description:"Render as a collapsible <details> group instead of a static header." #}
+{# @prop icon:text | description:"Icon shown beside the label, when collapse is set." #}
+{# @prop icon_class:text | description:"Extra classes appended to the icon, when collapse is set." #}
+{# @prop badge:text | description:"Badge text shown beside the label, when collapse is set." #}
+{# @prop badge_class:text | description:"Extra classes appended to the badge, when collapse is set." #}
+{# @slot <c-menu.item /> — The group's menu items. #}
 <c-vars label collapse icon icon_class badge badge_class />
 {% if collapse %}
   <li>

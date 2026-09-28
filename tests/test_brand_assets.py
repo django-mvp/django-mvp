@@ -44,8 +44,6 @@ def _selectors_for(name: str) -> list[str]:
 
 
 class TestBrandAssets:
-    """The four SVGs mvp.utils' default resolvers name."""
-
     @pytest.mark.parametrize(
         "filename", ["logo.svg", "logo_dark.svg", "icon.svg", "icon_dark.svg"]
     )
@@ -58,21 +56,15 @@ class TestBrandAssets:
         )
         assert asset.read_text(encoding="utf-8").lstrip().startswith("<svg")
 
-    @pytest.mark.parametrize("pair", [("logo.svg", "logo_dark.svg"), ("icon.svg", "icon_dark.svg")])
+    @pytest.mark.parametrize(
+        "pair", [("logo.svg", "logo_dark.svg"), ("icon.svg", "icon_dark.svg")]
+    )
     def test_dark_variant_is_not_a_copy_of_the_light_one(self, pair):
-        """A dark asset equal to its light sibling is the silent failure here.
-
-        Nothing errors, the resolver returns a URL, and the mark is invisible on
-        a dark page. Same file sizes are expected — the two differ only in hex
-        fills — so size is no signal and the bytes have to be compared.
-        """
         light, dark = (BRAND_DIR / name for name in pair)
 
         assert light.read_bytes() != dark.read_bytes()
 
     def test_assets_carry_no_font_dependency(self):
-        """The wordmark ships as outlines: a `font-family` would render it in
-        whatever the viewer happens to have, which is not the wordmark."""
         for asset in BRAND_DIR.glob("*.svg"):
             assert "font-family" not in asset.read_text(encoding="utf-8"), (
                 f"{asset.name} references a font, so it renders differently "
@@ -81,25 +73,8 @@ class TestBrandAssets:
 
 
 class TestNoBrandedThemeIsDistributed:
-    """The wheel carries no palette of this package's own.
-
-    Both files matter and they fail differently. The preset is imported by every
-    consumer build generated with `mvp_tailwind`, so a theme block left there
-    reaches a project that never ran this repo's build; the prebuilt stylesheet
-    is what a project gets when it runs no build at all. Checking one and not
-    the other leaves the branding shipping down the path nobody looked at.
-    """
-
     @pytest.mark.parametrize("name", BRANDED_THEMES)
     def test_the_shared_preset_declares_no_theme(self, name):
-        """Both spellings, because either would ship.
-
-        `@plugin "daisyui/theme" { name: "mvp"; ... }` is how the preset
-        declared these; a bare `[data-theme="mvp"]` block is the other way to
-        write the same output, and docs/theming.md recommends it. Checking only
-        the form that was removed would pass a reinstatement written the way the
-        documentation teaches.
-        """
         source = PRESET.read_text(encoding="utf-8")
 
         assert f'name: "{name}"' not in source, (
@@ -120,15 +95,10 @@ class TestNoBrandedThemeIsDistributed:
 
     @pytest.mark.parametrize("prebuilt", ["light", "dark", "dracula", "synthwave"])
     def test_every_prebuilt_theme_still_ships(self, prebuilt):
-        """Removing ours curates nothing of DaisyUI's
-        (docs/adr/0010-every-prebuilt-theme-ships-in-the-package.md)."""
         assert _selectors_for(prebuilt)
 
 
 class TestTheAppliedThemeIsPrebuilt:
-    """Zero configuration renders a theme DaisyUI publishes, and so does the
-    other half of the toggle — a pair a project replaces together."""
-
     def test_default_theme_is_prebuilt(self):
         assert MVP_CONFIG["theme"]["default"] == "light"
 
@@ -137,7 +107,4 @@ class TestTheAppliedThemeIsPrebuilt:
 
     @pytest.mark.parametrize("key", ["default", "dark"])
     def test_the_configured_pair_is_defined_in_the_shipped_stylesheet(self, key):
-        """The names are not validated at runtime (ADR 0011), so a default
-        naming a block nothing emits renders as an unstyled fallback and raises
-        nothing. That is fine for a project's own theme and not fine for ours."""
         assert _selectors_for(MVP_CONFIG["theme"][key])

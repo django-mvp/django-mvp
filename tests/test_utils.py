@@ -88,11 +88,7 @@ def _icon_names_referenced_in_package_templates() -> set[str]:
 
 
 class TestBS5IconsData:
-    """The dict itself: every class it names is real, every alias is unique."""
-
     def test_no_alias_is_declared_twice(self):
-        """A repeated alias across two keys would silently shadow the first
-        one's value with dict-construction order rather than error."""
         all_aliases = [
             alias.strip()
             for key in BS5_ICONS
@@ -116,9 +112,6 @@ class TestBS5IconsData:
     def test_class_exists_in_the_pinned_bootstrap_icons_release(
         self, alias, bootstrap_class
     ):
-        """A class that does not exist in the pinned release renders no
-        glyph — the same silent failure as a missing alias, just harder to
-        spot because the dict entry looks correct."""
         icon_name = bootstrap_class.removeprefix("bi bi-")
 
         assert icon_name in VALID_BOOTSTRAP_ICON_NAMES, (
@@ -128,11 +121,8 @@ class TestBS5IconsData:
 
 
 class TestBS5IconsResolution:
-    """The reported symptom, reproduced through the real renderer config."""
-
     @pytest.mark.parametrize("name", ["import", "upload", "export", "download"])
     def test_previously_unregistered_name_now_resolves(self, name):
-        """icon("import") -> "" was the exact repro in #294."""
         rendered = icon(name)
 
         assert rendered != "", f'icon("{name}") rendered nothing'
@@ -140,18 +130,10 @@ class TestBS5IconsResolution:
 
     @pytest.mark.parametrize("name", ["add", "filter", "search", "logout"])
     def test_pre_existing_aliases_still_resolve(self, name):
-        """A pack rewrite that silently drops an old alias breaks every
-        caller using it, with the same empty-string symptom as a gap."""
         assert icon(name) != ""
 
     @pytest.mark.parametrize("level_tag", ["info", "success", "warning", "error"])
     def test_django_message_level_resolves(self, level_tag):
-        """mvp/templates/cotton/messages.html passes message.level_tag
-        straight through as both the alert variant and the icon name (with
-        "debug" remapped to "info" first, since DaisyUI has no debug alert).
-        Django's own four other levels — messages.constants.DEFAULT_TAGS —
-        are exactly this set; there is no "debug" or "danger" entry to
-        check because neither ever reaches the icon lookup as itself."""
         assert icon(level_tag) != ""
 
 
@@ -167,15 +149,6 @@ SUPPLIED_BY_A_COMPANION_PACKAGE = frozenset({"account_center"})
 
 
 class TestPackageTemplatesReferenceKnownIcons:
-    """django-mvp's own components only ever use icons BS5_ICONS defines,
-    or a name a companion package's own pack is known to supply.
-
-    This is docs/getting-started.md's claim made into a check: a name any
-    shipped cotton template hands to icon="..." has to resolve somewhere, or
-    a consumer using django-mvp's own components gets the same silent gap
-    #294 reported from a third-party call site.
-    """
-
     def test_every_referenced_icon_name_is_registered(self):
         expanded = _expanded_aliases()
         referenced = _icon_names_referenced_in_package_templates()
@@ -193,24 +166,15 @@ class TestPackageTemplatesReferenceKnownIcons:
         )
 
     def test_the_scan_itself_finds_something(self):
-        """A regex that stopped matching would make the test above pass by
-        finding zero templates to check, which is not the same as finding
-        zero problems."""
         assert len(_icon_names_referenced_in_package_templates()) > 10
 
     def test_the_companion_package_exemption_is_still_referenced(self):
-        """A stale exemption would hide a real future gap under the same
-        name — if no template uses it, it isn't exempting anything real."""
         referenced = _icon_names_referenced_in_package_templates()
 
         assert referenced >= SUPPLIED_BY_A_COMPANION_PACKAGE
 
 
 class TestAccountCenterIcons:
-    """``account_center`` and ``overview`` resolve through the packaged icon
-    pack (FR-011). Pinned by name — a test that only asserted the pack is
-    non-empty would prove nothing about these two specific keys."""
-
     def test_account_center_resolves(self):
         assert icon("account_center") != ""
 
@@ -219,13 +183,6 @@ class TestAccountCenterIcons:
 
 
 class TestAvatarUrl:
-    """issue #363: the packaged resolver named its size parameter ``height``,
-    although mvp/templatetags/mvp.py:232 calls it with the size token it
-    received ("sm", "md", ...) and docs/configuration.md documents the
-    signature as ``(user, size)``. A project copying this resolver's shape
-    for its own ``brand.avatar_resolver`` reads ``size`` as the parameter
-    name to use."""
-
     def test_accepts_the_size_token_by_keyword(self):
         assert avatar_url(user=None, size="md") is None
 

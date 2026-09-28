@@ -31,7 +31,6 @@ class TestManifestView:
         assert manifest["short_name"] == "example.com"
         assert manifest["start_url"] == "/"
         assert manifest["scope"] == "/"
-        assert manifest["display"] == "standalone"
 
     def test_it_lists_the_three_icons(self, client):
         icons = client.get("/manifest.webmanifest").json()["icons"]

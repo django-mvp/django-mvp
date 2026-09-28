@@ -56,8 +56,6 @@ every_pair = pytest.mark.parametrize(
 
 
 class TestDropdownUpgradeHook:
-    """What the script looks for, and what it is told."""
-
     def test_the_wrapper_carries_the_hook_attribute_once(self):
         html = render(f"<c-dropdown>{PANEL}</c-dropdown>")
 
@@ -76,21 +74,11 @@ class TestDropdownUpgradeHook:
         assert f'data-mvp-placement="{PLACEMENTS[(valign, halign)]}"' in html
 
     def test_the_defaults_resolve_to_bottom_start(self):
-        """``valign="bottom"``/``halign="start"`` are the component's defaults,
-        so a dropdown declaring neither must still hand the script a placement
-        rather than an empty attribute it would have to guess from."""
         html = render(f"<c-dropdown>{PANEL}</c-dropdown>")
 
         assert 'data-mvp-placement="bottom-start"' in html
 
     def test_a_centred_dropdown_gets_no_alignment_suffix(self):
-        """The one pair that is not ``<side>-<alignment>``.
-
-        Floating UI has no ``bottom-center``: it would be parsed as an unknown
-        alignment and silently positioned as if none had been asked for. This
-        is asserted on its own, and not only through the table above, because
-        it is the case a naive ``{{ valign }}-{{ halign }}`` gets wrong.
-        """
         html = render(f'<c-dropdown halign="center">{PANEL}</c-dropdown>')
 
         assert 'data-mvp-placement="bottom"' in html
@@ -98,13 +86,6 @@ class TestDropdownUpgradeHook:
 
 
 class TestDropdownKeepsItsDaisyUIMarkup:
-    """The no-JS path, which is the whole reason the upgrade is a script.
-
-    A dropdown that never gets its JavaScript still opens, because daisyUI
-    positions it in CSS from these classes. Losing one of them turns the
-    enhancement into a replacement.
-    """
-
     def test_the_wrapper_renders_todays_classes(self):
         html = render(f"<c-dropdown>{PANEL}</c-dropdown>")
 
@@ -133,8 +114,6 @@ class TestDropdownKeepsItsDaisyUIMarkup:
 
 
 class TestDropdownProps:
-    """``full``, ``hover``, ``class`` and ``content_class`` are unchanged."""
-
     def test_full_stretches_the_panel_to_the_trigger(self):
         html = render(f"<c-dropdown full>{PANEL}</c-dropdown>")
 
@@ -167,8 +146,6 @@ class TestDropdownProps:
 
 
 class TestDropdownTrigger:
-    """Both trigger paths, and where extra attributes go in each."""
-
     def test_extra_attributes_configure_the_default_inner_button(self):
         html = render(
             f'<c-dropdown text="Options" icon="gears" variant="primary">{PANEL}'
@@ -208,7 +185,6 @@ class TestDropdownTrigger:
         assert 'id="sort" x-data="{value: 1}">' in html
 
     def test_fall_through_attributes_do_not_displace_the_hook(self):
-        """The wrapper carries both, and the placement survives the merge."""
         html = render(
             '<c-dropdown halign="end" id="sort">'
             '<c-slot name="button"><button type="button">Sort</button></c-slot>'

@@ -1,63 +1,40 @@
+{# @description The header row: breadcrumb trail leading, actions trailing. #}
+{# @slot:right Extra header content; shares the desktop widget list's visibility rule. #}
 {% load i18n %}
-{% comment %}
-  The header row: where you are on the left, what you can do on the right.
-
-  The breadcrumb trail reads the same `page.breadcrumbs` an MVP view already
-  puts in the context, so a view declares its trail exactly as before and
-  nothing new is plumbed through the shell. A page that sets no trail — the
-  entrance, the error pages, anything not built on an MVP view — renders no
-  navigation landmark at all, rather than an empty one for a screen reader to
-  announce.
-
-  Everything at the trailing edge is hidden below the sidebar breakpoint. At
-  those widths the row is already carrying the site icon and the trail, and
-  the trail is the part worth the width. The sidebar toggle is left out of the
-  row too, because the mobile dock has one: `layout.navbar.mobile.sidebar_toggle`
-  puts it back for a project without a dock.
-  `layout.navbar.mobile.end` is what puts a control back at the trailing edge,
-  and it ships empty.
-{% endcomment %}
+{# The breadcrumb trail reads `page.breadcrumbs`, already in context on an MVP #}
+{# view; a page with no trail renders no navigation landmark at all, rather #}
+{# than an empty one for a screen reader to announce. #}
 <div class="navbar gap-2 px-3 w-full transition-shadow duration-100 print:hidden">
   <div class="navbar-start w-auto grow min-w-0 gap-1">
-    {# Below the breakpoint the mobile dock carries a sidebar toggle, so this #}
-    {# one only stays if the project asks for it. mvp-desktop-only is the #}
-    {# rule that gives way there; it also leaves the toggle alone under #}
-    {# `never`, where there is no narrow layout to give way to. #}
+    {# The sidebar toggle and site icon give way below the sidebar breakpoint, #}
+    {# where the sidebar header already draws both — layout.navbar.mobile.sidebar_toggle #}
+    {# puts the toggle back for a project without a mobile dock. #}
     <label for="mvp-app-toggle"
            aria-label="{% trans "Open sidebar" %}"
            class="btn btn-ghost btn-square shrink-0 mvp-sidebar-hidden-only{% if not mvp_config.layout.navbar.mobile.sidebar_toggle %} mvp-desktop-only{% endif %}">
       <c-icon name="menu" />
     </label>
-    {# The site icon takes the same visibility rule as the toggle above it, #}
-    {# and for the same reason: the sidebar header draws both, so wherever #}
-    {# that header is on screen the navbar's copy stands down and the brand #}
-    {# mark appears once. #}
     <a href="/"
        aria-label="{% trans "Home" %}"
        class="mvp-navbar-brand flex shrink-0 items-center px-1 mvp-sidebar-hidden-only">
       <c-brand.icon max-height="1.5rem" class="size-8 object-contain" />
     </a>
-    {# min-w-0 is what lets a long trail shrink rather than push the actions #}
-    {# off the row: a flex item defaults to min-width:auto and will not go #}
-    {# below its own content. The sideways scrolling it then needs is #}
-    {# already carried by daisyUI's own .breadcrumbs rule. #}
+    {# min-w-0 lets a long trail shrink rather than push the actions off the #}
+    {# row: a flex item defaults to min-width:auto and won't go below its own #}
+    {# content. The sideways scroll it then needs is daisyUI's own .breadcrumbs rule. #}
     {% if page.breadcrumbs %}
       <c-breadcrumbs :items="page.breadcrumbs" class="min-w-0" />
     {% endif %}
   </div>
   <div class="navbar-end w-auto shrink-0 gap-3">
-    {# The page-wide htmx indicator, shown while any htmx request is in #}
-    {# flight by the rule in mvp/tailwind/base.css. It sits outside both #}
-    {# widget regions because it is shown at every width. #}
+    {# Sits outside both widget regions: the htmx indicator (base.css rule) #}
+    {# is shown at every width, unlike the split lists below it. #}
     <span id="mvp-htmx-indicator"
           class="loading loading-spinner loading-sm"
           aria-hidden="true"></span>
-    {# Mobile and desktop widget lists (issue #176) render as two separate #}
-    {# regions toggled by Tailwind's responsive display utilities, keyed off #}
-    {# the configured sidebar breakpoint rather than a hardcoded one. #}
-    {# A display:none region is dropped from the accessibility tree by every #}
-    {# evergreen browser/screen-reader pairing, so the hidden copy needs no #}
-    {# aria-hidden of its own. #}
+    {# Mobile/desktop widget lists (#176) are two regions toggled by Tailwind #}
+    {# display utilities; a display:none region drops out of the accessibility #}
+    {# tree in every evergreen browser/screen-reader pairing, so no aria-hidden needed. #}
     {% if mvp_config.layout.navbar.mobile.end %}
       <div id="mvp-navbar-widgets-mobile"
            class="mvp-mobile-only items-center gap-3">
@@ -66,9 +43,6 @@
         {% endfor %}
       </div>
     {% endif %}
-    {# The `right` slot shares the desktop list's visibility rule rather than #}
-    {# having one of its own: a project's own header content is an action like #}
-    {# any other, and gives way at the same width the configured ones do. #}
     <div id="mvp-navbar-widgets-desktop"
          class="mvp-desktop-only items-center gap-3">
       {{ right }}

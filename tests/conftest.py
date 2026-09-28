@@ -50,20 +50,6 @@ def _reload_urlconfs(module):
 
 @pytest.fixture
 def allauth_installed(request):
-    """Installs allauth's account application for the duration of one test
-    (T011, T012, T013, T015).
-
-    R11: ``override_settings.enable()`` populates the app registry from
-    ``INSTALLED_APPS`` before any other overridden setting takes effect, and
-    allauth's ``AccountConfig.ready()`` requires ``AccountMiddleware`` in
-    ``MIDDLEWARE`` at that moment — so the two overrides are applied nested,
-    ``MIDDLEWARE`` outside, already in place when ``INSTALLED_APPS`` triggers
-    the check.
-
-    Reloads ``request.module`` — the requesting test's own module — rather
-    than a name fixed at definition time, so the same fixture rebuilds
-    whichever module-level urlconf the calling test file built (D17).
-    """
     middleware = override_settings(
         MIDDLEWARE=[
             *settings.MIDDLEWARE,
@@ -118,11 +104,6 @@ def reload_pwa_urlconfs():
 
 @pytest.fixture
 def mobile_navbar_toggle(monkeypatch):
-    """Draw the header's sidebar toggle below the breakpoint (#416).
-
-    It is off there by default, because the mobile dock carries a toggle. A
-    test that needs that control at phone width, either to open the drawer or
-    to see when the sidebar echo stands down, asks for this."""
     monkeypatch.setitem(
         MVP_CONFIG["layout"]["navbar"]["mobile"], "sidebar_toggle", True
     )
@@ -130,12 +111,6 @@ def mobile_navbar_toggle(monkeypatch):
 
 @pytest.fixture
 def pwa_enabled():
-    """Turn the installable app on for one test, routes included.
-
-    Sets ``MVP_CONFIG["pwa"]`` to a colour, reloads the URLconfs that mount
-    ``mvp.urls``, and on teardown undoes the setting first and reloads them
-    again so no later test sees the routes.
-    """
     patch = pytest.MonkeyPatch()
     patch.setitem(MVP_CONFIG, "pwa", {"theme_color": "#123456"})
     reload_pwa_urlconfs()
@@ -148,12 +123,6 @@ def pwa_enabled():
 
 @pytest.fixture
 def testapp_account_entries():
-    """Apply the Account Center fixture app's entries to ``AccountCenterMenu``
-    for the duration of one test, then detach them (ARC-001).
-
-    Yields a ``{name: MenuItem}`` dict for lookup by name. See
-    ``tests/testapp_account/menus.py`` for what each entry proves.
-    """
     entries = build_entries()
     AccountCenterMenu.extend(entries)
     try:
@@ -165,11 +134,6 @@ def testapp_account_entries():
 
 @pytest.fixture
 def card_with_menu_entries():
-    """Apply ``tests.testapp_card_with_menu``'s entry to ``AccountCenterMenu``
-    for one test, then detach it (ARC-001) — the same pattern as
-    ``testapp_account_entries``, for the card fixture (US-3, T021/T024) that
-    proves a menu entry alongside a card doesn't disturb either.
-    """
     entries = build_card_with_menu_entries()
     AccountCenterMenu.extend(entries)
     try:
@@ -179,34 +143,19 @@ def card_with_menu_entries():
             entry.parent = None
 
 
-# ---------------------------------------------------------------------------
-# Model fixtures — thin wrappers over the factories in tests/factories.py.
-# A one-off variation needs no fixture here: call the factory inline in the
-# test, e.g. ProductFactory(category=None).
-# ---------------------------------------------------------------------------
-
-
 @pytest.fixture
 def category(db):
-    """A single Category for FK relationships."""
     return CategoryFactory()
 
 
 @pytest.fixture
 def product(db):
-    """A Product linked to its own category."""
     return ProductFactory()
 
 
 @pytest.fixture
 def article(db):
-    """An Article instance for detail/list view tests."""
     return ArticleFactory()
-
-
-# ---------------------------------------------------------------------------
-# View factory helpers (replace inline type() stub creation)
-# ---------------------------------------------------------------------------
 
 
 def make_stub_view(mixin_class, extra_attrs=None, kwargs=None, user=None):

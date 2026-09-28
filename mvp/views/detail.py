@@ -1,3 +1,5 @@
+"""Detail views and the CRUD link directory mixins that object pages share."""
+
 from typing import Any
 
 from django.core.exceptions import ImproperlyConfigured
@@ -13,7 +15,8 @@ _UNSET = object()
 class CRUDDirectoryMixin(ModelInfoMixin):
     """Mixin to provide URLs for related CRUD views in the template context.
 
-    This mixin assumes a standard set of CRUD view names based on the model name and action (list, detail, create, update, delete).
+    This mixin assumes a standard set of CRUD view names based on the model name
+    and action (list, detail, create, update, delete).
 
     The ``show_<action>_action`` attributes decide whether a **link** to that action
     is offered on this page. They are display flags, not access control.
@@ -45,7 +48,7 @@ class CRUDDirectoryMixin(ModelInfoMixin):
     the alternative — ignoring it — would draw a link the project had hidden.
     """
 
-    crud_views = MVP_CONFIG["view_names"]
+    crud_views: dict[str, str] = MVP_CONFIG["view_names"]  # type: ignore[assignment]
     directory: list[str] = []
     show_list_action = False
     show_detail_action = False
@@ -54,15 +57,22 @@ class CRUDDirectoryMixin(ModelInfoMixin):
     show_delete_action = False
 
     def get_context_data(self, **kwargs):
+        """Add the resolved CRUD link directory to the context as ``directory``."""
         context = super().get_context_data(**kwargs)
         context["directory"] = self.get_directory()
         return context
 
-    def _get_view_name(self, action):
-        """Helper method to get the URL name for a given CRUD action.
+    def _get_view_name(self, action: str):
+        """Return the URL name for a CRUD action.
 
         Args:
-            action (str): One of 'list', 'detail', 'create', 'update'
+            action: A key of ``crud_views``, e.g. ``"list"`` or ``"update"``.
+
+        Returns:
+            The configured URL name, formatted with the model's app label and name.
+
+        Raises:
+            ValueError: If ``action`` is not a key of ``crud_views``.
         """
         if action not in self.crud_views:
             raise ValueError(
@@ -75,11 +85,19 @@ class CRUDDirectoryMixin(ModelInfoMixin):
     def get_url_kwargs(self, action: str) -> dict | None:
         """Return URL kwargs for reversing the URL for ``action``.
 
-        Default behaviour:
-        - ``"list"`` and ``"create"`` → ``{}`` (collection-level, no object needed).
-        - All other actions → ``dict(self.kwargs)`` or ``None`` when kwargs are empty.
+        ``"list"`` and ``"create"`` are collection-level and get ``{}``. Every other
+        action gets a copy of ``self.kwargs``, or ``None`` when that is empty.
 
-        Override to branch on ``action`` for nested URL patterns::
+        Override to branch on ``action`` for nested URL patterns.
+
+        Args:
+            action: The CRUD action being linked, e.g. ``"detail"``.
+
+        Returns:
+            The kwargs for ``reverse()``, or ``None`` to suppress the action silently
+            (no URL generated, no error raised).
+
+        Example::
 
             def get_url_kwargs(self, action: str) -> dict | None:
                 if action in {"list", "create"}:
@@ -88,8 +106,6 @@ class CRUDDirectoryMixin(ModelInfoMixin):
                 if pk is None:
                     return None
                 return {"project_pk": self.kwargs["project_pk"], "pk": pk}
-
-        Return ``None`` to suppress the action silently (no URL generated, no error raised).
         """
         if action in {"list", "create"}:
             return {}
@@ -105,9 +121,16 @@ class CRUDDirectoryMixin(ModelInfoMixin):
         This is a display decision. It has no bearing on whether the target view
         accepts the request — see the class docstring.
 
-        Raises ``ImproperlyConfigured`` when the view still sets the pre-0.16
-        ``has_<action>_permission`` name. Ignoring it silently would reveal a link
-        the project had chosen to hide, so it fails instead.
+        Args:
+            action: The CRUD action to check, e.g. ``"delete"``.
+
+        Returns:
+            ``True`` when the link should be drawn.
+
+        Raises:
+            ImproperlyConfigured: If the view still sets the pre-0.16
+                ``has_<action>_permission`` name. Ignoring it silently would reveal
+                a link the project had chosen to hide, so it fails instead.
         """
         legacy_name = f"has_{action}_permission"
         if getattr(self, legacy_name, _UNSET) is not _UNSET:
@@ -127,12 +150,16 @@ class CRUDDirectoryMixin(ModelInfoMixin):
     def resolve_crud_url(self, action: str) -> str | None:
         """Resolve the URL for a single CRUD action.
 
-        Returns ``None`` when the action is suppressed by a ``None`` return from
-        ``get_url_kwargs`` or by ``show_action`` returning ``False``.
-
         A shown action whose route does not exist raises ``NoReverseMatch`` rather
         than dropping the link, so the misconfiguration surfaces. Suppress an action
         deliberately by returning ``None`` from ``get_url_kwargs``.
+
+        Args:
+            action: The CRUD action to resolve, e.g. ``"list"``.
+
+        Returns:
+            The reversed URL, or ``None`` when ``get_url_kwargs`` returns ``None``
+            or ``show_action`` returns ``False``.
         """
         url_kwargs = self.get_url_kwargs(action)
         if url_kwargs is None:
@@ -151,6 +178,9 @@ class CRUDDirectoryMixin(ModelInfoMixin):
         Only actions listed in ``self.directory`` are included. Entries whose
         resolved URL is ``None`` (e.g. suppressed by a ``get_url_kwargs``
         return of ``None`` or a hidden action) are omitted from the result.
+
+        Returns:
+            The resolved URLs, keyed ``"<action>_url"``.
         """
         result = {}
         for action in self.directory:
@@ -161,10 +191,21 @@ class CRUDDirectoryMixin(ModelInfoMixin):
 
 
 class PageObjectMixin(CRUDDirectoryMixin, PageMixin):
+    """Page metadata and breadcrumbs for views built around one model object.
+
+    Set ``list_view_title`` to override the model's plural verbose name in the
+    breadcrumb that links back to the list view.
+    """
+
     object: Any
     list_view_title = ""
 
     def get_page_class(self):
+        """Return the base page class plus a ``<model_name>-page`` class.
+
+        Returns:
+            The space-separated CSS classes for the page wrapper.
+        """
         model = self.get_model_class_or_none()
         model_page_class = f"{model._meta.model_name}-page" if model else None
         return " ".join(filter(None, [super().get_page_class(), model_page_class]))
@@ -173,7 +214,8 @@ class PageObjectMixin(CRUDDirectoryMixin, PageMixin):
         """Return the title to use for the list view link in the form header.
 
         Returns:
-            str: Title for the list view link
+            ``list_view_title`` when set, else the model's title-cased plural
+            verbose name.
         """
         return self.list_view_title or self.model_meta.verbose_name_plural.title()
 
@@ -186,9 +228,8 @@ class PageObjectMixin(CRUDDirectoryMixin, PageMixin):
         list view for it to link to.
 
         Returns:
-            list[dict]: List of breadcrumb items with 'text' and optional 'href'
+            Breadcrumb items, each with ``"text"`` and an optional ``"href"``.
         """
-
         breadcrumbs = []
         if self.get_model_class_or_none() is not None:
             breadcrumbs.append(
@@ -202,14 +243,19 @@ class PageObjectMixin(CRUDDirectoryMixin, PageMixin):
 
 
 class MVPDetailView(BaseTemplateNameMixin, PageObjectMixin, generic.DetailView):
+    """DetailView that renders one object inside the application shell."""
+
     base_template_name = "detail_view.html"
     page_class = "mvp-detail-page"
 
-    #: Actions offered in the page header. Each still resolves to a URL only
-    #: when its ``show_<action>_action`` allows it, so the default is inert
-    #: until a view opts in. The list action is deliberately absent:
-    #: the breadcrumb trail already links it.
+    #: Actions offered in the page header, each still gated by its ``show_*`` flag.
+    #: The list action is left out because the breadcrumb trail already links it.
     directory = ["update", "delete"]
 
     def get_page_title(self):
+        """Return the page title for the object being shown.
+
+        Returns:
+            The object's string representation.
+        """
         return str(self.object)

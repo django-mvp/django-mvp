@@ -51,8 +51,6 @@ def card_classes(html):
 
 
 class TestEntranceSize:
-    """`size` sets the width the card is capped at."""
-
     @pytest.mark.parametrize("size", SIZES)
     def test_each_size_caps_the_card_at_that_width(self, size):
         classes = card_classes(render(f'<c-entrance size="{size}">x</c-entrance>'))
@@ -63,25 +61,20 @@ class TestEntranceSize:
         assert not [c for c in classes if c.startswith("md:max-w-")]
 
     def test_card_fills_its_container_below_the_md_breakpoint(self):
-        """Every cap is md-prefixed, so a narrow viewport is unaffected."""
         classes = card_classes(render('<c-entrance size="sm">x</c-entrance>'))
         assert "container" in classes
-        assert not [
-            c for c in classes if c.startswith("max-w-")
-        ], "an unprefixed cap would narrow the card on mobile too"
+        assert not [c for c in classes if c.startswith("max-w-")], (
+            "an unprefixed cap would narrow the card on mobile too"
+        )
 
 
 class TestEntranceDefaultWidth:
-    """A page that asks for no width keeps the one entrance pages always had."""
-
     def test_default_card_is_the_historic_width(self):
         classes = card_classes(render("<c-entrance>x</c-entrance>"))
         assert f"md:max-w-{DEFAULT_SIZE}" in classes
 
 
 class TestEntranceDeprecatedSmall:
-    """`small`, the boolean `size` replaces, still renders what it always did."""
-
     def test_falsy_small_still_gives_a_full_width_card(self):
         classes = card_classes(render('<c-entrance small="">x</c-entrance>'))
         assert not [c for c in classes if c.startswith("md:max-w-")]
@@ -92,15 +85,6 @@ class TestEntranceDeprecatedSmall:
 
 
 class TestEntranceSizesAreSafelisted:
-    """Every width `size` can build is declared to Tailwind (issue #137's rule
-    applied to this component).
-
-    `md:max-w-{{ size }}` is assembled from an attribute at render time, and
-    Tailwind's scanner only sees literal strings in source. A width missing
-    from the safelist is a width missing from the shipped stylesheet, so the
-    card would render with no cap at all rather than the wrong one.
-    """
-
     @pytest.mark.parametrize("size", SIZES)
     def test_each_size_is_safelisted(self, size):
         html = render(f'<c-entrance size="{size}">x</c-entrance>')
@@ -116,8 +100,6 @@ class TestEntranceSizesAreSafelisted:
 
 
 class TestEntranceFullHeight:
-    """`full-height` is unaffected by the width scale."""
-
     def test_full_height_combines_with_a_size(self):
         classes = card_classes(
             render('<c-entrance size="4xl" full-height>x</c-entrance>')

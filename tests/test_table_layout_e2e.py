@@ -90,16 +90,11 @@ def _scroll_and_measure(page, url, viewport):
 
 
 class TestTheTableAreaOwnsItsScrolling:
-    """FR-002, FR-003, FR-004, FR-005: the table area scrolls, the window
-    does not, and the heading/footer rows stay pinned against it."""
-
     @pytest.mark.django_db
     @at_every_viewport
     def test_the_window_does_not_scroll(self, page, live_server, viewport):
         ProductFactory.create_batch(PRODUCT_COUNT)
-        layout = _scroll_and_measure(
-            page, f"{live_server.url}{TABLE_PAGE}", viewport
-        )
+        layout = _scroll_and_measure(page, f"{live_server.url}{TABLE_PAGE}", viewport)
 
         assert layout["scrollYBefore"] == 0
         assert layout["scrollYAfter"] == 0
@@ -111,9 +106,7 @@ class TestTheTableAreaOwnsItsScrolling:
         self, page, live_server, viewport
     ):
         ProductFactory.create_batch(PRODUCT_COUNT)
-        layout = _scroll_and_measure(
-            page, f"{live_server.url}{TABLE_PAGE}", viewport
-        )
+        layout = _scroll_and_measure(page, f"{live_server.url}{TABLE_PAGE}", viewport)
 
         # Nothing below this means anything if the rows never moved. An
         # earlier version of the layout let the window scroll instead, so
@@ -134,9 +127,7 @@ class TestTheTableAreaOwnsItsScrolling:
         self, page, live_server, viewport
     ):
         ProductFactory.create_batch(PRODUCT_COUNT)
-        layout = _scroll_and_measure(
-            page, f"{live_server.url}{TABLE_PAGE}", viewport
-        )
+        layout = _scroll_and_measure(page, f"{live_server.url}{TABLE_PAGE}", viewport)
 
         assert layout["regionScrolled"] > 0, (
             "the table area did not scroll — pinning is untested"
@@ -152,12 +143,8 @@ class TestTheTableAreaOwnsItsScrolling:
     def test_the_scrollbar_spans_the_full_height_of_the_table_area(
         self, page, live_server, viewport
     ):
-        """FR-005: the container is what scrolls, top to bottom — not a
-        separately-scrolling tbody starting below a static heading."""
         ProductFactory.create_batch(PRODUCT_COUNT)
-        layout = _scroll_and_measure(
-            page, f"{live_server.url}{TABLE_PAGE}", viewport
-        )
+        layout = _scroll_and_measure(page, f"{live_server.url}{TABLE_PAGE}", viewport)
 
         assert layout["regionScrolled"] > 0, (
             "the table area did not scroll — pinning is untested"
@@ -167,18 +154,13 @@ class TestTheTableAreaOwnsItsScrolling:
 
 
 class TestPaginationStaysReachable:
-    """FR-008: the pagination bar sits below the table area and is visible
-    without scrolling the window, whatever the row's scroll position."""
-
     @pytest.mark.django_db
     @at_every_viewport
     def test_pagination_controls_are_visible_without_scrolling(
         self, page, live_server, viewport
     ):
         ProductFactory.create_batch(PRODUCT_COUNT)
-        layout = _scroll_and_measure(
-            page, f"{live_server.url}{TABLE_PAGE}", viewport
-        )
+        layout = _scroll_and_measure(page, f"{live_server.url}{TABLE_PAGE}", viewport)
 
         assert layout["paginationTop"] is not None, (
             "no pagination rendered — this proves nothing"
@@ -188,16 +170,6 @@ class TestPaginationStaysReachable:
 
 
 class TestTheBarsSpanTheTable:
-    """FR-006, FR-008: the title bar and the pagination bar are as wide as
-    the table, so the actions and the pagination sit at the trailing edge
-    rather than bunched against the title and the row count.
-
-    Only a browser settles this. Every wrapper involved carries `w-full`,
-    and `w-full` inside a shrink-to-fit parent still comes out the width of
-    the content — which is what a <c-toolbar> around either bar produces,
-    and what the rendered-HTML tests cannot see.
-    """
-
     @pytest.mark.django_db
     def test_the_title_and_pagination_bars_are_as_wide_as_the_table(
         self, page, live_server

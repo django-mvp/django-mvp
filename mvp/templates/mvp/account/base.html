@@ -1,14 +1,8 @@
 {% extends "base.html" %}
 {% comment %}
-  The Account Center's layout. Extends the unqualified `base.html` a project
-  owns, not `mvp/base.html` directly, so a project's own base override still
-  applies underneath this layout (FR-012).
-
-  The area's navigation is the shell's sidebar, which swaps to
-  AccountCenterMenu on these pages, so this layout draws none of its own.
-
-  A page in the area extends this template and fills `account.content`, the
-  block declared below, which sits inside a container within `content`.
+  Extends the unqualified `base.html` a project owns, not `mvp/base.html`
+  directly, so a project's own base override still applies underneath (FR-012).
+  Navigation is the shell's sidebar, swapped to AccountCenterMenu here.
 {% endcomment %}
 {% block content %}
   <c-container class="py-4">

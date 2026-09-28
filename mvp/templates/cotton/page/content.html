@@ -1,3 +1,7 @@
+{# @description A flexible body region that absorbs leftover height. #}
+{# @prop gap:number | default:4 | description:"Gap between the region's children." #}
+{# @prop class:text | description:"Extra classes appended to the region's root element." #}
+{# @slot The page's body. — The content region's children. #}
 <c-vars gap="4" class />
 <div class="flex-1 min-h-0 flex flex-col gap-{{ gap }} {{ class }}"
      {{ attrs }}>

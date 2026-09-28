@@ -48,17 +48,13 @@ def hero_tag(html):
 
 
 class TestHeroLayout:
-    """The layout comes from the shipped stylesheet, not from this template."""
-
     def test_it_renders_daisyui_hero_markup(self):
-        """``hero`` and ``hero-content`` are what the stylesheet has rules for."""
         html = render('<c-section.hero title="T" />')
 
         assert "hero-content" in html
         assert re.search(r'class="hero\b', html)
 
     def test_the_dead_class_is_gone(self):
-        """``mvp-hero`` had no rule in any stylesheet — that was the defect."""
         html = render('<c-section.hero title="T" />')
 
         assert "mvp-hero" not in html
@@ -71,8 +67,6 @@ class TestHeroLayout:
 
 
 class TestHeroBackgroundAndHeight:
-    """What parallaxx-js used to do, the component now does."""
-
     def test_background_image_is_applied_as_css(self):
         html = render('<c-section.hero title="T" bg-image="/static/img/x.jpg" />')
 
@@ -84,13 +78,11 @@ class TestHeroBackgroundAndHeight:
         assert "min-height: 80vh" in hero_tag(html)
 
     def test_no_style_attribute_when_neither_is_given(self):
-        """A bare hero renders no empty style attribute."""
         html = render('<c-section.hero title="T" />')
 
         assert "style=" not in hero_tag(html)
 
     def test_the_dead_data_attributes_are_gone(self):
-        """These were parallaxx-js's inputs and nothing reads them now."""
         html = render(
             '<c-section.hero title="T" bg-image="/static/img/x.jpg" height="80vh" />'
         )
@@ -101,8 +93,6 @@ class TestHeroBackgroundAndHeight:
 
 
 class TestHeroOverlay:
-    """The overlay dims a background image so the text stays readable."""
-
     def test_an_overlay_covers_a_background_image(self):
         html = render('<c-section.hero title="T" bg-image="/static/img/x.jpg" />')
 
@@ -117,15 +107,12 @@ class TestHeroOverlay:
         assert "opacity: 0.2" in html
 
     def test_no_overlay_without_a_background_image(self):
-        """Nothing to dim, and an overlay over the page colour only greys it."""
         html = render('<c-section.hero title="T" />')
 
         assert "hero-overlay" not in html
 
 
 class TestRemovedParallaxAttributes:
-    """`parallax` and `speed` are gone, not merely ignored."""
-
     def test_parallax_no_longer_adds_a_class(self):
         html = render('<c-section.hero title="T" parallax />')
 
@@ -138,8 +125,6 @@ class TestRemovedParallaxAttributes:
 
 
 class TestHeroContent:
-    """The parts the change did not touch still render."""
-
     def test_title_and_subtitle_render(self):
         html = render('<c-section.hero title="Headline" subtitle="Sub" />')
 

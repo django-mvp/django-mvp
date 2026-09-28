@@ -1,6 +1,6 @@
 """The manifest and the service worker."""
 
-from django.http import JsonResponse
+from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.templatetags.static import static
 from django.urls import get_script_prefix
@@ -10,11 +10,18 @@ from mvp.pwa import IMAGE_DIRECTORY, IMAGES
 from mvp.utils import site_name
 
 
-def manifest(request):
-    """The web app manifest, built from ``MVP_CONFIG`` and the current site."""
+def manifest(request: HttpRequest) -> JsonResponse:
+    """Return the web app manifest, built from ``MVP_CONFIG`` and the current site.
+
+    Args:
+        request: The current request.
+
+    Returns:
+        A ``JsonResponse`` with the ``application/manifest+json`` content type.
+    """
     name = MVP_CONFIG["site_name"] or site_name(request)
     prefix = get_script_prefix()
-    color = MVP_CONFIG["pwa"]["theme_color"]
+    color = MVP_CONFIG["pwa"]["theme_color"]  # type: ignore[index]
     data = {
         "name": name,
         "short_name": MVP_CONFIG["short_name"] or name,
@@ -45,11 +52,17 @@ def manifest(request):
     return JsonResponse(data, content_type="application/manifest+json")
 
 
-def service_worker(request):
-    """The packaged worker.
+def service_worker(request: HttpRequest) -> HttpResponse:
+    """Return the packaged service worker script.
 
     ``Service-Worker-Allowed`` widens its scope from the folder it is served
     from to the whole site, so it controls every page.
+
+    Args:
+        request: The current request.
+
+    Returns:
+        The service worker script response.
     """
     response = render(request, "mvp/pwa/sw.js", content_type="text/javascript")
     response["Cache-Control"] = "no-cache"

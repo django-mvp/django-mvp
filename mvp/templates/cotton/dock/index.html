@@ -1,3 +1,6 @@
+{# @description Bottom dock navigation container. #}
+{# @prop size:select['xs','sm','md','lg','xl'] | description:"Dock size." #}
+{# @slot c-dock.item children — The dock's items. #}
 {% load mvp %}
 <c-vars size />
 <div class="dock bg-transparent backdrop-blur {% variation size "dock" "xs,sm,md,lg,xl" %}">{{ slot }}</div>

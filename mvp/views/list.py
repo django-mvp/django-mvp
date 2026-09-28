@@ -1,6 +1,8 @@
-"""Views and view mixins for django-mvp."""
+"""List views and the search, ordering and filter mixins they compose."""
 
-from django.db.models import Q
+from typing import Any
+
+from django.db.models import Q, QuerySet
 from django.utils.functional import Promise
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import ListView
@@ -58,26 +60,21 @@ class SearchMixin:
         """Return the list of fields to search across.
 
         Returns:
-            list[str] or None: List of field names for search
+            The ORM field paths to search, or ``None`` to disable search.
         """
         return self.search_fields
 
     def get_queryset(self):
-        """Apply search filtering to the queryset.
-
-        Returns:
-            QuerySet: Filtered queryset
-        """
+        """Filter the queryset by the ``?q=`` search term."""
         queryset = super().get_queryset()
 
-        # Apply search filtering
         search_term = self.request.GET.get("q", "").strip()
         if search_term and self.get_search_fields():
             queryset = self._apply_search(queryset, search_term)
 
         return queryset
 
-    def _apply_search(self, queryset, search_term):
+    def _apply_search(self, queryset: QuerySet, search_term: str):
         """Apply search filtering across search_fields.
 
         Similar to Django admin's search functionality, this builds an OR query
@@ -89,15 +86,14 @@ class SearchMixin:
         query string, so without a bound its depth belongs to the requester.
 
         Args:
-            queryset: The queryset to filter
-            search_term: The search string (can contain multiple words)
+            queryset: The queryset to filter.
+            search_term: The search string (can contain multiple words).
 
         Returns:
-            QuerySet: Filtered queryset
+            The filtered, de-duplicated queryset.
         """
         search_query = Q()
 
-        # Split search term by any whitespace to support multi-word OR matching
         words = search_term.split()[: self.max_search_words]
 
         for word in words:
@@ -107,11 +103,7 @@ class SearchMixin:
         return queryset.filter(search_query).distinct()
 
     def get_context_data(self, **kwargs):
-        """Add search data to the template context.
-
-        Adds:
-            search_query (str): Current search term
-        """
+        """Add ``search_query`` and ``is_searchable`` to the context."""
         context = super().get_context_data(**kwargs)
         context["search_query"] = self.request.GET.get("q", "")
         context["is_searchable"] = bool(self.search_fields)
@@ -177,26 +169,21 @@ class OrderMixin:
         """Return the list of ordering choices.
 
         Returns:
-            list[tuple[str, str]] or None: List of (ordering, label) tuples
+            The ``(public_key, label, orm_expression)`` whitelist, or ``None``.
         """
         return self.order_by
 
     def get_queryset(self):
-        """Apply ordering to the queryset.
-
-        Returns:
-            QuerySet: Ordered queryset
-        """
+        """Order the queryset by the whitelisted ``?o=`` choice."""
         queryset = super().get_queryset()
 
-        # Apply ordering
         ordering = self.request.GET.get("o", "")
         if ordering and self.get_order_by_choices():
             queryset = self._apply_ordering(queryset, ordering)
 
         return queryset
 
-    def _apply_ordering(self, queryset, ordering):
+    def _apply_ordering(self, queryset: QuerySet, ordering: str):
         """Apply ordering to the queryset.
 
         Validates that the ordering value matches a public_key in the configured
@@ -204,11 +191,11 @@ class OrderMixin:
         The raw ``?o=`` value is NEVER passed directly to the ORM.
 
         Args:
-            queryset: The queryset to order
-            ordering: The public_key value from the ``?o=`` query parameter
+            queryset: The queryset to order.
+            ordering: The public_key value from the ``?o=`` query parameter.
 
         Returns:
-            QuerySet: Ordered queryset
+            The ordered queryset, or ``queryset`` unchanged for an unknown key.
         """
         for choice in self.get_order_by_choices():
             if choice[0] == ordering:
@@ -220,14 +207,7 @@ class OrderMixin:
         return queryset
 
     def get_context_data(self, **kwargs):
-        """Add ordering data to the template context.
-
-        Adds (only when ``order_by`` is configured):
-            order_by_choices (list[tuple[str, str, str]]): Full three-tuple list of
-                available ordering options.
-            current_ordering (str): The matched public_key for the current ``?o=``
-                parameter value, or ``""`` if the value is absent or unrecognised.
-        """
+        """Add ``order_by_choices`` and ``current_ordering`` when ordering is set."""
         context = super().get_context_data(**kwargs)
 
         order_by_choices = self.get_order_by_choices()
@@ -319,6 +299,7 @@ class FilterContextMixin:
     """
 
     def get_context_data(self, **kwargs):
+        """Add the applied filters and a clear-filters URL when a filterset exists."""
         context = super().get_context_data(**kwargs)
         filterset = context.get("filter", None)
         if filterset is None:
@@ -331,13 +312,19 @@ class FilterContextMixin:
             context["clear_filters_url"] = self.get_clear_filters_url(filterset)
         return context
 
-    def get_active_filters(self, filterset):
+    def get_active_filters(self, filterset: Any):
         """Return the subset of the filterset's fields that are actually set.
 
         Empty, null and false-like values are what an untouched filter field
         cleans to, so they are not applied filters and are dropped here.
+
+        Args:
+            filterset: The django-filter ``FilterSet`` from the context.
+
+        Returns:
+            Field name to cleaned value, for each filter that is set.
         """
-        active = {}
+        active: dict[str, Any] = {}
         if not hasattr(filterset.form, "cleaned_data"):
             return active
 
@@ -348,21 +335,27 @@ class FilterContextMixin:
 
         return active
 
-    def get_clear_filters_url(self, filterset):
+    def get_clear_filters_url(self, filterset: Any):
         """Return the current URL with only the filterset's fields removed.
 
         Search (``?q=``) and ordering (``?o=``) are a separate concern from
         the filterset and share the same query string, so they're preserved.
         Clearing filters shouldn't also drop an unrelated search. Pagination
         is reset, since the cleared result set may not have as many pages.
+
+        Args:
+            filterset: The django-filter ``FilterSet`` from the context.
+
+        Returns:
+            The current path, with the remaining query string when there is one.
         """
-        querydict = self.request.GET.copy()
+        querydict = self.request.GET.copy()  # type: ignore[attr-defined]
         for name in filterset.form.fields:
             querydict.pop(name, None)
         querydict.pop(getattr(self, "page_kwarg", "page"), None)
         query_string = querydict.urlencode()
         return (
-            f"{self.request.path}?{query_string}" if query_string else self.request.path
+            f"{self.request.path}?{query_string}" if query_string else self.request.path  # type: ignore[attr-defined]
         )
 
 
@@ -373,7 +366,7 @@ class MVPListViewMixin(
     CRUDDirectoryMixin,
     PageMixin,
 ):
-    """Foundation mixin for paginated, searchable, orderable list pages with AdminLTE styling.
+    """Foundation mixin for paginated, searchable, orderable list pages.
 
     Composes ``BaseTemplateNameMixin``, ``SearchOrderMixin``, ``CRUDDirectoryMixin``, and
     ``PageMixin`` into a single base class. Subclass this directly (instead of ``MVPListView``)
@@ -461,11 +454,7 @@ class MVPListViewMixin(
     create_modal_title = None
 
     def get_context_data(self, **kwargs):
-        """Add grid configuration to the template context.
-
-        Adds:
-            grid_config (GridConfig): Configuration for grid layout
-        """
+        """Add grid, empty-state, item-template and inline-create context."""
         context = super().get_context_data(**kwargs)
         context["grid_config"] = self.get_grid_config()
         context["empty_state"] = {
@@ -474,7 +463,6 @@ class MVPListViewMixin(
         }
         context["list_item_template"] = self.get_list_item_template()
 
-        # Inject create_form and create_modal_title when configured and shown
         if self.show_action("create") and self.create_form_class:
             context["create_form"] = self.get_create_form()
             title = (
@@ -492,7 +480,7 @@ class MVPListViewMixin(
         Override to pass additional kwargs (e.g. request, user, initial data).
 
         Returns:
-            Form instance, or None when create_form_class is not set.
+            An unbound form instance, or ``None`` when ``create_form_class`` is unset.
         """
         if self.create_form_class is None:
             return None
@@ -501,21 +489,18 @@ class MVPListViewMixin(
     def get_list_item_template(self):
         """Return the template path for rendering individual list items.
 
-        If list_item_template is explicitly set, it is used.
-        Otherwise, generates a template path following the pattern:
-        '<app_label>/list_<model_name>_item.html'
+        If ``list_item_template`` is explicitly set, it is used. Otherwise the
+        path follows the pattern ``"<app_label>/<model_name>_list_item.html"``.
 
         Returns:
-            str: Template path for list item
+            Template path for the list item partial.
 
         Raises:
-            AttributeError: If model is not defined on the view
+            AttributeError: If model is not defined on the view.
         """
-        # NOTE: We should probably try to get the model class using utilities from inherited base classes.
         if self.list_item_template:
             return self.list_item_template
 
-        # Auto-generate template name from model
         if not hasattr(self, "model") or self.model is None:
             msg = (
                 f"{self.__class__.__name__} is missing a model. "
@@ -528,6 +513,11 @@ class MVPListViewMixin(
         return f"{opts.app_label}/{opts.model_name}_list_item.html"
 
     def get_empty_state_heading(self) -> str | Promise | None:
+        """Return the heading shown when the list is empty.
+
+        Returns:
+            ``empty_state_heading``, or ``None`` to show no heading.
+        """
         return self.empty_state_heading
 
     def get_empty_state_message(self) -> str | Promise | None:
@@ -536,20 +526,38 @@ class MVPListViewMixin(
         The message points the reader at the create button, so it is dropped
         for a user whose create action is hidden: the heading already says
         the page is empty, and there is no button for the message to name.
+
+        Returns:
+            ``empty_state_message``, or ``None`` when the create action is hidden.
         """
         if not self.show_action("create"):
             return None
         return self.empty_state_message
 
     def get_grid_config(self):
+        """Return the responsive grid breakpoints passed to the template.
+
+        Returns:
+            The ``grid`` breakpoint dict, unchanged.
+        """
         return self.grid
 
     def get_page_title(self):
+        """Return the page title, falling back to the model's plural name.
+
+        Returns:
+            ``page_title`` when set, else the title-cased ``verbose_name_plural``.
+        """
         if self.page_title:
             return self.page_title
         return self.model._meta.verbose_name_plural.title()
 
     def get_breadcrumbs(self):
+        """Return the breadcrumb trail for the list page.
+
+        Returns:
+            A Home link followed by the page title.
+        """
         return [
             {"text": _("Home"), "href": "/"},
             {"text": self.get_page_title()},
@@ -557,11 +565,11 @@ class MVPListViewMixin(
 
 
 class MVPListView(MVPListViewMixin, ListView):
-    """Concrete list view for django-mvp. Subclass with only ``model`` for a fully functional page.
+    """Concrete list view; subclass with only ``model`` for a fully functional page.
 
-    Extends ``MVPListViewMixin`` with a default ``paginate_by = 24`` (divisible by 1, 2, 3, and 4
-    — safe for single, two, three, and four-column grids). Override ``paginate_by`` on your
-    subclass to change the page size.
+    Extends ``MVPListViewMixin`` with a default ``paginate_by = 24`` (divisible by
+    1, 2, 3, and 4 — safe for single, two, three, and four-column grids). Override
+    ``paginate_by`` on your subclass to change the page size.
 
     Config:
         paginate_by (int): Default page size. Default: ``24``.

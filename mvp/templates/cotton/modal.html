@@ -1,28 +1,14 @@
+{# @description A dialog laid out as a card, built around c-card. #}
+{# @prop id:text | description:"Dialog id, used to open/close it via showModal()/close()." #}
+{# @prop size:select['sm','md','lg','xl','full'] | default:"md" | description:"Dialog width." #}
+{# @prop position:select['top','bottom','start','end'] | description:"Dialog placement; unset uses daisyUI's centred placement." #}
+{# @prop closable:boolean | description:"Show a close button in the top corner." #}
+{# @prop class:text | description:"Extra classes appended to the inner card surface." #}
+{# @slot The dialog's body content. — Forwarded to the inner card's default slot. #}
+{# @slot:actions <c-button text="Save" /> — Forwarded to the inner card's actions slot. #}
+{# @slot:footer <c-button text="Cancel" /> — Forwarded to the inner card's footer slot. #}
+{# @slot:footer_end <c-button text="Submit" /> — Forwarded to the inner card's footer_end slot. #}
 {% load i18n mvp %}
-{# ============================================================ #}
-{# <c-modal> — dialog built around a <c-card>                  #}
-{#                                                              #}
-{# The modal owns the <dialog>, the backdrop, and the on-screen #}
-{# placement / sizing. Everything else — title, icon, the       #}
-{# default (body) slot, and the actions / footer / footer_end   #}
-{# slots — is forwarded to an inner <c-card>, so a modal is     #}
-{# laid out exactly like a card.                                #}
-{#                                                              #}
-{# Open / close via the native <dialog> API:                    #}
-{#   <c-button onclick="myModal.showModal()" />                 #}
-{#   <c-modal id="myModal" title="…"> … </c-modal>              #}
-{#                                                              #}
-{# Props (modal-specific):                                      #}
-{#   id       – dialog id, for showModal() / close()            #}
-{#   size     – sm | md | lg | xl | full (default: md)          #}
-{#   position – top | bottom | start | end (default: daisyUI's  #}
-{#              own centred placement)                          #}
-{#   closable – show an ✕ close button in the top corner        #}
-{#   class    – extra classes on the inner card surface         #}
-{#                                                              #}
-{# All other attributes and the title / icon / actions /        #}
-{# footer / footer_end slots pass through to the inner <c-card>.#}
-{# ============================================================ #}
 <c-vars id size="md" position closable class />
 <dialog {% if id %}id="{{ id }}"{% endif %}
         class="modal {% variation position "modal" "top,bottom,start,end" %}">

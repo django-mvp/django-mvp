@@ -22,8 +22,6 @@ GITHUB_UTILITY_CLASSES_URL = (
 
 @pytest.mark.django_db
 class TestUtilityClassesView:
-    """The demo app renders docs/utility-classes.md at its own URL."""
-
     def test_renders_200(self, client):
         response = client.get(reverse("utility-classes"))
 
@@ -49,8 +47,6 @@ class TestUtilityClassesView:
 
 
 class TestUtilityClassesMenuItem:
-    """The "Utility Classes" menu entry points at the internal page, not GitHub."""
-
     def test_menu_item_resolves_to_the_internal_url(self):
         item = AppMenu.get("utility-classes")
 

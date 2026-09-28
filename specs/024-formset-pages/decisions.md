@@ -232,7 +232,7 @@ express that ordering.
 ## D14 — The view lives in its own module
 
 `mvp/views/inline.py` holds `InlineFormsetMixin`, `MVPInlineCreateView` and `MVPInlineUpdateView`;
-tests mirror it at `tests/test_views/test_inline.py`. Article X permits either placement, so the
+tests mirror it at `tests/test_views/test_inline.py`. The testing standard permits either placement, so the
 choice is cohesion: `mvp/views/edit.py` already carries four view classes across roughly six
 hundred lines, and the parent-and-rows page is a distinct concern with its own configuration
 surface. "Inline" is Django's own word for a formset bound to a parent through a foreign key.
@@ -240,11 +240,11 @@ surface. "Inline" is Django's own word for a formset bound to a parent through a
 The configuration is six class attributes for the common cases plus `get_formset_factory_kwargs()`
 for everything else, rather than one attribute per Django parameter.
 
-**Why defensible**: Article XVII wants related behaviour grouped on a class with an extension
+**Why defensible**: Article X wants related behaviour grouped on a class with an extension
 point, and Article III wants no layer between the caller and the work. One mixin with hooks is
 both. The mixin is not exported, matching the rule already stated in `mvp/views/__init__.py`.
 
-**ADR:** none — module placement. Article X already governs where the tests go, and nothing downstream inherits the choice.
+**ADR:** none — module placement. The testing standard already governs where the tests go, and nothing downstream inherits the choice.
 
 ## D15 — `get_formset()` memoises, deliberately
 
@@ -350,7 +350,7 @@ accepts for a browser test at all.
 statement in the Constitution Check, while making the remaining test cover the case that needed a
 browser.
 
-**ADR:** none — test placement, already governed by constitution Article X. The reasoning belongs beside the decision, not in a standing rule.
+**ADR:** none — test placement, already governed by the testing standard. The reasoning belongs beside the decision, not in a standing rule.
 
 ## D21 — Two test gaps the plan had left
 

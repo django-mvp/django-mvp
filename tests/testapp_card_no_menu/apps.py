@@ -18,8 +18,6 @@ from django.apps import AppConfig
 
 
 class TestAppCardNoMenuConfig(AppConfig):
-    """A minimal installed app contributing a card and nothing else."""
-
     default_auto_field = "django.db.models.BigAutoField"
     name = "tests.testapp_card_no_menu"
     label = "testapp_card_no_menu"

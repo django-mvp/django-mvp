@@ -13,6 +13,8 @@ Example usage::
         landing_template_name = "myapp/landing.html"
 """
 
+from typing import Any
+
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import gettext_lazy as _
@@ -40,6 +42,7 @@ class MVPTemplateView(PageMixin, generic.TemplateView):
     template_name = "mvp/placeholder_view.html"
 
     def get_context_data(self, **kwargs):
+        """Add the rendering view and path to the context under DEBUG."""
         context = super().get_context_data(**kwargs)
         if settings.DEBUG:
             context["placeholder_source"] = (
@@ -49,7 +52,7 @@ class MVPTemplateView(PageMixin, generic.TemplateView):
 
 
 class MVPHomeView(MVPTemplateView):
-    """Home page view. Shows stats and recent activity for authenticated users. Landing page for unauthenticated users."""
+    """Home page view: a dashboard for signed-in users, a landing page for others."""
 
     page_title = _("Home")
     dashboard_template_name = "mvp/dashboard.html"
@@ -70,6 +73,7 @@ class MVPHomeView(MVPTemplateView):
         return [self.landing_template_name]
 
     def get_context_data(self, **kwargs):
+        """Route to ``get_dashboard_context`` or ``get_landing_context`` by auth."""
         context = super().get_context_data(**kwargs)
         if self.request.user.is_authenticated:
             context = self.get_dashboard_context(context)
@@ -78,10 +82,28 @@ class MVPHomeView(MVPTemplateView):
 
         return context
 
-    def get_landing_context(self, context):
-        """Context for unauthenticated users."""
+    def get_landing_context(self, context: dict[str, Any]) -> dict[str, Any]:
+        """Extend the context for an unauthenticated visitor.
+
+        Override to add landing-page data.
+
+        Args:
+            context: The context built so far.
+
+        Returns:
+            The context to render with.
+        """
         return context
 
-    def get_dashboard_context(self, context):
-        """Context for authenticated users."""
+    def get_dashboard_context(self, context: dict[str, Any]) -> dict[str, Any]:
+        """Extend the context for a signed-in user.
+
+        Override to add dashboard data.
+
+        Args:
+            context: The context built so far.
+
+        Returns:
+            The context to render with.
+        """
         return context

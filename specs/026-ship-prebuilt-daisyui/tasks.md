@@ -289,7 +289,7 @@ more work would get less. Emit the same `themes: all` block, and assert it.
 The command's tests already live in `tests/test_components/test_mvp_tailwind_command.py`, whose
 `test_entry_contains_daisyui_and_preset_import` asserts the exact string `@plugin "daisyui";` at
 line 25 and goes red on this edit. Update that assertion in place. **Do not create
-`tests/test_management_commands.py`** — Article X keeps one module per source module, and a second
+`tests/test_management_commands.py`** — The testing standard keeps one module per source module, and a second
 module for this command is the exact mismatch that article names.
 
 **Verifies**: FR-004, FR-011, FR-013 · **Depends on**: T002

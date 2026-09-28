@@ -1,20 +1,6 @@
-{# ============================================================ #}
-{# <c-actions.language-switcher-modal>                          #}
-{#                                                              #}
-{# Modal-based alternative to <c-actions.language-switcher>     #}
-{# (which uses a dropdown). A ghost globe button opens a native #}
-{# <dialog> holding a responsive, tappable grid of languages —  #}
-{# comfortable on both phones and desktops.                     #}
-{#                                                              #}
-{# Props:                                                       #}
-{#   id   – dialog id (default "languageModal"); override when  #}
-{#          placing more than one instance on a page.           #}
-{#   size – sm|md|lg for the globe button, matching c-button's  #}
-{#          own sizes. Unset leaves it at c-button's default.   #}
-{#          Set it where the button sits beside another control #}
-{#          that is sized, so the two match — the sidebar       #}
-{#          footer pairs it with the theme control at "sm".     #}
-{# ============================================================ #}
+{# @description Modal-based alternative to <c-actions.language-switcher>: a ghost globe button opens a dialog with a tappable grid of languages. #}
+{# @prop id:text | default:"languageModal" | description:"Dialog id; override when placing more than one instance on a page." #}
+{# @prop size:select['sm','md','lg'] | description:"Globe button size, matching c-button's own sizes. Set it to match a sized sibling control, as the sidebar footer does at sm." #}
 {% load i18n %}
 <c-vars id="languageModal" size />
 {% if request.LANGUAGE_CODE %}

@@ -1,3 +1,5 @@
+"""Public views and error handlers for django-mvp."""
+
 from .account import AccountCenterView
 from .detail import MVPDetailView
 from .edit import (

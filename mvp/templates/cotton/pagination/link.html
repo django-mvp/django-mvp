@@ -1,3 +1,11 @@
+{# @description A single pagination link or disabled control, building block for a hand-built pager. #}
+{# @prop page:text | description:"Page number this link navigates to." #}
+{# @prop text:text | description:"Link text, used when no slot content is given." #}
+{# @prop active:boolean | description:"Mark this link as the current page." #}
+{# @prop disabled:boolean | description:"Render a disabled button instead of a link." #}
+{# @prop size:select['sm','md','lg'] | description:"Button size." #}
+{# @prop class:text | description:"Extra classes on the link or button." #}
+{# @slot 1 — Content shown instead of the text prop, e.g. an icon. #}
 {% load mvp %}
 <c-vars page text active disabled size class />
 {% if disabled %}

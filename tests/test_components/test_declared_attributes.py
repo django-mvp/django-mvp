@@ -36,9 +36,7 @@ DECLARATION = re.compile(
 
 EXPRESSION = re.compile(r"\{\{.*?\}\}|\{%.*?%\}", re.DOTALL)
 DYNAMIC_ATTR = re.compile(r"""(?<![\w:]):[A-Za-z_][\w-]*\s*=\s*"([^"]*)\"""")
-COMMENT_BLOCK = re.compile(
-    r"\{%\s*comment\s*%\}.*?\{%\s*endcomment\s*%\}", re.DOTALL
-)
+COMMENT_BLOCK = re.compile(r"\{%\s*comment\s*%\}.*?\{%\s*endcomment\s*%\}", re.DOTALL)
 
 
 def declared_names(cvars_body):
@@ -109,8 +107,6 @@ class TestDeclaredAttributesAreRead:
 
 
 class TestTheGuardItselfReadsDeclarations:
-    """The parser has to survive the declaration shapes the package uses."""
-
     def test_a_translated_default_is_one_declaration(self):
         assert declared_names(' label="{% trans "Search" %}" ') == ["label"]
 

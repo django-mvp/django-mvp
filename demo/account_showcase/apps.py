@@ -1,8 +1,8 @@
-"""AppConfig for the demo's own Account Center card (US-3, G9).
+"""AppConfig for the demo's own Account Center card.
 
 A separate small app from ``demo``'s own ``DemoConfig`` so ``tests/settings.py``
 can exclude it from the test suite's ``INSTALLED_APPS`` without touching the
-``demo`` app the rest of the suite depends on for its models and views (D16).
+``demo`` app the rest of the suite depends on for its models and views.
 Its whole content is one template: ``mvp/account/overview.html``, extending
 the same name and adding a card through ``{{ block.super }}``. A human
 browsing the demo project sees a populated card region because this app is

@@ -1,24 +1,15 @@
+"""Invoke tasks for building committed front-end artifacts and pre-release checks."""
+
 from pathlib import Path
 
 from invoke import task
 
-# ---------------------------------------------------------------------------
-# Vendor path constants
-# ---------------------------------------------------------------------------
-
-# Root of the repository (same directory as this file).
 REPO_ROOT = Path(__file__).resolve().parent
 
 
 @task
 def prerelease(c):
-    """
-    Run comprehensive pre-release checks and update all required files.
-
-    This task performs all necessary steps to prepare the repository for release:
-    1. Build, minify and brotli-compress the stylesheet (a committed artifact)
-    2. Run linting, formatting, type checking, and dependency checks via pre-commit hooks
-    3. Run quality checks and tests
+    """Run comprehensive pre-release checks and update all required files.
 
     Run this on a branch before opening the release pull request, so the
     stylesheet lands in the same PR as the version bump.
@@ -30,35 +21,25 @@ def prerelease(c):
     toolchain, different bytes each run), so CI cannot byte-compare committed
     output against a fresh build — the Stylesheet workflow only checks that the
     CSS still compiles. Commit the rebuilt CSS on your branch.
-
-    Pre-commit hooks include:
-    - Code formatting (Ruff)
-    - Type checking (mypy)
-    - Dependency analysis (deptry)
-    - uv lockfile validation
     """
     print("🚀 Starting comprehensive pre-release checks...")
     print("=" * 60)
 
-    # Step 1: Build the committed front-end artifacts
     print("\n🎨 Step 1: Building, minifying and compressing the stylesheet")
     build_stylesheet(c)
     print("\n📦 Step 1b: Building the JavaScript bundle")
     build_js(c)
 
-    # Step 2: Run comprehensive linting, type checking, and dependency analysis
     print(
         "\n🧹 Step 2: Running comprehensive linting, type checking, and dependency analysis"
     )
     print("🚀 Running pre-commit hooks (includes mypy and deptry)")
     c.run("uv run pre-commit run -a")
 
-    # Step 3: Check uv lock file consistency
     print("\n🔍 Step 3: Checking uv lock file consistency")
     print("🚀 Checking uv.lock consistency with 'pyproject.toml'")
     c.run("uv lock --check")
 
-    # Step 4: Run comprehensive test suite
     print("\n🧪 Step 4: Running comprehensive test suite")
     print("🚀 Running pytest with coverage")
     c.run(
@@ -74,15 +55,14 @@ def prerelease(c):
     print("   3. Merging that PR tags the release and publishes to PyPI.")
 
 
-# The `release` task was removed when the repository adopted the shared release
-# flow. Releases are now cut by the "Prepare Release" workflow (which opens a
-# pull request carrying the version bump and CHANGELOG section), then tagged and
-# published automatically when that pull request merges. The old task pushed the
-# version commit and tag straight to main, which branch protection now forbids.
+# No `release` task here: branch protection forbids pushing a version commit
+# and tag straight to main. Releases are cut by the "Prepare Release" workflow
+# instead, tagged and published once its PR merges.
 
 
 @task
 def build_stylesheet(c):
+    """Build the shipped stylesheet and its committed brotli-compressed copy."""
     import brotli
 
     c.run("npm run build:css:prod")

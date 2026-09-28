@@ -318,7 +318,7 @@ regular user and as staff, and confirm the three responses.
 - **FR-027**: If the new templates use a class the shipped stylesheet does not already carry, the
   stylesheet MUST be rebuilt and committed on this branch (Article XV).
 - **FR-028**: The shipped skill's routing table MUST point at the page documenting mounted apps
-  (Article XVIII).
+  (Article XVII).
 
 ### Requirement coverage
 

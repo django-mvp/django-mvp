@@ -272,7 +272,7 @@ other's card renders.
   of django-accounts-center that declare a menu of the same name (Article XVI).
 - **FR-024**: Every string the area renders to a person MUST be translatable (Article VIII).
 - **FR-025**: The shipped skill MUST describe the area alongside the rest of the shell, since it
-  is the first thing a coding agent reads before writing against this package (Article XVIII).
+  is the first thing a coding agent reads before writing against this package (Article XVII).
 - **FR-026**: The README's statement of what the package deliberately is not MUST be restated: the
   package provides the area, and account management itself still lives in django-accounts-center.
 

@@ -1,1 +1,1 @@
-# Template tags package for MVP navbar widgets
+"""Template tags package for MVP navbar widgets."""

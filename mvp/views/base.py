@@ -173,19 +173,7 @@ class PageMixin:
     page_info_actions: list = []
 
     def get_context_data(self, **kwargs):
-        """Add the ``page`` context dict to the template context.
-
-        Calls ``super().get_context_data(**kwargs)`` to collect the existing context, then
-        adds a ``"page"`` key whose value is the dict returned by ``get_page_context()``.
-        All other context keys from the parent are preserved unchanged.
-
-        Args:
-            **kwargs: Arbitrary keyword arguments forwarded to ``super().get_context_data()``.
-
-        Returns:
-            dict: The full template context with a ``"page"`` key added containing:
-                ``{"title": str, "subtitle": str, "class": str, "breadcrumbs": list}``.
-        """
+        """Add the ``page`` context dict from ``get_page_context()`` to the context."""
         context = super().get_context_data(**kwargs)
         context["page"] = self.get_page_context()
         return context
@@ -197,7 +185,8 @@ class PageMixin:
         the main template context namespace and to make provenance clear at a glance.
 
         Returns:
-            dict: A dict with the following string keys:
+            A dict with the following string keys:
+
                 - ``"title"`` — from ``get_page_title()``
                 - ``"subtitle"`` — from ``get_page_subtitle()``
                 - ``"class"`` — from ``get_page_class()`` (always starts with ``"mvp-page"``)
@@ -265,7 +254,7 @@ class PageMixin:
         page indicator.
 
         Returns:
-            list: The value of ``self.breadcrumbs``.
+            The value of ``self.breadcrumbs``.
 
         Example::
 
@@ -326,7 +315,7 @@ class PageMixin:
         ``page_info_actions`` as a class attribute instead.
 
         Returns:
-            list: The value of ``self.page_info_actions``.
+            The value of ``self.page_info_actions``.
 
         Example::
 
@@ -351,9 +340,9 @@ class PageMixin:
         extra class, assign ``page_class`` as a class attribute instead.
 
         Returns:
-            str: Space-separated CSS class string, always starting with ``"mvp-page"``.
-            Extra classes from ``page_class`` are appended. Empty or ``None`` values
-            in ``page_class`` are silently ignored.
+            Space-separated CSS class string, always starting with ``"mvp-page"``.
+            Extra classes from ``page_class`` are appended. Empty or ``None``
+            values in ``page_class`` are silently ignored.
 
         Example::
 
@@ -361,7 +350,6 @@ class PageMixin:
             # page_class = ""               →  get_page_class() == "mvp-page"
             # page_class = None             →  get_page_class() == "mvp-page"
         """
-
         return " ".join(filter(None, ["mvp-page", self.page_class]))
 
 
@@ -370,22 +358,31 @@ class ModelInfoMixin:
 
     @cached_property
     def model_meta(self):
-        """Return the meta options of the model class for this view. Subclasses can override this if they need to
-        customize how the model class is determined.
+        """Return the meta options of the model class for this view.
 
         Returns:
-            type: The Django model class associated with this view
+            The Django model's ``_meta`` options object.
         """
         return self.get_model_class()._meta
 
     def get_model_class(self):
-        """Resolve the model class for this view across common configuration styles."""
+        """Resolve the model class for this view across common configuration styles.
 
-        # 1) Explicit model attribute
+        Tries, in order: an explicit ``model`` attribute, the queryset or
+        model from a ``SingleObjectMixin``/``ModelFormMixin`` path, the
+        model declared on a custom ``ModelForm`` class, then an
+        already-loaded ``self.object``.
+
+        Returns:
+            The resolved model class.
+
+        Raises:
+            ImproperlyConfigured: No model class could be determined by any
+                of the above.
+        """
         if getattr(self, "model", None) is not None:
             return self.model
 
-        # 2) Queryset/model from SingleObjectMixin/ModelFormMixin path
         try:
             queryset = self.get_queryset()
         except Exception:
@@ -393,7 +390,6 @@ class ModelInfoMixin:
         if queryset is not None and getattr(queryset, "model", None) is not None:
             return queryset.model
 
-        # 3) Model declared on a custom form class (ModelForm)
         form_class = getattr(self, "form_class", None)
         if form_class is None:
             try:
@@ -405,7 +401,6 @@ class ModelInfoMixin:
             if model is not None:
                 return model
 
-        # 4) Fallback when an object instance is already available
         if getattr(self, "object", None) is not None:
             return self.object.__class__
 
@@ -430,7 +425,8 @@ class ModelInfoMixin:
         """Return a dict of details about the model for use in templates.
 
         Returns:
-            dict: Details about the model, including:
+            Details about the model:
+
                 - verbose_name: The human-readable name of the model
                 - verbose_name_plural: The plural form of the human-readable name
                 - app_label: The Django app label for the model
@@ -444,6 +440,7 @@ class ModelInfoMixin:
         }
 
     def get_context_data(self, **kwargs):
+        """Add ``model_info`` to the context, or ``None`` when no model resolves."""
         context = super().get_context_data(**kwargs)
         model = self.get_model_class_or_none()
         context["model_info"] = self.get_model_info() if model is not None else None

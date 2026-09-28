@@ -93,9 +93,6 @@ def _responsive_classes(html, breakpoint):
 
 
 class TestResponsiveClassesAreSafelisted:
-    """Every breakpoint-prefixed class a component can construct at render
-    time is covered by the packaged Tailwind safelist."""
-
     @pytest.mark.parametrize("bp", BREAKPOINTS)
     def test_divider_vertical_breakpoint_is_safelisted(self, bp):
         html = _render(f'<c-divider vertical="{bp}" />')

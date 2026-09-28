@@ -14,7 +14,7 @@ Files: `mvp/views/inline.py`, `mvp/views/__init__.py`, `mvp/templates/form_view.
 `mvp/templates/cotton/form/index.html`, `tests/test_views/test_inline.py`, `tests/factories.py`,
 `tests/testapp/models.py` (fixture models only).
 
-- **T001** `[test]` Fixture models for the whole feature: a parent with two distinct related models, plus a second relation from one related model back to the same parent (exercises R3's per-relation prefix and FR-019). Factories for each, per Article X.
+- **T001** `[test]` Fixture models for the whole feature: a parent with two distinct related models, plus a second relation from one related model back to the same parent (exercises R3's per-relation prefix and FR-019). Factories for each, per the testing standard.
 - **T002** `[test]` `InlineFormSet` declaring no `model` raises `ImproperlyConfigured` naming the declaration class. (FR-006, US1 s3)
 - **T003** `[impl]` `InlineFormSet`: attributes, the `__init__` that takes the parent model, request, instance and view, and the `model`-stays-the-related-model rule (R2). Raise on a missing `model`. `exclude`'s docstring carries the multi-relation warning from S3R SEC-001.
 - **T004** `[test]` `get_factory_kwargs()` folds the shorthands in, and an explicit `factory_kwargs` key wins over its shorthand. `validate_max` is set exactly when `max_num` is; `absolute_max` is never present. (FR-002, FR-013, R9)

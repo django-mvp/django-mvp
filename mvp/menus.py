@@ -9,8 +9,8 @@ registered under ``FLEX_MENUS["renderers"]``.
 - ``MobileFooterMenu`` — the mobile dock. Ships with the sidebar toggle only.
 - ``AccountCenterMenu`` — the Account Center's own navigation, drawn in the
   sidebar on its pages, under a "Back to" link (see :mod:`mvp.mounted`). Ships
-  with the entry for its own landing page. An app that wants a page in the area appends to it the same way it
-  extends ``AppMenu``::
+  with the entry for its own landing page. An app that wants a page in the area
+  appends to it the same way it extends ``AppMenu``::
 
       from flex_menu import MenuItem
 
@@ -94,6 +94,7 @@ class MenuGroup(MenuItem):
     """
 
     def process(self, request, **kwargs):
+        """Also hide a URL-less group that has no visible children."""
         processed = super().process(request, **kwargs)
         # flex_menu hides a URL-less parent only once it has lost children to
         # their checks. One that never had any would otherwise fall through to
@@ -158,10 +159,9 @@ MobileFooterMenu = Menu(
             extra_context={
                 "label": "Menu",
                 "icon": "menu",
-                # Renders as a <label for="mvp-app-toggle"> that flips the
-                # drawer checkbox — the same mechanism as the navbar
-                # hamburger. The value is the drawer toggle's element id
-                # (c-layout.sidebar id="mvp-app" -> checkbox id "mvp-app-toggle").
+                # The drawer checkbox's id: c-layout.sidebar id="mvp-app" names
+                # it "mvp-app-toggle", and the dock item becomes a <label> for it,
+                # as the navbar hamburger is.
                 "toggle": "mvp-app-toggle",
             },
         ),
@@ -170,7 +170,7 @@ MobileFooterMenu = Menu(
 
 #: The Account Center's own navigation, drawn in the sidebar on its pages by
 #: the mounted-app mechanism. Ships with only the entry for its own landing page
-#: (FR-007) — everything else belongs to whichever app adds to it.
+#: (FS-028) — everything else belongs to whichever app adds to it.
 AccountCenterMenu = Menu(
     "AccountCenterMenu",
     children=[

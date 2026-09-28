@@ -1,3 +1,11 @@
+{# @description The app sidebar: brand header, AppMenu, fixed footer. #}
+{# @prop bg:text | default:"bg-base-200" | description:"Background class, passed to the header and footer." #}
+{# @prop brand-url:text | default:"/" | description:"URL the brand mark links to." #}
+{# @prop class:text | description:"Extra classes on the sidebar root." #}
+{# @prop menu:text | default:"" | description:"Menu name to render. Empty renders AppMenu (or the mounted app's menu) with no back link." #}
+{# @prop :collapse:text | description:"How the sidebar collapses: icons for an icon rail, or the default drawer behaviour." #}
+{# @prop :title:text | description:"Title text shown in the sidebar header." #}
+{# @prop :boost:boolean | description:"Set hx-boost on the sidebar root so every link inside it — menu items, brand link, footer actions — navigates with htmx." #}
 {% load flex_menu %}
 <c-vars bg="bg-base-200"
         brand-url="/"
@@ -6,25 +14,16 @@
         :collapse="mvp_config.layout.sidebar.collapse"
         :title="mvp_config.layout.sidebar.title"
         :boost="mvp_config.layout.sidebar.boost" />
-{% comment %}
-  hx-boost sits on the sidebar root so every link inside it inherits the
-  boost — menu items, the brand link and the footer actions alike. htmx
-  swaps the body's innerHTML, and the drawer lives inside the body, so a
-  boosted click renders a fresh drawer in its server-side (closed) state
-  and the mobile overlay closes on its own.
-{% endcomment %}
+{# The drawer lives inside <body>, and htmx swaps the body's innerHTML, so a #}
+{# boosted click renders a fresh drawer in its server-side (closed) state and #}
+{# the mobile overlay closes on its own. #}
 <aside class="mvp-sidebar flex flex-col min-h-full items-start transition-[width] duration-200 {% if collapse == 'icons' %}mvp-sidebar--icons is-drawer-close:w-16 is-drawer-open:w-65{% else %}is-drawer-close:w-0 is-drawer-close:overflow-hidden is-drawer-open:w-65{% endif %} {{ bg }} {{ class }}"
        {% if boost %}hx-boost="true"{% endif %}
        {{ attrs }}>
   <c-app.sidebar.header link="{{ brand_url }}" :bg="bg" :title="title" />
-  {% comment %}
-    `menu` is empty unless a page passes one, and a page that does gets that
-    menu with no back link. Otherwise the sidebar reads `mounted_app` and
-    `mounted_menu` from the context: the values `mvp.context_processors.mvp_config`
-    adds, which reach a component under Cotton's context isolation too, because
-    Cotton builds a request context for it and that runs the processor again.
-    With neither, the sidebar draws `AppMenu`.
-  {% endcomment %}
+  {# mounted_app / mounted_menu come from mvp.context_processors.mvp_config, #}
+  {# which also runs inside Cotton's isolated context because Cotton builds a #}
+  {# request context for the component. #}
   {% if menu is None or menu == "" %}
     {% if mounted_app %}<c-app.sidebar.back :url="brand_url" />{% endif %}
     <div class="flex w-full">

@@ -22,17 +22,15 @@ class Category(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        """Meta options."""
-
         verbose_name_plural = "Categories"
         ordering = ["name"]
 
     def __str__(self):
-        """String representation."""
+        """Show the category name."""
         return self.name
 
     def get_absolute_url(self):
-        """Get absolute URL."""
+        """Link to the category's detail page."""
         return reverse("category-detail", kwargs={"slug": self.slug})
 
 
@@ -93,8 +91,6 @@ class Product(models.Model):
     barcode = models.CharField(max_length=100, null=True, blank=True)
 
     class Meta:
-        """Meta options."""
-
         ordering = ["-created_at"]
         indexes = [
             models.Index(fields=["status", "is_available"]),
@@ -102,22 +98,22 @@ class Product(models.Model):
         ]
 
     def __str__(self):
-        """String representation."""
+        """Show the product name."""
         return self.name
 
     def get_absolute_url(self):
-        """Get absolute URL."""
+        """Link to the product's edit page."""
         return reverse("product-update", kwargs={"pk": self.pk})
 
     @property
     def tag_list(self):
-        """Return tags as a list."""
+        """Split the comma-separated tags field into a list."""
         if self.tags:
             return [tag.strip() for tag in self.tags.split(",") if tag.strip()]
 
     @property
     def stock_status(self):
-        """Return stock status indicator."""
+        """Bucket the stock count into out/low/in-stock."""
         if self.stock == 0:
             return "out_of_stock"
         elif self.stock < 10:
@@ -153,16 +149,14 @@ class Article(models.Model):
     tags = models.CharField(max_length=200, blank=True)
 
     class Meta:
-        """Meta options."""
-
         ordering = ["-published_at", "-created_at"]
 
     def __str__(self):
-        """String representation."""
+        """Show the article title."""
         return self.title
 
     def get_absolute_url(self):
-        """Get absolute URL."""
+        """Link to the article's detail page."""
         return reverse("article_detail", kwargs={"slug": self.slug})
 
 
@@ -205,21 +199,19 @@ class Task(models.Model):
     )
 
     class Meta:
-        """Meta options."""
-
         ordering = ["-priority", "due_date", "-created_at"]
 
     def __str__(self):
-        """String representation."""
+        """Show the task title."""
         return self.title
 
     def get_absolute_url(self):
-        """Get absolute URL."""
+        """Link to the task's detail page."""
         return reverse("task_detail", kwargs={"pk": self.pk})
 
     @property
     def is_overdue(self):
-        """Check if task is overdue."""
+        """Report whether the task's due date has passed while still open."""
         from django.utils import timezone
 
         if self.due_date and self.status != "done":
@@ -251,6 +243,7 @@ class OrderLine(models.Model):
         verbose_name_plural = _("order lines")
 
     def __str__(self):
+        """Show the order line's product and quantity."""
         return f"Order line for {self.product.name} (qty {self.quantity})"
 
 
@@ -280,15 +273,16 @@ class ShipmentLine(models.Model):
         verbose_name_plural = _("shipment lines")
 
     def __str__(self):
+        """Show the shipment line's product and quantity."""
         return f"Shipment line for {self.product.name} (qty {self.quantity})"
 
 
 class Project(models.Model):
-    """A parent record carrying two related models, one of which reaches it
-    by two relations — ``ProjectTask`` and ``ProjectNote`` below.
+    """A parent record carrying two related models.
 
-    Backs the demo's two-set page (FS-025) and the ``InlineFormSet`` tests
-    it shares fixtures with.
+    One of them — ``ProjectNote`` — reaches it by two relations. Backs the
+    demo's two-set page (FS-025) and the ``InlineFormSet`` tests it shares
+    fixtures with.
     """
 
     name = models.CharField(
@@ -302,12 +296,14 @@ class Project(models.Model):
         verbose_name_plural = _("projects")
 
     def __str__(self):
+        """Show the project name."""
         return self.name
 
 
 class ProjectTask(models.Model):
-    """A task belonging to a project — one of the two row sets on the
-    demo's two-set page (FS-025).
+    """A task belonging to a project.
+
+    One of the two row sets on the demo's two-set page (FS-025).
     """
 
     project = models.ForeignKey(
@@ -328,14 +324,16 @@ class ProjectTask(models.Model):
         verbose_name_plural = _("project tasks")
 
     def __str__(self):
+        """Show the task title."""
         return self.title
 
 
 class ProjectNote(models.Model):
-    """A note belonging to a project, reachable from ``Project`` by two
-    relations — the demo's worked example (FS-025) of a declaration that
-    must name ``fk_name`` and its own ``fields`` explicitly, and exercises
-    a per-relation prefix default in the ``InlineFormSet`` tests it shares
+    """A note reachable from ``Project`` by two relations.
+
+    The demo's worked example (FS-025) of a declaration that must name
+    ``fk_name`` and its own ``fields`` explicitly, and exercises a
+    per-relation prefix default in the ``InlineFormSet`` tests it shares
     fixtures with.
     """
 
@@ -366,4 +364,5 @@ class ProjectNote(models.Model):
         verbose_name_plural = _("project notes")
 
     def __str__(self):
+        """Show the note text."""
         return self.text

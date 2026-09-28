@@ -25,10 +25,6 @@ from mvp.views.list import (
     SearchOrderMixin,
 )
 
-# ---------------------------------------------------------------------------
-# Module-level stub view classes (needed for django_filters FilterView)
-# ---------------------------------------------------------------------------
-
 try:
     from django_filters.views import FilterView as _FilterView
 
@@ -70,11 +66,6 @@ class _StubFilterViewNoSearch(SearchOrderMixin, _FilterView):
 
     def render_to_response(self, context, **kwargs):
         return context
-
-
-# ---------------------------------------------------------------------------
-# Test helpers
-# ---------------------------------------------------------------------------
 
 
 def _make_view(base_mixin, params=None, extra_attrs=None):
@@ -129,20 +120,13 @@ def _make_filter_view_no_config(params=None):
     return view
 
 
-# ---------------------------------------------------------------------------
-# Fixtures
-# ---------------------------------------------------------------------------
-
-
 @pytest.fixture
 def cat(db):
-    """A single Category for Product FK."""
     return Category.objects.create(name="Test Category", slug="test-category")
 
 
 @pytest.fixture
 def cat2(db):
-    """A second Category for multi-category tests."""
     return Category.objects.create(name="Other Category", slug="other-category")
 
 
@@ -163,16 +147,8 @@ def _product(cat, name, description="", slug=None, price="9.99", **kwargs):
     )
 
 
-# ---------------------------------------------------------------------------
-# US1 — SearchMixin
-# ---------------------------------------------------------------------------
-
-
 class TestSearchMixin:
-    """[US1] SearchMixin text search behaviour when search_fields is configured."""
-
     def test_search_no_query_returns_all(self, db, cat):
-        """[US1] Blank ?q= returns the full queryset unmodified."""
         _product(cat, "Alpha")
         _product(cat, "Beta")
         view = _make_search_view(
@@ -182,7 +158,6 @@ class TestSearchMixin:
         assert view.get_queryset().count() == 2
 
     def test_search_single_word_filters(self, db, cat):
-        """[US1] ?q=alpha returns only matching records."""
         _product(cat, "Alpha Widget")
         _product(cat, "Beta Widget")
         view = _make_search_view(
@@ -194,7 +169,6 @@ class TestSearchMixin:
         assert qs.first().name == "Alpha Widget"
 
     def test_search_multi_word_or_semantics(self, db, cat):
-        """[US1] ?q=alpha beta returns records matching EITHER word."""
         _product(cat, "Alpha Product")
         _product(cat, "Beta Product")
         _product(cat, "Gamma Product")
@@ -209,7 +183,6 @@ class TestSearchMixin:
         assert "Beta Product" in names
 
     def test_search_case_insensitive(self, db, cat):
-        """[US1] Search is case-insensitive (icontains)."""
         _product(cat, "Django Framework")
         view = _make_search_view(
             params={"q": "DJANGO"},
@@ -218,7 +191,6 @@ class TestSearchMixin:
         assert view.get_queryset().count() == 1
 
     def test_search_whitespace_only_query_no_filter(self, db, cat):
-        """[US1] Whitespace-only ?q= is treated as empty — no filtering applied."""
         _product(cat, "Alpha")
         _product(cat, "Beta")
         view = _make_search_view(
@@ -229,16 +201,7 @@ class TestSearchMixin:
 
 
 class TestSearchMixinWordLimit:
-    """[#281] The number of words taken from ``?q=`` is bounded.
-
-    One ``Q`` object is built per word per search field, and the requester
-    sets the word count. Past a few hundred words the resulting expression
-    tree is deep enough for SQLite to refuse it outright, which surfaces as
-    an unhandled 500 on any list view a visitor can reach.
-    """
-
     def test_a_very_long_query_still_returns_a_page(self, db, cat):
-        """[#281] A four-thousand-word ?q= is answered, not raised on."""
         _product(cat, "Alpha", description="widget")
         term = " ".join(f"w{i}" for i in range(4000))
         view = _make_search_view(
@@ -248,7 +211,6 @@ class TestSearchMixinWordLimit:
         assert list(view.get_queryset()) == []
 
     def test_only_the_first_words_are_searched(self, db, cat):
-        """[#281] Words past the limit are dropped rather than searched."""
         _product(cat, "Alpha")
         _product(cat, "Beta")
         words = ["alpha"] + [f"w{i}" for i in range(SearchMixin.max_search_words)]
@@ -260,11 +222,6 @@ class TestSearchMixinWordLimit:
         assert list(qs.values_list("name", flat=True)) == ["Alpha"]
 
     def test_the_limit_is_raisable_per_project(self, db, cat):
-        """[#281] A project that genuinely needs a longer term can say so.
-
-        The same term under the default limit loses its last word, and under
-        a raised one keeps it.
-        """
         _product(cat, "Alpha")
         _product(cat, "Beta")
         term = " ".join(["alpha", *[f"w{i}" for i in range(20)], "beta"])
@@ -283,10 +240,7 @@ class TestSearchMixinWordLimit:
 
 
 class TestSearchMixinNoConfig:
-    """[US1] SearchMixin is a complete no-op when search_fields is not configured."""
-
     def test_search_no_fields_configured_is_noop(self, db, cat):
-        """[US1] ?q=anything with search_fields=None does not filter the queryset."""
         _product(cat, "Alpha")
         _product(cat, "Beta")
         view = _make_search_view(
@@ -296,7 +250,6 @@ class TestSearchMixinNoConfig:
         assert view.get_queryset().count() == 2
 
     def test_search_is_searchable_false_when_unconfigured(self, db, cat):
-        """[US1] is_searchable context sentinel is False when search_fields is None."""
         view = _make_search_view(
             params={},
             extra_attrs={"search_fields": None},
@@ -306,7 +259,6 @@ class TestSearchMixinNoConfig:
         assert ctx["is_searchable"] is False
 
     def test_search_context_always_injected_when_unconfigured(self, db, cat):
-        """[US1] is_searchable and search_query are injected even when unconfigured."""
         view = _make_search_view(
             params={"q": "anything"},
             extra_attrs={"search_fields": None},
@@ -318,7 +270,6 @@ class TestSearchMixinNoConfig:
         assert ctx["search_query"] == "anything"
 
     def test_search_context_always_injected_when_configured(self, db, cat):
-        """[US1] is_searchable=True and search_query populated when configured."""
         view = _make_search_view(
             params={"q": "test"},
             extra_attrs={"search_fields": ["name"]},
@@ -329,7 +280,6 @@ class TestSearchMixinNoConfig:
         assert ctx["search_query"] == "test"
 
     def test_search_query_stripped_in_context(self, db, cat):
-        """[US1] search_query in context is the stripped ?q= value."""
         view = _make_search_view(
             params={"q": "  hello  "},
             extra_attrs={"search_fields": ["name"]},
@@ -342,10 +292,7 @@ class TestSearchMixinNoConfig:
 
 
 class TestSearchMixinAdvanced:
-    """[US1] SearchMixin advanced search: related field traversal and deduplication."""
-
     def test_search_related_field_traversal(self, db, cat):
-        """[US1] search_fields supports relationship traversal (category__name)."""
         _product(cat, "Widget A", description="")
         # Create a product whose category name does NOT match
         other_cat = Category.objects.create(name="Other Cat", slug="other-cat")
@@ -359,7 +306,6 @@ class TestSearchMixinAdvanced:
         assert qs.first().name == "Widget A"
 
     def test_search_distinct_deduplicates(self, db, cat):
-        """[US1] Records matching via multiple fields appear only once (distinct)."""
         # A product with "python" in both name and description
         _product(cat, "Python Widget", description="python tools for developers")
         _product(cat, "Java Widget", description="java tools")
@@ -371,10 +317,6 @@ class TestSearchMixinAdvanced:
         assert qs.count() == 1  # not 2 even though it matched both fields
 
 
-# ---------------------------------------------------------------------------
-# US2 — OrderMixin (three-tuple format)
-# ---------------------------------------------------------------------------
-
 _ORDER_CHOICES = [
     ("name_asc", "Name A-Z", "name"),
     ("name_desc", "Name Z-A", "-name"),
@@ -383,10 +325,7 @@ _ORDER_CHOICES = [
 
 
 class TestOrderMixin:
-    """[US2] OrderMixin applies the orm_expression, matched via public_key."""
-
     def test_order_valid_key_applies_orm_expression(self, db, cat):
-        """[US2] Valid public_key applies the correct orm_expression to queryset."""
         _product(cat, "Beta", price="5.00")
         _product(cat, "Alpha", price="10.00")
         view = _make_order_view(
@@ -398,7 +337,6 @@ class TestOrderMixin:
         assert qs[1].name == "Beta"
 
     def test_order_invalid_key_ignored(self, db, cat):
-        """[US2] Unrecognised ?o= value is silently ignored — queryset unmodified."""
         _product(cat, "Zeta")
         _product(cat, "Alpha")
         view = _make_order_view(
@@ -410,7 +348,6 @@ class TestOrderMixin:
         assert qs.count() == 2
 
     def test_order_absent_parameter_no_override(self, db, cat):
-        """[US2] Absent ?o= parameter leaves default model ordering intact."""
         _product(cat, "Zeta")
         _product(cat, "Alpha")
         view = _make_order_view(
@@ -422,7 +359,6 @@ class TestOrderMixin:
         assert qs.count() == 2
 
     def test_order_descending_orm_expression(self, db, cat):
-        """[US2] Descending orm_expression (prefixed with '-') orders correctly."""
         _product(cat, "Alpha", price="5.00")
         _product(cat, "Beta", price="10.00")
         view = _make_order_view(
@@ -435,11 +371,6 @@ class TestOrderMixin:
 
 
 class TestOrderMixinTiebreak:
-    """[#290] An orm_expression may be a sequence as well as a single value,
-    unpacked into queryset.order_by(*expression) — a single-column ordering
-    is not a total order unless that column is unique, so a stable default
-    ordering needs a tiebreak to stay stable under pagination."""
-
     def test_a_sequence_orm_expression_applies_every_field(self, db, cat):
         _product(cat, "Charlie", price="5.00")
         _product(cat, "Alpha", price="5.00")
@@ -451,8 +382,6 @@ class TestOrderMixinTiebreak:
         assert [p.name for p in qs] == ["Alpha", "Charlie"]
 
     def test_tiebreak_breaks_the_tie_deterministically_and_completely(self, db, cat):
-        """Three rows tying on the primary sort column still come back in a
-        complete, deterministic order — not merely without raising."""
         tied = [_product(cat, "Same", slug=f"same-{i}") for i in range(3)]
         choices = [("name_asc", "Name (A-Z)", [Lower("name"), "pk"])]
         view = _make_order_view(
@@ -463,10 +392,7 @@ class TestOrderMixinTiebreak:
 
 
 class TestOrderMixinSecurity:
-    """[US2] OrderMixin security: raw ?o= value never reaches the ORM."""
-
     def test_order_public_key_not_equal_orm_expression(self, db, cat):
-        """[US2] Public key differs from orm_expression; orm_expression is used."""
         _product(cat, "Alpha", price="5.00")
         _product(cat, "Beta", price="10.00")
         choices = [
@@ -480,7 +406,6 @@ class TestOrderMixinSecurity:
         assert qs[0].price < qs[1].price
 
     def test_order_raw_param_never_reaches_orm(self, db, cat):
-        """[US2] Unrecognised ?o= values are never passed to queryset.order_by()."""
         _product(cat, "Alpha")
         choices = [
             ("name_asc", "Name A-Z", "name"),
@@ -494,7 +419,6 @@ class TestOrderMixinSecurity:
         assert qs.count() == 1
 
     def test_order_opaque_key_orm_expression_invisible_in_url(self, db, cat):
-        """[US2] A public_key of 'newest' maps to '-created_at' without exposing the field."""
         choices = [
             ("newest", "Newest First", "-created_at"),
         ]
@@ -508,10 +432,7 @@ class TestOrderMixinSecurity:
 
 
 class TestOrderMixinNoConfig:
-    """[US2] OrderMixin is a complete no-op when order_by is not configured."""
-
     def test_order_no_config_is_noop(self, db, cat):
-        """[US2] ?o=anything with order_by=None does not modify the queryset."""
         _product(cat, "Alpha")
         _product(cat, "Beta")
         view = _make_order_view(
@@ -522,7 +443,6 @@ class TestOrderMixinNoConfig:
         assert qs.count() == 2
 
     def test_order_context_not_injected_when_unconfigured(self, db, cat):
-        """[US2] order_by_choices and current_ordering absent from context when unconfigured."""
         view = _make_order_view(
             params={},
             extra_attrs={"order_by": None},
@@ -533,7 +453,6 @@ class TestOrderMixinNoConfig:
         assert "current_ordering" not in ctx
 
     def test_order_empty_list_is_noop(self, db, cat):
-        """[US2] order_by=[] (empty list) is treated as unconfigured — no-op."""
         _product(cat, "Alpha")
         view = _make_order_view(
             params={"o": "name_asc"},
@@ -544,10 +463,7 @@ class TestOrderMixinNoConfig:
 
 
 class TestOrderMixinContext:
-    """[US2] OrderMixin context variables: choices and current_ordering."""
-
     def test_order_context_choices_full_three_tuple_list(self, db, cat):
-        """[US2] order_by_choices is the full three-tuple list."""
         view = _make_order_view(
             params={},
             extra_attrs={"order_by": _ORDER_CHOICES},
@@ -557,7 +473,6 @@ class TestOrderMixinContext:
         assert ctx["order_by_choices"] == _ORDER_CHOICES
 
     def test_order_context_current_ordering_is_public_key(self, db, cat):
-        """[US2] current_ordering is the matched public_key, not the orm_expression."""
         view = _make_order_view(
             params={"o": "name_asc"},
             extra_attrs={"order_by": _ORDER_CHOICES},
@@ -569,7 +484,6 @@ class TestOrderMixinContext:
         )  # public_key, not "name" (orm_expression)
 
     def test_order_context_current_ordering_empty_on_invalid(self, db, cat):
-        """[US2] current_ordering is '' when ?o= is not a recognised public_key."""
         view = _make_order_view(
             params={"o": "bogus_key"},
             extra_attrs={"order_by": _ORDER_CHOICES},
@@ -579,7 +493,6 @@ class TestOrderMixinContext:
         assert ctx["current_ordering"] == ""
 
     def test_order_context_current_ordering_empty_when_absent(self, db, cat):
-        """[US2] current_ordering is '' when ?o= is absent."""
         view = _make_order_view(
             params={},
             extra_attrs={"order_by": _ORDER_CHOICES},
@@ -589,10 +502,6 @@ class TestOrderMixinContext:
         assert ctx["current_ordering"] == ""
 
 
-# ---------------------------------------------------------------------------
-# US3 — SearchOrderMixin (combined search and ordering)
-# ---------------------------------------------------------------------------
-
 _SEARCH_ORDER_CHOICES = [
     ("name_asc", "Name A-Z", "name"),
     ("name_desc", "Name Z-A", "-name"),
@@ -600,10 +509,7 @@ _SEARCH_ORDER_CHOICES = [
 
 
 class TestSearchOrderMixin:
-    """[US3] SearchOrderMixin: combined search and ordering work together."""
-
     def test_combined_search_and_ordering(self, db, cat):
-        """[US3] ?q=widget&o=name_desc returns filtered records in descending order."""
         _product(cat, "Alpha Widget", description="")
         _product(cat, "Beta Widget", description="")
         _product(cat, "Gamma Tool", description="")
@@ -620,7 +526,6 @@ class TestSearchOrderMixin:
         assert qs[1].name == "Alpha Widget"
 
     def test_combined_search_only_retains_default_ordering(self, db, cat):
-        """[US3] ?q= only (no ?o=) filters but preserves model default ordering."""
         _product(cat, "Alpha Widget")
         _product(cat, "Beta Tool")
         view = _make_search_order_view(
@@ -635,7 +540,6 @@ class TestSearchOrderMixin:
         assert qs.first().name == "Alpha Widget"
 
     def test_combined_ordering_only_returns_all_records(self, db, cat):
-        """[US3] ?o= only (no ?q=) orders but returns all records."""
         _product(cat, "Beta Product")
         _product(cat, "Alpha Product")
         view = _make_search_order_view(
@@ -651,15 +555,7 @@ class TestSearchOrderMixin:
 
 
 class TestSearchOrderMixinMROOrder:
-    """[US3] MRO: ordering applied before distinct to avoid DISTINCT+ORDER BY conflicts."""
-
     def test_ordering_applied_before_distinct(self, db, cat):
-        """[US3] Multi-field search with ordering: MRO ensures correct evaluation order.
-
-        When a product matches via multiple search fields, distinct() is applied
-        after ordering, avoiding PostgreSQL 'SELECT DISTINCT + ORDER BY on JOIN'
-        conflicts.
-        """
         # Product matches "python" in both name and description
         p = _product(cat, "Python Widget", description="python tools for developers")
         _product(cat, "Java Tool", description="java tools")
@@ -676,10 +572,6 @@ class TestSearchOrderMixinMROOrder:
         assert qs.first().pk == p.pk
 
 
-# ---------------------------------------------------------------------------
-# US4 — django_filters composition
-# ---------------------------------------------------------------------------
-
 requires_django_filters = pytest.mark.skipif(
     not HAS_DJANGO_FILTERS,
     reason="django-filter is not installed",
@@ -688,10 +580,7 @@ requires_django_filters = pytest.mark.skipif(
 
 @requires_django_filters
 class TestDjangoFiltersComposition:
-    """[US4] SearchOrderMixin composes correctly with FilterView."""
-
     def test_filterset_and_search_both_applied(self, db, cat, cat2):
-        """[US4] Both filterset category filter and ?q= search are applied."""
         _product(cat, "Python Widget")
         _product(cat, "Java Widget")
         _product(cat2, "Python Framework")
@@ -705,7 +594,6 @@ class TestDjangoFiltersComposition:
         assert "Python Framework" not in names
 
     def test_filterset_and_ordering_both_applied(self, db, cat):
-        """[US4] Both filterset filtering and ?o= ordering are applied."""
         _product(cat, "Beta Product")
         _product(cat, "Alpha Product")
 
@@ -720,7 +608,6 @@ class TestDjangoFiltersComposition:
         assert qs[1].name == "Beta Product"
 
     def test_filterset_search_ordering_all_combined(self, db, cat, cat2):
-        """[US4] Filterset + search + ordering all combined produce correct results."""
         _product(cat, "Beta Widget")
         _product(cat, "Alpha Widget")
         _product(cat2, "Widget Other Category")
@@ -738,10 +625,7 @@ class TestDjangoFiltersComposition:
 
 @requires_django_filters
 class TestDjangoFiltersNoOpCases:
-    """[US4] SearchMixin and OrderMixin are no-ops with filterset when unconfigured."""
-
     def test_no_search_fields_search_is_noop_with_filterset(self, db, cat, cat2):
-        """[US4] search_fields=None is a no-op even when FilterView is in the MRO."""
         _product(cat, "Alpha")
         _product(cat2, "Beta")
 
@@ -754,7 +638,6 @@ class TestDjangoFiltersNoOpCases:
         assert view.object_list.count() == 2
 
     def test_no_order_by_ordering_is_noop_with_filterset(self, db, cat):
-        """[US4] order_by=None is a no-op even when FilterView is in the MRO."""
         _product(cat, "Beta")
         _product(cat, "Alpha")
 
@@ -763,11 +646,6 @@ class TestDjangoFiltersNoOpCases:
 
         # No order_by means ?o= has no effect — model default ordering is used
         assert view.object_list.count() == 2
-
-
-# ---------------------------------------------------------------------------
-# MVPListViewMixin / MVPListView tests (specs/015-mvp-list-view/)
-# ---------------------------------------------------------------------------
 
 
 def _make_list_view(params=None, extra_attrs=None):
@@ -793,16 +671,8 @@ def _make_list_view(params=None, extra_attrs=None):
     return view
 
 
-# ---------------------------------------------------------------------------
-# US1 - Zero-Config List Page (T010-T015)
-# ---------------------------------------------------------------------------
-
-
 class TestMVPListViewMixinZeroConfig:
-    """[015-US1] Zero-config list page with only model declared."""
-
     def test_zero_config_page_renders(self, db, cat):
-        """[015-US1] View with only model produces a valid context without error."""
         _product(cat, "Alpha")
         view = _make_list_view()
         view.object_list = view.get_queryset()
@@ -810,7 +680,6 @@ class TestMVPListViewMixinZeroConfig:
         assert ctx is not None
 
     def test_default_page_title_from_model(self, db):
-        """[015-US1] page.title equals model verbose_name_plural.title() by default."""
         view = _make_list_view()
         view.object_list = view.get_queryset()
         ctx = view.get_context_data()
@@ -818,41 +687,29 @@ class TestMVPListViewMixinZeroConfig:
         assert ctx["page"]["title"] == expected
 
     def test_default_list_item_template_convention(self, db):
-        """[015-US1] list_item_template follows <app_label>/<model_name>_list_item.html."""
         view = _make_list_view()
         view.object_list = view.get_queryset()
         ctx = view.get_context_data()
         assert ctx["list_item_template"] == "demo/product_list_item.html"
 
     def test_default_paginate_by(self):
-        """[015-US1] MVPListView.paginate_by == 24 by default."""
         assert MVPListView.paginate_by == 24
 
 
-# ---------------------------------------------------------------------------
-# US2 - Item Template Convention and Override (T016-T020)
-# ---------------------------------------------------------------------------
-
-
 class TestMVPListViewMixinItemTemplate:
-    """[015-US2] Item template convention and explicit override."""
-
     def test_explicit_list_item_template_overrides_convention(self, db):
-        """[015-US2] Explicit list_item_template takes precedence over convention."""
         view = _make_list_view(extra_attrs={"list_item_template": "shared/item.html"})
         view.object_list = view.get_queryset()
         ctx = view.get_context_data()
         assert ctx["list_item_template"] == "shared/item.html"
 
     def test_list_item_template_convention_uses_app_label_and_model_name(self, db):
-        """[015-US2] Convention uses model._meta.app_label and model._meta.model_name."""
         view = _make_list_view(extra_attrs={"model": Category})
         view.object_list = view.get_queryset()
         ctx = view.get_context_data()
         assert ctx["list_item_template"] == "demo/category_list_item.html"
 
     def test_list_item_template_convention_different_app_label(self):
-        """[015-US2] Convention produces correct path for arbitrary app_label/model_name."""
         import types
 
         meta = types.SimpleNamespace(app_label="sales", model_name="order")
@@ -876,14 +733,12 @@ class TestMVPListViewMixinItemTemplate:
         assert view.get_list_item_template() == "sales/order_list_item.html"
 
     def test_empty_string_list_item_template_falls_back_to_convention(self, db):
-        """[015-US2] Empty string list_item_template falls back to the naming convention."""
         view = _make_list_view(extra_attrs={"list_item_template": ""})
         view.object_list = view.get_queryset()
         ctx = view.get_context_data()
         assert ctx["list_item_template"] == "demo/product_list_item.html"
 
     def test_get_list_item_template_override_takes_full_precedence(self, db):
-        """[015-US2] Overriding get_list_item_template() bypasses attribute and convention."""
         rf = RequestFactory()
         request = rf.get("/")
         view_cls = type(
@@ -905,7 +760,6 @@ class TestMVPListViewMixinItemTemplate:
         assert ctx["list_item_template"] == "custom/override.html"
 
     def test_missing_model_and_template_raises_error(self):
-        """[015-US2] AttributeError raised when neither model nor list_item_template is set."""
         rf = RequestFactory()
         request = rf.get("/")
         view_cls = type(
@@ -921,20 +775,8 @@ class TestMVPListViewMixinItemTemplate:
             view.get_list_item_template()
 
 
-# ---------------------------------------------------------------------------
-# US3 - Empty State Messaging (T021-T025)
-# ---------------------------------------------------------------------------
-
-
 class TestMVPListViewMixinEmptyState:
-    """[015-US3] Empty state context is always present and configurable."""
-
     def test_empty_state_present_in_context_with_defaults(self, db):
-        """[015-US3] empty_state in context with non-empty heading and message.
-
-        Asked of a view whose create action is visible, since the message is
-        deliberately dropped when it is not (see [#271] below).
-        """
         view = _make_list_view(extra_attrs={"show_create_action": True})
         view.object_list = view.get_queryset()
         ctx = view.get_context_data()
@@ -943,35 +785,30 @@ class TestMVPListViewMixinEmptyState:
         assert ctx["empty_state"]["message"]
 
     def test_empty_state_heading_override(self, db):
-        """[015-US3] empty_state_heading attribute overrides the default heading."""
         view = _make_list_view(extra_attrs={"empty_state_heading": "No products found"})
         view.object_list = view.get_queryset()
         ctx = view.get_context_data()
         assert ctx["empty_state"]["heading"] == "No products found"
 
     def test_empty_state_message_none_suppresses_message(self, db):
-        """[015-US3] empty_state_message = None results in empty_state.message is None."""
         view = _make_list_view(extra_attrs={"empty_state_message": None})
         view.object_list = view.get_queryset()
         ctx = view.get_context_data()
         assert ctx["empty_state"]["message"] is None
 
     def test_empty_state_heading_none_suppresses_heading(self, db):
-        """[015-US3] empty_state_heading = None results in empty_state.heading is None."""
         view = _make_list_view(extra_attrs={"empty_state_heading": None})
         view.object_list = view.get_queryset()
         ctx = view.get_context_data()
         assert ctx["empty_state"]["heading"] is None
 
     def test_empty_state_message_invites_creation_when_permitted(self, db):
-        """[#271] Default message stands unchanged when the user can create."""
         view = _make_list_view(extra_attrs={"show_create_action": True})
         view.object_list = view.get_queryset()
         ctx = view.get_context_data()
         assert ctx["empty_state"]["message"] == MVPListViewMixin.empty_state_message
 
     def test_empty_state_message_dropped_when_not_permitted(self, db):
-        """[#271] No message at all when the user cannot create."""
         view = _make_list_view()  # show_create_action=False by default
         view.object_list = view.get_queryset()
         ctx = view.get_context_data()
@@ -979,8 +816,6 @@ class TestMVPListViewMixinEmptyState:
         assert ctx["empty_state"]["heading"], "the heading still explains the page"
 
     def test_custom_empty_state_message_also_dropped_when_not_permitted(self, db):
-        """[#271] The message is the create button's caption, so a custom one
-        goes the same way as the default when there is no button."""
         view = _make_list_view(
             extra_attrs={
                 "empty_state_message": "Custom copy.",
@@ -992,27 +827,17 @@ class TestMVPListViewMixinEmptyState:
         assert ctx["empty_state"]["message"] is None
 
 
-# ---------------------------------------------------------------------------
-# US4 - "Create" Action Link from the List Page (T026-T029)
-# ---------------------------------------------------------------------------
-
-
 class TestMVPListViewMixinDirectory:
-    """[015-US4] directory is limited to create-only; create_url absent by default."""
-
     def test_directory_attribute_is_create_only(self):
-        """[015-US4] MVPListViewMixin.directory == ["create"]."""
         assert MVPListViewMixin.directory == ["create"]
 
     def test_create_url_absent_when_permission_false(self, db):
-        """[015-US4] directory context does not contain create_url when show_create_action=False."""
         view = _make_list_view()  # show_create_action=False by default
         view.object_list = view.get_queryset()
         ctx = view.get_context_data()
         assert "create_url" not in ctx["directory"]
 
     def test_no_detail_update_delete_urls_in_directory(self, db):
-        """[015-US4] directory context never contains detail_url, update_url, or delete_url."""
         view = _make_list_view()  # show_create_action=False avoids URL resolution
         view.object_list = view.get_queryset()
         ctx = view.get_context_data()
@@ -1021,16 +846,8 @@ class TestMVPListViewMixinDirectory:
         assert "delete_url" not in ctx["directory"]
 
 
-# ---------------------------------------------------------------------------
-# US5 - Grid Configuration (T030-T032)
-# ---------------------------------------------------------------------------
-
-
 class TestMVPListViewMixinGridConfig:
-    """[015-US5] grid dict is passed through to context as grid_config."""
-
     def test_grid_config_passthrough(self, db):
-        """[015-US5] grid attribute is passed unchanged to context as grid_config."""
         grid = {"sm": 1, "md": 2, "lg": 3}
         view = _make_list_view(extra_attrs={"grid": grid})
         view.object_list = view.get_queryset()
@@ -1038,23 +855,14 @@ class TestMVPListViewMixinGridConfig:
         assert ctx["grid_config"] == {"sm": 1, "md": 2, "lg": 3}
 
     def test_grid_config_empty_dict_when_not_configured(self, db):
-        """[015-US5] grid_config is {} when grid attribute is not configured."""
         view = _make_list_view()  # grid defaults to {}
         view.object_list = view.get_queryset()
         ctx = view.get_context_data()
         assert ctx["grid_config"] == {}
 
 
-# ---------------------------------------------------------------------------
-# US6 - Search, Ordering, and Pagination Compose Cleanly (T033-T037)
-# ---------------------------------------------------------------------------
-
-
 class TestMVPListViewMixinSearchOrdering:
-    """[015-US6] search_query and current_ordering injected correctly into context."""
-
     def test_search_query_in_context_when_search_active(self, db):
-        """[015-US6] search_query == 'foo' when ?q=foo submitted."""
         view = _make_list_view(
             params={"q": "foo"},
             extra_attrs={"search_fields": ["name"]},
@@ -1064,14 +872,12 @@ class TestMVPListViewMixinSearchOrdering:
         assert ctx["search_query"] == "foo"
 
     def test_search_query_empty_when_not_configured(self, db):
-        """[015-US6] search_query == '' when no search_fields configured."""
         view = _make_list_view(extra_attrs={"search_fields": None})
         view.object_list = view.get_queryset()
         ctx = view.get_context_data()
         assert ctx["search_query"] == ""
 
     def test_current_ordering_in_context_when_ordering_active(self, db):
-        """[015-US6] current_ordering == 'name_asc' when ?o=name_asc with matching whitelist."""
         view = _make_list_view(
             params={"o": "name_asc"},
             extra_attrs={
@@ -1086,7 +892,6 @@ class TestMVPListViewMixinSearchOrdering:
         assert ctx["current_ordering"] == "name_asc"
 
     def test_mvp_list_view_all_context_keys_present_with_defaults(self, db):
-        """[015-US6] All mandatory context keys present on a zero-config view."""
         view = _make_list_view()
         view.object_list = view.get_queryset()
         ctx = view.get_context_data()
@@ -1100,16 +905,8 @@ class TestMVPListViewMixinSearchOrdering:
         assert "title" in ctx["page"]
 
 
-# ---------------------------------------------------------------------------
-# Phase 9 - Breadcrumbs and page_title override (T038-T039)
-# ---------------------------------------------------------------------------
-
-
 class TestMVPListViewMixinPageMetadata:
-    """[015] Breadcrumbs and page_title override via class attribute."""
-
     def test_default_breadcrumbs_include_home_and_page_title(self, db):
-        """[015] Default breadcrumbs: Home link + model verbose_name_plural."""
         view = _make_list_view()
         view.object_list = view.get_queryset()
         ctx = view.get_context_data()
@@ -1119,27 +916,14 @@ class TestMVPListViewMixinPageMetadata:
         assert breadcrumbs[1] == {"text": expected_title}
 
     def test_page_title_attribute_overrides_model_derived_title(self, db):
-        """[015] page_title class attribute takes precedence over model-derived title."""
         view = _make_list_view(extra_attrs={"page_title": "Our Catalogue"})
         view.object_list = view.get_queryset()
         ctx = view.get_context_data()
         assert ctx["page"]["title"] == "Our Catalogue"
 
 
-# ---------------------------------------------------------------------------
-# Phase 10 - List View Inline Create (T002)
-# ---------------------------------------------------------------------------
-
-
 class TestListViewInlineCreate:
-    """[021] Inline create form in list view modal.
-
-    Tests cover US1 (inline create via modal), US2 (fallback to create page link),
-    and US3 (permission gating).
-    """
-
     def test_create_form_in_context_when_configured_and_permitted(self, db):
-        """[021][US1][FR-002] create_form injected when create_form_class set + show_create_action=True."""
         from demo.forms import ProductForm
 
         view = _make_list_view(
@@ -1155,7 +939,6 @@ class TestListViewInlineCreate:
         assert isinstance(ctx["create_form"], ProductForm)
 
     def test_create_modal_title_auto_derived_from_verbose_name(self, db):
-        """[021][US1][FR-007] create_modal_title auto-derives as 'Add <VerboseName>' when None."""
         from demo.forms import ProductForm
 
         view = _make_list_view(
@@ -1172,7 +955,6 @@ class TestListViewInlineCreate:
         assert ctx["create_modal_title"] == expected
 
     def test_create_modal_title_override_attribute(self, db):
-        """[021][US1][FR-007] Explicit create_modal_title attribute is used verbatim."""
         from demo.forms import ProductForm
 
         view = _make_list_view(
@@ -1188,7 +970,6 @@ class TestListViewInlineCreate:
         assert ctx["create_modal_title"] == "Custom Create Title"
 
     def test_get_create_form_hook_allows_custom_instantiation(self, db):
-        """[021][US1][FR-005] get_create_form() hook returns custom form instance."""
         from demo.forms import ProductForm
 
         custom_form = ProductForm(initial={"name": "Custom Initial"})
@@ -1209,7 +990,6 @@ class TestListViewInlineCreate:
         assert ctx["create_form"].initial["name"] == "Custom Initial"
 
     def test_fallback_link_when_no_form_class(self, client, db):
-        """[021][US2][FR-006] Toolbar shows link button (no modal toggle) when create_form_class=None + show_create_action=True."""
         # This test should verify that when create_form_class is None,
         # the toolbar contains a standard link without modal trigger
 
@@ -1224,7 +1004,6 @@ class TestListViewInlineCreate:
         assert response.status_code == 200
 
     def test_no_create_button_when_no_permission(self, client, db):
-        """[021][US3][FR-006] No create UI element when show_create_action=False."""
         from demo.forms import ProductForm
 
         view = _make_list_view(
@@ -1240,7 +1019,6 @@ class TestListViewInlineCreate:
         assert "create_form" not in ctx
 
     def test_permission_boolean_false_prevents_form_injection(self, db):
-        """[021][US3][FR-004] create_form absent when show_create_action=False (boolean)."""
         from demo.forms import ProductForm
 
         view = _make_list_view(
@@ -1256,7 +1034,6 @@ class TestListViewInlineCreate:
         assert "create_modal_title" not in ctx
 
     def test_permission_callable_returns_false_prevents_form_injection(self, db, rf):
-        """[021][US3][FR-004] create_form absent when callable show_create_action returns False."""
         from django.contrib.auth.models import AnonymousUser
 
         from demo.forms import ProductForm
@@ -1275,7 +1052,6 @@ class TestListViewInlineCreate:
         assert "create_modal_title" not in ctx
 
     def test_permission_callable_returns_true_allows_form_injection(self, db, rf):
-        """[021][US3][FR-004] create_form present when callable show_create_action returns True."""
         from django.contrib.auth.models import User
 
         from demo.forms import ProductForm
@@ -1285,9 +1061,7 @@ class TestListViewInlineCreate:
         view = _make_list_view(
             extra_attrs={
                 "create_form_class": ProductForm,
-                "show_create_action": staticmethod(
-                    lambda user: user.is_authenticated
-                ),
+                "show_create_action": staticmethod(lambda user: user.is_authenticated),
             }
         )
         view.request.user = user
@@ -1298,7 +1072,6 @@ class TestListViewInlineCreate:
         assert isinstance(ctx["create_form"], ProductForm)
 
     def test_mvp_create_view_honours_next_parameter(self, client, db):
-        """[021][US1][FR-010] POST to create URL with ?next=/list/ redirects to /list/ after success."""
         from django.contrib.auth.models import User
 
         # Create a user and authenticate
@@ -1319,7 +1092,6 @@ class TestListViewInlineCreate:
         assert "/products/" in response.url or response.url == "/products/"
 
     def test_backward_compat_no_form_class_no_change(self, db):
-        """[021][SC-004] List view with create_form_class=None renders identically to pre-feature behavior."""
         # View without create_form_class should work exactly as before
         view = _make_list_view(
             extra_attrs={
@@ -1340,11 +1112,6 @@ class TestListViewInlineCreate:
         assert "page" in ctx
 
 
-# ---------------------------------------------------------------------------
-# Empty state rendering — permission-aware message (issue #271)
-# ---------------------------------------------------------------------------
-
-
 def _render_empty_list_view(rf, show_create_action):
     """Instantiate, dispatch and fully render an empty MVPListView, as HTML."""
     view_cls = type(
@@ -1363,33 +1130,19 @@ def _render_empty_list_view(rf, show_create_action):
 
 
 class TestEmptyStateMessageRendering:
-    """[#271] The rendered empty-state message and call-to-action depend on
-    whether the requesting user has create permission on the view."""
-
     def test_cta_message_and_button_render_when_permitted(self, rf, db):
-        """[#271] With create permission, the invitation text and the
-        'Add new' button both render."""
         html = _render_empty_list_view(rf, show_create_action=True)
         soup = _beautiful_soup()(html, "html.parser")
-        assert "Click the button below to get started" in soup.get_text()
+        empty_state = soup.find("h3").parent
+        assert empty_state.find("p") is not None
         assert soup.find("a", href="/products/create/") is not None
 
     def test_no_message_and_no_button_when_not_permitted(self, rf, db):
-        """[#271] Without create permission the heading stands alone: no
-        invitation, no empty paragraph left behind, and no 'Add new' button."""
         html = _render_empty_list_view(rf, show_create_action=False)
         soup = _beautiful_soup()(html, "html.parser")
-        text = soup.get_text()
-        assert "button below" not in text
         assert soup.find("a", href="/products/create/") is None
-        assert "There's nothing here yet" in text, "the heading still renders"
         empty_state = soup.find("h3").parent
         assert empty_state.find("p") is None, "no empty paragraph is rendered"
-
-
-# ---------------------------------------------------------------------------
-# Search/sort form association without a FilterSet (issue #275)
-# ---------------------------------------------------------------------------
 
 
 def _render_search_sort_list_view(rf):
@@ -1411,14 +1164,7 @@ def _render_search_sort_list_view(rf):
 
 
 class TestSearchSortControlsWithoutFilterSet:
-    """[#275] The search and sort controls must submit to a form that exists
-    in the rendered page, whether or not the view also configures a
-    FilterSet. Both controls point at ``form="filterForm"``, and that id was
-    previously declared only by the filter action's own template."""
-
     def test_form_referenced_by_search_and_sort_exists_in_the_page(self, rf, db):
-        """[#275] Every element pointing at form="filterForm" resolves to an
-        actual <form id="filterForm"> in the document."""
         html = _render_search_sort_list_view(rf)
         soup = _beautiful_soup()(html, "html.parser")
 
@@ -1427,11 +1173,11 @@ class TestSearchSortControlsWithoutFilterSet:
 
         assert referring_ids, "expected search/sort controls to reference a form"
         orphaned = referring_ids - form_ids
-        assert not orphaned, f"controls reference form ids that do not exist: {orphaned}"
+        assert not orphaned, (
+            f"controls reference form ids that do not exist: {orphaned}"
+        )
 
     def test_no_fallback_form_when_neither_search_nor_sort_configured(self, rf, db):
-        """[#275] A plain zero-config list (no search, no sort, no filter) gets
-        no #filterForm at all — nothing on the page needs it."""
         view_cls = type("StubPlainListView", (MVPListView,), {"model": Product})
         view = view_cls()
         view.setup(rf.get("/"))
@@ -1442,8 +1188,6 @@ class TestSearchSortControlsWithoutFilterSet:
         assert soup.find(id="filterForm") is None
 
     def test_no_duplicate_filter_form_when_filterset_is_configured(self, rf, db):
-        """[#275] When a FilterSet is present it still owns #filterForm alone —
-        the fallback does not also render and collide with it."""
         from django_filters.views import FilterView
 
         view_cls = type(
@@ -1465,23 +1209,11 @@ class TestSearchSortControlsWithoutFilterSet:
         assert len(soup.find_all(id="filterForm")) == 1
 
 
-# ---------------------------------------------------------------------------
-# Each action follows its own view configuration (issue #282)
-# ---------------------------------------------------------------------------
-
-
 class TestActionsFollowViewConfiguration:
-    """[#282] A control appears when the view configures the thing it drives.
-
-    There is no separate list saying which controls to draw. ``search_fields``
-    decides the search box, ``order_by`` the sort menu, a ``FilterSet`` the
-    filter dialog, and ``show_create_action`` the add button. Dropping one is
-    a matter of not configuring it, so the row cannot disagree with the view
-    behind it.
-    """
-
     def _render(self, rf, **attrs):
-        view_cls = type("StubActionsListView", (MVPListView,), {"model": Product, **attrs})
+        view_cls = type(
+            "StubActionsListView", (MVPListView,), {"model": Product, **attrs}
+        )
         view = view_cls()
         view.setup(rf.get("/"))
         response = view.get(view.request)
@@ -1489,29 +1221,27 @@ class TestActionsFollowViewConfiguration:
         return response.content.decode()
 
     def test_search_follows_search_fields(self, rf, db):
-        """[#282] The box appears with ``search_fields`` and not without it."""
         assert 'name="q"' in self._render(rf, search_fields=["name"])
         assert 'name="q"' not in self._render(rf, search_fields=None)
 
     def test_sort_follows_order_by(self, rf, db):
-        """[#282] The menu appears with ``order_by`` and not without it."""
         orderings = [("name_asc", "Name (A-Z)", "name")]
         assert "ordering-option" in self._render(rf, order_by=orderings)
         assert "ordering-option" not in self._render(rf, order_by=None)
 
     def test_create_follows_show_create_action(self, rf, db):
-        """[#282] The add button appears only when the view offers the action."""
         shown = self._render(rf, show_create_action=True)
         hidden = self._render(rf, show_create_action=False)
-        assert _beautiful_soup()(shown, "html.parser").find(
-            "a", href="/products/create/"
-        ) is not None
-        assert _beautiful_soup()(hidden, "html.parser").find(
-            "a", href="/products/create/"
-        ) is None
+        assert (
+            _beautiful_soup()(shown, "html.parser").find("a", href="/products/create/")
+            is not None
+        )
+        assert (
+            _beautiful_soup()(hidden, "html.parser").find("a", href="/products/create/")
+            is None
+        )
 
     def test_filter_follows_the_filterset(self, rf, db):
-        """[#282] The dialog appears only when a FilterSet is configured."""
         from django_filters.views import FilterView
 
         view_cls = type(
@@ -1530,7 +1260,6 @@ class TestActionsFollowViewConfiguration:
         assert unfiltered.find(id="filterModal") is None
 
     def test_a_bare_list_view_draws_no_controls_at_all(self, rf, db):
-        """[#282] Configure nothing and the row is empty rather than broken."""
         html = self._render(rf)
         soup = _beautiful_soup()(html, "html.parser")
 

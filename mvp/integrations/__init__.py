@@ -16,12 +16,19 @@ from django.core.exceptions import ImproperlyConfigured
 def missing_dependency(integration: str, pip_name: str) -> ImproperlyConfigured:
     """Return the error to raise when an integration's dependency is absent.
 
-    Usage::
+    Example::
 
         try:
             from some_package import Something
         except ImportError as e:
             raise missing_dependency("some_integration", "some-package") from e
+
+    Args:
+        integration: The integration subpackage name.
+        pip_name: The pip-installable package name to suggest.
+
+    Returns:
+        The ``ImproperlyConfigured`` error to raise.
     """
     return ImproperlyConfigured(
         f"mvp.integrations.{integration} requires the '{pip_name}' package. Install it with: pip install {pip_name}"

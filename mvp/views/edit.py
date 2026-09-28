@@ -1,3 +1,5 @@
+"""Form, create, update and delete views with redirect and message handling."""
+
 import logging
 from collections import defaultdict
 from typing import Any
@@ -37,6 +39,9 @@ class NextURLMixin:
         explicit ``next`` was supplied. A button must never override a caller's
         destination; it only proposes one when the caller didn't ask for a
         specific place to land.
+
+        Returns:
+            The unvalidated ``next`` candidate, or ``None`` when the request has none.
         """
         if self.request.method == "POST":
             return self.request.POST.get("next") or self.request.POST.get(
@@ -60,7 +65,7 @@ class NextURLMixin:
           for every rejected candidate to aid development.
 
         Returns:
-            str | None: Validated URL path, or ``None`` if absent or unsafe.
+            Validated URL path, or ``None`` if absent or unsafe.
         """
         candidate = self.get_next_candidate()
 
@@ -81,7 +86,6 @@ class NextURLMixin:
         ):
             return candidate
 
-        # Emit a warning when a candidate was present but rejected.
         if candidate and settings.DEBUG:
             logger.warning(
                 "next parameter %r rejected (unsafe or cross-origin); falling back to default destination.",
@@ -90,6 +94,7 @@ class NextURLMixin:
         return None
 
     def get_context_data(self, **kwargs):
+        """Add the validated ``next`` URL to the context as ``next_url``."""
         context = super().get_context_data(**kwargs)
         context["next_url"] = self.get_next_url()
         return context
@@ -98,7 +103,7 @@ class NextURLMixin:
 class MVPFormBase(
     SuccessMessageMixin, BaseTemplateNameMixin, NextURLMixin, PageObjectMixin
 ):
-    """Base class for form views in AdminLTE layout with auto-detected renderer."""
+    """Base class for form views: page layout, ``next`` handling and redirects."""
 
     base_template_name = "form_view.html"
     page_class = "mvp-form-page"
@@ -111,6 +116,9 @@ class MVPFormBase(
         bypassing the open-redirect validation (the resolved URL is always
         same-origin).  When resolution fails (e.g. no pk is available yet on
         a create view) ``None`` is returned.
+
+        Returns:
+            The resolved or validated URL, or ``None`` when there is none.
         """
         candidate = self.get_next_candidate()
         if candidate and hasattr(self, "crud_views") and candidate in self.crud_views:
@@ -127,16 +135,13 @@ class MVPFormBase(
         return super().get_next_url()
 
     def get_success_url(self):
-        """Determine the URL to redirect to after successful form submission.
-
-        Priority chain:
-
-        1. ``get_next_url()`` — validated same-origin ``next`` URL, or a
-           resolved CRUD action shorthand (e.g. ``"list"``, ``"detail"``)
-        2. Django ``FormMixin.get_success_url()`` — uses ``success_url`` attribute
+        """Prefer a validated ``next`` URL or CRUD shorthand over ``success_url``.
 
         Returns:
-            str: URL to redirect to
+            The URL to redirect to.
+
+        Raises:
+            ImproperlyConfigured: If there is no ``next`` URL and no ``success_url``.
         """
         if next_url := self.get_next_url():
             return next_url
@@ -148,26 +153,26 @@ class MVPFormBase(
 
 
 class MVPModelFormBase(MVPFormBase):
-    """Base class for model form views in AdminLTE layout with auto-detected renderer."""
+    """Base class for model form views, with model-aware titles and messages."""
 
     page_title: str | Promise = ""
 
     def get_page_title(self) -> str:
         """Return a model-aware page title, or the explicit override if set.
 
-        When ``page_title`` is not falsy, uses it to create an interpolated string using
-        the model's verbose_name capitalised with title. For example, for ``page_title = _("Create %(verbose_name)s")``,
-        and a ``Product`` model with ``verbose_name = "product"``, a title will be produced as ``"Create Product"``; a model with
-        ``verbose_name = "order line"`` produces ``"Create Order Line"``.
+        When ``page_title`` is not falsy, it is interpolated with the model's
+        title-cased ``verbose_name``. For ``page_title = _("Create %(verbose_name)s")``
+        a ``Product`` model gives ``"Create Product"``, and a model with
+        ``verbose_name = "order line"`` gives ``"Create Order Line"``.
 
         Returns:
-            str: The page title to display.
+            The page title to display, or ``""`` when ``page_title`` is unset.
         """
         if not self.page_title:
             return ""
         return self.page_title % {"verbose_name": self.model_meta.verbose_name.title()}
 
-    def get_success_message(self, cleaned_data):
+    def get_success_message(self, cleaned_data: dict[str, Any]):
         """Return the interpolated success message for this form submission.
 
         ``%(verbose_name)s`` is always substituted with the model's verbose name.
@@ -178,11 +183,10 @@ class MVPModelFormBase(MVPFormBase):
         ``KeyError`` is raised.
 
         Args:
-            cleaned_data (dict): Validated form field values (may be empty on
-                delete views).
+            cleaned_data: Validated form field values (may be empty on delete views).
 
         Returns:
-            str: The formatted success message.
+            The formatted success message.
         """
         data = defaultdict(str, cleaned_data)
         data["verbose_name"] = self.model_meta.verbose_name
@@ -194,6 +198,12 @@ class MVPModelFormBase(MVPFormBase):
         After saving a new object ``self.kwargs`` is still empty, but
         ``self.object`` now has a pk, so we use that to allow ``next=detail``
         redirects after creation.
+
+        Args:
+            action: The CRUD action being linked, e.g. ``"detail"``.
+
+        Returns:
+            The kwargs for ``reverse()``, or ``None`` to suppress the action.
         """
         result = super().get_url_kwargs(action)
         if result is not None:
@@ -203,54 +213,29 @@ class MVPModelFormBase(MVPFormBase):
         return None
 
     def get_success_url(self):
-        """Determine the URL to redirect to after successful form submission.
-
-        Priority chain (4 steps):
-
-        1. **next URL**: A validated ``?next=`` or ``POST next=`` value from
-           :meth:`get_next_url` (safe-URL check applied; CRUD shorthands are
-           resolved via :meth:`resolve_crud_url`).
-
-        2. **success_url as CRUD shorthand**: If ``success_url`` is set, it is
-           first tried as an argument to :meth:`resolve_crud_url`.  If it
-           resolves to a known CRUD URL (e.g. ``"list"``, ``"detail"``), that
-           URL is returned.  If resolution fails (unknown key, missing
-           permission, unregistered name), the value is used verbatim as a
-           literal URL path (step 2b).
-
-        3. **object.get_absolute_url()**: When neither a next URL nor
-           ``success_url`` is available, the saved ``self.object`` is checked
-           for a ``get_absolute_url()`` method.  If present, its return value
-           is used.
-
-        4. **ImproperlyConfigured**: Raised when the previous three steps all
-           fail — typically because ``self.object`` is absent (delete views
-           after deletion) or the model does not define ``get_absolute_url()``.
-           Add ``success_url = "list"`` (or any valid CRUD shorthand / literal
-           path) to fix this error.
+        """Fall back from ``next`` and ``success_url`` to ``get_absolute_url()``.
 
         Returns:
-            str: URL to redirect to.
+            The URL to redirect to.
 
         Raises:
-            ImproperlyConfigured: When no redirect URL can be determined.
+            ImproperlyConfigured: If no ``next`` URL, ``success_url`` or
+                ``get_absolute_url()`` is available.
         """
-        # Step 1: validated next URL / CRUD shorthand
         if next_url := self.get_next_url():
             return next_url
 
-        # Step 2: success_url — tried as CRUD shorthand first, then literal path
         raw = getattr(self, "success_url", None)
         if raw:
             try:
                 resolved = self.resolve_crud_url(str(raw))
             except Exception:
+                # Not a resolvable CRUD shorthand, so it is used as a literal path.
                 resolved = None
             if resolved:
                 return resolved
             return str(raw)
 
-        # Step 3: object.get_absolute_url() final fallback
         obj = getattr(self, "object", None)
         if obj is not None and callable(getattr(obj, "get_absolute_url", None)):
             return obj.get_absolute_url()
@@ -263,12 +248,13 @@ class MVPModelFormBase(MVPFormBase):
 
 
 class MVPFormView(MVPFormBase, generic.FormView):
-    """FormView with AdminLTE layout and auto-detected form rendering.
+    """FormView for a form with no model behind it, rendered in the page layout.
 
-    Combines MVPFormBase with Django's FormView to provide a complete
-    form view with automatic renderer detection and AdminLTE card layout.
+    Combines ``MVPFormBase`` with Django's ``FormView``, so it inherits their
+    attributes and methods.
 
-    Inherits all attributes and methods from MVPFormBase and FormView.
+    Attributes:
+        page_class: CSS class(es) applied to the page wrapper.
 
     Example:
         class ContactView(MVPFormView):
@@ -279,8 +265,8 @@ class MVPFormView(MVPFormBase, generic.FormView):
 
     page_class = "mvp-form-page"
 
-    def get_success_message(self, cleaned_data):
-        """Return the interpolated success message for this non-model form submission.
+    def get_success_message(self, cleaned_data: dict[str, Any]):
+        """Return the interpolated success message for a non-model form submission.
 
         Unlike :meth:`MVPModelFormBase.get_success_message`, this method does
         **not** inject ``verbose_name`` into the substitution dict — there is no
@@ -289,11 +275,11 @@ class MVPFormView(MVPFormBase, generic.FormView):
         ``collections.defaultdict(str)``; no ``KeyError`` is raised.
 
         Args:
-            cleaned_data (dict): Validated form field values from the submitted form.
+            cleaned_data: Validated form field values from the submitted form.
 
         Returns:
-            str: The formatted success message, or ``""`` when ``success_message``
-            is falsy.
+            The formatted success message, or ``""`` when ``success_message`` is
+            falsy.
         """
         if not self.success_message:
             return ""
@@ -310,7 +296,7 @@ class MVPFormView(MVPFormBase, generic.FormView):
         word with ``.title()``.
 
         Returns:
-            str: The page title to display in the template.
+            The page title to display in the template.
         """
         if self.page_title:
             return str(self.page_title)
@@ -318,7 +304,7 @@ class MVPFormView(MVPFormBase, generic.FormView):
 
 
 class MVPCreateView(InlinesMixin, MVPModelFormBase, generic.CreateView):
-    """CreateView with AdminLTE layout and auto-detected form rendering.
+    """CreateView rendered in the page layout, with an optional set of inlines.
 
     Set ``inlines`` to add one or more related row sets to the page — see
     ``InlinesMixin``. Leaving ``inlines`` unset is a no-op: the view behaves
@@ -330,19 +316,14 @@ class MVPCreateView(InlinesMixin, MVPModelFormBase, generic.CreateView):
     success_message = _("%(verbose_name)s successfully created.")
 
     def get_success_message(self, cleaned_data):
-        """Return the success message with title-cased verbose_name.
-
-        Overrides the base class to inject a title-cased ``verbose_name`` so
-        the flash reads e.g. "Product successfully created." not
-        "product successfully created."
-        """
+        """Title-case ``verbose_name`` so the message opens with a capital letter."""
         data = defaultdict(str, cleaned_data)
         data["verbose_name"] = self.model_meta.verbose_name.title()
         return self.success_message % data
 
 
 class MVPUpdateView(InlinesMixin, MVPModelFormBase, generic.UpdateView):
-    """Concrete model update view with zero-config AdminLTE layout integration.
+    """Concrete model update view with zero-config page layout integration.
 
     A minimal subclass needs only ``model`` and ``fields``; everything else is
     auto-derived from the model's ``verbose_name``.  The page title, breadcrumb,
@@ -379,7 +360,7 @@ class MVPUpdateView(InlinesMixin, MVPModelFormBase, generic.UpdateView):
             ``page_title`` with the model's title-cased ``verbose_name``.
         get_success_message(cleaned_data): Inherited from ``MVPModelFormBase``;
             interpolates ``success_message`` with ``verbose_name`` and
-            ``verbose_name``.
+            ``cleaned_data``.
         get_success_url(): Inherited from ``MVPModelFormBase``; priority chain:
             next URL → ``success_url`` → ``object.get_absolute_url()``.
 
@@ -398,6 +379,7 @@ class MVPUpdateView(InlinesMixin, MVPModelFormBase, generic.UpdateView):
     success_message = _("%(verbose_name)s successfully updated.")
 
     def get_context_data(self, **kwargs):
+        """Add the delete button's URL to the context as ``delete_url``."""
         context = super().get_context_data(**kwargs)
         context["delete_url"] = self.get_delete_url()
         return context
@@ -412,7 +394,7 @@ class MVPUpdateView(InlinesMixin, MVPModelFormBase, generic.UpdateView):
         the ``None``/empty-href case automatically).
 
         Returns:
-            list[dict]: List of breadcrumb items with 'text' and optional 'href'
+            Breadcrumb items, each with ``"text"`` and an optional ``"href"``.
         """
         return [
             {"text": self.get_list_title(), "href": self.resolve_crud_url("list")},
@@ -424,22 +406,17 @@ class MVPUpdateView(InlinesMixin, MVPModelFormBase, generic.UpdateView):
         """Return the URL to use for the delete view link in the form header.
 
         Routes through ``resolve_crud_url("delete")`` so that
-        ``show_delete_action`` gates the URL. Appends ``?back=<update url>&next=<list url>``
-        so the delete view redirects to the list after successful deletion.
-
-        The ``reverse()`` call for ``back_url`` is intentionally NOT routed through
-        ``resolve_crud_url("update")`` — that would gate on ``show_update_action``
-        (default ``False``), silently producing a ``None`` back URL for developers who
-        have not explicitly set that attribute.  The raw ``reverse()`` call is wrapped
-        in ``try/except NoReverseMatch`` to prevent propagation when the update view
-        name is not registered.
+        ``show_delete_action`` gates the URL. Appends
+        ``?back=<update url>&next=<list url>`` so the delete view redirects to the list after successful deletion.
 
         Returns:
-            str: URL for the delete view link, or empty string when suppressed.
+            URL for the delete view link, or empty string when suppressed.
         """
         url = self.resolve_crud_url("delete")
         if not url:
             return ""
+        # Not resolve_crud_url("update"): that gates on show_update_action (default
+        # False) and would silently drop the back URL.
         try:
             back_url = reverse(
                 self._get_view_name("update"), kwargs=self.get_url_kwargs("update")
@@ -452,7 +429,7 @@ class MVPUpdateView(InlinesMixin, MVPModelFormBase, generic.UpdateView):
 
 
 class MVPDeleteView(MVPModelFormBase, generic.DeleteView):
-    """DeleteView with AdminLTE layout, enhanced for four deletion scenarios.
+    """DeleteView rendered in the page layout, covering four deletion scenarios.
 
     Scenarios (all configurable via class attributes):
 
@@ -462,7 +439,8 @@ class MVPDeleteView(MVPModelFormBase, generic.DeleteView):
     3. **Protected object** — auto-detected; shows which records block deletion,
        hides the Delete button.
     4. **Type-to-confirm** — opt-in; user must type ``confirmation_value`` into an
-       input before the Delete button becomes active. Set ``require_confirmation = True``.
+       input before the Delete button becomes active.
+       Set ``require_confirmation = True``.
 
     Config:
         show_related_objects (bool): Show a summary of cascade-deleted related
@@ -518,7 +496,11 @@ class MVPDeleteView(MVPModelFormBase, generic.DeleteView):
     related_objects_attrs: dict[str, Any] = {"variant": "info"}
 
     def get_breadcrumbs(self):
-        """Return three-level breadcrumb list: List → Detail → Delete."""
+        """Return the three-level breadcrumb list: List → Detail → Delete.
+
+        Returns:
+            Breadcrumb items, each with ``"text"`` and an optional ``"href"``.
+        """
         return [
             {"text": self.get_list_title(), "href": self.resolve_crud_url("list")},
             {"text": str(self.object), "href": self.resolve_crud_url("detail")},
@@ -528,7 +510,8 @@ class MVPDeleteView(MVPModelFormBase, generic.DeleteView):
     def get_confirmation_value(self) -> str:
         """Return the string the user must type. Override to customise.
 
-        Defaults to ``str(self.object)``.
+        Returns:
+            The confirmation string; ``str(self.object)`` by default.
         """
         return str(self.object)
 
@@ -536,13 +519,11 @@ class MVPDeleteView(MVPModelFormBase, generic.DeleteView):
         """Use Django's Collector to inspect what would happen on delete.
 
         Returns:
-            tuple[dict, list]:
-                - related: ``{model: [instances]}`` for cascade relations
-                  (excluding the object itself). Empty dict when protected.
-                - protected: list of objects blocking deletion via PROTECT or
-                  RESTRICT. Empty list when deletion is safe.
+            A ``(related, protected)`` pair. ``related`` maps each model to the
+            instances a cascade would delete (excluding the object itself), and
+            is empty when protected. ``protected`` lists the objects blocking
+            deletion via PROTECT or RESTRICT, and is empty when deletion is safe.
         """
-
         using = self.object._state.db
         collector = Collector(using=using)
         try:
@@ -559,10 +540,9 @@ class MVPDeleteView(MVPModelFormBase, generic.DeleteView):
             if instances:
                 related[model].extend(instances)
 
-        # Django moves a cascade to `fast_deletes` when the related rows can go
-        # in a single DELETE — no children of their own, no signal listeners.
-        # They are deleted just the same, so a summary that reads only
-        # `collector.data` silently omits the commonest cascade there is.
+        # Django moves cascades with no children or signal listeners to
+        # `fast_deletes`; they are deleted all the same, so reading only
+        # `collector.data` would omit the commonest cascade there is.
         for queryset in collector.fast_deletes:
             if queryset.model is type(self.object):
                 continue
@@ -573,13 +553,13 @@ class MVPDeleteView(MVPModelFormBase, generic.DeleteView):
         return dict(related), []
 
     def get_form_class(self):
-        """Return DeleteConfirmForm when require_confirmation is True."""
+        """Use ``DeleteConfirmForm`` when ``require_confirmation`` is set."""
         if self.require_confirmation:
             return DeleteConfirmForm
         return super().get_form_class()
 
     def get_form_kwargs(self):
-        """Inject the confirmation value and label when require_confirmation is True."""
+        """Pass the confirmation value and label to the form when it is required."""
         kwargs = super().get_form_kwargs()
         if self.require_confirmation:
             kwargs["confirmation_value"] = self.get_confirmation_value()
@@ -587,7 +567,7 @@ class MVPDeleteView(MVPModelFormBase, generic.DeleteView):
         return kwargs
 
     def form_valid(self, form):
-        """Delete the object and redirect to success URL."""
+        """Delete the object and add the success message before redirecting."""
         success_url = self.get_success_url()
         self.object.delete()
         messages.success(self.request, self.get_success_message({}))
@@ -605,8 +585,7 @@ class MVPDeleteView(MVPModelFormBase, generic.DeleteView):
         available.
 
         Returns:
-            str: Validated back URL, list URL, the object's absolute URL, or
-                ``""``.
+            Validated back URL, list URL, the object's absolute URL, or ``""``.
         """
         candidate = self.request.GET.get("back")
         if candidate and url_has_allowed_host_and_scheme(
@@ -627,42 +606,37 @@ class MVPDeleteView(MVPModelFormBase, generic.DeleteView):
                 return get_absolute_url() or ""
             except NoReverseMatch:
                 # A model may declare get_absolute_url for a route the project
-                # never mounted. That is the one failure worth tolerating here;
-                # anything else raised by a consumer's own method is a bug in it
-                # and must not be swallowed by a button's fallback chain.
+                # never mounted. Anything else raised by a consumer's own method
+                # is a bug in it and must not be swallowed here.
                 return ""
 
         return ""
 
     def get_success_url(self):
-        """Redirect using ?next= → success_url → list URL priority chain.
+        """Fall back from ``next`` and ``success_url`` to the list URL.
 
-        Intentionally does NOT fall back to ``object.get_absolute_url()`` — the
-        object no longer exists after deletion. Instead falls back to the
-        registered list URL from the CRUD directory.
+        Returns:
+            The URL to redirect to.
 
-        Priority:
-        1. Validated ``?next=`` / CRUD shorthand from ``get_next_url()``
-        2. ``success_url`` class attribute (tried as CRUD shorthand, then literal)
-        3. List URL from ``resolve_crud_url("list")``
-        4. Raises ``ImproperlyConfigured``
+        Raises:
+            ImproperlyConfigured: If no ``next`` URL, ``success_url`` or list URL
+                is available.
         """
-        # Step 1: validated next URL / CRUD shorthand
         if next_url := self.get_next_url():
             return next_url
 
-        # Step 2: success_url — tried as CRUD shorthand first, then literal path
         raw = getattr(self, "success_url", None)
         if raw:
             try:
                 resolved = self.resolve_crud_url(str(raw))
             except Exception:
+                # Not a resolvable CRUD shorthand, so it is used as a literal path.
                 resolved = None
             if resolved:
                 return resolved
             return str(raw)
 
-        # Step 3: list URL (replaces object.get_absolute_url() which 404s after deletion)
+        # Not object.get_absolute_url(): the object no longer exists after deletion.
         url = self.resolve_crud_url("list")
         if url:
             return url
@@ -673,6 +647,7 @@ class MVPDeleteView(MVPModelFormBase, generic.DeleteView):
         )
 
     def get_context_data(self, **kwargs):
+        """Add the deletion preview, protection state and confirmation fields."""
         context = super().get_context_data(**kwargs)
 
         related_map, protected_objects = self._collect_deletion_data()
@@ -710,12 +685,7 @@ class MVPDeleteView(MVPModelFormBase, generic.DeleteView):
         return context
 
     def post(self, request, *args, **kwargs):
-        """Handle DELETE confirmation — validates type-to-confirm and refuses a blocked delete.
-
-        Uses Django's form machinery: if ``require_confirmation=True`` the request
-        data is validated through ``DeleteConfirmForm``; if the object is
-        PROTECT- or RESTRICT-blocked the deletion is aborted before any form processing.
-        """
+        """Refuse a protected delete before validating the confirmation form."""
         self.object = self.get_object()
         _, protected = self._collect_deletion_data()
         if protected:

@@ -48,8 +48,6 @@ class TestSelectOverrideRendersAWidgetsOwnTemplate:
         assert "PROBE-WIDGET-OUTPUT" in html
 
     def test_the_probe_widget_does_not_also_get_crispys_markup(self):
-        """The whole point of the override: crispy's own select shell must
-        not additionally wrap a widget that renders itself."""
         html = render_to_string(
             "cotton/form/render.html", {"form": OwnTemplateWidgetForm()}
         )
@@ -63,7 +61,7 @@ class TestSelectOverrideKeepsCrispysMarkupForOrdinaryWidgets:
             "cotton/form/render.html", {"form": OrdinaryChoiceForm()}
         )
 
-        assert 'appearance-none' in html  # pinned from crispy's own select.html
+        assert "appearance-none" in html  # pinned from crispy's own select.html
         assert '<option value="a"' in html
         assert ">Alpha<" in html
         assert '<option value="b"' in html
@@ -74,6 +72,6 @@ class TestSelectOverrideKeepsCrispysMarkupForOrdinaryWidgets:
             "cotton/form/render.html", {"form": OrdinaryMultipleChoiceForm()}
         )
 
-        assert 'appearance-none' in html
+        assert "appearance-none" in html
         assert '<option value="a"' in html
         assert ">Alpha<" in html

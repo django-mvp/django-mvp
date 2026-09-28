@@ -1,3 +1,5 @@
+{# @description Account dropdown for the sidebar footer: avatar trigger, account/admin links, then log out. #}
+{# @slot <c-menu.item ... /> — Extra rows, inserted between the built-in links and log out. #}
 {% load i18n mvp %}
 {% if request.user.is_authenticated %}
   <c-dropdown valign="top" halign="start" full class="w-full">
@@ -9,17 +11,8 @@
       </div>
     </c-slot>
     {% comment %}
-      Each row is drawn only when its own destination resolves, and the
-      divider only when there is something on both sides of it. The log-out
-      control needs its form to exist to do anything at all, so it is bound
-      to the same condition as the form: a project that provides no
-      `account_logout` URL gets no log-out row rather than a button that
-      silently does nothing when clicked.
-
-      The admin lookup sits inside the staff check on purpose. `{% url as %}`
-      leaves the name unset when the branch does not run, which is what lets
-      the divider condition below ask whether that row was actually drawn
-      rather than whether the admin happens to be mounted.
+      `{% url as %}` leaves the name unset on a false branch, so
+      `has_rows_above` below reflects what was actually drawn.
     {% endcomment %}
     {% url "account-center" as account_center_url %}
     {% url "account_logout" as logout_url %}

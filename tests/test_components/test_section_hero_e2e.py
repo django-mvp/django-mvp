@@ -30,8 +30,6 @@ def _box(locator):
 
 @pytest.mark.django_db
 class TestHeroLayoutInABrowser:
-    """The demo landing page, which is the one page that renders a hero."""
-
     @pytest.fixture
     def hero_page(self, page, live_server):
         page.set_viewport_size(DESKTOP)
@@ -45,7 +43,6 @@ class TestHeroLayoutInABrowser:
         assert _box(hero)["height"] > 0
 
     def test_content_is_centred_in_the_banner(self, hero_page):
-        """The defect: content sat at the top-left of an 80vh box."""
         hero = _box(hero_page.locator(".hero").first)
         content = _box(hero_page.locator(".hero-content").first)
 
@@ -57,18 +54,11 @@ class TestHeroLayoutInABrowser:
         ), "hero content is not vertically centred"
 
     def test_the_height_attribute_reaches_the_rendered_box(self, hero_page):
-        """The demo asks for 80vh against an 800px viewport."""
         assert _box(hero_page.locator(".hero").first)["height"] == pytest.approx(
             640, abs=2
         )
 
     def test_the_overlay_covers_the_banner(self, hero_page):
-        """It dims a background image, so anything less than full cover is a bug.
-
-        This is what the missing `position` cost: the overlay is absolutely
-        placed against its hero, and with no positioned ancestor it escaped to
-        the nearest one it could find.
-        """
         hero = _box(hero_page.locator(".hero").first)
         overlay = _box(hero_page.locator(".hero-overlay").first)
 

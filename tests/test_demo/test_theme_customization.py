@@ -41,8 +41,6 @@ def demo_theme_choices(monkeypatch):
 
 @pytest.mark.django_db
 class TestThemeCustomizationDemoPage:
-    """The demo's theme page, exercised under the demo's own theme config."""
-
     def test_renders_200(self, client, demo_theme_choices):
         response = client.get(reverse("customization"))
 
@@ -63,15 +61,11 @@ class TestThemeCustomizationDemoPage:
             )
 
     def test_the_sites_own_themes_are_offered_first(self, client, demo_theme_choices):
-        """The demo opens in the brand, so mvp and mvp-dark lead the picker."""
         assert DEMO_THEME_CHOICES[:2] == ["mvp", "mvp-dark"]
 
     def test_no_theme_definition_comes_from_outside_the_project(
         self, client, demo_theme_choices
     ):
-        """SC-002. Between the two stylesheets the page loads, every offered
-        theme is defined locally: the prebuilt three by the package, the
-        demo's own pair by the demo."""
         response = client.get(reverse("customization"))
         content = response.content.decode()
 

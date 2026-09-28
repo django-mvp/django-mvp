@@ -117,6 +117,12 @@ class MountedApp:
 
         # in the host project
         literature = LiteratureApp(icon="journal", name=_("Journal"))
+
+    Args:
+        **kwargs: New values for attributes the class already defines.
+
+    Raises:
+        TypeError: A keyword names no attribute of the class, or names a method.
     """
 
     name: Any = ""
@@ -126,9 +132,8 @@ class MountedApp:
     landing: str = ""
     check: bool | Callable[[HttpRequest], bool] = True
 
-    #: The names an instance may set by keyword. A subclass that declares an
-    #: attribute of its own adds it here.
     def __init_subclass__(cls, **kwargs: Any) -> None:
+        """Also turn a plain function declared as ``check`` into a static method."""
         super().__init_subclass__(**kwargs)
         declared = cls.__dict__.get("check")
         if inspect.isfunction(declared):
@@ -153,6 +158,12 @@ class MountedApp:
 
         ``check`` always qualifies, since it may itself be a function. Any other
         attribute qualifies when the class defines it and it is not a method.
+
+        Args:
+            key: The keyword's name.
+
+        Returns:
+            Whether an instance may be given ``key`` by keyword.
         """
         if key == "check":
             return True
@@ -161,6 +172,7 @@ class MountedApp:
         return not inspect.isroutine(inspect.getattr_static(cls, key))
 
     def __repr__(self) -> str:
+        """Name the class and the app."""
         return f"<{type(self).__name__} {self.name!s}>"
 
     def bind(self, view: Callable[..., Any]) -> Callable[..., Any]:
@@ -169,6 +181,12 @@ class MountedApp:
         The wrapper keeps everything Django and the decorators read off a view
         (``view_class``, ``csrf_exempt``, ``__name__``), stays a coroutine
         function when the view is one, and is made once per view.
+
+        Args:
+            view: The view a mount resolved.
+
+        Returns:
+            The wrapper, which turns away a request the app's check refuses.
         """
         cached = self._bound_views.get(view)
         if cached is not None:
@@ -178,6 +196,7 @@ class MountedApp:
 
             @functools.wraps(view)
             async def bound(request, *args, **kwargs):
+                """Serve ``view`` unless the app refuses ``request``."""
                 refusal = self.refusal(request)
                 if refusal is not None:
                     return refusal
@@ -187,6 +206,7 @@ class MountedApp:
 
             @functools.wraps(view)
             def bound(request, *args, **kwargs):
+                """Serve ``view`` unless the app refuses ``request``."""
                 refusal = self.refusal(request)
                 if refusal is not None:
                     return refusal
@@ -210,6 +230,9 @@ class MountedApp:
             **extra_context: More display data for the entry, such as ``badge``.
                 ``label`` and ``icon`` set here replace the app's.
 
+        Returns:
+            The menu entry.
+
         Example::
 
             AppMenu.append(literature.menu_item())
@@ -217,10 +240,14 @@ class MountedApp:
         app = self
 
         class MountedAppMenuItem(MenuItem):
-            """flex_menu processes a copy built from constructor arguments alone,
-            so the app is held on this per-app class, which the copy keeps."""
+            """The host's menu entry for one app, current on all of its pages.
+
+            flex_menu processes a copy built from constructor arguments alone,
+            so the app is held on this per-app class, which the copy keeps.
+            """
 
             def match_url(self) -> bool:
+                """Match any page of the app, not only the entry's own URL."""
                 request = self.request
                 self.selected = request is not None and (
                     MountedApp.for_request(request) is app
@@ -228,6 +255,7 @@ class MountedApp:
                 return self.selected
 
         def entry_check(request: HttpRequest | None, **kwargs: Any) -> bool:
+            """Show the entry to a request the app permits, or with no request."""
             return request is None or app.has_permission(request)
 
         return MountedAppMenuItem(
@@ -247,6 +275,13 @@ class MountedApp:
         adds to the Account Center from its own URLs, belongs to the first
         mounted app in URL order whose menu marks it current. The answer is
         kept on the request.
+
+        Args:
+            request: The request being served.
+
+        Returns:
+            The app, or ``None`` when the page belongs to none or the app
+            refuses the request.
         """
         try:
             return request._mounted_app  # type: ignore[attr-defined,no-any-return]
@@ -262,7 +297,7 @@ class MountedApp:
             app = cls.claiming_menu(request)
         if app is not None and not app.has_permission(request):
             # A refused request shows no app anywhere, a project's own 403 page
-            # included (decision D15).
+            # included (FS-032).
             app = None
         request._mounted_app = app  # type: ignore[attr-defined]
         return app  # type: ignore[no-any-return]
@@ -272,7 +307,13 @@ class MountedApp:
         """Return what the shell draws for ``request``: the app to name and the menu.
 
         A main app is named nowhere. One that refuses the request is not drawn
-        either, and the page falls back to ``AppMenu`` (decision D14).
+        either, and the page falls back to ``AppMenu`` (FS-032).
+
+        Args:
+            request: The request being served.
+
+        Returns:
+            The app to name and the menu to draw, either of them ``None``.
         """
         app = cls.for_request(request)
         main = cls.main(request)
@@ -284,7 +325,16 @@ class MountedApp:
 
     @classmethod
     def claiming_menu(cls, request: HttpRequest) -> MountedApp | None:
-        """Return the first mounted app whose menu marks ``request`` current."""
+        """Return the first mounted app whose menu marks ``request`` current.
+
+        A main app, or one that refuses the request, never claims it.
+
+        Args:
+            request: The request being served.
+
+        Returns:
+            The claiming app, or ``None`` when no menu marks the page current.
+        """
         for mount_ in cls.mounts(request):
             if mount_.main:
                 # The main app's menu draws on every unclaimed page already;
@@ -302,6 +352,12 @@ class MountedApp:
 
         Looked up in the URLconf ``request`` is served from, the same walk as
         :meth:`mounts`.
+
+        Args:
+            request: The request being served, or ``None`` for ``ROOT_URLCONF``.
+
+        Returns:
+            The main app, or ``None`` when no app is mounted as main.
         """
         for mount_ in cls.mounts(request):
             if mount_.main:
@@ -317,6 +373,12 @@ class MountedApp:
         host's menu entry, the lookup of a request's app and the main app's menu
         all ask it. Override it to decide from more than the request alone,
         calling ``super()`` to keep the check.
+
+        Args:
+            request: The request asking.
+
+        Returns:
+            Whether the app is shown to, and serves, ``request``.
         """
         check = self.check
         if callable(check):
@@ -331,6 +393,16 @@ class MountedApp:
         :class:`~django.core.exceptions.PermissionDenied`, so the project's own
         403 page answers. This is the branch of Django's ``AccessMixin``, and
         never a 404.
+
+        Args:
+            request: The request being served.
+
+        Returns:
+            A redirect to the sign-in page for an anonymous visitor the check
+            refuses, or ``None`` when the check permits the request.
+
+        Raises:
+            PermissionDenied: The check refuses a signed-in person.
         """
         if self.has_permission(request):
             return None
@@ -346,11 +418,14 @@ class MountedApp:
         Nothing is recorded when :func:`mount` runs. The mounts are found by
         walking the resolved URLconf and kept on its root resolver, so a
         changed ``ROOT_URLCONF`` or a per-request ``urlconf`` gets its own
-        answer with nothing to reset.
+        answer with nothing to reset. The first walk lets through the
+        ``ImproperlyConfigured`` that :meth:`scan` raises for a bad set of mounts.
 
-        Raises:
-            ImproperlyConfigured: One app is mounted inside another, or two
-                are mounted with ``main=True``.
+        Args:
+            request: The request being served, or ``None`` for ``ROOT_URLCONF``.
+
+        Returns:
+            The mounts, in URL order.
         """
         root = get_resolver(getattr(request, "urlconf", None))
         found: list[MountedAppResolver] | None = getattr(root, REGISTRY_ATTRIBUTE, None)
@@ -371,8 +446,17 @@ class MountedApp:
         An app mounted twice is not refused: it is unsupported, and which mount
         a page belongs to is not defined.
 
-        ``inside`` is the app whose patterns are being walked, and ``found``
-        the mounts met so far. Callers leave both out.
+        Args:
+            resolver: The resolver whose patterns are walked.
+            inside: The app whose patterns are being walked. Callers leave it out.
+            found: The mounts met so far. Callers leave it out.
+
+        Returns:
+            Every mount beneath ``resolver``, in URL order.
+
+        Raises:
+            ImproperlyConfigured: One app is mounted inside another, or two
+                are mounted with ``main=True``.
         """
         found = [] if found is None else found
         for pattern in resolver.url_patterns:
@@ -402,6 +486,12 @@ class MountedAppResolver(URLResolver):
 
     ``path()`` cannot return a subclass, and no other hook sees the matched
     view with a request in hand, so :func:`mount` builds this instead.
+
+    Args:
+        *args: Passed to ``URLResolver``.
+        app: The app the resolved views belong to.
+        main: Whether the app is mounted as the project's main app.
+        **kwargs: Passed to ``URLResolver``.
     """
 
     def __init__(
@@ -412,6 +502,7 @@ class MountedAppResolver(URLResolver):
         self.main = main
 
     def resolve(self, path: str) -> ResolverMatch:
+        """Also bind the resolved view to this resolver's app."""
         match = super().resolve(path)
         # ResolverMatch reads its view name and function path once, in its
         # constructor, so swapping the callable afterwards leaves both intact.
@@ -429,6 +520,9 @@ def mount(route: str, app: MountedApp, main: bool = False) -> MountedAppResolver
             sidebar on every page that belongs to no other mounted app, its own
             pages included, with no back link and no app name in the title.
             Only one app may be main.
+
+    Returns:
+        The resolver to put in ``urlpatterns``.
 
     Example::
 
@@ -449,7 +543,15 @@ def mount(route: str, app: MountedApp, main: bool = False) -> MountedAppResolver
 
 
 def check_mounted_apps(app_configs: Any, **kwargs: Any) -> list[CheckMessage]:
-    """System check: refuse a bad set of mounts when the project starts."""
+    """Refuse a bad set of mounts when the project starts.
+
+    Args:
+        app_configs: The app configs Django asks the check about. Unused.
+        **kwargs: Anything else Django passes a check. Unused.
+
+    Returns:
+        An error when one app is mounted inside another or two are main.
+    """
     try:
         MountedApp.mounts()
     except ImproperlyConfigured as error:

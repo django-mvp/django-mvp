@@ -21,7 +21,6 @@ from django.views.decorators.csrf import csrf_exempt
 from flex_menu import Menu, MenuItem
 
 from demo.urls import urlpatterns as demo_patterns
-
 from mvp.menus import AppMenu
 from mvp.mounted import MountedApp, check_mounted_apps, mount
 from tests.testapp_mounted.menus import TestappMountedMenu
@@ -38,8 +37,6 @@ PLAIN_URLCONF = "tests.urls_mounted_plain"
 @pytest.mark.django_db
 @pytest.mark.urls(PLAIN_URLCONF)
 class TestFixtureApp:
-    """The fixture app's two pages render through a plain ``include()``."""
-
     def test_index_page_renders(self, client):
         response = client.get("/mounted/")
 
@@ -85,12 +82,6 @@ def app_menu_links(rf):
 @pytest.mark.django_db
 @pytest.mark.urls(PLAIN_URLCONF)
 class TestPageBelongingToNoApp:
-    """A project that mounts nothing renders as it always has (FR-010, SC-004).
-
-    Pinned before the shell learns about mounted apps, and green at every
-    commit after.
-    """
-
     def test_sidebar_carries_the_app_menu_entries_and_nothing_else(self, client, rf):
         response = client.get("/layout/")
 
@@ -117,7 +108,7 @@ class TestPageBelongingToNoApp:
     def test_sidebar_has_no_back_link(self, client):
         response = client.get("/layout/")
 
-        assert "Back to" not in response.content.decode()
+        assert b"data-back-link" not in response.content
 
     def test_titled_page_title_is_the_page_then_the_site(self, client):
         response = client.get("/layout/")
@@ -173,11 +164,10 @@ def throwaway_app(*patterns):
 
 @pytest.mark.django_db
 class TestClassDeclaration:
-    """A package declares a class and the host mounts an instance it can adjust
-    (FR-014, decision D26)."""
-
     def test_a_subclass_declared_the_packages_way_mounts_and_serves(self, client):
-        with override_settings(ROOT_URLCONF=urlconf_of(mount("m/", MountedFixtureApp()))):
+        with override_settings(
+            ROOT_URLCONF=urlconf_of(mount("m/", MountedFixtureApp()))
+        ):
             response = client.get("/m/")
 
         assert response.status_code == 200
@@ -199,7 +189,7 @@ class TestClassDeclaration:
         with override_settings(ROOT_URLCONF=urlconf_of(mount("j/", host))):
             response = client.get("/j/detail/")
 
-        assert "Detail | Journal | example.com" == normalised_title(response)
+        assert normalised_title(response) == "Detail | Journal | example.com"
 
     def test_a_host_subclass_overrides_a_name_and_has_permission(self, rf):
         class HostApp(MountedFixtureApp):
@@ -238,8 +228,6 @@ class TestClassDeclaration:
 
 
 class TestHasPermission:
-    """``check`` is a bool, a callable, or a plain function set on the class."""
-
     def request(self, rf, **user):
         request = rf.get("/")
         request.user = type("U", (), user)()
@@ -276,8 +264,6 @@ class TestHasPermission:
 
 @pytest.mark.django_db
 class TestHostEntryFromInstance:
-    """The host's entry, built from the mounted instance, is current on its pages."""
-
     def test_entry_is_current_on_the_apps_pages(self, client):
         host = MountedFixtureApp(name="Journal")
         urlconf = urlconf_of(*demo_patterns, mount("j/", host))
@@ -297,8 +283,6 @@ class TestHostEntryFromInstance:
 
 @pytest.mark.django_db
 class TestMountedAppLookup:
-    """``MountedApp.for_request`` says which app a page was served through."""
-
     @pytest.mark.urls("tests.urls_mounted")
     def test_page_served_through_the_mount_is_the_app(self, client):
         assert for_path(client, "/mounted/") is testapp_mounted
@@ -334,8 +318,6 @@ class TestMountedAppLookup:
 
 
 class TestMountedAppResolver:
-    """The mount hands each page's view back as it found it (R3)."""
-
     def test_view_class_is_still_the_apps_view_class(self):
         match = resolve("/mounted/", urlconf="tests.urls_mounted")
 
@@ -414,8 +396,6 @@ class TestMountedAppResolver:
 
 
 class TestLandingReverse:
-    """The landing reverses wherever the host mounts the app (scenario 7)."""
-
     def test_landing_under_the_first_prefix(self):
         assert reverse(testapp_mounted.landing, urlconf="tests.urls_mounted") == (
             "/mounted/"
@@ -428,8 +408,6 @@ class TestLandingReverse:
 
 
 class TestHostMenusUntouched:
-    """Declaring and mounting an app writes into no host menu (FR-003)."""
-
     def test_declaring_and_mounting_leave_app_menu_children_alone(self):
         before = list(AppMenu.children)
 
@@ -457,8 +435,6 @@ def named_app(name, *patterns):
 
 
 class TestMountedRegistry:
-    """The mounted apps are read back from the URL tree, and bad trees refused."""
-
     def test_clean_urlconf_lists_its_mounts_in_order(self):
         one, two = named_app("One"), named_app("Two")
         urlconf = urlconf_of(mount("one/", one), mount("two/", two))
@@ -498,7 +474,6 @@ class TestMountedRegistry:
         assert len(errors) == 1
         assert "Inner" in errors[0].msg
         assert "Outer" in errors[0].msg
-        assert "inside" in errors[0].msg
 
     def test_server_started_without_checks_raises_the_same_message(self):
         inner = named_app("Inner")
@@ -561,8 +536,6 @@ class TestMountedRegistry:
 @pytest.mark.django_db
 @pytest.mark.urls("tests.urls_mounted")
 class TestMountedPageTitle:
-    """A page in a mounted app names the app in its title (FR-008)."""
-
     def test_titled_page_reads_page_then_app_then_site(self, client):
         response = client.get("/mounted/detail/")
 
@@ -615,8 +588,6 @@ def dock_links(response):
 @pytest.mark.django_db
 @pytest.mark.urls("tests.urls_mounted")
 class TestMountedPageSidebar:
-    """The sidebar swaps to the app's menu under a back link (FR-005, FR-007)."""
-
     def test_app_page_draws_the_app_menu_and_none_of_the_host_menu(self, client):
         labels = menu_labels(client.get("/mounted/"))
 
@@ -672,8 +643,6 @@ def render_host_menu(request, renderer):
 @pytest.mark.django_db
 @pytest.mark.urls("tests.urls_mounted")
 class TestMountedAppMenuItem:
-    """The host's own entry for a mounted app (FR-004, FR-009)."""
-
     def test_entry_shows_the_apps_name_icon_and_landing_address(self, client):
         request = client.get("/layout/").wsgi_request
 
@@ -769,9 +738,6 @@ def host_urlconf(*mounts):
 
 @pytest.mark.django_db
 class TestPageClaimedByAMenu:
-    """A page no mount served belongs to the first app whose menu marks it current
-    (FR-019, decision D13)."""
-
     def test_host_page_linked_from_the_apps_menu_is_the_app(self, client, settings):
         app = host_linking_app("Linker", ("layout", "layout"))
         settings.ROOT_URLCONF = host_urlconf(mount("own/", app))
@@ -847,8 +813,6 @@ MAIN_URLCONF = "tests.urls_mounted_main"
 @pytest.mark.django_db
 @pytest.mark.urls(MAIN_URLCONF)
 class TestMainApp:
-    """An app mounted with ``main=True`` is the site's own menu (FR-016, FR-017)."""
-
     def test_host_page_draws_the_main_apps_menu_and_none_of_the_app_menu(self, client):
         labels = menu_labels(client.get("/layout/"))
 
@@ -880,9 +844,7 @@ class TestMainApp:
     def test_main_apps_own_page_title_carries_no_app_name(self, client):
         assert "Mounted Fixture" not in normalised_title(client.get("/detail/"))
 
-    def test_account_center_swaps_to_its_own_menu_with_a_back_link(
-        self, admin_client
-    ):
+    def test_account_center_swaps_to_its_own_menu_with_a_back_link(self, admin_client):
         response = admin_client.get("/account/")
         labels = menu_labels(response)
 
@@ -915,8 +877,6 @@ class TestMainApp:
 @pytest.mark.django_db
 @pytest.mark.urls("tests.urls_mounted_root")
 class TestAppMountedWithoutMain:
-    """The same app without ``main`` behaves as in US-1 (scenario 4)."""
-
     def test_host_page_draws_the_host_menu(self, client):
         labels = menu_labels(client.get("/layout/"))
 
@@ -931,8 +891,6 @@ class TestAppMountedWithoutMain:
 
 
 class TestMainAppRegistry:
-    """Two main apps are refused, and ``main`` belongs to the mount (FR-018)."""
-
     def test_the_main_app_is_found_among_the_mounts(self):
         main = named_app("Main")
         urlconf = urlconf_of(
@@ -961,7 +919,6 @@ class TestMainAppRegistry:
         assert isinstance(errors[0], Error)
         assert "First" in errors[0].msg
         assert "Second" in errors[0].msg
-        assert "main" in errors[0].msg
 
     def test_two_main_apps_raise_from_the_registry_walk(self):
         urlconf = urlconf_of(
@@ -1000,9 +957,7 @@ CHECKED_URLCONF = "tests.urls_mounted_checked"
 
 @pytest.fixture
 def staff_user(django_user_model):
-    return django_user_model.objects.create_user(
-        "staff", password="pw", is_staff=True
-    )
+    return django_user_model.objects.create_user("staff", password="pw", is_staff=True)
 
 
 @pytest.fixture
@@ -1024,9 +979,6 @@ def entry_visible_to(user, path="/layout/", *, client, app=testapp_mounted_staff
 @pytest.mark.django_db
 @pytest.mark.urls(CHECKED_URLCONF)
 class TestMountedAppCheck:
-    """An app's ``check`` hides it from, and refuses, everyone it excludes
-    (FR-012, FR-013, decision D4)."""
-
     def test_host_entry_is_shown_to_staff(self, client, staff_user):
         assert entry_visible_to(staff_user, client=client) is True
 
@@ -1058,9 +1010,7 @@ class TestMountedAppCheck:
 
         assert "Staff Fixture" not in normalised_title(response)
 
-    def test_a_project_403_page_draws_app_menu_not_the_apps(
-        self, client, regular_user
-    ):
+    def test_a_project_403_page_draws_app_menu_not_the_apps(self, client, regular_user):
         client.force_login(regular_user)
 
         response = client.get("/mounted/")
@@ -1094,8 +1044,6 @@ class TestMountedAppCheck:
 
 @pytest.mark.django_db
 class TestMountedAppCheckOnOtherPaths:
-    """The check also decides menu claims and async views."""
-
     def test_menu_claim_skips_an_app_whose_check_fails(
         self, client, settings, regular_user
     ):

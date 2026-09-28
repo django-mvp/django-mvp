@@ -1,3 +1,10 @@
+{# @description A flex group of items, stacked by default. #}
+{# @prop row:boolean | default:False | description:"Lay items out as a row instead of a column." #}
+{# @prop collapse:boolean | default:False | description:"Turn into a row only at the lg breakpoint." #}
+{# @prop wrap:boolean | default:False | description:"Allow items to wrap onto multiple lines." #}
+{# @prop class:text | description:"Extra classes appended to the group element." #}
+{# @prop gap:number | default:2 | description:"Gap between items." #}
+{# @slot Item one, item two. — The grouped items. #}
 <c-vars row=False collapse=False wrap=False class gap="2" />
 <div class="flex flex-col items-stretch{% if wrap %} flex-wrap{% endif %} gap-{{ gap }}{% if row is True %} flex-row{% elif collapse %} lg:flex-row{% else %} flex-col{% endif %} {{ class }}"
      {{ attrs }}>

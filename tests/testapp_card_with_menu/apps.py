@@ -17,8 +17,6 @@ from django.apps import AppConfig
 
 
 class TestAppCardWithMenuConfig(AppConfig):
-    """A minimal installed app contributing both a card and a menu entry."""
-
     default_auto_field = "django.db.models.BigAutoField"
     name = "tests.testapp_card_with_menu"
     label = "testapp_card_with_menu"

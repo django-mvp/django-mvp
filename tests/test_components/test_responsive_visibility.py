@@ -94,8 +94,6 @@ REGIONS_URLCONF = _regions_urlconf()
 
 @pytest.fixture
 def regions_server(live_server):
-    """``live_server``, with the fixture route mounted for the duration of
-    the test."""
     with override_settings(ROOT_URLCONF=REGIONS_URLCONF):
         yield live_server
 
@@ -155,22 +153,12 @@ def _close_drawer(page):
 def _open_drawer(page):
     # Same reasoning as _close_drawer: drive the native control directly
     # rather than racing the drawer's transition for a clickable point.
-    page.locator('label[for="mvp-app-toggle"][aria-label="Open sidebar"]').first.evaluate(
-        "el => el.click()"
-    )
-
-
-# ---------------------------------------------------------------------------
-# Region 1: navbar_narrow_only_class
-# ---------------------------------------------------------------------------
+    page.locator(
+        'label[for="mvp-app-toggle"][aria-label="Open sidebar"]'
+    ).first.evaluate("el => el.click()")
 
 
 class TestNarrowOnlyRegions:
-    """The navbar's mobile widget list: shown below the configured breakpoint,
-    hidden at and above it. Under `never` — asymmetrically — hidden at every
-    width, so the mobile copy never doubles up with the (unconditionally shown)
-    wide region (D7)."""
-
     @pytest.mark.parametrize(("bp", "px"), REAL_BREAKPOINTS.items())
     def test_shown_below_hidden_at_or_above(self, page, regions_server, bp, px):
         _goto(page, regions_server, bp=bp, viewport=px - 1)
@@ -193,16 +181,7 @@ class TestNarrowOnlyRegions:
         assert _display(_mobile_widgets(page)) == "none"
 
 
-# ---------------------------------------------------------------------------
-# Region 2: navbar_wide_only_class
-# ---------------------------------------------------------------------------
-
-
 class TestWideOnlyRegions:
-    """The navbar's desktop widget list (and ``right`` slot): hidden below the
-    configured breakpoint, shown at and above it. Under `never` there is no
-    width to key off, so it stays unconditionally shown (D1)."""
-
     @pytest.mark.parametrize(("bp", "px"), REAL_BREAKPOINTS.items())
     def test_hidden_below_shown_at_or_above(self, page, regions_server, bp, px):
         _goto(page, regions_server, bp=bp, viewport=px - 1)
@@ -225,20 +204,8 @@ class TestWideOnlyRegions:
         assert _display(_desktop_widgets(page)) != "none"
 
 
-# ---------------------------------------------------------------------------
-# Region 3: sidebar_navbar_toggle_class
-# ---------------------------------------------------------------------------
-
-
 @pytest.mark.usefixtures("mobile_navbar_toggle")
 class TestSidebarEchoRegion:
-    """The navbar's own copies of the sidebar-toggle button and the site
-    icon: hidden wherever the sidebar header already shows its own copy of
-    both. In `icons` mode that is unconditional at and above the breakpoint;
-    in `offcanvas` mode only while the drawer is open there (a fully
-    collapsed sidebar has neither on screen). Under `never` both stay shown
-    everywhere — there is no width, and no persistent sidebar header to echo."""
-
     @pytest.mark.parametrize(("bp", "px"), REAL_BREAKPOINTS.items())
     def test_icons_mode_hides_at_or_above_unconditionally(
         self, page, regions_server, bp, px
@@ -276,9 +243,6 @@ class TestSidebarEchoRegion:
     def test_offcanvas_mode_hides_at_or_above_only_while_open(
         self, page, regions_server
     ):
-        """One representative breakpoint (`lg`, the package default) proves
-        the drawer-state dependency itself; the rule is structurally
-        identical at every other breakpoint (D7)."""
         lg_px = REAL_BREAKPOINTS["lg"]
         _goto(page, regions_server, bp="lg", collapse="offcanvas", viewport=lg_px)
         # A persistent drawer defaults open on a fresh load (issue #178's
@@ -322,15 +286,8 @@ class TestSidebarEchoRegion:
 
 
 class TestMobileSidebarToggleSetting:
-    """[#416] The navbar's sidebar toggle is not drawn below the breakpoint
-    unless `layout.navbar.mobile.sidebar_toggle` is on, because the mobile dock
-    already carries one. At and above the breakpoint nothing changes, and under
-    `never` there is no narrow layout to give way to, so it is always drawn."""
-
     @pytest.mark.parametrize(("bp", "px"), REAL_BREAKPOINTS.items())
-    def test_hidden_below_the_breakpoint_by_default(
-        self, page, regions_server, bp, px
-    ):
+    def test_hidden_below_the_breakpoint_by_default(self, page, regions_server, bp, px):
         _goto(page, regions_server, bp=bp, collapse="offcanvas", viewport=px - 1)
         assert _display(_toggle_label(page)) == "none"
         # the site icon is a separate control and keeps its own rule
@@ -348,11 +305,7 @@ class TestMobileSidebarToggleSetting:
         _goto(page, regions_server, bp=bp, collapse="offcanvas", viewport=px - 1)
         assert _display(_toggle_label(page)) != "none"
 
-    def test_a_closed_desktop_sidebar_can_still_be_reopened(
-        self, page, regions_server
-    ):
-        """The setting is about mobile only: a collapsed off-canvas sidebar at
-        desktop width has no other control to bring it back."""
+    def test_a_closed_desktop_sidebar_can_still_be_reopened(self, page, regions_server):
         lg_px = REAL_BREAKPOINTS["lg"]
         _goto(page, regions_server, bp="lg", collapse="offcanvas", viewport=lg_px)
         _close_drawer(page)
@@ -367,20 +320,8 @@ class TestMobileSidebarToggleSetting:
             assert _display(_toggle_label(page)) != "none"
 
 
-
-# ---------------------------------------------------------------------------
-# Without JavaScript (T016)
-# ---------------------------------------------------------------------------
-
-
 @pytest.mark.usefixtures("mobile_navbar_toggle")
 class TestVisibilityWithoutJavaScript:
-    """One representative setting, with JavaScript disabled entirely, proving
-    computed visibility is identical to every other test in this module.
-    `lg`/`icons` is representative because none of the three regions' rules
-    depend on anything JavaScript sets up — every rule this module exercises
-    is pure CSS, keyed off attributes the server already rendered."""
-
     def test_visibility_is_identical_with_javascript_disabled(
         self, browser, regions_server
     ):

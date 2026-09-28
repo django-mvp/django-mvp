@@ -18,8 +18,6 @@ from mvp.fixtures import _beautiful_soup
 
 
 class TestCottonRender:
-    """The raw-HTML component renderer."""
-
     def test_renders_a_packaged_component(self, cotton_render):
         html = cotton_render("card", title="Quarterly report")
         assert "Quarterly report" in html
@@ -32,8 +30,6 @@ class TestCottonRender:
 
 
 class TestCottonRenderSoup:
-    """The component renderer that returns parsed HTML."""
-
     def test_returns_a_traversable_document(self, cotton_render_soup):
         soup = cotton_render_soup("card", title="Parsed card")
         assert soup.find(string=lambda s: "Parsed card" in s) is not None
@@ -44,8 +40,6 @@ class TestCottonRenderSoup:
 
 
 class TestCottonRenderString:
-    """The inline-template renderer."""
-
     def test_renders_inline_component_markup(self, cotton_render_string):
         html = cotton_render_string("<c-card title='Inline'></c-card>")
         assert "Inline" in html
@@ -63,8 +57,6 @@ class TestCottonRenderString:
 
 
 class TestCottonRenderStringSoup:
-    """The inline-template renderer that returns parsed HTML."""
-
     def test_nested_components_produce_nested_elements(self, cotton_render_string_soup):
         soup = cotton_render_string_soup(
             "<c-grid md='2'><c-card title='One'></c-card><c-card title='Two'></c-card></c-grid>"
@@ -81,17 +73,7 @@ class TestCottonRenderStringSoup:
 
 
 class TestRequestAwareTags:
-    """Both inline renderers must satisfy tags that read ``context.request``.
-
-    ``{% querystring %}`` reads the attribute a ``RequestContext`` sets, not the
-    ``request`` context variable, and ``c-pagination.link`` builds its href with
-    it. A plain ``Context`` raises ``AttributeError`` from inside the tag, which
-    would break these fixtures for every consuming project.
-    """
-
-    def test_string_renderer_supplies_the_request_attribute(
-        self, cotton_render_string
-    ):
+    def test_string_renderer_supplies_the_request_attribute(self, cotton_render_string):
         html = cotton_render_string('<c-pagination.link :page="2" text="2" />')
         assert "page=2" in html
 
@@ -102,8 +84,6 @@ class TestRequestAwareTags:
         assert "page=2" in soup.find("a")["href"]
 
     def test_a_caller_supplied_request_is_honoured(self, cotton_render_string):
-        """A caller passing its own request keeps that request's query string,
-        which is the only way to exercise a component that reads ``?`` state."""
         from django.test import RequestFactory
 
         html = cotton_render_string(
@@ -114,8 +94,6 @@ class TestRequestAwareTags:
 
 
 class TestBeautifulSoupGuard:
-    """beautifulsoup4 is not a runtime dependency, so the import is deferred."""
-
     def test_returns_the_class_when_installed(self):
         assert _beautiful_soup().__name__ == "BeautifulSoup"
 

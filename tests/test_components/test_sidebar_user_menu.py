@@ -51,12 +51,9 @@ def _user_menu_trigger(sidebar, username):
 
 @pytest.mark.django_db
 class TestSidebarUserMenuIconRail:
-    """The footer user-menu dropdown when the sidebar is collapsed to its icon rail."""
-
     def test_dropdown_panel_stays_within_the_viewport(
         self, page, live_server, monkeypatch
     ):
-        """Opening the trigger in icon-rail mode must not push the panel off-screen."""
         monkeypatch.setitem(MVP_CONFIG["layout"]["sidebar"], "collapse", "icons")
         user = get_user_model().objects.create_user(username="railuser", password="pw")
         _login_in_browser(page, live_server, user)
@@ -81,14 +78,6 @@ class TestSidebarUserMenuIconRail:
         )
 
     def test_dropdown_rows_keep_their_labels(self, page, live_server, monkeypatch):
-        """Issue #209: rail mode blanked every row inside the open panel.
-
-        The rail hides labels because the column is too narrow to hold them.
-        That rule was scoped to the whole sidebar subtree, and the dropdown
-        panel renders inside it — so a user opening the account menu got a
-        column of icons with no words. The panel is a popover with its own
-        width, so its labels have to survive.
-        """
         monkeypatch.setitem(MVP_CONFIG["layout"]["sidebar"], "collapse", "icons")
         user = get_user_model().objects.create_user(username="railuser3", password="pw")
         _login_in_browser(page, live_server, user)
@@ -117,17 +106,6 @@ class TestSidebarUserMenuIconRail:
     def test_dropdown_panel_still_spans_the_trigger_when_expanded(
         self, page, live_server, monkeypatch
     ):
-        """Regression guard: the icon-rail fix must not change the expanded
-        layout.
-
-        The footer is now a fixed row shared with the theme and language
-        controls (docs/adr/0023), so the compact user-menu trigger can
-        render narrower than the panel's own ``min-w-52`` floor — matching
-        the panel's width to the trigger's exactly is no longer the
-        invariant to hold. What must still hold is that the panel stays
-        anchored to the trigger's leading edge and never renders narrower
-        than it (which would clip the menu against its own trigger).
-        """
         monkeypatch.setitem(MVP_CONFIG["layout"]["sidebar"], "collapse", "icons")
         user = get_user_model().objects.create_user(username="railuser2", password="pw")
         _login_in_browser(page, live_server, user)
@@ -153,11 +131,6 @@ class TestSidebarUserMenuIconRail:
 
 @pytest.mark.django_db
 class TestSidebarUserMenuLongUsername:
-    """[#368] A long username let the trigger grow past its row instead of
-    truncating, and the overflow sat on top of the theme and language
-    controls beside it — a live click is what actually proves whether a
-    control is still reachable, not a class on the markup."""
-
     def test_theme_control_stays_clickable_with_a_long_username(
         self, page, live_server
     ):

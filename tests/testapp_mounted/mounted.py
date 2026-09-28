@@ -25,7 +25,7 @@ class StaffFixtureApp(MountedFixtureApp):
 
     name = "Staff Fixture"
 
-    def check(request):  # noqa: N805 - a plain function, called with the request alone
+    def check(request):
         return request.user.is_staff
 
 

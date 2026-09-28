@@ -35,8 +35,6 @@ def render(source, **context):
 
 
 class TestModalPositionWidth:
-    """Top/bottom positioned modals must not be capped to a max-width."""
-
     def test_top_position_spans_full_width(self):
         html = render('<c-modal id="m" position="top">Body</c-modal>')
         assert "w-full" in html
@@ -52,13 +50,11 @@ class TestModalPositionWidth:
         assert "w-11/12" not in html
 
     def test_default_centred_position_keeps_the_size_cap(self):
-        """No position set: the original centred-dialog sizing is unchanged."""
         html = render('<c-modal id="m">Body</c-modal>')
         assert "w-11/12" in html
         assert "max-w-2xl" in html
 
     def test_start_and_end_keep_the_size_cap(self):
-        """Side panels still size by ``size``, only their height changes."""
         for position in ["start", "end"]:
             html = render(f'<c-modal id="m" position="{position}">Body</c-modal>')
             assert "w-11/12" in html
@@ -66,8 +62,6 @@ class TestModalPositionWidth:
 
 
 class TestModalCardHeight:
-    """The inner card must be able to stretch to the wrapper's full height."""
-
     def test_card_gets_full_height_utility(self):
         html = render('<c-modal id="m" position="start">Body</c-modal>')
         assert "h-full" in html
