@@ -7,7 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `MVP_CONFIG["layout"]["navbar"]["mobile"]["sidebar_toggle"]` chooses whether the header draws
+  its own sidebar toggle below the sidebar breakpoint. It defaults to `False`.
+
 ### Changed
+
+- **The header no longer carries a sidebar toggle below the sidebar breakpoint.** Header space on a
+  phone is scarce and the mobile dock already ships a sidebar toggle. A project that has no dock,
+  or has emptied it, keeps the header toggle with
+  `MVP_CONFIG["layout"]["navbar"]["mobile"]["sidebar_toggle"] = True`. At and above the breakpoint,
+  and under a breakpoint of `never`, nothing changes.
 
 - The Account Center's sidebar entry for its landing page is labelled "Account Center" instead of
   "Overview", and uses the `account_center` icon.

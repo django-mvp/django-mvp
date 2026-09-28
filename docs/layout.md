@@ -7,7 +7,7 @@ django-mvp renders a complete application shell around your content:
 <c-app>                        DaisyUI drawer (sidebar + content)
 ├── <c-app.sidebar>            brand header, AppMenu, fixed footer
 ├── <c-app.header>             sticky header
-│   └── <c-app.header.navbar>  sidebar toggle, site icon, breadcrumbs, widgets
+│   └── <c-app.header.navbar>  sidebar toggle (not on mobile), site icon, breadcrumbs, widgets
 ├── <c-app.main>               your {% block content %} + flash messages
 ├── <c-app.footer>
 └── <c-app.dock>               mobile bottom navigation
@@ -21,8 +21,9 @@ setting changes on screen and how to override the shell for one page.
 ## Sidebar breakpoint
 
 `layout.sidebar.breakpoint` sets the viewport width at which the sidebar becomes a
-persistent panel. Below the breakpoint it is a mobile overlay drawer (opened by the
-navbar hamburger or the dock, closed by tapping the overlay).
+persistent panel. Below the breakpoint it is a mobile overlay drawer, opened by the
+dock's sidebar item (or the navbar hamburger, if [you turn it on](#the-navbar-toggle-on-mobile))
+and closed by tapping the overlay.
 
 | Value | Persistent from |
 | --- | --- |
@@ -198,6 +199,23 @@ So the brand appears once, and on a desktop page with the sidebar open the heade
 leading edge is the trail alone. The sidebar toggle follows the same rule and always
 has.
 
+### The navbar toggle on mobile
+
+Below the breakpoint the header does not draw its own sidebar toggle. The mobile dock
+ships an item that opens the sidebar, and header space on a phone is worth more to the
+trail. A project without a dock, or one that has emptied it, turns the header's toggle
+back on:
+
+```python
+MVP_CONFIG = {
+    "layout": {"navbar": {"mobile": {"sidebar_toggle": True}}},
+}
+```
+
+At and above the breakpoint the toggle behaves as before, so an off-canvas sidebar that
+has been collapsed can always be reopened. Under `breakpoint="never"` there is no narrow
+layout, and the toggle is always drawn.
+
 Putting the trail in the header rather than above the page body gives every page back
 a row of vertical space, and puts "where am I" where a person already looks for it.
 To draw a trail somewhere else instead, place `<c-breadcrumbs :items="page.breadcrumbs" />`
@@ -214,8 +232,8 @@ third-party widget you often can't rely on it making that call itself:
 
 `desktop.end` reaches the header from the [sidebar breakpoint](#sidebar-breakpoint)
 up, `mobile.end` below it. **`mobile.end` ships empty.** Below the breakpoint the
-header row is spent on the sidebar toggle, the site icon and the
-[breadcrumb trail](#breadcrumbs), and a narrow header that keeps the trail readable
+header row is spent on the site icon and the [breadcrumb trail](#breadcrumbs), and
+a narrow header that keeps the trail readable
 is worth more than one that keeps every control. A widget you list on `mobile.end`
 is the deliberate exception that earns that width back — and a control your visitors
 need on a phone belongs either there or in the [sidebar footer](#sidebar-footer),

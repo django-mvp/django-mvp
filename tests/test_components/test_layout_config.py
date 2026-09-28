@@ -50,6 +50,11 @@ class TestLayoutConfigResolution:
         assert isinstance(layout["navbar"]["mobile"]["end"], list)
         assert isinstance(layout["navbar"]["desktop"]["end"], list)
 
+    def test_the_mobile_header_toggle_is_off_by_default(self):
+        """[#416] The dock carries a sidebar toggle, so the header's copy is
+        opt-in below the breakpoint."""
+        assert MVP_CONFIG["layout"]["navbar"]["mobile"]["sidebar_toggle"] is False
+
     def test_settings_override_replaces_navbar_list(self):
         """tests/settings.py's flat, pre-split ``navbar.end`` override (issue #176
         backward compatibility) applies to both mobile and desktop."""

@@ -10,16 +10,22 @@
   announce.
 
   Everything at the trailing edge is hidden below the sidebar breakpoint. At
-  those widths the row is already carrying the toggle, the site icon and the
-  trail, and the trail is the part worth the width.
-  `layout.navbar.mobile.end` is what puts a control back there, and it ships
-  empty.
+  those widths the row is already carrying the site icon and the trail, and
+  the trail is the part worth the width. The sidebar toggle is left out of the
+  row too, because the mobile dock has one: `layout.navbar.mobile.sidebar_toggle`
+  puts it back for a project without a dock.
+  `layout.navbar.mobile.end` is what puts a control back at the trailing edge,
+  and it ships empty.
 {% endcomment %}
 <div class="navbar gap-2 px-3 w-full transition-shadow duration-100 print:hidden">
   <div class="navbar-start w-auto grow min-w-0 gap-1">
+    {# Below the breakpoint the mobile dock carries a sidebar toggle, so this #}
+    {# one only stays if the project asks for it. mvp-desktop-only is the #}
+    {# rule that gives way there; it also leaves the toggle alone under #}
+    {# `never`, where there is no narrow layout to give way to. #}
     <label for="mvp-app-toggle"
            aria-label="{% trans "Open sidebar" %}"
-           class="btn btn-ghost btn-square shrink-0 mvp-sidebar-hidden-only">
+           class="btn btn-ghost btn-square shrink-0 mvp-sidebar-hidden-only{% if not mvp_config.layout.navbar.mobile.sidebar_toggle %} mvp-desktop-only{% endif %}">
       <c-icon name="menu" />
     </label>
     {# The site icon takes the same visibility rule as the toggle above it, #}

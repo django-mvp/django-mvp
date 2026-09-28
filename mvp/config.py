@@ -78,10 +78,17 @@ MVP_CONFIG = {
             # responsive by its own author — see _apply_legacy_flat_navbar_config
             # below for the pre-split "navbar.end" shape this replaces.
             # The mobile list ships empty. Below the sidebar breakpoint the row
-            # is spent on the sidebar toggle, the site icon and the breadcrumb
-            # trail, so the trailing edge is hidden by default and a widget
-            # listed here is the deliberate exception that earns its width back.
-            "mobile": {"end": []},
+            # is spent on the site icon and the breadcrumb trail, so the
+            # trailing edge is hidden by default and a widget listed here is
+            # the deliberate exception that earns its width back.
+            #
+            # "sidebar_toggle" is whether the navbar draws its own sidebar
+            # toggle below the breakpoint. Off by default: header space is
+            # scarce on a phone and the mobile dock ships a sidebar toggle of
+            # its own. Turn it on for a project that has no dock. It changes
+            # nothing at or above the breakpoint, and under a breakpoint of
+            # "never" the toggle is always drawn.
+            "mobile": {"end": [], "sidebar_toggle": False},
             "desktop": {"end": ["actions.theme-controller", "actions.login"]},
             # Whether the header sticks to the top of the viewport on scroll.
             # True (default) pins it (app-style); False lets it scroll away with

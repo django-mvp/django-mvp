@@ -244,6 +244,41 @@ class TestTheActionsGiveWayToTheTrail:
 
 
 @pytest.mark.django_db
+class TestTheSidebarToggleOnMobile:
+    """[#416] Header space on a phone is scarce, and the mobile dock already
+    ships a sidebar toggle of its own. The header's copy therefore stands down
+    below the sidebar breakpoint unless the project turns it on with
+    `layout.navbar.mobile.sidebar_toggle`. Whether it is actually hidden at a
+    given width is proved in a browser, in
+    tests/test_components/test_responsive_visibility.py."""
+
+    def _toggle_classes(self, client):
+        soup = _soup(client, PAGE_WITH_TRAIL)
+        toggle = soup.find(class_="navbar-start").find(
+            "label", attrs={"for": "mvp-app-toggle"}
+        )
+        assert toggle is not None
+        return toggle.get("class", [])
+
+    def test_the_toggle_gives_way_below_the_breakpoint_by_default(self, client):
+        assert "mvp-desktop-only" in self._toggle_classes(client)
+
+    def test_the_toggle_is_not_tied_to_the_desktop_when_the_setting_is_on(
+        self, client, monkeypatch
+    ):
+        monkeypatch.setitem(
+            MVP_CONFIG["layout"]["navbar"]["mobile"], "sidebar_toggle", True
+        )
+        assert "mvp-desktop-only" not in self._toggle_classes(client)
+
+    def test_the_dock_still_carries_a_toggle_when_the_header_gives_its_own_up(
+        self, client
+    ):
+        soup = _soup(client, PAGE_WITH_TRAIL)
+        assert soup.find(class_="dock").find("label", attrs={"for": "mvp-app-toggle"})
+
+
+@pytest.mark.django_db
 class TestTheHeaderShowsWhenHtmxIsWorking:
     """[#397] The header carries one loading spinner that shows while any htmx
     request is in flight, so a project using the package's own htmx

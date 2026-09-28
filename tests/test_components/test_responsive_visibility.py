@@ -230,6 +230,19 @@ class TestWideOnlyRegions:
 # ---------------------------------------------------------------------------
 
 
+@pytest.fixture
+def mobile_toggle_on(monkeypatch):
+    """The header toggle is off below the breakpoint by default (#416). The
+    tests that use this are about *when the sidebar echo stands down*, which
+    can only be seen on a toggle that is drawn at those widths."""
+    from mvp.config import MVP_CONFIG
+
+    monkeypatch.setitem(
+        MVP_CONFIG["layout"]["navbar"]["mobile"], "sidebar_toggle", True
+    )
+
+
+@pytest.mark.usefixtures("mobile_toggle_on")
 class TestSidebarEchoRegion:
     """The navbar's own copies of the sidebar-toggle button and the site
     icon: hidden wherever the sidebar header already shows its own copy of
@@ -320,11 +333,59 @@ class TestSidebarEchoRegion:
         assert _display(_toggle_label(page)) == "none"
 
 
+class TestMobileSidebarToggleSetting:
+    """[#416] The navbar's sidebar toggle is not drawn below the breakpoint
+    unless `layout.navbar.mobile.sidebar_toggle` is on, because the mobile dock
+    already carries one. At and above the breakpoint nothing changes, and under
+    `never` there is no narrow layout to give way to, so it is always drawn."""
+
+    @pytest.mark.parametrize(("bp", "px"), REAL_BREAKPOINTS.items())
+    def test_hidden_below_the_breakpoint_by_default(
+        self, page, regions_server, bp, px
+    ):
+        _goto(page, regions_server, bp=bp, collapse="offcanvas", viewport=px - 1)
+        assert _display(_toggle_label(page)) == "none"
+        # the site icon is a separate control and keeps its own rule
+        assert _display(_site_icon(page)) != "none"
+
+    @pytest.mark.parametrize(("bp", "px"), REAL_BREAKPOINTS.items())
+    def test_drawn_below_the_breakpoint_when_switched_on(
+        self, page, regions_server, monkeypatch, bp, px
+    ):
+        from mvp.config import MVP_CONFIG
+
+        monkeypatch.setitem(
+            MVP_CONFIG["layout"]["navbar"]["mobile"], "sidebar_toggle", True
+        )
+        _goto(page, regions_server, bp=bp, collapse="offcanvas", viewport=px - 1)
+        assert _display(_toggle_label(page)) != "none"
+
+    def test_a_closed_desktop_sidebar_can_still_be_reopened(
+        self, page, regions_server
+    ):
+        """The setting is about mobile only: a collapsed off-canvas sidebar at
+        desktop width has no other control to bring it back."""
+        lg_px = REAL_BREAKPOINTS["lg"]
+        _goto(page, regions_server, bp="lg", collapse="offcanvas", viewport=lg_px)
+        _close_drawer(page)
+        expect(_drawer_checkbox(page)).not_to_be_checked()
+        assert _display(_toggle_label(page)) != "none"
+
+    def test_drawn_at_every_width_when_never(self, page, regions_server):
+        for width in NEVER_WIDTHS:
+            _goto(
+                page, regions_server, bp="never", collapse="offcanvas", viewport=width
+            )
+            assert _display(_toggle_label(page)) != "none"
+
+
+
 # ---------------------------------------------------------------------------
 # Without JavaScript (T016)
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.usefixtures("mobile_toggle_on")
 class TestVisibilityWithoutJavaScript:
     """One representative setting, with JavaScript disabled entirely, proving
     computed visibility is identical to every other test in this module.

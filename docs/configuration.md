@@ -52,6 +52,7 @@ site overrides the project setting for that one tag only.
 | `layout.sidebar.title` | string or falsey | `None` | Text beside the brand mark in the sidebar header |
 | `layout.sidebar.boost` | bool | `False` | Navigate sidebar links without a full page load |
 | `layout.navbar.mobile.end` | list of component names | `[]` | Widgets at the trailing edge of the navbar below the sidebar breakpoint |
+| `layout.navbar.mobile.sidebar_toggle` | bool | `False` | Whether the navbar draws its own sidebar toggle below the sidebar breakpoint; the mobile dock carries one already |
 | `layout.navbar.desktop.end` | list of component names | `["actions.theme-controller", "actions.login"]` | Same, at and above the breakpoint |
 | `layout.navbar.sticky` | bool | `True` | Whether the header stays pinned as the page scrolls |
 | `table.wrap` | bool | `False` | Project-wide default for whether table cell text wraps |
@@ -200,7 +201,10 @@ Bundled widgets:
 
 ```python
 "navbar": {
-    "mobile": {"end": [...]},   # rendered below the sidebar breakpoint
+    "mobile": {
+        "end": [...],           # rendered below the sidebar breakpoint
+        "sidebar_toggle": False,  # the header's own sidebar toggle, below it
+    },
     "desktop": {"end": [...]},  # rendered at the breakpoint and above
     "sticky": True,
 }
@@ -210,13 +214,16 @@ Both regions are always emitted and one is hidden by viewport width, so a
 widget that only makes sense on a phone can be listed in `mobile` alone
 without its author having to make it responsive.
 
-**The split is hard-coded at `lg` (1024px)** and does not follow
-`layout.sidebar.breakpoint`. The navbar template emits the two regions with
-literal `flex lg:hidden` and `hidden lg:flex` classes, so setting
-`breakpoint: "md"` moves the sidebar to persistent at 768px while the navbar
-keeps showing the mobile widget list up to 1024px. Override
-`cotton/app/header/navbar.html` in your own project if you need the two to
-line up.
+**The split follows `layout.sidebar.breakpoint`**, so moving the sidebar's
+breakpoint moves the navbar's with it.
+
+**`mobile.sidebar_toggle`** is whether the header draws its own sidebar toggle
+below the breakpoint. It defaults to `False`: header space is scarce on a
+phone, and [the mobile dock](navigation.md#the-mobile-dock) ships a sidebar
+toggle of its own. A project that empties the dock or has no use for it sets
+`"sidebar_toggle": True` to keep the toggle in the header. At and above the
+breakpoint the header's toggle is unaffected, and under a breakpoint of `never`
+it is always drawn.
 
 **A flat `navbar.end` is still accepted.** Older projects set a single list at
 `layout.navbar.end`, and the deep merge would leave that sitting beside the
@@ -253,7 +260,9 @@ persistent column.
 behaves normally at the wrong width.
 
 With the sidebar an overlay at every width, the navbar's sidebar toggle is
-always visible, because an open overlay covers the navbar behind it.
+always visible, because an open overlay covers the navbar behind it. That holds
+whatever `layout.navbar.mobile.sidebar_toggle` says: there is no narrow layout
+for it to apply to.
 
 ## `layout.sidebar.collapse`
 
