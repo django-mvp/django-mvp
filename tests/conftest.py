@@ -117,6 +117,18 @@ def reload_pwa_urlconfs():
 
 
 @pytest.fixture
+def mobile_navbar_toggle(monkeypatch):
+    """Draw the header's sidebar toggle below the breakpoint (#416).
+
+    It is off there by default, because the mobile dock carries a toggle. A
+    test that needs that control at phone width, either to open the drawer or
+    to see when the sidebar echo stands down, asks for this."""
+    monkeypatch.setitem(
+        MVP_CONFIG["layout"]["navbar"]["mobile"], "sidebar_toggle", True
+    )
+
+
+@pytest.fixture
 def pwa_enabled():
     """Turn the installable app on for one test, routes included.
 

@@ -121,6 +121,7 @@ class TestBoostedNavigationClosesTheDrawer:
         page.locator("label[for='mvp-app-toggle'][aria-label='Open sidebar']").click()
         expect(page.locator("#mvp-app-toggle")).to_be_checked()
 
+    @pytest.mark.usefixtures("mobile_navbar_toggle")
     def test_the_overlay_drawer_closes_after_a_boosted_click(
         self, page, live_server, boosted
     ):

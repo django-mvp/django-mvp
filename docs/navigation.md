@@ -247,6 +247,11 @@ To drop the pre-seeded sidebar-toggle item, assign
 `MobileFooterMenu.children = [ ...yours... ]` or pop it by name, the same way described
 for `AppMenu` above.
 
+The dock's sidebar item is the only sidebar control below the breakpoint: the header's own
+toggle is left out there by default. A project that drops the item, or has no dock, sets
+`MVP_CONFIG["layout"]["navbar"]["mobile"]["sidebar_toggle"] = True` to keep the toggle in the
+header. See [The navbar toggle on mobile](layout.md#the-navbar-toggle-on-mobile).
+
 ## Rendering menus elsewhere
 
 Any registered menu can be rendered with a flex-menus renderer:
