@@ -6,6 +6,8 @@ from typing import Any
 
 from flex_menu.renderers import BaseRenderer
 
+from mvp.config import MVP_CONFIG
+
 
 class MobileFooterNavRenderer(BaseRenderer):
     """Renderer for the mobile footer navigation bar (daisyUI dock).
@@ -27,6 +29,14 @@ class MobileFooterNavRenderer(BaseRenderer):
             "leaf": "menus/dock/item.html",
         },
     }
+
+    def get_context_data(self, item, **kwargs):
+        """Add ``mvp_config`` so ``<c-dock>`` can read ``layout.dock.class``.
+
+        Menus render with ``render_to_string`` and no request, so the context
+        processor that puts ``mvp_config`` in every page's context never runs.
+        """
+        return {**super().get_context_data(item, **kwargs), "mvp_config": MVP_CONFIG}
 
 
 class SidebarRenderer(BaseRenderer):

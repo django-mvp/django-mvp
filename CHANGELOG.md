@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   its own sidebar toggle below the sidebar breakpoint. It defaults to `False`.
 - `<c-app.main>` is `relative`, so absolutely positioned page content anchors to the content
   area instead of the browser window (#420).
+- `MVP_CONFIG["layout"]["navbar"]["class"]` and `MVP_CONFIG["layout"]["dock"]["class"]` set the
+  background classes of the header and the mobile dock. `<c-app.header>` and `<c-dock>` take a
+  `class` attribute that overrides them (#422).
 
 ### Changed
 
@@ -21,6 +24,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   or has emptied it, keeps the header toggle with
   `MVP_CONFIG["layout"]["navbar"]["mobile"]["sidebar_toggle"] = True`. At and above the breakpoint,
   and under a breakpoint of `never`, nothing changes.
+
+- **The header and the mobile dock are solid by default, in the page background colour**, instead
+  of translucent and blurred. The blur did not hold up in an app installed on a phone, where the
+  status bar and home indicator sit over the page's edges. To keep the old look, set
+  `"navbar": {"class": "backdrop-blur"}` and `"dock": {"class": "bg-transparent backdrop-blur"}`
+  under `MVP_CONFIG["layout"]` (#422).
 
 - The Account Center's sidebar entry for its landing page is labelled "Account Center" instead of
   "Overview", and uses the `account_center` icon.

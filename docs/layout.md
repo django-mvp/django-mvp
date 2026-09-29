@@ -357,6 +357,39 @@ Per-page override (use the `:` expression form so the value stays a real boolean
 {% endblock %}
 ```
 
+## Header and dock background
+
+The header and the mobile dock are solid by default, in the page's own background colour
+(`bg-base-100`). An app installed on a phone draws the status bar and the home indicator over the
+top and bottom edges of the page, and a solid background keeps the header and the dock readable
+underneath them.
+
+`layout.navbar.class` sets the header's background classes and `layout.dock.class` sets the
+dock's. Each replaces the default rather than adding to it. For the translucent, blurred look
+both used to have:
+
+```python
+MVP_CONFIG = {
+    "layout": {
+        "navbar": {"class": "backdrop-blur"},
+        "dock": {"class": "bg-transparent backdrop-blur"},
+    },
+}
+```
+
+The packaged stylesheet only has the classes it was built with. `bg-base-100` through
+`bg-base-300`, `bg-transparent` and `backdrop-blur` are in it. For anything else, build your own
+stylesheet with `python manage.py mvp_tailwind`.
+
+`<c-app.header>` and `<c-dock>` also take a `class` attribute, which wins over the setting wherever
+you render them yourself, for example to change one page's header:
+
+```html
+{% block app.header %}
+  <c-app.header class="bg-base-200" />
+{% endblock %}
+```
+
 ## Announcement banner
 
 `{% block announcement %}` sits outside the app shell entirely — before the

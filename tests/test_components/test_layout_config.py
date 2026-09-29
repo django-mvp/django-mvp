@@ -138,16 +138,43 @@ class TestNavbarMobileDesktopSplit:
             assert marker in desktop_html
 
 
-class TestHeaderBackdropBlur:
+def _class_list(html, marker):
+    """Return the class list of the first element whose class attribute has ``marker``."""
+    match = re.search(rf'class="((?:[^"]*\s)?{re.escape(marker)}(?:\s[^"]*)?)"', html)
+    assert match is not None, f"no element carrying {marker!r} rendered"
+    return match.group(1).split()
+
+
+class TestHeaderAndDockBackground:
+    """The header and the dock take their background from MVP_CONFIG (#422)."""
+
     @pytest.mark.django_db
-    def test_backdrop_blur_is_on_the_header_shell(self, client):
+    def test_the_background_is_on_the_header_shell(self, client):
         content = client.get("/").content.decode()
         match = re.search(r'<div class="([^"]*\bmvp-header\b[^"]*)"', content)
         assert match, "mvp-header wrapper must render"
-        assert "backdrop-blur" in match.group(1).split(), (
-            "backdrop-blur must be on .mvp-header so it covers the tray "
+        assert MVP_CONFIG["layout"]["navbar"]["class"] in match.group(1).split(), (
+            "the background must be on .mvp-header so it covers the tray "
             "and any padding around the navbar, not just the .navbar row"
         )
+
+    @pytest.mark.django_db
+    def test_the_header_renders_the_configured_class(self, client, monkeypatch):
+        monkeypatch.setitem(MVP_CONFIG["layout"]["navbar"], "class", "bg-base-300")
+        header = _class_list(client.get("/").content.decode(), "mvp-header")
+        assert "bg-base-300" in header
+
+    @pytest.mark.django_db
+    def test_the_dock_renders_the_configured_class(self, client, monkeypatch):
+        monkeypatch.setitem(MVP_CONFIG["layout"]["dock"], "class", "bg-base-300")
+        dock = _class_list(client.get("/").content.decode(), "dock")
+        assert "bg-base-300" in dock
+
+    @pytest.mark.django_db
+    def test_a_header_class_attribute_beats_the_setting(self):
+        header = _class_list(_render("tests/header_class_override.html"), "mvp-header")
+        assert "bg-base-200" in header
+        assert MVP_CONFIG["layout"]["navbar"]["class"] not in header
 
 
 class TestBreakpointTags:
@@ -326,7 +353,7 @@ class TestHeaderStickiness:
     @pytest.mark.django_db
     def test_default_header_is_sticky(self, client):
         content = client.get("/").content.decode()
-        assert "mvp-header w-full backdrop-blur sticky z-10 top-0" in content
+        assert "mvp-header w-full bg-base-100 sticky z-10 top-0" in content
         assert "$store.mvp.header.stuck = window.scrollY > 0" in content
 
     @pytest.mark.django_db
