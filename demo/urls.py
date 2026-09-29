@@ -8,6 +8,7 @@ from mvp.mounted import mount
 
 from . import views
 from .library.mounted import library
+from .mounted import docs
 from .views import (
     E400,
     E403,
@@ -36,6 +37,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("", include("mvp.urls")),
     mount("library/", library),
+    mount("docs/", docs),
     path("layout/", views.layout_demo, name="layout"),
     path("layout/full-page/", views.full_page_map_demo, name="full-page-map"),
     path("layout/store/", views.layout_store_demo, name="layout-store"),

@@ -5,6 +5,7 @@ from flex_menu import MenuItem
 
 from demo.component_docs import COMPONENTS
 from demo.library.mounted import library
+from demo.mounted import docs
 from mvp.menus import AppMenu, MenuCollapse, MenuGroup, MobileFooterMenu
 
 AppMenu.extend(
@@ -64,6 +65,7 @@ AppMenu.extend(
             ],
         ),
         library.menu_item(name="library"),
+        docs.menu_item(name="docs"),
         MenuItem(
             name="utility-classes",
             view_name="utility-classes",

@@ -81,6 +81,9 @@ dev = [
     # runtime dependency of mvp itself). Already present transitively via
     # django-distill/rich; declared explicitly since the demo imports it directly.
     "markdown-it-py>=4.2.0,<5",
+    # Builds and serves the demo's Sphinx user guide (demo-only).
+    "django-sphinx-view>=26.1",
+    "sphinx>=9.1.0",
 ]
 
 [tool.uv.sources]
