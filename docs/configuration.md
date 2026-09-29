@@ -55,6 +55,8 @@ site overrides the project setting for that one tag only.
 | `layout.navbar.mobile.sidebar_toggle` | bool | `False` | Whether the navbar draws its own sidebar toggle below the sidebar breakpoint; the mobile dock carries one already |
 | `layout.navbar.desktop.end` | list of component names | `["actions.theme-controller", "actions.login"]` | Same, at and above the breakpoint |
 | `layout.navbar.sticky` | bool | `True` | Whether the header stays pinned as the page scrolls |
+| `layout.navbar.class` | CSS classes | `"bg-base-100"` | The header's background, at every width; see [Header and dock background](layout.md#header-and-dock-background) |
+| `layout.dock.class` | CSS classes | `"bg-base-100"` | The mobile dock's background |
 | `table.wrap` | bool | `False` | Project-wide default for whether table cell text wraps |
 | `site_name` | string or `None` | `None` | The application's name, used for the page title suffix and the installed app's name; `None` takes the current site's name (the request host without the sites framework) |
 | `short_name` | string or `None` | `None` | The installed app's label under its icon; `None` takes the application's name |
@@ -207,6 +209,7 @@ Bundled widgets:
     },
     "desktop": {"end": [...]},  # rendered at the breakpoint and above
     "sticky": True,
+    "class": "bg-base-100",     # the header's background
 }
 ```
 
@@ -239,6 +242,10 @@ Assert against those.
 
 `sticky` applies at every width. `True` pins the header to the top of the
 viewport as the page scrolls. `False` lets it scroll away with the page.
+
+`class` is the header's background, and `layout.dock.class` is the mobile
+dock's. Both default to the page background; see
+[Header and dock background](layout.md#header-and-dock-background).
 
 ## `layout.sidebar.breakpoint`
 

@@ -94,6 +94,16 @@ MVP_CONFIG = {
             # True (default) pins it (app-style); False lets it scroll away with
             # the page (traditional-site behaviour). Applies at every screen size.
             "sticky": True,
+            # Classes for the header's background, at every screen size. The
+            # default matches the page, so the header stays solid where an
+            # installed app on a phone draws the status bar over it. The
+            # translucent look this replaced was "backdrop-blur".
+            "class": "bg-base-100",
+        },
+        "dock": {
+            # Classes for the mobile dock's background, for the same reason.
+            # The translucent look this replaced was "bg-transparent backdrop-blur".
+            "class": "bg-base-100",
         },
     },
     "table": {
