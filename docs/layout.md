@@ -375,6 +375,24 @@ same way `app.header.tray` decides nothing on your behalf.
 {% endblock %}
 ```
 
+## Positioning inside the main area
+
+`<c-app.main>` is `relative`, so it is the containing block for anything your
+page positions absolutely. An element with `absolute` anchors to the content
+area rather than to the browser window, which keeps it clear of the sidebar and
+the header:
+
+```html
+{% block content %}
+  <button class="btn btn-circle btn-primary absolute top-0 right-0 m-4">+</button>
+  ...
+{% endblock %}
+```
+
+The content area is as tall as its content, so `bottom-0` means the bottom of
+the content, not the bottom of the window. For something pinned to a window
+edge, use `fixed` as before.
+
 ## Full-page content
 
 By default, page content scrolls with the window: `<c-app.main>` grows as tall as

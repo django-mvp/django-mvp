@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `MVP_CONFIG["layout"]["navbar"]["mobile"]["sidebar_toggle"]` chooses whether the header draws
   its own sidebar toggle below the sidebar breakpoint. It defaults to `False`.
+- `<c-app.main>` is `relative`, so absolutely positioned page content anchors to the content
+  area instead of the browser window (#420).
 
 ### Changed
 
