@@ -2,7 +2,7 @@
 
 This document was designed against [GOALS.md](../GOALS.md). See also [CONTEXT.md](../CONTEXT.md) for domain terminology and [CONSTITUTION.md](../CONSTITUTION.md) for project standards.
 
-The package is at 0.23.0, so the early items below are already delivered and are carried here to keep the build sequence whole.
+The package is at 0.25.1, so the early items below are already delivered and are carried here to keep the build sequence whole.
 
 ## Versioning
 
@@ -173,28 +173,25 @@ Serves G3, G7 and G10.
 
 ### R13 — The component library covers what a data-centric application needs
 
-*multi-feature · advances G2*
+*served by R29 · advances G2*
 
-The package ships 82 component templates, and the gaps are concentrated in the pieces a data-centric page is built from. Nothing under `mvp/templates/cotton/` covers:
+The gaps are concentrated in the pieces a data-centric page is built from. Nothing the package ships covers:
 
 - statistic tiles, list rows and timelines, for presenting records
 - tabs and step indicators, for splitting a page or a process
 - progress, loading and skeleton states, for anything that takes time
 - keyboard keys and inline links, the latter separately requested
 
-Three more are used inside other components but have no reusable wrapper of their own, so a developer cannot reach them. Comparable libraries in this space ship seventy or more components and treat this set as the baseline. G2 asks for coverage of what a data-centric web application needs, and the gap is concentrated exactly there.
+Comparable libraries in this space ship seventy or more components and treat this set as the baseline. G2 asks for coverage of what a data-centric web application needs, and the gap is concentrated exactly there.
 
-The library keeps growing without closing this list. Recent work went into the shell and the form and table surfaces instead, so every gap above is as open as it was when the item was written.
+[daisy-cotton](https://github.com/django-mvp/daisy-cotton) already ships every one of these, along with the full form control set, so this item is delivered by R29 rather than by writing the components again here. What stays with this package is the part daisy-cotton leaves to the project: the components tied to Django, the shell and the pages.
 
 **Deliverables:**
 
-- Wrappers for the data-presentation components a dashboard or record page needs, chosen against G2 rather than against the design system's full list.
-- Standalone wrappers for the pieces currently reachable only from inside another component.
-- The form control set completed, so a form does not fall out of the library for a common input type.
-- Each new component holding to the existing house style: a small attribute API, deliberately limited variation.
-- A recorded decision on which of the design system's components stay out, so the gap is a choice rather than a backlog.
+- The data-presentation and form components above reachable in every project that installs the package, through R29.
+- Each shown in the demo with the package's own look applied, so a developer can see it in place.
 
-Serves G2. Presentation and marketing components stay out, including carousels, chat bubbles, animation effects and image galleries. They do not serve a data-centric application, and skipping them keeps the library small.
+Serves G2.
 
 ### R14 — Component attribute APIs are verified, not just rendered
 
@@ -231,6 +228,29 @@ Serves G2 and G11. Browser-driven testing stays out. These are markup contracts.
 Serves G5 and G2. A full audit against the accessibility guidelines across composed pages stays out. This covers the components the package ships.
 
 [#295](https://github.com/django-mvp/django-mvp/issues/295) is fixed: a field's error text was not announced, because its `aria-describedby` pointed at an id nothing rendered. An accessibility attribute that references nothing is the failure mode this item's check needs to catch, so it served as the proving case — but the check itself, and the rest of this item's deliverables, remain open.
+
+### R29 — The basic daisyUI components come from daisy-cotton
+
+*multi-feature · advances G2, G5, G6, G11*
+
+This package writes its own Cotton component for every basic daisyUI piece it uses: button, alert, badge, card, modal, dropdown, menu and the rest. [daisy-cotton](https://github.com/django-mvp/daisy-cotton) now does that job for any Django project, with one component per daisyUI component and one attribute vocabulary taken from daisyUI itself. Keeping a second copy here means two libraries drifting apart, and every gap in R13 filled twice. This package should depend on daisy-cotton for the basic components and keep only what is tied to Django or to the application shell: pages, forms and formsets, menus declared in Python, the shell itself, and icon lookup by name.
+
+Both packages name their components the same way, so `<c-card>` resolves to whichever app comes first in `INSTALLED_APPS`. Three of this package's components carry the same name as a daisy-cotton component but mean something different: the card with a header row and footer, the modal built on that card, and the avatar that looks up the signed-in user. Every component this package keeps moves under an `mvp.` prefix (`<c-mvp.card>`), so a daisy-cotton name always means daisy-cotton's component and nothing depends on app order. The icon is the exception. It stays at `<c-icon>` so that it replaces daisy-cotton's plain icon everywhere, including inside daisy-cotton's own components, which is how daisy-cotton expects a project to add name lookup.
+
+The switch changes attribute names across the library, and it is breaking. It lands in one minor release, so the packages built on this one move once. Those that would pick up the release automatically cap their dependency first. daisy-cotton is still settling, so gaps found along the way are raised there rather than worked around here. Two of them shape this item: [classes built at render time never reach a project's stylesheet](https://github.com/django-mvp/daisy-cotton/issues/119), the same fault R10 addresses for this package, and [a menu entry cannot carry link attributes](https://github.com/django-mvp/daisy-cotton/issues/120), which the sidebar's sign-out entry and share links depend on.
+
+**Deliverables:**
+
+- daisy-cotton installed as a dependency, its components covered by the prebuilt stylesheet and by the build entry point a project generates, with no visible change to any page.
+- Every component this package keeps moved under the `mvp.` prefix, the icon excepted.
+- The basic components removed here in favour of daisy-cotton's, with every template, demo page and document that calls them updated.
+- The card, modal and avatar rebuilt on daisy-cotton's components under their new names.
+- The dropdown kept or replaced on the evidence of the existing placement tests run against daisy-cotton's version.
+- Form rendering built on daisy-cotton's form controls, replacing the single-field component.
+- The shell's own hand-written daisyUI markup (messages, footer, navbar, drawer, pagination) composed from daisy-cotton's components where one exists.
+- The packages built on this one capped before the release and moved onto it after.
+
+Serves G2 and G5 through a larger, maintained component set, G6 because the prebuilt stylesheet must keep covering everything a page can render, and G11 because the component surface this package owns becomes smaller and clearly named.
 
 ### R26 — Every front-end asset ships with the package — **delivered**
 
