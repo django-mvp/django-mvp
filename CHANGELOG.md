@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.25.2] - 2026-10-02
+
 ### Added
 
 - `mvp/base.html` has an `app.dock` block around the mobile dock, so a page can drop the dock
