@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `mvp/base.html` has an `app.dock` block around the mobile dock, so a page can drop the dock
+  by overriding the block with nothing, as it already can with `app.footer`.
+
 ### Changed
 
 - **The sidebar is larger below the sidebar breakpoint**, where it is an overlay drawer on a

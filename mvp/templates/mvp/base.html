@@ -116,7 +116,9 @@
         {% block app.footer %}
           <c-app.footer />
         {% endblock app.footer %}
-        <c-app.dock />
+        {% block app.dock %}
+          <c-app.dock />
+        {% endblock app.dock %}
       </c-app>
     {% endblock app %}
     {% block extra_js %}
