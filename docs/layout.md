@@ -514,9 +514,19 @@ row it takes is a row the content does not get. Override the block with nothing:
 {% endblock %}
 ```
 
-The demo map page does exactly this. Leave the dock alone unless navigation is
-genuinely unwanted on that page — it is the only navigation below the sidebar
-breakpoint.
+The demo map page does exactly this.
+
+### Dropping the dock
+
+The dock is the only navigation below the sidebar breakpoint, so leave it alone
+unless navigation is genuinely unwanted on that page. A landing page that also
+drops the sidebar is the usual case: the dock's menu button would open a sidebar
+that is not there. Override the block with nothing:
+
+```html
+{% block app.dock %}
+{% endblock %}
+```
 
 ## Overriding the layout per page
 
@@ -690,6 +700,7 @@ block in a container. It draws no navigation of its own; the sidebar carries the
 | `app.header.tray` | a row below the navbar |
 | `app.main` / `content` | the main area / page content |
 | `app.footer` | the footer |
+| `app.dock` | the mobile dock |
 
 For anything deeper, override the component template itself (e.g. drop your own
 `templates/cotton/app/sidebar/footer.html`) — that is the intended extension path.

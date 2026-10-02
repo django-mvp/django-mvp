@@ -352,3 +352,26 @@ class TestShellTitle:
         monkeypatch.setitem(MVP_CONFIG, "site_name", "The Corner Shop")
 
         assert self.title() == "| The Corner Shop"
+
+
+def render_shell(source):
+    """Render a template string as a shell page for a fixed anonymous request."""
+    request = RequestFactory().get("/", HTTP_HOST="testserver")
+    request.user = AnonymousUser()
+    request.site = get_current_site(request)
+    return engines["django"].from_string(source).render({}, request)
+
+
+@pytest.mark.django_db
+class TestShellDockBlock:
+    def test_a_page_keeps_the_dock_by_default(self):
+        page = render_shell('{% extends "mvp/base.html" %}')
+
+        assert 'class="mvp-dock-only"' in page
+
+    def test_a_page_that_empties_the_block_has_no_dock(self):
+        page = render_shell(
+            '{% extends "mvp/base.html" %}{% block app.dock %}{% endblock %}'
+        )
+
+        assert 'class="mvp-dock-only"' not in page
