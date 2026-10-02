@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **The sidebar is larger below the sidebar breakpoint**, where it is an overlay drawer on a
+  phone or tablet. It is `20rem` wide instead of `16.25rem`, its text is `1rem` instead of
+  `0.875rem`, and every menu row and button is at least `2.75rem` tall. Nothing changes at
+  and above the breakpoint. The custom properties `--mvp-sidebar-width`, `--mvp-sidebar-text`
+  and `--mvp-sidebar-target` on the drawer set the three values.
+
 ## [v0.25.1] - 2026-09-29
 
 ### Added

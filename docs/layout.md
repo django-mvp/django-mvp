@@ -59,6 +59,39 @@ The open/closed state persists across page loads (localStorage, key
 `mvp-app-drawer-open`). On first visit it defaults to open at/above the breakpoint and
 closed below it.
 
+## Sidebar size below the breakpoint
+
+Below the breakpoint the sidebar is an overlay drawer, which is how a phone or tablet
+meets it. There it is sized for touch:
+
+- it is `20rem` wide, narrowing on a small screen so a `3.5rem` strip of the page stays
+  visible beside it to tap the drawer shut;
+- menu items, section titles, the sidebar title and the footer controls use `1rem` text;
+- every menu row and button is at least `2.75rem` tall.
+
+At and above the breakpoint the sidebar keeps its usual `16.25rem` width and compact
+rows. Under a breakpoint of `"never"` there is no breakpoint to follow, so the touch
+sizing applies below 640px.
+
+The three values are custom properties set on the drawer. Restate them in your own
+stylesheet to change the sizing, at whatever width suits your project:
+
+```css
+@media (max-width: 1023px) {
+  #mvp-app {
+    --mvp-sidebar-width: 18rem;
+    --mvp-sidebar-text: 1.125rem;
+    --mvp-sidebar-target: 3rem;
+  }
+}
+```
+
+| Property | Sets | Value below the breakpoint |
+|---|---|---|
+| `--mvp-sidebar-width` | Width of the open sidebar | `min(20rem, 100vw - 3.5rem)` |
+| `--mvp-sidebar-text` | Text size of menu items, section titles, the sidebar title and small footer buttons | `1rem` |
+| `--mvp-sidebar-target` | Minimum height of menu rows, and the size of buttons | `2.75rem` |
+
 ## Sidebar title
 
 `layout.sidebar.title` renders a short text label beside the brand icon in the sidebar
