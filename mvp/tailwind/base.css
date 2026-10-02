@@ -300,6 +300,92 @@
   scrollbar-gutter: stable;
 }
 
+/* Touch sizing for the sidebar while it is an overlay drawer, which is how a
+   phone or tablet meets it. Below the sidebar breakpoint the panel widens,
+   its text grows to body size and every row and button reaches a 44px target.
+   At and above the breakpoint none of the three properties is set, so each
+   rule below falls back to the value the sidebar already had.
+
+   The values are custom properties so a project can restate them on the
+   drawer. `never` has no breakpoint to key off, so it takes the phone sizing
+   below 640px. The strip left beside the panel keeps the overlay tappable. */
+
+@media not all and (min-width: 640px) {
+  [data-mvp-breakpoint="sm"],
+  [data-mvp-breakpoint="never"] {
+    --mvp-sidebar-width: min(20rem, 100vw - 3.5rem);
+    --mvp-sidebar-text: 1rem;
+    --mvp-sidebar-target: 2.75rem;
+  }
+}
+
+@media not all and (min-width: 768px) {
+  [data-mvp-breakpoint="md"] {
+    --mvp-sidebar-width: min(20rem, 100vw - 3.5rem);
+    --mvp-sidebar-text: 1rem;
+    --mvp-sidebar-target: 2.75rem;
+  }
+}
+
+@media not all and (min-width: 1024px) {
+  [data-mvp-breakpoint="lg"] {
+    --mvp-sidebar-width: min(20rem, 100vw - 3.5rem);
+    --mvp-sidebar-text: 1rem;
+    --mvp-sidebar-target: 2.75rem;
+  }
+}
+
+@media not all and (min-width: 1280px) {
+  [data-mvp-breakpoint="xl"] {
+    --mvp-sidebar-width: min(20rem, 100vw - 3.5rem);
+    --mvp-sidebar-text: 1rem;
+    --mvp-sidebar-target: 2.75rem;
+  }
+}
+
+@media not all and (min-width: 1536px) {
+  [data-mvp-breakpoint="2xl"] {
+    --mvp-sidebar-width: min(20rem, 100vw - 3.5rem);
+    --mvp-sidebar-text: 1rem;
+    --mvp-sidebar-target: 2.75rem;
+  }
+}
+
+/* Unlayered on purpose: must beat the `is-drawer-open:w-65` utility and
+   DaisyUI's layered menu and button sizes. */
+.drawer:has(> .drawer-toggle:checked) .mvp-sidebar {
+  width: var(--mvp-sidebar-width, 16.25rem);
+}
+
+.mvp-sidebar .menu :where(li:not(.menu-title) > :not(ul, menu, details, .menu-title, .btn)),
+.mvp-sidebar .menu :where(li:not(.menu-title) > details > summary:not(.menu-title)) {
+  min-height: var(--mvp-sidebar-target, auto);
+  align-content: center;
+  font-size: var(--mvp-sidebar-text, 0.875rem);
+}
+
+.mvp-sidebar .menu-sm :where(li:not(.menu-title) > :not(ul, menu, details, .menu-title, .btn)),
+.mvp-sidebar .menu-sm :where(li:not(.menu-title) > details > summary:not(.menu-title)) {
+  font-size: var(--mvp-sidebar-text, 0.75rem);
+}
+
+.mvp-sidebar .menu-title {
+  font-size: var(--mvp-sidebar-text, 0.875rem);
+}
+
+.mvp-sidebar-title {
+  font-size: var(--mvp-sidebar-text, inherit);
+}
+
+.mvp-sidebar .btn:not(.btn-xs, .btn-sm, .btn-lg, .btn-xl) {
+  --size: var(--mvp-sidebar-target, calc(var(--size-field, 0.25rem) * 10));
+}
+
+.mvp-sidebar .btn-sm {
+  --size: var(--mvp-sidebar-target, calc(var(--size-field, 0.25rem) * 8));
+  --fontsize: var(--mvp-sidebar-text, 0.75rem);
+}
+
 /* Responsive visibility, selected on the shell's resolved layout instead of
    assembled per-render (T015 — replaces navbar_wide_only_class,
    navbar_narrow_only_class and sidebar_navbar_toggle_class in
