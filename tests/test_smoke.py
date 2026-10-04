@@ -245,8 +245,8 @@ class TestCrispyIsARuntimeDependency:
             "django-crispy-forms must be declared in [project].dependencies — "
             "packaged form rendering requires it on every install."
         )
-        assert any("crispy-tailwind" in dep for dep in declared), (
-            "crispy-tailwind must be declared in [project].dependencies — "
+        assert any("django-mvp-forms" in dep for dep in declared), (
+            "django-mvp-forms must be declared in [project].dependencies — "
             "packaged form rendering requires it on every install."
         )
 
@@ -314,13 +314,8 @@ class TestComplexFormDemoPage:
 
         assert response.status_code == 200
         content = response.content.decode()
-        # Fieldset's visible heading is the same daisyUI divider a formset
-        # uses for its own — a <div>, not the <legend> (a <legend> does not
-        # honour display:flex, so a divider-classed legend renders as bare
-        # text with no lines either side; caught visually, #311). <legend>
-        # stays, sr-only, purely for the fieldset's accessible group name.
-        assert content.count('<div class="divider my-8" aria-hidden="true">') == 3
-        assert content.count('<legend class="sr-only">') == 3
+        # One legend per Fieldset in the helper's layout.
+        assert content.count("<legend") == 3
         # <c-form> (form_view.html) is the only real <form> wrapping the
         # fields — form_tag=False must stop crispy nesting a second one
         # inside it. x-data="{form: {}}" is <c-form>'s own signature

@@ -280,7 +280,7 @@ from htmx, so the view keeps working as an ordinary form view.
 ## Crispy forms
 
 Form rendering isn't an integration in the sense above: `django-crispy-forms` and
-`crispy-tailwind` are required dependencies, installed with the package, not an
+`django-mvp-forms` are required dependencies, installed with the package, not an
 optional third-party package you opt into. Their `INSTALLED_APPS` entries and settings
 are part of the required setup — see
 [Getting Started — configure form rendering](getting-started.md#configure-form-rendering).
@@ -290,16 +290,17 @@ resolution order.
 
 Give a form a `helper` whose `Layout` — `Fieldset`, `Row`/`Column`, `HTML`, and the
 rest of `crispy_forms.layout` — controls the markup instead. The demo's Complex
-Form page (`/forms/complex/`) is a worked example. A `Fieldset`'s `<legend>`
-carries the same divider styling as a formset's own heading, for a consistent
-look between the two ways a form groups its fields.
+Form page (`/forms/complex/`) is a worked example. A `Fieldset` is drawn as a
+daisyUI `fieldset` with its legend visible above the fields.
 
-A `Select` field whose widget ships its own template — a third-party control such
-as django-tomselect, whose template renders a `<select>` plus the script that
-configures it — renders that widget as-is instead of crispy-tailwind's own bare
-`<select>` markup. An ordinary `ChoiceField` or `MultipleChoiceField`, using one of
-Django's built-in widgets, is unaffected and still renders through crispy-tailwind's
-markup.
+Every field and layout object is drawn by django-mvp-forms. Its
+[README](https://github.com/django-mvp/django-mvp-forms#public-surface) lists what
+each widget and layout object becomes, the size, colour and variant choices a form
+or a field can state, and how to replace one of its templates.
+
+A field whose widget ships its own template is drawn by that template. That covers
+a third-party control such as django-tomselect, whose template renders a `<select>`
+plus the script that configures it.
 
 ## Writing your own integration
 

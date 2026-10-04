@@ -121,14 +121,14 @@ pip install django-mvp
 # settings.py
 INSTALLED_APPS = [
     ...
-    "your_app",         # your apps above "mvp" — see below
+    "your_app",         # your apps above "mvp", see below
     "django.contrib.sites",
     "django_cotton",
     "easy_icons",
     "flex_menu",
     "mvp",
     "crispy_forms",
-    "crispy_tailwind",  # must come after "mvp" — see Getting Started
+    "mvp_forms",        # the daisyUI template pack forms are drawn with
 ]
 ```
 
@@ -137,10 +137,7 @@ takes the first copy of a name it finds, so **list your own apps above `mvp`** t
 override any template django-mvp ships. This is the same rule projects already use to
 override the Django admin's templates.
 
-Note that it does not follow that `mvp` belongs at the bottom of the list. `mvp` has to
-stay above `crispy_tailwind`, whose help-text template it overrides by the same
-mechanism. Raise your own apps rather than lowering `mvp`. See
-[Getting Started](https://github.com/django-mvp/django-mvp/blob/main/docs/getting-started.md) for both halves of the rule.
+See [Getting Started](https://github.com/django-mvp/django-mvp/blob/main/docs/getting-started.md) for the rule in full.
 
 ```python
 # settings.py, continued
@@ -168,8 +165,8 @@ FLEX_MENUS = {
     },
 }
 
-CRISPY_ALLOWED_TEMPLATE_PACKS = ["tailwind"]
-CRISPY_TEMPLATE_PACK = "tailwind"
+CRISPY_ALLOWED_TEMPLATE_PACKS = ["daisyui"]
+CRISPY_TEMPLATE_PACK = "daisyui"
 ```
 
 ```html

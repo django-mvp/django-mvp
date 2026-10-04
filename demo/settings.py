@@ -34,7 +34,7 @@ INSTALLED_APPS = [
     "mvp",
     "easy_icons",
     "crispy_forms",
-    "crispy_tailwind",
+    "mvp_forms",
     "flex_menu",
     "django_cotton",
     "django_browser_reload",
@@ -119,8 +119,8 @@ CACHES = {
     },
 }
 
-CRISPY_ALLOWED_TEMPLATE_PACKS = ["tailwind"]
-CRISPY_TEMPLATE_PACK = "tailwind"
+CRISPY_ALLOWED_TEMPLATE_PACKS = ["daisyui"]
+CRISPY_TEMPLATE_PACK = "daisyui"
 
 # django-mvp configuration — demonstrates deep-merge overrides of package
 # defaults (mvp/config.py). Unset keys keep their package defaults. Experiment

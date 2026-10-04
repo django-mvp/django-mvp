@@ -162,7 +162,7 @@ Kept here rather than deleted, so that the next reader who finds the contrast pr
 
 The package is deliberate about optional dependencies, and one place does not follow it. `mvp/views/htmx.py` imports `django_htmx.http` at module level with none of the guarding `mvp/integrations/` has, so the failure is a bare import error rather than a message naming the package to install. That turns a configuration question into a crash.
 
-Two related problems this item began with are settled. django-crispy-forms and crispy-tailwind are declared runtime dependencies rather than an implicit requirement of the packaged form rendering, so neither the form page nor the list page carries an undeclared dependency. And `docs/views.md` states plainly that there is no per-view renderer setting, which was the right resolution of a setting that had been documented but never existed.
+Two related problems this item began with are settled. django-crispy-forms and django-mvp-forms are declared runtime dependencies rather than an implicit requirement of the packaged form rendering, so neither the form page nor the list page carries an undeclared dependency. And `docs/views.md` states plainly that there is no per-view renderer setting, which was the right resolution of a setting that had been documented but never existed.
 
 **Deliverables:**
 

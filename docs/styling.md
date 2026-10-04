@@ -177,17 +177,20 @@ The generated entry file:
   classes, and the icon-rail CSS;
 - adds a `@source` for django-mvp's packaged templates (absolute path resolved
   from your environment);
+- adds a `@source` for the installed django-mvp-forms package, which draws
+  every form and writes its classes in its templates and template tags;
 - adds `@source "./templates"` as a starting point for your own code — add one
   line per directory that contains Tailwind classes.
 
 Prefer wiring it yourself? `python manage.py mvp_tailwind --paths` prints the
-two package paths (preset CSS, templates directory) and nothing else.
+three package paths (preset CSS, templates directory, the django-mvp-forms
+package) and nothing else.
 
 ### Why this is necessary
 
 Tailwind generates only the classes it finds in scanned source files. The
 prebuilt stylesheet was scanned against django-mvp's templates — your
-templates weren't there. Rebuilding with both `@source` lines closes the gap.
+templates weren't there. Rebuilding with every `@source` line closes the gap.
 
 ### What the generated entry doesn't restore
 

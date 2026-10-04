@@ -41,7 +41,7 @@ Get these right before writing anything. Each one is a mistake that looks like i
 | Menu renderers | `sidebar` → `SidebarRenderer`, `dock` → `MobileFooterNavRenderer` | `adminlte` → `AdminLTERenderer` |
 | CRUD link visibility | `show_<action>_action` | `has_<action>_permission` — renamed in 0.16, and a view that still sets one raises `ImproperlyConfigured` |
 | Authorising a CRUD action | a permission mixin on the target view | the `show_*` flags, which only draw the link |
-| Form rendering | crispy-forms with the tailwind pack, on every install | a `form_renderer` attribute — no such setting exists |
+| Form rendering | crispy-forms with the `daisyui` pack from django-mvp-forms, on every install | a `form_renderer` attribute — no such setting exists |
 | Table ordering | `order_by` on the table class | `order_by` on the view — it raises `ImproperlyConfigured` |
 | A column that identifies the row | name it in `row_headers` on the table's `Meta` | assuming the leading column — it is not always the identifying one |
 | Menu classes | `AppMenu`, `MobileFooterMenu`, `MenuGroup`, `MenuCollapse` from `mvp.menus` | — |
@@ -70,8 +70,7 @@ Get these right before writing anything. Each one is a mistake that looks like i
 
 Enough to boot. Every step has a page behind it.
 
-**1. Settings.** Your own apps go above `mvp` so your templates win. `mvp` goes above
-`crispy_tailwind` so its help-text override wins.
+**1. Settings.** Your own apps go above `mvp` so your templates win.
 
 ```python
 # settings.py
@@ -88,7 +87,7 @@ INSTALLED_APPS = [
     "flex_menu",
     "mvp",
     "crispy_forms",
-    "crispy_tailwind",
+    "mvp_forms",
 ]
 SITE_ID = 1
 
@@ -103,8 +102,8 @@ TEMPLATES = [{
     ]},
 }]
 
-CRISPY_TEMPLATE_PACK = "tailwind"
-CRISPY_ALLOWED_TEMPLATE_PACKS = ["tailwind"]
+CRISPY_TEMPLATE_PACK = "daisyui"
+CRISPY_ALLOWED_TEMPLATE_PACKS = ["daisyui"]
 
 FLEX_MENUS = {"renderers": {
     "sidebar": "mvp.renderers.SidebarRenderer",

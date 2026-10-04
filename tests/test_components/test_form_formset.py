@@ -114,7 +114,7 @@ class TestFormsetRowFields:
     def test_visible_fields_render_through_crispy(self):
         form = RowFormSet().forms[0]
         html = render('<c-form.formset.row :form="form" />', form=form)
-        # crispy-tailwind's field wrapper div, proving the field went through
+        # The template pack's field wrapper, proving the field went through
         # the same |as_crispy_field path a single form's field takes.
         assert 'id="div_id_form-0-name"' in html
         assert 'name="form-0-name"' in html
@@ -918,8 +918,6 @@ def _tabular(formset, **context):
 
 class TestFormsetLayoutDefault:
     def test_default_layout_renders_exactly_what_it_did_before(self):
-        # A fresh set per render: crispy-tailwind appends its classes to the
-        # widget it is given, so rendering one set twice compounds them.
         assert render(
             '<c-form.formset :formset="formset" />', formset=TwoFieldFormSet()
         ) == render(
@@ -1015,6 +1013,29 @@ class TestFormsetTabularLabels:
         assert "sm:sr-only" not in label.get("class", [])
 
 
+class CheckboxRowForm(forms.Form):
+    kind = forms.CharField(label="Kind")
+    active = forms.BooleanField(label="Active", required=False)
+
+
+CheckboxFormSet = forms.formset_factory(CheckboxRowForm, extra=1)
+
+
+class TestFormsetTabularCheckbox:
+    def test_a_checkbox_is_not_hidden_with_its_label(self):
+        # A checkbox is drawn inside its own label, so demoting that label
+        # would take the control off the screen with it.
+        soup = BeautifulSoup(_tabular(CheckboxFormSet()), "html.parser")
+
+        checkbox = soup.select_one("div.group #id_form-0-active")
+        hidden_ancestors = [
+            parent
+            for parent in checkbox.parents
+            if "sm:sr-only" in (parent.get("class") or [])
+        ]
+        assert hidden_ancestors == []
+
+
 class TestFormsetTabularHelpText:
     def _formset(self):
         return HelpTextFormSet()
@@ -1029,9 +1050,10 @@ class TestFormsetTabularHelpText:
         soup = BeautifulSoup(_tabular(self._formset()), "html.parser")
 
         grid = soup.select("div.group div[style*='grid-template-columns']")[0]
-        assert "sm:[&_small]:hidden" in grid.get("class", []), (
-            "crispy renders help text in a <small> under each control; at the "
-            "width where the heading names the column it is redundant there"
+        assert "sm:[&_p.label]:hidden" in grid.get("class", []), (
+            "the template pack draws help text in a <p class='label'> under "
+            "each control; at the width where the heading names the column it "
+            "is redundant there"
         )
 
     def test_the_stacked_layout_keeps_help_text_under_every_field(self):
@@ -1040,7 +1062,7 @@ class TestFormsetTabularHelpText:
         # Two extra rows and the empty-form template, and no heading to hold
         # a shared copy — the stacked layout puts it under every control.
         assert html.count(HELP_TEXT) == 3
-        assert "sm:[&_small]:hidden" not in html
+        assert "sm:[&_p.label]:hidden" not in html
 
     def test_errors_are_not_swept_up_with_the_help_text(self):
         soup = BeautifulSoup(_tabular(TwoFieldFormSet()), "html.parser")
@@ -1053,7 +1075,7 @@ class TestFormsetTabularHelpText:
             / "formset"
             / "row.html"
         ).read_text()
-        assert "sm:[&_small]:hidden" in source
+        assert "sm:[&_p.label]:hidden" in source
         assert "sm:[&_p]:hidden" not in source
         assert soup.select_one("div.group") is not None
 

@@ -349,6 +349,8 @@ and an error that disturbed nothing would be an error nobody noticed.
 
 Every row's fields render through the same crispy field template a single form's fields use,
 so a row gets the same control, label, help text and error placement a parent field does.
+One exception: in the tabular layout a checkbox keeps its label drawn at every width, because
+the checkbox sits inside that label.
 
 A row's own errors render inside that row. An error belonging to a set as a whole, such as too
 few rows or a cross-row constraint, renders once above every row in that set rather than

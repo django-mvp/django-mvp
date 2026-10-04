@@ -1,19 +1,14 @@
-"""Tests for the ``tailwind/layout/field_errors.html`` and
-``field_errors_block.html`` overrides (#295).
+"""A field's errors and help text are tied to its control (#295).
 
 Django 5.2 composes ``aria-describedby`` in ``BoundField.build_widget_attrs``
 from the help-text id and ``{auto_id}_error``, and expects the form template
-to render the error container under that second id. crispy-tailwind's own
-templates still mint their own scheme, ``error_{counter}_{auto_id}`` — so
-``{auto_id}_error`` is never rendered, and a screen reader announces the
-field as invalid without ever reading why.
+to render the help text and the error container under those ids. Without
+them a screen reader announces the field as invalid and never reads why.
 
-crispy-tailwind ships this fix twice over: ``help_text_and_errors.html``
-includes ``field_errors.html`` when ``error_text_inline`` is on (the default
-for a ``FormHelper`` with a ``Layout``) and ``field_errors_block.html``
-otherwise — which is every ``{{ form|crispy }}`` render with no
-``FormHelper.Layout``, the common case in this project (exercised via
-``cotton/form/render.html``, the same seam ``test_form_render.py`` uses).
+The template pack draws both. These tests hold ``cotton/form/render.html``
+to it on each path it takes: ``{{ form|crispy }}`` for a form with no
+helper, and ``{% crispy form %}`` for one whose ``FormHelper`` carries a
+``Layout``.
 """
 
 from crispy_forms.helper import FormHelper

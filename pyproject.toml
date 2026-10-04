@@ -39,11 +39,11 @@ dependencies = [
     "django-easy-icons (>=0.6)",
     "mergedeep (>=1.3,<2.0)",
     "django-crispy-forms (>=2.7,<3.0)",
-    "crispy-tailwind (>=1.0.3,<2.0)",
+    "django-mvp-forms (>=0.2)",        # the daisyUI template pack forms render with
 ]
 # Optional integrations (django-tables2, django-filter, ...) are NOT extras:
 # they live in guarded modules under mvp.integrations, required only when
-# explicitly imported. crispy-forms/crispy-tailwind above are plain runtime deps.
+# explicitly imported. django-crispy-forms/django-mvp-forms above are plain runtime deps.
 
 [project.urls]
 Homepage = "https://github.com/django-mvp/django-mvp"
@@ -129,9 +129,9 @@ DEP002 = [
     "django-flex-menus",
     "django-easy-icons",
     "django-crispy-forms",
-    "crispy-tailwind",
+    "django-mvp-forms",
 ]
-# django-crispy-forms, crispy-tailwind: reached through {% load %} and
+# django-crispy-forms, django-mvp-forms: reached through {% load %} and
 #   INSTALLED_APPS rather than a Python import.
 # invoke: dev task runner, only imported by tasks.py.
 # pytest: mvp/fixtures.py is a pytest11 plugin — it is only ever imported by
@@ -197,6 +197,8 @@ module = [
     "flex_menu",
     "flex_menu.*",
     "crispy_forms.*",
+    "mvp_forms",
+    "mvp_forms.*",
     "django_cotton.*",
     "django_filters.*",
     "django_tables2.*",
