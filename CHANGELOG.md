@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.26.0] - 2026-10-04
+
 ### Changed
 
 - **Breaking: forms are drawn by [django-mvp-forms](https://github.com/django-mvp/django-mvp-forms),
