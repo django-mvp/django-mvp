@@ -15,10 +15,10 @@ paths are machine-specific.
 
 from pathlib import Path
 
+import mvp_forms
 from django.core.management.base import BaseCommand
 
 import mvp
-import mvp_forms
 
 # mvp is distributed without an __init__.py (implicit namespace package), so
 # __file__ is None — resolve the package directory from __path__ instead.
