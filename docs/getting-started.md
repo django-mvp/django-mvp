@@ -146,8 +146,8 @@ CRISPY_ALLOWED_TEMPLATE_PACKS = ["daisyui"]
 CRISPY_TEMPLATE_PACK = "daisyui"
 ```
 
-Both are needed. django-crispy-forms refuses a pack that is not in the allowed list,
-and without the second setting it looks for a Bootstrap pack that is not installed.
+Both are needed. django-crispy-forms has no default pack, and it refuses one that is
+not in the allowed list.
 
 Installing the two distributions is necessary but not sufficient on its own: Django
 resolves `{% load %}` tag libraries only from apps registered in `INSTALLED_APPS`, so

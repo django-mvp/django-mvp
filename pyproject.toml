@@ -39,7 +39,7 @@ dependencies = [
     "django-easy-icons (>=0.6)",
     "mergedeep (>=1.3,<2.0)",
     "django-crispy-forms (>=2.7,<3.0)",
-    "django-mvp-forms (>=0.2)",        # the daisyUI template pack forms render with
+    "django-mvp-forms (>=0.2,<1.0)",   # the daisyUI template pack forms render with
 ]
 # Optional integrations (django-tables2, django-filter, ...) are NOT extras:
 # they live in guarded modules under mvp.integrations, required only when
