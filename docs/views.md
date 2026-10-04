@@ -215,9 +215,9 @@ class ProductUpdateView(MVPUpdateView):
     form_class = ProductForm
 ```
 
-- **Form rendering** — always through django-crispy-forms with the Tailwind template
-  pack, which is a hard runtime dependency rather than an optional integration (see
-  [ADR 0006](adr/0006-crispy-forms-is-a-runtime-dependency.md)). A form carrying a
+- **Form rendering** — always through django-crispy-forms with the `daisyui` template
+  pack from django-mvp-forms, which is a hard runtime dependency rather than an optional
+  integration (see [ADR 0029](adr/0029-forms-are-drawn-by-django-mvp-forms.md)). A form carrying a
   `helper` is rendered through it; otherwise the default crispy rendering applies.
   There is no per-view renderer setting.
 - **Success URL chain** — a validated `?next=` (open-redirect safe, via `NextURLMixin`)

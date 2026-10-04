@@ -18,7 +18,7 @@ INSTALLED_APPS = [
     "flex_menu",       # Menu system
     "mvp",             # django-mvp
     "crispy_forms",    # Form rendering
-    "crispy_tailwind", # Tailwind template pack for crispy forms
+    "mvp_forms",       # daisyUI template pack for crispy forms
     ...
 ]
 ```
@@ -26,17 +26,13 @@ INSTALLED_APPS = [
 ### Why the order matters
 
 Django's app template loader walks `INSTALLED_APPS` top to bottom and uses the first
-copy of a template name it finds. Two consequences, pulling in opposite directions:
+copy of a template name it finds. **Your own apps go above `mvp`.** An app listed
+earlier wins, so this is what lets you replace any template django-mvp ships, from
+`base.html` down to a single Cotton component, by putting a file of the same name in
+your own app. It is the same rule projects already use to override the Django admin's
+templates. The same goes for `mvp_forms`: an app listed above it can replace any one
+of the templates a form is drawn with.
 
-- **Your own apps go above `mvp`.** An app listed earlier wins, so this is what lets you
-  replace any template django-mvp ships, from `base.html` down to a single Cotton
-  component, by putting a file of the same name in your own app. It is the same rule
-  projects already use to override the Django admin's templates.
-- **`mvp` goes above `crispy_tailwind`.** django-mvp ships an override of
-  crispy-tailwind's help text template, and it only takes effect if `mvp` is found
-  first.
-
-So place your apps above `mvp` rather than pushing `mvp` towards the bottom of the list.
 Templates in a directory listed under `TEMPLATES` `DIRS` sidestep the question entirely:
 that loader runs before any app is consulted, whatever the order.
 
@@ -142,17 +138,21 @@ fails only when it tries to render a menu through an unregistered renderer name.
 
 django-mvp's form pages render through
 [django-crispy-forms](https://github.com/django-crispy-forms/django-crispy-forms) with
-the Tailwind template pack. Add both settings:
+the `daisyui` template pack from
+[django-mvp-forms](https://github.com/django-mvp/django-mvp-forms). Add both settings:
 
 ```python
-CRISPY_ALLOWED_TEMPLATE_PACKS = ["tailwind"]
-CRISPY_TEMPLATE_PACK = "tailwind"
+CRISPY_ALLOWED_TEMPLATE_PACKS = ["daisyui"]
+CRISPY_TEMPLATE_PACK = "daisyui"
 ```
+
+Both are needed. django-crispy-forms has no default pack, and it refuses one that is
+not in the allowed list.
 
 Installing the two distributions is necessary but not sufficient on its own: Django
 resolves `{% load %}` tag libraries only from apps registered in `INSTALLED_APPS`, so
-without the `crispy_forms` and `crispy_tailwind` entries above, `{% load
-crispy_forms_tags %}` still raises `TemplateSyntaxError`.
+without the `crispy_forms` entry above, `{% load crispy_forms_tags %}` still raises
+`TemplateSyntaxError`, and without `mvp_forms` the pack's templates are not found.
 
 ## Your first page
 

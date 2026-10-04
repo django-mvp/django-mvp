@@ -30,18 +30,29 @@ class TestMVPTailwindCommand:
         assert '@source "./templates";' in output
 
     def test_entry_paths_exist_and_are_absolute(self):
-        preset_line, templates_line = _run("--paths").strip().splitlines()
+        lines = _run("--paths").strip().splitlines()
+        preset_line, templates_line, forms_line = lines
         preset, templates = Path(preset_line), Path(templates_line)
+        forms = Path(forms_line)
         assert preset.is_absolute() and preset.is_file()
         assert templates.is_absolute() and templates.is_dir()
+        assert forms.is_absolute() and forms.is_dir()
         # forward slashes so the paths work in Tailwind's CSS syntax on Windows
-        assert "\\" not in preset_line
-        assert "\\" not in templates_line
+        assert all("\\" not in line for line in lines)
 
     def test_entry_sources_mvp_templates(self):
         output = _run()
         templates_path = _run("--paths").strip().splitlines()[1]
         assert f'@source "{templates_path}";' in output
+
+    def test_entry_sources_the_form_template_pack(self):
+        # Forms are drawn by django-mvp-forms, whose classes are written in
+        # its templates and its template tags, so the whole package is scanned.
+        import mvp_forms
+
+        output = _run()
+        forms_path = Path(mvp_forms.__file__).resolve().parent.as_posix()
+        assert f'@source "{forms_path}";' in output
 
     def test_packaged_preset_provides_drawer_variants_and_rail_css(self):
         preset = Path(_run("--paths").strip().splitlines()[0])

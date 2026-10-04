@@ -64,11 +64,12 @@
     {% endcomment %}
     {# djlint:off #}
     {% comment %}
-      `[&_small]:hidden` drops crispy's inline help-text <small> from sm up:
-      the set's heading row already carries one copy per column.
+      `[&_p.label]:hidden` drops the field's own help text from sm up: the
+      set's heading row already carries one copy per column. A field's error
+      messages are paragraphs too, with no class, so they stay.
     {% endcomment %}
     {% if layout == "tabular" %}
-      <div class="space-y-4 sm:grid sm:items-start sm:gap-x-4 sm:space-y-0 sm:[&_small]:hidden" style="{{ grid_style }}">
+      <div class="space-y-4 sm:grid sm:items-start sm:gap-x-4 sm:space-y-0 sm:[&_p.label]:hidden" style="{{ grid_style }}">
     {% endif %}
     {% for field in form.visible_fields %}
       {% if field.name == "DELETE" %}

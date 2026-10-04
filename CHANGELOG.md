@@ -7,6 +7,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Breaking: forms are drawn by [django-mvp-forms](https://github.com/django-mvp/django-mvp-forms),
+  not crispy-tailwind.** Every field, fieldset and layout object is now a daisyUI component that
+  follows the project's theme. `crispy-tailwind` is no longer a dependency and
+  `django-mvp-forms` is installed in its place. See
+  [ADR 0029](docs/adr/0029-forms-are-drawn-by-django-mvp-forms.md).
+
+  **On upgrade**, change three lines of settings:
+
+  ```python
+  INSTALLED_APPS = [
+      ...
+      "crispy_forms",
+      "mvp_forms",  # was "crispy_tailwind"
+  ]
+
+  CRISPY_ALLOWED_TEMPLATE_PACKS = ["daisyui"]  # was ["tailwind"]
+  CRISPY_TEMPLATE_PACK = "daisyui"  # was "tailwind"
+  ```
+
+  Without them the project does not start, because `crispy_tailwind` is no longer installed.
+  Then check four things in your own project:
+
+  - A template that loads `tailwind_filters`, or overrides a template under `tailwind/`, no
+    longer works. Remove the load. Move an override to the matching template under `daisyui/`,
+    listed in the django-mvp-forms README.
+  - A package or project that declares `crispy-tailwind` as a dependency of its own for the
+    sake of django-mvp's forms can drop it.
+  - `mvp` no longer has to be listed above the template pack in `INSTALLED_APPS`.
+  - A project that builds its own stylesheet should run `python manage.py mvp_tailwind` again.
+    The entry it writes now scans the installed `mvp_forms` package as well.
+
+- A `Fieldset` in a crispy layout is drawn as a daisyUI `fieldset` with a visible legend. It was
+  a divider with the legend hidden.
+- In the tabular formset layout a checkbox keeps its label at every width, because the checkbox
+  is drawn inside it. Each row's help text is still hidden where the heading row carries it.
+- `python manage.py mvp_tailwind --paths` prints three paths. The third is the installed
+  `mvp_forms` package.
+
+### Removed
+
+- The five templates under `mvp/templates/tailwind/layout/` that corrected crispy-tailwind's
+  help text, error ids, fieldset and select. django-mvp-forms needs none of them.
+
 ## [v0.25.2] - 2026-10-02
 
 ### Added

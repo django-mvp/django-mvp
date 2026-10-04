@@ -2,8 +2,8 @@
 
 django-mvp ships a prebuilt stylesheet that covers every packaged component.
 Projects that use their own Tailwind classes (in their own templates) must
-rebuild CSS themselves, scanning BOTH their templates and django-mvp's
-packaged templates. This command writes a ready-to-use Tailwind v4 entry file
+rebuild CSS themselves, scanning their templates, django-mvp's packaged
+templates and the django-mvp-forms package that draws forms. This command writes a ready-to-use Tailwind v4 entry file
 with the package paths resolved for the current environment::
 
     python manage.py mvp_tailwind > assets/tailwind.css
@@ -15,6 +15,7 @@ paths are machine-specific.
 
 from pathlib import Path
 
+import mvp_forms
 from django.core.management.base import BaseCommand
 
 import mvp
@@ -22,6 +23,9 @@ import mvp
 # mvp is distributed without an __init__.py (implicit namespace package), so
 # __file__ is None — resolve the package directory from __path__ instead.
 PACKAGE_DIR = Path(next(iter(mvp.__path__))).resolve()
+# Scanned whole: django-mvp-forms writes classes in its template tags as well
+# as its templates.
+FORMS_DIR = Path(mvp_forms.__file__).resolve().parent
 
 ENTRY_TEMPLATE = """\
 /* Tailwind entry for a django-mvp project.
@@ -42,6 +46,9 @@ ENTRY_TEMPLATE = """\
 
 /* Generate the classes used by django-mvp's packaged templates. */
 @source "{templates}";
+
+/* Generate the classes django-mvp-forms writes when it draws a form. */
+@source "{forms}";
 
 /* Your project: add one @source line per directory containing templates or
    code that uses Tailwind classes. Paths are relative to this file. */
@@ -64,8 +71,9 @@ class Command(BaseCommand):
             "--paths",
             action="store_true",
             help=(
-                "Print only the resolved package paths (preset CSS and templates "
-                "directory), one per line, for wiring a custom entry file."
+                "Print only the resolved package paths (preset CSS, templates "
+                "directory and the django-mvp-forms package), one per line, "
+                "for wiring a custom entry file."
             ),
         )
 
@@ -73,10 +81,14 @@ class Command(BaseCommand):
         """Print the entry file, or only the package paths with ``--paths``."""
         preset = (PACKAGE_DIR / "tailwind" / "base.css").as_posix()
         templates = (PACKAGE_DIR / "templates").as_posix()
+        forms = FORMS_DIR.as_posix()
 
         if options["paths"]:
             self.stdout.write(preset)
             self.stdout.write(templates)
+            self.stdout.write(forms)
             return
 
-        self.stdout.write(ENTRY_TEMPLATE.format(preset=preset, templates=templates))
+        self.stdout.write(
+            ENTRY_TEMPLATE.format(preset=preset, templates=templates, forms=forms)
+        )

@@ -1,6 +1,6 @@
 # ADR 0006 — django-crispy-forms and crispy-tailwind are runtime dependencies
 
-**Status:** accepted
+**Status:** superseded by [ADR 0029](0029-forms-are-drawn-by-django-mvp-forms.md)
 
 ## Decision
 

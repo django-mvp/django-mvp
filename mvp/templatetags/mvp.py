@@ -7,6 +7,7 @@ from crispy_forms.templatetags.crispy_forms_filters import as_crispy_field
 from django import template
 from django.core.exceptions import ImproperlyConfigured
 from django.db import models
+from django.forms import CheckboxInput
 from django.template.loader import render_to_string
 from django.utils.html import escape
 from django.utils.module_loading import import_string
@@ -619,18 +620,20 @@ def as_crispy_cell(field):
     """Render one field for a tabular row: the same control, label demoted.
 
     Goes through crispy's own filter rather than a copy of its template, so a
-    cell's control stays identical to the same field on a single form. Two
-    presentation arguments differ:
+    cell's control stays identical to the same field on a single form. One
+    presentation argument differs:
 
     ``sm:sr-only`` keeps the label in the document at every width — it is what
     names the input to a screen reader, and a column header does not, because
     nothing associates the two. It only stops being drawn once the layout is
     wide enough for the header row to carry the name for sighted readers.
 
-    ``sm:mb-0`` drops crispy's per-field bottom margin at the same breakpoint,
-    where the grid's own row gap takes over spacing.
+    A checkbox keeps its label drawn at every width: the template pack draws
+    the checkbox inside its label, so hiding one hides the other.
     """
-    return as_crispy_field(field, label_class="sm:sr-only", field_class="mb-3 sm:mb-0")
+    if isinstance(field.field.widget, CheckboxInput):
+        return as_crispy_field(field)
+    return as_crispy_field(field, label_class="sm:sr-only")
 
 
 @register.filter
