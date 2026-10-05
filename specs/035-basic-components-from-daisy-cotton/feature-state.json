@@ -166,34 +166,56 @@
         },
         {
           "id": "T005",
-          "status": "blocked",
-          "attempts": 1,
+          "status": "done",
+          "attempts": 2,
           "evidence": {
             "tests": [
-              "tests/test_components/test_app_header_e2e.py",
+              "tests/test_components/test_app_header_e2e.py::TestALongTrailShrinksInsteadOfScrolling",
               "tests/test_components/test_daisy_cotton_coverage.py"
             ],
             "commands": [
               "uv run invoke build-stylesheet",
-              "uv run pytest tests/test_components/test_daisy_cotton_coverage.py tests/test_smoke.py -q (110 passed)",
-              "uv run pytest tests/test_components/test_app_header_e2e.py tests/test_renderers.py -q (16 passed, 1 failed: test_each_crumb_is_visibly_truncated selects .mvp-breadcrumb-text)"
+              "uv run pytest tests/test_components/test_app_header_e2e.py -q"
             ],
             "code": [
-              "mvp/tailwind/base.css:706",
-              "mvp/tailwind/base.css:28"
-            ],
-            "verified_by_ci": false
+              "mvp/tailwind/base.css:706"
+            ]
           }
         },
         {
           "id": "T011",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_app_header_e2e.py",
+              "tests/test_components/test_menu.py",
+              "tests/test_components/test_breadcrumbs_href_attribute.py::TestADeclaredTrailRendersInTheHeader"
+            ],
+            "commands": [
+              "uv run pytest tests/test_components/test_menu.py tests/test_components/test_breadcrumbs_href_attribute.py tests/test_components/test_app_header_e2e.py -q"
+            ],
+            "code": [
+              "tests/test_components/test_app_header_e2e.py:58"
+            ]
+          }
         },
         {
           "id": "T012",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_daisy_cotton_install.py"
+            ],
+            "commands": [
+              "uv lock",
+              "uv run pytest tests/test_components/test_daisy_cotton_install.py -q"
+            ],
+            "code": [
+              "pyproject.toml:43"
+            ]
+          }
         }
       ]
     },

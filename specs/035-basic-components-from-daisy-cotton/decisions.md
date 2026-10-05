@@ -303,3 +303,18 @@ fixture: `bg-neutral-900`, `flex-row-reverse`, `h-80`, `place-content-center`, `
 `mvp-breadcrumb-text`.
 
 **ADR:** docs/adr/0031-daisy-cotton-is-a-runtime-dependency.md
+
+### D23. Existing tests changed by the first two stories, and why each is allowed
+
+**Checked:** fourteen existing test files were edited or deleted. Each maps to FR-023 and the
+plan's *Tests that change* table, or to D21. Deleted: `test_link.py`, `test_mockup_code.py`,
+`test_button.py` (markup daisy-cotton owns). Cases removed: the divider, menu and dock-item
+cases of `test_class_attribute_merge.py`, the crumb-markup classes of
+`test_breadcrumbs_href_attribute.py`, the `grow` classes of `test_menu.py`. Rewritten against
+the markup now rendered, with the same thing asserted: `test_dropdown.py`,
+`test_sidebar_footer.py`, `test_layout_config.py`, `test_app_sidebar.py`,
+`test_shell_renders_without_request.py`, `test_renderers.py`, `test_app_header_e2e.py`
+(locator only). `test_component_prefix.py`: the exception list is the icon. The class fixture
+lost the six lines named in D22. No assertion was weakened, and nothing was skipped.
+
+**ADR:** none — a record of test changes this feature's specification asks for.

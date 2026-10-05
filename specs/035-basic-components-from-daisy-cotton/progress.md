@@ -41,3 +41,7 @@ Did: the selector in mvp/tailwind/base.css is `.breadcrumbs li > :is(a, span)` w
 Verified: test_daisy_cotton_coverage.py and test_smoke.py 110 passed. Rebuilding dropped seven classes nothing writes now: bg-neutral-900, flex-row-reverse, h-80, place-content-center, text-white, mvp-breadcrumb-text (six lines deleted from tests/fixtures/stylesheet_classes_0_26_0.txt) and btn-outline, which daisy-cotton's button still writes for `outline` and which is therefore kept by a safelist entry. In a browser, test_app_header_e2e.py: 16 passed, 1 failed. test_each_crumb_is_visibly_truncated selects `.mvp-breadcrumb-text`, a class the new markup does not have, so it finds no crumbs; test_every_crumb_stays_in_the_row passes because it loops over nothing. A scratch run selecting `nav.breadcrumbs li > :is(a, span)` found three crumbs, all truncated and none of zero width.
 Next: Forge to decide whether the locator in test_app_header_e2e.py may change; T005 is reported blocked on that alone.
 Watch: the plan's "no edit expected" for that file does not hold.
+
+## 2026-10-05T16:50:41Z · Forge · T011
+
+Accepted the first build pass after an independent verify (all steps green) and a read of every changed test (D23). Made three small fixes directly: the breadcrumb browser tests' locator, removal of tests left pinned to daisy-cotton's markup (D21), and the daisy-cotton floor raised to 0.1.3 by a ruling (D22). Carried as unmet: an alert variant with no icon raises (D20, daisy-cotton#136).
