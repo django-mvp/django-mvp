@@ -16,7 +16,7 @@ from pathlib import Path
 
 import pytest
 from bs4 import BeautifulSoup
-from django.conf import global_settings, settings
+from django.conf import global_settings
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.models import AnonymousUser
 from django.template.loader import render_to_string
@@ -76,6 +76,9 @@ def _fixture_urlconf():
 
 
 ACCOUNT_FIXTURE_URLCONF = _fixture_urlconf()
+OVERRIDE_TEMPLATES = (
+    Path(__file__).resolve().parents[1] / "fixtures" / "override_templates"
+)
 
 
 @pytest.mark.django_db
@@ -547,28 +550,8 @@ class TestAccountMenuCurrentItem:
         )
 
 
-def _installed_apps_with(*card_apps):
-    """``settings.INSTALLED_APPS`` with ``card_apps`` inserted immediately
-    before ``"mvp"``.
-
-    The block-and-extend pattern (FR-018) resolves the *first* app in
-    INSTALLED_APPS order that ships ``mvp/account/overview.html`` — the
-    standard Django app-template-override convention. A contributing app
-    installed after ``mvp`` is never reached: the app_directories loader
-    returns mvp's own copy on the very first lookup and never tries the
-    rest. Appending — the way the old attribute-based mechanism's tests
-    did — does not compose these templates; this precedes ``mvp`` instead.
-    """
-    installed_apps = list(settings.INSTALLED_APPS)
-    mvp_index = installed_apps.index("mvp")
-    return [*installed_apps[:mvp_index], *card_apps, *installed_apps[mvp_index:]]
-
-
 @pytest.mark.django_db
 class TestAccountCenterCards:
-    CARD_WITH_MENU_APP = "tests.testapp_card_with_menu"
-    CARD_NO_MENU_APP = "tests.testapp_card_no_menu"
-
     @pytest.fixture(autouse=True)
     def _account_fixture_urlconf(self):
         with override_settings(ROOT_URLCONF=ACCOUNT_FIXTURE_URLCONF):
@@ -595,45 +578,19 @@ class TestAccountCenterCards:
         response = client.get(reverse("account-center"))
         assert self._cards(response.content.decode()) == []
 
-    def test_one_contributing_app_renders_its_card_alone(
-        self, client, django_user_model
+    def test_a_project_template_adds_its_card_to_the_region(
+        self, client, django_user_model, settings
     ):
+        engine = settings.TEMPLATES[0]
+        settings.TEMPLATES = [
+            {**engine, "DIRS": [str(OVERRIDE_TEMPLATES), *engine.get("DIRS", [])]}
+        ]
         self._login(client, django_user_model, "cardsuser1")
-        with override_settings(
-            INSTALLED_APPS=_installed_apps_with(self.CARD_NO_MENU_APP)
-        ):
-            response = client.get(reverse("account-center"))
-        content = response.content.decode()
-        assert len(self._cards(content)) == 1
-        assert 'data-testid="testapp-card-no-menu"' in content
-        assert "No Menu Card" in content
 
-    def test_two_contributing_apps_both_get_their_card(self, client, django_user_model):
-        self._login(client, django_user_model, "cardsuser2")
-        with override_settings(
-            INSTALLED_APPS=_installed_apps_with(
-                self.CARD_WITH_MENU_APP, self.CARD_NO_MENU_APP
-            )
-        ):
-            response = client.get(reverse("account-center"))
-        content = response.content.decode()
-        assert len(self._cards(content)) == 2
-        assert 'data-testid="testapp-card-with-menu"' in content
-        assert 'data-testid="testapp-card-no-menu"' in content
+        response = client.get(reverse("account-center"))
 
-    def test_a_menu_entry_alongside_a_card_does_not_disturb_it(
-        self, client, django_user_model, card_with_menu_entries
-    ):
-        self._login(client, django_user_model, "cardsuser3")
-        with override_settings(
-            INSTALLED_APPS=_installed_apps_with(self.CARD_WITH_MENU_APP)
-        ):
-            response = client.get(reverse("account-center"))
-        content = response.content.decode()
-        assert len(self._cards(content)) == 1
-        assert 'data-testid="testapp-card-with-menu"' in content
-        assert "With Menu Card" in content
-        assert "Card With Menu Fixture" in content
+        (card,) = self._cards(response.content.decode())
+        assert card.find(attrs={"data-testid": "project-account-card"}) is not None
 
 
 @pytest.mark.django_db

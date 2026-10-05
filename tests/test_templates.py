@@ -26,6 +26,9 @@ from django.template.loader import get_template, render_to_string
 from django.template.loader_tags import BlockNode, ExtendsNode
 from django.test import RequestFactory
 
+from demo import urls as demo_urls
+from tests.conftest import urlconf_of
+
 MVP_TEMPLATES = Path(apps.get_app_config("mvp").path) / "templates"
 DEMO_TEMPLATES = Path(apps.get_app_config("demo").path) / "templates"
 
@@ -175,7 +178,7 @@ def head_soup():
 class TestShellHeadWithPwaOn:
     @pytest.fixture(autouse=True)
     def urls_mounted(self, settings):
-        settings.ROOT_URLCONF = "tests.urls_shell_pwa"
+        settings.ROOT_URLCONF = "demo.urls"
 
     def test_it_links_the_manifest(self):
         link = head_soup().find("link", rel="manifest")
@@ -305,7 +308,14 @@ class TestShellHeadWithPwaOn:
 class TestShellHeadWithoutMvpUrls:
     @pytest.fixture(autouse=True)
     def urls_unmounted(self, settings):
-        settings.ROOT_URLCONF = "tests.urls_shell_no_pwa"
+        settings.ROOT_URLCONF = urlconf_of(
+            *[
+                pattern
+                for pattern in demo_urls.urlpatterns
+                if getattr(getattr(pattern, "urlconf_name", None), "__name__", None)
+                != "mvp.urls"
+            ]
+        )
 
     def test_the_page_renders_without_a_manifest_or_registration(self):
         head = render_shell_head()
@@ -320,10 +330,10 @@ class TestShellHeadWithoutMvpUrls:
 class TestShellHeadWithConfiguredValues:
     @pytest.fixture(autouse=True)
     def urls_mounted(self, settings):
-        settings.ROOT_URLCONF = "tests.urls_shell_pwa"
+        settings.ROOT_URLCONF = "demo.urls"
 
     def test_a_project_head_template_replaces_the_packaged_one(self, settings):
-        project_templates = Path(__file__).parent / "pwa_templates"
+        project_templates = Path(__file__).parent / "fixtures" / "override_templates"
         engine = settings.TEMPLATES[0]
         settings.TEMPLATES = [
             {**engine, "DIRS": [str(project_templates), *engine.get("DIRS", [])]}
