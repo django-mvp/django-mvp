@@ -50,7 +50,7 @@ def cotton_render():
     Example::
 
         def test_something(cotton_render):
-            html = cotton_render("card", title="Hello")
+            html = cotton_render("mvp.card", title="Hello")
             assert "Hello" in html
     """
     factory = RequestFactory()
@@ -61,8 +61,8 @@ def cotton_render():
         """Render a Cotton component with a request supplied.
 
         Args:
-            component_name: Component name in dotted notation, such as ``card``
-                or ``app.sidebar``.
+            component_name: Component name in dotted notation, such as
+                ``mvp.card`` or ``mvp.app.sidebar``.
             context: Component attributes as a dict.
             **kwargs: Component attributes, as an alternative to ``context``.
 
@@ -88,7 +88,7 @@ def cotton_render_soup():
     Example::
 
         def test_something(cotton_render_soup):
-            soup = cotton_render_soup("card", title="Hello")
+            soup = cotton_render_soup("mvp.card", title="Hello")
             assert "Hello" in soup.get_text()
     """
     factory = RequestFactory()
@@ -99,8 +99,8 @@ def cotton_render_soup():
         """Render a Cotton component with a request supplied, then parse it.
 
         Args:
-            component_name: Component name in dotted notation, such as ``card``
-                or ``app.sidebar``.
+            component_name: Component name in dotted notation, such as
+                ``mvp.card`` or ``mvp.app.sidebar``.
             context: Component attributes as a dict.
             **kwargs: Component attributes, as an alternative to ``context``.
 
@@ -195,11 +195,8 @@ def cotton_render_string_soup():
 
         def test_complex_layout_with_context(cotton_render_string_soup):
             template = '''
-                <c-mvp.card>
-                    <c-mvp.card.title>{{ title }}</c-mvp.card.title>
-                    <c-mvp.card.body>
-                        <c-button variant='primary'>{{ action }}</c-button>
-                    </c-mvp.card.body>
+                <c-mvp.card :title="title">
+                    <c-button variant='primary'>{{ action }}</c-button>
                 </c-mvp.card>
             '''
             soup = cotton_render_string_soup(
