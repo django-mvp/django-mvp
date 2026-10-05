@@ -319,3 +319,23 @@ was skipped.
 (SC-003).
 
 **ADR:** none — a check made during the build
+
+## Code review, 2026-10-05
+
+One reviewer, one round. Verdict: changes requested, one high finding and two low.
+
+### D25. Review findings and what was done
+
+- **High: three settings examples still listed navbar widgets by their old names** (`README.md`,
+  `docs/getting-started.md`, the assistant skill). Copied as written they break every page.
+  Fixed: the five names take the prefix (T011).
+- **Low: the decision record and the changelog overstated two things** that only become true
+  when #435 lands: that a bare name always means daisy-cotton's component, and that nothing
+  shares a name. Reworded to say what is true now (T012).
+- **Low: two moved templates had their line endings changed** from CRLF to LF by the move.
+  Restored, so every moved template is identical to its earlier version apart from names (T013).
+
+The fixes were made directly, without a separate build session: each is a wording change or a
+byte-level restore, with nothing to design.
+
+**ADR:** none — review findings, local to this feature

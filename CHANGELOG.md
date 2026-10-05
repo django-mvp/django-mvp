@@ -11,11 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Breaking: every component the package keeps is now under `mvp.`.** `<c-card>` is
   `<c-mvp.card>`, `<c-page.list>` is `<c-mvp.page.list>`, so the tag says which package a
-  component comes from. The package's names no longer collide with those of
-  [daisy-cotton](https://github.com/django-mvp/daisy-cotton). The templates moved from
-  `mvp/templates/cotton/` to `mvp/templates/cotton/mvp/`. What a component renders and accepts
-  is unchanged. The old names are not kept as aliases: a tag at an old name raises
-  `TemplateDoesNotExist`. See
+  component comes from. No component the package keeps shares a name with one of
+  [daisy-cotton](https://github.com/django-mvp/daisy-cotton)'s any more, the icon excepted.
+  The templates moved from `mvp/templates/cotton/` to `mvp/templates/cotton/mvp/`. What a
+  component renders and accepts is unchanged. The old names are not kept as aliases: a tag at
+  an old name raises `TemplateDoesNotExist`, unless daisy-cotton is installed and has a
+  component of that name (see below). See
   [ADR 0030](docs/adr/0030-the-packages-components-carry-a-prefix.md).
 
   Two groups did not move:

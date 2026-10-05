@@ -128,7 +128,7 @@ package default.
 MVP_CONFIG = {
     "layout": {
         "sidebar": {"breakpoint": "lg", "collapse": "icons", "title": "Acme"},
-        "navbar": {"desktop": {"end": ["actions.theme-controller", "actions.login"]}},
+        "navbar": {"desktop": {"end": ["mvp.actions.theme-controller", "mvp.actions.login"]}},
     },
     "theme": {"default": "dracula", "choices": ["light", "dark", "dracula"]},
 }

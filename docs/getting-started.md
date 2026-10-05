@@ -217,7 +217,7 @@ Layout behavior is controlled from settings — no template edits required:
 MVP_CONFIG = {
     "layout": {
         "sidebar": {"breakpoint": "lg", "collapse": "offcanvas"},
-        "navbar": {"end": ["actions.theme-controller"]},
+        "navbar": {"end": ["mvp.actions.theme-controller"]},
     },
 }
 ```

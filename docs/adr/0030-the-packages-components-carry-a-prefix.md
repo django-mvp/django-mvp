@@ -5,9 +5,10 @@
 ## Decision
 
 Every component this package owns lives under `mvp/templates/cotton/mvp/` and is reached as
-`<c-mvp.…>`: `<c-mvp.card>`, `<c-mvp.page.list>`, `<c-mvp.app.sidebar>`. A bare name belongs to
-[daisy-cotton](https://github.com/django-mvp/daisy-cotton), which provides the basic daisyUI
-components.
+`<c-mvp.…>`: `<c-mvp.card>`, `<c-mvp.page.list>`, `<c-mvp.app.sidebar>`. A bare name is for the
+basic daisyUI components, which [daisy-cotton](https://github.com/django-mvp/daisy-cotton)
+provides. The package's own copies of those (the alert, badge, button and the like) keep their
+bare names until they are removed in favour of daisy-cotton's, and are not renamed first.
 
 The icon is the one permanent exception. It stays at `cotton/icon.html` and is written
 `<c-icon>`.
@@ -34,7 +35,7 @@ The icon is the case where sitting at the same name is the point. daisy-cotton s
 icon and expects a project that wants icons looked up by name to place its own component at
 that path, above daisy-cotton in `INSTALLED_APPS`, so that every caller picks it up, daisy-cotton's
 own components included. This package's icon is that replacement. Under the prefix it would stop
-reaching them. It is the only component whose behaviour depends on app order.
+reaching them. It is the only component that is meant to depend on app order.
 
 Names in settings are not prefixed for the project because the same list can hold a project's own
 component or one of daisy-cotton's, and the package cannot tell which names are its own without

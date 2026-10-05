@@ -198,7 +198,7 @@ MVP_CONFIG = {
         },
         "navbar": {
             # Cotton component names, rendered at the right end of the navbar
-            "end": ["actions.theme-controller", "actions.language-switcher"],
+            "end": ["mvp.actions.theme-controller", "mvp.actions.language-switcher"],
         },
     },
 }

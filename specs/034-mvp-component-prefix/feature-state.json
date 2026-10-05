@@ -2,7 +2,7 @@
   "feature": "034-mvp-component-prefix",
   "branch": "034-mvp-component-prefix",
   "repo": "django-mvp/django-mvp",
-  "state": "CONVERGE",
+  "state": "REVIEW",
   "state_history": [
     {
       "state": "QUEUED",
@@ -28,6 +28,11 @@
       "state": "CONVERGE",
       "at": "2026-10-05T15:23:26Z",
       "note": "all four stories built"
+    },
+    {
+      "state": "REVIEW",
+      "at": "2026-10-05T15:24:56Z",
+      "note": "converged; gates green"
     }
   ],
   "gates": {
@@ -116,6 +121,11 @@
             ],
             "verified_by_ci": false
           }
+        },
+        {
+          "id": "T013",
+          "status": "todo",
+          "attempts": 0
         }
       ]
     },
@@ -297,6 +307,16 @@
               "forge check-adrs: green; ADR 0030 written at 6cc6328"
             ]
           }
+        },
+        {
+          "id": "T011",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T012",
+          "status": "todo",
+          "attempts": 0
         }
       ]
     }
@@ -307,7 +327,7 @@
       "max": 2
     },
     "review_cycles": {
-      "used": 0,
+      "used": 1,
       "max": 1
     },
     "design_review_cycles": {
