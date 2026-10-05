@@ -2,7 +2,7 @@
   "feature": "034-mvp-component-prefix",
   "branch": "034-mvp-component-prefix",
   "repo": "django-mvp/django-mvp",
-  "state": "REVIEW",
+  "state": "PR_READY",
   "state_history": [
     {
       "state": "QUEUED",
@@ -33,6 +33,11 @@
       "state": "REVIEW",
       "at": "2026-10-05T15:24:56Z",
       "note": "converged; gates green"
+    },
+    {
+      "state": "PR_READY",
+      "at": "2026-10-05T15:34:54Z",
+      "note": "review closed, walkthrough laid out, open for review"
     }
   ],
   "gates": {
@@ -74,6 +79,11 @@
         "DOC-002 low: decision record overstated \u2014 reworded, T012",
         "COR-001 low: two templates' line endings \u2014 restored, T013"
       ]
+    },
+    "walkthrough": {
+      "approved_by": null,
+      "at": "2026-10-05T15:34:43Z",
+      "self_resolved": []
     }
   },
   "stories": [
