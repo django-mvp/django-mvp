@@ -69,6 +69,12 @@
    from its `row` attribute. */
 @source inline("{sm,md,lg,xl,2xl}:{flex-row,justify-between,items-center}");
 
+/* Safelist: daisy-cotton's responsive classes. Its components build each one
+   at render time with a breakpoint prefix, from an attribute such as
+   horizontal="md". Keep in sync with the responsive tags in its templates;
+   tests/test_components/test_daisy_cotton_coverage.py names any that is missing. */
+@source inline("{sm,md,lg,xl,2xl}:{alert-horizontal,alert-vertical,card-side,carousel-horizontal,carousel-vertical,divider-horizontal,divider-vertical,drawer-open,footer-horizontal,footer-vertical,join-horizontal,join-vertical,menu-horizontal,stats-horizontal,stats-vertical,steps-horizontal,steps-vertical,timeline-horizontal,timeline-vertical}");
+
 /* Full-page content (issue #247): `<c-page fill>` marks itself .mvp-page-fill,
    and this is what the shell does about it.
 

@@ -6,6 +6,7 @@ component, and the committed stylesheet is read as text.
 
 from pathlib import Path
 
+import daisy_cotton
 import pytest
 from daisy_cotton.templatetags.daisy_cotton import BREAKPOINTS
 
@@ -19,6 +20,7 @@ from tests.daisy_cotton_classes import (
 STYLESHEET = (
     Path(next(iter(mvp.__path__))).resolve() / "static" / "css" / "django-mvp.css"
 )
+DAISY_COTTON_TEMPLATES = Path(next(iter(daisy_cotton.__path__))).resolve() / "templates"
 PREVIOUS_RELEASE_CLASSES = (
     Path(__file__).resolve().parent.parent
     / "fixtures"
@@ -196,6 +198,17 @@ class TestSafelistedClasses:
 
 
 class TestPrebuiltStylesheet:
+    def test_every_daisy_cotton_class_is_styled(self):
+        classes = component_classes(DAISY_COTTON_TEMPLATES)
+
+        missing = unstyled_classes(classes, STYLESHEET.read_text(encoding="utf-8"))
+
+        assert classes
+        assert not missing, (
+            f"{len(missing)} classes daisy-cotton's components can render have no "
+            f"selector in {STYLESHEET}: {sorted(missing)}"
+        )
+
     def test_no_class_from_the_previous_release_is_lost(self):
         lines = PREVIOUS_RELEASE_CLASSES.read_text(encoding="utf-8").splitlines()
         previous = {line for line in lines if line and not line.startswith("#")}

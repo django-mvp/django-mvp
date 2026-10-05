@@ -22,6 +22,19 @@
 @source "../node_modules/daisyui/components/**/*.js";
 @source "../node_modules/daisyui/utilities/**/*.js";
 
+/* daisy-cotton's templates write these plain utilities literally. This build
+   does not scan its templates, because their annotations hold usage examples
+   that are not classes the package renders, so each one is listed here. A
+   daisy-cotton release that writes another fails the coverage test by name. */
+@source inline("end-2");
+@source inline("top-2");
+@source inline("focus-visible:outline-2");
+@source inline("focus-visible:-outline-offset-2");
+@source inline("group/item");
+@source inline("group-first/item:hidden");
+@source inline("group-last/item:hidden");
+@source inline("max-sm:megamenu-vertical");
+
 /* Curated Tailwind utility pack (#190, second half): a consuming project
    composes these at template-authoring time, never in this package's own
    source, so the scanner needs an explicit safelist to find them. */

@@ -26,3 +26,25 @@ Did: added "daisy_cotton" directly below "mvp" in the app lists in docs/getting-
 Verified: `uv run pre-commit run --all-files` all hooks passed on the staged tree. Docs are prose and a settings list; I did not run a page against them beyond the test settings, which inherit the same list from demo/settings.py. US-1 scenario 5's test belongs to T012 and is not written.
 Next: full suite once, then the ledger and the report.
 Watch: the ADR title keeps the em dash that ADR 0029's title has; the prose has none.
+
+## 2026-10-05T15:08:01Z · Implementer US2 · T004
+
+Did: Added tests/daisy_cotton_classes.py (component_classes, unstyled_classes, safelisted_classes) and TestClassDerivation, TestUnstyledClasses, TestSafelistedClasses in tests/test_components/test_daisy_cotton_coverage.py. Tests written first; the first run failed with ModuleNotFoundError for the helper. Comments, {% comment %} blocks and annotations are stripped before reading; a variation or responsive tag not written with quoted literals raises.
+Verified: uv run pytest tests/test_components/test_daisy_cotton_coverage.py -q -> 22 passed. uv run ruff check and ruff format on both files clean. A one-off run against the installed daisy-cotton 0.1.3 and the committed stylesheet gave 649 classes and 91 unstyled, matching research R2 (nothing hard-coded in the tests).
+Next: T005, the 0.26.0 fixture and TestPrebuiltStylesheet.
+Watch: unstyled_classes searches the stylesheet once per class (about 1.4s for 649 classes on a 450 KB file); the T005 fixture is larger, so watch the test time.
+
+## 2026-10-05T15:09:22Z · Implementer US2 · T005
+
+Did: Wrote tests/fixtures/stylesheet_classes_0_26_0.txt from `git show origin/main:mvp/static/css/django-mvp.css` (origin/main bd63880, version 0.26.0): 2349 class selectors, unescaped, sorted, with a # header line. Only text in a rule prelude was read, so `w3` and `org` from an SVG URL inside the stylesheet are not in it. Added TestPrebuiltStylesheet::test_no_class_from_the_previous_release_is_lost. Also committed a second T004 commit: unstyled_classes now finds a selector by substring search, because the regex version took 16s on the fixture; the T004 tests were the net and are unchanged.
+Verified: uv run pytest tests/test_components/test_daisy_cotton_coverage.py -q -> 23 passed in 0.54s. Probe: renaming `.btn-ghost` to `.btn-gone` in the committed stylesheet made the new test fail naming ['btn-ghost']; the file was restored with git checkout.
+Next: T006. The test goes in first and has to fail naming about 91 classes.
+Watch: the test is green on the current stylesheet by design (nothing is lost yet). It only has teeth after the rebuild in T006.
+
+## 2026-10-05T15:10:50Z · Implementer US2 · T006
+
+Did: Added TestPrebuiltStylesheet::test_every_daisy_cotton_class_is_styled first; it failed naming 91 classes. Then: a daisy-cotton block in mvp/tailwind/base.css with one @source inline() entry for the 19 responsive classes at every breakpoint; `npm install -D -E daisyui@5.7.0` (npm rewrote the lockfile's top-level name to the worktree directory name, which I set back to django-mvp, so only daisyui changed); eight @source inline() entries in assets/tailwind.css; `uv run invoke build-stylesheet`, committed with its .br. tasks.py is unchanged.
+Verified: uv run pytest tests/test_components/test_daisy_cotton_coverage.py -q -> 24 passed; tests/test_components/test_responsive_safelist.py still passes. Compared class selectors in the rebuilt stylesheet with origin/main's: 2349 before, 2440 after, none lost, 91 gained. Rebuilt .br decompresses to exactly the .css.
+Pages: ran the demo on port 8002 (nothing was listening; stopped it afterwards). Migrated the git-ignored db.sqlite3 and ran generate_dummy_data first, because the worktree had no tables. With curl, the home page /, the list page /products/, the detail page /products/1/, the form page /products/create/ and the sign-in page /account/login/ each returned 200 and linked css/django-mvp.css, and the served file was the rebuilt size (492996 bytes). Nobody has looked at these pages by eye: this is a curl check, not a visual one.
+Next: T007, docs/styling.md and the changelog.
+Watch: daisyUI moved from 5.6.18 to 5.7.0 and no test judges appearance, so rule bodies were not compared. The visual check named in the plan's Risks still has to be done by a person.
