@@ -63,6 +63,15 @@
         "SPEC-003 low: no literal range comparison - T001",
         "ARCH-003 low: check module shape recorded - D22"
       ]
+    },
+    "review": {
+      "approved_by": "code review",
+      "at": "2026-10-05T15:44:47Z",
+      "self_resolved": [
+        "COR-001 low: literal-token rule matched Tailwind's boundaries - remedied, T015",
+        "SPEC-001 low: two assertions pinned how the code is written - removed, T015 and T016",
+        "DOC-001 low: ADR and deptry comment said daisy-cotton is not imported - corrected, T017"
+      ]
     }
   },
   "stories": [
