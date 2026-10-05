@@ -2,7 +2,7 @@
   "feature": "033-install-daisy-cotton",
   "branch": "033-install-daisy-cotton",
   "repo": "django-mvp/django-mvp",
-  "state": "REVIEW",
+  "state": "PR_READY",
   "state_history": [
     {
       "state": "QUEUED",
@@ -33,6 +33,11 @@
       "state": "REVIEW",
       "at": "2026-10-05T15:34:40Z",
       "note": "one reviewer: correctness and spec, with the security lens for the new dependency"
+    },
+    {
+      "state": "PR_READY",
+      "at": "2026-10-05T15:55:11Z",
+      "note": "PR #445 ready for review, walkthrough laid out, sent to the orchestrating session"
     }
   ],
   "gates": {
@@ -486,6 +491,6 @@
   },
   "pr": {
     "number": 445,
-    "draft": true
+    "draft": false
   }
 }
