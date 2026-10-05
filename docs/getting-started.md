@@ -35,10 +35,11 @@ templates. The same goes for `mvp_forms`: an app listed above it can replace any
 of the templates a form is drawn with.
 
 `daisy_cotton` goes directly below `mvp`. daisy-cotton is installed with django-mvp and
-its components are found through that line. Both packages ship components under the
-same names, such as `button` and `menu`. The first app listed wins, so `mvp` must come
-first. Some daisy-cotton components also draw a button or a menu item inside
-themselves, and until `mvp` stops shipping its own copies they get the `mvp` one.
+its components, the button, the alert and the rest of the
+[basic components](components.md#basic-components-from-daisy-cotton), are found through
+that line. Both packages ship one component under the same name, `icon`. The first app
+listed wins, so `mvp` must come first: every daisy-cotton component that draws an icon
+then gets the one that looks icons up by name.
 
 When the line is missing or misplaced, Django tells you at start-up: `mvp.E002` is an
 error for a missing `daisy_cotton`, and `mvp.W001` is a warning for one listed above

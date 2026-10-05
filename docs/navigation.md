@@ -297,8 +297,8 @@ component instead: `<c-mvp.app.sidebar menu="AdminMenu" />`.
 
 ## A menu's accessible name
 
-The sidebar renderer's container renders `c-menu`, which is a `<ul role="navigation">` —
-a landmark a screen reader announces by name. That name comes from the menu's own
+The sidebar renderer's container draws the `c-menu` inside a `<nav>` element, a landmark a
+screen reader announces by name. That name comes from the menu's own
 `extra_context["label"]`, so a project rendering a second menu through the sidebar
 renderer gives it one, the same way `AppMenu` and `AccountCenterMenu` already do:
 

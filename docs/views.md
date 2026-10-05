@@ -320,7 +320,8 @@ routine cleanup, where the cascade is expected and unremarkable.
 
 Some cascades are not routine: deleting a record can take irreplaceable data with it.
 `related_objects_attrs` is handed straight to that alert, so anything the alert component
-accepts can be set from the view without touching the shell's markup:
+accepts can be set from the view without touching the shell's markup. The alert is
+daisy-cotton's, and its `variant` is one of `info`, `success`, `warning` or `error`:
 
 ```python
 class DatasetDeleteView(MVPDeleteView):

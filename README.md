@@ -40,8 +40,10 @@ the box. **Things should just work.**
   navigation, rendered around every page and configured from Django settings
   (pydata-sphinx-theme style): sidebar collapse breakpoint, offcanvas vs. icon-rail
   collapse, and navbar widgets are all `MVP_CONFIG` keys.
-- **A Cotton component library** — cards, buttons, grids, menus, dropdowns, pagination,
-  hero sections and more, with small consistent attribute APIs. Need more control?
+- **A Cotton component library** — cards, grids, menu entries, dropdowns, pagination,
+  hero sections and more, with small consistent attribute APIs. The basic components, such
+  as the button, the alert and the menu, come from
+  [daisy-cotton](https://github.com/django-mvp/daisy-cotton), which is installed with it. Need more control?
   Override the component's template in your project — that's the intended extension
   path, not a bigger API.
 - **Views that do the boring parts** — list pages with admin-style search, whitelisted
@@ -137,7 +139,7 @@ Order matters here. Django's template loader walks `INSTALLED_APPS` top to botto
 takes the first copy of a name it finds, so **list your own apps above `mvp`** to
 override any template django-mvp ships. This is the same rule projects already use to
 override the Django admin's templates. Keep `daisy_cotton` below `mvp` for the same
-reason: both ship components under the same names and `mvp` must be found first.
+reason: both ship an `icon` component, and the one in `mvp` must be found first.
 
 See [Getting Started](https://github.com/django-mvp/django-mvp/blob/main/docs/getting-started.md) for the rule in full.
 

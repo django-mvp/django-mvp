@@ -1,9 +1,13 @@
 # Component Reference
 
 All UI in django-mvp is built from [django-cotton](https://github.com/wrabit/django-cotton)
-components. Components expose a deliberately small attribute API; when the attributes
-aren't enough, **override the component's template** by placing a file at the same path
-in your project (e.g. `templates/cotton/mvp/card/index.html` replaces `<c-mvp.card>`).
+components. The shell, pages, forms and menus are this package's own. The basic
+components, such as the button and the alert, come from
+[daisy-cotton](https://github.com/django-mvp/daisy-cotton) (see
+[Basic components from daisy-cotton](#basic-components-from-daisy-cotton)). Components
+expose a deliberately small attribute API; when the attributes aren't enough,
+**override the component's template** by placing a file at the same path in your project
+(e.g. `templates/cotton/mvp/card/index.html` replaces `<c-mvp.card>`).
 
 ## Names and the `mvp.` prefix
 
@@ -16,13 +20,9 @@ No component this package keeps shares a name with one from
   expects a project to replace it when it wants icons looked up by name. This package's
   icon is that replacement, so it has to sit at the same name to reach every caller,
   daisy-cotton's own components included.
-- **The basic components keep bare names for now.** `<c-alert>`, `<c-avatar.group>`,
-  `<c-badge>`, `<c-breadcrumbs>` and `<c-breadcrumbs.item>`, `<c-button>`,
-  `<c-divider>`, `<c-dock>` and `<c-dock.item>`, `<c-link>`, `<c-menu>` and the
-  `<c-mockup.*>` components stay where they are until
-  [#435](https://github.com/django-mvp/django-mvp/issues/435) removes them in favour of
-  daisy-cotton's. Until then a bare name can mean this package's component or
-  daisy-cotton's.
+- **The basic components use daisy-cotton's bare names.** `<c-button>`, `<c-alert>` and
+  the rest of [the sixteen](#basic-components-from-daisy-cotton) are daisy-cotton's. This
+  package ships no template for any of them.
 - **A project overrides a component at the same prefixed path** under its own
   templates: `templates/cotton/mvp/card/index.html` for `<c-mvp.card>`.
 
@@ -38,12 +38,76 @@ Conventions:
 - `class` adds CSS classes to the root element; other unrecognized attributes pass
   through to the root element (`href`, `id`, Alpine directives, ...) on components whose
   root spreads them. A few components that render fixed markup — `<c-mvp.section.hero>`,
-  `<c-badge>`, `<c-mvp.placeholder.card>` — deliberately accept only their declared
-  attributes.
+  `<c-mvp.placeholder.card>` — deliberately accept only their declared attributes.
 - Icon attributes take [easy-icons](getting-started.md#configure-icons) names.
 - The widget lists in [`MVP_CONFIG`](layout.md) (`layout.navbar.mobile.end`,
   `layout.navbar.desktop.end`) are lists of component names, not template paths:
   `"mvp.actions.theme-controller"` renders `<c-mvp.actions.theme-controller />`.
+
+## Basic components from daisy-cotton
+
+Sixteen basic components come from [daisy-cotton](https://github.com/django-mvp/daisy-cotton),
+which is installed with django-mvp. This package ships no template for any of them, and its
+own pages call them the way your pages do. daisy-cotton's README and its component gallery
+(`python manage.py runserver` from a checkout) document each one, and every template in
+daisy-cotton starts with a description of the attributes it takes.
+
+| Tag | What it is | Documentation |
+| --- | --- | --- |
+| `<c-button>` | a button, or a link drawn as one | [daisy-cotton](https://github.com/django-mvp/daisy-cotton) |
+| `<c-alert>` | a message banner; `variant` is `info`, `success`, `warning` or `error` | [daisy-cotton](https://github.com/django-mvp/daisy-cotton) |
+| `<c-badge>` | a small label or count | [daisy-cotton](https://github.com/django-mvp/daisy-cotton) |
+| `<c-avatar.group>` | a row of avatars; pass the overlap in `class`, for example `class="-space-x-6"` | [daisy-cotton](https://github.com/django-mvp/daisy-cotton) |
+| `<c-breadcrumbs>` | a breadcrumb trail | [daisy-cotton](https://github.com/django-mvp/daisy-cotton) |
+| `<c-breadcrumbs.item>` | one step of a trail | [daisy-cotton](https://github.com/django-mvp/daisy-cotton) |
+| `<c-divider>` | a section break with an optional label | [daisy-cotton](https://github.com/django-mvp/daisy-cotton) |
+| `<c-link>` | a styled link | [daisy-cotton](https://github.com/django-mvp/daisy-cotton) |
+| `<c-dock>` | a bottom navigation bar | [daisy-cotton](https://github.com/django-mvp/daisy-cotton) |
+| `<c-dock.item>` | one item of a dock | [daisy-cotton](https://github.com/django-mvp/daisy-cotton) |
+| `<c-mockup.browser>` | a browser frame | [daisy-cotton](https://github.com/django-mvp/daisy-cotton) |
+| `<c-mockup.code>` | a terminal-style code block | [daisy-cotton](https://github.com/django-mvp/daisy-cotton) |
+| `<c-mockup.code.line>` | one line of a code block | [daisy-cotton](https://github.com/django-mvp/daisy-cotton) |
+| `<c-mockup.phone>` | a phone frame | [daisy-cotton](https://github.com/django-mvp/daisy-cotton) |
+| `<c-mockup.window>` | an application window frame | [daisy-cotton](https://github.com/django-mvp/daisy-cotton) |
+| `<c-menu>` | a menu list | [daisy-cotton](https://github.com/django-mvp/daisy-cotton) |
+
+This package's own `<c-mvp.menu.item>`, `<c-mvp.avatar>` and the other `mvp.` components
+sit inside these and are described below.
+
+### Isolating a call with `only`
+
+Cotton fills an attribute you did not pass from the template the tag sits in, when the
+component declares that attribute with no default. A template whose context holds a
+variable named `text`, `icon`, `variant`, `items`, `class`, `href`, `size` or `label` can
+therefore change what a component draws. Nothing raises; the value just renders somewhere
+it doesn't belong. `only` on the tag stops this: the component sees nothing but what you
+pass it. Content between the tags still sees the page's context.
+
+This package's own templates pass `only` on every call to a daisy-cotton component. The
+pages and examples in this documentation do not, because a page rarely holds a variable
+with one of those names. You need `only` when a template's context may hold one, most
+often inside a component of your own that declares `text` or `class` and draws a tag from
+the sixteen, or one of this package's components such as `<c-mvp.modal>`, which has an
+`actions` slot:
+
+```html
+<c-vars text actions />
+<c-button icon="info" aria-label="{% trans "About this page" %}" only />
+<c-mvp.modal id="helpModal" title="{{ title }}" only>
+  <div>{{ text }}</div>
+</c-mvp.modal>
+```
+
+### Overriding one of these tags
+
+A project template at `cotton/button.html`, or at the path of any of the sixteen, still
+wins over daisy-cotton's, as it did over this package's. It now answers more than your own
+calls: it also answers when one of daisy-cotton's components draws that tag inside itself.
+The dismiss button in an alert, the close button in daisy-cotton's modal, and the trigger
+of its dropdown and floating action button are all `<c-button>` calls, and a trail draws
+each of its steps as `<c-breadcrumbs.item>`. An override that declares fewer attributes
+than daisy-cotton's template can break those components. Start from a copy of
+daisy-cotton's template and keep every attribute it declares.
 
 ## Extending a component
 
@@ -60,21 +124,9 @@ Conventions:
    packaged component means under `templates/cotton/mvp/`. Yours wins. Read
    the packaged template first so you know what you're replacing.
 
-A component reads props it wasn't given out of the surrounding template context, so a
-component that wraps another one hands it everything in scope. Where names collide, the
-inner one silently takes the wrapper's value — a wrapper with its own `text` gives
-`<c-button>` a `text` it was never meant to have, and one with an `actions` prop fills
-`<c-mvp.modal>`'s header slot with it. Neither raises; the value just renders somewhere
-it doesn't belong. Add `only` to the nested tag and it sees nothing but what you pass it —
-slot content still renders in the calling context:
-
-```html
-<c-vars text actions />
-<c-button icon="info" aria-label="{% trans "About this page" %}" only />
-<c-mvp.modal id="helpModal" title="{{ title }}" only>
-  <div>{{ text }}</div>
-</c-mvp.modal>
-```
+Components read props they weren't given from the surrounding template context. See
+[Isolating a call with `only`](#isolating-a-call-with-only) for when that matters and how to
+stop it.
 
 ## Shared attribute vocabulary
 
@@ -82,11 +134,11 @@ A handful of attribute names mean the same thing everywhere they appear.
 
 | Attribute | Meaning |
 | --- | --- |
-| `variant` | Semantic colour role: `primary`, `secondary`, `accent`, `neutral`, `info`, `success`, `warning`, `error`. Unset means the neutral default. |
-| `size` | A step on the component's own scale. The scales differ — a button runs `sm`–`lg`, an avatar `xs`–`xxl`, a modal `sm`–`full` — each is spelled out in the tables below. |
+| `variant` | Semantic colour role: `primary`, `secondary`, `accent`, `neutral`, `info`, `success`, `warning`, `error`. Unset means the neutral default. An alert takes only `info`, `success`, `warning` and `error`. |
+| `size` | A step on the component's own scale. The scales differ — a button runs `xs`–`xl`, an avatar `xs`–`xxl`, a modal `sm`–`full` — each is spelled out in the tables below or in daisy-cotton's documentation. |
 | `icon` | An icon name resolved through the configured icon packs, the same names `<c-icon name="…">` takes. |
 | `class` | Extra classes appended to the component's root element. |
-| Breakpoint values | `sm`, `md`, `lg`, `xl`, `2xl` — except on `<c-mvp.grid>`, which spells the largest `xxl`. `row` on `<c-mvp.toolbar>` and `vertical` on `<c-divider>` also accept `True`, meaning "at every width". `responsive` on `<c-menu>` wants a breakpoint name and nothing else. |
+| Breakpoint values | `sm`, `md`, `lg`, `xl`, `2xl` — except on `<c-mvp.grid>`, which spells the largest `xxl`. `row` on `<c-mvp.toolbar>` also accepts `True`, meaning "at every width". |
 
 Boolean attributes are set by presence: `<c-alert dismissible>`, not `dismissible="True"`.
 
@@ -119,7 +171,6 @@ Empty, unopinionated building blocks — you provide the content.
 | `c-mvp.grid` | `cols`, `sm`, `md`, `lg`, `xl`, `xxl` (column counts 1–6, 12), `gap` |
 | `c-mvp.group` | `row`, `collapse`, `wrap`, `gap` — flex group |
 | `c-mvp.toolbar` | `row` (True or breakpoint), `gap`; slots: default (left), `actions` (right) |
-| `c-divider` | `vertical` (True or a breakpoint), `variant`, `position`, `class` — a section break, with room for a label |
 | `c-mvp.rule` | `class` — a hairline between items in one list, where a divider would be too loud |
 | `c-mvp.backdrop` | `opacity` — absolute overlay (e.g. over hero images) |
 | `c-mvp.layout.sidebar` | `id`, `breakpoint`, `collapse`, `sticky`, `boost` — reusable drawer shell (what `c-mvp.app` uses). The last four default to their `MVP_CONFIG` values and are the resolved layout it publishes to the browser |
@@ -157,29 +208,20 @@ content's. The shell keys off it. `<c-mvp.entrance>` still accepts a deprecated
 | --- | --- |
 | `c-mvp.card` | `title`, `icon`, `tight` (remove body padding), `class`, `body_class`; slots: default, `badges`, `actions`, `footer`, `footer_end` |
 | `c-mvp.card.wrapper` | `class` — the bare card surface (background, rounded corners, shadow), for a fully custom interior |
-| `c-button` | `text`, `icon`, `variant` (DaisyUI color names), `size` (`sm`/`md`/`lg`), `outline`, `ghost`, `full` (full width), `reverse`, `align` (default `center`), `condition` (render at all, default True), `class` |
-| `c-link` | `href`, `text`, `variant` (DaisyUI color names), `hover` (underline on hover only) — a styled inline text link, for prose rather than actions |
-| `c-badge` | `text`, `variant` (DaisyUI color names), `size` (`sm`/`lg`), `outline`, `class` |
 | `c-icon` | `name` (required); every other attribute reaches the rendered icon element, so `class`, `height` and the rest are set on the tag |
 | `c-mvp.text` | `text`, `size` (default `base`), `align` (`left`/`center`/`right`), `muted`, `tight`, `bold`, `upper`, `class` |
-| `c-alert` | `variant` (DaisyUI color names), `icon`, `soft`, `outline`, `dash`, `dismissible`, `delay` (auto-dismiss milliseconds), `class` — see the content rule below |
 | `c-mvp.data-field` | `label`, `value`, `help_text`, `missing` (default `–`) — key–value display; links the value when it has a URL |
 | `c-mvp.messages` | Django messages list; `dismissible`, `delay` (auto-dismiss milliseconds, default 2000) |
 | `c-mvp.modal` | `id` (for `showModal()`/`close()`), `size` (`sm`/`md`/`lg`/`xl`/`full`, default `md`), `position` (`top`/`bottom`/`start`/`end`), `closable` (show a close button), `class` — a dialog laid out as a card; `title`, `icon` and the `actions`/`footer`/`footer_end` slots forward to the inner `c-mvp.card` |
 | `c-mvp.dropdown` | `valign` (`top/bottom/left/right`), `halign` (`start/center/end`), `full` (panel matches the trigger's width), `hover` (open on hover), `class`, `content_class`; slot `button` = trigger — see the placement note below |
 | `c-mvp.avatar` | `for` (default `request.user`), `src`, `alt` (default `User avatar`), `size` (`xs`/`sm`/`md`/`lg`/`xl`/`xxl` or a Tailwind width class, default `md`), `shape` (default `rounded-full`), `variant` (initials background colour, default `primary`), `status` (`online`/`offline`), `placeholder` (initials shown when there's no image), `class` |
-| `c-avatar.group` | `size` (default `md`) — overlapping row of avatars |
 | `c-mvp.brand.logo` / `c-mvp.brand.icon` | `max-height`, `class` — brand images via the configured resolvers |
 | `c-mvp.placeholder.card` | `message` (default `Coming soon...`), `icon`, `height`, `class` — a card-shaped stand-in for a region that isn't built yet |
-| `c-mockup.browser` / `c-mockup.window` / `c-mockup.phone` / `c-mockup.code` | visual mockups; `c-mockup.browser` takes `url`; `c-mockup.code` holds `c-mockup.code.line` children, each taking `text` and a `prefix` for the prompt character (default `$`, empty for an output line) |
 
 Without a `button` slot, `<c-mvp.dropdown>` forwards its undeclared attributes to an inner
 `<c-button>` that becomes the trigger, so `text`, `icon`, `variant` and `size` configure
 it directly. Supply the `button` slot instead and those attributes fall through to the
 dropdown wrapper — then you own the trigger's focus behaviour.
-
-`<c-button condition="{{ perms.app.add_thing }}">` renders nothing when the condition is
-falsy, which keeps permission checks out of the surrounding template.
 
 ### Alert content goes in one element
 
@@ -243,18 +285,23 @@ declared side whether or not it fits, exactly as it always used to.
 
 | Component | Notes |
 | --- | --- |
-| `c-menu` | `label`, `horizontal`, `responsive` (breakpoint at which a vertical menu turns horizontal), `paged` (DaisyUI paged mode), `grow` (stretch to fill a flex parent, off by default — the sidebar nav passes it explicitly) — DaisyUI menu `<ul>` |
 | `c-mvp.menu.item` | `label`, `icon`, `href`, `active`, `badge`, `tip` (rail tooltip) — a link when given `href`, otherwise a button |
 | `c-mvp.menu.group` | `label`, `collapse`, `icon`, `icon_class`, `badge`, `badge_class` — section header or `<details>` group |
 | `c-mvp.menu.collapse` | a thin pass-through to `c-mvp.menu.item` that also takes children — every attribute is forwarded |
 | `c-mvp.menu.divider` | separator between menu entries |
-| `c-breadcrumbs` / `c-breadcrumbs.item` | breadcrumb trail — `items`, `class`; the shell already draws one in the header from `page.breadcrumbs`. Takes either an `items` list of attribute dicts or hand-written `c-breadcrumbs.item` children (`text`, `href`, `class`) — `items` wins when both are given |
 | `c-mvp.pagination` | `page_obj`, `page_window` (default `5`), `use_icons`, `show_first_and_last`, `label` (the `<nav>`'s accessible name, default `Navigation page results`) — renders nothing when there's only one page; `show_first_and_last` swaps the First/Last text controls for the first and last page numbers |
 | `c-mvp.pagination.link` / `c-mvp.pagination.wrapper` | building blocks for a hand-built pager: `page`, `text`, `active`, `disabled`, `size`, `class` on the link; `label`, `class` on the labelled wrapper it sits in |
-| `c-dock` / `c-dock.item` | `size` (`xs`–`xl`) and `class`, its background (from `layout.dock.class`); bottom dock navigation. An item is a drawer toggle with `toggle`, a link with `href`, otherwise a button; attrs: `label`, `icon`, `href`, `toggle`, `active`, `class` |
 
 Menus are normally rendered from Python via django-flex-menus — see
 [Navigation](navigation.md). Use these components directly only for hand-built menus.
+
+`<c-menu>`, `<c-breadcrumbs>` and `<c-dock>` are daisy-cotton's. A `<c-menu>` has no
+accessible name of its own, so give one you write by hand an `aria-label`, or put it inside
+a `<nav>`. `<c-breadcrumbs>` takes either `items`, a list of dictionaries holding the
+attributes of one `<c-breadcrumbs.item>` each, or hand-written items as its content; the
+shell already draws a trail in the header from `page.breadcrumbs`. `<c-dock>` has no default
+class, so the dock the shell draws passes it `layout.dock.class`, and a dock you write
+yourself takes the class you pass.
 
 ## Widgets you place by name
 
