@@ -8,11 +8,16 @@ Covers the three configurable layout concerns:
 
 import json
 import re
+import runpy
+from pathlib import Path
 
 import pytest
+from bs4 import BeautifulSoup
 from django.template.loader import render_to_string
 from django.test import RequestFactory
+from django.urls import reverse
 
+import mvp.config
 from mvp.config import MVP_CONFIG
 from mvp.context_processors import mvp_config as mvp_config_processor
 from mvp.layout import LayoutConfig
@@ -136,6 +141,56 @@ class TestNavbarMobileDesktopSplit:
         for marker in ("data-toggle-theme", 'name="language"'):
             assert marker in mobile_html
             assert marker in desktop_html
+
+
+class TestNavbarWidgetNames:
+    """A widget is listed by the name it would follow ``c-`` with, used as written.
+
+    A packaged widget by its prefixed name is also proved by
+    ``TestShellRendersConfig.test_navbar_widgets_render_from_config``, which
+    renders the lists ``tests/settings.py`` names.
+    """
+
+    @pytest.fixture
+    def packaged_lists(self, settings):
+        settings.MVP_CONFIG = {}
+        fresh = runpy.run_path(str(Path(mvp.config.__file__)))["MVP_CONFIG"]
+        navbar = fresh["layout"]["navbar"]
+        return navbar["mobile"]["end"], navbar["desktop"]["end"]
+
+    def widgets(self, client, selector):
+        soup = BeautifulSoup(client.get("/").content.decode(), "html.parser")
+        wrapper = soup.find(id="mvp-navbar-widgets-desktop")
+        assert wrapper is not None, "the desktop widget wrapper must render"
+        return wrapper.select(selector)
+
+    @pytest.mark.django_db
+    def test_the_default_lists_render_the_theme_controller_then_login(
+        self, client, monkeypatch, packaged_lists
+    ):
+        mobile, desktop = packaged_lists
+        monkeypatch.setitem(MVP_CONFIG["layout"]["navbar"]["mobile"], "end", mobile)
+        monkeypatch.setitem(MVP_CONFIG["layout"]["navbar"]["desktop"], "end", desktop)
+        login = f'a[href="{reverse("account_login")}"]'
+
+        found = self.widgets(client, f"[data-toggle-theme], {login}")
+
+        assert [bool(tag.has_attr("data-toggle-theme")) for tag in found] == [
+            True,
+            False,
+        ]
+
+    @pytest.mark.django_db
+    def test_a_name_for_the_projects_own_component_is_used_as_written(
+        self, client, monkeypatch
+    ):
+        monkeypatch.setitem(
+            MVP_CONFIG["layout"]["navbar"]["desktop"], "end", ["navbar.test-widget"]
+        )
+
+        found = self.widgets(client, "li.nav-item")
+
+        assert len(found) == 1
 
 
 def _class_list(html, marker):
