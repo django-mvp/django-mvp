@@ -235,18 +235,66 @@
       "tasks": [
         {
           "id": "T008",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_mvp_tailwind_command.py::TestMVPTailwindCommand::test_paths_prints_daisy_cotton_templates_directory_last",
+              "tests/test_components/test_mvp_tailwind_command.py::TestMVPTailwindCommand::test_entry_sources_daisy_cotton_templates_after_the_form_pack",
+              "tests/test_components/test_mvp_tailwind_command.py::TestMVPTailwindCommand::test_entry_paths_exist_and_are_absolute"
+            ],
+            "commands": [
+              "uv run pytest tests/test_components/test_mvp_tailwind_command.py -q",
+              "uv run pre-commit run --all-files"
+            ],
+            "code": [
+              "mvp/management/commands/mvp_tailwind.py:31",
+              "mvp/management/commands/mvp_tailwind.py:59",
+              "mvp/management/commands/mvp_tailwind.py:101",
+              "tests/test_components/test_mvp_tailwind_command.py:58",
+              "tests/test_components/test_mvp_tailwind_command.py:66"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T009",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_daisy_cotton_coverage.py::TestGeneratedEntry",
+              "tests/test_components/test_daisy_cotton_coverage.py::TestWrittenLiterally"
+            ],
+            "commands": [
+              "uv run pytest tests/test_components/test_daisy_cotton_coverage.py tests/test_components/test_mvp_tailwind_command.py tests/test_components/test_responsive_safelist.py -q",
+              "uv run invoke build-stylesheet",
+              "uv run pre-commit run --all-files"
+            ],
+            "code": [
+              "mvp/tailwind/base.css:78",
+              "tests/test_components/test_daisy_cotton_coverage.py:51",
+              "tests/test_components/test_daisy_cotton_coverage.py:287",
+              "tests/fixtures/preset_safelist_0_26_0.txt:1"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T010",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [],
+            "commands": [
+              "uv run pre-commit run --all-files"
+            ],
+            "code": [
+              "docs/styling.md:137",
+              "CHANGELOG.md:35"
+            ],
+            "verified_by_ci": false
+          }
         }
       ]
     },
