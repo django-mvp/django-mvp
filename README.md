@@ -127,6 +127,7 @@ INSTALLED_APPS = [
     "easy_icons",
     "flex_menu",
     "mvp",
+    "daisy_cotton",     # installed with django-mvp, listed below "mvp"
     "crispy_forms",
     "mvp_forms",        # the daisyUI template pack forms are drawn with
 ]
@@ -135,7 +136,8 @@ INSTALLED_APPS = [
 Order matters here. Django's template loader walks `INSTALLED_APPS` top to bottom and
 takes the first copy of a name it finds, so **list your own apps above `mvp`** to
 override any template django-mvp ships. This is the same rule projects already use to
-override the Django admin's templates.
+override the Django admin's templates. Keep `daisy_cotton` below `mvp` for the same
+reason: both ship components under the same names and `mvp` must be found first.
 
 See [Getting Started](https://github.com/django-mvp/django-mvp/blob/main/docs/getting-started.md) for the rule in full.
 

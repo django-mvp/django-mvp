@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Breaking: django-mvp depends on [daisy-cotton](https://pypi.org/project/daisy-cotton/).**
+  It is installed with the package, at `>=0.1.2,<0.2`. Nothing on a page changes: both
+  packages ship some components under the same names, and `mvp` is still found first. See
+  [ADR 0030](docs/adr/0030-daisy-cotton-is-a-runtime-dependency.md).
+
+  **On upgrade**, add one line to `INSTALLED_APPS`, directly below `"mvp"`:
+
+  ```python
+  INSTALLED_APPS = [
+      ...
+      "mvp",
+      "daisy_cotton",
+      ...
+  ]
+  ```
+
+  Without it, daisy-cotton's components are not found.
+
 ## [v0.26.0] - 2026-10-04
 
 ### Changed

@@ -86,6 +86,7 @@ INSTALLED_APPS = [
     "easy_icons",
     "flex_menu",
     "mvp",
+    "daisy_cotton",     # installed with django-mvp; keep it below "mvp"
     "crispy_forms",
     "mvp_forms",
 ]
