@@ -33,6 +33,8 @@
   {% endif %}
   <div class="flex items-center justify-between gap-3 mt-auto pt-4">
     <span class="font-bold text-primary text-lg">${{ product.price }}</span>
-    <c-button text="View" size="sm" icon="arrow-right" reverse />
+    <c-button text="View" size="sm">
+      <c-icon name="arrow-right" aria-hidden="true" />
+    </c-button>
   </div>
 </c-mvp.card>

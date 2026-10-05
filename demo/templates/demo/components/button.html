@@ -2,7 +2,7 @@
 
 {% block component.docs %}
   <c-components.section title="Variants"
-                        description="Give a button its intent with the variant attribute. Omit it for the neutral default; add ghost for a borderless look.">
+                        description="Give a button its intent with the variant attribute. Omit it for the neutral default; add ghost for a borderless look or link to style it as a plain link.">
     {% cotton:verbatim %}
       <div class="flex flex-wrap gap-2">
         <c-button text="Default" />
@@ -15,7 +15,7 @@
         <c-button text="Error" variant="error" />
         <c-button text="Neutral" variant="neutral" />
         <c-button text="Ghost" ghost />
-        <c-button text="Link" variant="link" />
+        <c-button text="Link" link />
       </div>
     {% endcotton:verbatim %}
   </c-components.section>
@@ -38,20 +38,22 @@
   </c-components.section>
 
   <c-components.section title="Sizes"
-                        description="Control the size with size='sm', 'md' (default), or 'lg'.">
+                        description="Control the size with size set to xs, sm, md (default), lg or xl.">
     {% cotton:verbatim %}
       <div class="flex flex-wrap items-center gap-2">
+        <c-button text="Extra small" variant="primary" size="xs" />
         <c-button text="Small" variant="primary" size="sm" />
         <c-button text="Medium" variant="primary" size="md" />
         <c-button text="Large" variant="primary" size="lg" />
+        <c-button text="Extra large" variant="primary" size="xl" />
       </div>
     {% endcotton:verbatim %}
   </c-components.section>
 
   <c-components.section title="Full width"
-                        description="Add full to stretch the button to the full width of its container — ideal for form submits and mobile calls to action. The align attribute positions the label within the stretched button.">
+                        description="Add block to stretch the button to the full width of its container, which suits form submits and mobile calls to action.">
     {% cotton:verbatim %}
-      <c-button text="Continue" variant="primary" full />
+      <c-button text="Continue" variant="primary" block />
     {% endcotton:verbatim %}
   </c-components.section>
 
@@ -66,14 +68,16 @@
   </c-components.section>
 
   <c-components.section title="Icons"
-                        description="Add a leading icon with the icon attribute. Use reverse to move it after the text, or omit text for an icon-only button.">
+                        description="Add a leading icon with the icon attribute. To put an icon after the text, write a c-icon in the button's content. Omit text for an icon-only button, and give it an aria-label.">
     {% cotton:verbatim %}
       <div class="flex flex-wrap gap-2">
         <c-button text="Add" icon="add" variant="primary" />
         <c-button text="Edit" icon="pencil" variant="neutral" />
         <c-button text="Delete" icon="trash" variant="error" outline />
-        <c-button text="Next" icon="arrow-right" variant="primary" reverse />
-        <c-button icon="gears" variant="ghost" />
+        <c-button text="Next" variant="primary">
+          <c-icon name="arrow-right" aria-hidden="true" />
+        </c-button>
+        <c-button icon="gears" ghost aria-label="Settings" />
       </div>
     {% endcotton:verbatim %}
   </c-components.section>
@@ -83,7 +87,7 @@
     {% cotton:verbatim %}
       <div class="flex flex-wrap gap-2">
         <c-button text="Home" icon="home" href="/" variant="primary" />
-        <c-button text="GitHub" href="https://github.com" variant="ghost" />
+        <c-button text="GitHub" href="https://github.com" ghost />
       </div>
     {% endcotton:verbatim %}
   </c-components.section>

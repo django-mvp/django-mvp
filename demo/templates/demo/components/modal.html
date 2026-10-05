@@ -25,7 +25,7 @@
     <c-mvp.modal id="confirm_modal" title="Are you sure?" icon="trash">
       <c-mvp.text tight>This action cannot be undone.</c-mvp.text>
       <c-slot name="footer_end">
-        <c-button text="Cancel" variant="ghost" onclick="confirm_modal.close()" />
+        <c-button text="Cancel" ghost onclick="confirm_modal.close()" />
         <c-button text="Delete" variant="error" onclick="confirm_modal.close()" />
       </c-slot>
     </c-mvp.modal>
