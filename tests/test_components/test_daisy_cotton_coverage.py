@@ -4,13 +4,25 @@ The class set is read from daisy-cotton's templates, never by rendering a
 component, and the committed stylesheet is read as text.
 """
 
+from pathlib import Path
+
 import pytest
 from daisy_cotton.templatetags.daisy_cotton import BREAKPOINTS
 
+import mvp
 from tests.daisy_cotton_classes import (
     component_classes,
     safelisted_classes,
     unstyled_classes,
+)
+
+STYLESHEET = (
+    Path(next(iter(mvp.__path__))).resolve() / "static" / "css" / "django-mvp.css"
+)
+PREVIOUS_RELEASE_CLASSES = (
+    Path(__file__).resolve().parent.parent
+    / "fixtures"
+    / "stylesheet_classes_0_26_0.txt"
 )
 
 
@@ -181,3 +193,18 @@ class TestSafelistedClasses:
         )
 
         assert safelisted_classes(preset) == {"two", "one"}
+
+
+class TestPrebuiltStylesheet:
+    def test_no_class_from_the_previous_release_is_lost(self):
+        lines = PREVIOUS_RELEASE_CLASSES.read_text(encoding="utf-8").splitlines()
+        previous = {line for line in lines if line and not line.startswith("#")}
+
+        missing = unstyled_classes(previous, STYLESHEET.read_text(encoding="utf-8"))
+
+        assert previous
+        assert not missing, (
+            f"{len(missing)} classes the 0.26.0 stylesheet styled have no selector "
+            f"in {STYLESHEET}: {sorted(missing)}. If one was removed on purpose, "
+            f"delete its line from {PREVIOUS_RELEASE_CLASSES}."
+        )
