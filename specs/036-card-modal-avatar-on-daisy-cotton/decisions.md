@@ -169,6 +169,16 @@ tests, and it has to survive the rebuild.
 **Why defensible:** D4 keeps every default as it is, so the work is a like-for-like change of
 markup that tests can judge.
 
+## A note given with the approval of the specification
+
+### A1. No new test of a dialog's width or layout
+
+The scenarios about a dialog placed at the top or bottom spanning the viewport's width, and one
+placed at the start or end spanning its height (User Story 2, scenario 6, and FR-015), restate
+behaviour the existing tests for #180 already hold. Those tests are kept as they are. The build
+adds no new test of width or layout for the modal. Scenario 7, on the `size` scale, is covered the
+same way: by the existing tests, not by a new one.
+
 ## Open items
 
 - #434 and #435 are still open. This feature cannot be built until both are merged.
