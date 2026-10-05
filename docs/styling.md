@@ -136,14 +136,15 @@ tiers the way `table-pin-rows` does.
 
 ## Tier 2: build your own stylesheet
 
-Your build must scan **both** your templates **and** django-mvp's packaged
-templates. django-mvp generates the Tailwind entry file for you:
+Your build must scan your templates, django-mvp's packaged templates and the
+templates of the packages that draw components for it, such as daisy-cotton.
+django-mvp generates the Tailwind entry file for you:
 
 ```bash
 # 1. Install build tooling (once)
-npm install -D tailwindcss @tailwindcss/cli daisyui
+npm install -D tailwindcss @tailwindcss/cli daisyui@^5.7
 
-# 2. Generate the entry file (re-run after upgrading django-mvp)
+# 2. Generate the entry file (re-run after upgrading django-mvp or daisy-cotton)
 python manage.py mvp_tailwind > assets/tailwind.css
 
 # 3. Build
@@ -152,9 +153,13 @@ npx @tailwindcss/cli -i assets/tailwind.css -o static/css/app.css --minify
 
 The generated paths are absolute and specific to the machine that generated
 them, pointing into the installed package inside your environment. Re-run
-the command after upgrading django-mvp, after rebuilding a virtualenv, and
-in any new environment — a stale path silently stops the packaged templates
-from being scanned, and components lose their classes with no error.
+the command after upgrading django-mvp or daisy-cotton, after rebuilding a
+virtualenv, and in any new environment. A stale path silently stops the
+packaged templates from being scanned, and components lose their classes with
+no error.
+
+Your build needs daisyUI 5.7 or later. Some classes that daisy-cotton's
+components write, such as `menu-paged`, do not exist in earlier versions.
 
 Then load your stylesheet instead of the packaged one by overriding the
 `styles` block of `mvp/base.html` and calling `{{ block.super }}` first to
@@ -182,17 +187,23 @@ The generated entry file:
 - imports the **django-mvp preset** (`mvp/tailwind/base.css` inside the
   installed package) — the drawer-state variants (`is-drawer-open:`,
   `is-drawer-close:`), the safelisted `{sm..2xl}:drawer-open` breakpoint
-  classes, and the icon-rail CSS;
+  classes, the classes daisy-cotton's components build at render time (a
+  button's size, for example), and the icon-rail CSS;
 - adds a `@source` for django-mvp's packaged templates (absolute path resolved
   from your environment);
 - adds a `@source` for the installed django-mvp-forms package, which draws
   every form and writes its classes in its templates and template tags;
+- adds a `@source` for daisy-cotton's templates directory, after the form
+  pack's, so every class its components write in their templates is
+  generated. The prebuilt stylesheet does not scan these templates. It styles
+  the same classes through its own build;
 - adds `@source "./templates"` as a starting point for your own code — add one
   line per directory that contains Tailwind classes.
 
 Prefer wiring it yourself? `python manage.py mvp_tailwind --paths` prints the
-three package paths (preset CSS, templates directory, the django-mvp-forms
-package) and nothing else.
+four package paths and nothing else, one per line: the preset CSS, django-mvp's
+templates directory, the django-mvp-forms package and daisy-cotton's templates
+directory, in that order.
 
 ### Why this is necessary
 

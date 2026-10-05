@@ -32,6 +32,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   rule, so a component that used one looked unstyled. The stylesheet is now built with
   daisyUI 5.7.0, which `menu-paged` needs. No class the previous release styled was removed.
 
+- `python manage.py mvp_tailwind` now scans daisy-cotton's templates as well. The generated
+  entry has one more `@source` line, after the form pack's, and `--paths` prints a fourth
+  line, daisy-cotton's templates directory. The first three lines are unchanged. The preset
+  the entry imports also lists the classes daisy-cotton builds at render time, so a project
+  that builds its own stylesheet gets the same coverage as the prebuilt one. Such a project
+  needs daisyUI 5.7 or later and should re-run the command to pick up the new line.
+
 ## [v0.26.0] - 2026-10-04
 
 ### Changed

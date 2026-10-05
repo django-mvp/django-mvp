@@ -269,10 +269,11 @@ See [docs/theming.md](https://github.com/django-mvp/django-mvp/blob/main/docs/th
 for the full variable reference and a worked example.
 
 If your own templates use their own Tailwind utility classes, rebuild the CSS
-with the generated entry file, which scans your templates *and* Django MVP's:
+with the generated entry file, which scans your templates, Django MVP's and
+daisy-cotton's:
 
 ```bash
-npm install -D tailwindcss @tailwindcss/cli daisyui
+npm install -D tailwindcss @tailwindcss/cli daisyui@^5.7
 python manage.py mvp_tailwind > assets/tailwind.css
 npx @tailwindcss/cli -i assets/tailwind.css -o static/css/app.css --minify
 ```

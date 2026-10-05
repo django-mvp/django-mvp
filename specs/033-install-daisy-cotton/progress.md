@@ -69,3 +69,10 @@ Did: added TestGeneratedEntry (every class covered, previous release's preset cl
 Verified: test_every_daisy_cotton_class_is_covered failed first, naming 253 variation classes. Probe: deleting the md:max-w preset line made test_no_class_from_the_previous_release_is_lost fail; restored. `uv run pytest` on test_daisy_cotton_coverage.py, test_mvp_tailwind_command.py and test_responsive_safelist.py: 46 passed. `uv run pre-commit run --all-files`: all hooks passed.
 Next: T010, docs and changelog.
 Watch: mypy needed `# type: ignore[import-untyped]` on the daisy_cotton import in mvp_tailwind.py (pyproject's mypy overrides, outside this story's scope, would be the cleaner place).
+
+## 2026-10-05T15:18:04Z · Implementer US3 · T010
+
+Did: docs/styling.md Tier 2 now says the entry scans daisy-cotton's templates, --paths prints four paths with daisy-cotton's last, the build needs daisyUI 5.7 or later, and the generator is re-run after upgrading django-mvp or daisy-cotton. README's entry description and install line updated to match. CHANGELOG Unreleased records the new line and fourth path.
+Verified: `uv run pre-commit run --all-files`: all hooks passed. No test for prose, by the testing standard.
+Next: flip T008-T010 in feature-state.json, run the full suite once, write the report.
+Watch: skills/django-mvp/SKILL.md has no mention of --paths or the entry's contents, so it is untouched.
