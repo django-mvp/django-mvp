@@ -33,6 +33,22 @@ No feature under R29 cuts a release of its own (FR-027).
 The issue and the roadmap both say the dropdown is kept or replaced on the evidence of the
 existing placement tests run against daisy-cotton's version (FR-001, FR-003).
 
+## Given at review of this specification
+
+### R1. The evidence comes from Chromium, Firefox and WebKit
+
+The first draft took the evidence in the one browser the suite already runs in, which is Chromium.
+That was sent back. Chromium is where CSS anchoring has been available longest, so a pass there
+cannot show that a dropdown with no script holds where this package's script holds today.
+
+The placement tests are run against daisy-cotton's dropdown in all three of Playwright's engines,
+installed locally for the evidence run. Adoption needs both behaviours to pass in all three, and
+the decision record gives the result and the version for each engine (FR-001, FR-003, FR-004).
+The suite that runs on every change may stay on Chromium, so no workflow changes.
+
+A browser older than those three current engines, with the popover but no CSS anchoring, remains a
+documented limit under adoption (FR-022).
+
 ## Resolved while specifying
 
 ### D1. "The existing placement tests" means the whole browser test module
@@ -109,17 +125,14 @@ page is covered separately (FR-012, FR-023).
 is the likeliest source of the number. Leaving the language switcher out would leave one caller on
 a removed name.
 
-### D7. The evidence is taken in the browser the suite already uses
+### D7. Older browsers are a documented limit
 
-**Chosen:** one browser, the one the package's browser tests run in. Browsers without CSS
-anchoring are a documented limit under adoption (FR-022).
+**Chosen:** under adoption, a browser older than the three engines in R1, with the popover but no
+CSS anchoring, opens the panel away from its trigger. The documentation says so, and it is not
+tested (FR-022).
 
-**Why:** the issue asks for the existing tests, and they run in one browser. Widening the test
-matrix is a separate decision about what the package supports.
-
-**Open to veto:** under adoption, a browser with the popover but without CSS anchoring opens the
-panel away from its trigger. Today that browser gets the scripted placement. This is the largest
-thing the adopted outcome gives up.
+**Why:** the evidence in R1 covers every current engine. Holding the decision to browsers that
+none of them still ships would keep the script for an audience that shrinks with each release.
 
 ### D8. The outcome is written as a decision record
 

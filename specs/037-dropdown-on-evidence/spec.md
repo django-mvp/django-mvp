@@ -22,7 +22,7 @@ five custom triggers are updated.
 
 ### Session 2026-10-05
 
-The coverage scan found five ambiguities. Each was resolved from issue #437, roadmap item R29, the
+The coverage scan found six ambiguities. Each was resolved from issue #437, roadmap item R29, the
 constitution and the two dropdowns' source. Longer rationale is in `decisions.md`.
 
 - **Q: Which tests are "the existing placement tests", and what does running them against
@@ -44,6 +44,13 @@ constitution and the two dropdowns' source. Longer rationale is in `decisions.md
   A: The dropdown is adopted only if both pass. Any failure keeps this package's dropdown.
   Recorded as FR-003.
 
+- **Q: Which browsers does the evidence come from?**
+  A: Chromium, Firefox and WebKit, the three engines Playwright drives. The package's browser
+  tests normally run in Chromium alone, which is where CSS anchoring has been available longest,
+  so a pass there cannot show that a dropdown with no script holds everywhere this package's
+  script holds today. Adoption needs both behaviours to pass in all three. The suite that runs on
+  every change may stay on Chromium. Recorded as FR-001, FR-003 and FR-004.
+
 - **Q: This package's dropdown can open on hover and can stretch its panel to the trigger's width.
   daisy-cotton's has neither. Do those count against adopting it?**
   A: No. The issue names the placement tests as the evidence and nothing else. If daisy-cotton's
@@ -61,16 +68,18 @@ constitution and the two dropdowns' source. Longer rationale is in `decisions.md
 A maintainer has two dropdowns to choose from. This package's own moves its panel with a script
 when the declared side has no room. daisy-cotton's leaves that to the browser and ships no script.
 Rather than argue it, the maintainer points the placement scenarios the package already has at
-daisy-cotton's dropdown on the demo's dropdown page and reads the result. Both behaviours pass and
-daisy-cotton's is adopted, or one fails and this package's stays. The result is written down where
-a later contributor will find it, with which behaviour passed and which did not.
+daisy-cotton's dropdown on the demo's dropdown page, in Chromium, Firefox and WebKit, and reads the
+result. Both behaviours pass in all three and daisy-cotton's is adopted, or one fails somewhere and
+this package's stays. The result is written down where
+a later contributor will find it, with which behaviour passed and which did not in each engine.
 
 **Why this priority**: Everything else in this feature follows from this result. Until it exists
 there is nothing to build.
 
 **Independent Test**: On the demo's dropdown page, render daisy-cotton's dropdown in the "open
 direction" scenario, scroll its trigger to the foot of the window and open it. Read where the panel
-landed and what state the trigger reports. The recorded outcome matches what the run showed.
+landed and what state the trigger reports. Repeat in each of the three engines. The recorded
+outcome matches what the runs showed.
 
 **Acceptance Scenarios**:
 
@@ -80,13 +89,15 @@ landed and what state the trigger reports. The recorded outcome matches what the
 2. **Given** the same dropdown, **When** it is closed, opened and dismissed with the Escape key,
    **Then** the run records whether the trigger reported closed, open and closed again to assistive
    technology.
-3. **Given** both behaviours passed, **When** the outcome is recorded, **Then** it says
-   daisy-cotton's dropdown is adopted.
-4. **Given** either behaviour failed, **When** the outcome is recorded, **Then** it says this
-   package's dropdown is kept and names the behaviour that failed.
-5. **Given** the outcome is recorded, **When** a contributor looks for why the package has the
+3. **Given** the two scenarios above, **When** the evidence is taken, **Then** each is run in
+   Chromium, Firefox and WebKit and its result is recorded for each engine.
+4. **Given** both behaviours passed in all three engines, **When** the outcome is recorded,
+   **Then** it says daisy-cotton's dropdown is adopted.
+5. **Given** either behaviour failed in any engine, **When** the outcome is recorded, **Then** it
+   says this package's dropdown is kept and names the behaviour and the engine that failed.
+6. **Given** the outcome is recorded, **When** a contributor looks for why the package has the
    dropdown it has, **Then** they find a decision record in the repository stating the outcome and
-   the evidence.
+   the evidence for each engine.
 
 ---
 
@@ -203,8 +214,11 @@ template in the package or the demo calls a dropdown name or attribute that no l
 - A project overrides one of the five shipped templates with a copy that calls the old name or
   attributes. This is a breaking change the changelog must describe well enough for the project to
   fix its copy.
-- Under adoption, a browser that has the popover but no CSS anchoring opens the panel without
-  placing it beside its trigger. The documentation states which browsers place the panel.
+- Under adoption, a browser older than the three engines the evidence was taken in, with the
+  popover but no CSS anchoring, opens the panel without placing it beside its trigger. The
+  documentation states which browsers place the panel.
+- One of the three engines cannot run the scenario at all, for example because the panel never
+  opens. That counts as a failure in that engine.
 - Under adoption, a dropdown inside a region that clips its overflow, such as a card or a
   scrolling table, still shows its whole panel.
 - The demo page shows hover opening and a panel stretched to its trigger. Under adoption both
@@ -217,20 +231,20 @@ template in the package or the demo calls a dropdown name or attribute that no l
 **Taking the decision**
 
 - **FR-001**: The browser tests in `tests/test_components/test_dropdown_placement_e2e.py` MUST be
-  run against daisy-cotton's dropdown, in the same scenario and asserting the same behaviour. The
-  way the test locates the trigger and the panel MAY change to suit daisy-cotton's markup. What is
-  asserted MUST NOT be weakened.
+  run against daisy-cotton's dropdown, in the same scenario and asserting the same behaviour, in
+  each of Chromium, Firefox and WebKit. The way the test locates the trigger and the panel MAY
+  change to suit daisy-cotton's markup. What is asserted MUST NOT be weakened.
 - **FR-002**: The evidence MUST cover two behaviours. First, a panel whose declared side has less
   room than it needs opens with all four edges inside the window and with an area a person can
   read. Second, the trigger reports closed, open and closed again to assistive technology as the
   panel is opened and dismissed. The second MUST be read from the state the browser gives
   assistive technology, so a trigger that reports it without a written attribute passes.
-- **FR-003**: daisy-cotton's dropdown MUST be adopted if both behaviours pass, and this package's
-  dropdown MUST be kept if either fails. No third outcome exists, and no behaviour outside those
+- **FR-003**: daisy-cotton's dropdown MUST be adopted if both behaviours pass in all three
+  engines, and this package's dropdown MUST be kept if either fails in any of them. No third outcome exists, and no behaviour outside those
   tests changes the outcome.
 - **FR-004**: The outcome MUST be recorded in a decision record under `docs/adr/`, stating which
-  dropdown the package uses, which behaviours passed and failed, and the versions of daisy-cotton
-  and the browser the tests ran on.
+  dropdown the package uses, which behaviours passed and failed in each engine, and the versions
+  of daisy-cotton and of each engine the tests ran on.
 - **FR-005**: Exactly one of the two outcomes MUST be built. The requirements for the other MUST
   NOT be built.
 
@@ -249,6 +263,7 @@ template in the package or the demo calls a dropdown name or attribute that no l
   does not reach it. Content placed inside the dropdown MUST still see the page's variables.
 - **FR-010**: The placement tests MUST remain in the suite, pointed at daisy-cotton's dropdown on
   the demo page, so a later daisy-cotton or daisyUI release that loses the behaviour is caught.
+  The suite that runs on every change MAY keep to the one engine it uses today.
   The rendered-markup tests that pinned this package's dropdown MUST be removed, because the
   markup is no longer this package's contract.
 - **FR-011**: The shipped stylesheet MUST carry every class the adopted dropdown and the five
@@ -291,7 +306,8 @@ template in the package or the demo calls a dropdown name or attribute that no l
 - **FR-022**: The component reference and the placement note in the documentation MUST describe
   the surviving dropdown: its name, its attributes, how a custom trigger is written and what
   happens when the declared side has no room. Under adoption the note MUST also state which
-  browsers place the panel beside its trigger.
+  browsers place the panel beside its trigger, and that an older browser without CSS anchoring
+  opens the panel unplaced.
 - **FR-023**: The demo's dropdown page MUST show the surviving dropdown only, and every example on
   it and on any other demo page MUST render with the attributes that dropdown accepts.
 - **FR-024**: The changelog MUST record the change as breaking: under adoption, the removed
@@ -330,7 +346,7 @@ template in the package or the demo calls a dropdown name or attribute that no l
 ### Measurable Outcomes
 
 - **SC-001**: The package has one answer to "which dropdown do I use", written in a decision
-  record with the test evidence, and a contributor can find it without reading the history.
+  record with the test evidence from three browser engines, and a contributor can find it without reading the history.
 - **SC-002**: After this feature `<c-dropdown>` renders daisy-cotton's dropdown in every project
   that installs the package, whatever order its apps are listed in.
 - **SC-003**: If daisy-cotton's dropdown is adopted, the package ships zero lines of dropdown
@@ -348,8 +364,9 @@ template in the package or the demo calls a dropdown name or attribute that no l
 
 - daisy-cotton is installed and its components are covered by the shipped stylesheet before this
   feature is built (#433).
-- The evidence is taken in the browser the package's browser tests already run in. A browser
-  without CSS anchoring is a documented limit under adoption, not part of the evidence.
+- The evidence is taken in current Chromium, Firefox and WebKit, installed on the machine the
+  evidence run is made on. A browser older than those, without CSS anchoring, is a documented
+  limit under adoption and is outside the evidence.
 - The sidebar's user menu is rebuilt on daisy-cotton's menu components by #438. This feature
   changes only the dropdown that wraps it and its trigger.
 - The buttons used as triggers and the menus inside the panels move to daisy-cotton's components
@@ -359,5 +376,5 @@ template in the package or the demo calls a dropdown name or attribute that no l
   component from where it then lives.
 - Packages built on this one that call `<c-dropdown>` with the old attributes are updated in their
   own repositories around the R29 release.
-- No continuous integration workflow changes are needed. The placement tests already run where the
-  package's browser tests run.
+- No continuous integration workflow changes are needed. The three-engine run is made once, for
+  the decision, and the suite that runs on every change stays on the engine it uses today.
