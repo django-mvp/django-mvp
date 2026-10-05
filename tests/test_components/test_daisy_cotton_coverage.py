@@ -4,11 +4,14 @@ The class set is read from daisy-cotton's templates, never by rendering a
 component, and the committed stylesheet is read as text.
 """
 
+import re
+from io import StringIO
 from pathlib import Path
 
 import daisy_cotton
 import pytest
 from daisy_cotton.templatetags.daisy_cotton import BREAKPOINTS
+from django.core.management import call_command
 
 import mvp
 from tests.daisy_cotton_classes import (
@@ -26,6 +29,10 @@ PREVIOUS_RELEASE_CLASSES = (
     / "fixtures"
     / "stylesheet_classes_0_26_0.txt"
 )
+PREVIOUS_RELEASE_PRESET_CLASSES = (
+    Path(__file__).resolve().parent.parent / "fixtures" / "preset_safelist_0_26_0.txt"
+)
+LITERAL_SEPARATORS = re.compile(r"[\s\"',<>{}%=;()]+")
 
 
 @pytest.fixture
@@ -39,6 +46,26 @@ def templates_dir(tmp_path):
 def write_component(templates_dir, name, source):
     """Write a component template under the made-up directory."""
     (templates_dir / "cotton" / name).write_text(source, encoding="utf-8")
+
+
+def written_literally(directory):
+    """Return the class names written whole in any file under a directory.
+
+    A name is written whole when it is a token of the file's text split on
+    whitespace, quotes, commas and the characters ``< > { } % = ; ( )``.
+
+    Args:
+        directory: The directory to read, recursively.
+
+    Returns:
+        The set of tokens.
+    """
+    tokens = set()
+    for path in Path(directory).rglob("*"):
+        if path.is_file():
+            text = path.read_text(encoding="utf-8", errors="replace")
+            tokens |= set(LITERAL_SEPARATORS.split(text))
+    return tokens
 
 
 class TestClassDerivation:
@@ -220,4 +247,75 @@ class TestPrebuiltStylesheet:
             f"{len(missing)} classes the 0.26.0 stylesheet styled have no selector "
             f"in {STYLESHEET}: {sorted(missing)}. If one was removed on purpose, "
             f"delete its line from {PREVIOUS_RELEASE_CLASSES}."
+        )
+
+
+class TestWrittenLiterally:
+    def test_a_name_between_the_separators_is_found(self, tmp_path):
+        (tmp_path / "a.html").write_text(
+            '<p class="btn  btn-ghost">{% tag "card-side,card-bordered" %}'
+            "{{ x }}(link);menu=menu-sm</p>",
+            encoding="utf-8",
+        )
+
+        assert {
+            "btn",
+            "btn-ghost",
+            "card-side",
+            "card-bordered",
+            "link",
+            "menu",
+            "menu-sm",
+        } <= written_literally(tmp_path)
+
+    def test_a_name_built_from_parts_is_not_found(self, tmp_path):
+        (tmp_path / "a.html").write_text(
+            '<p class="{% variation size "btn" "xs,sm" %}">', encoding="utf-8"
+        )
+
+        assert not {"btn-xs", "btn-sm"} & written_literally(tmp_path)
+
+    def test_files_in_nested_directories_are_read(self, tmp_path):
+        (tmp_path / "cotton" / "menu").mkdir(parents=True)
+        (tmp_path / "cotton" / "menu" / "item.html").write_text(
+            '<li class="menu-item">', encoding="utf-8"
+        )
+
+        assert "menu-item" in written_literally(tmp_path)
+
+
+class TestGeneratedEntry:
+    @pytest.fixture
+    def entry_paths(self):
+        """The preset's text and the directory the generated entry scans."""
+        out = StringIO()
+        call_command("mvp_tailwind", "--paths", stdout=out)
+        lines = out.getvalue().strip().splitlines()
+        return Path(lines[0]).read_text(encoding="utf-8"), Path(lines[3])
+
+    def test_every_daisy_cotton_class_is_covered(self, entry_paths):
+        preset, scanned = entry_paths
+        classes = component_classes(DAISY_COTTON_TEMPLATES)
+
+        missing = classes - written_literally(scanned) - safelisted_classes(preset)
+
+        assert classes
+        assert not missing, (
+            f"{len(missing)} classes daisy-cotton's components can render are "
+            f"neither written in a file under {scanned} nor declared by the "
+            f"preset: {sorted(missing)}"
+        )
+
+    def test_no_class_from_the_previous_release_is_lost(self, entry_paths):
+        preset, _ = entry_paths
+        lines = PREVIOUS_RELEASE_PRESET_CLASSES.read_text(encoding="utf-8").splitlines()
+        previous = {line for line in lines if line and not line.startswith("#")}
+
+        missing = previous - safelisted_classes(preset)
+
+        assert previous
+        assert not missing, (
+            f"{len(missing)} classes the 0.26.0 preset declared are no longer "
+            f"declared: {sorted(missing)}. If one was removed on purpose, delete "
+            f"its line from {PREVIOUS_RELEASE_PRESET_CLASSES}."
         )

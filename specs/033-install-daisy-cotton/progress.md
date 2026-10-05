@@ -62,3 +62,10 @@ Did: mvp_tailwind resolves DAISY_COTTON_TEMPLATES_DIR, prints it as the fourth -
 Verified: both new tests failed first (3 lines printed, no fourth). `uv run pytest tests/test_components/test_mvp_tailwind_command.py -q`: 7 passed. ruff check and format --check on the touched files clean.
 Next: T009, the generated-entry coverage test and the preset's variation entries.
 Watch: the file's older tests use an underscore helper (_run); left untouched, new tests reuse it.
+
+## 2026-10-05T15:17:35Z · Implementer US3 · T009
+
+Did: added TestGeneratedEntry (every class covered, previous release's preset classes kept) and TestWrittenLiterally with the public helper written_literally; wrote tests/fixtures/preset_safelist_0_26_0.txt from origin/main's base.css (185 classes); added 17 @source inline() entries to the preset, one per variation option list. Rebuilt the stylesheet with `uv run invoke build-stylesheet`: the .css and .css.br came out byte for byte the same, so nothing to commit there.
+Verified: test_every_daisy_cotton_class_is_covered failed first, naming 253 variation classes. Probe: deleting the md:max-w preset line made test_no_class_from_the_previous_release_is_lost fail; restored. `uv run pytest` on test_daisy_cotton_coverage.py, test_mvp_tailwind_command.py and test_responsive_safelist.py: 46 passed. `uv run pre-commit run --all-files`: all hooks passed.
+Next: T010, docs and changelog.
+Watch: mypy needed `# type: ignore[import-untyped]` on the daisy_cotton import in mvp_tailwind.py (pyproject's mypy overrides, outside this story's scope, would be the cleaner place).

@@ -75,6 +75,29 @@
    tests/test_components/test_daisy_cotton_coverage.py names any that is missing. */
 @source inline("{sm,md,lg,xl,2xl}:{alert-horizontal,alert-vertical,card-side,carousel-horizontal,carousel-vertical,divider-horizontal,divider-vertical,drawer-open,footer-horizontal,footer-vertical,join-horizontal,join-vertical,menu-horizontal,stats-horizontal,stats-vertical,steps-horizontal,steps-vertical,timeline-horizontal,timeline-vertical}");
 
+/* Safelist: daisy-cotton's variation classes. Its components join a base class
+   to the value of an attribute, such as btn and size="lg", at render time. One
+   entry per list of values. Keep in sync with the variation tags in its
+   templates; tests/test_components/test_daisy_cotton_coverage.py names any that
+   is missing. */
+@source inline("alert-{info,success,warning,error}");
+@source inline("{badge,btn,chat-bubble,divider,checkbox,file-input,input,otp,radio,range,bg,select,textarea,toggle,link,progress,status,step}-{neutral,primary,secondary,accent,info,success,warning,error}");
+@source inline("{badge,btn,card,dock,checkbox,file-input,input,otp,radio,range,rating,select,textarea,toggle,kbd,loading,megamenu,menu,status,table,tabs}-{xs,sm,md,lg,xl}");
+@source inline("carousel-{start,center,end}");
+@source inline("{chat,divider}-{start,end}");
+@source inline("drawer-end");
+@source inline("{dropdown,tooltip}-{top,bottom,left,right,start,center,end}");
+@source inline("footer-center");
+@source inline("mask-{star,star-2,heart}");
+@source inline("indicator-{start,center,end,top,middle,bottom}");
+@source inline("mask-{circle,decagon,diamond,heart,hexagon,hexagon-2,pentagon,squircle,star,star-2,triangle,triangle-2,triangle-3,triangle-4}");
+@source inline("mask-half-{1,2}");
+@source inline("modal-{top,middle,bottom,start,end}");
+@source inline("stack-{top,bottom,start,end}");
+@source inline("tabs-{top,bottom}");
+@source inline("toast-{top,middle,bottom,start,center,end}");
+@source inline("tooltip-{primary,secondary,accent,info,success,warning,error}");
+
 /* Full-page content (issue #247): `<c-page fill>` marks itself .mvp-page-fill,
    and this is what the shell does about it.
 
