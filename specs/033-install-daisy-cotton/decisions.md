@@ -362,4 +362,4 @@ obvious from the code. FR-020 asks for the record.
 **Why:** the component-prefix change merged first and took 0030. A number belongs to whichever
 record reaches `main` first.
 
-**ADR:** none — a number.
+**ADR:** none — the renumbering of a record, local to this pull request and with nothing downstream that inherits it.
