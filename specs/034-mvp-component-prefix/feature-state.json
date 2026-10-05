@@ -356,6 +356,11 @@
               "docs/adr/0030 and CHANGELOG.md reworded at cdd6753; read against mvp/templates/cotton (17 bare templates)"
             ]
           }
+        },
+        {
+          "id": "T014",
+          "status": "todo",
+          "attempts": 0
         }
       ]
     }

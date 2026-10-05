@@ -325,7 +325,7 @@ The components Django MVP owns are **not** DaisyUI components. They borrow Daisy
 
 ## Constraints
 
-1. Demo templates must never use raw Tailwind classes — only Cotton component attributes.
+1. Demo templates that show one of this package's own components must never use raw Tailwind classes — only that component's attributes. A daisy-cotton component is configured the way daisy-cotton documents, which for a few options is a class.
 2. Components must not declare ghost attributes (declared in `<c-vars>` but never used).
 3. Mixin composition is the extension path — no factory functions, no pre-built concrete views for consumers.
 4. Config uses deep merge — consumers override individual keys, not the entire dict.

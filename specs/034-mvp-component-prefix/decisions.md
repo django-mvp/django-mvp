@@ -204,23 +204,22 @@ as before (SC-003), which a test can decide.
 
 ## Resolved while planning
 
-### D16. Records are not rewritten
+### D16. Decision records keep their names; the roadmap follows the package as it is today
 
 **Ambiguous:** FR-013 says every page under `docs/` uses the new names, and SC-006 says no old
-tag remains in the documentation. `docs/adr/` and `docs/ROADMAP.md` are under `docs/` and mention
-moved components by their old names 14 times between them.
+tag remains in the documentation. `docs/adr/` and `docs/ROADMAP.md` are under `docs/` and
+mentioned moved components by their old names.
 
-**Chosen:** the decision records under `docs/adr/`, the roadmap, the released sections of the
-changelog and everything under `specs/` are left as written. Every page a reader follows to use
-the package is updated.
+**Ruled at the merge gate, replacing an earlier blanket exception for both:**
 
-**Why defensible:** a decision record says what was decided in the words of its day, and the
-roadmap's R29 entry describes this rename in terms of the old names, so rewriting either would
-make it say something false. The documentation gate already treats `docs/adr/` as records, not
-pages.
-
-**Revisit if:** the maintainer reads SC-006 as covering the records too. It is a scripted
-change of 14 mentions.
+- `docs/adr/` stays as written. A decision record describes the package as it was when the
+  decision was taken.
+- `docs/ROADMAP.md` describes the current state. Where it names a component or its path as the
+  package is today, it uses the new name: the formset components in the delivered formsets
+  item and the theme controller in the delivered themes item. Where it describes the rename
+  itself (R29) or recounts a past state (the documentation item's note on where a template
+  used to live), it is left.
+- The released sections of the changelog and everything under `specs/` are left as written.
 
 **ADR:** none — about this pull request's scope
 
@@ -293,13 +292,15 @@ posts an invalid form through a view that sets no component of its own. The chan
 
 **ADR:** none — review findings, local to this feature
 
-### D23. Two points are the maintainer's and go to the merge gate
+### D23. Two points went to the merge gate, and were ruled on
 
-- D16 reads SC-006 as not covering decision records and the roadmap. That is a reading of an
-  approved requirement and is put to the maintainer when the pull request is offered.
-- The specification assumes nothing under `.github/` needs to change. A contributor skill at
-  `.github/skills/demo-views/SKILL.md` shows `<c-page>` and `<c-app>` in three places. This run
-  may not edit `.github/`, so the three mentions are left and reported.
+- The reading of SC-006 for decision records and the roadmap: ruled, see D16.
+- A contributor skill at `.github/skills/demo-views/SKILL.md` shows `<c-page>` and `<c-app>` in
+  three places. Nothing under `.github/` is changed here. It is tracked as #482 and does not
+  hold this change.
+- A third point came up while building: the glossary's constraint on raw Tailwind classes in
+  demo templates was stricter than the amended Article XI. Ruled: it is brought in line in
+  `CONTEXT.md`, and covers this package's own components.
 
 **ADR:** none — open questions for the maintainer, not decisions
 
