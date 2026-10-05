@@ -317,3 +317,11 @@ the markup now rendered, with the same thing asserted: `test_dropdown.py`,
 lost the six lines named in D22. No assertion was weakened, and nothing was skipped.
 
 **ADR:** none — a record of test changes this feature's specification asks for.
+
+### D24. The `only` rule and its check are recorded as an ADR
+
+**Chosen:** D2, D8 and D9 together are a standing rule for every later change to the packaged
+templates, and the reason for it is not obvious from the templates themselves. It graduates to
+an ADR with this change.
+
+**ADR:** docs/adr/0032-calls-to-daisy-cotton-components-are-isolated.md

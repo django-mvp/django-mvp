@@ -55,7 +55,9 @@ def _crumb_texts(page, url, viewport):
     page.set_viewport_size(viewport)
     page.goto(url)
     return page.evaluate("""
-        () => [...document.querySelectorAll('nav.breadcrumbs li > :is(a, span)')].map(el => ({
+        () => [
+          ...document.querySelectorAll('nav.breadcrumbs li > :is(a, span)')
+        ].map(el => ({
           text: el.textContent,
           scrollWidth: el.scrollWidth,
           clientWidth: el.clientWidth,
