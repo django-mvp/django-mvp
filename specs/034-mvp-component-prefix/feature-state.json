@@ -359,8 +359,13 @@
         },
         {
           "id": "T014",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "merge-gate rulings applied at 6f1e265: docs/ROADMAP.md two delivered items, CONTEXT.md constraint 1, D16 and D23 rewritten; issue 482 filed"
+            ]
+          }
         }
       ]
     }
