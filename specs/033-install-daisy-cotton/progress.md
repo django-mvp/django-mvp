@@ -97,3 +97,10 @@ Did: the full suite showed three of my command-level tests failing in the whole 
 Verified: `uv run pytest -n auto --dist loadscope` 2637 passed, 1 skipped, exit 0. `uv run pytest tests/test_checks.py` 13 passed. pre-commit all passed. `uv build` exit 0.
 Next: flip T011 and T012 in the ledger and report.
 Watch: tests/test_views/test_base.py:217 defines a model with a leading underscore at module level, which stays in the app registry for the rest of a worker's run.
+
+## 2026-10-05T15:30:45Z · Implementer US5 · T013
+
+Did: added tests/test_components/test_daisy_cotton_isolation.py with TestIsolatedCall, five tests over menu.title and stat (leak with only absent, hazard control without only, default slot, named slot, passed attribute).
+Verified: `uv run pytest tests/test_components/test_daisy_cotton_isolation.py` 5 passed. Probe: removing `only` from the sources made the isolation test and the default-slot test fail (2 failed, 3 passed). ruff check and ruff format clean.
+Next: T014, the rule in CONTRIBUTING.md.
+Watch: the test passes on first run because Cotton already behaves this way; the probe above is the red evidence.
