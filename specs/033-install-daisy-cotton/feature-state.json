@@ -361,13 +361,41 @@
       "tasks": [
         {
           "id": "T013",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_daisy_cotton_isolation.py::TestIsolatedCall"
+            ],
+            "commands": [
+              "uv run pytest tests/test_components/test_daisy_cotton_isolation.py",
+              "uv run ruff check tests/test_components/test_daisy_cotton_isolation.py",
+              "uv run ruff format --check tests/test_components/test_daisy_cotton_isolation.py",
+              "uv run pytest -n auto",
+              "uv run pre-commit run --all-files"
+            ],
+            "code": [
+              "tests/test_components/test_daisy_cotton_isolation.py:21"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T014",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [],
+            "commands": [
+              "uv run pre-commit run --files CONTRIBUTING.md",
+              "uv run pytest -n auto",
+              "uv run pre-commit run --all-files"
+            ],
+            "code": [
+              "CONTRIBUTING.md:137"
+            ],
+            "verified_by_ci": false
+          }
         }
       ]
     }
