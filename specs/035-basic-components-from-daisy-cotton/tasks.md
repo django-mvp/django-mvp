@@ -30,7 +30,7 @@ avatar group. A project template at `cotton/badge.html` in a `TEMPLATES["DIRS"]`
 the one rendered. `PREFIX_EXCEPTIONS` becomes the icon alone.
 
 The resolution tests and the prefix tests fail before T002 for the right reason (the package's
-own template answers). Commit them together with T002 so no commit leaves the suite failing.
+own template answers). T001 to T005 are one commit, so no commit leaves the suite failing.
 
 ### T002 — Remove the sixteen templates
 
@@ -38,8 +38,7 @@ own template answers). Commit them together with T002 so no commit leaves the su
 `mvp/templates/cotton/{avatar,breadcrumbs,dock,menu,mockup}/`
 
 Plan, *What is deleted*. `git rm` the sixteen files. `cotton/icon.html` and `cotton/mvp/` stay.
-This task and T003 to T005 land as one green commit series: the suite is not green between
-them, so they are committed together.
+Committed with T001 and T003 to T005.
 
 ---
 
@@ -93,7 +92,8 @@ Issue: #463. Delivers FR-017 to FR-019.
 Plan, *`only`, and the check for it* and *New tests*, fourth and fifth bullets. The check names
 every unisolated call by template and tag, and a second test proves it reports an offender. The
 leak test renders packaged pages with and without context variables named after the attributes
-in research's table and compares each daisy-cotton element. Slot content inside an isolated
+in research's table and compares each element drawn by a call the package makes directly. An attribute a kept
+component forwards is outside it (D15). Slot content inside an isolated
 alert reads a page variable. A dismissible alert under `only` still draws its button and its
 icon through this package's lookup.
 

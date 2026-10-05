@@ -78,7 +78,7 @@ With the sixteen templates set aside and nothing else changed:
 - `:attrs="dictionary"` works together with `only`
   (`<c-alert :attrs="d" only>` with `{"variant": "warning"}` renders `alert-warning`).
 - `:block="full"` with a false value writes no class.
-- A variant outside the component's list renders with no variant class and raises nothing
+- A variant outside the component's list renders with no variant class and no icon, and raises nothing
   (`<c-alert variant="primary">`, `<c-button variant="ghost">`).
 - A former attribute name lands on the element as an HTML attribute
   (`<button class="btn" full reverse align="start" condition="x">`).

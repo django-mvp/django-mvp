@@ -140,7 +140,8 @@ daisy-cotton and are covered by the assumption in `spec.md`.
 
 ## Open items
 
-- **Article XI wording (FS-034).** See D10.
+- **Article XI wording (FS-034).** Closed: Article XI now limits the no-raw-classes rule to this
+  package's own components.
 - **Packages built on this one.** Any that call the sixteen tags with former attribute names must
   move in their own repositories around the breaking release. Not this feature's work.
 - **`.github/`.** Nothing in this specification needs a change there. If the stylesheet workflow
@@ -228,3 +229,28 @@ add landmarks a screen-reader user has to step over. The former template put
 `role="navigation"` on the list itself, which is what the planning notes call out as wrong.
 
 **ADR:** none — follows FR-015 and the planning notes.
+
+## Design review, 2026-10-05
+
+One reviewer, three lenses, at `8157ca7`. Verdict: approve, risk medium, no critical or high
+finding. Every finding was checked against the code before it was acted on.
+
+### D19. What the design review changed
+
+- **The leak test's reach (medium).** A kept component that declares an attribute with no default
+  and forwards it to a daisy-cotton call still carries a page variable into that call after
+  `only` is added: the log-in action's `variant`, the share dropdown's `size`. The plan's test
+  now compares only elements drawn by a call the package makes directly, and names its pages.
+  D15's reading of SC-004 is put to the maintainer's delegate before US-3 is built, not at the
+  merge gate.
+- **The dock toggle (medium).** Overtaken by the ruling in D14.
+- **The demo scan's table (low).** It holds only names daisy-cotton's component does not
+  declare. Changes of value or meaning are moved by hand.
+- **The check's name mapping (low).** Hyphens become underscores as Cotton does it, `only` is
+  read with Cotton's own tag parser, dynamic `<c-component>` calls are outside it, and the
+  self-test uses a hyphenated name.
+- **The reader's home (low).** One class in a helper module under `tests/`.
+- **Carried, no edit here (low, speculative):** the research ran against daisy-cotton 0.1.3 and
+  the package declares `>=0.1.2`. To the release that ships R29: check 0.1.2 or raise the floor.
+
+**ADR:** none — corrections to this feature's plan.

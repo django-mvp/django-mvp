@@ -55,7 +55,8 @@ use them.
 
 ### 2. The packaged callers
 
-Every call below also gets `only` (section 4). Nothing else about a call changes unless listed.
+The table shows each call as US-2 leaves it. `only` is added to every one of them in US-3
+(section 4), not in this pass. Nothing else about a call changes unless listed.
 
 | Template | Change |
 |---|---|
@@ -66,7 +67,7 @@ Every call below also gets `only` (section 4). Nothing else about a call changes
 | `cotton/mvp/app/header/navbar.html` | the trail gains `text-sm` in `class` |
 | `menus/dock/index.html` | passes `:class="mvp_config.layout.dock.class"` |
 | `menus/dock/item.html` | attributes unchanged. It passes no `role`, `tabindex` or key handler (section 3) |
-| `menus/sidebar/container.html` | `<nav aria-label="{{ label }}" class="w-full grow">` around `<c-menu class="w-full" only>`; `label` and `grow` go |
+| `menus/sidebar/container.html` | `<nav aria-label="{{ label }}" class="w-full grow">` around `<c-menu class="w-full">`; `label` and `grow` go |
 | `cotton/mvp/actions/theme_controller.html`, `cotton/mvp/addons/share_dropdown.html` | `label="…"` becomes `aria-label="…"`; `w-full` added to `class` |
 | `cotton/mvp/user/sidebar_menu.html` | `w-full` added to `class` |
 | `cotton/mvp/messages.html` | unchanged attributes. The debug-to-info mapping stays. A level tag outside daisy-cotton's four draws a plain alert |
@@ -106,14 +107,21 @@ covers templates under `mvp/templates/` whether or not they are component templa
 The check is one test module, `tests/test_components/test_daisy_cotton_calls.py`. It walks
 `mvp/templates/**/*.html`, compiles each file with django-cotton's compiler, and reads every
 compiled `{% cotton <name> … %}` tag. A name is daisy-cotton's when daisy-cotton ships
-`cotton/<name as a path>.html` (or `…/index.html`) and this package ships neither. A call to such
-a name without `only` fails the test with the template's path and the tag's name. The check
+`cotton/<name as a path>.html` (or `…/index.html`) and this package ships neither. A name becomes a
+path the way Cotton does it: dots to slashes, hyphens to underscores, then the `index.html`
+fallback. The `only` flag is read with `django_cotton.tag_parser.parse_component_tag`, never by
+searching the tag's text, since class values contain the word. A call to such a name without
+`only` fails the test with the template's path and the tag's name. A dynamic
+`<c-component :is="…">` call compiles to the name `component` and is outside the check.
+
+The reader is one class in a helper module under `tests/`, beside `daisy_cotton_classes.py`,
+imported by this module and by the demo scan of section 8. No leading-underscore names. The check
 holds no list of component names, so the components the later features start calling are covered
 the day they are called.
 
 A second test in the same module proves the check can fail: it runs the same scan over a
-directory holding one template with an unisolated call and asserts the offender is reported by
-template and tag.
+directory holding one template with an unisolated call to a hyphenated daisy-cotton component (`<c-hover-3d>`) and
+asserts the offender is reported by template and tag, which also proves the name mapping.
 
 ### 5. Breadcrumb truncation
 
@@ -137,7 +145,7 @@ promises, or removed where it only asserted the removed template's markup (FR-02
 
 | Test | What happens to it |
 |---|---|
-| `test_button.py::TestButtonCondition` | removed. `condition` is gone. The module goes if nothing else is in it |
+| `test_button.py::TestButtonCondition` | removed with no replacement. `condition` is gone, and no packaged or demo template passed it, so FR-010 has no packaged subject beyond the `{% if %}` blocks that already wrap conditional buttons and are already tested by their pages. The module goes if nothing else is in it |
 | `test_link.py::TestLinkDefaults::test_default_href_falls_back_to_hash` and the rest of `test_link.py` | removed: the link's markup is daisy-cotton's |
 | `test_mockup_code.py` | removed, same reason |
 | `test_breadcrumbs_href_attribute.py::TestTheItemTextSpan` | removed. The module keeps one class: the trail a page declares renders one crumb per entry in order, a link where the entry has an address, the current page where it has none, extra attributes on the list item, `href` once |
@@ -165,24 +173,36 @@ All under `tests/`, mirroring what they test, in `Test<Subject>` classes.
   and raises nothing. The package's menu entry renders inside daisy-cotton's menu, and its avatar
   inside daisy-cotton's avatar group. A project template at `cotton/badge.html`, in a directory
   listed in `TEMPLATES["DIRS"]`, is the one rendered.
-- **`test_templates.py` or the page's own module** (US-2). One Django message at each built-in
-  level draws one alert each with the message in it, debug with the info variant, and a level tag
-  outside the four draws its message and raises nothing. The delete page forwards
-  `related_objects_attrs`. The dock is a navigation landmark with a name, its toggle has an
-  accessible name, and the current page's item carries `aria-current="page"`. The dock takes the configured class and the default when the setting is
-  absent. The theme chooser and the share menu each have an accessible name. No element on the
+- **US-2, each in the module that already tests its subject.**
+  `test_components/test_messages.py` (new; the messages component has no module yet): one Django
+  message at each built-in level draws one alert each with the message in it, debug with the
+  info variant, and a level tag outside the four draws its message, no variant and raises
+  nothing. `test_views/test_edit.py`: the delete page forwards `related_objects_attrs`.
+  `test_renderers.py`: the dock is a navigation landmark with a name, its toggle has an
+  accessible name, and the current page's item carries `aria-current="page"`.
+  `test_components/test_layout_config.py`: the dock takes the configured class, and the default
+  when the setting is absent. `test_components/test_theme_controller.py` and a share-dropdown
+  test beside it: each menu has an accessible name. `test_templates.py`: no element on the
   shell, list, detail, delete, sign-in, sign-out and error pages carries one of the former
   attribute names as an HTML attribute.
 - **`test_components/test_daisy_cotton_calls.py`** (US-3). The check of section 4.
-- **`test_components/test_daisy_cotton_isolation.py`**, extended (US-3). A packaged page rendered
-  with context variables named after every attribute in research's leak table draws each
-  daisy-cotton element (alert, button, badge, breadcrumbs and crumbs, divider, dock and items,
-  link, menu) with the same tag, attributes and classes as without them. Content the package
+- **`test_components/test_daisy_cotton_isolation.py`**, extended (US-3). Packaged pages
+  (the shell with its dock and sidebar, a list page with a breadcrumb trail, the sign-out page,
+  a formset page) rendered with context variables named after every attribute in research's
+  leak table draw each element that comes from a call the package makes directly (breadcrumbs
+  and crumbs, divider, dock and items, link, the sidebar menu's list) with the same tag,
+  attributes and classes as without them. An element whose attribute a kept component declares
+  and forwards (the log-in button's variant, the share button's size) is outside the
+  comparison: that leak is the kept component's own (D15). Content the package
   puts inside an alert reads a page variable. A dismissible alert called with `only` still draws
   its dismiss button and its icon, and the icon comes from this package's lookup.
 - **`test_demo/`** (US-4). Every demo page for these components answers 200. No demo template
-  passes a former attribute name to one of the sixteen tags: the scan reuses the compiler-based
-  reader of section 4 with a table of tag and former attribute.
+  passes a former attribute name to one of the sixteen tags: the scan reuses the reader of
+  section 4 with a table that holds only names daisy-cotton's component does not declare
+  (`full`, `reverse`, `align`, `condition` on the button; `size` on the avatar group; `label`,
+  `position` on the divider; `label`, `grow`, `responsive` on the menu). Changes of value or
+  meaning (the divider's swap, the alert's dropped variants, a link with no `href`, a code line
+  with no `prefix`) are moved by hand and reviewed by eye, with no test.
 
 What gets no test: the look of any component, the changelog's wording, the documentation's
 wording, the classes a demo page passes.
