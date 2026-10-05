@@ -33,7 +33,7 @@ No new dependency, no model, no migration, no setting and no new Python module i
 | XI, Components | The sixteen leave the package's API. The kept components keep theirs. |
 | XII, Configuration | The dock still reads `MVP_CONFIG["layout"]["dock"]["class"]`. |
 | XIII, Rendered markup | Tests of markup daisy-cotton owns go. Tests of what this package's call sites promise are rewritten. |
-| XIV, Browser tests | Kept to the breadcrumb truncation tests that exist and one new test of the dock toggle's keys. |
+| XIV, Browser tests | No new browser test. The breadcrumb truncation tests that exist decide the stylesheet change. |
 | XV, Build artifacts | The stylesheet is rebuilt and committed in the story that changes the classes. |
 | XVI, Compatibility | Breaking, pre-1.0, recorded in the changelog with the full table. |
 | XVIII, Attribute dictionaries | `related_objects_attrs` and `page_info_actions` keep forwarding. Their documentation names the new attributes. |
@@ -65,7 +65,7 @@ Every call below also gets `only` (section 4). Nothing else about a call changes
 | `cotton/mvp/page/list/actions/create.html`, `filter.html` | `reverse` goes, icon into the slot |
 | `cotton/mvp/app/header/navbar.html` | the trail gains `text-sm` in `class` |
 | `menus/dock/index.html` | passes `:class="mvp_config.layout.dock.class"` |
-| `menus/dock/item.html` | when the item toggles a drawer, passes `role="button"`, `tabindex="0"` and the two key handlers of section 3 |
+| `menus/dock/item.html` | attributes unchanged. It passes no `role`, `tabindex` or key handler (section 3) |
 | `menus/sidebar/container.html` | `<nav aria-label="{{ label }}" class="w-full grow">` around `<c-menu class="w-full" only>`; `label` and `grow` go |
 | `cotton/mvp/actions/theme_controller.html`, `cotton/mvp/addons/share_dropdown.html` | `label="…"` becomes `aria-label="…"`; `w-full` added to `class` |
 | `cotton/mvp/user/sidebar_menu.html` | `w-full` added to `class` |
@@ -82,21 +82,20 @@ Comments and annotations that name a removed attribute are corrected where they 
 (`cotton/mvp/rule.html`, `cotton/mvp/section/index.html`, `cotton/mvp/modal.html`, the docstrings
 in `mvp/renderers.py`, `mvp/views/base.py`, `mvp/views/edit.py`, `mvp/fixtures.py`).
 
-### 3. The dock toggle answers the keyboard
+### 3. The dock toggle and the keyboard: a known gap
 
-`menus/dock/item.html` passes, on the toggle item only:
+The former template gave the toggle's `<label>` `role="button"` and `tabindex="0"`. It took focus
+and did nothing on Enter or Space. daisy-cotton's dock item writes neither attribute, so the
+toggle is now not a Tab stop at all. Nothing a person could do with the keyboard is lost.
 
-```html
-role="button" tabindex="0"
-x-on:keydown.enter.prevent="$el.click()"
-x-on:keydown.space.prevent="$el.click()"
-```
+The keyboard clause of FR-014 and acceptance scenario 10 of US-2 are **not met by this feature**.
+The fix belongs in daisy-cotton's `dock.item`, where every project gets it, and is raised as
+django-mvp/daisy-cotton#135. This package passes nothing to make up for it, and writes no test
+for it, skipped or otherwise (decision D14). The gap is stated in the changelog entry with the
+upstream link and in the pull request.
 
-Alpine is already on every shell page: the drawer checkbox the label points at is bound to an
-Alpine store. A click on a label flips its checkbox, so the handler needs no knowledge of the
-drawer. If Cotton does not carry the dotted attribute name through, the fallback is a single
-`x-on:keydown` whose expression tests `$event.key`. One browser test presses each key and reads
-the checkbox (decision D14).
+The rest of FR-014 is built and tested: the configured class, the toggle's accessible name, and
+the current page's item marked as current.
 
 ### 4. `only`, and the check for it
 
@@ -169,14 +168,11 @@ All under `tests/`, mirroring what they test, in `Test<Subject>` classes.
 - **`test_templates.py` or the page's own module** (US-2). One Django message at each built-in
   level draws one alert each with the message in it, debug with the info variant, and a level tag
   outside the four draws its message and raises nothing. The delete page forwards
-  `related_objects_attrs`. The dock is a navigation landmark with a name, its toggle carries
-  `role="button"`, `tabindex="0"` and a name, and the current page's item carries
-  `aria-current="page"`. The dock takes the configured class and the default when the setting is
+  `related_objects_attrs`. The dock is a navigation landmark with a name, its toggle has an
+  accessible name, and the current page's item carries `aria-current="page"`. The dock takes the configured class and the default when the setting is
   absent. The theme chooser and the share menu each have an accessible name. No element on the
   shell, list, detail, delete, sign-in, sign-out and error pages carries one of the former
   attribute names as an HTML attribute.
-- **`test_renderers.py`** (US-2, browser). Enter and Space on the focused dock toggle each flip
-  the drawer checkbox.
 - **`test_components/test_daisy_cotton_calls.py`** (US-3). The check of section 4.
 - **`test_components/test_daisy_cotton_isolation.py`**, extended (US-3). A packaged page rendered
   with context variables named after every attribute in research's leak table draws each
@@ -247,5 +243,7 @@ tests/fixtures/stylesheet_classes_0_26_0.txt   only if a class drops out
   are the guard inside the repository. The changelog table is the guard outside it.
 - **The two-pass order leaves the calls unisolated between US-2 and US-3.** Both land in one pull
   request, so no release or merge sees that state.
+- **The dock toggle is not keyboard-operable.** Carried as a known gap on
+  django-mvp/daisy-cotton#135 (section 3).
 - **The stylesheet build is not byte-reproducible.** The rebuilt file is committed once, and the
   class fixtures are what the tests compare.

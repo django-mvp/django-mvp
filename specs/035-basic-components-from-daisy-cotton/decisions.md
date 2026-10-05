@@ -148,29 +148,31 @@ daisy-cotton and are covered by the assumption in `spec.md`.
 
 ## Settled while planning, 2026-10-05
 
-### D14. The dock toggle gets key handlers from its caller
+### D14. The dock toggle's keyboard operation is carried as unmet
 
 **Found:** on `main` the dock's sidebar toggle is a `<label>` with `role="button"` and
 `tabindex="0"`. It takes focus, but Enter and Space do nothing: a label is not activated from the
-keyboard, and no script handles the key. A browser probe confirmed it. FR-014 and acceptance
-scenario 10 of US-2 require the toggle to be operable from the keyboard.
+keyboard, and no script handles the key. A browser probe confirmed it. daisy-cotton's dock item
+writes neither attribute. FR-014 and acceptance scenario 10 of US-2 ask for a toggle that is
+operable from the keyboard.
 
-**Chosen:** `menus/dock/item.html` passes `role`, `tabindex` and two Alpine key handlers that
-click the label, on the toggle item only. daisy-cotton's dock item forwards them to the element.
-One browser test presses each key.
+**Ruling given during the build (2026-10-05):** passing `role`, `tabindex` and key handlers from
+`menus/dock/item.html` would be a workaround for a gap in daisy-cotton's component, and is not
+done. The keyboard clause of FR-014 and scenario 10 are carried as unmet, waiting on
+django-mvp/daisy-cotton#135. No test is written for it, and no skipped or expected-failure test
+either. The rest of FR-014 stands: the configured class, the accessible name, and the current
+item marked.
 
-**Why:** the requirement is written as something to keep, but a test of it fails today, so
-keeping the markup alone would leave the scenario unmet. Passing attributes a component forwards
-is its documented use. Alpine is already on every page that has the drawer.
+**Why:** the toggle did nothing from the keyboard before this feature, so nothing a person could
+do is lost. The fix belongs in daisy-cotton's `dock.item`, where every project gets it.
 
-**Rejected:** a handler in `assets/js/layout.js`. It would need a rebuilt script bundle for two
-attributes' worth of behaviour. Also rejected: leaving it to daisy-cotton. The gap is raised on
-its tracker, and this package's pages cannot wait for a release.
+**Where it is stated:** the changelog entry, as a known gap with the upstream link, and the pull
+request's deviations.
 
-**Revisit if:** daisy-cotton's dock item makes its toggle keyboard-operable. The attributes here
-then go.
+**Revisit if:** daisy-cotton#135 is released. Raising the floor then closes the gap with no
+change to this package's templates.
 
-**ADR:** none — local to one template, and removed when daisy-cotton closes the gap.
+**ADR:** none — a known gap tracked on an upstream issue, not a design choice.
 
 ### D15. The isolation requirement is read as FR-017 states it
 

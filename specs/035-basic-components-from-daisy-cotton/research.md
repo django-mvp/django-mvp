@@ -11,13 +11,13 @@ daisyUI 5.7.0 as the lockfiles resolve them. Paths into daisy-cotton are relativ
 `mvp_config.layout.dock.class` itself. `mvp/renderers.py:34` already puts `mvp_config` in that
 template's context for exactly this value.
 
-**Dock toggle.** Adopted, and it goes further than the note. daisy-cotton's dock item forwards
-extra attributes to the label (`dock/item.html:10-14`), so `menus/dock/item.html` passes
-`role="button"` and `tabindex="0"` when the item toggles a drawer. A browser probe on `main`
-showed the label takes focus but neither Enter nor Space flips the checkbox: a `<label>` is not
-activated from the keyboard, and nothing in `assets/js/` handles the key. FR-014 and acceptance
-scenario 10 of US-2 ask for a toggle that can be activated from the keyboard, so the caller also
-passes Alpine key handlers (decision D14). The gap is raised on daisy-cotton's tracker.
+**Dock toggle.** Not adopted. The note suggests the caller pass `role="button"` and
+`tabindex="0"`, which daisy-cotton's dock item would forward (`dock/item.html:10-14`). A browser
+probe on `main` showed what those attributes buy: the label takes focus, and neither Enter nor
+Space flips the checkbox, because a `<label>` is not activated from the keyboard and nothing in
+`assets/js/` handles the key. Making it work from this package would be a workaround for a gap in
+daisy-cotton's component, so nothing is passed. The gap is raised as django-mvp/daisy-cotton#135
+and carried as unmet (decision D14).
 
 **Breadcrumb truncation.** Adopted. daisy-cotton's crumb puts the text straight inside `<a>` or
 inside `<span aria-current="page">` (`breadcrumbs/item.html:8-12`). The rule at
@@ -124,6 +124,4 @@ features start calling.
 
 ## Unknowns that remain
 
-None that block the plan. Whether Cotton accepts Alpine's dotted modifiers in an attribute name
-(`x-on:keydown.enter.prevent`) is decided by the first test of that task. If it does not, the
-handler is written as `x-on:keydown` with the key tested in the expression.
+None that block the plan.

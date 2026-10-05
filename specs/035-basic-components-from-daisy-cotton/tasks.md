@@ -54,11 +54,12 @@ third bullets
 
 Written before T004. Remove what only asserted a removed template's markup. Rewrite what the
 package still promises against the markup now rendered. Add: messages at each level and at an
-unknown level; `related_objects_attrs` forwarded; the dock's landmark, name, toggle attributes
-and current item; the dock class from configuration and by default; the accessible names of the
-theme chooser and the share menu; the sidebar menu's navigation landmark; no former attribute
-name as an HTML attribute on the shell, list, detail, delete, sign-in, sign-out and error pages;
-and the browser test that Enter and Space on the dock toggle flip the drawer checkbox.
+unknown level; `related_objects_attrs` forwarded; the dock's landmark, name, the toggle's accessible
+name and the current item; the dock class from configuration and by default; the accessible names of the
+theme chooser and the share menu; the sidebar menu's navigation landmark; and no former
+attribute name as an HTML attribute on the shell, list, detail, delete, sign-in, sign-out and
+error pages. The dock toggle's keyboard operation gets no test of any kind: it is a known gap
+(plan, *The dock toggle and the keyboard*).
 
 ### T004 — Move every packaged caller to daisy-cotton's attributes
 
