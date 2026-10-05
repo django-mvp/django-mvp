@@ -2,7 +2,7 @@
   "feature": "034-mvp-component-prefix",
   "branch": "034-mvp-component-prefix",
   "repo": "django-mvp/django-mvp",
-  "state": "GATE_MERGE",
+  "state": "MERGED",
   "state_history": [
     {
       "state": "QUEUED",
@@ -43,6 +43,11 @@
       "state": "GATE_MERGE",
       "at": "2026-10-05T15:40:50Z",
       "note": "all checks green; waiting at the merge gate"
+    },
+    {
+      "state": "MERGED",
+      "at": "2026-10-05T15:48:58Z",
+      "note": "PR #443 merged; approved by forge-aeo-reviewer"
     }
   ],
   "gates": {
@@ -59,8 +64,8 @@
       "self_resolved": []
     },
     "merge": {
-      "approved_by": null,
-      "at": null
+      "approved_by": "forge-aeo-reviewer",
+      "at": "2026-10-05T15:48:53Z"
     },
     "design_review": {
       "approved_by": "design-review",
@@ -86,9 +91,11 @@
       ]
     },
     "walkthrough": {
-      "approved_by": null,
-      "at": "2026-10-05T15:34:43Z",
-      "self_resolved": []
+      "approved_by": "delegated review",
+      "at": "2026-10-05T15:48:51Z",
+      "self_resolved": [
+        "ROADMAP current names, glossary constraint narrowed, issue filed for .github/skills \u2014 all done at ee7ff87"
+      ]
     }
   },
   "stories": [
@@ -384,12 +391,12 @@
       "max": 1
     },
     "tokens": {
-      "used": 20.66,
+      "used": 26.24,
       "max": 120
     }
   },
   "pr": {
     "number": 443,
-    "draft": true
+    "draft": false
   }
 }
