@@ -26,14 +26,14 @@ def render(source, **context):
 
 class TestMenuItemWithoutAnHref:
     def test_no_href_attribute_is_written_when_href_is_none(self):
-        html = render('<c-menu.item :href="url" label="Placeholder" />', url=None)
+        html = render('<c-mvp.menu.item :href="url" label="Placeholder" />', url=None)
         button = _beautiful_soup()(html, "html.parser").find("button")
 
         assert button is not None
         assert not button.has_attr("href")
 
     def test_an_href_draws_a_link_carrying_it(self):
-        html = render('<c-menu.item href="/page/" label="Page" />')
+        html = render('<c-mvp.menu.item href="/page/" label="Page" />')
         link = _beautiful_soup()(html, "html.parser").find("a")
 
         assert link["href"] == "/page/"
@@ -86,7 +86,7 @@ class TestTheSidebarDrawsOneNavigationLandmark:
     def test_the_app_sidebar_renders_exactly_one_navigation_landmark(self):
         request = RequestFactory().get("/")
         request.user = AnonymousUser()
-        html = render_to_string("cotton/app/sidebar/index.html", request=request)
+        html = render_to_string("cotton/mvp/app/sidebar/index.html", request=request)
         soup = _beautiful_soup()(html, "html.parser")
         landmarks = soup.find_all(
             lambda tag: tag.name == "nav" or tag.get("role") == "navigation"

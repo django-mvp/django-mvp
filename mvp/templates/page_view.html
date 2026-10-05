@@ -4,8 +4,8 @@
   {{ page.title }}
 {% endblock title %}
 {% block content %}
-  <c-page class="{{ page.class }}">
-    <c-container>
+  <c-mvp.page class="{{ page.class }}">
+    <c-mvp.container>
       {% comment %}
         The breadcrumb trail draws in the app header, not here. `page.header`
         stays as an extension point for a project's own content above the
@@ -14,14 +14,14 @@
       {% block page.header %}
       {% endblock page.header %}
       {% block page.content-wrapper %}
-        <c-page.content center gap=3 class="py-4">
+        <c-mvp.page.content center gap=3 class="py-4">
           {% block page.title %}
             {% comment %}
               Named one at a time, not spread from `page`: the title block
               writes every attribute onto its root, and `page` also carries
               the breadcrumb trail and page class, already placed elsewhere.
             {% endcomment %}
-            <c-page.title :title="page.title"
+            <c-mvp.page.title :title="page.title"
                           :subtitle="page.subtitle"
                           :info="page.info"
                           :info_actions="page.info_actions">
@@ -29,17 +29,17 @@
                 {% block page.actions %}
                 {% endblock page.actions %}
               </c-slot>
-            </c-page.title>
+            </c-mvp.page.title>
           {% endblock page.title %}
           {% block page.content %}
             {% trans "Coming soon..." %}
           {% endblock page.content %}
-        </c-page.content>
+        </c-mvp.page.content>
       {% endblock page.content-wrapper %}
-      <c-toolbar bottom>
+      <c-mvp.toolbar bottom>
         {% block page.footer %}
         {% endblock page.footer %}
-      </c-toolbar>
-    </c-container>
-  </c-page>
+      </c-mvp.toolbar>
+    </c-mvp.container>
+  </c-mvp.page>
 {% endblock content %}

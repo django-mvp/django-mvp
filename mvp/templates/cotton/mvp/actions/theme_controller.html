@@ -1,0 +1,57 @@
+{# @description Light/dark theme toggle. #}
+{# @prop size:select['sm','md','lg'] | default:"sm" | description:"Icon button / toggle size." #}
+{# @prop valign:select['top','bottom','left','right'] | default:"bottom" | description:"Dropdown vertical placement, used only when theme.choices is configured." #}
+{# @prop halign:select['start','center','end'] | default:"end" | description:"Dropdown horizontal placement, used only when theme.choices is configured." #}
+{# @prop compact:boolean | description:"Render the two-theme switcher as one square icon button instead of the icon/checkbox/icon row, for narrow slots. No effect when theme.choices is set, since that branch is already a square icon button." #}
+{% load i18n %}
+<c-vars size="sm" valign="bottom" halign="end" compact />
+{% if mvp_config.theme.choices %}
+  <c-mvp.dropdown valign="{{ valign }}" halign="{{ halign }}">
+    <c-slot name="button">
+      <c-button ghost
+                icon="theme.light"
+                size="{{ size }}"
+                class="btn-square"
+                tabindex="0"
+                role="button"
+                title="{% trans "Choose theme" %}"
+                aria-label="{% trans "Choose theme" %}" />
+    </c-slot>
+    {% comment %}
+      c-mvp.menu.item renders a <button> when given no href, so each entry is
+      focusable and Enter/Space fires the click theme-change binds. A bare
+      <a> without href is not in the tab order and cannot be activated.
+    {% endcomment %}
+    <c-menu label="{% trans "Choose theme" %}" class="menu-sm">
+      {% for choice in mvp_config.theme.choices %}
+        <c-mvp.menu.item label="{{ choice }}" data-set-theme="{{ choice }}" />
+      {% endfor %}
+    </c-menu>
+  </c-mvp.dropdown>
+{% else %}
+  {% comment %}
+    theme-change reads this pair as "first,second". Built from configuration
+    so the toggle follows a project that replaces the packaged themes.
+  {% endcomment %}
+  {% if compact %}
+    <c-button ghost
+              icon="theme.light"
+              size="{{ size }}"
+              class="btn-square"
+              data-toggle-theme="{{ mvp_config.theme.dark }},{{ mvp_config.theme.default }}"
+              data-act-class="swap-active"
+              title="{% trans "Toggle dark mode" %}"
+              aria-label="{% trans "Toggle dark mode" %}" />
+  {% else %}
+    <label class="flex cursor-pointer items-center gap-2"
+           title="{% trans "Toggle dark mode" %}">
+      <c-icon name="theme.light" class="text-sm" aria-hidden="true" />
+      <input type="checkbox"
+             class="toggle toggle-{{ size }}"
+             data-toggle-theme="{{ mvp_config.theme.dark }},{{ mvp_config.theme.default }}"
+             data-act-class="swap-active"
+             aria-label="{% trans "Toggle dark mode" %}" />
+      <c-icon name="theme.dark" class="text-sm" aria-hidden="true" />
+    </label>
+  {% endif %}
+{% endif %}

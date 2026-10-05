@@ -1,14 +1,14 @@
 {% extends "mvp/landing.html" %}
 {% load i18n mvp %}
 {% block page.hero %}
-  <c-section.hero title="Build production-ready Django apps fast"
+  <c-mvp.section.hero title="Build production-ready Django apps fast"
                   subtitle="A comprehensive framework with layouts, components, and ready-to-use views — so you can focus on your business logic."
                   bg-image="https://picsum.photos/id/237/800/1200"
                   height="80vh">
     <c-slot name="top">
       <div class="mb-6 text-center flex">
-        <c-brand.logo max-height="100px" />
+        <c-mvp.brand.logo max-height="100px" />
       </div>
     </c-slot>
-  </c-section.hero>
+  </c-mvp.section.hero>
 {% endblock page.hero %}

@@ -348,9 +348,18 @@ records that, and an inline ignore on the import would have hidden the same fact
 ## D27. The dependency and the app order are recorded as an architecture decision
 
 **Decision:** D5, D6 and D8 together, that the package depends on daisy-cotton at `>=0.1.2,<0.2`,
-that the project lists the app itself, and that `mvp` stays above it, are written up as ADR 0030.
+that the project lists the app itself, and that `mvp` stays above it, are written up as ADR 0031.
 
 **Why:** they are durable, they bind every project that installs the package, and the order is not
 obvious from the code. FR-020 asks for the record.
 
-**ADR:** docs/adr/0030-daisy-cotton-is-a-runtime-dependency.md
+**ADR:** docs/adr/0031-daisy-cotton-is-a-runtime-dependency.md
+
+## D28. The decision record is 0031
+
+**Decision:** the record written as ADR 0030 is renumbered 0031.
+
+**Why:** the component-prefix change merged first and took 0030. A number belongs to whichever
+record reaches `main` first.
+
+**ADR:** none — a number.

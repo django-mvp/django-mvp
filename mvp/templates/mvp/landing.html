@@ -1,21 +1,21 @@
 {% extends "page_view.html" %}
 {% block content %}
-  <c-page class="{{ page.class }}">
+  <c-mvp.page class="{{ page.class }}">
     <div class="mvp-header">
       {% block page.hero %}
       {% endblock page.hero %}
     </div>
     {% block page.content-wrapper %}
-      <c-page.content center gap=3 class="py-4">
-        <c-group gap=3>
+      <c-mvp.page.content center gap=3 class="py-4">
+        <c-mvp.group gap=3>
           {% block page.content %}
           {% endblock page.content %}
-        </c-group>
-      </c-page.content>
+        </c-mvp.group>
+      </c-mvp.page.content>
     {% endblock page.content-wrapper %}
-    <c-page.toolbar bottom>
+    <c-mvp.page.toolbar bottom>
       {% block page.footer %}
       {% endblock page.footer %}
-    </c-page.toolbar>
-  </c-page>
+    </c-mvp.page.toolbar>
+  </c-mvp.page>
 {% endblock content %}

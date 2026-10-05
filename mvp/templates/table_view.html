@@ -2,7 +2,7 @@
 {% load i18n %}
 {% comment %}
   Overrides the outer `content` block, not page.header/page.content-wrapper:
-  those sit inside page_view.html's <c-container>, a plain div that breaks
+  those sit inside page_view.html's <c-mvp.container>, a plain div that breaks
   the flex chain a filled layout needs (specs/027-table-layout-and-column-styling/research.md R5).
 {% endcomment %}
 {% comment %}
@@ -21,15 +21,15 @@
 {% endcomment %}
 {% block app.footer %}{% endblock app.footer %}
 {% block content %}
-  <c-page fill class="{{ page.class }}">
+  <c-mvp.page fill class="{{ page.class }}">
     {% block page.content-wrapper %}
       {% comment %}
         gap="0" and padding on the bars, never the page: the table meets the
         shell edges, so a gap or page padding would inset the scroll region.
       {% endcomment %}
-      <c-page.content gap="0">
+      <c-mvp.page.content gap="0">
         {% comment %}
-          Plain flex row, not <c-toolbar>: a toolbar's trailing slot falls
+          Plain flex row, not <c-mvp.toolbar>: a toolbar's trailing slot falls
           through to a context `actions` variable when unfilled, printing its
           repr — a bare row keeps that trap shut regardless of page context.
         {% endcomment %}
@@ -46,32 +46,32 @@
               </div>
               <div class="flex flex-wrap md:flex-nowrap gap-2 md:gap-1 md:justify-end md:items-center">
                 {% block page.actions %}
-                  <c-page.list.actions />
+                  <c-mvp.page.list.actions />
                 {% endblock page.actions %}
               </div>
             </div>
           {% endblock page.title %}
         </div>
         {% block page.content %}
-          <c-addons.django-table :table="table" class="flex-1 min-h-0" />
+          <c-mvp.addons.django-table :table="table" class="flex-1 min-h-0" />
         {% endblock page.content %}
         <div class="flex w-full px-4 py-4">
           {% block page.footer %}
             {% if page_obj %}
               <div class="flex flex-wrap items-center justify-between gap-2 w-full">
-                <c-text size="sm" tight>
+                <c-mvp.text size="sm" tight>
                   {% with start=page_obj.start_index end=page_obj.end_index total=page_obj.paginator.count %}
                     {% blocktrans with name_plural=model_info.verbose_name_plural %}
                     Showing {{ start }}-{{ end }} of {{ total }} {{ name_plural }}
                     {% endblocktrans %}
                   {% endwith %}
-                </c-text>
-                <c-pagination :page_obj="page_obj" />
+                </c-mvp.text>
+                <c-mvp.pagination :page_obj="page_obj" />
               </div>
             {% endif %}
           {% endblock page.footer %}
         </div>
-      </c-page.content>
+      </c-mvp.page.content>
     {% endblock page.content-wrapper %}
-  </c-page>
+  </c-mvp.page>
 {% endblock content %}

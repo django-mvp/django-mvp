@@ -502,7 +502,7 @@ class ShowCodeNode(template.Node):
     - ``rendered``: the live, compiled component (the preview)
     - ``html``: the escaped, prettified HTML the component renders to (the "HTML" tab)
 
-    These are handed to ``cotton/documentation.html`` for display.
+    These are handed to ``cotton/mvp/documentation.html`` for display.
     """
 
     def __init__(self, nodelist):
@@ -532,7 +532,7 @@ class ShowCodeNode(template.Node):
             html_pretty = rendered_raw.strip()
 
         return render_to_string(
-            "cotton/documentation.html",
+            "cotton/mvp/documentation.html",
             {
                 "code": code,
                 "rendered": mark_safe(rendered_raw),

@@ -16,11 +16,11 @@ directly, as ``test_render_all.py`` does, never triggers Cotton's c-vars /
 ``attrs`` extraction and would not reproduce this bug.
 
 Covers every component the audit for #121 found with this exact shape:
-c-text, c-menu, c-menu.item, c-dock.item, c-page.list.empty and
-c-layout.sidebar. Peers that already merge ``{{ class }}`` correctly
+c-mvp.text, c-menu, c-mvp.menu.item, c-dock.item, c-mvp.page.list.empty and
+c-mvp.layout.sidebar. Peers that already merge ``{{ class }}`` correctly
 (c-button, c-badge, c-alert, ...) are unaffected and untouched here.
 
-c-page.title was added later, from #263. It is the same defect one step
+c-mvp.page.title was added later, from #263. It is the same defect one step
 further along: it declared ``class``, so Cotton stripped the caller's value
 out of ``{{ attrs }}``, and then it neither read ``{{ class }}`` nor spread
 ``{{ attrs }}``, so nothing wrote it back. Nothing the caller set reached the
@@ -76,7 +76,7 @@ def class_attrs_on(html, tag):
 
 class TestClassAttributeMerge:
     def test_text_merges_caller_class(self):
-        html = render('<c-text class="dac-prose">hi</c-text>')
+        html = render('<c-mvp.text class="dac-prose">hi</c-mvp.text>')
         attrs = class_attrs_on(html, "p")
         assert len(attrs) == 1, f"expected one class attribute, found {attrs}"
         assert "dac-prose" in attrs[0]
@@ -115,7 +115,7 @@ class TestClassAttributeMerge:
         assert "my-dock-item" in attrs[0]
 
     def test_menu_item_merges_caller_class(self):
-        html = render('<c-menu.item label="X" class="my-menu-item" />')
+        html = render('<c-mvp.menu.item label="X" class="my-menu-item" />')
         attrs = class_attrs_on(html, "button")
         assert len(attrs) == 1, f"expected one class attribute, found {attrs}"
         assert "my-menu-item" in attrs[0]
@@ -123,7 +123,7 @@ class TestClassAttributeMerge:
 
     def test_page_list_empty_merges_caller_class(self):
         html = render(
-            '<c-page.list.empty heading="Nothing here" class="my-empty-state" />'
+            '<c-mvp.page.list.empty heading="Nothing here" class="my-empty-state" />'
         )
         attrs = class_attrs_on(html, "div")
         assert len(attrs) == 1, f"expected one class attribute, found {attrs}"
@@ -132,7 +132,8 @@ class TestClassAttributeMerge:
 
     def test_layout_sidebar_merges_caller_class(self):
         html = render(
-            '<c-layout.sidebar id="test-sidebar" class="my-sidebar">body</c-layout.sidebar>'
+            '<c-mvp.layout.sidebar id="test-sidebar" '
+            'class="my-sidebar">body</c-mvp.layout.sidebar>'
         )
         attrs = class_attrs_on(html, "div")
         assert len(attrs) == 1, f"expected one class attribute, found {attrs}"
@@ -140,7 +141,7 @@ class TestClassAttributeMerge:
         assert "drawer" in attrs[0]
 
     def test_page_title_merges_caller_class(self):
-        html = render('<c-page.title title="Products" class="mb-8" />')
+        html = render('<c-mvp.page.title title="Products" class="mb-8" />')
         attrs = class_attrs_on(html, "div")
         assert len(attrs) == 1, f"expected one class attribute, found {attrs}"
         assert "mb-8" in attrs[0]
@@ -148,5 +149,7 @@ class TestClassAttributeMerge:
 
     def test_page_title_passes_other_attributes_through(self):
         parser = _FirstTagAttrs("div")
-        parser.feed(render('<c-page.title title="Products" id="product-heading" />'))
+        parser.feed(
+            render('<c-mvp.page.title title="Products" id="product-heading" />')
+        )
         assert ("id", "product-heading") in parser.attrs

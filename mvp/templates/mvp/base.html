@@ -88,14 +88,14 @@
       {% endcomment %}
       {% firstof breakpoint mvp_config.layout.sidebar.breakpoint as breakpoint %}
       {% firstof collapse mvp_config.layout.sidebar.collapse as collapse %}
-      <c-app :breakpoint="breakpoint" :collapse="collapse">
+      <c-mvp.app :breakpoint="breakpoint" :collapse="collapse">
         <c-slot name="sidebar">
           {% block app.sidebar %}
-            <c-app.sidebar :collapse="collapse" />
+            <c-mvp.app.sidebar :collapse="collapse" />
           {% endblock app.sidebar %}
         </c-slot>
         {% block app.header %}
-          <c-app.header>
+          <c-mvp.app.header>
             <c-slot name="right">
               {% block app.header.widgets %}
               {% endblock app.header.widgets %}
@@ -104,22 +104,22 @@
               {% block app.header.tray %}
               {% endblock app.header.tray %}
             </c-slot>
-          </c-app.header>
+          </c-mvp.app.header>
         {% endblock app.header %}
         {% block app.main %}
-          <c-app.main>
+          <c-mvp.app.main>
             {% block content %}
             {% endblock content %}
-            <c-messages :messages="messages" dismissible />
-          </c-app.main>
+            <c-mvp.messages :messages="messages" dismissible />
+          </c-mvp.app.main>
         {% endblock app.main %}
         {% block app.footer %}
-          <c-app.footer />
+          <c-mvp.app.footer />
         {% endblock app.footer %}
         {% block app.dock %}
-          <c-app.dock />
+          <c-mvp.app.dock />
         {% endblock app.dock %}
-      </c-app>
+      </c-mvp.app>
     {% endblock app %}
     {% block extra_js %}
     {% endblock extra_js %}

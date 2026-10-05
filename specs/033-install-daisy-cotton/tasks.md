@@ -75,14 +75,14 @@ by the existing suite passing with no test edited.
 ### T003 — The app list in the documentation, the decision record and the changelog
 
 **Files**: `docs/getting-started.md`, `README.md`, `skills/django-mvp/SKILL.md`,
-`docs/adr/0030-daisy-cotton-is-a-runtime-dependency.md`, `CHANGELOG.md`
+`docs/adr/0031-daisy-cotton-is-a-runtime-dependency.md`, `CHANGELOG.md`
 
 - All three app lists gain `"daisy_cotton"` on the line below `"mvp"`. The getting-started guide's
   *Why the order matters* says why: both packages ship components under the same names, the first
   app listed wins, and `mvp` must come first.
 - Say what is true after this feature and no more: daisy-cotton is installed with the package and
   its components are found. Do not present them as replacing this package's components.
-- ADR 0030, in the shape of `docs/adr/0029-forms-are-drawn-by-django-mvp-forms.md`: why the
+- ADR 0031, in the shape of `docs/adr/0029-forms-are-drawn-by-django-mvp-forms.md`: why the
   package depends on daisy-cotton (Article VII), why the range is `>=0.1.2,<0.2`, why the project
   lists the app itself, why `mvp` stays above it.
 - `CHANGELOG.md`, under `## [Unreleased]`, a `### Changed` entry marked breaking: the new
@@ -367,7 +367,7 @@ requirement.
 
 ### T017 — Say truthfully how daisy-cotton is reached (US-1)
 
-**Files**: `pyproject.toml`, `docs/adr/0030-daisy-cotton-is-a-runtime-dependency.md`
+**Files**: `pyproject.toml`, `docs/adr/0031-daisy-cotton-is-a-runtime-dependency.md`
 
 The generator imports `daisy_cotton`, so it is no longer listed among the packages reached only
 through `INSTALLED_APPS`, and the ADR no longer says so.

@@ -23,7 +23,7 @@ COTTON_DIR = Path(next(iter(mvp.__path__))).resolve() / "templates" / "cotton"
 # Templates that need context this smoke test can't fake — each entry needs a
 # reason and ideally a dedicated test elsewhere.
 SKIP = {
-    "addons/django_table.html": "requires a django-tables2 Table instance",
+    "mvp/addons/django_table.html": "requires a django-tables2 Table instance",
 }
 
 TEMPLATES = sorted(

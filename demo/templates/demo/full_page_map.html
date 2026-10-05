@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% comment %}
-  Worked example from #247: `fill` on <c-page> is the whole opt-in — the shell
-  already hands height down and <c-page.content> is a `flex-1 min-h-0` column,
+  Worked example from #247: `fill` on <c-mvp.page> is the whole opt-in — the shell
+  already hands height down and <c-mvp.page.content> is a `flex-1 min-h-0` column,
   so the map only asks for `h-full w-full`.
 {% endcomment %}
 {% comment %}
@@ -29,11 +29,11 @@
 {% block app.footer %}
 {% endblock app.footer %}
 {% block content %}
-  <c-page fill>
-    <c-page.content>
+  <c-mvp.page fill>
+    <c-mvp.page.content>
       <div id="map" class="h-full w-full"></div>
-    </c-page.content>
-  </c-page>
+    </c-mvp.page.content>
+  </c-mvp.page>
 {% endblock content %}
 {% block extra_js %}
   <script>

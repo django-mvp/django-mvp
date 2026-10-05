@@ -109,7 +109,7 @@ class ComponentDocView(DemoTemplateView):
         context["components"] = COMPONENTS
         context["component"] = self.component
         if self.component.slug == "formset":
-            # <c-form.formset> needs a real, bound formset — the standalone case
+            # <c-mvp.form.formset> needs a real, bound formset — the standalone case
             # (no parent record, unlike the inline formset in the worked example).
             OrderLineFormSet = modelformset_factory(
                 OrderLine, fields=["product", "quantity"], extra=2
@@ -392,7 +392,7 @@ class ComplexFormDemoView(MVPFormView):
     """MVPFormView driving LayoutDemoForm.
 
     FormHelper groups fields into Fieldsets — the crispy helper path
-    <c-form.render> takes whenever form.helper is set — with one Fieldset
+    <c-mvp.form.render> takes whenever form.helper is set — with one Fieldset
     laid out via Row/Column (#311).
     """
 

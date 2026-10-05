@@ -14,7 +14,7 @@
   <div class="w-full lg:max-w-4xl flex flex-col gap-4">
     {% block before_form %}
     {% endblock before_form %}
-    <c-form title="{{ page.title }}"
+    <c-mvp.form title="{{ page.title }}"
             icon="{{ page.icon }}"
             method="post"
             action="{{ request.path }}"
@@ -23,11 +23,11 @@
             :inlines="inlines">
       {% if next_url %}<input type="hidden" name="next" value="{{ next_url }}">{% endif %}
       {% block formset %}
-        {% if formset %}<c-form.formset :formset="formset" />{% endif %}
-        {% for inline in inlines %}<c-form.formset :formset="inline" />{% endfor %}
+        {% if formset %}<c-mvp.form.formset :formset="formset" />{% endif %}
+        {% for inline in inlines %}<c-mvp.form.formset :formset="inline" />{% endfor %}
       {% endblock formset %}
       {% block actions %}
-        <c-group breakpoint="md" wrap>
+        <c-mvp.group breakpoint="md" wrap>
           <c-button text="{% trans "Save & continue" %}"
                     icon="arrow-right"
                     type="submit"
@@ -47,9 +47,9 @@
                       icon="delete"
                       variant="error" />
           {% endif %}
-        </c-group>
+        </c-mvp.group>
       {% endblock actions %}
-    </c-form>
+    </c-mvp.form>
     {% block after_form %}
     {% endblock after_form %}
   </div>

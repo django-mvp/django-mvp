@@ -1,4 +1,4 @@
-"""Tests for the <c-page.list.actions.search> component.
+"""Tests for the <c-mvp.page.list.actions.search> component.
 
 Every reader-facing string in the action row is translatable and replaceable
 by a caller. The submit button's label was the one exception (issue #282):
@@ -25,7 +25,7 @@ class TestSearchActionButtonLabel:
     def test_the_default_label_is_translated(self):
         with translation.override("de"):
             html = render(
-                "<c-page.list.actions.search />",
+                "<c-mvp.page.list.actions.search />",
                 is_searchable=True,
             )
         assert "Suchen" in html
@@ -33,7 +33,7 @@ class TestSearchActionButtonLabel:
 
     def test_a_caller_can_replace_the_label(self):
         html = render(
-            '<c-page.list.actions.search label="Find products" />',
+            '<c-mvp.page.list.actions.search label="Find products" />',
             is_searchable=True,
         )
         assert "Find products" in html
@@ -41,14 +41,14 @@ class TestSearchActionButtonLabel:
 
 class TestSearchActionSize:
     def test_the_submit_button_is_small(self):
-        html = render("<c-page.list.actions.search />", is_searchable=True)
+        html = render("<c-mvp.page.list.actions.search />", is_searchable=True)
         assert "btn-sm" in html
 
     def test_the_input_matches_the_buttons_size(self):
-        html = render("<c-page.list.actions.search />", is_searchable=True)
+        html = render("<c-mvp.page.list.actions.search />", is_searchable=True)
         assert "input-sm" in html
 
     def test_no_element_carries_a_bare_small_or_large_attribute(self):
-        html = render("<c-page.list.actions.search />", is_searchable=True)
+        html = render("<c-mvp.page.list.actions.search />", is_searchable=True)
         assert not re.search(r"<(button|input)[^>]*\bsmall\b[^>]*>", html)
         assert not re.search(r"<(button|input)[^>]*\blarge\b[^>]*>", html)

@@ -210,7 +210,7 @@ one child.
 
 ## The mobile dock
 
-Below the sidebar breakpoint, `<c-app.dock>` renders `MobileFooterMenu` as a bottom
+Below the sidebar breakpoint, `<c-mvp.app.dock>` renders `MobileFooterMenu` as a bottom
 navigation bar. It ships with a single item that toggles the sidebar drawer; extend it
 the same way as `AppMenu`:
 
@@ -241,7 +241,7 @@ MenuItem(name="log-episode", extra_context={
 
 The dock's own visibility follows `MVP_CONFIG["layout"]["sidebar"]["breakpoint"]`, the
 same setting the desktop header widgets key off. If you need a different threshold,
-override the `cotton/app/dock.html` template in your project.
+override the `cotton/mvp/app/dock.html` template in your project.
 
 To drop the pre-seeded sidebar-toggle item, assign
 `MobileFooterMenu.children = [ ...yours... ]` or pop it by name, the same way described
@@ -284,15 +284,16 @@ If a key you asked for is missing, resolving that renderer raises `ValueError` l
 the renderers you did register. An unstyled or blank region is a different problem
 (see common mistakes, below).
 
-Renderers map menu nodes onto the `c-menu.*` / dock templates, so a custom renderer or
-template override changes the markup without touching your Python menu definitions.
+Renderers map menu nodes onto the `c-menu`, `c-mvp.menu.*` and dock components, so a
+custom renderer or template override changes the markup without touching your Python
+menu definitions.
 Inside a renderer template of your own, `{% render_item child renderer=renderer %}`
 renders one child, and `{% process_menu %}` returns the processed tree without
 rendering it.
 
 For fully hand-built menus, use the [`c-menu` components](components.md#navigation)
 directly. To point the sidebar at a different menu, pass its name to the shell
-component instead: `<c-app.sidebar menu="AdminMenu" />`.
+component instead: `<c-mvp.app.sidebar menu="AdminMenu" />`.
 
 ## A menu's accessible name
 

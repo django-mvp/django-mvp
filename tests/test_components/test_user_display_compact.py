@@ -1,5 +1,5 @@
 """Tests for the compact user display (docs/adr/0023): avatar plus name,
-with no email line. Its one consumer is user/sidebar_menu.html. Rendered via
+with no email line. Its one consumer is mvp/user/sidebar_menu.html. Rendered via
 tests/user_display_compact.html.
 """
 

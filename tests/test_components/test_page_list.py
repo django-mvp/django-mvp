@@ -1,4 +1,4 @@
-"""``<c-page.list>`` renders each row with the template its ``card`` names.
+"""``<c-mvp.page.list>`` renders each row with the template its ``card`` names.
 
 The component declared ``card``, and ``list_view.html`` passed it, but the body
 reached past it for a ``list_item_template`` key in the surrounding view
@@ -19,7 +19,7 @@ class TestPageListCard:
         self, cotton_render_string_soup, product
     ):
         soup = cotton_render_string_soup(
-            f'<c-page.list :list="items" card="{CARD}" />',
+            f'<c-mvp.page.list :list="items" card="{CARD}" />',
             context={"items": [product]},
         )
 
@@ -30,7 +30,7 @@ class TestPageListCard:
         self, cotton_render_string_soup, product
     ):
         soup = cotton_render_string_soup(
-            f'<c-page.list :list="items" card="{CARD}" />',
+            f'<c-mvp.page.list :list="items" card="{CARD}" />',
             context={"items": [product], "list_item_template": "no/such/card.html"},
         )
 
@@ -40,7 +40,7 @@ class TestPageListCard:
     def test_an_unknown_card_is_not_swallowed(self, cotton_render_string_soup, product):
         with pytest.raises(TemplateDoesNotExist):
             cotton_render_string_soup(
-                '<c-page.list :list="items" card="no/such/card.html" />',
+                '<c-mvp.page.list :list="items" card="no/such/card.html" />',
                 context={"items": [product]},
             )
 
@@ -49,7 +49,8 @@ class TestPageListCard:
         self, cotton_render_string_soup
     ):
         soup = cotton_render_string_soup(
-            f'<c-page.list :list="items" card="{CARD}" :empty_state="empty_state" />',
+            f'<c-mvp.page.list :list="items" card="{CARD}" :empty_state="empty_state" '
+            f"/>",
             context={"items": [], "empty_state": {"heading": "Nothing here yet"}},
         )
 

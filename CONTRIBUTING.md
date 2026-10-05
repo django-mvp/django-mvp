@@ -34,31 +34,22 @@ together with the two standards it makes binding:
 All Cotton components MUST be tested using the following pattern:
 
 ```python
-import pytest
-from django_cotton import cotton_render
-
-
-@pytest.fixture
-def mock_request(rf):
-    """Use pytest-django's rf fixture for request factory."""
-    return rf.get("/")
-
-
-def test_my_component(mock_request):
+def test_my_component(cotton_render_soup):
     """Test component rendering."""
-    # Use slash notation for component paths
-    html = cotton_render(mock_request, "app/my-component", {
-        "my_var": "value",
-    })
+    # The component name is its tag without the `c-`, in dotted notation
+    soup = cotton_render_soup("mvp.card", title="Quarterly report")
 
-    assert "expected-content" in html
+    assert soup.select_one("[class~='card']") is not None
 ```
 
 **Important:**
 
-- Use `django_cotton.cotton_render()` - NOT `Template()` or `render_to_string()`
-- Use pytest-django's `rf` fixture - NOT `RequestFactory()` directly
-- Use **slash notation** for component paths: `"app/wrapper"` not `"app.wrapper"`
+- Use the `cotton_render`, `cotton_render_soup`, `cotton_render_string` and
+  `cotton_render_string_soup` fixtures this package ships - NOT `Template()` or
+  `render_to_string()`. The `_soup` variants need `beautifulsoup4` in your test
+  dependencies.
+- Use **dotted notation** for component names: `"mvp.card"` for `<c-mvp.card>`, not
+  `"mvp/card"`
 - Test with c-vars, slots, and edge cases (missing optional vars, etc.)
 
 ### Running Tests

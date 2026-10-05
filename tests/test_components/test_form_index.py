@@ -1,8 +1,8 @@
-"""Tests for the <c-form> component (mvp/templates/cotton/form/index.html).
+"""Tests for the <c-mvp.form> component (mvp/templates/cotton/mvp/form/index.html).
 
-The `<form>` wrapper that hosts a single form's rendering (<c-form.render>)
+The `<form>` wrapper that hosts a single form's rendering (<c-mvp.form.render>)
 and, from this story on, an optional formset's rendering
-(<c-form.formset>). Sources are compiled through the Cotton compiler so the
+(<c-mvp.form.formset>). Sources are compiled through the Cotton compiler so the
 tests exercise the component exactly as a template invocation would, per
 tests/test_components/test_form_field.py.
 """
@@ -40,7 +40,8 @@ class TestFormEnctype:
         form_obj = PlainForm()
         formset = FileFormSet()
         html = render(
-            '<c-form :form-obj="form_obj" :formset="formset" method="post"></c-form>',
+            '<c-mvp.form :form-obj="form_obj" :formset="formset" '
+            'method="post"></c-mvp.form>',
             form_obj=form_obj,
             formset=formset,
         )
@@ -48,7 +49,8 @@ class TestFormEnctype:
 
     def test_enctype_is_multipart_when_only_a_row_set_is(self):
         html = render(
-            '<c-form :form-obj="form_obj" :inlines="inlines" method="post"></c-form>',
+            '<c-mvp.form :form-obj="form_obj" :inlines="inlines" '
+            'method="post"></c-mvp.form>',
             form_obj=PlainForm(),
             inlines=[FileFormSet()],
         )
@@ -56,7 +58,8 @@ class TestFormEnctype:
 
     def test_enctype_is_emitted_once_when_several_row_sets_are_multipart(self):
         html = render(
-            '<c-form :form-obj="form_obj" :inlines="inlines" method="post"></c-form>',
+            '<c-mvp.form :form-obj="form_obj" :inlines="inlines" '
+            'method="post"></c-mvp.form>',
             form_obj=PlainForm(),
             inlines=[FileFormSet(), FileFormSet()],
         )
@@ -64,7 +67,8 @@ class TestFormEnctype:
 
     def test_enctype_is_absent_when_nothing_needs_it(self):
         html = render(
-            '<c-form :form-obj="form_obj" :inlines="inlines" method="post"></c-form>',
+            '<c-mvp.form :form-obj="form_obj" :inlines="inlines" '
+            'method="post"></c-mvp.form>',
             form_obj=PlainForm(),
             inlines=[forms.formset_factory(PlainForm, extra=1)()],
         )

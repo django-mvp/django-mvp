@@ -68,8 +68,8 @@ are deliberately left out, and a missing one is silent — the element renders f
 error. `shadow-sm`, `shadow-lg`, `shadow-xl` and `shadow-none` exist anyway, as a
 by-product of how daisyUI's own source is scanned; don't build on that, since `shadow-md`
 right next to them matches nothing. The omission is easy to miss because the components
-carry their own shadows internally — a `<c-card>` looks raised whether or not a `shadow-lg`
-you added did anything.
+carry their own shadows internally — a `<c-mvp.card>` looks raised whether or not a
+`shadow-lg` you added did anything.
 
 ## Typography
 

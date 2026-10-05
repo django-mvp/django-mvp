@@ -1,7 +1,7 @@
-"""Tests for <c-form.formset> and <c-form.formset.row>.
+"""Tests for <c-mvp.form.formset> and <c-mvp.form.formset.row>.
 
 Renders a whole Django formset with the same per-field presentation a single
-form's fields already get from <c-form.field> / <c-form.render> — one row per
+form's fields already get from <c-mvp.form.field> / <c-mvp.form.render> — one row per
 form, the management form, and the inert empty-form template used to clone
 new rows client-side. Sources are compiled through the Cotton compiler so the
 tests exercise each component exactly as a template invocation would, per
@@ -107,13 +107,13 @@ def _error_row_form():
 class TestFormsetRowFields:
     def test_hidden_fields_render_directly(self):
         form = RowFormSet().forms[0]
-        html = render('<c-form.formset.row :form="form" />', form=form)
+        html = render('<c-mvp.form.formset.row :form="form" />', form=form)
         assert 'type="hidden"' in html
         assert 'name="form-0-row_id"' in html
 
     def test_visible_fields_render_through_crispy(self):
         form = RowFormSet().forms[0]
-        html = render('<c-form.formset.row :form="form" />', form=form)
+        html = render('<c-mvp.form.formset.row :form="form" />', form=form)
         # The template pack's field wrapper, proving the field went through
         # the same |as_crispy_field path a single form's field takes.
         assert 'id="div_id_form-0-name"' in html
@@ -121,7 +121,7 @@ class TestFormsetRowFields:
 
     def test_delete_renders_as_hidden_input_not_a_checkbox(self):
         form = RowFormSet().forms[0]
-        html = render('<c-form.formset.row :form="form" />', form=form)
+        html = render('<c-mvp.form.formset.row :form="form" />', form=form)
         assert 'name="form-0-DELETE"' in html
         assert 'type="checkbox"' not in html
 
@@ -129,7 +129,7 @@ class TestFormsetRowFields:
 class TestFormsetRowErrors:
     def test_non_field_errors_render_inside_the_row(self):
         form = _error_row_form()
-        html = render('<c-form.formset.row :form="form" />', form=form)
+        html = render('<c-mvp.form.formset.row :form="form" />', form=form)
         assert "Something is wrong with this row." in html
 
 
@@ -148,7 +148,7 @@ class TestFormsetRowFieldErrorPlacement:
             }
         )
         formset.is_valid()
-        html = render('<c-form.formset :formset="formset" />', formset=formset)
+        html = render('<c-mvp.form.formset :formset="formset" />', formset=formset)
         soup = BeautifulSoup(html, "html.parser")
         row0 = soup.find(attrs={"id": "div_id_form-0-name"})
         row1 = soup.find(attrs={"id": "div_id_form-1-name"})
@@ -169,7 +169,7 @@ class TestFormsetRowFieldErrorPlacement:
             }
         )
         formset.is_valid()
-        html = render('<c-form.formset :formset="formset" />', formset=formset)
+        html = render('<c-mvp.form.formset :formset="formset" />', formset=formset)
         soup = BeautifulSoup(html, "html.parser")
         row0 = soup.find(attrs={"id": "div_id_form-0-name"})
         row1 = soup.find(attrs={"id": "div_id_form-1-name"})
@@ -180,7 +180,7 @@ class TestFormsetRowFieldErrorPlacement:
 class TestFormsetManagementForm:
     def test_management_form_is_present(self):
         formset = RowFormSet()
-        html = render('<c-form.formset :formset="formset" />', formset=formset)
+        html = render('<c-mvp.form.formset :formset="formset" />', formset=formset)
         assert 'name="form-TOTAL_FORMS"' in html
         assert 'name="form-INITIAL_FORMS"' in html
 
@@ -190,14 +190,14 @@ class TestFormsetRows:
         formset = forms.formset_factory(RowForm, extra=0)(
             initial=[{"name": "Alpha"}, {"name": "Bravo"}]
         )
-        html = render('<c-form.formset :formset="formset" />', formset=formset)
+        html = render('<c-mvp.form.formset :formset="formset" />', formset=formset)
         assert 'name="form-0-name"' in html
         assert 'name="form-1-name"' in html
         assert html.index("form-0-name") < html.index("form-1-name")
 
     def test_blank_extra_rows_look_identical_to_populated_ones(self):
         formset = forms.formset_factory(RowForm, extra=1)(initial=[{"name": "Alpha"}])
-        html = render('<c-form.formset :formset="formset" />', formset=formset)
+        html = render('<c-mvp.form.formset :formset="formset" />', formset=formset)
         # form-0 is populated (from initial), form-1 is a blank extra row —
         # both must go through the same row wrapper markup.
         assert 'id="div_id_form-0-name"' in html
@@ -207,13 +207,13 @@ class TestFormsetRows:
 class TestFormsetEmptyForm:
     def test_empty_form_appears_once_inside_a_template_element(self):
         formset = RowFormSet()
-        html = render('<c-form.formset :formset="formset" />', formset=formset)
+        html = render('<c-mvp.form.formset :formset="formset" />', formset=formset)
         assert html.count("<template>") == 1
         assert html.count("</template>") == 1
 
     def test_empty_form_carries_the_literal_prefix(self):
         formset = RowFormSet()
-        html = render('<c-form.formset :formset="formset" />', formset=formset)
+        html = render('<c-mvp.form.formset :formset="formset" />', formset=formset)
         assert "__prefix__" in html
         assert 'name="form-__prefix__-name"' in html
 
@@ -256,7 +256,7 @@ def _duplicate_name_formset():
 class TestFormsetNonFormErrors:
     def test_non_form_errors_render_inside_an_alert_above_the_rows(self):
         formset = _duplicate_name_formset()
-        html = render('<c-form.formset :formset="formset" />', formset=formset)
+        html = render('<c-mvp.form.formset :formset="formset" />', formset=formset)
         soup = BeautifulSoup(html, "html.parser")
         alert = soup.find(attrs={"role": "alert"})
         assert alert is not None
@@ -267,7 +267,7 @@ class TestFormsetNonFormErrors:
 
     def test_no_alert_rendered_when_there_are_no_non_form_errors(self):
         formset = RowFormSet()
-        html = render('<c-form.formset :formset="formset" />', formset=formset)
+        html = render('<c-mvp.form.formset :formset="formset" />', formset=formset)
         soup = BeautifulSoup(html, "html.parser")
         assert soup.find(attrs={"role": "alert"}) is None
 
@@ -288,7 +288,7 @@ class TestFormsetBuiltinSetLevelErrors:
             }
         )
         formset.is_valid()
-        html = render('<c-form.formset :formset="formset" />', formset=formset)
+        html = render('<c-mvp.form.formset :formset="formset" />', formset=formset)
         soup = BeautifulSoup(html, "html.parser")
         alert = soup.find(attrs={"role": "alert"})
         assert alert is not None
@@ -312,7 +312,7 @@ class TestFormsetBuiltinSetLevelErrors:
             }
         )
         formset.is_valid()
-        html = render('<c-form.formset :formset="formset" />', formset=formset)
+        html = render('<c-mvp.form.formset :formset="formset" />', formset=formset)
         soup = BeautifulSoup(html, "html.parser")
         alert = soup.find(attrs={"role": "alert"})
         assert alert is not None
@@ -324,13 +324,13 @@ class TestFormsetAddRemoveControls:
     def test_no_remove_control_when_formset_forbids_deletion(self):
         NoDeleteFormSet = forms.formset_factory(RowForm, can_delete=False, extra=1)
         formset = NoDeleteFormSet()
-        html = render('<c-form.formset :formset="formset" />', formset=formset)
+        html = render('<c-mvp.form.formset :formset="formset" />', formset=formset)
         soup = BeautifulSoup(html, "html.parser")
         assert soup.find(attrs={"aria-label": "Remove"}) is None
 
     def test_each_row_remove_control_carries_an_accessible_name(self):
         formset = RowFormSet()
-        html = render('<c-form.formset :formset="formset" />', formset=formset)
+        html = render('<c-mvp.form.formset :formset="formset" />', formset=formset)
         soup = BeautifulSoup(html, "html.parser")
         # Exclude the inert empty-form template's own remove control - only
         # the rendered rows count here. RowFormSet has extra=2, can_delete=True.
@@ -343,7 +343,7 @@ class TestFormsetAddRemoveControls:
 
     def test_neither_control_submits_the_form(self):
         formset = RowFormSet()
-        html = render('<c-form.formset :formset="formset" />', formset=formset)
+        html = render('<c-mvp.form.formset :formset="formset" />', formset=formset)
         soup = BeautifulSoup(html, "html.parser")
         add_button = soup.find("button", attrs={"type": "button"})
         assert add_button is not None
@@ -353,7 +353,7 @@ class TestFormsetAddRemoveControls:
 
     def test_add_control_is_bound_to_visible_not_the_raw_form_count(self):
         formset = RowFormSet()
-        html = render('<c-form.formset :formset="formset" />', formset=formset)
+        html = render('<c-mvp.form.formset :formset="formset" />', formset=formset)
         soup = BeautifulSoup(html, "html.parser")
         add_button = soup.find(attrs={"aria-label": "Add row"}) or soup.find(
             lambda tag: tag.name == "button" and "Add row" in tag.get_text()
@@ -374,7 +374,7 @@ class TestFormsetAddRemoveControls:
 class TestFormsetAddRemoveLabels:
     def test_default_labels_match_the_contract(self):
         formset = RowFormSet()
-        html = render('<c-form.formset :formset="formset" />', formset=formset)
+        html = render('<c-mvp.form.formset :formset="formset" />', formset=formset)
         assert "Add row" in html
         soup = BeautifulSoup(html, "html.parser")
         assert soup.find(attrs={"aria-label": "Remove"}) is not None
@@ -382,7 +382,7 @@ class TestFormsetAddRemoveLabels:
     def test_labels_are_overridable_through_attributes(self):
         formset = RowFormSet()
         html = render(
-            '<c-form.formset :formset="formset" '
+            '<c-mvp.form.formset :formset="formset" '
             'add-label="Add item" remove-label="Take off" />',
             formset=formset,
         )
@@ -400,7 +400,7 @@ class TestFormsetAddRemoveLabels:
     def test_row_remove_label_is_overridable_directly(self):
         form = RowFormSet().forms[0]
         html = render(
-            '<c-form.formset.row :form="form" can-delete="true" '
+            '<c-mvp.form.formset.row :form="form" can-delete="true" '
             'remove-label="Take off" />',
             form=form,
         )
@@ -582,7 +582,7 @@ class TestFormsetCountersAreNotLocalized:
     @override_settings(USE_THOUSAND_SEPARATOR=True)
     def test_x_data_carries_no_grouped_numbers(self):
         formset = RowFormSet()
-        html = render('<c-form.formset :formset="formset" />', formset=formset)
+        html = render('<c-mvp.form.formset :formset="formset" />', formset=formset)
 
         x_data = BeautifulSoup(html, "html.parser").find(attrs={"x-data": True})
         assert x_data is not None
@@ -596,7 +596,7 @@ class TestFormsetCountersAreNotLocalized:
         formset = forms.formset_factory(RowForm, can_delete=True, extra=0)(
             initial=[{"name": f"Row {n}"} for n in range(1200)]
         )
-        html = render('<c-form.formset :formset="formset" />', formset=formset)
+        html = render('<c-mvp.form.formset :formset="formset" />', formset=formset)
 
         total_forms = BeautifulSoup(html, "html.parser").find(
             "input", attrs={"name": "form-TOTAL_FORMS"}
@@ -612,7 +612,9 @@ class TestFormsetRemoveControlNeedsADeleteField:
         return factory(initial=[{"name": "Alpha"}])
 
     def test_initial_row_keeps_its_remove_control(self):
-        html = render('<c-form.formset :formset="formset" />', formset=self._formset())
+        html = render(
+            '<c-mvp.form.formset :formset="formset" />', formset=self._formset()
+        )
         rows = BeautifulSoup(html, "html.parser").find_all(
             "div", attrs={"x-show": "!removed"}
         )
@@ -620,7 +622,7 @@ class TestFormsetRemoveControlNeedsADeleteField:
 
     def test_extra_row_without_a_delete_field_offers_no_remove_control(self):
         formset = self._formset()
-        html = render('<c-form.formset :formset="formset" />', formset=formset)
+        html = render('<c-mvp.form.formset :formset="formset" />', formset=formset)
         soup = BeautifulSoup(html, "html.parser")
 
         delete_inputs = soup.find_all("input", attrs={"name": "form-1-DELETE"})
@@ -630,7 +632,9 @@ class TestFormsetRemoveControlNeedsADeleteField:
         assert rows[1].find("button", attrs={"aria-label": "Remove"}) is None
 
     def test_the_empty_form_template_offers_no_remove_control_either(self):
-        html = render('<c-form.formset :formset="formset" />', formset=self._formset())
+        html = render(
+            '<c-mvp.form.formset :formset="formset" />', formset=self._formset()
+        )
         template = BeautifulSoup(html, "html.parser").find("template")
         assert template.find("button", attrs={"aria-label": "Remove"}) is None
 
@@ -639,7 +643,7 @@ class TestFormsetCounterContract:
     @staticmethod
     def _soup(formset):
         return BeautifulSoup(
-            render('<c-form.formset :formset="formset" />', formset=formset),
+            render('<c-mvp.form.formset :formset="formset" />', formset=formset),
             "html.parser",
         )
 
@@ -672,7 +676,7 @@ class TestFormsetCounterContract:
         assert expression == "mvpFormset(3, 1000)"
 
     def test_total_forms_input_is_bound_to_the_monotonic_counter(self):
-        html = render('<c-form.formset :formset="formset" />', formset=RowFormSet())
+        html = render('<c-mvp.form.formset :formset="formset" />', formset=RowFormSet())
         total_forms = BeautifulSoup(html, "html.parser").find(
             "input", attrs={"name": "form-TOTAL_FORMS"}
         )
@@ -701,7 +705,7 @@ class TestFormsetHeading:
         formset = forms.modelformset_factory(OrderLine, fields=["quantity"])(
             queryset=OrderLine.objects.none()
         )
-        html = render('<c-form.formset :formset="formset" />', formset=formset)
+        html = render('<c-mvp.form.formset :formset="formset" />', formset=formset)
 
         divider = BeautifulSoup(html, "html.parser").find(class_="divider")
         assert divider is not None
@@ -712,7 +716,7 @@ class TestFormsetHeading:
             queryset=OrderLine.objects.none()
         )
         html = render(
-            '<c-form.formset :formset="formset" title="Add quantities" />',
+            '<c-mvp.form.formset :formset="formset" title="Add quantities" />',
             formset=formset,
         )
 
@@ -722,13 +726,13 @@ class TestFormsetHeading:
     def test_a_title_set_on_the_formset_is_used_when_no_attribute_is_given(self):
         formset = RowFormSet()
         formset.title = "Add people"
-        html = render('<c-form.formset :formset="formset" />', formset=formset)
+        html = render('<c-mvp.form.formset :formset="formset" />', formset=formset)
 
         divider = BeautifulSoup(html, "html.parser").find(class_="divider")
         assert divider.get_text(strip=True) == "Add people"
 
     def test_a_plain_formset_still_gets_its_divider_with_no_heading(self):
-        html = render('<c-form.formset :formset="formset" />', formset=RowFormSet())
+        html = render('<c-mvp.form.formset :formset="formset" />', formset=RowFormSet())
 
         divider = BeautifulSoup(html, "html.parser").find(class_="divider")
         assert divider is not None
@@ -738,14 +742,15 @@ class TestFormsetHeading:
 class TestFormsetDescription:
     def test_the_description_renders_when_given(self):
         html = render(
-            '<c-form.formset :formset="formset" description="One row per order." />',
+            '<c-mvp.form.formset :formset="formset" '
+            'description="One row per order." />',
             formset=RowFormSet(),
         )
         assert "One row per order." in html
 
     def test_nothing_renders_when_it_is_unset(self):
         formset = RowFormSet()
-        html = render('<c-form.formset :formset="formset" />', formset=formset)
+        html = render('<c-mvp.form.formset :formset="formset" />', formset=formset)
         soup = BeautifulSoup(html, "html.parser")
 
         divider = soup.find(class_="divider")
@@ -760,7 +765,7 @@ class TestFormsetRowLabel:
         formset = forms.modelformset_factory(OrderLine, fields=["quantity"], extra=0)(
             queryset=OrderLine.objects.filter(pk=line.pk)
         )
-        html = render('<c-form.formset :formset="formset" />', formset=formset)
+        html = render('<c-mvp.form.formset :formset="formset" />', formset=formset)
 
         assert str(line) in html
 
@@ -768,19 +773,21 @@ class TestFormsetRowLabel:
         formset = forms.modelformset_factory(OrderLine, fields=["quantity"], extra=1)(
             queryset=OrderLine.objects.none()
         )
-        html = render('<c-form.formset :formset="formset" />', formset=formset)
+        html = render('<c-mvp.form.formset :formset="formset" />', formset=formset)
 
         assert "New order line" in html
         assert "object (None)" not in html
 
     def test_a_plain_form_gets_no_label(self):
-        html = render('<c-form.formset.row :form="form" />', form=RowFormSet().forms[0])
+        html = render(
+            '<c-mvp.form.formset.row :form="form" />', form=RowFormSet().forms[0]
+        )
         soup = BeautifulSoup(html, "html.parser")
         assert soup.find("p", class_="font-semibold") is None
 
     def test_the_label_attribute_overrides_it(self):
         html = render(
-            '<c-form.formset.row :form="form" label="Line one" />',
+            '<c-mvp.form.formset.row :form="form" label="Line one" />',
             form=RowFormSet().forms[0],
         )
         assert "Line one" in html
@@ -789,7 +796,7 @@ class TestFormsetRowLabel:
 class TestFormsetRowSeparation:
     def _rows(self, formset):
         soup = BeautifulSoup(
-            render('<c-form.formset :formset="formset" />', formset=formset),
+            render('<c-mvp.form.formset :formset="formset" />', formset=formset),
             "html.parser",
         )
         for template in soup.find_all("template"):
@@ -808,7 +815,7 @@ class TestFormsetRowSeparation:
         assert rows[2].find("hr") is not None
 
     def test_a_row_cloned_from_the_empty_form_gets_one(self):
-        html = render('<c-form.formset :formset="formset" />', formset=RowFormSet())
+        html = render('<c-mvp.form.formset :formset="formset" />', formset=RowFormSet())
         template = BeautifulSoup(html, "html.parser").find("template")
 
         assert template.find("hr") is not None
@@ -825,7 +832,7 @@ class TestFormsetControlAffordances:
         return BeautifulSoup(html, "html.parser").find(attrs={"aria-label": "Remove"})
 
     def test_remove_is_an_icon_with_the_text_as_its_accessible_name(self):
-        html = render('<c-form.formset :formset="formset" />', formset=RowFormSet())
+        html = render('<c-mvp.form.formset :formset="formset" />', formset=RowFormSet())
         control = self._remove_control(html)
 
         assert control.name == "button"
@@ -833,7 +840,7 @@ class TestFormsetControlAffordances:
         assert control.find("i") is not None, "the icon itself"
 
     def test_remove_is_red_and_hidden_until_the_row_is_hovered_or_focused(self):
-        html = render('<c-form.formset :formset="formset" />', formset=RowFormSet())
+        html = render('<c-mvp.form.formset :formset="formset" />', formset=RowFormSet())
         classes = self._remove_control(html)["class"]
 
         assert "text-error" in classes
@@ -844,12 +851,12 @@ class TestFormsetControlAffordances:
         )
 
     def test_the_row_is_the_hover_group(self):
-        html = render('<c-form.formset :formset="formset" />', formset=RowFormSet())
+        html = render('<c-mvp.form.formset :formset="formset" />', formset=RowFormSet())
         row = BeautifulSoup(html, "html.parser").find(attrs={"x-show": "!removed"})
         assert "group" in row["class"]
 
     def test_add_carries_a_plus_icon(self):
-        html = render('<c-form.formset :formset="formset" />', formset=RowFormSet())
+        html = render('<c-mvp.form.formset :formset="formset" />', formset=RowFormSet())
         soup = BeautifulSoup(html, "html.parser")
         add = soup.find(
             lambda tag: tag.name == "button" and "Add row" in tag.get_text()
@@ -860,25 +867,31 @@ class TestFormsetControlAffordances:
 class TestFormsetUsesPackagedComponents:
     def _source(self, name):
         return (
-            Path(mvp.__path__[0]) / "templates" / "cotton" / "form" / "formset" / name
+            Path(mvp.__path__[0])
+            / "templates"
+            / "cotton"
+            / "mvp"
+            / "form"
+            / "formset"
+            / name
         ).read_text()
 
     def test_the_set_uses_c_divider_and_c_text(self):
         source = self._source("index.html")
 
         assert "<c-divider" in source
-        assert "<c-text" in source
+        assert "<c-mvp.text" in source
         assert 'class="divider' not in source, "c-divider owns that markup"
 
     def test_the_row_uses_c_rule_and_c_text(self):
         source = self._source("row.html")
 
-        assert "<c-rule />" in source
-        assert "<c-text" in source
-        assert "<hr" not in source, "c-rule owns that markup"
+        assert "<c-mvp.rule />" in source
+        assert "<c-mvp.text" in source
+        assert "<hr" not in source, "c-mvp.rule owns that markup"
 
     def test_the_rule_is_finer_than_a_divider(self):
-        soup = BeautifulSoup(render("<c-rule />"), "html.parser")
+        soup = BeautifulSoup(render("<c-mvp.rule />"), "html.parser")
 
         rule = soup.find("hr")
         assert rule is not None
@@ -910,7 +923,7 @@ HelpTextFormSet = forms.formset_factory(HelpTextRowForm, can_delete=True, extra=
 
 def _tabular(formset, **context):
     return render(
-        '<c-form.formset :formset="formset" layout="tabular" />',
+        '<c-mvp.form.formset :formset="formset" layout="tabular" />',
         formset=formset,
         **context,
     )
@@ -919,15 +932,15 @@ def _tabular(formset, **context):
 class TestFormsetLayoutDefault:
     def test_default_layout_renders_exactly_what_it_did_before(self):
         assert render(
-            '<c-form.formset :formset="formset" />', formset=TwoFieldFormSet()
+            '<c-mvp.form.formset :formset="formset" />', formset=TwoFieldFormSet()
         ) == render(
-            '<c-form.formset :formset="formset" layout="stacked" />',
+            '<c-mvp.form.formset :formset="formset" layout="stacked" />',
             formset=TwoFieldFormSet(),
         )
 
     def test_stacked_emits_no_column_tracks(self):
         html = render(
-            '<c-form.formset :formset="formset" />', formset=TwoFieldFormSet()
+            '<c-mvp.form.formset :formset="formset" />', formset=TwoFieldFormSet()
         )
 
         assert "grid-template-columns" not in html
@@ -1005,7 +1018,9 @@ class TestFormsetTabularLabels:
 
     def test_the_stacked_layout_leaves_labels_alone(self):
         soup = BeautifulSoup(
-            render('<c-form.formset :formset="formset" />', formset=TwoFieldFormSet()),
+            render(
+                '<c-mvp.form.formset :formset="formset" />', formset=TwoFieldFormSet()
+            ),
             "html.parser",
         )
 
@@ -1057,7 +1072,9 @@ class TestFormsetTabularHelpText:
         )
 
     def test_the_stacked_layout_keeps_help_text_under_every_field(self):
-        html = render('<c-form.formset :formset="formset" />', formset=self._formset())
+        html = render(
+            '<c-mvp.form.formset :formset="formset" />', formset=self._formset()
+        )
 
         # Two extra rows and the empty-form template, and no heading to hold
         # a shared copy — the stacked layout puts it under every control.
@@ -1071,6 +1088,7 @@ class TestFormsetTabularHelpText:
             Path(mvp.__path__[0])
             / "templates"
             / "cotton"
+            / "mvp"
             / "form"
             / "formset"
             / "row.html"

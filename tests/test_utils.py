@@ -11,7 +11,7 @@ resolve an ``icon="..."`` name to a real Bootstrap Icons class. #294 reported
 rather than an error, so a gap in this dict is silent everywhere it is used.
 
 Auditing the package's own templates against the map also surfaced
-``icon="account_center"`` in mvp/templates/cotton/user/sidebar_menu.html:
+``icon="account_center"`` in mvp/templates/cotton/mvp/user/sidebar_menu.html:
 at the time, not a gap, because that item rendered only when
 django-accounts-center was installed, and that package registered the icon
 itself. FS-028 closed the gap the other way — the Account Center is

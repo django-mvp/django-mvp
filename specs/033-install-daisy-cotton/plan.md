@@ -54,7 +54,7 @@ release and no version bump; every existing test that asserts on rendered output
 | III — Anti-Abstraction | The class derivation is three functions in one test helper, used by one test module. Nothing in `mvp/` parses daisy-cotton's templates. |
 | V — Security | No new input surface. The check reads settings the project wrote. |
 | VI, XVII — Documentation | Each story updates the pages it changes the truth of: getting started, README, the shipped skill, styling, troubleshooting, the contributor guide, the changelog. |
-| VII — Dependency discipline | One new runtime dependency, justified in ADR 0030. `deptry` passes. |
+| VII — Dependency discipline | One new runtime dependency, justified in ADR 0031. `deptry` passes. |
 | VIII — Internationalization | Check messages are for the developer at the terminal and follow `mvp.E001`, which is not translated. |
 | XI — Components are the public API | No component is added, removed or changed. |
 | XIII — Rendered markup is a contract | No markup changes. The existing component tests are the proof and are not edited. |
@@ -169,7 +169,7 @@ attribute is used. `CONTRIBUTING.md` gains the rule and its reason under *Compon
 | Page | Change | Story |
 |---|---|---|
 | `docs/getting-started.md`, `README.md`, `skills/django-mvp/SKILL.md` | `daisy_cotton` in the app list below `mvp`, and why | US-1 |
-| `docs/adr/0030-daisy-cotton-is-a-runtime-dependency.md` | the dependency's justification | US-1 |
+| `docs/adr/0031-daisy-cotton-is-a-runtime-dependency.md` | the dependency's justification | US-1 |
 | `CHANGELOG.md`, under *Unreleased* | the dependency and the upgrade line (US-1); stylesheet coverage and daisyUI 5.7.0 (US-2); the generator's fourth path (US-3); the check (US-4) | each |
 | `docs/styling.md` | what the prebuilt stylesheet covers; the generated entry and `--paths`; daisyUI 5.7 or later for a project's own build | US-2, US-3 |
 | `docs/troubleshooting.md` | the two check identifiers | US-4 |
