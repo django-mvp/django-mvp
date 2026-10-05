@@ -2,7 +2,7 @@
   "feature": "035-basic-components-from-daisy-cotton",
   "branch": "035-basic-components-from-daisy-cotton",
   "repo": "django-mvp/django-mvp",
-  "state": "DESIGN_REVIEW",
+  "state": "IMPLEMENT",
   "state_history": [
     {
       "state": "QUEUED",
@@ -18,6 +18,11 @@
       "state": "DESIGN_REVIEW",
       "at": "2026-10-05T16:19:44Z",
       "note": "plan, research and tasks written"
+    },
+    {
+      "state": "IMPLEMENT",
+      "at": "2026-10-05T16:28:06Z",
+      "note": "plan gate open; design review applied"
     }
   ],
   "gates": {
