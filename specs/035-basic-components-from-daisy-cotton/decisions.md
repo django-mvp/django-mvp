@@ -190,8 +190,8 @@ does not claim the whole page is identical.
 out-of-scope list gives the kept components to the later features. A whole-page comparison would
 fail on components this feature may not change.
 
-**Revisit if:** the kept components are to be isolated from the page's context too. That is a
-change to their templates and to the specification, and is reported at the merge gate.
+**Ruling given during the build (2026-10-05):** the reading stands. The leak into kept
+components is the fault roadmap item R9 describes and is filed as #485. It is not fixed here.
 
 **ADR:** none — a reading of one success criterion, recorded for the reviewer.
 
@@ -254,3 +254,52 @@ finding. Every finding was checked against the code before it was acted on.
   the package declares `>=0.1.2`. To the release that ships R29: check 0.1.2 or raise the floor.
 
 **ADR:** none — corrections to this feature's plan.
+
+## Settled while building, 2026-10-05
+
+### D20. An alert variant with no icon raises, and that is carried as unmet
+
+**Found:** D11 and FR-009 rest on daisy-cotton's alert ignoring a variant outside its four. It
+ignores it for the class, but still draws `<c-icon>` with the variant as the name. This
+package's icon is a strict lookup, so `<c-alert variant="primary">`, or a Django message at a
+level tag a project added, raises `IconNotFoundError` when `DEBUG` is off. The package's former
+alert raised the same way, so nothing that worked has stopped working.
+
+**Chosen:** no guard is added in this package. `cotton/mvp/messages.html` keeps its one mapping,
+debug shown as info. FR-009 and acceptance scenario 4 of US-2 are carried as unmet for a variant
+that has no icon, waiting on django-mvp/daisy-cotton#136. The test covers what holds: a message
+at a level with no tag draws its text with no variant and raises nothing.
+
+**Why:** the fault is in which variants daisy-cotton's alert draws an icon for, and fixing it
+there fixes it for every caller. It follows the ruling in D14.
+
+**Revisit if:** the maintainer prefers a guard in `messages.html` until the upstream fix is
+released. It is one `{% if %}` and was put to the maintainer's delegate as the alternative.
+
+**ADR:** none — a known gap tracked on an upstream issue.
+
+### D21. Tests of daisy-cotton's own markup that the first pass left
+
+**Chosen:** removed after the first build pass, under D12: `test_button.py` (the button's size
+classes), `TestMenuGrow` and `TestSidebarContainerPassesGrow` in `test_menu.py` (`grow` is no
+longer a menu attribute, and where the sidebar menu sits is layout), and
+`TestBreadcrumbItemHrefAttribute` and `TestTheTrailsClassStaysOnTheTrail` in
+`test_breadcrumbs_href_attribute.py` (the crumb's own markup). The browser tests of breadcrumb
+truncation find the crumb's text by the markup now rendered. These were small edits made
+directly, with no dispatch.
+
+**ADR:** none — test housekeeping inside this feature.
+
+### D22. The floor on daisy-cotton is 0.1.3, and `btn-outline` joins the safelist
+
+**Ruling given during the build (2026-10-05):** the declared range becomes `>=0.1.3,<0.2`, the
+release this feature was researched and tested against. ADR 0031 and the unreleased changelog
+entry say so.
+
+**Also:** with the package's button gone, nothing the stylesheet build scans writes
+`btn-outline`, so it joined the preset's safelist beside the other button classes. Six classes
+that only the removed templates wrote are no longer built and were removed from the class
+fixture: `bg-neutral-900`, `flex-row-reverse`, `h-80`, `place-content-center`, `text-white` and
+`mvp-breadcrumb-text`.
+
+**ADR:** docs/adr/0031-daisy-cotton-is-a-runtime-dependency.md

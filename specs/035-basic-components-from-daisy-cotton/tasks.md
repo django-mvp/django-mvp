@@ -78,6 +78,21 @@ Plan, *Breadcrumb truncation* and *The stylesheet*. Move the selector, rebuild w
 `test_app_header_e2e.py` and the coverage tests decide it. Name any class removed from the
 fixture in the completion report.
 
+### T011 — Tests the first pass left pinned to daisy-cotton's markup
+
+**Files**: `tests/test_components/test_button.py`, `test_menu.py`,
+`test_breadcrumbs_href_attribute.py`, `test_app_header_e2e.py`
+
+Decision D21. Remove the tests of the button's sizes, the menu's former `grow` and the crumb's
+own markup. Point the breadcrumb browser tests' locator at the crumb markup now rendered.
+
+### T012 — Raise the floor on daisy-cotton to 0.1.3
+
+**Files**: `pyproject.toml`, `uv.lock`, `docs/adr/0031-daisy-cotton-is-a-runtime-dependency.md`,
+`CHANGELOG.md` (the range in the unreleased entry)
+
+Decision D22.
+
 ---
 
 ## US3 — A page's own variables cannot change a packaged component (P2)

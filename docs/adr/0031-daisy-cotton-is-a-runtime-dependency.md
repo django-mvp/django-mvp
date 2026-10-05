@@ -4,7 +4,7 @@
 
 ## Decision
 
-`daisy-cotton` is declared in `[project].dependencies` with the range `>=0.1.2,<0.2`. A project
+`daisy-cotton` is declared in `[project].dependencies` with the range `>=0.1.3,<0.2`. A project
 adds `daisy_cotton` to its own `INSTALLED_APPS`, directly below `mvp`. The package never edits a
 project's settings.
 
@@ -27,7 +27,9 @@ components. They are part of how it renders, not an optional integration, so the
 guard an import behind and no fallback to degrade to.
 
 daisy-cotton is not yet at 1.0, and it says its component names, attributes and emitted classes can
-change between minor versions. `0.1.2` is the first release with everything this move needs. The
+change between minor versions. `0.1.2` was the first release with everything the install needed, and the floor moved to
+`0.1.3` when the basic components were taken from it, because that is the release they were
+tested against. The
 upper bound stops a new minor version arriving unannounced. Moving it is a decision made when that
 release is tested with this package.
 

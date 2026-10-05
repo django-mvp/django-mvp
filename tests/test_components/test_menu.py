@@ -1,9 +1,10 @@
-"""Regression tests for issue #189: c-menu applied ``grow`` unconditionally.
+"""Tests for the package's menu entries and the sidebar menu's container.
 
-``grow`` stretches the menu to fill a flex parent — correct for the sidebar
-navigation, wrong for a menu inside a dropdown panel or card. ``grow`` is now
-an opt-in ``<c-vars>`` boolean, default ``False``; the sidebar renderer
-passes it explicitly.
+The menu container itself is daisy-cotton's. What the package still promises
+is its own entries and the navigation landmark the sidebar draws around the
+menu, named by the label the menu declares.
+
+Sources: mvp/templates/cotton/mvp/menu/, mvp/templates/menus/sidebar/
 """
 
 from bs4 import BeautifulSoup
@@ -39,27 +40,6 @@ class TestMenuItemWithoutAnHref:
         link = _beautiful_soup()(html, "html.parser").find("a")
 
         assert link["href"] == "/page/"
-
-
-class TestMenuGrow:
-    def test_grow_is_off_by_default(self):
-        html = render('<c-menu label="Nav">item</c-menu>')
-
-        assert "grow" not in html
-
-    def test_grow_attribute_applies_the_grow_class(self):
-        html = render('<c-menu label="Nav" grow>item</c-menu>')
-
-        assert "grow" in html
-
-
-class TestSidebarContainerPassesGrow:
-    def test_sidebar_menu_container_still_grows(self):
-        html = render_to_string(
-            "menus/sidebar/container.html", {"children": [], "renderer": None}
-        )
-
-        assert "grow" in html
 
 
 class TestSidebarContainerTakesItsNameFromContext:
