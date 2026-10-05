@@ -15,8 +15,8 @@ are added around that:
    daisy-cotton ships, and prove the first resolve to this package and the second are found and
    render under the pinned Cotton.
 2. Stylesheet coverage. The preset gains the classes daisy-cotton builds at render time. The
-   prebuilt build scans daisy-cotton's templates and moves to daisyUI 5.7.0, the first version
-   with `menu-paged`. The generated entry file scans daisy-cotton's templates too. One test module
+   prebuilt build lists the eight plain utilities daisy-cotton's templates write and moves to
+   daisyUI 5.7.0, the first version with `menu-paged`. The generated entry file scans daisy-cotton's templates. One test module
    works out every class daisy-cotton can render and fails by name when the prebuilt stylesheet,
    or what the generated entry covers, lacks one.
 3. A start-up check: `mvp.E002` when `daisy_cotton` is missing, `mvp.W001` when it is above `mvp`.
@@ -95,8 +95,7 @@ inline()` entries for:
 - every `responsive` class at every breakpoint:
   `{sm,md,lg,xl,2xl}:{alert-horizontal,alert-vertical,card-side,…}`;
 - every `variation` class, grouped by option list:
-  `{btn,badge,card,…}-{xs,sm,md,lg,xl}`, and so on;
-- `mask-half-{1,2}`.
+  `{btn,badge,card,…}-{xs,sm,md,lg,xl}`, and so on.
 
 Existing entries are left as they are, even where the new block repeats a class.
 
@@ -108,11 +107,14 @@ share:
   class is built from a template variable it has no values for.
 - `unstyled_classes(classes, stylesheet)` returns the classes with no selector in a stylesheet.
 - `safelisted_classes(preset)` returns every class the preset's `@source inline()` entries
-  declare, with brace groups expanded.
+  declare, with brace groups expanded. `test_responsive_safelist.py` has private helpers that do
+  the same; they are left alone, because this feature edits no existing test and adds no
+  underscore-prefixed name.
 
-**The prebuilt build.** `tasks.py`: `build_stylesheet` passes Tailwind an entry on standard input
-that imports `assets/tailwind.css` and adds `@source "<daisy-cotton templates>"`, resolved from
-the imported module (research R3). `package.json` and `package-lock.json` move `daisyui` to 5.7.0.
+**The prebuilt build.** `assets/tailwind.css` gains `@source inline()` entries for the eight plain
+utilities daisy-cotton's templates write, under a comment naming daisy-cotton (research R3).
+`tasks.py` and the `npm` scripts do not change. `package.json` and `package-lock.json` move
+`daisyui` to 5.7.0.
 `mvp/static/css/django-mvp.css` and its `.br` sibling are rebuilt and committed.
 
 **The generated entry.** `mvp_tailwind` resolves `Path(daisy_cotton.__file__).resolve().parent /
@@ -169,7 +171,7 @@ attribute is used. `CONTRIBUTING.md` gains the rule and its reason under *Compon
 | `docs/getting-started.md`, `README.md`, `skills/django-mvp/SKILL.md` | `daisy_cotton` in the app list below `mvp`, and why | US-1 |
 | `docs/adr/0030-daisy-cotton-is-a-runtime-dependency.md` | the dependency's justification | US-1 |
 | `CHANGELOG.md`, under *Unreleased* | the dependency and the upgrade line (US-1); stylesheet coverage and daisyUI 5.7.0 (US-2); the generator's fourth path (US-3); the check (US-4) | each |
-| `docs/styling.md` | what the prebuilt stylesheet covers; the generated entry and `--paths`; daisyUI 5.7 or later for a project's own build; how the package's own build finds daisy-cotton | US-2, US-3 |
+| `docs/styling.md` | what the prebuilt stylesheet covers; the generated entry and `--paths`; daisyUI 5.7 or later for a project's own build | US-2, US-3 |
 | `docs/troubleshooting.md` | the two check identifiers | US-4 |
 | `CONTRIBUTING.md` | isolate every call to a daisy-cotton component | US-5 |
 
@@ -191,7 +193,7 @@ mvp/
 ├── static/css/django-mvp.css(.br)       # rebuilt
 └── tailwind/base.css                    # daisy-cotton safelist block
 demo/settings.py                         # daisy_cotton below mvp
-tasks.py                                 # build entry composed with daisy-cotton's templates
+assets/tailwind.css                      # daisy-cotton's eight plain utilities
 package.json, package-lock.json          # daisyui 5.7.0
 pyproject.toml, uv.lock                  # the dependency
 tests/
@@ -209,12 +211,11 @@ docs/, README.md, CONTRIBUTING.md, CHANGELOG.md, skills/django-mvp/SKILL.md
 ## Risks
 
 - **daisyUI 5.7.0 changes an existing rule.** Measured: the set of class selectors gains
-  `menu-paged` and loses nothing. Rule bodies were not compared one by one. The browser tests in
-  the suite run against the rebuilt stylesheet, and the shell is looked at before the pull request
-  is marked ready.
+  `menu-paged` and loses nothing. Rule bodies were not compared one by one, and no test in the
+  suite judges appearance. The control is a look at the shell's pages on the rebuilt stylesheet,
+  named in T006 and repeated before the pull request is marked ready.
 - **The fixtures make later removals noisy.** A feature that deletes a component deletes lines
   from a fixture. That is the intended cost of SC-005: a class cannot leave the stylesheet without
   someone saying so.
-- **`npm run build:css:prod` alone no longer produces the shipped stylesheet.** It lacks eight
-  utilities. The coverage test fails against such a build by name, and `docs/styling.md` says to
-  use `invoke build-stylesheet`.
+- **The eight utilities are a hand-kept list.** A daisy-cotton upgrade that writes a new one fails
+  the coverage test by name, and the fix is one more entry.

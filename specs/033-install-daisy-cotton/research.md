@@ -8,13 +8,14 @@ installed package, at `.venv/lib/python3.13/site-packages/daisy_cotton/`.
 
 ### "Scan `daisy_cotton/templates` for the plain Tailwind utilities its templates write literally"
 
-**Adopted.** A build that scans `daisy_cotton/templates` picks up `end-2`, `top-2`
+**Adopted for the generated entry file, not for the prebuilt stylesheet.** A build that scans `daisy_cotton/templates` picks up `end-2`, `top-2`
 (`cotton/modal.html`), `focus-visible:outline-2`, `focus-visible:-outline-offset-2`
 (`cotton/collapse.html`), `group/item`, `group-first/item:hidden`, `group-last/item:hidden`
 (`cotton/timeline/item.html`) and `max-sm:megamenu-vertical` (`cotton/megamenu/index.html`). None
 of them is in the stylesheet shipped with 0.26.0.
 
-How the scan is reached differs between the two builds (R3, R4).
+The generated entry file scans the directory (R4). The prebuilt build does not: it lists these
+eight classes by name, for the reasons in R3.
 
 ### "Safelist breakpoint-prefixed forms in `mvp/tailwind/base.css`"
 
@@ -56,8 +57,8 @@ shows the recommended order.
 ### "The `Stylesheet` workflow installs no Python. Do not edit anything under `.github/`"
 
 **Adopted. The workflow needs no change.** It runs `npm run build:css:prod` against
-`assets/tailwind.css`, which is not changed to point into the Python environment (R3), so it keeps
-compiling exactly as before. A `@source` whose directory does not exist was also tried and
+`assets/tailwind.css`, which does not point into the Python environment (R3), so it keeps
+compiling exactly as before, and it still builds the stylesheet that ships. A `@source` whose directory does not exist was also tried and
 compiles with exit status 0, so even a path into the environment would not have broken it.
 
 ## R1. The classes daisy-cotton can render, worked out from the installed package
@@ -74,7 +75,8 @@ without rendering anything:
 
 A survey of every template tag used across the 82 templates found no other construction. The last
 row occurs once, and its values (`1`, `2`) come from `rating_items` in
-`templatetags/daisy_cotton.py`. A test cannot work those values out, so it holds them in a small
+`templatetags/daisy_cotton.py`. (`cotton/mask.html` builds the same two classes through
+`variation`, so they are in the set either way.) A test cannot work those values out, so it holds them in a small
 table keyed by the literal stem and fails, naming the stem, when it meets one it has no entry for.
 
 For 0.1.2 this gives 649 classes. Caller-supplied classes (`{{ class }}`, `{{ content_class }}`)
@@ -82,7 +84,8 @@ are template variables and never appear. Icon classes do not appear either: dais
 icon name to `<c-icon>` and writes no icon class itself.
 
 **A class counts as styled** when the stylesheet has a selector for it: the class name, escaped
-the way CSS escapes it, after a `.` and not followed by another name character. This is true of
+the way CSS escapes it, after a `.` and not followed by another name character. A name that starts
+with a digit is written with a code-point escape: `2xl:drawer-open` is `.\32 xl\:drawer-open`. This is true of
 marker classes such as `group/item` too, which appear in the selector of the variant that uses
 them.
 
@@ -90,7 +93,7 @@ them.
 
 Comparing the 649 classes with the committed stylesheet:
 
-- 84 breakpoint-prefixed forms of the 19 `responsive` classes. (Eleven are already present from
+- 82 breakpoint-prefixed forms of the 19 `responsive` classes. (Thirteen are already present from
   the package's own safelist.)
 - The eight literal utilities listed under the first planning note.
 - `menu-paged`. **daisyUI 5.6.18, the version this package builds with, has no such class.** It
@@ -105,7 +108,7 @@ daisy-cotton's README says it needs "daisyUI 5" and does not say 5.7. That is re
 a documentation issue. It is not worked around here: this package builds with a daisyUI that has
 the class, which is what daisy-cotton expects of any project.
 
-## R3. Reaching daisy-cotton's templates from the prebuilt build
+## R3. Reaching daisy-cotton's literal utilities from the prebuilt build
 
 `assets/tailwind.css` is a static file, and daisy-cotton lives in the Python environment at a path
 that contains the Python version. Tried with `@tailwindcss/cli` 4.3.2:
@@ -118,16 +121,19 @@ that contains the Python version. Tried with `@tailwindcss/cli` 4.3.2:
 | a symlink to the package | compiles, scans nothing |
 | a path that does not exist | compiles, scans nothing |
 
-So a static line cannot find the package without naming a Python version. Instead, `invoke
-build-stylesheet` composes the entry it hands to Tailwind: it imports `assets/tailwind.css` and
-adds one `@source` line with daisy-cotton's templates directory, resolved from the imported
-module. The CLI reads that entry from standard input (`-i -`), with relative paths resolved from
-the repository root. No temporary file is written and `assets/tailwind.css` keeps its meaning.
+So a static line cannot find the package without naming a Python version. Having the build task
+compose an entry with the resolved path does work, and was the first design. The design review
+measured what that scan yields: 34 new class selectors, of which only eight are classes
+daisy-cotton renders. The other 26 come from usage examples and prose in daisy-cotton's template
+annotations (`w-64`, `aspect-16/9`, `shadow` from the words "shadow the icon component"). The
+package's entry says it must not carry markup the package does not render, and the scan would also
+mean `npm run build:css:prod`, which the `Stylesheet` workflow runs, no longer built the
+stylesheet that ships.
 
-`npm run build:css:prod`, which the `Stylesheet` workflow runs, still builds from
-`assets/tailwind.css` alone. That build compiles but lacks the eight literal utilities, and the
-coverage test fails against it by name. This is the behaviour the specification asks for when the
-stylesheet is built where daisy-cotton is not installed.
+The prebuilt build therefore does not scan daisy-cotton. The eight utilities are listed in
+`assets/tailwind.css` as `@source inline()` entries under a comment naming daisy-cotton. A build
+with those eight lines gains exactly those eight selectors and loses none. The coverage test keeps
+the list true: a daisy-cotton upgrade that writes a new literal utility fails it by name.
 
 ## R4. The generated entry file
 

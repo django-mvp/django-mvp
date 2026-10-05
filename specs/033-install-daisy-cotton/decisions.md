@@ -228,25 +228,27 @@ release of daisyUI, not a return to 5.6.
 
 **ADR:** none — a build tool's version, recorded in the changelog and in `package.json`.
 
-## D19. The package's own build finds daisy-cotton through the build task
+## D19. The prebuilt build lists daisy-cotton's eight plain utilities and does not scan its templates
 
-**Decision:** `invoke build-stylesheet` composes the entry it gives Tailwind: `assets/tailwind.css`
-plus one `@source` line with daisy-cotton's templates directory, resolved from the imported
-module. `assets/tailwind.css` itself does not point into the Python environment.
+**Decision:** `assets/tailwind.css` names the eight plain Tailwind utilities daisy-cotton's
+templates write, as `@source inline()` entries. The build task and the `npm` scripts do not
+change. The entry file a project generates does scan daisy-cotton's templates.
 
-**Why:** the path contains the Python version, and Tailwind does not follow a glob or a symlink
-into a git-ignored directory (research R3). The `Stylesheet` workflow runs the `npm` script, which
-is unchanged, so it compiles as before and nothing under `.github/` needs editing (D13).
+**Why:** scanning was planned first and measured in the design review. It adds 34 class selectors,
+and 26 of them are not classes daisy-cotton renders: they come from the usage examples and prose
+in its template annotations. This package's entry is meant to carry only what the package can
+render. Reaching the templates also needed the build task to compose the entry, because the path
+contains the Python version (research R3), and then the `npm` script the `Stylesheet` workflow
+runs would no longer have built the stylesheet that ships. Eight named classes avoid all of that,
+and the coverage test fails by name when daisy-cotton adds a ninth.
 
-**Rejected:** listing one exact path per supported Python version in `assets/tailwind.css`. It
-works today and goes quiet on the first Python release nobody added a line for. Copying
-daisy-cotton's literal utilities into the preset was rejected for the same reason: a hand-kept
-copy of something the scan can read.
+**Against the planning note:** the note suggested scanning. It is followed for the generated entry
+file, where a project's build already scans whole packages, and answered here for the prebuilt
+one.
 
-**Revisit if:** Tailwind gains a way to name a source outside the project that does not depend on
-the Python version.
+**Revisit if:** the list grows past what a person can read at a glance.
 
-**ADR:** none — how one build task is wired, local to `tasks.py`.
+**ADR:** none — the contents of one build entry, kept true by a test.
 
 ## D20. The classes are read from daisy-cotton's templates, not from rendering them
 
@@ -287,6 +289,11 @@ This one is about the app list. `mvp.E001` is taken, and no warning identifier w
 has no tag for the app list, and an untagged check runs with every `check`, `runserver` and
 `migrate`, which is what FR-012 asks for.
 
+The module has two functions: the registered check, which is the framework's entry point, and the
+ordering rule it calls, which takes a plain list of names so that the guide's app list can be put
+through it. Article X's exception for framework entry points covers the first, and the second is
+the one unit of logic. They are not gathered onto a class.
+
 **ADR:** none — where one function lives.
 
 ## D23. Cotton stays pinned at 2.6.1
@@ -305,3 +312,16 @@ rule needs (research R5, R6). A test keeps both true.
 **Why:** it is one command and two lines, and US-1's tests are what prove it.
 
 **ADR:** none — task ordering.
+
+## D25. Design review outcome
+
+**Decision:** the review approved the plan with six findings below the bar that forces a re-plan.
+All six were taken: the selector rule handles a class that starts with a digit (`2xl:`); the
+prebuilt build lists eight utilities and does not scan (D19 rewritten); the daisyUI move is
+checked by looking at the pages, since no test judges appearance; each resolution test is shown
+failing under the condition that breaks it; the dependency test does not pin the literal range;
+the check module's shape is recorded in D22.
+
+**Why:** each one either removed work or corrected a measurement.
+
+**ADR:** none — a record of the review.

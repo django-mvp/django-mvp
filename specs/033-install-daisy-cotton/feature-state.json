@@ -2,7 +2,7 @@
   "feature": "033-install-daisy-cotton",
   "branch": "033-install-daisy-cotton",
   "repo": "django-mvp/django-mvp",
-  "state": "PLAN",
+  "state": "DESIGN_REVIEW",
   "state_history": [
     {
       "state": "QUEUED",
@@ -13,6 +13,11 @@
       "state": "PLAN",
       "at": "2026-10-05T14:43:49Z",
       "note": "research.md, plan.md, tasks.md"
+    },
+    {
+      "state": "DESIGN_REVIEW",
+      "at": "2026-10-05T14:44:31Z",
+      "note": "one design reviewer, three lenses, one round"
     }
   ],
   "gates": {
@@ -24,12 +29,25 @@
       ]
     },
     "plan": {
-      "approved_by": null,
-      "at": null
+      "approved_by": "open",
+      "at": "2026-10-05T14:56:34Z",
+      "self_resolved": []
     },
     "merge": {
       "approved_by": null,
       "at": null
+    },
+    "design_review": {
+      "approved_by": "design review",
+      "at": "2026-10-05T14:56:34Z",
+      "self_resolved": [
+        "SPEC-001 medium: selector rule misses classes starting with a digit - T004/T005 rule corrected, counts corrected",
+        "ARCH-001 medium: prebuilt build lists eight utilities and does not scan - D19 rewritten, T006 step 3 replaced",
+        "ARCH-002 low: daisyUI 5.7.0 checked by looking at pages - T006 step 5",
+        "SPEC-002 low: each resolution test shown failing under its own breaking condition - T002",
+        "SPEC-003 low: no literal range comparison - T001",
+        "ARCH-003 low: check module shape recorded - D22"
+      ]
     }
   },
   "stories": [
@@ -164,7 +182,7 @@
       "max": 1
     },
     "design_review_cycles": {
-      "used": 0,
+      "used": 1,
       "max": 1
     },
     "tokens": {

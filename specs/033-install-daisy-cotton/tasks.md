@@ -33,9 +33,11 @@ Issue: #456. Delivers FR-001–FR-005, FR-011, FR-020, and US-1's parts of FR-01
 
 Test first, in `TestDeclaredDependency`:
 
-- `importlib.metadata.requires("django-mvp")` has a requirement named `daisy-cotton` whose
-  specifier set equals `>=0.1.2,<0.2` (parse with `packaging.requirements.Requirement`);
-- the installed `daisy-cotton` version satisfies it;
+- `importlib.metadata.requires("django-mvp")` has a requirement named `daisy-cotton`, with no
+  extra and no marker (parse with `packaging.requirements.Requirement`). Do not compare the
+  specifier with a literal range: that test could only fail when someone moves the range on
+  purpose;
+- the installed `daisy-cotton` version satisfies the declared specifier;
 - `apps.is_installed("daisy_cotton")` under the test settings.
 
 Then: `uv add "daisy-cotton>=0.1.2,<0.2"` (never edit `uv.lock` by hand; keep the entry in the
@@ -62,8 +64,10 @@ Work the component paths out by walking the two installed trees, `mvp/templates/
   `django_cotton.compiler_regex.CottonCompiler` as `test_responsive_safelist.py` does).
 
 These pass as soon as T001 lands. That is expected: they pin behaviour the later features rely on.
-Show each fails for the right reason by running it once with `daisy_cotton` moved above `mvp` in
-a scratch settings override, and say so in the progress entry. Do not commit the override.
+Show each fails for the right reason, once, with a scratch settings override that is not
+committed, and say so in the progress entry: `TestSharedComponents` with `daisy_cotton` moved
+above `mvp`; `TestDaisyCottonOnlyComponents` with `daisy_cotton` left out of `INSTALLED_APPS`,
+where each lookup raises `TemplateDoesNotExist`.
 
 Covers US-1 scenarios 2 and 4, FR-003, FR-005, FR-011. US-1 scenario 3 (FR-004, SC-002) is proved
 by the existing suite passing with no test edited.
@@ -110,7 +114,10 @@ Issue: #457. Delivers FR-006, FR-007, FR-010 (prebuilt half), and US-2's part of
   raises an error naming the stem and the file.
 - `unstyled_classes(classes, stylesheet)`: the classes with no selector in the stylesheet text. A
   selector is the class name with every character outside `[A-Za-z0-9_-]` backslash-escaped,
-  preceded by `.`, and not followed by another name character or a backslash.
+  preceded by `.`, and not followed by another name character or a backslash. A name whose first
+  character is a digit is matched the way CSS writes it, with a code-point escape: backslash, `3`,
+  the digit, one space, then the rest escaped as above (`2xl:drawer-open` is
+  `.\32 xl\:drawer-open`).
 - `safelisted_classes(preset)`: every class declared by an `@source inline("…")` entry in the
   preset text, brace groups expanded.
 
@@ -120,7 +127,7 @@ Issue: #457. Delivers FR-006, FR-007, FR-010 (prebuilt half), and US-2's part of
 - a caller-supplied `{{ class }}` adds nothing;
 - an unknown interpolated stem raises, and the error names it;
 - `unstyled_classes` returns a made-up class by name and does not return one that has a selector,
-  including one whose name needs escaping (`md:example`, `group/item`);
+  including one whose name needs escaping (`md:example`, `group/item`, `2xl:example`);
 - `safelisted_classes` expands nested brace groups.
 
 Covers US-2 scenario 4 and the mechanism of FR-010.
@@ -132,22 +139,25 @@ Covers US-2 scenario 4 and the mechanism of FR-010.
 
 Before any build input changes, write every class selector in
 `git show origin/main:mvp/static/css/django-mvp.css` to the fixture, unescaped, one per line,
-sorted. `TestPrebuiltStylesheet::test_no_class_from_the_previous_release_is_lost` asserts
+sorted. A class selector is a `.` followed by a name that starts with a letter, `-`, `_` or a
+backslash escape, never a bare digit: the minified stylesheet is full of numbers such as `.25rem`
+that are not classes. Undo the leading-digit escape when writing (`\32 xl\:drawer-open` becomes
+`2xl:drawer-open`). `TestPrebuiltStylesheet::test_no_class_from_the_previous_release_is_lost` asserts
 `unstyled_classes(fixture, committed stylesheet)` is empty, with the missing names in the failure
-message. The fixture's first line is a `#` comment saying what it is and that a class removed on
-purpose has its line deleted.
+message. The fixture's first line is a `#` comment saying what it is, which commit it was taken from, and
+that a class removed on purpose has its line deleted.
 
 Covers US-2 scenario 3, FR-007, SC-005.
 
 ### T006 — Cover every class in the prebuilt stylesheet
 
 **Files**: `tests/test_components/test_daisy_cotton_coverage.py`, `mvp/tailwind/base.css`,
-`tasks.py`, `package.json`, `package-lock.json`, `mvp/static/css/django-mvp.css`,
+`assets/tailwind.css`, `package.json`, `package-lock.json`, `mvp/static/css/django-mvp.css`,
 `mvp/static/css/django-mvp.css.br`
 
 Test first: `TestPrebuiltStylesheet::test_every_daisy_cotton_class_is_styled` asserts
 `unstyled_classes(component_classes(<installed daisy-cotton templates>), committed stylesheet)`
-is empty, listing the missing names. It fails, naming 93 classes (research R2).
+is empty, listing the missing names. It fails, naming 91 classes (research R2).
 
 Then:
 
@@ -155,13 +165,16 @@ Then:
    entries, with one `@source inline()` entry carrying every `responsive` class at every
    breakpoint, `{sm,md,lg,xl,2xl}:{…}`. Leave every existing entry as it is.
 2. `npm install -D -E daisyui@5.7.0` (changes `package.json` and `package-lock.json` only).
-3. `tasks.py`: `build_stylesheet` gives Tailwind its entry on standard input
-   (`npx tailwindcss -i - -o mvp/static/css/django-mvp.css --minify`, with `in_stream`): an
-   `@import "./assets/tailwind.css";` line, then an `@source` line with the absolute path, in
-   forward slashes, of daisy-cotton's `templates` directory, resolved from the imported
-   `daisy_cotton` module. The task's docstring says why. `assets/tailwind.css` and the `npm`
-   scripts are not changed.
+3. `assets/tailwind.css`: under a comment naming daisy-cotton, `@source inline()` entries for the
+   eight plain utilities its templates write literally: `end-2`, `top-2`,
+   `focus-visible:outline-2`, `focus-visible:-outline-offset-2`, `group/item`,
+   `group-first/item:hidden`, `group-last/item:hidden`, `max-sm:megamenu-vertical`. `tasks.py` and
+   the `npm` scripts are not changed, and the build does not scan daisy-cotton's templates
+   (research R3).
 4. `uv run invoke build-stylesheet`, and commit the rebuilt `.css` and `.css.br`.
+5. Look at the rebuilt stylesheet on the running demo: the home page, a list page, a detail page,
+   a form page and the sign-in page. Nothing should have moved. Name the pages looked at in the
+   progress entry. If something has, stop and report it as a concern; do not adjust styles.
 
 Both `TestPrebuiltStylesheet` tests are green afterwards.
 
@@ -172,9 +185,7 @@ Covers US-2 scenarios 1 and 2, FR-006, FR-007, FR-010, SC-003.
 **Files**: `docs/styling.md`, `CHANGELOG.md`
 
 - `docs/styling.md`, Tier 1: the prebuilt stylesheet styles every class daisy-cotton's components
-  can render. *For django-mvp developers*: the stylesheet is built with `invoke build-stylesheet`,
-  which adds daisy-cotton's templates to the scan; `npm run build:css:prod` alone leaves them out
-  and the test suite fails against that build.
+  can render.
 - `CHANGELOG.md`, under `## [Unreleased]`: the coverage, and that the stylesheet is now built with
   daisyUI 5.7.0.
 
@@ -223,7 +234,7 @@ scanned directory from the fourth:
   written literally in a file under the scanned directory, or returned by `safelisted_classes`.
   "Written literally" means the class appears as a whole token when the file's text is split on
   whitespace, quotes, commas and the characters `<>{}%=;()`. The failure message lists the missing
-  names. It fails on the `variation` classes and `mask-half-1`, `mask-half-2`.
+  names. It fails on the `variation` classes.
 - `test_no_class_from_the_previous_release_is_lost`: every class in the fixture is still returned
   by `safelisted_classes`. Write the fixture from
   `safelisted_classes(git show origin/main:mvp/tailwind/base.css)`, sorted, one per line, under
@@ -231,7 +242,7 @@ scanned directory from the fourth:
 
 Then, in the daisy-cotton block of `mvp/tailwind/base.css`: one `@source inline()` entry per
 option list, `{base,base,…}-{option,option,…}`, covering every `variation` call in the installed
-daisy-cotton, and `mask-half-{1,2}`. Rebuild the stylesheet with `uv run invoke build-stylesheet`
+daisy-cotton. Rebuild the stylesheet with `uv run invoke build-stylesheet`
 and commit it, because the preset is one of its inputs.
 
 Covers US-3 scenarios 2 and 4, FR-009, FR-010, SC-004.
