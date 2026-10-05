@@ -2,7 +2,8 @@
 
 Each message is drawn as a daisy-cotton alert whose variant follows the message's
 level tag. ``debug`` takes the ``info`` variant, since daisy-cotton has no debug
-alert. A level tag daisy-cotton has no variant for still draws its message.
+alert. A level tag daisy-cotton has no variant for, such as one a project adds
+through ``MESSAGE_TAGS``, draws its message in a plain alert.
 
 Source: mvp/templates/cotton/mvp/messages.html
 """
@@ -23,6 +24,9 @@ VARIANTS = frozenset(LEVEL_VARIANTS.values())
 # A level no tag is registered for: its level tag is empty, so the alert gets no
 # variant and no icon.
 UNTAGGED_LEVEL = 35
+# A level a project registers a tag of its own for.
+PROJECT_LEVEL = 45
+PROJECT_TAGS = ("notice", "in")
 
 
 @pytest.fixture
@@ -70,6 +74,23 @@ class TestMessageLevels:
         alerts = soup.select(".toast > [role='alert']")
         assert len(alerts) == 1
         assert f"message at level {UNTAGGED_LEVEL}" in alerts[0].get_text()
+        assert not {f"alert-{variant}" for variant in VARIANTS} & set(
+            alerts[0]["class"]
+        )
+
+
+class TestAProjectsOwnLevelTag:
+    @pytest.mark.parametrize("tag", PROJECT_TAGS)
+    def test_a_message_at_a_tag_a_project_added_draws_its_message(
+        self, render_messages, settings, tag
+    ):
+        settings.MESSAGE_TAGS = {PROJECT_LEVEL: tag}
+
+        soup = render_messages(PROJECT_LEVEL)
+
+        alerts = soup.select(".toast > [role='alert']")
+        assert len(alerts) == 1
+        assert f"message at level {PROJECT_LEVEL}" in alerts[0].get_text()
         assert not {f"alert-{variant}" for variant in VARIANTS} & set(
             alerts[0]["class"]
         )

@@ -93,6 +93,14 @@ own markup. Point the breadcrumb browser tests' locator at the crumb markup now 
 
 Decision D22.
 
+### T013 — A message at a tag the alert has no variant for draws a plain alert
+
+**Files**: `tests/test_components/test_messages.py`, `mvp/templates/cotton/mvp/messages.html`
+
+Decision D20. The test first: a message at a level tag a project added through `MESSAGE_TAGS`
+draws its text and raises nothing. Then the messages component passes a variant only for the
+four the alert documents.
+
 ---
 
 ## US3 — A page's own variables cannot change a packaged component (P2)

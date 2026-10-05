@@ -4,11 +4,15 @@
 <c-vars dismissible :delay=2000 />
 <div class="toast toast-top toast-end z-50">
   {% for message in messages %}
-    <c-alert variant="{% if message.level_tag == 'debug' %}info{% else %}{{ message.level_tag }}{% endif %}"
-             :dismissible="dismissible"
-             :delay="delay"
-             class="shadow-lg" only>
-      <span>{{ message }}</span>
-    </c-alert>
+    {# The alert has four variants. Debug is shown as info, and any other #}
+    {# level tag, such as one a project adds, draws a plain alert. #}
+    {% with tag=message.level_tag %}
+      <c-alert variant="{% if tag == 'debug' %}info{% elif tag == 'info' or tag == 'success' or tag == 'warning' or tag == 'error' %}{{ tag }}{% endif %}"
+               :dismissible="dismissible"
+               :delay="delay"
+               class="shadow-lg" only>
+        <span>{{ message }}</span>
+      </c-alert>
+    {% endwith %}
   {% endfor %}
 </div>

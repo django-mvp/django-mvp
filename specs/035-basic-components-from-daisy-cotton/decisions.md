@@ -257,26 +257,25 @@ finding. Every finding was checked against the code before it was acted on.
 
 ## Settled while building, 2026-10-05
 
-### D20. An alert variant with no icon raises, and that is carried as unmet
+### D20. Messages pass only a variant the alert has, and a direct alert stays a known gap
 
 **Found:** D11 and FR-009 rest on daisy-cotton's alert ignoring a variant outside its four. It
 ignores it for the class, but still draws `<c-icon>` with the variant as the name. This
 package's icon is a strict lookup, so `<c-alert variant="primary">`, or a Django message at a
 level tag a project added, raises `IconNotFoundError` when `DEBUG` is off. The package's former
-alert raised the same way, so nothing that worked has stopped working.
+alert raised the same way.
 
-**Chosen:** no guard is added in this package. `cotton/mvp/messages.html` keeps its one mapping,
-debug shown as info. FR-009 and acceptance scenario 4 of US-2 are carried as unmet for a variant
-that has no icon, waiting on django-mvp/daisy-cotton#136. The test covers what holds: a message
-at a level with no tag draws its text with no variant and raises nothing.
+**Ruling given during the build (2026-10-05):** `cotton/mvp/messages.html` passes a variant only
+when the level tag is one of the four the alert documents, with debug still shown as info. Any
+other tag draws a plain alert. That is this package's own caller using the alert as documented,
+and it is what FR-008 and FR-009 ask of messages. It is tested by behaviour: a message at a tag
+a project added renders its text and raises nothing.
 
-**Why:** the fault is in which variants daisy-cotton's alert draws an icon for, and fixing it
-there fixes it for every caller. It follows the ruling in D14.
+**Carried as unmet:** a direct `<c-alert variant="primary">` still raises, as
+django-mvp/daisy-cotton#136 describes. That half of FR-009 waits on the upstream fix, with no
+workaround here. It is stated in the changelog and the pull request's deviations.
 
-**Revisit if:** the maintainer prefers a guard in `messages.html` until the upstream fix is
-released. It is one `{% if %}` and was put to the maintainer's delegate as the alternative.
-
-**ADR:** none — a known gap tracked on an upstream issue.
+**ADR:** none — one caller's use of a component, and a known gap tracked upstream.
 
 ### D21. Tests of daisy-cotton's own markup that the first pass left
 
