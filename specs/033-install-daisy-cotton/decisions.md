@@ -213,3 +213,95 @@ assert.
 **Why defensible:** the feature introduces a dependency and a rule for contributors. Neither is a
 concept a project works with. The glossary's component list and naming rules change in #434 and #435, when
 the components themselves do.
+
+## D18. The stylesheet is built with daisyUI 5.7.0
+
+**Decision:** the build tool moves from `daisyui` 5.6.18 to 5.7.0.
+
+**Why:** daisy-cotton's menu writes `menu-paged`, and daisyUI has no such class before 5.7.0. FR-006
+needs every class daisy-cotton can render to be styled. 5.7.0 is the smallest version that has
+them all. Measured against the same inputs, it adds one class selector to the stylesheet and
+removes none. A later 5.7 release would be a larger change for no requirement.
+
+**Revisit if:** a rule that 5.7.0 changed shows on a page. The answer is then a later patch
+release of daisyUI, not a return to 5.6.
+
+**ADR:** none — a build tool's version, recorded in the changelog and in `package.json`.
+
+## D19. The package's own build finds daisy-cotton through the build task
+
+**Decision:** `invoke build-stylesheet` composes the entry it gives Tailwind: `assets/tailwind.css`
+plus one `@source` line with daisy-cotton's templates directory, resolved from the imported
+module. `assets/tailwind.css` itself does not point into the Python environment.
+
+**Why:** the path contains the Python version, and Tailwind does not follow a glob or a symlink
+into a git-ignored directory (research R3). The `Stylesheet` workflow runs the `npm` script, which
+is unchanged, so it compiles as before and nothing under `.github/` needs editing (D13).
+
+**Rejected:** listing one exact path per supported Python version in `assets/tailwind.css`. It
+works today and goes quiet on the first Python release nobody added a line for. Copying
+daisy-cotton's literal utilities into the preset was rejected for the same reason: a hand-kept
+copy of something the scan can read.
+
+**Revisit if:** Tailwind gains a way to name a source outside the project that does not depend on
+the Python version.
+
+**ADR:** none — how one build task is wired, local to `tasks.py`.
+
+## D20. The classes are read from daisy-cotton's templates, not from rendering them
+
+**Decision:** the coverage tests work the class set out by reading the installed templates:
+literal classes, `variation` calls, `responsive` calls, and one table for a class built from a
+template variable. An unknown construction fails the test by name.
+
+**Why:** daisy-cotton builds every render-time class through two tags with their choices written
+in the call, so reading is exact and needs no list of attribute values for 82 components.
+Rendering every component with every combination of attributes would need that list, and the list
+would be the thing that goes stale.
+
+**Revisit if:** daisy-cotton starts building classes some other way. The test says so when it
+meets one.
+
+**ADR:** none — a test's method, local to this feature's tests.
+
+## D21. "Nothing is lost" is proved against two fixtures
+
+**Decision:** the classes the 0.26.0 stylesheet styled, and the classes the 0.26.0 preset
+declared, are committed as two text fixtures. Tests assert both are still covered.
+
+**Why:** SC-005 and SC-009 ask for a test, and a test cannot read a stylesheet that is no longer
+in the tree. The cost is that a later feature which removes a class on purpose deletes a line.
+That is the point: the class cannot leave by accident.
+
+**Revisit if:** the fixtures are edited more often than they catch anything.
+
+**ADR:** none — test fixtures, local to this feature's tests.
+
+## D22. The check lives in `mvp/checks.py` and is not tagged
+
+**Decision:** a new module holds the check and its ordering rule. The identifiers are `mvp.E002`
+(missing) and `mvp.W001` (above `mvp`). It is registered with no tag.
+
+**Why:** `mvp/mounted.py` holds the one existing check because that check is about mounted apps.
+This one is about the app list. `mvp.E001` is taken, and no warning identifier was in use. Django
+has no tag for the app list, and an untagged check runs with every `check`, `runserver` and
+`migrate`, which is what FR-012 asks for.
+
+**ADR:** none — where one function lives.
+
+## D23. Cotton stays pinned at 2.6.1
+
+**Decision:** the pin does not move (D15).
+
+**Why:** all 60 components only daisy-cotton ships render under 2.6.1, and `only` behaves as the
+rule needs (research R5, R6). A test keeps both true.
+
+**ADR:** none — a pin left alone.
+
+## D24. The foundation is the first task of the first story
+
+**Decision:** adding the dependency and the app-list line is T001 of US-1, not a phase of its own.
+
+**Why:** it is one command and two lines, and US-1's tests are what prove it.
+
+**ADR:** none — task ordering.
