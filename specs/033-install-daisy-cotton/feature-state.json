@@ -66,18 +66,65 @@
       "tasks": [
         {
           "id": "T001",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_daisy_cotton_install.py::TestDeclaredDependency"
+            ],
+            "commands": [
+              "uv run pytest tests/test_components/test_daisy_cotton_install.py::TestDeclaredDependency",
+              "uv run deptry .",
+              "uv lock --check",
+              "uv run pre-commit run --all-files"
+            ],
+            "code": [
+              "pyproject.toml:43",
+              "pyproject.toml:134",
+              "demo/settings.py:35",
+              "tests/test_components/test_daisy_cotton_install.py:68"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T002",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_daisy_cotton_install.py::TestSharedComponents",
+              "tests/test_components/test_daisy_cotton_install.py::TestDaisyCottonOnlyComponents"
+            ],
+            "commands": [
+              "uv run pytest tests/test_components/test_daisy_cotton_install.py",
+              "uv run pre-commit run --all-files"
+            ],
+            "code": [
+              "tests/test_components/test_daisy_cotton_install.py:22"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T003",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [],
+            "commands": [
+              "uv run pre-commit run --all-files",
+              "uv run pytest -n auto"
+            ],
+            "code": [
+              "docs/getting-started.md:19",
+              "README.md:130",
+              "skills/django-mvp/SKILL.md:89",
+              "docs/adr/0030-daisy-cotton-is-a-runtime-dependency.md:1",
+              "CHANGELOG.md:10"
+            ],
+            "verified_by_ci": false
+          }
         }
       ]
     },
