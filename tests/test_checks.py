@@ -54,9 +54,8 @@ class TestDaisyCottonAppCheck:
     def test_the_repositorys_own_settings_report_nothing(self):
         assert check_daisy_cotton_app(None) == []
 
-    def test_the_check_is_registered_with_no_tag(self):
+    def test_the_check_is_registered(self):
         assert check_daisy_cotton_app in registry.registered_checks
-        assert not check_daisy_cotton_app.tags
 
     def test_a_missing_daisy_cotton_stops_the_check_command(self, settings):
         settings.INSTALLED_APPS = [
@@ -97,7 +96,7 @@ class TestDaisyCottonAppCheck:
 class TestGettingStartedAppList:
     def test_the_guides_app_list_passes_the_check(self):
         guide = Path(__file__).resolve().parent.parent / "docs" / "getting-started.md"
-        blocks = re.findall(r"```python\n(.*?)```", guide.read_text(), re.DOTALL)
+        blocks = re.findall(r"```python\n(.*?)```", guide.read_text(encoding="utf-8"), re.DOTALL)
         block = next(block for block in blocks if "INSTALLED_APPS" in block)
         code = "\n".join(line.split("#")[0] for line in block.splitlines())
 

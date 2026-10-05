@@ -33,8 +33,7 @@ release is tested with this package.
 
 The project lists the app itself because Django finds an app's templates only when the project
 names the app. This is the same arrangement as `crispy_forms` and `mvp_forms` in
-[ADR 0029](0029-forms-are-drawn-by-django-mvp-forms.md), and it is why `deptry` is told the
-package is reached through `INSTALLED_APPS` rather than a Python import.
+[ADR 0029](0029-forms-are-drawn-by-django-mvp-forms.md).
 
 `daisy_cotton` goes below `mvp` because both packages ship components under the same names and the
 first app listed wins. Some daisy-cotton components draw a button or a menu item inside themselves.

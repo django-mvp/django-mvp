@@ -57,7 +57,6 @@ class TestMVPTailwindCommand:
 
     def test_paths_prints_daisy_cotton_templates_directory_last(self):
         lines = _run("--paths").strip().splitlines()
-        assert len(lines) == 4
         daisy = Path(lines[3])
         assert daisy.is_absolute() and daisy.is_dir()
         assert "\\" not in lines[3]

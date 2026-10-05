@@ -32,7 +32,7 @@ PREVIOUS_RELEASE_CLASSES = (
 PREVIOUS_RELEASE_PRESET_CLASSES = (
     Path(__file__).resolve().parent.parent / "fixtures" / "preset_safelist_0_26_0.txt"
 )
-LITERAL_SEPARATORS = re.compile(r"[\s\"',<>{}%=;()]+")
+LITERAL_SEPARATORS = re.compile(r"[\s\"'<>{}%]+")
 
 
 @pytest.fixture
@@ -52,7 +52,9 @@ def written_literally(directory):
     """Return the class names written whole in any file under a directory.
 
     A name is written whole when it is a token of the file's text split on
-    whitespace, quotes, commas and the characters ``< > { } % = ; ( )``.
+    whitespace, quotes and the characters ``< > { } %``. Tailwind does not pick
+    a class out next to a comma, ``=``, ``;`` or a parenthesis, so neither does
+    this.
 
     Args:
         directory: The directory to read, recursively.
@@ -253,8 +255,8 @@ class TestPrebuiltStylesheet:
 class TestWrittenLiterally:
     def test_a_name_between_the_separators_is_found(self, tmp_path):
         (tmp_path / "a.html").write_text(
-            '<p class="btn  btn-ghost">{% tag "card-side,card-bordered" %}'
-            "{{ x }}(link);menu=menu-sm</p>",
+            '<p class="btn  btn-ghost">{% tag "card-side" \'card-bordered\' %}'
+            "{{ link }}<i>menu</i> menu-sm</p>",
             encoding="utf-8",
         )
 

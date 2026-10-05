@@ -341,3 +341,33 @@ between the tags, and content in named slots, renders with the page's variables.
 example.
 
 Covers US-5 scenario 5, FR-018.
+
+---
+
+## After the code review
+
+The review approved the build with three low points. Each was taken.
+
+### T015 — Match Tailwind's boundaries when deciding a class is written literally (US-3)
+
+**Files**: `tests/test_components/test_daisy_cotton_coverage.py`,
+`tests/test_components/test_mvp_tailwind_command.py`
+
+Tailwind does not extract a class that sits next to a comma, `=`, `;` or a parenthesis, so
+`written_literally` no longer splits on them. The assertion that `--paths` prints exactly four
+lines is removed: the test still reads the fourth line, and a count would break on the next path
+added.
+
+### T016 — Do not pin that the check has no tag (US-4)
+
+**Files**: `tests/test_checks.py`
+
+The behaviour is read by the tests that run `check`. Whether the check carries a tag is not a
+requirement.
+
+### T017 — Say truthfully how daisy-cotton is reached (US-1)
+
+**Files**: `pyproject.toml`, `docs/adr/0030-daisy-cotton-is-a-runtime-dependency.md`
+
+The generator imports `daisy_cotton`, so it is no longer listed among the packages reached only
+through `INSTALLED_APPS`, and the ADR no longer says so.
