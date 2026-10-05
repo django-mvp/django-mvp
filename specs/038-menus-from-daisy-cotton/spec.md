@@ -12,7 +12,7 @@
 
 **Issue**: #438
 
-**Depends on**: #435, and [django-mvp/daisy-cotton#120](https://github.com/django-mvp/daisy-cotton/issues/120)
+**Depends on**: #434, #435
 
 **Input**: The sidebar, the collapsed icon rail and the user menu should be drawn with
 daisy-cotton's menu, submenu and drawer. The sign-out entry, share links and rail tooltips keep
@@ -35,9 +35,11 @@ declares its menus in Python exactly as it does today. What changes is the vocab
 uses when it writes a menu entry by hand, and that change is breaking.
 
 Three things in the shell need an attribute on the link or button of a menu entry: the sign-out
-entry, the share links and the rail tooltips. daisy-cotton's entry puts every extra attribute on
-the list item around the link, so none of them can be built on it yet. That gap is
-django-mvp/daisy-cotton#120, and this feature waits for the daisy-cotton release that closes it.
+entry, the share links and the rail tooltips. daisy-cotton's entry used to put every extra
+attribute on the list item around the link. That gap was django-mvp/daisy-cotton#120, and it is
+closed in daisy-cotton 0.1.3: an entry's class and extra attributes now land on its link or
+button, and a button entry can be given a type. This feature raises the package's floor on
+daisy-cotton to that release.
 
 Component names in this document are the ones #434 gives them: a component this package keeps is
 written `<c-mvp.…>`, and a bare name such as `<c-menu.item>` means daisy-cotton's component.
@@ -55,12 +57,11 @@ R29, the roadmap item and the package's constitution. Longer rationale is in `de
   not clipping them, and #440 already depends on #438. #440 keeps the button in the navbar that
   opens the drawer, along with the rest of its list. Recorded as FR-012 to FR-017.
 
-- **Q: daisy-cotton#120 is still open, and its discussion names two ways to close it. Does this
-  feature depend on which one is chosen?**
-  A: No. The requirement is that a caller can put attributes on an entry's link or button. Whether
-  daisy-cotton sends extra attributes there, or gives the entry a form whose content fills the
-  list item, the requirements here read the same. The feature does not start until a daisy-cotton
-  release carries one of them, and it does not work around the gap in this package. Recorded as
+- **Q: The sign-out entry, the share links and the rail tooltips need attributes on an entry's
+  link or button. Can daisy-cotton's entry carry them?**
+  A: From 0.1.3, yes. django-mvp/daisy-cotton#120 was closed by sending an entry's class and extra
+  attributes to its link or button and adding a `type` for a button entry. This package's floor on
+  daisy-cotton rises to 0.1.3, and none of the three is built on a workaround here. Recorded as
   FR-021 and in Assumptions.
 
 - **Q: In the collapsed rail an entry's label is hidden. Does the entry still need a name a screen
@@ -91,7 +92,8 @@ R29, the roadmap item and the package's constitution. Longer rationale is in `de
   toggle is different. The remembered state and the layout store both hang on it, and the
   requirements for them stand unchanged. If daisy-cotton's drawer cannot carry them, the gap is
   raised there and the drawer story waits for the release that closes it. The other four stories
-  do not wait. Recorded as FR-030, FR-031 and in Assumptions.
+  do not wait. Both answers were confirmed at review. Recorded as FR-030, FR-031 and in
+  Assumptions.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -408,11 +410,10 @@ attribute.
   the sidebar. The sidebar's menu MUST stay reachable and operable from the keyboard and MUST
   stay a named navigation landmark. While the overlay is closed below the breakpoint, its links
   MUST NOT take keyboard focus. The changelog MUST record the change of order.
-- **FR-031**: FR-014 and FR-015 MUST be met through what daisy-cotton's drawer offers a caller.
-  If the installed drawer cannot carry what they need on its toggle, the gap MUST be raised on
+- **FR-031**: FR-014 and FR-015 MUST be met through what daisy-cotton's drawer offers a caller,
+  which includes the id it documents for its toggle. If they cannot be, the gap MUST be raised on
   daisy-cotton and the drawer story MUST wait for the release that closes it. It MUST NOT be met
-  by keeping a second drawer in this package or by reaching into daisy-cotton's markup from a
-  script in a way its documentation does not support.
+  by keeping a second drawer in this package.
 
 **Entries that need an attribute on the link or button**
 
@@ -427,9 +428,10 @@ attribute.
   access to the opener, with both attributes on the link itself. The copy entry MUST copy the
   page's address without navigating. Each theme in the theme chooser MUST be a keyboard-operable
   button carrying its theme on the button itself.
-- **FR-021**: The package's dependency on daisy-cotton MUST require the first release in which a
-  caller can put attributes on a menu entry's link or button. The entries in FR-010, FR-018 and
-  FR-020 MUST be built on that, and MUST NOT be built on a workaround in this package.
+- **FR-021**: The package's dependency on daisy-cotton MUST require 0.1.3 or later, the first
+  release in which a menu entry's class and extra attributes land on its link or button. The
+  entries in FR-010, FR-018 and FR-020 MUST be built on that, and MUST NOT be built on a
+  workaround in this package.
 
 **Removing the package's own components**
 
@@ -514,15 +516,14 @@ entry is opened by the first story and completed by the last.
 - #434 has landed before this feature starts, so the components this package keeps carry the
   `mvp.` prefix. If the four menu components this feature removes were renamed by #434, they are
   removed under the names they then carry.
-- django-mvp/daisy-cotton#120 is closed and released before this feature starts. If daisy-cotton
-  declines the change in every form, this feature stops and goes back to its maintainer. It does
-  not ship its own menu entry to get around the gap, because that is the second copy R29 removes.
-- daisy-cotton 0.1.2's drawer takes no attributes for its toggle, and this package's drawer shell
-  puts the layout store binding and the key for the remembered state there. The third story is
-  therefore expected to wait on a daisy-cotton release that lets a caller reach the toggle. The
-  gap is confirmed and raised on daisy-cotton when the work is planned. The other four stories
-  do not depend on it, because the icon rail already works inside the existing drawer shell, so
-  they can be built first and the drawer can follow on the same pull request.
+- daisy-cotton 0.1.3 is released and carries the fix for django-mvp/daisy-cotton#120, so nothing
+  upstream blocks the menu entries. The feature waits only on #434 and #435.
+- daisy-cotton's drawer takes no attributes for its toggle, and this package's drawer shell puts
+  the layout store binding and the key for the remembered state there. Whether the store can bind
+  to the toggle through its documented id instead is established when the work is planned. If it
+  cannot, the gap is raised on daisy-cotton and the third story waits for the release that closes
+  it. The other four stories do not depend on it, because the icon rail already works inside the
+  existing drawer shell.
 - The script that applies the remembered state before the first paint needs no change in
   daisy-cotton. The drawer's content region starts immediately after its toggle, so the shell can
   place the script there. FR-014 holds either way, and a browser test proves it.

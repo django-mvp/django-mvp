@@ -4,8 +4,8 @@ Rationale too long to inline in `spec.md`, and the ambiguities resolved while sp
 
 The maintainer handed this specification over on 2026-10-05, so the reading of #438 was not put to
 him as questions. Sections G1 to G5 are rulings he had already given for the whole of R29, recorded
-as given. Sections D1 to D9 are readings made while specifying, each one open to his veto on the
-pull request.
+as given. Sections D1 to D11 are readings made while specifying. Sections V1 to V3 are rulings
+given when the specification was reviewed and approved on his behalf.
 
 ## Rulings given for R29
 
@@ -75,22 +75,18 @@ drawer shell for the rail anyway, and two features would change the same templat
 
 **ADR:** none. It settles a boundary between two issues.
 
-### D2. The requirements do not depend on how daisy-cotton closes #120
+### D2. The entries are built on daisy-cotton's fix, with no workaround
 
-**What was ambiguous:** django-mvp/daisy-cotton#120 proposes sending an entry's extra attributes
-to its link or button. Its discussion records that the current behaviour was deliberate, and
-raises a second way out: an entry whose content fills the list item, so a caller writes the link.
+**What was ambiguous:** when this was specified, django-mvp/daisy-cotton#120 was open, and its
+discussion named two ways to close it.
 
 **Chosen:** the specification asks only that a caller can put attributes on an entry's link or
-button (FR-021). Either answer satisfies it.
+button (FR-021), and forbids a workaround in this package.
 
-**Why:** which way daisy-cotton goes is its maintainer's design decision. Pinning one here would
-make this specification wrong if the other is chosen.
+**Outcome:** daisy-cotton closed the issue in 0.1.3 by sending an entry's class and extra
+attributes to its link or button. See V1.
 
-**If daisy-cotton declines both:** the feature stops and goes back to the maintainer. Keeping a
-menu entry in this package to get around it is the second copy R29 exists to remove.
-
-**ADR:** none. Nothing is decided here that outlives the upstream decision.
+**ADR:** none. Nothing is decided here beyond the dependency floor.
 
 ### D3. Every caller of the package's menu entry moves
 
@@ -209,12 +205,12 @@ is not obvious from the markup.
 its toggle. This package's drawer shell binds the toggle to the layout store and stores the key for
 the remembered state on it.
 
-**Chosen:** the behaviour is required as it is today (FR-014, FR-015). If the drawer cannot carry
-it, the gap is raised on daisy-cotton and the drawer story waits (FR-031). The other four stories
-go ahead.
+**Chosen:** the behaviour is required as it is today (FR-014, FR-015). Planning establishes
+whether the layout store can bind to the toggle through the id daisy-cotton documents for it. If
+it cannot, the gap is raised on daisy-cotton and the drawer story waits (FR-031). The other four
+stories go ahead.
 
-**Why:** G3. A script in this package that finds daisy-cotton's checkbox by its class and wires it
-up would work today and break on daisy-cotton's next change to its own markup.
+**Why:** G3. Keeping a second drawer here to hold two attributes is the second copy R29 removes.
 
 **Checked against daisy-cotton 0.1.2:** the toggle is written with an id, a type, a class and an
 accessible name, and nothing from the caller. The drawer's other extra attributes go to its root
@@ -224,13 +220,36 @@ content region opens directly after the toggle, and the shell can put the script
 
 **ADR:** none. It applies G3.
 
+## Rulings given at review
+
+### V1. daisy-cotton#120 is fixed, and the floor rises to 0.1.3
+
+django-mvp/daisy-cotton#120 was closed on 2026-10-05 and released as daisy-cotton 0.1.3. A menu
+entry now puts its class and extra attributes on its link or button, and takes a `type` for a
+button entry. This feature is no longer blocked upstream. It raises this package's floor on
+daisy-cotton to 0.1.3 (FR-021) and depends only on #434 and #435.
+
+**ADR:** none.
+
+### V2. The drawer takes daisy-cotton's source order
+
+D10 is confirmed. The page content comes before the sidebar, the change is recorded in the
+changelog, and the sidebar stays reachable as a named navigation landmark (FR-030). The order is
+not raised on daisy-cotton.
+
+**ADR:** as D10.
+
+### V3. The toggle's attributes stay a risk for planning
+
+D11 is confirmed. If the layout store cannot bind to the drawer's toggle from script, the gap is
+raised on daisy-cotton's tracker. No workaround is built here.
+
+**ADR:** none.
+
 ## Open risks
 
-- django-mvp/daisy-cotton#120 is open, and its last comment hands the decision back to
-  daisy-cotton's maintainer. This feature cannot start before a release carries the outcome.
-- The drawer story is expected to wait on a daisy-cotton release that lets a caller reach the
-  drawer's toggle (D11). No issue is open for it on daisy-cotton yet. It is raised when the work
-  is planned.
+- The drawer story may have to wait on a daisy-cotton release that lets a caller reach the
+  drawer's toggle (D11, V3). Planning settles it. No issue is open for it on daisy-cotton.
 - The change of document order (D10) reaches every page of every project. It cannot be seen, and
   it is easy to miss in review.
 - daisy-cotton's entry writes its text as a bare text node, and the rail's stylesheet hides a
