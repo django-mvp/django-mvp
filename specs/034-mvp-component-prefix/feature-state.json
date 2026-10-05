@@ -232,18 +232,56 @@
       "tasks": [
         {
           "id": "T008",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [],
+            "commands": [
+              "python3 /tmp/fs034/scratch/rename.py --dry <docs, README.md, CONTRIBUTING.md, skills> (files changed: 0 | tag rewrites: 0 | path rewrites: 0)",
+              "python3 /tmp/fs034/scratch/check_tags.py (every c-tag in the changed pages resolves to a template under mvp/templates/cotton/; only intended non-matches remain)",
+              "uv run pytest /tmp/fs034/scratch/test_example.py (the CONTRIBUTING.md example, passed)"
+            ],
+            "code": [
+              "docs/components.md:8",
+              "docs/integrations.md:261",
+              "CONTRIBUTING.md:37",
+              "skills/django-mvp/SKILL.md:36"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T009",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [],
+            "commands": [
+              "python3 (names in the Component Library blocks compared with mvp/templates/cotton/ file names: none missing, none extra)",
+              "python3 /tmp/fs034/scratch/rename.py --dry CONTEXT.md (files changed: 0)"
+            ],
+            "code": [
+              "CONTEXT.md:136",
+              "CONTEXT.md:301"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T010",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [],
+            "commands": [
+              "git diff 1a97bae -- CONSTITUTION.md (Article XI and the footer only)"
+            ],
+            "code": [
+              "CONSTITUTION.md:113",
+              "CONSTITUTION.md:261"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "TC01",
