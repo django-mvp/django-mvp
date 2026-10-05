@@ -17,7 +17,7 @@
     {% url "account-center" as account_center_url %}
     {% url "account_logout" as logout_url %}
     {% if request.user.is_staff %}{% url "admin:index" as admin_url %}{% endif %}
-    <c-menu>
+    <c-menu class="w-full">
       {% if account_center_url %}
         <c-mvp.menu.item label="{% trans "Account Center" %}"
                      icon="account_center"

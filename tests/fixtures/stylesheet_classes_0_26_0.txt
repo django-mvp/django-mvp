@@ -79,7 +79,6 @@ bg-error-content
 bg-info
 bg-info-content
 bg-neutral
-bg-neutral-900
 bg-neutral-content
 bg-primary
 bg-primary-content
@@ -325,7 +324,6 @@ flex-grow
 flex-none
 flex-nowrap
 flex-row
-flex-row-reverse
 flex-shrink
 flex-shrink-0
 flex-wrap
@@ -460,7 +458,6 @@ group-hover:opacity-100
 grow
 grow-0
 h-16
-h-80
 h-90/100
 h-[30.5rem]
 h-auto
@@ -1427,7 +1424,6 @@ mt-5
 mt-6
 mt-8
 mt-auto
-mvp-breadcrumb-text
 mvp-col-grow
 mvp-col-max-lg
 mvp-col-max-md
@@ -1552,7 +1548,6 @@ pika-single
 pika-table
 pika-title
 pika-week
-place-content-center
 place-items-center
 pointer-events-none
 print:hidden
@@ -1902,7 +1897,6 @@ text-success
 text-success-content
 text-warning
 text-warning-content
-text-white
 text-wrap
 text-xl
 text-xs

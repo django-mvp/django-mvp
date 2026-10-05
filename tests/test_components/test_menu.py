@@ -6,6 +6,7 @@ an opt-in ``<c-vars>`` boolean, default ``False``; the sidebar renderer
 passes it explicitly.
 """
 
+from bs4 import BeautifulSoup
 from django.contrib.auth.models import AnonymousUser
 from django.template import Context, Template
 from django.template.loader import render_to_string
@@ -14,6 +15,7 @@ from django_cotton.compiler_regex import CottonCompiler
 
 from mvp.config import MVP_CONFIG
 from mvp.fixtures import _beautiful_soup
+from mvp.menus import AppMenu
 
 compiler = CottonCompiler()
 
@@ -66,7 +68,9 @@ class TestSidebarContainerTakesItsNameFromContext:
             "menus/sidebar/container.html",
             {"children": [], "renderer": None, "label": "Reports"},
         )
-        assert 'aria-label="Reports"' in html
+        soup = BeautifulSoup(html, "html.parser")
+
+        assert soup.find("nav")["aria-label"] == "Reports"
         assert "Main Navigation" not in html
 
     def test_two_different_menus_come_back_with_two_different_labels(self):
@@ -78,8 +82,21 @@ class TestSidebarContainerTakesItsNameFromContext:
             "menus/sidebar/container.html",
             {"children": [], "renderer": None, "label": "Account navigation"},
         )
-        assert 'aria-label="Main navigation"' in first
-        assert 'aria-label="Account navigation"' in second
+
+        first_nav = BeautifulSoup(first, "html.parser").find("nav")
+        second_nav = BeautifulSoup(second, "html.parser").find("nav")
+
+        assert first_nav["aria-label"] == "Main navigation"
+        assert second_nav["aria-label"] == "Account navigation"
+
+    def test_the_menu_sits_inside_the_named_navigation_landmark(self):
+        html = render_to_string(
+            "menus/sidebar/container.html",
+            {"children": [], "renderer": None, "label": "Reports"},
+        )
+        soup = BeautifulSoup(html, "html.parser")
+
+        assert soup.select_one("nav[aria-label='Reports'] > ul.menu") is not None
 
 
 class TestTheSidebarDrawsOneNavigationLandmark:
@@ -87,11 +104,12 @@ class TestTheSidebarDrawsOneNavigationLandmark:
         request = RequestFactory().get("/")
         request.user = AnonymousUser()
         html = render_to_string("cotton/mvp/app/sidebar/index.html", request=request)
-        soup = _beautiful_soup()(html, "html.parser")
+        soup = BeautifulSoup(html, "html.parser")
         landmarks = soup.find_all(
             lambda tag: tag.name == "nav" or tag.get("role") == "navigation"
         )
         assert len(landmarks) == 1
+        assert landmarks[0]["aria-label"] == str(AppMenu.extra_context["label"])
 
 
 class TestDockItemForwardsAttrs:

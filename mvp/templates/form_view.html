@@ -29,12 +29,12 @@
       {% block actions %}
         <c-mvp.group breakpoint="md" wrap>
           <c-button text="{% trans "Save & continue" %}"
-                    icon="arrow-right"
                     type="submit"
                     name="default_next"
-                    reverse
                     value="list"
-                    variant="primary" />
+                    variant="primary">
+            <c-icon name="arrow-right" />
+          </c-button>
           <c-button text="{% trans "Save & continue editing" %}"
                     type="submit"
                     name="default_next"

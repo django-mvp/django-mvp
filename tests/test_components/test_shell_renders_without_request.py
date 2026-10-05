@@ -13,6 +13,7 @@ without a request, and still draw their menu with one. They fail again if the
 dependency floor slips below the release that carries the fix.
 """
 
+from bs4 import BeautifulSoup
 from django.contrib.auth.models import AnonymousUser
 from django.template import loader
 from django.template.loader import render_to_string
@@ -35,8 +36,10 @@ class TestShellRendersWithoutARequest:
         request.user = AnonymousUser()
 
         html = render_to_string("mvp/base.html", request=request)
+        soup = BeautifulSoup(html, "html.parser")
 
-        assert f'aria-label="{AppMenu.extra_context["label"]}"' in html
+        label = str(AppMenu.extra_context["label"])
+        assert soup.find("nav", attrs={"aria-label": label})
 
     def test_the_account_center_layout_renders_without_raising(self):
         loader.get_template("mvp/account/base.html").render()

@@ -39,11 +39,11 @@
     <c-slot name="footer_end">
       <c-button text="{% trans "Apply filters" %}"
                 form="filterForm"
-                icon="arrow-right"
-                reverse
                 size="lg"
                 variant="primary"
-                type="submit" />
+                type="submit">
+        <c-icon name="arrow-right" />
+      </c-button>
     </c-slot>
   </c-mvp.modal>
 {% endif %}

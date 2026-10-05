@@ -1,7 +1,0 @@
-{# @description Bottom dock navigation container. #}
-{# @prop size:select['xs','sm','md','lg','xl'] | description:"Dock size." #}
-{# @prop class:text | description:"Background classes; defaults to layout.dock.class." #}
-{# @slot c-dock.item children — The dock's items. #}
-{% load mvp %}
-<c-vars size :class="mvp_config.layout.dock.class" />
-<div class="dock {{ class }} {% variation size "dock" "xs,sm,md,lg,xl" %}">{{ slot }}</div>

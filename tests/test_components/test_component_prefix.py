@@ -1,8 +1,8 @@
 """Tests that every component the package keeps sits under the ``mvp`` prefix.
 
 The package's components live under ``mvp/templates/cotton/mvp/`` and are reached
-as ``<c-mvp.…>``. The exceptions are the icon and the basic components that
-daisy-cotton also ships, which keep their bare names until they are removed.
+as ``<c-mvp.…>``. The one exception is the icon, which daisy-cotton also ships
+and which keeps its bare name.
 
 Source: mvp/templates/cotton/
 """
@@ -17,27 +17,7 @@ import mvp
 
 COTTON_DIR = Path(next(iter(mvp.__path__))).resolve() / "templates" / "cotton"
 
-PREFIX_EXCEPTIONS = frozenset(
-    {
-        "alert.html",
-        "avatar/group.html",
-        "badge.html",
-        "breadcrumbs/index.html",
-        "breadcrumbs/item.html",
-        "button.html",
-        "divider.html",
-        "dock/index.html",
-        "dock/item.html",
-        "icon.html",
-        "link.html",
-        "menu/index.html",
-        "mockup/browser.html",
-        "mockup/code/index.html",
-        "mockup/code/line.html",
-        "mockup/phone.html",
-        "mockup/window.html",
-    }
-)
+PREFIX_EXCEPTIONS = frozenset({"icon.html"})
 
 
 def template_paths(directory):

@@ -1,11 +1,12 @@
 """Regression test for issue #127: ``c-breadcrumbs.item`` renders ``href``
 twice.
 
-``mvp/templates/cotton/breadcrumbs/item.html`` renders an explicit
-``href="{{ href }}"`` on its anchor and also spreads ``{{ attrs }}`` on the
-same element. Cotton only strips a variable out of ``attrs`` when it is
-declared in ``<c-vars>``; ``href`` was not declared, so it stayed in
-``attrs`` and was written a second time, verbatim and unrendered.
+The crumb the package used to ship rendered an explicit ``href="{{ href }}"`` on
+its anchor and also spread ``{{ attrs }}`` on the same element. Cotton only
+strips a variable out of ``attrs`` when it is declared in ``<c-vars>``; ``href``
+was not declared, so it stayed in ``attrs`` and was written a second time. The
+crumb is now daisy-cotton's, and this module holds what the package's header
+still promises about the trail a page declares.
 
 Sources are compiled through the Cotton compiler (mirroring
 ``test_class_attribute_merge.py``) so the test exercises the component
@@ -16,9 +17,12 @@ Cotton's c-vars / ``attrs`` extraction and would not reproduce this bug.
 
 from html.parser import HTMLParser
 
+import pytest
 from django import template
 from django.template.context import Context
 from django_cotton.compiler_regex import CottonCompiler
+
+from mvp.config import MVP_CONFIG
 
 compiler = CottonCompiler()
 
@@ -69,33 +73,6 @@ class TestBreadcrumbItemHrefAttribute:
         assert "Current Page" in html
 
 
-class TestTheItemTextSpan:
-    def test_the_link_branch_wraps_its_text_in_the_span(self):
-        html = render('<c-breadcrumbs.item text="Products" href="/products/" />')
-        assert '<span class="mvp-breadcrumb-text">Products</span>' in html
-
-    def test_the_non_link_branch_wraps_its_text_in_the_span(self):
-        html = render('<c-breadcrumbs.item text="Current Page" />')
-        assert '<span class="mvp-breadcrumb-text">Current Page</span>' in html
-
-    def test_the_slot_stays_outside_the_span(self):
-        html = render(
-            '<c-breadcrumbs.item text="Products" href="/products/">'
-            "<b>marker</b>"
-            "</c-breadcrumbs.item>"
-        )
-        assert html.index("</span>") < html.index("<b>marker</b>")
-
-    def test_href_class_and_attrs_still_land_where_they_did(self):
-        html = render(
-            '<c-breadcrumbs.item text="Products" href="/products/" '
-            'class="foo" data-x="1" />'
-        )
-        assert attrs_named_on(html, "a", "href") == ["/products/"]
-        assert attrs_named_on(html, "li", "class") == ["foo"]
-        assert attrs_named_on(html, "a", "data-x") == ["1"]
-
-
 class TestTheTrailsClassStaysOnTheTrail:
     def test_a_class_on_the_trail_does_not_reach_its_items(self):
         html = render(
@@ -113,3 +90,52 @@ class TestTheTrailsClassStaysOnTheTrail:
         )
         assert attrs_named_on(html, "a", "href") == ["/"]
         assert "Products" in html
+
+
+class TestADeclaredTrailRendersInTheHeader:
+    @pytest.fixture
+    def trail(self, cotton_render_string_soup):
+        page = {
+            "breadcrumbs": [
+                {"text": "Home", "href": "/"},
+                {"text": "Products", "href": "/products/", "data-crumb": "middle"},
+                {"text": "Widget"},
+            ]
+        }
+        soup = cotton_render_string_soup(
+            "<c-mvp.app.header.navbar />",
+            context={"page": page, "mvp_config": MVP_CONFIG},
+        )
+        return soup.find("nav", class_="breadcrumbs")
+
+    def test_one_crumb_renders_per_entry_in_order(self, trail):
+        crumbs = trail.select("ul > li")
+
+        assert len(crumbs) == 3
+        assert [crumb.get_text(strip=True) for crumb in crumbs] == [
+            "Home",
+            "Products",
+            "Widget",
+        ]
+
+    def test_an_entry_with_an_address_is_a_link_to_it(self, trail):
+        links = trail.select("li > a")
+
+        assert [link["href"] for link in links] == ["/", "/products/"]
+
+    def test_an_entry_with_no_address_is_the_current_page(self, trail):
+        current = trail.select("li > [aria-current='page']")
+
+        assert len(current) == 1
+        assert current[0].name != "a"
+        assert current[0].get_text(strip=True) == "Widget"
+
+    def test_extra_attributes_land_on_the_list_item(self, trail):
+        item = trail.select("ul > li")[1]
+
+        assert item["data-crumb"] == "middle"
+        assert not item.find("a").has_attr("data-crumb")
+
+    def test_the_address_is_written_once(self, trail):
+        assert str(trail).count('href="/products/"') == 1
+        assert not trail.select_one("ul > li").has_attr("href")

@@ -452,11 +452,13 @@ class MVPDeleteView(MVPModelFormBase, generic.DeleteView):
         related_objects_max_per_group (int): Maximum number of related objects
             shown per group before an overflow note is displayed.
             Defaults to ``25``.
-        related_objects_attrs (dict): Attributes passed straight to the alert
-            that presents the related-objects summary, e.g.
+        related_objects_attrs (dict): Attributes passed straight to daisy-cotton's
+            alert that presents the related-objects summary, e.g.
             ``{"variant": "warning"}`` when the cascade is more consequential
-            than a routine cleanup. A view that sets it replaces the default
-            rather than adding to it. Defaults to ``{"variant": "info"}``.
+            than a routine cleanup. The alert accepts the variants ``info``,
+            ``success``, ``warning`` and ``error``. A view that sets it replaces
+            the default rather than adding to it. Defaults to
+            ``{"variant": "info"}``.
 
     Override hooks:
         get_confirmation_value(): Returns the string the user must type.
