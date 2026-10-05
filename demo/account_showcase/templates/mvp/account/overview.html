@@ -5,13 +5,13 @@
   <c-mvp.card title="{% trans "Component Library" %}"
           icon="overview">
     <c-mvp.text>
-      {% trans "Every packaged component the shell ships, with the markup that renders it." %}
+      {% trans "The components the shell is built from, with the markup that renders each one." %}
     </c-mvp.text>
     <c-slot name="footer">
       <c-button href="{% url 'layout' %}"
-                text="{% trans "Browse components" %}"
-                icon="arrow-right"
-                reverse />
+                text="{% trans "Browse components" %}">
+        <c-icon name="arrow-right" aria-hidden="true" />
+      </c-button>
     </c-slot>
   </c-mvp.card>
 {% endblock account.cards %}

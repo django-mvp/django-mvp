@@ -9,7 +9,7 @@
     {% block content %}
       {% include "mvp/account/_development_notice.html" %}
       {% if form.errors %}
-        <c-alert variant="error" class="mb-6">
+        <c-alert variant="error" class="mb-6" only>
           <span>{% trans "Invalid username or password." %}</span>
         </c-alert>
       {% endif %}
@@ -36,7 +36,7 @@
         <c-button type="submit"
                   variant="primary"
                   text="{% trans "Sign In" %}"
-                  class="w-full" />
+                  class="w-full" only />
         <input type="hidden" name="next" value="{{ next }}" />
       </c-mvp.form>
     {% endblock content %}

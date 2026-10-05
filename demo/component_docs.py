@@ -29,23 +29,37 @@ COMPONENTS = [
         "button",
         "Button",
         "check2-square",
-        "Actions and links with variants, sizes, and icons.",
+        "From daisy-cotton. Actions and links with variants, sizes, and icons.",
     ),
     ComponentDoc(
         "link",
         "Link",
         "link",
-        "A styled inline text link, for prose rather than actions.",
+        "From daisy-cotton. A styled inline text link, for prose rather than actions.",
     ),
-    ComponentDoc("badge", "Badge", "bell", "Compact labels and counts."),
-    ComponentDoc("alert", "Alert", "info-circle", "Inline contextual messages."),
+    ComponentDoc(
+        "badge", "Badge", "bell", "From daisy-cotton. Compact labels and counts."
+    ),
+    ComponentDoc(
+        "alert",
+        "Alert",
+        "info-circle",
+        "From daisy-cotton. Inline contextual messages.",
+    ),
     ComponentDoc("card", "Card", "grid", "A padded surface for grouping content."),
     ComponentDoc(
-        "divider", "Divider", "dash", "Separate content, horizontally or vertically."
+        "divider",
+        "Divider",
+        "dash",
+        "From daisy-cotton. Separate content, horizontally or vertically.",
     ),
     ComponentDoc("icon", "Icon", "star", "Render any registered icon by name."),
     ComponentDoc(
-        "avatar", "Avatar", "person-circle", "User pictures, status dots, and groups."
+        "avatar",
+        "Avatar",
+        "person-circle",
+        "User pictures and status dots from this package, and the avatar group "
+        "from daisy-cotton.",
     ),
     ComponentDoc(
         "data-field",
@@ -70,7 +84,10 @@ COMPONENTS = [
     ),
     ComponentDoc("modal", "Modal", "layout", "A dialog overlay opened via JavaScript."),
     ComponentDoc(
-        "mockup", "Mockup", "laptop", "Device and browser frames for screenshots."
+        "mockup",
+        "Mockup",
+        "laptop",
+        "From daisy-cotton. Device and browser frames for screenshots.",
     ),
     ComponentDoc(
         "placeholder",

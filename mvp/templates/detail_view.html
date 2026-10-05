@@ -11,14 +11,14 @@
               text="{% trans 'Edit' %}"
               icon="edit"
               size="sm"
-              variant="primary" />
+              variant="primary" only />
   {% endif %}
   {% if directory.delete_url %}
     <c-button href="{{ directory.delete_url }}"
               text="{% trans 'Delete' %}"
               icon="delete"
               size="sm"
-              variant="error" />
+              variant="error" only />
   {% endif %}
 {% endblock page.actions %}
 {% block page.content %}

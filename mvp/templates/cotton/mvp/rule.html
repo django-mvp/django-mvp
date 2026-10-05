@@ -1,9 +1,9 @@
 {# @description A hairline between items in one list, where a divider would be too loud. #}
 {# @prop class:text | description:"Extra classes on the <hr>." #}
 {% comment %}
-  Distinct from <c-divider>: daisyUI's divider is a thick line with room for
-  a label, too loud repeated between items of one list. This is one
-  border-width of `base-300` and nothing else.
+  Distinct from daisy-cotton's <c-divider>: daisyUI's divider is a thick line
+  with room for a label, too loud repeated between items of one list. This is
+  one border-width of `base-300` and nothing else.
 {% endcomment %}
 <c-vars class />
 <hr class="border-base-300 {{ class }}" {{ attrs }}>

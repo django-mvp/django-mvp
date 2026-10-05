@@ -13,7 +13,7 @@
               size="{{ size }}"
               class="btn-square"
               aria-label="{% trans "Select a language" %}"
-              @click="{{ id }}.showModal()" />
+              @click="{{ id }}.showModal()" only />
     <c-mvp.modal id="{{ id }}"
              title="{% trans "Select a language" %}"
              icon="globe"

@@ -11,27 +11,35 @@
   </c-components.section>
 
   <c-components.section title="With a label"
-                        description="Pass label (or slot content) to place text in the middle of the line.">
+                        description="Pass text (or slot content) to place a label in the middle of the line.">
     {% cotton:verbatim %}
-      <c-divider label="OR" />
+      <c-divider text="OR" />
+    {% endcotton:verbatim %}
+  </c-components.section>
+
+  <c-components.section title="Label placement"
+                        description="Set placement to start or end to move the label to one end of the line. Leave it out to centre the label.">
+    {% cotton:verbatim %}
+      <c-divider text="Start" placement="start" />
+      <c-divider text="End" placement="end" />
     {% endcotton:verbatim %}
   </c-components.section>
 
   <c-components.section title="Colours"
                         description="Tint the divider with the variant attribute.">
     {% cotton:verbatim %}
-      <c-divider variant="primary" label="Primary" />
-      <c-divider variant="secondary" label="Secondary" />
-      <c-divider variant="accent" label="Accent" />
+      <c-divider variant="primary" text="Primary" />
+      <c-divider variant="secondary" text="Secondary" />
+      <c-divider variant="accent" text="Accent" />
     {% endcotton:verbatim %}
   </c-components.section>
 
-  <c-components.section title="Vertical"
-                        description="Add vertical to separate side-by-side content in a flex row. The divider stretches to the height of its container.">
+  <c-components.section title="Between side-by-side content"
+                        description="Add horizontal to draw a vertical line between items in a flex row. The divider stretches to the height of its container. The names follow the daisyUI modifiers: horizontal lays the divider out for a row of items, and vertical, the default, for a stack.">
     {% cotton:verbatim %}
       <div class="flex w-full" style="height: 6rem">
         <div class="grid grow place-items-center">Left</div>
-        <c-divider vertical label="OR" />
+        <c-divider horizontal text="OR" />
         <div class="grid grow place-items-center">Right</div>
       </div>
     {% endcotton:verbatim %}

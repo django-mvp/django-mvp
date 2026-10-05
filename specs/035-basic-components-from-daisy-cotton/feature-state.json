@@ -1,0 +1,438 @@
+{
+  "feature": "035-basic-components-from-daisy-cotton",
+  "branch": "035-basic-components-from-daisy-cotton",
+  "repo": "django-mvp/django-mvp",
+  "state": "PR_READY",
+  "state_history": [
+    {
+      "state": "QUEUED",
+      "at": "2026-10-05T14:26:53Z",
+      "note": "specification approved; issue graph built"
+    },
+    {
+      "state": "PLAN",
+      "at": "2026-10-05T16:19:43Z",
+      "note": "build started on the approved specification"
+    },
+    {
+      "state": "DESIGN_REVIEW",
+      "at": "2026-10-05T16:19:44Z",
+      "note": "plan, research and tasks written"
+    },
+    {
+      "state": "IMPLEMENT",
+      "at": "2026-10-05T16:28:06Z",
+      "note": "plan gate open; design review applied"
+    },
+    {
+      "state": "CONVERGE",
+      "at": "2026-10-05T17:18:30Z",
+      "note": "all four stories built"
+    },
+    {
+      "state": "REVIEW",
+      "at": "2026-10-05T17:20:21Z",
+      "note": "converged; gates green"
+    },
+    {
+      "state": "PR_READY",
+      "at": "2026-10-05T17:35:21Z",
+      "note": "review closed, walkthrough laid out, open for review"
+    }
+  ],
+  "gates": {
+    "spec": {
+      "approved_by": "delegated review",
+      "at": "2026-10-05T14:26:47Z",
+      "self_resolved": [
+        "approved at 069e1f4 under the spec gate opened for the run of 2026-10-05"
+      ]
+    },
+    "plan": {
+      "approved_by": "open",
+      "at": "2026-10-05T16:27:48Z",
+      "self_resolved": []
+    },
+    "merge": {
+      "approved_by": null,
+      "at": null
+    },
+    "design_review": {
+      "approved_by": "design-review",
+      "at": "2026-10-05T16:27:48Z",
+      "self_resolved": [
+        "SPEC-001 medium: leak test compares direct calls only; D15 put to the orchestrator before US3 (D19)",
+        "SPEC-002 medium: dock toggle key handlers dropped by ruling; carried unmet on daisy-cotton#135 (D14)",
+        "SPEC-003 low: demo scan table holds undeclared names only (plan section 8)",
+        "ARCH-001 low: overtaken by D14",
+        "ARCH-002 low: hyphen mapping, tag parser, dynamic calls excluded (plan section 4)",
+        "ARCH-003 low: reader is one class in a tests helper module (plan section 4)",
+        "SEC-001 low speculative: daisy-cotton 0.1.2 unchecked; carried to the R29 release"
+      ]
+    },
+    "review": {
+      "approved_by": "code-review",
+      "at": "2026-10-05T17:31:51Z",
+      "self_resolved": [
+        "COR-001 medium: packaged templates now scanned for former attribute names - remedied (T014)",
+        "COR-002 low: breadcrumb address counted in raw output - remedied (T014)",
+        "COR-003 low: changelog names Python attribute dictionaries - remedied (T014)",
+        "COR-004 low likely: badge display in rail dropdowns - remedied (T014), for the walkthrough to confirm by eye"
+      ]
+    },
+    "walkthrough": {
+      "approved_by": null,
+      "at": "2026-10-05T17:34:35Z",
+      "self_resolved": []
+    }
+  },
+  "stories": [
+    {
+      "id": "US1",
+      "priority": "P1",
+      "issue": 461,
+      "worktree": "/home/sam/projects/django-mvp/worktrees/mvp-035-basic-components-from-daisy-cotton",
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T001",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_basic_components.py",
+              "tests/test_components/test_component_prefix.py"
+            ],
+            "commands": [
+              "uv run pytest tests/test_components/test_basic_components.py tests/test_components/test_component_prefix.py -q (before the deletion: 34 failed 3 passed, and 2 failed 4 passed)",
+              "uv run pytest tests/test_components/test_basic_components.py tests/test_components/test_component_prefix.py -q (after the deletion: 43 passed)"
+            ],
+            "code": [
+              "tests/test_components/test_basic_components.py:38",
+              "tests/test_components/test_component_prefix.py:20"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T002",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_basic_components.py::TestBasicComponentsComeFromDaisyCotton"
+            ],
+            "commands": [
+              "git rm of the sixteen templates under mvp/templates/cotton/",
+              "uv run pytest -q -n auto (with only the deletion in place: 26 failed, 2640 passed, 1 skipped)"
+            ],
+            "code": [
+              "mvp/templates/cotton/icon.html:1"
+            ],
+            "verified_by_ci": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "US2",
+      "priority": "P1",
+      "issue": 462,
+      "worktree": "/home/sam/projects/django-mvp/worktrees/mvp-035-basic-components-from-daisy-cotton",
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T003",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_messages.py",
+              "tests/test_components/test_share_dropdown.py",
+              "tests/test_renderers.py::TestMobileFooterNavRenderer",
+              "tests/test_templates.py::TestPagesCarryNoFormerAttributeName",
+              "tests/test_components/test_layout_config.py::TestHeaderAndDockBackground",
+              "tests/test_components/test_menu.py::TestSidebarContainerTakesItsNameFromContext",
+              "tests/test_components/test_breadcrumbs_href_attribute.py::TestADeclaredTrailRendersInTheHeader",
+              "tests/test_components/test_theme_controller.py::TestThemeControllerOfferedSetShape",
+              "tests/test_views/test_edit.py::TestMVPDeleteViewRelatedObjectsPresentation"
+            ],
+            "commands": [
+              "uv run pytest tests/test_components tests/test_templates.py tests/test_menus.py tests/test_renderers.py tests/test_views tests/test_demo -q -n auto (1809 passed, 1 skipped, 1 failed: the e2e test named under T005)"
+            ],
+            "code": [
+              "tests/test_templates.py:438",
+              "tests/test_components/test_messages.py:47",
+              "tests/test_renderers.py:28"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T004",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_templates.py::TestPagesCarryNoFormerAttributeName",
+              "tests/test_components/test_menu.py",
+              "tests/test_components/test_sidebar_footer.py",
+              "tests/test_components/test_layout_config.py"
+            ],
+            "commands": [
+              "uv run pytest -q -n auto (2680 passed, 1 skipped, 1 failed: the e2e test named under T005)",
+              "python scan of every <c-...> call to the sixteen tags under mvp/templates for the former attribute names: none found"
+            ],
+            "code": [
+              "mvp/templates/menus/sidebar/container.html:2",
+              "mvp/templates/menus/dock/index.html:2",
+              "mvp/templates/cotton/mvp/actions/login.html:17",
+              "mvp/templates/cotton/mvp/app/header/navbar.html:26"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T005",
+          "status": "done",
+          "attempts": 2,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_app_header_e2e.py::TestALongTrailShrinksInsteadOfScrolling",
+              "tests/test_components/test_daisy_cotton_coverage.py"
+            ],
+            "commands": [
+              "uv run invoke build-stylesheet",
+              "uv run pytest tests/test_components/test_app_header_e2e.py -q"
+            ],
+            "code": [
+              "mvp/tailwind/base.css:706"
+            ]
+          }
+        },
+        {
+          "id": "T011",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_app_header_e2e.py",
+              "tests/test_components/test_menu.py",
+              "tests/test_components/test_breadcrumbs_href_attribute.py::TestADeclaredTrailRendersInTheHeader"
+            ],
+            "commands": [
+              "uv run pytest tests/test_components/test_menu.py tests/test_components/test_breadcrumbs_href_attribute.py tests/test_components/test_app_header_e2e.py -q"
+            ],
+            "code": [
+              "tests/test_components/test_app_header_e2e.py:58"
+            ]
+          }
+        },
+        {
+          "id": "T012",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_daisy_cotton_install.py"
+            ],
+            "commands": [
+              "uv lock",
+              "uv run pytest tests/test_components/test_daisy_cotton_install.py -q"
+            ],
+            "code": [
+              "pyproject.toml:43"
+            ]
+          }
+        },
+        {
+          "id": "T013",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_messages.py::TestAProjectsOwnLevelTag"
+            ],
+            "commands": [
+              "uv run pytest tests/test_components/test_messages.py -q"
+            ],
+            "code": [
+              "mvp/templates/cotton/mvp/messages.html:9"
+            ]
+          }
+        },
+        {
+          "id": "T014",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_daisy_cotton_calls.py::TestPackagedCalls::test_no_call_passes_a_former_attribute_name",
+              "tests/test_components/test_breadcrumbs_href_attribute.py::TestADeclaredTrailRendersInTheHeader::test_the_address_is_written_once"
+            ],
+            "commands": [
+              "uv run invoke build-stylesheet",
+              "uv run pytest tests/test_components/test_daisy_cotton_calls.py tests/test_demo/test_basic_component_attributes.py tests/test_components/test_breadcrumbs_href_attribute.py -q"
+            ],
+            "code": [
+              "tests/daisy_cotton_calls.py:20",
+              "mvp/tailwind/base.css:290"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "US3",
+      "priority": "P2",
+      "issue": 463,
+      "worktree": "/home/sam/projects/django-mvp/worktrees/mvp-035-basic-components-from-daisy-cotton",
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T006",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_daisy_cotton_calls.py",
+              "tests/test_components/test_daisy_cotton_isolation.py::TestPageVariablesAndDirectCalls",
+              "tests/test_components/test_daisy_cotton_isolation.py::TestContentInsideAnIsolatedAlert",
+              "tests/test_components/test_daisy_cotton_isolation.py::TestDismissibleAlertCalledWithOnly"
+            ],
+            "commands": [
+              "uv run pytest tests/test_components/test_daisy_cotton_calls.py tests/test_components/test_daisy_cotton_isolation.py -q (before T007: 3 failed, 18 passed; the check named 47 calls, the leak test failed on the list page's nav.breadcrumbs and the sign-out page's a.link)"
+            ],
+            "code": [
+              "tests/daisy_cotton_calls.py:17",
+              "tests/test_components/test_daisy_cotton_calls.py:23",
+              "tests/test_components/test_daisy_cotton_isolation.py:117"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T007",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_daisy_cotton_calls.py::TestPackagedCalls::test_every_call_to_a_daisy_cotton_component_is_isolated",
+              "tests/test_components/test_daisy_cotton_isolation.py::TestPageVariablesAndDirectCalls"
+            ],
+            "commands": [
+              "uv run pytest tests/test_components/test_daisy_cotton_calls.py tests/test_components/test_daisy_cotton_isolation.py -q (after: 21 passed)",
+              "uv run pytest -q -n auto (2687 passed, 1 skipped)",
+              "forge verify --repo . --base origin/main (exit 0: conformance, docs, uv:lint, uv:typecheck, uv:test, uv:build passed)"
+            ],
+            "code": [
+              "mvp/templates/menus/dock/index.html:2",
+              "mvp/templates/mvp/account/logout.html:15",
+              "mvp/templates/cotton/mvp/app/header/navbar.html:26"
+            ],
+            "verified_by_ci": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "US4",
+      "priority": "P2",
+      "issue": 464,
+      "worktree": "/home/sam/projects/django-mvp/worktrees/mvp-035-basic-components-from-daisy-cotton",
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T008",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_demo/test_basic_component_attributes.py",
+              "tests/test_components/test_daisy_cotton_calls.py"
+            ],
+            "commands": [
+              "uv run pytest tests/test_demo/test_basic_component_attributes.py -q (before the demo moved: 1 failed, 5 passed; the scan named 10 offenders: button reverse x3, button full x2, divider label x5)",
+              "uv run pytest tests/test_demo -q -n auto (after: 91 passed)",
+              "uv run pytest tests/test_components/test_daisy_cotton_calls.py tests/test_demo/test_basic_component_attributes.py -q (14 passed)"
+            ],
+            "code": [
+              "tests/test_demo/test_basic_component_attributes.py:17",
+              "tests/test_demo/test_basic_component_attributes.py:35",
+              "tests/daisy_cotton_calls.py:93",
+              "tests/daisy_cotton_calls.py:110"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T009",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_checks.py",
+              "tests/test_smoke.py",
+              "tests/test_utils.py",
+              "tests/test_components/test_declared_attributes.py",
+              "tests/test_views/test_inline.py",
+              "tests/test_components/test_daisy_cotton_install.py"
+            ],
+            "commands": [
+              "forge verify --repo . --base origin/main --steps docs,lint (docs passed, uv:lint passed)",
+              "uv run pytest tests/test_checks.py tests/test_smoke.py tests/test_utils.py tests/test_components/test_declared_attributes.py tests/test_views/test_inline.py tests/test_components/test_daisy_cotton_install.py -q -n auto (735 passed)"
+            ],
+            "code": [
+              "docs/components.md:47",
+              "docs/components.md:77",
+              "docs/components.md:101"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T010",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [],
+            "commands": [
+              "forge verify --repo . --base origin/main --steps docs,lint (docs passed, uv:lint passed)"
+            ],
+            "code": [
+              "CHANGELOG.md:158",
+              "CHANGELOG.md:231"
+            ],
+            "verified_by_ci": false
+          }
+        }
+      ]
+    }
+  ],
+  "budgets": {
+    "converge_cycles": {
+      "used": 1,
+      "max": 2
+    },
+    "review_cycles": {
+      "used": 1,
+      "max": 1
+    },
+    "design_review_cycles": {
+      "used": 1,
+      "max": 1
+    },
+    "tokens": {
+      "used": 22.99,
+      "max": 120
+    }
+  },
+  "pr": {
+    "number": 447,
+    "draft": false
+  }
+}

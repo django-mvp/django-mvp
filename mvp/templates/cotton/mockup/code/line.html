@@ -1,6 +1,0 @@
-{# @description One line of a c-mockup.code block. #}
-{# @prop prefix:text | default:"$" | description:"Prompt character shown before the line; empty for an output line." #}
-{# @prop text:text | description:"The line's text." #}
-{# @slot Extra output on this line. — Content appended after text. #}
-<c-vars prefix="$" text />
-<pre data-prefix="{{ prefix }}"><code>{{ text }}{{ slot }}</code></pre>

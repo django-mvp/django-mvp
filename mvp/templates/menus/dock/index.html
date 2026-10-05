@@ -1,5 +1,5 @@
 {% load flex_menu %}
-<c-dock>
+<c-dock :class="mvp_config.layout.dock.class" only>
   {% for child in children %}
     {% render_item child renderer=renderer %}
   {% endfor %}

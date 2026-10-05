@@ -51,7 +51,7 @@
                     icon="trash"
                     aria-label="{{ remove_label }}"
                     class="text-error opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100"
-                    x-on:click="remove()" />
+                    x-on:click="remove()" only />
         {% endif %}
       </div>
     {% endif %}
@@ -94,7 +94,7 @@
                       icon="trash"
                       aria-label="{{ remove_label }}"
                       class="text-error opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100"
-                      x-on:click="remove()" />
+                      x-on:click="remove()" only />
           {% endif %}
         </div>
       {% endif %}

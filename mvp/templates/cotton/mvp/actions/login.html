@@ -12,10 +12,10 @@
   {% if login_url %}
     <c-button text="{% trans "Log in" %}"
               href="{{ login_url }}"
-              icon="login"
-              reverse
               size="sm"
               variant="{{ variant }}"
-              :full="full" />
+              :block="full" only>
+      <c-icon name="login" />
+    </c-button>
   {% endif %}
 {% endif %}

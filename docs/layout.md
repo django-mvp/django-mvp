@@ -417,14 +417,18 @@ The packaged stylesheet only has the classes it was built with. `bg-base-100` th
 `bg-base-300`, `bg-transparent` and `backdrop-blur` are in it. For anything else, build your own
 stylesheet with `python manage.py mvp_tailwind`.
 
-`<c-mvp.app.header>` and `<c-dock>` also take a `class` attribute, which wins over the setting wherever
-you render them yourself, for example to change one page's header:
+`<c-mvp.app.header>` also takes a `class` attribute, which wins over the setting wherever
+you render it yourself, for example to change one page's header:
 
 ```html
 {% block app.header %}
   <c-mvp.app.header class="bg-base-200" />
 {% endblock %}
 ```
+
+The dock is daisy-cotton's `<c-dock>`, which has no default class of its own. The shell's
+dock template passes it `layout.dock.class`; a `<c-dock>` you write yourself takes the class
+you give it.
 
 ## Announcement banner
 

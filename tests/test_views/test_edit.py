@@ -1477,6 +1477,23 @@ class TestMVPDeleteViewRelatedObjectsPresentation:
         assert "mt-4" in alert["class"]
         assert alert["data-testid"] == "cascade"
 
+    def test_daisy_cotton_alert_attributes_reach_the_alert(
+        self, monkeypatch, client, category
+    ):
+        from demo.views import CategoryDeleteWithRelatedView
+
+        self._stub_related_objects(monkeypatch, category)
+        monkeypatch.setattr(
+            CategoryDeleteWithRelatedView,
+            "related_objects_attrs",
+            {"variant": "info", "soft": True, "outline": True},
+        )
+        url = reverse("category-delete-related", kwargs={"pk": category.pk})
+        response = client.get(url)
+        alert = self._related_objects_alert(response.content.decode())
+        assert "alert-soft" in alert["class"]
+        assert "alert-outline" in alert["class"]
+
     def test_attrs_are_presentation_only(self, monkeypatch, client, category):
         self._stub_related_objects(monkeypatch, category)
         default_url = reverse("category-delete-related", kwargs={"pk": category.pk})

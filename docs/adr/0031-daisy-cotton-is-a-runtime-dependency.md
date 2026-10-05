@@ -4,14 +4,15 @@
 
 ## Decision
 
-`daisy-cotton` is declared in `[project].dependencies` with the range `>=0.1.2,<0.2`. A project
+`daisy-cotton` is declared in `[project].dependencies` with the range `>=0.1.3,<0.2`. A project
 adds `daisy_cotton` to its own `INSTALLED_APPS`, directly below `mvp`. The package never edits a
 project's settings.
 
-Nothing on any page changes with this release. Both packages ship Cotton components under the
-same names, Cotton takes the first app that has one, and `mvp` is listed first, so every
-component that exists in both still comes from this package. The components only daisy-cotton
-ships are now found, and nothing in this package calls them yet.
+Installing it changed nothing on any page by itself. At the time both packages shipped Cotton
+components under the same names, Cotton takes the first app that has one, and `mvp` is listed
+first. Since then this package has stopped shipping its own basic components (the button, the
+alert and the like), so those tags now reach daisy-cotton's. The icon is the one name both
+packages still ship.
 
 `django-cotton` stays pinned at `2.6.1`.
 
@@ -27,7 +28,9 @@ components. They are part of how it renders, not an optional integration, so the
 guard an import behind and no fallback to degrade to.
 
 daisy-cotton is not yet at 1.0, and it says its component names, attributes and emitted classes can
-change between minor versions. `0.1.2` is the first release with everything this move needs. The
+change between minor versions. `0.1.2` was the first release with everything the install needed, and the floor moved to
+`0.1.3` when the basic components were taken from it, because that is the release they were
+tested against. The
 upper bound stops a new minor version arriving unannounced. Moving it is a decision made when that
 release is tested with this package.
 
@@ -35,11 +38,10 @@ The project lists the app itself because Django finds an app's templates only wh
 names the app. This is the same arrangement as `crispy_forms` and `mvp_forms` in
 [ADR 0029](0029-forms-are-drawn-by-django-mvp-forms.md).
 
-`daisy_cotton` goes below `mvp` because both packages ship components under the same names and the
-first app listed wins. Some daisy-cotton components draw a button or a menu item inside themselves.
-Until this package stops shipping its own versions of those, listing `daisy_cotton` first would
-change how pages look. Listed below `mvp`, daisy-cotton's components fill only the names this
-package does not use.
+`daisy_cotton` goes below `mvp` because the first app listed wins where both packages ship a
+component under the same name. That is now the icon alone: this package's icon looks a name up
+in the configured icon packs, and daisy-cotton's own components draw their icons through it.
+Listed above `mvp`, daisy-cotton's plain icon would answer instead.
 
 ## Revisit if
 

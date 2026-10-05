@@ -15,6 +15,7 @@ script.
 """
 
 import pytest
+from bs4 import BeautifulSoup
 from django import template
 from django.template.context import Context
 from django_cotton.compiler_regex import CottonCompiler
@@ -156,10 +157,10 @@ class TestDropdownTrigger:
             "</c-mvp.dropdown>"
         )
 
-        assert (
-            '<button class="btn btn-primary  inline-flex items-center '
-            'justify-center gap-2 " tabindex="0" role="button">'
-        ) in html
+        button = BeautifulSoup(html, "html.parser").find("button")
+        assert "btn-primary" in button["class"]
+        assert button["tabindex"] == "0"
+        assert button["role"] == "button"
         assert "<span>Options</span>" in html
         assert 'class="bi bi-gear"' in html
         assert "text=" not in html, (

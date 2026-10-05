@@ -133,7 +133,7 @@ declaration per row set.
 
 ## Component Library
 
-The complete component library is declared below: 67 components under the `mvp.` prefix and 17 that keep a bare name. Components are organized by their namespace (directory). A component this package owns is written `c-mvp.` followed by its path: `c-mvp.app.header` means the `header.html` template inside the `app/` directory of `mvp/templates/cotton/mvp/`. The 17 bare names are `c-icon`, which is permanent, and the basic components that wait for #435; the Component Naming Rules say why.
+The complete component library is declared below: 67 components under the `mvp.` prefix and one that keeps a bare name, `c-icon`. Components are organized by their namespace (directory). A component this package owns is written `c-mvp.` followed by its path: `c-mvp.app.header` means the `header.html` template inside the `app/` directory of `mvp/templates/cotton/mvp/`. The sixteen basic components this package uses are daisy-cotton's and are listed apart, under Basic components from daisy-cotton; the Component Naming Rules say why.
 
 ### App
 
@@ -160,7 +160,6 @@ Layout components are **empty, configurable building blocks** — the opposite o
 c-mvp.container         — content width constraint wrapper
 c-mvp.toolbar           — horizontal action toolbar
 c-mvp.group             — flex group for inline items
-c-divider               — visual separator
 c-mvp.rule              — hairline between items in one list
 c-mvp.section           — titled content section (wraps any content with optional title/icon toolbar)
 c-mvp.backdrop          — absolutely-positioned backdrop (e.g., over hero images to improve text readability)
@@ -221,17 +220,12 @@ c-mvp.actions.login     — navbar log-in button, renders only when anonymous
 c-mvp.card              — container for grouped content
   c-mvp.card.wrapper    — the bare card surface, for a custom interior
 c-mvp.avatar            — a user's avatar, with initials when there is no image
-c-avatar.group          — group of avatars
-c-badge                 — status/count badge
 c-icon                  — icon glyph (iconify)
 c-mvp.text              — styled text element
 c-mvp.data-field        — key-value display field
 c-mvp.messages          — Django messages flash list
-c-alert                 — contextual alert banner
 c-mvp.modal             — modal dialog overlay
 c-mvp.dropdown          — dropdown menu trigger
-c-button                — action button
-c-link                  — styled inline text link
 c-mvp.brand.logo        — brand logo image
 c-mvp.brand.icon        — brand icon glyph
 ```
@@ -239,26 +233,39 @@ c-mvp.brand.icon        — brand icon glyph
 ### Navigation
 
 ```
-c-breadcrumbs
-  c-breadcrumbs.item
 c-mvp.pagination
   c-mvp.pagination.link
   c-mvp.pagination.wrapper — join wrapper around pagination links
-c-dock                  — bottom dock navigation
-  c-dock.item
-c-menu                  — menu container
-  c-mvp.menu.group      — collapsible menu group
-  c-mvp.menu.item       — single menu entry
-  c-mvp.menu.collapse   — collapsible menu toggle
-  c-mvp.menu.divider    — menu separator line
+c-mvp.menu.group        — collapsible menu group
+c-mvp.menu.item         — single menu entry
+c-mvp.menu.collapse     — collapsible menu toggle
+c-mvp.menu.divider      — menu separator line
 ```
 
-### Placeholders & Mockups
+### Placeholders
 
-Loading states, placeholders, and visual mockup components.
+Loading states and placeholder components.
 
 ```
 c-mvp.placeholder.card  — coming-soon placeholder
+```
+
+### Basic components from daisy-cotton
+
+The basic components come from daisy-cotton, which is installed with this package, and are configured the way daisy-cotton documents. A project override at the same path still wins over daisy-cotton's template.
+
+```
+c-alert                 — contextual alert banner
+c-avatar.group          — group of avatars
+c-badge                 — status/count badge
+c-breadcrumbs
+  c-breadcrumbs.item
+c-button                — action button
+c-divider               — visual separator
+c-dock                  — bottom dock navigation
+  c-dock.item
+c-link                  — styled inline text link
+c-menu                  — menu container
 c-mockup.browser        — browser window mockup
 c-mockup.code           — code block mockup
   c-mockup.code.line    — code line with prefix
@@ -305,7 +312,7 @@ c-mvp.documentation     — tabbed preview, source and output surface rendered b
 3. **Directory = namespace**: A component's directory under `mvp/templates/cotton/mvp/` determines its namespace. `mvp/templates/cotton/mvp/card/index.html` → `c-mvp.card`. `mvp/templates/cotton/mvp/card/wrapper.html` → `c-mvp.card.wrapper`.
 4. **No implementation leakage**: Component names must not reference DaisyUI, Tailwind, or any external design system. They describe *what they are*, not *how they look*.
 5. **The `mvp.` prefix marks this package's components**, so none of them can share a name with a daisy-cotton component. The icon is the one exception: `c-icon` stays at `mvp/templates/cotton/icon.html` for good, because daisy-cotton ships a plain icon and expects a project to replace it, and this package's icon replaces it by sitting at the same name.
-6. **The basic components are bare until #435.** `c-alert`, `c-avatar.group`, `c-badge`, `c-breadcrumbs`, `c-breadcrumbs.item`, `c-button`, `c-divider`, `c-dock`, `c-dock.item`, `c-link`, `c-menu` and `c-mockup.*` keep their bare names until #435 removes them in favour of daisy-cotton's. Until then a bare name can mean this package's component or daisy-cotton's.
+6. **The basic components are daisy-cotton's.** `c-alert`, `c-avatar.group`, `c-badge`, `c-breadcrumbs`, `c-breadcrumbs.item`, `c-button`, `c-divider`, `c-dock`, `c-dock.item`, `c-link`, `c-menu` and `c-mockup.*` come from daisy-cotton under its bare names, and this package ships no template for them (#435). A call to one of them from a template in this package carries `only`.
 
 ## Terminology
 

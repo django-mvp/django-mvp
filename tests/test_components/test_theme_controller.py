@@ -170,6 +170,18 @@ class TestThemeControllerOfferedSetShape:
             )
 
     @pytest.mark.django_db
+    def test_the_choices_menu_has_an_accessible_name(
+        self, cotton_render_string_soup, monkeypatch
+    ):
+        monkeypatch.setitem(MVP_CONFIG["theme"], "choices", self.CHOICES)
+
+        soup = cotton_render_string_soup(
+            "<c-mvp.actions.theme-controller />", context={"mvp_config": MVP_CONFIG}
+        )
+
+        assert soup.select_one("ul.menu")["aria-label"].strip()
+
+    @pytest.mark.django_db
     def test_no_entry_is_a_non_focusable_anchor(self, client, monkeypatch):
         monkeypatch.setitem(MVP_CONFIG["theme"], "choices", self.CHOICES)
         content = client.get("/").content.decode()
