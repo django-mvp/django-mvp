@@ -1,4 +1,4 @@
-"""E2E test for <c-section.hero> (issue #240).
+"""E2E test for <c-mvp.section.hero> (issue #240).
 
 Real-browser test, not a template-only assertion, and for the reason the issue
 exists: the hero rendered perfectly valid markup the whole time it was broken.

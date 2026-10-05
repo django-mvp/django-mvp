@@ -1,7 +1,7 @@
 """Tests for the modal-based language switcher action component.
 
-<c-actions.language-switcher-modal> is a drop-in alternative to the dropdown
-<c-actions.language-switcher>: a globe trigger button opens a native <dialog>
+<c-mvp.actions.language-switcher-modal> is a drop-in alternative to the dropdown
+<c-mvp.actions.language-switcher>: a globe trigger button opens a native <dialog>
 holding a responsive grid of languages. Selecting one posts the set_language
 form. Rendered via tests/language_switcher_modal.html.
 """

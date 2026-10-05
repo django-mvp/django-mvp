@@ -18,7 +18,7 @@ visibility moves into the stylesheet, so these tests instead assert
 **computed visibility in a real browser** — the resolved ``display`` of each
 governed region — which is indifferent to how visibility is achieved.
 
-The three governed regions (mvp/templates/cotton/app/header/navbar.html):
+The three governed regions (mvp/templates/cotton/mvp/app/header/navbar.html):
 
 1. the navbar's mobile widget list (``navbar_narrow_only_class``)
 2. the navbar's desktop widget list and ``right`` slot (``navbar_wide_only_class``)

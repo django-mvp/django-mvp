@@ -123,7 +123,7 @@ class TestTheGuardItselfReadsDeclarations:
         assert is_read("prefix", expressions('<pre data-prefix="{{ prefix }}">'))
 
     def test_a_dynamic_attribute_is_a_read(self):
-        assert is_read("info", expressions('<c-page.info :text="info" />'))
+        assert is_read("info", expressions('<c-mvp.page.info :text="info" />'))
 
     def test_a_comment_block_is_not_a_read(self):
         assert not is_read(

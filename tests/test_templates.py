@@ -87,7 +87,10 @@ class TestDefaultBaseTemplate:
 
 class TestShowCodeTemplate:
     def test_the_package_ships_the_template_the_tag_renders(self, package_only_engine):
-        assert package_only_engine.get_template("cotton/documentation.html") is not None
+        assert (
+            package_only_engine.get_template("cotton/mvp/documentation.html")
+            is not None
+        )
 
 
 def _template_files():

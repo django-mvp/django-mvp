@@ -1,7 +1,7 @@
 {# @description An overlapping row of avatars. #}
-{# @prop size:select['xs','sm','md','lg','xl','xxl'] | default:"md" | description:"Overlap spacing step, matching c-avatar's own size scale." #}
+{# @prop size:select['xs','sm','md','lg','xl','xxl'] | default:"md" | description:"Overlap spacing step, matching c-mvp.avatar's own size scale." #}
 {# @prop :space_options:text | hidden | description:"Internal size-to-spacing lookup table, not a caller-facing prop." #}
-{# @slot Two overlapping avatars. — The c-avatar elements to overlap. #}
+{# @slot Two overlapping avatars. — The c-mvp.avatar elements to overlap. #}
 {% load cotton %}
 <c-vars size="md"
         :space_options="{'xs': '2', 'sm': '4', 'md': '6', 'lg': '8', 'xl': '10', 'xxl': '12'}" />

@@ -1,4 +1,4 @@
-{# @description A thick section break, optionally labelled. See c-rule for a hairline between list items instead. #}
+{# @description A thick section break, optionally labelled. See c-mvp.rule for a hairline between list items instead. #}
 {# @prop vertical:text | description:"True or a breakpoint name; renders a vertical divider from that width up." #}
 {# @prop variant:text | description:"DaisyUI colour name for the divider line." #}
 {# @prop position:text | description:"Pushes the label toward start or end instead of centring it." #}
@@ -6,7 +6,7 @@
 {# @prop label:text | description:"Divider label text." #}
 {# @slot Section label — Alternative to label, for richer label markup. #}
 {% comment %}
-  Repeating this between the rows of one list is too loud; <c-rule> is the
+  Repeating this between the rows of one list is too loud; <c-mvp.rule> is the
   hairline for that case.
 {% endcomment %}
 {% load mvp %}

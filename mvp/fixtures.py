@@ -129,7 +129,7 @@ def cotton_render_string():
     Example::
 
         def test_button_in_template(cotton_render_string):
-            html = cotton_render_string("<c-card title='Click me'></c-card>")
+            html = cotton_render_string("<c-mvp.card title='Click me'></c-mvp.card>")
             assert "Click me" in html
 
 
@@ -195,12 +195,12 @@ def cotton_render_string_soup():
 
         def test_complex_layout_with_context(cotton_render_string_soup):
             template = '''
-                <c-card>
-                    <c-card.title>{{ title }}</c-card.title>
-                    <c-card.body>
+                <c-mvp.card>
+                    <c-mvp.card.title>{{ title }}</c-mvp.card.title>
+                    <c-mvp.card.body>
                         <c-button variant='primary'>{{ action }}</c-button>
-                    </c-card.body>
-                </c-card>
+                    </c-mvp.card.body>
+                </c-mvp.card>
             '''
             soup = cotton_render_string_soup(
                 template, context={"title": "My Card", "action": "Click Here"}

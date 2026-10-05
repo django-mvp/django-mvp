@@ -2,7 +2,7 @@
 {% load i18n %}
 {# Edit and delete come from the packaged template. Only the body is ours. #}
 {% block page.content %}
-  <c-grid cols="1" md="2" gap="3">
+  <c-mvp.grid cols="1" md="2" gap="3">
     <div>
       <dl>
         <dt>{% trans "Name" %}</dt>
@@ -30,7 +30,7 @@
     <div>
       <p>{{ object.description }}</p>
     </div>
-  </c-grid>
+  </c-mvp.grid>
   <c-button href="{% url "product-order-lines" pk=object.pk %}"
             text="{% trans "Edit product and order lines" %}"
             icon="list"

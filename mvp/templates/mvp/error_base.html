@@ -10,22 +10,22 @@
   {% endblock title %}
 {% endblock head.title %}
 {% block app %}
-  <c-entrance>
-    <c-brand.logo max-height="md" class="h-16 mb-4" />
+  <c-mvp.entrance>
+    <c-mvp.brand.logo max-height="md" class="h-16 mb-4" />
     <p class="text-6xl font-black text-base-content/10 mb-2 text-center">
       {% block error_code %}{% endblock %}
     </p>
     <h1 class="text-2xl font-bold mb-2 text-center">
       {% block heading %}{% endblock %}
     </h1>
-    <c-text size="xl" muted align="center">
+    <c-mvp.text size="xl" muted align="center">
       {% block description %}{% endblock %}
-    </c-text>
+    </c-mvp.text>
     {% block actions %}
       <c-button variant="ghost"
                 icon="arrow-left"
                 href="/"
                 text="{% trans "Return to site" %}" />
     {% endblock %}
-  </c-entrance>
+  </c-mvp.entrance>
 {% endblock app %}

@@ -1,4 +1,4 @@
-"""Tests for the <c-entrance> card's width scale (issue #126).
+"""Tests for the <c-mvp.entrance> card's width scale (issue #126).
 
 `size` names the width the page wants; the card is capped at that width from
 the `md` breakpoint up and fills its container below it. `small` is the
@@ -7,7 +7,7 @@ scale render exactly as they did.
 
 Sources are compiled through the Cotton compiler and invoked as component
 tags (mirroring `test_class_attribute_merge.py`), not rendered as raw template
-files — rendering `cotton/entrance/index.html` directly with
+files — rendering `cotton/mvp/entrance/index.html` directly with
 `render_to_string` does not route through Cotton's `<c-vars>` extraction, so
 an attribute override is silently ignored and the component renders its
 default instead.
@@ -32,7 +32,7 @@ from tests.test_components.test_responsive_safelist import (
 compiler = CottonCompiler()
 
 # Every width `size` accepts, and the one a page gets when it asks for none.
-# Kept in step with the scale documented in cotton/entrance/index.html and
+# Kept in step with the scale documented in cotton/mvp/entrance/index.html and
 # with the @source inline() safelist checked by test_responsive_safelist.py.
 SIZES = ["sm", "md", "lg", "xl", "2xl", "3xl", "4xl"]
 DEFAULT_SIZE = "2xl"
@@ -53,15 +53,17 @@ def card_classes(html):
 class TestEntranceSize:
     @pytest.mark.parametrize("size", SIZES)
     def test_each_size_caps_the_card_at_that_width(self, size):
-        classes = card_classes(render(f'<c-entrance size="{size}">x</c-entrance>'))
+        classes = card_classes(
+            render(f'<c-mvp.entrance size="{size}">x</c-mvp.entrance>')
+        )
         assert f"md:max-w-{size}" in classes
 
     def test_size_full_leaves_the_card_uncapped(self):
-        classes = card_classes(render('<c-entrance size="full">x</c-entrance>'))
+        classes = card_classes(render('<c-mvp.entrance size="full">x</c-mvp.entrance>'))
         assert not [c for c in classes if c.startswith("md:max-w-")]
 
     def test_card_fills_its_container_below_the_md_breakpoint(self):
-        classes = card_classes(render('<c-entrance size="sm">x</c-entrance>'))
+        classes = card_classes(render('<c-mvp.entrance size="sm">x</c-mvp.entrance>'))
         assert "container" in classes
         assert not [c for c in classes if c.startswith("max-w-")], (
             "an unprefixed cap would narrow the card on mobile too"
@@ -70,26 +72,26 @@ class TestEntranceSize:
 
 class TestEntranceDefaultWidth:
     def test_default_card_is_the_historic_width(self):
-        classes = card_classes(render("<c-entrance>x</c-entrance>"))
+        classes = card_classes(render("<c-mvp.entrance>x</c-mvp.entrance>"))
         assert f"md:max-w-{DEFAULT_SIZE}" in classes
 
 
 class TestEntranceDeprecatedSmall:
     def test_falsy_small_still_gives_a_full_width_card(self):
-        classes = card_classes(render('<c-entrance small="">x</c-entrance>'))
+        classes = card_classes(render('<c-mvp.entrance small="">x</c-mvp.entrance>'))
         assert not [c for c in classes if c.startswith("md:max-w-")]
 
     def test_truthy_small_still_gives_the_historic_width(self):
-        classes = card_classes(render('<c-entrance small="1">x</c-entrance>'))
+        classes = card_classes(render('<c-mvp.entrance small="1">x</c-mvp.entrance>'))
         assert f"md:max-w-{DEFAULT_SIZE}" in classes
 
 
 class TestEntranceSizesAreSafelisted:
     @pytest.mark.parametrize("size", SIZES)
     def test_each_size_is_safelisted(self, size):
-        html = render(f'<c-entrance size="{size}">x</c-entrance>')
+        html = render(f'<c-mvp.entrance size="{size}">x</c-mvp.entrance>')
         produced = _responsive_classes(html, "md")
-        assert produced, f'<c-entrance size="{size}" /> produced no md: class'
+        assert produced, f'<c-mvp.entrance size="{size}" /> produced no md: class'
 
         missing = produced - _safelisted_classes()
         assert not missing, (
@@ -102,10 +104,12 @@ class TestEntranceSizesAreSafelisted:
 class TestEntranceFullHeight:
     def test_full_height_combines_with_a_size(self):
         classes = card_classes(
-            render('<c-entrance size="4xl" full-height>x</c-entrance>')
+            render('<c-mvp.entrance size="4xl" full-height>x</c-mvp.entrance>')
         )
         assert "md:max-w-4xl" in classes
         assert "h-90/100" in classes
 
     def test_card_is_not_full_height_by_default(self):
-        assert "h-90/100" not in card_classes(render("<c-entrance>x</c-entrance>"))
+        assert "h-90/100" not in card_classes(
+            render("<c-mvp.entrance>x</c-mvp.entrance>")
+        )

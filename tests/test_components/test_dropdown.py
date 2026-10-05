@@ -1,4 +1,4 @@
-"""Tests for the <c-dropdown> component's rendered markup.
+"""Tests for the <c-mvp.dropdown> component's rendered markup.
 
 The panel is placed by ``assets/js/dropdown.js`` at run time, which needs two
 things from the template and nothing else: a hook attribute saying "this is a
@@ -57,7 +57,7 @@ every_pair = pytest.mark.parametrize(
 
 class TestDropdownUpgradeHook:
     def test_the_wrapper_carries_the_hook_attribute_once(self):
-        html = render(f"<c-dropdown>{PANEL}</c-dropdown>")
+        html = render(f"<c-mvp.dropdown>{PANEL}</c-mvp.dropdown>")
 
         assert html.count("data-mvp-dropdown") == 1, (
             "the hook attribute marks the wrapper and nothing else — a second "
@@ -68,18 +68,19 @@ class TestDropdownUpgradeHook:
     @every_pair
     def test_every_accepted_pair_resolves_to_its_placement(self, valign, halign):
         html = render(
-            f'<c-dropdown valign="{valign}" halign="{halign}">{PANEL}</c-dropdown>'
+            f'<c-mvp.dropdown valign="{valign}" '
+            f'halign="{halign}">{PANEL}</c-mvp.dropdown>'
         )
 
         assert f'data-mvp-placement="{PLACEMENTS[(valign, halign)]}"' in html
 
     def test_the_defaults_resolve_to_bottom_start(self):
-        html = render(f"<c-dropdown>{PANEL}</c-dropdown>")
+        html = render(f"<c-mvp.dropdown>{PANEL}</c-mvp.dropdown>")
 
         assert 'data-mvp-placement="bottom-start"' in html
 
     def test_a_centred_dropdown_gets_no_alignment_suffix(self):
-        html = render(f'<c-dropdown halign="center">{PANEL}</c-dropdown>')
+        html = render(f'<c-mvp.dropdown halign="center">{PANEL}</c-mvp.dropdown>')
 
         assert 'data-mvp-placement="bottom"' in html
         assert "bottom-center" not in html
@@ -87,12 +88,12 @@ class TestDropdownUpgradeHook:
 
 class TestDropdownKeepsItsDaisyUIMarkup:
     def test_the_wrapper_renders_todays_classes(self):
-        html = render(f"<c-dropdown>{PANEL}</c-dropdown>")
+        html = render(f"<c-mvp.dropdown>{PANEL}</c-mvp.dropdown>")
 
         assert 'class="dropdown dropdown-bottom dropdown-start "' in html
 
     def test_the_panel_renders_todays_classes(self):
-        html = render(f"<c-dropdown>{PANEL}</c-dropdown>")
+        html = render(f"<c-mvp.dropdown>{PANEL}</c-mvp.dropdown>")
 
         assert (
             'class="dropdown-content bg-base-100 rounded-box z-50 min-w-52'
@@ -102,45 +103,48 @@ class TestDropdownKeepsItsDaisyUIMarkup:
     @every_pair
     def test_every_accepted_pair_still_emits_its_daisyui_classes(self, valign, halign):
         html = render(
-            f'<c-dropdown valign="{valign}" halign="{halign}">{PANEL}</c-dropdown>'
+            f'<c-mvp.dropdown valign="{valign}" '
+            f'halign="{halign}">{PANEL}</c-mvp.dropdown>'
         )
 
         assert f'class="dropdown dropdown-{valign} dropdown-{halign} "' in html
 
     def test_there_is_exactly_one_panel(self):
-        html = render(f"<c-dropdown>{PANEL}</c-dropdown>")
+        html = render(f"<c-mvp.dropdown>{PANEL}</c-mvp.dropdown>")
 
         assert html.count("dropdown-content") == 1
 
 
 class TestDropdownProps:
     def test_full_stretches_the_panel_to_the_trigger(self):
-        html = render(f"<c-dropdown full>{PANEL}</c-dropdown>")
+        html = render(f"<c-mvp.dropdown full>{PANEL}</c-mvp.dropdown>")
 
         assert "min-w-52 w-full shadow-lg" in html
 
     def test_without_full_the_panel_sizes_to_its_content(self):
-        html = render(f"<c-dropdown>{PANEL}</c-dropdown>")
+        html = render(f"<c-mvp.dropdown>{PANEL}</c-mvp.dropdown>")
 
         assert "w-full" not in html
 
     def test_hover_marks_the_wrapper(self):
-        html = render(f"<c-dropdown hover>{PANEL}</c-dropdown>")
+        html = render(f"<c-mvp.dropdown hover>{PANEL}</c-mvp.dropdown>")
 
         assert 'class="dropdown dropdown-bottom dropdown-start dropdown-hover "' in html
 
     def test_without_hover_the_wrapper_is_not_marked(self):
-        html = render(f"<c-dropdown>{PANEL}</c-dropdown>")
+        html = render(f"<c-mvp.dropdown>{PANEL}</c-mvp.dropdown>")
 
         assert "dropdown-hover" not in html
 
     def test_class_lands_on_the_wrapper(self):
-        html = render(f'<c-dropdown class="w-full mt-2">{PANEL}</c-dropdown>')
+        html = render(f'<c-mvp.dropdown class="w-full mt-2">{PANEL}</c-mvp.dropdown>')
 
         assert 'class="dropdown dropdown-bottom dropdown-start w-full mt-2"' in html
 
     def test_content_class_lands_on_the_panel(self):
-        html = render(f'<c-dropdown content_class="w-56 mt-4">{PANEL}</c-dropdown>')
+        html = render(
+            f'<c-mvp.dropdown content_class="w-56 mt-4">{PANEL}</c-mvp.dropdown>'
+        )
 
         assert "border border-base-300 w-56 mt-4" in html
 
@@ -148,8 +152,8 @@ class TestDropdownProps:
 class TestDropdownTrigger:
     def test_extra_attributes_configure_the_default_inner_button(self):
         html = render(
-            f'<c-dropdown text="Options" icon="gears" variant="primary">{PANEL}'
-            "</c-dropdown>"
+            f'<c-mvp.dropdown text="Options" icon="gears" variant="primary">{PANEL}'
+            "</c-mvp.dropdown>"
         )
 
         assert (
@@ -165,9 +169,9 @@ class TestDropdownTrigger:
 
     def test_a_slot_trigger_is_rendered_as_given(self):
         html = render(
-            '<c-dropdown><c-slot name="button">'
+            '<c-mvp.dropdown><c-slot name="button">'
             '<div tabindex="0" role="button" class="btn">Menu</div>'
-            f"</c-slot>{PANEL}</c-dropdown>"
+            f"</c-slot>{PANEL}</c-mvp.dropdown>"
         )
 
         assert '<div tabindex="0" role="button" class="btn">Menu</div>' in html
@@ -177,18 +181,18 @@ class TestDropdownTrigger:
 
     def test_with_a_slot_trigger_extra_attributes_fall_through_to_the_wrapper(self):
         html = render(
-            '<c-dropdown id="sort" x-data="{value: 1}">'
+            '<c-mvp.dropdown id="sort" x-data="{value: 1}">'
             '<c-slot name="button"><button type="button">Sort</button></c-slot>'
-            f"{PANEL}</c-dropdown>"
+            f"{PANEL}</c-mvp.dropdown>"
         )
 
         assert 'id="sort" x-data="{value: 1}">' in html
 
     def test_fall_through_attributes_do_not_displace_the_hook(self):
         html = render(
-            '<c-dropdown halign="end" id="sort">'
+            '<c-mvp.dropdown halign="end" id="sort">'
             '<c-slot name="button"><button type="button">Sort</button></c-slot>'
-            f"{PANEL}</c-dropdown>"
+            f"{PANEL}</c-mvp.dropdown>"
         )
 
         assert "data-mvp-dropdown" in html

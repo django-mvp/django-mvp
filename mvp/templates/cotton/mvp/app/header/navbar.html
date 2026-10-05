@@ -1,0 +1,54 @@
+{# @description The header row: breadcrumb trail leading, actions trailing. #}
+{# @slot:right Extra header content; shares the desktop widget list's visibility rule. #}
+{% load i18n %}
+{# The breadcrumb trail reads `page.breadcrumbs`, already in context on an MVP #}
+{# view; a page with no trail renders no navigation landmark at all, rather #}
+{# than an empty one for a screen reader to announce. #}
+<div class="navbar gap-2 px-3 w-full transition-shadow duration-100 print:hidden">
+  <div class="navbar-start w-auto grow min-w-0 gap-1">
+    {# The sidebar toggle and site icon give way below the sidebar breakpoint, #}
+    {# where the sidebar header already draws both — layout.navbar.mobile.sidebar_toggle #}
+    {# puts the toggle back for a project without a mobile dock. #}
+    <label for="mvp-app-toggle"
+           aria-label="{% trans "Open sidebar" %}"
+           class="btn btn-ghost btn-square shrink-0 mvp-sidebar-hidden-only{% if not mvp_config.layout.navbar.mobile.sidebar_toggle %} mvp-desktop-only{% endif %}">
+      <c-icon name="menu" />
+    </label>
+    <a href="/"
+       aria-label="{% trans "Home" %}"
+       class="mvp-navbar-brand flex shrink-0 items-center px-1 mvp-sidebar-hidden-only">
+      <c-mvp.brand.icon max-height="1.5rem" class="size-8 object-contain" />
+    </a>
+    {# min-w-0 lets a long trail shrink rather than push the actions off the #}
+    {# row: a flex item defaults to min-width:auto and won't go below its own #}
+    {# content. The sideways scroll it then needs is daisyUI's own .breadcrumbs rule. #}
+    {% if page.breadcrumbs %}
+      <c-breadcrumbs :items="page.breadcrumbs" class="min-w-0" />
+    {% endif %}
+  </div>
+  <div class="navbar-end w-auto shrink-0 gap-3">
+    {# Sits outside both widget regions: the htmx indicator (base.css rule) #}
+    {# is shown at every width, unlike the split lists below it. #}
+    <span id="mvp-htmx-indicator"
+          class="loading loading-spinner loading-sm"
+          aria-hidden="true"></span>
+    {# Mobile/desktop widget lists (#176) are two regions toggled by Tailwind #}
+    {# display utilities; a display:none region drops out of the accessibility #}
+    {# tree in every evergreen browser/screen-reader pairing, so no aria-hidden needed. #}
+    {% if mvp_config.layout.navbar.mobile.end %}
+      <div id="mvp-navbar-widgets-mobile"
+           class="mvp-mobile-only items-center gap-3">
+        {% for widget in mvp_config.layout.navbar.mobile.end %}
+          <c-component :is="widget" />
+        {% endfor %}
+      </div>
+    {% endif %}
+    <div id="mvp-navbar-widgets-desktop"
+         class="mvp-desktop-only items-center gap-3">
+      {{ right }}
+      {% for widget in mvp_config.layout.navbar.desktop.end %}
+        <c-component :is="widget" />
+      {% endfor %}
+    </div>
+  </div>
+</div>

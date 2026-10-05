@@ -1,4 +1,4 @@
-"""Tests for <c-pagination.link>'s href and current-page styling (issue #270).
+"""Tests for <c-mvp.pagination.link>'s href and current-page styling (issue #270).
 
 Every page link used to render as `?page=N`, which replaced the whole query
 string and dropped a sort (`?o=`), a search (`?q=`) or any filter parameter on
@@ -60,7 +60,7 @@ def collect_anchors(html):
 class TestPaginationLinkPreservesQueryString:
     def test_page_link_preserves_sort_and_search(self):
         request = RequestFactory().get("/items/?o=name&q=widget")
-        html = render('<c-pagination.link :page="2" text="2" />', request)
+        html = render('<c-mvp.pagination.link :page="2" text="2" />', request)
         anchors = collect_anchors(html)
         assert len(anchors) == 1
         query = parse_qs(urlsplit(anchors[0]["href"]).query)
@@ -68,7 +68,7 @@ class TestPaginationLinkPreservesQueryString:
 
     def test_page_link_with_no_other_params_still_changes_the_page(self):
         request = RequestFactory().get("/items/")
-        html = render('<c-pagination.link :page="4" text="4" />', request)
+        html = render('<c-mvp.pagination.link :page="4" text="4" />', request)
         anchors = collect_anchors(html)
         query = parse_qs(urlsplit(anchors[0]["href"]).query)
         assert query == {"page": ["4"]}

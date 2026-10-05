@@ -1,4 +1,4 @@
-"""Tests for the <c-page.list.actions.create> component.
+"""Tests for the <c-mvp.page.list.actions.create> component.
 
 **Button sizes (issue #328).** ``mvp/templates/cotton/button.html`` declares
 ``size``, mapped to ``sm``/``md``/``lg``. It declares neither ``small`` nor
@@ -35,7 +35,7 @@ def modal_context():
 @pytest.fixture
 def modal_soup(cotton_render_soup):
     return cotton_render_soup(
-        "page.list.actions.create",
+        "mvp.page.list.actions.create",
         context={
             "directory": {"create_url": "/products/create/"},
             "create_form": ProductForm(),
@@ -46,7 +46,7 @@ def modal_soup(cotton_render_soup):
 class TestCreateActionButtonSize:
     def test_the_ghost_link_button_is_small(self, cotton_render_soup):
         soup = cotton_render_soup(
-            "page.list.actions.create",
+            "mvp.page.list.actions.create",
             context={"directory": {"create_url": "/products/create/"}},
         )
         button = soup.find("a", class_="btn")
@@ -77,14 +77,14 @@ class TestCreateActionIcon:
         self, cotton_render_string_soup, modal_context
     ):
         soup = cotton_render_string_soup(
-            "<c-page.list.actions.create />", context=modal_context
+            "<c-mvp.page.list.actions.create />", context=modal_context
         )
 
         assert soup.find("i", class_="bi-plus-circle") is not None
 
     def test_a_caller_chooses_the_glyph(self, cotton_render_string_soup, modal_context):
         soup = cotton_render_string_soup(
-            '<c-page.list.actions.create icon="upload" />', context=modal_context
+            '<c-mvp.page.list.actions.create icon="upload" />', context=modal_context
         )
 
         assert soup.find("i", class_="bi-upload") is not None
@@ -92,7 +92,7 @@ class TestCreateActionIcon:
 
     def test_the_glyph_follows_on_the_plain_link_too(self, cotton_render_string_soup):
         soup = cotton_render_string_soup(
-            '<c-page.list.actions.create icon="upload" />',
+            '<c-mvp.page.list.actions.create icon="upload" />',
             context={"directory": {"create_url": "/products/create/"}},
         )
 
@@ -104,7 +104,7 @@ class TestCreateModalTitle:
         self, cotton_render_string_soup, modal_context
     ):
         soup = cotton_render_string_soup(
-            "<c-page.list.actions.create />",
+            "<c-mvp.page.list.actions.create />",
             context={**modal_context, "create_modal_title": "Add Product"},
         )
 
@@ -114,7 +114,7 @@ class TestCreateModalTitle:
         self, cotton_render_string_soup, modal_context
     ):
         soup = cotton_render_string_soup(
-            "<c-page.list.actions.create />",
+            "<c-mvp.page.list.actions.create />",
             context={**modal_context, "create_modal_title": "Add Product"},
         )
         trigger = soup.find("button", attrs={"@click": "createModal.showModal()"})
@@ -125,7 +125,7 @@ class TestCreateModalTitle:
         self, cotton_render_string_soup, modal_context
     ):
         soup = cotton_render_string_soup(
-            '<c-page.list.actions.create label="New" />', context=modal_context
+            '<c-mvp.page.list.actions.create label="New" />', context=modal_context
         )
 
         assert "New" in soup.get_text()

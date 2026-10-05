@@ -1,6 +1,6 @@
 """Tests for the full-screen table layout (issue #254).
 
-The table area (``cotton/addons/django_table.html``) and the view template
+The table area (``cotton/mvp/addons/django_table.html``) and the view template
 (``table_view.html``) together give a table view its own scrolling region
 inside the app shell, instead of scrolling the whole window. See
 specs/027-table-layout-and-column-styling/research.md R5 for the height
@@ -64,7 +64,7 @@ class TestTableArea:
     def _render(self, cotton_render_string):
         table = _empty_product_table()
         return cotton_render_string(
-            "<c-addons.django-table :table='table' />", context={"table": table}
+            "<c-mvp.addons.django-table :table='table' />", context={"table": table}
         )
 
     def test_carries_the_pinned_row_class(self, cotton_render_string):
@@ -76,7 +76,7 @@ class TestTableArea:
     def test_accessible_name_can_be_set_by_the_caller(self, cotton_render_string):
         table = _empty_product_table()
         html = cotton_render_string(
-            "<c-addons.django-table :table='table' label='Products' />",
+            "<c-mvp.addons.django-table :table='table' label='Products' />",
             context={"table": table},
         )
         region = _beautiful_soup()(html, "html.parser").find(attrs={"role": "region"})
@@ -362,7 +362,7 @@ class TestColumnBehaviourClasses:
 
     def _row_cells(self, cotton_render_string, table):
         html = cotton_render_string(
-            "<c-addons.django-table :table='table' />", context={"table": table}
+            "<c-mvp.addons.django-table :table='table' />", context={"table": table}
         )
         soup = _beautiful_soup()(html, "html.parser")
         row = soup.find("tbody").find("tr")
@@ -502,7 +502,7 @@ class TestInferredAlignment:
 
     def _render(self, cotton_render_string, table):
         html = cotton_render_string(
-            "<c-addons.django-table :table='table' />", context={"table": table}
+            "<c-mvp.addons.django-table :table='table' />", context={"table": table}
         )
         return _beautiful_soup()(html, "html.parser")
 
@@ -637,7 +637,7 @@ class TestRowHeaderCells:
 
     def _row(self, cotton_render_string, table):
         html = cotton_render_string(
-            "<c-addons.django-table :table='table' />", context={"table": table}
+            "<c-mvp.addons.django-table :table='table' />", context={"table": table}
         )
         return _beautiful_soup()(html, "html.parser").find("tbody").find("tr")
 
@@ -675,7 +675,7 @@ class TestRowHeaderCells:
 
     def test_the_column_heading_is_still_a_column_header(self, cotton_render_string):
         html = cotton_render_string(
-            "<c-addons.django-table :table='table' />",
+            "<c-mvp.addons.django-table :table='table' />",
             context={"table": self._table(("icon",))},
         )
         soup = _beautiful_soup()(html, "html.parser")
@@ -738,7 +738,7 @@ class TestFalseyColumnHeading:
             ]
         )
         html = cotton_render_string(
-            "<c-addons.django-table :table='table' />", context={"table": table}
+            "<c-mvp.addons.django-table :table='table' />", context={"table": table}
         )
         soup = _beautiful_soup()(html, "html.parser")
         return soup.find("thead").find_all("th")

@@ -4,7 +4,7 @@
   <c-components.section title="Default"
                         description="With no source, the avatar shows a generic silhouette.">
     {% cotton:verbatim %}
-      <c-avatar />
+      <c-mvp.avatar />
     {% endcotton:verbatim %}
   </c-components.section>
 
@@ -12,11 +12,11 @@
                         description="Choose a size from xs, sm, md (default), lg, xl, or xxl.">
     {% cotton:verbatim %}
       <div class="flex items-center gap-3">
-        <c-avatar size="xs" />
-        <c-avatar size="sm" />
-        <c-avatar size="md" />
-        <c-avatar size="lg" />
-        <c-avatar size="xl" />
+        <c-mvp.avatar size="xs" />
+        <c-mvp.avatar size="sm" />
+        <c-mvp.avatar size="md" />
+        <c-mvp.avatar size="lg" />
+        <c-mvp.avatar size="xl" />
       </div>
     {% endcotton:verbatim %}
   </c-components.section>
@@ -24,7 +24,7 @@
   <c-components.section title="Image"
                         description="Pass src to show a profile photo.">
     {% cotton:verbatim %}
-      <c-avatar size="lg"
+      <c-mvp.avatar size="lg"
                 src="https://img.daisyui.com/images/profile/demo/gordon@192.webp" />
     {% endcotton:verbatim %}
   </c-components.section>
@@ -33,9 +33,9 @@
                         description="Provide placeholder to show initials instead of an image. Set variant (primary, secondary, accent, or neutral) to colour the background.">
     {% cotton:verbatim %}
       <div class="flex items-center gap-3">
-        <c-avatar size="lg" placeholder="AB" />
-        <c-avatar size="lg" placeholder="CD" variant="secondary" />
-        <c-avatar size="lg" placeholder="+9" variant="accent" />
+        <c-mvp.avatar size="lg" placeholder="AB" />
+        <c-mvp.avatar size="lg" placeholder="CD" variant="secondary" />
+        <c-mvp.avatar size="lg" placeholder="+9" variant="accent" />
       </div>
     {% endcotton:verbatim %}
   </c-components.section>
@@ -44,10 +44,10 @@
                         description="Add status='online' or 'offline' to show a presence dot.">
     {% cotton:verbatim %}
       <div class="flex items-center gap-3">
-        <c-avatar size="lg"
+        <c-mvp.avatar size="lg"
                   src="https://img.daisyui.com/images/profile/demo/gordon@192.webp"
                   status="online" />
-        <c-avatar size="lg" status="offline" />
+        <c-mvp.avatar size="lg" status="offline" />
       </div>
     {% endcotton:verbatim %}
   </c-components.section>
@@ -56,10 +56,10 @@
                         description="Stack overlapping avatars with c-avatar.group.">
     {% cotton:verbatim %}
       <c-avatar.group>
-        <c-avatar size="md" src="https://img.daisyui.com/images/profile/demo/gordon@192.webp" />
-        <c-avatar size="md" placeholder="AB" />
-        <c-avatar size="md" />
-        <c-avatar size="md" placeholder="+9" variant="neutral" />
+        <c-mvp.avatar size="md" src="https://img.daisyui.com/images/profile/demo/gordon@192.webp" />
+        <c-mvp.avatar size="md" placeholder="AB" />
+        <c-mvp.avatar size="md" />
+        <c-mvp.avatar size="md" placeholder="+9" variant="neutral" />
       </c-avatar.group>
     {% endcotton:verbatim %}
   </c-components.section>

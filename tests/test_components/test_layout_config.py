@@ -47,8 +47,8 @@ class TestLayoutConfigResolution:
 
     def test_settings_override_replaces_navbar_list(self):
         expected = [
-            "actions.theme-controller",
-            "actions.language-switcher",
+            "mvp.actions.theme-controller",
+            "mvp.actions.language-switcher",
         ]
         assert MVP_CONFIG["layout"]["navbar"]["mobile"]["end"] == expected
         assert MVP_CONFIG["layout"]["navbar"]["desktop"]["end"] == expected
@@ -70,12 +70,12 @@ class TestNavbarMobileDesktopSplit:
         monkeypatch.setitem(
             MVP_CONFIG["layout"]["navbar"]["mobile"],
             "end",
-            ["actions.theme-controller"],
+            ["mvp.actions.theme-controller"],
         )
         monkeypatch.setitem(
             MVP_CONFIG["layout"]["navbar"]["desktop"],
             "end",
-            ["actions.language-switcher"],
+            ["mvp.actions.language-switcher"],
         )
         content = client.get("/").content.decode()
 
@@ -325,7 +325,7 @@ class TestSidebarTitle:
 
 
 def _brand_icon_tag(html):
-    """Extract the ``<img>`` tag rendered by ``c-brand.icon`` in the sidebar
+    """Extract the ``<img>`` tag rendered by ``c-mvp.brand.icon`` in the sidebar
     header (the only image with the ``Icon`` alt text)."""
     match = re.search(r"<img[^>]*alt=\"Icon\"[^>]*>", html)
     return match.group(0) if match else None

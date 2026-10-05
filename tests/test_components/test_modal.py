@@ -8,7 +8,7 @@ on the modal box:
    ``.modal-top``/``.modal-bottom`` full-width rule — the dialog never spanned
    the screen.
 2. ``position="start"``/``"end"`` modals get ``height: 100vh`` on the outer
-   ``.modal-box`` wrapper from daisyUI, but the inner ``<c-card>`` (the
+   ``.modal-box`` wrapper from daisyUI, but the inner ``<c-mvp.card>`` (the
    visible surface, since the wrapper itself is transparent) had no height
    utility and stayed sized to its content — it never stretched to fill that
    height.
@@ -36,32 +36,34 @@ def render(source, **context):
 
 class TestModalPositionWidth:
     def test_top_position_spans_full_width(self):
-        html = render('<c-modal id="m" position="top">Body</c-modal>')
+        html = render('<c-mvp.modal id="m" position="top">Body</c-mvp.modal>')
         assert "w-full" in html
         assert "max-w-none" in html
         assert "max-w-2xl" not in html
         assert "w-11/12" not in html
 
     def test_bottom_position_spans_full_width(self):
-        html = render('<c-modal id="m" position="bottom">Body</c-modal>')
+        html = render('<c-mvp.modal id="m" position="bottom">Body</c-mvp.modal>')
         assert "w-full" in html
         assert "max-w-none" in html
         assert "max-w-2xl" not in html
         assert "w-11/12" not in html
 
     def test_default_centred_position_keeps_the_size_cap(self):
-        html = render('<c-modal id="m">Body</c-modal>')
+        html = render('<c-mvp.modal id="m">Body</c-mvp.modal>')
         assert "w-11/12" in html
         assert "max-w-2xl" in html
 
     def test_start_and_end_keep_the_size_cap(self):
         for position in ["start", "end"]:
-            html = render(f'<c-modal id="m" position="{position}">Body</c-modal>')
+            html = render(
+                f'<c-mvp.modal id="m" position="{position}">Body</c-mvp.modal>'
+            )
             assert "w-11/12" in html
             assert "max-w-2xl" in html
 
 
 class TestModalCardHeight:
     def test_card_gets_full_height_utility(self):
-        html = render('<c-modal id="m" position="start">Body</c-modal>')
+        html = render('<c-mvp.modal id="m" position="start">Body</c-mvp.modal>')
         assert "h-full" in html
