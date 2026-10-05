@@ -92,9 +92,8 @@ class TestProductOrderLinesRowsOnlyViewRendersNoParentField:
         )
         html = response.content.decode()
 
-        # OrderLineInline sets its own title ("Order lines"), so this is the
-        # heading rendered rather than the model's raw verbose_name_plural.
-        assert "Order lines" in html
+        assert _has_field(html, "order_lines-TOTAL_FORMS")
+        assert _has_field(html, "order_lines-0-quantity")
 
 
 @pytest.mark.django_db

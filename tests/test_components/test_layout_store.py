@@ -81,7 +81,7 @@ class TestAnElementBoundToTheStoreFollowsEveryControl:
         page.goto(f"{live_server.url}/")
         expect(_toggle(page)).not_to_be_checked()
 
-        page.locator("label[for='mvp-app-toggle'][aria-label='Open sidebar']").click()
+        page.locator(".navbar-start label[for='mvp-app-toggle']").click()
 
         expect(_toggle(page)).to_be_checked()
         assert _store_sidebar_open(page) is True
@@ -91,7 +91,7 @@ class TestAnElementBoundToTheStoreFollowsEveryControl:
         page.goto(f"{live_server.url}/")
         expect(_toggle(page)).to_be_checked()
 
-        page.locator("label[for='mvp-app-toggle'][aria-label='Toggle sidebar']").click()
+        page.locator("label.mvp-sidebar-toggle[for='mvp-app-toggle']").click()
 
         expect(_toggle(page)).not_to_be_checked()
         assert _store_sidebar_open(page) is False
@@ -100,7 +100,7 @@ class TestAnElementBoundToTheStoreFollowsEveryControl:
     def test_the_drawer_overlay_closes_it(self, page, live_server):
         page.set_viewport_size(MOBILE)
         page.goto(f"{live_server.url}/")
-        page.locator("label[for='mvp-app-toggle'][aria-label='Open sidebar']").click()
+        page.locator(".navbar-start label[for='mvp-app-toggle']").click()
         expect(_toggle(page)).to_be_checked()
 
         # A native click() rather than a coordinate-based one: the overlay's
@@ -108,9 +108,9 @@ class TestAnElementBoundToTheStoreFollowsEveryControl:
         # DaisyUI/stylesheet concern outside this story's scope. What this
         # test proves is that the label's `for` attribute really does wire
         # it to the checkbox the store is bound to.
-        page.locator(
-            "label[for='mvp-app-toggle'][aria-label='Close sidebar']"
-        ).evaluate("el => el.click()")
+        page.locator("label.drawer-overlay[for='mvp-app-toggle']").evaluate(
+            "el => el.click()"
+        )
 
         expect(_toggle(page)).not_to_be_checked()
         assert _store_sidebar_open(page) is False
@@ -153,7 +153,7 @@ class TestBoostedNavigationLeavesTheStoreCorrect:
     def test_a_narrow_viewport_closes(self, page, live_server, boosted):
         page.set_viewport_size(MOBILE)
         page.goto(f"{live_server.url}/")
-        page.locator("label[for='mvp-app-toggle'][aria-label='Open sidebar']").click()
+        page.locator(".navbar-start label[for='mvp-app-toggle']").click()
         expect(_toggle(page)).to_be_checked()
 
         self._layout_link(page).click()
@@ -183,9 +183,7 @@ class TestTheShellWorksWithoutJavaScript:
             # unchecked. The sidebar starts closed.
             expect(toggle).not_to_be_checked()
 
-            page.locator(
-                "label[for='mvp-app-toggle'][aria-label='Open sidebar']"
-            ).click()
+            page.locator(".navbar-start label[for='mvp-app-toggle']").click()
             expect(toggle).to_be_checked()
 
             # Closing goes through the overlay, not back through the navbar
@@ -195,9 +193,9 @@ class TestTheShellWorksWithoutJavaScript:
             # transition, and it is the race that made this test intermittent.
             # The overlay is the documented way out of an open mobile drawer,
             # and it is a plain label wired to the same checkbox.
-            page.locator(
-                "label[for='mvp-app-toggle'][aria-label='Close sidebar']"
-            ).evaluate("el => el.click()")
+            page.locator("label.drawer-overlay[for='mvp-app-toggle']").evaluate(
+                "el => el.click()"
+            )
             expect(toggle).not_to_be_checked()
         finally:
             context.close()

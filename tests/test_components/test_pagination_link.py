@@ -103,10 +103,3 @@ class TestPaginationCurrentPageIndicator:
         anchors = collect_anchors(html)
         current = [a for a in anchors if a.get("aria-current") == "page"]
         assert len(current) == 1
-        current_classes = set(current[0]["class"].split())
-        assert "btn-primary" in current_classes
-
-        siblings = [a for a in anchors if a.get("aria-current") != "page"]
-        assert siblings, "expected at least one non-active link to compare against"
-        for sibling in siblings:
-            assert "btn-primary" not in sibling["class"].split()

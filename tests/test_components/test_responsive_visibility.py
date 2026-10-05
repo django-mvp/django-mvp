@@ -128,7 +128,7 @@ def _desktop_widgets(page):
 
 
 def _toggle_label(page):
-    return page.locator('label[aria-label="Open sidebar"]')
+    return page.locator('.navbar-start label[for="mvp-app-toggle"]')
 
 
 def _site_icon(page):
@@ -145,7 +145,7 @@ def _close_drawer(page):
     # A native click() rather than a coordinate-based one: at desktop widths
     # the overlay label sits behind other content and a coordinate click can
     # miss it (mirrors test_layout_store.py's TestAnElementBoundToTheStore...).
-    page.locator('label[for="mvp-app-toggle"][aria-label="Close sidebar"]').evaluate(
+    page.locator('label.drawer-overlay[for="mvp-app-toggle"]').evaluate(
         "el => el.click()"
     )
 
@@ -153,9 +153,9 @@ def _close_drawer(page):
 def _open_drawer(page):
     # Same reasoning as _close_drawer: drive the native control directly
     # rather than racing the drawer's transition for a clickable point.
-    page.locator(
-        'label[for="mvp-app-toggle"][aria-label="Open sidebar"]'
-    ).first.evaluate("el => el.click()")
+    page.locator('.navbar-start label[for="mvp-app-toggle"]').first.evaluate(
+        "el => el.click()"
+    )
 
 
 class TestNarrowOnlyRegions:

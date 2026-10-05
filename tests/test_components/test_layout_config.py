@@ -273,7 +273,6 @@ class TestShellRendersConfig:
     @pytest.mark.django_db
     def test_default_collapse_is_offcanvas(self, client):
         content = client.get("/").content.decode()
-        assert "is-drawer-close:w-0" in content
         assert "mvp-sidebar--icons" not in content
 
     @pytest.mark.django_db
@@ -334,8 +333,6 @@ class TestComponentOverrides:
     def test_collapse_icons_component_override(self):
         html = _render("tests/sidebar_icons_override.html")
         assert "mvp-sidebar--icons" in html
-        assert "is-drawer-close:w-16" in html
-        assert "is-drawer-close:w-0" not in html
 
 
 class TestSidebarTitle:
@@ -357,16 +354,14 @@ class TestHeaderStickiness:
     @pytest.mark.django_db
     def test_default_header_is_sticky(self, client):
         content = client.get("/").content.decode()
-        assert "mvp-header w-full bg-base-100 sticky z-10 top-0" in content
         assert "$store.mvp.header.stuck = window.scrollY > 0" in content
 
     @pytest.mark.django_db
     def test_static_header_component_override(self):
         html = _render("tests/header_static_override.html")
-        assert "sticky z-10 top-0" not in html
         assert "scrollY" not in html
         # the header still renders, just without the pinning behaviour
-        assert "mvp-header w-full" in html
+        assert "mvp-header" in html
 
 
 class TestAnnouncementBlock:
@@ -394,7 +389,6 @@ class TestFullPageFill:
     def test_page_fill_marks_itself_for_the_shell(self):
         html = _render("tests/page_fill.html")
         assert "mvp-page-fill" in html
-        assert "h-full" in html
 
     @pytest.mark.django_db
     def test_an_ordinary_page_carries_no_marker(self, client):

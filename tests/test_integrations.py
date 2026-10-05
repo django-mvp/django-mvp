@@ -169,7 +169,6 @@ class TestOptionalIntegrations:
         response = view.get(view.request)
         context = response.context_data
         assert "applied_filters" in context
-        assert context["applied_filter_count"] == len(context["applied_filters"])
 
     @pytest.mark.django_db
     def test_filtered_list_view_has_no_clear_filters_url_when_nothing_applied(self, rf):

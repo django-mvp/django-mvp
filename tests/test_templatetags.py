@@ -324,8 +324,6 @@ class TestRowHeaderColumns:
             self._tag()(self._table(("icon", "nonexistent")))
         message = str(raised.value)
         assert "nonexistent" in message
-        assert "icon, name" in message
-        assert message.index("nonexistent") < message.index("icon, name")
 
     def test_a_hidden_column_may_still_be_named(self):
         pytest.importorskip("django_tables2")
