@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     "demo.account_showcase",
     "demo.library",
     "mvp",
+    "daisy_cotton",
     "easy_icons",
     "crispy_forms",
     "mvp_forms",

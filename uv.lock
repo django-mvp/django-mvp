@@ -1,5 +1,5 @@
 version = 1
-revision = 5
+revision = 3
 requires-python = ">=3.12, <4.0"
 resolution-markers = [
     "python_full_version >= '3.15'",
@@ -482,6 +482,19 @@ wheels = [
 ]
 
 [[package]]
+name = "daisy-cotton"
+version = "0.1.3"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "django" },
+    { name = "django-cotton" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/6f/eb/7f90c338066c563d28032c6baddc17337c267cbe39105beec4d5093c823c/daisy_cotton-0.1.3.tar.gz", hash = "sha256:4682bac4ca55acf7ca102b115ed8a61fce990ff2196240b070352dcbf734d02b", size = 47319, upload-time = "2026-10-05T14:27:11.413Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/62/57/57cd924e6633f003bd400fc39b08e2735a3de7e1dbe78fb95f841842a790/daisy_cotton-0.1.3-py3-none-any.whl", hash = "sha256:d96dc78e9382dc7d84924e3a162275d15f46f8b83c6500dafea03b28a49048f6", size = 86353, upload-time = "2026-10-05T14:27:10.174Z" },
+]
+
+[[package]]
 name = "deptry"
 version = "0.25.1"
 source = { registry = "https://pypi.org/simple" }
@@ -708,6 +721,7 @@ name = "django-mvp"
 version = "0.26.0"
 source = { editable = "." }
 dependencies = [
+    { name = "daisy-cotton" },
     { name = "django" },
     { name = "django-cotton" },
     { name = "django-crispy-forms" },
@@ -734,6 +748,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "daisy-cotton", specifier = ">=0.1.2,<0.2" },
     { name = "django", specifier = ">=5.2" },
     { name = "django-cotton", specifier = "==2.6.1" },
     { name = "django-crispy-forms", specifier = ">=2.7,<3.0" },
