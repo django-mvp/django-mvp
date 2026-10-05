@@ -134,9 +134,10 @@ prebuilt stylesheet and applies "every class" to both. Covering only literal cla
 project that builds its own stylesheet with unstyled variants on the shell's own pages once
 components move.
 
-**Planning note:** if this cannot be done without a change in daisy-cotton, the change is raised
-there, and D2 means the prebuilt stylesheet still ships without waiting. Whether the generated
-entry file may wait for it is a question for the maintainer at that point.
+**How it is reached:** the classes built at render time are listed in this package's own preset,
+which the generated entry file already imports. That is how the package covers the render-time
+classes of its own components today. The coverage test (D11) keeps the list true against the
+installed daisy-cotton. Nothing here waits on daisy-cotton#119.
 
 ### D11. The coverage test reads the installed daisy-cotton
 
