@@ -55,3 +55,10 @@ Did: docs/styling.md, Tier 1: a paragraph saying the prebuilt stylesheet styles 
 Verified: uv run pytest tests/test_components/test_daisy_cotton_coverage.py -q -> 24 passed. No test asserts the wording of either file.
 Next: full verify once, then the ledger and the report.
 Watch: nothing else under docs/ describes the stylesheet's coverage; docs/utility-classes.md covers the project utility pack and is unchanged.
+
+## 2026-10-05T15:15:54Z · Implementer US3 · T008
+
+Did: mvp_tailwind resolves DAISY_COTTON_TEMPLATES_DIR, prints it as the fourth --paths line and adds an @source line after the form pack's in the entry. Docstring, command help, --paths help and the entry header (daisyUI 5.7 or later) updated. Added two tests to TestMVPTailwindCommand; changed test_entry_paths_exist_and_are_absolute to unpack lines[:3] only.
+Verified: both new tests failed first (3 lines printed, no fourth). `uv run pytest tests/test_components/test_mvp_tailwind_command.py -q`: 7 passed. ruff check and format --check on the touched files clean.
+Next: T009, the generated-entry coverage test and the preset's variation entries.
+Watch: the file's older tests use an underscore helper (_run); left untouched, new tests reuse it.
