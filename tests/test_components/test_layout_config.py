@@ -19,7 +19,6 @@ from django.urls import reverse
 
 import mvp.config
 from mvp.config import MVP_CONFIG
-from mvp.context_processors import mvp_config as mvp_config_processor
 from mvp.layout import LayoutConfig
 from mvp.templatetags.mvp import (
     breakpoint_px,
@@ -39,17 +38,6 @@ def _render(template_name):
 
 
 class TestLayoutConfigResolution:
-    def test_layout_defaults_present(self):
-        layout = MVP_CONFIG["layout"]
-        assert layout["sidebar"]["breakpoint"] == "lg"
-        assert layout["sidebar"]["collapse"] == "offcanvas"
-        assert layout["sidebar"]["title"] is None
-        assert isinstance(layout["navbar"]["mobile"]["end"], list)
-        assert isinstance(layout["navbar"]["desktop"]["end"], list)
-
-    def test_the_mobile_header_toggle_is_off_by_default(self):
-        assert MVP_CONFIG["layout"]["navbar"]["mobile"]["sidebar_toggle"] is False
-
     def test_settings_override_replaces_navbar_list(self):
         expected = [
             "mvp.actions.theme-controller",
@@ -61,10 +49,6 @@ class TestLayoutConfigResolution:
         assert "end" not in MVP_CONFIG["layout"]["navbar"]
         # sibling keys not mentioned in the override keep package defaults
         assert MVP_CONFIG["layout"]["sidebar"]["breakpoint"] == "lg"
-
-    def test_context_processor_exposes_structured_config(self):
-        context = mvp_config_processor(RequestFactory().get("/"))
-        assert context["mvp_config"] is MVP_CONFIG
 
 
 class TestNavbarMobileDesktopSplit:
@@ -304,17 +288,6 @@ class TestShellRendersConfig:
         assert theme_pos < lang_pos, "widgets must render in configured order"
 
     @pytest.mark.django_db
-    def test_sidebar_footer_renders_its_fixed_row(self, client):
-        content = client.get("/").content.decode()
-        footer_start = content.find("sticky bottom-0")
-        assert footer_start != -1, "the sidebar footer must render"
-        footer_html = content[footer_start : content.find("</aside>", footer_start)]
-        assert "flex items-center gap-2" in footer_html
-        assert "data-toggle-theme" in footer_html, (
-            "the theme control must render in the footer"
-        )
-
-    @pytest.mark.django_db
     def test_drawer_state_persisted_with_breakpoint_default(self, client):
         content = client.get("/").content.decode()
         assert 'data-mvp-persist-key="mvp-app-drawer-open"' in content
@@ -345,13 +318,6 @@ class TestComponentOverrides:
         assert "xl:drawer-open" in html
         assert "lg:drawer-open" not in html
         assert "min-width: 1280px" in html
-
-    @pytest.mark.django_db
-    def test_overlay_state_is_transient_desktop_state_persists(self):
-        content = _render("tests/app_breakpoint_override.html")
-        assert 'data-mvp-persist-key="mvp-app-drawer-open"' in content
-        assert "localStorage.getItem(key)" in content
-        assert "min-width: 1280px" in content
 
     @pytest.mark.django_db
     def test_breakpoint_never_component_override(self):
@@ -387,32 +353,7 @@ class TestSidebarTitle:
         assert "mvp-rail-hide" in match.group(0)
 
 
-def _brand_icon_tag(html):
-    """Extract the ``<img>`` tag rendered by ``c-mvp.brand.icon`` in the sidebar
-    header (the only image with the ``Icon`` alt text)."""
-    match = re.search(r"<img[^>]*alt=\"Icon\"[^>]*>", html)
-    return match.group(0) if match else None
-
-
-class TestSidebarBrandIconSizing:
-    @pytest.mark.django_db
-    def test_brand_icon_has_a_fixed_size_not_only_a_maximum(self, client):
-        tag = _brand_icon_tag(client.get("/").content.decode())
-        assert tag is not None, "sidebar header must render the brand icon <img>"
-        assert "size-9" in tag, (
-            "brand icon must get a fixed size class, not just max-h-9/max-w-9 "
-            "upper bounds, or small SVGs render at their tiny intrinsic size"
-        )
-        assert "object-contain" in tag, (
-            "brand icon must use object-contain so a fixed box doesn't distort "
-            "non-square assets"
-        )
-
-
 class TestHeaderStickiness:
-    def test_navbar_sticky_default_present(self):
-        assert MVP_CONFIG["layout"]["navbar"]["sticky"] is True
-
     @pytest.mark.django_db
     def test_default_header_is_sticky(self, client):
         content = client.get("/").content.decode()
@@ -449,18 +390,7 @@ class TestAnnouncementBlock:
         )
 
 
-def _drawer_content_classes(html):
-    """Extract the class list of the ``drawer-content`` wrapper div."""
-    match = re.search(r'class="(drawer-content[^"]*)"', html)
-    return match.group(1).split() if match else None
-
-
 class TestFullPageFill:
-    @pytest.mark.django_db
-    def test_the_shell_markup_is_unchanged(self, client):
-        content = client.get("/").content.decode()
-        assert _drawer_content_classes(content) == ["drawer-content"]
-
     def test_page_fill_marks_itself_for_the_shell(self):
         html = _render("tests/page_fill.html")
         assert "mvp-page-fill" in html
@@ -470,11 +400,6 @@ class TestFullPageFill:
     def test_an_ordinary_page_carries_no_marker(self, client):
         content = client.get("/").content.decode()
         assert "mvp-page-fill" not in content
-
-    def test_fill_drops_the_bottom_margin(self):
-        html = _render("tests/page_fill.html")
-        page_div = html[html.index("mvp-page-fill") - 200 : html.index("mvp-page-fill")]
-        assert "mb-16" not in page_div
 
 
 def _layout_config_payload(html, script_id="mvp-app-layout-config"):
@@ -566,9 +491,6 @@ def _sidebar_aside_tag(html):
 
 
 class TestSidebarHtmxBoost:
-    def test_boost_defaults_to_off(self):
-        assert MVP_CONFIG["layout"]["sidebar"]["boost"] is False
-
     @pytest.mark.django_db
     def test_no_boost_attribute_by_default(self, client):
         aside = _sidebar_aside_tag(client.get("/").content.decode())

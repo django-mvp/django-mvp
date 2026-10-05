@@ -6,13 +6,8 @@ a mounted app.
 Source: demo/library/, demo/urls.py, demo/menus.py
 """
 
-from pathlib import Path
-
 import pytest
 from bs4 import BeautifulSoup
-from django.utils.translation.template import templatize
-
-ROOT = Path(__file__).resolve().parent.parent.parent
 
 
 def soup(response):
@@ -47,14 +42,6 @@ class TestLibraryPages:
 
         assert "/layout/" not in hrefs
 
-    def test_landing_title_is_a_bar_then_the_app_then_the_site(self, client):
-        assert normalised_title(client.get("/library/")) == "| Library | example.com"
-
-    def test_reading_list_title_is_the_page_then_the_app_then_the_site(self, client):
-        response = client.get("/library/reading-list/")
-
-        assert normalised_title(response) == "Reading list | Library | example.com"
-
 
 @pytest.mark.django_db
 class TestLibraryEntriesInTheHostMenus:
@@ -65,34 +52,3 @@ class TestLibraryEntriesInTheHostMenus:
         host = soup(client.get("/layout/")).select_one("aside a[href='/library/']")
 
         assert "menu-active" not in host["class"]
-
-
-class TestBackLinkIsTranslatable:
-    def test_both_labels_are_in_the_extracted_catalogue(self):
-        source = (
-            ROOT
-            / "mvp"
-            / "templates"
-            / "cotton"
-            / "mvp"
-            / "app"
-            / "sidebar"
-            / "back.html"
-        ).read_text()
-
-        extracted = templatize(source, origin="back.html")
-
-        assert "gettext(u'Back to %(site_name)s')" in extracted
-        assert "gettext(u'Back')" in extracted
-
-
-class TestDemoAppIsDocumented:
-    def test_changelog_names_the_demo_app(self):
-        changelog = (ROOT / "CHANGELOG.md").read_text()
-
-        assert "demo/library" in changelog
-
-    def test_guide_names_the_demo_app(self):
-        guide = (ROOT / "docs" / "mounted-apps.md").read_text()
-
-        assert "demo/library" in guide

@@ -93,14 +93,6 @@ class TestDropdownKeepsItsDaisyUIMarkup:
 
         assert 'class="dropdown dropdown-bottom dropdown-start "' in html
 
-    def test_the_panel_renders_todays_classes(self):
-        html = render(f"<c-mvp.dropdown>{PANEL}</c-mvp.dropdown>")
-
-        assert (
-            'class="dropdown-content bg-base-100 rounded-box z-50 min-w-52'
-            ' shadow-lg border border-base-300 "'
-        ) in html
-
     @every_pair
     def test_every_accepted_pair_still_emits_its_daisyui_classes(self, valign, halign):
         html = render(

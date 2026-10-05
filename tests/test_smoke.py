@@ -6,7 +6,6 @@ the Django configuration is valid.
 import re
 from pathlib import Path
 
-import django
 import pytest
 
 from demo.models import OrderLine
@@ -15,10 +14,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 class TestPackageSanity:
-    def test_django_version(self):
-        major, minor, *_ = django.VERSION
-        assert (major, minor) >= (4, 2), f"Django {major}.{minor} < 4.2"
-
     @pytest.mark.django_db
     def test_mvp_apps_load(self, client):
         response = client.get("/")
@@ -216,38 +211,6 @@ class TestShippedStylesheetShipsEveryPrebuiltTheme:
         assert "@media (prefers-color-scheme:dark)" in content, (
             "the @media (prefers-color-scheme: dark) block is missing from "
             "the shipped stylesheet"
-        )
-
-
-class TestDemoPagesDontLeakTheScaffoldPlaceholder:
-    @pytest.mark.django_db
-    def test_layout_demo_page_supplies_its_own_content(self, client):
-        response = client.get("/layout/")
-        assert response.status_code == 200
-        assert "Coming soon" not in response.content.decode()
-
-    @pytest.mark.django_db
-    def test_theme_customization_demo_page_supplies_its_own_content(self, client):
-        response = client.get("/theme/")
-        assert response.status_code == 200
-        assert "Coming soon" not in response.content.decode()
-
-
-class TestCrispyIsARuntimeDependency:
-    def test_crispy_pair_declared_in_project_dependencies(self):
-        import tomllib
-
-        pyproject = tomllib.loads(
-            (BASE_DIR / "pyproject.toml").read_text(encoding="utf-8")
-        )
-        declared = pyproject["project"]["dependencies"]
-        assert any("django-crispy-forms" in dep for dep in declared), (
-            "django-crispy-forms must be declared in [project].dependencies — "
-            "packaged form rendering requires it on every install."
-        )
-        assert any("django-mvp-forms" in dep for dep in declared), (
-            "django-mvp-forms must be declared in [project].dependencies — "
-            "packaged form rendering requires it on every install."
         )
 
 

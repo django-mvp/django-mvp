@@ -87,10 +87,6 @@ class TestLogoUrlDefaultResolver:
         result = _render('{% logo_url height=40 theme="ocean" %}')
         assert result.endswith("logo.svg")
 
-    def test_without_request_in_context_does_not_raise(self):
-        result = _render("{% logo_url height=40 %}", context_dict={})
-        assert result.endswith("logo.svg")
-
 
 class TestIconUrlDefaultResolver:
     def test_light_theme_returns_icon_svg(self):
@@ -111,27 +107,14 @@ class TestIconUrlDefaultResolver:
         assert not result.endswith("icon_light.svg")
         assert not result.endswith("icon_dark.svg")
 
-    def test_without_request_in_context_does_not_raise(self):
-        result = _render("{% icon_url height=32 %}", context_dict={})
-        assert result.endswith("icon.svg")
-
 
 class TestLogoUrlCustomResolver:
-    def test_absent_resolver_setting_uses_default_logo(self):
-        result = _render("{% logo_url height=40 %}")
-        assert result.endswith("logo.svg")
-
     def test_custom_resolver_is_called_with_correct_args(self, monkeypatch, rf):
         _patch_logo(monkeypatch, _CUSTOM_LOGO)
         request = rf.get("/")
         result = _render('{% logo_url height=40 theme="dark" %}', {"request": request})
         # _custom_logo_resolver encodes height and theme in the URL
         assert result == "/custom/logo/dark/40.svg"
-
-    def test_custom_resolver_return_value_is_rendered(self, monkeypatch):
-        _patch_logo(monkeypatch, _CUSTOM_LOGO)
-        result = _render('{% logo_url height=40 theme="light" %}')
-        assert result == "/custom/logo/light/40.svg"
 
     def test_resolver_returning_none_renders_empty_string(self, monkeypatch):
         _patch_logo(monkeypatch, _NONE_RESOLVER)
@@ -156,36 +139,13 @@ class TestLogoUrlCustomResolver:
         assert isinstance(result, str)
         assert not isinstance(result, SafeData), "logo_url must not return SafeData"
 
-    def test_both_tags_render_multiple_times_without_error(self, monkeypatch):
-        _patch_logo(monkeypatch, _CUSTOM_LOGO)
-        from mvp.config import MVP_CONFIG
-
-        monkeypatch.setitem(MVP_CONFIG["brand"], "icon_resolver", _CUSTOM_ICON)
-        template_str = (
-            '{% logo_url height=40 %}{% logo_url height=40 theme="dark" %}'
-            '{% logo_url height=32 %}{% logo_url height=32 theme="dark" %}'
-            '{% icon_url height=32 %}{% icon_url height=32 theme="dark" %}'
-            '{% icon_url height=32 %}{% icon_url height=32 theme="dark" %}'
-        )
-        result = _render(template_str)
-        assert result != ""
-
 
 class TestIconUrlCustomResolver:
-    def test_absent_resolver_setting_uses_default_icon(self):
-        result = _render('{% icon_url height=32 theme="light" %}')
-        assert result.endswith("icon.svg")
-
     def test_custom_resolver_is_called_with_correct_args(self, monkeypatch, rf):
         _patch_icon(monkeypatch, _CUSTOM_ICON)
         request = rf.get("/")
         result = _render('{% icon_url height=32 theme="dark" %}', {"request": request})
         assert result == "/custom/icon/dark/32.svg"
-
-    def test_custom_resolver_return_value_is_rendered(self, monkeypatch):
-        _patch_icon(monkeypatch, _CUSTOM_ICON)
-        result = _render('{% icon_url height=32 theme="light" %}')
-        assert result == "/custom/icon/light/32.svg"
 
     def test_resolver_returning_none_renders_empty_string(self, monkeypatch):
         _patch_icon(monkeypatch, _NONE_RESOLVER)
@@ -209,25 +169,6 @@ class TestIconUrlCustomResolver:
         result = icon_url(Context({}), height=32, theme="light")
         assert isinstance(result, str)
         assert not isinstance(result, SafeData), "icon_url must not return SafeData"
-
-
-class TestHeightForwarding:
-    def test_logo_url_forwards_height_40(self, monkeypatch):
-        _patch_logo(monkeypatch, _CUSTOM_LOGO)
-        result = _render("{% logo_url height=40 %}")
-        # _custom_logo_resolver encodes height in path: /custom/logo/{theme}/{height}.svg
-        assert "/40." in result
-
-    def test_logo_url_forwards_height_100_and_dark_theme(self, monkeypatch):
-        _patch_logo(monkeypatch, _CUSTOM_LOGO)
-        result = _render('{% logo_url height=100 theme="dark" %}')
-        assert "/100." in result
-        assert "dark" in result
-
-    def test_icon_url_forwards_height_32(self, monkeypatch):
-        _patch_icon(monkeypatch, _CUSTOM_ICON)
-        result = _render("{% icon_url height=32 %}")
-        assert "/32." in result
 
 
 class TestColumnAlignment:

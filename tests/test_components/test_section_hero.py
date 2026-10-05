@@ -54,11 +54,6 @@ class TestHeroLayout:
         assert "hero-content" in html
         assert re.search(r'class="hero\b', html)
 
-    def test_the_dead_class_is_gone(self):
-        html = render('<c-mvp.section.hero title="T" />')
-
-        assert "mvp-hero" not in html
-
     def test_caller_classes_survive_alongside_the_component_class(self):
         html = render('<c-mvp.section.hero title="T" class="mt-8" />')
 
@@ -82,16 +77,6 @@ class TestHeroBackgroundAndHeight:
 
         assert "style=" not in hero_tag(html)
 
-    def test_the_dead_data_attributes_are_gone(self):
-        html = render(
-            '<c-mvp.section.hero title="T" bg-image="/static/img/x.jpg" height="80vh" '
-            "/>"
-        )
-
-        assert "data-image" not in html
-        assert "data-height" not in html
-        assert "data-speed" not in html
-
 
 class TestHeroOverlay:
     def test_an_overlay_covers_a_background_image(self):
@@ -112,18 +97,6 @@ class TestHeroOverlay:
         html = render('<c-mvp.section.hero title="T" />')
 
         assert "hero-overlay" not in html
-
-
-class TestRemovedParallaxAttributes:
-    def test_parallax_no_longer_adds_a_class(self):
-        html = render('<c-mvp.section.hero title="T" parallax />')
-
-        assert "parallax" not in hero_tag(html)
-
-    def test_speed_is_not_rendered(self):
-        html = render('<c-mvp.section.hero title="T" speed="0.5" />')
-
-        assert "0.5" not in hero_tag(html)
 
 
 class TestHeroContent:

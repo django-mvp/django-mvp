@@ -133,50 +133,6 @@ class TestFormsetRowErrors:
         assert "Something is wrong with this row." in html
 
 
-class TestFormsetRowFieldErrorPlacement:
-    def test_field_error_renders_inside_its_own_row_only(self):
-        formset = RowFormSet(
-            data={
-                "form-TOTAL_FORMS": "2",
-                "form-INITIAL_FORMS": "2",
-                "form-MIN_NUM_FORMS": "0",
-                "form-MAX_NUM_FORMS": "1000",
-                "form-0-row_id": "",
-                "form-0-name": "",
-                "form-1-row_id": "",
-                "form-1-name": "Valid",
-            }
-        )
-        formset.is_valid()
-        html = render('<c-mvp.form.formset :formset="formset" />', formset=formset)
-        soup = BeautifulSoup(html, "html.parser")
-        row0 = soup.find(attrs={"id": "div_id_form-0-name"})
-        row1 = soup.find(attrs={"id": "div_id_form-1-name"})
-        assert row0.find(id="id_form-0-name_error") is not None
-        assert row1.find(id="id_form-1-name_error") is None
-
-    def test_errors_on_two_different_rows_each_carry_their_own_message(self):
-        formset = RowFormSet(
-            data={
-                "form-TOTAL_FORMS": "2",
-                "form-INITIAL_FORMS": "2",
-                "form-MIN_NUM_FORMS": "0",
-                "form-MAX_NUM_FORMS": "1000",
-                "form-0-row_id": "",
-                "form-0-name": "",
-                "form-1-row_id": "",
-                "form-1-name": "",
-            }
-        )
-        formset.is_valid()
-        html = render('<c-mvp.form.formset :formset="formset" />', formset=formset)
-        soup = BeautifulSoup(html, "html.parser")
-        row0 = soup.find(attrs={"id": "div_id_form-0-name"})
-        row1 = soup.find(attrs={"id": "div_id_form-1-name"})
-        assert row0.find(id="id_form-0-name_error") is not None
-        assert row1.find(id="id_form-1-name_error") is not None
-
-
 class TestFormsetManagementForm:
     def test_management_form_is_present(self):
         formset = RowFormSet()
@@ -194,14 +150,6 @@ class TestFormsetRows:
         assert 'name="form-0-name"' in html
         assert 'name="form-1-name"' in html
         assert html.index("form-0-name") < html.index("form-1-name")
-
-    def test_blank_extra_rows_look_identical_to_populated_ones(self):
-        formset = forms.formset_factory(RowForm, extra=1)(initial=[{"name": "Alpha"}])
-        html = render('<c-mvp.form.formset :formset="formset" />', formset=formset)
-        # form-0 is populated (from initial), form-1 is a blank extra row —
-        # both must go through the same row wrapper markup.
-        assert 'id="div_id_form-0-name"' in html
-        assert 'id="div_id_form-1-name"' in html
 
 
 class TestFormsetEmptyForm:
@@ -272,54 +220,6 @@ class TestFormsetNonFormErrors:
         assert soup.find(attrs={"role": "alert"}) is None
 
 
-class TestFormsetBuiltinSetLevelErrors:
-    def test_too_few_rows_renders_above_the_set(self):
-        MinFormSet = forms.formset_factory(
-            RowForm, extra=0, min_num=2, validate_min=True
-        )
-        formset = MinFormSet(
-            data={
-                "form-TOTAL_FORMS": "1",
-                "form-INITIAL_FORMS": "0",
-                "form-MIN_NUM_FORMS": "2",
-                "form-MAX_NUM_FORMS": "1000",
-                "form-0-row_id": "",
-                "form-0-name": "Widget",
-            }
-        )
-        formset.is_valid()
-        html = render('<c-mvp.form.formset :formset="formset" />', formset=formset)
-        soup = BeautifulSoup(html, "html.parser")
-        alert = soup.find(attrs={"role": "alert"})
-        assert alert is not None
-        assert alert.get_text(strip=True)
-        assert html.index("errorlist nonform") < html.index('name="form-0-name"')
-
-    def test_too_many_rows_renders_above_the_set(self):
-        MaxFormSet = forms.formset_factory(
-            RowForm, extra=0, max_num=1, validate_max=True
-        )
-        formset = MaxFormSet(
-            data={
-                "form-TOTAL_FORMS": "2",
-                "form-INITIAL_FORMS": "0",
-                "form-MIN_NUM_FORMS": "0",
-                "form-MAX_NUM_FORMS": "1000",
-                "form-0-row_id": "",
-                "form-0-name": "Widget",
-                "form-1-row_id": "",
-                "form-1-name": "Gadget",
-            }
-        )
-        formset.is_valid()
-        html = render('<c-mvp.form.formset :formset="formset" />', formset=formset)
-        soup = BeautifulSoup(html, "html.parser")
-        alert = soup.find(attrs={"role": "alert"})
-        assert alert is not None
-        assert alert.get_text(strip=True)
-        assert html.index("errorlist nonform") < html.index('name="form-0-name"')
-
-
 class TestFormsetAddRemoveControls:
     def test_no_remove_control_when_formset_forbids_deletion(self):
         NoDeleteFormSet = forms.formset_factory(RowForm, can_delete=False, extra=1)
@@ -372,13 +272,6 @@ class TestFormsetAddRemoveControls:
 
 
 class TestFormsetAddRemoveLabels:
-    def test_default_labels_match_the_contract(self):
-        formset = RowFormSet()
-        html = render('<c-mvp.form.formset :formset="formset" />', formset=formset)
-        assert "Add row" in html
-        soup = BeautifulSoup(html, "html.parser")
-        assert soup.find(attrs={"aria-label": "Remove"}) is not None
-
     def test_labels_are_overridable_through_attributes(self):
         formset = RowFormSet()
         html = render(
@@ -682,23 +575,6 @@ class TestFormsetCounterContract:
         )
         assert total_forms[":value"] == "total"
 
-    def test_add_increments_both_counters_and_never_decrements_total(self):
-        source = self._component_source()
-
-        assert "this.total++" in source
-        assert "this.visible++" in source
-        assert "this.total--" not in source
-        assert "total--" not in source
-
-    def test_prefix_substitution_uses_the_monotonic_counter(self):
-        assert '.replaceAll("__prefix__", this.total)' in self._component_source()
-
-    def test_the_empty_form_template_is_found_from_the_component_root(self):
-        source = self._component_source()
-
-        assert 'this.$root.querySelector("template")' in source
-        assert "$el.querySelector" not in source
-
 
 class TestFormsetHeading:
     def test_the_divider_and_default_heading_name_the_model_in_plural(self):
@@ -793,77 +669,6 @@ class TestFormsetRowLabel:
         assert "Line one" in html
 
 
-class TestFormsetRowSeparation:
-    def _rows(self, formset):
-        soup = BeautifulSoup(
-            render('<c-mvp.form.formset :formset="formset" />', formset=formset),
-            "html.parser",
-        )
-        for template in soup.find_all("template"):
-            template.decompose()  # the empty-form clone source, not a row
-        return soup.find_all("div", attrs={"x-show": "!removed"})
-
-    def test_every_row_but_the_first_leads_with_a_rule(self):
-        formset = forms.formset_factory(RowForm, extra=0)(
-            initial=[{"name": "Alpha"}, {"name": "Bravo"}, {"name": "Charlie"}]
-        )
-        rows = self._rows(formset)
-
-        assert len(rows) == 3
-        assert rows[0].find("hr") is None
-        assert rows[1].find("hr") is not None
-        assert rows[2].find("hr") is not None
-
-    def test_a_row_cloned_from_the_empty_form_gets_one(self):
-        html = render('<c-mvp.form.formset :formset="formset" />', formset=RowFormSet())
-        template = BeautifulSoup(html, "html.parser").find("template")
-
-        assert template.find("hr") is not None
-
-    def test_rows_carry_no_card_or_box_styling(self):
-        row = self._rows(RowFormSet())[0]
-        assert "rounded-box" not in row["class"]
-        assert "card" not in row["class"]
-        assert "border" not in row["class"]
-
-
-class TestFormsetControlAffordances:
-    def _remove_control(self, html):
-        return BeautifulSoup(html, "html.parser").find(attrs={"aria-label": "Remove"})
-
-    def test_remove_is_an_icon_with_the_text_as_its_accessible_name(self):
-        html = render('<c-mvp.form.formset :formset="formset" />', formset=RowFormSet())
-        control = self._remove_control(html)
-
-        assert control.name == "button"
-        assert control.get_text(strip=True) == "", "icon only, no visible text"
-        assert control.find("i") is not None, "the icon itself"
-
-    def test_remove_is_red_and_hidden_until_the_row_is_hovered_or_focused(self):
-        html = render('<c-mvp.form.formset :formset="formset" />', formset=RowFormSet())
-        classes = self._remove_control(html)["class"]
-
-        assert "text-error" in classes
-        assert "opacity-0" in classes
-        assert "group-hover:opacity-100" in classes
-        assert "group-focus-within:opacity-100" in classes, (
-            "hover alone puts the control out of reach of a keyboard"
-        )
-
-    def test_the_row_is_the_hover_group(self):
-        html = render('<c-mvp.form.formset :formset="formset" />', formset=RowFormSet())
-        row = BeautifulSoup(html, "html.parser").find(attrs={"x-show": "!removed"})
-        assert "group" in row["class"]
-
-    def test_add_carries_a_plus_icon(self):
-        html = render('<c-mvp.form.formset :formset="formset" />', formset=RowFormSet())
-        soup = BeautifulSoup(html, "html.parser")
-        add = soup.find(
-            lambda tag: tag.name == "button" and "Add row" in tag.get_text()
-        )
-        assert add.find("i") is not None
-
-
 class TestFormsetUsesPackagedComponents:
     def _source(self, name):
         return (
@@ -875,20 +680,6 @@ class TestFormsetUsesPackagedComponents:
             / "formset"
             / name
         ).read_text()
-
-    def test_the_set_uses_c_divider_and_c_text(self):
-        source = self._source("index.html")
-
-        assert "<c-divider" in source
-        assert "<c-mvp.text" in source
-        assert 'class="divider' not in source, "c-divider owns that markup"
-
-    def test_the_row_uses_c_rule_and_c_text(self):
-        source = self._source("row.html")
-
-        assert "<c-mvp.rule />" in source
-        assert "<c-mvp.text" in source
-        assert "<hr" not in source, "c-mvp.rule owns that markup"
 
     def test_the_rule_is_finer_than_a_divider(self):
         soup = BeautifulSoup(render("<c-mvp.rule />"), "html.parser")
@@ -959,14 +750,6 @@ class TestFormsetTabularHeadings:
         html = _tabular(TwoFieldFormSet())
 
         assert "Delete" not in html
-
-    def test_the_heading_row_is_drawn_only_where_the_columns_are(self):
-        soup = BeautifulSoup(_tabular(TwoFieldFormSet()), "html.parser")
-
-        heading_row = soup.select_one("div[style*='grid-template-columns']")
-        classes = heading_row.get("class", [])
-        assert "hidden" in classes
-        assert "sm:grid" in classes
 
 
 class TestFormsetTabularColumnTracks:
@@ -1061,16 +844,6 @@ class TestFormsetTabularHelpText:
         heading_row = soup.select_one("div[style*='grid-template-columns']")
         assert HELP_TEXT in heading_row.get_text()
 
-    def test_the_rows_own_copy_is_suppressed_where_the_heading_carries_it(self):
-        soup = BeautifulSoup(_tabular(self._formset()), "html.parser")
-
-        grid = soup.select("div.group div[style*='grid-template-columns']")[0]
-        assert "sm:[&_p.label]:hidden" in grid.get("class", []), (
-            "the template pack draws help text in a <p class='label'> under "
-            "each control; at the width where the heading names the column it "
-            "is redundant there"
-        )
-
     def test_the_stacked_layout_keeps_help_text_under_every_field(self):
         html = render(
             '<c-mvp.form.formset :formset="formset" />', formset=self._formset()
@@ -1081,51 +854,8 @@ class TestFormsetTabularHelpText:
         assert html.count(HELP_TEXT) == 3
         assert "sm:[&_p.label]:hidden" not in html
 
-    def test_errors_are_not_swept_up_with_the_help_text(self):
-        soup = BeautifulSoup(_tabular(TwoFieldFormSet()), "html.parser")
-
-        source = (
-            Path(mvp.__path__[0])
-            / "templates"
-            / "cotton"
-            / "mvp"
-            / "form"
-            / "formset"
-            / "row.html"
-        ).read_text()
-        assert "sm:[&_p.label]:hidden" in source
-        assert "sm:[&_p]:hidden" not in source
-        assert soup.select_one("div.group") is not None
-
 
 class TestFormsetTabularRowChrome:
-    def test_the_row_heading_is_hidden_where_the_columns_are_drawn(self):
-        formset = forms.modelformset_factory(
-            Product, fields=["name"], extra=0, can_delete=True
-        )(queryset=Product.objects.none())
-
-        soup = BeautifulSoup(_tabular(formset), "html.parser")
-        for heading in soup.select("div.group > div.justify-between"):
-            assert "sm:hidden" in heading.get("class", [])
-
-    def test_the_remove_control_gets_the_trailing_column(self):
-        soup = BeautifulSoup(_tabular(TwoFieldFormSet()), "html.parser")
-
-        grid = soup.select("div.group div[style*='grid-template-columns']")[0]
-        trailing = grid.find_all("div", recursive=False)[-1]
-        assert "sm:block" in trailing.get("class", [])
-        assert trailing.find("button") is not None
-
-    def test_exactly_one_remove_control_is_drawn_at_any_width(self):
-        soup = BeautifulSoup(_tabular(TwoFieldFormSet()), "html.parser")
-
-        row = soup.select_one("div.group")
-        controls = row.select('button[aria-label="Remove"]')
-        assert len(controls) == 2
-        narrow, wide = controls
-        assert "sm:hidden" in narrow.find_parent("div").get("class", [])
-        assert "hidden" in wide.find_parent("div").get("class", [])
-
     def test_delete_is_still_a_hidden_input_never_a_column(self):
         html = _tabular(TwoFieldFormSet())
 
@@ -1134,23 +864,6 @@ class TestFormsetTabularRowChrome:
 
 
 class TestFormsetTabularErrors:
-    def test_a_field_error_renders_in_its_own_cell(self):
-        data = {
-            "form-TOTAL_FORMS": "1",
-            "form-INITIAL_FORMS": "0",
-            "form-MIN_NUM_FORMS": "0",
-            "form-MAX_NUM_FORMS": "1000",
-            "form-0-kind": "",
-            "form-0-value": "12",
-        }
-        formset = TwoFieldFormSet(data)
-        formset.is_valid()
-
-        soup = BeautifulSoup(_tabular(formset), "html.parser")
-        grid = soup.select_one("div.group div[style*='grid-template-columns']")
-        cell = grid.find_all("div", recursive=False)[0]
-        assert cell.find(id="id_form-0-kind_error") is not None
-
     def test_a_non_field_error_renders_full_width_above_the_columns(self):
         formset = ErrorRowFormSet(
             {

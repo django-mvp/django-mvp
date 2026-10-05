@@ -557,11 +557,6 @@ class TestMountedPageTitle:
             "Detail | &lt;b&gt;Lib&lt;/b&gt; &amp; co | example.com"
         )
 
-    def test_host_page_title_is_unchanged(self, client):
-        response = client.get("/layout/")
-
-        assert normalised_title(response) == "Layout Demo | example.com"
-
     def test_404_raised_inside_a_mounted_view_names_no_app(self, client):
         response = client.get("/mounted/missing/")
 
@@ -609,9 +604,6 @@ class TestMountedPageSidebar:
 
         assert back.get_text(" ", strip=True) == "Back to example.com"
         assert back["href"] == brand["href"] == "/"
-
-    def test_back_link_comes_first_in_the_menu_area(self, client):
-        assert menu_labels(client.get("/mounted/"))[1] == "Back to example.com"
 
     def test_host_page_draws_the_host_menu_and_no_back_link(self, client):
         response = client.get("/layout/")

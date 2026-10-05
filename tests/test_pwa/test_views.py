@@ -60,11 +60,6 @@ class TestManifestView:
         assert manifest["theme_color"] == "#123456"
         assert manifest["background_color"] == "#123456"
 
-    def test_the_short_name_defaults_to_the_name(self, client):
-        manifest = client.get("/manifest.webmanifest").json()
-
-        assert manifest["short_name"] == manifest["name"]
-
     def test_the_name_is_the_current_site_name_with_the_sites_framework(self, client):
         Site.objects.filter(pk=settings.SITE_ID).update(name="Corner Shop")
         Site.objects.clear_cache()

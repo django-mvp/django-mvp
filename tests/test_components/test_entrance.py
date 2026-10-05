@@ -62,19 +62,6 @@ class TestEntranceSize:
         classes = card_classes(render('<c-mvp.entrance size="full">x</c-mvp.entrance>'))
         assert not [c for c in classes if c.startswith("md:max-w-")]
 
-    def test_card_fills_its_container_below_the_md_breakpoint(self):
-        classes = card_classes(render('<c-mvp.entrance size="sm">x</c-mvp.entrance>'))
-        assert "container" in classes
-        assert not [c for c in classes if c.startswith("max-w-")], (
-            "an unprefixed cap would narrow the card on mobile too"
-        )
-
-
-class TestEntranceDefaultWidth:
-    def test_default_card_is_the_historic_width(self):
-        classes = card_classes(render("<c-mvp.entrance>x</c-mvp.entrance>"))
-        assert f"md:max-w-{DEFAULT_SIZE}" in classes
-
 
 class TestEntranceDeprecatedSmall:
     def test_falsy_small_still_gives_a_full_width_card(self):

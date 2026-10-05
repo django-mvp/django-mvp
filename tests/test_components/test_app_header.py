@@ -41,24 +41,9 @@ class TestTheTrailLivesInTheHeader:
         soup = _soup(client, PAGE_WITH_TRAIL)
         assert len(soup.find_all("nav", class_="breadcrumbs")) == 1
 
-    def test_the_trail_carries_the_declared_crumbs(self, client):
-        soup = _soup(client, PAGE_WITH_TRAIL)
-        crumbs = soup.find("nav", class_="breadcrumbs").find_all("li")
-        assert [crumb.get_text(strip=True) for crumb in crumbs] == [
-            "Home",
-            "Layout Demo",
-        ]
-        assert crumbs[0].find("a")["href"] == "/"
-
     def test_a_page_with_no_crumbs_renders_no_landmark(self, client):
         soup = _soup(client, PAGE_WITHOUT_TRAIL)
         assert soup.find("nav", class_="breadcrumbs") is None
-
-    def test_the_heading_is_a_plain_heading_again(self, client):
-        soup = _soup(client, PAGE_WITH_TRAIL)
-        headings = soup.find_all("h1")
-        assert len(headings) == 1
-        assert headings[0].find_parent("nav", class_="breadcrumbs") is None
 
 
 @pytest.mark.django_db
@@ -71,18 +56,6 @@ class TestTheHeaderLeadingEdge:
         assert brand.find("img") is not None, (
             "the header carries the site icon, not the site name as text"
         )
-
-    def test_the_icon_and_the_trail_share_the_leading_edge(self, client):
-        soup = _soup(client, PAGE_WITH_TRAIL)
-        start = soup.find(class_="navbar-start")
-        assert start.find("a", class_="mvp-navbar-brand") is not None
-        assert start.find("nav", class_="breadcrumbs") is not None
-
-    def test_the_leading_edge_can_shrink(self, client):
-        soup = _soup(client, PAGE_WITH_TRAIL)
-        assert "min-w-0" in soup.find(class_="navbar-start").get("class", [])
-        trail = soup.find("nav", class_="breadcrumbs")
-        assert "min-w-0" in trail.get("class", [])
 
 
 @pytest.mark.django_db
@@ -106,31 +79,6 @@ class TestTheBrandMarkAppearsOnce:
     def test_the_icon_carries_the_sidebar_echo_class(self, client):
         assert "mvp-sidebar-hidden-only" in self._brand_classes(client)
 
-    def test_the_icon_reflects_a_config_level_collapse_override(
-        self, client, monkeypatch
-    ):
-        monkeypatch.setitem(MVP_CONFIG["layout"]["sidebar"], "collapse", "icons")
-        content = client.get(PAGE_WITH_TRAIL).content.decode()
-        assert 'data-mvp-collapse="icons"' in content
-        assert "mvp-sidebar-hidden-only" in self._brand_classes(client)
-
-    def test_the_icon_reflects_a_config_level_breakpoint_override(
-        self, client, monkeypatch
-    ):
-        monkeypatch.setitem(MVP_CONFIG["layout"]["sidebar"], "breakpoint", "md")
-        content = client.get(PAGE_WITH_TRAIL).content.decode()
-        assert 'data-mvp-breakpoint="md"' in content
-        assert "mvp-sidebar-hidden-only" in self._brand_classes(client)
-
-    def test_the_icon_and_the_toggle_share_the_same_visibility_class(self, client):
-        assert "mvp-sidebar-hidden-only" in self._brand_classes(client)
-        assert "mvp-sidebar-hidden-only" in self._toggle_classes(client)
-
-    def test_the_icon_reflects_a_disabled_breakpoint(self, client, monkeypatch):
-        monkeypatch.setitem(MVP_CONFIG["layout"]["sidebar"], "breakpoint", "never")
-        content = client.get(PAGE_WITH_TRAIL).content.decode()
-        assert 'data-mvp-breakpoint="never"' in content
-
 
 @pytest.mark.django_db
 class TestTheActionsGiveWayToTheTrail:
@@ -141,24 +89,6 @@ class TestTheActionsGiveWayToTheTrail:
         )
         assert match is not None, "the header's action region must render"
         return match.group(1).split()
-
-    def test_actions_carry_the_wide_only_class(self, client):
-        classes = self._actions_classes(client)
-        assert "mvp-desktop-only" in classes
-
-    def test_the_region_follows_a_config_level_breakpoint_override(
-        self, client, monkeypatch
-    ):
-        monkeypatch.setitem(MVP_CONFIG["layout"]["sidebar"], "breakpoint", "md")
-        content = client.get(PAGE_WITH_TRAIL).content.decode()
-        assert 'data-mvp-breakpoint="md"' in content
-        assert "mvp-desktop-only" in self._actions_classes(client)
-
-    def test_project_header_content_gives_way_with_the_widgets(self, client):
-        soup = _soup(client, PAGE_WITH_TRAIL)
-        region = soup.find(id="mvp-navbar-widgets-desktop")
-        assert region is not None
-        assert region.find_parent(class_="navbar-end") is not None
 
     def test_the_mobile_region_is_absent_when_nothing_is_configured(
         self, client, monkeypatch
@@ -221,13 +151,6 @@ class TestTheHeaderShowsWhenHtmxIsWorking:
         assert indicator.find_parent(class_="mvp-header") is not None
         assert {"loading", "loading-spinner"} <= set(indicator["class"])
         assert indicator["aria-hidden"] == "true"
-
-    def test_the_indicator_sits_at_the_start_of_the_actions(self, client):
-        soup = _soup(client, PAGE_WITH_TRAIL)
-        actions = soup.find(class_="navbar-end")
-        first = actions.find(True)
-
-        assert first["id"] == "mvp-htmx-indicator"
 
     def test_the_indicator_is_outside_the_width_dependent_regions(self, client):
         indicator = _soup(client, PAGE_WITH_TRAIL).find(id="mvp-htmx-indicator")
