@@ -65,6 +65,15 @@
         "SPEC-007 low: pathlib-built paths and monkeypatched names \u2014 T002 hand-edit list",
         "ARCH-001 low: unprovenanced sentence dropped from T006"
       ]
+    },
+    "review": {
+      "approved_by": "code-review",
+      "at": "2026-10-05T15:33:15Z",
+      "self_resolved": [
+        "DOC-001 high: old widget names in three settings examples \u2014 fixed, T011",
+        "DOC-002 low: decision record overstated \u2014 reworded, T012",
+        "COR-001 low: two templates' line endings \u2014 restored, T013"
+      ]
     }
   },
   "stories": [
@@ -124,8 +133,13 @@
         },
         {
           "id": "T013",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "script over git diff -M origin/main...HEAD: no file's line endings differ from its earlier version; full suite green at cdd6753"
+            ]
+          }
         }
       ]
     },
@@ -310,13 +324,23 @@
         },
         {
           "id": "T011",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "grep for old widget names in README.md docs/ skills/: only the docs/configuration.md sentence that names the old one on purpose; fixed at cdd6753"
+            ]
+          }
         },
         {
           "id": "T012",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "docs/adr/0030 and CHANGELOG.md reworded at cdd6753; read against mvp/templates/cotton (17 bare templates)"
+            ]
+          }
         }
       ]
     }
