@@ -2,7 +2,7 @@
   "feature": "034-mvp-component-prefix",
   "branch": "034-mvp-component-prefix",
   "repo": "django-mvp/django-mvp",
-  "state": "PR_READY",
+  "state": "GATE_MERGE",
   "state_history": [
     {
       "state": "QUEUED",
@@ -38,6 +38,11 @@
       "state": "PR_READY",
       "at": "2026-10-05T15:34:54Z",
       "note": "review closed, walkthrough laid out, open for review"
+    },
+    {
+      "state": "GATE_MERGE",
+      "at": "2026-10-05T15:40:50Z",
+      "note": "all checks green; waiting at the merge gate"
     }
   ],
   "gates": {
