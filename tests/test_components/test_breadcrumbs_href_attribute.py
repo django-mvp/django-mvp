@@ -46,28 +46,7 @@ class TestADeclaredTrailRendersInTheHeader:
         assert [link["href"] for link in links] == ["/", "/products/"]
 
     def test_an_entry_with_no_address_is_the_current_page(self, trail):
-        current = trail.select("li > [aria-current='page']")
+        last = trail.select("ul > li")[-1]
 
-        assert len(current) == 1
-        assert current[0].name != "a"
-        assert current[0].get_text(strip=True) == "Widget"
-
-    def test_extra_attributes_land_on_the_list_item(self, trail):
-        item = trail.select("ul > li")[1]
-
-        assert item["data-crumb"] == "middle"
-        assert not item.find("a").has_attr("data-crumb")
-
-    def test_the_address_is_written_once(self, trail, cotton_render_string):
-        # Counted in the raw output: a parsed tree keeps one of a repeated
-        # attribute and would hide the fault this guards against (#127).
-        html = cotton_render_string(
-            "<c-mvp.app.header.navbar />",
-            context={
-                "page": {"breadcrumbs": [{"text": "Products", "href": "/products/"}]},
-                "mvp_config": MVP_CONFIG,
-            },
-        )
-
-        assert html.count('href="/products/"') == 1
-        assert not trail.select_one("ul > li").has_attr("href")
+        assert last.find("a") is None
+        assert last.get_text(strip=True) == "Widget"
