@@ -2,7 +2,7 @@
   "feature": "035-basic-components-from-daisy-cotton",
   "branch": "035-basic-components-from-daisy-cotton",
   "repo": "django-mvp/django-mvp",
-  "state": "REVIEW",
+  "state": "PR_READY",
   "state_history": [
     {
       "state": "QUEUED",
@@ -33,6 +33,11 @@
       "state": "REVIEW",
       "at": "2026-10-05T17:20:21Z",
       "note": "converged; gates green"
+    },
+    {
+      "state": "PR_READY",
+      "at": "2026-10-05T17:35:21Z",
+      "note": "review closed, walkthrough laid out, open for review"
     }
   ],
   "gates": {
@@ -74,6 +79,11 @@
         "COR-003 low: changelog names Python attribute dictionaries - remedied (T014)",
         "COR-004 low likely: badge display in rail dropdowns - remedied (T014), for the walkthrough to confirm by eye"
       ]
+    },
+    "walkthrough": {
+      "approved_by": null,
+      "at": "2026-10-05T17:34:35Z",
+      "self_resolved": []
     }
   },
   "stories": [
@@ -423,6 +433,6 @@
   },
   "pr": {
     "number": 447,
-    "draft": true
+    "draft": false
   }
 }
