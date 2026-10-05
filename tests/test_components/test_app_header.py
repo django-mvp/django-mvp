@@ -173,7 +173,7 @@ class TestTheActionsGiveWayToTheTrail:
         monkeypatch.setitem(
             MVP_CONFIG["layout"]["navbar"]["mobile"],
             "end",
-            ["actions.theme-controller"],
+            ["mvp.actions.theme-controller"],
         )
         content = client.get(PAGE_WITH_TRAIL).content.decode()
         match = re.search(

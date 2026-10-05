@@ -1,4 +1,4 @@
-"""Tests for the <c-section.hero> component.
+"""Tests for the <c-mvp.section.hero> component.
 
 The hero's background image and height used to be written out as
 ``data-image`` and ``data-height`` and applied by parallaxx-js, a script the
@@ -49,18 +49,18 @@ def hero_tag(html):
 
 class TestHeroLayout:
     def test_it_renders_daisyui_hero_markup(self):
-        html = render('<c-section.hero title="T" />')
+        html = render('<c-mvp.section.hero title="T" />')
 
         assert "hero-content" in html
         assert re.search(r'class="hero\b', html)
 
     def test_the_dead_class_is_gone(self):
-        html = render('<c-section.hero title="T" />')
+        html = render('<c-mvp.section.hero title="T" />')
 
         assert "mvp-hero" not in html
 
     def test_caller_classes_survive_alongside_the_component_class(self):
-        html = render('<c-section.hero title="T" class="mt-8" />')
+        html = render('<c-mvp.section.hero title="T" class="mt-8" />')
 
         assert "mt-8" in hero_tag(html)
         assert "hero" in hero_tag(html)
@@ -68,23 +68,24 @@ class TestHeroLayout:
 
 class TestHeroBackgroundAndHeight:
     def test_background_image_is_applied_as_css(self):
-        html = render('<c-section.hero title="T" bg-image="/static/img/x.jpg" />')
+        html = render('<c-mvp.section.hero title="T" bg-image="/static/img/x.jpg" />')
 
         assert "background-image: url('/static/img/x.jpg')" in hero_tag(html)
 
     def test_height_is_applied_as_a_minimum(self):
-        html = render('<c-section.hero title="T" height="80vh" />')
+        html = render('<c-mvp.section.hero title="T" height="80vh" />')
 
         assert "min-height: 80vh" in hero_tag(html)
 
     def test_no_style_attribute_when_neither_is_given(self):
-        html = render('<c-section.hero title="T" />')
+        html = render('<c-mvp.section.hero title="T" />')
 
         assert "style=" not in hero_tag(html)
 
     def test_the_dead_data_attributes_are_gone(self):
         html = render(
-            '<c-section.hero title="T" bg-image="/static/img/x.jpg" height="80vh" />'
+            '<c-mvp.section.hero title="T" bg-image="/static/img/x.jpg" height="80vh" '
+            "/>"
         )
 
         assert "data-image" not in html
@@ -94,39 +95,40 @@ class TestHeroBackgroundAndHeight:
 
 class TestHeroOverlay:
     def test_an_overlay_covers_a_background_image(self):
-        html = render('<c-section.hero title="T" bg-image="/static/img/x.jpg" />')
+        html = render('<c-mvp.section.hero title="T" bg-image="/static/img/x.jpg" />')
 
         assert "hero-overlay" in html
         assert "opacity: 0.5" in html
 
     def test_opacity_is_the_dial_on_it(self):
         html = render(
-            '<c-section.hero title="T" bg-image="/static/img/x.jpg" opacity="0.2" />'
+            '<c-mvp.section.hero title="T" bg-image="/static/img/x.jpg" opacity="0.2" '
+            "/>"
         )
 
         assert "opacity: 0.2" in html
 
     def test_no_overlay_without_a_background_image(self):
-        html = render('<c-section.hero title="T" />')
+        html = render('<c-mvp.section.hero title="T" />')
 
         assert "hero-overlay" not in html
 
 
 class TestRemovedParallaxAttributes:
     def test_parallax_no_longer_adds_a_class(self):
-        html = render('<c-section.hero title="T" parallax />')
+        html = render('<c-mvp.section.hero title="T" parallax />')
 
         assert "parallax" not in hero_tag(html)
 
     def test_speed_is_not_rendered(self):
-        html = render('<c-section.hero title="T" speed="0.5" />')
+        html = render('<c-mvp.section.hero title="T" speed="0.5" />')
 
         assert "0.5" not in hero_tag(html)
 
 
 class TestHeroContent:
     def test_title_and_subtitle_render(self):
-        html = render('<c-section.hero title="Headline" subtitle="Sub" />')
+        html = render('<c-mvp.section.hero title="Headline" subtitle="Sub" />')
 
         assert "Headline" in html
         assert "Sub" in html

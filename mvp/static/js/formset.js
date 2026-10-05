@@ -1,5 +1,5 @@
 /**
- * Alpine components backing <c-form.formset> and <c-form.formset.row>.
+ * Alpine components backing <c-mvp.form.formset> and <c-mvp.form.formset.row>.
  *
  * Registered on `alpine:init`, so this file has to run *before* Alpine does.
  * The packaged base template loads Alpine with `defer`, and a plain

@@ -520,8 +520,8 @@ class TestAccountLayout:
         source = ACCOUNT_BASE_TEMPLATE.read_text()
 
         assert "process_menu" not in source
-        assert "c-dropdown" not in source
-        assert "c-card" not in source
+        assert "c-mvp.dropdown" not in source
+        assert "c-mvp.card" not in source
 
     def test_the_layout_extends_the_projects_own_base_not_the_shell_directly(self):
         source = ACCOUNT_BASE_TEMPLATE.read_text()
@@ -581,7 +581,7 @@ class TestAccountCenterCards:
         client.force_login(user)
 
     def _cards(self, content):
-        """The ``<c-card>`` surfaces actually rendered inside the card
+        """The ``<c-mvp.card>`` surfaces actually rendered inside the card
         region — counted from the real markup, not a context list the view
         no longer builds."""
         soup = BeautifulSoup(content, "html.parser")

@@ -16,7 +16,7 @@
  * The ordering that keeps issue #178 fixed: Alpine calls a store's init()
  * synchronously while it registers stores, before it walks the DOM. By the
  * time init() below reads the drawer checkbox, the blocking pre-paint
- * script in mvp/templates/cotton/layout/sidebar/index.html has already set
+ * script in mvp/templates/cotton/mvp/layout/sidebar/index.html has already set
  * its checked state. The checkbox's own x-model binding is applied during
  * Alpine's later DOM walk, and it writes back the value this store already
  * read from that same checkbox — so nothing moves. See

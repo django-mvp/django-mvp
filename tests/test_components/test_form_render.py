@@ -1,8 +1,8 @@
-"""Tests for the <c-form.render> component.
+"""Tests for the <c-mvp.form.render> component.
 
 Renders a whole Django form through the daisyUI template pack, on the path
 ``{{ form|crispy }}`` takes for a form with no helper, as opposed to
-<c-form.field>, which renders one control from explicit attributes and is
+<c-mvp.form.field>, which renders one control from explicit attributes and is
 covered in test_form_field.py.
 """
 
@@ -24,7 +24,7 @@ class HelpTextForm(forms.Form):
 
 class TestFormRender:
     def test_the_control_is_described_by_its_help_text(self):
-        html = render_to_string("cotton/form/render.html", {"form": HelpTextForm()})
+        html = render_to_string("cotton/mvp/form/render.html", {"form": HelpTextForm()})
         soup = _beautiful_soup()(html, "html.parser")
 
         control = soup.find(id="id_password")

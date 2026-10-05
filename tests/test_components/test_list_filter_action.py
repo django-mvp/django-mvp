@@ -1,4 +1,4 @@
-"""Tests for the <c-page.list.actions.filter> component's applied-filter badge.
+"""Tests for the <c-mvp.page.list.actions.filter> component's applied-filter badge.
 
 The badge is a daisyUI ``indicator-item`` (issue #287): positioned outside its
 own box by design — half above the top edge, at ``z-index: 1``. That is
@@ -27,7 +27,9 @@ from mvp.fixtures import _beautiful_soup
 
 MVP_ROOT = Path(next(iter(mvp.__path__))).resolve()
 BASE_CSS = MVP_ROOT / "tailwind" / "base.css"
-HEADER_TEMPLATE = MVP_ROOT / "templates" / "cotton" / "app" / "header" / "index.html"
+HEADER_TEMPLATE = (
+    MVP_ROOT / "templates" / "cotton" / "mvp" / "app" / "header" / "index.html"
+)
 
 
 def _filtered_action_view():
@@ -43,7 +45,7 @@ def _filtered_action_view():
         model = Product
         filterset_fields = ["name", "price"]
         search_fields = ["name"]
-        template_name = "cotton/page/list/actions/filter.html"
+        template_name = "cotton/mvp/page/list/actions/filter.html"
 
     return ComposedProductView
 
@@ -70,7 +72,7 @@ class TestTheOverrideBeatsTheHeader:
         header_class = re.search(r"\bz-(\d+)\b", header_html)
         assert header_class is not None, (
             "the header's own z-index utility class moved out of "
-            "cotton/app/header/index.html"
+            "cotton/mvp/app/header/index.html"
         )
         header_z = int(header_class.group(1))
 

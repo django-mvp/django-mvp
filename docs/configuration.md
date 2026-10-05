@@ -53,7 +53,7 @@ site overrides the project setting for that one tag only.
 | `layout.sidebar.boost` | bool | `False` | Navigate sidebar links without a full page load |
 | `layout.navbar.mobile.end` | list of component names | `[]` | Widgets at the trailing edge of the navbar below the sidebar breakpoint |
 | `layout.navbar.mobile.sidebar_toggle` | bool | `False` | Whether the navbar draws its own sidebar toggle below the sidebar breakpoint; the mobile dock carries one already |
-| `layout.navbar.desktop.end` | list of component names | `["actions.theme-controller", "actions.login"]` | Same, at and above the breakpoint |
+| `layout.navbar.desktop.end` | list of component names | `["mvp.actions.theme-controller", "mvp.actions.login"]` | Same, at and above the breakpoint |
 | `layout.navbar.sticky` | bool | `True` | Whether the header stays pinned as the page scrolls |
 | `layout.navbar.class` | CSS classes | `"bg-base-100"` | The header's background, at every width; see [Header and dock background](layout.md#header-and-dock-background) |
 | `layout.dock.class` | CSS classes | `"bg-base-100"` | The mobile dock's background |
@@ -77,7 +77,7 @@ MVP_CONFIG = {
     "theme": {"choices": ["light", "dark", "dracula"]},
     "layout": {
         "sidebar": {"title": "Acme"},
-        "navbar": {"desktop": {"end": ["actions.search", "actions.login"]}},
+        "navbar": {"desktop": {"end": ["mvp.actions.search", "mvp.actions.login"]}},
     },
 }
 ```
@@ -180,10 +180,16 @@ Cotton's own:
 3. The result is looked up under your Cotton directory, `templates/cotton/`
    by default, with `<name>/index.html` tried as a fallback.
 
-So `"actions.theme-controller"` is `<c-actions.theme-controller />` and
-resolves to `templates/cotton/actions/theme_controller.html`. A component of
-your own resolves the same way with no registration: `"billing.credit-meter"`
-finds `templates/cotton/billing/credit_meter.html`.
+The package's own components all sit under `mvp/`, so a packaged widget is
+listed by its prefixed name: `"mvp.actions.theme-controller"` is
+`<c-mvp.actions.theme-controller />` and resolves to
+`templates/cotton/mvp/actions/theme_controller.html`. A name is written in full,
+as it would follow `c-` in a tag, and nothing is added to it for your project: a
+name without the `mvp.` prefix is looked up as written, so an old
+`"actions.theme-controller"` finds nothing and raises `TemplateDoesNotExist`.
+A component of your own is listed by its own name and resolves the same way with
+no registration: `"billing.credit-meter"` finds
+`templates/cotton/billing/credit_meter.html`.
 
 A name in `MVP_CONFIG` carries no attributes. If you need to pass one — a
 distinct element id when the same widget appears twice, say — wrap it in a
@@ -193,11 +199,11 @@ Bundled widgets:
 
 | Name | Renders |
 | --- | --- |
-| `actions.theme-controller` | Toggle, or a dropdown when `theme.choices` is set |
-| `actions.language-switcher` | Language dropdown; renders nothing without i18n and a `set_language` URL |
-| `actions.language-switcher-modal` | Same choices in a modal grid, better for touch and narrow slots |
-| `actions.login` | Log-in button; renders nothing for an authenticated visitor |
-| `actions.search` | Presentation only: a search icon styled as a button beside an input with no name, no form and no handler. It submits nothing — wire up your own |
+| `mvp.actions.theme-controller` | Toggle, or a dropdown when `theme.choices` is set |
+| `mvp.actions.language-switcher` | Language dropdown; renders nothing without i18n and a `set_language` URL |
+| `mvp.actions.language-switcher-modal` | Same choices in a modal grid, better for touch and narrow slots |
+| `mvp.actions.login` | Log-in button; renders nothing for an authenticated visitor |
+| `mvp.actions.search` | Presentation only: a search icon styled as a button beside an input with no name, no form and no handler. It submits nothing — wire up your own |
 
 ## `layout.navbar` — mobile and desktop are separate
 

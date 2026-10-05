@@ -42,14 +42,14 @@ normalizes onto both. See [Navbar widgets](layout.md#navbar-widgets).
 
 **A per-page `breakpoint` or `collapse` override doesn't move the navbar toggle.** The
 sidebar drawer, the collapsed rail, and the toggle all read values resolved once at the top
-of `{% block app %}`. Setting the attributes on `<c-app>` or `<c-app.sidebar>` styles those
+of `{% block app %}`. Setting the attributes on `<c-mvp.app>` or `<c-mvp.app.sidebar>` styles those
 components alone and leaves the toggle on the project default. Resolve them in the block
 instead: `{% block app %}{% with breakpoint="xl" collapse="icons" %}{{ block.super }}{% endwith %}{% endblock %}`,
 or supply them from view context. See [Overriding the layout per page](layout.md#overriding-the-layout-per-page).
 
 ## Templates and styling
 
-**Rewriting `<c-app>…</c-app>` inside a page template.** That composition is the shell's
+**Rewriting `<c-mvp.app>…</c-mvp.app>` inside a page template.** That composition is the shell's
 own job. Extend `mvp/base.html` and fill `{% block content %}` — the sidebar, header,
 footer and mobile dock render themselves. See [Your first page](getting-started.md#your-first-page).
 
@@ -114,13 +114,13 @@ headers, and an ordering on the view too would be a second, competing source. Mo
 ordering onto the table class, as its own `order_by` or `Meta.order_by`. See
 [django-tables2](integrations.md#django-tables2).
 
-**`min_height` on `<c-addons.django-table>` has no effect.** The attribute was removed; the
+**`min_height` on `<c-mvp.addons.django-table>` has no effect.** The attribute was removed; the
 component is now the scroll region of the full-screen table layout and takes its height from
 the page. Drop the attribute and mark the page `fill` instead. See
 [Full-page content](layout.md#full-page-content).
 
 **A list of action names prints next to the breadcrumbs or above a table.** A view put a
-context key called `actions` there. `<c-toolbar>` and `<c-page.title>` both expose a slot of
+context key called `actions` there. `<c-mvp.toolbar>` and `<c-mvp.page.title>` both expose a slot of
 that name, and a Cotton slot falls through to the context variable of the same name when the
 caller fills no slot — so the list renders its own repr instead of nothing. Name the context
 key something else; nothing this package ships puts one there.

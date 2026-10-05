@@ -19,34 +19,34 @@ from mvp.fixtures import _beautiful_soup
 
 class TestCottonRender:
     def test_renders_a_packaged_component(self, cotton_render):
-        html = cotton_render("card", title="Quarterly report")
+        html = cotton_render("mvp.card", title="Quarterly report")
         assert "Quarterly report" in html
 
     def test_context_dict_and_kwargs_both_reach_the_component(self, cotton_render):
-        from_kwargs = cotton_render("card", title="From kwargs")
-        from_context = cotton_render("card", {"title": "From context"})
+        from_kwargs = cotton_render("mvp.card", title="From kwargs")
+        from_context = cotton_render("mvp.card", {"title": "From context"})
         assert "From kwargs" in from_kwargs
         assert "From context" in from_context
 
 
 class TestCottonRenderSoup:
     def test_returns_a_traversable_document(self, cotton_render_soup):
-        soup = cotton_render_soup("card", title="Parsed card")
+        soup = cotton_render_soup("mvp.card", title="Parsed card")
         assert soup.find(string=lambda s: "Parsed card" in s) is not None
 
     def test_find_all_sees_rendered_elements(self, cotton_render_soup):
-        soup = cotton_render_soup("grid", md="2")
+        soup = cotton_render_soup("mvp.grid", md="2")
         assert soup.find("div") is not None
 
 
 class TestCottonRenderString:
     def test_renders_inline_component_markup(self, cotton_render_string):
-        html = cotton_render_string("<c-card title='Inline'></c-card>")
+        html = cotton_render_string("<c-mvp.card title='Inline'></c-mvp.card>")
         assert "Inline" in html
 
     def test_context_variables_are_interpolated(self, cotton_render_string):
         html = cotton_render_string(
-            "<c-card title='{{ heading }}'></c-card>",
+            "<c-mvp.card title='{{ heading }}'></c-mvp.card>",
             context={"heading": "From the context"},
         )
         assert "From the context" in html
@@ -59,7 +59,8 @@ class TestCottonRenderString:
 class TestCottonRenderStringSoup:
     def test_nested_components_produce_nested_elements(self, cotton_render_string_soup):
         soup = cotton_render_string_soup(
-            "<c-grid md='2'><c-card title='One'></c-card><c-card title='Two'></c-card></c-grid>"
+            "<c-mvp.grid md='2'><c-mvp.card title='One'></c-mvp.card><c-mvp.card "
+            "title='Two'></c-mvp.card></c-mvp.grid>"
         )
         text = soup.get_text()
         assert "One" in text
@@ -67,27 +68,28 @@ class TestCottonRenderStringSoup:
 
     def test_context_reaches_the_parsed_output(self, cotton_render_string_soup):
         soup = cotton_render_string_soup(
-            "<c-card title='{{ title }}'></c-card>", context={"title": "Contextual"}
+            "<c-mvp.card title='{{ title }}'></c-mvp.card>",
+            context={"title": "Contextual"},
         )
         assert "Contextual" in soup.get_text()
 
 
 class TestRequestAwareTags:
     def test_string_renderer_supplies_the_request_attribute(self, cotton_render_string):
-        html = cotton_render_string('<c-pagination.link :page="2" text="2" />')
+        html = cotton_render_string('<c-mvp.pagination.link :page="2" text="2" />')
         assert "page=2" in html
 
     def test_soup_renderer_supplies_the_request_attribute(
         self, cotton_render_string_soup
     ):
-        soup = cotton_render_string_soup('<c-pagination.link :page="2" text="2" />')
+        soup = cotton_render_string_soup('<c-mvp.pagination.link :page="2" text="2" />')
         assert "page=2" in soup.find("a")["href"]
 
     def test_a_caller_supplied_request_is_honoured(self, cotton_render_string):
         from django.test import RequestFactory
 
         html = cotton_render_string(
-            '<c-pagination.link :page="2" text="2" />',
+            '<c-mvp.pagination.link :page="2" text="2" />',
             context={"request": RequestFactory().get("/items/?q=widget")},
         )
         assert "q=widget" in html

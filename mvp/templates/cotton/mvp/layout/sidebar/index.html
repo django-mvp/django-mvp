@@ -1,0 +1,77 @@
+{# @description The drawer shell: toggle, overlay, desktop open-state persistence, and the resolved layout it publishes to the browser. #}
+{# @prop id:text | description:"Element id, used to derive the toggle checkbox id and the persisted storage key." #}
+{# @prop :breakpoint:text | description:"Viewport width at which the sidebar becomes a persistent panel instead of an overlay drawer." #}
+{# @prop :collapse:text | description:"offcanvas or icons — how the sidebar behaves when collapsed at/above the breakpoint." #}
+{# @prop :sticky:boolean | description:"Whether the header pins to the top of the viewport." #}
+{# @prop :boost:boolean | description:"Adds hx-boost to the sidebar so its links navigate with htmx." #}
+{# @prop class:text | description:"Extra classes appended to the drawer root element." #}
+{# @slot:sidebar <c-mvp.app.sidebar /> — The sidebar panel drawn in the drawer's side region. #}
+{# @slot The page content. — The drawer's main content region. #}
+{% load i18n mvp %}
+<c-vars id
+        :breakpoint="mvp_config.layout.sidebar.breakpoint"
+        :collapse="mvp_config.layout.sidebar.collapse"
+        :sticky="mvp_config.layout.navbar.sticky"
+        :boost="mvp_config.layout.sidebar.boost"
+        class />
+{% sidebar_has_breakpoint breakpoint as persistent %}
+{% resolve_layout_config breakpoint collapse sticky boost as layout %}
+{% comment %}
+  The store only writes the remembered open state back at/above the
+  breakpoint, so toggling the transient mobile overlay never clobbers the
+  saved desktop state (docs/adr/0022-the-layout-store-mirrors-state-it-does-not-own.md).
+{% endcomment %}
+<div id="{{ id }}"
+     class="drawer {% sidebar_breakpoint_class breakpoint %} {{ class }}"
+     data-mvp-breakpoint="{{ layout.breakpoint }}"
+     data-mvp-collapse="{{ layout.collapse }}"
+     x-data
+     {{ attrs }}>
+  <input id="{{ id }}-toggle"
+         type="checkbox"
+         x-model="$store.mvp.sidebar.open"
+         {% if persistent %}data-mvp-persist-key="{{ id }}-drawer-open"{% endif %}
+         class="drawer-toggle" />
+  {% comment %}
+    Emitted here rather than from mvp/base.html so a project overriding the
+    base template keeps this payload wherever it keeps <c-mvp.app>
+    (docs/adr/0021-responsive-visibility-is-resolved-by-the-browser.md).
+  {% endcomment %}
+  {% with layout_config_id=id|add:"-layout-config" %}
+  {{ layout.as_dict|json_script:layout_config_id }}
+  {% endwith %}
+  {% if persistent %}
+  {% comment %}
+    Runs blocking, mid-parse, before first paint: the store's own hydration
+    is deferred and would only correct the checkbox after the sidebar's
+    width transition already played as a visible animation (#178).
+  {% endcomment %}
+  <script>
+    (function () {
+      try {
+        var toggle = document.getElementById('{{ id }}-toggle');
+        var key = toggle.dataset.mvpPersistKey;
+        var stored = localStorage.getItem(key);
+        var wasOpen = stored === null ? true : JSON.parse(stored);
+        var isDesktop = window.matchMedia('(min-width: {% breakpoint_px breakpoint %}px)').matches;
+        toggle.dataset.mvpPersistOpen = JSON.stringify(wasOpen);
+        if (isDesktop && wasOpen) {
+          toggle.checked = true;
+        }
+      } catch (e) {}
+    })();
+  </script>
+  {% endif %}
+  <div class="drawer-side is-drawer-close:overflow-visible z-40">
+    <label for="{{ id }}-toggle"
+           aria-label="{% trans "Close sidebar" %}"
+           class="drawer-overlay"></label>
+    {{ sidebar }}
+  </div>
+  {% comment %}
+    Laid out as a flex column only on a page carrying <c-mvp.page fill>; see the
+    .mvp-page-fill rule in mvp/tailwind/base.css. Every other page renders
+    byte-identically to before (issue #247).
+  {% endcomment %}
+  <div class="drawer-content">{{ slot }}</div>
+</div>

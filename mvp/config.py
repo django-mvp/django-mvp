@@ -72,7 +72,8 @@ MVP_CONFIG = {
         },
         "navbar": {
             # Cotton component names rendered at the end (right side) of the navbar,
-            # in order, e.g. "actions.theme-controller" -> <c-actions.theme-controller />
+            # in order, e.g. "mvp.actions.theme-controller" ->
+            # <c-mvp.actions.theme-controller />. A name is used as written.
             # Configured separately for mobile and desktop (issue #176) so a widget
             # that only makes sense at one screen size doesn't have to be baked
             # responsive by its own author — see _apply_legacy_flat_navbar_config
@@ -89,7 +90,7 @@ MVP_CONFIG = {
             # nothing at or above the breakpoint, and under a breakpoint of
             # "never" the toggle is always drawn.
             "mobile": {"end": [], "sidebar_toggle": False},
-            "desktop": {"end": ["actions.theme-controller", "actions.login"]},
+            "desktop": {"end": ["mvp.actions.theme-controller", "mvp.actions.login"]},
             # Whether the header sticks to the top of the viewport on scroll.
             # True (default) pins it (app-style); False lets it scroll away with
             # the page (traditional-site behaviour). Applies at every screen size.
@@ -168,7 +169,7 @@ def _warn_on_removed_sidebar_footer_setting(config):
     footer is presentation, not a structural concern, so it belongs behind
     a template override rather than a Python-level setting — a project that
     wants a different footer now overrides
-    ``templates/cotton/app/sidebar/footer.html`` directly. A project's own
+    ``templates/cotton/mvp/app/sidebar/footer.html`` directly. A project's own
     ``settings.MVP_CONFIG`` may still set the removed key; pop it so no
     template can read a value that no longer means anything, and warn so
     the project learns why its footer looks unchanged.
@@ -179,7 +180,7 @@ def _warn_on_removed_sidebar_footer_setting(config):
         warnings.warn(
             "MVP_CONFIG['layout']['sidebar']['footer'] no longer has any "
             "effect: the sidebar footer is a fixed composition. Override "
-            "templates/cotton/app/sidebar/footer.html in your project "
+            "templates/cotton/mvp/app/sidebar/footer.html in your project "
             "instead.",
             MVPDeprecationWarning,
             stacklevel=2,

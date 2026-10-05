@@ -1,7 +1,7 @@
 """Tests for the "Admin Site" link in the sidebar user menu (issue #369).
 
 Rendered via tests/sidebar_menu.html, the same pattern
-test_user_display_compact.py uses for user/sidebar_menu.html's sole
+test_user_display_compact.py uses for mvp/user/sidebar_menu.html's sole
 component. The link is guarded on two conditions, both required: the user
 is staff, and the admin URLs are actually mounted (django.contrib.admin
 being installed does not mean a project mounted its URLs).

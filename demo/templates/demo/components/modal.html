@@ -1,34 +1,34 @@
 {% extends "demo/components/base.html" %}
 {% block component.docs %}
   <c-components.section title="Default"
-                        description="Give the modal an id, then open it from any element with id.showModal(). Clicking the backdrop closes it. The box is laid out exactly like a c-card.">
+                        description="Give the modal an id, then open it from any element with id.showModal(). Clicking the backdrop closes it. The box is laid out exactly like a c-mvp.card.">
     {% cotton:verbatim %}
     <c-button text="Open modal" variant="primary" onclick="basic_modal.showModal()" />
-    <c-modal id="basic_modal" title="Hello">
-      <c-text tight>This is a modal dialog. Click outside the box to dismiss it.</c-text>
-    </c-modal>
+    <c-mvp.modal id="basic_modal" title="Hello">
+      <c-mvp.text tight>This is a modal dialog. Click outside the box to dismiss it.</c-mvp.text>
+    </c-mvp.modal>
   {% endcotton:verbatim %}
   </c-components.section>
   <c-components.section title="Title icon"
                         description="title and icon flow straight through to the inner card's header.">
     {% cotton:verbatim %}
     <c-button text="Show info" variant="info" onclick="info_modal.showModal()" />
-    <c-modal id="info_modal" title="Good to know" icon="info-circle" closable>
-      <c-text tight>Modals are built on the native &lt;dialog&gt; element, so they work without extra JavaScript libraries. Add closable for the ✕ in the corner.</c-text>
-    </c-modal>
+    <c-mvp.modal id="info_modal" title="Good to know" icon="info-circle" closable>
+      <c-mvp.text tight>Modals are built on the native &lt;dialog&gt; element, so they work without extra JavaScript libraries. Add closable for the ✕ in the corner.</c-mvp.text>
+    </c-mvp.modal>
   {% endcotton:verbatim %}
   </c-components.section>
   <c-components.section title="Footer actions"
                         description="Put action buttons in footer_end so they sit at the end of the footer. Call id.close() to dismiss.">
     {% cotton:verbatim %}
     <c-button text="Delete item" variant="error" onclick="confirm_modal.showModal()" />
-    <c-modal id="confirm_modal" title="Are you sure?" icon="trash">
-      <c-text tight>This action cannot be undone.</c-text>
+    <c-mvp.modal id="confirm_modal" title="Are you sure?" icon="trash">
+      <c-mvp.text tight>This action cannot be undone.</c-mvp.text>
       <c-slot name="footer_end">
         <c-button text="Cancel" variant="ghost" onclick="confirm_modal.close()" />
         <c-button text="Delete" variant="error" onclick="confirm_modal.close()" />
       </c-slot>
-    </c-modal>
+    </c-mvp.modal>
   {% endcotton:verbatim %}
   </c-components.section>
   <c-components.section title="Size"
@@ -37,9 +37,9 @@
     <c-button text="Open large modal"
               variant="neutral"
               onclick="large_modal.showModal()" />
-    <c-modal id="large_modal" title="Roomier" icon="maximize" size="lg" closable>
-      <c-text tight>A larger dialog for content that needs more breathing room — forms, tables, side-by-side layouts.</c-text>
-    </c-modal>
+    <c-mvp.modal id="large_modal" title="Roomier" icon="maximize" size="lg" closable>
+      <c-mvp.text tight>A larger dialog for content that needs more breathing room — forms, tables, side-by-side layouts.</c-mvp.text>
+    </c-mvp.modal>
   {% endcotton:verbatim %}
   </c-components.section>
   <c-components.section title="Position"
@@ -51,18 +51,18 @@
       <c-button text="Start" variant="neutral" onclick="start_modal.showModal()" />
       <c-button text="End" variant="neutral" onclick="end_modal.showModal()" />
     </div>
-    <c-modal id="top_modal" title="Pinned to the top" icon="info-circle" position="top" closable>
-      <c-text tight>This dialog opens against the top edge of the screen.</c-text>
-    </c-modal>
-    <c-modal id="bottom_modal" title="Pinned to the bottom" icon="info-circle" position="bottom" closable>
-      <c-text tight>This dialog opens against the bottom edge — handy on mobile.</c-text>
-    </c-modal>
-    <c-modal id="start_modal" title="Pinned to the start" icon="info-circle" position="start" closable>
-      <c-text tight>This dialog opens against the start edge (left in LTR) and fills the screen height.</c-text>
-    </c-modal>
-    <c-modal id="end_modal" title="Pinned to the end" icon="info-circle" position="end" closable>
-      <c-text tight>This dialog opens against the end edge (right in LTR) and fills the screen height.</c-text>
-    </c-modal>
+    <c-mvp.modal id="top_modal" title="Pinned to the top" icon="info-circle" position="top" closable>
+      <c-mvp.text tight>This dialog opens against the top edge of the screen.</c-mvp.text>
+    </c-mvp.modal>
+    <c-mvp.modal id="bottom_modal" title="Pinned to the bottom" icon="info-circle" position="bottom" closable>
+      <c-mvp.text tight>This dialog opens against the bottom edge — handy on mobile.</c-mvp.text>
+    </c-mvp.modal>
+    <c-mvp.modal id="start_modal" title="Pinned to the start" icon="info-circle" position="start" closable>
+      <c-mvp.text tight>This dialog opens against the start edge (left in LTR) and fills the screen height.</c-mvp.text>
+    </c-mvp.modal>
+    <c-mvp.modal id="end_modal" title="Pinned to the end" icon="info-circle" position="end" closable>
+      <c-mvp.text tight>This dialog opens against the end edge (right in LTR) and fills the screen height.</c-mvp.text>
+    </c-mvp.modal>
   {% endcotton:verbatim %}
   </c-components.section>
 {% endblock component.docs %}

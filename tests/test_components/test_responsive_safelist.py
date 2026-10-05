@@ -1,6 +1,6 @@
 """Regression tests for issue #137: components that build a breakpoint-prefixed
 class at render time (``{% responsive vertical "divider-horizontal" %}``, or the
-inline ``{{ row }}:flex-row`` pattern in ``cotton/toolbar.html``) must have every
+inline ``{{ row }}:flex-row`` pattern in ``cotton/mvp/toolbar.html``) must have every
 class they can produce covered by an ``@source inline()`` entry in
 ``mvp/tailwind/base.css``. Tailwind's scanner only sees literal strings in
 source, so a class assembled from a template variable is invisible to it and
@@ -8,7 +8,7 @@ silently missing from the shipped stylesheet unless explicitly safelisted.
 
 Sources are compiled through the Cotton compiler and invoked as component tags
 (mirroring ``test_class_attribute_merge.py``), not rendered as raw template
-files — rendering ``cotton/toolbar.html`` directly with ``render_to_string``
+files — rendering ``cotton/mvp/toolbar.html`` directly with ``render_to_string``
 does not route through Cotton's ``<c-vars>`` / ``attrs`` extraction, so an
 attribute override like ``row="lg"`` is silently ignored and the component
 renders its default instead. That would make this test pass regardless of
@@ -108,9 +108,9 @@ class TestResponsiveClassesAreSafelisted:
 
     @pytest.mark.parametrize("bp", BREAKPOINTS)
     def test_toolbar_row_breakpoint_is_safelisted(self, bp):
-        html = _render(f'<c-toolbar row="{bp}" />')
+        html = _render(f'<c-mvp.toolbar row="{bp}" />')
         produced = _responsive_classes(html, bp)
-        assert produced, f'<c-toolbar row="{bp}" /> produced no {bp}: class'
+        assert produced, f'<c-mvp.toolbar row="{bp}" /> produced no {bp}: class'
 
         missing = produced - _safelisted_classes()
         assert not missing, (

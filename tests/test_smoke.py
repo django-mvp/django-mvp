@@ -88,7 +88,7 @@ class TestShippedStylesheetShipsCompleteDaisyUI:
     def test_control_class_mvp_templates_already_use_is_present(self):
         content = self.STYLESHEET.read_text(encoding="utf-8")
         assert self._class_present(content, "modal-top"), (
-            ".modal-top is a component class mvp's own cotton/modal template "
+            ".modal-top is a component class mvp's own cotton/mvp/modal template "
             "renders — if this control fails, the assertion technique itself is "
             "broken, not the stylesheet."
         )
@@ -316,9 +316,9 @@ class TestComplexFormDemoPage:
         content = response.content.decode()
         # One legend per Fieldset in the helper's layout.
         assert content.count("<legend") == 3
-        # <c-form> (form_view.html) is the only real <form> wrapping the
+        # <c-mvp.form> (form_view.html) is the only real <form> wrapping the
         # fields — form_tag=False must stop crispy nesting a second one
-        # inside it. x-data="{form: {}}" is <c-form>'s own signature
+        # inside it. x-data="{form: {}}" is <c-mvp.form>'s own signature
         # attribute; the page also carries unrelated chrome forms (the
         # language switcher, a couple of dialogs), so counting every <form>
         # on the page would not isolate this.

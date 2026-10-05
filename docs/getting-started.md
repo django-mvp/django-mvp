@@ -163,13 +163,13 @@ content area, footer, mobile dock):
 {% extends "mvp/base.html" %}
 
 {% block content %}
-  <c-container>
+  <c-mvp.container>
     <h1>Hello!</h1>
-  </c-container>
+  </c-mvp.container>
 {% endblock %}
 ```
 
-Fill `block content`; don't recompose `<c-app>` in your own template. The sidebar,
+Fill `block content`; don't recompose `<c-mvp.app>` in your own template. The sidebar,
 header, main region, footer and dock are assembled by the shell, and hand-composing them
 means every layout setting stops reaching the page.
 
@@ -217,7 +217,7 @@ Layout behavior is controlled from settings — no template edits required:
 MVP_CONFIG = {
     "layout": {
         "sidebar": {"breakpoint": "lg", "collapse": "offcanvas"},
-        "navbar": {"end": ["actions.theme-controller"]},
+        "navbar": {"end": ["mvp.actions.theme-controller"]},
     },
 }
 ```

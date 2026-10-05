@@ -14,7 +14,7 @@
 
 {% block page.content %}
   {% if component.description %}
-    <c-text muted tight class="text-lg">{{ component.description }}</c-text>
+    <c-mvp.text muted tight class="text-lg">{{ component.description }}</c-mvp.text>
   {% endif %}
   <div class="flex flex-col gap-8 mt-2">
     {% block component.docs %}{% endblock component.docs %}

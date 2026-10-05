@@ -1,6 +1,6 @@
-"""Tests for ``<c-app.main>``, the shell's main content area (issue #420).
+"""Tests for ``<c-mvp.app.main>``, the shell's main content area (issue #420).
 
-Source: mvp/templates/cotton/app/main.html
+Source: mvp/templates/cotton/mvp/app/main.html
 
 The main area is the containing block for positioned page content, so a page
 can anchor an absolutely positioned element (a floating action button, an
@@ -21,5 +21,5 @@ def render_main(markup):
 
 class TestAppMain:
     def test_main_is_the_containing_block_for_positioned_content(self):
-        main = render_main("<c-app.main>content</c-app.main>").find("main")
+        main = render_main("<c-mvp.app.main>content</c-mvp.app.main>").find("main")
         assert "relative" in main["class"]

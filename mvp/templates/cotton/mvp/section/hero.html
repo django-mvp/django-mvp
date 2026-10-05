@@ -1,0 +1,41 @@
+{# @description Full-width daisyUI hero banner, with an optional background image and dimming overlay. #}
+{# @prop bg-image:text | default:"" | description:"Background image URL; the hero already covers and centres it." #}
+{# @prop title:text | description:"Heading text." #}
+{# @prop subtitle:text | description:"Short prose under the heading." #}
+{# @prop actions:text | hidden | description:"Filled by the actions named slot; not passed as a plain attribute." #}
+{# @prop opacity:number | default:0.5 | description:"How strongly the overlay dims the background image, 0 to 1." #}
+{# @prop height:text | description:"Minimum height, any CSS length, e.g. \"80vh\"." #}
+{# @prop class:text | description:"Extra classes on the .hero surface." #}
+{# @slot:top <content> — Above the heading, e.g. a logo or eyebrow line. #}
+{# @slot:actions <content> — Below the subtitle, centred as a button row. #}
+{# @slot:bottom <content> — Below the actions. #}
+{% comment %}
+  The root spreads no {{ attrs }}: only the declared attributes are read, so
+  a removed one (`parallax`, `speed`) is inert rather than a stray HTML
+  attribute on the DOM that looks like it still does something.
+{% endcomment %}
+<c-vars bg-image="" title subtitle actions opacity="0.5" height class />
+<div class="hero {{ class }}"
+     {% if bg_image or height %}style="{% if bg_image %}background-image: url('{{ bg_image }}');{% endif %}{% if height %}min-height: {{ height }};{% endif %}"{% endif %}>
+  {% if bg_image and opacity %}
+    <div class="hero-overlay"
+         style="background-color: var(--color-neutral); opacity: {{ opacity }}"></div>
+  {% endif %}
+  <div class="hero-content text-center {% if bg_image %}text-neutral-content{% endif %}">
+    <div class="flex flex-col max-w-2xl">
+      {{ top }}
+      <h1 class="text-5xl mb-6 font-bold">{{ title }}</h1>
+      {% if subtitle %}
+        <c-mvp.text size="xl">
+          {{ subtitle }}
+        </c-mvp.text>
+      {% endif %}
+      {% if actions %}
+        <c-mvp.group justify="center" class="pt-4">
+          {{ actions }}
+        </c-mvp.group>
+      {% endif %}
+      {{ bottom }}
+    </div>
+  </div>
+</div>

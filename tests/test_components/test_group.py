@@ -1,11 +1,11 @@
-"""Tests for the <c-group> component.
+"""Tests for the <c-mvp.group> component.
 
 A flex wrapper that stacks its children in a column by default and switches
 to a row under one of two conditions: `row` (always a row) or `collapse`
 (a row from the `lg` breakpoint up). Both are plain c-vars, so they must not
 pick up an unrelated variable of the same name from the caller's ambient
 context (regression for issue #120: django-mvp/base.html sets a `collapse`
-context var for the sidebar, and any <c-group> rendered inside that shell
+context var for the sidebar, and any <c-mvp.group> rendered inside that shell
 picked it up and silently went horizontal).
 """
 
@@ -23,7 +23,7 @@ def render(source, **context):
 
 class TestGroupDefaults:
     def test_default_is_a_column(self):
-        html = render("<c-group>content</c-group>")
+        html = render("<c-mvp.group>content</c-mvp.group>")
         assert "flex-col" in html
         assert "flex-row" not in html
         assert "lg:flex-row" not in html
@@ -31,22 +31,22 @@ class TestGroupDefaults:
 
 class TestGroupAttributes:
     def test_row_attribute_forces_a_row(self):
-        html = render("<c-group row>content</c-group>")
+        html = render("<c-mvp.group row>content</c-mvp.group>")
         assert "flex-row" in html
         assert "lg:flex-row" not in html
 
     def test_collapse_attribute_enables_the_breakpoint_row(self):
-        html = render('<c-group :collapse="True">content</c-group>')
+        html = render('<c-mvp.group :collapse="True">content</c-mvp.group>')
         assert "lg:flex-row" in html
 
 
 class TestGroupAmbientContextIsolation:
     def test_ambient_collapse_var_is_not_inherited(self):
-        html = render("<c-group>content</c-group>", collapse="offcanvas")
+        html = render("<c-mvp.group>content</c-mvp.group>", collapse="offcanvas")
         assert "lg:flex-row" not in html
         assert "flex-col" in html
 
     def test_ambient_row_var_is_not_inherited(self):
-        html = render("<c-group>content</c-group>", row=True)
+        html = render("<c-mvp.group>content</c-mvp.group>", row=True)
         assert "flex-row" not in html
         assert "flex-col" in html

@@ -1,8 +1,8 @@
-"""``<c-pagination>``'s ``label`` names the navigation landmark it draws.
+"""``<c-mvp.pagination>``'s ``label`` names the navigation landmark it draws.
 
-The ``<nav>`` element comes from ``<c-pagination.wrapper>``, which reads
+The ``<nav>`` element comes from ``<c-mvp.pagination.wrapper>``, which reads
 ``label`` into ``aria-label`` and defaults it to "Navigation page results".
-``<c-pagination>`` declared a ``label`` of its own and never forwarded it,
+``<c-mvp.pagination>`` declared a ``label`` of its own and never forwarded it,
 and declaring a name is what removes it from the attribute pass-through — so
 a caller naming the landmark got the default anyway, with nothing to show the
 value had been discarded.
@@ -23,14 +23,14 @@ def page_obj():
 class TestPaginationLabel:
     def test_the_landmark_has_a_default_name(self, cotton_render_string_soup, page_obj):
         soup = cotton_render_string_soup(
-            '<c-pagination :page_obj="page_obj" />', context={"page_obj": page_obj}
+            '<c-mvp.pagination :page_obj="page_obj" />', context={"page_obj": page_obj}
         )
 
         assert soup.find("nav")["aria-label"] == "Navigation page results"
 
     def test_a_caller_names_the_landmark(self, cotton_render_string_soup, page_obj):
         soup = cotton_render_string_soup(
-            '<c-pagination label="Search results pages" :page_obj="page_obj" />',
+            '<c-mvp.pagination label="Search results pages" :page_obj="page_obj" />',
             context={"page_obj": page_obj},
         )
 
@@ -38,7 +38,7 @@ class TestPaginationLabel:
 
     def test_the_landmark_is_named_once(self, cotton_render_string_soup, page_obj):
         html = cotton_render_string_soup(
-            '<c-pagination label="Search results pages" :page_obj="page_obj" />',
+            '<c-mvp.pagination label="Search results pages" :page_obj="page_obj" />',
             context={"page_obj": page_obj},
         ).decode()
 

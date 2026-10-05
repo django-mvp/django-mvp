@@ -21,7 +21,7 @@ sidebar breakpoint/rail classes. It is loaded automatically by `mvp/base.html`.
 
 The contract that makes this work: **customize through component attributes and
 template overrides that reuse packaged components — not raw utility classes**.
-A template override that only composes existing components (`<c-card>`,
+A template override that only composes existing components (`<c-mvp.card>`,
 `<c-button variant="primary">`, a raw `<div class="chat chat-start">`, ...)
 needs no CSS rebuild. The stylesheet also carries a curated set of common
 Tailwind utility classes — layout, spacing, sizing, typography, colour and
@@ -36,7 +36,7 @@ Theme changes (colors, radius, borders) do **not** require Tier 2. See
 
 ### Repainting the sidebar
 
-`<c-app.sidebar bg="...">` passes the same value to the sidebar's header and
+`<c-mvp.app.sidebar bg="...">` passes the same value to the sidebar's header and
 footer, so one attribute repaints the whole rail and its two strips keep
 matching it. No CSS is involved, and nothing needs targeting from a stylesheet.
 
@@ -257,7 +257,7 @@ Themes are pure CSS custom properties, so they apply with no build step in eithe
 tier. The package ships no theme of its own: with nothing configured, pages render
 in daisyUI's `light` and the packaged toggle switches to `dark`. Set the applied
 theme, its dark partner and the switcher's offered set through
-`MVP_CONFIG["theme"]`, and use `<c-actions.theme-controller />` (included in the
+`MVP_CONFIG["theme"]`, and use `<c-mvp.actions.theme-controller />` (included in the
 default navbar config) to let visitors switch between them.
 
 See [Theming](theming.md) for why the palette is yours rather than ours, what that

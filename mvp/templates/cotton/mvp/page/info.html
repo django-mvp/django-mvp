@@ -1,0 +1,29 @@
+{# @description An info icon beside the page title, opening a dialog that explains the page. Rendered by c-mvp.page.title from the view's page_info; nothing renders without text. #}
+{# @prop text:text | description:"The explanation. A plain string is escaped; a safe string is written out as markup." #}
+{# @prop title:text | description:"The dialog's heading, normally the page title." #}
+{# @prop actions:text | description:"A list of attribute dicts, each spread onto a c-button at the dialog's foot." #}
+{% load i18n %}
+<c-vars text title actions />
+{% if text %}
+  {% comment %}
+    `only` is load-bearing: this component's props share names with props
+    the children declare, so without it c-button's own `text` and c-mvp.modal's
+    `actions` slot would each pick up this component's value instead.
+  {% endcomment %}
+  <c-button icon="info"
+            ghost
+            size="sm"
+            class="btn-circle"
+            type="button"
+            aria-label="{% trans "About this page" %}"
+            onclick="pageInfoModal.showModal()"
+            only />
+  <c-mvp.modal id="pageInfoModal" title="{{ title }}" icon="info" closable only>
+    <div class="max-w-prose">{{ text }}</div>
+    {% if actions %}
+      <c-slot name="footer_end">
+        {% for action in actions %}<c-button :attrs="action" />{% endfor %}
+      </c-slot>
+    {% endif %}
+  </c-mvp.modal>
+{% endif %}

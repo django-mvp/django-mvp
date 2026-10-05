@@ -5,7 +5,7 @@ from the help-text id and ``{auto_id}_error``, and expects the form template
 to render the help text and the error container under those ids. Without
 them a screen reader announces the field as invalid and never reads why.
 
-The template pack draws both. These tests hold ``cotton/form/render.html``
+The template pack draws both. These tests hold ``cotton/mvp/form/render.html``
 to it on each path it takes: ``{{ form|crispy }}`` for a form with no
 helper, and ``{% crispy form %}`` for one whose ``FormHelper`` carries a
 ``Layout``.
@@ -25,7 +25,7 @@ class FileForm(forms.Form):
 
 
 class FileFormWithLayout(forms.Form):
-    """Takes the ``{% crispy form %}`` path in ``cotton/form/render.html``,
+    """Takes the ``{% crispy form %}`` path in ``cotton/mvp/form/render.html``,
     which needs a ``FormHelper`` carrying a ``Layout`` — a bare
     ``FormHelper()`` with no ``Layout`` is falsy in the template
     (``FormHelper.__len__`` reads the layout's field count), so
@@ -42,7 +42,7 @@ class FileFormWithLayout(forms.Form):
 def _render_invalid():
     form = FileForm(data={}, files={})
     form.is_valid()
-    return render_to_string("cotton/form/render.html", {"form": form})
+    return render_to_string("cotton/mvp/form/render.html", {"form": form})
 
 
 class TestFieldErrorsAnnounceWhyAFieldIsInvalid:
@@ -85,7 +85,7 @@ class TestFieldErrorsAnnounceWhyAFieldIsInvalid:
             data={}, files={"myfile": SimpleUploadedFile("test.txt", b"content")}
         )
         form.is_valid()
-        html = render_to_string("cotton/form/render.html", {"form": form})
+        html = render_to_string("cotton/mvp/form/render.html", {"form": form})
 
         assert "_error" not in html
 
@@ -94,7 +94,7 @@ class TestFieldErrorsAlsoAnnounceThroughTheHelperLayoutPath:
     def test_every_id_named_in_aria_describedby_is_rendered(self):
         form = FileFormWithLayout(data={}, files={})
         form.is_valid()
-        html = render_to_string("cotton/form/render.html", {"form": form})
+        html = render_to_string("cotton/mvp/form/render.html", {"form": form})
         soup = _beautiful_soup()(html, "html.parser")
         control = soup.find(id="id_myfile")
 
