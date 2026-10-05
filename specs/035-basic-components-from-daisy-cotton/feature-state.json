@@ -2,7 +2,7 @@
   "feature": "035-basic-components-from-daisy-cotton",
   "branch": "035-basic-components-from-daisy-cotton",
   "repo": "django-mvp/django-mvp",
-  "state": "CONVERGE",
+  "state": "REVIEW",
   "state_history": [
     {
       "state": "QUEUED",
@@ -28,6 +28,11 @@
       "state": "CONVERGE",
       "at": "2026-10-05T17:18:30Z",
       "note": "all four stories built"
+    },
+    {
+      "state": "REVIEW",
+      "at": "2026-10-05T17:20:21Z",
+      "note": "converged; gates green"
     }
   ],
   "gates": {
@@ -375,7 +380,7 @@
       "max": 2
     },
     "review_cycles": {
-      "used": 0,
+      "used": 1,
       "max": 1
     },
     "design_review_cycles": {

@@ -105,3 +105,7 @@ Did: one breaking entry under Unreleased / Changed naming all sixteen tags, with
 Verified: forge verify --steps docs,lint passed. Rendered a menu with horizontal="lg", dividers with horizontal and vertical, and a link without href to confirm what the table says. No version number, date or release.
 Next: full verify, ledger rows, report.
 Watch: the old avatar group overlap mapping (xs to xxl to -space-x-2 to -space-x-12) was read from the deleted template in git history.
+
+## 2026-10-05T17:20:21Z · Forge · converge
+
+Converged. Rebased on main (d4cb801). The only rule graduated to ADR 0032 (D24); ADR 0030's sentence about the bare names was brought up to date. Verify green on the whole feature diff; the fourteen changed test files map to D23; story comments on all four issues.
