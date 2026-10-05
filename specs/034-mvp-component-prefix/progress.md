@@ -61,3 +61,31 @@ Did: CHANGELOG.md, under ## [Unreleased], a ### Changed entry marked breaking: t
 Verified: a second check parsed the committed table: 67 rows, 67 distinct old names, each row old == new minus the prefix, and the set equals the set derived from the directory. git diff of CHANGELOG.md is 109 insertions, 0 deletions, all above ## [v0.26.0]. No em dash in the entry.
 Next: full verify, ledger, report.
 Watch: none.
+
+## 2026-10-05T15:19:39Z · Implementer US4 · T008
+
+Did: ran the US1 rename script over docs/*.md (not docs/adr/, not docs/ROADMAP.md), docs/contributing/, README.md, CONTRIBUTING.md and skills/django-mvp/SKILL.md (180 tags, 6 paths), then read every changed page. By hand: htmx_form_component default in docs/integrations.md is now "mvp.form"; docs/components.md gains "Names and the mvp. prefix" (rule, icon exception, the basic components waiting on #435, override at the prefixed path) and its directory = namespace examples, override example and navbar widget-name example are true; docs/navigation.md renderer sentence; CONTRIBUTING.md test example rewritten (it imported cotton_render from django_cotton, which does not export it, and used slash paths); SKILL.md gains a component-names row and the override path. Prose reflowed to the file's existing wrap width.
+Verified: closing search (rename.py --dry over the same files) prints "files changed: 0 | tag rewrites: 0 | path rewrites: 0". A script resolving every c-tag in these files to a template under mvp/templates/cotton/ reports only the intended non-matches (Cotton's own tags, project-example names, globs). The CONTRIBUTING example ran as a test in scratch and passed. ruff check clean.
+Next: T009 (CONTEXT.md), T010 (CONSTITUTION.md).
+Watch: no test was written for any of this text.
+
+## 2026-10-05T15:19:46Z · Implementer US4 · T008
+
+Did: correction to the T008 entry above. "ruff check clean" was wrong. `uv run ruff check .` reports 15 errors, all in tests/ (test_declared_attributes, test_field_errors_aria_describedby, test_responsive_safelist, test_mounted, test_table_layout, test_views/*). The T008 commit changes no .py file, so none come from it; whether they predate this branch is not something I checked. The lint step of `forge verify` is the authority and runs before I report.
+Verified: nothing new. The 15 errors are as reported by `uv run ruff check .` at this commit.
+Next: T009.
+Watch: do not read the T008 entry's lint claim as a pass.
+
+## 2026-10-05T15:20:47Z · Implementer US4 · T009
+
+Did: ran the rename script over CONTEXT.md, then rewrote the Component Library by hand: all 84 shipped components are listed, 67 with the mvp. prefix and 17 bare. Added the five that were missing (c-mvp.actions.language-switcher-modal, c-mvp.app.sidebar.back, c-mvp.page.info, c-mvp.rule, c-mvp.documentation, plus c-mvp.card.wrapper) and removed c-page.list.footer, which has no template. Naming rules 1 to 3 now use true examples (mvp/templates/cotton/mvp/card/index.html -> c-mvp.card); new rules 5 and 6 state the prefix, the icon exception and the basic components that stay bare until #435. Component Attribute scopes the utility-class rule to this package's components; Override gives the prefixed path; the Cotton Component vs. DaisyUI Component entry now says the basic daisyUI components come from daisy-cotton; the navbar widget names in the Config example carry the prefix.
+Verified: a script compared the names in the library blocks with the template files on disk: none missing, none extra. Rename script dry run over CONTEXT.md: 0 files changed. No test written for this text.
+Next: T010 (CONSTITUTION.md).
+Watch: the Config example in CONTEXT.md still shows the flat `end` key, which docs/layout.md calls a legacy shape; only the names were changed.
+
+## 2026-10-05T15:20:58Z · Implementer US4 · T010
+
+Did: amended Article XI of CONSTITUTION.md. The package's own components live under mvp/templates/cotton/mvp/ and are reached as <c-mvp.…>, in lowercase-kebab form; the icon is the one exception, kept at cotton/icon.html because it replaces daisy-cotton's plain icon by sitting at the same name; basic daisyUI components come from daisy-cotton and are not written again here; the utility-class rule is scoped to this package's own components, with the daisy-cotton clause. The sentences on attributes being the only supported customisation, template overrides and the {% include %} ban are kept. Footer is Version 5.1.0, Last Amended 2026-10-05. Nothing else changed.
+Verified: git diff CONSTITUTION.md shows only Article XI and the footer.
+Next: forge verify, feature-state, completion report.
+Watch: none.
