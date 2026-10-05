@@ -22,8 +22,7 @@ the shell without being made twice.
 ## Summary
 
 django-mvp's templates write a number of daisyUI components out as raw markup: the wrapper around
-the messages, the footer, the header row, the drawer that holds the sidebar, the joined groups in
-the pager and the search boxes, the count pinned to the filter button, the theme switch, the hint
+the messages, the footer, the header row, the joined groups in the pager and the search boxes, the count pinned to the filter button, the theme switch, the hint
 on a data field's label and the hero banner. [daisy-cotton](https://github.com/django-mvp/daisy-cotton)
 ships a component for each of these. This feature has the package's own templates call those
 components and stop repeating the markup.
@@ -45,12 +44,12 @@ The coverage scan found six ambiguities. Each was resolved from the issue, its s
 under R29, the roadmap and daisy-cotton's published components. Longer rationale is in
 `decisions.md`.
 
-- **Q: #438 and this feature both name the drawer. Which one moves it?**
-  A: This feature moves the drawer itself: the element that holds the sidebar beside the page,
-  with its toggle and its overlay (`<c-mvp.layout.sidebar>`). #438 moves what is drawn inside the
-  sidebar: the menu, the icon rail and the user menu. #438 is delivered first. If it has already
-  moved the drawer, this feature confirms the drawer scenarios below still hold and changes
-  nothing there. Recorded as FR-005.
+- **Q: #438 and this issue both name the drawer. Which one moves it?**
+  A: #438 does. The drawer that holds the sidebar beside the page (`<c-mvp.layout.sidebar>`, with
+  its toggle, its overlay, the remembered open state and its link to the layout store) moves onto
+  daisy-cotton's drawer there, because the icon rail depends on it. This feature keeps one small
+  part: the control in the header row that opens the sidebar, which becomes daisy-cotton's drawer
+  button. Recorded as FR-004 and FR-005.
 
 - **Q: Does any attribute or slot of the package's own components change?**
   A: No. `<c-mvp.messages>`, `<c-mvp.pagination>`, `<c-mvp.section.hero>` and the rest are called
@@ -68,8 +67,9 @@ under R29, the roadmap and daisy-cotton's published components. Longer rationale
 
 - **Q: The issue names six pieces. What does "the shell's hand-written daisyUI markup" cover
   beyond them?**
-  A: Every template the package ships. The pieces named in the issue and the five more found by
-  reading the templates are listed under FR-001 and are the core of the feature. After those, a
+  A: Every template the package ships. Five of the six pieces the issue names (the drawer went to
+  #438) and seven more found by reading the templates are listed under FR-001 and are the core of
+  the feature. After those, a
   sweep of the remaining templates moves what daisy-cotton can draw and records the rest, so the
   job has a visible end. Recorded as FR-013 and FR-014.
 
@@ -83,46 +83,41 @@ under R29, the roadmap and daisy-cotton's published components. Longer rationale
 
 ## User Scenarios & Testing *(mandatory)*
 
-### User Story 1 - The frame of every page is drawn with daisy-cotton's components (Priority: P1)
+### User Story 1 - The header row and footer are drawn with daisy-cotton's components (Priority: P1)
 
-A person opens any page of a django-mvp project. The sidebar sits in its drawer, the header row
-carries the sidebar toggle, the breadcrumb trail and the configured widgets, and the footer closes
-the page. All three are now drawn with daisy-cotton's drawer, navbar and footer. The person
-notices nothing: the sidebar opens and closes, remembers its state, and gives way to an overlay on
-a narrow screen exactly as before.
+A person opens any page of a django-mvp project. The header row carries the control that opens the
+sidebar, the breadcrumb trail, a loading indicator and the configured widgets, and the footer
+closes the page. Both are now drawn with daisy-cotton's navbar, drawer button, loading indicator
+and footer. The person notices nothing: the control still opens the sidebar, and the row shows the
+same things at the same widths.
 
-**Why this priority**: The frame is on every page, so it is where a daisy-cotton fix reaches the
-most people, and where a regression would be seen first. It is also the largest piece of
-hand-written markup in the shell.
+**Why this priority**: The header row and footer are on every page, so they are where a
+daisy-cotton fix reaches the most people, and where a regression would be seen first.
 
-**Independent Test**: Render a shell page and exercise the sidebar at a wide and a narrow viewport.
-The drawer, header row and footer come from daisy-cotton's components and every existing
-behaviour of the frame still holds.
+**Independent Test**: Render a shell page at a wide and a narrow viewport. The header row and
+footer come from daisy-cotton's components, the opener works the sidebar, and every existing
+behaviour of the row still holds.
 
 **Acceptance Scenarios**:
 
-1. **Given** a shell page at or above the sidebar breakpoint, **When** the person uses the sidebar
-   toggle, **Then** the sidebar closes or opens and the page content takes up the space.
-2. **Given** a person closed the sidebar on a wide screen, **When** they load another page,
-   **Then** the sidebar is already closed when the page first paints, with no visible opening or
-   closing movement.
-3. **Given** a shell page below the sidebar breakpoint, **When** the person opens the sidebar,
-   **Then** it appears over the page, and activating the area outside it closes it again.
-4. **Given** a person opened the sidebar on a narrow screen, **When** they return to a wide
-   screen, **Then** the open state remembered for the wide screen is unchanged.
-5. **Given** a project sets the sidebar breakpoint and collapse mode in `MVP_CONFIG`, or a page
-   overrides them by attribute, **When** the page renders, **Then** the drawer follows the
-   resolved values and the layout store reports the same values.
-6. **Given** a page with a breadcrumb trail and configured navbar widgets, **When** it renders,
+1. **Given** a shell page with the sidebar closed, **When** the person uses the opener in the
+   header row, **Then** the sidebar opens, and the opener carries an accessible name.
+2. **Given** the sidebar and its header already show the opener and the site icon, **When** the
+   header row renders, **Then** it leaves both out under the same conditions as before, and a
+   project that asks for the opener on narrow screens through `MVP_CONFIG` still gets it.
+3. **Given** a page with a breadcrumb trail and configured navbar widgets, **When** it renders,
    **Then** the header row shows the trail and the widget list for the current width, and a page
    with no trail renders no breadcrumb navigation at all.
-7. **Given** a request made through htmx is in flight, **When** the person looks at the header
+4. **Given** content is passed in the header's `right` slot, **When** the page renders, **Then**
+   it appears with the wide-screen widget list and follows the same visibility rule.
+5. **Given** a request made through htmx is in flight, **When** the person looks at the header
    row, **Then** the loading indicator is shown, and it is hidden again when the request ends.
-8. **Given** a project passes footer content and extra classes to `<c-mvp.app.footer>`, **When**
+6. **Given** a project passes footer content and extra classes to `<c-mvp.app.footer>`, **When**
    the page renders, **Then** the content appears inside a footer landmark that carries those
    classes.
-9. **Given** a page defines a variable whose name matches an attribute of daisy-cotton's drawer,
-   navbar or footer, **When** the page renders, **Then** the frame is unaffected by it.
+7. **Given** a page defines a variable whose name matches an attribute of daisy-cotton's navbar,
+   loading indicator or footer, **When** the page renders, **Then** the header row and footer are
+   unaffected by it.
 
 ---
 
@@ -163,7 +158,7 @@ The person pages, searches and filters as before.
 
 **Why this priority**: List pages are the most used pages in a data-centric application, but the
 markup here is smaller and already sits behind the package's own components, so the risk and the
-gain are both lower than for the frame.
+gain are both lower than for the header row.
 
 **Independent Test**: Render a list view with more than one page of results, a search term and an
 applied filter, and check each control works and is drawn through daisy-cotton's components.
@@ -258,21 +253,13 @@ test suite. It fails and names the template. Remove the template and it passes.
   package's version changes.
 - A project overrides daisy-cotton's component instead, for example its own `cotton/footer/index.html`.
   The shell then draws the project's version, which is what an override is for.
-- The page context holds a variable named `class`, `items`, `side`, `start`, `end` or `open`.
+- The page context holds a variable named `class`, `items`, `start`, `end`, `label` or `tip`.
   daisy-cotton's components declare attributes with those names, so the shell must not let the
   page's variable through.
 - No messages are queued. The page renders with no alert, and nothing is announced.
 - A message carries extra tags as well as its level. The alert's kind still follows the level.
-- daisy-cotton's drawer places the page before the sidebar in the document, and the package's
-  markup today places the sidebar first. A person moving through the page with the keyboard must
-  still reach the sidebar's links, and the order they are reached in is recorded as a change if it
-  differs.
 - The header row holds the breadcrumb trail, which is a navigation landmark of its own. With the
   header row now a navigation landmark too, each must carry a name that tells them apart.
-- The sidebar is collapsed to icons and a rail entry shows a tooltip. The tooltip must not be cut
-  off by the drawer.
-- A page uses `<c-mvp.page fill>`. The drawer's content region still lays out as the full-height
-  column that page needs.
 - The loading indicator in the header row is always in the document and only shown during a
   request. It must not be announced as loading while nothing is loading.
 - The hero's dimming strength is set to zero. No dimming layer is drawn.
@@ -292,8 +279,7 @@ test suite. It fails and names the template. Remove the template and it passes.
   | Footer | `<c-mvp.app.footer>` | footer |
   | Header row | `<c-mvp.app.header.navbar>` | navbar |
   | Loading indicator in the header row | `<c-mvp.app.header.navbar>` | loading |
-  | Sidebar toggle in the header row | `<c-mvp.app.header.navbar>` | drawer button |
-  | Drawer holding the sidebar | `<c-mvp.layout.sidebar>` | drawer |
+  | Sidebar opener in the header row | `<c-mvp.app.header.navbar>` | drawer button |
   | Pager | `<c-mvp.pagination>` and its `wrapper` and `link` | join, holding buttons |
   | Navbar search | `<c-mvp.actions.search>` | join, holding an input |
   | Group around the list search | `<c-mvp.page.list.actions.search>` | join, holding a button |
@@ -308,15 +294,13 @@ test suite. It fails and names the template. Remove the template and it passes.
   MUST keep working. *(Story 2)*
 - **FR-003**: The container around the messages MUST NOT announce them itself. Each alert is
   announced once, by the alert. *(Story 2)*
-- **FR-004**: The drawer MUST keep every behaviour it has today: opening and closing from the
-  header row, the sidebar header and the dock, the overlay below the sidebar breakpoint, the open
-  state remembered at or above the breakpoint and applied before the page first paints, the
-  breakpoint and collapse mode resolved from attribute then `MVP_CONFIG` then default, the values
-  it publishes to the layout store, and navigation through htmx when `boost` is set. *(Story 1)*
-- **FR-005**: The drawer itself belongs to this feature and the content of the sidebar belongs to
-  #438. Where #438 has already moved the drawer to daisy-cotton's component, this feature MUST
-  leave it as it is and confirm FR-004 against it. *(Story 1)*
-- **FR-006**: The header row MUST keep showing the sidebar toggle, the site icon, the breadcrumb
+- **FR-004**: The opener in the header row MUST open and close the sidebar drawer that #438
+  delivers, carry an accessible name, and be shown under the same conditions as today, including
+  the `MVP_CONFIG` setting that keeps it on narrow screens. *(Story 1)*
+- **FR-005**: This feature MUST NOT change the drawer itself. `<c-mvp.layout.sidebar>`, with its
+  toggle, overlay, remembered open state and link to the layout store, belongs to #438, as does
+  everything drawn inside the sidebar. *(Story 1)*
+- **FR-006**: The header row MUST keep showing the sidebar opener, the site icon, the breadcrumb
   trail, the loading indicator and the widget lists under the same conditions as today, and the
   `right` slot MUST keep its place. Where the header row becomes a navigation landmark, it and the
   breadcrumb trail MUST carry different accessible names. *(Story 1)*
@@ -369,12 +353,12 @@ test suite. It fails and names the template. Remove the template and it passes.
 
 ### Measurable Outcomes
 
-- **SC-001**: All thirteen pieces listed in FR-001 are drawn with daisy-cotton's components, or
+- **SC-001**: All twelve pieces listed in FR-001 are drawn with daisy-cotton's components, or
   appear on the list of exceptions with a linked issue on daisy-cotton. None is in neither state.
-- **SC-002**: The six pieces the issue names (messages, footer, navbar, drawer, pagination, filter
-  count) are drawn with daisy-cotton's components. If one cannot be, the issue blocking it is
-  linked from #440 before this feature merges.
-- **SC-003**: Every behaviour of the frame, the messages, the pager, the search boxes, the filter
+- **SC-002**: The five pieces the issue names that stay with this feature (messages, footer,
+  navbar, pagination, filter count) are drawn with daisy-cotton's components. If one cannot be,
+  the issue blocking it is linked from #440 before this feature merges.
+- **SC-003**: Every behaviour of the header row, the footer, the messages, the pager, the search boxes, the filter
   count, the theme switch, the data field and the hero that the test suite asserted before this
   feature is still asserted and still passes. No such assertion is removed without a CHANGELOG
   line explaining the difference.
@@ -396,11 +380,12 @@ test suite. It fails and names the template. Remove the template and it passes.
   this feature only has the wrapper to move.
 - daisy-cotton stays within the 0.1 series while R29 is delivered. A component it adds later is
   picked up through the check in FR-014 failing, not by reopening this feature.
-- Reading daisy-cotton 0.1.2 suggests four places where FR-012 may apply: its drawer writes the
-  toggle checkbox itself and gives a caller no way to put attributes on it, which the layout store
-  and the remembered open state rely on. Its navbar's start and end sections take no classes of
-  their own. Its hero's dimming layer takes no strength. Its drawer writes the page before the
-  sidebar. Planning confirms each one. These are the likeliest issues to be raised on daisy-cotton.
+- #438 has moved the drawer onto daisy-cotton's drawer, so the opener in the header row has a
+  daisy-cotton drawer to open.
+- Reading daisy-cotton 0.1.2 suggests two places where FR-012 may apply. Its navbar's start and
+  end sections take no classes of their own, and the header row relies on them to let a long
+  breadcrumb trail shrink. Its hero's dimming layer takes no strength. Planning confirms each one.
+  These are the likeliest issues to be raised on daisy-cotton.
 - The sketch stage is not needed. This is a like-for-like change of where markup comes from, and
   its outcome is checked by tests.
 - The packages built on django-mvp are not touched here. They call the package's own components,

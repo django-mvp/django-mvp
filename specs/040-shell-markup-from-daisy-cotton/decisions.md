@@ -47,19 +47,20 @@ FR-016 follows from this.
 
 ## Resolved while specifying
 
-### D1. This feature moves the drawer, #438 moves what is inside the sidebar
+### D1. The drawer belongs to #438, and this feature keeps only the opener in the header row
 
 **Ambiguous:** #438 says the sidebar is drawn with daisy-cotton's "menu, submenu and drawer". #440
 names the drawer too, and says in its dependency line that the drawer "is shared with the sidebar
 work".
 
-**Chosen:** the drawer element, with its toggle and overlay, belongs here. The menu, the rail and
-the user menu belong to #438. If #438 has already moved the drawer when this feature is built,
-this feature checks the drawer scenarios against it and changes nothing (FR-005).
+**Chosen:** the drawer moves in #438. That covers `<c-mvp.layout.sidebar>` whole: the toggle, the
+overlay, the side and content regions, the remembered open state and the link to the layout store.
+This feature moves the control in the header row that opens it, onto daisy-cotton's drawer button,
+and nothing else of the drawer (FR-004, FR-005).
 
-**Why defensible:** #440 depends on #438, so whichever way #438's specification reads, the drawer
-is settled by the time this feature starts, and FR-005 covers both outcomes. The scenarios in
-Story 1 are worth keeping either way because they are the drawer's contract.
+**Why:** #438 names the drawer, and the icon rail it rebuilds depends on how the drawer behaves
+when collapsed. Splitting the drawer from the rail would have two features rewriting one element.
+The opener sits in the header row, which this feature rewrites anyway.
 
 ### D2. The package's own components keep their attributes and slots
 
@@ -79,7 +80,7 @@ have nothing to do for this feature.
 suggests some do not yet (see the assumptions in `spec.md`).
 
 **Chosen:** raise the gap on daisy-cotton, leave that piece hand-written, record it as an exception
-with the link (FR-012). SC-002 adds that if the piece is one of the six the issue names, the
+with the link (FR-012). SC-002 adds that if the piece is one of the five the issue names that stay here, the
 blocking issue is linked from #440 before merge, so the shortfall is visible where the request was
 made.
 
@@ -90,14 +91,14 @@ removes.
 **Why defensible:** R29 says "gaps found along the way are raised there rather than worked around
 here".
 
-### D4. The feature covers thirteen pieces, not six
+### D4. The feature covers twelve pieces, not six
 
 **Ambiguous:** the issue lists messages, footer, navbar, drawer, pagination and the filter badge.
 Its title says "the shell's hand-written daisyUI markup".
 
-**Chosen:** the six, plus the header row's loading indicator and sidebar toggle, the two search
-groups, the theme switch, the data field hint and the hero banner. All of them are templates that
-write a daisyUI component daisy-cotton provides.
+**Chosen:** five of the six (the drawer went to #438, see D1), plus the header row's loading
+indicator and sidebar opener, the two search groups, the theme switch, the data field hint and the
+hero banner. All of them are templates that write a daisyUI component daisy-cotton provides.
 
 **Why defensible:** the title and the roadmap deliverable are general, and the issue's list reads
 as examples. Leaving the other seven out would leave the same duplication in place with no issue
@@ -119,13 +120,12 @@ template change has to satisfy.
 ### D6. Differences in rendered elements are accepted and recorded
 
 **Ambiguous:** daisy-cotton's components do not render the same elements. Its navbar is a `nav`
-with an accessible name, its toggle carries the switch role, its tooltip renders the hint as an
-element, and its drawer orders the page before the sidebar.
+with an accessible name, its toggle carries the switch role and its tooltip renders the hint as an
+element.
 
 **Chosen:** take them, keep every behaviour, and list each difference in the CHANGELOG (FR-011,
-FR-016). Two are called out as edge cases because they affect assistive technology and keyboard
-use: the header row and the breadcrumb trail both being navigation landmarks, and the order in
-which the sidebar and the page are reached.
+FR-016). One is called out as an edge case because it affects assistive technology: the header row and the
+breadcrumb trail both being navigation landmarks.
 
 **Why defensible:** these differences are the accessibility work the issue wants the shell to
 inherit. The package is pre-1.0 and its constitution allows markup to change in a minor release
@@ -138,6 +138,5 @@ changes, and every outcome is something a test can assert.
 
 ### D8. Goals
 
-**Chosen:** G1 and G5, as the issue's footer claims. G1 because the frame of the shell is what
-moves. G5 because the gain is the accessibility and polish work done once in daisy-cotton. G6 is
+**Chosen:** G1 and G5, as the issue's footer claims. G1 because the header row, the footer and the messages are parts of the shell. G5 because the gain is the accessibility and polish work done once in daisy-cotton. G6 is
 touched through FR-017 but is served by #433, not here.
