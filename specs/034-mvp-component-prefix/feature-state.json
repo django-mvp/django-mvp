@@ -2,7 +2,7 @@
   "feature": "034-mvp-component-prefix",
   "branch": "034-mvp-component-prefix",
   "repo": "django-mvp/django-mvp",
-  "state": "DESIGN_REVIEW",
+  "state": "IMPLEMENT",
   "state_history": [
     {
       "state": "QUEUED",
@@ -18,6 +18,11 @@
       "state": "DESIGN_REVIEW",
       "at": "2026-10-05T14:40:39Z",
       "note": "plan, research and tasks written"
+    },
+    {
+      "state": "IMPLEMENT",
+      "at": "2026-10-05T14:49:17Z",
+      "note": "plan gate open; design review applied"
     }
   ],
   "gates": {
@@ -29,12 +34,27 @@
       ]
     },
     "plan": {
-      "approved_by": null,
-      "at": null
+      "approved_by": "open",
+      "at": "2026-10-05T14:49:12Z",
+      "self_resolved": []
     },
     "merge": {
       "approved_by": null,
       "at": null
+    },
+    "design_review": {
+      "approved_by": "design-review",
+      "at": "2026-10-05T14:49:12Z",
+      "self_resolved": [
+        "SPEC-001 high: htmx form mixin default component \u2014 re-planned, D21, T001/T002",
+        "SPEC-002 medium: demo settings widget list \u2014 T002 hand-edit and demo-settings capture",
+        "SPEC-003 medium: default widget test reads the default from configuration \u2014 T003",
+        "SPEC-004 low: daisy-cotton comparison run once against the 0.1.2 wheel \u2014 T001",
+        "SPEC-005 low: D16 reading of SC-006 \u2014 to the merge gate, D23",
+        "SPEC-006 low: .github skill carries old tags \u2014 to the merge gate, D23",
+        "SPEC-007 low: pathlib-built paths and monkeypatched names \u2014 T002 hand-edit list",
+        "ARCH-001 low: unprovenanced sentence dropped from T006"
+      ]
     }
   },
   "stories": [
