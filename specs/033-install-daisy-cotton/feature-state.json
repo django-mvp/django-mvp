@@ -2,7 +2,7 @@
   "feature": "033-install-daisy-cotton",
   "branch": "033-install-daisy-cotton",
   "repo": "django-mvp/django-mvp",
-  "state": "PR_READY",
+  "state": "MERGED",
   "state_history": [
     {
       "state": "QUEUED",
@@ -38,6 +38,11 @@
       "state": "PR_READY",
       "at": "2026-10-05T15:55:11Z",
       "note": "PR #445 ready for review, walkthrough laid out, sent to the orchestrating session"
+    },
+    {
+      "state": "MERGED",
+      "at": "2026-10-05T16:04:28Z",
+      "note": "PR #445 merged; approved by forge-aeo-reviewer"
     }
   ],
   "gates": {
@@ -54,8 +59,8 @@
       "self_resolved": []
     },
     "merge": {
-      "approved_by": null,
-      "at": null
+      "approved_by": "forge-aeo-reviewer",
+      "at": "2026-10-05T16:04:23Z"
     },
     "design_review": {
       "approved_by": "design review",
@@ -79,8 +84,8 @@
       ]
     },
     "walkthrough": {
-      "approved_by": null,
-      "at": "2026-10-05T15:45:34Z",
+      "approved_by": "delegated review",
+      "at": "2026-10-05T16:04:20Z",
       "self_resolved": []
     }
   },
@@ -485,7 +490,7 @@
       "max": 1
     },
     "tokens": {
-      "used": 16.23,
+      "used": 22.59,
       "max": 120
     }
   },
