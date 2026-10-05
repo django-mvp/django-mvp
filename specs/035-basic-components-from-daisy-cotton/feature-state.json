@@ -67,13 +67,41 @@
       "tasks": [
         {
           "id": "T001",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_basic_components.py",
+              "tests/test_components/test_component_prefix.py"
+            ],
+            "commands": [
+              "uv run pytest tests/test_components/test_basic_components.py tests/test_components/test_component_prefix.py -q (before the deletion: 34 failed 3 passed, and 2 failed 4 passed)",
+              "uv run pytest tests/test_components/test_basic_components.py tests/test_components/test_component_prefix.py -q (after the deletion: 43 passed)"
+            ],
+            "code": [
+              "tests/test_components/test_basic_components.py:38",
+              "tests/test_components/test_component_prefix.py:20"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T002",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_basic_components.py::TestBasicComponentsComeFromDaisyCotton"
+            ],
+            "commands": [
+              "git rm of the sixteen templates under mvp/templates/cotton/",
+              "uv run pytest -q -n auto (with only the deletion in place: 26 failed, 2640 passed, 1 skipped)"
+            ],
+            "code": [
+              "mvp/templates/cotton/icon.html:1"
+            ],
+            "verified_by_ci": false
+          }
         }
       ]
     },
@@ -87,18 +115,75 @@
       "tasks": [
         {
           "id": "T003",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_messages.py",
+              "tests/test_components/test_share_dropdown.py",
+              "tests/test_renderers.py::TestMobileFooterNavRenderer",
+              "tests/test_templates.py::TestPagesCarryNoFormerAttributeName",
+              "tests/test_components/test_layout_config.py::TestHeaderAndDockBackground",
+              "tests/test_components/test_menu.py::TestSidebarContainerTakesItsNameFromContext",
+              "tests/test_components/test_breadcrumbs_href_attribute.py::TestADeclaredTrailRendersInTheHeader",
+              "tests/test_components/test_theme_controller.py::TestThemeControllerOfferedSetShape",
+              "tests/test_views/test_edit.py::TestMVPDeleteViewRelatedObjectsPresentation"
+            ],
+            "commands": [
+              "uv run pytest tests/test_components tests/test_templates.py tests/test_menus.py tests/test_renderers.py tests/test_views tests/test_demo -q -n auto (1809 passed, 1 skipped, 1 failed: the e2e test named under T005)"
+            ],
+            "code": [
+              "tests/test_templates.py:438",
+              "tests/test_components/test_messages.py:47",
+              "tests/test_renderers.py:28"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T004",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_templates.py::TestPagesCarryNoFormerAttributeName",
+              "tests/test_components/test_menu.py",
+              "tests/test_components/test_sidebar_footer.py",
+              "tests/test_components/test_layout_config.py"
+            ],
+            "commands": [
+              "uv run pytest -q -n auto (2680 passed, 1 skipped, 1 failed: the e2e test named under T005)",
+              "python scan of every <c-...> call to the sixteen tags under mvp/templates for the former attribute names: none found"
+            ],
+            "code": [
+              "mvp/templates/menus/sidebar/container.html:2",
+              "mvp/templates/menus/dock/index.html:2",
+              "mvp/templates/cotton/mvp/actions/login.html:17",
+              "mvp/templates/cotton/mvp/app/header/navbar.html:26"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T005",
-          "status": "todo",
-          "attempts": 0
+          "status": "blocked",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_app_header_e2e.py",
+              "tests/test_components/test_daisy_cotton_coverage.py"
+            ],
+            "commands": [
+              "uv run invoke build-stylesheet",
+              "uv run pytest tests/test_components/test_daisy_cotton_coverage.py tests/test_smoke.py -q (110 passed)",
+              "uv run pytest tests/test_components/test_app_header_e2e.py tests/test_renderers.py -q (16 passed, 1 failed: test_each_crumb_is_visibly_truncated selects .mvp-breadcrumb-text)"
+            ],
+            "code": [
+              "mvp/tailwind/base.css:706",
+              "mvp/tailwind/base.css:28"
+            ],
+            "verified_by_ci": false
+          }
         }
       ]
     },
