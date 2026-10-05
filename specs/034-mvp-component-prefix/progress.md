@@ -26,3 +26,38 @@ Verified: after capture compared with before. Components: 84 of 84 byte-identica
 Next: full verify, then flip T001 and T002 in feature-state.json and write the report.
 
 Watch: mvp/static/js/formset.js line 2 (a comment naming the two formset tags) is outside the file list in tasks.md; edited because the acceptance search covers mvp/. mvp/fixtures.py docstring tags were rewritten by the script (card, card.title, card.body, grid); its bare-name examples ("card", "app.sidebar") are left for T006, which owns that file.
+
+## 2026-10-05T15:10:39Z · Implementer US2 · T003
+
+Did: added TestNavbarWidgetNames to tests/test_components/test_layout_config.py: the default lists (fresh runpy of mvp/config.py under settings.MVP_CONFIG = {}) render the theme controller then the login widget; navbar.test-widget listed by its own name renders. Prefixed packaged widget scenario already proved by TestShellRendersConfig::test_navbar_widgets_render_from_config (named in the class docstring).
+Verified: uv run pytest tests/test_components/test_layout_config.py -q -> 60 passed. Probes: old name in mvp/config.py default fails the default test (TemplateDoesNotExist cotton/actions/theme_controller); old name in tests/settings.py fails the existing test; listing mvp.navbar.test-widget fails the own-name test. ruff check and format clean.
+Next: T004 docs.
+Watch: the demo widget carries no id or data- hook, so the test selects li.nav-item inside the desktop wrapper.
+
+## 2026-10-05T15:11:15Z · Implementer US2 · T004
+
+Did: applied the plan's mapping to docs/configuration.md and docs/layout.md (tags, template paths, bare widget names in MVP_CONFIG examples and the bundled-widgets table). Added to the widget-lists sections: a name is written in full as it would follow c- in a tag, nothing is added for the project, a packaged widget carries mvp., a project's own component is listed by its own name, an unprefixed old name raises TemplateDoesNotExist.
+Verified: scripted check that every c-mvp.* tag, quoted mvp.* widget name and templates/cotton/mvp/... path on the two pages resolves to a file under mvp/templates/cotton/ (all true). Block names such as app.header.widgets and the page.* blocks are template blocks, not components, and are unchanged.
+Next: T005 override test.
+Watch: none.
+
+## 2026-10-05T15:11:58Z · Implementer US2 · T005
+
+Did: added TestComponentOverridePath to tests/test_templates.py (fixture dir first in TEMPLATES DIRS via the settings fixture, as the head-template test does) and two fixture templates under tests/fixtures/override_templates/cotton/{mvp/,}app/sidebar/footer.html, each with its own data-footer-override marker.
+Verified: written test-first; before the fixtures existed the prefixed-marker test failed (marker absent, packaged footer rendered), the other passed vacuously. With the fixtures: uv run pytest tests/test_templates.py -q -> 201 passed. Probes: removing the prefixed fixture fails the first test; swapping the two markers fails both. ruff check/format clean.
+Next: T006 fixtures docstrings.
+Watch: the old-path test only has teeth once the fixture exists, so it is always run with the fixture dir in place.
+
+## 2026-10-05T15:12:22Z · Implementer US2 · T006
+
+Did: mvp/fixtures.py docstrings only: cotton_render("card") and cotton_render_soup("card") examples now use "mvp.card"; the "such as card or app.sidebar" sentences name mvp.card and mvp.app.sidebar; the nested-card example no longer uses c-mvp.card.title and c-mvp.card.body (neither template exists, the card takes a title attribute), so it is now <c-mvp.card :title="title">. Left c-ul/c-li in the nested-list example (names the package never shipped, not moved).
+Verified: AST of mvp/fixtures.py with docstrings blanked is identical to HEAD's. uv run pytest tests/test_fixtures.py -q passes (all four fixtures already render a moved component by its prefixed name: mvp.card, mvp.card/mvp.grid, c-mvp.card, c-mvp.grid, plus c-mvp.pagination.link); no test case needed adding. ruff clean.
+Next: T007 changelog.
+Watch: none.
+
+## 2026-10-05T15:12:59Z · Implementer US2 · T007
+
+Did: CHANGELOG.md, under ## [Unreleased], a ### Changed entry marked breaking: the rule, the two groups that did not move and why, the five tags to check first with daisy-cotton and the old-path override effect, the three names outside a tag (overrides, MVP_CONFIG names, htmx_form_component), and the old-to-new table. The table was generated from mvp/templates/cotton/mvp/ by /tmp/fs034/scratch/changelog_table.py (not committed).
+Verified: a second check parsed the committed table: 67 rows, 67 distinct old names, each row old == new minus the prefix, and the set equals the set derived from the directory. git diff of CHANGELOG.md is 109 insertions, 0 deletions, all above ## [v0.26.0]. No em dash in the entry.
+Next: full verify, ledger, report.
+Watch: none.
