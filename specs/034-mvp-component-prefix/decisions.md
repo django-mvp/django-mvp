@@ -169,3 +169,53 @@ The exception list doubles as the record of what #435 still has to remove.
 
 **Why defensible:** no page changes. Every packaged page is required to return the same response
 as before (SC-003), which a test can decide.
+
+## Resolved while planning
+
+### D16. Records are not rewritten
+
+**Ambiguous:** FR-013 says every page under `docs/` uses the new names, and SC-006 says no old
+tag remains in the documentation. `docs/adr/` and `docs/ROADMAP.md` are under `docs/` and mention
+moved components by their old names 14 times between them.
+
+**Chosen:** the decision records under `docs/adr/`, the roadmap, the released sections of the
+changelog and everything under `specs/` are left as written. Every page a reader follows to use
+the package is updated.
+
+**Why defensible:** a decision record says what was decided in the words of its day, and the
+roadmap's R29 entry describes this rename in terms of the old names, so rewriting either would
+make it say something false. The documentation gate already treats `docs/adr/` as records, not
+pages.
+
+**Revisit if:** the maintainer reads SC-006 as covering the records too. It is a scripted
+change of 14 mentions.
+
+### D17. The rename script is not committed
+
+**Chosen:** the script that moves the files and rewrites the names is written for this change,
+kept outside the repository and discarded.
+
+**Why:** it is correct for exactly one commit of this repository. The rule it applies is in
+`plan.md`, and the guard test keeps the result true afterwards.
+
+### D18. "The same response as before" is shown while building, not by a committed test
+
+**Chosen:** SC-003 is demonstrated by a before-and-after capture of every component's and every
+demo page's output, compared during the build and recorded in `progress.md`, and by the existing
+markup tests passing with only their names changed.
+
+**Why:** a test in the suite cannot see the commit before it. A stored snapshot of every page
+would be a change detector of the kind the testing standard rules out.
+
+### D19. The constitution goes to 5.1.0
+
+**Chosen:** the amendment to Article XI is a minor version: a rule is added and one is scoped,
+and none is removed or reversed.
+
+### D20. The stories are built in order, in one worktree, and the settings default moves in the first
+
+**Chosen:** US1 to US4 run one after another in the feature's worktree. The default navbar
+widget names change in US1's commit, although FR-008 is listed under US2.
+
+**Why:** the move has to leave the suite green, and the default widget list names two components
+that move. US2 then adds the tests and the documentation for how a name in a setting is written.
