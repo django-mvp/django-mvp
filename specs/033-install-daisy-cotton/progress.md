@@ -83,3 +83,17 @@ Did: added mvp/checks.py with daisy_cotton_app_messages (Error mvp.E002 when dai
 Verified: new module import failed first (red). `uv run pytest tests/test_checks.py` 12 passed. Probe: with the checks.register line removed, 3 tests failed (registration, E002 command, W001 stderr); restored. `uv run mypy mvp` clean, `uv run pre-commit run --all-files` all passed.
 Next: T012, the guide's app list test and the docs.
 Watch: tests override INSTALLED_APPS through the settings fixture and call `check`; nothing else broke in that scope.
+
+## 2026-10-05T15:26:01Z · Implementer US4 · T012
+
+Did: added TestGettingStartedAppList (parses the first python block assigning INSTALLED_APPS in docs/getting-started.md, comments stripped, and asserts mvp and daisy_cotton are present and the check returns nothing). Added a Start-up checks section to docs/troubleshooting.md with mvp.E002 and mvp.W001, one sentence naming both in docs/getting-started.md, and an Added entry under Unreleased in CHANGELOG.md. skills/django-mvp/SKILL.md only links the troubleshooting page, so it is unchanged.
+Verified: `uv run pytest tests/test_checks.py` 13 passed. The guide test passed on its first run because the US1 guide edit already satisfied it, so I probed it: swapping the two lines in the guide failed it, and deleting the daisy_cotton line failed it; guide restored. `uv run pre-commit run --all-files` all passed.
+Next: the full suite once, then the report.
+Watch: the test reads the guide's list with a regex, so a second INSTALLED_APPS block placed before the first would be the one tested.
+
+## 2026-10-05T15:27:26Z · Implementer US4 · T012
+
+Did: the full suite showed three of my command-level tests failing in the whole run but not alone: a model left registered by tests/test_views/test_base.py (_CustomVerboseModel, models.E023) made `check` raise an unrelated error. The command tests now run `check mvp`, so only the mvp app's models are inspected; nothing is silenced.
+Verified: `uv run pytest -n auto --dist loadscope` 2637 passed, 1 skipped, exit 0. `uv run pytest tests/test_checks.py` 13 passed. pre-commit all passed. `uv build` exit 0.
+Next: flip T011 and T012 in the ledger and report.
+Watch: tests/test_views/test_base.py:217 defines a model with a leading underscore at module level, which stays in the app registry for the rest of a worker's run.

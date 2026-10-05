@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- A start-up check on the `daisy_cotton` line in `INSTALLED_APPS`. `mvp.E002` is an error
+  when `daisy_cotton` is missing, and `mvp.W001` is a warning when it is listed above `mvp`.
+  Both can be silenced by identifier in `SILENCED_SYSTEM_CHECKS`. See
+  [Troubleshooting](docs/troubleshooting.md#start-up-checks).
+
 ### Changed
 
 - **Breaking: django-mvp depends on [daisy-cotton](https://pypi.org/project/daisy-cotton/).**

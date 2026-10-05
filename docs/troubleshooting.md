@@ -47,6 +47,22 @@ components alone and leaves the toggle on the project default. Resolve them in t
 instead: `{% block app %}{% with breakpoint="xl" collapse="icons" %}{{ block.super }}{% endwith %}{% endblock %}`,
 or supply them from view context. See [Overriding the layout per page](layout.md#overriding-the-layout-per-page).
 
+## Start-up checks
+
+Django runs these when the server starts and when you run `python manage.py check`.
+
+**`mvp.E002`: the app "daisy_cotton" is not in INSTALLED_APPS.** django-mvp depends on
+daisy-cotton, and Django only finds its components through `INSTALLED_APPS`. Add
+`"daisy_cotton"` directly below `"mvp"`. See [Getting Started](getting-started.md#installation).
+
+**`mvp.W001`: the app "daisy_cotton" is listed above "mvp" in INSTALLED_APPS.** Django uses
+the first copy of a template name it finds, and both packages ship components such as
+`button` and `menu`. With `daisy_cotton` first, its versions replace the ones django-mvp
+ships and pages change. Move `"daisy_cotton"` to directly below `"mvp"`.
+
+To silence either one on purpose, list its identifier in `SILENCED_SYSTEM_CHECKS`, for
+example `SILENCED_SYSTEM_CHECKS = ["mvp.W001"]`.
+
 ## Templates and styling
 
 **Rewriting `<c-app>…</c-app>` inside a page template.** That composition is the shell's

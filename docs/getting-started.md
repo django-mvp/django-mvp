@@ -40,6 +40,10 @@ same names, such as `button` and `menu`. The first app listed wins, so `mvp` mus
 first. Some daisy-cotton components also draw a button or a menu item inside
 themselves, and until `mvp` stops shipping its own copies they get the `mvp` one.
 
+When the line is missing or misplaced, Django tells you at start-up: `mvp.E002` is an
+error for a missing `daisy_cotton`, and `mvp.W001` is a warning for one listed above
+`mvp`. See [Troubleshooting](troubleshooting.md#start-up-checks).
+
 Templates in a directory listed under `TEMPLATES` `DIRS` sidestep the question entirely:
 that loader runs before any app is consulted, whatever the order.
 
