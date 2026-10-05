@@ -1,0 +1,496 @@
+{
+  "feature": "033-install-daisy-cotton",
+  "branch": "033-install-daisy-cotton",
+  "repo": "django-mvp/django-mvp",
+  "state": "PR_READY",
+  "state_history": [
+    {
+      "state": "QUEUED",
+      "at": "2026-10-05T14:26:18Z",
+      "note": "specification approved on PR #445 at 5688c96; epic #433, stories #456-#460"
+    },
+    {
+      "state": "PLAN",
+      "at": "2026-10-05T14:43:49Z",
+      "note": "research.md, plan.md, tasks.md"
+    },
+    {
+      "state": "DESIGN_REVIEW",
+      "at": "2026-10-05T14:44:31Z",
+      "note": "one design reviewer, three lenses, one round"
+    },
+    {
+      "state": "IMPLEMENT",
+      "at": "2026-10-05T14:57:07Z",
+      "note": "US-1 to US-5 in order, one worktree"
+    },
+    {
+      "state": "CONVERGE",
+      "at": "2026-10-05T15:33:17Z",
+      "note": "all five stories done"
+    },
+    {
+      "state": "REVIEW",
+      "at": "2026-10-05T15:34:40Z",
+      "note": "one reviewer: correctness and spec, with the security lens for the new dependency"
+    },
+    {
+      "state": "PR_READY",
+      "at": "2026-10-05T15:55:11Z",
+      "note": "PR #445 ready for review, walkthrough laid out, sent to the orchestrating session"
+    }
+  ],
+  "gates": {
+    "spec": {
+      "approved_by": "delegated review",
+      "at": "2026-10-05T14:26:18Z",
+      "self_resolved": [
+        "approved at commit 5688c9607a42ea2efd4d2a63a371e146c469f4a6 under: spec gate opened: Sam, 2026-10-05: /forge_orchestrate django-mvp 433 - 440"
+      ]
+    },
+    "plan": {
+      "approved_by": "open",
+      "at": "2026-10-05T14:56:34Z",
+      "self_resolved": []
+    },
+    "merge": {
+      "approved_by": null,
+      "at": null
+    },
+    "design_review": {
+      "approved_by": "design review",
+      "at": "2026-10-05T14:56:34Z",
+      "self_resolved": [
+        "SPEC-001 medium: selector rule misses classes starting with a digit - T004/T005 rule corrected, counts corrected",
+        "ARCH-001 medium: prebuilt build lists eight utilities and does not scan - D19 rewritten, T006 step 3 replaced",
+        "ARCH-002 low: daisyUI 5.7.0 checked by looking at pages - T006 step 5",
+        "SPEC-002 low: each resolution test shown failing under its own breaking condition - T002",
+        "SPEC-003 low: no literal range comparison - T001",
+        "ARCH-003 low: check module shape recorded - D22"
+      ]
+    },
+    "review": {
+      "approved_by": "code review",
+      "at": "2026-10-05T15:44:47Z",
+      "self_resolved": [
+        "COR-001 low: literal-token rule matched Tailwind's boundaries - remedied, T015",
+        "SPEC-001 low: two assertions pinned how the code is written - removed, T015 and T016",
+        "DOC-001 low: ADR and deptry comment said daisy-cotton is not imported - corrected, T017"
+      ]
+    },
+    "walkthrough": {
+      "approved_by": null,
+      "at": "2026-10-05T15:45:34Z",
+      "self_resolved": []
+    }
+  },
+  "stories": [
+    {
+      "id": "US1",
+      "priority": "P1",
+      "issue": 456,
+      "worktree": "/home/sam/projects/django-mvp/worktrees/mvp-033-install-daisy-cotton",
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T001",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_daisy_cotton_install.py::TestDeclaredDependency"
+            ],
+            "commands": [
+              "uv run pytest tests/test_components/test_daisy_cotton_install.py::TestDeclaredDependency",
+              "uv run deptry .",
+              "uv lock --check",
+              "uv run pre-commit run --all-files"
+            ],
+            "code": [
+              "pyproject.toml:43",
+              "pyproject.toml:134",
+              "demo/settings.py:35",
+              "tests/test_components/test_daisy_cotton_install.py:68"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T002",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_daisy_cotton_install.py::TestSharedComponents",
+              "tests/test_components/test_daisy_cotton_install.py::TestDaisyCottonOnlyComponents"
+            ],
+            "commands": [
+              "uv run pytest tests/test_components/test_daisy_cotton_install.py",
+              "uv run pre-commit run --all-files"
+            ],
+            "code": [
+              "tests/test_components/test_daisy_cotton_install.py:22"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T003",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [],
+            "commands": [
+              "uv run pre-commit run --all-files",
+              "uv run pytest -n auto"
+            ],
+            "code": [
+              "docs/getting-started.md:19",
+              "README.md:130",
+              "skills/django-mvp/SKILL.md:89",
+              "docs/adr/0030-daisy-cotton-is-a-runtime-dependency.md:1",
+              "CHANGELOG.md:10"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T017",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_daisy_cotton_install.py::TestDeclaredDependency"
+            ],
+            "commands": [
+              "uv run pytest -n auto",
+              "uv run deptry ."
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "US2",
+      "priority": "P1",
+      "issue": 457,
+      "worktree": "/home/sam/projects/django-mvp/worktrees/mvp-033-install-daisy-cotton",
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T004",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_daisy_cotton_coverage.py::TestClassDerivation",
+              "tests/test_components/test_daisy_cotton_coverage.py::TestUnstyledClasses",
+              "tests/test_components/test_daisy_cotton_coverage.py::TestSafelistedClasses"
+            ],
+            "commands": [
+              "uv run pytest tests/test_components/test_daisy_cotton_coverage.py -q",
+              "uv run ruff check tests/daisy_cotton_classes.py tests/test_components/test_daisy_cotton_coverage.py",
+              "uv run pre-commit run --all-files"
+            ],
+            "code": [
+              "tests/daisy_cotton_classes.py:37",
+              "tests/daisy_cotton_classes.py:94",
+              "tests/daisy_cotton_classes.py:130",
+              "tests/test_components/test_daisy_cotton_coverage.py:44"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T005",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_daisy_cotton_coverage.py::TestPrebuiltStylesheet::test_no_class_from_the_previous_release_is_lost"
+            ],
+            "commands": [
+              "uv run pytest tests/test_components/test_daisy_cotton_coverage.py -q",
+              "git show origin/main:mvp/static/css/django-mvp.css"
+            ],
+            "code": [
+              "tests/fixtures/stylesheet_classes_0_26_0.txt:1",
+              "tests/test_components/test_daisy_cotton_coverage.py:212"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T006",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_daisy_cotton_coverage.py::TestPrebuiltStylesheet::test_every_daisy_cotton_class_is_styled",
+              "tests/test_components/test_daisy_cotton_coverage.py::TestPrebuiltStylesheet::test_no_class_from_the_previous_release_is_lost",
+              "tests/test_components/test_responsive_safelist.py"
+            ],
+            "commands": [
+              "uv run pytest tests/test_components/test_daisy_cotton_coverage.py tests/test_components/test_responsive_safelist.py -q",
+              "npm install -D -E daisyui@5.7.0",
+              "uv run invoke build-stylesheet",
+              "curl against uv run python manage.py runserver 0.0.0.0:8002: /, /products/, /products/1/, /products/create/, /account/login/ all 200",
+              "uv run pytest -n auto"
+            ],
+            "code": [
+              "mvp/tailwind/base.css:72",
+              "mvp/tailwind/base.css:76",
+              "assets/tailwind.css:29",
+              "package.json:16",
+              "tests/test_components/test_daisy_cotton_coverage.py:201"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T007",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [],
+            "commands": [
+              "uv run pytest tests/test_components/test_daisy_cotton_coverage.py -q",
+              "uv run pre-commit run --all-files"
+            ],
+            "code": [
+              "docs/styling.md:22",
+              "CHANGELOG.md:30"
+            ],
+            "verified_by_ci": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "US3",
+      "priority": "P2",
+      "issue": 458,
+      "worktree": "/home/sam/projects/django-mvp/worktrees/mvp-033-install-daisy-cotton",
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T008",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_mvp_tailwind_command.py::TestMVPTailwindCommand::test_paths_prints_daisy_cotton_templates_directory_last",
+              "tests/test_components/test_mvp_tailwind_command.py::TestMVPTailwindCommand::test_entry_sources_daisy_cotton_templates_after_the_form_pack",
+              "tests/test_components/test_mvp_tailwind_command.py::TestMVPTailwindCommand::test_entry_paths_exist_and_are_absolute"
+            ],
+            "commands": [
+              "uv run pytest tests/test_components/test_mvp_tailwind_command.py -q",
+              "uv run pre-commit run --all-files"
+            ],
+            "code": [
+              "mvp/management/commands/mvp_tailwind.py:31",
+              "mvp/management/commands/mvp_tailwind.py:59",
+              "mvp/management/commands/mvp_tailwind.py:101",
+              "tests/test_components/test_mvp_tailwind_command.py:58",
+              "tests/test_components/test_mvp_tailwind_command.py:66"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T009",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_daisy_cotton_coverage.py::TestGeneratedEntry",
+              "tests/test_components/test_daisy_cotton_coverage.py::TestWrittenLiterally"
+            ],
+            "commands": [
+              "uv run pytest tests/test_components/test_daisy_cotton_coverage.py tests/test_components/test_mvp_tailwind_command.py tests/test_components/test_responsive_safelist.py -q",
+              "uv run invoke build-stylesheet",
+              "uv run pre-commit run --all-files"
+            ],
+            "code": [
+              "mvp/tailwind/base.css:78",
+              "tests/test_components/test_daisy_cotton_coverage.py:51",
+              "tests/test_components/test_daisy_cotton_coverage.py:287",
+              "tests/fixtures/preset_safelist_0_26_0.txt:1"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T010",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [],
+            "commands": [
+              "uv run pre-commit run --all-files"
+            ],
+            "code": [
+              "docs/styling.md:137",
+              "CHANGELOG.md:35"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T015",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_daisy_cotton_coverage.py::TestWrittenLiterally"
+            ],
+            "commands": [
+              "uv run pytest -n auto",
+              "uv run deptry ."
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "US4",
+      "priority": "P2",
+      "issue": 459,
+      "worktree": "/home/sam/projects/django-mvp/worktrees/mvp-033-install-daisy-cotton",
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T011",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_checks.py::TestDaisyCottonAppMessages",
+              "tests/test_checks.py::TestDaisyCottonAppCheck"
+            ],
+            "commands": [
+              "uv run pytest tests/test_checks.py",
+              "uv run mypy mvp",
+              "uv run pre-commit run --all-files"
+            ],
+            "code": [
+              "mvp/checks.py:13",
+              "mvp/checks.py:42",
+              "mvp/apps.py:20"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T012",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_checks.py::TestGettingStartedAppList"
+            ],
+            "commands": [
+              "uv run pytest tests/test_checks.py",
+              "uv run pre-commit run --all-files",
+              "uv run pytest -n auto --dist loadscope"
+            ],
+            "code": [
+              "docs/troubleshooting.md:50",
+              "docs/getting-started.md:43",
+              "CHANGELOG.md:10"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T016",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_checks.py::TestDaisyCottonAppCheck"
+            ],
+            "commands": [
+              "uv run pytest -n auto",
+              "uv run deptry ."
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "US5",
+      "priority": "P3",
+      "issue": 460,
+      "worktree": "/home/sam/projects/django-mvp/worktrees/mvp-033-install-daisy-cotton",
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T013",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_daisy_cotton_isolation.py::TestIsolatedCall"
+            ],
+            "commands": [
+              "uv run pytest tests/test_components/test_daisy_cotton_isolation.py",
+              "uv run ruff check tests/test_components/test_daisy_cotton_isolation.py",
+              "uv run ruff format --check tests/test_components/test_daisy_cotton_isolation.py",
+              "uv run pytest -n auto",
+              "uv run pre-commit run --all-files"
+            ],
+            "code": [
+              "tests/test_components/test_daisy_cotton_isolation.py:21"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T014",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [],
+            "commands": [
+              "uv run pre-commit run --files CONTRIBUTING.md",
+              "uv run pytest -n auto",
+              "uv run pre-commit run --all-files"
+            ],
+            "code": [
+              "CONTRIBUTING.md:137"
+            ],
+            "verified_by_ci": false
+          }
+        }
+      ]
+    }
+  ],
+  "budgets": {
+    "converge_cycles": {
+      "used": 1,
+      "max": 2
+    },
+    "review_cycles": {
+      "used": 1,
+      "max": 1
+    },
+    "design_review_cycles": {
+      "used": 1,
+      "max": 1
+    },
+    "tokens": {
+      "used": 16.23,
+      "max": 120
+    }
+  },
+  "pr": {
+    "number": 445,
+    "draft": false
+  }
+}

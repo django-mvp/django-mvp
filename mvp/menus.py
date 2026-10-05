@@ -159,7 +159,7 @@ MobileFooterMenu = Menu(
             extra_context={
                 "label": "Menu",
                 "icon": "menu",
-                # The drawer checkbox's id: c-layout.sidebar id="mvp-app" names
+                # The drawer checkbox's id: c-mvp.layout.sidebar id="mvp-app" names
                 # it "mvp-app-toggle", and the dock item becomes a <label> for it,
                 # as the navbar hamburger is.
                 "toggle": "mvp-app-toggle",

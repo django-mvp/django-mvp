@@ -2,7 +2,7 @@
 
 This document was designed against [GOALS.md](../GOALS.md). See also [CONTEXT.md](../CONTEXT.md) for domain terminology and [CONSTITUTION.md](../CONSTITUTION.md) for project standards.
 
-The package is at 0.25.1, so the early items below are already delivered and are carried here to keep the build sequence whole.
+The package is at 0.26.0, so the early items below are already delivered and are carried here to keep the build sequence whole.
 
 ## Versioning
 
@@ -97,7 +97,7 @@ Serves G3, and G2 for the components the page needs. A field-rendering API on th
 
 Formsets are the example the package's own scope statement uses: Django ships the backend machinery and leaves you with nothing to render or drive it with.
 
-Delivered. `<c-form.formset>` and `<c-form.formset.row>` render any Django formset with the packaged look, an `inlines` attribute on `MVPCreateView`/`MVPUpdateView` puts a parent record and its related rows on one page, and [Formsets](formsets.md) walks the path from two models to a rendered page. G4 now has an instance to point at.
+Delivered. `<c-mvp.form.formset>` and `<c-mvp.form.formset.row>` render any Django formset with the packaged look, an `inlines` attribute on `MVPCreateView`/`MVPUpdateView` puts a parent record and its related rows on one page, and [Formsets](formsets.md) walks the path from two models to a rendered page. G4 now has an instance to point at.
 
 **Deliverables:**
 
@@ -246,7 +246,7 @@ The switch changes attribute names across the library, and it is breaking. It la
 - The basic components removed here in favour of daisy-cotton's, with every template, demo page and document that calls them updated.
 - The card, modal and avatar rebuilt on daisy-cotton's components under their new names.
 - The dropdown kept or replaced on the evidence of the existing placement tests run against daisy-cotton's version.
-- Form rendering built on daisy-cotton's form controls, replacing the single-field component.
+- A field written out by hand in a template drawn with daisy-cotton's form controls, replacing the single-field component. A form rendered from a Django form stays with django-crispy-forms and django-mvp-forms.
 - The shell's own hand-written daisyUI markup (messages, footer, navbar, drawer, pagination) composed from daisy-cotton's components where one exists.
 - The packages built on this one capped before the release and moved onto it after.
 
@@ -296,7 +296,7 @@ Serves G8.
 
 G8 asks for a project to depart from the packaged look without copying templates: colour, typography and density adjusted through the design system's own theming surface, with the packaged components picking the changes up. R11's rejection makes this the whole of the theming story rather than the second half of one.
 
-Delivered. Every prebuilt daisyUI theme ships inside the package, so a project picks one through `MVP_CONFIG["theme"]` with no build step and nothing fetched from outside it. `choices` gives `<c-actions.theme-controller />` a runtime switch, a visitor's stored preference outranks the configured default, and a project writes a theme of its own as a plain CSS file that overrides a shipped theme of the same name. [Theming](theming.md) walks through writing one, including writing to a contrast obligation. The package applies no branding of its own: the `mvp` and `mvp-dark` palettes belong to the demo site, per `docs/adr/0016-branded-themes-belong-to-the-demo-site.md`.
+Delivered. Every prebuilt daisyUI theme ships inside the package, so a project picks one through `MVP_CONFIG["theme"]` with no build step and nothing fetched from outside it. `choices` gives `<c-mvp.actions.theme-controller />` a runtime switch, a visitor's stored preference outranks the configured default, and a project writes a theme of its own as a plain CSS file that overrides a shipped theme of the same name. [Theming](theming.md) walks through writing one, including writing to a contrast obligation. The package applies no branding of its own: the `mvp` and `mvp-dark` palettes belong to the demo site, per `docs/adr/0016-branded-themes-belong-to-the-demo-site.md`.
 
 **Deliverables:**
 

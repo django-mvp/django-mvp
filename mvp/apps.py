@@ -12,7 +12,9 @@ class MvpConfig(AppConfig):
     verbose_name = "Django MVP"
 
     def ready(self):
-        """Register the mounted-apps system check."""
+        """Register the mounted-apps and daisy-cotton app system checks."""
+        from .checks import check_daisy_cotton_app
         from .mounted import check_mounted_apps
 
         checks.register(check_mounted_apps, checks.Tags.urls)
+        checks.register(check_daisy_cotton_app)

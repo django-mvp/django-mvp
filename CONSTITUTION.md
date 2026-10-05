@@ -114,12 +114,19 @@ between the caller and the work is not.
 
 Components are named after their domain role, not their implementation or any external design
 system, and their attributes are the only supported way to customize them. Raw utility classes
-must not appear in templates that demonstrate a component. Where a consumer needs more control
-than the attributes give, the answer is a template override, not a wider attribute surface.
+must not appear in templates that demonstrate one of this package's own components. A
+daisy-cotton component is configured the way daisy-cotton documents, which for a few options is
+a class. Where a consumer needs more control than the attributes give, the answer is a template
+override, not a wider attribute surface.
 
 Reusable template markup is expressed as a Cotton component, never as an `{% include %}` partial.
-Component templates live under `mvp/templates/cotton/` and are named in lowercase-kebab form.
 Genuinely one-off markup unique to a single view is exempt.
+
+The components the package owns live under `mvp/templates/cotton/mvp/`, are reached as
+`<c-mvp.…>`, and are named in lowercase-kebab form after their domain role. The icon is the one
+exception: it stays at `cotton/icon.html` because it replaces daisy-cotton's plain icon by
+sitting at the same name. Basic daisyUI components come from daisy-cotton and are not written
+again in this package.
 
 ### Article XII — Configuration-driven layout
 
@@ -251,4 +258,4 @@ that need ignore rules first. Do not cite it as an enforced standard until it ru
 
 ---
 
-**Version**: 5.0.0 | **Ratified**: 2026-01-05 | **Last Amended**: 2026-09-28
+**Version**: 5.1.0 | **Ratified**: 2026-01-05 | **Last Amended**: 2026-10-05

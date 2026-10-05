@@ -16,6 +16,7 @@ import re
 from pathlib import Path
 
 import pytest
+from bs4 import BeautifulSoup
 from django.apps import apps
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
@@ -87,7 +88,10 @@ class TestDefaultBaseTemplate:
 
 class TestShowCodeTemplate:
     def test_the_package_ships_the_template_the_tag_renders(self, package_only_engine):
-        assert package_only_engine.get_template("cotton/documentation.html") is not None
+        assert (
+            package_only_engine.get_template("cotton/mvp/documentation.html")
+            is not None
+        )
 
 
 def _template_files():
@@ -375,3 +379,28 @@ class TestShellDockBlock:
         )
 
         assert 'class="mvp-dock-only"' not in page
+
+
+@pytest.mark.django_db
+class TestComponentOverridePath:
+    @pytest.fixture(autouse=True)
+    def override_templates_first(self, settings):
+        project_templates = Path(__file__).parent / "fixtures" / "override_templates"
+        engine = settings.TEMPLATES[0]
+        settings.TEMPLATES = [
+            {**engine, "DIRS": [str(project_templates), *engine.get("DIRS", [])]}
+        ]
+
+    def test_an_override_at_the_prefixed_path_replaces_the_packaged_component(self):
+        soup = BeautifulSoup(
+            render_shell('{% extends "mvp/base.html" %}'), "html.parser"
+        )
+
+        assert soup.find(attrs={"data-footer-override": "prefixed"}) is not None
+
+    def test_an_override_at_the_old_path_is_not_used(self):
+        soup = BeautifulSoup(
+            render_shell('{% extends "mvp/base.html" %}'), "html.parser"
+        )
+
+        assert soup.find(attrs={"data-footer-override": "unprefixed"}) is None

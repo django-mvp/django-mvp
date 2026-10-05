@@ -229,7 +229,7 @@ On a page served through the mount:
 - **Error pages name no app.** A 404 raised inside the app renders the ordinary error page, with
   no app in the title and no sidebar.
 
-A page that passes `menu=` to `<c-app.sidebar>` explicitly keeps that menu with no back link, even
+A page that passes `menu=` to `<c-mvp.app.sidebar>` explicitly keeps that menu with no back link, even
 inside an app. Overriding the `app.sidebar` block this way is how a page opts out. An override
 that passes no `menu` keeps the swap, because the sidebar reads the current app from the
 context by itself.

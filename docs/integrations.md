@@ -30,7 +30,7 @@ class ProductTableView(MVPTableView):
 
 `MVPTableView` combines the full MVP list behavior (search, pagination, page chrome)
 with django-tables2 rendering via the `table_view.html` base template and the
-[`c-addons.django-table`](components.md#actions-user-misc) component.
+[`c-mvp.addons.django-table`](components.md#actions-user-misc) component.
 `MVPTableViewMixin` is available for composing with other view classes.
 
 The page fills the screen: the rows scroll in a region of their own with the heading
@@ -57,7 +57,7 @@ when Django imports the module holding it, naming the class in the message. You 
 at startup rather than the first time someone opens that page.
 
 Don't put a context key called `actions` on a table page. The bar above and the one below
-the table are plain flex rows rather than `<c-toolbar>`, because a toolbar renders
+the table are plain flex rows rather than `<c-mvp.toolbar>`, because a toolbar renders
 `{{ actions }}` in its trailing slot, and a Cotton slot falls through to the context
 variable of the same name when the caller fills no slot — a page whose context carries an
 `actions` key would print its repr there instead.
@@ -152,7 +152,7 @@ sideways. Add that class to the table area to turn the pinning on:
 
 ```django
 {% block page.content %}
-  <c-addons.django-table :table="table" class="flex-1 min-h-0 table-pin-cols" />
+  <c-mvp.addons.django-table :table="table" class="flex-1 min-h-0 table-pin-cols" />
 {% endblock page.content %}
 ```
 
@@ -258,7 +258,7 @@ and `form_invalid()` branch on `request.htmx`, which that middleware sets.
 |---|---|---|
 | `htmx_success_component` | `None` | Cotton component for the success partial, dot notation: `"ui.product-created"` → `cotton/ui/product_created.html`. |
 | `htmx_success_components` | `()` | Allowlist of `(alias, component)` pairs the requesting element may choose between via an `X-Success-Component` request header. |
-| `htmx_form_component` | `"form"` | Cotton component for the form-error partial. |
+| `htmx_form_component` | `"mvp.form"` | Cotton component for the form-error partial. |
 | `htmx_redirect_on_success` | `False` | Return a client-side redirect to the success URL instead of a partial. |
 
 The client picks an allowlisted component with the header, matched against the aliases:

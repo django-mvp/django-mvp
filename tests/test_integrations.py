@@ -230,7 +230,7 @@ class TestOptionalIntegrations:
         class ProductFilteredView(MVPFilteredListView):
             model = Product
             filterset_fields = ["name"]
-            template_name = "cotton/page/list/actions/filter.html"
+            template_name = "cotton/mvp/page/list/actions/filter.html"
 
         unfiltered = ProductFilteredView()
         unfiltered.setup(rf.get("/"))
@@ -260,7 +260,7 @@ class TestFilterChromeOnAComposedView:
             model = Product
             filterset_fields = ["name", "price"]
             search_fields = ["name"]
-            template_name = "cotton/page/list/actions/filter.html"
+            template_name = "cotton/mvp/page/list/actions/filter.html"
 
         return ComposedProductView
 

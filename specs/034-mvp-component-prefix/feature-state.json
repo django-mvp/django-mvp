@@ -1,0 +1,402 @@
+{
+  "feature": "034-mvp-component-prefix",
+  "branch": "034-mvp-component-prefix",
+  "repo": "django-mvp/django-mvp",
+  "state": "MERGED",
+  "state_history": [
+    {
+      "state": "QUEUED",
+      "at": "2026-10-05T14:32:32Z",
+      "note": "specification approved; issue graph built"
+    },
+    {
+      "state": "PLAN",
+      "at": "2026-10-05T14:40:20Z",
+      "note": "build started on the approved specification"
+    },
+    {
+      "state": "DESIGN_REVIEW",
+      "at": "2026-10-05T14:40:39Z",
+      "note": "plan, research and tasks written"
+    },
+    {
+      "state": "IMPLEMENT",
+      "at": "2026-10-05T14:49:17Z",
+      "note": "plan gate open; design review applied"
+    },
+    {
+      "state": "CONVERGE",
+      "at": "2026-10-05T15:23:26Z",
+      "note": "all four stories built"
+    },
+    {
+      "state": "REVIEW",
+      "at": "2026-10-05T15:24:56Z",
+      "note": "converged; gates green"
+    },
+    {
+      "state": "PR_READY",
+      "at": "2026-10-05T15:34:54Z",
+      "note": "review closed, walkthrough laid out, open for review"
+    },
+    {
+      "state": "GATE_MERGE",
+      "at": "2026-10-05T15:40:50Z",
+      "note": "all checks green; waiting at the merge gate"
+    },
+    {
+      "state": "MERGED",
+      "at": "2026-10-05T15:48:58Z",
+      "note": "PR #443 merged; approved by forge-aeo-reviewer"
+    }
+  ],
+  "gates": {
+    "spec": {
+      "approved_by": "delegated review",
+      "at": "2026-10-05T14:32:29Z",
+      "self_resolved": [
+        "approved at bdd7fc9 under the spec gate opened for the run of 2026-10-05"
+      ]
+    },
+    "plan": {
+      "approved_by": "open",
+      "at": "2026-10-05T14:49:12Z",
+      "self_resolved": []
+    },
+    "merge": {
+      "approved_by": "forge-aeo-reviewer",
+      "at": "2026-10-05T15:48:53Z"
+    },
+    "design_review": {
+      "approved_by": "design-review",
+      "at": "2026-10-05T14:49:12Z",
+      "self_resolved": [
+        "SPEC-001 high: htmx form mixin default component \u2014 re-planned, D21, T001/T002",
+        "SPEC-002 medium: demo settings widget list \u2014 T002 hand-edit and demo-settings capture",
+        "SPEC-003 medium: default widget test reads the default from configuration \u2014 T003",
+        "SPEC-004 low: daisy-cotton comparison run once against the 0.1.2 wheel \u2014 T001",
+        "SPEC-005 low: D16 reading of SC-006 \u2014 to the merge gate, D23",
+        "SPEC-006 low: .github skill carries old tags \u2014 to the merge gate, D23",
+        "SPEC-007 low: pathlib-built paths and monkeypatched names \u2014 T002 hand-edit list",
+        "ARCH-001 low: unprovenanced sentence dropped from T006"
+      ]
+    },
+    "review": {
+      "approved_by": "code-review",
+      "at": "2026-10-05T15:33:15Z",
+      "self_resolved": [
+        "DOC-001 high: old widget names in three settings examples \u2014 fixed, T011",
+        "DOC-002 low: decision record overstated \u2014 reworded, T012",
+        "COR-001 low: two templates' line endings \u2014 restored, T013"
+      ]
+    },
+    "walkthrough": {
+      "approved_by": "delegated review",
+      "at": "2026-10-05T15:48:51Z",
+      "self_resolved": [
+        "ROADMAP current names, glossary constraint narrowed, issue filed for .github/skills \u2014 all done at ee7ff87"
+      ]
+    }
+  },
+  "stories": [
+    {
+      "id": "US1",
+      "priority": "P1",
+      "issue": 451,
+      "worktree": "/home/sam/projects/django-mvp/worktrees/mvp-034-mvp-component-prefix",
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T001",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_component_prefix.py::TestComponentPrefix",
+              "tests/test_components/test_component_prefix.py::TestNamesSharedWithDaisyCotton",
+              "tests/test_views/test_htmx.py::TestHtmxFormDefaultComponent"
+            ],
+            "commands": [
+              "uv run pytest tests/test_components/test_component_prefix.py tests/test_views/test_htmx.py -q",
+              "PYTHONPATH=/tmp/dc012/t uv run pytest tests/test_components/test_component_prefix.py -q"
+            ],
+            "code": [
+              "tests/test_components/test_component_prefix.py:20",
+              "tests/test_components/test_component_prefix.py:48",
+              "tests/test_components/test_component_prefix.py:75",
+              "tests/test_views/test_htmx.py:336"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T002",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_render_all.py",
+              "tests/test_components/test_declared_attributes.py",
+              "tests/test_components/test_component_prefix.py",
+              "tests/test_views/test_htmx.py::TestHtmxFormDefaultComponent"
+            ],
+            "commands": [
+              "uv run pytest -q -n auto",
+              "forge verify --repo . --base origin/main"
+            ],
+            "code": [
+              "mvp/config.py:93",
+              "mvp/views/htmx.py:147",
+              "mvp/templates/cotton/mvp/page/list/actions/index.html:14"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T013",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "script over git diff -M origin/main...HEAD: no file's line endings differ from its earlier version; full suite green at cdd6753"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "US2",
+      "priority": "P2",
+      "issue": 452,
+      "worktree": "/home/sam/projects/django-mvp/worktrees/mvp-034-mvp-component-prefix",
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T003",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_layout_config.py::TestNavbarWidgetNames",
+              "tests/test_components/test_layout_config.py::TestShellRendersConfig::test_navbar_widgets_render_from_config"
+            ],
+            "commands": [
+              "uv run pytest tests/test_components/test_layout_config.py -q"
+            ],
+            "code": [
+              "tests/test_components/test_layout_config.py:146",
+              "tests/test_components/test_layout_config.py:168",
+              "tests/test_components/test_layout_config.py:184"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T004",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [],
+            "commands": [
+              "scripted check that every c-mvp.* tag, mvp.* widget name and templates/cotton/mvp path on docs/configuration.md and docs/layout.md resolves to a template under mvp/templates/cotton/"
+            ],
+            "code": [
+              "docs/configuration.md:170",
+              "docs/layout.md:257"
+            ],
+            "verified_by_ci": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "US3",
+      "priority": "P2",
+      "issue": 453,
+      "worktree": "/home/sam/projects/django-mvp/worktrees/mvp-034-mvp-component-prefix",
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T005",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_templates.py::TestComponentOverridePath"
+            ],
+            "commands": [
+              "uv run pytest tests/test_templates.py -q"
+            ],
+            "code": [
+              "tests/test_templates.py:385",
+              "tests/fixtures/override_templates/cotton/mvp/app/sidebar/footer.html:1",
+              "tests/fixtures/override_templates/cotton/app/sidebar/footer.html:1"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T006",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_fixtures.py"
+            ],
+            "commands": [
+              "uv run pytest tests/test_fixtures.py -q"
+            ],
+            "code": [
+              "mvp/fixtures.py:53",
+              "tests/test_fixtures.py:21"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T007",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [],
+            "commands": [
+              "python3 /tmp/fs034/scratch/changelog_table.py (67 rows generated from mvp/templates/cotton/mvp/, parsed back from CHANGELOG.md and compared with the directory)"
+            ],
+            "code": [
+              "CHANGELOG.md:8"
+            ],
+            "verified_by_ci": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "US4",
+      "priority": "P3",
+      "issue": 454,
+      "worktree": "/home/sam/projects/django-mvp/worktrees/mvp-034-mvp-component-prefix",
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T008",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [],
+            "commands": [
+              "python3 /tmp/fs034/scratch/rename.py --dry <docs, README.md, CONTRIBUTING.md, skills> (files changed: 0 | tag rewrites: 0 | path rewrites: 0)",
+              "python3 /tmp/fs034/scratch/check_tags.py (every c-tag in the changed pages resolves to a template under mvp/templates/cotton/; only intended non-matches remain)",
+              "uv run pytest /tmp/fs034/scratch/test_example.py (the CONTRIBUTING.md example, passed)"
+            ],
+            "code": [
+              "docs/components.md:8",
+              "docs/integrations.md:261",
+              "CONTRIBUTING.md:37",
+              "skills/django-mvp/SKILL.md:36"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T009",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [],
+            "commands": [
+              "python3 (names in the Component Library blocks compared with mvp/templates/cotton/ file names: none missing, none extra)",
+              "python3 /tmp/fs034/scratch/rename.py --dry CONTEXT.md (files changed: 0)"
+            ],
+            "code": [
+              "CONTEXT.md:136",
+              "CONTEXT.md:301"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T010",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [],
+            "commands": [
+              "git diff 1a97bae -- CONSTITUTION.md (Article XI and the footer only)"
+            ],
+            "code": [
+              "CONSTITUTION.md:113",
+              "CONSTITUTION.md:261"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "TC01",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "forge check-adrs: green; ADR 0030 written at 6cc6328"
+            ]
+          }
+        },
+        {
+          "id": "T011",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "grep for old widget names in README.md docs/ skills/: only the docs/configuration.md sentence that names the old one on purpose; fixed at cdd6753"
+            ]
+          }
+        },
+        {
+          "id": "T012",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "docs/adr/0030 and CHANGELOG.md reworded at cdd6753; read against mvp/templates/cotton (17 bare templates)"
+            ]
+          }
+        },
+        {
+          "id": "T014",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "merge-gate rulings applied at 6f1e265: docs/ROADMAP.md two delivered items, CONTEXT.md constraint 1, D16 and D23 rewritten; issue 482 filed"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "budgets": {
+    "converge_cycles": {
+      "used": 1,
+      "max": 2
+    },
+    "review_cycles": {
+      "used": 1,
+      "max": 1
+    },
+    "design_review_cycles": {
+      "used": 1,
+      "max": 1
+    },
+    "tokens": {
+      "used": 26.24,
+      "max": 120
+    }
+  },
+  "pr": {
+    "number": 443,
+    "draft": false
+  }
+}

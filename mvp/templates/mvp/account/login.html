@@ -5,7 +5,7 @@
   form can ask for a narrower card than the entrance default.
 {% endcomment %}
 {% block entrance %}
-  <c-entrance size="md" full-height>
+  <c-mvp.entrance size="md" full-height>
     {% block content %}
       {% include "mvp/account/_development_notice.html" %}
       {% if form.errors %}
@@ -14,10 +14,10 @@
         </c-alert>
       {% endif %}
       <h2 class="text-center mb-6">{% trans "Sign in to your account" %}</h2>
-      <c-form method="post"
+      <c-mvp.form method="post"
               action="{% url 'account_login' %}"
               class="space-y-4">
-        <c-form.field type="text"
+        <c-mvp.form.field type="text"
                       label="{{ form.username.label }}"
                       id="{{ form.username.id_for_label }}"
                       name="{{ form.username.html_name }}"
@@ -25,7 +25,7 @@
                       autocomplete="username"
                       :errors="form.username.errors"
                       required />
-        <c-form.field type="password"
+        <c-mvp.form.field type="password"
                       label="{% trans "Password" %}"
                       id="{{ form.password.id_for_label }}"
                       name="{{ form.password.html_name }}"
@@ -38,7 +38,7 @@
                   text="{% trans "Sign In" %}"
                   class="w-full" />
         <input type="hidden" name="next" value="{{ next }}" />
-      </c-form>
+      </c-mvp.form>
     {% endblock content %}
-  </c-entrance>
+  </c-mvp.entrance>
 {% endblock entrance %}

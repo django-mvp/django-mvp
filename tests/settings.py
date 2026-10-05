@@ -34,8 +34,8 @@ MVP_CONFIG = {
     "layout": {
         "navbar": {
             "end": [
-                "actions.theme-controller",
-                "actions.language-switcher",
+                "mvp.actions.theme-controller",
+                "mvp.actions.language-switcher",
             ],
         },
     },

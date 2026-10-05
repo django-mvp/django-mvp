@@ -60,7 +60,7 @@ needs registering. With no such name resolving at all, the row is left out, the 
 rule every other row in this menu follows.
 
 To change what the footer shows instead, override
-`templates/cotton/app/sidebar/footer.html` — see
+`templates/cotton/mvp/app/sidebar/footer.html` — see
 [layout.md](layout.md#sidebar-footer).
 
 ## The landing page view
@@ -211,10 +211,10 @@ class NotificationsView(LoginRequiredMixin, MVPTemplateView):
 {# yourapp/templates/yourapp/notifications.html #}
 {% extends "mvp/account/base.html" %}
 {% block account.content %}
-  <c-page>
-    <c-page.title title="Notifications" />
+  <c-mvp.page>
+    <c-mvp.page.title title="Notifications" />
     ...
-  </c-page>
+  </c-mvp.page>
 {% endblock account.content %}
 ```
 
@@ -275,12 +275,12 @@ page's template, extending the same name, and adding to its card block — no me
 {% load i18n %}
 {% block account.cards %}
   {{ block.super }}
-  <c-card title="{% trans "Your Things" %}" icon="overview">
-    <c-text>{% trans "Keep track of what you own." %}</c-text>
+  <c-mvp.card title="{% trans "Your Things" %}" icon="overview">
+    <c-mvp.text>{% trans "Keep track of what you own." %}</c-mvp.text>
     <c-slot name="footer">
       <c-button href="{% url 'yourapp:things' %}" text="{% trans "Manage" %}" />
     </c-slot>
-  </c-card>
+  </c-mvp.card>
 {% endblock account.cards %}
 ```
 
@@ -316,8 +316,8 @@ question `mvp.utils.app_is_installed` answers from Python:
 ```django
 {% load i18n mvp %}
 {% if "allauth.mfa"|app_is_installed %}
-  <c-card title="{% trans "Two-Factor Authentication" %}" icon="lock">
+  <c-mvp.card title="{% trans "Two-Factor Authentication" %}" icon="lock">
     ...
-  </c-card>
+  </c-mvp.card>
 {% endif %}
 ```

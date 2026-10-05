@@ -1,8 +1,8 @@
-"""Tests for the <c-form.field> component.
+"""Tests for the <c-mvp.form.field> component.
 
 A single, presentational form field: one control plus an optional label, help
 text, and errors — rendered entirely from explicit attributes (whole-form
-rendering is <c-form.render>'s job). Sources are compiled through the Cotton
+rendering is <c-mvp.form.render>'s job). Sources are compiled through the Cotton
 compiler so the tests exercise the component exactly as a template would.
 """
 
@@ -20,7 +20,7 @@ def render(source, **context):
 
 class TestFormFieldControl:
     def test_bare_field_renders_control_only(self):
-        html = render('<c-form.field name="q" placeholder="Search" />')
+        html = render('<c-mvp.form.field name="q" placeholder="Search" />')
         assert 'class="input w-full' in html
         assert '<input type="text"' in html
         assert 'name="q"' in html
@@ -28,12 +28,13 @@ class TestFormFieldControl:
         assert "fieldset" not in html
 
     def test_type_is_emitted_on_the_input(self):
-        html = render('<c-form.field type="password" name="password" />')
+        html = render('<c-mvp.form.field type="password" name="password" />')
         assert '<input type="password"' in html
 
     def test_attrs_pass_through_to_the_control(self):
         html = render(
-            '<c-form.field name="q" id="id_q" value="abc" form="filterForm" disabled />'
+            '<c-mvp.form.field name="q" id="id_q" value="abc" form="filterForm" '
+            "disabled />"
         )
         assert 'id="id_q"' in html
         assert 'value="abc"' in html
@@ -41,14 +42,14 @@ class TestFormFieldControl:
         assert "disabled" in html
 
     def test_class_lands_on_the_control_wrapper(self):
-        html = render('<c-form.field name="q" class="join-item" />')
+        html = render('<c-mvp.form.field name="q" class="join-item" />')
         assert 'class="input w-full join-item"' in html
 
 
 class TestFormFieldLabel:
     def test_label_renders_and_points_at_the_control(self):
         html = render(
-            '<c-form.field label="Email" type="email" name="email" id="id_email" />'
+            '<c-mvp.form.field label="Email" type="email" name="email" id="id_email" />'
         )
         assert 'class="fieldset' in html
         assert "fieldset-legend" in html
@@ -58,41 +59,45 @@ class TestFormFieldLabel:
 
     def test_label_slot_allows_rich_content(self):
         html = render(
-            '<c-form.field name="email">'
+            '<c-mvp.form.field name="email">'
             '<c-slot name="label">Email <c-badge variant="success">Verified</c-badge></c-slot>'
-            "</c-form.field>"
+            "</c-mvp.form.field>"
         )
         assert "fieldset-legend" in html
         assert "badge-success" in html
 
     def test_hide_label_is_screen_reader_only(self):
-        html = render('<c-form.field label="Confirm" hide-label name="confirmation" />')
+        html = render(
+            '<c-mvp.form.field label="Confirm" hide-label name="confirmation" />'
+        )
         assert "sr-only" in html
         assert "Confirm" in html
         # the control itself must stay visible
         assert 'class="input w-full' in html
 
     def test_required_adds_indicator_and_html_attribute(self):
-        html = render('<c-form.field label="Name" name="name" required />')
+        html = render('<c-mvp.form.field label="Name" name="name" required />')
         assert 'aria-hidden="true">*</span>' in html
         assert "required" in html.split("<input", 1)[1]
 
 
 class TestFormFieldHelpAndErrors:
     def test_help_text_attribute_and_slot(self):
-        attr = render('<c-form.field label="U" name="u" help-text="Digits only." />')
+        attr = render(
+            '<c-mvp.form.field label="U" name="u" help-text="Digits only." />'
+        )
         assert '<p class="label">Digits only.</p>' in attr
 
         slot = render(
-            '<c-form.field label="U" name="u">'
+            '<c-mvp.form.field label="U" name="u">'
             '<c-slot name="help_text">See the <a href="#">docs</a>.</c-slot>'
-            "</c-form.field>"
+            "</c-mvp.form.field>"
         )
         assert 'href="#"' in slot
 
     def test_errors_string_styles_the_control(self):
         html = render(
-            '<c-form.field label="Email" name="email" errors="Invalid email." />'
+            '<c-mvp.form.field label="Email" name="email" errors="Invalid email." />'
         )
         assert "input-error" in html
         assert 'aria-invalid="true"' in html
@@ -101,7 +106,7 @@ class TestFormFieldHelpAndErrors:
 
     def test_errors_accepts_a_list(self):
         html = render(
-            '<c-form.field label="Email" name="email" :errors="errs" />',
+            '<c-mvp.form.field label="Email" name="email" :errors="errs" />',
             errs=["Too short.", "Invalid domain."],
         )
         assert "Too short." in html
@@ -109,7 +114,7 @@ class TestFormFieldHelpAndErrors:
         assert "input-error" in html
 
     def test_errors_alone_do_not_render_a_label(self):
-        html = render('<c-form.field name="email" errors="Nope." />')
+        html = render('<c-mvp.form.field name="email" errors="Nope." />')
         assert "fieldset-legend" not in html
         assert "text-error" in html
 
@@ -117,31 +122,38 @@ class TestFormFieldHelpAndErrors:
 class TestFormFieldWidgets:
     def test_textarea_takes_value_from_slot_without_extra_whitespace(self):
         html = render(
-            '<c-form.field type="textarea" label="Bio" name="bio" rows="3">Hello</c-form.field>'
+            '<c-mvp.form.field type="textarea" label="Bio" name="bio" '
+            'rows="3">Hello</c-mvp.form.field>'
         )
         assert 'class="textarea w-full' in html
         assert ">Hello</textarea>" in html
         assert 'rows="3"' in html
 
     def test_textarea_error_style(self):
-        html = render('<c-form.field type="textarea" name="bio" errors="Too long." />')
+        html = render(
+            '<c-mvp.form.field type="textarea" name="bio" errors="Too long." />'
+        )
         assert "textarea-error" in html
 
     def test_select_renders_options_from_slot(self):
         html = render(
-            '<c-form.field type="select" label="Plan" name="plan"><option>Free</option></c-form.field>'
+            '<c-mvp.form.field type="select" label="Plan" '
+            'name="plan"><option>Free</option></c-mvp.form.field>'
         )
         assert 'class="select w-full' in html
         assert "<select" in html
         assert "<option>Free</option>" in html
 
     def test_select_error_style(self):
-        html = render('<c-form.field type="select" name="plan" errors="Pick one." />')
+        html = render(
+            '<c-mvp.form.field type="select" name="plan" errors="Pick one." />'
+        )
         assert "select-error" in html
 
     def test_file_input(self):
         html = render(
-            '<c-form.field type="file" label="Avatar" name="avatar" accept="image/*" />'
+            '<c-mvp.form.field type="file" label="Avatar" name="avatar" '
+            'accept="image/*" />'
         )
         assert '<input type="file"' in html
         assert "file-input" in html
@@ -149,7 +161,8 @@ class TestFormFieldWidgets:
 
     def test_checkbox_renders_inline_label(self):
         html = render(
-            '<c-form.field type="checkbox" label="Remember me" name="remember" checked />'
+            '<c-mvp.form.field type="checkbox" label="Remember me" name="remember" '
+            "checked />"
         )
         assert '<input type="checkbox"' in html
         assert 'class="checkbox' in html
@@ -161,19 +174,20 @@ class TestFormFieldWidgets:
 
     def test_radio_renders_radio_input(self):
         html = render(
-            '<c-form.field type="radio" label="Standard" name="ship" value="std" />'
+            '<c-mvp.form.field type="radio" label="Standard" name="ship" value="std" />'
         )
         assert '<input type="radio"' in html
         assert 'class="radio' in html
 
     def test_toggle_is_a_checkbox_styled_as_a_switch(self):
-        html = render('<c-form.field type="toggle" label="Notify" name="notify" />')
+        html = render('<c-mvp.form.field type="toggle" label="Notify" name="notify" />')
         assert '<input type="checkbox"' in html
         assert 'class="toggle' in html
 
     def test_check_style_field_with_help_text_wraps_without_legend(self):
         html = render(
-            '<c-form.field type="toggle" label="Notify" name="notify" help-text="Weekly." />'
+            '<c-mvp.form.field type="toggle" label="Notify" name="notify" '
+            'help-text="Weekly." />'
         )
         assert 'class="fieldset' in html
         assert "fieldset-legend" not in html
@@ -181,7 +195,8 @@ class TestFormFieldWidgets:
 
     def test_checkbox_error_style(self):
         html = render(
-            '<c-form.field type="checkbox" label="Terms" name="terms" errors="Required." />'
+            '<c-mvp.form.field type="checkbox" label="Terms" name="terms" '
+            'errors="Required." />'
         )
         assert "checkbox-error" in html
 
@@ -189,18 +204,21 @@ class TestFormFieldWidgets:
 class TestFormFieldWrapper:
     def test_prelabel_and_postlabel_attributes(self):
         html = render(
-            '<c-form.field name="site" prelabel="https://" postlabel=".com" />'
+            '<c-mvp.form.field name="site" prelabel="https://" postlabel=".com" />'
         )
         assert '<span class="label">https://</span>' in html
         assert '<span class="label">.com</span>' in html
 
     def test_prelabel_slot(self):
         html = render(
-            '<c-form.field name="q"><c-slot name="prelabel"><c-icon name="search" /></c-slot></c-form.field>'
+            '<c-mvp.form.field name="q"><c-slot name="prelabel"><c-icon name="search" '
+            "/></c-slot></c-mvp.form.field>"
         )
         assert '<span class="label">' in html
         assert "bi-search" in html
 
     def test_wrapper_class_lands_on_the_fieldset(self):
-        html = render('<c-form.field label="Name" name="name" wrapper-class="mb-4" />')
+        html = render(
+            '<c-mvp.form.field label="Name" name="name" wrapper-class="mb-4" />'
+        )
         assert 'class="fieldset mb-4"' in html

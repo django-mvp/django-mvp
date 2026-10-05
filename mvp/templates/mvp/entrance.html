@@ -2,13 +2,13 @@
 {% comment %}
   Fill {% block content %} for the default card width. A page wanting a
   different width overrides {% block entrance %} instead, restating
-  <c-entrance> with its own size and nesting {% block content %} inside.
+  <c-mvp.entrance> with its own size and nesting {% block content %} inside.
 {% endcomment %}
 {% block app %}
   {% block entrance %}
-    <c-entrance full-height>
+    <c-mvp.entrance full-height>
       {% block content %}
       {% endblock content %}
-    </c-entrance>
+    </c-mvp.entrance>
   {% endblock entrance %}
 {% endblock app %}

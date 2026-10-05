@@ -23,7 +23,7 @@ links are relative to this file. If you have this file on its own, every page is
 
 > **Version note.** The package migrated from AdminLTE 4 / Bootstrap 5 to DaisyUI 5 /
 > Tailwind v4. If you see `settings.MVP`, `cotton_bs5`, an `adminlte` renderer, or a
-> `<c-app>` composed by hand in a base template, that is the old API and it is gone.
+> `<c-mvp.app>` composed by hand in a base template, that is the old API and it is gone.
 
 ## Critical decisions
 
@@ -31,12 +31,13 @@ Get these right before writing anything. Each one is a mistake that looks like i
 
 | Concern | Correct | Wrong, removed, or a trap |
 |---|---|---|
-| Layout configuration | `settings.MVP_CONFIG` plus the `mvp.context_processors.mvp_config` processor | `settings.MVP`; layout attributes on a hand-built `<c-app>` |
+| Layout configuration | `settings.MVP_CONFIG` plus the `mvp.context_processors.mvp_config` processor | `settings.MVP`; layout attributes on a hand-built `<c-mvp.app>` |
 | Navbar widgets | `layout.navbar.mobile.end` and `layout.navbar.desktop.end`; `mobile.end` ships empty and the whole trailing region is hidden below the sidebar breakpoint | a flat `layout.navbar.end` — accepted as a legacy shape, but it is copied into both and removed from the merged config |
+| Component names | `<c-mvp.card>`, `<c-mvp.page.list>`: the package's own components sit under `mvp/templates/cotton/mvp/`; `<c-icon>` and a few basic components (`<c-button>`, `<c-alert>`, `<c-badge>`, `<c-menu>` and similar) keep bare names | dropping the `mvp.` prefix from a component the package owns — the bare name resolves to nothing from this package |
 | Breadcrumbs | declare them on the view; the app header draws them from `page.breadcrumbs` | adding `<c-breadcrumbs>` to a page template — the header already has one |
 | A plain content page | extend `mvp/base.html`, fill `{% block content %}` | re-composing the shell yourself |
 | A page behind an MVP view | override the `page.*` blocks | overriding `content`, which the packaged page template has already filled |
-| The sidebar footer | override `templates/cotton/app/sidebar/footer.html` | `MVP_CONFIG["layout"]["sidebar"]["footer"]` — no longer read |
+| The sidebar footer | override `templates/cotton/mvp/app/sidebar/footer.html` | `MVP_CONFIG["layout"]["sidebar"]["footer"]` — no longer read |
 | Icons | an `EASY_ICONS` default renderer, the `mvp.utils.BS5_ICONS` pack, your own names on top | assuming a name you have not registered resolves — an unknown name raises unless `EASY_ICONS_FAIL_SILENTLY` |
 | Menu renderers | `sidebar` → `SidebarRenderer`, `dock` → `MobileFooterNavRenderer` | `adminlte` → `AdminLTERenderer` |
 | CRUD link visibility | `show_<action>_action` | `has_<action>_permission` — renamed in 0.16, and a view that still sets one raises `ImproperlyConfigured` |
@@ -86,6 +87,7 @@ INSTALLED_APPS = [
     "easy_icons",
     "flex_menu",
     "mvp",
+    "daisy_cotton",     # installed with django-mvp; keep it below "mvp"
     "crispy_forms",
     "mvp_forms",
 ]
@@ -127,7 +129,7 @@ package default.
 MVP_CONFIG = {
     "layout": {
         "sidebar": {"breakpoint": "lg", "collapse": "icons", "title": "Acme"},
-        "navbar": {"desktop": {"end": ["actions.theme-controller", "actions.login"]}},
+        "navbar": {"desktop": {"end": ["mvp.actions.theme-controller", "mvp.actions.login"]}},
     },
     "theme": {"default": "dracula", "choices": ["light", "dark", "dracula"]},
 }
@@ -158,13 +160,13 @@ main region, footer and mobile dock are assembled for you.
 <!-- your_app/templates/dashboard.html -->
 {% extends "mvp/base.html" %}
 {% block content %}
-  <c-container>
-    <c-section title="Dashboard" icon="dashboard">
-      <c-grid md="2" xl="4">
-        <c-card title="Orders">150 new</c-card>
-      </c-grid>
-    </c-section>
-  </c-container>
+  <c-mvp.container>
+    <c-mvp.section title="Dashboard" icon="dashboard">
+      <c-mvp.grid md="2" xl="4">
+        <c-mvp.card title="Orders">150 new</c-mvp.card>
+      </c-mvp.grid>
+    </c-mvp.section>
+  </c-mvp.container>
 {% endblock content %}
 ```
 
@@ -208,12 +210,12 @@ handler500 = "mvp.views.server_error"
   (`pl-`, `mr-`, `text-left`), arbitrary values, and classes assembled at render time from
   values outside the shipped safelist are absent from the prebuilt stylesheet and fail
   silently. Use the logical forms (`ps-`, `me-`, `text-start`). Assembly itself is fine
-  where the values are safelisted. `<c-grid md="2" xl="4">` builds `md:grid-cols-2` at
+  where the values are safelisted. `<c-mvp.grid md="2" xl="4">` builds `md:grid-cols-2` at
   render time and works, because the grid column counts are on the shipped safelist.
 - **htmx, Alpine and the theme switcher are already bundled.** Do not add a CDN tag for any
   of them.
 - **A form view built on a plain, non-model `Form` raises `ImproperlyConfigured`.** The page
   machinery resolves the model's metadata. Use a `ModelForm`, or set the model on the view.
 - **Component attributes are the supported customisation surface.** Beyond them, override the
-  component's template at the same path in your own project rather than reaching for utility
-  classes.
+  component's template at the same path in your own project (`templates/cotton/mvp/…`
+  for a prefixed component) rather than reaching for utility classes.

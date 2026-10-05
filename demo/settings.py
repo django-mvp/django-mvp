@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     "demo.account_showcase",
     "demo.library",
     "mvp",
+    "daisy_cotton",
     "easy_icons",
     "crispy_forms",
     "mvp_forms",
@@ -147,9 +148,9 @@ MVP_CONFIG = {
             # how a signed-in visitor reaches the Account Center.
             "desktop": {
                 "end": [
-                    "actions.theme-controller",
-                    "actions.language-switcher",
-                    "actions.login",
+                    "mvp.actions.theme-controller",
+                    "mvp.actions.language-switcher",
+                    "mvp.actions.login",
                 ],
             },
         },

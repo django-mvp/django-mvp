@@ -7,6 +7,154 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- A start-up check on the `daisy_cotton` line in `INSTALLED_APPS`. `mvp.E002` is an error
+  when `daisy_cotton` is missing, and `mvp.W001` is a warning when it is listed above `mvp`.
+  Both can be silenced by identifier in `SILENCED_SYSTEM_CHECKS`. See
+  [Troubleshooting](docs/troubleshooting.md#start-up-checks).
+
+### Changed
+
+- **Breaking: django-mvp depends on [daisy-cotton](https://pypi.org/project/daisy-cotton/).**
+  It is installed with the package, at `>=0.1.2,<0.2`. Nothing on a page changes: both
+  packages ship some components under the same names, and `mvp` is still found first. See
+  [ADR 0031](docs/adr/0031-daisy-cotton-is-a-runtime-dependency.md).
+
+  **On upgrade**, add one line to `INSTALLED_APPS`, directly below `"mvp"`:
+
+  ```python
+  INSTALLED_APPS = [
+      ...
+      "mvp",
+      "daisy_cotton",
+      ...
+  ]
+  ```
+
+  Without it, daisy-cotton's components are not found.
+
+- The prebuilt stylesheet now styles every class daisy-cotton's components can render. Before,
+  82 breakpoint forms such as `md:card-side`, eight plain utilities and `menu-paged` had no
+  rule, so a component that used one looked unstyled. The stylesheet is now built with
+  daisyUI 5.7.0, which `menu-paged` needs. No class the previous release styled was removed.
+
+- `python manage.py mvp_tailwind` now scans daisy-cotton's templates as well. The generated
+  entry has one more `@source` line, after the form pack's, and `--paths` prints a fourth
+  line, daisy-cotton's templates directory. The first three lines are unchanged. The preset
+  the entry imports also lists the classes daisy-cotton builds at render time, so a project
+  that builds its own stylesheet gets the same coverage as the prebuilt one. Such a project
+  needs daisyUI 5.7 or later and should re-run the command to pick up the new line.
+
+- **Breaking: every component the package keeps is now under `mvp.`.** `<c-card>` is
+  `<c-mvp.card>`, `<c-page.list>` is `<c-mvp.page.list>`, so the tag says which package a
+  component comes from. No component the package keeps shares a name with one of
+  [daisy-cotton](https://github.com/django-mvp/daisy-cotton)'s any more, the icon excepted.
+  The templates moved from `mvp/templates/cotton/` to `mvp/templates/cotton/mvp/`. What a
+  component renders and accepts is unchanged. The old names are not kept as aliases: a tag at
+  an old name raises `TemplateDoesNotExist`, unless daisy-cotton is installed and has a
+  component of that name (see below). See
+  [ADR 0030](docs/adr/0030-the-packages-components-carry-a-prefix.md).
+
+  Two groups did not move:
+
+  - `<c-icon>` keeps its name for good. daisy-cotton ships a plain icon, and this package's icon
+    replaces it by sitting at the same name, so every caller, daisy-cotton's own components
+    included, reaches this one.
+  - The basic components that issue #435 removes in favour of daisy-cotton's: `<c-alert>`,
+    `<c-avatar.group>`, `<c-badge>`, `<c-breadcrumbs>`, `<c-breadcrumbs.item>`, `<c-button>`,
+    `<c-divider>`, `<c-dock>`, `<c-dock.item>`, `<c-link>`, `<c-menu>` and `<c-mockup.*>`. They
+    keep their names until #435, so those tags change once rather than twice.
+
+  **If daisy-cotton is installed**, check five tags first: `<c-card>`, `<c-modal>`,
+  `<c-avatar>`, `<c-dropdown>` and `<c-menu.item>`. Left unchanged, each now resolves to
+  daisy-cotton's component, which takes different attributes, so the page renders something
+  different and raises no error. An override of one of these that you left at its old path
+  now overrides daisy-cotton's component of that name, in daisy-cotton's own templates too.
+
+  **Names outside a tag change as well.** None of these is translated, and nothing detects an
+  old one:
+
+  - A template override moves to the prefixed path. `templates/cotton/app/sidebar/footer.html`
+    becomes `templates/cotton/mvp/app/sidebar/footer.html`. A file left at the old path is no
+    longer used.
+  - A component name in `MVP_CONFIG` is written in full, with the prefix. In
+    `layout.navbar.mobile.end` and `layout.navbar.desktop.end`, `"actions.theme-controller"`
+    becomes `"mvp.actions.theme-controller"`. A name of your own component is listed as it is.
+  - A view that sets `htmx_form_component = "form"` sets `"mvp.form"` instead.
+
+  Every moved component, one row per template under `mvp/templates/cotton/mvp/`:
+
+  | Before | Now |
+  | --- | --- |
+  | `<c-actions.language-switcher>` | `<c-mvp.actions.language-switcher>` |
+  | `<c-actions.language-switcher-modal>` | `<c-mvp.actions.language-switcher-modal>` |
+  | `<c-actions.login>` | `<c-mvp.actions.login>` |
+  | `<c-actions.search>` | `<c-mvp.actions.search>` |
+  | `<c-actions.theme-controller>` | `<c-mvp.actions.theme-controller>` |
+  | `<c-addons.django-table>` | `<c-mvp.addons.django-table>` |
+  | `<c-addons.share-dropdown>` | `<c-mvp.addons.share-dropdown>` |
+  | `<c-app>` | `<c-mvp.app>` |
+  | `<c-app.dock>` | `<c-mvp.app.dock>` |
+  | `<c-app.footer>` | `<c-mvp.app.footer>` |
+  | `<c-app.header>` | `<c-mvp.app.header>` |
+  | `<c-app.header.navbar>` | `<c-mvp.app.header.navbar>` |
+  | `<c-app.main>` | `<c-mvp.app.main>` |
+  | `<c-app.sidebar>` | `<c-mvp.app.sidebar>` |
+  | `<c-app.sidebar.back>` | `<c-mvp.app.sidebar.back>` |
+  | `<c-app.sidebar.footer>` | `<c-mvp.app.sidebar.footer>` |
+  | `<c-app.sidebar.header>` | `<c-mvp.app.sidebar.header>` |
+  | `<c-avatar>` | `<c-mvp.avatar>` |
+  | `<c-backdrop>` | `<c-mvp.backdrop>` |
+  | `<c-brand.icon>` | `<c-mvp.brand.icon>` |
+  | `<c-brand.logo>` | `<c-mvp.brand.logo>` |
+  | `<c-card>` | `<c-mvp.card>` |
+  | `<c-card.wrapper>` | `<c-mvp.card.wrapper>` |
+  | `<c-container>` | `<c-mvp.container>` |
+  | `<c-data-field>` | `<c-mvp.data-field>` |
+  | `<c-documentation>` | `<c-mvp.documentation>` |
+  | `<c-dropdown>` | `<c-mvp.dropdown>` |
+  | `<c-entrance>` | `<c-mvp.entrance>` |
+  | `<c-entrance.background>` | `<c-mvp.entrance.background>` |
+  | `<c-form>` | `<c-mvp.form>` |
+  | `<c-form.field>` | `<c-mvp.form.field>` |
+  | `<c-form.formset>` | `<c-mvp.form.formset>` |
+  | `<c-form.formset.row>` | `<c-mvp.form.formset.row>` |
+  | `<c-form.render>` | `<c-mvp.form.render>` |
+  | `<c-grid>` | `<c-mvp.grid>` |
+  | `<c-group>` | `<c-mvp.group>` |
+  | `<c-layout.sidebar>` | `<c-mvp.layout.sidebar>` |
+  | `<c-menu.collapse>` | `<c-mvp.menu.collapse>` |
+  | `<c-menu.divider>` | `<c-mvp.menu.divider>` |
+  | `<c-menu.group>` | `<c-mvp.menu.group>` |
+  | `<c-menu.item>` | `<c-mvp.menu.item>` |
+  | `<c-messages>` | `<c-mvp.messages>` |
+  | `<c-modal>` | `<c-mvp.modal>` |
+  | `<c-page>` | `<c-mvp.page>` |
+  | `<c-page.content>` | `<c-mvp.page.content>` |
+  | `<c-page.info>` | `<c-mvp.page.info>` |
+  | `<c-page.list>` | `<c-mvp.page.list>` |
+  | `<c-page.list.actions>` | `<c-mvp.page.list.actions>` |
+  | `<c-page.list.actions.create>` | `<c-mvp.page.list.actions.create>` |
+  | `<c-page.list.actions.filter>` | `<c-mvp.page.list.actions.filter>` |
+  | `<c-page.list.actions.search>` | `<c-mvp.page.list.actions.search>` |
+  | `<c-page.list.actions.share>` | `<c-mvp.page.list.actions.share>` |
+  | `<c-page.list.actions.sort>` | `<c-mvp.page.list.actions.sort>` |
+  | `<c-page.list.empty>` | `<c-mvp.page.list.empty>` |
+  | `<c-page.title>` | `<c-mvp.page.title>` |
+  | `<c-page.toolbar>` | `<c-mvp.page.toolbar>` |
+  | `<c-pagination>` | `<c-mvp.pagination>` |
+  | `<c-pagination.link>` | `<c-mvp.pagination.link>` |
+  | `<c-pagination.wrapper>` | `<c-mvp.pagination.wrapper>` |
+  | `<c-placeholder.card>` | `<c-mvp.placeholder.card>` |
+  | `<c-rule>` | `<c-mvp.rule>` |
+  | `<c-section>` | `<c-mvp.section>` |
+  | `<c-section.hero>` | `<c-mvp.section.hero>` |
+  | `<c-text>` | `<c-mvp.text>` |
+  | `<c-toolbar>` | `<c-mvp.toolbar>` |
+  | `<c-user.display.compact>` | `<c-mvp.user.display.compact>` |
+  | `<c-user.sidebar-menu>` | `<c-mvp.user.sidebar-menu>` |
+
 ## [v0.26.0] - 2026-10-04
 
 ### Changed

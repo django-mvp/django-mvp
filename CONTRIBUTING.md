@@ -34,31 +34,22 @@ together with the two standards it makes binding:
 All Cotton components MUST be tested using the following pattern:
 
 ```python
-import pytest
-from django_cotton import cotton_render
-
-
-@pytest.fixture
-def mock_request(rf):
-    """Use pytest-django's rf fixture for request factory."""
-    return rf.get("/")
-
-
-def test_my_component(mock_request):
+def test_my_component(cotton_render_soup):
     """Test component rendering."""
-    # Use slash notation for component paths
-    html = cotton_render(mock_request, "app/my-component", {
-        "my_var": "value",
-    })
+    # The component name is its tag without the `c-`, in dotted notation
+    soup = cotton_render_soup("mvp.card", title="Quarterly report")
 
-    assert "expected-content" in html
+    assert soup.select_one("[class~='card']") is not None
 ```
 
 **Important:**
 
-- Use `django_cotton.cotton_render()` - NOT `Template()` or `render_to_string()`
-- Use pytest-django's `rf` fixture - NOT `RequestFactory()` directly
-- Use **slash notation** for component paths: `"app/wrapper"` not `"app.wrapper"`
+- Use the `cotton_render`, `cotton_render_soup`, `cotton_render_string` and
+  `cotton_render_string_soup` fixtures this package ships - NOT `Template()` or
+  `render_to_string()`. The `_soup` variants need `beautifulsoup4` in your test
+  dependencies.
+- Use **dotted notation** for component names: `"mvp.card"` for `<c-mvp.card>`, not
+  `"mvp/card"`
 - Test with c-vars, slots, and edge cases (missing optional vars, etc.)
 
 ### Running Tests
@@ -133,6 +124,25 @@ When creating or modifying Cotton components:
 3. **Provide default values** for optional c-vars
 4. **Use semantic HTML** with appropriate ARIA attributes
 5. **Test the markup the component publishes:** its element, classes, attributes and slots
+
+### Calling daisy-cotton components
+
+Every call a template in this package makes to a daisy-cotton component passes `only`.
+
+A daisy-cotton component can declare an attribute with no default. When the caller does not
+pass that attribute, the component reads a page variable of the same name. A page that has a
+variable called `text` or `icon` would then show its value inside the component. `only` stops
+this: the component sees only the attributes the call passes.
+
+Content you put inside the component still works as usual. What sits between the tags, and
+what you place in a named slot, is rendered with the page's variables.
+
+```html
+<c-menu.title only>{{ section_name }}</c-menu.title>
+```
+
+Here `section_name` comes from the page and is shown. A page variable called `text` is not
+picked up, because the call passes `only`.
 
 ## Questions?
 

@@ -132,7 +132,7 @@ class HtmxFormMixin(HtmxMixin):
 
         htmx_form_component (str):
             Cotton component name (dot-notation) for the form-error partial.
-            Defaults to ``"form"`` (the package's standard card layout).
+            Defaults to ``"mvp.form"`` (the package's standard card layout).
             Override when a non-standard form layout is required.
         htmx_redirect_on_success (bool):
             When ``True``, returns ``HttpResponseClientRedirect`` on a valid
@@ -144,7 +144,7 @@ class HtmxFormMixin(HtmxMixin):
 
     htmx_success_component = None
     htmx_success_components: tuple = ()  # allowlist of (alias, component) pairs
-    htmx_form_component = "form"
+    htmx_form_component = "mvp.form"
     htmx_redirect_on_success = False
 
     def get_htmx_success_component(self):
@@ -179,7 +179,7 @@ class HtmxFormMixin(HtmxMixin):
         Raises:
             ImproperlyConfigured: ``htmx_form_component`` is falsy (only
                 when it has been explicitly cleared from its default
-                ``"form"`` value).
+                ``"mvp.form"`` value).
         """
         if self.htmx_form_component:
             return self.htmx_form_component

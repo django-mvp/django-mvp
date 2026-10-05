@@ -83,9 +83,9 @@ class LayoutDemoForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper()
-        # <c-form> (form_view.html) already renders the page's <form> tag;
+        # <c-mvp.form> (form_view.html) already renders the page's <form> tag;
         # form_tag=False stops crispy nesting a second one inside it — see
-        # cotton/form/render.html's own comment, which requires this of every
+        # cotton/mvp/form/render.html's own comment, which requires this of every
         # helper regardless of caller.
         self.helper.form_tag = False
         self.helper.layout = Layout(

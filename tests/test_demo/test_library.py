@@ -70,7 +70,14 @@ class TestLibraryEntriesInTheHostMenus:
 class TestBackLinkIsTranslatable:
     def test_both_labels_are_in_the_extracted_catalogue(self):
         source = (
-            ROOT / "mvp" / "templates" / "cotton" / "app" / "sidebar" / "back.html"
+            ROOT
+            / "mvp"
+            / "templates"
+            / "cotton"
+            / "mvp"
+            / "app"
+            / "sidebar"
+            / "back.html"
         ).read_text()
 
         extracted = templatize(source, origin="back.html")

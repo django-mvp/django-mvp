@@ -1,18 +1,18 @@
 {% extends "mvp/dashboard.html" %}
 {% load i18n %}
 {% block page.content %}
-  <c-section title="{% trans 'Welcome' %}" level="2">
+  <c-mvp.section title="{% trans 'Welcome' %}" level="2">
     <p class="text-base-content/60">{% trans "Here is an overview of your application." %}</p>
-    <c-grid cols="1" md="3" gap="4">
-      <c-card title="{% trans 'Statistics' %}" icon="chart-bar">
+    <c-mvp.grid cols="1" md="3" gap="4">
+      <c-mvp.card title="{% trans 'Statistics' %}" icon="chart-bar">
         <p class="text-base-content/60">{% trans "Add your stat widgets here." %}</p>
-      </c-card>
-      <c-card title="{% trans 'Tasks' %}" icon="tasks">
+      </c-mvp.card>
+      <c-mvp.card title="{% trans 'Tasks' %}" icon="tasks">
         <p class="text-base-content/60">{% trans "Add your task widgets here." %}</p>
-      </c-card>
-      <c-card title="{% trans 'Notifications' %}" icon="bell">
+      </c-mvp.card>
+      <c-mvp.card title="{% trans 'Notifications' %}" icon="bell">
         <p class="text-base-content/60">{% trans "Add your notification widgets here." %}</p>
-      </c-card>
-    </c-grid>
-  </c-section>
+      </c-mvp.card>
+    </c-mvp.grid>
+  </c-mvp.section>
 {% endblock page.content %}

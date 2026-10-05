@@ -1,0 +1,49 @@
+{# @description Social share menu (social networks, email, copy link), plain markup over hard-coded social URLs — renders anywhere. #}
+{# @prop url:text | default:"{{ request.build_absolute_uri }}" | description:"The page URL to share. Defaults to the current page." #}
+{# @prop title:text | default:"{{ page.title|default:'' }}" | description:"The page title used in share text. Defaults to page.title." #}
+{# @prop size:text | description:"Size of the trigger button." #}
+{# @prop class:text | description:"Extra classes on the dropdown wrapper." #}
+{% load i18n %}
+<c-vars url="{{ request.build_absolute_uri }}"
+        title="{{ page.title|default:'' }}"
+        size
+        class />
+<c-mvp.dropdown halign="end" class="{{ class }}">
+  <c-slot name="button">
+    <c-button tabindex="0"
+              role="button"
+              :size="size"
+              icon="share"
+              text="{% trans "Share" %}" />
+  </c-slot>
+  <c-menu label="{% trans "Share this page" %}">
+    <li class="menu-title">{% trans "Share this page" %}</li>
+    <c-mvp.menu.item label="Facebook"
+                 icon="facebook"
+                 href="https://www.facebook.com/sharer/sharer.php?u={{ url|urlencode }}"
+                 target="_blank"
+                 rel="noopener noreferrer" />
+    <c-mvp.menu.item label="X / Twitter"
+                 icon="twitter"
+                 href="https://twitter.com/intent/tweet?text={{ title|urlencode }}&url={{ url|urlencode }}"
+                 target="_blank"
+                 rel="noopener noreferrer" />
+    <c-mvp.menu.item label="Reddit"
+                 icon="reddit"
+                 href="https://www.reddit.com/submit?title={{ title|urlencode }}&url={{ url|urlencode }}"
+                 target="_blank"
+                 rel="noopener noreferrer" />
+    <c-mvp.menu.item label="Pinterest"
+                 icon="pinterest"
+                 href="https://www.pinterest.com/pin/create/button/?url={{ url|urlencode }}"
+                 target="_blank"
+                 rel="noopener noreferrer" />
+    <c-mvp.menu.item label="{% trans "Email" %}"
+                 icon="email"
+                 href="mailto:?subject={{ title|urlencode }}&body={{ url|urlencode }}" />
+    <c-mvp.menu.item label="{% trans "Copy link" %}"
+                 icon="copy-link"
+                 href="#"
+                 onclick="navigator.clipboard.writeText(window.location.href); return false;" />
+  </c-menu>
+</c-mvp.dropdown>

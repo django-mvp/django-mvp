@@ -6,7 +6,7 @@
   page.
 {% endcomment %}
 {% block entrance %}
-  <c-entrance size="md" full-height>
+  <c-mvp.entrance size="md" full-height>
     {% block content %}
       {% include "mvp/account/_development_notice.html" %}
       <h2 class="text-center mb-6">{% trans "You have signed out" %}</h2>
@@ -14,5 +14,5 @@
               text="{% trans "Sign in again" %}"
               class="block text-center" />
     {% endblock content %}
-  </c-entrance>
+  </c-mvp.entrance>
 {% endblock entrance %}

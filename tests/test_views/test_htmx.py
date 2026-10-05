@@ -13,6 +13,7 @@ Source: mvp/views/htmx.py
 """
 
 import pytest
+from bs4 import BeautifulSoup
 from django.contrib.auth import get_user_model
 from django.http import HttpResponse, HttpResponseRedirect
 from django.test import RequestFactory
@@ -320,6 +321,30 @@ class TestHtmxComponentConfiguration:
             called_template = mock_render.call_args[0][1]
 
         assert called_template == custom_template
+
+
+class DefaultFormComponentView(HtmxFormMixin, MVPCreateView):
+    """A view that leaves ``htmx_form_component`` at the mixin's default."""
+
+    model = Product
+    fields = ["name"]
+    template_name = "base.html"
+    htmx_success_component = "demo.htmx-product-created"
+    success_url = SUCCESS_URL
+
+
+class TestHtmxFormDefaultComponent:
+    @pytest.mark.django_db
+    def test_invalid_htmx_post_without_a_form_component_returns_the_form_partial(self):
+        request = RequestFactory().post("/", data={"name": ""}, **HTMX_HEADERS)
+        request.user = User()
+        request.htmx = HtmxDetails(request)
+
+        response = DefaultFormComponentView.as_view()(request)
+
+        assert response.status_code == 200
+        soup = BeautifulSoup(response.content, "html.parser")
+        assert soup.find("form") is not None
 
 
 ALLOWLIST = (

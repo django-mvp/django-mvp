@@ -10,9 +10,9 @@
     <c-alert variant="error">
       <div>
         <strong>{% trans "This record cannot be deleted." %}</strong>
-        <c-text>
+        <c-mvp.text>
           {% trans "It is referenced by the following records, which must be removed or updated first:" %}
-        </c-text>
+        </c-mvp.text>
         <ul class="list-disc ms-4">
           {% for obj in protected_objects %}<li>{{ obj }}</li>{% endfor %}
         </ul>
@@ -29,14 +29,14 @@
         <div>
           <strong>{% trans "The following related records will also be permanently deleted:" %}</strong>
           {% for label, objs, overflow in related_objects %}
-            <c-text text="{{ label }}" bold />
+            <c-mvp.text text="{{ label }}" bold />
             <ul class="list-disc ms-4">
               {% for obj in objs %}<li>{{ obj }}</li>{% endfor %}
             </ul>
             {% if overflow %}
-              <c-text size="sm">
+              <c-mvp.text size="sm">
                 {% blocktrans %}… and {{ overflow }} more{% endblocktrans %}
-              </c-text>
+              </c-mvp.text>
             {% endif %}
           {% endfor %}
         </div>
@@ -48,9 +48,9 @@
         below. A second one here shared its name/id, so typing landed on the
         wrong element and the posted, validated field stayed empty.
       {% endcomment %}
-      <c-text>
+      <c-mvp.text>
         {% blocktrans with val=confirmation_value %}To confirm, type <strong class="font-monospace">{{ val }}</strong> below:{% endblocktrans %}
-      </c-text>
+      </c-mvp.text>
     {% endif %}
   {% endif %}
 {% endblock before_form %}

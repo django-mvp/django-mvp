@@ -56,7 +56,7 @@
 /* Safelist: c-menu `responsive` modifiers (cotton/menu/index.html). */
 @source inline("{md,lg,xl}:menu-horizontal");
 
-/* Safelist: cotton/entrance/index.html builds its card's width cap from the
+/* Safelist: cotton/mvp/entrance/index.html builds its card's width cap from the
    `size` attribute. Must cover every width that attribute accepts. */
 @source inline("md:max-w-{sm,md,lg,xl,2xl,3xl,4xl}");
 
@@ -65,18 +65,47 @@
    (mvp/templatetags/mvp.py). */
 @source inline("{sm,md,lg,xl,2xl}:divider-horizontal");
 
-/* Safelist: cotton/toolbar.html builds these three classes at render time
+/* Safelist: cotton/mvp/toolbar.html builds these three classes at render time
    from its `row` attribute. */
 @source inline("{sm,md,lg,xl,2xl}:{flex-row,justify-between,items-center}");
 
-/* Full-page content (issue #247): `<c-page fill>` marks itself .mvp-page-fill,
+/* Safelist: daisy-cotton's responsive classes. Its components build each one
+   at render time with a breakpoint prefix, from an attribute such as
+   horizontal="md". Keep in sync with the responsive tags in its templates;
+   tests/test_components/test_daisy_cotton_coverage.py names any that is missing. */
+@source inline("{sm,md,lg,xl,2xl}:{alert-horizontal,alert-vertical,card-side,carousel-horizontal,carousel-vertical,divider-horizontal,divider-vertical,drawer-open,footer-horizontal,footer-vertical,join-horizontal,join-vertical,menu-horizontal,stats-horizontal,stats-vertical,steps-horizontal,steps-vertical,timeline-horizontal,timeline-vertical}");
+
+/* Safelist: daisy-cotton's variation classes. Its components join a base class
+   to the value of an attribute, such as btn and size="lg", at render time. One
+   entry per list of values. Keep in sync with the variation tags in its
+   templates; tests/test_components/test_daisy_cotton_coverage.py names any that
+   is missing. */
+@source inline("alert-{info,success,warning,error}");
+@source inline("{badge,btn,chat-bubble,divider,checkbox,file-input,input,otp,radio,range,bg,select,textarea,toggle,link,progress,status,step}-{neutral,primary,secondary,accent,info,success,warning,error}");
+@source inline("{badge,btn,card,dock,checkbox,file-input,input,otp,radio,range,rating,select,textarea,toggle,kbd,loading,megamenu,menu,status,table,tabs}-{xs,sm,md,lg,xl}");
+@source inline("carousel-{start,center,end}");
+@source inline("{chat,divider}-{start,end}");
+@source inline("drawer-end");
+@source inline("{dropdown,tooltip}-{top,bottom,left,right,start,center,end}");
+@source inline("footer-center");
+@source inline("mask-{star,star-2,heart}");
+@source inline("indicator-{start,center,end,top,middle,bottom}");
+@source inline("mask-{circle,decagon,diamond,heart,hexagon,hexagon-2,pentagon,squircle,star,star-2,triangle,triangle-2,triangle-3,triangle-4}");
+@source inline("mask-half-{1,2}");
+@source inline("modal-{top,middle,bottom,start,end}");
+@source inline("stack-{top,bottom,start,end}");
+@source inline("tabs-{top,bottom}");
+@source inline("toast-{top,middle,bottom,start,center,end}");
+@source inline("tooltip-{primary,secondary,accent,info,success,warning,error}");
+
+/* Full-page content (issue #247): `<c-mvp.page fill>` marks itself .mvp-page-fill,
    and this is what the shell does about it.
 
    Two things have to be true for a page to hand its own height to its content,
    and neither was:
 
    1. .drawer-content must be a flex container. DaisyUI makes .drawer a grid
-      and .drawer-content one of its grid items, so <c-app.main>'s flex-1 was
+      and .drawer-content one of its grid items, so <c-mvp.app.main>'s flex-1 was
       inert and a child asking for h-full computed to zero.
    2. It must have a height to distribute. At desktop widths it inherits one:
       .drawer-side is 100dvh and shares grid row 1, so .drawer-content
@@ -107,7 +136,7 @@
    The ceiling is inert on its own, because a flex item's `min-height` is
    `auto`: <main> refuses to shrink below its content and overflows the
    container it was supposed to be bounded by. Both rungs between the shell
-   and <c-page.content> (which already carries `min-h-0`) have to release
+   and <c-mvp.page.content> (which already carries `min-h-0`) have to release
    that, or the height stops at the top of the chain and never arrives. */
 .drawer-content:has(.mvp-page-fill) > main,
 .mvp-page-fill {
@@ -122,7 +151,7 @@
    that is Leaflet's zoom controls and attribution, unreachable.
 
    In the flow it is a flex item like the header and the footer, so
-   <c-app.main>'s flex-1 gets the height that is actually left over and the
+   <c-mvp.app.main>'s flex-1 gets the height that is actually left over and the
    content ends where the dock begins. `relative` rather than `static` so
    anything a project positions absolutely inside a dock item still anchors
    to it. */
@@ -390,7 +419,7 @@
    assembled per-render (T015 — replaces navbar_wide_only_class,
    navbar_narrow_only_class and sidebar_navbar_toggle_class in
    mvp/templatetags/mvp.py). data-mvp-breakpoint/data-mvp-collapse are
-   rendered on the drawer element by <c-app>/<c-layout.sidebar> (T014); every
+   rendered on the drawer element by <c-mvp.app>/<c-mvp.layout.sidebar> (T014); every
    governed region is one of its descendants (D4), so the attribute selectors
    below reach all of them without repeating the values a page resolved.
 
@@ -676,7 +705,7 @@
   cursor: inherit;
 }
 
-/* The header's htmx indicator (cotton/app/header/navbar.html). htmx puts
+/* The header's htmx indicator (cotton/mvp/app/header/navbar.html). htmx puts
    `htmx-request` on whichever element is making a request, so the spinner
    shows while any element on the page carries it. It is deliberately not
    wired through `hx-indicator`: an inherited `hx-indicator` moves that class

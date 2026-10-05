@@ -7,6 +7,7 @@ build their own CSS (Tier 2 in docs/styling.md).
 from io import StringIO
 from pathlib import Path
 
+import daisy_cotton
 from django.core.management import call_command
 
 
@@ -31,7 +32,7 @@ class TestMVPTailwindCommand:
 
     def test_entry_paths_exist_and_are_absolute(self):
         lines = _run("--paths").strip().splitlines()
-        preset_line, templates_line, forms_line = lines
+        preset_line, templates_line, forms_line = lines[:3]
         preset, templates = Path(preset_line), Path(templates_line)
         forms = Path(forms_line)
         assert preset.is_absolute() and preset.is_file()
@@ -53,6 +54,21 @@ class TestMVPTailwindCommand:
         output = _run()
         forms_path = Path(mvp_forms.__file__).resolve().parent.as_posix()
         assert f'@source "{forms_path}";' in output
+
+    def test_paths_prints_daisy_cotton_templates_directory_last(self):
+        lines = _run("--paths").strip().splitlines()
+        daisy = Path(lines[3])
+        assert daisy.is_absolute() and daisy.is_dir()
+        assert "\\" not in lines[3]
+        assert daisy == Path(daisy_cotton.__file__).resolve().parent / "templates"
+
+    def test_entry_sources_daisy_cotton_templates_after_the_form_pack(self):
+        output = _run()
+        lines = _run("--paths").strip().splitlines()
+        forms_source = f'@source "{lines[2]}";'
+        daisy_source = f'@source "{lines[3]}";'
+        assert daisy_source in output
+        assert output.index(daisy_source) > output.index(forms_source)
 
     def test_packaged_preset_provides_drawer_variants_and_rail_css(self):
         preset = Path(_run("--paths").strip().splitlines()[0])

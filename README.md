@@ -127,6 +127,7 @@ INSTALLED_APPS = [
     "easy_icons",
     "flex_menu",
     "mvp",
+    "daisy_cotton",     # installed with django-mvp, listed below "mvp"
     "crispy_forms",
     "mvp_forms",        # the daisyUI template pack forms are drawn with
 ]
@@ -135,7 +136,8 @@ INSTALLED_APPS = [
 Order matters here. Django's template loader walks `INSTALLED_APPS` top to bottom and
 takes the first copy of a name it finds, so **list your own apps above `mvp`** to
 override any template django-mvp ships. This is the same rule projects already use to
-override the Django admin's templates.
+override the Django admin's templates. Keep `daisy_cotton` below `mvp` for the same
+reason: both ship components under the same names and `mvp` must be found first.
 
 See [Getting Started](https://github.com/django-mvp/django-mvp/blob/main/docs/getting-started.md) for the rule in full.
 
@@ -174,14 +176,14 @@ CRISPY_TEMPLATE_PACK = "daisyui"
 {% extends "mvp/base.html" %}
 
 {% block content %}
-  <c-container>
-    <c-section title="Dashboard" icon="home">
-      <c-grid md="2" xl="4">
-        <c-card title="Orders">150 new</c-card>
-        <c-card title="Revenue">$12,400</c-card>
-      </c-grid>
-    </c-section>
-  </c-container>
+  <c-mvp.container>
+    <c-mvp.section title="Dashboard" icon="home">
+      <c-mvp.grid md="2" xl="4">
+        <c-mvp.card title="Orders">150 new</c-mvp.card>
+        <c-mvp.card title="Revenue">$12,400</c-mvp.card>
+      </c-mvp.grid>
+    </c-mvp.section>
+  </c-mvp.container>
 {% endblock %}
 ```
 
@@ -198,14 +200,14 @@ MVP_CONFIG = {
         },
         "navbar": {
             # Cotton component names, rendered at the right end of the navbar
-            "end": ["actions.theme-controller", "actions.language-switcher"],
+            "end": ["mvp.actions.theme-controller", "mvp.actions.language-switcher"],
         },
     },
 }
 ```
 
-Per-page overrides use component attributes (`<c-app breakpoint="xl">`,
-`<c-app.sidebar collapse="icons">`). Details: [Layout](https://github.com/django-mvp/django-mvp/blob/main/docs/layout.md).
+Per-page overrides use component attributes (`<c-mvp.app breakpoint="xl">`,
+`<c-mvp.app.sidebar collapse="icons">`). Details: [Layout](https://github.com/django-mvp/django-mvp/blob/main/docs/layout.md).
 
 ## Views in one line each
 
@@ -267,10 +269,11 @@ See [docs/theming.md](https://github.com/django-mvp/django-mvp/blob/main/docs/th
 for the full variable reference and a worked example.
 
 If your own templates use their own Tailwind utility classes, rebuild the CSS
-with the generated entry file, which scans your templates *and* Django MVP's:
+with the generated entry file, which scans your templates, Django MVP's and
+daisy-cotton's:
 
 ```bash
-npm install -D tailwindcss @tailwindcss/cli daisyui
+npm install -D tailwindcss @tailwindcss/cli daisyui@^5.7
 python manage.py mvp_tailwind > assets/tailwind.css
 npx @tailwindcss/cli -i assets/tailwind.css -o static/css/app.css --minify
 ```

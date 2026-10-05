@@ -84,7 +84,7 @@ class TestRemovedSidebarFooterSetting:
     @staticmethod
     def _config_with_footer_override():
         config = copy.deepcopy(MVP_CONFIG)
-        config["layout"]["sidebar"]["footer"] = ["actions.theme-controller"]
+        config["layout"]["sidebar"]["footer"] = ["mvp.actions.theme-controller"]
         return config
 
     def test_warns_when_the_setting_is_present(self):
