@@ -1,7 +1,8 @@
 """Every call a packaged template makes to a daisy-cotton component is isolated.
 
 A call without Cotton's ``only`` lets a page variable named after one of the
-component's attributes change what the component draws.
+component's attributes change what the component draws. No call passes a name
+the package's former components took and daisy-cotton's do not.
 """
 
 from pathlib import Path
@@ -25,6 +26,11 @@ class TestPackagedCalls:
         reader = DaisyCottonCalls()
 
         assert offenders(reader, PACKAGED_TEMPLATES) == []
+
+    def test_no_call_passes_a_former_attribute_name(self):
+        reader = DaisyCottonCalls()
+
+        assert list(reader.former_attribute_uses(PACKAGED_TEMPLATES)) == []
 
     def test_the_templates_hold_calls_to_daisy_cotton_components(self):
         reader = DaisyCottonCalls()

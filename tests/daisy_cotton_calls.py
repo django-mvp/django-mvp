@@ -15,6 +15,15 @@ from django_cotton.compiler_regex import CottonCompiler
 from django_cotton.tag_parser import parse_component_tag
 
 
+# Names this package's former basic components took that daisy-cotton's do not
+# declare. Changes of value or meaning are not in it: a scan cannot see them.
+FORMER_ATTRIBUTES = {
+    "button": {"full", "reverse", "align", "condition"},
+    "avatar.group": {"size"},
+    "divider": {"label", "position"},
+    "menu": {"label", "grow", "responsive"},
+}
+
 class DaisyCottonCalls:
     """Find the calls a directory of templates makes to daisy-cotton's components.
 
@@ -138,3 +147,22 @@ class DaisyCottonCalls:
         for path, name, attrs, only in self.calls(directory):
             if self.is_daisy_cotton(name) and not only:
                 yield path, name, attrs, only
+
+    def former_attribute_uses(self, directory):
+        """Yield every former attribute name passed to a basic component.
+
+        A former name fails quietly: daisy-cotton's component ignores it and
+        writes it onto the element as an HTML attribute. Examples inside
+        ``cotton:verbatim`` are read too.
+
+        Args:
+            directory: The directory, read recursively for ``*.html`` files.
+
+        Yields:
+            A tuple of the template's path, the component name and the attribute
+            as written, for each use of a name in ``FORMER_ATTRIBUTES``.
+        """
+        for path, name, attrs, _ in self.calls_with_examples(directory):
+            for attr in attrs:
+                if attr.lstrip(":") in FORMER_ATTRIBUTES.get(name, ()):
+                    yield path, name, attr

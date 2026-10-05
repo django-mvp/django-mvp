@@ -167,6 +167,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   it does not declare and writes it onto the element as an HTML attribute, so a page that still
   uses an old name renders without an error and without the effect. Search your templates for
   every name in this table, and for the tags that changed without an attribute name, below it.
+  The same names move in an attribute dictionary a view passes from Python:
+  `page_info_actions` (each entry is a button's attributes), `related_objects_attrs` (an
+  alert's) and the extra keys of a `breadcrumbs` entry.
 
   | Tag | Former attribute | What to write now |
   | --- | --- | --- |
@@ -201,7 +204,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `<c-menu>` no longer adds `w-full` or `role="navigation"`; pass `class="w-full"` where the
     menu has to fill its parent.
   - A breadcrumb step no longer wraps its text in a `<span>` with the class
-    `mvp-breadcrumb-text`.
+    `mvp-breadcrumb-text`, and `<c-breadcrumbs>` no longer adds `text-sm`. The header passes
+    it; a trail of your own needs `class="text-sm"` to stay the same size.
   - `<c-mockup.window>` and `<c-mockup.phone>` no longer centre their content or fix its
     height.
   - A button takes `size` from `xs` to `xl`, and a badge too. Both stopped at `lg`.

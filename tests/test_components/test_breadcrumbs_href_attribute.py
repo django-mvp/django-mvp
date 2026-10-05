@@ -58,6 +58,16 @@ class TestADeclaredTrailRendersInTheHeader:
         assert item["data-crumb"] == "middle"
         assert not item.find("a").has_attr("data-crumb")
 
-    def test_the_address_is_written_once(self, trail):
-        assert str(trail).count('href="/products/"') == 1
+    def test_the_address_is_written_once(self, trail, cotton_render_string):
+        # Counted in the raw output: a parsed tree keeps one of a repeated
+        # attribute and would hide the fault this guards against (#127).
+        html = cotton_render_string(
+            "<c-mvp.app.header.navbar />",
+            context={
+                "page": {"breadcrumbs": [{"text": "Products", "href": "/products/"}]},
+                "mvp_config": MVP_CONFIG,
+            },
+        )
+
+        assert html.count('href="/products/"') == 1
         assert not trail.select_one("ul > li").has_attr("href")

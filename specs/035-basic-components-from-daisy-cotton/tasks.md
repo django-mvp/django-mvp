@@ -160,3 +160,14 @@ now affects. Every example on a touched page has to run against the branch.
 One entry under the unreleased heading, marked breaking: all sixteen tags, every row of the
 table in FR-006 with its replacement, the divider's swap called out on its own line. No version
 bump.
+
+### T014 — What the code review found
+
+**Files**: `tests/daisy_cotton_calls.py`, `tests/test_components/test_daisy_cotton_calls.py`,
+`tests/test_demo/test_basic_component_attributes.py`,
+`tests/test_components/test_breadcrumbs_href_attribute.py`, `mvp/tailwind/base.css`, the
+prebuilt stylesheet, `CHANGELOG.md`, `mvp/renderers.py`, `CONTEXT.md`, ADR 0031, `uv.lock`
+
+Decision D25. The former-attribute scan also reads the packaged templates. The breadcrumb
+address is counted in the raw output. A menu entry's badge keeps its display in the icon rail's
+dropdowns. The changelog names the attribute dictionaries a view passes from Python.

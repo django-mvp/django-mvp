@@ -31,7 +31,7 @@ class MobileFooterNavRenderer(BaseRenderer):
     }
 
     def get_context_data(self, item, **kwargs):
-        """Add ``mvp_config`` so ``<c-dock>`` can read ``layout.dock.class``.
+        """Add ``mvp_config`` so the dock template can pass ``layout.dock.class``.
 
         Menus render with ``render_to_string`` and no request, so the context
         processor that puts ``mvp_config`` in every page's context never runs.

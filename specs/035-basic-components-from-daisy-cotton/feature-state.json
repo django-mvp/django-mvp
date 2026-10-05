@@ -64,6 +64,16 @@
         "ARCH-003 low: reader is one class in a tests helper module (plan section 4)",
         "SEC-001 low speculative: daisy-cotton 0.1.2 unchecked; carried to the R29 release"
       ]
+    },
+    "review": {
+      "approved_by": "code-review",
+      "at": "2026-10-05T17:31:51Z",
+      "self_resolved": [
+        "COR-001 medium: packaged templates now scanned for former attribute names - remedied (T014)",
+        "COR-002 low: breadcrumb address counted in raw output - remedied (T014)",
+        "COR-003 low: changelog names Python attribute dictionaries - remedied (T014)",
+        "COR-004 low likely: badge display in rail dropdowns - remedied (T014), for the walkthrough to confirm by eye"
+      ]
     }
   },
   "stories": [
@@ -240,6 +250,25 @@
             ],
             "code": [
               "mvp/templates/cotton/mvp/messages.html:9"
+            ]
+          }
+        },
+        {
+          "id": "T014",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_daisy_cotton_calls.py::TestPackagedCalls::test_no_call_passes_a_former_attribute_name",
+              "tests/test_components/test_breadcrumbs_href_attribute.py::TestADeclaredTrailRendersInTheHeader::test_the_address_is_written_once"
+            ],
+            "commands": [
+              "uv run invoke build-stylesheet",
+              "uv run pytest tests/test_components/test_daisy_cotton_calls.py tests/test_demo/test_basic_component_attributes.py tests/test_components/test_breadcrumbs_href_attribute.py -q"
+            ],
+            "code": [
+              "tests/daisy_cotton_calls.py:20",
+              "mvp/tailwind/base.css:290"
             ]
           }
         }

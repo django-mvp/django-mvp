@@ -14,21 +14,11 @@ from tests.daisy_cotton_calls import DaisyCottonCalls
 
 DEMO = Path(__file__).resolve().parents[2] / "demo"
 
-FORMER_ATTRIBUTES = {
-    "button": {"full", "reverse", "align", "condition"},
-    "avatar.group": {"size"},
-    "divider": {"label", "position"},
-    "menu": {"label", "grow", "responsive"},
-}
-
-
 def offenders(reader, directory):
-    found = []
-    for path, name, attrs, _ in reader.calls_with_examples(directory):
-        for attr in attrs:
-            if attr.lstrip(":") in FORMER_ATTRIBUTES.get(name, ()):
-                found.append(f"{path.relative_to(directory)}: <c-{name}> {attr}")
-    return found
+    return [
+        f"{path.relative_to(directory)}: <c-{name}> {attr}"
+        for path, name, attr in reader.former_attribute_uses(directory)
+    ]
 
 
 class TestDemoTemplates:

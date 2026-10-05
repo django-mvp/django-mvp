@@ -236,10 +236,10 @@ c-mvp.brand.icon        — brand icon glyph
 c-mvp.pagination
   c-mvp.pagination.link
   c-mvp.pagination.wrapper — join wrapper around pagination links
-  c-mvp.menu.group      — collapsible menu group
-  c-mvp.menu.item       — single menu entry
-  c-mvp.menu.collapse   — collapsible menu toggle
-  c-mvp.menu.divider    — menu separator line
+c-mvp.menu.group        — collapsible menu group
+c-mvp.menu.item         — single menu entry
+c-mvp.menu.collapse     — collapsible menu toggle
+c-mvp.menu.divider      — menu separator line
 ```
 
 ### Placeholders

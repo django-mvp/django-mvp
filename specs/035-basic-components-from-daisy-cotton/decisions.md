@@ -325,3 +325,27 @@ templates, and the reason for it is not obvious from the templates themselves. I
 an ADR with this change.
 
 **ADR:** docs/adr/0032-calls-to-daisy-cotton-components-are-isolated.md
+
+## Code review, 2026-10-05
+
+One reviewer, at `845269f`. Verdict: approve, risk medium, no critical or high finding. Each
+finding was checked against the code and fixed.
+
+### D25. What the code review changed
+
+- **No test read the packaged templates for a former attribute name (medium).** The scan read
+  the demo only, and the rendered-page test had no form page. The table and the scan moved into
+  the tests' helper, and one test now runs it over `mvp/templates/`.
+- **The breadcrumb address test could not see a repeated attribute (low).** It counted in a
+  parsed tree, which keeps one. It now counts in the raw output.
+- **The changelog said to search templates only (low).** It now names the attribute dictionaries
+  a view passes from Python.
+- **A menu entry's badge in the icon rail (low, not seen in a browser).** The badge is a `span`
+  now, so the rule that restores a label's display in a rail dropdown also matched it. The
+  selector excludes the badge, and the stylesheet is rebuilt.
+- **Notes:** stale comments in `base.css` and `renderers.py`, two paragraphs of ADR 0031 that
+  described both packages shipping the same names, the indentation of four lines in
+  `CONTEXT.md`, one more difference in the changelog (`text-sm` on the trail), and the lockfile's
+  header, which a re-lock with an older tool had moved back.
+
+**ADR:** none — corrections inside this feature.
