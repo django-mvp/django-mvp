@@ -59,6 +59,17 @@ that disagrees with the code is worse than none. The constitution says its chang
 human-gated and not made mid-feature. The maintainer asked for this amendment as part of this
 feature, which is the gate.
 
+### D6a. The rule against raw utility classes covers this package's own components only
+
+**Chosen:** the amended Article XI keeps its rule that a template demonstrating a component uses
+attributes and not raw utility classes, and scopes it to components this package owns (FR-015).
+Given as a ruling after the specification was approved, when the work on #435 raised it.
+
+**Why:** daisy-cotton documents a class as the way to set a few of its components' options, the
+overlap of an avatar group being one. Once the basic components come from daisy-cotton, a
+template that follows daisy-cotton's own documentation would otherwise break this package's
+constitution.
+
 ## Resolved while specifying
 
 ### D7. The issue's closing claim is true only once #435 lands

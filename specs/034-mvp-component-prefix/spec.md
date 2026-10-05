@@ -313,7 +313,10 @@ scratch branch and run the test suite.
 - **FR-015**: The constitution's article on components MUST be amended to state that the
   package's own components live under the `mvp.` prefix, that the icon is the one exception and
   why, and that basic daisyUI components come from daisy-cotton and are not written again here.
-  Its version and amendment date are updated with it. (US4)
+  Its rule against raw utility classes in templates that demonstrate a component MUST be scoped
+  to this package's own components: a daisy-cotton component is configured the way daisy-cotton
+  documents, which for a few options is a class. Its version and amendment date are updated with
+  it. (US4)
 - **FR-016**: The test suite MUST fail when a component template exists in the package outside
   the prefix and is not on a recorded list of exceptions, and that list MUST hold exactly the
   icon and the components listed in FR-004. (US4)
