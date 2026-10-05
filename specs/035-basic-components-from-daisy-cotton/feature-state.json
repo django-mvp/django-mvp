@@ -299,18 +299,67 @@
       "tasks": [
         {
           "id": "T008",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_demo/test_basic_component_attributes.py",
+              "tests/test_components/test_daisy_cotton_calls.py"
+            ],
+            "commands": [
+              "uv run pytest tests/test_demo/test_basic_component_attributes.py -q (before the demo moved: 1 failed, 5 passed; the scan named 10 offenders: button reverse x3, button full x2, divider label x5)",
+              "uv run pytest tests/test_demo -q -n auto (after: 91 passed)",
+              "uv run pytest tests/test_components/test_daisy_cotton_calls.py tests/test_demo/test_basic_component_attributes.py -q (14 passed)"
+            ],
+            "code": [
+              "tests/test_demo/test_basic_component_attributes.py:17",
+              "tests/test_demo/test_basic_component_attributes.py:35",
+              "tests/daisy_cotton_calls.py:93",
+              "tests/daisy_cotton_calls.py:110"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T009",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_checks.py",
+              "tests/test_smoke.py",
+              "tests/test_utils.py",
+              "tests/test_components/test_declared_attributes.py",
+              "tests/test_views/test_inline.py",
+              "tests/test_components/test_daisy_cotton_install.py"
+            ],
+            "commands": [
+              "forge verify --repo . --base origin/main --steps docs,lint (docs passed, uv:lint passed)",
+              "uv run pytest tests/test_checks.py tests/test_smoke.py tests/test_utils.py tests/test_components/test_declared_attributes.py tests/test_views/test_inline.py tests/test_components/test_daisy_cotton_install.py -q -n auto (735 passed)"
+            ],
+            "code": [
+              "docs/components.md:47",
+              "docs/components.md:77",
+              "docs/components.md:101"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T010",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [],
+            "commands": [
+              "forge verify --repo . --base origin/main --steps docs,lint (docs passed, uv:lint passed)"
+            ],
+            "code": [
+              "CHANGELOG.md:158",
+              "CHANGELOG.md:231"
+            ],
+            "verified_by_ci": false
+          }
         }
       ]
     }

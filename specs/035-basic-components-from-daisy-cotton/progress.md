@@ -83,3 +83,25 @@ sign-out page's a.link) are gone. uv run pytest -q -n auto over the whole tree:
 2687 passed, 1 skipped.
 Next: the story's full verify, then the ledger rows and the report.
 Watch: the leak comparison does not look inside kept c-mvp.* components (issue 485).
+
+## 2026-10-05T17:06:41Z · Implementer US4 · T008
+
+Did: wrote tests/test_demo/test_basic_component_attributes.py (scan of demo/**/templates for former attribute names on button, avatar.group, divider, menu; table holds only names daisy-cotton does not declare). Added calls_with_examples and read to tests/daisy_cotton_calls.py; the scan strips cotton:verbatim markers before compiling so the shown examples are read. calls() now delegates to read() and returns the same tuples.
+Red first: the scan failed on the demo as it stood with 10 offenders (button reverse x3 in the product card, the account overview and the button page; button full x2 in the button and dropdown pages; divider label x5 in the divider page). Moved every demo template: full to block, reverse to the icon in the slot, variant ghost/link to ghost/link, divider label to text and vertical to horizontal (by hand), avatar group class -space-x-6, code lines prefix="$", size lists xs to xl, descriptions in component_docs.py say which components come from daisy-cotton. Added a label placement section to the divider page.
+Verified: uv run pytest tests/test_demo -n auto: 91 passed. Scan seen failing then passing. All 16 component pages answered 200 (scratch run, not committed). ruff check and format clean on touched files.
+Next: T009 documentation.
+Watch: the divider's vertical/horizontal swap and the alert variants were moved by reading each use; no test covers them.
+
+## 2026-10-05T17:11:11Z · Implementer US4 · T009
+
+Did: docs/components.md has a new section naming the sixteen tags as daisy-cotton's with a link for each, one explanation of `only` and when a project needs it (replacing the earlier paragraph, so it is explained once), and what a project override of one of the tags now also answers (the dismiss button in an alert, the close button in daisy-cotton's modal, the dropdown and floating action button triggers, the breadcrumb steps). Removed the attribute rows and examples for the sixteen from the Data display, Layout and Navigation tables and moved their notes; fixed the shared vocabulary table (button sizes, alert variants, breakpoints). getting-started.md and README.md no longer say both packages ship button and menu: only `icon` is shared. layout.md says the dock class is passed by the shell's template. navigation.md says the menu sits in a nav. views.md names the alert's four variants. CONTEXT.md and skills/django-mvp/SKILL.md list the sixteen as daisy-cotton's and drop the "bare until #435" wording.
+Verified: forge verify --steps docs,lint passed; rendered the new examples (button with only, modal with only, alert, dropdown, breadcrumbs, avatar group) through the cotton fixture in a scratch test; pytest tests/test_checks.py tests/test_smoke.py tests/test_utils.py tests/test_components/test_declared_attributes.py tests/test_views/test_inline.py tests/test_components/test_daisy_cotton_install.py: 735 passed.
+Next: T010 changelog.
+Watch: the daisy-cotton documentation link is the repository, since no per-component pages could be confirmed; the README and component gallery are named in the text.
+
+## 2026-10-05T17:12:40Z · Implementer US4 · T010
+
+Did: one breaking entry under Unreleased / Changed naming all sixteen tags, with a table of every row of FR-006 and what to write now, the divider swap on its own paragraph, no aliases, the override note, the other differences (badge span, dock nav, menu no longer w-full or role=navigation, breadcrumb crumb text span, mockup window and phone, button and badge sizes xs to xl), the 0.1.3 floor, the six classes gone from the stylesheet and a Known gaps note with two items linking daisy-cotton#135 and #136. A Fixed line covers a MESSAGE_TAGS level tag no longer raising. Two sentences in the existing daisy-cotton dependency entry and the prefix entry said both packages ship components under the same names and that the basic components wait for #435; both were no longer true and are corrected in place.
+Verified: forge verify --steps docs,lint passed. Rendered a menu with horizontal="lg", dividers with horizontal and vertical, and a link without href to confirm what the table says. No version number, date or release.
+Next: full verify, ledger rows, report.
+Watch: the old avatar group overlap mapping (xs to xxl to -space-x-2 to -space-x-12) was read from the deleted template in git history.
