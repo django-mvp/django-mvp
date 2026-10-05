@@ -232,7 +232,7 @@
       "priority": "P3",
       "issue": 454,
       "worktree": "/home/sam/projects/django-mvp/worktrees/mvp-034-mvp-component-prefix",
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
@@ -290,8 +290,13 @@
         },
         {
           "id": "TC01",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "forge check-adrs: green; ADR 0030 written at 6cc6328"
+            ]
+          }
         }
       ]
     }
@@ -310,7 +315,7 @@
       "max": 1
     },
     "tokens": {
-      "used": 16.34,
+      "used": 20.66,
       "max": 120
     }
   },
