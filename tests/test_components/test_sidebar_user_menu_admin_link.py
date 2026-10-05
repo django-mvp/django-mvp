@@ -8,10 +8,15 @@ being installed does not mean a project mounted its URLs).
 """
 
 import pytest
+from django.contrib import admin
 from django.contrib.auth import get_user_model
+from django.contrib.auth.views import LogoutView
 from django.template.loader import render_to_string
 from django.test import RequestFactory, override_settings
 from django.urls import include, path, reverse
+
+from mvp.views.account import AccountCenterView
+from tests.conftest import urlconf_of
 
 
 def _render(user):
@@ -77,7 +82,10 @@ class TestSidebarUserMenuLogOut:
 
     @pytest.mark.django_db
     def test_no_log_out_row_when_the_project_has_no_logout_url(self, settings):
-        settings.ROOT_URLCONF = "tests.urls_without_logout"
+        settings.ROOT_URLCONF = urlconf_of(
+            path("admin/", admin.site.urls),
+            path("account/", AccountCenterView.as_view(), name="account-center"),
+        )
         user = get_user_model().objects.create_user(username="stayer", password="pw")
         html = _render(user)
 
@@ -86,7 +94,9 @@ class TestSidebarUserMenuLogOut:
 
     @pytest.mark.django_db
     def test_no_dangling_divider_when_log_out_is_the_only_row(self, settings):
-        settings.ROOT_URLCONF = "tests.urls_logout_only"
+        settings.ROOT_URLCONF = urlconf_of(
+            path("account/logout/", LogoutView.as_view(), name="account_logout")
+        )
         user = get_user_model().objects.create_user(username="lonely", password="pw")
         html = _render(user)
 
