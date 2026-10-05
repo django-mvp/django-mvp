@@ -72,6 +72,11 @@
         "SPEC-001 low: two assertions pinned how the code is written - removed, T015 and T016",
         "DOC-001 low: ADR and deptry comment said daisy-cotton is not imported - corrected, T017"
       ]
+    },
+    "walkthrough": {
+      "approved_by": null,
+      "at": "2026-10-05T15:45:34Z",
+      "self_resolved": []
     }
   },
   "stories": [
