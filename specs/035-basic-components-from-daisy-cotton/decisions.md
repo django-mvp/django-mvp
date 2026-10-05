@@ -1,0 +1,147 @@
+# Decisions: The basic components come from daisy-cotton
+
+Rationale too long to inline in `spec.md`, and the ambiguities settled while specifying. D1 to D6
+were decided by the maintainer for the whole of roadmap item R29 and are recorded here as given.
+D7 onward were settled while writing this specification, from the issue, the roadmap, the
+constitution and the two packages' source, without a round of questions.
+
+## Given for all of R29
+
+### D1. A bare tag means daisy-cotton's component
+
+**Chosen:** every component the package keeps is under the `mvp.` prefix (FS-034), so a bare tag
+for a basic component reaches daisy-cotton's. The icon is the one exception and keeps its bare
+name, so that it replaces daisy-cotton's plain icon everywhere, including inside daisy-cotton's
+own components.
+
+**Consequence here:** the sixteen templates this feature removes are not renamed first. They stay
+at their bare paths until this feature deletes them.
+
+### D2. Context leakage is handled where the component is called
+
+**Chosen:** many of daisy-cotton's components declare attributes with no default, and Cotton fills
+an attribute the caller did not pass from the surrounding context. Every call the package makes to
+a daisy-cotton component therefore passes Cotton's `only`. FS-033 proves that slot content still
+sees the page's context under `only`.
+
+**Rejected:** asking daisy-cotton to give every attribute an empty default. It may still happen
+upstream, but this package does not wait for it.
+
+### D3. No compatibility aliases
+
+**Chosen:** renamed tags and attributes are a breaking change recorded in the changelog
+(FR-003, FR-024). The package is pre-1.0 and Article XVI allows it.
+
+**Rejected:** thin wrapper templates that accept the old names. They would put this package's
+templates back in front of daisy-cotton's, which is the thing R29 removes, and daisy-cotton's own
+components call `<c-button>` internally and would be handed the narrower wrapper.
+
+### D4. One breaking release for the whole roadmap item
+
+**Chosen:** all of R29 accumulates on `main` and ships as one breaking minor release. No feature
+under R29 cuts a release of its own (FR-024).
+
+### D5. daisy-cotton#119 does not block this work
+
+**Chosen:** the package's prebuilt stylesheet already scans all of daisyUI's components and
+utilities, so a daisyUI class daisy-cotton builds at render time is present. What FS-033 adds is
+coverage for the plain Tailwind classes daisy-cotton's templates write. This feature only has to
+make sure the classes its own call sites pass are covered (FR-020).
+
+### D6. Form rendering, the card, the modal and the avatar are not touched here
+
+**Chosen:** forms stay with django-crispy-forms and django-mvp-forms. The card, modal and avatar
+stay this package's under their `mvp.` names and are rebuilt on daisy-cotton's in FS-036.
+
+## Settled while specifying
+
+### D7. The menu container is part of this feature
+
+**Ambiguous:** #435 lists button, alert, badge, avatar group, breadcrumbs, divider, link, dock and
+the mockups. It does not name the menu.
+
+**Chosen:** `<c-menu>` moves with them (FR-001). Only the container moves. The entries stay.
+
+**Why defensible:** #438 depends on #435 and rebuilds the sidebar on daisy-cotton's menu, submenu
+and drawer. If the bare `<c-menu>` still reached this package's template, FS-034's rule that a bare
+name means daisy-cotton's would have one exception left for no reason. daisy-cotton's container is
+a plain list with a slot, so this package's entries render inside it unchanged. The two things it
+lacks, an accessible name and the classes that made the sidebar menu fill its column, are supplied
+by the callers (FR-015).
+
+### D8. `only` binds the package's templates, not the demo or the documentation
+
+**Ambiguous:** D2 says every call the package makes. The demo application and the documentation
+also contain calls.
+
+**Chosen:** the rule and its check cover the templates the package ships (FR-017, FR-019). Demo
+pages and documented examples are written the way a project writes them. The documentation explains
+`only` once (FR-022).
+
+**Why defensible:** a packaged template renders inside pages the package has never seen, so it
+cannot know which variable names are in the context. A demo page's context is the demo's own. An
+`only` on every example would also teach a reader that the attribute is part of every call.
+
+**Rejected:** leaving the rule to review. FS-036 to FS-040 add many more calls, and a missing
+`only` shows up only on a page that happens to use the colliding name.
+
+### D9. The check for a missing `only` is specified here
+
+**Ambiguous:** FS-033 owns the proof that slot content survives `only`. Nothing said who owns the
+check that a call has it.
+
+**Chosen:** this feature adds the check (FR-019), because it is the first to add such calls. The
+later features under R29 inherit it.
+
+### D10. A demo page may pass the one class daisy-cotton documents
+
+**Ambiguous:** Article XI and `CONTEXT.md` say demo templates never carry raw utility classes.
+daisy-cotton's avatar group has no attribute for the overlap and documents a Tailwind class for it.
+
+**Chosen:** the demo passes that class (FR-021). No other raw class is added to a demo page. The
+button's former `reverse` is shown with the icon in the default slot, which needs no class.
+
+**Why defensible:** the rule protects this package's own attribute APIs. It does not make another
+library's documented usage wrong. Without the class the demo would show an avatar group that does
+not overlap, which is not what the component is for.
+
+**Follow-up:** Article XI is amended in FS-034. Its wording should limit the no-raw-classes rule
+to components this package owns, or this allowance stays an exception recorded only here.
+
+### D11. A variant daisy-cotton's alert does not accept degrades quietly
+
+**Ambiguous:** this package's alert accepted eight variants and daisy-cotton's accepts four.
+Messages take their variant from the message's level tag, which a project can extend.
+
+**Chosen:** the content renders with no variant and nothing raises (FR-009). This is what
+daisy-cotton's component already does with a value outside its list. No packaged template passes
+one of the four that went, and `related_objects_attrs` defaults to `info`.
+
+**Rejected:** mapping unknown level tags to a fallback variant in this package. That is a
+translation layer of the kind D3 rules out, and drawing messages belongs to #440.
+
+### D12. Tests of markup daisy-cotton owns are removed, not ported
+
+**Chosen:** FR-023. daisy-cotton tests its own components. What this package still promises is
+what its call sites pass and what its pages do, and those tests are rewritten.
+
+**Why defensible:** Article XIII asks for a test of a rendered contract. The contract for the
+button's markup is now daisy-cotton's. Porting those tests would pin another package's markup
+here and break on its releases.
+
+### D13. No prototype stage
+
+**Chosen:** the feature goes straight from specification to build with no prototype for the
+maintainer to look at first.
+
+**Why defensible:** it swaps one implementation of each component for another of the same
+component. No page, card or flow is designed. The differences in how a component is drawn follow
+daisy-cotton and are covered by the assumption in `spec.md`.
+
+## Open items
+
+- **Article XI wording (FS-034).** See D10.
+- **Packages built on this one.** Any that call the sixteen tags with former attribute names must
+  move in their own repositories around the breaking release. Not this feature's work.
+- **`.github/`.** Nothing in this specification needs a change there. If the stylesheet workflow
+  turns out to need one during the build, it is raised as its own issue and not edited here.
