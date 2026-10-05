@@ -109,3 +109,7 @@ Watch: the old avatar group overlap mapping (xs to xxl to -space-x-2 to -space-x
 ## 2026-10-05T17:20:21Z · Forge · converge
 
 Converged. Rebased on main (d4cb801). The only rule graduated to ADR 0032 (D24); ADR 0030's sentence about the bare names was brought up to date. Verify green on the whole feature diff; the fourteen changed test files map to D23; story comments on all four issues.
+
+## 2026-10-05T17:32:42Z · Forge · review
+
+Code review returned approve with one medium and three low findings, all fixed in T014 (D25). Verify green afterwards.
