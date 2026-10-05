@@ -15,7 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   [daisy-cotton](https://github.com/django-mvp/daisy-cotton). The templates moved from
   `mvp/templates/cotton/` to `mvp/templates/cotton/mvp/`. What a component renders and accepts
   is unchanged. The old names are not kept as aliases: a tag at an old name raises
-  `TemplateDoesNotExist`.
+  `TemplateDoesNotExist`. See
+  [ADR 0030](docs/adr/0030-the-packages-components-carry-a-prefix.md).
 
   Two groups did not move:
 
