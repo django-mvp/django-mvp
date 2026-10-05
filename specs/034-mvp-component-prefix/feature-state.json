@@ -68,13 +68,49 @@
       "tasks": [
         {
           "id": "T001",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_component_prefix.py::TestComponentPrefix",
+              "tests/test_components/test_component_prefix.py::TestNamesSharedWithDaisyCotton",
+              "tests/test_views/test_htmx.py::TestHtmxFormDefaultComponent"
+            ],
+            "commands": [
+              "uv run pytest tests/test_components/test_component_prefix.py tests/test_views/test_htmx.py -q",
+              "PYTHONPATH=/tmp/dc012/t uv run pytest tests/test_components/test_component_prefix.py -q"
+            ],
+            "code": [
+              "tests/test_components/test_component_prefix.py:20",
+              "tests/test_components/test_component_prefix.py:48",
+              "tests/test_components/test_component_prefix.py:75",
+              "tests/test_views/test_htmx.py:336"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T002",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_render_all.py",
+              "tests/test_components/test_declared_attributes.py",
+              "tests/test_components/test_component_prefix.py",
+              "tests/test_views/test_htmx.py::TestHtmxFormDefaultComponent"
+            ],
+            "commands": [
+              "uv run pytest -q -n auto",
+              "forge verify --repo . --base origin/main"
+            ],
+            "code": [
+              "mvp/config.py:93",
+              "mvp/views/htmx.py:147",
+              "mvp/templates/cotton/mvp/page/list/actions/index.html:14"
+            ],
+            "verified_by_ci": false
+          }
         }
       ]
     },
