@@ -76,3 +76,10 @@ Did: docs/styling.md Tier 2 now says the entry scans daisy-cotton's templates, -
 Verified: `uv run pre-commit run --all-files`: all hooks passed. No test for prose, by the testing standard.
 Next: flip T008-T010 in feature-state.json, run the full suite once, write the report.
 Watch: skills/django-mvp/SKILL.md has no mention of --paths or the entry's contents, so it is untouched.
+
+## 2026-10-05T15:25:18Z · Implementer US4 · T011
+
+Did: added mvp/checks.py with daisy_cotton_app_messages (Error mvp.E002 when daisy_cotton is missing, Warning mvp.W001 when listed above mvp) and check_daisy_cotton_app, registered with no tag in MvpConfig.ready(). Tests in tests/test_checks.py (TestDaisyCottonAppMessages, TestDaisyCottonAppCheck).
+Verified: new module import failed first (red). `uv run pytest tests/test_checks.py` 12 passed. Probe: with the checks.register line removed, 3 tests failed (registration, E002 command, W001 stderr); restored. `uv run mypy mvp` clean, `uv run pre-commit run --all-files` all passed.
+Next: T012, the guide's app list test and the docs.
+Watch: tests override INSTALLED_APPS through the settings fixture and call `check`; nothing else broke in that scope.
