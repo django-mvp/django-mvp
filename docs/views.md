@@ -164,7 +164,7 @@ keeps its own short label either way, so a crowded action row stays readable whi
 dialog still says what it creates.
 
 The list template renders the action row (see
-[`c-page.list.actions`](components.md#page-structure)), the grid, the empty state, and
+[`c-mvp.page.list.actions`](components.md#page-structure)), the grid, the empty state, and
 pagination. `SearchMixin`, `OrderMixin` and `SearchOrderMixin` are also usable on any
 plain Django `ListView`.
 
@@ -233,7 +233,7 @@ class ProductUpdateView(MVPUpdateView):
 Three ways to change what a form looks like, cheapest first: give the form a crispy
 `helper` for layouts, rows and field ordering — set `helper.form_tag = False` since the
 page already renders the `<form>` element, the submit buttons and the CSRF token; drop
-`c-form.*` components into a template block and compose the parts by hand; or give the
+`c-mvp.form.*` components into a template block and compose the parts by hand; or give the
 view a `template_name` extending `form_view.html` and override its `before_form`,
 `formset`, `actions` or `after_form` blocks.
 

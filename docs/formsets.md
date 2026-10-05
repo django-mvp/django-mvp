@@ -63,7 +63,7 @@ validate or save the set.
 
 `GET` renders the parent's form and one row per existing `OrderLine`, plus `extra` blank rows.
 The view's default template (`form_view.html`) renders each declared set through
-`<c-form.formset>` when it is in context — see
+`<c-mvp.form.formset>` when it is in context — see
 [Components](components.md#actions-user-misc) for what that component renders. The set opens
 with a divider and a heading, so the rows do not read as more fields on the parent's form.
 `title` sets that heading and `description` puts help text under it. See
@@ -316,7 +316,7 @@ type the reader has already read in the first field.
 Pass `layout="tabular"` for those:
 
 ```django
-<c-form.formset :formset="formset" layout="tabular" />
+<c-mvp.form.formset :formset="formset" layout="tabular" />
 ```
 
 The field labels are promoted to headings drawn once at the top of the set, each row lays its
@@ -363,7 +363,7 @@ defaults both to `False` and a bound on its own rejects nothing.
 
 ## Reference
 
-- [`<c-form.formset>` and `<c-form.formset.row>`](components.md#actions-user-misc) — the components this
-  guide's examples render through.
+- [`<c-mvp.form.formset>` and `<c-mvp.form.formset.row>`](components.md#actions-user-misc)
+  — the components this guide's examples render through.
 - [`InlineFormSet`, `MVPCreateView` and `MVPUpdateView`](views.md#a-parent-and-its-related-rows) —
   the declaration class and the views `inlines` is set on for the parent-and-rows case.

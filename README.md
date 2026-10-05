@@ -174,14 +174,14 @@ CRISPY_TEMPLATE_PACK = "daisyui"
 {% extends "mvp/base.html" %}
 
 {% block content %}
-  <c-container>
-    <c-section title="Dashboard" icon="home">
-      <c-grid md="2" xl="4">
-        <c-card title="Orders">150 new</c-card>
-        <c-card title="Revenue">$12,400</c-card>
-      </c-grid>
-    </c-section>
-  </c-container>
+  <c-mvp.container>
+    <c-mvp.section title="Dashboard" icon="home">
+      <c-mvp.grid md="2" xl="4">
+        <c-mvp.card title="Orders">150 new</c-mvp.card>
+        <c-mvp.card title="Revenue">$12,400</c-mvp.card>
+      </c-mvp.grid>
+    </c-mvp.section>
+  </c-mvp.container>
 {% endblock %}
 ```
 
@@ -204,8 +204,8 @@ MVP_CONFIG = {
 }
 ```
 
-Per-page overrides use component attributes (`<c-app breakpoint="xl">`,
-`<c-app.sidebar collapse="icons">`). Details: [Layout](https://github.com/django-mvp/django-mvp/blob/main/docs/layout.md).
+Per-page overrides use component attributes (`<c-mvp.app breakpoint="xl">`,
+`<c-mvp.app.sidebar collapse="icons">`). Details: [Layout](https://github.com/django-mvp/django-mvp/blob/main/docs/layout.md).
 
 ## Views in one line each
 

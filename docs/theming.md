@@ -20,7 +20,7 @@ MVP_CONFIG = {
 }
 ```
 
-Setting `choices` to a non-empty list changes what `<c-actions.theme-controller />` renders:
+Setting `choices` to a non-empty list changes what `<c-mvp.actions.theme-controller />` renders:
 a dropdown of exactly those names instead of a toggle between `default` and `dark`. `dark`
 goes unused once `choices` is set, and a theme left out of `choices` can no longer be reached
 through the switcher, whatever `dark` says.
@@ -244,7 +244,7 @@ MVP_CONFIG = {
 ```
 
 **4. Reload the page.** The application renders in `sunrise`, and if you added it to
-`choices`, it's now an entry in `<c-actions.theme-controller />`.
+`choices`, it's now an entry in `<c-mvp.actions.theme-controller />`.
 
 No template was overridden, no build tool was installed, and nothing was fetched from
 outside your project.
