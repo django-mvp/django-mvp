@@ -138,23 +138,90 @@
       "tasks": [
         {
           "id": "T004",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_daisy_cotton_coverage.py::TestClassDerivation",
+              "tests/test_components/test_daisy_cotton_coverage.py::TestUnstyledClasses",
+              "tests/test_components/test_daisy_cotton_coverage.py::TestSafelistedClasses"
+            ],
+            "commands": [
+              "uv run pytest tests/test_components/test_daisy_cotton_coverage.py -q",
+              "uv run ruff check tests/daisy_cotton_classes.py tests/test_components/test_daisy_cotton_coverage.py",
+              "uv run pre-commit run --all-files"
+            ],
+            "code": [
+              "tests/daisy_cotton_classes.py:37",
+              "tests/daisy_cotton_classes.py:94",
+              "tests/daisy_cotton_classes.py:130",
+              "tests/test_components/test_daisy_cotton_coverage.py:44"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T005",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_daisy_cotton_coverage.py::TestPrebuiltStylesheet::test_no_class_from_the_previous_release_is_lost"
+            ],
+            "commands": [
+              "uv run pytest tests/test_components/test_daisy_cotton_coverage.py -q",
+              "git show origin/main:mvp/static/css/django-mvp.css"
+            ],
+            "code": [
+              "tests/fixtures/stylesheet_classes_0_26_0.txt:1",
+              "tests/test_components/test_daisy_cotton_coverage.py:212"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T006",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_daisy_cotton_coverage.py::TestPrebuiltStylesheet::test_every_daisy_cotton_class_is_styled",
+              "tests/test_components/test_daisy_cotton_coverage.py::TestPrebuiltStylesheet::test_no_class_from_the_previous_release_is_lost",
+              "tests/test_components/test_responsive_safelist.py"
+            ],
+            "commands": [
+              "uv run pytest tests/test_components/test_daisy_cotton_coverage.py tests/test_components/test_responsive_safelist.py -q",
+              "npm install -D -E daisyui@5.7.0",
+              "uv run invoke build-stylesheet",
+              "curl against uv run python manage.py runserver 0.0.0.0:8002: /, /products/, /products/1/, /products/create/, /account/login/ all 200",
+              "uv run pytest -n auto"
+            ],
+            "code": [
+              "mvp/tailwind/base.css:72",
+              "mvp/tailwind/base.css:76",
+              "assets/tailwind.css:29",
+              "package.json:16",
+              "tests/test_components/test_daisy_cotton_coverage.py:201"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T007",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [],
+            "commands": [
+              "uv run pytest tests/test_components/test_daisy_cotton_coverage.py -q",
+              "uv run pre-commit run --all-files"
+            ],
+            "code": [
+              "docs/styling.md:22",
+              "CHANGELOG.md:30"
+            ],
+            "verified_by_ci": false
+          }
         }
       ]
     },
