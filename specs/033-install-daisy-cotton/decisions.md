@@ -325,3 +325,16 @@ the check module's shape is recorded in D22.
 **Why:** each one either removed work or corrected a measurement.
 
 **ADR:** none — a record of the review.
+
+## D26. One existing test was edited, and daisy-cotton is declared untyped
+
+**Decision:** `test_entry_paths_exist_and_are_absolute` now unpacks the first three lines of
+`--paths` and is otherwise unchanged. `daisy_cotton` joins the list of modules mypy is told have
+no type information, beside `mvp_forms`.
+
+**Why:** the test unpacked exactly three lines, and FR-016 adds a fourth. It still asserts
+everything it did about the first three. daisy-cotton ships no `py.typed` marker, so importing it
+in the generator failed the type check. The list in `pyproject.toml` is where this package already
+records that, and an inline ignore on the import would have hidden the same fact in one file.
+
+**ADR:** none — one test's unpacking and one line of tool configuration.

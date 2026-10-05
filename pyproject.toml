@@ -201,6 +201,8 @@ module = [
     "crispy_forms.*",
     "mvp_forms",
     "mvp_forms.*",
+    "daisy_cotton",
+    "daisy_cotton.*",
     "django_cotton.*",
     "django_filters.*",
     "django_tables2.*",

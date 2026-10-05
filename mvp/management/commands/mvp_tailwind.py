@@ -16,7 +16,7 @@ generated paths are machine-specific.
 
 from pathlib import Path
 
-import daisy_cotton  # type: ignore[import-untyped]
+import daisy_cotton
 import mvp_forms
 from django.core.management.base import BaseCommand
 
