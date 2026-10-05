@@ -1,0 +1,149 @@
+{
+  "feature": "035-basic-components-from-daisy-cotton",
+  "branch": "035-basic-components-from-daisy-cotton",
+  "repo": "django-mvp/django-mvp",
+  "state": "PLAN",
+  "state_history": [
+    {
+      "state": "QUEUED",
+      "at": "2026-10-05T14:26:53Z",
+      "note": "specification approved; issue graph built"
+    },
+    {
+      "state": "PLAN",
+      "at": "2026-10-05T16:19:43Z",
+      "note": "build started on the approved specification"
+    }
+  ],
+  "gates": {
+    "spec": {
+      "approved_by": "delegated review",
+      "at": "2026-10-05T14:26:47Z",
+      "self_resolved": [
+        "approved at 069e1f4 under the spec gate opened for the run of 2026-10-05"
+      ]
+    },
+    "plan": {
+      "approved_by": null,
+      "at": null
+    },
+    "merge": {
+      "approved_by": null,
+      "at": null
+    }
+  },
+  "stories": [
+    {
+      "id": "US1",
+      "priority": "P1",
+      "issue": 461,
+      "worktree": "/home/sam/projects/django-mvp/worktrees/mvp-035-basic-components-from-daisy-cotton",
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T001",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T002",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
+    },
+    {
+      "id": "US2",
+      "priority": "P1",
+      "issue": 462,
+      "worktree": "/home/sam/projects/django-mvp/worktrees/mvp-035-basic-components-from-daisy-cotton",
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T003",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T004",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T005",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
+    },
+    {
+      "id": "US3",
+      "priority": "P2",
+      "issue": 463,
+      "worktree": "/home/sam/projects/django-mvp/worktrees/mvp-035-basic-components-from-daisy-cotton",
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T006",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T007",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
+    },
+    {
+      "id": "US4",
+      "priority": "P2",
+      "issue": 464,
+      "worktree": "/home/sam/projects/django-mvp/worktrees/mvp-035-basic-components-from-daisy-cotton",
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T008",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T009",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T010",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
+    }
+  ],
+  "budgets": {
+    "converge_cycles": {
+      "used": 0,
+      "max": 2
+    },
+    "review_cycles": {
+      "used": 0,
+      "max": 1
+    },
+    "design_review_cycles": {
+      "used": 0,
+      "max": 1
+    },
+    "tokens": {
+      "used": 0,
+      "max": 120
+    }
+  },
+  "pr": {
+    "number": 447,
+    "draft": true
+  }
+}

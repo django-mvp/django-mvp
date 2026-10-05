@@ -145,3 +145,84 @@ daisy-cotton and are covered by the assumption in `spec.md`.
   move in their own repositories around the breaking release. Not this feature's work.
 - **`.github/`.** Nothing in this specification needs a change there. If the stylesheet workflow
   turns out to need one during the build, it is raised as its own issue and not edited here.
+
+## Settled while planning, 2026-10-05
+
+### D14. The dock toggle gets key handlers from its caller
+
+**Found:** on `main` the dock's sidebar toggle is a `<label>` with `role="button"` and
+`tabindex="0"`. It takes focus, but Enter and Space do nothing: a label is not activated from the
+keyboard, and no script handles the key. A browser probe confirmed it. FR-014 and acceptance
+scenario 10 of US-2 require the toggle to be operable from the keyboard.
+
+**Chosen:** `menus/dock/item.html` passes `role`, `tabindex` and two Alpine key handlers that
+click the label, on the toggle item only. daisy-cotton's dock item forwards them to the element.
+One browser test presses each key.
+
+**Why:** the requirement is written as something to keep, but a test of it fails today, so
+keeping the markup alone would leave the scenario unmet. Passing attributes a component forwards
+is its documented use. Alpine is already on every page that has the drawer.
+
+**Rejected:** a handler in `assets/js/layout.js`. It would need a rebuilt script bundle for two
+attributes' worth of behaviour. Also rejected: leaving it to daisy-cotton. The gap is raised on
+its tracker, and this package's pages cannot wait for a release.
+
+**Revisit if:** daisy-cotton's dock item makes its toggle keyboard-operable. The attributes here
+then go.
+
+**ADR:** none — local to one template, and removed when daisy-cotton closes the gap.
+
+### D15. The isolation requirement is read as FR-017 states it
+
+**Ambiguous:** SC-004 says a packaged page renders identically whatever attribute-named variables
+its context holds. FR-017 says every call to a daisy-cotton component is isolated. This package's
+own components also declare attributes with no default, and Cotton fills those from the page's
+context in the same way. Isolating daisy-cotton's calls does not change that.
+
+**Chosen:** FR-017 is the requirement built and tested. The test compares each element a
+daisy-cotton component draws, with and without the colliding variables, on packaged pages. It
+does not claim the whole page is identical.
+
+**Why:** FR-001 to FR-004 keep every kept component as it is, and the specification's own
+out-of-scope list gives the kept components to the later features. A whole-page comparison would
+fail on components this feature may not change.
+
+**Revisit if:** the kept components are to be isolated from the page's context too. That is a
+change to their templates and to the specification, and is reported at the merge gate.
+
+**ADR:** none — a reading of one success criterion, recorded for the reviewer.
+
+### D16. The callers move first and are isolated second
+
+**Chosen:** US-1 and US-2 delete the templates and move the callers without `only`. US-3 then
+writes the check, sees it fail on those calls, and adds `only`.
+
+**Why:** the check is only worth having if it has been seen to fail for the right reason
+(Article I). Adding `only` while moving each caller would leave the check passing on its first
+run.
+
+**Rejected:** one pass. It is fewer edits and a weaker test.
+
+**ADR:** none — an ordering inside one pull request.
+
+### D17. The safelist for the divider and the menu stays
+
+**Chosen:** the breakpoint-prefixed entries for `divider-horizontal` and `menu-horizontal` in
+`mvp/tailwind/base.css` are kept. The planning notes suggested they might go.
+
+**Why:** daisy-cotton builds those class names while a template renders, so no scan can find
+them. They are needed at least as much as when this package's templates built them.
+
+**ADR:** none — no change is made.
+
+### D18. A menu in a dropdown is named with `aria-label` on the list
+
+**Chosen:** the theme chooser and the share menu pass `aria-label` to `<c-menu>`, which forwards
+it to the list. The sidebar menu is wrapped in a `nav` that carries the label, as FR-015 says.
+The user menu had no name and gains none.
+
+**Why:** the dropdown menus are not page navigation, so a navigation landmark around each would
+add landmarks a screen-reader user has to step over. The former template put
+`role="navigation"` on the list itself, which is what the planning notes call out as wrong.
+
+**ADR:** none — follows FR-015 and the planning notes.
