@@ -254,3 +254,18 @@ posts an invalid form through a view that sets no component of its own. The chan
 - The specification assumes nothing under `.github/` needs to change. A contributor skill at
   `.github/skills/demo-views/SKILL.md` shows `<c-page>` and `<c-app>` in three places. This run
   may not edit `.github/`, so the three mentions are left and reported.
+
+## Build
+
+### D24. Existing tests were edited for names only
+
+**Found:** the move touched 47 existing test modules and two fixture templates, which the check
+on changes to existing tests flags.
+
+**Checked:** each file was compared with its version before the move with the prefix removed.
+Every difference is a component name, a tag, a template path, or a long string split across
+lines to keep it within 88 columns. No assertion was changed, removed or weakened and nothing
+was skipped.
+
+**Chosen:** accepted. Changing the names a test asks for is the change this feature makes
+(SC-003).
