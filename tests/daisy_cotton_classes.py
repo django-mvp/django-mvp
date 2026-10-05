@@ -31,6 +31,7 @@ CLASS_ATTRIBUTE = re.compile(
 SOURCE_INLINE = re.compile(r"@source\s+inline\(\s*\"([^\"]*)\"\s*\)")
 CSS_COMMENT = re.compile(r"/\*.*?\*/", re.DOTALL)
 VARIABLE_MARK = "\x00"
+NAME_CHARACTER = re.compile(r"[A-Za-z0-9_\\-]")
 
 
 def component_classes(templates_dir):
@@ -111,11 +112,17 @@ def unstyled_classes(classes, stylesheet):
 
     def has_selector(name):
         if name[0].isdigit():
-            written = f"\\3{name[0]} {escape(name[1:])}"
+            needle = f".\\3{name[0]} {escape(name[1:])}"
         else:
-            written = escape(name)
-        pattern = rf"(?<!\\)\.{re.escape(written)}(?![A-Za-z0-9_\\-])"
-        return re.search(pattern, stylesheet) is not None
+            needle = f".{escape(name)}"
+        position = stylesheet.find(needle)
+        while position != -1:
+            before = stylesheet[position - 1 : position]
+            after = stylesheet[position + len(needle) : position + len(needle) + 1]
+            if before != "\\" and not NAME_CHARACTER.fullmatch(after):
+                return True
+            position = stylesheet.find(needle, position + 1)
+        return False
 
     return {name for name in classes if not has_selector(name)}
 
