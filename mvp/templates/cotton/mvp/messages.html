@@ -7,7 +7,7 @@
     <c-alert variant="{% if message.level_tag == 'debug' %}info{% else %}{{ message.level_tag }}{% endif %}"
              :dismissible="dismissible"
              :delay="delay"
-             class="shadow-lg">
+             class="shadow-lg" only>
       <span>{{ message }}</span>
     </c-alert>
   {% endfor %}

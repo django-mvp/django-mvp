@@ -45,3 +45,41 @@ Watch: the plan's "no edit expected" for that file does not hold.
 ## 2026-10-05T16:50:41Z · Forge · T011
 
 Accepted the first build pass after an independent verify (all steps green) and a read of every changed test (D23). Made three small fixes directly: the breadcrumb browser tests' locator, removal of tests left pinned to daisy-cotton's markup (D21), and the daisy-cotton floor raised to 0.1.3 by a ruling (D22). Carried as unmet: an alert variant with no icon raises (D20, daisy-cotton#136).
+
+## 2026-10-05T16:57:11Z · Implementer US3 · T006
+
+Did: Added tests/daisy_cotton_calls.py (class DaisyCottonCalls: compiles each template with
+Cotton's compiler, tokenizes the compiled text with Django's lexer as patched by Cotton, reads
+each `cotton` tag with parse_component_tag; `calls(dir)` yields path, name, attribute names,
+only; `unisolated(dir)` yields the daisy-cotton calls without only). Added
+tests/test_components/test_daisy_cotton_calls.py (the check, five self-tests on a tmp_path
+directory including <c-hover-3d>). Extended tests/test_components/test_daisy_cotton_isolation.py
+with three new classes: leak comparison over four pages, content inside an isolated alert,
+dismissible alert under only. Existing tests in that module untouched.
+Verified (before T007, uv run pytest on the two files): 3 failed, 18 passed.
+The check names 47 calls: button 30, alert 7, menu 4, badge 1, breadcrumbs 1, divider 1,
+dock 1, dock.item 1, link 1 (list kept at /tmp/fs035/scratch/offenders-before.txt).
+Leak test fails on two elements: the list page's nav.breadcrumbs (aria-label becomes the page
+variable's value) and the sign-out page's a.link (gains link-primary and link-hover from the
+page's variant and hover).
+Passed on first run: the shell page (the menu renderer draws the dock and sidebar menu with
+its own context, so no page variable reaches them), the formset page's divider (the call
+passes class itself and the divider declares nothing else without a default), the alert
+slot-content tests and the dismissible-alert tests (Cotton and daisy-cotton already behave
+that way).
+Next: T007, add only to the 47 calls.
+Watch: the blocking-records list on the delete page stands in for the related-records list, as
+no demo page has a cascade delete to list.
+
+## 2026-10-05T16:58:22Z · Implementer US3 · T007
+
+Did: Added only to the 47 calls the check named, across 28 templates under mvp/templates/.
+Nothing else about a call changed: the diff of mvp/ is 47 lines changed, each adding the
+word only before the tag's closing. No call needed an attribute passed explicitly. No c-mvp.*
+call and no <c-icon> was touched.
+Verified: uv run pytest on test_daisy_cotton_calls.py and test_daisy_cotton_isolation.py:
+21 passed. The check now names 0 calls. Both leak failures (list page's nav.breadcrumbs,
+sign-out page's a.link) are gone. uv run pytest -q -n auto over the whole tree:
+2687 passed, 1 skipped.
+Next: the story's full verify, then the ledger rows and the report.
+Watch: the leak comparison does not look inside kept c-mvp.* components (issue 485).

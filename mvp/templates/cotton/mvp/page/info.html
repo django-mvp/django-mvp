@@ -22,7 +22,7 @@
     <div class="max-w-prose">{{ text }}</div>
     {% if actions %}
       <c-slot name="footer_end">
-        {% for action in actions %}<c-button :attrs="action" />{% endfor %}
+        {% for action in actions %}<c-button :attrs="action" only />{% endfor %}
       </c-slot>
     {% endif %}
   </c-mvp.modal>

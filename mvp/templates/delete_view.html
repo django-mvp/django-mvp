@@ -7,7 +7,7 @@
     puts each fragment in a column of its own and spreads it across the width.
   {% endcomment %}
   {% if is_protected %}
-    <c-alert variant="error">
+    <c-alert variant="error" only>
       <div>
         <strong>{% trans "This record cannot be deleted." %}</strong>
         <c-mvp.text>
@@ -19,13 +19,13 @@
       </div>
     </c-alert>
   {% else %}
-    <c-alert variant="warning">
+    <c-alert variant="warning" only>
       <span>
         {% blocktrans %}You are about to <strong>permanently</strong> delete this record. This action cannot be undone.{% endblocktrans %}
       </span>
     </c-alert>
     {% if related_objects %}
-      <c-alert :attrs="related_objects_attrs">
+      <c-alert :attrs="related_objects_attrs" only>
         <div>
           <strong>{% trans "The following related records will also be permanently deleted:" %}</strong>
           {% for label, objs, overflow in related_objects %}
@@ -59,7 +59,7 @@
     <c-button text="{% trans "Back" %}"
               href="{{ back_url }}"
               outline
-              icon="arrow-left" />
+              icon="arrow-left" only />
   {% endif %}
   {% if not is_protected %}
     {% if require_confirmation %}
@@ -69,12 +69,12 @@
                 disabled
                 type="submit"
                 icon="delete"
-                variant="error" />
+                variant="error" only />
     {% else %}
       <c-button text="{% trans "Confirm delete" %}"
                 type="submit"
                 icon="delete"
-                variant="error" />
+                variant="error" only />
     {% endif %}
   {% endif %}
 {% endblock actions %}

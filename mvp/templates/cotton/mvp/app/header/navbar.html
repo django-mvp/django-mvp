@@ -23,7 +23,7 @@
     {# row: a flex item defaults to min-width:auto and won't go below its own #}
     {# content. The sideways scroll it then needs is daisyUI's own .breadcrumbs rule. #}
     {% if page.breadcrumbs %}
-      <c-breadcrumbs :items="page.breadcrumbs" class="min-w-0 text-sm" />
+      <c-breadcrumbs :items="page.breadcrumbs" class="min-w-0 text-sm" only />
     {% endif %}
   </div>
   <div class="navbar-end w-auto shrink-0 gap-3">

@@ -32,7 +32,7 @@
                     type="submit"
                     name="default_next"
                     value="list"
-                    variant="primary">
+                    variant="primary" only>
             <c-icon name="arrow-right" />
           </c-button>
           <c-button text="{% trans "Save & continue editing" %}"
@@ -40,12 +40,12 @@
                     name="default_next"
                     value="update"
                     variant="primary"
-                    outline />
+                    outline only />
           {% if delete_url %}
             <c-button text="{% trans "Delete" %}"
                       href="{{ delete_url }}"
                       icon="delete"
-                      variant="error" />
+                      variant="error" only />
           {% endif %}
         </c-mvp.group>
       {% endblock actions %}

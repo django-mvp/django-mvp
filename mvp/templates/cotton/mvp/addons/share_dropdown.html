@@ -14,9 +14,9 @@
               role="button"
               :size="size"
               icon="share"
-              text="{% trans "Share" %}" />
+              text="{% trans "Share" %}" only />
   </c-slot>
-  <c-menu aria-label="{% trans "Share this page" %}" class="w-full">
+  <c-menu aria-label="{% trans "Share this page" %}" class="w-full" only>
     <li class="menu-title">{% trans "Share this page" %}</li>
     <c-mvp.menu.item label="Facebook"
                  icon="facebook"
