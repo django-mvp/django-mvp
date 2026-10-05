@@ -12,7 +12,7 @@
 
 **Issue**: #438
 
-**Depends on**: #434, #435
+**Depends on**: #434, #435, and [django-mvp/daisy-cotton#132](https://github.com/django-mvp/daisy-cotton/issues/132) for the third story only
 
 **Input**: The sidebar, the collapsed icon rail and the user menu should be drawn with
 daisy-cotton's menu, submenu and drawer. The sign-out entry, share links and rail tooltips keep
@@ -519,11 +519,11 @@ entry is opened by the first story and completed by the last.
 - daisy-cotton 0.1.3 is released and carries the fix for django-mvp/daisy-cotton#120, so nothing
   upstream blocks the menu entries. The feature waits only on #434 and #435.
 - daisy-cotton's drawer takes no attributes for its toggle, and this package's drawer shell puts
-  the layout store binding and the key for the remembered state there. Whether the store can bind
-  to the toggle through its documented id instead is established when the work is planned. If it
-  cannot, the gap is raised on daisy-cotton and the third story waits for the release that closes
-  it. The other four stories do not depend on it, because the icon rail already works inside the
-  existing drawer shell.
+  the layout store binding and the key for the remembered state there. The gap is
+  django-mvp/daisy-cotton#132. The third story waits for a daisy-cotton release that answers it,
+  and the package's floor on daisy-cotton rises again to that release when it lands.
+- The other four stories do not depend on #132, because the icon rail already works inside the
+  existing drawer shell. They are built first, and the drawer follows on the same pull request.
 - The script that applies the remembered state before the first paint needs no change in
   daisy-cotton. The drawer's content region starts immediately after its toggle, so the shell can
   place the script there. FR-014 holds either way, and a browser test proves it.

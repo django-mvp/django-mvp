@@ -241,15 +241,16 @@ not raised on daisy-cotton.
 
 ### V3. The toggle's attributes stay a risk for planning
 
-D11 is confirmed. If the layout store cannot bind to the drawer's toggle from script, the gap is
-raised on daisy-cotton's tracker. No workaround is built here.
+D11 is confirmed, and the gap is filed as django-mvp/daisy-cotton#132. The drawer story waits for
+a daisy-cotton release that answers it. The other four stories are built first. No workaround is
+built here.
 
 **ADR:** none.
 
 ## Open risks
 
-- The drawer story may have to wait on a daisy-cotton release that lets a caller reach the
-  drawer's toggle (D11, V3). Planning settles it. No issue is open for it on daisy-cotton.
+- The drawer story waits on django-mvp/daisy-cotton#132, which is open. Until a release answers
+  it, the pull request cannot carry the whole feature.
 - The change of document order (D10) reaches every page of every project. It cannot be seen, and
   it is easy to miss in review.
 - daisy-cotton's entry writes its text as a bare text node, and the rail's stylesheet hides a
