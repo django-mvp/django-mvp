@@ -2,7 +2,7 @@
 
 This document was designed against [GOALS.md](../GOALS.md). See also [CONTEXT.md](../CONTEXT.md) for domain terminology and [CONSTITUTION.md](../CONSTITUTION.md) for project standards.
 
-The package is at 0.25.1, so the early items below are already delivered and are carried here to keep the build sequence whole.
+The package is at 0.26.0, so the early items below are already delivered and are carried here to keep the build sequence whole.
 
 ## Versioning
 
@@ -246,7 +246,7 @@ The switch changes attribute names across the library, and it is breaking. It la
 - The basic components removed here in favour of daisy-cotton's, with every template, demo page and document that calls them updated.
 - The card, modal and avatar rebuilt on daisy-cotton's components under their new names.
 - The dropdown kept or replaced on the evidence of the existing placement tests run against daisy-cotton's version.
-- Form rendering built on daisy-cotton's form controls, replacing the single-field component.
+- A field written out by hand in a template drawn with daisy-cotton's form controls, replacing the single-field component. A form rendered from a Django form stays with django-crispy-forms and django-mvp-forms.
 - The shell's own hand-written daisyUI markup (messages, footer, navbar, drawer, pagination) composed from daisy-cotton's components where one exists.
 - The packages built on this one capped before the release and moved onto it after.
 
