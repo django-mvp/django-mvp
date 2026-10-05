@@ -308,13 +308,46 @@
       "tasks": [
         {
           "id": "T011",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_checks.py::TestDaisyCottonAppMessages",
+              "tests/test_checks.py::TestDaisyCottonAppCheck"
+            ],
+            "commands": [
+              "uv run pytest tests/test_checks.py",
+              "uv run mypy mvp",
+              "uv run pre-commit run --all-files"
+            ],
+            "code": [
+              "mvp/checks.py:13",
+              "mvp/checks.py:42",
+              "mvp/apps.py:20"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T012",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_checks.py::TestGettingStartedAppList"
+            ],
+            "commands": [
+              "uv run pytest tests/test_checks.py",
+              "uv run pre-commit run --all-files",
+              "uv run pytest -n auto --dist loadscope"
+            ],
+            "code": [
+              "docs/troubleshooting.md:50",
+              "docs/getting-started.md:43",
+              "CHANGELOG.md:10"
+            ],
+            "verified_by_ci": false
+          }
         }
       ]
     },
