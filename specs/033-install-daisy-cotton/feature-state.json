@@ -2,7 +2,7 @@
   "feature": "033-install-daisy-cotton",
   "branch": "033-install-daisy-cotton",
   "repo": "django-mvp/django-mvp",
-  "state": "IMPLEMENT",
+  "state": "CONVERGE",
   "state_history": [
     {
       "state": "QUEUED",
@@ -23,6 +23,11 @@
       "state": "IMPLEMENT",
       "at": "2026-10-05T14:57:07Z",
       "note": "US-1 to US-5 in order, one worktree"
+    },
+    {
+      "state": "CONVERGE",
+      "at": "2026-10-05T15:33:17Z",
+      "note": "all five stories done"
     }
   ],
   "gates": {
@@ -356,7 +361,7 @@
       "priority": "P3",
       "issue": 460,
       "worktree": "/home/sam/projects/django-mvp/worktrees/mvp-033-install-daisy-cotton",
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
@@ -402,7 +407,7 @@
   ],
   "budgets": {
     "converge_cycles": {
-      "used": 0,
+      "used": 1,
       "max": 2
     },
     "review_cycles": {
@@ -414,7 +419,7 @@
       "max": 1
     },
     "tokens": {
-      "used": 14.7,
+      "used": 16.23,
       "max": 120
     }
   },

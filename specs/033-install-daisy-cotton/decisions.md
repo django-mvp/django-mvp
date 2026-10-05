@@ -223,6 +223,12 @@ needs every class daisy-cotton can render to be styled. 5.7.0 is the smallest ve
 them all. Measured against the same inputs, it adds one class selector to the stylesheet and
 removes none. A later 5.7 release would be a larger change for no requirement.
 
+**What 5.7.0 changed in rules both versions have,** from comparing every rule of the two built
+stylesheets: `.btn-active` is drawn flatter, with no shadow and a slightly darker fill; `.otp` sets
+`direction: ltr`; the `collapse` rules moved to a later cascade layer and `footer-center` has a
+simpler selector, neither of which changes a declaration. In this package `btn-active` is used
+only by the tab switch of the component documentation block.
+
 **Revisit if:** a rule that 5.7.0 changed shows on a page. The answer is then a later patch
 release of daisyUI, not a return to 5.6.
 
