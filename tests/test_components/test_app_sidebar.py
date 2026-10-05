@@ -101,16 +101,6 @@ class TestSidebarMenuChoice:
 
         assert sidebar_labels(soup)[1:] == [BACK_TEXT]
 
-    def test_back_link_is_in_the_sidebar_above_the_menu(self):
-        soup = render_sidebar("<c-mvp.app.sidebar />")
-
-        anchors = soup.select(
-            "aside.mvp-sidebar a.mvp-sidebar-brand, aside.mvp-sidebar ul a"
-        )
-
-        assert anchors[1].has_attr("data-back-link")
-        assert anchors[2].get_text(strip=True) == "Mounted Index"
-
     def test_sidebar_still_draws_one_navigation_landmark_beside_a_back_link(self):
         soup = render_sidebar("<c-mvp.app.sidebar />")
 

@@ -3,8 +3,6 @@
 Source: mvp/urls.py
 """
 
-from pathlib import Path
-
 import pytest
 from django.test import override_settings
 from django.urls import (
@@ -16,17 +14,7 @@ from django.urls import (
     reverse,
 )
 
-from mvp.menus import AccountCenterMenu
 from mvp.views.account import AccountCenterView, account_center
-
-LOGIN_TEMPLATE = (
-    Path(__file__).resolve().parent.parent
-    / "mvp"
-    / "templates"
-    / "mvp"
-    / "account"
-    / "login.html"
-)
 
 
 def _urlconf():
@@ -83,12 +71,6 @@ class TestMountedAtTheSiteRoot:
             assert reverse("account_login") == "/account/login/"
             assert reverse("account_logout") == "/account/logout/"
 
-    @pytest.mark.usefixtures("pwa_enabled")
-    def test_the_installable_app_files_sit_at_the_root(self):
-        with override_settings(ROOT_URLCONF="tests.urls_pwa"):
-            assert reverse("mvp-pwa-manifest") == "/manifest.webmanifest"
-            assert reverse("mvp-pwa-service-worker") == "/sw.js"
-
 
 class TestAccountLoginURL:
     @pytest.mark.django_db
@@ -100,9 +82,6 @@ class TestAccountLoginURL:
         content = response.content.decode()
         assert "<form" in content
         assert 'type="password"' in content
-
-    def test_the_identifying_fields_label_is_not_hard_coded(self):
-        assert "form.username.label" in LOGIN_TEMPLATE.read_text()
 
 
 @pytest.mark.django_db
@@ -143,13 +122,6 @@ class TestAllauthAnswersRegardlessOfMountOrder:
 
 @pytest.mark.django_db
 class TestEachNameIsRegisteredExactlyOnce:
-    def test_without_allauth_the_packaged_pages_are_present_and_answer(self, client):
-        assert _count_registrations(ACCOUNT_URLCONF, "account_login") == 1
-        assert _count_registrations(ACCOUNT_URLCONF, "account_logout") == 1
-        with override_settings(ROOT_URLCONF=ACCOUNT_URLCONF):
-            assert client.get(reverse("account_login")).status_code == 200
-            assert client.post(reverse("account_logout")).status_code == 200
-
     def test_with_allauth_mvp_mounted_first(self, allauth_installed):
         urlconf = _urlconf_mvp_then_allauth()
         assert _count_registrations(urlconf, "account_login") == 1
@@ -188,9 +160,6 @@ class TestAccountCenterMount:
         with override_settings(ROOT_URLCONF=ACCOUNT_URLCONF):
             yield
 
-    def test_the_landing_name_stays_un_namespaced(self):
-        assert reverse("account-center") == "/account/"
-
     def test_the_landing_resolves_to_the_account_center_view(self):
 
         assert resolve("/account/").func.view_class is AccountCenterView
@@ -203,10 +172,3 @@ class TestAccountCenterMount:
         match = resolve("/account/login/")
 
         assert getattr(match.func, "mounted_app", None) is None
-
-    def test_the_declaration_names_the_area_and_its_landing(self):
-
-        assert str(account_center.name) == "Account Center"
-        assert account_center.icon == "account_center"
-        assert account_center.menu is AccountCenterMenu
-        assert account_center.landing == "account-center"

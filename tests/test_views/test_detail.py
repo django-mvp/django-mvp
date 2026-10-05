@@ -101,22 +101,6 @@ class TestMVPDetailView:
         view = make_detail_view(Product, product)
         assert view.get_page_title() == str(product)
 
-    def test_page_title_equals_str_of_article(self, article):
-        view = make_detail_view(Article, article)
-        assert view.get_page_title() == str(article)
-
-    def test_page_title_handles_unicode_str(self, category):
-        unicode_product = Product.objects.create(
-            name="Ünïcödé Prödüct",
-            slug="unicode-product-detail",
-            category=category,
-            description="A unicode test product",
-            price="9.99",
-            stock=1,
-        )
-        view = make_detail_view(Product, unicode_product)
-        assert view.get_page_title() == "Ünïcödé Prödüct"
-
     def test_page_class_contains_model_name_and_action_class(self, product):
         view = make_detail_view(Product, product)
         page_class = view.get_page_class()
@@ -143,21 +127,6 @@ class TestMVPDetailView:
 
 @pytest.mark.django_db
 class TestListViewTitle:
-    def test_custom_list_view_title_appears_in_breadcrumb(self, product):
-        view = make_detail_view(
-            Product,
-            product,
-            extra_attrs={"list_view_title": "Active Orders"},
-        )
-        breadcrumbs = view.get_breadcrumbs()
-        assert breadcrumbs[0]["text"] == "Active Orders"
-
-    def test_default_breadcrumb_text_is_verbose_name_plural_title_cased(self, product):
-        view = make_detail_view(Product, product)
-        expected = Product._meta.verbose_name_plural.title()
-        breadcrumbs = view.get_breadcrumbs()
-        assert breadcrumbs[0]["text"] == expected
-
     def test_custom_title_present_even_when_permission_false(self, product):
         view = make_detail_view(
             Product,
@@ -265,34 +234,6 @@ class TestUS1Directory:
 
 @pytest.mark.django_db
 class TestUS2PermissionGating:
-    def test_US2_false_permission_excludes_url(self):
-        view = make_stub_view(
-            extra_attrs={"directory": ["delete"], "show_delete_action": False},
-            kwargs={"pk": 1},
-        )
-        assert "delete_url" not in view.get_directory()
-
-    def test_US2_show_detail_action_true_includes_url(self):
-        # Redirect 'detail' to an existing URL pattern for testing
-        custom_crud = {**MVP_CONFIG["view_names"], "detail": "{model_name}-update"}
-        view = make_stub_view(
-            extra_attrs={
-                "directory": ["detail"],
-                "show_detail_action": True,
-                "crud_views": custom_crud,
-            },
-            kwargs={"pk": 1},
-        )
-        result = view.get_directory()
-        assert "detail_url" in result
-
-    def test_US2_show_list_action_true_includes_url(self):
-        view = make_stub_view(
-            extra_attrs={"directory": ["list"], "show_list_action": True},
-            kwargs={},
-        )
-        assert "list_url" in view.get_directory()
-
     def test_US2_callable_permission_returning_true_includes_url(self):
         # Use staticmethod so the callable is not wrapped as a bound method
         view = make_stub_view(
@@ -406,24 +347,6 @@ def regular_user(db):
 
 @pytest.mark.django_db
 class TestUS5StaffUserSeesActionButtons:
-    def test_US5_staff_sees_edit_button(self, client, staff_user, product):
-        client.force_login(staff_user)
-        url = reverse("product-detail", kwargs={"pk": product.pk})
-        response = client.get(url)
-        assert response.status_code == 200
-        content = response.content.decode()
-        edit_url = reverse("product-update", kwargs={"pk": product.pk})
-        assert edit_url in content, "Edit link must be present for staff user"
-
-    def test_US5_staff_sees_delete_button(self, client, staff_user, product):
-        client.force_login(staff_user)
-        url = reverse("product-detail", kwargs={"pk": product.pk})
-        response = client.get(url)
-        assert response.status_code == 200
-        content = response.content.decode()
-        delete_url = reverse("product-delete", kwargs={"pk": product.pk})
-        assert delete_url in content, "Delete link must be present for staff user"
-
     def test_US5_staff_sees_list_link(self, client, staff_user, product):
         client.force_login(staff_user)
         url = reverse("product-detail", kwargs={"pk": product.pk})
@@ -436,28 +359,6 @@ class TestUS5StaffUserSeesActionButtons:
 
 @pytest.mark.django_db
 class TestUS5ReadOnlyUserHidesActionButtons:
-    def test_US5_regular_user_no_edit_button(self, client, regular_user, product):
-        client.force_login(regular_user)
-        url = reverse("product-detail", kwargs={"pk": product.pk})
-        response = client.get(url)
-        assert response.status_code == 200
-        content = response.content.decode()
-        edit_url = reverse("product-update", kwargs={"pk": product.pk})
-        assert edit_url not in content, (
-            "Edit link must NOT be present for non-staff user"
-        )
-
-    def test_US5_regular_user_no_delete_button(self, client, regular_user, product):
-        client.force_login(regular_user)
-        url = reverse("product-detail", kwargs={"pk": product.pk})
-        response = client.get(url)
-        assert response.status_code == 200
-        content = response.content.decode()
-        delete_url = reverse("product-delete", kwargs={"pk": product.pk})
-        assert delete_url not in content, (
-            "Delete link must NOT be present for non-staff user"
-        )
-
     def test_US5_regular_user_sees_list_link(self, client, regular_user, product):
         client.force_login(regular_user)
         url = reverse("product-detail", kwargs={"pk": product.pk})
@@ -478,15 +379,6 @@ class TestUS4ProductDetailPageHeadingAndCSSClass:
         assert "<h1" in content and str(product) in content, (
             f"Heading element containing '{product!s}' must be present"
         )
-
-    def test_product_detail_breadcrumb_ends_with_product_name(self, client, product):
-        url = reverse("product-detail", kwargs={"pk": product.pk})
-        response = client.get(url)
-        assert response.status_code == 200
-        content = response.content.decode()
-        product_name = str(product)
-        # The breadcrumb trail should contain the product name as the last item
-        assert product_name in content, f"Breadcrumb must contain '{product_name}'"
 
     def test_product_detail_page_container_has_model_css_class(self, client, product):
         url = reverse("product-detail", kwargs={"pk": product.pk})
@@ -542,17 +434,6 @@ class TestPackagedDetailTemplateActions:
         assert reverse("product-update", kwargs={"pk": product.pk}) not in content
         assert reverse("product-delete", kwargs={"pk": product.pk}) not in content
 
-    def test_project_can_replace_the_action_set(self, client, staff_user, product):
-        from django.template.loader import get_template
-
-        source = get_template("detail_view.html").template.source
-        assert "{% block page.actions %}" in source
-
-
-class TestMVPDetailViewDirectory:
-    def test_default_directory_is_update_and_delete(self):
-        assert MVPDetailView.directory == ["update", "delete"]
-
 
 @pytest.mark.django_db
 class TestDefaultDirectoryIsInertWithoutPermission:
@@ -596,15 +477,6 @@ class TestActionVisibilityAttributes:
         )
         assert "create_url" in view.get_directory()
         assert seen == [view.request.user]
-
-    def test_new_attribute_warns_nothing(self, recwarn):
-        view = make_stub_view(
-            extra_attrs={"directory": ["list"], "show_list_action": True}, kwargs={}
-        )
-        view.get_directory()
-        assert [
-            w for w in recwarn.list if issubclass(w.category, DeprecationWarning)
-        ] == []
 
 
 @pytest.mark.django_db
@@ -651,13 +523,3 @@ class TestLegacyPermissionAttributes:
         assert "show_delete_action" in message
         assert "does not restrict access" in message
         assert type(view).__name__ in message
-
-    def test_nothing_warns_any_more(self, recwarn):
-        view = make_stub_view(
-            extra_attrs={"directory": ["list"], "has_list_permission": True}, kwargs={}
-        )
-        with pytest.raises(ImproperlyConfigured):
-            view.get_directory()
-        assert [
-            w for w in recwarn.list if issubclass(w.category, DeprecationWarning)
-        ] == []

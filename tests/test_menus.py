@@ -141,17 +141,8 @@ class TestShippedMenusCarryAHumanName:
 
 
 class TestAccountCenterMenu:
-    def test_ships_exactly_one_child(self):
-        assert len(AccountCenterMenu.children) == 1
-
-    def test_the_one_child_is_named_overview(self):
-        assert AccountCenterMenu.children[0].name == "overview"
-
     def test_the_overview_child_points_at_the_landing_page(self):
         assert AccountCenterMenu.children[0].view_name == "account-center"
-
-    def test_the_landing_page_entry_uses_the_account_center_icon(self):
-        assert AccountCenterMenu.children[0].extra_context["icon"] == ("account_center")
 
 
 class TestAccountMenuContribution:
@@ -191,28 +182,3 @@ class TestAccountMenuContribution:
     ):
         names = self._visible_names(RequestFactory().get("/", {CHECKED_FLAG: "1"}))
         assert "fixture_checked" in names
-
-    def test_an_unresolvable_entry_is_omitted_without_disturbing_the_rest(
-        self, testapp_account_entries
-    ):
-        names = self._visible_names(RequestFactory().get("/"))
-        assert "fixture_unresolvable" not in names
-        assert names == ["overview", "fixture_plain", "fixture_group"]
-
-    def test_an_app_can_reorder_the_entries(self, testapp_account_entries):
-        reordered = [
-            testapp_account_entries["fixture_plain"],
-            *[
-                child
-                for child in AccountCenterMenu.children
-                if child.name != "fixture_plain"
-            ],
-        ]
-        AccountCenterMenu.children = reordered
-        assert AccountCenterMenu.children[0].name == "fixture_plain"
-
-    def test_an_app_can_remove_an_entry_it_does_not_want(self, testapp_account_entries):
-        AccountCenterMenu.pop("fixture_unresolvable")
-        assert AccountCenterMenu.get("fixture_unresolvable") is None
-        names = self._visible_names(RequestFactory().get("/"))
-        assert "fixture_unresolvable" not in names

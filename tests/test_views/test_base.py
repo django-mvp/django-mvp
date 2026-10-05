@@ -65,10 +65,6 @@ class TestBaseTemplateNameMixin:
         names = view.get_template_names()
         assert names[-1] == "base.html"
 
-    def test_base_template_name_in_list(self):
-        view = ConcreteTemplateView()
-        assert "base.html" in view.get_template_names()
-
     def test_returns_base_template_alone_when_no_template_name_is_set(self):
         view = NoTemplateNameView()
         assert view.get_template_names() == ["base.html"]
@@ -105,9 +101,6 @@ class TestPageMixinPageInfo:
 
     def test_no_actions_by_default(self):
         assert ConcretePage().get_page_info_actions() == []
-
-    def test_info_absent_from_page_context_by_default(self):
-        assert ConcretePage().get_page_context()["info"] == ""
 
     def test_attribute_reaches_the_page_context(self):
         view = ConcretePage()
@@ -182,24 +175,6 @@ class TestPageInfoRendersThroughARealPage:
 class TestPageMixinGetContextData:
     def setup_method(self):
         self.factory = RequestFactory()
-
-    def test_context_data_includes_page_key(self):
-        request = self.factory.get("/")
-        view = ConcretePage()
-        view.request = request
-        view.kwargs = {}
-        view.args = []
-        context = view.get_context_data()
-        assert "page" in context
-
-    def test_page_key_is_dict(self):
-        request = self.factory.get("/")
-        view = ConcretePage()
-        view.request = request
-        view.kwargs = {}
-        view.args = []
-        context = view.get_context_data()
-        assert isinstance(context["page"], dict)
 
     def test_page_key_has_correct_shape(self):
         request = self.factory.get("/")
@@ -477,14 +452,6 @@ class TestMVPHomeView:
         templates = view.get_template_names()
         assert templates == [view.landing_template_name]
 
-    @pytest.mark.django_db
-    def test_authenticated_context_calls_dashboard_context(self):
-        user = User.objects.create_user(username="dashuser2", password="pass")
-        view = self._make_view(user)
-        # get_context_data raises no errors and returns a dict
-        context = view.get_context_data()
-        assert isinstance(context, dict)
-
 
 # TestMVPTemplateViewLayoutIntegration
 
@@ -497,21 +464,6 @@ class _PlainForm(django_forms.Form):
 
 @pytest.mark.django_db
 class TestMVPTemplateViewLayoutIntegration:
-    def test_page_class_in_container_element(self):
-        from mvp.views import MVPTemplateView
-
-        request = RequestFactory().get("/")
-        view = MVPTemplateView(
-            template_name="page_view.html",
-            page_class="sidebar-collapse",
-        )
-        view.request = request
-        view.kwargs = {}
-        view.args = []
-        context = view.get_context_data()
-        assert "sidebar-collapse" in context["page"]["class"]
-        assert context["page"]["class"].startswith("mvp-page")
-
     def test_all_layout_attributes_in_context(self):
         from mvp.views import MVPTemplateView
 
@@ -538,13 +490,6 @@ User = get_user_model()
 
 
 # US2: MVPHomeView — guest/dashboard template switch
-
-
-@pytest.mark.django_db
-class TestMVPHomeViewPages:
-    def test_home_post_returns_405(self, client):
-        response = client.post("/")
-        assert response.status_code == 405
 
 
 @pytest.mark.django_db

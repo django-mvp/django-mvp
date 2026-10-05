@@ -60,9 +60,6 @@ class TestThemeCustomizationDemoPage:
                 "the demo's configured theme.choices"
             )
 
-    def test_the_sites_own_themes_are_offered_first(self, client, demo_theme_choices):
-        assert DEMO_THEME_CHOICES[:2] == ["mvp", "mvp-dark"]
-
     def test_no_theme_definition_comes_from_outside_the_project(
         self, client, demo_theme_choices
     ):

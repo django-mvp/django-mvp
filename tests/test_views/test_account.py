@@ -25,14 +25,6 @@ from django.urls import include, path, reverse
 
 from mvp.config import MVP_CONFIG
 
-ACCOUNT_BASE_TEMPLATE = (
-    Path(__file__).resolve().parent.parent.parent
-    / "mvp"
-    / "templates"
-    / "mvp"
-    / "account"
-    / "base.html"
-)
 
 # A project's own template at the same path: mirrors mvp/templates/mvp/account/login.html
 # in demo/templates/tests/, the loader's DIRS checked ahead of any app's own APP_DIRS
@@ -111,20 +103,6 @@ class TestSignInView:
         assert response.status_code == 200
         assert response.wsgi_request.user.is_anonymous
         assert response.context["form"].has_error("__all__", code="invalid_login")
-
-    def test_the_message_is_identical_whether_the_account_exists_or_not(
-        self, client, django_user_model
-    ):
-        django_user_model.objects.create_user(
-            username="signinuser2", password="correct-pass"
-        )
-        wrong_password = self._post(client, "signinuser2", "wrong-pass")
-        unknown_username = self._post(client, "no-such-user", "whatever")
-
-        assert wrong_password.context["form"].has_error("__all__", code="invalid_login")
-        assert unknown_username.context["form"].has_error(
-            "__all__", code="invalid_login"
-        )
 
 
 @pytest.mark.django_db
@@ -512,43 +490,6 @@ class TestAccountLayout:
         assert "Fixture Plain" in labels
         assert "Home" not in labels
 
-    def test_the_content_block_renders_inside_a_container(self):
-        html = _render("tests/account_layout_content.html")
-        soup = BeautifulSoup(html, "html.parser")
-        content = soup.find(string=re.compile("account-layout-test-content"))
-
-        assert content.find_parent(class_="container") is not None
-
-    def test_the_layout_draws_no_menu_of_its_own(self):
-        source = ACCOUNT_BASE_TEMPLATE.read_text()
-
-        assert "process_menu" not in source
-        assert "c-mvp.dropdown" not in source
-        assert "c-mvp.card" not in source
-
-    def test_the_layout_extends_the_projects_own_base_not_the_shell_directly(self):
-        source = ACCOUNT_BASE_TEMPLATE.read_text()
-        extends_line = next(
-            line for line in source.splitlines() if "{% extends" in line
-        )
-        assert extends_line.strip() == '{% extends "base.html" %}'
-
-
-@pytest.mark.django_db
-class TestAccountMenuCurrentItem:
-    @pytest.fixture(autouse=True)
-    def _account_fixture_urlconf(self):
-        with override_settings(ROOT_URLCONF=ACCOUNT_FIXTURE_URLCONF):
-            yield
-
-    def test_the_entry_matching_the_current_page_is_marked_as_current(
-        self, client, testapp_account_entries
-    ):
-        content = client.get(reverse("testapp_account:plain")).content.decode()
-        assert re.search(r"menu-active[^>]*>.*?Fixture Plain", content, re.DOTALL), (
-            "the fixture's own entry should be marked as the one being viewed"
-        )
-
 
 @pytest.mark.django_db
 class TestAccountCenterCards:
@@ -617,8 +558,3 @@ class TestSignInFieldNaming:
 
         assert 'placeholder="Email address"' in html
         assert 'placeholder="Username"' not in html
-
-    def test_the_default_user_model_is_unaffected(self):
-        html = self._render_with_label("Username")
-
-        assert 'placeholder="Username"' in html

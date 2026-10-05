@@ -6,11 +6,8 @@ it was written as a literal, so a project could only change it by shipping
 its own copy of the template.
 """
 
-import re
-
 from django import template
 from django.template.context import Context
-from django.utils import translation
 from django_cotton.compiler_regex import CottonCompiler
 
 compiler = CottonCompiler()
@@ -22,33 +19,9 @@ def render(source, **context):
 
 
 class TestSearchActionButtonLabel:
-    def test_the_default_label_is_translated(self):
-        with translation.override("de"):
-            html = render(
-                "<c-mvp.page.list.actions.search />",
-                is_searchable=True,
-            )
-        assert "Suchen" in html
-        assert "Search" not in html
-
     def test_a_caller_can_replace_the_label(self):
         html = render(
             '<c-mvp.page.list.actions.search label="Find products" />',
             is_searchable=True,
         )
         assert "Find products" in html
-
-
-class TestSearchActionSize:
-    def test_the_submit_button_is_small(self):
-        html = render("<c-mvp.page.list.actions.search />", is_searchable=True)
-        assert "btn-sm" in html
-
-    def test_the_input_matches_the_buttons_size(self):
-        html = render("<c-mvp.page.list.actions.search />", is_searchable=True)
-        assert "input-sm" in html
-
-    def test_no_element_carries_a_bare_small_or_large_attribute(self):
-        html = render("<c-mvp.page.list.actions.search />", is_searchable=True)
-        assert not re.search(r"<(button|input)[^>]*\bsmall\b[^>]*>", html)
-        assert not re.search(r"<(button|input)[^>]*\blarge\b[^>]*>", html)

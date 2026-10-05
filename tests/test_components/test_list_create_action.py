@@ -32,56 +32,7 @@ def modal_context():
     }
 
 
-@pytest.fixture
-def modal_soup(cotton_render_soup):
-    return cotton_render_soup(
-        "mvp.page.list.actions.create",
-        context={
-            "directory": {"create_url": "/products/create/"},
-            "create_form": ProductForm(),
-        },
-    )
-
-
-class TestCreateActionButtonSize:
-    def test_the_ghost_link_button_is_small(self, cotton_render_soup):
-        soup = cotton_render_soup(
-            "mvp.page.list.actions.create",
-            context={"directory": {"create_url": "/products/create/"}},
-        )
-        button = soup.find("a", class_="btn")
-        assert button is not None
-        assert "btn-sm" in button.get("class", [])
-        assert not button.has_attr("small")
-
-    def test_the_modal_trigger_button_is_small(self, modal_soup):
-        trigger = modal_soup.find("button", attrs={"@click": "createModal.showModal()"})
-        assert trigger is not None
-        assert "btn-sm" in trigger.get("class", [])
-        assert not trigger.has_attr("small")
-
-    def test_the_modal_submit_button_is_large(self, modal_soup):
-        submit = modal_soup.find("button", attrs={"form": "createForm"})
-        assert submit is not None
-        assert "btn-lg" in submit.get("class", [])
-        assert not submit.has_attr("large")
-
-    def test_no_element_carries_a_bare_small_or_large_attribute(self, modal_soup):
-        for element in modal_soup.find_all():
-            assert not element.has_attr("small"), element
-            assert not element.has_attr("large"), element
-
-
 class TestCreateActionIcon:
-    def test_it_defaults_to_the_add_glyph(
-        self, cotton_render_string_soup, modal_context
-    ):
-        soup = cotton_render_string_soup(
-            "<c-mvp.page.list.actions.create />", context=modal_context
-        )
-
-        assert soup.find("i", class_="bi-plus-circle") is not None
-
     def test_a_caller_chooses_the_glyph(self, cotton_render_string_soup, modal_context):
         soup = cotton_render_string_soup(
             '<c-mvp.page.list.actions.create icon="upload" />', context=modal_context

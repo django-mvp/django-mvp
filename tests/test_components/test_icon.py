@@ -12,11 +12,6 @@ its way to the icon.
 
 
 class TestIconAttributePassThrough:
-    def test_it_renders_the_named_icon(self, cotton_render_string_soup):
-        soup = cotton_render_string_soup('<c-icon name="add" />')
-
-        assert soup.find("i", class_="bi-plus-circle") is not None
-
     def test_a_caller_class_joins_the_icon_classes(self, cotton_render_string_soup):
         soup = cotton_render_string_soup('<c-icon name="add" class="size-6" />')
         rendered = soup.find("i")

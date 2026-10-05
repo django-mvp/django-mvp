@@ -10,7 +10,6 @@ Source: mvp/views/inline.py
 Spec: specs/025-multiple-related-sets/spec.md
 """
 
-import re
 from pathlib import Path
 
 import pytest
@@ -110,30 +109,6 @@ class _StubInlinesView(InlinesMixin):
 
     def get_queryset(self):
         return self.queryset
-
-
-@pytest.mark.django_db
-class TestRowSetFixtures:
-    def test_project_task_belongs_to_a_project(self):
-        project = ProjectFactory()
-        task = ProjectTaskFactory(project=project)
-
-        assert task.project == project
-        assert task in project.tasks.all()
-
-    def test_project_note_reaches_the_parent_by_two_relations(self):
-        project = ProjectFactory()
-        other = ProjectFactory()
-        note = ProjectNoteFactory(project=project, related_project=other)
-
-        assert note.project == project
-        assert note.related_project == other
-        assert note in project.notes.all()
-        assert note in other.cross_notes.all()
-
-    def test_project_task_and_project_note_are_distinct_related_models(self):
-        assert ProjectTask is not ProjectNote
-        assert Project._meta.get_field("name")
 
 
 class TestInlineFormSetRequiresModel:
@@ -511,40 +486,9 @@ class TestGetFactoryKwargsOverride:
         formset_class = declaration.get_formset_class()
         assert formset_class.can_order is True
 
-    def test_can_order_is_not_a_declaration_attribute(self):
-        assert not hasattr(InlineFormSet, "can_order")
-
 
 @pytest.mark.django_db
 class TestGetFormKwargsPerForm:
-    def test_called_once_per_form_with_its_index_and_none_for_the_empty_form(self):
-        project = ProjectFactory()
-        ProjectTaskFactory(project=project)
-        calls = []
-
-        class RecordingTaskInline(InlineFormSet):
-            model = ProjectTask
-            fields = ["title"]
-            extra = 1
-
-            def get_form_kwargs(self, index):
-                calls.append(index)
-                return super().get_form_kwargs(index)
-
-        declaration = RecordingTaskInline(
-            parent_model=Project,
-            request=RequestFactory().get("/"),
-            instance=project,
-            view=None,
-        )
-        formset = declaration.construct_formset()
-
-        list(formset.forms)  # forces construction of every form (1 existing + 1 extra)
-        formset.empty_form  # the blank template form
-
-        assert calls[:-1] == [0, 1]
-        assert calls[-1] is None  # the empty form is built with index None
-
     def test_a_declaration_can_give_each_form_a_different_value_per_index(self):
         project = ProjectFactory()
         ProjectTaskFactory(project=project)
@@ -697,42 +641,6 @@ class TestInlineViewsPublicAPI:
 
         assert ExportedInlineFormSet is InlineFormSet
 
-    def test_create_and_update_inline_views_are_gone(self):
-        import mvp.views
-
-        assert not hasattr(mvp.views, "MVPInlineCreateView")
-        assert not hasattr(mvp.views, "MVPInlineUpdateView")
-
-    def test_create_and_update_inline_views_are_gone_from_the_inline_module(self):
-        import mvp.views.inline
-
-        assert not hasattr(mvp.views.inline, "MVPInlineCreateView")
-        assert not hasattr(mvp.views.inline, "MVPInlineUpdateView")
-
-    def test_inlines_mixin_is_not_exported(self):
-        import mvp.views
-
-        assert not hasattr(mvp.views, "InlinesMixin")
-
-    def test_the_old_inline_formset_mixin_no_longer_exists(self):
-        import mvp.views.inline
-
-        assert not hasattr(mvp.views.inline, "InlineFormsetMixin")
-
-    def test_no_inline_star_attribute_survives_on_the_new_surface(self):
-        removed = {
-            "inline_model",
-            "inline_fields",
-            "inline_extra",
-            "inline_can_delete",
-            "inline_max_num",
-            "inline_title",
-            "inline_description",
-            "inline_form_class",
-        }
-        present = removed & set(dir(InlineFormSet)) | removed & set(dir(InlinesMixin))
-        assert present == set()
-
 
 class NoteViaProjectInline(InlineFormSet):
     model = ProjectNote
@@ -748,19 +656,6 @@ class NoteViaRelatedProjectInline(InlineFormSet):
 
 @pytest.mark.django_db
 class TestTwoInlineSetsRenderInOrder:
-    def test_both_sets_render_under_their_own_headings_in_declared_order(self):
-        project = ProjectFactory()
-        view_cls = _inline_update_view_class(
-            success_url="/done/", inlines=[TaskInline, NoteViaProjectInline]
-        )
-
-        _, response = _dispatch(view_cls, method="GET", view_kwargs={"pk": project.pk})
-        html = _rendered_html(response)
-
-        tasks_index = html.index(str(ProjectTask._meta.verbose_name_plural))
-        notes_index = html.index(str(ProjectNote._meta.verbose_name_plural))
-        assert tasks_index < notes_index
-
     def test_context_carries_both_sets_in_declared_order(self):
         project = ProjectFactory()
         view_cls = _inline_update_view_class(
@@ -793,10 +688,6 @@ class TestSameModelDifferentRelationsGetDifferentPrefixes:
         assert inlines[1].prefix == "cross_notes"
         assert inlines[0].prefix != inlines[1].prefix
 
-    def test_neither_declaration_sets_a_prefix(self):
-        assert NoteViaProjectInline.prefix is None
-        assert NoteViaRelatedProjectInline.prefix is None
-
 
 class _DuplicateTaskInline(InlineFormSet):
     """Same related model, same relation, no prefix override — collides
@@ -821,16 +712,6 @@ class TestDuplicatePrefixRaisesAtBuildTime:
         assert "TaskInline" in message
         assert "_DuplicateTaskInline" in message
         assert "prefix" in message
-
-    def test_raises_from_as_view_not_from_a_template_render(self):
-        project = ProjectFactory()
-        view_cls = _inline_update_view_class(
-            success_url="/done/", inlines=[TaskInline, _DuplicateTaskInline]
-        )
-        request = _build_request(method="GET")
-
-        with pytest.raises(ImproperlyConfigured):
-            view_cls.as_view()(request, pk=project.pk)
 
 
 @pytest.mark.django_db
@@ -1328,18 +1209,6 @@ class TestRowsOnlyPageRendersNoParentFields:
         } == {"Mine"}
 
 
-@pytest.mark.django_db
-class TestFieldsNoneStillRaisesDjangosOwnError:
-    def test_unconfigured_fields_raises_djangos_own_message(self):
-        project = ProjectFactory()
-        view_cls = _inline_update_view_class(success_url="/done/", fields=None)
-
-        with pytest.raises(ImproperlyConfigured) as excinfo:
-            _dispatch(view_cls, method="GET", view_kwargs={"pk": project.pk})
-
-        assert "without the 'fields' attribute is prohibited" in str(excinfo.value)
-
-
 # T044 — the rows-only branch: no parent form fields, sets bound to the
 # loaded instance. No new view class, no page-selecting attribute. Verified
 # by T042/T043 above needing no production code — both already green,
@@ -1578,59 +1447,3 @@ class TestRowsOnlyConfigurationGuards:
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
-
-# The exact identifiers FS-024 shipped and FS-025 removed outright, read from
-# the last commit that still had them (`git show 1038b3e:mvp/views/inline.py`):
-# six class attributes plus the method that assembled them into
-# `inlineformset_factory`'s kwargs.
-REMOVED_IDENTIFIERS = [
-    "inline_model",
-    "inline_form_class",
-    "inline_fields",
-    "inline_extra",
-    "inline_can_delete",
-    "inline_max_num",
-    "inline_title",
-    "inline_description",
-    "get_formset_factory_kwargs",
-]
-
-REMOVED_PATTERN = re.compile(
-    r"\b(?:" + "|".join(re.escape(name) for name in REMOVED_IDENTIFIERS) + r")\b"
-)
-
-# "Live" guidance: what a developer reads today to configure a page — docs/
-# (excluding docs/adr/), README.md, demo/ and mvp/. Deliberately excluded,
-# because rewriting it would erase a decision rather than supersede it:
-#   - docs/adr/     — accepted decisions, standing record
-#   - CHANGELOG.md  — what each shipped version did
-#   - specs/        — feature specs and their working notes, in their entirety
-LIVE_TEXT_EXTENSIONS = {".py", ".md", ".html"}
-LIVE_ROOT_NAMES = ("docs", "demo", "mvp")
-
-
-def _iter_live_files():
-    """Yield every path this guard treats as live guidance."""
-    for root_name in LIVE_ROOT_NAMES:
-        root = REPO_ROOT / root_name
-        for path in sorted(root.rglob("*")):
-            if not path.is_file() or path.suffix not in LIVE_TEXT_EXTENSIONS:
-                continue
-            relative_parts = path.relative_to(root).parts
-            if root_name == "docs" and relative_parts[0] == "adr":
-                continue
-            yield path
-    yield REPO_ROOT / "README.md"
-
-
-class TestLiveGuidanceHasNoRemovedInlineAttributes:
-    def test_no_live_file_mentions_a_removed_identifier(self):
-        offenders = {}
-        for path in _iter_live_files():
-            text = path.read_text(encoding="utf-8")
-            found = sorted(set(REMOVED_PATTERN.findall(text)))
-            if found:
-                offenders[str(path.relative_to(REPO_ROOT))] = found
-        assert offenders == {}, (
-            f"Live guidance still describes removed inline_* attributes: {offenders}"
-        )

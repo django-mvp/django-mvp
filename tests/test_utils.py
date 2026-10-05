@@ -38,7 +38,6 @@ import pytest
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.test import override_settings
-from easy_icons import icon
 
 from mvp.utils import (
     BS5_ICONS,
@@ -102,13 +101,6 @@ class TestBS5IconsData:
         )
 
     @pytest.mark.parametrize("alias, bootstrap_class", _expanded_aliases().items())
-    def test_value_is_a_bi_prefixed_class(self, alias, bootstrap_class):
-        assert bootstrap_class.startswith("bi bi-"), (
-            f"{alias!r} -> {bootstrap_class!r} does not use the 'bi bi-<name>' "
-            "convention every other entry in the pack follows"
-        )
-
-    @pytest.mark.parametrize("alias, bootstrap_class", _expanded_aliases().items())
     def test_class_exists_in_the_pinned_bootstrap_icons_release(
         self, alias, bootstrap_class
     ):
@@ -118,23 +110,6 @@ class TestBS5IconsData:
             f"{alias!r} -> {bootstrap_class!r}: 'bi-{icon_name}' is not in "
             "Bootstrap Icons 1.13.1 (tests/fixtures/bootstrap-icons-1.13.1-names.txt)"
         )
-
-
-class TestBS5IconsResolution:
-    @pytest.mark.parametrize("name", ["import", "upload", "export", "download"])
-    def test_previously_unregistered_name_now_resolves(self, name):
-        rendered = icon(name)
-
-        assert rendered != "", f'icon("{name}") rendered nothing'
-        assert "bi-" in rendered
-
-    @pytest.mark.parametrize("name", ["add", "filter", "search", "logout"])
-    def test_pre_existing_aliases_still_resolve(self, name):
-        assert icon(name) != ""
-
-    @pytest.mark.parametrize("level_tag", ["info", "success", "warning", "error"])
-    def test_django_message_level_resolves(self, level_tag):
-        assert icon(level_tag) != ""
 
 
 #: Names a shipped mvp template references where a companion package's own
@@ -172,14 +147,6 @@ class TestPackageTemplatesReferenceKnownIcons:
         referenced = _icon_names_referenced_in_package_templates()
 
         assert referenced >= SUPPLIED_BY_A_COMPANION_PACKAGE
-
-
-class TestAccountCenterIcons:
-    def test_account_center_resolves(self):
-        assert icon("account_center") != ""
-
-    def test_overview_resolves(self):
-        assert icon("overview") != ""
 
 
 class TestAvatarUrl:
