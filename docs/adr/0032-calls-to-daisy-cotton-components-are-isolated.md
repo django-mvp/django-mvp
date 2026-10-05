@@ -11,12 +11,6 @@ Every call a template under `mvp/templates/` makes to one of
 <c-button text="{% trans "Save" %}" variant="primary" only />
 ```
 
-A test, `tests/test_components/test_daisy_cotton_calls.py`, reads every packaged template the way
-django-cotton compiles it and fails with the template and the tag when a call is missing it. The
-test holds no list of component names. A name is daisy-cotton's when daisy-cotton ships a
-template for it and this package does not, so the icon, which this package replaces, is not
-counted.
-
 The rule covers the templates the package ships. Demo pages and documented examples are written
 the way a project writes them and do not carry `only`.
 

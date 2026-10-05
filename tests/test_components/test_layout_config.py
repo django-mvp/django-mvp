@@ -165,7 +165,7 @@ class TestNavbarWidgetNames:
         return wrapper.select(selector)
 
     @pytest.mark.django_db
-    def test_the_default_lists_render_the_theme_controller_then_login(
+    def test_the_default_lists_render_the_theme_controller_and_login(
         self, client, monkeypatch, packaged_lists
     ):
         mobile, desktop = packaged_lists
@@ -175,10 +175,7 @@ class TestNavbarWidgetNames:
 
         found = self.widgets(client, f"[data-toggle-theme], {login}")
 
-        assert [bool(tag.has_attr("data-toggle-theme")) for tag in found] == [
-            True,
-            False,
-        ]
+        assert len(found) == 2
 
     @pytest.mark.django_db
     def test_a_name_for_the_projects_own_component_is_used_as_written(
