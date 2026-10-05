@@ -4,13 +4,13 @@ django-mvp renders a complete application shell around your content:
 
 ```
 {% block announcement %}      empty by default, outside the shell (scrolls away)
-<c-app>                        DaisyUI drawer (sidebar + content)
-├── <c-app.sidebar>            brand header, AppMenu, fixed footer
-├── <c-app.header>             sticky header
-│   └── <c-app.header.navbar>  sidebar toggle (not on mobile), site icon, breadcrumbs, widgets
-├── <c-app.main>               your {% block content %} + flash messages
-├── <c-app.footer>
-└── <c-app.dock>               mobile bottom navigation
+<c-mvp.app>                        DaisyUI drawer (sidebar + content)
+├── <c-mvp.app.sidebar>            brand header, AppMenu, fixed footer
+├── <c-mvp.app.header>             sticky header
+│   └── <c-mvp.app.header.navbar>  sidebar toggle (not on mobile), site icon, breadcrumbs, widgets
+├── <c-mvp.app.main>               your {% block content %} + flash messages
+├── <c-mvp.app.footer>
+└── <c-mvp.app.dock>               mobile bottom navigation
 ```
 
 The shell is driven by `settings.MVP_CONFIG["layout"]` — similar in spirit to
@@ -112,7 +112,7 @@ Per-page override:
 
 ```html
 {% block app.sidebar %}
-  <c-app.sidebar title="Acme Admin" />
+  <c-mvp.app.sidebar title="Acme Admin" />
 {% endblock %}
 ```
 
@@ -125,16 +125,16 @@ and a language control, in a single row that fills the sidebar's width.
 To change what the footer shows, override the component template in your project:
 
 ```html
-{# templates/cotton/app/sidebar/footer.html #}
+{# templates/cotton/mvp/app/sidebar/footer.html #}
 <div class="bg-base-200 w-full sticky bottom-0 mt-auto z-20 flex items-center gap-2 px-4 py-2">
-  <c-user.sidebar-menu />
-  <c-actions.login />
-  <c-actions.theme-controller valign="top" compact />
+  <c-mvp.user.sidebar-menu />
+  <c-mvp.actions.login />
+  <c-mvp.actions.theme-controller valign="top" compact />
   <myapp.support-link />
 </div>
 ```
 
-`<c-user.sidebar-menu>` and `<c-actions.login>` each guard on
+`<c-mvp.user.sidebar-menu>` and `<c-mvp.actions.login>` each guard on
 `request.user.is_authenticated` internally, so drop both in unguarded — exactly one
 renders per request.
 
@@ -185,7 +185,7 @@ Per-page override:
 
 ```html
 {% block app.sidebar %}
-  <c-app.sidebar boost />
+  <c-mvp.app.sidebar boost />
 {% endblock %}
 ```
 
@@ -277,12 +277,12 @@ MVP_CONFIG = {
     "layout": {
         "navbar": {
             "mobile": {
-                "end": ["actions.theme-controller"],
+                "end": ["mvp.actions.theme-controller"],
             },
             "desktop": {
                 "end": [
-                    "actions.theme-controller",     # light/dark toggle
-                    "actions.language-switcher",    # i18n language menu
+                    "mvp.actions.theme-controller",     # light/dark toggle
+                    "mvp.actions.language-switcher",    # i18n language menu
                     "myapp.notifications-bell",     # your own component
                 ],
             },
@@ -291,7 +291,10 @@ MVP_CONFIG = {
 }
 ```
 
-A name maps to a Cotton template: `"myapp.notifications-bell"` →
+A name is written in full, as it would follow `c-` in a tag, and nothing is added
+to it for your project. A packaged widget carries the `mvp.` prefix:
+`"mvp.actions.theme-controller"` → `templates/cotton/mvp/actions/theme_controller.html`.
+Your own component is listed by its own name: `"myapp.notifications-bell"` →
 `templates/cotton/myapp/notifications_bell.html`. Any component in your project's
 cotton directory works, so app-specific widgets need no configuration beyond the name.
 
@@ -302,7 +305,7 @@ works and applies the same list to both `mobile` and `desktop`:
 MVP_CONFIG = {
     "layout": {
         "navbar": {
-            "end": ["actions.theme-controller"],  # applies to both mobile and desktop
+            "end": ["mvp.actions.theme-controller"],  # applies to both mobile and desktop
         },
     },
 }
@@ -322,7 +325,7 @@ The region hidden by `display:none` is dropped from the accessibility tree by ev
 evergreen browser, so screen-reader users only ever reach the visible one. The cost is
 duplicate markup: any widget listed on both `mobile.end` and `desktop.end` renders
 twice in the page (once per region). Most shipped widgets carry no DOM `id`, so this is
-inert, but `actions.language-switcher-modal` does (its dialog `id`, default
+inert, but `mvp.actions.language-switcher-modal` does (its dialog `id`, default
 `"languageModal"`) — list it on only one of `mobile.end`/`desktop.end`, or wrap it in
 your own component that overrides the `id` (see
 [Language switcher: dropdown or modal](#language-switcher-dropdown-or-modal)) before
@@ -332,9 +335,9 @@ placing it on both.
 
 Two i18n language pickers ship as widgets — use whichever fits the slot:
 
-- **`actions.language-switcher`** — a compact dropdown menu. Best in the navbar, where
+- **`mvp.actions.language-switcher`** — a compact dropdown menu. Best in the navbar, where
   it opens in place.
-- **`actions.language-switcher-modal`** — a globe button that opens a centered modal with
+- **`mvp.actions.language-switcher-modal`** — a globe button that opens a centered modal with
   a responsive, tappable grid of languages (one column on phones, two from `sm` up), the
   active language highlighted. Better for touch and for narrow slots like the
   [sidebar footer](#sidebar-footer), where a dropdown would be cramped. It's the variant
@@ -343,7 +346,7 @@ Two i18n language pickers ship as widgets — use whichever fits the slot:
 Both post to Django's `set_language` view and preserve the current path, so they are
 interchangeable. Placing either in the navbar is a `MVP_CONFIG` setting (above); placing
 one in the sidebar footer instead of the packaged one means overriding
-`templates/cotton/app/sidebar/footer.html` — see [Sidebar footer](#sidebar-footer).
+`templates/cotton/mvp/app/sidebar/footer.html` — see [Sidebar footer](#sidebar-footer).
 
 If you place the modal switcher in more than one slot on the same page, give the extra
 instances a distinct dialog id so they don't collide — this needs a wrapper component,
@@ -351,7 +354,7 @@ since `MVP_CONFIG` names take no attributes:
 
 ```html
 {# templates/cotton/myapp/footer_language.html #}
-<c-actions.language-switcher-modal id="footerLanguageModal" />
+<c-mvp.actions.language-switcher-modal id="footerLanguageModal" />
 ```
 
 For one-off, page-specific widgets, the template block still works and renders before
@@ -386,7 +389,7 @@ Per-page override (use the `:` expression form so the value stays a real boolean
 
 ```html
 {% block app.header %}
-  <c-app.header :sticky="False" />
+  <c-mvp.app.header :sticky="False" />
 {% endblock %}
 ```
 
@@ -414,12 +417,12 @@ The packaged stylesheet only has the classes it was built with. `bg-base-100` th
 `bg-base-300`, `bg-transparent` and `backdrop-blur` are in it. For anything else, build your own
 stylesheet with `python manage.py mvp_tailwind`.
 
-`<c-app.header>` and `<c-dock>` also take a `class` attribute, which wins over the setting wherever
+`<c-mvp.app.header>` and `<c-dock>` also take a `class` attribute, which wins over the setting wherever
 you render them yourself, for example to change one page's header:
 
 ```html
 {% block app.header %}
-  <c-app.header class="bg-base-200" />
+  <c-mvp.app.header class="bg-base-200" />
 {% endblock %}
 ```
 
@@ -443,7 +446,7 @@ same way `app.header.tray` decides nothing on your behalf.
 
 ## Positioning inside the main area
 
-`<c-app.main>` is `relative`, so it is the containing block for anything your
+`<c-mvp.app.main>` is `relative`, so it is the containing block for anything your
 page positions absolutely. An element with `absolute` anchors to the content
 area rather than to the browser window, which keeps it clear of the sidebar and
 the header:
@@ -461,27 +464,27 @@ edge, use `fixed` as before.
 
 ## Full-page content
 
-By default, page content scrolls with the window: `<c-app.main>` grows as tall as
+By default, page content scrolls with the window: `<c-mvp.app.main>` grows as tall as
 its content and the browser handles scrolling. Some content — a full-bleed map, most
 JavaScript-driven widgets — instead wants to fill the space the shell gives it and
 handle its own scrolling.
 
-Put `fill` on `<c-page>`. That is the whole opt-in:
+Put `fill` on `<c-mvp.page>`. That is the whole opt-in:
 
 ```html
 {% block content %}
-  <c-page fill>
-    <c-page.content>
+  <c-mvp.page fill>
+    <c-mvp.page.content>
       <div id="map" class="h-full w-full"></div>
-    </c-page.content>
-  </c-page>
+    </c-mvp.page.content>
+  </c-mvp.page>
 {% endblock %}
 ```
 
 There is nothing to configure above the page, and no setting for it. `fill` marks
 the page, and the shell responds to the mark: `drawer-content` becomes a flex
-column with a viewport-height floor, `<c-app.main>` is already `flex-1`, and
-`<c-page.content>` is already `flex-1 min-h-0`. Your content can then take
+column with a viewport-height floor, `<c-mvp.app.main>` is already `flex-1`, and
+`<c-mvp.page.content>` is already `flex-1 min-h-0`. Your content can then take
 `h-full` and scroll internally.
 
 The demo runs a Leaflet map this way at `/layout/full-page/`.
@@ -549,9 +552,9 @@ Either knob may be set on its own; the other keeps its `MVP_CONFIG` default. The
 variables can instead be supplied from the view context (e.g. `{"breakpoint": "xl"}`)
 when the choice is view- rather than template-driven.
 
-> Setting them on `<c-app>` works: it renders the resolved values onto the shell's
+> Setting them on `<c-mvp.app>` works: it renders the resolved values onto the shell's
 > drawer, and the navbar toggle reads them from there. Setting them on
-> `<c-app.sidebar>` styles only that component and reaches nothing else. Resolving
+> `<c-mvp.app.sidebar>` styles only that component and reaches nothing else. Resolving
 > them in the `app` block as above is still the clearest form, because it is the one
 > place every region reads.
 
@@ -694,7 +697,7 @@ block in a container. It draws no navigation of its own; the sidebar carries the
 | `head`, `title`, `extra_js` | document head / scripts |
 | `announcement` | a banner slot outside the app shell (empty by default) |
 | `app` | the entire app shell |
-| `app.sidebar` | the sidebar (default: `<c-app.sidebar />`; it reads the current [mounted app](mounted-apps.md) from the context on its own) |
+| `app.sidebar` | the sidebar (default: `<c-mvp.app.sidebar />`; it reads the current [mounted app](mounted-apps.md) from the context on its own) |
 | `app.header` | the header |
 | `app.header.widgets` | extra navbar-end content (hidden below the sidebar breakpoint, with the configured widgets) |
 | `app.header.tray` | a row below the navbar |
@@ -703,7 +706,7 @@ block in a container. It draws no navigation of its own; the sidebar carries the
 | `app.dock` | the mobile dock |
 
 For anything deeper, override the component template itself (e.g. drop your own
-`templates/cotton/app/sidebar/footer.html`) — that is the intended extension path.
+`templates/cotton/mvp/app/sidebar/footer.html`) — that is the intended extension path.
 
 ### Layer 2 — `page.*` blocks
 
@@ -765,23 +768,23 @@ and the defaults around it are different:
 
 Two things inside the shell have no enclosing block of their own:
 
-- **The message toasts.** They are emitted inside `<c-app.main>`, after
+- **The message toasts.** They are emitted inside `<c-mvp.app.main>`, after
   `content`. The nearest block is `app.main`, so removing or relocating them
   means overriding `app.main` and restating the main region and
   `{% block content %}` yourself.
-- **The mobile dock.** It is emitted as the last child of `<c-app>`, outside
+- **The mobile dock.** It is emitted as the last child of `<c-mvp.app>`, outside
   every block. Suppressing it means overriding the whole `app` block.
 
 ### Header slots versus header blocks
 
-`<c-app.header>` has four slots and the base template only wires up two of them:
+`<c-mvp.app.header>` has four slots and the base template only wires up two of them:
 
 | Slot | Position | Reached by |
 | --- | --- | --- |
-| `above` | Above the navbar, inside the header region | Restating `<c-app.header>` in the `app.header` block |
+| `above` | Above the navbar, inside the header region | Restating `<c-mvp.app.header>` in the `app.header` block |
 | `right` | Trailing edge of the navbar, before the configured widgets | `{% block app.header.widgets %}` |
 | `tray` | Below the navbar, full width, inside the header region | `{% block app.header.tray %}` |
-| `below` | Below the tray, same region | Restating `<c-app.header>` in the `app.header` block |
+| `below` | Below the tray, same region | Restating `<c-mvp.app.header>` in the `app.header` block |
 
 So `app.header.tray` feeds the `tray` slot specifically, not `below`. The two
 render in the same region and differ only in order. To reach `above` or
@@ -793,13 +796,13 @@ so carry the `right` and `tray` slots along with it or anything a page put in
 
 ```html
 {% block app.header %}
-  <c-app.header :sticky="False">
+  <c-mvp.app.header :sticky="False">
     <c-slot name="right">
       {% block app.header.widgets %}{% endblock app.header.widgets %}
     </c-slot>
     <c-slot name="tray">
       {% block app.header.tray %}{% endblock app.header.tray %}
     </c-slot>
-  </c-app.header>
+  </c-mvp.app.header>
 {% endblock app.header %}
 ```
