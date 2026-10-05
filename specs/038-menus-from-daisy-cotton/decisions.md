@@ -179,15 +179,60 @@ are D1 to D7.
 
 **ADR:** none.
 
+### D10. The drawer takes daisy-cotton's document order
+
+**What was ambiguous:** this package's drawer shell writes the sidebar before the page content.
+daisy-cotton's drawer writes the content first, as daisyUI's own examples do. #438 does not say
+which order the shell should end up with.
+
+**Chosen:** daisy-cotton's order (FR-030). The page's header and content come first for a keyboard
+or a screen reader, and the sidebar follows as a named navigation landmark.
+
+**Why:** daisy-cotton's first tie-break is that following daisyUI beats convenience, so an option
+to reverse the order is unlikely to be accepted there, and keeping a drawer of our own for the sake
+of the order is the second copy R29 removes. Content before navigation is also a common and
+defensible order: a keyboard user reaches the page without passing through the whole menu.
+
+**What it costs:** someone who opens the overlay from the header on a narrow screen now finds the
+sidebar after the page content in tab order, where today it is before. FR-030 adds that a closed
+overlay's links take no focus, which they can today.
+
+**This changes behaviour** for keyboard and screen reader users, so it is the reading most worth a
+second look. It goes in the changelog.
+
+**ADR:** to be written when the work is planned. The order is a lasting property of the shell and
+is not obvious from the markup.
+
+### D11. The remembered state and the store binding are not worked around
+
+**What was ambiguous:** daisy-cotton 0.1.2's drawer gives a caller no way to put an attribute on
+its toggle. This package's drawer shell binds the toggle to the layout store and stores the key for
+the remembered state on it.
+
+**Chosen:** the behaviour is required as it is today (FR-014, FR-015). If the drawer cannot carry
+it, the gap is raised on daisy-cotton and the drawer story waits (FR-031). The other four stories
+go ahead.
+
+**Why:** G3. A script in this package that finds daisy-cotton's checkbox by its class and wires it
+up would work today and break on daisy-cotton's next change to its own markup.
+
+**Checked against daisy-cotton 0.1.2:** the toggle is written with an id, a type, a class and an
+accessible name, and nothing from the caller. The drawer's other extra attributes go to its root
+element. Its `id` attribute becomes the toggle's id, so the root cannot carry an id of its own
+either, which bears on D6. The script that sets the state before first paint is not a gap: the
+content region opens directly after the toggle, and the shell can put the script at its start.
+
+**ADR:** none. It applies G3.
+
 ## Open risks
 
 - django-mvp/daisy-cotton#120 is open, and its last comment hands the decision back to
   daisy-cotton's maintainer. This feature cannot start before a release carries the outcome.
-- daisy-cotton's drawer puts no caller attributes on its toggle. The drawer shell's toggle carries
-  the binding to the layout store and the key the remembered state is stored under, and as of
-  daisy-cotton 0.1.2 the drawer's checkbox takes neither. Planning has to establish whether the
-  shell can attach both from outside the component. If it cannot, that is a second gap to raise on
-  daisy-cotton and a second dependency.
+- The drawer story is expected to wait on a daisy-cotton release that lets a caller reach the
+  drawer's toggle (D11). No issue is open for it on daisy-cotton yet. It is raised when the work
+  is planned.
+- The change of document order (D10) reaches every page of every project. It cannot be seen, and
+  it is easy to miss in review.
 - daisy-cotton's entry writes its text as a bare text node, and the rail's stylesheet hides a
   label by matching an element inside the link. daisy-cotton documents passing the label as markup
   for a collapsing sidebar, on the submenu's summary. Planning has to confirm the same works for an

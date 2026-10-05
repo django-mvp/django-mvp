@@ -46,7 +46,7 @@ written `<c-mvp.…>`, and a bare name such as `<c-menu.item>` means daisy-cotto
 
 ### Session 2026-10-05
 
-The coverage scan found five ambiguities. Each was resolved from #438, its sibling issues under
+The coverage scan found six ambiguities. Each was resolved from #438, its sibling issues under
 R29, the roadmap item and the package's constitution. Longer rationale is in `decisions.md`.
 
 - **Q: #438 and #440 both name the drawer. Which one moves the drawer shell onto daisy-cotton's
@@ -81,6 +81,17 @@ R29, the roadmap item and the package's constitution. Longer rationale is in `de
   feature change the dropdown or its trigger?**
   A: No. The dropdown and its triggers belong to #437. This feature changes the menu and the
   entries inside each panel and leaves the panel alone. Recorded in Assumptions.
+
+- **Q: daisy-cotton's drawer writes the page content before the sidebar, and takes no attributes
+  for its toggle. This package's drawer shell does the opposite on both counts. What does the
+  specification require?**
+  A: The order follows daisy-cotton's, which is daisyUI's own: the page content comes first in the
+  document and the sidebar after it. That changes the order a keyboard or a screen reader meets
+  them in, so it is recorded as a change and the sidebar stays reachable as a named landmark. The
+  toggle is different. The remembered state and the layout store both hang on it, and the
+  requirements for them stand unchanged. If daisy-cotton's drawer cannot carry them, the gap is
+  raised there and the drawer story waits for the release that closes it. The other four stories
+  do not wait. Recorded as FR-030, FR-031 and in Assumptions.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -216,6 +227,12 @@ paint. Repeat the toggle at phone width and confirm the remembered desktop state
    sidebar and the area that closes the overlay, **Then** each has an accessible name.
 9. **Given** the sidebar is configured to navigate with htmx, **When** someone follows a sidebar
    link from the open overlay, **Then** the new page arrives with the overlay closed.
+10. **Given** a shell page, **When** someone moves through it with the keyboard or a screen
+    reader, **Then** the page's header and content come before the sidebar, the sidebar's menu can
+    still be reached and operated, and it can be jumped to as a named navigation landmark.
+11. **Given** a shell page opened below the breakpoint with the overlay closed, **When** someone
+    moves through it with the keyboard, **Then** focus does not land on a sidebar link that is
+    not displayed.
 
 ---
 
@@ -387,6 +404,16 @@ attribute.
   working. Any id or `data-` attribute on the drawer that a project's script or stylesheet could
   depend on MUST either be kept or be listed in the changelog with its replacement.
 
+- **FR-030**: The drawer MUST follow daisy-cotton's document order, with the page content before
+  the sidebar. The sidebar's menu MUST stay reachable and operable from the keyboard and MUST
+  stay a named navigation landmark. While the overlay is closed below the breakpoint, its links
+  MUST NOT take keyboard focus. The changelog MUST record the change of order.
+- **FR-031**: FR-014 and FR-015 MUST be met through what daisy-cotton's drawer offers a caller.
+  If the installed drawer cannot carry what they need on its toggle, the gap MUST be raised on
+  daisy-cotton and the drawer story MUST wait for the release that closes it. It MUST NOT be met
+  by keeping a second drawer in this package or by reaching into daisy-cotton's markup from a
+  script in a way its documentation does not support.
+
 **Entries that need an attribute on the link or button**
 
 - **FR-018**: The sign-out entry MUST be a button that submits a form posting to the project's
@@ -437,7 +464,7 @@ attribute.
 |---|---|
 | US-1 — The sidebar menu is drawn with daisy-cotton's menu components | FR-001, FR-002, FR-003, FR-004, FR-005, FR-006, FR-007, FR-008, FR-026, FR-027, FR-028 |
 | US-2 — The collapsed icon rail keeps working | FR-008, FR-009, FR-010, FR-011, FR-021, FR-026, FR-027 |
-| US-3 — The drawer around the page is daisy-cotton's drawer | FR-008, FR-012, FR-013, FR-014, FR-015, FR-016, FR-017, FR-026, FR-027, FR-028 |
+| US-3 — The drawer around the page is daisy-cotton's drawer | FR-008, FR-012, FR-013, FR-014, FR-015, FR-016, FR-017, FR-026, FR-027, FR-028, FR-030, FR-031 |
 | US-4 — Menu entries that need an attribute on the link keep working | FR-008, FR-018, FR-019, FR-020, FR-021, FR-023, FR-027, FR-028 |
 | US-5 — The package's own menu entry, group, collapse and divider are gone | FR-022, FR-024, FR-025, FR-029 |
 
@@ -490,9 +517,17 @@ entry is opened by the first story and completed by the last.
 - django-mvp/daisy-cotton#120 is closed and released before this feature starts. If daisy-cotton
   declines the change in every form, this feature stops and goes back to its maintainer. It does
   not ship its own menu entry to get around the gap, because that is the second copy R29 removes.
-- Wherever daisy-cotton's drawer cannot carry something the drawer shell needs, the gap is raised
-  on daisy-cotton and this feature waits for it, as R29 says. Whether there is such a gap is
-  established when the work is planned.
+- daisy-cotton 0.1.2's drawer takes no attributes for its toggle, and this package's drawer shell
+  puts the layout store binding and the key for the remembered state there. The third story is
+  therefore expected to wait on a daisy-cotton release that lets a caller reach the toggle. The
+  gap is confirmed and raised on daisy-cotton when the work is planned. The other four stories
+  do not depend on it, because the icon rail already works inside the existing drawer shell, so
+  they can be built first and the drawer can follow on the same pull request.
+- The script that applies the remembered state before the first paint needs no change in
+  daisy-cotton. The drawer's content region starts immediately after its toggle, so the shell can
+  place the script there. FR-014 holds either way, and a browser test proves it.
+- daisy-cotton's drawer keeps daisyUI's document order and is not expected to offer another. This
+  package takes that order (FR-030) and does not ask for an option to reverse it.
 - The dropdown that holds the user menu, the share menu and the theme chooser, and the trigger of
   each, belong to #437. The navbar's button that opens the drawer and the rest of the shell's
   hand-written markup belong to #440. The buttons, badges and the mobile dock belong to #435.
