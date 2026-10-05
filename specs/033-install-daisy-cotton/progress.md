@@ -104,3 +104,10 @@ Did: added tests/test_components/test_daisy_cotton_isolation.py with TestIsolate
 Verified: `uv run pytest tests/test_components/test_daisy_cotton_isolation.py` 5 passed. Probe: removing `only` from the sources made the isolation test and the default-slot test fail (2 failed, 3 passed). ruff check and ruff format clean.
 Next: T014, the rule in CONTRIBUTING.md.
 Watch: the test passes on first run because Cotton already behaves this way; the probe above is the red evidence.
+
+## 2026-10-05T15:30:56Z · Implementer US5 · T014
+
+Did: added a "Calling daisy-cotton components" subsection under Component Development in CONTRIBUTING.md: the rule (pass `only`), the reason, what still works, one example.
+Verified: `uv run pre-commit run --files CONTRIBUTING.md` passed. No test applies to prose.
+Next: ledger flip, full suite, report.
+Watch: none.
