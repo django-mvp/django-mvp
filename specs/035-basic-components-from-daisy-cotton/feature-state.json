@@ -229,13 +229,47 @@
       "tasks": [
         {
           "id": "T006",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_daisy_cotton_calls.py",
+              "tests/test_components/test_daisy_cotton_isolation.py::TestPageVariablesAndDirectCalls",
+              "tests/test_components/test_daisy_cotton_isolation.py::TestContentInsideAnIsolatedAlert",
+              "tests/test_components/test_daisy_cotton_isolation.py::TestDismissibleAlertCalledWithOnly"
+            ],
+            "commands": [
+              "uv run pytest tests/test_components/test_daisy_cotton_calls.py tests/test_components/test_daisy_cotton_isolation.py -q (before T007: 3 failed, 18 passed; the check named 47 calls, the leak test failed on the list page's nav.breadcrumbs and the sign-out page's a.link)"
+            ],
+            "code": [
+              "tests/daisy_cotton_calls.py:17",
+              "tests/test_components/test_daisy_cotton_calls.py:23",
+              "tests/test_components/test_daisy_cotton_isolation.py:117"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T007",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_daisy_cotton_calls.py::TestPackagedCalls::test_every_call_to_a_daisy_cotton_component_is_isolated",
+              "tests/test_components/test_daisy_cotton_isolation.py::TestPageVariablesAndDirectCalls"
+            ],
+            "commands": [
+              "uv run pytest tests/test_components/test_daisy_cotton_calls.py tests/test_components/test_daisy_cotton_isolation.py -q (after: 21 passed)",
+              "uv run pytest -q -n auto (2687 passed, 1 skipped)",
+              "forge verify --repo . --base origin/main (exit 0: conformance, docs, uv:lint, uv:typecheck, uv:test, uv:build passed)"
+            ],
+            "code": [
+              "mvp/templates/menus/dock/index.html:2",
+              "mvp/templates/mvp/account/logout.html:15",
+              "mvp/templates/cotton/mvp/app/header/navbar.html:26"
+            ],
+            "verified_by_ci": false
+          }
         }
       ]
     },
