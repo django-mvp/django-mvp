@@ -29,12 +29,26 @@
       ]
     },
     "plan": {
-      "approved_by": null,
-      "at": null
+      "approved_by": "open",
+      "at": "2026-10-05T16:27:48Z",
+      "self_resolved": []
     },
     "merge": {
       "approved_by": null,
       "at": null
+    },
+    "design_review": {
+      "approved_by": "design-review",
+      "at": "2026-10-05T16:27:48Z",
+      "self_resolved": [
+        "SPEC-001 medium: leak test compares direct calls only; D15 put to the orchestrator before US3 (D19)",
+        "SPEC-002 medium: dock toggle key handlers dropped by ruling; carried unmet on daisy-cotton#135 (D14)",
+        "SPEC-003 low: demo scan table holds undeclared names only (plan section 8)",
+        "ARCH-001 low: overtaken by D14",
+        "ARCH-002 low: hyphen mapping, tag parser, dynamic calls excluded (plan section 4)",
+        "ARCH-003 low: reader is one class in a tests helper module (plan section 4)",
+        "SEC-001 low speculative: daisy-cotton 0.1.2 unchecked; carried to the R29 release"
+      ]
     }
   },
   "stories": [
