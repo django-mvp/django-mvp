@@ -7,7 +7,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- A start-up check on the `daisy_cotton` line in `INSTALLED_APPS`. `mvp.E002` is an error
+  when `daisy_cotton` is missing, and `mvp.W001` is a warning when it is listed above `mvp`.
+  Both can be silenced by identifier in `SILENCED_SYSTEM_CHECKS`. See
+  [Troubleshooting](docs/troubleshooting.md#start-up-checks).
+
 ### Changed
+
+- **Breaking: django-mvp depends on [daisy-cotton](https://pypi.org/project/daisy-cotton/).**
+  It is installed with the package, at `>=0.1.2,<0.2`. Nothing on a page changes: both
+  packages ship some components under the same names, and `mvp` is still found first. See
+  [ADR 0031](docs/adr/0031-daisy-cotton-is-a-runtime-dependency.md).
+
+  **On upgrade**, add one line to `INSTALLED_APPS`, directly below `"mvp"`:
+
+  ```python
+  INSTALLED_APPS = [
+      ...
+      "mvp",
+      "daisy_cotton",
+      ...
+  ]
+  ```
+
+  Without it, daisy-cotton's components are not found.
+
+- The prebuilt stylesheet now styles every class daisy-cotton's components can render. Before,
+  82 breakpoint forms such as `md:card-side`, eight plain utilities and `menu-paged` had no
+  rule, so a component that used one looked unstyled. The stylesheet is now built with
+  daisyUI 5.7.0, which `menu-paged` needs. No class the previous release styled was removed.
+
+- `python manage.py mvp_tailwind` now scans daisy-cotton's templates as well. The generated
+  entry has one more `@source` line, after the form pack's, and `--paths` prints a fourth
+  line, daisy-cotton's templates directory. The first three lines are unchanged. The preset
+  the entry imports also lists the classes daisy-cotton builds at render time, so a project
+  that builds its own stylesheet gets the same coverage as the prebuilt one. Such a project
+  needs daisyUI 5.7 or later and should re-run the command to pick up the new line.
 
 - **Breaking: every component the package keeps is now under `mvp.`.** `<c-card>` is
   `<c-mvp.card>`, `<c-page.list>` is `<c-mvp.page.list>`, so the tag says which package a

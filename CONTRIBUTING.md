@@ -125,6 +125,25 @@ When creating or modifying Cotton components:
 4. **Use semantic HTML** with appropriate ARIA attributes
 5. **Test the markup the component publishes:** its element, classes, attributes and slots
 
+### Calling daisy-cotton components
+
+Every call a template in this package makes to a daisy-cotton component passes `only`.
+
+A daisy-cotton component can declare an attribute with no default. When the caller does not
+pass that attribute, the component reads a page variable of the same name. A page that has a
+variable called `text` or `icon` would then show its value inside the component. `only` stops
+this: the component sees only the attributes the call passes.
+
+Content you put inside the component still works as usual. What sits between the tags, and
+what you place in a named slot, is rendered with the page's variables.
+
+```html
+<c-menu.title only>{{ section_name }}</c-menu.title>
+```
+
+Here `section_name` comes from the page and is shown. A page variable called `text` is not
+picked up, because the call passes `only`.
+
 ## Questions?
 
 - Check the [constitution](CONSTITUTION.md) for project rules

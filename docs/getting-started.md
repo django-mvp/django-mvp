@@ -17,6 +17,7 @@ INSTALLED_APPS = [
     "easy_icons",      # Icon system
     "flex_menu",       # Menu system
     "mvp",             # django-mvp
+    "daisy_cotton",    # basic components, installed with django-mvp, listed below "mvp"
     "crispy_forms",    # Form rendering
     "mvp_forms",       # daisyUI template pack for crispy forms
     ...
@@ -32,6 +33,16 @@ earlier wins, so this is what lets you replace any template django-mvp ships, fr
 your own app. It is the same rule projects already use to override the Django admin's
 templates. The same goes for `mvp_forms`: an app listed above it can replace any one
 of the templates a form is drawn with.
+
+`daisy_cotton` goes directly below `mvp`. daisy-cotton is installed with django-mvp and
+its components are found through that line. Both packages ship components under the
+same names, such as `button` and `menu`. The first app listed wins, so `mvp` must come
+first. Some daisy-cotton components also draw a button or a menu item inside
+themselves, and until `mvp` stops shipping its own copies they get the `mvp` one.
+
+When the line is missing or misplaced, Django tells you at start-up: `mvp.E002` is an
+error for a missing `daisy_cotton`, and `mvp.W001` is a warning for one listed above
+`mvp`. See [Troubleshooting](troubleshooting.md#start-up-checks).
 
 Templates in a directory listed under `TEMPLATES` `DIRS` sidestep the question entirely:
 that loader runs before any app is consulted, whatever the order.
