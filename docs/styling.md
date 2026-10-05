@@ -19,6 +19,14 @@ The packaged stylesheet (`mvp/static/css/django-mvp.css`) contains the
 django-mvp's own templates happen to use — plus every daisyUI theme and the
 sidebar breakpoint/rail classes. It is loaded automatically by `mvp/base.html`.
 
+It also styles every class that [daisy-cotton](https://pypi.org/project/daisy-cotton/)'s
+components can render, including each breakpoint form of the classes they
+build from an attribute such as `horizontal="md"`. A project that uses
+daisy-cotton's components with this stylesheet needs no build step for them.
+The stylesheet is built with daisyUI 5.7.0, the first version that has every
+daisyUI class daisy-cotton writes. Classes you pass in yourself, with `class=`,
+are outside this and follow the rules below.
+
 The contract that makes this work: **customize through component attributes and
 template overrides that reuse packaged components — not raw utility classes**.
 A template override that only composes existing components (`<c-card>`,

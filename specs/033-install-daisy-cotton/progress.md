@@ -48,3 +48,10 @@ Verified: uv run pytest tests/test_components/test_daisy_cotton_coverage.py -q -
 Pages: ran the demo on port 8002 (nothing was listening; stopped it afterwards). Migrated the git-ignored db.sqlite3 and ran generate_dummy_data first, because the worktree had no tables. With curl, the home page /, the list page /products/, the detail page /products/1/, the form page /products/create/ and the sign-in page /account/login/ each returned 200 and linked css/django-mvp.css, and the served file was the rebuilt size (492996 bytes). Nobody has looked at these pages by eye: this is a curl check, not a visual one.
 Next: T007, docs/styling.md and the changelog.
 Watch: daisyUI moved from 5.6.18 to 5.7.0 and no test judges appearance, so rule bodies were not compared. The visual check named in the plan's Risks still has to be done by a person.
+
+## 2026-10-05T15:11:09Z · Implementer US2 · T007
+
+Did: docs/styling.md, Tier 1: a paragraph saying the prebuilt stylesheet styles every class daisy-cotton's components can render (breakpoint forms included), that it is built with daisyUI 5.7.0, and that caller-supplied classes are outside it. CHANGELOG.md, under [Unreleased] > Changed: an entry for the coverage and daisyUI 5.7.0. The 82 in the entry is research R2's count of missing breakpoint forms; I measured 91 missing in all (82 + 8 utilities + menu-paged).
+Verified: uv run pytest tests/test_components/test_daisy_cotton_coverage.py -q -> 24 passed. No test asserts the wording of either file.
+Next: full verify once, then the ledger and the report.
+Watch: nothing else under docs/ describes the stylesheet's coverage; docs/utility-classes.md covers the project utility pack and is unchanged.

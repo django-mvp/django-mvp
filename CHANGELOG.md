@@ -27,6 +27,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
   Without it, daisy-cotton's components are not found.
 
+- The prebuilt stylesheet now styles every class daisy-cotton's components can render. Before,
+  82 breakpoint forms such as `md:card-side`, eight plain utilities and `menu-paged` had no
+  rule, so a component that used one looked unstyled. The stylesheet is now built with
+  daisyUI 5.7.0, which `menu-paged` needs. No class the previous release styled was removed.
+
 ## [v0.26.0] - 2026-10-04
 
 ### Changed
