@@ -20,11 +20,11 @@
   </c-components.section>
 
   <c-components.section title="Code"
-                        description="c-mockup.code renders a terminal-style block. Add a c-mockup.code.line per line.">
+                        description="c-mockup.code renders a terminal-style block. Add a c-mockup.code.line per line, with a prefix of $ on each line that shows a command.">
     {% cotton:verbatim %}
       <c-mockup.code>
-        <c-mockup.code.line text="pip install django-mvp" />
-        <c-mockup.code.line text="python manage.py runserver" />
+        <c-mockup.code.line prefix="$" text="pip install django-mvp" />
+        <c-mockup.code.line prefix="$" text="python manage.py runserver" />
       </c-mockup.code>
     {% endcotton:verbatim %}
   </c-components.section>

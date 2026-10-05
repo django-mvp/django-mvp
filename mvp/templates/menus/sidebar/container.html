@@ -1,6 +1,8 @@
 {% load flex_menu %}
-<c-menu label="{{ label }}" grow>
-  {% for child in children %}
-    {% render_item child renderer=renderer %}
-  {% endfor %}
-</c-menu>
+<nav aria-label="{{ label }}" class="w-full grow">
+  <c-menu class="w-full" only>
+    {% for child in children %}
+      {% render_item child renderer=renderer %}
+    {% endfor %}
+  </c-menu>
+</nav>

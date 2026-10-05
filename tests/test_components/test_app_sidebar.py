@@ -14,6 +14,7 @@ from django_cotton.compiler_regex import CottonCompiler
 from flex_menu import Menu, MenuItem
 
 from mvp.mounted import MountedApp
+from tests.testapp_mounted.menus import TestappMountedMenu
 
 BACK_TEXT = "Back to example.com"
 
@@ -116,8 +117,10 @@ class TestSidebarMenuChoice:
         landmarks = soup.find_all(
             lambda tag: tag.name == "nav" or tag.get("role") == "navigation"
         )
+        named = soup.find_all("nav", attrs={"aria-label": TestappMountedMenu.name})
 
         assert len(landmarks) == 1
+        assert landmarks == named
 
 
 @pytest.mark.django_db

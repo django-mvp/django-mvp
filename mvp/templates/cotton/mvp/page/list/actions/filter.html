@@ -16,7 +16,7 @@
     <c-button text="{{ label }}"
               icon="{{ icon }}"
               size="sm"
-              @click="filterModal.showModal()" />
+              @click="filterModal.showModal()" only />
   </div>
   <c-mvp.modal id="filterModal"
            title="{{ label }}"
@@ -33,17 +33,17 @@
         <c-button text="{% trans "Clear filters" %}"
                   href="{{ clear_filters_url }}"
                   icon="x"
-                  ghost />
+                  ghost only />
       </c-slot>
     {% endif %}
     <c-slot name="footer_end">
       <c-button text="{% trans "Apply filters" %}"
                 form="filterForm"
-                icon="arrow-right"
-                reverse
                 size="lg"
                 variant="primary"
-                type="submit" />
+                type="submit" only>
+        <c-icon name="arrow-right" />
+      </c-button>
     </c-slot>
   </c-mvp.modal>
 {% endif %}

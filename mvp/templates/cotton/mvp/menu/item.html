@@ -17,7 +17,7 @@
      {{ attrs }}>
      {% if icon %}<c-icon name="{{ icon }}" />{% endif %}
     <span>{{ label }}</span>
-    {% if badge %}<c-badge size="sm" :text="badge" />{% endif %}
+    {% if badge %}<c-badge size="sm" :text="badge" only />{% endif %}
   </{{element}}>
     {# djlint:on #}
   </li>

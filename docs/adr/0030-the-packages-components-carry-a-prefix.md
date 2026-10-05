@@ -7,8 +7,8 @@
 Every component this package owns lives under `mvp/templates/cotton/mvp/` and is reached as
 `<c-mvp.…>`: `<c-mvp.card>`, `<c-mvp.page.list>`, `<c-mvp.app.sidebar>`. A bare name is for the
 basic daisyUI components, which [daisy-cotton](https://github.com/django-mvp/daisy-cotton)
-provides. The package's own copies of those (the alert, badge, button and the like) keep their
-bare names until they are removed in favour of daisy-cotton's, and are not renamed first.
+provides. The package's own copies of those (the alert, badge, button and the like) were not
+renamed first. They kept their bare names until they were removed in favour of daisy-cotton's.
 
 The icon is the one permanent exception. It stays at `cotton/icon.html` and is written
 `<c-icon>`.

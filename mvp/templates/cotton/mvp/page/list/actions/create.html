@@ -6,7 +6,7 @@
 {% if directory.create_url and create_form %}
   <c-button text="{{ label }}"
             size="sm"
-            @click="createModal.showModal()" />
+            @click="createModal.showModal()" only />
   <c-mvp.modal id="createModal"
            title="{{ create_modal_title|default:label }}"
            icon="{{ icon }}"
@@ -20,11 +20,11 @@
     <c-slot name="footer_end">
       <c-button text="{% trans "Submit" %}"
                 form="createForm"
-                reverse
-                icon="arrow-right"
                 variant="primary"
                 size="lg"
-                type="submit" />
+                type="submit" only>
+        <c-icon name="arrow-right" />
+      </c-button>
     </c-slot>
   </c-mvp.modal>
 {% elif directory.create_url %}
@@ -32,5 +32,5 @@
             icon="{{ icon }}"
             size="sm"
             ghost
-            href="{{ directory.create_url }}" />
+            href="{{ directory.create_url }}" only />
 {% endif %}

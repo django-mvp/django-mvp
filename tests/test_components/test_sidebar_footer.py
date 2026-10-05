@@ -10,6 +10,7 @@ background is what is under test.
 import re
 
 import pytest
+from bs4 import BeautifulSoup
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
 from django.template.loader import render_to_string
@@ -76,12 +77,10 @@ class TestSidebarFooterAnonymous:
         html = _render(AnonymousUser())
 
         login_href = reverse("account_login")
-        link = re.search(
-            rf'<a class="([^"]*)"[^>]*href="{re.escape(login_href)}"', html
-        )
+        link = BeautifulSoup(html, "html.parser").find("a", href=login_href)
         assert link is not None, "the log-in button must render as a link"
 
-        classes = link.group(1)
+        classes = link["class"]
         assert "btn-primary" in classes, f"expected the primary variant, got {classes}"
         assert "btn-block" in classes, f"expected it to fill its row, got {classes}"
 

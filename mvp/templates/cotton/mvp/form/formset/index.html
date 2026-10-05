@@ -29,11 +29,11 @@
       Unconditional: rows flush against the parent form's fields read as
       more of the same form without a divider marking the set off.
     {% endcomment %}
-    <c-divider class="my-8">{{ heading }}</c-divider>
+    <c-divider class="my-8" only>{{ heading }}</c-divider>
     {% firstof description formset.description as help_text %}
     {% if help_text %}<c-mvp.text muted size="sm">{{ help_text }}</c-mvp.text>{% endif %}
     {% if formset.non_form_errors %}
-      <c-alert variant="error">{{ formset.non_form_errors }}</c-alert>
+      <c-alert variant="error" only>{{ formset.non_form_errors }}</c-alert>
     {% endif %}
     {{ formset.management_form.INITIAL_FORMS }}
     {{ formset.management_form.MIN_NUM_FORMS }}
@@ -87,7 +87,7 @@
               text="{{ add_label }}"
               class="mb-8"
               x-bind:disabled="!canAddRow"
-              x-on:click="addRow()" />
+              x-on:click="addRow()" only />
   </div>
   {% comment %}
     Not `defer`: the base template already defers Alpine, so a deferred tag

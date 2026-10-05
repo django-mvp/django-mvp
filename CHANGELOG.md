@@ -17,9 +17,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - **Breaking: django-mvp depends on [daisy-cotton](https://pypi.org/project/daisy-cotton/).**
-  It is installed with the package, at `>=0.1.2,<0.2`. Nothing on a page changes: both
-  packages ship some components under the same names, and `mvp` is still found first. See
-  [ADR 0031](docs/adr/0031-daisy-cotton-is-a-runtime-dependency.md).
+  It is installed with the package, at `>=0.1.3,<0.2`. Installing it changes nothing on a
+  page by itself; the sixteen basic components then come from it, as the entry below says.
+  See [ADR 0031](docs/adr/0031-daisy-cotton-is-a-runtime-dependency.md).
 
   **On upgrade**, add one line to `INSTALLED_APPS`, directly below `"mvp"`:
 
@@ -61,10 +61,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `<c-icon>` keeps its name for good. daisy-cotton ships a plain icon, and this package's icon
     replaces it by sitting at the same name, so every caller, daisy-cotton's own components
     included, reaches this one.
-  - The basic components that issue #435 removes in favour of daisy-cotton's: `<c-alert>`,
-    `<c-avatar.group>`, `<c-badge>`, `<c-breadcrumbs>`, `<c-breadcrumbs.item>`, `<c-button>`,
-    `<c-divider>`, `<c-dock>`, `<c-dock.item>`, `<c-link>`, `<c-menu>` and `<c-mockup.*>`. They
-    keep their names until #435, so those tags change once rather than twice.
+  - The basic components that come from daisy-cotton: `<c-alert>`, `<c-avatar.group>`,
+    `<c-badge>`, `<c-breadcrumbs>`, `<c-breadcrumbs.item>`, `<c-button>`, `<c-divider>`,
+    `<c-dock>`, `<c-dock.item>`, `<c-link>`, `<c-menu>` and `<c-mockup.*>`. They keep their
+    tag names. Their attributes changed; see the entry below.
 
   **If daisy-cotton is installed**, check five tags first: `<c-card>`, `<c-modal>`,
   `<c-avatar>`, `<c-dropdown>` and `<c-menu.item>`. Left unchanged, each now resolves to
@@ -154,6 +154,88 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   | `<c-toolbar>` | `<c-mvp.toolbar>` |
   | `<c-user.display.compact>` | `<c-mvp.user.display.compact>` |
   | `<c-user.sidebar-menu>` | `<c-mvp.user.sidebar-menu>` |
+
+- **Breaking: the sixteen basic components come from [daisy-cotton](https://github.com/django-mvp/daisy-cotton),
+  and take daisy-cotton's attributes.** This package no longer ships a template for any of
+  them (#435). The tags keep their names: `<c-button>`, `<c-alert>`, `<c-badge>`,
+  `<c-avatar.group>`, `<c-breadcrumbs>`, `<c-breadcrumbs.item>`, `<c-divider>`, `<c-link>`,
+  `<c-dock>`, `<c-dock.item>`, `<c-mockup.browser>`, `<c-mockup.code>`,
+  `<c-mockup.code.line>`, `<c-mockup.phone>`, `<c-mockup.window>` and `<c-menu>`. The
+  minimum daisy-cotton version is 0.1.3, as the entry above says.
+
+  **There are no aliases, and nothing reports an old name.** A component ignores an attribute
+  it does not declare and writes it onto the element as an HTML attribute, so a page that still
+  uses an old name renders without an error and without the effect. Search your templates for
+  every name in this table, and for the tags that changed without an attribute name, below it.
+  The same names move in an attribute dictionary a view passes from Python:
+  `page_info_actions` (each entry is a button's attributes), `related_objects_attrs` (an
+  alert's) and the extra keys of a `breadcrumbs` entry.
+
+  | Tag | Former attribute | What to write now |
+  | --- | --- | --- |
+  | `<c-button>` | `full` | `block` |
+  | `<c-button>` | `variant="ghost"`, `variant="link"` | the `ghost` or the `link` attribute |
+  | `<c-button>` | `reverse` | the icon written in the button's content, after the text: `<c-button text="Next"><c-icon name="arrow-right" /></c-button>` |
+  | `<c-button>` | `align` | nothing; it is removed with no replacement |
+  | `<c-button>` | `condition` | an `{% if %}` around the tag |
+  | `<c-alert>` | `variant` of `primary`, `secondary`, `accent` or `neutral` | one of `info`, `success`, `warning`, `error`, or no variant |
+  | `<c-avatar.group>` | `size` | the overlap class, in `class`: `-space-x-2`, `-space-x-4`, `-space-x-6`, `-space-x-8`, `-space-x-10`, `-space-x-12` for `xs`, `sm`, `md`, `lg`, `xl`, `xxl`. A group with no `size` was `md`, so it now needs `class="-space-x-6"` to overlap as before |
+  | `<c-breadcrumbs.item>` | extra attributes, which reached the link | extra attributes, which now reach the list item |
+  | `<c-divider>` | `label` | `text` |
+  | `<c-divider>` | `position` | `placement` |
+  | `<c-divider>` | `vertical` | `horizontal`; the two names have swapped meaning, see below |
+  | `<c-link>` | no `href`, which meant `#` | an explicit `href`; without one the link has no `href` attribute |
+  | `<c-dock>` | no `class`, which meant the configured dock class | the class passed by the caller, `:class="mvp_config.layout.dock.class"` for the configured one |
+  | `<c-mockup.code.line>` | no `prefix`, which meant a shell prompt | `prefix="$"` on a line that shows a command |
+  | `<c-menu>` | `label` | an accessible name from the caller: `aria-label` on the tag, or a `<nav>` around it |
+  | `<c-menu>` | `grow`, `responsive` | `class="grow"`; `horizontal="lg"` (or another breakpoint) in place of `responsive="lg"` |
+
+  **The divider's `vertical` and `horizontal` swapped meaning.** What this package called
+  `vertical`, a vertical line between items side by side, is daisy-cotton's `horizontal`.
+  daisy-cotton's `vertical` is a horizontal line between stacked items. A divider left with
+  `vertical` therefore draws the line the other way round, with no error. Move every
+  `vertical` to `horizontal`.
+
+  **Other differences a page may show:**
+
+  - `<c-badge>` is a `<span>` and passes extra attributes through. It was a `<div>` that
+    kept only its declared attributes.
+  - `<c-dock>` is a `<nav>` with an accessible name. It was a `<div>`.
+  - `<c-menu>` no longer adds `w-full` or `role="navigation"`; pass `class="w-full"` where the
+    menu has to fill its parent.
+  - A breadcrumb step no longer wraps its text in a `<span>` with the class
+    `mvp-breadcrumb-text`, and `<c-breadcrumbs>` no longer adds `text-sm`. The header passes
+    it; a trail of your own needs `class="text-sm"` to stay the same size.
+  - `<c-mockup.window>` and `<c-mockup.phone>` no longer centre their content or fix its
+    height.
+  - A button takes `size` from `xs` to `xl`, and a badge too. Both stopped at `lg`.
+
+  **An override of one of these tags keeps winning.** A project template at `cotton/button.html`,
+  or at the path of any of the sixteen, still replaces daisy-cotton's. It now also answers when
+  one of daisy-cotton's components draws that tag inside itself: the dismiss button in an alert,
+  the close button in its modal, the trigger of its dropdown. An override that declares fewer
+  attributes than daisy-cotton's template can break those components. See
+  [Overriding one of these tags](docs/components.md#overriding-one-of-these-tags).
+
+  **The prebuilt stylesheet no longer carries six classes that only the removed templates
+  wrote:** `bg-neutral-900`, `flex-row-reverse`, `h-80`, `place-content-center`,
+  `text-white` and `mvp-breadcrumb-text`. A template of yours that wrote one of them by hand
+  needs `python manage.py mvp_tailwind` and your own stylesheet.
+
+  **Known gaps**, both waiting on daisy-cotton:
+
+  - The dock's sidebar toggle cannot be used from the keyboard. It could not before either: it
+    took focus and did nothing. It now takes no focus. Waiting on
+    [daisy-cotton#135](https://github.com/django-mvp/daisy-cotton/issues/135).
+  - `<c-alert>` with a `variant` outside `info`, `success`, `warning` and `error` raises an icon
+    lookup error when `DEBUG` is off, as this package's former alert did. Django messages are
+    not affected: a message at any other level tag is drawn as a plain alert. Waiting on
+    [daisy-cotton#136](https://github.com/django-mvp/daisy-cotton/issues/136).
+
+### Fixed
+
+- A Django message at a level tag a project added through `MESSAGE_TAGS` no longer raises. It is
+  drawn as a plain alert.
 
 ## [v0.26.0] - 2026-10-04
 

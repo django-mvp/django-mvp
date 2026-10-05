@@ -40,7 +40,7 @@ dependencies = [
     "mergedeep (>=1.3,<2.0)",
     "django-crispy-forms (>=2.7,<3.0)",
     "django-mvp-forms (>=0.2,<1.0)",   # the daisyUI template pack forms render with
-    "daisy-cotton (>=0.1.2,<0.2)",
+    "daisy-cotton (>=0.1.3,<0.2)",
 ]
 # Optional integrations (django-tables2, django-filter, ...) are NOT extras:
 # they live in guarded modules under mvp.integrations, required only when

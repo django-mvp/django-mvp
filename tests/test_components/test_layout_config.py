@@ -222,8 +222,19 @@ class TestHeaderAndDockBackground:
     @pytest.mark.django_db
     def test_the_dock_renders_the_configured_class(self, client, monkeypatch):
         monkeypatch.setitem(MVP_CONFIG["layout"]["dock"], "class", "bg-base-300")
-        dock = _class_list(client.get("/").content.decode(), "dock")
-        assert "bg-base-300" in dock
+        soup = BeautifulSoup(client.get("/").content.decode(), "html.parser")
+        assert "bg-base-300" in soup.select_one("nav.dock")["class"]
+
+    @pytest.mark.django_db
+    def test_the_dock_takes_the_package_default_when_the_setting_is_absent(
+        self, client, settings
+    ):
+        assert "dock" not in settings.MVP_CONFIG["layout"]
+        soup = BeautifulSoup(client.get("/").content.decode(), "html.parser")
+        settings.MVP_CONFIG = {}
+        packaged = runpy.run_path(str(Path(mvp.config.__file__)))["MVP_CONFIG"]
+        expected = packaged["layout"]["dock"]["class"].split()
+        assert set(expected) <= set(soup.select_one("nav.dock")["class"])
 
     @pytest.mark.django_db
     def test_a_header_class_attribute_beats_the_setting(self):

@@ -15,10 +15,10 @@ template invocation would — rendering the component's own template file
 directly, as ``test_render_all.py`` does, never triggers Cotton's c-vars /
 ``attrs`` extraction and would not reproduce this bug.
 
-Covers every component the audit for #121 found with this exact shape:
-c-mvp.text, c-menu, c-mvp.menu.item, c-dock.item, c-mvp.page.list.empty and
-c-mvp.layout.sidebar. Peers that already merge ``{{ class }}`` correctly
-(c-button, c-badge, c-alert, ...) are unaffected and untouched here.
+Covers every component this package ships that the audit for #121 found with
+this exact shape: c-mvp.text, c-mvp.menu.item, c-mvp.page.list.empty and
+c-mvp.layout.sidebar. The divider, menu and dock item it also found are
+daisy-cotton's now.
 
 c-mvp.page.title was added later, from #263. It is the same defect one step
 further along: it declared ``class``, so Cotton stripped the caller's value
@@ -81,38 +81,6 @@ class TestClassAttributeMerge:
         assert len(attrs) == 1, f"expected one class attribute, found {attrs}"
         assert "dac-prose" in attrs[0]
         assert "text-base" in attrs[0]
-
-    def test_divider_merges_caller_class(self):
-        html = render('<c-divider class="my-8">Order lines</c-divider>')
-        attrs = class_attrs_on(html, "div")
-        assert len(attrs) == 1, f"expected one class attribute, found {attrs}"
-        assert "my-8" in attrs[0]
-        assert "divider" in attrs[0]
-
-    def test_menu_merges_caller_class(self):
-        html = render('<c-menu class="my-menu">items</c-menu>')
-        attrs = class_attrs_on(html, "ul")
-        assert len(attrs) == 1, f"expected one class attribute, found {attrs}"
-        assert "my-menu" in attrs[0]
-        assert "menu" in attrs[0]
-
-    def test_dock_item_toggle_variant_merges_caller_class(self):
-        html = render('<c-dock.item toggle="sidebar-toggle" class="my-dock-item" />')
-        attrs = class_attrs_on(html, "label")
-        assert len(attrs) == 1, f"expected one class attribute, found {attrs}"
-        assert "my-dock-item" in attrs[0]
-
-    def test_dock_item_href_variant_merges_caller_class(self):
-        html = render('<c-dock.item href="/" class="my-dock-item" />')
-        attrs = class_attrs_on(html, "a")
-        assert len(attrs) == 1, f"expected one class attribute, found {attrs}"
-        assert "my-dock-item" in attrs[0]
-
-    def test_dock_item_button_variant_merges_caller_class(self):
-        html = render('<c-dock.item class="my-dock-item" />')
-        attrs = class_attrs_on(html, "button")
-        assert len(attrs) == 1, f"expected one class attribute, found {attrs}"
-        assert "my-dock-item" in attrs[0]
 
     def test_menu_item_merges_caller_class(self):
         html = render('<c-mvp.menu.item label="X" class="my-menu-item" />')

@@ -18,9 +18,17 @@
 
 /* Safelist: classes constructed at runtime from component attributes
    (e.g. `btn-{{ variant }}`, `grid-cols-{{ cols }}`) — the scanner can never
-   see these in source. Keep in sync with the component attribute APIs. */
+   see these in source. Some of these components are daisy-cotton's (button,
+   badge, link, alert, avatar group, divider, dock); keep the lists in sync with
+   the attributes those and this package's own components accept. */
 @source inline("btn-{neutral,primary,secondary,accent,info,success,warning,error,ghost,link}");
 @source inline("btn-{sm,md,lg}");
+
+/* daisy-cotton's button writes this one literally for its `outline` attribute.
+   The prebuilt stylesheet does not scan daisy-cotton's templates, and daisyUI
+   emits it only when it is seen in scanned content. */
+@source inline("btn-outline");
+
 @source inline("badge-{neutral,primary,secondary,accent,info,success,warning,error,ghost}");
 @source inline("link-{primary,secondary,accent,neutral,info,success,warning,error}");
 @source inline("alert-{info,success,warning,error}");
@@ -53,16 +61,15 @@
    table-pin-rows above, and same consequence without it. */
 @source inline("table-pin-cols");
 
-/* Safelist: c-menu `responsive` modifiers (cotton/menu/index.html). */
+/* Safelist: daisy-cotton's menu builds these from `horizontal="<breakpoint>"`. */
 @source inline("{md,lg,xl}:menu-horizontal");
 
 /* Safelist: cotton/mvp/entrance/index.html builds its card's width cap from the
    `size` attribute. Must cover every width that attribute accepts. */
 @source inline("md:max-w-{sm,md,lg,xl,2xl,3xl,4xl}");
 
-/* Safelist: responsive divider orientation is emitted by the `responsive`
-   templatetag from cotton/divider.html's `vertical` attribute
-   (mvp/templatetags/mvp.py). */
+/* Safelist: daisy-cotton's divider builds these from
+   `horizontal="<breakpoint>"`. */
 @source inline("{sm,md,lg,xl,2xl}:divider-horizontal");
 
 /* Safelist: cotton/mvp/toolbar.html builds these three classes at render time
@@ -279,7 +286,7 @@
     :is(a, button, summary, [role="button"]) {
       justify-content: flex-start;
 
-      > span {
+      > span:not(.badge) {
         display: inline;
       }
     }
@@ -684,20 +691,20 @@
   min-width: 0;
 }
 
-/* The crumb's text, in its own span (cotton/breadcrumbs/item.html) so only
-   the text ellipsises — a crumb's slot may hold an icon, which sits outside
-   this span and must stay whole. `overflow: hidden` also gives the span
-   itself an automatic minimum size of 0 as a flex item, the same fix the
-   rule above makes explicit for its ancestors.
+/* The crumb's text: the <a> of a crumb with an address, or the <span> that
+   marks the current page (daisy-cotton's breadcrumbs.item). Both are direct
+   children of the <li> and carry no class of their own, so the rule is written
+   against them. `overflow: hidden` also gives the element an automatic minimum
+   size of 0 as a flex item, the same fix the rule above makes explicit for its
+   ancestors. A crumb's slot content sits inside the same element, so it is
+   clipped with the text.
 
-   Specificity: daisyUI's `.breadcrumbs>ul>li>*` matches this span directly
-   for a crumb with no href (the span is then a direct child of <li>), and
-   sets `display: flex`. A bare `.mvp-breadcrumb-text` class loses that fight
-   on specificity, which is why this is written against the descendant
-   selector below instead — `cursor: inherit` on top of it stops that same
-   crumb picking up the pointer cursor daisyUI's rule sets for a direct
-   child, which the current (non-link) crumb has never had. */
-.breadcrumbs li .mvp-breadcrumb-text {
+   Specificity: daisyUI's `.breadcrumbs>ul>li>*` matches the same element and
+   sets `display: flex`. This selector has the same specificity and wins by
+   coming later in the built stylesheet, so keep it in this layer.
+   `cursor: inherit` stops the current page's span taking the pointer cursor
+   daisyUI's rule sets for a direct child, which that crumb has never had. */
+.breadcrumbs li > :is(a, span) {
   display: block;
   overflow: hidden;
   text-overflow: ellipsis;

@@ -143,8 +143,10 @@ class PageMixin:
             icon appears beside the page title and opens a dialog containing this text.
             Defaults to ``""``, which renders no icon.
         page_info_actions (list): Buttons shown at the foot of that dialog. Each dict is
-            passed straight to the ``c-button`` component, so it accepts any attribute that
-            component accepts. Defaults to ``[]``.
+            passed straight to daisy-cotton's ``c-button``, so it accepts any
+            attribute that component declares (``text``, ``href``, ``icon``,
+            ``variant``, ``ghost``, ``outline``, ``size`` and the rest). Defaults
+            to ``[]``.
 
     Primary consumers:
         - ``MVPTemplateView`` (``mvp.views.base``)
@@ -306,10 +308,11 @@ class PageMixin:
     def get_page_info_actions(self):
         """Return the buttons shown at the foot of the page-info dialog.
 
-        Each item is a dict passed straight to the ``c-button`` component, so it takes any
-        attribute that component takes — ``text``, ``href``, ``icon``, ``variant``,
-        ``target`` and the rest. This is how a page points at fuller documentation instead
-        of restating it in the dialog.
+        Each item is a dict passed straight to daisy-cotton's ``c-button``, so it
+        takes any attribute that component takes — ``text``, ``href``, ``icon``,
+        ``variant``, ``ghost``, ``outline`` and the rest. Any other key lands on the
+        element as an HTML attribute. This is how a page points at fuller
+        documentation instead of restating it in the dialog.
 
         This method is the override hook for dynamic values. To set static actions, assign
         ``page_info_actions`` as a class attribute instead.

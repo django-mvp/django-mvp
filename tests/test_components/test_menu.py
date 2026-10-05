@@ -1,11 +1,13 @@
-"""Regression tests for issue #189: c-menu applied ``grow`` unconditionally.
+"""Tests for the package's menu entries and the sidebar menu's container.
 
-``grow`` stretches the menu to fill a flex parent — correct for the sidebar
-navigation, wrong for a menu inside a dropdown panel or card. ``grow`` is now
-an opt-in ``<c-vars>`` boolean, default ``False``; the sidebar renderer
-passes it explicitly.
+The menu container itself is daisy-cotton's. What the package still promises
+is its own entries and the navigation landmark the sidebar draws around the
+menu, named by the label the menu declares.
+
+Sources: mvp/templates/cotton/mvp/menu/, mvp/templates/menus/sidebar/
 """
 
+from bs4 import BeautifulSoup
 from django.contrib.auth.models import AnonymousUser
 from django.template import Context, Template
 from django.template.loader import render_to_string
@@ -14,6 +16,7 @@ from django_cotton.compiler_regex import CottonCompiler
 
 from mvp.config import MVP_CONFIG
 from mvp.fixtures import _beautiful_soup
+from mvp.menus import AppMenu
 
 compiler = CottonCompiler()
 
@@ -39,34 +42,15 @@ class TestMenuItemWithoutAnHref:
         assert link["href"] == "/page/"
 
 
-class TestMenuGrow:
-    def test_grow_is_off_by_default(self):
-        html = render('<c-menu label="Nav">item</c-menu>')
-
-        assert "grow" not in html
-
-    def test_grow_attribute_applies_the_grow_class(self):
-        html = render('<c-menu label="Nav" grow>item</c-menu>')
-
-        assert "grow" in html
-
-
-class TestSidebarContainerPassesGrow:
-    def test_sidebar_menu_container_still_grows(self):
-        html = render_to_string(
-            "menus/sidebar/container.html", {"children": [], "renderer": None}
-        )
-
-        assert "grow" in html
-
-
 class TestSidebarContainerTakesItsNameFromContext:
     def test_the_label_comes_from_context_not_a_fixed_string(self):
         html = render_to_string(
             "menus/sidebar/container.html",
             {"children": [], "renderer": None, "label": "Reports"},
         )
-        assert 'aria-label="Reports"' in html
+        soup = BeautifulSoup(html, "html.parser")
+
+        assert soup.find("nav")["aria-label"] == "Reports"
         assert "Main Navigation" not in html
 
     def test_two_different_menus_come_back_with_two_different_labels(self):
@@ -78,8 +62,21 @@ class TestSidebarContainerTakesItsNameFromContext:
             "menus/sidebar/container.html",
             {"children": [], "renderer": None, "label": "Account navigation"},
         )
-        assert 'aria-label="Main navigation"' in first
-        assert 'aria-label="Account navigation"' in second
+
+        first_nav = BeautifulSoup(first, "html.parser").find("nav")
+        second_nav = BeautifulSoup(second, "html.parser").find("nav")
+
+        assert first_nav["aria-label"] == "Main navigation"
+        assert second_nav["aria-label"] == "Account navigation"
+
+    def test_the_menu_sits_inside_the_named_navigation_landmark(self):
+        html = render_to_string(
+            "menus/sidebar/container.html",
+            {"children": [], "renderer": None, "label": "Reports"},
+        )
+        soup = BeautifulSoup(html, "html.parser")
+
+        assert soup.select_one("nav[aria-label='Reports'] > ul.menu") is not None
 
 
 class TestTheSidebarDrawsOneNavigationLandmark:
@@ -87,11 +84,12 @@ class TestTheSidebarDrawsOneNavigationLandmark:
         request = RequestFactory().get("/")
         request.user = AnonymousUser()
         html = render_to_string("cotton/mvp/app/sidebar/index.html", request=request)
-        soup = _beautiful_soup()(html, "html.parser")
+        soup = BeautifulSoup(html, "html.parser")
         landmarks = soup.find_all(
             lambda tag: tag.name == "nav" or tag.get("role") == "navigation"
         )
         assert len(landmarks) == 1
+        assert landmarks[0]["aria-label"] == str(AppMenu.extra_context["label"])
 
 
 class TestDockItemForwardsAttrs:
