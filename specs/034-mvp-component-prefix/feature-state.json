@@ -63,7 +63,7 @@
       "priority": "P1",
       "issue": 451,
       "worktree": "/home/sam/projects/django-mvp/worktrees/mvp-034-mvp-component-prefix",
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
@@ -204,7 +204,7 @@
       "max": 1
     },
     "tokens": {
-      "used": 0,
+      "used": 5.58,
       "max": 120
     }
   },
