@@ -219,3 +219,38 @@ widget names change in US1's commit, although FR-008 is listed under US2.
 
 **Why:** the move has to leave the suite green, and the default widget list names two components
 that move. US2 then adds the tests and the documentation for how a name in a setting is written.
+
+## Design review, 2026-10-05
+
+One reviewer, three lenses. Verdict: changes requested, one high finding. Every finding was
+verified against the code before it was acted on.
+
+### D21. The htmx form mixin's default component moves with the form
+
+**Found:** `HtmxFormMixin.htmx_form_component` defaults to `"form"`, a packaged component name
+held as a Python string. Research had said the file named none. After the move a view using the
+default would fail on an invalid htmx post, and no test would notice.
+
+**Chosen:** the default becomes `"mvp.form"` in the same commit as the move, with a test that
+posts an invalid form through a view that sets no component of its own. The changelog and
+`docs/integrations.md` say so.
+
+### D22. Findings carried into the build
+
+- The demo's own settings list packaged navbar widgets and are read by no test: edited by hand,
+  and the demo is rendered under its own settings before and after the move.
+- The test for the default widget list reads the default from the configuration module and
+  never from a literal in the test.
+- The comparison with daisy-cotton is run once during the build against the published 0.1.2
+  wheel, before and after the move, since it is skipped until #433 installs the package.
+- Paths the tests build with `pathlib` and widget names in monkeypatched lists are on the
+  hand-edit list.
+- A sentence asking for fixture examples to be rewritten beyond what FR-011 asks was dropped.
+
+### D23. Two points are the maintainer's and go to the merge gate
+
+- D16 reads SC-006 as not covering decision records and the roadmap. That is a reading of an
+  approved requirement and is put to the maintainer when the pull request is offered.
+- The specification assumes nothing under `.github/` needs to change. A contributor skill at
+  `.github/skills/demo-views/SKILL.md` shows `<c-page>` and `<c-app>` in three places. This run
+  may not edit `.github/`, so the three mentions are left and reported.

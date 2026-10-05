@@ -26,8 +26,22 @@ Path strings handed to `render_to_string` or `get_template` in the tests
 Comments in `mvp/tailwind/base.css` and `assets/js/layout.js` that name a template path are
 updated so they still point at a file that exists. No selector, class or script hook changes.
 
-`mvp/views/htmx.py` documents `htmx_success_component` with a project's own component as its
-example (`"ui.product-created"`). It names no packaged component and is not changed.
+`mvp/views/htmx.py:147` holds a packaged component name as a class default:
+`htmx_form_component = "form"`, rendered with `render_component` when an htmx form post is
+invalid. It becomes `"mvp.form"`, with its two docstring mentions and the default documented in
+`docs/integrations.md`. No existing test renders through that default (every stub view sets its
+own component and patches the renderer), so the move adds one that does. The same file's
+`htmx_success_component` example (`"ui.product-created"`) is a project's own component and is
+not changed.
+
+`demo/settings.py:148-154` lists three packaged navbar widgets. The test project replaces
+`MVP_CONFIG` wholesale, so the suite never reads that list: it is edited by hand and the demo
+is rendered once under its own settings to prove it.
+
+Paths the tests build from segments with `pathlib` (`"cotton" / "app" / "header" / …` in
+`test_list_filter_action.py`, `test_form_formset.py`, `tests/test_demo/test_library.py`) and
+widget names in monkeypatched lists (`test_layout_config.py`, `test_app_header.py`) are found by
+neither a tag rewrite nor a search for `cotton/`. They are on the hand-edit list.
 
 ### "Tests that read the component directory"
 
@@ -41,7 +55,8 @@ makes that an explicit check.
 ### "How Cotton resolves a name"
 
 **Adopted as stated.** Confirmed in the resolved package, django-cotton 2.6.1
-(`site-packages/django_cotton/utils.py:40-52` and `templatetags/_component.py:142-143`): a
+(`site-packages/django_cotton/templatetags/_component.py:187-206`, and `:134-154` for the
+`index.html` fallback): a
 dotted name becomes a path, a hyphen in a segment becomes an underscore, and `<name>.html` is
 tried before `<name>/index.html`. So
 `<c-mvp.data-field>` reaches `cotton/mvp/data_field.html` and `<c-mvp.card>` reaches
@@ -90,7 +105,8 @@ The script applies it to opening and closing tags, to `c-…` names written in p
 and moves the 67 files with `git mv` so history follows them. Everything a regular expression
 cannot be trusted with (names passed as Python strings, template paths, the `is="…"` literal) is
 a short list found by search and edited by hand; the table above is that list for the package,
-and the tests have 17 calls to the rendering fixtures to go through.
+and the tests have 58 calls to the rendering fixtures, most of which carry a tag string the
+script rewrites and the rest a bare name to edit.
 
 **Rejected: committing the script.** It is useful exactly once. The lasting protection is the
 guard test (FR-016), not a tool nobody will run again.
@@ -129,16 +145,20 @@ set is exactly the exception list, which is FR-007.
 
 The test for it compares the two template directories when `daisy_cotton` can be imported, and is
 skipped (at class level, per the testing standard's project addition) when it cannot. Until #433
-merges the comparison above is the evidence; after it, the test runs on every build.
+merges the test is run once during the build with the 0.1.2 wheel on the import path, failing
+before the move (22 shared paths) and passing after it (17), and the result is recorded. After
+#433 it runs on every build.
 
 ### R5. Showing that an override follows its component
 
 FR-010 needs a project template placed above the package's. The test project's fixture apps come
 after `mvp` in `INSTALLED_APPS`, so they cannot override it. `tests/test_templates.py` already
-builds its own template engine to control lookup order; the override tests do the same thing
-with `override_settings(TEMPLATES=…)`, adding a directory under `tests/fixtures/` to `DIRS`,
-which Django searches before any app. The fixture directory holds one template at a prefixed
-path and one at an old path.
+has a test that does exactly this for the page head
+(`test_a_project_head_template_replaces_the_packaged_one`, with the `settings` fixture and a
+directory added to `DIRS`, which Django searches before any app). The override tests follow it.
+Cotton honours a directory added this way and the override is gone afterwards. One fixture
+directory holds a template at the prefixed path and one at the old path, each with its own
+marker: the first must appear and the second must not.
 
 ### R6. The stylesheet is not rebuilt
 

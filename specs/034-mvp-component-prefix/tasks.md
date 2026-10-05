@@ -25,7 +25,15 @@ Plan, *New tests*. `TestComponentPrefix`: every template under `mvp/templates/co
 `mvp/` or on the exception list, with the offenders named in the failure; every exception
 exists; `<c-page>`, `<c-toolbar>` and `<c-data-field>` raise `TemplateDoesNotExist`.
 `TestNamesSharedWithDaisyCotton`, skipped at class level when `daisy_cotton` cannot be imported:
-the template paths shared with daisy-cotton are exactly the exception list.
+the template paths shared with daisy-cotton are exactly the exception list. The constant is
+`PREFIX_EXCEPTIONS`. Run this class once before the move and once after with the published
+0.1.2 wheel on the import path (it is not a dependency yet): 22 shared before, the 17 after.
+Record both runs in `progress.md`.
+
+Also first, in `tests/test_views/test_htmx.py`: an invalid htmx post to a stub view that sets no
+`htmx_form_component` and does not patch `render_component` answers 200 with the form partial.
+It passes before the move, fails after it, and passes again when the default becomes
+`"mvp.form"`.
 
 The first and third tests fail before the move, for the right reason (67 offenders named; the
 three old names render). Commit them red together with T002, not on their own, so no commit
@@ -34,7 +42,7 @@ leaves the suite failing.
 ### T002 — Move the 67 templates and every caller in the package, the demo and the tests
 
 **Files**: `mvp/templates/cotton/**`, `mvp/templates/**`, `mvp/config.py`,
-`mvp/templatetags/mvp.py`, `mvp/tailwind/base.css` (comments only), `assets/js/layout.js`
+`mvp/templatetags/mvp.py`, `mvp/views/htmx.py`, `mvp/tailwind/base.css` (comments only), `assets/js/layout.js`
 (comment only), `demo/**`, `tests/**`
 
 Plan, *The mapping* and *The move is one commit*; research R1, R2, R8.
@@ -43,16 +51,22 @@ Plan, *The mapping* and *The move is one commit*; research R1, R2, R8.
    the repository.
 2. Move the 67 templates with `git mv` and rewrite every mention by script, following the
    mapping table exactly.
-3. Edit by hand what the script cannot be trusted with: the names in `mvp/config.py:75,92` and
-   `tests/settings.py`, the path in `mvp/templatetags/mvp.py`, the path in the
+3. Edit by hand what the script cannot be trusted with: the names in `mvp/config.py:75,92`,
+   `mvp/views/htmx.py:147` (and its docstrings at `:135` and `:182`), `demo/settings.py:148-154`
+   and `tests/settings.py`, widget names in monkeypatched lists (`test_layout_config.py:50-51`
+   and `:73-78`, `test_app_header.py:176`), paths built from segments with `pathlib`
+   (`test_list_filter_action.py:30`, `test_form_formset.py:863` and `:1070-1077`,
+   `tests/test_demo/test_library.py:73`), the path in `mvp/templatetags/mvp.py`, the path in the
    `mvp/config.py` warning and its docstring, the `is="page.list.actions.…"` literal, the
    tests' `cotton_render*` / `render_component` names and `render_to_string` / `get_template` /
    `template_name` paths, the `SKIP` key in `test_render_all.py`, and path comments.
 4. Capture the after state and compare. Component output identical; page output identical apart
-   from tags printed as text on gallery pages.
+   from tags printed as text on gallery pages. Capture the demo URLs under `demo.settings` as
+   well as `tests.settings`, before and after.
 5. Confirm `test_render_all.py` and `test_declared_attributes.py` still collect 84 and the same
    number of declaring components as before.
-6. Search `mvp/`, `demo/`, `tests/` and `assets/` for every old name: none left.
+6. Search `mvp/`, `demo/`, `tests/` and `assets/` for every old name: none left. The script's
+   prose rule also rewrites the docstring examples in `mvp/fixtures.py`; T006 confirms them.
 
 Existing tests change only where they name a component or a template path. No assertion is
 changed, removed or weakened, and no test is skipped.
@@ -70,7 +84,11 @@ Issue: #452. Delivers FR-008, FR-009.
 **Files**: `tests/test_components/test_layout_config.py`
 
 Plan, *New tests*, settings paragraph. Default configuration: the theme controller and the login
-widget are in the navbar, in that order. A configuration naming a packaged widget by its prefixed
+widget are in the navbar, in that order. The default lists come from a fresh evaluation of
+`mvp/config.py` with `MVP_CONFIG` empty (the imported module is left alone) and are then
+rendered; the names are never typed into the test. The default already moved in T002, so these
+tests are added green: probe each by putting an old name back and seeing it fail, and say so in
+the report. A configuration naming a packaged widget by its prefixed
 name: that widget is in the navbar. A configuration naming `navbar.test-widget`: the demo's
 widget is in the navbar. Assert on ids or `data-` hooks the widgets already carry, not on text.
 Where an existing test already proves a scenario after T002, do not duplicate it: name it in the
@@ -78,7 +96,7 @@ report.
 
 ### T004 — Document how a widget is named
 
-**Files**: `docs/configuration.md`, `docs/layout.md`, `mvp/config.py` (the comment)
+**Files**: `docs/configuration.md`, `docs/layout.md`
 
 The sections on navbar widget lists show the prefixed names for packaged widgets, say that a name
 is written in full the way it would follow `c-` in a tag, that nothing is added for the project,
@@ -97,15 +115,15 @@ Issue: #453. Delivers FR-010, FR-011, FR-012, FR-017.
 `tests/fixtures/override_templates/cotton/app/sidebar/footer.html`
 
 Plan, *New tests*, overrides paragraph; research R5. With the fixture directory first in the
-template search path, a page that draws the sidebar uses the template at the prefixed path. With
-only the old-path template in play, the packaged footer is used. Assert on a `data-` marker.
+template search path, as `test_a_project_head_template_replaces_the_packaged_one` does it, a page
+that draws the sidebar carries the prefixed-path template's `data-` marker and not the old-path
+template's.
 
 ### T006 — The fixtures' examples
 
 **Files**: `mvp/fixtures.py` (docstrings only), `tests/test_fixtures.py` (confirm)
 
-Each docstring example that names a moved component uses the prefixed name. Examples that name a
-component the package does not ship are rewritten to use ones it does. Confirm
+Each docstring example that names a moved component uses the prefixed name. Confirm
 `tests/test_fixtures.py` renders a moved component by its prefixed name through each fixture; add
 a case only where a fixture has none.
 
@@ -114,7 +132,8 @@ a case only where a fixture has none.
 **Files**: `CHANGELOG.md`
 
 Plan, *The record*, changelog bullet. Under `## [Unreleased]`, `### Changed`, marked breaking.
-The table has one row per moved component, generated from the files under
+The note on names outside a tag covers overrides, names in `MVP_CONFIG`, and a view's
+`htmx_form_component` set to `"form"`. The table has one row per moved component, generated from the files under
 `mvp/templates/cotton/mvp/` and checked against that directory: 67 rows, no duplicates. No
 version heading, no version bump, nothing else in the file touched.
 
@@ -129,7 +148,9 @@ Issue: #454. Delivers FR-013, FR-014, FR-015. FR-016's guard landed in T001.
 **Files**: `docs/*.md`, `docs/contributing/**`, `README.md`, `CONTRIBUTING.md`,
 `skills/django-mvp/SKILL.md`
 
-Apply the mapping to every tag, every name in prose and every template path. Not `docs/adr/`,
+Apply the mapping to every tag, every name in prose and every template path, including the
+documented default of `htmx_form_component` in `docs/integrations.md`. `docs/configuration.md`
+and `docs/layout.md` were done in T004: sweep them, do not redo them. Not `docs/adr/`,
 not `docs/ROADMAP.md` (research R7, D16). `docs/components.md` gains a short statement of the
 rule: the prefix, the icon exception, the basic components waiting on #435, and that an override
 sits at the prefixed path. Every example must be true against the branch: each tag resolves to a
@@ -140,8 +161,8 @@ template that exists. Close with a search for every old name in these files: non
 **Files**: `CONTEXT.md`
 
 The component library lists every component under its current name. The naming rules state the
-prefix, the icon exception and the components waiting on #435, and rule 3's path examples are
-true.
+prefix, the icon exception and the components waiting on #435, and the examples in rules 1 and 3
+are true.
 
 ### T010 — Article XI
 

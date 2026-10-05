@@ -8,8 +8,8 @@
 
 Sixty-seven of the package's 84 component templates move from `mvp/templates/cotton/` to
 `mvp/templates/cotton/mvp/`, which makes their tags `<c-mvp.…>`. Every place that names one of
-them is updated in the same change: the package's own templates, the two settings defaults, one
-template path in a template tag, the demo, the tests, the documentation, the glossary and the
+them is updated in the same change: the package's own templates, the default navbar widget list, the default
+form component of the htmx form mixin, one template path in a template tag, the demo, the tests, the documentation, the glossary and the
 assistant skill. Nothing inside a component changes. A test keeps future components under the
 prefix, the changelog carries the upgrade table, and Article XI of the constitution states the
 rule.
@@ -73,17 +73,21 @@ templates, moved with `git mv`. The 17 that stay are `icon.html`, `alert.html`, 
 
 Moving the templates without updating their callers leaves every page broken, and the demo's
 pages are exercised by the test suite. So the templates, every caller in `mvp/`, `demo/` and
-`tests/`, the two settings defaults and the path in the `documentation` template tag change in
+`tests/`, the defaults that name a component and the path in the `documentation` template tag change in
 one commit that leaves the suite green. The settings default is therefore changed in the first
 story although its tests and documentation belong to the second.
 
 The rewrite is scripted (research R1). The script is written for this change, kept outside the
 repository and not committed. What it cannot be trusted with is edited by hand from a search:
 
-- component names in Python strings: `mvp/config.py`, `tests/settings.py`, and the tests' calls
-  to `cotton_render`, `cotton_render_soup` and `render_component`
+- component names in Python strings: `mvp/config.py`, `mvp/views/htmx.py:147` (the default
+  `htmx_form_component`, with its docstrings), `demo/settings.py:148-154`, `tests/settings.py`,
+  widget names in monkeypatched lists (`test_layout_config.py`, `test_app_header.py`), and the
+  tests' calls to `cotton_render`, `cotton_render_soup` and `render_component`
 - template paths in strings: `mvp/templatetags/mvp.py`, `mvp/config.py`, and
-  `render_to_string` / `get_template` / `template_name` in the tests
+  `render_to_string` / `get_template` / `template_name` in the tests, including paths built from
+  segments with `pathlib` (`test_list_filter_action.py`, `test_form_formset.py`,
+  `tests/test_demo/test_library.py`)
 - the literal in `page/list/actions/index.html`: `is="page.list.actions.…"` becomes
   `is="mvp.page.list.actions.…"`
 - comments that name a template path, in `mvp/tailwind/base.css`, `assets/js/layout.js`, the
@@ -95,7 +99,8 @@ After the script runs, a search for each old name must come back empty in the ar
 
 Research R2. Before the move, capture the rendered output of every component template (as
 `test_render_all.py` renders them) and of every demo URL the suite's smoke tests request, into a
-scratch directory outside the repository. After the move, capture again and compare. Component
+scratch directory outside the repository. The demo URLs are captured under `tests.settings` and
+once more under `demo.settings`, because the demo's own widget list is read only there. After the move, capture again and compare. Component
 output must be identical. Page output must be identical except for component tags printed as
 text on gallery pages. The existing tests are the lasting proof and are edited only where they
 name a component or a template path: no assertion is changed, removed or weakened.
@@ -114,17 +119,25 @@ One new module, `tests/test_components/test_component_prefix.py`:
   - the template paths the two packages have in common are exactly the exception list (FR-007,
     SC-002)
 
-The exception list is one module-level constant, a frozenset of the 17 template paths.
+The exception list is one module-level constant, `PREFIX_EXCEPTIONS`, a frozenset of the 17
+template paths.
+
+One test in `tests/test_views/test_htmx.py`: an invalid htmx post to a view that sets no
+`htmx_form_component` and does not patch the renderer answers 200 with the form partial. It
+fails after the move until the mixin's default takes the prefix (FR-002, FR-006, SC-004).
 
 Settings (US2), in `tests/test_components/test_layout_config.py` beside the existing navbar
-widget tests: the default configuration renders the theme controller and login widgets; a
+widget tests: the package's default lists render the theme controller and login widgets, with
+the lists read from a fresh evaluation of `mvp/config.py` under an empty `MVP_CONFIG` and never
+typed into the test; a
 configuration naming a packaged widget by its prefixed name renders it; a configuration naming
 the demo's own `navbar.test-widget` renders it with no prefix added.
 
-Overrides (US3), in `tests/test_templates.py`: with a fixture template directory placed first
-in the template search path (research R5), a template at `cotton/mvp/app/sidebar/footer.html`
-replaces the packaged sidebar footer, and one at `cotton/app/sidebar/footer.html` does not.
-The fixture templates carry a `data-` marker to assert on, not wording.
+Overrides (US3), in `tests/test_templates.py`: with one fixture template directory placed first
+in the template search path (research R5), the template at
+`cotton/mvp/app/sidebar/footer.html` replaces the packaged sidebar footer and the one at
+`cotton/app/sidebar/footer.html` is not used. Each carries its own `data-` marker; the test
+asserts the first is present and the second absent.
 
 Fixtures (US3): `tests/test_fixtures.py` already renders components through the shipped
 fixtures; its calls take the prefixed names, which is FR-011.
@@ -134,7 +147,8 @@ fixtures; its calls take the prefixed names, which is FR-011.
 - **Changelog** (FR-012): under `## [Unreleased]`, a `### Changed` entry marked breaking: the
   rule; the names that did not move and why; the five to check first when daisy-cotton is
   installed (card, modal, avatar, dropdown, menu entry); a note that template overrides and
-  component names in settings move too; and the old-to-new table, one row per moved component,
+  component names in settings move too, as does an `htmx_form_component` a view sets to
+  `"form"`; and the old-to-new table, one row per moved component,
   generated from the moved files so it cannot miss one. No version heading, no version bump.
 - **Documentation** (FR-013): every page under `docs/` except the records (research R7, D16),
   `README.md`, `CONTRIBUTING.md` and `skills/django-mvp/SKILL.md`. `docs/components.md` and
