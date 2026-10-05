@@ -138,8 +138,17 @@
         },
         {
           "id": "T017",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_daisy_cotton_install.py::TestDeclaredDependency"
+            ],
+            "commands": [
+              "uv run pytest -n auto",
+              "uv run deptry ."
+            ]
+          }
         }
       ]
     },
@@ -313,8 +322,17 @@
         },
         {
           "id": "T015",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_daisy_cotton_coverage.py::TestWrittenLiterally"
+            ],
+            "commands": [
+              "uv run pytest -n auto",
+              "uv run deptry ."
+            ]
+          }
         }
       ]
     },
@@ -371,8 +389,17 @@
         },
         {
           "id": "T016",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_checks.py::TestDaisyCottonAppCheck"
+            ],
+            "commands": [
+              "uv run pytest -n auto",
+              "uv run deptry ."
+            ]
+          }
         }
       ]
     },
