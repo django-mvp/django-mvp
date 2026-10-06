@@ -59,8 +59,7 @@
     {% for field in form.hidden_fields %}{{ field }}{% endfor %}
     {% comment %}
       The grid wrapper opens and closes conditionally rather than the field
-      loop being written out twice, the same idiom as the optional fieldset in
-      cotton/mvp/form/field.html. djlint cannot pair tags across a branch.
+      loop being written out twice. djlint cannot pair tags across a branch.
     {% endcomment %}
     {# djlint:off #}
     {% comment %}

@@ -2,7 +2,7 @@
 {# @prop dismissible:boolean | description:"Add a dismiss button to each message." #}
 {# @prop :delay:number | default:2000 | description:"Auto-dismiss delay in milliseconds." #}
 <c-vars dismissible :delay=2000 />
-<div class="toast toast-top toast-end z-50">
+<c-toast placement="top end" class="z-50" only>
   {% for message in messages %}
     {# The alert has four variants. Debug is shown as info, and any other #}
     {# level tag, such as one a project adds, draws a plain alert. #}
@@ -15,4 +15,4 @@
       </c-alert>
     {% endwith %}
   {% endfor %}
-</div>
+</c-toast>

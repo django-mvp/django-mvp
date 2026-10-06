@@ -107,6 +107,17 @@ class TestThemeControllerUnconfiguredShape:
         )
 
     @pytest.mark.django_db
+    def test_the_toggle_is_a_named_switch(self, cotton_render_string_soup):
+        soup = cotton_render_string_soup(
+            "<c-mvp.actions.theme-controller />", context={"mvp_config": MVP_CONFIG}
+        )
+
+        toggle = soup.select_one("input[data-toggle-theme]")
+        assert toggle["type"] == "checkbox"
+        assert toggle["role"] == "switch"
+        assert toggle["aria-label"].strip()
+
+    @pytest.mark.django_db
     def test_the_toggle_follows_a_replaced_pair(self, client, monkeypatch):
         monkeypatch.setitem(MVP_CONFIG["theme"], "default", "sunrise")
         monkeypatch.setitem(MVP_CONFIG["theme"], "dark", "midnight")

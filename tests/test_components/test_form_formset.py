@@ -1,11 +1,10 @@
 """Tests for <c-mvp.form.formset> and <c-mvp.form.formset.row>.
 
 Renders a whole Django formset with the same per-field presentation a single
-form's fields already get from <c-mvp.form.field> / <c-mvp.form.render> — one row per
+form's fields already get from <c-mvp.form.render> — one row per
 form, the management form, and the inert empty-form template used to clone
 new rows client-side. Sources are compiled through the Cotton compiler so the
-tests exercise each component exactly as a template invocation would, per
-tests/test_components/test_form_field.py.
+tests exercise each component exactly as a template invocation would.
 """
 
 from importlib import import_module

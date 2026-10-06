@@ -505,3 +505,46 @@ class TestSignInFieldNaming:
 
         assert 'placeholder="Email address"' in html
         assert 'placeholder="Username"' not in html
+
+
+@pytest.mark.django_db
+@pytest.mark.usefixtures("account_urlconf")
+class TestSignInFieldAssociation:
+    """Each sign-in control is tied to its label and to its errors."""
+
+    CONTROLS = ("username", "password")
+
+    def _soup(self, response):
+        return BeautifulSoup(response.content.decode(), "html.parser")
+
+    def test_each_control_has_a_label_pointing_at_it(self, client):
+        soup = self._soup(client.get(reverse("account_login")))
+
+        for name in self.CONTROLS:
+            control = soup.find("input", attrs={"name": name})
+            assert control is not None
+            assert soup.find("label", attrs={"for": control["id"]}) is not None
+
+    def test_a_field_error_is_named_by_the_controls_described_by(self, client):
+        response = client.post(
+            reverse("account_login"), {"username": "", "password": ""}
+        )
+        soup = self._soup(response)
+
+        for name in self.CONTROLS:
+            control = soup.find("input", attrs={"name": name})
+            assert control["aria-invalid"] == "true"
+            described_by = control["aria-describedby"].split()
+            errors = [soup.find(id=ref) for ref in described_by]
+            assert errors and all(error is not None for error in errors)
+            assert any(
+                response.context["form"][name].errors[0] in error.get_text()
+                for error in errors
+            )
+
+    def test_a_control_without_errors_is_not_marked_invalid(self, client):
+        soup = self._soup(client.get(reverse("account_login")))
+
+        for name in self.CONTROLS:
+            control = soup.find("input", attrs={"name": name})
+            assert "aria-invalid" not in control.attrs

@@ -32,6 +32,8 @@
 @source inline("badge-{neutral,primary,secondary,accent,info,success,warning,error,ghost}");
 @source inline("link-{primary,secondary,accent,neutral,info,success,warning,error}");
 @source inline("alert-{info,success,warning,error}");
+/* The button writes this on a disabled link; no package template names it. */
+@source inline("btn-disabled");
 @source inline("avatar-{online,offline}");
 @source inline("-space-x-{2,4,6,8,10,12}");
 @source inline("bg-{primary,secondary,accent,neutral}");

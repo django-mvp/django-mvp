@@ -130,11 +130,10 @@ fails with a traceback, rather than leaving a silently empty menu.
 `reverse()`; pass `url` instead for external or hard-coded links. `label` defaults to
 the item's `name` when absent, so an item with no `label` shows its identifier.
 
-These three keys aren't read the same way everywhere. A `MenuGroup` heading (a
-non-collapsible parent) shows its `label` but drops `icon` and `badge` — the sidebar's
-group template only renders the icon and badge inside the `<details>` branch used by
-collapsible groups, so `MenuCollapse` draws both and a plain `MenuGroup` draws neither.
-In the mobile dock, `icon` and `label` render but `badge` does not.
+These three keys aren't read the same way everywhere. An item with a URL draws all
+three. A `MenuCollapse` draws its `label` and `icon`, and a `MenuGroup` heading draws its
+`label` alone. Neither draws a `badge`. In the mobile dock, `icon` and `label` render
+but `badge` does not.
 
 ## Active state
 
@@ -284,9 +283,12 @@ If a key you asked for is missing, resolving that renderer raises `ValueError` l
 the renderers you did register. An unstyled or blank region is a different problem
 (see common mistakes, below).
 
-Renderers map menu nodes onto the `c-menu`, `c-mvp.menu.*` and dock components, so a
+The sidebar renderer maps menu nodes onto daisy-cotton's `<c-menu>`, `<c-menu.item>`,
+`<c-menu.title>` and `<c-menu.submenu>`, and the dock renderer onto the dock components. A
 custom renderer or template override changes the markup without touching your Python
-menu definitions.
+menu definitions. The sidebar writes each label in a `<span>` so the icon rail can hide
+it. A template of your own that draws sidebar rows does the same, as
+[Rows you add to the sidebar](components.md#rows-you-add-to-the-sidebar) shows.
 Inside a renderer template of your own, `{% render_item child renderer=renderer %}`
 renders one child, and `{% process_menu %}` returns the processed tree without
 rendering it.

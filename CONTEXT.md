@@ -133,7 +133,7 @@ declaration per row set.
 
 ## Component Library
 
-The complete component library is declared below: 67 components under the `mvp.` prefix and one that keeps a bare name, `c-icon`. Components are organized by their namespace (directory). A component this package owns is written `c-mvp.` followed by its path: `c-mvp.app.header` means the `header.html` template inside the `app/` directory of `mvp/templates/cotton/mvp/`. The sixteen basic components this package uses are daisy-cotton's and are listed apart, under Basic components from daisy-cotton; the Component Naming Rules say why.
+The complete component library is declared below: 62 components under the `mvp.` prefix and one that keeps a bare name, `c-icon`. Components are organized by their namespace (directory). A component this package owns is written `c-mvp.` followed by its path: `c-mvp.app.header` means the `header.html` template inside the `app/` directory of `mvp/templates/cotton/mvp/`. The sixteen basic components this package uses are daisy-cotton's and are listed apart, under Basic components from daisy-cotton; the Component Naming Rules say why.
 
 ### App
 
@@ -236,10 +236,6 @@ c-mvp.brand.icon        — brand icon glyph
 c-mvp.pagination
   c-mvp.pagination.link
   c-mvp.pagination.wrapper — join wrapper around pagination links
-c-mvp.menu.group        — collapsible menu group
-c-mvp.menu.item         — single menu entry
-c-mvp.menu.collapse     — collapsible menu toggle
-c-mvp.menu.divider      — menu separator line
 ```
 
 ### Placeholders
@@ -266,12 +262,17 @@ c-dock                  — bottom dock navigation
   c-dock.item
 c-link                  — styled inline text link
 c-menu                  — menu container
+  c-menu.item           — one entry, a link or a button
+  c-menu.title          — heading row
+  c-menu.submenu        — collapsible group
 c-mockup.browser        — browser window mockup
 c-mockup.code           — code block mockup
   c-mockup.code.line    — code line with prefix
 c-mockup.phone          — phone frame mockup
 c-mockup.window         — OS window mockup
 ```
+
+daisy-cotton ships more components than these, and a project can call them too. This package's own templates call its other menu and form components (`c-menu.item`, `c-menu.title`, `c-menu.submenu`, `c-form.fieldset`, `c-form.label`, `c-form.input`, `c-form.toggle`) and its `c-join`, `c-toast`, `c-tooltip`, `c-indicator`, `c-footer`, `c-loading` and `c-drawer.button`. A single hand-written form field is `c-form.fieldset`, `c-form.label` and `c-form.input`. A menu divider is an empty `<li></li>`.
 
 ### User
 
@@ -285,7 +286,6 @@ c-mvp.user.display.compact  — compact user display card
 ```
 c-mvp.form                  — form wrapper
 c-mvp.form.render           — controls how a form is rendered
-c-mvp.form.field            — single presentational field (control + label, help text, errors)
 c-mvp.form.formset          — a whole row set: management form, rows, add/remove controls
 c-mvp.form.formset.row      — one row of a row set
 ```

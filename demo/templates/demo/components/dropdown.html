@@ -5,12 +5,9 @@
     {% cotton:verbatim %}
     <c-mvp.dropdown text="Options" icon="gears" variant="primary">
       <c-menu>
-        <c-mvp.menu.item label="Edit" icon="pencil" href="#" />
-        <c-mvp.menu.item label="View" icon="eye" href="#" />
-        <c-mvp.menu.item label="Delete"
-                     icon="trash"
-                     href="#"
-                     class="text-error" />
+        <c-menu.item text="Edit" icon="pencil" href="#" />
+        <c-menu.item text="View" icon="eye" href="#" />
+        <c-menu.item text="Delete" icon="trash" href="#" class="text-error" />
       </c-menu>
     </c-mvp.dropdown>
   {% endcotton:verbatim %}
@@ -23,8 +20,8 @@
       <c-button ghost icon="gears" tabindex="0" role="button" />
     </c-slot>
     <c-menu>
-      <c-mvp.menu.item label="Profile" href="#" />
-      <c-mvp.menu.item label="Settings" href="#" />
+      <c-menu.item text="Profile" href="#" />
+      <c-menu.item text="Settings" href="#" />
     </c-menu>
   </c-mvp.dropdown>
 {% endcotton:verbatim %}
@@ -35,17 +32,17 @@
   <div class="flex flex-wrap justify-center gap-4">
     <c-mvp.dropdown halign="start" text="Start" variant="neutral">
       <c-menu>
-        <c-mvp.menu.item label="Aligned to the start" href="#" />
+        <c-menu.item text="Aligned to the start" href="#" />
       </c-menu>
     </c-mvp.dropdown>
     <c-mvp.dropdown halign="center" text="Center" variant="neutral">
       <c-menu>
-        <c-mvp.menu.item label="Aligned to the center" href="#" />
+        <c-menu.item text="Aligned to the center" href="#" />
       </c-menu>
     </c-mvp.dropdown>
     <c-mvp.dropdown halign="end" text="End" variant="neutral">
       <c-menu>
-        <c-mvp.menu.item label="Aligned to the end" href="#" />
+        <c-menu.item text="Aligned to the end" href="#" />
       </c-menu>
     </c-mvp.dropdown>
   </div>
@@ -57,22 +54,22 @@
   <div class="flex flex-wrap justify-center gap-4 py-16">
     <c-mvp.dropdown valign="bottom" text="Bottom" variant="primary">
       <c-menu>
-        <c-mvp.menu.item label="Opens downward" href="#" />
+        <c-menu.item text="Opens downward" href="#" />
       </c-menu>
     </c-mvp.dropdown>
     <c-mvp.dropdown valign="top" text="Top" variant="primary">
       <c-menu>
-        <c-mvp.menu.item label="Opens upward" href="#" />
+        <c-menu.item text="Opens upward" href="#" />
       </c-menu>
     </c-mvp.dropdown>
     <c-mvp.dropdown valign="left" text="Left" variant="primary">
       <c-menu>
-        <c-mvp.menu.item label="Opens to the left" href="#" />
+        <c-menu.item text="Opens to the left" href="#" />
       </c-menu>
     </c-mvp.dropdown>
     <c-mvp.dropdown valign="right" text="Right" variant="primary">
       <c-menu>
-        <c-mvp.menu.item label="Opens to the right" href="#" />
+        <c-menu.item text="Opens to the right" href="#" />
       </c-menu>
     </c-mvp.dropdown>
   </div>
@@ -83,7 +80,7 @@
   {% cotton:verbatim %}
   <c-mvp.dropdown hover text="Hover me" variant="neutral">
     <c-menu>
-      <c-mvp.menu.item label="Opens on hover" href="#" />
+      <c-menu.item text="Opens on hover" href="#" />
     </c-menu>
   </c-mvp.dropdown>
 {% endcotton:verbatim %}
@@ -101,7 +98,7 @@
                   role="button" />
       </c-slot>
       <c-menu>
-        <c-mvp.menu.item label="The panel matches the trigger" href="#" />
+        <c-menu.item text="The panel matches the trigger" href="#" />
       </c-menu>
     </c-mvp.dropdown>
   </div>

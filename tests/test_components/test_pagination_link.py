@@ -17,6 +17,7 @@ the class) was correct.
 from html.parser import HTMLParser
 from urllib.parse import parse_qs, urlsplit
 
+from bs4 import BeautifulSoup
 from django import template
 from django.core.paginator import Paginator
 from django.template.context import RequestContext
@@ -103,3 +104,35 @@ class TestPaginationCurrentPageIndicator:
         anchors = collect_anchors(html)
         current = [a for a in anchors if a.get("aria-current") == "page"]
         assert len(current) == 1
+
+
+class TestPaginationDisabledControls:
+    def test_the_controls_with_nowhere_to_go_are_inert(self):
+        request = RequestFactory().get("/items/")
+        page_obj = Paginator(range(9), 3).page(1)
+        html = render_to_string(
+            "tests/pagination.html", {"page_obj": page_obj}, request=request
+        )
+        soup = BeautifulSoup(html, "html.parser")
+
+        inert = soup.nav.find_all("button")
+
+        # First and Previous have nowhere to go on the first page.
+        assert len(inert) == 2
+        for control in inert:
+            assert control.has_attr("disabled") or (
+                control.get("aria-disabled") == "true"
+                and control.get("tabindex") == "-1"
+            )
+
+    def test_the_current_page_is_the_only_link_marked_current(self):
+        request = RequestFactory().get("/items/")
+        page_obj = Paginator(range(9), 3).page(3)
+        html = render_to_string(
+            "tests/pagination.html", {"page_obj": page_obj}, request=request
+        )
+        soup = BeautifulSoup(html, "html.parser")
+
+        (current,) = soup.nav.find_all(attrs={"aria-current": "page"})
+        assert current.name == "a"
+        assert current.get_text(strip=True) == "3"

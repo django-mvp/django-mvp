@@ -1,9 +1,17 @@
 {% load flex_menu %}
-<c-mvp.menu.group icon="{{ icon }}"
-              :collapse="collapsible"
-              label="{{ label }}"
-              :selected="selected">
+{% if collapsible %}
+  <c-menu.submenu icon="{{ icon }}" :open="selected" only>
+    <c-slot name="text">
+      <span>{{ label }}</span>
+    </c-slot>
+    {% for child in children %}
+      {% render_item child renderer=renderer %}
+    {% endfor %}
+  </c-menu.submenu>
+{% else %}
+  <li></li>
+  <c-menu.title text="{{ label }}" class="uppercase" only />
   {% for child in children %}
     {% render_item child renderer=renderer %}
   {% endfor %}
-</c-mvp.menu.group>
+{% endif %}

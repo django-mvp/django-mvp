@@ -10,17 +10,16 @@
                 size="sm"
                 text="{% trans "Sort" %}" only />
     </c-slot>
-    <ul class="menu w-full">
+    <c-menu class="w-full" only>
       {% for key, label, _ in order_by_choices %}
-        <li>
-          <span class="ordering-option"
-                @click="value='{{ key }}'">
-            {{ label }}
-            {% if current_ordering == key %}<c-icon name="check" class="ms-auto" />{% endif %}
-          </span>
-        </li>
+        <c-menu.item text="{{ label }}"
+                     class="ordering-option"
+                     @click="value='{{ key }}'"
+                     only>
+          {% if current_ordering == key %}<c-icon name="check" class="ms-auto" />{% endif %}
+        </c-menu.item>
       {% endfor %}
-    </ul>
+    </c-menu>
     <input type="hidden"
            form="filterForm"
            name="o"
