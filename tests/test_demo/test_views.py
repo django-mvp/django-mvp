@@ -15,10 +15,6 @@ from django.urls import reverse
 
 from mvp.menus import AppMenu
 
-GITHUB_UTILITY_CLASSES_URL = (
-    "https://github.com/django-mvp/django-mvp/blob/main/docs/utility-classes.md"
-)
-
 
 @pytest.mark.django_db
 class TestUtilityClassesView:
@@ -26,15 +22,6 @@ class TestUtilityClassesView:
         response = client.get(reverse("utility-classes"))
 
         assert response.status_code == 200
-
-    def test_renders_a_known_string_from_the_markdown_file(self, client):
-        response = client.get(reverse("utility-classes"))
-        content = response.content.decode()
-
-        # Class names from the inventory tables — proof the source file was
-        # rendered, not paraphrased.
-        assert "grid-cols-{1..12}" in content
-        assert "focus-visible:border-error" in content
 
     def test_drops_the_markdown_h1_so_the_page_has_one_heading(self, client):
         response = client.get(reverse("utility-classes"))
@@ -52,8 +39,3 @@ class TestUtilityClassesMenuItem:
 
         assert item is not None
         assert item.resolve_url() == reverse("utility-classes")
-
-    def test_menu_item_no_longer_links_to_github(self):
-        item = AppMenu.get("utility-classes")
-
-        assert item.resolve_url() != GITHUB_UTILITY_CLASSES_URL

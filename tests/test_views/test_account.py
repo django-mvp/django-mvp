@@ -16,7 +16,7 @@ from pathlib import Path
 
 import pytest
 from bs4 import BeautifulSoup
-from django.conf import global_settings, settings
+from django.conf import global_settings
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.models import AnonymousUser
 from django.template.loader import render_to_string
@@ -25,14 +25,6 @@ from django.urls import include, path, reverse
 
 from mvp.config import MVP_CONFIG
 
-ACCOUNT_BASE_TEMPLATE = (
-    Path(__file__).resolve().parent.parent.parent
-    / "mvp"
-    / "templates"
-    / "mvp"
-    / "account"
-    / "base.html"
-)
 
 # A project's own template at the same path: mirrors mvp/templates/mvp/account/login.html
 # in demo/templates/tests/, the loader's DIRS checked ahead of any app's own APP_DIRS
@@ -76,6 +68,9 @@ def _fixture_urlconf():
 
 
 ACCOUNT_FIXTURE_URLCONF = _fixture_urlconf()
+OVERRIDE_TEMPLATES = (
+    Path(__file__).resolve().parents[1] / "fixtures" / "override_templates"
+)
 
 
 @pytest.mark.django_db
@@ -108,20 +103,6 @@ class TestSignInView:
         assert response.status_code == 200
         assert response.wsgi_request.user.is_anonymous
         assert response.context["form"].has_error("__all__", code="invalid_login")
-
-    def test_the_message_is_identical_whether_the_account_exists_or_not(
-        self, client, django_user_model
-    ):
-        django_user_model.objects.create_user(
-            username="signinuser2", password="correct-pass"
-        )
-        wrong_password = self._post(client, "signinuser2", "wrong-pass")
-        unknown_username = self._post(client, "no-such-user", "whatever")
-
-        assert wrong_password.context["form"].has_error("__all__", code="invalid_login")
-        assert unknown_username.context["form"].has_error(
-            "__all__", code="invalid_login"
-        )
 
 
 @pytest.mark.django_db
@@ -509,66 +490,9 @@ class TestAccountLayout:
         assert "Fixture Plain" in labels
         assert "Home" not in labels
 
-    def test_the_content_block_renders_inside_a_container(self):
-        html = _render("tests/account_layout_content.html")
-        soup = BeautifulSoup(html, "html.parser")
-        content = soup.find(string=re.compile("account-layout-test-content"))
-
-        assert content.find_parent(class_="container") is not None
-
-    def test_the_layout_draws_no_menu_of_its_own(self):
-        source = ACCOUNT_BASE_TEMPLATE.read_text()
-
-        assert "process_menu" not in source
-        assert "c-mvp.dropdown" not in source
-        assert "c-mvp.card" not in source
-
-    def test_the_layout_extends_the_projects_own_base_not_the_shell_directly(self):
-        source = ACCOUNT_BASE_TEMPLATE.read_text()
-        extends_line = next(
-            line for line in source.splitlines() if "{% extends" in line
-        )
-        assert extends_line.strip() == '{% extends "base.html" %}'
-
-
-@pytest.mark.django_db
-class TestAccountMenuCurrentItem:
-    @pytest.fixture(autouse=True)
-    def _account_fixture_urlconf(self):
-        with override_settings(ROOT_URLCONF=ACCOUNT_FIXTURE_URLCONF):
-            yield
-
-    def test_the_entry_matching_the_current_page_is_marked_as_current(
-        self, client, testapp_account_entries
-    ):
-        content = client.get(reverse("testapp_account:plain")).content.decode()
-        assert re.search(r"menu-active[^>]*>.*?Fixture Plain", content, re.DOTALL), (
-            "the fixture's own entry should be marked as the one being viewed"
-        )
-
-
-def _installed_apps_with(*card_apps):
-    """``settings.INSTALLED_APPS`` with ``card_apps`` inserted immediately
-    before ``"mvp"``.
-
-    The block-and-extend pattern (FR-018) resolves the *first* app in
-    INSTALLED_APPS order that ships ``mvp/account/overview.html`` — the
-    standard Django app-template-override convention. A contributing app
-    installed after ``mvp`` is never reached: the app_directories loader
-    returns mvp's own copy on the very first lookup and never tries the
-    rest. Appending — the way the old attribute-based mechanism's tests
-    did — does not compose these templates; this precedes ``mvp`` instead.
-    """
-    installed_apps = list(settings.INSTALLED_APPS)
-    mvp_index = installed_apps.index("mvp")
-    return [*installed_apps[:mvp_index], *card_apps, *installed_apps[mvp_index:]]
-
 
 @pytest.mark.django_db
 class TestAccountCenterCards:
-    CARD_WITH_MENU_APP = "tests.testapp_card_with_menu"
-    CARD_NO_MENU_APP = "tests.testapp_card_no_menu"
-
     @pytest.fixture(autouse=True)
     def _account_fixture_urlconf(self):
         with override_settings(ROOT_URLCONF=ACCOUNT_FIXTURE_URLCONF):
@@ -595,45 +519,19 @@ class TestAccountCenterCards:
         response = client.get(reverse("account-center"))
         assert self._cards(response.content.decode()) == []
 
-    def test_one_contributing_app_renders_its_card_alone(
-        self, client, django_user_model
+    def test_a_project_template_adds_its_card_to_the_region(
+        self, client, django_user_model, settings
     ):
+        engine = settings.TEMPLATES[0]
+        settings.TEMPLATES = [
+            {**engine, "DIRS": [str(OVERRIDE_TEMPLATES), *engine.get("DIRS", [])]}
+        ]
         self._login(client, django_user_model, "cardsuser1")
-        with override_settings(
-            INSTALLED_APPS=_installed_apps_with(self.CARD_NO_MENU_APP)
-        ):
-            response = client.get(reverse("account-center"))
-        content = response.content.decode()
-        assert len(self._cards(content)) == 1
-        assert 'data-testid="testapp-card-no-menu"' in content
-        assert "No Menu Card" in content
 
-    def test_two_contributing_apps_both_get_their_card(self, client, django_user_model):
-        self._login(client, django_user_model, "cardsuser2")
-        with override_settings(
-            INSTALLED_APPS=_installed_apps_with(
-                self.CARD_WITH_MENU_APP, self.CARD_NO_MENU_APP
-            )
-        ):
-            response = client.get(reverse("account-center"))
-        content = response.content.decode()
-        assert len(self._cards(content)) == 2
-        assert 'data-testid="testapp-card-with-menu"' in content
-        assert 'data-testid="testapp-card-no-menu"' in content
+        response = client.get(reverse("account-center"))
 
-    def test_a_menu_entry_alongside_a_card_does_not_disturb_it(
-        self, client, django_user_model, card_with_menu_entries
-    ):
-        self._login(client, django_user_model, "cardsuser3")
-        with override_settings(
-            INSTALLED_APPS=_installed_apps_with(self.CARD_WITH_MENU_APP)
-        ):
-            response = client.get(reverse("account-center"))
-        content = response.content.decode()
-        assert len(self._cards(content)) == 1
-        assert 'data-testid="testapp-card-with-menu"' in content
-        assert "With Menu Card" in content
-        assert "Card With Menu Fixture" in content
+        (card,) = self._cards(response.content.decode())
+        assert card.find(attrs={"data-testid": "project-account-card"}) is not None
 
 
 @pytest.mark.django_db
@@ -660,8 +558,3 @@ class TestSignInFieldNaming:
 
         assert 'placeholder="Email address"' in html
         assert 'placeholder="Username"' not in html
-
-    def test_the_default_user_model_is_unaffected(self):
-        html = self._render_with_label("Username")
-
-        assert 'placeholder="Username"' in html

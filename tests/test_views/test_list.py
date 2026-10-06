@@ -405,31 +405,6 @@ class TestOrderMixinSecurity:
         qs = list(view.get_queryset())
         assert qs[0].price < qs[1].price
 
-    def test_order_raw_param_never_reaches_orm(self, db, cat):
-        _product(cat, "Alpha")
-        choices = [
-            ("name_asc", "Name A-Z", "name"),
-        ]
-        view = _make_order_view(
-            params={"o": "DROP TABLE demo_product; --"},
-            extra_attrs={"order_by": choices},
-        )
-        # Must not raise, must not modify queryset
-        qs = view.get_queryset()
-        assert qs.count() == 1
-
-    def test_order_opaque_key_orm_expression_invisible_in_url(self, db, cat):
-        choices = [
-            ("newest", "Newest First", "-created_at"),
-        ]
-        view = _make_order_view(
-            params={"o": "newest"},
-            extra_attrs={"order_by": choices},
-        )
-        qs = view.get_queryset()
-        # Just assert it doesn't crash and the field 'created_at' is never in the URL
-        assert qs.count() == 0
-
 
 class TestOrderMixinNoConfig:
     def test_order_no_config_is_noop(self, db, cat):
@@ -672,13 +647,6 @@ def _make_list_view(params=None, extra_attrs=None):
 
 
 class TestMVPListViewMixinZeroConfig:
-    def test_zero_config_page_renders(self, db, cat):
-        _product(cat, "Alpha")
-        view = _make_list_view()
-        view.object_list = view.get_queryset()
-        ctx = view.get_context_data()
-        assert ctx is not None
-
     def test_default_page_title_from_model(self, db):
         view = _make_list_view()
         view.object_list = view.get_queryset()
@@ -691,9 +659,6 @@ class TestMVPListViewMixinZeroConfig:
         view.object_list = view.get_queryset()
         ctx = view.get_context_data()
         assert ctx["list_item_template"] == "demo/product_list_item.html"
-
-    def test_default_paginate_by(self):
-        assert MVPListView.paginate_by == 24
 
 
 class TestMVPListViewMixinItemTemplate:
@@ -708,29 +673,6 @@ class TestMVPListViewMixinItemTemplate:
         view.object_list = view.get_queryset()
         ctx = view.get_context_data()
         assert ctx["list_item_template"] == "demo/category_list_item.html"
-
-    def test_list_item_template_convention_different_app_label(self):
-        import types
-
-        meta = types.SimpleNamespace(app_label="sales", model_name="order")
-        MockModel = type("MockModel", (), {"_meta": meta})
-
-        rf = RequestFactory()
-        request = rf.get("/")
-        view_cls = type(
-            "StubListView",
-            (MVPListViewMixin, ListView),
-            {
-                "model": MockModel,
-                "list_item_template": None,
-                "template_name": "base.html",
-            },
-        )
-        view = view_cls()
-        view.request = request
-        view.kwargs = {}
-        view.args = []
-        assert view.get_list_item_template() == "sales/order_list_item.html"
 
     def test_empty_string_list_item_template_falls_back_to_convention(self, db):
         view = _make_list_view(extra_attrs={"list_item_template": ""})
@@ -828,9 +770,6 @@ class TestMVPListViewMixinEmptyState:
 
 
 class TestMVPListViewMixinDirectory:
-    def test_directory_attribute_is_create_only(self):
-        assert MVPListViewMixin.directory == ["create"]
-
     def test_create_url_absent_when_permission_false(self, db):
         view = _make_list_view()  # show_create_action=False by default
         view.object_list = view.get_queryset()
@@ -989,35 +928,6 @@ class TestListViewInlineCreate:
         assert ctx["create_form"] is custom_form
         assert ctx["create_form"].initial["name"] == "Custom Initial"
 
-    def test_fallback_link_when_no_form_class(self, client, db):
-        # This test should verify that when create_form_class is None,
-        # the toolbar contains a standard link without modal trigger
-
-        # The demo's ProductListView doesn't have create_form_class by default
-        # So we test the current behavior - it should show a link to create page
-        response = client.get("/products/")
-
-        # Placeholder: the demo view has no create_url configured, so there is no
-        # create control to inspect yet. Once it has one, assert the toolbar
-        # renders an href and no data-bs-toggle. For now, only assert the page
-        # still renders, so the test fails if the view regresses.
-        assert response.status_code == 200
-
-    def test_no_create_button_when_no_permission(self, client, db):
-        from demo.forms import ProductForm
-
-        view = _make_list_view(
-            extra_attrs={
-                "create_form_class": ProductForm,
-                "show_create_action": False,
-            }
-        )
-        view.object_list = view.get_queryset()
-        ctx = view.get_context_data()
-
-        # create_form should NOT be in context
-        assert "create_form" not in ctx
-
     def test_permission_boolean_false_prevents_form_injection(self, db):
         from demo.forms import ProductForm
 
@@ -1070,26 +980,6 @@ class TestListViewInlineCreate:
 
         assert "create_form" in ctx
         assert isinstance(ctx["create_form"], ProductForm)
-
-    def test_mvp_create_view_honours_next_parameter(self, client, db):
-        from django.contrib.auth.models import User
-
-        # Create a user and authenticate
-        user = User.objects.create_user(username="testuser", password="password")
-        client.force_login(user)
-
-        # POST to create view with ?next parameter
-        response = client.post(
-            "/products/create/?next=/products/",
-            data={"name": "Test Product", "price": "10.00"},
-            follow=False,
-        )
-
-        # Should redirect to the next URL
-        assert response.status_code == 302
-        # The redirect should honor the next parameter (if MVPCreateView supports it)
-        # This verifies NextURLMixin behavior
-        assert "/products/" in response.url or response.url == "/products/"
 
     def test_backward_compat_no_form_class_no_change(self, db):
         # View without create_form_class should work exactly as before

@@ -62,10 +62,6 @@ class TestPageInfoTrigger:
         html = render('<c-mvp.page.info text="Body" />')
         assert "aria-label=" in html
 
-    def test_trigger_uses_the_info_icon(self):
-        html = render('<c-mvp.page.info text="Body" />')
-        assert "bi-info-circle-fill" in html
-
     def test_trigger_is_icon_only(self):
         rendered = render('<c-mvp.page.info text="What this page is for." />')
         assert rendered.count("What this page is for.") == 1

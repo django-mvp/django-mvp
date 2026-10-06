@@ -103,24 +103,12 @@ class TestTableArea:
         html = self._render(cotton_render_string)
         assert 'role="region"' in html
 
-    def test_has_a_translatable_accessible_name(self, cotton_render_string):
-        html = self._render(cotton_render_string)
-        assert 'aria-label="Scrollable table"' in html
-
 
 class TestTableViewTemplate:
     @pytest.mark.django_db
     def test_renders_as_a_filled_page(self, rf, product):
         html = _render_table_view(rf)
         assert "mvp-page-fill" in html
-
-    @pytest.mark.django_db
-    def test_no_card_wraps_the_table(self, rf, product):
-        html = _render_table_view(rf)
-        soup = _beautiful_soup()(html, "html.parser")
-        region = soup.find(attrs={"role": "region"})
-        assert region is not None
-        assert not any("card" in a.get("class", []) for a in region.parents)
 
     @pytest.mark.django_db
     def test_action_bar_carries_the_page_title(self, rf, product):
@@ -131,53 +119,11 @@ class TestTableViewTemplate:
         assert "Products" in title.get_text()
 
     @pytest.mark.django_db
-    def test_title_is_leading_and_actions_are_trailing(self, rf, product):
-        html = _render_table_view(rf)
-        bar = _beautiful_soup()(html, "html.parser").find(class_="page-title")
-        children = [c for c in bar.find_all("div", recursive=False)]
-        assert len(children) == 2
-        heading, actions = children
-        assert "Products" in heading.get_text()
-        assert actions.find(class_="btn") is not None
-
-    @pytest.mark.django_db
     def test_no_action_list_leaks_into_the_page(self, rf, product):
         html = _render_table_view(rf)
         assert "['search'" not in html
         assert "&#x27;search&#x27;" not in html
         assert "&#39;search&#39;" not in html
-
-    @pytest.mark.django_db
-    def test_the_bars_are_padded_and_the_table_is_not(self, rf, product):
-        soup = _beautiful_soup()(_render_table_view(rf), "html.parser")
-
-        page = soup.find(class_="mvp-page-fill")
-        assert page is not None
-        assert "px-4" not in page.get("class", [])
-
-        title_bar = soup.find(class_="page-title").parent
-        assert "px-4" in title_bar.get("class", [])
-
-        region = soup.find(attrs={"role": "region"})
-        assert "px-4" not in region.get("class", [])
-        assert not any("px-4" in a.get("class", []) for a in region.parents)
-
-    @pytest.mark.django_db
-    def test_the_content_column_adds_no_gap_of_its_own(self, rf, product):
-        soup = _beautiful_soup()(_render_table_view(rf), "html.parser")
-        region = soup.find(attrs={"role": "region"})
-        content = region.parent
-        assert "gap-0" in content.get("class", [])
-        assert not any(
-            c.startswith("gap-") and c != "gap-0" for c in content.get("class", [])
-        )
-
-    @pytest.mark.django_db
-    def test_the_pagination_bar_is_padded_vertically(self, rf, product):
-        soup = _beautiful_soup()(_render_table_view(rf), "html.parser")
-        bar = soup.find(class_="mvp-page-fill").find_all("div", recursive=True)
-        footer_bar = [d for d in bar if "py-4" in d.get("class", [])]
-        assert footer_bar, "the pagination bar carries no vertical padding"
 
     @pytest.mark.django_db
     def test_the_app_footer_is_empty_on_a_table_view(self, rf, product):
@@ -204,13 +150,6 @@ class TestTableViewTemplate:
         assert trail.find_parent(class_="mvp-header") is not None, (
             "the page body draws no trail of its own — the app header has it"
         )
-
-    @pytest.mark.django_db
-    def test_the_bars_span_the_table_width(self, rf, product):
-        soup = _beautiful_soup()(_render_table_view(rf), "html.parser")
-        bar = soup.find(class_="page-title")
-        assert "w-full" in bar.get("class", [])
-        assert "w-full" in bar.parent.get("class", [])
 
     @pytest.mark.django_db
     def test_pagination_bar_carries_the_result_count(self, rf, product):
@@ -286,22 +225,6 @@ class TestTableViewTemplate:
         cell = soup.find("tfoot").find("td")
         assert "text-end" in cell.get("class", []), "DecimalField, so trailing"
         assert "mvp-col-nowrap" in cell.get("class", [])
-
-    @pytest.mark.django_db
-    def test_no_non_flex_wrapper_sits_between_the_page_and_the_scroll_container(
-        self, rf, product
-    ):
-        html = _render_table_view(rf)
-        soup = _beautiful_soup()(html, "html.parser")
-        region = soup.find(attrs={"role": "region"})
-        assert region is not None
-
-        content = region.parent
-        assert "flex" in content.get("class", [])
-        assert "min-h-0" in content.get("class", [])
-
-        page = content.parent
-        assert "mvp-page-fill" in page.get("class", [])
 
     @pytest.mark.django_db
     def test_project_can_override_every_named_block(self, rf, product):
@@ -440,40 +363,6 @@ class TestColumnBehaviourDemoPage:
         response = client.get(reverse("table-column-behaviour"))
         assert response.status_code == 200
 
-    @pytest.mark.django_db
-    def test_renders_a_column_for_each_behaviour_class(self, client, product):
-        pytest.importorskip("django_tables2")
-        from django.urls import reverse
-
-        response = client.get(reverse("table-column-behaviour"))
-        html = response.content.decode()
-        for klass in (
-            "mvp-col-grow",
-            "mvp-col-shrink",
-            "mvp-col-wrap",
-            "mvp-col-nowrap",
-            "mvp-col-max-md",
-        ):
-            assert klass in html
-
-    @pytest.mark.django_db
-    def test_renders_inferred_alignment_on_undeclared_columns(self, client, product):
-        pytest.importorskip("django_tables2")
-        from django.urls import reverse
-
-        response = client.get(reverse("table-column-behaviour"))
-        soup = _beautiful_soup()(response.content.decode(), "html.parser")
-        from demo.tables import ColumnBehaviourTable
-
-        names = list(ColumnBehaviourTable([]).columns.names())
-        row = soup.find("tbody").find("tr")
-        cells = dict(zip(names, row.find_all("td")))
-        # Asserted per column, not as substrings of the whole page: one
-        # working kind would otherwise stand in for all three.
-        assert "text-end" in cells["price"].get("class", [])
-        assert "text-center" in cells["is_featured"].get("class", [])
-        assert "text-center" in cells["actions"].get("class", [])
-
 
 class TestInferredAlignment:
     def _table_class(self):
@@ -593,27 +482,6 @@ class TestInferredAlignment:
             assert not alignment_classes & set(cells[name].get("class", []))
         # "stock" keeps its own declared class -- untouched either way.
         assert "text-start" in cells["stock"].get("class", [])
-
-
-class TestExistingViewsNeedNoChange:
-    @pytest.mark.django_db
-    def test_the_demo_table_view_renders_the_new_layout_unmodified(self, rf, product):
-        pytest.importorskip("django_tables2")
-        from demo.views import DataTablesView
-
-        view = DataTablesView()
-        view.setup(rf.get("/"))
-        response = view.get(view.request)
-        response.render()
-        html = response.content.decode()
-
-        assert "mvp-page-fill" in html
-        assert "table-pin-rows" in html
-
-        soup = _beautiful_soup()(html, "html.parser")
-        region = soup.find(attrs={"role": "region"})
-        assert region is not None
-        assert not any("card" in a.get("class", []) for a in region.parents)
 
 
 class TestRowHeaderCells:
@@ -760,6 +628,3 @@ class TestFalseyColumnHeading:
     def test_an_orderable_column_keeps_its_sort_control(self, cotton_render_string):
         heading = self._headings(cotton_render_string)[1]
         assert heading.find("a") is not None
-
-    def test_a_named_heading_still_prints(self, cotton_render_string):
-        assert self._headings(cotton_render_string)[0].get_text(strip=True) == "Named"

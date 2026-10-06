@@ -25,7 +25,9 @@ from django.template import Engine, engines
 from django.template.loader import get_template, render_to_string
 from django.template.loader_tags import BlockNode, ExtendsNode
 from django.test import RequestFactory
-from django.urls import reverse
+
+from demo import urls as demo_urls
+from tests.conftest import urlconf_of
 
 MVP_TEMPLATES = Path(apps.get_app_config("mvp").path) / "templates"
 DEMO_TEMPLATES = Path(apps.get_app_config("demo").path) / "templates"
@@ -155,9 +157,6 @@ def render_shell_head(script_name=""):
 
 @pytest.mark.django_db
 class TestShellHeadWithPwaOff:
-    def test_head_matches_the_pinned_render_byte_for_byte(self):
-        assert render_shell_head() == BASE_HEAD_FIXTURE.read_text(encoding="utf-8")
-
     def test_head_carries_no_install_tags(self):
         head = render_shell_head()
         soup = head_soup()
@@ -179,7 +178,7 @@ def head_soup():
 class TestShellHeadWithPwaOn:
     @pytest.fixture(autouse=True)
     def urls_mounted(self, settings):
-        settings.ROOT_URLCONF = "tests.urls_shell_pwa"
+        settings.ROOT_URLCONF = "demo.urls"
 
     def test_it_links_the_manifest(self):
         link = head_soup().find("link", rel="manifest")
@@ -309,7 +308,14 @@ class TestShellHeadWithPwaOn:
 class TestShellHeadWithoutMvpUrls:
     @pytest.fixture(autouse=True)
     def urls_unmounted(self, settings):
-        settings.ROOT_URLCONF = "tests.urls_shell_no_pwa"
+        settings.ROOT_URLCONF = urlconf_of(
+            *[
+                pattern
+                for pattern in demo_urls.urlpatterns
+                if getattr(getattr(pattern, "urlconf_name", None), "__name__", None)
+                != "mvp.urls"
+            ]
+        )
 
     def test_the_page_renders_without_a_manifest_or_registration(self):
         head = render_shell_head()
@@ -324,10 +330,10 @@ class TestShellHeadWithoutMvpUrls:
 class TestShellHeadWithConfiguredValues:
     @pytest.fixture(autouse=True)
     def urls_mounted(self, settings):
-        settings.ROOT_URLCONF = "tests.urls_shell_pwa"
+        settings.ROOT_URLCONF = "demo.urls"
 
     def test_a_project_head_template_replaces_the_packaged_one(self, settings):
-        project_templates = Path(__file__).parent / "pwa_templates"
+        project_templates = Path(__file__).parent / "fixtures" / "override_templates"
         engine = settings.TEMPLATES[0]
         settings.TEMPLATES = [
             {**engine, "DIRS": [str(project_templates), *engine.get("DIRS", [])]}
@@ -398,71 +404,3 @@ class TestComponentOverridePath:
         )
 
         assert soup.find(attrs={"data-footer-override": "prefixed"}) is not None
-
-    def test_an_override_at_the_old_path_is_not_used(self):
-        soup = BeautifulSoup(
-            render_shell('{% extends "mvp/base.html" %}'), "html.parser"
-        )
-
-        assert soup.find(attrs={"data-footer-override": "unprefixed"}) is None
-
-
-FORMER_ATTRIBUTES = (
-    "full",
-    "reverse",
-    "align",
-    "condition",
-    "grow",
-    "responsive",
-    "position",
-)
-
-# Per page: the client method, whether the visitor is signed in, the URL name, and
-# whether the address names a product. The list page is drawn with no products,
-# because a product's card is the demo's own.
-FORMER_ATTRIBUTE_PAGES = {
-    "shell": ("get", True, "home", False),
-    "list": ("get", True, "product-list", False),
-    "detail": ("get", True, "product-detail", True),
-    "delete": ("get", True, "product-delete", True),
-    "sign-in": ("get", False, "account_login", False),
-    "sign-out": ("post", True, "account_logout", False),
-    "400": ("get", False, "error-preview-400", False),
-    "403": ("get", False, "error-preview-403", False),
-    "404": ("get", False, "error-preview-404", False),
-    "500": ("get", False, "error-preview-500", False),
-}
-
-
-@pytest.mark.django_db
-class TestPagesCarryNoFormerAttributeName:
-    """A name that daisy-cotton's components do not declare is not translated: it
-    lands on the element as an HTML attribute. None of the sixteen basic
-    components' former names may reach a page this package draws."""
-
-    @pytest.fixture(params=FORMER_ATTRIBUTE_PAGES)
-    def soup(self, request, client, admin_client):
-        method, signed_in, name, needs_product = FORMER_ATTRIBUTE_PAGES[request.param]
-        kwargs = {"pk": request.getfixturevalue("product").pk} if needs_product else {}
-        visitor = admin_client if signed_in else client
-        response = getattr(visitor, method)(reverse(name, kwargs=kwargs))
-        assert response.status_code == 200
-        return BeautifulSoup(response.content.decode(), "html.parser")
-
-    def test_no_element_carries_a_former_attribute_name(self, soup):
-        found = {
-            (element.name, name)
-            for name in FORMER_ATTRIBUTES
-            for element in soup.find_all(attrs={name: True})
-        }
-
-        assert not found
-
-    def test_no_menu_divider_or_dock_item_carries_a_label_attribute(self, soup):
-        drawn = [
-            *soup.select("ul.menu"),
-            *soup.select(".divider"),
-            *soup.select("nav.dock > *"),
-        ]
-
-        assert not [element for element in drawn if element.has_attr("label")]

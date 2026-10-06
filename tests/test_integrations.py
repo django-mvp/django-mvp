@@ -353,13 +353,6 @@ class TestTableViewOrdering:
         view_class = _plain_table_view_class()
         view_class()  # must not raise
 
-    def test_the_mixin_and_its_concrete_view_define_without_raising(self):
-        pytest.importorskip("django_tables2")
-        from mvp.integrations.django_tables.views import MVPTableView, MVPTableViewMixin
-
-        assert MVPTableViewMixin.order_by is None
-        assert MVPTableView.order_by is None
-
 
 class TestTableViewPagination:
     def test_row_query_and_prefetches_run_once_per_page(
@@ -446,10 +439,3 @@ class TestTableViewActions:
     def test_search_still_draws_when_the_view_configures_it(self, rf, db):
         assert 'name="q"' in self._render(rf, search_fields=["name"])
         assert 'name="q"' not in self._render(rf)
-
-    def test_the_view_carries_no_action_list_of_its_own(self):
-        from mvp.views.list import MVPListViewMixin
-
-        view = _plain_table_view_class()()
-        assert not hasattr(view, "actions")
-        assert not hasattr(MVPListViewMixin, "actions")

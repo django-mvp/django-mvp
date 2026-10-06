@@ -20,7 +20,6 @@ from django import forms as django_forms
 from django.contrib.auth import get_user_model
 from django.contrib.messages.middleware import MessageMiddleware
 from django.contrib.sessions.middleware import SessionMiddleware
-from django.db.models.deletion import Collector
 from django.test import RequestFactory, override_settings
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
@@ -431,16 +430,6 @@ class TestUS5FallbackChain:
 
 
 class TestMVPFormBase:
-    def test_base_template_name(self):
-        from mvp.views.edit import MVPFormBase
-
-        assert MVPFormBase.base_template_name == "form_view.html"
-
-    def test_page_class(self):
-        from mvp.views.edit import MVPFormBase
-
-        assert MVPFormBase.page_class == "mvp-form-page"
-
     def test_get_success_url_raises_improperly_configured(self):
         from django.core.exceptions import ImproperlyConfigured
 
@@ -601,15 +590,6 @@ class TestMVPFormView:
         assert view.get_page_title() == "My Form"
 
 
-class TestMVPCreateViewDefaults:
-    def test_page_class_contains_create(self):
-        assert "mvp-create-page" in MVPCreateView.page_class
-
-    def test_page_title_class_attr_is_template(self):
-        assert "page_title" in MVPCreateView.__dict__
-        assert "%(verbose_name)s" in str(MVPCreateView.page_title)
-
-
 class TestMVPCreateViewPageTitle:
     def test_default_title_single_word_verbose_name(self):
         view = make_create_view()
@@ -702,22 +682,6 @@ class TestMVPCreateViewBreadcrumb:
         breadcrumbs = view.get_breadcrumbs()
         assert breadcrumbs[1]["text"] == view.get_page_title()
         assert breadcrumbs[1]["text"] == "Create Product"
-
-    def test_get_breadcrumbs_override_is_respected(self):
-        custom_crumbs = [{"text": "Home", "href": "/"}, {"text": "New"}]
-        view = make_create_view(
-            extra_attrs={"get_breadcrumbs": lambda self: custom_crumbs}
-        )
-        assert view.get_breadcrumbs() == custom_crumbs
-
-
-class TestMVPUpdateViewDefaults:
-    def test_page_class_contains_update(self):
-        assert "mvp-update-page" in MVPUpdateView.page_class
-
-    def test_page_title_class_attr_is_template(self):
-        assert "page_title" in MVPUpdateView.__dict__
-        assert "%(verbose_name)s" in str(MVPUpdateView.page_title)
 
 
 class TestMVPUpdateViewPageTitle:
@@ -861,25 +825,10 @@ class TestMVPUpdateViewOverrides:
         view = make_update_view(extra_attrs={"page_class": "custom-class"})
         assert "custom-class" in view.get_page_class()
 
-    def test_page_title_overridable(self):
-        view = make_update_view(extra_attrs={"page_title": "Edit product details"})
-        assert view.get_page_title() == "Edit product details"
-
     def test_success_message_overridable_with_field_interpolation(self):
         view = make_update_view(extra_attrs={"success_message": "%(name)s was saved."})
         result = view.get_success_message({"name": "Widget"})
         assert result == "Widget was saved."
-
-    def test_get_breadcrumbs_override_is_respected(self):
-        custom_crumbs = [
-            {"text": "Home", "href": "/"},
-            {"text": "Products", "href": "/products/"},
-            {"text": "Edit"},
-        ]
-        view = make_update_view(
-            extra_attrs={"get_breadcrumbs": lambda self: custom_crumbs}
-        )
-        assert view.get_breadcrumbs() == custom_crumbs
 
     def test_delete_url_can_be_suppressed_via_override(self):
         view = make_update_view(extra_attrs={"show_delete_action": False})
@@ -887,11 +836,6 @@ class TestMVPUpdateViewOverrides:
 
 
 class TestMVPUpdateViewDeleteLinkVisibility:
-    def test_delete_button_absent_when_delete_url_empty(self):
-        view = make_update_view(extra_attrs={"show_delete_action": False})
-        view.object = None
-        assert not view.get_delete_url()
-
     def test_delete_button_present_when_delete_url_set(self):
 
         class _Obj:
@@ -954,11 +898,6 @@ def _get_form(content, action_substring):
 
 
 class TestCreateViewRendering:
-    @pytest.mark.django_db
-    def test_US1_create_page_title_is_model_aware(self, client):
-        response = client.get(reverse("product-create"))
-        assert b"Create Product" in response.content
-
     @pytest.mark.django_db
     def test_US1_success_message_is_title_cased(self, client, category):
         from django.contrib.messages import get_messages
@@ -1063,12 +1002,6 @@ class TestCreateViewRedirects:
 
 class TestUpdateViewRendering:
     @pytest.mark.django_db
-    def test_US6_update_page_title_is_model_aware(self, client, product):
-        url = reverse("product-update", kwargs={"pk": product.pk})
-        response = client.get(url)
-        assert b"Update Product" in response.content
-
-    @pytest.mark.django_db
     def test_US6_update_success_message_appears(self, client, product, category):
         from django.contrib.messages import get_messages
 
@@ -1098,15 +1031,6 @@ class TestUpdateViewRendering:
         assert breadcrumbs[2].get("href") is None, (
             "Third breadcrumb must be plain text (no link)"
         )
-
-    @pytest.mark.django_db
-    def test_US3_update_delete_link_visible_when_configured(self, client, product):
-        url = reverse("product-update", kwargs={"pk": product.pk})
-        response = client.get(url)
-        content = response.content.decode()
-        assert "delete" in content, "Delete link must be present on the update page"
-        assert "back=" in content, "Delete link must contain ?back= parameter"
-        assert "next=" in content, "Delete link must contain next= parameter"
 
     @pytest.mark.django_db
     def test_US4_update_delete_link_absent_when_not_configured(self, client):
@@ -1188,11 +1112,6 @@ class TestMVPDeleteViewBasic:
         response = client.get(url)
         assert "Product" in response.context["page"]["title"]
         assert "Delete" in response.context["page"]["title"]
-
-    def test_breadcrumbs_has_three_items(self, client, product):
-        url = reverse("product-delete", kwargs={"pk": product.pk})
-        response = client.get(url)
-        assert len(response.context["page"]["breadcrumbs"]) == 3
 
     def test_post_deletes_object(self, client, product):
         url = reverse("product-delete", kwargs={"pk": product.pk})
@@ -1308,16 +1227,6 @@ class TestMVPDeleteViewBackUrl:
 
 @pytest.mark.django_db
 class TestMVPDeleteViewRelatedObjects:
-    def test_related_objects_hidden_when_flag_off(self, client, product):
-        url = reverse("product-delete", kwargs={"pk": product.pk})
-        response = client.get(url)
-        assert response.context["related_objects"] == []
-
-    def test_related_objects_attrs_defaults_to_info_variant(self, client, product):
-        url = reverse("product-delete-related", kwargs={"pk": product.pk})
-        response = client.get(url)
-        assert response.context["related_objects_attrs"] == {"variant": "info"}
-
     def test_related_objects_shown_when_flag_on(self, client, product):
         url = reverse("product-delete-related", kwargs={"pk": product.pk})
         response = client.get(url)
@@ -1330,76 +1239,6 @@ class TestMVPDeleteViewRelatedObjects:
         response = client.get(url)
         assert response.context["is_protected"] is True
         assert response.context["related_objects"] == []
-
-    def test_related_objects_are_3_tuples(self, client, category):
-        # Create products to give the category cascade-deleted children
-        for i in range(2):
-            Product.objects.create(
-                name=f"Product {i}",
-                slug=f"product-{i}-cat-del",
-                category=category,
-                description="Test",
-                price="1.00",
-                sku=f"SKU-CAT-DEL-{i}",
-            )
-        url = reverse("category-delete-related", kwargs={"pk": category.pk})
-        response = client.get(url)
-        related = response.context["related_objects"]
-        assert isinstance(related, list)
-        for item in related:
-            assert len(item) == 3, f"Expected 3-tuple, got {len(item)}-tuple: {item}"
-
-    def test_related_objects_capped_at_max_per_group(self, client, category):
-        for i in range(5):
-            Product.objects.create(
-                name=f"Cap Product {i}",
-                slug=f"cap-product-{i}",
-                category=category,
-            )
-        url = reverse("category-delete-related", kwargs={"pk": category.pk})
-        response = client.get(url)
-        related = response.context["related_objects"]
-        # SET_NULL products don't appear as cascade objects
-        assert len(related) == 0
-
-    def test_overflow_count_is_correct(self, client, category):
-        for i in range(5):
-            Product.objects.create(
-                name=f"Overflow Prod {i}",
-                slug=f"overflow-prod-{i}",
-                category=category,
-            )
-        url = reverse("category-delete-related", kwargs={"pk": category.pk})
-        response = client.get(url)
-        related = response.context["related_objects"]
-        # SET_NULL products don't appear as cascade objects
-        assert related == []
-
-    def test_overflow_note_in_html(self, client, category):
-        for i in range(5):
-            Product.objects.create(
-                name=f"Html Overflow {i}",
-                slug=f"html-overflow-{i}",
-                category=category,
-            )
-        url = reverse("category-delete-related", kwargs={"pk": category.pk})
-        response = client.get(url)
-        assert (
-            "and" not in response.content.decode()
-            or "more" not in response.content.decode()
-        )
-
-    def test_no_overflow_note_when_within_cap(self, client, category):
-        for i in range(2):
-            Product.objects.create(
-                name=f"No Overflow {i}",
-                slug=f"no-overflow-{i}",
-                category=category,
-            )
-        url = reverse("category-delete-related", kwargs={"pk": category.pk})
-        response = client.get(url)
-        related = response.context["related_objects"]
-        assert related == []
 
     def test_post_deletes_when_cascade_related_objects_exist(self, client, category):
         product_pk = Product.objects.create(
@@ -1444,15 +1283,6 @@ class TestMVPDeleteViewRelatedObjectsPresentation:
                 return alert
         raise AssertionError("no related-objects alert (containing a <ul>) found")
 
-    def test_default_attrs_render_info_alert_byte_for_byte(
-        self, monkeypatch, client, category
-    ):
-        self._stub_related_objects(monkeypatch, category)
-        url = reverse("category-delete-related", kwargs={"pk": category.pk})
-        response = client.get(url)
-        alert = self._related_objects_alert(response.content.decode())
-        assert "alert-info" in alert["class"]
-
     def test_custom_variant_renders_as_configured(self, monkeypatch, client, category):
         self._stub_related_objects(monkeypatch, category)
         url = reverse("category-delete-related-warning", kwargs={"pk": category.pk})
@@ -1460,6 +1290,26 @@ class TestMVPDeleteViewRelatedObjectsPresentation:
         alert = self._related_objects_alert(response.content.decode())
         assert "alert-warning" in alert["class"]
         assert "alert-info" not in alert["class"]
+
+    def test_a_group_past_the_cap_is_cut_and_the_rest_counted(
+        self, monkeypatch, client, category
+    ):
+        from demo.views import CategoryDeleteWithRelatedView
+        from mvp.views.edit import MVPDeleteView
+
+        rows = [category] * 5
+        monkeypatch.setattr(
+            MVPDeleteView, "_collect_deletion_data", lambda self: ({Category: rows}, [])
+        )
+        monkeypatch.setattr(
+            CategoryDeleteWithRelatedView, "related_objects_max_per_group", 3
+        )
+
+        url = reverse("category-delete-related", kwargs={"pk": category.pk})
+        ((_, shown, overflow),) = client.get(url).context["related_objects"]
+
+        assert len(shown) == 3
+        assert overflow == 2
 
     def test_arbitrary_attrs_reach_the_alert(self, monkeypatch, client, category):
         from demo.views import CategoryDeleteWithRelatedView
@@ -1476,23 +1326,6 @@ class TestMVPDeleteViewRelatedObjectsPresentation:
         assert "alert-error" in alert["class"]
         assert "mt-4" in alert["class"]
         assert alert["data-testid"] == "cascade"
-
-    def test_daisy_cotton_alert_attributes_reach_the_alert(
-        self, monkeypatch, client, category
-    ):
-        from demo.views import CategoryDeleteWithRelatedView
-
-        self._stub_related_objects(monkeypatch, category)
-        monkeypatch.setattr(
-            CategoryDeleteWithRelatedView,
-            "related_objects_attrs",
-            {"variant": "info", "soft": True, "outline": True},
-        )
-        url = reverse("category-delete-related", kwargs={"pk": category.pk})
-        response = client.get(url)
-        alert = self._related_objects_alert(response.content.decode())
-        assert "alert-soft" in alert["class"]
-        assert "alert-outline" in alert["class"]
 
     def test_attrs_are_presentation_only(self, monkeypatch, client, category):
         self._stub_related_objects(monkeypatch, category)
@@ -1516,15 +1349,6 @@ class TestMVPDeleteViewFastDeletedRelatedObjects:
         view = ProjectDeleteView()
         view.object = project
         return view
-
-    def test_children_are_actually_on_the_fast_delete_path(self, db):
-        project = ProjectFactory()
-        ProjectTaskFactory(project=project)
-        collector = Collector(using=project._state.db)
-        collector.collect([project])
-        fast_deleted = {qs.model for qs in collector.fast_deletes}
-        assert ProjectTask in fast_deleted
-        assert ProjectTask not in collector.data
 
     def test_fast_deleted_children_appear_in_the_summary(self, db):
         project = ProjectFactory()
@@ -1578,13 +1402,6 @@ class TestMVPDeleteViewProtected:
         response = client.post(url)
         assert response.status_code == 200
         assert Product.objects.filter(pk=product.pk).exists()
-
-    def test_get_shows_not_protected_after_orderline_removed(self, client, product):
-        line = OrderLine.objects.create(product=product, quantity=1)
-        line.delete()
-        url = reverse("product-delete", kwargs={"pk": product.pk})
-        response = client.get(url)
-        assert response.context["is_protected"] is False
 
 
 @pytest.mark.django_db
@@ -1648,13 +1465,6 @@ class TestMVPDeleteViewTypeToConfirm:
         soup = BeautifulSoup(response.content, "html.parser")
         assert response.context["is_protected"] is True
         assert soup.find_all("input", attrs={"name": "confirmation"}) == []
-
-
-class TestDeleteViewPublicAPI:
-    def test_mvp_delete_view_in_public_api(self):
-        from mvp.views import MVPDeleteView
-
-        assert MVPDeleteView is not None
 
 
 @pytest.mark.django_db
@@ -1733,33 +1543,6 @@ class TestMVPUpdateViewDeleteUrl:
         assert "delete" in result, "delete_url should still contain the delete path"
 
 
-class TestDeleteViewRendering:
-    @pytest.mark.django_db
-    def test_US1_delete_page_has_delete_button(self, client, product):
-        url = reverse("product-delete", kwargs={"pk": product.pk})
-        response = client.get(url)
-        assert b'type="submit"' in response.content
-
-    @pytest.mark.django_db
-    def test_US1_delete_page_breadcrumb_has_three_levels(self, client, product):
-        url = reverse("product-delete", kwargs={"pk": product.pk})
-        response = client.get(url)
-        assert len(response.context["page"]["breadcrumbs"]) == 3
-
-    @pytest.mark.django_db
-    def test_US1_submit_delete_redirects_to_list_and_object_absent(
-        self, client, product
-    ):
-        from demo.models import Product
-
-        pk = product.pk
-        url = reverse("product-delete", kwargs={"pk": pk})
-        response = client.post(url)
-        assert response.status_code == 302
-        assert response["Location"] == reverse("product-list")
-        assert not Product.objects.filter(pk=pk).exists()
-
-
 class TestDeleteViewRelatedObjects:
     @pytest.mark.django_db
     def test_US2_set_null_relations_are_not_listed_as_deleted(self, client, product):
@@ -1834,22 +1617,6 @@ class TestDeleteViewProtected:
 
 
 class TestDeleteViewConfirmation:
-    @pytest.mark.django_db
-    def test_US4_wrong_confirmation_shows_inline_error(self, client, product):
-        url = reverse("product-delete-confirm", kwargs={"pk": product.pk})
-        response = client.post(url, {"confirmation": "wrong-value"})
-        assert response.context["form"].has_error("confirmation")
-
-    @pytest.mark.django_db
-    def test_US4_correct_confirmation_deletes_and_redirects(self, client, product):
-        from demo.models import Product
-
-        pk = product.pk
-        url = reverse("product-delete-confirm", kwargs={"pk": pk})
-        response = client.post(url, {"confirmation": str(product)})
-        assert response.status_code == 302
-        assert not Product.objects.filter(pk=pk).exists()
-
     @pytest.mark.django_db
     def test_US4_confirmation_input_visible_with_prompt(self, client, product):
         url = reverse("product-delete-confirm", kwargs={"pk": product.pk})

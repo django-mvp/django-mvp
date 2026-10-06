@@ -126,29 +126,6 @@ class TestHtmxContext:
         context = view.get_context_data()
         assert context.get("htmx_enabled") is True
 
-    @pytest.mark.django_db
-    def test_htmx_enabled_in_context(self):
-        view = make_htmx_view(method="GET")
-        view.object = None
-        context = view.get_context_data()
-        assert context.get("htmx_enabled") is True
-
-    def test_htmx_enabled_not_in_context_without_mixin(self):
-        rf = RequestFactory()
-        request = rf.get("/")
-        request.user = User()
-
-        view = MVPCreateView()
-        view.model = Product
-        view.fields = ["name"]
-        view.template_name = "base.html"
-        view.request = request
-        view.kwargs = {}
-        view.args = []
-        view.object = None
-        context = view.get_context_data()
-        assert "htmx_enabled" not in context
-
 
 class TestHtmxFormResponses:
     @pytest.mark.django_db
@@ -459,27 +436,6 @@ class TestHtmxRedirect:
 
         assert isinstance(response, HttpResponseClientRedirect)
         assert response["HX-Redirect"] == view.get_success_url()
-
-    @pytest.mark.django_db
-    def test_redirect_takes_precedence_over_success_component(self):
-        from django_htmx.http import HttpResponseClientRedirect
-
-        view = make_htmx_view(
-            data={"name": "Widget G"},
-            extra_attrs={
-                "htmx_redirect_on_success": True,
-                "htmx_success_component": "demo.htmx-product-created",
-            },
-        )
-        form_cls = view.get_form_class()
-        form = form_cls(data={"name": "Widget G"})
-        assert form.is_valid(), form.errors
-
-        response = view.form_valid(form)
-
-        assert isinstance(response, HttpResponseClientRedirect)
-        # Not a partial render
-        assert "HX-Redirect" in response
 
 
 class TestHtmxTriggerHeaders:

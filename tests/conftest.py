@@ -7,6 +7,7 @@ so individual test files stay focused on assertions, not setup boilerplate.
 import importlib
 import importlib.util
 import os
+import types
 from pathlib import Path
 
 import pytest
@@ -21,11 +22,28 @@ from mvp.config import MVP_CONFIG
 from mvp.menus import AccountCenterMenu
 from tests.factories import ArticleFactory, CategoryFactory, ProductFactory
 from tests.testapp_account.menus import build_entries
-from tests.testapp_card_with_menu.menus import (
-    build_entries as build_card_with_menu_entries,
-)
 
 User = get_user_model()
+
+
+def urlconf_of(*patterns, **attributes):
+    """A URLconf object holding ``patterns``, for ``ROOT_URLCONF`` or ``urlconf=``.
+
+    Args:
+        *patterns: The URL patterns the URLconf serves.
+        **attributes: Anything else a URLconf module may define, such as
+            ``handler404``.
+
+    Returns:
+        A module object with ``urlpatterns`` and the given attributes set on it.
+        It is a module, not a class, because ``pytest.mark.urls`` treats a class
+        passed to it as the test class being decorated.
+    """
+    urlconf = types.ModuleType("urlconf")
+    urlconf.urlpatterns = list(patterns)
+    for name, value in attributes.items():
+        setattr(urlconf, name, value)
+    return urlconf
 
 
 def _reload_urlconfs(module):
@@ -124,17 +142,6 @@ def pwa_enabled():
 @pytest.fixture
 def testapp_account_entries():
     entries = build_entries()
-    AccountCenterMenu.extend(entries)
-    try:
-        yield {entry.name: entry for entry in entries}
-    finally:
-        for entry in entries:
-            entry.parent = None
-
-
-@pytest.fixture
-def card_with_menu_entries():
-    entries = build_card_with_menu_entries()
     AccountCenterMenu.extend(entries)
     try:
         yield {entry.name: entry for entry in entries}

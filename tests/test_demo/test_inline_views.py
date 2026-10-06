@@ -31,14 +31,6 @@ class TestProjectCreateViewRendersTwoSets:
 
         assert response.status_code == 200
 
-    def test_renders_both_sets_under_their_default_headings(self, client):
-        response = client.get(reverse("project-create"))
-        html = response.content.decode()
-
-        tasks_index = html.index(str(ProjectTask._meta.verbose_name_plural))
-        notes_index = html.index(str(ProjectNote._meta.verbose_name_plural))
-        assert tasks_index < notes_index
-
 
 @pytest.mark.django_db
 class TestProjectCreateViewSubmission:

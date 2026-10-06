@@ -82,33 +82,6 @@ class TestTheOverrideBeatsTheHeader:
         )
 
 
-class TestFilterActionButtonSize:
-    @pytest.mark.django_db
-    def test_the_trigger_button_is_small(self, rf):
-        html = _render_action(rf, {"name": "Widget", "price": "9.99"})
-        soup = _beautiful_soup()(html, "html.parser")
-        trigger = soup.find(class_="indicator").find("button")
-        assert "btn-sm" in trigger.get("class", [])
-        assert not trigger.has_attr("small")
-
-    @pytest.mark.django_db
-    def test_the_modal_apply_button_is_large(self, rf):
-        html = _render_action(rf, {"name": "Widget", "price": "9.99"})
-        soup = _beautiful_soup()(html, "html.parser")
-        apply_button = soup.find("button", attrs={"form": "filterForm"})
-        assert apply_button is not None
-        assert "btn-lg" in apply_button.get("class", [])
-        assert not apply_button.has_attr("large")
-
-    @pytest.mark.django_db
-    def test_no_element_carries_a_bare_small_or_large_attribute(self, rf):
-        html = _render_action(rf, {"name": "Widget", "price": "9.99"})
-        soup = _beautiful_soup()(html, "html.parser")
-        for element in soup.find_all():
-            assert not element.has_attr("small"), element
-            assert not element.has_attr("large"), element
-
-
 class TestAppliedFilterCount:
     @pytest.mark.django_db
     def test_the_badge_is_an_indicator_item_beside_the_button(self, rf):

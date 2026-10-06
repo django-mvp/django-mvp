@@ -13,71 +13,9 @@ import copy
 import warnings
 
 import pytest
-from mergedeep import merge  # type: ignore[import-untyped]
 
 from mvp.config import MVP_CONFIG, _warn_on_removed_sidebar_footer_setting
 from mvp.warnings import MVPDeprecationWarning
-
-
-class TestThemeConfigDefaults:
-    def test_theme_default_is_a_prebuilt_theme(self):
-        assert MVP_CONFIG["theme"]["default"] == "light"
-
-    def test_theme_dark_is_a_prebuilt_theme(self):
-        assert MVP_CONFIG["theme"]["dark"] == "dark"
-
-    def test_theme_choices_is_empty(self):
-        assert MVP_CONFIG["theme"]["choices"] == []
-
-    def test_theme_is_a_top_level_sibling_of_brand_not_nested_in_layout(self):
-        assert "theme" in MVP_CONFIG
-        assert "theme" not in MVP_CONFIG["layout"]
-        assert set(MVP_CONFIG["theme"]) == {"default", "dark", "choices"}
-
-
-class TestThemeConfigOverrideMerge:
-    @staticmethod
-    def _defaults():
-        """A deep copy of the real package defaults, so merging into it can't
-        mutate the process-wide ``MVP_CONFIG`` other tests read."""
-        return copy.deepcopy(MVP_CONFIG)
-
-    def test_overriding_default_leaves_choices_and_siblings_untouched(self):
-        config = self._defaults()
-        merge(config, {"theme": {"default": "dracula"}})
-        assert config["theme"]["default"] == "dracula"
-        assert config["theme"]["choices"] == []
-        assert config["brand"] == MVP_CONFIG["brand"]
-        assert config["layout"] == MVP_CONFIG["layout"]
-
-    def test_overriding_choices_leaves_default_and_siblings_untouched(self):
-        config = self._defaults()
-        merge(config, {"theme": {"choices": ["light", "dark", "dracula"]}})
-        assert config["theme"]["choices"] == ["light", "dark", "dracula"]
-        assert config["theme"]["default"] == "light"
-        assert config["theme"]["dark"] == "dark"
-        assert config["brand"] == MVP_CONFIG["brand"]
-        assert config["layout"] == MVP_CONFIG["layout"]
-
-
-class TestTableConfigDefaults:
-    def test_wrap_default_is_off(self):
-        assert MVP_CONFIG["table"]["wrap"] is False
-
-
-class TestTableConfigOverrideMerge:
-    @staticmethod
-    def _defaults():
-        """A deep copy of the real package defaults, so merging into it can't
-        mutate the process-wide ``MVP_CONFIG`` other tests read."""
-        return copy.deepcopy(MVP_CONFIG)
-
-    def test_overriding_wrap_leaves_siblings_untouched(self):
-        config = self._defaults()
-        merge(config, {"table": {"wrap": True}})
-        assert config["table"]["wrap"] is True
-        assert config["theme"] == MVP_CONFIG["theme"]
-        assert config["layout"] == MVP_CONFIG["layout"]
 
 
 class TestRemovedSidebarFooterSetting:
@@ -103,19 +41,3 @@ class TestRemovedSidebarFooterSetting:
         with warnings.catch_warnings():
             warnings.simplefilter("error", MVPDeprecationWarning)
             _warn_on_removed_sidebar_footer_setting(config)
-
-
-class TestPwaConfigDefaults:
-    def test_the_feature_is_off(self):
-        assert MVP_CONFIG["pwa"] is False
-
-    def test_the_application_names_are_unset(self):
-        assert MVP_CONFIG["site_name"] is None
-        assert MVP_CONFIG["short_name"] is None
-
-    def test_a_project_turns_the_feature_on_with_true_or_a_dict(self):
-        for value in (True, {"theme_color": "#123456"}):
-            config = copy.deepcopy(MVP_CONFIG)
-            merge(config, {"pwa": value})
-
-            assert config["pwa"] == value

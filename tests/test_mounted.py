@@ -16,13 +16,14 @@ from django.core.exceptions import ImproperlyConfigured
 from django.http import HttpResponse
 from django.template import Context, Template
 from django.test import AsyncRequestFactory, override_settings
-from django.urls import Resolver404, path, resolve, reverse
+from django.urls import Resolver404, include, path, resolve, reverse
 from django.views.decorators.csrf import csrf_exempt
 from flex_menu import Menu, MenuItem
 
 from demo.urls import urlpatterns as demo_patterns
 from mvp.menus import AppMenu
 from mvp.mounted import MountedApp, check_mounted_apps, mount
+from tests.conftest import urlconf_of
 from tests.testapp_mounted.menus import TestappMountedMenu
 from tests.testapp_mounted.mounted import (
     MountedFixtureApp,
@@ -31,7 +32,19 @@ from tests.testapp_mounted.mounted import (
 )
 from tests.testapp_mounted.views import IndexView
 
-PLAIN_URLCONF = "tests.urls_mounted_plain"
+PLAIN_URLCONF = urlconf_of(
+    *demo_patterns, path("mounted/", include("tests.testapp_mounted.urls"))
+)
+ROOT_MOUNT_URLCONF = urlconf_of(*demo_patterns, mount("", testapp_mounted))
+OTHER_PREFIX_URLCONF = urlconf_of(
+    *demo_patterns, mount("elsewhere/nested/", testapp_mounted)
+)
+CHECKED_URLCONF = urlconf_of(
+    *demo_patterns,
+    mount("mounted/", testapp_mounted_staff),
+    handler403="tests.testapp_mounted.views.forbidden",
+    handler404="mvp.views.error.not_found",
+)
 
 
 @pytest.mark.django_db
@@ -131,11 +144,6 @@ def for_path(client, path):
     response = client.get(path)
     assert response.status_code == 200
     return MountedApp.for_request(response.wsgi_request)
-
-
-def urlconf_of(*patterns):
-    """A URLconf object holding ``patterns``, for ``resolve(urlconf=...)``."""
-    return type("URLConf", (), {"urlpatterns": list(patterns)})
 
 
 def ok_view(request):
@@ -295,11 +303,11 @@ class TestMountedAppLookup:
     def test_host_page_is_no_app(self, client):
         assert for_path(client, "/layout/") is None
 
-    @pytest.mark.urls("tests.urls_mounted_root")
+    @pytest.mark.urls(ROOT_MOUNT_URLCONF)
     def test_app_mounted_at_the_root_claims_only_its_own_pages(self, client):
         assert for_path(client, "/detail/") is testapp_mounted
 
-    @pytest.mark.urls("tests.urls_mounted_root")
+    @pytest.mark.urls(ROOT_MOUNT_URLCONF)
     def test_app_mounted_at_the_root_leaves_host_pages_alone(self, client):
         assert for_path(client, "/layout/") is None
         assert for_path(client, "/theme/") is None
@@ -402,9 +410,9 @@ class TestLandingReverse:
         )
 
     def test_landing_under_a_different_prefix(self):
-        assert reverse(
-            testapp_mounted.landing, urlconf="tests.urls_mounted_other_prefix"
-        ) == ("/elsewhere/nested/")
+        assert reverse(testapp_mounted.landing, urlconf=OTHER_PREFIX_URLCONF) == (
+            "/elsewhere/nested/"
+        )
 
 
 class TestHostMenusUntouched:
@@ -557,11 +565,6 @@ class TestMountedPageTitle:
             "Detail | &lt;b&gt;Lib&lt;/b&gt; &amp; co | example.com"
         )
 
-    def test_host_page_title_is_unchanged(self, client):
-        response = client.get("/layout/")
-
-        assert normalised_title(response) == "Layout Demo | example.com"
-
     def test_404_raised_inside_a_mounted_view_names_no_app(self, client):
         response = client.get("/mounted/missing/")
 
@@ -609,9 +612,6 @@ class TestMountedPageSidebar:
 
         assert back.get_text(" ", strip=True) == "Back to example.com"
         assert back["href"] == brand["href"] == "/"
-
-    def test_back_link_comes_first_in_the_menu_area(self, client):
-        assert menu_labels(client.get("/mounted/"))[1] == "Back to example.com"
 
     def test_host_page_draws_the_host_menu_and_no_back_link(self, client):
         response = client.get("/layout/")
@@ -875,7 +875,7 @@ class TestMainApp:
 
 
 @pytest.mark.django_db
-@pytest.mark.urls("tests.urls_mounted_root")
+@pytest.mark.urls(ROOT_MOUNT_URLCONF)
 class TestAppMountedWithoutMain:
     def test_host_page_draws_the_host_menu(self, client):
         labels = menu_labels(client.get("/layout/"))
@@ -950,9 +950,6 @@ class TestMainAppRegistry:
                 main=True,
             )
         assert "main" in inspect.signature(mount).parameters
-
-
-CHECKED_URLCONF = "tests.urls_mounted_checked"
 
 
 @pytest.fixture

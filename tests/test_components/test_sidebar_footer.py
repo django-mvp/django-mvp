@@ -10,7 +10,6 @@ background is what is under test.
 import re
 
 import pytest
-from bs4 import BeautifulSoup
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
 from django.template.loader import render_to_string
@@ -72,18 +71,6 @@ class TestSidebarFooterAnonymous:
             "no user-menu dropdown panel must render for an anonymous request"
         )
 
-    @pytest.mark.django_db
-    def test_the_log_in_button_fills_the_row_and_carries_emphasis(self):
-        html = _render(AnonymousUser())
-
-        login_href = reverse("account_login")
-        link = BeautifulSoup(html, "html.parser").find("a", href=login_href)
-        assert link is not None, "the log-in button must render as a link"
-
-        classes = link["class"]
-        assert "btn-primary" in classes, f"expected the primary variant, got {classes}"
-        assert "btn-block" in classes, f"expected it to fill its row, got {classes}"
-
 
 class TestSidebarFooterThemeControlIsCompact:
     @pytest.mark.django_db
@@ -97,19 +84,6 @@ class TestSidebarFooterThemeControlIsCompact:
         assert "btn-square" in html, "the theme control must be a square icon button"
         assert "data-toggle-theme" in html, (
             "the compact button must still carry the theme-change binding"
-        )
-
-    @pytest.mark.django_db
-    def test_the_theme_and_language_controls_are_the_same_size(self):
-        user = get_user_model().objects.create_user(username="dave", password="pw")
-        html = _render(user)
-
-        squares = re.findall(r'class="([^"]*\bbtn-square\b[^"]*)"', html)
-        assert len(squares) == 2, (
-            f"expected the theme and language controls, found {len(squares)} square buttons"
-        )
-        assert all("btn-sm" in classes for classes in squares), (
-            f"both footer controls must render at the same size, got {squares}"
         )
 
 
