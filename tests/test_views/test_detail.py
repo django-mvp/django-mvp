@@ -153,7 +153,7 @@ def make_stub_view(extra_attrs=None, kwargs=None, user=None):
 
 
 @pytest.mark.django_db
-class TestUS1Directory:
+class TestCRUDDirectoryContext:
     def test_US1_empty_directory_context_key_always_present(self):
         view = make_stub_view(extra_attrs={"directory": []}, kwargs={})
         ctx = view.get_context_data()
@@ -233,7 +233,7 @@ class TestUS1Directory:
 
 
 @pytest.mark.django_db
-class TestUS2PermissionGating:
+class TestDirectoryPermissionGating:
     def test_US2_callable_permission_returning_true_includes_url(self):
         # Use staticmethod so the callable is not wrapped as a bound method
         view = make_stub_view(
@@ -305,48 +305,8 @@ class TestUS2PermissionGating:
 # is verified by integration/E2E tests in test_crud_directory_mixin_e2e.py.
 
 
-User = get_user_model()
-
-
-@pytest.fixture
-def category(db):
-    from demo.models import Category
-
-    return Category.objects.create(name="E2E Cat", slug="e2e-cat")
-
-
-@pytest.fixture
-def product(category):
-    from demo.models import Product
-
-    return Product.objects.create(
-        name="E2E Product",
-        slug="e2e-product",
-        category=category,
-        description="An E2E test product",
-        price="19.99",
-        stock=5,
-    )
-
-
-@pytest.fixture
-def staff_user(db):
-    user = User.objects.create_user(
-        username="e2e_staff", password="pass", is_staff=True, is_active=True
-    )
-    return user
-
-
-@pytest.fixture
-def regular_user(db):
-    user = User.objects.create_user(
-        username="e2e_regular", password="pass", is_staff=False, is_active=True
-    )
-    return user
-
-
 @pytest.mark.django_db
-class TestUS5StaffUserSeesActionButtons:
+class TestDetailPageForStaffUser:
     def test_US5_staff_sees_list_link(self, client, staff_user, product):
         client.force_login(staff_user)
         url = reverse("product-detail", kwargs={"pk": product.pk})
@@ -358,9 +318,9 @@ class TestUS5StaffUserSeesActionButtons:
 
 
 @pytest.mark.django_db
-class TestUS5ReadOnlyUserHidesActionButtons:
-    def test_US5_regular_user_sees_list_link(self, client, regular_user, product):
-        client.force_login(regular_user)
+class TestDetailPageForRegularUser:
+    def test_US5_regular_user_sees_list_link(self, client, user, product):
+        client.force_login(user)
         url = reverse("product-detail", kwargs={"pk": product.pk})
         response = client.get(url)
         assert response.status_code == 200
@@ -370,7 +330,7 @@ class TestUS5ReadOnlyUserHidesActionButtons:
 
 
 @pytest.mark.django_db
-class TestUS4ProductDetailPageHeadingAndCSSClass:
+class TestProductDetailPageHeadingAndCSSClass:
     def test_product_detail_page_heading_equals_str_product(self, client, product):
         url = reverse("product-detail", kwargs={"pk": product.pk})
         response = client.get(url)
@@ -426,8 +386,8 @@ class TestPackagedDetailTemplateActions:
             in response.content.decode()
         )
 
-    def test_links_absent_without_permission(self, client, regular_user, product):
-        client.force_login(regular_user)
+    def test_links_absent_without_permission(self, client, user, product):
+        client.force_login(user)
         content = client.get(
             reverse("product-detail", kwargs={"pk": product.pk})
         ).content.decode()

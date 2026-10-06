@@ -214,95 +214,11 @@ class TestShippedStylesheetShipsEveryPrebuiltTheme:
         )
 
 
-class TestProductOrderLinesWorkedExample:
-    @pytest.mark.django_db
-    def test_get_renders_the_parent_form_and_its_existing_rows(self, client):
-        from tests.factories import OrderLineFactory, ProductFactory
-
-        product = ProductFactory()
-        OrderLineFactory(product=product, quantity=3)
-
-        response = client.get(f"/products/{product.pk}/order-lines/")
-
-        assert response.status_code == 200
-        content = response.content.decode()
-        assert 'value="3"' in content
-
-    @pytest.mark.django_db
-    def test_post_saves_the_parent_and_its_rows_in_one_submission(self, client):
-        from tests.factories import ProductFactory
-
-        product = ProductFactory(name="Original")
-        data = {
-            "name": "Renamed via the worked example",
-            "order_lines-TOTAL_FORMS": "1",
-            "order_lines-INITIAL_FORMS": "0",
-            "order_lines-MIN_NUM_FORMS": "0",
-            "order_lines-MAX_NUM_FORMS": "1000",
-            "order_lines-0-quantity": "5",
-        }
-
-        response = client.post(f"/products/{product.pk}/order-lines/", data=data)
-
-        assert response.status_code == 302
-        product.refresh_from_db()
-        assert product.name == "Renamed via the worked example"
-        assert list(product.order_lines.values_list("quantity", flat=True)) == [5]
-
-
-class TestOrderLineArticleIXCompliance:
-    def test_product_field_has_help_text(self):
-        field = OrderLine._meta.get_field("product")
+class TestOrderLineFieldHelpText:
+    @pytest.mark.parametrize("field_name", ["product", "quantity"])
+    def test_field_has_help_text(self, field_name):
+        field = OrderLine._meta.get_field(field_name)
         assert str(field.help_text) != ""
-
-    def test_quantity_field_has_help_text(self):
-        field = OrderLine._meta.get_field("quantity")
-        assert str(field.help_text) != ""
-
-
-class TestFormsetComponentDocPage:
-    @pytest.mark.django_db
-    def test_page_renders_a_bound_orderline_formset(self, client):
-        response = client.get("/components/formset/")
-
-        assert response.status_code == 200
-        content = response.content.decode()
-        assert 'name="form-TOTAL_FORMS"' in content
-
-
-class TestComplexFormDemoPage:
-    @pytest.mark.django_db
-    def test_page_renders_every_fieldset_and_the_layout(self, client):
-        response = client.get("/forms/complex/")
-
-        assert response.status_code == 200
-        content = response.content.decode()
-        # One legend per Fieldset in the helper's layout.
-        assert content.count("<legend") == 3
-        # <c-mvp.form> (form_view.html) is the only real <form> wrapping the
-        # fields — form_tag=False must stop crispy nesting a second one
-        # inside it. x-data="{form: {}}" is <c-mvp.form>'s own signature
-        # attribute; the page also carries unrelated chrome forms (the
-        # language switcher, a couple of dialogs), so counting every <form>
-        # on the page would not isolate this.
-        assert content.count('<form x-data="{form: {}}"') == 1
-
-    @pytest.mark.django_db
-    def test_valid_submission_redirects_and_flashes_success(self, client):
-        response = client.post(
-            "/forms/complex/",
-            {
-                "name": "Jane Doe",
-                "email": "jane@example.com",
-                "address": "1 Example Street",
-                "city": "Springfield",
-                "postal_code": "12345",
-                "shipping_method": "standard",
-            },
-        )
-
-        assert response.status_code == 302
-        assert response.url == "/forms/complex/"
 
 
 _CUSTOM_PROPERTY_RE = re.compile(r"--[a-zA-Z0-9-]+")

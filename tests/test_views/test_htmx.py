@@ -30,6 +30,21 @@ HTMX_HEADERS = {"HTTP_HX_REQUEST": "true"}
 
 SUCCESS_URL = "/products/"
 
+SUCCESS_COMPONENT = "demo.htmx-product-created"
+FORM_COMPONENT = "demo.htmx-product-form"
+
+
+def has_success_partial(response):
+    """True when the response body is the ``demo.htmx-product-created`` partial."""
+    soup = BeautifulSoup(response.content, "html.parser")
+    return soup.find(attrs={"role": "alert"}) is not None and soup.find("form") is None
+
+
+def has_form_partial(response):
+    """True when the response body is the ``demo.htmx-product-form`` partial."""
+    soup = BeautifulSoup(response.content, "html.parser")
+    return soup.find("form", id="htmx-demo-form") is not None
+
 
 class _NoSaveCreateView(MVPCreateView):
     """MVPCreateView stub whose form_valid() skips the actual DB save.
@@ -89,7 +104,7 @@ def make_htmx_view(
         "model": Product,
         "fields": ["name"],
         "template_name": "base.html",
-        "htmx_success_component": "demo.htmx-product-created",
+        "htmx_success_component": SUCCESS_COMPONENT,
         "htmx_form_component": "demo.htmx-product-form",
         "success_url": SUCCESS_URL,
         "show_list_action": True,
@@ -130,42 +145,32 @@ class TestHtmxContext:
 class TestHtmxFormResponses:
     @pytest.mark.django_db
     def test_form_valid_htmx_returns_success_partial(self):
-        from unittest.mock import patch
-
         view = make_htmx_view(data={"name": "Widget A"})
         form_cls = view.get_form_class()
         form = form_cls(data={"name": "Widget A"})
         assert form.is_valid(), form.errors
 
-        with patch(
-            "mvp.views.htmx.render_component", return_value="<div>success</div>"
-        ) as mock_rc:
-            response = view.form_valid(form)
+        response = view.form_valid(form)
 
         from django.http import HttpResponseRedirect
 
         assert isinstance(response, HttpResponse)
         assert not isinstance(response, HttpResponseRedirect)
         assert response.status_code == 200
-        assert response.content == b"<div>success</div>"
-        mock_rc.assert_called_once()
-        assert mock_rc.call_args[0][1] == view.htmx_success_component
+        assert has_success_partial(response)
 
     @pytest.mark.django_db
     def test_form_invalid_htmx_returns_form_partial_at_200(self):
-        from unittest.mock import patch
-
         view = make_htmx_view(data={"name": ""})  # name is required
         form_cls = view.get_form_class()
         form = form_cls(data={"name": ""})
         assert not form.is_valid()
 
-        with patch("mvp.views.htmx.render_component", return_value="<div>form</div>"):
-            response = view.form_invalid(form)
+        response = view.form_invalid(form)
 
         assert isinstance(response, HttpResponse)
         assert response.status_code == 200
-        assert response.content == b"<div>form</div>"
+        assert has_form_partial(response)
 
     @pytest.mark.django_db
     def test_form_valid_non_htmx_redirects(self):
@@ -200,8 +205,6 @@ class TestHtmxFormResponses:
 
     @pytest.mark.django_db
     def test_messages_drained_on_htmx_success_path(self):
-        from unittest.mock import patch
-
         from django.contrib.messages import get_messages
         from django.contrib.messages.storage.cookie import CookieStorage
 
@@ -216,8 +219,7 @@ class TestHtmxFormResponses:
         form = form_cls(data={"name": "Widget C"})
         assert form.is_valid(), form.errors
 
-        with patch("mvp.views.htmx.render_component", return_value="<div>ok</div>"):
-            view.form_valid(form)
+        view.form_valid(form)
 
         remaining = list(get_messages(view.request))
         assert len(remaining) == 0, f"Expected empty queue; got {remaining}"
@@ -259,45 +261,34 @@ class TestHtmxComponentConfiguration:
 
     @pytest.mark.django_db
     def test_get_htmx_success_component_override_used(self):
-        from unittest.mock import patch
-
         view = make_htmx_view(
             data={"name": "Widget E"},
             extra_attrs={"htmx_success_component": "demo.htmx-product-created"},
         )
-        custom_template = "custom.success-partial"
-
-        view.get_htmx_success_component = lambda: custom_template
+        view.get_htmx_success_component = lambda: FORM_COMPONENT
 
         form_cls = view.get_form_class()
         form = form_cls(data={"name": "Widget E"})
         assert form.is_valid(), form.errors
 
-        with patch("mvp.views.htmx.render_component") as mock_render:
-            mock_render.return_value = "<div>success</div>"
-            view.form_valid(form)
-            called_template = mock_render.call_args[0][1]
+        response = view.form_valid(form)
 
-        assert called_template == custom_template
+        assert has_form_partial(response)
+        assert not has_success_partial(response)
 
     @pytest.mark.django_db
     def test_get_htmx_form_component_override_used(self):
-        from unittest.mock import patch
-
         view = make_htmx_view(data={"name": ""})
-        custom_template = "custom.form-partial"
-        view.get_htmx_form_component = lambda: custom_template
+        view.get_htmx_form_component = lambda: SUCCESS_COMPONENT
 
         form_cls = view.get_form_class()
         form = form_cls(data={"name": ""})
         assert not form.is_valid()
 
-        with patch("mvp.views.htmx.render_component") as mock_render:
-            mock_render.return_value = "<div>form errors</div>"
-            view.form_invalid(form)
-            called_template = mock_render.call_args[0][1]
+        response = view.form_invalid(form)
 
-        assert called_template == custom_template
+        assert has_success_partial(response)
+        assert not has_form_partial(response)
 
 
 class DefaultFormComponentView(HtmxFormMixin, MVPCreateView):
@@ -325,21 +316,19 @@ class TestHtmxFormDefaultComponent:
 
 
 ALLOWLIST = (
-    ("list", "product.list-item"),
-    ("detail", "product.detail-card"),
+    ("list", FORM_COMPONENT),
+    ("detail", "demo.htmx-product-detail"),
 )
 
 
 class TestHtmxComponentAllowlist:
     @pytest.mark.django_db
     def test_x_success_component_header_resolves_via_allowlist(self):
-        from unittest.mock import patch
-
         view = make_htmx_view(
             data={"name": "Widget X"},
             extra_attrs={
                 "htmx_success_components": ALLOWLIST,
-                "htmx_success_component": "demo.htmx-product-created",
+                "htmx_success_component": SUCCESS_COMPONENT,
             },
         )
         # Simulate the client sending X-Success-Component: list
@@ -349,20 +338,18 @@ class TestHtmxComponentAllowlist:
         form = form_cls(data={"name": "Widget X"})
         assert form.is_valid(), form.errors
 
-        with patch("mvp.views.htmx.render_component") as mock_render:
-            mock_render.return_value = "<div>list</div>"
-            view.form_valid(form)
-            assert mock_render.call_args[0][1] == "product.list-item"
+        response = view.form_valid(form)
+
+        assert has_form_partial(response)
+        assert not has_success_partial(response)
 
     @pytest.mark.django_db
     def test_x_success_component_unknown_alias_falls_through_to_default(self):
-        from unittest.mock import patch
-
         view = make_htmx_view(
             data={"name": "Widget Y"},
             extra_attrs={
                 "htmx_success_components": ALLOWLIST,
-                "htmx_success_component": "demo.htmx-product-created",
+                "htmx_success_component": SUCCESS_COMPONENT,
             },
         )
         view.request.META["HTTP_X_SUCCESS_COMPONENT"] = "unknown-alias"
@@ -371,15 +358,13 @@ class TestHtmxComponentAllowlist:
         form = form_cls(data={"name": "Widget Y"})
         assert form.is_valid(), form.errors
 
-        with patch("mvp.views.htmx.render_component") as mock_render:
-            mock_render.return_value = "<div>default</div>"
-            view.form_valid(form)
-            assert mock_render.call_args[0][1] == "demo.htmx-product-created"
+        response = view.form_valid(form)
+
+        assert has_success_partial(response)
+        assert not has_form_partial(response)
 
     @pytest.mark.django_db
     def test_x_success_component_header_ignored_when_allowlist_empty(self):
-        from unittest.mock import patch
-
         view = make_htmx_view(
             data={"name": "Widget Z"},
             extra_attrs={"htmx_success_component": "demo.htmx-product-created"},
@@ -391,20 +376,18 @@ class TestHtmxComponentAllowlist:
         form = form_cls(data={"name": "Widget Z"})
         assert form.is_valid(), form.errors
 
-        with patch("mvp.views.htmx.render_component") as mock_render:
-            mock_render.return_value = "<div>default</div>"
-            view.form_valid(form)
-            assert mock_render.call_args[0][1] == "demo.htmx-product-created"
+        response = view.form_valid(form)
+
+        assert has_success_partial(response)
+        assert not has_form_partial(response)
 
     @pytest.mark.django_db
     def test_x_success_component_no_header_uses_server_default(self):
-        from unittest.mock import patch
-
         view = make_htmx_view(
             data={"name": "Widget Q"},
             extra_attrs={
                 "htmx_success_components": ALLOWLIST,
-                "htmx_success_component": "demo.htmx-product-created",
+                "htmx_success_component": SUCCESS_COMPONENT,
             },
         )
         # No X-Success-Component header — alias will be empty string after strip().
@@ -413,10 +396,10 @@ class TestHtmxComponentAllowlist:
         form = form_cls(data={"name": "Widget Q"})
         assert form.is_valid(), form.errors
 
-        with patch("mvp.views.htmx.render_component") as mock_render:
-            mock_render.return_value = "<div>default</div>"
-            view.form_valid(form)
-            assert mock_render.call_args[0][1] == "demo.htmx-product-created"
+        response = view.form_valid(form)
+
+        assert has_success_partial(response)
+        assert not has_form_partial(response)
 
 
 class TestHtmxRedirect:
@@ -441,8 +424,6 @@ class TestHtmxRedirect:
 class TestHtmxTriggerHeaders:
     @pytest.mark.django_db
     def test_htmx_trigger_string_adds_hx_trigger_header(self):
-        from unittest.mock import patch
-
         view = make_htmx_view(
             data={"name": "Widget H"},
             extra_attrs={"htmx_trigger": "itemCreated"},
@@ -451,16 +432,13 @@ class TestHtmxTriggerHeaders:
         form = form_cls(data={"name": "Widget H"})
         assert form.is_valid(), form.errors
 
-        with patch("mvp.views.htmx.render_component", return_value="<div>ok</div>"):
-            response = view.form_valid(form)
+        response = view.form_valid(form)
 
         assert "HX-Trigger" in response
         assert "itemCreated" in response["HX-Trigger"]
 
     @pytest.mark.django_db
     def test_htmx_trigger_dict_adds_events_for_each_key(self):
-        from unittest.mock import patch
-
         view = make_htmx_view(
             data={"name": "Widget I"},
             extra_attrs={"htmx_trigger": {"eventA": None, "eventB": {"id": 1}}},
@@ -469,8 +447,7 @@ class TestHtmxTriggerHeaders:
         form = form_cls(data={"name": "Widget I"})
         assert form.is_valid(), form.errors
 
-        with patch("mvp.views.htmx.render_component", return_value="<div>ok</div>"):
-            response = view.form_valid(form)
+        response = view.form_valid(form)
 
         trigger_header = response.get("HX-Trigger", "")
         assert "eventA" in trigger_header
@@ -478,8 +455,6 @@ class TestHtmxTriggerHeaders:
 
     @pytest.mark.django_db
     def test_htmx_trigger_after_settle_uses_correct_header(self):
-        from unittest.mock import patch
-
         view = make_htmx_view(
             data={"name": "Widget J"},
             extra_attrs={
@@ -491,16 +466,13 @@ class TestHtmxTriggerHeaders:
         form = form_cls(data={"name": "Widget J"})
         assert form.is_valid(), form.errors
 
-        with patch("mvp.views.htmx.render_component", return_value="<div>ok</div>"):
-            response = view.form_valid(form)
+        response = view.form_valid(form)
 
         assert "HX-Trigger-After-Settle" in response
         assert "HX-Trigger" not in response or response.get("HX-Trigger") is None
 
     @pytest.mark.django_db
     def test_htmx_trigger_after_swap_uses_correct_header(self):
-        from unittest.mock import patch
-
         view = make_htmx_view(
             data={"name": "Widget K"},
             extra_attrs={
@@ -512,15 +484,12 @@ class TestHtmxTriggerHeaders:
         form = form_cls(data={"name": "Widget K"})
         assert form.is_valid(), form.errors
 
-        with patch("mvp.views.htmx.render_component", return_value="<div>ok</div>"):
-            response = view.form_valid(form)
+        response = view.form_valid(form)
 
         assert "HX-Trigger-After-Swap" in response
 
     @pytest.mark.django_db
     def test_htmx_trigger_none_adds_no_trigger_header(self):
-        from unittest.mock import patch
-
         view = make_htmx_view(
             data={"name": "Widget L"},
             extra_attrs={"htmx_trigger": None},
@@ -529,8 +498,7 @@ class TestHtmxTriggerHeaders:
         form = form_cls(data={"name": "Widget L"})
         assert form.is_valid(), form.errors
 
-        with patch("mvp.views.htmx.render_component", return_value="<div>ok</div>"):
-            response = view.form_valid(form)
+        response = view.form_valid(form)
 
         assert "HX-Trigger" not in response
         assert "HX-Trigger-After-Settle" not in response

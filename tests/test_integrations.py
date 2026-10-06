@@ -10,6 +10,8 @@ import re
 import pytest
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ImproperlyConfigured
+from django.db import connection
+from django.test.utils import CaptureQueriesContext
 
 from mvp.integrations import missing_dependency
 from tests.factories import ProductFactory
@@ -318,8 +320,11 @@ class TestFilterChromeOnAComposedView:
 
 
 class TestTableViewOrdering:
-    def test_declaring_an_ordering_is_refused_at_class_definition(self):
+    @pytest.fixture(autouse=True)
+    def require_django_tables2(self):
         pytest.importorskip("django_tables2")
+
+    def test_declaring_an_ordering_is_refused_at_class_definition(self):
         from demo.models import Product
         from demo.tables import ProductTable
         from mvp.integrations.django_tables.views import MVPTableView
@@ -332,7 +337,6 @@ class TestTableViewOrdering:
                 order_by = [("name_asc", "Name (A-Z)", "name")]
 
     def test_the_message_names_the_class_and_where_the_ordering_belongs(self):
-        pytest.importorskip("django_tables2")
         from demo.models import Product
         from demo.tables import ProductTable
         from mvp.integrations.django_tables.views import MVPTableView
@@ -354,18 +358,22 @@ class TestTableViewOrdering:
 
 
 class TestTableViewPagination:
-    def test_row_query_and_prefetches_run_once_per_page(
+    def test_query_count_does_not_grow_with_the_rows_on_the_page(
         self, db, rf, django_assert_num_queries
     ):
-        ProductFactory.create_batch(8)
-        view = _prefetching_table_view_class()()
-        view.setup(rf.get("/"))
-        view.request.user = AnonymousUser()
-
-        # One COUNT for the paginator, one SELECT for the page's rows, one
-        # SELECT for the prefetched categories.
-        with django_assert_num_queries(3):
+        def render_page():
+            view = _prefetching_table_view_class()()
+            view.setup(rf.get("/"))
+            view.request.user = AnonymousUser()
             view.get(view.request).render()
+
+        ProductFactory()
+        with CaptureQueriesContext(connection) as one_row:
+            render_page()
+
+        ProductFactory.create_batch(7)
+        with django_assert_num_queries(len(one_row)):
+            render_page()
 
     @pytest.mark.parametrize("query", ["", "?sort=name", "?sort=-name"])
     def test_footer_describes_the_rows_that_are_on_the_page(self, db, rf, query):

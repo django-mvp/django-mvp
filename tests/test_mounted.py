@@ -952,16 +952,6 @@ class TestMainAppRegistry:
             )
 
 
-@pytest.fixture
-def staff_user(django_user_model):
-    return django_user_model.objects.create_user("staff", password="pw", is_staff=True)
-
-
-@pytest.fixture
-def regular_user(django_user_model):
-    return django_user_model.objects.create_user("regular", password="pw")
-
-
 def entry_visible_to(user, path="/layout/", *, client, app=testapp_mounted_staff):
     """Whether the host's sidebar draws ``app``'s entry for ``user``."""
     if user is not None:
@@ -979,8 +969,8 @@ class TestMountedAppCheck:
     def test_host_entry_is_shown_to_staff(self, client, staff_user):
         assert entry_visible_to(staff_user, client=client) is True
 
-    def test_host_entry_is_absent_for_a_regular_user(self, client, regular_user):
-        assert entry_visible_to(regular_user, client=client) is False
+    def test_host_entry_is_absent_for_a_regular_user(self, client, user):
+        assert entry_visible_to(user, client=client) is False
 
     def test_host_entry_is_absent_for_an_anonymous_visitor(self, client):
         assert entry_visible_to(None, client=client) is False
@@ -991,24 +981,22 @@ class TestMountedAppCheck:
         assert response.status_code == 302
         assert response["Location"] == "/account/login/?next=/mounted/detail/"
 
-    def test_signed_in_person_the_check_refuses_is_forbidden(
-        self, client, regular_user
-    ):
-        client.force_login(regular_user)
+    def test_signed_in_person_the_check_refuses_is_forbidden(self, client, user):
+        client.force_login(user)
 
         response = client.get("/mounted/")
 
         assert response.status_code == 403
 
-    def test_forbidden_page_title_names_no_app(self, client, regular_user):
-        client.force_login(regular_user)
+    def test_forbidden_page_title_names_no_app(self, client, user):
+        client.force_login(user)
 
         response = client.get("/mounted/")
 
         assert "Staff Fixture" not in normalised_title(response)
 
-    def test_a_project_403_page_draws_app_menu_not_the_apps(self, client, regular_user):
-        client.force_login(regular_user)
+    def test_a_project_403_page_draws_app_menu_not_the_apps(self, client, user):
+        client.force_login(user)
 
         response = client.get("/mounted/")
 
@@ -1026,8 +1014,8 @@ class TestMountedAppCheck:
         assert response.status_code == 200
         assert "Mounted Index" in menu_labels(response)
 
-    def test_lookup_finds_no_app_for_a_refused_request(self, client, regular_user):
-        client.force_login(regular_user)
+    def test_lookup_finds_no_app_for_a_refused_request(self, client, user):
+        client.force_login(user)
 
         response = client.get("/mounted/")
 
@@ -1041,13 +1029,11 @@ class TestMountedAppCheck:
 
 @pytest.mark.django_db
 class TestMountedAppCheckOnOtherPaths:
-    def test_menu_claim_skips_an_app_whose_check_fails(
-        self, client, settings, regular_user
-    ):
+    def test_menu_claim_skips_an_app_whose_check_fails(self, client, settings, user):
         app = host_linking_app("Linker", ("layout", "layout"))
         app.check = lambda request: request.user.is_staff
         settings.ROOT_URLCONF = host_urlconf(mount("own/", app))
-        client.force_login(regular_user)
+        client.force_login(user)
 
         assert for_path(client, "/layout/") is None
 
@@ -1062,7 +1048,7 @@ class TestMountedAppCheckOnOtherPaths:
         assert for_path(client, "/layout/") is app
 
     def test_menu_claim_passes_over_a_refusing_app_to_the_next(
-        self, client, settings, regular_user
+        self, client, settings, user
     ):
         first = host_linking_app("First", ("layout", "layout"))
         first.check = lambda request: request.user.is_staff
@@ -1070,7 +1056,7 @@ class TestMountedAppCheckOnOtherPaths:
         settings.ROOT_URLCONF = host_urlconf(
             mount("first/", first), mount("second/", second)
         )
-        client.force_login(regular_user)
+        client.force_login(user)
 
         assert for_path(client, "/layout/") is second
 

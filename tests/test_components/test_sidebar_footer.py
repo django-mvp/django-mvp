@@ -10,7 +10,6 @@ background is what is under test.
 import re
 
 import pytest
-from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
 from django.template.loader import render_to_string
 from django.test import RequestFactory, override_settings
@@ -38,8 +37,8 @@ MVP_URLS_ONLY = _mvp_urls_only()
 
 class TestSidebarFooterAuthenticated:
     @pytest.mark.django_db
-    def test_renders_the_user_menu_theme_control_and_language_control(self):
-        user = get_user_model().objects.create_user(username="alice", password="pw")
+    def test_renders_the_user_menu_theme_control_and_language_control(self, make_user):
+        user = make_user(username="alice")
         html = _render(user)
 
         assert "alice" in html, "the user menu must show the signed-in user's name"
@@ -47,8 +46,7 @@ class TestSidebarFooterAuthenticated:
         assert "showModal()" in html, "the language control must render"
 
     @pytest.mark.django_db
-    def test_does_not_render_the_log_in_button(self):
-        user = get_user_model().objects.create_user(username="bob", password="pw")
+    def test_does_not_render_the_log_in_button(self, user):
         html = _render(user)
 
         assert f'href="{reverse("account_login")}"' not in html
@@ -74,8 +72,7 @@ class TestSidebarFooterAnonymous:
 
 class TestSidebarFooterThemeControlIsCompact:
     @pytest.mark.django_db
-    def test_renders_no_checkbox_when_no_theme_choices_are_configured(self):
-        user = get_user_model().objects.create_user(username="carol", password="pw")
+    def test_renders_no_checkbox_when_no_theme_choices_are_configured(self, user):
         html = _render(user)
 
         assert 'type="checkbox"' not in html, (

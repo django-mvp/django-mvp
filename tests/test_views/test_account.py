@@ -67,29 +67,37 @@ def _fixture_urlconf():
 
 
 ACCOUNT_FIXTURE_URLCONF = _fixture_urlconf()
+
+
+@pytest.fixture
+def account_urlconf():
+    with override_settings(ROOT_URLCONF=ACCOUNT_URLCONF):
+        yield
+
+
+@pytest.fixture
+def account_fixture_urlconf():
+    with override_settings(ROOT_URLCONF=ACCOUNT_FIXTURE_URLCONF):
+        yield
+
+
 OVERRIDE_TEMPLATES = (
     Path(__file__).resolve().parents[1] / "fixtures" / "override_templates"
 )
 
 
 @pytest.mark.django_db
+@pytest.mark.usefixtures("account_urlconf")
 class TestSignInView:
-    @pytest.fixture(autouse=True)
-    def _account_urlconf(self):
-        with override_settings(ROOT_URLCONF=ACCOUNT_URLCONF):
-            yield
-
     def _post(self, client, username, password):
         return client.post(
             reverse("account_login"), {"username": username, "password": password}
         )
 
     def test_wrong_password_for_an_existing_account_re_renders_the_form(
-        self, client, django_user_model
+        self, client, make_user
     ):
-        django_user_model.objects.create_user(
-            username="signinuser1", password="correct-pass"
-        )
+        make_user(username="signinuser1", password="correct-pass")
         response = self._post(client, "signinuser1", "wrong-pass")
 
         assert response.status_code == 200
@@ -105,12 +113,8 @@ class TestSignInView:
 
 
 @pytest.mark.django_db
+@pytest.mark.usefixtures("account_urlconf")
 class TestSignInViewDefaultRedirect:
-    @pytest.fixture(autouse=True)
-    def _account_urlconf(self):
-        with override_settings(ROOT_URLCONF=ACCOUNT_URLCONF):
-            yield
-
     def _sign_in(self, client, username, password, next_url=None):
         data = {"username": username, "password": password}
         if next_url is not None:
@@ -118,33 +122,25 @@ class TestSignInViewDefaultRedirect:
         return client.post(reverse("account_login"), data)
 
     def test_lands_on_the_account_center_when_the_project_has_not_chosen_a_destination(
-        self, client, django_user_model, settings
+        self, client, make_user, settings
     ):
         settings.LOGIN_REDIRECT_URL = global_settings.LOGIN_REDIRECT_URL
-        django_user_model.objects.create_user(
-            username="redirectuser1", password="correct-pass"
-        )
+        make_user(username="redirectuser1", password="correct-pass")
         response = self._sign_in(client, "redirectuser1", "correct-pass")
 
         assert response.status_code == 302
         assert response.url == reverse("account-center")
 
-    def test_a_projects_own_login_redirect_url_wins(
-        self, client, django_user_model, settings
-    ):
+    def test_a_projects_own_login_redirect_url_wins(self, client, make_user, settings):
         settings.LOGIN_REDIRECT_URL = "/products/"
-        django_user_model.objects.create_user(
-            username="redirectuser2", password="correct-pass"
-        )
+        make_user(username="redirectuser2", password="correct-pass")
         response = self._sign_in(client, "redirectuser2", "correct-pass")
 
         assert response.status_code == 302
         assert response.url == "/products/"
 
-    def test_a_next_on_the_request_beats_both(self, client, django_user_model):
-        django_user_model.objects.create_user(
-            username="redirectuser3", password="correct-pass"
-        )
+    def test_a_next_on_the_request_beats_both(self, client, make_user):
+        make_user(username="redirectuser3", password="correct-pass")
         response = self._sign_in(
             client, "redirectuser3", "correct-pass", next_url="/products/"
         )
@@ -154,17 +150,11 @@ class TestSignInViewDefaultRedirect:
 
 
 @pytest.mark.django_db
+@pytest.mark.usefixtures("account_urlconf")
 class TestSignInViewNextRedirect:
-    @pytest.fixture(autouse=True)
-    def _account_urlconf(self):
-        with override_settings(ROOT_URLCONF=ACCOUNT_URLCONF):
-            yield
-
-    def test_an_off_site_next_is_refused(self, client, django_user_model, settings):
+    def test_an_off_site_next_is_refused(self, client, make_user, settings):
         settings.LOGIN_REDIRECT_URL = global_settings.LOGIN_REDIRECT_URL
-        django_user_model.objects.create_user(
-            username="nextuser1", password="correct-pass"
-        )
+        make_user(username="nextuser1", password="correct-pass")
         response = client.post(
             reverse("account_login"),
             {
@@ -177,10 +167,8 @@ class TestSignInViewNextRedirect:
         assert response.status_code == 302
         assert response.url == reverse("account-center")
 
-    def test_an_in_site_next_is_honoured(self, client, django_user_model):
-        django_user_model.objects.create_user(
-            username="nextuser2", password="correct-pass"
-        )
+    def test_an_in_site_next_is_honoured(self, client, make_user):
+        make_user(username="nextuser2", password="correct-pass")
         response = client.post(
             reverse("account_login"),
             {"username": "nextuser2", "password": "correct-pass", "next": "/products/"},
@@ -190,12 +178,10 @@ class TestSignInViewNextRedirect:
         assert response.url == "/products/"
 
     def test_the_full_round_trip_from_a_protected_page_back_to_it(
-        self, client, django_user_model, settings
+        self, client, make_user, settings
     ):
         settings.LOGIN_URL = "account_login"
-        django_user_model.objects.create_user(
-            username="nextuser3", password="correct-pass"
-        )
+        make_user(username="nextuser3", password="correct-pass")
 
         anonymous_visit = client.get(reverse("account-center"))
         assert anonymous_visit.status_code == 302
@@ -211,18 +197,12 @@ class TestSignInViewNextRedirect:
 
 
 @pytest.mark.django_db
+@pytest.mark.usefixtures("account_urlconf")
 class TestSignInViewAuthenticatedVisitor:
-    @pytest.fixture(autouse=True)
-    def _account_urlconf(self):
-        with override_settings(ROOT_URLCONF=ACCOUNT_URLCONF):
-            yield
-
     def test_a_signed_in_client_requesting_the_sign_in_address_is_redirected(
-        self, client, django_user_model
+        self, client, make_user
     ):
-        user = django_user_model.objects.create_user(
-            username="alreadysignedin", password="correct-pass"
-        )
+        user = make_user(username="alreadysignedin", password="correct-pass")
         client.force_login(user)
 
         response = client.get(reverse("account_login"))
@@ -231,19 +211,13 @@ class TestSignInViewAuthenticatedVisitor:
 
 
 @pytest.mark.django_db
+@pytest.mark.usefixtures("account_urlconf")
 class TestSignOutView:
-    @pytest.fixture(autouse=True)
-    def _account_urlconf(self):
-        with override_settings(ROOT_URLCONF=ACCOUNT_URLCONF):
-            yield
-
     def test_a_post_by_a_signed_in_client_ends_the_session_and_renders_the_signed_out_page(
-        self, client, django_user_model, settings
+        self, client, make_user, settings
     ):
         settings.LOGOUT_REDIRECT_URL = global_settings.LOGOUT_REDIRECT_URL
-        user = django_user_model.objects.create_user(
-            username="signoutuser1", password="correct-pass"
-        )
+        user = make_user(username="signoutuser1", password="correct-pass")
         client.force_login(user)
 
         response = client.post(reverse("account_logout"))
@@ -252,10 +226,8 @@ class TestSignOutView:
         assert response.wsgi_request.user.is_anonymous
         assert response.templates[0].name == "mvp/account/logout.html"
 
-    def test_a_get_does_not_end_the_session(self, client, django_user_model):
-        user = django_user_model.objects.create_user(
-            username="signoutuser2", password="correct-pass"
-        )
+    def test_a_get_does_not_end_the_session(self, client, make_user):
+        user = make_user(username="signoutuser2", password="correct-pass")
         client.force_login(user)
 
         client.get(reverse("account_logout"))
@@ -271,12 +243,8 @@ class TestSignOutView:
 
 
 @pytest.mark.django_db
+@pytest.mark.usefixtures("account_urlconf")
 class TestPackagedTemplatesAreOverridable:
-    @pytest.fixture(autouse=True)
-    def _account_urlconf(self):
-        with override_settings(ROOT_URLCONF=ACCOUNT_URLCONF):
-            yield
-
     def test_a_projects_own_sign_in_template_is_used_instead(self, client, settings):
         templates_config = copy.deepcopy(settings.TEMPLATES)
         templates_config[0]["DIRS"] = [str(PROJECT_OVERRIDE_TEMPLATES_DIR)]
@@ -303,22 +271,16 @@ def _urlconf_with_allauth():
 
 
 @pytest.mark.django_db
+@pytest.mark.usefixtures("account_urlconf")
 class TestDevelopmentNotice:
-    @pytest.fixture(autouse=True)
-    def _account_urlconf(self):
-        with override_settings(ROOT_URLCONF=ACCOUNT_URLCONF):
-            yield
-
     def test_the_sign_in_page_carries_the_notice(self, client):
         content = client.get(reverse("account_login")).content.decode()
         soup = BeautifulSoup(content, "html.parser")
 
         assert soup.select_one("[role=alert]") is not None
 
-    def test_the_sign_out_page_carries_the_notice(self, client, django_user_model):
-        user = django_user_model.objects.create_user(
-            username="noticeuser1", password="correct-pass"
-        )
+    def test_the_sign_out_page_carries_the_notice(self, client, make_user):
+        user = make_user(username="noticeuser1", password="correct-pass")
         client.force_login(user)
 
         content = client.post(reverse("account_logout")).content.decode()
@@ -352,35 +314,23 @@ class TestDevelopmentNoticeAbsence:
 
 
 @pytest.mark.django_db
+@pytest.mark.usefixtures("account_urlconf")
 class TestAccountCenterView:
-    @pytest.fixture(autouse=True)
-    def _account_urlconf(self):
-        with override_settings(ROOT_URLCONF=ACCOUNT_URLCONF):
-            yield
-
     def test_anonymous_request_is_redirected_to_sign_in(self, client):
         response = client.get(reverse("account-center"))
         assert response.status_code == 302
         assert response.url.startswith(reverse("account_login"))
         assert not response.url.startswith("/accounts/login/")
 
-    def test_signed_in_request_renders_inside_the_shell(
-        self, client, django_user_model
-    ):
-        user = django_user_model.objects.create_user(
-            username="accountcenteruser1", password="pass123!"
-        )
+    def test_signed_in_request_renders_inside_the_shell(self, client, make_user):
+        user = make_user(username="accountcenteruser1", password="pass123!")
         client.force_login(user)
         content = client.get(reverse("account-center")).content.decode()
         assert "mvp-sidebar" in content
         assert "mvp-header" in content
 
-    def test_the_title_is_a_bar_then_the_area_then_the_site(
-        self, client, django_user_model
-    ):
-        user = django_user_model.objects.create_user(
-            username="accountcentertitle", password="pass123!"
-        )
+    def test_the_title_is_a_bar_then_the_area_then_the_site(self, client, make_user):
+        user = make_user(username="accountcentertitle", password="pass123!")
         client.force_login(user)
         response = client.get(reverse("account-center"))
         soup = BeautifulSoup(response.content, "html.parser")
@@ -389,10 +339,8 @@ class TestAccountCenterView:
         assert (bar, site) == ("", "example.com")
         assert area
 
-    def test_signed_in_request_shows_no_cards(self, client, django_user_model):
-        user = django_user_model.objects.create_user(
-            username="accountcenteruser3", password="pass123!"
-        )
+    def test_signed_in_request_shows_no_cards(self, client, make_user):
+        user = make_user(username="accountcenteruser3", password="pass123!")
         client.force_login(user)
         content = client.get(reverse("account-center")).content.decode()
         assert re.search(r'<div id="account-center-cards"[^>]*>\s*</div>', content), (
@@ -400,12 +348,8 @@ class TestAccountCenterView:
             "listing and not omitted entirely"
         )
 
-    def test_response_carries_a_single_unlinked_breadcrumb(
-        self, client, django_user_model
-    ):
-        user = django_user_model.objects.create_user(
-            username="accountcenteruser6", password="pass123!"
-        )
+    def test_response_carries_a_single_unlinked_breadcrumb(self, client, make_user):
+        user = make_user(username="accountcenteruser6", password="pass123!")
         client.force_login(user)
         response = client.get(reverse("account-center"))
         breadcrumbs = response.context["page"]["breadcrumbs"]
@@ -441,17 +385,11 @@ def main_content(response):
 
 
 @pytest.mark.django_db
+@pytest.mark.usefixtures("account_fixture_urlconf")
 class TestAccountLayout:
-    @pytest.fixture(autouse=True)
-    def _account_fixture_urlconf(self):
-        with override_settings(ROOT_URLCONF=ACCOUNT_FIXTURE_URLCONF):
-            yield
-
     @pytest.fixture
-    def signed_in(self, client, django_user_model):
-        user = django_user_model.objects.create_user(
-            username="accountlayoutuser", password="pass123!"
-        )
+    def signed_in(self, client, make_user):
+        user = make_user(username="accountlayoutuser", password="pass123!")
         client.force_login(user)
         return client
 
@@ -513,16 +451,10 @@ class TestAccountLayout:
 
 
 @pytest.mark.django_db
+@pytest.mark.usefixtures("account_fixture_urlconf")
 class TestAccountCenterCards:
-    @pytest.fixture(autouse=True)
-    def _account_fixture_urlconf(self):
-        with override_settings(ROOT_URLCONF=ACCOUNT_FIXTURE_URLCONF):
-            yield
-
-    def _login(self, client, django_user_model, username):
-        user = django_user_model.objects.create_user(
-            username=username, password="pass123!"
-        )
+    def _login(self, client, make_user, username):
+        user = make_user(username=username, password="pass123!")
         client.force_login(user)
 
     def _cards(self, content):
@@ -533,21 +465,19 @@ class TestAccountCenterCards:
         region = soup.find(id="account-center-cards")
         return region.find_all(class_="card")
 
-    def test_with_neither_app_installed_the_region_is_empty(
-        self, client, django_user_model
-    ):
-        self._login(client, django_user_model, "cardsuser0")
+    def test_with_neither_app_installed_the_region_is_empty(self, client, make_user):
+        self._login(client, make_user, "cardsuser0")
         response = client.get(reverse("account-center"))
         assert self._cards(response.content.decode()) == []
 
     def test_a_project_template_adds_its_card_to_the_region(
-        self, client, django_user_model, settings
+        self, client, make_user, settings
     ):
         engine = settings.TEMPLATES[0]
         settings.TEMPLATES = [
             {**engine, "DIRS": [str(OVERRIDE_TEMPLATES), *engine.get("DIRS", [])]}
         ]
-        self._login(client, django_user_model, "cardsuser1")
+        self._login(client, make_user, "cardsuser1")
 
         response = client.get(reverse("account-center"))
 
@@ -556,12 +486,8 @@ class TestAccountCenterCards:
 
 
 @pytest.mark.django_db
+@pytest.mark.usefixtures("account_urlconf")
 class TestSignInFieldNaming:
-    @pytest.fixture(autouse=True)
-    def _account_urlconf(self):
-        with override_settings(ROOT_URLCONF=ACCOUNT_URLCONF):
-            yield
-
     def _render_with_label(self, label):
         """Render the real page against a form whose identifying field
         carries ``label``, standing in for a user model that names it

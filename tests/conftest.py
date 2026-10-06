@@ -151,6 +151,35 @@ def testapp_account_entries():
 
 
 @pytest.fixture
+def make_user(django_user_model):
+    """Build a user; a test overrides only the fields its assertions need."""
+
+    def make(username="user", password="pw", **fields):
+        return django_user_model.objects.create_user(
+            username=username, password=password, **fields
+        )
+
+    return make
+
+
+@pytest.fixture
+def user(make_user):
+    return make_user()
+
+
+@pytest.fixture
+def staff_user(make_user):
+    return make_user("staff", is_staff=True)
+
+
+@pytest.fixture
+def superuser(django_user_model):
+    return django_user_model.objects.create_superuser(
+        username="superuser", password="pw"
+    )
+
+
+@pytest.fixture
 def category(db):
     return CategoryFactory()
 

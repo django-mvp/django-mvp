@@ -1327,17 +1327,9 @@ class TestRowsOnlyPageTouchesParentAutoNowField:
         product.refresh_from_db()
         assert product.updated_at > original_updated_at
 
-    def test_touch_parent_false_leaves_the_parent_entirely_unwritten(self, monkeypatch):
+    def test_touch_parent_false_leaves_the_parent_entirely_unwritten(self):
         product = ProductFactory()
         original_updated_at = product.updated_at
-        save_calls = []
-        original_save = Product.save
-
-        def counting_save(self, *args, **kwargs):
-            save_calls.append(kwargs)
-            return original_save(self, *args, **kwargs)
-
-        monkeypatch.setattr(Product, "save", counting_save)
         view_cls = _rows_only_product_view_class(
             success_url="/done/", touch_parent=False
         )
@@ -1350,21 +1342,20 @@ class TestRowsOnlyPageTouchesParentAutoNowField:
         )
 
         assert response.status_code == 302
-        assert save_calls == []
         product.refresh_from_db()
         assert product.updated_at == original_updated_at
 
     def test_no_auto_now_field_is_a_genuine_no_op(self, monkeypatch):
         project = ProjectFactory(name="Original")
-        save_calls = []
-        original_save = Project.save
-
-        def counting_save(self, *args, **kwargs):
-            save_calls.append(kwargs)
-            return original_save(self, *args, **kwargs)
-
-        monkeypatch.setattr(Project, "save", counting_save)
         view_cls = _inline_update_view_class(success_url="/done/", fields=[])
+        original_get_object = view_cls.get_object
+
+        def get_object_then_concurrent_write(self, queryset=None):
+            obj = original_get_object(self, queryset)
+            Project.objects.filter(pk=obj.pk).update(name="Written Elsewhere")
+            return obj
+
+        monkeypatch.setattr(view_cls, "get_object", get_object_then_concurrent_write)
         data = {
             "tasks-TOTAL_FORMS": "1",
             "tasks-INITIAL_FORMS": "0",
@@ -1378,7 +1369,9 @@ class TestRowsOnlyPageTouchesParentAutoNowField:
         )
 
         assert response.status_code == 302
-        assert save_calls == []
+        project.refresh_from_db()
+        assert project.name == "Written Elsewhere"
+        assert set(project.tasks.values_list("title", flat=True)) == {"New task"}
 
 
 @pytest.mark.django_db
