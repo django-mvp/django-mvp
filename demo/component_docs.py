@@ -68,12 +68,6 @@ COMPONENTS = [
         "A labelled read-only value for detail pages.",
     ),
     ComponentDoc(
-        "form-field",
-        "Form Field",
-        "input-cursor",
-        "A single form field: control, label, help text, and errors.",
-    ),
-    ComponentDoc(
         "formset",
         "Formset",
         "list-ul",

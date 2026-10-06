@@ -1,10 +1,11 @@
 {# @description Navbar search input; renders an input that is not wired to a form or a view — it submits nothing on its own. #}
 {% load i18n %}
-<div class="join">
+<c-join only>
   <c-icon name="search"
           class="join-item btn btn-square btn-ghost" />
-  <input type="text"
-         class="input input-bordered input-sm w-full rounded-s-none"
-         placeholder="{% trans "Search..." %}"
-         aria-label="{% trans "Search" %}" />
-</div>
+  <c-form.input size="sm"
+                class="join-item w-full"
+                placeholder="{% trans "Search..." %}"
+                aria-label="{% trans "Search" %}"
+                only />
+</c-join>

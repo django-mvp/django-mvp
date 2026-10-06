@@ -24,7 +24,7 @@
     {% endif %}
   </div>
   <div class="flex flex-wrap gap-1 mb-2">
-    {% for tag in product.tag_list %}<span class="badge badge-outline">#{{ tag }}</span>{% endfor %}
+    {% for tag in product.tag_list %}<c-badge outline only>#{{ tag }}</c-badge>{% endfor %}
   </div>
   {% if product.rating %}
     <span class="text-warning text-sm">

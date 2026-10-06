@@ -5,23 +5,24 @@
 <c-vars placeholder="{% trans "Search" %}"
         label="{% trans "Search" %}" />
 {% if is_searchable %}
-  <div class="join grow">
-    <c-mvp.form.field type="text"
-                  label=""
+  <c-join class="grow" only>
+    <c-form.input type="search"
                   name="q"
                   form="filterForm"
-                  class="join-item grow md:w-[220px] input-sm"
+                  size="sm"
+                  class="join-item grow md:w-[220px]"
                   placeholder="{{ placeholder }}"
                   value="{{ search_query|default:'' }}"
-                  aria-label="{{ placeholder }}">
-      <c-slot name="prelabel">
-        <c-icon name="search" />
+                  aria-label="{{ placeholder }}"
+                  only>
+      <c-slot name="start">
+        <c-icon name="search" aria-hidden="true" />
       </c-slot>
-    </c-mvp.form.field>
+    </c-form.input>
     <c-button type="submit"
               class="join-item"
               size="sm"
               form="filterForm"
               text="{{ label }}" only />
-  </div>
+  </c-join>
 {% endif %}

@@ -9,11 +9,12 @@
     {# The sidebar toggle and site icon give way below the sidebar breakpoint, #}
     {# where the sidebar header already draws both — layout.navbar.mobile.sidebar_toggle #}
     {# puts the toggle back for a project without a mobile dock. #}
-    <label for="mvp-app-toggle"
-           aria-label="{% trans "Open sidebar" %}"
-           class="btn btn-ghost btn-square shrink-0 mvp-sidebar-hidden-only{% if not mvp_config.layout.navbar.mobile.sidebar_toggle %} mvp-desktop-only{% endif %}">
+    <c-drawer.button drawer="mvp-app-toggle"
+                     aria-label="{% trans "Open sidebar" %}"
+                     class="btn-ghost btn-square shrink-0 mvp-sidebar-hidden-only{% if not mvp_config.layout.navbar.mobile.sidebar_toggle %} mvp-desktop-only{% endif %}"
+                     only>
       <c-icon name="menu" />
-    </label>
+    </c-drawer.button>
     <a href="/"
        aria-label="{% trans "Home" %}"
        class="mvp-navbar-brand flex shrink-0 items-center px-1 mvp-sidebar-hidden-only">
@@ -29,9 +30,11 @@
   <div class="navbar-end w-auto shrink-0 gap-3">
     {# Sits outside both widget regions: the htmx indicator (base.css rule) #}
     {# is shown at every width, unlike the split lists below it. #}
-    <span id="mvp-htmx-indicator"
-          class="loading loading-spinner loading-sm"
-          aria-hidden="true"></span>
+    <c-loading spinner
+               size="sm"
+               id="mvp-htmx-indicator"
+               aria-hidden="true"
+               only />
     {# Mobile/desktop widget lists (#176) are two regions toggled by Tailwind #}
     {# display utilities; a display:none region drops out of the accessibility #}
     {# tree in every evergreen browser/screen-reader pairing, so no aria-hidden needed. #}

@@ -9,15 +9,17 @@
     mvp/tailwind/base.css raises it, scoped to `.mvp-page-fill` — the one
     layout where nothing ever scrolls the badge toward the header.
   {% endcomment %}
-  <div class="indicator">
-    {% if applied_filters %}
-      <span class="indicator-item badge badge-secondary badge-xs">{{ applied_filter_count }}</span>
-    {% endif %}
+  <c-indicator only>
+    <c-slot name="items">
+      {% if applied_filters %}
+        <c-indicator.item class="badge badge-secondary badge-xs" only>{{ applied_filter_count }}</c-indicator.item>
+      {% endif %}
+    </c-slot>
     <c-button text="{{ label }}"
               icon="{{ icon }}"
               size="sm"
               @click="filterModal.showModal()" only />
-  </div>
+  </c-indicator>
   <c-mvp.modal id="filterModal"
            title="{{ label }}"
            icon="{{ icon }}"
