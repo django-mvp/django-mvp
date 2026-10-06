@@ -4,7 +4,6 @@ tests/user_display_compact.html.
 """
 
 import pytest
-from django.contrib.auth import get_user_model
 from django.template.loader import render_to_string
 from django.test import RequestFactory
 
@@ -17,19 +16,15 @@ def _render(user):
 
 class TestCompactUserDisplay:
     @pytest.mark.django_db
-    def test_renders_the_users_display_name(self):
-        user = get_user_model().objects.create_user(
-            username="carol", password="pw", email="carol@example.com"
-        )
+    def test_renders_the_users_display_name(self, make_user):
+        user = make_user(username="carol", email="carol@example.com")
         html = _render(user)
 
         assert "carol" in html
 
     @pytest.mark.django_db
-    def test_does_not_render_the_users_email(self):
-        user = get_user_model().objects.create_user(
-            username="dave", password="pw", email="dave@example.com"
-        )
+    def test_does_not_render_the_users_email(self, make_user):
+        user = make_user(username="dave", email="dave@example.com")
         html = _render(user)
 
         assert "dave@example.com" not in html

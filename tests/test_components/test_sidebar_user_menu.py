@@ -9,7 +9,6 @@ import re
 
 import pytest
 from django.conf import settings
-from django.contrib.auth import get_user_model
 from django.test import Client
 from playwright.sync_api import expect
 
@@ -52,10 +51,9 @@ def _user_menu_trigger(sidebar, username):
 @pytest.mark.django_db
 class TestSidebarUserMenuIconRail:
     def test_dropdown_panel_stays_within_the_viewport(
-        self, page, live_server, monkeypatch
+        self, page, live_server, monkeypatch, user
     ):
         monkeypatch.setitem(MVP_CONFIG["layout"]["sidebar"], "collapse", "icons")
-        user = get_user_model().objects.create_user(username="railuser", password="pw")
         _login_in_browser(page, live_server, user)
 
         page.set_viewport_size(DESKTOP)
@@ -77,9 +75,10 @@ class TestSidebarUserMenuIconRail:
             f"dropdown panel rendered at x={box['x']}, off-screen to the left"
         )
 
-    def test_dropdown_rows_keep_their_labels(self, page, live_server, monkeypatch):
+    def test_dropdown_rows_keep_their_labels(
+        self, page, live_server, monkeypatch, user
+    ):
         monkeypatch.setitem(MVP_CONFIG["layout"]["sidebar"], "collapse", "icons")
-        user = get_user_model().objects.create_user(username="railuser3", password="pw")
         _login_in_browser(page, live_server, user)
 
         page.set_viewport_size(DESKTOP)
@@ -104,10 +103,9 @@ class TestSidebarUserMenuIconRail:
             expect(labels.nth(index)).to_be_visible()
 
     def test_dropdown_panel_still_spans_the_trigger_when_expanded(
-        self, page, live_server, monkeypatch
+        self, page, live_server, monkeypatch, user
     ):
         monkeypatch.setitem(MVP_CONFIG["layout"]["sidebar"], "collapse", "icons")
-        user = get_user_model().objects.create_user(username="railuser2", password="pw")
         _login_in_browser(page, live_server, user)
 
         page.set_viewport_size(DESKTOP)
@@ -132,11 +130,10 @@ class TestSidebarUserMenuIconRail:
 @pytest.mark.django_db
 class TestSidebarUserMenuLongUsername:
     def test_theme_control_stays_clickable_with_a_long_username(
-        self, page, live_server
+        self, page, live_server, make_user
     ):
-        user = get_user_model().objects.create_user(
-            username="a-username-far-too-long-to-fit-in-the-sidebar-footer-row",
-            password="pw",
+        user = make_user(
+            username="a-username-far-too-long-to-fit-in-the-sidebar-footer-row"
         )
         _login_in_browser(page, live_server, user)
 
@@ -150,11 +147,10 @@ class TestSidebarUserMenuLongUsername:
         expect(theme_toggle).to_have_class(re.compile(r"\bswap-active\b"))
 
     def test_language_control_stays_clickable_with_a_long_username(
-        self, page, live_server
+        self, page, live_server, make_user
     ):
-        user = get_user_model().objects.create_user(
-            username="a-username-far-too-long-to-fit-in-the-sidebar-footer-row",
-            password="pw",
+        user = make_user(
+            username="a-username-far-too-long-to-fit-in-the-sidebar-footer-row"
         )
         _login_in_browser(page, live_server, user)
 

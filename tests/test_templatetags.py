@@ -13,6 +13,7 @@ import re
 import pytest
 from django.core.exceptions import ImproperlyConfigured
 from django.template import Context, Template
+from django.test.utils import isolate_apps
 from django.utils.safestring import SafeData
 
 
@@ -215,17 +216,24 @@ class TestColumnAlignment:
         table = self._table()
         assert self._tag()(table.columns["price"], table) == "text-end"
 
-    @pytest.mark.django_db
-    def test_float_field_is_trailing(self, monkeypatch):
+    @isolate_apps("demo")
+    def test_float_field_is_trailing(self):
+        import django_tables2 as tables
         from django.db import models
 
-        field = models.FloatField()
-        field.set_attributes_from_name("weight")
-        monkeypatch.setattr(
-            "django_tables2.utils.Accessor.get_field", lambda self, model: field
-        )
-        table = self._table()
-        assert self._tag()(table.columns["name"], table) == "text-end"
+        class Measurement(models.Model):
+            weight = models.FloatField()
+
+            class Meta:
+                app_label = "demo"
+
+        class MeasurementTable(tables.Table):
+            class Meta:
+                model = Measurement
+                fields = ("weight",)
+
+        table = MeasurementTable(Measurement.objects.none())
+        assert self._tag()(table.columns["weight"], table) == "text-end"
 
     @pytest.mark.django_db
     def test_boolean_field_is_centred(self):

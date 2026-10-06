@@ -20,7 +20,9 @@ from django import forms as django_forms
 from django.contrib.auth import get_user_model
 from django.contrib.messages.middleware import MessageMiddleware
 from django.contrib.sessions.middleware import SessionMiddleware
+from django.db import connection
 from django.test import RequestFactory, override_settings
+from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import TemplateView
@@ -44,11 +46,13 @@ from mvp.views.edit import (
 )
 from tests.conftest import requires_browser
 from tests.factories import (
+    CategoryFactory,
     OrderLineFactory,
     ProductFactory,
     ProjectFactory,
     ProjectNoteFactory,
     ProjectTaskFactory,
+    ShipmentLineFactory,
 )
 
 User = get_user_model()
@@ -256,8 +260,8 @@ class TestGetNextCandidateOverride:
 class TestUS3ShorthandSuccessUrl:
     @pytest.fixture(autouse=True)
     def _product(self, db):
-        cat = Category.objects.create(name="Cat", slug="cat-us3")
-        self.product = Product.objects.create(
+        cat = CategoryFactory(name="Cat", slug="cat-us3")
+        self.product = ProductFactory(
             name="Test US3",
             slug="test-us3",
             category=cat,
@@ -346,8 +350,8 @@ class TestUS3DeleteViewNoRegression:
     def test_delete_view_post_redirects_to_list(self, client):
         from django.urls import reverse
 
-        cat = Category.objects.create(name="Cat Del", slug="cat-del-us3")
-        product = Product.objects.create(
+        cat = CategoryFactory(name="Cat Del", slug="cat-del-us3")
+        product = ProductFactory(
             name="Del US3",
             slug="del-us3",
             category=cat,
@@ -365,8 +369,8 @@ class TestUS3DeleteViewNoRegression:
 class TestUS5FallbackChain:
     @pytest.fixture(autouse=True)
     def _product(self, db):
-        cat = Category.objects.create(name="Cat US5", slug="cat-us5")
-        self.product = Product.objects.create(
+        cat = CategoryFactory(name="Cat US5", slug="cat-us5")
+        self.product = ProductFactory(
             name="Test US5",
             slug="test-us5",
             category=cat,
@@ -1033,9 +1037,8 @@ class TestUpdateViewRendering:
 
     @pytest.mark.django_db
     def test_US4_update_delete_link_absent_when_not_configured(self, client):
-        from demo.models import Category
 
-        cat = Category.objects.create(name="No Delete Cat", slug="no-delete-cat-integ")
+        cat = CategoryFactory(name="No Delete Cat", slug="no-delete-cat-integ")
         url = reverse("category-update", kwargs={"pk": cat.pk})
         response = client.get(url)
         # CategoryUpdateView has show_delete_action=False → get_delete_url() returns ''.
@@ -1234,14 +1237,14 @@ class TestMVPDeleteViewRelatedObjects:
         assert response.context["is_protected"] is False
 
     def test_related_objects_not_shown_when_protected(self, client, product):
-        OrderLine.objects.create(product=product, quantity=2)
+        OrderLineFactory(product=product, quantity=2)
         url = reverse("product-delete-related", kwargs={"pk": product.pk})
         response = client.get(url)
         assert response.context["is_protected"] is True
         assert response.context["related_objects"] == []
 
     def test_post_deletes_when_cascade_related_objects_exist(self, client, category):
-        product_pk = Product.objects.create(
+        product_pk = ProductFactory(
             name="Cascade Delete Me",
             slug="cascade-del-me",
             category=category,
@@ -1374,20 +1377,20 @@ class TestMVPDeleteViewFastDeletedRelatedObjects:
 @pytest.mark.django_db
 class TestMVPDeleteViewProtected:
     def test_get_shows_protected_flag_when_orderline_exists(self, client, product):
-        OrderLine.objects.create(product=product, quantity=1)
+        OrderLineFactory(product=product, quantity=1)
         url = reverse("product-delete", kwargs={"pk": product.pk})
         response = client.get(url)
         assert response.status_code == 200
         assert response.context["is_protected"] is True
 
     def test_get_lists_protected_objects(self, client, product):
-        line = OrderLine.objects.create(product=product, quantity=1)
+        line = OrderLineFactory(product=product, quantity=1)
         url = reverse("product-delete", kwargs={"pk": product.pk})
         response = client.get(url)
         assert line in response.context["protected_objects"]
 
     def test_get_html_has_no_delete_button_when_protected(self, client, product):
-        OrderLine.objects.create(product=product, quantity=1)
+        OrderLineFactory(product=product, quantity=1)
         url = reverse("product-delete", kwargs={"pk": product.pk})
         response = client.get(url)
         soup = BeautifulSoup(response.content, "html.parser")
@@ -1398,7 +1401,7 @@ class TestMVPDeleteViewProtected:
         assert form.select('button[type="submit"]') == []
 
     def test_post_does_not_delete_protected_object(self, client, product):
-        OrderLine.objects.create(product=product, quantity=1)
+        OrderLineFactory(product=product, quantity=1)
         url = reverse("product-delete", kwargs={"pk": product.pk})
         response = client.post(url)
         assert response.status_code == 200
@@ -1460,7 +1463,7 @@ class TestMVPDeleteViewTypeToConfirm:
         assert label.get_text(strip=True)
 
     def test_protected_record_renders_no_confirmation_input(self, client, product):
-        OrderLine.objects.create(product=product, quantity=1)
+        OrderLineFactory(product=product, quantity=1)
         url = reverse("product-delete-confirm", kwargs={"pk": product.pk})
         response = client.get(url)
         soup = BeautifulSoup(response.content, "html.parser")
@@ -1554,10 +1557,9 @@ class TestDeleteViewRelatedObjects:
 
     @pytest.mark.django_db
     def test_US2_many_set_null_relations_still_list_nothing(self, client, category):
-        from demo.models import Product
 
         for i in range(4):
-            Product.objects.create(
+            ProductFactory(
                 name=f"Overflow Product {i}",
                 slug=f"overflow-product-integ-{i}",
                 sku=f"OVF-{i:03d}",
@@ -1572,9 +1574,8 @@ class TestDeleteViewRelatedObjects:
 class TestDeleteViewProtected:
     @pytest.mark.django_db
     def test_US3_protected_page_shows_protection_alert(self, client, product):
-        from demo.models import OrderLine
 
-        OrderLine.objects.create(product=product, quantity=1)
+        OrderLineFactory(product=product, quantity=1)
         url = reverse("product-delete", kwargs={"pk": product.pk})
         response = client.get(url)
         soup = BeautifulSoup(response.content, "html.parser")
@@ -1583,9 +1584,8 @@ class TestDeleteViewProtected:
 
     @pytest.mark.django_db
     def test_US3_protected_page_has_no_delete_button(self, client, product):
-        from demo.models import OrderLine
 
-        OrderLine.objects.create(product=product, quantity=1)
+        OrderLineFactory(product=product, quantity=1)
         url = reverse("product-delete", kwargs={"pk": product.pk})
         response = client.get(url)
         # The view sets is_protected=True which hides the submit button in the template.
@@ -1596,9 +1596,8 @@ class TestDeleteViewProtected:
 
     @pytest.mark.django_db
     def test_restrict_blocked_page_shows_protection_alert_on_get(self, client, product):
-        from demo.models import ShipmentLine
 
-        ShipmentLine.objects.create(product=product, quantity=1)
+        ShipmentLineFactory(product=product, quantity=1)
         url = reverse("product-delete", kwargs={"pk": product.pk})
         response = client.get(url)
         assert response.status_code == 200
@@ -1606,9 +1605,9 @@ class TestDeleteViewProtected:
 
     @pytest.mark.django_db
     def test_restrict_blocked_page_refuses_post(self, client, product):
-        from demo.models import Product, ShipmentLine
+        from demo.models import Product
 
-        ShipmentLine.objects.create(product=product, quantity=1)
+        ShipmentLineFactory(product=product, quantity=1)
         url = reverse("product-delete", kwargs={"pk": product.pk})
         response = client.post(url)
         assert response.status_code == 200
@@ -1750,27 +1749,22 @@ class TestUpdateViewWithNoInlinesIsUnaffectedByInlinesMixin:
 
     @pytest.mark.django_db
     def test_invalid_submission_does_not_re_read_the_object_from_the_database(
-        self, monkeypatch
+        self,
     ):
         product = ProductFactory(name="Original")
-        refresh_calls = []
-        original_refresh = Product.refresh_from_db
+        with CaptureQueriesContext(connection) as get_queries:
+            _dispatch_with_messages(self._view_class(), view_kwargs={"pk": product.pk})
 
-        def counting_refresh(self, *args, **kwargs):
-            refresh_calls.append(kwargs)
-            return original_refresh(self, *args, **kwargs)
-
-        monkeypatch.setattr(Product, "refresh_from_db", counting_refresh)
-
-        response = _dispatch_with_messages(
-            self._view_class(),
-            method="POST",
-            data={"name": ""},  # required field left blank — invalid
-            view_kwargs={"pk": product.pk},
-        )
+        with CaptureQueriesContext(connection) as invalid_queries:
+            response = _dispatch_with_messages(
+                self._view_class(),
+                method="POST",
+                data={"name": ""},  # required field left blank — invalid
+                view_kwargs={"pk": product.pk},
+            )
 
         assert response.status_code == 200
-        assert refresh_calls == []
+        assert len(invalid_queries) == len(get_queries)
 
     @pytest.mark.django_db
     def test_context_inlines_is_empty(self):
@@ -1838,7 +1832,7 @@ class TestDeletePageAlertLayout:
         )
 
     def test_blocked_alert_has_one_content_column(self, page, live_server, product):
-        OrderLine.objects.create(product=product, quantity=1)
+        OrderLineFactory(product=product, quantity=1)
         path = reverse("product-delete", kwargs={"pk": product.pk})
         page.set_viewport_size(DESKTOP)
         page.goto(f"{live_server.url}{path}")

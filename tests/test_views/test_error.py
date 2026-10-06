@@ -24,40 +24,40 @@ def _crashing_urlconf(*patterns):
 
 class TestErrorPageRendering:
     @pytest.mark.django_db
-    def test_error_pages_render_without_sidebar(self, client):
-        for code in ["400", "403", "404", "500"]:
-            response = client.get(f"/errors/{code}/")
-            assert response.status_code == 200
-            assert b"main-sidebar" not in response.content
+    @pytest.mark.parametrize("code", ["400", "403", "404", "500"])
+    def test_error_pages_render_without_sidebar(self, client, code):
+        response = client.get(f"/errors/{code}/")
+        assert response.status_code == 200
+        assert b"main-sidebar" not in response.content
 
     @pytest.mark.django_db
-    def test_error_pages_show_code_and_home_link(self, client):
-        for code in ["400", "403", "404", "500"]:
-            content = client.get(f"/errors/{code}/").content.decode()
-            assert code in content
-            assert b'href="/"' in client.get(f"/errors/{code}/").content
-            assert content.count("<h1") == 1
+    @pytest.mark.parametrize("code", ["400", "403", "404", "500"])
+    def test_error_pages_show_code_and_home_link(self, client, code):
+        content = client.get(f"/errors/{code}/").content.decode()
+        assert code in content
+        assert b'href="/"' in client.get(f"/errors/{code}/").content
+        assert content.count("<h1") == 1
 
     @pytest.mark.django_db
-    def test_error_pages_have_title_with_code(self, client):
-        for code in ["400", "403", "404", "500"]:
-            content = client.get(f"/errors/{code}/").content.decode()
-            title_start = content.find("<title")
-            title_end = content.find("</title>")
-            title_text = content[title_start:title_end] if title_start != -1 else ""
-            assert code in title_text
+    @pytest.mark.parametrize("code", ["400", "403", "404", "500"])
+    def test_error_pages_have_title_with_code(self, client, code):
+        content = client.get(f"/errors/{code}/").content.decode()
+        title_start = content.find("<title")
+        title_end = content.find("</title>")
+        title_text = content[title_start:title_end] if title_start != -1 else ""
+        assert code in title_text
 
     @pytest.mark.django_db
-    def test_error_page_logo_img_has_alt_text(self, client):
-        for code in ["400", "403", "404", "500"]:
-            content = client.get(f"/errors/{code}/").content.decode()
-            imgs = re.findall(r"<img\b[^>]*>", content, re.S)
-            assert imgs, f"/errors/{code}/ renders no <img> to check"
-            for img in imgs:
-                alt = re.search(r'\balt="([^"]*)"', img, re.S)
-                assert alt and alt.group(1).strip(), (
-                    f"<img> without alt text on /{code}/: {img}"
-                )
+    @pytest.mark.parametrize("code", ["400", "403", "404", "500"])
+    def test_error_page_logo_img_has_alt_text(self, client, code):
+        content = client.get(f"/errors/{code}/").content.decode()
+        imgs = re.findall(r"<img\b[^>]*>", content, re.S)
+        assert imgs, f"/errors/{code}/ renders no <img> to check"
+        for img in imgs:
+            alt = re.search(r'\balt="([^"]*)"', img, re.S)
+            assert alt and alt.group(1).strip(), (
+                f"<img> without alt text on /{code}/: {img}"
+            )
 
 
 class TestNotFoundHandler:
