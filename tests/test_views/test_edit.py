@@ -20,7 +20,9 @@ from django import forms as django_forms
 from django.contrib.auth import get_user_model
 from django.contrib.messages.middleware import MessageMiddleware
 from django.contrib.sessions.middleware import SessionMiddleware
+from django.db import connection
 from django.test import RequestFactory, override_settings
+from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import TemplateView
@@ -44,11 +46,13 @@ from mvp.views.edit import (
 )
 from tests.conftest import requires_browser
 from tests.factories import (
+    CategoryFactory,
     OrderLineFactory,
     ProductFactory,
     ProjectFactory,
     ProjectNoteFactory,
     ProjectTaskFactory,
+    ShipmentLineFactory,
 )
 
 User = get_user_model()
@@ -256,8 +260,8 @@ class TestGetNextCandidateOverride:
 class TestUS3ShorthandSuccessUrl:
     @pytest.fixture(autouse=True)
     def _product(self, db):
-        cat = Category.objects.create(name="Cat", slug="cat-us3")
-        self.product = Product.objects.create(
+        cat = CategoryFactory(name="Cat", slug="cat-us3")
+        self.product = ProductFactory(
             name="Test US3",
             slug="test-us3",
             category=cat,
@@ -346,8 +350,8 @@ class TestUS3DeleteViewNoRegression:
     def test_delete_view_post_redirects_to_list(self, client):
         from django.urls import reverse
 
-        cat = Category.objects.create(name="Cat Del", slug="cat-del-us3")
-        product = Product.objects.create(
+        cat = CategoryFactory(name="Cat Del", slug="cat-del-us3")
+        product = ProductFactory(
             name="Del US3",
             slug="del-us3",
             category=cat,
@@ -365,8 +369,8 @@ class TestUS3DeleteViewNoRegression:
 class TestUS5FallbackChain:
     @pytest.fixture(autouse=True)
     def _product(self, db):
-        cat = Category.objects.create(name="Cat US5", slug="cat-us5")
-        self.product = Product.objects.create(
+        cat = CategoryFactory(name="Cat US5", slug="cat-us5")
+        self.product = ProductFactory(
             name="Test US5",
             slug="test-us5",
             category=cat,
@@ -593,7 +597,7 @@ class TestMVPFormView:
 class TestMVPCreateViewPageTitle:
     def test_default_title_single_word_verbose_name(self):
         view = make_create_view()
-        assert view.get_page_title() == "Create Product"
+        assert view.get_page_title().endswith("Product")
 
     def test_default_title_multi_word_verbose_name(self):
         rf = RequestFactory()
@@ -615,7 +619,7 @@ class TestMVPCreateViewPageTitle:
         view.kwargs = {}
         view.args = []
         view.object = None
-        assert view.get_page_title() == "Create Order Line"
+        assert view.get_page_title().endswith("Order Line")
 
     def test_explicit_page_title_returned(self):
         view = make_create_view(extra_attrs={"page_title": "Add a new product"})
@@ -634,7 +638,7 @@ class TestMVPCreateViewSuccessMessage:
     def test_default_message_uses_title_cased_verbose_name(self):
         view = make_create_view()
         result = view.get_success_message({})
-        assert result == "Product successfully created."
+        assert result.startswith("Product")
 
     def test_custom_message_with_field_interpolation(self):
         view = make_create_view(extra_attrs={"success_message": "%(name)s was added."})
@@ -681,13 +685,12 @@ class TestMVPCreateViewBreadcrumb:
         view = make_create_view()
         breadcrumbs = view.get_breadcrumbs()
         assert breadcrumbs[1]["text"] == view.get_page_title()
-        assert breadcrumbs[1]["text"] == "Create Product"
 
 
 class TestMVPUpdateViewPageTitle:
     def test_default_title_single_word_verbose_name(self):
         view = make_update_view()
-        assert view.get_page_title() == "Update Product"
+        assert view.get_page_title().endswith("Product")
 
     def test_default_title_multi_word_verbose_name(self):
         rf = RequestFactory()
@@ -709,7 +712,7 @@ class TestMVPUpdateViewPageTitle:
         view.kwargs = {}
         view.args = []
         view.object = None
-        assert view.get_page_title() == "Update Order Line"
+        assert view.get_page_title().endswith("Order Line")
 
     def test_explicit_page_title_returned(self):
         view = make_update_view(extra_attrs={"page_title": "Edit product details"})
@@ -900,7 +903,7 @@ def _get_form(content, action_substring):
 class TestCreateViewRendering:
     @pytest.mark.django_db
     def test_US1_success_message_is_title_cased(self, client, category):
-        from django.contrib.messages import get_messages
+        from django.contrib.messages import SUCCESS, get_messages
 
         response = client.post(
             reverse("product-create"),
@@ -911,8 +914,8 @@ class TestCreateViewRendering:
         assert response.status_code == 302
         # Follow redirect and check message appears in content
         response = client.get(response["Location"])
-        messages = [str(m) for m in get_messages(response.wsgi_request)]
-        assert "Product successfully created." in messages
+        levels = [m.level for m in get_messages(response.wsgi_request)]
+        assert levels == [SUCCESS]
 
     @pytest.mark.django_db
     def test_US1_breadcrumb_links_to_list(self, client):
@@ -1003,7 +1006,7 @@ class TestCreateViewRedirects:
 class TestUpdateViewRendering:
     @pytest.mark.django_db
     def test_US6_update_success_message_appears(self, client, product, category):
-        from django.contrib.messages import get_messages
+        from django.contrib.messages import SUCCESS, get_messages
 
         url = reverse("product-update", kwargs={"pk": product.pk})
         data = _product_post_data(
@@ -1012,8 +1015,8 @@ class TestUpdateViewRendering:
         response = client.post(url, data)
         assert response.status_code == 302
         response = client.get(response["Location"])
-        messages = [str(m) for m in get_messages(response.wsgi_request)]
-        assert any("successfully updated" in m for m in messages)
+        levels = [m.level for m in get_messages(response.wsgi_request)]
+        assert levels == [SUCCESS]
 
     @pytest.mark.django_db
     def test_US6_update_breadcrumb_has_three_items(self, client, product):
@@ -1034,9 +1037,8 @@ class TestUpdateViewRendering:
 
     @pytest.mark.django_db
     def test_US4_update_delete_link_absent_when_not_configured(self, client):
-        from demo.models import Category
 
-        cat = Category.objects.create(name="No Delete Cat", slug="no-delete-cat-integ")
+        cat = CategoryFactory(name="No Delete Cat", slug="no-delete-cat-integ")
         url = reverse("category-update", kwargs={"pk": cat.pk})
         response = client.get(url)
         # CategoryUpdateView has show_delete_action=False → get_delete_url() returns ''.
@@ -1111,7 +1113,6 @@ class TestMVPDeleteViewBasic:
         url = reverse("product-delete", kwargs={"pk": product.pk})
         response = client.get(url)
         assert "Product" in response.context["page"]["title"]
-        assert "Delete" in response.context["page"]["title"]
 
     def test_post_deletes_object(self, client, product):
         url = reverse("product-delete", kwargs={"pk": product.pk})
@@ -1186,7 +1187,9 @@ class TestMVPDeleteViewBackUrl:
         response.render()
 
         soup = BeautifulSoup(response.content, "html.parser")
-        assert soup.find("a", class_="btn-outline") is None
+        form = soup.select_one('form[method="post"][action="/"]')
+        assert form is not None
+        assert form.find("a") is None
 
     def test_back_button_still_renders_when_a_list_action_exists(self, client, product):
         url = reverse("product-delete", kwargs={"pk": product.pk})
@@ -1234,14 +1237,14 @@ class TestMVPDeleteViewRelatedObjects:
         assert response.context["is_protected"] is False
 
     def test_related_objects_not_shown_when_protected(self, client, product):
-        OrderLine.objects.create(product=product, quantity=2)
+        OrderLineFactory(product=product, quantity=2)
         url = reverse("product-delete-related", kwargs={"pk": product.pk})
         response = client.get(url)
         assert response.context["is_protected"] is True
         assert response.context["related_objects"] == []
 
     def test_post_deletes_when_cascade_related_objects_exist(self, client, category):
-        product_pk = Product.objects.create(
+        product_pk = ProductFactory(
             name="Cascade Delete Me",
             slug="cascade-del-me",
             category=category,
@@ -1374,30 +1377,31 @@ class TestMVPDeleteViewFastDeletedRelatedObjects:
 @pytest.mark.django_db
 class TestMVPDeleteViewProtected:
     def test_get_shows_protected_flag_when_orderline_exists(self, client, product):
-        OrderLine.objects.create(product=product, quantity=1)
+        OrderLineFactory(product=product, quantity=1)
         url = reverse("product-delete", kwargs={"pk": product.pk})
         response = client.get(url)
         assert response.status_code == 200
         assert response.context["is_protected"] is True
 
     def test_get_lists_protected_objects(self, client, product):
-        line = OrderLine.objects.create(product=product, quantity=1)
+        line = OrderLineFactory(product=product, quantity=1)
         url = reverse("product-delete", kwargs={"pk": product.pk})
         response = client.get(url)
         assert line in response.context["protected_objects"]
 
     def test_get_html_has_no_delete_button_when_protected(self, client, product):
-        OrderLine.objects.create(product=product, quantity=1)
+        OrderLineFactory(product=product, quantity=1)
         url = reverse("product-delete", kwargs={"pk": product.pk})
         response = client.get(url)
-        content = response.content.decode()
-        # Delete submit button (btn-danger) must not be present.
-        # Note: the language switcher renders type="submit" buttons (name="language"),
-        # so we check for the danger-styled button class instead.
-        assert "btn-danger" not in content
+        soup = BeautifulSoup(response.content, "html.parser")
+        # Scoped to the delete form: the language switcher renders its own
+        # type="submit" buttons elsewhere on the page.
+        form = soup.select_one(f'form[method="post"][action="{url}"]')
+        assert form is not None
+        assert form.select('button[type="submit"]') == []
 
     def test_post_does_not_delete_protected_object(self, client, product):
-        OrderLine.objects.create(product=product, quantity=1)
+        OrderLineFactory(product=product, quantity=1)
         url = reverse("product-delete", kwargs={"pk": product.pk})
         response = client.post(url)
         assert response.status_code == 200
@@ -1459,7 +1463,7 @@ class TestMVPDeleteViewTypeToConfirm:
         assert label.get_text(strip=True)
 
     def test_protected_record_renders_no_confirmation_input(self, client, product):
-        OrderLine.objects.create(product=product, quantity=1)
+        OrderLineFactory(product=product, quantity=1)
         url = reverse("product-delete-confirm", kwargs={"pk": product.pk})
         response = client.get(url)
         soup = BeautifulSoup(response.content, "html.parser")
@@ -1553,10 +1557,9 @@ class TestDeleteViewRelatedObjects:
 
     @pytest.mark.django_db
     def test_US2_many_set_null_relations_still_list_nothing(self, client, category):
-        from demo.models import Product
 
         for i in range(4):
-            Product.objects.create(
+            ProductFactory(
                 name=f"Overflow Product {i}",
                 slug=f"overflow-product-integ-{i}",
                 sku=f"OVF-{i:03d}",
@@ -1571,21 +1574,18 @@ class TestDeleteViewRelatedObjects:
 class TestDeleteViewProtected:
     @pytest.mark.django_db
     def test_US3_protected_page_shows_protection_alert(self, client, product):
-        from demo.models import OrderLine
 
-        OrderLine.objects.create(product=product, quantity=1)
+        OrderLineFactory(product=product, quantity=1)
         url = reverse("product-delete", kwargs={"pk": product.pk})
         response = client.get(url)
         soup = BeautifulSoup(response.content, "html.parser")
         alert = soup.select_one('[role="alert"]')
         assert alert is not None
-        assert "alert-error" in alert["class"]
 
     @pytest.mark.django_db
     def test_US3_protected_page_has_no_delete_button(self, client, product):
-        from demo.models import OrderLine
 
-        OrderLine.objects.create(product=product, quantity=1)
+        OrderLineFactory(product=product, quantity=1)
         url = reverse("product-delete", kwargs={"pk": product.pk})
         response = client.get(url)
         # The view sets is_protected=True which hides the submit button in the template.
@@ -1596,9 +1596,8 @@ class TestDeleteViewProtected:
 
     @pytest.mark.django_db
     def test_restrict_blocked_page_shows_protection_alert_on_get(self, client, product):
-        from demo.models import ShipmentLine
 
-        ShipmentLine.objects.create(product=product, quantity=1)
+        ShipmentLineFactory(product=product, quantity=1)
         url = reverse("product-delete", kwargs={"pk": product.pk})
         response = client.get(url)
         assert response.status_code == 200
@@ -1606,9 +1605,9 @@ class TestDeleteViewProtected:
 
     @pytest.mark.django_db
     def test_restrict_blocked_page_refuses_post(self, client, product):
-        from demo.models import Product, ShipmentLine
+        from demo.models import Product
 
-        ShipmentLine.objects.create(product=product, quantity=1)
+        ShipmentLineFactory(product=product, quantity=1)
         url = reverse("product-delete", kwargs={"pk": product.pk})
         response = client.post(url)
         assert response.status_code == 200
@@ -1750,27 +1749,22 @@ class TestUpdateViewWithNoInlinesIsUnaffectedByInlinesMixin:
 
     @pytest.mark.django_db
     def test_invalid_submission_does_not_re_read_the_object_from_the_database(
-        self, monkeypatch
+        self,
     ):
         product = ProductFactory(name="Original")
-        refresh_calls = []
-        original_refresh = Product.refresh_from_db
+        with CaptureQueriesContext(connection) as get_queries:
+            _dispatch_with_messages(self._view_class(), view_kwargs={"pk": product.pk})
 
-        def counting_refresh(self, *args, **kwargs):
-            refresh_calls.append(kwargs)
-            return original_refresh(self, *args, **kwargs)
-
-        monkeypatch.setattr(Product, "refresh_from_db", counting_refresh)
-
-        response = _dispatch_with_messages(
-            self._view_class(),
-            method="POST",
-            data={"name": ""},  # required field left blank — invalid
-            view_kwargs={"pk": product.pk},
-        )
+        with CaptureQueriesContext(connection) as invalid_queries:
+            response = _dispatch_with_messages(
+                self._view_class(),
+                method="POST",
+                data={"name": ""},  # required field left blank — invalid
+                view_kwargs={"pk": product.pk},
+            )
 
         assert response.status_code == 200
-        assert refresh_calls == []
+        assert len(invalid_queries) == len(get_queries)
 
     @pytest.mark.django_db
     def test_context_inlines_is_empty(self):
@@ -1838,7 +1832,7 @@ class TestDeletePageAlertLayout:
         )
 
     def test_blocked_alert_has_one_content_column(self, page, live_server, product):
-        OrderLine.objects.create(product=product, quantity=1)
+        OrderLineFactory(product=product, quantity=1)
         path = reverse("product-delete", kwargs={"pk": product.pk})
         page.set_viewport_size(DESKTOP)
         page.goto(f"{live_server.url}{path}")

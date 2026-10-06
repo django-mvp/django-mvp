@@ -1,6 +1,9 @@
-<c-mvp.menu.item :href="url"
+<c-menu.item :href="url"
              :active="selected"
-             label="{{ label }}"
-             tip="{{ label }}"
              icon="{{ icon }}"
-             :badge="badge" />
+             class="is-drawer-close:tooltip is-drawer-close:tooltip-right"
+             data-tip="{{ label }}"
+             only>
+  <span>{{ label }}</span>
+  {% if badge %}<c-badge size="sm" :text="badge" only />{% endif %}
+</c-menu.item>

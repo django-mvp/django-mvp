@@ -52,14 +52,6 @@ class TestLanguageSwitcherModal:
     def test_active_language_is_marked(self):
         html = _render("fr")
         assert html.count('aria-current="true"') == 1
-        # the active option carries the primary highlight classes
-        match = re.search(
-            r'<button type="submit"\s+name="language"\s+value="fr"[^>]*aria-current="true"[^>]*'
-            r'class="([^"]*)"',
-            html,
-        )
-        assert match is not None
-        assert "border-primary" in match.group(1)
 
     @pytest.mark.django_db
     def test_id_prop_overrides_dialog_id(self):

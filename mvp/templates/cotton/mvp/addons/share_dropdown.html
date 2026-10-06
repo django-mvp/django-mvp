@@ -17,33 +17,33 @@
               text="{% trans "Share" %}" only />
   </c-slot>
   <c-menu aria-label="{% trans "Share this page" %}" class="w-full" only>
-    <li class="menu-title">{% trans "Share this page" %}</li>
-    <c-mvp.menu.item label="Facebook"
+    <c-menu.title text="{% trans "Share this page" %}" only />
+    <c-menu.item text="Facebook"
                  icon="facebook"
                  href="https://www.facebook.com/sharer/sharer.php?u={{ url|urlencode }}"
                  target="_blank"
-                 rel="noopener noreferrer" />
-    <c-mvp.menu.item label="X / Twitter"
+                 rel="noopener noreferrer" only />
+    <c-menu.item text="X / Twitter"
                  icon="twitter"
                  href="https://twitter.com/intent/tweet?text={{ title|urlencode }}&url={{ url|urlencode }}"
                  target="_blank"
-                 rel="noopener noreferrer" />
-    <c-mvp.menu.item label="Reddit"
+                 rel="noopener noreferrer" only />
+    <c-menu.item text="Reddit"
                  icon="reddit"
                  href="https://www.reddit.com/submit?title={{ title|urlencode }}&url={{ url|urlencode }}"
                  target="_blank"
-                 rel="noopener noreferrer" />
-    <c-mvp.menu.item label="Pinterest"
+                 rel="noopener noreferrer" only />
+    <c-menu.item text="Pinterest"
                  icon="pinterest"
                  href="https://www.pinterest.com/pin/create/button/?url={{ url|urlencode }}"
                  target="_blank"
-                 rel="noopener noreferrer" />
-    <c-mvp.menu.item label="{% trans "Email" %}"
+                 rel="noopener noreferrer" only />
+    <c-menu.item text="{% trans "Email" %}"
                  icon="email"
-                 href="mailto:?subject={{ title|urlencode }}&body={{ url|urlencode }}" />
-    <c-mvp.menu.item label="{% trans "Copy link" %}"
+                 href="mailto:?subject={{ title|urlencode }}&body={{ url|urlencode }}" only />
+    <c-menu.item text="{% trans "Copy link" %}"
                  icon="copy-link"
                  href="#"
-                 onclick="navigator.clipboard.writeText(window.location.href); return false;" />
+                 onclick="navigator.clipboard.writeText(window.location.href); return false;" only />
   </c-menu>
 </c-mvp.dropdown>

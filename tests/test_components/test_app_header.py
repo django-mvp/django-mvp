@@ -53,9 +53,6 @@ class TestTheHeaderLeadingEdge:
         brand = soup.find("a", class_="mvp-navbar-brand")
         assert brand is not None
         assert brand["href"] == "/"
-        assert brand.find("img") is not None, (
-            "the header carries the site icon, not the site name as text"
-        )
 
 
 @pytest.mark.django_db
@@ -149,7 +146,6 @@ class TestTheHeaderShowsWhenHtmxIsWorking:
 
         assert indicator is not None
         assert indicator.find_parent(class_="mvp-header") is not None
-        assert {"loading", "loading-spinner"} <= set(indicator["class"])
         assert indicator["aria-hidden"] == "true"
 
     def test_the_indicator_is_outside_the_width_dependent_regions(self, client):

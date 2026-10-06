@@ -1,5 +1,5 @@
 {# @description Account dropdown for the sidebar footer: avatar trigger, account/admin links, then log out. #}
-{# @slot <c-mvp.menu.item ... /> — Extra rows, inserted between the built-in links and log out. #}
+{# @slot <c-menu.item ... /> — Extra rows, inserted between the built-in links and log out. #}
 {% load i18n mvp %}
 {% if request.user.is_authenticated %}
   <c-mvp.dropdown valign="top" halign="start" full class="w-full">
@@ -19,23 +19,22 @@
     {% if request.user.is_staff %}{% url "admin:index" as admin_url %}{% endif %}
     <c-menu class="w-full" only>
       {% if account_center_url %}
-        <c-mvp.menu.item label="{% trans "Account Center" %}"
-                     icon="account_center"
-                     href="{{ account_center_url }}" />
+        <c-menu.item icon="account_center" href="{{ account_center_url }}" only>
+          <span>{% trans "Account Center" %}</span>
+        </c-menu.item>
       {% endif %}
       {% if admin_url %}
-        <c-mvp.menu.item label="{% trans "Admin Site" %}"
-                     icon="admin-site"
-                     href="{{ admin_url }}" />
+        <c-menu.item icon="admin-site" href="{{ admin_url }}" only>
+          <span>{% trans "Admin Site" %}</span>
+        </c-menu.item>
       {% endif %}
       {{ slot }}
       {% firstof account_center_url admin_url slot as has_rows_above %}
-      {% if logout_url and has_rows_above %}<c-mvp.menu.divider />{% endif %}
+      {% if logout_url and has_rows_above %}<li></li>{% endif %}
       {% if logout_url %}
-        <c-mvp.menu.item label="{% trans "Log out" %}"
-                     type="submit"
-                     form="logoutForm"
-                     icon="logout" />
+        <c-menu.item type="submit" form="logoutForm" icon="logout" only>
+          <span>{% trans "Log out" %}</span>
+        </c-menu.item>
       {% endif %}
     </c-menu>
     {% if logout_url %}

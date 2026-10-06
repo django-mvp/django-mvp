@@ -9,16 +9,15 @@ from ``{{ attrs }}`` by Cotton, so the element ends up with **two**
 ignored and the browser keeps only the first, so the caller's classes are
 silently dropped with no error.
 
-Sources are compiled through the Cotton compiler (mirroring
-``test_form_field.py``) so the tests exercise each component exactly as a
-template invocation would — rendering the component's own template file
-directly, as ``test_render_all.py`` does, never triggers Cotton's c-vars /
-``attrs`` extraction and would not reproduce this bug.
+Sources are compiled through the Cotton compiler so the tests exercise each
+component exactly as a template invocation would — rendering the component's
+own template file directly, as ``test_render_all.py`` does, never triggers
+Cotton's c-vars / ``attrs`` extraction and would not reproduce this bug.
 
 Covers every component this package ships that the audit for #121 found with
-this exact shape: c-mvp.text, c-mvp.menu.item, c-mvp.page.list.empty and
-c-mvp.layout.sidebar. The divider, menu and dock item it also found are
-daisy-cotton's now.
+this exact shape: c-mvp.text, c-mvp.page.list.empty and c-mvp.layout.sidebar.
+The divider, menu, menu entry and dock item it also found are daisy-cotton's
+now.
 
 c-mvp.page.title was added later, from #263. It is the same defect one step
 further along: it declared ``class``, so Cotton stripped the caller's value
@@ -80,14 +79,6 @@ class TestClassAttributeMerge:
         attrs = class_attrs_on(html, "p")
         assert len(attrs) == 1, f"expected one class attribute, found {attrs}"
         assert "dac-prose" in attrs[0]
-        assert "text-base" in attrs[0]
-
-    def test_menu_item_merges_caller_class(self):
-        html = render('<c-mvp.menu.item label="X" class="my-menu-item" />')
-        attrs = class_attrs_on(html, "button")
-        assert len(attrs) == 1, f"expected one class attribute, found {attrs}"
-        assert "my-menu-item" in attrs[0]
-        assert "group" in attrs[0]
 
     def test_page_list_empty_merges_caller_class(self):
         html = render(
@@ -96,7 +87,6 @@ class TestClassAttributeMerge:
         attrs = class_attrs_on(html, "div")
         assert len(attrs) == 1, f"expected one class attribute, found {attrs}"
         assert "my-empty-state" in attrs[0]
-        assert "w-full" in attrs[0]
 
     def test_layout_sidebar_merges_caller_class(self):
         html = render(

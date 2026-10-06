@@ -17,22 +17,66 @@
       <c-mvp.form method="post"
               action="{% url 'account_login' %}"
               class="space-y-4">
-        <c-mvp.form.field type="text"
-                      label="{{ form.username.label }}"
-                      id="{{ form.username.id_for_label }}"
-                      name="{{ form.username.html_name }}"
-                      placeholder="{{ form.username.label }}"
-                      autocomplete="username"
-                      :errors="form.username.errors"
-                      required />
-        <c-mvp.form.field type="password"
-                      label="{% trans "Password" %}"
-                      id="{{ form.password.id_for_label }}"
-                      name="{{ form.password.html_name }}"
-                      placeholder="{% trans "Password" %}"
-                      autocomplete="current-password"
-                      :errors="form.password.errors"
-                      required />
+        {% with field=form.username %}
+          <c-form.fieldset id="{{ field.id_for_label }}-field"
+                           :errors="field.errors"
+                           only>
+            <c-form.label for="{{ field.id_for_label }}" only>
+              {{ field.label }}<span class="text-error" aria-hidden="true">*</span>
+            </c-form.label>
+            {% if field.errors %}
+              <c-form.input id="{{ field.id_for_label }}"
+                            name="{{ field.html_name }}"
+                            placeholder="{{ field.label }}"
+                            autocomplete="username"
+                            class="w-full"
+                            variant="error"
+                            aria-invalid="true"
+                            aria-describedby="{{ field.id_for_label }}-field-errors"
+                            required
+                            only />
+            {% else %}
+              <c-form.input id="{{ field.id_for_label }}"
+                            name="{{ field.html_name }}"
+                            placeholder="{{ field.label }}"
+                            autocomplete="username"
+                            class="w-full"
+                            required
+                            only />
+            {% endif %}
+          </c-form.fieldset>
+        {% endwith %}
+        {% with field=form.password %}
+          <c-form.fieldset id="{{ field.id_for_label }}-field"
+                           :errors="field.errors"
+                           only>
+            <c-form.label for="{{ field.id_for_label }}" only>
+              {% trans "Password" %}<span class="text-error" aria-hidden="true">*</span>
+            </c-form.label>
+            {% if field.errors %}
+              <c-form.input type="password"
+                            id="{{ field.id_for_label }}"
+                            name="{{ field.html_name }}"
+                            placeholder="{% trans "Password" %}"
+                            autocomplete="current-password"
+                            class="w-full"
+                            variant="error"
+                            aria-invalid="true"
+                            aria-describedby="{{ field.id_for_label }}-field-errors"
+                            required
+                            only />
+            {% else %}
+              <c-form.input type="password"
+                            id="{{ field.id_for_label }}"
+                            name="{{ field.html_name }}"
+                            placeholder="{% trans "Password" %}"
+                            autocomplete="current-password"
+                            class="w-full"
+                            required
+                            only />
+            {% endif %}
+          </c-form.fieldset>
+        {% endwith %}
         <c-button type="submit"
                   variant="primary"
                   text="{% trans "Sign In" %}"

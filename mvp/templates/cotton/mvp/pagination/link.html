@@ -6,28 +6,43 @@
 {# @prop size:select['sm','md','lg'] | description:"Button size." #}
 {# @prop class:text | description:"Extra classes on the link or button." #}
 {# @slot 1 — Content shown instead of the text prop, e.g. an icon. #}
-{% load mvp %}
 <c-vars page text active disabled size class />
 {% if disabled %}
-  <button class="join-item btn {% variation size "btn" "sm,md,lg" %} btn-disabled {{ class }}"
-          aria-disabled="true"
-          tabindex="-1"
-          {{ attrs }}>
+  <c-button size="{{ size }}"
+            class="join-item {{ class }}"
+            disabled
+            :attrs="attrs"
+            only>
     {% if slot %}
       {{ slot }}
     {% else %}
       {{ text }}
     {% endif %}
-  </button>
+  </c-button>
+{% elif active %}
+  <c-button href="{% querystring page=page %}"
+            size="{{ size }}"
+            variant="primary"
+            class="join-item {{ class }}"
+            aria-current="page"
+            :attrs="attrs"
+            only>
+    {% if slot %}
+      {{ slot }}
+    {% else %}
+      {{ text }}
+    {% endif %}
+  </c-button>
 {% else %}
-  <a class="join-item btn {% variation size "btn" "sm,md,lg" %}{% if active %} btn-primary{% endif %} {{ class }}"
-     href="{% querystring page=page %}"
-     {% if active %}aria-current="page"{% endif %}
-     {{ attrs }}>
+  <c-button href="{% querystring page=page %}"
+            size="{{ size }}"
+            class="join-item {{ class }}"
+            :attrs="attrs"
+            only>
     {% if slot %}
       {{ slot }}
     {% else %}
       {{ text }}
     {% endif %}
-  </a>
+  </c-button>
 {% endif %}

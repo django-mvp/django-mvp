@@ -232,10 +232,53 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     not affected: a message at any other level tag is drawn as a plain alert. Waiting on
     [daisy-cotton#136](https://github.com/django-mvp/daisy-cotton/issues/136).
 
+- **Breaking: the package's own menu and single-field components are removed in favour of
+  daisy-cotton's (#498).** There are no aliases: a tag left at an old name raises
+  `TemplateDoesNotExist`. The prefix table above lists these five under their `mvp.` names, and
+  none of them exists any more.
+
+  | Removed | What to write |
+  | --- | --- |
+  | `<c-mvp.menu.item>` | `<c-menu.item>`. `label` becomes `text`. `tip` becomes `data-tip` plus `class="is-drawer-close:tooltip is-drawer-close:tooltip-right"` on the entry. `badge` becomes a `<c-badge>` in the entry's slot. `href`, `active`, `icon` and `class` carry over |
+  | `<c-mvp.menu.group>` | `<c-menu.title>` for a static heading, `<c-menu.submenu>` for a collapsible group |
+  | `<c-mvp.menu.collapse>` | `<c-menu.submenu>` |
+  | `<c-mvp.menu.divider>` | an empty `<li></li>` |
+  | `<c-mvp.form.field>` | `<c-form.fieldset>`, `<c-form.label>` and `<c-form.input>`, or daisy-cotton's other `form.*` controls |
+
+  Whole forms still render through `<c-mvp.form>`. `<c-mvp.dropdown>` stays, and so do the
+  package's other components.
+
+  **A row you add to the sidebar, or to the slot of `<c-mvp.user.sidebar-menu>`,** puts its
+  label in a `<span>`, because the collapsed icon rail hides the span:
+  `<c-menu.item icon="…" href="…"><span>Label</span></c-menu.item>`. See
+  [Rows you add to the sidebar](docs/components.md#rows-you-add-to-the-sidebar).
+
+  **Markup that changed, for a project's own CSS, tests or overrides:**
+
+  - Each sign-in field is a `<fieldset id="<id>-field">` holding a `<label>` and the input. The
+    input keeps its id and name. Its errors are in an element with the id `<id>-field-errors`.
+  - The list search input is `type="search"`. It was `type="text"`.
+  - A disabled pagination control is a `<button>` with the native `disabled` attribute. It no
+    longer has `btn-disabled`, `aria-disabled` or `tabindex="-1"`.
+  - The two-theme toggle has `role="switch"`.
+  - The current language button has `menu-active` instead of `active`, and the form wraps the
+    whole list instead of sitting inside it.
+  - Each option of the sort menu is a `<button>`. It was a `<span>`.
+  - The data field's help text is an element with `role="tooltip"` inside a `tooltip` wrapper.
+    It was a `data-tip` attribute on the heading.
+  - The navbar's sidebar opener has the `drawer-button` class.
+  - The htmx spinner has `role="status"` and an `aria-label`. It is still `aria-hidden`, so
+    assistive technology skips it.
+  - A sidebar row no longer has the `group` class, and a static group's heading text is no
+    longer wrapped in a `<span>`.
+
 ### Fixed
 
 - A Django message at a level tag a project added through `MESSAGE_TAGS` no longer raises. It is
   drawn as a plain alert.
+- The errors of a single hand-written field were not tied to its control (#412). The sign-in
+  fields now name their errors with `aria-describedby`, and a field written with
+  `<c-form.fieldset id="…">` can do the same: the fieldset gives its errors the id `<id>-errors`.
 
 ## [v0.26.0] - 2026-10-04
 

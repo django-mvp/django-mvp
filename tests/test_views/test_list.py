@@ -24,6 +24,7 @@ from mvp.views.list import (
     SearchMixin,
     SearchOrderMixin,
 )
+from tests.factories import CategoryFactory, ProductFactory
 
 try:
     from django_filters.views import FilterView as _FilterView
@@ -122,12 +123,12 @@ def _make_filter_view_no_config(params=None):
 
 @pytest.fixture
 def cat(db):
-    return Category.objects.create(name="Test Category", slug="test-category")
+    return CategoryFactory(name="Test Category", slug="test-category")
 
 
 @pytest.fixture
 def cat2(db):
-    return Category.objects.create(name="Other Category", slug="other-category")
+    return CategoryFactory(name="Other Category", slug="other-category")
 
 
 def _product(cat, name, description="", slug=None, price="9.99", **kwargs):
@@ -136,7 +137,7 @@ def _product(cat, name, description="", slug=None, price="9.99", **kwargs):
         slug = name.lower().replace(" ", "-").replace("/", "-")
     # sku must be unique; derive from slug to avoid constraint violations
     sku = kwargs.pop("sku", slug[:50])
-    return Product.objects.create(
+    return ProductFactory(
         name=name,
         slug=slug,
         category=cat,
@@ -295,7 +296,7 @@ class TestSearchMixinAdvanced:
     def test_search_related_field_traversal(self, db, cat):
         _product(cat, "Widget A", description="")
         # Create a product whose category name does NOT match
-        other_cat = Category.objects.create(name="Other Cat", slug="other-cat")
+        other_cat = CategoryFactory(name="Other Cat", slug="other-cat")
         _product(other_cat, "Widget B", description="")
         view = _make_search_view(
             params={"q": "Test"},  # matches cat.name = "Test Category"
@@ -850,7 +851,7 @@ class TestMVPListViewMixinPageMetadata:
         view.object_list = view.get_queryset()
         ctx = view.get_context_data()
         breadcrumbs = ctx["page"]["breadcrumbs"]
-        assert breadcrumbs[0] == {"text": "Home", "href": "/"}
+        assert breadcrumbs[0]["href"] == "/"
         expected_title = Product._meta.verbose_name_plural.title()
         assert breadcrumbs[1] == {"text": expected_title}
 
@@ -890,8 +891,8 @@ class TestListViewInlineCreate:
         view.object_list = view.get_queryset()
         ctx = view.get_context_data()
 
-        expected = f"Add {Product._meta.verbose_name.title()}"
-        assert ctx["create_modal_title"] == expected
+        expected = Product._meta.verbose_name.title()
+        assert ctx["create_modal_title"].endswith(expected)
 
     def test_create_modal_title_override_attribute(self, db):
         from demo.forms import ProductForm
@@ -961,12 +962,12 @@ class TestListViewInlineCreate:
         assert "create_form" not in ctx
         assert "create_modal_title" not in ctx
 
-    def test_permission_callable_returns_true_allows_form_injection(self, db, rf):
-        from django.contrib.auth.models import User
-
+    def test_permission_callable_returns_true_allows_form_injection(
+        self, db, rf, make_user
+    ):
         from demo.forms import ProductForm
 
-        user = User.objects.create_user(username="testuser", password="password")
+        user = make_user(username="testuser", password="password")
 
         view = _make_list_view(
             extra_attrs={

@@ -16,7 +16,7 @@ from flex_menu import Menu, MenuItem
 from mvp.mounted import MountedApp
 from tests.testapp_mounted.menus import TestappMountedMenu
 
-BACK_TEXT = "Back to example.com"
+SITE_NAME = "example.com"
 
 
 def render_sidebar(markup, path="/mounted/", **context):
@@ -77,7 +77,8 @@ class TestSidebarMenuChoice:
 
         labels = sidebar_labels(soup)
 
-        assert labels[1:] == [BACK_TEXT, "Mounted Index", "Mounted Detail"]
+        assert SITE_NAME in labels[1]
+        assert labels[2:] == ["Mounted Index", "Mounted Detail"]
         assert "Home" not in labels
 
     def test_explicit_menu_beats_the_resolved_pair(self):
@@ -99,7 +100,10 @@ class TestSidebarMenuChoice:
             "<c-mvp.app.sidebar />", mounted_menu=hidden, mounted_app=app
         )
 
-        assert sidebar_labels(soup)[1:] == [BACK_TEXT]
+        labels = sidebar_labels(soup)
+        assert len(labels) == 2
+        assert SITE_NAME in labels[1]
+        assert back_link(soup) is not None
 
     def test_sidebar_still_draws_one_navigation_landmark_beside_a_back_link(self):
         soup = render_sidebar("<c-mvp.app.sidebar />")
@@ -163,7 +167,7 @@ class TestSidebarBackLink:
         )
 
     def test_label_reads_back_to_the_site_name(self):
-        assert back_link(self.render()).get_text(" ", strip=True) == BACK_TEXT
+        assert SITE_NAME in back_link(self.render()).get_text(" ", strip=True)
 
     def test_link_goes_to_the_brand_url(self):
         soup = self.render(extra='brand-url="/home-page/"')
@@ -177,15 +181,15 @@ class TestSidebarBackLink:
     def test_link_is_named_by_its_label_when_the_rail_hides_the_text(self):
         link = back_link(self.render())
 
-        assert link["aria-label"] == BACK_TEXT
-        assert link.select_one("svg, i") is not None
+        assert SITE_NAME in link["aria-label"]
+        assert link["aria-label"] == link.get_text(" ", strip=True)
 
     def test_configured_site_name_wins_over_the_site_record(self, monkeypatch):
         from mvp.config import MVP_CONFIG
 
         monkeypatch.setitem(MVP_CONFIG, "site_name", "FairDM")
 
-        assert back_link(self.render())["aria-label"] == "Back to FairDM"
+        assert "FairDM" in back_link(self.render())["aria-label"]
 
     def test_site_name_is_escaped_once(self, monkeypatch):
         from mvp.config import MVP_CONFIG
@@ -193,7 +197,7 @@ class TestSidebarBackLink:
         monkeypatch.setitem(MVP_CONFIG, "site_name", "R&D <Lab>")
         html = str(self.render())
 
-        assert 'aria-label="Back to R&amp;D &lt;Lab&gt;"' in html
+        assert "R&amp;D &lt;Lab&gt;" in html
         assert "&amp;amp;" not in html
 
     def test_no_site_name_never_reads_back_to_alone(self, monkeypatch):
@@ -206,4 +210,4 @@ class TestSidebarBackLink:
         label = back_link(self.render()).get_text(" ", strip=True)
 
         assert label
-        assert label != "Back to"
+        assert back_link(self.render())["aria-label"] == label

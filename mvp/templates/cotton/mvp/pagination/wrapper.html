@@ -1,4 +1,4 @@
-{# @description The labelled <nav>/<div class="join"> shell a hand-built pager's links sit in. #}
+{# @description The labelled <nav>/<c-join> shell a hand-built pager's links sit in. #}
 {# @prop label:text | default:"Navigation page results" | description:"Accessible name for the pagination <nav>." #}
 {# @prop class:text | description:"Extra classes on the join wrapper around the links." #}
 {# @slot <c-mvp.pagination.link ... /> — The pagination links. #}
@@ -6,5 +6,5 @@
 <c-vars label="{% trans "Navigation page results" %}"
         class />
 <nav aria-label="{{ label }}" {{ attrs }}>
-  <div class="join {{ class }}">{{ slot }}</div>
+  <c-join class="{{ class }}" only>{{ slot }}</c-join>
 </nav>

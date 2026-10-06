@@ -2,7 +2,6 @@
 
 import pytest
 from django import forms as django_forms
-from django.contrib.auth import get_user_model
 from django.core.exceptions import ImproperlyConfigured
 from django.db import models as db_models
 from django.test import RequestFactory
@@ -12,8 +11,6 @@ from django.views.generic import TemplateView
 from demo.models import Category, Product
 from mvp.views.base import BaseTemplateNameMixin, ModelInfoMixin, PageMixin
 from mvp.views.extra import MVPHomeView
-
-User = get_user_model()
 
 
 class ConcreteTemplateView(BaseTemplateNameMixin, TemplateView):
@@ -439,8 +436,8 @@ class TestMVPHomeView:
         return view
 
     @pytest.mark.django_db
-    def test_authenticated_user_gets_dashboard_template(self):
-        user = User.objects.create_user(username="dashuser", password="pass")
+    def test_authenticated_user_gets_dashboard_template(self, make_user):
+        user = make_user(username="dashuser", password="pass")
         view = self._make_view(user)
         templates = view.get_template_names()
         assert templates == [view.dashboard_template_name]
@@ -454,12 +451,6 @@ class TestMVPHomeView:
 
 
 # TestMVPTemplateViewLayoutIntegration
-
-
-class _PlainForm(django_forms.Form):
-    """Plain (non-Model) Form — used to verify silent skipping."""
-
-    name = django_forms.CharField()
 
 
 @pytest.mark.django_db
@@ -486,18 +477,13 @@ class TestMVPTemplateViewLayoutIntegration:
         assert page["breadcrumbs"] == [{"text": "Home", "href": "/"}]
 
 
-User = get_user_model()
-
-
 # US2: MVPHomeView — guest/dashboard template switch
 
 
 @pytest.mark.django_db
 class TestLoginReturnJourney:
-    def test_full_login_and_return_journey(self, client, django_user_model):
-        user = django_user_model.objects.create_user(
-            username="journeyuser", password="pass123!"
-        )
+    def test_full_login_and_return_journey(self, client, make_user):
+        user = make_user(username="journeyuser", password="pass123!")
 
         # Step 1: Anonymous visit to /
         response = client.get("/")

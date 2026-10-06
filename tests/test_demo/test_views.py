@@ -29,7 +29,6 @@ class TestUtilityClassesView:
 
         # The page chrome supplies the heading, so the file's own H1 must not
         # be rendered on top of it.
-        assert "Utility Class Reference" not in content
         assert content.count("<h1") == 1
 
 

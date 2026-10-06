@@ -11,23 +11,23 @@
                 icon="globe"
                 content_class="mt-4 h-[30.5rem] max-h-[calc(100vh-8.6rem)] w-56 overflow-y-auto">
       <p class="px-3 pt-2 pb-1 text-xs font-semibold uppercase text-base-content/60">{% trans "Select a language" %}</p>
-      <ul class="menu menu-sm w-full">
-        <form action="{{ set_language_url }}" method="post">
-          {% csrf_token %}
-          <input type="hidden"
-                 name="next"
-                 value="{{ request.get_full_path }}" />
+      <form action="{{ set_language_url }}" method="post">
+        {% csrf_token %}
+        <input type="hidden"
+               name="next"
+               value="{{ request.get_full_path }}" />
+        <c-menu size="sm" class="w-full" only>
           {% for code, name in LANGUAGES %}
             {% get_language_info for code as lang %}
-            <li>
-              <button type="submit"
-                      name="language"
-                      value="{{ code }}"
-                      class="{% if code == CURRENT_LANGUAGE %}active{% endif %}">{{ lang.name_local }}</button>
-            </li>
+            <c-menu.item type="submit"
+                         name="language"
+                         value="{{ code }}"
+                         text="{{ lang.name_local }}"
+                         active="{% if code == CURRENT_LANGUAGE %}true{% endif %}"
+                         only />
           {% endfor %}
-        </form>
-      </ul>
+        </c-menu>
+      </form>
     </c-mvp.dropdown>
   {% endif %}
 {% endif %}

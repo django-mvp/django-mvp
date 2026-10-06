@@ -112,7 +112,8 @@ class TestDropdownProps:
     def test_full_stretches_the_panel_to_the_trigger(self):
         html = render(f"<c-mvp.dropdown full>{PANEL}</c-mvp.dropdown>")
 
-        assert "min-w-52 w-full shadow-lg" in html
+        panel = BeautifulSoup(html, "html.parser").find(class_="dropdown-content")
+        assert "w-full" in panel["class"]
 
     def test_without_full_the_panel_sizes_to_its_content(self):
         html = render(f"<c-mvp.dropdown>{PANEL}</c-mvp.dropdown>")
@@ -139,7 +140,8 @@ class TestDropdownProps:
             f'<c-mvp.dropdown content_class="w-56 mt-4">{PANEL}</c-mvp.dropdown>'
         )
 
-        assert "border border-base-300 w-56 mt-4" in html
+        panel = BeautifulSoup(html, "html.parser").find(class_="dropdown-content")
+        assert {"w-56", "mt-4"} <= set(panel["class"])
 
 
 class TestDropdownTrigger:
@@ -150,11 +152,8 @@ class TestDropdownTrigger:
         )
 
         button = BeautifulSoup(html, "html.parser").find("button")
-        assert "btn-primary" in button["class"]
         assert button["tabindex"] == "0"
         assert button["role"] == "button"
-        assert "<span>Options</span>" in html
-        assert 'class="bi bi-gear"' in html
         assert "text=" not in html, (
             "trigger attributes configure the button, so none of them may be "
             "written onto the wrapper as raw HTML"
