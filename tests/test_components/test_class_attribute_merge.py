@@ -9,11 +9,10 @@ from ``{{ attrs }}`` by Cotton, so the element ends up with **two**
 ignored and the browser keeps only the first, so the caller's classes are
 silently dropped with no error.
 
-Sources are compiled through the Cotton compiler (mirroring
-``test_form_field.py``) so the tests exercise each component exactly as a
-template invocation would — rendering the component's own template file
-directly, as ``test_render_all.py`` does, never triggers Cotton's c-vars /
-``attrs`` extraction and would not reproduce this bug.
+Sources are compiled through the Cotton compiler so the tests exercise each
+component exactly as a template invocation would — rendering the component's
+own template file directly, as ``test_render_all.py`` does, never triggers
+Cotton's c-vars / ``attrs`` extraction and would not reproduce this bug.
 
 Covers every component this package ships that the audit for #121 found with
 this exact shape: c-mvp.text, c-mvp.page.list.empty and c-mvp.layout.sidebar.

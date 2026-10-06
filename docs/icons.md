@@ -184,7 +184,7 @@ Browse <https://icons.getbootstrap.com/> for more glyphs. The class is `bi bi-<s
 | Site | Form |
 | --- | --- |
 | Menu items | `MenuItem(..., extra_context={"icon": "dashboard"})` |
-| Component attribute | `<c-button icon="add" />`, `<c-mvp.menu.item icon="logout" />` |
+| Component attribute | `<c-button icon="add" />`, `<c-menu.item icon="logout" text="Log out" />` |
 | Direct render | `<c-icon name="search" />` |
 
 Anything reaching any of these has to be a registered name, not a raw `bi bi-…`

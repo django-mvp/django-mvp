@@ -3,8 +3,7 @@
 The `<form>` wrapper that hosts a single form's rendering (<c-mvp.form.render>)
 and, from this story on, an optional formset's rendering
 (<c-mvp.form.formset>). Sources are compiled through the Cotton compiler so the
-tests exercise the component exactly as a template invocation would, per
-tests/test_components/test_form_field.py.
+tests exercise the component exactly as a template invocation would.
 """
 
 from django import forms

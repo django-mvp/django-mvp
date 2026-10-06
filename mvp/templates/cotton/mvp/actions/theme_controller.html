@@ -22,7 +22,7 @@
       focusable and Enter/Space fires the click theme-change binds. A bare
       <a> without href is not in the tab order and cannot be activated.
     {% endcomment %}
-    <c-menu aria-label="{% trans "Choose theme" %}" class="menu-sm w-full" only>
+    <c-menu aria-label="{% trans "Choose theme" %}" size="sm" class="w-full" only>
       {% for choice in mvp_config.theme.choices %}
         <c-menu.item text="{{ choice }}" data-set-theme="{{ choice }}" only />
       {% endfor %}

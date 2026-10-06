@@ -71,8 +71,13 @@ daisy-cotton starts with a description of the attributes it takes.
 | `<c-mockup.window>` | an application window frame | [daisy-cotton](https://github.com/django-mvp/daisy-cotton) |
 | `<c-menu>` | a menu list | [daisy-cotton](https://github.com/django-mvp/daisy-cotton) |
 
-This package's own `<c-mvp.menu.item>`, `<c-mvp.avatar>` and the other `mvp.` components
-sit inside these and are described below.
+daisy-cotton ships more components than these sixteen, and your pages can call them too.
+This package's own templates call its other menu and form components (`<c-menu.item>`,
+`<c-menu.title>`, `<c-menu.submenu>`, `<c-form.fieldset>`, `<c-form.label>`,
+`<c-form.input>` and `<c-form.toggle>`), and `<c-join>`, `<c-toast>`, `<c-tooltip>`,
+`<c-indicator>`, `<c-footer>`, `<c-loading>` and `<c-drawer.button>`.
+
+This package's own `<c-mvp.avatar>` and the other `mvp.` components are described below.
 
 ### Isolating a call with `only`
 
@@ -210,7 +215,7 @@ content's. The shell keys off it. `<c-mvp.entrance>` still accepts a deprecated
 | `c-mvp.card.wrapper` | `class` — the bare card surface (background, rounded corners, shadow), for a fully custom interior |
 | `c-icon` | `name` (required); every other attribute reaches the rendered icon element, so `class`, `height` and the rest are set on the tag |
 | `c-mvp.text` | `text`, `size` (default `base`), `align` (`left`/`center`/`right`), `muted`, `tight`, `bold`, `upper`, `class` |
-| `c-mvp.data-field` | `label`, `value`, `help_text`, `missing` (default `–`) — key–value display; links the value when it has a URL |
+| `c-mvp.data-field` | `label`, `value`, `help_text` (a tooltip on the label), `missing` (default `–`) — key–value display; links the value when it has a URL |
 | `c-mvp.messages` | Django messages list; `dismissible`, `delay` (auto-dismiss milliseconds, default 2000) |
 | `c-mvp.modal` | `id` (for `showModal()`/`close()`), `size` (`sm`/`md`/`lg`/`xl`/`full`, default `md`), `position` (`top`/`bottom`/`start`/`end`), `closable` (show a close button), `class` — a dialog laid out as a card; `title`, `icon` and the `actions`/`footer`/`footer_end` slots forward to the inner `c-mvp.card` |
 | `c-mvp.dropdown` | `valign` (`top/bottom/left/right`), `halign` (`start/center/end`), `full` (panel matches the trigger's width), `hover` (open on hover), `class`, `content_class`; slot `button` = trigger — see the placement note below |
@@ -268,7 +273,7 @@ a scrolling region or a card with clipped overflow is no longer cut off at the b
      of the window it opens upwards instead, with no change here. -->
 <c-mvp.dropdown valign="bottom" halign="end" text="Options">
   <c-menu>
-    <c-mvp.menu.item label="Edit" href="#" />
+    <c-menu.item href="#" text="Edit" />
   </c-menu>
 </c-mvp.dropdown>
 ```
@@ -285,15 +290,53 @@ declared side whether or not it fits, exactly as it always used to.
 
 | Component | Notes |
 | --- | --- |
-| `c-mvp.menu.item` | `label`, `icon`, `href`, `active`, `badge`, `tip` (rail tooltip) — a link when given `href`, otherwise a button |
-| `c-mvp.menu.group` | `label`, `collapse`, `icon`, `icon_class`, `badge`, `badge_class` — section header or `<details>` group |
-| `c-mvp.menu.collapse` | a thin pass-through to `c-mvp.menu.item` that also takes children — every attribute is forwarded |
-| `c-mvp.menu.divider` | separator between menu entries |
 | `c-mvp.pagination` | `page_obj`, `page_window` (default `5`), `use_icons`, `show_first_and_last`, `label` (the `<nav>`'s accessible name, default `Navigation page results`) — renders nothing when there's only one page; `show_first_and_last` swaps the First/Last text controls for the first and last page numbers |
 | `c-mvp.pagination.link` / `c-mvp.pagination.wrapper` | building blocks for a hand-built pager: `page`, `text`, `active`, `disabled`, `size`, `class` on the link; `label`, `class` on the labelled wrapper it sits in |
 
 Menus are normally rendered from Python via django-flex-menus — see
-[Navigation](navigation.md). Use these components directly only for hand-built menus.
+[Navigation](navigation.md). For a hand-built menu, write daisy-cotton's menu components
+inside `<c-menu>`:
+
+| Tag | Use |
+| --- | --- |
+| `<c-menu.item>` | one entry: a link when given `href`, a button otherwise. Takes `text`, `icon`, `active`, `disabled` and `class`. Any other attribute, such as `data-tip` or `hx-get`, lands on the link or button |
+| `<c-menu.title>` | a static heading row |
+| `<c-menu.submenu>` | a collapsible group of entries; `open` renders it expanded |
+| `<li></li>` | a divider between entries |
+
+```html
+<c-menu aria-label="Library">
+  <c-menu.title text="Catalogue" />
+  <c-menu.item href="/books/" text="Books" icon="book" active />
+  <c-menu.submenu text="Reports">
+    <c-menu.item href="/reports/loans/" text="Loans" />
+  </c-menu.submenu>
+  <li></li>
+  <c-menu.item type="submit" form="logoutForm" text="Log out" />
+</c-menu>
+```
+
+### Rows you add to the sidebar
+
+The sidebar's icon rail hides each row's label so only the icon shows, and it does that
+by hiding the `<span>` that holds the label. A row you add to the sidebar, or to the slot
+of `<c-mvp.user.sidebar-menu>`, therefore writes its label in a `<span>` in the slot
+instead of passing `text`:
+
+```html
+<c-menu.item icon="inbox"
+             href="/inbox/"
+             class="is-drawer-close:tooltip is-drawer-close:tooltip-right"
+             data-tip="Inbox">
+  <span>Inbox</span>
+  <c-badge size="sm" text="3" />
+</c-menu.item>
+```
+
+The two `is-drawer-close:` classes plus `data-tip` give the row a tooltip while the
+sidebar is collapsed to the rail. Without them the row still works and shows no tooltip.
+A badge is a `<c-badge>` in the row's slot. `<c-menu.submenu>` takes the same `<span>`
+in its `text` slot: `<c-slot name="text"><span>Reports</span></c-slot>`.
 
 `<c-menu>`, `<c-breadcrumbs>` and `<c-dock>` are daisy-cotton's. A `<c-menu>` has no
 accessible name of its own, so give one you write by hand an `aria-label`, or put it inside
@@ -319,7 +362,7 @@ unmet.
 | `c-mvp.actions.language-switcher-modal` | the same switcher as a modal, better for narrow slots like the sidebar footer where a dropdown would be cramped — the variant the fixed sidebar footer uses (`id`, `size`); same preconditions as the dropdown switcher |
 | `c-mvp.actions.search` | navbar search input; renders an input that is not wired to a form or a view — it submits nothing on its own |
 | `c-mvp.actions.login` | log-in button (needs `login` URL); renders only when anonymous and `account_login` or `login` reverses — used in the navbar and in the fixed sidebar footer (`variant`, `full`) |
-| `c-mvp.user.sidebar-menu` | account dropdown; part of the fixed sidebar footer. Its default slot lands between the account-centre entry and log out, so extra `c-mvp.menu.item` children land in the middle of the menu |
+| `c-mvp.user.sidebar-menu` | account dropdown; part of the fixed sidebar footer. Its default slot lands between the account-centre entry and log out, so extra `<c-menu.item>` children land in the middle of the menu |
 | `c-mvp.user.display.compact` | avatar + name row |
 
 ## Forms
@@ -328,9 +371,29 @@ unmet.
 | --- | --- |
 | `c-mvp.form` | the `<form>` element: CSRF token (only when `method` is `post`), multipart detection, and an optional rendered form. `form-obj` renders through `c-mvp.form.render`; `formset` and `inlines` only detect that a multipart encoding is needed and are not rendered by `c-mvp.form` itself. `method`, `action`, `id` and anything else pass straight to the `<form>` element |
 | `c-mvp.form.render` | `form` — renders a Django form's fields, honouring its helper when it has one |
-| `c-mvp.form.field` | single presentational field: `type` (text-like, `textarea`, `select`, `file`, `checkbox`, `radio`, `toggle`), `label`, `hide-label`, `help-text`, `errors`, `prelabel`, `postlabel`, `wrapper-class`; `label`/`help_text`/`errors` also accept named slots. `errors` takes a string or a list and switches the control to its error state. `name`, `id`, `value`, `placeholder`, `required`, `disabled`, `checked` and `rows` pass straight through to the control |
 | `c-mvp.form.formset` | whole Django formset: `formset` (required), `title` (defaults to the model in plural), `description`, `add-label`, `remove-label`, `class` — see [Formsets](formsets.md) |
 | `c-mvp.form.formset.row` | one row of a formset: `form` (required), `label` (defaults to the object), `first`, `can-delete`, `remove-label`, `class` — placed by `c-mvp.form.formset`, which supplies `first` and `can-delete` from the set; write it by hand only for a custom set layout |
+
+A form is drawn through `<c-mvp.form>`. For a single field you write by hand, outside a
+Django form, compose daisy-cotton's form components. A fieldset with an `id` gives the
+description and the errors the ids `<id>-description` and `<id>-errors`, and the control
+names them in `aria-describedby`:
+
+```html
+<c-form.fieldset id="contact-email" errors="Enter a valid email address.">
+  <c-form.label for="contact-email-input" text="Email" />
+  <c-form.input id="contact-email-input"
+                name="email"
+                type="email"
+                variant="error"
+                aria-invalid="true"
+                aria-describedby="contact-email-errors" />
+</c-form.fieldset>
+```
+
+daisy-cotton also has `<c-form.textarea>`, `<c-form.select>`, `<c-form.checkbox>`,
+`<c-form.radio>`, `<c-form.toggle>` and `<c-form.file_input>`. Leave out `variant`,
+`aria-invalid` and `aria-describedby` when the field has no error.
 
 ## Add-ons
 
