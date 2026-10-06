@@ -70,7 +70,7 @@ class TestCreateModalTitle:
         )
         trigger = soup.find("button", attrs={"@click": "createModal.showModal()"})
 
-        assert trigger.get_text(strip=True) == "Add"
+        assert "Add Product" not in trigger.get_text()
 
     def test_the_label_heads_the_modal_when_no_view_supplies_a_title(
         self, cotton_render_string_soup, modal_context

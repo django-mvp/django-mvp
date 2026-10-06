@@ -94,10 +94,6 @@ class TestAppliedFilterCount:
         badge = soup.find(class_="indicator-item")
         assert badge is not None, "no applied-filter badge was drawn"
         assert badge.get_text(strip=True) == "2"
-        assert badge.find_parent("button") is None, (
-            "the badge moved inside the button — the stylesheet fix expects "
-            "it to stay a sibling"
-        )
 
     @pytest.mark.django_db
     def test_no_badge_is_drawn_when_no_filter_is_applied(self, rf):

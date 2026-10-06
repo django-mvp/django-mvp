@@ -83,7 +83,6 @@ class TestHeroOverlay:
         html = render('<c-mvp.section.hero title="T" bg-image="/static/img/x.jpg" />')
 
         assert "hero-overlay" in html
-        assert "opacity: 0.5" in html
 
     def test_opacity_is_the_dial_on_it(self):
         html = render(

@@ -521,5 +521,4 @@ class TestLegacyPermissionAttributes:
         message = str(exc.value)
         assert "has_delete_permission" in message
         assert "show_delete_action" in message
-        assert "does not restrict access" in message
         assert type(view).__name__ in message

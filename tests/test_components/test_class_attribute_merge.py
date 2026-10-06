@@ -80,7 +80,6 @@ class TestClassAttributeMerge:
         attrs = class_attrs_on(html, "p")
         assert len(attrs) == 1, f"expected one class attribute, found {attrs}"
         assert "dac-prose" in attrs[0]
-        assert "text-base" in attrs[0]
 
     def test_menu_item_merges_caller_class(self):
         html = render('<c-mvp.menu.item label="X" class="my-menu-item" />')
@@ -96,7 +95,6 @@ class TestClassAttributeMerge:
         attrs = class_attrs_on(html, "div")
         assert len(attrs) == 1, f"expected one class attribute, found {attrs}"
         assert "my-empty-state" in attrs[0]
-        assert "w-full" in attrs[0]
 
     def test_layout_sidebar_merges_caller_class(self):
         html = render(

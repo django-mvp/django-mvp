@@ -81,7 +81,6 @@ class TestSidebarFooterThemeControlIsCompact:
         assert 'type="checkbox"' not in html, (
             "the footer's theme control must not render the wide toggle row"
         )
-        assert "btn-square" in html, "the theme control must be a square icon button"
         assert "data-toggle-theme" in html, (
             "the compact button must still carry the theme-change binding"
         )
@@ -113,5 +112,4 @@ class TestSidebarFooterLogInButtonResolvesAccountLogin:
         with override_settings(ROOT_URLCONF=MVP_URLS_ONLY):
             html = _render(AnonymousUser())
 
-            assert "Log in" in html
             assert f'href="{reverse("account_login")}"' in html

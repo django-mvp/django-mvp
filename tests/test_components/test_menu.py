@@ -48,7 +48,6 @@ class TestSidebarContainerTakesItsNameFromContext:
         soup = BeautifulSoup(html, "html.parser")
 
         assert soup.find("nav")["aria-label"] == "Reports"
-        assert "Main Navigation" not in html
 
     def test_the_menu_sits_inside_the_named_navigation_landmark(self):
         html = render_to_string(

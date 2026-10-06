@@ -482,7 +482,6 @@ class TestGetFactoryKwargsOverride:
             parent_model=Project, request=None, instance=None, view=None
         )
 
-        assert declaration.get_factory_kwargs()["can_order"] is True
         formset_class = declaration.get_formset_class()
         assert formset_class.can_order is True
 

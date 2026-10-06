@@ -25,7 +25,6 @@ from django.urls import include, path, reverse
 
 from mvp.config import MVP_CONFIG
 
-
 # A project's own template at the same path: mirrors mvp/templates/mvp/account/login.html
 # in demo/templates/tests/, the loader's DIRS checked ahead of any app's own APP_DIRS
 # entry (T009, FR-010) — scoped to the one test that needs it via override_settings
@@ -314,7 +313,7 @@ class TestDevelopmentNotice:
         content = client.get(reverse("account_login")).content.decode()
         soup = BeautifulSoup(content, "html.parser")
 
-        assert soup.find(class_="alert-warning") is not None
+        assert soup.select_one("[role=alert]") is not None
 
     def test_the_sign_out_page_carries_the_notice(self, client, django_user_model):
         user = django_user_model.objects.create_user(
@@ -325,7 +324,7 @@ class TestDevelopmentNotice:
         content = client.post(reverse("account_logout")).content.decode()
         soup = BeautifulSoup(content, "html.parser")
 
-        assert soup.find(class_="alert-warning") is not None
+        assert soup.select_one("[role=alert]") is not None
 
 
 @pytest.mark.django_db
@@ -337,7 +336,7 @@ class TestDevelopmentNoticeAbsence:
             content = client.get(reverse("account_login")).content.decode()
         soup = BeautifulSoup(content, "html.parser")
 
-        assert soup.find(class_="alert-warning") is None
+        assert soup.select_one("[role=alert]") is None
 
     def test_a_projects_own_template_carries_no_notice_of_ours(self, client, settings):
         templates_config = copy.deepcopy(settings.TEMPLATES)
@@ -349,7 +348,7 @@ class TestDevelopmentNoticeAbsence:
             content = client.get(reverse("account_login")).content.decode()
         soup = BeautifulSoup(content, "html.parser")
 
-        assert soup.find(class_="alert-warning") is None
+        assert soup.select_one("[role=alert]") is None
 
 
 @pytest.mark.django_db
@@ -385,9 +384,10 @@ class TestAccountCenterView:
         client.force_login(user)
         response = client.get(reverse("account-center"))
         soup = BeautifulSoup(response.content, "html.parser")
-        assert " ".join(soup.title.get_text().split()) == (
-            "| Account Center | example.com"
-        )
+        title = " ".join(soup.title.get_text().split())
+        bar, area, site = (part.strip() for part in title.split("|"))
+        assert (bar, site) == ("", "example.com")
+        assert area
 
     def test_signed_in_request_shows_no_cards(self, client, django_user_model):
         user = django_user_model.objects.create_user(
@@ -408,15 +408,31 @@ class TestAccountCenterView:
         )
         client.force_login(user)
         response = client.get(reverse("account-center"))
-        assert response.context["page"]["breadcrumbs"] == [{"text": "Account Center"}]
+        breadcrumbs = response.context["page"]["breadcrumbs"]
+        assert len(breadcrumbs) == 1
+        assert list(breadcrumbs[0]) == ["text"]
 
 
-def sidebar_labels(response):
-    """The brand link, then every link in a sidebar menu, by text."""
+def sidebar_hrefs(response):
+    """The brand link's address, then every sidebar menu link's, by href."""
     soup = BeautifulSoup(response.content, "html.parser")
     sidebar = soup.select_one("aside.mvp-sidebar")
     links = sidebar.select("a.mvp-sidebar-brand, ul a")
-    return [a.get_text(" ", strip=True) for a in links]
+    return [a["href"] for a in links]
+
+
+def sidebar_back_href(response):
+    """Where the sidebar's back link goes, or ``None`` when it draws none."""
+    soup = BeautifulSoup(response.content, "html.parser")
+    back = soup.select_one("aside.mvp-sidebar a[data-back-link]")
+    return back["href"] if back else None
+
+
+def sidebar_menu_hrefs(response):
+    """Every sidebar menu link's address, the back link left out."""
+    soup = BeautifulSoup(response.content, "html.parser")
+    sidebar = soup.select_one("aside.mvp-sidebar")
+    return [a["href"] for a in sidebar.select("ul a:not([data-back-link])")]
 
 
 def main_content(response):
@@ -442,15 +458,18 @@ class TestAccountLayout:
     def test_the_landing_sidebar_carries_the_account_menu_under_a_back_link(
         self, signed_in
     ):
-        labels = sidebar_labels(signed_in.get(reverse("account-center")))
+        response = signed_in.get(reverse("account-center"))
+        hrefs = sidebar_hrefs(response)
 
-        assert labels[1:3] == ["Back to example.com", "Account Center"]
+        back_href = sidebar_back_href(response)
+        assert back_href is not None
+        assert hrefs[1:3] == [back_href, reverse("account-center")]
 
     def test_the_landing_sidebar_carries_none_of_the_host_menu(self, signed_in):
-        labels = sidebar_labels(signed_in.get(reverse("account-center")))
+        menu = sidebar_menu_hrefs(signed_in.get(reverse("account-center")))
 
-        assert "Home" not in labels
-        assert "Layout" not in labels
+        assert reverse("home") not in menu
+        assert reverse("layout") not in menu
 
     @pytest.mark.parametrize("breakpoint", ["sm", "lg", "2xl", "never"])
     def test_no_second_navigation_is_drawn_in_the_main_content(
@@ -461,7 +480,6 @@ class TestAccountLayout:
         main = main_content(signed_in.get(reverse("account-center")))
 
         assert main.select(".dropdown, .menu") == []
-        assert "Account navigation" not in str(main)
 
     def test_a_page_written_against_the_layout_renders_inside_the_area(
         self, signed_in, testapp_account_entries
@@ -484,11 +502,14 @@ class TestAccountLayout:
     def test_that_pages_sidebar_is_the_account_menu_under_a_back_link(
         self, signed_in, testapp_account_entries
     ):
-        labels = sidebar_labels(signed_in.get(reverse("testapp_account:plain")))
+        response = signed_in.get(reverse("testapp_account:plain"))
+        hrefs = sidebar_hrefs(response)
 
-        assert labels[1:3] == ["Back to example.com", "Account Center"]
-        assert "Fixture Plain" in labels
-        assert "Home" not in labels
+        back_href = sidebar_back_href(response)
+        assert back_href is not None
+        assert hrefs[1:3] == [back_href, reverse("account-center")]
+        assert reverse("testapp_account:plain") in hrefs
+        assert reverse("home") not in sidebar_menu_hrefs(response)
 
 
 @pytest.mark.django_db

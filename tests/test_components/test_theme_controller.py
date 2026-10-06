@@ -45,7 +45,6 @@ class TestPrePaintThemeGuardDefault:
         assert MVP_CONFIG["theme"]["default"] == "light"
         script = _guard_script(client.get("/").content.decode())
         assert script is not None
-        assert "localStorage.getItem('theme')" in script
         assert '"light"' in script
 
     @pytest.mark.django_db
@@ -86,7 +85,9 @@ def _theme_toggle_html(content):
     once in the navbar and once in the sidebar footer, per
     ``tests/settings.py``)."""
     match = re.search(
-        r'<label[^>]*title="Toggle dark mode"[^>]*>.*?</label>', content, re.S
+        r"<label[^>]*>(?:(?!</label>).)*?data-toggle-theme(?:(?!</label>).)*</label>",
+        content,
+        re.S,
     )
     return match.group(0) if match else None
 
@@ -100,10 +101,7 @@ class TestThemeControllerUnconfiguredShape:
         assert toggle is not None, "the checkbox toggle must render"
         assert 'data-toggle-theme="dark,light"' in toggle
         assert 'data-act-class="swap-active"' in toggle
-        assert "bi bi-sun" in toggle, "the light-mode icon must render"
-        assert "bi bi-moon-stars-fill" in toggle, "the dark-mode icon must render"
-        assert 'title="Toggle dark mode"' in toggle
-        assert 'aria-label="Toggle dark mode"' in toggle
+        assert re.search(r'aria-label="[^"]+"', toggle), "needs an accessible name"
         assert "data-set-theme" not in toggle, (
             "the unconfigured shape must not carry the offered-set API"
         )

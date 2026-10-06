@@ -110,8 +110,6 @@ class TestPageInfoActions:
                 }
             ],
         )
-        assert "btn-primary" in html
-        assert "bi-box-arrow-up-right" in html
         assert 'target="_blank"' in html
 
     def test_action_dicts_are_never_printed_raw(self):

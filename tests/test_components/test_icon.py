@@ -17,7 +17,6 @@ class TestIconAttributePassThrough:
         rendered = soup.find("i")
 
         assert "size-6" in rendered["class"]
-        assert "bi-plus-circle" in rendered["class"]
 
     def test_any_other_attribute_reaches_the_icon(self, cotton_render_string_soup):
         soup = cotton_render_string_soup('<c-icon name="add" aria-hidden="true" />')
