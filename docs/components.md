@@ -200,15 +200,19 @@ the whole screen. `fill` takes the full width and height and ignores `width`.
 | Component | Attributes / notes |
 | --- | --- |
 | `c-mvp.page` | `fill`, `gap` (`6`), `class` — page wrapper. Its width comes from the `c-mvp.container` inside it |
-| `c-mvp.page.title` | title/subtitle block (fed by `PageMixin` context); attrs `title`, `subtitle`, `info`, `info_actions`, `class` — any other attribute lands on the block's root element |
+| `c-mvp.page.title` | title/subtitle block (fed by `PageMixin` context); attrs `title`, `subtitle`, `info`, `info_actions`, `inline_actions`, `class` — any other attribute lands on the block's root element. `inline_actions` keeps the `actions` slot at the end of the heading's own row at every width, with the subtitle across the full width below |
 | `c-mvp.page.info` | `text`, `title`, `actions` — info icon beside the title, opening a dialog that explains the page; drawn by `c-mvp.page.title` from `page_info`, and nothing renders without `text`. A plain `text` string is escaped; a safe string is written out as markup |
 | `c-mvp.page.content` | `gap` (`4`), `class` — flexible body region that absorbs leftover height |
 | `c-mvp.page.toolbar` | `class` — page-level toolbar; renders nothing at all when given no children |
 | `c-mvp.page.list` | list-view wrapper used by `MVPListView` templates — see [below](#list-components-driven-by-view-context) |
 | `c-mvp.page.list.empty` | `icon`, `heading`, `message` — empty state |
+| `c-mvp.page.list.toolbar` | slots `search`, `summary` and the default slot for controls — the row above a list's results |
+| `c-mvp.page.list.summary` | `class` — the count of what the list holds |
+| `c-mvp.page.list.refinements` | `class` — the applied search and filters, each as a control that removes it |
+| `c-mvp.page.list.footer` | `page_obj`, `class` — the foot of a list page: the range shown and the pager |
 | `c-mvp.page.list.actions` | `actions` — renders the action components below, default `['search','sort','filter','create']`; each one draws itself only when the view configures what it drives |
 | `c-mvp.page.list.actions.{search,sort,create,filter,share}` | individual list actions — see [below](#list-components-driven-by-view-context) for the context each one needs |
-| `c-mvp.page.list.actions.search` | `placeholder`, `label` — the search box and its submit button's text |
+| `c-mvp.page.list.actions.search` | `placeholder`, `label`, `class`, `input_class` — the search box and its submit button's text |
 | `c-mvp.section` | `title`, `icon`, `level` (heading level 1–4); slot `actions` |
 | `c-mvp.section.hero` | `bg-image`, `title`, `subtitle`, `opacity`, `height`, `class`; slots `top`, `actions`, `bottom` — daisyUI hero |
 | `c-mvp.entrance` | `size` (`sm`/`md`/`lg`/`xl`/`2xl`/`3xl`/`4xl`/`full`, default `2xl`), `full-height` — the centered card for anonymous-facing pages; `small` is its deprecated predecessor |
@@ -301,7 +305,8 @@ declared side whether or not it fits, exactly as it always used to.
 
 | Component | Notes |
 | --- | --- |
-| `c-mvp.pagination` | `page_obj`, `page_window` (default `5`), `use_icons`, `show_first_and_last`, `label` (the `<nav>`'s accessible name, default `Navigation page results`) — renders nothing when there's only one page; `show_first_and_last` swaps the First/Last text controls for the first and last page numbers |
+| `c-mvp.pagination` | `page_obj`, `page_window` (default `5`), `use_icons`, `show_first_and_last`, `label` (the `<nav>`'s accessible name, default `Navigation page results`) — renders nothing when there's only one page; `show_first_and_last` swaps the First/Last text controls for the first and last page numbers, and then a gap of exactly one page shows that page's number where an ellipsis would be |
+| `c-mvp.pagination.compact` | `page_obj`, `label`, `class` — a pager for narrow screens: Previous, "Page 2 of 6", Next, spread across the full width; renders nothing when there's only one page |
 | `c-mvp.pagination.link` / `c-mvp.pagination.wrapper` | building blocks for a hand-built pager: `page`, `text`, `active`, `disabled`, `size`, `class` on the link; `label`, `class` on the labelled wrapper it sits in |
 
 Menus are normally rendered from Python via django-flex-menus — see
@@ -430,10 +435,14 @@ mixins), not dropped into an arbitrary template.
 
 | Component | Context key it needs | Attributes |
 | --- | --- | --- |
-| `c-mvp.page.list` | `list` | `card` names the template each row is rendered with; undeclared attributes pass to the grid it renders, so column counts and gaps are set on the tag itself; `empty_state` takes a dict of attributes forwarded to `c-mvp.page.list.empty` when the result set is empty |
-| `c-mvp.page.list.empty` | — (`directory.create_url` gates the add button) | `icon` (default `search`), `heading`, `message`, `class` |
+| `c-mvp.page.list` | `list` | `card` names the template each row is rendered with; undeclared attributes pass to the grid it renders, so column counts and gaps are set on the tag itself; `empty_state` takes a dict of attributes forwarded to `c-mvp.page.list.empty` when the result set is empty. The `empty` slot replaces the packaged empty state |
+| `c-mvp.page.list.empty` | — (`directory.create_url` gates the add button, `refinements` switches it to the nothing-matches message with a link to `clear_refinements_url`) | `icon` (default `search`), `heading`, `message`, `icon_class`, `class` |
+| `c-mvp.page.list.toolbar` | `result_count`, `refinements` (renders nothing when both are empty) | slots `search` and `summary`, default slot for the controls, `class` |
+| `c-mvp.page.list.summary` | `result_count`, `refinements`, `model_info` | `class` |
+| `c-mvp.page.list.refinements` | `refinements`, `clear_refinements_url` | `class` |
+| `c-mvp.page.list.footer` | — | `page_obj`, `class` |
 | `c-mvp.page.list.actions` | — (each action needs its own key) | `actions` (default `['search','sort','filter','create']`) |
-| `c-mvp.page.list.actions.search` | `is_searchable` (from `SearchMixin`) | `placeholder` (default `Search`), `label` (default `Search`, the submit button's text) |
+| `c-mvp.page.list.actions.search` | `is_searchable` (from `SearchMixin`) | `placeholder` (default `Search`), `label` (default `Search`, the submit button's text), `class` (default `grow`, on the joined input and button), `input_class` (default `md:w-[220px]`, where the input's width is set) |
 | `c-mvp.page.list.actions.sort` | `order_by_choices` (from `OrderMixin`) | — |
 | `c-mvp.page.list.actions.filter` | `filter` (from the django-filter integration) | `label` (default `Filter`), `icon` (default `filter`) |
 | `c-mvp.page.list.actions.create` | `directory.create_url`, optionally `create_form` and `create_modal_title` | `label` (default `Add`, the button's text), `icon` (default `add`) |
@@ -442,7 +451,8 @@ mixins), not dropped into an arbitrary template.
 The search, sort and filter actions all write into a single form with the id
 `filterForm`. The filter action renders it when a `FilterSet` is configured, and
 `c-mvp.page.list.actions` renders an empty hidden one otherwise, so search and sort work in
-any combination.
+any combination. Call `c-mvp.page.list.actions` once on a page, for the controls that
+share that form, and place the others by their own tags as the example below does.
 
 Each action draws itself only when the view configures what it drives —
 `search_fields`, `order_by`, a `FilterSet`, `show_create_action`. Naming all four is
@@ -452,11 +462,17 @@ renders, so it appears only where a caller asks for it.
 
 ```html
 <c-mvp.page>
-  <c-mvp.page.title title="{{ page.title }}">
-    <c-slot name="actions"><c-mvp.page.list.actions /></c-slot>
+  <c-mvp.page.title title="{{ page.title }}" inline_actions>
+    <c-slot name="actions"><c-mvp.page.list.actions.create /></c-slot>
   </c-mvp.page.title>
+  <c-mvp.page.list.toolbar>
+    <c-slot name="search"><c-mvp.page.list.actions.search class="w-full" input_class="min-w-0" /></c-slot>
+    <c-slot name="summary"><c-mvp.page.list.summary /></c-slot>
+    <c-mvp.page.list.actions :actions="['sort','filter']" />
+  </c-mvp.page.list.toolbar>
+  <c-mvp.page.list.refinements />
   <c-mvp.page.list :list="object_list" :card="list_item_template" md="2" lg="3" />
-  {% if page_obj %}<c-mvp.pagination :page_obj="page_obj" />{% endif %}
+  {% if page_obj %}<c-mvp.page.list.footer :page_obj="page_obj" />{% endif %}
 </c-mvp.page>
 ```
 

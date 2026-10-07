@@ -9,6 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- The search term and each applied filter are shown under a list page's toolbar, each as a
+  control that removes it, with "Clear all" once there are two. Clearing a filter no
+  longer means opening the filter dialog.
+- `refinements`, `clear_refinements_url` and `result_count` in every list view's context,
+  with `get_refinements()` and `get_url_without()` as hooks. With django-filter,
+  `get_filter_label()`, `get_filter_display()` and `get_filter_params()` decide how one
+  filter reads. See
+  [What the view tells the template](docs/views.md#what-the-view-tells-the-template).
+- A block around each part of `list_view.html`: `page.toolbar`, `page.search`,
+  `page.summary`, `page.controls`, `page.refinements`, `page.results`, `page.empty` and
+  `page.pagination`. See [Replacing part of the page](docs/views.md#replacing-part-of-the-page).
+- `<c-mvp.page.list.toolbar>`, `<c-mvp.page.list.summary>`,
+  `<c-mvp.page.list.refinements>`, `<c-mvp.page.list.footer>` and
+  `<c-mvp.pagination.compact>`.
+- An `inline_actions` attribute on `<c-mvp.page.title>`, an `empty` slot on
+  `<c-mvp.page.list>`, and `class` and `input_class` on the list search box.
+
 - A `page_width` setting on every page view, taking a `PageWidth` from `mvp.views`:
   `NARROW` (a 672px column), `MEDIUM` (896px), `WIDE` (the standard container) or `FULL`
   (the whole screen). Form, create, update and delete pages default to `NARROW` and every
@@ -23,6 +40,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   [Troubleshooting](docs/troubleshooting.md#start-up-checks).
 
 ### Changed
+
+- **The list page is laid out again, for phones and wide screens alike.** The add button
+  stays at the end of the title row at every width. Search, a count of the records, sort
+  and filter sit in a toolbar under the title. The pager is numbered on a wide screen and
+  is Previous, "Page 2 of 6", Next on a phone, and it is not drawn for a single page. See
+  [How a list page is laid out](docs/views.md#how-a-list-page-is-laid-out).
+- The "Showing 1-10 of 32 products" line above the results is replaced by a count in the
+  toolbar ("32 products", or "3 results" once a search or filter is applied) and the
+  range at the foot of the page.
+- A list with no records and no search or filter applied draws no toolbar.
+- The list page's empty state is drawn across the full width, outside the grid, under an
+  `h2`. A search or filter that matches nothing gets its own message and a link that
+  clears it.
+- The add button on list and table pages is the primary colour in both its forms.
+- `clear_filters_url` now removes every query parameter of a filter drawn with several
+  inputs. A `RangeFilter`'s `_min` and `_max` used to be left in the URL.
+- In a list template of your own, `<c-mvp.page.list.actions />` still draws all four
+  controls in one row. The packaged page now places them separately.
 
 - **Breaking: the `fluid` attribute is gone from `<c-mvp.container>` and `<c-mvp.page>`.**
   Write `<c-mvp.container width="full">` where a container had `fluid`. On `<c-mvp.page>`

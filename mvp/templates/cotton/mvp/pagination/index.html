@@ -57,6 +57,11 @@
           <c-mvp.pagination.link page="{{ num }}"
                              text="{{ num }}"
                              :active="{% if num == page_obj.number %}True{% endif %}" />
+        {% elif show_first_and_last and num == 2 and num == page_obj.number|add:negative_window|add:"-1" %}
+          {# An ellipsis standing for one page is longer than the page's own number. #}
+          <c-mvp.pagination.link page="{{ num }}" text="{{ num }}" />
+        {% elif show_first_and_last and num == page_obj.paginator.num_pages|add:"-1" and num == page_obj.number|add:page_window|add:"1" %}
+          <c-mvp.pagination.link page="{{ num }}" text="{{ num }}" />
         {% elif num == page_obj.number|add:negative_window|add:"-1" or num == page_obj.number|add:page_window|add:"1" %}
           <c-mvp.pagination.link text="..." disabled />
         {% endif %}

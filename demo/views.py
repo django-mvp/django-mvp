@@ -40,7 +40,7 @@ from mvp.views import (
     PageWidth,
 )
 from mvp.views.htmx import HtmxFormMixin
-from mvp.views.list import MVPListViewMixin
+from mvp.views.list import MVPListView, MVPListViewMixin
 
 from .forms import LayoutDemoForm, ProductForm
 
@@ -252,6 +252,34 @@ class ProductListView(MVPListViewMixin, FilterView):
         ("price_asc", "Price (Low to High)", "price"),
         ("price_desc", "Price (High to Low)", "-price"),
     ]
+
+
+class ProductManyPagesListView(ProductListView):
+    """The product list at three to a page, so the pager has pages to skip."""
+
+    paginate_by = 3
+    page_subtitle = None
+    page_info = None
+
+
+class ProductNoneListView(ProductListView):
+    """The product list with no records in it, to show its empty state."""
+
+    page_subtitle = None
+    page_info = None
+
+    def get_queryset(self):
+        """Return no products at all."""
+        return Product.objects.none()
+
+
+class ProductPlainListView(MVPListView):
+    """A list with nothing configured: no search, sort, filter or add action."""
+
+    model = Product
+    list_item_template = "cards/product_card.html"
+    grid = {"cols": 1, "md": 2, "xl": 3, "gap": 2}
+    paginate_by = 12
 
 
 class ProductCreateView(MVPCreateView):

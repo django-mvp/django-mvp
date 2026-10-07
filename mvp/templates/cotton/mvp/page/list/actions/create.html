@@ -5,6 +5,8 @@
 <c-vars label="{% trans "Add" %}" icon="add" />
 {% if directory.create_url and create_form %}
   <c-button text="{{ label }}"
+            icon="{{ icon }}"
+            variant="primary"
             size="sm"
             @click="createModal.showModal()" only />
   <c-mvp.modal id="createModal"
@@ -30,7 +32,7 @@
 {% elif directory.create_url %}
   <c-button text="{{ label }}"
             icon="{{ icon }}"
+            variant="primary"
             size="sm"
-            ghost
             href="{{ directory.create_url }}" only />
 {% endif %}

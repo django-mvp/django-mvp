@@ -1,0 +1,14 @@
+{# @description One line saying what the list holds: the total, or the number of results when a search or filter is applied. #}
+{# @prop class:text | description:"Extra classes on the paragraph." #}
+{% load i18n %}
+<c-vars class />
+<p class="mvp-list-summary text-sm text-base-content/70 {{ class }}"
+   {{ attrs }}>
+  {% if not refinements %}
+    {% blocktrans count counter=result_count|default:0 with name=model_info.verbose_name name_plural=model_info.verbose_name_plural %}{{ counter }} {{ name }}{% plural %}{{ counter }} {{ name_plural }}{% endblocktrans %}
+  {% elif result_count %}
+    {% blocktrans count counter=result_count|default:0 %}{{ counter }} result{% plural %}{{ counter }} results{% endblocktrans %}
+  {% else %}
+    {% trans "No results" %}
+  {% endif %}
+</p>

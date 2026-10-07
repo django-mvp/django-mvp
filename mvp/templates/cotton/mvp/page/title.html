@@ -5,7 +5,20 @@
 {# @prop actions:text | description:"Content rendered at the end of the title row (buttons, action group)." #}
 {# @prop info:text | description:"Text shown in the info dialog opened from the icon beside the heading." #}
 {# @prop info_actions:text | description:"Actions rendered in the info dialog's footer." #}
-<c-vars title subtitle class actions info info_actions />
+{# @prop inline_actions:boolean | description:"Keep the actions at the end of the heading's own row at every width, with the subtitle across the full width below." #}
+<c-vars title subtitle class actions info info_actions inline_actions />
+{% if inline_actions %}
+  <div class="page-title flex flex-col gap-1 w-full {{ class }}" {{ attrs }}>
+    <div class="flex items-start justify-between gap-3">
+      <div class="flex items-center gap-2 min-w-0">
+        <h1 class="text-3xl font-bold leading-tight">{{ title }}</h1>
+        <c-mvp.page.info :text="info" :title="title" :actions="info_actions" />
+      </div>
+      <div class="flex shrink-0 items-center gap-2 pt-1">{{ actions }}</div>
+    </div>
+    {% if subtitle %}<p class="opacity-70 text-lg leading-relaxed max-w-prose">{{ subtitle }}</p>{% endif %}
+  </div>
+{% else %}
 <!-- Top row: title + actions -->
 <div class="page-title flex flex-col md:flex-row md:items-start md:justify-between gap-2 w-full {{ class }}"
      {{ attrs }}>
@@ -25,3 +38,4 @@
   <!-- Actions -->
   <div class="flex flex-wrap md:flex-nowrap gap-2 md:gap-1 md:justify-end md:items-center ">{{ actions }}</div>
 </div>
+{% endif %}
