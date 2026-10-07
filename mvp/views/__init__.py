@@ -1,6 +1,7 @@
 """Public views and error handlers for django-mvp."""
 
 from .account import AccountCenterView
+from .base import PageWidth
 from .detail import MVPDetailView
 from .edit import (
     MVPCreateView,
@@ -15,7 +16,7 @@ from .extra import MVPHomeView, MVPTemplateView
 from .inline import InlineFormSet
 from .list import MVPListView
 
-# Public API — concrete views and error handlers only.
+# Public API — concrete views, the values their settings take, and error handlers.
 # Mixins are available via full import paths:
 #   from mvp.views.base import PageMixin, BaseTemplateNameMixin, ModelInfoMixin
 #   from mvp.views.detail import CRUDDirectoryMixin, PageObjectMixin
@@ -40,6 +41,7 @@ __all__ = [
     "MVPModelFormBase",
     "MVPTemplateView",
     "MVPUpdateView",
+    "PageWidth",
     "bad_request",
     "not_found",
     "permission_denied",

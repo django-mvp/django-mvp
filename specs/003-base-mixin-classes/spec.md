@@ -55,6 +55,25 @@ A view developer needs to extend the page rendering behavior (e.g., add custom b
 
 ---
 
+### User Story 4 - View Developers Set the Width of a Page (Priority: P2)
+
+A view developer has a form with several fields side by side, or a row of related records, and the form page's narrow column is too tight for it. They set the page's width on the view class, in the same way they set its title, and never copy a packaged page template to change it.
+
+**Why this priority**: The packaged templates decide how wide each kind of page is, and those defaults suit most pages. A page that needs a different width is common enough that it should cost one line on the view.
+
+**Independent Test**: Can be fully tested by (1) rendering a view that sets nothing and confirming it has its view type's width, (2) setting `page_width` on a view and confirming the rendered page takes that width, and (3) writing `<c-mvp.container width="...">` in a template and confirming it renders the same width.
+
+**Acceptance Scenarios**:
+
+1. **Given** a page view that sets no `page_width`, **When** the page renders, **Then** a form, create, update or delete page has the narrow width and every other page has the wide width
+2. **Given** a view with `page_width` set to a `PageWidth` value, **When** the page renders, **Then** the page's container has that width, whatever the view's type
+3. **Given** a view that overrides `get_page_width()`, **When** the page renders, **Then** the returned width is used
+4. **Given** a view whose `page_width` is not one of the `PageWidth` values, **When** the page renders, **Then** `ValueError` is raised
+5. **Given** a form page that contains formset rows, **When** the view sets no `page_width`, **Then** the page still has the narrow width
+6. **Given** a template that writes `<c-mvp.container width="medium">`, **When** it renders, **Then** the container has the same width a view with `page_width = PageWidth.MEDIUM` gets
+
+---
+
 ### Edge Cases
 
 - What happens when `base_template_name` is `None` (its default) → raises `ImproperlyConfigured`; subclasses must always set it (mirrors Django's `TemplateResponseMixin` behaviour)
@@ -75,6 +94,11 @@ A view developer needs to extend the page rendering behavior (e.g., add custom b
 - **FR-007**: System MUST have automated tests for `PageMixin` covering: context structure, all getter methods, attribute defaults (including `breadcrumbs = []`), the `breadcrumbs` class attribute being used by `get_breadcrumbs()`, and override patterns
 - **FR-011** *(added during clarification — see § Session 2026-05-02; numbered out of sequence)*: System MUST add a `breadcrumbs = []` class attribute to `PageMixin` so breadcrumbs can be set declaratively (consistent with `page_title`, `page_subtitle`, `page_icon`, `page_class`); `get_breadcrumbs()` MUST return `self.breadcrumbs` by default
 - **FR-012** *(added during refinement — see § Session 2026-05-27)*: System MUST add a `page_caption = ""` class attribute to `PageMixin` so a caption can be set declaratively, consistent with `page_title`, `page_subtitle`, `page_icon`, `page_class`; `get_page_caption()` MUST return `self.page_caption` by default; `get_page_context()` MUST include the result under the key `"caption"` so templates can reference it as `page.caption`
+- **FR-013**: System MUST provide a `PageWidth` enumeration with the values `NARROW`, `MEDIUM`, `WIDE` and `FULL`, importable from `mvp.views`
+- **FR-014**: `PageMixin` MUST have a `page_width` class attribute defaulting to `PageWidth.WIDE` and a `get_page_width()` method returning it, and `get_page_context()` MUST include the result under the key `"width"`. `MVPFormBase` MUST default `page_width` to `PageWidth.NARROW`
+- **FR-015**: `get_page_width()` MUST raise `ValueError` for a value that is not a `PageWidth`
+- **FR-016**: `page_view.html` MUST pass `page.width` to `<c-mvp.container>`, and `<c-mvp.container>` MUST accept a `width` attribute taking the four `PageWidth` values, with `wide` as its default
+- **FR-017**: No packaged template may change a page's width because of what the page contains
 - **FR-008**: *(Format constraint on FR-001–FR-004)* Documentation MUST be available as inline docstrings (not external docs only) so IDE tooltips show the information
 - **FR-009**: System MUST document the intended inheritance hierarchy in the class docstrings of both mixins — listing at minimum the primary known subclasses by name (e.g., `MVPDetailView`, `MVPListViewMixin`, `MVPFormBase`, `MVPDeleteView`, `MVPTableView` for `BaseTemplateNameMixin`; `MVPTemplateView`, `MVPDetailView`, `MVPListViewMixin`, `MVPFormBase` for `PageMixin`) as an illustrative list, not an exhaustive registry
 - **FR-010**: System MUST provide guidance on when to override each method vs. setting class attributes
@@ -82,6 +106,7 @@ A view developer needs to extend the page rendering behavior (e.g., add custom b
 ### Key Entities
 
 - **BaseTemplateNameMixin**: A mixin class that extends Django's template resolution by appending a mandatory fallback base template name to the list of candidate templates. `base_template_name` defaults to `None`; subclasses **must** set it or `ImproperlyConfigured` is raised (mirrors Django's `TemplateResponseMixin` behaviour)
+- **PageWidth**: The four widths a page's content can take. `NARROW` is a 672px column, `MEDIUM` an 896px column, `WIDE` the standard container and `FULL` the whole screen
 - **PageMixin**: A mixin class that injects page-rendering context (title, subtitle, caption, icon, CSS class, breadcrumbs) into the template context dict. Breadcrumb data can be set via the `breadcrumbs` class attribute (default `[]`) **or** by overriding `get_breadcrumbs()`. Caption can be set via `page_caption` (default `""`) **or** by overriding `get_page_caption()` — consistent with the `page_title`/`get_page_title()` pattern used by all other page attributes
 - **View Class Hierarchy**: The structure of view classes (MVPListView, MVPDetailView, MVPFormBase, etc.) that inherit from these mixins
 

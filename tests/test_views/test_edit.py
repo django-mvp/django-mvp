@@ -37,6 +37,7 @@ from demo.models import (
     ProjectTask,
 )
 from mvp.forms import DeleteConfirmForm
+from mvp.views.base import PageWidth
 from mvp.views.edit import (
     MVPCreateView,
     MVPDeleteView,
@@ -452,6 +453,32 @@ class TestMVPFormBase:
 
         with pytest.raises(ImproperlyConfigured):
             view.get_success_url()
+
+
+def page_container_classes(response):
+    """The class list of the width container on a rendered page."""
+    soup = BeautifulSoup(response.content, "html.parser")
+    return soup.select_one(".mvp-page > div")["class"]
+
+
+class TestFormPageWidth:
+    @pytest.mark.parametrize(
+        "view_class", [MVPFormView, MVPCreateView, MVPUpdateView, MVPDeleteView]
+    )
+    def test_a_form_page_is_narrow_unless_it_says_otherwise(self, view_class):
+        assert view_class().get_page_width() is PageWidth.NARROW
+
+    @pytest.mark.django_db
+    def test_the_packaged_form_page_renders_at_its_view_width(self, client):
+        response = client.get(reverse("product-create"))
+        assert response.context["page"]["width"] is PageWidth.NARROW
+        assert "container" not in page_container_classes(response)
+
+    @pytest.mark.django_db
+    def test_the_packaged_list_page_renders_at_its_view_width(self, client):
+        response = client.get(reverse("product-list"))
+        assert response.context["page"]["width"] is PageWidth.WIDE
+        assert "container" in page_container_classes(response)
 
 
 class TestMVPModelFormBaseSuccessMessage:

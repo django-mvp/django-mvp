@@ -9,7 +9,12 @@ from django.utils.safestring import SafeString, mark_safe
 from django.views.generic import TemplateView
 
 from demo.models import Category, Product
-from mvp.views.base import BaseTemplateNameMixin, ModelInfoMixin, PageMixin
+from mvp.views.base import (
+    BaseTemplateNameMixin,
+    ModelInfoMixin,
+    PageMixin,
+    PageWidth,
+)
 from mvp.views.extra import MVPHomeView
 
 
@@ -78,6 +83,7 @@ class TestPageMixinGetPageContext:
             "breadcrumbs",
             "info",
             "info_actions",
+            "width",
         }
 
     def test_get_page_context_delegates_to_getters(self):
@@ -90,6 +96,28 @@ class TestPageMixinGetPageContext:
         assert ctx["title"] == "Test"
         assert ctx["subtitle"] == "Sub"
         assert ctx["breadcrumbs"] == [{"text": "Home"}]
+
+
+class TestPageMixinPageWidth:
+    def test_a_page_is_wide_unless_it_says_otherwise(self):
+        assert ConcretePage().get_page_width() is PageWidth.WIDE
+
+    @pytest.mark.parametrize("width", list(PageWidth))
+    def test_attribute_reaches_the_page_context(self, width):
+        view = ConcretePage()
+        view.page_width = width
+        assert view.get_page_context()["width"] is width
+
+    def test_the_context_value_renders_as_the_name_a_template_compares(self):
+        view = ConcretePage()
+        view.page_width = PageWidth.NARROW
+        assert f"{view.get_page_context()['width']}" == "narrow"
+
+    def test_a_width_outside_the_list_is_refused(self):
+        view = ConcretePage()
+        view.page_width = "enormous"
+        with pytest.raises(ValueError, match="enormous"):
+            view.get_page_width()
 
 
 class TestPageMixinPageInfo:

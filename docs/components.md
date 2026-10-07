@@ -172,7 +172,7 @@ Empty, unopinionated building blocks — you provide the content.
 
 | Component | Attributes |
 | --- | --- |
-| `c-mvp.container` | `fluid`, `fill`, `class` — width constraint wrapper |
+| `c-mvp.container` | `width` (`narrow`, `medium`, `wide`, `full`; default `wide`), `fill`, `class` — width constraint wrapper |
 | `c-mvp.grid` | `cols`, `sm`, `md`, `lg`, `xl`, `xxl` (column counts 1–6, 12), `gap` |
 | `c-mvp.group` | `row`, `collapse`, `wrap`, `gap` — flex group |
 | `c-mvp.toolbar` | `row` (True or breakpoint), `gap`; slots: default (left), `actions` (right) |
@@ -184,11 +184,22 @@ Empty, unopinionated building blocks — you provide the content.
 `lg` breakpoint. `row` on `c-mvp.toolbar` takes either `True` or a breakpoint name and
 defaults to `md`.
 
+`width` on `c-mvp.container` takes the same four names a view's
+[`page_width`](views.md#page-width) does: `narrow` is a 672px column, `medium` an 896px
+column, `wide` the standard container that steps with the screen up to 1536px, and `full`
+the whole screen. `fill` takes the full width and height and ignores `width`.
+
+```html
+<c-mvp.container width="medium">
+  ...
+</c-mvp.container>
+```
+
 ## Page structure
 
 | Component | Attributes / notes |
 | --- | --- |
-| `c-mvp.page` | `fluid`, `fill`, `gap` (`6`), `class` — page wrapper |
+| `c-mvp.page` | `fill`, `gap` (`6`), `class` — page wrapper. Its width comes from the `c-mvp.container` inside it |
 | `c-mvp.page.title` | title/subtitle block (fed by `PageMixin` context); attrs `title`, `subtitle`, `info`, `info_actions`, `class` — any other attribute lands on the block's root element |
 | `c-mvp.page.info` | `text`, `title`, `actions` — info icon beside the title, opening a dialog that explains the page; drawn by `c-mvp.page.title` from `page_info`, and nothing renders without `text`. A plain `text` string is escaped; a safe string is written out as markup |
 | `c-mvp.page.content` | `gap` (`4`), `class` — flexible body region that absorbs leftover height |

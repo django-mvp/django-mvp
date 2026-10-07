@@ -19,7 +19,7 @@ from django.utils.translation import gettext_lazy as _
 from django.views import generic
 
 from ..forms import DeleteConfirmForm
-from .base import BaseTemplateNameMixin
+from .base import BaseTemplateNameMixin, PageWidth
 from .detail import PageObjectMixin
 from .inline import InlinesMixin
 
@@ -107,6 +107,7 @@ class MVPFormBase(
 
     base_template_name = "form_view.html"
     page_class = "mvp-form-page"
+    page_width = PageWidth.NARROW
 
     def get_next_url(self):
         """Extend NextURLMixin by resolving CRUD shorthands into real URLs.
