@@ -1,0 +1,4 @@
+{# @description The product's name as it is written on the site, marked as a name. #}
+{# @prop class:text | description:"Extra classes on the name. A colour goes here, in a heading." #}
+<c-vars class />
+<strong class="font-bold whitespace-nowrap {% if class %}{{ class }}{% else %}text-base-content{% endif %}" {{ attrs }}>Django MVP</strong>

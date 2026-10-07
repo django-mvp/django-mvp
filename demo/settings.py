@@ -56,6 +56,9 @@ except ImportError:
 
 SITE_ID = 1
 
+# The landing page shows a live page of this site inside a phone frame.
+X_FRAME_OPTIONS = "SAMEORIGIN"
+
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sites.middleware.CurrentSiteMiddleware",

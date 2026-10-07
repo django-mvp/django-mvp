@@ -6,13 +6,16 @@
 {% endcomment %}
 {% block content %}
   <div class="flex flex-col">
-    <c-hero.centred eyebrow="The UI layer Django leaves to you" lead="Django gives you the tools to build a modern web application. django-mvp gives you the rest. More time on your own code, less on the boring stuff." size="lg">
+    <c-hero.centred eyebrow="The UI layer Django leaves to you" size="lg">
+      <c-slot name="lead">
+        Django gives you the tools to build a modern web application. <c-demo.brand /> gives you the rest. More time on your own code, less on the boring stuff.
+      </c-slot>
       <c-slot name="background">
         <c-background.aurora intensity="0.15" speed="0.5" />
         <c-background.grid />
       </c-slot>
       <c-slot name="title">
-        <c-text.gradient>Take your Django project from concept to Minimum Viable Product. Fast!</c-text.gradient>
+        <c-text.gradient>Go from concept to Minimum Viable Product. Fast!</c-text.gradient>
       </c-slot>
       <c-slot name="actions">
         <a class="btn btn-primary btn-lg" href="https://github.com/django-mvp/django-mvp#quick-start">Quick start</a>
@@ -21,8 +24,13 @@
     </c-hero.centred>
 
     <c-section container="wide" align="center" class="bg-base-200">
+      <c-slot name="background"><c-background.glow from="primary" to="accent" intensity="0.25" /></c-slot>
       <c-section.col class="flex flex-col gap-6">
-        <c-heading align="start" eyebrow="Built on what you know" title="A shallow learning curve" lead="We are not reinventing the wheel. django-mvp extends Django's own views and brings in the packages most projects already rely on, so most of it is familiar on day one." />
+        <c-heading align="start" eyebrow="Built on what you know" title="A shallow learning curve">
+          <c-slot name="lead">
+            We are not reinventing the wheel. <c-demo.brand /> extends Django's own views and brings in the packages most projects already rely on, so most of it is familiar on day one.
+          </c-slot>
+        </c-heading>
         <c-points>
           <c-points.point title="Views extend Django's.">MVPListView is a ListView. The methods you would override are still there and still do what they did.</c-points.point>
           <c-points.point title="Components are django-cotton.">An established package with its own documentation, not a syntax invented here.</c-points.point>
@@ -32,52 +40,54 @@
       </c-section.col>
       <c-section.col>
         <c-reveal.enter effect="left">
-          <c-mockup.code class="text-sm" aria-label="An example MVP_CONFIG setting">
-            <c-mockup.code.line prefix="1">MVP_CONFIG = {</c-mockup.code.line>
-            <c-mockup.code.line prefix="2">    "theme": {</c-mockup.code.line>
-            <c-mockup.code.line prefix="3" class="text-warning">        "default": "mvp",</c-mockup.code.line>
-            <c-mockup.code.line prefix="4" class="text-warning">        "dark": "mvp-dark",</c-mockup.code.line>
-            <c-mockup.code.line prefix="5">    },</c-mockup.code.line>
-            <c-mockup.code.line prefix="6">    "layout": {</c-mockup.code.line>
-            <c-mockup.code.line prefix="7" class="text-warning">        "sidebar": {"title": "DjangoMVP"},</c-mockup.code.line>
-            <c-mockup.code.line prefix="8">        "navbar": {"desktop": {"end": [</c-mockup.code.line>
-            <c-mockup.code.line prefix="9" class="text-warning">            "mvp.actions.theme-controller",</c-mockup.code.line>
-            <c-mockup.code.line prefix="10" class="text-warning">            "mvp.actions.login",</c-mockup.code.line>
-            <c-mockup.code.line prefix="11">        ]}},</c-mockup.code.line>
-            <c-mockup.code.line prefix="12">    },</c-mockup.code.line>
-            <c-mockup.code.line prefix="13">}</c-mockup.code.line>
-          </c-mockup.code>
+          <c-card class="bg-base-100 shadow-xl" title="Your first page">
+            <c-steps vertical>
+              <c-steps.step variant="primary">Install the package</c-steps.step>
+              <c-steps.step variant="primary">Add it to your installed apps</c-steps.step>
+              <c-steps.step variant="primary">Point a view at one of your models</c-steps.step>
+              <c-steps.step variant="primary" icon="check-circle-fill">Open a finished, searchable list page</c-steps.step>
+            </c-steps>
+          </c-card>
         </c-reveal.enter>
       </c-section.col>
     </c-section>
 
     <c-section>
       <c-slot name="header">
-        <c-heading eyebrow="Standard pages, done" title="Where Django stops, django-mvp takes over" lead="Stylish, consistent pages that just work, on a phone as well as a desktop." />
+        <c-heading eyebrow="Standard pages, done" lead="Stylish, consistent pages that just work, on a phone as well as a desktop.">
+          <c-slot name="title">
+            Where Django stops, <c-demo.brand class="text-primary" /> takes over
+          </c-slot>
+        </c-heading>
       </c-slot>
       <c-reveal.cascade per="2" class="grid gap-6 md:grid-cols-2">
         <c-card border>
-          <c-slot name="title"><c-icon name="list" class="text-primary" /> List pages</c-slot>
+          <c-slot name="title"><c-icon name="list" class="text-primary" /> List pages<c-icon name="check-circle-fill" class="ms-auto text-success" /></c-slot>
           <p>Search across the fields you name, ordering from a whitelist and pagination that keeps the query string. Every result has a URL you can bookmark.</p>
         </c-card>
         <c-card border>
-          <c-slot name="title"><c-icon name="form" class="text-primary" /> Forms and formsets</c-slot>
+          <c-slot name="title"><c-icon name="form" class="text-primary" /> Forms and formsets<c-icon name="check-circle-fill" class="ms-auto text-success" /></c-slot>
           <p>Create and update pages with errors placed where they belong. Related rows add, delete and validate on the same page as their parent.</p>
         </c-card>
         <c-card border>
-          <c-slot name="title"><c-icon name="exclamation-circle" class="text-primary" /> Delete flows</c-slot>
+          <c-slot name="title"><c-icon name="exclamation-circle" class="text-primary" /> Delete flows<c-icon name="check-circle-fill" class="ms-auto text-success" /></c-slot>
           <p>The confirmation page lists what else goes with the record, and can ask for its name to be typed before the button works.</p>
         </c-card>
         <c-card border>
-          <c-slot name="title"><c-icon name="layout" class="text-primary" /> Detail, dashboard and error pages</c-slot>
+          <c-slot name="title"><c-icon name="layout" class="text-primary" /> Detail, dashboard and error pages<c-icon name="check-circle-fill" class="ms-auto text-success" /></c-slot>
           <p>Detail pages with their actions, a dashboard to land on, and 403, 404 and 500 pages that look like the rest of the site.</p>
         </c-card>
       </c-reveal.cascade>
     </c-section>
 
-    <c-section container="wide" align="center" reverse class="bg-base-200">
+    <c-section container="wide" align="center" reverse>
+      <c-slot name="background"><c-background.gradient from="secondary" via="base-100" to="primary" opacity="0.2" /></c-slot>
       <c-section.col class="flex flex-col gap-6">
-        <c-heading align="start" eyebrow="Works with your stack" title="Your project, your rules" lead="django-mvp is designed around the packages you already know. It gives the popular ones a matching interface and leaves how they work alone." />
+        <c-heading align="start" eyebrow="Works with your stack" title="Your project, your rules">
+          <c-slot name="lead">
+            <c-demo.brand /> is designed around the packages you already know. It gives the popular ones a matching interface and leaves how they work alone.
+          </c-slot>
+        </c-heading>
         <c-points>
           <c-points.point title="django-tables2.">Tables with the same sorting, pagination and empty state as every list page.</c-points.point>
           <c-points.point title="django-filter.">Your filter set, drawn where the search box goes.</c-points.point>
@@ -85,17 +95,11 @@
           <c-points.point title="django-allauth.">Sign-in, sign-up and account pages with a home inside the app.</c-points.point>
         </c-points>
       </c-section.col>
-      <c-section.col>
+      <c-section.col class="flex justify-center">
         <c-reveal.enter effect="right">
-          <c-mockup.code class="text-sm" aria-label="The integration imports">
-            <c-mockup.code.line prefix="1" class="text-success"># Guarded modules: the dependency is only needed when imported.</c-mockup.code.line>
-            <c-mockup.code.line prefix="2">from mvp.integrations.django_tables.views import MVPTableView</c-mockup.code.line>
-            <c-mockup.code.line prefix="3">from mvp.integrations.django_filters.views import MVPFilteredListView</c-mockup.code.line>
-            <c-mockup.code.line prefix="4"></c-mockup.code.line>
-            <c-mockup.code.line prefix="5">class OrderTableView(MVPTableView):</c-mockup.code.line>
-            <c-mockup.code.line prefix="6">    model = Order</c-mockup.code.line>
-            <c-mockup.code.line prefix="7" class="text-warning">    table_class = OrderTable</c-mockup.code.line>
-          </c-mockup.code>
+          <c-mockup.phone>
+            <iframe class="size-full" src="{% url 'djangotables2' %}" title="A django-tables2 page in this demo, at phone width" loading="lazy"></iframe>
+          </c-mockup.phone>
         </c-reveal.enter>
       </c-section.col>
     </c-section>
@@ -125,9 +129,7 @@
         <a class="btn btn-primary" href="https://github.com/django-mvp/django-mvp/tree/main/docs">Read the docs</a>
         <a class="btn btn-ghost" href="https://github.com/django-mvp/django-mvp/blob/main/CHANGELOG.md">Read the changelog</a>
       </c-slot>
-      <c-stat title="Test coverage" value="96%">
-        <c-slot name="figure"><c-icon name="check-circle-fill" class="text-3xl text-success" /></c-slot>
-      </c-stat>
+      <c-stat title="Test coverage" value="96%" />
       <c-stat title="Supported Django versions" value="5.2, 6.0, 6.1" />
       <c-stat title="Supported Python versions" value="3.12 to 3.14" />
       <c-stat title="Releases" value="Frequent" />
