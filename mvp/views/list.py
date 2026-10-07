@@ -438,7 +438,8 @@ class FilterContextMixin:
             return str(formats.localize(value))
 
         choices: Any = field.choices
-        labels = {str(key): label for key, label in flatten_choices(choices)}
+        pairs: Any = flatten_choices(choices)
+        labels = {str(key): label for key, label in pairs}
         return str(labels.get(str(value), value))
 
 
