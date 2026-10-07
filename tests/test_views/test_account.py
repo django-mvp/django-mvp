@@ -427,6 +427,18 @@ class TestAccountLayout:
         assert response.status_code == 200
         assert b'id="testapp-account-plain-content"' in response.content
 
+    def test_a_page_filling_the_content_block_is_wrapped_like_any_other_page(
+        self, signed_in, testapp_account_entries
+    ):
+        plain = main_content(signed_in.get(reverse("testapp_account:plain")))
+        content = main_content(signed_in.get(reverse("testapp_account:content")))
+
+        plain_wrapper = plain.select_one("#testapp-account-plain-content").parent
+        content_wrapper = content.select_one("#testapp-account-content-block").parent
+
+        assert plain_wrapper.name == "div"
+        assert content_wrapper.get("class") == plain_wrapper.get("class")
+
     def test_that_pages_entry_is_current_in_the_sidebar(
         self, signed_in, testapp_account_entries
     ):

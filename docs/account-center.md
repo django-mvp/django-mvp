@@ -185,9 +185,18 @@ or an explicit import in `AppConfig.ready()`. See [Navigation](navigation.md).
 
 ### A page against the layout
 
-The layout is `mvp/account/base.html`. It puts your `account.content` block inside a
-container and draws nothing else, because the navigation is the sidebar's. Do not render
-`AccountCenterMenu` again on the page: a page that does now shows it twice.
+The layout is `mvp/account/base.html`. It puts your page inside a container as wide as a
+[form page](views.md#page-width), a 672px column, and draws nothing else, because the
+navigation is the sidebar's. Do not render `AccountCenterMenu` again on the page: a page
+that does now shows it twice.
+
+Fill `account.content` or `content`, whichever the page already uses. The two are nested,
+so a page from another package that fills `content`, as every django-allauth page does,
+lands in the same container without its templates being renamed.
+
+The layout draws the container by filling `app.main`. A project whose own `base.html`
+replaces the whole `app` block has to keep an `app.main` block inside it, or the Account
+Center's pages render with that base's main area and no container.
 
 ```python
 # yourapp/views.py
