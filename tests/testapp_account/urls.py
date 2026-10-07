@@ -14,4 +14,5 @@ app_name = "testapp_account"
 urlpatterns = [
     path("plain/", views.FixturePlainView.as_view(), name="plain"),
     path("grouped/", views.FixtureGroupedView.as_view(), name="grouped"),
+    path("content/", views.FixtureContentView.as_view(), name="content"),
 ]

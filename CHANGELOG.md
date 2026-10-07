@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Account Center pages are as wide as a form page, a 672px column, instead of the
+  standard container.
+
+### Fixed
+
+- An Account Center page that fills `content` instead of `account.content` keeps the
+  layout's container. It used to replace it, so the page ran the whole width of the
+  screen with no padding. Every django-allauth page fills `content`. The layout now
+  fills `app.main`, so a project `base.html` that replaces the `app` block has to keep
+  an `app.main` block inside it. See
+  [A page against the layout](docs/account-center.md#a-page-against-the-layout).
+
 ## [v0.27.0] - 2026-10-07
 
 ### Added

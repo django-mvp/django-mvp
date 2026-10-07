@@ -691,8 +691,9 @@ or by way of `page_view.html`:
 | `mvp/entrance.html`, `mvp/error_base.html` | `mvp/base.html` | Replace the shell with a centred card |
 
 The [Account Center](account-center.md) has its own layout, `mvp/account/base.html`, which
-extends `base.html` rather than `page_view.html` and wraps the page's `account.content`
-block in a container. It draws no navigation of its own; the sidebar carries the area's menu.
+extends `base.html` rather than `page_view.html` and fills `app.main` with a container the
+width of a form page, around the page's `content` block. It draws no navigation of its own;
+the sidebar carries the area's menu.
 
 ### Layer 1 — shell blocks, from `mvp/base.html`
 
