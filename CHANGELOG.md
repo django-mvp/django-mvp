@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.27.1] - 2026-10-07
+
 ### Changed
 
 - Account Center pages are as wide as a form page, a 672px column, instead of the
