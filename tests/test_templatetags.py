@@ -9,12 +9,18 @@ Covers:
 """
 
 import re
+from importlib import import_module
 
 import pytest
+from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.template import Context, Template
 from django.test.utils import isolate_apps
+from django.urls import path
 from django.utils.safestring import SafeData
+from django.views.generic import TemplateView
+
+from tests.conftest import urlconf_of
 
 
 def _custom_logo_resolver(request, height, theme):
@@ -255,13 +261,20 @@ class TestColumnAlignment:
         assert self._tag()(table.columns["name"], table) == ""
 
 
+HERO_PAGE = urlconf_of(
+    path("", TemplateView.as_view(template_name="tests/section_hero.html")),
+    *import_module(settings.ROOT_URLCONF).urlpatterns,
+)
+
+
 class TestBrandLogoShellIntegration:
     @pytest.mark.django_db
-    def test_home_page_renders_brand_logo(self, client):
+    @pytest.mark.urls(HERO_PAGE)
+    def test_page_renders_brand_logo(self, client):
         html = client.get("/").content.decode()
         srcs = re.findall(r'<img[^>]*\bsrc="([^"]*)"', html)
         logo_srcs = [s for s in srcs if "logo.svg" in s]
-        assert logo_srcs, f"No brand logo img rendered on the home page; imgs: {srcs}"
+        assert logo_srcs, f"No brand logo img rendered on the page; imgs: {srcs}"
 
     @pytest.mark.django_db
     def test_home_page_has_no_broken_img_src(self, client):
