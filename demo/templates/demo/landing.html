@@ -6,32 +6,22 @@
 {% endcomment %}
 {% block content %}
   <div class="flex flex-col">
-    <c-hero.showcase eyebrow="Application UI for Django" title="Zero to MVP. Fast." lead="Django gives you the models, the ORM and the admin, then leaves the rest of the UI to you. django-mvp is that rest: the shell, the pages and the views, built on Django's own, so you spend your time on the part only you can write." size="lg">
+    <c-hero.centred eyebrow="Application UI for Django" lead="Django gives you the models, the ORM and the admin, then leaves the rest of the UI to you. django-mvp is that rest: the shell, the pages and the views, built on Django's own, so you spend your time on the part only you can write." size="lg">
       <c-slot name="background">
         <c-background.aurora intensity="0.15" speed="0.5" />
         <c-background.grid />
       </c-slot>
+      <c-slot name="title">
+        Take your Django project from zero to <c-text.gradient>Minimum Viable Product</c-text.gradient>. <c-text.glow variant="accent" pulse="1">Fast!</c-text.glow>
+      </c-slot>
       <c-slot name="actions">
         <a class="btn btn-primary btn-lg" href="https://github.com/django-mvp/django-mvp#quick-start">Quick start</a>
-        <a class="btn btn-outline btn-lg" href="{% url 'product-list' %}">Open the page this code makes</a>
+        <a class="btn btn-outline btn-lg" href="{% url 'product-list' %}">See a page it builds</a>
       </c-slot>
       <c-slot name="footnote">
         This site is the demo. Every page on it, this one included, is drawn by the package.
       </c-slot>
-      <c-slot name="media">
-        <c-mockup.code class="rounded-none text-left text-sm" aria-label="A list view with search, ordering and pagination, in four lines">
-          <c-mockup.code.line prefix="1">from mvp.views import MVPListView</c-mockup.code.line>
-          <c-mockup.code.line prefix="2"></c-mockup.code.line>
-          <c-mockup.code.line prefix="3">class ProductListView(MVPListView):</c-mockup.code.line>
-          <c-mockup.code.line prefix="4">    model = Product</c-mockup.code.line>
-          <c-mockup.code.line prefix="5" class="text-warning">    search_fields = ["name", "description"]</c-mockup.code.line>
-          <c-mockup.code.line prefix="6" class="text-warning">    order_by = [("name_asc", "Name (A-Z)", "name")]</c-mockup.code.line>
-          <c-mockup.code.line prefix="7"></c-mockup.code.line>
-          <c-mockup.code.line prefix="8" class="text-success"># A searchable, sortable, paginated list page,</c-mockup.code.line>
-          <c-mockup.code.line prefix="9" class="text-success"># inside the app shell, with no template written.</c-mockup.code.line>
-        </c-mockup.code>
-      </c-slot>
-    </c-hero.showcase>
+    </c-hero.centred>
 
     <c-section container="wide" align="center" class="bg-base-200">
       <c-section.col class="flex flex-col gap-6">
