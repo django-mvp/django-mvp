@@ -1,5 +1,5 @@
 version = 1
-revision = 5
+revision = 3
 requires-python = ">=3.12, <4.0"
 resolution-markers = [
     "python_full_version >= '3.15'",
@@ -495,6 +495,20 @@ wheels = [
 ]
 
 [[package]]
+name = "daisy-cotton-ext"
+version = "0.3.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "daisy-cotton" },
+    { name = "django" },
+    { name = "django-cotton" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/45/3a/416540bf85b30177a7eb38ba23531391f20832dba133d9e446e2052dc267/daisy_cotton_ext-0.3.0.tar.gz", hash = "sha256:9d3459a4af7e2951325bb76399ff0d53aa19344af984460aaa5d62064f622f29", size = 72096, upload-time = "2026-10-07T09:37:09.081Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/40/5b/6c1ea58bf049cc603c2d253e452756e15a08d9c3f5faf2e5ad1490f88569/daisy_cotton_ext-0.3.0-py3-none-any.whl", hash = "sha256:4bc63d24025fb5a0ad289dd0a6d1fec49ac11fffcd8ff5444cfb90c7bc0165f7", size = 107267, upload-time = "2026-10-07T09:37:07.524Z" },
+]
+
+[[package]]
 name = "deptry"
 version = "0.25.1"
 source = { registry = "https://pypi.org/simple" }
@@ -734,6 +748,7 @@ dependencies = [
 [package.dev-dependencies]
 dev = [
     { name = "brotli" },
+    { name = "daisy-cotton-ext" },
     { name = "django" },
     { name = "django-allauth" },
     { name = "django-distill" },
@@ -761,6 +776,7 @@ requires-dist = [
 [package.metadata.requires-dev]
 dev = [
     { name = "brotli", specifier = ">=1.2.0,<2" },
+    { name = "daisy-cotton-ext", specifier = ">=0.3,<0.4" },
     { name = "django", specifier = ">=5.2.17" },
     { name = "django-allauth", specifier = ">=65.19.4,<66" },
     { name = "django-distill", specifier = ">=3.0,<4" },

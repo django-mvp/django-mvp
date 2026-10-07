@@ -82,6 +82,7 @@ dev = [
     # runtime dependency of mvp itself). Already present transitively via
     # django-distill/rich; declared explicitly since the demo imports it directly.
     "markdown-it-py>=4.2.0,<5",
+    "daisy-cotton-ext>=0.3,<0.4",
 ]
 
 [tool.uv.sources]

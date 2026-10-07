@@ -1,14 +1,153 @@
-{% extends "mvp/landing.html" %}
-{% load i18n mvp %}
-{% block page.hero %}
-  <c-mvp.section.hero title="Build production-ready Django apps fast"
-                  subtitle="A comprehensive framework with layouts, components, and ready-to-use views — so you can focus on your business logic."
-                  bg-image="https://picsum.photos/id/237/800/1200"
-                  height="80vh">
-    <c-slot name="top">
-      <div class="mb-6 text-center flex">
-        <c-mvp.brand.logo max-height="100px" />
-      </div>
-    </c-slot>
-  </c-mvp.section.hero>
-{% endblock page.hero %}
+{% extends "page_view.html" %}
+{% comment %}
+  The demo's front page, assembled from daisy-cotton-ext page blocks and
+  daisy-cotton components. Every section spans the content area, so this
+  replaces the page wrapper instead of filling its centred column.
+{% endcomment %}
+{% block content %}
+  <div class="flex flex-col">
+    <c-hero.showcase eyebrow="Application UI for Django" lead="An app shell, a component library and class-based views that take a model through to list, detail, form and delete pages. You write the model and the business logic." size="lg">
+      <c-slot name="background">
+        <c-background.aurora intensity="0.15" speed="0.5" />
+        <c-background.grid />
+      </c-slot>
+      <c-slot name="announcement">
+        <c-badge soft variant="primary" size="lg">DaisyUI 5 · Tailwind CSS v4 · django-cotton</c-badge>
+      </c-slot>
+      <c-slot name="title">
+        From a Django model to a working app, <c-text.marker variant="primary">without writing the front end first</c-text.marker>
+      </c-slot>
+      <c-slot name="actions">
+        <a class="btn btn-primary btn-lg" href="https://github.com/django-mvp/django-mvp#quick-start">Get started</a>
+        <a class="btn btn-outline btn-lg" href="{% url 'custom-components' %}">Browse the components</a>
+      </c-slot>
+      <c-slot name="footnote">
+        <c-kbd text="pip install django-mvp" />
+        <span class="ms-2">No Node, no build step.</span>
+      </c-slot>
+      <c-slot name="media">
+        <c-mockup.code class="rounded-none text-left text-sm" aria-label="Two views that make a searchable list page and a create page">
+          <c-mockup.code.line prefix="1">from mvp.views import MVPListView, MVPCreateView</c-mockup.code.line>
+          <c-mockup.code.line prefix="2"></c-mockup.code.line>
+          <c-mockup.code.line prefix="3">class ProductListView(MVPListView):</c-mockup.code.line>
+          <c-mockup.code.line prefix="4">    model = Product</c-mockup.code.line>
+          <c-mockup.code.line prefix="5" class="text-warning">    search_fields = ["name", "description"]</c-mockup.code.line>
+          <c-mockup.code.line prefix="6" class="text-warning">    order_by = [("name_asc", "Name (A-Z)", "name")]</c-mockup.code.line>
+          <c-mockup.code.line prefix="7"></c-mockup.code.line>
+          <c-mockup.code.line prefix="8">class ProductCreateView(MVPCreateView):</c-mockup.code.line>
+          <c-mockup.code.line prefix="9">    model = Product</c-mockup.code.line>
+          <c-mockup.code.line prefix="10" class="text-warning">    fields = ["name", "category", "price"]</c-mockup.code.line>
+        </c-mockup.code>
+      </c-slot>
+    </c-hero.showcase>
+
+    <c-section class="bg-base-200">
+      <c-slot name="header">
+        <c-heading eyebrow="What you get" title="The parts every data-centric app needs" lead="Each one works on its own. Together they are most of the screen before you have written a template." />
+      </c-slot>
+      <c-reveal.cascade per="3" class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <c-card border class="bg-base-100">
+          <c-slot name="title"><c-icon name="layout" class="text-primary" /> A complete app shell</c-slot>
+          <p>Sidebar, navbar, content area, footer and a mobile dock around every page, set up from Django settings.</p>
+        </c-card>
+        <c-card border class="bg-base-100">
+          <c-slot name="title"><c-icon name="grid" class="text-primary" /> A Cotton component library</c-slot>
+          <p>Cards, grids, dropdowns, pagination and the rest, with small attribute APIs. Override a template when you need more.</p>
+        </c-card>
+        <c-card border class="bg-base-100">
+          <c-slot name="title"><c-icon name="list" class="text-primary" /> Views that do the boring parts</c-slot>
+          <p>List pages with search, ordering and pagination. Form pages. Delete flows that show what else goes with the record.</p>
+        </c-card>
+        <c-card border class="bg-base-100">
+          <c-slot name="title"><c-icon name="code-slash" class="text-primary" /> Menus in Python</c-slot>
+          <p>Declare the sidebar and dock navigation in code. Active states, icons and badges are handled for you.</p>
+        </c-card>
+        <c-card border class="bg-base-100">
+          <c-slot name="title"><c-icon name="image" class="text-primary" /> Icons by name</c-slot>
+          <p>Templates ask for an icon by name. Swap the whole icon set from settings without touching one of them.</p>
+        </c-card>
+        <c-card border class="bg-base-100">
+          <c-slot name="title"><c-icon name="laptop" class="text-primary" /> Installable as an app</c-slot>
+          <p>One setting and one URL include give the browser a manifest, icons and a service worker.</p>
+        </c-card>
+      </c-reveal.cascade>
+    </c-section>
+
+    <c-section container="wide" align="center">
+      <c-section.col class="flex flex-col gap-6">
+        <c-heading align="start" eyebrow="Configured, not built" title="The layout is a settings dictionary" lead="Change where the sidebar collapses, what sits in the navbar and which themes a visitor can pick, all without opening a template." />
+        <c-points>
+          <c-points.point title="One dictionary.">Every layout option is a key in <code>MVP_CONFIG</code>.</c-points.point>
+          <c-points.point title="Themes without forking.">Name a default theme, a dark one and the choices on offer.</c-points.point>
+          <c-points.point title="Nothing dead-ends.">When settings run out, override the component's template in your project.</c-points.point>
+        </c-points>
+        <div>
+          <a class="btn btn-primary" href="{% url 'layout' %}">Try the layout options</a>
+          <a class="btn btn-ghost" href="{% url 'customization' %}">See the themes</a>
+        </div>
+      </c-section.col>
+      <c-section.col>
+        <c-reveal.enter effect="left">
+          <c-mockup.code class="text-sm" aria-label="An example MVP_CONFIG setting">
+            <c-mockup.code.line prefix="1">MVP_CONFIG = {</c-mockup.code.line>
+            <c-mockup.code.line prefix="2">    "theme": {</c-mockup.code.line>
+            <c-mockup.code.line prefix="3" class="text-warning">        "default": "mvp",</c-mockup.code.line>
+            <c-mockup.code.line prefix="4" class="text-warning">        "dark": "mvp-dark",</c-mockup.code.line>
+            <c-mockup.code.line prefix="5">    },</c-mockup.code.line>
+            <c-mockup.code.line prefix="6">    "layout": {</c-mockup.code.line>
+            <c-mockup.code.line prefix="7" class="text-warning">        "sidebar": {"title": "DjangoMVP"},</c-mockup.code.line>
+            <c-mockup.code.line prefix="8">        "navbar": {"desktop": {"end": [</c-mockup.code.line>
+            <c-mockup.code.line prefix="9" class="text-warning">            "mvp.actions.theme-controller",</c-mockup.code.line>
+            <c-mockup.code.line prefix="10" class="text-warning">            "mvp.actions.login",</c-mockup.code.line>
+            <c-mockup.code.line prefix="11">        ]}},</c-mockup.code.line>
+            <c-mockup.code.line prefix="12">    },</c-mockup.code.line>
+            <c-mockup.code.line prefix="13">}</c-mockup.code.line>
+          </c-mockup.code>
+        </c-reveal.enter>
+      </c-section.col>
+    </c-section>
+
+    <c-stats.band cascade class="bg-base-200" eyebrow="In the box" title="Shipped with the package">
+      <c-stats.count title="Cotton components" to="144" icon="grid" desc="django-mvp and daisy-cotton together" />
+      <c-stats.count title="Django releases" to="3" icon="check-circle-fill" desc="5.2, 6.0 and 6.1" />
+      <c-stats.count title="Python versions" to="3" icon="code-slash" desc="3.12, 3.13 and 3.14" />
+      <c-stats.count title="Build steps" to="0" icon="gears" desc="The stylesheet comes prebuilt" />
+    </c-stats.band>
+
+    <c-section>
+      <c-slot name="header">
+        <c-heading eyebrow="This site is the demo" title="See it running before you install it" lead="Every page here is drawn by the package. Start with the ones below." />
+      </c-slot>
+      <c-reveal.cascade per="3" class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <c-card border>
+          <c-slot name="title"><c-icon name="list" class="text-primary" /> A list page</c-slot>
+          <p>Products with search, ordering and pagination from three lines of view code.</p>
+          <c-slot name="actions"><a class="btn btn-sm btn-soft btn-primary" href="{% url 'product-list' %}">Open the product list</a></c-slot>
+        </c-card>
+        <c-card border>
+          <c-slot name="title"><c-icon name="form" class="text-primary" /> A long form</c-slot>
+          <p>Grouped fields, inline formsets and validation errors placed where they belong.</p>
+          <c-slot name="actions"><a class="btn btn-sm btn-soft btn-primary" href="{% url 'complex-form-demo' %}">Open the form</a></c-slot>
+        </c-card>
+        <c-card border>
+          <c-slot name="title"><c-icon name="grid" class="text-primary" /> The component gallery</c-slot>
+          <p>Each component with its attributes and the markup to copy.</p>
+          <c-slot name="actions"><a class="btn btn-sm btn-soft btn-primary" href="{% url 'custom-components' %}">Open the gallery</a></c-slot>
+        </c-card>
+      </c-reveal.cascade>
+    </c-section>
+
+    <c-hero.centred level="2" size="sm" invert eyebrow="MIT licensed" title="Install it and have a page up in ten minutes" lead="Add the apps, include the URLs and point a view at a model.">
+      <c-slot name="background">
+        <c-background.gradient from="primary" to="secondary" opacity="1" />
+      </c-slot>
+      <c-slot name="actions">
+        <a class="btn btn-lg" href="https://github.com/django-mvp/django-mvp#quick-start">Read the quick start</a>
+        <a class="btn btn-lg btn-outline" href="https://github.com/django-mvp/django-mvp">View on GitHub</a>
+      </c-slot>
+      <c-slot name="footnote">
+        <c-kbd text="pip install django-mvp" class="text-base-content" />
+      </c-slot>
+    </c-hero.centred>
+  </div>
+{% endblock content %}
