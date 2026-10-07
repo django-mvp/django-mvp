@@ -743,13 +743,38 @@ What the shipped views already put in these:
   `page.content` deliberately empty — that empty block is where your own
   detail template goes.
 - `form_view.html` fills `page.content` with the form, and extends `head` and
-  `extra_js` with the form's own media.
+  `extra_js` with the form's own media. It also restates `page.content-wrapper`
+  to set the form page's column — see
+  [Form pages sit in a narrower column](#form-pages-sit-in-a-narrower-column).
 - `mvp/landing.html` overrides `content` wholesale, so it has `page.hero`,
   `page.content-wrapper`, `page.content` and `page.footer` but **not**
   `page.header`, `page.title` or `page.actions`.
 - `mvp/error_base.html` replaces the `app` block with a centred card and
   exposes `error_code`, `heading`, `description` and `actions` instead of any
   `page.*` block.
+
+### Form pages sit in a narrower column
+
+A form stretched across the full container is hard to scan, so `form_view.html` puts
+the whole page in one centred column, `max-w-2xl` (42rem) wide. The title bar, anything
+in `before_form`, the form, its buttons and `after_form` all share it, which keeps
+every left edge on the page in line. Below that width the column is simply the screen,
+less the container's padding.
+
+- Every form page gets the same column: create, update, delete and plain form pages,
+  with or without formset rows. The template never widens a page because of what the
+  form contains.
+- The buttons stack at full width on a small screen and sit in a row from `md` up. On
+  an update page the delete link moves to the far end of that row.
+- `delete_view.html` extends `form_view.html`, so a delete page has the same column.
+
+The column is set where `form_view.html` restates `page.content-wrapper`. `page.title`,
+`page.actions` and `page.content` are all declared again inside it, so an override of
+any of them still applies. For a form that needs a different width, give the view a
+`template_name` extending `form_view.html` and override `page.content-wrapper` there.
+
+The space above the title is the same on every page built on `page_view.html`: `1rem`
+on a small screen and `2rem` from `md` up.
 
 ### Table pages are laid out differently
 

@@ -258,6 +258,14 @@ class ProductCreateView(MVPCreateView):
 
     model = Product
     fields = ["name", "slug", "category", "description", "price", "stock", "status"]
+    page_subtitle = _(
+        "Add a product to the catalogue. It stays a draft until you publish it."
+    )
+    page_info = _(
+        "A product needs a name before it can be saved. Leave the slug empty "
+        "and it is made from the name. Price and stock can be filled in later, "
+        "and customers only see the product once its status is Published."
+    )
     show_list_action = True
     show_detail_action = True
     show_update_action = True

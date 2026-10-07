@@ -16,6 +16,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Form pages are drawn in one centred column, `max-w-2xl` wide, in place of a
+  left-aligned form up to `max-w-4xl` under a full-width title. The title, the form and
+  its buttons share the column on create, update, delete and plain form pages. The
+  buttons sit in a row from `md` up, with space above them, and stack at full width
+  below it. They were stacked at every width. See
+  [Layout](docs/layout.md#form-pages-sit-in-a-narrower-column).
+- The space above the page title is `2rem` from `md` up on every page built on
+  `page_view.html`. It was `1rem` at every width, and still is on a small screen.
+
 - **Breaking: django-mvp depends on [daisy-cotton](https://pypi.org/project/daisy-cotton/).**
   It is installed with the package, at `>=0.1.3,<0.2`. Installing it changes nothing on a
   page by itself; the sixteen basic components then come from it, as the entry below says.

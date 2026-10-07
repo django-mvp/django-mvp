@@ -6,54 +6,80 @@
   {{ formset.media.css }}
   {% for inline in inlines %}{{ inline.media.css }}{% endfor %}
 {% endblock head %}
-{% block page.content %}
+{% block page.content-wrapper %}
   {% comment %}
-    The gap spaces anything a page puts before or after the form, and spaces
-    those pieces from each other — several stacked alerts, most often.
+    One centred column holds the title, anything before the form, the form and
+    its buttons, so every left edge on the page lines up.
   {% endcomment %}
-  <div class="w-full lg:max-w-4xl flex flex-col gap-4">
-    {% block before_form %}
-    {% endblock before_form %}
-    <c-mvp.form title="{{ page.title }}"
-            icon="{{ page.icon }}"
-            method="post"
-            action="{{ request.path }}"
-            :form-obj="form"
-            :formset="formset"
-            :inlines="inlines">
-      {% if next_url %}<input type="hidden" name="next" value="{{ next_url }}">{% endif %}
-      {% block formset %}
-        {% if formset %}<c-mvp.form.formset :formset="formset" />{% endif %}
-        {% for inline in inlines %}<c-mvp.form.formset :formset="inline" />{% endfor %}
-      {% endblock formset %}
-      {% block actions %}
-        <c-mvp.group breakpoint="md" wrap>
-          <c-button text="{% trans "Save & continue" %}"
-                    type="submit"
-                    name="default_next"
-                    value="list"
-                    variant="primary" only>
-            <c-icon name="arrow-right" />
-          </c-button>
-          <c-button text="{% trans "Save & continue editing" %}"
-                    type="submit"
-                    name="default_next"
-                    value="update"
-                    variant="primary"
-                    outline only />
-          {% if delete_url %}
-            <c-button text="{% trans "Delete" %}"
-                      href="{{ delete_url }}"
-                      icon="delete"
-                      variant="error" only />
-          {% endif %}
-        </c-mvp.group>
-      {% endblock actions %}
-    </c-mvp.form>
-    {% block after_form %}
-    {% endblock after_form %}
-  </div>
-{% endblock page.content %}
+  <c-mvp.page.content gap=8 class="w-full max-w-2xl mx-auto pt-4 md:pt-8 pb-4">
+    {% block page.title %}
+      <c-mvp.page.title :title="page.title"
+                    :subtitle="page.subtitle"
+                    :info="page.info"
+                    :info_actions="page.info_actions">
+        <c-slot name="actions">
+          {% block page.actions %}
+          {% endblock page.actions %}
+        </c-slot>
+      </c-mvp.page.title>
+    {% endblock page.title %}
+    {% block page.content %}
+      {% comment %}
+        The gap spaces anything a page puts before or after the form, and spaces
+        those pieces from each other — several stacked alerts, most often.
+      {% endcomment %}
+      <div class="w-full flex flex-col gap-4">
+        {% block before_form %}
+        {% endblock before_form %}
+        <c-mvp.form title="{{ page.title }}"
+                icon="{{ page.icon }}"
+                method="post"
+                action="{{ request.path }}"
+                :form-obj="form"
+                :formset="formset"
+                :inlines="inlines">
+          {% if next_url %}<input type="hidden" name="next" value="{{ next_url }}">{% endif %}
+          {% block formset %}
+            {% if formset %}<c-mvp.form.formset :formset="formset" />{% endif %}
+            {% for inline in inlines %}<c-mvp.form.formset :formset="inline" />{% endfor %}
+          {% endblock formset %}
+          {% comment %}
+            Stacked and full width on a phone, a row from md up. The space
+            above sets the buttons apart from the last field.
+          {% endcomment %}
+          <div class="mt-8 flex flex-col md:flex-row md:items-center gap-2">
+            {% block actions %}
+              <c-button text="{% trans "Save & continue" %}"
+                        type="submit"
+                        name="default_next"
+                        value="list"
+                        variant="primary" only>
+                <c-icon name="arrow-right" />
+              </c-button>
+              <c-button text="{% trans "Save & continue editing" %}"
+                        type="submit"
+                        name="default_next"
+                        value="update"
+                        variant="primary"
+                        outline only />
+              {% if delete_url %}
+                {# Pushed to the far end from md up, away from the save buttons. #}
+                <div class="flex flex-col md:flex-row md:grow md:justify-end">
+                  <c-button text="{% trans "Delete" %}"
+                            href="{{ delete_url }}"
+                            icon="delete"
+                            variant="error" only />
+                </div>
+              {% endif %}
+            {% endblock actions %}
+          </div>
+        </c-mvp.form>
+        {% block after_form %}
+        {% endblock after_form %}
+      </div>
+    {% endblock page.content %}
+  </c-mvp.page.content>
+{% endblock page.content-wrapper %}
 {% block extra_js %}
   {{ block.super }}
   {{ form.media.js }}
