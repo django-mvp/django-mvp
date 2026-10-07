@@ -6,92 +6,45 @@
 {% endcomment %}
 {% block content %}
   <div class="flex flex-col">
-    <c-hero.showcase eyebrow="Application UI for Django" title="Zero to MVP. Fast." lead="Write your models and your business logic. django-mvp handles the shell, the pages and the views around them." size="lg">
+    <c-hero.showcase eyebrow="Application UI for Django" title="Zero to MVP. Fast." lead="Django gives you the models, the ORM and the admin, then leaves the rest of the UI to you. django-mvp is that rest: the shell, the pages and the views, built on Django's own, so you spend your time on the part only you can write." size="lg">
       <c-slot name="background">
         <c-background.aurora intensity="0.15" speed="0.5" />
         <c-background.grid />
       </c-slot>
-      <c-slot name="announcement">
-        <c-badge soft variant="primary" size="lg">DaisyUI 5 · Tailwind CSS v4 · django-cotton</c-badge>
-      </c-slot>
       <c-slot name="actions">
-        <a class="btn btn-primary btn-lg" href="https://github.com/django-mvp/django-mvp#quick-start">Get started</a>
-        <a class="btn btn-outline btn-lg" href="{% url 'custom-components' %}">Browse the components</a>
+        <a class="btn btn-primary btn-lg" href="https://github.com/django-mvp/django-mvp#quick-start">Quick start</a>
+        <a class="btn btn-outline btn-lg" href="{% url 'product-list' %}">Open the page this code makes</a>
       </c-slot>
       <c-slot name="footnote">
-        <c-kbd text="pip install django-mvp" />
-        <span class="ms-2">No Node, no build step.</span>
+        This site is the demo. Every page on it, this one included, is drawn by the package.
       </c-slot>
       <c-slot name="media">
-        <c-mockup.code class="rounded-none text-left text-sm" aria-label="Two views that make a searchable list page and a create page">
-          <c-mockup.code.line prefix="1">from mvp.views import MVPListView, MVPCreateView</c-mockup.code.line>
+        <c-mockup.code class="rounded-none text-left text-sm" aria-label="A list view with search, ordering and pagination, in four lines">
+          <c-mockup.code.line prefix="1">from mvp.views import MVPListView</c-mockup.code.line>
           <c-mockup.code.line prefix="2"></c-mockup.code.line>
           <c-mockup.code.line prefix="3">class ProductListView(MVPListView):</c-mockup.code.line>
           <c-mockup.code.line prefix="4">    model = Product</c-mockup.code.line>
           <c-mockup.code.line prefix="5" class="text-warning">    search_fields = ["name", "description"]</c-mockup.code.line>
           <c-mockup.code.line prefix="6" class="text-warning">    order_by = [("name_asc", "Name (A-Z)", "name")]</c-mockup.code.line>
           <c-mockup.code.line prefix="7"></c-mockup.code.line>
-          <c-mockup.code.line prefix="8">class ProductCreateView(MVPCreateView):</c-mockup.code.line>
-          <c-mockup.code.line prefix="9">    model = Product</c-mockup.code.line>
-          <c-mockup.code.line prefix="10" class="text-warning">    fields = ["name", "category", "price"]</c-mockup.code.line>
+          <c-mockup.code.line prefix="8" class="text-success"># A searchable, sortable, paginated list page,</c-mockup.code.line>
+          <c-mockup.code.line prefix="9" class="text-success"># inside the app shell, with no template written.</c-mockup.code.line>
         </c-mockup.code>
       </c-slot>
     </c-hero.showcase>
 
-    <c-section class="bg-base-200">
-      <c-slot name="header">
-        <c-heading eyebrow="What you get" title="Everything around your business logic" lead="The parts every data-centric app needs, already built and already working together." />
-      </c-slot>
-      <c-reveal.cascade per="3" class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <c-card border class="bg-base-100">
-          <c-slot name="title"><c-icon name="layout" class="text-primary" /> A full app shell</c-slot>
-          <p>Sidebar, navbar, content area, footer and a mobile dock around every page. Built on daisyUI, django-cotton and daisy-cotton.</p>
-        </c-card>
-        <c-card border class="bg-base-100">
-          <c-slot name="title"><c-icon name="newspaper" class="text-primary" /> Standard pages, already designed</c-slot>
-          <p>List, detail, form, delete, table, dashboard and error pages that look finished the first time they render.</p>
-        </c-card>
-        <c-card border class="bg-base-100">
-          <c-slot name="title"><c-icon name="gears" class="text-primary" /> Configured from settings</c-slot>
-          <p>Where the sidebar collapses, what sits in the navbar, which themes are on offer. One dictionary, no template edits.</p>
-        </c-card>
-        <c-card border class="bg-base-100">
-          <c-slot name="title"><c-icon name="list" class="text-primary" /> Views that build on Django's own</c-slot>
-          <p>Subclasses of Django's class-based views that add search, ordering, pagination, inline formsets and safe delete flows.</p>
-        </c-card>
-        <c-card border class="bg-base-100">
-          <c-slot name="title"><c-icon name="image" class="text-primary" /> Your brand, not ours</c-slot>
-          <p>Pick a daisyUI theme or define your own. Logo, colours and icon set change without forking a template.</p>
-        </c-card>
-        <c-card border class="bg-base-100">
-          <c-slot name="title"><c-icon name="link" class="text-primary" /> Works with what you already use</c-slot>
-          <p>django-tables2, django-filter and crispy-forms get the same look as every other page, with nothing replaced.</p>
-        </c-card>
-      </c-reveal.cascade>
-    </c-section>
-
-    <c-stats.split eyebrow="Safe to adopt" title="Built to be depended on" lead="Every release runs the full test suite on each supported Python and Django version. What changed is in the changelog, and the code is MIT licensed.">
-      <c-slot name="actions">
-        <a class="btn btn-primary" href="https://github.com/django-mvp/django-mvp/blob/main/CHANGELOG.md">Read the changelog</a>
-        <a class="btn btn-ghost" href="https://github.com/django-mvp/django-mvp/tree/main/docs">Read the docs</a>
-      </c-slot>
-      <c-stats.count title="Test coverage" to="96" suffix="%" desc="Measured on every pull request" />
-      <c-stats.count title="Tests" to="1332" desc="Run before anything merges" />
-      <c-stats.count title="Python and Django pairings" to="6" desc="Python 3.12 and 3.13 on Django 5.2, 6.0 and 6.1" />
-      <c-stats.count title="Releases" to="40" desc="Each with its changes written down" />
-    </c-stats.split>
-
     <c-section container="wide" align="center" class="bg-base-200">
       <c-section.col class="flex flex-col gap-6">
-        <c-heading align="start" eyebrow="Configured, not built" title="The layout is a settings dictionary" lead="Change where the sidebar collapses, what sits in the navbar and which themes a visitor can pick, all without opening a template." />
+        <c-heading align="start" eyebrow="Still Django" title="Nothing to learn that you do not already know" lead="There is no new request cycle, no new template language and no new way to configure things. If you can override an admin template, you can override anything here." />
         <c-points>
-          <c-points.point title="One dictionary.">Every layout option is a key in <code>MVP_CONFIG</code>.</c-points.point>
-          <c-points.point title="Themes without forking.">Name a default theme, a dark one and the choices on offer.</c-points.point>
-          <c-points.point title="Nothing dead-ends.">When settings run out, override the component's template in your project.</c-points.point>
+          <c-points.point title="Views are Django's views.">MVPListView is a ListView. Every method you would override is still there, and still does what it did.</c-points.point>
+          <c-points.point title="Templates are Django templates.">Put your own copy above mvp in INSTALLED_APPS and it wins. The same rule the admin uses.</c-points.point>
+          <c-points.point title="Configuration is a settings dictionary.">Sidebar breakpoint, navbar widgets, themes on offer. Read in one place, changed in one place.</c-points.point>
+          <c-points.point title="No Node, no build step.">The stylesheet ships prebuilt. When your own templates outgrow it, one management command writes the Tailwind config for you.</c-points.point>
         </c-points>
-        <div>
+        <div class="flex flex-wrap gap-3">
           <a class="btn btn-primary" href="{% url 'layout' %}">Try the layout options</a>
-          <a class="btn btn-ghost" href="{% url 'customization' %}">See the themes</a>
+          <a class="btn btn-ghost" href="https://github.com/django-mvp/django-mvp/blob/main/docs/getting-started.md">How overriding works</a>
         </div>
       </c-section.col>
       <c-section.col>
@@ -117,26 +70,70 @@
 
     <c-section>
       <c-slot name="header">
-        <c-heading eyebrow="This site is the demo" title="See it running before you install it" lead="Every page here is drawn by the package. Start with the ones below." />
+        <c-heading eyebrow="Where Django stops" title="The pages you keep rebuilding, built once" lead="Django ships the machinery for these and leaves the page to you. Each one here is a view class and a model." />
       </c-slot>
-      <c-reveal.cascade per="3" class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <c-reveal.cascade per="2" class="grid gap-6 md:grid-cols-2">
         <c-card border>
-          <c-slot name="title"><c-icon name="list" class="text-primary" /> A list page</c-slot>
-          <p>Products with search, ordering and pagination from three lines of view code.</p>
-          <c-slot name="actions"><a class="btn btn-sm btn-soft btn-primary" href="{% url 'product-list' %}">Open the product list</a></c-slot>
+          <c-slot name="title"><c-icon name="list" class="text-primary" /> List pages</c-slot>
+          <p>Admin-style search across the fields you name, ordering from a whitelist, pagination that keeps the query string. The URL stays bookmarkable.</p>
+          <c-slot name="actions"><a class="btn btn-sm btn-soft btn-primary" href="{% url 'product-list' %}?q=chair">See a search result</a></c-slot>
         </c-card>
         <c-card border>
-          <c-slot name="title"><c-icon name="form" class="text-primary" /> A long form</c-slot>
-          <p>Grouped fields, inline formsets and validation errors placed where they belong.</p>
-          <c-slot name="actions"><a class="btn btn-sm btn-soft btn-primary" href="{% url 'complex-form-demo' %}">Open the form</a></c-slot>
+          <c-slot name="title"><c-icon name="form" class="text-primary" /> Formsets, rendered and driven</c-slot>
+          <p>Django gives you the formset and nothing to show it with. Declare the inline, and the rows render, add, delete and validate with the same error placement as every other form.</p>
+          <c-slot name="actions"><a class="btn btn-sm btn-soft btn-primary" href="{% url 'project-create' %}">Create a project with its tasks</a></c-slot>
         </c-card>
         <c-card border>
-          <c-slot name="title"><c-icon name="grid" class="text-primary" /> The component gallery</c-slot>
-          <p>Each component with its attributes and the markup to copy.</p>
-          <c-slot name="actions"><a class="btn btn-sm btn-soft btn-primary" href="{% url 'custom-components' %}">Open the gallery</a></c-slot>
+          <c-slot name="title"><c-icon name="exclamation-circle" class="text-primary" /> Delete flows that show the damage first</c-slot>
+          <p>The confirmation page lists what else goes with the record, grouped by model, and can ask the person to type its name before the button works.</p>
+          <c-slot name="actions"><a class="btn btn-sm btn-soft btn-primary" href="{% url 'product-delete' pk=1 %}">Open a delete confirmation</a></c-slot>
+        </c-card>
+        <c-card border>
+          <c-slot name="title"><c-icon name="layout" class="text-primary" /> Detail, form and error pages</c-slot>
+          <p>Detail pages with action links, create and update pages drawn with crispy-forms, and 400, 403, 404 and 500 pages that match the rest of the site instead of Django's defaults.</p>
+          <c-slot name="actions"><a class="btn btn-sm btn-soft btn-primary" href="{% url 'error-preview-404' %}">See the 404 page</a></c-slot>
         </c-card>
       </c-reveal.cascade>
     </c-section>
+
+    <c-section container="wide" align="center" reverse class="bg-base-200">
+      <c-section.col class="flex flex-col gap-6">
+        <c-heading align="start" eyebrow="Your stack stays your stack" title="Works with the packages you already use" lead="Nothing is wrapped or replaced. The integration is a view class that gives the package's output the same look as every other page." />
+        <c-points>
+          <c-points.point title="django-tables2.">MVPTableView draws a table with the shell's sorting, pagination and empty state.</c-points.point>
+          <c-points.point title="django-filter.">MVPFilteredListView puts the filter form where the search box goes.</c-points.point>
+          <c-points.point title="django-crispy-forms.">Every form page uses it, with a daisyUI template pack, so your existing layouts carry over.</c-points.point>
+          <c-points.point title="django-allauth.">The Account Center gives sign-in, sign-up and account pages a home in the shell.</c-points.point>
+        </c-points>
+        <div>
+          <a class="btn btn-primary" href="{% url 'djangotables2' %}">See a django-tables2 page</a>
+        </div>
+      </c-section.col>
+      <c-section.col>
+        <c-reveal.enter effect="right">
+          <c-mockup.code class="text-sm" aria-label="The integration imports">
+            <c-mockup.code.line prefix="1" class="text-success"># Guarded modules: the dependency is only needed when imported.</c-mockup.code.line>
+            <c-mockup.code.line prefix="2">from mvp.integrations.django_tables.views import MVPTableView</c-mockup.code.line>
+            <c-mockup.code.line prefix="3">from mvp.integrations.django_filters.views import MVPFilteredListView</c-mockup.code.line>
+            <c-mockup.code.line prefix="4"></c-mockup.code.line>
+            <c-mockup.code.line prefix="5">class OrderTableView(MVPTableView):</c-mockup.code.line>
+            <c-mockup.code.line prefix="6">    model = Order</c-mockup.code.line>
+            <c-mockup.code.line prefix="7" class="text-warning">    table_class = OrderTable</c-mockup.code.line>
+          </c-mockup.code>
+        </c-reveal.enter>
+      </c-section.col>
+    </c-section>
+
+    <c-stats.split eyebrow="Before you depend on it" title="Early, frequent and written down" lead="It is a 0.x package and says so. Component and import names can change between minor versions. Every release ships with a changelog entry that says what changed and what to do on upgrade, and nothing merges without the test suite passing on every supported Python and Django pairing.">
+      <c-slot name="actions">
+        <a class="btn btn-primary" href="https://github.com/django-mvp/django-mvp/blob/main/CHANGELOG.md">Read the changelog</a>
+        <a class="btn btn-ghost" href="https://github.com/django-mvp/django-mvp/tree/main/docs">Read the docs</a>
+      </c-slot>
+      <c-stats.count title="Test coverage" to="96" suffix="%" desc="Reported on every pull request" />
+      <c-stats.count title="Django versions tested" to="3" desc="Every release Django still supports" />
+      <c-stats.count title="Python and Django pairings" to="6" desc="All of them run before a merge" />
+      <c-stats.count title="Releases a month" to="4" desc="Over the last two months, with the week's changes in each" />
+    </c-stats.split>
 
     <c-hero.centred level="2" size="sm" invert eyebrow="MIT licensed" title="Spend the week on your product" lead="Install it, point a view at a model and move on to the part only you can write.">
       <c-slot name="background">
