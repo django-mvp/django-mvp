@@ -15,13 +15,14 @@ from mvp.views import (
     MVPTemplateView, MVPHomeView,
     MVPListView, MVPDetailView,
     MVPFormView, MVPCreateView, MVPUpdateView, MVPDeleteView,
+    PageWidth,
 )
 ```
 
 ## Page basics
 
 Every MVP view includes `PageMixin`, which injects a `page` context dict
-(`title`, `subtitle`, `class`, `breadcrumbs`, `info`, `info_actions`) consumed by
+(`title`, `subtitle`, `class`, `width`, `breadcrumbs`, `info`, `info_actions`) consumed by
 the page templates. `breadcrumbs` is drawn by the app header rather than the page
 body — see [Breadcrumbs](layout.md#breadcrumbs) — and the rest by the page itself:
 
@@ -36,6 +37,37 @@ class AboutView(MVPTemplateView):
 `page_class = "products-list"` renders as `class="mvp-page products-list"`. There's no
 `page_icon` — a couple of packaged templates read `page.icon`, but nothing sets it, so it
 always renders empty.
+
+### Page width
+
+`page_width` sets how wide the page's content is. It takes a `PageWidth`:
+
+| Value | Width | Default for |
+| --- | --- | --- |
+| `PageWidth.NARROW` | A 672px column (`max-w-2xl`) | Form, create, update and delete pages |
+| `PageWidth.MEDIUM` | An 896px column (`max-w-4xl`) | |
+| `PageWidth.WIDE` | The standard container, which steps with the screen up to 1536px | Every other page |
+| `PageWidth.FULL` | The whole screen | |
+
+Every width is centred, and every width fills a screen narrower than itself.
+
+```python
+from mvp.views import MVPUpdateView, PageWidth
+
+
+class OrderLinesView(MVPUpdateView):
+    model = Order
+    page_width = PageWidth.MEDIUM
+```
+
+The width is always the view's choice. No packaged template widens a page because of what
+it contains, so a form with fields side by side or a row of related records stays in the
+narrow column until its view asks for more room. Override `get_page_width()` when the width
+depends on the request or the object. A value outside the four raises `ValueError`.
+
+`MVPTableView` fills the screen in both directions and ignores `page_width`. A page written
+by hand asks for the same widths with
+[`<c-mvp.container width="...">`](components.md#layout-primitives).
 
 `MVPHomeView` renders a dashboard template for authenticated users and a landing
 template for anonymous visitors, from the one URL, with no redirect. Override

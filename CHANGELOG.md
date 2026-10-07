@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- A `page_width` setting on every page view, taking a `PageWidth` from `mvp.views`:
+  `NARROW` (a 672px column), `MEDIUM` (896px), `WIDE` (the standard container) or `FULL`
+  (the whole screen). Form, create, update and delete pages default to `NARROW` and every
+  other page to `WIDE`, so a view that sets nothing looks as it did. `get_page_width()` is
+  the hook for a width that depends on the request. See
+  [Page width](docs/views.md#page-width).
+- A `width` attribute on `<c-mvp.container>` taking the same four names, for a page
+  written by hand.
 - A start-up check on the `daisy_cotton` line in `INSTALLED_APPS`. `mvp.E002` is an error
   when `daisy_cotton` is missing, and `mvp.W001` is a warning when it is listed above `mvp`.
   Both can be silenced by identifier in `SILENCED_SYSTEM_CHECKS`. See
@@ -16,6 +24,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Breaking: the `fluid` attribute is gone from `<c-mvp.container>` and `<c-mvp.page>`.**
+  Write `<c-mvp.container width="full">` where a container had `fluid`. On `<c-mvp.page>`
+  it only added side padding, and the container inside the page now decides the width.
+- On a form page, anything in the `page.header` block and the footer toolbar sit in the
+  same column as the form. They spanned the full container before. A project template
+  that restates `page.content-wrapper` to widen a form page is now held to the narrow
+  column by the container around it. Set `page_width` on the view and drop the override.
 - Form pages are drawn in one centred column, `max-w-2xl` wide, in place of a
   left-aligned form up to `max-w-4xl` under a full-width title. The title, the form and
   its buttons share the column on create, update, delete and plain form pages. The

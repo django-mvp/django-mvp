@@ -1,10 +1,15 @@
 {# @description Width-constraint wrapper for page content. #}
-{# @prop fluid:boolean | description:"Full width with no max-width constraint." #}
-{# @prop fill:boolean | description:"Full width and height with no max-width constraint." #}
+{# @prop width:select['narrow','medium','wide','full'] | default:"wide" | description:"How wide the content is: a 672px column, an 896px column, the standard container that steps with the screen up to 1536px, or the whole screen. Every width is centred and fills a screen narrower than itself." #}
+{# @prop fill:boolean | description:"Full width and height with no max-width constraint. Ignores width." #}
 {# @prop class:text | description:"Extra classes on the root element." #}
 {# @slot Page content — The wrapped content. #}
-<c-vars fluid fill class />
-<div class="{% if fluid %}w-full px-4{% elif fill %}w-full h-full px-4{% else %}container mx-auto px-4{% endif %} {{ class }}"
+<c-vars width="wide" fill class />
+{% comment %}
+  The two columns are sized by their content, not by a padded box, so `narrow`
+  is 672px of content and not 672px less the gutters. The calc() leaves the
+  same 1rem gutter each side that `px-4` gives the other widths.
+{% endcomment %}
+<div class="{% if fill %}w-full h-full px-4{% elif width == "narrow" %}w-[calc(100%-2rem)] max-w-2xl mx-auto{% elif width == "medium" %}w-[calc(100%-2rem)] max-w-4xl mx-auto{% elif width == "full" %}w-full px-4{% else %}container mx-auto px-4{% endif %} {{ class }}"
      {{ attrs }}>
   {{ slot }}
 </div>

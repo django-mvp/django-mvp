@@ -8,10 +8,11 @@
 {% endblock head %}
 {% block page.content-wrapper %}
   {% comment %}
-    One centred column holds the title, anything before the form, the form and
-    its buttons, so every left edge on the page lines up.
+    The page's width comes from the view's `page_width`, which page_view.html
+    hands to its container, so the title, anything before the form, the form
+    and its buttons share one column and every left edge lines up.
   {% endcomment %}
-  <c-mvp.page.content gap=8 class="w-full max-w-2xl mx-auto pt-4 md:pt-8 pb-4">
+  <c-mvp.page.content gap=8 class="w-full pt-4 md:pt-8 pb-4">
     {% block page.title %}
       <c-mvp.page.title :title="page.title"
                     :subtitle="page.subtitle"

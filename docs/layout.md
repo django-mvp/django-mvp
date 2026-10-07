@@ -743,8 +743,7 @@ What the shipped views already put in these:
   `page.content` deliberately empty — that empty block is where your own
   detail template goes.
 - `form_view.html` fills `page.content` with the form, and extends `head` and
-  `extra_js` with the form's own media. It also restates `page.content-wrapper`
-  to set the form page's column — see
+  `extra_js` with the form's own media. Its views ask for a narrower column — see
   [Form pages sit in a narrower column](#form-pages-sit-in-a-narrower-column).
 - `mvp/landing.html` overrides `content` wholesale, so it has `page.hero`,
   `page.content-wrapper`, `page.content` and `page.footer` but **not**
@@ -755,23 +754,25 @@ What the shipped views already put in these:
 
 ### Form pages sit in a narrower column
 
-A form stretched across the full container is hard to scan, so `form_view.html` puts
-the whole page in one centred column, `max-w-2xl` (42rem) wide. The title bar, anything
-in `before_form`, the form, its buttons and `after_form` all share it, which keeps
-every left edge on the page in line. Below that width the column is simply the screen,
-less the container's padding.
+A form stretched across the full container is hard to scan, so the form views set
+`page_width = PageWidth.NARROW` and the whole page sits in one centred column, 672px
+(`max-w-2xl`) wide. The title bar, anything in `page.header` or `before_form`, the form,
+its buttons and `after_form` all share it, which keeps every left edge on the page in
+line. Below that width the column is simply the screen, less a `1rem` gutter each side.
 
-- Every form page gets the same column: create, update, delete and plain form pages,
-  with or without formset rows. The template never widens a page because of what the
-  form contains.
+- Every form page gets the same column by default: create, update, delete and plain form
+  pages, with or without formset rows. The template never widens a page because of what
+  the form contains.
 - The buttons stack at full width on a small screen and sit in a row from `md` up. On
   an update page the delete link moves to the far end of that row.
 - `delete_view.html` extends `form_view.html`, so a delete page has the same column.
 
-The column is set where `form_view.html` restates `page.content-wrapper`. `page.title`,
-`page.actions` and `page.content` are all declared again inside it, so an override of
-any of them still applies. For a form that needs a different width, give the view a
-`template_name` extending `form_view.html` and override `page.content-wrapper` there.
+For a form that needs more room, set `page_width` on the view. `PageWidth.MEDIUM` is an
+896px column, which suits fields side by side or a row of related records. See
+[Page width](views.md#page-width) for every value.
+
+`page_view.html` hands the view's width to the `<c-mvp.container>` around the page, so
+every page built on it follows `page_width`, not only form pages.
 
 The space above the title is the same on every page built on `page_view.html`: `1rem`
 on a small screen and `2rem` from `md` up.

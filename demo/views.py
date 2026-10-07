@@ -37,6 +37,7 @@ from mvp.views import (
     MVPHomeView,
     MVPTemplateView,
     MVPUpdateView,
+    PageWidth,
 )
 from mvp.views.htmx import HtmxFormMixin
 from mvp.views.list import MVPListViewMixin
@@ -401,11 +402,13 @@ class ComplexFormDemoView(MVPFormView):
 
     FormHelper groups fields into Fieldsets — the crispy helper path
     <c-mvp.form.render> takes whenever form.helper is set — with one Fieldset
-    laid out via Row/Column (#311).
+    laid out via Row/Column (#311). Fields sit side by side, so the page asks
+    for the medium column in place of a form page's narrow one (#501).
     """
 
     form_class = LayoutDemoForm
     page_title = _("Complex Form")
+    page_width = PageWidth.MEDIUM
     success_url = reverse_lazy("complex-form-demo")
     success_message = _("Form submitted successfully.")
 
