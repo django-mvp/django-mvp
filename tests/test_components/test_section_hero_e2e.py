@@ -12,14 +12,26 @@ So the contract worth pinning is the computed one: content centred in the
 banner, and an overlay actually covering the image it is there to dim.
 """
 
+from importlib import import_module
+
 import pytest
+from django.conf import settings
+from django.test import override_settings
+from django.urls import path
+from django.views.generic import TemplateView
 from playwright.sync_api import expect
 
-from tests.conftest import requires_browser
+from tests.conftest import requires_browser, urlconf_of
 
 pytestmark = [pytest.mark.e2e, requires_browser]
 
 DESKTOP = {"width": 1280, "height": 800}
+
+
+HERO_URLCONF = urlconf_of(
+    path("section-hero/", TemplateView.as_view(template_name="tests/section_hero.html")),
+    *import_module(settings.ROOT_URLCONF).urlpatterns,
+)
 
 
 def _box(locator):
@@ -33,8 +45,9 @@ class TestHeroLayoutInABrowser:
     @pytest.fixture
     def hero_page(self, page, live_server):
         page.set_viewport_size(DESKTOP)
-        page.goto(live_server.url)
-        return page
+        with override_settings(ROOT_URLCONF=HERO_URLCONF):
+            page.goto(f"{live_server.url}/section-hero/")
+            yield page
 
     def test_the_hero_has_a_layout_box(self, hero_page):
         hero = hero_page.locator(".hero").first
