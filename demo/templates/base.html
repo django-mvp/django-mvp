@@ -12,5 +12,7 @@
 {% endcomment %}
 {% block styles %}
   {{ block.super }}
+  {# The page blocks' own utilities: the packaged stylesheet never scans site-packages. #}
+  <link rel="stylesheet" href="{% static 'css/daisy-cotton-ext.css' %}" />
   <link rel="stylesheet" href="{% static 'css/themes.css' %}" />
 {% endblock styles %}

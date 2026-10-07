@@ -33,6 +33,9 @@ INSTALLED_APPS = [
     "demo.library",
     "mvp",
     "daisy_cotton",
+    # Page blocks the landing page is built from. Below mvp and daisy_cotton,
+    # so a component either of them has keeps its name.
+    "daisy_cotton_ext",
     "easy_icons",
     "crispy_forms",
     "mvp_forms",
@@ -52,6 +55,9 @@ except ImportError:
 
 
 SITE_ID = 1
+
+# The landing page shows a live page of this site inside a phone frame.
+X_FRAME_OPTIONS = "SAMEORIGIN"
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",

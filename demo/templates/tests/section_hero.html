@@ -1,0 +1,13 @@
+{% extends "mvp/landing.html" %}
+{% comment %}
+  The hero as a landing page composes it: a background image, a height taken
+  from the viewport, a title and subtitle for its centred content, and the
+  brand logo above them.
+{% endcomment %}
+{% block page.hero %}
+  <c-mvp.section.hero title="A banner" subtitle="With a line under it." bg-image="https://picsum.photos/id/237/800/1200" height="80vh">
+    <c-slot name="top">
+      <c-mvp.brand.logo max-height="100px" />
+    </c-slot>
+  </c-mvp.section.hero>
+{% endblock page.hero %}
