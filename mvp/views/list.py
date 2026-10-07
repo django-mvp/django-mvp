@@ -5,6 +5,7 @@ from typing import Any
 from django import forms
 from django.db.models import Model, Q, QuerySet
 from django.utils import formats
+from django.utils.choices import flatten_choices
 from django.utils.functional import Promise
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import ListView
@@ -381,7 +382,7 @@ class FilterContextMixin:
         Returns:
             The parameter names, in the order the inputs are drawn.
         """
-        widget = filterset.form.fields[name].widget
+        widget: Any = filterset.form.fields[name].widget
         if not isinstance(widget, forms.MultiWidget):
             return [name]
         if hasattr(widget, "suffixed"):
@@ -418,9 +419,7 @@ class FilterContextMixin:
             if value.start is None:
                 return _("up to %(stop)s") % {"stop": formats.localize(value.stop)}
             if value.stop is None:
-                return _("%(start)s or more") % {
-                    "start": formats.localize(value.start)
-                }
+                return _("%(start)s or more") % {"start": formats.localize(value.start)}
             return f"{formats.localize(value.start)} – {formats.localize(value.stop)}"
 
         if isinstance(value, (list, tuple, QuerySet)):
@@ -435,12 +434,8 @@ class FilterContextMixin:
         if isinstance(value, Model) or not isinstance(field, forms.ChoiceField):
             return str(formats.localize(value))
 
-        labels: dict[str, Any] = {}
-        for key, label in field.choices:
-            if isinstance(label, (list, tuple)):
-                labels.update((str(k), v) for k, v in label)
-            else:
-                labels[str(key)] = label
+        choices: Any = field.choices
+        labels = {str(key): label for key, label in flatten_choices(choices)}
         return str(labels.get(str(value), value))
 
 
@@ -635,13 +630,12 @@ class MVPListViewMixin(
         Returns:
             The current path, with the remaining query string when there is one.
         """
-        querydict = self.request.GET.copy()
+        request = self.request  # type: ignore[attr-defined]
+        querydict = request.GET.copy()
         for param in (*params, getattr(self, "page_kwarg", "page")):
             querydict.pop(param, None)
         query_string = querydict.urlencode()
-        return (
-            f"{self.request.path}?{query_string}" if query_string else self.request.path
-        )
+        return f"{request.path}?{query_string}" if query_string else request.path
 
     def get_create_form(self):
         """Instantiate and return the create form, or None if not configured.
