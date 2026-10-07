@@ -23,3 +23,10 @@ class FixtureGroupedView(MVPTemplateView):
     address (FR-008)."""
 
     template_name = "testapp_account/grouped.html"
+
+
+class FixtureContentView(MVPTemplateView):
+    """A page that fills ``content`` instead of ``account.content``, the way a
+    page whose template belongs to another package does."""
+
+    template_name = "testapp_account/content.html"

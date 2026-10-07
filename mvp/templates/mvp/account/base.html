@@ -4,9 +4,20 @@
   directly, so a project's own base override still applies underneath (FR-012).
   Navigation is the shell's sidebar, swapped to AccountCenterMenu here.
 {% endcomment %}
-{% block content %}
-  <c-mvp.container class="py-4">
-    {% block account.content %}
-    {% endblock account.content %}
-  </c-mvp.container>
-{% endblock content %}
+{% comment %}
+  The container is drawn in `app.main`, a level above `content`, so a page
+  whose template belongs to another package and fills `content` still lands
+  inside it. The message toasts are restated from `mvp/base.html` because
+  they share the block. `narrow` is the width of a form page.
+{% endcomment %}
+{% block app.main %}
+  <c-mvp.app.main>
+    <c-mvp.container width="narrow" class="py-4">
+      {% block content %}
+        {% block account.content %}
+        {% endblock account.content %}
+      {% endblock content %}
+    </c-mvp.container>
+    <c-mvp.messages :messages="messages" dismissible />
+  </c-mvp.app.main>
+{% endblock app.main %}
