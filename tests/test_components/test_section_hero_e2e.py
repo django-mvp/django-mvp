@@ -29,9 +29,7 @@ DESKTOP = {"width": 1280, "height": 800}
 
 
 HERO_URLCONF = urlconf_of(
-    path(
-        "section-hero/", TemplateView.as_view(template_name="tests/section_hero.html")
-    ),
+    path("section-hero/", TemplateView.as_view(template_name="tests/section_hero.html")),
     *import_module(settings.ROOT_URLCONF).urlpatterns,
 )
 
