@@ -382,9 +382,9 @@ class FilterContextMixin:
         Returns:
             The parameter names, in the order the inputs are drawn.
         """
-        widget: Any = filterset.form.fields[name].widget
-        if not isinstance(widget, forms.MultiWidget):
+        if not isinstance(filterset.form.fields[name].widget, forms.MultiWidget):
             return [name]
+        widget: Any = filterset.form.fields[name].widget
         if hasattr(widget, "suffixed"):
             return [widget.suffixed(name, suffix) for suffix in widget.suffixes]
         return [f"{name}{suffix}" for suffix in widget.widgets_names]
@@ -420,7 +420,10 @@ class FilterContextMixin:
                 return _("up to %(stop)s") % {"stop": formats.localize(value.stop)}
             if value.stop is None:
                 return _("%(start)s or more") % {"start": formats.localize(value.start)}
-            return f"{formats.localize(value.start)} – {formats.localize(value.stop)}"
+            return _("%(start)s to %(stop)s") % {
+                "start": formats.localize(value.start),
+                "stop": formats.localize(value.stop),
+            }
 
         if isinstance(value, (list, tuple, QuerySet)):
             return ", ".join(
