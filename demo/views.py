@@ -37,9 +37,10 @@ from mvp.views import (
     MVPHomeView,
     MVPTemplateView,
     MVPUpdateView,
+    PageWidth,
 )
 from mvp.views.htmx import HtmxFormMixin
-from mvp.views.list import MVPListViewMixin
+from mvp.views.list import MVPListView, MVPListViewMixin
 
 from .forms import LayoutDemoForm, ProductForm
 
@@ -253,6 +254,34 @@ class ProductListView(MVPListViewMixin, FilterView):
     ]
 
 
+class ProductManyPagesListView(ProductListView):
+    """The product list at three to a page, so the pager has pages to skip."""
+
+    paginate_by = 3
+    page_subtitle = None
+    page_info = None
+
+
+class ProductNoneListView(ProductListView):
+    """The product list with no records in it, to show its empty state."""
+
+    page_subtitle = None
+    page_info = None
+
+    def get_queryset(self):
+        """Return no products at all."""
+        return Product.objects.none()
+
+
+class ProductPlainListView(MVPListView):
+    """A list with nothing configured: no search, sort, filter or add action."""
+
+    model = Product
+    list_item_template = "cards/product_card.html"
+    grid = {"cols": 1, "md": 2, "xl": 3, "gap": 2}
+    paginate_by = 12
+
+
 class ProductCreateView(MVPCreateView):
     """Demo product creation form, auto-detecting its form renderer and layout."""
 
@@ -401,11 +430,13 @@ class ComplexFormDemoView(MVPFormView):
 
     FormHelper groups fields into Fieldsets — the crispy helper path
     <c-mvp.form.render> takes whenever form.helper is set — with one Fieldset
-    laid out via Row/Column (#311).
+    laid out via Row/Column (#311). Fields sit side by side, so the page asks
+    for the medium column in place of a form page's narrow one (#501).
     """
 
     form_class = LayoutDemoForm
     page_title = _("Complex Form")
+    page_width = PageWidth.MEDIUM
     success_url = reverse_lazy("complex-form-demo")
     success_message = _("Form submitted successfully.")
 

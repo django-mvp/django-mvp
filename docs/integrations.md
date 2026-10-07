@@ -193,6 +193,20 @@ present.
 field cleans to. Override the hook on the view when one of those values is a real choice
 in your filterset, an unchecked boolean the user deliberately picked, say.
 
+Each applied filter is also one of the page's
+[refinements](views.md#what-the-view-tells-the-template), drawn under the toolbar as a
+control that removes it. Three hooks on the view decide how one reads:
+
+| Hook | Returns |
+| --- | --- |
+| `get_filter_label(filterset, name)` | The words that name the filter. Defaults to its form field's label |
+| `get_filter_display(filterset, name, value)` | The value as text. A choice shows its label, a related record its string form, a range its two bounds |
+| `get_filter_params(filterset, name)` | The query parameters the filter reads. One for most filters, one per input for a filter drawn with several, such as `price_min` and `price_max` for a `RangeFilter` |
+
+`clear_filters_url` and each refinement's `remove_url` are built from
+`get_filter_params()`, so a filter with its own parameter names is cleared correctly once
+that hook names them.
+
 `MVPFilteredListView` is shorthand for `MVPListViewMixin` plus `FilterView`. Compose
 those yourself — which is what you do to add filtering to a table view — and the badge
 and the clear link come with it:

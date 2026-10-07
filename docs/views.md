@@ -15,13 +15,14 @@ from mvp.views import (
     MVPTemplateView, MVPHomeView,
     MVPListView, MVPDetailView,
     MVPFormView, MVPCreateView, MVPUpdateView, MVPDeleteView,
+    PageWidth,
 )
 ```
 
 ## Page basics
 
 Every MVP view includes `PageMixin`, which injects a `page` context dict
-(`title`, `subtitle`, `class`, `breadcrumbs`, `info`, `info_actions`) consumed by
+(`title`, `subtitle`, `class`, `width`, `breadcrumbs`, `info`, `info_actions`) consumed by
 the page templates. `breadcrumbs` is drawn by the app header rather than the page
 body — see [Breadcrumbs](layout.md#breadcrumbs) — and the rest by the page itself:
 
@@ -36,6 +37,37 @@ class AboutView(MVPTemplateView):
 `page_class = "products-list"` renders as `class="mvp-page products-list"`. There's no
 `page_icon` — a couple of packaged templates read `page.icon`, but nothing sets it, so it
 always renders empty.
+
+### Page width
+
+`page_width` sets how wide the page's content is. It takes a `PageWidth`:
+
+| Value | Width | Default for |
+| --- | --- | --- |
+| `PageWidth.NARROW` | A 672px column (`max-w-2xl`) | Form, create, update and delete pages |
+| `PageWidth.MEDIUM` | An 896px column (`max-w-4xl`) | |
+| `PageWidth.WIDE` | The standard container, which steps with the screen up to 1536px | Every other page |
+| `PageWidth.FULL` | The whole screen | |
+
+Every width is centred, and every width fills a screen narrower than itself.
+
+```python
+from mvp.views import MVPUpdateView, PageWidth
+
+
+class OrderLinesView(MVPUpdateView):
+    model = Order
+    page_width = PageWidth.MEDIUM
+```
+
+The width is always the view's choice. No packaged template widens a page because of what
+it contains, so a form with fields side by side or a row of related records stays in the
+narrow column until its view asks for more room. Override `get_page_width()` when the width
+depends on the request or the object. A value outside the four raises `ValueError`.
+
+`MVPTableView` fills the screen in both directions and ignores `page_width`. A page written
+by hand asks for the same widths with
+[`<c-mvp.container width="...">`](components.md#layout-primitives).
 
 `MVPHomeView` renders a dashboard template for authenticated users and a landing
 template for anonymous visitors, from the one URL, with no redirect. Override
@@ -163,23 +195,119 @@ That modal is headed "Add Product", built from the model's verbose name. Set
 keeps its own short label either way, so a crowded action row stays readable while the
 dialog still says what it creates.
 
-The list template renders the action row (see
-[`c-mvp.page.list.actions`](components.md#page-structure)), the grid, the empty state, and
-pagination. `SearchMixin`, `OrderMixin` and `SearchOrderMixin` are also usable on any
-plain Django `ListView`.
+`SearchMixin`, `OrderMixin` and `SearchOrderMixin` are also usable on any plain Django
+`ListView`.
 
-Each control in the action row follows the thing it drives, so there is no separate list
-to keep in step with the view. `search_fields` draws the search box, `order_by` the sort
-menu, a `FilterSet` the filter dialog, and `show_create_action` the add button. Leave one
-unconfigured and its control does not appear.
+### How a list page is laid out
+
+From top to bottom, the list template draws:
+
+1. **The title row.** The title, with the add button at the end of the same row at every
+   screen width.
+2. **The toolbar.** The search box, a count of what the list holds, then the sort and
+   filter controls. It is one row on a wide screen. On a phone the search box takes the
+   first row and the count shares the second with sort and filter.
+3. **What is narrowing the list.** The search term and each applied filter, each drawn as
+   a control that removes it. Two or more also get a single "Clear all".
+4. **The results**, or the empty state.
+5. **The pager**, only when there is more than one page. A wide screen gets the range
+   being shown and numbered pages. A phone gets Previous, "Page 2 of 6" and Next.
+
+Each control follows the thing it drives, so there is no separate list to keep in step
+with the view. `search_fields` draws the search box, `order_by` the sort menu, a
+`FilterSet` the filter dialog, and `show_create_action` the add button. Leave one
+unconfigured and its control does not appear. A list with no records and nothing applied
+draws no toolbar at all, since there is nothing to search or sort.
+
+The count reads "32 products" from the model's verbose name. Once a search or filter is
+applied it reads "3 results". On a paginated list the browser title also carries the
+page, as in "Products (page 2 of 4)".
+
+### What the view tells the template
+
+Three context keys describe the state of the list:
+
+| Key | Value |
+| --- | --- |
+| `result_count` | How many records the list holds across every page, after search and filters |
+| `refinements` | What is narrowing the list: the search first, then each applied filter. Empty when nothing is applied |
+| `clear_refinements_url` | The current URL with the search and every filter removed, and the ordering kept. Present only when `refinements` is not empty |
+
+Each entry in `refinements` is a dict:
+
+| Key | Value |
+| --- | --- |
+| `kind` | `"search"` or `"filter"` |
+| `name` | `"q"` for the search, the filter's name otherwise |
+| `label` | The words that name it: "Search", or the filter field's label |
+| `value` | The value as the reader chose it. A choice shows its label and a related record its string form, never the stored key |
+| `params` | The query parameters it occupies. A range filter has two |
+| `remove_url` | The current URL without this one entry. Everything else is kept, and the page number is dropped |
+
+Override `get_refinements(context)` to add an entry of your own, such as a date range
+read from the URL, and the page draws it with the rest:
+
+```python
+class ProductListView(MVPListView):
+    model = Product
+
+    def get_refinements(self, context):
+        refinements = super().get_refinements(context)
+        if year := self.request.GET.get("year"):
+            refinements.append({
+                "kind": "filter",
+                "name": "year",
+                "label": _("Year"),
+                "value": year,
+                "params": ["year"],
+                "remove_url": self.get_url_without("year"),
+            })
+        return refinements
+```
+
+`get_url_without(*params)` returns the current URL with those query parameters and the
+page number removed.
+
+### Replacing part of the page
+
+Every part of the list template is a block, so a project template that extends
+`list_view.html` can replace one part and keep the rest:
+
+| Block | Holds |
+| --- | --- |
+| `page.title` | The title, subtitle and info icon |
+| `page.actions` | The add button |
+| `page.toolbar` | The whole toolbar row |
+| `page.search` | The search box, inside the toolbar |
+| `page.summary` | The count, inside the toolbar |
+| `page.controls` | Sort and filter, inside the toolbar |
+| `page.refinements` | The applied search and filters |
+| `page.results` | The grid of records |
+| `page.empty` | The empty state, inside the results |
+| `page.pagination` | The pager |
+
+```html
+{% extends "list_view.html" %}
+{% block page.controls %}
+  {{ block.super }}
+  <c-button size="sm" icon="download" text="Export" href="{% url 'product-export' %}" />
+{% endblock page.controls %}
+```
+
+Replacing an outer block replaces the blocks inside it: a template that overrides
+`page.toolbar` draws its own search, count and controls.
 
 Search reads the first ten words of `?q=` and ignores the rest. The query grows by one
 branch per word per field and the term arrives from the URL, so the limit keeps its size
 out of a visitor's hands. Raise `max_search_words` on the view if longer terms are
 genuinely useful.
 
-The empty state follows the create action. Its message is there to point at the "Add
-new" button, so a user whose create action is hidden sees the heading on its own:
+There are two empty states. A list with no records shows the heading and message below,
+with an "Add new" button that opens the inline create dialog when the page has one. A
+list whose search or filters match nothing says so instead, and offers to clear them.
+
+The first follows the create action. Its message is there to point at the "Add new"
+button, so a user whose create action is hidden sees the heading on its own:
 
 ```python
 from django.utils.translation import gettext_lazy as _

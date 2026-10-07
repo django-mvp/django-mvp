@@ -5,7 +5,7 @@
 {% endblock title %}
 {% block content %}
   <c-mvp.page class="{{ page.class }}">
-    <c-mvp.container>
+    <c-mvp.container :width="page.width">
       {% comment %}
         The breadcrumb trail draws in the app header, not here. `page.header`
         stays as an extension point for a project's own content above the

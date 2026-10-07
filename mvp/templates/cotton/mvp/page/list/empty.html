@@ -1,26 +1,62 @@
-{# @description Empty-state placeholder for a list view with no results, with an optional add-new action. #}
+{# @description What a list page shows in place of results. One message when there are no records yet, with an add action, and another when a search or filter matched nothing, with a way to clear it. #}
 {# @prop icon:text | default:"search" | description:"Icon shown above the heading." #}
-{# @prop heading:text | description:"Empty-state heading text." #}
-{# @prop message:text | description:"Optional supporting text under the heading." #}
-{# @prop icon_class:text | default:"text-6xl text-base-content/60 mb-3" | description:"Classes applied to the icon." #}
+{# @prop heading:text | description:"Heading shown when there are no records yet." #}
+{# @prop message:text | description:"Optional supporting text under that heading." #}
+{# @prop icon_class:text | default:"text-5xl text-base-content/40" | description:"Classes applied to the icon." #}
 {# @prop class:text | description:"Extra classes on the wrapper element." #}
 {% load i18n %}
 <c-vars icon="search"
         heading
         message
-        icon_class="text-6xl text-base-content/60 mb-3"
+        icon_class="text-5xl text-base-content/40"
         class />
-<div class="w-full {{ class }}" {{ attrs }}>
-  <div class="text-center py-5">
-    <c-icon name="{{ icon }}" class="{{ icon_class }}" />
-    <h3 class="text-base-content/60">{{ heading }}</h3>
-    {% if message %}<p class="text-base-content/60">{{ message }}</p>{% endif %}
+<div class="mvp-list-empty w-full flex flex-col items-center text-center gap-2 py-12 {{ class }}"
+     {{ attrs }}>
+  <c-icon name="{{ icon }}" class="{{ icon_class }}" aria-hidden="true" />
+  {% if refinements %}
+    <h2 class="text-lg font-semibold mt-2">
+      {% blocktrans with name_plural=model_info.verbose_name_plural %}No {{ name_plural }} match{% endblocktrans %}
+    </h2>
+    <p class="text-base-content/70 max-w-prose">
+      {% if search_query and applied_filters %}
+        {% trans "Try other words or fewer filters." %}
+      {% elif applied_filters %}
+        {% trans "Try fewer filters." %}
+      {% else %}
+        {% trans "Check the spelling, or try other words." %}
+      {% endif %}
+    </p>
+    <div class="mt-4">
+      <c-button icon="x" href="{{ clear_refinements_url }}" only>
+        {% if search_query and applied_filters %}
+          {% trans "Clear search and filters" %}
+        {% elif applied_filters %}
+          {% trans "Clear filters" %}
+        {% else %}
+          {% trans "Clear search" %}
+        {% endif %}
+      </c-button>
+    </div>
+  {% else %}
+    <h2 class="text-lg font-semibold mt-2">{{ heading }}</h2>
+    {% if message %}<p class="text-base-content/70 max-w-prose">{{ message }}</p>{% endif %}
     {% if directory.create_url %}
-      <c-button variant="primary"
-                size="lg"
-                icon="add"
-                text="{% trans "Add new" %}"
-                href="{{ directory.create_url }}" only />
+      <div class="mt-4">
+        {% if create_form %}
+          <c-button variant="primary"
+                    icon="add"
+                    text="{% trans "Add new" %}"
+                    type="button"
+                    onclick="createModal.showModal()"
+                    only />
+        {% else %}
+          <c-button variant="primary"
+                    icon="add"
+                    text="{% trans "Add new" %}"
+                    href="{{ directory.create_url }}"
+                    only />
+        {% endif %}
+      </div>
     {% endif %}
-  </div>
+  {% endif %}
 </div>

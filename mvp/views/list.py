@@ -2,7 +2,10 @@
 
 from typing import Any
 
-from django.db.models import Q, QuerySet
+from django import forms
+from django.db.models import Model, Q, QuerySet
+from django.utils import formats
+from django.utils.choices import flatten_choices
 from django.utils.functional import Promise
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import ListView
@@ -296,6 +299,13 @@ class FilterContextMixin:
         applied_filter_count (int): ``len(applied_filters)`` — the button badge.
         clear_filters_url (str): Present only when at least one filter is
             applied. The current URL with the filterset's own fields removed.
+
+    Override hooks:
+        get_active_filters(): Return the filters that are actually set.
+        get_filter_params(): Return the query parameters one filter reads.
+        get_filter_label(): Return the words that name one filter.
+        get_filter_display(): Return one filter's value as the reader set it.
+        get_clear_filters_url(): Return the URL with every filter removed.
     """
 
     def get_context_data(self, **kwargs):
@@ -351,12 +361,86 @@ class FilterContextMixin:
         """
         querydict = self.request.GET.copy()  # type: ignore[attr-defined]
         for name in filterset.form.fields:
-            querydict.pop(name, None)
+            for param in self.get_filter_params(filterset, name):
+                querydict.pop(param, None)
         querydict.pop(getattr(self, "page_kwarg", "page"), None)
         query_string = querydict.urlencode()
         return (
             f"{self.request.path}?{query_string}" if query_string else self.request.path  # type: ignore[attr-defined]
         )
+
+    def get_filter_params(self, filterset: Any, name: str) -> list[str]:
+        """Return the query parameters one filter reads its value from.
+
+        Most filters read one parameter, named after the filter. A filter
+        drawn with several inputs, such as a range, reads one per input.
+
+        Args:
+            filterset: The django-filter ``FilterSet`` from the context.
+            name: The filter's name on the filterset.
+
+        Returns:
+            The parameter names, in the order the inputs are drawn.
+        """
+        if not isinstance(filterset.form.fields[name].widget, forms.MultiWidget):
+            return [name]
+        widget: Any = filterset.form.fields[name].widget
+        if hasattr(widget, "suffixed"):
+            return [widget.suffixed(name, suffix) for suffix in widget.suffixes]
+        return [f"{name}{suffix}" for suffix in widget.widgets_names]
+
+    def get_filter_label(self, filterset: Any, name: str) -> str:
+        """Return the words that name one filter to the reader.
+
+        Args:
+            filterset: The django-filter ``FilterSet`` from the context.
+            name: The filter's name on the filterset.
+
+        Returns:
+            The label of the filter's form field.
+        """
+        return filterset.form[name].label
+
+    def get_filter_display(self, filterset: Any, name: str, value: Any) -> str:
+        """Return one applied filter's value in the words the reader chose.
+
+        A choice is shown by its label and a related record by its string
+        form, never by the stored key. A range is shown by its bounds.
+
+        Args:
+            filterset: The django-filter ``FilterSet`` from the context.
+            name: The filter's name on the filterset.
+            value: The filter's cleaned value.
+
+        Returns:
+            The value as text.
+        """
+        if isinstance(value, slice):
+            if value.start is None:
+                return _("up to %(stop)s") % {"stop": formats.localize(value.stop)}
+            if value.stop is None:
+                return _("%(start)s or more") % {"start": formats.localize(value.start)}
+            return _("%(start)s to %(stop)s") % {
+                "start": formats.localize(value.start),
+                "stop": formats.localize(value.stop),
+            }
+
+        if isinstance(value, (list, tuple, QuerySet)):
+            return ", ".join(
+                self.get_filter_display(filterset, name, item) for item in value
+            )
+
+        if isinstance(value, bool):
+            return str(_("Yes") if value else _("No"))
+
+        field = filterset.form.fields[name]
+        if isinstance(value, Model) or not isinstance(field, forms.ChoiceField):
+            return str(formats.localize(value))
+
+        choices: Any = field.choices
+        pairs: Any = flatten_choices(choices)
+        labels = {str(key): label for key, label in pairs}
+        return str(labels.get(str(value), value))
 
 
 class MVPListViewMixin(
@@ -412,8 +496,18 @@ class MVPListViewMixin(
         get_create_form(): Instantiate and return the create form, or ``None`` if not configured.
             Default implementation returns ``self.create_form_class()`` (unbound). Override to pass
             additional kwargs (e.g. request, user, initial data).
+        get_refinements(): Return what is narrowing the list: the search and each applied filter.
+        get_url_without(): Return the current URL with the named query parameters removed.
 
     Context (always injected):
+        result_count (int): How many records the list holds across every page, after the
+            search and filters are applied.
+        refinements (list[dict]): What is narrowing the list, the search first and then each
+            applied filter. Each entry has ``kind`` (``"search"`` or ``"filter"``), ``name``,
+            ``label``, ``value`` and ``remove_url``, the URL that removes that one entry and
+            keeps the rest. Empty when nothing is applied.
+        clear_refinements_url (str): Present only when ``refinements`` is not empty. The
+            current URL with the search and every filter removed. The ordering is kept.
         list_item_template (str): Resolved partial template path.
         empty_state (dict): ``{"heading": str | None, "message": str | None}``.
         grid_config (dict): Grid breakpoint configuration (may be empty).
@@ -463,6 +557,17 @@ class MVPListViewMixin(
         }
         context["list_item_template"] = self.get_list_item_template()
 
+        paginator = context.get("paginator")
+        context["result_count"] = (
+            paginator.count if paginator else len(context["object_list"])
+        )
+
+        refinements = self.get_refinements(context)
+        context["refinements"] = refinements
+        if refinements:
+            params = [param for item in refinements for param in item["params"]]
+            context["clear_refinements_url"] = self.get_url_without(*params)
+
         if self.show_action("create") and self.create_form_class:
             context["create_form"] = self.get_create_form()
             title = (
@@ -472,6 +577,69 @@ class MVPListViewMixin(
             context["create_modal_title"] = title
 
         return context
+
+    def get_refinements(self, context: dict[str, Any]) -> list[dict[str, Any]]:
+        """Return what is narrowing the list, as one entry per search or filter.
+
+        The list page draws each entry as a control that removes it. An entry
+        carries ``kind``, ``name``, ``label``, ``value``, ``params`` (the query
+        parameters it occupies) and ``remove_url``.
+
+        Args:
+            context: The context built so far, read for the search term and
+                the applied filters.
+
+        Returns:
+            The search first when there is one, then each applied filter.
+        """
+        refinements: list[dict[str, Any]] = []
+
+        search_query = context.get("search_query", "").strip()
+        if search_query and self.get_search_fields():
+            refinements.append(
+                {
+                    "kind": "search",
+                    "name": "q",
+                    "label": _("Search"),
+                    "value": search_query,
+                    "params": ["q"],
+                }
+            )
+
+        filterset = context.get("filter")
+        for name, value in context.get("applied_filters", {}).items():
+            refinements.append(
+                {
+                    "kind": "filter",
+                    "name": name,
+                    "label": self.get_filter_label(filterset, name),
+                    "value": self.get_filter_display(filterset, name, value),
+                    "params": self.get_filter_params(filterset, name),
+                }
+            )
+
+        for item in refinements:
+            item["remove_url"] = self.get_url_without(*item["params"])
+        return refinements
+
+    def get_url_without(self, *params: str) -> str:
+        """Return the current URL with the named query parameters removed.
+
+        The page number is removed with them: what is left may not have as
+        many pages.
+
+        Args:
+            *params: The query parameters to remove.
+
+        Returns:
+            The current path, with the remaining query string when there is one.
+        """
+        request = self.request  # type: ignore[attr-defined]
+        querydict = request.GET.copy()
+        for param in (*params, getattr(self, "page_kwarg", "page")):
+            querydict.pop(param, None)
+        query_string = querydict.urlencode()
+        return f"{request.path}?{query_string}" if query_string else request.path
 
     def get_create_form(self):
         """Instantiate and return the create form, or None if not configured.

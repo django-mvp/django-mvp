@@ -19,6 +19,7 @@ Example::
         base_template_name = "my_detail.html"
 """
 
+from enum import StrEnum
 from functools import cached_property
 
 from django.core.exceptions import ImproperlyConfigured
@@ -111,6 +112,36 @@ class BaseTemplateNameMixin:
         return template_names
 
 
+class PageWidth(StrEnum):
+    """The widths a page's content can take.
+
+    Set one on a view as ``page_width``, or pass its value to
+    ``<c-mvp.container width="...">`` on a page written by hand. Every width is
+    centred, and every width fills a screen narrower than itself.
+
+    Example::
+
+        from mvp.views import MVPUpdateView, PageWidth
+
+
+        class OrderLinesView(MVPUpdateView):
+            model = Order
+            page_width = PageWidth.MEDIUM
+    """
+
+    NARROW = "narrow"
+    """A 672px column, for a form with one field to a row. Form pages use it."""
+
+    MEDIUM = "medium"
+    """An 896px column, for fields side by side or a row of related records."""
+
+    WIDE = "wide"
+    """The standard container, which steps with the screen up to 1536px."""
+
+    FULL = "full"
+    """The whole width of the screen, with no limit."""
+
+
 class PageMixin:
     """Mixin that injects a ``page`` context dict into every template rendered by the view.
 
@@ -137,6 +168,8 @@ class PageMixin:
         page_subtitle (str | Promise): Secondary heading shown below the title. Defaults to ``""``.
         page_class (str): Extra CSS class(es) appended to the page container after the
             mandatory ``"mvp-page"`` prefix. Defaults to ``""``.
+        page_width (PageWidth): How wide the page's content is. Defaults to
+            ``PageWidth.WIDE``.
         breadcrumbs (list): List of breadcrumb dicts. Each dict has a ``"text"`` key and
             an optional ``"href"`` key. Defaults to ``[]``.
         page_info (str | Promise): Text explaining what the page is for. When set, an info
@@ -170,6 +203,7 @@ class PageMixin:
     page_title: str | Promise = ""
     page_subtitle: str | Promise = ""
     page_class = ""
+    page_width: PageWidth = PageWidth.WIDE
     breadcrumbs: list = []
     page_info: str | Promise = ""
     page_info_actions: list = []
@@ -195,6 +229,7 @@ class PageMixin:
                 - ``"breadcrumbs"`` — from ``get_breadcrumbs()``
                 - ``"info"`` — from ``get_page_info()``
                 - ``"info_actions"`` — from ``get_page_info_actions()``
+                - ``"width"`` — from ``get_page_width()``
         """
         return {
             "title": self.get_page_title(),
@@ -203,6 +238,7 @@ class PageMixin:
             "breadcrumbs": self.get_breadcrumbs(),
             "info": self.get_page_info(),
             "info_actions": self.get_page_info_actions(),
+            "width": self.get_page_width(),
         }
 
     def get_page_title(self):
@@ -354,6 +390,29 @@ class PageMixin:
             # page_class = None             →  get_page_class() == "mvp-page"
         """
         return " ".join(filter(None, ["mvp-page", self.page_class]))
+
+    def get_page_width(self):
+        """Return the width of the page's content.
+
+        This method is the override hook for a width that depends on the request
+        or the object. To set a fixed width, assign ``page_width`` as a class
+        attribute instead.
+
+        Returns:
+            PageWidth: The value of ``self.page_width``.
+
+        Raises:
+            ValueError: If ``page_width`` is not one of the ``PageWidth`` values.
+
+        Example::
+
+            class OrderUpdateView(MVPUpdateView):
+                def get_page_width(self):
+                    if self.object.lines.exists():
+                        return PageWidth.MEDIUM
+                    return super().get_page_width()
+        """
+        return PageWidth(self.page_width)
 
 
 class ModelInfoMixin:

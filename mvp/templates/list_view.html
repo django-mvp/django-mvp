@@ -1,29 +1,72 @@
 {% extends "page_view.html" %}
 {% load i18n static crispy_forms_tags mvp %}
-{% block page.actions %}
-  <c-mvp.page.list.actions />
-{% endblock page.actions %}
-{% block page.content %}
-  <div class="mt-5">
-    {% if page_obj %}
-      <c-mvp.text size="sm">
-        {% with start=page_obj.start_index end=page_obj.end_index total=page_obj.paginator.count %}
-          {% blocktrans with name_plural=model_info.verbose_name_plural %}
-          Showing {{ start }}-{{ end }} of {{ total }} {{ name_plural }}
-          {% endblocktrans %}
-        {% endwith %}
-      </c-mvp.text>
-    {% endif %}
-    <c-mvp.page.list :list="object_list"
-                 :attrs="grid_config"
-                 :card="list_item_template"
-                 :empty_state="empty_state" />
-  </div>
-  {% if page_obj %}
-    <div class="w-full flex justify-center align-center">
-      <c-mvp.pagination :page_obj="page_obj" />
-    </div>
+{% block title %}
+  {{ page.title }}
+  {% if page_obj and page_obj.paginator.num_pages > 1 %}
+    {% blocktrans with number=page_obj.number total=page_obj.paginator.num_pages %}(page {{ number }} of {{ total }}){% endblocktrans %}
   {% endif %}
+{% endblock title %}
+{% block page.title %}
+  {% comment %}
+    The page's own action stays at the end of the title row at every width.
+    The controls that act on the list sit in the toolbar below, with the
+    results they change.
+  {% endcomment %}
+  <c-mvp.page.title :title="page.title"
+                :subtitle="page.subtitle"
+                :info="page.info"
+                :info_actions="page.info_actions"
+                inline_actions>
+    <c-slot name="actions">
+      {% block page.actions %}
+        <c-mvp.page.list.actions.create />
+      {% endblock page.actions %}
+    </c-slot>
+  </c-mvp.page.title>
+{% endblock page.title %}
+{% block page.content %}
+  {% comment %}
+    Each part of the page is its own block, so a project can replace one and
+    keep the rest: page.toolbar (and inside it page.search, page.summary and
+    page.controls), page.refinements, page.results (and inside it page.empty),
+    and page.pagination.
+  {% endcomment %}
+  <div class="flex flex-col gap-4 mt-3">
+    {% block page.toolbar %}
+      <c-mvp.page.list.toolbar>
+        <c-slot name="search">
+          {% block page.search %}
+            <c-mvp.page.list.actions.search class="w-full" input_class="min-w-0" />
+          {% endblock page.search %}
+        </c-slot>
+        <c-slot name="summary">
+          {% block page.summary %}
+            <c-mvp.page.list.summary />
+          {% endblock page.summary %}
+        </c-slot>
+        {% block page.controls %}
+          <c-mvp.page.list.actions :actions="['sort','filter']" />
+        {% endblock page.controls %}
+      </c-mvp.page.list.toolbar>
+    {% endblock page.toolbar %}
+    {% block page.refinements %}
+      <c-mvp.page.list.refinements />
+    {% endblock page.refinements %}
+    {% block page.results %}
+      <c-mvp.page.list :list="object_list"
+                   :attrs="grid_config"
+                   :card="list_item_template">
+        <c-slot name="empty">
+          {% block page.empty %}
+            <c-mvp.page.list.empty :attrs="empty_state" />
+          {% endblock page.empty %}
+        </c-slot>
+      </c-mvp.page.list>
+    {% endblock page.results %}
+  </div>
+  {% block page.pagination %}
+    {% if page_obj %}<c-mvp.page.list.footer :page_obj="page_obj" />{% endif %}
+  {% endblock page.pagination %}
 {% endblock page.content %}
 {% block extra_js %}
   {{ block.super }}
