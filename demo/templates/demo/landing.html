@@ -6,16 +6,13 @@
 {% endcomment %}
 {% block content %}
   <div class="flex flex-col">
-    <c-hero.showcase eyebrow="Application UI for Django" lead="An app shell, a component library and class-based views that take a model through to list, detail, form and delete pages. You write the model and the business logic." size="lg">
+    <c-hero.showcase eyebrow="Application UI for Django" title="Zero to MVP. Fast." lead="Write your models and your business logic. django-mvp handles the shell, the pages and the views around them." size="lg">
       <c-slot name="background">
         <c-background.aurora intensity="0.15" speed="0.5" />
         <c-background.grid />
       </c-slot>
       <c-slot name="announcement">
         <c-badge soft variant="primary" size="lg">DaisyUI 5 · Tailwind CSS v4 · django-cotton</c-badge>
-      </c-slot>
-      <c-slot name="title">
-        From a Django model to a working app, <c-text.marker variant="primary">without writing the front end first</c-text.marker>
       </c-slot>
       <c-slot name="actions">
         <a class="btn btn-primary btn-lg" href="https://github.com/django-mvp/django-mvp#quick-start">Get started</a>
@@ -43,37 +40,48 @@
 
     <c-section class="bg-base-200">
       <c-slot name="header">
-        <c-heading eyebrow="What you get" title="The parts every data-centric app needs" lead="Each one works on its own. Together they are most of the screen before you have written a template." />
+        <c-heading eyebrow="What you get" title="Everything around your business logic" lead="The parts every data-centric app needs, already built and already working together." />
       </c-slot>
       <c-reveal.cascade per="3" class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         <c-card border class="bg-base-100">
-          <c-slot name="title"><c-icon name="layout" class="text-primary" /> A complete app shell</c-slot>
-          <p>Sidebar, navbar, content area, footer and a mobile dock around every page, set up from Django settings.</p>
+          <c-slot name="title"><c-icon name="layout" class="text-primary" /> A full app shell</c-slot>
+          <p>Sidebar, navbar, content area, footer and a mobile dock around every page. Built on daisyUI, django-cotton and daisy-cotton.</p>
         </c-card>
         <c-card border class="bg-base-100">
-          <c-slot name="title"><c-icon name="grid" class="text-primary" /> A Cotton component library</c-slot>
-          <p>Cards, grids, dropdowns, pagination and the rest, with small attribute APIs. Override a template when you need more.</p>
+          <c-slot name="title"><c-icon name="newspaper" class="text-primary" /> Standard pages, already designed</c-slot>
+          <p>List, detail, form, delete, table, dashboard and error pages that look finished the first time they render.</p>
         </c-card>
         <c-card border class="bg-base-100">
-          <c-slot name="title"><c-icon name="list" class="text-primary" /> Views that do the boring parts</c-slot>
-          <p>List pages with search, ordering and pagination. Form pages. Delete flows that show what else goes with the record.</p>
+          <c-slot name="title"><c-icon name="gears" class="text-primary" /> Configured from settings</c-slot>
+          <p>Where the sidebar collapses, what sits in the navbar, which themes are on offer. One dictionary, no template edits.</p>
         </c-card>
         <c-card border class="bg-base-100">
-          <c-slot name="title"><c-icon name="code-slash" class="text-primary" /> Menus in Python</c-slot>
-          <p>Declare the sidebar and dock navigation in code. Active states, icons and badges are handled for you.</p>
+          <c-slot name="title"><c-icon name="list" class="text-primary" /> Views that build on Django's own</c-slot>
+          <p>Subclasses of Django's class-based views that add search, ordering, pagination, inline formsets and safe delete flows.</p>
         </c-card>
         <c-card border class="bg-base-100">
-          <c-slot name="title"><c-icon name="image" class="text-primary" /> Icons by name</c-slot>
-          <p>Templates ask for an icon by name. Swap the whole icon set from settings without touching one of them.</p>
+          <c-slot name="title"><c-icon name="image" class="text-primary" /> Your brand, not ours</c-slot>
+          <p>Pick a daisyUI theme or define your own. Logo, colours and icon set change without forking a template.</p>
         </c-card>
         <c-card border class="bg-base-100">
-          <c-slot name="title"><c-icon name="laptop" class="text-primary" /> Installable as an app</c-slot>
-          <p>One setting and one URL include give the browser a manifest, icons and a service worker.</p>
+          <c-slot name="title"><c-icon name="link" class="text-primary" /> Works with what you already use</c-slot>
+          <p>django-tables2, django-filter and crispy-forms get the same look as every other page, with nothing replaced.</p>
         </c-card>
       </c-reveal.cascade>
     </c-section>
 
-    <c-section container="wide" align="center">
+    <c-stats.split eyebrow="Safe to adopt" title="Built to be depended on" lead="Every release runs the full test suite on each supported Python and Django version. What changed is in the changelog, and the code is MIT licensed.">
+      <c-slot name="actions">
+        <a class="btn btn-primary" href="https://github.com/django-mvp/django-mvp/blob/main/CHANGELOG.md">Read the changelog</a>
+        <a class="btn btn-ghost" href="https://github.com/django-mvp/django-mvp/tree/main/docs">Read the docs</a>
+      </c-slot>
+      <c-stats.count title="Test coverage" to="96" suffix="%" desc="Measured on every pull request" />
+      <c-stats.count title="Tests" to="1332" desc="Run before anything merges" />
+      <c-stats.count title="Python and Django pairings" to="6" desc="Python 3.12 and 3.13 on Django 5.2, 6.0 and 6.1" />
+      <c-stats.count title="Releases" to="40" desc="Each with its changes written down" />
+    </c-stats.split>
+
+    <c-section container="wide" align="center" class="bg-base-200">
       <c-section.col class="flex flex-col gap-6">
         <c-heading align="start" eyebrow="Configured, not built" title="The layout is a settings dictionary" lead="Change where the sidebar collapses, what sits in the navbar and which themes a visitor can pick, all without opening a template." />
         <c-points>
@@ -107,13 +115,6 @@
       </c-section.col>
     </c-section>
 
-    <c-stats.band cascade class="bg-base-200" eyebrow="In the box" title="Shipped with the package">
-      <c-stats.count title="Cotton components" to="144" icon="grid" desc="django-mvp and daisy-cotton together" />
-      <c-stats.count title="Django releases" to="3" icon="check-circle-fill" desc="5.2, 6.0 and 6.1" />
-      <c-stats.count title="Python versions" to="3" icon="code-slash" desc="3.12, 3.13 and 3.14" />
-      <c-stats.count title="Build steps" to="0" icon="gears" desc="The stylesheet comes prebuilt" />
-    </c-stats.band>
-
     <c-section>
       <c-slot name="header">
         <c-heading eyebrow="This site is the demo" title="See it running before you install it" lead="Every page here is drawn by the package. Start with the ones below." />
@@ -137,7 +138,7 @@
       </c-reveal.cascade>
     </c-section>
 
-    <c-hero.centred level="2" size="sm" invert eyebrow="MIT licensed" title="Install it and have a page up in ten minutes" lead="Add the apps, include the URLs and point a view at a model.">
+    <c-hero.centred level="2" size="sm" invert eyebrow="MIT licensed" title="Spend the week on your product" lead="Install it, point a view at a model and move on to the part only you can write.">
       <c-slot name="background">
         <c-background.gradient from="primary" to="secondary" opacity="1" />
       </c-slot>
