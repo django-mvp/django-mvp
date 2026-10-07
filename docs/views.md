@@ -237,6 +237,9 @@ page already renders the `<form>` element, the submit buttons and the CSRF token
 view a `template_name` extending `form_view.html` and override its `before_form`,
 `formset`, `actions` or `after_form` blocks.
 
+Every form page is drawn in one centred column, narrower than a list or detail page. See
+[Form pages sit in a narrower column](layout.md#form-pages-sit-in-a-narrower-column).
+
 ### Plain form pages
 
 `MVPFormView` is a non-model form page — Django's `FormView` with the packaged chrome.
