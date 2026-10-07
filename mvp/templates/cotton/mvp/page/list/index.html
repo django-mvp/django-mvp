@@ -2,12 +2,23 @@
 {# @prop list:text | description:"The queryset or list of objects to render." #}
 {# @prop empty_state:text | description:"Dict of attributes forwarded to the empty state when the list has no results." #}
 {# @prop card:text | description:"Template name each row is rendered with." #}
+{# @prop empty:text | description:"Shown in place of the results when there are none. Defaults to the packaged empty state." #}
 {% load mvp %}
-<c-vars list empty_state card />
-<c-mvp.grid :attrs="attrs">
-  {% for object in list %}
-    {% render_list_item object card %}
-  {% empty %}
+<c-vars list empty_state card empty />
+{% comment %}
+  The empty state is drawn outside the grid: inside it, it would be one grid
+  item and sit in the first column.
+{% endcomment %}
+{% if list %}
+  <c-mvp.grid :attrs="attrs">
+    {% for object in list %}
+      {% render_list_item object card %}
+    {% endfor %}
+  </c-mvp.grid>
+{% else %}
+  {% if empty|slot_is_empty is False %}
+    {{ empty }}
+  {% else %}
     <c-mvp.page.list.empty :attrs="empty_state" />
-  {% endfor %}
-</c-mvp.grid>
+  {% endif %}
+{% endif %}

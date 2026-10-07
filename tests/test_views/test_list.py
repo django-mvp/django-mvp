@@ -39,6 +39,9 @@ except ImportError:  # pragma: no cover
         pass
 
 
+CARD = "cards/product_card.html"
+
+
 class _StubFilterView(SearchOrderMixin, _FilterView):
     """Combined stub for django_filters composition tests (US4).
 
@@ -1024,7 +1027,7 @@ class TestEmptyStateMessageRendering:
     def test_cta_message_and_button_render_when_permitted(self, rf, db):
         html = _render_empty_list_view(rf, show_create_action=True)
         soup = _beautiful_soup()(html, "html.parser")
-        empty_state = soup.find("h3").parent
+        empty_state = soup.find(class_="mvp-list-empty")
         assert empty_state.find("p") is not None
         assert soup.find("a", href="/products/create/") is not None
 
@@ -1032,7 +1035,7 @@ class TestEmptyStateMessageRendering:
         html = _render_empty_list_view(rf, show_create_action=False)
         soup = _beautiful_soup()(html, "html.parser")
         assert soup.find("a", href="/products/create/") is None
-        empty_state = soup.find("h3").parent
+        empty_state = soup.find(class_="mvp-list-empty")
         assert empty_state.find("p") is None, "no empty paragraph is rendered"
 
 
@@ -1043,6 +1046,7 @@ def _render_search_sort_list_view(rf):
         (MVPListView,),
         {
             "model": Product,
+            "list_item_template": CARD,
             "search_fields": ["name"],
             "order_by": [("name_asc", "Name (A-Z)", "name")],
         },
@@ -1055,7 +1059,8 @@ def _render_search_sort_list_view(rf):
 
 
 class TestSearchSortControlsWithoutFilterSet:
-    def test_form_referenced_by_search_and_sort_exists_in_the_page(self, rf, db):
+    def test_form_referenced_by_search_and_sort_exists_in_the_page(self, rf, cat):
+        _product(cat, "Lamp")
         html = _render_search_sort_list_view(rf)
         soup = _beautiful_soup()(html, "html.parser")
 
@@ -1078,14 +1083,17 @@ class TestSearchSortControlsWithoutFilterSet:
 
         assert soup.find(id="filterForm") is None
 
-    def test_no_duplicate_filter_form_when_filterset_is_configured(self, rf, db):
+    def test_no_duplicate_filter_form_when_filterset_is_configured(self, rf, cat):
         from django_filters.views import FilterView
+
+        _product(cat, "Lamp")
 
         view_cls = type(
             "StubFilteredListView",
             (MVPListViewMixin, FilterView),
             {
                 "model": Product,
+                "list_item_template": CARD,
                 "filterset_fields": ["category"],
                 "search_fields": ["name"],
                 "order_by": [("name_asc", "Name (A-Z)", "name")],
@@ -1103,7 +1111,9 @@ class TestSearchSortControlsWithoutFilterSet:
 class TestActionsFollowViewConfiguration:
     def _render(self, rf, **attrs):
         view_cls = type(
-            "StubActionsListView", (MVPListView,), {"model": Product, **attrs}
+            "StubActionsListView",
+            (MVPListView,),
+            {"model": Product, "list_item_template": CARD, **attrs},
         )
         view = view_cls()
         view.setup(rf.get("/"))
@@ -1111,11 +1121,13 @@ class TestActionsFollowViewConfiguration:
         response.render()
         return response.content.decode()
 
-    def test_search_follows_search_fields(self, rf, db):
+    def test_search_follows_search_fields(self, rf, cat):
+        _product(cat, "Lamp")
         assert 'name="q"' in self._render(rf, search_fields=["name"])
         assert 'name="q"' not in self._render(rf, search_fields=None)
 
-    def test_sort_follows_order_by(self, rf, db):
+    def test_sort_follows_order_by(self, rf, cat):
+        _product(cat, "Lamp")
         orderings = [("name_asc", "Name (A-Z)", "name")]
         assert "ordering-option" in self._render(rf, order_by=orderings)
         assert "ordering-option" not in self._render(rf, order_by=None)
@@ -1132,13 +1144,19 @@ class TestActionsFollowViewConfiguration:
             is None
         )
 
-    def test_filter_follows_the_filterset(self, rf, db):
+    def test_filter_follows_the_filterset(self, rf, cat):
         from django_filters.views import FilterView
+
+        _product(cat, "Lamp")
 
         view_cls = type(
             "StubFilteredActionsView",
             (MVPListViewMixin, FilterView),
-            {"model": Product, "filterset_fields": ["category"]},
+            {
+                "model": Product,
+                "list_item_template": CARD,
+                "filterset_fields": ["category"],
+            },
         )
         view = view_cls()
         view.setup(rf.get("/"))
@@ -1158,3 +1176,507 @@ class TestActionsFollowViewConfiguration:
         assert "ordering-option" not in html
         assert soup.find(id="filterModal") is None
         assert soup.find(id="filterForm") is None
+
+
+def _refinement_context(rf, query="", **attrs):
+    """Return the context of a filtered product list requested with ``query``."""
+    import django_filters
+    from django_filters.views import FilterView
+
+    class ProductFilterSet(django_filters.FilterSet):
+        price = django_filters.RangeFilter()
+
+        class Meta:
+            model = Product
+            fields = ["name", "status", "category"]
+
+    view_cls = type(
+        "StubRefinedListView",
+        (MVPListViewMixin, FilterView),
+        {
+            "model": Product,
+            "filterset_class": ProductFilterSet,
+            "search_fields": ["name"],
+            "order_by": [("name_asc", "Name (A-Z)", "name")],
+            "paginate_by": 10,
+            "render_to_response": lambda self, context, **kwargs: context,
+            **attrs,
+        },
+    )
+    view = view_cls()
+    view.setup(rf.get(f"/products/{query}"))
+    return view.get(view.request)
+
+
+class TestListRefinements:
+    def test_an_unrefined_list_has_no_refinements_and_no_clear_url(self, rf, db):
+        context = _refinement_context(rf, "?o=name_asc&page=1")
+
+        assert context["refinements"] == []
+        assert "clear_refinements_url" not in context
+
+    def test_a_search_is_a_refinement_removed_by_dropping_q(self, rf, db):
+        context = _refinement_context(rf, "?q=lamp&o=name_asc&page=1")
+
+        [search] = context["refinements"]
+        assert search["kind"] == "search"
+        assert search["value"] == "lamp"
+        assert search["remove_url"] == "/products/?o=name_asc"
+
+    def test_a_blank_search_is_not_a_refinement(self, rf, db):
+        context = _refinement_context(rf, "?q=++")
+
+        assert context["refinements"] == []
+
+    def test_a_search_is_not_a_refinement_without_search_fields(self, rf, db):
+        context = _refinement_context(rf, "?q=lamp", search_fields=None)
+
+        assert context["refinements"] == []
+
+    def test_each_applied_filter_is_a_refinement_labelled_by_its_field(self, rf, db):
+        context = _refinement_context(rf, "?name=Lamp&status=draft")
+
+        by_name = {item["name"]: item for item in context["refinements"]}
+        assert set(by_name) == {"name", "status"}
+        assert by_name["name"]["kind"] == "filter"
+        assert by_name["name"]["label"] == "Name"
+        assert by_name["name"]["value"] == "Lamp"
+
+    def test_a_choice_filter_shows_the_choice_label_not_the_stored_value(self, rf, db):
+        context = _refinement_context(rf, "?status=draft")
+
+        [status] = context["refinements"]
+        expected = dict(Product._meta.get_field("status").flatchoices)["draft"]
+        assert status["value"] == expected
+
+    def test_a_related_filter_shows_the_related_record(self, rf, cat):
+        context = _refinement_context(rf, f"?category={cat.pk}")
+
+        [category] = context["refinements"]
+        assert category["value"] == str(cat)
+
+    def test_removing_a_filter_keeps_every_other_refinement_and_the_sort(self, rf, db):
+        context = _refinement_context(
+            rf, "?q=lamp&name=Lamp&status=draft&o=name_asc&page=1"
+        )
+
+        by_name = {item["name"]: item for item in context["refinements"]}
+        assert by_name["name"]["remove_url"] == (
+            "/products/?q=lamp&status=draft&o=name_asc"
+        )
+
+    def test_a_range_filter_is_one_refinement_removed_by_both_its_params(self, rf, db):
+        context = _refinement_context(rf, "?price_min=5&price_max=20&q=lamp")
+
+        by_name = {item["name"]: item for item in context["refinements"]}
+        assert "5" in by_name["price"]["value"]
+        assert "20" in by_name["price"]["value"]
+        assert by_name["price"]["remove_url"] == "/products/?q=lamp"
+
+    def test_clear_url_drops_search_filters_and_page_and_keeps_the_sort(self, rf, db):
+        context = _refinement_context(
+            rf, "?q=lamp&name=Lamp&price_min=5&o=name_asc&page=1"
+        )
+
+        assert context["clear_refinements_url"] == "/products/?o=name_asc"
+
+    def test_clear_filters_url_drops_both_params_of_a_range_filter(self, rf, db):
+        context = _refinement_context(rf, "?price_min=5&price_max=20&q=lamp")
+
+        assert context["clear_filters_url"] == "/products/?q=lamp"
+
+    def test_a_list_without_a_filterset_still_reports_its_search(self, rf, db):
+        view_cls = type(
+            "StubSearchOnlyListView",
+            (MVPListView,),
+            {
+                "model": Product,
+                "search_fields": ["name"],
+                "render_to_response": lambda self, context, **kwargs: context,
+            },
+        )
+        view = view_cls()
+        view.setup(rf.get("/products/?q=lamp"))
+
+        context = view.get(view.request)
+
+        assert [item["name"] for item in context["refinements"]] == ["q"]
+        assert context["clear_refinements_url"] == "/products/"
+
+
+class TestListResultCount:
+    def _context(self, rf, query="", **attrs):
+        view_cls = type(
+            "StubCountedListView",
+            (MVPListView,),
+            {
+                "model": Product,
+                "search_fields": ["name"],
+                "render_to_response": lambda self, context, **kwargs: context,
+                **attrs,
+            },
+        )
+        view = view_cls()
+        view.setup(rf.get(f"/products/{query}"))
+        return view.get(view.request)
+
+    def test_counts_every_page_of_a_paginated_list(self, rf, cat):
+        for number in range(5):
+            _product(cat, f"Lamp {number}")
+
+        context = self._context(rf, paginate_by=2)
+
+        assert context["result_count"] == 5
+
+    def test_counts_an_unpaginated_list(self, rf, cat):
+        for number in range(3):
+            _product(cat, f"Lamp {number}")
+
+        context = self._context(rf, paginate_by=None)
+
+        assert context["result_count"] == 3
+
+    def test_counts_only_what_the_search_matches(self, rf, cat):
+        _product(cat, "Lamp")
+        _product(cat, "Chair")
+
+        context = self._context(rf, "?q=lamp")
+
+        assert context["result_count"] == 1
+
+
+def _list_page(rf, query="", bases=(MVPListView,), **attrs):
+    """Render a product list page requested with ``query`` and return its soup."""
+    view_cls = type(
+        "StubRenderedListView",
+        bases,
+        {
+            "model": Product,
+            "list_item_template": CARD,
+            "search_fields": ["name"],
+            "order_by": [("name_asc", "Name (A-Z)", "name")],
+            **attrs,
+        },
+    )
+    view = view_cls()
+    view.setup(rf.get(f"/products/{query}"))
+    response = view.get(view.request)
+    response.render()
+    return _beautiful_soup()(response.content.decode(), "html.parser")
+
+
+def _filtered_list_page(rf, query="", **attrs):
+    from django_filters.views import FilterView
+
+    return _list_page(
+        rf,
+        query,
+        bases=(MVPListViewMixin, FilterView),
+        filterset_fields=["name", "status"],
+        **attrs,
+    )
+
+
+class TestListPageToolbar:
+    def test_no_toolbar_when_there_are_no_records_and_nothing_is_applied(self, rf, db):
+        soup = _list_page(rf)
+
+        assert soup.find(class_="mvp-list-toolbar") is None
+
+    def test_toolbar_stays_when_a_search_matches_nothing(self, rf, cat):
+        _product(cat, "Lamp")
+
+        soup = _list_page(rf, "?q=chair")
+
+        assert soup.find(class_="mvp-list-toolbar").find(attrs={"name": "q"})
+
+    def test_add_action_is_outside_the_toolbar(self, rf, cat):
+        _product(cat, "Lamp")
+
+        soup = _list_page(rf, show_create_action=True)
+
+        create = soup.find("a", href="/products/create/")
+        assert create is not None
+        assert create.find_parent(class_="mvp-list-toolbar") is None
+
+    def test_summary_names_one_record_in_the_singular(self, rf, cat):
+        _product(cat, "Lamp")
+
+        summary = _list_page(rf).find(class_="mvp-list-summary").get_text(" ")
+
+        assert summary.split() == ["1", str(Product._meta.verbose_name)]
+
+    def test_summary_names_several_records_in_the_plural(self, rf, cat):
+        _product(cat, "Lamp")
+        _product(cat, "Chair")
+
+        summary = _list_page(rf).find(class_="mvp-list-summary").get_text(" ")
+
+        assert summary.split() == ["2", str(Product._meta.verbose_name_plural)]
+
+    def test_summary_counts_results_when_the_list_is_narrowed(self, rf, cat):
+        _product(cat, "Lamp")
+        _product(cat, "Chair")
+
+        summary = _list_page(rf, "?q=lamp").find(class_="mvp-list-summary")
+
+        assert "1" in summary.get_text(" ").split()
+        assert str(Product._meta.verbose_name) not in summary.get_text(" ").split()
+
+
+class TestListPageRefinements:
+    def test_nothing_is_drawn_for_a_list_that_is_not_narrowed(self, rf, cat):
+        _product(cat, "Lamp")
+
+        assert _list_page(rf).find(class_="mvp-list-refinements") is None
+
+    def test_each_refinement_links_to_the_page_without_it(self, rf, cat):
+        _product(cat, "Lamp")
+
+        soup = _filtered_list_page(rf, "?q=lamp&name=Lamp&o=name_asc")
+
+        hrefs = {
+            link["href"]
+            for link in soup.find(class_="mvp-list-refinements").find_all("a")
+        }
+        assert "/products/?name=Lamp&o=name_asc" in hrefs
+        assert "/products/?q=lamp&o=name_asc" in hrefs
+
+    def test_several_refinements_get_one_link_that_clears_them_all(self, rf, cat):
+        _product(cat, "Lamp")
+
+        soup = _filtered_list_page(rf, "?q=lamp&name=Lamp&o=name_asc")
+
+        refinements = soup.find(class_="mvp-list-refinements")
+        assert refinements.find("a", href="/products/?o=name_asc") is not None
+
+    def test_a_single_refinement_gets_no_separate_clear_link(self, rf, cat):
+        _product(cat, "Lamp")
+
+        soup = _filtered_list_page(rf, "?q=lamp")
+
+        assert len(soup.find(class_="mvp-list-refinements").find_all("a")) == 1
+
+    def test_a_refinement_value_is_escaped(self, rf, cat):
+        _product(cat, "Lamp")
+
+        soup = _list_page(rf, "?q=%3Cscript%3Ealert(1)%3C/script%3E")
+
+        assert soup.find(class_="mvp-list-refinements").find("script") is None
+
+
+class TestListPageEmptyState:
+    def test_empty_state_is_not_a_grid_item(self, rf, db):
+        soup = _list_page(rf, grid={"md": 2})
+
+        assert soup.find(class_="mvp-list-empty").find_parent(class_="grid") is None
+
+    def test_no_records_offers_the_create_action(self, rf, db):
+        soup = _list_page(rf, show_create_action=True)
+
+        empty = soup.find(class_="mvp-list-empty")
+        assert empty.find("a", href="/products/create/") is not None
+
+    def test_nothing_matching_offers_to_clear_and_not_to_create(self, rf, cat):
+        _product(cat, "Lamp")
+
+        soup = _list_page(rf, "?q=chair&o=name_asc", show_create_action=True)
+
+        empty = soup.find(class_="mvp-list-empty")
+        assert empty.find("a", href="/products/?o=name_asc") is not None
+        assert empty.find("a", href="/products/create/") is None
+
+    def test_no_records_opens_the_create_dialog_when_the_page_has_one(self, rf, db):
+        from demo.forms import ProductForm
+
+        soup = _list_page(rf, show_create_action=True, create_form_class=ProductForm)
+
+        empty = soup.find(class_="mvp-list-empty")
+        assert empty.find("a", href="/products/create/") is None
+        assert "createModal" in empty.find("button")["onclick"]
+        assert soup.find(id="createModal") is not None
+
+
+class TestListPagePagination:
+    def test_one_page_draws_no_pager(self, rf, cat):
+        _product(cat, "Lamp")
+
+        soup = _list_page(rf, paginate_by=5)
+
+        assert soup.find(class_="mvp-list-footer") is None
+
+    def test_a_middle_page_links_to_its_neighbours(self, rf, cat):
+        for number in range(6):
+            _product(cat, f"Lamp {number}")
+
+        soup = _list_page(rf, "?page=2&o=name_asc", paginate_by=2)
+
+        footer = soup.find(class_="mvp-list-footer")
+        assert footer.find("a", rel="prev")["href"] == "?page=1&o=name_asc"
+        assert footer.find("a", rel="next")["href"] == "?page=3&o=name_asc"
+
+    def test_the_first_page_has_no_link_back(self, rf, cat):
+        for number in range(4):
+            _product(cat, f"Lamp {number}")
+
+        footer = _list_page(rf, paginate_by=2).find(class_="mvp-list-footer")
+
+        assert footer.find("a", rel="prev") is None
+        assert footer.find("a", rel="next") is not None
+
+    def test_the_last_page_has_no_link_forward(self, rf, cat):
+        for number in range(4):
+            _product(cat, f"Lamp {number}")
+
+        footer = _list_page(rf, "?page=2", paginate_by=2).find(class_="mvp-list-footer")
+
+        assert footer.find("a", rel="next") is None
+
+    def test_the_document_title_carries_the_page_number(self, rf, cat):
+        for number in range(6):
+            _product(cat, f"Lamp {number}")
+
+        first = _list_page(rf, "?page=1", paginate_by=2).find("title").get_text()
+        second = _list_page(rf, "?page=2", paginate_by=2).find("title").get_text()
+
+        assert "2" in second
+        assert first != second
+
+    def test_the_document_title_has_no_page_number_for_one_page(self, rf, cat):
+        _product(cat, "Lamp")
+
+        title = _list_page(rf, paginate_by=5).find("title").get_text()
+
+        assert not any(character.isdigit() for character in title)
+
+
+LIST_PAGE_BLOCKS = [
+    "page.actions",
+    "page.toolbar",
+    "page.search",
+    "page.summary",
+    "page.controls",
+    "page.refinements",
+    "page.results",
+    "page.pagination",
+]
+
+
+class TestListPageBlocks:
+    @pytest.mark.parametrize("block", LIST_PAGE_BLOCKS)
+    def test_a_project_can_replace_one_part_of_the_page(self, rf, cat, block):
+        for number in range(3):
+            _product(cat, f"Lamp {number}")
+
+        soup = _list_page(
+            rf,
+            "?q=lamp",
+            template_name="tests/list_view_block_override.html",
+            paginate_by=2,
+            extra_context={"override": block},
+        )
+
+        assert soup.find(id="override") is not None
+
+    def test_a_project_can_replace_the_empty_state(self, rf, db):
+        soup = _list_page(
+            rf,
+            template_name="tests/list_view_block_override.html",
+            extra_context={"override": "page.empty"},
+        )
+
+        assert soup.find(id="override") is not None
+        assert soup.find(class_="mvp-list-empty") is None
+
+    def test_replacing_nothing_leaves_the_page_as_packaged(self, rf, cat):
+        _product(cat, "Lamp")
+
+        soup = _list_page(rf, template_name="tests/list_view_block_override.html")
+
+        assert soup.find(id="override") is None
+        assert soup.find(class_="mvp-list-toolbar") is not None
+
+
+class TestFilterDisplay:
+    def _view(self, rf, filterset_class):
+        from django_filters.views import FilterView
+
+        view_cls = type(
+            "StubDisplayListView",
+            (MVPListViewMixin, FilterView),
+            {"model": Product, "filterset_class": filterset_class},
+        )
+        view = view_cls()
+        view.setup(rf.get("/products/"))
+        return view, filterset_class({}, queryset=Product.objects.none())
+
+    def _filterset_class(self):
+        import django_filters
+
+        class ProductFilterSet(django_filters.FilterSet):
+            price = django_filters.RangeFilter()
+            is_available = django_filters.BooleanFilter()
+            status = django_filters.MultipleChoiceFilter(
+                choices=Product._meta.get_field("status").flatchoices
+            )
+
+            class Meta:
+                model = Product
+                fields = ["name"]
+
+        return ProductFilterSet
+
+    def test_a_range_with_only_a_lower_bound_names_that_bound(self, rf, db):
+        view, filterset = self._view(rf, self._filterset_class())
+
+        display = view.get_filter_display(filterset, "price", slice(5, None))
+
+        assert "5" in display
+
+    def test_a_range_with_only_an_upper_bound_names_that_bound(self, rf, db):
+        view, filterset = self._view(rf, self._filterset_class())
+
+        display = view.get_filter_display(filterset, "price", slice(None, 20))
+
+        assert "20" in display
+        assert "None" not in display
+
+    def test_a_boolean_is_not_shown_as_a_python_literal(self, rf, db):
+        view, filterset = self._view(rf, self._filterset_class())
+
+        yes = view.get_filter_display(filterset, "is_available", True)
+        no = view.get_filter_display(filterset, "is_available", False)
+
+        assert yes != no
+        assert {yes, no}.isdisjoint({"True", "False"})
+
+    def test_several_choices_show_each_choice_label(self, rf, db):
+        view, filterset = self._view(rf, self._filterset_class())
+        labels = dict(Product._meta.get_field("status").flatchoices)
+        first, second = list(labels)[:2]
+
+        display = view.get_filter_display(filterset, "status", [first, second])
+
+        assert display == f"{labels[first]}, {labels[second]}"
+
+    def test_a_filter_drawn_with_plain_split_inputs_reads_one_param_each(self, rf, db):
+        import django_filters
+        from django import forms
+
+        class SplitWidget(forms.MultiWidget):
+            def __init__(self):
+                super().__init__([forms.TextInput, forms.TextInput])
+
+            def decompress(self, value):
+                return [None, None]
+
+        class ProductFilterSet(django_filters.FilterSet):
+            name = django_filters.CharFilter(widget=SplitWidget())
+
+            class Meta:
+                model = Product
+                fields = ["name"]
+
+        view, filterset = self._view(rf, ProductFilterSet)
+
+        assert view.get_filter_params(filterset, "name") == ["name_0", "name_1"]

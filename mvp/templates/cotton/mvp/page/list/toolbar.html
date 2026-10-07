@@ -1,0 +1,19 @@
+{# @description The row above a list's results: search, the result count, then the controls. One row from md, two on a phone. Renders nothing when the list has no records and nothing is applied. #}
+{# @prop search:text | description:"The search box. Takes the whole first row on a phone." #}
+{# @prop summary:text | description:"The line that says what the list holds." #}
+{# @prop class:text | description:"Extra classes on the toolbar's root element." #}
+{# @slot Sort, filter — the controls at the end of the row. #}
+{% load i18n mvp %}
+<c-vars search summary class />
+{% if result_count or refinements %}
+  {% comment %}
+    One source order at every width: search, count, controls. Below md the
+    search takes the whole first row and the other two share the second.
+  {% endcomment %}
+  <div class="mvp-list-toolbar flex flex-wrap items-center gap-x-3 gap-y-3 w-full {{ class }}"
+       {{ attrs }}>
+    {% if not search|slot_is_empty %}<div class="w-full md:w-1/3 md:max-w-sm">{{ search }}</div>{% endif %}
+    <div class="grow">{{ summary }}</div>
+    <div class="flex items-center gap-2 ms-auto">{{ slot }}</div>
+  </div>
+{% endif %}

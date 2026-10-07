@@ -1,16 +1,20 @@
 {# @description The list-page search box and its submit button, wired to the shared filter form. #}
 {# @prop placeholder:text | default:"Search" | description:"Placeholder and accessible label text for the search input." #}
 {# @prop label:text | default:"Search" | description:"Text for the search submit button." #}
+{# @prop class:text | default:"grow" | description:"Classes on the joined input and button." #}
+{# @prop input_class:text | default:"md:w-[220px]" | description:"Extra classes on the input, where its width is set." #}
 {% load i18n %}
 <c-vars placeholder="{% trans "Search" %}"
-        label="{% trans "Search" %}" />
+        label="{% trans "Search" %}"
+        class="grow"
+        input_class="md:w-[220px]" />
 {% if is_searchable %}
-  <c-join class="grow" only>
+  <c-join class="{{ class }}" only>
     <c-form.input type="search"
                   name="q"
                   form="filterForm"
                   size="sm"
-                  class="join-item grow md:w-[220px]"
+                  class="join-item grow {{ input_class }}"
                   placeholder="{{ placeholder }}"
                   value="{{ search_query|default:'' }}"
                   aria-label="{{ placeholder }}"

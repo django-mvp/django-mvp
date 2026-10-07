@@ -1,0 +1,32 @@
+{# @description The search and filters narrowing a list, each as a control that removes it, with one control to clear them all. Renders nothing when the list is not narrowed. #}
+{# @prop class:text | description:"Extra classes on the list of controls." #}
+{% load i18n %}
+<c-vars class />
+{% if refinements %}
+  <ul class="mvp-list-refinements flex flex-wrap items-center gap-2 w-full {{ class }}"
+      aria-label="{% trans "Applied search and filters" %}"
+      {{ attrs }}>
+    {% for refinement in refinements %}
+      <li>
+        <c-button size="sm"
+                  soft
+                  href="{{ refinement.remove_url }}"
+                  aria-label="{% blocktrans with label=refinement.label value=refinement.value %}Remove {{ label }}: {{ value }}{% endblocktrans %}"
+                  only>
+          <span class="font-normal opacity-70">{{ refinement.label }}</span>
+          <span>{{ refinement.value|truncatechars:40 }}</span>
+          <c-icon name="x" aria-hidden="true" />
+        </c-button>
+      </li>
+    {% endfor %}
+    {% if refinements|length > 1 %}
+      <li>
+        <c-button size="sm"
+                  ghost
+                  text="{% trans "Clear all" %}"
+                  href="{{ clear_refinements_url }}"
+                  only />
+      </li>
+    {% endif %}
+  </ul>
+{% endif %}

@@ -1,0 +1,14 @@
+{% extends "list_view.html" %}
+{% comment %}
+  A project replacing one part of a list page and keeping the rest. The view
+  names the block to replace, so each one is proved on its own.
+{% endcomment %}
+{% block page.actions %}{% if override == "page.actions" %}<div id="override">Override</div>{% else %}{{ block.super }}{% endif %}{% endblock page.actions %}
+{% block page.toolbar %}{% if override == "page.toolbar" %}<div id="override">Override</div>{% else %}{{ block.super }}{% endif %}{% endblock page.toolbar %}
+{% block page.search %}{% if override == "page.search" %}<div id="override">Override</div>{% else %}{{ block.super }}{% endif %}{% endblock page.search %}
+{% block page.summary %}{% if override == "page.summary" %}<div id="override">Override</div>{% else %}{{ block.super }}{% endif %}{% endblock page.summary %}
+{% block page.controls %}{% if override == "page.controls" %}<div id="override">Override</div>{% else %}{{ block.super }}{% endif %}{% endblock page.controls %}
+{% block page.refinements %}{% if override == "page.refinements" %}<div id="override">Override</div>{% else %}{{ block.super }}{% endif %}{% endblock page.refinements %}
+{% block page.results %}{% if override == "page.results" %}<div id="override">Override</div>{% else %}{{ block.super }}{% endif %}{% endblock page.results %}
+{% block page.empty %}{% if override == "page.empty" %}<div id="override">Override</div>{% else %}{{ block.super }}{% endif %}{% endblock page.empty %}
+{% block page.pagination %}{% if override == "page.pagination" %}<div id="override">Override</div>{% else %}{{ block.super }}{% endif %}{% endblock page.pagination %}

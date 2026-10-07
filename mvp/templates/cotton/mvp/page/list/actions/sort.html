@@ -8,7 +8,11 @@
                 role="button"
                 icon="sort"
                 size="sm"
-                text="{% trans "Sort" %}" only />
+                text="{% trans "Sort" %}" only>
+        {% for key, label, _ in order_by_choices %}
+          {% if key == current_ordering %}<span class="hidden md:inline font-normal opacity-70">{{ label }}</span>{% endif %}
+        {% endfor %}
+      </c-button>
     </c-slot>
     <c-menu class="w-full" only>
       {% for key, label, _ in order_by_choices %}

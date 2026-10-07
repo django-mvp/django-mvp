@@ -1,0 +1,36 @@
+{# @description A pager for narrow screens: Previous, "Page 2 of 6", Next, spread across the full width. #}
+{# @prop page_obj:text | description:"The Django Page object to paginate." #}
+{# @prop label:text | default:"Navigation page results" | description:"Accessible name for the pagination <nav>." #}
+{# @prop class:text | description:"Extra classes on the <nav>." #}
+{% load i18n %}
+<c-vars page_obj label="{% trans "Navigation page results" %}" class />
+{% if page_obj.paginator.num_pages > 1 %}
+  <nav aria-label="{{ label }}"
+       class="flex items-center justify-between gap-2 w-full {{ class }}"
+       {{ attrs }}>
+    {% if page_obj.has_previous %}
+      <c-button href="{% querystring page=page_obj.previous_page_number %}"
+                icon="chevron-left"
+                text="{% trans "Previous" %}"
+                rel="prev"
+                only />
+    {% else %}
+      <c-button icon="chevron-left" text="{% trans "Previous" %}" disabled only />
+    {% endif %}
+    <span class="text-sm text-base-content/70" aria-current="page">
+      {% blocktrans with number=page_obj.number total=page_obj.paginator.num_pages %}Page {{ number }} of {{ total }}{% endblocktrans %}
+    </span>
+    {% if page_obj.has_next %}
+      <c-button href="{% querystring page=page_obj.next_page_number %}"
+                text="{% trans "Next" %}"
+                rel="next"
+                only>
+        <c-icon name="chevron-right" aria-hidden="true" />
+      </c-button>
+    {% else %}
+      <c-button text="{% trans "Next" %}" disabled only>
+        <c-icon name="chevron-right" aria-hidden="true" />
+      </c-button>
+    {% endif %}
+  </nav>
+{% endif %}

@@ -152,6 +152,11 @@ A developer can activate search (`search_fields`) and ordering (`order_by`) on a
 - **FR-012**: `MVPListViewMixin` MUST compose with `SearchMixin` and `OrderMixin` (spec 014) so that `search_fields` and `order_by` can be declared directly on the view class.
 - **FR-013**: `MVPListView` MUST be the concrete class combining `MVPListViewMixin` with Django's built-in `ListView`, requiring no additional configuration to instantiate beyond those inherited from `MVPListViewMixin`. It MUST declare `paginate_by = 24` as the library default (grid-friendly: divisible by 1, 2, 3, and 4); subclasses may override this value.
 - **FR-014**: `get_list_item_template()` MUST be an overrideable hook that subclasses can replace to implement any custom resolution logic.
+- **FR-016**: `MVPListViewMixin` MUST inject `result_count` into the template context: the number of records the list holds across every page, after search and filters are applied.
+- **FR-017**: `MVPListViewMixin` MUST inject `refinements` into the template context: one entry for an active search and one for each applied filter, the search first. Each entry MUST carry a `remove_url` that removes that entry alone, keeps every other query parameter, and drops the page number. The list MUST be empty when nothing is applied.
+- **FR-018**: When `refinements` is not empty, `MVPListViewMixin` MUST inject `clear_refinements_url`: the current URL with the search and every filter removed and the ordering kept.
+- **FR-019**: A filter that reads more than one query parameter MUST be one refinement, and removing it MUST remove every parameter it reads.
+- **FR-020**: `get_refinements()` MUST be an overrideable hook, so a view can add or change entries.
 - **FR-015**: The `list_item_template` context key MUST always be present in the rendered context, even when the referenced partial template does not exist on disk — template existence is the template engine's responsibility, not the view's.
 
 ### Key Entities
@@ -161,6 +166,8 @@ A developer can activate search (`search_fields`) and ordering (`order_by`) on a
 - **list_item_template**: A class attribute (string or `None`) that overrides item template auto-discovery. When set, it is used as-is. When falsy, the `<app_label>/<model_name>_list_item.html` convention applies.
 - **empty_state**: A context dict with `heading` (str or `None`) and `message` (str or `None`) that the template uses to render the no-records state. Always present in context.
 - **grid_config**: A context dict passed through from the `grid` class attribute. Content and structure are defined by the consuming template/component. Always present in context (may be empty dict).
+- **refinements**: A context list describing what is narrowing the list. Each entry is a dict with `kind`, `name`, `label`, `value`, `params` and `remove_url`. Always present in context (may be empty).
+- **result_count**: A context integer, the number of records in the list across every page. Always present in context.
 - **directory**: A context dict (from `CRUDDirectoryMixin`) containing resolved CRUD URLs. For list views, only `create_url` is eligible; other actions are not included.
 
 ## Success Criteria *(mandatory)*

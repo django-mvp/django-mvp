@@ -44,3 +44,34 @@ class TestPaginationLabel:
 
         opening_tag = html[html.index("<nav") : html.index(">", html.index("<nav")) + 1]
         assert opening_tag.count("aria-label") == 1
+
+
+def _pager_texts(cotton_render_string_soup, number, pages):
+    page_obj = Paginator(list(range(pages)), 1).page(number)
+    soup = cotton_render_string_soup(
+        '<c-mvp.pagination :page_obj="page_obj" page_window="1" show_first_and_last />',
+        context={"page_obj": page_obj},
+    )
+    return [
+        el.get_text(strip=True) for el in soup.find("nav").find_all(["a", "button"])
+    ]
+
+
+class TestPaginationGaps:
+    def test_a_gap_of_several_pages_is_an_ellipsis(self, cotton_render_string_soup):
+        texts = _pager_texts(cotton_render_string_soup, number=6, pages=11)
+
+        numbers = [text for text in texts if text.isdigit()]
+        assert numbers == ["1", "5", "6", "7", "11"]
+
+    def test_a_gap_of_one_page_shows_that_page(self, cotton_render_string_soup):
+        texts = _pager_texts(cotton_render_string_soup, number=4, pages=7)
+
+        numbers = [text for text in texts if text.isdigit()]
+        assert numbers == ["1", "2", "3", "4", "5", "6", "7"]
+
+    def test_first_and_last_pages_are_always_reachable(self, cotton_render_string_soup):
+        texts = _pager_texts(cotton_render_string_soup, number=1, pages=9)
+
+        numbers = [text for text in texts if text.isdigit()]
+        assert numbers == ["1", "2", "9"]

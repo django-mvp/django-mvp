@@ -48,6 +48,19 @@ urlpatterns = [
     ),
     path("utility-classes/", views.utility_classes_demo, name="utility-classes"),
     path("products/", ProductListView.as_view(), name="product-list"),
+    path(
+        "products/many/",
+        views.ProductManyPagesListView.as_view(),
+        name="product-list-many",
+    ),
+    path(
+        "products/none/", views.ProductNoneListView.as_view(), name="product-list-none"
+    ),
+    path(
+        "products/plain/",
+        views.ProductPlainListView.as_view(),
+        name="product-list-plain",
+    ),
     path("products/create/", ProductCreateView.as_view(), name="product-create"),
     path("products/<int:pk>/", ProductDetailView.as_view(), name="product-detail"),
     path("products/<int:pk>/edit/", ProductUpdateView.as_view(), name="product-update"),
