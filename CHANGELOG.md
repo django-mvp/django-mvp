@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.27.0] - 2026-10-07
+
 ### Added
 
 - The search term and each applied filter are shown under a list page's toolbar, each as a
