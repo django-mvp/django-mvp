@@ -48,6 +48,10 @@ Theme changes (colors, radius, borders) do **not** require Tier 2. See
 footer, so one attribute repaints the whole rail and its two strips keep
 matching it. No CSS is involved, and nothing needs targeting from a stylesheet.
 
+That gives the sidebar one background for every theme. To give it a colour that
+changes with the theme, leave `bg` alone and set the colour in the theme; see
+[Coloring the header, the dock and the sidebar](theming.md#coloring-the-header-the-dock-and-the-sidebar).
+
 Changing anything else about the header or the footer means overriding that
 template in your project, which is the extension point everywhere else in the
 package too.

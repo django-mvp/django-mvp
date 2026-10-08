@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- A theme can colour the header, the mobile dock and the sidebar. Each paints itself from
+  the theme's own properties, so a theme recolours one by setting those properties under
+  the region's class, for example `[data-theme="mine"] .mvp-sidebar { --color-base-200: ... }`.
+  Buttons, menus and panels drawn in the region follow. See
+  [Coloring the header, the dock and the sidebar](docs/theming.md#coloring-the-header-the-dock-and-the-sidebar).
+- `.mvp-dock` on the mobile dock and `.mvp-sidebar-footer` on the sidebar's footer strip,
+  for a stylesheet to select on.
 - The table page's toolbar opens and closes. A button at the end of its bar hides the
   panel holding search, filter and add, which gives that height to the rows, and the
   choice is remembered in the browser. While a search or filter is applied the bar says
@@ -41,6 +48,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- The header and the mobile dock take the page's background (`--root-bg`), where they
+  took `base-100`. The two are the same colour unless a theme sets `--root-bg`, and in
+  that theme the header and dock now match the page.
+- The header, the dock and the sidebar no longer carry `bg-base-100` or `bg-base-200`.
+  Their default classes are `mvp-header-bg`, `mvp-dock-bg` and `mvp-sidebar-bg`, which
+  are the new defaults of `layout.navbar.class`, `layout.dock.class` and the sidebar's
+  `bg` attribute. A stylesheet that selected a region by its old background class, such
+  as `.mvp-sidebar > .bg-base-200:last-child` for the footer, selects `.mvp-sidebar-footer`
+  instead. A project that sets a class of its own is unaffected.
+- A dropdown panel takes its text colour from the theme where it sits. It used to
+  inherit it, so a panel opened from a header with its own text colour was drawn in that
+  colour on the theme's surface.
 - **The table page is laid out again.** The title, the info icon and a count of the
   records sit in one bar. Search, filter and add sit in a panel under it, with add
   beside filter. The pager is the list page's: the range shown and numbered pages on a
