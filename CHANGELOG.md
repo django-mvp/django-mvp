@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `<c-app.sidebar>` takes `header`, `body` and `footer` slots, and `<c-app.navbar>` takes
   `start`, `center` and `end`.
 - The demo project has a Layout group that draws the shell, the sidebar and the header
-  with their blocks, and shows an override of each running on the page.
+  with their blocks, and gives an example override for each.
 
 ### Changed
 

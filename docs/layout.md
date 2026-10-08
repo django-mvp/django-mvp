@@ -700,7 +700,7 @@ widget, change [`layout.navbar.end`](#navbar-widgets). Nothing in the navbar is 
 on a narrow window for you, so content placed in `center` or `end` has to fit a phone
 or hide itself.
 
-The demo project's Layout pages draw each region and show these overrides running.
+The demo project's Layout pages draw each region and list the blocks inside it.
 
 To change a region wherever its component is used, override the component template
 itself (for example `templates/cotton/app/sidebar/footer.html`).

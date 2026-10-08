@@ -36,26 +36,3 @@
 {% block app.sidebar.footer %}
   &lt;div class="mt-auto w-full px-4 py-3 text-sm"&gt;Version 2.4&lt;/div&gt;
 {% endblock app.sidebar.footer %}{% endverbatim %}{% endblock layout.example %}
-{% block app.sidebar.header %}
-  {% if example %}
-    <div class="flex w-full items-center justify-between px-4 py-2">
-      <span class="font-semibold">Acme Projects</span>
-      <label for="mvp-app-toggle"
-             class="btn btn-ghost btn-square"
-             aria-label="Toggle sidebar">
-        <c-icon name="sidebar-left" />
-      </label>
-    </div>
-  {% endif %}
-{% endblock app.sidebar.header %}
-{% block app.sidebar.body %}
-  {% if example %}
-    <c-menu class="w-full">
-      <c-menu.item href="/" icon="home">Home</c-menu.item>
-      <c-menu.item href="{% url 'layout-sidebar' %}" icon="arrow-left">Back to the default</c-menu.item>
-    </c-menu>
-  {% endif %}
-{% endblock app.sidebar.body %}
-{% block app.sidebar.footer %}
-  {% if example %}<div class="mt-auto w-full px-4 py-3 text-sm">Version 2.4</div>{% endif %}
-{% endblock app.sidebar.footer %}

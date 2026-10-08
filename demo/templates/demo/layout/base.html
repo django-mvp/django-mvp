@@ -2,18 +2,8 @@
 {% comment %}
   One page per part of the shell. Each fills `layout.diagram` with the shell
   diagram focused on its own region, and may fill `layout.example` with the
-  template a project would write. `?example` switches that override on for the
-  page itself, so the result is the page being read.
+  template a project would write.
 {% endcomment %}
-{% block page.actions %}
-  {% if has_example %}
-    {% if example %}
-      <c-button text="Back to the default" icon="arrow-left" href="?" ghost />
-    {% else %}
-      <c-button text="Try it on this page" icon="eye" href="?example" variant="primary" />
-    {% endif %}
-  {% endif %}
-{% endblock page.actions %}
 {% block page.content %}
   <c-mvp.text muted tight class="text-lg">
     {% block layout.intro %}{% endblock layout.intro %}

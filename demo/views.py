@@ -180,8 +180,7 @@ utility_classes_demo = UtilityClassesView.as_view()
 class LayoutPageView(DemoTemplateView):
     """One page of the Layout group: a part of the shell and the blocks in it.
 
-    ``blocks`` is the table the page shows. ``?example`` switches on the
-    override the page documents, so the page being read is the result.
+    ``blocks`` is the table the page shows.
     """
 
     blocks = ()
@@ -196,11 +195,10 @@ class LayoutPageView(DemoTemplateView):
         ]
 
     def get_context_data(self, **kwargs):
-        """Add the block table and whether the example is switched on."""
+        """Add the block table and whether the page shows an example."""
         context = super().get_context_data(**kwargs)
         context["blocks"] = self.blocks
         context["has_example"] = self.has_example
-        context["example"] = self.has_example and "example" in self.request.GET
         return context
 
 

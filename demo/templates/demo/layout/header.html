@@ -41,25 +41,3 @@
     &lt;a role="tab" class="tab"&gt;Settings&lt;/a&gt;
   &lt;/div&gt;
 {% endblock app.header.tray %}{% endverbatim %}{% endblock layout.example %}
-{% block app.navbar.center %}
-  {% if example %}
-    <label class="input input-sm">
-      <c-icon name="search" />
-      <input type="search"
-             placeholder="Search projects"
-             aria-label="Search projects" />
-    </label>
-  {% endif %}
-{% endblock app.navbar.center %}
-{% block app.navbar.end %}
-  {% if example %}<c-button text="New project" icon="plus" size="sm" variant="primary" />{% endif %}
-{% endblock app.navbar.end %}
-{% block app.header.tray %}
-  {% if example %}
-    <div role="tablist" class="tabs tabs-lift px-3">
-      <a role="tab" class="tab tab-active" aria-selected="true" href="?example">Overview</a>
-      <a role="tab" class="tab" href="?example">Members</a>
-      <a role="tab" class="tab" href="?example">Settings</a>
-    </div>
-  {% endif %}
-{% endblock app.header.tray %}
