@@ -3,7 +3,7 @@
   "feature": "028-move-account-center",
   "branch": "028-move-account-center",
   "repo": "django-mvp/django-mvp",
-  "state": "PR_READY",
+  "state": "MERGED",
   "state_history": [
     {
       "state": "SPECIFY",
@@ -53,6 +53,11 @@
       "state": "PR_READY",
       "at": "2026-09-14T14:09:10Z",
       "note": "maintainer's cuts applied, re-verified"
+    },
+    {
+      "state": "MERGED",
+      "at": "2026-09-14T18:12:34Z",
+      "note": "PR #342 merged; approved by SamuelJennings"
     }
   ],
   "gates": {
@@ -72,8 +77,8 @@
       "at": "2026-09-14T10:14:48Z"
     },
     "merge": {
-      "approved_by": null,
-      "at": null
+      "approved_by": "SamuelJennings",
+      "at": "2026-09-14T18:12:24Z"
     },
     "design_review": {
       "approved_by": "design-panel",
@@ -448,7 +453,7 @@
   },
   "pr": {
     "number": 342,
-    "draft": true
+    "draft": false
   },
   "escalations": []
 }

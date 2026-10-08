@@ -2,7 +2,7 @@
   "feature": "030-development-sign-in",
   "branch": "030-development-sign-in",
   "repo": "django-mvp/django-mvp",
-  "state": "IMPLEMENT",
+  "state": "MERGED",
   "state_history": [
     {
       "state": "QUEUED",
@@ -23,6 +23,26 @@
       "state": "IMPLEMENT",
       "at": "2026-09-22T12:54:44Z",
       "note": "foundational phase first: T001, then US-1, US-2, US-3 sequentially"
+    },
+    {
+      "state": "CONVERGE",
+      "at": "2026-09-22T15:33:36Z",
+      "note": "all stories accepted; migration check, cleanup pass and ADR verdicts"
+    },
+    {
+      "state": "REVIEW",
+      "at": "2026-09-22T15:37:27Z",
+      "note": "converged: ADRs recorded, cleanup pass done, S5 gate green"
+    },
+    {
+      "state": "PR_READY",
+      "at": "2026-09-22T15:51:00Z",
+      "note": "review approved, one low finding fixed; PR out of draft, walkthrough next"
+    },
+    {
+      "state": "MERGED",
+      "at": "2026-09-23T07:18:11Z",
+      "note": "PR #386 merged; approved by SamuelJennings"
     }
   ],
   "gates": {
@@ -37,9 +57,8 @@
       "self_resolved": []
     },
     "merge": {
-      "approved_by": null,
-      "at": null,
-      "self_resolved": []
+      "approved_by": "SamuelJennings",
+      "at": "2026-09-23T07:18:02Z"
     },
     "design_review": {
       "approved_by": "design-panel",
@@ -378,11 +397,11 @@
   ],
   "budgets": {
     "converge_cycles": {
-      "used": 0,
+      "used": 1,
       "max": 2
     },
     "review_cycles": {
-      "used": 0,
+      "used": 1,
       "max": 1
     },
     "design_review_cycles": {
@@ -396,6 +415,6 @@
   },
   "pr": {
     "number": 386,
-    "draft": true
+    "draft": false
   }
 }
