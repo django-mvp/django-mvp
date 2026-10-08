@@ -2,7 +2,7 @@
   "feature": "031-installable-app",
   "branch": "031-installable-app",
   "repo": "django-mvp/django-mvp",
-  "state": "PR_READY",
+  "state": "MERGED",
   "state_history": [
     {
       "state": "QUEUED",
@@ -68,6 +68,11 @@
       "state": "PR_READY",
       "at": "2026-09-24T11:09:35Z",
       "note": "third merge-gate change set landed"
+    },
+    {
+      "state": "MERGED",
+      "at": "2026-09-24T11:15:27Z",
+      "note": "PR #395 merged; approved by SamuelJennings"
     }
   ],
   "gates": {
@@ -82,9 +87,8 @@
       "self_resolved": []
     },
     "merge": {
-      "approved_by": null,
-      "at": null,
-      "self_resolved": []
+      "approved_by": "SamuelJennings",
+      "at": "2026-09-24T11:12:26Z"
     },
     "design_review": {
       "approved_by": "design-panel",
