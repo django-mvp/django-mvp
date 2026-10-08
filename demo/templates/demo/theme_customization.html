@@ -1,28 +1,69 @@
-﻿{% extends "page_view.html" %}
+{% extends "page_view.html" %}
 {% block page.actions %}
   <c-button text="Action 1" icon="home" />
   <c-button text="Action 2" icon="menu" />
 {% endblock page.actions %}
 {% block page.content %}
   <c-mvp.text muted tight class="text-lg">
-    This page renders in mvp, one of two themes this demo wrote for itself.
-    The package ships none of its own — with nothing configured it applies
-    light, one of daisyUI's. The picker in the navbar offers five themes, set
-    in this project's MVP_CONFIG: mvp and mvp-dark, defined in one CSS file
-    under demo/static/, and light, dracula and synthwave, three of the prebuilt
-    themes the package ships. Every one of them is defined inside the project,
-    so nothing is fetched from outside it. This page is therefore a worked
-    example of the technique itself: two settings and a stylesheet. To write a
-    palette of your own, follow
+    A theme is a block of CSS properties, and the header, the dock and the
+    sidebar paint themselves from the same ones as everything else. A theme
+    recolours one of them by giving those properties other values inside it,
+    and the buttons, menus and panels drawn there follow. A theme that says
+    nothing about them keeps the header and dock on the page's background and
+    the sidebar one step down. Every theme below is in this project's
+    MVP_CONFIG and in one stylesheet under demo/static/. To write your own,
+    follow
     <a href="https://github.com/django-mvp/django-mvp/blob/main/docs/theming.md"
-       class="link">the theming guide</a>. The two buttons above are here to
-    show how page.actions renders next to a page title. They carry no theme
-    logic of their own.
+       class="link">the theming guide</a>.
   </c-mvp.text>
-  <div class="mt-6 flex flex-wrap gap-2">
-    <c-button text="Primary" variant="primary" />
-    <c-button text="Secondary" variant="secondary" />
-    <c-button text="Accent" variant="accent" />
-    <c-button text="Neutral" variant="neutral" />
+  <c-mvp.card class="mt-6" title="Themes in this demo">
+    <div class="overflow-x-auto">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Theme</th>
+            <th>Palette</th>
+            <th>What it changes in the shell</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for theme in themes %}
+            <tr>
+              <td>
+                <c-button text="{{ theme.name }}" size="sm" data-set-theme="{{ theme.name }}" only />
+              </td>
+              <td>{{ theme.palette }}</td>
+              <td>
+                {% for line in theme.sets %}
+                  <span class="block">{{ line }}</span>
+                {% empty %}
+                  <span class="text-base-content/70">Nothing</span>
+                {% endfor %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </c-mvp.card>
+  <div class="mt-6 grid gap-4 md:grid-cols-3">
+    <c-mvp.card title="A card">
+      Cards are drawn on base-100. On a theme that moves the page to base-200
+      they stand off it by colour as well as by shadow.
+    </c-mvp.card>
+    <c-mvp.card title="Buttons">
+      <div class="flex flex-wrap gap-2">
+        <c-button text="Primary" variant="primary" />
+        <c-button text="Secondary" variant="secondary" />
+        <c-button text="Accent" variant="accent" />
+        <c-button text="Neutral" variant="neutral" />
+      </div>
+    </c-mvp.card>
+    <c-mvp.card title="Messages">
+      <div class="flex flex-col gap-2">
+        <c-alert variant="info">Saved as a draft.</c-alert>
+        <c-alert variant="error">That name is taken.</c-alert>
+      </div>
+    </c-mvp.card>
   </div>
 {% endblock page.content %}

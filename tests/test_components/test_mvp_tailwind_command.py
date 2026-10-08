@@ -7,8 +7,13 @@ build their own CSS (Tier 2 in docs/styling.md).
 from io import StringIO
 from pathlib import Path
 
+import runpy
+
 import daisy_cotton
 from django.core.management import call_command
+
+import mvp.config
+from tests.daisy_cotton_classes import safelisted_classes
 
 
 def _run(*args):
@@ -78,3 +83,14 @@ class TestMVPTailwindCommand:
         assert '@source inline("{sm,md,lg,xl,2xl}:drawer-open");' in css
         assert ".mvp-sidebar--icons" in css
         assert ".mvp-rail-only" in css
+
+    def test_packaged_preset_safelists_the_classes_only_settings_name(self):
+        """A project's own build scans the package's templates, not its
+        settings module, so a class that is only a setting's default has to be
+        safelisted or the region it styles is left without it."""
+        preset = Path(_run("--paths").strip().splitlines()[0])
+        packaged = runpy.run_path(str(Path(mvp.config.__file__)))["MVP_CONFIG"]
+        layout = packaged["layout"]
+        named = set(layout["navbar"]["class"].split() + layout["dock"]["class"].split())
+
+        assert named <= safelisted_classes(preset.read_text(encoding="utf-8"))

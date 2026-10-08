@@ -111,6 +111,41 @@ application renders in the new colours.
 
 ---
 
+### User Story 4 - Colour the header, the dock and the sidebar from a theme (Priority: P3)
+
+A developer writing a theme wants the sidebar darker than the page, or the header in the brand colour, and
+wants that to change when the visitor changes theme. They add a block to the theme's CSS file that sets the
+design system's own properties under the region's class. The region takes the colour, the buttons and menus
+inside it stay readable because they read the same properties, and no setting or template was touched.
+
+**Why this priority**: A project could restyle the whole application from a theme but had to reach for a
+setting, a template attribute or a selector on the packaged markup to colour one part of the shell, and
+each of those holds one value for every theme. It ranks with US-3 because it is part of writing a theme.
+
+**Independent Test**: In a project offering two themes, write a block for one of them that recolours the
+sidebar. Switch between the two and confirm the sidebar changes with the theme, with no setting changed and
+no template overridden.
+
+**Acceptance Scenarios**:
+
+1. **Given** a theme that sets nothing for the shell, **When** a page is loaded, **Then** the header and
+   the mobile dock are drawn in the page's background and the sidebar in the second base surface.
+2. **Given** a theme that puts the page on another surface, **When** a page is loaded, **Then** the header
+   and the mobile dock follow the page without the theme naming them.
+3. **Given** a theme that sets a background under the header's, the dock's or the sidebar's class, **When**
+   a page is loaded, **Then** that region alone is drawn in it, and for the sidebar so are its header and
+   footer strips.
+4. **Given** a theme that sets the text colour under a region's class, **When** a page is loaded, **Then**
+   the region's text and the ghost buttons and menu items inside it are drawn in that colour.
+5. **Given** a theme that sets the surface and text colours under a region's class, **When** a dropdown
+   panel opens from that region, **Then** it is drawn in that pair.
+6. **Given** a project that passes a background class of its own for a region, **When** a page is loaded,
+   **Then** that class replaces the packaged one and the region keeps the class a theme selects on.
+7. **Given** the documentation, **When** a developer reads the theming page, **Then** it names each
+   region's class and the properties it paints from, with an example block for each.
+
+---
+
 ### Edge Cases
 
 - A project names a theme that neither ships with the package nor is provided by the project itself. No
@@ -187,6 +222,18 @@ application renders in the new colours.
 - **FR-021**: `CONTEXT.md` MUST define *theme* as a domain term, since the vocabulary is currently absent
   from the glossary.
 
+- **FR-022**: The header and the mobile dock MUST paint their background from the page's background
+  property and their text from the theme's base text colour.
+- **FR-023**: The sidebar and its header and footer strips MUST paint their background from the second
+  base surface and their text from the theme's base text colour.
+- **FR-024**: The header, the mobile dock, the sidebar and the sidebar's header and footer strips MUST
+  each carry a class of their own that a stylesheet can select on, kept when a project replaces the
+  region's background class.
+- **FR-025**: A dropdown panel MUST take its text colour from the theme properties in force where it
+  sits, as its surface does.
+- **FR-026**: The documentation MUST name each region's class and the properties it paints from, and show
+  how a theme recolours one.
+
 ### Requirement to story mapping
 
 | Story | Requirements |
@@ -194,6 +241,7 @@ application renders in the new colours.
 | US-1 — Apply a prebuilt theme by configuration | FR-001, FR-002, FR-003, FR-004, FR-005, FR-006, FR-014, FR-019, FR-020 |
 | US-2 — Let visitors choose from the themes a project offers | FR-007, FR-008, FR-009, FR-010 |
 | US-3 — Write and apply a theme of your own | FR-011, FR-012, FR-013, FR-015, FR-016, FR-017, FR-018, FR-021 |
+| US-4 — Colour the header, the dock and the sidebar from a theme | FR-022, FR-023, FR-024, FR-025, FR-026 |
 
 ### Key Entities
 

@@ -24,7 +24,10 @@
 
 /* Light. Ink carries primary actions, so the accent stays scarce and means
    something wherever it does appear. */
-[data-theme="mvp"] {
+[data-theme="mvp"],
+[data-theme="mvp-raised"],
+[data-theme="mvp-ink"],
+[data-theme="mvp-steel"] {
   color-scheme: light;
 
   /* Warm paper rather than pure white: the page is a surface someone chose. */
@@ -81,7 +84,8 @@
 /* Dark, designed and audited in its own right rather than derived from light:
    the hardest reader this package has is someone debugging in a dark editor at
    the end of a day, on a dependency they did not choose. */
-[data-theme="mvp-dark"] {
+[data-theme="mvp-dark"],
+[data-theme="mvp-dark-deep"] {
   color-scheme: dark;
 
   --color-base-100: #141817;
@@ -121,4 +125,94 @@
   --border: 1px;
   --depth: 0;
   --noise: 0;
+}
+
+/* Themes that colour the shell. Each shares a palette above and gives daisyUI's
+   properties other values inside one region. docs/theming.md has the rules. */
+
+/* The page one surface down, where daisyUI's theme generator previews a
+   palette. The header and dock follow it without being named. */
+[data-theme="mvp-raised"] {
+  --root-bg: var(--color-base-200);
+}
+
+[data-theme="mvp-raised"] .mvp-sidebar {
+  --color-base-200: var(--color-base-100);
+}
+
+/* The current item is drawn in neutral, which is the ink the sidebar now is,
+   so neutral becomes paper in here. */
+[data-theme="mvp-ink"] .mvp-sidebar {
+  --color-base-100: #232c2a;
+  --color-base-200: #171f1d;
+  --color-base-300: #3a4442;
+  --color-base-content: #f8f6f2;
+  --color-neutral: #f8f6f2;
+  --color-neutral-content: #171f1d;
+  --color-primary: #f8f6f2;
+  --color-primary-content: #171f1d;
+}
+
+/* The accent across the top and, on a phone, the bottom. */
+[data-theme="mvp-steel"] .mvp-header,
+[data-theme="mvp-steel"] .mvp-dock {
+  --root-bg: #375b78;
+  --color-base-100: #375b78;
+  --color-base-200: #2e4d66;
+  --color-base-300: #5b7a93;
+  --color-base-content: #ffffff;
+  --color-primary: #ffffff;
+  --color-primary-content: #1f3a50;
+}
+
+/* A sidebar darker than the page, and a header one step up from it. */
+[data-theme="mvp-dark-deep"] .mvp-header,
+[data-theme="mvp-dark-deep"] .mvp-dock {
+  --root-bg: var(--color-base-200);
+}
+
+[data-theme="mvp-dark-deep"] .mvp-sidebar {
+  --color-base-200: #0b0e0d;
+  --color-neutral: #ece9e3;
+  --color-neutral-content: #141817;
+}
+
+/* Prebuilt themes, added to by name. The palette stays daisyUI's. */
+
+/* nord's own dark half, in the sidebar only. */
+[data-theme="nord"] .mvp-sidebar {
+  --color-base-100: #434c5e;
+  --color-base-200: #3b4252;
+  --color-base-300: #4c566a;
+  --color-base-content: #eceff4;
+  --color-neutral: #eceff4;
+  --color-neutral-content: #2e3440;
+  --color-primary: #88c0d0;
+  --color-primary-content: #2e3440;
+}
+
+[data-theme="retro"] .mvp-header,
+[data-theme="retro"] .mvp-dock {
+  --root-bg: var(--color-primary);
+  --color-base-100: var(--color-primary);
+  --color-base-content: var(--color-primary-content);
+}
+
+[data-theme="retro"] .mvp-sidebar {
+  --color-base-200: var(--color-base-300);
+}
+
+[data-theme="business"] {
+  --root-bg: var(--color-base-200);
+}
+
+[data-theme="business"] .mvp-header,
+[data-theme="business"] .mvp-dock {
+  --root-bg: var(--color-base-100);
+}
+
+[data-theme="business"] .mvp-sidebar {
+  --color-base-200: var(--color-base-300);
+  --color-neutral: #cdcdcd;
+  --color-neutral-content: #202020;
 }

@@ -103,6 +103,7 @@ and every shipped theme sets it.
 | Property | Controls |
 | --- | --- |
 | `color-scheme` | Whether the browser renders its own UI (scrollbars, form controls, the built-in date picker) as `light` or `dark`, so native chrome doesn't clash with the theme. |
+| `--root-bg` | The page's own background. DaisyUI sets it to `base-100`, and a theme that wants the page on another surface says so here. The header and the mobile dock paint from it. |
 | `--color-base-100` | The page's primary background surface. |
 | `--color-base-200` | A background surface one step more contrasted than `base-100`, used for subtle separation (a card on the page, a table row). |
 | `--color-base-300` | A background surface two steps more contrasted than `base-100`, for stronger separation (a well, a disabled state). |
@@ -167,6 +168,90 @@ working.
 This also means you can override one of the shipped themes by name. Writing your own
 `[data-theme="dracula"]` block replaces the packaged Dracula theme everywhere in your
 project, without touching the package.
+
+## Coloring the header, the dock and the sidebar
+
+The header, the mobile dock and the sidebar paint themselves from the same properties as
+everything else, and set their text color from them:
+
+| Region | Class | Its background | Its text |
+| --- | --- | --- | --- |
+| Header | `.mvp-header` | `--root-bg`, the page's own background | `--color-base-content` |
+| Mobile dock | `.mvp-dock` | `--root-bg` | `--color-base-content` |
+| Sidebar, with its header and footer strips | `.mvp-sidebar` | `--color-base-200` | `--color-base-content` |
+
+A theme that says nothing about them keeps the header and dock on the page's background and
+the sidebar one surface down. Every prebuilt theme renders that way.
+
+A theme recolors a region by giving those properties other values inside it. The selector is
+the theme's own, followed by the region's class:
+
+```css
+/* A page one surface down, with the header and dock following it. */
+[data-theme="sunrise"] {
+  --root-bg: var(--color-base-200);
+}
+
+/* The sidebar on the surface the page left. */
+[data-theme="sunrise"] .mvp-sidebar {
+  --color-base-200: var(--color-base-100);
+}
+```
+
+The same block can set any other property from [the table above](#the-full-variable-table),
+and it applies to everything drawn inside the region. That matters because DaisyUI's
+components read the theme properties themselves and do not inherit a text color from the
+element around them. A ghost button reads `--color-base-content`, the current item in a
+menu reads `--color-neutral`, and a primary button reads `--color-primary`. Setting those
+properties on the region is what reaches them:
+
+```css
+/* A dark header on a light page. */
+[data-theme="sunrise"] .mvp-header,
+[data-theme="sunrise"] .mvp-dock {
+  --root-bg: oklch(35% 0.06 250);
+  --color-base-100: oklch(35% 0.06 250);
+  --color-base-200: oklch(30% 0.06 250);
+  --color-base-300: oklch(48% 0.05 250);
+  --color-base-content: oklch(98% 0.01 250);
+}
+
+/* A dark sidebar, with its current item drawn in a light color. */
+[data-theme="sunrise"] .mvp-sidebar {
+  --color-base-100: oklch(30% 0.02 80);
+  --color-base-200: oklch(25% 0.02 80);
+  --color-base-300: oklch(38% 0.02 80);
+  --color-base-content: oklch(95% 0.01 80);
+  --color-neutral: oklch(95% 0.01 80);
+  --color-neutral-content: oklch(25% 0.02 80);
+}
+```
+
+Three things to know when writing one of these blocks:
+
+- **Change `--color-base-content` and `--color-base-100` together.** A dropdown or a modal
+  that opens out of a region is drawn on `base-100` in `base-content`, read from where it
+  sits. A block that sets only the text color leaves light text on the theme's light panel.
+- **Write a value out when the same block changes the property you would read it from.**
+  `--color-base-200: var(--color-neutral)` beside a new `--color-neutral` takes the new
+  one, because both are resolved on the same element.
+- **A region can hold a whole theme.** Any theme written for `[data-theme="<name>"]`, from
+  DaisyUI's theme generator or from a prebuilt theme's file, works with the region's class
+  added to the selector. Add `--root-bg` for the header and dock, since a theme file does
+  not usually set it.
+
+A prebuilt theme can be added to by name in the same way, without redefining its palette:
+
+```css
+[data-theme="nord"] .mvp-sidebar {
+  --color-base-200: var(--color-base-300);
+}
+```
+
+The classes are part of the package's interface, as are `.mvp-sidebar-header` and
+`.mvp-sidebar-footer` for the sidebar's two strips. They stay on the regions when a project
+passes [a background class of its own](layout.md#header-and-dock-background), which
+replaces the packaged one and so stops that region following the theme.
 
 ## A worked example
 
