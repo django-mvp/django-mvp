@@ -230,7 +230,7 @@ Three context keys describe the state of the list:
 
 | Key | Value |
 | --- | --- |
-| `result_count` | How many records the list holds across every page, after search and filters |
+| `result_count` | How many records the list holds across every page, after search and filters. Override `get_result_count(context)` to count another way |
 | `refinements` | What is narrowing the list: the search first, then each applied filter. Empty when nothing is applied |
 | `clear_refinements_url` | The current URL with the search and every filter removed, and the ordering kept. Present only when `refinements` is not empty |
 

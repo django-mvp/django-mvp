@@ -375,6 +375,37 @@ class TestTableViewPagination:
         with django_assert_num_queries(len(one_row)):
             render_page()
 
+    def test_only_the_rows_on_the_page_are_fetched(self, db, rf):
+        ProductFactory.create_batch(8)
+
+        with CaptureQueriesContext(connection) as queries:
+            view = _prefetching_table_view_class()()
+            view.setup(rf.get("/"))
+            view.request.user = AnonymousUser()
+            view.get(view.request).render()
+
+        row_queries = [
+            query["sql"]
+            for query in queries
+            if 'FROM "demo_product"' in query["sql"] and "COUNT(" not in query["sql"]
+        ]
+        assert row_queries
+        assert all("LIMIT" in sql for sql in row_queries)
+
+    def test_result_count_counts_every_page_of_the_table(self, db, rf):
+        ProductFactory.create_batch(8)
+
+        context = _table_view_context(rf)
+
+        assert context["result_count"] == 8
+
+    def test_result_count_of_an_unpaginated_table_is_its_row_count(self, db, rf):
+        ProductFactory.create_batch(8)
+
+        context = _table_view_context(rf, paginate_by=None)
+
+        assert context["result_count"] == 8
+
     @pytest.mark.parametrize("query", ["", "?sort=name", "?sort=-name"])
     def test_footer_describes_the_rows_that_are_on_the_page(self, db, rf, query):
         ProductFactory.create_batch(8)
