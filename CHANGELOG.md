@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.28.0] - 2026-10-08
+
 ### Added
 
 - A theme can colour the header, the mobile dock and the sidebar. Each paints itself from
