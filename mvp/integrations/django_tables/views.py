@@ -104,6 +104,16 @@ class MVPTableViewMixin(MVPListViewMixin, SingleTableMixin):
         """
         return None, None, queryset, False
 
+    def get_result_count(self, context):
+        """Count the table's rows without fetching them.
+
+        The list view hands its queryset over whole and never paginates it,
+        so measuring that queryset would load every row of the table to
+        count them. The table counts its own data with one query, and its
+        paginator reuses the answer.
+        """
+        return len(context["table"].rows)
+
     def get_context_data(self, **kwargs):
         """Republish the table's page under the names the page chrome reads."""
         context = super().get_context_data(**kwargs)

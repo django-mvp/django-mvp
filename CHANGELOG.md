@@ -40,6 +40,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Breaking:** `<c-app.header>` has no `right` slot. Put that content in the `end` slot
   of `<c-app.navbar>`.
 
+### Fixed
+
+- A table page fetched every row of its table to work out `result_count`, on every
+  request, whatever the page size. It now counts them with the query the pager already
+  runs. `get_result_count()` is the hook a view overrides to count another way.
+
 ## [v0.27.1] - 2026-10-07
 
 ### Changed

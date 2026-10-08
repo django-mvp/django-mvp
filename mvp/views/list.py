@@ -496,6 +496,7 @@ class MVPListViewMixin(
         get_create_form(): Instantiate and return the create form, or ``None`` if not configured.
             Default implementation returns ``self.create_form_class()`` (unbound). Override to pass
             additional kwargs (e.g. request, user, initial data).
+        get_result_count(): Return how many records the list holds across every page.
         get_refinements(): Return what is narrowing the list: the search and each applied filter.
         get_url_without(): Return the current URL with the named query parameters removed.
 
@@ -557,10 +558,7 @@ class MVPListViewMixin(
         }
         context["list_item_template"] = self.get_list_item_template()
 
-        paginator = context.get("paginator")
-        context["result_count"] = (
-            paginator.count if paginator else len(context["object_list"])
-        )
+        context["result_count"] = self.get_result_count(context)
 
         refinements = self.get_refinements(context)
         context["refinements"] = refinements
@@ -577,6 +575,19 @@ class MVPListViewMixin(
             context["create_modal_title"] = title
 
         return context
+
+    def get_result_count(self, context: dict[str, Any]) -> int:
+        """Return how many records the list holds across every page.
+
+        Args:
+            context: The context built so far, read for the paginator and
+                the list itself.
+
+        Returns:
+            The paginator's count, or the length of an unpaginated list.
+        """
+        paginator = context.get("paginator")
+        return paginator.count if paginator else len(context["object_list"])
 
     def get_refinements(self, context: dict[str, Any]) -> list[dict[str, Any]]:
         """Return what is narrowing the list, as one entry per search or filter.
