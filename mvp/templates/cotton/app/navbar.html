@@ -1,14 +1,16 @@
 {# @description The header row: breadcrumb trail leading, actions trailing. #}
 {# @slot:start — Replaces the leading region: sidebar toggle, site icon, breadcrumb trail. #}
+{# @slot:breadcrumbs — The steps of the trail, as breadcrumbs.item components; replaces the trail the view declared. #}
 {# @slot:center — Content for the middle of the row; nothing is drawn there by default. #}
 {# @slot:end — Extra trailing content, drawn before the widgets listed in settings. #}
 {% load i18n %}
 {# The slots are declared so that an unfilled one is empty, rather than a #}
 {# page variable that happens to be called `start` or `end`. #}
-<c-vars start="" center="" end="" />
-{# The breadcrumb trail reads `page.breadcrumbs`, already in context on an MVP #}
-{# view; a page with no trail renders no navigation landmark at all, rather #}
-{# than an empty one for a screen reader to announce. #}
+<c-vars start="" breadcrumbs="" center="" end="" />
+{# The breadcrumb trail is the steps a template fills the slot with, or else #}
+{# `page.breadcrumbs`, already in context on an MVP view; a page with neither #}
+{# renders no navigation landmark at all, rather than an empty one for a #}
+{# screen reader to announce. #}
 <div class="navbar gap-2 px-3 w-full transition-shadow duration-100 print:hidden">
   <div class="navbar-start w-auto grow min-w-0 gap-1">
     {% if start.strip %}
@@ -31,7 +33,9 @@
       {# min-w-0 lets a long trail shrink rather than push the actions off the #}
       {# row: a flex item defaults to min-width:auto and won't go below its own #}
       {# content. The sideways scroll it then needs is daisyUI's own .breadcrumbs rule. #}
-      {% if page.breadcrumbs %}
+      {% if breadcrumbs.strip %}
+        <c-breadcrumbs class="min-w-0 text-sm" only>{{ breadcrumbs }}</c-breadcrumbs>
+      {% elif page.breadcrumbs %}
         <c-breadcrumbs :items="page.breadcrumbs" class="min-w-0 text-sm" only />
       {% endif %}
     {% endif %}

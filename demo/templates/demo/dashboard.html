@@ -1,5 +1,12 @@
 {% extends "mvp/dashboard.html" %}
 {% load i18n %}
+{% comment %}
+  The home view declares no trail, so this template names its own: the
+  worked example of the `app.breadcrumbs` block.
+{% endcomment %}
+{% block app.breadcrumbs %}
+  <c-breadcrumbs.item text="{% trans 'Dashboard' %}" />
+{% endblock app.breadcrumbs %}
 {% block page.content %}
   <c-mvp.section title="{% trans 'Welcome' %}" level="2">
     <p class="text-base-content/60">{% trans "Here is an overview of your application." %}</p>
