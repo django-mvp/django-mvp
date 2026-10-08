@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+
+- The demo's pages for button, link, badge, alert, divider and mockup. Those components
+  come from daisy-cotton, which documents them. The demo's Components section now lists
+  only what this package provides.
+
 ## [v0.28.0] - 2026-10-08
 
 ### Added
