@@ -171,7 +171,7 @@ class TestPaginationStaysReachable:
 
 class TestTheBarsSpanTheTable:
     @pytest.mark.django_db
-    def test_the_title_and_pagination_bars_are_as_wide_as_the_table(
+    def test_the_toolbar_and_pagination_bars_are_as_wide_as_the_table(
         self, page, live_server
     ):
         ProductFactory.create_batch(PRODUCT_COUNT)
@@ -179,37 +179,105 @@ class TestTheBarsSpanTheTable:
         page.goto(f"{live_server.url}{TABLE_PAGE}")
         widths = page.evaluate("""
             () => {
-              const w = el => el ? Math.round(el.getBoundingClientRect().width) : null;
-              const region = document.querySelector('[role="region"]');
-              const title = document.querySelector('.page-title');
+              const w = s => Math.round(
+                document.querySelector(s).getBoundingClientRect().width
+              );
               return {
-                region: w(region),
-                bar: w(title.parentElement),
-                title: w(title),
-                actions: w(title.lastElementChild),
-                actionsRight: Math.round(
-                  title.lastElementChild.getBoundingClientRect().right
-                ),
-                titleRight: Math.round(title.getBoundingClientRect().right),
+                region: w('[role="region"]'),
+                toolbar: w('.mvp-table-toolbar'),
+                title: w('.mvp-table-toolbar h1'),
+                footer: w('.mvp-list-footer'),
               };
             }
         """)
 
         assert widths["region"] > 0
-        # The bar spans the table. Its *content* is inset by the bar's own
+        # The bars span the table. Their *content* is inset by the bars' own
         # padding, which the table deliberately does not carry: the table
         # reaches the edges of the space the shell gives it so its scrollbar
         # hugs that edge (Sam, 2026-08-17 — padding belongs on the bars, not
-        # on the table). So the row is table-width and the content inside it
-        # is narrower, rather than the two being equal as they were before
-        # the bars gained padding.
-        assert widths["bar"] == widths["region"], (
-            "the bar is narrower than the table it sits over"
+        # on the table).
+        assert widths["toolbar"] == widths["region"], (
+            "the toolbar is narrower than the table it sits over"
         )
-        assert widths["title"] < widths["bar"], (
-            "the bar's content is not inset — the padding is missing"
+        assert widths["footer"] == widths["region"], (
+            "the pagination bar is narrower than the table it sits under"
         )
-        # And the actions really are at the trailing edge of that bar, not
-        # merely inside a bar that happens to be wide.
-        assert widths["actionsRight"] == widths["titleRight"]
-        assert widths["actions"] < widths["title"]
+        assert widths["title"] < widths["toolbar"]
+
+
+class TestTheFooterRowSitsAtTheBottom:
+    @at_every_viewport
+    @pytest.mark.django_db
+    def test_a_few_rows_leave_the_footer_row_at_the_bottom_of_the_table_area(
+        self, page, live_server, viewport
+    ):
+        ProductFactory.create_batch(3)
+        page.set_viewport_size(viewport)
+        page.goto(f"{live_server.url}{TABLE_PAGE}")
+        edges = page.evaluate("""
+            () => {
+              const region = document.querySelector('[role="region"]');
+              const bottom = el => Math.round(el.getBoundingClientRect().bottom);
+              return {
+                region: region.getBoundingClientRect().top + region.clientHeight,
+                footerRow: bottom(region.querySelector('tfoot tr')),
+                lastRow: bottom(
+                  region.querySelector('tbody tr:not(.mvp-table-filler):last-of-type')
+                    || region.querySelector('tbody tr')
+                ),
+              };
+            }
+        """)
+
+        assert abs(edges["footerRow"] - edges["region"]) <= 1
+        assert edges["lastRow"] < edges["footerRow"]
+
+    @at_every_viewport
+    @pytest.mark.django_db
+    def test_rows_keep_their_height_on_a_table_that_overflows(
+        self, page, live_server, viewport
+    ):
+        ProductFactory.create_batch(PRODUCT_COUNT)
+        page.set_viewport_size(viewport)
+        page.goto(f"{live_server.url}{TABLE_PAGE}")
+        heights = page.evaluate("""
+            () => {
+              const h = s => document.querySelector(s).getBoundingClientRect().height;
+              return {
+                filler: h('[role="region"] .mvp-table-filler'),
+                row: h('[role="region"] tbody tr'),
+                heading: h('[role="region"] thead tr'),
+              };
+            }
+        """)
+
+        assert heights["filler"] == 0
+        assert heights["row"] <= heights["heading"] * 1.5
+
+
+class TestTheToolbarOpensAndCloses:
+    @pytest.mark.django_db
+    def test_closing_the_toolbar_gives_its_height_to_the_table_and_is_remembered(
+        self, page, live_server
+    ):
+        ProductFactory.create_batch(PRODUCT_COUNT)
+        page.set_viewport_size(VIEWPORTS["desktop"])
+        page.goto(f"{live_server.url}{TABLE_PAGE}")
+        region_height = "() => document.querySelector('[role=\"region\"]').clientHeight"
+        toggle = page.locator('[aria-controls="mvpTableToolbarPanel"]')
+        panel = page.locator("#mvpTableToolbarPanel")
+
+        open_height = page.evaluate(region_height)
+        assert toggle.get_attribute("aria-expanded") == "true"
+        assert panel.is_visible()
+
+        toggle.click()
+
+        assert toggle.get_attribute("aria-expanded") == "false"
+        assert not panel.is_visible()
+        assert page.evaluate(region_height) > open_height
+
+        page.reload()
+
+        assert not page.locator("#mvpTableToolbarPanel").is_visible()

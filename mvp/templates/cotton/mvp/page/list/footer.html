@@ -1,18 +1,25 @@
 {# @description The foot of a list page: where the reader is in the list, and the way to the next page. Renders nothing when everything fits on one page. #}
 {# @prop page_obj:text | description:"The Django Page object being shown." #}
-{# @prop class:text | description:"Extra classes on the footer's root element." #}
+{# @prop size:select['sm','md','lg'] | description:"Size of the pager's buttons." #}
+{# @prop class:text | description:"Extra classes on the footer's root element, where its spacing is set." #}
 {% load i18n %}
-<c-vars page_obj class />
+<c-vars page_obj size class />
 {% if page_obj.paginator.num_pages > 1 %}
-  <div class="mvp-list-footer mt-5 w-full {{ class }}" {{ attrs }}>
-    {# From md: the range on the left, numbered pages on the right. #}
-    <div class="hidden md:flex items-center justify-between gap-4">
-      <p class="text-sm text-base-content/70">
-        {% blocktrans with start=page_obj.start_index end=page_obj.end_index total=page_obj.paginator.count %}Showing {{ start }}–{{ end }} of {{ total }}{% endblocktrans %}
-      </p>
-      <c-mvp.pagination :page_obj="page_obj" page_window="1" show_first_and_last />
-    </div>
-    {# Below md: two buttons a thumb can find, and the page count between. #}
-    <c-mvp.pagination.compact :page_obj="page_obj" class="md:hidden" />
+  <div class="mvp-list-footer w-full {{ class }}" {{ attrs }}>
+    {% comment %}
+      A component's `class` is visible to the components it calls, so the
+      footer's own spacing is cleared here before the pagers are drawn.
+    {% endcomment %}
+    {% with class="" %}
+      {# From md: the range on the left, numbered pages on the right. #}
+      <div class="hidden md:flex items-center justify-between gap-4">
+        <p class="text-sm text-base-content/70">
+          {% blocktrans with start=page_obj.start_index end=page_obj.end_index total=page_obj.paginator.count %}Showing {{ start }}–{{ end }} of {{ total }}{% endblocktrans %}
+        </p>
+        <c-mvp.pagination :page_obj="page_obj" page_window="1" show_first_and_last size="{{ size }}" />
+      </div>
+      {# Below md: two buttons a thumb can find, and the page count between. #}
+      <c-mvp.pagination.compact :page_obj="page_obj" size="{{ size }}" class="md:hidden" />
+    {% endwith %}
   </div>
 {% endif %}

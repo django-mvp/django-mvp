@@ -11,8 +11,7 @@
   *first* of a repeated attribute, so a caller's own label would be ignored.
 {% endcomment %}
 <c-vars table class label role="region" />
-<div class="overflow-auto table-pin-rows {{ class }}"
-     style="scrollbar-gutter: stable"
+<div class="mvp-table-region overflow-auto table-pin-rows bg-base-100 {{ class }}"
      tabindex="0"
      role="{{ role }}"
      aria-label="{{ label|default:_('Scrollable table') }}"

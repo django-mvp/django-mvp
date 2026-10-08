@@ -730,3 +730,105 @@
   opacity: 1;
   transition: opacity 200ms ease-in;
 }
+
+/* A full-page table's scroll region (<c-mvp.addons.django-table>).
+
+   The heading and footer rows are stuck to the region's edges by daisyUI's
+   table-pin-rows. These rules make them read as a frame while rows pass
+   underneath: a tint, and an edge drawn as an inset shadow, since a border
+   on a stuck cell of a collapsed-border table scrolls away with the row it
+   belonged to. */
+.mvp-table-region thead tr,
+.mvp-table-region tfoot tr {
+  background-color: var(--color-base-200);
+}
+
+.mvp-table-region thead :is(th, td) {
+  box-shadow: inset 0 -1px 0 var(--color-base-300);
+}
+
+.mvp-table-region tfoot :is(th, td) {
+  box-shadow: inset 0 1px 0 var(--color-base-300);
+}
+
+/* A row lights up under the pointer, so the eye can follow it across a table
+   wider than the screen. */
+.mvp-table-region tbody tr:not(.mvp-table-filler):hover,
+.mvp-table-region tbody tr:not(.mvp-table-filler):hover > th {
+  background-color: var(--color-base-200);
+}
+
+/* The footer row stays at the bottom of the region when the rows do not
+   reach it. The table is as tall as the region, and a table hands its spare
+   height to the rows with no height of their own. Every row is given a
+   nominal one, which a row's content still overrides, except the last: the
+   filler row takes the slack and is nothing at all when there is none. */
+.mvp-table-region {
+  container-type: inline-size;
+}
+
+.mvp-table-region > table {
+  height: 100%;
+}
+
+.mvp-table-region tr:not(.mvp-table-filler) {
+  height: 1px;
+}
+
+.mvp-table-region .mvp-table-filler,
+.mvp-table-region .mvp-table-filler > td {
+  padding: 0;
+  border: 0;
+}
+
+/* The empty state is centred in what the reader can see, not in a table
+   that may be several screens wide: it stays at the region's leading edge
+   and is as wide as the region. */
+.mvp-table-empty {
+  position: sticky;
+  inset-inline-start: 0;
+  width: 100cqw;
+  max-width: 100%;
+}
+
+
+/* table-pin-cols sticks every <th> to the inline edges, and this table's
+   heading row is all <th>. Only the heading of a row-header column should
+   stay put when the table scrolls sideways. It sits above both the stuck row
+   it is in and the stuck column under it. */
+:is(.mvp-table-region.table-pin-cols, .mvp-table-region .table-pin-cols) thead th:not([data-row-header]) {
+  position: static;
+}
+
+:is(.mvp-table-region.table-pin-cols, .mvp-table-region .table-pin-cols) thead th {
+  background-color: var(--color-base-200);
+}
+
+:is(.mvp-table-region.table-pin-cols, .mvp-table-region .table-pin-cols) thead th[data-row-header] {
+  z-index: 2;
+}
+
+:is(.mvp-table-region.table-pin-cols, .mvp-table-region .table-pin-cols) tbody th {
+  box-shadow: inset -1px 0 0 var(--color-base-300);
+}
+
+/* The footer row's cell under a pinned column stays with it, so the row's
+   label does not scroll away from the figures it names. */
+:is(.mvp-table-region.table-pin-cols, .mvp-table-region .table-pin-cols) tfoot th {
+  background-color: var(--color-base-200);
+  box-shadow: inset 0 1px 0 var(--color-base-300);
+}
+
+/* On a narrow screen a pinned column may not take the screen with it: it is
+   held to under half the width, and a longer value is cut with an ellipsis.
+   The full value is one tap away on the record's own page. */
+@media (width < 48rem) {
+  :is(.mvp-table-region.table-pin-cols, .mvp-table-region .table-pin-cols) tbody th,
+  :is(.mvp-table-region.table-pin-cols, .mvp-table-region .table-pin-cols) tfoot th,
+  :is(.mvp-table-region.table-pin-cols, .mvp-table-region .table-pin-cols) thead th[data-row-header] {
+    max-width: min(45vw, 12rem);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}

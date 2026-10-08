@@ -65,7 +65,7 @@
     {% endblock page.results %}
   </div>
   {% block page.pagination %}
-    {% if page_obj %}<c-mvp.page.list.footer :page_obj="page_obj" />{% endif %}
+    {% if page_obj %}<c-mvp.page.list.footer :page_obj="page_obj" class="mt-5" />{% endif %}
   {% endblock page.pagination %}
 {% endblock page.content %}
 {% block extra_js %}

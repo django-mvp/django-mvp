@@ -3,6 +3,7 @@
 {# @prop page_window:number | default:5 | description:"How many page numbers to show on either side of the current page." #}
 {# @prop use_icons:boolean | description:"Show arrow icons instead of text on the first/previous/next/last controls." #}
 {# @prop show_first_and_last:boolean | description:"Swap the First/Last text controls for the first and last page numbers." #}
+{# @prop size:select['sm','md','lg'] | description:"Size of every control in the pager." #}
 {# @prop label:text | default:"Navigation page results" | description:"Accessible name for the pagination <nav>, passed through to c-mvp.pagination.wrapper via attrs." #}
 {% load i18n %}
 {% comment %}
@@ -13,11 +14,12 @@
 <c-vars page_obj
         page_window="5"
         use_icons
-        show_first_and_last />
+        show_first_and_last
+        size />
 {% if page_obj.paginator.num_pages > 1 %}
   <c-mvp.pagination.wrapper :attrs="attrs">
     {% if not show_first_and_last %}
-      <c-mvp.pagination.link :page="1"
+      <c-mvp.pagination.link size="{{ size }}" :page="1"
                          :disabled="{{ page_obj.has_previous|yesno:"False,True" }}"
                          text="{% trans "First" %}">
         {% if use_icons %}
@@ -33,7 +35,7 @@
         {% endif %}
       </c-mvp.pagination.link>
     {% endif %}
-    <c-mvp.pagination.link :page="{% if page_obj.has_previous %}{{ page_obj.previous_page_number }}{% endif %}"
+    <c-mvp.pagination.link size="{{ size }}" :page="{% if page_obj.has_previous %}{{ page_obj.previous_page_number }}{% endif %}"
                        :disabled="{{ page_obj.has_previous|yesno:"False,True" }}"
                        text="{% trans "Previous" %}">
       {% if use_icons %}
@@ -50,24 +52,24 @@
     {% with "-"|add:page_window as negative_window %}
       {% for num in page_obj.paginator.page_range %}
         {% if forloop.first or forloop.last and show_first_and_last %}
-          <c-mvp.pagination.link page="{{ num }}"
+          <c-mvp.pagination.link size="{{ size }}" page="{{ num }}"
                              text="{{ num }}"
                              :active="{% if num == page_obj.number %}True{% endif %}" />
         {% elif num >= page_obj.number|add:negative_window and num <= page_obj.number|add:page_window %}
-          <c-mvp.pagination.link page="{{ num }}"
+          <c-mvp.pagination.link size="{{ size }}" page="{{ num }}"
                              text="{{ num }}"
                              :active="{% if num == page_obj.number %}True{% endif %}" />
         {% elif show_first_and_last and num == 2 and num == page_obj.number|add:negative_window|add:"-1" %}
           {# An ellipsis standing for one page is longer than the page's own number. #}
-          <c-mvp.pagination.link page="{{ num }}" text="{{ num }}" />
+          <c-mvp.pagination.link size="{{ size }}" page="{{ num }}" text="{{ num }}" />
         {% elif show_first_and_last and num == page_obj.paginator.num_pages|add:"-1" and num == page_obj.number|add:page_window|add:"1" %}
-          <c-mvp.pagination.link page="{{ num }}" text="{{ num }}" />
+          <c-mvp.pagination.link size="{{ size }}" page="{{ num }}" text="{{ num }}" />
         {% elif num == page_obj.number|add:negative_window|add:"-1" or num == page_obj.number|add:page_window|add:"1" %}
-          <c-mvp.pagination.link text="..." disabled />
+          <c-mvp.pagination.link size="{{ size }}" text="..." disabled />
         {% endif %}
       {% endfor %}
     {% endwith %}
-    <c-mvp.pagination.link :page="{% if page_obj.has_next %}{{ page_obj.next_page_number }}{% endif %}"
+    <c-mvp.pagination.link size="{{ size }}" :page="{% if page_obj.has_next %}{{ page_obj.next_page_number }}{% endif %}"
                        :disabled="{{ page_obj.has_next|yesno:"False,True" }}"
                        text="{% trans "Next" %}">
       {% if use_icons %}
@@ -82,7 +84,7 @@
       {% endif %}
     </c-mvp.pagination.link>
     {% if not show_first_and_last %}
-      <c-mvp.pagination.link :page="{{ page_obj.paginator.num_pages }}"
+      <c-mvp.pagination.link size="{{ size }}" :page="{{ page_obj.paginator.num_pages }}"
                          :disabled="{{ page_obj.has_next|yesno:"False,True" }}"
                          text="{% trans "Last" %}">
         {% if use_icons %}
