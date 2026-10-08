@@ -233,6 +233,10 @@ way any other page built on `PageMixin` does — a static list for a fixed trail
 `NotificationsView` composes its own access-control mixin, `LoginRequiredMixin` here,
 because the area does not decide another app's access rules.
 
+A page whose view belongs to another package, and so cannot declare `breadcrumbs`, names
+its trail in the template instead, by filling the
+[`app.breadcrumbs` block](layout.md#a-trail-from-a-template).
+
 ### Per-request visibility
 
 A menu entry carrying a `check` is shown only to the requests it answers yes for; an entry

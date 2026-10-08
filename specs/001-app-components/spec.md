@@ -110,6 +110,23 @@ As a developer, I can fill a template block for one region of the sidebar or the
 
 ---
 
+### User Story 5 - Give a Page Its Breadcrumb Trail From a Template (Priority: P2) [Developer]
+
+As a developer, I can fill a template block with the steps of a breadcrumb trail so a page whose view I do not own still shows where it sits.
+
+**Audience**: Developer
+**Why this priority**: A package that wraps another package's views owns their templates and not their views, so the trail a view declares is out of its reach.
+**Independent Test**: A developer extends `mvp/base.html` from a template rendered by a plain Django view, fills `app.breadcrumbs` with two steps, and confirms the header draws them beside the sidebar toggle and site icon.
+
+**Acceptance Scenarios**:
+
+1. **Given** a template that leaves `app.breadcrumbs` empty and a view that declares no trail, **When** the page renders, **Then** the header draws no breadcrumb navigation.
+2. **Given** a template that leaves `app.breadcrumbs` empty and a view that declares a trail, **When** the page renders, **Then** the header draws the view's trail.
+3. **Given** a template that fills `app.breadcrumbs`, **When** the page renders, **Then** its content is drawn as the steps of the header's trail, and the sidebar toggle and site icon are unchanged.
+4. **Given** a template that fills `app.breadcrumbs` and a view that declares a trail, **When** the page renders, **Then** the template's steps are drawn and the view's are not.
+
+---
+
 ### Edge Cases
 
 - Integrator supplies unknown or misspelled layout attributes (handled by django-cotton behavior, not by this feature).

@@ -211,10 +211,9 @@ class ProductDetailView(MVPDetailView):
         return [{"text": "Products", "href": "/products/"}, {"text": str(self.object)}]
 ```
 
-A page that declares no trail — the entrance, the error pages, anything not built on
-an MVP view — renders no navigation landmark at all, rather than an empty one for a
-screen reader to announce. A long trail shrinks rather than pushing the widgets off
-the row: each crumb gives up width and ellipsises its own text before the next one
+A page with no trail — the entrance, the error pages — renders no navigation landmark at
+all, rather than an empty one for a screen reader to announce. A long trail shrinks
+rather than pushing the widgets off the row: each crumb gives up width and ellipsises its own text before the next one
 does, so the whole path stays visible. Horizontal scrolling is the last resort, for a
 width where even every crumb truncated still will not fit.
 
@@ -246,6 +245,32 @@ Putting the trail in the header rather than above the page body gives every page
 a row of vertical space, and puts "where am I" where a person already looks for it.
 To draw a trail somewhere else instead, place `<c-breadcrumbs :items="page.breadcrumbs" />`
 wherever you want it and override the `app.header` block with your own header.
+
+### A trail from a template
+
+A page whose view is not an MVP view has no `breadcrumbs` list to read. That is the usual
+case when your templates wrap another package's views. Fill the `app.breadcrumbs` block
+with the steps instead, one `<c-breadcrumbs.item>` each. A step with an `href` is a link,
+and the one without is the current page:
+
+```html
+{% extends "base.html" %}
+
+{% block app.breadcrumbs %}
+  <c-breadcrumbs.item text="Account Center" href="{% url 'account-center' %}" />
+  <c-breadcrumbs.item text="Email addresses" />
+{% endblock app.breadcrumbs %}
+```
+
+The block holds the steps only. The header draws the `<nav>` around them, in the same
+place and with the same shrinking behaviour as a trail from a view.
+
+- A filled block replaces the trail the view declared. The two are not joined.
+- A block left empty, or holding only whitespace, falls back to the view's trail.
+- `{{ block.super }}` gives the steps of the template you extend, so a child template can
+  add a step to its parent's trail. It does not give the view's trail.
+- A template that fills `app.navbar.start` has replaced the whole leading region, trail
+  included, so `app.breadcrumbs` draws nothing there.
 
 ## Navbar widgets
 
@@ -663,6 +688,7 @@ the sidebar carries the area's menu.
 | `app.header` | the header: the navbar, then the tray |
 | `app.navbar` | the navbar row. The tray is left alone |
 | `app.navbar.start` | the navbar's leading region: sidebar toggle, site icon, breadcrumbs |
+| `app.breadcrumbs` | the steps of the [breadcrumb trail](#a-trail-from-a-template). Left empty, the trail the view declared |
 | `app.navbar.center` | nothing by default. Its content sits in the middle of the row |
 | `app.navbar.end` | nothing by default. Its content is added before the [configured widgets](#navbar-widgets) |
 | `app.header.tray` | nothing by default. A full-width row below the navbar |
@@ -798,8 +824,9 @@ and the defaults around it are different:
 | `tray` | Below the navbar, full width, inside the header region | `{% block app.header.tray %}` |
 | `below` | Below the tray, same region | Restating `<c-app.header>` in the `app.header` block |
 
-`<c-app.navbar>` has three slots, `start`, `center` and `end`, fed by the
-`app.navbar.start`, `app.navbar.center` and `app.navbar.end` blocks.
+`<c-app.navbar>` has four slots. `start`, `center` and `end` are fed by the
+`app.navbar.start`, `app.navbar.center` and `app.navbar.end` blocks, and `breadcrumbs` by
+the `app.breadcrumbs` block.
 
 So `app.header.tray` feeds the `tray` slot specifically, not `below`. The two
 render in the same region and differ only in order. To reach `above` or
@@ -815,6 +842,7 @@ them stops being reachable:
     {% block app.navbar %}
       <c-app.navbar>
         <c-slot name="start">{% block app.navbar.start %}{% endblock app.navbar.start %}</c-slot>
+        <c-slot name="breadcrumbs">{% block app.breadcrumbs %}{% endblock app.breadcrumbs %}</c-slot>
         <c-slot name="center">{% block app.navbar.center %}{% endblock app.navbar.center %}</c-slot>
         <c-slot name="end">{% block app.navbar.end %}{% endblock app.navbar.end %}</c-slot>
       </c-app.navbar>
