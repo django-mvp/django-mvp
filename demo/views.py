@@ -294,6 +294,11 @@ layout_header_demo = LayoutPageView.as_view(
             "filled": REPLACES,
         },
         {
+            "name": "app.breadcrumbs",
+            "default": "The breadcrumbs the view declared.",
+            "filled": "Its steps are drawn as the trail instead.",
+        },
+        {
             "name": "app.navbar.center",
             "default": "Nothing.",
             "filled": "Its content sits in the middle of the row.",

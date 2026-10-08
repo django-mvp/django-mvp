@@ -16,6 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   [Template blocks](docs/layout.md#template-blocks).
 - `<c-app.sidebar>` takes `header`, `body` and `footer` slots, and `<c-app.navbar>` takes
   `start`, `center` and `end`.
+- An `app.breadcrumbs` block, and a matching `breadcrumbs` slot on `<c-app.navbar>`, so a
+  template can give a page its breadcrumb trail when the view declares none. The block
+  holds `<c-breadcrumbs.item>` steps, and a filled block replaces the view's trail. See
+  [Breadcrumbs](docs/layout.md#a-trail-from-a-template).
 - The demo project has a Layout group that draws the shell, the sidebar and the header
   with their blocks, and gives an example override for each.
 
