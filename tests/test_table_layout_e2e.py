@@ -17,6 +17,7 @@ in either mechanism only shows up at the viewport that depends on it.
 """
 
 import pytest
+from playwright.sync_api import expect
 
 from tests.conftest import requires_browser
 from tests.factories import ProductFactory
@@ -269,15 +270,16 @@ class TestTheToolbarOpensAndCloses:
         panel = page.locator("#mvpTableToolbarPanel")
 
         open_height = page.evaluate(region_height)
-        assert toggle.get_attribute("aria-expanded") == "true"
-        assert panel.is_visible()
+        expect(toggle).to_have_attribute("aria-expanded", "true")
+        expect(panel).to_be_visible()
 
         toggle.click()
 
-        assert toggle.get_attribute("aria-expanded") == "false"
-        assert not panel.is_visible()
+        # Each `expect` waits: the panel is hidden a frame after the click.
+        expect(toggle).to_have_attribute("aria-expanded", "false")
+        expect(panel).to_be_hidden()
         assert page.evaluate(region_height) > open_height
 
         page.reload()
 
-        assert not page.locator("#mvpTableToolbarPanel").is_visible()
+        expect(page.locator("#mvpTableToolbarPanel")).to_be_hidden()
