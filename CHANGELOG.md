@@ -9,6 +9,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- The table page's toolbar opens and closes. A button at the end of its bar hides the
+  panel holding search, filter and add, which gives that height to the rows, and the
+  choice is remembered in the browser. While a search or filter is applied the bar says
+  how many, open or closed. See
+  [The toolbar opens and closes](docs/integrations.md#the-toolbar-opens-and-closes).
+- The table page shows the applied search and filters in its toolbar, each as a control
+  that removes it, as the list page does.
+- Template blocks for each part of the table page's toolbar: `page.toolbar`,
+  `page.summary`, `page.panel`, `page.search`, `page.controls` and `page.refinements`.
+  See
+  [Putting your own controls in the toolbar](docs/integrations.md#putting-your-own-controls-in-the-toolbar).
+- `<c-mvp.page.table.toolbar>`, the band above a full-page table.
+- On a phone, the pager's page number is a select holding every page, so any page is
+  one choice away. This applies to list and table pages.
+- A `size` attribute on `<c-mvp.pagination>`, `<c-mvp.pagination.compact>` and
+  `<c-mvp.page.list.footer>`.
 - Template blocks for the regions of the sidebar and the navbar: `app.sidebar.header`,
   `app.sidebar.body`, `app.sidebar.footer`, `app.navbar`, `app.navbar.start`,
   `app.navbar.center` and `app.navbar.end`. A block left empty draws the packaged region,
@@ -25,6 +41,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **The table page is laid out again.** The title, the info icon and a count of the
+  records sit in one bar. Search, filter and add sit in a panel under it, with add
+  beside filter. The pager is the list page's: the range shown and numbered pages on a
+  wide screen, Previous, a page picker and Next on a phone, and nothing for a single
+  page. See [django-tables2](docs/integrations.md#django-tables2).
+- On a table page, `page.actions` is now an empty block at the end of the toolbar's bar.
+  The add button moved to `page.controls`. A template that overrode `page.actions` to
+  add a button beside the others should override `page.controls`.
+- A table's footer row stays at the bottom of the table area when the rows do not reach
+  it, and a table with no rows shows its empty state between the heading row and the
+  footer row. The empty state is the list page's, including its nothing-matches form.
+- The table area no longer reserves space for a scrollbar it is not showing.
+- The heading and footer rows of a table in `<c-mvp.addons.django-table>` are tinted,
+  and a row is highlighted under the pointer.
+- With `table-pin-cols`, only the heading of a row-header column stays in view on
+  sideways scroll. Every heading used to stick to the edge. The footer cell under a
+  row-header column is now a `<th scope="row">` and stays with the column. On a narrow
+  screen a pinned column is held to under half the width.
+- The filter dialog opens as a panel at the trailing edge of the screen, with a close
+  button, on list and table pages. Its submit button is the default size.
+- `<c-mvp.page.list.footer>` no longer adds a top margin of its own. Pass
+  `class="mt-5"` where you call it yourself.
 - **Breaking:** the app shell's components lose the `mvp.` prefix. `<c-mvp.app>` is
   `<c-app>`, `<c-mvp.app.sidebar>` is `<c-app.sidebar>`, and so on for the header, main,
   footer and dock. `<c-mvp.app.header.navbar>` is `<c-app.navbar>`. The templates moved

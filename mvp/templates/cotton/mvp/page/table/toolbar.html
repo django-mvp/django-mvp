@@ -1,0 +1,38 @@
+{# @description The band above a full-page table. A bar that is always shown holds the title and the page's actions. A panel under it holds search, filters and anything else, and a toggle in the bar opens and closes it. The choice is remembered in the browser. #}
+{# @prop title:text | description:"Start of the bar: the heading and anything beside it." #}
+{# @prop actions:text | description:"End of the bar: the page's own actions. Always shown." #}
+{# @prop note:text | description:"Words shown in a badge beside the toggle, open or closed, for something in the panel the reader should know about, such as how many filters are applied." #}
+{# @prop storage_key:text | default:"mvp-table-toolbar" | description:"Name the open or closed choice is remembered under." #}
+{# @prop class:text | description:"Extra classes on the toolbar's root element." #}
+{# @slot Search, filters, buttons — the panel's content. With none, there is no panel and no toggle. #}
+{% load i18n mvp %}
+<c-vars title actions note storage_key="mvp-table-toolbar" class />
+<div class="mvp-table-toolbar shrink-0 border-b border-base-300 bg-base-100 {{ class }}"
+     x-data="{ open: $persist(true).as('{{ storage_key }}') }"
+     {{ attrs }}>
+  <div class="mvp-table-toolbar-bar page-title flex items-center gap-3 px-4 py-2">
+    <div class="flex items-center gap-x-3 gap-y-1 min-w-0 grow">{{ title }}</div>
+    <div class="flex shrink-0 items-center gap-2">
+      {{ actions }}
+      {% if not slot|slot_is_empty %}
+        {% if note %}
+          <span class="mvp-table-toolbar-note badge badge-secondary badge-sm whitespace-nowrap">{{ note }}</span>
+        {% endif %}
+        <button type="button"
+                class="btn btn-sm btn-ghost btn-square"
+                aria-controls="mvpTableToolbarPanel"
+                aria-label="{% trans "Show or hide the toolbar" %}"
+                :aria-expanded="open.toString()"
+                @click="open = !open">
+          <span x-show="open"><c-icon name="chevron-up" aria-hidden="true" /></span>
+          <span x-show="!open" style="display: none"><c-icon name="chevron-down" aria-hidden="true" /></span>
+        </button>
+      {% endif %}
+    </div>
+  </div>
+  {% if not slot|slot_is_empty %}
+    <div id="mvpTableToolbarPanel"
+         class="mvp-table-toolbar-panel flex flex-col gap-3 px-4 pb-3"
+         x-show="open">{{ slot }}</div>
+  {% endif %}
+</div>

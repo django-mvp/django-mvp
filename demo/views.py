@@ -695,6 +695,35 @@ class DataTablesView(MVPTableViewMixin, FilterView):
     filterset_fields = ["name", "category__name", "price", "stock", "status"]
 
 
+class CustomToolbarTableView(MVPTableViewMixin, FilterView):
+    """The product table with a toolbar a project has filled in for itself."""
+
+    model = Product
+    table_class = ProductTable
+    template_name = "demo/table_custom_toolbar.html"
+    page_title = "Stock"
+    page_subtitle = "Every product, with what is left of it."
+    paginate_by = 25
+    search_fields = ["name", "description"]
+    show_create_action = True
+    filterset_fields = ["status", "priority"]
+
+
+class EmptyTableView(DataTablesView):
+    """The product table with no records in it."""
+
+    def get_queryset(self):
+        """Return no products at all."""
+        return Product.objects.none()
+
+
+class BareTableView(MVPTableView):
+    """A table with no search, filter, add action or pagination."""
+
+    model = Product
+    table_class = ProductTable
+
+
 class ColumnBehaviourTableView(MVPTableView):
     """Demo page for the column behaviour classes (issue #255).
 

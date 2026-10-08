@@ -804,12 +804,17 @@ the full-height layout depends on. All six `page.*` names are re-declared, so
 an override you wrote still applies. It lands in a different position, though,
 and the defaults around it are different:
 
-- `page.header` is empty, as it is on every other page. The heading is a plain
-  `<h1>` in the title bar; the breadcrumb trail is drawn by the app header.
-- `page.actions` does not call `{{ block.super }}`, and its default action set
-  deliberately excludes sort.
-- `page.footer` holds the row count and pagination, in a bar pinned below the
-  rows.
+- `page.header` is empty, as it is on every other page. Anything you put in it is
+  drawn above the toolbar. The breadcrumb trail is drawn by the app header.
+- `page.title` is the start of the toolbar's bar: a plain `<h1>`, the info icon, the
+  count and the subtitle, in one row.
+- `page.actions` is empty. It sits at the end of the bar and is the place for an
+  action that should stay when the toolbar's panel is closed. The add button is in
+  `page.controls`, in the panel, beside the filter button.
+- `page.footer` holds the pager, in a bar pinned below the rows. It is not drawn for
+  a single page.
+- The toolbar adds blocks of its own. See
+  [Putting your own controls in the toolbar](integrations.md#putting-your-own-controls-in-the-toolbar).
 - `app.footer` is blanked to an empty block. The shell footer does not render
   on a table page. Restore it in your own template if you want it back.
 

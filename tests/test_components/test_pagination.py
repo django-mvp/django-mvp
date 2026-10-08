@@ -75,3 +75,63 @@ class TestPaginationGaps:
 
         numbers = [text for text in texts if text.isdigit()]
         assert numbers == ["1", "2", "9"]
+
+
+class TestCompactPagination:
+    def _render(self, cotton_render_string_soup, number, pages=4, query=""):
+        from django.test import RequestFactory
+
+        page_obj = Paginator(list(range(pages)), 1).page(number)
+        return cotton_render_string_soup(
+            '<c-mvp.pagination.compact :page_obj="page_obj" />',
+            context={
+                "page_obj": page_obj,
+                "request": RequestFactory().get(f"/products/{query}"),
+            },
+        )
+
+    def test_every_page_is_an_option_holding_its_own_address(
+        self, cotton_render_string_soup
+    ):
+        soup = self._render(cotton_render_string_soup, number=2, query="?q=lamp")
+
+        options = soup.find("select").find_all("option")
+        assert [option.get_text(strip=True) for option in options] == [
+            "1",
+            "2",
+            "3",
+            "4",
+        ]
+        assert options[2]["value"] == "?q=lamp&page=3"
+
+    def test_the_current_page_is_the_selected_option(self, cotton_render_string_soup):
+        soup = self._render(cotton_render_string_soup, number=3)
+
+        selected = [
+            o for o in soup.find("select").find_all("option") if o.has_attr("selected")
+        ]
+        assert [option.get_text(strip=True) for option in selected] == ["3"]
+
+    def test_one_page_draws_nothing(self, cotton_render_string_soup):
+        soup = self._render(cotton_render_string_soup, number=1, pages=1)
+
+        assert soup.find("nav") is None
+
+
+class TestListFooterSpacing:
+    def test_the_footer_spacing_does_not_reach_the_pager_buttons(
+        self, cotton_render_string_soup
+    ):
+        from django.test import RequestFactory
+
+        soup = cotton_render_string_soup(
+            '<c-mvp.page.list.footer :page_obj="page_obj" class="px-4" />',
+            context={
+                "page_obj": Paginator(list(range(30)), 10).page(2),
+                "request": RequestFactory().get("/products/"),
+            },
+        )
+
+        assert "px-4" in soup.find(class_="mvp-list-footer")["class"]
+        for control in soup.find_all(["a", "button", "nav", "select"]):
+            assert "px-4" not in control.get("class", [])

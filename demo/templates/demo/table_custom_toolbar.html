@@ -1,0 +1,24 @@
+{% extends "table_view.html" %}
+{% load i18n %}
+{% comment %}
+  A project filling the toolbar for itself: two filters as selects in the
+  panel in place of the filter dialog, and two more buttons beside them.
+{% endcomment %}
+{% block page.controls %}
+  <form id="filterForm" method="get" action="." class="hidden"></form>
+  {% for field in filter.form %}
+    <label class="select select-sm w-auto">
+      <span class="label">{{ field.label }}</span>
+      <select name="{{ field.html_name }}"
+              form="filterForm"
+              onchange="this.form.submit()">
+        {% for value, label in field.field.choices %}
+          <option value="{{ value }}"{% if field.value == value %} selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </label>
+  {% endfor %}
+  <c-button size="sm" icon="table" text="Columns" type="button" />
+  <c-button size="sm" icon="export" text="Export" href="#" />
+  <c-mvp.page.list.actions.create />
+{% endblock page.controls %}

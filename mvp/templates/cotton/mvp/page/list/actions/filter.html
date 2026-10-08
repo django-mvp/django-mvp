@@ -23,6 +23,9 @@
   <c-mvp.modal id="filterModal"
            title="{{ label }}"
            icon="{{ icon }}"
+           position="end"
+           size="sm"
+           closable
            only>
     <c-mvp.form id="filterForm"
             method="get"
@@ -41,7 +44,6 @@
     <c-slot name="footer_end">
       <c-button text="{% trans "Apply filters" %}"
                 form="filterForm"
-                size="lg"
                 variant="primary"
                 type="submit" only>
         <c-icon name="arrow-right" />

@@ -110,6 +110,13 @@ urlpatterns = [
     path("forms/complex/", ComplexFormDemoView.as_view(), name="complex-form-demo"),
     path("django-tables2/", views.DataTablesView.as_view(), name="djangotables2"),
     path(
+        "django-tables2/custom-toolbar/",
+        views.CustomToolbarTableView.as_view(),
+        name="table-custom-toolbar",
+    ),
+    path("django-tables2/none/", views.EmptyTableView.as_view(), name="table-none"),
+    path("django-tables2/bare/", views.BareTableView.as_view(), name="table-bare"),
+    path(
         "django-tables2/column-behaviour/",
         views.ColumnBehaviourTableView.as_view(),
         name="table-column-behaviour",
