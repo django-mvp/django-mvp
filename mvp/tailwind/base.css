@@ -7,6 +7,28 @@
  *     python manage.py mvp_tailwind
  */
 
+/* The header and dock paint from the page's background and the sidebar from
+   base-200, so a theme recolours one by setting those properties under its
+   class. A project's own class replaces these. See docs/theming.md. */
+@utility mvp-header-bg {
+  background-color: var(--root-bg);
+  color: var(--color-base-content);
+}
+
+@utility mvp-dock-bg {
+  background-color: var(--root-bg);
+  color: var(--color-base-content);
+}
+
+@utility mvp-sidebar-bg {
+  background-color: var(--color-base-200);
+  color: var(--color-base-content);
+}
+
+/* Safelist: the header's and dock's classes are named in mvp/config.py, which a
+   project's own build does not scan. */
+@source inline("mvp-{header,dock}-bg");
+
 /* Drawer-state variants: style descendants of a .drawer based on its
    .drawer-toggle checkbox state (checked = open, unchecked = closed). */
 @custom-variant is-drawer-open (&:is(.drawer:has(> .drawer-toggle:checked) *));
@@ -589,7 +611,9 @@
    middle of the page. `color` and `padding` are cleared for a different reason:
    the panel inherited its text colour and had no padding of its own until the
    moment it became a popover, and the browser default would repaint it in the
-   system colour, which in a dark theme is dark text on a dark panel.
+   system colour, which in a dark theme is dark text on a dark panel. The colour
+   is read from the theme where the panel sits, the same place its base-100
+   background is read from, so the two always belong together.
 
    The open state has to be stated because DaisyUI hides `.dropdown-content`
    whenever the wrapper is neither hovered nor focused within, and a panel
@@ -600,7 +624,7 @@
   inset: auto;
   margin: 0;
   padding: 0;
-  color: inherit;
+  color: var(--color-base-content);
 }
 
 .dropdown-content[popover]:popover-open {

@@ -143,9 +143,27 @@ MVP_CONFIG = {
         # docs/theming.md, defined in demo/static/css/themes.css.
         "default": "mvp",
         "dark": "mvp-dark",
-        # Site pair first so the demo opens in the brand; the rest are the
-        # package's prebuilt themes.
-        "choices": ["mvp", "mvp-dark", "light", "dracula", "synthwave"],
+        # Site pair first so the demo opens in the brand. The next four are
+        # the same two palettes with the shell coloured, then three prebuilt
+        # themes the demo adds shell colours to, then prebuilt themes left
+        # exactly as daisyUI ships them. All in demo/static/css/themes.css.
+        "choices": [
+            "mvp",
+            "mvp-dark",
+            "mvp-raised",
+            "mvp-ink",
+            "mvp-steel",
+            "mvp-dark-deep",
+            "nord",
+            "retro",
+            "business",
+            "light",
+            "dark",
+            "cupcake",
+            "corporate",
+            "dracula",
+            "synthwave",
+        ],
     },
     "layout": {
         "navbar": {

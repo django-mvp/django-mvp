@@ -1,9 +1,9 @@
 {# @description The sidebar's top strip: brand icon, optional title, collapse toggle. #}
 {# @prop link:text | default:"/" | description:"URL the brand mark links to." #}
-{# @prop bg:text | default:"bg-base-200" | description:"Background class." #}
+{# @prop bg:text | default:"mvp-sidebar-bg" | description:"Background class." #}
 {# @prop :title:text | description:"Title text shown beside the brand icon." #}
 {% load i18n %}
-<c-vars link="/" bg="bg-base-200" :title="mvp_config.layout.sidebar.title" />
+<c-vars link="/" bg="mvp-sidebar-bg" :title="mvp_config.layout.sidebar.title" />
 <div class="{{ bg }} mvp-sidebar-header sticky top-0 z-20 flex w-full items-center justify-between gap-2 px-3 py-2">
   <a href="{{ link }}"
      aria-label="{% trans "Home" %}"

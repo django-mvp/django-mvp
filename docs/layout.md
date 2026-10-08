@@ -127,7 +127,7 @@ your base template. Its content replaces the packaged footer:
 
 ```html
 {% block app.sidebar.footer %}
-  <div class="bg-base-200 w-full sticky bottom-0 mt-auto z-20 flex items-center gap-2 px-4 py-2">
+  <div class="mvp-sidebar-bg mvp-sidebar-footer w-full sticky bottom-0 mt-auto z-20 flex items-center gap-2 px-4 py-2">
     <c-mvp.user.sidebar-menu />
     <c-mvp.actions.login />
     <c-mvp.actions.theme-controller valign="top" compact />
@@ -374,14 +374,17 @@ Per-page override (use the `:` expression form so the value stays a real boolean
 
 ## Header and dock background
 
-The header and the mobile dock are solid by default, in the page's own background colour
-(`bg-base-100`). An app installed on a phone draws the status bar and the home indicator over the
-top and bottom edges of the page, and a solid background keeps the header and the dock readable
-underneath them.
+The header and the mobile dock are solid by default, in the page's own background colour. An app
+installed on a phone draws the status bar and the home indicator over the top and bottom edges of
+the page, and a solid background keeps the header and the dock readable underneath them.
+
+Their default classes, `mvp-header-bg` and `mvp-dock-bg`, read the colour from the applied theme,
+so a theme can give either one a colour of its own. The sidebar's `mvp-sidebar-bg` does the same.
+See [Coloring the header, the dock and the sidebar](theming.md#coloring-the-header-the-dock-and-the-sidebar).
 
 `layout.navbar.class` sets the header's background classes and `layout.dock.class` sets the
-dock's. Each replaces the default rather than adding to it. For the translucent, blurred look
-both used to have:
+dock's. Each replaces the default rather than adding to it, so a region given a class here no
+longer follows the theme. For the translucent, blurred look both used to have:
 
 ```python
 MVP_CONFIG = {
