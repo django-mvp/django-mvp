@@ -27,9 +27,7 @@ from mvp.fixtures import _beautiful_soup
 
 MVP_ROOT = Path(next(iter(mvp.__path__))).resolve()
 BASE_CSS = MVP_ROOT / "tailwind" / "base.css"
-HEADER_TEMPLATE = (
-    MVP_ROOT / "templates" / "cotton" / "mvp" / "app" / "header" / "index.html"
-)
+HEADER_TEMPLATE = MVP_ROOT / "templates" / "cotton" / "app" / "header.html"
 
 
 def _filtered_action_view():
@@ -72,7 +70,7 @@ class TestTheOverrideBeatsTheHeader:
         header_class = re.search(r"\bz-(\d+)\b", header_html)
         assert header_class is not None, (
             "the header's own z-index utility class moved out of "
-            "cotton/mvp/app/header/index.html"
+            "cotton/app/header.html"
         )
         header_z = int(header_class.group(1))
 

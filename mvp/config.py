@@ -74,23 +74,16 @@ MVP_CONFIG = {
             # Cotton component names rendered at the end (right side) of the navbar,
             # in order, e.g. "mvp.actions.theme-controller" ->
             # <c-mvp.actions.theme-controller />. A name is used as written.
-            # Configured separately for mobile and desktop (issue #176) so a widget
-            # that only makes sense at one screen size doesn't have to be baked
-            # responsive by its own author — see _apply_legacy_flat_navbar_config
-            # below for the pre-split "navbar.end" shape this replaces.
-            # The mobile list ships empty. Below the sidebar breakpoint the row
-            # is spent on the site icon and the breadcrumb trail, so the
-            # trailing edge is hidden by default and a widget listed here is
-            # the deliberate exception that earns its width back.
-            #
+            # One list, drawn at every width. A widget that should give way
+            # on a narrow window hides itself, or the project lists fewer.
+            "end": ["mvp.actions.theme-controller", "mvp.actions.login"],
             # "sidebar_toggle" is whether the navbar draws its own sidebar
             # toggle below the breakpoint. Off by default: header space is
             # scarce on a phone and the mobile dock ships a sidebar toggle of
             # its own. Turn it on for a project that has no dock. It changes
             # nothing at or above the breakpoint, and under a breakpoint of
             # "never" the toggle is always drawn.
-            "mobile": {"end": [], "sidebar_toggle": False},
-            "desktop": {"end": ["mvp.actions.theme-controller", "mvp.actions.login"]},
+            "mobile": {"sidebar_toggle": False},
             # Whether the header sticks to the top of the viewport on scroll.
             # True (default) pins it (app-style); False lets it scroll away with
             # the page (traditional-site behaviour). Applies at every screen size.
@@ -136,30 +129,6 @@ MVP_CONFIG = {
 merge(MVP_CONFIG, getattr(settings, "MVP_CONFIG", {}))
 
 
-def _apply_legacy_flat_navbar_config(config: dict) -> None:
-    """Map a flat, pre-#176 ``navbar.end`` override onto both mobile and desktop lists.
-
-    Before the mobile/desktop split, ``MVP_CONFIG["layout"]["navbar"]["end"]``
-    was the only widget list, applied at every screen size. A project's
-    ``settings.MVP_CONFIG`` may still set it in that flat shape, and
-    ``mergedeep.merge`` above only adds it as a sibling of the new "mobile"/
-    "desktop" keys rather than replacing them. Normalize it here so templates
-    read one shape: a flat override replaces both breakpoints' lists, exactly
-    what it did before the split.
-
-    Args:
-        config: The merged config dict, mutated in place.
-    """
-    navbar = config["layout"]["navbar"]
-    legacy_end = navbar.pop("end", None)
-    if legacy_end is not None:
-        navbar["mobile"]["end"] = legacy_end
-        navbar["desktop"]["end"] = legacy_end
-
-
-_apply_legacy_flat_navbar_config(MVP_CONFIG)
-
-
 def _warn_on_removed_sidebar_footer_setting(config):
     """Pop a project's ``layout.sidebar.footer`` override and warn.
 
@@ -169,7 +138,7 @@ def _warn_on_removed_sidebar_footer_setting(config):
     footer is presentation, not a structural concern, so it belongs behind
     a template override rather than a Python-level setting — a project that
     wants a different footer now overrides
-    ``templates/cotton/mvp/app/sidebar/footer.html`` directly. A project's own
+    ``templates/cotton/app/sidebar/footer.html`` directly. A project's own
     ``settings.MVP_CONFIG`` may still set the removed key; pop it so no
     template can read a value that no longer means anything, and warn so
     the project learns why its footer looks unchanged.
@@ -180,7 +149,7 @@ def _warn_on_removed_sidebar_footer_setting(config):
         warnings.warn(
             "MVP_CONFIG['layout']['sidebar']['footer'] no longer has any "
             "effect: the sidebar footer is a fixed composition. Override "
-            "templates/cotton/mvp/app/sidebar/footer.html in your project "
+            "templates/cotton/app/sidebar/footer.html in your project "
             "instead.",
             MVPDeprecationWarning,
             stacklevel=2,
@@ -188,3 +157,29 @@ def _warn_on_removed_sidebar_footer_setting(config):
 
 
 _warn_on_removed_sidebar_footer_setting(MVP_CONFIG)
+
+
+def _warn_on_removed_navbar_lists(config):
+    """Pop a project's ``layout.navbar.desktop.end`` or ``mobile.end`` and warn.
+
+    The navbar used to keep one widget list for narrow windows and one for
+    wide ones. It now has a single list, ``layout.navbar.end``, drawn at
+    every width. A project's own ``settings.MVP_CONFIG`` may still set the
+    old keys. Pop them so no template can read a value that no longer means
+    anything, and warn so the project learns why its widgets are missing.
+    """
+    navbar = config["layout"]["navbar"]
+    for width in ("desktop", "mobile"):
+        if "end" in navbar.get(width, {}):
+            navbar[width].pop("end")
+            warnings.warn(
+                f"MVP_CONFIG['layout']['navbar']['{width}']['end'] no longer "
+                "has any effect: the navbar has one widget list, drawn at "
+                "every width. Set MVP_CONFIG['layout']['navbar']['end'] "
+                "instead.",
+                MVPDeprecationWarning,
+                stacklevel=2,
+            )
+
+
+_warn_on_removed_navbar_lists(MVP_CONFIG)

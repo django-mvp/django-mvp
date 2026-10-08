@@ -11,7 +11,7 @@
   they share the block. `narrow` is the width of a form page.
 {% endcomment %}
 {% block app.main %}
-  <c-mvp.app.main>
+  <c-app.main>
     <c-mvp.container width="narrow" class="py-4">
       {% block content %}
         {% block account.content %}
@@ -19,5 +19,5 @@
       {% endblock content %}
     </c-mvp.container>
     <c-mvp.messages :messages="messages" dismissible />
-  </c-mvp.app.main>
+  </c-app.main>
 {% endblock app.main %}

@@ -37,13 +37,13 @@ class TestTheIndicatorShowsDuringARequest:
         indicator = page.locator("#mvp-htmx-indicator")
         expect(indicator).to_be_hidden()
 
-        held = _hold(page, "**/layout/")
-        page.locator('[hx-boost="true"] a[href="/layout/"]').first.click()
+        held = _hold(page, "**/theme/")
+        page.locator('[hx-boost="true"] a[href="/theme/"]').first.click()
 
         expect(indicator).to_be_visible()
         expect(indicator).to_have_css("opacity", "1")
         held[0].continue_()
-        expect(page).to_have_url(f"{live_server.url}/layout/")
+        expect(page).to_have_url(f"{live_server.url}/theme/")
         expect(page.locator("#mvp-htmx-indicator")).to_be_hidden()
 
     @pytest.mark.parametrize("viewport", [DESKTOP, MOBILE], ids=["desktop", "mobile"])
@@ -53,10 +53,10 @@ class TestTheIndicatorShowsDuringARequest:
         indicator = page.locator("#mvp-htmx-indicator")
         expect(indicator).to_be_hidden()
 
-        held = _hold(page, "**/layout/")
+        held = _hold(page, "**/theme/")
         # Not returned: htmx.ajax's promise settles only once the held
         # request completes, and evaluate would wait for it.
-        page.evaluate("() => { htmx.ajax('GET', '/layout/', {swap: 'none'}); }")
+        page.evaluate("() => { htmx.ajax('GET', '/theme/', {swap: 'none'}); }")
 
         expect(indicator).to_be_visible()
         expect(indicator).to_have_css("opacity", "1")
@@ -70,7 +70,7 @@ class TestTheIndicatorShowsDuringARequest:
             """() => {
               const button = document.createElement("button");
               button.id = "own";
-              button.setAttribute("hx-get", "/layout/");
+              button.setAttribute("hx-get", "/theme/");
               button.setAttribute("hx-swap", "none");
               button.innerHTML = '<span id="own-indicator" class="htmx-indicator">…</span>';
               document.querySelector("main, body").prepend(button);
@@ -80,7 +80,7 @@ class TestTheIndicatorShowsDuringARequest:
         own = page.locator("#own-indicator")
         header = page.locator("#mvp-htmx-indicator")
 
-        held = _hold(page, "**/layout/")
+        held = _hold(page, "**/theme/")
         page.locator("#own").click()
 
         expect(own).to_have_css("opacity", "1")

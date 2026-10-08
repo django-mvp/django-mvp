@@ -208,8 +208,8 @@ MVP_CONFIG = {
 }
 ```
 
-Per-page overrides use component attributes (`<c-mvp.app breakpoint="xl">`,
-`<c-mvp.app.sidebar collapse="icons">`). Details: [Layout](https://github.com/django-mvp/django-mvp/blob/main/docs/layout.md).
+Per-page overrides use component attributes (`<c-app breakpoint="xl">`,
+`<c-app.sidebar collapse="icons">`). Details: [Layout](https://github.com/django-mvp/django-mvp/blob/main/docs/layout.md).
 
 ## Views in one line each
 

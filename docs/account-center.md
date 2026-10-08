@@ -60,7 +60,7 @@ needs registering. With no such name resolving at all, the row is left out, the 
 rule every other row in this menu follows.
 
 To change what the footer shows instead, override
-`templates/cotton/mvp/app/sidebar/footer.html` — see
+`templates/cotton/app/sidebar/footer.html` — see
 [layout.md](layout.md#sidebar-footer).
 
 ## The landing page view

@@ -43,88 +43,17 @@ class TestLayoutConfigResolution:
             "mvp.actions.theme-controller",
             "mvp.actions.language-switcher",
         ]
-        assert MVP_CONFIG["layout"]["navbar"]["mobile"]["end"] == expected
-        assert MVP_CONFIG["layout"]["navbar"]["desktop"]["end"] == expected
-        # the flat key itself is normalized away, so templates read one shape
-        assert "end" not in MVP_CONFIG["layout"]["navbar"]
+        assert MVP_CONFIG["layout"]["navbar"]["end"] == expected
         # sibling keys not mentioned in the override keep package defaults
         assert MVP_CONFIG["layout"]["sidebar"]["breakpoint"] == "lg"
 
 
-class TestNavbarMobileDesktopSplit:
-    @pytest.mark.django_db
-    def test_mobile_and_desktop_widget_lists_render_independently(
-        self, client, monkeypatch
-    ):
-        monkeypatch.setitem(
-            MVP_CONFIG["layout"]["navbar"]["mobile"],
-            "end",
-            ["mvp.actions.theme-controller"],
-        )
-        monkeypatch.setitem(
-            MVP_CONFIG["layout"]["navbar"]["desktop"],
-            "end",
-            ["mvp.actions.language-switcher"],
-        )
-        content = client.get("/").content.decode()
-
-        mobile_start = content.find('id="mvp-navbar-widgets-mobile"')
-        desktop_start = content.find('id="mvp-navbar-widgets-desktop"')
-        assert mobile_start != -1, "mobile widget wrapper must render"
-        assert desktop_start != -1, "desktop widget wrapper must render"
-        assert mobile_start < desktop_start
-
-        mobile_html = content[mobile_start:desktop_start]
-        desktop_html = content[desktop_start:]
-        assert "data-toggle-theme" in mobile_html, (
-            "mobile-only widget must render in the mobile wrapper"
-        )
-        assert "data-toggle-theme" not in desktop_html, (
-            "mobile-only widget must not also render in the desktop wrapper"
-        )
-        assert 'name="language"' in desktop_html, (
-            "desktop-only widget must render in the desktop wrapper"
-        )
-        assert 'name="language"' not in mobile_html, (
-            "desktop-only widget must not also render in the mobile wrapper"
-        )
-
-    @pytest.mark.django_db
-    def test_wrapper_ids_are_unique(self, client):
-        content = client.get("/").content.decode()
-        assert content.count('id="mvp-navbar-widgets-mobile"') == 1
-        assert content.count('id="mvp-navbar-widgets-desktop"') == 1
-
-    @pytest.mark.django_db
-    def test_mobile_wrapper_carries_the_narrow_only_class(self, client):
-        content = client.get("/").content.decode()
-        match = re.search(
-            r'<div\s+id="mvp-navbar-widgets-mobile"\s+class="([^"]*)"', content
-        )
-        assert match is not None
-        classes = match.group(1).split()
-        assert "mvp-mobile-only" in classes
-
-    @pytest.mark.django_db
-    def test_desktop_wrapper_carries_the_wide_only_class(self, client):
-        content = client.get("/").content.decode()
-        match = re.search(
-            r'<div\s+id="mvp-navbar-widgets-desktop"\s+class="([^"]*)"', content
-        )
-        assert match is not None
-        classes = match.group(1).split()
-        assert "mvp-desktop-only" in classes
-
-    @pytest.mark.django_db
-    def test_flat_legacy_config_renders_the_same_widgets_on_both(self, client):
-        content = client.get("/").content.decode()
-        mobile_start = content.find('id="mvp-navbar-widgets-mobile"')
-        desktop_start = content.find('id="mvp-navbar-widgets-desktop"')
-        mobile_html = content[mobile_start:desktop_start]
-        desktop_html = content[desktop_start:]
-        for marker in ("data-toggle-theme", 'name="language"'):
-            assert marker in mobile_html
-            assert marker in desktop_html
+def navbar_end(client):
+    """The navbar's trailing region on the home page."""
+    soup = BeautifulSoup(client.get("/").content.decode(), "html.parser")
+    end = soup.select_one(".mvp-header .navbar-end")
+    assert end is not None, "the navbar's end region must render"
+    return end
 
 
 class TestNavbarWidgetNames:
@@ -132,32 +61,23 @@ class TestNavbarWidgetNames:
 
     A packaged widget by its prefixed name is also proved by
     ``TestShellRendersConfig.test_navbar_widgets_render_from_config``, which
-    renders the lists ``tests/settings.py`` names.
+    renders the list ``tests/settings.py`` names.
     """
 
     @pytest.fixture
-    def packaged_lists(self, settings):
+    def packaged_list(self, settings):
         settings.MVP_CONFIG = {}
         fresh = runpy.run_path(str(Path(mvp.config.__file__)))["MVP_CONFIG"]
-        navbar = fresh["layout"]["navbar"]
-        return navbar["mobile"]["end"], navbar["desktop"]["end"]
-
-    def widgets(self, client, selector):
-        soup = BeautifulSoup(client.get("/").content.decode(), "html.parser")
-        wrapper = soup.find(id="mvp-navbar-widgets-desktop")
-        assert wrapper is not None, "the desktop widget wrapper must render"
-        return wrapper.select(selector)
+        return fresh["layout"]["navbar"]["end"]
 
     @pytest.mark.django_db
-    def test_the_default_lists_render_the_theme_controller_and_login(
-        self, client, monkeypatch, packaged_lists
+    def test_the_default_list_renders_the_theme_controller_and_login(
+        self, client, monkeypatch, packaged_list
     ):
-        mobile, desktop = packaged_lists
-        monkeypatch.setitem(MVP_CONFIG["layout"]["navbar"]["mobile"], "end", mobile)
-        monkeypatch.setitem(MVP_CONFIG["layout"]["navbar"]["desktop"], "end", desktop)
+        monkeypatch.setitem(MVP_CONFIG["layout"]["navbar"], "end", packaged_list)
         login = f'a[href="{reverse("account_login")}"]'
 
-        found = self.widgets(client, f"[data-toggle-theme], {login}")
+        found = navbar_end(client).select(f"[data-toggle-theme], {login}")
 
         assert len(found) == 2
 
@@ -166,12 +86,22 @@ class TestNavbarWidgetNames:
         self, client, monkeypatch
     ):
         monkeypatch.setitem(
-            MVP_CONFIG["layout"]["navbar"]["desktop"], "end", ["navbar.test-widget"]
+            MVP_CONFIG["layout"]["navbar"], "end", ["navbar.test-widget"]
         )
 
-        found = self.widgets(client, "li.nav-item")
+        found = navbar_end(client).select("li.nav-item")
 
         assert len(found) == 1
+
+    @pytest.mark.django_db
+    def test_the_widgets_are_drawn_once_at_every_width(self, client):
+        end = navbar_end(client)
+
+        assert len(end.select("[data-toggle-theme]")) == 1
+        for element in [end, *end.find_all(True)]:
+            classes = element.get("class") or []
+            assert "mvp-mobile-only" not in classes
+            assert "mvp-desktop-only" not in classes
 
 
 def _class_list(html, marker):

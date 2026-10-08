@@ -88,38 +88,69 @@
       {% endcomment %}
       {% firstof breakpoint mvp_config.layout.sidebar.breakpoint as breakpoint %}
       {% firstof collapse mvp_config.layout.sidebar.collapse as collapse %}
-      <c-mvp.app :breakpoint="breakpoint" :collapse="collapse">
+      <c-app :breakpoint="breakpoint" :collapse="collapse">
         <c-slot name="sidebar">
           {% block app.sidebar %}
-            <c-mvp.app.sidebar :collapse="collapse" />
+            {% comment %}
+              A region block left empty draws the component's own default.
+              Fill one and its content replaces that region outright.
+            {% endcomment %}
+            <c-app.sidebar :collapse="collapse">
+              <c-slot name="header">
+                {% block app.sidebar.header %}
+                {% endblock app.sidebar.header %}
+              </c-slot>
+              <c-slot name="body">
+                {% block app.sidebar.body %}
+                {% endblock app.sidebar.body %}
+              </c-slot>
+              <c-slot name="footer">
+                {% block app.sidebar.footer %}
+                {% endblock app.sidebar.footer %}
+              </c-slot>
+            </c-app.sidebar>
           {% endblock app.sidebar %}
         </c-slot>
         {% block app.header %}
-          <c-mvp.app.header>
-            <c-slot name="right">
-              {% block app.header.widgets %}
-              {% endblock app.header.widgets %}
-            </c-slot>
+          <c-app.header>
+            {% block app.navbar %}
+              <c-app.navbar>
+                <c-slot name="start">
+                  {% block app.navbar.start %}
+                  {% endblock app.navbar.start %}
+                </c-slot>
+                <c-slot name="center">
+                  {% block app.navbar.center %}
+                  {% endblock app.navbar.center %}
+                </c-slot>
+                <c-slot name="end">
+                  {% block app.navbar.end %}
+                  {% endblock app.navbar.end %}
+                </c-slot>
+              </c-app.navbar>
+            {% endblock app.navbar %}
             <c-slot name="tray">
               {% block app.header.tray %}
               {% endblock app.header.tray %}
             </c-slot>
-          </c-mvp.app.header>
+          </c-app.header>
         {% endblock app.header %}
         {% block app.main %}
-          <c-mvp.app.main>
+          <c-app.main>
             {% block content %}
             {% endblock content %}
-            <c-mvp.messages :messages="messages" dismissible />
-          </c-mvp.app.main>
+            {% block app.messages %}
+              <c-mvp.messages :messages="messages" dismissible />
+            {% endblock app.messages %}
+          </c-app.main>
         {% endblock app.main %}
         {% block app.footer %}
-          <c-mvp.app.footer />
+          <c-app.footer />
         {% endblock app.footer %}
         {% block app.dock %}
-          <c-mvp.app.dock />
+          <c-app.dock />
         {% endblock app.dock %}
-      </c-mvp.app>
+      </c-app>
     {% endblock app %}
     {% block extra_js %}
     {% endblock extra_js %}

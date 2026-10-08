@@ -209,7 +209,7 @@ one child.
 
 ## The mobile dock
 
-Below the sidebar breakpoint, `<c-mvp.app.dock>` renders `MobileFooterMenu` as a bottom
+Below the sidebar breakpoint, `<c-app.dock>` renders `MobileFooterMenu` as a bottom
 navigation bar. It ships with a single item that toggles the sidebar drawer; extend it
 the same way as `AppMenu`:
 
@@ -240,7 +240,7 @@ MenuItem(name="log-episode", extra_context={
 
 The dock's own visibility follows `MVP_CONFIG["layout"]["sidebar"]["breakpoint"]`, the
 same setting the desktop header widgets key off. If you need a different threshold,
-override the `cotton/mvp/app/dock.html` template in your project.
+override the `cotton/app/dock.html` template in your project.
 
 To drop the pre-seeded sidebar-toggle item, assign
 `MobileFooterMenu.children = [ ...yours... ]` or pop it by name, the same way described
@@ -295,7 +295,7 @@ rendering it.
 
 For fully hand-built menus, use the [`c-menu` components](components.md#navigation)
 directly. To point the sidebar at a different menu, pass its name to the shell
-component instead: `<c-mvp.app.sidebar menu="AdminMenu" />`.
+component instead: `<c-app.sidebar menu="AdminMenu" />`.
 
 ## A menu's accessible name
 

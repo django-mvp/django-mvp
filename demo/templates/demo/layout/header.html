@@ -1,0 +1,43 @@
+{% extends "demo/layout/base.html" %}
+{% block layout.intro %}
+  The header holds two things, one above the other: the navbar and the tray. They stick to the top
+  of the window together. The navbar is a single row in three parts.
+{% endblock layout.intro %}
+{% block layout.diagram %}
+  <c-demo.layout.shell focus="header">
+    <c-slot name="header">
+      <c-demo.layout.region name="app.navbar">
+        <div class="flex flex-col gap-2 sm:flex-row">
+          <c-demo.layout.region name="app.navbar.start" note="Sidebar toggle, site icon, breadcrumbs" class="flex-1" />
+          <c-demo.layout.region name="app.navbar.center" note="Empty" class="flex-1" />
+          <c-demo.layout.region name="app.navbar.end" note="Widgets from settings" class="flex-1" />
+        </div>
+      </c-demo.layout.region>
+      <c-demo.layout.region name="app.header.tray" note="Empty. Full width, under the navbar." />
+    </c-slot>
+  </c-demo.layout.shell>
+{% endblock layout.diagram %}
+{% block layout.example.description %}
+  A search box in the middle of the navbar, one more button at its end, and a row of tabs in the
+  tray.
+{% endblock layout.example.description %}
+{% block layout.example %}{% verbatim %}{% extends "mvp/base.html" %}
+
+{% block app.navbar.center %}
+  &lt;label class="input input-sm"&gt;
+    &lt;c-icon name="search" /&gt;
+    &lt;input type="search" placeholder="Search projects" aria-label="Search projects" /&gt;
+  &lt;/label&gt;
+{% endblock app.navbar.center %}
+
+{% block app.navbar.end %}
+  &lt;c-button text="New project" icon="plus" size="sm" variant="primary" /&gt;
+{% endblock app.navbar.end %}
+
+{% block app.header.tray %}
+  &lt;div role="tablist" class="tabs tabs-lift px-3"&gt;
+    &lt;a role="tab" class="tab tab-active" aria-selected="true"&gt;Overview&lt;/a&gt;
+    &lt;a role="tab" class="tab"&gt;Members&lt;/a&gt;
+    &lt;a role="tab" class="tab"&gt;Settings&lt;/a&gt;
+  &lt;/div&gt;
+{% endblock app.header.tray %}{% endverbatim %}{% endblock layout.example %}

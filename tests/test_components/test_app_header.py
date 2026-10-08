@@ -78,40 +78,6 @@ class TestTheBrandMarkAppearsOnce:
 
 
 @pytest.mark.django_db
-class TestTheActionsGiveWayToTheTrail:
-    def _actions_classes(self, client, url=PAGE_WITH_TRAIL):
-        content = client.get(url).content.decode()
-        match = re.search(
-            r'<div\s+id="mvp-navbar-widgets-desktop"\s+class="([^"]*)"', content
-        )
-        assert match is not None, "the header's action region must render"
-        return match.group(1).split()
-
-    def test_the_mobile_region_is_absent_when_nothing_is_configured(
-        self, client, monkeypatch
-    ):
-        monkeypatch.setitem(MVP_CONFIG["layout"]["navbar"]["mobile"], "end", [])
-        content = client.get(PAGE_WITH_TRAIL).content.decode()
-        assert 'id="mvp-navbar-widgets-mobile"' not in content
-
-    def test_the_mobile_region_renders_when_a_widget_is_configured(
-        self, client, monkeypatch
-    ):
-        monkeypatch.setitem(
-            MVP_CONFIG["layout"]["navbar"]["mobile"],
-            "end",
-            ["mvp.actions.theme-controller"],
-        )
-        content = client.get(PAGE_WITH_TRAIL).content.decode()
-        match = re.search(
-            r'<div\s+id="mvp-navbar-widgets-mobile"\s+class="([^"]*)"', content
-        )
-        assert match is not None
-        classes = match.group(1).split()
-        assert "mvp-mobile-only" in classes
-
-
-@pytest.mark.django_db
 class TestTheSidebarToggleOnMobile:
     def _toggle_classes(self, client):
         soup = _soup(client, PAGE_WITH_TRAIL)
@@ -148,10 +114,8 @@ class TestTheHeaderShowsWhenHtmxIsWorking:
         assert indicator.find_parent(class_="mvp-header") is not None
         assert indicator["aria-hidden"] == "true"
 
-    def test_the_indicator_is_outside_the_width_dependent_regions(self, client):
+    def test_the_indicator_shows_at_every_width(self, client):
         indicator = _soup(client, PAGE_WITH_TRAIL).find(id="mvp-htmx-indicator")
 
-        assert indicator.find_parent(id="mvp-navbar-widgets-desktop") is None
-        assert indicator.find_parent(id="mvp-navbar-widgets-mobile") is None
         assert "mvp-desktop-only" not in indicator["class"]
         assert "mvp-mobile-only" not in indicator["class"]

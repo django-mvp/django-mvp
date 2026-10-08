@@ -388,6 +388,166 @@ class TestShellDockBlock:
         assert 'class="mvp-dock-only"' not in page
 
 
+def render_component(markup, **context):
+    """Render Cotton ``markup`` with ``context`` for a fixed anonymous request."""
+    from bs4 import BeautifulSoup
+    from django_cotton.compiler_regex import CottonCompiler
+
+    request = RequestFactory().get("/", HTTP_HOST="testserver")
+    request.user = AnonymousUser()
+    request.site = get_current_site(request)
+    template = engines["django"].from_string(CottonCompiler().process(markup))
+    return BeautifulSoup(template.render(context, request), "html.parser")
+
+
+def shell_soup(blocks=""):
+    """Parse a page that extends the shell and fills the given blocks."""
+    from bs4 import BeautifulSoup
+
+    source = '{% extends "mvp/base.html" %}' + blocks
+    return BeautifulSoup(render_shell(source), "html.parser")
+
+
+def fill(name, marker):
+    """A block override that draws one marked element."""
+    return (
+        f"{{% block {name} %}}<span data-filled='{marker}'></span>"
+        f"{{% endblock {name} %}}"
+    )
+
+
+@pytest.mark.django_db
+class TestShellSidebarBlocks:
+    def test_empty_blocks_draw_the_packaged_sidebar(self):
+        sidebar = shell_soup().select_one("aside.mvp-sidebar")
+
+        assert sidebar.select_one(".mvp-sidebar-header") is not None
+        assert sidebar.select_one("ul.menu") is not None
+        assert sidebar.select_one("[data-toggle-theme]") is not None
+
+    def test_a_filled_header_replaces_the_packaged_one(self):
+        sidebar = shell_soup(fill("app.sidebar.header", "header")).select_one(
+            "aside.mvp-sidebar"
+        )
+
+        assert sidebar.select_one("[data-filled='header']") is not None
+        assert sidebar.select_one(".mvp-sidebar-header") is None
+        assert sidebar.select_one("ul.menu") is not None
+
+    def test_a_filled_body_replaces_the_menu(self):
+        sidebar = shell_soup(fill("app.sidebar.body", "body")).select_one(
+            "aside.mvp-sidebar"
+        )
+
+        assert sidebar.select_one("[data-filled='body']") is not None
+        assert sidebar.select_one("ul.menu") is None
+        assert sidebar.select_one(".mvp-sidebar-header") is not None
+
+    def test_a_filled_footer_replaces_the_packaged_one(self):
+        sidebar = shell_soup(fill("app.sidebar.footer", "footer")).select_one(
+            "aside.mvp-sidebar"
+        )
+
+        assert sidebar.select_one("[data-filled='footer']") is not None
+        assert sidebar.select_one("[data-toggle-theme]") is None
+
+    def test_the_regions_keep_their_order(self):
+        blocks = "".join(
+            fill(f"app.sidebar.{region}", region)
+            for region in ("footer", "body", "header")
+        )
+        sidebar = shell_soup(blocks).select_one("aside.mvp-sidebar")
+
+        drawn = [element["data-filled"] for element in sidebar.select("[data-filled]")]
+
+        assert drawn == ["header", "body", "footer"]
+
+
+@pytest.mark.django_db
+class TestShellNavbarBlocks:
+    def test_empty_blocks_draw_the_packaged_navbar(self):
+        navbar = shell_soup().select_one(".mvp-header .navbar")
+
+        assert navbar.select_one(".navbar-start .mvp-navbar-brand") is not None
+        assert navbar.select_one(".navbar-center") is None
+        assert navbar.select_one(".navbar-end [data-toggle-theme]") is not None
+
+    def test_a_filled_start_replaces_the_toggle_and_site_icon(self):
+        start = shell_soup(fill("app.navbar.start", "start")).select_one(
+            ".mvp-header .navbar-start"
+        )
+
+        assert start.select_one("[data-filled='start']") is not None
+        assert start.select_one(".mvp-navbar-brand") is None
+
+    def test_a_filled_center_sits_between_start_and_end(self):
+        navbar = shell_soup(fill("app.navbar.center", "center")).select_one(
+            ".mvp-header .navbar"
+        )
+
+        regions = [
+            next(name for name in child["class"] if name.startswith("navbar-"))
+            for child in navbar.find_all(recursive=False)
+        ]
+
+        assert regions == ["navbar-start", "navbar-center", "navbar-end"]
+        assert navbar.select_one(".navbar-center [data-filled='center']") is not None
+
+    def test_a_filled_end_is_drawn_before_the_configured_widgets(self):
+        end = shell_soup(fill("app.navbar.end", "end")).select_one(
+            ".mvp-header .navbar-end"
+        )
+
+        filled = end.select_one("[data-filled='end']")
+
+        assert filled is not None
+        assert filled.find_next(attrs={"data-toggle-theme": True}) is not None
+        assert filled.find_previous(id="mvp-htmx-indicator") is not None
+
+    def test_a_filled_navbar_replaces_the_row_and_keeps_the_tray(self):
+        header = shell_soup(
+            fill("app.navbar", "navbar") + fill("app.header.tray", "tray")
+        ).select_one(".mvp-header")
+
+        assert header.select_one(".navbar") is None
+        drawn = [element["data-filled"] for element in header.select("[data-filled]")]
+        assert drawn == ["navbar", "tray"]
+
+    def test_the_header_draws_a_navbar_when_called_with_nothing_inside(self):
+        soup = render_component("<c-app.header />")
+
+        assert soup.select_one(".mvp-header .navbar") is not None
+
+
+@pytest.mark.django_db
+class TestRegionSlotsIgnoreThePageContext:
+    """A page variable that shares a slot's name is not drawn as that region."""
+
+    def test_the_navbar_draws_no_page_variable(self):
+        leak = {name: f"leaked-{name}" for name in ("start", "center", "end")}
+
+        navbar = render_component("<c-app.navbar />", **leak)
+
+        assert "leaked-" not in navbar.get_text()
+        assert navbar.select_one(".mvp-navbar-brand") is not None
+
+    def test_the_sidebar_draws_no_page_variable(self):
+        leak = {name: f"leaked-{name}" for name in ("header", "body", "footer")}
+
+        sidebar = render_component("<c-app.sidebar />", **leak)
+
+        assert "leaked-" not in sidebar.get_text()
+        assert sidebar.select_one(".mvp-sidebar-header") is not None
+
+
+@pytest.mark.django_db
+class TestShellMessagesBlock:
+    def test_a_filled_block_is_drawn_inside_main(self):
+        soup = shell_soup(fill("app.messages", "messages"))
+
+        assert soup.select_one("main [data-filled='messages']") is not None
+
+
 @pytest.mark.django_db
 class TestComponentOverridePath:
     @pytest.fixture(autouse=True)
@@ -398,7 +558,7 @@ class TestComponentOverridePath:
             {**engine, "DIRS": [str(project_templates), *engine.get("DIRS", [])]}
         ]
 
-    def test_an_override_at_the_prefixed_path_replaces_the_packaged_component(self):
+    def test_an_override_at_the_packaged_path_replaces_the_packaged_component(self):
         soup = BeautifulSoup(
             render_shell('{% extends "mvp/base.html" %}'), "html.parser"
         )

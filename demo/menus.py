@@ -17,13 +17,38 @@ AppMenu.extend(
                 "icon": "home",
             },
         ),
-        MenuItem(
+        MenuCollapse(
             name="layout",
-            view_name="layout",
             extra_context={
                 "label": "Layout",
                 "icon": "layout",
             },
+            children=[
+                MenuItem(
+                    name="layout-app",
+                    view_name="layout",
+                    extra_context={
+                        "label": "App",
+                        "icon": "layout",
+                    },
+                ),
+                MenuItem(
+                    name="layout-sidebar",
+                    view_name="layout-sidebar",
+                    extra_context={
+                        "label": "Sidebar",
+                        "icon": "sidebar-left",
+                    },
+                ),
+                MenuItem(
+                    name="layout-header",
+                    view_name="layout-header",
+                    extra_context={
+                        "label": "Header",
+                        "icon": "navbar",
+                    },
+                ),
+            ],
         ),
         MenuItem(
             name="customization",

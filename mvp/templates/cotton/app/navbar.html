@@ -1,0 +1,55 @@
+{# @description The header row: breadcrumb trail leading, actions trailing. #}
+{# @slot:start — Replaces the leading region: sidebar toggle, site icon, breadcrumb trail. #}
+{# @slot:center — Content for the middle of the row; nothing is drawn there by default. #}
+{# @slot:end — Extra trailing content, drawn before the widgets listed in settings. #}
+{% load i18n %}
+{# The slots are declared so that an unfilled one is empty, rather than a #}
+{# page variable that happens to be called `start` or `end`. #}
+<c-vars start="" center="" end="" />
+{# The breadcrumb trail reads `page.breadcrumbs`, already in context on an MVP #}
+{# view; a page with no trail renders no navigation landmark at all, rather #}
+{# than an empty one for a screen reader to announce. #}
+<div class="navbar gap-2 px-3 w-full transition-shadow duration-100 print:hidden">
+  <div class="navbar-start w-auto grow min-w-0 gap-1">
+    {% if start.strip %}
+      {{ start }}
+    {% else %}
+      {# The sidebar toggle and site icon give way below the sidebar breakpoint, #}
+      {# where the sidebar header already draws both — layout.navbar.mobile.sidebar_toggle #}
+      {# puts the toggle back for a project without a mobile dock. #}
+      <c-drawer.button drawer="mvp-app-toggle"
+                       aria-label="{% trans "Open sidebar" %}"
+                       class="btn-ghost btn-square shrink-0 mvp-sidebar-hidden-only{% if not mvp_config.layout.navbar.mobile.sidebar_toggle %} mvp-desktop-only{% endif %}"
+                       only>
+        <c-icon name="menu" />
+      </c-drawer.button>
+      <a href="/"
+         aria-label="{% trans "Home" %}"
+         class="mvp-navbar-brand flex shrink-0 items-center px-1 mvp-sidebar-hidden-only">
+        <c-mvp.brand.icon max-height="1.5rem" class="size-8 object-contain" />
+      </a>
+      {# min-w-0 lets a long trail shrink rather than push the actions off the #}
+      {# row: a flex item defaults to min-width:auto and won't go below its own #}
+      {# content. The sideways scroll it then needs is daisyUI's own .breadcrumbs rule. #}
+      {% if page.breadcrumbs %}
+        <c-breadcrumbs :items="page.breadcrumbs" class="min-w-0 text-sm" only />
+      {% endif %}
+    {% endif %}
+  </div>
+  {% if center.strip %}<div class="navbar-center w-auto shrink-0">{{ center }}</div>{% endif %}
+  <div class="navbar-end w-auto shrink-0 gap-3">
+    {# Outside the widgets so that filling the end region cannot lose it: #}
+    {# the htmx indicator (base.css rule) shows whenever a request is in flight. #}
+    <c-loading spinner
+               size="sm"
+               id="mvp-htmx-indicator"
+               aria-hidden="true"
+               only />
+    {# One list at every width. What gives way on a narrow window is the #}
+    {# project's call, made in the widget or in the block that fills this region. #}
+    {{ end }}
+    {% for widget in mvp_config.layout.navbar.end %}
+      <c-component :is="widget" />
+    {% endfor %}
+  </div>
+</div>

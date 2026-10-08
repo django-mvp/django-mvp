@@ -6,8 +6,16 @@
 {# @prop :collapse:text | description:"How the sidebar collapses: icons for an icon rail, or the default drawer behaviour." #}
 {# @prop :title:text | description:"Title text shown in the sidebar header." #}
 {# @prop :boost:boolean | description:"Set hx-boost on the sidebar root so every link inside it — menu items, brand link, footer actions — navigates with htmx." #}
+{# @slot:header — Replaces the top strip: brand icon, title, collapse toggle. #}
+{# @slot:body — Replaces the scrolling middle: the back link for a mounted app, then the menu. #}
+{# @slot:footer — Replaces the fixed bottom strip: user menu or log-in, theme, language. #}
 {% load flex_menu %}
-<c-vars bg="bg-base-200"
+{# The slots are declared so that an unfilled one is empty, rather than a #}
+{# page variable that happens to be called `header`, `body` or `footer`. #}
+<c-vars header=""
+        body=""
+        footer=""
+        bg="bg-base-200"
         brand-url="/"
         class
         menu=""
@@ -20,12 +28,18 @@
 <aside class="mvp-sidebar flex flex-col min-h-full items-start transition-[width] duration-200 {% if collapse == 'icons' %}mvp-sidebar--icons is-drawer-close:w-16 is-drawer-open:w-65{% else %}is-drawer-close:w-0 is-drawer-close:overflow-hidden is-drawer-open:w-65{% endif %} {{ bg }} {{ class }}"
        {% if boost %}hx-boost="true"{% endif %}
        {{ attrs }}>
-  <c-mvp.app.sidebar.header link="{{ brand_url }}" :bg="bg" :title="title" />
+  {% if header.strip %}
+    {{ header }}
+  {% else %}
+    <c-app.sidebar.header link="{{ brand_url }}" :bg="bg" :title="title" />
+  {% endif %}
   {# mounted_app / mounted_menu come from mvp.context_processors.mvp_config, #}
   {# which also runs inside Cotton's isolated context because Cotton builds a #}
   {# request context for the component. #}
-  {% if menu is None or menu == "" %}
-    {% if mounted_app %}<c-mvp.app.sidebar.back :url="brand_url" />{% endif %}
+  {% if body.strip %}
+    {{ body }}
+  {% elif menu is None or menu == "" %}
+    {% if mounted_app %}<c-app.sidebar.back :url="brand_url" />{% endif %}
     <div class="flex w-full">
       {% if mounted_menu %}
         {% render_menu mounted_menu renderer="sidebar" %}
@@ -36,5 +50,9 @@
   {% else %}
     <div class="flex w-full">{% render_menu menu renderer="sidebar" %}</div>
   {% endif %}
-  <c-mvp.app.sidebar.footer :bg="bg" />
+  {% if footer.strip %}
+    {{ footer }}
+  {% else %}
+    <c-app.sidebar.footer :bg="bg" />
+  {% endif %}
 </aside>

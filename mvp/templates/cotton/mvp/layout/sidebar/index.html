@@ -5,7 +5,7 @@
 {# @prop :sticky:boolean | description:"Whether the header pins to the top of the viewport." #}
 {# @prop :boost:boolean | description:"Adds hx-boost to the sidebar so its links navigate with htmx." #}
 {# @prop class:text | description:"Extra classes appended to the drawer root element." #}
-{# @slot:sidebar <c-mvp.app.sidebar /> — The sidebar panel drawn in the drawer's side region. #}
+{# @slot:sidebar <c-app.sidebar /> — The sidebar panel drawn in the drawer's side region. #}
 {# @slot The page content. — The drawer's main content region. #}
 {% load i18n mvp %}
 <c-vars id
@@ -34,7 +34,7 @@
          class="drawer-toggle" />
   {% comment %}
     Emitted here rather than from mvp/base.html so a project overriding the
-    base template keeps this payload wherever it keeps <c-mvp.app>
+    base template keeps this payload wherever it keeps <c-app>
     (docs/adr/0021-responsive-visibility-is-resolved-by-the-browser.md).
   {% endcomment %}
   {% with layout_config_id=id|add:"-layout-config" %}

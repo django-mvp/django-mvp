@@ -18,15 +18,13 @@ visibility moves into the stylesheet, so these tests instead assert
 **computed visibility in a real browser** — the resolved ``display`` of each
 governed region — which is indifferent to how visibility is achieved.
 
-The three governed regions (mvp/templates/cotton/mvp/app/header/navbar.html):
-
-1. the navbar's mobile widget list (``navbar_narrow_only_class``)
-2. the navbar's desktop widget list and ``right`` slot (``navbar_wide_only_class``)
-3. the navbar's sidebar-toggle button and site icon (``sidebar_navbar_toggle_class``)
+The governed region (mvp/templates/cotton/app/navbar.html) is the navbar's
+sidebar-toggle button and site icon (``sidebar_navbar_toggle_class``). The
+navbar's widgets are one list drawn at every width and have no rule here.
 
 One fixture page (``tests/responsive_visibility_regions.html``, rendered by
 ``_RegionsView`` below) renders the full shell, so
-a single page load exercises all three regions for one breakpoint/collapse
+a single page load exercises the region for one breakpoint/collapse
 combination. Widths are exercised by resizing the viewport rather than
 reloading: every rule under test is pure CSS (media queries, and — for the
 sidebar-toggle region in ``offcanvas`` mode — the drawer checkbox's current
@@ -119,14 +117,6 @@ def _display(locator):
     return locator.evaluate("el => getComputedStyle(el).display")
 
 
-def _mobile_widgets(page):
-    return page.locator("#mvp-navbar-widgets-mobile")
-
-
-def _desktop_widgets(page):
-    return page.locator("#mvp-navbar-widgets-desktop")
-
-
 def _toggle_label(page):
     return page.locator('.navbar-start label[for="mvp-app-toggle"]')
 
@@ -156,52 +146,6 @@ def _open_drawer(page):
     page.locator('.navbar-start label[for="mvp-app-toggle"]').first.evaluate(
         "el => el.click()"
     )
-
-
-class TestNarrowOnlyRegions:
-    @pytest.mark.parametrize(("bp", "px"), REAL_BREAKPOINTS.items())
-    def test_shown_below_hidden_at_or_above(self, page, regions_server, bp, px):
-        _goto(page, regions_server, bp=bp, viewport=px - 1)
-        assert _display(_mobile_widgets(page)) != "none"
-
-        _resize(page, px)
-        assert _display(_mobile_widgets(page)) == "none"
-
-    def test_hidden_at_every_width_when_never(self, page, regions_server):
-        for width in NEVER_WIDTHS:
-            _goto(page, regions_server, bp="never", viewport=width)
-            assert _display(_mobile_widgets(page)) == "none"
-
-    def test_unrecognised_breakpoint_falls_back_to_lg(self, page, regions_server):
-        lg_px = REAL_BREAKPOINTS["lg"]
-        _goto(page, regions_server, bp="bogus", viewport=lg_px - 1)
-        assert _display(_mobile_widgets(page)) != "none"
-
-        _resize(page, lg_px)
-        assert _display(_mobile_widgets(page)) == "none"
-
-
-class TestWideOnlyRegions:
-    @pytest.mark.parametrize(("bp", "px"), REAL_BREAKPOINTS.items())
-    def test_hidden_below_shown_at_or_above(self, page, regions_server, bp, px):
-        _goto(page, regions_server, bp=bp, viewport=px - 1)
-        assert _display(_desktop_widgets(page)) == "none"
-
-        _resize(page, px)
-        assert _display(_desktop_widgets(page)) != "none"
-
-    def test_shown_at_every_width_when_never(self, page, regions_server):
-        for width in NEVER_WIDTHS:
-            _goto(page, regions_server, bp="never", viewport=width)
-            assert _display(_desktop_widgets(page)) != "none"
-
-    def test_unrecognised_breakpoint_falls_back_to_lg(self, page, regions_server):
-        lg_px = REAL_BREAKPOINTS["lg"]
-        _goto(page, regions_server, bp="bogus", viewport=lg_px - 1)
-        assert _display(_desktop_widgets(page)) == "none"
-
-        _resize(page, lg_px)
-        assert _display(_desktop_widgets(page)) != "none"
 
 
 @pytest.mark.usefixtures("mobile_navbar_toggle")
@@ -334,14 +278,10 @@ class TestVisibilityWithoutJavaScript:
                 f"{regions_server.url}/responsive-visibility-regions/"
                 "?breakpoint=lg&collapse=icons"
             )
-            assert _display(_mobile_widgets(page)) != "none"
-            assert _display(_desktop_widgets(page)) == "none"
             assert _display(_toggle_label(page)) != "none"
             assert _display(_site_icon(page)) != "none"
 
             page.set_viewport_size({"width": lg_px, "height": VIEWPORT_HEIGHT})
-            assert _display(_mobile_widgets(page)) == "none"
-            assert _display(_desktop_widgets(page)) != "none"
             assert _display(_toggle_label(page)) == "none"
             assert _display(_site_icon(page)) == "none"
         finally:
