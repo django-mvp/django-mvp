@@ -6,7 +6,7 @@
 
 A reusable, override-able UI building block implemented as a Cotton template. Components define the **public API** of django-mvp. They are named after their domain role, not their implementation or any external design system. Those the package owns are reached under the `mvp.` prefix.
 
-**Examples:** `c-mvp.app`, `c-mvp.page`, `c-mvp.card`, `c-mvp.grid`
+**Examples:** `c-app`, `c-mvp.page`, `c-mvp.card`, `c-mvp.grid`
 
 ### Component Attribute
 
@@ -60,8 +60,8 @@ MVP_CONFIG = {
 
 The context processor ``mvp.context_processors.mvp_config`` exposes the merged dict
 to all templates as ``mvp_config``. Layout config resolution order: component
-attribute (per-page override, e.g. ``<c-mvp.app breakpoint="xl">`` or
-``<c-mvp.app.sidebar collapse="icons">``) → ``MVP_CONFIG`` → package default.
+attribute (per-page override, e.g. ``<c-app breakpoint="xl">`` or
+``<c-app.sidebar collapse="icons">``) → ``MVP_CONFIG`` → package default.
 
 ### Theme
 
@@ -133,23 +133,23 @@ declaration per row set.
 
 ## Component Library
 
-The complete component library is declared below: 62 components under the `mvp.` prefix and one that keeps a bare name, `c-icon`. Components are organized by their namespace (directory). A component this package owns is written `c-mvp.` followed by its path: `c-mvp.app.header` means the `header.html` template inside the `app/` directory of `mvp/templates/cotton/mvp/`. The sixteen basic components this package uses are daisy-cotton's and are listed apart, under Basic components from daisy-cotton; the Component Naming Rules say why.
+The complete component library is declared below: components under the `mvp.` prefix, the app shell's components under `app.`, and one that keeps a bare name, `c-icon`. Components are organized by their namespace (directory). A component this package owns is written `c-mvp.` followed by its path: `c-mvp.page.title` means the `title.html` template inside the `page/` directory of `mvp/templates/cotton/mvp/`. The app shell's components are written `c-app.` and live in `mvp/templates/cotton/app/`. The sixteen basic components this package uses are daisy-cotton's and are listed apart, under Basic components from daisy-cotton; the Component Naming Rules say why.
 
 ### App
 
 App components make django-mvp a **MVP framework**. They are pre-configured, highly opinionated, and provide the default application chrome. Unless a consumer redefines their own app structure (which they can do via override), they will never touch these directly. They have no configurable attributes — they just work.
 
 ```
-c-mvp.app
-  c-mvp.app.header          — application header bar
-    c-mvp.app.header.navbar — top navbar (sidebar toggle, brand, configured widgets)
-  c-mvp.app.sidebar         — application sidebar (provides default slot content: main application menu)
-    c-mvp.app.sidebar.header
-    c-mvp.app.sidebar.back  — link back to the host project, opening a mounted app's sidebar
-    c-mvp.app.sidebar.footer — fixed row: user menu or log-in, theme, language
-  c-mvp.app.main            — main content area
-  c-mvp.app.footer          — application footer bar
-  c-mvp.app.dock            — application mobile navigation
+c-app
+  c-app.header          — application header bar: the navbar, then the tray
+  c-app.navbar          — top navbar, drawn inside the header (sidebar toggle, brand, configured widgets)
+  c-app.sidebar         — application sidebar (provides default slot content: main application menu)
+    c-app.sidebar.header
+    c-app.sidebar.back  — link back to the host project, opening a mounted app's sidebar
+    c-app.sidebar.footer — fixed row: user menu or log-in, theme, language
+  c-app.main            — main content area
+  c-app.footer          — application footer bar
+  c-app.dock            — application mobile navigation
 ```
 
 ### Layout
@@ -164,7 +164,7 @@ c-mvp.rule              — hairline between items in one list
 c-mvp.section           — titled content section (wraps any content with optional title/icon toolbar)
 c-mvp.backdrop          — absolutely-positioned backdrop (e.g., over hero images to improve text readability)
 c-mvp.grid              — responsive CSS grid layout
-c-mvp.layout.sidebar    — drawer shell (checkbox toggle + sidebar/content slots); c-mvp.app delegates to this
+c-mvp.layout.sidebar    — drawer shell (checkbox toggle + sidebar/content slots); c-app delegates to this
 ```
 
 ### Page
@@ -189,7 +189,7 @@ c-mvp.entrance              — centered card for anonymous-facing pages (size, 
   c-mvp.entrance.background — entrance background layer
 ```
 
-**App vs. Layout:** `c-mvp.app.sidebar` already occupies the default slot with the main application menu. If you use `c-mvp.layout.sidebar` directly, you must provide your own slot content. Use `c-mvp.app.*` for the default chrome; use `c-mvp.layout.*` when you need a reusable sidebar primitive inside `c-mvp.page.content`, `c-mvp.card`, or anywhere else.
+**App vs. Layout:** `c-app.sidebar` already occupies the default slot with the main application menu. If you use `c-mvp.layout.sidebar` directly, you must provide your own slot content. Use `c-app.*` for the default chrome; use `c-mvp.layout.*` when you need a reusable sidebar primitive inside `c-mvp.page.content`, `c-mvp.card`, or anywhere else.
 
 ### Section
 
@@ -308,10 +308,10 @@ c-mvp.documentation     — tabbed preview, source and output surface rendered b
 ### Component Naming Rules
 
 1. **Root components** use the `c-mvp.` prefix followed by a single descriptive word: `c-mvp.grid`, `c-mvp.card`, `c-mvp.text`.
-2. **Nested components** use dot notation after the prefix: `c-mvp.app.header`, `c-mvp.page.list.empty`.
+2. **Nested components** use dot notation after the prefix: `c-mvp.page.title`, `c-mvp.page.list.empty`.
 3. **Directory = namespace**: A component's directory under `mvp/templates/cotton/mvp/` determines its namespace. `mvp/templates/cotton/mvp/card/index.html` → `c-mvp.card`. `mvp/templates/cotton/mvp/card/wrapper.html` → `c-mvp.card.wrapper`.
 4. **No implementation leakage**: Component names must not reference DaisyUI, Tailwind, or any external design system. They describe *what they are*, not *how they look*.
-5. **The `mvp.` prefix marks this package's components**, so none of them can share a name with a daisy-cotton component. The icon is the one exception: `c-icon` stays at `mvp/templates/cotton/icon.html` for good, because daisy-cotton ships a plain icon and expects a project to replace it, and this package's icon replaces it by sitting at the same name.
+5. **The `mvp.` prefix marks this package's components**, so none of them can share a name with a daisy-cotton component. The icon is the one exception: `c-icon` stays at `mvp/templates/cotton/icon.html` for good, because daisy-cotton ships a plain icon and expects a project to replace it, and this package's icon replaces it by sitting at the same name. The app shell is the other exception: its components are `c-app`, `c-app.sidebar`, `c-app.header`, `c-app.navbar`, `c-app.main`, `c-app.footer` and `c-app.dock`, under `mvp/templates/cotton/app/`, so that each one carries the name of the `app.*` block that draws it.
 6. **The basic components are daisy-cotton's.** `c-alert`, `c-avatar.group`, `c-badge`, `c-breadcrumbs`, `c-breadcrumbs.item`, `c-button`, `c-divider`, `c-dock`, `c-dock.item`, `c-link`, `c-menu` and `c-mockup.*` come from daisy-cotton under its bare names, and this package ships no template for them (#435). A call to one of them from a template in this package carries `only`.
 
 ## Terminology
@@ -322,7 +322,7 @@ The components Django MVP owns are **not** DaisyUI components. They borrow Daisy
 
 ### Layout vs. Page
 
-- **Layout** (`c-mvp.app`): The outermost wrapper that defines the application chrome (sidebar, header, footer). One per page.
+- **Layout** (`c-app`): The outermost wrapper that defines the application chrome (sidebar, header, footer). One per page.
 - **Page** (`c-mvp.page`): The content container within a layout. Defines the page structure (header, body, footer sections).
 
 ### View vs. Template

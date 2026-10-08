@@ -1,6 +1,6 @@
 """Tests for the sidebar footer's fixed composition.
 
-<c-mvp.app.sidebar.footer> no longer reads a widget list from settings (docs/adr/
+<c-app.sidebar.footer> no longer reads a widget list from settings (docs/adr/
 0023): it always renders the user menu or the log-in button (whichever
 matches the request), a theme control and a language control. Rendered via
 tests/sidebar_footer.html, and tests/sidebar_footer_bg.html where a passed

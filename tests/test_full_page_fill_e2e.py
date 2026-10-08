@@ -22,7 +22,7 @@ from tests.conftest import requires_browser
 pytestmark = [pytest.mark.e2e, requires_browser]
 
 FILL_PAGE = "/layout/full-page/"
-ORDINARY_PAGE = "/layout/"
+ORDINARY_PAGE = "/layout/store/"
 
 VIEWPORTS = {
     "desktop": {"width": 1440, "height": 900},

@@ -12,7 +12,7 @@ The package ships its own defaults in `mvp/config.py`. At import time it deep-me
 - Nested dicts recurse. Set only the keys you are changing and every sibling keeps
   its default.
 - A list or a scalar replaces the default outright. Setting
-  `layout.navbar.desktop.end` replaces the whole list rather than extending it.
+  `layout.navbar.end` replaces the whole list rather than extending it.
 
 Register the context processor, or nothing settings-driven reaches a template:
 
@@ -51,9 +51,8 @@ site overrides the project setting for that one tag only.
 | `layout.sidebar.collapse` | `"offcanvas"` \| `"icons"` | `"offcanvas"` | How the sidebar collapses when toggled at or above that width |
 | `layout.sidebar.title` | string or falsey | `None` | Text beside the brand mark in the sidebar header |
 | `layout.sidebar.boost` | bool | `False` | Navigate sidebar links without a full page load |
-| `layout.navbar.mobile.end` | list of component names | `[]` | Widgets at the trailing edge of the navbar below the sidebar breakpoint |
+| `layout.navbar.end` | list of component names | `["mvp.actions.theme-controller", "mvp.actions.login"]` | Widgets at the trailing edge of the navbar, at every width |
 | `layout.navbar.mobile.sidebar_toggle` | bool | `False` | Whether the navbar draws its own sidebar toggle below the sidebar breakpoint; the mobile dock carries one already |
-| `layout.navbar.desktop.end` | list of component names | `["mvp.actions.theme-controller", "mvp.actions.login"]` | Same, at and above the breakpoint |
 | `layout.navbar.sticky` | bool | `True` | Whether the header stays pinned as the page scrolls |
 | `layout.navbar.class` | CSS classes | `"bg-base-100"` | The header's background, at every width; see [Header and dock background](layout.md#header-and-dock-background) |
 | `layout.dock.class` | CSS classes | `"bg-base-100"` | The mobile dock's background |
@@ -77,7 +76,7 @@ MVP_CONFIG = {
     "theme": {"choices": ["light", "dark", "dracula"]},
     "layout": {
         "sidebar": {"title": "Acme"},
-        "navbar": {"desktop": {"end": ["mvp.actions.search", "mvp.actions.login"]}},
+        "navbar": {"end": ["mvp.actions.search", "mvp.actions.login"]},
     },
 }
 ```
@@ -169,8 +168,7 @@ a worked example of writing your own theme.
 
 ## Widget lists take component names, not template paths
 
-`layout.navbar.mobile.end` and `layout.navbar.desktop.end` are lists of
-**Cotton component names**. Each is rendered dynamically, so the string is
+`layout.navbar.end` is a list of **Cotton component names**. Each is rendered dynamically, so the string is
 exactly what you would write between `<c-` and `>`. The mapping to a file is
 Cotton's own:
 
@@ -205,26 +203,23 @@ Bundled widgets:
 | `mvp.actions.login` | Log-in button; renders nothing for an authenticated visitor |
 | `mvp.actions.search` | Presentation only: a search icon styled as a button beside an input with no name, no form and no handler. It submits nothing — wire up your own |
 
-## `layout.navbar` — mobile and desktop are separate
+## `layout.navbar`
 
 ```python
 "navbar": {
+    "end": [...],               # widgets, drawn at every width
     "mobile": {
-        "end": [...],           # rendered below the sidebar breakpoint
-        "sidebar_toggle": False,  # the header's own sidebar toggle, below it
+        "sidebar_toggle": False,  # the header's own sidebar toggle, below the breakpoint
     },
-    "desktop": {"end": [...]},  # rendered at the breakpoint and above
     "sticky": True,
     "class": "bg-base-100",     # the header's background
 }
 ```
 
-Both regions are always emitted and one is hidden by viewport width, so a
-widget that only makes sense on a phone can be listed in `mobile` alone
-without its author having to make it responsive.
-
-**The split follows `layout.sidebar.breakpoint`**, so moving the sidebar's
-breakpoint moves the navbar's with it.
+**`end` is one list, drawn once.** The navbar keeps no separate list for narrow
+windows and hides no widget on your behalf. A widget that should give way on a phone
+hides itself, or the project lists fewer. See
+[Navbar widgets](layout.md#navbar-widgets).
 
 **`mobile.sidebar_toggle`** is whether the header draws its own sidebar toggle
 below the breakpoint. It defaults to `False`: header space is scarce on a
@@ -233,18 +228,6 @@ toggle of its own. A project that empties the dock or has no use for it sets
 `"sidebar_toggle": True` to keep the toggle in the header. At and above the
 breakpoint the header's toggle is unaffected, and under a breakpoint of `never`
 it is always drawn.
-
-**A flat `navbar.end` is still accepted.** Older projects set a single list at
-`layout.navbar.end`, and the deep merge would leave that sitting beside the
-new keys as a third, unread entry. So the package normalizes it after
-merging: if a flat `end` is present it is popped and copied into both
-`mobile.end` and `desktop.end`, which is exactly what it used to do.
-
-The consequence: **`MVP_CONFIG["layout"]["navbar"]["end"]` does not exist
-after import.** You may write it in settings, but reading it back finds
-nothing, because the key has been removed and folded into the two split
-keys. Templates only ever read `navbar.mobile.end` and `navbar.desktop.end`.
-Assert against those.
 
 `sticky` applies at every width. `True` pins the header to the top of the
 viewport as the page scrolls. `False` lets it scroll away with the page.

@@ -1,6 +1,6 @@
-"""Tests for ``<c-mvp.app.sidebar>``'s choice of menu and its back link.
+"""Tests for ``<c-app.sidebar>``'s choice of menu and its back link.
 
-Source: mvp/templates/cotton/mvp/app/sidebar/index.html and back.html
+Source: mvp/templates/cotton/app/sidebar/index.html and back.html
 """
 
 import pytest
@@ -55,16 +55,16 @@ def back_link(soup):
 @pytest.mark.urls("tests.urls_mounted")
 class TestSidebarMenuChoice:
     def test_no_menu_and_no_app_draws_app_menu(self):
-        soup = render_sidebar("<c-mvp.app.sidebar />", path="/layout/")
+        soup = render_sidebar("<c-app.sidebar />", path="/layout/")
 
         labels = sidebar_labels(soup)
 
         assert "Home" in labels
-        assert "Layout" in labels
+        assert "Theme Customization" in labels
         assert back_link(soup) is None
 
     def test_explicit_menu_draws_that_menu_and_no_back_link_on_an_app_page(self):
-        soup = render_sidebar('<c-mvp.app.sidebar menu="TestappMountedMenu" />')
+        soup = render_sidebar('<c-app.sidebar menu="TestappMountedMenu" />')
 
         labels = sidebar_labels(soup)
 
@@ -73,7 +73,7 @@ class TestSidebarMenuChoice:
         assert back_link(soup) is None
 
     def test_resolved_menu_and_app_draw_the_menu_under_a_back_link(self):
-        soup = render_sidebar("<c-mvp.app.sidebar />")
+        soup = render_sidebar("<c-app.sidebar />")
 
         labels = sidebar_labels(soup)
 
@@ -82,7 +82,7 @@ class TestSidebarMenuChoice:
         assert "Home" not in labels
 
     def test_explicit_menu_beats_the_resolved_pair(self):
-        soup = render_sidebar('<c-mvp.app.sidebar menu="AppMenu" />')
+        soup = render_sidebar('<c-app.sidebar menu="AppMenu" />')
 
         assert "Home" in sidebar_labels(soup)
         assert "Mounted Index" not in sidebar_labels(soup)
@@ -97,7 +97,7 @@ class TestSidebarMenuChoice:
         app = MountedApp(name="Hidden", icon="box", menu=hidden, urls=[], landing="x")
 
         soup = render_sidebar(
-            "<c-mvp.app.sidebar />", mounted_menu=hidden, mounted_app=app
+            "<c-app.sidebar />", mounted_menu=hidden, mounted_app=app
         )
 
         labels = sidebar_labels(soup)
@@ -106,7 +106,7 @@ class TestSidebarMenuChoice:
         assert back_link(soup) is not None
 
     def test_sidebar_still_draws_one_navigation_landmark_beside_a_back_link(self):
-        soup = render_sidebar("<c-mvp.app.sidebar />")
+        soup = render_sidebar("<c-app.sidebar />")
 
         landmarks = soup.find_all(
             lambda tag: tag.name == "nav" or tag.get("role") == "navigation"
@@ -122,14 +122,14 @@ class TestSidebarMenuChoice:
 class TestSidebarUnderContextIsolation:
     @override_settings(COTTON_ENABLE_CONTEXT_ISOLATION=True)
     def test_an_app_page_still_draws_the_menu_and_the_back_link(self):
-        soup = render_sidebar("<c-mvp.app.sidebar />")
+        soup = render_sidebar("<c-app.sidebar />")
 
         assert menu_hrefs(soup) == ["/", "/mounted/", "/mounted/detail/"]
         assert back_link(soup)["href"] == "/"
 
     @override_settings(COTTON_ENABLE_CONTEXT_ISOLATION=True)
     def test_a_host_page_still_draws_the_app_menu_with_no_back_link(self):
-        soup = render_sidebar("<c-mvp.app.sidebar />", path="/layout/")
+        soup = render_sidebar("<c-app.sidebar />", path="/layout/")
 
         assert "/layout/" in menu_hrefs(soup)
         assert "/mounted/" not in menu_hrefs(soup)
@@ -137,10 +137,10 @@ class TestSidebarUnderContextIsolation:
 
     @override_settings(COTTON_ENABLE_CONTEXT_ISOLATION=True)
     def test_menu_entries_keep_their_labels(self):
-        isolated = sidebar_labels(render_sidebar("<c-mvp.app.sidebar />"))
+        isolated = sidebar_labels(render_sidebar("<c-app.sidebar />"))
 
         with override_settings(COTTON_ENABLE_CONTEXT_ISOLATION=False):
-            shared = sidebar_labels(render_sidebar("<c-mvp.app.sidebar />"))
+            shared = sidebar_labels(render_sidebar("<c-app.sidebar />"))
 
         assert "Mounted Index" in isolated
         assert isolated == shared
@@ -148,8 +148,8 @@ class TestSidebarUnderContextIsolation:
     @override_settings(COTTON_ENABLE_CONTEXT_ISOLATION=True)
     def test_the_shell_still_draws_the_sidebar_it_is_given(self):
         soup = render_sidebar(
-            '<c-mvp.app><c-slot name="sidebar"><c-mvp.app.sidebar '
-            "/></c-slot></c-mvp.app>"
+            '<c-app><c-slot name="sidebar"><c-app.sidebar '
+            "/></c-slot></c-app>"
         )
 
         assert "Mounted Index" in sidebar_labels(soup)
@@ -160,7 +160,7 @@ class TestSidebarUnderContextIsolation:
 class TestSidebarBackLink:
     def render(self, **context):
         return render_sidebar(
-            "<c-mvp.app.sidebar {{ extra }} />".replace(
+            "<c-app.sidebar {{ extra }} />".replace(
                 "{{ extra }}", context.pop("extra", "")
             ),
             **context,

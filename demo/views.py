@@ -10,7 +10,7 @@ from pathlib import Path
 
 from django.forms import modelformset_factory
 from django.http import Http404
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 from django_filters.views import FilterView
@@ -175,8 +175,142 @@ class UtilityClassesView(DemoTemplateView):
 
 components_demo = ComponentIndexView.as_view()
 utility_classes_demo = UtilityClassesView.as_view()
-layout_demo = DemoTemplateView.as_view(
-    template_name="layout.html", page_title="Layout Demo"
+
+
+class LayoutPageView(DemoTemplateView):
+    """One page of the Layout group: a part of the shell and the blocks in it.
+
+    ``blocks`` is the table the page shows. ``?example`` switches on the
+    override the page documents, so the page being read is the result.
+    """
+
+    blocks = ()
+    has_example = True
+
+    def get_breadcrumbs(self):
+        """Add Home and Layout crumbs ahead of this page's own."""
+        return [
+            {"text": "Home", "href": "/"},
+            {"text": "Layout", "href": reverse("layout")},
+            {"text": self.page_title},
+        ]
+
+    def get_context_data(self, **kwargs):
+        """Add the block table and whether the example is switched on."""
+        context = super().get_context_data(**kwargs)
+        context["blocks"] = self.blocks
+        context["has_example"] = self.has_example
+        context["example"] = self.has_example and "example" in self.request.GET
+        return context
+
+
+REPLACES = "Its content replaces the default."
+
+layout_demo = LayoutPageView.as_view(
+    template_name="layout/app.html",
+    page_title="App",
+    has_example=False,
+    blocks=[
+        {
+            "name": "announcement",
+            "default": "Nothing.",
+            "filled": "Its content sits above the shell and scrolls away.",
+        },
+        {
+            "name": "app",
+            "default": "The whole shell.",
+            "filled": "The page is drawn with no shell at all.",
+        },
+        {"name": "app.sidebar", "default": "The sidebar.", "filled": REPLACES},
+        {
+            "name": "app.header",
+            "default": "The navbar, then the tray.",
+            "filled": REPLACES,
+        },
+        {
+            "name": "app.main",
+            "default": "The page content, then messages.",
+            "filled": REPLACES,
+        },
+        {"name": "content", "default": "Nothing.", "filled": "It is the page."},
+        {
+            "name": "app.messages",
+            "default": "Django messages, each one dismissible.",
+            "filled": REPLACES + " Leave it empty to draw none.",
+        },
+        {
+            "name": "app.footer",
+            "default": "An empty footer, under the page.",
+            "filled": REPLACES,
+        },
+        {
+            "name": "app.dock",
+            "default": "The dock: a bar of links along the bottom of a narrow window.",
+            "filled": REPLACES + " Leave it empty for a page with no dock.",
+        },
+    ],
+)
+layout_sidebar_demo = LayoutPageView.as_view(
+    template_name="layout/sidebar.html",
+    page_title="Sidebar",
+    blocks=[
+        {
+            "name": "app.sidebar",
+            "default": "The three regions below.",
+            "filled": REPLACES,
+        },
+        {
+            "name": "app.sidebar.header",
+            "default": "The brand icon, the title and the collapse toggle.",
+            "filled": REPLACES,
+        },
+        {
+            "name": "app.sidebar.body",
+            "default": "The menu. Inside a mounted app, a back link comes first.",
+            "filled": REPLACES,
+        },
+        {
+            "name": "app.sidebar.footer",
+            "default": "The user menu or a log-in button, then theme and language.",
+            "filled": REPLACES,
+        },
+    ],
+)
+layout_header_demo = LayoutPageView.as_view(
+    template_name="layout/header.html",
+    page_title="Header",
+    blocks=[
+        {
+            "name": "app.header",
+            "default": "The navbar, then the tray.",
+            "filled": REPLACES,
+        },
+        {
+            "name": "app.navbar",
+            "default": "The navbar row.",
+            "filled": REPLACES + " The tray is left alone.",
+        },
+        {
+            "name": "app.navbar.start",
+            "default": "The sidebar toggle, the site icon and the breadcrumbs.",
+            "filled": REPLACES,
+        },
+        {
+            "name": "app.navbar.center",
+            "default": "Nothing.",
+            "filled": "Its content sits in the middle of the row.",
+        },
+        {
+            "name": "app.navbar.end",
+            "default": "The widgets listed in settings.",
+            "filled": "Its content is added before the widgets.",
+        },
+        {
+            "name": "app.header.tray",
+            "default": "Nothing.",
+            "filled": "Its content sits under the navbar at full width.",
+        },
+    ],
 )
 theme_customization_demo = DemoTemplateView.as_view(
     template_name="theme_customization.html", page_title="Theme Customization"

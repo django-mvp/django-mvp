@@ -6,7 +6,7 @@ entry in order, a link where an entry has an address, the current page where
 it has none, extra attributes on the crumb, and the address written once
 (#127).
 
-Source: mvp/templates/cotton/mvp/app/header/navbar.html
+Source: mvp/templates/cotton/app/navbar.html
 """
 
 import pytest
@@ -25,7 +25,7 @@ class TestADeclaredTrailRendersInTheHeader:
             ]
         }
         soup = cotton_render_string_soup(
-            "<c-mvp.app.header.navbar />",
+            "<c-app.navbar />",
             context={"page": page, "mvp_config": MVP_CONFIG},
         )
         return soup.find("nav", class_="breadcrumbs")

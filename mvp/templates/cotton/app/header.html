@@ -3,7 +3,7 @@
 {# @prop class:text | description:"Background classes; defaults to layout.navbar.class." #}
 {# @slot:above — Content placed above the navbar row. #}
 {# @slot:below — Content placed below the navbar row. #}
-{# @slot:right — Extra header content; shares the desktop widget list's visibility rule. #}
+{# @slot The navbar row. — Left empty, the header draws <c-app.navbar /> itself. #}
 {# @slot:tray — Content placed after the navbar row, e.g. a search tray. #}
 <c-vars :sticky="mvp_config.layout.navbar.sticky" :class="mvp_config.layout.navbar.class" />
 {# The scroll handler writes to the layout store (assets/js/layout.js) #}
@@ -12,9 +12,11 @@
 <div class="mvp-header w-full {{ class }}{% if sticky %} sticky z-10 top-0{% endif %}"
      {% if sticky %}x-data @scroll.window="$store.mvp.header.stuck = window.scrollY > 0" :class="{ 'shadow-xs': $store.mvp.header.stuck }"{% endif %}>
   {{ above }}
-  <c-mvp.app.header.navbar>
-    <c-slot name="right">{{ right }}</c-slot>
-  </c-mvp.app.header.navbar>
+  {% if slot.strip %}
+    {{ slot }}
+  {% else %}
+    <c-app.navbar />
+  {% endif %}
   {{ tray }}
   {{ below }}
 </div>

@@ -125,7 +125,9 @@ Genuinely one-off markup unique to a single view is exempt.
 The components the package owns live under `mvp/templates/cotton/mvp/`, are reached as
 `<c-mvp.…>`, and are named in lowercase-kebab form after their domain role. The icon is the one
 exception: it stays at `cotton/icon.html` because it replaces daisy-cotton's plain icon by
-sitting at the same name. Basic daisyUI components come from daisy-cotton and are not written
+sitting at the same name. The app shell is the other: its components live under
+`mvp/templates/cotton/app/` and are reached as `<c-app.…>`, the names of the `app.*` blocks
+that draw them. Basic daisyUI components come from daisy-cotton and are not written
 again in this package.
 
 ### Article XII — Configuration-driven layout

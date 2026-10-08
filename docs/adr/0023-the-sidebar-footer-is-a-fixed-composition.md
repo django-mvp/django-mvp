@@ -49,7 +49,9 @@ any template can read it.
 
 Changing what the footer shows, or how its children are arranged, means overriding that one
 template — the mechanism Article XI already names for this, and the one a project reaching for
-anything beyond the default list was already using.
+anything beyond the default list was already using. A project whose pages extend `mvp/base.html`
+can fill the `app.sidebar.footer` block instead, which replaces the footer on those pages
+without a component template of its own.
 
 ## Consequences
 

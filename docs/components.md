@@ -12,9 +12,14 @@ expose a deliberately small attribute API; when the attributes aren't enough,
 ## Names and the `mvp.` prefix
 
 The components this package owns live under `mvp/templates/cotton/mvp/`, so their tags
-start with `mvp.`: `<c-mvp.card>`, `<c-mvp.page.list.empty>`, `<c-mvp.app.sidebar>`.
-No component this package keeps shares a name with one from
+start with `mvp.`: `<c-mvp.card>`, `<c-mvp.page.list.empty>`. The icon and the app shell
+are the two exceptions. No component this package keeps shares a name with one from
 [daisy-cotton](https://github.com/django-mvp/daisy-cotton), the icon excepted.
+
+- **The app shell's components are `<c-app.…>`.** `<c-app>`, `<c-app.sidebar>`,
+  `<c-app.header>`, `<c-app.navbar>`, `<c-app.main>`, `<c-app.footer>` and `<c-app.dock>`
+  live under `mvp/templates/cotton/app/` and carry no `mvp.` prefix. A project overrides
+  one at `templates/cotton/app/…`.
 
 - **`<c-icon>` keeps its bare name for good.** daisy-cotton ships a plain icon and
   expects a project to replace it when it wants icons looked up by name. This package's
@@ -23,7 +28,7 @@ No component this package keeps shares a name with one from
 - **The basic components use daisy-cotton's bare names.** `<c-button>`, `<c-alert>` and
   the rest of [the sixteen](#basic-components-from-daisy-cotton) are daisy-cotton's. This
   package ships no template for any of them.
-- **A project overrides a component at the same prefixed path** under its own
+- **A project overrides a component at the same path** under its own
   templates: `templates/cotton/mvp/card/index.html` for `<c-mvp.card>`.
 
 Conventions:
@@ -40,8 +45,8 @@ Conventions:
   root spreads them. A few components that render fixed markup — `<c-mvp.section.hero>`,
   `<c-mvp.placeholder.card>` — deliberately accept only their declared attributes.
 - Icon attributes take [easy-icons](getting-started.md#configure-icons) names.
-- The widget lists in [`MVP_CONFIG`](layout.md) (`layout.navbar.mobile.end`,
-  `layout.navbar.desktop.end`) are lists of component names, not template paths:
+- The widget list in [`MVP_CONFIG`](layout.md), `layout.navbar.end`, is a list of
+  component names, not template paths:
   `"mvp.actions.theme-controller"` renders `<c-mvp.actions.theme-controller />`.
 
 ## Basic components from daisy-cotton
@@ -155,15 +160,15 @@ no attributes by design. The shell places them; a page never writes them by hand
 
 | Component | Notes |
 | --- | --- |
-| `c-mvp.app` | drawer wrapper; attr: `breakpoint` |
-| `c-mvp.layout.sidebar` | the drawer mechanism `c-mvp.app` is built on: toggle, overlay, desktop open-state persistence, and the resolved layout it publishes to the browser; attrs: `id`, `breakpoint`, `collapse`, `sticky`, `boost` (all from config), `class` |
-| `c-mvp.app.header` / `c-mvp.app.header.navbar` | sticky header — site icon and [breadcrumb trail](layout.md#breadcrumbs) leading, actions trailing; slots: `above`, `below`, `right`, `tray`. `c-mvp.app.header` takes `sticky` and `class`, its background (both from config); `c-mvp.app.header.navbar` takes no attributes — which navbar widget list shows at which width is a stylesheet rule keyed off the drawer breakpoint, and the `right` slot shares the desktop list's visibility rule |
-| `c-mvp.app.sidebar` | brand header + `AppMenu` + fixed footer; attrs: `collapse`, `bg`, `brand-url`, `menu`, `title`, `boost`. `boost` sets `hx-boost` on the sidebar root, so every link inside it — menu items, the brand link, the footer actions — navigates with htmx instead of a full page load; off by default, because it changes how the page's own scripts see navigation |
-| `c-mvp.app.sidebar.header` | the sidebar's top strip: brand icon, optional title, collapse toggle; attrs: `link` (`/`), `bg`, `title` (from config) |
-| `c-mvp.app.sidebar.footer` | the pinned strip at the sidebar's foot: user menu (or log-in button), theme control, language control; attr: `bg` (from the sidebar). Override the template to change it |
-| `c-mvp.app.main`, `c-mvp.app.footer`, `c-mvp.app.dock` | content area, and the containing block for [absolutely positioned page content](layout.md#positioning-inside-the-main-area); footer (`class`), mobile bottom nav rendered from `MobileFooterMenu` |
+| `c-app` | drawer wrapper; attr: `breakpoint` |
+| `c-mvp.layout.sidebar` | the drawer mechanism `c-app` is built on: toggle, overlay, desktop open-state persistence, and the resolved layout it publishes to the browser; attrs: `id`, `breakpoint`, `collapse`, `sticky`, `boost` (all from config), `class` |
+| `c-app.header` / `c-app.navbar` | sticky header — site icon and [breadcrumb trail](layout.md#breadcrumbs) leading, actions trailing; `c-app.header` takes `sticky` and `class`, its background (both from config); slots: default (the navbar row; left empty, the header draws `c-app.navbar` itself), `above`, `tray`, `below`. `c-app.navbar` takes no attributes; slots: `start` (replaces the sidebar toggle, site icon and trail), `center`, `end` (added before the widgets in `layout.navbar.end`). Each slot is filled from a [shell block](layout.md#template-blocks) |
+| `c-app.sidebar` | brand header + `AppMenu` + fixed footer; slots: `header`, `body`, `footer`, each replacing that region when filled; attrs: `collapse`, `bg`, `brand-url`, `menu`, `title`, `boost`. `boost` sets `hx-boost` on the sidebar root, so every link inside it — menu items, the brand link, the footer actions — navigates with htmx instead of a full page load; off by default, because it changes how the page's own scripts see navigation |
+| `c-app.sidebar.header` | the sidebar's top strip: brand icon, optional title, collapse toggle; attrs: `link` (`/`), `bg`, `title` (from config) |
+| `c-app.sidebar.footer` | the pinned strip at the sidebar's foot: user menu (or log-in button), theme control, language control; attr: `bg` (from the sidebar). Override the template to change it |
+| `c-app.main`, `c-app.footer`, `c-app.dock` | content area, and the containing block for [absolutely positioned page content](layout.md#positioning-inside-the-main-area); footer (`class`), mobile bottom nav rendered from `MobileFooterMenu` |
 
-`c-mvp.app.sidebar` and `c-mvp.app.dock` render menus by name through django-flex-menus, so
+`c-app.sidebar` and `c-app.dock` render menus by name through django-flex-menus, so
 changing what's in them is a menu change, not a template change.
 
 ## Layout primitives
@@ -178,7 +183,7 @@ Empty, unopinionated building blocks — you provide the content.
 | `c-mvp.toolbar` | `row` (True or breakpoint), `gap`; slots: default (left), `actions` (right) |
 | `c-mvp.rule` | `class` — a hairline between items in one list, where a divider would be too loud |
 | `c-mvp.backdrop` | `opacity` — absolute overlay (e.g. over hero images) |
-| `c-mvp.layout.sidebar` | `id`, `breakpoint`, `collapse`, `sticky`, `boost` — reusable drawer shell (what `c-mvp.app` uses). The last four default to their `MVP_CONFIG` values and are the resolved layout it publishes to the browser |
+| `c-mvp.layout.sidebar` | `id`, `breakpoint`, `collapse`, `sticky`, `boost` — reusable drawer shell (what `c-app` uses). The last four default to their `MVP_CONFIG` values and are the resolved layout it publishes to the browser |
 
 `row` on `c-mvp.group` is a boolean (always a row); `collapse` turns into a row only at the
 `lg` breakpoint. `row` on `c-mvp.toolbar` takes either `True` or a breakpoint name and
@@ -364,11 +369,11 @@ yourself takes the class you pass.
 
 ## Widgets you place by name
 
-These are designed to be listed in `MVP_CONFIG` — `layout.navbar.mobile.end`,
-`layout.navbar.desktop.end` — rather than written into a page. The sidebar footer is a
-fixed composition rather than a configured list (see `c-mvp.app.sidebar.footer` above), but
+These are designed to be listed in `MVP_CONFIG`, at `layout.navbar.end`, rather than
+written into a page. The sidebar footer is a
+fixed composition rather than a configured list (see `c-app.sidebar.footer` above), but
 several of the same components are what it's built from, and you'll still reach for them
-by name if you override that template. Each renders nothing when its precondition is
+by name if you fill the `app.sidebar.footer` block or override that template. Each renders nothing when its precondition is
 unmet.
 
 | Component | Notes |

@@ -62,7 +62,7 @@ def cotton_render():
 
         Args:
             component_name: Component name in dotted notation, such as
-                ``mvp.card`` or ``mvp.app.sidebar``.
+                ``mvp.card`` or ``app.sidebar``.
             context: Component attributes as a dict.
             **kwargs: Component attributes, as an alternative to ``context``.
 
@@ -100,7 +100,7 @@ def cotton_render_soup():
 
         Args:
             component_name: Component name in dotted notation, such as
-                ``mvp.card`` or ``mvp.app.sidebar``.
+                ``mvp.card`` or ``app.sidebar``.
             context: Component attributes as a dict.
             **kwargs: Component attributes, as an alternative to ``context``.
 

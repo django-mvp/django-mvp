@@ -42,8 +42,8 @@ def _document_survived(page):
 
 
 def _layout_link(page):
-    """The sidebar's own link to the demo's /layout/ page."""
-    return page.locator("aside.mvp-sidebar a[href='/layout/']").first
+    """The sidebar's own link to the demo's /theme/ page."""
+    return page.locator("aside.mvp-sidebar a[href='/theme/']").first
 
 
 def _theme_changes_on_one_click(page):
@@ -69,7 +69,7 @@ class TestBoostedSidebarNavigation:
         _mark_document(page)
 
         _layout_link(page).click()
-        page.wait_for_url(f"{live_server.url}/layout/")
+        page.wait_for_url(f"{live_server.url}/theme/")
 
         assert _document_survived(page), (
             "the sidebar link triggered a full document load — hx-boost was "
@@ -84,7 +84,7 @@ class TestBoostedSidebarNavigation:
         _mark_document(page)
 
         _layout_link(page).click()
-        page.wait_for_url(f"{live_server.url}/layout/")
+        page.wait_for_url(f"{live_server.url}/theme/")
 
         assert not _document_survived(page), (
             "with boost off a sidebar link must perform an ordinary "
@@ -108,7 +108,7 @@ class TestBoostedNavigationClosesTheDrawer:
         _mark_document(page)
 
         _layout_link(page).click()
-        page.wait_for_url(f"{live_server.url}/layout/")
+        page.wait_for_url(f"{live_server.url}/theme/")
 
         assert _document_survived(page), "precondition: the click was boosted"
         expect(page.locator("#mvp-app-toggle")).not_to_be_checked()
@@ -122,7 +122,7 @@ class TestBoostedNavigationClosesTheDrawer:
         _mark_document(page)
 
         _layout_link(page).click()
-        page.wait_for_url(f"{live_server.url}/layout/")
+        page.wait_for_url(f"{live_server.url}/theme/")
 
         assert _document_survived(page), "precondition: the click was boosted"
         expect(page.locator("#mvp-app-toggle")).to_be_checked()
@@ -138,7 +138,7 @@ class TestControlsStillWorkAfterABoostedSwap:
         _mark_document(page)
 
         _layout_link(page).click()
-        page.wait_for_url(f"{live_server.url}/layout/")
+        page.wait_for_url(f"{live_server.url}/theme/")
         assert _document_survived(page), "precondition: the click was boosted"
 
         toggle = page.locator("[data-toggle-theme]").first

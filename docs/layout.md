@@ -4,13 +4,13 @@ django-mvp renders a complete application shell around your content:
 
 ```
 {% block announcement %}      empty by default, outside the shell (scrolls away)
-<c-mvp.app>                        DaisyUI drawer (sidebar + content)
-├── <c-mvp.app.sidebar>            brand header, AppMenu, fixed footer
-├── <c-mvp.app.header>             sticky header
-│   └── <c-mvp.app.header.navbar>  sidebar toggle (not on mobile), site icon, breadcrumbs, widgets
-├── <c-mvp.app.main>               your {% block content %} + flash messages
-├── <c-mvp.app.footer>
-└── <c-mvp.app.dock>               mobile bottom navigation
+<c-app>                        DaisyUI drawer (sidebar + content)
+├── <c-app.sidebar>            brand header, AppMenu, fixed footer
+├── <c-app.header>             sticky header
+│   └── <c-app.navbar>         sidebar toggle (not on mobile), site icon, breadcrumbs, widgets
+├── <c-app.main>               your {% block content %} + flash messages
+├── <c-app.footer>
+└── <c-app.dock>               mobile bottom navigation
 ```
 
 The shell is driven by `settings.MVP_CONFIG["layout"]` — similar in spirit to
@@ -112,7 +112,7 @@ Per-page override:
 
 ```html
 {% block app.sidebar %}
-  <c-mvp.app.sidebar title="Acme Admin" />
+  <c-app.sidebar title="Acme Admin" />
 {% endblock %}
 ```
 
@@ -122,31 +122,24 @@ The sidebar footer is a fixed composition, not a configured widget list: it alwa
 renders the signed-in user's menu (or a log-in button for a visitor), a theme control
 and a language control, in a single row that fills the sidebar's width.
 
-To change what the footer shows, override the component template in your project:
+To change what the footer shows on your pages, fill the `app.sidebar.footer` block in
+your base template. Its content replaces the packaged footer:
 
 ```html
-{# templates/cotton/mvp/app/sidebar/footer.html #}
-<div class="bg-base-200 w-full sticky bottom-0 mt-auto z-20 flex items-center gap-2 px-4 py-2">
-  <c-mvp.user.sidebar-menu />
-  <c-mvp.actions.login />
-  <c-mvp.actions.theme-controller valign="top" compact />
-  <myapp.support-link />
-</div>
+{% block app.sidebar.footer %}
+  <div class="bg-base-200 w-full sticky bottom-0 mt-auto z-20 flex items-center gap-2 px-4 py-2">
+    <c-mvp.user.sidebar-menu />
+    <c-mvp.actions.login />
+    <c-mvp.actions.theme-controller valign="top" compact />
+    <myapp.support-link />
+  </div>
+{% endblock app.sidebar.footer %}
 ```
 
-`<c-mvp.user.sidebar-menu>` and `<c-mvp.actions.login>` each guard on
-`request.user.is_authenticated` internally, so drop both in unguarded — exactly one
-renders per request.
-
-The two attributes on the theme control are both about living in a footer. `valign="top"`
-opens its panel upward, since there is no room below it. `compact` renders the two-theme
-switcher as a single square icon button rather than an icon, a checkbox and a second
-icon side by side. That row needs about 77px, which the footer would rather spend on the
-user's name. It matters by default: `theme.choices` is empty unless a project sets it, so
-the wide form is what most installs would otherwise get.
-
-See [docs/adr/0023](adr/0023-the-sidebar-footer-is-a-fixed-composition.md) for why this
-moved from a setting to a template override.
+`app.sidebar.header` and `app.sidebar.body` work the same way for the brand strip and
+the menu. See [Template blocks](#template-blocks). To change the footer everywhere
+`<c-app.sidebar>` is used, including in templates that do not extend `mvp/base.html`,
+override the component template at `templates/cotton/app/sidebar/footer.html`.
 
 ## Boosted sidebar navigation
 
@@ -185,7 +178,7 @@ Per-page override:
 
 ```html
 {% block app.sidebar %}
-  <c-mvp.app.sidebar boost />
+  <c-app.sidebar boost />
 {% endblock %}
 ```
 
@@ -256,36 +249,18 @@ wherever you want it and override the `app.header` block with your own header.
 
 ## Navbar widgets
 
-`layout.navbar.mobile.end` and `layout.navbar.desktop.end` are each a list of
-**Cotton component names** rendered in order at the right end of the navbar via
-`<c-component :is="...">`. They're configured separately because a widget can be
-right for one screen size and noise on the other — a language switcher that's fine
-in a spacious desktop bar may not be worth the tap target on a phone, and for a
-third-party widget you often can't rely on it making that call itself:
-
-`desktop.end` reaches the header from the [sidebar breakpoint](#sidebar-breakpoint)
-up, `mobile.end` below it. **`mobile.end` ships empty.** Below the breakpoint the
-header row is spent on the site icon and the [breadcrumb trail](#breadcrumbs), and
-a narrow header that keeps the trail readable
-is worth more than one that keeps every control. A widget you list on `mobile.end`
-is the deliberate exception that earns that width back — and a control your visitors
-need on a phone belongs either there or in the [sidebar footer](#sidebar-footer),
-whose theme and language controls the drawer already reaches at every width.
+`layout.navbar.end` is a list of **Cotton component names** rendered in order at the
+right end of the navbar via `<c-component :is="...">`:
 
 ```python
 MVP_CONFIG = {
     "layout": {
         "navbar": {
-            "mobile": {
-                "end": ["mvp.actions.theme-controller"],
-            },
-            "desktop": {
-                "end": [
-                    "mvp.actions.theme-controller",     # light/dark toggle
-                    "mvp.actions.language-switcher",    # i18n language menu
-                    "myapp.notifications-bell",     # your own component
-                ],
-            },
+            "end": [
+                "mvp.actions.theme-controller",     # light/dark toggle
+                "mvp.actions.language-switcher",    # i18n language menu
+                "myapp.notifications-bell",     # your own component
+            ],
         },
     },
 }
@@ -298,38 +273,17 @@ Your own component is listed by its own name: `"myapp.notifications-bell"` →
 `templates/cotton/myapp/notifications_bell.html`. Any component in your project's
 cotton directory works, so app-specific widgets need no configuration beyond the name.
 
-**Backward compatibility:** a flat `layout.navbar.end` (the pre-split shape) still
-works and applies the same list to both `mobile` and `desktop`:
+**The list is drawn once, at every width.** The navbar does not keep a separate list
+for narrow windows, and it hides nothing on your behalf. Below the
+[sidebar breakpoint](#sidebar-breakpoint) the row also holds the site icon and the
+[breadcrumb trail](#breadcrumbs), so what gives way on a phone is your project's
+decision:
 
-```python
-MVP_CONFIG = {
-    "layout": {
-        "navbar": {
-            "end": ["mvp.actions.theme-controller"],  # applies to both mobile and desktop
-        },
-    },
-}
-```
-
-**How it's rendered:** both lists render server-side, in two separate regions toggled
-with Tailwind's responsive display utilities keyed off the sidebar breakpoint (at the
-default `lg`, the mobile region is `flex lg:hidden` and the desktop region
-`hidden lg:flex`) — a config-driven widget list can't be resolved from the request
-alone, so there's no way to render only one without a live layout. The desktop region
-also holds whatever you put in the [`app.header.widgets`](#template-blocks) block, so
-your own header content gives way at the same width the configured widgets do. The
-mobile region is not rendered at all while `mobile.end` is empty, since an empty flex
-item still spends its parent's gap. With `breakpoint` set to `never` there is no width
-to key off, so the desktop region is shown at every width and the mobile one at none.
-The region hidden by `display:none` is dropped from the accessibility tree by every
-evergreen browser, so screen-reader users only ever reach the visible one. The cost is
-duplicate markup: any widget listed on both `mobile.end` and `desktop.end` renders
-twice in the page (once per region). Most shipped widgets carry no DOM `id`, so this is
-inert, but `mvp.actions.language-switcher-modal` does (its dialog `id`, default
-`"languageModal"`) — list it on only one of `mobile.end`/`desktop.end`, or wrap it in
-your own component that overrides the `id` (see
-[Language switcher: dropdown or modal](#language-switcher-dropdown-or-modal)) before
-placing it on both.
+- List fewer widgets. The [sidebar footer](#sidebar-footer) already carries the theme
+  and language controls at every width.
+- Write a widget that hides itself. A component whose root carries
+  [`mvp-desktop-only`](#responsive-visibility) is shown from the sidebar
+  breakpoint up and hidden below it.
 
 ### Language switcher: dropdown or modal
 
@@ -345,8 +299,8 @@ Two i18n language pickers ship as widgets — use whichever fits the slot:
 
 Both post to Django's `set_language` view and preserve the current path, so they are
 interchangeable. Placing either in the navbar is a `MVP_CONFIG` setting (above); placing
-one in the sidebar footer instead of the packaged one means overriding
-`templates/cotton/mvp/app/sidebar/footer.html` — see [Sidebar footer](#sidebar-footer).
+one in the sidebar footer instead of the packaged one means filling the
+`app.sidebar.footer` block — see [Sidebar footer](#sidebar-footer).
 
 If you place the modal switcher in more than one slot on the same page, give the extra
 instances a distinct dialog id so they don't collide — this needs a wrapper component,
@@ -361,7 +315,7 @@ For one-off, page-specific widgets, the template block still works and renders b
 the configured list:
 
 ```html
-{% block app.header.widgets %}
+{% block app.navbar.end %}
   <c-my-page-widget />
 {% endblock %}
 ```
@@ -389,7 +343,7 @@ Per-page override (use the `:` expression form so the value stays a real boolean
 
 ```html
 {% block app.header %}
-  <c-mvp.app.header :sticky="False" />
+  <c-app.header :sticky="False" />
 {% endblock %}
 ```
 
@@ -417,12 +371,12 @@ The packaged stylesheet only has the classes it was built with. `bg-base-100` th
 `bg-base-300`, `bg-transparent` and `backdrop-blur` are in it. For anything else, build your own
 stylesheet with `python manage.py mvp_tailwind`.
 
-`<c-mvp.app.header>` also takes a `class` attribute, which wins over the setting wherever
+`<c-app.header>` also takes a `class` attribute, which wins over the setting wherever
 you render it yourself, for example to change one page's header:
 
 ```html
 {% block app.header %}
-  <c-mvp.app.header class="bg-base-200" />
+  <c-app.header class="bg-base-200" />
 {% endblock %}
 ```
 
@@ -450,7 +404,7 @@ same way `app.header.tray` decides nothing on your behalf.
 
 ## Positioning inside the main area
 
-`<c-mvp.app.main>` is `relative`, so it is the containing block for anything your
+`<c-app.main>` is `relative`, so it is the containing block for anything your
 page positions absolutely. An element with `absolute` anchors to the content
 area rather than to the browser window, which keeps it clear of the sidebar and
 the header:
@@ -468,7 +422,7 @@ edge, use `fixed` as before.
 
 ## Full-page content
 
-By default, page content scrolls with the window: `<c-mvp.app.main>` grows as tall as
+By default, page content scrolls with the window: `<c-app.main>` grows as tall as
 its content and the browser handles scrolling. Some content — a full-bleed map, most
 JavaScript-driven widgets — instead wants to fill the space the shell gives it and
 handle its own scrolling.
@@ -487,7 +441,7 @@ Put `fill` on `<c-mvp.page>`. That is the whole opt-in:
 
 There is nothing to configure above the page, and no setting for it. `fill` marks
 the page, and the shell responds to the mark: `drawer-content` becomes a flex
-column with a viewport-height floor, `<c-mvp.app.main>` is already `flex-1`, and
+column with a viewport-height floor, `<c-app.main>` is already `flex-1`, and
 `<c-mvp.page.content>` is already `flex-1 min-h-0`. Your content can then take
 `h-full` and scroll internally.
 
@@ -556,9 +510,9 @@ Either knob may be set on its own; the other keeps its `MVP_CONFIG` default. The
 variables can instead be supplied from the view context (e.g. `{"breakpoint": "xl"}`)
 when the choice is view- rather than template-driven.
 
-> Setting them on `<c-mvp.app>` works: it renders the resolved values onto the shell's
+> Setting them on `<c-app>` works: it renders the resolved values onto the shell's
 > drawer, and the navbar toggle reads them from there. Setting them on
-> `<c-mvp.app.sidebar>` styles only that component and reaches nothing else. Resolving
+> `<c-app.sidebar>` styles only that component and reaches nothing else. Resolving
 > them in the `app` block as above is still the clearest form, because it is the one
 > place every region reads.
 
@@ -702,16 +656,54 @@ the sidebar carries the area's menu.
 | `head`, `title`, `extra_js` | document head / scripts |
 | `announcement` | a banner slot outside the app shell (empty by default) |
 | `app` | the entire app shell |
-| `app.sidebar` | the sidebar (default: `<c-mvp.app.sidebar />`; it reads the current [mounted app](mounted-apps.md) from the context on its own) |
-| `app.header` | the header |
-| `app.header.widgets` | extra navbar-end content (hidden below the sidebar breakpoint, with the configured widgets) |
-| `app.header.tray` | a row below the navbar |
+| `app.sidebar` | the sidebar (default: `<c-app.sidebar />`; it reads the current [mounted app](mounted-apps.md) from the context on its own) |
+| `app.sidebar.header` | the sidebar's top strip: brand icon, title, collapse toggle |
+| `app.sidebar.body` | the sidebar's menu, and the back link inside a mounted app |
+| `app.sidebar.footer` | the sidebar's [fixed footer](#sidebar-footer) |
+| `app.header` | the header: the navbar, then the tray |
+| `app.navbar` | the navbar row. The tray is left alone |
+| `app.navbar.start` | the navbar's leading region: sidebar toggle, site icon, breadcrumbs |
+| `app.navbar.center` | nothing by default. Its content sits in the middle of the row |
+| `app.navbar.end` | nothing by default. Its content is added before the [configured widgets](#navbar-widgets) |
+| `app.header.tray` | nothing by default. A full-width row below the navbar |
 | `app.main` / `content` | the main area / page content |
+| `app.messages` | the message toasts, drawn after `content` |
 | `app.footer` | the footer |
 | `app.dock` | the mobile dock |
 
-For anything deeper, override the component template itself (e.g. drop your own
-`templates/cotton/mvp/app/sidebar/footer.html`) — that is the intended extension path.
+**A region block left empty draws the packaged default.** `app.sidebar.header`,
+`app.sidebar.body`, `app.sidebar.footer` and `app.navbar.start` each replace their
+region when they have content and stand aside when they have none. The default belongs
+to the component, so `{{ block.super }}` is empty inside them: a template that wants
+the packaged region plus something of its own writes the region out.
+
+```html
+{% extends "mvp/base.html" %}
+
+{% block app.navbar.center %}
+  <label class="input input-sm">
+    <c-icon name="search" />
+    <input type="search" placeholder="Search projects" aria-label="Search projects" />
+  </label>
+{% endblock app.navbar.center %}
+
+{% block app.header.tray %}
+  <div role="tablist" class="tabs tabs-lift px-3">
+    <a role="tab" class="tab tab-active" aria-selected="true">Overview</a>
+    <a role="tab" class="tab">Members</a>
+  </div>
+{% endblock app.header.tray %}
+```
+
+`app.navbar.end` adds to the configured widgets and does not replace them. To drop a
+widget, change [`layout.navbar.end`](#navbar-widgets). Nothing in the navbar is hidden
+on a narrow window for you, so content placed in `center` or `end` has to fit a phone
+or hide itself.
+
+The demo project's Layout pages draw each region and show these overrides running.
+
+To change a region wherever its component is used, override the component template
+itself (for example `templates/cotton/app/sidebar/footer.html`).
 
 ### Layer 2 — `page.*` blocks
 
@@ -795,45 +787,41 @@ and the defaults around it are different:
 - `app.footer` is blanked to an empty block. The shell footer does not render
   on a table page. Restore it in your own template if you want it back.
 
-### What no block can suppress
-
-Two things inside the shell have no enclosing block of their own:
-
-- **The message toasts.** They are emitted inside `<c-mvp.app.main>`, after
-  `content`. The nearest block is `app.main`, so removing or relocating them
-  means overriding `app.main` and restating the main region and
-  `{% block content %}` yourself.
-- **The mobile dock.** It is emitted as the last child of `<c-mvp.app>`, outside
-  every block. Suppressing it means overriding the whole `app` block.
-
 ### Header slots versus header blocks
 
-`<c-mvp.app.header>` has four slots and the base template only wires up two of them:
+`<c-app.header>` has a default slot and three named ones:
 
 | Slot | Position | Reached by |
 | --- | --- | --- |
-| `above` | Above the navbar, inside the header region | Restating `<c-mvp.app.header>` in the `app.header` block |
-| `right` | Trailing edge of the navbar, before the configured widgets | `{% block app.header.widgets %}` |
+| `above` | Above the navbar, inside the header region | Restating `<c-app.header>` in the `app.header` block |
+| default | The navbar row. Left empty, the header draws `<c-app.navbar />` itself | `{% block app.navbar %}` |
 | `tray` | Below the navbar, full width, inside the header region | `{% block app.header.tray %}` |
-| `below` | Below the tray, same region | Restating `<c-mvp.app.header>` in the `app.header` block |
+| `below` | Below the tray, same region | Restating `<c-app.header>` in the `app.header` block |
+
+`<c-app.navbar>` has three slots, `start`, `center` and `end`, fed by the
+`app.navbar.start`, `app.navbar.center` and `app.navbar.end` blocks.
 
 So `app.header.tray` feeds the `tray` slot specifically, not `below`. The two
 render in the same region and differ only in order. To reach `above` or
 `below`, override `app.header` and write the component out with the slots you
 want. `sticky` is the header's own attribute — use the dynamic form so it
 stays a real boolean — and restating `app.header` replaces the whole block,
-so carry the `right` and `tray` slots along with it or anything a page put in
-`app.header.widgets`/`app.header.tray` stops being reachable:
+so carry the navbar and tray blocks along with it or anything a page put in
+them stops being reachable:
 
 ```html
 {% block app.header %}
-  <c-mvp.app.header :sticky="False">
-    <c-slot name="right">
-      {% block app.header.widgets %}{% endblock app.header.widgets %}
-    </c-slot>
+  <c-app.header :sticky="False">
+    {% block app.navbar %}
+      <c-app.navbar>
+        <c-slot name="start">{% block app.navbar.start %}{% endblock app.navbar.start %}</c-slot>
+        <c-slot name="center">{% block app.navbar.center %}{% endblock app.navbar.center %}</c-slot>
+        <c-slot name="end">{% block app.navbar.end %}{% endblock app.navbar.end %}</c-slot>
+      </c-app.navbar>
+    {% endblock app.navbar %}
     <c-slot name="tray">
       {% block app.header.tray %}{% endblock app.header.tray %}
     </c-slot>
-  </c-mvp.app.header>
+  </c-app.header>
 {% endblock app.header %}
 ```

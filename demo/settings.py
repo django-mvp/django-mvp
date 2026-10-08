@@ -149,16 +149,11 @@ MVP_CONFIG = {
     },
     "layout": {
         "navbar": {
-            # Desktop only: below the sidebar breakpoint these three reach a
-            # phone through the drawer's fixed footer instead, which is also
-            # how a signed-in visitor reaches the Account Center.
-            "desktop": {
-                "end": [
-                    "mvp.actions.theme-controller",
-                    "mvp.actions.language-switcher",
-                    "mvp.actions.login",
-                ],
-            },
+            "end": [
+                "mvp.actions.theme-controller",
+                "mvp.actions.language-switcher",
+                "mvp.actions.login",
+            ],
         },
         "sidebar": {
             "title": "DjangoMVP",
@@ -176,6 +171,7 @@ EASY_ICONS = {
         "icons": {
             "add": "bi bi-plus-circle",
             "arrow-left": "bi bi-arrow-left",
+            "search": "bi bi-search",
             "bell": "bi bi-bell",
             "bicycle": "bi bi-bicycle",
             "chart-bar": "bi bi-bar-chart",

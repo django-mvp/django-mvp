@@ -35,14 +35,17 @@ missing from `TEMPLATES["OPTIONS"]["context_processors"]`, so the merged config 
 reaches a template. Use `settings.MVP_CONFIG` and register the context processor — the shell
 also needs `django.template.context_processors.request`. See [Configuration](configuration.md).
 
-**Widgets configured for the navbar only show up on one screen size.** `layout.navbar.mobile.end`
-and `layout.navbar.desktop.end` are separate lists; setting only one leaves the other on the
-package default. Set both, or use the flat `layout.navbar.end` key, which the package still
-normalizes onto both. See [Navbar widgets](layout.md#navbar-widgets).
+**Widgets set under `layout.navbar.desktop.end` or `layout.navbar.mobile.end` never show up.**
+Those keys are no longer read, and setting one raises an `MVPDeprecationWarning`. The navbar has one list, `layout.navbar.end`, drawn at every
+width. See [Navbar widgets](layout.md#navbar-widgets).
+
+**The navbar is crowded on a phone.** The navbar hides none of its widgets on a narrow window.
+List fewer in `layout.navbar.end`, or give a widget's root the `mvp-desktop-only` class so it
+shows from the sidebar breakpoint up. See [Navbar widgets](layout.md#navbar-widgets).
 
 **A per-page `breakpoint` or `collapse` override doesn't move the navbar toggle.** The
 sidebar drawer, the collapsed rail, and the toggle all read values resolved once at the top
-of `{% block app %}`. Setting the attributes on `<c-mvp.app>` or `<c-mvp.app.sidebar>` styles those
+of `{% block app %}`. Setting the attributes on `<c-app>` or `<c-app.sidebar>` styles those
 components alone and leaves the toggle on the project default. Resolve them in the block
 instead: `{% block app %}{% with breakpoint="xl" collapse="icons" %}{{ block.super }}{% endwith %}{% endblock %}`,
 or supply them from view context. See [Overriding the layout per page](layout.md#overriding-the-layout-per-page).
@@ -65,7 +68,7 @@ example `SILENCED_SYSTEM_CHECKS = ["mvp.W001"]`.
 
 ## Templates and styling
 
-**Rewriting `<c-mvp.app>…</c-mvp.app>` inside a page template.** That composition is the shell's
+**Rewriting `<c-app>…</c-app>` inside a page template.** That composition is the shell's
 own job. Extend `mvp/base.html` and fill `{% block content %}` — the sidebar, header,
 footer and mobile dock render themselves. See [Your first page](getting-started.md#your-first-page).
 

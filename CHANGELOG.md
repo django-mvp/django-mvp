@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Template blocks for the regions of the sidebar and the navbar: `app.sidebar.header`,
+  `app.sidebar.body`, `app.sidebar.footer`, `app.navbar`, `app.navbar.start`,
+  `app.navbar.center` and `app.navbar.end`. A block left empty draws the packaged region,
+  and a filled one replaces it. `app.messages` wraps the message toasts. See
+  [Template blocks](docs/layout.md#template-blocks).
+- `<c-app.sidebar>` takes `header`, `body` and `footer` slots, and `<c-app.navbar>` takes
+  `start`, `center` and `end`.
+- The demo project has a Layout group that draws the shell, the sidebar and the header
+  with their blocks, and shows an override of each running on the page.
+
+### Changed
+
+- **Breaking:** the app shell's components lose the `mvp.` prefix. `<c-mvp.app>` is
+  `<c-app>`, `<c-mvp.app.sidebar>` is `<c-app.sidebar>`, and so on for the header, main,
+  footer and dock. `<c-mvp.app.header.navbar>` is `<c-app.navbar>`. The templates moved
+  from `cotton/mvp/app/` to `cotton/app/`, so a project's override moves with them.
+- **Breaking:** the navbar has one widget list, `layout.navbar.end`, drawn at every
+  width. `layout.navbar.desktop.end` and `layout.navbar.mobile.end` are no longer read, and
+  setting either one raises an `MVPDeprecationWarning`.
+  The navbar hides no widget on a narrow window, so a widget that should give way there
+  hides itself or is left off the list. See
+  [Navbar widgets](docs/layout.md#navbar-widgets).
+- **Breaking:** the `app.header.widgets` block is `app.navbar.end`. Its content is now
+  shown at every width.
+- **Breaking:** `<c-app.header>` has no `right` slot. Put that content in the `end` slot
+  of `<c-app.navbar>`.
+
 ## [v0.27.1] - 2026-10-07
 
 ### Changed

@@ -23,7 +23,7 @@ links are relative to this file. If you have this file on its own, every page is
 
 > **Version note.** The package migrated from AdminLTE 4 / Bootstrap 5 to DaisyUI 5 /
 > Tailwind v4. If you see `settings.MVP`, `cotton_bs5`, an `adminlte` renderer, or a
-> `<c-mvp.app>` composed by hand in a base template, that is the old API and it is gone.
+> `<c-app>` composed by hand in a base template, that is the old API and it is gone.
 
 ## Critical decisions
 
@@ -31,15 +31,15 @@ Get these right before writing anything. Each one is a mistake that looks like i
 
 | Concern | Correct | Wrong, removed, or a trap |
 |---|---|---|
-| Layout configuration | `settings.MVP_CONFIG` plus the `mvp.context_processors.mvp_config` processor | `settings.MVP`; layout attributes on a hand-built `<c-mvp.app>` |
-| Navbar widgets | `layout.navbar.mobile.end` and `layout.navbar.desktop.end`; `mobile.end` ships empty and the whole trailing region is hidden below the sidebar breakpoint | a flat `layout.navbar.end` — accepted as a legacy shape, but it is copied into both and removed from the merged config |
-| Component names | `<c-mvp.card>`, `<c-mvp.page.list>`: the package's own components sit under `mvp/templates/cotton/mvp/`; `<c-icon>` keeps its bare name. The sixteen basic components (`<c-button>`, `<c-alert>`, `<c-badge>`, `<c-menu>`, `<c-divider>`, `<c-link>`, the dock, the breadcrumbs, the mockups and `<c-avatar.group>`) are daisy-cotton's, not this package's | dropping the `mvp.` prefix from a component the package owns — the bare name resolves to nothing from this package |
+| Layout configuration | `settings.MVP_CONFIG` plus the `mvp.context_processors.mvp_config` processor | `settings.MVP`; layout attributes on a hand-built `<c-app>` |
+| Navbar widgets | `layout.navbar.end`: one list, drawn at every width. Nothing is hidden on a narrow window for you; a widget that should give way hides itself (`mvp-desktop-only` on its root) or is left off the list. Page-specific extras go in the `app.navbar.end` block | `layout.navbar.mobile.end` and `layout.navbar.desktop.end` — removed, and no longer read; the `app.header.widgets` block — renamed `app.navbar.end` |
+| Component names | `<c-mvp.card>`, `<c-mvp.page.list>`: the package's own components sit under `mvp/templates/cotton/mvp/`; `<c-icon>` keeps its bare name, and the app shell's components are `<c-app.…>` (`<c-app.sidebar>`, `<c-app.header>`, `<c-app.navbar>`) under `mvp/templates/cotton/app/`. The sixteen basic components (`<c-button>`, `<c-alert>`, `<c-badge>`, `<c-menu>`, `<c-divider>`, `<c-link>`, the dock, the breadcrumbs, the mockups and `<c-avatar.group>`) are daisy-cotton's, not this package's | dropping the `mvp.` prefix from a component the package owns — the bare name resolves to nothing from this package; `<c-mvp.app.…>` — the shell's old names, removed |
 | Basic component attributes | look each attribute up in [daisy-cotton's documentation](https://github.com/django-mvp/daisy-cotton) or in the description at the top of its template; add `only` to a call when the page context may hold a variable named after one of its attributes ([`components.md`](../../docs/components.md#isolating-a-call-with-only)) | guessing an attribute from another library; an unknown attribute is not an error, it is written onto the element as an HTML attribute |
 | A row you add to the sidebar or to the user menu's slot | `<c-menu.item icon="…" href="…"><span>Label</span></c-menu.item>`, with the label in a `<span>` so the collapsed icon rail can hide it | passing `text` where the rail has to hide the label, which leaves the label showing beside the icon |
 | Breadcrumbs | declare them on the view; the app header draws them from `page.breadcrumbs` | adding `<c-breadcrumbs>` to a page template — the header already has one |
 | A plain content page | extend `mvp/base.html`, fill `{% block content %}` | re-composing the shell yourself |
 | A page behind an MVP view | override the `page.*` blocks | overriding `content`, which the packaged page template has already filled |
-| The sidebar footer | override `templates/cotton/mvp/app/sidebar/footer.html` | `MVP_CONFIG["layout"]["sidebar"]["footer"]` — no longer read |
+| The sidebar footer | override `templates/cotton/app/sidebar/footer.html` | `MVP_CONFIG["layout"]["sidebar"]["footer"]` — no longer read |
 | Icons | an `EASY_ICONS` default renderer, the `mvp.utils.BS5_ICONS` pack, your own names on top | assuming a name you have not registered resolves — an unknown name raises unless `EASY_ICONS_FAIL_SILENTLY` |
 | Menu renderers | `sidebar` → `SidebarRenderer`, `dock` → `MobileFooterNavRenderer` | `adminlte` → `AdminLTERenderer` |
 | CRUD link visibility | `show_<action>_action` | `has_<action>_permission` — renamed in 0.16, and a view that still sets one raises `ImproperlyConfigured` |
@@ -131,7 +131,7 @@ package default.
 MVP_CONFIG = {
     "layout": {
         "sidebar": {"breakpoint": "lg", "collapse": "icons", "title": "Acme"},
-        "navbar": {"desktop": {"end": ["mvp.actions.theme-controller", "mvp.actions.login"]}},
+        "navbar": {"end": ["mvp.actions.theme-controller", "mvp.actions.login"]},
     },
     "theme": {"default": "dracula", "choices": ["light", "dark", "dracula"]},
 }
