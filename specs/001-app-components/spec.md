@@ -90,6 +90,26 @@ As a developer, I can enable advanced layout modes and visual behaviors through 
 
 ---
 
+### User Story 4 - Replace One Region of the Shell (Priority: P2) [Developer]
+
+As a developer, I can fill a template block for one region of the sidebar or the navbar so I can change that region without rewriting the component around it.
+
+**Audience**: Developer
+**Why this priority**: Replacing a whole shell component to change one strip of it is the most common reason a project forks the shell's templates.
+**Independent Test**: A developer extends `mvp/base.html`, fills one region block, and confirms that region shows the new content while every other region is unchanged.
+
+**Acceptance Scenarios**:
+
+1. **Given** a template that fills none of the region blocks, **When** the page renders, **Then** the sidebar and the navbar draw their packaged regions.
+2. **Given** a template that fills `app.sidebar.header`, `app.sidebar.body` or `app.sidebar.footer`, **When** the page renders, **Then** that content replaces the region and the sidebar's other two regions are unchanged.
+3. **Given** a template that fills `app.navbar.start`, **When** the page renders, **Then** that content replaces the sidebar toggle, site icon and breadcrumb trail.
+4. **Given** a template that fills `app.navbar.center`, **When** the page renders, **Then** that content sits between the navbar's start and end regions.
+5. **Given** a template that fills `app.navbar.end`, **When** the page renders, **Then** that content is drawn before the configured widgets, which are still drawn.
+6. **Given** a template that fills `app.navbar`, **When** the page renders, **Then** that content replaces the navbar row and the tray below it is unchanged.
+7. **Given** a template that fills `app.messages`, **When** the page renders, **Then** that content replaces the message toasts inside the main area.
+
+---
+
 ### Edge Cases
 
 - Integrator supplies unknown or misspelled layout attributes (handled by django-cotton behavior, not by this feature).

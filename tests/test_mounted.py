@@ -121,7 +121,7 @@ class TestPageBelongingToNoApp:
     def test_titled_page_title_is_the_page_then_the_site(self, client):
         response = client.get("/layout/")
 
-        assert normalised_title(response) == "Layout Demo | example.com"
+        assert normalised_title(response) == "App | example.com"
 
     def test_titled_fixture_page_title_is_the_page_then_the_site(self, client):
         response = client.get("/mounted/detail/")

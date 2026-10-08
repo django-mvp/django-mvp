@@ -1,0 +1,16 @@
+{% extends "demo/layout/base.html" %}
+{% block layout.intro %}
+  Every page that extends <code>mvp/base.html</code> is drawn inside the app shell. The shell has
+  five regions, and each one is a block a template can replace. The sidebar and the header have regions of their own, each on its own page.
+{% endblock layout.intro %}
+{% block layout.diagram %}
+  <c-demo.layout.region name="announcement" note="Above the shell. Scrolls away with the page." class="mb-2" />
+  <c-demo.layout.region name="app" class="grow">
+    <c-demo.layout.shell>
+      <c-slot name="main">
+        <c-demo.layout.region name="content" note="The page" class="grow" />
+        <c-demo.layout.region name="app.messages" note="Django messages" />
+      </c-slot>
+    </c-demo.layout.shell>
+  </c-demo.layout.region>
+{% endblock layout.diagram %}

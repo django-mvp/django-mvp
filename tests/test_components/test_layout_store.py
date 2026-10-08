@@ -123,7 +123,7 @@ class TestBoostedNavigationLeavesTheStoreCorrect:
         monkeypatch.setitem(MVP_CONFIG["layout"]["sidebar"], "boost", True)
 
     def _layout_link(self, page):
-        return page.locator("aside.mvp-sidebar a[href='/layout/']").first
+        return page.locator("aside.mvp-sidebar a[href='/theme/']").first
 
     def test_a_wide_viewport_stays_open(self, page, live_server, boosted):
         page.set_viewport_size(DESKTOP)
@@ -131,7 +131,7 @@ class TestBoostedNavigationLeavesTheStoreCorrect:
         expect(_toggle(page)).to_be_checked()
 
         self._layout_link(page).click()
-        page.wait_for_url(f"{live_server.url}/layout/")
+        page.wait_for_url(f"{live_server.url}/theme/")
 
         assert _store_sidebar_open(page) is True
         expect(_toggle(page)).to_be_checked()
@@ -146,7 +146,7 @@ class TestBoostedNavigationLeavesTheStoreCorrect:
         page.wait_for_function("() => Alpine.store('mvp').header.stuck === true")
 
         self._layout_link(page).click()
-        page.wait_for_url(f"{live_server.url}/layout/")
+        page.wait_for_url(f"{live_server.url}/theme/")
         page.wait_for_function("() => Alpine.store('mvp').header.stuck === false")
 
     @pytest.mark.usefixtures("mobile_navbar_toggle")
@@ -157,7 +157,7 @@ class TestBoostedNavigationLeavesTheStoreCorrect:
         expect(_toggle(page)).to_be_checked()
 
         self._layout_link(page).click()
-        page.wait_for_url(f"{live_server.url}/layout/")
+        page.wait_for_url(f"{live_server.url}/theme/")
         # htmx's afterSettle (and this store's re-derivation) fires after
         # the swap, asynchronously — wait for it rather than racing it.
         page.wait_for_function("() => Alpine.store('mvp').sidebar.open === false")

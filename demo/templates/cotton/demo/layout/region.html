@@ -1,0 +1,20 @@
+{# @description One region of the layout diagram: a labelled box named after the block that fills it. #}
+{# @prop name:text | description:"The block's name, shown as the label." #}
+{# @prop key:text | description:"The layout page this region belongs to: sidebar, header, footer or dock." #}
+{# @prop focus:text | default:"app" | description:"The layout page being shown. A region of another page is dimmed." #}
+{# @prop note:text | description:"What the region holds by default." #}
+{# @prop href:text | description:"Link for the label, to the page that covers this region." #}
+{# @prop class:text | description:"Extra classes on the box." #}
+{# @slot Regions nested inside this one. #}
+<c-vars name key="" focus="app" note="" href="" class />
+<div class="flex flex-col gap-2 rounded-box border p-3 {% if focus == 'app' or focus == key %}border-primary bg-base-100{% else %}border-base-300 text-base-content/40{% endif %} {{ class }}">
+  <p class="text-sm">
+    {% if href %}
+      <a href="{{ href }}" class="link link-hover font-mono font-semibold">{{ name }}</a>
+    {% else %}
+      <code class="font-mono font-semibold">{{ name }}</code>
+    {% endif %}
+    {% if note %}<span class="opacity-70">- {{ note }}</span>{% endif %}
+  </p>
+  {{ slot }}
+</div>

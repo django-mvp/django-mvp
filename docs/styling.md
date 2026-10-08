@@ -44,7 +44,7 @@ Theme changes (colors, radius, borders) do **not** require Tier 2. See
 
 ### Repainting the sidebar
 
-`<c-mvp.app.sidebar bg="...">` passes the same value to the sidebar's header and
+`<c-app.sidebar bg="...">` passes the same value to the sidebar's header and
 footer, so one attribute repaints the whole rail and its two strips keep
 matching it. No CSS is involved, and nothing needs targeting from a stylesheet.
 

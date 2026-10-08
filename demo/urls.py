@@ -37,6 +37,8 @@ urlpatterns = [
     path("", include("mvp.urls")),
     mount("library/", library),
     path("layout/", views.layout_demo, name="layout"),
+    path("layout/sidebar/", views.layout_sidebar_demo, name="layout-sidebar"),
+    path("layout/header/", views.layout_header_demo, name="layout-header"),
     path("layout/full-page/", views.full_page_map_demo, name="full-page-map"),
     path("layout/store/", views.layout_store_demo, name="layout-store"),
     path("theme/", views.theme_customization_demo, name="customization"),

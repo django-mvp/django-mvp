@@ -1,0 +1,57 @@
+{% extends "page_view.html" %}
+{% comment %}
+  One page per part of the shell. Each fills `layout.diagram` with the shell
+  diagram focused on its own region, and may fill `layout.example` with the
+  template a project would write.
+{% endcomment %}
+{% block page.content %}
+  <c-mvp.text muted tight class="text-lg">
+    {% block layout.intro %}{% endblock layout.intro %}
+  </c-mvp.text>
+  <div class="mt-2 flex flex-col gap-8">
+    <section>
+      <c-mockup.browser url="https://example.com">
+        {# A set height for the page in the frame, so the regions stretch to #}
+        {# fill it the way the shell fills a window. A minimum, so a narrow #}
+        {# window that stacks the regions grows the frame rather than spilling. #}
+        <div class="flex flex-col p-3" style="min-height: 36rem">
+          {% block layout.diagram %}{% endblock layout.diagram %}
+        </div>
+      </c-mockup.browser>
+    </section>
+    <section>
+      <h2 class="mb-2 text-xl font-semibold">Blocks</h2>
+      <div class="overflow-x-auto">
+        <table class="table">
+          <thead>
+            <tr>
+              <th scope="col">Block</th>
+              <th scope="col">Draws by default</th>
+              <th scope="col">When a template fills it</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for block in blocks %}
+              <tr>
+                <th scope="row" class="whitespace-nowrap">
+                  <code class="font-mono text-sm">{{ block.name }}</code>
+                </th>
+                <td>{{ block.default }}</td>
+                <td>{{ block.filled }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+    {% if has_example %}
+      <section>
+        <h2 class="mb-2 text-xl font-semibold">Example</h2>
+        <p class="mb-3 text-base-content/60">
+          {% block layout.example.description %}{% endblock layout.example.description %}
+        </p>
+        <pre class="overflow-x-auto rounded-box bg-base-200 p-4 text-sm"><code>{% block layout.example %}{% endblock layout.example %}</code></pre>
+      </section>
+    {% endif %}
+  </div>
+{% endblock page.content %}

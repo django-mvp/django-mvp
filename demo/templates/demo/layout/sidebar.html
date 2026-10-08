@@ -1,0 +1,38 @@
+{% extends "demo/layout/base.html" %}
+{% block layout.intro %}
+  The sidebar is three regions stacked in a column. The header and footer stay in place while the
+  body scrolls between them.
+{% endblock layout.intro %}
+{% block layout.diagram %}
+  <c-demo.layout.shell focus="sidebar">
+    <c-slot name="sidebar">
+      <c-demo.layout.region name="app.sidebar.header" note="Brand icon, title, collapse toggle" />
+      <c-demo.layout.region name="app.sidebar.body" note="The menu" class="grow" />
+      <c-demo.layout.region name="app.sidebar.footer" note="User menu, theme, language" />
+    </c-slot>
+  </c-demo.layout.shell>
+{% endblock layout.diagram %}
+{% block layout.example.description %}
+  A sidebar with its own header and footer, and a short list of links for a body.
+{% endblock layout.example.description %}
+{% block layout.example %}{% verbatim %}{% extends "mvp/base.html" %}
+
+{% block app.sidebar.header %}
+  &lt;div class="flex w-full items-center justify-between px-4 py-2"&gt;
+    &lt;span class="font-semibold"&gt;Acme Projects&lt;/span&gt;
+    &lt;label for="mvp-app-toggle" class="btn btn-ghost btn-square" aria-label="Toggle sidebar"&gt;
+      &lt;c-icon name="sidebar-left" /&gt;
+    &lt;/label&gt;
+  &lt;/div&gt;
+{% endblock app.sidebar.header %}
+
+{% block app.sidebar.body %}
+  &lt;c-menu class="w-full"&gt;
+    &lt;c-menu.item href="/" icon="home"&gt;Home&lt;/c-menu.item&gt;
+    &lt;c-menu.item href="/projects/" icon="folder"&gt;Projects&lt;/c-menu.item&gt;
+  &lt;/c-menu&gt;
+{% endblock app.sidebar.body %}
+
+{% block app.sidebar.footer %}
+  &lt;div class="mt-auto w-full px-4 py-3 text-sm"&gt;Version 2.4&lt;/div&gt;
+{% endblock app.sidebar.footer %}{% endverbatim %}{% endblock layout.example %}

@@ -1,17 +1,19 @@
-# ADR 0030 — The package's components carry a prefix, and the icon does not
+# ADR 0030 — The package's components carry a prefix, and the icon and the app shell do not
 
 **Status:** accepted
 
 ## Decision
 
 Every component this package owns lives under `mvp/templates/cotton/mvp/` and is reached as
-`<c-mvp.…>`: `<c-mvp.card>`, `<c-mvp.page.list>`, `<c-mvp.app.sidebar>`. A bare name is for the
+`<c-mvp.…>`: `<c-mvp.card>`, `<c-mvp.page.list>`, `<c-mvp.toolbar>`. A bare name is for the
 basic daisyUI components, which [daisy-cotton](https://github.com/django-mvp/daisy-cotton)
 provides. The package's own copies of those (the alert, badge, button and the like) were not
 renamed first. They kept their bare names until they were removed in favour of daisy-cotton's.
 
-The icon is the one permanent exception. It stays at `cotton/icon.html` and is written
-`<c-icon>`.
+There are two permanent exceptions. The icon stays at `cotton/icon.html` and is written
+`<c-icon>`. The app shell's components live under `cotton/app/` and are written `<c-app>`,
+`<c-app.sidebar>`, `<c-app.header>`, `<c-app.navbar>`, `<c-app.main>`, `<c-app.footer>` and
+`<c-app.dock>`.
 
 A component name written anywhere other than a tag is the full name, prefix included. That
 covers the navbar's widget lists in `MVP_CONFIG`, a view's `htmx_form_component` and the name
@@ -36,6 +38,12 @@ icon and expects a project that wants icons looked up by name to place its own c
 that path, above daisy-cotton in `INSTALLED_APPS`, so that every caller picks it up, daisy-cotton's
 own components included. This package's icon is that replacement. Under the prefix it would stop
 reaching them. It is the only component that is meant to depend on app order.
+
+The app shell is named for the blocks that draw it. `mvp/base.html` fills the `app.sidebar`
+block with `<c-app.sidebar>` and the `app.navbar` block with `<c-app.navbar>`, so a project
+reads one name for a region whether it is filling the block or overriding the component.
+daisy-cotton ships no component named `app`, so the collision the prefix removes does not
+arise for these.
 
 Names in settings are not prefixed for the project because the same list can hold a project's own
 component or one of daisy-cotton's, and the package cannot tell which names are its own without

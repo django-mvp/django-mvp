@@ -1,0 +1,28 @@
+{# @description The layout diagram: the shell's regions in the positions they take on the page. #}
+{# @prop focus:text | default:"app" | description:"The layout page being shown. Its region is drawn in full and the rest are dimmed." #}
+{# @slot:sidebar — Regions inside the sidebar. #}
+{# @slot:header — Regions inside the header. #}
+{# @slot:main — Regions inside the main area. #}
+<c-vars focus="app" />
+<div class="flex flex-1 flex-col gap-2 md:flex-row">
+  <c-demo.layout.region name="app.sidebar"
+                        key="sidebar"
+                        :focus="focus"
+                        href="{% url 'layout-sidebar' %}"
+                        class="md:w-1/3">
+    {{ sidebar }}
+  </c-demo.layout.region>
+  <div class="flex flex-1 flex-col gap-2">
+    <c-demo.layout.region name="app.header"
+                          key="header"
+                          :focus="focus"
+                          href="{% url 'layout-header' %}">
+      {{ header }}
+    </c-demo.layout.region>
+    <c-demo.layout.region name="app.main" key="main" :focus="focus" class="grow">
+      {{ main }}
+    </c-demo.layout.region>
+    <c-demo.layout.region name="app.footer" key="footer" :focus="focus" note="Empty" />
+    <c-demo.layout.region name="app.dock" key="dock" :focus="focus" note="On a narrow window only" />
+  </div>
+</div>
