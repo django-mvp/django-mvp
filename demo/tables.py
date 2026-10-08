@@ -26,6 +26,8 @@ class ProductTable(tables.Table):
     class Meta:
         model = Product
         template_name = "django_tables2/bootstrap5-mvp.html"
+        attrs = {"class": "table table-pin-rows table-pin-cols"}
+        row_headers = ("name",)
         fields = (
             "name",
             "sku",

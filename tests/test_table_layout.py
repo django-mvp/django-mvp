@@ -16,6 +16,7 @@ from pathlib import Path
 import pytest
 
 from mvp.fixtures import _beautiful_soup
+from tests.factories import ProductFactory
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
@@ -27,7 +28,7 @@ def _empty_product_table():
     return ProductTable([])
 
 
-def _table_view_class(table_class=None, paginate_by=25):
+def _table_view_class(table_class=None, paginate_by=25, **attrs):
     """A table view declared against the current integration: model +
     table_class only, plus what's needed to make its actions visible."""
     pytest.importorskip("django_tables2")
@@ -45,16 +46,18 @@ def _table_view_class(table_class=None, paginate_by=25):
         search_fields = ["name"]
         show_create_action = True
 
+    for name, value in attrs.items():
+        setattr(DemoTableView, name, value)
     return DemoTableView
 
 
-def _render_table_view(rf, template_name=None, **kwargs):
+def _render_table_view(rf, template_name=None, query="", **kwargs):
     """Instantiate, dispatch and fully render a table view, returning HTML."""
     view_class = _table_view_class(**kwargs)
     view = view_class()
     if template_name:
         view.template_name = template_name
-    view.setup(rf.get("/"))
+    view.setup(rf.get(f"/products/{query}"))
     response = view.get(view.request)
     response.render()
     return response.content.decode()
@@ -90,10 +93,6 @@ class TestTableArea:
     def test_scrolls_on_both_axes(self, cotton_render_string):
         html = self._render(cotton_render_string)
         assert "overflow-auto" in html
-
-    def test_reserves_a_stable_scrollbar_gutter(self, cotton_render_string):
-        html = self._render(cotton_render_string)
-        assert "scrollbar-gutter: stable" in html
 
     def test_is_a_keyboard_reachable_tab_stop(self, cotton_render_string):
         html = self._render(cotton_render_string)
@@ -152,13 +151,25 @@ class TestTableViewTemplate:
         )
 
     @pytest.mark.django_db
-    def test_pagination_bar_carries_the_result_count(self, rf, product):
+    def test_toolbar_carries_the_result_count(self, rf, product):
         soup = _beautiful_soup()(_render_table_view(rf), "html.parser")
-        count = soup.find(class_="mvp-page-fill").find(string=re.compile(r"\d+-\d+"))
+        summary = soup.find(class_="mvp-table-toolbar").find(class_="mvp-list-summary")
+        assert "1" in summary.get_text().split()
+
+    @pytest.mark.django_db
+    def test_pagination_bar_carries_the_range_being_shown(self, rf, product):
+        ProductFactory.create_batch(4)
+        html = _render_table_view(rf, paginate_by=2, query="?page=2")
+        soup = _beautiful_soup()(html, "html.parser")
+        count = soup.find(class_="mvp-list-footer").find(string=re.compile(r"\d+–\d+"))
         assert count is not None, "the pagination bar did not render"
-        text = count.parent.get_text()
-        assert "1-1" in text
-        assert "of 1" in text
+        assert "3–4" in count
+        assert "5" in count
+
+    @pytest.mark.django_db
+    def test_a_single_page_renders_no_pagination_bar(self, rf, product):
+        soup = _beautiful_soup()(_render_table_view(rf), "html.parser")
+        assert soup.find(class_="mvp-list-footer") is None
 
     @pytest.mark.django_db
     def test_unpaginated_view_renders_no_pagination_bar(self, rf, product):
@@ -625,3 +636,166 @@ class TestFalseyColumnHeading:
     def test_an_orderable_column_keeps_its_sort_control(self, cotton_render_string):
         heading = self._headings(cotton_render_string)[1]
         assert heading.find("a") is not None
+
+
+TOOLBAR_PANEL = "mvpTableToolbarPanel"
+
+
+class TestTableToolbar:
+    @pytest.mark.django_db
+    def test_the_toggle_names_the_panel_it_opens_and_closes(self, rf, product):
+        soup = _beautiful_soup()(_render_table_view(rf), "html.parser")
+
+        toggle = soup.find("button", attrs={"aria-controls": TOOLBAR_PANEL})
+        assert toggle is not None
+        assert soup.find(id=TOOLBAR_PANEL) is not None
+
+    @pytest.mark.django_db
+    def test_search_and_the_add_action_are_inside_the_panel(self, rf, product):
+        soup = _beautiful_soup()(_render_table_view(rf), "html.parser")
+
+        panel = soup.find(id=TOOLBAR_PANEL)
+        assert panel.find(attrs={"name": "q"}) is not None
+        assert panel.find("a", href="/products/create/") is not None
+
+    @pytest.mark.django_db
+    def test_a_view_with_nothing_to_put_in_the_panel_has_no_panel_or_toggle(
+        self, rf, product
+    ):
+        html = _render_table_view(rf, search_fields=None, show_create_action=False)
+        soup = _beautiful_soup()(html, "html.parser")
+
+        assert soup.find(class_="mvp-table-toolbar").find("h1") is not None
+        assert soup.find(id=TOOLBAR_PANEL) is None
+        assert soup.find("button", attrs={"aria-controls": TOOLBAR_PANEL}) is None
+
+    @pytest.mark.django_db
+    def test_an_applied_search_is_drawn_with_a_link_that_removes_it(self, rf, product):
+        soup = _beautiful_soup()(_render_table_view(rf, query="?q=lamp"), "html.parser")
+
+        refinements = soup.find(id=TOOLBAR_PANEL).find(class_="mvp-list-refinements")
+        assert refinements.find("a", href="/products/") is not None
+
+    @pytest.mark.django_db
+    def test_the_bar_says_how_many_filters_are_applied(self, rf, product):
+        soup = _beautiful_soup()(_render_table_view(rf, query="?q=lamp"), "html.parser")
+
+        note = soup.find(class_="mvp-table-toolbar-note")
+        assert "1" in note.get_text().split()
+        assert note.find_parent(id=TOOLBAR_PANEL) is None, (
+            "it shows with the panel closed"
+        )
+
+    @pytest.mark.django_db
+    def test_the_bar_says_nothing_when_no_filter_is_applied(self, rf, product):
+        soup = _beautiful_soup()(_render_table_view(rf), "html.parser")
+
+        assert soup.find(class_="mvp-table-toolbar-note") is None
+
+    @pytest.mark.django_db
+    @pytest.mark.parametrize(
+        "block",
+        [
+            "page.toolbar",
+            "page.summary",
+            "page.panel",
+            "page.search",
+            "page.controls",
+            "page.refinements",
+        ],
+    )
+    def test_a_project_can_replace_one_part_of_the_toolbar(self, rf, product, block):
+        html = _render_table_view(
+            rf,
+            template_name="tests/table_view_part_override.html",
+            query="?q=product",
+            extra_context={"override": block},
+        )
+        soup = _beautiful_soup()(html, "html.parser")
+
+        assert soup.find(id="override") is not None
+        assert soup.find(attrs={"role": "region"}) is not None, "the table is kept"
+
+
+class TestTableFillerRow:
+    @pytest.mark.django_db
+    def test_a_table_with_rows_ends_in_a_filler_row_hidden_from_readers(
+        self, rf, product
+    ):
+        soup = _beautiful_soup()(_render_table_view(rf), "html.parser")
+
+        rows = soup.find("tbody").find_all("tr")
+        assert "mvp-table-filler" in rows[-1]["class"]
+        assert rows[-1].get("aria-hidden") == "true"
+        assert rows[-1].get_text(strip=True) == ""
+
+    @pytest.mark.django_db
+    def test_the_filler_cell_spans_every_column(self, rf, product):
+        soup = _beautiful_soup()(_render_table_view(rf), "html.parser")
+
+        cell = soup.find(class_="mvp-table-filler").find("td")
+        assert int(cell["colspan"]) == len(soup.find("thead").find_all("th"))
+
+    @pytest.mark.django_db
+    def test_a_table_with_no_records_offers_the_create_action_in_its_body(self, rf):
+        soup = _beautiful_soup()(_render_table_view(rf), "html.parser")
+
+        filler = soup.find("tbody").find(class_="mvp-table-filler")
+        assert filler.get("aria-hidden") is None
+        assert filler.find("a", href="/products/create/") is not None
+
+    @pytest.mark.django_db
+    def test_a_search_matching_nothing_offers_to_clear_it_in_the_body(
+        self, rf, product
+    ):
+        html = _render_table_view(rf, query="?q=zzzz&sort=name")
+        soup = _beautiful_soup()(html, "html.parser")
+
+        empty = soup.find("tbody").find(class_="mvp-list-empty")
+        assert empty.find("a", href="/products/?sort=name") is not None
+        assert empty.find("a", href="/products/create/") is None
+
+
+class TestRowHeaderFooterCell:
+    def _render(self, cotton_render_string, row_headers):
+        pytest.importorskip("django_tables2")
+        import django_tables2 as tables
+
+        class TotalledTable(tables.Table):
+            name = tables.Column(footer="Total")
+            price = tables.Column(footer="30")
+
+            class Meta:
+                template_name = "django_tables2/bootstrap5-mvp.html"
+
+        TotalledTable.Meta.row_headers = row_headers
+        TotalledTable._meta.row_headers = row_headers
+        table = TotalledTable([{"name": "Lamp", "price": 30}])
+        html = cotton_render_string(
+            '<c-mvp.addons.django-table :table="table" />', context={"table": table}
+        )
+        return _beautiful_soup()(html, "html.parser")
+
+    def test_the_footer_cell_of_a_row_header_column_is_a_row_header(
+        self, cotton_render_string
+    ):
+        soup = self._render(cotton_render_string, ("name",))
+
+        cells = soup.find("tfoot").find("tr").find_all(["th", "td"])
+        assert [cell.name for cell in cells] == ["th", "td"]
+        assert cells[0]["scope"] == "row"
+
+    def test_the_heading_of_a_row_header_column_is_marked(self, cotton_render_string):
+        soup = self._render(cotton_render_string, ("name",))
+
+        headings = soup.find("thead").find_all("th")
+        assert headings[0].has_attr("data-row-header")
+        assert not headings[1].has_attr("data-row-header")
+
+    def test_a_table_with_no_row_headers_keeps_plain_footer_cells(
+        self, cotton_render_string
+    ):
+        soup = self._render(cotton_render_string, ())
+
+        cells = soup.find("tfoot").find("tr").find_all(["th", "td"])
+        assert [cell.name for cell in cells] == ["td", "td"]

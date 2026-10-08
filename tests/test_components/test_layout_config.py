@@ -154,6 +154,39 @@ class TestHeaderAndDockBackground:
         assert MVP_CONFIG["layout"]["navbar"]["class"] not in header
 
 
+class TestRegionsCarryAClassAThemeCanTarget:
+    """A theme recolours a region through a selector on the region's class.
+
+    The background class beside it comes from a setting or an attribute, and a
+    project that names its own replaces the packaged one. The class a theme
+    selects on has to be there either way.
+    """
+
+    @pytest.mark.django_db
+    def test_the_dock_keeps_its_class_under_a_configured_background(
+        self, client, monkeypatch
+    ):
+        monkeypatch.setitem(MVP_CONFIG["layout"]["dock"], "class", "bg-base-300")
+        soup = BeautifulSoup(client.get("/").content.decode(), "html.parser")
+        assert "mvp-dock" in soup.select_one("nav.dock")["class"]
+
+    @pytest.mark.django_db
+    def test_the_sidebar_footer_keeps_its_class_under_a_passed_background(self):
+        soup = BeautifulSoup(_render("tests/sidebar_footer_bg.html"), "html.parser")
+        footer = soup.select_one(".mvp-sidebar-footer")
+        assert footer is not None
+        assert "bg-primary" in footer["class"]
+
+    @pytest.mark.django_db
+    def test_a_passed_background_replaces_the_sidebar_footers_own(self):
+        soup = BeautifulSoup(_render("tests/sidebar_footer.html"), "html.parser")
+        default = set(soup.select_one(".mvp-sidebar-footer")["class"])
+        soup = BeautifulSoup(_render("tests/sidebar_footer_bg.html"), "html.parser")
+        passed = set(soup.select_one(".mvp-sidebar-footer")["class"])
+        assert default - passed, "the footer's own background class must give way"
+        assert passed - default == {"bg-primary"}
+
+
 class TestBreakpointTags:
     @pytest.mark.parametrize(
         ("bp", "klass", "px"),

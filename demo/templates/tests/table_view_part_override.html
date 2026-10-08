@@ -1,0 +1,11 @@
+{% extends "table_view.html" %}
+{% comment %}
+  A project replacing one part of a table page's toolbar and keeping the
+  rest. The view names the block to replace, so each is proved on its own.
+{% endcomment %}
+{% block page.toolbar %}{% if override == "page.toolbar" %}<div id="override">Override</div>{% else %}{{ block.super }}{% endif %}{% endblock page.toolbar %}
+{% block page.summary %}{% if override == "page.summary" %}<div id="override">Override</div>{% else %}{{ block.super }}{% endif %}{% endblock page.summary %}
+{% block page.panel %}{% if override == "page.panel" %}<div id="override">Override</div>{% else %}{{ block.super }}{% endif %}{% endblock page.panel %}
+{% block page.search %}{% if override == "page.search" %}<div id="override">Override</div>{% else %}{{ block.super }}{% endif %}{% endblock page.search %}
+{% block page.controls %}{% if override == "page.controls" %}<div id="override">Override</div>{% else %}{{ block.super }}{% endif %}{% endblock page.controls %}
+{% block page.refinements %}{% if override == "page.refinements" %}<div id="override">Override</div>{% else %}{{ block.super }}{% endif %}{% endblock page.refinements %}

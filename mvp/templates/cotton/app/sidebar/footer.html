@@ -1,9 +1,9 @@
 {# @description The sidebar's fixed footer strip: user menu (or log-in button), theme control, language control. #}
-{# @prop bg:text | default:"bg-base-200" | description:"Background class, matched to the sidebar's own bg." #}
+{# @prop bg:text | default:"mvp-sidebar-bg" | description:"Background class, matched to the sidebar's own bg." #}
 {# Fixed composition — see docs/adr/0023-the-sidebar-footer-is-a-fixed-composition.md. #}
 {# Override this template in your project to change what the footer shows. #}
-<c-vars bg="bg-base-200" />
-<div class="{{ bg }} w-full sticky bottom-0 mt-auto z-20 flex items-center gap-2 is-drawer-close:flex-col px-4 is-drawer-close:px-2 py-2">
+<c-vars bg="mvp-sidebar-bg" />
+<div class="{{ bg }} mvp-sidebar-footer w-full sticky bottom-0 mt-auto z-20 flex items-center gap-2 is-drawer-close:flex-col px-4 is-drawer-close:px-2 py-2">
   {# is-drawer-open:me-2 keeps the user's name from crowding the theme control; #}
   {# scoped to the open state because the rail stacks this column instead. #}
   <div class="min-w-0 flex-1 is-drawer-open:me-2">

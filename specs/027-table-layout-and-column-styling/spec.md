@@ -144,6 +144,23 @@ confirm it wins.
 
 ---
 
+### User Story 4 - A reader closes the toolbar to see more rows (Priority: P2)
+
+A reader working down a long table closes the toolbar's panel with the button at the end of its bar. The search box, filter button and add button go, the title and count stay, and the rows take the height. The next table page they open has the panel closed too. If a search or filter is applied, the bar still says so.
+
+**Why this priority**: The page exists to show rows, and on a phone the panel can take a fifth of the screen. It ranks below the layout itself because the page is complete without it.
+
+**Independent Test**: Open a table page, close the toolbar, and confirm the table area is taller and the panel is gone. Reload and confirm it is still closed.
+
+**Acceptance Scenarios**:
+
+1. **Given** a table page with its toolbar open, **When** the reader activates the toolbar's control, **Then** the panel is hidden, the control reports that it is collapsed, and the table area is taller than before.
+2. **Given** a reader who closed the toolbar, **When** they load the page again, **Then** the panel is still hidden.
+3. **Given** a table page with a search applied, **When** the toolbar is closed, **Then** the bar says that one filter is active.
+4. **Given** a table view with no search fields, no filter set and no create action, **When** the page renders, **Then** there is no panel and no control to open one.
+
+---
+
 ### Edge Cases
 
 - A table with no rows: the empty state occupies the table area, and both bars still render.
@@ -163,14 +180,19 @@ confirm it wins.
 - **FR-001**: The table view MUST render as a page that fills the application shell, using the shell's existing opt-in for full-height content rather than a new mechanism.
 - **FR-002**: The table area MUST own its own vertical and horizontal scrolling, and the browser window MUST NOT scroll on a table view page at any supported viewport.
 - **FR-003**: The column heading row MUST remain visible at the top of the scrolling table area while rows scroll beneath it.
-- **FR-004**: Where a table declares column footers, the footer row MUST remain visible at the bottom of the scrolling table area.
+- **FR-004**: Where a table declares column footers, the footer row MUST remain visible at the bottom of the scrolling table area, including when the rows do not fill the area.
 - **FR-005**: The table area's vertical scrollbar MUST span the full height of that area, including alongside the fixed heading and footer rows.
-- **FR-006**: An action bar MUST sit above the table area, MUST NOT scroll with the rows, and MUST carry the page title on the leading side and the view's actions on the trailing side.
+- **FR-006**: A toolbar MUST sit above the table area and MUST NOT scroll with the rows. It MUST carry the page title and a count of the records in a bar, and the view's actions (search, filter and create) and the applied search and filters in a panel under that bar.
 - **FR-007**: The table view's default action set MUST be the list view's action set minus sorting: search, filter and create.
-- **FR-008**: A bar below the table area MUST carry the result count and pagination controls, and MUST NOT scroll with the rows. It MUST NOT render when the view is not paginated.
+- **FR-008**: A bar below the table area MUST carry the range of records shown and the pagination controls, and MUST NOT scroll with the rows. It MUST NOT render when the view is not paginated or everything fits on one page. At phone width the controls MUST let the reader go to the previous page, the next page and any page by number.
 - **FR-009**: The table view class MUST NOT accept a declared ordering. A view that declares one MUST fail with a message naming the table as the place ordering belongs.
 - **FR-010**: The table view MUST NOT wrap its table in a card, and the table area MUST extend to the edges of the space the shell gives it.
 - **FR-011**: Every requirement above MUST hold at both desktop and phone viewport widths. A table wider than the viewport scrolls horizontally within the table area at every width; no alternative small-screen rendering is offered.
+- **FR-027**: The reader MUST be able to close the toolbar's panel and open it again. Closing it MUST give its height to the table area, and the choice MUST be remembered in the browser. A view with nothing to put in the panel MUST render neither the panel nor its control.
+- **FR-028**: While a search or filter is applied, the toolbar's bar MUST say how many are applied, whether the panel is open or closed.
+- **FR-029**: A table with no rows MUST show its empty state inside the table area, between the heading row and the footer row. A table with no records offers the create action where the reader may create one. A search or filter that matches nothing offers a link that clears it.
+- **FR-030**: The footer cell of a column the table declares as a row header MUST itself be a row header, so it stays in view with that column when the column is kept in view during sideways scrolling.
+- **FR-031**: Each part of the toolbar MUST be a template block a project can replace on its own: the whole toolbar, the title, the count, the panel, the search box, the controls and the applied search and filters.
 - **FR-025**: The scrolling table area MUST be reachable and scrollable by keyboard alone, and MUST carry an accessible name and a region role so that assistive technology announces it as a scrollable table region.
 - **FR-026**: The reusable table component MUST become the table area itself — the scroll container with its fixed heading and footer rows — so that a page embedding it directly gets the same scrolling behaviour. Its existing minimum-height attribute MUST be removed, and its removal recorded in the changelog as a public API change.
 

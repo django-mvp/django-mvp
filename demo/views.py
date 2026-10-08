@@ -315,8 +315,69 @@ layout_header_demo = LayoutPageView.as_view(
         },
     ],
 )
+# Which regions each theme in the demo's switcher recolours, as the theme page
+# lists it. Kept beside demo/static/css/themes.css by hand.
+DEMO_THEMES = [
+    {"name": "mvp", "palette": "The demo's own, light", "sets": []},
+    {"name": "mvp-dark", "palette": "The demo's own, dark", "sets": []},
+    {
+        "name": "mvp-raised",
+        "palette": "Same as mvp",
+        "sets": [
+            "Page: base-200",
+            "Sidebar: base-100",
+            "Header and dock follow the page",
+        ],
+    },
+    {
+        "name": "mvp-ink",
+        "palette": "Same as mvp",
+        "sets": ["Sidebar: ink surfaces, paper text, paper current item"],
+    },
+    {
+        "name": "mvp-steel",
+        "palette": "Same as mvp",
+        "sets": ["Header and dock: steel surfaces, white text"],
+    },
+    {
+        "name": "mvp-dark-deep",
+        "palette": "Same as mvp-dark",
+        "sets": [
+            "Header and dock: base-200",
+            "Sidebar: a colour darker than the page, light current item",
+        ],
+    },
+    {
+        "name": "nord",
+        "palette": "daisyUI's nord",
+        "sets": ["Sidebar: nord's dark surfaces and light text"],
+    },
+    {
+        "name": "retro",
+        "palette": "daisyUI's retro",
+        "sets": ["Header and dock: primary", "Sidebar: base-300"],
+    },
+    {
+        "name": "business",
+        "palette": "daisyUI's business",
+        "sets": [
+            "Page: base-200",
+            "Header and dock: base-100",
+            "Sidebar: base-300, light current item",
+        ],
+    },
+    {"name": "light", "palette": "daisyUI's light", "sets": []},
+    {"name": "dark", "palette": "daisyUI's dark", "sets": []},
+    {"name": "cupcake", "palette": "daisyUI's cupcake", "sets": []},
+    {"name": "corporate", "palette": "daisyUI's corporate", "sets": []},
+    {"name": "dracula", "palette": "daisyUI's dracula", "sets": []},
+    {"name": "synthwave", "palette": "daisyUI's synthwave", "sets": []},
+]
+
 theme_customization_demo = DemoTemplateView.as_view(
-    template_name="theme_customization.html", page_title="Theme Customization"
+    template_name="theme_customization.html",
+    page_title="Theme Customization",
+    extra_context={"themes": DEMO_THEMES},
 )
 # The full-page case from issue #247. Its template extends base.html directly
 # rather than page_view.html: the point of the page is that the content owns
@@ -693,6 +754,35 @@ class DataTablesView(MVPTableViewMixin, FilterView):
     search_fields = ["name", "description"]
     show_create_action = True
     filterset_fields = ["name", "category__name", "price", "stock", "status"]
+
+
+class CustomToolbarTableView(MVPTableViewMixin, FilterView):
+    """The product table with a toolbar a project has filled in for itself."""
+
+    model = Product
+    table_class = ProductTable
+    template_name = "demo/table_custom_toolbar.html"
+    page_title = "Stock"
+    page_subtitle = "Every product, with what is left of it."
+    paginate_by = 25
+    search_fields = ["name", "description"]
+    show_create_action = True
+    filterset_fields = ["status", "priority"]
+
+
+class EmptyTableView(DataTablesView):
+    """The product table with no records in it."""
+
+    def get_queryset(self):
+        """Return no products at all."""
+        return Product.objects.none()
+
+
+class BareTableView(MVPTableView):
+    """A table with no search, filter, add action or pagination."""
+
+    model = Product
+    table_class = ProductTable
 
 
 class ColumnBehaviourTableView(MVPTableView):

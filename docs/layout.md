@@ -127,7 +127,7 @@ your base template. Its content replaces the packaged footer:
 
 ```html
 {% block app.sidebar.footer %}
-  <div class="bg-base-200 w-full sticky bottom-0 mt-auto z-20 flex items-center gap-2 px-4 py-2">
+  <div class="mvp-sidebar-bg mvp-sidebar-footer w-full sticky bottom-0 mt-auto z-20 flex items-center gap-2 px-4 py-2">
     <c-mvp.user.sidebar-menu />
     <c-mvp.actions.login />
     <c-mvp.actions.theme-controller valign="top" compact />
@@ -374,14 +374,17 @@ Per-page override (use the `:` expression form so the value stays a real boolean
 
 ## Header and dock background
 
-The header and the mobile dock are solid by default, in the page's own background colour
-(`bg-base-100`). An app installed on a phone draws the status bar and the home indicator over the
-top and bottom edges of the page, and a solid background keeps the header and the dock readable
-underneath them.
+The header and the mobile dock are solid by default, in the page's own background colour. An app
+installed on a phone draws the status bar and the home indicator over the top and bottom edges of
+the page, and a solid background keeps the header and the dock readable underneath them.
+
+Their default classes, `mvp-header-bg` and `mvp-dock-bg`, read the colour from the applied theme,
+so a theme can give either one a colour of its own. The sidebar's `mvp-sidebar-bg` does the same.
+See [Coloring the header, the dock and the sidebar](theming.md#coloring-the-header-the-dock-and-the-sidebar).
 
 `layout.navbar.class` sets the header's background classes and `layout.dock.class` sets the
-dock's. Each replaces the default rather than adding to it. For the translucent, blurred look
-both used to have:
+dock's. Each replaces the default rather than adding to it, so a region given a class here no
+longer follows the theme. For the translucent, blurred look both used to have:
 
 ```python
 MVP_CONFIG = {
@@ -804,12 +807,17 @@ the full-height layout depends on. All six `page.*` names are re-declared, so
 an override you wrote still applies. It lands in a different position, though,
 and the defaults around it are different:
 
-- `page.header` is empty, as it is on every other page. The heading is a plain
-  `<h1>` in the title bar; the breadcrumb trail is drawn by the app header.
-- `page.actions` does not call `{{ block.super }}`, and its default action set
-  deliberately excludes sort.
-- `page.footer` holds the row count and pagination, in a bar pinned below the
-  rows.
+- `page.header` is empty, as it is on every other page. Anything you put in it is
+  drawn above the toolbar. The breadcrumb trail is drawn by the app header.
+- `page.title` is the start of the toolbar's bar: a plain `<h1>`, the info icon, the
+  count and the subtitle, in one row.
+- `page.actions` is empty. It sits at the end of the bar and is the place for an
+  action that should stay when the toolbar's panel is closed. The add button is in
+  `page.controls`, in the panel, beside the filter button.
+- `page.footer` holds the pager, in a bar pinned below the rows. It is not drawn for
+  a single page.
+- The toolbar adds blocks of its own. See
+  [Putting your own controls in the toolbar](integrations.md#putting-your-own-controls-in-the-toolbar).
 - `app.footer` is blanked to an empty block. The shell footer does not render
   on a table page. Restore it in your own template if you want it back.
 

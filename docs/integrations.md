@@ -33,16 +33,66 @@ with django-tables2 rendering via the `table_view.html` base template and the
 [`c-mvp.addons.django-table`](components.md#actions-user-misc) component.
 `MVPTableViewMixin` is available for composing with other view classes.
 
-The page fills the screen: the rows scroll in a region of their own with the heading
-row — and the footer row, where the table declares one — staying in view, while the
-title bar above and the count and pagination below stay put.
+The page fills the screen. Three bands stay put and one region scrolls between them:
+
+1. **The toolbar.** A bar with the title and a count of the records, and a panel under
+   it with the search box, the filter button, the add button and the search and
+   filters that are applied.
+2. **The table.** The rows scroll in a region of their own. The heading row stays at
+   the top of it and the footer row, where the table declares one, at the bottom, so
+   one scrollbar runs beside all three.
+3. **The pager**, only when there is more than one page: the range shown and numbered
+   pages on a wide screen, and Previous, a page picker and Next on a phone.
+
+### The toolbar opens and closes
+
+A button at the end of the bar closes the panel, which hands its height to the rows,
+and opens it again. The choice is remembered in the browser, so a reader who works with
+the toolbar closed keeps it closed. While a search or filter is applied, the bar says
+how many, open or closed, so a closed toolbar never hides that the table is a subset.
+
+A view with nothing to put in the panel, no `search_fields`, no `FilterSet` and no add
+action, gets the bar alone, with no panel and no button.
+
+### A table that does not fill the page
+
+The footer row sits at the bottom of the region however few rows there are. With no
+rows at all, the empty state is drawn between the heading row and the footer row: the
+view's `empty_state_heading` and message for a table with no records, or the
+nothing-matches message with a link that clears the search and filters.
+
+### Putting your own controls in the toolbar
+
+Each part of the toolbar is a block in `table_view.html`:
+
+| Block | Holds |
+| --- | --- |
+| `page.header` | Empty. Anything here is drawn above the toolbar |
+| `page.toolbar` | The whole toolbar |
+| `page.title` | The start of the bar: the heading, the info icon, the count and the subtitle |
+| `page.summary` | The count, inside `page.title` |
+| `page.actions` | Empty. Anything here is drawn at the end of the bar, and stays when the panel is closed |
+| `page.panel` | Everything in the panel |
+| `page.search` | The search box, inside the panel |
+| `page.controls` | The filter and add buttons, inside the panel |
+| `page.refinements` | The applied search and filters, inside the panel |
+| `page.content` | The table |
+| `page.footer` | The pager |
+
+```html
+{% extends "table_view.html" %}
+{% block page.controls %}
+  <c-button size="sm" icon="export" text="Export" href="{% url 'product-export' %}" />
+  {{ block.super }}
+{% endblock page.controls %}
+```
 
 ### Actions and sorting
 
-The bar above the table draws the same controls a list page does, and decides on them
-the same way: each one appears when the view configures the thing it drives. Give the
-view `search_fields` and the search box appears, a `FilterSet` and the filter dialog
-does, `show_create_action` and the add button does. There is no list to override.
+The toolbar draws the same controls a list page does, and decides on them the same
+way: each one appears when the view configures the thing it drives. Give the view
+`search_fields` and the search box appears, a `FilterSet` and the filter button does,
+`show_create_action` and the add button does. There is no list to override.
 
 No sort control appears on a table page, and that is a consequence rather than a
 separate decision. A table view raises `ImproperlyConfigured` if you declare `order_by`
@@ -56,11 +106,9 @@ The refusal happens as the class is defined, so a view that declares an ordering
 when Django imports the module holding it, naming the class in the message. You find out
 at startup rather than the first time someone opens that page.
 
-Don't put a context key called `actions` on a table page. The bar above and the one below
-the table are plain flex rows rather than `<c-mvp.toolbar>`, because a toolbar renders
-`{{ actions }}` in its trailing slot, and a Cotton slot falls through to the context
-variable of the same name when the caller fills no slot — a page whose context carries an
-`actions` key would print its repr there instead.
+A context key called `actions` is safe on a table page. The toolbar is
+`<c-mvp.page.table.toolbar>`, which declares each of its slots, so an unfilled one never
+falls through to a context variable of the same name.
 
 ### Pagination
 
@@ -156,6 +204,10 @@ sideways. Add that class to the table area to turn the pinning on:
 {% endblock page.content %}
 ```
 
+With a column pinned, the footer row's cell under it is a row header as well, so a label
+such as "Total" stays at the leading edge with the column. On a narrow screen a pinned
+column is held to under half the width, and a longer value is cut with an ellipsis.
+
 ### A column with no heading
 
 A column whose heading resolves to nothing renders an empty heading cell. The cell
@@ -185,8 +237,8 @@ On top of `MVPListView` behavior, the view injects `applied_filters` /
 badge the number of active filters. When at least one filter is applied, it also injects
 `clear_filters_url` — the current list URL with only the filterset's own fields removed,
 preserving an active search (`?q=`) or ordering (`?o=`) and resetting pagination. The
-filter modal shows a "Clear filters" link next to "Apply filters" whenever that URL is
-present.
+filter dialog, a panel that opens from the trailing edge of the screen, shows a "Clear
+filters" link next to "Apply filters" whenever that URL is present.
 
 `applied_filters` comes from `get_active_filters()`, which reads the filterset form's
 `cleaned_data` and drops `None`, `""`, `[]`, `()` and `False` — what an untouched filter

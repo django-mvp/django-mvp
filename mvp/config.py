@@ -91,13 +91,15 @@ MVP_CONFIG = {
             # Classes for the header's background, at every screen size. The
             # default matches the page, so the header stays solid where an
             # installed app on a phone draws the status bar over it. The
-            # translucent look this replaced was "backdrop-blur".
-            "class": "bg-base-100",
+            # translucent look this replaced was "backdrop-blur". A theme
+            # recolours it by setting daisyUI's properties on .mvp-header.
+            "class": "mvp-header-bg",
         },
         "dock": {
             # Classes for the mobile dock's background, for the same reason.
             # The translucent look this replaced was "bg-transparent backdrop-blur".
-            "class": "bg-base-100",
+            # A theme recolours it by setting daisyUI's properties on .mvp-dock.
+            "class": "mvp-dock-bg",
         },
     },
     "table": {
