@@ -318,6 +318,11 @@ class InlinesMixin:
                         f"'prefix' on one of them."
                     )
                 seen_by_prefix[formset.prefix] = declaration_cls
+            # The page title already names a set that is all the page holds,
+            # so the component leaves its heading out. Several sets still
+            # need theirs to be told apart.
+            if self.is_rows_only() and len(formsets) == 1:
+                formsets[0].is_whole_page = True
             self._inline_formsets = formsets
         return self._inline_formsets
 

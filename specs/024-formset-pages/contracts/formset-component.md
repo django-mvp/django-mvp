@@ -18,7 +18,7 @@ error belonging to the set as a whole, one row per form, and the controls that a
 | Attribute | Default | Meaning |
 |---|---|---|
 | `formset` | — | The formset to render. Required in practice; absent renders nothing. |
-| `title` | model in plural | Heading in the divider that opens the set. Falls back to `formset.title`, then to the set's model's plural name. |
+| `title` | model in plural | Heading in the divider that opens the set. Falls back to `formset.title`, then to the set's model's plural name. Left out, divider included, when no `title` attribute is passed and the formset carries a true `is_whole_page`, which the inline view sets on the only set of a rows-only page. |
 | `description` | — | Help text under the heading. Falls back to `formset.description`. Omitted entirely when unset. |
 | `layout` | `"stacked"` | `"tabular"` lays each row's fields out on shared column tracks and heads the set with the field labels. Added by #296; see "Tabular layout" below. |
 | `add-label` | `"Add row"` | Text on the add control, which also carries a plus icon. |

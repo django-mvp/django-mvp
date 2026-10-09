@@ -393,7 +393,7 @@ unmet.
 | --- | --- |
 | `c-mvp.form` | the `<form>` element: CSRF token (only when `method` is `post`), multipart detection, and an optional rendered form. `form-obj` renders through `c-mvp.form.render`; `formset` and `inlines` only detect that a multipart encoding is needed and are not rendered by `c-mvp.form` itself. `method`, `action`, `id` and anything else pass straight to the `<form>` element |
 | `c-mvp.form.render` | `form` — renders a Django form's fields, honouring its helper when it has one |
-| `c-mvp.form.formset` | whole Django formset: `formset` (required), `title` (defaults to the model in plural), `description`, `add-label`, `remove-label`, `class` — see [Formsets](formsets.md) |
+| `c-mvp.form.formset` | whole Django formset: `formset` (required), `title` (defaults to the model in plural; left out for the only set on a [rows-only page](formsets.md#the-rows-only-page) unless passed), `description`, `add-label`, `remove-label`, `class` — see [Formsets](formsets.md) |
 | `c-mvp.form.formset.row` | one row of a formset: `form` (required), `label` (defaults to the object), `first`, `can-delete`, `remove-label`, `class` — placed by `c-mvp.form.formset`, which supplies `first` and `can-delete` from the set; write it by hand only for a custom set layout |
 
 A form is drawn through `<c-mvp.form>`. For a single field you write by hand, outside a
