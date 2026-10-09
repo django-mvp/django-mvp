@@ -243,7 +243,8 @@ class ProductOrderLinesRowsOnlyView(MVPUpdateView):
 - **One set renders without its heading.** When the page declares a single set, that set is
   the whole page and the page title already names it, so its divider and heading are left
   out. Its `description` still renders. The view marks the set with `is_whole_page`, and
-  `<c-mvp.form.formset>` reads that. A rows-only page with several sets keeps a heading on
+  `<c-mvp.form.formset>` reads that. A template that passes the component a `title`
+  attribute gets the heading back. A rows-only page with several sets keeps a heading on
   each, since the headings are what tell them apart.
 - **`fields = []` is not `fields = None`.** Leaving `fields` unset (`None`) is Django's own
   "you configured nothing" state and still raises its usual error. Only an explicit empty

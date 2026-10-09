@@ -604,6 +604,16 @@ class TestFormsetHeading:
 
         assert BeautifulSoup(html, "html.parser").find(class_="divider") is None
 
+    def test_a_title_attribute_brings_the_divider_back_on_such_a_set(self):
+        formset = RowFormSet()
+        formset.is_whole_page = True
+        html = render(
+            '<c-mvp.form.formset :formset="formset" title="Add people" />',
+            formset=formset,
+        )
+
+        assert BeautifulSoup(html, "html.parser").find(class_="divider") is not None
+
 
 class TestFormsetDescription:
     def test_the_description_renders_when_given(self):
