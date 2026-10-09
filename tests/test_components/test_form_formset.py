@@ -596,6 +596,28 @@ class TestFormsetHeading:
         assert divider is not None
         assert divider.get_text(strip=True) == ""
 
+    def test_no_heading_leaves_out_the_divider_and_the_heading(self):
+        formset = RowFormSet()
+        formset.title = "Add people"
+        html = render(
+            '<c-mvp.form.formset :formset="formset" no-heading />', formset=formset
+        )
+
+        assert BeautifulSoup(html, "html.parser").find(class_="divider") is None
+        assert "Add people" not in html
+
+    def test_no_heading_keeps_the_description_and_the_rows(self):
+        html = render(
+            '<c-mvp.form.formset :formset="formset" no-heading '
+            'description="One row per order." />',
+            formset=RowFormSet(),
+        )
+
+        assert "One row per order." in html
+        assert BeautifulSoup(html, "html.parser").find(
+            "input", attrs={"name": "form-TOTAL_FORMS"}
+        )
+
 
 class TestFormsetDescription:
     def test_the_description_renders_when_given(self):

@@ -42,7 +42,16 @@
           {% if next_url %}<input type="hidden" name="next" value="{{ next_url }}">{% endif %}
           {% block formset %}
             {% if formset %}<c-mvp.form.formset :formset="formset" />{% endif %}
-            {% for inline in inlines %}<c-mvp.form.formset :formset="inline" />{% endfor %}
+            {% comment %}
+              A rows-only page with one set has no parent fields for the rows
+              to run into, and its title already names them. Several sets
+              still need a heading each to be told apart.
+            {% endcomment %}
+            {% if view.is_rows_only and inlines|length == 1 %}
+              <c-mvp.form.formset :formset="inlines.0" no-heading />
+            {% else %}
+              {% for inline in inlines %}<c-mvp.form.formset :formset="inline" />{% endfor %}
+            {% endif %}
           {% endblock formset %}
           {% comment %}
             Stacked and full width on a phone, a row from md up. The space

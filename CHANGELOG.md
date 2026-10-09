@@ -12,9 +12,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `mvp-table-page` on a table page and `mvp-table-pager` on its pager, and
   `mvp-table-over-top` and `mvp-table-over-side` on the table's scroll region while it
   is scrolled, for a stylesheet to select on.
+- `no-heading` on `<c-mvp.form.formset>` leaves out the set's heading and the divider it
+  sits in. See [Formsets](docs/formsets.md#declaring-a-set).
 
 ### Changed
 
+- A rows-only page with one row set no longer draws that set's heading and divider. The
+  page title already names the rows, and there are no parent fields above them to mark
+  them off from. A rows-only page with several sets keeps a heading on each. A project
+  that hid the divider with its own stylesheet rule can drop the rule.
 - The table page is one surface in every theme. Its toolbar, rows and pager are drawn
   in the page's own background (`--root-bg`), where they were fixed to `base-100`, and
   the heading and footer rows share it, where they were `base-200`. On a theme that

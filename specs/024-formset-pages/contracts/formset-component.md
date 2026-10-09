@@ -20,6 +20,7 @@ error belonging to the set as a whole, one row per form, and the controls that a
 | `formset` | — | The formset to render. Required in practice; absent renders nothing. |
 | `title` | model in plural | Heading in the divider that opens the set. Falls back to `formset.title`, then to the set's model's plural name. |
 | `description` | — | Help text under the heading. Falls back to `formset.description`. Omitted entirely when unset. |
+| `no-heading` | off | Leaves out the divider and the heading, for a page whose own title already names the set. The help text still renders. Added by #511. |
 | `layout` | `"stacked"` | `"tabular"` lays each row's fields out on shared column tracks and heads the set with the field labels. Added by #296; see "Tabular layout" below. |
 | `add-label` | `"Add row"` | Text on the add control, which also carries a plus icon. |
 | `remove-label` | `"Remove"` | Accessible name for each row's remove control, passed through to rows. |

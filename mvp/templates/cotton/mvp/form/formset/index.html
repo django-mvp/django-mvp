@@ -2,6 +2,7 @@
 {# @prop formset:text | description:"The Django formset to render; nothing renders without it." #}
 {# @prop title:text | description:"Heading text; defaults to the set's model in plural." #}
 {# @prop description:text | description:"Developer-supplied help text under the heading." #}
+{# @prop no-heading:boolean | default:False | description:"Leave out the heading and its divider, for a page whose title already names the set." #}
 {# @prop class:text | description:"Extra classes on the root element." #}
 {# @prop layout:select['stacked','tabular'] | default:"stacked" | description:"Row presentation; tabular adds column headings from the empty form." #}
 {# @prop add-label:text | default:"Add row" | description:"Text for the add-row button." #}
@@ -10,6 +11,7 @@
 <c-vars formset
         title
         description
+        no-heading
         class
         layout="stacked"
         add-label="{% trans "Add row" %}"
@@ -24,12 +26,15 @@
        x-data="mvpFormset({{ formset.total_form_count|unlocalize }}, {{ formset.max_num|unlocalize }})"
        x-on:mvp-formset-row-removed="visible--"
        {{ attrs }}>
-    {% firstof title formset.title formset|formset_label as heading %}
     {% comment %}
-      Unconditional: rows flush against the parent form's fields read as
-      more of the same form without a divider marking the set off.
+      On by default, even with no heading text: rows flush against the
+      parent form's fields read as more of the same form without a divider
+      marking the set off.
     {% endcomment %}
-    <c-divider class="my-8" only>{{ heading }}</c-divider>
+    {% if not no_heading %}
+      {% firstof title formset.title formset|formset_label as heading %}
+      <c-divider class="my-8" only>{{ heading }}</c-divider>
+    {% endif %}
     {% firstof description formset.description as help_text %}
     {% if help_text %}<c-mvp.text muted size="sm">{{ help_text }}</c-mvp.text>{% endif %}
     {% if formset.non_form_errors %}

@@ -70,6 +70,15 @@ with a divider and a heading, so the rows do not read as more fields on the pare
 [the heading below](#more-than-one-set-on-a-page) for what `title` defaults to when it is left
 unset.
 
+Where a page's own title already names the set, `no-heading` on the component leaves the
+divider and the heading out and keeps everything else, the help text included:
+
+```html
+<c-mvp.form.formset :formset="formset" no-heading />
+```
+
+[The rows-only page](#the-rows-only-page) does this for you when it carries one set.
+
 Both row controls work in the browser. The add control clones the row markup. The remove
 control is a trash icon in the row's top right, kept transparent until the row is hovered or
 something in it takes focus, and it hides the row and marks it for deletion if the row is
@@ -239,6 +248,10 @@ class ProductOrderLinesRowsOnlyView(MVPUpdateView):
 - **What renders.** No field input for any of the parent's own fields — the generated parent
   form has none. Every declared set still renders and binds to the record the URL identifies,
   the same as on any other update page.
+- **One set renders without its heading.** With no parent fields above it there is nothing for
+  the rows to be mistaken for, and the page title already names them, so a page with a single
+  set leaves the divider and the heading out. Its `description` still renders. A page with
+  several sets keeps a heading on each, since the headings are what tell them apart.
 - **`fields = []` is not `fields = None`.** Leaving `fields` unset (`None`) is Django's own
   "you configured nothing" state and still raises its usual error. Only an explicit empty
   `fields` selects the rows-only page.

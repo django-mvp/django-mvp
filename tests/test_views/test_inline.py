@@ -1208,6 +1208,29 @@ class TestRowsOnlyPageRendersNoParentFields:
         } == {"Mine"}
 
 
+@pytest.mark.django_db
+class TestRowSetHeadingOnTheRowsOnlyPage:
+    """The page title already names a rows-only page's single set (#511)."""
+
+    def _dividers(self, **attrs):
+        project = ProjectFactory()
+        view_cls = _inline_update_view_class(success_url="/done/", **attrs)
+        _, response = _dispatch(view_cls, method="GET", view_kwargs={"pk": project.pk})
+        soup = BeautifulSoup(_rendered_html(response), "html.parser")
+        return soup.find_all(class_="divider")
+
+    def test_a_single_set_renders_without_its_divider(self):
+        assert self._dividers(fields=[]) == []
+
+    def test_several_sets_keep_a_divider_each(self):
+        dividers = self._dividers(fields=[], inlines=[TaskInline, NoteViaProjectInline])
+
+        assert len(dividers) == 2
+
+    def test_a_set_under_parent_fields_keeps_its_divider(self):
+        assert len(self._dividers()) == 1
+
+
 # T044 — the rows-only branch: no parent form fields, sets bound to the
 # loaded instance. No new view class, no page-selecting attribute. Verified
 # by T042/T043 above needing no production code — both already green,
