@@ -54,6 +54,29 @@ how many, open or closed, so a closed toolbar never hides that the table is a su
 A view with nothing to put in the panel, no `search_fields`, no `FilterSet` and no add
 action, gets the bar alone, with no panel and no button.
 
+### Surfaces and edges
+
+The whole page is one surface. The toolbar, the heading row, the rows, the footer row
+and the pager are all drawn in the page's own background, whatever surface the applied
+theme puts the page on, so the page looks the same in every theme. A
+`<c-mvp.addons.django-table>` you place yourself, inside a card for example, takes
+`base-100` as its ground instead.
+
+The parts are told apart by hairlines, in the weight DaisyUI gives the line between two
+rows. The heading row also takes a small shadow while rows are scrolled under it, as the
+app header does when it is stuck, and a [pinned column](#columns-that-identify-the-row)
+takes one while the table is scrolled sideways. A row under the pointer is tinted with a
+thin wash of the theme's text colour.
+
+Four classes are there for a stylesheet of your own to select on:
+
+| Class | On | When |
+| --- | --- | --- |
+| `mvp-table-page` | the page | always, on a table page |
+| `mvp-table-pager` | the pager's bar | always |
+| `mvp-table-over-top` | the scroll region | while the rows are scrolled down from the top |
+| `mvp-table-over-side` | the scroll region | while the table is scrolled sideways |
+
 ### A table that does not fill the page
 
 The footer row sits at the bottom of the region however few rows there are. With no
@@ -205,7 +228,9 @@ sideways. Add that class to the table area to turn the pinning on:
 ```
 
 With a column pinned, the footer row's cell under it is a row header as well, so a label
-such as "Total" stays at the leading edge with the column. On a narrow screen a pinned
+such as "Total" stays at the leading edge with the column. The column's edge is a
+hairline down its whole height, with a small shadow beside it once the table has
+scrolled sideways. On a narrow screen a pinned
 column is held to under half the width, and a longer value is cut with an ellipsis.
 
 ### A column with no heading

@@ -21,7 +21,7 @@
 {% endcomment %}
 {% block app.footer %}{% endblock app.footer %}
 {% block content %}
-  <c-mvp.page fill class="{{ page.class }}">
+  <c-mvp.page fill class="mvp-table-page {{ page.class }}">
     {% block page.content-wrapper %}
       {% comment %}
         gap="0" and padding on the bands, never the page: the table meets the
@@ -85,7 +85,7 @@
           {% if page_obj %}
             <c-mvp.page.list.footer :page_obj="page_obj"
                                 size="sm"
-                                class="shrink-0 px-4 py-2 border-t border-base-300 bg-base-100" />
+                                class="mvp-table-pager shrink-0 px-4 py-2 border-t border-base-300" />
           {% endif %}
         {% endblock page.footer %}
       </c-mvp.page.content>

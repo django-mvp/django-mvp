@@ -755,24 +755,60 @@
   transition: opacity 200ms ease-in;
 }
 
-/* A full-page table's scroll region (<c-mvp.addons.django-table>).
+/* A full-page table's scroll region (<c-mvp.addons.django-table>). The pinned
+   rows share the rows' ground. Their edges are cell shadows, since a border
+   on a stuck cell of a collapsed-border table scrolls away with its row. */
+.mvp-table-region {
+  --mvp-table-line: color-mix(in oklch, var(--color-base-content) 5%, #0000);
+  --mvp-table-shade: rgb(0 0 0 / 0.05);
+}
 
-   The heading and footer rows are stuck to the region's edges by daisyUI's
-   table-pin-rows. These rules make them read as a frame while rows pass
-   underneath: a tint, and an edge drawn as an inset shadow, since a border
-   on a stuck cell of a collapsed-border table scrolls away with the row it
-   belonged to. */
 .mvp-table-region thead tr,
 .mvp-table-region tfoot tr {
-  background-color: var(--color-base-200);
+  background-color: var(--color-base-100);
+}
+
+/* A stuck cell has a line and a shadow on each axis, and a pinned column's
+   heading has all four. Each rule below sets one. */
+.mvp-table-region :is(thead, tfoot) :is(th, td),
+.mvp-table-region tbody th {
+  box-shadow:
+    var(--mvp-table-line-y, 0 0 #0000),
+    var(--mvp-table-line-x, 0 0 #0000),
+    var(--mvp-table-shade-y, 0 0 #0000),
+    var(--mvp-table-shade-x, 0 0 #0000);
+  transition: box-shadow 100ms;
 }
 
 .mvp-table-region thead :is(th, td) {
-  box-shadow: inset 0 -1px 0 var(--color-base-300);
+  --mvp-table-line-y: inset 0 -1px 0 var(--mvp-table-line);
 }
 
 .mvp-table-region tfoot :is(th, td) {
-  box-shadow: inset 0 1px 0 var(--color-base-300);
+  --mvp-table-line-y: inset 0 1px 0 var(--mvp-table-line);
+}
+
+/* A shadow is for an edge with cells under it. The region's scroll handler
+   names those edges. */
+.mvp-table-over-top thead :is(th, td) {
+  --mvp-table-shade-y: 0 1px 2px 0 var(--mvp-table-shade);
+}
+
+/* The hover tint is the text colour laid thinly over the table's ground, so
+   it is the same step in every theme. */
+.mvp-table-region {
+  --color-base-200: color-mix(in oklab, var(--color-base-content) 6%, var(--color-base-100));
+}
+
+/* A table that fills the page is on the page's own ground, toolbar and pager
+   included, and the lines between them are the weight of a row's. */
+.mvp-table-page .mvp-table-region {
+  --color-base-100: var(--root-bg);
+}
+
+.mvp-table-page :is(.mvp-table-toolbar, .mvp-table-pager) {
+  background-color: var(--root-bg);
+  border-color: color-mix(in oklch, var(--color-base-content) 5%, #0000);
 }
 
 /* A row lights up under the pointer, so the eye can follow it across a table
@@ -825,22 +861,27 @@
 }
 
 :is(.mvp-table-region.table-pin-cols, .mvp-table-region .table-pin-cols) thead th {
-  background-color: var(--color-base-200);
+  background-color: var(--color-base-100);
 }
 
 :is(.mvp-table-region.table-pin-cols, .mvp-table-region .table-pin-cols) thead th[data-row-header] {
   z-index: 2;
 }
 
-:is(.mvp-table-region.table-pin-cols, .mvp-table-region .table-pin-cols) tbody th {
-  box-shadow: inset -1px 0 0 var(--color-base-300);
+/* The pinned column's edge runs its whole height, heading and footer cells
+   included, and takes a shadow once the table has scrolled sideways. */
+:is(.mvp-table-region.table-pin-cols, .mvp-table-region .table-pin-cols) :is(thead th[data-row-header], tbody th, tfoot th) {
+  --mvp-table-line-x: inset -1px 0 0 var(--mvp-table-line);
+}
+
+:is(.mvp-table-over-side.table-pin-cols, .mvp-table-over-side .table-pin-cols) :is(thead th[data-row-header], tbody th, tfoot th) {
+  --mvp-table-shade-x: 1px 0 2px 0 var(--mvp-table-shade);
 }
 
 /* The footer row's cell under a pinned column stays with it, so the row's
    label does not scroll away from the figures it names. */
 :is(.mvp-table-region.table-pin-cols, .mvp-table-region .table-pin-cols) tfoot th {
-  background-color: var(--color-base-200);
-  box-shadow: inset 0 1px 0 var(--color-base-300);
+  background-color: var(--color-base-100);
 }
 
 /* On a narrow screen a pinned column may not take the screen with it: it is

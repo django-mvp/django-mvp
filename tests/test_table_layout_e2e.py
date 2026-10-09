@@ -16,6 +16,8 @@ sidebar breakpoint it comes from the `100dvh` floor instead, since
 in either mechanism only shows up at the viewport that depends on it.
 """
 
+import re
+
 import pytest
 from playwright.sync_api import expect
 
@@ -283,3 +285,43 @@ class TestTheToolbarOpensAndCloses:
         page.reload()
 
         expect(page.locator("#mvpTableToolbarPanel")).to_be_hidden()
+
+
+class TestTheRegionNamesTheEdgesWithCellsUnderThem:
+    """The stylesheet shadows a pinned edge only while cells are scrolled under
+    it, and reads which edges those are from classes the region sets."""
+
+    @staticmethod
+    def _open(page, live_server):
+        ProductFactory.create_batch(PRODUCT_COUNT)
+        page.set_viewport_size({"width": 900, "height": 700})
+        page.goto(f"{live_server.url}{TABLE_PAGE}")
+        return page.locator('[role="region"]')
+
+    @pytest.mark.django_db
+    def test_no_edge_is_named_before_the_table_scrolls(self, page, live_server):
+        region = self._open(page, live_server)
+
+        expect(region).not_to_have_class(re.compile(r"mvp-table-over-"))
+
+    @pytest.mark.django_db
+    def test_scrolling_down_names_the_top_edge_until_the_table_returns(
+        self, page, live_server
+    ):
+        region = self._open(page, live_server)
+
+        region.evaluate("el => el.scrollTo(0, 200)")
+        expect(region).to_have_class(re.compile(r"\bmvp-table-over-top\b"))
+        expect(region).not_to_have_class(re.compile(r"\bmvp-table-over-side\b"))
+
+        region.evaluate("el => el.scrollTo(0, 0)")
+        expect(region).not_to_have_class(re.compile(r"mvp-table-over-"))
+
+    @pytest.mark.django_db
+    def test_scrolling_sideways_names_the_side_edge(self, page, live_server):
+        region = self._open(page, live_server)
+
+        region.evaluate("el => el.scrollTo(200, 0)")
+        expect(region).to_have_class(re.compile(r"\bmvp-table-over-side\b"))
+        expect(region).not_to_have_class(re.compile(r"\bmvp-table-over-top\b"))
+
