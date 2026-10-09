@@ -6,6 +6,10 @@
 {% load i18n %}
 {% load render_table from django_tables2 %}
 {% comment %}
+  The scroll handler names the edges that have cells under them, and the
+  stylesheet gives only those a shadow, as the app header has one when stuck.
+{% endcomment %}
+{% comment %}
   role/tabindex/aria-label are variables, not written into the tag: anything
   hardcoded here would be emitted before {{ attrs }}, and HTML keeps the
   *first* of a repeated attribute, so a caller's own label would be ignored.
@@ -15,4 +19,7 @@
      tabindex="0"
      role="{{ role }}"
      aria-label="{{ label|default:_('Scrollable table') }}"
+     x-data="{ top: false, side: false }"
+     @scroll.passive="top = $el.scrollTop > 0; side = $el.scrollLeft !== 0"
+     :class="{ 'mvp-table-over-top': top, 'mvp-table-over-side': side }"
      {{ attrs }}>{% render_table table %}</div>

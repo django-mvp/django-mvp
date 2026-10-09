@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `mvp-table-page` on a table page and `mvp-table-pager` on its pager, and
+  `mvp-table-over-top` and `mvp-table-over-side` on the table's scroll region while it
+  is scrolled, for a stylesheet to select on.
+
+### Changed
+
+- The table page is one surface in every theme. Its toolbar, rows and pager are drawn
+  in the page's own background (`--root-bg`), where they were fixed to `base-100`, and
+  the heading and footer rows share it, where they were `base-200`. On a theme that
+  puts the page on another surface the page no longer breaks into bands.
+- The table page's edges are hairlines, where they were `base-300` lines. The heading
+  row takes a small shadow while rows are scrolled under it, and a pinned column takes
+  one while the table is scrolled sideways. See
+  [Surfaces and edges](docs/integrations.md#surfaces-and-edges).
+- A table row under the pointer is tinted with the theme's text colour, where it took
+  `base-200`, so the tint is as visible in one theme as in the next.
+
 ## [v0.28.0] - 2026-10-08
 
 ### Added
