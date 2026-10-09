@@ -2,7 +2,7 @@
 of its own; the packaged Account Center pages are what it shows (T016,
 FR-014, SC-006).
 
-Source: demo/urls.py, demo/settings.py, demo/templates/demo/components/link.html
+Source: demo/urls.py, demo/settings.py
 """
 
 import pytest

@@ -264,6 +264,7 @@ Packaged behaviour that depends on them:
 | Sticky header picking up a shadow once the page scrolls | Alpine |
 | Formset add/remove rows | Alpine (`mvp/static/js/formset.js` reaches for the global) |
 | Theme toggle and theme dropdown | theme-change |
+| Browser toolbar colour following the theme, on an [installable app](installable-app.md) | the bundle's own script |
 | `hx-boost` sidebar navigation, when enabled | htmx |
 
 The bundle is not configurable — the packaged components are written

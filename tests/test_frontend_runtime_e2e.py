@@ -216,3 +216,74 @@ class TestThemeChangeStillWorks:
             "the stale stored selection was left in place, so it would be "
             "restored again on the next load"
         )
+
+
+# The nearest opaque background at or above the element, painted so that
+# whatever notation the stylesheet used comes back as one comparable hex.
+PAINTED_BACKGROUND = """selector => {
+    const context = document.createElement('canvas').getContext('2d');
+    let element = document.querySelector(selector);
+    for (; element; element = element.parentElement) {
+        context.clearRect(0, 0, 1, 1);
+        context.fillStyle = getComputedStyle(element).backgroundColor;
+        context.fillRect(0, 0, 1, 1);
+        const [red, green, blue, alpha] = context.getImageData(0, 0, 1, 1).data;
+        if (alpha === 255) {
+            return '#' + [red, green, blue]
+                .map(channel => channel.toString(16).padStart(2, '0'))
+                .join('');
+        }
+    }
+    return null;
+}"""
+
+THEME_COLOUR = (
+    "() => document.querySelector('meta[name=\"theme-color\"]').getAttribute('content')"
+)
+
+
+@pytest.mark.usefixtures("pwa_enabled")
+class TestThemeColourFollowsTheTheme:
+    def test_a_loaded_page_takes_the_colour_of_its_header(self, page, live_server):
+        page.goto(f"{live_server.url}/components/", wait_until="load")
+
+        header = page.evaluate(PAINTED_BACKGROUND, ".mvp-header")
+
+        assert header != "#123456", (
+            "the header is the configured colour, so this page cannot tell a "
+            "tag that follows the header from one that was never rewritten"
+        )
+        assert page.evaluate(THEME_COLOUR) == header
+
+    def test_changing_theme_changes_the_colour_with_it(self, page, live_server):
+        page.goto(f"{live_server.url}/components/", wait_until="load")
+        before = page.evaluate(PAINTED_BACKGROUND, ".mvp-header")
+
+        page.locator("[data-toggle-theme]").first.click()
+        page.wait_for_function(f"before => ({THEME_COLOUR})() !== before", arg=before)
+
+        after = page.evaluate(PAINTED_BACKGROUND, ".mvp-header")
+        assert after != before, (
+            "both themes draw the header in one colour, so the tag changing "
+            "proves nothing here"
+        )
+        assert page.evaluate(THEME_COLOUR) == after
+
+    def test_a_header_with_no_colour_of_its_own_takes_the_one_behind_it(
+        self, page, live_server, monkeypatch
+    ):
+        monkeypatch.setitem(MVP_CONFIG["layout"]["navbar"], "class", "")
+
+        page.goto(f"{live_server.url}/components/", wait_until="load")
+
+        assert page.evaluate(THEME_COLOUR) == page.evaluate(PAINTED_BACKGROUND, "body")
+
+    def test_a_page_with_no_header_takes_the_colour_of_the_page(
+        self, page, live_server
+    ):
+        page.goto(f"{live_server.url}/accounts/login/", wait_until="load")
+
+        assert page.locator(".mvp-header").count() == 0
+        page_colour = page.evaluate(PAINTED_BACKGROUND, "body")
+        assert page_colour != "#123456"
+        assert page.evaluate(THEME_COLOUR) == page_colour

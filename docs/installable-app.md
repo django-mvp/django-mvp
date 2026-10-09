@@ -16,8 +16,8 @@ MVP_CONFIG = {
 }
 ```
 
-`theme_color` is required. It is the colour of the browser toolbar and the launch screen, so
-match it to your theme's page colour. Any other value that is on, such as `True`, fails when the
+`theme_color` is required. It is the colour of the launch screen, and of the browser toolbar
+until the page has loaded, so match it to the header of your default theme. Any other value that is on, such as `True`, fails when the
 manifest is built.
 
 The manifest and the worker are served by `mvp.urls`, the same URLconf that serves the Account
@@ -41,13 +41,29 @@ colour and registers a service worker. The manifest and the tags are built from 
 | Value | Where it comes from |
 | --- | --- |
 | Name | `MVP_CONFIG["site_name"]` when set, otherwise the current site's name (`Site.name`). Without `django.contrib.sites`, or when no `Site` matches or its name is empty, the request's host. Set `MVP_CONFIG["site_name"]` if the styled error page has to survive a database outage: reading the site name can need the database, and an error page that can't render falls back to the server's bare one. |
-| Colour | `MVP_CONFIG["pwa"]["theme_color"]`, used for the manifest's theme and background colours, the `theme-color` tag and the background of the padded images. |
+| Colour | `MVP_CONFIG["pwa"]["theme_color"]`, used for the manifest's theme and background colours, the `theme-color` tag as the page is served and the background of the padded images. |
 | Images | Four PNG files under `brand/pwa/` in your static files (see [The images](#the-images)). |
 
 `MVP_CONFIG["short_name"]` sets the label under the icon, and takes the name when unset. The
 application name and short name are top-level settings, listed in [Configuration](configuration.md).
 Every other value is fixed: the app opens at the site root (the script prefix included) and
 uses the `standalone` display mode.
+
+## The toolbar colour follows the theme
+
+A browser colours the toolbar around the page from the `theme-color` tag, and an installed app
+colours its title bar the same way. The page is served with `pwa.theme_color` in that tag. Once
+it has loaded, the bundled script sets the tag to the colour of the application header, which is
+what the toolbar sits against, and sets it again whenever the visitor changes theme. A visitor on
+your dark theme gets a toolbar that matches the dark header.
+
+The colour is read from the page as it is drawn, so a theme you wrote yourself and a header you
+recoloured (see [Theming](theming.md)) are followed without any setting. A header with no
+background of its own gives the colour of the page behind it, and so does a page that has no
+header, such as the sign-in page.
+
+The manifest and the launch screen can only hold one colour, so they keep `pwa.theme_color` in
+every theme. So does the tag where the script does not run.
 
 ## Why the worker controls the whole site
 

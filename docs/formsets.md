@@ -66,7 +66,8 @@ The view's default template (`form_view.html`) renders each declared set through
 `<c-mvp.form.formset>` when it is in context — see
 [Components](components.md#actions-user-misc) for what that component renders. The set opens
 with a divider and a heading, so the rows do not read as more fields on the parent's form.
-`title` sets that heading and `description` puts help text under it. See
+The one exception is [the rows-only page](#the-rows-only-page) with a single set. `title`
+sets that heading and `description` puts help text under it. See
 [the heading below](#more-than-one-set-on-a-page) for what `title` defaults to when it is left
 unset.
 
@@ -239,6 +240,12 @@ class ProductOrderLinesRowsOnlyView(MVPUpdateView):
 - **What renders.** No field input for any of the parent's own fields — the generated parent
   form has none. Every declared set still renders and binds to the record the URL identifies,
   the same as on any other update page.
+- **One set renders without its heading.** When the page declares a single set, that set is
+  the whole page and the page title already names it, so its divider and heading are left
+  out. Its `description` still renders. The view marks the set with `is_whole_page`, and
+  `<c-mvp.form.formset>` reads that. A template that passes the component a `title`
+  attribute gets the heading back. A rows-only page with several sets keeps a heading on
+  each, since the headings are what tell them apart.
 - **`fields = []` is not `fields = None`.** Leaving `fields` unset (`None`) is Django's own
   "you configured nothing" state and still raises its usual error. Only an explicit empty
   `fields` selects the rows-only page.

@@ -140,12 +140,19 @@ project's.
    name also appears in the page title, and a value left unset keeps its default.
 2. **Given** a project that turns the feature on with its colour, **When** the manifest is
    requested and a page renders, **Then** the manifest's theme and background colours and the
-   page's colour tag all carry it.
+   page's colour tag as served all carry it.
 3. **Given** a project that overrides the packaged worker template, **When** the worker is
    requested, **Then** the project's worker is served.
 4. **Given** a project that wants to change the head tags themselves, **When** it overrides the
    template that renders them, **Then** its template decides what the head carries, the same way
    every other packaged template is overridden.
+5. **Given** a project with the feature on, **When** a page has loaded in a browser, **Then**
+   the page's colour tag carries the colour the application header is drawn in, in whichever
+   theme is applied.
+6. **Given** that page, **When** the visitor changes theme, **Then** the colour tag carries the
+   header's colour in the new theme.
+7. **Given** a header that has no colour of its own, **When** the page has loaded, **Then** the
+   colour tag carries the colour drawn behind the header.
 
 ### Edge Cases
 
@@ -181,9 +188,14 @@ project's.
 - **FR-005**: By default the manifest MUST name the application after the site's name, start at
   the site's root and open in a standalone window. Where the site has no name to read, a
   non-empty name MUST still be provided.
-- **FR-006**: The manifest's theme and background colours and the page's colour tag MUST be the
-  colour the project configures, which is required to turn the feature on. The package MUST NOT
-  derive a colour from a theme.
+- **FR-006**: The manifest's theme and background colours, and the page's colour tag as the
+  page is served, MUST be the colour the project configures, which is required to turn the
+  feature on. The server MUST NOT derive a colour from a theme.
+- **FR-006a**: Once a page has loaded in a browser, the page's colour tag MUST carry the colour
+  the application header is drawn in, read from the page itself, and MUST be updated when the
+  applied theme changes. Where the header has no colour of its own, or the page has no header,
+  the colour is the one drawn behind it. Where the colour cannot be read, the tag keeps the
+  configured colour. No setting is involved.
 - **FR-007**: The manifest MUST list application images at 192 and 512 pixels and a padded image
   for masked display, and the page head MUST carry an Apple home-screen image, all read from a
   fixed location in the project's static files.
@@ -252,8 +264,14 @@ setting?**
 From configuration only. A theme is CSS the server never reads. A colour read from the package's
 own copy of a shipped theme would be wrong the moment a project customised that theme, so the
 package derives nothing and the project states its colour. Setting it is what turns the feature
-on. Keeping the colour in step with a visitor's theme choice is the project's concern and out of
-scope. Integrated as FR-001, FR-006 and US-3 scenario 2.
+on. Integrated as FR-001, FR-006 and US-3 scenario 2.
+
+That holds for everything the server writes. It was first taken to put a visitor's theme choice
+out of scope as well, which left a visitor on a dark theme with a light toolbar over a dark page
+(issue #516). The page's colour tag now follows the applied theme in the browser, where the
+colour can be read from the page as drawn and a customised theme is read as correctly as a
+shipped one. The manifest and the launch screen hold one colour and keep the configured one.
+Integrated as FR-006a and US-3 scenarios 5 to 7.
 
 **Q2 — Where do the application images live, and does the manifest point at the brand mark
 itself?**
