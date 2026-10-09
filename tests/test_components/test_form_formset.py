@@ -596,6 +596,24 @@ class TestFormsetHeading:
         assert divider is not None
         assert divider.get_text(strip=True) == ""
 
+    def test_a_set_that_is_the_whole_page_gets_no_divider(self):
+        formset = RowFormSet()
+        formset.title = "Add people"
+        formset.is_whole_page = True
+        html = render('<c-mvp.form.formset :formset="formset" />', formset=formset)
+
+        assert BeautifulSoup(html, "html.parser").find(class_="divider") is None
+
+    def test_a_title_attribute_brings_the_divider_back_on_such_a_set(self):
+        formset = RowFormSet()
+        formset.is_whole_page = True
+        html = render(
+            '<c-mvp.form.formset :formset="formset" title="Add people" />',
+            formset=formset,
+        )
+
+        assert BeautifulSoup(html, "html.parser").find(class_="divider") is not None
+
 
 class TestFormsetDescription:
     def test_the_description_renders_when_given(self):
@@ -613,6 +631,14 @@ class TestFormsetDescription:
 
         divider = soup.find(class_="divider")
         assert divider.find_next_sibling("p") is None
+
+    def test_it_still_renders_on_a_set_that_is_the_whole_page(self):
+        formset = RowFormSet()
+        formset.description = "One row per order."
+        formset.is_whole_page = True
+        html = render('<c-mvp.form.formset :formset="formset" />', formset=formset)
+
+        assert "One row per order." in html
 
 
 @pytest.mark.django_db

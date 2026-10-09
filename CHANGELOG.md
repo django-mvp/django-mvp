@@ -15,6 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- A rows-only page with one row set no longer draws that set's heading and divider. The
+  page title already names the rows, and there are no parent fields to separate them
+  from. A set that follows parent fields, and every set on a page with several, keeps
+  its heading. See [The rows-only page](docs/formsets.md#the-rows-only-page).
 - The table page is one surface in every theme. Its toolbar, rows and pager are drawn
   in the page's own background (`--root-bg`), where they were fixed to `base-100`, and
   the heading and footer rows share it, where they were `base-200`. On a theme that
