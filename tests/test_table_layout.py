@@ -262,6 +262,24 @@ class TestTableViewTemplate:
         assert 'role="region"' not in html, "the default table area is gone"
 
 
+class TestTheTablePageNamesItsParts:
+    """The page and its pager carry classes of their own, which the packaged
+    stylesheet paints from and a project's stylesheet can select on."""
+
+    @pytest.mark.django_db
+    def test_the_filled_page_is_marked_as_a_table_page(self, rf, product):
+        soup = _beautiful_soup()(_render_table_view(rf), "html.parser")
+        page = soup.find(class_="mvp-page-fill")
+        assert "mvp-table-page" in page["class"]
+
+    @pytest.mark.django_db
+    def test_the_pagination_bar_is_marked_as_the_table_pager(self, rf, product):
+        ProductFactory.create_batch(4)
+        html = _render_table_view(rf, paginate_by=2)
+        soup = _beautiful_soup()(html, "html.parser")
+        assert "mvp-table-pager" in soup.find(class_="mvp-list-footer")["class"]
+
+
 class TestColumnBehaviourClasses:
     def _table(self):
         pytest.importorskip("django_tables2")
