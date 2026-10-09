@@ -15,6 +15,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- On an installable app, the browser toolbar follows the applied theme. Once a page has
+  loaded, the `theme-color` tag takes the colour of the application header, and takes it
+  again whenever the visitor changes theme, where it held `pwa.theme_color` in every
+  theme. `pwa.theme_color` is still the manifest and launch-screen colour, and the tag's
+  value until the page has loaded. See
+  [The toolbar colour follows the theme](docs/installable-app.md#the-toolbar-colour-follows-the-theme).
 - The table page is one surface in every theme. Its toolbar, rows and pager are drawn
   in the page's own background (`--root-bg`), where they were fixed to `base-100`, and
   the heading and footer rows share it, where they were `base-200`. On a theme that
