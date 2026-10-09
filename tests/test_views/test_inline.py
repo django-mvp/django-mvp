@@ -1208,6 +1208,60 @@ class TestRowsOnlyPageRendersNoParentFields:
         } == {"Mine"}
 
 
+def set_dividers(html, prefix):
+    """The dividers inside the form that carries the set named by ``prefix``."""
+    soup = BeautifulSoup(html, "html.parser")
+    total_forms = soup.find(attrs={"name": f"{prefix}-TOTAL_FORMS"})
+    return total_forms.find_parent("form").find_all(class_="divider")
+
+
+@pytest.mark.django_db
+class TestRowSetHeadingOnlyWhereItSeparatesSomething:
+    def test_the_only_set_on_a_rows_only_page_has_no_heading(self):
+        project = ProjectFactory()
+        view_cls = _inline_update_view_class(success_url="/done/", fields=[])
+
+        _, response = _dispatch(view_cls, method="GET", view_kwargs={"pk": project.pk})
+
+        assert set_dividers(_rendered_html(response), "tasks") == []
+
+    def test_a_set_that_follows_parent_fields_keeps_its_heading(self):
+        project = ProjectFactory()
+        view_cls = _inline_update_view_class(success_url="/done/")
+
+        _, response = _dispatch(view_cls, method="GET", view_kwargs={"pk": project.pk})
+
+        assert len(set_dividers(_rendered_html(response), "tasks")) == 1
+
+    def test_several_sets_on_a_rows_only_page_each_keep_their_heading(self):
+        project = ProjectFactory()
+        view_cls = _inline_update_view_class(
+            success_url="/done/", fields=[], inlines=[TaskInline, NoteViaProjectInline]
+        )
+
+        _, response = _dispatch(view_cls, method="GET", view_kwargs={"pk": project.pk})
+
+        assert len(set_dividers(_rendered_html(response), "tasks")) == 2
+
+    def test_a_refused_submission_redisplays_without_the_heading(self):
+        project = ProjectFactory()
+        view_cls = _inline_update_view_class(success_url="/done/", fields=[])
+        data = {
+            "tasks-TOTAL_FORMS": "1",
+            "tasks-INITIAL_FORMS": "0",
+            "tasks-MIN_NUM_FORMS": "0",
+            "tasks-MAX_NUM_FORMS": "1000",
+            "tasks-0-title": "x" * 250,
+        }
+
+        _, response = _dispatch(
+            view_cls, method="POST", data=data, view_kwargs={"pk": project.pk}
+        )
+
+        assert response.status_code == 200
+        assert set_dividers(_rendered_html(response), "tasks") == []
+
+
 # T044 — the rows-only branch: no parent form fields, sets bound to the
 # loaded instance. No new view class, no page-selecting attribute. Verified
 # by T042/T043 above needing no production code — both already green,
