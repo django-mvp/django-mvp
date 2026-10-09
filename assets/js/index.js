@@ -22,6 +22,7 @@ import { themeChange } from "theme-change";
 
 import { startDropdowns } from "./dropdown.js";
 import { registerLayoutStore } from "./layout.js";
+import { startThemeColor } from "./theme_color.js";
 
 // htmx reads hx-* attributes off the DOM itself; the global is what its own
 // documentation, `hx-on:` handlers and browser-console debugging expect to find.
@@ -36,6 +37,9 @@ themeChange();
 // room for it. See assets/js/dropdown.js for why this runs here rather
 // than being written into the template.
 startDropdowns();
+
+// Keeps the browser toolbar the colour of the header in the applied theme.
+startThemeColor();
 
 // theme-change can't notice controls added after it runs, and a boosted
 // navigation swaps the body for identical markup with no listeners: the

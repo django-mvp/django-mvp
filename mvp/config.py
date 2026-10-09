@@ -121,9 +121,11 @@ MVP_CONFIG = {
     # Falsey (the default) turns installing off: no page carries anything from
     # it. True turns it on with defaults; a dict turns it on too, and its one
     # key is "theme_color", used for the manifest's theme and background
-    # colours, the theme-color meta tag and the padded images. Without it the
-    # colour comes from the default theme when the package ships that theme,
-    # and is left out otherwise. Turning it on also needs the root include, see
+    # colours, the theme-color meta tag as served and the padded images. The
+    # bundled script then sets the tag to the header's colour in the applied
+    # theme (assets/js/theme_color.js). Without it the colour comes from the
+    # default theme when the package ships that theme, and is left out
+    # otherwise. Turning it on also needs the root include, see
     # docs/installable-app.md.
     "pwa": False,
 }
