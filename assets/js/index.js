@@ -22,7 +22,7 @@ import { themeChange } from "theme-change";
 
 import { startDropdowns } from "./dropdown.js";
 import { registerLayoutStore } from "./layout.js";
-import { startThemeColor, syncThemeColor } from "./theme_color.js";
+import { startThemeColor } from "./theme_color.js";
 
 // htmx reads hx-* attributes off the DOM itself; the global is what its own
 // documentation, `hx-on:` handlers and browser-console debugging expect to find.
@@ -38,8 +38,7 @@ themeChange();
 // than being written into the template.
 startDropdowns();
 
-// Keeps the browser toolbar the colour of the header, in whichever theme is
-// applied. See assets/js/theme_color.js.
+// Keeps the browser toolbar the colour of the header in the applied theme.
 startThemeColor();
 
 // theme-change can't notice controls added after it runs, and a boosted
@@ -59,9 +58,6 @@ document.addEventListener("htmx:afterSettle", (event) => {
     // The swapped-in drawer is a new, server-closed element; re-derive the
     // resting position rather than keep whatever it held before the swap.
     Alpine.store("mvp").rebindAfterNavigation();
-    // The head, and the tag in it, survive the swap; the header did not, and
-    // the page swapped in may draw its own in another colour.
-    syncThemeColor();
   }
 });
 

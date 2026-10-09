@@ -218,9 +218,8 @@ class TestThemeChangeStillWorks:
         )
 
 
-# The colour an element is drawn on, as the hex a canvas paints it: the nearest
-# background at or above the element that is not transparent. Painting it is
-# what turns whatever notation the stylesheet used into one comparable value.
+# The nearest opaque background at or above the element, painted so that
+# whatever notation the stylesheet used comes back as one comparable hex.
 PAINTED_BACKGROUND = """selector => {
     const context = document.createElement('canvas').getContext('2d');
     let element = document.querySelector(selector);
@@ -239,8 +238,7 @@ PAINTED_BACKGROUND = """selector => {
 }"""
 
 THEME_COLOUR = (
-    "() => document.querySelector('meta[name=\"theme-color\"]')"
-    ".getAttribute('content')"
+    "() => document.querySelector('meta[name=\"theme-color\"]').getAttribute('content')"
 )
 
 
@@ -278,6 +276,14 @@ class TestThemeColourFollowsTheTheme:
 
         page.goto(f"{live_server.url}/components/", wait_until="load")
 
-        assert page.evaluate(THEME_COLOUR) == page.evaluate(
-            PAINTED_BACKGROUND, "body"
-        )
+        assert page.evaluate(THEME_COLOUR) == page.evaluate(PAINTED_BACKGROUND, "body")
+
+    def test_a_page_with_no_header_takes_the_colour_of_the_page(
+        self, page, live_server
+    ):
+        page.goto(f"{live_server.url}/accounts/login/", wait_until="load")
+
+        assert page.locator(".mvp-header").count() == 0
+        page_colour = page.evaluate(PAINTED_BACKGROUND, "body")
+        assert page_colour != "#123456"
+        assert page.evaluate(THEME_COLOUR) == page_colour
