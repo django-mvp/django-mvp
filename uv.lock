@@ -732,7 +732,7 @@ wheels = [
 
 [[package]]
 name = "django-mvp"
-version = "0.28.0"
+version = "0.28.1"
 source = { editable = "." }
 dependencies = [
     { name = "daisy-cotton" },

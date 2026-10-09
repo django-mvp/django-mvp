@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.28.1] - 2026-10-09
+
 ### Added
 
 - `mvp-table-page` on a table page and `mvp-table-pager` on its pager, and
