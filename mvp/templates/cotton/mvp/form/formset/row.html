@@ -38,7 +38,8 @@
       though `formset.can_delete` stays True on the set.
     {% endcomment %}
     {% if row_label or can_delete and form.DELETE %}
-      <div class="flex items-start justify-between gap-2{% if layout == "tabular" %} sm:hidden{% endif %}">
+      {# `mb-1` replaces the row's own spacing under the header, so it sits with its fields. #}
+      <div class="flex items-center justify-between gap-2 mb-1{% if layout == "tabular" %} sm:hidden{% endif %}">
         <c-mvp.text tight bold>{{ row_label }}</c-mvp.text>
         {% if can_delete and form.DELETE %}
           {% comment %}
