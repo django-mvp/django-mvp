@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.28.1] - 2026-10-09
+
 ### Added
 
 - `mvp-table-page` on a table page and `mvp-table-pager` on its pager, and
@@ -21,6 +23,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   theme. `pwa.theme_color` is still the manifest and launch-screen colour, and the tag's
   value until the page has loaded. See
   [The toolbar colour follows the theme](docs/installable-app.md#the-toolbar-colour-follows-the-theme).
+- A formset row's heading sits closer to its first field. The space between them was
+  as wide as the space between two fields, so the heading did not read as belonging to
+  the row under it.
 - A rows-only page with one row set no longer draws that set's heading and divider. The
   page title already names the rows, and there are no parent fields to separate them
   from. A set that follows parent fields, and every set on a page with several, keeps
