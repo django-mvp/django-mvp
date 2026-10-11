@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- The packaged stylesheet has Tailwind's `text-wrap` utility. django-mvp-forms writes
+  it on help text, on a checkbox's label, on the options of a radio or checkbox group
+  and on a file field's removal checkbox, so that long text wraps. The stylesheet had
+  no rule for it, so in a project without its own Tailwind build a sentence of help
+  text stayed on one line and the form was wider than a phone screen.
+
 ## [v0.28.1] - 2026-10-09
 
 ### Added
