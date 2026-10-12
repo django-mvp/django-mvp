@@ -35,6 +35,11 @@
 @source inline("group-last/item:hidden");
 @source inline("max-sm:megamenu-vertical");
 
+/* django-mvp-forms' templates are not scanned either, so the one class they
+   write that nothing else here emits is listed. A django-mvp-forms release
+   that writes another fails the coverage test by name. */
+@source inline("text-wrap");
+
 /* Curated Tailwind utility pack (#190, second half): a consuming project
    composes these at template-authoring time, never in this package's own
    source, so the scanner needs an explicit safelist to find them. */
