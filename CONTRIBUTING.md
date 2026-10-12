@@ -11,6 +11,8 @@ together with the two standards it makes binding:
   the test-first cycle, test structure and fixtures, and the coverage floors.
 - [Code documentation standards](docs/contributing/standards/code-documentation.md): docstrings,
   component annotations and comments.
+- [Django standards](docs/contributing/standards/django.md): where code lives, and when a new
+  abstraction is worth adding.
 
 ## Development Setup
 
