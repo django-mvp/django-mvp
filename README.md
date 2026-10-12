@@ -308,8 +308,9 @@ documentation a person reads, which is what keeps the two from disagreeing.
 ## Contributing
 
 Contributions are welcome. See [CONTRIBUTING.md](https://github.com/django-mvp/django-mvp/blob/main/CONTRIBUTING.md) for the setup, and the
-[testing](https://github.com/django-mvp/django-mvp/blob/main/docs/contributing/standards/testing.md) and
-[code documentation](https://github.com/django-mvp/django-mvp/blob/main/docs/contributing/standards/code-documentation.md) standards every change follows.
+[testing](https://github.com/django-mvp/django-mvp/blob/main/docs/contributing/standards/testing.md),
+[code documentation](https://github.com/django-mvp/django-mvp/blob/main/docs/contributing/standards/code-documentation.md) and
+[Django](https://github.com/django-mvp/django-mvp/blob/main/docs/contributing/standards/django.md) standards every change follows.
 
 ## License
 
