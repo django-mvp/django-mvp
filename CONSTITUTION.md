@@ -97,6 +97,9 @@ class: a `QuerySet`/`Manager` method instead of a function taking a queryset, a 
 property instead of a function taking an instance, a `Form`/`Serializer` method instead of a free
 validation function, a `TemplateView` method instead of a helper called by a view.
 
+**Django standards.** Where code lives in a Django codebase, and when a new abstraction is worth
+adding, is set out in [`docs/contributing/standards/django.md`](docs/contributing/standards/django.md).
+
 **Exceptions — narrow, and stated rather than assumed.** A genuinely standalone pure function with
 no siblings. Framework-dictated module shapes: `conftest.py` fixtures, migrations, `urls.py`,
 `apps.py`, decorator-registered template tags and filters, signal receivers, management-command
@@ -260,4 +263,4 @@ that need ignore rules first. Do not cite it as an enforced standard until it ru
 
 ---
 
-**Version**: 5.1.0 | **Ratified**: 2026-01-05 | **Last Amended**: 2026-10-05
+**Version**: 5.2.0 | **Ratified**: 2026-01-05 | **Last Amended**: 2026-10-12

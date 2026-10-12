@@ -35,6 +35,7 @@ configuration through Django settings, customization through template overrides.
 | --- | --- |
 | [Testing standards](contributing/standards/testing.md) | What gets a test, the test-first cycle, test structure and fixtures, and the coverage floors |
 | [Code documentation standards](contributing/standards/code-documentation.md) | Docstrings, component annotations and comments |
+| [Django standards](contributing/standards/django.md) | Where code lives, and when a new abstraction is worth adding |
 
 ## Design philosophy
 
