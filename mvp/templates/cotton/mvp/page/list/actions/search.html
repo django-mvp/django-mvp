@@ -1,9 +1,9 @@
+{% load i18n %}
 {# @description The list-page search box and its submit button, wired to the shared filter form. #}
 {# @prop placeholder:text | default:"Search" | description:"Placeholder and accessible label text for the search input." #}
 {# @prop label:text | default:"Search" | description:"Text for the search submit button." #}
 {# @prop class:text | default:"grow" | description:"Classes on the joined input and button." #}
 {# @prop input_class:text | default:"md:w-[220px]" | description:"Extra classes on the input, where its width is set." #}
-{% load i18n %}
 <c-vars placeholder="{% trans "Search" %}"
         label="{% trans "Search" %}"
         class="grow"

@@ -72,6 +72,13 @@ example `SILENCED_SYSTEM_CHECKS = ["mvp.W001"]`.
 own job. Extend `mvp/base.html` and fill `{% block content %}` — the sidebar, header,
 footer and mobile dock render themselves. See [Your first page](getting-started.md#your-first-page).
 
+**A component of your own shows `{% trans "…" %}` on the page instead of the text.** The
+component gives a `<c-vars>` attribute a default written with a template tag, and its
+`{% load %}` tag is not on the first line. django-cotton 2.7 compiles those defaults at the
+top of the template and only sees the libraries loaded by the `{% load %}` tags that lead
+it. A comment above the load tag is enough to hide it. Move `{% load i18n %}`, or whichever
+library the tag comes from, to the first line of the component.
+
 **Overriding `{% block head %}` drops the stylesheet, the icon font, or the scripts.** That
 block holds the icon webfont link, the nested `styles` block that loads `django-mvp.css`,
 and the bundled front-end runtime (Alpine, htmx, the theme switcher) together. Add your own
