@@ -79,6 +79,11 @@ top of the template and only sees the libraries loaded by the `{% load %}` tags 
 it. A comment above the load tag is enough to hide it. Move `{% load i18n %}`, or whichever
 library the tag comes from, to the first line of the component.
 
+**A link or attribute comes out as `{% url "…" %}`.** It was passed as a dynamic attribute
+holding a quoted string, `:href="'{% url "home" %}'"`. django-cotton 2.7 reads that as a
+string literal and does not render the tag inside it. Pass it as a plain attribute instead,
+`href="{% url "home" %}"`.
+
 **Overriding `{% block head %}` drops the stylesheet, the icon font, or the scripts.** That
 block holds the icon webfont link, the nested `styles` block that loads `django-mvp.css`,
 and the bundled front-end runtime (Alpine, htmx, the theme switcher) together. Add your own

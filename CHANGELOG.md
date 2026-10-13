@@ -14,7 +14,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `{% load %}` tags that lead the template count there. A component of your own with a
   default such as `label="{% trans "Search" %}"` and a comment above its `{% load i18n %}`
   now shows the tag itself on the page. Move the load tag to the first line. The
-  components django-mvp ships have been changed the same way.
+  components django-mvp ships have been changed the same way. A dynamic attribute
+  holding a quoted string with a tag inside it, such as `:href="'{% url "home" %}'"`, is
+  no longer rendered either. Write it as a plain attribute, `href="{% url "home" %}"`.
+
+### Fixed
+
+- The sort button on a list page loads the translation tags it uses for its text.
 
 ## [v0.28.2] - 2026-10-13
 
