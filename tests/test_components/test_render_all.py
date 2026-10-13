@@ -31,14 +31,6 @@ TEMPLATES = sorted(
 )
 
 
-def render_component(relpath):
-    request = RequestFactory().get("/")
-    request.user = AnonymousUser()
-    # `name` satisfies c-icon, the one component whose only attribute is
-    # genuinely required. Everything else must survive an empty context.
-    return render_to_string(f"cotton/{relpath}", {"name": "home"}, request=request)
-
-
 class TestComponentRenderSmoke:
     def test_inventory_is_nonempty(self):
         assert len(TEMPLATES) > 50, "cotton template discovery looks broken"
@@ -49,14 +41,20 @@ class TestComponentRenderSmoke:
         if relpath in SKIP:
             pytest.skip(SKIP[relpath])
 
-        render_component(relpath)
+        request = RequestFactory().get("/")
+        request.user = AnonymousUser()
+        # `name` satisfies c-icon, the one component whose only attribute is
+        # genuinely required. Everything else must survive an empty context.
+        render_to_string(f"cotton/{relpath}", {"name": "home"}, request=request)
 
     @pytest.mark.django_db
-    @pytest.mark.parametrize("relpath", TEMPLATES)
+    @pytest.mark.parametrize("relpath", [t for t in TEMPLATES if t not in SKIP])
     def test_component_output_has_no_unrendered_template_tags(self, relpath):
-        if relpath in SKIP:
-            pytest.skip(SKIP[relpath])
+        request = RequestFactory().get("/")
+        request.user = AnonymousUser()
+
+        html = render_to_string(f"cotton/{relpath}", {"name": "home"}, request=request)
 
         # A default written as a template tag reaches the page as source when
         # its library is not loaded where the default is compiled.
-        assert "{%" not in render_component(relpath)
+        assert "{%" not in html
