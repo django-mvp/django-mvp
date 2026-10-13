@@ -1,3 +1,4 @@
+{% load i18n l10n static mvp %}
 {# @description A whole Django formset: heading, description, set-level errors, management form, one row per form, and the add-row control. #}
 {# @prop formset:text | description:"The Django formset to render; nothing renders without it." #}
 {# @prop title:text | description:"Heading text; defaults to the set's model in plural. Left out for the only set on a rows-only page unless given here." #}
@@ -6,7 +7,6 @@
 {# @prop layout:select['stacked','tabular'] | default:"stacked" | description:"Row presentation; tabular adds column headings from the empty form." #}
 {# @prop add-label:text | default:"Add row" | description:"Text for the add-row button." #}
 {# @prop remove-label:text | default:"Remove" | description:"Text for each row's remove control." #}
-{% load i18n l10n static mvp %}
 <c-vars formset
         title
         description

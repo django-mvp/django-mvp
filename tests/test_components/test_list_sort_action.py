@@ -64,3 +64,10 @@ class TestSortActionOptions:
 
     def test_nothing_is_drawn_for_a_view_without_ordering(self):
         assert render(current_ordering="").select_one("[x-data]") is None
+
+
+class TestSortActionButton:
+    def test_the_button_text_is_rendered_not_printed_as_a_template_tag(self):
+        soup = render(order_by_choices=CHOICES, current_ordering="")
+
+        assert "{%" not in soup.get_text()

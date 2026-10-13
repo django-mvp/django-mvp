@@ -1,7 +1,7 @@
+{% load i18n %}
 {# @description The list-view "filter" action: a button, with an applied-filter count badge, that opens a filter modal. #}
 {# @prop label:text | default:"Filter" | description:"The button's text." #}
 {# @prop icon:text | default:"filter" | description:"The button's icon." #}
-{% load i18n %}
 <c-vars label="{% trans "Filter" %}" icon="filter" />
 {% if filter %}
   {% comment %}

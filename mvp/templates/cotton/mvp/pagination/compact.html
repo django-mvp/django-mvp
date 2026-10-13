@@ -1,8 +1,8 @@
+{% load i18n %}
 {# @description A pager for narrow screens: Previous, "Page 2 of 6", Next, spread across the full width. #}
 {# @prop page_obj:text | description:"The Django Page object to paginate." #}
 {# @prop label:text | default:"Navigation page results" | description:"Accessible name for the pagination <nav>." #}
 {# @prop class:text | description:"Extra classes on the <nav>." #}
-{% load i18n %}
 <c-vars page_obj size label="{% trans "Navigation page results" %}" class />
 {% if page_obj.paginator.num_pages > 1 %}
   <nav aria-label="{{ label }}"

@@ -46,3 +46,15 @@ class TestComponentRenderSmoke:
         # `name` satisfies c-icon, the one component whose only attribute is
         # genuinely required. Everything else must survive an empty context.
         render_to_string(f"cotton/{relpath}", {"name": "home"}, request=request)
+
+    @pytest.mark.django_db
+    @pytest.mark.parametrize("relpath", [t for t in TEMPLATES if t not in SKIP])
+    def test_component_output_has_no_unrendered_template_tags(self, relpath):
+        request = RequestFactory().get("/")
+        request.user = AnonymousUser()
+
+        html = render_to_string(f"cotton/{relpath}", {"name": "home"}, request=request)
+
+        # A default written as a template tag reaches the page as source when
+        # its library is not loaded where the default is compiled.
+        assert "{%" not in html

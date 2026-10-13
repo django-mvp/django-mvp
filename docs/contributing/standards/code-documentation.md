@@ -112,6 +112,19 @@ more.
 
 <!-- Rules that apply to this repository only. Leave empty when there are none. -->
 
+**A component whose `<c-vars>` default is written with a template tag puts `{% load %}` on its
+first line, above the annotations.** django-cotton compiles the defaults at the top of the
+template, after any `{% load %}` tags that lead it. A load tag below the annotations is not
+leading, the tag in the default is unknown where it is compiled, and the default reaches the page
+as template source.
+
+```django
+{% load i18n %}
+{# @description The labelled <nav> shell a hand-built pager's links sit in. #}
+{# @prop label:text | default:"Navigation page results" | description:"Accessible name for the <nav>." #}
+<c-vars label="{% trans "Navigation page results" %}" />
+```
+
 ---
 
 **Version**: 1.0.0

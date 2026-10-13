@@ -1,3 +1,4 @@
+{% load i18n crispy_forms_filters mvp %}
 {# @description One row of a formset: a leading hairline, a header naming the row, its fields, and a remove control. #}
 {# @prop form:text | description:"The row's Django form." #}
 {# @prop label:text | description:"Row label; defaults to the object's string, or its model name when unsaved." #}
@@ -12,7 +13,6 @@
   with it. `first` defaults False so a row cloned from the empty-form
   template - always appended after the others - still gets one.
 {% endcomment %}
-{% load i18n crispy_forms_filters mvp %}
 <c-vars form
         label
         class
