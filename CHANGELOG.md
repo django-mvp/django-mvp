@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.28.2] - 2026-10-13
+
 ### Fixed
 
 - The packaged stylesheet has Tailwind's `text-wrap` utility. django-mvp-forms writes
