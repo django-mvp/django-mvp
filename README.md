@@ -3,11 +3,15 @@
 [![Tests](https://github.com/django-mvp/django-mvp/actions/workflows/tests.yml/badge.svg)](https://github.com/django-mvp/django-mvp/actions/workflows/tests.yml)
 [![Build](https://github.com/django-mvp/django-mvp/actions/workflows/build.yml/badge.svg)](https://github.com/django-mvp/django-mvp/actions/workflows/build.yml)
 [![Publish](https://github.com/django-mvp/django-mvp/actions/workflows/publish.yml/badge.svg)](https://github.com/django-mvp/django-mvp/actions/workflows/publish.yml)
-[![PyPI](https://img.shields.io/pypi/v/django-mvp.svg)](https://pypi.org/project/django-mvp/)
-[![codecov](https://codecov.io/gh/django-mvp/django-mvp/branch/main/graph/badge.svg)](https://codecov.io/gh/django-mvp/django-mvp)
-[![Python Versions](https://img.shields.io/pypi/pyversions/django-mvp.svg)](https://pypi.org/project/django-mvp/)
-[![Django Versions](https://img.shields.io/pypi/djversions/django-mvp.svg)](https://pypi.org/project/django-mvp/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Coverage](https://codecov.io/gh/django-mvp/django-mvp/branch/main/graph/badge.svg)](https://codecov.io/gh/django-mvp/django-mvp)
+[![PyPI](https://img.shields.io/pypi/v/django-mvp)](https://pypi.org/project/django-mvp/)
+[![Development status](https://img.shields.io/pypi/status/django-mvp)](https://pypi.org/project/django-mvp/)
+[![Python](https://img.shields.io/pypi/pyversions/django-mvp)](https://pypi.org/project/django-mvp/)
+[![Django](https://img.shields.io/pypi/djversions/django-mvp)](https://pypi.org/project/django-mvp/)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![Licence](https://img.shields.io/github/license/django-mvp/django-mvp)](https://github.com/django-mvp/django-mvp/blob/main/LICENSE)
+
+A configurable application layout, Cotton components and enhanced class-based views for Django projects.
 
 **Get your Django project to a minimum viable product — fast.** django-mvp gives you a
 polished, settings-configurable application layout (DaisyUI 5 + Tailwind CSS v4), a
@@ -311,6 +315,10 @@ Contributions are welcome. See [CONTRIBUTING.md](https://github.com/django-mvp/d
 [testing](https://github.com/django-mvp/django-mvp/blob/main/docs/contributing/standards/testing.md),
 [code documentation](https://github.com/django-mvp/django-mvp/blob/main/docs/contributing/standards/code-documentation.md) and
 [Django](https://github.com/django-mvp/django-mvp/blob/main/docs/contributing/standards/django.md) standards every change follows.
+
+## Changelog
+
+See [CHANGELOG.md](https://github.com/django-mvp/django-mvp/blob/main/CHANGELOG.md).
 
 ## License
 

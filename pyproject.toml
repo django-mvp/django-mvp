@@ -1,6 +1,6 @@
 [project]
 name = "django-mvp"
-description = "MVP framework for Django - scaffold production-ready applications with sophisticated layouts and UI patterns designed for data-centric applications."
+description = "A configurable application layout, Cotton components and enhanced class-based views for Django projects"
 license = "MIT"
 keywords = [
     "django",
