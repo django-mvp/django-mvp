@@ -9,7 +9,7 @@
        class="flex items-center justify-between gap-2 w-full {{ class }}"
        {{ attrs }}>
     {% if page_obj.has_previous %}
-      <c-button size="{{ size }}" href="{% querystring page=page_obj.previous_page_number %}"
+      <c-button size="{{ size }}" href="{% querystring request.GET page=page_obj.previous_page_number %}"
                 icon="chevron-left"
                 text="{% trans "Previous" %}"
                 rel="prev"
@@ -27,13 +27,13 @@
               aria-label="{% trans "Go to page" %}"
               onchange="window.location = this.value">
         {% for number in page_obj.paginator.page_range %}
-          <option value="{% querystring page=number %}"{% if number == page_obj.number %} selected{% endif %}>{{ number }}</option>
+          <option value="{% querystring request.GET page=number %}"{% if number == page_obj.number %} selected{% endif %}>{{ number }}</option>
         {% endfor %}
       </select>
       <span>{% blocktrans with total=page_obj.paginator.num_pages %}of {{ total }}{% endblocktrans %}</span>
     </label>
     {% if page_obj.has_next %}
-      <c-button size="{{ size }}" href="{% querystring page=page_obj.next_page_number %}"
+      <c-button size="{{ size }}" href="{% querystring request.GET page=page_obj.next_page_number %}"
                 text="{% trans "Next" %}"
                 rel="next"
                 only>

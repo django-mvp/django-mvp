@@ -19,7 +19,9 @@
                 inline_actions>
     <c-slot name="actions">
       {% block page.actions %}
-        <c-mvp.page.list.actions.create />
+        <c-mvp.page.list.actions.create :directory="directory"
+                                        :create_form="create_form"
+                                        :create_modal_title="create_modal_title" />
       {% endblock page.actions %}
     </c-slot>
   </c-mvp.page.title>
@@ -33,24 +35,41 @@
   {% endcomment %}
   <div class="flex flex-col gap-4 mt-3">
     {% block page.toolbar %}
-      <c-mvp.page.list.toolbar>
+      <c-mvp.page.list.toolbar :result_count="result_count"
+                               :refinements="refinements">
         <c-slot name="search">
           {% block page.search %}
-            <c-mvp.page.list.actions.search class="w-full" input_class="min-w-0" />
+            <c-mvp.page.list.actions.search class="w-full"
+                                            input_class="min-w-0"
+                                            :is_searchable="is_searchable"
+                                            :search_query="search_query"
+                                            only />
           {% endblock page.search %}
         </c-slot>
         <c-slot name="summary">
           {% block page.summary %}
-            <c-mvp.page.list.summary />
+            <c-mvp.page.list.summary :result_count="result_count"
+                                     :refinements="refinements"
+                                     :model_info="model_info"
+                                     only />
           {% endblock page.summary %}
         </c-slot>
         {% block page.controls %}
-          <c-mvp.page.list.actions :actions="['sort','filter']" />
+          <c-mvp.page.list.actions :actions="['sort','filter']"
+                                  :is_searchable="is_searchable"
+                                  :order_by_choices="order_by_choices"
+                                  :current_ordering="current_ordering"
+                                  :filter="filter"
+                                  :applied_filters="applied_filters"
+                                  :applied_filter_count="applied_filter_count"
+                                  :clear_filters_url="clear_filters_url" />
         {% endblock page.controls %}
       </c-mvp.page.list.toolbar>
     {% endblock page.toolbar %}
     {% block page.refinements %}
-      <c-mvp.page.list.refinements />
+      <c-mvp.page.list.refinements :refinements="refinements"
+                                   :clear_refinements_url="clear_refinements_url"
+                                   only />
     {% endblock page.refinements %}
     {% block page.results %}
       <c-mvp.page.list :list="object_list"
@@ -58,7 +77,15 @@
                    :card="list_item_template">
         <c-slot name="empty">
           {% block page.empty %}
-            <c-mvp.page.list.empty :attrs="empty_state" />
+            <c-mvp.page.list.empty :attrs="empty_state"
+                                  :refinements="refinements"
+                                  :search_query="search_query"
+                                  :applied_filters="applied_filters"
+                                  :clear_refinements_url="clear_refinements_url"
+                                  :model_info="model_info"
+                                  :directory="directory"
+                                  :create_form="create_form"
+                                  only />
           {% endblock page.empty %}
         </c-slot>
       </c-mvp.page.list>

@@ -1,5 +1,8 @@
 {% load i18n %}
 {# @description The list-page sort dropdown, built from the view's ordering choices. #}
+{# @prop order_by_choices:text | description:"The view's (key, label, expression) ordering choices." #}
+{# @prop current_ordering:text | description:"The key of the ordering applied now." #}
+<c-vars order_by_choices current_ordering />
 {% if order_by_choices %}
   <c-mvp.dropdown halign="end"
               x-data="{value: '{{ current_ordering }}'}"

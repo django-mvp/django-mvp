@@ -4,12 +4,26 @@
 {# @prop message:text | description:"Optional supporting text under that heading." #}
 {# @prop icon_class:text | default:"text-5xl text-base-content/40" | description:"Classes applied to the icon." #}
 {# @prop class:text | description:"Extra classes on the wrapper element." #}
+{# @prop refinements:text | description:"The search and filters applied now; with any, the no-match message is shown." #}
+{# @prop search_query:text | description:"The current search query." #}
+{# @prop applied_filters:text | description:"The filters applied now." #}
+{# @prop clear_refinements_url:text | description:"Address of the list with search and filters removed." #}
+{# @prop model_info:text | description:"The model's names, for the no-match heading." #}
+{# @prop directory:text | description:"The view's URL directory; its create_url draws the add action." #}
+{# @prop create_form:text | description:"A create form; when given, the add action opens the create modal." #}
 {% load i18n %}
 <c-vars icon="search"
         heading
         message
         icon_class="text-5xl text-base-content/40"
-        class />
+        class
+        refinements
+        search_query
+        applied_filters
+        clear_refinements_url
+        model_info
+        directory
+        create_form />
 <div class="mvp-list-empty w-full flex flex-col items-center text-center gap-2 py-12 {{ class }}"
      {{ attrs }}>
   <c-icon name="{{ icon }}" class="{{ icon_class }}" aria-hidden="true" />
