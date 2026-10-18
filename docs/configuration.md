@@ -27,6 +27,10 @@ TEMPLATES = [{"OPTIONS": {"context_processors": [
 Read the merged result in Python with `from mvp.config import MVP_CONFIG`, and in a
 template as `{{ mvp_config.layout.sidebar.breakpoint }}`.
 
+django-cotton's `COTTON_ISOLATE_BY_DEFAULT = True` is supported and worth switching on: it
+stops a view's own context variables reaching the packaged components. See
+[Switching on Cotton's context isolation](components.md#switching-on-cottons-context-isolation).
+
 Resolution order is the same everywhere in the package: **component attribute
 (per-page) → `MVP_CONFIG` (project) → package default.** A Cotton component
 declares the config value as its own default, so an attribute passed at a call
