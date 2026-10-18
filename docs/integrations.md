@@ -227,6 +227,11 @@ sideways. Add that class to the table area to turn the pinning on:
 {% endblock page.content %}
 ```
 
+With [Cotton's context isolation](components.md#switching-on-cottons-context-isolation)
+switched on, pass the empty state's values on the tag as well, the way the packaged
+`table_view.html` does, or a table with no rows draws an empty state that knows nothing
+of the search and filters applied.
+
 With a column pinned, the footer row's cell under it is a row header as well, so a label
 such as "Total" stays at the leading edge with the column. The column's edge is a
 hairline down its whole height, with a small shadow beside it once the table has

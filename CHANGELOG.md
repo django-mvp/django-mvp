@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   relied on rendering as body text grows: give it `text-base` to keep it. See
   [Headings](docs/styling.md#headings) (#359).
 
-- django-mvp requires django-cotton 2.7.2, up from 2.6.1. django-cotton 2.7 compiles the
+- django-mvp requires django-cotton 2.8.0, up from 2.6.1. django-cotton 2.7 compiles the
   defaults in a component's `<c-vars>` at the top of the template, and only the
   `{% load %}` tags that lead the template count there. A component of your own with a
   default such as `label="{% trans "Search" %}"` and a comment above its `{% load i18n %}`
@@ -25,9 +25,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   components django-mvp ships have been changed the same way. A dynamic attribute
   holding a quoted string with a tag inside it, such as `:href="'{% url "home" %}'"`, is
   no longer rendered either. Write it as a plain attribute, `href="{% url "home" %}"`.
+  django-cotton 2.8 renames the context isolation setting to `COTTON_ISOLATE_BY_DEFAULT`;
+  `COTTON_ENABLE_CONTEXT_ISOLATION` still works and warns that it is deprecated.
+- The packaged templates put `only` on their calls to the package's components that read
+  nothing beyond their attributes and slots, such as `c-mvp.page.title`, `c-mvp.card`,
+  `c-mvp.modal` and the list page's search box and summary
+  ([full list](docs/components.md#isolating-a-call-with-only)). A project override of one
+  of those templates now sees only what the call passes, not the page's variables or the
+  request.
+- The `cotton_render_string` and `cotton_render_string_soup` test fixtures build their
+  context the way a view does, so the context processors' values (`user`, `mvp_config`,
+  `messages`) are there as they are on a page, and a test of a component under Cotton's
+  context isolation sees the request.
 
 ### Fixed
 
+- The packaged pages work with django-cotton's `COTTON_ISOLATE_BY_DEFAULT` switched on. The
+  list and table pages used to lose their search box, sort and filter controls, add button,
+  summary and empty state, the pager raised an error, and the header lost its breadcrumb
+  trail, because those components read the view's values from the page instead of being
+  passed them. They are now passed on each call, and each component declares the names it
+  reads, so a template of your own that calls one bare still works with the setting off.
+  Switching the setting on keeps a view's own variables, such as `variant` or `size`, out
+  of the navbar's log-in button, language switcher and share menu
+  ([#485](https://github.com/django-mvp/django-mvp/issues/485)).
 - The sort button on a list page loads the translation tags it uses for its text.
 - A multiple-choice filter left empty is no longer counted as applied. It used to add a
   blank chip under the toolbar and raise the active-filter count whenever another filter

@@ -12,12 +12,12 @@
     hands to its container, so the title, anything before the form, the form
     and its buttons share one column and every left edge lines up.
   {% endcomment %}
-  <c-mvp.page.content gap=8 class="w-full pt-4 md:pt-8 pb-4">
+  <c-mvp.page.content gap=8 class="w-full pt-4 md:pt-8 pb-4" only>
     {% block page.title %}
       <c-mvp.page.title :title="page.title"
                     :subtitle="page.subtitle"
                     :info="page.info"
-                    :info_actions="page.info_actions">
+                    :info_actions="page.info_actions" only>
         <c-slot name="actions">
           {% block page.actions %}
           {% endblock page.actions %}

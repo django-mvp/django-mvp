@@ -10,7 +10,7 @@
 {# @slot:footer Footer content — Footer, start-aligned. #}
 {# @slot:footer_end Footer content — Footer, end-aligned. #}
 <c-vars title="" icon="" tight class body_class />
-<c-mvp.card.wrapper class="{{ class }}" :attrs="attrs">
+<c-mvp.card.wrapper class="{{ class }}" :attrs="attrs" only>
   <div class="card-body {% if tight %}p-0{% endif %} {{ body_class }}">
     {% if title or icon or badges or actions %}
       <div class="flex items-center gap-3">

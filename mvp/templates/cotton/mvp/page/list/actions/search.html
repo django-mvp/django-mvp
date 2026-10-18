@@ -4,10 +4,14 @@
 {# @prop label:text | default:"Search" | description:"Text for the search submit button." #}
 {# @prop class:text | default:"grow" | description:"Classes on the joined input and button." #}
 {# @prop input_class:text | default:"md:w-[220px]" | description:"Extra classes on the input, where its width is set." #}
+{# @prop is_searchable:boolean | description:"Draw the box at all; the list view sets it when it has search fields." #}
+{# @prop search_query:text | description:"The current query, put back into the box." #}
 <c-vars placeholder="{% trans "Search" %}"
         label="{% trans "Search" %}"
         class="grow"
-        input_class="md:w-[220px]" />
+        input_class="md:w-[220px]"
+        is_searchable
+        search_query />
 {% if is_searchable %}
   <c-join class="{{ class }}" only>
     <c-form.input type="search"

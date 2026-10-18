@@ -12,7 +12,7 @@
     <div class="flex items-start justify-between gap-3">
       <div class="flex items-center gap-2 min-w-0">
         <h1 class="text-3xl font-bold leading-tight">{{ title }}</h1>
-        <c-mvp.page.info :text="info" :title="title" :actions="info_actions" />
+        <c-mvp.page.info :text="info" :title="title" :actions="info_actions" only />
       </div>
       <div class="flex shrink-0 items-center gap-2 pt-1">{{ actions }}</div>
     </div>
@@ -31,7 +31,7 @@
     {% endcomment %}
     <div class="flex items-center gap-2">
       <h1 class="text-3xl font-bold leading-tight">{{ title }}</h1>
-      <c-mvp.page.info :text="info" :title="title" :actions="info_actions" />
+      <c-mvp.page.info :text="info" :title="title" :actions="info_actions" only />
     </div>
     {% if subtitle %}<p class="opacity-70 text-lg leading-relaxed max-w-prose">{{ subtitle }}</p>{% endif %}
   </div>

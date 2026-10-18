@@ -20,7 +20,7 @@
     {% endif %}
   </c-button>
 {% elif active %}
-  <c-button href="{% querystring page=page %}"
+  <c-button href="{% querystring request.GET page=page %}"
             size="{{ size }}"
             variant="primary"
             class="join-item {{ class }}"
@@ -34,7 +34,7 @@
     {% endif %}
   </c-button>
 {% else %}
-  <c-button href="{% querystring page=page %}"
+  <c-button href="{% querystring request.GET page=page %}"
             size="{{ size }}"
             class="join-item {{ class }}"
             :attrs="attrs"

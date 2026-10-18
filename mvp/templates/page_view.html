@@ -4,8 +4,8 @@
   {{ page.title }}
 {% endblock title %}
 {% block content %}
-  <c-mvp.page class="{{ page.class }}">
-    <c-mvp.container :width="page.width">
+  <c-mvp.page class="{{ page.class }}" only>
+    <c-mvp.container :width="page.width" only>
       {% comment %}
         The breadcrumb trail draws in the app header, not here. `page.header`
         stays as an extension point for a project's own content above the
@@ -14,7 +14,7 @@
       {% block page.header %}
       {% endblock page.header %}
       {% block page.content-wrapper %}
-        <c-mvp.page.content center gap=3 class="pt-4 md:pt-8 pb-4">
+        <c-mvp.page.content center gap=3 class="pt-4 md:pt-8 pb-4" only>
           {% block page.title %}
             {% comment %}
               Named one at a time, not spread from `page`: the title block
@@ -24,7 +24,7 @@
             <c-mvp.page.title :title="page.title"
                           :subtitle="page.subtitle"
                           :info="page.info"
-                          :info_actions="page.info_actions">
+                          :info_actions="page.info_actions" only>
               <c-slot name="actions">
                 {% block page.actions %}
                 {% endblock page.actions %}
@@ -36,7 +36,7 @@
           {% endblock page.content %}
         </c-mvp.page.content>
       {% endblock page.content-wrapper %}
-      <c-mvp.toolbar bottom>
+      <c-mvp.toolbar bottom only>
         {% block page.footer %}
         {% endblock page.footer %}
       </c-mvp.toolbar>

@@ -93,8 +93,14 @@ therefore change what a component draws. Nothing raises; the value just renders 
 it doesn't belong. `only` on the tag stops this: the component sees nothing but what you
 pass it. Content between the tags still sees the page's context.
 
-This package's own templates pass `only` on every call to a daisy-cotton component. The
-pages and examples in this documentation do not, because a page rarely holds a variable
+This package's own templates pass `only` on every call to a daisy-cotton component, and on
+every call to one of its own components that reads nothing beyond its attributes and slots:
+`c-mvp.text`, `c-mvp.rule`, `c-mvp.group`, `c-mvp.grid`, `c-mvp.toolbar`,
+`c-mvp.container`, `c-mvp.card`, `c-mvp.modal`, `c-mvp.dropdown`, `c-mvp.page`,
+`c-mvp.page.content`, `c-mvp.page.title`, `c-mvp.page.info`, `c-mvp.page.table.toolbar`,
+`c-mvp.pagination.wrapper`, `c-mvp.entrance` and the list page's search box, summary,
+refinements and empty state. A project override of one of those templates therefore sees
+only what the call passes it. The pages and examples in this documentation do not, because a page rarely holds a variable
 with one of those names. You need `only` when a template's context may hold one, most
 often inside a component of your own that declares `text` or `class` and draws a tag from
 the sixteen, or one of this package's components such as `<c-mvp.modal>`, which has an
@@ -107,6 +113,25 @@ the sixteen, or one of this package's components such as `<c-mvp.modal>`, which 
   <div>{{ text }}</div>
 </c-mvp.modal>
 ```
+
+### Switching on Cotton's context isolation
+
+`only` protects one call. django-cotton's `COTTON_ISOLATE_BY_DEFAULT` setting protects
+them all: every component sees what its call passes and what the context processors supply
+(`request`, `user`, `mvp_config` and the rest), and nothing else from the page.
+
+```python
+COTTON_ISOLATE_BY_DEFAULT = True
+```
+
+The pages this package ships draw the same with it on as with it off: the views' values
+are passed to each component on the call. It is the way to keep a page variable out of the
+components that cannot take `only` because they need the request, such as the log-in
+button, the language switcher and the share menu in the navbar. A view that puts `variant`
+or `size` in its context changes how those are drawn while the setting is off.
+
+With the setting on, a template of your own that relies on a component reading the page
+has to pass those values instead. The list components below are the ones that do.
 
 ### Overriding one of these tags
 
@@ -162,7 +187,7 @@ no attributes by design. The shell places them; a page never writes them by hand
 | --- | --- |
 | `c-app` | drawer wrapper; attr: `breakpoint` |
 | `c-mvp.layout.sidebar` | the drawer mechanism `c-app` is built on: toggle, overlay, desktop open-state persistence, and the resolved layout it publishes to the browser; attrs: `id`, `breakpoint`, `collapse`, `sticky`, `boost` (all from config), `class` |
-| `c-app.header` / `c-app.navbar` | sticky header — site icon and [breadcrumb trail](layout.md#breadcrumbs) leading, actions trailing; `c-app.header` takes `sticky` and `class`, its background (both from config); slots: default (the navbar row; left empty, the header draws `c-app.navbar` itself), `above`, `tray`, `below`. `c-app.navbar` takes no attributes; slots: `start` (replaces the sidebar toggle, site icon and trail), `center`, `end` (added before the widgets in `layout.navbar.end`). Each slot is filled from a [shell block](layout.md#template-blocks) |
+| `c-app.header` / `c-app.navbar` | sticky header — site icon and [breadcrumb trail](layout.md#breadcrumbs) leading, actions trailing; `c-app.header` takes `sticky` and `class`, its background (both from config), and `page`, which it hands to the navbar it draws; slots: default (the navbar row; left empty, the header draws `c-app.navbar` itself), `above`, `tray`, `below`. `c-app.navbar` takes `page`, the view's page metadata, and draws the trail from `page.breadcrumbs` (read from the page when not passed); slots: `start` (replaces the sidebar toggle, site icon and trail), `center`, `end` (added before the widgets in `layout.navbar.end`). Each slot is filled from a [shell block](layout.md#template-blocks) |
 | `c-app.sidebar` | brand header + `AppMenu` + fixed footer; slots: `header`, `body`, `footer`, each replacing that region when filled; attrs: `collapse`, `bg`, `brand-url`, `menu`, `title`, `boost`. `boost` sets `hx-boost` on the sidebar root, so every link inside it — menu items, the brand link, the footer actions — navigates with htmx instead of a full page load; off by default, because it changes how the page's own scripts see navigation |
 | `c-app.sidebar.header` | the sidebar's top strip: brand icon, optional title, collapse toggle; attrs: `link` (`/`), `bg`, `title` (from config) |
 | `c-app.sidebar.footer` | the pinned strip at the sidebar's foot: user menu (or log-in button), theme control, language control; attr: `bg` (from the sidebar). Override the template to change it |
@@ -425,7 +450,7 @@ third-party package installed and its integration wired up before you use it.
 | Component | Attributes | Needs |
 | --- | --- | --- |
 | `c-mvp.addons.share-dropdown` | `url` (default: current page URL), `title` (default: `page.title`), `size`, `class` — social share menu (social networks, email, copy link) | nothing |
-| `c-mvp.addons.django-table` | `table`, `class`, `label`, `role` (default `region`) — scrollable region around a django-tables2 table, with its heading and footer rows pinned | django-tables2 |
+| `c-mvp.addons.django-table` | `table`, `class`, `label`, `role` (default `region`) — scrollable region around a django-tables2 table, with its heading and footer rows pinned. A table with no rows draws `c-mvp.page.list.empty` in its body, from `empty_state`, `refinements`, `clear_refinements_url`, `search_query`, `applied_filters`, `directory`, `create_form` and `model_info`, read from the page when not passed | django-tables2 |
 
 `c-mvp.addons.share-dropdown` is plain markup over hard-coded social URLs, so it renders
 anywhere — `c-mvp.page.list.actions.share` puts it on a list page unconditionally.
@@ -435,23 +460,30 @@ The default accessible name is shared.
 
 ## List components driven by view context
 
-These render from context a list view supplies. Each one is a no-op without its key, so
-they are meant to sit on a page served by an MVP list view (or a view mixing in the same
-mixins), not dropped into an arbitrary template.
+These render from values a list view puts in its context. Each one is a no-op without its
+key, so they are meant to sit on a page served by an MVP list view (or a view mixing in
+the same mixins), not dropped into an arbitrary template.
 
-| Component | Context key it needs | Attributes |
+Each key is also an attribute of the component. A call that leaves it out reads it from
+the page, which is why the bare tags in the example below work. With
+[Cotton's context isolation](#switching-on-cottons-context-isolation) switched on, a
+component no longer sees the page, so pass the keys on the tag, the way `list_view.html`
+and `table_view.html` do: `<c-mvp.page.list.summary :result_count="result_count"
+:refinements="refinements" :model_info="model_info" />`.
+
+| Component | Context key it reads | Attributes |
 | --- | --- | --- |
 | `c-mvp.page.list` | `list` | `card` names the template each row is rendered with; undeclared attributes pass to the grid it renders, so column counts and gaps are set on the tag itself; `empty_state` takes a dict of attributes forwarded to `c-mvp.page.list.empty` when the result set is empty. The `empty` slot replaces the packaged empty state |
-| `c-mvp.page.list.empty` | — (`directory.create_url` gates the add button, `refinements` switches it to the nothing-matches message with a link to `clear_refinements_url`) | `icon` (default `search`), `heading`, `message`, `icon_class`, `class` |
+| `c-mvp.page.list.empty` | `directory` (its `create_url` gates the add button), `create_form`, `refinements` (switches it to the nothing-matches message with a link to `clear_refinements_url`), `search_query`, `applied_filters`, `model_info` | `icon` (default `search`), `heading`, `message`, `icon_class`, `class` |
 | `c-mvp.page.list.toolbar` | `result_count`, `refinements` (renders nothing when both are empty) | slots `search` and `summary`, default slot for the controls, `class` |
 | `c-mvp.page.list.summary` | `result_count`, `refinements`, `model_info` | `class` |
 | `c-mvp.page.list.refinements` | `refinements`, `clear_refinements_url` | `class` |
 | `c-mvp.page.list.footer` | — | `page_obj`, `size`, `class` |
-| `c-mvp.page.list.actions` | — (each action needs its own key) | `actions` (default `['search','sort','filter','create']`) |
-| `c-mvp.page.list.actions.search` | `is_searchable` (from `SearchMixin`) | `placeholder` (default `Search`), `label` (default `Search`, the submit button's text), `class` (default `grow`, on the joined input and button), `input_class` (default `md:w-[220px]`, where the input's width is set) |
-| `c-mvp.page.list.actions.sort` | `order_by_choices` (from `OrderMixin`) | — |
-| `c-mvp.page.list.actions.filter` | `filter` (from the django-filter integration) | `label` (default `Filter`), `icon` (default `filter`) |
-| `c-mvp.page.list.actions.create` | `directory.create_url`, optionally `create_form` and `create_modal_title` | `label` (default `Add`, the button's text), `icon` (default `add`) |
+| `c-mvp.page.list.actions` | every key the actions below read, handed on to each of them | `actions` (default `['search','sort','filter','create']`) |
+| `c-mvp.page.list.actions.search` | `is_searchable` and `search_query` (from `SearchMixin`) | `placeholder` (default `Search`), `label` (default `Search`, the submit button's text), `class` (default `grow`, on the joined input and button), `input_class` (default `md:w-[220px]`, where the input's width is set) |
+| `c-mvp.page.list.actions.sort` | `order_by_choices` and `current_ordering` (from `OrderMixin`) | — |
+| `c-mvp.page.list.actions.filter` | `filter`, `applied_filters`, `applied_filter_count`, `clear_filters_url` (from the django-filter integration), and `action`, where the form submits (default `.`) | `label` (default `Filter`), `icon` (default `filter`) |
+| `c-mvp.page.list.actions.create` | `directory` (its `create_url`), optionally `create_form` and `create_modal_title` | `label` (default `Add`, the button's text), `icon` (default `add`) |
 | `c-mvp.page.list.actions.share` | — (always renders) | — |
 
 The search, sort and filter actions all write into a single form with the id

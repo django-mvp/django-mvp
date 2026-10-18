@@ -3,6 +3,14 @@
 {# @prop class:text | description:"Extra classes on the scroll region." #}
 {# @prop label:text | description:"Accessible name for the region. Give it a distinct value on any page with more than one table." #}
 {# @prop role:text | default:"region" | description:"ARIA role on the scroll region." #}
+{# @prop empty_state:text | description:"For the empty state drawn when the table has no rows; read from the page when not passed." #}
+{# @prop refinements:text | description:"For the empty state drawn when the table has no rows; read from the page when not passed." #}
+{# @prop clear_refinements_url:text | description:"For the empty state drawn when the table has no rows; read from the page when not passed." #}
+{# @prop search_query:text | description:"For the empty state drawn when the table has no rows; read from the page when not passed." #}
+{# @prop applied_filters:text | description:"For the empty state drawn when the table has no rows; read from the page when not passed." #}
+{# @prop directory:text | description:"For the empty state drawn when the table has no rows; read from the page when not passed." #}
+{# @prop create_form:text | description:"For the empty state drawn when the table has no rows; read from the page when not passed." #}
+{# @prop model_info:text | description:"For the empty state drawn when the table has no rows; read from the page when not passed." #}
 {% load i18n %}
 {% load render_table from django_tables2 %}
 {% comment %}
@@ -14,7 +22,18 @@
   hardcoded here would be emitted before {{ attrs }}, and HTML keeps the
   *first* of a repeated attribute, so a caller's own label would be ignored.
 {% endcomment %}
-<c-vars table class label role="region" />
+<c-vars table
+        class
+        label
+        role="region"
+        empty_state
+        refinements
+        clear_refinements_url
+        search_query
+        applied_filters
+        directory
+        create_form
+        model_info />
 <div class="mvp-table-region overflow-auto table-pin-rows bg-base-100 {{ class }}"
      tabindex="0"
      role="{{ role }}"
@@ -22,4 +41,13 @@
      x-data="{ top: false, side: false }"
      @scroll.passive="top = $el.scrollTop > 0; side = $el.scrollLeft !== 0"
      :class="{ 'mvp-table-over-top': top, 'mvp-table-over-side': side }"
-     {{ attrs }}>{% render_table table %}</div>
+     {{ attrs }}>
+  {% comment %}
+    The empty state drawn when the table has no rows reads these back off
+    table.context, the context render_table is called in. Bound here, they are
+    there whether or not Cotton isolates this component from the page.
+  {% endcomment %}
+  {% with empty_state=empty_state refinements=refinements clear_refinements_url=clear_refinements_url search_query=search_query applied_filters=applied_filters directory=directory create_form=create_form model_info=model_info %}
+    {% render_table table %}
+  {% endwith %}
+</div>

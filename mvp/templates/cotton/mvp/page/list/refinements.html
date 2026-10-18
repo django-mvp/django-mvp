@@ -1,7 +1,9 @@
 {# @description The search and filters narrowing a list, each as a control that removes it, with one control to clear them all. Renders nothing when the list is not narrowed. #}
 {# @prop class:text | description:"Extra classes on the list of controls." #}
+{# @prop refinements:text | description:"The search and filters applied now, each with its remove_url." #}
+{# @prop clear_refinements_url:text | description:"Address of the list with all of them removed." #}
 {% load i18n %}
-<c-vars class />
+<c-vars class refinements clear_refinements_url />
 {% if refinements %}
   <ul class="mvp-list-refinements flex flex-wrap items-center gap-2 w-full {{ class }}"
       aria-label="{% trans "Applied search and filters" %}"

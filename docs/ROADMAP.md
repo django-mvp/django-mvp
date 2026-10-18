@@ -113,7 +113,7 @@ Serves G4. Formsets rendered outside the packaged form components stay out of sc
 
 *feature · advances G7, G2*
 
-A component hardcodes an attribute and also spreads the attributes it was given, so the browser silently drops the duplicate and the passed value disappears. A class passed to a text or breadcrumb component does nothing, and a boolean that was never given a default quietly picks up an unrelated value from the surrounding page.
+A component hardcodes an attribute and also spreads the attributes it was given, so the browser silently drops the duplicate and the passed value disappears. A class passed to a text or breadcrumb component does nothing.
 
 The reported cases are fixed and closed ([#121](https://github.com/django-mvp/django-mvp/issues/121) and its peers), with `tests/test_components/test_class_attribute_merge.py` covering each component that audit named. What remains is the part those reports asked for and did not get. The audit was report-driven, so it reached the components someone happened to notice, and the test enumerates that same list rather than sweeping the library. A component added tomorrow can carry the defect and nothing fails.
 
@@ -123,10 +123,11 @@ This blocks G7 at its second step: when the packaged look is not right, passing 
 
 - The defect fixed wherever it occurs, found by a sweep of the library rather than report by report. The reported occurrences are fixed and the sweep has not run.
 - Every component declaring the attributes it consumes, so nothing is emitted twice.
-- Boolean attributes given explicit defaults, so no component inherits a value from the page around it.
 - A check that fails when a component reintroduces either shape — parameterised over every component template, not over a fixed list.
 
 Serves G7 and G2. Widening any component's attribute API beyond what it already claims stays out of scope.
+
+A component picking an attribute up from the page around it is not part of this item. That is settled at the call site rather than with defaults: the packaged templates pass the view's values explicitly and put `only` on calls that need nothing else, so django-cotton's context isolation can be switched on ([#485](https://github.com/django-mvp/django-mvp/issues/485), ADR 0032).
 
 Related and open in the other direction: [#263](https://github.com/django-mvp/django-mvp/issues/263) and [#362](https://github.com/django-mvp/django-mvp/issues/362) report components declaring attributes their templates never read. Same surface, same sweep.
 
