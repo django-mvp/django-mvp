@@ -1,5 +1,6 @@
 """List views and the search, ordering and filter mixins they compose."""
 
+from numbers import Number
 from typing import Any
 
 from django import forms
@@ -325,8 +326,10 @@ class FilterContextMixin:
     def get_active_filters(self, filterset: Any):
         """Return the subset of the filterset's fields that are actually set.
 
-        Empty, null and false-like values are what an untouched filter field
-        cleans to, so they are not applied filters and are dropped here.
+        ``None``, ``False`` and empty values (an empty string, list or
+        queryset) are what an untouched filter field cleans to, so they are
+        not applied filters and are dropped here. A number is always kept:
+        ``0`` is a real choice.
 
         Args:
             filterset: The django-filter ``FilterSet`` from the context.
@@ -339,7 +342,9 @@ class FilterContextMixin:
             return active
 
         for name, value in filterset.form.cleaned_data.items():
-            if value in (None, "", [], (), False):
+            if value is None or value is False:
+                continue
+            if not isinstance(value, Number) and not value:
                 continue
             active[name] = value
 

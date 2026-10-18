@@ -1185,6 +1185,10 @@ def _refinement_context(rf, query="", **attrs):
 
     class ProductFilterSet(django_filters.FilterSet):
         price = django_filters.RangeFilter()
+        stock = django_filters.NumberFilter()
+        categories = django_filters.ModelMultipleChoiceFilter(
+            field_name="category", queryset=Category.objects.all()
+        )
 
         class Meta:
             model = Product
@@ -1248,6 +1252,22 @@ class TestListRefinements:
         [status] = context["refinements"]
         expected = dict(Product._meta.get_field("status").flatchoices)["draft"]
         assert status["value"] == expected
+
+    def test_an_empty_multiple_choice_filter_is_not_applied(self, rf, db):
+        context = _refinement_context(rf, "?status=draft")
+
+        assert [item["name"] for item in context["refinements"]] == ["status"]
+        assert context["applied_filter_count"] == 1
+
+    def test_a_chosen_multiple_choice_filter_is_applied(self, rf, cat):
+        context = _refinement_context(rf, f"?categories={cat.pk}")
+
+        assert [item["name"] for item in context["refinements"]] == ["categories"]
+
+    def test_a_zero_number_filter_is_applied(self, rf, db):
+        context = _refinement_context(rf, "?stock=0")
+
+        assert [item["name"] for item in context["refinements"]] == ["stock"]
 
     def test_a_related_filter_shows_the_related_record(self, rf, cat):
         context = _refinement_context(rf, f"?category={cat.pk}")
