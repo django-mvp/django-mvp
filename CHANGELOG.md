@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- A heading with no classes now renders as a heading. The stylesheet and the Tailwind
+  preset size `<h1>` at `text-3xl` bold, to match `<c-mvp.page.title>`, and step each
+  level below it down one size in semibold, to `text-base` at `<h5>` and `<h6>`. Before,
+  every heading rendered at body size and weight. A class on a heading still wins, so
+  a heading you have sized yourself is unchanged. A heading that had no size class and
+  relied on rendering as body text grows: give it `text-base` to keep it. See
+  [Headings](docs/styling.md#headings) (#359).
+
 - django-mvp requires django-cotton 2.8.0, up from 2.6.1. django-cotton 2.7 compiles the
   defaults in a component's `<c-vars>` at the top of the template, and only the
   `{% load %}` tags that lead the template count there. A component of your own with a
