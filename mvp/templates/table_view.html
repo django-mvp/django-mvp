@@ -21,7 +21,7 @@
 {% endcomment %}
 {% block app.footer %}{% endblock app.footer %}
 {% block content %}
-  <c-mvp.page fill class="mvp-table-page {{ page.class }}">
+  <c-mvp.page fill class="mvp-table-page {{ page.class }}" only>
     {% block page.content-wrapper %}
       {% comment %}
         gap="0" and padding on the bands, never the page: the table meets the
@@ -29,11 +29,11 @@
         Three bands stay put (anything in page.header, the toolbar, the
         footer) and the table between them is the one thing that scrolls.
       {% endcomment %}
-      <c-mvp.page.content gap="0">
+      <c-mvp.page.content gap="0" only>
         {% block page.header %}
         {% endblock page.header %}
         {% block page.toolbar %}
-          <c-mvp.page.table.toolbar>
+          <c-mvp.page.table.toolbar only>
             {% if refinements %}
               <c-slot name="note">
                 {% blocktrans count counter=refinements|length %}{{ counter }} filter active{% plural %}{{ counter }} filters active{% endblocktrans %}
@@ -42,9 +42,13 @@
             <c-slot name="title">
               {% block page.title %}
                 <h1 class="text-xl font-semibold leading-tight truncate">{{ page.title }}</h1>
-                <c-mvp.page.info :text="page.info" :title="page.title" :actions="page.info_actions" />
+                <c-mvp.page.info :text="page.info" :title="page.title" :actions="page.info_actions" only />
                 {% block page.summary %}
-                  <c-mvp.page.list.summary class="whitespace-nowrap" />
+                  <c-mvp.page.list.summary class="whitespace-nowrap"
+                                           :result_count="result_count"
+                                           :refinements="refinements"
+                                           :model_info="model_info"
+                                           only />
                 {% endblock page.summary %}
                 {% if page.subtitle %}
                   <p class="hidden lg:block text-sm text-base-content/70 truncate min-w-0">{{ page.subtitle }}</p>
@@ -61,25 +65,48 @@
                   {% if is_searchable %}
                     <div class="w-full md:w-1/3 md:max-w-sm">
                       {% block page.search %}
-                        <c-mvp.page.list.actions.search class="w-full" input_class="min-w-0" />
+                        <c-mvp.page.list.actions.search class="w-full"
+                                                        input_class="min-w-0"
+                                                        :is_searchable="is_searchable"
+                                                        :search_query="search_query"
+                                                        only />
                       {% endblock page.search %}
                     </div>
                   {% endif %}
                   <div class="flex flex-wrap items-center gap-2 md:ms-auto">
                     {% block page.controls %}
-                      <c-mvp.page.list.actions :actions="['filter','create']" />
+                      <c-mvp.page.list.actions :actions="['filter','create']"
+                                              :is_searchable="is_searchable"
+                                              :filter="filter"
+                                              :applied_filters="applied_filters"
+                                              :applied_filter_count="applied_filter_count"
+                                              :clear_filters_url="clear_filters_url"
+                                              :directory="directory"
+                                              :create_form="create_form"
+                                              :create_modal_title="create_modal_title" />
                     {% endblock page.controls %}
                   </div>
                 </div>
                 {% block page.refinements %}
-                  <c-mvp.page.list.refinements />
+                  <c-mvp.page.list.refinements :refinements="refinements"
+                                               :clear_refinements_url="clear_refinements_url"
+                                               only />
                 {% endblock page.refinements %}
               {% endif %}
             {% endblock page.panel %}
           </c-mvp.page.table.toolbar>
         {% endblock page.toolbar %}
         {% block page.content %}
-          <c-mvp.addons.django-table :table="table" class="flex-1 min-h-0" />
+          <c-mvp.addons.django-table :table="table"
+                                    class="flex-1 min-h-0"
+                                    :empty_state="empty_state"
+                                    :refinements="refinements"
+                                    :clear_refinements_url="clear_refinements_url"
+                                    :search_query="search_query"
+                                    :applied_filters="applied_filters"
+                                    :directory="directory"
+                                    :create_form="create_form"
+                                    :model_info="model_info" />
         {% endblock page.content %}
         {% block page.footer %}
           {% if page_obj %}

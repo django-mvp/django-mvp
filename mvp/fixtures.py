@@ -3,7 +3,8 @@
 from typing import Any
 
 import pytest
-from django.template import Context, Template
+from django.template import Template
+from django.template.context import make_context
 from django.test import RequestFactory
 from django_cotton.compiler_regex import CottonCompiler  # type: ignore[import-untyped]
 from django_cotton.utils import render_component  # type: ignore[import-untyped]
@@ -34,6 +35,31 @@ def _beautiful_soup():
             "install. Add it to your test dependencies: pip install beautifulsoup4"
         ) from exc
     return BeautifulSoup
+
+
+def _render_string(
+    template_string: str, context: dict[str, Any] | None, factory: RequestFactory
+) -> str:
+    """Compile and render a template string holding Cotton components.
+
+    The context is built the way a view's is, with the request and the context
+    processors' output, so ``{% querystring %}`` and Cotton's context isolation
+    behave as they do on a real page.
+
+    Args:
+        template_string: A Django template string using Cotton syntax.
+        context: Template context variables. A ``request`` in it is used,
+            otherwise one is built.
+        factory: Builds the request when the context does not carry one.
+
+    Returns:
+        The rendered HTML.
+    """
+    context = dict(context or {})
+    request = context.get("request") or factory.get("/")
+    context["request"] = request
+    django_template = Template(compiler.process(template_string))
+    return django_template.render(make_context(context, request))
 
 
 @pytest.fixture
@@ -153,19 +179,7 @@ def cotton_render_string():
         Returns:
             The rendered HTML.
         """
-        if context is None:
-            context = {}
-        request = context.get("request") or factory.get("/")
-        context["request"] = request
-
-        compiled_template = compiler.process(template_string)
-
-        django_template = Template(compiled_template)
-        django_context = Context(context)
-        # Tags such as {% querystring %} read context.request, the attribute a
-        # RequestContext sets, rather than the "request" context variable.
-        django_context.request = request  # type: ignore[attr-defined]
-        return django_template.render(django_context)
+        return _render_string(template_string, context, factory)
 
     return _render
 
@@ -218,18 +232,7 @@ def cotton_render_string_soup():
         Returns:
             The rendered HTML, parsed by BeautifulSoup.
         """
-        if context is None:
-            context = {}
-        request = context.get("request") or factory.get("/")
-        context["request"] = request
-
-        compiled_template = compiler.process(template_string)
-
-        django_template = Template(compiled_template)
-        django_context = Context(context)
-        django_context.request = request  # type: ignore[attr-defined]
-        html = django_template.render(django_context)
-
+        html = _render_string(template_string, context, factory)
         return _beautiful_soup()(html, "html.parser")
 
     return _render

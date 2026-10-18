@@ -89,7 +89,8 @@
             footer row sits at the bottom of the region however few rows
             there are. With no rows at all it holds the empty state, which
             needs the page's own context: this template is rendered with the
-            table alone, and the page's context hangs off it.
+            table alone, and the context <c-mvp.addons.django-table> rendered
+            it in hangs off it, carrying the values that component was passed.
           {% endcomment %}
           <tr class="mvp-table-filler"{% if table.rows %} aria-hidden="true"{% endif %}>
             <td colspan="{{ table.columns|length }}">
@@ -97,7 +98,15 @@
                 {% with page_context=table.context %}
                   {% with refinements=page_context.refinements clear_refinements_url=page_context.clear_refinements_url search_query=page_context.search_query applied_filters=page_context.applied_filters directory=page_context.directory create_form=page_context.create_form model_info=page_context.model_info %}
                     <div class="mvp-table-empty">
-                      <c-mvp.page.list.empty :attrs="page_context.empty_state" />
+                      <c-mvp.page.list.empty :attrs="page_context.empty_state"
+                                             :refinements="refinements"
+                                             :clear_refinements_url="clear_refinements_url"
+                                             :search_query="search_query"
+                                             :applied_filters="applied_filters"
+                                             :directory="directory"
+                                             :create_form="create_form"
+                                             :model_info="model_info"
+                                             only />
                     </div>
                   {% endwith %}
                 {% endwith %}

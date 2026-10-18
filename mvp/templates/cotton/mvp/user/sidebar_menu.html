@@ -2,7 +2,7 @@
 {# @slot <c-menu.item ... /> — Extra rows, inserted between the built-in links and log out. #}
 {% load i18n mvp %}
 {% if request.user.is_authenticated %}
-  <c-mvp.dropdown valign="top" halign="start" full class="w-full">
+  <c-mvp.dropdown valign="top" halign="start" full class="w-full" only>
     <c-slot name="button">
       <div tabindex="0"
            role="button"

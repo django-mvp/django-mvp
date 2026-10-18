@@ -17,7 +17,7 @@
         show_first_and_last
         size />
 {% if page_obj.paginator.num_pages > 1 %}
-  <c-mvp.pagination.wrapper :attrs="attrs">
+  <c-mvp.pagination.wrapper :attrs="attrs" only>
     {% if not show_first_and_last %}
       <c-mvp.pagination.link size="{{ size }}" :page="1"
                          :disabled="{{ page_obj.has_previous|yesno:"False,True" }}"

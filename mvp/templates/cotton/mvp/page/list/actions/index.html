@@ -1,6 +1,30 @@
 {# @description Renders the configured list-page action controls (search, sort, filter, create, share). #}
 {# @prop :actions:text | default:"['search','sort','filter','create']" | description:"Which list actions to render, in order." #}
-<c-vars :actions="['search','sort','filter','create']" />
+{# @prop is_searchable:boolean | description:"Handed on to the actions; read from the page when not passed." #}
+{# @prop search_query:text | description:"Handed on to the actions; read from the page when not passed." #}
+{# @prop order_by_choices:text | description:"Handed on to the actions; read from the page when not passed." #}
+{# @prop current_ordering:text | description:"Handed on to the actions; read from the page when not passed." #}
+{# @prop filter:text | description:"Handed on to the actions; read from the page when not passed." #}
+{# @prop applied_filters:text | description:"Handed on to the actions; read from the page when not passed." #}
+{# @prop applied_filter_count:number | description:"Handed on to the actions; read from the page when not passed." #}
+{# @prop clear_filters_url:text | description:"Handed on to the actions; read from the page when not passed." #}
+{# @prop action:text | description:"Handed on to the actions; read from the page when not passed." #}
+{# @prop directory:text | description:"Handed on to the actions; read from the page when not passed." #}
+{# @prop create_form:text | description:"Handed on to the actions; read from the page when not passed." #}
+{# @prop create_modal_title:text | description:"Handed on to the actions; read from the page when not passed." #}
+<c-vars :actions="['search','sort','filter','create']"
+        is_searchable
+        search_query
+        order_by_choices
+        current_ordering
+        filter
+        applied_filters
+        applied_filter_count
+        clear_filters_url
+        action
+        directory
+        create_form
+        create_modal_title />
 {% if not filter %}
   {% if is_searchable or order_by_choices %}
     {% comment %}
@@ -11,4 +35,18 @@
     <form id="filterForm" method="get" action="{{ action|default:"." }}" class="hidden"></form>
   {% endif %}
 {% endif %}
-{% for action_item in actions %}<c-component is="mvp.page.list.actions.{{ action_item }}" />{% endfor %}
+{% for action_item in actions %}
+  <c-component is="mvp.page.list.actions.{{ action_item }}"
+               :is_searchable="is_searchable"
+               :search_query="search_query"
+               :order_by_choices="order_by_choices"
+               :current_ordering="current_ordering"
+               :filter="filter"
+               :applied_filters="applied_filters"
+               :applied_filter_count="applied_filter_count"
+               :clear_filters_url="clear_filters_url"
+               :action="action"
+               :directory="directory"
+               :create_form="create_form"
+               :create_modal_title="create_modal_title" />
+{% endfor %}

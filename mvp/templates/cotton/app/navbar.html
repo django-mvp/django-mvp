@@ -1,12 +1,15 @@
 {# @description The header row: breadcrumb trail leading, actions trailing. #}
+{# @prop page:text | description:"The view's page metadata; the breadcrumb trail is drawn from page.breadcrumbs." #}
 {# @slot:start — Replaces the leading region: sidebar toggle, site icon, breadcrumb trail. #}
 {# @slot:breadcrumbs — The steps of the trail, as breadcrumbs.item components; replaces the trail the view declared. #}
 {# @slot:center — Content for the middle of the row; nothing is drawn there by default. #}
 {# @slot:end — Extra trailing content, drawn before the widgets listed in settings. #}
 {% load i18n %}
 {# The slots are declared so that an unfilled one is empty, rather than a #}
-{# page variable that happens to be called `start` or `end`. #}
-<c-vars start="" breadcrumbs="" center="" end="" />
+{# page variable that happens to be called `start` or `end`. `page` is the #}
+{# view's page metadata, passed by the shell so the trail survives Cotton's #}
+{# context isolation. #}
+<c-vars start="" breadcrumbs="" center="" end="" page />
 {# The breadcrumb trail is the steps a template fills the slot with, or else #}
 {# `page.breadcrumbs`, already in context on an MVP view; a page with neither #}
 {# renders no navigation landmark at all, rather than an empty one for a #}

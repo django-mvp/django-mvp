@@ -112,9 +112,9 @@
           {% endblock app.sidebar %}
         </c-slot>
         {% block app.header %}
-          <c-app.header>
+          <c-app.header :page="page">
             {% block app.navbar %}
-              <c-app.navbar>
+              <c-app.navbar :page="page">
                 <c-slot name="start">
                   {% block app.navbar.start %}
                   {% endblock app.navbar.start %}

@@ -24,10 +24,11 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.template import Engine, engines
 from django.template.loader import get_template, render_to_string
 from django.template.loader_tags import BlockNode, ExtendsNode
-from django.test import RequestFactory
+from django.test import RequestFactory, override_settings
 
 from demo import urls as demo_urls
 from tests.conftest import urlconf_of
+from tests.factories import CategoryFactory, ProductFactory
 
 MVP_TEMPLATES = Path(apps.get_app_config("mvp").path) / "templates"
 DEMO_TEMPLATES = Path(apps.get_app_config("demo").path) / "templates"
@@ -624,3 +625,56 @@ class TestComponentOverridePath:
         )
 
         assert soup.find(attrs={"data-footer-override": "prefixed"}) is not None
+
+
+def _controls(html):
+    """Every control on a page, keyed by what makes it work rather than its wording."""
+    soup = BeautifulSoup(html, "html.parser")
+    keys = ("href", "name", "id", "form", "type", "action", "method", "for", "role")
+    return sorted(
+        (el.name, *(str(el.get(key, "")) for key in keys))
+        for el in soup.find_all(
+            ["a", "button", "input", "select", "textarea", "form", "nav", "dialog", "label"]
+        )
+    )
+
+
+@pytest.fixture
+def seeded_pages(db):
+    category = CategoryFactory()
+    product = ProductFactory(category=category)
+    ProductFactory.create_batch(6, category=category)
+    return {
+        "list": "/products/many/?page=2&o=name_desc",
+        "table": "/django-tables2/?page=1",
+        "detail": f"/products/{product.pk}/",
+        "form": f"/products/{product.pk}/edit/",
+        "create": "/products/create/",
+        "dashboard": "/",
+        "error": "/errors/404/",
+    }
+
+
+class TestPackagedPagesUnderCottonIsolation:
+    """A project can switch Cotton's context isolation on without losing any control.
+
+    With ``COTTON_ISOLATE_BY_DEFAULT`` on, a component sees only what its caller
+    passes and what the context processors supply. A packaged component that
+    reads the filter form, the ordering or the page title from the view instead
+    of being handed it draws without that control, so each packaged page must
+    draw the same controls with isolation on as with it off.
+    """
+
+    @pytest.mark.parametrize(
+        "page", ["list", "table", "detail", "form", "create", "dashboard", "error"]
+    )
+    def test_the_page_draws_the_same_controls(self, client, user, seeded_pages, page):
+        client.force_login(user)
+        url = seeded_pages[page]
+        with override_settings(COTTON_ISOLATE_BY_DEFAULT=False):
+            leaky = client.get(url)
+        with override_settings(COTTON_ISOLATE_BY_DEFAULT=True):
+            isolated = client.get(url)
+
+        assert leaky.status_code == isolated.status_code
+        assert _controls(isolated.content.decode()) == _controls(leaky.content.decode())

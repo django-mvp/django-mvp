@@ -2,9 +2,11 @@
 {# @prop search:text | description:"The search box. Takes the whole first row on a phone." #}
 {# @prop summary:text | description:"The line that says what the list holds." #}
 {# @prop class:text | description:"Extra classes on the toolbar's root element." #}
+{# @prop result_count:number | description:"How many records the list holds; with no refinements, none draws no toolbar." #}
+{# @prop refinements:text | description:"The search and filters applied now." #}
 {# @slot Sort, filter — the controls at the end of the row. #}
 {% load i18n mvp %}
-<c-vars search summary class />
+<c-vars search summary class result_count refinements />
 {% if result_count or refinements %}
   {% comment %}
     One source order at every width: search, count, controls. Below md the

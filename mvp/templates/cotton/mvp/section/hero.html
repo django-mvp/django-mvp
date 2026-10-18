@@ -26,12 +26,12 @@
       {{ top }}
       <h1 class="text-5xl mb-6 font-bold">{{ title }}</h1>
       {% if subtitle %}
-        <c-mvp.text size="xl">
+        <c-mvp.text size="xl" only>
           {{ subtitle }}
         </c-mvp.text>
       {% endif %}
       {% if actions %}
-        <c-mvp.group justify="center" class="pt-4">
+        <c-mvp.group justify="center" class="pt-4" only>
           {{ actions }}
         </c-mvp.group>
       {% endif %}

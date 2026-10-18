@@ -30,7 +30,7 @@
        x-data="mvpFormsetRow({{ form.DELETE.value|yesno:'true,false,false' }})"
        x-show="!removed"
        {{ attrs }}>
-    {% if not first %}<c-mvp.rule />{% endif %}
+    {% if not first %}<c-mvp.rule only />{% endif %}
     {% firstof label form|formset_row_label as row_label %}
     {% comment %}
       Requires BOTH `can-delete` and a DELETE field on this row: under
@@ -40,7 +40,7 @@
     {% if row_label or can_delete and form.DELETE %}
       {# `mb-1` replaces the row's own spacing under the header, so it sits with its fields. #}
       <div class="flex items-center justify-between gap-2 mb-1{% if layout == "tabular" %} sm:hidden{% endif %}">
-        <c-mvp.text tight bold>{{ row_label }}</c-mvp.text>
+        <c-mvp.text tight bold only>{{ row_label }}</c-mvp.text>
         {% if can_delete and form.DELETE %}
           {% comment %}
             `group-focus-within`, not hover alone, or the control is

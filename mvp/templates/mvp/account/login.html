@@ -5,7 +5,7 @@
   form can ask for a narrower card than the entrance default.
 {% endcomment %}
 {% block entrance %}
-  <c-mvp.entrance size="md" full-height>
+  <c-mvp.entrance size="md" full-height only>
     {% block content %}
       {% include "mvp/account/_development_notice.html" %}
       {% if form.errors %}

@@ -13,6 +13,7 @@ what proves the plugin works.
 """
 
 import pytest
+from django.test import RequestFactory, override_settings
 
 from mvp.fixtures import _beautiful_soup
 
@@ -94,6 +95,30 @@ class TestRequestAwareTags:
         )
         assert "q=widget" in html
 
+
+
+class TestRequestAwareTagsUnderCottonIsolation:
+    """The string renderers build their context the way a view does.
+
+    With ``COTTON_ISOLATE_BY_DEFAULT`` on, a component sees the context
+    processors' output and not the template's own variables, so a request
+    handed over as a plain variable would never reach it.
+    """
+
+    @override_settings(COTTON_ISOLATE_BY_DEFAULT=True)
+    def test_the_request_reaches_an_isolated_component(self, cotton_render_string):
+        html = cotton_render_string(
+            '<c-mvp.pagination.link :page="2" text="2" />',
+            context={"request": RequestFactory().get("/items/?q=widget")},
+        )
+        assert "q=widget" in html
+
+    @override_settings(COTTON_ISOLATE_BY_DEFAULT=True)
+    def test_the_soup_renderer_reaches_an_isolated_component_too(
+        self, cotton_render_string_soup
+    ):
+        soup = cotton_render_string_soup('<c-mvp.pagination.link :page="2" text="2" />')
+        assert "page=2" in soup.find("a")["href"]
 
 class TestBeautifulSoupGuard:
     def test_returns_the_class_when_installed(self):

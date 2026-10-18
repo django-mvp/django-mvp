@@ -8,7 +8,7 @@
 <c-vars title icon level="2" actions />
 <section {{ attrs }}>
   {% if title or actions %}
-    <c-mvp.toolbar class="mb-3">
+    <c-mvp.toolbar class="mb-3" only>
       {% if title %}
         {# djlint:off #}
         <h{{ level }} class="flex items-center gap-2 font-semibold {% if level == '1' %}text-3xl{% elif level == '2' %}text-2xl{% elif level == '3' %}text-xl{% else %}text-lg{% endif %}">

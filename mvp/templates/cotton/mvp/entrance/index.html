@@ -9,7 +9,7 @@
   Passing both `size` and `small` states two widths at once; `small` wins,
   so a page moving to `size` must drop `small` entirely.
 {% endcomment %}
-<c-mvp.entrance.background>
+<c-mvp.entrance.background only>
   <div class="card bg-base-100 shadow-xl container mx-3{% if size != "full" and small %} md:max-w-{{ size }}{% endif %}{% if full_height %} h-90/100{% endif %}">
     <!-- Card content -->
     <div class="card-body py-16 items-fill">{{ slot }}</div>
