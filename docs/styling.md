@@ -46,6 +46,31 @@ exist in the prebuilt stylesheet.
 Theme changes (colors, radius, borders) do **not** require Tier 2. See
 [Theming](#theming) below.
 
+### Headings
+
+A plain `<h1>` to `<h6>` is sized without any classes. The stylesheet gives each
+level a size and weight:
+
+| Element | Size | Weight |
+| --- | --- | --- |
+| `<h1>` | `text-3xl` | bold |
+| `<h2>` | `text-2xl` | semibold |
+| `<h3>` | `text-xl` | semibold |
+| `<h4>` | `text-lg` | semibold |
+| `<h5>`, `<h6>` | `text-base` | semibold |
+
+`<h1>` is the size `<c-mvp.page.title>` renders, so a heading you write in a page
+matches the page's own title. The sizes are in `rem`, so they scale with the root
+font size.
+
+The scale sits in Tailwind's base layer, which every utility class outranks. To
+size one heading differently, put the class on it: `<h2 class="text-lg">`.
+DaisyUI components that size their own headings, such as `card-title`, keep
+their size. Long-form copy inside `.prose` keeps the typography plugin's sizes.
+
+A Tier 2 build gets the same scale, because it comes from the preset that
+`mvp_tailwind` imports.
+
 ### Repainting the sidebar
 
 `<c-app.sidebar bg="...">` passes the same value to the sidebar's header and

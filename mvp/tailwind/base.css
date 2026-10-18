@@ -25,6 +25,42 @@
   color: var(--color-base-content);
 }
 
+/* Preflight renders h1–h6 at body size and .prose is never on the shell (#359).
+   h1 matches <c-mvp.page.title> and each level steps down one size. In the base
+   layer so a utility class on a heading still wins. */
+@layer base {
+  h1 {
+    font-size: var(--text-3xl);
+    line-height: var(--leading-tight);
+    font-weight: var(--font-weight-bold);
+  }
+
+  h2 {
+    font-size: var(--text-2xl);
+    line-height: var(--text-2xl--line-height);
+  }
+
+  h3 {
+    font-size: var(--text-xl);
+    line-height: var(--text-xl--line-height);
+  }
+
+  h4 {
+    font-size: var(--text-lg);
+    line-height: var(--text-lg--line-height);
+  }
+
+  h5,
+  h6 {
+    font-size: var(--text-base);
+    line-height: var(--text-base--line-height);
+  }
+
+  :is(h2, h3, h4, h5, h6) {
+    font-weight: var(--font-weight-semibold);
+  }
+}
+
 /* Safelist: the header's and dock's classes are named in mvp/config.py, which a
    project's own build does not scan. */
 @source inline("mvp-{header,dock}-bg");
