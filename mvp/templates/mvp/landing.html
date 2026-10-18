@@ -1,13 +1,13 @@
 {% extends "page_view.html" %}
 {% block content %}
-  <c-mvp.page class="{{ page.class }}">
+  <c-mvp.page class="{{ page.class }}" only>
     <div class="mvp-header">
       {% block page.hero %}
       {% endblock page.hero %}
     </div>
     {% block page.content-wrapper %}
-      <c-mvp.page.content center gap=3 class="py-4">
-        <c-mvp.group gap=3>
+      <c-mvp.page.content center gap=3 class="py-4" only>
+        <c-mvp.group gap=3 only>
           {% block page.content %}
           {% endblock page.content %}
         </c-mvp.group>

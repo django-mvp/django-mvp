@@ -21,7 +21,7 @@
 {% endcomment %}
 {% block app.footer %}{% endblock app.footer %}
 {% block content %}
-  <c-mvp.page fill class="mvp-table-page {{ page.class }}">
+  <c-mvp.page fill class="mvp-table-page {{ page.class }}" only>
     {% block page.content-wrapper %}
       {% comment %}
         gap="0" and padding on the bands, never the page: the table meets the
@@ -29,11 +29,11 @@
         Three bands stay put (anything in page.header, the toolbar, the
         footer) and the table between them is the one thing that scrolls.
       {% endcomment %}
-      <c-mvp.page.content gap="0">
+      <c-mvp.page.content gap="0" only>
         {% block page.header %}
         {% endblock page.header %}
         {% block page.toolbar %}
-          <c-mvp.page.table.toolbar>
+          <c-mvp.page.table.toolbar only>
             {% if refinements %}
               <c-slot name="note">
                 {% blocktrans count counter=refinements|length %}{{ counter }} filter active{% plural %}{{ counter }} filters active{% endblocktrans %}
@@ -42,7 +42,7 @@
             <c-slot name="title">
               {% block page.title %}
                 <h1 class="text-xl font-semibold leading-tight truncate">{{ page.title }}</h1>
-                <c-mvp.page.info :text="page.info" :title="page.title" :actions="page.info_actions" />
+                <c-mvp.page.info :text="page.info" :title="page.title" :actions="page.info_actions" only />
                 {% block page.summary %}
                   <c-mvp.page.list.summary class="whitespace-nowrap"
                                            :result_count="result_count"

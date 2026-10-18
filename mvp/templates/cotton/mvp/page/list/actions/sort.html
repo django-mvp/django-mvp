@@ -6,7 +6,7 @@
 {% if order_by_choices %}
   <c-mvp.dropdown halign="end"
               x-data="{value: '{{ current_ordering }}'}"
-              x-init="$watch('value', () => { filterForm.submit() })">
+              x-init="$watch('value', () => { filterForm.submit() })" only>
     <c-slot name="button">
       <c-button tabindex="0"
                 role="button"

@@ -16,7 +16,7 @@
                 :subtitle="page.subtitle"
                 :info="page.info"
                 :info_actions="page.info_actions"
-                inline_actions>
+                inline_actions only>
     <c-slot name="actions">
       {% block page.actions %}
         <c-mvp.page.list.actions.create :directory="directory"

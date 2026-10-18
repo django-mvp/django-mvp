@@ -33,7 +33,7 @@
       <c-divider class="my-8" only>{{ heading }}</c-divider>
     {% endif %}
     {% firstof description formset.description as help_text %}
-    {% if help_text %}<c-mvp.text muted size="sm">{{ help_text }}</c-mvp.text>{% endif %}
+    {% if help_text %}<c-mvp.text muted size="sm" only>{{ help_text }}</c-mvp.text>{% endif %}
     {% if formset.non_form_errors %}
       <c-alert variant="error" only>{{ formset.non_form_errors }}</c-alert>
     {% endif %}
@@ -54,10 +54,10 @@
         {% endcomment %}
         {% for field in formset|formset_columns %}
           <div>
-            <c-mvp.text tight bold size="sm">
+            <c-mvp.text tight bold size="sm" only>
               {{ field.label }}{% if field.field.required %}<span class="text-error" aria-hidden="true">*</span>{% endif %}
             </c-mvp.text>
-            {% if field.help_text %}<c-mvp.text tight muted size="xs">{{ field.help_text }}</c-mvp.text>{% endif %}
+            {% if field.help_text %}<c-mvp.text tight muted size="xs" only>{{ field.help_text }}</c-mvp.text>{% endif %}
           </div>
         {% endfor %}
         {% comment %}

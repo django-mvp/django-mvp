@@ -10,7 +10,7 @@
   item and sit in the first column.
 {% endcomment %}
 {% if list %}
-  <c-mvp.grid :attrs="attrs">
+  <c-mvp.grid :attrs="attrs" only>
     {% for object in list %}
       {% render_list_item object card %}
     {% endfor %}

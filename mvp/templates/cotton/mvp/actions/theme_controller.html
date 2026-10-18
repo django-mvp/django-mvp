@@ -6,7 +6,7 @@
 {% load i18n %}
 <c-vars size="sm" valign="bottom" halign="end" compact />
 {% if mvp_config.theme.choices %}
-  <c-mvp.dropdown valign="{{ valign }}" halign="{{ halign }}">
+  <c-mvp.dropdown valign="{{ valign }}" halign="{{ halign }}" only>
     <c-slot name="button">
       <c-button ghost
                 icon="theme.light"

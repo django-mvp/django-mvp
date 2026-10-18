@@ -9,7 +9,7 @@
     <c-mvp.dropdown halign="end"
                 ghost
                 icon="globe"
-                content_class="mt-4 h-[30.5rem] max-h-[calc(100vh-8.6rem)] w-56 overflow-y-auto">
+                content_class="mt-4 h-[30.5rem] max-h-[calc(100vh-8.6rem)] w-56 overflow-y-auto" only>
       <p class="px-3 pt-2 pb-1 text-xs font-semibold uppercase text-base-content/60">{% trans "Select a language" %}</p>
       <form action="{{ set_language_url }}" method="post">
         {% csrf_token %}
