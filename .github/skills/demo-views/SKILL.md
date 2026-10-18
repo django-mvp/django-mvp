@@ -5,7 +5,7 @@ description: Guide for creating demo views in the django-mvp Demo App. Use when 
 
 # Creating Demo Views for the Demo App
 
-The `demo/` app demonstrates django-mvp features. Each demo page follows a consistent pattern: one configurable view class, a template extending `base.html`, a URL pattern (with optional `.as_view()` overrides), and a sidebar menu entry.
+The `demo/` app demonstrates django-mvp features. Each demo page follows a consistent pattern: one configurable view class, a template extending `page_view.html`, a URL pattern (with optional `.as_view()` overrides), and a sidebar menu entry.
 
 ## File Locations
 
@@ -19,98 +19,66 @@ The `demo/` app demonstrates django-mvp features. Each demo page follows a consi
 
 ## Step 1: Create the View
 
-### Always include LayoutConfigMixin
+### Static pages: subclass DemoTemplateView
 
-Every demo view must inherit `LayoutConfigMixin` first — it reads query parameters for interactive layout configuration (fixed sidebar/header/footer, breakpoints, etc.):
+A page that shows components or layout, with no model behind it, uses `DemoTemplateView` from `demo/views.py`. It is an `MVPTemplateView` that looks for the template under `demo/` first and puts a Home crumb ahead of the page title:
 
 ```python
-from django.views.generic import TemplateView
-from demo.views import LayoutConfigMixin
-
-class MyDemoView(LayoutConfigMixin, TemplateView):
-    template_name = "demo/my_demo.html"
+class MyDemoView(DemoTemplateView):
+    template_name = "my_demo.html"
+    page_title = "My Demo"
 ```
 
 ### One View, Many Configurations — Use .as_view() Overrides
 
-**Do NOT create separate view classes for minor variations.** Instead, define one view with configurable class attributes and override them in `urls.py`:
+**Do NOT create separate view classes for minor variations.** Define one view with configurable class attributes and pass the differences to `.as_view()`. Most static pages in the demo need no class of their own at all:
 
 ```python
-# views.py — ONE view class
-class WidgetDemoView(LayoutConfigMixin, TemplateView):
-    template_name = "demo/widget_demo.html"
-    variant = "default"
-    show_icons = True
+# views.py
+theme_customization_demo = DemoTemplateView.as_view(
+    template_name="theme_customization.html",
+    page_title="Theme Customization",
+    extra_context={"themes": DEMO_THEMES},
+)
 ```
 
 ```python
-# urls.py — multiple URL patterns with .as_view() overrides
+# urls.py — one class, several URLs
 urlpatterns = [
-    path("widgets/", WidgetDemoView.as_view(), name="widget_demo"),
-    path("widgets/compact/", WidgetDemoView.as_view(variant="compact"), name="widget_demo_compact"),
-    path("widgets/no-icons/", WidgetDemoView.as_view(show_icons=False), name="widget_demo_no_icons"),
+    path("products/", ProductListView.as_view(), name="product-list"),
+    path("products/many/", ProductManyPagesListView.as_view(), name="product-list-many"),
 ]
 ```
 
 Only create a separate view class when it needs **different methods or significantly different behavior**.
 
-### View Patterns by Django Generic View Type
+### View Patterns by Page Type
 
-**TemplateView** — simplest; for static demos or component showcases:
+Use the package's own views, so the demo shows what a project gets:
 
-```python
-class MyDemoView(LayoutConfigMixin, TemplateView):
-    template_name = "demo/my_demo.html"
-```
-
-**ListView** — for list/grid demos; combine with `MVPListViewMixin` and `PageModifierMixin`:
-
-```python
-from mvp.views import MVPListViewMixin, PageModifierMixin
-
-class MyListDemo(LayoutConfigMixin, PageModifierMixin, MVPListViewMixin, ListView):
-    model = MyModel
-    template_name = "mvp/list_view.html"
-    list_item_template = "cards/my_card.html"
-    paginate_by = 12
-    grid = {"cols": 1, "md": 2}          # Override via .as_view(grid={...})
-    search_fields = ["name", "description"]  # Optional
-    order_by = [("name", "Name (A-Z)"), ("-name", "Name (Z-A)")]  # Optional
-```
-
-**CreateView / FormView** — for form demos:
-
-```python
-class MyFormDemo(LayoutConfigMixin, CreateView):
-    model = MyModel
-    fields = ["name", "description"]
-    template_name = "mvp/form_view.html"
-    extra_context = {"page_title": "My Form Demo"}
-```
-
-**FilterView** — for filterable list demos (django-filter):
+| Page | Base class | Template |
+|---|---|---|
+| Static page | `DemoTemplateView` | your own, extending `page_view.html` |
+| List or grid | `MVPListView`, or `MVPListViewMixin` with django-filter's `FilterView` | `list_view.html` (the default) |
+| Table | `MVPTableView` from `mvp.integrations.django_tables.views` | `table_view.html` (the default) |
+| Create, update, form | `MVPCreateView`, `MVPUpdateView`, `MVPFormView` | `form_view.html` (the default) |
+| Detail | `MVPDetailView` | `detail_view.html` (the default) |
+| Delete | `MVPDeleteView` | `delete_view.html` (the default) |
 
 ```python
 from django_filters.views import FilterView
 
-class MyFilterDemo(LayoutConfigMixin, PageModifierMixin, MVPListViewMixin, FilterView):
+from mvp.views.list import MVPListViewMixin
+
+
+class MyFilterDemo(MVPListViewMixin, FilterView):
     model = MyModel
-    template_name = "mvp/list_view.html"
-    list_item_template = "cards/my_card.html"
     filterset_fields = ["category", "status"]
+    search_fields = ["name", "description"]
+    page_subtitle = "Everything in the catalogue."
 ```
 
-**SingleTableView** — for django-tables2 demos:
-
-```python
-from django_tables2 import SingleTableView
-
-class MyTableDemo(LayoutConfigMixin, SingleTableView):
-    model = MyModel
-    table_class = MyTable
-    template_name = "demo/my_table.html"
-    paginate_by = 25
-```
+The page's title, subtitle and info text come from `page_title`, `page_subtitle` and `page_info` on the view.
 
 ### Adding Extra Context
 
@@ -123,84 +91,64 @@ def get_context_data(self, **kwargs):
     return context
 ```
 
-For static context, prefer `extra_context`:
-
-```python
-class MyDemo(LayoutConfigMixin, TemplateView):
-    template_name = "demo/my_demo.html"
-    extra_context = {"page_title": "My Demo"}
-```
+For static context, pass `extra_context` to `.as_view()` or set it on the class.
 
 ## Step 2: Create the Template
 
-Templates live in `demo/templates/demo/` and extend `base.html`.
+Templates live in `demo/templates/demo/`. A static page extends `page_view.html`, which draws the page title and leaves the body to you.
 
 ### Block Hierarchy
 
 ```
-base.html (extends mvp/base.html, overrides "app")
-├── navbar_widgets     — navbar widget components (top-right)
-├── main               — wraps <c-page>; override to replace entire inner layout
-│   ├── toolbar
-│   │   └── toolbar_content
-│   │       ├── breadcrumbs  — add breadcrumb items
-│   │       └── toolbar_widgets — toolbar actions (right side)
-│   ├── content        — main page content ← MOST COMMON OVERRIDE
-│   └── footer         — page footer
-├── app_footer         — app-level footer
-└── extra_js           — additional scripts
+page_view.html (extends base.html → mvp/base.html)
+├── title              — the browser tab title; defaults to the page title
+└── content            — wraps <c-mvp.page>
+    ├── page.header        — above the title; empty by default
+    ├── page.content-wrapper
+    │   ├── page.title         — the title row
+    │   │   └── page.actions   — buttons at the end of the title row
+    │   └── page.content       — the page body ← MOST COMMON OVERRIDE
+    └── page.footer        — the toolbar at the foot of the page
 ```
 
-### Typical Template (override breadcrumbs + content)
+The shell's own blocks (`app.navbar.end`, `app.sidebar`, `app.footer`, `extra_js` and the rest) come from `mvp/base.html`. The breadcrumb trail is drawn in the header from the view's `get_breadcrumbs()`, not from a template block.
 
-Most demo templates only need two blocks:
+### Typical Template (override page.content)
 
 ```django
-{% extends "base.html" %}
+{% extends "page_view.html" %}
 
-{% block breadcrumbs %}
-  <c-breadcrumbs.item text="My Demo" />
-{% endblock breadcrumbs %}
-
-{% block content %}
-  <div class="container-fluid">
-    <h2>My Demo</h2>
-    <!-- demo content here -->
-  </div>
-{% endblock content %}
+{% block page.content %}
+  <c-mvp.text muted>Some words about the demo.</c-mvp.text>
+  <!-- demo content here -->
+{% endblock page.content %}
 ```
 
 ### When to Override Other Blocks
 
 | Block | Override when... |
 |---|---|
-| `breadcrumbs` | Always — add the page breadcrumb |
-| `content` | Always — the main demo content |
-| `toolbar_widgets` | Page needs action buttons in the toolbar |
-| `footer` | Page needs a custom footer or no footer |
-| `main` | Page needs to replace the entire `<c-page>` structure (rare) |
-| `app` (from mvp/base.html) | Page needs to reconfigure `<c-app>` props like breakpoints (rare) |
+| `page.content` | Always — the main demo content |
+| `page.actions` | Page needs buttons in the title row |
+| `page.footer` | Page needs content in the bottom toolbar |
+| `page.title` | Page needs to replace the title row (rare) |
+| `content` | Page needs to replace the entire `<c-mvp.page>` structure (rare) |
+| `app` (from mvp/base.html) | Page needs to reconfigure the shell, such as its breakpoint (rare). Wrap `{{ block.super }}` in `{% with %}` rather than writing `<c-app>` by hand |
 | `extra_js` | Page needs additional JavaScript |
-| `navbar_widgets` | Page needs custom navbar widgets (rare — usually keep defaults) |
+| `app.navbar.end` | Page needs extra navbar widgets (rare — the defaults come from `MVP_CONFIG["layout"]["navbar"]["end"]`) |
 
-### Template with Toolbar Widgets
+### Template with Title-Row Actions
 
 ```django
-{% extends "base.html" %}
+{% extends "page_view.html" %}
 
-{% block breadcrumbs %}
-  <c-breadcrumbs.item text="My Demo" />
-{% endblock breadcrumbs %}
+{% block page.actions %}
+  <c-button text="Action" variant="primary" size="sm" />
+{% endblock page.actions %}
 
-{% block toolbar_widgets %}
-  <button class="btn btn-sm btn-primary">Action</button>
-{% endblock toolbar_widgets %}
-
-{% block content %}
-  <div class="container-fluid">
-    <!-- content -->
-  </div>
-{% endblock content %}
+{% block page.content %}
+  <!-- content -->
+{% endblock page.content %}
 ```
 
 ## Step 3: Add the URL Pattern
@@ -274,9 +222,9 @@ MenuGroup(
 
 Before considering a demo view complete, verify:
 
-1. ✅ View inherits `LayoutConfigMixin` as first parent
+1. ✅ View is `DemoTemplateView` or one of the package's own views, with `page_title` set
 2. ✅ Only ONE view class exists per feature (variants use `.as_view()` overrides)
-3. ✅ Template extends `base.html` and overrides `breadcrumbs` + `content` at minimum
+3. ✅ A static page's template extends `page_view.html` and fills `page.content`
 4. ✅ URL pattern added in `demo/urls.py` with a named route
 5. ✅ Sidebar menu entry added in `demo/menus.py` (standalone or within a group)
 6. ✅ View name in `MenuItem` matches the URL pattern name

@@ -21,6 +21,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - The sort button on a list page loads the translation tags it uses for its text.
+- A multiple-choice filter left empty is no longer counted as applied. It used to add a
+  blank chip under the toolbar and raise the active-filter count whenever another filter
+  was set. A number filter set to `0` now counts as applied, where it used to be dropped.
 
 ## [v0.28.2] - 2026-10-13
 
