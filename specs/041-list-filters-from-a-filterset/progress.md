@@ -205,3 +205,10 @@ Watch: docs/views.md names the close button among the ways to close the modal; t
 **Verified**: the new test red first, then 987 passed over list/table/components/integrations/demo; pre-commit clean.
 **Next**: full verify, S5 exit.
 **Watch**: subagent spawning is down (account unavailable), so the S6 review waits on Sam.
+
+## 2026-10-19T15:02:00Z · Forge · S6 blocked
+
+**Did**: took over from the previous session at REVIEW. Re-verified the base at cb0fcf5 (0 behind origin/main): 2355 passed, 1 skipped (the four axe tests deselected as before). check-skills is green for `reviewer` and for `reviewer,reviewer_security`. The security lens runs too, because the diff adds django-filter. Both briefs are at /tmp/fs041-review/brief-{phase1,security}.json.
+**Verified**: sessions_spawn refuses every model. anthropic/claude-opus-5-5 and anthropic/claude-sonnet-5-5 both fail with "the selected account or native runtime is unavailable", and claude-cli/claude-opus-5-5 fails with "model not allowed". The gateway's diagnosis found no pinned account in config and suspects a personal account selection that has expired.
+**Next**: once spawning works, dispatch both reviewers with the briefs as written, then check-receipts, fixes, review-outcome, S7.
+**Watch**: the review is not done by the orchestrator in its own context, because the reviewer has to come in clean.
