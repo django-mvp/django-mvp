@@ -170,3 +170,10 @@ Did: docs/views.md: how each control applies, the badge and the two clear action
 Verified: uv run pre-commit run --files docs/views.md docs/components.md CHANGELOG.md -> passed.
 Next: full verify.
 Watch: docs/views.md names the close button among the ways to close the modal; that is the specified behaviour, and it is currently broken (see T019).
+
+## 2026-10-19T13:33:38Z · Implementer US4 · T021
+
+**Did**: The multi-select toolbar dropdown and a developer's widget are each a `[data-mvp-toolbar-field="<name>"]` wrapper; the sketch's inline Alpine focusin/focusout is gone from field.html and lives in `mvp/static/js/list_view.js` as one document-level handler (remember the field's form values on focusin, submit on focusout to outside the wrapper if they changed). Docs: views.md, components.md, CHANGELOG.
+**Verified**: `uv run pytest tests/test_components/test_list_filter_field.py -q` red first (2 failed: no wrapper on the multichoice, wrapper carried no name), then 27 passed. Pre-existing ticks/unchanged-button tests probed by mutating field.html: both fail, restored.
+**Next**: T022 browser tests.
+**Watch**: The demo draws no default multi-select in the toolbar; T022's browser test needs its own page.

@@ -492,8 +492,23 @@
       "tasks": [
         {
           "id": "T021",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_list_filter_field.py::TestToolbarFieldMultichoice",
+              "tests/test_components/test_list_filter_field.py::TestToolbarFieldDevelopersWidget::test_the_wrapper_is_named_for_its_filter",
+              "tests/test_components/test_list_filter_field.py::TestToolbarFieldHidesItsValue"
+            ],
+            "commands": [
+              "uv run pytest tests/test_components/test_list_filter_field.py -q"
+            ],
+            "code": [
+              "mvp/templates/cotton/mvp/page/list/filters/field.html:102",
+              "mvp/templates/cotton/mvp/page/list/filters/field.html:12",
+              "mvp/static/js/list_view.js:84"
+            ]
+          }
         },
         {
           "id": "T022",
