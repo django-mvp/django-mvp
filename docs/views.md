@@ -233,8 +233,10 @@ between pages, so end each option's columns with a unique one, usually `"pk"`.
 `filterset_fields = ["status", "category"]` on the view, in place of `filterset_class`,
 has django-filter generate a filterset from those model fields, and it works the same
 way. A view with neither has no filter form and no filter context. The view builds the
-filterset once per request, from `request.GET`, over its own queryset; override
-`get_filterset_class()` or `get_filterset()` to change either.
+filterset once per request, from `request.GET`, over the view's `get_queryset()`, as
+django-filter's `FilterView` does. A view that scopes its records in `get_queryset()`
+scopes the list and the context's `filter.qs` alike. Override `get_filterset_class()` or
+`get_filterset()` to change either.
 
 A value the address carries that a filter cannot accept, such as a sort option that no
 longer exists or a choice that was removed, is ignored for that filter alone. The other

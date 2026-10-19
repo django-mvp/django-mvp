@@ -199,9 +199,10 @@ class FilterContextMixin:
         Returns:
             ``(key, label, selected)`` for each choice but the empty one.
         """
-        out = []
-        for key, label in flatten_choices(bound.field.choices):
-            key = "" if key is None else str(getattr(key, "value", key))
+        out: list[tuple[str, str, bool]] = []
+        pairs: Any = flatten_choices(bound.field.choices)
+        for raw_key, label in pairs:
+            key = "" if raw_key is None else str(getattr(raw_key, "value", raw_key))
             if key:
                 out.append((key, str(label), key in chosen))
         return out
@@ -582,17 +583,18 @@ class MVPListViewMixin(
             if filterset_class is not None:
                 self._filterset = filterset_class(
                     data=self.request.GET or None,
-                    queryset=super().get_queryset(),
+                    queryset=self.get_queryset(),  # type: ignore[attr-defined]
                     request=self.request,
                 )
         return self._filterset
 
-    def get_queryset(self):
-        """Return the records the filterset leaves, or every record without one."""
+    def get(self, request, *args, **kwargs):
+        """List the records the filterset leaves, or every record without one."""
         filterset = self.get_filterset()
         if filterset is None:
-            return super().get_queryset()
-        return filterset.qs
+            return super().get(request, *args, **kwargs)  # type: ignore[misc]
+        self.object_list = filterset.qs
+        return self.render_to_response(self.get_context_data())  # type: ignore[attr-defined]
 
     def get_context_data(self, **kwargs):
         """Add the filterset, grid, empty-state, item-template and inline-create context."""

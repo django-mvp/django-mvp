@@ -1406,6 +1406,24 @@ class TestListFilterset:
 
         assert view.get_filterset() is view.get_filterset()
 
+    def test_the_filterset_holds_only_what_the_views_own_queryset_allows(
+        self, rf, cat
+    ):
+        _product(cat, "Lamp mine", is_featured=True)
+        _product(cat, "Lamp other", is_featured=False)
+
+        def get_queryset(self):
+            return super(type(self), self).get_queryset().filter(is_featured=True)
+
+        view = self._view(
+            rf, "?q=lamp", filterset_class=ProductListFilter, get_queryset=get_queryset
+        )
+
+        context = view.get(view.request)
+
+        assert [p.name for p in context["filter"].qs] == ["Lamp mine"]
+        assert self._names(context) == ["Lamp mine"]
+
     def test_the_filterset_reads_the_request(self, rf, db):
         view = self._view(rf, "?status=draft", filterset_class=ProductListFilter)
 
