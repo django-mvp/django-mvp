@@ -6,6 +6,10 @@
 
 **Status**: Draft
 
+**Refined**: 2026-10-19, after the sketch. Sam's rulings in three rounds of review changed what the
+toolbar shows and where. See "Session 2026-10-19 (sketch)" under Clarifications. Stories 2 and 4
+and FR-010, FR-014, FR-021 and FR-022 changed; FR-025 to FR-028 are new.
+
 **Serves**: G10 (a consistent UI around the third-party packages projects already rely on, without
 extending or replacing them), G3 (a short path from a Django model to a working set of pages,
 configured declaratively rather than written by hand), G7 (customization that never dead-ends,
@@ -58,6 +62,31 @@ is in `decisions.md`.
   apply. The list is never emptied because of a bad value. This is how an unknown sort value is
   treated today. Recorded as FR-009.
 
+### Session 2026-10-19 (sketch)
+
+Sam's rulings while reviewing the prototype. Each is recorded in `sketch.md` with what was done.
+
+- **Q: Does a toolbar control show the value chosen in it?**
+  A: No. A chosen value is shown by its chip in the refinements row and never in the control, so
+  the toolbar's width does not change with what is chosen. Recorded as FR-021 and FR-025.
+
+- **Q: Where does the result count go?**
+  A: It leads the row of chips, directly above the results, followed by the sort in use when one
+  is chosen. It is not in the toolbar. Recorded as FR-026.
+
+- **Q: Where does the sort go when it is named for the toolbar?**
+  A: At the end of the row, before the Filter button and the Add button, wherever it is named.
+  Recorded as FR-010.
+
+- **Q: What happens to a filter whose widget the developer chose, such as a django-mvp-forms Tom
+  Select control?**
+  A: The toolbar draws that widget as it is and knows nothing more about it. It applies when focus
+  leaves it with a different value than focus found it with. django-mvp does not load any asset a
+  developer's widget needs; the project does. Recorded as FR-027.
+
+- **Q: How wide is the search?**
+  A: It takes the room the row has left, with a minimum width. Recorded as FR-014.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - A developer declares a list page's search, sort and filters on one filterset (Priority: P1)
@@ -108,7 +137,8 @@ search and the two filters but not the sort, and the modal holds every field.
 
 The same developer wants the search, the status choice and the sort in reach without opening
 anything, and the rest out of the way. They list those three field names on the view. The toolbar
-now draws the search, the status choice and the sort, in that order, beside the result count. The
+now draws the search, filling the room the row has left, then the status choice, and at the end of
+the row the sort, the Filter button and the Add button. The
 category and date range stay in the filter modal behind the Filter button. On another list with
 only a search and a status choice, the developer lists both, and that page has no Filter button
 and no modal, because nothing is left over.
@@ -124,8 +154,8 @@ no modal.
 **Acceptance Scenarios**:
 
 1. **Given** a view that lists some of its filterset's fields for the toolbar, **When** the page
-   renders, **Then** those fields are drawn in the toolbar in the order listed and every other
-   field is drawn in the filter modal.
+   renders, **Then** those fields are drawn in the toolbar in the order listed, the sort among them
+   at the end of the row, and every other field is drawn in the filter modal.
 2. **Given** the same page, **When** it renders, **Then** each field is drawn exactly once, in the
    toolbar or in the modal, and a submitted value is sent once.
 3. **Given** a view that lists every field of its filterset for the toolbar, **When** the page
@@ -141,6 +171,12 @@ no modal.
    toolbar, wrapping onto further rows as needed, and none of them moves into the modal.
 8. **Given** a toolbar field, **When** the page renders, **Then** the field carries its filter's
    label as its accessible name, whether or not a label is shown.
+9. **Given** a filter whose widget the developer chose, listed for the toolbar, **When** the page
+   renders, **Then** the toolbar draws that widget. **When** the reader changes it and moves focus
+   away, **Then** the list updates once. **When** they move focus away without changing it,
+   **Then** the list is not updated.
+10. **Given** a toolbar choice with a value chosen, **When** the page renders, **Then** the control
+    does not show the value, and the value appears as the filter's chip.
 
 ---
 
@@ -196,14 +232,16 @@ each clear action and check what remains.
 
 A person wants products from two categories. The category filter sits in the toolbar as a
 dropdown button. They open it, tick two categories, and close it, and the list updates to products
-in either. The button now tells them that two values are chosen, without their opening it again.
+in either. The chip under the toolbar now names both categories. A developer who wants the control
+itself to count the values chosen gives the filter a widget that does, such as django-mvp-forms'
+counted Tom Select (Story 2, scenario 9).
 
 **Why this priority**: It is the control #536 describes for multi-select filters. Without it, a
 multi-select filter stays in the modal, which works, so it comes last.
 
 **Independent Test**: List a multi-select filter for the toolbar. In a browser, open its dropdown,
 choose two values and close it. Confirm the list updates to records matching either value and the
-button reports two chosen. Reload the page and confirm it still reports two.
+filter's chip names both. Reload the page and confirm the two are still ticked.
 
 **Acceptance Scenarios**:
 
@@ -212,7 +250,8 @@ button reports two chosen. Reload the page and confirm it still reports two.
 2. **Given** that dropdown, **When** the reader chooses values and closes it, **Then** the list
    updates to records matching any chosen value.
 3. **Given** a multi-select toolbar filter with values chosen, **When** the page renders, **Then**
-   the button states how many values are chosen. **Given** none chosen, **Then** it states none.
+   the chosen values are ticked in its list and named on the filter's chip, and the button is
+   unchanged.
 4. **Given** the dropdown is open, **When** the reader closes it without changing anything,
    **Then** the list is not updated.
 
@@ -295,15 +334,17 @@ column headers, and both draw the search in the toolbar and the filter in the mo
 **Placement (Story 2)**
 
 - **FR-010**: A view MUST be able to name which of its filterset's fields are drawn in the toolbar.
-  They MUST be drawn in the order named. Every other field MUST be drawn in the filter modal.
-  Each field MUST be drawn once.
+  They MUST be drawn in the order named, except the sort, which MUST be drawn at the end of the row
+  before the Filter and Add buttons. Every other field MUST be drawn in the filter modal. Each
+  field MUST be drawn once.
 - **FR-011**: When no field is left for the modal, the page MUST draw no Filter button and no
   filter modal.
 - **FR-012**: Changing a filter, the search or the sort MUST return the list to its first page.
 - **FR-013**: A view that names a field its filterset lacks, or a field the toolbar cannot draw in
   compact form, MUST fail on the first request with an error naming the field.
 - **FR-014**: Toolbar fields MUST stay in the toolbar at every screen width, wrapping as needed,
-  and MUST carry their filter's label as their accessible name.
+  and MUST carry their filter's label as their accessible name. The search MUST take the room the
+  row has left, down to a minimum width.
 
 **Using the page (Story 3)**
 
@@ -323,9 +364,11 @@ column headers, and both draw the search in the toolbar and the filter in the mo
 
 **Several values (Story 4)**
 
-- **FR-021**: A multi-select filter named for the toolbar MUST be drawn as a button that opens its
-  values to choose from, and MUST update the list when it closes with a changed choice.
-- **FR-022**: That button MUST state how many values are chosen.
+- **FR-021**: A multi-select filter named for the toolbar, with its default widget, MUST be drawn
+  as a button that opens its values to choose from, and MUST update the list when it closes with
+  a changed choice.
+- **FR-022**: The chosen values MUST be ticked in the button's list and named on the filter's chip.
+  The button MUST NOT change with the choice.
 
 **Table pages (Story 5)**
 
@@ -334,13 +377,24 @@ column headers, and both draw the search in the toolbar and the filter in the mo
 - **FR-024**: A table view MUST place filterset fields between its toolbar panel and the filter
   modal as FR-010 and FR-011 describe.
 
+**From the sketch (Stories 2 and 3)**
+
+- **FR-025**: No toolbar control MUST show the value chosen in it. A chosen value MUST be shown by
+  its chip in the refinements row.
+- **FR-026**: The result count MUST lead the refinements row, directly above the results, followed
+  by the name of the sort in use when one is chosen. It MUST NOT be drawn in the toolbar.
+- **FR-027**: A filter whose widget is not its field's default MUST be drawn in the toolbar by that
+  widget, and MUST update the list when focus leaves it with a changed value. The package MUST NOT
+  load any asset such a widget needs.
+- **FR-028**: Submitting the filter form MUST leave fields with no value out of the address.
+
 ### Requirement coverage
 
 | Story | Requirements |
 |---|---|
 | US1 | FR-001 to FR-009 |
-| US2 | FR-010 to FR-014 |
-| US3 | FR-012, FR-015 to FR-020 |
+| US2 | FR-010 to FR-014, FR-025, FR-027 |
+| US3 | FR-012, FR-015 to FR-020, FR-026, FR-028 |
 | US4 | FR-021, FR-022 |
 | US5 | FR-023, FR-024 |
 
