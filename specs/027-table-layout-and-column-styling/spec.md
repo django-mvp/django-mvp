@@ -146,7 +146,7 @@ confirm it wins.
 
 ### User Story 4 - A reader closes the toolbar to see more rows (Priority: P2)
 
-A reader working down a long table closes the toolbar's panel with the button at the end of its bar. The search box, filter button and add button go, the title and count stay, and the rows take the height. The next table page they open has the panel closed too. If a search or filter is applied, the bar still says so.
+A reader working down a long table closes the toolbar's panel with the button at the end of its bar. The search box and filter button go, the title, count and add button stay, and the rows take the height. The next table page they open has the panel closed too. If a search or filter is applied, the bar still says so.
 
 **Why this priority**: The page exists to show rows, and on a phone the panel can take a fifth of the screen. It ranks below the layout itself because the page is complete without it.
 
@@ -157,7 +157,7 @@ A reader working down a long table closes the toolbar's panel with the button at
 1. **Given** a table page with its toolbar open, **When** the reader activates the toolbar's control, **Then** the panel is hidden, the control reports that it is collapsed, and the table area is taller than before.
 2. **Given** a reader who closed the toolbar, **When** they load the page again, **Then** the panel is still hidden.
 3. **Given** a table page with a search applied, **When** the toolbar is closed, **Then** the bar says that one filter is active.
-4. **Given** a table view with no search fields, no filter set and no create action, **When** the page renders, **Then** there is no panel and no control to open one.
+4. **Given** a table view with no search fields and no filter set, **When** the page renders, **Then** there is no panel and no control to open one. An add button, if the view has one, is in the bar.
 
 ---
 

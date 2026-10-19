@@ -9,6 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Breaking:** the add button on a list page is the last control in the toolbar, after
+  sort and filter, and its create dialog moves with it. The title row keeps the title,
+  the subtitle and the info button. `page.actions` is still in the title row, empty, so a
+  page that fills it keeps its content there. A page whose `page.actions` used
+  `{{ block.super }}` to sit next to the add button no longer gets the add button there:
+  it is in the toolbar, and that page shows it once. On a table page the add button moves
+  out of the panel to the end of the bar, so it stays when the panel is closed, and
+  `page.controls` holds the filter button alone. A table page that put
+  `<c-mvp.page.list.actions.create />` in its own `page.controls` now shows two add
+  buttons; take it out. A list with no records and nothing applied still draws no
+  toolbar, and its empty state draws the add button and the create dialog itself. A
+  project that draws `<c-mvp.page.list.empty>` itself, with a create form, sets the new
+  `create_modal` attribute to get the dialog (#541).
+- The list toolbar's search box and button, the sort, filter and add buttons, and the
+  table toolbar's open-and-close button are drawn at DaisyUI's default size instead of
+  the small one. A project that wants the denser toolbar overrides `page.toolbar` or
+  `page.controls` and passes `size="sm"` (#535).
 - A heading with no classes now renders as a heading. The stylesheet and the Tailwind
   preset size `<h1>` at `text-3xl` bold, to match `<c-mvp.page.title>`, and step each
   level below it down one size in semibold, to `text-base` at `<h5>` and `<h6>`. Before,

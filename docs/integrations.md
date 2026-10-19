@@ -35,9 +35,9 @@ with django-tables2 rendering via the `table_view.html` base template and the
 
 The page fills the screen. Three bands stay put and one region scrolls between them:
 
-1. **The toolbar.** A bar with the title and a count of the records, and a panel under
-   it with the search box, the filter button, the add button and the search and
-   filters that are applied.
+1. **The toolbar.** A bar with the title, a count of the records and the add button, and
+   a panel under it with the search box, the filter button and the search and filters
+   that are applied.
 2. **The table.** The rows scroll in a region of their own. The heading row stays at
    the top of it and the footer row, where the table declares one, at the bottom, so
    one scrollbar runs beside all three.
@@ -51,8 +51,9 @@ and opens it again. The choice is remembered in the browser, so a reader who wor
 the toolbar closed keeps it closed. While a search or filter is applied, the bar says
 how many, open or closed, so a closed toolbar never hides that the table is a subset.
 
-A view with nothing to put in the panel, no `search_fields`, no `FilterSet` and no add
-action, gets the bar alone, with no panel and no button.
+The add button stays in the bar, so it is there with the panel closed. A view with
+nothing to put in the panel, no `search_fields` and no `FilterSet`, gets the bar alone,
+with no panel and no button to open one.
 
 ### Surfaces and edges
 
@@ -94,10 +95,10 @@ Each part of the toolbar is a block in `table_view.html`:
 | `page.toolbar` | The whole toolbar |
 | `page.title` | The start of the bar: the heading, the info icon, the count and the subtitle |
 | `page.summary` | The count, inside `page.title` |
-| `page.actions` | Empty. Anything here is drawn at the end of the bar, and stays when the panel is closed |
+| `page.actions` | Empty. Anything here is drawn at the end of the bar, before the add button, and stays when the panel is closed |
 | `page.panel` | Everything in the panel |
 | `page.search` | The search box, inside the panel |
-| `page.controls` | The filter and add buttons, inside the panel |
+| `page.controls` | The filter button, inside the panel |
 | `page.refinements` | The applied search and filters, inside the panel |
 | `page.content` | The table |
 | `page.footer` | The pager |
@@ -105,7 +106,7 @@ Each part of the toolbar is a block in `table_view.html`:
 ```html
 {% extends "table_view.html" %}
 {% block page.controls %}
-  <c-button size="sm" icon="export" text="Export" href="{% url 'product-export' %}" />
+  <c-button icon="export" text="Export" href="{% url 'product-export' %}" />
   {{ block.super }}
 {% endblock page.controls %}
 ```

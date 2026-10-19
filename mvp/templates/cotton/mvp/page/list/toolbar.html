@@ -4,7 +4,7 @@
 {# @prop class:text | description:"Extra classes on the toolbar's root element." #}
 {# @prop result_count:number | description:"How many records the list holds; with no refinements, none draws no toolbar." #}
 {# @prop refinements:text | description:"The search and filters applied now." #}
-{# @slot Sort, filter — the controls at the end of the row. #}
+{# @slot Sort, filter, add — the controls at the end of the row. #}
 {% load i18n mvp %}
 <c-vars search summary class result_count refinements />
 {% if result_count or refinements %}

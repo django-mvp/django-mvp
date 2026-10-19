@@ -6,11 +6,6 @@
   the flex chain a filled layout needs (specs/027-table-layout-and-column-styling/research.md R5).
 {% endcomment %}
 {% comment %}
-  page.actions skips {{ block.super }}: list_view.html's default includes
-  sort, which a table view's own action set must not (FR-007) — see
-  MVPTableViewMixin.actions.
-{% endcomment %}
-{% comment %}
   The breadcrumb trail draws in the app header, not here, so page.header has
   nothing of its own to draw — it stays declared for a project that filled it.
 {% endcomment %}
@@ -58,9 +53,13 @@
             <c-slot name="actions">
               {% block page.actions %}
               {% endblock page.actions %}
+              {% comment %}Add is always last in the bar, shown with the panel open or closed.{% endcomment %}
+              <c-mvp.page.list.actions.create :directory="directory"
+                                              :create_form="create_form"
+                                              :create_modal_title="create_modal_title" />
             </c-slot>
             {% block page.panel %}
-              {% if is_searchable or filter or refinements or directory.create_url %}
+              {% if is_searchable or filter or refinements %}
                 <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
                   {% if is_searchable %}
                     <div class="w-full md:w-1/3 md:max-w-sm">
@@ -75,15 +74,12 @@
                   {% endif %}
                   <div class="flex flex-wrap items-center gap-2 md:ms-auto">
                     {% block page.controls %}
-                      <c-mvp.page.list.actions :actions="['filter','create']"
+                      <c-mvp.page.list.actions :actions="['filter']"
                                               :is_searchable="is_searchable"
                                               :filter="filter"
                                               :applied_filters="applied_filters"
                                               :applied_filter_count="applied_filter_count"
-                                              :clear_filters_url="clear_filters_url"
-                                              :directory="directory"
-                                              :create_form="create_form"
-                                              :create_modal_title="create_modal_title" />
+                                              :clear_filters_url="clear_filters_url" />
                     {% endblock page.controls %}
                   </div>
                 </div>

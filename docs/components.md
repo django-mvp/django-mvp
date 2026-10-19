@@ -474,7 +474,7 @@ and `table_view.html` do: `<c-mvp.page.list.summary :result_count="result_count"
 | Component | Context key it reads | Attributes |
 | --- | --- | --- |
 | `c-mvp.page.list` | `list` | `card` names the template each row is rendered with; undeclared attributes pass to the grid it renders, so column counts and gaps are set on the tag itself; `empty_state` takes a dict of attributes forwarded to `c-mvp.page.list.empty` when the result set is empty. The `empty` slot replaces the packaged empty state |
-| `c-mvp.page.list.empty` | `directory` (its `create_url` gates the add button), `create_form`, `refinements` (switches it to the nothing-matches message with a link to `clear_refinements_url`), `search_query`, `applied_filters`, `model_info` | `icon` (default `search`), `heading`, `message`, `icon_class`, `class` |
+| `c-mvp.page.list.empty` | `directory` (its `create_url` gates the add button), `create_form`, `refinements` (switches it to the nothing-matches message with a link to `clear_refinements_url`), `search_query`, `applied_filters`, `model_info` | `icon` (default `search`), `heading`, `message`, `icon_class`, `class`; `create_modal` draws the create dialog with the add button, for a page where nothing else draws it, with `create_modal_title` as its heading and `request` so it returns to the page |
 | `c-mvp.page.list.toolbar` | `result_count`, `refinements` (renders nothing when both are empty) | slots `search` and `summary`, default slot for the controls, `class` |
 | `c-mvp.page.list.summary` | `result_count`, `refinements`, `model_info` | `class` |
 | `c-mvp.page.list.refinements` | `refinements`, `clear_refinements_url` | `class` |
@@ -500,19 +500,23 @@ renders, so it appears only where a caller asks for it.
 
 ```html
 <c-mvp.page>
-  <c-mvp.page.title title="{{ page.title }}" inline_actions>
-    <c-slot name="actions"><c-mvp.page.list.actions.create /></c-slot>
-  </c-mvp.page.title>
+  <c-mvp.page.title title="{{ page.title }}" />
   <c-mvp.page.list.toolbar>
     <c-slot name="search"><c-mvp.page.list.actions.search class="w-full" input_class="min-w-0" /></c-slot>
     <c-slot name="summary"><c-mvp.page.list.summary /></c-slot>
     <c-mvp.page.list.actions :actions="['sort','filter']" />
+    <c-mvp.page.list.actions.create />
   </c-mvp.page.list.toolbar>
   <c-mvp.page.list.refinements />
   <c-mvp.page.list :list="object_list" :card="list_item_template" md="2" lg="3" />
   {% if page_obj %}<c-mvp.page.list.footer :page_obj="page_obj" class="mt-5" />{% endif %}
 </c-mvp.page>
 ```
+
+Add goes last in the toolbar, after the controls. The toolbar draws nothing on a list
+with no records, so there the empty state's own add button is the only one. To have it
+open the create dialog, draw the empty state yourself in the list's `empty` slot with
+`create_modal`, as `list_view.html` does.
 
 ## Extending with your own components
 

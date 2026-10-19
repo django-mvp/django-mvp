@@ -1410,14 +1410,54 @@ class TestListPageToolbar:
 
         assert soup.find(class_="mvp-list-toolbar").find(attrs={"name": "q"})
 
-    def test_add_action_is_outside_the_toolbar(self, rf, cat):
+    def test_add_action_is_in_the_toolbar_and_not_the_title_row(self, rf, cat):
         _product(cat, "Lamp")
 
         soup = _list_page(rf, show_create_action=True)
 
+        create = soup.find_all("a", href="/products/create/")
+        assert len(create) == 1
+        assert create[0].find_parent(class_="mvp-list-toolbar") is not None
+        assert create[0].find_parent(class_="page-title") is None
+
+    def test_the_create_dialog_is_drawn_with_the_add_action(self, rf, cat):
+        from demo.forms import ProductForm
+
+        _product(cat, "Lamp")
+
+        soup = _list_page(rf, show_create_action=True, create_form_class=ProductForm)
+
+        assert len(soup.find_all(id="createModal")) == 1
+        assert soup.find(id="createModal").find_parent(class_="mvp-list-toolbar")
+
+    def test_the_create_form_is_not_nested_in_another_form(self, rf, cat):
+        from demo.forms import ProductForm
+
+        _product(cat, "Lamp")
+
+        soup = _filtered_list_page(
+            rf, show_create_action=True, create_form_class=ProductForm
+        )
+
+        assert soup.find("form", id="filterForm") is not None
+        assert soup.find("form", id="createForm").find_parent("form") is None
+        assert soup.find("form", id="filterForm").find_parent("form") is None
+
+    def test_a_page_that_fills_page_actions_still_gets_the_add_action(
+        self, rf, cat
+    ):
+        _product(cat, "Lamp")
+
+        soup = _list_page(
+            rf,
+            template_name="tests/list_view_block_override.html",
+            extra_context={"override": "page.actions"},
+            show_create_action=True,
+        )
+
+        assert soup.find(id="override") is not None
         create = soup.find("a", href="/products/create/")
-        assert create is not None
-        assert create.find_parent(class_="mvp-list-toolbar") is None
+        assert create.find_parent(class_="mvp-list-toolbar") is not None
 
     def test_summary_names_one_record_in_the_singular(self, rf, cat):
         _product(cat, "Lamp")
@@ -1513,8 +1553,15 @@ class TestListPageEmptyState:
 
         empty = soup.find(class_="mvp-list-empty")
         assert empty.find("a", href="/products/create/") is None
-        assert "createModal" in empty.find("button")["onclick"]
-        assert soup.find(id="createModal") is not None
+        assert "createModal.showModal()" in str(empty.find("button"))
+        assert len(soup.find_all(id="createModal")) == 1
+
+    def test_the_create_dialog_on_an_empty_list_returns_to_the_list(self, rf, db):
+        from demo.forms import ProductForm
+
+        soup = _list_page(rf, show_create_action=True, create_form_class=ProductForm)
+
+        assert soup.find("form", id="createForm")["action"].endswith("?next=/products/")
 
 
 class TestListPagePagination:

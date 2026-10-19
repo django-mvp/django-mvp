@@ -3,6 +3,7 @@
 {% comment %}
   A project filling the toolbar for itself: two filters as selects in the
   panel in place of the filter dialog, and two more buttons beside them.
+  Add needs nothing here: it is always in the bar.
 {% endcomment %}
 {% block page.controls %}
   <form id="filterForm" method="get" action="." class="hidden"></form>
@@ -20,5 +21,4 @@
   {% endfor %}
   <c-button size="sm" icon="table" text="Columns" type="button" />
   <c-button size="sm" icon="export" text="Export" href="#" />
-  <c-mvp.page.list.actions.create />
 {% endblock page.controls %}
