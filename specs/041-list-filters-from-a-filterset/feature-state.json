@@ -318,6 +318,22 @@
               "uv run pytest tests/test_list_filters_e2e.py tests/test_components/test_modal.py"
             ]
           }
+        },
+        {
+          "id": "T033",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_views/test_list.py::TestListPageEmptyState::test_a_search_matching_nothing_is_not_called_a_filter"
+            ],
+            "commands": [
+              "uv run pytest tests/test_views/test_list.py tests/test_table_layout.py tests/test_components tests/test_integrations.py tests/test_demo -q -p no:randomly -m 'not e2e'"
+            ],
+            "code": [
+              "mvp/templates/cotton/mvp/page/list/empty.html:30"
+            ]
+          }
         }
       ]
     },

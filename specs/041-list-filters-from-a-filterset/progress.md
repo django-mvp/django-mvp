@@ -198,3 +198,10 @@ Watch: docs/views.md names the close button among the ways to close the modal; t
 **Verified**: pre-commit on CHANGELOG.md passed.
 **Next**: full verify, US-5 acceptance, converge.
 **Watch**: nothing.
+
+## 2026-10-19T14:48:56Z · Forge · T033
+
+**Did**: converge found the empty state still branching on `search_query`, which the context lost at T004, so a search matching nothing read "Try fewer filters." It now draws one message and "Clear all"; the dead `search_query`/`applied_filters` props are gone from the empty state, the table add-on and the three templates passing them, and the test templates no longer override the removed page.search/page.controls blocks. Every decision now carries an ADR verdict (15, none graduated; ADR 0033 was written from the spec).
+**Verified**: the new test red first, then 987 passed over list/table/components/integrations/demo; pre-commit clean.
+**Next**: full verify, S5 exit.
+**Watch**: subagent spawning is down (account unavailable), so the S6 review waits on Sam.
