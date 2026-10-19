@@ -617,30 +617,28 @@ class TestActionsFollowViewConfiguration:
         assert soup.find(id="filterForm") is None
 
 
+class RefinedProductFilter(django_filters.FilterSet):
+    q = SearchFilter(fields=["name"])
+    price = django_filters.RangeFilter()
+    stock = django_filters.NumberFilter()
+    categories = django_filters.ModelMultipleChoiceFilter(
+        field_name="category", queryset=Category.objects.all()
+    )
+    o = SortFilter(options=[("name_asc", "Name (A-Z)", "name")])
+
+    class Meta:
+        model = Product
+        fields = ["name", "status", "category"]
+
+
 def _refinement_context(rf, query="", **attrs):
     """Return the context of a filtered product list requested with ``query``."""
-    import django_filters
-    from django_filters.views import FilterView
-
-    class ProductFilterSet(django_filters.FilterSet):
-        price = django_filters.RangeFilter()
-        stock = django_filters.NumberFilter()
-        categories = django_filters.ModelMultipleChoiceFilter(
-            field_name="category", queryset=Category.objects.all()
-        )
-
-        class Meta:
-            model = Product
-            fields = ["name", "status", "category"]
-
     view_cls = type(
         "StubRefinedListView",
-        (MVPListViewMixin, FilterView),
+        (MVPListView,),
         {
             "model": Product,
-            "filterset_class": ProductFilterSet,
-            "search_fields": ["name"],
-            "order_by": [("name_asc", "Name (A-Z)", "name")],
+            "filterset_class": RefinedProductFilter,
             "paginate_by": 10,
             "render_to_response": lambda self, context, **kwargs: context,
             **attrs,
@@ -662,17 +660,30 @@ class TestListRefinements:
         context = _refinement_context(rf, "?q=lamp&o=name_asc&page=1")
 
         [search] = context["refinements"]
-        assert search["kind"] == "search"
+        assert search["name"] == "q"
         assert search["value"] == "lamp"
         assert search["remove_url"] == "/products/?o=name_asc"
+
+    def test_a_search_is_labelled_by_its_filter(self, rf, db):
+        class LabelledSearch(django_filters.FilterSet):
+            q = SearchFilter(fields=["name"], label="Find a product")
+
+            class Meta:
+                model = Product
+                fields: list[str] = []
+
+        context = _refinement_context(rf, "?q=lamp", filterset_class=LabelledSearch)
+
+        [search] = context["refinements"]
+        assert search["label"] == "Find a product"
 
     def test_a_blank_search_is_not_a_refinement(self, rf, db):
         context = _refinement_context(rf, "?q=++")
 
         assert context["refinements"] == []
 
-    def test_a_search_is_not_a_refinement_without_search_fields(self, rf, db):
-        context = _refinement_context(rf, "?q=lamp", search_fields=None)
+    def test_q_is_not_a_refinement_without_a_search_filter(self, rf, db):
+        context = _refinement_context(rf, "?q=lamp", filterset_class=CategoryOnlyFilter)
 
         assert context["refinements"] == []
 
@@ -740,27 +751,50 @@ class TestListRefinements:
         assert context["clear_refinements_url"] == "/products/?o=name_asc"
 
     def test_clear_filters_url_drops_both_params_of_a_range_filter(self, rf, db):
-        context = _refinement_context(rf, "?price_min=5&price_max=20&q=lamp")
+        context = _refinement_context(rf, "?price_min=5&price_max=20&o=name_asc")
 
-        assert context["clear_filters_url"] == "/products/?q=lamp"
+        assert context["clear_filters_url"] == "/products/?o=name_asc"
 
-    def test_a_list_without_a_filterset_still_reports_its_search(self, rf, db):
-        view_cls = type(
-            "StubSearchOnlyListView",
-            (MVPListView,),
-            {
-                "model": Product,
-                "search_fields": ["name"],
-                "render_to_response": lambda self, context, **kwargs: context,
-            },
+
+class TestTheSortIsNeverAFilter:
+    def test_a_search_a_sort_and_two_filters_refine_by_all_but_the_sort(self, rf, cat):
+        context = _refinement_context(
+            rf, f"?q=lamp&o=name_asc&status=draft&category={cat.pk}"
         )
-        view = view_cls()
-        view.setup(rf.get("/products/?q=lamp"))
 
-        context = view.get(view.request)
+        names = {item["name"] for item in context["refinements"]}
+        assert names == {"q", "status", "category"}
+        assert context["applied_filter_count"] == 3
+        assert "o" not in context["applied_filters"]
 
-        assert [item["name"] for item in context["refinements"]] == ["q"]
-        assert context["clear_refinements_url"] == "/products/"
+    def test_clear_all_keeps_the_sort(self, rf, cat):
+        context = _refinement_context(
+            rf, f"?q=lamp&o=name_asc&status=draft&category={cat.pk}"
+        )
+
+        assert context["clear_refinements_url"] == "/products/?o=name_asc"
+
+    def test_clearing_the_filters_keeps_the_sort(self, rf, db):
+        context = _refinement_context(rf, "?q=lamp&status=draft&o=name_asc")
+
+        assert context["clear_filters_url"] == "/products/?o=name_asc"
+
+    def test_the_chosen_sort_is_named_in_the_context(self, rf, db):
+        context = _refinement_context(rf, "?o=name_asc")
+
+        assert context["sort_label"] == "Name (A-Z)"
+
+    @pytest.mark.parametrize("query", ["", "?o=bogus"])
+    def test_no_sort_label_when_no_option_is_chosen(self, rf, db, query):
+        context = _refinement_context(rf, query)
+
+        assert context["sort_label"] == ""
+
+    def test_search_query_and_is_searchable_leave_the_context(self, rf, db):
+        context = _refinement_context(rf, "?q=lamp")
+
+        assert "search_query" not in context
+        assert "is_searchable" not in context
 
 
 class TestListResultCount:
@@ -770,7 +804,7 @@ class TestListResultCount:
             (MVPListView,),
             {
                 "model": Product,
-                "search_fields": ["name"],
+                "filterset_class": ListPageFilter,
                 "render_to_response": lambda self, context, **kwargs: context,
                 **attrs,
             },

@@ -103,24 +103,22 @@ def describe_toolbar_field(view_name: str, filterset: Any, name: str) -> dict[st
 
 
 class FilterContextMixin:
-    """Publish the state of an active filterset to the filter control.
+    """Publish the state of the list's filterset to the page.
 
-    A no-op unless something else in the MRO puts a filterset in the context
-    as ``filter`` — which is what ``django_filters.views.FilterView`` does.
-    That keeps django-filter an optional dependency: this mixin reads the
-    context key and never imports the package.
+    The one place filter state is computed. A no-op unless the context holds
+    a filterset as ``filter``, which ``MVPListViewMixin`` puts there.
 
-    It lives here, rather than on the packaged filtered list view, because
-    composing ``MVPListViewMixin`` with ``FilterView`` directly is a supported
-    and documented way to build a filtered page. A view built that way is a
-    filtered list view in every respect the reader can see, so it gets the
-    same filter chrome.
+    A ``SortFilter`` orders the list and never narrows it, so it is never an
+    applied filter and neither clear action removes it. A ``SearchFilter`` is
+    an applied filter like any other, labelled by its own label.
 
     Context (only when a filterset is present):
         applied_filters (dict): Field name to value, for filters actually set.
         applied_filter_count (int): ``len(applied_filters)`` — the button badge.
         clear_filters_url (str): Present only when at least one filter is
-            applied. The current URL with the filterset's own fields removed.
+            applied. The current URL with the filterset's own fields removed,
+            except the sort.
+        sort_label (str): The label of the chosen sort option, or ``""``.
 
     Override hooks:
         get_active_filters(): Return the filters that are actually set.
@@ -128,6 +126,7 @@ class FilterContextMixin:
         get_filter_label(): Return the words that name one filter.
         get_filter_display(): Return one filter's value as the reader set it.
         get_clear_filters_url(): Return the URL with every filter removed.
+        get_sort_label(): Return the label of the chosen sort option.
     """
 
     def get_context_data(self, **kwargs):
@@ -142,6 +141,7 @@ class FilterContextMixin:
         context["applied_filter_count"] = len(active)
         if active:
             context["clear_filters_url"] = self.get_clear_filters_url(filterset)
+        context["sort_label"] = self.get_sort_label(filterset)
 
         # SKETCH (FS-041): split the filterset between the toolbar and the modal.
         dropped = getattr(self, "dropped_filters", ())
@@ -166,7 +166,6 @@ class FilterContextMixin:
         context["toolbar_fields"] = [
             f for f in context["toolbar_fields"] if not f.get("sort")
         ]
-        context["sort_label"] = sort_item["current_label"] if sort_item else ""
         modal_names = [n for n in filterset.form.fields if n not in toolbar_names]
         context["modal_fields"] = [filterset.form[n] for n in modal_names]
         modal_active = [n for n in active if n in modal_names]
@@ -197,7 +196,6 @@ class FilterContextMixin:
             return active
 
         for name, value in filterset.form.cleaned_data.items():
-            # SKETCH (FS-041): the sort is never an applied filter.
             if isinstance(filterset.filters.get(name), SortFilter):
                 continue
             if value is None or value is False:
@@ -209,12 +207,11 @@ class FilterContextMixin:
         return active
 
     def get_clear_filters_url(self, filterset: Any):
-        """Return the current URL with only the filterset's fields removed.
+        """Return the current URL with the filterset's fields removed, but not the sort.
 
-        Search (``?q=``) and ordering (``?o=``) are a separate concern from
-        the filterset and share the same query string, so they're preserved.
-        Clearing filters shouldn't also drop an unrelated search. Pagination
-        is reset, since the cleared result set may not have as many pages.
+        The sort orders the list rather than narrowing it, so clearing the
+        filters keeps it. Pagination is reset, since the cleared result set may
+        not have as many pages.
 
         Args:
             filterset: The django-filter ``FilterSet`` from the context.
@@ -224,6 +221,8 @@ class FilterContextMixin:
         """
         querydict = self.request.GET.copy()  # type: ignore[attr-defined]
         for name in filterset.form.fields:
+            if isinstance(filterset.filters.get(name), SortFilter):
+                continue
             for param in self.get_filter_params(filterset, name):
                 querydict.pop(param, None)
         querydict.pop(getattr(self, "page_kwarg", "page"), None)
@@ -231,6 +230,23 @@ class FilterContextMixin:
         return (
             f"{self.request.path}?{query_string}" if query_string else self.request.path  # type: ignore[attr-defined]
         )
+
+    def get_sort_label(self, filterset: Any) -> str:
+        """Return the label of the sort option the request chose.
+
+        Args:
+            filterset: The django-filter ``FilterSet`` from the context.
+
+        Returns:
+            The chosen option's label, or ``""`` when the filterset has no
+            sort, or none was chosen, or the address named an unknown one.
+        """
+        cleaned = getattr(filterset.form, "cleaned_data", {})
+        for name, flt in filterset.filters.items():
+            if isinstance(flt, SortFilter) and cleaned.get(name):
+                labels = {key: label for key, label, _columns in flt.options}
+                return str(labels.get(cleaned[name], ""))
+        return ""
 
     def get_filter_params(self, filterset: Any, name: str) -> list[str]:
         """Return the query parameters one filter reads its value from.
@@ -375,32 +391,34 @@ class MVPListViewMixin(
             Default implementation returns ``self.create_form_class()`` (unbound). Override to pass
             additional kwargs (e.g. request, user, initial data).
         get_result_count(): Return how many records the list holds across every page.
-        get_refinements(): Return what is narrowing the list: the search and each applied filter.
+        get_refinements(): Return what is narrowing the list: each applied filter, the search
+            among them.
         get_url_without(): Return the current URL with the named query parameters removed.
 
     Context (always injected):
         result_count (int): How many records the list holds across every page, after the
             search and filters are applied.
-        refinements (list[dict]): What is narrowing the list, the search first and then each
-            applied filter. Each entry has ``kind`` (``"search"`` or ``"filter"``), ``name``,
-            ``label``, ``value`` and ``remove_url``, the URL that removes that one entry and
-            keeps the rest. Empty when nothing is applied.
+        refinements (list[dict]): What is narrowing the list: each applied filter of the
+            filterset, a search among them, in the filterset's order. The sort is never one.
+            Each entry has ``kind`` (``"filter"``), ``name``, ``label``, ``value`` and
+            ``remove_url``, the URL that removes that one entry and keeps the rest. Empty
+            when nothing is applied.
         clear_refinements_url (str): Present only when ``refinements`` is not empty. The
-            current URL with the search and every filter removed. The ordering is kept.
+            current URL with the search and every filter removed. The sort is kept.
         list_item_template (str): Resolved partial template path.
         empty_state (dict): ``{"heading": str | None, "message": str | None}``.
         grid_config (dict): Grid breakpoint configuration (may be empty).
         directory (dict): CRUD URLs; only ``create_url`` is injected (when permitted).
-        search_query (str): Active ``?q=`` value, or ``""``.
-        is_searchable (bool): Whether ``search_fields`` is configured.
         page (dict): PageMixin metadata — ``title``, ``subtitle``, ``icon``, ``class``,
             ``breadcrumbs``.
         create_form (Form): Unbound form instance for inline create modal (only when
             ``create_form_class`` is set and ``show_create_action`` is ``True``).
         create_modal_title (str): Resolved modal title for inline create (only when
             ``create_form`` is also injected).
-        applied_filters / applied_filter_count / clear_filters_url: Injected by
-            ``FilterContextMixin`` when composed with a filtered view — see there.
+        filter / filterset (FilterSet): The request's filterset, under both names, only when
+            the view has one.
+        applied_filters / applied_filter_count / clear_filters_url / sort_label: Injected by
+            ``FilterContextMixin`` when the view has a filterset — see there.
 
     Example::
 
@@ -572,18 +590,17 @@ class MVPListViewMixin(
         return paginator.count if paginator else len(context["object_list"])
 
     def get_refinements(self, context: dict[str, Any]) -> list[dict[str, Any]]:
-        """Return what is narrowing the list, as one entry per search or filter.
+        """Return what is narrowing the list, as one entry per applied filter.
 
         The list page draws each entry as a control that removes it. An entry
         carries ``kind``, ``name``, ``label``, ``value``, ``params`` (the query
         parameters it occupies) and ``remove_url``.
 
         Args:
-            context: The context built so far, read for the search term and
-                the applied filters.
+            context: The context built so far, read for the applied filters.
 
         Returns:
-            The search first when there is one, then each applied filter.
+            One entry per applied filter, a search among them; never the sort.
         """
         refinements: list[dict[str, Any]] = []
 

@@ -189,8 +189,25 @@
         },
         {
           "id": "T008",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 2,
+          "evidence": {
+            "tests": [
+              "tests/test_views/test_list.py::TestTheSortIsNeverAFilter",
+              "tests/test_views/test_list.py::TestListRefinements",
+              "tests/test_views/test_list.py::TestListResultCount",
+              "tests/test_integrations.py::TestFilterChromeOnAFilteredListView",
+              "tests/test_integrations.py::TestOptionalIntegrations",
+              "tests/test_integrations.py::TestIntegrationIsolation"
+            ],
+            "commands": [
+              "uv run pytest -q -p no:randomly tests/test_views/test_list.py tests/test_integrations.py"
+            ],
+            "code": [
+              "mvp/views/list.py:234",
+              "mvp/views/list.py:199"
+            ]
+          }
         },
         {
           "id": "T009",

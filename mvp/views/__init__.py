@@ -28,7 +28,6 @@ from .list import MVPListView
 # Views built on optional third-party packages live in mvp.integrations and
 # are intentionally NOT exported here:
 #   from mvp.integrations.django_tables.views import MVPTableView
-#   from mvp.integrations.django_filters.views import MVPFilteredListView
 
 __all__ = [
     "AccountCenterView",

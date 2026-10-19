@@ -255,32 +255,35 @@ is the usual way to say it.
 
 Installed with django-mvp. List `django_filters` in `INSTALLED_APPS`.
 
+Every list view takes its search, its sort and its filters from one django-filter
+filterset, declared on the view as `filterset_class` (or generated from
+`filterset_fields`). There is no separate filtered list view: `MVPListView`, and every view
+built on `MVPListViewMixin`, builds the filterset itself, so composing django-filter's
+`FilterView` is refused. See [the list view's filterset](views.md#searching-sorting-and-filtering-with-a-filterset).
+
 ```python
-from mvp.integrations.django_filters.views import MVPFilteredListView
+from mvp.views import MVPListView
 
 
-class ProductListView(MVPFilteredListView):
+class ProductListView(MVPListView):
     model = Product
     filterset_class = ProductFilter   # or filterset_fields = [...]
-    search_fields = ["name"]
 ```
 
-On top of `MVPListView` behavior, the view injects `applied_filters` /
-`applied_filter_count` into the context, which the list page's filter button uses to
-badge the number of active filters. When at least one filter is applied, it also injects
-`clear_filters_url` — the current list URL with only the filterset's own fields removed,
-preserving an active search (`?q=`) or ordering (`?o=`) and resetting pagination. The
-filter dialog, a panel that opens from the trailing edge of the screen, shows a "Clear
-filters" link next to "Apply filters" whenever that URL is present.
+The view puts `applied_filters` and `applied_filter_count` in the context, which the list
+page's filter button uses to badge the number of active filters. When at least one filter
+is applied, it also puts `clear_filters_url` there: the current list URL with the
+filterset's fields removed, except the sort, and with pagination reset. The filter dialog
+shows a "Clear filters" link next to "Apply filters" whenever that URL is present.
 
 `applied_filters` comes from `get_active_filters()`, which reads the filterset form's
 `cleaned_data` and drops `None`, `False` and empty values (an empty string, list or
 queryset), which is what an untouched filter field cleans to. A number is always kept, so
-`0` from a number filter counts as applied. Override the hook on the view when a dropped
-value is a real choice in your filterset, an unchecked boolean the user deliberately
-picked, say.
+`0` from a number filter counts as applied. A `SortFilter` is never an applied filter.
+Override the hook on the view when a dropped value is a real choice in your filterset, an
+unchecked boolean the user deliberately picked, say.
 
-Each applied filter is also one of the page's
+Each applied filter, a search among them, is also one of the page's
 [refinements](views.md#what-the-view-tells-the-template), drawn under the toolbar as a
 control that removes it. Three hooks on the view decide how one reads:
 
@@ -294,17 +297,13 @@ control that removes it. Three hooks on the view decide how one reads:
 `get_filter_params()`, so a filter with its own parameter names is cleared correctly once
 that hook names them.
 
-`MVPFilteredListView` is shorthand for `MVPListViewMixin` plus `FilterView`. Compose
-those yourself — which is what you do to add filtering to a table view — and the badge
-and the clear link come with it:
+A table view takes a filterset the same way:
 
 ```python
-from django_filters.views import FilterView
-
-from mvp.integrations.django_tables.views import MVPTableViewMixin
+from mvp.integrations.django_tables.views import MVPTableView
 
 
-class ProductTableView(MVPTableViewMixin, FilterView):
+class ProductTableView(MVPTableView):
     model = Product
     table_class = ProductTable
     filterset_fields = ["name", "category__name", "status"]
