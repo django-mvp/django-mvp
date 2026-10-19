@@ -300,6 +300,19 @@
               "uv run pytest tests/test_components/test_sidebar_boost.py"
             ]
           }
+        },
+        {
+          "id": "T032",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_list_filters_e2e.py::TestFilterModalCloses"
+            ],
+            "commands": [
+              "uv run pytest tests/test_list_filters_e2e.py tests/test_components/test_modal.py"
+            ]
+          }
         }
       ]
     },
@@ -382,7 +395,7 @@
       "priority": "P2",
       "issue": 552,
       "worktree": null,
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
@@ -441,8 +454,16 @@
         },
         {
           "id": "T019",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 2,
+          "evidence": {
+            "tests": [
+              "tests/test_list_filters_e2e.py"
+            ],
+            "commands": [
+              "uv run pytest tests/test_list_filters_e2e.py"
+            ]
+          }
         },
         {
           "id": "T020",
