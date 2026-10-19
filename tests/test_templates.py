@@ -636,17 +636,7 @@ def _controls(html):
     return sorted(
         (el.name, *(str(el.get(key, "")) for key in keys))
         for el in soup.find_all(
-            [
-                "a",
-                "button",
-                "input",
-                "select",
-                "textarea",
-                "form",
-                "nav",
-                "dialog",
-                "label",
-            ]
+            ["a", "button", "input", "select", "textarea", "form", "nav", "dialog", "label"]
         )
     )
 

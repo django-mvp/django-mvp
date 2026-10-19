@@ -856,7 +856,7 @@ class FilteredListPageFilter(ListPageFilter):
         fields = ["name", "status"]
 
 
-def _list_page(rf, query="", headers=None, **attrs):
+def _list_page(rf, query="", **attrs):
     """Render a product list page requested with ``query`` and return its soup."""
     view_cls = type(
         "StubRenderedListView",
@@ -869,7 +869,7 @@ def _list_page(rf, query="", headers=None, **attrs):
         },
     )
     view = view_cls()
-    view.setup(rf.get(f"/products/{query}", headers=headers))
+    view.setup(rf.get(f"/products/{query}"))
     response = view.get(view.request)
     response.render()
     return _beautiful_soup()(response.content.decode(), "html.parser")
@@ -1219,6 +1219,25 @@ SWAP = {
 }
 
 
+def _list_page_for_htmx(rf, query="", headers=REGION_REQUEST, **attrs):
+    """Render a product list page as htmx requests it and return its soup."""
+    view_cls = type(
+        "StubHtmxListView",
+        (MVPListView,),
+        {
+            "model": Product,
+            "list_item_template": CARD,
+            "filterset_class": ListPageFilter,
+            **attrs,
+        },
+    )
+    view = view_cls()
+    view.setup(rf.get(f"/products/{query}", headers=headers))
+    response = view.get(view.request)
+    response.render()
+    return _beautiful_soup()(response.content.decode(), "html.parser")
+
+
 def _swaps_the_region(element):
     return all(element.get(name) == value for name, value in SWAP.items())
 
@@ -1227,7 +1246,7 @@ class TestListPageUpdatesInPlace:
     def test_a_request_for_the_list_region_gets_it_without_the_shell(self, rf, cat):
         _product(cat, "Lamp")
 
-        soup = _list_page(rf, "?q=lamp", headers=REGION_REQUEST)
+        soup = _list_page_for_htmx(rf, "?q=lamp")
 
         assert soup.find(id="mvp-list") is not None
         assert soup.find("title") is not None
@@ -1236,14 +1255,18 @@ class TestListPageUpdatesInPlace:
     def test_any_other_htmx_request_gets_the_whole_page(self, rf, cat):
         _product(cat, "Lamp")
 
-        soup = _list_page(rf, headers={"HX-Request": "true", "HX-Boosted": "true"})
+        soup = _list_page_for_htmx(
+            rf, headers={"HX-Request": "true", "HX-Boosted": "true"}
+        )
 
         assert soup.find("body") is not None
         assert soup.find(id="mvp-list") is not None
 
     def test_the_response_varies_on_the_htmx_target(self, rf, db):
         view_cls = type(
-            "VaryListView", (MVPListView,), {"model": Product, "list_item_template": CARD}
+            "VaryListView",
+            (MVPListView,),
+            {"model": Product, "list_item_template": CARD},
         )
         view = view_cls()
         view.setup(rf.get("/products/"))
@@ -1255,9 +1278,8 @@ class TestListPageUpdatesInPlace:
     def test_a_projects_block_override_is_drawn_in_the_region(self, rf, cat):
         _product(cat, "Lamp")
 
-        soup = _list_page(
+        soup = _list_page_for_htmx(
             rf,
-            headers=REGION_REQUEST,
             template_name="tests/list_view_block_override.html",
             extra_context={"override": "page.results"},
         )
@@ -1288,9 +1310,7 @@ class TestListPageUpdatesInPlace:
         soup = _list_page(rf)
 
         result = soup.find(id="mvp-list").find(string="Lamp").parent
-        assert not any(
-            ancestor.get("hx-target") for ancestor in result.find_parents()
-        )
+        assert not any(ancestor.get("hx-target") for ancestor in result.find_parents())
 
 
 LIST_PAGE_BLOCKS = [
