@@ -13,8 +13,11 @@ from datetime import date
 from decimal import Decimal
 from pathlib import Path
 
+import django_filters
 import pytest
 
+from demo.models import Product
+from mvp.filters import SearchFilter
 from mvp.fixtures import _beautiful_soup
 from tests.factories import ProductFactory
 
@@ -28,11 +31,20 @@ def _empty_product_table():
     return ProductTable([])
 
 
+class ProductTableFilter(django_filters.FilterSet):
+    q = SearchFilter(fields=["name"])
+    status = django_filters.ChoiceFilter(choices=Product.STATUS_CHOICES)
+    is_featured = django_filters.BooleanFilter()
+
+    class Meta:
+        model = Product
+        fields: list[str] = []
+
+
 def _table_view_class(table_class=None, paginate_by=25, **attrs):
     """A table view declared against the current integration: model +
     table_class only, plus what's needed to make its actions visible."""
     pytest.importorskip("django_tables2")
-    from demo.models import Product
     from demo.tables import ProductTable
     from mvp.integrations.django_tables.views import MVPTableView
 
@@ -43,7 +55,8 @@ def _table_view_class(table_class=None, paginate_by=25, **attrs):
         model = Product
         table_class = resolved_table_class
         paginate_by = resolved_paginate_by
-        search_fields = ["name"]
+        filterset_class = ProductTableFilter
+        toolbar_filters = ["q"]
         show_create_action = True
 
     for name, value in attrs.items():
@@ -711,7 +724,7 @@ class TestTableToolbar:
 
     @pytest.mark.django_db
     def test_the_add_action_alone_draws_no_panel(self, rf, product):
-        html = _render_table_view(rf, search_fields=None)
+        html = _render_table_view(rf, filterset_class=None)
         soup = _beautiful_soup()(html, "html.parser")
 
         assert soup.find("a", href="/products/create/") is not None
@@ -721,7 +734,7 @@ class TestTableToolbar:
     def test_a_view_with_nothing_to_put_in_the_panel_has_no_panel_or_toggle(
         self, rf, product
     ):
-        html = _render_table_view(rf, search_fields=None, show_create_action=False)
+        html = _render_table_view(rf, filterset_class=None, show_create_action=False)
         soup = _beautiful_soup()(html, "html.parser")
 
         assert soup.find(class_="mvp-table-toolbar").find("h1") is not None
@@ -746,6 +759,57 @@ class TestTableToolbar:
         )
 
     @pytest.mark.django_db
+    def test_the_toolbar_fields_are_in_the_panels_filter_form(self, rf, product):
+        html = _render_table_view(rf, toolbar_filters=["q", "status"])
+        soup = _beautiful_soup()(html, "html.parser")
+
+        form = soup.find(id=TOOLBAR_PANEL).find("form", id="filterForm")
+        assert form.find(attrs={"name": "q"}) is not None
+        assert form.find(attrs={"name": "status"}) is not None
+        assert soup.find(id="filterModal").find(attrs={"name": "status"}) is None
+
+    @pytest.mark.django_db
+    def test_the_rest_of_the_filterset_is_in_the_filter_modal(self, rf, product):
+        html = _render_table_view(rf, toolbar_filters=["q", "status"])
+        soup = _beautiful_soup()(html, "html.parser")
+
+        modal = soup.find(id=TOOLBAR_PANEL).find(id="filterModal")
+        assert modal.find(attrs={"name": "is_featured"}) is not None
+        assert modal.find_parent("form", id="filterForm") is not None
+        assert modal.find(attrs={"name": "q"}) is None
+
+    @pytest.mark.django_db
+    def test_the_filter_button_opens_the_modal_from_the_panel(self, rf, product):
+        soup = _beautiful_soup()(_render_table_view(rf), "html.parser")
+
+        button = soup.find("button", attrs={"aria-haspopup": "dialog"})
+        assert "filterModal.showModal()" in button["@click"]
+        assert button.find_parent(id=TOOLBAR_PANEL) is not None
+        assert button.find_parent(class_="mvp-table-toolbar-bar") is None
+
+    @pytest.mark.django_db
+    def test_a_filterset_drawn_whole_in_the_panel_has_no_filter_button(
+        self, rf, product
+    ):
+        html = _render_table_view(rf, toolbar_filters=["q", "status", "is_featured"])
+        soup = _beautiful_soup()(html, "html.parser")
+
+        assert soup.find(id="filterModal") is None
+        assert soup.find("button", attrs={"aria-haspopup": "dialog"}) is None
+        assert soup.find(id=TOOLBAR_PANEL).find(attrs={"name": "is_featured"})
+
+    @pytest.mark.django_db
+    def test_an_applied_filter_is_a_chip_in_the_panel_after_the_form(
+        self, rf, product
+    ):
+        html = _render_table_view(rf, query="?is_featured=true")
+        soup = _beautiful_soup()(html, "html.parser")
+
+        chips = soup.find(id=TOOLBAR_PANEL).find(class_="mvp-list-refinements")
+        assert chips.find("a", href="/products/") is not None
+        assert chips.find_parent("form") is None
+
+    @pytest.mark.django_db
     def test_the_bar_says_nothing_when_no_filter_is_applied(self, rf, product):
         soup = _beautiful_soup()(_render_table_view(rf), "html.parser")
 
@@ -758,8 +822,6 @@ class TestTableToolbar:
             "page.toolbar",
             "page.summary",
             "page.panel",
-            "page.search",
-            "page.controls",
             "page.refinements",
         ],
     )

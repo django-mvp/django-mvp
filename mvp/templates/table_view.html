@@ -59,8 +59,13 @@
                                               :create_modal_title="create_modal_title" />
             </c-slot>
             {% block page.panel %}
-              {% if toolbar_fields is not None %}
-                {# SKETCH (FS-041): the same filter form as a list page, in the panel. #}
+              {% comment %}
+                The same filter form as a list page: the toolbar fields, then
+                the Filter button at the panel's end, with the filter modal
+                inside the form. The chips follow it. A view with no filterset
+                draws no panel.
+              {% endcomment %}
+              {% if filter %}
                 <form id="filterForm"
                       method="get"
                       action="."
@@ -77,33 +82,6 @@
                                                  :fields="modal_fields"
                                                  :clear_url="clear_modal_url" />
                 </form>
-                <c-mvp.page.list.refinements :refinements="refinements"
-                                             :clear_refinements_url="clear_refinements_url"
-                                             only />
-              {% elif is_searchable or filter or refinements %}
-                <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
-                  {% if is_searchable %}
-                    <div class="w-full md:w-1/3 md:max-w-sm">
-                      {% block page.search %}
-                        <c-mvp.page.list.actions.search class="w-full"
-                                                        input_class="min-w-0"
-                                                        :is_searchable="is_searchable"
-                                                        :search_query="search_query"
-                                                        only />
-                      {% endblock page.search %}
-                    </div>
-                  {% endif %}
-                  <div class="flex flex-wrap items-center gap-2 md:ms-auto">
-                    {% block page.controls %}
-                      <c-mvp.page.list.actions :actions="['filter']"
-                                              :is_searchable="is_searchable"
-                                              :filter="filter"
-                                              :applied_filters="applied_filters"
-                                              :applied_filter_count="applied_filter_count"
-                                              :clear_filters_url="clear_filters_url" />
-                    {% endblock page.controls %}
-                  </div>
-                </div>
                 {% block page.refinements %}
                   <c-mvp.page.list.refinements :refinements="refinements"
                                                :clear_refinements_url="clear_refinements_url"
