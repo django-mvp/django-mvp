@@ -238,6 +238,17 @@ django-filter's `FilterView` does. A view that scopes its records in `get_querys
 scopes the list and the context's `filter.qs` alike. Override `get_filterset_class()` or
 `get_filterset()` to change either.
 
+A filter on a related field offers every row of the related model, in the filter modal and
+in the toolbar. When the related rows belong to a user, declare the filter on a
+`filterset_class` with a queryset that reads the request, so each visitor sees their own:
+
+```python
+class ProductFilter(django_filters.FilterSet):
+    category = django_filters.ModelChoiceFilter(
+        queryset=lambda request: Category.objects.filter(owner=request.user)
+    )
+```
+
 A value the address carries that a filter cannot accept, such as a sort option that no
 longer exists or a choice that was removed, is ignored for that filter alone. The other
 filters still apply and the list is never emptied because of it.
