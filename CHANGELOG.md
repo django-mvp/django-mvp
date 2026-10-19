@@ -34,6 +34,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   applied filters. Its `page.search` and `page.controls` blocks are gone; `page.summary`
   is inside `page.refinements`. The new `c-mvp.page.list.filters.modal` draws the Filter
   button and the filter modal, and `c-mvp.page.list.toolbar` gains `bare`.
+- A list view's `toolbar_filters` names the filterset fields drawn in the toolbar, in
+  that order, with the sort at the end of the row by the Filter and add buttons; the rest
+  stay in the filter modal, and naming them all leaves no Filter button and no modal. A
+  search, a sort, choices, several choices, a yes-or-no switch and text each have a
+  compact form, and a filter with a widget of the developer's own is drawn by that widget,
+  with no asset loaded by the package. Naming a field the filterset lacks, or one the
+  toolbar cannot draw such as a `RangeFilter`, raises `ImproperlyConfigured` naming the
+  view and the field. `get_toolbar_field()` is the hook for drawing another kind. The new
+  `c-mvp.page.list.filters.field` draws one toolbar field.
 - **Breaking:** daisy-cotton is pinned to `>=0.2,<0.3`. Its alert no longer picks an icon
   from its variant, so every alert the package draws passes its icon itself; a project
   alert that relied on the variant's icon passes `icon` too. On the delete page,

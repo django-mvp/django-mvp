@@ -238,6 +238,7 @@ the whole screen. `fill` takes the full width and height and ignores `width`.
 | `c-mvp.page.list.empty` | `icon`, `heading`, `message` — empty state |
 | `c-mvp.page.list.toolbar` | slots `search`, `summary` and the default slot for controls; `bare` draws the default slot as the row itself — the row above a list's results |
 | `c-mvp.page.list.filters.modal` | `part` (`button` or `dialog`), `fields`, `applied_count`, `clear_url` — the Filter button, or the filter modal holding the filterset fields it is given; draws nothing with no fields |
+| `c-mvp.page.list.filters.field` | `field` — one filterset field in the toolbar, in its compact form, from a dict `get_toolbar_field()` returns; must sit inside the filter form |
 | `c-mvp.page.list.summary` | `class` — the count of what the list holds |
 | `c-mvp.page.list.refinements` | `class` — the applied search and filters, each as a control that removes it |
 | `c-mvp.page.list.footer` | `page_obj`, `size`, `class` — the foot of a list page: the range shown and the pager. Its spacing comes from `class`, and `size` sets the pager's button size |
@@ -477,6 +478,7 @@ and `table_view.html` do: `<c-mvp.page.list.summary :result_count="result_count"
 | `c-mvp.page.list.empty` | `directory` (its `create_url` gates the add button), `create_form`, `refinements` (switches it to the nothing-matches message with a link to `clear_refinements_url`), `search_query`, `applied_filters`, `model_info` | `icon` (default `search`), `heading`, `message`, `icon_class`, `class`; `create_modal` draws the create dialog with the add button, for a page where nothing else draws it, with `create_modal_title` as its heading and `request` so it returns to the page |
 | `c-mvp.page.list.toolbar` | `result_count`, `refinements` (renders nothing when both are empty) | slots `search` and `summary`, default slot for the controls, `bare`, `class` |
 | `c-mvp.page.list.filters.modal` | — | `part` (`button` draws the Filter button, `dialog` the modal), `fields` (the bound fields, each drawn once), `applied_count` (the button's badge), `clear_url` (the modal's clear link) |
+| `c-mvp.page.list.filters.field` | — | `field`, one entry of `toolbar_fields` or `toolbar_sort`, drawn by its `kind`. A developer's widget is drawn inside a `[data-mvp-toolbar-field]` wrapper |
 | `c-mvp.page.list.summary` | `result_count`, `refinements`, `model_info` | `class` |
 | `c-mvp.page.list.refinements` | `refinements`, `clear_refinements_url` | `class` |
 | `c-mvp.page.list.footer` | — | `page_obj`, `size`, `class` |
@@ -497,10 +499,14 @@ appears only where a caller asks for it.
   <c-mvp.page.list.toolbar bare>
     {% if filter %}
       <form id="filterForm" method="get" action="." class="contents">
+        {% for field in toolbar_fields %}
+          <c-mvp.page.list.filters.field :field="field" />
+        {% endfor %}
         <c-mvp.page.list.filters.modal part="dialog" :fields="modal_fields" />
       </form>
     {% endif %}
     <c-mvp.page.list.summary />
+    {% if toolbar_sort %}<c-mvp.page.list.filters.field :field="toolbar_sort" />{% endif %}
     <c-mvp.page.list.filters.modal part="button" :fields="modal_fields"
                                    :applied_count="modal_applied_count" />
     <c-mvp.page.list.actions.create />

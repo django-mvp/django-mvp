@@ -246,7 +246,80 @@ instead (`sort_label` in the context). The search is an applied filter like any 
 labelled by its own label.
 
 Every field of the filterset is drawn in the filter modal, behind the Filter button in
-the toolbar. Closing the modal without applying it leaves the list as it was.
+the toolbar, unless the view names it in `toolbar_filters`. Closing the modal without
+applying it leaves the list as it was.
+
+### Choosing which filters go in the toolbar
+
+`toolbar_filters` names the filterset fields drawn in the toolbar itself, where they can be
+reached without opening anything:
+
+```python
+class ProductListView(MVPListView):
+    model = Product
+    filterset_class = ProductFilter
+    toolbar_filters = ["q", "status", "o"]
+```
+
+The named fields are drawn in the toolbar in that order, each once. The sort is the
+exception: wherever it is named, it is drawn at the end of the row, before the Filter and
+add buttons. Every field not named stays in the filter modal. Name every field and the
+page draws no Filter button and no modal. The default, `[]`, leaves every field in the
+modal.
+
+Each kind of filter has a compact form in the toolbar:
+
+| Filter | Drawn as |
+| --- | --- |
+| `SearchFilter` | A search box with its button, taking the room the row has left |
+| `SortFilter` | A button opening its options; picking one applies it |
+| `ChoiceFilter`, `ModelChoiceFilter` | A button opening the choices, with "Any" first; picking one applies it |
+| `MultipleChoiceFilter`, `ModelMultipleChoiceFilter` | A button opening a list of checkboxes; the list applies when it closes with a changed choice |
+| `BooleanFilter` | A switch that applies when flipped |
+| `CharFilter` | A text box |
+| Any filter given a widget other than its field's default | That widget, drawn as it is |
+
+Each control is named by its filter's label for a screen reader. None shows the value
+chosen in it, so the row keeps its width: a chosen value is shown on its chip below the
+toolbar, and the chosen sort beside the count.
+
+A filter with a widget of your own, such as a Tom Select control, is drawn by that widget
+and nothing more. It gains daisyUI's `select w-full` class (`input w-full` for anything
+that is not a select) and an `aria-label` of the filter's label, unless it declares its
+own, and it applies when focus leaves it with a different value than it found. The package
+loads no asset such a widget needs: the page still writes `{{ filter.form.media }}`, and
+the project loads anything else the widget relies on itself.
+
+Any other filter, such as a `RangeFilter` or a `DateFilter` with its default widget, has
+no compact form. Naming it in `toolbar_filters` raises `ImproperlyConfigured` on the first
+request, naming the view, the field and the filter's class; leave it in the modal. So does
+a name the filterset has no field for, naming the view, the name and the filterset.
+
+To draw a filter the toolbar does not cover, override `get_toolbar_field(filterset, name)`
+and return a dict with a `kind` of your own, then draw it in an override of the
+`page.toolbar` block:
+
+```python
+class ProductListView(MVPListView):
+    model = Product
+    filterset_class = ProductFilter
+    toolbar_filters = ["q", "price"]
+
+    def get_toolbar_field(self, filterset, name):
+        if name == "price":
+            return {"kind": "range", "name": name, "label": filterset.form[name].label}
+        return super().get_toolbar_field(filterset, name)
+```
+
+Every dict carries `name`, `label` and `kind`. The package's kinds add:
+
+| `kind` | Extra keys |
+| --- | --- |
+| `search`, `text` | `value`, the value the request sent |
+| `sort`, `choice` | `value`, and `choices` as `(key, label, selected)` without the empty choice |
+| `multichoice` | `choices` as `(key, label, selected)` |
+| `toggle` | `checked` |
+| `widget` | `bound`, the field's bound field |
 
 ### Moving search_fields and order_by into a filterset
 
@@ -303,8 +376,9 @@ ignores a `SortFilter`.
 From top to bottom, the list template draws:
 
 1. **The title row.** The title, the subtitle and the info button.
-2. **The toolbar.** The filter form, then the Filter button that opens the filter modal,
-   and the add button last.
+2. **The toolbar.** The filter form with the fields named in `toolbar_filters`, then the
+   sort when it is named, the Filter button that opens the filter modal, and the add
+   button last.
 3. **The count row.** A count of what the list holds, the chosen sort, then what is
    narrowing the list: the search and each applied filter, each drawn as a control that
    removes it. Two or more also get a single "Clear all".
@@ -325,7 +399,7 @@ page, as in "Products (page 2 of 4)".
 
 ### What the view tells the template
 
-Three context keys describe the state of the list:
+These context keys describe the state of the list:
 
 | Key | Value |
 | --- | --- |
@@ -334,6 +408,9 @@ Three context keys describe the state of the list:
 | `clear_refinements_url` | The current URL with the search and every filter removed, and the sort kept. Present only when `refinements` is not empty |
 | `sort_label` | The label of the chosen sort option, or `""`. Present only when the view has a filterset |
 | `filter`, `filterset` | The request's filterset, under both names. Present only when the view has one |
+| `toolbar_fields` | The fields `toolbar_filters` names, as `get_toolbar_field()` describes them, in that order and without the sort. Present only when the view has a filterset |
+| `toolbar_sort` | The sort, described the same way, when `toolbar_filters` names it; otherwise `None` |
+| `modal_fields` | The bound fields of every other field of the filterset, for the filter modal |
 
 Each entry in `refinements` is a dict:
 
