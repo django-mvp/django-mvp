@@ -13,7 +13,6 @@ from django.http import Http404
 from django.urls import reverse, reverse_lazy
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
-from django_filters.views import FilterView
 from markdown_it import MarkdownIt
 
 from demo.component_docs import COMPONENTS, COMPONENTS_BY_SLUG
@@ -27,7 +26,7 @@ from demo.models import (
     ProjectTask,
 )
 from demo.tables import ColumnBehaviourTable, ProductTable
-from mvp.integrations.django_tables.views import MVPTableView, MVPTableViewMixin
+from mvp.integrations.django_tables.views import MVPTableView
 from mvp.views import (
     InlineFormSet,
     MVPCreateView,
@@ -40,7 +39,7 @@ from mvp.views import (
     PageWidth,
 )
 from mvp.views.htmx import HtmxFormMixin
-from mvp.views.list import MVPListView, MVPListViewMixin
+from mvp.views.list import MVPListView
 
 from .filters import ProductFilter, ProductQuickFilter
 from .forms import LayoutDemoForm, ProductForm
@@ -416,7 +415,7 @@ E404 = DemoTemplateView.as_view(template_name="404.html")
 E500 = DemoTemplateView.as_view(template_name="500.html")
 
 
-class ProductListView(MVPListViewMixin, FilterView):
+class ProductListView(MVPListView):
     """Demo page showing a list view of Products.
 
     Search, filter and sort controls, and a create action, all wired through
@@ -445,7 +444,6 @@ class ProductListView(MVPListViewMixin, FilterView):
     paginate_by = 10
     # SKETCH (FS-041): one filterset, five of its fields in the toolbar.
     filterset_class = ProductFilter
-    strict = False
     toolbar_filters = ["q", "status", "category", "is_featured", "o"]
 
 
@@ -759,7 +757,7 @@ class CategoryDeleteWithRelatedWarningView(CategoryDeleteWithRelatedView):
     related_objects_attrs = {"variant": "warning"}
 
 
-class DataTablesView(MVPTableViewMixin, FilterView):
+class DataTablesView(MVPTableView):
     """Django Tables2 demo page showing Product table with sorting and pagination."""
 
     model = Product
@@ -768,11 +766,10 @@ class DataTablesView(MVPTableViewMixin, FilterView):
     show_create_action = True
     # SKETCH (FS-041): the product list's filterset; its sort is ignored here.
     filterset_class = ProductFilter
-    strict = False
     toolbar_filters = ["q", "status", "category", "o"]
 
 
-class CustomToolbarTableView(MVPTableViewMixin, FilterView):
+class CustomToolbarTableView(MVPTableView):
     """The product table with a toolbar a project has filled in for itself."""
 
     model = Product
@@ -781,7 +778,6 @@ class CustomToolbarTableView(MVPTableViewMixin, FilterView):
     page_title = "Stock"
     page_subtitle = "Every product, with what is left of it."
     paginate_by = 25
-    search_fields = ["name", "description"]
     show_create_action = True
     filterset_fields = ["status", "priority"]
 

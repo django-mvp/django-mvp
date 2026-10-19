@@ -22,7 +22,9 @@ from .list import MVPListView
 #   from mvp.views.detail import CRUDDirectoryMixin, PageObjectMixin
 #   from mvp.views.edit import NextURLMixin
 #   from mvp.views.inline import InlinesMixin
-#   from mvp.views.list import SearchMixin, OrderMixin, FilterContextMixin
+#   from mvp.views.list import MVPListViewMixin, FilterContextMixin
+# The filters a list view's filterset declares its search and sort with:
+#   from mvp.filters import SearchFilter, SortFilter
 # Views built on optional third-party packages live in mvp.integrations and
 # are intentionally NOT exported here:
 #   from mvp.integrations.django_tables.views import MVPTableView

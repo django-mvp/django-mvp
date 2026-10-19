@@ -169,8 +169,23 @@
         },
         {
           "id": "T007",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 2,
+          "evidence": {
+            "tests": [
+              "tests/test_views/test_list.py::TestRemovedSettings",
+              "tests/test_views/test_list.py::TestDjangoFiltersComposition",
+              "tests/test_views/test_list.py::TestDjangoFiltersNoOpCases",
+              "tests/test_views/test_list.py::TestActionsFollowViewConfiguration",
+              "tests/test_views/test_list.py::TestFilterFormFollowsTheFilterset"
+            ],
+            "commands": [
+              "uv run pytest -q -p no:randomly tests/test_views/test_list.py::TestRemovedSettings tests/test_views/test_list.py::TestDjangoFiltersComposition tests/test_views/test_list.py::TestDjangoFiltersNoOpCases tests/test_views/test_list.py::TestActionsFollowViewConfiguration tests/test_views/test_list.py::TestFilterFormFollowsTheFilterset tests/test_views/test_list.py::TestMVPListViewMixinContextKeys tests/test_integrations.py::TestTableViewOrdering"
+            ],
+            "code": [
+              "mvp/views/list.py:430"
+            ]
+          }
         },
         {
           "id": "T008",

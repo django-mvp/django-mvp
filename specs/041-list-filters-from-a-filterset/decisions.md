@@ -125,3 +125,18 @@ filterset is first built, since the cache now hands the same instance to every c
 still rebuilds it.
 
 **Revisit if:** no caller ever passes the class once US-5 lands.
+
+## The table's own order_by refusal goes with the mixins (US-1, T007)
+
+**Decision:** T007 removes `MVPTableViewMixin.__init_subclass__`'s refusal of `order_by` and
+converts the demo's list and table views off `FilterView` and `search_fields`, instead of
+leaving those to T023 and T011.
+
+**Why:** once `OrderMixin` is gone no class carries `order_by`, so the table's check
+(`if cls.order_by`) raised `AttributeError` for every table view; and `demo/views.py` is imported
+by the URLconf, so a demo view the new refusal rejects would fail every request in the suite. The
+list mixin's refusal already gives a table view the table-specific `order_by` message, which is
+what T023 asked for. The custom-toolbar table page loses its search box until T026 rebuilds it,
+because its template draws every filterset field as a select.
+
+**Revisit if:** T023 or T026 needs either back in another shape.

@@ -1,18 +1,10 @@
-"""Tests for SearchMixin, OrderMixin, SearchOrderMixin in mvp.views.list.
-
-Covers all user stories from specs/014-list-search-ordering/:
-
-  US1 — Text Search (SearchMixin)
-  US2 — Safe Column Ordering (OrderMixin three-tuple format)
-  US3 — Combined Search and Ordering (SearchOrderMixin)
-  US4 — django_filters composition
+"""Tests for the list views in mvp.views.list.
 
 Source: mvp/views/list.py
 """
 
 import django_filters
 import pytest
-from django.db.models.functions import Lower
 from django.test import RequestFactory
 from django.views.generic import ListView
 
@@ -22,108 +14,11 @@ from mvp.fixtures import _beautiful_soup
 from mvp.views.list import (
     MVPListView,
     MVPListViewMixin,
-    OrderMixin,
-    SearchMixin,
-    SearchOrderMixin,
 )
 from tests.factories import CategoryFactory, ProductFactory
 
-try:
-    from django_filters.views import FilterView as _FilterView
-
-    HAS_DJANGO_FILTERS = True
-except ImportError:  # pragma: no cover
-    HAS_DJANGO_FILTERS = False
-
-    class _FilterView(ListView):  # type: ignore[no-redef]
-        """Fallback stub when django-filter is not installed."""
-
-        pass
-
 
 CARD = "cards/product_card.html"
-
-
-class _StubFilterView(SearchOrderMixin, _FilterView):
-    """Combined stub for django_filters composition tests (US4).
-
-    Overrides render_to_response to avoid template rendering in unit tests.
-    """
-
-    model = Product
-    filterset_fields = ["category"]
-    search_fields = ["name"]
-    order_by = [
-        ("name_asc", "Name A-Z", "name"),
-        ("name_desc", "Name Z-A", "-name"),
-    ]
-
-    def render_to_response(self, context, **kwargs):
-        return context  # skip template rendering in unit tests
-
-
-class _StubFilterViewNoSearch(SearchOrderMixin, _FilterView):
-    """Stub for no-op search tests with filterset (US4)."""
-
-    model = Product
-    filterset_fields = ["category"]
-    search_fields = None
-    order_by = None
-
-    def render_to_response(self, context, **kwargs):
-        return context
-
-
-def _make_view(base_mixin, params=None, extra_attrs=None):
-    """Return a configured mixin+ListView stub instance with a fake GET request.
-
-    The returned view has ``request``, ``kwargs``, and ``args`` set.
-    Call ``get_queryset()`` and then set ``object_list`` before calling
-    ``get_context_data()``.
-    """
-    rf = RequestFactory()
-    request = rf.get("/", data=params or {})
-
-    attrs = {
-        "model": Product,
-        "template_name": "base.html",
-        **(extra_attrs or {}),
-    }
-    view_cls = type("StubView", (base_mixin, ListView), attrs)
-    view = view_cls()
-    view.request = request
-    view.kwargs = {}
-    view.args = []
-    return view
-
-
-def _make_search_view(params=None, extra_attrs=None):
-    return _make_view(SearchMixin, params=params, extra_attrs=extra_attrs)
-
-
-def _make_order_view(params=None, extra_attrs=None):
-    return _make_view(OrderMixin, params=params, extra_attrs=extra_attrs)
-
-
-def _make_search_order_view(params=None, extra_attrs=None):
-    return _make_view(SearchOrderMixin, params=params, extra_attrs=extra_attrs)
-
-
-def _make_filter_view(params=None):
-    """Return a configured _StubFilterView with a fake GET request."""
-    rf = RequestFactory()
-    request = rf.get("/", data=params or {})
-    view = _StubFilterView()
-    view.setup(request)
-    return view
-
-
-def _make_filter_view_no_config(params=None):
-    rf = RequestFactory()
-    request = rf.get("/", data=params or {})
-    view = _StubFilterViewNoSearch()
-    view.setup(request)
-    return view
 
 
 @pytest.fixture
@@ -153,423 +48,52 @@ def _product(cat, name, description="", slug=None, price="9.99", **kwargs):
     )
 
 
-class TestSearchMixin:
-    def test_search_no_query_returns_all(self, db, cat):
-        _product(cat, "Alpha")
-        _product(cat, "Beta")
-        view = _make_search_view(
-            params={},
-            extra_attrs={"search_fields": ["name"]},
-        )
-        assert view.get_queryset().count() == 2
-
-    def test_search_single_word_filters(self, db, cat):
-        _product(cat, "Alpha Widget")
-        _product(cat, "Beta Widget")
-        view = _make_search_view(
-            params={"q": "alpha"},
-            extra_attrs={"search_fields": ["name"]},
-        )
-        qs = view.get_queryset()
-        assert qs.count() == 1
-        assert qs.first().name == "Alpha Widget"
-
-    def test_search_multi_word_or_semantics(self, db, cat):
-        _product(cat, "Alpha Product")
-        _product(cat, "Beta Product")
-        _product(cat, "Gamma Product")
-        view = _make_search_view(
-            params={"q": "alpha beta"},
-            extra_attrs={"search_fields": ["name"]},
-        )
-        qs = view.get_queryset()
-        assert qs.count() == 2
-        names = list(qs.values_list("name", flat=True))
-        assert "Alpha Product" in names
-        assert "Beta Product" in names
-
-    def test_search_case_insensitive(self, db, cat):
-        _product(cat, "Django Framework")
-        view = _make_search_view(
-            params={"q": "DJANGO"},
-            extra_attrs={"search_fields": ["name"]},
-        )
-        assert view.get_queryset().count() == 1
-
-    def test_search_whitespace_only_query_no_filter(self, db, cat):
-        _product(cat, "Alpha")
-        _product(cat, "Beta")
-        view = _make_search_view(
-            params={"q": "   "},
-            extra_attrs={"search_fields": ["name"]},
-        )
-        assert view.get_queryset().count() == 2
-
-
-class TestSearchMixinWordLimit:
-    def test_a_very_long_query_still_returns_a_page(self, db, cat):
-        _product(cat, "Alpha", description="widget")
-        term = " ".join(f"w{i}" for i in range(4000))
-        view = _make_search_view(
-            params={"q": term},
-            extra_attrs={"search_fields": ["name", "description"]},
-        )
-        assert list(view.get_queryset()) == []
-
-    def test_only_the_first_words_are_searched(self, db, cat):
-        _product(cat, "Alpha")
-        _product(cat, "Beta")
-        words = ["alpha"] + [f"w{i}" for i in range(SearchMixin.max_search_words)]
-        view = _make_search_view(
-            params={"q": " ".join([*words, "beta"])},
-            extra_attrs={"search_fields": ["name"]},
-        )
-        qs = view.get_queryset()
-        assert list(qs.values_list("name", flat=True)) == ["Alpha"]
-
-    def test_the_limit_is_raisable_per_project(self, db, cat):
-        _product(cat, "Alpha")
-        _product(cat, "Beta")
-        term = " ".join(["alpha", *[f"w{i}" for i in range(20)], "beta"])
-
-        default_view = _make_search_view(
-            params={"q": term},
-            extra_attrs={"search_fields": ["name"]},
-        )
-        raised_view = _make_search_view(
-            params={"q": term},
-            extra_attrs={"search_fields": ["name"], "max_search_words": 50},
-        )
-
-        assert default_view.get_queryset().count() == 1
-        assert raised_view.get_queryset().count() == 2
-
-
-class TestSearchMixinNoConfig:
-    def test_search_no_fields_configured_is_noop(self, db, cat):
-        _product(cat, "Alpha")
-        _product(cat, "Beta")
-        view = _make_search_view(
-            params={"q": "alpha"},
-            extra_attrs={"search_fields": None},
-        )
-        assert view.get_queryset().count() == 2
-
-    def test_search_is_searchable_false_when_unconfigured(self, db, cat):
-        view = _make_search_view(
-            params={},
-            extra_attrs={"search_fields": None},
-        )
-        view.object_list = view.get_queryset()
-        ctx = view.get_context_data()
-        assert ctx["is_searchable"] is False
-
-    def test_search_context_always_injected_when_unconfigured(self, db, cat):
-        view = _make_search_view(
-            params={"q": "anything"},
-            extra_attrs={"search_fields": None},
-        )
-        view.object_list = view.get_queryset()
-        ctx = view.get_context_data()
-        assert "is_searchable" in ctx
-        assert "search_query" in ctx
-        assert ctx["search_query"] == "anything"
-
-    def test_search_context_always_injected_when_configured(self, db, cat):
-        view = _make_search_view(
-            params={"q": "test"},
-            extra_attrs={"search_fields": ["name"]},
-        )
-        view.object_list = view.get_queryset()
-        ctx = view.get_context_data()
-        assert ctx["is_searchable"] is True
-        assert ctx["search_query"] == "test"
-
-    def test_search_query_stripped_in_context(self, db, cat):
-        view = _make_search_view(
-            params={"q": "  hello  "},
-            extra_attrs={"search_fields": ["name"]},
-        )
-        view.object_list = view.get_queryset()
-        ctx = view.get_context_data()
-        # search_query should be the raw GET value (not stripped)
-        # per FR-002: context always injects the raw value
-        assert ctx["search_query"] == "  hello  "
-
-
-class TestSearchMixinAdvanced:
-    def test_search_related_field_traversal(self, db, cat):
-        _product(cat, "Widget A", description="")
-        # Create a product whose category name does NOT match
-        other_cat = CategoryFactory(name="Other Cat", slug="other-cat")
-        _product(other_cat, "Widget B", description="")
-        view = _make_search_view(
-            params={"q": "Test"},  # matches cat.name = "Test Category"
-            extra_attrs={"search_fields": ["category__name"]},
-        )
-        qs = view.get_queryset()
-        assert qs.count() == 1
-        assert qs.first().name == "Widget A"
-
-    def test_search_distinct_deduplicates(self, db, cat):
-        # A product with "python" in both name and description
-        _product(cat, "Python Widget", description="python tools for developers")
-        _product(cat, "Java Widget", description="java tools")
-        view = _make_search_view(
-            params={"q": "python"},
-            extra_attrs={"search_fields": ["name", "description"]},
-        )
-        qs = view.get_queryset()
-        assert qs.count() == 1  # not 2 even though it matched both fields
-
-
-_ORDER_CHOICES = [
-    ("name_asc", "Name A-Z", "name"),
-    ("name_desc", "Name Z-A", "-name"),
-    ("price_asc", "Price Low-High", "price"),
-]
-
-
-class TestOrderMixin:
-    def test_order_valid_key_applies_orm_expression(self, db, cat):
-        _product(cat, "Beta", price="5.00")
-        _product(cat, "Alpha", price="10.00")
-        view = _make_order_view(
-            params={"o": "name_asc"},
-            extra_attrs={"order_by": _ORDER_CHOICES},
-        )
-        qs = list(view.get_queryset())
-        assert qs[0].name == "Alpha"
-        assert qs[1].name == "Beta"
-
-    def test_order_invalid_key_ignored(self, db, cat):
-        _product(cat, "Zeta")
-        _product(cat, "Alpha")
-        view = _make_order_view(
-            params={"o": "arbitrary_field"},
-            extra_attrs={"order_by": _ORDER_CHOICES},
-        )
-        # Just verify it returns without error and doesn't crash
-        qs = view.get_queryset()
-        assert qs.count() == 2
-
-    def test_order_absent_parameter_no_override(self, db, cat):
-        _product(cat, "Zeta")
-        _product(cat, "Alpha")
-        view = _make_order_view(
-            params={},
-            extra_attrs={"order_by": _ORDER_CHOICES},
-        )
-        # get_queryset() should not crash and should return all records
-        qs = view.get_queryset()
-        assert qs.count() == 2
-
-    def test_order_descending_orm_expression(self, db, cat):
-        _product(cat, "Alpha", price="5.00")
-        _product(cat, "Beta", price="10.00")
-        view = _make_order_view(
-            params={"o": "name_desc"},
-            extra_attrs={"order_by": _ORDER_CHOICES},
-        )
-        qs = list(view.get_queryset())
-        assert qs[0].name == "Beta"
-        assert qs[1].name == "Alpha"
-
-
-class TestOrderMixinTiebreak:
-    def test_a_sequence_orm_expression_applies_every_field(self, db, cat):
-        _product(cat, "Charlie", price="5.00")
-        _product(cat, "Alpha", price="5.00")
-        choices = [("name_asc", "Name (A-Z)", [Lower("name"), "pk"])]
-        view = _make_order_view(
-            params={"o": "name_asc"}, extra_attrs={"order_by": choices}
-        )
-        qs = list(view.get_queryset())
-        assert [p.name for p in qs] == ["Alpha", "Charlie"]
-
-    def test_tiebreak_breaks_the_tie_deterministically_and_completely(self, db, cat):
-        tied = [_product(cat, "Same", slug=f"same-{i}") for i in range(3)]
-        choices = [("name_asc", "Name (A-Z)", [Lower("name"), "pk"])]
-        view = _make_order_view(
-            params={"o": "name_asc"}, extra_attrs={"order_by": choices}
-        )
-        qs = list(view.get_queryset())
-        assert [p.pk for p in qs] == [p.pk for p in tied]
-
-
-class TestOrderMixinSecurity:
-    def test_order_public_key_not_equal_orm_expression(self, db, cat):
-        _product(cat, "Alpha", price="5.00")
-        _product(cat, "Beta", price="10.00")
-        choices = [
-            ("cheapest", "Cheapest First", "price"),  # public_key ≠ orm_expression
+class SearchSortFilter(django_filters.FilterSet):
+    q = SearchFilter(fields=["name"])
+    o = SortFilter(
+        options=[
+            ("name_asc", "Name A-Z", "name"),
+            ("name_desc", "Name Z-A", "-name"),
         ]
-        view = _make_order_view(
-            params={"o": "cheapest"},
-            extra_attrs={"order_by": choices},
-        )
-        qs = list(view.get_queryset())
-        assert qs[0].price < qs[1].price
+    )
+
+    class Meta:
+        model = Product
+        fields = ["category"]
 
 
-class TestOrderMixinNoConfig:
-    def test_order_no_config_is_noop(self, db, cat):
-        _product(cat, "Alpha")
-        _product(cat, "Beta")
-        view = _make_order_view(
-            params={"o": "name_asc"},
-            extra_attrs={"order_by": None},
-        )
-        qs = view.get_queryset()
-        assert qs.count() == 2
-
-    def test_order_context_not_injected_when_unconfigured(self, db, cat):
-        view = _make_order_view(
-            params={},
-            extra_attrs={"order_by": None},
-        )
-        view.object_list = view.get_queryset()
-        ctx = view.get_context_data()
-        assert "order_by_choices" not in ctx
-        assert "current_ordering" not in ctx
-
-    def test_order_empty_list_is_noop(self, db, cat):
-        _product(cat, "Alpha")
-        view = _make_order_view(
-            params={"o": "name_asc"},
-            extra_attrs={"order_by": []},
-        )
-        qs = view.get_queryset()
-        assert qs.count() == 1
+class CategoryOnlyFilter(django_filters.FilterSet):
+    class Meta:
+        model = Product
+        fields = ["category"]
 
 
-class TestOrderMixinContext:
-    def test_order_context_choices_full_three_tuple_list(self, db, cat):
-        view = _make_order_view(
-            params={},
-            extra_attrs={"order_by": _ORDER_CHOICES},
-        )
-        view.object_list = view.get_queryset()
-        ctx = view.get_context_data()
-        assert ctx["order_by_choices"] == _ORDER_CHOICES
-
-    def test_order_context_current_ordering_is_public_key(self, db, cat):
-        view = _make_order_view(
-            params={"o": "name_asc"},
-            extra_attrs={"order_by": _ORDER_CHOICES},
-        )
-        view.object_list = view.get_queryset()
-        ctx = view.get_context_data()
-        assert (
-            ctx["current_ordering"] == "name_asc"
-        )  # public_key, not "name" (orm_expression)
-
-    def test_order_context_current_ordering_empty_on_invalid(self, db, cat):
-        view = _make_order_view(
-            params={"o": "bogus_key"},
-            extra_attrs={"order_by": _ORDER_CHOICES},
-        )
-        view.object_list = view.get_queryset()
-        ctx = view.get_context_data()
-        assert ctx["current_ordering"] == ""
-
-    def test_order_context_current_ordering_empty_when_absent(self, db, cat):
-        view = _make_order_view(
-            params={},
-            extra_attrs={"order_by": _ORDER_CHOICES},
-        )
-        view.object_list = view.get_queryset()
-        ctx = view.get_context_data()
-        assert ctx["current_ordering"] == ""
+def _filtered_object_list(filterset_class, params):
+    view_cls = type(
+        "StubFilteredListView",
+        (MVPListView,),
+        {
+            "model": Product,
+            "filterset_class": filterset_class,
+            "render_to_response": lambda self, context, **kwargs: context,
+        },
+    )
+    view = view_cls()
+    view.setup(RequestFactory().get("/", data=params))
+    return view.get(view.request)["object_list"]
 
 
-_SEARCH_ORDER_CHOICES = [
-    ("name_asc", "Name A-Z", "name"),
-    ("name_desc", "Name Z-A", "-name"),
-]
-
-
-class TestSearchOrderMixin:
-    def test_combined_search_and_ordering(self, db, cat):
-        _product(cat, "Alpha Widget", description="")
-        _product(cat, "Beta Widget", description="")
-        _product(cat, "Gamma Tool", description="")
-        view = _make_search_order_view(
-            params={"q": "widget", "o": "name_desc"},
-            extra_attrs={
-                "search_fields": ["name"],
-                "order_by": _SEARCH_ORDER_CHOICES,
-            },
-        )
-        qs = list(view.get_queryset())
-        assert len(qs) == 2
-        assert qs[0].name == "Beta Widget"
-        assert qs[1].name == "Alpha Widget"
-
-    def test_combined_search_only_retains_default_ordering(self, db, cat):
-        _product(cat, "Alpha Widget")
-        _product(cat, "Beta Tool")
-        view = _make_search_order_view(
-            params={"q": "widget"},
-            extra_attrs={
-                "search_fields": ["name"],
-                "order_by": _SEARCH_ORDER_CHOICES,
-            },
-        )
-        qs = view.get_queryset()
-        assert qs.count() == 1
-        assert qs.first().name == "Alpha Widget"
-
-    def test_combined_ordering_only_returns_all_records(self, db, cat):
-        _product(cat, "Beta Product")
-        _product(cat, "Alpha Product")
-        view = _make_search_order_view(
-            params={"o": "name_asc"},
-            extra_attrs={
-                "search_fields": ["name"],
-                "order_by": _SEARCH_ORDER_CHOICES,
-            },
-        )
-        qs = list(view.get_queryset())
-        assert len(qs) == 2
-        assert qs[0].name == "Alpha Product"
-
-
-class TestSearchOrderMixinMROOrder:
-    def test_ordering_applied_before_distinct(self, db, cat):
-        # Product matches "python" in both name and description
-        p = _product(cat, "Python Widget", description="python tools for developers")
-        _product(cat, "Java Tool", description="java tools")
-        view = _make_search_order_view(
-            params={"q": "python", "o": "name_asc"},
-            extra_attrs={
-                "search_fields": ["name", "description"],
-                "order_by": [("name_asc", "Name A-Z", "name")],
-            },
-        )
-        qs = view.get_queryset()
-        # Must return exactly one result (distinct deduplicates multi-field matches)
-        assert qs.count() == 1
-        assert qs.first().pk == p.pk
-
-
-requires_django_filters = pytest.mark.skipif(
-    not HAS_DJANGO_FILTERS,
-    reason="django-filter is not installed",
-)
-
-
-@requires_django_filters
 class TestDjangoFiltersComposition:
     def test_filterset_and_search_both_applied(self, db, cat, cat2):
         _product(cat, "Python Widget")
         _product(cat, "Java Widget")
         _product(cat2, "Python Framework")
 
-        view = _make_filter_view(params={"q": "Python", "category": str(cat.pk)})
-        view.get(view.request)  # sets object_list via FilterView.get()
+        object_list = _filtered_object_list(
+            SearchSortFilter, {"q": "Python", "category": str(cat.pk)}
+        )
 
-        names = list(view.object_list.values_list("name", flat=True))
+        names = list(object_list.values_list("name", flat=True))
         assert "Python Widget" in names
         assert "Java Widget" not in names
         assert "Python Framework" not in names
@@ -578,12 +102,12 @@ class TestDjangoFiltersComposition:
         _product(cat, "Beta Product")
         _product(cat, "Alpha Product")
 
-        view = _make_filter_view(
-            params={"category": str(cat.pk), "o": "name_asc"},
+        qs = list(
+            _filtered_object_list(
+                SearchSortFilter, {"category": str(cat.pk), "o": "name_asc"}
+            )
         )
-        view.get(view.request)
 
-        qs = list(view.object_list)
         assert len(qs) == 2
         assert qs[0].name == "Alpha Product"
         assert qs[1].name == "Beta Product"
@@ -593,40 +117,35 @@ class TestDjangoFiltersComposition:
         _product(cat, "Alpha Widget")
         _product(cat2, "Widget Other Category")
 
-        view = _make_filter_view(
-            params={"category": str(cat.pk), "q": "Widget", "o": "name_asc"},
+        qs = list(
+            _filtered_object_list(
+                SearchSortFilter,
+                {"category": str(cat.pk), "q": "Widget", "o": "name_asc"},
+            )
         )
-        view.get(view.request)
 
-        qs = list(view.object_list)
         assert len(qs) == 2
         assert qs[0].name == "Alpha Widget"
         assert qs[1].name == "Beta Widget"
 
 
-@requires_django_filters
 class TestDjangoFiltersNoOpCases:
-    def test_no_search_fields_search_is_noop_with_filterset(self, db, cat, cat2):
+    def test_a_filterset_without_a_search_ignores_q(self, db, cat, cat2):
         _product(cat, "Alpha")
         _product(cat2, "Beta")
 
-        view = _make_filter_view_no_config(
-            params={"q": "Alpha"},  # should have no effect
-        )
-        view.get(view.request)
+        object_list = _filtered_object_list(CategoryOnlyFilter, {"q": "Alpha"})
 
-        # No search_fields means no filtering on ?q= — all products returned
-        assert view.object_list.count() == 2
+        assert object_list.count() == 2
 
-    def test_no_order_by_ordering_is_noop_with_filterset(self, db, cat):
+    def test_a_filterset_without_a_sort_ignores_o(self, db, cat):
         _product(cat, "Beta")
         _product(cat, "Alpha")
+        default = list(Product.objects.all())
 
-        view = _make_filter_view_no_config(params={"o": "name_asc"})
-        view.get(view.request)
+        object_list = _filtered_object_list(CategoryOnlyFilter, {"o": "name_asc"})
 
-        # No order_by means ?o= has no effect — model default ordering is used
-        assert view.object_list.count() == 2
+        assert list(object_list) == default
 
 
 def _make_list_view(params=None, extra_attrs=None):
@@ -806,36 +325,7 @@ class TestMVPListViewMixinGridConfig:
         assert ctx["grid_config"] == {}
 
 
-class TestMVPListViewMixinSearchOrdering:
-    def test_search_query_in_context_when_search_active(self, db):
-        view = _make_list_view(
-            params={"q": "foo"},
-            extra_attrs={"search_fields": ["name"]},
-        )
-        view.object_list = view.get_queryset()
-        ctx = view.get_context_data()
-        assert ctx["search_query"] == "foo"
-
-    def test_search_query_empty_when_not_configured(self, db):
-        view = _make_list_view(extra_attrs={"search_fields": None})
-        view.object_list = view.get_queryset()
-        ctx = view.get_context_data()
-        assert ctx["search_query"] == ""
-
-    def test_current_ordering_in_context_when_ordering_active(self, db):
-        view = _make_list_view(
-            params={"o": "name_asc"},
-            extra_attrs={
-                "order_by": [
-                    ("name_asc", "Name A-Z", "name"),
-                    ("name_desc", "Name Z-A", "-name"),
-                ],
-            },
-        )
-        view.object_list = view.get_queryset()
-        ctx = view.get_context_data()
-        assert ctx["current_ordering"] == "name_asc"
-
+class TestMVPListViewMixinContextKeys:
     def test_mvp_list_view_all_context_keys_present_with_defaults(self, db):
         view = _make_list_view()
         view.object_list = view.get_queryset()
@@ -844,8 +334,6 @@ class TestMVPListViewMixinSearchOrdering:
         assert "empty_state" in ctx
         assert "grid_config" in ctx
         assert "directory" in ctx
-        assert "search_query" in ctx
-        assert "is_searchable" in ctx
         assert "page" in ctx
         assert "title" in ctx["page"]
 
@@ -1041,41 +529,8 @@ class TestEmptyStateMessageRendering:
         assert empty_state.find("p") is None, "no empty paragraph is rendered"
 
 
-def _render_search_sort_list_view(rf):
-    """Render a full, empty MVPListView with search + ordering but no FilterSet."""
-    view_cls = type(
-        "StubSearchSortListView",
-        (MVPListView,),
-        {
-            "model": Product,
-            "list_item_template": CARD,
-            "search_fields": ["name"],
-            "order_by": [("name_asc", "Name (A-Z)", "name")],
-        },
-    )
-    view = view_cls()
-    view.setup(rf.get("/"))
-    response = view.get(view.request)
-    response.render()
-    return response.content.decode()
-
-
-class TestSearchSortControlsWithoutFilterSet:
-    def test_form_referenced_by_search_and_sort_exists_in_the_page(self, rf, cat):
-        _product(cat, "Lamp")
-        html = _render_search_sort_list_view(rf)
-        soup = _beautiful_soup()(html, "html.parser")
-
-        form_ids = {form.get("id") for form in soup.find_all("form") if form.get("id")}
-        referring_ids = {el.get("form") for el in soup.find_all(attrs={"form": True})}
-
-        assert referring_ids, "expected search/sort controls to reference a form"
-        orphaned = referring_ids - form_ids
-        assert not orphaned, (
-            f"controls reference form ids that do not exist: {orphaned}"
-        )
-
-    def test_no_fallback_form_when_neither_search_nor_sort_configured(self, rf, db):
+class TestFilterFormFollowsTheFilterset:
+    def test_no_filter_form_when_the_view_has_no_filterset(self, rf, db):
         view_cls = type("StubPlainListView", (MVPListView,), {"model": Product})
         view = view_cls()
         view.setup(rf.get("/"))
@@ -1086,19 +541,15 @@ class TestSearchSortControlsWithoutFilterSet:
         assert soup.find(id="filterForm") is None
 
     def test_no_duplicate_filter_form_when_filterset_is_configured(self, rf, cat):
-        from django_filters.views import FilterView
-
         _product(cat, "Lamp")
 
         view_cls = type(
             "StubFilteredListView",
-            (MVPListViewMixin, FilterView),
+            (MVPListView,),
             {
                 "model": Product,
                 "list_item_template": CARD,
-                "filterset_fields": ["category"],
-                "search_fields": ["name"],
-                "order_by": [("name_asc", "Name (A-Z)", "name")],
+                "filterset_class": SearchSortFilter,
             },
         )
         view = view_cls()
@@ -1123,16 +574,15 @@ class TestActionsFollowViewConfiguration:
         response.render()
         return response.content.decode()
 
-    def test_search_follows_search_fields(self, rf, cat):
+    def test_search_follows_the_filterset(self, rf, cat):
         _product(cat, "Lamp")
-        assert 'name="q"' in self._render(rf, search_fields=["name"])
-        assert 'name="q"' not in self._render(rf, search_fields=None)
+        assert 'name="q"' in self._render(rf, filterset_class=SearchSortFilter)
+        assert 'name="q"' not in self._render(rf, filterset_class=CategoryOnlyFilter)
 
-    def test_sort_follows_order_by(self, rf, cat):
+    def test_sort_follows_the_filterset(self, rf, cat):
         _product(cat, "Lamp")
-        orderings = [("name_asc", "Name (A-Z)", "name")]
-        assert "ordering-option" in self._render(rf, order_by=orderings)
-        assert "ordering-option" not in self._render(rf, order_by=None)
+        assert 'name="o"' in self._render(rf, filterset_class=SearchSortFilter)
+        assert 'name="o"' not in self._render(rf, filterset_class=CategoryOnlyFilter)
 
     def test_create_follows_show_create_action(self, rf, db):
         shown = self._render(rf, show_create_action=True)
@@ -1147,24 +597,11 @@ class TestActionsFollowViewConfiguration:
         )
 
     def test_filter_follows_the_filterset(self, rf, cat):
-        from django_filters.views import FilterView
-
         _product(cat, "Lamp")
 
-        view_cls = type(
-            "StubFilteredActionsView",
-            (MVPListViewMixin, FilterView),
-            {
-                "model": Product,
-                "list_item_template": CARD,
-                "filterset_fields": ["category"],
-            },
+        filtered = _beautiful_soup()(
+            self._render(rf, filterset_fields=["category"]), "html.parser"
         )
-        view = view_cls()
-        view.setup(rf.get("/"))
-        response = view.get(view.request)
-        response.render()
-        filtered = _beautiful_soup()(response.content.decode(), "html.parser")
 
         assert filtered.find(id="filterModal") is not None
         unfiltered = _beautiful_soup()(self._render(rf), "html.parser")
@@ -1175,7 +612,7 @@ class TestActionsFollowViewConfiguration:
         soup = _beautiful_soup()(html, "html.parser")
 
         assert 'name="q"' not in html
-        assert "ordering-option" not in html
+        assert 'name="o"' not in html
         assert soup.find(id="filterModal") is None
         assert soup.find(id="filterForm") is None
 
@@ -1367,16 +804,30 @@ class TestListResultCount:
         assert context["result_count"] == 1
 
 
-def _list_page(rf, query="", bases=(MVPListView,), **attrs):
+class ListPageFilter(django_filters.FilterSet):
+    q = SearchFilter(fields=["name"])
+    o = SortFilter(options=[("name_asc", "Name (A-Z)", "name")])
+
+    class Meta:
+        model = Product
+        fields: list[str] = []
+
+
+class FilteredListPageFilter(ListPageFilter):
+    class Meta:
+        model = Product
+        fields = ["name", "status"]
+
+
+def _list_page(rf, query="", **attrs):
     """Render a product list page requested with ``query`` and return its soup."""
     view_cls = type(
         "StubRenderedListView",
-        bases,
+        (MVPListView,),
         {
             "model": Product,
             "list_item_template": CARD,
-            "search_fields": ["name"],
-            "order_by": [("name_asc", "Name (A-Z)", "name")],
+            "filterset_class": ListPageFilter,
             **attrs,
         },
     )
@@ -1388,15 +839,7 @@ def _list_page(rf, query="", bases=(MVPListView,), **attrs):
 
 
 def _filtered_list_page(rf, query="", **attrs):
-    from django_filters.views import FilterView
-
-    return _list_page(
-        rf,
-        query,
-        bases=(MVPListViewMixin, FilterView),
-        filterset_fields=["name", "status"],
-        **attrs,
-    )
+    return _list_page(rf, query, filterset_class=FilteredListPageFilter, **attrs)
 
 
 class TestListPageToolbar:
@@ -1668,11 +1111,9 @@ class TestListPageBlocks:
 
 class TestFilterDisplay:
     def _view(self, rf, filterset_class):
-        from django_filters.views import FilterView
-
         view_cls = type(
             "StubDisplayListView",
-            (MVPListViewMixin, FilterView),
+            (MVPListView,),
             {"model": Product, "filterset_class": filterset_class},
         )
         view = view_cls()
@@ -1880,3 +1321,92 @@ class TestListFilterset:
         context = view.get(view.request)
 
         assert self._names(context) == default
+
+
+REMOVED_SETTINGS = [
+    ("search_fields", ["name"], "SearchFilter"),
+    ("max_search_words", 20, "SearchFilter"),
+    ("order_by", [("name", "Name", "name")], "SortFilter"),
+    ("get_search_fields", lambda self: ["name"], "SearchFilter"),
+    ("get_order_by_choices", lambda self: [], "SortFilter"),
+]
+
+
+class TestRemovedSettings:
+    @pytest.mark.parametrize(("name", "value", "replacement"), REMOVED_SETTINGS)
+    def test_a_list_view_declaring_a_removed_setting_is_refused(
+        self, name, value, replacement
+    ):
+        from django.core.exceptions import ImproperlyConfigured
+
+        with pytest.raises(ImproperlyConfigured) as excinfo:
+            type("StaleListView", (MVPListView,), {"model": Product, name: value})
+
+        message = str(excinfo.value)
+        assert "StaleListView" in message
+        assert name in message
+        assert replacement in message
+
+    def test_a_table_view_declaring_order_by_is_pointed_at_its_table(self):
+        pytest.importorskip("django_tables2")
+        from django.core.exceptions import ImproperlyConfigured
+
+        from mvp.integrations.django_tables.views import MVPTableView
+
+        with pytest.raises(ImproperlyConfigured) as excinfo:
+            type(
+                "StaleTableView",
+                (MVPTableView,),
+                {"model": Product, "order_by": [("name", "Name", "name")]},
+            )
+
+        message = str(excinfo.value)
+        assert "StaleTableView" in message
+        assert "Meta.order_by" in message
+        assert "SortFilter" not in message
+
+    def test_a_table_view_declaring_search_fields_is_pointed_at_the_filterset(self):
+        pytest.importorskip("django_tables2")
+        from django.core.exceptions import ImproperlyConfigured
+
+        from mvp.integrations.django_tables.views import MVPTableView
+
+        with pytest.raises(ImproperlyConfigured, match="SearchFilter"):
+            type(
+                "StaleTableView",
+                (MVPTableView,),
+                {"model": Product, "search_fields": ["name"]},
+            )
+
+    def test_a_list_view_composing_filter_view_is_refused(self):
+        from django.core.exceptions import ImproperlyConfigured
+        from django_filters.views import FilterView
+
+        with pytest.raises(ImproperlyConfigured) as excinfo:
+            type("ComposedListView", (MVPListViewMixin, FilterView), {"model": Product})
+
+        message = str(excinfo.value)
+        assert "ComposedListView" in message
+        assert "FilterView" in message
+        assert "filterset_class" in message
+
+    def test_a_list_view_with_none_of_them_defines_cleanly(self):
+        view_cls = type(
+            "CleanListView",
+            (MVPListView,),
+            {"model": Product, "filterset_class": ProductListFilter},
+        )
+
+        assert issubclass(view_cls, MVPListView)
+
+    @pytest.mark.parametrize("name", ["search_fields", "order_by"])
+    def test_an_empty_removed_setting_is_not_refused(self, name):
+        view_cls = type("EmptyListView", (MVPListView,), {"model": Product, name: None})
+
+        assert issubclass(view_cls, MVPListView)
+
+    def test_the_old_mixins_are_gone(self):
+        import mvp.views.list
+
+        for name in ["SearchMixin", "OrderMixin", "SearchOrderMixin"]:
+            assert not hasattr(mvp.views.list, name)
