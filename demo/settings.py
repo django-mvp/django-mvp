@@ -45,6 +45,8 @@ INSTALLED_APPS = [
     "django_watchfiles",
 ]
 
+# SKETCH (FS-041): django-filter's range widgets render from its own templates.
+INSTALLED_APPS.append("django_filters")
 
 try:
     import django_tables2  # noqa: F401

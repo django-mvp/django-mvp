@@ -42,6 +42,7 @@ from mvp.views import (
 from mvp.views.htmx import HtmxFormMixin
 from mvp.views.list import MVPListView, MVPListViewMixin
 
+from .filters import ProductFilter, ProductQuickFilter
 from .forms import LayoutDemoForm, ProductForm
 
 
@@ -442,14 +443,27 @@ class ProductListView(MVPListViewMixin, FilterView):
     list_item_template = "cards/product_card.html"
     grid = {"cols": 1, "md": 2, "xl": 3, "gap": 2}
     paginate_by = 10
-    filterset_fields = ["name", "price"]
-    search_fields = ["name", "description"]
-    order_by = [
-        ("name_asc", "Name (A-Z)", "name"),
-        ("name_desc", "Name (Z-A)", "-name"),
-        ("price_asc", "Price (Low to High)", "price"),
-        ("price_desc", "Price (High to Low)", "-price"),
-    ]
+    # SKETCH (FS-041): one filterset, five of its fields in the toolbar.
+    filterset_class = ProductFilter
+    strict = False
+    toolbar_filters = ["q", "status", "category", "is_featured", "o"]
+
+
+class ProductQuickListView(ProductListView):
+    """SKETCH (FS-041): a short filterset, every field in the toolbar, no modal."""
+
+    filterset_class = ProductQuickFilter
+    toolbar_filters = ["q", "status", "is_featured", "o"]
+    page_subtitle = None
+    page_info = None
+
+
+class ProductModalOnlyListView(ProductListView):
+    """SKETCH (FS-041): no toolbar fields named, so every field is in the modal."""
+
+    toolbar_filters: list[str] = []
+    page_subtitle = None
+    page_info = None
 
 
 class ProductManyPagesListView(ProductListView):
@@ -751,9 +765,11 @@ class DataTablesView(MVPTableViewMixin, FilterView):
     model = Product
     table_class = ProductTable
     paginate_by = 25
-    search_fields = ["name", "description"]
     show_create_action = True
-    filterset_fields = ["name", "category__name", "price", "stock", "status"]
+    # SKETCH (FS-041): the product list's filterset; its sort is ignored here.
+    filterset_class = ProductFilter
+    strict = False
+    toolbar_filters = ["q", "status", "category", "o"]
 
 
 class CustomToolbarTableView(MVPTableViewMixin, FilterView):

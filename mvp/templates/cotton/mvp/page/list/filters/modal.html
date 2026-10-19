@@ -1,0 +1,56 @@
+{# @description SKETCH (FS-041): the Filter button and the filter modal, holding every filterset field the toolbar does not. Must sit inside the filter form. #}
+{# @prop fields:text | description:"The bound fields for the modal." #}
+{# @prop applied_count:number | description:"How many of the modal's filters are applied." #}
+{# @prop clear_url:text | description:"The list with the modal's filters removed, the rest kept." #}
+{% load i18n crispy_forms_tags %}
+<c-vars fields applied_count clear_url />
+{% if fields %}
+  <c-indicator only>
+    <c-slot name="items">
+      {% if applied_count %}
+        <c-indicator.item class="badge badge-secondary badge-xs" only>{{ applied_count }}</c-indicator.item>
+      {% endif %}
+    </c-slot>
+    <c-button type="button"
+              text="{% trans "Filter" %}"
+              icon="filter"
+              @click="filterModal.showModal()" only />
+  </c-indicator>
+  <c-mvp.modal id="filterModal"
+               title="{% trans "Filter" %}"
+               icon="filter"
+               position="end"
+               size="sm"
+               closable
+               only>
+    <div class="flex flex-col gap-1">
+      {% for bound_field in fields %}{{ bound_field|as_crispy_field }}{% endfor %}
+    </div>
+    {% if clear_url %}
+      <c-slot name="footer">
+        <c-button text="{% trans "Clear filters" %}"
+                  href="{{ clear_url }}"
+                  icon="x"
+                  ghost only />
+      </c-slot>
+    {% endif %}
+    <c-slot name="footer_end">
+      <c-button text="{% trans "Apply filters" %}"
+                variant="primary"
+                type="submit" only>
+        <c-icon name="arrow-right" />
+      </c-button>
+    </c-slot>
+  </c-mvp.modal>
+  <script>
+    // SKETCH (FS-041): closing without applying puts the modal's fields back as
+    // they were, so a later toolbar change does not send them.
+    filterModal.addEventListener("close", () => {
+      filterModal.querySelectorAll("input, select, textarea").forEach((el) => {
+        if (el.type === "checkbox" || el.type === "radio") el.checked = el.defaultChecked;
+        else if (el.tagName === "SELECT") [...el.options].forEach((o) => (o.selected = o.defaultSelected));
+        else el.value = el.defaultValue;
+      });
+    });
+  </script>
+{% endif %}

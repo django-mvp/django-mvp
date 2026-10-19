@@ -1,0 +1,111 @@
+{# @description SKETCH (FS-041): one filterset field drawn in the list toolbar, in its compact form. Must sit inside the filter form. #}
+{# @prop field:text | description:"The field as the view describes it for the toolbar: kind, name, label and its value or choices." #}
+{% load i18n %}
+<c-vars field />
+{% if field.kind == "search" %}
+  <div class="w-full md:w-auto md:min-w-64 md:max-w-sm">
+    <c-join class="w-full" only>
+      <c-form.input type="search"
+                    name="{{ field.name }}"
+                    class="join-item grow min-w-0"
+                    placeholder="{{ field.label }}"
+                    value="{{ field.value|default:'' }}"
+                    aria-label="{{ field.label }}"
+                    only>
+        <c-slot name="start">
+          <c-icon name="search" aria-hidden="true" />
+        </c-slot>
+      </c-form.input>
+      <c-button type="submit" class="join-item" text="{% trans "Search" %}" only />
+    </c-join>
+  </div>
+{% elif field.kind == "text" %}
+  <c-form.input type="text"
+                name="{{ field.name }}"
+                class="w-40"
+                placeholder="{{ field.label }}"
+                value="{{ field.value|default:'' }}"
+                aria-label="{{ field.label }}"
+                only />
+{% elif field.kind == "toggle" %}
+  <label class="label gap-2 cursor-pointer text-base-content">
+    <input type="checkbox"
+           role="switch"
+           class="toggle"
+           name="{{ field.name }}"
+           value="true"
+           {% if field.checked %}checked{% endif %}
+           @change="$el.form.requestSubmit()">
+    <span>{{ field.label }}</span>
+  </label>
+{% elif field.kind == "choice" %}
+  {% comment %}
+    A single choice applies the moment it is picked. The hidden input is what
+    submits; it is disabled while nothing is chosen so the address stays clean.
+  {% endcomment %}
+  <c-mvp.dropdown halign="{% if field.sort %}end{% else %}start{% endif %}"
+                  x-data="{ value: '{{ field.value|escapejs }}' }">
+    <c-slot name="button">
+      <c-button type="button"
+                tabindex="0"
+                role="button"
+                icon="{% if field.sort %}sort{% endif %}"
+                text="{{ field.label }}"
+                only>
+        {% if field.current_label %}<span class="font-normal opacity-70">{{ field.current_label }}</span>{% endif %}
+        {% if not field.sort %}<c-icon name="chevron-down" class="opacity-60" aria-hidden="true" />{% endif %}
+      </c-button>
+    </c-slot>
+    <c-menu class="w-full" only>
+      {% if not field.sort %}
+        <c-menu.item text="{% trans "Any" %}"
+                     @click="value = ''; $nextTick(() => $el.closest('form').requestSubmit())"
+                     only>
+          {% if not field.value %}<c-icon name="check" class="ms-auto" />{% endif %}
+        </c-menu.item>
+      {% endif %}
+      {% for key, text, selected in field.choices %}
+        <c-menu.item text="{{ text }}"
+                     @click="value = '{{ key|escapejs }}'; $nextTick(() => $el.closest('form').requestSubmit())"
+                     only>
+          {% if selected %}<c-icon name="check" class="ms-auto" />{% endif %}
+        </c-menu.item>
+      {% endfor %}
+    </c-menu>
+    <input type="hidden"
+           name="{{ field.name }}"
+           :value="value"
+           :disabled="value === ''">
+  </c-mvp.dropdown>
+{% elif field.kind == "multichoice" %}
+  {% comment %}
+    Several values: the checkboxes are the inputs. The list updates when the
+    panel loses focus with a different set chosen than it opened with.
+  {% endcomment %}
+  <c-mvp.dropdown x-data="{ start: null, picked() { return [...$el.querySelectorAll('input:checked')].map(i => i.value).join(',') } }"
+                  @focusin="if (start === null) start = picked()"
+                  @focusout="if (!$el.contains($event.relatedTarget)) { if (start !== null && start !== picked()) $el.closest('form').requestSubmit(); start = null }">
+    <c-slot name="button">
+      <c-button type="button" tabindex="0" role="button" text="{{ field.label }}" only>
+        {% if field.chosen_count %}
+          <span class="badge badge-sm badge-secondary">{{ field.chosen_count }}</span>
+          <span class="sr-only">{% blocktrans count counter=field.chosen_count %}{{ counter }} chosen{% plural %}{{ counter }} chosen{% endblocktrans %}</span>
+        {% endif %}
+        <c-icon name="chevron-down" class="opacity-60" aria-hidden="true" />
+      </c-button>
+    </c-slot>
+    <fieldset class="p-2 max-h-72 overflow-y-auto">
+      <legend class="sr-only">{{ field.label }}</legend>
+      {% for key, text, selected in field.choices %}
+        <label class="label w-full gap-3 px-2 py-1.5 rounded-field hover:bg-base-200 cursor-pointer text-base-content">
+          <input type="checkbox"
+                 class="checkbox checkbox-sm"
+                 name="{{ field.name }}"
+                 value="{{ key }}"
+                 {% if selected %}checked{% endif %}>
+          <span>{{ text }}</span>
+        </label>
+      {% endfor %}
+    </fieldset>
+  </c-mvp.dropdown>
+{% endif %}

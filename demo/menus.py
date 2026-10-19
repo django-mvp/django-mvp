@@ -110,6 +110,16 @@ AppMenu.extend(
                     },
                 ),
                 MenuItem(
+                    name="product-list-quick",
+                    view_name="product-list-quick",
+                    extra_context={"label": "List, Toolbar Filters Only", "icon": "filter"},
+                ),
+                MenuItem(
+                    name="product-list-modal-only",
+                    view_name="product-list-modal-only",
+                    extra_context={"label": "List, Filter Modal Only", "icon": "filter"},
+                ),
+                MenuItem(
                     name="project-create",
                     view_name="project-create",
                     extra_context={

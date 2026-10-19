@@ -63,6 +63,12 @@ urlpatterns = [
         views.ProductPlainListView.as_view(),
         name="product-list-plain",
     ),
+    path("products/quick/", views.ProductQuickListView.as_view(), name="product-list-quick"),
+    path(
+        "products/modal-only/",
+        views.ProductModalOnlyListView.as_view(),
+        name="product-list-modal-only",
+    ),
     path("products/create/", ProductCreateView.as_view(), name="product-create"),
     path("products/<int:pk>/", ProductDetailView.as_view(), name="product-detail"),
     path("products/<int:pk>/edit/", ProductUpdateView.as_view(), name="product-update"),

@@ -19,14 +19,20 @@
       {% if footer %}<c-slot name="footer">{{ footer }}</c-slot>{% endif %}
       {% if footer_end %}<c-slot name="footer_end">{{ footer_end }}</c-slot>{% endif %}
     </c-mvp.card>
+    {% comment %}
+      SKETCH (FS-041): the dialog holds no form, so it works inside one. The
+      build rebuilds this component on daisy-cotton 0.2's c-modal instead.
+    {% endcomment %}
     {% if closable %}
-      <form method="dialog">
-        <button class="btn btn-sm btn-circle btn-ghost absolute end-3 top-3"
-                aria-label="{% trans "Close" %}">✕</button>
-      </form>
+      <button type="button"
+              class="btn btn-sm btn-circle btn-ghost absolute end-3 top-3"
+              onclick="this.closest('dialog').close()"
+              aria-label="{% trans "Close" %}">✕</button>
     {% endif %}
   </div>
-  <form method="dialog" class="modal-backdrop">
-    <button aria-label="{% trans "Close" %}">{% trans "Close" %}</button>
-  </form>
+  <div class="modal-backdrop">
+    <button type="button"
+            onclick="this.closest('dialog').close()"
+            aria-label="{% trans "Close" %}">{% trans "Close" %}</button>
+  </div>
 </dialog>

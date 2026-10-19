@@ -11,8 +11,73 @@ from django.utils.functional import Promise
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import ListView
 
+from django.core.exceptions import ImproperlyConfigured
+
+from ..filters import SearchFilter, SortFilter
 from .base import BaseTemplateNameMixin, PageMixin
 from .detail import CRUDDirectoryMixin
+
+
+def describe_toolbar_field(view_name: str, filterset: Any, name: str) -> dict[str, Any]:
+    """Describe one filterset field the way the toolbar draws it.
+
+    SKETCH (FS-041): prototype, untested. The build decides where this lives.
+    """
+    import django_filters
+
+    flt = filterset.filters[name]
+    bound = filterset.form[name]
+    label = str(bound.label)
+    data = filterset.form.data
+    item: dict[str, Any] = {"name": name, "label": label}
+
+    def choices(field):
+        out = []
+        for key, text in field.choices:
+            key = "" if key is None else str(getattr(key, "value", key))
+            if key == "":
+                continue
+            out.append((key, str(text)))
+        return out
+
+    if isinstance(flt, SearchFilter):
+        item.update(kind="search", value=data.get(name, ""))
+    elif isinstance(flt, SortFilter):
+        current = data.get(name, "")
+        opts = choices(bound.field)
+        item.update(
+            kind="choice",
+            sort=True,
+            value=current,
+            choices=[(k, t, k == current) for k, t in opts],
+            current_label=next((t for k, t in opts if k == current), ""),
+        )
+    elif isinstance(flt, django_filters.BooleanFilter):
+        item.update(kind="toggle", checked=str(data.get(name, "")).lower() in ("true", "1", "on"))
+    elif isinstance(flt, (django_filters.MultipleChoiceFilter, django_filters.ModelMultipleChoiceFilter)):
+        chosen = [str(v) for v in data.getlist(name)] if hasattr(data, "getlist") else []
+        item.update(
+            kind="multichoice",
+            choices=[(k, t, k in chosen) for k, t in choices(bound.field)],
+            chosen_count=len([c for c in chosen if c]),
+        )
+    elif isinstance(flt, (django_filters.ChoiceFilter, django_filters.ModelChoiceFilter)):
+        current = str(data.get(name, ""))
+        opts = choices(bound.field)
+        item.update(
+            kind="choice",
+            value=current,
+            choices=[(k, t, k == current) for k, t in opts],
+            current_label=next((t for k, t in opts if k == current), ""),
+        )
+    elif isinstance(flt, django_filters.CharFilter):
+        item.update(kind="text", value=data.get(name, ""))
+    else:
+        raise ImproperlyConfigured(
+            f"{view_name}.toolbar_filters names {name!r}, a "
+            f"{flt.__class__.__name__} the toolbar cannot draw. Leave it in the filter modal."
+        )
+    return item
 
 
 class SearchMixin:
@@ -321,6 +386,31 @@ class FilterContextMixin:
         context["applied_filter_count"] = len(active)
         if active:
             context["clear_filters_url"] = self.get_clear_filters_url(filterset)
+
+        # SKETCH (FS-041): split the filterset between the toolbar and the modal.
+        dropped = getattr(self, "dropped_filters", ())
+        toolbar_names = [
+            n
+            for n in dict.fromkeys(getattr(self, "toolbar_filters", None) or [])
+            if n not in dropped
+        ]
+        for name in toolbar_names:
+            if name not in filterset.form.fields:
+                raise ImproperlyConfigured(
+                    f"{self.__class__.__name__}.toolbar_filters names {name!r}, "
+                    f"which {filterset.__class__.__name__} has no field for."
+                )
+        context["toolbar_fields"] = [
+            describe_toolbar_field(self.__class__.__name__, filterset, name)
+            for name in toolbar_names
+        ]
+        modal_names = [n for n in filterset.form.fields if n not in toolbar_names]
+        context["modal_fields"] = [filterset.form[n] for n in modal_names]
+        modal_active = [n for n in active if n in modal_names]
+        context["modal_applied_count"] = len(modal_active)
+        if modal_active:
+            params = [p for n in modal_names for p in self.get_filter_params(filterset, n)]
+            context["clear_modal_url"] = self.get_url_without(*params)  # type: ignore[attr-defined]
         return context
 
     def get_active_filters(self, filterset: Any):
@@ -342,6 +432,9 @@ class FilterContextMixin:
             return active
 
         for name, value in filterset.form.cleaned_data.items():
+            # SKETCH (FS-041): the sort is never an applied filter.
+            if isinstance(filterset.filters.get(name), SortFilter):
+                continue
             if value is None or value is False:
                 continue
             if not isinstance(value, Number) and not value:

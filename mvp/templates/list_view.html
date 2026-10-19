@@ -31,6 +31,34 @@
   {% endcomment %}
   <div class="flex flex-col gap-4 mt-3">
     {% block page.toolbar %}
+      {% if toolbar_fields is not None %}
+        {% comment %}
+          SKETCH (FS-041). One form holds the toolbar's fields, the Filter
+          button and the filter modal. It is display: contents, so its
+          children sit in the toolbar's row as if it were not there. Add and
+          its create dialog are outside it, next to it.
+        {% endcomment %}
+        <c-mvp.page.list.toolbar :result_count="result_count"
+                                 :refinements="refinements">
+          <form id="filterForm" method="get" action="." class="contents">
+            {% for field in toolbar_fields %}
+              <c-mvp.page.list.filters.field :field="field" />
+            {% endfor %}
+            <div class="grow">
+              <c-mvp.page.list.summary :result_count="result_count"
+                                       :refinements="refinements"
+                                       :model_info="model_info"
+                                       only />
+            </div>
+            <c-mvp.page.list.filters.modal :fields="modal_fields"
+                                           :applied_count="modal_applied_count"
+                                           :clear_url="clear_modal_url" />
+          </form>
+          <c-mvp.page.list.actions.create :directory="directory"
+                                          :create_form="create_form"
+                                          :create_modal_title="create_modal_title" />
+        </c-mvp.page.list.toolbar>
+      {% else %}
       <c-mvp.page.list.toolbar :result_count="result_count"
                                :refinements="refinements">
         <c-slot name="search">
@@ -69,6 +97,7 @@
                                         :create_form="create_form"
                                         :create_modal_title="create_modal_title" />
       </c-mvp.page.list.toolbar>
+      {% endif %}
     {% endblock page.toolbar %}
     {% block page.refinements %}
       <c-mvp.page.list.refinements :refinements="refinements"
