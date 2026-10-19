@@ -1,21 +1,27 @@
-"""A user narrows a list from the toolbar and the filter modal, in a real browser (FS-041 US-3).
+"""A user narrows a list from the toolbar and the filter modal, in a real browser (FS-041 US-3, US-4).
 
 What these tests settle happens only in a browser: a pick or a toggle that
 submits the form, the address a GET form builds once list_view.js has
-dropped the fields nobody set, and the filter modal putting its fields back
-when it closes without applying. The context and markup behind them are
-tested without a browser in tests/test_views/test_list.py.
+dropped the fields nobody set, the filter modal putting its fields back
+when it closes without applying, and a toolbar field of several values, or
+a developer's own widget, applying once when focus leaves it changed. The
+context and markup behind them are tested without a browser in
+tests/test_views/test_list.py and tests/test_components/test_list_filter_field.py.
 """
 
 from urllib.parse import parse_qs, urlparse
 
+import django_filters
 import pytest
+from django.urls import path
 from playwright.sync_api import expect
 
 from demo.filters import ProductFilter
-from demo.models import Product
-from tests.conftest import requires_browser
-from tests.factories import ProductFactory
+from demo.models import Category, Product
+from demo.urls import urlpatterns as demo_patterns
+from demo.views import ProductListView
+from tests.conftest import requires_browser, urlconf_of
+from tests.factories import CategoryFactory, ProductFactory
 
 pytestmark = [pytest.mark.e2e, requires_browser, pytest.mark.django_db]
 
@@ -160,3 +166,151 @@ class TestFilterModalApplies:
         modal.locator("button[type=submit]").click()
 
         _wait_for_query(page, {"is_available": ["false"]})
+
+
+class SeveralValuesFilter(ProductFilter):
+    """The demo's filterset with its category on the default multi-select widget."""
+
+    category = django_filters.ModelMultipleChoiceFilter(
+        queryset=Category.objects.order_by("name"), label="Category"
+    )
+
+
+class SeveralValuesListView(ProductListView):
+    """The product list with a default multi-select in the toolbar."""
+
+    filterset_class = SeveralValuesFilter
+
+
+SEVERAL_VALUES_PAGE = "/several-values/"
+SEVERAL_VALUES_URLCONF = urlconf_of(
+    path(SEVERAL_VALUES_PAGE.strip("/") + "/", SeveralValuesListView.as_view()),
+    *demo_patterns,
+)
+
+
+@pytest.fixture
+def categories(db):
+    found = CategoryFactory.create_batch(3)
+    for category in found:
+        ProductFactory.create_batch(2, category=category, status="published")
+    return found
+
+
+def _count_page_loads(page):
+    """Return a list that gains an entry for every page the browser loads from now on."""
+    loads = []
+    page.on(
+        "request",
+        lambda request: loads.append(request.url)
+        if request.resource_type == "document"
+        else None,
+    )
+    return loads
+
+
+def _settle(page):
+    page.wait_for_load_state("networkidle")
+    # A submit is queued a task after focus leaves; give it the time to have fired.
+    page.wait_for_timeout(300)
+    page.wait_for_load_state("networkidle")
+
+
+def _move_focus_away(page):
+    page.locator("h1").first.click()
+
+
+@pytest.mark.urls(SEVERAL_VALUES_URLCONF)
+class TestSeveralValuesApplyOnClose:
+    def _dropdown(self, page):
+        return page.locator('[data-mvp-toolbar-field="category"]')
+
+    def test_ticking_two_values_and_leaving_updates_the_address_once(
+        self, page, live_server, categories
+    ):
+        _open(page, live_server, SEVERAL_VALUES_PAGE)
+        loads = _count_page_loads(page)
+        dropdown = self._dropdown(page)
+        dropdown.locator("[role=button]").click()
+        first, second = categories[0], categories[2]
+
+        dropdown.locator(f"input[name=category][value='{first.pk}']").check()
+        dropdown.locator(f"input[name=category][value='{second.pk}']").check()
+        _move_focus_away(page)
+
+        page.wait_for_url(
+            lambda url: sorted(parse_qs(urlparse(url).query).get("category", []))
+            == sorted([str(first.pk), str(second.pk)])
+        )
+        assert set(_query(page)) == {"category"}
+        _settle(page)
+        assert len(loads) == 1
+        ticked = self._dropdown(page).locator("input[name=category]:checked")
+        expect(ticked).to_have_count(2)
+
+    def test_opening_and_leaving_without_a_change_does_not_update(
+        self, page, live_server, categories
+    ):
+        _open(page, live_server, f"{SEVERAL_VALUES_PAGE}?category={categories[1].pk}")
+        address = page.url
+        loads = _count_page_loads(page)
+        dropdown = self._dropdown(page)
+        dropdown.locator("[role=button]").click()
+        expect(dropdown.locator("input[name=category]").first).to_be_visible()
+
+        _move_focus_away(page)
+
+        _settle(page)
+        assert loads == []
+        assert page.url == address
+
+    def test_ticking_and_unticking_the_same_value_does_not_update(
+        self, page, live_server, categories
+    ):
+        _open(page, live_server, SEVERAL_VALUES_PAGE)
+        loads = _count_page_loads(page)
+        dropdown = self._dropdown(page)
+        dropdown.locator("[role=button]").click()
+        box = dropdown.locator(f"input[name=category][value='{categories[0].pk}']")
+
+        box.check()
+        box.uncheck()
+        _move_focus_away(page)
+
+        _settle(page)
+        assert loads == []
+
+
+class TestDevelopersWidgetAppliesOnLeave:
+    def _widget(self, page):
+        return page.locator('[data-mvp-toolbar-field="category"]')
+
+    def test_a_changed_widget_updates_the_address_once_when_focus_leaves(
+        self, page, live_server, categories
+    ):
+        _open(page, live_server, LIST_PAGE)
+        loads = _count_page_loads(page)
+        chosen = categories[1]
+        self._widget(page).locator(".ts-control").click()
+
+        page.locator(".ts-dropdown .option", has_text=chosen.name).first.click()
+        _move_focus_away(page)
+
+        _wait_for_query(page, {"category": [str(chosen.pk)]})
+        _settle(page)
+        assert len(loads) == 1
+
+    def test_leaving_the_widget_unchanged_does_not_update(
+        self, page, live_server, categories
+    ):
+        _open(page, live_server, LIST_PAGE)
+        address = page.url
+        loads = _count_page_loads(page)
+        self._widget(page).locator(".ts-control").click()
+        expect(page.locator(".ts-dropdown .option").first).to_be_visible()
+
+        _move_focus_away(page)
+
+        _settle(page)
+        assert loads == []
+        assert page.url == address
