@@ -69,19 +69,16 @@ test-first.
 
 Taste calls made while drawing it, for Sam to overrule:
 
-- **Every choice filter is a dropdown button, like the sort control.** The button carries the
-  filter's name and, once one is chosen, the chosen value in lighter text. A native `<select>`
-  was the other option; the button matches the sort control that was already on the page.
+- **Every choice filter is a dropdown button, like the sort control.** A native `<select>` was the
+  other option; the button matches the sort control that was already on the page.
 - **A single choice applies the moment it is picked.** Several values apply when the dropdown
   loses focus with a different set chosen.
 - **A single-choice dropdown starts with "Any"**, which clears it. The sort has no such entry: no
   choice means the default order.
-- **The multi-select button shows the count as a small badge** after its name, with the words
-  "2 chosen" for a screen reader.
 - **A boolean filter is a toggle with its label beside it**, and switching it off removes the
   filter rather than asking for "No".
-- **The toolbar's order is the fields, then the result count, then Filter, then Add.** The count
-  takes the space that is left, which pushes Filter and Add to the end of the row.
+- **The toolbar is the fields, then Filter and Add together at the end of the row.** Filter and
+  Add wrap as one group.
 - **The search keeps its Search button**, as the toolbar has today, though Enter also submits.
 - **On a table page the toolbar fields sit in the collapsible panel, with Filter at its end**,
   where search and Filter are today. Add stays in the bar.
@@ -96,3 +93,29 @@ Taste calls made while drawing it, for Sam to overrule:
 | `/products/many/` | The full list at three a page, to see a filter change return to page one |
 | `/products/none/` | No products: the toolbar is not drawn |
 | `/django-tables2/` | The same filterset on a table page. Its sort is dropped, and the columns sort |
+
+## Round 2 (Sam, 2026-10-19)
+
+| Sam asked | Done |
+|---|---|
+| Show a filter's value either in its control or as a chip, never both. He leans to chips, because a control that grows with its value makes the toolbar's width unpredictable | Chips only. No toolbar control shows its value. The sort, which has no chip, names its order beside the result count instead of on its button |
+| What "never asks for No" means for the toggle | Answered in the session: switched off, the toggle removes the filter and shows everything. It never filters down to the products that are *not* featured |
+| Search is good | Kept |
+| The result count looked bad in the toolbar; find it a new place | The count now leads the row of chips, directly above the results, followed by the sort in use |
+| Show django-mvp-forms widgets in the filter forms, in particular Tom Select with a count, for fields with many options that need their own search | Category in the toolbar is a counted `TomSelectMultiple`; it applies when its dropdown closes with a different choice. In the modal, SKU is a counted `TomSelectMultiple` over every SKU and Priority is a `TomSelect` with a clear button |
+
+Found while doing it, for the plan:
+
+- A toolbar control the developer gave a django-mvp-forms Tom Select widget is drawn by that widget
+  rather than by the toolbar's own dropdown. The view gives it daisyUI's `select` class.
+- Tom Select and its stylesheet come from a CDN in the sketch. G14 says the package ships every
+  asset it needs, so the build has to carry them.
+- The form's media has to be written on the page for the widgets' script to load.
+- The filter form leaves untouched fields out of the address. Without it, every empty range and
+  the "unknown" value of a yes/no select were written into the address on every submit.
+- django-filter's range filters draw two stacked inputs with a "-" between them, and a yes/no
+  filter in the modal draws a select reading "Unknown". django-mvp-forms has no min–max widget.
+  The modal will need one, or the demo picks different filters.
+- On a phone, five toolbar fields take four rows above the results.
+- The counted control shows its empty text ("Category") in place of a label when nothing is
+  chosen, and "2 selected" once something is. Its name is on the chip.

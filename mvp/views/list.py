@@ -40,7 +40,14 @@ def describe_toolbar_field(view_name: str, filterset: Any, name: str) -> dict[st
             out.append((key, str(text)))
         return out
 
-    if isinstance(flt, SearchFilter):
+    from mvp_forms.widgets import TomSelect
+
+    if isinstance(bound.field.widget, TomSelect):
+        # The developer chose a django-mvp-forms Tom Select control: draw it as
+        # it is, and apply it when its dropdown closes with a changed value.
+        bound.field.widget.attrs["class"] = "select w-full"
+        item.update(kind="widget", bound=bound)
+    elif isinstance(flt, SearchFilter):
         item.update(kind="search", value=data.get(name, ""))
     elif isinstance(flt, SortFilter):
         current = data.get(name, "")
@@ -404,6 +411,8 @@ class FilterContextMixin:
             describe_toolbar_field(self.__class__.__name__, filterset, name)
             for name in toolbar_names
         ]
+        sort_item = next((f for f in context["toolbar_fields"] if f.get("sort")), None)
+        context["sort_label"] = sort_item["current_label"] if sort_item else ""
         modal_names = [n for n in filterset.form.fields if n not in toolbar_names]
         context["modal_fields"] = [filterset.form[n] for n in modal_names]
         modal_active = [n for n in active if n in modal_names]

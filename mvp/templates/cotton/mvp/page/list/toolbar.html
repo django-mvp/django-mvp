@@ -6,7 +6,7 @@
 {# @prop refinements:text | description:"The search and filters applied now." #}
 {# @slot Sort, filter, add — the controls at the end of the row. #}
 {% load i18n mvp %}
-<c-vars search summary class result_count refinements />
+<c-vars search summary class result_count refinements bare />
 {% if result_count or refinements %}
   {% comment %}
     One source order at every width: search, count, controls. Below md the
@@ -14,7 +14,7 @@
   {% endcomment %}
   <div class="mvp-list-toolbar flex flex-wrap items-center gap-x-3 gap-y-3 w-full {{ class }}"
        {{ attrs }}>
-    {% if search|slot_is_empty and summary|slot_is_empty %}
+    {% if bare %}
       {# SKETCH (FS-041): the filter form lays the row out itself. #}
       {{ slot }}
     {% else %}

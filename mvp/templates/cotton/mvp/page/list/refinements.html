@@ -5,7 +5,7 @@
 {% load i18n %}
 <c-vars class refinements clear_refinements_url />
 {% if refinements %}
-  <ul class="mvp-list-refinements flex flex-wrap items-center gap-2 w-full {{ class }}"
+  <ul class="mvp-list-refinements flex flex-wrap items-center gap-2 {{ class|default:"w-full" }}"
       aria-label="{% trans "Applied search and filters" %}"
       {{ attrs }}>
     {% for refinement in refinements %}

@@ -33,30 +33,31 @@
     {% block page.toolbar %}
       {% if toolbar_fields is not None %}
         {% comment %}
-          SKETCH (FS-041). One form holds the toolbar's fields, the Filter
-          button and the filter modal. It is display: contents, so its
-          children sit in the toolbar's row as if it were not there. Add and
-          its create dialog are outside it, next to it.
+          SKETCH (FS-041). One form holds the toolbar's fields and the filter
+          modal. It is display: contents, so its fields sit in the toolbar's
+          row as if it were not there. The Filter button only opens the modal,
+          so it sits outside the form, kept together with Add at the end of
+          the row; Add's create dialog is never inside the filter form.
         {% endcomment %}
         <c-mvp.page.list.toolbar :result_count="result_count"
-                                 :refinements="refinements">
+                                 :refinements="refinements"
+                                 bare>
           <form id="filterForm" method="get" action="." class="contents">
             {% for field in toolbar_fields %}
               <c-mvp.page.list.filters.field :field="field" />
             {% endfor %}
-            <div class="grow">
-              <c-mvp.page.list.summary :result_count="result_count"
-                                       :refinements="refinements"
-                                       :model_info="model_info"
-                                       only />
-            </div>
-            <c-mvp.page.list.filters.modal :fields="modal_fields"
-                                           :applied_count="modal_applied_count"
+            <c-mvp.page.list.filters.modal part="dialog"
+                                           :fields="modal_fields"
                                            :clear_url="clear_modal_url" />
           </form>
-          <c-mvp.page.list.actions.create :directory="directory"
-                                          :create_form="create_form"
-                                          :create_modal_title="create_modal_title" />
+          <div class="flex items-center gap-2 ms-auto">
+            <c-mvp.page.list.filters.modal part="button"
+                                           :fields="modal_fields"
+                                           :applied_count="modal_applied_count" />
+            <c-mvp.page.list.actions.create :directory="directory"
+                                            :create_form="create_form"
+                                            :create_modal_title="create_modal_title" />
+          </div>
         </c-mvp.page.list.toolbar>
       {% else %}
       <c-mvp.page.list.toolbar :result_count="result_count"
@@ -100,9 +101,34 @@
       {% endif %}
     {% endblock page.toolbar %}
     {% block page.refinements %}
-      <c-mvp.page.list.refinements :refinements="refinements"
-                                   :clear_refinements_url="clear_refinements_url"
-                                   only />
+      {% if toolbar_fields is not None %}
+        {% if result_count or refinements %}
+          {% comment %}
+            SKETCH (FS-041): the result count leads the row of applied
+            filters, directly above the results it counts.
+          {% endcomment %}
+          <div class="mvp-list-status flex flex-wrap items-center gap-x-4 gap-y-2 -mt-1">
+            <c-mvp.page.list.summary :result_count="result_count"
+                                     :refinements="refinements"
+                                     :model_info="model_info"
+                                     class="font-medium"
+                                     only />
+            {% if sort_label %}
+              <p class="text-sm text-base-content/70">
+                {% blocktrans with order=sort_label %}Sorted by {{ order }}{% endblocktrans %}
+              </p>
+            {% endif %}
+            <c-mvp.page.list.refinements :refinements="refinements"
+                                         :clear_refinements_url="clear_refinements_url"
+                                         class="w-auto flex-1"
+                                         only />
+          </div>
+        {% endif %}
+      {% else %}
+        <c-mvp.page.list.refinements :refinements="refinements"
+                                     :clear_refinements_url="clear_refinements_url"
+                                     only />
+      {% endif %}
     {% endblock page.refinements %}
     {% block page.results %}
       <c-mvp.page.list :list="object_list"
@@ -134,4 +160,39 @@
 {% block extra_js %}
   {{ block.super }}
   <script src="{% static "js/list_view.js" %}"></script>
+  {% if filter %}
+    {% comment %}
+      SKETCH (FS-041): Tom Select comes from a CDN here only to show the
+      django-mvp-forms controls. The build must ship it with the package (G14).
+    {% endcomment %}
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/tom-select@2.5.2/dist/css/tom-select.default.min.css"
+          crossorigin="anonymous">
+    <link rel="stylesheet" href="{% static 'mvp_forms/tomselect.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.5.2/dist/js/tom-select.complete.min.js"
+            crossorigin="anonymous"></script>
+    {{ filter.form.media }}
+    <script>
+      // SKETCH (FS-041): a Tom Select control in the toolbar applies when its
+      // dropdown closes with a different value than it opened with.
+      // SKETCH (FS-041): leave untouched fields out of the address.
+      document.getElementById("filterForm")?.addEventListener("formdata", (event) => {
+        for (const [key, value] of [...event.formData.entries()]) {
+          if (value === "" || value === "unknown") event.formData.delete(key);
+        }
+      });
+      document.addEventListener("mvp-forms:tomselect", (event) => {
+        if (!event.target.closest(".mvp-toolbar-tomselect")) return;
+        const ts = event.detail.tomselect;
+        let start = null;
+        ts.on("dropdown_open", () => { start = JSON.stringify(ts.getValue()); });
+        ts.on("dropdown_close", () => {
+          if (start !== null && start !== JSON.stringify(ts.getValue())) {
+            event.target.form.requestSubmit();
+          }
+          start = null;
+        });
+      });
+    </script>
+  {% endif %}
 {% endblock extra_js %}
