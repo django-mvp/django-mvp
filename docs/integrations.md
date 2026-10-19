@@ -283,11 +283,14 @@ class ProductListView(MVPListView):
     filterset_class = ProductFilter   # or filterset_fields = [...]
 ```
 
-The view puts `applied_filters` and `applied_filter_count` in the context, which the list
-page's filter button uses to badge the number of active filters. When at least one filter
-is applied, it also puts `clear_filters_url` there: the current list URL with the
-filterset's fields removed, except the sort, and with pagination reset. The filter dialog
-shows a "Clear filters" link next to "Apply filters" whenever that URL is present.
+The view puts `applied_filters` and `applied_filter_count` in the context, covering every
+filter. When at least one is applied, it also puts `clear_filters_url` there: the current
+list URL with the filterset's fields removed, except the sort, and with pagination reset.
+Use these for your own controls. The list page's own Filter button badges
+`modal_applied_count`, the applied filters that sit in the filter modal, and the dialog's
+"Clear filters" link is `clear_modal_url`, which keeps the toolbar's filters and the
+search. The context table in [views](views.md#what-the-view-tells-the-template) lists them
+all.
 
 `applied_filters` comes from `get_active_filters()`, which reads the filterset form's
 `cleaned_data` and drops `None` and empty values (an empty string, list or queryset),
