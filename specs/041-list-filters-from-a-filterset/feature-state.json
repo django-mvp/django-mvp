@@ -387,8 +387,21 @@
       "tasks": [
         {
           "id": "T016",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 2,
+          "evidence": {
+            "tests": [
+              "tests/test_views/test_list.py::TestFilterModalCountAndClear"
+            ],
+            "commands": [
+              "uv run pytest tests/test_views/test_list.py::TestFilterModalCountAndClear -q (5 passed)",
+              "uv run pytest tests/test_views/test_list.py -q (177 passed)"
+            ],
+            "code": [
+              "mvp/views/list.py:91",
+              "mvp/views/list.py:94"
+            ]
+          }
         },
         {
           "id": "T017",

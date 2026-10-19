@@ -135,3 +135,10 @@ Did: docs/views.md gains "Choosing which filters go in the toolbar" (toolbar_fil
 Verified: the get_toolbar_field example ran against the branch (a throwaway render returned 200 with kinds ['search', 'range']; file deleted). uv run pre-commit run --files on the three pages passed.
 Next: full verify, then report.
 Watch: the CharFilter row says only "A text box": applying on Enter is FR-018, US-3's.
+
+## 2026-10-19T13:11:31Z · Implementer US3 · T016
+
+Did: tested modal_applied_count and clear_modal_url (TestFilterModalCountAndClear, 5 tests). clear_modal_url now keeps a SortFilter's parameter when the sort sits in the modal (design review SPEC-002); docstring documents both keys.
+Verified: uv run pytest tests/test_views/test_list.py::TestFilterModalCountAndClear -q -> red 1 failed (sort dropped), then 5 passed; mutation probe (count all active / drop every field) -> 3 failed; tests/test_views/test_list.py -> 177 passed.
+Next: T017 the count row.
+Watch: nothing.
