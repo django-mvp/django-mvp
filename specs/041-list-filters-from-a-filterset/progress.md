@@ -163,3 +163,10 @@ Did: tests/test_list_filters_e2e.py (13 browser tests, 1440x900): a toolbar choi
 Verified: uv run pytest tests/test_list_filters_e2e.py -q -> 13 passed. Probes: list_view.js emptied -> 9 failed (every address assertion); close listener disabled -> the 4 close cases failed.
 Next: T020 docs.
 Watch: BLOCKED in part. Closing by the close button (✕) cannot be tested: c-mvp.modal (mvp/templates/cotton/mvp/modal.html, from T002) draws c-modal's ✕ under the card, so the card body takes the click (elementFromPoint at the ✕'s centre is .card-body; the ✕ is not visible in a screenshot). The fix is in modal.html, outside US-3's files, so the close-button case is not in the suite and T019 is not recorded done.
+
+## 2026-10-19T13:26:16Z · Implementer US3 · T020
+
+Did: docs/views.md: how each control applies, the badge and the two clear actions, page one after a change, the address leaving out unset fields ("unknown" only from a select), js/list_view.js and the ids it finds; modal_applied_count and clear_modal_url in the context table. docs/components.md: the example draws the count, sort and chips in a row under the toolbar (the toolbar holds no count), passes clear_modal_url, and says a page drawing the components itself loads js/list_view.js. CHANGELOG entry under Unreleased.
+Verified: uv run pre-commit run --files docs/views.md docs/components.md CHANGELOG.md -> passed.
+Next: full verify.
+Watch: docs/views.md names the close button among the ways to close the modal; that is the specified behaviour, and it is currently broken (see T019).

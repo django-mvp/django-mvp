@@ -446,8 +446,18 @@
         },
         {
           "id": "T020",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "uv run pre-commit run --files docs/views.md docs/components.md CHANGELOG.md (passed)"
+            ],
+            "code": [
+              "docs/views.md:248",
+              "docs/views.md:428",
+              "docs/components.md:489"
+            ]
+          }
         }
       ]
     },
