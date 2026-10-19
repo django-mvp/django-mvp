@@ -1210,6 +1210,109 @@ class TestListPagePagination:
         assert not any(character.isdigit() for character in title)
 
 
+REGION_REQUEST = {"HX-Request": "true", "HX-Target": "mvp-list"}
+SWAP = {
+    "hx-boost": "true",
+    "hx-target": "#mvp-list",
+    "hx-select": "#mvp-list",
+    "hx-swap": "outerHTML",
+}
+
+
+def _list_page_for_htmx(rf, query="", headers=REGION_REQUEST, **attrs):
+    """Render a product list page as htmx requests it and return its soup."""
+    view_cls = type(
+        "StubHtmxListView",
+        (MVPListView,),
+        {
+            "model": Product,
+            "list_item_template": CARD,
+            "filterset_class": ListPageFilter,
+            **attrs,
+        },
+    )
+    view = view_cls()
+    view.setup(rf.get(f"/products/{query}", headers=headers))
+    response = view.get(view.request)
+    response.render()
+    return _beautiful_soup()(response.content.decode(), "html.parser")
+
+
+def _swaps_the_region(element):
+    return all(element.get(name) == value for name, value in SWAP.items())
+
+
+class TestListPageUpdatesInPlace:
+    def test_a_request_for_the_list_region_gets_it_without_the_shell(self, rf, cat):
+        _product(cat, "Lamp")
+
+        soup = _list_page_for_htmx(rf, "?q=lamp")
+
+        assert soup.find(id="mvp-list") is not None
+        assert soup.find("title") is not None
+        assert soup.find("body") is None
+
+    def test_any_other_htmx_request_gets_the_whole_page(self, rf, cat):
+        _product(cat, "Lamp")
+
+        soup = _list_page_for_htmx(
+            rf, headers={"HX-Request": "true", "HX-Boosted": "true"}
+        )
+
+        assert soup.find("body") is not None
+        assert soup.find(id="mvp-list") is not None
+
+    def test_the_response_varies_on_the_htmx_target(self, rf, db):
+        view_cls = type(
+            "VaryListView",
+            (MVPListView,),
+            {"model": Product, "list_item_template": CARD},
+        )
+        view = view_cls()
+        view.setup(rf.get("/products/"))
+
+        response = view.get(view.request)
+
+        assert "HX-Target" in response["Vary"]
+
+    def test_a_projects_block_override_is_drawn_in_the_region(self, rf, cat):
+        _product(cat, "Lamp")
+
+        soup = _list_page_for_htmx(
+            rf,
+            template_name="tests/list_view_block_override.html",
+            extra_context={"override": "page.results"},
+        )
+
+        assert soup.find(id="mvp-list").find(id="override") is not None
+
+    def test_the_filter_form_chips_and_pager_swap_the_region(self, rf, cat):
+        for number in range(3):
+            _product(cat, f"Lamp {number}")
+
+        soup = _list_page(rf, "?q=lamp", paginate_by=2)
+
+        assert _swaps_the_region(soup.find("form", id="filterForm"))
+        assert _swaps_the_region(soup.find(class_="mvp-list-refinements"))
+        assert _swaps_the_region(soup.find(class_="mvp-list-footer"))
+
+    def test_clear_all_in_the_empty_state_swaps_the_region(self, rf, cat):
+        _product(cat, "Lamp")
+
+        soup = _list_page(rf, "?q=chair")
+
+        clear = soup.find(class_="mvp-list-empty").find("a", href="/products/")
+        assert _swaps_the_region(clear.parent)
+
+    def test_a_result_inherits_no_swap(self, rf, cat):
+        _product(cat, "Lamp")
+
+        soup = _list_page(rf)
+
+        result = soup.find(id="mvp-list").find(string="Lamp").parent
+        assert not any(ancestor.get("hx-target") for ancestor in result.find_parents())
+
+
 LIST_PAGE_BLOCKS = [
     "page.actions",
     "page.toolbar",

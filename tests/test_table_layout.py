@@ -950,3 +950,62 @@ class TestRowHeaderFooterCell:
 
         cells = soup.find("tfoot").find("tr").find_all(["th", "td"])
         assert [cell.name for cell in cells] == ["td", "td"]
+
+
+class TestTablePageUpdatesInPlace:
+    SWAP = {
+        "hx-boost": "true",
+        "hx-target": "#mvp-list",
+        "hx-select": "#mvp-list",
+        "hx-swap": "outerHTML",
+    }
+
+    def _page(self, rf, query="", headers=None, **attrs):
+        view = _table_view_class(**attrs)()
+        view.setup(rf.get(f"/products/{query}", headers=headers))
+        response = view.get(view.request)
+        response.render()
+        return _beautiful_soup()(response.content.decode(), "html.parser")
+
+    def _swaps(self, element):
+        return all(element.get(name) == value for name, value in self.SWAP.items())
+
+    def test_a_request_for_the_list_region_gets_it_without_the_shell(self, rf, db):
+        ProductFactory(name="Lamp")
+
+        soup = self._page(rf, headers={"HX-Request": "true", "HX-Target": "mvp-list"})
+
+        assert soup.find(id="mvp-list").find("table") is not None
+        assert soup.find("body") is None
+
+    def test_the_column_headings_and_filter_form_swap_the_region(self, rf, db):
+        ProductFactory(name="Lamp")
+
+        soup = self._page(rf)
+
+        assert self._swaps(soup.find("thead"))
+        assert self._swaps(soup.find("form", id="filterForm"))
+
+    def test_a_row_inherits_no_swap(self, rf, db):
+        ProductFactory(name="Lamp")
+
+        soup = self._page(rf)
+
+        row = soup.find("tbody").find("tr")
+        assert not any(ancestor.get("hx-target") for ancestor in row.find_parents())
+
+    def test_a_table_outside_a_list_page_sorts_with_a_page_load(
+        self, cotton_render_string, db
+    ):
+        pytest.importorskip("django_tables2")
+        from demo.tables import ProductTable
+
+        ProductFactory(name="Lamp")
+        table = ProductTable(Product.objects.all())
+
+        html = cotton_render_string(
+            "<c-mvp.addons.django-table :table='table' />", context={"table": table}
+        )
+
+        thead = _beautiful_soup()(html, "html.parser").find("thead")
+        assert thead.get("hx-boost") is None

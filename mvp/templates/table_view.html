@@ -25,91 +25,110 @@
         footer) and the table between them is the one thing that scrolls.
       {% endcomment %}
       <c-mvp.page.content gap="0" only>
-        {% block page.header %}
-        {% endblock page.header %}
-        {% block page.toolbar %}
-          <c-mvp.page.table.toolbar only>
-            {% if refinements %}
-              <c-slot name="note">
-                {% blocktrans count counter=refinements|length %}{{ counter }} filter active{% plural %}{{ counter }} filters active{% endblocktrans %}
-              </c-slot>
-            {% endif %}
-            <c-slot name="title">
-              {% block page.title %}
-                <h1 class="text-xl font-semibold leading-tight truncate">{{ page.title }}</h1>
-                <c-mvp.page.info :text="page.info" :title="page.title" :actions="page.info_actions" only />
-                {% block page.summary %}
-                  <c-mvp.page.list.summary class="whitespace-nowrap"
-                                           :result_count="result_count"
-                                           :refinements="refinements"
-                                           :model_info="model_info"
-                                           only />
-                {% endblock page.summary %}
-                {% if page.subtitle %}
-                  <p class="hidden lg:block text-sm text-base-content/70 truncate min-w-0">{{ page.subtitle }}</p>
-                {% endif %}
-              {% endblock page.title %}
-            </c-slot>
-            <c-slot name="actions">
-              {% block page.actions %}
-              {% endblock page.actions %}
-              {% comment %}Add is always last in the bar, shown with the panel open or closed.{% endcomment %}
-              <c-mvp.page.list.actions.create :directory="directory"
-                                              :create_form="create_form"
-                                              :create_modal_title="create_modal_title" />
-            </c-slot>
-            {% block page.panel %}
-              {% comment %}
-                The same filter form as a list page: the toolbar fields, then
-                the Filter button at the panel's end, with the filter modal
-                inside the form. The chips follow it. A view with no filterset
-                draws no panel.
-              {% endcomment %}
-              {% if filter %}
-                <form id="filterForm"
-                      method="get"
-                      action="."
-                      class="flex flex-wrap items-center gap-x-3 gap-y-2">
-                  {# Enter in a text field submits only through a submit button, and some forms have none. #}
-                  <button type="submit" hidden tabindex="-1" aria-hidden="true"></button>
-                  {% for field in toolbar_fields %}
-                    <c-mvp.page.list.filters.field :field="field" />
-                  {% endfor %}
-                  <div class="flex items-center gap-2 md:ms-auto">
-                    <c-mvp.page.list.filters.modal part="button"
-                                                   :fields="modal_fields"
-                                                   :applied_count="modal_applied_count" />
-                  </div>
-                  <c-mvp.page.list.filters.modal part="dialog"
-                                                 :fields="modal_fields"
-                                                 :clear_url="clear_modal_url" />
-                </form>
-                {% block page.refinements %}
-                  <c-mvp.page.list.refinements :refinements="refinements"
-                                               :clear_refinements_url="clear_refinements_url"
-                                               only />
-                {% endblock page.refinements %}
+        {% comment %}
+          The region the filter form, the chips, the column headings and the
+          pager swap in place with htmx, as on a list page. display: contents
+          keeps the flex chain the filled layout needs.
+        {% endcomment %}
+        <div id="{{ list_region_id }}" class="contents">
+          {% block page.header %}
+          {% endblock page.header %}
+          {% block page.toolbar %}
+            <c-mvp.page.table.toolbar only>
+              {% if refinements %}
+                <c-slot name="note">
+                  {% blocktrans count counter=refinements|length %}{{ counter }} filter active{% plural %}{{ counter }} filters active{% endblocktrans %}
+                </c-slot>
               {% endif %}
-            {% endblock page.panel %}
-          </c-mvp.page.table.toolbar>
-        {% endblock page.toolbar %}
-        {% block page.content %}
-          <c-mvp.addons.django-table :table="table"
-                                    class="flex-1 min-h-0"
-                                    :empty_state="empty_state"
-                                    :refinements="refinements"
-                                    :clear_refinements_url="clear_refinements_url"
-                                    :directory="directory"
-                                    :create_form="create_form"
-                                    :model_info="model_info" />
-        {% endblock page.content %}
-        {% block page.footer %}
-          {% if page_obj %}
-            <c-mvp.page.list.footer :page_obj="page_obj"
-                                size="sm"
-                                class="mvp-table-pager shrink-0 px-4 py-2 border-t border-base-300" />
-          {% endif %}
-        {% endblock page.footer %}
+              <c-slot name="title">
+                {% block page.title %}
+                  <h1 class="text-xl font-semibold leading-tight truncate">{{ page.title }}</h1>
+                  <c-mvp.page.info :text="page.info" :title="page.title" :actions="page.info_actions" only />
+                  {% block page.summary %}
+                    <c-mvp.page.list.summary class="whitespace-nowrap"
+                                             :result_count="result_count"
+                                             :refinements="refinements"
+                                             :model_info="model_info"
+                                             only />
+                  {% endblock page.summary %}
+                  {% if page.subtitle %}
+                    <p class="hidden lg:block text-sm text-base-content/70 truncate min-w-0">{{ page.subtitle }}</p>
+                  {% endif %}
+                {% endblock page.title %}
+              </c-slot>
+              <c-slot name="actions">
+                {% block page.actions %}
+                {% endblock page.actions %}
+                {% comment %}Add is always last in the bar, shown with the panel open or closed.{% endcomment %}
+                <c-mvp.page.list.actions.create :directory="directory"
+                                                :create_form="create_form"
+                                                :create_modal_title="create_modal_title" />
+              </c-slot>
+              {% block page.panel %}
+                {% comment %}
+                  The same filter form as a list page: the toolbar fields, then
+                  the Filter button at the panel's end, with the filter modal
+                  inside the form. The chips follow it. A view with no filterset
+                  draws no panel.
+                {% endcomment %}
+                {% if filter %}
+                  <form id="filterForm"
+                        method="get"
+                        action="."
+                        class="flex flex-wrap items-center gap-x-3 gap-y-2"
+                        hx-boost="true"
+                        hx-target="#{{ list_region_id }}"
+                        hx-select="#{{ list_region_id }}"
+                        hx-swap="outerHTML">
+                    {# Enter in a text field submits only through a submit button, and some forms have none. #}
+                    <button type="submit" hidden tabindex="-1" aria-hidden="true"></button>
+                    {% for field in toolbar_fields %}
+                      <c-mvp.page.list.filters.field :field="field" />
+                    {% endfor %}
+                    <div class="flex items-center gap-2 md:ms-auto">
+                      <c-mvp.page.list.filters.modal part="button"
+                                                     :fields="modal_fields"
+                                                     :applied_count="modal_applied_count" />
+                    </div>
+                    <c-mvp.page.list.filters.modal part="dialog"
+                                                   :fields="modal_fields"
+                                                   :clear_url="clear_modal_url" />
+                  </form>
+                  {% block page.refinements %}
+                    <c-mvp.page.list.refinements :refinements="refinements"
+                                                 :clear_refinements_url="clear_refinements_url"
+                                                 hx-boost="true"
+                                                 hx-target="#{{ list_region_id }}"
+                                                 hx-select="#{{ list_region_id }}"
+                                                 hx-swap="outerHTML"
+                                                 only />
+                  {% endblock page.refinements %}
+                {% endif %}
+              {% endblock page.panel %}
+            </c-mvp.page.table.toolbar>
+          {% endblock page.toolbar %}
+          {% block page.content %}
+            <c-mvp.addons.django-table :table="table"
+                                      class="flex-1 min-h-0"
+                                      :empty_state="empty_state"
+                                      :refinements="refinements"
+                                      :clear_refinements_url="clear_refinements_url"
+                                      :directory="directory"
+                                      :create_form="create_form"
+                                      :model_info="model_info" />
+          {% endblock page.content %}
+          {% block page.footer %}
+            {% if page_obj %}
+              <c-mvp.page.list.footer :page_obj="page_obj"
+                                  size="sm"
+                                  class="mvp-table-pager shrink-0 px-4 py-2 border-t border-base-300"
+                                  hx-boost="true"
+                                  hx-target="#{{ list_region_id }}"
+                                  hx-select="#{{ list_region_id }}"
+                                  hx-swap="outerHTML" />
+            {% endif %}
+          {% endblock page.footer %}
+        </div>
       </c-mvp.page.content>
     {% endblock page.content-wrapper %}
   </c-mvp.page>

@@ -225,6 +225,9 @@ each clear action and check what remains.
 9. **Given** a page that shows an alert, such as a flash message or the warning on a delete page,
    **When** it renders after this feature, **Then** the alert carries an icon wherever it carried
    one before.
+10. **Given** a list or table page, **When** the reader applies or removes a filter, changes the
+    sort, sorts by a column heading or moves to another page, **Then** the list updates without
+    the page reloading, and the address bar and the back button follow the change.
 
 ---
 
@@ -361,6 +364,9 @@ column headers, and both draw the search in the toolbar and the filter in the mo
 - **FR-020**: Every alert in the package that carried an icon before this feature MUST still carry
   one. The upgrade of the component library this feature needs stops alerts choosing an icon on
   their own.
+- **FR-029**: Applying or removing a filter, changing the sort, sorting by a table's column heading
+  and moving to another page MUST update the list without reloading the page, and the address
+  MUST follow each change. Without JavaScript the filter form MUST still submit as a page load.
 
 **Several values (Story 4)**
 
@@ -394,7 +400,7 @@ column headers, and both draw the search in the toolbar and the filter in the mo
 |---|---|
 | US1 | FR-001 to FR-009 |
 | US2 | FR-010 to FR-014, FR-025, FR-027 |
-| US3 | FR-012, FR-015 to FR-020, FR-026, FR-028 |
+| US3 | FR-012, FR-015 to FR-020, FR-026, FR-028, FR-029 |
 | US4 | FR-021, FR-022 |
 | US5 | FR-023, FR-024 |
 

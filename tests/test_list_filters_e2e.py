@@ -198,12 +198,16 @@ def categories(db):
 
 
 def _count_page_loads(page):
-    """Return a list that gains an entry for every page the browser loads from now on."""
+    """Return a list that gains an entry for every time the list is fetched from now on.
+
+    A filter swaps the list in place with htmx, so a fetch counts as well as a
+    page load.
+    """
     loads = []
     page.on(
         "request",
         lambda request: loads.append(request.url)
-        if request.resource_type == "document"
+        if request.resource_type in ("document", "xhr", "fetch")
         else None,
     )
     return loads
@@ -353,3 +357,53 @@ class TestEnterInAToolbarTextField:
         field.press("Enter")
 
         _wait_for_query(page, {"name": ["lamp"]})
+
+
+def _mark_the_document(page):
+    page.evaluate("window.mvpProbe = true")
+
+
+def _same_document(page):
+    return page.evaluate("window.mvpProbe === true")
+
+
+class TestTheListUpdatesInPlace:
+    """A filter, the pager or a column heading swaps the list region, never the page (#557)."""
+
+    def test_a_search_updates_the_list_without_loading_the_page(
+        self, page, live_server, products
+    ):
+        ProductFactory(name="Lamp", status="published")
+        _open(page, live_server, LIST_PAGE)
+        _mark_the_document(page)
+
+        field = page.locator("#filterForm input[name=q]")
+        field.fill("lamp")
+        field.press("Enter")
+
+        _wait_for_query(page, {"q": ["lamp"]})
+        expect(page.locator(".mvp-list-refinements li")).to_have_count(1)
+        assert _same_document(page)
+
+    def test_the_back_button_returns_to_the_list_before_the_filter(
+        self, page, live_server, products
+    ):
+        _open(page, live_server, LIST_PAGE)
+        _pick(page, "status", STATUS_LABELS["draft"])
+        _wait_for_query(page, {"status": ["draft"]})
+
+        page.go_back()
+
+        _wait_for_query(page, {})
+        expect(page.locator(".mvp-list-refinements")).to_have_count(0)
+
+    def test_a_column_heading_sorts_the_table_without_loading_the_page(
+        self, page, live_server, products
+    ):
+        _open(page, live_server, TABLE_PAGE)
+        _mark_the_document(page)
+
+        page.locator("thead a").first.click()
+
+        page.wait_for_url(lambda url: "sort=" in url)
+        assert _same_document(page)

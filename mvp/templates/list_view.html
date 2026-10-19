@@ -28,90 +28,116 @@
     keep the rest: page.toolbar, page.refinements (and inside it
     page.summary), page.results (and inside it page.empty), and
     page.pagination.
+
+    The filter form, the chips, the empty state's Clear all and the pager
+    fetch with htmx and swap this region in place. Each carries the swap
+    itself, rather than this region, so htmx a project adds to a result never
+    inherits it.
   {% endcomment %}
-  <div class="flex flex-col gap-4 mt-3">
-    {% block page.toolbar %}
-      {% comment %}
-        One form holds the toolbar's fields and the filter modal. It is
-        display: contents, so its fields sit in the toolbar's row as if it were
-        not there. The Filter button only opens the modal, so it sits outside
-        the form, kept together with Add at the end of the row; Add's create
-        dialog is never inside the filter form. A view with no filterset draws
-        no form at all.
-      {% endcomment %}
-      <c-mvp.page.list.toolbar :result_count="result_count"
-                               :refinements="refinements"
-                               bare>
-        {% if filter %}
-          <form id="filterForm" method="get" action="." class="contents">
-            {# Enter in a text field submits only through a submit button, and some forms have none. #}
-            <button type="submit" hidden tabindex="-1" aria-hidden="true"></button>
-            {% for field in toolbar_fields %}
-              <c-mvp.page.list.filters.field :field="field" />
-            {% endfor %}
-            <c-mvp.page.list.filters.modal part="dialog"
-                                           :fields="modal_fields"
-                                           :clear_url="clear_modal_url" />
-          </form>
-        {% endif %}
-        <div class="flex items-center gap-2 ms-auto">
-          {% if toolbar_sort %}<c-mvp.page.list.filters.field :field="toolbar_sort" />{% endif %}
-          <c-mvp.page.list.filters.modal part="button"
-                                         :fields="modal_fields"
-                                         :applied_count="modal_applied_count" />
-          <c-mvp.page.list.actions.create :directory="directory"
-                                          :create_form="create_form"
-                                          :create_modal_title="create_modal_title" />
-        </div>
-      </c-mvp.page.list.toolbar>
-    {% endblock page.toolbar %}
-    {% block page.refinements %}
-      {% if result_count or refinements %}
-        {# The result count leads the row of applied filters, directly above the results it counts. #}
-        <div class="mvp-list-status flex flex-wrap items-center gap-x-4 gap-y-2 -mt-1">
-          {% block page.summary %}
-            <c-mvp.page.list.summary :result_count="result_count"
-                                     :refinements="refinements"
-                                     :model_info="model_info"
-                                     class="font-medium"
-                                     only />
-          {% endblock page.summary %}
-          {% if sort_label %}
-            <p class="text-sm text-base-content/70">
-              {% blocktrans with order=sort_label %}Sorted by {{ order }}{% endblocktrans %}
-            </p>
+  <div id="{{ list_region_id }}" class="contents">
+    <div class="flex flex-col gap-4 mt-3">
+      {% block page.toolbar %}
+        {% comment %}
+          One form holds the toolbar's fields and the filter modal. It is
+          display: contents, so its fields sit in the toolbar's row as if it were
+          not there. The Filter button only opens the modal, so it sits outside
+          the form, kept together with Add at the end of the row; Add's create
+          dialog is never inside the filter form. A view with no filterset draws
+          no form at all.
+        {% endcomment %}
+        <c-mvp.page.list.toolbar :result_count="result_count"
+                                 :refinements="refinements"
+                                 bare>
+          {% if filter %}
+            <form id="filterForm"
+                  method="get"
+                  action="."
+                  class="contents"
+                  hx-boost="true"
+                  hx-target="#{{ list_region_id }}"
+                  hx-select="#{{ list_region_id }}"
+                  hx-swap="outerHTML">
+              {# Enter in a text field submits only through a submit button, and some forms have none. #}
+              <button type="submit" hidden tabindex="-1" aria-hidden="true"></button>
+              {% for field in toolbar_fields %}
+                <c-mvp.page.list.filters.field :field="field" />
+              {% endfor %}
+              <c-mvp.page.list.filters.modal part="dialog"
+                                             :fields="modal_fields"
+                                             :clear_url="clear_modal_url" />
+            </form>
           {% endif %}
-          <c-mvp.page.list.refinements :refinements="refinements"
-                                       :clear_refinements_url="clear_refinements_url"
-                                       class="w-auto flex-1"
+          <div class="flex items-center gap-2 ms-auto">
+            {% if toolbar_sort %}<c-mvp.page.list.filters.field :field="toolbar_sort" />{% endif %}
+            <c-mvp.page.list.filters.modal part="button"
+                                           :fields="modal_fields"
+                                           :applied_count="modal_applied_count" />
+            <c-mvp.page.list.actions.create :directory="directory"
+                                            :create_form="create_form"
+                                            :create_modal_title="create_modal_title" />
+          </div>
+        </c-mvp.page.list.toolbar>
+      {% endblock page.toolbar %}
+      {% block page.refinements %}
+        {% if result_count or refinements %}
+          {# The result count leads the row of applied filters, directly above the results it counts. #}
+          <div class="mvp-list-status flex flex-wrap items-center gap-x-4 gap-y-2 -mt-1">
+            {% block page.summary %}
+              <c-mvp.page.list.summary :result_count="result_count"
+                                       :refinements="refinements"
+                                       :model_info="model_info"
+                                       class="font-medium"
                                        only />
-        </div>
+            {% endblock page.summary %}
+            {% if sort_label %}
+              <p class="text-sm text-base-content/70">
+                {% blocktrans with order=sort_label %}Sorted by {{ order }}{% endblocktrans %}
+              </p>
+            {% endif %}
+            <c-mvp.page.list.refinements :refinements="refinements"
+                                         :clear_refinements_url="clear_refinements_url"
+                                         class="w-auto flex-1"
+                                         hx-boost="true"
+                                         hx-target="#{{ list_region_id }}"
+                                         hx-select="#{{ list_region_id }}"
+                                         hx-swap="outerHTML"
+                                         only />
+          </div>
+        {% endif %}
+      {% endblock page.refinements %}
+      {% block page.results %}
+        <c-mvp.page.list :list="object_list"
+                     :attrs="grid_config"
+                     :card="list_item_template">
+          <c-slot name="empty">
+            {% block page.empty %}
+              <c-mvp.page.list.empty :attrs="empty_state"
+                                    :refinements="refinements"
+                                    :clear_refinements_url="clear_refinements_url"
+                                    :model_info="model_info"
+                                    :directory="directory"
+                                    :create_form="create_form"
+                                    :create_modal_title="create_modal_title"
+                                    create_modal
+                                    :request="request"
+                                    :region="list_region_id"
+                                    only />
+            {% endblock page.empty %}
+          </c-slot>
+        </c-mvp.page.list>
+      {% endblock page.results %}
+    </div>
+    {% block page.pagination %}
+      {% if page_obj %}
+        <c-mvp.page.list.footer :page_obj="page_obj"
+                                class="mt-5"
+                                hx-boost="true"
+                                hx-target="#{{ list_region_id }}"
+                                hx-select="#{{ list_region_id }}"
+                                hx-swap="outerHTML" />
       {% endif %}
-    {% endblock page.refinements %}
-    {% block page.results %}
-      <c-mvp.page.list :list="object_list"
-                   :attrs="grid_config"
-                   :card="list_item_template">
-        <c-slot name="empty">
-          {% block page.empty %}
-            <c-mvp.page.list.empty :attrs="empty_state"
-                                  :refinements="refinements"
-                                  :clear_refinements_url="clear_refinements_url"
-                                  :model_info="model_info"
-                                  :directory="directory"
-                                  :create_form="create_form"
-                                  :create_modal_title="create_modal_title"
-                                  create_modal
-                                  :request="request"
-                                  only />
-          {% endblock page.empty %}
-        </c-slot>
-      </c-mvp.page.list>
-    {% endblock page.results %}
+    {% endblock page.pagination %}
   </div>
-  {% block page.pagination %}
-    {% if page_obj %}<c-mvp.page.list.footer :page_obj="page_obj" class="mt-5" />{% endif %}
-  {% endblock page.pagination %}
 {% endblock page.content %}
 {% block extra_js %}
   {{ block.super }}

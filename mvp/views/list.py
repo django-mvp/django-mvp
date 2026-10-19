@@ -8,6 +8,7 @@ from django import forms
 from django.core.exceptions import ImproperlyConfigured
 from django.db.models import Model, QuerySet
 from django.utils import formats
+from django.utils.cache import patch_vary_headers
 from django.utils.choices import flatten_choices
 from django.utils.functional import Promise
 from django.utils.translation import gettext_lazy as _
@@ -427,6 +428,10 @@ class MVPListViewMixin(
         create_modal_title (str | None): Override the modal title for inline create. When
             ``None`` (the default), auto-derives as ``"Add <verbose_name>"`` (e.g. "Add Product").
             Default: ``None``.
+        list_region_id (str): The id of the region a filter, a chip, a column heading or the
+            pager swaps in place with htmx. Default: ``"mvp-list"``.
+        partial_base_template (str): What the page extends in place of ``base.html`` when
+            htmx asks for the region alone. Default: ``"mvp/partial.html"``.
 
     Override hooks:
         get_list_item_template(): Return the item partial path; override for full control.
@@ -444,6 +449,7 @@ class MVPListViewMixin(
         get_refinements(): Return what is narrowing the list: each applied filter, the search
             among them.
         get_url_without(): Return the current URL with the named query parameters removed.
+        is_region_request(): Return whether htmx asked for the list region alone.
 
     Context (always injected):
         result_count (int): How many records the list holds across every page, after the
@@ -467,6 +473,9 @@ class MVPListViewMixin(
             ``create_form`` is also injected).
         filter / filterset (FilterSet): The request's filterset, under both names, only when
             the view has one.
+        list_region_id (str): The id of the region swapped in place.
+        page_base_template (str): ``partial_base_template``, only when the request asked for
+            the region alone.
         applied_filters / applied_filter_count / clear_filters_url / sort_label: Injected by
             ``FilterContextMixin`` when the view has a filterset — see there.
 
@@ -495,6 +504,8 @@ class MVPListViewMixin(
     filterset_class = None
     filterset_fields = None
     toolbar_filters: list[str] = []
+    list_region_id = "mvp-list"
+    partial_base_template = "mvp/partial.html"
 
     def __init_subclass__(cls, **kwargs):
         """Refuse a removed search or sort setting, or ``FilterView``, as the class is defined.
@@ -626,7 +637,29 @@ class MVPListViewMixin(
             )
             context["create_modal_title"] = title
 
+        context["list_region_id"] = self.list_region_id
+        if self.is_region_request():
+            context["page_base_template"] = self.partial_base_template
+
         return context
+
+    def is_region_request(self) -> bool:
+        """Return whether htmx asked for the list region alone.
+
+        Read from the header htmx sends rather than ``request.htmx``, so the
+        list page needs no middleware. A boosted link elsewhere, such as the
+        sidebar's, targets the whole body and gets the whole page.
+
+        Returns:
+            ``True`` when the request's ``HX-Target`` is the list region.
+        """
+        return self.request.headers.get("HX-Target") == self.list_region_id  # type: ignore[attr-defined]
+
+    def render_to_response(self, context, **response_kwargs):
+        """Render the page, varying on ``HX-Target`` so a cache keeps both forms apart."""
+        response = super().render_to_response(context, **response_kwargs)  # type: ignore[misc]
+        patch_vary_headers(response, ["HX-Target"])
+        return response
 
     def get_result_count(self, context: dict[str, Any]) -> int:
         """Return how many records the list holds across every page.

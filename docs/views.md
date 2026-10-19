@@ -430,6 +430,40 @@ The count reads "32 products" from the model's verbose name. Once a search or fi
 applied it reads "3 results". On a paginated list the browser title also carries the
 page, as in "Products (page 2 of 4)".
 
+### Updating in place
+
+Applying a filter, removing a chip, Clear all, sorting and moving to another page all
+update the list without reloading the page. Each fetches the list with htmx and swaps one
+region, `#mvp-list`, which holds the toolbar, the count row, the results and the pager. The
+address bar follows each change, so the back button and a copied link work as they did. A
+browser without JavaScript submits the form as an ordinary GET.
+
+On a table page the column headings sort the same way. A table drawn anywhere else sorts
+with a page load.
+
+The view answers a request whose `HX-Target` header is the region with the page's content
+alone, without the app shell around it. It renders the same template, so a block you
+override is drawn in the swap too. Every response varies on `HX-Target`, so a cache keeps
+the two apart. django-htmx and its middleware are not needed for any of this.
+
+| Attribute or hook | What it does |
+| --- | --- |
+| `list_region_id` | The id of the swapped region. Default: `"mvp-list"`. Passed to the template under the same name |
+| `partial_base_template` | What `page_view.html` extends in place of `base.html` for the region alone. Default: `"mvp/partial.html"`, which draws the title and the `content` block |
+| `is_region_request()` | Whether this request asked for the region alone |
+
+The swap sits on each control rather than on the region, so htmx you add to a result card
+or a table cell keeps its own target. A form or link of your own, drawn in an overridden
+block, swaps the region when it carries the same four attributes:
+
+```html
+<a href="?status=draft"
+   hx-boost="true"
+   hx-target="#{{ list_region_id }}"
+   hx-select="#{{ list_region_id }}"
+   hx-swap="outerHTML">Drafts</a>
+```
+
 ### What the view tells the template
 
 These context keys describe the state of the list:
@@ -446,6 +480,8 @@ These context keys describe the state of the list:
 | `modal_fields` | The bound fields of every other field of the filterset, for the filter modal |
 | `modal_applied_count` | How many of the modal's fields are applied filters: the Filter button's badge. Present only when the view has a filterset |
 | `clear_modal_url` | The current URL without the modal's fields and the page number. The toolbar's fields and the sort are kept. Present only when a modal field is applied |
+| `list_region_id` | The id of the region a filter, the pager or a column heading swaps in place |
+| `page_base_template` | `partial_base_template`, present only when the request asked for the region alone |
 
 Each entry in `refinements` is a dict:
 
@@ -508,7 +544,8 @@ Every part of the list template is a block, so a project template that extends
 Replacing an outer block replaces the blocks inside it: a template that overrides
 `page.toolbar` draws its own filter form and controls, and its own add button if it wants
 one. The filter modal must sit inside the filter form, `#filterForm`; the Filter button
-only opens it and may sit anywhere.
+only opens it and may sit anywhere. Give your form the swap attributes from
+[Updating in place](#updating-in-place) to keep it updating without a page load.
 
 The toolbar's controls are drawn at DaisyUI's default size. For a denser page, override
 `page.toolbar` and pass `size="sm"` to the controls you draw.
@@ -791,6 +828,9 @@ active, `HtmxFormMixin` (`mvp.views.htmx`) upgrades form views: invalid submissi
 re-render only the form partial, successful ones return an `HX-Redirect` or a
 success partial, and server-triggered events go out via `HX-Trigger`. The views degrade
 gracefully when the request isn't from htmx.
+
+List and table pages update in place with no setup and without django-htmx: see
+[Updating in place](#updating-in-place).
 
 The htmx library itself ships with django-mvp, in the bundled front-end runtime, so you
 do not add a script tag for it. It runs on every page, which means `hx-*` attributes are
