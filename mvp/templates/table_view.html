@@ -70,6 +70,8 @@
                       method="get"
                       action="."
                       class="flex flex-wrap items-center gap-x-3 gap-y-2">
+                  {# Enter in a text field submits only through a submit button, and some forms have none. #}
+                  <button type="submit" hidden tabindex="-1" aria-hidden="true"></button>
                   {% for field in toolbar_fields %}
                     <c-mvp.page.list.filters.field :field="field" />
                   {% endfor %}

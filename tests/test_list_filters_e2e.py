@@ -314,3 +314,42 @@ class TestDevelopersWidgetAppliesOnLeave:
         _settle(page)
         assert loads == []
         assert page.url == address
+
+
+class TwoTextFilters(django_filters.FilterSet):
+    name = django_filters.CharFilter(lookup_expr="icontains", label="Name")
+    description = django_filters.CharFilter(
+        lookup_expr="icontains", label="Description"
+    )
+
+    class Meta:
+        model = Product
+        fields: list[str] = []
+
+
+class TwoTextFiltersListView(ProductListView):
+    """Two text filters in the toolbar and nothing else: no search, no modal."""
+
+    filterset_class = TwoTextFilters
+    toolbar_filters = ["name", "description"]
+
+
+TWO_TEXT_FILTERS_PAGE = "/two-text-filters/"
+TWO_TEXT_FILTERS_URLCONF = urlconf_of(
+    path(TWO_TEXT_FILTERS_PAGE.strip("/") + "/", TwoTextFiltersListView.as_view()),
+    *demo_patterns,
+)
+
+
+@pytest.mark.urls(TWO_TEXT_FILTERS_URLCONF)
+class TestEnterInAToolbarTextField:
+    def test_enter_updates_the_address_when_nothing_else_submits_the_form(
+        self, page, live_server, products
+    ):
+        _open(page, live_server, TWO_TEXT_FILTERS_PAGE)
+
+        field = page.locator("#filterForm input[name=name]")
+        field.fill("lamp")
+        field.press("Enter")
+
+        _wait_for_query(page, {"name": ["lamp"]})

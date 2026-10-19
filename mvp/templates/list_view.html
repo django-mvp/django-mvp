@@ -44,6 +44,8 @@
                                bare>
         {% if filter %}
           <form id="filterForm" method="get" action="." class="contents">
+            {# Enter in a text field submits only through a submit button, and some forms have none. #}
+            <button type="submit" hidden tabindex="-1" aria-hidden="true"></button>
             {% for field in toolbar_fields %}
               <c-mvp.page.list.filters.field :field="field" />
             {% endfor %}
