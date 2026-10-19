@@ -2,7 +2,7 @@
   "feature": "041-list-filters-from-a-filterset",
   "branch": "041-list-filters-from-a-filterset",
   "repo": "django-mvp/django-mvp",
-  "state": "IMPLEMENT",
+  "state": "CONVERGE",
   "state_history": [
     {
       "state": "QUEUED",
@@ -23,6 +23,11 @@
       "state": "IMPLEMENT",
       "at": "2026-10-19T12:04:28Z",
       "note": "plan gate open; US-1..US-5 sequentially in one worktree"
+    },
+    {
+      "state": "CONVERGE",
+      "at": "2026-10-19T14:44:46Z",
+      "note": "US-1..US-5 done; T027/T028 by Forge"
     }
   ],
   "gates": {
@@ -536,7 +541,7 @@
       "priority": "P2",
       "issue": 554,
       "worktree": null,
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
@@ -651,7 +656,7 @@
   ],
   "budgets": {
     "converge_cycles": {
-      "used": 0,
+      "used": 1,
       "max": 2
     },
     "review_cycles": {

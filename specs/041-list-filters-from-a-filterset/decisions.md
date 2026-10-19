@@ -3,7 +3,7 @@
 Rationale for the choices the specification makes that the intake discussion on #536 did not
 settle in so many words.
 
-## The search keeps today's matching
+## D1 — The search keeps today's matching
 
 **Ambiguous:** whether the shipped search filter should match the way the search box does now,
 or follow some other rule (all words rather than any word, whole words, no word limit).
@@ -16,7 +16,9 @@ ten words only.
 safeguard, not a taste call: the expression grows with words times fields, and an unbounded term
 lets the requester decide how deep the query gets.
 
-## Changing anything returns the list to its first page
+**ADR:** none — keeps existing behaviour; the search filter's docstring and docs/views.md state the rule
+
+## D2 — Changing anything returns the list to its first page
 
 **Ambiguous:** whether a filter change keeps the page number.
 
@@ -25,7 +27,9 @@ lets the requester decide how deep the query gets.
 **Why:** the new result can have fewer pages, and a page number past the end is answered with a
 404. The remove links in the refinements row already drop the page number for the same reason.
 
-## Two clear actions, two different reaches
+**ADR:** none — a behaviour of this feature's list page, stated in docs/views.md
+
+## D3 — Two clear actions, two different reaches
 
 **Ambiguous:** once some filters live in the toolbar and some in the modal, what the modal's
 clear action should clear.
@@ -38,7 +42,9 @@ shows. Clearing a toolbar value from inside the modal would change something the
 there. The refinements row lists everything applied, so its clear-all removes everything listed.
 The sort was never a refinement, and clearing filters has never reset it.
 
-## The Filter button counts only the modal's filters
+**ADR:** none — a behaviour of this feature's list page, stated in docs/views.md
+
+## D4 — The Filter button counts only the modal's filters
 
 **Ambiguous:** what the count on the Filter button includes once some filters are in the toolbar.
 
@@ -47,7 +53,9 @@ The sort was never a refinement, and clearing filters has never reset it.
 **Why:** the count tells the reader that something hidden is applied. A toolbar value is on
 screen next to the button.
 
-## A bad value is ignored, not fatal
+**ADR:** none — a behaviour of this feature's list page, stated in docs/views.md
+
+## D5 — A bad value is ignored, not fatal
 
 **Ambiguous:** django-filter's own view, by default, shows an empty list when any field fails to
 validate.
@@ -61,14 +69,18 @@ empty "nothing matches" page for a stale bookmark would look to the reader like 
 gone. Keeping today's behaviour for the sort and extending it to every filter is the consistent
 choice.
 
-## A table page ignores the sort without an error
+**ADR:** none — extends the existing handling of a stale sort value; stated in docs/views.md
+
+## D6 — A table page ignores the sort without an error
 
 Sam's ruling at intake (2026-10-19). The table view today refuses a view-level ordering when the
 class is defined, because the table has its own column sorting. Sam asked that a sort filter on a
 table page's filterset be ignored silently, so one filterset can serve a list page and a table
 page. Refusing it would make a developer keep two copies of the same filterset.
 
-## Toolbar fields do not move into the modal on small screens
+**ADR:** none — local to the table view, stated in its docstring and docs/views.md
+
+## D7 — Toolbar fields do not move into the modal on small screens
 
 **Ambiguous:** #536 suggests the filter modal stays for narrow screens.
 
@@ -78,13 +90,15 @@ page. Refusing it would make a developer keep two copies of the same filterset.
 its value twice. Moving it properly needs a screen-width check in the page, and ADR 0021 leaves
 responsive visibility to the browser. Agreed with Sam at intake as out of scope.
 
+**ADR:** none — follows ADR 0021 rather than changing it
+
 ## Design review outcome (S3R, 2026-10-19)
 
 One reviewer, three lenses, one round: `request_changes`, 1 high, 7 medium, 9 low, no security
 finding. Every finding was applied to `plan.md`, `tasks.md` or `research.md`; each edit names the
 finding it answers. The orchestrator checked each remedy against the finding's evidence.
 
-## A widget's own media is not a package asset
+## D8 — A widget's own media is not a package asset
 
 **Ambiguous:** FR-027 says the package loads no asset a developer's widget needs, and
 `list_view.html` writes `{{ filter.form.media }}`, which loads a widget's declared script.
@@ -96,7 +110,9 @@ that renders a form. The package names no library and ships nothing for it. The 
 loads the library the widget depends on (Tom Select, for django-mvp-forms), as the widget's own
 documentation says. **Revisit if** Sam reads FR-027 as excluding form media.
 
-## No per-field grow or shrink setting
+**ADR:** none — Django's own form-media contract, nothing new to record
+
+## D9 — No per-field grow or shrink setting
 
 **Chosen:** the search grows to fill the toolbar row; every other field keeps its width. No
 setting for it.
@@ -105,14 +121,18 @@ setting for it.
 new view or filterset option with no case yet. **Revisit if** a project needs a second field to
 grow.
 
-## The table view's order_by message
+**ADR:** none — a decision not to build something; nothing downstream inherits it
+
+## D10 — The table view's order_by message
 
 **Chosen:** on a table view, the import-time refusal of `order_by` points to the table class's own
 `order_by`, not to a `SortFilter` (design review SPEC-010). FR-002 asks for an error that points to
 the filterset, and a table view drops a `SortFilter` (FR-023), so pointing there would send the
 developer to something that does nothing. This is a change of message only.
 
-## get_filterset takes an optional class (US-1, T006)
+**ADR:** none — the wording of one error message
+
+## D11 — get_filterset takes an optional class (US-1, T006)
 
 **Decision:** `MVPListViewMixin.get_filterset(filterset_class=None)` builds and caches the
 request's filterset; the argument defaults to `get_filterset_class()`.
@@ -126,7 +146,9 @@ still rebuilds it.
 
 **Revisit if:** no caller ever passes the class once US-5 lands.
 
-## The table's own order_by refusal goes with the mixins (US-1, T007)
+**ADR:** none — mirrors django-filter's own signature, local to the list mixin
+
+## D12 — The table's own order_by refusal goes with the mixins (US-1, T007)
 
 **Decision:** T007 removes `MVPTableViewMixin.__init_subclass__`'s refusal of `order_by` and
 converts the demo's list and table views off `FilterView` and `search_fields`, instead of
@@ -141,7 +163,9 @@ because its template draws every filterset field as a select.
 
 **Revisit if:** T023 or T026 needs either back in another shape.
 
-## The custom-toolbar table page reuses the product filterset (US-5, T026)
+**ADR:** none — an ordering of the build's tasks
+
+## D13 — The custom-toolbar table page reuses the product filterset (US-5, T026)
 
 **Decision:** `CustomToolbarTableView` takes the demo's `ProductFilter` with
 `toolbar_filters = ["q", "status", "priority"]`, and its Columns and Export buttons move to
@@ -159,7 +183,9 @@ story's scope that already tests a demo table page is `tests/test_table_layout.p
 **Revisit if:** Sam wants the page to keep exactly two filters and no modal, which needs a
 filterset of its own in `demo/filters.py`.
 
-### T027 and T028 built by the orchestrator, not dispatched
+**ADR:** none — local to one demo page
+
+## D14 — T027 and T028 built by the orchestrator, not dispatched
 
 **Decision:** the orchestrator wrote T027 and T028 itself.
 
@@ -170,7 +196,9 @@ T028 changed nothing. A dispatch would have cost more than the work.
 **Revisit if:** either task turns out to need more than a test and a line, which would be design
 work for an implementer.
 
-## Two pre-existing tests changed outside the retirement table
+**ADR:** none — about how this feature was built, not the code
+
+## D15 — Two pre-existing tests changed outside the retirement table
 
 **Decision:** `tests/test_components/test_icon.py` and `tests/test_components/test_sidebar_boost.py`
 are changed. The other six tests the feature changes or deletes are in the plan's retirement table.
@@ -182,3 +210,5 @@ drawn through this package. The language-switcher browser test found its trigger
 It now finds the button by its role. Neither assertion is weaker.
 
 **Revisit if:** daisy-cotton goes back to picking an alert's icon from its variant.
+
+**ADR:** none — about two tests, nothing downstream inherits it
