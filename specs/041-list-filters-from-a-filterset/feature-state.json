@@ -506,7 +506,7 @@
             "code": [
               "mvp/templates/cotton/mvp/page/list/filters/field.html:102",
               "mvp/templates/cotton/mvp/page/list/filters/field.html:12",
-              "mvp/static/js/list_view.js:84"
+              "mvp/static/js/list_view.js:86"
             ]
           }
         },
@@ -523,7 +523,8 @@
               "uv run pytest tests/test_list_filters_e2e.py -q -m e2e"
             ],
             "code": [
-              "tests/test_list_filters_e2e.py:166",
+              "tests/test_list_filters_e2e.py:224",
+              "tests/test_list_filters_e2e.py:284",
               "mvp/static/js/list_view.js:91"
             ]
           }
