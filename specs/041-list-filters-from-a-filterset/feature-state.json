@@ -66,8 +66,23 @@
       "tasks": [
         {
           "id": "T001",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_messages.py::TestMessageIcons",
+              "tests/test_views/test_account.py::TestSignInAlertIcons",
+              "tests/test_components/test_form_formset.py::TestFormsetNonFormErrors",
+              "tests/test_views/test_edit.py::TestDeletePageAlertIcons"
+            ],
+            "commands": [
+              "uv run pytest -q -p no:randomly tests/test_views/test_edit.py tests/test_views/test_account.py tests/test_components/test_messages.py tests/test_components/test_form_formset.py"
+            ],
+            "code": [
+              "mvp/templates/delete_view.html:28",
+              "mvp/templates/cotton/mvp/messages.html:11"
+            ]
+          }
         },
         {
           "id": "T002",

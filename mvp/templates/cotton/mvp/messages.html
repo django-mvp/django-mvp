@@ -8,6 +8,7 @@
     {# level tag, such as one a project adds, draws a plain alert. #}
     {% with tag=message.level_tag %}
       <c-alert variant="{% if tag == 'debug' %}info{% elif tag == 'info' or tag == 'success' or tag == 'warning' or tag == 'error' %}{{ tag }}{% endif %}"
+               icon="{% if tag == 'debug' %}info{% elif tag == 'info' or tag == 'success' or tag == 'warning' or tag == 'error' %}{{ tag }}{% endif %}"
                :dismissible="dismissible"
                :delay="delay"
                class="shadow-lg" only>
