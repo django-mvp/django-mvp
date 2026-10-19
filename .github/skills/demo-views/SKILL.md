@@ -59,22 +59,30 @@ Use the package's own views, so the demo shows what a project gets:
 | Page | Base class | Template |
 |---|---|---|
 | Static page | `DemoTemplateView` | your own, extending `page_view.html` |
-| List or grid | `MVPListView`, or `MVPListViewMixin` with django-filter's `FilterView` | `list_view.html` (the default) |
+| List or grid | `MVPListView`, with a filterset for its search, sort and filters | `list_view.html` (the default) |
 | Table | `MVPTableView` from `mvp.integrations.django_tables.views` | `table_view.html` (the default) |
 | Create, update, form | `MVPCreateView`, `MVPUpdateView`, `MVPFormView` | `form_view.html` (the default) |
 | Detail | `MVPDetailView` | `detail_view.html` (the default) |
 | Delete | `MVPDeleteView` | `delete_view.html` (the default) |
 
 ```python
-from django_filters.views import FilterView
+import django_filters
 
-from mvp.views.list import MVPListViewMixin
+from mvp.filters import SearchFilter
+from mvp.views.list import MVPListView
 
 
-class MyFilterDemo(MVPListViewMixin, FilterView):
+class MyFilter(django_filters.FilterSet):
+    q = SearchFilter(fields=["name", "description"])
+
+    class Meta:
+        model = MyModel
+        fields = ["category", "status"]
+
+
+class MyFilterDemo(MVPListView):
     model = MyModel
-    filterset_fields = ["category", "status"]
-    search_fields = ["name", "description"]
+    filterset_class = MyFilter
     page_subtitle = "Everything in the catalogue."
 ```
 

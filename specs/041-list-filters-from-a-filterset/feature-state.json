@@ -246,8 +246,21 @@
         },
         {
           "id": "T011",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "docs examples executed by /tmp/fs041check/check_docs.py"
+            ],
+            "commands": [
+              "uv run python -I /tmp/fs041check/check_docs.py",
+              "uv run pre-commit run --files <T011 files>"
+            ],
+            "code": [
+              "docs/views.md:189",
+              "demo/views.py:419"
+            ]
+          }
         }
       ]
     },

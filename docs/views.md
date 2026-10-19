@@ -169,18 +169,8 @@ Add behavior declaratively:
 class ProductListView(MVPListView):
     model = Product
 
-    # Django-admin-style multi-word search (?q=)
-    search_fields = ["name", "description", "owner__username"]
-
-    # Whitelist-only ordering (?o=) — raw query values never reach the ORM.
-    # A sequence unpacks into multiple order_by() arguments, so an entry can
-    # declare a tiebreak: a single column is not a total order unless it is
-    # unique, and rows tying on it can move between pages without one.
-    order_by = [
-        ("name_asc",  "Name (A-Z)", ["name", "pk"]),
-        ("name_desc", "Name (Z-A)", ["-name", "-pk"]),
-        ("newest",    "Newest first", ["-created", "-pk"]),
-    ]
+    # Every search, sort and filter comes from one filterset (below)
+    filterset_class = ProductFilter
 
     # Card grid + per-item template ("<app>/<model>_list_item.html" by default)
     grid = {"md": 2, "xl": 3}
@@ -196,30 +186,138 @@ That modal is headed "Add Product", built from the model's verbose name. Set
 keeps its own short label either way, so a crowded action row stays readable while the
 dialog still says what it creates.
 
-`SearchMixin`, `OrderMixin` and `SearchOrderMixin` are also usable on any plain Django
-`ListView`.
+### Searching, sorting and filtering with a filterset
+
+A list page takes every search, sort and filter it offers from one
+[django-filter](https://django-filter.readthedocs.io/) filterset. The package ships two
+filters for it, in `mvp.filters`:
+
+```python
+import django_filters
+from django.utils.translation import gettext_lazy as _
+
+from mvp.filters import SearchFilter, SortFilter
+
+
+class ProductFilter(django_filters.FilterSet):
+    q = SearchFilter(fields=["name", "description", "category__name"])
+    o = SortFilter(
+        options=[
+            ("name", _("Name (A-Z)"), ["name", "pk"]),
+            ("-name", _("Name (Z-A)"), ["-name", "-pk"]),
+            ("-created", _("Newest first"), ["-created", "-pk"]),
+        ]
+    )
+
+    class Meta:
+        model = Product
+        fields = ["status", "category"]
+
+
+class ProductListView(MVPListView):
+    model = Product
+    filterset_class = ProductFilter
+```
+
+Name the search `q` and the sort `o`, as above, and the address reads the way it always
+has: `?q=lamp&o=-created`.
+
+| Filter | Arguments | What it does |
+| --- | --- | --- |
+| `SearchFilter` | `fields`, the ORM paths to search; `max_words`, default `10`; `label`, default "Search" | Ignoring case, keeps a record in which some word of the term appears in some named field, once, however many fields or joined rows it matched. Only the first `max_words` words are searched: the query grows by one branch per word per field and the term arrives from the URL, so the limit keeps its size out of a visitor's hands. An empty term narrows nothing |
+| `SortFilter` | `options`, a list of `(key, label, columns)`; `label`, default "Sort" | Orders the list by the chosen option's `columns`, one expression or a sequence, the later ones deciding ties. Only the key ever appears in the address and the columns never come from it. There is no empty choice |
+
+A single column is not a total order unless it is unique, and rows tying on it can move
+between pages, so end each option's columns with a unique one, usually `"pk"`.
+
+`filterset_fields = ["status", "category"]` on the view, in place of `filterset_class`,
+has django-filter generate a filterset from those model fields, and it works the same
+way. A view with neither has no filter form and no filter context. The view builds the
+filterset once per request, from `request.GET`, over its own queryset; override
+`get_filterset_class()` or `get_filterset()` to change either.
+
+A value the address carries that a filter cannot accept, such as a sort option that no
+longer exists or a choice that was removed, is ignored for that filter alone. The other
+filters still apply and the list is never emptied because of it.
+
+The sort is never an applied filter: it is not counted, not drawn among the refinements,
+and neither clear action removes it. The page names the chosen sort beside the count
+instead (`sort_label` in the context). The search is an applied filter like any other,
+labelled by its own label.
+
+Every field of the filterset is drawn in the filter modal, behind the Filter button in
+the toolbar. Closing the modal without applying it leaves the list as it was.
+
+### Moving search_fields and order_by into a filterset
+
+`search_fields`, `max_search_words`, `order_by`, `get_search_fields()` and
+`get_order_by_choices()` are gone, along with `SearchMixin`, `OrderMixin`,
+`SearchOrderMixin` and `mvp.integrations.django_filters.views.MVPFilteredListView`. A view
+that still declares one is refused when Django imports it, with an error that names the
+view, the setting and the filter that replaces it. So is a view that composes
+django-filter's `FilterView`: the list view builds its own filterset.
+
+Before:
+
+```python
+class ProductListView(MVPListView):
+    model = Product
+    search_fields = ["name", "description"]
+    max_search_words = 20
+    order_by = [
+        ("name_asc", "Name (A-Z)", ["name", "pk"]),
+        ("newest", "Newest first", ["-created", "-pk"]),
+    ]
+```
+
+After:
+
+```python
+class ProductFilter(django_filters.FilterSet):
+    q = SearchFilter(fields=["name", "description"], max_words=20)
+    o = SortFilter(
+        options=[
+            ("name_asc", "Name (A-Z)", ["name", "pk"]),
+            ("newest", "Newest first", ["-created", "-pk"]),
+        ]
+    )
+
+    class Meta:
+        model = Product
+        fields: list[str] = []
+
+
+class ProductListView(MVPListView):
+    model = Product
+    filterset_class = ProductFilter
+```
+
+Keep the option keys and the addresses people have bookmarked keep working. A view that
+had a filterset already adds the two filters to it, and one that composed
+`MVPListViewMixin` with `FilterView` drops `FilterView`. A table view's ordering belongs on
+its table class, through the table's own `order_by` or `Meta.order_by`; a table view
+ignores a `SortFilter`.
 
 ### How a list page is laid out
 
 From top to bottom, the list template draws:
 
 1. **The title row.** The title, the subtitle and the info button.
-2. **The toolbar.** The search box, a count of what the list holds, then the sort and
-   filter controls, and the add button last. It is one row on a wide screen. On a phone
-   the search box takes the first row and the count shares the second with the
-   controls.
-3. **What is narrowing the list.** The search term and each applied filter, each drawn as
-   a control that removes it. Two or more also get a single "Clear all".
+2. **The toolbar.** The filter form, then the Filter button that opens the filter modal,
+   and the add button last.
+3. **The count row.** A count of what the list holds, the chosen sort, then what is
+   narrowing the list: the search and each applied filter, each drawn as a control that
+   removes it. Two or more also get a single "Clear all".
 4. **The results**, or the empty state.
 5. **The pager**, only when there is more than one page. A wide screen gets the range
    being shown and numbered pages. A phone gets Previous, "Page 2 of 6" and Next.
 
 Each control follows the thing it drives, so there is no separate list to keep in step
-with the view. `search_fields` draws the search box, `order_by` the sort menu, a
-`FilterSet` the filter dialog, and `show_create_action` the add button. Leave one
-unconfigured and its control does not appear. A list with no records and nothing applied
-draws no toolbar at all, since there is nothing to search or sort. Its empty state carries
-the add button, and the create dialog with it, instead.
+with the view. A filterset draws the filter form and the Filter button, and
+`show_create_action` the add button. Leave one unconfigured and its control does not
+appear. A list with no records and nothing applied draws no toolbar at all, since there
+is nothing to search or sort. Its empty state carries the add button, and the create
+dialog with it, instead.
 
 The count reads "32 products" from the model's verbose name. Once a search or filter is
 applied it reads "3 results". On a paginated list the browser title also carries the
@@ -232,16 +330,18 @@ Three context keys describe the state of the list:
 | Key | Value |
 | --- | --- |
 | `result_count` | How many records the list holds across every page, after search and filters. Override `get_result_count(context)` to count another way |
-| `refinements` | What is narrowing the list: the search first, then each applied filter. Empty when nothing is applied |
-| `clear_refinements_url` | The current URL with the search and every filter removed, and the ordering kept. Present only when `refinements` is not empty |
+| `refinements` | What is narrowing the list: each applied filter of the filterset, the search among them, in the filterset's order. The sort is never one. Empty when nothing is applied |
+| `clear_refinements_url` | The current URL with the search and every filter removed, and the sort kept. Present only when `refinements` is not empty |
+| `sort_label` | The label of the chosen sort option, or `""`. Present only when the view has a filterset |
+| `filter`, `filterset` | The request's filterset, under both names. Present only when the view has one |
 
 Each entry in `refinements` is a dict:
 
 | Key | Value |
 | --- | --- |
-| `kind` | `"search"` or `"filter"` |
-| `name` | `"q"` for the search, the filter's name otherwise |
-| `label` | The words that name it: "Search", or the filter field's label |
+| `kind` | `"filter"` |
+| `name` | The filter's name on the filterset, `"q"` for a search named that way |
+| `label` | The words that name it: the filter's label |
 | `value` | The value as the reader chose it. A choice shows its label and a related record its string form, never the stored key |
 | `params` | The query parameters it occupies. A range filter has two |
 | `remove_url` | The current URL without this one entry. Everything else is kept, and the page number is dropped |
@@ -279,35 +379,27 @@ Every part of the list template is a block, so a project template that extends
 | --- | --- |
 | `page.title` | The title, subtitle and info icon |
 | `page.actions` | Empty. Anything here is drawn at the end of the title row |
-| `page.toolbar` | The whole toolbar row |
-| `page.search` | The search box, inside the toolbar |
-| `page.summary` | The count, inside the toolbar |
-| `page.controls` | Sort and filter, inside the toolbar. The add button follows it and is not part of it |
-| `page.refinements` | The applied search and filters |
+| `page.toolbar` | The whole toolbar row: the filter form, the Filter button and the add button |
+| `page.refinements` | The count row: the count, the chosen sort and the applied search and filters |
+| `page.summary` | The count, inside `page.refinements` |
 | `page.results` | The grid of records |
 | `page.empty` | The empty state, inside the results |
 | `page.pagination` | The pager |
 
 ```html
 {% extends "list_view.html" %}
-{% block page.controls %}
-  {{ block.super }}
+{% block page.actions %}
   <c-button icon="download" text="Export" href="{% url 'product-export' %}" />
-{% endblock page.controls %}
+{% endblock page.actions %}
 ```
 
-The add button is always the last control in the toolbar, after whatever `page.controls`
-holds, so the export button above lands between filter and add. Replacing an outer block
-replaces the blocks inside it: a template that overrides `page.toolbar` draws its own
-search, count and controls, and its own add button if it wants one.
+Replacing an outer block replaces the blocks inside it: a template that overrides
+`page.toolbar` draws its own filter form and controls, and its own add button if it wants
+one. The filter modal must sit inside the filter form, `#filterForm`; the Filter button
+only opens it and may sit anywhere.
 
 The toolbar's controls are drawn at DaisyUI's default size. For a denser page, override
-`page.controls` or `page.toolbar` and pass `size="sm"` to the controls you draw.
-
-Search reads the first ten words of `?q=` and ignores the rest. The query grows by one
-branch per word per field and the term arrives from the URL, so the limit keeps its size
-out of a visitor's hands. Raise `max_search_words` on the view if longer terms are
-genuinely useful.
+`page.toolbar` and pass `size="sm"` to the controls you draw.
 
 There are two empty states. A list with no records shows the heading and message below,
 with an "Add new" button that opens the inline create dialog when the page has one. A
@@ -331,12 +423,8 @@ Set `empty_state_message` to `None` to drop the paragraph for everyone and leave
 heading alone. To say something to read-only visitors instead, override
 `get_empty_state_message()`.
 
-Overriding `get_search_fields()` alone filters `?q=` without drawing the search box — the
-box's visibility reads the `search_fields` attribute directly, not the hook. Set
-`search_fields` to something truthy too if you need the box to show.
-
-For filtering with django-filter or table rendering with django-tables2, see
-[Integrations](integrations.md).
+For how the filter state reaches the template, and table rendering with django-tables2,
+see [Integrations](integrations.md).
 
 ## Forms: create / update / generic
 

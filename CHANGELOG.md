@@ -13,6 +13,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   integration, because every list page's search, sort and filters now come from a
   filterset. Add `"django_filters"` to `INSTALLED_APPS`; its range widgets render from
   its own templates. See ADR 0033.
+- **Breaking:** a list view takes every search, sort and filter from one django-filter
+  filterset, set as `filterset_class` (or generated from `filterset_fields`). Declare the
+  search with the new `mvp.filters.SearchFilter` and the sort with the new
+  `mvp.filters.SortFilter`. `search_fields`, `max_search_words`, `order_by`,
+  `get_search_fields()` and `get_order_by_choices()` are removed, with `SearchMixin`,
+  `OrderMixin`, `SearchOrderMixin` and `mvp.integrations.django_filters`
+  (`MVPFilteredListView`). A view that still declares one of them, or composes
+  django-filter's `FilterView`, raises `ImproperlyConfigured` when its module is imported,
+  naming the view, the setting and what replaces it. See "Moving search_fields and
+  order_by into a filterset" in `docs/views.md`.
+- **Breaking:** the search is an applied filter like any other: its refinement has
+  `kind` `"filter"` and the filter's own label, and the context no longer carries
+  `search_query` or `is_searchable`. The sort is never an applied filter, and neither
+  clear action removes it; `sort_label` names the chosen option.
+- **Breaking:** `c-mvp.page.list.actions.search`, `.sort` and `.filter` are removed, and
+  `c-mvp.page.list.actions` defaults to `['create']` and no longer draws a stand-in
+  `#filterForm`. The list page has one toolbar: the filter form, the Filter button and
+  Add, and the count moves to the row above the results with the chosen sort and the
+  applied filters. Its `page.search` and `page.controls` blocks are gone; `page.summary`
+  is inside `page.refinements`. The new `c-mvp.page.list.filters.modal` draws the Filter
+  button and the filter modal, and `c-mvp.page.list.toolbar` gains `bare`.
+- **Breaking:** daisy-cotton is pinned to `>=0.2,<0.3`. Its alert no longer picks an icon
+  from its variant, so every alert the package draws passes its icon itself; a project
+  alert that relied on the variant's icon passes `icon` too. On the delete page,
+  `related_objects_attrs` may name an `icon`; otherwise the alert takes its variant's.
+- `c-mvp.modal` is drawn inside daisy-cotton's `c-modal`. It holds no form of its own and
+  its close controls are `type="button"`, so it works inside a form, and its `title`
+  names the dialog.
 - **Breaking:** the add button on a list page is the last control in the toolbar, after
   sort and filter, and its create dialog moves with it. The title row keeps the title,
   the subtitle and the info button. `page.actions` is still in the title row, empty, so a

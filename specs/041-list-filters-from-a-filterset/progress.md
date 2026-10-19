@@ -72,3 +72,10 @@ Plan written: research.md answers every planning note; plan.md, tasks.md (T001-T
 **Verified**: before the template change TestListPageOneToolbar passed already except a fixture mistake of mine (Add is a dialog button when the view has a create form), and the page.summary block case failed; the template change is a removal with these tests and the existing TestListPageToolbar/EmptyState/Pagination as its net. After: `uv run pytest -q -p no:randomly tests/test_views/test_list.py tests/test_components/test_list_filter_modal.py tests/test_components/test_page_list.py tests/test_templates.py` 363 passed.
 **Next**: T011, the demo and the docs.
 **Watch**: the formdata script in list_view.html keeps its SKETCH marker for T018.
+
+## 2026-10-19T12:39:49Z · Implementer US1 · T011
+
+**Did**: demo's product list views on ProductFilter with the sketch markers removed (demo/filters.py, demo/views.py; the sketch's en-dash sort labels kept with `noqa: RUF001`). docs/views.md: "Searching, sorting and filtering with a filterset" (SearchFilter, SortFilter, `q`/`o`, filterset_fields, bad values, the sort never a filter) and "Moving search_fields and order_by into a filterset"; layout, context keys, refinement keys and blocks tables made true. docs/components.md, docs/integrations.md (table example, panel blocks, sorting), docs/troubleshooting.md, README, CONTEXT.md (filterset, sort, refinement, toolbar, toolbar filter, filter modal; mixins; component tree), skills/django-mvp/SKILL.md, .github/skills/demo-views/SKILL.md. CHANGELOG breaking entries under Unreleased.
+**Verified**: the docs' Python examples (filterset, filterset_fields, the refused "before", the "after", README/SKILL shape, both table examples) executed against the branch: `uv run python -I /tmp/fs041check/check_docs.py` printed "all docs examples ran". pre-commit on the changed files passed.
+**Next**: the story's full verify.
+**Watch**: the custom-toolbar table demo page overrides page.controls, which table_view.html no longer reaches with a filterset (T026).

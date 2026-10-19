@@ -418,8 +418,8 @@ E500 = DemoTemplateView.as_view(template_name="500.html")
 class ProductListView(MVPListView):
     """Demo page showing a list view of Products.
 
-    Search, filter and sort controls, and a create action, all wired through
-    MVPListViewMixin with no view-level plumbing of their own.
+    Its search, sort and filters all come from ProductFilter, and it has a
+    create action, with no view-level plumbing of their own.
     """
 
     model = Product
@@ -442,13 +442,12 @@ class ProductListView(MVPListView):
     list_item_template = "cards/product_card.html"
     grid = {"cols": 1, "md": 2, "xl": 3, "gap": 2}
     paginate_by = 10
-    # SKETCH (FS-041): one filterset, five of its fields in the toolbar.
     filterset_class = ProductFilter
     toolbar_filters = ["q", "status", "category", "is_featured", "o"]
 
 
 class ProductQuickListView(ProductListView):
-    """SKETCH (FS-041): a short filterset, every field in the toolbar, no modal."""
+    """A short filterset, every field in the toolbar, so there is no modal."""
 
     filterset_class = ProductQuickFilter
     toolbar_filters = ["q", "status", "is_featured", "o"]
@@ -457,7 +456,7 @@ class ProductQuickListView(ProductListView):
 
 
 class ProductModalOnlyListView(ProductListView):
-    """SKETCH (FS-041): no toolbar fields named, so every field is in the modal."""
+    """No toolbar fields named, so every field of the filterset is in the modal."""
 
     toolbar_filters: list[str] = []
     page_subtitle = None

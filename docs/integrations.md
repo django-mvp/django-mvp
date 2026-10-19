@@ -29,10 +29,10 @@ from mvp.integrations.django_tables.views import MVPTableView
 class ProductTableView(MVPTableView):
     model = Product
     table_class = ProductTable
-    search_fields = ["name"]
+    filterset_class = ProductFilter
 ```
 
-`MVPTableView` combines the full MVP list behavior (search, pagination, page chrome)
+`MVPTableView` combines the full MVP list behavior (filterset, pagination, page chrome)
 with django-tables2 rendering via the `table_view.html` base template and the
 [`c-mvp.addons.django-table`](components.md#actions-user-misc) component.
 `MVPTableViewMixin` is available for composing with other view classes.
@@ -56,7 +56,7 @@ the toolbar closed keeps it closed. While a search or filter is applied, the bar
 how many, open or closed, so a closed toolbar never hides that the table is a subset.
 
 The add button stays in the bar, so it is there with the panel closed. A view with
-nothing to put in the panel, no `search_fields` and no `FilterSet`, gets the bar alone,
+nothing to put in the panel, no filterset, gets the bar alone,
 with no panel and no button to open one.
 
 ### Surfaces and edges
@@ -100,31 +100,27 @@ Each part of the toolbar is a block in `table_view.html`:
 | `page.title` | The start of the bar: the heading, the info icon, the count and the subtitle |
 | `page.summary` | The count, inside `page.title` |
 | `page.actions` | Empty. Anything here is drawn at the end of the bar, before the add button, and stays when the panel is closed |
-| `page.panel` | Everything in the panel |
-| `page.search` | The search box, inside the panel |
-| `page.controls` | The filter button, inside the panel |
-| `page.refinements` | The applied search and filters, inside the panel |
+| `page.panel` | Everything in the panel: the filter form, the Filter button and the applied search and filters |
 | `page.content` | The table |
 | `page.footer` | The pager |
 
 ```html
 {% extends "table_view.html" %}
-{% block page.controls %}
+{% block page.actions %}
   <c-button icon="export" text="Export" href="{% url 'product-export' %}" />
-  {{ block.super }}
-{% endblock page.controls %}
+{% endblock page.actions %}
 ```
 
 ### Actions and sorting
 
 The toolbar draws the same controls a list page does, and decides on them the same
 way: each one appears when the view configures the thing it drives. Give the view
-`search_fields` and the search box appears, a `FilterSet` and the filter button does,
+a filterset and its search and filters appear,
 `show_create_action` and the add button does. There is no list to override.
 
-No sort control appears on a table page, and that is a consequence rather than a
-separate decision. A table view raises `ImproperlyConfigured` if you declare `order_by`
-on it, so the ordering choices the sort menu draws from are never there. A table
+No sort control appears on a table page. A table view leaves out any `SortFilter` its
+filterset declares, so one filterset can serve a list page and a table page, and it
+raises `ImproperlyConfigured` if you declare `order_by` on the view. A table
 already sorts through its own column headers, against the sortable columns the table
 class defines, and an ordering on the view as well would give the same table two
 competing sources for it. Put the ordering on the table class, as its own `order_by` or

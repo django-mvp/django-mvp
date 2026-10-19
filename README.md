@@ -219,13 +219,24 @@ Per-page overrides use component attributes (`<c-app breakpoint="xl">`,
 ## Views in one line each
 
 ```python
+import django_filters
+
+from mvp.filters import SearchFilter, SortFilter
 from mvp.views import MVPListView, MVPCreateView, MVPUpdateView, MVPDeleteView
+
+
+class ProductFilter(django_filters.FilterSet):
+    q = SearchFilter(fields=["name", "description"])      # ?q= multi-word search
+    o = SortFilter(options=[("name", "Name (A-Z)", ["name", "pk"])])  # ?o= whitelisted
+
+    class Meta:
+        model = Product
+        fields = ["status"]
 
 
 class ProductListView(MVPListView):
     model = Product
-    search_fields = ["name", "description"]              # ?q= multi-word search
-    order_by = [("name_asc", "Name (A-Z)", "name")]      # ?o= whitelisted ordering
+    filterset_class = ProductFilter                      # search, sort and filters
 
 
 class ProductCreateView(MVPCreateView):
