@@ -2,7 +2,7 @@
   "feature": "041-list-filters-from-a-filterset",
   "branch": "041-list-filters-from-a-filterset",
   "repo": "django-mvp/django-mvp",
-  "state": "PR_READY",
+  "state": "MERGED",
   "state_history": [
     {
       "state": "QUEUED",
@@ -38,6 +38,11 @@
       "state": "PR_READY",
       "at": "2026-10-19T16:05:35Z",
       "note": "S6 green: 9 findings fixed, review recorded"
+    },
+    {
+      "state": "MERGED",
+      "at": "2026-10-19T16:37:39Z",
+      "note": "PR #549 merged; approved by SamuelJennings"
     }
   ],
   "gates": {
@@ -57,8 +62,8 @@
       "at": "2026-10-19T12:30:00Z"
     },
     "merge": {
-      "approved_by": null,
-      "at": null
+      "approved_by": "SamuelJennings",
+      "at": "2026-10-19T16:26:43Z"
     },
     "design_review": {
       "approved_by": "design-panel",
@@ -70,8 +75,8 @@
       ]
     },
     "walkthrough": {
-      "approved_by": null,
-      "at": "2026-10-19T16:06:28Z",
+      "approved_by": "SamuelJennings",
+      "at": "2026-10-19T16:26:43Z",
       "self_resolved": []
     }
   },
@@ -840,12 +845,12 @@
       "max": 1
     },
     "tokens": {
-      "used": 0,
+      "used": 24.39,
       "max": 120
     }
   },
   "pr": {
     "number": 549,
-    "draft": true
+    "draft": false
   }
 }
