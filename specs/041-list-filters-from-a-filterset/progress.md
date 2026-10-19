@@ -142,3 +142,10 @@ Did: tested modal_applied_count and clear_modal_url (TestFilterModalCountAndClea
 Verified: uv run pytest tests/test_views/test_list.py::TestFilterModalCountAndClear -q -> red 1 failed (sort dropped), then 5 passed; mutation probe (count all active / drop every field) -> 3 failed; tests/test_views/test_list.py -> 177 passed.
 Next: T017 the count row.
 Watch: nothing.
+
+## 2026-10-19T13:12:46Z · Implementer US3 · T017
+
+Did: TestListPageCountRow (5 tests): the summary leads the row holding the chips, the sort in use is named after it (and not when none is chosen), the row sits above the results, and the toolbar holds no count (FR-026). list_view.html's page.refinements row was already the sketch's markup, so no template change.
+Verified: uv run pytest tests/test_views/test_list.py::TestListPageCountRow -q -> 5 passed; probe moving the summary and sort label into the toolbar -> 3 failed; restored. tests/test_views/test_list.py -> 182 passed.
+Next: T018 list_view.js.
+Watch: the tests pass on first run because the sketch already drew the row; the probe is the red evidence.

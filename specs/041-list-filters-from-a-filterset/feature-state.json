@@ -405,8 +405,20 @@
         },
         {
           "id": "T017",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 2,
+          "evidence": {
+            "tests": [
+              "tests/test_views/test_list.py::TestListPageCountRow"
+            ],
+            "commands": [
+              "uv run pytest tests/test_views/test_list.py::TestListPageCountRow -q (5 passed)",
+              "uv run pytest tests/test_views/test_list.py -q (182 passed)"
+            ],
+            "code": [
+              "mvp/templates/list_view.html:69"
+            ]
+          }
         },
         {
           "id": "T018",
