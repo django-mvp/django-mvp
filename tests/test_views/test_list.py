@@ -8,6 +8,7 @@ import pytest
 from django import forms
 from django.core.exceptions import ImproperlyConfigured
 from django.test import RequestFactory
+from django.urls import reverse
 from django.views.generic import ListView
 
 from demo.models import Category, Product
@@ -1010,6 +1011,61 @@ class TestListPageOneToolbar:
 
         for soup in [_list_page(rf), _list_page(rf, filterset_class=None)]:
             assert len(soup.find_all(class_="mvp-list-summary")) == 1
+
+
+class TestListPageCountRow:
+    def _position(self, soup, element):
+        return next(i for i, tag in enumerate(soup.find_all(True)) if tag is element)
+
+    def _row(self, soup):
+        summary = soup.find(class_="mvp-list-summary")
+        return summary, summary.parent
+
+    def test_the_count_leads_the_row_of_refinements(self, rf, cat):
+        _product(cat, "Lamp")
+
+        soup = _filtered_list_page(rf, "?q=lamp&o=name_asc", toolbar_filters=["q"])
+
+        summary, row = self._row(soup)
+        chips = soup.find(class_="mvp-list-refinements")
+        assert chips.parent is row
+        assert self._position(soup, summary) < self._position(soup, chips)
+
+    def test_the_sort_in_use_is_named_after_the_count(self, rf, cat):
+        _product(cat, "Lamp")
+
+        soup = _filtered_list_page(rf, "?o=name_asc")
+
+        summary, row = self._row(soup)
+        [sort] = [p for p in row.find_all("p") if "Name (A-Z)" in p.get_text()]
+        assert self._position(soup, summary) < self._position(soup, sort)
+
+    def test_no_sort_is_named_when_none_is_chosen(self, rf, cat):
+        _product(cat, "Lamp")
+
+        soup = _filtered_list_page(rf)
+
+        _summary, row = self._row(soup)
+        assert "Name (A-Z)" not in row.get_text()
+
+    def test_the_row_sits_above_the_results(self, rf, cat):
+        product = _product(cat, "Lamp")
+
+        soup = _filtered_list_page(rf, "?q=lamp")
+
+        _summary, row = self._row(soup)
+        result = soup.find("a", href=reverse("product-delete", kwargs={"pk": product.pk}))
+        assert result.find_parent(class_="mvp-list-status") is None
+        assert self._position(soup, row) < self._position(soup, result)
+
+    def test_the_toolbar_holds_no_count(self, rf, cat):
+        _product(cat, "Lamp")
+
+        soup = _filtered_list_page(rf, "?o=name_asc", toolbar_filters=["q", "o"])
+
+        toolbar = soup.find(class_="mvp-list-toolbar")
+        assert toolbar.find(class_="mvp-list-summary") is None
+        assert not [p for p in toolbar.find_all("p") if "Name (A-Z)" in p.get_text()]
 
 
 class TestListPageRefinements:
