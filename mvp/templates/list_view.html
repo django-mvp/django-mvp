@@ -8,9 +8,8 @@
 {% endblock title %}
 {% block page.title %}
   {% comment %}
-    The page's own action stays at the end of the title row at every width.
-    The controls that act on the list sit in the toolbar below, with the
-    results they change.
+    The title row holds the title, subtitle and info button. page.actions is
+    empty and stays for a page that fills it; Add is in the toolbar below.
   {% endcomment %}
   <c-mvp.page.title :title="page.title"
                 :subtitle="page.subtitle"
@@ -19,9 +18,6 @@
                 inline_actions only>
     <c-slot name="actions">
       {% block page.actions %}
-        <c-mvp.page.list.actions.create :directory="directory"
-                                        :create_form="create_form"
-                                        :create_modal_title="create_modal_title" />
       {% endblock page.actions %}
     </c-slot>
   </c-mvp.page.title>
@@ -64,6 +60,14 @@
                                   :applied_filter_count="applied_filter_count"
                                   :clear_filters_url="clear_filters_url" />
         {% endblock page.controls %}
+        {% comment %}
+          Add is always the last control, after anything page.controls holds,
+          and its dialog comes with it. The toolbar is not a form, so the
+          dialog's form never nests inside #filterForm.
+        {% endcomment %}
+        <c-mvp.page.list.actions.create :directory="directory"
+                                        :create_form="create_form"
+                                        :create_modal_title="create_modal_title" />
       </c-mvp.page.list.toolbar>
     {% endblock page.toolbar %}
     {% block page.refinements %}
@@ -85,6 +89,9 @@
                                   :model_info="model_info"
                                   :directory="directory"
                                   :create_form="create_form"
+                                  :create_modal_title="create_modal_title"
+                                  create_modal
+                                  :request="request"
                                   only />
           {% endblock page.empty %}
         </c-slot>

@@ -11,6 +11,9 @@
 {# @prop model_info:text | description:"The model's names, for the no-match heading." #}
 {# @prop directory:text | description:"The view's URL directory; its create_url draws the add action." #}
 {# @prop create_form:text | description:"A create form; when given, the add action opens the create modal." #}
+{# @prop create_modal_title:text | description:"Heading of the create modal this draws with create_modal." #}
+{# @prop request:text | description:"The current request, for the create modal to send the reader back to this page." #}
+{# @prop create_modal:boolean | description:"Draw the create modal with the add action. Set it where nothing else on the page draws one, as on a list page, whose toolbar is hidden while the list is empty." #}
 {% load i18n %}
 <c-vars icon="search"
         heading
@@ -23,7 +26,10 @@
         clear_refinements_url
         model_info
         directory
-        create_form />
+        create_form
+        create_modal_title
+        create_modal
+        request />
 <div class="mvp-list-empty w-full flex flex-col items-center text-center gap-2 py-12 {{ class }}"
      {{ attrs }}>
   <c-icon name="{{ icon }}" class="{{ icon_class }}" aria-hidden="true" />
@@ -56,7 +62,13 @@
     {% if message %}<p class="text-base-content/70 max-w-prose">{{ message }}</p>{% endif %}
     {% if directory.create_url %}
       <div class="mt-4">
-        {% if create_form %}
+        {% if create_form and create_modal %}
+          <c-mvp.page.list.actions.create label="{% trans "Add new" %}"
+                                          :directory="directory"
+                                          :create_form="create_form"
+                                          :create_modal_title="create_modal_title"
+                                          :request="request" />
+        {% elif create_form %}
           <c-button variant="primary"
                     icon="add"
                     text="{% trans "Add new" %}"

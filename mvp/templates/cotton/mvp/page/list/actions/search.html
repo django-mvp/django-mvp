@@ -17,7 +17,6 @@
     <c-form.input type="search"
                   name="q"
                   form="filterForm"
-                  size="sm"
                   class="join-item grow {{ input_class }}"
                   placeholder="{{ placeholder }}"
                   value="{{ search_query|default:'' }}"
@@ -29,7 +28,6 @@
     </c-form.input>
     <c-button type="submit"
               class="join-item"
-              size="sm"
               form="filterForm"
               text="{{ label }}" only />
   </c-join>

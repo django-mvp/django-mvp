@@ -14,7 +14,6 @@
   <c-button text="{{ label }}"
             icon="{{ icon }}"
             variant="primary"
-            size="sm"
             @click="createModal.showModal()" only />
   <c-mvp.modal id="createModal"
            title="{{ create_modal_title|default:label }}"
@@ -40,6 +39,5 @@
   <c-button text="{{ label }}"
             icon="{{ icon }}"
             variant="primary"
-            size="sm"
             href="{{ directory.create_url }}" only />
 {% endif %}

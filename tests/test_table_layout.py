@@ -669,12 +669,53 @@ class TestTableToolbar:
         assert soup.find(id=TOOLBAR_PANEL) is not None
 
     @pytest.mark.django_db
-    def test_search_and_the_add_action_are_inside_the_panel(self, rf, product):
+    def test_search_is_inside_the_panel(self, rf, product):
         soup = _beautiful_soup()(_render_table_view(rf), "html.parser")
 
         panel = soup.find(id=TOOLBAR_PANEL)
         assert panel.find(attrs={"name": "q"}) is not None
-        assert panel.find("a", href="/products/create/") is not None
+
+    @pytest.mark.django_db
+    def test_the_add_action_is_in_the_bar_and_stays_when_the_panel_closes(
+        self, rf, product
+    ):
+        soup = _beautiful_soup()(_render_table_view(rf), "html.parser")
+
+        create = soup.find("a", href="/products/create/")
+        assert create.find_parent(class_="mvp-table-toolbar-bar") is not None
+        assert create.find_parent(id=TOOLBAR_PANEL) is None
+
+    @pytest.mark.django_db
+    def test_a_page_that_fills_page_actions_still_gets_the_add_action(
+        self, rf, product
+    ):
+        html = _render_table_view(
+            rf, template_name="tests/table_view_block_override.html"
+        )
+        soup = _beautiful_soup()(html, "html.parser")
+
+        assert soup.find(id="override-actions") is not None
+        create = soup.find("a", href="/products/create/")
+        assert create.find_parent(class_="mvp-table-toolbar-bar") is not None
+
+    @pytest.mark.django_db
+    def test_the_create_dialog_is_drawn_once_on_an_empty_table(self, rf):
+        from demo.forms import ProductForm
+
+        html = _render_table_view(rf, create_form_class=ProductForm)
+        soup = _beautiful_soup()(html, "html.parser")
+
+        assert len(soup.find_all(id="createModal")) == 1
+        empty = soup.find("tbody").find(class_="mvp-list-empty")
+        assert "createModal.showModal()" in str(empty.find("button"))
+
+    @pytest.mark.django_db
+    def test_the_add_action_alone_draws_no_panel(self, rf, product):
+        html = _render_table_view(rf, search_fields=None)
+        soup = _beautiful_soup()(html, "html.parser")
+
+        assert soup.find("a", href="/products/create/") is not None
+        assert soup.find(id=TOOLBAR_PANEL) is None
 
     @pytest.mark.django_db
     def test_a_view_with_nothing_to_put_in_the_panel_has_no_panel_or_toggle(
