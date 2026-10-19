@@ -140,3 +140,21 @@ what T023 asked for. The custom-toolbar table page loses its search box until T0
 because its template draws every filterset field as a select.
 
 **Revisit if:** T023 or T026 needs either back in another shape.
+
+## The custom-toolbar table page reuses the product filterset (US-5, T026)
+
+**Decision:** `CustomToolbarTableView` takes the demo's `ProductFilter` with
+`toolbar_filters = ["q", "status", "priority"]`, and its Columns and Export buttons move to
+`page.actions`. The page's test, `TestCustomToolbarDemoPage`, sits in
+`tests/test_table_layout.py` beside the other demo table page's test.
+
+**Why:** the page's own filters (status, priority) and the search it lost at T007 come back in
+the panel without a new filterset outside the task's files (`demo/filters.py` is not one), and
+the page shows the list's filterset serving a third page unchanged (SC-002). The block the page
+used, `page.controls`, went with T024, and `page.actions` is the documented place for a
+project's own buttons on a table page. The page now has a filter modal for the rest of the
+filterset, where before it had none. No demo test existed for the page; the one file in the
+story's scope that already tests a demo table page is `tests/test_table_layout.py`.
+
+**Revisit if:** Sam wants the page to keep exactly two filters and no modal, which needs a
+filterset of its own in `demo/filters.py`.
