@@ -40,8 +40,9 @@ with django-tables2 rendering via the `table_view.html` base template and the
 The page fills the screen. Three bands stay put and one region scrolls between them:
 
 1. **The toolbar.** A bar with the title, a count of the records and the add button, and
-   a panel under it with the search box, the filter button and the search and filters
-   that are applied.
+   a panel under it with the filter form: the filterset fields the view names in
+   `toolbar_filters`, then the Filter button that opens the filter modal with the rest,
+   then the search and filters that are applied.
 2. **The table.** The rows scroll in a region of their own. The heading row stays at
    the top of it and the footer row, where the table declares one, at the bottom, so
    one scrollbar runs beside all three.
@@ -101,6 +102,7 @@ Each part of the toolbar is a block in `table_view.html`:
 | `page.summary` | The count, inside `page.title` |
 | `page.actions` | Empty. Anything here is drawn at the end of the bar, before the add button, and stays when the panel is closed |
 | `page.panel` | Everything in the panel: the filter form, the Filter button and the applied search and filters |
+| `page.refinements` | The applied search and filters, inside `page.panel` |
 | `page.content` | The table |
 | `page.footer` | The pager |
 
@@ -118,8 +120,23 @@ way: each one appears when the view configures the thing it drives. Give the vie
 a filterset and its search and filters appear,
 `show_create_action` and the add button does. There is no list to override.
 
+The filterset's fields are placed as on a list page. Those named in `toolbar_filters`
+are drawn in the panel, in that order, and every other field is in the filter modal.
+Name them all and there is no Filter button and no modal:
+
+```python
+class ProductTableView(MVPTableView):
+    model = Product
+    table_class = ProductTable
+    filterset_class = ProductFilter
+    toolbar_filters = ["q", "status"]
+```
+
 No sort control appears on a table page. A table view leaves out any `SortFilter` its
-filterset declares, so one filterset can serve a list page and a table page, and it
+filterset declares: it is not drawn, a value for it in the address is ignored, and the
+rows keep the table's own order. That holds when `toolbar_filters` names the sort too,
+which is skipped without an error. So one filterset, sort and all, serves a list page
+and a table page unchanged. The view
 raises `ImproperlyConfigured` if you declare `order_by` on the view. A table
 already sorts through its own column headers, against the sortable columns the table
 class defines, and an ordering on the view as well would give the same table two
@@ -293,7 +310,9 @@ control that removes it. Three hooks on the view decide how one reads:
 `get_filter_params()`, so a filter with its own parameter names is cleared correctly once
 that hook names them.
 
-A table view takes a filterset the same way:
+A table view takes a filterset the same way, and can take the list view's own. It leaves
+out the filterset's sort, since the table's column headers sort it
+([Actions and sorting](#actions-and-sorting)):
 
 ```python
 from mvp.integrations.django_tables.views import MVPTableView
@@ -302,7 +321,8 @@ from mvp.integrations.django_tables.views import MVPTableView
 class ProductTableView(MVPTableView):
     model = Product
     table_class = ProductTable
-    filterset_fields = ["name", "category__name", "status"]
+    filterset_class = ProductFilter   # the list view's, sort and all
+    toolbar_filters = ["q", "status"]
 ```
 
 ## htmx
