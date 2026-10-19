@@ -11,6 +11,7 @@
 {# @prop create_form:text | description:"A create form; when given, the add action opens the create modal." #}
 {# @prop create_modal_title:text | description:"Heading of the create modal this draws with create_modal." #}
 {# @prop request:text | description:"The current request, for the create modal to send the reader back to this page." #}
+{# @prop region:text | description:"The id of the list region. Given, Clear all swaps that region in place with htmx rather than loading the page." #}
 {# @prop create_modal:boolean | description:"Draw the create modal with the add action. Set it where nothing else on the page draws one, as on a list page, whose toolbar is hidden while the list is empty." #}
 {% load i18n %}
 <c-vars icon="search"
@@ -25,7 +26,8 @@
         create_form
         create_modal_title
         create_modal
-        request />
+        request
+        region />
 <div class="mvp-list-empty w-full flex flex-col items-center text-center gap-2 py-12 {{ class }}"
      {{ attrs }}>
   <c-icon name="{{ icon }}" class="{{ icon_class }}" aria-hidden="true" />
@@ -35,7 +37,8 @@
     </h2>
     {# The search is a filter like any other, so one message serves both. #}
     <p class="text-base-content/70 max-w-prose">{% trans "Try other words or fewer filters." %}</p>
-    <div class="mt-4">
+    <div class="mt-4"
+         {% if region %}hx-boost="true" hx-target="#{{ region }}" hx-select="#{{ region }}" hx-swap="outerHTML"{% endif %}>
       <c-button icon="x" href="{{ clear_refinements_url }}" text="{% trans "Clear all" %}" only />
     </div>
   {% else %}

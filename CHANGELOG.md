@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- A list or table page updates in place when a filter is applied or removed, the sort
+  changes, a column heading is clicked or the reader moves to another page. Each control
+  fetches the list with htmx and swaps the `#mvp-list` region, and the address bar follows.
+  A request for the region is answered without the app shell, and responses vary on
+  `HX-Target`. New on the list view: `list_region_id`, `partial_base_template` and
+  `is_region_request()`. `page_view.html` extends `page_base_template` when the context
+  sets it, and `c-mvp.page.list.empty` takes `region`. No django-htmx is needed. See
+  "Updating in place" in `docs/views.md`.
+- django-mvp-forms 0.6.0 or later is required, so a Tom Select field in the filter form
+  starts once after each swap.
+
 ## [v0.29.0] - 2026-10-19
 
 ### Changed

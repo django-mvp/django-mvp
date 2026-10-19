@@ -1,0 +1,13 @@
+{% comment %}
+  What a page extends in place of base.html when htmx asks for part of it: the
+  title, which htmx copies to the tab, and the content block, without the app
+  shell around it. Every block a page or a project overrides inside content is
+  drawn as it is on a full load.
+{% endcomment %}
+<title>
+  {% block head.title %}{% block title %}
+  {% endblock title %}{% if mounted_app %} | {{ mounted_app.name }}{% endif %}{% endblock head.title %}
+  | {% firstof mvp_config.site_name request.site.name %}
+</title>
+{% block content %}
+{% endblock content %}

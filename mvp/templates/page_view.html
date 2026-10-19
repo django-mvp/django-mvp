@@ -1,4 +1,5 @@
-{% extends "base.html" %}
+{% extends page_base_template|default:"base.html" %}
+{# A list page answering htmx extends mvp/partial.html instead, to leave out the app shell. #}
 {% load i18n %}
 {% block title %}
   {{ page.title }}
