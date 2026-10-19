@@ -1130,6 +1130,15 @@ class TestListPageEmptyState:
         assert empty.find("a", href="/products/?o=name_asc") is not None
         assert empty.find("a", href="/products/create/") is None
 
+    def test_a_search_matching_nothing_is_not_called_a_filter(self, rf, cat):
+        _product(cat, "Lamp")
+
+        soup = _list_page(rf, "?q=chair")
+
+        empty = soup.find(class_="mvp-list-empty")
+        assert "Try other words or fewer filters." in empty.get_text()
+        assert empty.find("a").get_text(strip=True) == "Clear all"
+
     def test_no_records_opens_the_create_dialog_when_the_page_has_one(self, rf, db):
         from demo.forms import ProductForm
 

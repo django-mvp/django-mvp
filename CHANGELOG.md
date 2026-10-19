@@ -26,7 +26,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Breaking:** the search is an applied filter like any other: its refinement has
   `kind` `"filter"` and the filter's own label, and the context no longer carries
   `search_query` or `is_searchable`. The sort is never an applied filter, and neither
-  clear action removes it; `sort_label` names the chosen option.
+  clear action removes it; `sort_label` names the chosen option. A list or table that
+  matches nothing says "Try other words or fewer filters." over a "Clear all" button,
+  whatever is applied, and `c-mvp.page.list.empty` and `c-mvp.addons.django-table` no
+  longer take `search_query` or `applied_filters`.
 - **Breaking:** `c-mvp.page.list.actions.search`, `.sort` and `.filter` are removed, and
   `c-mvp.page.list.actions` defaults to `['create']` and no longer draws a stand-in
   `#filterForm`. The list page has one toolbar: the filter form, the Filter button and

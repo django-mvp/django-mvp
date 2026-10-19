@@ -96,13 +96,11 @@
             <td colspan="{{ table.columns|length }}">
               {% if not table.rows %}
                 {% with page_context=table.context %}
-                  {% with refinements=page_context.refinements clear_refinements_url=page_context.clear_refinements_url search_query=page_context.search_query applied_filters=page_context.applied_filters directory=page_context.directory create_form=page_context.create_form model_info=page_context.model_info %}
+                  {% with refinements=page_context.refinements clear_refinements_url=page_context.clear_refinements_url directory=page_context.directory create_form=page_context.create_form model_info=page_context.model_info %}
                     <div class="mvp-table-empty">
                       <c-mvp.page.list.empty :attrs="page_context.empty_state"
                                              :refinements="refinements"
                                              :clear_refinements_url="clear_refinements_url"
-                                             :search_query="search_query"
-                                             :applied_filters="applied_filters"
                                              :directory="directory"
                                              :create_form="create_form"
                                              :model_info="model_info"

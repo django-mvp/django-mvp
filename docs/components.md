@@ -451,7 +451,7 @@ third-party package installed and its integration wired up before you use it.
 | Component | Attributes | Needs |
 | --- | --- | --- |
 | `c-mvp.addons.share-dropdown` | `url` (default: current page URL), `title` (default: `page.title`), `size`, `class` — social share menu (social networks, email, copy link) | nothing |
-| `c-mvp.addons.django-table` | `table`, `class`, `label`, `role` (default `region`) — scrollable region around a django-tables2 table, with its heading and footer rows pinned. A table with no rows draws `c-mvp.page.list.empty` in its body, from `empty_state`, `refinements`, `clear_refinements_url`, `search_query`, `applied_filters`, `directory`, `create_form` and `model_info`, read from the page when not passed | django-tables2 |
+| `c-mvp.addons.django-table` | `table`, `class`, `label`, `role` (default `region`) — scrollable region around a django-tables2 table, with its heading and footer rows pinned. A table with no rows draws `c-mvp.page.list.empty` in its body, from `empty_state`, `refinements`, `clear_refinements_url`, `directory`, `create_form` and `model_info`, read from the page when not passed | django-tables2 |
 
 `c-mvp.addons.share-dropdown` is plain markup over hard-coded social URLs, so it renders
 anywhere — `c-mvp.page.list.actions.share` puts it on a list page unconditionally.
@@ -475,7 +475,7 @@ and `table_view.html` do: `<c-mvp.page.list.summary :result_count="result_count"
 | Component | Context key it reads | Attributes |
 | --- | --- | --- |
 | `c-mvp.page.list` | `list` | `card` names the template each row is rendered with; undeclared attributes pass to the grid it renders, so column counts and gaps are set on the tag itself; `empty_state` takes a dict of attributes forwarded to `c-mvp.page.list.empty` when the result set is empty. The `empty` slot replaces the packaged empty state |
-| `c-mvp.page.list.empty` | `directory` (its `create_url` gates the add button), `create_form`, `refinements` (switches it to the nothing-matches message with a link to `clear_refinements_url`), `search_query`, `applied_filters`, `model_info` | `icon` (default `search`), `heading`, `message`, `icon_class`, `class`; `create_modal` draws the create dialog with the add button, for a page where nothing else draws it, with `create_modal_title` as its heading and `request` so it returns to the page |
+| `c-mvp.page.list.empty` | `directory` (its `create_url` gates the add button), `create_form`, `refinements` (switches it to the nothing-matches message with a link to `clear_refinements_url`), `model_info` | `icon` (default `search`), `heading`, `message`, `icon_class`, `class`; `create_modal` draws the create dialog with the add button, for a page where nothing else draws it, with `create_modal_title` as its heading and `request` so it returns to the page |
 | `c-mvp.page.list.toolbar` | `result_count`, `refinements` (renders nothing when both are empty) | slots `search` and `summary`, default slot for the controls, `bare`, `class` |
 | `c-mvp.page.list.filters.modal` | — | `part` (`button` draws the Filter button, `dialog` the modal), `fields` (the bound fields, each drawn once), `applied_count` (the button's badge), `clear_url` (the modal's clear link) |
 | `c-mvp.page.list.filters.field` | — | `field`, one entry of `toolbar_fields` or `toolbar_sort`, drawn by its `kind`. A multi-select list and a developer's widget are drawn inside a `[data-mvp-toolbar-field]` wrapper whose value is the field's name |

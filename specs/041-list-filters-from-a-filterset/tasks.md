@@ -293,3 +293,19 @@ page renders with the expected toolbar and modal fields (`tests/test_demo/`).
 **Files**: `mvp/static/css/django-mvp.css`, `.br`, `CHANGELOG.md`
 
 `invoke build-stylesheet`; the CHANGELOG lists every removed name and changed markup.
+
+## Phase 6: Convergence
+
+### T033 — The empty state stops reading a search query that no longer exists
+
+**Files**: `mvp/templates/cotton/mvp/page/list/empty.html`, `mvp/templates/list_view.html`,
+`mvp/templates/table_view.html`, `mvp/templates/cotton/mvp/addons/django_table.html`,
+`mvp/templates/django_tables2/bootstrap5-mvp.html`, `demo/templates/tests/*_override.html`,
+`docs/components.md`, `CHANGELOG.md`
+
+The context carries no `search_query` since T004 (FR-008), so the empty state's search wording
+could never be chosen: a search matching nothing said "Try fewer filters." Draw one message and
+a "Clear all" button whatever is applied, drop the `search_query` and `applied_filters` props
+the empty state and the table add-on passed down, and drop the test templates' overrides of the
+removed `page.search` and `page.controls` blocks. Test: a search matching nothing is not called
+a filter (`TestListPageEmptyState`).
