@@ -249,6 +249,24 @@ Every field of the filterset is drawn in the filter modal, behind the Filter but
 the toolbar, unless the view names it in `toolbar_filters`. Closing the modal without
 applying it leaves the list as it was.
 
+How each control applies:
+
+- A choice, the sort and a toggle in the toolbar apply the moment they are picked.
+- The search applies on Enter or its Search button.
+- The filter modal's fields apply with its Apply button, which sends the toolbar's values
+  with them. Closing the modal by its close button, its backdrop or Escape changes
+  nothing and puts its fields back as the page drew them.
+- The Filter button's badge counts the modal's applied filters only. The modal's clear
+  link removes those and keeps the toolbar's filters, the search and the sort, wherever
+  the sort is drawn. The count row's "Clear all" removes the search and every filter and
+  keeps the sort.
+
+Every change returns to the first page. The address carries only the fields that are
+set: an empty field is left out, and so is the empty choice of a yes/no select (Django's
+`NullBooleanSelect` sends `unknown`). A search for the word "unknown" is kept. The page's
+`js/list_view.js` static file does this, and finds the form and the modal by their ids,
+`filterForm` and `filterModal`.
+
 ### Choosing which filters go in the toolbar
 
 `toolbar_filters` names the filterset fields drawn in the toolbar itself, where they can be
@@ -411,6 +429,8 @@ These context keys describe the state of the list:
 | `toolbar_fields` | The fields `toolbar_filters` names, as `get_toolbar_field()` describes them, in that order and without the sort. Present only when the view has a filterset |
 | `toolbar_sort` | The sort, described the same way, when `toolbar_filters` names it; otherwise `None` |
 | `modal_fields` | The bound fields of every other field of the filterset, for the filter modal |
+| `modal_applied_count` | How many of the modal's fields are applied filters: the Filter button's badge. Present only when the view has a filterset |
+| `clear_modal_url` | The current URL without the modal's fields and the page number. The toolbar's fields and the sort are kept. Present only when a modal field is applied |
 
 Each entry in `refinements` is a dict:
 

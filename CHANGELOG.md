@@ -43,6 +43,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   toolbar cannot draw such as a `RangeFilter`, raises `ImproperlyConfigured` naming the
   view and the field. `get_toolbar_field()` is the hook for drawing another kind. The new
   `c-mvp.page.list.filters.field` draws one toolbar field.
+- A list page's toolbar choices, sort and toggle apply when picked, and the filter modal's
+  fields with its Apply button; closing the modal without applying puts its fields back.
+  The Filter button's badge counts the modal's filters (`modal_applied_count`), and the
+  modal's clear link (`clear_modal_url`) keeps the toolbar's filters, the search and the
+  sort. The address leaves out every field that is not set. The page's script is the new
+  static file `js/list_view.js`.
 - **Breaking:** daisy-cotton is pinned to `>=0.2,<0.3`. Its alert no longer picks an icon
   from its variant, so every alert the package draws passes its icon itself; a project
   alert that relied on the variant's icon passes `icon` too. On the delete page,

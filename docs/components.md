@@ -489,7 +489,11 @@ and `table_view.html` do: `<c-mvp.page.list.summary :result_count="result_count"
 The search, sort and filters come from the view's filterset. The filter modal and every
 toolbar field sit inside one form with the id `filterForm`, which a page draws only when
 the view has a filterset; the modal draws no form of its own. The Filter button only opens
-the modal, so it may sit outside the form. The create action draws itself only when
+the modal, so it may sit outside the form. The count, the sort in use and the refinements
+make the row under the toolbar; the toolbar holds no count. A page that draws these
+components itself loads the package's `js/list_view.js`, as `list_view.html` does: it
+keeps the fields nobody set out of the address and puts the modal's fields back when it
+closes without applying. The create action draws itself only when
 `show_create_action` allows it. `share` takes no context and always renders, so it
 appears only where a caller asks for it.
 
@@ -502,16 +506,20 @@ appears only where a caller asks for it.
         {% for field in toolbar_fields %}
           <c-mvp.page.list.filters.field :field="field" />
         {% endfor %}
-        <c-mvp.page.list.filters.modal part="dialog" :fields="modal_fields" />
+        <c-mvp.page.list.filters.modal part="dialog" :fields="modal_fields"
+                                       :clear_url="clear_modal_url" />
       </form>
     {% endif %}
-    <c-mvp.page.list.summary />
     {% if toolbar_sort %}<c-mvp.page.list.filters.field :field="toolbar_sort" />{% endif %}
     <c-mvp.page.list.filters.modal part="button" :fields="modal_fields"
                                    :applied_count="modal_applied_count" />
     <c-mvp.page.list.actions.create />
   </c-mvp.page.list.toolbar>
-  <c-mvp.page.list.refinements />
+  <div class="flex flex-wrap items-center gap-x-4">
+    <c-mvp.page.list.summary />
+    {% if sort_label %}<p>{{ sort_label }}</p>{% endif %}
+    <c-mvp.page.list.refinements />
+  </div>
   <c-mvp.page.list :list="object_list" :card="list_item_template" md="2" lg="3" />
   {% if page_obj %}<c-mvp.page.list.footer :page_obj="page_obj" class="mt-5" />{% endif %}
 </c-mvp.page>
