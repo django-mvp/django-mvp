@@ -512,8 +512,21 @@
         },
         {
           "id": "T022",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_list_filters_e2e.py::TestSeveralValuesApplyOnClose",
+              "tests/test_list_filters_e2e.py::TestDevelopersWidgetAppliesOnLeave"
+            ],
+            "commands": [
+              "uv run pytest tests/test_list_filters_e2e.py -q -m e2e"
+            ],
+            "code": [
+              "tests/test_list_filters_e2e.py:166",
+              "mvp/static/js/list_view.js:91"
+            ]
+          }
         }
       ]
     },

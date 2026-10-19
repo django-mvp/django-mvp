@@ -177,3 +177,10 @@ Watch: docs/views.md names the close button among the ways to close the modal; t
 **Verified**: `uv run pytest tests/test_components/test_list_filter_field.py -q` red first (2 failed: no wrapper on the multichoice, wrapper carried no name), then 27 passed. Pre-existing ticks/unchanged-button tests probed by mutating field.html: both fail, restored.
 **Next**: T022 browser tests.
 **Watch**: The demo draws no default multi-select in the toolbar; T022's browser test needs its own page.
+
+## 2026-10-19T13:37:01Z · Implementer US4 · T022
+
+**Did**: Browser tests in tests/test_list_filters_e2e.py. `TestSeveralValuesApplyOnClose` runs on a page of the test's own URLconf (the demo's list view with its category on the default multi-select, demo routes kept): two ticks then focus away loads one page with both values and both ticked after; opening and leaving, and ticking then unticking, load none. `TestDevelopersWidgetAppliesOnLeave` on /products/ (the demo's counted Tom Select category): a picked option then focus away loads one page with it; opening and leaving loads none.
+**Verified**: `uv run pytest tests/test_list_filters_e2e.py -q -m e2e` 20 passed. Probes on list_view.js: never submitting turned the two "updates" tests red; submitting regardless of change turned the three "does not update" tests red; restored.
+**Next**: full verify, report.
+**Watch**: the no-update tests wait 300 ms after networkidle for the queued submit to have had its chance.
