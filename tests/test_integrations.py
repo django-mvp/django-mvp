@@ -7,13 +7,17 @@ is only required when a project explicitly imports the integration.
 
 import re
 
+import django_filters
 import pytest
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ImproperlyConfigured
 from django.db import connection
 from django.test.utils import CaptureQueriesContext
 
+from demo.models import Product
+from mvp.filters import SearchFilter, SortFilter
 from mvp.integrations import missing_dependency
+from mvp.views.list import MVPListView
 from tests.factories import ProductFactory
 
 
@@ -477,5 +481,105 @@ class TestTableViewActions:
         assert "ordering-option" not in self._render(rf)
 
     def test_search_still_draws_when_the_view_configures_it(self, rf, db):
-        assert 'name="q"' in self._render(rf, search_fields=["name"])
+        assert 'name="q"' in self._render(
+            rf, filterset_class=SortedProductFilter, toolbar_filters=["q"]
+        )
         assert 'name="q"' not in self._render(rf)
+
+
+class SortedProductFilter(django_filters.FilterSet):
+    q = SearchFilter(fields=["name"])
+    o = SortFilter(
+        options=[
+            ("name", "Name (A-Z)", ["name", "pk"]),
+            ("-name", "Name (Z-A)", ["-name", "-pk"]),
+        ]
+    )
+
+    class Meta:
+        model = Product
+        fields = ["status"]
+
+
+class TestTableViewDropsTheSort:
+    """One filterset serves a list page and a table page; the table drops its sort."""
+
+    @pytest.fixture(autouse=True)
+    def require_django_tables2(self):
+        pytest.importorskip("django_tables2")
+
+    def _table_view(self, rf, query="", **attrs):
+        view_class = type(
+            "SortedTableView",
+            (_plain_table_view_class(),),
+            {"filterset_class": SortedProductFilter, **attrs},
+        )
+        view = view_class()
+        view.setup(rf.get(f"/{query}"))
+        view.request.user = AnonymousUser()
+        return view
+
+    def _render(self, view):
+        response = view.get(view.request)
+        response.render()
+        return response.content.decode()
+
+    def test_a_table_on_a_filterset_with_a_sort_renders_no_sort_control(self, rf, db):
+        ProductFactory(name="Lamp")
+
+        html = self._render(self._table_view(rf))
+
+        assert 'name="o"' not in html
+
+    def test_a_sort_value_is_ignored_and_the_tables_ordering_stands(self, rf, db):
+        for name in ("Bowl", "Chair", "Atlas"):
+            ProductFactory(name=name)
+        view = self._table_view(rf, "?o=name", ordering=["-name"])
+
+        context = view.get(view.request).context_data
+
+        rows = [row.record.name for row in context["table"].rows]
+        assert rows == ["Chair", "Bowl", "Atlas"]
+
+    def test_a_column_sort_still_orders_the_rows(self, rf, db):
+        for name in ("Bowl", "Chair", "Atlas"):
+            ProductFactory(name=name)
+        view = self._table_view(rf, "?o=-name&sort=name")
+
+        context = view.get(view.request).context_data
+
+        rows = [row.record.name for row in context["table"].rows]
+        assert rows == ["Atlas", "Bowl", "Chair"]
+
+    def test_the_sort_named_for_the_toolbar_is_skipped_silently(self, rf, db):
+        ProductFactory(name="Lamp")
+        view = self._table_view(rf, "?o=name", toolbar_filters=["q", "o"])
+
+        html = self._render(view)
+
+        assert 'name="q"' in html
+        assert 'name="o"' not in html
+
+    def test_the_same_filterset_on_a_list_view_still_sorts(self, rf, db):
+        for name in ("Bowl", "Chair", "Atlas"):
+            ProductFactory(name=name)
+        view_class = type(
+            "SortedListView",
+            (MVPListView,),
+            {
+                "model": Product,
+                "filterset_class": SortedProductFilter,
+                "toolbar_filters": ["q", "o"],
+                "list_item_template": "cards/product_card.html",
+            },
+        )
+        view = view_class()
+        view.setup(rf.get("/?o=name"))
+        view.request.user = AnonymousUser()
+
+        response = view.get(view.request)
+        response.render()
+
+        names = [product.name for product in response.context_data["object_list"]]
+        assert names == ["Atlas", "Bowl", "Chair"]
+        assert 'name="o"' in response.content.decode()

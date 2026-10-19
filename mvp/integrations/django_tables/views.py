@@ -15,6 +15,7 @@ from django.http import Http404
 from django.utils.translation import gettext_lazy as _
 from django.views.generic.list import ListView
 
+from mvp.filters import SortFilter
 from mvp.integrations import missing_dependency
 from mvp.views.list import MVPListViewMixin
 
@@ -30,7 +31,9 @@ class MVPTableViewMixin(MVPListViewMixin, SingleTableMixin):
     Ordering belongs to the table: a table already has its own whitelisted
     ``order_by`` mechanism and sortable column headers. A view that declares
     ``order_by`` is refused by ``MVPListViewMixin`` with a message pointing at
-    the table class's own ``order_by`` or ``Meta.order_by``.
+    the table class's own ``order_by`` or ``Meta.order_by``. A ``SortFilter``
+    on the view's filterset is dropped without an error, so the filterset a
+    list page uses serves the table page unchanged.
 
     Pagination follows the same rule. The table paginates; the list view does
     not, and the page context the footer reads is republished from the table's
@@ -97,16 +100,31 @@ class MVPTableViewMixin(MVPListViewMixin, SingleTableMixin):
         return len(context["table"].rows)
 
     def get_filterset(self, filterset_class=None):
-        """SKETCH (FS-041): drop any sort filter; the table's columns sort it."""
-        from mvp.filters import SortFilter
+        """Return this request's filterset with every sort filter taken out.
 
-        building = not hasattr(self, "_filterset")
+        The table's column headers sort the rows, so a ``SortFilter`` on the
+        filterset is neither drawn nor applied, and raises nothing: one
+        filterset can serve a list page and a table page. The sort filters are
+        removed from this instance before its form is built, and their names
+        kept on ``dropped_filters`` so ``toolbar_filters`` can name them.
+
+        Args:
+            filterset_class: The class to build. Defaults to
+                ``get_filterset_class()``.
+
+        Returns:
+            The bound filterset without its sort filters, or ``None`` when the
+            view has none.
+        """
+        if hasattr(self, "_filterset"):
+            return self._filterset
         filterset = super().get_filterset(filterset_class)
-        if building and filterset is not None:
+        self.dropped_filters = []
+        if filterset is not None:
             self.dropped_filters = [
                 name
-                for name, f in filterset.filters.items()
-                if isinstance(f, SortFilter)
+                for name, flt in filterset.filters.items()
+                if isinstance(flt, SortFilter)
             ]
             for name in self.dropped_filters:
                 del filterset.filters[name]
