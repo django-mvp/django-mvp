@@ -131,3 +131,8 @@ Found while doing it, for the plan:
 | The counted Category control loses its name once something is chosen | Raised upstream as django-mvp/django-mvp-forms#215 (a counted control with no visible label that still names its field, for example with a joined label at its start). The sketch keeps the control as it is |
 | Range filters matter on most list pages, and django-mvp-forms should have widgets for them | Raised upstream as django-mvp/django-mvp-forms#216. The modal keeps django-filter's stacked inputs until then |
 | django-mvp does not support Tom Select; django-mvp-forms already tells projects to load it themselves | django-mvp no longer loads or knows about Tom Select. The demo's own base template loads Tom Select and `mvp_forms/tomselect.css`. A toolbar field whose filter has a widget of the developer's own is drawn by that widget, and applies when focus leaves it with a different value, whatever the widget is |
+
+## Approved (Sam, 2026-10-19)
+
+"I think that looks reasonable for now. Take it through to PR." The screens as they stand after
+round 3 are what the build keeps. Everything behind them is rebuilt test-first.
