@@ -763,7 +763,7 @@ class DataTablesView(MVPTableView):
     table_class = ProductTable
     paginate_by = 25
     show_create_action = True
-    # SKETCH (FS-041): the product list's filterset; its sort is ignored here.
+    # The product list's filterset; the table's column headers sort, so its sort is dropped.
     filterset_class = ProductFilter
     toolbar_filters = ["q", "status", "category", "o"]
 
