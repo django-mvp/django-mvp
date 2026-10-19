@@ -46,18 +46,5 @@
         </c-button>
       </c-slot>
     </c-mvp.modal>
-    <script>
-      // SKETCH (FS-041): closing without applying puts the modal's fields back
-      // as they were, so a later toolbar change does not send them.
-      filterModal.addEventListener("close", () => {
-        filterModal.querySelectorAll("input, select, textarea").forEach((el) => {
-          if (el.type === "checkbox" || el.type === "radio") el.checked = el.defaultChecked;
-          else if (el.tagName === "SELECT") {
-            [...el.options].forEach((o) => (o.selected = o.defaultSelected));
-            if (el.tomselect) el.tomselect.sync();
-          } else el.value = el.defaultValue;
-        });
-      });
-    </script>
   {% endif %}
 {% endif %}

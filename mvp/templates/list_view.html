@@ -116,15 +116,5 @@
 {% block extra_js %}
   {{ block.super }}
   <script src="{% static "js/list_view.js" %}"></script>
-  {% if filter %}
-    {{ filter.form.media }}
-    <script>
-      // SKETCH (FS-041): leave untouched fields out of the address.
-      document.getElementById("filterForm")?.addEventListener("formdata", (event) => {
-        for (const [key, value] of [...event.formData.entries()]) {
-          if (value === "" || value === "unknown") event.formData.delete(key);
-        }
-      });
-    </script>
-  {% endif %}
+  {% if filter %}{{ filter.form.media }}{% endif %}
 {% endblock extra_js %}

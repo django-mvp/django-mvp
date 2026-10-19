@@ -1211,6 +1211,20 @@ LIST_PAGE_BLOCKS = [
 ]
 
 
+class TestListPageScript:
+    def test_the_page_loads_a_script_the_package_ships(self, rf, cat):
+        from django.contrib.staticfiles import finders
+        from django.templatetags.static import static
+
+        _product(cat, "Lamp")
+
+        soup = _filtered_list_page(rf)
+
+        src = static("js/list_view.js")
+        assert soup.find("script", src=src) is not None
+        assert finders.find("js/list_view.js") is not None
+
+
 class TestListPageBlocks:
     @pytest.mark.parametrize("block", LIST_PAGE_BLOCKS)
     def test_a_project_can_replace_one_part_of_the_page(self, rf, cat, block):
