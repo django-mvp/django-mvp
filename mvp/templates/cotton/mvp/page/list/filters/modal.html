@@ -1,6 +1,6 @@
-{# @description SKETCH (FS-041): the Filter button, or the filter modal holding every filterset field the toolbar does not. The modal must sit inside the filter form; the button may sit anywhere. #}
-{# @prop part:select['button','dialog'] | description:"Which half to draw." #}
-{# @prop fields:text | description:"The bound fields for the modal." #}
+{# @description The Filter button, or the filter modal holding every filterset field the toolbar does not. Draws nothing when there are no fields. The dialog draws no form of its own and must sit inside the filter form; the button only opens it and may sit anywhere. #}
+{# @prop part:select['button','dialog'] | description:"Which half to draw: the Filter button or the dialog." #}
+{# @prop fields:text | description:"The bound fields for the modal, each drawn once." #}
 {# @prop applied_count:number | description:"How many of the modal's filters are applied." #}
 {# @prop clear_url:text | description:"The list with the modal's filters removed, the rest kept." #}
 {% load i18n crispy_forms_tags %}

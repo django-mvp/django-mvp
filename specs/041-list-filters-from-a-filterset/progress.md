@@ -58,3 +58,10 @@ Plan written: research.md answers every planning note; plan.md, tasks.md (T001-T
 **Verified**: 3 of the new tests red before the code (clear_filters_url dropping o; sort_label). Probe: removing the SortFilter skip in get_active_filters fails 5 tests. `uv run pytest -q -p no:randomly tests/test_views/test_list.py tests/test_integrations.py`: 160 passed, 4 failed (TestListPageBlocks page.search/summary/controls for T010; TestTableViewActions search test, T023's row).
 **Next**: T009, the filter modal.
 **Watch**: docs/integrations.md's django-tables2 section still shows search_fields on a table view; fixed with the docs at T011.
+
+## 2026-10-19T12:32:56Z · Implementer US1 · T009
+
+**Did**: c-mvp.page.list.filters.modal's sketch description replaced (markup kept); deleted actions/search.html, sort.html, filter.html and their three test files (T009's rows); actions/index.html loses the stand-in form and the removed actions' props (default ['create']); list_view.html's old toolbar path no longer calls the deleted components (its blocks go at T010). New tests/test_components/test_list_filter_modal.py: the button (type=button, opens the dialog, badge count), the dialog (every given field once, only those, no nested form, one submit), nothing with no fields, the list page's modal holding every filterset field and sitting in #filterForm, the badge not in a filled page, and the header z-index override moved from the filter action's tests.
+**Verified**: the sketch modal already passed, so each behaviour was probed by mutation: dropping the fields guard (2 failed), the button's type (1), a nested form plus doubled fields (3), an always-drawn badge (1). `uv run pytest -q -p no:randomly tests/test_components/test_list_filter_modal.py` 13 passed. Non-e2e suite: 2038 passed, 42 failed (test_table_layout 37 and TestTableViewActions 1, US-5 rows; TestListPageBlocks 3, T010; test_icon 1).
+**Next**: T010, one toolbar.
+**Watch**: the modal's close-restore script keeps its SKETCH marker; T018 moves it into list_view.js. table_view.html's no-filterset branch still names the deleted components and is now unreachable (T024).
