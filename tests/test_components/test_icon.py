@@ -28,7 +28,10 @@ class TestIconAnswersDaisyCottonComponents:
     def test_an_alert_draws_its_icon_through_this_package(
         self, cotton_render_string_soup
     ):
-        soup = cotton_render_string_soup("<c-alert variant='success' only>x</c-alert>")
+        # daisy-cotton 0.2's alert draws an icon only when it is given one.
+        soup = cotton_render_string_soup(
+            "<c-alert variant='success' icon='success' only>x</c-alert>"
+        )
 
         icon = soup.select_one("[role='alert'] i")
         assert icon is not None

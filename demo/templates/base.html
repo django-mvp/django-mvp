@@ -18,17 +18,13 @@
   {% comment %}
     Tom Select, for the django-mvp-forms controls the demo's filters use. A
     project loads it itself, as django-mvp-forms' README says; django-mvp
-    does not ship it.
+    does not ship it. The demo serves its own copy (2.5.2, Apache-2.0, under
+    demo/static/demo/vendor/) so no page fetches from a third party.
   {% endcomment %}
-  <link rel="stylesheet"
-        href="https://cdn.jsdelivr.net/npm/tom-select@2.5.2/dist/css/tom-select.default.min.css"
-        integrity="sha384-ysUSQKRs8NxL3MLtPxj9HZ7KmGXzQJwr8rfFRR8iT5A26QF3slDzsChy8nZ7Q1W2"
-        crossorigin="anonymous" />
+  <link rel="stylesheet" href="{% static 'demo/vendor/tom-select-2.5.2/tom-select.default.min.css' %}" />
   <link rel="stylesheet" href="{% static 'mvp_forms/tomselect.css' %}" />
 {% endblock styles %}
 {% block extra_js %}
   {{ block.super }}
-  <script src="https://cdn.jsdelivr.net/npm/tom-select@2.5.2/dist/js/tom-select.complete.min.js"
-          integrity="sha384-zpRmcxaWZMsftDGxJwwTBxLTwPZrI4VJXe2bYlo01xaeBAdQjHP/nPlVH83BCW0U"
-          crossorigin="anonymous"></script>
+  <script src="{% static 'demo/vendor/tom-select-2.5.2/tom-select.complete.min.js' %}"></script>
 {% endblock extra_js %}

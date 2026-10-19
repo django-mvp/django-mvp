@@ -24,9 +24,9 @@ repos:
       # Scoped to the built bundle by name: mvp/static/js/formset.js and
       # list_view.js are hand-written and still get fixed by these hooks.
       - id: trailing-whitespace
-        exclude: '^mvp/static/(css/.*\.(css|br)|js/django-mvp\.js)$'
+        exclude: '^(mvp/static/(css/.*\.(css|br)|js/django-mvp\.js)|demo/static/demo/vendor/.*)$'
       - id: end-of-file-fixer
-        exclude: '^mvp/static/(css/.*\.(css|br)|js/django-mvp\.js)$'
+        exclude: '^(mvp/static/(css/.*\.(css|br)|js/django-mvp\.js)|demo/static/demo/vendor/.*)$'
       - id: check-yaml
 
   # uv-lock rewrites uv.lock when pyproject.toml has moved on. The build
