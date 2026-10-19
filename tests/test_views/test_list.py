@@ -1775,3 +1775,73 @@ class TestToolbarPlacement:
             "search",
             "range",
         ]
+
+
+class TestListPageToolbarRow:
+    def _names_in_form(self, soup):
+        form = soup.find("form", id="filterForm")
+        names = [
+            el["name"]
+            for el in form.find_all(attrs={"name": True})
+            if el.find_parent("dialog") is None
+        ]
+        return list(dict.fromkeys(names))
+
+    def _position(self, soup, element):
+        return next(i for i, tag in enumerate(soup.find_all(True)) if tag is element)
+
+    def test_toolbar_fields_are_in_the_filter_form_in_the_order_named(self, rf, cat):
+        _product(cat, "Lamp")
+
+        soup = _filtered_list_page(rf, toolbar_filters=["status", "q", "name"])
+
+        assert self._names_in_form(soup) == ["status", "q", "name"]
+
+    def test_toolbar_fields_are_not_in_the_modal(self, rf, cat):
+        _product(cat, "Lamp")
+
+        soup = _filtered_list_page(rf, toolbar_filters=["status", "q"])
+
+        dialog = soup.find("dialog", id="filterModal")
+        assert dialog.find(attrs={"name": "status"}) is None
+        assert dialog.find(attrs={"name": "q"}) is None
+        assert dialog.find(attrs={"name": "name"}) is not None
+
+    def test_sort_filter_and_add_end_the_row_in_that_order(self, rf, cat):
+        _product(cat, "Lamp")
+
+        soup = _filtered_list_page(
+            rf, toolbar_filters=["o", "q"], show_create_action=True
+        )
+
+        sort = soup.find("input", attrs={"name": "o"})
+        filter_button = soup.find("button", attrs={"aria-haspopup": "dialog"})
+        add = soup.find("a", href="/products/create/")
+        form = soup.find("form", id="filterForm")
+        for element in (sort, filter_button, add):
+            assert element.find_parent("form", id="filterForm") is None
+        assert sort["form"] == "filterForm"
+        assert (
+            self._position(soup, form)
+            < self._position(soup, sort)
+            < self._position(soup, filter_button)
+            < self._position(soup, add)
+        )
+
+    def test_the_sort_is_drawn_once(self, rf, cat):
+        _product(cat, "Lamp")
+
+        soup = _filtered_list_page(rf, toolbar_filters=["o", "q"])
+
+        assert len(soup.find_all(attrs={"name": "o"})) == 1
+
+    def test_every_field_in_the_toolbar_leaves_no_filter_button_and_no_dialog(
+        self, rf, cat
+    ):
+        _product(cat, "Lamp")
+
+        soup = _filtered_list_page(rf, toolbar_filters=["q", "o", "name", "status"])
+
+        assert soup.find("button", attrs={"aria-haspopup": "dialog"}) is None
+        assert soup.find("dialog") is None
+        assert soup.find("form", id="filterForm") is not None
