@@ -612,8 +612,22 @@
         },
         {
           "id": "T027",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 2,
+          "evidence": {
+            "tests": [
+              "tests/test_demo/test_list_filter_pages.py::TestToolbarFiltersOnlyPage",
+              "tests/test_demo/test_list_filter_pages.py::TestFilterModalOnlyPage",
+              "tests/test_demo/test_list_filter_pages.py::TestListFilterPageMenuItems",
+              "tests/test_demo/test_list_filter_pages.py::TestDemoSeedLongName"
+            ],
+            "commands": [
+              "uv run pytest tests/test_demo/test_list_filter_pages.py -q -p no:randomly"
+            ],
+            "code": [
+              "demo/management/commands/generate_dummy_data.py:160"
+            ]
+          }
         },
         {
           "id": "T028",

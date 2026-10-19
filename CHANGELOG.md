@@ -60,6 +60,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `c-mvp.modal` is drawn inside daisy-cotton's `c-modal`. It holds no form of its own and
   its close controls are `type="button"`, so it works inside a form, and its `title`
   names the dialog.
+- **Breaking:** a table view takes its filters from the same filterset as a list view.
+  A `SortFilter` on it is dropped without an error, wherever `toolbar_filters` places it,
+  because the table's column headers sort; the same filterset still sorts on a list view.
+  The table's collapsible panel holds the filter form with the toolbar fields, the
+  Filter button and the applied filters, and the bar keeps the count and Add. Its
+  `page.search` and `page.controls` blocks are gone.
 - **Breaking:** the add button on a list page is the last control in the toolbar, after
   sort and filter, and its create dialog moves with it. The title row keeps the title,
   the subtitle and the info button. `page.actions` is still in the title row, empty, so a
