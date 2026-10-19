@@ -77,3 +77,37 @@ page. Refusing it would make a developer keep two copies of the same filterset.
 **Why:** a field hidden by a style is still submitted, so a field drawn in both places would send
 its value twice. Moving it properly needs a screen-width check in the page, and ADR 0021 leaves
 responsive visibility to the browser. Agreed with Sam at intake as out of scope.
+
+## Design review outcome (S3R, 2026-10-19)
+
+One reviewer, three lenses, one round: `request_changes`, 1 high, 7 medium, 9 low, no security
+finding. Every finding was applied to `plan.md`, `tasks.md` or `research.md`; each edit names the
+finding it answers. The orchestrator checked each remedy against the finding's evidence.
+
+## A widget's own media is not a package asset
+
+**Ambiguous:** FR-027 says the package loads no asset a developer's widget needs, and
+`list_view.html` writes `{{ filter.form.media }}`, which loads a widget's declared script.
+
+**Chosen:** keep writing the form's media.
+
+**Why:** a widget's `Media` is the widget's contract with Django's forms, the same as on any page
+that renders a form. The package names no library and ships nothing for it. The project still
+loads the library the widget depends on (Tom Select, for django-mvp-forms), as the widget's own
+documentation says. **Revisit if** Sam reads FR-027 as excluding form media.
+
+## No per-field grow or shrink setting
+
+**Chosen:** the search grows to fill the toolbar row; every other field keeps its width. No
+setting for it.
+
+**Why:** Sam called it a nice-to-have, and nothing in the spec asks for it. A setting would be a
+new view or filterset option with no case yet. **Revisit if** a project needs a second field to
+grow.
+
+## The table view's order_by message
+
+**Chosen:** on a table view, the import-time refusal of `order_by` points to the table class's own
+`order_by`, not to a `SortFilter` (design review SPEC-010). FR-002 asks for an error that points to
+the filterset, and a table view drops a `SortFilter` (FR-023), so pointing there would send the
+developer to something that does nothing. This is a change of message only.

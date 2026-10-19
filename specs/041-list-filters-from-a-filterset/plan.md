@@ -55,9 +55,16 @@ rebuilt on its `c-modal`, and the seven alerts that relied on the variant's icon
 - `get_queryset()`: `filterset.qs` when there is a filterset, else the base queryset. Invalid
   values are dropped field by field by `BaseFilterSet.qs` itself (research).
 - Context: `filter` and `filterset`, only when there is a filterset.
-- `__init_subclass__`: a truthy `search_fields` or `order_by` on the class raises
-  `ImproperlyConfigured`, naming the class and the setting, and pointing to `SearchFilter` or
-  `SortFilter` on a filterset.
+- `__init_subclass__` (design review SPEC-005, ARCH-001, SPEC-010) raises `ImproperlyConfigured`,
+  naming the class and what it found, for any of:
+  - a truthy `search_fields`, `max_search_words` or `order_by`, or a class that defines
+    `get_search_fields` or `get_order_by_choices` (one tuple of names, one message shape). The
+    message points to `SearchFilter` or `SortFilter` on a filterset; on a table view (a subclass of
+    `SingleTableMixin`) the `order_by` message points to the table class's own `order_by` or
+    `Meta.order_by` instead, since a table drops a `SortFilter` (FR-023).
+  - a class that also inherits `django_filters.views.FilterMixin` (for example by composing
+    `FilterView`): the list view builds its own filterset, so the message says to drop
+    `FilterView` and set `filterset_class`.
 
 `MVPListView = MVPListViewMixin + ListView`, unchanged in shape. `MVPTableViewMixin` keeps
 `MVPListViewMixin` and gets the same filterset.
@@ -86,8 +93,10 @@ rebuilt on its `c-modal`, and the seven alerts that relied on the variant's icon
 
 ### Placement (US-2)
 
-`toolbar_filters: list[str] = []` on `MVPListViewMixin`. A function in `mvp/views/list.py`,
-`describe_toolbar_field(view, filterset, name)`, returns one dict per toolbar field:
+`toolbar_filters: list[str] = []` on `MVPListViewMixin`. A `FilterContextMixin` method,
+`get_toolbar_field(filterset, name)` (design review ARCH-002: an override hook, documented in T015,
+so a project can draw a filter class the table below does not cover), returns one dict per
+toolbar field:
 
 | `kind` | When | Extra keys |
 |---|---|---|
@@ -101,13 +110,15 @@ rebuilt on its `c-modal`, and the seven alerts that relied on the variant's icon
 | anything else | `ImproperlyConfigured` naming the view, the field and the filter's class, and saying it belongs in the modal (FR-013) | |
 
 Every dict carries `name` and `label`. A `widget` field's widget gets daisyUI's `select w-full`
-or `input w-full` class when it has none.
+or `input w-full` class, and an `aria-label` equal to the filter's label, when it has none
+(design review SPEC-004, FR-014).
 
 `FilterContextMixin.get_context_data()` adds, when there is a filterset:
 `toolbar_fields` (in `toolbar_filters` order, duplicates dropped, the sort taken out),
 `toolbar_sort` (the sort's dict or `None`), `modal_fields` (bound fields not in the toolbar),
-`modal_applied_count`, and `clear_modal_url` (current URL without the modal fields' parameters
-and the page number). A name the filterset lacks raises `ImproperlyConfigured` naming the view,
+`modal_applied_count`, and `clear_modal_url` (current URL without the parameters of the modal's
+fields other than a `SortFilter`, and without the page number: design review SPEC-002, FR-005,
+FR-016). A name the filterset lacks raises `ImproperlyConfigured` naming the view,
 the name and the filterset class. Names a table view dropped (below) are skipped silently.
 
 ### Templates and components (US-1 to US-3)
@@ -118,6 +129,10 @@ New components, each with `@description`/`@prop` headers like the others:
 - `c-mvp.page.list.filters.modal`: `part="button"` (the Filter button with the modal's applied
   count) or `part="dialog"` (the modal with every modal field, the modal's clear action and Apply).
 - `c-mvp.page.list.toolbar`: keeps its props and gains `bare`, which draws its slot as the row.
+
+The toolbar's toggle and its multi-select list draw daisy-cotton's `c-form.toggle` and
+`c-form.checkbox` (design review ARCH-003, Article XI). `c-mvp.modal` passes `aria-label` (its
+title) to `c-modal` and never `title`, so the dialog has a name and one heading (ARCH-004).
 
 `list_view.html`'s `page.toolbar` becomes the sketch's toolbar and its only toolbar. The
 `page.search` and `page.controls` blocks go (they held the removed components); `page.toolbar`,
@@ -136,9 +151,13 @@ daisy-cotton pin `>=0.2,<0.3`. `c-mvp.modal` keeps its props and slots and draws
 
 ### Behaviour in the browser (US-3, US-4)
 
-`mvp/static/js/list_view.js`, loaded by `list_view.html` already:
+`mvp/static/js/list_view.js`, a new plain static file following `mvp/static/js/formset.js`'s
+precedent. `list_view.html` already has a `<script>` tag for it, dangling since the file was
+deleted in e4c0a8b (design review ARCH-005):
 
-- on the filter form's `formdata`, delete entries whose value is `""` or `"unknown"` (FR-028);
+- on the filter form's `formdata`, delete entries whose value is `""`, and entries whose value is
+  `"unknown"` only when they come from a `<select>` (Django's `NullBooleanSelect` empty choice:
+  design review SPEC-003, FR-028);
 - on the filter modal's `close`, restore every input, select and textarea in it to its default
   and call `.sync()` on a select that has a `tomselect` property, without naming Tom Select
   anywhere else (FR-019);
@@ -146,12 +165,18 @@ daisy-cotton pin `>=0.2,<0.3`. `c-mvp.modal` keeps its props and slots and draws
   to outside the wrapper submit the form if the value changed (FR-021, FR-027).
 
 Choices, the sort and the toggle keep the sketch's Alpine (`requestSubmit()` on pick or change).
+Request values inside Alpine expressions stay behind `|escapejs`, or move to `data-` attributes.
+
+`list_view.html` keeps writing `{{ filter.form.media }}`. A widget's own declared `Media` is the
+widget's contract with Django's forms, not an asset the package loads (decisions.md, design review
+SPEC-008); the demo's base template loads Tom Select itself.
 
 ### Table pages (US-5)
 
-`MVPTableViewMixin.get_filterset()` deletes every `SortFilter` from the instance's `filters`
+`MVPTableViewMixin` overrides the list mixin's `get_filterset()` and deletes every `SortFilter` from the instance's `filters`
 before the form is built and records the names on `self.dropped_filters`, which placement skips.
-The `__init_subclass__` refusal of `order_by` is removed (the list mixin's refusal covers it).
+The table's own `__init_subclass__` refusal of `order_by` is removed: the list mixin's refusal
+covers it, with the table-specific message above.
 
 ### Story order
 
@@ -160,16 +185,22 @@ The `__init_subclass__` refusal of `order_by` is removed (the list mixin's refus
 
 ### Tests retired with the code they test
 
-These pre-existing tests exercise code this feature deletes, and are deleted or rewritten by the
-task named, on this plan's authority:
+These pre-existing tests exercise code or markup this feature deletes, and are deleted or
+rewritten by the task named, on this plan's authority (design review SPEC-001). **Rewritten**
+means the behaviour stays and the test moves onto a filterset; **deleted** means the behaviour
+goes.
 
-| Test | Task | Why |
+| Test | Task | Fate |
 |---|---|---|
-| `tests/test_components/test_list_search_action.py` | T009 | `actions.search` is deleted |
-| `tests/test_components/test_list_sort_action.py` | T009 | `actions.sort` is deleted |
-| `tests/test_components/test_list_filter_action.py` | T009 | `actions.filter` is deleted; its behaviours move to `filters.modal` tests |
-| `SearchMixin`/`OrderMixin`/`SearchOrderMixin` classes in `tests/test_views/test_list.py` | T008 | the mixins are deleted; their matching rules move to `tests/test_filters.py` |
-| `TestOptionalIntegrations.test_django_filters_integration_imports`, `TestFilterChromeOnAComposedView`, `TestTableViewOrdering` in `tests/test_integrations.py` | T008, T024 | the module and the `order_by` refusal are deleted; their behaviours move to the new tests |
-| search/sort references in `tests/test_table_layout.py` | T024 | the table panel's markup changes |
+| `tests/test_views/test_list.py`: the module-level import of `SearchOrderMixin` and the stub views `_StubFilterView`, `_StubFilterViewNoSearch` | T007 | rewritten onto a filterset |
+| `tests/test_views/test_list.py`: the `SearchMixin`, `OrderMixin`, `SearchOrderMixin` classes | T007 | deleted; matching rules move to `tests/test_filters.py` (T004, T005) |
+| `tests/test_views/test_list.py`: `TestDjangoFiltersComposition`, `TestDjangoFiltersNoOpCases`, `TestMVPListViewMixinSearchOrdering`, `TestSearchSortControlsWithoutFilterSet`, `TestActionsFollowViewConfiguration` | T007 | rewritten onto a filterset where the behaviour stays (FR-006, FR-009), deleted where it was the mixins' |
+| `tests/test_views/test_list.py`: the `search_fields` helper in `TestEmptyStateMessageRendering`, `TestListRefinements` (its search refinement becomes the FR-008 test), `TestListResultCount.test_counts_only_what_the_search_matches` | T008 | rewritten onto a filterset |
+| `tests/test_views/test_list.py`: `TestListPageToolbar` (including "the toolbar stays when a search matches nothing", the spec's edge case) and `TestListPageBlocks`' `page.search`/`page.controls` cases | T010 | rewritten onto a filterset; the two removed blocks' cases deleted |
+| `tests/test_integrations.py`: `TestIntegrationIsolation.test_core_views_have_no_optional_dependency_imports` | T008 | rewritten: core views may import django_filters, the others stay optional |
+| `tests/test_integrations.py`: `TestOptionalIntegrations.test_django_filters_integration_imports`, `test_filtered_list_view_*` (three), `test_filter_action_template_renders_clear_link_only_when_filters_applied`, `TestFilterChromeOnAComposedView` | T008 | rewritten onto `MVPListView` with a filterset; the import test deleted |
+| `tests/test_integrations.py`: `TestTableViewOrdering`, `TestTableViewActions.test_search_still_draws_when_the_view_configures_it` | T023 | rewritten: the refusal now comes from the list mixin with the table message; search through a filterset |
+| `tests/test_components/test_list_search_action.py`, `test_list_sort_action.py`, `test_list_filter_action.py` | T009 | deleted with their components; the filter action's behaviours move to `test_list_filter_modal.py` |
+| search/sort references in `tests/test_table_layout.py` | T024 | rewritten onto the table panel's new markup |
 
 Any other pre-existing test that fails is a defect, not a retirement.

@@ -2,7 +2,7 @@
   "feature": "041-list-filters-from-a-filterset",
   "branch": "041-list-filters-from-a-filterset",
   "repo": "django-mvp/django-mvp",
-  "state": "PLAN",
+  "state": "DESIGN_REVIEW",
   "state_history": [
     {
       "state": "QUEUED",
@@ -13,6 +13,11 @@
       "state": "PLAN",
       "at": "2026-10-19T11:46:13Z",
       "note": "sketch approved by Sam (3 rounds); spec refined with his rulings; research.md, plan.md, tasks.md"
+    },
+    {
+      "state": "DESIGN_REVIEW",
+      "at": "2026-10-19T11:47:22Z",
+      "note": "one design reviewer, three lenses, one round"
     }
   ],
   "gates": {

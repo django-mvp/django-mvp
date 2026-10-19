@@ -94,7 +94,7 @@ From `sketch.md`, each a requirement the plan meets:
 
 | The screens need | Met by |
 |---|---|
-| Fields sorted into toolbar (in order) and modal | `toolbar_placement()` in `mvp/views/list.py` (plan, "Placement") |
+| Fields sorted into toolbar (in order) and modal | `FilterContextMixin.get_toolbar_field()` (plan, "Placement") |
 | Per toolbar field: kind, label, value, choices | the same, one dict per field |
 | Count of the modal's applied filters; address with only the modal's filters removed | `FilterContextMixin` |
 | Sort out of applied filters, refinements, clear actions | `get_active_filters()` skips `SortFilter` |
@@ -154,10 +154,15 @@ One line per new piece of code: where the search stopped.
 | Toolbar placement | 7. new code | Nothing here or in django-filter decides which fields go where |
 | Dialog that closes without a form | 3. installed package | daisy-cotton 0.2.0 `c-modal` |
 | Dropdown for choices | 2. this repo | `c-mvp.dropdown`, as the current sort control uses it |
-| Toggle, checkbox, input, join | 3. installed package | daisy-cotton `c-form.input`, `c-join`; native checkboxes for the toggle and list, as daisy-cotton's own toggle template writes |
+| Toggle, checkbox, input, join | 3. installed package | daisy-cotton `c-form.toggle`, `c-form.checkbox`, `c-form.input`, `c-join` |
 | Field rendering in the modal | 3. installed package | crispy `as_crispy_field` with the django-mvp-forms pack |
 | Submit on change, on close, on focus leaving | 5. the browser | `HTMLFormElement.requestSubmit()`, `focusout`, `change`; Alpine is already on every page |
 | Dropping empty values from the address | 5. the browser | the form's `formdata` event |
 | Restoring modal fields on close | 5. the browser | `defaultValue`, `defaultChecked`, `defaultSelected` |
 | Page number reset on change | 5. the browser | the page number is not a field of the form, so a submit drops it |
 | Count row | 2. this repo | `c-mvp.page.list.summary` and `c-mvp.page.list.refinements` |
+| The toolbar field and modal components | 7. new code | `c-mvp.dropdown` and `c-mvp.modal` are composed, nothing draws a filterset field compactly |
+| The toolbar's `bare` prop | 2. this repo | `c-mvp.page.list.toolbar`, one prop added |
+| Refusing removed settings at import | 2. this repo | the pattern of `MVPTableViewMixin.__init_subclass__` |
+| The table dropping its sort | 7. new code | a few lines in `MVPTableViewMixin.get_filterset()` |
+| `mvp/static/js/list_view.js` | 7. new code | a new plain static file, like `formset.js`; the old file was deleted in e4c0a8b |

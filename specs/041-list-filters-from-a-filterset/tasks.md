@@ -26,7 +26,10 @@ Issue: #550. Delivers FR-001 to FR-009 and FR-020.
 each template's existing tests.
 
 Pin `daisy-cotton (>=0.2,<0.3)` with `uv add`. Test first: each of the seven alerts renders an icon
-(the `<c-icon>` output inside `.alert`), then pass `icon` to each (research). Run the whole suite
+(the `<c-icon>` output inside `.alert`), then pass `icon` to each (research). The delete page's
+related-objects alert takes its icon in the template from `related_objects_attrs.variant` unless
+the dict names an icon, and the test includes a view whose `related_objects_attrs` is
+`{"variant": "warning"}` (design review SPEC-009). Run the whole suite
 once after the upgrade: any other failure from 0.2's whitespace change is fixed here.
 
 ### T002 — `c-mvp.modal` on daisy-cotton's `c-modal`
@@ -34,7 +37,8 @@ once after the upgrade: any other failure from 0.2's whitespace change is fixed 
 **Files**: `mvp/templates/cotton/mvp/modal.html`, `tests/test_components/` (the modal's tests)
 
 Test first: rendered inside a `<form>`, the modal's markup holds no `<form>`; its close button and
-backdrop are `type="button"`; the dialog is named by its title; `size`, `position`, `closable`,
+backdrop are `type="button"`; the dialog's accessible name is its title and it has one heading
+(design review ARCH-004); `size`, `position`, `closable`,
 `class` and the three slots behave as before. Then draw the card inside `<c-modal ... only>`
 (ADR 0032). Every existing modal test stays green.
 
@@ -46,8 +50,8 @@ list `django_filters` in `INSTALLED_APPS`; "Optional integrations" no longer lis
 `docs/ROADMAP.md` (R16's line), `docs/integrations.md`, `demo/settings.py`, `tests/settings.py` if
 it does not inherit it.
 
-Test: `deptry` passes (part of lint), and a check that the demo's `INSTALLED_APPS` holds
-`django_filters`.
+Test: `deptry` passes (part of lint). The CHANGELOG's breaking entry says `django_filters` must be
+in `INSTALLED_APPS`.
 
 ### T004 — `SearchFilter`
 
@@ -80,9 +84,13 @@ unknown sort key leaves the default order.
 
 **Files**: `mvp/views/list.py`, `mvp/views/__init__.py`, `tests/test_views/test_list.py`
 
-Delete `SearchMixin`, `OrderMixin`, `SearchOrderMixin` and their exports. Tests: defining a list
-view subclass with `search_fields` or `order_by` raises `ImproperlyConfigured` naming the class,
-the setting and the filter that replaces it (FR-002); a subclass with neither defines cleanly.
+Delete `SearchMixin`, `OrderMixin`, `SearchOrderMixin` and their exports. Retire the T007 rows of
+plan, *Tests retired*. Tests, parametrised over the five removed names (`search_fields`,
+`max_search_words`, `order_by`, `get_search_fields`, `get_order_by_choices`): defining a list view
+subclass with one raises `ImproperlyConfigured` naming the class, the name and the filter that
+replaces it (FR-002); on a table view subclass, `order_by` names the table's own `order_by`; a
+subclass composing `FilterView` is refused naming `FilterView`; a subclass with none defines
+cleanly.
 
 ### T008 — One list view; the sort is never a filter
 
@@ -90,7 +98,7 @@ the setting and the filter that replaces it (FR-002); a subclass with neither de
 `tests/test_integrations.py`, `tests/test_views/test_list.py`
 
 Retire the tests listed in plan, *Tests retired*, for this task. `FilterContextMixin`: skip
-`SortFilter` in applied filters; the search is an ordinary refinement with the filter's label
+`SortFilter` in applied filters (retire the T008 rows of plan, *Tests retired*); the search is an ordinary refinement with the filter's label
 (FR-008); `sort_label`. Tests: a set search, a set sort and two set filters give refinements for
 the search and the two filters only (FR-005, US-1 scenario 4); "clear all" keeps the sort.
 
@@ -140,7 +148,8 @@ Plan, *Placement*. Tests: listed fields come back in order and are not modal fie
 drawn once; the sort is taken out to `toolbar_sort`; every kind in the plan's table; a widget the
 developer chose gives `widget` and gains the `select w-full` class; an unknown name and an
 undrawable filter (a `RangeFilter`) raise naming the view and the field (FR-013); every field
-listed gives no modal fields (FR-011).
+listed gives no modal fields (FR-011); a `widget` field's widget gains `aria-label` equal to the
+filter's label (FR-014). `get_toolbar_field` is a `FilterContextMixin` method.
 
 ### T013 — The toolbar field component
 
@@ -148,7 +157,7 @@ listed gives no modal fields (FR-011).
 
 The sketch's markup per kind. Tests: each kind's control carries the filter's label as its
 accessible name (FR-014); no choice, sort or multi-select control shows its chosen value (FR-025);
-buttons inside are `type="button"`; the search's wrapper is the growing one; a `widget` field
+buttons inside are `type="button"`; a `widget` field
 draws its own widget inside a `[data-mvp-toolbar-field]` wrapper.
 
 ### T014 — The toolbar row
@@ -178,7 +187,8 @@ Issue: #552. Delivers FR-012, FR-015 to FR-020, FR-026 and FR-028.
 
 Tests: `modal_applied_count` counts only the modal's applied filters (US-3 scenario 5);
 `clear_modal_url` drops the modal's parameters and the page and keeps the toolbar's and the sort
-(scenario 6); the refinements' clear-all drops the search and every filter and keeps the sort
+(scenario 6), and with no `toolbar_filters` (the sort in the modal) the sort's parameter survives
+`clear_modal_url` (design review SPEC-002); the refinements' clear-all drops the search and every filter and keeps the sort
 (scenario 7).
 
 ### T017 — The count row
@@ -190,18 +200,22 @@ holds no summary (FR-026).
 
 ### T018 — The page's script
 
-**Files**: `mvp/static/js/list_view.js`, remove inline scripts from the components
+**Files**: `mvp/static/js/list_view.js` (new: the file was deleted in e4c0a8b and its `<script>`
+tag left dangling), remove inline scripts from the components
 
 Plan, *Behaviour in the browser*: `formdata` cleanup, modal restore on close.
 
 ### T019 — Browser tests for US-3
 
-**Files**: `tests/test_list_filters_e2e.py` (new, `pytest.mark.e2e`, `requires_browser`)
+**Files**: `tests/test_list_filters_e2e.py` (new, `pytest.mark.e2e`, `requires_browser`),
+`pyproject.toml` (append it to `[tool.forge.conformance] non-mirror-paths`)
 
-At 1440×900: choosing a toolbar choice updates the address (scenario 1); Enter in the search
+At 1440×900: choosing a toolbar choice, the toggle, and the sort each updates the address
+(scenario 1, design review SPEC-007); Enter in the search
 submits (scenario 2); closing the modal by ✕, backdrop and Escape leaves the address unchanged and
-the modal's fields restored (scenario 3); Apply sends the modal's and the toolbar's values
-(scenario 4); a submitted address carries no empty parameters (FR-028); from page 2 a change lands
+the modal's fields restored (scenario 3), on `/products/` and on `/django-tables2/` (SC-004, design review SPEC-006); Apply sends the modal's and the toolbar's values
+(scenario 4); a submitted address carries no empty parameters, and a search for the word "unknown" reaches the
+address (FR-028, design review SPEC-003); from page 2 a change lands
 on page 1 (FR-012).
 
 ### T020 — Docs for US-3
@@ -239,7 +253,7 @@ Issue: #554. Delivers FR-023 and FR-024.
 
 **Files**: `mvp/integrations/django_tables/views.py`, `tests/test_integrations.py`
 
-Retire `TestTableViewOrdering`. Tests: a table view on a filterset with a `SortFilter` defines and
+Retire the T023 rows of plan, *Tests retired*. Tests: a table view on a filterset with a `SortFilter` defines and
 renders with no error and no sort control (scenario 1); a sort value is ignored and the table's
 ordering stands (scenario 2); the sort named in `toolbar_filters` is skipped silently
 (scenario 3); the same filterset on a list view still sorts (scenario 5).
