@@ -422,8 +422,22 @@
         },
         {
           "id": "T018",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_views/test_list.py::TestListPageScript"
+            ],
+            "commands": [
+              "uv run pytest tests/test_views/test_list.py::TestListPageScript -q (red without the file: 1 failed; then passed)",
+              "uv run pytest tests/test_views/test_list.py tests/test_components -q (911 passed, 1 skipped)"
+            ],
+            "code": [
+              "mvp/static/js/list_view.js:33",
+              "mvp/static/js/list_view.js:62",
+              "mvp/templates/list_view.html:118"
+            ]
+          }
         },
         {
           "id": "T019",

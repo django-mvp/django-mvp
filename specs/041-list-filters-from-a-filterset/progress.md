@@ -149,3 +149,10 @@ Did: TestListPageCountRow (5 tests): the summary leads the row holding the chips
 Verified: uv run pytest tests/test_views/test_list.py::TestListPageCountRow -q -> 5 passed; probe moving the summary and sort label into the toolbar -> 3 failed; restored. tests/test_views/test_list.py -> 182 passed.
 Next: T018 list_view.js.
 Watch: the tests pass on first run because the sketch already drew the row; the probe is the red evidence.
+
+## 2026-10-19T13:15:10Z · Implementer US3 · T018
+
+Did: new mvp/static/js/list_view.js holds the formdata cleanup (drops "" always, "unknown" only from a <select>: SPEC-003) and the filter modal's close-restore (with .tomselect?.sync()). Both listen on document in the capture phase, since neither event bubbles. Removed the inline SKETCH scripts from list_view.html and filters/modal.html; {{ filter.form.media }} stays. The data-mvp-toolbar-field focusout Alpine stays inline in field.html for US-4.
+Verified: TestListPageScript red with the file moved away (finders.find -> None), green with it; tests/test_views/test_list.py + tests/test_components -> 911 passed, 1 skipped. Browser behaviour is proven in T019.
+Next: T019 browser tests.
+Watch: nothing yet.
