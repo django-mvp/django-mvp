@@ -156,3 +156,10 @@ Did: new mvp/static/js/list_view.js holds the formdata cleanup (drops "" always,
 Verified: TestListPageScript red with the file moved away (finders.find -> None), green with it; tests/test_views/test_list.py + tests/test_components -> 911 passed, 1 skipped. Browser behaviour is proven in T019.
 Next: T019 browser tests.
 Watch: nothing yet.
+
+## 2026-10-19T13:25:23Z · Implementer US3 · T019
+
+Did: tests/test_list_filters_e2e.py (13 browser tests, 1440x900): a toolbar choice, the toggle and the sort each update the address; Enter submits the search; a search for "unknown" reaches the address; a change from page 2 lands on page 1; closing the filter modal by its backdrop or Escape on /products/ and /django-tables2/ leaves the address unchanged and restores its fields; Apply sends the modal's and the toolbar's values with no empty parameters, on both pages; a chosen "No" from a select is sent. Added the file to [tool.forge.conformance] non-mirror-paths.
+Verified: uv run pytest tests/test_list_filters_e2e.py -q -> 13 passed. Probes: list_view.js emptied -> 9 failed (every address assertion); close listener disabled -> the 4 close cases failed.
+Next: T020 docs.
+Watch: BLOCKED in part. Closing by the close button (✕) cannot be tested: c-mvp.modal (mvp/templates/cotton/mvp/modal.html, from T002) draws c-modal's ✕ under the card, so the card body takes the click (elementFromPoint at the ✕'s centre is .card-body; the ✕ is not visible in a screenshot). The fix is in modal.html, outside US-3's files, so the close-button case is not in the suite and T019 is not recorded done.
