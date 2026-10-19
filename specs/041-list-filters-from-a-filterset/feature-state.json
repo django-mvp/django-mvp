@@ -102,8 +102,21 @@
         },
         {
           "id": "T003",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "deptry (pre-commit hook)"
+            ],
+            "commands": [
+              "uv run deptry .",
+              "uv run pre-commit run --files pyproject.toml uv.lock demo/settings.py README.md docs/ROADMAP.md docs/integrations.md docs/adr/0033-django-filter-is-a-runtime-dependency.md CHANGELOG.md"
+            ],
+            "code": [
+              "pyproject.toml:44",
+              "demo/settings.py:44"
+            ]
+          }
         },
         {
           "id": "T004",

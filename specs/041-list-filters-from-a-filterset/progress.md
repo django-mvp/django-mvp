@@ -16,3 +16,10 @@ Plan written: research.md answers every planning note; plan.md, tasks.md (T001-T
 **Verified**: against the pre-sketch component (ee2d896) the no-form, type=button and name tests failed (3 failed); with the sketch only the name test failed; after the rebuild `uv run pytest -q -p no:randomly tests/test_components/test_modal.py` 15 passed. Modal callers (page info, language switcher, create action, list/table pages, modal e2e): 452 passed, 1 failed (the expected TestAppliedFilterCountOnATableView, retired at T009).
 **Next**: T003, django-filter as a runtime dependency.
 **Watch**: c-modal's close button sits at end-2/top-2 where the old one sat at end-3/top-3.
+
+## 2026-10-19T12:14:28Z · Implementer US1 · T003
+
+**Did**: moved django-filter (>=26.1,<27) into [project].dependencies, out of the dev group and DEP004; demo settings list django_filters in INSTALLED_APPS (tests inherit it); ADR 0033; README install steps and Optional integrations; ROADMAP R16; integrations.md intro; CHANGELOG breaking entry.
+**Verified**: `uv run deptry .` Success, no dependency issues; pre-commit on the changed files passed.
+**Next**: T004, SearchFilter.
+**Watch**: integrations.md's django-filter section still describes MVPFilteredListView until T008 deletes the module.

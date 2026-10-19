@@ -8,9 +8,13 @@ third-party dependency when *you* import it. Importing without the dependency ra
 
 ```text
 mvp/integrations/
-├── django_tables/     requires django-tables2
-└── django_filters/    requires django-filter
+└── django_tables/     requires django-tables2
 ```
+
+django-filter is not one of them. It is a dependency of the package, because every list
+page's search, sort and filters come from a filterset
+([ADR 0033](adr/0033-django-filter-is-a-runtime-dependency.md)). Add `django_filters` to
+`INSTALLED_APPS`.
 
 ## django-tables2
 
@@ -249,9 +253,7 @@ is the usual way to say it.
 
 ## django-filter
 
-```bash
-pip install django-filter
-```
+Installed with django-mvp. List `django_filters` in `INSTALLED_APPS`.
 
 ```python
 from mvp.integrations.django_filters.views import MVPFilteredListView

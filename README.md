@@ -136,6 +136,7 @@ INSTALLED_APPS = [
     "daisy_cotton",     # installed with django-mvp, listed below "mvp"
     "crispy_forms",
     "mvp_forms",        # the daisyUI template pack forms are drawn with
+    "django_filters",   # a list page's search, sort and filters
 ]
 ```
 
@@ -255,8 +256,7 @@ Views that build on third-party packages live in guarded modules — no extras, 
 dependency is only required when you import the integration:
 
 ```python
-from mvp.integrations.django_tables.views import MVPTableView      # django-tables2
-from mvp.integrations.django_filters.views import MVPFilteredListView  # django-filter
+from mvp.integrations.django_tables.views import MVPTableView  # django-tables2
 ```
 
 Details: [Integrations](https://github.com/django-mvp/django-mvp/blob/main/docs/integrations.md).

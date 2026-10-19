@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Breaking:** django-filter is a dependency of the package rather than an optional
+  integration, because every list page's search, sort and filters now come from a
+  filterset. Add `"django_filters"` to `INSTALLED_APPS`; its range widgets render from
+  its own templates. See ADR 0033.
 - **Breaking:** the add button on a list page is the last control in the toolbar, after
   sort and filter, and its create dialog moves with it. The title row keeps the title,
   the subtitle and the info button. `page.actions` is still in the title row, empty, so a

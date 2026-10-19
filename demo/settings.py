@@ -41,12 +41,10 @@ INSTALLED_APPS = [
     "mvp_forms",
     "flex_menu",
     "django_cotton",
+    "django_filters",
     "django_browser_reload",
     "django_watchfiles",
 ]
-
-# SKETCH (FS-041): django-filter's range widgets render from its own templates.
-INSTALLED_APPS.append("django_filters")
 
 try:
     import django_tables2  # noqa: F401
