@@ -37,3 +37,10 @@ Plan written: research.md answers every planning note; plan.md, tasks.md (T001-T
 **Verified**: against a stub 4 of 7 failed; implemented, `uv run pytest -q -p no:randomly tests/test_filters.py` 20 passed. Probe: ordering by only the first column of a sequence first passed the tie test (SQLite rowid order hid it); the option's tiebreak became `-pk` and the probe now fails it.
 **Next**: T006, the list view builds its filterset.
 **Watch**: nothing.
+
+## 2026-10-19T12:22:04Z · Implementer US1 · T006
+
+**Did**: MVPListViewMixin gains `filterset_class`/`filterset_fields`, `get_filterset_class()` (declared, or generated from the fields), `get_filterset()` (built once per request on the base queryset, `data=request.GET or None`, `request=`), `get_queryset()` returning `filterset.qs`, and `filter`/`filterset` in the context only when there is one. New TestListFilterset (10 tests). The table mixin's sketch override takes the new signature and drops sort filters only on first build (decisions.md "get_filterset takes an optional class").
+**Verified**: 7 of 10 red before the code; 10 passed after. Probes: emptying the list on an invalid form fails the three bad-value tests; always generating a filterset fails the no-filterset test. Wider non-e2e run over list/integrations/components/table/demo/templates: 1133 passed, 3 failed (the two expected retirements and the test_icon concern).
+**Next**: T007, refuse the removed settings.
+**Watch**: the first wider run had 59 failures from the table override's old signature; fixed in this commit.

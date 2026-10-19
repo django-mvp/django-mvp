@@ -114,16 +114,20 @@ class MVPTableViewMixin(MVPListViewMixin, SingleTableMixin):
         """
         return len(context["table"].rows)
 
-    def get_filterset(self, filterset_class):
+    def get_filterset(self, filterset_class=None):
         """SKETCH (FS-041): drop any sort filter; the table's columns sort it."""
         from mvp.filters import SortFilter
 
-        filterset = super().get_filterset(filterset_class)  # type: ignore[misc]
-        self.dropped_filters = [
-            name for name, f in filterset.filters.items() if isinstance(f, SortFilter)
-        ]
-        for name in self.dropped_filters:
-            del filterset.filters[name]
+        building = not hasattr(self, "_filterset")
+        filterset = super().get_filterset(filterset_class)
+        if building and filterset is not None:
+            self.dropped_filters = [
+                name
+                for name, f in filterset.filters.items()
+                if isinstance(f, SortFilter)
+            ]
+            for name in self.dropped_filters:
+                del filterset.filters[name]
         return filterset
 
     def get_context_data(self, **kwargs):

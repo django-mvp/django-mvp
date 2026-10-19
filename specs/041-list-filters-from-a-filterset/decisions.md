@@ -111,3 +111,17 @@ grow.
 `order_by`, not to a `SortFilter` (design review SPEC-010). FR-002 asks for an error that points to
 the filterset, and a table view drops a `SortFilter` (FR-023), so pointing there would send the
 developer to something that does nothing. This is a change of message only.
+
+## get_filterset takes an optional class (US-1, T006)
+
+**Decision:** `MVPListViewMixin.get_filterset(filterset_class=None)` builds and caches the
+request's filterset; the argument defaults to `get_filterset_class()`.
+
+**Why:** it is the shape of django-filter's own `FilterMixin.get_filterset(filterset_class)`, so a
+project's override written for django-filter keeps working, and the table mixin's override (and
+every view still composing `FilterView` until T007 refuses them) calls it with the class. The table
+mixin's override was changed to that signature and to drop the sort filters only when the
+filterset is first built, since the cache now hands the same instance to every caller; T023
+still rebuilds it.
+
+**Revisit if:** no caller ever passes the class once US-5 lands.

@@ -152,8 +152,20 @@
         },
         {
           "id": "T006",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 2,
+          "evidence": {
+            "tests": [
+              "tests/test_views/test_list.py::TestListFilterset"
+            ],
+            "commands": [
+              "uv run pytest -q -p no:randomly tests/test_views/test_list.py::TestListFilterset",
+              "uv run pytest -q -p no:randomly -m 'not e2e' tests/test_views/test_list.py tests/test_integrations.py tests/test_components tests/test_table_layout.py tests/test_demo tests/test_templates.py"
+            ],
+            "code": [
+              "mvp/views/list.py:693"
+            ]
+          }
         },
         {
           "id": "T007",

@@ -10,12 +10,14 @@ Covers all user stories from specs/014-list-search-ordering/:
 Source: mvp/views/list.py
 """
 
+import django_filters
 import pytest
 from django.db.models.functions import Lower
 from django.test import RequestFactory
 from django.views.generic import ListView
 
 from demo.models import Category, Product
+from mvp.filters import SearchFilter, SortFilter
 from mvp.fixtures import _beautiful_soup
 from mvp.views.list import (
     MVPListView,
@@ -1747,3 +1749,134 @@ class TestFilterDisplay:
         view, filterset = self._view(rf, ProductFilterSet)
 
         assert view.get_filter_params(filterset, "name") == ["name_0", "name_1"]
+
+
+
+class ProductListFilter(django_filters.FilterSet):
+    q = SearchFilter(fields=["name"])
+    status = django_filters.ChoiceFilter(choices=Product.STATUS_CHOICES)
+    category = django_filters.ModelChoiceFilter(queryset=Category.objects.all())
+    o = SortFilter(options=[("name", "Name", ["name", "pk"])])
+
+    class Meta:
+        model = Product
+        fields: list[str] = []
+
+
+class TestListFilterset:
+    def _view(self, rf, query="", **attrs):
+        view_cls = type(
+            "StubFiltersetListView",
+            (MVPListView,),
+            {
+                "model": Product,
+                "list_item_template": CARD,
+                "render_to_response": lambda self, context, **kwargs: context,
+                **attrs,
+            },
+        )
+        view = view_cls()
+        view.setup(rf.get(f"/products/{query}"))
+        return view
+
+    def _names(self, context):
+        return [product.name for product in context["object_list"]]
+
+    def test_the_filterset_narrows_the_list(self, rf, cat, cat2):
+        _product(cat, "Lamp", status="draft")
+        _product(cat, "Chair", status="published")
+        _product(cat2, "Lamp shade", status="draft")
+        view = self._view(rf, f"?q=lamp&category={cat.pk}", filterset_class=ProductListFilter)
+
+        context = view.get(view.request)
+
+        assert self._names(context) == ["Lamp"]
+
+    def test_the_filterset_is_in_the_context_under_both_names(self, rf, db):
+        view = self._view(rf, filterset_class=ProductListFilter)
+
+        context = view.get(view.request)
+
+        assert isinstance(context["filter"], ProductListFilter)
+        assert context["filterset"] is context["filter"]
+
+    def test_the_filterset_is_built_once_per_request(self, rf, db):
+        view = self._view(rf, filterset_class=ProductListFilter)
+
+        assert view.get_filterset() is view.get_filterset()
+
+    def test_the_filterset_reads_the_request(self, rf, db):
+        view = self._view(rf, "?status=draft", filterset_class=ProductListFilter)
+
+        filterset = view.get_filterset()
+
+        assert filterset.request is view.request
+        assert filterset.data["status"] == "draft"
+
+    def test_filterset_fields_alone_get_a_generated_filterset(self, rf, cat):
+        _product(cat, "Lamp", status="draft")
+        _product(cat, "Chair", status="published")
+        view = self._view(rf, "?status=draft", filterset_fields=["status"])
+
+        context = view.get(view.request)
+
+        assert self._names(context) == ["Lamp"]
+        assert list(context["filter"].filters) == ["status"]
+
+    def test_a_view_with_no_filterset_has_no_filter_in_its_context(self, rf, cat):
+        _product(cat, "Lamp")
+        view = self._view(rf)
+
+        context = view.get(view.request)
+
+        assert "filter" not in context
+        assert "filterset" not in context
+        assert view.get_filterset() is None
+
+    def test_a_page_with_no_filterset_draws_no_filter_form(self, rf, cat):
+        _product(cat, "Lamp")
+        view_cls = type(
+            "StubPlainListView",
+            (MVPListView,),
+            {"model": Product, "list_item_template": CARD},
+        )
+        view = view_cls()
+        view.setup(rf.get("/products/"))
+        response = view.get(view.request)
+        response.render()
+        soup = _beautiful_soup()(response.content.decode(), "html.parser")
+
+        assert soup.find(id="filterForm") is None
+        assert soup.find(id="filterModal") is None
+
+    def test_a_bad_value_is_ignored_and_the_other_filters_still_apply(
+        self, rf, cat, cat2
+    ):
+        _product(cat, "Lamp", status="draft")
+        _product(cat2, "Chair", status="draft")
+        view = self._view(
+            rf, f"?status=bogus&category={cat.pk}", filterset_class=ProductListFilter
+        )
+
+        context = view.get(view.request)
+
+        assert self._names(context) == ["Lamp"]
+
+    def test_a_bad_value_never_empties_the_list(self, rf, cat):
+        _product(cat, "Lamp")
+        _product(cat, "Chair")
+        view = self._view(rf, "?category=99999", filterset_class=ProductListFilter)
+
+        context = view.get(view.request)
+
+        assert sorted(self._names(context)) == ["Chair", "Lamp"]
+
+    def test_an_unknown_sort_key_leaves_the_default_order(self, rf, cat):
+        for name in ["Beta", "Alpha", "Gamma"]:
+            _product(cat, name, status="draft")
+        default = [p.name for p in Product.objects.all()]
+        view = self._view(rf, "?o=-price&status=draft", filterset_class=ProductListFilter)
+
+        context = view.get(view.request)
+
+        assert self._names(context) == default

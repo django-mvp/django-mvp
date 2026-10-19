@@ -4,14 +4,14 @@ from numbers import Number
 from typing import Any
 
 from django import forms
+from django.core.exceptions import ImproperlyConfigured
 from django.db.models import Model, Q, QuerySet
 from django.utils import formats
 from django.utils.choices import flatten_choices
 from django.utils.functional import Promise
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import ListView
-
-from django.core.exceptions import ImproperlyConfigured
+from django_filters.filterset import filterset_factory
 
 from ..filters import SearchFilter, SortFilter
 from .base import BaseTemplateNameMixin, PageMixin
@@ -45,7 +45,10 @@ def describe_toolbar_field(view_name: str, filterset: Any, name: str) -> dict[st
         # The developer chose a widget of their own for this filter: draw it
         # as it is. The toolbar knows nothing about it beyond that it is a
         # select or an input, and applies it when focus leaves it changed.
-        widget.attrs.setdefault("class", "select w-full" if isinstance(widget, forms.Select) else "input w-full")
+        widget.attrs.setdefault(
+            "class",
+            "select w-full" if isinstance(widget, forms.Select) else "input w-full",
+        )
         item.update(kind="widget", bound=bound)
     elif isinstance(flt, SearchFilter):
         item.update(kind="search", value=data.get(name, ""))
@@ -60,15 +63,25 @@ def describe_toolbar_field(view_name: str, filterset: Any, name: str) -> dict[st
             current_label=next((t for k, t in opts if k == current), ""),
         )
     elif isinstance(flt, django_filters.BooleanFilter):
-        item.update(kind="toggle", checked=str(data.get(name, "")).lower() in ("true", "1", "on"))
-    elif isinstance(flt, (django_filters.MultipleChoiceFilter, django_filters.ModelMultipleChoiceFilter)):
-        chosen = [str(v) for v in data.getlist(name)] if hasattr(data, "getlist") else []
+        item.update(
+            kind="toggle",
+            checked=str(data.get(name, "")).lower() in ("true", "1", "on"),
+        )
+    elif isinstance(
+        flt,
+        (django_filters.MultipleChoiceFilter, django_filters.ModelMultipleChoiceFilter),
+    ):
+        chosen = (
+            [str(v) for v in data.getlist(name)] if hasattr(data, "getlist") else []
+        )
         item.update(
             kind="multichoice",
             choices=[(k, t, k in chosen) for k, t in choices(bound.field)],
             chosen_count=len([c for c in chosen if c]),
         )
-    elif isinstance(flt, (django_filters.ChoiceFilter, django_filters.ModelChoiceFilter)):
+    elif isinstance(
+        flt, (django_filters.ChoiceFilter, django_filters.ModelChoiceFilter)
+    ):
         current = str(data.get(name, ""))
         opts = choices(bound.field)
         item.update(
@@ -414,14 +427,18 @@ class FilterContextMixin:
         sort_item = next((f for f in context["toolbar_fields"] if f.get("sort")), None)
         # SKETCH (FS-041): the sort is drawn at the end of the row, by Filter and Add.
         context["toolbar_sort"] = sort_item
-        context["toolbar_fields"] = [f for f in context["toolbar_fields"] if not f.get("sort")]
+        context["toolbar_fields"] = [
+            f for f in context["toolbar_fields"] if not f.get("sort")
+        ]
         context["sort_label"] = sort_item["current_label"] if sort_item else ""
         modal_names = [n for n in filterset.form.fields if n not in toolbar_names]
         context["modal_fields"] = [filterset.form[n] for n in modal_names]
         modal_active = [n for n in active if n in modal_names]
         context["modal_applied_count"] = len(modal_active)
         if modal_active:
-            params = [p for n in modal_names for p in self.get_filter_params(filterset, n)]
+            params = [
+                p for n in modal_names for p in self.get_filter_params(filterset, n)
+            ]
             context["clear_modal_url"] = self.get_url_without(*params)  # type: ignore[attr-defined]
         return context
 
@@ -657,9 +674,61 @@ class MVPListViewMixin(
     )
     create_form_class = None
     create_modal_title = None
+    filterset_class = None
+    filterset_fields = None
+
+    def get_filterset_class(self):
+        """Return the filterset class the list takes its search, sort and filters from.
+
+        Returns:
+            ``filterset_class`` when set, else a filterset django-filter
+            generates from ``filterset_fields``, else ``None``.
+        """
+        if self.filterset_class is not None:
+            return self.filterset_class
+        if self.filterset_fields:
+            return filterset_factory(self.model, fields=self.filterset_fields)
+        return None
+
+    def get_filterset(self, filterset_class=None):
+        """Return this request's filterset, built on the first call.
+
+        The filterset narrows the view's own queryset, the one the list would
+        show unfiltered, so a value the request carries for one filter that the
+        filter cannot accept is dropped for that filter alone.
+
+        Args:
+            filterset_class: The class to build. Defaults to
+                ``get_filterset_class()``; the signature matches
+                django-filter's ``FilterMixin.get_filterset``.
+
+        Returns:
+            The bound filterset, or ``None`` when the view has none.
+        """
+        if not hasattr(self, "_filterset"):
+            filterset_class = filterset_class or self.get_filterset_class()
+            self._filterset = None
+            if filterset_class is not None:
+                self._filterset = filterset_class(
+                    data=self.request.GET or None,
+                    queryset=super().get_queryset(),
+                    request=self.request,
+                )
+        return self._filterset
+
+    def get_queryset(self):
+        """Return the records the filterset leaves, or every record without one."""
+        filterset = self.get_filterset()
+        if filterset is None:
+            return super().get_queryset()
+        return filterset.qs
 
     def get_context_data(self, **kwargs):
-        """Add grid, empty-state, item-template and inline-create context."""
+        """Add the filterset, grid, empty-state, item-template and inline-create context."""
+        filterset = self.get_filterset()
+        if filterset is not None:
+            kwargs.setdefault("filter", filterset)
+            kwargs.setdefault("filterset", filterset)
         context = super().get_context_data(**kwargs)
         context["grid_config"] = self.get_grid_config()
         context["empty_state"] = {
