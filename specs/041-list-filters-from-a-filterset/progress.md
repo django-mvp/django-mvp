@@ -100,3 +100,10 @@ Plan written: research.md answers every planning note; plan.md, tasks.md (T001-T
 **Verified**: `uv run pre-commit run --files docs/integrations.md` → pass. Docs only; no test (wording).
 **Next**: T026, the custom-toolbar table page.
 **Watch**: `toolbar_filters` has no reference section in docs/views.md yet (US-2, T015), so integrations.md mentions it without a link.
+
+## 2026-10-19T12:56:10Z · Implementer US5 · T026
+
+**Did**: CustomToolbarTableView (/django-tables2/custom-toolbar/) now runs on the demo's ProductFilter with `toolbar_filters = ["q", "status", "priority"]`: its two filters and the search it lost at T007 are back in the panel, the rest of the filterset is behind Filter, the sort is dropped. Its template no longer hand-draws selects into the removed `page.controls` block; the Columns and Export buttons moved to `page.actions` (in the bar, before Add). No demo test existed for the page, so TestCustomToolbarDemoPage was added in tests/test_table_layout.py next to the other demo table page test.
+**Verified**: new tests red first (no `q` in the panel; the search did not narrow the table), then `uv run pytest tests/test_table_layout.py tests/test_demo -q -p no:randomly` → 114 passed. pre-commit on the three files: pass.
+**Next**: full verify, report.
+**Watch**: the page now has a filter modal (ProductFilter's other fields), where before it had none. DataTablesView in demo/views.py still carries a `SKETCH (FS-041)` comment (left for T027/US-2).

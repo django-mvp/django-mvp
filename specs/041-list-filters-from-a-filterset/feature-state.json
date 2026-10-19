@@ -451,8 +451,21 @@
         },
         {
           "id": "T026",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_table_layout.py::TestCustomToolbarDemoPage"
+            ],
+            "commands": [
+              "uv run pytest tests/test_table_layout.py tests/test_demo -q -p no:randomly",
+              "uv run pre-commit run --files demo/views.py demo/templates/demo/table_custom_toolbar.html tests/test_table_layout.py"
+            ],
+            "code": [
+              "demo/views.py:771",
+              "tests/test_table_layout.py:406"
+            ]
+          }
         },
         {
           "id": "T027",
