@@ -52,6 +52,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   modal's clear link (`clear_modal_url`) keeps the toolbar's filters, the search and the
   sort. The address leaves out every field that is not set. The page's script is the new
   static file `js/list_view.js`.
+- A yes-or-no filter set to "No" is an applied filter: it gets a chip, counts on the
+  Filter button when it is in the modal, and goes with "Clear all".
 - A toolbar filter of several values opens a list of checkboxes with the chosen ones
   ticked, and applies once, when focus leaves it with a changed choice; its button is the
   same whatever is chosen. A widget of the developer's own applies the same way, through

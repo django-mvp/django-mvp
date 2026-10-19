@@ -2,7 +2,7 @@
   "feature": "041-list-filters-from-a-filterset",
   "branch": "041-list-filters-from-a-filterset",
   "repo": "django-mvp/django-mvp",
-  "state": "REVIEW",
+  "state": "PR_READY",
   "state_history": [
     {
       "state": "QUEUED",
@@ -33,6 +33,11 @@
       "state": "REVIEW",
       "at": "2026-10-19T14:50:03Z",
       "note": "S5 green: T033 from converge; ADR verdicts recorded"
+    },
+    {
+      "state": "PR_READY",
+      "at": "2026-10-19T16:05:35Z",
+      "note": "S6 green: 9 findings fixed, review recorded"
     }
   ],
   "gates": {
@@ -63,6 +68,11 @@
         "SPEC-002..005, ARCH-001..003 medium applied",
         "9 low applied"
       ]
+    },
+    "walkthrough": {
+      "approved_by": null,
+      "at": "2026-10-19T16:06:28Z",
+      "self_resolved": []
     }
   },
   "stories": [
