@@ -212,3 +212,10 @@ Watch: docs/views.md names the close button among the ways to close the modal; t
 **Verified**: sessions_spawn refuses every model. anthropic/claude-opus-5-5 and anthropic/claude-sonnet-5-5 both fail with "the selected account or native runtime is unavailable", and claude-cli/claude-opus-5-5 fails with "model not allowed". The gateway's diagnosis found no pinned account in config and suspects a personal account selection that has expired.
 **Next**: once spawning works, dispatch both reviewers with the briefs as written, then check-receipts, fixes, review-outcome, S7.
 **Watch**: the review is not done by the orchestrator in its own context, because the reviewer has to come in clean.
+
+## 2026-10-19T16:01:25Z · Implementer US1 review fixes · T034-T042
+
+Did: T034 sort filter leads with an empty "Default order" choice; T035 a chosen No on a BooleanFilter is applied; T036 integrations page names modal_applied_count and clear_modal_url; T037 toolbar choices flatten grouped choices; T038 get_clear_filters_url uses get_url_without; T039 hidden submit button in both filter forms plus a browser test; T040 the filterset is built over self.get_queryset() and the mixin's get() publishes filterset.qs as object_list; T041 docs on scoping related-model choices; T042 django-mvp-forms floor back to 0.4.0, SKETCH marker gone.
+Verified: uv run pytest -n auto --dist loadscope (axe class deselected): 2364 passed, 1 skipped; uv run mypy: no issues; uv run pre-commit run --all-files: all passed.
+Next: Forge re-verifies.
+Watch: allow_empty is no longer checked when a view has a filterset (it never was in django-filter's FilterView either, and nothing in the repo sets it).

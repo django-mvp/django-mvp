@@ -342,23 +342,68 @@
         },
         {
           "id": "T034",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_filters.py::TestSortFilter::test_it_offers_the_default_order_as_its_first_choice",
+              "tests/test_views/test_list.py::TestSortInTheFilterModal"
+            ],
+            "commands": [
+              "uv run pytest tests/test_filters.py::TestSortFilter::test_it_offers_the_default_order_as_its_first_choice tests/test_views/test_list.py::TestSortInTheFilterModal -q"
+            ],
+            "code": [
+              "mvp/filters.py:114"
+            ]
+          }
         },
         {
           "id": "T040",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_views/test_list.py::TestListFilterset::test_the_filterset_holds_only_what_the_views_own_queryset_allows"
+            ],
+            "commands": [
+              "uv run pytest tests/test_views/test_list.py::TestListFilterset::test_the_filterset_holds_only_what_the_views_own_queryset_allows -q"
+            ],
+            "code": [
+              "mvp/views/list.py:591"
+            ]
+          }
         },
         {
           "id": "T041",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_views/test_list.py"
+            ],
+            "commands": [
+              "uv run pytest tests/test_views/test_list.py -q"
+            ],
+            "code": [
+              "docs/views.md:239"
+            ]
+          }
         },
         {
           "id": "T042",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_views/test_list.py"
+            ],
+            "commands": [
+              "uv run pytest tests/test_views/test_list.py -q"
+            ],
+            "code": [
+              "pyproject.toml:42"
+            ]
+          }
         }
       ]
     },
@@ -436,8 +481,19 @@
         },
         {
           "id": "T037",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_views/test_list.py::TestToolbarPlacement::test_grouped_choices_offer_their_leaf_values"
+            ],
+            "commands": [
+              "uv run pytest tests/test_views/test_list.py::TestToolbarPlacement::test_grouped_choices_offer_their_leaf_values -q"
+            ],
+            "code": [
+              "mvp/views/list.py:203"
+            ]
+          }
         }
       ]
     },
@@ -533,23 +589,67 @@
         },
         {
           "id": "T035",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_views/test_list.py::TestAYesNoFilterSetToNo"
+            ],
+            "commands": [
+              "uv run pytest tests/test_views/test_list.py::TestAYesNoFilterSetToNo -q"
+            ],
+            "code": [
+              "mvp/views/list.py:234"
+            ]
+          }
         },
         {
           "id": "T036",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_views/test_list.py"
+            ],
+            "commands": [
+              "uv run pytest tests/test_views/test_list.py -q"
+            ],
+            "code": [
+              "docs/integrations.md:286"
+            ]
+          }
         },
         {
           "id": "T038",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_views/test_list.py::TestFilterModalCountAndClear"
+            ],
+            "commands": [
+              "uv run pytest tests/test_views/test_list.py::TestFilterModalCountAndClear -q"
+            ],
+            "code": [
+              "mvp/views/list.py:279"
+            ]
+          }
         },
         {
           "id": "T039",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_list_filters_e2e.py::TestEnterInAToolbarTextField"
+            ],
+            "commands": [
+              "uv run pytest tests/test_list_filters_e2e.py::TestEnterInAToolbarTextField -q"
+            ],
+            "code": [
+              "mvp/templates/list_view.html:48"
+            ]
+          }
         }
       ]
     },
