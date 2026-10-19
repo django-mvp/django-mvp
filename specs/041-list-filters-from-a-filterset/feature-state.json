@@ -228,8 +228,21 @@
         },
         {
           "id": "T010",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 2,
+          "evidence": {
+            "tests": [
+              "tests/test_views/test_list.py::TestListPageOneToolbar",
+              "tests/test_views/test_list.py::TestListPageToolbar",
+              "tests/test_views/test_list.py::TestListPageBlocks"
+            ],
+            "commands": [
+              "uv run pytest -q -p no:randomly tests/test_views/test_list.py tests/test_components/test_list_filter_modal.py tests/test_components/test_page_list.py tests/test_templates.py"
+            ],
+            "code": [
+              "mvp/templates/list_view.html:33"
+            ]
+          }
         },
         {
           "id": "T011",

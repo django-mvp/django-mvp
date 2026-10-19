@@ -963,6 +963,53 @@ class TestListPageToolbar:
         assert str(Product._meta.verbose_name) not in summary.get_text(" ").split()
 
 
+class TestListPageOneToolbar:
+    def test_one_filter_form_holds_the_modal(self, rf, cat):
+        _product(cat, "Lamp")
+
+        soup = _filtered_list_page(rf)
+
+        forms = soup.find_all(id="filterForm")
+        assert len(forms) == 1
+        assert forms[0].name == "form"
+        assert forms[0].find("dialog", id="filterModal") is not None
+
+    def test_the_filter_form_sits_in_the_toolbar(self, rf, cat):
+        _product(cat, "Lamp")
+
+        soup = _filtered_list_page(rf)
+
+        assert soup.find(id="filterForm").find_parent(class_="mvp-list-toolbar")
+
+    def test_the_create_dialog_is_not_inside_the_filter_form(self, rf, cat):
+        from demo.forms import ProductForm
+
+        _product(cat, "Lamp")
+
+        soup = _filtered_list_page(
+            rf, show_create_action=True, create_form_class=ProductForm
+        )
+
+        assert soup.find(id="createModal").find_parent(id="filterForm") is None
+
+    def test_a_page_without_a_filterset_has_a_toolbar_with_add_and_no_form(
+        self, rf, cat
+    ):
+        _product(cat, "Lamp")
+
+        soup = _list_page(rf, filterset_class=None, show_create_action=True)
+
+        toolbar = soup.find(class_="mvp-list-toolbar")
+        assert toolbar.find("a", href="/products/create/") is not None
+        assert soup.find(id="filterForm") is None
+
+    def test_the_count_is_drawn_once(self, rf, cat):
+        _product(cat, "Lamp")
+
+        for soup in [_list_page(rf), _list_page(rf, filterset_class=None)]:
+            assert len(soup.find_all(class_="mvp-list-summary")) == 1
+
+
 class TestListPageRefinements:
     def test_nothing_is_drawn_for_a_list_that_is_not_narrowed(self, rf, cat):
         _product(cat, "Lamp")
@@ -1099,9 +1146,7 @@ class TestListPagePagination:
 LIST_PAGE_BLOCKS = [
     "page.actions",
     "page.toolbar",
-    "page.search",
     "page.summary",
-    "page.controls",
     "page.refinements",
     "page.results",
     "page.pagination",

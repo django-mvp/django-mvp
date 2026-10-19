@@ -4,6 +4,7 @@
 {# @prop class:text | description:"Extra classes on the toolbar's root element." #}
 {# @prop result_count:number | description:"How many records the list holds; with no refinements, none draws no toolbar." #}
 {# @prop refinements:text | description:"The search and filters applied now." #}
+{# @prop bare:boolean | description:"Draw the slot as the row itself, with no search or summary cells; the list page's filter form lays the row out this way." #}
 {# @slot Sort, filter, add — the controls at the end of the row. #}
 {% load i18n mvp %}
 <c-vars search summary class result_count refinements bare />
@@ -15,7 +16,6 @@
   <div class="mvp-list-toolbar flex flex-wrap items-center gap-x-3 gap-y-3 w-full {{ class }}"
        {{ attrs }}>
     {% if bare %}
-      {# SKETCH (FS-041): the filter form lays the row out itself. #}
       {{ slot }}
     {% else %}
       {% if not search|slot_is_empty %}<div class="w-full md:w-1/3 md:max-w-sm">{{ search }}</div>{% endif %}

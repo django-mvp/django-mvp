@@ -65,3 +65,10 @@ Plan written: research.md answers every planning note; plan.md, tasks.md (T001-T
 **Verified**: the sketch modal already passed, so each behaviour was probed by mutation: dropping the fields guard (2 failed), the button's type (1), a nested form plus doubled fields (3), an always-drawn badge (1). `uv run pytest -q -p no:randomly tests/test_components/test_list_filter_modal.py` 13 passed. Non-e2e suite: 2038 passed, 42 failed (test_table_layout 37 and TestTableViewActions 1, US-5 rows; TestListPageBlocks 3, T010; test_icon 1).
 **Next**: T010, one toolbar.
 **Watch**: the modal's close-restore script keeps its SKETCH marker; T018 moves it into list_view.js. table_view.html's no-filterset branch still names the deleted components and is now unreachable (T024).
+
+## 2026-10-19T12:34:43Z · Implementer US1 · T010
+
+**Did**: list_view.html has one toolbar: the filter form (only when the view has a filterset) holding the toolbar fields and the modal, then the end group (sort, Filter button, Add); the old toolbar path and the page.search/page.controls blocks are gone; page.refinements draws the count row (summary in page.summary, sort_label, chips) for every list. toolbar.html's `bare` prop documented, its marker replaced. TestListPageBlocks' page.search/page.controls cases deleted (T010's row). New TestListPageOneToolbar (one #filterForm holding the modal, inside the toolbar; create dialog not in it; a no-filterset page has the toolbar with Add and no form; one count).
+**Verified**: before the template change TestListPageOneToolbar passed already except a fixture mistake of mine (Add is a dialog button when the view has a create form), and the page.summary block case failed; the template change is a removal with these tests and the existing TestListPageToolbar/EmptyState/Pagination as its net. After: `uv run pytest -q -p no:randomly tests/test_views/test_list.py tests/test_components/test_list_filter_modal.py tests/test_components/test_page_list.py tests/test_templates.py` 363 passed.
+**Next**: T011, the demo and the docs.
+**Watch**: the formdata script in list_view.html keeps its SKETCH marker for T018.
