@@ -269,17 +269,13 @@ class FilterContextMixin:
         Returns:
             The current path, with the remaining query string when there is one.
         """
-        querydict = self.request.GET.copy()  # type: ignore[attr-defined]
-        for name in filterset.form.fields:
-            if isinstance(filterset.filters.get(name), SortFilter):
-                continue
-            for param in self.get_filter_params(filterset, name):
-                querydict.pop(param, None)
-        querydict.pop(getattr(self, "page_kwarg", "page"), None)
-        query_string = querydict.urlencode()
-        return (
-            f"{self.request.path}?{query_string}" if query_string else self.request.path  # type: ignore[attr-defined]
-        )
+        params = [
+            param
+            for name in filterset.form.fields
+            if not isinstance(filterset.filters.get(name), SortFilter)
+            for param in self.get_filter_params(filterset, name)
+        ]
+        return self.get_url_without(*params)  # type: ignore[attr-defined]
 
     def get_sort_label(self, filterset: Any) -> str:
         """Return the label of the sort option the request chose.
