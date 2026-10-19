@@ -39,7 +39,7 @@ dependencies = [
     "django-easy-icons (>=0.6)",
     "mergedeep (>=1.3,<2.0)",
     "django-crispy-forms (>=2.7,<3.0)",
-    "django-mvp-forms (>=0.2,<1.0)",   # the daisyUI template pack forms render with
+    "django-mvp-forms>=0.4.0,<1.0",   # the daisyUI template pack forms render with
     "daisy-cotton (>=0.1.3,<0.2)",
 ]
 # Optional integrations (django-tables2, django-filter, ...) are NOT extras:
@@ -76,13 +76,13 @@ dev = [
     "django-filter>=26.1,<27",
     "django-tables2>=3.0.0,<4",
     "django-htmx>=1.28.0,<2.0",
-    "django-tailwind[cookiecutter,honcho,reload]>=4.4.2,<5",
+    "django-tailwind[cookiecutter,honcho,reload]>=4.6.0,<5",
     "brotli>=1.2.0,<2",
     # Renders docs/utility-classes.md inside the demo app (demo-only, never a
     # runtime dependency of mvp itself). Already present transitively via
     # django-distill/rich; declared explicitly since the demo imports it directly.
     "markdown-it-py>=4.2.0,<5",
-    "daisy-cotton-ext>=0.3.1,<0.4",
+    "daisy-cotton-ext>=0.5.0,<0.6",
 ]
 
 [tool.uv.sources]
