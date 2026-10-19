@@ -1,5 +1,5 @@
-{# @description SKETCH (FS-041): one filterset field drawn in the list toolbar, in its compact form. Must sit inside the filter form. #}
-{# @prop field:text | description:"The field as the view describes it for the toolbar: kind, name, label and its value or choices." #}
+{# @description One filterset field drawn in the list toolbar, in its compact form, by its kind: search, text, toggle, choice, sort, multichoice or a widget the developer chose. Each control is named by its filter's label and never shows the value chosen in it. Must sit inside the filter form; the sort may sit outside it, since its input names the form. #}
+{# @prop field:text | description:"The field as the list view's get_toolbar_field() describes it: kind, name, label and its value, choices, checked state or bound field." #}
 {% load i18n %}
 <c-vars field />
 {% if field.kind == "widget" %}
@@ -9,6 +9,7 @@
     found it with, so a control that opens a list applies once, on closing.
   {% endcomment %}
   <div class="mvp-toolbar-field w-44"
+       data-mvp-toolbar-field
        x-data="{ start: null, now() { return new URLSearchParams(new FormData($el.closest('form'))).getAll('{{ field.name|escapejs }}').join(',') } }"
        @focusin="if (start === null) start = now()"
        @focusout="setTimeout(() => { if ($el.contains(document.activeElement)) return; if (start !== null && start !== now()) $el.closest('form').requestSubmit(); start = null })">
@@ -42,13 +43,12 @@
                 only />
 {% elif field.kind == "toggle" %}
   <label class="label gap-2 cursor-pointer text-base-content">
-    <input type="checkbox"
-           role="switch"
-           class="toggle"
-           name="{{ field.name }}"
-           value="true"
-           {% if field.checked %}checked{% endif %}
-           @change="$el.form.requestSubmit()">
+    {# A component's attribute cannot be left out by a condition, so each state is its own call. #}
+    {% if field.checked %}
+      <c-form.toggle name="{{ field.name }}" value="true" checked @change="$el.form.requestSubmit()" only />
+    {% else %}
+      <c-form.toggle name="{{ field.name }}" value="true" @change="$el.form.requestSubmit()" only />
+    {% endif %}
     <span>{{ field.label }}</span>
   </label>
 {% elif field.kind == "choice" or field.kind == "sort" %}
@@ -113,11 +113,11 @@
       <legend class="sr-only">{{ field.label }}</legend>
       {% for key, text, selected in field.choices %}
         <label class="label w-full gap-3 px-2 py-1.5 rounded-field hover:bg-base-200 cursor-pointer text-base-content">
-          <input type="checkbox"
-                 class="checkbox checkbox-sm"
-                 name="{{ field.name }}"
-                 value="{{ key }}"
-                 {% if selected %}checked{% endif %}>
+          {% if selected %}
+            <c-form.checkbox size="sm" name="{{ field.name }}" value="{{ key }}" checked only />
+          {% else %}
+            <c-form.checkbox size="sm" name="{{ field.name }}" value="{{ key }}" only />
+          {% endif %}
           <span>{{ text }}</span>
         </label>
       {% endfor %}
