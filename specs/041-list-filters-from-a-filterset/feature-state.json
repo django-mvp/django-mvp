@@ -120,8 +120,19 @@
         },
         {
           "id": "T004",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_filters.py::TestSearchFilter"
+            ],
+            "commands": [
+              "uv run pytest -q -p no:randomly tests/test_filters.py"
+            ],
+            "code": [
+              "mvp/filters.py:34"
+            ]
+          }
         },
         {
           "id": "T005",

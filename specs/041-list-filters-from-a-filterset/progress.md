@@ -23,3 +23,10 @@ Plan written: research.md answers every planning note; plan.md, tasks.md (T001-T
 **Verified**: `uv run deptry .` Success, no dependency issues; pre-commit on the changed files passed.
 **Next**: T004, SearchFilter.
 **Watch**: integrations.md's django-filter section still describes MVPFilteredListView until T008 deletes the module.
+
+## 2026-10-19T12:16:22Z · Implementer US1 · T004
+
+**Did**: SearchFilter(CharFilter) in mvp/filters.py, rebuilt test-first: `fields`, `max_words=10`, default label, OR of icontains across words and fields, `.distinct()`, no-op on an empty term or no fields. tests/test_filters.py::TestSearchFilter holds the SearchMixin cases (the old ones go at T007).
+**Verified**: against a stub filter 10 of 13 failed; implemented, 13 passed. Probes: dropping `.distinct()` fails the join test; dropping the word limit fails both word-limit tests.
+**Next**: T005, SortFilter.
+**Watch**: SortFilter is still the sketch until T005.
