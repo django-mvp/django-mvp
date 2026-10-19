@@ -13,12 +13,15 @@
 {% comment %}
   The title names the dialog through aria-label and is drawn once, by the
   card. Giving c-modal a title too would draw a second heading.
+  c-modal draws its close button before the box's content, and the card is
+  positioned, so without a stacking order the card paints over the button
+  and takes its clicks: [&>.btn]:z-10 lifts the box's own button above it.
 {% endcomment %}
 <c-modal id="{{ id }}"
          aria-label="{{ title }}"
          placement="{{ position }}"
          :closable="closable"
-         content_class="bg-transparent p-0 shadow-none {% if position == "top" or position == "bottom" %}w-full max-w-none{% else %}w-11/12 {% if size == "sm" %}max-w-md{% elif size == "lg" %}max-w-4xl{% elif size == "xl" %}max-w-6xl{% elif size == "full" %}max-w-none{% else %}max-w-2xl{% endif %}{% endif %}"
+         content_class="[&>.btn]:z-10 bg-transparent p-0 shadow-none {% if position == "top" or position == "bottom" %}w-full max-w-none{% else %}w-11/12 {% if size == "sm" %}max-w-md{% elif size == "lg" %}max-w-4xl{% elif size == "xl" %}max-w-6xl{% elif size == "full" %}max-w-none{% else %}max-w-2xl{% endif %}{% endif %}"
          only>
   <c-mvp.card title="{{ title }}" class="w-full h-full {{ class }}" :attrs="attrs" only>
     {{ slot }}

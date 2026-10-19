@@ -111,6 +111,7 @@ class TestToolbarApplies:
 
 
 CLOSERS = {
+    "close button": lambda modal: modal.get_by_role("button", name="Close").first.click(),
     "backdrop": lambda modal: modal.locator(".modal-backdrop button").click(),
     "escape": lambda modal: modal.page.keyboard.press("Escape"),
 }
