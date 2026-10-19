@@ -403,6 +403,36 @@ class TestColumnBehaviourDemoPage:
         assert response.status_code == 200
 
 
+class TestCustomToolbarDemoPage:
+    def _get(self, client, query=""):
+        pytest.importorskip("django_tables2")
+        from django.urls import reverse
+
+        response = client.get(reverse("table-custom-toolbar") + query)
+        assert response.status_code == 200
+        return response
+
+    @pytest.mark.django_db
+    def test_its_filterset_fields_are_drawn_in_the_panel(self, client, product):
+        soup = _beautiful_soup()(self._get(client).content.decode(), "html.parser")
+
+        form = soup.find(id=TOOLBAR_PANEL).find("form", id="filterForm")
+        modal = soup.find(id="filterModal")
+        for name in ("q", "status", "priority"):
+            assert form.find(attrs={"name": name}) is not None, name
+            assert modal.find(attrs={"name": name}) is None, name
+
+    @pytest.mark.django_db
+    def test_its_search_narrows_the_table(self, client):
+        ProductFactory(name="Brass lamp")
+        ProductFactory(name="Oak chair")
+
+        response = self._get(client, "?q=lamp")
+
+        rows = [row.record.name for row in response.context["table"].rows]
+        assert rows == ["Brass lamp"]
+
+
 class TestInferredAlignment:
     def _table_class(self):
         pytest.importorskip("django_tables2")

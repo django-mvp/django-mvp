@@ -778,7 +778,8 @@ class CustomToolbarTableView(MVPTableView):
     page_subtitle = "Every product, with what is left of it."
     paginate_by = 25
     show_create_action = True
-    filterset_fields = ["status", "priority"]
+    filterset_class = ProductFilter
+    toolbar_filters = ["q", "status", "priority"]
 
 
 class EmptyTableView(DataTablesView):
