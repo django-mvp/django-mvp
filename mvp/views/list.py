@@ -40,7 +40,7 @@ class FilterContextMixin:
 
     Context (only when a filterset is present):
         applied_filters (dict): Field name to value, for filters actually set.
-        applied_filter_count (int): ``len(applied_filters)`` — the button badge.
+        applied_filter_count (int): ``len(applied_filters)``.
         clear_filters_url (str): Present only when at least one filter is
             applied. The current URL with the filterset's own fields removed,
             except the sort.
@@ -51,6 +51,11 @@ class FilterContextMixin:
         toolbar_sort (dict | None): The sort, when ``toolbar_filters`` names
             it, described the same way. The page draws it at the end of the row.
         modal_fields (list[BoundField]): Every field the toolbar does not draw.
+        modal_applied_count (int): How many of the modal's fields are applied
+            filters — the Filter button's badge.
+        clear_modal_url (str): Present only when a modal field is applied. The
+            current URL with the modal's fields and the page number removed;
+            the toolbar's fields and the sort, wherever it is drawn, are kept.
 
     Override hooks:
         get_active_filters(): Return the filters that are actually set.
@@ -86,7 +91,10 @@ class FilterContextMixin:
         context["modal_applied_count"] = len(modal_active)
         if modal_active:
             params = [
-                p for n in modal_names for p in self.get_filter_params(filterset, n)
+                p
+                for n in modal_names
+                if not isinstance(filterset.filters.get(n), SortFilter)
+                for p in self.get_filter_params(filterset, n)
             ]
             context["clear_modal_url"] = self.get_url_without(*params)  # type: ignore[attr-defined]
         return context

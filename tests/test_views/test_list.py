@@ -1777,6 +1777,59 @@ class TestToolbarPlacement:
         ]
 
 
+class TestFilterModalCountAndClear:
+    def _context(self, rf, query="", **attrs):
+        view_cls = type(
+            "StubModalListView",
+            (MVPListView,),
+            {
+                "model": Product,
+                "filterset_class": ToolbarProductFilter,
+                "toolbar_filters": ["q", "name", "o"],
+                "render_to_response": lambda self, context, **kwargs: context,
+                **attrs,
+            },
+        )
+        view = view_cls()
+        view.setup(rf.get(f"/products/{query}"))
+        return view.get(view.request)
+
+    def test_the_count_is_only_the_modals_applied_filters(self, rf, db):
+        context = self._context(rf, "?name=oak&status=draft")
+
+        assert context["applied_filter_count"] == 2
+        assert context["modal_applied_count"] == 1
+
+    def test_no_modal_filter_applied_counts_none_and_offers_no_clear(self, rf, db):
+        context = self._context(rf, "?q=lamp&name=oak&o=name")
+
+        assert context["modal_applied_count"] == 0
+        assert "clear_modal_url" not in context
+
+    def test_clearing_the_modal_keeps_the_toolbar_the_search_and_the_sort(
+        self, rf, db
+    ):
+        context = self._context(
+            rf, "?q=lamp&name=oak&status=draft&price_min=5&price_max=9&o=name&page=1"
+        )
+
+        assert context["clear_modal_url"] == "/products/?q=lamp&name=oak&o=name"
+
+    def test_clearing_the_modal_keeps_the_sort_when_the_sort_is_in_the_modal(
+        self, rf, db
+    ):
+        context = self._context(rf, "?status=draft&o=-name", toolbar_filters=[])
+
+        assert context["clear_modal_url"] == "/products/?o=-name"
+
+    def test_clear_all_drops_the_search_and_every_filter_and_keeps_the_sort(
+        self, rf, db
+    ):
+        context = self._context(rf, "?q=lamp&name=oak&status=draft&o=name&page=1")
+
+        assert context["clear_refinements_url"] == "/products/?o=name"
+
+
 class TestListPageToolbarRow:
     def _names_in_form(self, soup):
         form = soup.find("form", id="filterForm")
