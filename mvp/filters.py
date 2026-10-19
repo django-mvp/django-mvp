@@ -98,7 +98,8 @@ class SortFilter(django_filters.ChoiceFilter):
         *args: Passed to ``ChoiceFilter``.
         options: The ``(key, label, columns)`` triples, in the order offered.
         **kwargs: Passed to ``ChoiceFilter``. ``label`` defaults to "Sort";
-            ``choices`` comes from ``options`` and there is no empty choice.
+            ``choices`` comes from ``options``, led by an empty choice for the
+            default order (``empty_label``, default "Default order").
     """
 
     def __init__(
@@ -110,7 +111,7 @@ class SortFilter(django_filters.ChoiceFilter):
         self.options = list(options)
         kwargs.setdefault("label", _("Sort"))
         kwargs["choices"] = [(key, label) for key, label, _columns in self.options]
-        kwargs.setdefault("empty_label", None)
+        kwargs.setdefault("empty_label", _("Default order"))
         super().__init__(*args, **kwargs)
 
     def filter(self, qs: QuerySet, value: str) -> QuerySet:

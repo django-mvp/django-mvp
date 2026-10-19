@@ -225,7 +225,7 @@ has: `?q=lamp&o=-created`.
 | Filter | Arguments | What it does |
 | --- | --- | --- |
 | `SearchFilter` | `fields`, the ORM paths to search; `max_words`, default `10`; `label`, default "Search" | Ignoring case, keeps a record in which some word of the term appears in some named field, once, however many fields or joined rows it matched. Only the first `max_words` words are searched: the query grows by one branch per word per field and the term arrives from the URL, so the limit keeps its size out of a visitor's hands. An empty term narrows nothing |
-| `SortFilter` | `options`, a list of `(key, label, columns)`; `label`, default "Sort" | Orders the list by the chosen option's `columns`, one expression or a sequence, the later ones deciding ties. Only the key ever appears in the address and the columns never come from it. There is no empty choice |
+| `SortFilter` | `options`, a list of `(key, label, columns)`; `label`, default "Sort" | Orders the list by the chosen option's `columns`, one expression or a sequence, the later ones deciding ties. Only the key ever appears in the address and the columns never come from it. The first choice is empty, labelled "Default order" (`empty_label`), and sends no sort |
 
 A single column is not a total order unless it is unique, and rows tying on it can move
 between pages, so end each option's columns with a unique one, usually `"pk"`.

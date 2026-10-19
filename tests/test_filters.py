@@ -199,8 +199,18 @@ class TestSortFilter:
     def test_it_has_a_label_without_being_given_one(self):
         assert SortFilter(options=[("name", "Name", "name")]).label is not None
 
-    def test_it_offers_no_empty_choice(self):
+    def test_it_offers_the_default_order_as_its_first_choice(self):
         filterset = ProductSort(queryset=Product.objects.all())
 
         keys = [key for key, _label in filterset.form.fields["o"].choices]
-        assert keys == ["name", "-name", "name_then_pk"]
+        assert keys == ["", "name", "-name", "name_then_pk"]
+
+    def test_the_default_order_choice_leaves_the_queryset_unordered(self):
+        ProductFactory(name="Beta")
+        ProductFactory(name="alpha")
+        default = list(Product.objects.all())
+
+        filterset = ProductSort({"o": ""}, queryset=Product.objects.all())
+
+        assert list(filterset.qs) == default
+        assert filterset.qs.query.order_by == Product.objects.all().query.order_by

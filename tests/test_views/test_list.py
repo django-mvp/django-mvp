@@ -1909,6 +1909,19 @@ class TestFilterModalCountAndClear:
         assert context["clear_refinements_url"] == "/products/?o=name"
 
 
+class TestSortInTheFilterModal:
+    def test_an_unbound_modal_sort_has_the_default_order_selected(self, rf, cat):
+        _product(cat, "Lamp")
+
+        soup = _filtered_list_page(rf, toolbar_filters=[])
+
+        select = soup.find("dialog", id="filterModal").find("select", attrs={"name": "o"})
+        options = select.find_all("option")
+        selected = [o for o in options if o.has_attr("selected")]
+        assert options[0]["value"] == ""
+        assert selected in ([], [options[0]])
+
+
 class TestListPageToolbarRow:
     def _names_in_form(self, soup):
         form = soup.find("form", id="filterForm")
