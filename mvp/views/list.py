@@ -8,8 +8,8 @@ from django import forms
 from django.core.exceptions import ImproperlyConfigured
 from django.db.models import Model, QuerySet
 from django.utils import formats
-from django.utils.choices import flatten_choices
 from django.utils.cache import patch_vary_headers
+from django.utils.choices import flatten_choices
 from django.utils.functional import Promise
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import ListView

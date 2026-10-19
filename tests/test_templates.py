@@ -21,7 +21,7 @@ from django.apps import apps
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.sites.shortcuts import get_current_site
-from django.template import Engine, engines
+from django.template import Context, Engine, engines
 from django.template.loader import get_template, render_to_string
 from django.template.loader_tags import BlockNode, ExtendsNode
 from django.test import RequestFactory, override_settings
@@ -77,8 +77,10 @@ class TestDefaultBaseTemplate:
         ):
             template = package_only_engine.get_template(name)
             extends = next(n for n in template.nodelist if isinstance(n, ExtendsNode))
+            # page_view.html extends a variable with "base.html" as its default.
+            parent = extends.parent_name.resolve(Context(), ignore_failures=True)
 
-            assert package_only_engine.get_template(extends.parent_name.var)
+            assert package_only_engine.get_template(parent)
 
     def test_an_app_listed_above_mvp_still_wins(self):
         installed = settings.INSTALLED_APPS
@@ -634,7 +636,17 @@ def _controls(html):
     return sorted(
         (el.name, *(str(el.get(key, "")) for key in keys))
         for el in soup.find_all(
-            ["a", "button", "input", "select", "textarea", "form", "nav", "dialog", "label"]
+            [
+                "a",
+                "button",
+                "input",
+                "select",
+                "textarea",
+                "form",
+                "nav",
+                "dialog",
+                "label",
+            ]
         )
     )
 
