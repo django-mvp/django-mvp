@@ -63,7 +63,11 @@ urlpatterns = [
         views.ProductPlainListView.as_view(),
         name="product-list-plain",
     ),
-    path("products/quick/", views.ProductQuickListView.as_view(), name="product-list-quick"),
+    path(
+        "products/quick/",
+        views.ProductQuickListView.as_view(),
+        name="product-list-quick",
+    ),
     path(
         "products/modal-only/",
         views.ProductModalOnlyListView.as_view(),
