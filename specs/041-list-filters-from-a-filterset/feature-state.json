@@ -86,8 +86,19 @@
         },
         {
           "id": "T002",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_modal.py"
+            ],
+            "commands": [
+              "uv run pytest -q -p no:randomly tests/test_components/test_modal.py"
+            ],
+            "code": [
+              "mvp/templates/cotton/mvp/modal.html:17"
+            ]
+          }
         },
         {
           "id": "T003",

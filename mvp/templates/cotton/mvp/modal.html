@@ -1,5 +1,6 @@
-{# @description A dialog laid out as a card, built around c-mvp.card. #}
+{# @description A dialog laid out as a card, built around c-mvp.card inside daisy-cotton's c-modal. It holds no form of its own, so it works inside one. #}
 {# @prop id:text | description:"Dialog id, used to open/close it via showModal()/close()." #}
+{# @prop title:text | description:"The card's heading, and the dialog's accessible name." #}
 {# @prop size:select['sm','md','lg','xl','full'] | default:"md" | description:"Dialog width." #}
 {# @prop position:select['top','bottom','start','end'] | description:"Dialog placement; unset uses daisyUI's centred placement." #}
 {# @prop closable:boolean | description:"Show a close button in the top corner." #}
@@ -8,31 +9,21 @@
 {# @slot:actions <c-button text="Save" /> — Forwarded to the inner card's actions slot. #}
 {# @slot:footer <c-button text="Cancel" /> — Forwarded to the inner card's footer slot. #}
 {# @slot:footer_end <c-button text="Submit" /> — Forwarded to the inner card's footer_end slot. #}
-{% load i18n mvp %}
-<c-vars id size="md" position closable class />
-<dialog {% if id %}id="{{ id }}"{% endif %}
-        class="modal {% variation position "modal" "top,bottom,start,end" %}">
-  <div class="modal-box bg-transparent p-0 shadow-none {% if position == "top" or position == "bottom" %}w-full max-w-none{% else %}w-11/12 {% if size == "sm" %}max-w-md{% elif size == "lg" %}max-w-4xl{% elif size == "xl" %}max-w-6xl{% elif size == "full" %}max-w-none{% else %}max-w-2xl{% endif %}{% endif %}">
-    <c-mvp.card class="w-full h-full {{ class }}" :attrs="attrs" only>
-      {{ slot }}
-      {% if actions %}<c-slot name="actions">{{ actions }}</c-slot>{% endif %}
-      {% if footer %}<c-slot name="footer">{{ footer }}</c-slot>{% endif %}
-      {% if footer_end %}<c-slot name="footer_end">{{ footer_end }}</c-slot>{% endif %}
-    </c-mvp.card>
-    {% comment %}
-      SKETCH (FS-041): the dialog holds no form, so it works inside one. The
-      build rebuilds this component on daisy-cotton 0.2's c-modal instead.
-    {% endcomment %}
-    {% if closable %}
-      <button type="button"
-              class="btn btn-sm btn-circle btn-ghost absolute end-3 top-3"
-              onclick="this.closest('dialog').close()"
-              aria-label="{% trans "Close" %}">✕</button>
-    {% endif %}
-  </div>
-  <div class="modal-backdrop">
-    <button type="button"
-            onclick="this.closest('dialog').close()"
-            aria-label="{% trans "Close" %}">{% trans "Close" %}</button>
-  </div>
-</dialog>
+<c-vars id title size="md" position closable class />
+{% comment %}
+  The title names the dialog through aria-label and is drawn once, by the
+  card. Giving c-modal a title too would draw a second heading.
+{% endcomment %}
+<c-modal id="{{ id }}"
+         aria-label="{{ title }}"
+         placement="{{ position }}"
+         :closable="closable"
+         content_class="bg-transparent p-0 shadow-none {% if position == "top" or position == "bottom" %}w-full max-w-none{% else %}w-11/12 {% if size == "sm" %}max-w-md{% elif size == "lg" %}max-w-4xl{% elif size == "xl" %}max-w-6xl{% elif size == "full" %}max-w-none{% else %}max-w-2xl{% endif %}{% endif %}"
+         only>
+  <c-mvp.card title="{{ title }}" class="w-full h-full {{ class }}" :attrs="attrs" only>
+    {{ slot }}
+    {% if actions %}<c-slot name="actions">{{ actions }}</c-slot>{% endif %}
+    {% if footer %}<c-slot name="footer">{{ footer }}</c-slot>{% endif %}
+    {% if footer_end %}<c-slot name="footer_end">{{ footer_end }}</c-slot>{% endif %}
+  </c-mvp.card>
+</c-modal>
