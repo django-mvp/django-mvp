@@ -158,3 +158,14 @@ story's scope that already tests a demo table page is `tests/test_table_layout.p
 
 **Revisit if:** Sam wants the page to keep exactly two filters and no modal, which needs a
 filterset of its own in `demo/filters.py`.
+
+### T027 and T028 built by the orchestrator, not dispatched
+
+**Decision:** the orchestrator wrote T027 and T028 itself.
+
+**Why:** the sketch had already built the two demo pages, their menu entries and the Tom Select
+loading, so T027 came down to one test file and one seeded name, and the stylesheet rebuild for
+T028 changed nothing. A dispatch would have cost more than the work.
+
+**Revisit if:** either task turns out to need more than a test and a line, which would be design
+work for an implementer.

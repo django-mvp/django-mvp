@@ -184,3 +184,17 @@ Watch: docs/views.md names the close button among the ways to close the modal; t
 **Verified**: `uv run pytest tests/test_list_filters_e2e.py -q -m e2e` 20 passed. Probes on list_view.js: never submitting turned the two "updates" tests red; submitting regardless of change turned the three "does not update" tests red; restored.
 **Next**: full verify, report.
 **Watch**: the no-update tests wait 300 ms after networkidle for the queued submit to have had its chance.
+
+## 2026-10-19T14:42:01Z · Forge · T027
+
+**Did**: tests/test_demo/test_list_filter_pages.py reads the rendered /products/quick/ and /products/modal-only/ pages for where each field is drawn, checks the two menu entries resolve, and checks the seed has a name of 60+ characters; the seed gains one long-named product, and its slug is cut to fit the SlugField.
+**Verified**: the seed test red first (21 >= 60), then `uv run pytest tests/test_demo/ -q` 36 passed.
+**Next**: T028.
+**Watch**: an empty list draws no filter form, so the page tests take the `product` fixture.
+
+## 2026-10-19T14:42:01Z · Forge · T028
+
+**Did**: `invoke build-stylesheet` (no change to the committed stylesheet); a CHANGELOG entry for the table view: the dropped SortFilter, the panel, and its removed page.search and page.controls blocks.
+**Verified**: pre-commit on CHANGELOG.md passed.
+**Next**: full verify, US-5 acceptance, converge.
+**Watch**: nothing.
