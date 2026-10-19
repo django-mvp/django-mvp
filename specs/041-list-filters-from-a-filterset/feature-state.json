@@ -437,8 +437,17 @@
         },
         {
           "id": "T025",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "uv run pre-commit run --files docs/integrations.md"
+            ],
+            "code": [
+              "docs/integrations.md:118",
+              "docs/integrations.md:316"
+            ]
+          }
         },
         {
           "id": "T026",

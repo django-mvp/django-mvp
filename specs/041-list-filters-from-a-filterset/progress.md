@@ -93,3 +93,10 @@ Plan written: research.md answers every planning note; plan.md, tasks.md (T001-T
 **Verified**: `uv run pytest tests/test_table_layout.py -q -p no:randomly` → 84 passed (before the template change: 1 failed, the page.refinements override). The new tests passed against the sketch branch, so probed by disabling it (`{% if False %}`): 15 TestTableToolbar tests failed. `uv run pytest tests/test_integrations.py tests/test_templates.py tests/test_demo -q -p no:randomly` → 280 passed. pre-commit on the two files: pass.
 **Next**: T025 docs.
 **Watch**: demo/templates/tests/table_view_part_override.html still defines page.search/page.controls (now unused; outside the story's files). The custom-toolbar demo page overrode page.controls, so it draws its Columns/Export buttons nowhere until T026.
+
+## 2026-10-19T12:54:48Z · Implementer US5 · T025
+
+**Did**: docs/integrations.md made true for US-5: the toolbar band names `toolbar_filters`, the Filter button and the chips; the block table gains `page.refinements`; "Actions and sorting" describes the panel/modal placement on a table page with an example, and that a `SortFilter` is not drawn, its address value ignored and the table's order kept, including when `toolbar_filters` names it; the django-filter section's table example now reuses the list view's filterset with `toolbar_filters`.
+**Verified**: `uv run pre-commit run --files docs/integrations.md` → pass. Docs only; no test (wording).
+**Next**: T026, the custom-toolbar table page.
+**Watch**: `toolbar_filters` has no reference section in docs/views.md yet (US-2, T015), so integrations.md mentions it without a link.
