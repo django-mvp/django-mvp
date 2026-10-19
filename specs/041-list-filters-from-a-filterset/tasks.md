@@ -309,3 +309,73 @@ a "Clear all" button whatever is applied, drop the `search_query` and `applied_f
 the empty state and the table add-on passed down, and drop the test templates' overrides of the
 removed `page.search` and `page.controls` blocks. Test: a search matching nothing is not called
 a filter (`TestListPageEmptyState`).
+
+## Phase 7: Review fixes
+
+### T034 — A sort left in the filter modal applies only when someone picks it
+
+**Files**: `mvp/filters.py`, `tests/test_filters.py`, `tests/test_views/test_list.py`, `docs/views.md`
+
+The sort filter offers an empty choice, so a sort in the modal starts on the default order and an
+unchanged form sends no sort (sketch ruling: no choice means the default order). The toolbar sort
+already skips the empty key. Replaces `test_it_offers_no_empty_choice`, which pinned the defect.
+Test: an unbound list page with the sort in the modal has the empty sort selected.
+
+### T035 — A "No" on a yes/no filter is an applied filter
+
+**Files**: `mvp/views/list.py`, `tests/test_views/test_list.py`, `docs/integrations.md`
+
+`get_active_filters` keeps `False` from a `BooleanFilter` (it only ever comes from a chosen "No"),
+so it gets a chip, counts on the Filter button when in the modal (FR-015) and goes with "Clear all"
+(FR-017). Test: `?is_available=false&status=published` lists `is_available` among the refinements
+and the clear-all address drops it.
+
+### T036 — The integrations page describes today's Filter button and clear link
+
+**Files**: `docs/integrations.md`
+
+The Filter button badges `modal_applied_count` and the dialog's clear link is `clear_modal_url`;
+`applied_filter_count` and `clear_filters_url` cover every filter for a project's own controls.
+
+### T037 — Grouped choices draw their options in the toolbar
+
+**Files**: `mvp/views/list.py`, `tests/test_views/test_list.py`
+
+The toolbar's choice list flattens grouped choices. Test: a toolbar choice filter with grouped
+choices offers the leaf values.
+
+### T038 — Clearing the filters reuses `get_url_without`
+
+**Files**: `mvp/views/list.py`
+
+`get_clear_filters_url` builds its address with the mixin's existing `get_url_without`. Covered by
+the existing clear-all tests.
+
+### T039 — Enter in a toolbar text field updates the list when nothing else submits the form
+
+**Files**: `mvp/templates/list_view.html`, `mvp/templates/table_view.html`, `tests/test_views/` (browser)
+
+The filter form carries one hidden submit button, so Enter submits it with two text filters in the
+toolbar and no search or modal (FR-018). Browser test: that page updates on Enter.
+
+### T040 — The page's filterset holds only the records the view's own queryset allows
+
+**Files**: `mvp/views/list.py`, `tests/test_views/test_list.py`, `docs/views.md`
+
+The filterset is built over the view's own `get_queryset()`, as django-filter's `FilterView` did,
+so a view that scopes its records scopes `filter.qs` too. Test: a subclass that scopes
+`get_queryset()` gets a `filter.qs` without the out-of-scope record.
+
+### T041 — The docs say how to scope a related-model filter's choices
+
+**Files**: `docs/views.md`
+
+A related field's choices are every row of the related model; a per-user relation declares its
+filter with `queryset=lambda request: ...` on a filterset class.
+
+### T042 — django-mvp-forms keeps its 0.4.0 floor
+
+**Files**: `pyproject.toml`, `uv.lock`, `demo/views.py`
+
+Nothing under `mvp/` needs 0.5, so the runtime floor returns to `>=0.4.0` and the lock stays on
+0.5.0 for the demo. The last `SKETCH (FS-041)` marker in `demo/views.py` goes.

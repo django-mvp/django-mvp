@@ -339,6 +339,26 @@
               "mvp/templates/cotton/mvp/page/list/empty.html:30"
             ]
           }
+        },
+        {
+          "id": "T034",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T040",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T041",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T042",
+          "status": "todo",
+          "attempts": 0
         }
       ]
     },
@@ -413,6 +433,11 @@
               "CHANGELOG.md:39"
             ]
           }
+        },
+        {
+          "id": "T037",
+          "status": "todo",
+          "attempts": 0
         }
       ]
     },
@@ -505,6 +530,26 @@
               "docs/components.md:489"
             ]
           }
+        },
+        {
+          "id": "T035",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T036",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T038",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T039",
+          "status": "todo",
+          "attempts": 0
         }
       ]
     },
