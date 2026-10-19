@@ -200,7 +200,7 @@ class FilterContextMixin:
             ``(key, label, selected)`` for each choice but the empty one.
         """
         out = []
-        for key, label in bound.field.choices:
+        for key, label in flatten_choices(bound.field.choices):
             key = "" if key is None else str(getattr(key, "value", key))
             if key:
                 out.append((key, str(label), key in chosen))

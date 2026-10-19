@@ -1715,6 +1715,32 @@ class TestToolbarPlacement:
             ("archived", False),
         ]
 
+    def test_grouped_choices_offer_their_leaf_values(self, rf, db):
+        class GroupedFilter(django_filters.FilterSet):
+            status = django_filters.ChoiceFilter(
+                choices=[
+                    ("Live", [("published", "Published")]),
+                    ("Old", [("archived", "Archived")]),
+                ]
+            )
+
+            class Meta:
+                model = Product
+                fields: list[str] = []
+
+        context = self._context(
+            rf,
+            "?status=archived",
+            filterset_class=GroupedFilter,
+            toolbar_filters=["status"],
+        )
+
+        field = context["toolbar_fields"][0]
+        assert [(key, selected) for key, _label, selected in field["choices"]] == [
+            ("published", False),
+            ("archived", True),
+        ]
+
     def test_a_model_choice_offers_each_record_by_its_key(self, rf, cat, cat2):
         field = self._field(rf, "category", f"?category={cat2.pk}")
 
