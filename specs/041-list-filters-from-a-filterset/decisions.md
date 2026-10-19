@@ -169,3 +169,16 @@ T028 changed nothing. A dispatch would have cost more than the work.
 
 **Revisit if:** either task turns out to need more than a test and a line, which would be design
 work for an implementer.
+
+## Two pre-existing tests changed outside the retirement table
+
+**Decision:** `tests/test_components/test_icon.py` and `tests/test_components/test_sidebar_boost.py`
+are changed. The other six tests the feature changes or deletes are in the plan's retirement table.
+
+**Why:** both changes keep what the test checks. daisy-cotton 0.2's alert draws an icon only
+when it is given one, so the icon test now passes `icon`, and it still checks that the icon is
+drawn through this package. The language-switcher browser test found its trigger by the label
+"Select a language", which the dialog now carries as well since `c-mvp.modal` names its dialog.
+It now finds the button by its role. Neither assertion is weaker.
+
+**Revisit if:** daisy-cotton goes back to picking an alert's icon from its variant.
