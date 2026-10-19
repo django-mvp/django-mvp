@@ -313,8 +313,19 @@
       "tasks": [
         {
           "id": "T012",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_views/test_list.py::TestToolbarPlacement"
+            ],
+            "commands": [
+              "uv run pytest tests/test_views/test_list.py::TestToolbarPlacement -q (34 passed)"
+            ],
+            "code": [
+              "mvp/views/list.py:471"
+            ]
+          }
         },
         {
           "id": "T013",

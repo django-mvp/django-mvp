@@ -107,3 +107,10 @@ Plan written: research.md answers every planning note; plan.md, tasks.md (T001-T
 **Verified**: new tests red first (no `q` in the panel; the search did not narrow the table), then `uv run pytest tests/test_table_layout.py tests/test_demo -q -p no:randomly` → 114 passed. pre-commit on the three files: pass.
 **Next**: full verify, report.
 **Watch**: the page now has a filter modal (ProductFilter's other fields), where before it had none. DataTablesView in demo/views.py still carries a `SKETCH (FS-041)` comment (left for T027/US-2).
+
+## 2026-10-19T13:03:18Z · Implementer US-2 · T012
+
+Did: replaced the sketch's describe_toolbar_field and toolbar/modal split with FilterContextMixin.get_toolbar_names() and get_toolbar_field(filterset, name), an override hook. The sort is its own kind ("sort") and goes to toolbar_sort; toolbar_filters = [] declared on MVPListViewMixin. A developer's widget gains "select w-full"/"input w-full" and aria-label = the filter's label unless it has its own. field.html reads kind "sort" instead of the sketch's sort flag, to keep the tree green.
+Verified: uv run pytest tests/test_views/test_list.py::TestToolbarPlacement -q, 34 passed (4 red before the change: sort kind, aria-label, sort with own widget, override hook). Mutation probes (dedupe removed, class setdefault removed, empty-choice kept) each failed a test. tests/test_views/test_list.py tests/test_integrations.py tests/test_table_layout.py tests/test_components/test_list_filter_modal.py: 305 passed. mypy clean.
+Next: T013, the toolbar field component.
+Watch: modal_applied_count / clear_modal_url left as they were (US-3).
