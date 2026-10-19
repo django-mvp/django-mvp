@@ -6,8 +6,6 @@
 {# @prop empty_state:text | description:"For the empty state drawn when the table has no rows; read from the page when not passed." #}
 {# @prop refinements:text | description:"For the empty state drawn when the table has no rows; read from the page when not passed." #}
 {# @prop clear_refinements_url:text | description:"For the empty state drawn when the table has no rows; read from the page when not passed." #}
-{# @prop search_query:text | description:"For the empty state drawn when the table has no rows; read from the page when not passed." #}
-{# @prop applied_filters:text | description:"For the empty state drawn when the table has no rows; read from the page when not passed." #}
 {# @prop directory:text | description:"For the empty state drawn when the table has no rows; read from the page when not passed." #}
 {# @prop create_form:text | description:"For the empty state drawn when the table has no rows; read from the page when not passed." #}
 {# @prop model_info:text | description:"For the empty state drawn when the table has no rows; read from the page when not passed." #}
@@ -29,8 +27,6 @@
         empty_state
         refinements
         clear_refinements_url
-        search_query
-        applied_filters
         directory
         create_form
         model_info />
@@ -47,7 +43,7 @@
     table.context, the context render_table is called in. Bound here, they are
     there whether or not Cotton isolates this component from the page.
   {% endcomment %}
-  {% with empty_state=empty_state refinements=refinements clear_refinements_url=clear_refinements_url search_query=search_query applied_filters=applied_filters directory=directory create_form=create_form model_info=model_info %}
+  {% with empty_state=empty_state refinements=refinements clear_refinements_url=clear_refinements_url directory=directory create_form=create_form model_info=model_info %}
     {% render_table table %}
   {% endwith %}
 </div>

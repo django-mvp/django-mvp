@@ -15,4 +15,16 @@
   {# The page blocks' own utilities: the packaged stylesheet never scans site-packages. #}
   <link rel="stylesheet" href="{% static 'css/daisy-cotton-ext.css' %}" />
   <link rel="stylesheet" href="{% static 'css/themes.css' %}" />
+  {% comment %}
+    Tom Select, for the django-mvp-forms controls the demo's filters use. A
+    project loads it itself, as django-mvp-forms' README says; django-mvp
+    does not ship it. The demo serves its own copy (2.5.2, Apache-2.0, under
+    demo/static/demo/vendor/) so no page fetches from a third party.
+  {% endcomment %}
+  <link rel="stylesheet" href="{% static 'demo/vendor/tom-select-2.5.2/tom-select.default.min.css' %}" />
+  <link rel="stylesheet" href="{% static 'mvp_forms/tomselect.css' %}" />
 {% endblock styles %}
+{% block extra_js %}
+  {{ block.super }}
+  <script src="{% static 'demo/vendor/tom-select-2.5.2/tom-select.complete.min.js' %}"></script>
+{% endblock extra_js %}

@@ -290,6 +290,26 @@ class TestDevelopmentNotice:
 
 
 @pytest.mark.django_db
+@pytest.mark.usefixtures("account_urlconf")
+class TestSignInAlertIcons:
+    def test_the_development_notice_carries_an_icon(self, client):
+        content = client.get(reverse("account_login")).content.decode()
+        soup = BeautifulSoup(content, "html.parser")
+
+        assert soup.select_one("[role=alert]").find("i") is not None
+
+    def test_every_alert_on_a_failed_sign_in_carries_an_icon(self, client):
+        response = client.post(
+            reverse("account_login"), {"username": "nobody", "password": "wrong"}
+        )
+        soup = BeautifulSoup(response.content.decode(), "html.parser")
+
+        alerts = soup.select("[role=alert]")
+        assert len(alerts) == 2
+        assert all(alert.find("i") is not None for alert in alerts)
+
+
+@pytest.mark.django_db
 class TestDevelopmentNoticeAbsence:
     def test_with_allauth_installed_the_sign_in_page_carries_no_notice_of_ours(
         self, client, allauth_installed

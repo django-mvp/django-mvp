@@ -236,14 +236,15 @@ the whole screen. `fill` takes the full width and height and ignores `width`.
 | `c-mvp.page.toolbar` | `class` — page-level toolbar; renders nothing at all when given no children |
 | `c-mvp.page.list` | list-view wrapper used by `MVPListView` templates — see [below](#list-components-driven-by-view-context) |
 | `c-mvp.page.list.empty` | `icon`, `heading`, `message` — empty state |
-| `c-mvp.page.list.toolbar` | slots `search`, `summary` and the default slot for controls — the row above a list's results |
+| `c-mvp.page.list.toolbar` | slots `search`, `summary` and the default slot for controls; `bare` draws the default slot as the row itself — the row above a list's results |
+| `c-mvp.page.list.filters.modal` | `part` (`button` or `dialog`), `fields`, `applied_count`, `clear_url` — the Filter button, or the filter modal holding the filterset fields it is given; draws nothing with no fields |
+| `c-mvp.page.list.filters.field` | `field` — one filterset field in the toolbar, in its compact form, from a dict `get_toolbar_field()` returns; must sit inside the filter form |
 | `c-mvp.page.list.summary` | `class` — the count of what the list holds |
 | `c-mvp.page.list.refinements` | `class` — the applied search and filters, each as a control that removes it |
 | `c-mvp.page.list.footer` | `page_obj`, `size`, `class` — the foot of a list page: the range shown and the pager. Its spacing comes from `class`, and `size` sets the pager's button size |
 | `c-mvp.page.table.toolbar` | slots `title`, `actions`, `note` and the default slot; `storage_key`, `class` — the band above a full-page table: a bar that always shows and a panel a button opens and closes |
-| `c-mvp.page.list.actions` | `actions` — renders the action components below, default `['search','sort','filter','create']`; each one draws itself only when the view configures what it drives |
-| `c-mvp.page.list.actions.{search,sort,create,filter,share}` | individual list actions — see [below](#list-components-driven-by-view-context) for the context each one needs |
-| `c-mvp.page.list.actions.search` | `placeholder`, `label`, `class`, `input_class` — the search box and its submit button's text |
+| `c-mvp.page.list.actions` | `actions` — renders the action components below, default `['create']` |
+| `c-mvp.page.list.actions.{create,share}` | individual list actions — see [below](#list-components-driven-by-view-context) for the context each one needs |
 | `c-mvp.section` | `title`, `icon`, `level` (heading level 1–4); slot `actions` |
 | `c-mvp.section.hero` | `bg-image`, `title`, `subtitle`, `opacity`, `height`, `class`; slots `top`, `actions`, `bottom` — daisyUI hero |
 | `c-mvp.entrance` | `size` (`sm`/`md`/`lg`/`xl`/`2xl`/`3xl`/`4xl`/`full`, default `2xl`), `full-height` — the centered card for anonymous-facing pages; `small` is its deprecated predecessor |
@@ -263,7 +264,7 @@ content's. The shell keys off it. `<c-mvp.entrance>` still accepts a deprecated
 | `c-mvp.text` | `text`, `size` (default `base`), `align` (`left`/`center`/`right`), `muted`, `tight`, `bold`, `upper`, `class` |
 | `c-mvp.data-field` | `label`, `value`, `help_text` (a tooltip on the label), `missing` (default `–`) — key–value display; links the value when it has a URL |
 | `c-mvp.messages` | Django messages list; `dismissible`, `delay` (auto-dismiss milliseconds, default 2000) |
-| `c-mvp.modal` | `id` (for `showModal()`/`close()`), `size` (`sm`/`md`/`lg`/`xl`/`full`, default `md`), `position` (`top`/`bottom`/`start`/`end`), `closable` (show a close button), `class` — a dialog laid out as a card; `title`, `icon` and the `actions`/`footer`/`footer_end` slots forward to the inner `c-mvp.card` |
+| `c-mvp.modal` | `id` (for `showModal()`/`close()`), `size` (`sm`/`md`/`lg`/`xl`/`full`, default `md`), `position` (`top`/`bottom`/`start`/`end`), `closable` (show a close button), `class` — a dialog laid out as a card, drawn inside daisy-cotton's `c-modal`; `title` is the card's heading and the dialog's accessible name; `icon` and the `actions`/`footer`/`footer_end` slots forward to the inner `c-mvp.card`. It holds no form of its own and its close controls are `type="button"`, so it can sit inside a form |
 | `c-mvp.dropdown` | `valign` (`top/bottom/left/right`), `halign` (`start/center/end`), `full` (panel matches the trigger's width), `hover` (open on hover), `class`, `content_class`; slot `button` = trigger — see the placement note below |
 | `c-mvp.avatar` | `for` (default `request.user`), `src`, `alt` (default `User avatar`), `size` (`xs`/`sm`/`md`/`lg`/`xl`/`xxl` or a Tailwind width class, default `md`), `shape` (default `rounded-full`), `variant` (initials background colour, default `primary`), `status` (`online`/`offline`), `placeholder` (initials shown when there's no image), `class` |
 | `c-mvp.brand.logo` / `c-mvp.brand.icon` | `max-height`, `class` — brand images via the configured resolvers |
@@ -450,7 +451,7 @@ third-party package installed and its integration wired up before you use it.
 | Component | Attributes | Needs |
 | --- | --- | --- |
 | `c-mvp.addons.share-dropdown` | `url` (default: current page URL), `title` (default: `page.title`), `size`, `class` — social share menu (social networks, email, copy link) | nothing |
-| `c-mvp.addons.django-table` | `table`, `class`, `label`, `role` (default `region`) — scrollable region around a django-tables2 table, with its heading and footer rows pinned. A table with no rows draws `c-mvp.page.list.empty` in its body, from `empty_state`, `refinements`, `clear_refinements_url`, `search_query`, `applied_filters`, `directory`, `create_form` and `model_info`, read from the page when not passed | django-tables2 |
+| `c-mvp.addons.django-table` | `table`, `class`, `label`, `role` (default `region`) — scrollable region around a django-tables2 table, with its heading and footer rows pinned. A table with no rows draws `c-mvp.page.list.empty` in its body, from `empty_state`, `refinements`, `clear_refinements_url`, `directory`, `create_form` and `model_info`, read from the page when not passed | django-tables2 |
 
 `c-mvp.addons.share-dropdown` is plain markup over hard-coded social URLs, so it renders
 anywhere — `c-mvp.page.list.actions.share` puts it on a list page unconditionally.
@@ -474,40 +475,52 @@ and `table_view.html` do: `<c-mvp.page.list.summary :result_count="result_count"
 | Component | Context key it reads | Attributes |
 | --- | --- | --- |
 | `c-mvp.page.list` | `list` | `card` names the template each row is rendered with; undeclared attributes pass to the grid it renders, so column counts and gaps are set on the tag itself; `empty_state` takes a dict of attributes forwarded to `c-mvp.page.list.empty` when the result set is empty. The `empty` slot replaces the packaged empty state |
-| `c-mvp.page.list.empty` | `directory` (its `create_url` gates the add button), `create_form`, `refinements` (switches it to the nothing-matches message with a link to `clear_refinements_url`), `search_query`, `applied_filters`, `model_info` | `icon` (default `search`), `heading`, `message`, `icon_class`, `class`; `create_modal` draws the create dialog with the add button, for a page where nothing else draws it, with `create_modal_title` as its heading and `request` so it returns to the page |
-| `c-mvp.page.list.toolbar` | `result_count`, `refinements` (renders nothing when both are empty) | slots `search` and `summary`, default slot for the controls, `class` |
+| `c-mvp.page.list.empty` | `directory` (its `create_url` gates the add button), `create_form`, `refinements` (switches it to the nothing-matches message with a link to `clear_refinements_url`), `model_info` | `icon` (default `search`), `heading`, `message`, `icon_class`, `class`; `create_modal` draws the create dialog with the add button, for a page where nothing else draws it, with `create_modal_title` as its heading and `request` so it returns to the page |
+| `c-mvp.page.list.toolbar` | `result_count`, `refinements` (renders nothing when both are empty) | slots `search` and `summary`, default slot for the controls, `bare`, `class` |
+| `c-mvp.page.list.filters.modal` | — | `part` (`button` draws the Filter button, `dialog` the modal), `fields` (the bound fields, each drawn once), `applied_count` (the button's badge), `clear_url` (the modal's clear link) |
+| `c-mvp.page.list.filters.field` | — | `field`, one entry of `toolbar_fields` or `toolbar_sort`, drawn by its `kind`. A multi-select list and a developer's widget are drawn inside a `[data-mvp-toolbar-field]` wrapper whose value is the field's name |
 | `c-mvp.page.list.summary` | `result_count`, `refinements`, `model_info` | `class` |
 | `c-mvp.page.list.refinements` | `refinements`, `clear_refinements_url` | `class` |
 | `c-mvp.page.list.footer` | — | `page_obj`, `size`, `class` |
-| `c-mvp.page.list.actions` | every key the actions below read, handed on to each of them | `actions` (default `['search','sort','filter','create']`) |
-| `c-mvp.page.list.actions.search` | `is_searchable` and `search_query` (from `SearchMixin`) | `placeholder` (default `Search`), `label` (default `Search`, the submit button's text), `class` (default `grow`, on the joined input and button), `input_class` (default `md:w-[220px]`, where the input's width is set) |
-| `c-mvp.page.list.actions.sort` | `order_by_choices` and `current_ordering` (from `OrderMixin`) | — |
-| `c-mvp.page.list.actions.filter` | `filter`, `applied_filters`, `applied_filter_count`, `clear_filters_url` (from the django-filter integration), and `action`, where the form submits (default `.`) | `label` (default `Filter`), `icon` (default `filter`) |
+| `c-mvp.page.list.actions` | `directory`, `create_form`, `create_modal_title`, handed on to each action | `actions` (default `['create']`) |
 | `c-mvp.page.list.actions.create` | `directory` (its `create_url`), optionally `create_form` and `create_modal_title` | `label` (default `Add`, the button's text), `icon` (default `add`) |
 | `c-mvp.page.list.actions.share` | — (always renders) | — |
 
-The search, sort and filter actions all write into a single form with the id
-`filterForm`. The filter action renders it when a `FilterSet` is configured, and
-`c-mvp.page.list.actions` renders an empty hidden one otherwise, so search and sort work in
-any combination. Call `c-mvp.page.list.actions` once on a page, for the controls that
-share that form, and place the others by their own tags as the example below does.
-
-Each action draws itself only when the view configures what it drives —
-`search_fields`, `order_by`, a `FilterSet`, `show_create_action`. Naming all four is
-therefore the safe default, and a view drops a control by not configuring it rather than
-by shortening this list. `share` is the exception: it takes no context and always
-renders, so it appears only where a caller asks for it.
+The search, sort and filters come from the view's filterset. The filter modal and every
+toolbar field sit inside one form with the id `filterForm`, which a page draws only when
+the view has a filterset; the modal draws no form of its own. The Filter button only opens
+the modal, so it may sit outside the form. The count, the sort in use and the refinements
+make the row under the toolbar; the toolbar holds no count. A page that draws these
+components itself loads the package's `js/list_view.js`, as `list_view.html` does: it
+keeps the fields nobody set out of the address, puts the modal's fields back when it
+closes without applying, and submits the form when focus leaves a
+`[data-mvp-toolbar-field]` wrapper with a different value than it found. The create action draws itself only when
+`show_create_action` allows it. `share` takes no context and always renders, so it
+appears only where a caller asks for it.
 
 ```html
 <c-mvp.page>
   <c-mvp.page.title title="{{ page.title }}" />
-  <c-mvp.page.list.toolbar>
-    <c-slot name="search"><c-mvp.page.list.actions.search class="w-full" input_class="min-w-0" /></c-slot>
-    <c-slot name="summary"><c-mvp.page.list.summary /></c-slot>
-    <c-mvp.page.list.actions :actions="['sort','filter']" />
+  <c-mvp.page.list.toolbar bare>
+    {% if filter %}
+      <form id="filterForm" method="get" action="." class="contents">
+        {% for field in toolbar_fields %}
+          <c-mvp.page.list.filters.field :field="field" />
+        {% endfor %}
+        <c-mvp.page.list.filters.modal part="dialog" :fields="modal_fields"
+                                       :clear_url="clear_modal_url" />
+      </form>
+    {% endif %}
+    {% if toolbar_sort %}<c-mvp.page.list.filters.field :field="toolbar_sort" />{% endif %}
+    <c-mvp.page.list.filters.modal part="button" :fields="modal_fields"
+                                   :applied_count="modal_applied_count" />
     <c-mvp.page.list.actions.create />
   </c-mvp.page.list.toolbar>
-  <c-mvp.page.list.refinements />
+  <div class="flex flex-wrap items-center gap-x-4">
+    <c-mvp.page.list.summary />
+    {% if sort_label %}<p>{{ sort_label }}</p>{% endif %}
+    <c-mvp.page.list.refinements />
+  </div>
   <c-mvp.page.list :list="object_list" :card="list_item_template" md="2" lg="3" />
   {% if page_obj %}<c-mvp.page.list.footer :page_obj="page_obj" class="mt-5" />{% endif %}
 </c-mvp.page>

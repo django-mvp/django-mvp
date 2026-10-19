@@ -156,13 +156,16 @@ class Command(BaseCommand):
             "Design Patterns",
             "Clean Code",
             "Data Science Handbook",
+            # Long enough to wrap in a card, a chip and a toolbar choice.
+            "Professional Noise-Cancelling Over-Ear Studio Headphones with Carry Case",
         ]
 
         products = []
         for i, name in enumerate(product_names):
             category = random.choice(categories[:5])
             product, _created = Product.objects.get_or_create(
-                slug=slugify(f"{name}-{i}"),
+                # A SlugField holds 50 characters; short names keep their slug.
+                slug=f"{slugify(name)[:44]}-{i}",
                 defaults={
                     "name": name,
                     "category": category,

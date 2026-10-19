@@ -94,3 +94,12 @@ class TestAProjectsOwnLevelTag:
         assert not {f"alert-{variant}" for variant in VARIANTS} & set(
             alerts[0]["class"]
         )
+
+
+class TestMessageIcons:
+    @pytest.mark.parametrize("level", LEVEL_VARIANTS)
+    def test_a_message_alert_carries_an_icon(self, render_messages, level):
+        soup = render_messages(level)
+
+        alert = soup.select_one(".toast > [role='alert']")
+        assert alert.find("i") is not None

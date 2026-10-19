@@ -35,7 +35,7 @@
     {% firstof description formset.description as help_text %}
     {% if help_text %}<c-mvp.text muted size="sm" only>{{ help_text }}</c-mvp.text>{% endif %}
     {% if formset.non_form_errors %}
-      <c-alert variant="error" only>{{ formset.non_form_errors }}</c-alert>
+      <c-alert variant="error" icon="error" only>{{ formset.non_form_errors }}</c-alert>
     {% endif %}
     {{ formset.management_form.INITIAL_FORMS }}
     {{ formset.management_form.MIN_NUM_FORMS }}

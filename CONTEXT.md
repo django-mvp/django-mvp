@@ -23,14 +23,38 @@ The mechanism by which a consumer replaces a package component with their own im
 
 A Python class that provides cross-cutting behavior for Django views. Consumers compose their own view from exported mixins rather than using factory functions or pre-built concrete classes. This follows Django's standard pattern.
 
-**Exported mixins:** `PageMixin`, `BaseTemplateNameMixin`, `SearchMixin`, `OrderMixin`, `CRUDDirectoryMixin`
+**Exported mixins:** `PageMixin`, `BaseTemplateNameMixin`, `MVPListViewMixin`, `FilterContextMixin`, `CRUDDirectoryMixin`
 **Concrete views:** `MVPListView`, `MVPCreateView`, `MVPDetailView`, `MVPUpdateView`, `MVPDeleteView`
 
 ### Integration
 
 A guarded Python module under `mvp.integrations` that builds on exactly one optional third-party package (e.g. `mvp.integrations.django_tables.views`). Integrations are **never** imported by the core package and are **not** packaging extras — the third-party dependency is only required when a project explicitly imports the integration. Importing without the dependency raises `ImproperlyConfigured` with install instructions.
 
-**Existing integrations:** `django_tables` (django-tables2), `django_filters` (django-filter)
+**Existing integrations:** `django_tables` (django-tables2). django-filter is not one: it is a dependency of the package, because every list page's search, sort and filters come from a filterset (ADR 0033).
+
+### Filterset
+
+The developer's django-filter class for one model's list, set on a list view as `filterset_class` (or generated from `filterset_fields`). It declares every way the list can be narrowed or ordered: the search (`mvp.filters.SearchFilter`), the sort (`mvp.filters.SortFilter`) and every filter. A list view has no other place to declare search or sort.
+
+### Sort
+
+The filterset's `SortFilter`: orders the list by one of a fixed set of named options. It never counts as a filter, is never a refinement, and neither clear action removes it.
+
+### Refinement
+
+One applied search or filter, shown in the refinements row with its own remove action. The sort is never a refinement.
+
+### Toolbar
+
+The row above a list's results: the filter form with the toolbar filters, then the Filter button and the add button.
+
+### Toolbar filter
+
+A filterset field a view names for the toolbar, drawn there in its compact form.
+
+### Filter modal
+
+The dialog behind the Filter button, holding every filterset field that is not a toolbar filter. It sits inside the filter form and holds no form of its own.
 
 ### Config
 
@@ -179,11 +203,10 @@ c-mvp.page
   c-mvp.page.toolbar        — page-level toolbar
   c-mvp.page.list           — list view wrapper
     c-mvp.page.list.empty   — empty state display
+    c-mvp.page.list.toolbar — the row above the results
+    c-mvp.page.list.filters.modal — the Filter button (part="button") or the filter modal (part="dialog")
     c-mvp.page.list.actions
       c-mvp.page.list.actions.create
-      c-mvp.page.list.actions.filter
-      c-mvp.page.list.actions.search
-      c-mvp.page.list.actions.sort
       c-mvp.page.list.actions.share
 c-mvp.entrance              — centered card for anonymous-facing pages (size, full-height)
   c-mvp.entrance.background — entrance background layer

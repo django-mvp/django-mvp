@@ -7,13 +7,17 @@ is only required when a project explicitly imports the integration.
 
 import re
 
+import django_filters
 import pytest
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ImproperlyConfigured
 from django.db import connection
 from django.test.utils import CaptureQueriesContext
 
+from demo.models import Product
+from mvp.filters import SearchFilter, SortFilter
 from mvp.integrations import missing_dependency
+from mvp.views.list import MVPListView
 from tests.factories import ProductFactory
 
 
@@ -82,8 +86,10 @@ class TestIntegrationIsolation:
 
         import mvp
 
+        # django_filters is a dependency of the package (ADR 0033); the core
+        # list view builds its filterset with it. The others stay optional.
         views_dir = Path(next(iter(mvp.__path__))) / "views"
-        optional = {"django_tables2", "django_filters"}
+        optional = {"django_tables2"}
 
         for module_path in views_dir.glob("*.py"):
             tree = ast.parse(module_path.read_text(encoding="utf-8"))
@@ -107,25 +113,6 @@ class TestOptionalIntegrations:
 
         assert MVPTableViewMixin.base_template_name == "table_view.html"
         assert issubclass(MVPTableView, MVPTableViewMixin)
-
-    def test_django_filters_integration_imports(self):
-        pytest.importorskip("django_filters")
-        from django_filters.views import FilterView
-
-        from mvp.integrations.django_filters.views import MVPFilteredListView
-        from mvp.views.list import MVPListViewMixin
-
-        assert issubclass(MVPFilteredListView, MVPListViewMixin)
-        assert issubclass(MVPFilteredListView, FilterView)
-        # The applied-filters context logic belongs to the core mixin, so that a
-        # view composing it with FilterView gets the filter chrome too. Keeping
-        # that logic on this class alone is what left the demo's own pages
-        # without a filter badge. Isolation is a rule about imports, not about
-        # where the code sits, and
-        # TestIntegrationIsolation.test_core_views_have_no_optional_dependency_imports
-        # is what enforces it.
-        assert hasattr(MVPFilteredListView, "get_active_filters")
-        assert hasattr(MVPListViewMixin, "get_active_filters")
 
     @pytest.mark.django_db
     def test_sortable_headers_render_two_distinct_sort_glyphs(self, rf):
@@ -158,11 +145,10 @@ class TestOptionalIntegrations:
 
     @pytest.mark.django_db
     def test_filtered_list_view_injects_applied_filters(self, rf):
-        pytest.importorskip("django_filters")
         from demo.models import Product
-        from mvp.integrations.django_filters.views import MVPFilteredListView
+        from mvp.views.list import MVPListView
 
-        class ProductFilteredView(MVPFilteredListView):
+        class ProductFilteredView(MVPListView):
             model = Product
             filterset_fields = ["name"]
 
@@ -174,11 +160,10 @@ class TestOptionalIntegrations:
 
     @pytest.mark.django_db
     def test_filtered_list_view_has_no_clear_filters_url_when_nothing_applied(self, rf):
-        pytest.importorskip("django_filters")
         from demo.models import Product
-        from mvp.integrations.django_filters.views import MVPFilteredListView
+        from mvp.views.list import MVPListView
 
-        class ProductFilteredView(MVPFilteredListView):
+        class ProductFilteredView(MVPListView):
             model = Product
             filterset_fields = ["name"]
 
@@ -189,15 +174,23 @@ class TestOptionalIntegrations:
 
     @pytest.mark.django_db
     def test_filtered_list_view_clear_filters_url_drops_only_filter_fields(self, rf):
-        pytest.importorskip("django_filters")
-        from demo.models import Product
-        from mvp.integrations.django_filters.views import MVPFilteredListView
+        import django_filters
 
-        class ProductFilteredView(MVPFilteredListView):
+        from demo.models import Product
+        from mvp.filters import SearchFilter, SortFilter
+        from mvp.views.list import MVPListView
+
+        class ProductFilter(django_filters.FilterSet):
+            q = SearchFilter(fields=["name"])
+            o = SortFilter(options=[("name_asc", "Name (A-Z)", "name")])
+
+            class Meta:
+                model = Product
+                fields = ["name"]
+
+        class ProductFilteredView(MVPListView):
             model = Product
-            filterset_fields = ["name"]
-            search_fields = ["name"]
-            order_by = [("name_asc", "Name (A-Z)", "name")]
+            filterset_class = ProductFilter
             paginate_by = 5
 
         ProductFactory.create_batch(6, name="Widget")
@@ -210,65 +203,78 @@ class TestOptionalIntegrations:
         )
         response = view.get(view.request)
         context = response.context_data
-        assert context["applied_filter_count"] == 1
+        assert context["applied_filter_count"] == 2
         clear_url = context["clear_filters_url"]
         assert clear_url.startswith("/?")
         query = clear_url.split("?", 1)[1]
         params = dict(pair.split("=") for pair in query.split("&"))
         assert "name" not in params
+        assert "q" not in params
         assert "page" not in params
-        assert params["q"] == "widget"
         assert params["o"] == "name_asc"
 
     @pytest.mark.django_db
-    def test_filter_action_template_renders_clear_link_only_when_filters_applied(
-        self, rf
-    ):
-        pytest.importorskip("django_filters")
-        from demo.models import Product
-        from mvp.integrations.django_filters.views import MVPFilteredListView
+    def test_filter_modal_renders_clear_link_only_when_filters_applied(self, rf):
+        from bs4 import BeautifulSoup
 
-        class ProductFilteredView(MVPFilteredListView):
+        from demo.models import Product
+        from mvp.views.list import MVPListView
+
+        class ProductFilteredView(MVPListView):
             model = Product
             filterset_fields = ["name"]
-            template_name = "cotton/mvp/page/list/actions/filter.html"
+            list_item_template = "cards/product_card.html"
 
-        unfiltered = ProductFilteredView()
-        unfiltered.setup(rf.get("/"))
-        unfiltered_response = unfiltered.get(unfiltered.request)
-        unfiltered_html = unfiltered_response.render().content.decode()
-        assert "clear_filters_url" not in unfiltered_response.context_data
-        assert 'href="/?' not in unfiltered_html
+        ProductFactory(name="Widget")
 
-        filtered = ProductFilteredView()
-        filtered.setup(rf.get("/", {"name": "Widget"}))
-        filtered_response = filtered.get(filtered.request)
-        filtered_html = filtered_response.render().content.decode()
-        clear_url = filtered_response.context_data["clear_filters_url"]
-        assert f'href="{clear_url}"' in filtered_html
+        def modal_links(params):
+            view = ProductFilteredView()
+            view.setup(rf.get("/", params))
+            response = view.get(view.request)
+            html = response.render().content.decode()
+            modal = BeautifulSoup(html, "html.parser").find(id="filterModal")
+            return response.context_data, modal.find_all("a")
+
+        unfiltered_context, unfiltered_links = modal_links({})
+        assert "clear_filters_url" not in unfiltered_context
+        assert unfiltered_links == []
+
+        filtered_context, filtered_links = modal_links({"name": "Widget"})
+        assert [a["href"] for a in filtered_links] == [
+            filtered_context["clear_filters_url"]
+        ]
 
 
-class TestFilterChromeOnAComposedView:
+class TestFilterChromeOnAFilteredListView:
     @pytest.fixture
     def filtered_view(self):
-        pytest.importorskip("django_filters")
-        from django_filters.views import FilterView
+        import django_filters
 
         from demo.models import Product
-        from mvp.views.list import MVPListViewMixin
+        from mvp.filters import SearchFilter, SortFilter
+        from mvp.views.list import MVPListView
 
-        class ComposedProductView(MVPListViewMixin, FilterView):
+        class ProductFilter(django_filters.FilterSet):
+            q = SearchFilter(fields=["name"])
+            o = SortFilter(options=[("name", "Name", "name")])
+
+            class Meta:
+                model = Product
+                fields = ["name", "price"]
+
+        class FilteredProductView(MVPListView):
             model = Product
-            filterset_fields = ["name", "price"]
-            search_fields = ["name"]
-            template_name = "cotton/mvp/page/list/actions/filter.html"
+            filterset_class = ProductFilter
+            list_item_template = "cards/product_card.html"
+            paginate_by = None
 
-        return ComposedProductView
+        return FilteredProductView
 
     def render(self, view_class, rf, params):
         view = view_class()
         view.setup(rf.get("/", params))
-        return view.get(view.request).render().content.decode()
+        response = view.get(view.request)
+        return response, response.render().content.decode()
 
     @pytest.mark.django_db
     def test_the_button_is_badged_with_the_number_of_applied_filters(
@@ -281,11 +287,9 @@ class TestFilterChromeOnAComposedView:
 
     @pytest.mark.django_db
     def test_the_modal_offers_a_way_to_clear_an_applied_filter(self, filtered_view, rf):
-        view = filtered_view()
-        view.setup(rf.get("/", {"name": "Widget"}))
-        response = view.get(view.request)
+        ProductFactory(name="Widget")
+        response, html = self.render(filtered_view, rf, {"name": "Widget"})
         clear_url = response.context_data["clear_filters_url"]
-        html = response.render().content.decode()
         assert f'href="{clear_url}"' in html
 
     @pytest.mark.django_db
@@ -297,11 +301,13 @@ class TestFilterChromeOnAComposedView:
         assert "clear_filters_url" not in response.context_data
 
     @pytest.mark.django_db
-    def test_clearing_keeps_the_search_and_drops_the_filters(self, filtered_view, rf):
+    def test_clearing_drops_the_search_and_filters_and_keeps_the_sort(
+        self, filtered_view, rf
+    ):
         view = filtered_view()
-        view.setup(rf.get("/", {"q": "code", "name": "Widget", "page": "3"}))
+        view.setup(rf.get("/", {"q": "code", "name": "Widget", "o": "name", "page": "3"}))
         clear_url = view.get(view.request).context_data["clear_filters_url"]
-        assert clear_url == "/?q=code"
+        assert clear_url == "/?o=name"
 
     @pytest.mark.django_db
     def test_a_view_with_no_filterset_gets_no_filter_context(self, rf):
@@ -475,5 +481,105 @@ class TestTableViewActions:
         assert "ordering-option" not in self._render(rf)
 
     def test_search_still_draws_when_the_view_configures_it(self, rf, db):
-        assert 'name="q"' in self._render(rf, search_fields=["name"])
+        assert 'name="q"' in self._render(
+            rf, filterset_class=SortedProductFilter, toolbar_filters=["q"]
+        )
         assert 'name="q"' not in self._render(rf)
+
+
+class SortedProductFilter(django_filters.FilterSet):
+    q = SearchFilter(fields=["name"])
+    o = SortFilter(
+        options=[
+            ("name", "Name (A-Z)", ["name", "pk"]),
+            ("-name", "Name (Z-A)", ["-name", "-pk"]),
+        ]
+    )
+
+    class Meta:
+        model = Product
+        fields = ["status"]
+
+
+class TestTableViewDropsTheSort:
+    """One filterset serves a list page and a table page; the table drops its sort."""
+
+    @pytest.fixture(autouse=True)
+    def require_django_tables2(self):
+        pytest.importorskip("django_tables2")
+
+    def _table_view(self, rf, query="", **attrs):
+        view_class = type(
+            "SortedTableView",
+            (_plain_table_view_class(),),
+            {"filterset_class": SortedProductFilter, **attrs},
+        )
+        view = view_class()
+        view.setup(rf.get(f"/{query}"))
+        view.request.user = AnonymousUser()
+        return view
+
+    def _render(self, view):
+        response = view.get(view.request)
+        response.render()
+        return response.content.decode()
+
+    def test_a_table_on_a_filterset_with_a_sort_renders_no_sort_control(self, rf, db):
+        ProductFactory(name="Lamp")
+
+        html = self._render(self._table_view(rf))
+
+        assert 'name="o"' not in html
+
+    def test_a_sort_value_is_ignored_and_the_tables_ordering_stands(self, rf, db):
+        for name in ("Bowl", "Chair", "Atlas"):
+            ProductFactory(name=name)
+        view = self._table_view(rf, "?o=name", ordering=["-name"])
+
+        context = view.get(view.request).context_data
+
+        rows = [row.record.name for row in context["table"].rows]
+        assert rows == ["Chair", "Bowl", "Atlas"]
+
+    def test_a_column_sort_still_orders_the_rows(self, rf, db):
+        for name in ("Bowl", "Chair", "Atlas"):
+            ProductFactory(name=name)
+        view = self._table_view(rf, "?o=-name&sort=name")
+
+        context = view.get(view.request).context_data
+
+        rows = [row.record.name for row in context["table"].rows]
+        assert rows == ["Atlas", "Bowl", "Chair"]
+
+    def test_the_sort_named_for_the_toolbar_is_skipped_silently(self, rf, db):
+        ProductFactory(name="Lamp")
+        view = self._table_view(rf, "?o=name", toolbar_filters=["q", "o"])
+
+        html = self._render(view)
+
+        assert 'name="q"' in html
+        assert 'name="o"' not in html
+
+    def test_the_same_filterset_on_a_list_view_still_sorts(self, rf, db):
+        for name in ("Bowl", "Chair", "Atlas"):
+            ProductFactory(name=name)
+        view_class = type(
+            "SortedListView",
+            (MVPListView,),
+            {
+                "model": Product,
+                "filterset_class": SortedProductFilter,
+                "toolbar_filters": ["q", "o"],
+                "list_item_template": "cards/product_card.html",
+            },
+        )
+        view = view_class()
+        view.setup(rf.get("/?o=name"))
+        view.request.user = AnonymousUser()
+
+        response = view.get(view.request)
+        response.render()
+
+        names = [product.name for product in response.context_data["object_list"]]
+        assert names == ["Atlas", "Bowl", "Chair"]
+        assert 'name="o"' in response.content.decode()

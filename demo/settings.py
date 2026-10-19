@@ -41,10 +41,10 @@ INSTALLED_APPS = [
     "mvp_forms",
     "flex_menu",
     "django_cotton",
+    "django_filters",
     "django_browser_reload",
     "django_watchfiles",
 ]
-
 
 try:
     import django_tables2  # noqa: F401

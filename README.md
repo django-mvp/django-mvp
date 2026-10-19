@@ -136,6 +136,7 @@ INSTALLED_APPS = [
     "daisy_cotton",     # installed with django-mvp, listed below "mvp"
     "crispy_forms",
     "mvp_forms",        # the daisyUI template pack forms are drawn with
+    "django_filters",   # a list page's search, sort and filters
 ]
 ```
 
@@ -218,13 +219,24 @@ Per-page overrides use component attributes (`<c-app breakpoint="xl">`,
 ## Views in one line each
 
 ```python
+import django_filters
+
+from mvp.filters import SearchFilter, SortFilter
 from mvp.views import MVPListView, MVPCreateView, MVPUpdateView, MVPDeleteView
+
+
+class ProductFilter(django_filters.FilterSet):
+    q = SearchFilter(fields=["name", "description"])      # ?q= multi-word search
+    o = SortFilter(options=[("name", "Name (A-Z)", ["name", "pk"])])  # ?o= whitelisted
+
+    class Meta:
+        model = Product
+        fields = ["status"]
 
 
 class ProductListView(MVPListView):
     model = Product
-    search_fields = ["name", "description"]              # ?q= multi-word search
-    order_by = [("name_asc", "Name (A-Z)", "name")]      # ?o= whitelisted ordering
+    filterset_class = ProductFilter                      # search, sort and filters
 
 
 class ProductCreateView(MVPCreateView):
@@ -255,8 +267,7 @@ Views that build on third-party packages live in guarded modules — no extras, 
 dependency is only required when you import the integration:
 
 ```python
-from mvp.integrations.django_tables.views import MVPTableView      # django-tables2
-from mvp.integrations.django_filters.views import MVPFilteredListView  # django-filter
+from mvp.integrations.django_tables.views import MVPTableView  # django-tables2
 ```
 
 Details: [Integrations](https://github.com/django-mvp/django-mvp/blob/main/docs/integrations.md).

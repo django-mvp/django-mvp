@@ -1,0 +1,122 @@
+{# @description One filterset field drawn in the list toolbar, in its compact form, by its kind: search, text, toggle, choice, sort, multichoice or a widget the developer chose. Each control is named by its filter's label and never shows the value chosen in it. Must sit inside the filter form; the sort may sit outside it, since its input names the form. #}
+{# @prop field:text | description:"The field as the list view's get_toolbar_field() describes it: kind, name, label and its value, choices, checked state or bound field." #}
+{% load i18n %}
+<c-vars field />
+{% if field.kind == "widget" %}
+  {% comment %}
+    A widget the developer chose, drawn as it is at a fixed width. Whatever
+    it is, list_view.js applies it when focus leaves it with a different value
+    than focus found it with, so a control that opens a list applies once, on
+    closing.
+  {% endcomment %}
+  <div class="mvp-toolbar-field w-44" data-mvp-toolbar-field="{{ field.name }}">
+    {{ field.bound }}
+  </div>
+{% elif field.kind == "search" %}
+  {# The search takes whatever room the row has left. #}
+  <div class="w-full md:w-auto md:flex-1 md:min-w-60">
+    <c-join class="w-full" only>
+      <c-form.input type="search"
+                    name="{{ field.name }}"
+                    class="join-item grow min-w-0"
+                    placeholder="{{ field.label }}"
+                    value="{{ field.value|default:'' }}"
+                    aria-label="{{ field.label }}"
+                    only>
+        <c-slot name="start">
+          <c-icon name="search" aria-hidden="true" />
+        </c-slot>
+      </c-form.input>
+      <c-button type="submit" class="join-item" text="{% trans "Search" %}" only />
+    </c-join>
+  </div>
+{% elif field.kind == "text" %}
+  <c-form.input type="text"
+                name="{{ field.name }}"
+                class="w-40"
+                placeholder="{{ field.label }}"
+                value="{{ field.value|default:'' }}"
+                aria-label="{{ field.label }}"
+                only />
+{% elif field.kind == "toggle" %}
+  <label class="label gap-2 cursor-pointer text-base-content">
+    {# A component's attribute cannot be left out by a condition, so each state is its own call. #}
+    {% if field.checked %}
+      <c-form.toggle name="{{ field.name }}" value="true" checked @change="$el.form.requestSubmit()" only />
+    {% else %}
+      <c-form.toggle name="{{ field.name }}" value="true" @change="$el.form.requestSubmit()" only />
+    {% endif %}
+    <span>{{ field.label }}</span>
+  </label>
+{% elif field.kind == "choice" or field.kind == "sort" %}
+  {% comment %}
+    A single choice applies the moment it is picked. The hidden input is what
+    submits; it is disabled while nothing is chosen so the address stays clean.
+  {% endcomment %}
+  <c-mvp.dropdown halign="{% if field.kind == 'sort' %}end{% else %}start{% endif %}"
+                  x-data="{ value: '{{ field.value|escapejs }}' }">
+    <c-slot name="button">
+      <c-button type="button"
+                tabindex="0"
+                role="button"
+                icon="{% if field.kind == 'sort' %}sort{% endif %}"
+                text="{{ field.label }}"
+                only>
+        {% comment %}
+          The button never shows what is chosen, so it keeps one width. A
+          filter's value is on its chip under the toolbar, and the order in
+          use is named beside the result count.
+        {% endcomment %}
+        {% if field.kind != "sort" %}<c-icon name="chevron-down" class="opacity-60" aria-hidden="true" />{% endif %}
+      </c-button>
+    </c-slot>
+    <c-menu class="w-full" only>
+      {% if field.kind != "sort" %}
+        <c-menu.item text="{% trans "Any" %}"
+                     @click="value = ''; $nextTick(() => document.getElementById('filterForm').requestSubmit())"
+                     only>
+          {% if not field.value %}<c-icon name="check" class="ms-auto" />{% endif %}
+        </c-menu.item>
+      {% endif %}
+      {% for key, text, selected in field.choices %}
+        <c-menu.item text="{{ text }}"
+                     @click="value = '{{ key|escapejs }}'; $nextTick(() => document.getElementById('filterForm').requestSubmit())"
+                     only>
+          {% if selected %}<c-icon name="check" class="ms-auto" />{% endif %}
+        </c-menu.item>
+      {% endfor %}
+    </c-menu>
+    {# form= so the sort can be drawn outside the form, at the end of the row. #}
+    <input type="hidden"
+           form="filterForm"
+           name="{{ field.name }}"
+           :value="value"
+           :disabled="value === ''">
+  </c-mvp.dropdown>
+{% elif field.kind == "multichoice" %}
+  {% comment %}
+    Several values: the checkboxes are the inputs. list_view.js updates the
+    list when focus leaves the dropdown with a different set chosen than it
+    opened with.
+  {% endcomment %}
+  <c-mvp.dropdown data-mvp-toolbar-field="{{ field.name }}">
+    <c-slot name="button">
+      <c-button type="button" tabindex="0" role="button" text="{{ field.label }}" only>
+        <c-icon name="chevron-down" class="opacity-60" aria-hidden="true" />
+      </c-button>
+    </c-slot>
+    <fieldset class="p-2 max-h-72 overflow-y-auto">
+      <legend class="sr-only">{{ field.label }}</legend>
+      {% for key, text, selected in field.choices %}
+        <label class="label w-full gap-3 px-2 py-1.5 rounded-field hover:bg-base-200 cursor-pointer text-base-content">
+          {% if selected %}
+            <c-form.checkbox size="sm" name="{{ field.name }}" value="{{ key }}" checked only />
+          {% else %}
+            <c-form.checkbox size="sm" name="{{ field.name }}" value="{{ key }}" only />
+          {% endif %}
+          <span>{{ text }}</span>
+        </label>
+      {% endfor %}
+    </fieldset>
+  </c-mvp.dropdown>
+{% endif %}

@@ -10,12 +10,12 @@ Usage::
         table_class = ProductTable
 """
 
-from django.core.exceptions import ImproperlyConfigured
 from django.core.paginator import InvalidPage
 from django.http import Http404
 from django.utils.translation import gettext_lazy as _
 from django.views.generic.list import ListView
 
+from mvp.filters import SortFilter
 from mvp.integrations import missing_dependency
 from mvp.views.list import MVPListViewMixin
 
@@ -26,14 +26,14 @@ except ImportError as e:
 
 
 class MVPTableViewMixin(MVPListViewMixin, SingleTableMixin):
-    """Combines MVP list behavior (search/order/pagination) with django-tables2 rendering.
+    """Combines MVP list behavior (filterset/pagination) with django-tables2 rendering.
 
-    Ordering is refused: a table already has its own whitelisted ``order_by``
-    mechanism, and declaring one on the view too would be a second, competing
-    surface for the same thing. The sort control disappears as a consequence
-    rather than by a separate decision — it draws itself from
-    ``order_by_choices``, which a view that cannot declare ``order_by`` never
-    has. The table's own sortable column headers cover it.
+    Ordering belongs to the table: a table already has its own whitelisted
+    ``order_by`` mechanism and sortable column headers. A view that declares
+    ``order_by`` is refused by ``MVPListViewMixin`` with a message pointing at
+    the table class's own ``order_by`` or ``Meta.order_by``. A ``SortFilter``
+    on the view's filterset is dropped without an error, so the filterset a
+    list page uses serves the table page unchanged.
 
     Pagination follows the same rule. The table paginates; the list view does
     not, and the page context the footer reads is republished from the table's
@@ -42,21 +42,6 @@ class MVPTableViewMixin(MVPListViewMixin, SingleTableMixin):
     """
 
     base_template_name = "table_view.html"
-
-    def __init_subclass__(cls, **kwargs):
-        """Refuse a view-level ordering as the class is defined.
-
-        Checking here rather than in ``__init__`` means Django raises while
-        importing the module that declares the view, instead of on the first
-        request to its URL.
-        """
-        super().__init_subclass__(**kwargs)
-        if cls.order_by:
-            raise ImproperlyConfigured(
-                f"{cls.__name__} declares 'order_by', but a table "
-                "view must not — ordering belongs on the table class, via its "
-                "own 'order_by' or Meta.order_by."
-            )
 
     def get_table_pagination(self, table):
         """Let the view's own configuration decide, including against.
@@ -113,6 +98,37 @@ class MVPTableViewMixin(MVPListViewMixin, SingleTableMixin):
         paginator reuses the answer.
         """
         return len(context["table"].rows)
+
+    def get_filterset(self, filterset_class=None):
+        """Return this request's filterset with every sort filter taken out.
+
+        The table's column headers sort the rows, so a ``SortFilter`` on the
+        filterset is neither drawn nor applied, and raises nothing: one
+        filterset can serve a list page and a table page. The sort filters are
+        removed from this instance before its form is built, and their names
+        kept on ``dropped_filters`` so ``toolbar_filters`` can name them.
+
+        Args:
+            filterset_class: The class to build. Defaults to
+                ``get_filterset_class()``.
+
+        Returns:
+            The bound filterset without its sort filters, or ``None`` when the
+            view has none.
+        """
+        if hasattr(self, "_filterset"):
+            return self._filterset
+        filterset = super().get_filterset(filterset_class)
+        self.dropped_filters = []
+        if filterset is not None:
+            self.dropped_filters = [
+                name
+                for name, flt in filterset.filters.items()
+                if isinstance(flt, SortFilter)
+            ]
+            for name in self.dropped_filters:
+                del filterset.filters[name]
+        return filterset
 
     def get_context_data(self, **kwargs):
         """Republish the table's page under the names the page chrome reads."""

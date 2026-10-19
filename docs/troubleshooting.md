@@ -139,11 +139,23 @@ outside `mvp.integrations` and aren't guarded — they import `django_htmx` dire
 `HtmxFormMixin` reads `request.htmx`, which only that middleware sets; `HtmxMixin` doesn't,
 so it works without it. See [htmx](integrations.md#htmx).
 
+**A list view raises `ImproperlyConfigured` as soon as its module imports.** It declares
+one of the removed search or sort settings (`search_fields`, `max_search_words`,
+`order_by`, `get_search_fields` or `get_order_by_choices`), or composes django-filter's
+`FilterView`. The message names the view and what to do: move the search into a
+`SearchFilter` and the sort into a `SortFilter` on the view's filterset, set
+`filterset_class`, and drop `FilterView`. See
+[Moving search_fields and order_by into a filterset](views.md#moving-search_fields-and-order_by-into-a-filterset).
+
 **A table view raises `ImproperlyConfigured` as soon as its module imports.** It declares
 `order_by`, which a table view must not — a table already sorts through its own column
 headers, and an ordering on the view too would be a second, competing source. Move the
 ordering onto the table class, as its own `order_by` or `Meta.order_by`. See
 [django-tables2](integrations.md#django-tables2).
+
+**`TemplateDoesNotExist: django_filters/widgets/multiwidget.html` on a list page.** The
+filterset has a range filter, whose widget renders from django-filter's own templates.
+Add `"django_filters"` to `INSTALLED_APPS`.
 
 **`min_height` on `<c-mvp.addons.django-table>` has no effect.** The attribute was removed; the
 component is now the scroll region of the full-screen table layout and takes its height from

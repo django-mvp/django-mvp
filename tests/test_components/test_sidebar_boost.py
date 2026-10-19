@@ -206,7 +206,8 @@ class TestBoostedSidebarForms:
         # The switcher's fixed sidebar-footer form (docs/adr/0023) sits
         # behind a modal dialog; open it before the language buttons are
         # reachable.
-        sidebar.get_by_label("Select a language").click()
+        # The trigger is a button; the dialog it opens carries the same name.
+        sidebar.get_by_role("button", name="Select a language").click()
         page.locator("#languageModal button[name='language'][value='de']").click()
         page.wait_for_function("() => document.cookie.includes('django_language=de')")
 

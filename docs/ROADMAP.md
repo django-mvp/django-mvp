@@ -281,7 +281,7 @@ What a complete, dependable version is expected to have.
 
 *Delivered · needs verification · advances G10*
 
-Views that put the packaged look around django-tables2, django-filter and htmx, kept in guarded modules so none of them becomes a required dependency.
+Views that put the packaged look around django-tables2, django-filter and htmx. django-tables2 and htmx stay in guarded modules; django-filter became a required dependency in FS-041, because every list page's search, sort and filters come from a filterset ([ADR 0033](adr/0033-django-filter-is-a-runtime-dependency.md)).
 
 Serves G10.
 

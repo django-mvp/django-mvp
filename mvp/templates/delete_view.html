@@ -7,7 +7,7 @@
     puts each fragment in a column of its own and spreads it across the width.
   {% endcomment %}
   {% if is_protected %}
-    <c-alert variant="error" only>
+    <c-alert variant="error" icon="error" only>
       <div>
         <strong>{% trans "This record cannot be deleted." %}</strong>
         <c-mvp.text only>
@@ -19,13 +19,15 @@
       </div>
     </c-alert>
   {% else %}
-    <c-alert variant="warning" only>
+    <c-alert variant="warning" icon="warning" only>
       <span>
         {% blocktrans %}You are about to <strong>permanently</strong> delete this record. This action cannot be undone.{% endblocktrans %}
       </span>
     </c-alert>
     {% if related_objects %}
-      <c-alert :attrs="related_objects_attrs" only>
+      <c-alert :attrs="related_objects_attrs"
+               icon="{% firstof related_objects_attrs.icon related_objects_attrs.variant %}"
+               only>
         <div>
           <strong>{% trans "The following related records will also be permanently deleted:" %}</strong>
           {% for label, objs, overflow in related_objects %}

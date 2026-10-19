@@ -13,7 +13,6 @@ from django.http import Http404
 from django.urls import reverse, reverse_lazy
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
-from django_filters.views import FilterView
 from markdown_it import MarkdownIt
 
 from demo.component_docs import COMPONENTS, COMPONENTS_BY_SLUG
@@ -27,7 +26,7 @@ from demo.models import (
     ProjectTask,
 )
 from demo.tables import ColumnBehaviourTable, ProductTable
-from mvp.integrations.django_tables.views import MVPTableView, MVPTableViewMixin
+from mvp.integrations.django_tables.views import MVPTableView
 from mvp.views import (
     InlineFormSet,
     MVPCreateView,
@@ -40,8 +39,9 @@ from mvp.views import (
     PageWidth,
 )
 from mvp.views.htmx import HtmxFormMixin
-from mvp.views.list import MVPListView, MVPListViewMixin
+from mvp.views.list import MVPListView
 
+from .filters import ProductFilter, ProductQuickFilter
 from .forms import LayoutDemoForm, ProductForm
 
 
@@ -415,11 +415,11 @@ E404 = DemoTemplateView.as_view(template_name="404.html")
 E500 = DemoTemplateView.as_view(template_name="500.html")
 
 
-class ProductListView(MVPListViewMixin, FilterView):
+class ProductListView(MVPListView):
     """Demo page showing a list view of Products.
 
-    Search, filter and sort controls, and a create action, all wired through
-    MVPListViewMixin with no view-level plumbing of their own.
+    Its search, sort and filters all come from ProductFilter, and it has a
+    create action, with no view-level plumbing of their own.
     """
 
     model = Product
@@ -442,14 +442,25 @@ class ProductListView(MVPListViewMixin, FilterView):
     list_item_template = "cards/product_card.html"
     grid = {"cols": 1, "md": 2, "xl": 3, "gap": 2}
     paginate_by = 10
-    filterset_fields = ["name", "price"]
-    search_fields = ["name", "description"]
-    order_by = [
-        ("name_asc", "Name (A-Z)", "name"),
-        ("name_desc", "Name (Z-A)", "-name"),
-        ("price_asc", "Price (Low to High)", "price"),
-        ("price_desc", "Price (High to Low)", "-price"),
-    ]
+    filterset_class = ProductFilter
+    toolbar_filters = ["q", "status", "category", "is_featured", "o"]
+
+
+class ProductQuickListView(ProductListView):
+    """A short filterset, every field in the toolbar, so there is no modal."""
+
+    filterset_class = ProductQuickFilter
+    toolbar_filters = ["q", "status", "is_featured", "o"]
+    page_subtitle = None
+    page_info = None
+
+
+class ProductModalOnlyListView(ProductListView):
+    """No toolbar fields named, so every field of the filterset is in the modal."""
+
+    toolbar_filters: list[str] = []
+    page_subtitle = None
+    page_info = None
 
 
 class ProductManyPagesListView(ProductListView):
@@ -745,18 +756,19 @@ class CategoryDeleteWithRelatedWarningView(CategoryDeleteWithRelatedView):
     related_objects_attrs = {"variant": "warning"}
 
 
-class DataTablesView(MVPTableViewMixin, FilterView):
+class DataTablesView(MVPTableView):
     """Django Tables2 demo page showing Product table with sorting and pagination."""
 
     model = Product
     table_class = ProductTable
     paginate_by = 25
-    search_fields = ["name", "description"]
     show_create_action = True
-    filterset_fields = ["name", "category__name", "price", "stock", "status"]
+    # The product list's filterset; the table's column headers sort, so its sort is dropped.
+    filterset_class = ProductFilter
+    toolbar_filters = ["q", "status", "category", "o"]
 
 
-class CustomToolbarTableView(MVPTableViewMixin, FilterView):
+class CustomToolbarTableView(MVPTableView):
     """The product table with a toolbar a project has filled in for itself."""
 
     model = Product
@@ -765,9 +777,9 @@ class CustomToolbarTableView(MVPTableViewMixin, FilterView):
     page_title = "Stock"
     page_subtitle = "Every product, with what is left of it."
     paginate_by = 25
-    search_fields = ["name", "description"]
     show_create_action = True
-    filterset_fields = ["status", "priority"]
+    filterset_class = ProductFilter
+    toolbar_filters = ["q", "status", "priority"]
 
 
 class EmptyTableView(DataTablesView):

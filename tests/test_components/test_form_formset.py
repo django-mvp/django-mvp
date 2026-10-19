@@ -206,6 +206,13 @@ class TestFormsetNonFormErrors:
         assert alert is not None
         assert "Rows must not repeat the same name." in alert.get_text()
 
+    def test_the_non_form_errors_alert_carries_an_icon(self):
+        formset = _duplicate_name_formset()
+        html = render('<c-mvp.form.formset :formset="formset" />', formset=formset)
+        soup = BeautifulSoup(html, "html.parser")
+        alert = soup.find(attrs={"role": "alert"})
+        assert alert.find("i") is not None
+
     def test_no_alert_rendered_when_there_are_no_non_form_errors(self):
         formset = RowFormSet()
         html = render('<c-mvp.form.formset :formset="formset" />', formset=formset)

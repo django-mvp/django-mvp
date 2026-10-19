@@ -46,6 +46,7 @@ Get these right before writing anything. Each one is a mistake that looks like i
 | Authorising a CRUD action | a permission mixin on the target view | the `show_*` flags, which only draw the link |
 | Form rendering | crispy-forms with the `daisyui` pack from django-mvp-forms, on every install | a `form_renderer` attribute — no such setting exists |
 | Table ordering | `order_by` on the table class | `order_by` on the view — it raises `ImproperlyConfigured` |
+| List search and sort | `SearchFilter` and `SortFilter` from `mvp.filters` on the view's filterset | `search_fields`, `order_by` or django-filter's `FilterView` on the view — each raises `ImproperlyConfigured` |
 | A column that identifies the row | name it in `row_headers` on the table's `Meta` | assuming the leading column — it is not always the identifying one |
 | Menu classes | `AppMenu`, `MobileFooterMenu`, `MenuGroup`, `MenuCollapse` from `mvp.menus` | — |
 
@@ -172,18 +173,33 @@ main region, footer and mobile dock are assembled for you.
 {% endblock content %}
 ```
 
-**5. A list page.** The view supplies search, ordering, pagination, an empty state and the
-page chrome. Ordering choices are three-tuples of a public key, a label, and the ORM
-expression. The query-string value is matched against the public key, never passed to the ORM.
+**5. A list page.** The view supplies pagination, an empty state and the page chrome, and
+takes its search, sort and filters from one django-filter filterset. Sort options are
+three-tuples of a public key, a label, and the ORM columns. The query-string value is matched
+against the public key, never passed to the ORM.
 
 ```python
 # your_app/views.py
+import django_filters
+
+from mvp.filters import SearchFilter, SortFilter
 from mvp.views import MVPListView
+
+
+class ProductFilter(django_filters.FilterSet):
+    q = SearchFilter(fields=["name", "description"])
+    o = SortFilter(
+        options=[("name_asc", "Name (A-Z)", ["name", "pk"]), ("newest", "Newest first", ["-created", "-pk"])]
+    )
+
+    class Meta:
+        model = Product
+        fields = ["status"]
+
 
 class ProductListView(MVPListView):
     model = Product
-    search_fields = ["name", "description"]
-    order_by = [("name_asc", "Name (A-Z)", "name"), ("newest", "Newest first", "-created")]
+    filterset_class = ProductFilter
     grid = {"md": 2, "xl": 3}
 ```
 

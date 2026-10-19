@@ -9,6 +9,68 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Breaking:** django-filter is a dependency of the package rather than an optional
+  integration, because every list page's search, sort and filters now come from a
+  filterset. Add `"django_filters"` to `INSTALLED_APPS`; its range widgets render from
+  its own templates. See ADR 0033.
+- **Breaking:** a list view takes every search, sort and filter from one django-filter
+  filterset, set as `filterset_class` (or generated from `filterset_fields`). Declare the
+  search with the new `mvp.filters.SearchFilter` and the sort with the new
+  `mvp.filters.SortFilter`. `search_fields`, `max_search_words`, `order_by`,
+  `get_search_fields()` and `get_order_by_choices()` are removed, with `SearchMixin`,
+  `OrderMixin`, `SearchOrderMixin` and `mvp.integrations.django_filters`
+  (`MVPFilteredListView`). A view that still declares one of them, or composes
+  django-filter's `FilterView`, raises `ImproperlyConfigured` when its module is imported,
+  naming the view, the setting and what replaces it. See "Moving search_fields and
+  order_by into a filterset" in `docs/views.md`.
+- **Breaking:** the search is an applied filter like any other: its refinement has
+  `kind` `"filter"` and the filter's own label, and the context no longer carries
+  `search_query` or `is_searchable`. The sort is never an applied filter, and neither
+  clear action removes it; `sort_label` names the chosen option. A list or table that
+  matches nothing says "Try other words or fewer filters." over a "Clear all" button,
+  whatever is applied, and `c-mvp.page.list.empty` and `c-mvp.addons.django-table` no
+  longer take `search_query` or `applied_filters`.
+- **Breaking:** `c-mvp.page.list.actions.search`, `.sort` and `.filter` are removed, and
+  `c-mvp.page.list.actions` defaults to `['create']` and no longer draws a stand-in
+  `#filterForm`. The list page has one toolbar: the filter form, the Filter button and
+  Add, and the count moves to the row above the results with the chosen sort and the
+  applied filters. Its `page.search` and `page.controls` blocks are gone; `page.summary`
+  is inside `page.refinements`. The new `c-mvp.page.list.filters.modal` draws the Filter
+  button and the filter modal, and `c-mvp.page.list.toolbar` gains `bare`.
+- A list view's `toolbar_filters` names the filterset fields drawn in the toolbar, in
+  that order, with the sort at the end of the row by the Filter and add buttons; the rest
+  stay in the filter modal, and naming them all leaves no Filter button and no modal. A
+  search, a sort, choices, several choices, a yes-or-no switch and text each have a
+  compact form, and a filter with a widget of the developer's own is drawn by that widget,
+  with no asset loaded by the package. Naming a field the filterset lacks, or one the
+  toolbar cannot draw such as a `RangeFilter`, raises `ImproperlyConfigured` naming the
+  view and the field. `get_toolbar_field()` is the hook for drawing another kind. The new
+  `c-mvp.page.list.filters.field` draws one toolbar field.
+- A list page's toolbar choices, sort and toggle apply when picked, and the filter modal's
+  fields with its Apply button; closing the modal without applying puts its fields back.
+  The Filter button's badge counts the modal's filters (`modal_applied_count`), and the
+  modal's clear link (`clear_modal_url`) keeps the toolbar's filters, the search and the
+  sort. The address leaves out every field that is not set. The page's script is the new
+  static file `js/list_view.js`.
+- A yes-or-no filter set to "No" is an applied filter: it gets a chip, counts on the
+  Filter button when it is in the modal, and goes with "Clear all".
+- A toolbar filter of several values opens a list of checkboxes with the chosen ones
+  ticked, and applies once, when focus leaves it with a changed choice; its button is the
+  same whatever is chosen. A widget of the developer's own applies the same way, through
+  the same script, which names no widget library.
+- **Breaking:** daisy-cotton is pinned to `>=0.2,<0.3`. Its alert no longer picks an icon
+  from its variant, so every alert the package draws passes its icon itself; a project
+  alert that relied on the variant's icon passes `icon` too. On the delete page,
+  `related_objects_attrs` may name an `icon`; otherwise the alert takes its variant's.
+- `c-mvp.modal` is drawn inside daisy-cotton's `c-modal`. It holds no form of its own and
+  its close controls are `type="button"`, so it works inside a form, and its `title`
+  names the dialog.
+- **Breaking:** a table view takes its filters from the same filterset as a list view.
+  A `SortFilter` on it is dropped without an error, wherever `toolbar_filters` places it,
+  because the table's column headers sort; the same filterset still sorts on a list view.
+  The table's collapsible panel holds the filter form with the toolbar fields, the
+  Filter button and the applied filters, and the bar keeps the count and Add. Its
+  `page.search` and `page.controls` blocks are gone.
 - **Breaking:** the add button on a list page is the last control in the toolbar, after
   sort and filter, and its create dialog moves with it. The title row keeps the title,
   the subtitle and the info button. `page.actions` is still in the title row, empty, so a

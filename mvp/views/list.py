@@ -1,305 +1,61 @@
-"""List views and the search, ordering and filter mixins they compose."""
+"""List views, which take their search, sort and filters from one filterset."""
 
+import sys
 from numbers import Number
 from typing import Any
 
 from django import forms
-from django.db.models import Model, Q, QuerySet
+from django.core.exceptions import ImproperlyConfigured
+from django.db.models import Model, QuerySet
 from django.utils import formats
 from django.utils.choices import flatten_choices
 from django.utils.functional import Promise
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import ListView
+from django_filters import (
+    BooleanFilter,
+    CharFilter,
+    ChoiceFilter,
+    ModelChoiceFilter,
+    ModelMultipleChoiceFilter,
+    MultipleChoiceFilter,
+)
+from django_filters.filterset import filterset_factory
+from django_filters.views import FilterMixin
 
+from ..filters import SearchFilter, SortFilter
 from .base import BaseTemplateNameMixin, PageMixin
 from .detail import CRUDDirectoryMixin
 
 
-class SearchMixin:
-    """Django admin-style multi-word OR text search for list views.
-
-    Reads ``?q=`` and applies case-insensitive substring (``icontains``) matching
-    across all declared ``search_fields``. Multi-word queries use OR semantics —
-    a record is included if any word matches any field. Calls ``.distinct()`` to
-    deduplicate records that match via multiple fields.
-
-    When ``search_fields`` is ``None`` or empty the mixin is a complete no-op:
-    the queryset is returned unmodified. The context sentinels ``is_searchable``
-    and ``search_query`` are **always** injected regardless of configuration.
-
-    Only the first ``max_search_words`` words of a term are searched. One
-    ``Q`` object is built per word per field, so an unbounded term lets the
-    requester set the depth of the expression tree — deep enough, on SQLite,
-    for the database to refuse the query outright.
-
-    Config:
-        search_fields (list[str] | None): ORM field paths to search across.
-            Supports relationship traversal (e.g. ``"category__name"``).
-            Default: ``None`` (mixin is a no-op).
-        max_search_words (int): How many words of ``?q=`` are searched.
-            Words past the limit are ignored. Default: ``10``.
-
-    Override hooks:
-        get_search_fields(): Return the effective field list dynamically.
-
-    Context (always injected):
-        is_searchable (bool): ``True`` when ``search_fields`` is configured.
-        search_query (str): Raw ``?q=`` value, or ``""`` if absent.
-
-    Query parameters:
-        ?q: Search term. Stripped before filtering; split on whitespace for
-            multi-word OR matching.
-
-    Example::
-
-        class ProductListView(SearchMixin, ListView):
-            model = Product
-            search_fields = ["name", "description", "category__name"]
-    """
-
-    search_fields = None
-    max_search_words = 10
-
-    def get_search_fields(self):
-        """Return the list of fields to search across.
-
-        Returns:
-            The ORM field paths to search, or ``None`` to disable search.
-        """
-        return self.search_fields
-
-    def get_queryset(self):
-        """Filter the queryset by the ``?q=`` search term."""
-        queryset = super().get_queryset()
-
-        search_term = self.request.GET.get("q", "").strip()
-        if search_term and self.get_search_fields():
-            queryset = self._apply_search(queryset, search_term)
-
-        return queryset
-
-    def _apply_search(self, queryset: QuerySet, search_term: str):
-        """Apply search filtering across search_fields.
-
-        Similar to Django admin's search functionality, this builds an OR query
-        across all specified fields using case-insensitive contains lookups.
-        For multi-word searches, applies OR matching across all words and fields.
-
-        Only the first ``max_search_words`` words are used. The tree this
-        builds is one branch per word per field, and the term arrives from the
-        query string, so without a bound its depth belongs to the requester.
-
-        Args:
-            queryset: The queryset to filter.
-            search_term: The search string (can contain multiple words).
-
-        Returns:
-            The filtered, de-duplicated queryset.
-        """
-        search_query = Q()
-
-        words = search_term.split()[: self.max_search_words]
-
-        for word in words:
-            for field in self.get_search_fields():
-                search_query |= Q(**{f"{field}__icontains": word})
-
-        return queryset.filter(search_query).distinct()
-
-    def get_context_data(self, **kwargs):
-        """Add ``search_query`` and ``is_searchable`` to the context."""
-        context = super().get_context_data(**kwargs)
-        context["search_query"] = self.request.GET.get("q", "")
-        context["is_searchable"] = bool(self.search_fields)
-        return context
-
-
-class OrderMixin:
-    """Whitelist-only safe column ordering for list views via ``?o=``.
-
-    Each permitted ordering is declared as a three-tuple
-    ``(public_key, label, orm_expression)``:
-
-    * ``public_key`` — matched against the ``?o=`` query parameter; may be any
-      URL-safe string and need not match a database column name.
-    * ``label`` — human-readable display string for ordering UI controls.
-    * ``orm_expression`` — the value passed to ``queryset.order_by()``. A
-      sequence is unpacked into multiple ``order_by()`` arguments, which is
-      how an entry declares a tiebreak. This is a developer-declared
-      constant and is **never** exposed in the URL.
-
-    **Security guarantee**: the raw ``?o=`` value is never passed to the ORM.
-    Only the ``orm_expression`` of the matching whitelist entry is used.
-    Unrecognised ``?o=`` values are silently ignored.
-
-    When ``order_by`` is ``None`` or empty the mixin is a complete no-op.
-    Context variables are only injected when ``order_by`` is configured.
-
-    Config:
-        order_by (list[tuple[str, str, str | Sequence[str]]] | None): Whitelist
-            of permitted ordering options. Each entry is
-            ``(public_key, label, orm_expression)``. Default: ``None`` (mixin
-            is a no-op).
-
-    Override hooks:
-        get_order_by_choices(): Return the effective whitelist dynamically.
-
-    Context (only when ``order_by`` is configured):
-        order_by_choices (list[tuple[str, str, str]]): Full whitelist as declared.
-        current_ordering (str): Matched public_key for the active ``?o=``, or
-            ``""`` if absent or unrecognised.
-
-    Query parameters:
-        ?o: Public key of the desired ordering. Ignored if not in the whitelist.
-
-    Example::
-
-        class ProductListView(OrderMixin, ListView):
-            model = Product
-            order_by = [
-                ("name_asc", "Name (A-Z)", ["name", "pk"]),
-                ("name_desc", "Name (Z-A)", ["-name", "-pk"]),
-                ("newest", "Newest First", ["-created_at", "-pk"]),
-            ]
-
-    A single column is not a total order unless it is unique, so a stable
-    default ordering — one that survives pagination without a row appearing
-    on two pages or on neither — needs a tiebreak, usually the primary key.
-    """
-
-    order_by = None
-
-    def get_order_by_choices(self):
-        """Return the list of ordering choices.
-
-        Returns:
-            The ``(public_key, label, orm_expression)`` whitelist, or ``None``.
-        """
-        return self.order_by
-
-    def get_queryset(self):
-        """Order the queryset by the whitelisted ``?o=`` choice."""
-        queryset = super().get_queryset()
-
-        ordering = self.request.GET.get("o", "")
-        if ordering and self.get_order_by_choices():
-            queryset = self._apply_ordering(queryset, ordering)
-
-        return queryset
-
-    def _apply_ordering(self, queryset: QuerySet, ordering: str):
-        """Apply ordering to the queryset.
-
-        Validates that the ordering value matches a public_key in the configured
-        order_by choices before applying the corresponding orm_expression.
-        The raw ``?o=`` value is NEVER passed directly to the ORM.
-
-        Args:
-            queryset: The queryset to order.
-            ordering: The public_key value from the ``?o=`` query parameter.
-
-        Returns:
-            The ordered queryset, or ``queryset`` unchanged for an unknown key.
-        """
-        for choice in self.get_order_by_choices():
-            if choice[0] == ordering:
-                expression = choice[2]
-                if isinstance(expression, (list, tuple)):
-                    return queryset.order_by(*expression)
-                return queryset.order_by(expression)
-
-        return queryset
-
-    def get_context_data(self, **kwargs):
-        """Add ``order_by_choices`` and ``current_ordering`` when ordering is set."""
-        context = super().get_context_data(**kwargs)
-
-        order_by_choices = self.get_order_by_choices()
-        if order_by_choices:
-            context["order_by_choices"] = order_by_choices
-            raw_o = self.request.GET.get("o", "")
-            valid_keys = {choice[0] for choice in order_by_choices}
-            context["current_ordering"] = raw_o if raw_o in valid_keys else ""
-
-        return context
-
-
-class SearchOrderMixin(SearchMixin, OrderMixin):
-    """Combined text search and safe column ordering for list views.
-
-    Composes ``SearchMixin`` (``?q=``) and ``OrderMixin`` (``?o=``) into a
-    single convenience mixin. Both parameters work independently and combine
-    transparently: ``?q=foo&o=name_asc`` returns filtered and ordered results.
-
-    **MRO evaluation order** (``SearchMixin`` left of ``OrderMixin`` is fixed):
-
-    1. ``OrderMixin.get_queryset()`` runs first (innermost ``super()`` call),
-       applying the ORM ordering expression.
-    2. ``SearchMixin.get_queryset()`` runs second, applying the search filter
-       and ``.distinct()`` on top of the ordered queryset.
-
-    This ordering avoids the PostgreSQL ``SELECT DISTINCT + ORDER BY on JOIN
-    columns`` error that would occur if distinct were applied before ordering.
-
-    When positioned left of ``django_filters.views.FilterView`` in the MRO
-    (e.g. ``class MyView(SearchOrderMixin, FilterView)``), both mixins compose
-    correctly: the filterset's ``qs`` is built from the search + ordering
-    queryset returned by ``get_queryset()``.
-
-    Config:
-        search_fields (list[str] | None): See ``SearchMixin``. Default: ``None``.
-        order_by (list[tuple[str, str, str]] | None): See ``OrderMixin``.
-            Default: ``None``.
-
-    Override hooks:
-        get_search_fields(): Inherited from ``SearchMixin``.
-        get_order_by_choices(): Inherited from ``OrderMixin``.
-
-    Query parameters:
-        ?q: Search term — see ``SearchMixin``.
-        ?o: Ordering public_key — see ``OrderMixin``.
-
-    Example::
-
-        class ProductListView(SearchOrderMixin, ListView):
-            model = Product
-            search_fields = ["name", "description"]
-            order_by = [
-                ("name_asc", "Name (A-Z)", "name"),
-                ("name_desc", "Name (Z-A)", "-name"),
-            ]
-
-
-        # With django_filters:
-        class ProductFilteredListView(SearchOrderMixin, FilterView):
-            model = Product
-            filterset_fields = ["category"]
-            search_fields = ["name"]
-            order_by = [("name_asc", "Name (A-Z)", "name")]
-    """
-
-    pass
-
-
 class FilterContextMixin:
-    """Publish the state of an active filterset to the filter control.
+    """Publish the state of the list's filterset to the page.
 
-    A no-op unless something else in the MRO puts a filterset in the context
-    as ``filter`` — which is what ``django_filters.views.FilterView`` does.
-    That keeps django-filter an optional dependency: this mixin reads the
-    context key and never imports the package.
+    The one place filter state is computed. A no-op unless the context holds
+    a filterset as ``filter``, which ``MVPListViewMixin`` puts there.
 
-    It lives here, rather than on the packaged filtered list view, because
-    composing ``MVPListViewMixin`` with ``FilterView`` directly is a supported
-    and documented way to build a filtered page. A view built that way is a
-    filtered list view in every respect the reader can see, so it gets the
-    same filter chrome.
+    A ``SortFilter`` orders the list and never narrows it, so it is never an
+    applied filter and neither clear action removes it. A ``SearchFilter`` is
+    an applied filter like any other, labelled by its own label.
 
     Context (only when a filterset is present):
         applied_filters (dict): Field name to value, for filters actually set.
-        applied_filter_count (int): ``len(applied_filters)`` — the button badge.
+        applied_filter_count (int): ``len(applied_filters)``.
         clear_filters_url (str): Present only when at least one filter is
-            applied. The current URL with the filterset's own fields removed.
+            applied. The current URL with the filterset's own fields removed,
+            except the sort.
+        sort_label (str): The label of the chosen sort option, or ``""``.
+        toolbar_fields (list[dict]): The fields ``toolbar_filters`` names, in
+            that order and each once, as ``get_toolbar_field()`` describes
+            them. The sort is never among them.
+        toolbar_sort (dict | None): The sort, when ``toolbar_filters`` names
+            it, described the same way. The page draws it at the end of the row.
+        modal_fields (list[BoundField]): Every field the toolbar does not draw.
+        modal_applied_count (int): How many of the modal's fields are applied
+            filters — the Filter button's badge.
+        clear_modal_url (str): Present only when a modal field is applied. The
+            current URL with the modal's fields and the page number removed;
+            the toolbar's fields and the sort, wherever it is drawn, are kept.
 
     Override hooks:
         get_active_filters(): Return the filters that are actually set.
@@ -307,6 +63,8 @@ class FilterContextMixin:
         get_filter_label(): Return the words that name one filter.
         get_filter_display(): Return one filter's value as the reader set it.
         get_clear_filters_url(): Return the URL with every filter removed.
+        get_sort_label(): Return the label of the chosen sort option.
+        get_toolbar_field(): Describe one field the way the toolbar draws it.
     """
 
     def get_context_data(self, **kwargs):
@@ -321,15 +79,142 @@ class FilterContextMixin:
         context["applied_filter_count"] = len(active)
         if active:
             context["clear_filters_url"] = self.get_clear_filters_url(filterset)
+        context["sort_label"] = self.get_sort_label(filterset)
+
+        toolbar_names = self.get_toolbar_names(filterset)
+        fields = [self.get_toolbar_field(filterset, name) for name in toolbar_names]
+        context["toolbar_fields"] = [f for f in fields if f["kind"] != "sort"]
+        context["toolbar_sort"] = next((f for f in fields if f["kind"] == "sort"), None)
+        modal_names = [n for n in filterset.form.fields if n not in toolbar_names]
+        context["modal_fields"] = [filterset.form[n] for n in modal_names]
+        modal_active = [n for n in active if n in modal_names]
+        context["modal_applied_count"] = len(modal_active)
+        if modal_active:
+            params = [
+                p
+                for n in modal_names
+                if not isinstance(filterset.filters.get(n), SortFilter)
+                for p in self.get_filter_params(filterset, n)
+            ]
+            context["clear_modal_url"] = self.get_url_without(*params)  # type: ignore[attr-defined]
         return context
+
+    def get_toolbar_names(self, filterset: Any) -> list[str]:
+        """Return the names of the fields the toolbar draws, each once.
+
+        A name a table view dropped from its filterset is skipped.
+
+        Args:
+            filterset: The django-filter ``FilterSet`` from the context.
+
+        Returns:
+            The names in ``toolbar_filters``, in that order, duplicates dropped.
+
+        Raises:
+            ImproperlyConfigured: A name is not a field of the filterset.
+        """
+        dropped = getattr(self, "dropped_filters", ())
+        names = [
+            name
+            for name in dict.fromkeys(getattr(self, "toolbar_filters", ()))
+            if name not in dropped
+        ]
+        for name in names:
+            if name not in filterset.form.fields:
+                raise ImproperlyConfigured(
+                    f"{self.__class__.__name__}.toolbar_filters names {name!r}, "
+                    f"which {filterset.__class__.__name__} has no field for."
+                )
+        return names
+
+    def get_toolbar_field(self, filterset: Any, name: str) -> dict[str, Any]:
+        """Describe one filterset field the way the toolbar draws it.
+
+        Override to draw a filter class the toolbar does not cover: return a
+        dict with a ``kind`` of your own and draw it in your template.
+
+        A filter whose widget is not its field's default is drawn by that
+        widget, as it is. It gains the daisyUI class of its control, and an
+        ``aria-label`` of the filter's label, unless it has its own.
+
+        Args:
+            filterset: The django-filter ``FilterSet`` from the context.
+            name: The field's name on the filterset.
+
+        Returns:
+            ``name``, ``label`` and ``kind``, one of ``widget`` (with
+            ``bound``), ``search`` or ``text`` (with ``value``), ``sort`` or
+            ``choice`` (with ``value`` and ``choices``), ``multichoice`` (with
+            ``choices``) or ``toggle`` (with ``checked``). Each choice is
+            ``(key, label, selected)``, without the empty choice.
+
+        Raises:
+            ImproperlyConfigured: The toolbar cannot draw the filter.
+        """
+        flt = filterset.filters[name]
+        bound = filterset.form[name]
+        item: dict[str, Any] = {"name": name, "label": str(bound.label)}
+        widget = bound.field.widget
+        value = bound.value()
+
+        if type(widget) is not type(bound.field).widget and not isinstance(
+            flt, SortFilter
+        ):
+            control = "select" if isinstance(widget, forms.Select) else "input"
+            widget.attrs.setdefault("class", f"{control} w-full")
+            widget.attrs.setdefault("aria-label", item["label"])
+            item.update(kind="widget", bound=bound)
+        elif isinstance(flt, SearchFilter):
+            item.update(kind="search", value=value or "")
+        elif isinstance(flt, CharFilter):
+            item.update(kind="text", value=value or "")
+        elif isinstance(flt, BooleanFilter):
+            item.update(kind="toggle", checked=value is True)
+        elif isinstance(flt, (MultipleChoiceFilter, ModelMultipleChoiceFilter)):
+            chosen = [str(v) for v in value or []]
+            item.update(kind="multichoice", choices=self._choices(bound, chosen))
+        elif isinstance(flt, (ChoiceFilter, ModelChoiceFilter)):
+            current = "" if value is None else str(value)
+            item.update(
+                kind="sort" if isinstance(flt, SortFilter) else "choice",
+                value=current,
+                choices=self._choices(bound, [current]),
+            )
+        else:
+            raise ImproperlyConfigured(
+                f"{self.__class__.__name__}.toolbar_filters names {name!r}, a "
+                f"{flt.__class__.__name__} the toolbar cannot draw. Leave it in "
+                "the filter modal."
+            )
+        return item
+
+    @staticmethod
+    def _choices(bound: Any, chosen: list[str]) -> list[tuple[str, str, bool]]:
+        """Return a choice field's choices as the toolbar lists them.
+
+        Args:
+            bound: The field's bound field.
+            chosen: The keys the request chose.
+
+        Returns:
+            ``(key, label, selected)`` for each choice but the empty one.
+        """
+        out: list[tuple[str, str, bool]] = []
+        pairs: Any = flatten_choices(bound.field.choices)
+        for raw_key, label in pairs:
+            key = "" if raw_key is None else str(getattr(raw_key, "value", raw_key))
+            if key:
+                out.append((key, str(label), key in chosen))
+        return out
 
     def get_active_filters(self, filterset: Any):
         """Return the subset of the filterset's fields that are actually set.
 
-        ``None``, ``False`` and empty values (an empty string, list or
-        queryset) are what an untouched filter field cleans to, so they are
-        not applied filters and are dropped here. A number is always kept:
-        ``0`` is a real choice.
+        ``None`` and empty values (an empty string, list or queryset) are what
+        an untouched filter field cleans to, so they are not applied filters
+        and are dropped here. A number is always kept: ``0`` is a real choice.
+        So is the ``False`` of a ``BooleanFilter`` the request named: only a
+        chosen "No" gives one. Any other ``False`` is dropped.
 
         Args:
             filterset: The django-filter ``FilterSet`` from the context.
@@ -342,7 +227,11 @@ class FilterContextMixin:
             return active
 
         for name, value in filterset.form.cleaned_data.items():
-            if value is None or value is False:
+            if isinstance(filterset.filters.get(name), SortFilter):
+                continue
+            if value is None:
+                continue
+            if value is False and not self._is_chosen_no(filterset, name):
                 continue
             if not isinstance(value, Number) and not value:
                 continue
@@ -350,13 +239,30 @@ class FilterContextMixin:
 
         return active
 
-    def get_clear_filters_url(self, filterset: Any):
-        """Return the current URL with only the filterset's fields removed.
+    def _is_chosen_no(self, filterset: Any, name: str) -> bool:
+        """Return whether a ``False`` came from a "No" the request chose.
 
-        Search (``?q=``) and ordering (``?o=``) are a separate concern from
-        the filterset and share the same query string, so they're preserved.
-        Clearing filters shouldn't also drop an unrelated search. Pagination
-        is reset, since the cleared result set may not have as many pages.
+        A checkbox cleans to ``False`` when it is absent, so only a
+        ``BooleanFilter`` whose parameter is in the request counts.
+
+        Args:
+            filterset: The django-filter ``FilterSet`` from the context.
+            name: The filter's name on the filterset.
+
+        Returns:
+            ``True`` for a ``BooleanFilter`` the request carries a value for.
+        """
+        if not isinstance(filterset.filters.get(name), BooleanFilter):
+            return False
+        data = filterset.data or {}
+        return any(param in data for param in self.get_filter_params(filterset, name))
+
+    def get_clear_filters_url(self, filterset: Any):
+        """Return the current URL with the filterset's fields removed, but not the sort.
+
+        The sort orders the list rather than narrowing it, so clearing the
+        filters keeps it. Pagination is reset, since the cleared result set may
+        not have as many pages.
 
         Args:
             filterset: The django-filter ``FilterSet`` from the context.
@@ -364,15 +270,30 @@ class FilterContextMixin:
         Returns:
             The current path, with the remaining query string when there is one.
         """
-        querydict = self.request.GET.copy()  # type: ignore[attr-defined]
-        for name in filterset.form.fields:
-            for param in self.get_filter_params(filterset, name):
-                querydict.pop(param, None)
-        querydict.pop(getattr(self, "page_kwarg", "page"), None)
-        query_string = querydict.urlencode()
-        return (
-            f"{self.request.path}?{query_string}" if query_string else self.request.path  # type: ignore[attr-defined]
-        )
+        params = [
+            param
+            for name in filterset.form.fields
+            if not isinstance(filterset.filters.get(name), SortFilter)
+            for param in self.get_filter_params(filterset, name)
+        ]
+        return self.get_url_without(*params)  # type: ignore[attr-defined]
+
+    def get_sort_label(self, filterset: Any) -> str:
+        """Return the label of the sort option the request chose.
+
+        Args:
+            filterset: The django-filter ``FilterSet`` from the context.
+
+        Returns:
+            The chosen option's label, or ``""`` when the filterset has no
+            sort, or none was chosen, or the address named an unknown one.
+        """
+        cleaned = getattr(filterset.form, "cleaned_data", {})
+        for name, flt in filterset.filters.items():
+            if isinstance(flt, SortFilter) and cleaned.get(name):
+                labels = {key: label for key, label, _columns in flt.options}
+                return str(labels.get(cleaned[name], ""))
+        return ""
 
     def get_filter_params(self, filterset: Any, name: str) -> list[str]:
         """Return the query parameters one filter reads its value from.
@@ -448,18 +369,30 @@ class FilterContextMixin:
         return str(labels.get(str(value), value))
 
 
+# Settings list views used to read, with the filter on a filterset that replaces each.
+REMOVED_SETTINGS = {
+    "search_fields": "SearchFilter",
+    "max_search_words": "SearchFilter",
+    "get_search_fields": "SearchFilter",
+    "order_by": "SortFilter",
+    "get_order_by_choices": "SortFilter",
+}
+
+
 class MVPListViewMixin(
     BaseTemplateNameMixin,
-    SearchOrderMixin,
     FilterContextMixin,
     CRUDDirectoryMixin,
     PageMixin,
 ):
-    """Foundation mixin for paginated, searchable, orderable list pages.
+    """Foundation mixin for paginated list pages that take their search, sort and filters from a filterset.
 
-    Composes ``BaseTemplateNameMixin``, ``SearchOrderMixin``, ``CRUDDirectoryMixin``, and
+    Composes ``BaseTemplateNameMixin``, ``FilterContextMixin``, ``CRUDDirectoryMixin``, and
     ``PageMixin`` into a single base class. Subclass this directly (instead of ``MVPListView``)
-    when you need to compose with another base class (e.g. ``FilterView``).
+    when you need to compose with another base class, such as a table view's. The mixin builds
+    its own filterset, so it refuses django-filter's ``FilterView``, and it refuses the removed
+    ``search_fields``, ``max_search_words``, ``order_by``, ``get_search_fields`` and
+    ``get_order_by_choices`` when the class is defined.
 
     The mixin limits CRUD URL injection to the create action only (``directory = ["create"]``).
     Detail, update, and delete URLs belong on object pages, not list pages.
@@ -479,8 +412,14 @@ class MVPListViewMixin(
             paragraph for everyone. Default: translated library string.
         page_title (str | Promise): Overrides the model-derived page title. When falsy, the
             title falls back to ``model._meta.verbose_name_plural.title()``.
-        search_fields (list[str] | None): Inherited from ``SearchMixin``. Default: ``None``.
-        order_by (list[tuple] | None): Inherited from ``OrderMixin``. Default: ``None``.
+        filterset_class (type[FilterSet] | None): The filterset every search, sort and filter
+            comes from. Declare the search with ``mvp.filters.SearchFilter`` and the sort with
+            ``mvp.filters.SortFilter``. Default: ``None``.
+        filterset_fields (list[str] | None): Model field names django-filter generates a
+            filterset from when ``filterset_class`` is unset. Default: ``None``.
+        toolbar_filters (list[str]): The filterset fields drawn in the toolbar, in this order;
+            the sort among them is drawn at the end of the row. Every other field is drawn
+            in the filter modal. Default: ``[]``.
         create_form_class (type[Form] | None): Django form class for inline object creation
             in a modal. When ``None`` (the default), inline create is disabled. When set, the
             mixin injects an unbound form instance into context as ``create_form`` (if the user
@@ -496,49 +435,50 @@ class MVPListViewMixin(
         get_grid_config(): Return the grid breakpoint dict passed to context.
         get_page_title(): Return the page title; falls back to verbose_name_plural.title().
         get_breadcrumbs(): Return the breadcrumb list. Default includes Home + page title.
-        get_search_fields(): Inherited from ``SearchMixin``.
-        get_order_by_choices(): Inherited from ``OrderMixin``.
+        get_filterset_class(): Return the filterset class, declared or generated.
+        get_filterset(): Return this request's filterset, built once.
         get_create_form(): Instantiate and return the create form, or ``None`` if not configured.
             Default implementation returns ``self.create_form_class()`` (unbound). Override to pass
             additional kwargs (e.g. request, user, initial data).
         get_result_count(): Return how many records the list holds across every page.
-        get_refinements(): Return what is narrowing the list: the search and each applied filter.
+        get_refinements(): Return what is narrowing the list: each applied filter, the search
+            among them.
         get_url_without(): Return the current URL with the named query parameters removed.
 
     Context (always injected):
         result_count (int): How many records the list holds across every page, after the
             search and filters are applied.
-        refinements (list[dict]): What is narrowing the list, the search first and then each
-            applied filter. Each entry has ``kind`` (``"search"`` or ``"filter"``), ``name``,
-            ``label``, ``value`` and ``remove_url``, the URL that removes that one entry and
-            keeps the rest. Empty when nothing is applied.
+        refinements (list[dict]): What is narrowing the list: each applied filter of the
+            filterset, a search among them, in the filterset's order. The sort is never one.
+            Each entry has ``kind`` (``"filter"``), ``name``, ``label``, ``value`` and
+            ``remove_url``, the URL that removes that one entry and keeps the rest. Empty
+            when nothing is applied.
         clear_refinements_url (str): Present only when ``refinements`` is not empty. The
-            current URL with the search and every filter removed. The ordering is kept.
+            current URL with the search and every filter removed. The sort is kept.
         list_item_template (str): Resolved partial template path.
         empty_state (dict): ``{"heading": str | None, "message": str | None}``.
         grid_config (dict): Grid breakpoint configuration (may be empty).
         directory (dict): CRUD URLs; only ``create_url`` is injected (when permitted).
-        search_query (str): Active ``?q=`` value, or ``""``.
-        is_searchable (bool): Whether ``search_fields`` is configured.
         page (dict): PageMixin metadata — ``title``, ``subtitle``, ``icon``, ``class``,
             ``breadcrumbs``.
         create_form (Form): Unbound form instance for inline create modal (only when
             ``create_form_class`` is set and ``show_create_action`` is ``True``).
         create_modal_title (str): Resolved modal title for inline create (only when
             ``create_form`` is also injected).
-        applied_filters / applied_filter_count / clear_filters_url: Injected by
-            ``FilterContextMixin`` when composed with a filtered view — see there.
+        filter / filterset (FilterSet): The request's filterset, under both names, only when
+            the view has one.
+        applied_filters / applied_filter_count / clear_filters_url / sort_label: Injected by
+            ``FilterContextMixin`` when the view has a filterset — see there.
 
     Example::
 
+        from django.views.generic import ListView
         from mvp.views.list import MVPListViewMixin
-        from django_filters.views import FilterView
 
 
-        class ProductFilteredListView(MVPListViewMixin, FilterView):
+        class ProductListView(MVPListViewMixin, ListView):
             model = Product
             filterset_class = ProductFilter
-            search_fields = ["name", "description"]
             list_item_template = "shop/product_card.html"
     """
 
@@ -552,9 +492,116 @@ class MVPListViewMixin(
     )
     create_form_class = None
     create_modal_title = None
+    filterset_class = None
+    filterset_fields = None
+    toolbar_filters: list[str] = []
+
+    def __init_subclass__(cls, **kwargs):
+        """Refuse a removed search or sort setting, or ``FilterView``, as the class is defined.
+
+        Checking here rather than on a request means Django raises while
+        importing the module that declares the view, naming what to move.
+
+        Raises:
+            ImproperlyConfigured: The class declares a removed setting, or also
+                inherits django-filter's ``FilterMixin``.
+        """
+        super().__init_subclass__(**kwargs)
+        for name, replacement in REMOVED_SETTINGS.items():
+            if name.startswith("get_"):
+                found = hasattr(cls, name)
+            else:
+                found = bool(getattr(cls, name, None))
+            if found:
+                raise ImproperlyConfigured(
+                    cls._removed_setting_message(name, replacement)
+                )
+        if issubclass(cls, FilterMixin):
+            raise ImproperlyConfigured(
+                f"{cls.__name__} composes django-filter's FilterView, but a list "
+                "view builds its own filterset. Drop FilterView and set "
+                "filterset_class (or filterset_fields) on the view."
+            )
+
+    @classmethod
+    def _removed_setting_message(cls, name: str, replacement: str) -> str:
+        """Return the refusal for one removed setting, naming what replaces it.
+
+        Args:
+            name: The removed setting the class declares.
+            replacement: The filter that replaces it on a filterset.
+
+        Returns:
+            The message. A table view's ``order_by`` points to the table class,
+            since a table view drops a ``SortFilter``.
+        """
+        # django_tables2 is optional: a class can only be a table view once it is imported.
+        tables = sys.modules.get("django_tables2.views")
+        if name == "order_by" and tables and issubclass(cls, tables.SingleTableMixin):
+            return (
+                f"{cls.__name__} declares 'order_by', which table views no longer "
+                "read. Ordering belongs on the table class, via its own 'order_by' "
+                "or Meta.order_by."
+            )
+        return (
+            f"{cls.__name__} declares {name!r}, which list views no longer read. "
+            f"Declare a {replacement} from mvp.filters on the view's filterset and "
+            "set filterset_class."
+        )
+
+    def get_filterset_class(self):
+        """Return the filterset class the list takes its search, sort and filters from.
+
+        Returns:
+            ``filterset_class`` when set, else a filterset django-filter
+            generates from ``filterset_fields``, else ``None``.
+        """
+        if self.filterset_class is not None:
+            return self.filterset_class
+        if self.filterset_fields:
+            return filterset_factory(self.model, fields=self.filterset_fields)
+        return None
+
+    def get_filterset(self, filterset_class=None):
+        """Return this request's filterset, built on the first call.
+
+        The filterset narrows the view's own queryset, the one the list would
+        show unfiltered, so a value the request carries for one filter that the
+        filter cannot accept is dropped for that filter alone.
+
+        Args:
+            filterset_class: The class to build. Defaults to
+                ``get_filterset_class()``; the signature matches
+                django-filter's ``FilterMixin.get_filterset``.
+
+        Returns:
+            The bound filterset, or ``None`` when the view has none.
+        """
+        if not hasattr(self, "_filterset"):
+            filterset_class = filterset_class or self.get_filterset_class()
+            self._filterset = None
+            if filterset_class is not None:
+                self._filterset = filterset_class(
+                    data=self.request.GET or None,
+                    queryset=self.get_queryset(),  # type: ignore[attr-defined]
+                    request=self.request,
+                )
+        return self._filterset
+
+    def get(self, request, *args, **kwargs):
+        """List the records the filterset leaves, or every record without one."""
+        filterset = self.get_filterset()
+        if filterset is None:
+            return super().get(request, *args, **kwargs)  # type: ignore[misc]
+        self.object_list = filterset.qs
+        return self.render_to_response(self.get_context_data())  # type: ignore[attr-defined]
 
     def get_context_data(self, **kwargs):
-        """Add grid, empty-state, item-template and inline-create context."""
+        """Add the filterset, grid, empty-state, item-template and inline-create context."""
+        filterset = self.get_filterset()
+        if filterset is not None:
+            kwargs.setdefault("filter", filterset)
+            kwargs.setdefault("filterset", filterset)
         context = super().get_context_data(**kwargs)
         context["grid_config"] = self.get_grid_config()
         context["empty_state"] = {
@@ -595,32 +642,19 @@ class MVPListViewMixin(
         return paginator.count if paginator else len(context["object_list"])
 
     def get_refinements(self, context: dict[str, Any]) -> list[dict[str, Any]]:
-        """Return what is narrowing the list, as one entry per search or filter.
+        """Return what is narrowing the list, as one entry per applied filter.
 
         The list page draws each entry as a control that removes it. An entry
         carries ``kind``, ``name``, ``label``, ``value``, ``params`` (the query
         parameters it occupies) and ``remove_url``.
 
         Args:
-            context: The context built so far, read for the search term and
-                the applied filters.
+            context: The context built so far, read for the applied filters.
 
         Returns:
-            The search first when there is one, then each applied filter.
+            One entry per applied filter, a search among them; never the sort.
         """
         refinements: list[dict[str, Any]] = []
-
-        search_query = context.get("search_query", "").strip()
-        if search_query and self.get_search_fields():
-            refinements.append(
-                {
-                    "kind": "search",
-                    "name": "q",
-                    "label": _("Search"),
-                    "value": search_query,
-                    "params": ["q"],
-                }
-            )
 
         filterset = context.get("filter")
         for name, value in context.get("applied_filters", {}).items():
@@ -769,17 +803,27 @@ class MVPListView(MVPListViewMixin, ListView):
 
         class ProductListView(MVPListView):
             model = Product
-            # That's it — paginated, searchable, orderable list page.
+            # That's it — a paginated list page.
 
 
-        # With search and ordering:
+        # With a search, a sort and filters, all from one filterset:
+        class ProductFilter(django_filters.FilterSet):
+            q = SearchFilter(fields=["name", "description"])
+            o = SortFilter(
+                options=[
+                    ("name", "Name (A-Z)", ["name", "pk"]),
+                    ("-name", "Name (Z-A)", ["-name", "-pk"]),
+                ]
+            )
+
+            class Meta:
+                model = Product
+                fields = ["status"]
+
+
         class ProductListView(MVPListView):
             model = Product
-            search_fields = ["name", "description"]
-            order_by = [
-                ("name_asc", "Name (A-Z)", "name"),
-                ("name_desc", "Name (Z-A)", "-name"),
-            ]
+            filterset_class = ProductFilter
     """
 
     paginate_by = 24
