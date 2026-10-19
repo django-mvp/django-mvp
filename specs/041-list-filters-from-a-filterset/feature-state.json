@@ -261,6 +261,45 @@
               "demo/views.py:419"
             ]
           }
+        },
+        {
+          "id": "T029",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_frontend_runtime_e2e.py"
+            ],
+            "commands": [
+              "uv run pytest tests/test_frontend_runtime_e2e.py"
+            ]
+          }
+        },
+        {
+          "id": "T030",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_icon.py::TestIconAnswersDaisyCottonComponents"
+            ],
+            "commands": [
+              "uv run pytest tests/test_components/test_icon.py"
+            ]
+          }
+        },
+        {
+          "id": "T031",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_sidebar_boost.py::TestBoostedSidebarForms"
+            ],
+            "commands": [
+              "uv run pytest tests/test_components/test_sidebar_boost.py"
+            ]
+          }
         }
       ]
     },
