@@ -79,3 +79,10 @@ Plan written: research.md answers every planning note; plan.md, tasks.md (T001-T
 **Verified**: the docs' Python examples (filterset, filterset_fields, the refused "before", the "after", README/SKILL shape, both table examples) executed against the branch: `uv run python -I /tmp/fs041check/check_docs.py` printed "all docs examples ran". pre-commit on the changed files passed.
 **Next**: the story's full verify.
 **Watch**: the custom-toolbar table demo page overrides page.controls, which table_view.html no longer reaches with a filterset (T026).
+
+## 2026-10-19T12:52:05Z · Implementer US5 · T023
+
+**Did**: MVPTableViewMixin.get_filterset rebuilt from the sketch as tested code: every SortFilter is deleted from the request's filterset instance before its form is built, names kept on `dropped_filters` (FilterContextMixin skips them in `toolbar_filters`). SortFilter imported at module top; SKETCH marker gone. Retired the T023 row: TestTableViewActions.test_search_still_draws_when_the_view_configures_it now configures search through a filterset (`SortedProductFilter`, `toolbar_filters=["q"]`). New TestTableViewDropsTheSort: scenarios 1, 2, 3, 5 plus column sort unaffected.
+**Verified**: `uv run pytest tests/test_integrations.py -q -p no:randomly` → 39 passed. The new tests passed first run against the sketch code, so the mechanism was probed: removing the deletion failed scenarios 1 and 2; deleting without recording `dropped_filters` failed scenario 3 (ImproperlyConfigured). TestTableViewOrdering already green from US-1 (no change needed).
+**Next**: T024, the table panel.
+**Watch**: the toolbar's placement code in mvp/views/list.py still carries SKETCH markers (US-2's).

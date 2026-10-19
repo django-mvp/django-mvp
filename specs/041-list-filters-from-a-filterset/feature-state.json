@@ -398,8 +398,21 @@
       "tasks": [
         {
           "id": "T023",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_integrations.py::TestTableViewDropsTheSort",
+              "tests/test_integrations.py::TestTableViewActions::test_search_still_draws_when_the_view_configures_it"
+            ],
+            "commands": [
+              "uv run pytest tests/test_integrations.py -q -p no:randomly"
+            ],
+            "code": [
+              "mvp/integrations/django_tables/views.py:102",
+              "tests/test_integrations.py:504"
+            ]
+          }
         },
         {
           "id": "T024",
