@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.29.0] - 2026-10-19
+
 ### Changed
 
 - **Breaking:** django-filter is a dependency of the package rather than an optional
