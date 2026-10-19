@@ -128,3 +128,10 @@ Did: new class TestListPageToolbarRow in tests/test_views/test_list.py: toolbar 
 Verified: uv run pytest tests/test_views/test_list.py::TestListPageToolbarRow -q, 5 passed. They passed on arrival, so probed by mutation: moving the sort after the Filter button failed the order test; reversing the toolbar loop failed the order-named test.
 Next: T015, docs for US-2.
 Watch: list_view.html's SKETCH formdata script is US-3's (FR-028), left as is.
+
+## 2026-10-19T13:07:12Z · Implementer US-2 · T015
+
+Did: docs/views.md gains "Choosing which filters go in the toolbar" (toolbar_filters, the sort at the end of the row, each kind's compact form, the accessible name, a developer's widget drawn as it is with no package asset, the ImproperlyConfigured cases, the get_toolbar_field() hook with an example and its dict keys), the layout list and the context-keys table (toolbar_fields, toolbar_sort, modal_fields). docs/components.md lists c-mvp.page.list.filters.field in both tables and its example draws the toolbar fields and sort. CHANGELOG entry under Unreleased.
+Verified: the get_toolbar_field example ran against the branch (a throwaway render returned 200 with kinds ['search', 'range']; file deleted). uv run pre-commit run --files on the three pages passed.
+Next: full verify, then report.
+Watch: the CharFilter row says only "A text box": applying on Enter is FR-018, US-3's.

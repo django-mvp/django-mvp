@@ -361,8 +361,19 @@
         },
         {
           "id": "T015",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_views/test_list.py::TestToolbarPlacement::test_a_view_can_draw_a_filter_the_package_cannot"
+            ],
+            "commands": [
+              "uv run pre-commit run --files docs/views.md docs/components.md CHANGELOG.md (passed)"
+            ],
+            "code": [
+              "CHANGELOG.md:39"
+            ]
+          }
         }
       ]
     },
