@@ -2,7 +2,7 @@
   "feature": "041-list-filters-from-a-filterset",
   "branch": "041-list-filters-from-a-filterset",
   "repo": "django-mvp/django-mvp",
-  "state": "DESIGN_REVIEW",
+  "state": "IMPLEMENT",
   "state_history": [
     {
       "state": "QUEUED",
@@ -18,6 +18,11 @@
       "state": "DESIGN_REVIEW",
       "at": "2026-10-19T11:47:22Z",
       "note": "one design reviewer, three lenses, one round"
+    },
+    {
+      "state": "IMPLEMENT",
+      "at": "2026-10-19T12:04:28Z",
+      "note": "plan gate open; US-1..US-5 sequentially in one worktree"
     }
   ],
   "gates": {
@@ -33,12 +38,21 @@
       ]
     },
     "plan": {
-      "approved_by": null,
-      "at": null
+      "approved_by": "open gate (no notice)",
+      "at": "2026-10-19T12:30:00Z"
     },
     "merge": {
       "approved_by": null,
       "at": null
+    },
+    "design_review": {
+      "approved_by": "design-panel",
+      "at": "2026-10-19T12:30:00Z",
+      "self_resolved": [
+        "SPEC-001 high: retirement table completed",
+        "SPEC-002..005, ARCH-001..003 medium applied",
+        "9 low applied"
+      ]
     }
   },
   "stories": [
