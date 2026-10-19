@@ -1922,6 +1922,43 @@ class TestSortInTheFilterModal:
         assert selected in ([], [options[0]])
 
 
+class TestAYesNoFilterSetToNo:
+    def _context(self, rf, query):
+        view_cls = type(
+            "StubYesNoListView",
+            (MVPListView,),
+            {
+                "model": Product,
+                "filterset_class": ToolbarProductFilter,
+                "toolbar_filters": ["q", "o"],
+                "render_to_response": lambda self, context, **kwargs: context,
+            },
+        )
+        view = view_cls()
+        view.setup(rf.get(f"/products/{query}"))
+        return view.get(view.request)
+
+    def test_a_no_is_among_the_refinements(self, rf, db):
+        context = self._context(rf, "?is_featured=false&status=published")
+
+        assert [r["name"] for r in context["refinements"]] == ["status", "is_featured"]
+
+    def test_a_no_in_the_modal_counts_on_the_filter_button(self, rf, db):
+        context = self._context(rf, "?is_featured=false&status=published")
+
+        assert context["modal_applied_count"] == 2
+
+    def test_clear_all_drops_a_no(self, rf, db):
+        context = self._context(rf, "?is_featured=false&status=published")
+
+        assert context["clear_refinements_url"] == "/products/"
+
+    def test_a_filter_left_untouched_is_not_applied(self, rf, db):
+        context = self._context(rf, "?status=published")
+
+        assert [r["name"] for r in context["refinements"]] == ["status"]
+
+
 class TestListPageToolbarRow:
     def _names_in_form(self, soup):
         form = soup.find("form", id="filterForm")

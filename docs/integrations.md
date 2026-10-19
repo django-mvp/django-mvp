@@ -290,11 +290,12 @@ filterset's fields removed, except the sort, and with pagination reset. The filt
 shows a "Clear filters" link next to "Apply filters" whenever that URL is present.
 
 `applied_filters` comes from `get_active_filters()`, which reads the filterset form's
-`cleaned_data` and drops `None`, `False` and empty values (an empty string, list or
-queryset), which is what an untouched filter field cleans to. A number is always kept, so
-`0` from a number filter counts as applied. A `SortFilter` is never an applied filter.
-Override the hook on the view when a dropped value is a real choice in your filterset, an
-unchecked boolean the user deliberately picked, say.
+`cleaned_data` and drops `None` and empty values (an empty string, list or queryset),
+which is what an untouched filter field cleans to. A number is always kept, so `0` from a
+number filter counts as applied, and so is the `False` of a `BooleanFilter` whose
+parameter is in the request: it only comes from a chosen "No". A `SortFilter` is never an
+applied filter. Override the hook on the view when a dropped value is a real choice in
+your filterset.
 
 Each applied filter, a search among them, is also one of the page's
 [refinements](views.md#what-the-view-tells-the-template), drawn under the toolbar as a

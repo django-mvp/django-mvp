@@ -209,10 +209,11 @@ class FilterContextMixin:
     def get_active_filters(self, filterset: Any):
         """Return the subset of the filterset's fields that are actually set.
 
-        ``None``, ``False`` and empty values (an empty string, list or
-        queryset) are what an untouched filter field cleans to, so they are
-        not applied filters and are dropped here. A number is always kept:
-        ``0`` is a real choice.
+        ``None`` and empty values (an empty string, list or queryset) are what
+        an untouched filter field cleans to, so they are not applied filters
+        and are dropped here. A number is always kept: ``0`` is a real choice.
+        So is the ``False`` of a ``BooleanFilter`` the request named: only a
+        chosen "No" gives one. Any other ``False`` is dropped.
 
         Args:
             filterset: The django-filter ``FilterSet`` from the context.
@@ -227,13 +228,33 @@ class FilterContextMixin:
         for name, value in filterset.form.cleaned_data.items():
             if isinstance(filterset.filters.get(name), SortFilter):
                 continue
-            if value is None or value is False:
+            if value is None:
+                continue
+            if value is False and not self._is_chosen_no(filterset, name):
                 continue
             if not isinstance(value, Number) and not value:
                 continue
             active[name] = value
 
         return active
+
+    def _is_chosen_no(self, filterset: Any, name: str) -> bool:
+        """Return whether a ``False`` came from a "No" the request chose.
+
+        A checkbox cleans to ``False`` when it is absent, so only a
+        ``BooleanFilter`` whose parameter is in the request counts.
+
+        Args:
+            filterset: The django-filter ``FilterSet`` from the context.
+            name: The filter's name on the filterset.
+
+        Returns:
+            ``True`` for a ``BooleanFilter`` the request carries a value for.
+        """
+        if not isinstance(filterset.filters.get(name), BooleanFilter):
+            return False
+        data = filterset.data or {}
+        return any(param in data for param in self.get_filter_params(filterset, name))
 
     def get_clear_filters_url(self, filterset: Any):
         """Return the current URL with the filterset's fields removed, but not the sort.
