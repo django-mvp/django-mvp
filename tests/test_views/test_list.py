@@ -5,6 +5,8 @@ Source: mvp/views/list.py
 
 import django_filters
 import pytest
+from django import forms
+from django.core.exceptions import ImproperlyConfigured
 from django.test import RequestFactory
 from django.views.generic import ListView
 
@@ -1489,3 +1491,287 @@ class TestRemovedSettings:
 
         for name in ["SearchMixin", "OrderMixin", "SearchOrderMixin"]:
             assert not hasattr(mvp.views.list, name)
+
+
+class FancySelect(forms.Select):
+    """A widget a developer chose for a choice filter, in place of its default."""
+
+
+class FancyInput(forms.TextInput):
+    """A widget a developer chose for a text filter, in place of its default."""
+
+
+class ToolbarProductFilter(django_filters.FilterSet):
+    q = SearchFilter(fields=["name"])
+    name = django_filters.CharFilter(lookup_expr="icontains")
+    status = django_filters.ChoiceFilter(choices=Product.STATUS_CHOICES)
+    category = django_filters.ModelChoiceFilter(queryset=Category.objects.all())
+    is_featured = django_filters.BooleanFilter()
+    statuses = django_filters.MultipleChoiceFilter(
+        field_name="status", choices=Product.STATUS_CHOICES
+    )
+    categories = django_filters.ModelMultipleChoiceFilter(
+        field_name="category", queryset=Category.objects.all()
+    )
+    shelf = django_filters.ModelChoiceFilter(
+        field_name="category", queryset=Category.objects.all(), widget=FancySelect
+    )
+    sku = django_filters.CharFilter(widget=FancyInput)
+    price = django_filters.RangeFilter()
+    o = SortFilter(
+        options=[
+            ("name", "Name", ["name", "pk"]),
+            ("-name", "Name (Z-A)", ["-name", "-pk"]),
+        ]
+    )
+
+    class Meta:
+        model = Product
+        fields: list[str] = []
+
+
+class TestToolbarPlacement:
+    def _context(self, rf, query="", **attrs):
+        view_cls = type(
+            "StubToolbarListView",
+            (MVPListView,),
+            {
+                "model": Product,
+                "list_item_template": CARD,
+                "filterset_class": ToolbarProductFilter,
+                "render_to_response": lambda self, context, **kwargs: context,
+                **attrs,
+            },
+        )
+        view = view_cls()
+        view.setup(rf.get(f"/products/{query}"))
+        return view.get(view.request)
+
+    def _field(self, rf, name, query=""):
+        context = self._context(rf, query, toolbar_filters=[name])
+        if context["toolbar_sort"] is not None:
+            return context["toolbar_sort"]
+        return context["toolbar_fields"][0]
+
+    def test_named_fields_come_back_in_the_order_named(self, rf, db):
+        context = self._context(rf, toolbar_filters=["status", "q", "name"])
+
+        assert [field["name"] for field in context["toolbar_fields"]] == [
+            "status",
+            "q",
+            "name",
+        ]
+
+    def test_a_toolbar_field_is_not_a_modal_field(self, rf, db):
+        context = self._context(rf, toolbar_filters=["status", "q"])
+
+        modal = [field.name for field in context["modal_fields"]]
+        assert "status" not in modal
+        assert "q" not in modal
+        assert "category" in modal
+
+    def test_a_name_listed_twice_is_drawn_once(self, rf, db):
+        context = self._context(rf, toolbar_filters=["q", "status", "q"])
+
+        assert [field["name"] for field in context["toolbar_fields"]] == [
+            "q",
+            "status",
+        ]
+
+    def test_the_sort_is_taken_out_to_the_end_of_the_row(self, rf, db):
+        context = self._context(rf, toolbar_filters=["o", "q"])
+
+        assert [field["name"] for field in context["toolbar_fields"]] == ["q"]
+        assert context["toolbar_sort"]["name"] == "o"
+        assert "o" not in [field.name for field in context["modal_fields"]]
+
+    def test_no_sort_named_leaves_no_toolbar_sort(self, rf, db):
+        context = self._context(rf, toolbar_filters=["q"])
+
+        assert context["toolbar_sort"] is None
+
+    @pytest.mark.parametrize(
+        ("name", "kind"),
+        [
+            ("q", "search"),
+            ("o", "sort"),
+            ("is_featured", "toggle"),
+            ("statuses", "multichoice"),
+            ("categories", "multichoice"),
+            ("status", "choice"),
+            ("category", "choice"),
+            ("name", "text"),
+            ("shelf", "widget"),
+            ("sku", "widget"),
+        ],
+    )
+    def test_each_filter_is_drawn_as_its_kind(self, rf, db, name, kind):
+        field = self._field(rf, name)
+
+        assert field["kind"] == kind
+        assert field["name"] == name
+
+    def test_every_field_carries_its_filters_label(self, rf, db):
+        context = self._context(rf, toolbar_filters=["q", "status", "o"])
+        filterset = context["filter"]
+
+        for field in [*context["toolbar_fields"], context["toolbar_sort"]]:
+            assert field["label"] == str(filterset.form[field["name"]].label)
+
+    def test_the_search_and_a_text_field_carry_the_value_sent(self, rf, db):
+        context = self._context(rf, "?q=lamp&name=oak", toolbar_filters=["q", "name"])
+
+        assert [field["value"] for field in context["toolbar_fields"]] == [
+            "lamp",
+            "oak",
+        ]
+
+    def test_a_choice_offers_every_choice_but_the_empty_one(self, rf, db):
+        field = self._field(rf, "status", "?status=published")
+
+        assert field["value"] == "published"
+        assert [(key, selected) for key, _label, selected in field["choices"]] == [
+            ("draft", False),
+            ("published", True),
+            ("archived", False),
+        ]
+
+    def test_a_model_choice_offers_each_record_by_its_key(self, rf, cat, cat2):
+        field = self._field(rf, "category", f"?category={cat2.pk}")
+
+        assert [(key, selected) for key, _label, selected in field["choices"]] == [
+            (str(category.pk), category == cat2)
+            for category in Category.objects.all()
+        ]
+
+    def test_the_sort_marks_the_option_chosen(self, rf, db):
+        field = self._field(rf, "o", "?o=-name")
+
+        assert field["value"] == "-name"
+        assert [(key, selected) for key, _label, selected in field["choices"]] == [
+            ("name", False),
+            ("-name", True),
+        ]
+
+    def test_a_multichoice_marks_each_value_chosen(self, rf, db):
+        field = self._field(rf, "statuses", "?statuses=draft&statuses=archived")
+
+        assert [(key, selected) for key, _label, selected in field["choices"]] == [
+            ("draft", True),
+            ("published", False),
+            ("archived", True),
+        ]
+
+    @pytest.mark.parametrize(
+        ("query", "checked"),
+        [("", False), ("?is_featured=true", True), ("?is_featured=false", False)],
+    )
+    def test_a_toggle_is_checked_only_when_set(self, rf, db, query, checked):
+        field = self._field(rf, "is_featured", query)
+
+        assert field["checked"] is checked
+
+    def test_a_developers_widget_is_handed_over_as_its_bound_field(self, rf, db):
+        field = self._field(rf, "shelf")
+
+        assert field["bound"].name == "shelf"
+        assert isinstance(field["bound"].field.widget, FancySelect)
+
+    @pytest.mark.parametrize(
+        ("name", "control"), [("shelf", "select"), ("sku", "input")]
+    )
+    def test_a_developers_widget_gains_the_class_of_its_control(
+        self, rf, db, name, control
+    ):
+        field = self._field(rf, name)
+
+        assert field["bound"].field.widget.attrs["class"].split() == [
+            control,
+            "w-full",
+        ]
+
+    def test_a_developers_widget_is_named_by_the_filters_label(self, rf, db):
+        field = self._field(rf, "shelf")
+
+        assert field["bound"].field.widget.attrs["aria-label"] == field["label"]
+
+    def test_a_developers_own_class_and_name_are_kept(self, rf, db):
+        class OwnAttrsFilter(django_filters.FilterSet):
+            shelf = django_filters.ModelChoiceFilter(
+                field_name="category",
+                queryset=Category.objects.all(),
+                widget=FancySelect(attrs={"class": "mine", "aria-label": "Mine"}),
+            )
+
+            class Meta:
+                model = Product
+                fields: list[str] = []
+
+        context = self._context(
+            rf, filterset_class=OwnAttrsFilter, toolbar_filters=["shelf"]
+        )
+
+        attrs = context["toolbar_fields"][0]["bound"].field.widget.attrs
+        assert attrs["class"] == "mine"
+        assert attrs["aria-label"] == "Mine"
+
+    def test_a_sort_with_a_widget_of_its_own_is_still_the_sort(self, rf, db):
+        class WidgetSortFilter(django_filters.FilterSet):
+            o = SortFilter(options=[("name", "Name", "name")], widget=FancySelect)
+
+            class Meta:
+                model = Product
+                fields: list[str] = []
+
+        context = self._context(
+            rf, filterset_class=WidgetSortFilter, toolbar_filters=["o"]
+        )
+
+        assert context["toolbar_sort"]["kind"] == "sort"
+
+    def test_every_field_listed_leaves_nothing_for_the_modal(self, rf, db):
+        class NoRangeFilter(ToolbarProductFilter):
+            price = None
+
+        names = list(NoRangeFilter.base_filters)
+
+        context = self._context(
+            rf, filterset_class=NoRangeFilter, toolbar_filters=names
+        )
+
+        assert context["modal_fields"] == []
+
+    def test_an_unknown_name_is_refused_naming_the_view_the_name_and_the_filterset(
+        self, rf, db
+    ):
+        with pytest.raises(ImproperlyConfigured) as excinfo:
+            self._context(rf, toolbar_filters=["q", "colour"])
+
+        message = str(excinfo.value)
+        assert "StubToolbarListView" in message
+        assert "colour" in message
+        assert "ToolbarProductFilter" in message
+
+    def test_a_filter_the_toolbar_cannot_draw_is_refused_naming_it(self, rf, db):
+        with pytest.raises(ImproperlyConfigured) as excinfo:
+            self._context(rf, toolbar_filters=["q", "price"])
+
+        message = str(excinfo.value)
+        assert "StubToolbarListView" in message
+        assert "price" in message
+        assert "RangeFilter" in message
+
+    def test_a_view_can_draw_a_filter_the_package_cannot(self, rf, db):
+        def get_toolbar_field(self, filterset, name):
+            if name == "price":
+                return {"kind": "range", "name": name, "label": "Price"}
+            return MVPListView.get_toolbar_field(self, filterset, name)
+
+        context = self._context(
+            rf, toolbar_filters=["q", "price"], get_toolbar_field=get_toolbar_field
+        )
+
+        assert [field["kind"] for field in context["toolbar_fields"]] == [
+            "search",
+            "range",
+        ]

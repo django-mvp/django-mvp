@@ -51,18 +51,18 @@
            @change="$el.form.requestSubmit()">
     <span>{{ field.label }}</span>
   </label>
-{% elif field.kind == "choice" %}
+{% elif field.kind == "choice" or field.kind == "sort" %}
   {% comment %}
     A single choice applies the moment it is picked. The hidden input is what
     submits; it is disabled while nothing is chosen so the address stays clean.
   {% endcomment %}
-  <c-mvp.dropdown halign="{% if field.sort %}end{% else %}start{% endif %}"
+  <c-mvp.dropdown halign="{% if field.kind == 'sort' %}end{% else %}start{% endif %}"
                   x-data="{ value: '{{ field.value|escapejs }}' }">
     <c-slot name="button">
       <c-button type="button"
                 tabindex="0"
                 role="button"
-                icon="{% if field.sort %}sort{% endif %}"
+                icon="{% if field.kind == 'sort' %}sort{% endif %}"
                 text="{{ field.label }}"
                 only>
         {% comment %}
@@ -70,11 +70,11 @@
           filter's value is on its chip under the toolbar, and the order in
           use is named beside the result count.
         {% endcomment %}
-        {% if not field.sort %}<c-icon name="chevron-down" class="opacity-60" aria-hidden="true" />{% endif %}
+        {% if field.kind != "sort" %}<c-icon name="chevron-down" class="opacity-60" aria-hidden="true" />{% endif %}
       </c-button>
     </c-slot>
     <c-menu class="w-full" only>
-      {% if not field.sort %}
+      {% if field.kind != "sort" %}
         <c-menu.item text="{% trans "Any" %}"
                      @click="value = ''; $nextTick(() => document.getElementById('filterForm').requestSubmit())"
                      only>

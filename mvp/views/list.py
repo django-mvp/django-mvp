@@ -12,94 +12,20 @@ from django.utils.choices import flatten_choices
 from django.utils.functional import Promise
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import ListView
+from django_filters import (
+    BooleanFilter,
+    CharFilter,
+    ChoiceFilter,
+    ModelChoiceFilter,
+    ModelMultipleChoiceFilter,
+    MultipleChoiceFilter,
+)
 from django_filters.filterset import filterset_factory
 from django_filters.views import FilterMixin
 
 from ..filters import SearchFilter, SortFilter
 from .base import BaseTemplateNameMixin, PageMixin
 from .detail import CRUDDirectoryMixin
-
-
-def describe_toolbar_field(view_name: str, filterset: Any, name: str) -> dict[str, Any]:
-    """Describe one filterset field the way the toolbar draws it.
-
-    SKETCH (FS-041): prototype, untested. The build decides where this lives.
-    """
-    import django_filters
-
-    flt = filterset.filters[name]
-    bound = filterset.form[name]
-    label = str(bound.label)
-    data = filterset.form.data
-    item: dict[str, Any] = {"name": name, "label": label}
-
-    def choices(field):
-        out = []
-        for key, text in field.choices:
-            key = "" if key is None else str(getattr(key, "value", key))
-            if key == "":
-                continue
-            out.append((key, str(text)))
-        return out
-
-    widget = bound.field.widget
-    if type(widget) is not type(bound.field).widget and not isinstance(flt, SortFilter):
-        # The developer chose a widget of their own for this filter: draw it
-        # as it is. The toolbar knows nothing about it beyond that it is a
-        # select or an input, and applies it when focus leaves it changed.
-        widget.attrs.setdefault(
-            "class",
-            "select w-full" if isinstance(widget, forms.Select) else "input w-full",
-        )
-        item.update(kind="widget", bound=bound)
-    elif isinstance(flt, SearchFilter):
-        item.update(kind="search", value=data.get(name, ""))
-    elif isinstance(flt, SortFilter):
-        current = data.get(name, "")
-        opts = choices(bound.field)
-        item.update(
-            kind="choice",
-            sort=True,
-            value=current,
-            choices=[(k, t, k == current) for k, t in opts],
-            current_label=next((t for k, t in opts if k == current), ""),
-        )
-    elif isinstance(flt, django_filters.BooleanFilter):
-        item.update(
-            kind="toggle",
-            checked=str(data.get(name, "")).lower() in ("true", "1", "on"),
-        )
-    elif isinstance(
-        flt,
-        (django_filters.MultipleChoiceFilter, django_filters.ModelMultipleChoiceFilter),
-    ):
-        chosen = (
-            [str(v) for v in data.getlist(name)] if hasattr(data, "getlist") else []
-        )
-        item.update(
-            kind="multichoice",
-            choices=[(k, t, k in chosen) for k, t in choices(bound.field)],
-            chosen_count=len([c for c in chosen if c]),
-        )
-    elif isinstance(
-        flt, (django_filters.ChoiceFilter, django_filters.ModelChoiceFilter)
-    ):
-        current = str(data.get(name, ""))
-        opts = choices(bound.field)
-        item.update(
-            kind="choice",
-            value=current,
-            choices=[(k, t, k == current) for k, t in opts],
-            current_label=next((t for k, t in opts if k == current), ""),
-        )
-    elif isinstance(flt, django_filters.CharFilter):
-        item.update(kind="text", value=data.get(name, ""))
-    else:
-        raise ImproperlyConfigured(
-            f"{view_name}.toolbar_filters names {name!r}, a "
-            f"{flt.__class__.__name__} the toolbar cannot draw. Leave it in the filter modal."
-        )
-    return item
 
 
 class FilterContextMixin:
@@ -119,6 +45,12 @@ class FilterContextMixin:
             applied. The current URL with the filterset's own fields removed,
             except the sort.
         sort_label (str): The label of the chosen sort option, or ``""``.
+        toolbar_fields (list[dict]): The fields ``toolbar_filters`` names, in
+            that order and each once, as ``get_toolbar_field()`` describes
+            them. The sort is never among them.
+        toolbar_sort (dict | None): The sort, when ``toolbar_filters`` names
+            it, described the same way. The page draws it at the end of the row.
+        modal_fields (list[BoundField]): Every field the toolbar does not draw.
 
     Override hooks:
         get_active_filters(): Return the filters that are actually set.
@@ -127,6 +59,7 @@ class FilterContextMixin:
         get_filter_display(): Return one filter's value as the reader set it.
         get_clear_filters_url(): Return the URL with every filter removed.
         get_sort_label(): Return the label of the chosen sort option.
+        get_toolbar_field(): Describe one field the way the toolbar draws it.
     """
 
     def get_context_data(self, **kwargs):
@@ -143,29 +76,10 @@ class FilterContextMixin:
             context["clear_filters_url"] = self.get_clear_filters_url(filterset)
         context["sort_label"] = self.get_sort_label(filterset)
 
-        # SKETCH (FS-041): split the filterset between the toolbar and the modal.
-        dropped = getattr(self, "dropped_filters", ())
-        toolbar_names = [
-            n
-            for n in dict.fromkeys(getattr(self, "toolbar_filters", None) or [])
-            if n not in dropped
-        ]
-        for name in toolbar_names:
-            if name not in filterset.form.fields:
-                raise ImproperlyConfigured(
-                    f"{self.__class__.__name__}.toolbar_filters names {name!r}, "
-                    f"which {filterset.__class__.__name__} has no field for."
-                )
-        context["toolbar_fields"] = [
-            describe_toolbar_field(self.__class__.__name__, filterset, name)
-            for name in toolbar_names
-        ]
-        sort_item = next((f for f in context["toolbar_fields"] if f.get("sort")), None)
-        # SKETCH (FS-041): the sort is drawn at the end of the row, by Filter and Add.
-        context["toolbar_sort"] = sort_item
-        context["toolbar_fields"] = [
-            f for f in context["toolbar_fields"] if not f.get("sort")
-        ]
+        toolbar_names = self.get_toolbar_names(filterset)
+        fields = [self.get_toolbar_field(filterset, name) for name in toolbar_names]
+        context["toolbar_fields"] = [f for f in fields if f["kind"] != "sort"]
+        context["toolbar_sort"] = next((f for f in fields if f["kind"] == "sort"), None)
         modal_names = [n for n in filterset.form.fields if n not in toolbar_names]
         context["modal_fields"] = [filterset.form[n] for n in modal_names]
         modal_active = [n for n in active if n in modal_names]
@@ -176,6 +90,113 @@ class FilterContextMixin:
             ]
             context["clear_modal_url"] = self.get_url_without(*params)  # type: ignore[attr-defined]
         return context
+
+    def get_toolbar_names(self, filterset: Any) -> list[str]:
+        """Return the names of the fields the toolbar draws, each once.
+
+        A name a table view dropped from its filterset is skipped.
+
+        Args:
+            filterset: The django-filter ``FilterSet`` from the context.
+
+        Returns:
+            The names in ``toolbar_filters``, in that order, duplicates dropped.
+
+        Raises:
+            ImproperlyConfigured: A name is not a field of the filterset.
+        """
+        dropped = getattr(self, "dropped_filters", ())
+        names = [
+            name
+            for name in dict.fromkeys(getattr(self, "toolbar_filters", ()))
+            if name not in dropped
+        ]
+        for name in names:
+            if name not in filterset.form.fields:
+                raise ImproperlyConfigured(
+                    f"{self.__class__.__name__}.toolbar_filters names {name!r}, "
+                    f"which {filterset.__class__.__name__} has no field for."
+                )
+        return names
+
+    def get_toolbar_field(self, filterset: Any, name: str) -> dict[str, Any]:
+        """Describe one filterset field the way the toolbar draws it.
+
+        Override to draw a filter class the toolbar does not cover: return a
+        dict with a ``kind`` of your own and draw it in your template.
+
+        A filter whose widget is not its field's default is drawn by that
+        widget, as it is. It gains the daisyUI class of its control, and an
+        ``aria-label`` of the filter's label, unless it has its own.
+
+        Args:
+            filterset: The django-filter ``FilterSet`` from the context.
+            name: The field's name on the filterset.
+
+        Returns:
+            ``name``, ``label`` and ``kind``, one of ``widget`` (with
+            ``bound``), ``search`` or ``text`` (with ``value``), ``sort`` or
+            ``choice`` (with ``value`` and ``choices``), ``multichoice`` (with
+            ``choices``) or ``toggle`` (with ``checked``). Each choice is
+            ``(key, label, selected)``, without the empty choice.
+
+        Raises:
+            ImproperlyConfigured: The toolbar cannot draw the filter.
+        """
+        flt = filterset.filters[name]
+        bound = filterset.form[name]
+        item: dict[str, Any] = {"name": name, "label": str(bound.label)}
+        widget = bound.field.widget
+        value = bound.value()
+
+        if type(widget) is not type(bound.field).widget and not isinstance(
+            flt, SortFilter
+        ):
+            control = "select" if isinstance(widget, forms.Select) else "input"
+            widget.attrs.setdefault("class", f"{control} w-full")
+            widget.attrs.setdefault("aria-label", item["label"])
+            item.update(kind="widget", bound=bound)
+        elif isinstance(flt, SearchFilter):
+            item.update(kind="search", value=value or "")
+        elif isinstance(flt, CharFilter):
+            item.update(kind="text", value=value or "")
+        elif isinstance(flt, BooleanFilter):
+            item.update(kind="toggle", checked=value is True)
+        elif isinstance(flt, (MultipleChoiceFilter, ModelMultipleChoiceFilter)):
+            chosen = [str(v) for v in value or []]
+            item.update(kind="multichoice", choices=self._choices(bound, chosen))
+        elif isinstance(flt, (ChoiceFilter, ModelChoiceFilter)):
+            current = "" if value is None else str(value)
+            item.update(
+                kind="sort" if isinstance(flt, SortFilter) else "choice",
+                value=current,
+                choices=self._choices(bound, [current]),
+            )
+        else:
+            raise ImproperlyConfigured(
+                f"{self.__class__.__name__}.toolbar_filters names {name!r}, a "
+                f"{flt.__class__.__name__} the toolbar cannot draw. Leave it in "
+                "the filter modal."
+            )
+        return item
+
+    @staticmethod
+    def _choices(bound: Any, chosen: list[str]) -> list[tuple[str, str, bool]]:
+        """Return a choice field's choices as the toolbar lists them.
+
+        Args:
+            bound: The field's bound field.
+            chosen: The keys the request chose.
+
+        Returns:
+            ``(key, label, selected)`` for each choice but the empty one.
+        """
+        out = []
+        for key, label in bound.field.choices:
+            key = "" if key is None else str(getattr(key, "value", key))
+            if key:
+                out.append((key, str(label), key in chosen))
+        return out
 
     def get_active_filters(self, filterset: Any):
         """Return the subset of the filterset's fields that are actually set.
@@ -370,6 +391,9 @@ class MVPListViewMixin(
             ``mvp.filters.SortFilter``. Default: ``None``.
         filterset_fields (list[str] | None): Model field names django-filter generates a
             filterset from when ``filterset_class`` is unset. Default: ``None``.
+        toolbar_filters (list[str]): The filterset fields drawn in the toolbar, in this order;
+            the sort among them is drawn at the end of the row. Every other field is drawn
+            in the filter modal. Default: ``[]``.
         create_form_class (type[Form] | None): Django form class for inline object creation
             in a modal. When ``None`` (the default), inline create is disabled. When set, the
             mixin injects an unbound form instance into context as ``create_form`` (if the user
@@ -444,6 +468,7 @@ class MVPListViewMixin(
     create_modal_title = None
     filterset_class = None
     filterset_fields = None
+    toolbar_filters: list[str] = []
 
     def __init_subclass__(cls, **kwargs):
         """Refuse a removed search or sort setting, or ``FilterView``, as the class is defined.
