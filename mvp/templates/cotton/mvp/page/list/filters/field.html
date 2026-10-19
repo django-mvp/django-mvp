@@ -4,12 +4,19 @@
 <c-vars field />
 {% if field.kind == "widget" %}
   {% comment %}
-    A django-mvp-forms Tom Select control, drawn by its own widget at a fixed
-    width. It applies when its dropdown closes with a different value.
+    A widget the developer chose, drawn as it is at a fixed width. Whatever
+    it is, it applies when focus leaves it with a different value than focus
+    found it with, so a control that opens a list applies once, on closing.
   {% endcomment %}
-  <div class="mvp-toolbar-tomselect w-44" aria-label="{{ field.label }}">{{ field.bound }}</div>
+  <div class="mvp-toolbar-field w-44"
+       x-data="{ start: null, now() { return new URLSearchParams(new FormData($el.closest('form'))).getAll('{{ field.name|escapejs }}').join(',') } }"
+       @focusin="if (start === null) start = now()"
+       @focusout="setTimeout(() => { if ($el.contains(document.activeElement)) return; if (start !== null && start !== now()) $el.closest('form').requestSubmit(); start = null })">
+    {{ field.bound }}
+  </div>
 {% elif field.kind == "search" %}
-  <div class="w-full md:w-60">
+  {# The search takes whatever room the row has left. #}
+  <div class="w-full md:w-auto md:flex-1 md:min-w-60">
     <c-join class="w-full" only>
       <c-form.input type="search"
                     name="{{ field.name }}"
@@ -69,20 +76,22 @@
     <c-menu class="w-full" only>
       {% if not field.sort %}
         <c-menu.item text="{% trans "Any" %}"
-                     @click="value = ''; $nextTick(() => $el.closest('form').requestSubmit())"
+                     @click="value = ''; $nextTick(() => document.getElementById('filterForm').requestSubmit())"
                      only>
           {% if not field.value %}<c-icon name="check" class="ms-auto" />{% endif %}
         </c-menu.item>
       {% endif %}
       {% for key, text, selected in field.choices %}
         <c-menu.item text="{{ text }}"
-                     @click="value = '{{ key|escapejs }}'; $nextTick(() => $el.closest('form').requestSubmit())"
+                     @click="value = '{{ key|escapejs }}'; $nextTick(() => document.getElementById('filterForm').requestSubmit())"
                      only>
           {% if selected %}<c-icon name="check" class="ms-auto" />{% endif %}
         </c-menu.item>
       {% endfor %}
     </c-menu>
+    {# form= so the sort can be drawn outside the form, at the end of the row. #}
     <input type="hidden"
+           form="filterForm"
            name="{{ field.name }}"
            :value="value"
            :disabled="value === ''">

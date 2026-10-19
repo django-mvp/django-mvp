@@ -15478,11 +15478,6 @@
       width: calc(3 / 4 * 100%);
     }
   }
-  .md\:w-60 {
-    @media (width >= 48rem) {
-      width: calc(var(--spacing) * 60);
-    }
-  }
   .md\:w-\[220px\] {
     @media (width >= 48rem) {
       width: 220px;
@@ -15591,6 +15586,11 @@
   .md\:min-w-0 {
     @media (width >= 48rem) {
       min-width: 0;
+    }
+  }
+  .md\:min-w-60 {
+    @media (width >= 48rem) {
+      min-width: calc(var(--spacing) * 60);
     }
   }
   .md\:min-w-full {

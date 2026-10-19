@@ -54,3 +54,9 @@ into a filterset.
 
 An ADR replacing R16's "never a required dependency" for django-filter, alongside 0006 and 0031,
 which record the other runtime dependencies.
+
+Sam, sketch round 3 (2026-10-19): it would be nice for a developer to say which toolbar fields grow to fill the row and which keep their size. The sketch grows the search by default. A per-field choice needs somewhere to be stated: on the view next to `toolbar_filters`, or on the filter's widget in the filterset. Sam is wary of view settings, so weigh the filterset side first.
+
+Sam, sketch round 3: django-mvp does not support Tom Select and does not load it. django-mvp-forms already documents what a project must load. The toolbar must work with any widget a developer puts on a filter without knowing what it is.
+
+Upstream, raised at Sam's request in sketch round 3: django-mvp/django-mvp-forms#215 (a counted Tom Select with no visible label keeps naming its field) and #216 (range widgets). Neither blocks this feature. The demo and the docs can use them once they ship.

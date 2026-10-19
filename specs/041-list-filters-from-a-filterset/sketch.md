@@ -119,3 +119,15 @@ Found while doing it, for the plan:
 - On a phone, five toolbar fields take four rows above the results.
 - The counted control shows its empty text ("Category") in place of a label when nothing is
   chosen, and "2 selected" once something is. Its name is on the chip.
+
+## Round 3 (Sam, 2026-10-19)
+
+| Sam asked | Done |
+|---|---|
+| Chips only, and the result count above the results | Approved as they are |
+| On phones, five toolbar fields taking four rows | Accepted as it is |
+| Search could grow to fill the row, and a developer could say which toolbar fields grow and which shrink | The search now takes the room the row has left, at least 15rem from md. How a developer marks other fields to grow or shrink is left to planning (see `planning-notes.md`) |
+| Move Sort to the right when it is present | Sort sits at the end of the row, before Filter and Add, wherever it is named in `toolbar_filters` |
+| The counted Category control loses its name once something is chosen | Raised upstream as django-mvp/django-mvp-forms#215 (a counted control with no visible label that still names its field, for example with a joined label at its start). The sketch keeps the control as it is |
+| Range filters matter on most list pages, and django-mvp-forms should have widgets for them | Raised upstream as django-mvp/django-mvp-forms#216. The modal keeps django-filter's stacked inputs until then |
+| django-mvp does not support Tom Select; django-mvp-forms already tells projects to load it themselves | django-mvp no longer loads or knows about Tom Select. The demo's own base template loads Tom Select and `mvp_forms/tomselect.css`. A toolbar field whose filter has a widget of the developer's own is drawn by that widget, and applies when focus leaves it with a different value, whatever the widget is |

@@ -15,4 +15,20 @@
   {# The page blocks' own utilities: the packaged stylesheet never scans site-packages. #}
   <link rel="stylesheet" href="{% static 'css/daisy-cotton-ext.css' %}" />
   <link rel="stylesheet" href="{% static 'css/themes.css' %}" />
+  {% comment %}
+    Tom Select, for the django-mvp-forms controls the demo's filters use. A
+    project loads it itself, as django-mvp-forms' README says; django-mvp
+    does not ship it.
+  {% endcomment %}
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/tom-select@2.5.2/dist/css/tom-select.default.min.css"
+        integrity="sha384-ysUSQKRs8NxL3MLtPxj9HZ7KmGXzQJwr8rfFRR8iT5A26QF3slDzsChy8nZ7Q1W2"
+        crossorigin="anonymous" />
+  <link rel="stylesheet" href="{% static 'mvp_forms/tomselect.css' %}" />
 {% endblock styles %}
+{% block extra_js %}
+  {{ block.super }}
+  <script src="https://cdn.jsdelivr.net/npm/tom-select@2.5.2/dist/js/tom-select.complete.min.js"
+          integrity="sha384-zpRmcxaWZMsftDGxJwwTBxLTwPZrI4VJXe2bYlo01xaeBAdQjHP/nPlVH83BCW0U"
+          crossorigin="anonymous"></script>
+{% endblock extra_js %}
