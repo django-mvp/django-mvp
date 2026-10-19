@@ -136,8 +136,19 @@
         },
         {
           "id": "T005",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 2,
+          "evidence": {
+            "tests": [
+              "tests/test_filters.py::TestSortFilter"
+            ],
+            "commands": [
+              "uv run pytest -q -p no:randomly tests/test_filters.py"
+            ],
+            "code": [
+              "mvp/filters.py:84"
+            ]
+          }
         },
         {
           "id": "T006",

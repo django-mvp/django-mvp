@@ -83,22 +83,46 @@ class SearchFilter(django_filters.CharFilter):
 class SortFilter(django_filters.ChoiceFilter):
     """Order the list by one of a fixed set of options.
 
-    SKETCH (FS-041): prototype code, not tested. The build rewrites this test-first.
+    Each option is ``(key, label, columns)``. The key is what the address
+    carries, the label is what the reader picks, and ``columns`` is one
+    ordering expression or a sequence of them, the later ones deciding ties.
+    A single column is not a total order unless it is unique, so an option
+    meant to survive pagination ends with a unique column, usually ``"pk"``.
 
-    Each option is ``(key, label, columns)``. ``columns`` is one ordering
-    expression or several, the later ones deciding ties. Only the key ever
-    appears in the address; the columns never come from it.
+    The columns never come from the address. A value that is not one of the
+    keys fails the field's choice validation, so it never reaches ``filter()``
+    and the list keeps its default order. A list view never counts the sort
+    as an applied filter.
+
+    Args:
+        *args: Passed to ``ChoiceFilter``.
+        options: The ``(key, label, columns)`` triples, in the order offered.
+        **kwargs: Passed to ``ChoiceFilter``. ``label`` defaults to "Sort";
+            ``choices`` comes from ``options`` and there is no empty choice.
     """
 
-    def __init__(self, *args, options: Sequence[tuple] = (), **kwargs):
+    def __init__(
+        self,
+        *args: Any,
+        options: Sequence[tuple[str, Any, Any]] = (),
+        **kwargs: Any,
+    ) -> None:
         self.options = list(options)
         kwargs.setdefault("label", _("Sort"))
-        kwargs["choices"] = [(key, label) for key, label, _cols in self.options]
+        kwargs["choices"] = [(key, label) for key, label, _columns in self.options]
         kwargs.setdefault("empty_label", None)
         super().__init__(*args, **kwargs)
 
     def filter(self, qs: QuerySet, value: str) -> QuerySet:
-        """Order ``qs`` by the option ``value`` names."""
+        """Order ``qs`` by the columns of the option ``value`` names.
+
+        Args:
+            qs: The queryset to order.
+            value: An option's key, already validated against the choices.
+
+        Returns:
+            The ordered queryset, or ``qs`` unchanged when no option is chosen.
+        """
         for key, _label, columns in self.options:
             if key == value:
                 if isinstance(columns, (list, tuple)):

@@ -30,3 +30,10 @@ Plan written: research.md answers every planning note; plan.md, tasks.md (T001-T
 **Verified**: against a stub filter 10 of 13 failed; implemented, 13 passed. Probes: dropping `.distinct()` fails the join test; dropping the word limit fails both word-limit tests.
 **Next**: T005, SortFilter.
 **Watch**: SortFilter is still the sketch until T005.
+
+## 2026-10-19T12:17:29Z · Implementer US1 · T005
+
+**Did**: SortFilter(ChoiceFilter) rebuilt test-first: `options` of (key, label, columns), choices from the keys, no empty choice, default label, orders by one column or a sequence. tests/test_filters.py::TestSortFilter.
+**Verified**: against a stub 4 of 7 failed; implemented, `uv run pytest -q -p no:randomly tests/test_filters.py` 20 passed. Probe: ordering by only the first column of a sequence first passed the tie test (SQLite rowid order hid it); the option's tiebreak became `-pk` and the probe now fails it.
+**Next**: T006, the list view builds its filterset.
+**Watch**: nothing.

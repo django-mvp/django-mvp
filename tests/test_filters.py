@@ -5,9 +5,11 @@ Source: mvp/filters.py
 
 import django_filters
 import pytest
+from django.core.paginator import Paginator
+from django.db.models.functions import Lower
 
 from demo.models import Category, Product
-from mvp.filters import SearchFilter
+from mvp.filters import SearchFilter, SortFilter
 from tests.factories import CategoryFactory, ProductFactory
 
 
@@ -24,6 +26,20 @@ class CategorySearch(django_filters.FilterSet):
 
     class Meta:
         model = Category
+        fields: list[str] = []
+
+
+class ProductSort(django_filters.FilterSet):
+    o = SortFilter(
+        options=[
+            ("name", "Name", Lower("name")),
+            ("-name", "Name, reversed", "-name"),
+            ("name_then_pk", "Name, newest first", [Lower("name"), "-pk"]),
+        ]
+    )
+
+    class Meta:
+        model = Product
         fields: list[str] = []
 
 
@@ -131,3 +147,60 @@ class TestSearchFilter:
 
     def test_a_label_it_is_given_is_kept(self):
         assert SearchFilter(fields=["name"], label="Find").label == "Find"
+
+
+@pytest.mark.django_db
+class TestSortFilter:
+    def test_an_option_orders_by_its_column(self):
+        ProductFactory(name="Beta")
+        ProductFactory(name="alpha")
+        ProductFactory(name="Gamma")
+
+        filterset = ProductSort({"o": "name"}, queryset=Product.objects.all())
+
+        assert [p.name for p in filterset.qs] == ["alpha", "Beta", "Gamma"]
+
+    def test_the_key_need_not_name_the_column(self):
+        ProductFactory(name="Beta")
+        ProductFactory(name="Alpha")
+
+        filterset = ProductSort({"o": "-name"}, queryset=Product.objects.all())
+
+        assert [p.name for p in filterset.qs] == ["Beta", "Alpha"]
+
+    def test_later_columns_decide_ties_so_each_record_is_on_exactly_one_page(self):
+        tied = [ProductFactory(name="Same") for _ in range(5)]
+        ProductFactory(name="After")
+
+        filterset = ProductSort(
+            {"o": "name_then_pk"}, queryset=Product.objects.all()
+        )
+        paginator = Paginator(filterset.qs, 3)
+        seen = [p.pk for n in paginator.page_range for p in paginator.page(n)]
+
+        assert sorted(seen) == sorted(Product.objects.values_list("pk", flat=True))
+        assert seen[1:] == [p.pk for p in reversed(tied)]
+
+    def test_an_unknown_key_is_invalid_for_the_field(self):
+        filterset = ProductSort({"o": "price"}, queryset=Product.objects.all())
+
+        assert filterset.form.has_error("o", code="invalid_choice")
+
+    def test_an_unknown_key_leaves_the_queryset_unordered_by_it(self):
+        ProductFactory(name="Beta")
+        ProductFactory(name="Alpha")
+        default = list(Product.objects.all())
+
+        filterset = ProductSort({"o": "name; drop"}, queryset=Product.objects.all())
+
+        assert list(filterset.qs) == default
+        assert filterset.qs.query.order_by == Product.objects.all().query.order_by
+
+    def test_it_has_a_label_without_being_given_one(self):
+        assert SortFilter(options=[("name", "Name", "name")]).label is not None
+
+    def test_it_offers_no_empty_choice(self):
+        filterset = ProductSort(queryset=Product.objects.all())
+
+        keys = [key for key, _label in filterset.form.fields["o"].choices]
+        assert keys == ["name", "-name", "name_then_pk"]
