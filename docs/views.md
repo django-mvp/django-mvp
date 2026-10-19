@@ -203,11 +203,11 @@ dialog still says what it creates.
 
 From top to bottom, the list template draws:
 
-1. **The title row.** The title, with the add button at the end of the same row at every
-   screen width.
+1. **The title row.** The title, the subtitle and the info button.
 2. **The toolbar.** The search box, a count of what the list holds, then the sort and
-   filter controls. It is one row on a wide screen. On a phone the search box takes the
-   first row and the count shares the second with sort and filter.
+   filter controls, and the add button last. It is one row on a wide screen. On a phone
+   the search box takes the first row and the count shares the second with the
+   controls.
 3. **What is narrowing the list.** The search term and each applied filter, each drawn as
    a control that removes it. Two or more also get a single "Clear all".
 4. **The results**, or the empty state.
@@ -218,7 +218,8 @@ Each control follows the thing it drives, so there is no separate list to keep i
 with the view. `search_fields` draws the search box, `order_by` the sort menu, a
 `FilterSet` the filter dialog, and `show_create_action` the add button. Leave one
 unconfigured and its control does not appear. A list with no records and nothing applied
-draws no toolbar at all, since there is nothing to search or sort.
+draws no toolbar at all, since there is nothing to search or sort. Its empty state carries
+the add button, and the create dialog with it, instead.
 
 The count reads "32 products" from the model's verbose name. Once a search or filter is
 applied it reads "3 results". On a paginated list the browser title also carries the
@@ -277,11 +278,11 @@ Every part of the list template is a block, so a project template that extends
 | Block | Holds |
 | --- | --- |
 | `page.title` | The title, subtitle and info icon |
-| `page.actions` | The add button |
+| `page.actions` | Empty. Anything here is drawn at the end of the title row |
 | `page.toolbar` | The whole toolbar row |
 | `page.search` | The search box, inside the toolbar |
 | `page.summary` | The count, inside the toolbar |
-| `page.controls` | Sort and filter, inside the toolbar |
+| `page.controls` | Sort and filter, inside the toolbar. The add button follows it and is not part of it |
 | `page.refinements` | The applied search and filters |
 | `page.results` | The grid of records |
 | `page.empty` | The empty state, inside the results |
@@ -291,12 +292,17 @@ Every part of the list template is a block, so a project template that extends
 {% extends "list_view.html" %}
 {% block page.controls %}
   {{ block.super }}
-  <c-button size="sm" icon="download" text="Export" href="{% url 'product-export' %}" />
+  <c-button icon="download" text="Export" href="{% url 'product-export' %}" />
 {% endblock page.controls %}
 ```
 
-Replacing an outer block replaces the blocks inside it: a template that overrides
-`page.toolbar` draws its own search, count and controls.
+The add button is always the last control in the toolbar, after whatever `page.controls`
+holds, so the export button above lands between filter and add. Replacing an outer block
+replaces the blocks inside it: a template that overrides `page.toolbar` draws its own
+search, count and controls, and its own add button if it wants one.
+
+The toolbar's controls are drawn at DaisyUI's default size. For a denser page, override
+`page.controls` or `page.toolbar` and pass `size="sm"` to the controls you draw.
 
 Search reads the first ten words of `?q=` and ignores the rest. The query grows by one
 branch per word per field and the term arrives from the URL, so the limit keeps its size
