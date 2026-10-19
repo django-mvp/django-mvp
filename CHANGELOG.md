@@ -49,6 +49,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   modal's clear link (`clear_modal_url`) keeps the toolbar's filters, the search and the
   sort. The address leaves out every field that is not set. The page's script is the new
   static file `js/list_view.js`.
+- A toolbar filter of several values opens a list of checkboxes with the chosen ones
+  ticked, and applies once, when focus leaves it with a changed choice; its button is the
+  same whatever is chosen. A widget of the developer's own applies the same way, through
+  the same script, which names no widget library.
 - **Breaking:** daisy-cotton is pinned to `>=0.2,<0.3`. Its alert no longer picks an icon
   from its variant, so every alert the package draws passes its icon itself; a project
   alert that relied on the variant's icon passes `icon` too. On the delete page,

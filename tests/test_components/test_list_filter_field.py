@@ -169,7 +169,38 @@ class TestToolbarFieldButtons:
         assert soup.find("input", attrs={"name": "q"})["value"] == "lamp"
 
 
+class TestToolbarFieldMultichoice:
+    def test_the_list_offers_every_value(self, render, db):
+        soup = render(_field("statuses"))
+
+        offered = {
+            box["value"] for box in soup.find_all("input", attrs={"name": "statuses"})
+        }
+        assert offered == {key for key, _ in Product.STATUS_CHOICES}
+
+    def test_nothing_is_ticked_when_nothing_is_chosen(self, render, db):
+        soup = render(_field("statuses"))
+
+        assert soup.find_all("input", checked=True) == []
+
+    def test_the_dropdown_is_a_toolbar_field_named_for_its_filter(self, render, db):
+        soup = render(_field("statuses"))
+
+        wrapper = soup.find(attrs={"data-mvp-toolbar-field": True})
+        assert wrapper["data-mvp-toolbar-field"] == "statuses"
+        assert wrapper.find(attrs={"role": "button"}) is not None
+        assert len(wrapper.find_all("input", attrs={"name": "statuses"})) == len(
+            Product.STATUS_CHOICES
+        )
+
+
 class TestToolbarFieldDevelopersWidget:
+    def test_the_wrapper_is_named_for_its_filter(self, render, db):
+        soup = render(_field("shelf"))
+
+        wrapper = soup.find(attrs={"data-mvp-toolbar-field": True})
+        assert wrapper["data-mvp-toolbar-field"] == "shelf"
+
     def test_the_widget_is_drawn_in_a_toolbar_field_wrapper(self, render, db):
         soup = render(_field("shelf"))
 

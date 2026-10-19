@@ -478,7 +478,7 @@ and `table_view.html` do: `<c-mvp.page.list.summary :result_count="result_count"
 | `c-mvp.page.list.empty` | `directory` (its `create_url` gates the add button), `create_form`, `refinements` (switches it to the nothing-matches message with a link to `clear_refinements_url`), `search_query`, `applied_filters`, `model_info` | `icon` (default `search`), `heading`, `message`, `icon_class`, `class`; `create_modal` draws the create dialog with the add button, for a page where nothing else draws it, with `create_modal_title` as its heading and `request` so it returns to the page |
 | `c-mvp.page.list.toolbar` | `result_count`, `refinements` (renders nothing when both are empty) | slots `search` and `summary`, default slot for the controls, `bare`, `class` |
 | `c-mvp.page.list.filters.modal` | — | `part` (`button` draws the Filter button, `dialog` the modal), `fields` (the bound fields, each drawn once), `applied_count` (the button's badge), `clear_url` (the modal's clear link) |
-| `c-mvp.page.list.filters.field` | — | `field`, one entry of `toolbar_fields` or `toolbar_sort`, drawn by its `kind`. A developer's widget is drawn inside a `[data-mvp-toolbar-field]` wrapper |
+| `c-mvp.page.list.filters.field` | — | `field`, one entry of `toolbar_fields` or `toolbar_sort`, drawn by its `kind`. A multi-select list and a developer's widget are drawn inside a `[data-mvp-toolbar-field]` wrapper whose value is the field's name |
 | `c-mvp.page.list.summary` | `result_count`, `refinements`, `model_info` | `class` |
 | `c-mvp.page.list.refinements` | `refinements`, `clear_refinements_url` | `class` |
 | `c-mvp.page.list.footer` | — | `page_obj`, `size`, `class` |
@@ -492,8 +492,9 @@ the view has a filterset; the modal draws no form of its own. The Filter button 
 the modal, so it may sit outside the form. The count, the sort in use and the refinements
 make the row under the toolbar; the toolbar holds no count. A page that draws these
 components itself loads the package's `js/list_view.js`, as `list_view.html` does: it
-keeps the fields nobody set out of the address and puts the modal's fields back when it
-closes without applying. The create action draws itself only when
+keeps the fields nobody set out of the address, puts the modal's fields back when it
+closes without applying, and submits the form when focus leaves a
+`[data-mvp-toolbar-field]` wrapper with a different value than it found. The create action draws itself only when
 `show_create_action` allows it. `share` takes no context and always renders, so it
 appears only where a caller asks for it.
 

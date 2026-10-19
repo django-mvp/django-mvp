@@ -265,7 +265,9 @@ Every change returns to the first page. The address carries only the fields that
 set: an empty field is left out, and so is the empty choice of a yes/no select (Django's
 `NullBooleanSelect` sends `unknown`). A search for the word "unknown" is kept. The page's
 `js/list_view.js` static file does this, and finds the form and the modal by their ids,
-`filterForm` and `filterModal`.
+`filterForm` and `filterModal`. It also applies a toolbar list of several values, and a
+widget of your own, when focus leaves it with a different value than it found, so a list
+that opens applies once, on closing, and not at all when nothing changed.
 
 ### Choosing which filters go in the toolbar
 

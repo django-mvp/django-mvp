@@ -5,14 +5,11 @@
 {% if field.kind == "widget" %}
   {% comment %}
     A widget the developer chose, drawn as it is at a fixed width. Whatever
-    it is, it applies when focus leaves it with a different value than focus
-    found it with, so a control that opens a list applies once, on closing.
+    it is, list_view.js applies it when focus leaves it with a different value
+    than focus found it with, so a control that opens a list applies once, on
+    closing.
   {% endcomment %}
-  <div class="mvp-toolbar-field w-44"
-       data-mvp-toolbar-field
-       x-data="{ start: null, now() { return new URLSearchParams(new FormData($el.closest('form'))).getAll('{{ field.name|escapejs }}').join(',') } }"
-       @focusin="if (start === null) start = now()"
-       @focusout="setTimeout(() => { if ($el.contains(document.activeElement)) return; if (start !== null && start !== now()) $el.closest('form').requestSubmit(); start = null })">
+  <div class="mvp-toolbar-field w-44" data-mvp-toolbar-field="{{ field.name }}">
     {{ field.bound }}
   </div>
 {% elif field.kind == "search" %}
@@ -98,12 +95,11 @@
   </c-mvp.dropdown>
 {% elif field.kind == "multichoice" %}
   {% comment %}
-    Several values: the checkboxes are the inputs. The list updates when the
-    panel loses focus with a different set chosen than it opened with.
+    Several values: the checkboxes are the inputs. list_view.js updates the
+    list when focus leaves the dropdown with a different set chosen than it
+    opened with.
   {% endcomment %}
-  <c-mvp.dropdown x-data="{ start: null, picked() { return [...$el.querySelectorAll('input:checked')].map(i => i.value).join(',') } }"
-                  @focusin="if (start === null) start = picked()"
-                  @focusout="if (!$el.contains($event.relatedTarget)) { if (start !== null && start !== picked()) $el.closest('form').requestSubmit(); start = null }">
+  <c-mvp.dropdown data-mvp-toolbar-field="{{ field.name }}">
     <c-slot name="button">
       <c-button type="button" tabindex="0" role="button" text="{{ field.label }}" only>
         <c-icon name="chevron-down" class="opacity-60" aria-hidden="true" />

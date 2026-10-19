@@ -14,6 +14,14 @@
  *   back as the page drew it, so a later toolbar change does not send what
  *   the reader abandoned (FS-041 FR-019). A select enhanced by a widget
  *   library that exposes itself as `select.tomselect` is told to redraw.
+ *
+ * focusin/focusout — a toolbar field that holds several values, or whatever
+ *   widget the developer chose, is a [data-mvp-toolbar-field] wrapper naming
+ *   its field. Its value is remembered when focus enters it, and the form is
+ *   submitted when focus leaves it with a different value, so a list that
+ *   opens applies once, on closing, and not at all when nothing changed
+ *   (FS-041 FR-021, FR-027). The check waits a task: a widget may move focus
+ *   inside itself through a moment where nothing in it has focus.
  */
 (() => {
   const FORM_ID = "filterForm";
@@ -66,4 +74,29 @@
     },
     true,
   );
+
+  const started = new WeakMap();
+
+  const valueOf = (wrapper) => {
+    const form = wrapper.closest("form");
+    const name = wrapper.dataset.mvpToolbarField;
+    return form ? new FormData(form).getAll(name).join("\u0000") : "";
+  };
+
+  document.addEventListener("focusin", (event) => {
+    const wrapper = event.target.closest?.("[data-mvp-toolbar-field]");
+    if (wrapper && !started.has(wrapper)) started.set(wrapper, valueOf(wrapper));
+  });
+
+  document.addEventListener("focusout", (event) => {
+    const wrapper = event.target.closest?.("[data-mvp-toolbar-field]");
+    if (!wrapper) return;
+    setTimeout(() => {
+      if (wrapper.contains(document.activeElement)) return;
+      if (!started.has(wrapper)) return;
+      const changed = started.get(wrapper) !== valueOf(wrapper);
+      started.delete(wrapper);
+      if (changed) wrapper.closest("form").requestSubmit();
+    });
+  });
 })();
