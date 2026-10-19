@@ -114,3 +114,10 @@ Did: replaced the sketch's describe_toolbar_field and toolbar/modal split with F
 Verified: uv run pytest tests/test_views/test_list.py::TestToolbarPlacement -q, 34 passed (4 red before the change: sort kind, aria-label, sort with own widget, override hook). Mutation probes (dedupe removed, class setdefault removed, empty-choice kept) each failed a test. tests/test_views/test_list.py tests/test_integrations.py tests/test_table_layout.py tests/test_components/test_list_filter_modal.py: 305 passed. mypy clean.
 Next: T013, the toolbar field component.
 Watch: modal_applied_count / clear_modal_url left as they were (US-3).
+
+## 2026-10-19T13:05:13Z · Implementer US-2 · T013
+
+Did: field.html loses its SKETCH marker and gains complete @description/@prop. The widget wrapper carries data-mvp-toolbar-field; the toggle draws c-form.toggle and the multi-select list c-form.checkbox (each checked/unchecked state is its own call, since cotton renders a False attribute as checked="False"). Sketch markup and copy otherwise kept.
+Verified: uv run pytest tests/test_components/test_list_filter_field.py -q, 23 passed (the wrapper test was red before the change; the naming, value-hiding and type=button tests passed on the sketch's markup, which already met them). uv run pytest tests/test_components -q -m "not e2e": 638 passed, 1 skipped. No class changed, so no stylesheet build.
+Next: T014, the toolbar row.
+Watch: the widget's focus-out apply is still the sketch's inline Alpine; plan moves it to list_view.js in US-3.
