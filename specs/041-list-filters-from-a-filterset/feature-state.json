@@ -345,8 +345,19 @@
         },
         {
           "id": "T014",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_views/test_list.py::TestListPageToolbarRow"
+            ],
+            "commands": [
+              "uv run pytest tests/test_views/test_list.py::TestListPageToolbarRow -q (5 passed)"
+            ],
+            "code": [
+              "mvp/templates/list_view.html:55"
+            ]
+          }
         },
         {
           "id": "T015",

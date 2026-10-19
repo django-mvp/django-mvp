@@ -121,3 +121,10 @@ Did: field.html loses its SKETCH marker and gains complete @description/@prop. T
 Verified: uv run pytest tests/test_components/test_list_filter_field.py -q, 23 passed (the wrapper test was red before the change; the naming, value-hiding and type=button tests passed on the sketch's markup, which already met them). uv run pytest tests/test_components -q -m "not e2e": 638 passed, 1 skipped. No class changed, so no stylesheet build.
 Next: T014, the toolbar row.
 Watch: the widget's focus-out apply is still the sketch's inline Alpine; plan moves it to list_view.js in US-3.
+
+## 2026-10-19T13:05:57Z · Implementer US-2 · T014
+
+Did: new class TestListPageToolbarRow in tests/test_views/test_list.py: toolbar fields inside #filterForm in the order named and not in the modal; the sort, the Filter button and Add after the form, outside it, in that order (the sort's input names the form); the sort drawn once; every field in the toolbar leaves no Filter button and no dialog. list_view.html needed no change: it already drew the approved sketch's row.
+Verified: uv run pytest tests/test_views/test_list.py::TestListPageToolbarRow -q, 5 passed. They passed on arrival, so probed by mutation: moving the sort after the Filter button failed the order test; reversing the toolbar loop failed the order-named test.
+Next: T015, docs for US-2.
+Watch: list_view.html's SKETCH formdata script is US-3's (FR-028), left as is.
