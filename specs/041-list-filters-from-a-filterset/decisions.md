@@ -212,3 +212,30 @@ It now finds the button by its role. Neither assertion is weaker.
 **Revisit if:** daisy-cotton goes back to picking an alert's icon from its variant.
 
 **ADR:** none — about two tests, nothing downstream inherits it
+
+## D16 — Every review finding fixed, not only the blocking ones
+
+**Decision:** the code review returned no critical or high findings, four medium and five low.
+All nine are fixed in this pull request (T034–T042). `test_it_offers_no_empty_choice` in
+`tests/test_filters.py` is replaced, because it pinned the defect T034 fixes.
+
+**Why:** the maintainer asked for the review's findings to be fixed. Two of the medium findings
+break FR-015 and FR-017 on the demo, and one leaves `filter.qs` unscoped where the view scopes
+its records.
+
+**Revisit if:** never; it records what this review did.
+
+**ADR:** none — about how this feature was reviewed, nothing downstream inherits it
+
+## D17 — A list view with a filterset no longer overrides `get_queryset()`
+
+**Decision:** `MVPListViewMixin.get()` builds the filterset over `self.get_queryset()` and sets
+`object_list` to `filterset.qs`, as django-filter's `BaseFilterView` does. It no longer runs
+`ListView`'s `allow_empty` check on a filtered page.
+
+**Why:** building the filterset inside `get_queryset()` over `super().get_queryset()` meant a
+view that scoped its own records published an unscoped `filter.qs` to its templates.
+
+**Revisit if:** a consumer needs `allow_empty = False` on a filtered list.
+
+**ADR:** none — follows django-filter's own view, nothing new to record
