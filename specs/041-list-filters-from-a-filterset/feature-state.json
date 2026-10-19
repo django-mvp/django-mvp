@@ -416,8 +416,24 @@
         },
         {
           "id": "T024",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_table_layout.py::TestTableToolbar",
+              "tests/test_table_layout.py::TestTableViewTemplate",
+              "tests/test_table_layout.py::TestTableFillerRow"
+            ],
+            "commands": [
+              "uv run pytest tests/test_table_layout.py -q -p no:randomly",
+              "uv run pytest tests/test_integrations.py tests/test_templates.py tests/test_demo -q -p no:randomly",
+              "uv run pre-commit run --files mvp/templates/table_view.html tests/test_table_layout.py"
+            ],
+            "code": [
+              "mvp/templates/table_view.html:61",
+              "tests/test_table_layout.py:762"
+            ]
+          }
         },
         {
           "id": "T025",
