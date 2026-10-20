@@ -20,6 +20,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - django-mvp-forms 0.6.0 or later is required, so a Tom Select field in the filter form
   starts once after each swap.
 
+### Fixed
+
+- A collapsed sidebar no longer makes the page taller than the window. With the default
+  collapse, a sidebar given any width when hidden, such as a border, made the page as tall
+  as its menu and gave it a scrollbar (#562).
+
 ## [v0.29.0] - 2026-10-19
 
 ### Changed
