@@ -1,0 +1,18 @@
+{% extends "mvp/base.html" %}
+{% comment %}
+  The whole shell inside a project's own daisyUI drawer, which starts open.
+  The shell's sidebar is opened and closed independently of it.
+{% endcomment %}
+{% block app %}
+  <div id="project-drawer" class="drawer">
+    <input id="project-drawer-toggle"
+           type="checkbox"
+           class="drawer-toggle"
+           checked />
+    <div class="drawer-content">{{ block.super }}</div>
+    <div class="drawer-side">
+      <label for="project-drawer-toggle" class="drawer-overlay"></label>
+      <div>Project panel</div>
+    </div>
+  </div>
+{% endblock app %}

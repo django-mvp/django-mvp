@@ -219,7 +219,9 @@ The generated entry file:
   are deterministic;
 - imports the **django-mvp preset** (`mvp/tailwind/base.css` inside the
   installed package) — the drawer-state variants (`is-drawer-open:`,
-  `is-drawer-close:`), the safelisted `{sm..2xl}:drawer-open` breakpoint
+  `is-drawer-close:`, which style a `.drawer-side` and its contents by the
+  toggle beside it, so in a drawer of your own they follow that drawer and not
+  the shell's), the safelisted `{sm..2xl}:drawer-open` breakpoint
   classes, the classes daisy-cotton's components build at render time (a
   button's size, for example), and the icon-rail CSS;
 - adds a `@source` for django-mvp's packaged templates (absolute path resolved
