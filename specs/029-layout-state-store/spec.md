@@ -137,6 +137,39 @@ does today. Independent of the store: the rules are CSS, and the store is not co
 
 ---
 
+### User Story 4 - A project keeps the sidebar open on wide screens (Priority: P3)
+
+A project designs its pages around a sidebar that is always there on a wide screen. A sidebar
+that can be collapsed gives each page two widths to lay out for, and the project would rather
+design for one. It sets the collapse mode to `none`.
+
+At and above the breakpoint the sidebar is then always open. Neither the sidebar header nor the
+navbar draws a toggle there, and a collapsed state a visitor saved on an earlier visit is not
+consulted, so that visitor finds the sidebar open too. Below the breakpoint nothing changes: the
+sidebar is the same overlay drawer, opened from the dock or the navbar and closed from its header.
+
+**Why this priority**: It adds one value to a setting the shell already reads and reuses the rules
+US-3 wrote down. Nothing else depends on it.
+
+**Independent Test**: Render the shell with the collapse mode set to `none` at each supported
+breakpoint setting, at a width below it and at a width at or above it, with and without a saved
+collapsed state, and check which toggles are drawn and whether the sidebar is open.
+
+**Acceptance Scenarios**:
+
+1. **Given** the collapse mode is `none`, **When** a page renders at or above the breakpoint,
+   **Then** the sidebar is open and neither the sidebar header's toggle nor the navbar's toggle
+   and site icon are drawn.
+2. **Given** the collapse mode is `none` and a visitor saved a collapsed sidebar on an earlier
+   visit, **When** a page renders at or above the breakpoint, **Then** the sidebar is open and
+   the saved state is left as it was.
+3. **Given** the collapse mode is `none` and the window is below the breakpoint with the drawer
+   closed, **When** the window widens past the breakpoint, **Then** the sidebar opens.
+4. **Given** the collapse mode is `none`, **When** a page renders below the breakpoint, **Then**
+   the sidebar is an overlay drawer with the same toggles as in the other collapse modes.
+5. **Given** the collapse mode is `none` and the breakpoint is `never`, **When** a page renders
+   at any width, **Then** the shell behaves as it does under `never` in the other modes.
+
 ### Edge Cases
 
 - **A breakpoint value the package does not recognise.** Today every tag falls back to the `lg`
@@ -155,6 +188,9 @@ does today. Independent of the store: the rules are CSS, and the store is not co
 - **A project that overrides the shell's base template.** The attribute the stylesheet rules key
   off must be rendered by a component the project keeps, not by a template it is likely to replace,
   or an override silently loses the rules.
+- **A sidebar that never collapses, after a boosted navigation.** The store restores the open
+  state from the saved desktop state after a navigation. Under the `none` collapse mode that
+  saved state is not consulted, so the sidebar comes back open at or above the breakpoint.
 - **Two shells on one page.** The store is global and the drawer is not. Whichever element the
   store tracks has to be the one the packaged shell renders.
 
@@ -221,6 +257,17 @@ does today. Independent of the store: the rules are CSS, and the store is not co
   the replacement stated.
 - **FR-023**: The demo application MUST show a project reacting to the shell through the store.
 
+**A sidebar that does not collapse**
+
+- **FR-024**: The collapse mode MUST accept `none`. At and above the breakpoint the sidebar is
+  then always open, the sidebar header and the navbar draw no sidebar toggle, and the navbar's
+  site icon stands down as it does while any sidebar is open.
+- **FR-025**: Under `none`, the saved desktop open state MUST NOT decide whether the sidebar is
+  open at or above the breakpoint, at first paint, after a resize across the breakpoint or after
+  a boosted navigation, and MUST NOT be overwritten.
+- **FR-026**: Under `none`, the shell below the breakpoint MUST behave as it does in the other
+  collapse modes, and under a breakpoint of `never` the value MUST have no effect.
+
 ### Requirement coverage
 
 Every requirement belongs to exactly one story, so a story that lands is a story that is finished,
@@ -232,11 +279,13 @@ documentation included.
 | US-1 — layout state on the store | FR-001, FR-002, FR-003, FR-004, FR-005, FR-006, FR-007, FR-008, FR-021, FR-023 |
 | US-2 — resolved configuration on the store | FR-009, FR-010, FR-013, FR-014 |
 | US-3 — visibility from the stylesheet | FR-015, FR-016, FR-017, FR-018, FR-019, FR-020, FR-022 |
+| US-4 — a sidebar that does not collapse | FR-024, FR-025, FR-026 |
 
 FR-011 and FR-012 govern how the configuration reaches the client at all. The payload they describe
 has to exist before the store can read it and is built from the same resolver the stylesheet
 attributes use, so it is delivered as shared groundwork rather than inside one story. Nothing was
-added or dropped in the correction.
+added or dropped in the correction. US-4 was added after the feature shipped and carries its own
+requirements.
 
 ### Key Entities
 
@@ -290,7 +339,8 @@ added or dropped in the correction.
 - Path-based layout overrides (#207) and the missing sign-in control below the breakpoint (#336),
   both of which touch the shell and are tracked separately.
 - Any change to what the shell renders or how it looks.
-- Any widening of the settings surface. No new configuration keys.
+- Any widening of the settings surface. No new configuration keys. (US-4 later added a value,
+  `none`, to the existing collapse setting.)
 - Loading additional client-side plugins. The bundle's contents are unchanged.
 
 ## Clarifications

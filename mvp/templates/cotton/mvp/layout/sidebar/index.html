@@ -1,7 +1,7 @@
 {# @description The drawer shell: toggle, overlay, desktop open-state persistence, and the resolved layout it publishes to the browser. #}
 {# @prop id:text | description:"Element id, used to derive the toggle checkbox id and the persisted storage key." #}
 {# @prop :breakpoint:text | description:"Viewport width at which the sidebar becomes a persistent panel instead of an overlay drawer." #}
-{# @prop :collapse:text | description:"offcanvas or icons — how the sidebar behaves when collapsed at/above the breakpoint." #}
+{# @prop :collapse:text | description:"offcanvas, icons or none — how the sidebar collapses at/above the breakpoint; none keeps it open there." #}
 {# @prop :sticky:boolean | description:"Whether the header pins to the top of the viewport." #}
 {# @prop :boost:boolean | description:"Adds hx-boost to the sidebar so its links navigate with htmx." #}
 {# @prop class:text | description:"Extra classes appended to the drawer root element." #}
@@ -50,9 +50,13 @@
     (function () {
       try {
         var toggle = document.getElementById('{{ id }}-toggle');
+        {% if layout.collapse == "none" %}
+        var wasOpen = true;
+        {% else %}
         var key = toggle.dataset.mvpPersistKey;
         var stored = localStorage.getItem(key);
         var wasOpen = stored === null ? true : JSON.parse(stored);
+        {% endif %}
         var isDesktop = window.matchMedia('(min-width: {% breakpoint_px breakpoint %}px)').matches;
         toggle.dataset.mvpPersistOpen = JSON.stringify(wasOpen);
         if (isDesktop && wasOpen) {

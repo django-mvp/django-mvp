@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `layout.sidebar.collapse` accepts `"none"`: at and above the sidebar breakpoint the
+  sidebar is always open, neither the sidebar header nor the navbar draws a toggle, and a
+  collapsed state saved on an earlier visit is ignored. Below the breakpoint nothing
+  changes, and under a breakpoint of `"never"` the value has no effect. See "Sidebar
+  collapse mode" in `docs/layout.md`.
+
 ### Changed
 
 - A list or table page updates in place when a filter is applied or removed, the sort

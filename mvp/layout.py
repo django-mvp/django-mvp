@@ -31,7 +31,8 @@ class LayoutConfig:
 
     Args:
         bp: The sidebar breakpoint name as configured, before normalisation.
-        collapse: How the sidebar collapses: ``offcanvas`` or ``icons``.
+        collapse: How the sidebar collapses at or above the breakpoint:
+            ``offcanvas``, ``icons``, or ``none`` to keep it open there.
         sticky: Whether the header sticks to the top of the viewport.
         boost: Whether sidebar links load through hx-boost.
     """

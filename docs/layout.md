@@ -47,6 +47,13 @@ At or above the breakpoint, the navbar toggle collapses the sidebar.
   The brand logo swaps for the brand icon. A collapsible menu group becomes a hover
   fly-out instead of an indented inline list — the disclosure caret has nowhere to
   point at rail width, so the group's items open as a popover beside the icon instead.
+- **`"none"`** — the sidebar does not collapse at or above the breakpoint. The toggle in
+  the sidebar header and the navbar's toggle are not drawn there, and the saved
+  open/closed state is not consulted, so a visitor who collapsed the sidebar under
+  another mode still finds it open. Widening the window past the breakpoint opens it.
+  Below the breakpoint it is the same overlay drawer as in the other modes, with the same
+  toggles. Under `breakpoint="never"` the value has no effect: there is no width at which
+  the sidebar is persistent.
 
 In your own sidebar content, control rail visibility with two utility classes:
 
@@ -56,7 +63,7 @@ In your own sidebar content, control rail visibility with two utility classes:
 Per-page override — see [Overriding the layout per page](#overriding-the-layout-per-page).
 
 The open/closed state persists across page loads (localStorage, key
-`mvp-app-drawer-open`). On first visit it defaults to open at/above the breakpoint and
+`mvp-app-drawer-open`), except under `"none"`, which neither reads nor writes it. On first visit it defaults to open at/above the breakpoint and
 closed below it.
 
 ## Sidebar size below the breakpoint
@@ -219,7 +226,8 @@ width where even every crumb truncated still will not fit.
 
 The site icon beside it stands down wherever the sidebar's own header is on screen
 showing the same mark — at or above the breakpoint with the drawer open, or at any
-width from the breakpoint up when `collapse` is `"icons"` and the rail keeps the icon.
+width from the breakpoint up when `collapse` is `"icons"` (the rail keeps the icon) or
+`"none"` (the sidebar is always open).
 So the brand appears once, and on a desktop page with the sidebar open the header's
 leading edge is the trail alone. The sidebar toggle follows the same rule and always
 has.
@@ -576,7 +584,7 @@ never have two shapes to keep in agreement.
 The drawer element — the one wrapping the sidebar, header and page content — carries
 the resolved layout as two attributes: `data-mvp-breakpoint` (`sm`, `md`, `lg`, `xl`,
 `2xl` or `never`, already normalised the same way `LayoutConfig.breakpoint` is above)
-and `data-mvp-collapse` (`offcanvas` or `icons`). `mvp/tailwind/base.css` selects on
+and `data-mvp-collapse` (`offcanvas`, `icons` or `none`). `mvp/tailwind/base.css` selects on
 both to decide what shows at which width, and four classes are available for your own
 markup to reuse the same rules instead of writing new media queries:
 
@@ -589,7 +597,7 @@ The configured breakpoint is the line between them.
 | `mvp-desktop-only` | desktop — at and above the configured breakpoint | on mobile. Under `breakpoint="never"` there is no desktop, so it is shown at every width rather than hidden at every width |
 | `mvp-mobile-only` | mobile — below the configured breakpoint | on desktop, and at every width under `breakpoint="never"`, so it never doubles up with the unconditionally shown `mvp-desktop-only` region |
 | `mvp-dock-only` | mobile — below the configured breakpoint | on desktop. Under `breakpoint="never"` it keeps showing at every width, unlike `mvp-mobile-only`: it has no unconditionally-shown desktop counterpart to avoid doubling up with, and the sidebar is an overlay at every width in that mode |
-| `mvp-sidebar-hidden-only` | while the sidebar is not on screen | while it is: always in `icons` mode from the breakpoint up, since the rail is always there, and in `offcanvas` mode only while the drawer is open |
+| `mvp-sidebar-hidden-only` | while the sidebar is not on screen | while it is: always in `icons` and `none` modes from the breakpoint up, since the rail or the open sidebar is always there, and in `offcanvas` mode only while the drawer is open |
 
 `mvp-sidebar-hidden-only` exists because the shell draws two controls twice. The sidebar's
 own header carries the brand icon and a toggle button, and the navbar carries its own copy
@@ -629,11 +637,11 @@ representative values:
 ```
 
 - `sidebar.open` — whether the sidebar is open right now: the mobile overlay below the breakpoint, the persistent panel at/above it. Bound to the drawer's own checkbox; reading it never lags what is on screen.
-- `sidebar.desktopOpen` — the remembered desktop-width open state (what `sidebar.open` is restored to on a later visit, at/above the breakpoint). Persisted to `localStorage`.
+- `sidebar.desktopOpen` — the remembered desktop-width open state (what `sidebar.open` is restored to on a later visit, at/above the breakpoint). Persisted to `localStorage`. Not consulted or written when `sidebar.collapse` is `"none"`.
 - `sidebar.breakpoint` — the normalised sidebar breakpoint for this page: `sm`, `md`, `lg`, `xl`, `2xl`, or `never`. An unrecognised name already fell back to `lg` server-side.
 - `sidebar.breakpointPx` — the breakpoint's width in pixels (see the [breakpoint table](#sidebar-breakpoint)) — `null` when `breakpoint` is `never`, since there is no width to report. This is what `isWide`'s `matchMedia` listener watches.
 - `sidebar.persistent` — whether the sidebar ever becomes a persistent panel at some width. `false` only when `breakpoint` is `never`; `isWide` then stays permanently `false` too, because no listener is attached.
-- `sidebar.collapse` — `"offcanvas"` or `"icons"`, see [Sidebar collapse mode](#sidebar-collapse-mode).
+- `sidebar.collapse` — `"offcanvas"`, `"icons"` or `"none"`, see [Sidebar collapse mode](#sidebar-collapse-mode).
 - `sidebar.boost` — whether sidebar links use `hx-boost`, see [Boosted sidebar navigation](#boosted-sidebar-navigation).
 - `header.stuck` — whether the sticky header has scrolled off its resting position (the same state that draws its shadow). Always `false` when `header.sticky` is `false`.
 - `header.sticky` — whether the header pins to the top of the viewport, see [Navbar position](#navbar-position). Sourced from `MVP_CONFIG["layout"]["navbar"]["sticky"]`, unchanged by the store's own grouping.

@@ -286,3 +286,127 @@ class TestVisibilityWithoutJavaScript:
             assert _display(_site_icon(page)) == "none"
         finally:
             context.close()
+
+
+def _sidebar_header_toggle(page):
+    return page.locator(".mvp-sidebar-header label.mvp-sidebar-toggle")
+
+
+def _sidebar_width(page):
+    return page.locator("aside.mvp-sidebar").evaluate(
+        "el => el.getBoundingClientRect().width"
+    )
+
+
+def _wait_for_store(page):
+    page.wait_for_function("() => window.Alpine && Alpine.store('mvp')")
+
+
+@pytest.fixture
+def collapsed_earlier(page):
+    """A visitor who collapsed the desktop sidebar on an earlier visit."""
+    page.add_init_script(
+        "window.localStorage.setItem('mvp-app-drawer-open', 'false');"
+    )
+
+
+@pytest.mark.usefixtures("mobile_navbar_toggle")
+class TestAlwaysOpenSidebar:
+    @pytest.mark.parametrize(("bp", "px"), REAL_BREAKPOINTS.items())
+    def test_no_toggle_is_drawn_at_or_above_the_breakpoint(
+        self, page, regions_server, bp, px
+    ):
+        _goto(page, regions_server, bp=bp, collapse="none", viewport=px)
+
+        assert _display(_sidebar_header_toggle(page)) == "none"
+        assert _display(_toggle_label(page)) == "none"
+        assert _display(_site_icon(page)) == "none"
+
+    @pytest.mark.parametrize(("bp", "px"), REAL_BREAKPOINTS.items())
+    def test_both_toggles_are_drawn_below_the_breakpoint(
+        self, page, regions_server, bp, px
+    ):
+        _goto(page, regions_server, bp=bp, collapse="none", viewport=px - 1)
+
+        assert _display(_sidebar_header_toggle(page)) != "none"
+        assert _display(_toggle_label(page)) != "none"
+
+    @pytest.mark.usefixtures("collapsed_earlier")
+    def test_a_stored_collapsed_state_is_ignored(self, page, regions_server):
+        _goto(page, regions_server, bp="lg", collapse="none", viewport=1280)
+
+        expect(_drawer_checkbox(page)).to_be_checked()
+        assert _sidebar_width(page) > 0
+
+    @pytest.mark.usefixtures("collapsed_earlier")
+    def test_the_stored_state_is_honoured_for_offcanvas(self, page, regions_server):
+        # The control for the test above: the same stored state does close
+        # the sidebar when the project has not asked for it to stay open.
+        _goto(page, regions_server, bp="lg", collapse="offcanvas", viewport=1280)
+
+        expect(_drawer_checkbox(page)).not_to_be_checked()
+
+    def test_widening_past_the_breakpoint_opens_it(self, page, regions_server):
+        _goto(page, regions_server, bp="lg", collapse="none", viewport=800)
+        _wait_for_store(page)
+        expect(_drawer_checkbox(page)).not_to_be_checked()
+
+        _resize(page, 1280)
+
+        expect(_drawer_checkbox(page)).to_be_checked()
+
+    @pytest.mark.usefixtures("collapsed_earlier")
+    def test_the_visitors_stored_state_is_left_alone(self, page, regions_server):
+        _goto(page, regions_server, bp="lg", collapse="none", viewport=800)
+        _wait_for_store(page)
+
+        _resize(page, 1280)
+        expect(_drawer_checkbox(page)).to_be_checked()
+
+        stored = page.evaluate("() => localStorage.getItem('mvp-app-drawer-open')")
+        assert stored == "false"
+
+    @pytest.mark.usefixtures("collapsed_earlier")
+    def test_a_boosted_navigation_keeps_it_open(self, page, regions_server):
+        _goto(page, regions_server, bp="lg", collapse="none", viewport=1280)
+        _wait_for_store(page)
+
+        open_after = page.evaluate(
+            "() => { const s = Alpine.store('mvp'); s.rebindAfterNavigation();"
+            " return s.sidebar.open; }"
+        )
+
+        assert open_after is True
+
+    def test_the_overlay_drawer_still_opens_below_the_breakpoint(
+        self, page, regions_server
+    ):
+        _goto(page, regions_server, bp="lg", collapse="none", viewport=800)
+
+        _open_drawer(page)
+
+        expect(_drawer_checkbox(page)).to_be_checked()
+
+    @pytest.mark.parametrize("width", NEVER_WIDTHS)
+    def test_no_effect_when_the_sidebar_is_never_persistent(
+        self, page, regions_server, width
+    ):
+        _goto(page, regions_server, bp="never", collapse="none", viewport=width)
+
+        assert _display(_sidebar_header_toggle(page)) != "none"
+        assert _display(_toggle_label(page)) != "none"
+
+    def test_open_without_javascript(self, browser, regions_server):
+        context = browser.new_context(java_script_enabled=False)
+        try:
+            page = context.new_page()
+            page.set_viewport_size({"width": 1280, "height": VIEWPORT_HEIGHT})
+
+            page.goto(
+                f"{regions_server.url}/responsive-visibility-regions/"
+                "?breakpoint=lg&collapse=none"
+            )
+
+            assert _sidebar_width(page) > 0
+        finally:
+            context.close()

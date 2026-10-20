@@ -52,7 +52,7 @@ site overrides the project setting for that one tag only.
 | `theme.dark` | theme name | `"dark"` | The other half of the two-theme toggle |
 | `theme.choices` | list of theme names | `[]` | Non-empty turns the theme control into a menu of these |
 | `layout.sidebar.breakpoint` | `sm` \| `md` \| `lg` \| `xl` \| `2xl` \| `never` \| `none` | `"lg"` | Viewport width at which the sidebar becomes persistent |
-| `layout.sidebar.collapse` | `"offcanvas"` \| `"icons"` | `"offcanvas"` | How the sidebar collapses when toggled at or above that width |
+| `layout.sidebar.collapse` | `"offcanvas"` \| `"icons"` \| `"none"` | `"offcanvas"` | How the sidebar collapses when toggled at or above that width, or `"none"` to keep it open there |
 | `layout.sidebar.title` | string or falsey | `None` | Text beside the brand mark in the sidebar header |
 | `layout.sidebar.boost` | bool | `False` | Navigate sidebar links without a full page load |
 | `layout.navbar.end` | list of component names | `["mvp.actions.theme-controller", "mvp.actions.login"]` | Widgets at the trailing edge of the navbar, at every width |
@@ -273,6 +273,12 @@ for it to apply to.
   fly-outs instead of inline lists. In your own sidebar content, mark an
   element `mvp-rail-hide` to hide it in the rail and `mvp-rail-only` to show
   it only there. `sidebar.title` is hidden in the rail.
+- `"none"` — the sidebar never collapses at or above the breakpoint. Neither
+  the sidebar header nor the navbar draws a toggle there, and a collapsed
+  state the visitor saved on an earlier visit is ignored, so the sidebar is
+  always open. Below the breakpoint nothing changes: the sidebar is still an
+  overlay drawer, opened from the dock or the navbar toggle and closed from
+  its header. Under a breakpoint of `"never"` the value has no effect.
 
 See [Sidebar collapse mode](layout.md#sidebar-collapse-mode) for how this
 looks and how the open/closed state persists.

@@ -496,6 +496,9 @@
    rendered on the drawer element by <c-app>/<c-mvp.layout.sidebar> (T014); every
    governed region is one of its descendants (D4), so the attribute selectors
    below reach all of them without repeating the values a page resolved.
+   Under collapse "none" the sidebar never closes at/above the breakpoint, so
+   the sidebar-hidden regions and the sidebar header's own toggle stand down
+   there unconditionally.
 
    mvp-desktop-only and mvp-sidebar-hidden-only are both shown by default, including
    under `never` — which has no width to key off and matches none of the
@@ -535,7 +538,8 @@
     display: none;
   }
 
-  .drawer[data-mvp-breakpoint="sm"][data-mvp-collapse="icons"] .mvp-sidebar-hidden-only {
+  .drawer[data-mvp-breakpoint="sm"]:is([data-mvp-collapse="icons"], [data-mvp-collapse="none"]) .mvp-sidebar-hidden-only,
+  .drawer[data-mvp-breakpoint="sm"][data-mvp-collapse="none"] .mvp-sidebar-toggle {
     display: none;
   }
 
@@ -559,7 +563,8 @@
     display: none;
   }
 
-  .drawer[data-mvp-breakpoint="md"][data-mvp-collapse="icons"] .mvp-sidebar-hidden-only {
+  .drawer[data-mvp-breakpoint="md"]:is([data-mvp-collapse="icons"], [data-mvp-collapse="none"]) .mvp-sidebar-hidden-only,
+  .drawer[data-mvp-breakpoint="md"][data-mvp-collapse="none"] .mvp-sidebar-toggle {
     display: none;
   }
 
@@ -583,7 +588,8 @@
     display: none;
   }
 
-  .drawer[data-mvp-breakpoint="lg"][data-mvp-collapse="icons"] .mvp-sidebar-hidden-only {
+  .drawer[data-mvp-breakpoint="lg"]:is([data-mvp-collapse="icons"], [data-mvp-collapse="none"]) .mvp-sidebar-hidden-only,
+  .drawer[data-mvp-breakpoint="lg"][data-mvp-collapse="none"] .mvp-sidebar-toggle {
     display: none;
   }
 
@@ -607,7 +613,8 @@
     display: none;
   }
 
-  .drawer[data-mvp-breakpoint="xl"][data-mvp-collapse="icons"] .mvp-sidebar-hidden-only {
+  .drawer[data-mvp-breakpoint="xl"]:is([data-mvp-collapse="icons"], [data-mvp-collapse="none"]) .mvp-sidebar-hidden-only,
+  .drawer[data-mvp-breakpoint="xl"][data-mvp-collapse="none"] .mvp-sidebar-toggle {
     display: none;
   }
 
@@ -631,7 +638,8 @@
     display: none;
   }
 
-  .drawer[data-mvp-breakpoint="2xl"][data-mvp-collapse="icons"] .mvp-sidebar-hidden-only {
+  .drawer[data-mvp-breakpoint="2xl"]:is([data-mvp-collapse="icons"], [data-mvp-collapse="none"]) .mvp-sidebar-hidden-only,
+  .drawer[data-mvp-breakpoint="2xl"][data-mvp-collapse="none"] .mvp-sidebar-toggle {
     display: none;
   }
 
