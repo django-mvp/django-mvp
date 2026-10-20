@@ -396,6 +396,13 @@
   scrollbar-gutter: stable;
 }
 
+/* Collapsed, the default sidebar is hidden by width alone and overflows the
+   drawer side, so with any width (a border) its menu set the page's height
+   (#562). Its overflow is hidden then, so the limit clips nothing visible. */
+.mvp-sidebar:not(.mvp-sidebar--icons) {
+  max-height: 100dvh;
+}
+
 /* Touch sizing for the sidebar while it is an overlay drawer, which is how a
    phone or tablet meets it. Below the sidebar breakpoint the panel widens,
    its text grows to body size and every row and button reaches a 44px target.
