@@ -1,6 +1,6 @@
 {# @description The app shell's drawer wrapper. #}
 {# @prop :breakpoint:text | description:"Width below which the sidebar collapses into the drawer/mobile layout." #}
-{# @prop :collapse:text | description:"How the sidebar collapses at narrow widths." #}
+{# @prop :collapse:text | description:"How the sidebar collapses at/above the breakpoint: offcanvas, icons, or none to keep it open there." #}
 {# @slot The main page content. — The content area inside the drawer. #}
 {# @slot:sidebar — The app sidebar content. #}
 <c-vars :breakpoint="mvp_config.layout.sidebar.breakpoint"

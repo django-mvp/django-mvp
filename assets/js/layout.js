@@ -118,27 +118,38 @@ export function registerLayoutStore(Alpine) {
         this.isWide = mq.matches;
         mq.addEventListener("change", (event) => {
           this.isWide = event.matches;
+          if (this.isWide && this.alwaysOpen()) {
+            this.sidebar.open = true;
+          }
         });
       }
 
       // Mirrors open into the persisted desktop state at/above the breakpoint
       // only, the same guard the drawer's own $watch used before this state
-      // moved into the store. Alpine.watch never fires on registration.
+      // moved into the store. Alpine.watch never fires on registration. An
+      // always-open sidebar leaves the visitor's stored state as it found it.
       Alpine.watch(
         () => this.sidebar.open,
         (value) => {
-          if (this.isWide) {
+          if (this.isWide && !this.alwaysOpen()) {
             this.sidebar.desktopOpen = value;
           }
         },
       );
     },
 
+    // collapse "none": the sidebar stays open at/above the breakpoint and the
+    // remembered state is not consulted there. isWide is only ever true for a
+    // persistent sidebar, so a breakpoint of never leaves this inert.
+    alwaysOpen() {
+      return this.sidebar.collapse === "none";
+    },
+
     // Called after a boosted navigation replaces <body> with a fresh,
     // server-closed drawer: re-derive the resting position rather than
     // carrying over a stale sidebar.open (a mobile overlay left open, say).
     rebindAfterNavigation() {
-      this.sidebar.open = this.isWide && this.sidebar.desktopOpen;
+      this.sidebar.open = this.isWide && (this.alwaysOpen() || this.sidebar.desktopOpen);
       // The header's handler only writes on the next scroll event, and the
       // swapped-in page starts at the top. Without this the shadow survives a
       // navigation that scrolled the reader back up (FR-007).

@@ -58,7 +58,8 @@ MVP_CONFIG = {
             # "never" keeps the sidebar an off-canvas overlay at every width.
             "breakpoint": "lg",
             # How the sidebar collapses when toggled at or above the breakpoint:
-            # "offcanvas" (slides fully away) or "icons" (collapses to an icon rail)
+            # "offcanvas" (slides fully away), "icons" (collapses to an icon rail)
+            # or "none" (always open there, with no toggle). No effect under "never".
             "collapse": "offcanvas",
             # Text shown beside the brand icon in the sidebar header. Falsey
             # (the default) renders no title. Hidden while collapsed to an icon rail.

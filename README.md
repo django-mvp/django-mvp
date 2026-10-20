@@ -42,8 +42,8 @@ the box. **Things should just work.**
 
 - **A complete app shell** — sidebar, navbar, content area, footer, and mobile dock
   navigation, rendered around every page and configured from Django settings
-  (pydata-sphinx-theme style): sidebar collapse breakpoint, offcanvas vs. icon-rail
-  collapse, and navbar widgets are all `MVP_CONFIG` keys.
+  (pydata-sphinx-theme style): sidebar collapse breakpoint, offcanvas, icon-rail or
+  no collapse, and navbar widgets are all `MVP_CONFIG` keys.
 - **A Cotton component library** — cards, grids, menu entries, dropdowns, pagination,
   hero sections and more, with small consistent attribute APIs. The basic components, such
   as the button, the alert and the menu, come from
@@ -203,7 +203,7 @@ MVP_CONFIG = {
     "layout": {
         "sidebar": {
             "breakpoint": "lg",       # sm|md|lg|xl|2xl — when the sidebar is persistent
-            "collapse": "offcanvas",  # "offcanvas" (slide away) or "icons" (icon rail)
+            "collapse": "offcanvas",  # "offcanvas" (slide away), "icons" (icon rail) or "none" (always open)
         },
         "navbar": {
             # Cotton component names, rendered at the right end of the navbar

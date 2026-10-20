@@ -3,7 +3,7 @@
 {# @prop brand-url:text | default:"/" | description:"URL the brand mark links to." #}
 {# @prop class:text | description:"Extra classes on the sidebar root." #}
 {# @prop menu:text | default:"" | description:"Menu name to render. Empty renders AppMenu (or the mounted app's menu) with no back link." #}
-{# @prop :collapse:text | description:"How the sidebar collapses: icons for an icon rail, or the default drawer behaviour." #}
+{# @prop :collapse:text | description:"How the sidebar collapses: icons for an icon rail, none to keep it open at/above the breakpoint, otherwise the default drawer behaviour." #}
 {# @prop :title:text | description:"Title text shown in the sidebar header." #}
 {# @prop :boost:boolean | description:"Set hx-boost on the sidebar root so every link inside it — menu items, brand link, footer actions — navigates with htmx." #}
 {# @slot:header — Replaces the top strip: brand icon, title, collapse toggle. #}
@@ -25,7 +25,7 @@
 {# The drawer lives inside <body>, and htmx swaps the body's innerHTML, so a #}
 {# boosted click renders a fresh drawer in its server-side (closed) state and #}
 {# the mobile overlay closes on its own. #}
-<aside class="mvp-sidebar flex flex-col min-h-full items-start transition-[width] duration-200 {% if collapse == 'icons' %}mvp-sidebar--icons is-drawer-close:w-16 is-drawer-open:w-65{% else %}is-drawer-close:w-0 is-drawer-close:overflow-hidden is-drawer-open:w-65{% endif %} {{ bg }} {{ class }}"
+<aside class="mvp-sidebar flex flex-col min-h-full items-start transition-[width] duration-200 {% if collapse == 'icons' %}mvp-sidebar--icons is-drawer-close:w-16 is-drawer-open:w-65{% elif collapse == 'none' %}w-65{% else %}is-drawer-close:w-0 is-drawer-close:overflow-hidden is-drawer-open:w-65{% endif %} {{ bg }} {{ class }}"
        {% if boost %}hx-boost="true"{% endif %}
        {{ attrs }}>
   {% if header.strip %}
