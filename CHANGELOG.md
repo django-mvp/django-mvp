@@ -33,6 +33,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - A collapsed sidebar no longer makes the page taller than the window. With the default
   collapse, a sidebar given any width when hidden, such as a border, made the page as tall
   as its menu and gave it a scrollbar (#562).
+- The shell's drawer styles no longer reach a daisyUI drawer of your own, inside a page or
+  around the whole shell. `is-drawer-open:` and `is-drawer-close:` follow the drawer an
+  element sits in, as daisyUI's own variants of the same names do, so an element inside two
+  drawers can no longer be open and closed at once. A drawer around a `fill` page no longer
+  takes the viewport's height, and a drawer around the shell no longer holds the shell's
+  collapsed sidebar at full width while it is open.
 
 ## [v0.29.0] - 2026-10-19
 

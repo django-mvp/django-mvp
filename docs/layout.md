@@ -476,8 +476,8 @@ Put `fill` on `<c-mvp.page>`. That is the whole opt-in:
 ```
 
 There is nothing to configure above the page, and no setting for it. `fill` marks
-the page, and the shell responds to the mark: `drawer-content` becomes a flex
-column with a viewport-height floor, `<c-app.main>` is already `flex-1`, and
+the page, and the shell responds to the mark: its own `drawer-content` becomes a
+flex column with a viewport-height floor, `<c-app.main>` is already `flex-1`, and
 `<c-mvp.page.content>` is already `flex-1 min-h-0`. Your content can then take
 `h-full` and scroll internally.
 
@@ -485,7 +485,8 @@ The demo runs a Leaflet map this way at `/layout/full-page/`.
 
 Pages without `fill` are untouched. The shell's markup is identical either way —
 the rule is scoped to pages carrying the mark, so on every other page it does not
-apply at all.
+apply at all. A daisyUI drawer of your own around the filled page keeps its own
+height: only the shell's content area responds to the mark.
 
 The floor is stated rather than inherited because the sidebar only supplies a
 height at some widths. At or above `layout.sidebar.breakpoint` the sidebar is a

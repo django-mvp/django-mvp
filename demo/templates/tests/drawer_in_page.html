@@ -1,0 +1,23 @@
+{% extends "mvp/base.html" %}
+{% comment %}
+  A project's own daisyUI drawer inside a filled page, closed, under a shell
+  whose sidebar is open. Every class used here is one the prebuilt stylesheet
+  already emits, because this template is not scanned.
+{% endcomment %}
+{% block content %}
+  <div id="project-drawer" class="drawer">
+    <input id="project-drawer-toggle" type="checkbox" class="drawer-toggle" />
+    <div id="project-drawer-content" class="drawer-content">
+      <c-mvp.page fill>
+        <c-mvp.page.content>
+          <div class="h-full w-full"></div>
+        </c-mvp.page.content>
+      </c-mvp.page>
+    </div>
+    <div class="drawer-side">
+      <label for="project-drawer-toggle" class="drawer-overlay"></label>
+      <div id="project-open-probe" class="is-drawer-open:me-2">Open</div>
+      <div id="project-close-probe" class="is-drawer-close:px-2">Closed</div>
+    </div>
+  </div>
+{% endblock content %}

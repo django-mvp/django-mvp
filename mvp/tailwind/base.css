@@ -65,10 +65,12 @@
    project's own build does not scan. */
 @source inline("mvp-{header,dock}-bg");
 
-/* Drawer-state variants: style descendants of a .drawer based on its
-   .drawer-toggle checkbox state (checked = open, unchecked = closed). */
-@custom-variant is-drawer-open (&:is(.drawer:has(> .drawer-toggle:checked) *));
-@custom-variant is-drawer-close (&:is(.drawer:has(> .drawer-toggle:not(:checked)) *));
+/* Drawer-state variants: style a .drawer-side and its contents by the
+   .drawer-toggle beside it, as daisyUI's variants of the same names do, so an
+   element follows its own drawer and never a project's drawer around it.
+   :is() rather than daisyUI's :where() keeps the specificity the shell relies on. */
+@custom-variant is-drawer-open (&:is(.drawer-toggle:checked ~ .drawer-side, .drawer-toggle:checked ~ .drawer-side *));
+@custom-variant is-drawer-close (&:is(.drawer-toggle:not(:checked) ~ .drawer-side, .drawer-toggle:not(:checked) ~ .drawer-side *));
 
 /* Safelist: sidebar breakpoint classes are emitted by the sidebar_breakpoint_class
    templatetag (mvp/templatetags/mvp.py), so the scanner never sees them in source. */
@@ -184,8 +186,12 @@
    Scoped to pages that ask, via :has(), rather than applied to .drawer-content
    for everyone. Making the flex column a global default also pins the footer
    to the bottom of the viewport on every short page in every project — a
-   change nobody asked for, to fix a case only some pages have. */
-.drawer-content:has(.mvp-page-fill) {
+   change nobody asked for, to fix a case only some pages have.
+
+   And scoped to the shell's own .drawer-content, the child of the element
+   carrying data-mvp-breakpoint, so a project's drawer around the page keeps its
+   own height. */
+[data-mvp-breakpoint] > .drawer-content:has(.mvp-page-fill) {
   display: flex;
   flex-direction: column;
   min-height: 100dvh;
@@ -205,7 +211,7 @@
    container it was supposed to be bounded by. Both rungs between the shell
    and <c-mvp.page.content> (which already carries `min-h-0`) have to release
    that, or the height stops at the top of the chain and never arrives. */
-.drawer-content:has(.mvp-page-fill) > main,
+[data-mvp-breakpoint] > .drawer-content:has(.mvp-page-fill) > main,
 .mvp-page-fill {
   min-height: 0;
 }
@@ -222,7 +228,7 @@
    content ends where the dock begins. `relative` rather than `static` so
    anything a project positions absolutely inside a dock item still anchors
    to it. */
-.drawer-content:has(.mvp-page-fill) .dock {
+[data-mvp-breakpoint] > .drawer-content:has(.mvp-page-fill) .dock {
   position: relative;
 }
 
@@ -246,13 +252,14 @@
 /* Icon-rail collapse mode (MVP_CONFIG layout.sidebar.collapse = "icons"):
    when the drawer is closed, the sidebar keeps its icons and hides labels,
    badges and section titles. Mark elements with .mvp-rail-hide to hide them
-   in the closed rail, or .mvp-rail-only to show them only in the closed rail. */
+   in the closed rail, or .mvp-rail-only to show them only in the closed rail.
+   Like the drawer-state variants, these read the sidebar's own toggle. */
 /* Unlayered on purpose: must beat DaisyUI's layered component styles. */
 .mvp-rail-only {
   display: none;
 }
 
-.drawer:has(> .drawer-toggle:not(:checked)) .mvp-sidebar--icons {
+.drawer-toggle:not(:checked) ~ .drawer-side .mvp-sidebar--icons {
   .menu-title,
   .badge,
   .mvp-rail-hide {
@@ -390,7 +397,7 @@
 /* Reserve the sidebar's scrollbar gutter while it is open, so a vertical
    scrollbar appearing (enough menu items to overflow) never widens the
    sidebar and reflows the main content (#179). */
-.drawer:has(> .drawer-toggle:checked) .mvp-sidebar {
+.drawer-toggle:checked ~ .drawer-side .mvp-sidebar {
   max-height: 100dvh;
   overflow-y: auto;
   scrollbar-gutter: stable;
@@ -456,7 +463,7 @@
 
 /* Unlayered on purpose: must beat the `is-drawer-open:w-65` utility and
    DaisyUI's layered menu and button sizes. */
-.drawer:has(> .drawer-toggle:checked) .mvp-sidebar {
+.drawer-toggle:checked ~ .drawer-side .mvp-sidebar {
   width: var(--mvp-sidebar-width, 16.25rem);
 }
 
