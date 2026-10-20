@@ -53,7 +53,8 @@
         {% if layout.collapse == "none" %}
         var wasOpen = true;
         {% else %}
-        var stored = localStorage.getItem(toggle.dataset.mvpPersistKey);
+        var key = toggle.dataset.mvpPersistKey;
+        var stored = localStorage.getItem(key);
         var wasOpen = stored === null ? true : JSON.parse(stored);
         {% endif %}
         var isDesktop = window.matchMedia('(min-width: {% breakpoint_px breakpoint %}px)').matches;
