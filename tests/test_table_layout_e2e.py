@@ -330,7 +330,10 @@ FILTER_PANEL_MEASURES = """
     () => {
       const rect = (el) => {
         const r = el.getBoundingClientRect();
-        return { top: Math.round(r.top), bottom: Math.round(r.bottom) };
+        return {
+          top: Math.round(r.top), bottom: Math.round(r.bottom),
+          left: Math.round(r.left), right: Math.round(r.right),
+        };
       };
       const panel = document.querySelector('#filters');
       const aside = document.querySelector('#filters-panel');
@@ -375,6 +378,15 @@ class TestTheFilterPanelBesideTheTable:
         assert measured["panel"]["bottom"] == pytest.approx(
             measured["main"]["bottom"], abs=1
         )
+
+    @pytest.mark.django_db
+    def test_the_panel_and_the_table_area_meet_with_no_column_gap(
+        self, page, live_server
+    ):
+        measured = _measure_the_filter_panel(page, live_server, VIEWPORTS["desktop"])
+
+        # The panel defaults to the end, so the table area runs up to its edge.
+        assert measured["main"]["right"] == measured["panel"]["left"]
 
     @pytest.mark.django_db
     def test_the_panel_does_not_stick(self, page, live_server):
