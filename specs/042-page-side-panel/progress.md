@@ -152,3 +152,10 @@ Did: startHeaderHeight() keeps its ResizeObserver in module scope, disconnects i
 Verified: test_header_height_e2e.py 6 passed; with the afterSettle call removed the new test fails (wait_for_function timeout), 5 passed 1 failed.
 Next: T020.
 Watch: header_height.js header comment is over three lines; T020 trims it.
+
+## 2026-10-21T12:55:12Z · Implementer FIX-1 · T022
+
+Did: wrapTab filters candidates to tabIndex >= 0, not type=hidden, checkVisibility(). Added a drawer page variant (?tail=1) ending in a hidden input and a closed details, and a Tab-wrap test.
+Verified: test_page_side_e2e.py 23 passed; with the filter removed the new test fails (focus ends on no element), 1 failed.
+Next: T021, T020.
+Watch: the drawer test page template gained an opt-in tail block.

@@ -312,8 +312,20 @@
         },
         {
           "id": "T022",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_page_side_e2e.py::TestSideDrawer::test_tab_from_the_last_control_wraps_when_the_panel_ends_in_something_untabbable"
+            ],
+            "commands": [
+              "uv run pytest tests/test_components/test_page_side_e2e.py -q (23 passed)",
+              "mutation: .filter(canTakeFocus) removed from wrapTab, rebuilt: new test failed (active element id '' != 'toc-panel')"
+            ],
+            "code": [
+              "assets/js/page_side.js:111"
+            ]
+          }
         }
       ]
     },
