@@ -45,13 +45,13 @@
         <aside id="{{ id }}-panel"
                aria-labelledby="{{ id }}-label"
                tabindex="0"
+               {% if sticky %}x-data="mvpPageSideColumn"{% endif %}
                class="mvp-page-side-panel bg-base-100 min-h-full w-80 max-w-[calc(100vw-3.5rem)] p-4 shadow-xl">
           <div class="flex items-center justify-between gap-2 mb-2">
             <h2 id="{{ id }}-label" class="px-3 text-sm font-semibold text-base-content/70">{{ label }}</h2>
             <button type="button"
                     class="btn btn-ghost btn-sm btn-square mvp-page-side-close"
                     aria-label="{% blocktrans %}Close {{ label }}{% endblocktrans %}"
-                    x-ref="close"
                     @click="close()">
               <c-icon name="x" />
             </button>
@@ -64,6 +64,7 @@
     <aside id="{{ id }}-panel"
            aria-labelledby="{{ id }}-label"
            tabindex="0"
+           {% if sticky %}x-data="mvpPageSideColumn"{% endif %}
            class="mvp-page-side-panel">
       <h2 id="{{ id }}-label" class="px-3 mb-2 text-sm font-semibold text-base-content/70">{{ label }}</h2>
       {{ slot }}

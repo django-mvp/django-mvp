@@ -66,6 +66,12 @@ function pageSide({ id, breakpointRem }) {
       return this.$refs.toggle.checked;
     },
 
+    // Found in the DOM, not by x-ref: the aside is its own component when it sticks, and a ref
+    // inside it belongs to that one.
+    closeButton() {
+      return this.$el.querySelector(".mvp-page-side-close");
+    },
+
     open(opener) {
       if (this.isOpen()) {
         return;
@@ -91,7 +97,7 @@ function pageSide({ id, breakpointRem }) {
     },
 
     wrapTab(event) {
-      const aside = this.$refs.close.closest("aside");
+      const aside = this.closeButton().closest("aside");
       const tabbable = [...aside.querySelectorAll(TABBABLE)].filter(canTakeFocus);
       tabbable.unshift(aside);
       const first = tabbable[0];
@@ -109,7 +115,7 @@ function pageSide({ id, breakpointRem }) {
     // Everything outside the panel, remembering exactly what this drawer
     // marked so closing it never clears an `inert` something else set.
     hideOutside() {
-      for (let node = this.$refs.close.closest(".drawer-side"); node && node !== document.body; node = node.parentElement) {
+      for (let node = this.closeButton().closest(".drawer-side"); node && node !== document.body; node = node.parentElement) {
         for (const sibling of node.parentElement.children) {
           if (sibling !== node && !sibling.inert) {
             sibling.inert = true;
@@ -127,7 +133,7 @@ function pageSide({ id, breakpointRem }) {
     },
 
     focusClose() {
-      const side = this.$refs.close.closest(".drawer-side");
+      const side = this.closeButton().closest(".drawer-side");
       const until = performance.now() + FOCUS_WAIT_MS;
       const attempt = () => {
         if (!this.isOpen()) {
@@ -135,7 +141,7 @@ function pageSide({ id, breakpointRem }) {
         }
         if (getComputedStyle(side).visibility === "visible") {
           // An end panel is still translated past the edge; scrolling to it would skip the slide.
-          this.$refs.close.focus({ preventScroll: true });
+          this.closeButton().focus({ preventScroll: true });
         } else if (performance.now() < until) {
           requestAnimationFrame(attempt);
         }

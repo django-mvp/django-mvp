@@ -24,6 +24,7 @@ import { startDropdowns } from "./dropdown.js";
 import { startHeaderHeight } from "./header_height.js";
 import { registerLayoutStore } from "./layout.js";
 import { registerPageSide } from "./page_side.js";
+import { registerPageSideColumn } from "./page_side_column.js";
 import { startThemeColor } from "./theme_color.js";
 
 // htmx reads hx-* attributes off the DOM itself; the global is what its own
@@ -79,6 +80,9 @@ registerLayoutStore(Alpine);
 
 // The side panel's drawer and its button. See assets/js/page_side.js.
 registerPageSide(Alpine);
+
+// A tall sticky panel moving with the page. See assets/js/page_side_column.js.
+registerPageSideColumn(Alpine);
 
 // mvp/static/js/formset.js reaches for the global, as does any x-data in a
 // consuming project's own templates.

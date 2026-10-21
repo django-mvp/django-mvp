@@ -990,17 +990,11 @@ html {
   margin: 0;
   padding-block: 0 1rem;
 
-  /* Stuck just under the header, never taller than what is left of the
-     screen, so a long panel scrolls on its own instead of running off. */
+  /* Stuck just under the header. A panel taller than the screen is moved by page_side_column.js
+     through --mvp-page-side-top (docs/adr/0036-a-tall-side-panel-moves-with-the-page.md). */
   &[data-mvp-side-sticky] {
     position: sticky;
-    top: calc(var(--mvp-header-height) + 1rem);
-  }
-
-  &[data-mvp-side-sticky] .mvp-page-side-panel {
-    max-height: calc(100dvh - var(--mvp-header-height) - 1rem);
-    overflow-y: auto;
-    overscroll-behavior: contain;
+    top: var(--mvp-page-side-top, calc(var(--mvp-header-height) + 1rem));
   }
 
   /* Undo the drawer: in a column there is nothing to open or close. */
@@ -1041,8 +1035,8 @@ html {
     box-shadow: none;
   }
 
-  /* The panel is the scroller, so it is the tab stop; its ring sits inside
-     its edge, where the column's own overflow does not clip it. */
+  /* Where the panel scrolls (a filled page, a drawer) it is the tab stop; its ring sits inside
+     its edge, where its own overflow does not clip it. */
   & .mvp-page-side-panel:focus-visible {
     outline: 2px solid var(--color-primary);
     outline-offset: -2px;
