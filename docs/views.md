@@ -386,7 +386,7 @@ class ProductListView(MVPListView):
 
 | Attribute | What it does |
 | --- | --- |
-| `filter_panel_attrs` | A dict handed to the panel's `<c-mvp.page.side>`: `width`, `position`, `align`, `breakpoint` (`False` keeps the filters behind the button at every width), `collapse` and `class`. Default: `{"position": "end"}`. Unless `align` is set, the panel is level with the results at the end and with the title at the start. A dict you set replaces the default whole |
+| `filter_panel_attrs` | A dict handed to the panel's `<c-mvp.page.side>`: `width`, `position`, `align`, `breakpoint` (`False` keeps the filters behind the button at every width), `collapse` and `class`. Default: `{"position": "end", "sticky": False}`: the panel scrolls with the page, so a long one has no scrollbar of its own, and its Apply and Clear stay at the foot of the screen. Unless `align` is set, the panel is level with the results at the end and with the title at the start. A dict you set replaces the default whole |
 | `filter_panel_id` | The id of the panel's root element, which the Filters button opens and every update refreshes. Default: `"filters"` |
 
 To draw the panel yourself, call

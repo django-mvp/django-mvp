@@ -250,20 +250,26 @@ class TestFilterPanel:
         expect(page.locator("#filters-panel")).to_be_visible()
         expect(button).to_have_attribute("aria-expanded", "true")
 
-    def test_scrolling_the_panel_keeps_apply_and_clear_in_view(
+    def test_a_panel_taller_than_the_screen_has_no_scrollbar_of_its_own(
         self, page, live_server, products
     ):
         page.set_viewport_size({"width": 1440, "height": 500})
         page.goto(f"{live_server.url}{LIST_PAGE}?price_min=1")
         page.wait_for_load_state("networkidle")
         aside = page.locator("#filters-panel")
-        assert aside.evaluate("el => el.scrollHeight > el.clientHeight"), (
-            "the filters fit, so this proves nothing"
-        )
-        page.evaluate("window.scrollTo(0, 300)")
 
-        for position in ("0", "el.scrollHeight / 2", "el.scrollHeight"):
-            aside.evaluate(f"el => {{ el.scrollTop = {position} }}")
+        assert aside.evaluate("el => el.getBoundingClientRect().height") > 500
+        assert aside.evaluate("el => el.scrollHeight <= el.clientHeight")
+
+    def test_scrolling_the_page_keeps_apply_and_clear_in_view(
+        self, page, live_server, products
+    ):
+        page.set_viewport_size({"width": 1440, "height": 500})
+        page.goto(f"{live_server.url}{LIST_PAGE}?price_min=1")
+        page.wait_for_load_state("networkidle")
+
+        for position in (0, 200, 400):
+            page.evaluate(f"window.scrollTo(0, {position})")
 
             expect(_panel(page).locator("button[type=submit]")).to_be_in_viewport()
             expect(_clear(page)).to_be_in_viewport()
