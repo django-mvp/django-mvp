@@ -23,6 +23,7 @@ function pageSide({ id, breakpointRem }) {
     media: null,
     onOpen: null,
     onKeydown: null,
+    onClick: null,
     onWide: null,
 
     init() {
@@ -41,8 +42,22 @@ function pageSide({ id, breakpointRem }) {
           this.wrapTab(event);
         }
       };
+      this.onClick = (event) => {
+        const target = this.isOpen() && this.pageLinkTarget(event);
+        if (!target) {
+          return;
+        }
+        // The browser's own fragment navigation does the scrolling.
+        this.close({ restoreFocus: false });
+        target.focus({ preventScroll: true });
+        if (document.activeElement !== target) {
+          target.tabIndex = -1;
+          target.focus({ preventScroll: true });
+        }
+      };
       window.addEventListener(OPEN_EVENT, this.onOpen);
       window.addEventListener("keydown", this.onKeydown);
+      this.$el.addEventListener("click", this.onClick);
 
       if (breakpointRem !== undefined && window.matchMedia) {
         this.media = window.matchMedia(`(min-width: ${breakpointRem}rem)`);
@@ -59,6 +74,7 @@ function pageSide({ id, breakpointRem }) {
       this.release();
       window.removeEventListener(OPEN_EVENT, this.onOpen);
       window.removeEventListener("keydown", this.onKeydown);
+      this.$el.removeEventListener("click", this.onClick);
       this.media?.removeEventListener("change", this.onWide);
     },
 
@@ -94,6 +110,27 @@ function pageSide({ id, breakpointRem }) {
         this.opener.focus();
       }
       this.opener = null;
+    },
+
+    // The element a plain click on a panel link would scroll to on this same page, if any.
+    pageLinkTarget(event) {
+      const link = event.target.closest("a[href]");
+      if (
+        event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey ||
+        !link || !this.closeButton().closest("aside").contains(link) ||
+        (link.target && link.target !== "_self") || link.hasAttribute("download")
+      ) {
+        return null;
+      }
+      const url = new URL(link.href, location.href);
+      if (!url.hash || url.origin !== location.origin || url.pathname !== location.pathname || url.search !== location.search) {
+        return null;
+      }
+      try {
+        return document.getElementById(decodeURIComponent(url.hash.slice(1)));
+      } catch {
+        return null;
+      }
     },
 
     wrapTab(event) {

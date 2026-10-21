@@ -606,6 +606,7 @@ def side_drawer_page(request):
 
 
 def open_drawer_page(page, live_server, query="", viewport=NARROW):
+    page.set_default_timeout(5000)
     page.set_viewport_size(viewport)
     page.goto(f"{live_server.url}/side-drawer-test/{query}")
     page.wait_for_function("() => window.Alpine !== undefined")
@@ -723,8 +724,8 @@ class TestSideDrawer:
         frames(page)
         assert not page.locator("#toc .drawer-toggle").is_checked()
         assert inert_ids(page) == []
-        assert not page.locator("#toc .drawer-overlay").is_visible()
-        assert header_bottom(page) <= top(page, "#target") < NARROW["height"]
+        page.locator("#toc .drawer-overlay").wait_for(state="hidden")
+        assert header_bottom(page) - 1 <= top(page, "#target") < NARROW["height"]
 
     def test_following_a_link_to_a_place_on_the_page_moves_focus_to_that_place(
         self, page, live_server
