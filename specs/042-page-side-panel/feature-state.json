@@ -353,8 +353,19 @@
         },
         {
           "id": "T016",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 2,
+          "evidence": {
+            "tests": [
+              "tests/test_list_filters_e2e.py::TestFilterPanel"
+            ],
+            "commands": [
+              "uv run pytest tests/test_list_filters_e2e.py"
+            ],
+            "code": [
+              "mvp/static/js/list_view.js:22"
+            ]
+          }
         },
         {
           "id": "T017",

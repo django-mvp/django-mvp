@@ -1,19 +1,14 @@
 /**
  * The list page's filter form (list_view.html, table_view.html).
  *
- * Both listeners sit on the document in the capture phase: neither `formdata`
- * nor a dialog's `close` bubbles, and capturing them there needs no element to
- * exist when this file runs.
+ * The listeners sit on the document, and `formdata` in the capture phase: it
+ * does not bubble, and capturing it there needs no element to exist when this
+ * file runs.
  *
  * formdata — a field nobody set stays out of the address. An entry is dropped
  *   when its value is empty, or when it is "unknown" from a <select>: that is
  *   the empty choice of Django's NullBooleanSelect. A search for the word
  *   "unknown" is typed, not chosen, so it is kept (FS-041 FR-028).
- *
- * close — closing the filter modal without applying puts every field in it
- *   back as the page drew it, so a later toolbar change does not send what
- *   the reader abandoned (FS-041 FR-019). A select enhanced by a widget
- *   library that exposes itself as `select.tomselect` is told to redraw.
  *
  * focusin/focusout — a toolbar field that holds several values, or whatever
  *   widget the developer chose, is a [data-mvp-toolbar-field] wrapper naming
@@ -25,7 +20,6 @@
  */
 (() => {
   const FORM_ID = "filterForm";
-  const MODAL_ID = "filterModal";
 
   const chosenUnknown = (form) =>
     new Set(
@@ -51,26 +45,6 @@
         if (value === "unknown" && fromSelect.has(key)) continue;
         data.append(key, value);
       }
-    },
-    true,
-  );
-
-  const restore = (el) => {
-    if (el.type === "checkbox" || el.type === "radio") {
-      el.checked = el.defaultChecked;
-    } else if (el.tagName === "SELECT") {
-      for (const option of el.options) option.selected = option.defaultSelected;
-      el.tomselect?.sync();
-    } else {
-      el.value = el.defaultValue;
-    }
-  };
-
-  document.addEventListener(
-    "close",
-    (event) => {
-      if (event.target.id !== MODAL_ID) return;
-      event.target.querySelectorAll("input, select, textarea").forEach(restore);
     },
     true,
   );
