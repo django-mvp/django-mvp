@@ -96,7 +96,7 @@
               "uv run pytest tests/test_templatetags.py -q"
             ],
             "code": [
-              "mvp/templatetags/mvp.py:362"
+              "mvp/templatetags/mvp.py:395"
             ]
           }
         },
