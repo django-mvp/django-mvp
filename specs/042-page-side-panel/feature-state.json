@@ -307,8 +307,19 @@
         },
         {
           "id": "T021",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "none: documentation only"
+            ],
+            "commands": [
+              "grep -n '[^:]breakpoint=\"False\"' docs/*.md (no match)"
+            ],
+            "code": [
+              "docs/layout.md:636"
+            ]
+          }
         },
         {
           "id": "T022",

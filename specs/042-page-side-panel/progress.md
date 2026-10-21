@@ -159,3 +159,10 @@ Did: wrapTab filters candidates to tabIndex >= 0, not type=hidden, checkVisibili
 Verified: test_page_side_e2e.py 23 passed; with the filter removed the new test fails (focus ends on no element), 1 failed.
 Next: T021, T020.
 Watch: the drawer test page template gained an opt-in tail block.
+
+## 2026-10-21T12:55:35Z · Implementer FIX-1 · T021
+
+Did: docs/layout.md (table, prose) and docs/components.md (table) write :breakpoint="False".
+Verified: grep finds no bare breakpoint="False" under docs/.
+Next: T020.
+Watch: none.
