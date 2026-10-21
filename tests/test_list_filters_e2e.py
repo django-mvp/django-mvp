@@ -274,6 +274,31 @@ class TestFilterPanel:
             expect(_panel(page).locator("button[type=submit]")).to_be_in_viewport()
             expect(_clear(page)).to_be_in_viewport()
 
+    def test_after_applying_a_filter_the_new_panel_holds_its_foot_in_view(
+        self, page, live_server
+    ):
+        # The results must be taller than the panel, or the panel ends with them.
+        ProductFactory.create_batch(40, status="published", is_featured=False)
+        page.set_viewport_size({"width": 1440, "height": 500})
+        page.goto(f"{live_server.url}{LIST_PAGE}")
+        page.wait_for_load_state("networkidle")
+        _panel(page).locator("input[name=price_min]").fill("1")
+        _apply(page)
+        _wait_for_query(page, {"price_min": ["1"]})
+        page.wait_for_function(
+            "() => document.getElementById('filters').style.getPropertyValue('--mvp-page-side-top') !== ''"
+        )
+
+        page.evaluate("window.scrollTo(0, 1000)")
+        page.evaluate(
+            "() => new Promise(done => requestAnimationFrame(() => requestAnimationFrame(done)))"
+        )
+
+        bottom = page.locator("#filters-panel").evaluate(
+            "el => el.getBoundingClientRect().bottom"
+        )
+        assert bottom == pytest.approx(500 - 16, abs=2)
+
     @pytest.mark.urls(DEVELOPERS_WIDGET_URLCONF)
     def test_a_developers_own_widget_in_the_panel_is_submitted(
         self, page, live_server, products

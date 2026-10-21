@@ -44,7 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   context keys `modal_fields`, `modal_applied_count` and `clear_modal_url` are now
   `panel_fields`, `panel_applied_count` and `clear_panel_url`, with no aliases. A view sets the
   panel's `<c-mvp.page.side>` attributes with `filter_panel_attrs` (default `{"position":
-  "end", "sticky": False}`, so it scrolls with the page; the panel is level with the content at the end and with the title at the start unless
+  "end"}`; the panel is level with the content at the end and with the title at the start unless
   `align` is set) and its id with `filter_panel_id` (default `"filters"`).
   `c-mvp.page.list.filters.modal` is replaced by `c-mvp.page.list.filters.panel`, and
   `c-mvp.page.list.empty` takes a `panel` attribute beside `region`. A project template that

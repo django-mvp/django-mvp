@@ -2215,10 +2215,10 @@ class TestFilterPanelContext:
         bound = context["filter"].form["status"]
         assert "form" not in bound.field.widget.attrs
 
-    def test_the_panel_is_at_the_end_and_scrolls_with_the_page_by_default(self, rf, db):
+    def test_the_panel_is_at_the_end_by_default(self, rf, db):
         context = self._context(rf)
 
-        assert context["filter_panel_attrs"] == {"position": "end", "sticky": False}
+        assert context["filter_panel_attrs"] == {"position": "end"}
 
     def test_the_panel_is_called_filters_by_default(self, rf, db):
         context = self._context(rf)

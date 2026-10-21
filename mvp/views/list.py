@@ -517,7 +517,7 @@ class MVPListViewMixin(
     filterset_fields = None
     toolbar_filters: list[str] = []
     list_region_id = "mvp-list"
-    filter_panel_attrs: dict = {"position": "end", "sticky": False}
+    filter_panel_attrs: dict = {"position": "end"}
     filter_panel_id = "filters"
     partial_base_template = "mvp/partial.html"
 
