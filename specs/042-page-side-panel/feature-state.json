@@ -155,8 +155,19 @@
         },
         {
           "id": "T006",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 2,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_page_side_e2e.py::TestSideColumn"
+            ],
+            "commands": [
+              "uv run pytest tests/test_components/test_page_side_e2e.py -q"
+            ],
+            "code": [
+              "tests/test_components/test_page_side_e2e.py:96"
+            ]
+          }
         },
         {
           "id": "T007",

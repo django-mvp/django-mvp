@@ -54,3 +54,10 @@ Did: page_view.html draws <c-mvp.page.layout> around the title, content and the 
 Verified: uv run pytest tests/test_templates.py::TestPageViewSideBlock -> 5 passed (2 red before the template change; the 3 that characterise today's structure passed on the old template, as they should); tests/test_views and test_templates with -n auto: 834 passed, 4 failed (the CDN-bound axe tests, D6).
 Next: T006 the column in a browser.
 Watch: ruff format reformatted one pre-existing line in tests/test_templates.py; I restored it.
+
+## 2026-10-21T11:27:54Z · Implementer US1 · T006
+
+Did: wrote TestSideColumn against a test-only page served at /side-test/ (a function view in the test module, its URLconf set by an autouse fixture): sticky panel under the header, also after the header grows; non-sticky scrolls away; a tall panel scrolls on its own, takes Tab focus and scrolls by PageDown; on a filled page the panel is the layout height, not sticky, document does not scroll; rtl start panel on the right.
+Verified: uv run pytest tests/test_components/test_page_side_e2e.py -> 7 passed. They passed on first run because T004 already carries the CSS, so I probed them by editing the built CSS: sticky->static fails 2, dropping the aside max-height/overflow fails 2, filled-page unstick reverted fails 1, dropping the fill layout flex/min-height fails 1 (after strengthening the filled-page test, which first passed under that mutation). Built CSS restored.
+Next: T007 docs and demo page.
+Watch: the rtl case flips dir after load; no markup carries dir.
