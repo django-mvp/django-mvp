@@ -2,7 +2,7 @@
   "feature": "042-page-side-panel",
   "branch": "042-page-side-panel",
   "repo": "django-mvp/django-mvp",
-  "state": "REVIEW",
+  "state": "PR_READY",
   "state_history": [
     {
       "state": "QUEUED",
@@ -43,6 +43,11 @@
       "state": "REVIEW",
       "at": "2026-10-21T12:43:21Z",
       "note": "converge green"
+    },
+    {
+      "state": "PR_READY",
+      "at": "2026-10-21T13:05:36Z",
+      "note": "review clean; walkthrough laid out"
     }
   ],
   "gates": {
@@ -57,6 +62,11 @@
     "merge": {
       "approved_by": null,
       "at": null
+    },
+    "walkthrough": {
+      "approved_by": null,
+      "at": "2026-10-21T13:05:38Z",
+      "self_resolved": []
     }
   },
   "stories": [
@@ -499,6 +509,6 @@
   },
   "pr": {
     "number": 570,
-    "draft": true
+    "draft": false
   }
 }
