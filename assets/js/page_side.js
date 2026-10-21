@@ -134,7 +134,8 @@ function pageSide({ id, breakpointRem }) {
           return;
         }
         if (getComputedStyle(side).visibility === "visible") {
-          this.$refs.close.focus();
+          // An end panel is still translated past the edge; scrolling to it would skip the slide.
+          this.$refs.close.focus({ preventScroll: true });
         } else if (performance.now() < until) {
           requestAnimationFrame(attempt);
         }

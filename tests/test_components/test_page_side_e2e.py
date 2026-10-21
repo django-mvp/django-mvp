@@ -429,3 +429,46 @@ class TestSideDrawer:
         page.evaluate("() => document.getElementById('toc').remove()")
 
         page.wait_for_function("() => document.querySelector('[inert]') === null")
+
+
+@pytest.mark.django_db(transaction=True)
+class TestSideDrawerSlide:
+    """The drawer slides in from the side it sits on, at either end (FS-042 US2)."""
+
+    @pytest.fixture(autouse=True)
+    def side_test_urls(self, settings):
+        settings.ROOT_URLCONF = urlconf_of(
+            path("side-drawer-test/", side_drawer_page), *demo_urls.urlpatterns
+        )
+
+    @staticmethod
+    def edges(page):
+        return page.evaluate(
+            """() => {
+                const box = document.getElementById('toc-panel').getBoundingClientRect();
+                return { left: box.left, right: box.right, width: window.innerWidth };
+            }"""
+        )
+
+    @pytest.mark.parametrize("direction", ["ltr", "rtl"])
+    def test_an_end_panel_slides_in_from_the_end_edge(
+        self, page, live_server, direction
+    ):
+        open_drawer_page(page, live_server, "?position=end")
+        page.evaluate(f"() => {{ document.documentElement.dir = '{direction}'; }}")
+        page.wait_for_timeout(500)
+        closed = self.edges(page)
+        # The end is the right edge of a left-to-right page and the left edge of the other.
+        sign = 1 if direction == "ltr" else -1
+        away = (lambda e: e["left"] - e["width"]) if sign == 1 else (lambda e: -e["right"])
+        assert away(closed) >= -1
+
+        page.click(BUTTON)
+        page.wait_for_timeout(200)
+        moving = self.edges(page)
+        page.wait_for_timeout(600)
+        opened = self.edges(page)
+
+        assert away(opened) < away(moving) < away(closed)
+        flush = opened["right"] if sign == 1 else opened["left"]
+        assert flush == pytest.approx(opened["width"] if sign == 1 else 0, abs=1)
