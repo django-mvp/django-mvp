@@ -568,6 +568,7 @@ DRAWER_PAGE = """
       <c-slot name="side">
         <c-mvp.page.side label="Contents" id="toc" :collapse="side_collapse" :breakpoint="side_breakpoint" :position="side_position">
           <a id="first" href="#a">First</a>
+          <a id="jump" href="#target">Jump</a>
           <a id="last" href="#b">Last</a>
           {% if untabbable_tail %}
           <input type="hidden" name="kept" value="1">
@@ -575,7 +576,12 @@ DRAWER_PAGE = """
           {% endif %}
         </c-mvp.page.side>
       </c-slot>
-      <div id="content"><a id="after" href="#">After</a></div>
+      <div id="content">
+        <a id="after" href="#">After</a>
+        <div style="height: 2000px"></div>
+        <h2 id="target">Target</h2>
+        <div style="height: 2000px"></div>
+      </div>
     </c-mvp.page.layout>
   </c-mvp.page.content>
 </c-mvp.page>
@@ -702,6 +708,33 @@ class TestSideDrawer:
         )
         assert page.get_attribute(BUTTON, "aria-expanded") == "false"
         assert inert_ids(page) == []
+
+    def test_following_a_link_to_a_place_on_the_page_closes_the_panel(
+        self, page, live_server
+    ):
+        open_drawer_page(page, live_server)
+        self.open(page)
+
+        page.click("#jump")
+
+        page.wait_for_function(
+            "() => document.querySelector('.mvp-page-side-toggle').getAttribute('aria-expanded') === 'false'"
+        )
+        frames(page)
+        assert not page.locator("#toc .drawer-toggle").is_checked()
+        assert inert_ids(page) == []
+        assert not page.locator("#toc .drawer-overlay").is_visible()
+        assert header_bottom(page) <= top(page, "#target") < NARROW["height"]
+
+    def test_following_a_link_to_a_place_on_the_page_moves_focus_to_that_place(
+        self, page, live_server
+    ):
+        open_drawer_page(page, live_server)
+        self.open(page)
+
+        page.click("#jump")
+
+        page.wait_for_function("() => document.activeElement.id === 'target'")
 
     def test_tab_past_the_last_control_keeps_focus_inside_the_panel(
         self, page, live_server
