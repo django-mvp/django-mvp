@@ -166,3 +166,10 @@ Did: docs/layout.md (table, prose) and docs/components.md (table) write :breakpo
 Verified: grep finds no bare breakpoint="False" under docs/.
 Next: T020.
 Watch: none.
+
+## 2026-10-21T12:58:37Z · Implementer FIX-1 · T020
+
+Did: trimmed every comment this branch added to at most three lines (header_height.js, page_side.js, base.css, the page layout, side panel, list/table/page views, table header, demo side page); long explanations point at docs/layout.md and docs/adr/0034 and 0035; FR-011 is now FS-042 FR-011.
+Verified: a scan of the branch diff finds no added comment block over three lines and no bare FR/SC/US reference; build-stylesheet and build-js left the artifacts unchanged; components, templates, table layout, list view and demo tests 1455 passed, 1 skipped.
+Next: full suite and verify.
+Watch: a two-line comment in a template is written as two {# #} lines so the block stays within three lines.

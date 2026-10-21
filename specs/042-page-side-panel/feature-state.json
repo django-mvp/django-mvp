@@ -215,8 +215,21 @@
         },
         {
           "id": "T020",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "none: comments only"
+            ],
+            "commands": [
+              "python3 -I /home/sam/projects/worktrees/fs042/scan_comments.py (no over-length or bare-reference comment added by the branch)",
+              "uv run pytest tests/test_components tests/test_templates.py tests/test_table_layout.py tests/test_views/test_list.py tests/test_demo -q -n auto (1455 passed, 1 skipped)"
+            ],
+            "code": [
+              "assets/js/page_side.js:1",
+              "mvp/tailwind/base.css:959"
+            ]
+          }
         }
       ]
     },
