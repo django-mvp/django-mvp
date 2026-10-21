@@ -138,3 +138,10 @@ Did: documented the filter panel. docs/views.md has a new "The filter panel" sec
 Verified: grep for modal, filterModal, modal_fields, modal_applied_count, clear_modal_url and filters.modal across docs, README, CONTEXT, mvp and demo finds only the demo menu label "List, Filter Modal Only" (demo/menus.py, outside this story's files) and the changelog entry.
 Next: full verify, then the report.
 Watch: the demo still names its all-in-the-panel page product-list-modal-only (url name, menu label, class ProductModalOnlyListView); renaming touches demo files this story does not list.
+
+## 2026-10-21T12:43:21Z · Forge · S5
+
+Did: all five stories accepted. Converge: renamed the demo's every-filter page from modal to panel, dropped a removal-stays-removed assertion (T018). ADR verdicts on D1-D10; D3 graduated to ADR 0034 (out-of-band refresh beside the list region), D10 to ADR 0035 (behaviour lives in registered Alpine components). No migrations.
+Verified: 2585 passed, 1 skipped (axe CDN class deselected, D6); stage-exit S5 green; tamper flags on the US3 diff are exactly the plan's retired/renamed tests plus one documented toolbar test.
+Next: S6 review.
+Watch: a toggle naming a missing panel id is shown (CSS cannot compare ids).
