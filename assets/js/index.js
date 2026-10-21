@@ -60,6 +60,7 @@ document.addEventListener("htmx:afterSettle", (event) => {
   if (event.detail?.target === document.body) {
     themeChange(false);
     startDropdowns();
+    startHeaderHeight();
     // The swapped-in drawer is a new, server-closed element; re-derive the
     // resting position rather than keep whatever it held before the swap.
     Alpine.store("mvp").rebindAfterNavigation();

@@ -128,3 +128,35 @@ class TestHeaderHeight:
 
         assert page.query_selector(".mvp-header") is None
         assert _published(page) == "0px"
+
+    def test_a_boosted_navigation_measures_the_new_header(
+        self, page, live_server, monkeypatch
+    ):
+        monkeypatch.setitem(MVP_CONFIG["layout"]["sidebar"], "boost", True)
+        page.set_viewport_size({"width": 1440, "height": 900})
+        page.goto(f"{live_server.url}/")
+        page.evaluate("() => { window.__sameDocument = true }")
+
+        page.locator("aside.mvp-sidebar a[href='/theme/']").first.click()
+        page.wait_for_url(f"{live_server.url}/theme/")
+        assert page.evaluate("() => window.__sameDocument === true")
+
+        page.evaluate("""
+            () => {
+              const extra = document.createElement('div');
+              extra.style.height = '120px';
+              document.querySelector('.mvp-header').append(extra);
+            }
+        """)
+
+        page.wait_for_function(
+            """
+            () => document.documentElement.style.getPropertyValue('--mvp-header-height')
+              === document.querySelector('.mvp-header').offsetHeight + 'px'
+            """
+        )
+        height = page.evaluate(
+            "() => document.querySelector('.mvp-header').offsetHeight"
+        )
+        assert height > 120
+        assert _published(page) == f"{height}px"
