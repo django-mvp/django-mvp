@@ -606,9 +606,9 @@ class TestActionsFollowViewConfiguration:
             self._render(rf, filterset_fields=["category"]), "html.parser"
         )
 
-        assert filtered.find(id="filterModal") is not None
+        assert filtered.find(id="filters") is not None
         unfiltered = _beautiful_soup()(self._render(rf), "html.parser")
-        assert unfiltered.find(id="filterModal") is None
+        assert unfiltered.find(id="filters") is None
 
     def test_a_bare_list_view_draws_no_controls_at_all(self, rf, db):
         html = self._render(rf)
@@ -616,7 +616,7 @@ class TestActionsFollowViewConfiguration:
 
         assert 'name="q"' not in html
         assert 'name="o"' not in html
-        assert soup.find(id="filterModal") is None
+        assert soup.find(id="filters") is None
         assert soup.find(id="filterForm") is None
 
 
@@ -888,7 +888,7 @@ class TestListPageToolbar:
     def test_toolbar_stays_when_a_search_matches_nothing(self, rf, cat):
         _product(cat, "Lamp")
 
-        soup = _list_page(rf, "?q=chair")
+        soup = _list_page(rf, "?q=chair", toolbar_filters=["q"])
 
         assert soup.find(class_="mvp-list-toolbar").find(attrs={"name": "q"})
 
@@ -967,15 +967,19 @@ class TestListPageToolbar:
 
 
 class TestListPageOneToolbar:
-    def test_one_filter_form_holds_the_modal(self, rf, cat):
+    def test_the_panels_fields_join_the_one_filter_form_by_attribute(self, rf, cat):
         _product(cat, "Lamp")
 
-        soup = _filtered_list_page(rf)
+        soup = _filtered_list_page(rf, toolbar_filters=["q", "o"])
 
         forms = soup.find_all(id="filterForm")
         assert len(forms) == 1
         assert forms[0].name == "form"
-        assert forms[0].find("dialog", id="filterModal") is not None
+        panel = soup.find(id="filters")
+        assert panel.find_parent("form") is None
+        inputs = panel.find("aside").find_all(["input", "select"])
+        assert {el["name"] for el in inputs} == {"name", "status"}
+        assert all(el["form"] == "filterForm" for el in inputs)
 
     def test_the_filter_form_sits_in_the_toolbar(self, rf, cat):
         _product(cat, "Lamp")
@@ -1313,6 +1317,109 @@ class TestListPageUpdatesInPlace:
         assert not any(ancestor.get("hx-target") for ancestor in result.find_parents())
 
 
+PANEL_SWAP = {**SWAP, "hx-select-oob": "#filters"}
+
+
+def _swaps_the_region_and_the_panel(element):
+    return all(element.get(name) == value for name, value in PANEL_SWAP.items())
+
+
+class TestListPageFilterPanel:
+    def test_the_filter_form_chips_and_pager_refresh_the_panel(self, rf, cat):
+        for number in range(3):
+            _product(cat, f"Lamp {number}")
+
+        soup = _filtered_list_page(rf, "?q=lamp", paginate_by=2)
+
+        assert _swaps_the_region_and_the_panel(soup.find("form", id="filterForm"))
+        assert _swaps_the_region_and_the_panel(soup.find(class_="mvp-list-refinements"))
+        assert _swaps_the_region_and_the_panel(soup.find(class_="mvp-list-footer"))
+
+    def test_clear_all_in_the_empty_state_refreshes_the_panel(self, rf, cat):
+        _product(cat, "Lamp")
+
+        soup = _filtered_list_page(rf, "?q=chair")
+
+        clear = soup.find(class_="mvp-list-empty").find("a", href="/products/")
+        assert _swaps_the_region_and_the_panel(clear.parent)
+
+    def test_the_panel_is_beside_the_region_and_comes_back_with_it(self, rf, cat):
+        _product(cat, "Lamp")
+
+        soup = _list_page_for_htmx(
+            rf, "?name=Lamp", filterset_class=FilteredListPageFilter
+        )
+
+        assert soup.find(id="filters") is not None
+        assert soup.find(id="filters").find_parent(id="mvp-list") is None
+
+    def test_the_panel_holds_the_fields_the_toolbar_does_not(self, rf, cat):
+        _product(cat, "Lamp")
+
+        soup = _filtered_list_page(rf, toolbar_filters=["q"])
+
+        panel = soup.find(id="filters")
+        assert panel.find(attrs={"name": "name"}) is not None
+        assert panel.find(attrs={"name": "status"}) is not None
+        assert panel.find(attrs={"name": "q"}) is None
+
+    def test_the_panel_has_no_form_of_its_own_and_no_modal_is_drawn(self, rf, cat):
+        _product(cat, "Lamp")
+
+        soup = _filtered_list_page(rf)
+
+        assert soup.find(id="filters").find("form") is None
+        assert soup.find(id="filterModal") is None
+
+    def test_the_panel_is_at_the_start_and_level_with_the_content(self, rf, cat):
+        _product(cat, "Lamp")
+
+        panel = _filtered_list_page(rf).find(id="filters")
+
+        assert panel["data-mvp-side-position"] == "start"
+        assert panel["data-mvp-side-align"] == "content"
+
+    def test_a_subclass_dict_reaches_the_panel(self, rf, cat):
+        _product(cat, "Lamp")
+
+        panel = _filtered_list_page(
+            rf, filter_panel_attrs={"position": "end", "width": "lg"}
+        ).find(id="filters")
+
+        assert panel["data-mvp-side-position"] == "end"
+        assert panel["data-mvp-side-width"] == "lg"
+
+    def test_a_subclass_id_names_the_panel_its_button_and_every_refresh(self, rf, cat):
+        _product(cat, "Lamp")
+
+        soup = _filtered_list_page(rf, filter_panel_id="refine")
+
+        assert soup.find(id="refine") is not None
+        assert soup.find("button", attrs={"aria-controls": "refine"}) is not None
+        assert soup.find("form", id="filterForm")["hx-select-oob"] == "#refine"
+
+    def test_the_button_sits_in_the_toolbar_and_counts_the_panels_filters(
+        self, rf, cat
+    ):
+        _product(cat, "Lamp")
+
+        soup = _filtered_list_page(
+            rf, "?name=Lamp&status=published", toolbar_filters=["q", "name"]
+        )
+
+        button = soup.find("button", attrs={"aria-controls": "filters"})
+        assert button.find_parent(class_="mvp-list-toolbar") is not None
+        assert button.find(class_="badge").get_text(strip=True) == "1"
+
+    def test_the_button_has_no_badge_while_no_panel_filter_is_applied(self, rf, cat):
+        _product(cat, "Lamp")
+
+        soup = _filtered_list_page(rf, "?name=Lamp", toolbar_filters=["q", "name"])
+
+        button = soup.find("button", attrs={"aria-controls": "filters"})
+        assert button.find(class_="badge") is None
+
+
 LIST_PAGE_BLOCKS = [
     "page.actions",
     "page.toolbar",
@@ -1569,7 +1676,7 @@ class TestListFilterset:
         soup = _beautiful_soup()(response.content.decode(), "html.parser")
 
         assert soup.find(id="filterForm") is None
-        assert soup.find(id="filterModal") is None
+        assert soup.find(id="filters") is None
 
     def test_a_bad_value_is_ignored_and_the_other_filters_still_apply(
         self, rf, cat, cat2
@@ -2032,9 +2139,7 @@ class TestFilterPanelCountAndClear:
         assert context["panel_applied_count"] == 0
         assert "clear_panel_url" not in context
 
-    def test_clearing_the_panel_keeps_the_toolbar_the_search_and_the_sort(
-        self, rf, db
-    ):
+    def test_clearing_the_panel_keeps_the_toolbar_the_search_and_the_sort(self, rf, db):
         context = self._context(
             rf, "?q=lamp&name=oak&status=draft&price_min=5&price_max=9&o=name&page=1"
         )
@@ -2138,13 +2243,13 @@ class TestFilterPanelContext:
         assert context["filter_panel_id"] == "refine"
 
 
-class TestSortInTheFilterModal:
-    def test_an_unbound_modal_sort_has_the_default_order_selected(self, rf, cat):
+class TestSortInTheFilterPanel:
+    def test_an_unbound_panel_sort_has_the_default_order_selected(self, rf, cat):
         _product(cat, "Lamp")
 
         soup = _filtered_list_page(rf, toolbar_filters=[])
 
-        select = soup.find("dialog", id="filterModal").find("select", attrs={"name": "o"})
+        select = soup.find(id="filters").find("select", attrs={"name": "o"})
         options = select.find_all("option")
         selected = [o for o in options if o.has_attr("selected")]
         assert options[0]["value"] == ""
@@ -2191,11 +2296,7 @@ class TestAYesNoFilterSetToNo:
 class TestListPageToolbarRow:
     def _names_in_form(self, soup):
         form = soup.find("form", id="filterForm")
-        names = [
-            el["name"]
-            for el in form.find_all(attrs={"name": True})
-            if el.find_parent("dialog") is None
-        ]
+        names = [el["name"] for el in form.find_all(attrs={"name": True})]
         return list(dict.fromkeys(names))
 
     def _position(self, soup, element):
@@ -2208,15 +2309,15 @@ class TestListPageToolbarRow:
 
         assert self._names_in_form(soup) == ["status", "q", "name"]
 
-    def test_toolbar_fields_are_not_in_the_modal(self, rf, cat):
+    def test_toolbar_fields_are_not_in_the_panel(self, rf, cat):
         _product(cat, "Lamp")
 
         soup = _filtered_list_page(rf, toolbar_filters=["status", "q"])
 
-        dialog = soup.find("dialog", id="filterModal")
-        assert dialog.find(attrs={"name": "status"}) is None
-        assert dialog.find(attrs={"name": "q"}) is None
-        assert dialog.find(attrs={"name": "name"}) is not None
+        panel = soup.find(id="filters")
+        assert panel.find(attrs={"name": "status"}) is None
+        assert panel.find(attrs={"name": "q"}) is None
+        assert panel.find(attrs={"name": "name"}) is not None
 
     def test_sort_filter_and_add_end_the_row_in_that_order(self, rf, cat):
         _product(cat, "Lamp")
@@ -2226,7 +2327,7 @@ class TestListPageToolbarRow:
         )
 
         sort = soup.find("input", attrs={"name": "o"})
-        filter_button = soup.find("button", attrs={"aria-haspopup": "dialog"})
+        filter_button = soup.find("button", attrs={"aria-controls": "filters"})
         add = soup.find("a", href="/products/create/")
         form = soup.find("form", id="filterForm")
         for element in (sort, filter_button, add):
@@ -2246,13 +2347,13 @@ class TestListPageToolbarRow:
 
         assert len(soup.find_all(attrs={"name": "o"})) == 1
 
-    def test_every_field_in_the_toolbar_leaves_no_filter_button_and_no_dialog(
+    def test_every_field_in_the_toolbar_leaves_no_panel_and_no_panel_button(
         self, rf, cat
     ):
         _product(cat, "Lamp")
 
         soup = _filtered_list_page(rf, toolbar_filters=["q", "o", "name", "status"])
 
-        assert soup.find("button", attrs={"aria-haspopup": "dialog"}) is None
-        assert soup.find("dialog") is None
+        assert soup.find("button", attrs={"aria-controls": "filters"}) is None
+        assert soup.find(id="filters") is None
         assert soup.find("form", id="filterForm") is not None

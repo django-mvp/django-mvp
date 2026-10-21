@@ -317,8 +317,21 @@
         },
         {
           "id": "T014",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 2,
+          "evidence": {
+            "tests": [
+              "tests/test_views/test_list.py::TestListPageFilterPanel",
+              "tests/test_integrations.py",
+              "tests/test_demo/test_list_filter_pages.py"
+            ],
+            "commands": [
+              "uv run pytest tests/test_views tests/test_integrations.py tests/test_demo tests/test_components/test_list_filter_panel.py tests/test_table_layout.py --deselect tests/test_views/test_error.py::TestErrorPagesAccessibilityE2E"
+            ],
+            "code": [
+              "mvp/templates/list_view.html:31"
+            ]
+          }
         },
         {
           "id": "T015",

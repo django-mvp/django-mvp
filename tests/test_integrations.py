@@ -214,7 +214,7 @@ class TestOptionalIntegrations:
         assert params["o"] == "name_asc"
 
     @pytest.mark.django_db
-    def test_filter_modal_renders_clear_link_only_when_filters_applied(self, rf):
+    def test_filter_panel_renders_clear_link_only_when_filters_applied(self, rf):
         from bs4 import BeautifulSoup
 
         from demo.models import Product
@@ -227,19 +227,19 @@ class TestOptionalIntegrations:
 
         ProductFactory(name="Widget")
 
-        def modal_links(params):
+        def panel_links(params):
             view = ProductFilteredView()
             view.setup(rf.get("/", params))
             response = view.get(view.request)
             html = response.render().content.decode()
-            modal = BeautifulSoup(html, "html.parser").find(id="filterModal")
-            return response.context_data, modal.find_all("a")
+            panel = BeautifulSoup(html, "html.parser").find(id="filters")
+            return response.context_data, panel.find_all("a")
 
-        unfiltered_context, unfiltered_links = modal_links({})
+        unfiltered_context, unfiltered_links = panel_links({})
         assert "clear_filters_url" not in unfiltered_context
         assert unfiltered_links == []
 
-        filtered_context, filtered_links = modal_links({"name": "Widget"})
+        filtered_context, filtered_links = panel_links({"name": "Widget"})
         assert [a["href"] for a in filtered_links] == [
             filtered_context["clear_filters_url"]
         ]
@@ -286,7 +286,7 @@ class TestFilterChromeOnAFilteredListView:
         assert context["applied_filter_count"] == 2
 
     @pytest.mark.django_db
-    def test_the_modal_offers_a_way_to_clear_an_applied_filter(self, filtered_view, rf):
+    def test_the_panel_offers_a_way_to_clear_an_applied_filter(self, filtered_view, rf):
         ProductFactory(name="Widget")
         response, html = self.render(filtered_view, rf, {"name": "Widget"})
         clear_url = response.context_data["clear_filters_url"]

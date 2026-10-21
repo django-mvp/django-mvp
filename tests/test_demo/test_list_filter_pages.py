@@ -4,15 +4,16 @@ Source: demo/views.py, demo/urls.py, demo/menus.py,
 demo/management/commands/generate_dummy_data.py
 
 The demo fails quietly, so these read the rendered page: a field placed in the
-toolbar is drawn inside the filter form before the filter modal, a field placed
-in the modal is drawn inside it, and a page with nothing left over draws no
-modal and no Filter button.
+toolbar is drawn inside the filter form, a field placed in the filter panel is
+drawn inside it, and a page with nothing left over draws no panel and no
+Filters button.
 """
 
 import io
 import re
 
 import pytest
+from bs4 import BeautifulSoup
 from django.core.management import call_command
 from django.urls import reverse
 
@@ -21,16 +22,17 @@ from mvp.menus import AppMenu
 
 
 def _placed_fields(content):
-    """Return the field names drawn in the toolbar and in the filter modal."""
-    form = content.split('id="filterForm"', 1)[1]
-    toolbar, _, modal = form.partition('id="filterModal"')
-    toolbar = toolbar.split("</form>", 1)[0]
-    modal = modal.split("</dialog>", 1)[0]
+    """Return the field names drawn in the toolbar's form and in the filter panel."""
+    soup = BeautifulSoup(content, "html.parser")
 
-    def names(html):
-        return list(dict.fromkeys(re.findall(r'name="([^"]+)"', html)))
+    def names(element):
+        if element is None:
+            return []
+        return list(
+            dict.fromkeys(el["name"] for el in element.find_all(attrs={"name": True}))
+        )
 
-    return names(toolbar), names(modal)
+    return names(soup.find(id="filterForm")), names(soup.find(id="filters"))
 
 
 @pytest.mark.usefixtures("product")
@@ -38,32 +40,32 @@ class TestToolbarFiltersOnlyPage:
     def test_draws_every_field_in_the_toolbar(self, client):
         content = client.get(reverse("product-list-quick")).content.decode()
 
-        toolbar, modal = _placed_fields(content)
+        toolbar, panel = _placed_fields(content)
 
         assert toolbar == ["q", "status", "is_featured"]
-        assert modal == []
+        assert panel == []
 
     def test_draws_the_sort_in_the_toolbar(self, client):
         content = client.get(reverse("product-list-quick")).content.decode()
 
         assert re.search(r'name="o"', content.split('id="filterForm"', 1)[1])
 
-    def test_draws_no_filter_modal_and_no_filter_button(self, client):
+    def test_draws_no_filter_panel_and_no_panel_button(self, client):
         content = client.get(reverse("product-list-quick")).content.decode()
 
-        assert 'id="filterModal"' not in content
-        assert "filterModal.showModal()" not in content
+        assert 'id="filters"' not in content
+        assert 'aria-controls="filters"' not in content
 
 
 @pytest.mark.usefixtures("product")
-class TestFilterModalOnlyPage:
-    def test_draws_every_field_in_the_modal(self, client):
+class TestFilterPanelOnlyPage:
+    def test_draws_every_field_in_the_panel(self, client):
         content = client.get(reverse("product-list-modal-only")).content.decode()
 
-        toolbar, modal = _placed_fields(content)
+        toolbar, panel = _placed_fields(content)
 
         assert toolbar == []
-        assert modal == [
+        assert panel == [
             "q",
             "status",
             "category",
@@ -80,10 +82,10 @@ class TestFilterModalOnlyPage:
             "o",
         ]
 
-    def test_draws_the_filter_button(self, client):
+    def test_draws_the_panel_button(self, client):
         content = client.get(reverse("product-list-modal-only")).content.decode()
 
-        assert "filterModal.showModal()" in content
+        assert 'aria-controls="filters"' in content
 
 
 class TestListFilterPageMenuItems:

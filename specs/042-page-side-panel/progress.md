@@ -110,3 +110,10 @@ Did: added <c-mvp.page.list.filters.panel> (fields, clear_url, id, region; every
 Verified: uv run pytest tests/test_components/test_list_filter_panel.py (18 passed; red first because the component did not exist). Probes: removing form="filterForm" from Apply, removing hx-select-oob from Clear, and dropping the empty-fields guard each failed a test; restored.
 Next: T014 (list page), T015 (table page).
 Watch: modal.html and test_list_filter_modal.py are still on disk because list_view.html and table_view.html draw the modal until T014/T015 switch them; both are deleted in T015, the last user. TestTheOverrideBeatsTheHeader goes with the modal's button: the panel's badge is a plain badge, not an indicator-item.
+
+## 2026-10-21T12:14:45Z · Implementer US3 · T014
+
+Did: list_view.html fills page.side with the filter panel and draws the panel button (count = panel_applied_count) where the Filter button was, only when panel_fields is not empty; the filter form, chips, pager and the empty state's Clear all carry hx-select-oob naming filter_panel_id; empty.html gains a panel prop beside region. Updated the pre-existing tests that asserted the modal (test_list.py, test_integrations.py, test_demo/test_list_filter_pages.py) to assert the panel.
+Verified: failing first (16 failures with the templates reverted), then uv run pytest tests/test_views tests/test_integrations.py tests/test_demo tests/test_components/test_list_filter_panel.py tests/test_table_layout.py with TestErrorPagesAccessibilityE2E deselected: 830 passed.
+Next: T015 (table page), which also deletes modal.html and its test module.
+Watch: test_toolbar_stays_when_a_search_matches_nothing now passes toolbar_filters=["q"]: with no toolbar_filters the search is a panel field, and the old test only found it because the modal sat inside the toolbar. No dedicated test module exists for the empty state, so its out-of-band attribute is asserted from the list page.

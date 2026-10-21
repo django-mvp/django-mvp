@@ -66,9 +66,7 @@ class TestFilterPanelFields:
         )
 
         aside = _root(soup).find("aside")
-        assert {el["name"] for el in aside.find_all(attrs={"name": True})} == {
-            "status"
-        }
+        assert {el["name"] for el in aside.find_all(attrs={"name": True})} == {"status"}
 
     def test_it_draws_no_form_of_its_own(self, render):
         soup = render(
@@ -196,8 +194,7 @@ class TestFilterPanelActions:
 
     def test_clear_is_a_plain_link_without_a_region(self, render):
         soup = render(
-            '<c-mvp.page.list.filters.panel :fields="fields" '
-            'clear_url="/products/" />',
+            '<c-mvp.page.list.filters.panel :fields="fields" clear_url="/products/" />',
             fields=_fields(),
         )
 
@@ -206,8 +203,7 @@ class TestFilterPanelActions:
 
     def test_the_actions_sit_in_one_foot_after_the_fields(self, render):
         soup = render(
-            '<c-mvp.page.list.filters.panel :fields="fields" '
-            'clear_url="/products/" />',
+            '<c-mvp.page.list.filters.panel :fields="fields" clear_url="/products/" />',
             fields=_fields(),
         )
 
