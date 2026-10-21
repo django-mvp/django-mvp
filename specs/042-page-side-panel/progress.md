@@ -208,3 +208,10 @@ Did: the table page layout uses gap-0! in place of gap-y-0!, so no column gap si
 Verified: test_table_layout_e2e and test_table_layout: 125 passed; the new test fails (1144 vs 1184) with gap-y-0! restored.
 Next: full suite and verify.
 Watch: none.
+
+## 2026-10-21T15:27:15Z · Forge · S7
+
+Did: Sam's merge-gate changes as T023-T025: end drawer slides in (focus with preventScroll), filter panel defaults to end with alignment following its side, table layout has no gap. Spec FR-014 and its clarification updated; D11. Long-contents demo option already off by default; kept.
+Verified: receipts green; 2594 passed, 1 skipped (axe CDN class deselected); T023 mutation re-run 5 times: fails 4 of 5 (timing-sampled), fix green 3 of 3; tamper flags unchanged from the planned modal retirements.
+Next: push, CI, walkthrough comment edited, merge gate.
+Watch: T023's test samples mid-transition, so it can miss the regression on a slow run; it never fails a correct build.
