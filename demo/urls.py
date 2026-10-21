@@ -41,6 +41,7 @@ urlpatterns = [
     path("layout/header/", views.layout_header_demo, name="layout-header"),
     path("layout/full-page/", views.full_page_map_demo, name="full-page-map"),
     path("layout/store/", views.layout_store_demo, name="layout-store"),
+    path("layout/side/", views.page_side_demo, name="layout-side"),
     path("theme/", views.theme_customization_demo, name="customization"),
     path("components/", views.components_demo, name="custom-components"),
     path(
@@ -69,9 +70,9 @@ urlpatterns = [
         name="product-list-quick",
     ),
     path(
-        "products/modal-only/",
-        views.ProductModalOnlyListView.as_view(),
-        name="product-list-modal-only",
+        "products/panel-only/",
+        views.ProductPanelOnlyListView.as_view(),
+        name="product-list-panel-only",
     ),
     path("products/create/", ProductCreateView.as_view(), name="product-create"),
     path("products/<int:pk>/", ProductDetailView.as_view(), name="product-detail"),

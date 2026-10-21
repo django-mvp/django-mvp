@@ -955,3 +955,207 @@
     white-space: nowrap;
   }
 }
+
+/* The bare navbar row, until assets/js/header_height.js publishes the real height (docs/layout.md).
+   :where() gives it no weight, so a project's own :root rule wins. */
+:where(:root) {
+  --mvp-header-height: 4rem;
+}
+
+html {
+  scroll-padding-top: var(--mvp-header-height);
+}
+
+/* The page side panel, <c-mvp.page.side>: a drawer or stacked block below its breakpoint, a column
+   from it (docs/layout.md, "Side panel"). The drawer is daisyUI's, kept inside the panel so a page
+   without a panel renders none. */
+.mvp-page-side {
+  --mvp-page-side-width: 16rem;
+}
+
+.mvp-page-side[data-mvp-side-width="sm"] {
+  --mvp-page-side-width: 14rem;
+}
+
+.mvp-page-side[data-mvp-side-width="lg"] {
+  --mvp-page-side-width: 20rem;
+}
+
+@utility mvp-page-side-wide {
+  display: block;
+  flex: none;
+  grid-area: side;
+  align-self: start;
+  width: var(--mvp-page-side-width);
+  margin: 0;
+  padding-block: 0 1rem;
+
+  /* Stuck just under the header. A panel taller than the screen is moved by page_side_column.js
+     through --mvp-page-side-top (docs/adr/0036-a-tall-side-panel-moves-with-the-page.md). */
+  &[data-mvp-side-sticky] {
+    position: sticky;
+    top: var(--mvp-page-side-top, calc(var(--mvp-header-height) + 1rem));
+  }
+
+  /* Undo the drawer: in a column there is nothing to open or close. */
+  & .drawer {
+    display: block;
+  }
+
+  & .drawer-content,
+  & .drawer-side > .drawer-overlay,
+  & .mvp-page-side-close {
+    display: none;
+  }
+
+  /* daisyUI's drawer-end right-aligns the panel inside the drawer side
+     (justify-items: end), which in a column would shrink the panel to its
+     content and push it away from the page. Stretch it across the column. */
+  & .drawer-side {
+    position: static;
+    display: block;
+    justify-items: stretch;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    visibility: visible;
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  & .drawer-side > :not(.drawer-overlay) {
+    translate: none;
+  }
+
+  & .mvp-page-side-panel {
+    width: auto;
+    min-height: 0;
+    padding: 0;
+    background: none;
+    box-shadow: none;
+  }
+
+  /* Where the panel scrolls (a filled page, a drawer) it is the tab stop; its ring sits inside
+     its edge, where its own overflow does not clip it. */
+  & .mvp-page-side-panel:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: -2px;
+  }
+
+  /* On a filled page (FS-042 FR-011) the page does not scroll, so the panel is the height of its
+     row and does not stick; its own content scrolls. */
+  .mvp-page-fill & {
+    align-self: stretch;
+    min-height: 0;
+    padding-block: 0;
+  }
+
+  .mvp-page-fill &[data-mvp-side-sticky] {
+    position: static;
+  }
+
+  .mvp-page-fill & .drawer,
+  .mvp-page-fill & .drawer-side,
+  .mvp-page-fill & .mvp-page-side-panel {
+    height: 100%;
+  }
+
+  .mvp-page-fill & .mvp-page-side-panel {
+    max-height: none;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+}
+
+/* The grid the panel sits in from its breakpoint. Its areas follow the
+   panel's position and align: aligned with the title, the panel spans both
+   rows; aligned with the content, it starts on the second. */
+.mvp-page-layout {
+  --mvp-page-side-gap: 2.5rem;
+  --mvp-page-layout-columns: minmax(0, 1fr) auto;
+  --mvp-page-layout-areas: "header side" "main side";
+  --mvp-page-layout-rows: auto 1fr;
+}
+
+/* A filled page hands its height down to the layout, to its rows and to the
+   content column, so the panel beside it can be the page's height. */
+.mvp-page-fill .mvp-page-layout {
+  flex: 1;
+  min-height: 0;
+  --mvp-page-layout-rows: auto minmax(0, 1fr);
+}
+
+.mvp-page-fill .mvp-page-layout > .mvp-page-main {
+  flex: 1;
+  min-height: 0;
+}
+
+.mvp-page-layout > .mvp-page-header {
+  grid-area: header;
+}
+
+.mvp-page-layout > .mvp-page-main {
+  grid-area: main;
+}
+
+.mvp-page-layout:has(> .mvp-page-side[data-mvp-side-align="content"]) {
+  --mvp-page-layout-areas: "header ." "main side";
+}
+
+.mvp-page-layout:has(> .mvp-page-side[data-mvp-side-position="start"]) {
+  --mvp-page-layout-columns: auto minmax(0, 1fr);
+  --mvp-page-layout-areas: "side header" "side main";
+}
+
+.mvp-page-layout:has(> .mvp-page-side[data-mvp-side-position="start"][data-mvp-side-align="content"]) {
+  --mvp-page-layout-areas: ". header" "side main";
+}
+
+/* The grid switched on at each breakpoint, and the opener, which only
+   means something while the panel is a closed drawer: on a page with no
+   drawer panel, and once the panel is a column, it is hidden. */
+:root:not(:has(.mvp-page-side[data-mvp-side-collapse="drawer"])) .mvp-page-side-toggle {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .mvp-page-layout:has(> .mvp-page-side[data-mvp-side-breakpoint="lg"]) {
+    display: grid;
+    grid-template-columns: var(--mvp-page-layout-columns);
+    grid-template-rows: var(--mvp-page-layout-rows);
+    grid-template-areas: var(--mvp-page-layout-areas);
+    column-gap: var(--mvp-page-side-gap);
+  }
+
+  :root:has(.mvp-page-side[data-mvp-side-breakpoint="lg"]) .mvp-page-side-toggle {
+    display: none;
+  }
+}
+
+@media (min-width: 1280px) {
+  .mvp-page-layout:has(> .mvp-page-side[data-mvp-side-breakpoint="xl"]) {
+    display: grid;
+    grid-template-columns: var(--mvp-page-layout-columns);
+    grid-template-rows: var(--mvp-page-layout-rows);
+    grid-template-areas: var(--mvp-page-layout-areas);
+    column-gap: var(--mvp-page-side-gap);
+  }
+
+  :root:has(.mvp-page-side[data-mvp-side-breakpoint="xl"]) .mvp-page-side-toggle {
+    display: none;
+  }
+}
+
+@media (min-width: 1536px) {
+  .mvp-page-layout:has(> .mvp-page-side[data-mvp-side-breakpoint="2xl"]) {
+    display: grid;
+    grid-template-columns: var(--mvp-page-layout-columns);
+    grid-template-rows: var(--mvp-page-layout-rows);
+    grid-template-areas: var(--mvp-page-layout-areas);
+    column-gap: var(--mvp-page-side-gap);
+  }
+
+  :root:has(.mvp-page-side[data-mvp-side-breakpoint="2xl"]) .mvp-page-side-toggle {
+    display: none;
+  }
+}

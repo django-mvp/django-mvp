@@ -358,3 +358,40 @@ class TestRowHeaderColumns:
                 row_headers = ("icon",)
 
         assert self._tag()(Hidden([{"icon": "i", "name": "a"}])) == ("icon",)
+
+
+class TestRootAttr:
+    def _attr(self, html, name="data-x"):
+        return _render("{{ html|root_attr:name }}", {"html": html, "name": name})
+
+    def test_returns_the_attribute_of_the_first_element(self):
+        assert self._attr('<div data-x="start" id="a">text</div>') == "start"
+
+    def test_ignores_the_attribute_on_a_later_element(self):
+        assert self._attr('<div id="a"></div><div data-x="end"></div>') == ""
+
+    def test_ignores_the_attribute_on_a_nested_element(self):
+        assert self._attr('<div id="a"><p data-x="end"></p></div>') == ""
+
+    def test_ignores_the_attribute_text_inside_content(self):
+        assert self._attr('<div id="a">data-x="end"</div>') == ""
+
+    def test_ignores_leading_text_and_comments_before_the_first_element(self):
+        html = '  <!-- note -->  text <div data-x="start"></div>'
+        assert self._attr(html) == "start"
+
+    def test_a_missing_attribute_is_empty(self):
+        assert self._attr('<div id="a"></div>') == ""
+
+    @pytest.mark.parametrize("html", ["", "   \n\t ", "just text", "<!-- only -->"])
+    def test_input_with_no_element_is_empty(self, html):
+        assert self._attr(html) == ""
+
+    @pytest.mark.parametrize("value", [None, 3, ["<div data-x='a'>"]])
+    def test_a_non_string_is_empty(self, value):
+        assert self._attr(value) == ""
+
+    def test_the_attribute_is_read_from_markup_marked_safe(self):
+        from django.utils.safestring import mark_safe
+
+        assert self._attr(mark_safe('<aside data-x="start"></aside>')) == "start"

@@ -26,11 +26,17 @@
       {% endcomment %}
       <c-mvp.page.content gap="0" only>
         {% comment %}
-          The region the filter form, the chips, the column headings and the
-          pager swap in place with htmx, as on a list page. display: contents
-          keeps the flex chain the filled layout needs.
+          No header and no gap in either direction, so the empty header row adds no space above the toolbar and the table meets the panel.
         {% endcomment %}
-        <div id="{{ list_region_id }}" class="contents">
+        <c-mvp.page.layout class="gap-0!" only>
+          <c-slot name="side">
+            {% block page.side %}
+              {{ block.super }}
+            {% endblock page.side %}
+          </c-slot>
+          {# The region swapped as on a list page; display: contents keeps the flex chain the #}
+          {# filled layout needs. #}
+          <div id="{{ list_region_id }}" class="contents">
           {% block page.header %}
           {% endblock page.header %}
           {% block page.toolbar %}
@@ -65,12 +71,8 @@
                                                 :create_modal_title="create_modal_title" />
               </c-slot>
               {% block page.panel %}
-                {% comment %}
-                  The same filter form as a list page: the toolbar fields, then
-                  the Filter button at the panel's end, with the filter modal
-                  inside the form. The chips follow it. A view with no filterset
-                  draws no panel.
-                {% endcomment %}
+                {# The list page's filter form: toolbar fields, then the panel's button. The panel #}
+                {# itself sits beside the table, outside the form. #}
                 {% if filter %}
                   <form id="filterForm"
                         method="get"
@@ -79,20 +81,21 @@
                         hx-boost="true"
                         hx-target="#{{ list_region_id }}"
                         hx-select="#{{ list_region_id }}"
+                        hx-select-oob="#{{ filter_panel_id }}"
                         hx-swap="outerHTML">
                     {# Enter in a text field submits only through a submit button, and some forms have none. #}
                     <button type="submit" hidden tabindex="-1" aria-hidden="true"></button>
                     {% for field in toolbar_fields %}
                       <c-mvp.page.list.filters.field :field="field" />
                     {% endfor %}
-                    <div class="flex items-center gap-2 md:ms-auto">
-                      <c-mvp.page.list.filters.modal part="button"
-                                                     :fields="modal_fields"
-                                                     :applied_count="modal_applied_count" />
-                    </div>
-                    <c-mvp.page.list.filters.modal part="dialog"
-                                                   :fields="modal_fields"
-                                                   :clear_url="clear_modal_url" />
+                    {% if panel_fields %}
+                      <div class="flex items-center gap-2 md:ms-auto">
+                        <c-mvp.page.side.toggle :for="filter_panel_id"
+                                                text="{% trans "Filters" %}"
+                                                icon="filter"
+                                                :count="panel_applied_count" />
+                      </div>
+                    {% endif %}
                   </form>
                   {% block page.refinements %}
                     <c-mvp.page.list.refinements :refinements="refinements"
@@ -100,6 +103,7 @@
                                                  hx-boost="true"
                                                  hx-target="#{{ list_region_id }}"
                                                  hx-select="#{{ list_region_id }}"
+                                                 hx-select-oob="#{{ filter_panel_id }}"
                                                  hx-swap="outerHTML"
                                                  only />
                   {% endblock page.refinements %}
@@ -124,10 +128,12 @@
                                   hx-boost="true"
                                   hx-target="#{{ list_region_id }}"
                                   hx-select="#{{ list_region_id }}"
+                                  hx-select-oob="#{{ filter_panel_id }}"
                                   hx-swap="outerHTML" />
             {% endif %}
           {% endblock page.footer %}
-        </div>
+          </div>
+        </c-mvp.page.layout>
       </c-mvp.page.content>
     {% endblock page.content-wrapper %}
   </c-mvp.page>

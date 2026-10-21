@@ -21,7 +21,10 @@ import htmx from "htmx.org";
 import { themeChange } from "theme-change";
 
 import { startDropdowns } from "./dropdown.js";
+import { startHeaderHeight } from "./header_height.js";
 import { registerLayoutStore } from "./layout.js";
+import { registerPageSide } from "./page_side.js";
+import { registerPageSideColumn } from "./page_side_column.js";
 import { startThemeColor } from "./theme_color.js";
 
 // htmx reads hx-* attributes off the DOM itself; the global is what its own
@@ -41,6 +44,9 @@ startDropdowns();
 // Keeps the browser toolbar the colour of the header in the applied theme.
 startThemeColor();
 
+// Deferred, so the header is already parsed. See header_height.js.
+startHeaderHeight();
+
 // theme-change can't notice controls added after it runs, and a boosted
 // navigation swaps the body for identical markup with no listeners: the
 // toggle renders but stops responding.
@@ -55,6 +61,7 @@ document.addEventListener("htmx:afterSettle", (event) => {
   if (event.detail?.target === document.body) {
     themeChange(false);
     startDropdowns();
+    startHeaderHeight();
     // The swapped-in drawer is a new, server-closed element; re-derive the
     // resting position rather than keep whatever it held before the swap.
     Alpine.store("mvp").rebindAfterNavigation();
@@ -70,6 +77,12 @@ Alpine.plugin(persist);
 // defines Alpine.$persist, which the store's desktop-open property needs
 // at construction. See assets/js/layout.js.
 registerLayoutStore(Alpine);
+
+// The side panel's drawer and its button. See assets/js/page_side.js.
+registerPageSide(Alpine);
+
+// A tall sticky panel moving with the page. See assets/js/page_side_column.js.
+registerPageSideColumn(Alpine);
 
 // mvp/static/js/formset.js reaches for the global, as does any x-data in a
 // consuming project's own templates.

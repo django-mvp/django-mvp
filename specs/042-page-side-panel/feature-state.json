@@ -1,0 +1,608 @@
+{
+  "feature": "042-page-side-panel",
+  "branch": "042-page-side-panel",
+  "repo": "django-mvp/django-mvp",
+  "state": "PR_READY",
+  "state_history": [
+    {
+      "state": "QUEUED",
+      "at": "2026-10-21T10:20:05Z",
+      "note": "spec approved by Sam in session on draft PR #570 at 6a5dfd4 (read with forge spec-gate --json); epic #569, stories #571-#575"
+    },
+    {
+      "state": "PLAN",
+      "at": "2026-10-21T10:42:13Z",
+      "note": "build started by forge-implement (unattended); research.md, plan.md, tasks.md written against origin/main 17788c4"
+    },
+    {
+      "state": "DESIGN_REVIEW",
+      "at": "2026-10-21T10:42:46Z",
+      "note": "one design reviewer, three lenses, one round"
+    },
+    {
+      "state": "PAUSED",
+      "at": "2026-10-21T10:46:50Z",
+      "note": "blocked at S3R: subagent dispatch unavailable (Anthropic account/runtime unavailable to sessions_spawn); resume at the design review once restored"
+    },
+    {
+      "state": "DESIGN_REVIEW",
+      "at": "2026-10-21T10:49:37Z",
+      "note": "resumed at the design review in a new session; the first attempt never ran a review, so it is not counted as a cycle"
+    },
+    {
+      "state": "IMPLEMENT",
+      "at": "2026-10-21T11:10:32Z",
+      "note": "design review applied; plan gate open, passed without notice"
+    },
+    {
+      "state": "CONVERGE",
+      "at": "2026-10-21T12:40:29Z",
+      "note": "every story accepted"
+    },
+    {
+      "state": "REVIEW",
+      "at": "2026-10-21T12:43:21Z",
+      "note": "converge green"
+    },
+    {
+      "state": "PR_READY",
+      "at": "2026-10-21T13:05:36Z",
+      "note": "review clean; walkthrough laid out"
+    }
+  ],
+  "gates": {
+    "spec": {
+      "approved_by": "Sam",
+      "at": "2026-10-21T10:20:05Z"
+    },
+    "plan": {
+      "approved_by": "open",
+      "at": "2026-10-21T11:09:32Z"
+    },
+    "merge": {
+      "approved_by": null,
+      "at": null
+    },
+    "walkthrough": {
+      "approved_by": null,
+      "at": "2026-10-21T13:05:38Z",
+      "self_resolved": []
+    }
+  },
+  "stories": [
+    {
+      "id": "US4",
+      "priority": "P3",
+      "issue": 574,
+      "worktree": null,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T001",
+          "status": "done",
+          "attempts": 3,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_header_height_e2e.py::TestHeaderHeight"
+            ],
+            "commands": [
+              "uv run pytest tests/test_components/test_header_height_e2e.py -q"
+            ],
+            "code": [
+              "assets/js/header_height.js:17"
+            ]
+          }
+        },
+        {
+          "id": "T019",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_header_height_e2e.py::TestHeaderHeight::test_a_boosted_navigation_measures_the_new_header"
+            ],
+            "commands": [
+              "uv run pytest tests/test_components/test_header_height_e2e.py -q (6 passed)",
+              "mutation: htmx:afterSettle startHeaderHeight() call removed, rebuilt: 1 failed (wait_for_function timeout), 5 passed"
+            ],
+            "code": [
+              "assets/js/header_height.js:11",
+              "assets/js/index.js:63"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "US1",
+      "priority": "P1",
+      "issue": 571,
+      "worktree": null,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T002",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_templatetags.py::TestRootAttr"
+            ],
+            "commands": [
+              "uv run pytest tests/test_templatetags.py -q"
+            ],
+            "code": [
+              "mvp/templatetags/mvp.py:395"
+            ]
+          }
+        },
+        {
+          "id": "T003",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_page_layout.py::TestPageLayoutWithoutAPanel",
+              "tests/test_components/test_page_layout.py::TestPageLayoutWithAPanel"
+            ],
+            "commands": [
+              "uv run pytest tests/test_components/test_page_layout.py -q"
+            ],
+            "code": [
+              "mvp/templates/cotton/mvp/page/layout.html:7"
+            ]
+          }
+        },
+        {
+          "id": "T004",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_page_side.py::TestSidePanelLandmark",
+              "tests/test_components/test_page_side.py::TestSidePanelOptions",
+              "tests/test_components/test_page_side.py::TestStackedSidePanel",
+              "tests/test_components/test_page_side.py::TestDrawerSidePanel"
+            ],
+            "commands": [
+              "uv run pytest tests/test_components/test_page_side.py -q",
+              "uv run invoke build-stylesheet"
+            ],
+            "code": [
+              "mvp/templates/cotton/mvp/page/side/index.html:14"
+            ]
+          }
+        },
+        {
+          "id": "T005",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_templates.py::TestPageViewSideBlock"
+            ],
+            "commands": [
+              "uv run pytest tests/test_templates.py::TestPageViewSideBlock -q"
+            ],
+            "code": [
+              "mvp/templates/page_view.html:23"
+            ]
+          }
+        },
+        {
+          "id": "T006",
+          "status": "done",
+          "attempts": 2,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_page_side_e2e.py::TestSideColumn"
+            ],
+            "commands": [
+              "uv run pytest tests/test_components/test_page_side_e2e.py -q"
+            ],
+            "code": [
+              "tests/test_components/test_page_side_e2e.py:96"
+            ]
+          }
+        },
+        {
+          "id": "T007",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_demo/test_pages.py::TestPageSideDemoPage"
+            ],
+            "commands": [
+              "uv run pytest tests/test_demo/test_pages.py::TestPageSideDemoPage -q"
+            ],
+            "code": [
+              "demo/views.py:810"
+            ]
+          }
+        },
+        {
+          "id": "T020",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "none: comments only"
+            ],
+            "commands": [
+              "python3 -I /home/sam/projects/worktrees/fs042/scan_comments.py (no over-length or bare-reference comment added by the branch)",
+              "uv run pytest tests/test_components tests/test_templates.py tests/test_table_layout.py tests/test_views/test_list.py tests/test_demo -q -n auto (1455 passed, 1 skipped)"
+            ],
+            "code": [
+              "assets/js/page_side.js:1",
+              "mvp/tailwind/base.css:959"
+            ]
+          }
+        },
+        {
+          "id": "T027",
+          "status": "done",
+          "attempts": 3,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_page_side_e2e.py::TestTallSideColumn",
+              "tests/test_components/test_page_side_e2e.py::TestTallSideColumnFocus",
+              "tests/test_list_filters_e2e.py::TestFilterPanel::test_after_applying_a_filter_the_new_panel_holds_its_foot_in_view",
+              "tests/test_views/test_list.py::TestFilterPanelContext::test_the_panel_is_at_the_end_by_default"
+            ],
+            "commands": [
+              "uv run pytest tests/test_components/test_page_side_e2e.py -n auto: red first (15 failed, the component did not exist), then 43 passed",
+              "mutation (each rebuilt, each failed, each restored): no scroll handler 6 failed; no clamp 4 failed; scroll origin 0 2 failed; no resize observer 1 failed; no header watching 1 failed; no header shift 1 failed; never released below the breakpoint 3 failed; scroll or resize listener not removed 1 failed each; observers not disconnected 1 failed; aside always a tab stop 1 failed",
+              "mutation: no focusin handler 2 failed; no reveal 2 failed; offset not carried 1 failed; no component on the stack branch 1 failed; no component on the drawer branch 18 failed",
+              "mutation (stylesheet rebuilt): aside scrolls again 5 failed; sticky offset ignores the property 10 failed; filter foot not sticky 1 failed",
+              "uv run pytest -q -n auto --deselect tests/test_views/test_error.py::TestErrorPagesAccessibilityE2E, three runs: 2614 passed, 1 skipped each",
+              "forge verify --steps lint,typecheck,build,conformance,docs: passed; forge check-adrs: green"
+            ],
+            "code": [
+              "assets/js/page_side_column.js:20",
+              "mvp/tailwind/base.css:997",
+              "mvp/templates/cotton/mvp/page/side/index.html:48"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "US5",
+      "priority": "P3",
+      "issue": 575,
+      "worktree": null,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T008",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_page_layout.py::TestPageLayoutWithAPanel",
+              "tests/test_components/test_page_layout.py::TestPageLayoutWithoutAPanel::test_draws_the_title_and_content_with_no_wrapper",
+              "tests/test_templates.py::TestPageViewSideBlock::test_a_page_filling_the_block_draws_the_layout_with_its_panel"
+            ],
+            "commands": [
+              "uv run pytest tests/test_components/test_page_layout.py tests/test_templates.py::TestPageViewSideBlock -q"
+            ],
+            "code": [
+              "docs/layout.md:604"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "US2",
+      "priority": "P1",
+      "issue": 572,
+      "worktree": null,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T009",
+          "status": "done",
+          "attempts": 2,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_page_side.py::TestDrawerConfiguration",
+              "tests/test_components/test_page_side.py::TestSidePanelToggle"
+            ],
+            "commands": [
+              "uv run pytest tests/test_components/test_page_side.py"
+            ],
+            "code": [
+              "assets/js/page_side.js:27"
+            ]
+          }
+        },
+        {
+          "id": "T010",
+          "status": "done",
+          "attempts": 2,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_page_side_e2e.py::TestSideDrawer"
+            ],
+            "commands": [
+              "uv run pytest tests/test_components/test_page_side_e2e.py tests/test_components/test_page_side.py"
+            ],
+            "code": [
+              "assets/js/page_side.js:105"
+            ]
+          }
+        },
+        {
+          "id": "T011",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_demo/test_pages.py::TestPageSideDemoPage"
+            ],
+            "commands": [
+              "uv run pytest tests/test_demo/test_pages.py::TestPageSideDemoPage"
+            ],
+            "code": [
+              "docs/layout.md:604"
+            ]
+          }
+        },
+        {
+          "id": "T021",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "none: documentation only"
+            ],
+            "commands": [
+              "grep -n '[^:]breakpoint=\"False\"' docs/*.md (no match)"
+            ],
+            "code": [
+              "docs/layout.md:636"
+            ]
+          }
+        },
+        {
+          "id": "T022",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_page_side_e2e.py::TestSideDrawer::test_tab_from_the_last_control_wraps_when_the_panel_ends_in_something_untabbable"
+            ],
+            "commands": [
+              "uv run pytest tests/test_components/test_page_side_e2e.py -q (23 passed)",
+              "mutation: .filter(canTakeFocus) removed from wrapTab, rebuilt: new test failed (active element id '' != 'toc-panel')"
+            ],
+            "code": [
+              "assets/js/page_side.js:111"
+            ]
+          }
+        },
+        {
+          "id": "T023",
+          "status": "done",
+          "attempts": 2,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_page_side_e2e.py::TestSideDrawerSlide::test_an_end_panel_slides_in_from_the_end_edge"
+            ],
+            "commands": [
+              "uv run pytest tests/test_components/test_page_side_e2e.py::TestSideDrawerSlide -> ltr fails before the fix (left edge already at the open position mid-slide); mutation: remove {preventScroll: true} from assets/js/page_side.js focusClose and rebuild -> fails; restored -> 25 passed"
+            ],
+            "code": [
+              "assets/js/page_side.js:137"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "US3",
+      "priority": "P2",
+      "issue": 573,
+      "worktree": null,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T012",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_views/test_list.py::TestFilterPanelContext",
+              "tests/test_views/test_list.py::TestFilterPanelCountAndClear"
+            ],
+            "commands": [
+              "uv run pytest tests/test_views/test_list.py"
+            ],
+            "code": [
+              "mvp/views/list.py:93"
+            ]
+          }
+        },
+        {
+          "id": "T013",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_list_filter_panel.py"
+            ],
+            "commands": [
+              "uv run pytest tests/test_components/test_list_filter_panel.py"
+            ],
+            "code": [
+              "mvp/templates/cotton/mvp/page/list/filters/panel.html:9"
+            ]
+          }
+        },
+        {
+          "id": "T014",
+          "status": "done",
+          "attempts": 2,
+          "evidence": {
+            "tests": [
+              "tests/test_views/test_list.py::TestListPageFilterPanel",
+              "tests/test_integrations.py",
+              "tests/test_demo/test_list_filter_pages.py"
+            ],
+            "commands": [
+              "uv run pytest tests/test_views tests/test_integrations.py tests/test_demo tests/test_components/test_list_filter_panel.py tests/test_table_layout.py --deselect tests/test_views/test_error.py::TestErrorPagesAccessibilityE2E"
+            ],
+            "code": [
+              "mvp/templates/list_view.html:31"
+            ]
+          }
+        },
+        {
+          "id": "T015",
+          "status": "done",
+          "attempts": 2,
+          "evidence": {
+            "tests": [
+              "tests/test_table_layout.py::TestTableFilterPanel",
+              "tests/test_table_layout_e2e.py::TestTheFilterPanelBesideTheTable"
+            ],
+            "commands": [
+              "uv run pytest tests/test_table_layout.py tests/test_components",
+              "uv run pytest tests/test_table_layout_e2e.py"
+            ],
+            "code": [
+              "mvp/templates/table_view.html:33"
+            ]
+          }
+        },
+        {
+          "id": "T016",
+          "status": "done",
+          "attempts": 2,
+          "evidence": {
+            "tests": [
+              "tests/test_list_filters_e2e.py::TestFilterPanel"
+            ],
+            "commands": [
+              "uv run pytest tests/test_list_filters_e2e.py"
+            ],
+            "code": [
+              "mvp/static/js/list_view.js:22"
+            ]
+          }
+        },
+        {
+          "id": "T017",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "grep -rn -i 'filterModal|modal_fields|modal_applied_count|clear_modal_url|filters.modal' docs README.md CONTEXT.md mvp demo"
+            ],
+            "code": [
+              "docs/views.md:355"
+            ]
+          }
+        },
+        {
+          "id": "T018",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_demo/test_list_filter_pages.py",
+              "tests/test_views/test_list.py"
+            ],
+            "commands": [
+              "uv run pytest -q tests/test_demo/test_list_filter_pages.py tests/test_views/test_list.py"
+            ],
+            "code": [
+              "demo/urls.py:75"
+            ]
+          }
+        },
+        {
+          "id": "T024",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_list_filter_panel.py::TestFilterPanelIsASidePanel::test_its_alignment_follows_its_side_unless_one_is_set",
+              "tests/test_views/test_list.py::TestFilterPanelContext::test_the_panel_is_at_the_end_by_default",
+              "tests/test_table_layout.py::TestTableFilterPanel::test_the_panel_is_at_the_end_and_level_with_the_content"
+            ],
+            "commands": [
+              "mutation: align default content->title in filters/panel.html -> 3 failed; restored. mutation: filter_panel_attrs default position end->start in mvp/views/list.py -> 3 failed; restored"
+            ],
+            "code": [
+              "mvp/templates/cotton/mvp/page/list/filters/panel.html:9"
+            ]
+          }
+        },
+        {
+          "id": "T025",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_table_layout_e2e.py::TestTheFilterPanelBesideTheTable::test_the_panel_and_the_table_area_meet_with_no_column_gap"
+            ],
+            "commands": [
+              "mutation: gap-0! -> gap-y-0! in mvp/templates/table_view.html -> the test fails (main right 1144, panel left 1184); restored -> 125 passed"
+            ],
+            "code": [
+              "mvp/templates/table_view.html:31"
+            ]
+          }
+        },
+        {
+          "id": "T026",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_list_filters_e2e.py::TestFilterPanel::test_a_panel_taller_than_the_screen_has_no_scrollbar_of_its_own",
+              "tests/test_list_filters_e2e.py::TestFilterPanel::test_scrolling_the_page_keeps_apply_and_clear_in_view",
+              "tests/test_views/test_list.py"
+            ],
+            "commands": [
+              "mutation: filter_panel_attrs default back to {'position': 'end'} -> no-scrollbar test 1 failed; restored -> 271 passed"
+            ],
+            "code": [
+              "mvp/views/list.py:520"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "budgets": {
+    "converge_cycles": {
+      "used": 1,
+      "max": 2
+    },
+    "review_cycles": {
+      "used": 1,
+      "max": 1
+    },
+    "tokens": {
+      "used": 37.7,
+      "max": 120
+    },
+    "design_review_cycles": {
+      "used": 1,
+      "max": 1
+    }
+  },
+  "pr": {
+    "number": 570,
+    "draft": false
+  }
+}

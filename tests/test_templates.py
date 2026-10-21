@@ -680,3 +680,71 @@ class TestPackagedPagesUnderCottonIsolation:
 
         assert leaky.status_code == isolated.status_code
         assert _controls(isolated.content.decode()) == _controls(leaky.content.decode())
+
+
+PANEL = '<c-mvp.page.side label="On this page" id="toc">links</c-mvp.page.side>'
+
+
+def page_view_region(side=None, title=None):
+    """The content region ``page_view.html`` draws, with a body of ``#body``.
+
+    ``side`` fills ``page.side`` with the given markup, and ``title`` replaces
+    the whole ``page.title`` block; ``None`` leaves each block alone.
+    """
+    from django_cotton.compiler_regex import CottonCompiler
+
+    blocks = '{% block page.content %}<p id="body">hi</p>{% endblock %}'
+    if side is not None:
+        blocks += "{% block page.side %}" + side + "{% endblock %}"
+    if title is not None:
+        blocks += "{% block page.title %}" + title + "{% endblock %}"
+    source = CottonCompiler().process('{% extends "page_view.html" %}' + blocks)
+    soup = BeautifulSoup(render_shell(source), "html.parser")
+    return soup.select_one("main .container > div")
+
+
+@pytest.mark.django_db
+class TestPageViewSideBlock:
+    def test_a_page_without_a_side_panel_draws_the_title_then_the_content(self):
+        region = page_view_region()
+
+        assert [
+            el.get("id") or el["class"][0] for el in region.find_all(recursive=False)
+        ] == [
+            "page-title",
+            "body",
+        ]
+
+    def test_a_page_without_a_side_panel_draws_no_layout_drawer_or_button(self):
+        region = page_view_region()
+
+        assert region.select_one(".mvp-page-layout") is None
+        assert region.select_one(".drawer") is None
+        assert region.select_one(".mvp-page-side-toggle") is None
+
+    def test_a_block_holding_only_whitespace_counts_as_empty(self):
+        region = page_view_region(side="  \n\t  ")
+
+        assert region.select_one(".mvp-page-layout") is None
+        assert [
+            el.get("id") or el["class"][0] for el in region.find_all(recursive=False)
+        ] == [
+            "page-title",
+            "body",
+        ]
+
+    def test_a_page_filling_the_block_draws_the_layout_with_its_panel(self):
+        region = page_view_region(side=PANEL)
+
+        layout = region.select_one(".mvp-page-layout")
+        assert layout.select_one(".mvp-page-header .page-title") is not None
+        assert layout.select_one(".mvp-page-main #body") is not None
+        assert layout.select_one("#toc") is not None
+
+    def test_a_page_that_empties_the_title_still_lays_out_the_panel(self):
+        region = page_view_region(side=PANEL, title="")
+
+        layout = region.select_one(".mvp-page-layout")
+        assert layout.select_one(".mvp-page-header") is None
+        assert layout.select_one(".mvp-page-main #body") is not None
+        assert layout.select_one("#toc") is not None

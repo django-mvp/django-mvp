@@ -233,11 +233,14 @@ the whole screen. `fill` takes the full width and height and ignores `width`.
 | `c-mvp.page.title` | title/subtitle block (fed by `PageMixin` context); attrs `title`, `subtitle`, `info`, `info_actions`, `inline_actions`, `class` — any other attribute lands on the block's root element. `inline_actions` keeps the `actions` slot at the end of the heading's own row at every width, with the subtitle across the full width below |
 | `c-mvp.page.info` | `text`, `title`, `actions` — info icon beside the title, opening a dialog that explains the page; drawn by `c-mvp.page.title` from `page_info`, and nothing renders without `text`. A plain `text` string is escaped; a safe string is written out as markup |
 | `c-mvp.page.content` | `gap` (`4`), `class` — flexible body region that absorbs leftover height |
+| `c-mvp.page.layout` | `class`; slots `header`, `side` and the default slot — lays a page's title, content and side panel out together. With an empty `side` slot it draws the header and content and nothing else. `page_view.html` calls it; call it yourself from a template that does not extend the page template. See [Side panel](layout.md#side-panel) |
+| `c-mvp.page.side` | `label` (required), `id` (`page-side`), `width` (`sm`/`md`/`lg`, default `md`), `breakpoint` (`lg`/`xl`/`2xl`/`:breakpoint="False"`, default `xl`), `collapse` (`drawer`/`stack`, default `drawer`), `align` (`title`/`content`, default `title`), `position` (`end`/`start`, default `end`), `sticky` (`True`), `class` — a column beside the page's content, in the `page.side` block or the layout's `side` slot. See [Side panel](layout.md#side-panel) |
+| `c-mvp.page.side.toggle` | `for` (the panel's `id`, default `page-side`), `text` (required), `icon` (`sidebar-right`), `count`, `class` — the button that opens a side panel's drawer below its breakpoint. `count` draws a badge when above zero. It is hidden from the panel's breakpoint up and on a page with no drawer panel. See [Side panel](layout.md#on-a-narrow-screen) |
 | `c-mvp.page.toolbar` | `class` — page-level toolbar; renders nothing at all when given no children |
 | `c-mvp.page.list` | list-view wrapper used by `MVPListView` templates — see [below](#list-components-driven-by-view-context) |
 | `c-mvp.page.list.empty` | `icon`, `heading`, `message` — empty state |
 | `c-mvp.page.list.toolbar` | slots `search`, `summary` and the default slot for controls; `bare` draws the default slot as the row itself — the row above a list's results |
-| `c-mvp.page.list.filters.modal` | `part` (`button` or `dialog`), `fields`, `applied_count`, `clear_url` — the Filter button, or the filter modal holding the filterset fields it is given; draws nothing with no fields |
+| `c-mvp.page.list.filters.panel` | `fields`, `clear_url`, `id` (`filters`), `region`; every other attribute goes to the `c-mvp.page.side` it draws — the filter panel holding the filterset fields it is given, with Apply and Clear in a foot at its bottom; draws nothing with no fields. See [The filter panel](views.md#the-filter-panel) |
 | `c-mvp.page.list.filters.field` | `field` — one filterset field in the toolbar, in its compact form, from a dict `get_toolbar_field()` returns; must sit inside the filter form |
 | `c-mvp.page.list.summary` | `class` — the count of what the list holds |
 | `c-mvp.page.list.refinements` | `class` — the applied search and filters, each as a control that removes it |
@@ -475,9 +478,9 @@ and `table_view.html` do: `<c-mvp.page.list.summary :result_count="result_count"
 | Component | Context key it reads | Attributes |
 | --- | --- | --- |
 | `c-mvp.page.list` | `list` | `card` names the template each row is rendered with; undeclared attributes pass to the grid it renders, so column counts and gaps are set on the tag itself; `empty_state` takes a dict of attributes forwarded to `c-mvp.page.list.empty` when the result set is empty. The `empty` slot replaces the packaged empty state |
-| `c-mvp.page.list.empty` | `directory` (its `create_url` gates the add button), `create_form`, `refinements` (switches it to the nothing-matches message with a link to `clear_refinements_url`), `model_info` | `icon` (default `search`), `heading`, `message`, `icon_class`, `class`; `create_modal` draws the create dialog with the add button, for a page where nothing else draws it, with `create_modal_title` as its heading and `request` so it returns to the page; `region`, the id of the list region, makes Clear all swap it in place with htmx |
+| `c-mvp.page.list.empty` | `directory` (its `create_url` gates the add button), `create_form`, `refinements` (switches it to the nothing-matches message with a link to `clear_refinements_url`), `model_info` | `icon` (default `search`), `heading`, `message`, `icon_class`, `class`; `create_modal` draws the create dialog with the add button, for a page where nothing else draws it, with `create_modal_title` as its heading and `request` so it returns to the page; `region`, the id of the list region, makes Clear all swap it in place with htmx, and `panel`, the id of the filter panel, has that swap refresh the panel too |
 | `c-mvp.page.list.toolbar` | `result_count`, `refinements` (renders nothing when both are empty) | slots `search` and `summary`, default slot for the controls, `bare`, `class` |
-| `c-mvp.page.list.filters.modal` | — | `part` (`button` draws the Filter button, `dialog` the modal), `fields` (the bound fields, each drawn once), `applied_count` (the button's badge), `clear_url` (the modal's clear link) |
+| `c-mvp.page.list.filters.panel` | — | `fields` (the bound fields, each drawn once), `clear_url` (the panel's Clear link), `id` (default `filters`), `region` (the list region the Clear link swaps, as the empty state's `region` does); the rest are forwarded to `c-mvp.page.side`, so `width`, `position`, `align`, `breakpoint` and `collapse` apply |
 | `c-mvp.page.list.filters.field` | — | `field`, one entry of `toolbar_fields` or `toolbar_sort`, drawn by its `kind`. A multi-select list and a developer's widget are drawn inside a `[data-mvp-toolbar-field]` wrapper whose value is the field's name |
 | `c-mvp.page.list.summary` | `result_count`, `refinements`, `model_info` | `class` |
 | `c-mvp.page.list.refinements` | `refinements`, `clear_refinements_url` | `class` |
@@ -486,14 +489,15 @@ and `table_view.html` do: `<c-mvp.page.list.summary :result_count="result_count"
 | `c-mvp.page.list.actions.create` | `directory` (its `create_url`), optionally `create_form` and `create_modal_title` | `label` (default `Add`, the button's text), `icon` (default `add`) |
 | `c-mvp.page.list.actions.share` | — (always renders) | — |
 
-The search, sort and filters come from the view's filterset. The filter modal and every
-toolbar field sit inside one form with the id `filterForm`, which a page draws only when
-the view has a filterset; the modal draws no form of its own. The Filter button only opens
-the modal, so it may sit outside the form. The count, the sort in use and the refinements
+The search, sort and filters come from the view's filterset. Every toolbar field sits
+inside one form with the id `filterForm`, which a page draws only when the view has a
+filterset. The filter panel's fields sit outside it and belong to it through the HTML
+`form` attribute that the view sets on each widget, and Apply names the form the same way;
+the panel draws no form of its own. The `c-mvp.page.side.toggle` that opens the panel may
+sit anywhere. The count, the sort in use and the refinements
 make the row under the toolbar; the toolbar holds no count. A page that draws these
 components itself loads the package's `js/list_view.js`, as `list_view.html` does: it
-keeps the fields nobody set out of the address, puts the modal's fields back when it
-closes without applying, and submits the form when focus leaves a
+keeps the fields nobody set out of the address, and submits the form when focus leaves a
 `[data-mvp-toolbar-field]` wrapper with a different value than it found. The create action draws itself only when
 `show_create_action` allows it. `share` takes no context and always renders, so it
 appears only where a caller asks for it.
@@ -507,13 +511,13 @@ appears only where a caller asks for it.
         {% for field in toolbar_fields %}
           <c-mvp.page.list.filters.field :field="field" />
         {% endfor %}
-        <c-mvp.page.list.filters.modal part="dialog" :fields="modal_fields"
-                                       :clear_url="clear_modal_url" />
       </form>
     {% endif %}
     {% if toolbar_sort %}<c-mvp.page.list.filters.field :field="toolbar_sort" />{% endif %}
-    <c-mvp.page.list.filters.modal part="button" :fields="modal_fields"
-                                   :applied_count="modal_applied_count" />
+    {% if panel_fields %}
+      <c-mvp.page.side.toggle :for="filter_panel_id" text="Filters" icon="filter"
+                              :count="panel_applied_count" />
+    {% endif %}
     <c-mvp.page.list.actions.create />
   </c-mvp.page.list.toolbar>
   <div class="flex flex-wrap items-center gap-x-4">

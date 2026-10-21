@@ -20,13 +20,10 @@
       {% row_header_columns table as row_headers %}
       {% block table.thead %}
         {% if table.show_header %}
-          {% comment %}
-            On a table page the column headings sort by swapping the page's
-            list region in place with htmx. The swap is on the heading row
-            alone, so htmx a project puts in a cell never inherits it.
-          {% endcomment %}
-          {% with region=table.context.list_region_id %}
-          <thead {{ table.attrs.thead.as_html }}{% if region %} hx-boost="true" hx-target="#{{ region }}" hx-select="#{{ region }}" hx-swap="outerHTML"{% endif %}>
+          {# The swap sits on the heading row alone, so htmx a project puts in a cell never inherits it. #}
+          {# The filter panel is refreshed out of band (docs/adr/0034-what-sits-beside-the-list-region-is-refreshed-out-of-band.md). #}
+          {% with region=table.context.list_region_id panel=table.context.filter_panel_id %}
+          <thead {{ table.attrs.thead.as_html }}{% if region %} hx-boost="true" hx-target="#{{ region }}" hx-select="#{{ region }}"{% if panel %} hx-select-oob="#{{ panel }}"{% endif %} hx-swap="outerHTML"{% endif %}>
             <tr>
               {% for column in table.columns %}
                 <th {% table_cell_attrs column table cell="th" wrap=False %} scope="col"{% if column.name in row_headers %} data-row-header{% endif %}>
@@ -103,7 +100,7 @@
             <td colspan="{{ table.columns|length }}">
               {% if not table.rows %}
                 {% with page_context=table.context %}
-                  {% with refinements=page_context.refinements clear_refinements_url=page_context.clear_refinements_url directory=page_context.directory create_form=page_context.create_form model_info=page_context.model_info region=page_context.list_region_id %}
+                  {% with refinements=page_context.refinements clear_refinements_url=page_context.clear_refinements_url directory=page_context.directory create_form=page_context.create_form model_info=page_context.model_info region=page_context.list_region_id panel=page_context.filter_panel_id %}
                     <div class="mvp-table-empty">
                       <c-mvp.page.list.empty :attrs="page_context.empty_state"
                                              :refinements="refinements"
@@ -112,6 +109,7 @@
                                              :create_form="create_form"
                                              :model_info="model_info"
                                              :region="region"
+                                             :panel="panel"
                                              only />
                     </div>
                   {% endwith %}

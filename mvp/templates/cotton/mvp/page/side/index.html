@@ -1,0 +1,73 @@
+{# @description A side panel beside the page content: a sticky column on a wide screen, and a drawer, a stacked block or nothing on a narrow one. Place it in the page.side block, or in the side slot of <c-mvp.page.layout>. #}
+{# @prop label:text | required | description:"The panel's heading, and the accessible name of its landmark." #}
+{# @prop id:text | default:"page-side" | description:"Id of the panel's root element. <c-mvp.page.side.toggle> names it to open the drawer; the <aside> inside is {id}-panel." #}
+{# @prop width:select['sm','md','lg'] | default:"md" | description:"Column width on a wide screen: 14rem, 16rem or 20rem." #}
+{# @prop breakpoint:select['lg','xl','2xl'] | default:"xl" | description:"The screen width from which the panel is a column beside the content. False keeps it a drawer or a stacked block at every width." #}
+{# @prop collapse:select['drawer','stack'] | default:"drawer" | description:"Below the breakpoint: an off-canvas drawer opened by <c-mvp.page.side.toggle>, or a block stacked with the content. A drawer with no toggle on the page is not shown at all." #}
+{# @prop align:select['title','content'] | default:"title" | description:"From the breakpoint, whether the column starts level with the page title or with the content under it." #}
+{# @prop position:select['end','start'] | default:"end" | description:"Which side of the content the panel sits on." #}
+{# @prop :sticky:boolean | default:True | description:"Whether the column sticks under the header while the page scrolls." #}
+{# @prop class:text | description:"Extra classes on the panel's root element." #}
+{# @slot The panel's content: a table of contents, filters, related links. #}
+{% load i18n mvp %}
+<c-vars id="page-side" label width="md" breakpoint="xl" collapse="drawer" align="title" position="end" :sticky="True" class />
+<div id="{{ id }}"
+     data-mvp-side-width="{{ width }}"
+     {% if breakpoint %}data-mvp-side-breakpoint="{{ breakpoint }}"{% endif %}
+     data-mvp-side-collapse="{{ collapse }}"
+     data-mvp-side-position="{{ position }}"
+     data-mvp-side-align="{{ align }}"
+     {% if sticky %}data-mvp-side-sticky{% endif %}
+     {% comment %}Each breakpoint's variant is written out whole, so the stylesheet build finds it.{% endcomment %}
+     {% if collapse == "drawer" %}
+       {% if breakpoint %}{% breakpoint_px breakpoint as breakpoint_width %}{% endif %}
+       x-data="mvpPageSide({ id: '{{ id|escapejs }}'{% if breakpoint %}, breakpointRem: {% widthratio breakpoint_width 16 1 %}{% endif %} })"
+     {% endif %}
+     class="mvp-page-side {% if collapse == "stack" %}py-1{% endif %} {% if breakpoint == "lg" %}lg:mvp-page-side-wide{% elif breakpoint == "xl" %}xl:mvp-page-side-wide{% elif breakpoint == "2xl" %}2xl:mvp-page-side-wide{% endif %} {{ class }}"
+     {{ attrs }}>
+  {% if collapse == "drawer" %}
+    {% comment %}
+      The checkbox only carries the open state for daisyUI's selectors; the opener is a real button.
+    {% endcomment %}
+    <div class="drawer {% if position == "start" %}drawer-start{% else %}drawer-end{% endif %} {% if breakpoint == "lg" %}lg:drawer-open{% elif breakpoint == "xl" %}xl:drawer-open{% elif breakpoint == "2xl" %}2xl:drawer-open{% endif %}">
+      <input id="{{ id }}-toggle"
+             type="checkbox"
+             class="drawer-toggle"
+             tabindex="-1"
+             aria-hidden="true"
+             x-ref="toggle" />
+      <div class="drawer-content"></div>
+      <div class="drawer-side z-40">
+        <label for="{{ id }}-toggle"
+               aria-hidden="true"
+               class="drawer-overlay"
+               @click.prevent="close()"></label>
+        <aside id="{{ id }}-panel"
+               aria-labelledby="{{ id }}-label"
+               tabindex="0"
+               {% if sticky %}x-data="mvpPageSideColumn"{% endif %}
+               class="mvp-page-side-panel bg-base-100 min-h-full w-80 max-w-[calc(100vw-3.5rem)] p-4 shadow-xl">
+          <div class="flex items-center justify-between gap-2 mb-2">
+            <h2 id="{{ id }}-label" class="px-3 text-sm font-semibold text-base-content/70">{{ label }}</h2>
+            <button type="button"
+                    class="btn btn-ghost btn-sm btn-square mvp-page-side-close"
+                    aria-label="{% blocktrans %}Close {{ label }}{% endblocktrans %}"
+                    @click="close()">
+              <c-icon name="x" />
+            </button>
+          </div>
+          {{ slot }}
+        </aside>
+      </div>
+    </div>
+  {% else %}
+    <aside id="{{ id }}-panel"
+           aria-labelledby="{{ id }}-label"
+           tabindex="0"
+           {% if sticky %}x-data="mvpPageSideColumn"{% endif %}
+           class="mvp-page-side-panel">
+      <h2 id="{{ id }}-label" class="px-3 mb-2 text-sm font-semibold text-base-content/70">{{ label }}</h2>
+      {{ slot }}
+    </aside>
+  {% endif %}
+</div>

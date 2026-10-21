@@ -9,6 +9,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- A page can have a side panel beside its title and content. Fill the new `page.side` block of
+  `page_view.html` with `<c-mvp.page.side label="…">`. From its breakpoint (`xl` by default) the
+  panel is a column that sticks under the header, at the end or the start, level with the title
+  or with the content, in one of three widths. Below the breakpoint it is a drawer or a block
+  stacked with the content. A panel taller than the space under the header has no scrollbar of
+  its own: it moves with the page in the direction the reader scrolls until its foot, or its top,
+  is in view, and holds there. A page that leaves the block empty is drawn as before.
+  `<c-mvp.page.layout>` does the arranging and can be called from a template that does not extend
+  the page template. See "Side panel" in `docs/layout.md`.
+- `<c-mvp.page.side.toggle for="…" text="…">` opens a side panel's drawer on a narrow screen. The
+  drawer opens from the panel's own edge, dims the page and makes everything outside it `inert`,
+  moves focus to its close button and keeps Tab inside it. Escape, the close button and a click on
+  the dimmed page close it and return focus to the button. The button reports `aria-expanded`
+  and is hidden from the panel's breakpoint up. See "On a narrow screen" in `docs/layout.md`.
+- New template filter `root_attr`, which returns one attribute of the first element of an HTML
+  string.
+- The app header's height is published as `--mvp-header-height` on `:root` and kept current as
+  the header changes size (`0px` for a header that does not stick or a page with none). The
+  document's `scroll-padding-top` follows it, so a link to an anchor or a field focused by
+  keyboard no longer lands under the sticky header. See "Header height" in `docs/layout.md`.
 - `layout.sidebar.collapse` accepts `"none"`: at and above the sidebar breakpoint the
   sidebar is always open, neither the sidebar header nor the navbar draws a toggle, and a
   collapsed state saved on an earlier visit is ignored. Below the breakpoint nothing
@@ -17,6 +37,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Breaking:** the filter modal is removed. The filterset fields a list or table view does not
+  name in `toolbar_filters` are drawn in a filter panel, a side panel beside the results: a
+  column at the end of the page from the `xl` breakpoint, and below it a drawer opened by the
+  Filters button where the Filter button was. Its fields join the toolbar's form through the HTML
+  `form` attribute, which the view sets on each widget, so they reach a range, a multiple choice
+  and a widget of your own. Every update to the list refreshes the panel along with it. The
+  context keys `modal_fields`, `modal_applied_count` and `clear_modal_url` are now
+  `panel_fields`, `panel_applied_count` and `clear_panel_url`, with no aliases. A view sets the
+  panel's `<c-mvp.page.side>` attributes with `filter_panel_attrs` (default `{"position":
+  "end"}`; the panel is level with the content at the end and with the title at the start unless
+  `align` is set) and its id with `filter_panel_id` (default `"filters"`).
+  `c-mvp.page.list.filters.modal` is replaced by `c-mvp.page.list.filters.panel`, and
+  `c-mvp.page.list.empty` takes a `panel` attribute beside `region`. A project template that
+  overrides `page.toolbar` or `page.panel` replaces the Filter button and the modal with the
+  `c-mvp.page.side.toggle` and the `page.side` block. Closing the panel no longer puts its
+  fields back as the page drew them. See "The filter panel" in `docs/views.md`.
 - A list or table page updates in place when a filter is applied or removed, the sort
   changes, a column heading is clicked or the reader moves to another page. Each control
   fetches the list with htmx and swaps the `#mvp-list` region, and the address bar follows.

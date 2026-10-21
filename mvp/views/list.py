@@ -51,11 +51,13 @@ class FilterContextMixin:
             them. The sort is never among them.
         toolbar_sort (dict | None): The sort, when ``toolbar_filters`` names
             it, described the same way. The page draws it at the end of the row.
-        modal_fields (list[BoundField]): Every field the toolbar does not draw.
-        modal_applied_count (int): How many of the modal's fields are applied
-            filters — the Filter button's badge.
-        clear_modal_url (str): Present only when a modal field is applied. The
-            current URL with the modal's fields and the page number removed;
+        panel_fields (list[BoundField]): Every field the toolbar does not draw,
+            for the filter panel. Each widget carries ``form="filterForm"``, so
+            the field joins the toolbar's form from outside it.
+        panel_applied_count (int): How many of the panel's fields are applied
+            filters — the panel button's badge.
+        clear_panel_url (str): Present only when a panel field is applied. The
+            current URL with the panel's fields and the page number removed;
             the toolbar's fields and the sort, wherever it is drawn, are kept.
 
     Override hooks:
@@ -86,18 +88,20 @@ class FilterContextMixin:
         fields = [self.get_toolbar_field(filterset, name) for name in toolbar_names]
         context["toolbar_fields"] = [f for f in fields if f["kind"] != "sort"]
         context["toolbar_sort"] = next((f for f in fields if f["kind"] == "sort"), None)
-        modal_names = [n for n in filterset.form.fields if n not in toolbar_names]
-        context["modal_fields"] = [filterset.form[n] for n in modal_names]
-        modal_active = [n for n in active if n in modal_names]
-        context["modal_applied_count"] = len(modal_active)
-        if modal_active:
+        panel_names = [n for n in filterset.form.fields if n not in toolbar_names]
+        for name in panel_names:
+            filterset.form.fields[name].widget.attrs["form"] = "filterForm"
+        context["panel_fields"] = [filterset.form[n] for n in panel_names]
+        panel_active = [n for n in active if n in panel_names]
+        context["panel_applied_count"] = len(panel_active)
+        if panel_active:
             params = [
                 p
-                for n in modal_names
+                for n in panel_names
                 if not isinstance(filterset.filters.get(n), SortFilter)
                 for p in self.get_filter_params(filterset, n)
             ]
-            context["clear_modal_url"] = self.get_url_without(*params)  # type: ignore[attr-defined]
+            context["clear_panel_url"] = self.get_url_without(*params)  # type: ignore[attr-defined]
         return context
 
     def get_toolbar_names(self, filterset: Any) -> list[str]:
@@ -185,7 +189,7 @@ class FilterContextMixin:
             raise ImproperlyConfigured(
                 f"{self.__class__.__name__}.toolbar_filters names {name!r}, a "
                 f"{flt.__class__.__name__} the toolbar cannot draw. Leave it in "
-                "the filter modal."
+                "the filter panel."
             )
         return item
 
@@ -420,7 +424,7 @@ class MVPListViewMixin(
             filterset from when ``filterset_class`` is unset. Default: ``None``.
         toolbar_filters (list[str]): The filterset fields drawn in the toolbar, in this order;
             the sort among them is drawn at the end of the row. Every other field is drawn
-            in the filter modal. Default: ``[]``.
+            in the filter panel. Default: ``[]``.
         create_form_class (type[Form] | None): Django form class for inline object creation
             in a modal. When ``None`` (the default), inline create is disabled. When set, the
             mixin injects an unbound form instance into context as ``create_form`` (if the user
@@ -430,6 +434,13 @@ class MVPListViewMixin(
             Default: ``None``.
         list_region_id (str): The id of the region a filter, a chip, a column heading or the
             pager swaps in place with htmx. Default: ``"mvp-list"``.
+        filter_panel_attrs (dict): The attributes of the filter panel's ``<c-mvp.page.side>``
+            (``position``, ``align``, ``width``, ``breakpoint``, ``collapse``). A subclass's
+            dict replaces the default whole. Default: ``{"position": "end"}``. The
+            panel aligns with the content at the end and with the title at the start, unless
+            ``align`` is set.
+        filter_panel_id (str): The id of the filter panel's root element, which the toolbar's
+            button opens and every list update refreshes. Default: ``"filters"``.
         partial_base_template (str): What the page extends in place of ``base.html`` when
             htmx asks for the region alone. Default: ``"mvp/partial.html"``.
 
@@ -474,6 +485,7 @@ class MVPListViewMixin(
         filter / filterset (FilterSet): The request's filterset, under both names, only when
             the view has one.
         list_region_id (str): The id of the region swapped in place.
+        filter_panel_attrs / filter_panel_id: The filter panel's attributes and root id.
         page_base_template (str): ``partial_base_template``, only when the request asked for
             the region alone.
         applied_filters / applied_filter_count / clear_filters_url / sort_label: Injected by
@@ -505,6 +517,8 @@ class MVPListViewMixin(
     filterset_fields = None
     toolbar_filters: list[str] = []
     list_region_id = "mvp-list"
+    filter_panel_attrs: dict = {"position": "end"}
+    filter_panel_id = "filters"
     partial_base_template = "mvp/partial.html"
 
     def __init_subclass__(cls, **kwargs):
@@ -638,6 +652,8 @@ class MVPListViewMixin(
             context["create_modal_title"] = title
 
         context["list_region_id"] = self.list_region_id
+        context["filter_panel_attrs"] = self.filter_panel_attrs
+        context["filter_panel_id"] = self.filter_panel_id
         if self.is_region_request():
             context["page_base_template"] = self.partial_base_template
 

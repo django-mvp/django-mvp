@@ -1,0 +1,19 @@
+{# @description Opens a side panel's drawer. Shown only while the panel is a closed drawer: hidden once it is a column, and on a page whose panel does not collapse into a drawer. #}
+{# @prop for:text | default:"page-side" | description:"Id of the <c-mvp.page.side> it opens." #}
+{# @prop text:text | required | description:"The button's label, one or two words: Filters, Contents." #}
+{# @prop icon:text | default:"sidebar-right" | description:"Icon name drawn before the label." #}
+{# @prop count:number | description:"How many of the panel's filters are applied, drawn as a badge when above zero." #}
+{# @prop class:text | description:"Extra classes on the button." #}
+<c-vars for="page-side" text icon="sidebar-right" count class />
+<button type="button"
+        class="btn mvp-page-side-toggle {{ class }}"
+        aria-controls="{{ for }}"
+        aria-expanded="false"
+        x-data="mvpPageSideToggle('{{ for|escapejs }}')"
+        :aria-expanded="expanded"
+        @click="open()"
+        {{ attrs }}>
+  {% if icon %}<c-icon :name="icon" />{% endif %}
+  {{ text }}
+  {% if count > 0 %}<span class="badge badge-secondary badge-sm">{{ count }}</span>{% endif %}
+</button>

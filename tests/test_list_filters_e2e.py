@@ -1,9 +1,10 @@
-"""A user narrows a list from the toolbar and the filter modal, in a real browser (FS-041 US-3, US-4).
+"""A user narrows a list from the toolbar and the filter panel, in a real browser (FS-041 US-3, US-4; FS-042 US-3).
 
 What these tests settle happens only in a browser: a pick or a toggle that
 submits the form, the address a GET form builds once list_view.js has
-dropped the fields nobody set, the filter modal putting its fields back
-when it closes without applying, and a toolbar field of several values, or
+dropped the fields nobody set, the filter panel's fields joining the
+toolbar's form from outside it and the panel showing each response's state,
+and a toolbar field of several values, or
 a developer's own widget, applying once when focus leaves it changed. The
 context and markup behind them are tested without a browser in
 tests/test_views/test_list.py and tests/test_components/test_list_filter_field.py.
@@ -13,6 +14,7 @@ from urllib.parse import parse_qs, urlparse
 
 import django_filters
 import pytest
+from django import forms
 from django.urls import path
 from playwright.sync_api import expect
 
@@ -54,13 +56,6 @@ def _pick(page, name, text):
     )
     dropdown.locator("[role=button]").first.click()
     dropdown.locator(".dropdown-content").get_by_text(text, exact=True).click()
-
-
-def _filter_modal(page):
-    page.locator("button[aria-haspopup=dialog]").click()
-    modal = page.locator("dialog#filterModal")
-    expect(modal).to_be_visible()
-    return modal
 
 
 @pytest.fixture
@@ -116,56 +111,249 @@ class TestToolbarApplies:
         _wait_for_query(page, {"is_featured": ["true"]})
 
 
-CLOSERS = {
-    "close button": lambda modal: modal.get_by_role("button", name="Close").first.click(),
-    "backdrop": lambda modal: modal.locator(".modal-backdrop button").click(),
-    "escape": lambda modal: modal.page.keyboard.press("Escape"),
-}
+NARROW = {"width": 390, "height": 844}
 
 
-class TestFilterModalCloses:
-    @pytest.mark.parametrize("path", [LIST_PAGE, TABLE_PAGE])
-    @pytest.mark.parametrize("closer", CLOSERS.values(), ids=list(CLOSERS))
-    def test_closing_leaves_the_address_and_restores_the_fields(
-        self, page, live_server, products, path, closer
+def _panel(page):
+    return page.locator("#filters")
+
+
+def _apply(page):
+    _panel(page).locator("button[type=submit]").click()
+
+
+def _clear(page):
+    return _panel(page).locator(".mvp-filter-panel-foot a")
+
+
+class PanelBehindTheButtonListView(ProductListView):
+    """The product list with the filter panel a drawer at every width."""
+
+    filter_panel_attrs = {"position": "start", "align": "content", "breakpoint": False}
+
+
+BEHIND_THE_BUTTON_PAGE = "/behind-the-button/"
+BEHIND_THE_BUTTON_URLCONF = urlconf_of(
+    path(
+        BEHIND_THE_BUTTON_PAGE.strip("/") + "/", PanelBehindTheButtonListView.as_view()
+    ),
+    *demo_patterns,
+)
+
+
+class DevelopersInput(forms.TextInput):
+    """A widget a developer chose for a text filter, in place of its default."""
+
+
+class DevelopersWidgetFilter(django_filters.FilterSet):
+    name = django_filters.CharFilter(
+        lookup_expr="icontains", label="Name", widget=DevelopersInput
+    )
+
+    class Meta:
+        model = Product
+        fields: list[str] = []
+
+
+class DevelopersWidgetPanelListView(ProductListView):
+    """A filter with the developer's own widget, in the panel."""
+
+    filterset_class = DevelopersWidgetFilter
+    toolbar_filters: list[str] = []
+
+
+DEVELOPERS_WIDGET_PAGE = "/developers-widget/"
+DEVELOPERS_WIDGET_URLCONF = urlconf_of(
+    path(
+        DEVELOPERS_WIDGET_PAGE.strip("/") + "/", DevelopersWidgetPanelListView.as_view()
+    ),
+    *demo_patterns,
+)
+
+
+@pytest.fixture
+def lamps(db):
+    ProductFactory(name="Lamp cheap", price="3.00", status="published")
+    return ProductFactory.create_batch(
+        11, name="Lamp dear", price="20.00", status="published"
+    )
+
+
+class TestFilterPanel:
+    def test_applying_narrows_the_list_and_keeps_the_search_and_the_sort(
+        self, page, live_server, lamps
     ):
-        _open(page, live_server, f"{path}?q=lamp&price_min=2")
-        address = page.url
-        modal = _filter_modal(page)
-        modal.locator("input[name=price_min]").fill("5")
-        modal.locator("input[name=price_max]").fill("9")
-        modal.locator("select[name=is_available]").select_option("true")
+        _open(page, live_server, f"{LIST_PAGE}?q=lamp&o=price")
+        expect(page.locator("#mvp-list").get_by_text("Lamp cheap")).to_have_count(1)
 
-        closer(modal)
+        page.locator("#filters input[name=price_min]").fill("10")
+        _apply(page)
 
-        expect(modal).to_be_hidden()
-        assert page.url == address
-        expect(modal.locator("input[name=price_min]")).to_have_value("2")
-        expect(modal.locator("input[name=price_max]")).to_have_value("")
-        expect(modal.locator("select[name=is_available]")).to_have_value("unknown")
+        _wait_for_query(page, {"q": ["lamp"], "o": ["price"], "price_min": ["10"]})
+        expect(page.locator("#mvp-list").get_by_text("Lamp cheap")).to_have_count(0)
 
+    def test_applying_on_page_two_lands_on_page_one(self, page, live_server, lamps):
+        _open(page, live_server, f"{LIST_PAGE}?q=lamp&o=price&page=2")
 
-class TestFilterModalApplies:
-    @pytest.mark.parametrize("path", [LIST_PAGE, TABLE_PAGE])
-    def test_apply_sends_the_modal_and_the_toolbar_and_no_empty_fields(
-        self, page, live_server, products, path
+        page.locator("#filters input[name=price_min]").fill("10")
+        _apply(page)
+
+        _wait_for_query(page, {"q": ["lamp"], "o": ["price"], "price_min": ["10"]})
+
+    def test_a_toolbar_change_keeps_the_panels_values(
+        self, page, live_server, products
     ):
-        _open(page, live_server, f"{path}?q=lamp")
-        modal = _filter_modal(page)
-        modal.locator("input[name=price_min]").fill("5")
-
-        modal.locator("button[type=submit]").click()
-
-        _wait_for_query(page, {"q": ["lamp"], "price_min": ["5"]})
-
-    def test_a_chosen_no_from_a_select_is_sent(self, page, live_server, products):
         _open(page, live_server, LIST_PAGE)
-        modal = _filter_modal(page)
-        modal.locator("select[name=is_available]").select_option("false")
+        page.locator("#filters input[name=price_min]").fill("10")
 
-        modal.locator("button[type=submit]").click()
+        page.locator("#filterForm input[name=is_featured]").click()
 
-        _wait_for_query(page, {"is_available": ["false"]})
+        _wait_for_query(page, {"price_min": ["10"], "is_featured": ["true"]})
+
+    def test_the_panels_clear_removes_its_filters_and_keeps_the_toolbar_and_the_sort(
+        self, page, live_server, lamps
+    ):
+        _open(page, live_server, f"{LIST_PAGE}?q=lamp&o=-price&price_min=5")
+
+        _clear(page).click()
+
+        _wait_for_query(page, {"q": ["lamp"], "o": ["-price"]})
+
+    def test_the_panel_shows_the_state_of_each_response(
+        self, page, live_server, products
+    ):
+        _open(page, live_server, LIST_PAGE)
+        expect(_clear(page)).to_have_count(0)
+
+        page.locator("#filters input[name=price_min]").fill("5")
+        _apply(page)
+
+        _wait_for_query(page, {"price_min": ["5"]})
+        expect(_clear(page)).to_have_count(1)
+
+        _clear(page).click()
+
+        _wait_for_query(page, {})
+        expect(_clear(page)).to_have_count(0)
+        expect(page.locator("#filters input[name=price_min]")).to_have_value("")
+
+    @pytest.mark.urls(BEHIND_THE_BUTTON_URLCONF)
+    def test_a_breakpoint_of_false_puts_the_filters_behind_the_button_at_a_wide_width(
+        self, page, live_server, products
+    ):
+        _open(page, live_server, BEHIND_THE_BUTTON_PAGE)
+        button = page.locator("button[aria-controls=filters]")
+        expect(page.locator("#filters-panel")).to_be_hidden()
+
+        button.click()
+
+        expect(page.locator("#filters-panel")).to_be_visible()
+        expect(button).to_have_attribute("aria-expanded", "true")
+
+    def test_a_panel_taller_than_the_screen_has_no_scrollbar_of_its_own(
+        self, page, live_server, products
+    ):
+        page.set_viewport_size({"width": 1440, "height": 500})
+        page.goto(f"{live_server.url}{LIST_PAGE}?price_min=1")
+        page.wait_for_load_state("networkidle")
+        aside = page.locator("#filters-panel")
+
+        assert aside.evaluate("el => el.getBoundingClientRect().height") > 500
+        assert aside.evaluate("el => el.scrollHeight <= el.clientHeight")
+
+    def test_scrolling_the_page_keeps_apply_and_clear_in_view(
+        self, page, live_server, products
+    ):
+        page.set_viewport_size({"width": 1440, "height": 500})
+        page.goto(f"{live_server.url}{LIST_PAGE}?price_min=1")
+        page.wait_for_load_state("networkidle")
+
+        for position in (0, 200, 400):
+            page.evaluate(f"window.scrollTo(0, {position})")
+
+            expect(_panel(page).locator("button[type=submit]")).to_be_in_viewport()
+            expect(_clear(page)).to_be_in_viewport()
+
+    def test_after_applying_a_filter_the_new_panel_holds_its_foot_in_view(
+        self, page, live_server
+    ):
+        # The results must be taller than the panel, or the panel ends with them.
+        ProductFactory.create_batch(40, status="published", is_featured=False)
+        page.set_viewport_size({"width": 1440, "height": 500})
+        page.goto(f"{live_server.url}{LIST_PAGE}")
+        page.wait_for_load_state("networkidle")
+        _panel(page).locator("input[name=price_min]").fill("1")
+        _apply(page)
+        _wait_for_query(page, {"price_min": ["1"]})
+        page.wait_for_function(
+            "() => document.getElementById('filters').style.getPropertyValue('--mvp-page-side-top') !== ''"
+        )
+
+        page.evaluate("window.scrollTo(0, 1000)")
+        page.evaluate(
+            "() => new Promise(done => requestAnimationFrame(() => requestAnimationFrame(done)))"
+        )
+
+        bottom = page.locator("#filters-panel").evaluate(
+            "el => el.getBoundingClientRect().bottom"
+        )
+        assert bottom == pytest.approx(500 - 16, abs=2)
+
+    @pytest.mark.urls(DEVELOPERS_WIDGET_URLCONF)
+    def test_a_developers_own_widget_in_the_panel_is_submitted(
+        self, page, live_server, products
+    ):
+        _open(page, live_server, DEVELOPERS_WIDGET_PAGE)
+
+        page.locator("#filters input[name=name]").fill("lamp")
+        _apply(page)
+
+        _wait_for_query(page, {"name": ["lamp"]})
+
+    def test_a_tom_select_control_in_the_panel_is_submitted(
+        self, page, live_server, products
+    ):
+        _open(page, live_server, LIST_PAGE)
+
+        _panel(page).locator("select[name=priority] + .ts-wrapper .ts-control").click()
+        page.locator(".ts-dropdown .option", has_text="High").click()
+        _apply(page)
+
+        _wait_for_query(page, {"priority": ["high"]})
+
+    def test_applying_from_an_open_drawer_leaves_it_closed_and_nothing_inert(
+        self, page, live_server, products
+    ):
+        page.set_viewport_size(NARROW)
+        page.goto(f"{live_server.url}{LIST_PAGE}")
+        page.wait_for_load_state("networkidle")
+        page.locator("button[aria-controls=filters]").click()
+        expect(page.locator("#filters-panel")).to_be_visible()
+        page.locator("#filters input[name=price_min]").fill("5")
+
+        _apply(page)
+
+        _wait_for_query(page, {"price_min": ["5"]})
+        expect(page.locator("button[aria-controls=filters]")).to_have_attribute(
+            "aria-expanded", "false"
+        )
+        expect(page.locator("#filters-panel")).to_be_hidden()
+        expect(page.locator("[inert]")).to_have_count(0)
+
+    def test_on_a_table_page_a_sort_chosen_after_applying_survives_clear(
+        self, page, live_server, products
+    ):
+        _open(page, live_server, TABLE_PAGE)
+        page.locator("#filters input[name=price_min]").fill("5")
+        _apply(page)
+        _wait_for_query(page, {"price_min": ["5"]})
+
+        page.locator("thead a").first.click()
+        page.wait_for_url(lambda url: "sort=" in url)
+        sort = _query(page)["sort"]
+        _clear(page).click()
+
+        _wait_for_query(page, {"sort": sort})
 
 
 class SeveralValuesFilter(ProductFilter):

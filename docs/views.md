@@ -238,7 +238,7 @@ django-filter's `FilterView` does. A view that scopes its records in `get_querys
 scopes the list and the context's `filter.qs` alike. Override `get_filterset_class()` or
 `get_filterset()` to change either.
 
-A filter on a related field offers every row of the related model, in the filter modal and
+A filter on a related field offers every row of the related model, in the filter panel and
 in the toolbar. When the related rows belong to a user, declare the filter on a
 `filterset_class` with a queryset that reads the request, so each visitor sees their own:
 
@@ -258,18 +258,16 @@ and neither clear action removes it. The page names the chosen sort beside the c
 instead (`sort_label` in the context). The search is an applied filter like any other,
 labelled by its own label.
 
-Every field of the filterset is drawn in the filter modal, behind the Filter button in
-the toolbar, unless the view names it in `toolbar_filters`. Closing the modal without
-applying it leaves the list as it was.
+Every field of the filterset is drawn in the filter panel, unless the view names it in
+`toolbar_filters`. See [The filter panel](#the-filter-panel).
 
 How each control applies:
 
 - A choice, the sort and a toggle in the toolbar apply the moment they are picked.
 - The search applies on Enter or its Search button.
-- The filter modal's fields apply with its Apply button, which sends the toolbar's values
-  with them. Closing the modal by its close button, its backdrop or Escape changes
-  nothing and puts its fields back as the page drew them.
-- The Filter button's badge counts the modal's applied filters only. The modal's clear
+- The filter panel's fields apply with its Apply button, which sends the toolbar's values
+  with them. A toolbar change likewise sends what the panel's fields hold, applied or not.
+- The Filters button's badge counts the panel's applied filters only. The panel's Clear
   link removes those and keeps the toolbar's filters, the search and the sort, wherever
   the sort is drawn. The count row's "Clear all" removes the search and every filter and
   keeps the sort.
@@ -277,8 +275,8 @@ How each control applies:
 Every change returns to the first page. The address carries only the fields that are
 set: an empty field is left out, and so is the empty choice of a yes/no select (Django's
 `NullBooleanSelect` sends `unknown`). A search for the word "unknown" is kept. The page's
-`js/list_view.js` static file does this, and finds the form and the modal by their ids,
-`filterForm` and `filterModal`. It also applies a toolbar list of several values, and a
+`js/list_view.js` static file does this, and finds the form by its id, `filterForm`. It
+also applies a toolbar list of several values, and a
 widget of your own, when focus leaves it with a different value than it found, so a list
 that opens applies once, on closing, and not at all when nothing changed.
 
@@ -295,10 +293,10 @@ class ProductListView(MVPListView):
 ```
 
 The named fields are drawn in the toolbar in that order, each once. The sort is the
-exception: wherever it is named, it is drawn at the end of the row, before the Filter and
-add buttons. Every field not named stays in the filter modal. Name every field and the
-page draws no Filter button and no modal. The default, `[]`, leaves every field in the
-modal.
+exception: wherever it is named, it is drawn at the end of the row, before the Filters and
+add buttons. Every field not named is drawn in the filter panel. Name every field and the
+page draws no Filters button and no panel. The default, `[]`, leaves every field in the
+panel.
 
 Each kind of filter has a compact form in the toolbar:
 
@@ -325,7 +323,7 @@ the project loads anything else the widget relies on itself.
 
 Any other filter, such as a `RangeFilter` or a `DateFilter` with its default widget, has
 no compact form. Naming it in `toolbar_filters` raises `ImproperlyConfigured` on the first
-request, naming the view, the field and the filter's class; leave it in the modal. So does
+request, naming the view, the field and the filter's class; leave it in the panel. So does
 a name the filterset has no field for, naming the view, the name and the filterset.
 
 To draw a filter the toolbar does not cover, override `get_toolbar_field(filterset, name)`
@@ -353,6 +351,50 @@ Every dict carries `name`, `label` and `kind`. The package's kinds add:
 | `multichoice` | `choices` as `(key, label, selected)` |
 | `toggle` | `checked` |
 | `widget` | `bound`, the field's bound field |
+
+### The filter panel
+
+The filterset fields the toolbar does not draw are drawn in a filter panel, a
+[side panel](layout.md#side-panel) beside the results. From its breakpoint (`xl` by
+default) it is a column at the end of the page, level with the results, that sticks under
+the header. Below the breakpoint it is a drawer, opened by the Filters button in the
+toolbar. The button's badge counts the panel's applied filters. A list whose fields are
+all in the toolbar draws neither the panel nor the button.
+
+The panel draws no form of its own. The view sets `form="filterForm"` on each panel
+field's widget, so the field belongs to the toolbar's form from outside it. That reaches a
+range, whose widget draws two inputs, a multiple choice, and a widget of your own, a Tom
+Select control among them. Apply names the same form.
+
+Every update to the list, whether from the toolbar, a chip, the pager or the panel's own
+Apply and Clear, asks htmx for the panel along with the list region (`hx-select-oob`), so
+the panel's fields and its Clear link show the state of the response. An open drawer is
+replaced with the rest of the panel and comes back closed. A form or link of your own that
+swaps the region carries `hx-select-oob="#{{ filter_panel_id }}"` as well to keep the panel
+in step.
+
+Two attributes on the view set the panel up:
+
+```python
+class ProductListView(MVPListView):
+    model = Product
+    filterset_class = ProductFilter
+    toolbar_filters = ["q", "status", "o"]
+    filter_panel_attrs = {"position": "start", "width": "lg"}
+    filter_panel_id = "refine"
+```
+
+| Attribute | What it does |
+| --- | --- |
+| `filter_panel_attrs` | A dict handed to the panel's `<c-mvp.page.side>`: `width`, `position`, `align`, `breakpoint` (`False` keeps the filters behind the button at every width), `collapse` and `class`. Default: `{"position": "end"}`. The panel sticks under the header, and one taller than the screen moves with the page rather than scrolling on its own, so its Apply and Clear are never out of reach. Unless `align` is set, the panel is level with the results at the end and with the title at the start. A dict you set replaces the default whole |
+| `filter_panel_id` | The id of the panel's root element, which the Filters button opens and every update refreshes. Default: `"filters"` |
+
+To draw the panel yourself, call
+[`<c-mvp.page.list.filters.panel>`](components.md#list-components-driven-by-view-context)
+in the `page.side` block.
+
+A drawer closed without applying keeps what was typed in its fields until the next update
+to the list, which redraws the panel from the response.
 
 ### Moving search_fields and order_by into a filterset
 
@@ -410,8 +452,9 @@ From top to bottom, the list template draws:
 
 1. **The title row.** The title, the subtitle and the info button.
 2. **The toolbar.** The filter form with the fields named in `toolbar_filters`, then the
-   sort when it is named, the Filter button that opens the filter modal, and the add
-   button last.
+   sort when it is named, the Filters button that opens the filter panel, and the add
+   button last. The filter panel itself is a [side panel](layout.md#side-panel) beside the
+   results.
 3. **The count row.** A count of what the list holds, the chosen sort, then what is
    narrowing the list: the search and each applied filter, each drawn as a control that
    removes it. Two or more also get a single "Clear all".
@@ -420,7 +463,7 @@ From top to bottom, the list template draws:
    being shown and numbered pages. A phone gets Previous, "Page 2 of 6" and Next.
 
 Each control follows the thing it drives, so there is no separate list to keep in step
-with the view. A filterset draws the filter form and the Filter button, and
+with the view. A filterset draws the filter form, the filter panel and the Filters button, and
 `show_create_action` the add button. Leave one unconfigured and its control does not
 appear. A list with no records and nothing applied draws no toolbar at all, since there
 is nothing to search or sort. Its empty state carries the add button, and the create
@@ -477,9 +520,11 @@ These context keys describe the state of the list:
 | `filter`, `filterset` | The request's filterset, under both names. Present only when the view has one |
 | `toolbar_fields` | The fields `toolbar_filters` names, as `get_toolbar_field()` describes them, in that order and without the sort. Present only when the view has a filterset |
 | `toolbar_sort` | The sort, described the same way, when `toolbar_filters` names it; otherwise `None` |
-| `modal_fields` | The bound fields of every other field of the filterset, for the filter modal |
-| `modal_applied_count` | How many of the modal's fields are applied filters: the Filter button's badge. Present only when the view has a filterset |
-| `clear_modal_url` | The current URL without the modal's fields and the page number. The toolbar's fields and the sort are kept. Present only when a modal field is applied |
+| `panel_fields` | The bound fields of every other field of the filterset, for the filter panel. Each widget carries `form="filterForm"`, so the field joins the toolbar's form from outside it |
+| `panel_applied_count` | How many of the panel's fields are applied filters: the Filters button's badge. Present only when the view has a filterset |
+| `clear_panel_url` | The current URL without the panel's fields and the page number. The toolbar's fields and the sort are kept. Present only when a panel field is applied |
+| `filter_panel_attrs` | The attributes the filter panel's `<c-mvp.page.side>` is drawn with |
+| `filter_panel_id` | The id of the filter panel's root element |
 | `list_region_id` | The id of the region a filter, the pager or a column heading swaps in place |
 | `page_base_template` | `partial_base_template`, present only when the request asked for the region alone |
 
@@ -527,7 +572,8 @@ Every part of the list template is a block, so a project template that extends
 | --- | --- |
 | `page.title` | The title, subtitle and info icon |
 | `page.actions` | Empty. Anything here is drawn at the end of the title row |
-| `page.toolbar` | The whole toolbar row: the filter form, the Filter button and the add button |
+| `page.side` | The filter panel, beside the results. Empty when every field is in the toolbar |
+| `page.toolbar` | The whole toolbar row: the filter form, the Filters button and the add button |
 | `page.refinements` | The count row: the count, the chosen sort and the applied search and filters |
 | `page.summary` | The count, inside `page.refinements` |
 | `page.results` | The grid of records |
@@ -543,8 +589,8 @@ Every part of the list template is a block, so a project template that extends
 
 Replacing an outer block replaces the blocks inside it: a template that overrides
 `page.toolbar` draws its own filter form and controls, and its own add button if it wants
-one. The filter modal must sit inside the filter form, `#filterForm`; the Filter button
-only opens it and may sit anywhere. Give your form the swap attributes from
+one. The filter panel's fields join the filter form, `#filterForm`, through the HTML `form`
+attribute; the Filters button only opens the panel and may sit anywhere. Give your form the swap attributes from
 [Updating in place](#updating-in-place) to keep it updating without a page load.
 
 The toolbar's controls are drawn at DaisyUI's default size. For a denser page, override

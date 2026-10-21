@@ -22,29 +22,23 @@
     </c-slot>
   </c-mvp.page.title>
 {% endblock page.title %}
+{% block page.side %}
+  {# The filterset fields the toolbar does not draw. They join the toolbar's form through the form #}
+  {# attribute their widgets carry; the panel draws nothing when there are none. #}
+  <c-mvp.page.list.filters.panel :fields="panel_fields"
+                                 :clear_url="clear_panel_url"
+                                 :id="filter_panel_id"
+                                 :region="list_region_id"
+                                 :attrs="filter_panel_attrs" />
+{% endblock page.side %}
 {% block page.content %}
-  {% comment %}
-    Each part of the page is its own block, so a project can replace one and
-    keep the rest: page.toolbar, page.refinements (and inside it
-    page.summary), page.results (and inside it page.empty), and
-    page.pagination.
-
-    The filter form, the chips, the empty state's Clear all and the pager
-    fetch with htmx and swap this region in place. Each carries the swap
-    itself, rather than this region, so htmx a project adds to a result never
-    inherits it.
-  {% endcomment %}
+  {# Blocks: page.toolbar, page.refinements (page.summary), page.results (page.empty), page.pagination. #}
+  {# Each control carries its own swap, not this region; the panel is refreshed out of band (docs/adr/0034-what-sits-beside-the-list-region-is-refreshed-out-of-band.md). #}
   <div id="{{ list_region_id }}" class="contents">
     <div class="flex flex-col gap-4 mt-3">
       {% block page.toolbar %}
-        {% comment %}
-          One form holds the toolbar's fields and the filter modal. It is
-          display: contents, so its fields sit in the toolbar's row as if it were
-          not there. The Filter button only opens the modal, so it sits outside
-          the form, kept together with Add at the end of the row; Add's create
-          dialog is never inside the filter form. A view with no filterset draws
-          no form at all.
-        {% endcomment %}
+        {# The form is display: contents. The panel button and Add sit outside it, so Add's create #}
+        {# dialog is never inside the filter form. A view with no filterset draws no form. #}
         <c-mvp.page.list.toolbar :result_count="result_count"
                                  :refinements="refinements"
                                  bare>
@@ -56,22 +50,23 @@
                   hx-boost="true"
                   hx-target="#{{ list_region_id }}"
                   hx-select="#{{ list_region_id }}"
+                  hx-select-oob="#{{ filter_panel_id }}"
                   hx-swap="outerHTML">
               {# Enter in a text field submits only through a submit button, and some forms have none. #}
               <button type="submit" hidden tabindex="-1" aria-hidden="true"></button>
               {% for field in toolbar_fields %}
                 <c-mvp.page.list.filters.field :field="field" />
               {% endfor %}
-              <c-mvp.page.list.filters.modal part="dialog"
-                                             :fields="modal_fields"
-                                             :clear_url="clear_modal_url" />
             </form>
           {% endif %}
           <div class="flex items-center gap-2 ms-auto">
             {% if toolbar_sort %}<c-mvp.page.list.filters.field :field="toolbar_sort" />{% endif %}
-            <c-mvp.page.list.filters.modal part="button"
-                                           :fields="modal_fields"
-                                           :applied_count="modal_applied_count" />
+            {% if panel_fields %}
+              <c-mvp.page.side.toggle :for="filter_panel_id"
+                                      text="{% trans "Filters" %}"
+                                      icon="filter"
+                                      :count="panel_applied_count" />
+            {% endif %}
             <c-mvp.page.list.actions.create :directory="directory"
                                             :create_form="create_form"
                                             :create_modal_title="create_modal_title" />
@@ -100,6 +95,7 @@
                                          hx-boost="true"
                                          hx-target="#{{ list_region_id }}"
                                          hx-select="#{{ list_region_id }}"
+                                         hx-select-oob="#{{ filter_panel_id }}"
                                          hx-swap="outerHTML"
                                          only />
           </div>
@@ -121,6 +117,7 @@
                                     create_modal
                                     :request="request"
                                     :region="list_region_id"
+                                    :panel="filter_panel_id"
                                     only />
             {% endblock page.empty %}
           </c-slot>
@@ -134,6 +131,7 @@
                                 hx-boost="true"
                                 hx-target="#{{ list_region_id }}"
                                 hx-select="#{{ list_region_id }}"
+                                hx-select-oob="#{{ filter_panel_id }}"
                                 hx-swap="outerHTML" />
       {% endif %}
     {% endblock page.pagination %}

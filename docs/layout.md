@@ -380,6 +380,30 @@ Per-page override (use the `:` expression form so the value stays a real boolean
 {% endblock %}
 ```
 
+## Header height
+
+The header's height is not a constant: a tray, a wrapped breadcrumb trail or your own `above`
+and `below` content change it. django-mvp measures the header and publishes the result as the
+custom property `--mvp-header-height` on `:root`, updating it whenever the header's size changes.
+A header that does not stick, and a page with no `.mvp-header`, publish `0px`. Until the script
+has run the property is `4rem`.
+
+The stylesheet already uses it to pad the document's scroll, so a link to an anchor and a field
+focused by keyboard land below the sticky header instead of under it.
+
+To keep an element of your own clear of the header, read the property. A sticky sidebar of your
+own sits just under the header like this:
+
+```css
+.my-sticky-column {
+  position: sticky;
+  top: calc(var(--mvp-header-height) + 1rem);
+}
+```
+
+To use a different fallback, set the property in your own stylesheet; the packaged `4rem` has no
+specificity, so your `:root` rule wins until the script writes the measured value.
+
 ## Header and dock background
 
 The header and the mobile dock are solid by default, in the page's own background colour. An app
@@ -525,6 +549,125 @@ that is not there. Override the block with nothing:
 {% block app.dock %}
 {% endblock %}
 ```
+
+## Side panel
+
+A page can have a column beside its title and content: a table of contents, filters, related
+links. Fill the `page.side` block of `page_view.html` with a `<c-mvp.page.side>`:
+
+```html
+{% extends "page_view.html" %}
+
+{% block page.side %}
+  <c-mvp.page.side label="On this page"
+                   id="toc"
+                   width="sm"
+                   breakpoint="xl"
+                   collapse="drawer"
+                   align="content"
+                   position="end"
+                   :sticky="True"
+                   class="my-panel">
+    <ul class="menu menu-sm">
+      <li><a href="#install">Installing</a></li>
+      <li><a href="#settings">Settings</a></li>
+    </ul>
+  </c-mvp.page.side>
+{% endblock page.side %}
+```
+
+Left empty, the block changes nothing: the page is drawn exactly as it was, with no extra wrapper.
+The demo's Layout > Side Panel page has a form that switches every option below.
+
+| Attribute | Values | What it does |
+| --- | --- | --- |
+| `label` | text, required | The panel's heading and the accessible name of its landmark |
+| `id` | text, default `page-side` | The id of the panel's root element. The `<aside>` inside it is `{id}-panel` |
+| `width` | `sm`, `md` (default), `lg` | The column's width: 14rem, 16rem or 20rem |
+| `breakpoint` | `lg`, `xl` (default), `2xl`, `:breakpoint="False"` | The screen width from which the panel is a column. `:breakpoint="False"` keeps it a drawer or a stacked block at every width |
+| `collapse` | `drawer` (default), `stack` | Below the breakpoint: an off-canvas drawer, or a block stacked with the content. A drawer is not shown until the page gives the reader a way to open it: a [`<c-mvp.page.side.toggle>`](components.md#page-structure) |
+| `align` | `title` (default), `content` | Whether the column starts level with the page title or with the content under it |
+| `position` | `end` (default), `start` | Which side of the content the panel sits on. In a right-to-left page `start` is the right |
+| `sticky` | `True` (default), `False` | Whether the column sticks under the header while the page scrolls |
+| `class` | text | Extra classes on the panel's root element |
+
+From its breakpoint the column sticks just under the header, at the header's current height (see
+[Header height](#header-height)). A panel taller than the space under the header has no scrollbar
+of its own. It moves with the page in the direction the reader scrolls until its foot, or its top
+on the way back, is in view, and holds there. A control reached by keyboard is brought clear of the
+header and of the foot of the screen. On a page that [fills the shell](#full-page-content) the
+panel is as tall as the page, does not stick, and scrolls inside itself; its `<aside>` is then a
+tab stop so a keyboard reader can scroll it.
+
+The panel's root carries the offset as `--mvp-page-side-top` while it is moving, and has no such
+property when the panel fits, below the breakpoint and on a filled page. A style of your own can
+read it, but should not set it: the script rewrites it on every scroll.
+
+The panel is a landmark named by its heading. In the page it comes after the title, then before
+the content when `position` is `start` and after it when `end`, so the reading and tab order
+match what the reader sees.
+
+### On a narrow screen
+
+Below its breakpoint a panel has no room for a column, and `collapse` decides what it becomes.
+
+With `collapse="drawer"`, the default, the panel is off-canvas and opens from its own edge when
+the reader activates a `<c-mvp.page.side.toggle>`. Place the button where the reader will look
+for it, such as the page's `page.actions` block or a list toolbar:
+
+```html
+{% block page.actions %}
+  <c-mvp.page.side.toggle for="toc" text="Contents" />
+{% endblock page.actions %}
+```
+
+`for` is the `id` of the panel and defaults to `page-side`. The button reports whether the
+drawer is open through `aria-expanded` and is hidden from the panel's breakpoint up, on a page with
+no drawer panel, and when `collapse` is `stack`. While the drawer is open:
+
+- the page behind it is dimmed and everything outside the panel is `inert`, so neither a click nor
+  Tab reaches it;
+- focus moves to the panel's close button, and Tab and Shift+Tab stay inside the panel;
+- Escape, the close button and a click on the dimmed page each close it and return focus to the
+  button that opened it.
+
+Widening the window past the breakpoint with the drawer open closes it and leaves nothing
+`inert`. A drawer with no button on the page is not shown at all and nothing in it can take
+focus, which suits a table of contents that only repeats the headings the reader is scrolling
+past.
+
+With `collapse="stack"` the panel is drawn full width with the content, before it when
+`position` is `start` and after it when `end`, and needs no button.
+
+`:breakpoint="False"` keeps the panel a drawer, or a stacked block, at every width, so the button
+stays on screen at every width too.
+
+When something replaces an open panel, such as an htmx swap of the element with the panel's `id`,
+the drawer releases `inert` as it goes. Focus is not moved.
+
+### A side panel in a template of your own
+
+`<c-mvp.page.layout>` does the arranging, and `page_view.html` calls it. A template that does not
+extend the page template calls it itself, with the title in the `header` slot, the panel in the
+`side` slot and the content as the default slot:
+
+```html
+<c-mvp.page.layout class="mt-4">
+  <c-slot name="header"><h1 class="text-3xl font-bold">Release notes</h1></c-slot>
+  <c-slot name="side">
+    <c-mvp.page.side label="Versions" position="start">
+      <ul class="menu menu-sm"><li><a href="#v2">2.0</a></li></ul>
+    </c-mvp.page.side>
+  </c-slot>
+  <p>The notes themselves.</p>
+</c-mvp.page.layout>
+```
+
+With the `side` slot empty or missing, the layout draws the header and the content and nothing
+else, so the same template serves a page with a panel and a page without. The layout reads the
+panel's `position` from the markup the panel renders, so a replacement panel template keeps
+the `data-mvp-side-position` attribute on its root element. `class` reaches the layout's wrapper,
+which is drawn only when there is a panel.
 
 ## Overriding the layout per page
 
@@ -755,6 +898,7 @@ a bare region inside the shell. Override a `page.*` block instead.
 | --- | --- | --- |
 | `page.header` | `page_view.html` | Above the title. Empty by default — the breadcrumb trail moved to the app header |
 | `page.content-wrapper` | `page_view.html` | The content region, title bar included |
+| `page.side` | `page_view.html` | A [side panel](#side-panel) beside the title and content. Empty by default; left empty, the page is drawn as it always was |
 | `page.title` | `page_view.html` | The title bar: heading, subtitle and actions |
 | `page.actions` | `page_view.html` | The action buttons in the title bar |
 | `page.content` | `page_view.html` | **The page body. This is the usual override.** |

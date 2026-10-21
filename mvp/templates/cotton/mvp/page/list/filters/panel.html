@@ -1,0 +1,43 @@
+{# @description The filter panel: every filterset field the toolbar does not draw, in a side panel beside the list, with Apply and Clear in a foot that stays at the panel's bottom. Draws nothing when there are no fields. It draws no form of its own: each field joins the toolbar's filter form through the HTML form attribute, which the list view sets on its widget, and Apply names that form. Every other attribute (width, position, align, breakpoint, collapse, sticky, class) is handed to <c-mvp.page.side>. The panel is at the end by default; its align is content at the end and title at the start, unless set. #}
+{# @prop fields:text | description:"The bound fields for the panel, each drawn once." #}
+{# @prop clear_url:text | description:"The list with the panel's filters removed, the rest kept. The Clear link is drawn only with it." #}
+{# @prop id:text | default:"filters" | description:"Id of the panel's root element, which the list page's button opens and every list update refreshes." #}
+{# @prop region:text | description:"The id of the list region. Given, Clear swaps that region in place with htmx rather than loading the page." #}
+{% load i18n crispy_forms_tags %}
+<c-vars fields clear_url id="filters" region />
+{% if fields %}
+  {% comment %}Aligned with the content at the end and with the title at the start, unless set.{% endcomment %}
+  {% if attrs.position == "start" %}{% firstof attrs.align "title" as align %}{% else %}{% firstof attrs.align "content" as align %}{% endif %}
+  <c-mvp.page.side label="{% trans "Filters" %}" :id="id" :attrs="attrs" :align="align" only>
+    <div class="flex flex-col gap-1 px-3">
+      {% for bound_field in fields %}{{ bound_field|as_crispy_field }}{% endfor %}
+    </div>
+    <div class="mvp-filter-panel-foot sticky bottom-0 z-10 flex flex-wrap items-center gap-2 bg-base-100 px-3 py-3">
+      <c-button text="{% trans "Apply" %}"
+                variant="primary"
+                type="submit"
+                form="filterForm"
+                only />
+      {% if clear_url %}
+        {% if region %}
+          <c-button text="{% trans "Clear" %}"
+                    href="{{ clear_url }}"
+                    icon="x"
+                    ghost
+                    hx-boost="true"
+                    hx-target="#{{ region }}"
+                    hx-select="#{{ region }}"
+                    hx-select-oob="#{{ id }}"
+                    hx-swap="outerHTML"
+                    only />
+        {% else %}
+          <c-button text="{% trans "Clear" %}"
+                    href="{{ clear_url }}"
+                    icon="x"
+                    ghost
+                    only />
+        {% endif %}
+      {% endif %}
+    </div>
+  </c-mvp.page.side>
+{% endif %}
