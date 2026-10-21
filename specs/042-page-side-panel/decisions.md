@@ -36,7 +36,7 @@ attribute of the side slot's first element, read with a new `root_attr` filter b
 `html.parser`. **Why:** the panel carries its own configuration (FR-001) and reaches the layout as
 rendered HTML; the prototype's substring test over the whole slot could be moved by the panel's own
 content. **Revisit if:** Cotton gains a way for a slot's component to hand values to its parent.
-**ADR:** pending (S5)
+**ADR:** none — how one component reads one attribute, nothing outside it depends on the method
 
 ## D2 The filter context keys are renamed with the modal
 
@@ -44,7 +44,7 @@ content. **Revisit if:** Cotton gains a way for a slot's component to hand value
 `panel_applied_count` and `clear_panel_url`. **Why:** the modal is removed (FR-013); a public name
 for a thing that no longer exists is a stale name. Pre-1.0, recorded as breaking (Article XVI).
 **Revisit if:** a consumer needs a deprecation window.
-**ADR:** pending (S5)
+**ADR:** none — a rename recorded as a breaking change in the changelog
 
 ## D3 The panel is refreshed out of band after a list swap
 
@@ -53,7 +53,7 @@ for a thing that no longer exists is a stale name. Pre-1.0, recorded as breaking
 `list_region_id`. **Why:** the panel sits beside the region, not in it, and its clear link and field
 values must follow the response; widening the region to hold the layout would put the title and the
 grid inside the swap. **Revisit if:** the region moves to wrap the whole page layout.
-**ADR:** pending (S5)
+**ADR:** docs/adr/0034-what-sits-beside-the-list-region-is-refreshed-out-of-band.md
 
 ## D4 A swap with the drawer open leaves focus where the modal's did
 
@@ -62,14 +62,14 @@ on the component's root, so the out-of-band swap replaces the whole component, d
 included; the old component releases `inert` in `destroy()`, and focus is not moved. **Why:** parity with the filter modal's
 Apply, which swapped the region the same way; the spec asks for nothing more. **Revisit if:** a
 reader reports losing their place after applying on a phone.
-**ADR:** pending (S5)
+**ADR:** none — a consequence of D3 and the panel's markup, recorded in ADR 0034
 
 ## D5 Unapplied panel values are not put back
 
 **Decision:** FS-041's handler that restored the modal's fields on close is removed, not carried to
 the drawer. **Why:** FR-017 keeps a value set in the panel when the reader applies a change in the
 toolbar, and a column is never "closed". **Revisit if:** Sam asks for the drawer to discard on close.
-**ADR:** pending (S5)
+**ADR:** none — the removal of one handler with the modal it served
 
 ## D6 Four browser tests that need a CDN are outside this feature
 
@@ -116,3 +116,11 @@ the search is a panel field, and the old test found it only because the modal sa
 toolbar. **Why:** each keeps what the old tests protected without weakening them. **Revisit if:**
 the layout component gains its own way to turn off its row gap.
 **ADR:** none — a class on one template, and a test kept to the behaviour it guards
+
+## D10 Behaviour lives in registered Alpine components
+
+**Decision:** an Alpine component with real behaviour is a module under `assets/js/`, registered
+with `Alpine.data()`; templates pass configuration only. **Why:** Sam's rule from the intake
+(planning-notes.md), stated for the package from here on, not this feature alone. **Revisit if:**
+the package stops bundling Alpine.
+**ADR:** docs/adr/0035-behaviour-lives-in-registered-alpine-components.md
