@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.30.0] - 2026-10-21
+
 ### Added
 
 - A page can have a side panel beside its title and content. Fill the new `page.side` block of
