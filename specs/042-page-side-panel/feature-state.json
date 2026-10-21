@@ -86,8 +86,21 @@
         },
         {
           "id": "T019",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_header_height_e2e.py::TestHeaderHeight::test_a_boosted_navigation_measures_the_new_header"
+            ],
+            "commands": [
+              "uv run pytest tests/test_components/test_header_height_e2e.py -q (6 passed)",
+              "mutation: htmx:afterSettle startHeaderHeight() call removed, rebuilt: 1 failed (wait_for_function timeout), 5 passed"
+            ],
+            "code": [
+              "assets/js/header_height.js:11",
+              "assets/js/index.js:63"
+            ]
+          }
         }
       ]
     },

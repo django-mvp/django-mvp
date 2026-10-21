@@ -145,3 +145,10 @@ Did: all five stories accepted. Converge: renamed the demo's every-filter page f
 Verified: 2585 passed, 1 skipped (axe CDN class deselected, D6); stage-exit S5 green; tamper flags on the US3 diff are exactly the plan's retired/renamed tests plus one documented toolbar test.
 Next: S6 review.
 Watch: a toggle naming a missing panel id is shown (CSS cannot compare ids).
+
+## 2026-10-21T12:53:00Z · Implementer FIX-1 · T019
+
+Did: startHeaderHeight() keeps its ResizeObserver in module scope, disconnects it and observes the new header; index.js calls it from the body-target afterSettle branch. Added a boosted-navigation browser test.
+Verified: test_header_height_e2e.py 6 passed; with the afterSettle call removed the new test fails (wait_for_function timeout), 5 passed 1 failed.
+Next: T020.
+Watch: header_height.js header comment is over three lines; T020 trims it.
