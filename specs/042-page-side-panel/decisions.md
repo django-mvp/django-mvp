@@ -130,10 +130,21 @@ the package stops bundling Alpine.
 **Decision:** the list page's filter panel defaults to the end side. Its alignment follows its side
 unless the developer sets one: content at the end, title at the start. The table page's layout
 draws no gap in either direction. The drawer at the end side slides in from the end. The side
-panel demo keeps its long-contents option, off by default. The filter panel does not stick by
-default, so a panel taller than the screen scrolls with the page and has no scrollbar of its own;
-its Apply and Clear foot stays at the bottom of the screen. Made directly, not dispatched: one
-default value and its tests. **Why:** Sam, at the merge gate: the
+panel demo keeps its long-contents option, off by default. **Why:** Sam, at the merge gate: the
 app's sidebar sits at the start, and two panels on the same side look awkward. FR-014 now says so.
 **Revisit if:** the app layout stops being sidebar-first.
 **ADR:** none — default values and one alignment rule for one component
+
+## D12 A tall sticky panel moves with the page instead of scrolling on its own
+
+**Decision:** a sticky column taller than the space under the header has no scrollbar. It moves
+with the page in the direction of scrolling until its end is in view, then holds there, the way a
+shop's filter column does. The column's sticky offset is a custom property,
+`--mvp-page-side-top`, that a registered Alpine component keeps between the header's height
+(top in view) and the screen's height less the panel's (foot in view). A control focused by
+keyboard is brought into view. The filter panel sticks again by default. **Why:** Sam, at the
+merge gate: a second scrollbar on the page looks poor, and scrolling to the bottom of the results
+to reach the last filters is worse. **Revisit if:** CSS gains a native way to stick an element at
+whichever end is in view.
+**ADR:** docs/adr/0036-a-tall-side-panel-moves-with-the-page.md
+

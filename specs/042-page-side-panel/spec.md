@@ -73,8 +73,11 @@ prototype. Longer rationale is in `decisions.md`.
   as FR-015.
 
 - **Q: What does a column taller than the screen do?**
-  A: It scrolls on its own, inside the space under the header, and the page scrolls as usual. A
-  keyboard user can reach it and scroll it. Recorded as FR-007.
+  A: It has no scrollbar of its own. It moves with the page, in whichever direction the reader
+  scrolls, until its far end is in view, and then stays there: scrolling down brings its foot into
+  view and holds it, scrolling up brings its top back and holds it under the header. A control
+  reached by keyboard is brought into view. Recorded as FR-007 (Sam, at the merge gate,
+  2026-10-21, replacing a panel that scrolled on its own).
 
 - **Q: What does the panel do on a page that fills the screen's height?**
   A: It is a column the height of the page, with no sticking, because such a page does not scroll.
@@ -116,8 +119,10 @@ implies, and the second renders exactly as it did before this feature.
    spans the page and the column starts level with the content.
 7. **Given** each of the panel's widths, **When** the page renders as a column, **Then** the panel
    fills the whole column, at either side.
-8. **Given** a panel taller than the space under the header, **When** the page renders, **Then** the
-   column scrolls on its own, and a keyboard user can move focus to it and scroll it.
+8. **Given** a sticky panel taller than the space under the header, **When** the reader scrolls down,
+   **Then** the panel moves up with the page until its foot is in view and then stays, with no
+   scrollbar of its own. **When** they then scroll up, **Then** it moves down with the page until
+   its top is under the header and then stays.
 9. **Given** a page that fills the screen's height with a panel, **When** it renders as a column,
    **Then** the panel is a column the height of the page and does not stick.
 
@@ -171,8 +176,8 @@ is open.
 Someone looking for a featured product on a wide screen finds the list's search and sort in the
 toolbar and every other filter in a column at the end of the page, lined up with the toolbar. They pick
 a status and a price range in the column and apply them, and the list narrows. The search they had
-typed is kept. The column scrolls with the page, with no scrollbar of its own, and its Apply button
-stays in reach at the foot of the screen however many filters it holds. On a phone the same filters are behind a
+typed is kept. The column stays in view while they scroll the results, with no scrollbar of its own,
+and its Apply button stays in reach however many filters it holds. On a phone the same filters are behind a
 "Filters" button in the toolbar, which shows how many of them are applied. The column's clear
 action removes the filters in it and keeps the search and the sort.
 
@@ -289,9 +294,10 @@ none, and confirm the same results as Story 1's first two scenarios.
   decides whether the column starts level with the page title or with the content.
 - **FR-006**: The page title MUST come first in the document. A start panel MUST come before the
   content and an end panel after it, so the reading and focus order follow the visual order.
-- **FR-007**: A sticky panel MUST stay in view under the header while the page scrolls, and MUST
-  scroll on its own when it is taller than the space under the header. That scrolling region MUST
-  be reachable and named for a keyboard user. Sticky MUST be the default and MUST be possible to
+- **FR-007**: A sticky panel MUST stay in view under the header while the page scrolls. A sticky
+  panel taller than the space under the header MUST NOT scroll on its own: it MUST move with the
+  page until its end in the direction of scrolling is in view, then stay there, and a control in it
+  reached by keyboard MUST be brought into view. Sticky MUST be the default and MUST be possible to
   turn off.
 - **FR-008**: Below its breakpoint, the side panel MUST either collapse into a drawer, the default,
   or stack with the content at full width in document order. A drawer MUST be shown only when the
@@ -309,7 +315,7 @@ none, and confirm the same results as Story 1's first two scenarios.
 - **FR-013**: Every list page and table page with a filterset MUST draw the fields not named for the
   toolbar in a side panel. The filter modal MUST be removed.
 - **FR-014**: A list page's side panel MUST default to the end side, with the extra large
-  breakpoint, collapsing into a drawer, and scrolling with the page rather than sticking. Unless
+  breakpoint, collapsing into a drawer. Unless
   the developer sets its alignment, a panel at the end
   side MUST align with the content and a panel at the start side with the title. Its button MUST be
   in the toolbar where the Filter button is today, and MUST show the count of applied panel filters
