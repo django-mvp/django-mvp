@@ -1,0 +1,29 @@
+{# @description Lays the page's title and content out beside a side panel, when it has one. With an empty side slot it draws the title and content and nothing else. #}
+{# @prop class:text | description:"Extra classes on the layout, drawn only when there is a side panel." #}
+{# @slot:header The page title. — Drawn above the content; the panel's align decides whether the panel starts level with it. #}
+{# @slot The page's content. — The main column. #}
+{# @slot:side <c-mvp.page.side /> — The side panel. Left empty, the page is drawn exactly as it was. #}
+{% load mvp %}
+<c-vars class />
+{% if side|slot_is_empty is False %}
+  {% comment %}
+    A column below the panel's breakpoint and a grid from it. The grid's
+    areas come from the panel's own data attributes (position and align), in
+    mvp/tailwind/base.css, so this template needs no knowledge of them.
+
+    The title always comes first in the document, so the page's h1 comes
+    before the panel's heading. The panel then comes before the content when
+    it is drawn at the start, after it when at the end, so the reading and tab
+    order follow what the reader sees, and a stacked panel lands on the
+    matching side of the content.
+  {% endcomment %}
+  <div class="mvp-page-layout flex flex-col gap-3 {{ class }}" {{ attrs }}>
+    {% if header|slot_is_empty is False %}<div class="mvp-page-header">{{ header }}</div>{% endif %}
+    {% if side|root_attr:"data-mvp-side-position" == "start" %}{{ side }}{% endif %}
+    <div class="mvp-page-main flex min-w-0 flex-col gap-3">{{ slot }}</div>
+    {% if side|root_attr:"data-mvp-side-position" != "start" %}{{ side }}{% endif %}
+  </div>
+{% else %}
+  {{ header }}
+  {{ slot }}
+{% endif %}

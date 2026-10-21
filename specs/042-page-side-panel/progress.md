@@ -33,3 +33,10 @@ Did: added the root_attr filter (first start tag only, HTMLParser stopped by an 
 Verified: uv run pytest tests/test_templatetags.py -> 52 passed; 14 TestRootAttr cases red before the filter existed; ruff and mypy clean.
 Next: T003 page layout component.
 Watch: no docs page yet names the filter; it is an internal helper of the layout.
+
+## 2026-10-21T11:21:00Z · Implementer US1 · T003
+
+Did: added <c-mvp.page.layout> (header wrapper only when a header is given, panel placed by root_attr of its own root) and its tests, which pass the panel as a bare element so they say nothing about the panel component.
+Verified: uv run pytest tests/test_components/test_page_layout.py -> 13 passed; all 13 red before the component was rewritten.
+Next: T004 page side component and stylesheet.
+Watch: the stand-alone and with-panel cases here are also US5-1 and US5-2 evidence for T008.

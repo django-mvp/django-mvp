@@ -102,8 +102,20 @@
         },
         {
           "id": "T003",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_page_layout.py::TestPageLayoutWithoutAPanel",
+              "tests/test_components/test_page_layout.py::TestPageLayoutWithAPanel"
+            ],
+            "commands": [
+              "uv run pytest tests/test_components/test_page_layout.py -q"
+            ],
+            "code": [
+              "mvp/templates/cotton/mvp/page/layout.html:7"
+            ]
+          }
         },
         {
           "id": "T004",
