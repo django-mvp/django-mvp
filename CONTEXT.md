@@ -46,15 +46,15 @@ One applied search or filter, shown in the refinements row with its own remove a
 
 ### Toolbar
 
-The row above a list's results: the filter form with the toolbar filters, then the Filter button and the add button.
+The row above a list's results: the filter form with the toolbar filters, then the Filters button and the add button.
 
 ### Toolbar filter
 
 A filterset field a view names for the toolbar, drawn there in its compact form.
 
-### Filter modal
+### Filter panel
 
-The dialog behind the Filter button, holding every filterset field that is not a toolbar filter. It sits inside the filter form and holds no form of its own.
+The side panel beside a list's results, holding every filterset field that is not a toolbar filter. It sits outside the filter form and joins it through the HTML `form` attribute, and holds no form of its own. Not the table page's `page.panel` block, which is the toolbar's collapsible area.
 
 ### Config
 
@@ -236,7 +236,7 @@ c-mvp.page
   c-mvp.page.list           — list view wrapper
     c-mvp.page.list.empty   — empty state display
     c-mvp.page.list.toolbar — the row above the results
-    c-mvp.page.list.filters.modal — the Filter button (part="button") or the filter modal (part="dialog")
+    c-mvp.page.list.filters.panel — the filter panel, a side panel holding the filterset fields the toolbar does not
     c-mvp.page.list.actions
       c-mvp.page.list.actions.create
       c-mvp.page.list.actions.share

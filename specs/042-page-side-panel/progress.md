@@ -131,3 +131,10 @@ Did: removed the modal's close handler and MODAL_ID from list_view.js; replaced 
 Verified: uv run pytest tests/test_list_filters_e2e.py (26 passed). Probes, each restored: the view no longer setting form="filterForm" on panel widgets failed 8 tests; Clear returning the bare path failed the Clear and table-sort tests; the filter form without hx-select-oob failed the state and open-drawer tests; the table heading row without hx-select-oob failed the table-sort test; the panel ignoring the view's attributes failed the breakpoint test; the foot without sticky failed the scrolling test.
 Next: T017, documentation.
 Watch: the scrolling test first failed because the sticky column only pins once the page has scrolled, so the test scrolls the window first. Tests that wait for an address that never arrives take 30s each when they fail.
+
+## 2026-10-21T12:35:11Z · Implementer US3 · T017
+
+Did: documented the filter panel. docs/views.md has a new "The filter panel" section (the form attribute, the out-of-band refresh, filter_panel_attrs, filter_panel_id) and every mention of the modal, the Filter button and the renamed context keys now reads as the panel; docs/integrations.md (table page blocks, including the new page.side row, and the renamed keys); docs/components.md (the panel component, the empty state's panel attribute, the hand-written list page example); CONTEXT.md (Filter panel replaces Filter modal, with a line telling it apart from the table page's page.panel block; Toolbar; the component tree); CHANGELOG.md (breaking entry). README.md does not name the modal.
+Verified: grep for modal, filterModal, modal_fields, modal_applied_count, clear_modal_url and filters.modal across docs, README, CONTEXT, mvp and demo finds only the demo menu label "List, Filter Modal Only" (demo/menus.py, outside this story's files) and the changelog entry.
+Next: full verify, then the report.
+Watch: the demo still names its all-in-the-panel page product-list-modal-only (url name, menu label, class ProductModalOnlyListView); renaming touches demo files this story does not list.

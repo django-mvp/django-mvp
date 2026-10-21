@@ -41,8 +41,9 @@ The page fills the screen. Three bands stay put and one region scrolls between t
 
 1. **The toolbar.** A bar with the title, a count of the records and the add button, and
    a panel under it with the filter form: the filterset fields the view names in
-   `toolbar_filters`, then the Filter button that opens the filter modal with the rest,
-   then the search and filters that are applied.
+   `toolbar_filters`, then the Filters button that opens the filter panel with the rest,
+   then the search and filters that are applied. The filter panel itself sits beside the
+   table, at the start and level with the table, and scrolls on its own.
 2. **The table.** The rows scroll in a region of their own. The heading row stays at
    the top of it and the footer row, where the table declares one, at the bottom, so
    one scrollbar runs beside all three.
@@ -101,7 +102,8 @@ Each part of the toolbar is a block in `table_view.html`:
 | `page.title` | The start of the bar: the heading, the info icon, the count and the subtitle |
 | `page.summary` | The count, inside `page.title` |
 | `page.actions` | Empty. Anything here is drawn at the end of the bar, before the add button, and stays when the panel is closed |
-| `page.panel` | Everything in the panel: the filter form, the Filter button and the applied search and filters |
+| `page.panel` | Everything in the toolbar's panel: the filter form, the Filters button and the applied search and filters |
+| `page.side` | The filter panel beside the table. Drawn from the view's `panel_fields`; empty when every field is in the toolbar |
 | `page.refinements` | The applied search and filters, inside `page.panel` |
 | `page.content` | The table |
 | `page.footer` | The pager |
@@ -121,8 +123,8 @@ a filterset and its search and filters appear,
 `show_create_action` and the add button does. There is no list to override.
 
 The filterset's fields are placed as on a list page. Those named in `toolbar_filters`
-are drawn in the panel, in that order, and every other field is in the filter modal.
-Name them all and there is no Filter button and no modal:
+are drawn in the toolbar's panel, in that order, and every other field is in the filter
+panel beside the table. Name them all and there is no filter panel and no Filters button:
 
 ```python
 class ProductTableView(MVPTableView):
@@ -286,9 +288,9 @@ class ProductListView(MVPListView):
 The view puts `applied_filters` and `applied_filter_count` in the context, covering every
 filter. When at least one is applied, it also puts `clear_filters_url` there: the current
 list URL with the filterset's fields removed, except the sort, and with pagination reset.
-Use these for your own controls. The list page's own Filter button badges
-`modal_applied_count`, the applied filters that sit in the filter modal, and the dialog's
-"Clear filters" link is `clear_modal_url`, which keeps the toolbar's filters and the
+Use these for your own controls. The list page's own Filters button badges
+`panel_applied_count`, the applied filters that sit in the filter panel, and the panel's
+Clear link is `clear_panel_url`, which keeps the toolbar's filters and the
 search. The context table in [views](views.md#what-the-view-tells-the-template) lists them
 all.
 

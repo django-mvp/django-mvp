@@ -35,6 +35,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Breaking:** the filter modal is removed. The filterset fields a list or table view does not
+  name in `toolbar_filters` are drawn in a filter panel, a side panel beside the results: a
+  column at the start of the page from the `xl` breakpoint, and below it a drawer opened by the
+  Filters button where the Filter button was. Its fields join the toolbar's form through the HTML
+  `form` attribute, which the view sets on each widget, so they reach a range, a multiple choice
+  and a widget of your own. Every update to the list refreshes the panel along with it. The
+  context keys `modal_fields`, `modal_applied_count` and `clear_modal_url` are now
+  `panel_fields`, `panel_applied_count` and `clear_panel_url`, with no aliases. A view sets the
+  panel's `<c-mvp.page.side>` attributes with `filter_panel_attrs` (default `{"position":
+  "start", "align": "content"}`) and its id with `filter_panel_id` (default `"filters"`).
+  `c-mvp.page.list.filters.modal` is replaced by `c-mvp.page.list.filters.panel`, and
+  `c-mvp.page.list.empty` takes a `panel` attribute beside `region`. A project template that
+  overrides `page.toolbar` or `page.panel` replaces the Filter button and the modal with the
+  `c-mvp.page.side.toggle` and the `page.side` block. Closing the panel no longer puts its
+  fields back as the page drew them. See "The filter panel" in `docs/views.md`.
 - A list or table page updates in place when a filter is applied or removed, the sort
   changes, a column heading is clicked or the reader moves to another page. Each control
   fetches the list with htmx and swaps the `#mvp-list` region, and the address bar follows.

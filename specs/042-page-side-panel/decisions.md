@@ -102,3 +102,17 @@ Tab leaves the document for the browser's own interface and focus is outside the
 the browser test for it failed until the wrap was added. **Revisit if:** browsers keep focus in the
 document when the page is inert past the last control.
 **ADR:** none — how this one component contains focus, nothing else builds on it
+
+## D9 The table page's layout draws no row gap, and the modal went with its last user
+
+**Decision:** `table_view.html` draws `<c-mvp.page.layout class="gap-y-0!">`. The layout's own
+`gap-3` put a 12px row between the layout's top and the toolbar even though the header slot is
+empty, because the empty header row of the grid (and the closed drawer's root, in a column) still
+counts for the gap; the filled page meets the shell edges with no space above the toolbar. The
+filter modal's component and its test module were deleted with the table page, the last template
+that drew them, not in the panel's own commit, so every commit leaves the tree green. The pre-existing
+`test_toolbar_stays_when_a_search_matches_nothing` now names `toolbar_filters=["q"]`: with none named,
+the search is a panel field, and the old test found it only because the modal sat inside the
+toolbar. **Why:** each keeps what the old tests protected without weakening them. **Revisit if:**
+the layout component gains its own way to turn off its row gap.
+**ADR:** none — a class on one template, and a test kept to the behaviour it guards

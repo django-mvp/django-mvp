@@ -369,8 +369,16 @@
         },
         {
           "id": "T017",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "grep -rn -i 'filterModal|modal_fields|modal_applied_count|clear_modal_url|filters.modal' docs README.md CONTEXT.md mvp demo"
+            ],
+            "code": [
+              "docs/views.md:355"
+            ]
+          }
         }
       ]
     }
