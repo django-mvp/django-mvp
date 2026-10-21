@@ -243,8 +243,29 @@
         },
         {
           "id": "T027",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 3,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_page_side_e2e.py::TestTallSideColumn",
+              "tests/test_components/test_page_side_e2e.py::TestTallSideColumnFocus",
+              "tests/test_list_filters_e2e.py::TestFilterPanel::test_after_applying_a_filter_the_new_panel_holds_its_foot_in_view",
+              "tests/test_views/test_list.py::TestFilterPanelContext::test_the_panel_is_at_the_end_by_default"
+            ],
+            "commands": [
+              "uv run pytest tests/test_components/test_page_side_e2e.py -n auto: red first (15 failed, the component did not exist), then 43 passed",
+              "mutation (each rebuilt, each failed, each restored): no scroll handler 6 failed; no clamp 4 failed; scroll origin 0 2 failed; no resize observer 1 failed; no header watching 1 failed; no header shift 1 failed; never released below the breakpoint 3 failed; scroll or resize listener not removed 1 failed each; observers not disconnected 1 failed; aside always a tab stop 1 failed",
+              "mutation: no focusin handler 2 failed; no reveal 2 failed; offset not carried 1 failed; no component on the stack branch 1 failed; no component on the drawer branch 18 failed",
+              "mutation (stylesheet rebuilt): aside scrolls again 5 failed; sticky offset ignores the property 10 failed; filter foot not sticky 1 failed",
+              "uv run pytest -q -n auto --deselect tests/test_views/test_error.py::TestErrorPagesAccessibilityE2E, three runs: 2614 passed, 1 skipped each",
+              "forge verify --steps lint,typecheck,build,conformance,docs: passed; forge check-adrs: green"
+            ],
+            "code": [
+              "assets/js/page_side_column.js:20",
+              "mvp/tailwind/base.css:997",
+              "mvp/templates/cotton/mvp/page/side/index.html:48"
+            ]
+          }
         }
       ]
     },
