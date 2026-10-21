@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.30.1] - 2026-10-21
+
 ### Fixed
 
 - A side panel's drawer now closes when the reader follows a link in it to a place on the same
