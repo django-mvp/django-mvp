@@ -28,6 +28,10 @@ const FOCUS_WAIT_MS = 1000;
 // document for the browser's own chrome, so it wraps within the panel instead.
 const TABBABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
+function canTakeFocus(element) {
+  return element.tabIndex >= 0 && element.type !== "hidden" && element.checkVisibility();
+}
+
 function pageSide({ id, breakpointRem }) {
   return {
     opener: null,
@@ -103,8 +107,8 @@ function pageSide({ id, breakpointRem }) {
     },
 
     wrapTab(event) {
-      const tabbable = [...this.$refs.close.closest("aside").querySelectorAll(TABBABLE)];
       const aside = this.$refs.close.closest("aside");
+      const tabbable = [...aside.querySelectorAll(TABBABLE)].filter(canTakeFocus);
       tabbable.unshift(aside);
       const first = tabbable[0];
       const last = tabbable[tabbable.length - 1];

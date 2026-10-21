@@ -208,6 +208,10 @@ DRAWER_PAGE = """
         <c-mvp.page.side label="Contents" id="toc" :collapse="side_collapse" :breakpoint="side_breakpoint" :position="side_position">
           <a id="first" href="#a">First</a>
           <a id="last" href="#b">Last</a>
+          {% if untabbable_tail %}
+          <input type="hidden" name="kept" value="1">
+          <details><summary tabindex="-1">More</summary><a href="#c">Folded</a></details>
+          {% endif %}
         </c-mvp.page.side>
       </c-slot>
       <div id="content"><a id="after" href="#">After</a></div>
@@ -229,6 +233,7 @@ def side_drawer_page(request):
         if get.get("breakpoint") == "off"
         else get.get("breakpoint", "xl"),
         "side_position": get.get("position", "end"),
+        "untabbable_tail": get.get("tail") == "1",
     }
     return HttpResponse(template.render(context, request))
 
@@ -349,6 +354,17 @@ class TestSideDrawer:
         for _ in range(6):
             page.keyboard.press("Shift+Tab")
             assert in_panel(page)
+
+    def test_tab_from_the_last_control_wraps_when_the_panel_ends_in_something_untabbable(
+        self, page, live_server
+    ):
+        open_drawer_page(page, live_server, "?tail=1")
+        self.open(page)
+        page.focus("#last")
+
+        page.keyboard.press("Tab")
+
+        assert page.evaluate("() => document.activeElement.id") == "toc-panel"
 
     def test_at_the_breakpoint_the_button_is_hidden_and_the_panel_is_a_column(
         self, page, live_server
