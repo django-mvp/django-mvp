@@ -535,6 +535,24 @@
               "mvp/templates/table_view.html:31"
             ]
           }
+        },
+        {
+          "id": "T026",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_list_filters_e2e.py::TestFilterPanel::test_a_panel_taller_than_the_screen_has_no_scrollbar_of_its_own",
+              "tests/test_list_filters_e2e.py::TestFilterPanel::test_scrolling_the_page_keeps_apply_and_clear_in_view",
+              "tests/test_views/test_list.py"
+            ],
+            "commands": [
+              "mutation: filter_panel_attrs default back to {'position': 'end'} -> no-scrollbar test 1 failed; restored -> 271 passed"
+            ],
+            "code": [
+              "mvp/views/list.py:520"
+            ]
+          }
         }
       ]
     }

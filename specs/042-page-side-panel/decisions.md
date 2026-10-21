@@ -130,7 +130,10 @@ the package stops bundling Alpine.
 **Decision:** the list page's filter panel defaults to the end side. Its alignment follows its side
 unless the developer sets one: content at the end, title at the start. The table page's layout
 draws no gap in either direction. The drawer at the end side slides in from the end. The side
-panel demo keeps its long-contents option, off by default. **Why:** Sam, at the merge gate: the
+panel demo keeps its long-contents option, off by default. The filter panel does not stick by
+default, so a panel taller than the screen scrolls with the page and has no scrollbar of its own;
+its Apply and Clear foot stays at the bottom of the screen. Made directly, not dispatched: one
+default value and its tests. **Why:** Sam, at the merge gate: the
 app's sidebar sits at the start, and two panels on the same side look awkward. FR-014 now says so.
 **Revisit if:** the app layout stops being sidebar-first.
 **ADR:** none — default values and one alignment rule for one component

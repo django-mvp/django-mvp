@@ -171,8 +171,8 @@ is open.
 Someone looking for a featured product on a wide screen finds the list's search and sort in the
 toolbar and every other filter in a column at the end of the page, lined up with the toolbar. They pick
 a status and a price range in the column and apply them, and the list narrows. The search they had
-typed is kept. The column stays in view while they scroll the results, and its Apply button stays
-in reach at its foot however many filters it holds. On a phone the same filters are behind a
+typed is kept. The column scrolls with the page, with no scrollbar of its own, and its Apply button
+stays in reach at the foot of the screen however many filters it holds. On a phone the same filters are behind a
 "Filters" button in the toolbar, which shows how many of them are applied. The column's clear
 action removes the filters in it and keeps the search and the sort.
 
@@ -309,7 +309,8 @@ none, and confirm the same results as Story 1's first two scenarios.
 - **FR-013**: Every list page and table page with a filterset MUST draw the fields not named for the
   toolbar in a side panel. The filter modal MUST be removed.
 - **FR-014**: A list page's side panel MUST default to the end side, with the extra large
-  breakpoint, collapsing into a drawer. Unless the developer sets its alignment, a panel at the end
+  breakpoint, collapsing into a drawer, and scrolling with the page rather than sticking. Unless
+  the developer sets its alignment, a panel at the end
   side MUST align with the content and a panel at the start side with the title. Its button MUST be
   in the toolbar where the Filter button is today, and MUST show the count of applied panel filters
   as the Filter button does.
