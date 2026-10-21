@@ -363,8 +363,19 @@
         },
         {
           "id": "T023",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 2,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_page_side_e2e.py::TestSideDrawerSlide::test_an_end_panel_slides_in_from_the_end_edge"
+            ],
+            "commands": [
+              "uv run pytest tests/test_components/test_page_side_e2e.py::TestSideDrawerSlide -> ltr fails before the fix (left edge already at the open position mid-slide); mutation: remove {preventScroll: true} from assets/js/page_side.js focusClose and rebuild -> fails; restored -> 25 passed"
+            ],
+            "code": [
+              "assets/js/page_side.js:137"
+            ]
+          }
         }
       ]
     },

@@ -187,3 +187,10 @@ Did: PR description rewritten with the Closes block; walkthrough checklist laid 
 Verified: stage-exit S6 green; 2587 passed, 1 skipped (axe CDN class deselected).
 Next: push as the bot, mark ready, CI green, stage-exit S7, merge gate.
 Watch: nothing pushed after ready except a fix Sam asks for.
+
+## 2026-10-21T15:20:28Z · Implementer FIX-2 · T023
+
+Did: reproduced the end drawer jumping in (browser test, ltr fails, rtl passes). Cause: the end panel is translated past the right edge of an overflow box, and focusing its close button while it is still moving scrolls that box, so the panel jumps to its open position; the start side translates into unscrollable negative overflow. Fix: focus with preventScroll. Rebuilt the bundle.
+Verified: uv run pytest tests/test_components/test_page_side_e2e.py: 25 passed; the new test fails with the preventScroll option removed.
+Next: T024.
+Watch: none.
