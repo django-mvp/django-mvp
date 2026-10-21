@@ -27,6 +27,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   "Updating in place" in `docs/views.md`.
 - django-mvp-forms 0.6.0 or later is required, so a Tom Select field in the filter form
   starts once after each swap.
+- The table page's pager is drawn at DaisyUI's default size instead of the small one, so
+  it matches the toolbar above it and the list page's pager. A project that wants the
+  smaller pager overrides `page.footer` and passes `size="sm"` to
+  `<c-mvp.page.list.footer>` (#547).
 
 ### Fixed
 
