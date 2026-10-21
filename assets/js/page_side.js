@@ -24,6 +24,10 @@ const CHANGED_EVENT = "mvp-page-side-changed";
 // reaches the end of the opening frame, and a hidden element cannot take focus.
 const FOCUS_WAIT_MS = 1000;
 
+// With the rest of the page inert, Tab past the last control would leave the
+// document for the browser's own chrome, so it wraps within the panel instead.
+const TABBABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
 function pageSide({ id, breakpointRem }) {
   return {
     opener: null,
@@ -40,8 +44,13 @@ function pageSide({ id, breakpointRem }) {
         }
       };
       this.onKeydown = (event) => {
-        if (event.key === "Escape" && this.isOpen()) {
+        if (!this.isOpen()) {
+          return;
+        }
+        if (event.key === "Escape") {
           this.close();
+        } else if (event.key === "Tab") {
+          this.wrapTab(event);
         }
       };
       window.addEventListener(OPEN_EVENT, this.onOpen);
@@ -91,6 +100,22 @@ function pageSide({ id, breakpointRem }) {
         this.opener.focus();
       }
       this.opener = null;
+    },
+
+    wrapTab(event) {
+      const tabbable = [...this.$refs.close.closest("aside").querySelectorAll(TABBABLE)];
+      const aside = this.$refs.close.closest("aside");
+      tabbable.unshift(aside);
+      const first = tabbable[0];
+      const last = tabbable[tabbable.length - 1];
+      const active = document.activeElement;
+      if (event.shiftKey && (active === first || !aside.contains(active))) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && (active === last || !aside.contains(active))) {
+        event.preventDefault();
+        first.focus();
+      }
     },
 
     // Everything outside the panel, remembering exactly what this drawer

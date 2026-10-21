@@ -91,3 +91,14 @@ demo page stays: it is where layout work is looked at. **Why:** each removes a d
 duplicate; none widens the spec. **Revisit if:** a later feature needs the panel's id on the
 `<aside>` itself.
 **ADR:** none — corrections to this feature's plan, nothing downstream inherits them
+
+## D8 The drawer wraps Tab itself
+
+**Decision:** `mvpPageSide` wraps Tab and Shift+Tab inside the panel while the drawer is open, in
+addition to making the rest of the page `inert`. The panel's width reaches the template through
+`{% breakpoint_px breakpoint as ... %}` and `widthratio`, because `breakpoint_px` is a simple tag,
+not a filter. **Why:** with everything else inert there is no next control after the last link, so
+Tab leaves the document for the browser's own interface and focus is outside the panel (FR-009);
+the browser test for it failed until the wrap was added. **Revisit if:** browsers keep focus in the
+document when the page is inert past the last control.
+**ADR:** none

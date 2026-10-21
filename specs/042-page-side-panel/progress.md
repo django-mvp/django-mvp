@@ -82,3 +82,10 @@ Did: wrote the markup tests first (TestDrawerConfiguration, TestSidePanelToggle;
 Verified: uv run pytest tests/test_components/test_page_side.py -> 45 passed; uv run invoke build-js, build-stylesheet (stylesheet artifact unchanged).
 Next: T010 the drawer in a browser; the behaviour is only proven there.
 Watch: breakpoint_px is a simple tag, not a filter, so the template uses {% breakpoint_px breakpoint as ... %} then widthratio. The module listens on window for open and Escape, so the markup holds no handlers beyond the overlay and close button that already called close().
+
+## 2026-10-21T11:57:53Z · Implementer US2 · T010
+
+Did: wrote TestSideDrawer (15 cases, a test-only page at /side-drawer-test/ with the button, collapse, breakpoint and position read from the query string). Two failed on first run: Tab past the last link left the panel (a real gap in the module, so mvpPageSide now wraps Tab and Shift+Tab, D8), and a test page variable named breakpoint was shadowed by the shell's, so I renamed the page's keys.
+Verified: uv run pytest tests/test_components/test_page_side_e2e.py tests/test_components/test_page_side.py -> 67 passed. Every test that passed first time was shown failing against a mutation of the code it guards, then restored: no inert (2 tests), no focus return (3), no focus into the panel (11), no Tab wrap, no media listener, destroy keeps inert, no Escape, no announce, overlay and close button not wired (one each), drawer always on one side (start and end), drawer starts open (hidden-panel and no-button tests), stacked drawn as a drawer, stacked toggle rule removed, breakpoint=False given xl, built CSS rule hiding the button at xl removed, and the overlay class removed.
+Next: T011 documentation.
+Watch: the CSS hides the button when no drawer panel exists on the page, not when none has that id; the button's id is not matched in CSS.
