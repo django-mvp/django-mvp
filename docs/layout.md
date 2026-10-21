@@ -550,6 +550,81 @@ that is not there. Override the block with nothing:
 {% endblock %}
 ```
 
+## Side panel
+
+A page can have a column beside its title and content: a table of contents, filters, related
+links. Fill the `page.side` block of `page_view.html` with a `<c-mvp.page.side>`:
+
+```html
+{% extends "page_view.html" %}
+
+{% block page.side %}
+  <c-mvp.page.side label="On this page"
+                   id="toc"
+                   width="sm"
+                   breakpoint="xl"
+                   collapse="drawer"
+                   align="content"
+                   position="end"
+                   :sticky="True"
+                   class="my-panel">
+    <ul class="menu menu-sm">
+      <li><a href="#install">Installing</a></li>
+      <li><a href="#settings">Settings</a></li>
+    </ul>
+  </c-mvp.page.side>
+{% endblock page.side %}
+```
+
+Left empty, the block changes nothing: the page is drawn exactly as it was, with no extra wrapper.
+The demo's Layout > Side Panel page has a form that switches every option below.
+
+| Attribute | Values | What it does |
+| --- | --- | --- |
+| `label` | text, required | The panel's heading and the accessible name of its landmark |
+| `id` | text, default `page-side` | The id of the panel's root element. The `<aside>` inside it is `{id}-panel` |
+| `width` | `sm`, `md` (default), `lg` | The column's width: 14rem, 16rem or 20rem |
+| `breakpoint` | `lg`, `xl` (default), `2xl`, `False` | The screen width from which the panel is a column. `False` keeps it a drawer or a stacked block at every width |
+| `collapse` | `drawer` (default), `stack` | Below the breakpoint: an off-canvas drawer, or a block stacked with the content. A drawer is not shown until the page gives the reader a way to open it |
+| `align` | `title` (default), `content` | Whether the column starts level with the page title or with the content under it |
+| `position` | `end` (default), `start` | Which side of the content the panel sits on. In a right-to-left page `start` is the right |
+| `sticky` | `True` (default), `False` | Whether the column sticks under the header while the page scrolls |
+| `class` | text | Extra classes on the panel's root element |
+
+From its breakpoint the column sticks just under the header, at the header's current height (see
+[Header height](#header-height)). A panel taller than the space under the header scrolls on its
+own, and its `<aside>` is a tab stop so a keyboard reader can scroll it. On a page that
+[fills the shell](#full-page-content) the panel is as tall as the page, does not stick, and
+scrolls inside itself.
+
+The panel is a landmark named by its heading. In the page it comes after the title, then before
+the content when `position` is `start` and after it when `end`, so the reading and tab order
+match what the reader sees.
+
+### A side panel in a template of your own
+
+`<c-mvp.page.layout>` does the arranging, and `page_view.html` calls it. A template that does not
+extend the page template calls it itself, with the title in the `header` slot, the panel in the
+`side` slot and the content as the default slot:
+
+```html
+<c-mvp.page.layout class="mt-4">
+  <c-slot name="header"><h1 class="text-3xl font-bold">Release notes</h1></c-slot>
+  <c-slot name="side">
+    <c-mvp.page.side label="Versions" position="start">
+      <ul class="menu menu-sm"><li><a href="#v2">2.0</a></li></ul>
+    </c-mvp.page.side>
+  </c-slot>
+  <p>The notes themselves.</p>
+</c-mvp.page.layout>
+```
+
+With the `side` slot empty or missing, the layout draws the header and the content and nothing
+else, so the same template serves a page with a panel and a page without. The layout reads the
+panel's `position` from the markup the panel renders, so a replacement panel template keeps
+the `data-mvp-side-position` attribute on its root element. `class` reaches the layout's wrapper,
+which is drawn only when there is a panel.
+
 ## Overriding the layout per page
 
 `layout.sidebar.breakpoint` and `layout.sidebar.collapse` drive three regions that

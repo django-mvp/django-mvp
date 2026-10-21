@@ -137,6 +137,32 @@ and header, and whether the viewport is currently at the sidebar breakpoint. The
 checkbox stays the source of truth for whether the sidebar is open; the store mirrors it rather
 than the reverse. See [The layout store](docs/layout.md#the-layout-store).
 
+### Header height
+
+The height of the app header, published as the CSS custom property `--mvp-header-height` on
+`:root` and kept current as the header changes size. It is `0px` for a header that does not stick
+and for a page with no header. Anything that has to clear the sticky header reads it, such as the
+side panel and the document's `scroll-padding-top`. See
+[Header height](docs/layout.md#header-height).
+
+### Side block
+
+The `page.side` block of `page_view.html`. A page fills it with one side panel; left empty, the
+page is drawn exactly as it was.
+
+### Side panel
+
+A `<c-mvp.page.side>`: a column beside a page's title and content, sticky under the header on a
+wide screen, and a drawer, a stacked block or nothing on a narrow one. See
+[Side panel](docs/layout.md#side-panel).
+
+### Page layout
+
+A `<c-mvp.page.layout>`: the component that lays a page's title, content and side panel out
+together. `page_view.html` calls it, and a template that does not extend the page template may
+call it itself. It is not the app shell's **Layout** (`c-app`): that is the chrome around every
+page, and the page layout arranges what is inside one page.
+
 ### Related row
 
 One record belonging to a parent — a line item, a question. Rows are created, edited and

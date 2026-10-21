@@ -61,3 +61,10 @@ Did: wrote TestSideColumn against a test-only page served at /side-test/ (a func
 Verified: uv run pytest tests/test_components/test_page_side_e2e.py -> 7 passed. They passed on first run because T004 already carries the CSS, so I probed them by editing the built CSS: sticky->static fails 2, dropping the aside max-height/overflow fails 2, filled-page unstick reverted fails 1, dropping the fill layout flex/min-height fails 1 (after strengthening the filled-page test, which first passed under that mutation). Built CSS restored.
 Next: T007 docs and demo page.
 Watch: the rtl case flips dir after load; no markup carries dir.
+
+## 2026-10-21T11:30:01Z · Implementer US1 · T007
+
+Did: wrote the Side panel section of docs/layout.md (an On this page example in page.side with one attribute per option, and a stand-alone <c-mvp.page.layout> example), the components.md rows, CONTEXT.md entries (Side block, Side panel, Page layout, and Header height) with the line telling the page layout from the app shell Layout, a changelog entry, the skill routing line, and the demo Layout > Side Panel page (view, url, menu item, template) from the prototype.
+Verified: uv run pytest tests/test_demo/test_pages.py::TestPageSideDemoPage -> 12 passed; red with the route removed (12 failed). The demo ships without the prototype's panel button and its Toggle option, since that component is US2; I added an off value for breakpoint so breakpoint=False is switchable.
+Next: US5 T008.
+Watch: the demo and docs say a drawer is not shown until the page can open it; US2 adds the button and its docs. The demo list page with side filters from the prototype is US3, not copied.

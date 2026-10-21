@@ -48,6 +48,14 @@ AppMenu.extend(
                         "icon": "navbar",
                     },
                 ),
+                MenuItem(
+                    name="layout-side",
+                    view_name="layout-side",
+                    extra_context={
+                        "label": "Side Panel",
+                        "icon": "sidebar-right",
+                    },
+                ),
             ],
         ),
         MenuItem(

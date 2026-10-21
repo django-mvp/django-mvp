@@ -1,0 +1,173 @@
+{% extends "page_view.html" %}
+{% comment %}
+  A documentation page with an "On this page" panel. The form at the top
+  switches the panel between its options through the query string, so each
+  combination is one link away.
+{% endcomment %}
+{% block page.side %}
+  <c-mvp.page.side label="On this page"
+                   :width="side.width"
+                   :breakpoint="side.breakpoint"
+                   :collapse="side.collapse"
+                   :align="side.align"
+                   :position="side.position"
+                   :sticky="side.sticky">
+    <ul class="menu menu-sm w-full">
+      <li><a href="#when">When to use it</a></li>
+      <li><a href="#adding">Adding a side panel</a></li>
+      <li>
+        <a href="#narrow">Narrow screens</a>
+        <ul>
+          <li><a href="#narrow-drawer">A drawer</a></li>
+          <li><a href="#narrow-stack">Stacked</a></li>
+          <li><a href="#narrow-hide">Not shown</a></li>
+        </ul>
+      </li>
+      <li><a href="#width">Width, position and alignment</a></li>
+      <li><a href="#sticky">Sticking under the header</a></li>
+      <li><a href="#a11y">Accessibility</a></li>
+      {% if side.long %}
+        <li>
+          <a href="#steps">Thirty steps</a>
+          <ul>
+            {% for step in steps %}<li><a href="#step-{{ step }}">Step {{ step }}</a></li>{% endfor %}
+          </ul>
+        </li>
+      {% endif %}
+      <li><a href="#summary">Summary</a></li>
+    </ul>
+  </c-mvp.page.side>
+{% endblock page.side %}
+{% block page.content %}
+  <form method="get" class="card card-border bg-base-100">
+    <div class="card-body gap-3 p-4">
+      <h2 class="text-sm font-semibold text-base-content/70">Try the options</h2>
+      <div class="flex flex-wrap items-end gap-3">
+        {% for name, choices, current in options %}
+          <label class="flex flex-col gap-1 text-sm">
+            <span class="capitalize">{{ name }}</span>
+            <select name="{{ name }}" class="select select-sm w-32">
+              {% for choice in choices %}
+                <option value="{{ choice }}" {% if current == choice %}selected{% endif %}>{{ choice }}</option>
+              {% endfor %}
+            </select>
+          </label>
+        {% endfor %}
+        <label class="label text-sm">
+          <input type="hidden" name="sticky" value="off" />
+          <input type="checkbox" name="sticky" value="on" class="checkbox checkbox-sm" {% if side.sticky %}checked{% endif %} />
+          Sticky
+        </label>
+        <label class="label text-sm">
+          <input type="checkbox" name="long" value="on" class="checkbox checkbox-sm" {% if side.long %}checked{% endif %} />
+          Long contents
+        </label>
+        <button type="submit" class="btn btn-sm btn-primary">Apply</button>
+      </div>
+    </div>
+  </form>
+  <article class="prose max-w-none">
+    <p class="lead">
+      Documentation, settings and filtered lists all want the same thing: a narrow column beside the
+      page that stays in view while the reader scrolls. Put a <code>&lt;c-mvp.page.side&gt;</code> in
+      the <code>page.side</code> block and the page makes room for it.
+    </p>
+
+    <h2 id="when">When to use it</h2>
+    <ul>
+      <li>A table of contents for a long page, like the one beside this text.</li>
+      <li>Filters for a list, kept open while the results change underneath them.</li>
+      <li>Related links or a summary of the record a page is about.</li>
+    </ul>
+    <p>
+      Leave the block empty and nothing changes: the page is drawn exactly as it was, with no extra
+      wrapper and no drawer.
+    </p>
+
+    <h2 id="adding">Adding a side panel</h2>
+    <p>Fill the block with one panel. Its label is the heading a reader sees and the name a screen reader announces.</p>
+    <pre><code>{% verbatim %}{% block page.side %}
+  &lt;c-mvp.page.side label="On this page" width="sm" align="content"&gt;
+    &lt;ul class="menu menu-sm"&gt;…&lt;/ul&gt;
+  &lt;/c-mvp.page.side&gt;
+{% endblock page.side %}{% endverbatim %}</code></pre>
+    <p>
+      A page that does not extend <code>page_view.html</code> uses the layout component directly and
+      passes the panel in its <code>side</code> slot.
+    </p>
+
+    <h2 id="narrow">Narrow screens</h2>
+    <p>
+      Below its breakpoint there is no room for a column, so the panel either becomes a drawer or is
+      stacked with the content.
+    </p>
+    <h3 id="narrow-drawer">A drawer</h3>
+    <p>
+      The default. The panel is an off-canvas drawer that slides in from its own edge, and it closes
+      on Escape, on the close button or on a tap outside it.
+    </p>
+    <h3 id="narrow-stack">Stacked</h3>
+    <p>
+      With <code>collapse="stack"</code> the panel is drawn full width, under the title. A panel at the
+      start comes before the content and a panel at the end after it, so the order matches the order a
+      screen reader and the Tab key take. Suits a short panel the reader needs before the content,
+      such as a picker.
+    </p>
+    <h3 id="narrow-hide">Not shown</h3>
+    <p>
+      A drawer with nothing on the page to open it is simply not shown on a narrow screen. Suits a
+      table of contents, which only repeats the headings the reader is already scrolling past.
+    </p>
+
+    <h2 id="width">Width, position and alignment</h2>
+    <p>
+      Three widths: <code>sm</code> for a list of headings, <code>md</code> for most filters,
+      <code>lg</code> for a panel with wide controls such as date ranges. The panel sits after the
+      content by default; <code>position="start"</code> puts it before.
+    </p>
+    <p>
+      <code>align="title"</code>, the default, starts the column level with the page title.
+      <code>align="content"</code> starts it under the title, level with the content, and gives the
+      title the whole width.
+    </p>
+    <p>
+      The breakpoint defaults to <code>xl</code>. With the app sidebar open, a large screen leaves too
+      little room for both the content and a second column, so the panel waits for an extra-large one.
+    </p>
+
+    <h2 id="sticky">Sticking under the header</h2>
+    <p>
+      The column sticks just under the app header, whatever height the header is: a tray, a wrapped
+      breadcrumb trail or a project's own content all move it. When the panel is taller than the
+      space left on screen it scrolls on its own, and the page scrolls with the wheel once it reaches
+      the end.
+    </p>
+    <p>
+      The same measurement keeps a heading reached from a link, or a field reached with Tab, from
+      landing under the header.
+    </p>
+
+    <h2 id="a11y">Accessibility</h2>
+    <p>
+      The panel is a complementary landmark named by its heading. It is a tab stop, so a reader who
+      cannot use a pointer can scroll it with the keyboard when it is taller than the screen.
+    </p>
+
+    {% if side.long %}
+      <h2 id="steps">Thirty steps</h2>
+      <p>Enough headings to make the contents longer than the screen.</p>
+      {% for step in steps %}
+        <h3 id="step-{{ step }}">Step {{ step }}</h3>
+        <p>Each step adds one more entry to the contents, so the panel has to scroll on its own.</p>
+      {% endfor %}
+    {% endif %}
+
+    <h2 id="summary">Summary</h2>
+    <p>
+      One block, one component. The component carries the configuration, the page makes room for it,
+      and a page without one is unchanged.
+    </p>
+    {# Room to scroll the last heading to the top, so the panel's sticking is visible on a tall screen. #}
+    <div style="height: 50vh" aria-hidden="true"></div>
+  </article>
+{% endblock page.content %}

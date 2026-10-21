@@ -41,6 +41,7 @@ urlpatterns = [
     path("layout/header/", views.layout_header_demo, name="layout-header"),
     path("layout/full-page/", views.full_page_map_demo, name="full-page-map"),
     path("layout/store/", views.layout_store_demo, name="layout-store"),
+    path("layout/side/", views.page_side_demo, name="layout-side"),
     path("theme/", views.theme_customization_demo, name="customization"),
     path("components/", views.components_demo, name="custom-components"),
     path(

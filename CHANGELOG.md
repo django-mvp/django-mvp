@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- A page can have a side panel beside its title and content. Fill the new `page.side` block of
+  `page_view.html` with `<c-mvp.page.side label="…">`. From its breakpoint (`xl` by default) the
+  panel is a column that sticks under the header, at the end or the start, level with the title
+  or with the content, in one of three widths. Below the breakpoint it is a drawer or a block
+  stacked with the content. A page that leaves the block empty is drawn as before.
+  `<c-mvp.page.layout>` does the arranging and can be called from a template that does not extend
+  the page template. See "Side panel" in `docs/layout.md`.
+- New template filter `root_attr`, which returns one attribute of the first element of an HTML
+  string.
 - The app header's height is published as `--mvp-header-height` on `:root` and kept current as
   the header changes size (`0px` for a header that does not stick or a page with none). The
   document's `scroll-padding-top` follows it, so a link to an anchor or a field focused by

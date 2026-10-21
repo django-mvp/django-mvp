@@ -806,3 +806,55 @@ class ColumnBehaviourTableView(MVPTableView):
     model = Product
     table_class = ColumnBehaviourTable
     paginate_by = 25
+
+
+class PageSideDemoView(DemoTemplateView):
+    """A long documentation page with an "On this page" side panel.
+
+    Every option of <c-mvp.page.side> is read from the query string, so the
+    page can be switched between them from the form at its top.
+    """
+
+    template_name = "layout/side.html"
+    page_title = "Side Panel"
+    page_subtitle = (
+        "A sticky column beside the page, for contents, filters or related links."
+    )
+
+    OPTIONS = {
+        "collapse": ("drawer", "stack"),
+        "align": ("title", "content"),
+        "position": ("end", "start"),
+        "width": ("md", "sm", "lg"),
+        "breakpoint": ("xl", "lg", "2xl", "off"),
+    }
+
+    def get_breadcrumbs(self):
+        """Add Home and Layout crumbs ahead of this page's own."""
+        return [
+            {"text": "Home", "href": "/"},
+            {"text": "Layout", "href": reverse("layout")},
+            {"text": self.page_title},
+        ]
+
+    def get_context_data(self, **kwargs):
+        """Add the side panel's options, each falling back to its default."""
+        context = super().get_context_data(**kwargs)
+        side = {}
+        for name, choices in self.OPTIONS.items():
+            value = self.request.GET.get(name)
+            side[name] = value if value in choices else choices[0]
+        side["sticky"] = self.request.GET.get("sticky", "on") == "on"
+        side["long"] = self.request.GET.get("long") == "on"
+        context["options"] = [
+            (name, choices, side[name]) for name, choices in self.OPTIONS.items()
+        ]
+        # "off" is how the form spells breakpoint=False: always a drawer or stack.
+        if side["breakpoint"] == "off":
+            side["breakpoint"] = False
+        context["side"] = side
+        context["steps"] = range(1, 31)
+        return context
+
+
+page_side_demo = PageSideDemoView.as_view()
