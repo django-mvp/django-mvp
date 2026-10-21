@@ -504,8 +504,21 @@
         },
         {
           "id": "T024",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_list_filter_panel.py::TestFilterPanelIsASidePanel::test_its_alignment_follows_its_side_unless_one_is_set",
+              "tests/test_views/test_list.py::TestFilterPanelContext::test_the_panel_is_at_the_end_by_default",
+              "tests/test_table_layout.py::TestTableFilterPanel::test_the_panel_is_at_the_end_and_level_with_the_content"
+            ],
+            "commands": [
+              "mutation: align default content->title in filters/panel.html -> 3 failed; restored. mutation: filter_panel_attrs default position end->start in mvp/views/list.py -> 3 failed; restored"
+            ],
+            "code": [
+              "mvp/templates/cotton/mvp/page/list/filters/panel.html:9"
+            ]
+          }
         },
         {
           "id": "T025",

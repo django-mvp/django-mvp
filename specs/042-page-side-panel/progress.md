@@ -194,3 +194,10 @@ Did: reproduced the end drawer jumping in (browser test, ltr fails, rtl passes).
 Verified: uv run pytest tests/test_components/test_page_side_e2e.py: 25 passed; the new test fails with the preventScroll option removed.
 Next: T024.
 Watch: none.
+
+## 2026-10-21T15:21:59Z · Implementer FIX-2 · T024
+
+Did: the list view's filter_panel_attrs default is now {"position": "end"}; the filter panel template aligns content at the end and title at the start unless align is set. Updated the tests that pinned the start default, docs/views.md and the CHANGELOG; no demo page sets the default.
+Verified: test_list_filter_panel, test_table_layout, test_views/test_list pass; two mutations fail (align default swapped; view default back to start).
+Next: T025.
+Watch: none.
