@@ -629,7 +629,9 @@ no drawer panel, and when `collapse` is `stack`. While the drawer is open:
   Tab reaches it;
 - focus moves to the panel's close button, and Tab and Shift+Tab stay inside the panel;
 - Escape, the close button and a click on the dimmed page each close it and return focus to the
-  button that opened it.
+  button that opened it;
+- following a link in the panel to a place on the same page, such as an "On this page" list,
+  closes it and moves focus to that place instead of back to the button.
 
 Widening the window past the breakpoint with the drawer open closes it and leaves nothing
 `inert`. A drawer with no button on the page is not shown at all and nothing in it can take

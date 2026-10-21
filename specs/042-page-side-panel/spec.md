@@ -133,7 +133,9 @@ implies, and the second renders exactly as it did before this feature.
 Someone reading the help page on a phone sees a "Contents" button in the title row. They tap it and
 the list slides in from the side of the screen with the page dimmed behind it. Focus is on its close
 button. They tab through the links and focus stays inside the panel. They press Escape and the
-panel closes, with focus back on the "Contents" button. On another page, the developer chose to
+panel closes, with focus back on the "Contents" button. If they tap a link in the list that leads to
+a heading further down the same page, the panel closes and the page scrolls to that heading with
+focus on it. On another page, the developer chose to
 stack the panel with the content, and the reader on the phone finds it under the title, in the
 page's own reading order.
 
@@ -143,7 +145,8 @@ panel a built-in rather than a desktop-only style.
 **Independent Test**: In a browser at a width below the panel's breakpoint, open the panel by its
 button, confirm focus and its containment, close it by Escape, by its close button and by the dimmed
 page, and confirm focus returns to the button each time and the button reports whether the panel
-is open.
+is open. Then open it again, follow a link in it to a heading on the same page, and confirm the
+panel closes, the heading is clear of the header, and focus is on it.
 
 **Acceptance Scenarios**:
 
@@ -168,6 +171,9 @@ is open.
    panel is a drawer.
 9. **Given** an open drawer, **When** the window is widened past the breakpoint, **Then** the drawer
    closes and the panel is the column, and the page can be scrolled and reached as usual.
+10. **Given** the open panel, **When** the reader follows a link in it to a place on the same
+    page, **Then** the panel closes, the page can be reached again, the page scrolls to that place
+    clear of the header, and focus moves to it.
 
 ---
 
@@ -305,7 +311,9 @@ none, and confirm the same results as Story 1's first two scenarios.
   on the page MUST NOT be shown or reachable.
 - **FR-009**: The open drawer MUST dim the rest of the page and make it unreachable, move focus into
   itself, keep focus inside itself, and close on Escape, on its close button and on the dimmed page,
-  returning focus to the button that opened it. The button MUST report whether the drawer is open.
+  returning focus to the button that opened it. It MUST also close when the reader follows a link
+  in it to a place on the same page, moving focus to that place instead. The button MUST report
+  whether the drawer is open.
 - **FR-010**: The button MUST NOT be shown when the panel is a column or stacks. An open drawer MUST
   close when the window is widened past the breakpoint.
 - **FR-011**: On a page that fills the screen's height, the panel MUST be a column the height of the
