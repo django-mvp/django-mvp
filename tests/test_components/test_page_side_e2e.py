@@ -568,6 +568,7 @@ DRAWER_PAGE = """
       <c-slot name="side">
         <c-mvp.page.side label="Contents" id="toc" :collapse="side_collapse" :breakpoint="side_breakpoint" :position="side_position">
           <a id="first" href="#a">First</a>
+          <a id="jump" href="#target">Jump</a>
           <a id="last" href="#b">Last</a>
           {% if untabbable_tail %}
           <input type="hidden" name="kept" value="1">
@@ -575,7 +576,14 @@ DRAWER_PAGE = """
           {% endif %}
         </c-mvp.page.side>
       </c-slot>
-      <div id="content"><a id="after" href="#">After</a></div>
+      <div id="content">
+        <a id="after" href="#">After</a>
+        {% if long %}
+        <div style="height: 2000px"></div>
+        <h2 id="target">Target</h2>
+        <div style="height: 2000px"></div>
+        {% endif %}
+      </div>
     </c-mvp.page.layout>
   </c-mvp.page.content>
 </c-mvp.page>
@@ -584,7 +592,8 @@ DRAWER_PAGE = """
 
 
 def side_drawer_page(request):
-    """Draw the drawer page: ``?button=0``, ``?collapse=stack``, ``?breakpoint=lg|off``, ``?position=start``."""
+    """Draw the drawer page: ``?button=0``, ``?collapse=stack``, ``?breakpoint=lg|off``,
+    ``?position=start``, ``?long=1`` for a heading far down the content."""
     get = request.GET
     template = engines["django"].from_string(CottonCompiler().process(DRAWER_PAGE))
     context = {
@@ -595,11 +604,13 @@ def side_drawer_page(request):
         else get.get("breakpoint", "xl"),
         "side_position": get.get("position", "end"),
         "untabbable_tail": get.get("tail") == "1",
+        "long": get.get("long") == "1",
     }
     return HttpResponse(template.render(context, request))
 
 
 def open_drawer_page(page, live_server, query="", viewport=NARROW):
+    page.set_default_timeout(5000)
     page.set_viewport_size(viewport)
     page.goto(f"{live_server.url}/side-drawer-test/{query}")
     page.wait_for_function("() => window.Alpine !== undefined")
@@ -702,6 +713,33 @@ class TestSideDrawer:
         )
         assert page.get_attribute(BUTTON, "aria-expanded") == "false"
         assert inert_ids(page) == []
+
+    def test_following_a_link_to_a_place_on_the_page_closes_the_panel(
+        self, page, live_server
+    ):
+        open_drawer_page(page, live_server, "?long=1")
+        self.open(page)
+
+        page.click("#jump")
+
+        page.wait_for_function(
+            "() => document.querySelector('.mvp-page-side-toggle').getAttribute('aria-expanded') === 'false'"
+        )
+        frames(page)
+        assert not page.locator("#toc .drawer-toggle").is_checked()
+        assert inert_ids(page) == []
+        page.locator("#toc .drawer-overlay").wait_for(state="hidden")
+        assert header_bottom(page) - 1 <= top(page, "#target") < NARROW["height"]
+
+    def test_following_a_link_to_a_place_on_the_page_moves_focus_to_that_place(
+        self, page, live_server
+    ):
+        open_drawer_page(page, live_server, "?long=1")
+        self.open(page)
+
+        page.click("#jump")
+
+        page.wait_for_function("() => document.activeElement.id === 'target'")
 
     def test_tab_past_the_last_control_keeps_focus_inside_the_panel(
         self, page, live_server

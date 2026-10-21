@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- A side panel's drawer now closes when the reader follows a link in it to a place on the same
+  page, and focus moves to that place. Before, the drawer and the dimmed page stayed over it. See
+  "On a narrow screen" in `docs/layout.md`.
+
 ## [v0.30.0] - 2026-10-21
 
 ### Added
