@@ -60,8 +60,19 @@
       "tasks": [
         {
           "id": "T001",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 3,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_header_height_e2e.py::TestHeaderHeight"
+            ],
+            "commands": [
+              "uv run pytest tests/test_components/test_header_height_e2e.py -q"
+            ],
+            "code": [
+              "assets/js/header_height.js:17"
+            ]
+          }
         }
       ]
     },

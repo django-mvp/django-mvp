@@ -21,6 +21,7 @@ import htmx from "htmx.org";
 import { themeChange } from "theme-change";
 
 import { startDropdowns } from "./dropdown.js";
+import { startHeaderHeight } from "./header_height.js";
 import { registerLayoutStore } from "./layout.js";
 import { startThemeColor } from "./theme_color.js";
 
@@ -40,6 +41,9 @@ startDropdowns();
 
 // Keeps the browser toolbar the colour of the header in the applied theme.
 startThemeColor();
+
+// Deferred, so the header is already parsed. See header_height.js.
+startHeaderHeight();
 
 // theme-change can't notice controls added after it runs, and a boosted
 // navigation swaps the body for identical markup with no listeners: the

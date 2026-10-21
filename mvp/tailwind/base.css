@@ -955,3 +955,17 @@
     white-space: nowrap;
   }
 }
+
+/* The header's height, for anything that has to clear it: a sticky element of a
+   project's own, and the browser's scroll to an anchor or a focused field (WCAG
+   2.4.11). assets/js/header_height.js measures the header and writes the real
+   value, 0 when the header does not stick or the page has none; 4rem is the
+   bare navbar row, used until the script has run. :where() gives it no weight,
+   so a project's own :root rule wins. */
+:where(:root) {
+  --mvp-header-height: 4rem;
+}
+
+html {
+  scroll-padding-top: var(--mvp-header-height);
+}

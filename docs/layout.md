@@ -380,6 +380,30 @@ Per-page override (use the `:` expression form so the value stays a real boolean
 {% endblock %}
 ```
 
+## Header height
+
+The header's height is not a constant: a tray, a wrapped breadcrumb trail or your own `above`
+and `below` content change it. django-mvp measures the header and publishes the result as the
+custom property `--mvp-header-height` on `:root`, updating it whenever the header's size changes.
+A header that does not stick, and a page with no `.mvp-header`, publish `0px`. Until the script
+has run the property is `4rem`.
+
+The stylesheet already uses it to pad the document's scroll, so a link to an anchor and a field
+focused by keyboard land below the sticky header instead of under it.
+
+To keep an element of your own clear of the header, read the property. A sticky sidebar of your
+own sits just under the header like this:
+
+```css
+.my-sticky-column {
+  position: sticky;
+  top: calc(var(--mvp-header-height) + 1rem);
+}
+```
+
+To use a different fallback, set the property in your own stylesheet; the packaged `4rem` has no
+specificity, so your `:root` rule wins until the script writes the measured value.
+
 ## Header and dock background
 
 The header and the mobile dock are solid by default, in the page's own background colour. An app

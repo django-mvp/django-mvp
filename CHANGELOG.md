@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- The app header's height is published as `--mvp-header-height` on `:root` and kept current as
+  the header changes size (`0px` for a header that does not stick or a page with none). The
+  document's `scroll-padding-top` follows it, so a link to an anchor or a field focused by
+  keyboard no longer lands under the sticky header. See "Header height" in `docs/layout.md`.
 - `layout.sidebar.collapse` accepts `"none"`: at and above the sidebar breakpoint the
   sidebar is always open, neither the sidebar header nor the navbar draws a toggle, and a
   collapsed state saved on an earlier visit is ignored. Below the breakpoint nothing
