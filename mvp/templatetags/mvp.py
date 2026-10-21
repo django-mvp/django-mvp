@@ -1,6 +1,7 @@
 """Template tags and filters for MVP navbar widgets."""
 
 import textwrap
+from html.parser import HTMLParser
 from typing import Any
 
 from crispy_forms.templatetags.crispy_forms_filters import as_crispy_field
@@ -371,6 +372,50 @@ def slot_is_empty(slot: Any):
     """
     if isinstance(slot, str):
         return slot.strip() == ""
+
+
+class _FirstElementAttrs(HTMLParser):
+    """Collects the attributes of the first start tag, then stops parsing."""
+
+    class Found(Exception):
+        """Raised once the first start tag has been read."""
+
+    def __init__(self):
+        super().__init__()
+        self.attrs: dict[str, str | None] = {}
+
+    def handle_starttag(self, tag, attrs):
+        self.attrs = dict(attrs)
+        raise self.Found
+
+    handle_startendtag = handle_starttag
+
+
+@register.filter
+def root_attr(html: Any, name: str):
+    """Return one attribute of the first element of an HTML string.
+
+    Parsing stops at the first start tag, so a long document is not read past
+    its root. Attributes on later or nested elements, and attribute text inside
+    content, are never seen.
+
+    Args:
+        html: The HTML string, such as a rendered Cotton slot.
+        name: The attribute to read.
+
+    Returns:
+        The attribute's value, or ``""`` for a missing attribute, an empty or
+        whitespace-only string, text with no element, or a non-string.
+    """
+    if not isinstance(html, str) or not html.strip():
+        return ""
+    parser = _FirstElementAttrs()
+    try:
+        parser.feed(html)
+        parser.close()
+    except _FirstElementAttrs.Found:
+        pass
+    return parser.attrs.get(name) or ""
 
 
 @register.simple_tag

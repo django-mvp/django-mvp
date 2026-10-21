@@ -26,3 +26,10 @@ Did: published the header height as --mvp-header-height (assets/js/header_height
 Verified: uv run pytest tests/test_components/test_header_height_e2e.py -> 5 passed; red first (4 of 5 failed before the script); with scroll-padding-top set to 0 in the built CSS the anchor and the keyboard-focus tests fail, so both discriminate.
 Next: US1 T002.
 Watch: CONTEXT.md has no Header height entry; the brief names the term but T001 does not list CONTEXT.md.
+
+## 2026-10-21T11:20:24Z · Implementer US1 · T002
+
+Did: added the root_attr filter (first start tag only, HTMLParser stopped by an exception) and TestRootAttr.
+Verified: uv run pytest tests/test_templatetags.py -> 52 passed; 14 TestRootAttr cases red before the filter existed; ruff and mypy clean.
+Next: T003 page layout component.
+Watch: no docs page yet names the filter; it is an internal helper of the layout.

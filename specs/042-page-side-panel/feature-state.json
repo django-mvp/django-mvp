@@ -86,8 +86,19 @@
       "tasks": [
         {
           "id": "T002",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_templatetags.py::TestRootAttr"
+            ],
+            "commands": [
+              "uv run pytest tests/test_templatetags.py -q"
+            ],
+            "code": [
+              "mvp/templatetags/mvp.py:362"
+            ]
+          }
         },
         {
           "id": "T003",
