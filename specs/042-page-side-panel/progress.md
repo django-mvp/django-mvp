@@ -40,3 +40,10 @@ Did: added <c-mvp.page.layout> (header wrapper only when a header is given, pane
 Verified: uv run pytest tests/test_components/test_page_layout.py -> 13 passed; all 13 red before the component was rewritten.
 Next: T004 page side component and stylesheet.
 Watch: the stand-alone and with-panel cases here are also US5-1 and US5-2 evidence for T008.
+
+## 2026-10-21T11:23:50Z · Implementer US1 · T004
+
+Did: added <c-mvp.page.side> (root div carries the id and data attributes, the aside is {id}-panel, always tabindex 0; drawer markup without x-data) and its stylesheet: widths, the column utility, the grid and its rows variable, the aside as scroller with a focus ring, and the filled-page rules. Rebuilt the stylesheet.
+Verified: uv run pytest tests/test_components/test_page_side.py -> 28 passed (28 red before the template existed); lint clean; every breakpoint variant found in the built CSS.
+Next: T005 the page.side block.
+Watch: drawer-start is not a daisyUI class; the prototype wrote it and it is kept, harmless. The Alpine directives (x-ref, @click) are inert until T009 adds x-data.

@@ -119,8 +119,23 @@
         },
         {
           "id": "T004",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_page_side.py::TestSidePanelLandmark",
+              "tests/test_components/test_page_side.py::TestSidePanelOptions",
+              "tests/test_components/test_page_side.py::TestStackedSidePanel",
+              "tests/test_components/test_page_side.py::TestDrawerSidePanel"
+            ],
+            "commands": [
+              "uv run pytest tests/test_components/test_page_side.py -q",
+              "uv run invoke build-stylesheet"
+            ],
+            "code": [
+              "mvp/templates/cotton/mvp/page/side/index.html:14"
+            ]
+          }
         },
         {
           "id": "T005",
