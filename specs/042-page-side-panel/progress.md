@@ -75,3 +75,10 @@ Did: confirmed the page layout stands alone and added nothing. US5-1 (layout wit
 Verified: rendered the docs example once, outside the suite, through the Cotton compiler: it draws the layout with a start panel before the content. Full direct suite: 2503 passed, 1 skipped (axe tests deselected, D6).
 Next: US2 T009.
 Watch: none.
+
+## 2026-10-21T11:42:26Z · Implementer US2 · T009
+
+Did: wrote the markup tests first (TestDrawerConfiguration, TestSidePanelToggle; 16 red: no x-data, no toggle template), then the module assets/js/page_side.js (mvpPageSide, mvpPageSideToggle, registered from index.js), x-data on a drawer root carrying only the id and the breakpoint in rem, and <c-mvp.page.side.toggle>. The toggle's visibility rules were already in base.css from T004, so the stylesheet is unchanged after build-stylesheet.
+Verified: uv run pytest tests/test_components/test_page_side.py -> 45 passed; uv run invoke build-js, build-stylesheet (stylesheet artifact unchanged).
+Next: T010 the drawer in a browser; the behaviour is only proven there.
+Watch: breakpoint_px is a simple tag, not a filter, so the template uses {% breakpoint_px breakpoint as ... %} then widthratio. The module listens on window for open and Escape, so the markup holds no handlers beyond the overlay and close button that already called close().

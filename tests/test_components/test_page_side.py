@@ -165,3 +165,81 @@ class TestDrawerSidePanel:
             soup = render('label="Filter"')
 
         assert soup.find("button")["aria-label"] == "Schliessen: Filter"
+
+
+class TestDrawerConfiguration:
+    def test_a_drawer_root_carries_its_id_and_the_breakpoint_in_rem(self):
+        soup = render('label="x" id="filters" breakpoint="lg"')
+
+        assert (
+            root(soup)["x-data"] == "mvpPageSide({ id: 'filters', breakpointRem: 64 })"
+        )
+
+    @pytest.mark.parametrize(("bp", "rem"), [("lg", 64), ("xl", 80), ("2xl", 96)])
+    def test_the_breakpoint_comes_from_the_shared_width_table(self, bp, rem):
+        soup = render(f'label="x" breakpoint="{bp}"')
+
+        assert f"breakpointRem: {rem} " in root(soup)["x-data"]
+
+    def test_no_breakpoint_leaves_out_the_width(self):
+        soup = render('label="x" id="filters" :breakpoint="False"')
+
+        assert root(soup)["x-data"] == "mvpPageSide({ id: 'filters' })"
+
+    def test_a_stacked_panel_carries_no_x_data(self):
+        soup = render('label="x" collapse="stack"')
+
+        assert not root(soup).has_attr("x-data")
+
+    def test_the_root_holds_configuration_and_no_behaviour(self):
+        root_el = root(render())
+
+        assert not [name for name in root_el.attrs if name.startswith(("@", "x-on"))]
+
+
+def render_toggle(attrs='text="Filters"'):
+    source = f"<c-mvp.page.side.toggle {attrs} />"
+    html = template.Template(compiler.process(source)).render(Context())
+    return BeautifulSoup(html, "html.parser").find("button")
+
+
+class TestSidePanelToggle:
+    def test_it_is_a_button_that_does_not_submit(self):
+        assert render_toggle()["type"] == "button"
+
+    def test_it_names_the_panel_it_controls_and_starts_collapsed(self):
+        button = render_toggle('text="Filters" for="filters"')
+
+        assert button["aria-controls"] == "filters"
+        assert button["aria-expanded"] == "false"
+
+    def test_the_panel_defaults_to_page_side(self):
+        assert render_toggle()["aria-controls"] == "page-side"
+
+    def test_it_carries_its_text(self):
+        assert "Contents" in render_toggle('text="Contents"').get_text()
+
+    def test_it_draws_its_icon(self):
+        assert (
+            render_toggle('text="Filters" icon="list"').find("i", class_="bi")
+            is not None
+        )
+
+    @pytest.mark.parametrize("count", [0, 3])
+    def test_the_badge_shows_only_above_zero(self, count):
+        badge = render_toggle(f'text="Filters" :count="{count}"').find(class_="badge")
+
+        assert (badge is not None) is (count > 0)
+        if count:
+            assert badge.get_text(strip=True) == str(count)
+
+    def test_no_count_draws_no_badge(self):
+        assert render_toggle().find(class_="badge") is None
+
+    def test_it_is_configured_with_the_panel_id_and_nothing_else(self):
+        button = render_toggle('text="Filters" for="filters"')
+
+        assert button["x-data"] == "mvpPageSideToggle('filters')"
+
+    def test_extra_classes_reach_the_button(self):
+        assert "extra" in render_toggle('text="Filters" class="extra"')["class"]

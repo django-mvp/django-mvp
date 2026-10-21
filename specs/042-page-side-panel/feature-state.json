@@ -225,8 +225,20 @@
       "tasks": [
         {
           "id": "T009",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 2,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_page_side.py::TestDrawerConfiguration",
+              "tests/test_components/test_page_side.py::TestSidePanelToggle"
+            ],
+            "commands": [
+              "uv run pytest tests/test_components/test_page_side.py"
+            ],
+            "code": [
+              "assets/js/page_side.js:27"
+            ]
+          }
         },
         {
           "id": "T010",

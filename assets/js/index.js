@@ -23,6 +23,7 @@ import { themeChange } from "theme-change";
 import { startDropdowns } from "./dropdown.js";
 import { startHeaderHeight } from "./header_height.js";
 import { registerLayoutStore } from "./layout.js";
+import { registerPageSide } from "./page_side.js";
 import { startThemeColor } from "./theme_color.js";
 
 // htmx reads hx-* attributes off the DOM itself; the global is what its own
@@ -74,6 +75,9 @@ Alpine.plugin(persist);
 // defines Alpine.$persist, which the store's desktop-open property needs
 // at construction. See assets/js/layout.js.
 registerLayoutStore(Alpine);
+
+// The side panel's drawer and its button. See assets/js/page_side.js.
+registerPageSide(Alpine);
 
 // mvp/static/js/formset.js reaches for the global, as does any x-data in a
 // consuming project's own templates.

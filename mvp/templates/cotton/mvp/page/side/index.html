@@ -9,7 +9,7 @@
 {# @prop :sticky:boolean | default:True | description:"Whether the column sticks under the header while the page scrolls." #}
 {# @prop class:text | description:"Extra classes on the panel's root element." #}
 {# @slot The panel's content: a table of contents, filters, related links. #}
-{% load i18n %}
+{% load i18n mvp %}
 <c-vars id="page-side" label width="md" breakpoint="xl" collapse="drawer" align="title" position="end" :sticky="True" class />
 <div id="{{ id }}"
      data-mvp-side-width="{{ width }}"
@@ -19,6 +19,10 @@
      data-mvp-side-align="{{ align }}"
      {% if sticky %}data-mvp-side-sticky{% endif %}
      {% comment %}Each breakpoint's variant is written out whole, so the stylesheet build finds it.{% endcomment %}
+     {% if collapse == "drawer" %}
+       {% if breakpoint %}{% breakpoint_px breakpoint as breakpoint_width %}{% endif %}
+       x-data="mvpPageSide({ id: '{{ id|escapejs }}'{% if breakpoint %}, breakpointRem: {% widthratio breakpoint_width 16 1 %}{% endif %} })"
+     {% endif %}
      class="mvp-page-side {% if collapse == "stack" %}py-1{% endif %} {% if breakpoint == "lg" %}lg:mvp-page-side-wide{% elif breakpoint == "xl" %}xl:mvp-page-side-wide{% elif breakpoint == "2xl" %}2xl:mvp-page-side-wide{% endif %} {{ class }}"
      {{ attrs }}>
   {% if collapse == "drawer" %}
