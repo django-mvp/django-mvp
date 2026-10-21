@@ -779,6 +779,7 @@ a bare region inside the shell. Override a `page.*` block instead.
 | --- | --- | --- |
 | `page.header` | `page_view.html` | Above the title. Empty by default — the breadcrumb trail moved to the app header |
 | `page.content-wrapper` | `page_view.html` | The content region, title bar included |
+| `page.side` | `page_view.html` | A [side panel](#side-panel) beside the title and content. Empty by default; left empty, the page is drawn as it always was |
 | `page.title` | `page_view.html` | The title bar: heading, subtitle and actions |
 | `page.actions` | `page_view.html` | The action buttons in the title bar |
 | `page.content` | `page_view.html` | **The page body. This is the usual override.** |

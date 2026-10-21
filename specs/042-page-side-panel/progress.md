@@ -47,3 +47,10 @@ Did: added <c-mvp.page.side> (root div carries the id and data attributes, the a
 Verified: uv run pytest tests/test_components/test_page_side.py -> 28 passed (28 red before the template existed); lint clean; every breakpoint variant found in the built CSS.
 Next: T005 the page.side block.
 Watch: drawer-start is not a daisyUI class; the prototype wrote it and it is kept, harmless. The Alpine directives (x-ref, @click) are inert until T009 adds x-data.
+
+## 2026-10-21T11:25:07Z · Implementer US1 · T005
+
+Did: page_view.html draws <c-mvp.page.layout> around the title, content and the new page.side block; block names and nesting are otherwise unchanged. Added the page.side row to the Layer 2 block table (its Side panel anchor lands in T007).
+Verified: uv run pytest tests/test_templates.py::TestPageViewSideBlock -> 5 passed (2 red before the template change; the 3 that characterise today's structure passed on the old template, as they should); tests/test_views and test_templates with -n auto: 834 passed, 4 failed (the CDN-bound axe tests, D6).
+Next: T006 the column in a browser.
+Watch: ruff format reformatted one pre-existing line in tests/test_templates.py; I restored it.

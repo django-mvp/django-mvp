@@ -139,8 +139,19 @@
         },
         {
           "id": "T005",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_templates.py::TestPageViewSideBlock"
+            ],
+            "commands": [
+              "uv run pytest tests/test_templates.py::TestPageViewSideBlock -q"
+            ],
+            "code": [
+              "mvp/templates/page_view.html:23"
+            ]
+          }
         },
         {
           "id": "T006",
