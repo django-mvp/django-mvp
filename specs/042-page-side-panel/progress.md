@@ -103,3 +103,10 @@ Did: renamed modal_fields / modal_applied_count / clear_modal_url to panel_field
 Verified: uv run pytest tests/test_views/test_list.py (212 passed); new TestFilterPanelContext failed first with KeyError panel_fields.
 Next: T013, the panel component.
 Watch: the key rename in list_view.html and table_view.html is outside T012's Files line; it is mechanical and both files are rewritten in T014/T015.
+
+## 2026-10-21T12:09:35Z · Implementer US3 · T013
+
+Did: added <c-mvp.page.list.filters.panel> (fields, clear_url, id, region; everything else goes to <c-mvp.page.side label="Filters">) and its test module; reworded the actions component's description.
+Verified: uv run pytest tests/test_components/test_list_filter_panel.py (18 passed; red first because the component did not exist). Probes: removing form="filterForm" from Apply, removing hx-select-oob from Clear, and dropping the empty-fields guard each failed a test; restored.
+Next: T014 (list page), T015 (table page).
+Watch: modal.html and test_list_filter_modal.py are still on disk because list_view.html and table_view.html draw the modal until T014/T015 switch them; both are deleted in T015, the last user. TestTheOverrideBeatsTheHeader goes with the modal's button: the panel's badge is a plain badge, not an indicator-item.

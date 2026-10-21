@@ -301,8 +301,19 @@
         },
         {
           "id": "T013",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_list_filter_panel.py"
+            ],
+            "commands": [
+              "uv run pytest tests/test_components/test_list_filter_panel.py"
+            ],
+            "code": [
+              "mvp/templates/cotton/mvp/page/list/filters/panel.html:9"
+            ]
+          }
         },
         {
           "id": "T014",
