@@ -101,4 +101,4 @@ not a filter. **Why:** with everything else inert there is no next control after
 Tab leaves the document for the browser's own interface and focus is outside the panel (FR-009);
 the browser test for it failed until the wrap was added. **Revisit if:** browsers keep focus in the
 document when the page is inert past the last control.
-**ADR:** none
+**ADR:** none — how this one component contains focus, nothing else builds on it
