@@ -522,8 +522,19 @@
         },
         {
           "id": "T025",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_table_layout_e2e.py::TestTheFilterPanelBesideTheTable::test_the_panel_and_the_table_area_meet_with_no_column_gap"
+            ],
+            "commands": [
+              "mutation: gap-0! -> gap-y-0! in mvp/templates/table_view.html -> the test fails (main right 1144, panel left 1184); restored -> 125 passed"
+            ],
+            "code": [
+              "mvp/templates/table_view.html:31"
+            ]
+          }
         }
       ]
     }

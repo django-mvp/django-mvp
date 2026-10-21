@@ -201,3 +201,10 @@ Did: the list view's filter_panel_attrs default is now {"position": "end"}; the 
 Verified: test_list_filter_panel, test_table_layout, test_views/test_list pass; two mutations fail (align default swapped; view default back to start).
 Next: T025.
 Watch: none.
+
+## 2026-10-21T15:22:45Z · Implementer FIX-2 · T025
+
+Did: the table page layout uses gap-0! in place of gap-y-0!, so no column gap sits between the filter panel and the table; the new browser test measures that the table area and the panel meet. Rebuilt the stylesheet.
+Verified: test_table_layout_e2e and test_table_layout: 125 passed; the new test fails (1144 vs 1184) with gap-y-0! restored.
+Next: full suite and verify.
+Watch: none.
