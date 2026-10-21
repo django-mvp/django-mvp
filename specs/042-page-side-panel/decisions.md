@@ -124,3 +124,13 @@ with `Alpine.data()`; templates pass configuration only. **Why:** Sam's rule fro
 (planning-notes.md), stated for the package from here on, not this feature alone. **Revisit if:**
 the package stops bundling Alpine.
 **ADR:** docs/adr/0035-behaviour-lives-in-registered-alpine-components.md
+
+## D11 Sam's changes at the merge gate (2026-10-21)
+
+**Decision:** the list page's filter panel defaults to the end side. Its alignment follows its side
+unless the developer sets one: content at the end, title at the start. The table page's layout
+draws no gap in either direction. The drawer at the end side slides in from the end. The side
+panel demo keeps its long-contents option, off by default. **Why:** Sam, at the merge gate: the
+app's sidebar sits at the start, and two panels on the same side look awkward. FR-014 now says so.
+**Revisit if:** the app layout stops being sidebar-first.
+**ADR:** none — default values and one alignment rule for one component

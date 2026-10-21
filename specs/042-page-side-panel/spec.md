@@ -51,8 +51,9 @@ specification was written. Sam's rulings:
   A: As `breakpoint=False`, not a string such as `"never"`. Recorded as FR-004.
 
 - **Q: Where does a list page's panel start?**
-  A: At the start side, level with the content, so it lines up with the toolbar. Recorded as
-  FR-014.
+  A: At the end side, level with the content, so it lines up with the toolbar and stays clear of
+  the app's sidebar, which sits at the start. A panel a developer moves to the start aligns with
+  the title instead. Recorded as FR-014.
 
 ### Session 2026-10-21 (coverage scan)
 
@@ -168,7 +169,7 @@ is open.
 ### User Story 3 - A user filters a list from a side panel (Priority: P2)
 
 Someone looking for a featured product on a wide screen finds the list's search and sort in the
-toolbar and every other filter in a column beside the results, lined up with the toolbar. They pick
+toolbar and every other filter in a column at the end of the page, lined up with the toolbar. They pick
 a status and a price range in the column and apply them, and the list narrows. The search they had
 typed is kept. The column stays in view while they scroll the results, and its Apply button stays
 in reach at its foot however many filters it holds. On a phone the same filters are behind a
@@ -186,7 +187,7 @@ clear action keeps the toolbar's values.
 **Acceptance Scenarios**:
 
 1. **Given** a list view whose filterset has fields not named for the toolbar, **When** the page
-   renders, **Then** those fields are drawn in the side panel, at the start side, aligned with the
+   renders, **Then** those fields are drawn in the side panel, at the end side, aligned with the
    content, and there is no filter modal.
 2. **Given** that page, **When** the reader applies values from the panel, **Then** the list is
    narrowed by them, the toolbar's search and sort are kept, and the list returns to its first
@@ -307,10 +308,11 @@ none, and confirm the same results as Story 1's first two scenarios.
   content and a side panel, so a template that does not extend the page template can use it.
 - **FR-013**: Every list page and table page with a filterset MUST draw the fields not named for the
   toolbar in a side panel. The filter modal MUST be removed.
-- **FR-014**: A list page's side panel MUST default to the start side, aligned with the content,
-  with the extra large breakpoint, collapsing into a drawer. Its button MUST be in the toolbar where
-  the Filter button is today, and MUST show the count of applied panel filters as the Filter button
-  does.
+- **FR-014**: A list page's side panel MUST default to the end side, with the extra large
+  breakpoint, collapsing into a drawer. Unless the developer sets its alignment, a panel at the end
+  side MUST align with the content and a panel at the start side with the title. Its button MUST be
+  in the toolbar where the Filter button is today, and MUST show the count of applied panel filters
+  as the Filter button does.
 - **FR-015**: A list page whose filterset has no field outside the toolbar MUST draw no side panel
   and no button for one.
 - **FR-016**: A developer MUST be able to set a list page's side panel width, side, alignment and
