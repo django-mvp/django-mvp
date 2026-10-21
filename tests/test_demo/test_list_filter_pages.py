@@ -60,7 +60,7 @@ class TestToolbarFiltersOnlyPage:
 @pytest.mark.usefixtures("product")
 class TestFilterPanelOnlyPage:
     def test_draws_every_field_in_the_panel(self, client):
-        content = client.get(reverse("product-list-modal-only")).content.decode()
+        content = client.get(reverse("product-list-panel-only")).content.decode()
 
         toolbar, panel = _placed_fields(content)
 
@@ -83,14 +83,14 @@ class TestFilterPanelOnlyPage:
         ]
 
     def test_draws_the_panel_button(self, client):
-        content = client.get(reverse("product-list-modal-only")).content.decode()
+        content = client.get(reverse("product-list-panel-only")).content.decode()
 
         assert 'aria-controls="filters"' in content
 
 
 class TestListFilterPageMenuItems:
     @pytest.mark.parametrize(
-        "name", ["product-list-quick", "product-list-modal-only"]
+        "name", ["product-list-quick", "product-list-panel-only"]
     )
     def test_menu_item_resolves_to_its_page(self, name):
         assert AppMenu.get(name).resolve_url() == reverse(name)

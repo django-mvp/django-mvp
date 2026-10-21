@@ -126,10 +126,10 @@ AppMenu.extend(
                     },
                 ),
                 MenuItem(
-                    name="product-list-modal-only",
-                    view_name="product-list-modal-only",
+                    name="product-list-panel-only",
+                    view_name="product-list-panel-only",
                     extra_context={
-                        "label": "List, Filter Modal Only",
+                        "label": "List, Filter Panel Only",
                         "icon": "filter",
                     },
                 ),

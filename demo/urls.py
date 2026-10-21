@@ -70,9 +70,9 @@ urlpatterns = [
         name="product-list-quick",
     ),
     path(
-        "products/modal-only/",
-        views.ProductModalOnlyListView.as_view(),
-        name="product-list-modal-only",
+        "products/panel-only/",
+        views.ProductPanelOnlyListView.as_view(),
+        name="product-list-panel-only",
     ),
     path("products/create/", ProductCreateView.as_view(), name="product-create"),
     path("products/<int:pk>/", ProductDetailView.as_view(), name="product-detail"),

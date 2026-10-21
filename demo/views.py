@@ -447,7 +447,7 @@ class ProductListView(MVPListView):
 
 
 class ProductQuickListView(ProductListView):
-    """A short filterset, every field in the toolbar, so there is no modal."""
+    """A short filterset, every field in the toolbar, so there is no filter panel."""
 
     filterset_class = ProductQuickFilter
     toolbar_filters = ["q", "status", "is_featured", "o"]
@@ -455,8 +455,8 @@ class ProductQuickListView(ProductListView):
     page_info = None
 
 
-class ProductModalOnlyListView(ProductListView):
-    """No toolbar fields named, so every field of the filterset is in the modal."""
+class ProductPanelOnlyListView(ProductListView):
+    """No toolbar fields named, so every field of the filterset is in the filter panel."""
 
     toolbar_filters: list[str] = []
     page_subtitle = None

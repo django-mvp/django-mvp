@@ -20,7 +20,6 @@ from mvp.views.list import (
 )
 from tests.factories import CategoryFactory, ProductFactory
 
-
 CARD = "cards/product_card.html"
 
 
@@ -1363,13 +1362,12 @@ class TestListPageFilterPanel:
         assert panel.find(attrs={"name": "status"}) is not None
         assert panel.find(attrs={"name": "q"}) is None
 
-    def test_the_panel_has_no_form_of_its_own_and_no_modal_is_drawn(self, rf, cat):
+    def test_the_panel_has_no_form_of_its_own(self, rf, cat):
         _product(cat, "Lamp")
 
         soup = _filtered_list_page(rf)
 
         assert soup.find(id="filters").find("form") is None
-        assert soup.find(id="filterModal") is None
 
     def test_the_panel_is_at_the_start_and_level_with_the_content(self, rf, cat):
         _product(cat, "Lamp")
