@@ -197,8 +197,21 @@
       "tasks": [
         {
           "id": "T008",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_components/test_page_layout.py::TestPageLayoutWithAPanel",
+              "tests/test_components/test_page_layout.py::TestPageLayoutWithoutAPanel::test_draws_the_title_and_content_with_no_wrapper",
+              "tests/test_templates.py::TestPageViewSideBlock::test_a_page_filling_the_block_draws_the_layout_with_its_panel"
+            ],
+            "commands": [
+              "uv run pytest tests/test_components/test_page_layout.py tests/test_templates.py::TestPageViewSideBlock -q"
+            ],
+            "code": [
+              "docs/layout.md:604"
+            ]
+          }
         }
       ]
     },

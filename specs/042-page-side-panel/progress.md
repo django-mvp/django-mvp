@@ -68,3 +68,10 @@ Did: wrote the Side panel section of docs/layout.md (an On this page example in 
 Verified: uv run pytest tests/test_demo/test_pages.py::TestPageSideDemoPage -> 12 passed; red with the route removed (12 failed). The demo ships without the prototype's panel button and its Toggle option, since that component is US2; I added an off value for breakpoint so breakpoint=False is switchable.
 Next: US5 T008.
 Watch: the demo and docs say a drawer is not shown until the page can open it; US2 adds the button and its docs. The demo list page with side filters from the prototype is US3, not copied.
+
+## 2026-10-21T11:32:10Z · Implementer US5 · T008
+
+Did: confirmed the page layout stands alone and added nothing. US5-1 (layout with title, content and panel, as page_view.html draws it) is covered by test_page_layout.py TestPageLayoutWithAPanel (order, regions) and by test_templates.py TestPageViewSideBlock::test_a_page_filling_the_block_draws_the_layout_with_its_panel; US5-2 (no panel: title and content only) by TestPageLayoutWithoutAPanel::test_draws_the_title_and_content_with_no_wrapper. docs/layout.md carries the stand-alone example under "A side panel in a template of your own".
+Verified: rendered the docs example once, outside the suite, through the Cotton compiler: it draws the layout with a start panel before the content. Full direct suite: 2503 passed, 1 skipped (axe tests deselected, D6).
+Next: US2 T009.
+Watch: none.
