@@ -33,7 +33,7 @@ PAGE = """
     <c-mvp.page.layout>
       <c-slot name="header"><a id="before" href="#">Before</a><h1>Title</h1></c-slot>
       <c-slot name="side">
-        <c-mvp.page.side label="Contents" id="toc" :sticky="sticky" :position="position">
+        <c-mvp.page.side label="Contents" id="toc" :sticky="sticky" :position="position" :collapse="collapse">
           <div id="toc-body" style="height: {{ panel_height }}px; display: flex; flex-direction: column; justify-content: space-between">
             <a id="toc-first" href="#a">First</a>
             <a id="toc-last" href="#b">Last</a>
@@ -50,13 +50,14 @@ PAGE = """
 
 
 def side_test_page(request):
-    """Draw the test page; ``?sticky=0``, ``?fill=1``, ``?tall=1``, ``?position=start``."""
+    """Draw the test page; ``?sticky=0``, ``?fill=1``, ``?tall=1``, ``?position=start``, ``?collapse=stack``."""
     get = request.GET
     template = engines["django"].from_string(CottonCompiler().process(PAGE))
     context = {
         "sticky": get.get("sticky", "1") == "1",
         "fill": get.get("fill") == "1",
         "position": get.get("position", "end"),
+        "collapse": get.get("collapse", "drawer"),
         "content_style": "flex: 1; min-height: 0; overflow: auto"
         if get.get("fill") == "1"
         else "",
@@ -282,6 +283,15 @@ class TestTallSideColumn:
         assert bottom(page, "#toc-panel") == pytest.approx(SHORT["height"] - GAP, abs=2)
 
         scroll_by(page, 400)
+        assert bottom(page, "#toc-panel") == pytest.approx(SHORT["height"] - GAP, abs=2)
+
+    def test_a_stacked_panel_moves_with_the_page_in_the_same_way(
+        self, page, live_server
+    ):
+        open_tall_page(page, live_server, "&collapse=stack")
+
+        hold_at_the_foot(page)
+
         assert bottom(page, "#toc-panel") == pytest.approx(SHORT["height"] - GAP, abs=2)
 
     def test_the_panel_follows_the_page_down_until_its_foot_is_in_view(
