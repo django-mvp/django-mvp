@@ -87,12 +87,12 @@
                     {% endfor %}
                     <div class="flex items-center gap-2 md:ms-auto">
                       <c-mvp.page.list.filters.modal part="button"
-                                                     :fields="modal_fields"
-                                                     :applied_count="modal_applied_count" />
+                                                     :fields="panel_fields"
+                                                     :applied_count="panel_applied_count" />
                     </div>
                     <c-mvp.page.list.filters.modal part="dialog"
-                                                   :fields="modal_fields"
-                                                   :clear_url="clear_modal_url" />
+                                                   :fields="panel_fields"
+                                                   :clear_url="clear_panel_url" />
                   </form>
                   {% block page.refinements %}
                     <c-mvp.page.list.refinements :refinements="refinements"

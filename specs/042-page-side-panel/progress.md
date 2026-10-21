@@ -96,3 +96,10 @@ Did: docs/layout.md gains "On a narrow screen" (the drawer, the button and where
 Verified: uv run pytest tests/test_demo/test_pages.py::TestPageSideDemoPage -> 12 passed; build-stylesheet left the stylesheet artifact unchanged.
 Next: the full verify and the completion report.
 Watch: the demo files are outside T011's Files line; the brief asked for the button on the demo page.
+
+## 2026-10-21T12:07:28Z · Implementer US3 · T012
+
+Did: renamed modal_fields / modal_applied_count / clear_modal_url to panel_fields / panel_applied_count / clear_panel_url in FilterContextMixin; each panel field's widget now carries form="filterForm"; MVPListViewMixin publishes filter_panel_attrs (default start / content) and filter_panel_id (default "filters"); reworded the "filter modal" docstrings. The two list templates read the renamed keys (a rename only) so the tree stays green until T013/T014 replace the modal.
+Verified: uv run pytest tests/test_views/test_list.py (212 passed); new TestFilterPanelContext failed first with KeyError panel_fields.
+Next: T013, the panel component.
+Watch: the key rename in list_view.html and table_view.html is outside T012's Files line; it is mechanical and both files are rewritten in T014/T015.

@@ -284,8 +284,20 @@
       "tasks": [
         {
           "id": "T012",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_views/test_list.py::TestFilterPanelContext",
+              "tests/test_views/test_list.py::TestFilterPanelCountAndClear"
+            ],
+            "commands": [
+              "uv run pytest tests/test_views/test_list.py"
+            ],
+            "code": [
+              "mvp/views/list.py:93"
+            ]
+          }
         },
         {
           "id": "T013",

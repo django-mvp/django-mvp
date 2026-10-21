@@ -1762,13 +1762,13 @@ class TestToolbarPlacement:
             "name",
         ]
 
-    def test_a_toolbar_field_is_not_a_modal_field(self, rf, db):
+    def test_a_toolbar_field_is_not_a_panel_field(self, rf, db):
         context = self._context(rf, toolbar_filters=["status", "q"])
 
-        modal = [field.name for field in context["modal_fields"]]
-        assert "status" not in modal
-        assert "q" not in modal
-        assert "category" in modal
+        panel = [field.name for field in context["panel_fields"]]
+        assert "status" not in panel
+        assert "q" not in panel
+        assert "category" in panel
 
     def test_a_name_listed_twice_is_drawn_once(self, rf, db):
         context = self._context(rf, toolbar_filters=["q", "status", "q"])
@@ -1783,7 +1783,7 @@ class TestToolbarPlacement:
 
         assert [field["name"] for field in context["toolbar_fields"]] == ["q"]
         assert context["toolbar_sort"]["name"] == "o"
-        assert "o" not in [field.name for field in context["modal_fields"]]
+        assert "o" not in [field.name for field in context["panel_fields"]]
 
     def test_no_sort_named_leaves_no_toolbar_sort(self, rf, db):
         context = self._context(rf, toolbar_filters=["q"])
@@ -1955,7 +1955,7 @@ class TestToolbarPlacement:
 
         assert context["toolbar_sort"]["kind"] == "sort"
 
-    def test_every_field_listed_leaves_nothing_for_the_modal(self, rf, db):
+    def test_every_field_listed_leaves_nothing_for_the_panel(self, rf, db):
         class NoRangeFilter(ToolbarProductFilter):
             price = None
 
@@ -1965,7 +1965,7 @@ class TestToolbarPlacement:
             rf, filterset_class=NoRangeFilter, toolbar_filters=names
         )
 
-        assert context["modal_fields"] == []
+        assert context["panel_fields"] == []
 
     def test_an_unknown_name_is_refused_naming_the_view_the_name_and_the_filterset(
         self, rf, db
@@ -2003,10 +2003,10 @@ class TestToolbarPlacement:
         ]
 
 
-class TestFilterModalCountAndClear:
+class TestFilterPanelCountAndClear:
     def _context(self, rf, query="", **attrs):
         view_cls = type(
-            "StubModalListView",
+            "StubPanelListView",
             (MVPListView,),
             {
                 "model": Product,
@@ -2020,33 +2020,33 @@ class TestFilterModalCountAndClear:
         view.setup(rf.get(f"/products/{query}"))
         return view.get(view.request)
 
-    def test_the_count_is_only_the_modals_applied_filters(self, rf, db):
+    def test_the_count_is_only_the_panels_applied_filters(self, rf, db):
         context = self._context(rf, "?name=oak&status=draft")
 
         assert context["applied_filter_count"] == 2
-        assert context["modal_applied_count"] == 1
+        assert context["panel_applied_count"] == 1
 
-    def test_no_modal_filter_applied_counts_none_and_offers_no_clear(self, rf, db):
+    def test_no_panel_filter_applied_counts_none_and_offers_no_clear(self, rf, db):
         context = self._context(rf, "?q=lamp&name=oak&o=name")
 
-        assert context["modal_applied_count"] == 0
-        assert "clear_modal_url" not in context
+        assert context["panel_applied_count"] == 0
+        assert "clear_panel_url" not in context
 
-    def test_clearing_the_modal_keeps_the_toolbar_the_search_and_the_sort(
+    def test_clearing_the_panel_keeps_the_toolbar_the_search_and_the_sort(
         self, rf, db
     ):
         context = self._context(
             rf, "?q=lamp&name=oak&status=draft&price_min=5&price_max=9&o=name&page=1"
         )
 
-        assert context["clear_modal_url"] == "/products/?q=lamp&name=oak&o=name"
+        assert context["clear_panel_url"] == "/products/?q=lamp&name=oak&o=name"
 
-    def test_clearing_the_modal_keeps_the_sort_when_the_sort_is_in_the_modal(
+    def test_clearing_the_panel_keeps_the_sort_when_the_sort_is_in_the_panel(
         self, rf, db
     ):
         context = self._context(rf, "?status=draft&o=-name", toolbar_filters=[])
 
-        assert context["clear_modal_url"] == "/products/?o=-name"
+        assert context["clear_panel_url"] == "/products/?o=-name"
 
     def test_clear_all_drops_the_search_and_every_filter_and_keeps_the_sort(
         self, rf, db
@@ -2054,6 +2054,88 @@ class TestFilterModalCountAndClear:
         context = self._context(rf, "?q=lamp&name=oak&status=draft&o=name&page=1")
 
         assert context["clear_refinements_url"] == "/products/?o=name"
+
+
+class TestFilterPanelContext:
+    def _context(self, rf, **attrs):
+        view_cls = type(
+            "StubPanelContextListView",
+            (MVPListView,),
+            {
+                "model": Product,
+                "filterset_class": ToolbarProductFilter,
+                "toolbar_filters": ["q", "status"],
+                "render_to_response": lambda self, context, **kwargs: context,
+                **attrs,
+            },
+        )
+        view = view_cls()
+        view.setup(rf.get("/products/"))
+        return view.get(view.request)
+
+    def _panel(self, rf, name):
+        context = self._context(rf)
+        return next(field for field in context["panel_fields"] if field.name == name)
+
+    @pytest.mark.parametrize(
+        "name",
+        [
+            "name",
+            "is_featured",
+            "statuses",
+            "categories",
+            "shelf",
+            "sku",
+            "price",
+        ],
+    )
+    def test_a_panel_field_joins_the_toolbar_form(self, rf, db, name):
+        bound = self._panel(rf, name)
+
+        assert bound.field.widget.attrs["form"] == "filterForm"
+
+    def test_a_range_reaches_the_form_through_each_of_its_inputs(self, rf, db):
+        bound = self._panel(rf, "price")
+
+        html = str(bound)
+        assert html.count('form="filterForm"') == 2
+
+    def test_a_widget_the_developer_chose_keeps_its_own_attributes(self, rf, db):
+        bound = self._panel(rf, "sku")
+
+        assert isinstance(bound.field.widget, FancyInput)
+        assert 'form="filterForm"' in str(bound)
+
+    def test_a_toolbar_field_does_not_join_the_form_by_attribute(self, rf, db):
+        context = self._context(rf)
+
+        bound = context["filter"].form["status"]
+        assert "form" not in bound.field.widget.attrs
+
+    def test_the_panel_is_at_the_start_and_level_with_the_content_by_default(
+        self, rf, db
+    ):
+        context = self._context(rf)
+
+        assert context["filter_panel_attrs"] == {
+            "position": "start",
+            "align": "content",
+        }
+
+    def test_the_panel_is_called_filters_by_default(self, rf, db):
+        context = self._context(rf)
+
+        assert context["filter_panel_id"] == "filters"
+
+    def test_a_subclass_dict_replaces_the_default_attributes(self, rf, db):
+        context = self._context(rf, filter_panel_attrs={"width": "lg"})
+
+        assert context["filter_panel_attrs"] == {"width": "lg"}
+
+    def test_a_subclass_can_rename_the_panel(self, rf, db):
+        context = self._context(rf, filter_panel_id="refine")
+
+        assert context["filter_panel_id"] == "refine"
 
 
 class TestSortInTheFilterModal:
@@ -2090,10 +2172,10 @@ class TestAYesNoFilterSetToNo:
 
         assert [r["name"] for r in context["refinements"]] == ["status", "is_featured"]
 
-    def test_a_no_in_the_modal_counts_on_the_filter_button(self, rf, db):
+    def test_a_no_in_the_panel_counts_on_the_panel_button(self, rf, db):
         context = self._context(rf, "?is_featured=false&status=published")
 
-        assert context["modal_applied_count"] == 2
+        assert context["panel_applied_count"] == 2
 
     def test_clear_all_drops_a_no(self, rf, db):
         context = self._context(rf, "?is_featured=false&status=published")
