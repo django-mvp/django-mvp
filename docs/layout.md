@@ -584,7 +584,7 @@ The demo's Layout > Side Panel page has a form that switches every option below.
 | `label` | text, required | The panel's heading and the accessible name of its landmark |
 | `id` | text, default `page-side` | The id of the panel's root element. The `<aside>` inside it is `{id}-panel` |
 | `width` | `sm`, `md` (default), `lg` | The column's width: 14rem, 16rem or 20rem |
-| `breakpoint` | `lg`, `xl` (default), `2xl`, `False` | The screen width from which the panel is a column. `False` keeps it a drawer or a stacked block at every width |
+| `breakpoint` | `lg`, `xl` (default), `2xl`, `:breakpoint="False"` | The screen width from which the panel is a column. `:breakpoint="False"` keeps it a drawer or a stacked block at every width |
 | `collapse` | `drawer` (default), `stack` | Below the breakpoint: an off-canvas drawer, or a block stacked with the content. A drawer is not shown until the page gives the reader a way to open it: a [`<c-mvp.page.side.toggle>`](components.md#page-structure) |
 | `align` | `title` (default), `content` | Whether the column starts level with the page title or with the content under it |
 | `position` | `end` (default), `start` | Which side of the content the panel sits on. In a right-to-left page `start` is the right |
@@ -633,7 +633,7 @@ past.
 With `collapse="stack"` the panel is drawn full width with the content, before it when
 `position` is `start` and after it when `end`, and needs no button.
 
-`breakpoint="False"` keeps the panel a drawer, or a stacked block, at every width, so the button
+`:breakpoint="False"` keeps the panel a drawer, or a stacked block, at every width, so the button
 stays on screen at every width too.
 
 When something replaces an open panel, such as an htmx swap of the element with the panel's `id`,
