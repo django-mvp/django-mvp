@@ -135,9 +135,8 @@ the list slides in from the side of the screen with the page dimmed behind it. F
 button. They tab through the links and focus stays inside the panel. They press Escape and the
 panel closes, with focus back on the "Contents" button. If they tap a link in the list that leads to
 a heading further down the same page, the panel closes and the page scrolls to that heading with
-focus on it. On another page, the developer chose to
-stack the panel with the content, and the reader on the phone finds it under the title, in the
-page's own reading order.
+focus on it. On another page, the developer chose to stack the panel with the content, and the
+reader on the phone finds it under the title, in the page's own reading order.
 
 **Why this priority**: Without it the panel is unusable on a phone. It is half of what makes the
 panel a built-in rather than a desktop-only style.
