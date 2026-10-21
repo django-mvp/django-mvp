@@ -156,6 +156,12 @@ A `<c-mvp.page.side>`: a column beside a page's title and content, sticky under 
 wide screen, and a drawer, a stacked block or nothing on a narrow one. See
 [Side panel](docs/layout.md#side-panel).
 
+### Panel button
+
+A `<c-mvp.page.side.toggle>`: the button that opens a side panel's drawer on a narrow screen. The
+developer places it, and it is hidden once the panel is a column. See
+[Side panel](docs/layout.md#on-a-narrow-screen).
+
 ### Page layout
 
 A `<c-mvp.page.layout>`: the component that lays a page's title, content and side panel out

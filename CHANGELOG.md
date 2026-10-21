@@ -16,6 +16,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   stacked with the content. A page that leaves the block empty is drawn as before.
   `<c-mvp.page.layout>` does the arranging and can be called from a template that does not extend
   the page template. See "Side panel" in `docs/layout.md`.
+- `<c-mvp.page.side.toggle for="…" text="…">` opens a side panel's drawer on a narrow screen. The
+  drawer opens from the panel's own edge, dims the page and makes everything outside it `inert`,
+  moves focus to its close button and keeps Tab inside it. Escape, the close button and a click on
+  the dimmed page close it and return focus to the button. The button reports `aria-expanded`
+  and is hidden from the panel's breakpoint up. See "On a narrow screen" in `docs/layout.md`.
 - New template filter `root_attr`, which returns one attribute of the first element of an HTML
   string.
 - The app header's height is published as `--mvp-header-height` on `:root` and kept current as

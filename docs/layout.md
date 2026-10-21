@@ -585,7 +585,7 @@ The demo's Layout > Side Panel page has a form that switches every option below.
 | `id` | text, default `page-side` | The id of the panel's root element. The `<aside>` inside it is `{id}-panel` |
 | `width` | `sm`, `md` (default), `lg` | The column's width: 14rem, 16rem or 20rem |
 | `breakpoint` | `lg`, `xl` (default), `2xl`, `False` | The screen width from which the panel is a column. `False` keeps it a drawer or a stacked block at every width |
-| `collapse` | `drawer` (default), `stack` | Below the breakpoint: an off-canvas drawer, or a block stacked with the content. A drawer is not shown until the page gives the reader a way to open it |
+| `collapse` | `drawer` (default), `stack` | Below the breakpoint: an off-canvas drawer, or a block stacked with the content. A drawer is not shown until the page gives the reader a way to open it: a [`<c-mvp.page.side.toggle>`](components.md#page-structure) |
 | `align` | `title` (default), `content` | Whether the column starts level with the page title or with the content under it |
 | `position` | `end` (default), `start` | Which side of the content the panel sits on. In a right-to-left page `start` is the right |
 | `sticky` | `True` (default), `False` | Whether the column sticks under the header while the page scrolls |
@@ -600,6 +600,44 @@ scrolls inside itself.
 The panel is a landmark named by its heading. In the page it comes after the title, then before
 the content when `position` is `start` and after it when `end`, so the reading and tab order
 match what the reader sees.
+
+### On a narrow screen
+
+Below its breakpoint a panel has no room for a column, and `collapse` decides what it becomes.
+
+With `collapse="drawer"`, the default, the panel is off-canvas and opens from its own edge when
+the reader activates a `<c-mvp.page.side.toggle>`. Place the button where the reader will look
+for it, such as the page's `page.actions` block or a list toolbar:
+
+```html
+{% block page.actions %}
+  <c-mvp.page.side.toggle for="toc" text="Contents" />
+{% endblock page.actions %}
+```
+
+`for` is the `id` of the panel and defaults to `page-side`. The button reports whether the
+drawer is open through `aria-expanded` and is hidden from the panel's breakpoint up, on a page with
+no drawer panel, and when `collapse` is `stack`. While the drawer is open:
+
+- the page behind it is dimmed and everything outside the panel is `inert`, so neither a click nor
+  Tab reaches it;
+- focus moves to the panel's close button, and Tab and Shift+Tab stay inside the panel;
+- Escape, the close button and a click on the dimmed page each close it and return focus to the
+  button that opened it.
+
+Widening the window past the breakpoint with the drawer open closes it and leaves nothing
+`inert`. A drawer with no button on the page is not shown at all and nothing in it can take
+focus, which suits a table of contents that only repeats the headings the reader is scrolling
+past.
+
+With `collapse="stack"` the panel is drawn full width with the content, before it when
+`position` is `start` and after it when `end`, and needs no button.
+
+`breakpoint="False"` keeps the panel a drawer, or a stacked block, at every width, so the button
+stays on screen at every width too.
+
+When something replaces an open panel, such as an htmx swap of the element with the panel's `id`,
+the drawer releases `inert` as it goes. Focus is not moved.
 
 ### A side panel in a template of your own
 

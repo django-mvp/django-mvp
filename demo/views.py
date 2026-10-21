@@ -845,6 +845,7 @@ class PageSideDemoView(DemoTemplateView):
             value = self.request.GET.get(name)
             side[name] = value if value in choices else choices[0]
         side["sticky"] = self.request.GET.get("sticky", "on") == "on"
+        side["toggle"] = self.request.GET.get("toggle", "on") == "on"
         side["long"] = self.request.GET.get("long") == "on"
         context["options"] = [
             (name, choices, side[name]) for name, choices in self.OPTIONS.items()

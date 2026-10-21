@@ -258,8 +258,19 @@
         },
         {
           "id": "T011",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_demo/test_pages.py::TestPageSideDemoPage"
+            ],
+            "commands": [
+              "uv run pytest tests/test_demo/test_pages.py::TestPageSideDemoPage"
+            ],
+            "code": [
+              "docs/layout.md:604"
+            ]
+          }
         }
       ]
     },

@@ -89,3 +89,10 @@ Did: wrote TestSideDrawer (15 cases, a test-only page at /side-drawer-test/ with
 Verified: uv run pytest tests/test_components/test_page_side_e2e.py tests/test_components/test_page_side.py -> 67 passed. Every test that passed first time was shown failing against a mutation of the code it guards, then restored: no inert (2 tests), no focus return (3), no focus into the panel (11), no Tab wrap, no media listener, destroy keeps inert, no Escape, no announce, overlay and close button not wired (one each), drawer always on one side (start and end), drawer starts open (hidden-panel and no-button tests), stacked drawn as a drawer, stacked toggle rule removed, breakpoint=False given xl, built CSS rule hiding the button at xl removed, and the overlay class removed.
 Next: T011 documentation.
 Watch: the CSS hides the button when no drawer panel exists on the page, not when none has that id; the button's id is not matched in CSS.
+
+## 2026-10-21T11:59:03Z · Implementer US2 · T011
+
+Did: docs/layout.md gains "On a narrow screen" (the drawer, the button and where to put it, what opening does, closing, widening past the breakpoint, stack, breakpoint=False, a swap with the drawer open); docs/components.md has the toggle's row; CONTEXT.md defines Panel button; the changelog has the entry. The demo's Side Panel page now carries the button in page.actions with a Toggle option, so "not shown" can be seen.
+Verified: uv run pytest tests/test_demo/test_pages.py::TestPageSideDemoPage -> 12 passed; build-stylesheet left the stylesheet artifact unchanged.
+Next: the full verify and the completion report.
+Watch: the demo files are outside T011's Files line; the brief asked for the button on the demo page.

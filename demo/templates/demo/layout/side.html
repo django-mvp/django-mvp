@@ -4,6 +4,9 @@
   switches the panel between its options through the query string, so each
   combination is one link away.
 {% endcomment %}
+{% block page.actions %}
+  {% if side.toggle %}<c-mvp.page.side.toggle text="Contents" icon="list" />{% endif %}
+{% endblock page.actions %}
 {% block page.side %}
   <c-mvp.page.side label="On this page"
                    :width="side.width"
@@ -57,6 +60,11 @@
           <input type="hidden" name="sticky" value="off" />
           <input type="checkbox" name="sticky" value="on" class="checkbox checkbox-sm" {% if side.sticky %}checked{% endif %} />
           Sticky
+        </label>
+        <label class="label text-sm">
+          <input type="hidden" name="toggle" value="off" />
+          <input type="checkbox" name="toggle" value="on" class="checkbox checkbox-sm" {% if side.toggle %}checked{% endif %} />
+          Toggle
         </label>
         <label class="label text-sm">
           <input type="checkbox" name="long" value="on" class="checkbox checkbox-sm" {% if side.long %}checked{% endif %} />
@@ -116,7 +124,8 @@
     <h3 id="narrow-hide">Not shown</h3>
     <p>
       A drawer with nothing on the page to open it is simply not shown on a narrow screen. Suits a
-      table of contents, which only repeats the headings the reader is already scrolling past.
+      table of contents, which only repeats the headings the reader is already scrolling past. Untick
+      <em>Toggle</em> above to see it.
     </p>
 
     <h2 id="width">Width, position and alignment</h2>
