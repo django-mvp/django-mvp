@@ -578,9 +578,11 @@ DRAWER_PAGE = """
       </c-slot>
       <div id="content">
         <a id="after" href="#">After</a>
+        {% if long %}
         <div style="height: 2000px"></div>
         <h2 id="target">Target</h2>
         <div style="height: 2000px"></div>
+        {% endif %}
       </div>
     </c-mvp.page.layout>
   </c-mvp.page.content>
@@ -590,7 +592,8 @@ DRAWER_PAGE = """
 
 
 def side_drawer_page(request):
-    """Draw the drawer page: ``?button=0``, ``?collapse=stack``, ``?breakpoint=lg|off``, ``?position=start``."""
+    """Draw the drawer page: ``?button=0``, ``?collapse=stack``, ``?breakpoint=lg|off``,
+    ``?position=start``, ``?long=1`` for a heading far down the content."""
     get = request.GET
     template = engines["django"].from_string(CottonCompiler().process(DRAWER_PAGE))
     context = {
@@ -601,6 +604,7 @@ def side_drawer_page(request):
         else get.get("breakpoint", "xl"),
         "side_position": get.get("position", "end"),
         "untabbable_tail": get.get("tail") == "1",
+        "long": get.get("long") == "1",
     }
     return HttpResponse(template.render(context, request))
 
@@ -713,7 +717,7 @@ class TestSideDrawer:
     def test_following_a_link_to_a_place_on_the_page_closes_the_panel(
         self, page, live_server
     ):
-        open_drawer_page(page, live_server)
+        open_drawer_page(page, live_server, "?long=1")
         self.open(page)
 
         page.click("#jump")
@@ -730,7 +734,7 @@ class TestSideDrawer:
     def test_following_a_link_to_a_place_on_the_page_moves_focus_to_that_place(
         self, page, live_server
     ):
-        open_drawer_page(page, live_server)
+        open_drawer_page(page, live_server, "?long=1")
         self.open(page)
 
         page.click("#jump")
