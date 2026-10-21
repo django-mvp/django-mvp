@@ -325,3 +325,91 @@ class TestTheRegionNamesTheEdgesWithCellsUnderThem:
         expect(region).to_have_class(re.compile(r"\bmvp-table-over-side\b"))
         expect(region).not_to_have_class(re.compile(r"\bmvp-table-over-top\b"))
 
+
+FILTER_PANEL_MEASURES = """
+    () => {
+      const rect = (el) => {
+        const r = el.getBoundingClientRect();
+        return { top: Math.round(r.top), bottom: Math.round(r.bottom) };
+      };
+      const panel = document.querySelector('#filters');
+      const aside = document.querySelector('#filters-panel');
+      const main = document.querySelector('.mvp-page-layout > .mvp-page-main');
+      const pagination = document.querySelector('.mvp-list-footer');
+      const before = Math.round(aside.scrollTop);
+      aside.scrollTop = aside.scrollHeight;
+      return {
+        viewportHeight: window.innerHeight,
+        documentHeight: document.documentElement.scrollHeight,
+        documentWidth: document.documentElement.scrollWidth,
+        viewportWidth: window.innerWidth,
+        scrollY: window.scrollY,
+        panel: rect(panel),
+        panelPosition: getComputedStyle(panel).position,
+        main: rect(main),
+        layout: rect(document.querySelector('.mvp-page-layout')),
+        toolbar: rect(document.querySelector('.mvp-table-toolbar')),
+        headers: document.querySelectorAll('.mvp-page-layout > .mvp-page-header').length,
+        pagination: rect(pagination),
+        asideScrollable: aside.scrollHeight > aside.clientHeight,
+        asideScrollBefore: before,
+        asideScrollAfter: Math.round(aside.scrollTop),
+      };
+    }
+"""
+
+
+def _measure_the_filter_panel(page, live_server, viewport):
+    ProductFactory.create_batch(PRODUCT_COUNT)
+    page.set_viewport_size(viewport)
+    page.goto(f"{live_server.url}{TABLE_PAGE}")
+    return page.evaluate(FILTER_PANEL_MEASURES)
+
+
+class TestTheFilterPanelBesideTheTable:
+    @pytest.mark.django_db
+    def test_the_panel_is_the_height_of_the_table_area(self, page, live_server):
+        measured = _measure_the_filter_panel(page, live_server, VIEWPORTS["desktop"])
+
+        assert measured["panel"]["top"] == pytest.approx(measured["main"]["top"], abs=1)
+        assert measured["panel"]["bottom"] == pytest.approx(
+            measured["main"]["bottom"], abs=1
+        )
+
+    @pytest.mark.django_db
+    def test_the_panel_does_not_stick(self, page, live_server):
+        measured = _measure_the_filter_panel(page, live_server, VIEWPORTS["desktop"])
+
+        assert measured["panelPosition"] != "sticky"
+
+    @pytest.mark.django_db
+    def test_more_filters_than_fit_scroll_inside_the_panel(self, page, live_server):
+        measured = _measure_the_filter_panel(
+            page, live_server, {"width": 1440, "height": 420}
+        )
+
+        assert measured["asideScrollable"], "the panel fits, so this proves nothing"
+        assert measured["asideScrollBefore"] == 0
+        assert measured["asideScrollAfter"] > 0
+        assert measured["scrollY"] == 0
+        assert measured["panel"]["bottom"] <= measured["viewportHeight"]
+
+    @pytest.mark.django_db
+    @at_every_viewport
+    def test_the_table_still_fills_the_page(self, page, live_server, viewport):
+        measured = _measure_the_filter_panel(page, live_server, viewport)
+
+        assert measured["documentHeight"] == measured["viewportHeight"]
+        assert measured["documentWidth"] == measured["viewportWidth"]
+        assert measured["pagination"]["bottom"] <= measured["viewportHeight"]
+
+    @pytest.mark.django_db
+    @at_every_viewport
+    def test_the_empty_header_row_adds_no_gap_above_the_toolbar(
+        self, page, live_server, viewport
+    ):
+        measured = _measure_the_filter_panel(page, live_server, viewport)
+
+        assert measured["headers"] == 0
+        assert measured["toolbar"]["top"] == measured["main"]["top"]
+        assert measured["main"]["top"] == measured["layout"]["top"]

@@ -335,8 +335,21 @@
         },
         {
           "id": "T015",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 2,
+          "evidence": {
+            "tests": [
+              "tests/test_table_layout.py::TestTableFilterPanel",
+              "tests/test_table_layout_e2e.py::TestTheFilterPanelBesideTheTable"
+            ],
+            "commands": [
+              "uv run pytest tests/test_table_layout.py tests/test_components",
+              "uv run pytest tests/test_table_layout_e2e.py"
+            ],
+            "code": [
+              "mvp/templates/table_view.html:33"
+            ]
+          }
         },
         {
           "id": "T016",

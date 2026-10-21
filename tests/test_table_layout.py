@@ -417,10 +417,10 @@ class TestCustomToolbarDemoPage:
         soup = _beautiful_soup()(self._get(client).content.decode(), "html.parser")
 
         form = soup.find(id=TOOLBAR_PANEL).find("form", id="filterForm")
-        modal = soup.find(id="filterModal")
+        panel = soup.find(id="filters")
         for name in ("q", "status", "priority"):
             assert form.find(attrs={"name": name}) is not None, name
-            assert modal.find(attrs={"name": name}) is None, name
+            assert panel.find(attrs={"name": name}) is None, name
 
     @pytest.mark.django_db
     def test_its_search_narrows_the_table(self, client):
@@ -796,24 +796,25 @@ class TestTableToolbar:
         form = soup.find(id=TOOLBAR_PANEL).find("form", id="filterForm")
         assert form.find(attrs={"name": "q"}) is not None
         assert form.find(attrs={"name": "status"}) is not None
-        assert soup.find(id="filterModal").find(attrs={"name": "status"}) is None
+        assert soup.find(id="filters").find(attrs={"name": "status"}) is None
 
     @pytest.mark.django_db
-    def test_the_rest_of_the_filterset_is_in_the_filter_modal(self, rf, product):
+    def test_the_rest_of_the_filterset_is_in_the_filter_panel(self, rf, product):
         html = _render_table_view(rf, toolbar_filters=["q", "status"])
         soup = _beautiful_soup()(html, "html.parser")
 
-        modal = soup.find(id=TOOLBAR_PANEL).find(id="filterModal")
-        assert modal.find(attrs={"name": "is_featured"}) is not None
-        assert modal.find_parent("form", id="filterForm") is not None
-        assert modal.find(attrs={"name": "q"}) is None
+        panel = soup.find(id="filters")
+        assert panel.find(attrs={"name": "is_featured"}) is not None
+        assert panel.find_parent("form", id="filterForm") is None
+        assert panel.find(attrs={"name": "q"}) is None
 
     @pytest.mark.django_db
-    def test_the_filter_button_opens_the_modal_from_the_panel(self, rf, product):
+    def test_the_filters_button_opens_the_filter_panel_from_the_toolbar_panel(
+        self, rf, product
+    ):
         soup = _beautiful_soup()(_render_table_view(rf), "html.parser")
 
-        button = soup.find("button", attrs={"aria-haspopup": "dialog"})
-        assert "filterModal.showModal()" in button["@click"]
+        button = soup.find("button", attrs={"aria-controls": "filters"})
         assert button.find_parent(id=TOOLBAR_PANEL) is not None
         assert button.find_parent(class_="mvp-table-toolbar-bar") is None
 
@@ -824,8 +825,8 @@ class TestTableToolbar:
         html = _render_table_view(rf, toolbar_filters=["q", "status", "is_featured"])
         soup = _beautiful_soup()(html, "html.parser")
 
-        assert soup.find(id="filterModal") is None
-        assert soup.find("button", attrs={"aria-haspopup": "dialog"}) is None
+        assert soup.find(id="filters") is None
+        assert soup.find("button", attrs={"aria-controls": "filters"}) is None
         assert soup.find(id=TOOLBAR_PANEL).find(attrs={"name": "is_featured"})
 
     @pytest.mark.django_db
@@ -866,6 +867,92 @@ class TestTableToolbar:
 
         assert soup.find(id="override") is not None
         assert soup.find(attrs={"role": "region"}) is not None, "the table is kept"
+
+
+class TestTableFilterPanel:
+    @pytest.mark.django_db
+    def test_the_panel_sits_beside_the_table_inside_the_filled_page(self, rf, product):
+        html = _render_table_view(rf, toolbar_filters=["q"])
+        soup = _beautiful_soup()(html, "html.parser")
+
+        panel = soup.find(id="filters")
+        layout = panel.find_parent(class_="mvp-page-layout")
+        assert layout.find_parent(class_="mvp-page-fill") is not None
+        assert layout.find(class_="mvp-page-main").find(attrs={"role": "region"})
+        assert panel.find_parent(class_="mvp-page-main") is None
+
+    @pytest.mark.django_db
+    def test_the_panel_holds_the_fields_the_toolbar_does_not(self, rf, product):
+        html = _render_table_view(rf, toolbar_filters=["q"])
+        soup = _beautiful_soup()(html, "html.parser")
+
+        panel = soup.find(id="filters")
+        assert panel.find(attrs={"name": "status"}) is not None
+        assert panel.find(attrs={"name": "is_featured"}) is not None
+        assert panel.find(attrs={"name": "q"}) is None
+        assert panel.find("form") is None
+
+    @pytest.mark.django_db
+    def test_the_panel_is_at_the_start_and_level_with_the_content(self, rf, product):
+        soup = _beautiful_soup()(_render_table_view(rf), "html.parser")
+
+        panel = soup.find(id="filters")
+        assert panel["data-mvp-side-position"] == "start"
+        assert panel["data-mvp-side-align"] == "content"
+
+    @pytest.mark.django_db
+    def test_a_subclass_dict_reaches_the_panel(self, rf, product):
+        html = _render_table_view(rf, filter_panel_attrs={"position": "end"})
+        soup = _beautiful_soup()(html, "html.parser")
+
+        assert soup.find(id="filters")["data-mvp-side-position"] == "end"
+
+    @pytest.mark.django_db
+    def test_a_filterset_drawn_whole_in_the_toolbar_has_no_panel_and_no_layout(
+        self, rf, product
+    ):
+        html = _render_table_view(rf, toolbar_filters=["q", "status", "is_featured"])
+        soup = _beautiful_soup()(html, "html.parser")
+
+        assert soup.find(id="filters") is None
+        assert soup.find(class_="mvp-page-layout") is None
+        assert soup.find(attrs={"role": "region"}) is not None
+
+    @pytest.mark.django_db
+    def test_the_filter_form_chips_pager_and_heading_row_refresh_the_panel(self, rf):
+        ProductFactory.create_batch(3, is_featured=True)
+
+        html = _render_table_view(rf, query="?is_featured=true", paginate_by=1)
+        soup = _beautiful_soup()(html, "html.parser")
+
+        swappers = [
+            soup.find("form", id="filterForm"),
+            soup.find(class_="mvp-list-refinements"),
+            soup.find(class_="mvp-list-footer"),
+            soup.find("thead"),
+        ]
+        for element in swappers:
+            assert element is not None
+            assert element["hx-select-oob"] == "#filters"
+
+    @pytest.mark.django_db
+    def test_a_subclass_id_names_the_panel_and_what_refreshes_it(self, rf, product):
+        html = _render_table_view(rf, filter_panel_id="refine")
+        soup = _beautiful_soup()(html, "html.parser")
+
+        assert soup.find(id="refine") is not None
+        assert soup.find("thead")["hx-select-oob"] == "#refine"
+        assert soup.find("button", attrs={"aria-controls": "refine"}) is not None
+
+    @pytest.mark.django_db
+    def test_clear_all_in_the_empty_table_refreshes_the_panel(self, rf):
+        soup = _beautiful_soup()(
+            _render_table_view(rf, query="?q=nothing"), "html.parser"
+        )
+
+        empty = soup.find("tbody").find(class_="mvp-list-empty")
+        clear = empty.find("a", href="/products/")
+        assert clear.parent["hx-select-oob"] == "#filters"
 
 
 class TestTableFillerRow:
