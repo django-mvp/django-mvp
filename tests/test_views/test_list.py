@@ -1369,22 +1369,22 @@ class TestListPageFilterPanel:
 
         assert soup.find(id="filters").find("form") is None
 
-    def test_the_panel_is_at_the_start_and_level_with_the_content(self, rf, cat):
+    def test_the_panel_is_at_the_end_and_level_with_the_content(self, rf, cat):
         _product(cat, "Lamp")
 
         panel = _filtered_list_page(rf).find(id="filters")
 
-        assert panel["data-mvp-side-position"] == "start"
+        assert panel["data-mvp-side-position"] == "end"
         assert panel["data-mvp-side-align"] == "content"
 
     def test_a_subclass_dict_reaches_the_panel(self, rf, cat):
         _product(cat, "Lamp")
 
         panel = _filtered_list_page(
-            rf, filter_panel_attrs={"position": "end", "width": "lg"}
+            rf, filter_panel_attrs={"position": "start", "width": "lg"}
         ).find(id="filters")
 
-        assert panel["data-mvp-side-position"] == "end"
+        assert panel["data-mvp-side-position"] == "start"
         assert panel["data-mvp-side-width"] == "lg"
 
     def test_a_subclass_id_names_the_panel_its_button_and_every_refresh(self, rf, cat):
@@ -2215,15 +2215,10 @@ class TestFilterPanelContext:
         bound = context["filter"].form["status"]
         assert "form" not in bound.field.widget.attrs
 
-    def test_the_panel_is_at_the_start_and_level_with_the_content_by_default(
-        self, rf, db
-    ):
+    def test_the_panel_is_at_the_end_by_default(self, rf, db):
         context = self._context(rf)
 
-        assert context["filter_panel_attrs"] == {
-            "position": "start",
-            "align": "content",
-        }
+        assert context["filter_panel_attrs"] == {"position": "end"}
 
     def test_the_panel_is_called_filters_by_default(self, rf, db):
         context = self._context(rf)

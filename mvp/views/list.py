@@ -436,8 +436,9 @@ class MVPListViewMixin(
             pager swaps in place with htmx. Default: ``"mvp-list"``.
         filter_panel_attrs (dict): The attributes of the filter panel's ``<c-mvp.page.side>``
             (``position``, ``align``, ``width``, ``breakpoint``, ``collapse``). A subclass's
-            dict replaces the default whole. Default: ``{"position": "start", "align":
-            "content"}``.
+            dict replaces the default whole. Default: ``{"position": "end"}``. The
+            panel aligns with the content at the end and with the title at the start, unless
+            ``align`` is set.
         filter_panel_id (str): The id of the filter panel's root element, which the toolbar's
             button opens and every list update refreshes. Default: ``"filters"``.
         partial_base_template (str): What the page extends in place of ``base.html`` when
@@ -516,7 +517,7 @@ class MVPListViewMixin(
     filterset_fields = None
     toolbar_filters: list[str] = []
     list_region_id = "mvp-list"
-    filter_panel_attrs: dict = {"position": "start", "align": "content"}
+    filter_panel_attrs: dict = {"position": "end"}
     filter_panel_id = "filters"
     partial_base_template = "mvp/partial.html"
 

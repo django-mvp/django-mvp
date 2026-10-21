@@ -893,19 +893,21 @@ class TestTableFilterPanel:
         assert panel.find("form") is None
 
     @pytest.mark.django_db
-    def test_the_panel_is_at_the_start_and_level_with_the_content(self, rf, product):
+    def test_the_panel_is_at_the_end_and_level_with_the_content(self, rf, product):
         soup = _beautiful_soup()(_render_table_view(rf), "html.parser")
 
         panel = soup.find(id="filters")
-        assert panel["data-mvp-side-position"] == "start"
+        assert panel["data-mvp-side-position"] == "end"
         assert panel["data-mvp-side-align"] == "content"
 
     @pytest.mark.django_db
     def test_a_subclass_dict_reaches_the_panel(self, rf, product):
-        html = _render_table_view(rf, filter_panel_attrs={"position": "end"})
+        html = _render_table_view(rf, filter_panel_attrs={"position": "start"})
         soup = _beautiful_soup()(html, "html.parser")
 
-        assert soup.find(id="filters")["data-mvp-side-position"] == "end"
+        panel = soup.find(id="filters")
+        assert panel["data-mvp-side-position"] == "start"
+        assert panel["data-mvp-side-align"] == "title"
 
     @pytest.mark.django_db
     def test_a_filterset_drawn_whole_in_the_toolbar_has_no_panel_and_no_layout(

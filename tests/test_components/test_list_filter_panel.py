@@ -15,7 +15,7 @@ import pytest
 from demo.models import Product
 from mvp.filters import SearchFilter, SortFilter
 
-VIEW_DEFAULTS = {"position": "start", "align": "content"}
+VIEW_DEFAULTS = {"position": "end"}
 
 
 class PanelProductFilter(django_filters.FilterSet):
@@ -111,24 +111,34 @@ class TestFilterPanelIsASidePanel:
         assert _root(named)["id"] == "refine"
         assert _root(named).find("aside")["id"] == "refine-panel"
 
-    def test_the_views_default_dict_puts_it_at_the_start_level_with_the_content(
-        self, render
+    @pytest.mark.parametrize(
+        ("attrs", "position", "align"),
+        [
+            (VIEW_DEFAULTS, "end", "content"),
+            ({"position": "start"}, "start", "title"),
+            ({"position": "end", "align": "title"}, "end", "title"),
+            ({"position": "start", "align": "content"}, "start", "content"),
+            ({}, "end", "content"),
+        ],
+    )
+    def test_its_alignment_follows_its_side_unless_one_is_set(
+        self, render, attrs, position, align
     ):
         soup = render(
             '<c-mvp.page.list.filters.panel :fields="fields" :attrs="attrs" />',
             fields=_fields(),
-            attrs=VIEW_DEFAULTS,
+            attrs=attrs,
         )
 
         root = _root(soup)
-        assert root["data-mvp-side-position"] == "start"
-        assert root["data-mvp-side-align"] == "content"
+        assert root["data-mvp-side-position"] == position
+        assert root["data-mvp-side-align"] == align
 
     @pytest.mark.parametrize(
         ("attrs", "attribute", "value"),
         [
             ({"width": "lg"}, "data-mvp-side-width", "lg"),
-            ({"position": "end"}, "data-mvp-side-position", "end"),
+            ({"position": "start"}, "data-mvp-side-position", "start"),
             ({"align": "title"}, "data-mvp-side-align", "title"),
             ({"breakpoint": "2xl"}, "data-mvp-side-breakpoint", "2xl"),
             ({"collapse": "stack"}, "data-mvp-side-collapse", "stack"),

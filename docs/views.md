@@ -356,7 +356,7 @@ Every dict carries `name`, `label` and `kind`. The package's kinds add:
 
 The filterset fields the toolbar does not draw are drawn in a filter panel, a
 [side panel](layout.md#side-panel) beside the results. From its breakpoint (`xl` by
-default) it is a column at the start of the page, level with the results, that sticks under
+default) it is a column at the end of the page, level with the results, that sticks under
 the header. Below the breakpoint it is a drawer, opened by the Filters button in the
 toolbar. The button's badge counts the panel's applied filters. A list whose fields are
 all in the toolbar draws neither the panel nor the button.
@@ -380,13 +380,13 @@ class ProductListView(MVPListView):
     model = Product
     filterset_class = ProductFilter
     toolbar_filters = ["q", "status", "o"]
-    filter_panel_attrs = {"position": "end", "width": "lg"}
+    filter_panel_attrs = {"position": "start", "width": "lg"}
     filter_panel_id = "refine"
 ```
 
 | Attribute | What it does |
 | --- | --- |
-| `filter_panel_attrs` | A dict handed to the panel's `<c-mvp.page.side>`: `width`, `position`, `align`, `breakpoint` (`False` keeps the filters behind the button at every width), `collapse` and `class`. Default: `{"position": "start", "align": "content"}`. A dict you set replaces the default whole |
+| `filter_panel_attrs` | A dict handed to the panel's `<c-mvp.page.side>`: `width`, `position`, `align`, `breakpoint` (`False` keeps the filters behind the button at every width), `collapse` and `class`. Default: `{"position": "end"}`. Unless `align` is set, the panel is level with the results at the end and with the title at the start. A dict you set replaces the default whole |
 | `filter_panel_id` | The id of the panel's root element, which the Filters button opens and every update refreshes. Default: `"filters"` |
 
 To draw the panel yourself, call
