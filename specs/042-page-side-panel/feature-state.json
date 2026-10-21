@@ -2,7 +2,7 @@
   "feature": "042-page-side-panel",
   "branch": "042-page-side-panel",
   "repo": "django-mvp/django-mvp",
-  "state": "IMPLEMENT",
+  "state": "CONVERGE",
   "state_history": [
     {
       "state": "QUEUED",
@@ -33,6 +33,11 @@
       "state": "IMPLEMENT",
       "at": "2026-10-21T11:10:32Z",
       "note": "design review applied; plan gate open, passed without notice"
+    },
+    {
+      "state": "CONVERGE",
+      "at": "2026-10-21T12:40:29Z",
+      "note": "every story accepted"
     }
   ],
   "gates": {
@@ -379,13 +384,30 @@
               "docs/views.md:355"
             ]
           }
+        },
+        {
+          "id": "T018",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_demo/test_list_filter_pages.py",
+              "tests/test_views/test_list.py"
+            ],
+            "commands": [
+              "uv run pytest -q tests/test_demo/test_list_filter_pages.py tests/test_views/test_list.py"
+            ],
+            "code": [
+              "demo/urls.py:75"
+            ]
+          }
         }
       ]
     }
   ],
   "budgets": {
     "converge_cycles": {
-      "used": 0,
+      "used": 1,
       "max": 2
     },
     "review_cycles": {
