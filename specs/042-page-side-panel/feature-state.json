@@ -2,7 +2,7 @@
   "feature": "042-page-side-panel",
   "branch": "042-page-side-panel",
   "repo": "django-mvp/django-mvp",
-  "state": "PAUSED",
+  "state": "DESIGN_REVIEW",
   "state_history": [
     {
       "state": "QUEUED",
@@ -23,6 +23,11 @@
       "state": "PAUSED",
       "at": "2026-10-21T10:46:50Z",
       "note": "blocked at S3R: subagent dispatch unavailable (Anthropic account/runtime unavailable to sessions_spawn); resume at the design review once restored"
+    },
+    {
+      "state": "DESIGN_REVIEW",
+      "at": "2026-10-21T10:49:37Z",
+      "note": "resumed at the design review in a new session; the first attempt never ran a review, so it is not counted as a cycle"
     }
   ],
   "gates": {
@@ -31,8 +36,8 @@
       "at": "2026-10-21T10:20:05Z"
     },
     "plan": {
-      "approved_by": null,
-      "at": null
+      "approved_by": "open",
+      "at": "2026-10-21T11:09:32Z"
     },
     "merge": {
       "approved_by": null,

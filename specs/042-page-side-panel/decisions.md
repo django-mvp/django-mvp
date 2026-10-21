@@ -57,8 +57,9 @@ grid inside the swap. **Revisit if:** the region moves to wrap the whole page la
 
 ## D4 A swap with the drawer open leaves focus where the modal's did
 
-**Decision:** applying from an open drawer replaces the panel with a closed one; the old component
-releases `inert` in `destroy()`, and focus is not moved. **Why:** parity with the filter modal's
+**Decision:** applying from an open drawer replaces the panel with a closed one. The panel's id is
+on the component's root, so the out-of-band swap replaces the whole component, drawer state
+included; the old component releases `inert` in `destroy()`, and focus is not moved. **Why:** parity with the filter modal's
 Apply, which swapped the region the same way; the spec asks for nothing more. **Revisit if:** a
 reader reports losing their place after applying on a phone.
 **ADR:** pending (S5)
@@ -76,3 +77,17 @@ toolbar, and a column is never "closed". **Revisit if:** Sam asks for the drawer
 axe-core through this machine's proxy; CI on `main` passes it. Local verify is read with those four
 excluded. **Why:** environmental, unchanged by this branch. **Revisit if:** it fails in CI.
 **ADR:** none — a note about this machine, nothing in the code depends on it
+
+## D7 The design review's findings, as applied
+
+**Decision:** the panel's id moves to the component's root and the `<aside>` becomes `{id}-panel`
+(a review finding: with the id on the `<aside>`, the out-of-band refresh replaced only the
+`<aside>` and left an open drawer open over a refreshed list). The table's heading row joins the
+elements that refresh the panel, with the empty state and the table template taking the panel id.
+The breakpoint's width reaches the script from `BREAKPOINT_WIDTHS` instead of a second table in
+JavaScript. The `<aside>` is always a tab stop. Alignment, widths and stacked order are not
+browser-tested, and US-5 adds no tests of its own, its requirement being met by T003 and T007. The
+demo page stays: it is where layout work is looked at. **Why:** each removes a defect or a
+duplicate; none widens the spec. **Revisit if:** a later feature needs the panel's id on the
+`<aside>` itself.
+**ADR:** none — corrections to this feature's plan, nothing downstream inherits them

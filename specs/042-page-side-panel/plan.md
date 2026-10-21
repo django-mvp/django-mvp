@@ -48,30 +48,38 @@ Attributes: `label` (required), `id` (default `page-side`), `width` `sm|md|lg` (
 `True`), `class`.
 
 ```
-<div class="mvp-page-side {bp}:mvp-page-side-wide {class}"
+<div id="{id}" class="mvp-page-side {bp}:mvp-page-side-wide {class}"
      data-mvp-side-width data-mvp-side-breakpoint (only when breakpoint) data-mvp-side-collapse
      data-mvp-side-position data-mvp-side-align [data-mvp-side-sticky]
-     [x-data="mvpPageSide({ id, breakpoint })"   — drawer only, configuration only]>
+     [x-data="mvpPageSide({ id, breakpointRem })"   — drawer only, configuration only]>
   drawer:  <div class="drawer drawer-{start|end} {bp}:drawer-open">
              <input type="checkbox" class="drawer-toggle" tabindex="-1" aria-hidden="true" x-ref="toggle">
              <div class="drawer-content"></div>
              <div class="drawer-side z-40">
                <label class="drawer-overlay" aria-hidden="true" @click.prevent="close()"></label>
-               <aside id="{id}" class="mvp-page-side-panel …" aria-labelledby="{id}-label" tabindex="0">
-                 heading row: <h2 id="{id}-label"> + close button (aria-label "Close {label}")
+               <aside id="{id}-panel" class="mvp-page-side-panel …" aria-labelledby="{id}-label" tabindex="0">
+                 heading row: <h2 id="{id}-label"> + close button (aria-label "Close {label}", blocktrans)
                  {slot}
                </aside>
            </div></div>
-  stack:   <aside id="{id}" class="mvp-page-side-panel" aria-labelledby="{id}-label" [tabindex="0" when sticky]>
+  stack:   <aside id="{id}-panel" class="mvp-page-side-panel" aria-labelledby="{id}-label" tabindex="0">
              <h2 id="{id}-label">  {slot}
            </aside>
 </div>
 ```
 
-The `<aside>` is the landmark (FR-002) and, in a sticky column, the scroller: the outer element
-sticks, the `<aside>` carries the `max-height` and `overflow-y: auto` (FR-007, ADR 0013). A closed
-drawer's `<aside>` is inside daisyUI's hidden `.drawer-side`, so it is neither shown nor reachable
-(FR-008). Breakpoint variants are written out whole so the stylesheet build finds them.
+The panel's `id` is on the root, so anything that replaces the element with that id (the list
+page's out-of-band refresh, below) replaces the whole component: the drawer's state, its checkbox
+and its Alpine component go with it, and `destroy()` runs. The `<aside>` takes `{id}-panel`. The
+`<aside>` is the landmark (FR-002) and, in a sticky column or a filled page, the scroller: the outer
+element sticks, the `<aside>` carries the `max-height` and `overflow-y: auto` (FR-007, ADR 0013). It
+carries `tabindex="0"` in every combination of options, so every scroller is reachable by keyboard
+with no rule to keep in step. A closed drawer's `<aside>` is inside daisyUI's hidden `.drawer-side`,
+so it is neither shown nor reachable (FR-008). Breakpoint variants are written out whole so the
+stylesheet build finds them. `breakpointRem` is the breakpoint's width from `BREAKPOINT_WIDTHS`
+(`mvp/layout.py`) in rem, `{% widthratio breakpoint|breakpoint_px 16 1 %}`, and is left out when
+`breakpoint` is `False`, so the script never holds a second copy of the table. Every new template
+string is translated (Article VIII).
 
 ### `<c-mvp.page.layout>`
 
@@ -89,8 +97,17 @@ nothing else (FR-001, SC-002, US5-2). Otherwise:
 
 `position` comes from `side|root_attr:"data-mvp-side-position"`, a new filter in
 `mvp/templatetags/mvp.py` that returns one attribute of the first element of an HTML string, parsed
-with `html.parser.HTMLParser`, or `""`. The grid's areas and the drawer's side come from the panel's
-own data attributes, in CSS.
+with `html.parser.HTMLParser`, or `""`. The parser stops at the first start tag, so a long panel is
+not parsed past its root. The grid's areas and the drawer's side come from the panel's own data
+attributes, in CSS.
+
+### `page_view.html`
+
+Inside `<c-mvp.page.content>`, the template calls `<c-mvp.page.layout only>` with the `page.side`
+block in its `side` slot, the `page.title` block (and `page.actions` within it) in its `header` slot,
+and `page.content` in its default slot, as the prototype's `page_view.html` on `sketch/page-side`
+does. Block names and nesting are otherwise unchanged, so a project template overriding any of them
+keeps working.
 
 ### Stylesheet (`mvp/tailwind/base.css`)
 
@@ -110,14 +127,15 @@ breakpoint. Added:
 
 `registerPageSide(Alpine)`, called from `index.js` before `Alpine.start()`:
 
-- `mvpPageSide({ id, breakpoint })` — `open()` on a window `mvp-page-side-open` event naming its
+- `mvpPageSide({ id, breakpointRem })` — `open()` on a window `mvp-page-side-open` event naming its
   id: remember the opener, check the toggle, make every sibling of every ancestor up to `<body>`
   `inert` (remembering exactly those), dispatch `mvp-page-side-changed {id, open: true}`, focus the
   close button once the drawer side's computed visibility is `visible` (FR-009). `close()` on
   Escape, the close button and the overlay: uncheck, release `inert`, dispatch, return focus to the
-  opener. A `matchMedia` listener for the breakpoint (`lg` 64rem, `xl` 80rem, `2xl` 96rem; none for
-  `False`) closes an open drawer without moving focus when the query starts matching (FR-010).
-  `destroy()` releases `inert` and removes its listeners (a list swap replaces an open panel).
+  opener. A `matchMedia` listener on `(min-width: {breakpointRem}rem)` (none when it is absent)
+  closes an open drawer without moving focus when the query starts matching (FR-010). `destroy()`
+  releases `inert` and removes its listeners: a list swap replaces the whole component, an open
+  drawer included (D4).
 - `mvpPageSideToggle(id)` — `expanded` bound to `aria-expanded`; click dispatches
   `mvp-page-side-open`; listens for `mvp-page-side-changed` with its id.
 
@@ -133,7 +151,8 @@ The prototype's script, with one change: no `.mvp-header` on the page publishes 
 - `MVPListViewMixin`: `filter_panel_attrs = {"position": "start", "align": "content"}` (FR-014,
   FR-016; replaced not merged, Article XVIII) and `filter_panel_id = "filters"`, both in context.
 - `<c-mvp.page.list.filters.panel>` (replaces `filters/modal.html`): props `fields`, `clear_url`,
-  `id`; forwards every other attribute to `<c-mvp.page.side label="Filters">`. Draws each field with
+  `id`, `region` (the list region's id, for the Clear link's htmx attributes, as the empty state's
+  `region` prop does); forwards every other attribute to `<c-mvp.page.side label="Filters">`. Draws each field with
   `as_crispy_field`, then a foot that stays at the panel's bottom (`sticky bottom-0`) with Apply
   (`type="submit" form="filterForm"`) and, when `clear_url`, a Clear link carrying the region's htmx
   attributes. Draws nothing with no fields (FR-015).
@@ -143,9 +162,13 @@ The prototype's script, with one change: no `.mvp-header` on the page publishes 
 - `table_view.html`: declares its own `page.side` block and wraps the region in
   `<c-mvp.page.layout>` inside `<c-mvp.page.content gap="0">`; the toggle replaces the Filter button.
 - Every element that swaps the region (filter form, chips, pager, the empty state's Clear all, the
-  panel's Clear) also carries `hx-select-oob="#{{ filter_panel_id }}"`, so the panel is refreshed
-  from the same response (research, *The list region and the panel*). Passed always: htmx skips an
-  out-of-band selector the response does not contain.
+  table's heading row, the panel's Clear) also carries `hx-select-oob="#{{ filter_panel_id }}"`, so
+  the panel is refreshed from the same response (research, *The list region and the panel*). Passed
+  always: htmx skips an out-of-band selector the response does not contain. The empty state draws
+  its own htmx attributes (`cotton/mvp/page/list/empty.html`), so it gains a prop for the panel id
+  beside `region`; the heading row is drawn by `django_tables2/bootstrap5-mvp.html`, which reads the
+  panel id from `table.context` the way it reads `list_region_id`.
+- `FilterContextMixin` and `MVPListViewMixin` docstrings that say "filter modal" are reworded.
 - `list_view.js` loses the modal's close handler and `MODAL_ID`.
 
 ## Story order and dispatch
