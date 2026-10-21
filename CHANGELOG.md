@@ -13,7 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `page_view.html` with `<c-mvp.page.side label="…">`. From its breakpoint (`xl` by default) the
   panel is a column that sticks under the header, at the end or the start, level with the title
   or with the content, in one of three widths. Below the breakpoint it is a drawer or a block
-  stacked with the content. A page that leaves the block empty is drawn as before.
+  stacked with the content. A panel taller than the space under the header has no scrollbar of
+  its own: it moves with the page in the direction the reader scrolls until its foot, or its top,
+  is in view, and holds there. A page that leaves the block empty is drawn as before.
   `<c-mvp.page.layout>` does the arranging and can be called from a template that does not extend
   the page template. See "Side panel" in `docs/layout.md`.
 - `<c-mvp.page.side.toggle for="…" text="…">` opens a side panel's drawer on a narrow screen. The

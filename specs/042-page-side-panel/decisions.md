@@ -148,3 +148,16 @@ to reach the last filters is worse. **Revisit if:** CSS gains a native way to st
 whichever end is in view.
 **ADR:** docs/adr/0036-a-tall-side-panel-moves-with-the-page.md
 
+
+## D13 How the column component is built
+
+**Decision:** the component keeps its state in a closure, not on the Alpine object, and measures
+movement on the page layout instead of `scrollY`. The drawer finds its close button in the DOM
+instead of by `x-ref`. The component sets its aside's `tabindex` to `-1` while the panel is a
+sticky column and back to `0` everywhere else. **Why:** the aside is nested inside the drawer's
+component, so a ref inside it belongs to the nested one and a method named `release` on both
+shadowed the drawer's. The browser scrolls to keep the content in place when the header grows, and
+that scroll moved the panel as if the reader had made it. A column no longer scrolls, so a tab stop
+there only gets in the way (ADR 0013). **Revisit if:** the panel gains a second nested component,
+or a placement that scrolls inside a sticky column.
+**ADR:** none — an implementation detail of the one component in ADR 0036

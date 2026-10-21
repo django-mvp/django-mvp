@@ -592,10 +592,16 @@ The demo's Layout > Side Panel page has a form that switches every option below.
 | `class` | text | Extra classes on the panel's root element |
 
 From its breakpoint the column sticks just under the header, at the header's current height (see
-[Header height](#header-height)). A panel taller than the space under the header scrolls on its
-own, and its `<aside>` is a tab stop so a keyboard reader can scroll it. On a page that
-[fills the shell](#full-page-content) the panel is as tall as the page, does not stick, and
-scrolls inside itself.
+[Header height](#header-height)). A panel taller than the space under the header has no scrollbar
+of its own. It moves with the page in the direction the reader scrolls until its foot, or its top
+on the way back, is in view, and holds there. A control reached by keyboard is brought clear of the
+header and of the foot of the screen. On a page that [fills the shell](#full-page-content) the
+panel is as tall as the page, does not stick, and scrolls inside itself; its `<aside>` is then a
+tab stop so a keyboard reader can scroll it.
+
+The panel's root carries the offset as `--mvp-page-side-top` while it is moving, and has no such
+property when the panel fits, below the breakpoint and on a filled page. A style of your own can
+read it, but should not set it: the script rewrites it on every scroll.
 
 The panel is a landmark named by its heading. In the page it comes after the title, then before
 the content when `position` is `start` and after it when `end`, so the reading and tab order
