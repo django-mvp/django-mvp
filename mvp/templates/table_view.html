@@ -26,9 +26,7 @@
       {% endcomment %}
       <c-mvp.page.content gap="0" only>
         {% comment %}
-          The layout puts the filter panel beside the region and draws the
-          region alone when there is no panel. It has no header, and no row gap
-          so the empty header row adds no space above the toolbar.
+          No header and no row gap, so the empty header row adds no space above the toolbar.
         {% endcomment %}
         <c-mvp.page.layout class="gap-y-0!" only>
           <c-slot name="side">
@@ -36,12 +34,8 @@
               {{ block.super }}
             {% endblock page.side %}
           </c-slot>
-          {% comment %}
-            The region the filter form, the chips, the column headings and the
-            pager swap in place with htmx, as on a list page. display: contents
-            keeps the flex chain the filled layout needs. Each also asks for the
-            filter panel out of band, so its fields show the response's state.
-          {% endcomment %}
+          {# The region swapped as on a list page; display: contents keeps the flex chain the #}
+          {# filled layout needs. #}
           <div id="{{ list_region_id }}" class="contents">
           {% block page.header %}
           {% endblock page.header %}
@@ -77,12 +71,8 @@
                                                 :create_modal_title="create_modal_title" />
               </c-slot>
               {% block page.panel %}
-                {% comment %}
-                  The same filter form as a list page: the toolbar fields, then
-                  the filter panel's button at the end. The filter panel itself
-                  sits beside the table, outside this form. The chips follow it.
-                  A view with no filterset draws no panel.
-                {% endcomment %}
+                {# The list page's filter form: toolbar fields, then the panel's button. The panel #}
+                {# itself sits beside the table, outside the form. #}
                 {% if filter %}
                   <form id="filterForm"
                         method="get"

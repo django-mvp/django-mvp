@@ -956,12 +956,8 @@
   }
 }
 
-/* The header's height, for anything that has to clear it: a sticky element of a
-   project's own, and the browser's scroll to an anchor or a focused field (WCAG
-   2.4.11). assets/js/header_height.js measures the header and writes the real
-   value, 0 when the header does not stick or the page has none; 4rem is the
-   bare navbar row, used until the script has run. :where() gives it no weight,
-   so a project's own :root rule wins. */
+/* The bare navbar row, until assets/js/header_height.js publishes the real height (docs/layout.md).
+   :where() gives it no weight, so a project's own :root rule wins. */
 :where(:root) {
   --mvp-header-height: 4rem;
 }
@@ -970,16 +966,9 @@ html {
   scroll-padding-top: var(--mvp-header-height);
 }
 
-/* The page side panel: <c-mvp.page.side> inside <c-mvp.page.layout>.
-
-   Below its breakpoint the panel is one of two things, set by `collapse`: an
-   off-canvas drawer, or a block stacked beside the content in reading order.
-   A drawer with no <c-mvp.page.side.toggle> on the page is simply not shown. At and
-   above it, `mvp-page-side-wide` (applied with the breakpoint's variant in the
-   template) makes it a column beside the content, sticky under the header.
-
-   The drawer is daisyUI's own, kept inside the panel rather than wrapped
-   around the page, so a page with no side panel renders no drawer at all. */
+/* The page side panel, <c-mvp.page.side>: a drawer or stacked block below its breakpoint, a column
+   from it (docs/layout.md, "Side panel"). The drawer is daisyUI's, kept inside the panel so a page
+   without a panel renders none. */
 .mvp-page-side {
   --mvp-page-side-width: 16rem;
 }
@@ -1059,9 +1048,8 @@ html {
     outline-offset: -2px;
   }
 
-  /* On a filled page (FR-011) the page does not scroll, so the panel is the
-     height of the row it sits in and does not stick; its own content scrolls
-     inside it, with no ceiling but the row. */
+  /* On a filled page (FS-042 FR-011) the page does not scroll, so the panel is the height of its
+     row and does not stick; its own content scrolls. */
   .mvp-page-fill & {
     align-self: stretch;
     min-height: 0;

@@ -20,12 +20,8 @@
       {% row_header_columns table as row_headers %}
       {% block table.thead %}
         {% if table.show_header %}
-          {% comment %}
-            On a table page the column headings sort by swapping the page's
-            list region in place with htmx, and asks for the filter panel out of
-            band. The swap is on the heading row alone, so htmx a project puts
-            in a cell never inherits it.
-          {% endcomment %}
+          {# The swap sits on the heading row alone, so htmx a project puts in a cell never inherits it. #}
+          {# The filter panel is refreshed out of band (docs/adr/0034-what-sits-beside-the-list-region-is-refreshed-out-of-band.md). #}
           {% with region=table.context.list_region_id panel=table.context.filter_panel_id %}
           <thead {{ table.attrs.thead.as_html }}{% if region %} hx-boost="true" hx-target="#{{ region }}" hx-select="#{{ region }}"{% if panel %} hx-select-oob="#{{ panel }}"{% endif %} hx-swap="outerHTML"{% endif %}>
             <tr>

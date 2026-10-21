@@ -1,15 +1,6 @@
-/*
- * Publishes the app header's height as --mvp-header-height on :root.
- *
- * The header's height is not a constant: a tray, a wrapped breadcrumb trail
- * or a project's own `above`/`below` content all change it. Anything that has
- * to clear the header (a sticky page side panel, the browser's scroll to an
- * anchor through scroll-padding-top) reads this one value instead of
- * guessing. A header that does not stick clears nothing, and a page with no
- * header has nothing to clear, so both publish 0.
- *
- * mvp/tailwind/base.css holds the 4rem fallback used until this runs.
- */
+// Publishes the header's height as --mvp-header-height on :root (0 when it does not stick or is
+// absent), so sticky panels and anchor scrolling can clear it. See docs/layout.md "Header height".
+// mvp/tailwind/base.css holds the 4rem fallback used until this runs.
 
 // Module scope so a body swap can drop the observer of the header it removed.
 let observer = null;

@@ -1,22 +1,6 @@
-/*
- * The side panel's drawer — Alpine.data("mvpPageSide") and
- * Alpine.data("mvpPageSideToggle").
- *
- * Registered from assets/js/index.js before Alpine.start(). The markup in
- * mvp/templates/cotton/mvp/page/side/ carries configuration only (the
- * panel's id and the breakpoint in rem); everything the drawer does is here.
- *
- * A drawer panel and its button find each other by id through two window
- * events, so the button can sit anywhere on the page:
- *   mvp-page-side-open     {id, opener}  the button asks a panel to open
- *   mvp-page-side-changed  {id, open}    a panel reports that it opened or closed
- *
- * While the drawer is open every sibling of every ancestor of the panel is
- * made `inert`, which keeps focus and clicks inside the panel without a focus
- * trap. The dimmed overlay is a sibling of the panel and stays live, so a
- * click on it closes the drawer.
- */
-
+// Alpine.data("mvpPageSide") and ("mvpPageSideToggle"), registered in index.js; the markup carries
+// configuration only (docs/adr/0035-behaviour-lives-in-registered-alpine-components.md).
+// The panel and its button find each other by id over these two window events.
 const OPEN_EVENT = "mvp-page-side-open";
 const CHANGED_EVENT = "mvp-page-side-changed";
 

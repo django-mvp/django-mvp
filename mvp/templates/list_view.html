@@ -23,11 +23,8 @@
   </c-mvp.page.title>
 {% endblock page.title %}
 {% block page.side %}
-  {% comment %}
-    The filterset fields the toolbar does not draw, in a side panel. They sit
-    outside the toolbar's form and join it through the form attribute their
-    widgets carry. The panel draws nothing when there are none.
-  {% endcomment %}
+  {# The filterset fields the toolbar does not draw. They join the toolbar's form through the form #}
+  {# attribute their widgets carry; the panel draws nothing when there are none. #}
   <c-mvp.page.list.filters.panel :fields="panel_fields"
                                  :clear_url="clear_panel_url"
                                  :id="filter_panel_id"
@@ -35,29 +32,13 @@
                                  :attrs="filter_panel_attrs" />
 {% endblock page.side %}
 {% block page.content %}
-  {% comment %}
-    Each part of the page is its own block, so a project can replace one and
-    keep the rest: page.toolbar, page.refinements (and inside it
-    page.summary), page.results (and inside it page.empty), and
-    page.pagination.
-
-    The filter form, the chips, the empty state's Clear all and the pager
-    fetch with htmx and swap this region in place. Each carries the swap
-    itself, rather than this region, so htmx a project adds to a result never
-    inherits it. Each also asks for the filter panel out of band
-    (hx-select-oob), so its fields and Clear link show the response's state.
-  {% endcomment %}
+  {# Blocks: page.toolbar, page.refinements (page.summary), page.results (page.empty), page.pagination. #}
+  {# Each control carries its own swap, not this region; the panel is refreshed out of band (docs/adr/0034-what-sits-beside-the-list-region-is-refreshed-out-of-band.md). #}
   <div id="{{ list_region_id }}" class="contents">
     <div class="flex flex-col gap-4 mt-3">
       {% block page.toolbar %}
-        {% comment %}
-          One form holds the toolbar's fields. It is display: contents, so its
-          fields sit in the toolbar's row as if it were not there. The filter
-          panel is outside it and joins it through the form attribute. The
-          panel button only opens the panel, so it sits outside the form, kept
-          together with Add at the end of the row; Add's create dialog is never
-          inside the filter form. A view with no filterset draws no form at all.
-        {% endcomment %}
+        {# The form is display: contents. The panel button and Add sit outside it, so Add's create #}
+        {# dialog is never inside the filter form. A view with no filterset draws no form. #}
         <c-mvp.page.list.toolbar :result_count="result_count"
                                  :refinements="refinements"
                                  bare>

@@ -6,17 +6,8 @@
 {% load mvp %}
 <c-vars class />
 {% if side|slot_is_empty is False %}
-  {% comment %}
-    A column below the panel's breakpoint and a grid from it. The grid's
-    areas come from the panel's own data attributes (position and align), in
-    mvp/tailwind/base.css, so this template needs no knowledge of them.
-
-    The title always comes first in the document, so the page's h1 comes
-    before the panel's heading. The panel then comes before the content when
-    it is drawn at the start, after it when at the end, so the reading and tab
-    order follow what the reader sees, and a stacked panel lands on the
-    matching side of the content.
-  {% endcomment %}
+  {# The grid areas come from the panel's own data attributes, in mvp/tailwind/base.css. Title first, #}
+  {# then the panel before or after the content by position, so reading and tab order follow the eye. #}
   <div class="mvp-page-layout flex flex-col gap-3 {{ class }}" {{ attrs }}>
     {% if header|slot_is_empty is False %}<div class="mvp-page-header">{{ header }}</div>{% endif %}
     {% if side|root_attr:"data-mvp-side-position" == "start" %}{{ side }}{% endif %}

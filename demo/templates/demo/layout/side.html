@@ -1,8 +1,6 @@
 {% extends "page_view.html" %}
 {% comment %}
-  A documentation page with an "On this page" panel. The form at the top
-  switches the panel between its options through the query string, so each
-  combination is one link away.
+  An "On this page" panel; the form at the top picks its options through the query string.
 {% endcomment %}
 {% block page.actions %}
   {% if side.toggle %}<c-mvp.page.side.toggle text="Contents" icon="list" />{% endif %}

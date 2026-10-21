@@ -27,9 +27,7 @@
      {{ attrs }}>
   {% if collapse == "drawer" %}
     {% comment %}
-      The checkbox only carries the open state for daisyUI's selectors. It is
-      out of the tab order: the opener is a real button wherever the page puts
-      it, and focus moves into the panel and back again in script.
+      The checkbox only carries the open state for daisyUI's selectors; the opener is a real button.
     {% endcomment %}
     <div class="drawer {% if position == "start" %}drawer-start{% else %}drawer-end{% endif %} {% if breakpoint == "lg" %}lg:drawer-open{% elif breakpoint == "xl" %}xl:drawer-open{% elif breakpoint == "2xl" %}2xl:drawer-open{% endif %}">
       <input id="{{ id }}-toggle"

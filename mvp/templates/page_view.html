@@ -17,10 +17,7 @@
       {% block page.content-wrapper %}
         <c-mvp.page.content center gap=3 class="pt-4 md:pt-8 pb-4" only>
           {% comment %}
-            `page.side` takes a <c-mvp.page.side>. Its `align` sets whether it
-            starts level with the title or with the content. Left empty,
-            page.layout draws the title and content alone, exactly as a page
-            without one always was.
+            `page.side` takes a <c-mvp.page.side>; left empty, page.layout draws the title and content alone.
           {% endcomment %}
           <c-mvp.page.layout only>
             <c-slot name="side">
@@ -29,11 +26,8 @@
             </c-slot>
             <c-slot name="header">
               {% block page.title %}
-                {% comment %}
-                  Named one at a time, not spread from `page`: the title block
-                  writes every attribute onto its root, and `page` also carries
-                  the breadcrumb trail and page class, already placed elsewhere.
-                {% endcomment %}
+                {# Named one at a time: the title block writes every attribute onto its root, and #}
+                {# `page` also carries the breadcrumb trail and page class, placed elsewhere. #}
                 <c-mvp.page.title :title="page.title"
                               :subtitle="page.subtitle"
                               :info="page.info"
