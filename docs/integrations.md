@@ -59,7 +59,7 @@ the toolbar closed keeps it closed. While a search or filter is applied, the bar
 how many, open or closed, so a closed toolbar never hides that the table is a subset.
 
 The button closes the filter form and the applied filters only. The Filters button, the add
-button and anything in `page.actions` move up into the bar, before the button, so they are
+button and the rest of `page.actions` move up into the bar, before the button, so they are
 there with the panel closed and the button stays where it was. A view with no filterset has
 no panel and no button to open one, and its controls sit in the bar.
 
@@ -103,8 +103,8 @@ Each part of the toolbar is a block in `table_view.html`:
 | `page.toolbar` | The whole toolbar |
 | `page.title` | The start of the bar: the heading, the info icon, the count and the subtitle |
 | `page.summary` | The count, inside `page.title` |
-| `page.controls` | The end of the toolbar row: the Filters button, `page.actions` and the add button. Shown with the panel closed |
-| `page.actions` | Empty. Anything here is drawn in `page.controls`, after the Filters button and before the add button |
+| `page.controls` | The end of the toolbar row: the Filters button, then `page.actions`. Shown with the panel closed |
+| `page.actions` | The add button, inside `page.controls`. Write `{{ block.super }}` to keep it |
 | `page.panel` | The part of the toolbar the button closes: the filter form and the applied search and filters |
 | `page.filters` | The filter form, inside `page.panel` |
 | `page.side` | The filter panel beside the table. Drawn from the view's `panel_fields`; empty when every field is in the toolbar |
@@ -116,13 +116,14 @@ Each part of the toolbar is a block in `table_view.html`:
 {% extends "table_view.html" %}
 {% block page.actions %}
   <c-button icon="export" text="Export" href="{% url 'product-export' %}" />
+  {{ block.super }}
 {% endblock page.actions %}
 ```
 
-`page.filters`, `page.controls` and `page.actions` are the same blocks, holding the same
-controls in the same order, as on a list page, so one override serves both. To put
-something after the add button, override `page.controls` and write `{{ block.super }}`
-first.
+`{{ block.super }}` is the add button, so where you write it decides where it goes: before
+your own actions, after them, or nowhere if you leave it out. `page.filters`,
+`page.controls` and `page.actions` are the same blocks, holding the same controls in the
+same order, as on a list page, so one override serves both.
 
 ### Actions and sorting
 

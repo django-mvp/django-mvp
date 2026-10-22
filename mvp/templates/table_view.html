@@ -63,7 +63,7 @@
                 {% endblock page.title %}
               </c-slot>
               <c-slot name="controls">
-                {# The same controls as a list page, in its order, and Add last. #}
+                {# The same controls as a list page, in its order. page.actions holds Add. #}
                 {% block page.controls %}
                   {% if panel_fields %}
                     <c-mvp.page.side.toggle :for="filter_panel_id"
@@ -72,10 +72,10 @@
                                             :count="panel_applied_count" />
                   {% endif %}
                   {% block page.actions %}
+                    <c-mvp.page.list.actions.create :directory="directory"
+                                                    :create_form="create_form"
+                                                    :create_modal_title="create_modal_title" />
                   {% endblock page.actions %}
-                  <c-mvp.page.list.actions.create :directory="directory"
-                                                  :create_form="create_form"
-                                                  :create_modal_title="create_modal_title" />
                 {% endblock page.controls %}
               </c-slot>
               {% block page.panel %}

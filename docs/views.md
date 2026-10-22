@@ -574,8 +574,8 @@ Every part of the list template is a block, so a project template that extends
 | `page.side` | The filter panel, beside the results. Empty when every field is in the toolbar |
 | `page.toolbar` | The whole toolbar row: the filter form, then `page.controls` |
 | `page.filters` | The filter form with the toolbar's fields, inside `page.toolbar` |
-| `page.controls` | The end of the toolbar row: sort, the Filters button, `page.actions` and the add button |
-| `page.actions` | Empty. Anything here is drawn in `page.controls`, before the add button |
+| `page.controls` | The end of the toolbar row: sort, the Filters button, then `page.actions` |
+| `page.actions` | The add button, inside `page.controls`. Write `{{ block.super }}` to keep it |
 | `page.refinements` | The count row: the count, the chosen sort and the applied search and filters |
 | `page.summary` | The count, inside `page.refinements` |
 | `page.results` | The grid of records |
@@ -586,12 +586,13 @@ Every part of the list template is a block, so a project template that extends
 {% extends "list_view.html" %}
 {% block page.actions %}
   <c-button icon="download" text="Export" href="{% url 'product-export' %}" />
+  {{ block.super }}
 {% endblock page.actions %}
 ```
 
-The add button is always the last control. To put something after it, override
-`page.controls` and write `{{ block.super }}` first. A table page has the same three
-toolbar blocks, so an override written for one serves the other.
+`{{ block.super }}` is the add button, so where you write it decides where it goes: before
+your own actions, after them, or nowhere if you leave it out. A table page has the same
+three toolbar blocks, so an override written for one serves the other.
 
 The toolbar is drawn only when the list has records or something is applied, and
 `page.actions` is drawn with it. A list with no records shows the empty state instead,

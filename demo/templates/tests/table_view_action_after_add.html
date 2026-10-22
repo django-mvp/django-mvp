@@ -1,0 +1,5 @@
+{% extends "table_view.html" %}
+{% comment %}
+  A project keeping the add button and putting its own action after it.
+{% endcomment %}
+{% block page.actions %}{{ block.super }}<a id="after-add" href="#">Import</a>{% endblock page.actions %}

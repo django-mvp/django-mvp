@@ -13,10 +13,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   button moves out of the bar to the end of the row under it, after the Filters button, as
   on a list page, and the Filters button moves out of the filter form beside it. The button
   now closes only the filter form and the applied filters, and the controls move up into
-  the bar while it is closed. On a list page, `page.actions` moves from the title row into the toolbar,
-  before the add button, as it already was on a table page; a list with no records and
-  nothing applied draws no toolbar, so it draws no `page.actions` either. A project that
-  filled `page.actions` sees its buttons move. A table page that overrode `page.panel`
+  the bar while it is closed. On both pages `page.actions` holds the add button, at the end of the
+  toolbar row; on a list page it moves there from the title row. A project that filled
+  `page.actions` sees its buttons move, and loses the add button unless it writes
+  `{{ block.super }}`. A list with no records and nothing applied draws no toolbar, so it
+  draws no `page.actions` either. A table page that overrode `page.panel`
   now gets the Filters button outside its override (#579).
 - `<c-mvp.page.table.toolbar>` has a `controls` slot, drawn at the end of the panel's row,
   and in the bar while the panel is closed.
@@ -25,9 +26,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Two template blocks inside `page.toolbar`, on list and table pages alike: `page.filters`,
   the filter form, and `page.controls`, the end of the row with sort (on a list page), the
-  Filters button, `page.actions` and the add button. A project adds a toolbar action by
-  filling `page.actions`, or puts one after the add button by overriding `page.controls`
-  with `{{ block.super }}` first. See "Replacing part of the page" in `docs/views.md`.
+  Filters button and `page.actions`. A project adds a toolbar action by filling
+  `page.actions` and places the add button with `{{ block.super }}`, before or after its
+  own actions. See "Replacing part of the page" in `docs/views.md`.
 
 ## [v0.30.1] - 2026-10-21
 

@@ -3,9 +3,10 @@
 {% comment %}
   A project filling the toolbar for itself. The view names the search and two
   filters for the panel; the rest of the filterset is behind Filters. Two more
-  buttons sit with the controls, before Add, so they stay with the panel closed.
+  buttons join Add in page.actions, so they stay with the panel closed.
 {% endcomment %}
 {% block page.actions %}
   <c-button icon="table" text="Columns" type="button" />
   <c-button icon="export" text="Export" href="#" />
+  {{ block.super }}
 {% endblock page.actions %}
