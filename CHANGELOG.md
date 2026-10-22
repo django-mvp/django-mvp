@@ -21,6 +21,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   now gets the Filters button outside its override (#579).
 - `<c-mvp.page.table.toolbar>` has a `controls` slot, drawn at the end of the panel's row,
   and in the bar while the panel is closed.
+- django-mvp-forms 0.8.0 or later is required. Fieldsets and the forms of a formset are
+  drawn as panels, which can collapse and carry a description, and a Join can hold text
+  between its fields. The packaged stylesheet has the classes the new templates write.
 
 ### Added
 
