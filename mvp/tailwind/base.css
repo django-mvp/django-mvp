@@ -364,8 +364,10 @@
     transition: none;
   }
 
-  /* Inside the fly-out, restore full-width rows with visible labels. */
-  details > ul :is(a, button, summary) {
+  /* Inside the fly-out, restore full-width rows with visible labels.
+     [role="button"] is listed so this matches the specificity of the
+     centring rule above, which otherwise wins and centres every row. */
+  details > ul :is(a, button, summary, [role="button"]) {
     justify-content: flex-start;
 
     > span {

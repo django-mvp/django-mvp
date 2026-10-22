@@ -51,6 +51,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - In the icon rail, a menu group that was left collapsed in the open sidebar opens its
   fly-out on hover and focus, as an expanded one does. It showed nothing before, so its
   items could only be reached by opening the sidebar (#582).
+- In the icon rail, a fly-out's items line up at the start, as they do in the open sidebar.
+  They were centred.
 - Searching or filtering a table page keeps the order a column heading chose. The filter
   form submitted only its own fields and the order went back to the table's default (#558).
 - With `collapse: icons`, a collapsed icon rail taller than the window no longer makes the
