@@ -173,3 +173,45 @@ class TestTheIconRailFitsTheWindow:
         assert box["flyout"]["left"] == pytest.approx(box["item"]["right"], abs=1)
         assert box["flyout"]["top"] == pytest.approx(box["item"]["top"], abs=1)
         assert can_point_at(icon_rail, flyout)
+
+
+class TestACollapsedGroupOpensInTheRail:
+    """A group left collapsed in the open sidebar still opens beside the rail (#582).
+
+    A closed ``<details>`` hides everything but its ``<summary>``, so the rail's
+    fly-out rule gave the list a box and nothing in it could be seen.
+    """
+
+    @pytest.fixture
+    def group(self, icon_rail):
+        icon_rail.evaluate("""
+            () => {
+              const li = [...document.querySelectorAll('.mvp-sidebar nav > ul > li')]
+                .find((li) => li.querySelector(':scope > details'));
+              li.id = 'first-group';
+              li.querySelector('details').open = false;
+            }
+        """)
+        return "#first-group"
+
+    @pytest.mark.parametrize("reach", ["hover", "focus"])
+    def test_its_items_show_beside_the_rail(self, icon_rail, group, reach):
+        summary = f"{group} > details > summary"
+        flyout = f"{group} > details > ul"
+        getattr(icon_rail, reach)(summary)
+
+        assert icon_rail.evaluate(
+            f"document.querySelector('{flyout}').checkVisibility()"
+        )
+        assert icon_rail.evaluate(
+            f"document.querySelector('{group} > details').open"
+        ) is False
+        assert can_point_at(icon_rail, f"{flyout} > li:first-child a")
+
+    def test_its_items_can_be_reached_from_the_keyboard(self, icon_rail, group):
+        icon_rail.focus(f"{group} > details > summary")
+        icon_rail.keyboard.press("Tab")
+
+        assert icon_rail.evaluate(
+            f"document.querySelector('{group} > details > ul').contains(document.activeElement)"
+        )

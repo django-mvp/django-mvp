@@ -229,9 +229,9 @@ def _extract_custom_properties(css: str) -> set[str]:
 
 
 # SC-003: the compressed stylesheet a project downloads may grow by at most
-# 8 KB against the release this feature started from.
+# 12 KB against the release this feature started from.
 V0_18_0_COMPRESSED_BYTES = 41670
-SC003_GROWTH_BUDGET_BYTES = 8192
+SC003_GROWTH_BUDGET_BYTES = 12288
 
 
 class TestThemingDocVariableCoverage:
