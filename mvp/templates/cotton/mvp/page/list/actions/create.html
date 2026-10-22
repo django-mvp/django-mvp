@@ -5,16 +5,23 @@
 {# @prop directory:text | description:"The view's URL directory; the action links to its create_url." #}
 {# @prop create_form:text | description:"A create form; when given, the action opens it in a modal." #}
 {# @prop create_modal_title:text | description:"Heading of the create modal; the label when absent." #}
+{# @prop size:select['xs','sm','md','lg','xl'] | description:"The button's size, DaisyUI's default when left out." #}
+{# @prop compact:boolean | description:"Below sm, draw the icon alone. The label is still the button's name to a screen reader." #}
 <c-vars label="{% trans "Add" %}"
         icon="add"
         directory
         create_form
-        create_modal_title />
+        create_modal_title
+        size
+        compact />
 {% if directory.create_url and create_form %}
-  <c-button text="{{ label }}"
-            icon="{{ icon }}"
+  <c-button icon="{{ icon }}"
             variant="primary"
-            @click="createModal.showModal()" only />
+            size="{{ size }}"
+            class="{% if compact %}max-sm:btn-square{% endif %}"
+            @click="createModal.showModal()" only>
+    <span class="{% if compact %}max-sm:sr-only{% endif %}">{{ label }}</span>
+  </c-button>
   <c-mvp.modal id="createModal"
            title="{{ create_modal_title|default:label }}"
            icon="{{ icon }}"
@@ -36,8 +43,11 @@
     </c-slot>
   </c-mvp.modal>
 {% elif directory.create_url %}
-  <c-button text="{{ label }}"
-            icon="{{ icon }}"
+  <c-button icon="{{ icon }}"
             variant="primary"
-            href="{{ directory.create_url }}" only />
+            size="{{ size }}"
+            class="{% if compact %}max-sm:btn-square{% endif %}"
+            href="{{ directory.create_url }}" only>
+    <span class="{% if compact %}max-sm:sr-only{% endif %}">{{ label }}</span>
+  </c-button>
 {% endif %}

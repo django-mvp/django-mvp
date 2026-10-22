@@ -80,3 +80,37 @@ class TestCreateModalTitle:
         )
 
         assert "New" in soup.get_text()
+
+
+class TestCreateActionSize:
+    """The dense toolbar the docs describe passes ``size`` to the button (#560)."""
+
+    def test_the_modal_button_is_drawn_at_the_size_given(
+        self, cotton_render_string_soup, modal_context
+    ):
+        soup = cotton_render_string_soup(
+            '<c-mvp.page.list.actions.create size="sm" />', context=modal_context
+        )
+        trigger = soup.find("button", attrs={"@click": "createModal.showModal()"})
+
+        assert "btn-sm" in trigger["class"]
+
+    def test_the_link_is_drawn_at_the_size_given(self, cotton_render_string_soup):
+        soup = cotton_render_string_soup(
+            '<c-mvp.page.list.actions.create size="sm" />',
+            context={"directory": {"create_url": "/products/create/"}},
+        )
+
+        assert "btn-sm" in soup.find("a")["class"]
+
+
+class TestCompactCreateAction:
+    def test_the_label_still_names_the_button(
+        self, cotton_render_string_soup, modal_context
+    ):
+        soup = cotton_render_string_soup(
+            "<c-mvp.page.list.actions.create compact />", context=modal_context
+        )
+        trigger = soup.find("button", attrs={"@click": "createModal.showModal()"})
+
+        assert trigger.get_text(strip=True) == "Add"

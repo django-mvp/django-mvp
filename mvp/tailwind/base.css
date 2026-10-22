@@ -260,6 +260,36 @@
 }
 
 .drawer-toggle:not(:checked) ~ .drawer-side .mvp-sidebar--icons {
+  /* A rail taller than the window scrolls on its own instead of making the
+     page taller (#563). A scroll box clips everything drawn against it, so
+     the tooltips and group fly-outs below are drawn against the window and
+     placed beside their item by assets/js/rail.js. Without the script they
+     sit where they would fall in the rail's flow. There is no scrollbar: a
+     4rem column has no room for one beside centred icons. */
+  max-height: 100dvh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: none;
+
+  [data-tip]:not(details ul *) {
+    &::before,
+    &::after {
+      position: fixed;
+      top: var(--mvp-rail-item-middle);
+      right: auto;
+      bottom: auto;
+    }
+
+    /* DaisyUI's tooltip-right offsets, measured from the item's edge. */
+    &::before {
+      left: calc(var(--mvp-rail-item-right) + 0.5rem);
+    }
+
+    &::after {
+      left: calc(var(--mvp-rail-item-right) + 0.25rem + 2px);
+    }
+  }
+
   .menu-title,
   .badge,
   .mvp-rail-hide {
@@ -303,9 +333,9 @@
   }
 
   details > ul {
-    position: absolute;
-    inset-inline-start: 100%;
-    top: 0;
+    position: fixed;
+    inset-inline-start: var(--mvp-rail-item-end);
+    top: var(--mvp-rail-item-top);
     display: none;
     min-width: 14rem;
     margin-inline-start: 0;
@@ -408,6 +438,47 @@
    (#562). Its overflow is hidden then, so the limit clips nothing visible. */
 .mvp-sidebar:not(.mvp-sidebar--icons) {
   max-height: 100dvh;
+}
+
+/* DaisyUI gives the sidebar a translate, for the drawer's slide, and a box
+   with any translate is what a fixed-position element inside it is placed
+   against. The rail's tooltips and fly-outs would then be clipped by the rail
+   again (#563). Where the sidebar is a persistent rail it never slides, so
+   the translate goes, at and above each breakpoint only: below it the closed
+   sidebar is an overlay drawer, and the slide is how it opens. */
+@media (min-width: 640px) {
+  [data-mvp-breakpoint="sm"] > .drawer-toggle:not(:checked) ~ .drawer-side > .mvp-sidebar--icons {
+    translate: none;
+    will-change: auto;
+  }
+}
+
+@media (min-width: 768px) {
+  [data-mvp-breakpoint="md"] > .drawer-toggle:not(:checked) ~ .drawer-side > .mvp-sidebar--icons {
+    translate: none;
+    will-change: auto;
+  }
+}
+
+@media (min-width: 1024px) {
+  [data-mvp-breakpoint="lg"] > .drawer-toggle:not(:checked) ~ .drawer-side > .mvp-sidebar--icons {
+    translate: none;
+    will-change: auto;
+  }
+}
+
+@media (min-width: 1280px) {
+  [data-mvp-breakpoint="xl"] > .drawer-toggle:not(:checked) ~ .drawer-side > .mvp-sidebar--icons {
+    translate: none;
+    will-change: auto;
+  }
+}
+
+@media (min-width: 1536px) {
+  [data-mvp-breakpoint="2xl"] > .drawer-toggle:not(:checked) ~ .drawer-side > .mvp-sidebar--icons {
+    translate: none;
+    will-change: auto;
+  }
 }
 
 /* Touch sizing for the sidebar while it is an overlay drawer, which is how a

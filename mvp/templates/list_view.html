@@ -58,13 +58,15 @@
             {% block page.controls %}
               {% if toolbar_sort %}<c-mvp.page.list.filters.field :field="toolbar_sort" />{% endif %}
               {% if panel_fields %}
-                <c-mvp.page.side.toggle :for="filter_panel_id"
+                <c-mvp.page.side.toggle compact
+                                        :for="filter_panel_id"
                                         text="{% trans "Filters" %}"
                                         icon="filter"
                                         :count="panel_applied_count" />
               {% endif %}
               {% block page.actions %}
-                <c-mvp.page.list.actions.create :directory="directory"
+                <c-mvp.page.list.actions.create compact
+                                                :directory="directory"
                                                 :create_form="create_form"
                                                 :create_modal_title="create_modal_title" />
               {% endblock page.actions %}

@@ -6,7 +6,7 @@ from typing import Any
 
 from django import forms
 from django.core.exceptions import ImproperlyConfigured
-from django.db.models import Model, QuerySet
+from django.db.models import BLANK_CHOICE_DASH, Model, QuerySet
 from django.utils import formats
 from django.utils.cache import patch_vary_headers
 from django.utils.choices import flatten_choices
@@ -148,10 +148,14 @@ class FilterContextMixin:
 
         Returns:
             ``name``, ``label`` and ``kind``, one of ``widget`` (with
-            ``bound``), ``search`` or ``text`` (with ``value``), ``sort`` or
-            ``choice`` (with ``value`` and ``choices``), ``multichoice`` (with
-            ``choices``) or ``toggle`` (with ``checked``). Each choice is
-            ``(key, label, selected)``, without the empty choice.
+            ``bound``), ``search`` or ``text`` (with ``value``), ``sort`` (with
+            ``value`` and ``choices``), ``choice`` (with ``value``, ``choices``
+            and ``empty_label``), ``multichoice`` (with ``choices``) or
+            ``toggle`` (with ``checked``). Each choice is ``(key, label,
+            selected)``, without the empty choice. ``empty_label`` names the
+            item that clears the filter: the filter's own ``empty_label``,
+            "Any" where the filter left it at the default dashes, or ``None``
+            where the filter has no empty choice.
 
         Raises:
             ImproperlyConfigured: The toolbar cannot draw the filter.
@@ -178,12 +182,18 @@ class FilterContextMixin:
         elif isinstance(flt, (MultipleChoiceFilter, ModelMultipleChoiceFilter)):
             chosen = [str(v) for v in value or []]
             item.update(kind="multichoice", choices=self._choices(bound, chosen))
+        elif isinstance(flt, SortFilter):
+            current = "" if value is None else str(value)
+            item.update(
+                kind="sort", value=current, choices=self._choices(bound, [current])
+            )
         elif isinstance(flt, (ChoiceFilter, ModelChoiceFilter)):
             current = "" if value is None else str(value)
             item.update(
-                kind="sort" if isinstance(flt, SortFilter) else "choice",
+                kind="choice",
                 value=current,
                 choices=self._choices(bound, [current]),
+                empty_label=self.empty_choice_label(bound),
             )
         else:
             raise ImproperlyConfigured(
@@ -192,6 +202,27 @@ class FilterContextMixin:
                 "the filter panel."
             )
         return item
+
+    @staticmethod
+    def empty_choice_label(bound: Any) -> str | None:
+        """Return the words for a choice field's empty item, or ``None`` for none.
+
+        The dashes Django and django-filter put on an empty choice by default
+        stand in for words a select box has no room for, so they become "Any".
+
+        Args:
+            bound: The field's bound field.
+
+        Returns:
+            The field's ``empty_label``, "Any" in place of the default dashes,
+            or ``None`` when the field offers no empty choice.
+        """
+        label = getattr(bound.field, "empty_label", "")
+        if label is None:
+            return None
+        if not label or str(label) == BLANK_CHOICE_DASH[0][1]:
+            return str(_("Any"))
+        return str(label)
 
     @staticmethod
     def _choices(bound: Any, chosen: list[str]) -> list[tuple[str, str, bool]]:

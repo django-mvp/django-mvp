@@ -47,6 +47,9 @@ At or above the breakpoint, the navbar toggle collapses the sidebar.
   The brand logo swaps for the brand icon. A collapsible menu group becomes a hover
   fly-out instead of an indented inline list — the disclosure caret has nowhere to
   point at rail width, so the group's items open as a popover beside the icon instead.
+  A rail taller than the window scrolls on its own, with no scrollbar, and the page stays
+  the window's height. Its tooltips and fly-outs are drawn over the page, beside the
+  item, wherever the rail is scrolled to.
 - **`"none"`** — the sidebar does not collapse at or above the breakpoint. The toggle in
   the sidebar header and the navbar's toggle are not drawn there, and the saved
   open/closed state is not consulted, so a visitor who collapsed the sidebar under

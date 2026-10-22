@@ -304,7 +304,7 @@ Each kind of filter has a compact form in the toolbar:
 | --- | --- |
 | `SearchFilter` | A search box with its button, taking the room the row has left |
 | `SortFilter` | A button opening its options; picking one applies it |
-| `ChoiceFilter`, `ModelChoiceFilter` | A button opening the choices, with "Any" first; picking one applies it |
+| `ChoiceFilter`, `ModelChoiceFilter` | A button opening the choices, with the empty choice first; picking one applies it. The empty choice is named by the filter's `empty_label`, or "Any" when that is left at its default dashes. `empty_label=None` leaves it out |
 | `MultipleChoiceFilter`, `ModelMultipleChoiceFilter` | A button opening a list of checkboxes; the list applies when it closes with a changed choice |
 | `BooleanFilter` | A switch that applies when flipped |
 | `CharFilter` | A text box |
@@ -348,6 +348,7 @@ Every dict carries `name`, `label` and `kind`. The package's kinds add:
 | --- | --- |
 | `search`, `text` | `value`, the value the request sent |
 | `sort`, `choice` | `value`, and `choices` as `(key, label, selected)` without the empty choice |
+| `choice` | also `empty_label`, the words for the empty choice, or `None` for no empty choice |
 | `multichoice` | `choices` as `(key, label, selected)` |
 | `toggle` | `checked` |
 | `widget` | `bound`, the field's bound field |
@@ -605,7 +606,23 @@ attribute; the Filters button only opens the panel and may sit anywhere. Give yo
 [Updating in place](#updating-in-place) to keep it updating without a page load.
 
 The toolbar's controls are drawn at DaisyUI's default size. For a denser page, override
-`page.toolbar` or `page.controls` and pass `size="sm"` to the controls you draw.
+`page.filters` and `page.controls` and pass `size="sm"` to the controls you draw:
+`<c-mvp.page.list.filters.field>`, `<c-mvp.page.side.toggle>` and
+`<c-mvp.page.list.actions.create>` all take it.
+
+```django
+{% block page.filters %}
+  <form id="filterForm" method="get" action="." class="contents">
+    {% for field in toolbar_fields %}
+      <c-mvp.page.list.filters.field :field="field" size="sm" />
+    {% endfor %}
+  </form>
+{% endblock page.filters %}
+```
+
+On a phone the sort, Filters and add buttons are drawn as their icons alone, below `sm`,
+and the controls sit closer together. The Filters button keeps its count of applied
+filters. A screen reader still names each by its label.
 
 There are two empty states. A list with no records shows the heading and message below,
 with an "Add new" button that opens the inline create dialog when the page has one. A
