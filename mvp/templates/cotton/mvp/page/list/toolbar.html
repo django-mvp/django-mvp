@@ -12,8 +12,10 @@
   {% comment %}
     One source order at every width: search, count, controls. Below md the
     search takes the whole first row and the other two share the second.
+    Below sm the controls sit closer, so a phone fits two filters, the sort
+    and the add button on that row.
   {% endcomment %}
-  <div class="mvp-list-toolbar flex flex-wrap items-center gap-x-3 gap-y-3 w-full {{ class }}"
+  <div class="mvp-list-toolbar flex flex-wrap items-center gap-x-2 sm:gap-x-3 gap-y-3 w-full {{ class }}"
        {{ attrs }}>
     {% if bare %}
       {{ slot }}

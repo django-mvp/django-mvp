@@ -3,17 +3,20 @@
 {# @prop text:text | required | description:"The button's label, one or two words: Filters, Contents." #}
 {# @prop icon:text | default:"sidebar-right" | description:"Icon name drawn before the label." #}
 {# @prop count:number | description:"How many of the panel's filters are applied, drawn as a badge when above zero." #}
+{# @prop size:select['xs','sm','md','lg','xl'] | description:"Button size, DaisyUI's default when left out." #}
+{# @prop compact:boolean | description:"Below sm, draw the icon and the count alone. The label is still the button's name to a screen reader." #}
 {# @prop class:text | description:"Extra classes on the button." #}
-<c-vars for="page-side" text icon="sidebar-right" count class />
+{% load mvp %}
+<c-vars for="page-side" text icon="sidebar-right" count size compact class />
 <button type="button"
-        class="btn mvp-page-side-toggle {{ class }}"
+        class="btn {% variation size "btn" "xs,sm,md,lg,xl" %}{% if compact and not count > 0 %} max-sm:btn-square{% endif %} mvp-page-side-toggle {{ class }}"
         aria-controls="{{ for }}"
         aria-expanded="false"
         x-data="mvpPageSideToggle('{{ for|escapejs }}')"
         :aria-expanded="expanded"
         @click="open()"
         {{ attrs }}>
-  {% if icon %}<c-icon :name="icon" />{% endif %}
-  {{ text }}
+  {% if icon %}<c-icon :name="icon" aria-hidden="true" />{% endif %}
+  {% if compact %}<span class="max-sm:sr-only">{{ text }}</span>{% else %}{{ text }}{% endif %}
   {% if count > 0 %}<span class="badge badge-secondary badge-sm">{{ count }}</span>{% endif %}
 </button>

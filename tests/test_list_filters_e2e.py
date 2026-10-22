@@ -595,3 +595,101 @@ class TestTheListUpdatesInPlace:
 
         page.wait_for_url(lambda url: "sort=" in url)
         assert _same_document(page)
+
+    def test_a_search_keeps_the_column_sort(self, page, live_server, products):
+        """The headings write the order and the search keeps it (#558)."""
+        _open(page, live_server, f"{TABLE_PAGE}?sort=name")
+
+        field = page.locator("#filterForm input[name=q]")
+        field.fill("a")
+        field.press("Enter")
+
+        _wait_for_query(page, {"sort": ["name"], "q": ["a"]})
+
+
+class PhoneToolbarFilter(django_filters.FilterSet):
+    """Two choice filters and a sort, every one of them in the toolbar (#560)."""
+
+    q = ProductFilter.base_filters["q"]
+    category = django_filters.ModelChoiceFilter(
+        queryset=Category.objects.order_by("name"), label="Category"
+    )
+    status = django_filters.ChoiceFilter(choices=Product.STATUS_CHOICES, label="Status")
+    o = ProductFilter.base_filters["o"]
+
+    class Meta:
+        model = Product
+        fields: list[str] = []
+
+
+class PhoneToolbarListView(ProductListView):
+    filterset_class = PhoneToolbarFilter
+    toolbar_filters = ["q", "category", "status", "o"]
+
+
+PHONE_TOOLBAR_PAGE = "/phone-toolbar/"
+PHONE_TOOLBAR_URLCONF = urlconf_of(
+    path(PHONE_TOOLBAR_PAGE.strip("/") + "/", PhoneToolbarListView.as_view()),
+    *demo_patterns,
+)
+
+
+@pytest.mark.urls(PHONE_TOOLBAR_URLCONF)
+class TestTheToolbarOnAPhone:
+    def test_two_filters_sort_and_add_share_the_row_under_the_search(
+        self, page, live_server, products
+    ):
+        page.set_viewport_size({"width": 375, "height": 800})
+        page.goto(f"{live_server.url}{PHONE_TOOLBAR_PAGE}")
+        page.wait_for_load_state("networkidle")
+
+        toolbar = page.locator(".mvp-list-toolbar")
+        search = toolbar.locator("input[name=q]").bounding_box()
+        controls = [
+            toolbar.get_by_role("button", name=name, exact=True).bounding_box()
+            for name in ("Category", "Status", "Sort", "Add")
+        ]
+
+        assert len({round(box["y"]) for box in controls}) == 1, controls
+        assert controls[0]["y"] > search["y"]
+
+
+class PhoneToolbarPanelListView(ProductListView):
+    """One choice filter and the sort in the toolbar, the category in the panel."""
+
+    filterset_class = PhoneToolbarFilter
+    toolbar_filters = ["q", "status", "o"]
+
+
+PHONE_TOOLBAR_PANEL_PAGE = "/phone-toolbar-panel/"
+PHONE_TOOLBAR_PANEL_URLCONF = urlconf_of(
+    path(
+        PHONE_TOOLBAR_PANEL_PAGE.strip("/") + "/", PhoneToolbarPanelListView.as_view()
+    ),
+    *demo_patterns,
+)
+
+
+@pytest.mark.urls(PHONE_TOOLBAR_PANEL_URLCONF)
+class TestTheFiltersButtonOnAPhone:
+    def _filters_button(self, page, live_server, query=""):
+        page.set_viewport_size({"width": 375, "height": 800})
+        page.goto(f"{live_server.url}{PHONE_TOOLBAR_PANEL_PAGE}{query}")
+        page.wait_for_load_state("networkidle")
+        return page.locator(".mvp-list-toolbar .mvp-page-side-toggle")
+
+    def test_it_is_drawn_as_its_icon_alone(self, page, live_server, products):
+        button = self._filters_button(page, live_server)
+
+        box = button.bounding_box()
+        assert box["width"] == pytest.approx(box["height"], abs=1)
+        expect(button).to_have_accessible_name("Filters")
+
+    def test_it_still_shows_how_many_filters_are_applied(
+        self, page, live_server, products
+    ):
+        category = CategoryFactory()
+        button = self._filters_button(page, live_server, f"?category={category.pk}")
+
+        expect(button.locator(".badge")).to_be_visible()
+        expect(button.locator(".badge")).to_have_text("1")

@@ -24,6 +24,14 @@ class FieldProductFilter(django_filters.FilterSet):
     q = SearchFilter(fields=["name"])
     name = django_filters.CharFilter(lookup_expr="icontains")
     status = django_filters.ChoiceFilter(choices=Product.STATUS_CHOICES)
+    # Whose empty value means something of the filter's own, so it offers no empty item.
+    stage = django_filters.ChoiceFilter(
+        field_name="status", choices=Product.STATUS_CHOICES, empty_label=None
+    )
+    # Whose empty item the filter names itself.
+    phase = django_filters.ChoiceFilter(
+        field_name="status", choices=Product.STATUS_CHOICES, empty_label="Every status"
+    )
     is_featured = django_filters.BooleanFilter()
     statuses = django_filters.MultipleChoiceFilter(
         field_name="status", choices=Product.STATUS_CHOICES
@@ -212,3 +220,62 @@ class TestToolbarFieldDevelopersWidget:
         soup = render(_field("shelf"))
 
         assert len(soup.find_all(attrs={"name": "shelf"})) == 1
+
+
+class TestToolbarFieldEmptyChoice:
+    """A choice filter's dropdown follows the filter's own empty choice (#559)."""
+
+    def _items(self, soup):
+        return [li.get_text(" ", strip=True) for li in soup.find_all("li")]
+
+    def test_a_filter_with_no_empty_choice_offers_only_its_choices(self, render, db):
+        items = self._items(render(_field("stage")))
+
+        assert items == [label for _, label in Product.STATUS_CHOICES]
+
+    def test_a_filter_that_names_its_empty_choice_offers_it_first(self, render, db):
+        items = self._items(render(_field("phase")))
+
+        assert items == ["Every status"] + [label for _, label in Product.STATUS_CHOICES]
+
+    def test_a_filter_left_at_the_default_offers_one_empty_item_first(
+        self, render, db
+    ):
+        items = self._items(render(_field("status")))
+
+        assert len(items) == len(Product.STATUS_CHOICES) + 1
+        assert items[1:] == [label for _, label in Product.STATUS_CHOICES]
+
+
+class TestToolbarFieldSize:
+    """A project's dense toolbar passes ``size`` to every control (#560)."""
+
+    @pytest.fixture
+    def render_sized(self, cotton_render_string_soup):
+        def render(field):
+            return cotton_render_string_soup(
+                '<form id="filterForm">'
+                '<c-mvp.page.list.filters.field :field="field" size="sm" />'
+                "</form>",
+                context={"field": field},
+            )
+
+        return render
+
+    @pytest.mark.parametrize("name", ["q", "status", "statuses", "o"])
+    def test_every_button_is_drawn_at_the_size_given(self, render_sized, db, name):
+        buttons = render_sized(_field(name)).find_all(class_="btn")
+
+        assert buttons
+        assert all("btn-sm" in button["class"] for button in buttons)
+
+    @pytest.mark.parametrize("name", ["q", "name"])
+    def test_a_text_box_is_drawn_at_the_size_given(self, render_sized, db, name):
+        box = render_sized(_field(name)).find(class_="input")
+
+        assert "input-sm" in box["class"]
+
+    def test_a_switch_is_drawn_at_the_size_given(self, render_sized, db):
+        switch = render_sized(_field("is_featured")).find("input", attrs={"name": "is_featured"})
+
+        assert "toggle-sm" in switch["class"]

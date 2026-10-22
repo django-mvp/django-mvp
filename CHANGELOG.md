@@ -21,6 +21,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   now gets the Filters button outside its override (#579).
 - `<c-mvp.page.table.toolbar>` has a `controls` slot, drawn at the end of the panel's row,
   and in the bar while the panel is closed.
+- On a phone, below `sm`, the toolbar's sort, Filters and add buttons are drawn as their
+  icons alone, the Filters button keeping its count, and the list toolbar's controls sit
+  closer together, so two filters, the sort and the add button
+  share the row under the search (#560).
+- A toolbar choice filter's empty item follows the filter's own `empty_label`: its words
+  in place of "Any", and no empty item at all for `empty_label=None`. The default dashes
+  still read "Any". A `get_toolbar_field()` override that returns its own `choice` dict
+  needs an `empty_label` key to keep the empty item (#559).
 
 ### Added
 
@@ -29,6 +37,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Filters button and `page.actions`. A project adds a toolbar action by filling
   `page.actions` and places the add button with `{{ block.super }}`, before or after its
   own actions. See "Replacing part of the page" in `docs/views.md`.
+- A `size` attribute on `<c-mvp.page.list.filters.field>`, `<c-mvp.page.side.toggle>` and
+  `<c-mvp.page.list.actions.create>`, so the denser toolbar v0.29.0 described can be drawn:
+  the three took no size before. `<c-mvp.page.side.toggle>` and
+  `<c-mvp.page.list.actions.create>` also take `compact` (#560).
+- `table_sort` in a table page's context: the order the column headings chose, or `""`.
+
+### Fixed
+
+- Searching or filtering a table page keeps the order a column heading chose. The filter
+  form submitted only its own fields and the order went back to the table's default (#558).
+- With `collapse: icons`, a collapsed icon rail taller than the window no longer makes the
+  page scroll. The rail scrolls on its own, and its tooltips and group fly-outs are drawn
+  beside their item wherever it is scrolled to (#563).
 
 ## [v0.30.1] - 2026-10-21
 

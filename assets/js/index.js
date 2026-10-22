@@ -25,6 +25,7 @@ import { startHeaderHeight } from "./header_height.js";
 import { registerLayoutStore } from "./layout.js";
 import { registerPageSide } from "./page_side.js";
 import { registerPageSideColumn } from "./page_side_column.js";
+import { startRail } from "./rail.js";
 import { startThemeColor } from "./theme_color.js";
 
 // htmx reads hx-* attributes off the DOM itself; the global is what its own
@@ -46,6 +47,9 @@ startThemeColor();
 
 // Deferred, so the header is already parsed. See header_height.js.
 startHeaderHeight();
+
+// Keeps the icon rail's tooltips and fly-outs beside their item. See rail.js.
+startRail();
 
 // theme-change can't notice controls added after it runs, and a boosted
 // navigation swaps the body for identical markup with no listeners: the
