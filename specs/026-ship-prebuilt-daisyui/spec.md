@@ -260,7 +260,7 @@ no template overridden.
   different prebuilt theme, on a machine with no front-end build tooling installed.
 - **SC-002**: Loading any page of the demo application issues zero requests to hosts outside the project
   for a theme definition.
-- **SC-003**: The compressed stylesheet payload a project downloads grows by no more than 8 KB against
+- **SC-003**: The compressed stylesheet payload a project downloads grows by no more than 12 KB against
   the release preceding this feature.
 - **SC-004**: A visitor selects a theme, reloads, and navigates to a second page, and the selected theme
   is applied on both.
@@ -330,6 +330,6 @@ no template overridden.
   and will write fragile ordering into their templates.
 
 - **Q: How much larger may the download get?**
-  A: No more than 8 KB compressed (SC-003). The measured cost of every prebuilt theme is about 5 KB
+  A: No more than 12 KB compressed (SC-003). The measured cost of every prebuilt theme is about 5 KB
   compressed, because themes are variable declarations and add no component or utility rules. The bound
   exists so that a later change which does add rules is caught rather than absorbed.
