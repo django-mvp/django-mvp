@@ -393,6 +393,40 @@ class TestDocumentedClassesMatchShipped:
         )
 
 
+class TestTheFilterFormKeepsTheColumnSort:
+    """Searching or filtering keeps the order a column heading chose (#558)."""
+
+    def _sort_inputs(self, html, name="sort"):
+        form = _beautiful_soup()(html, "html.parser").find("form", id="filterForm")
+        return form.find_all("input", attrs={"type": "hidden", "name": name})
+
+    @pytest.mark.django_db
+    def test_the_form_submits_the_sort_in_use(self, rf, product):
+        inputs = self._sort_inputs(_render_table_view(rf, query="?sort=-name"))
+
+        assert [i["value"] for i in inputs] == ["-name"]
+
+    @pytest.mark.django_db
+    def test_the_form_adds_no_sort_when_none_is_chosen(self, rf, product):
+        assert self._sort_inputs(_render_table_view(rf)) == []
+
+    @pytest.mark.django_db
+    def test_the_sort_goes_under_the_tables_own_parameter(self, rf, product):
+        pytest.importorskip("django_tables2")
+        from demo.tables import ProductTable
+
+        class PrefixedTable(ProductTable):
+            class Meta(ProductTable.Meta):
+                prefix = "products-"
+
+        html = _render_table_view(
+            rf, table_class=PrefixedTable, query="?products-sort=price"
+        )
+
+        inputs = self._sort_inputs(html, name="products-sort")
+        assert [i["value"] for i in inputs] == ["price"]
+
+
 class TestColumnBehaviourDemoPage:
     @pytest.mark.django_db
     def test_renders_200(self, client, product):

@@ -64,7 +64,8 @@
                                         :count="panel_applied_count" />
               {% endif %}
               {% block page.actions %}
-                <c-mvp.page.list.actions.create :directory="directory"
+                <c-mvp.page.list.actions.create compact
+                                                :directory="directory"
                                                 :create_form="create_form"
                                                 :create_modal_title="create_modal_title" />
               {% endblock page.actions %}

@@ -72,7 +72,8 @@
                                             :count="panel_applied_count" />
                   {% endif %}
                   {% block page.actions %}
-                    <c-mvp.page.list.actions.create :directory="directory"
+                    <c-mvp.page.list.actions.create compact
+                                                :directory="directory"
                                                     :create_form="create_form"
                                                     :create_modal_title="create_modal_title" />
                   {% endblock page.actions %}
@@ -93,6 +94,10 @@
                           hx-swap="outerHTML">
                       {# Enter in a text field submits only through a submit button, and some forms have none. #}
                       <button type="submit" hidden tabindex="-1" aria-hidden="true"></button>
+                      {# The column headings write the order; the form keeps it when it submits. #}
+                      {% if table_sort %}
+                        <input type="hidden" name="{{ table.prefixed_order_by_field }}" value="{{ table_sort }}">
+                      {% endif %}
                       {% for field in toolbar_fields %}
                         <c-mvp.page.list.filters.field :field="field" />
                       {% endfor %}

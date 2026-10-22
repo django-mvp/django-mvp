@@ -3,10 +3,12 @@
 {# @prop text:text | required | description:"The button's label, one or two words: Filters, Contents." #}
 {# @prop icon:text | default:"sidebar-right" | description:"Icon name drawn before the label." #}
 {# @prop count:number | description:"How many of the panel's filters are applied, drawn as a badge when above zero." #}
+{# @prop size:select['xs','sm','md','lg','xl'] | description:"Button size, DaisyUI's default when left out." #}
 {# @prop class:text | description:"Extra classes on the button." #}
-<c-vars for="page-side" text icon="sidebar-right" count class />
+{% load mvp %}
+<c-vars for="page-side" text icon="sidebar-right" count size class />
 <button type="button"
-        class="btn mvp-page-side-toggle {{ class }}"
+        class="btn {% variation size "btn" "xs,sm,md,lg,xl" %} mvp-page-side-toggle {{ class }}"
         aria-controls="{{ for }}"
         aria-expanded="false"
         x-data="mvpPageSideToggle('{{ for|escapejs }}')"

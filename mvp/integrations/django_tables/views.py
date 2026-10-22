@@ -131,10 +131,18 @@ class MVPTableViewMixin(MVPListViewMixin, SingleTableMixin):
         return filterset
 
     def get_context_data(self, **kwargs):
-        """Republish the table's page under the names the page chrome reads."""
+        """Republish the table's page under the names the page chrome reads.
+
+        Also publishes ``table_sort``, the order the column headings chose for
+        this request, or ``""``. The filter form submits only its own fields,
+        so the page carries the order in it to keep a search or a filter from
+        dropping it.
+        """
         context = super().get_context_data(**kwargs)
+        table = context["table"]
+        context["table_sort"] = self.request.GET.get(table.prefixed_order_by_field, "")
         # A table with pagination turned off has no page, and then neither does the view.
-        page = getattr(context["table"], "page", None)
+        page = getattr(table, "page", None)
         if page is not None:
             context["paginator"] = page.paginator
             context["page_obj"] = page

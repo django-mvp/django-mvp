@@ -243,3 +243,7 @@ class TestSidePanelToggle:
 
     def test_extra_classes_reach_the_button(self):
         assert "extra" in render_toggle('text="Filters" class="extra"')["class"]
+
+    def test_it_is_drawn_at_the_size_given(self):
+        """The dense toolbar the docs describe passes ``size`` to it (#560)."""
+        assert "btn-sm" in render_toggle('text="Filters" size="sm"')["class"]

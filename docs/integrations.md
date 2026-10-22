@@ -155,6 +155,17 @@ class defines, and an ordering on the view as well would give the same table two
 competing sources for it. Put the ordering on the table class, as its own `order_by` or
 `Meta.order_by`.
 
+A search or a filter keeps the order a column heading chose. The filter form carries it,
+under the table's own sort parameter (`sort`, or the table's prefix and `sort`), and the
+view publishes it to the page as `table_sort`, `""` when no heading has been chosen. A
+project that overrides `page.filters` with a form of its own keeps the order the same way:
+
+```django
+{% if table_sort %}
+  <input type="hidden" name="{{ table.prefixed_order_by_field }}" value="{{ table_sort }}">
+{% endif %}
+```
+
 The refusal happens as the class is defined, so a view that declares an ordering fails
 when Django imports the module holding it, naming the class in the message. You find out
 at startup rather than the first time someone opens that page.

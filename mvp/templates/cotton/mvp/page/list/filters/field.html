@@ -1,7 +1,8 @@
 {# @description One filterset field drawn in the list toolbar, in its compact form, by its kind: search, text, toggle, choice, sort, multichoice or a widget the developer chose. Each control is named by its filter's label and never shows the value chosen in it. Must sit inside the filter form; the sort may sit outside it, since its input names the form. #}
-{# @prop field:text | description:"The field as the list view's get_toolbar_field() describes it: kind, name, label and its value, choices, checked state or bound field." #}
+{# @prop field:text | description:"The field as the list view's get_toolbar_field() describes it: kind, name, label and its value, choices, empty label, checked state or bound field." #}
+{# @prop size:select['xs','sm','md','lg','xl'] | description:"Size of the control's buttons and inputs, DaisyUI's default when left out. A developer's own widget keeps its own size." #}
 {% load i18n %}
-<c-vars field />
+<c-vars field size />
 {% if field.kind == "widget" %}
   {% comment %}
     A widget the developer chose, drawn as it is at a fixed width. Whatever
@@ -18,6 +19,7 @@
     <c-join class="w-full" only>
       <c-form.input type="search"
                     name="{{ field.name }}"
+                    size="{{ size }}"
                     class="join-item grow min-w-0"
                     placeholder="{{ field.label }}"
                     value="{{ field.value|default:'' }}"
@@ -27,12 +29,13 @@
           <c-icon name="search" aria-hidden="true" />
         </c-slot>
       </c-form.input>
-      <c-button type="submit" class="join-item" text="{% trans "Search" %}" only />
+      <c-button type="submit" class="join-item" text="{% trans "Search" %}" size="{{ size }}" only />
     </c-join>
   </div>
 {% elif field.kind == "text" %}
   <c-form.input type="text"
                 name="{{ field.name }}"
+                size="{{ size }}"
                 class="w-40"
                 placeholder="{{ field.label }}"
                 value="{{ field.value|default:'' }}"
@@ -42,9 +45,9 @@
   <label class="label gap-2 cursor-pointer text-base-content">
     {# A component's attribute cannot be left out by a condition, so each state is its own call. #}
     {% if field.checked %}
-      <c-form.toggle name="{{ field.name }}" value="true" checked @change="$el.form.requestSubmit()" only />
+      <c-form.toggle name="{{ field.name }}" value="true" size="{{ size }}" checked @change="$el.form.requestSubmit()" only />
     {% else %}
-      <c-form.toggle name="{{ field.name }}" value="true" @change="$el.form.requestSubmit()" only />
+      <c-form.toggle name="{{ field.name }}" value="true" size="{{ size }}" @change="$el.form.requestSubmit()" only />
     {% endif %}
     <span>{{ field.label }}</span>
   </label>
@@ -56,23 +59,25 @@
   <c-mvp.dropdown halign="{% if field.kind == 'sort' %}end{% else %}start{% endif %}"
                   x-data="{ value: '{{ field.value|escapejs }}' }">
     <c-slot name="button">
-      <c-button type="button"
-                tabindex="0"
-                role="button"
-                icon="{% if field.kind == 'sort' %}sort{% endif %}"
-                text="{{ field.label }}"
-                only>
-        {% comment %}
-          The button never shows what is chosen, so it keeps one width. A
-          filter's value is on its chip under the toolbar, and the order in
-          use is named beside the result count.
-        {% endcomment %}
-        {% if field.kind != "sort" %}<c-icon name="chevron-down" class="opacity-60" aria-hidden="true" />{% endif %}
-      </c-button>
+      {% comment %}
+        The button never shows what is chosen, so it keeps one width. A
+        filter's value is on its chip under the toolbar, and the order in
+        use is named beside the result count.
+      {% endcomment %}
+      {% if field.kind == "sort" %}
+        {# Below sm the sort is its icon alone; the label is still its name to a screen reader. #}
+        <c-button type="button" tabindex="0" role="button" icon="sort" size="{{ size }}" class="max-sm:btn-square" only>
+          <span class="max-sm:sr-only">{{ field.label }}</span>
+        </c-button>
+      {% else %}
+        <c-button type="button" tabindex="0" role="button" text="{{ field.label }}" size="{{ size }}" only>
+          <c-icon name="chevron-down" class="opacity-60" aria-hidden="true" />
+        </c-button>
+      {% endif %}
     </c-slot>
     <c-menu class="w-full" only>
-      {% if field.kind != "sort" %}
-        <c-menu.item text="{% trans "Any" %}"
+      {% if field.empty_label %}
+        <c-menu.item text="{{ field.empty_label }}"
                      @click="value = ''; $nextTick(() => document.getElementById('filterForm').requestSubmit())"
                      only>
           {% if not field.value %}<c-icon name="check" class="ms-auto" />{% endif %}
@@ -101,7 +106,7 @@
   {% endcomment %}
   <c-mvp.dropdown data-mvp-toolbar-field="{{ field.name }}">
     <c-slot name="button">
-      <c-button type="button" tabindex="0" role="button" text="{{ field.label }}" only>
+      <c-button type="button" tabindex="0" role="button" text="{{ field.label }}" size="{{ size }}" only>
         <c-icon name="chevron-down" class="opacity-60" aria-hidden="true" />
       </c-button>
     </c-slot>
