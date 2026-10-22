@@ -92,7 +92,6 @@ No entry in Complexity Tracking.
 specs/024-formset-pages/
 ├── spec.md              # Signed off at the Spec gate
 ├── decisions.md         # Self-resolved decisions, from S1 onward
-├── progress.md          # Gate and stage record
 ├── plan.md              # This file
 ├── research.md          # Phase 0
 ├── data-model.md        # Phase 1
