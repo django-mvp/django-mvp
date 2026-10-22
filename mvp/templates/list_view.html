@@ -7,20 +7,12 @@
   {% endif %}
 {% endblock title %}
 {% block page.title %}
-  {% comment %}
-    The title row holds the title, subtitle and info button. page.actions is
-    empty and stays for a page that fills it; Add is in the toolbar below.
-  {% endcomment %}
+  {# The title row holds the title, subtitle and info button. page.actions is in the toolbar below. #}
   <c-mvp.page.title :title="page.title"
                 :subtitle="page.subtitle"
                 :info="page.info"
                 :info_actions="page.info_actions"
-                inline_actions only>
-    <c-slot name="actions">
-      {% block page.actions %}
-      {% endblock page.actions %}
-    </c-slot>
-  </c-mvp.page.title>
+                inline_actions only />
 {% endblock page.title %}
 {% block page.side %}
   {# The filterset fields the toolbar does not draw. They join the toolbar's form through the form #}
@@ -32,7 +24,8 @@
                                  :attrs="filter_panel_attrs" />
 {% endblock page.side %}
 {% block page.content %}
-  {# Blocks: page.toolbar, page.refinements (page.summary), page.results (page.empty), page.pagination. #}
+  {# Blocks: page.toolbar (page.filters, page.controls, page.actions), page.refinements (page.summary), #}
+  {# page.results (page.empty), page.pagination. #}
   {# Each control carries its own swap, not this region; the panel is refreshed out of band (docs/adr/0034-what-sits-beside-the-list-region-is-refreshed-out-of-band.md). #}
   <div id="{{ list_region_id }}" class="contents">
     <div class="flex flex-col gap-4 mt-3">
@@ -42,34 +35,40 @@
         <c-mvp.page.list.toolbar :result_count="result_count"
                                  :refinements="refinements"
                                  bare>
-          {% if filter %}
-            <form id="filterForm"
-                  method="get"
-                  action="."
-                  class="contents"
-                  hx-boost="true"
-                  hx-target="#{{ list_region_id }}"
-                  hx-select="#{{ list_region_id }}"
-                  hx-select-oob="#{{ filter_panel_id }}"
-                  hx-swap="outerHTML">
-              {# Enter in a text field submits only through a submit button, and some forms have none. #}
-              <button type="submit" hidden tabindex="-1" aria-hidden="true"></button>
-              {% for field in toolbar_fields %}
-                <c-mvp.page.list.filters.field :field="field" />
-              {% endfor %}
-            </form>
-          {% endif %}
-          <div class="flex items-center gap-2 ms-auto">
-            {% if toolbar_sort %}<c-mvp.page.list.filters.field :field="toolbar_sort" />{% endif %}
-            {% if panel_fields %}
-              <c-mvp.page.side.toggle :for="filter_panel_id"
-                                      text="{% trans "Filters" %}"
-                                      icon="filter"
-                                      :count="panel_applied_count" />
+          {% block page.filters %}
+            {% if filter %}
+              <form id="filterForm"
+                    method="get"
+                    action="."
+                    class="contents"
+                    hx-boost="true"
+                    hx-target="#{{ list_region_id }}"
+                    hx-select="#{{ list_region_id }}"
+                    hx-select-oob="#{{ filter_panel_id }}"
+                    hx-swap="outerHTML">
+                {# Enter in a text field submits only through a submit button, and some forms have none. #}
+                <button type="submit" hidden tabindex="-1" aria-hidden="true"></button>
+                {% for field in toolbar_fields %}
+                  <c-mvp.page.list.filters.field :field="field" />
+                {% endfor %}
+              </form>
             {% endif %}
-            <c-mvp.page.list.actions.create :directory="directory"
-                                            :create_form="create_form"
-                                            :create_modal_title="create_modal_title" />
+          {% endblock page.filters %}
+          <div class="flex items-center gap-2 ms-auto">
+            {% block page.controls %}
+              {% if toolbar_sort %}<c-mvp.page.list.filters.field :field="toolbar_sort" />{% endif %}
+              {% if panel_fields %}
+                <c-mvp.page.side.toggle :for="filter_panel_id"
+                                        text="{% trans "Filters" %}"
+                                        icon="filter"
+                                        :count="panel_applied_count" />
+              {% endif %}
+              {% block page.actions %}
+                <c-mvp.page.list.actions.create :directory="directory"
+                                                :create_form="create_form"
+                                                :create_modal_title="create_modal_title" />
+              {% endblock page.actions %}
+            {% endblock page.controls %}
           </div>
         </c-mvp.page.list.toolbar>
       {% endblock page.toolbar %}

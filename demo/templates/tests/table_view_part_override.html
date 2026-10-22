@@ -5,5 +5,8 @@
 {% endcomment %}
 {% block page.toolbar %}{% if override == "page.toolbar" %}<div id="override">Override</div>{% else %}{{ block.super }}{% endif %}{% endblock page.toolbar %}
 {% block page.summary %}{% if override == "page.summary" %}<div id="override">Override</div>{% else %}{{ block.super }}{% endif %}{% endblock page.summary %}
+{% block page.controls %}{% if override == "page.controls" %}<div id="override">Override</div>{% else %}{{ block.super }}{% endif %}{% endblock page.controls %}
+{% block page.actions %}{% if override == "page.actions" %}<div id="override">Override</div>{% else %}{{ block.super }}{% endif %}{% endblock page.actions %}
 {% block page.panel %}{% if override == "page.panel" %}<div id="override">Override</div>{% else %}{{ block.super }}{% endif %}{% endblock page.panel %}
+{% block page.filters %}{% if override == "page.filters" %}<div id="override">Override</div>{% else %}{{ block.super }}{% endif %}{% endblock page.filters %}
 {% block page.refinements %}{% if override == "page.refinements" %}<div id="override">Override</div>{% else %}{{ block.super }}{% endif %}{% endblock page.refinements %}

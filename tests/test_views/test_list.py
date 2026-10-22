@@ -924,7 +924,7 @@ class TestListPageToolbar:
         assert soup.find("form", id="createForm").find_parent("form") is None
         assert soup.find("form", id="filterForm").find_parent("form") is None
 
-    def test_a_page_that_fills_page_actions_still_gets_the_add_action(
+    def test_page_actions_is_in_the_toolbar_and_holds_the_add_action(
         self, rf, cat
     ):
         _product(cat, "Lamp")
@@ -936,9 +936,25 @@ class TestListPageToolbar:
             show_create_action=True,
         )
 
-        assert soup.find(id="override") is not None
-        create = soup.find("a", href="/products/create/")
-        assert create.find_parent(class_="mvp-list-toolbar") is not None
+        override = soup.find(id="override")
+        assert override.find_parent(class_="mvp-list-toolbar") is not None
+        assert override.find_parent(class_="page-title") is None
+        assert soup.find("a", href="/products/create/") is None
+
+    def test_a_page_can_keep_the_add_action_and_put_its_own_after_it(
+        self, rf, cat
+    ):
+        _product(cat, "Lamp")
+
+        soup = _list_page(
+            rf,
+            template_name="tests/list_view_action_after_add.html",
+            show_create_action=True,
+        )
+
+        toolbar = soup.find(class_="mvp-list-toolbar")
+        links = [a.get("id") or a["href"] for a in toolbar.find_all("a")]
+        assert links[-2:] == ["/products/create/", "after-add"]
 
     def test_summary_names_one_record_in_the_singular(self, rf, cat):
         _product(cat, "Lamp")
@@ -1421,6 +1437,8 @@ class TestListPageFilterPanel:
 LIST_PAGE_BLOCKS = [
     "page.actions",
     "page.toolbar",
+    "page.filters",
+    "page.controls",
     "page.summary",
     "page.refinements",
     "page.results",

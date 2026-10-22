@@ -39,10 +39,11 @@ with django-tables2 rendering via the `table_view.html` base template and the
 
 The page fills the screen. Three bands stay put and one region scrolls between them:
 
-1. **The toolbar.** A bar with the title, a count of the records and the add button, and
-   a panel under it with the filter form: the filterset fields the view names in
-   `toolbar_filters`, then the Filters button that opens the filter panel with the rest,
-   then the search and filters that are applied. The filter panel itself sits beside the
+1. **The toolbar.** A bar with the title and a count of the records, and a row under it
+   laid out as a list page's toolbar: the filter form with the filterset fields the view
+   names in `toolbar_filters`, then, at the end of the row, the Filters button that opens
+   the filter panel with the rest and the add button. The search and filters that are
+   applied are listed under the filter form. The filter panel itself sits beside the
    table, at the start and level with the table, and scrolls on its own.
 2. **The table.** The rows scroll in a region of their own. The heading row stays at
    the top of it and the footer row, where the table declares one, at the bottom, so
@@ -57,9 +58,10 @@ and opens it again. The choice is remembered in the browser, so a reader who wor
 the toolbar closed keeps it closed. While a search or filter is applied, the bar says
 how many, open or closed, so a closed toolbar never hides that the table is a subset.
 
-The add button stays in the bar, so it is there with the panel closed. A view with
-nothing to put in the panel, no filterset, gets the bar alone,
-with no panel and no button to open one.
+The button closes the filter form and the applied filters only. The Filters button, the add
+button and the rest of `page.actions` move up into the bar, before the button, so they are
+there with the panel closed and the button stays where it was. A view with no filterset has
+no panel and no button to open one, and its controls sit in the bar.
 
 ### Surfaces and edges
 
@@ -101,8 +103,10 @@ Each part of the toolbar is a block in `table_view.html`:
 | `page.toolbar` | The whole toolbar |
 | `page.title` | The start of the bar: the heading, the info icon, the count and the subtitle |
 | `page.summary` | The count, inside `page.title` |
-| `page.actions` | Empty. Anything here is drawn at the end of the bar, before the add button, and stays when the panel is closed |
-| `page.panel` | Everything in the toolbar's panel: the filter form, the Filters button and the applied search and filters |
+| `page.controls` | The end of the toolbar row: the Filters button, then `page.actions`. Shown with the panel closed |
+| `page.actions` | The add button, inside `page.controls`. Write `{{ block.super }}` to keep it |
+| `page.panel` | The part of the toolbar the button closes: the filter form and the applied search and filters |
+| `page.filters` | The filter form, inside `page.panel` |
 | `page.side` | The filter panel beside the table. Drawn from the view's `panel_fields`; empty when every field is in the toolbar |
 | `page.refinements` | The applied search and filters, inside `page.panel` |
 | `page.content` | The table |
@@ -112,8 +116,14 @@ Each part of the toolbar is a block in `table_view.html`:
 {% extends "table_view.html" %}
 {% block page.actions %}
   <c-button icon="export" text="Export" href="{% url 'product-export' %}" />
+  {{ block.super }}
 {% endblock page.actions %}
 ```
+
+`{{ block.super }}` is the add button, so where you write it decides where it goes: before
+your own actions, after them, or nowhere if you leave it out. `page.filters`,
+`page.controls` and `page.actions` are the same blocks, holding the same controls in the
+same order, as on a list page, so one override serves both.
 
 ### Actions and sorting
 
