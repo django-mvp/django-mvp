@@ -85,7 +85,6 @@ specs/027-table-layout-and-column-styling/
 ├── decisions.md
 ├── research.md          # Phase 0
 ├── plan.md              # this file
-├── progress.md
 └── tasks.md             # Phase 2
 ```
 
