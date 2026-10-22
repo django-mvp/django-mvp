@@ -165,9 +165,7 @@ specs/030-development-sign-in/
 ├── decisions.md         # on main; appended to, never restarted
 ├── plan.md              # this file
 ├── research.md          # what was read before planning
-├── tasks.md             # the task list
-├── progress.md          # run log
-└── feature-state.json   # the ledger
+└── tasks.md             # the task list
 ```
 
 No `data-model.md` (no model) and no `contracts/` (no API surface beyond the URLconf, which is

@@ -109,9 +109,7 @@ specs/026-ship-prebuilt-daisyui/
 ├── spec.md          # approved at the Spec gate
 ├── plan.md          # this file
 ├── decisions.md     # D1-D7, the evidence behind the spec's clarifications
-├── progress.md      # stage and gate log
-├── tasks.md         # Phase 2 output
-└── feature-state.json
+└── tasks.md         # Phase 2 output
 ```
 
 No `research.md`, `data-model.md`, `quickstart.md` or `contracts/`: there is no data model, no API

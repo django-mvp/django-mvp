@@ -79,9 +79,7 @@ specs/029-layout-state-store/
 ├── decisions.md
 ├── plan.md            # this file
 ├── research.md        # the three load-bearing unknowns and how they were settled
-├── progress.md
-├── tasks.md
-└── feature-state.json
+└── tasks.md
 ```
 
 ### Source code

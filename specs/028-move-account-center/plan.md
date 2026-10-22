@@ -166,9 +166,7 @@ specs/028-move-account-center/
 ├── research.md          # What reading the code settled
 ├── spec.md              # The approved specification
 ├── decisions.md         # Decisions and their rationale
-├── progress.md          # Stage and gate record
-├── tasks.md             # Task graph
-└── feature-state.json   # Ledger
+└── tasks.md             # Task graph
 ```
 
 ### Source code
