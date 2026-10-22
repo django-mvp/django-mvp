@@ -29,6 +29,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   in place of "Any", and no empty item at all for `empty_label=None`. The default dashes
   still read "Any". A `get_toolbar_field()` override that returns its own `choice` dict
   needs an `empty_label` key to keep the empty item (#559).
+- django-mvp-forms 0.8.0 or later is required. Fieldsets and the forms of a formset are
+  drawn as panels, which can collapse and carry a description, and a Join can hold text
+  between its fields. The packaged stylesheet has the classes the new templates write.
 
 ### Added
 

@@ -35,10 +35,24 @@
 @source inline("group-last/item:hidden");
 @source inline("max-sm:megamenu-vertical");
 
-/* django-mvp-forms' templates are not scanned either, so the one class they
-   write that nothing else here emits is listed. A django-mvp-forms release
-   that writes another fails the coverage test by name. */
+/* django-mvp-forms' templates are not scanned either, so each class they write
+   that nothing else here emits is listed. A django-mvp-forms release that
+   writes another fails the coverage test by name. */
 @source inline("text-wrap");
+@source inline("-translate-x-1/2");
+@source inline("-translate-y-1/2");
+@source inline("[.peer:checked~legend_&]:hidden");
+@source inline("bg-current");
+@source inline("float-left");
+@source inline("gap-1.5");
+@source inline("h-[0.125em]");
+@source inline("left-1/2");
+@source inline("peer");
+@source inline("peer-checked:{float-none,grid,ms-3,px-1,py-2,text-xs,w-auto}");
+@source inline("peer-focus-visible:outline-2");
+@source inline("size-[1cap]");
+@source inline("top-1/2");
+@source inline("w-[0.125em]");
 
 /* Curated Tailwind utility pack (#190, second half): a consuming project
    composes these at template-authoring time, never in this package's own
