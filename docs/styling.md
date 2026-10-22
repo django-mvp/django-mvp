@@ -165,7 +165,8 @@ then this setting, then the package default.
 Which columns are row headers, and how a column with no heading behaves, are
 in [Integrations](integrations.md#django-tables2) with the rest of the table's
 markup. `table-pin-cols` is safelisted in the preset, so it survives both
-tiers the way `table-pin-rows` does.
+tiers. `table-pin-rows` needs no safelist, because the packaged table
+template writes it.
 
 ## Tier 2: build your own stylesheet
 
