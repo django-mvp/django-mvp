@@ -46,7 +46,8 @@ At or above the breakpoint, the navbar toggle collapses the sidebar.
   section titles hide, icons center, and hovering an item shows its label as a tooltip.
   The brand logo swaps for the brand icon. A collapsible menu group becomes a hover
   fly-out instead of an indented inline list — the disclosure caret has nowhere to
-  point at rail width, so the group's items open as a popover beside the icon instead.
+  point at rail width, so the group's items open as a popover beside the icon instead,
+  whether or not the group was expanded in the open sidebar.
   A rail taller than the window scrolls on its own, with no scrollbar, and the page stays
   the window's height. Its tooltips and fly-outs are drawn over the page, beside the
   item, wherever the rail is scrolled to.

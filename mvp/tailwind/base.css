@@ -350,9 +350,18 @@
     display: none;
   }
 
-  li:hover > details > ul,
-  li:focus-within > details > ul {
+  li:is(:hover, :focus-within) > details > ul {
     display: block;
+  }
+
+  /* A closed <details> hides everything but its <summary>, so a group left
+     collapsed in the open sidebar would get a fly-out box with nothing drawn
+     in it (#582). Showing the content without opening the group leaves the
+     state the reader chose in the open sidebar alone. daisyUI animates a
+     group opening in place, which would hold the fly-out back for as long. */
+  li:is(:hover, :focus-within) > details::details-content {
+    content-visibility: visible;
+    transition: none;
   }
 
   /* Inside the fly-out, restore full-width rows with visible labels. */
