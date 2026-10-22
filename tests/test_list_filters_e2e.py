@@ -652,3 +652,44 @@ class TestTheToolbarOnAPhone:
 
         assert len({round(box["y"]) for box in controls}) == 1, controls
         assert controls[0]["y"] > search["y"]
+
+
+class PhoneToolbarPanelListView(ProductListView):
+    """One choice filter and the sort in the toolbar, the category in the panel."""
+
+    filterset_class = PhoneToolbarFilter
+    toolbar_filters = ["q", "status", "o"]
+
+
+PHONE_TOOLBAR_PANEL_PAGE = "/phone-toolbar-panel/"
+PHONE_TOOLBAR_PANEL_URLCONF = urlconf_of(
+    path(
+        PHONE_TOOLBAR_PANEL_PAGE.strip("/") + "/", PhoneToolbarPanelListView.as_view()
+    ),
+    *demo_patterns,
+)
+
+
+@pytest.mark.urls(PHONE_TOOLBAR_PANEL_URLCONF)
+class TestTheFiltersButtonOnAPhone:
+    def _filters_button(self, page, live_server, query=""):
+        page.set_viewport_size({"width": 375, "height": 800})
+        page.goto(f"{live_server.url}{PHONE_TOOLBAR_PANEL_PAGE}{query}")
+        page.wait_for_load_state("networkidle")
+        return page.locator(".mvp-list-toolbar .mvp-page-side-toggle")
+
+    def test_it_is_drawn_as_its_icon_alone(self, page, live_server, products):
+        button = self._filters_button(page, live_server)
+
+        box = button.bounding_box()
+        assert box["width"] == pytest.approx(box["height"], abs=1)
+        expect(button).to_have_accessible_name("Filters")
+
+    def test_it_still_shows_how_many_filters_are_applied(
+        self, page, live_server, products
+    ):
+        category = CategoryFactory()
+        button = self._filters_button(page, live_server, f"?category={category.pk}")
+
+        expect(button.locator(".badge")).to_be_visible()
+        expect(button.locator(".badge")).to_have_text("1")

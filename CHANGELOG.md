@@ -21,8 +21,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   now gets the Filters button outside its override (#579).
 - `<c-mvp.page.table.toolbar>` has a `controls` slot, drawn at the end of the panel's row,
   and in the bar while the panel is closed.
-- On a phone, below `sm`, the list toolbar's sort and add buttons are drawn as their icons
-  alone and the controls sit closer together, so two filters, the sort and the add button
+- On a phone, below `sm`, the toolbar's sort, Filters and add buttons are drawn as their
+  icons alone, the Filters button keeping its count, and the list toolbar's controls sit
+  closer together, so two filters, the sort and the add button
   share the row under the search (#560).
 - A toolbar choice filter's empty item follows the filter's own `empty_label`: its words
   in place of "Any", and no empty item at all for `empty_label=None`. The default dashes
@@ -38,8 +39,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   own actions. See "Replacing part of the page" in `docs/views.md`.
 - A `size` attribute on `<c-mvp.page.list.filters.field>`, `<c-mvp.page.side.toggle>` and
   `<c-mvp.page.list.actions.create>`, so the denser toolbar v0.29.0 described can be drawn:
-  the three took no size before. `<c-mvp.page.list.actions.create>` also takes `compact`
-  (#560).
+  the three took no size before. `<c-mvp.page.side.toggle>` and
+  `<c-mvp.page.list.actions.create>` also take `compact` (#560).
 - `table_sort` in a table page's context: the order the column headings chose, or `""`.
 
 ### Fixed

@@ -58,7 +58,8 @@
             {% block page.controls %}
               {% if toolbar_sort %}<c-mvp.page.list.filters.field :field="toolbar_sort" />{% endif %}
               {% if panel_fields %}
-                <c-mvp.page.side.toggle :for="filter_panel_id"
+                <c-mvp.page.side.toggle compact
+                                        :for="filter_panel_id"
                                         text="{% trans "Filters" %}"
                                         icon="filter"
                                         :count="panel_applied_count" />

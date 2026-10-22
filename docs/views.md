@@ -620,8 +620,9 @@ The toolbar's controls are drawn at DaisyUI's default size. For a denser page, o
 {% endblock page.filters %}
 ```
 
-On a phone the sort and add buttons are drawn as their icons alone, below `sm`, and the
-controls sit closer together. A screen reader still names each by its label.
+On a phone the sort, Filters and add buttons are drawn as their icons alone, below `sm`,
+and the controls sit closer together. The Filters button keeps its count of applied
+filters. A screen reader still names each by its label.
 
 There are two empty states. A list with no records shows the heading and message below,
 with an "Add new" button that opens the inline create dialog when the page has one. A
