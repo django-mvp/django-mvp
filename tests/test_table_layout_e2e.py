@@ -286,6 +286,27 @@ class TestTheToolbarOpensAndCloses:
 
         expect(page.locator("#mvpTableToolbarPanel")).to_be_hidden()
 
+    @pytest.mark.django_db
+    def test_closed_the_controls_move_up_into_the_bar(self, page, live_server):
+        ProductFactory.create_batch(PRODUCT_COUNT)
+        page.set_viewport_size(VIEWPORTS["desktop"])
+        page.goto(f"{live_server.url}{TABLE_PAGE}")
+        toggle = page.locator('[aria-controls="mvpTableToolbarPanel"]')
+        controls = page.locator(".mvp-table-toolbar-controls")
+        middle = "el => { const r = el.getBoundingClientRect(); return r.top + r.height / 2; }"
+        left = "el => el.getBoundingClientRect().left"
+
+        assert controls.evaluate(middle) > toggle.evaluate(middle) + 10
+        toggle_left = toggle.evaluate(left)
+
+        toggle.click()
+
+        expect(toggle).to_have_attribute("aria-expanded", "false")
+        expect(controls).to_be_visible()
+        assert abs(controls.evaluate(middle) - toggle.evaluate(middle)) < 2
+        assert toggle.evaluate(left) == toggle_left, "the toggle stays under the pointer"
+        assert controls.evaluate(left) < toggle_left
+
 
 class TestTheRegionNamesTheEdgesWithCellsUnderThem:
     """The stylesheet shadows a pinned edge only while cells are scrolled under

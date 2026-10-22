@@ -916,7 +916,8 @@ What the shipped views already put in these:
 
 - `list_view.html` fills `page.content` with the toolbar (search, the result count,
   sort, filter and add, in that order), the list and the pagination. Its
-  `page.actions` is empty.
+  `page.actions` is empty and sits in the toolbar, before the add button, not in the
+  title bar.
 - `detail_view.html` fills `page.actions` with edit and delete links and leaves
   `page.content` deliberately empty — that empty block is where your own
   detail template goes.
@@ -967,9 +968,9 @@ and the defaults around it are different:
   drawn above the toolbar. The breadcrumb trail is drawn by the app header.
 - `page.title` is the start of the toolbar's bar: a plain `<h1>`, the info icon, the
   count and the subtitle, in one row.
-- `page.actions` is empty. It sits at the end of the bar, before the add button, and
-  is the place for an action that should stay when the toolbar's panel is closed. The
-  add button is always the last thing in the bar.
+- `page.actions` is empty. It sits at the end of the toolbar row, before the add
+  button, as on a list page, and stays when the toolbar's panel is closed. The add
+  button is always the last control in the row.
 - `page.footer` holds the pager, in a bar pinned below the rows. It is not drawn for
   a single page.
 - The toolbar adds blocks of its own. See

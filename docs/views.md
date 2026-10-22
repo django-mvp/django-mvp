@@ -571,9 +571,11 @@ Every part of the list template is a block, so a project template that extends
 | Block | Holds |
 | --- | --- |
 | `page.title` | The title, subtitle and info icon |
-| `page.actions` | Empty. Anything here is drawn at the end of the title row |
 | `page.side` | The filter panel, beside the results. Empty when every field is in the toolbar |
-| `page.toolbar` | The whole toolbar row: the filter form, the Filters button and the add button |
+| `page.toolbar` | The whole toolbar row: the filter form, then `page.controls` |
+| `page.filters` | The filter form with the toolbar's fields, inside `page.toolbar` |
+| `page.controls` | The end of the toolbar row: sort, the Filters button, `page.actions` and the add button |
+| `page.actions` | Empty. Anything here is drawn in `page.controls`, before the add button |
 | `page.refinements` | The count row: the count, the chosen sort and the applied search and filters |
 | `page.summary` | The count, inside `page.refinements` |
 | `page.results` | The grid of records |
@@ -587,6 +589,14 @@ Every part of the list template is a block, so a project template that extends
 {% endblock page.actions %}
 ```
 
+The add button is always the last control. To put something after it, override
+`page.controls` and write `{{ block.super }}` first. A table page has the same three
+toolbar blocks, so an override written for one serves the other.
+
+The toolbar is drawn only when the list has records or something is applied, and
+`page.actions` is drawn with it. A list with no records shows the empty state instead,
+which has its own add button; a page that wants more there overrides `page.empty`.
+
 Replacing an outer block replaces the blocks inside it: a template that overrides
 `page.toolbar` draws its own filter form and controls, and its own add button if it wants
 one. The filter panel's fields join the filter form, `#filterForm`, through the HTML `form`
@@ -594,7 +604,7 @@ attribute; the Filters button only opens the panel and may sit anywhere. Give yo
 [Updating in place](#updating-in-place) to keep it updating without a page load.
 
 The toolbar's controls are drawn at DaisyUI's default size. For a denser page, override
-`page.toolbar` and pass `size="sm"` to the controls you draw.
+`page.toolbar` or `page.controls` and pass `size="sm"` to the controls you draw.
 
 There are two empty states. A list with no records shows the heading and message below,
 with an "Add new" button that opens the inline create dialog when the page has one. A

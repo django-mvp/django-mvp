@@ -62,41 +62,42 @@
                   {% endif %}
                 {% endblock page.title %}
               </c-slot>
-              <c-slot name="actions">
-                {% block page.actions %}
-                {% endblock page.actions %}
-                {% comment %}Add is always last in the bar, shown with the panel open or closed.{% endcomment %}
-                <c-mvp.page.list.actions.create :directory="directory"
-                                                :create_form="create_form"
-                                                :create_modal_title="create_modal_title" />
+              <c-slot name="controls">
+                {# The same controls as a list page, in its order, and Add last. #}
+                {% block page.controls %}
+                  {% if panel_fields %}
+                    <c-mvp.page.side.toggle :for="filter_panel_id"
+                                            text="{% trans "Filters" %}"
+                                            icon="filter"
+                                            :count="panel_applied_count" />
+                  {% endif %}
+                  {% block page.actions %}
+                  {% endblock page.actions %}
+                  <c-mvp.page.list.actions.create :directory="directory"
+                                                  :create_form="create_form"
+                                                  :create_modal_title="create_modal_title" />
+                {% endblock page.controls %}
               </c-slot>
               {% block page.panel %}
-                {# The list page's filter form: toolbar fields, then the panel's button. The panel #}
-                {# itself sits beside the table, outside the form. #}
+                {# The panel the toggle closes. The filter panel itself sits beside the table. #}
                 {% if filter %}
-                  <form id="filterForm"
-                        method="get"
-                        action="."
-                        class="flex flex-wrap items-center gap-x-3 gap-y-2"
-                        hx-boost="true"
-                        hx-target="#{{ list_region_id }}"
-                        hx-select="#{{ list_region_id }}"
-                        hx-select-oob="#{{ filter_panel_id }}"
-                        hx-swap="outerHTML">
-                    {# Enter in a text field submits only through a submit button, and some forms have none. #}
-                    <button type="submit" hidden tabindex="-1" aria-hidden="true"></button>
-                    {% for field in toolbar_fields %}
-                      <c-mvp.page.list.filters.field :field="field" />
-                    {% endfor %}
-                    {% if panel_fields %}
-                      <div class="flex items-center gap-2 md:ms-auto">
-                        <c-mvp.page.side.toggle :for="filter_panel_id"
-                                                text="{% trans "Filters" %}"
-                                                icon="filter"
-                                                :count="panel_applied_count" />
-                      </div>
-                    {% endif %}
-                  </form>
+                  {% block page.filters %}
+                    <form id="filterForm"
+                          method="get"
+                          action="."
+                          class="flex flex-wrap items-center gap-x-3 gap-y-2"
+                          hx-boost="true"
+                          hx-target="#{{ list_region_id }}"
+                          hx-select="#{{ list_region_id }}"
+                          hx-select-oob="#{{ filter_panel_id }}"
+                          hx-swap="outerHTML">
+                      {# Enter in a text field submits only through a submit button, and some forms have none. #}
+                      <button type="submit" hidden tabindex="-1" aria-hidden="true"></button>
+                      {% for field in toolbar_fields %}
+                        <c-mvp.page.list.filters.field :field="field" />
+                      {% endfor %}
+                    </form>
+                  {% endblock page.filters %}
                   {% block page.refinements %}
                     <c-mvp.page.list.refinements :refinements="refinements"
                                                  :clear_refinements_url="clear_refinements_url"

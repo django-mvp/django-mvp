@@ -146,7 +146,7 @@ confirm it wins.
 
 ### User Story 4 - A reader closes the toolbar to see more rows (Priority: P2)
 
-A reader working down a long table closes the toolbar's panel with the button at the end of its bar. The search box and filter button go, the title, count and add button stay, and the rows take the height. The next table page they open has the panel closed too. If a search or filter is applied, the bar still says so.
+A reader working down a long table closes the toolbar's panel with the button at the end of its bar. The search box and the applied filters go. The title, the count and the Filters and add buttons stay in the bar, and the rows take the height. The next table page they open has the panel closed too. If a search or filter is applied, the bar still says so.
 
 **Why this priority**: The page exists to show rows, and on a phone the panel can take a fifth of the screen. It ranks below the layout itself because the page is complete without it.
 

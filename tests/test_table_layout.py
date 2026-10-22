@@ -719,27 +719,35 @@ class TestTableToolbar:
         assert panel.find(attrs={"name": "q"}) is not None
 
     @pytest.mark.django_db
-    def test_the_add_action_is_in_the_bar_and_stays_when_the_panel_closes(
+    def test_the_add_action_ends_the_toolbar_row_and_stays_when_the_panel_closes(
         self, rf, product
     ):
         soup = _beautiful_soup()(_render_table_view(rf), "html.parser")
 
         create = soup.find("a", href="/products/create/")
-        assert create.find_parent(class_="mvp-table-toolbar-bar") is not None
+        controls = create.find_parent(class_="mvp-table-toolbar-controls")
+        assert controls is not None
+        assert controls.find_all(["a", "button"])[-1] is create
+        assert create.find_parent(class_="mvp-table-toolbar-bar") is None
         assert create.find_parent(id=TOOLBAR_PANEL) is None
 
     @pytest.mark.django_db
-    def test_a_page_that_fills_page_actions_still_gets_the_add_action(
+    def test_a_page_that_fills_page_actions_gets_them_before_the_add_action(
         self, rf, product
     ):
         html = _render_table_view(
-            rf, template_name="tests/table_view_block_override.html"
+            rf,
+            template_name="tests/table_view_part_override.html",
+            extra_context={"override": "page.actions"},
         )
         soup = _beautiful_soup()(html, "html.parser")
 
-        assert soup.find(id="override-actions") is not None
-        create = soup.find("a", href="/products/create/")
-        assert create.find_parent(class_="mvp-table-toolbar-bar") is not None
+        override = soup.find(id="override")
+        controls = override.find_parent(class_="mvp-table-toolbar-controls")
+        assert controls is not None
+        create = controls.find("a", href="/products/create/")
+        assert create is not None
+        assert create in override.find_all_next("a")
 
     @pytest.mark.django_db
     def test_the_create_dialog_is_drawn_once_on_an_empty_table(self, rf):
@@ -809,13 +817,14 @@ class TestTableToolbar:
         assert panel.find(attrs={"name": "q"}) is None
 
     @pytest.mark.django_db
-    def test_the_filters_button_opens_the_filter_panel_from_the_toolbar_panel(
+    def test_the_filters_button_is_a_control_and_stays_when_the_panel_closes(
         self, rf, product
     ):
         soup = _beautiful_soup()(_render_table_view(rf), "html.parser")
 
         button = soup.find("button", attrs={"aria-controls": "filters"})
-        assert button.find_parent(id=TOOLBAR_PANEL) is not None
+        assert button.find_parent(class_="mvp-table-toolbar-controls") is not None
+        assert button.find_parent(id=TOOLBAR_PANEL) is None
         assert button.find_parent(class_="mvp-table-toolbar-bar") is None
 
     @pytest.mark.django_db
@@ -852,7 +861,10 @@ class TestTableToolbar:
         [
             "page.toolbar",
             "page.summary",
+            "page.controls",
+            "page.actions",
             "page.panel",
+            "page.filters",
             "page.refinements",
         ],
     )
