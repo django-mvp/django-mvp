@@ -8,8 +8,8 @@
   {% endif %}
   {% if heading|slot_is_empty is False %}
     <h1 class="text-xl font-semibold leading-tight truncate min-w-0">{{ heading }}</h1>
-    {{ info }}
   {% endif %}
+  {{ info }}
   {% if lead|slot_is_empty is False %}
     <p class="mvp-page-lead hidden lg:block text-sm text-base-content/80 truncate min-w-0">{{ lead }}</p>
   {% endif %}

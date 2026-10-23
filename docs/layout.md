@@ -905,8 +905,8 @@ a bare region inside the shell. Override a `page.*` block instead.
 | `page.header` | `page_view.html` | Above the title. Empty by default — the breadcrumb trail moved to the app header |
 | `page.content-wrapper` | `page_view.html` | The content region, title bar included |
 | `page.side` | `page_view.html` | A [side panel](#side-panel) beside the title and content. Empty by default; left empty, the page is drawn as it always was |
-| `page.title` | `page_view.html` | The title bar: heading, subtitle and actions |
-| `page.actions` | `page_view.html` | The action buttons in the title bar |
+| `page.title` | `page_view.html` | The title area: eyebrow, heading, lead, info trigger and actions, drawn in the page's [title layout](#page-title) |
+| `page.actions` | `page_view.html` | The view's action buttons, in the title area. On list and table pages they are in the toolbar |
 | `page.content` | `page_view.html` | **The page body. This is the usual override.** |
 | `page.footer` | `page_view.html` | The toolbar below the content |
 | `page.hero` | `mvp/landing.html` | A full-width band above the content region |
@@ -920,9 +920,9 @@ What the shipped views already put in these:
 
 - `list_view.html` fills `page.content` with the toolbar (search, the result count,
   sort, filter and add, in that order), the list and the pagination. Its
-  `page.actions` holds the add button and sits at the end of the toolbar, not in the
-  title bar.
-- `detail_view.html` fills `page.actions` with edit and delete links and leaves
+  `page.actions` holds the view's actions, then the add button, and sits at the end of
+  the toolbar, not in the title area.
+- `detail_view.html` fills `page.actions` with the view's actions, then edit and delete links, and leaves
   `page.content` deliberately empty — that empty block is where your own
   detail template goes.
 - `form_view.html` fills `page.content` with the form, and extends `head` and
@@ -934,6 +934,30 @@ What the shipped views already put in these:
 - `mvp/error_base.html` replaces the `app` block with a centred card and
   exposes `error_code`, `heading`, `description` and `actions` instead of any
   `page.*` block.
+
+### Page title
+
+Every page draws its title area with `<c-mvp.page.title>` from six arguments: an eyebrow, the
+title, a lead, actions, and the info text and info actions. A view sets them (see
+[Page basics](views.md#page-basics)), and the title arranges them in one of four layouts:
+
+| Layout | Arrangement |
+| --- | --- |
+| `default` | The eyebrow, title and lead in one column, with the actions beside them from `md` up and under them below it |
+| `inline` | The actions at the end of the title's own row at every width, the lead across the full width below |
+| `centred` | Every argument centred in one column, the actions under the lead |
+| `compact` | One row holding the eyebrow, the title and the info trigger, with the lead shown only where there is room and the actions at the end |
+
+Every layout draws each argument it is given and nothing for one it is not. The title is the
+page's one `<h1>`, and the info trigger sits beside it, never inside it. A page with an empty
+title draws no `<h1>` and still draws the info trigger when there is info text.
+
+A page draws the layout [`MVP_CONFIG["page_title"]["layout"]`](configuration.md#page_titlelayout)
+gives its page type: `default` on page, form, detail and delete pages, `inline` on list pages
+and `compact` on table pages. One setting changes the title of every page in a project.
+
+A table page draws the compact layout inside its toolbar's bar. In any other layout the
+title is drawn above the bar, and the bar keeps its controls and its result count.
 
 ### Form pages sit in a narrower column
 
@@ -970,11 +994,13 @@ and the defaults around it are different:
 
 - `page.header` is empty, as it is on every other page. Anything you put in it is
   drawn above the toolbar. The breadcrumb trail is drawn by the app header.
-- `page.title` is the start of the toolbar's bar: a plain `<h1>`, the info icon, the
-  count and the subtitle, in one row.
-- `page.actions` holds the add button. It sits at the end of the toolbar row, as on
-  a list page, and stays when the toolbar's panel is closed. Write `{{ block.super }}`
-  in an override to keep the add button.
+- `page.title` is the title area. In the compact layout, the default for a table page,
+  it is the start of the toolbar's bar: a plain `<h1>` and the info icon in one row,
+  with the count beside it in its own `page.summary` block. In any other layout it is
+  drawn above the bar, and the bar keeps the count, the controls and the toggle.
+- `page.actions` holds the view's actions, then the add button. It sits at the end of the
+  toolbar row, as on a list page, and stays when the toolbar's panel is closed. Write
+  `{{ block.super }}` in an override to keep both.
 - `page.footer` holds the pager, in a bar pinned below the rows. It is not drawn for
   a single page.
 - The toolbar adds blocks of its own. See

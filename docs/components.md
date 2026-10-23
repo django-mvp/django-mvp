@@ -245,7 +245,7 @@ the whole screen. `fill` takes the full width and height and ignores `width`.
 | `c-mvp.page.list.summary` | `class` — the count of what the list holds |
 | `c-mvp.page.list.refinements` | `class` — the applied search and filters, each as a control that removes it |
 | `c-mvp.page.list.footer` | `page_obj`, `size`, `class` — the foot of a list page: the range shown and the pager. Its spacing comes from `class`, and `size` sets the pager's button size |
-| `c-mvp.page.table.toolbar` | slots `title`, `actions`, `controls`, `note` and the default slot; `storage_key`, `class` — the band above a full-page table: a bar that always shows and a panel under it that a button opens and closes; the `controls` sit at the end of the panel's row, and in the bar while it is closed |
+| `c-mvp.page.table.toolbar` | slots `heading`, `title`, `actions`, `controls`, `note` and the default slot; `heading_above`, `storage_key`, `class` — the band above a full-page table: a bar that always shows and a panel under it that a button opens and closes; the `controls` sit at the end of the panel's row, and in the bar while it is closed. The `heading` slot holds the page title, drawn at the start of the bar, or above it with `heading_above`, for a title layout too tall for one row; the `title` slot holds what sits beside it, such as the result count |
 | `c-mvp.page.list.actions` | `actions` — renders the action components below, default `['create']` |
 | `c-mvp.page.list.actions.{create,share}` | individual list actions — see [below](#list-components-driven-by-view-context) for the context each one needs |
 | `c-mvp.section` | `title`, `icon`, `level` (heading level 1–4); slot `actions` |

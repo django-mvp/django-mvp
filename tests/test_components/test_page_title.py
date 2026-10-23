@@ -147,3 +147,114 @@ class TestPageTitleArguments:
         )
 
         assert soup.find(True).get("id") == "product-heading"
+
+
+LAYOUTS = ["default", "inline", "centred", "compact"]
+
+ARGUMENTS = {
+    "eyebrow": 'eyebrow="Unique eyebrow"',
+    "title": 'title="Unique title"',
+    "lead": 'lead="Unique lead"',
+    "info": 'info="Unique info"',
+}
+OWN_ACTION = (
+    '<c-slot name="actions"><a id="own-action" href="/go/">Go</a></c-slot>'
+)
+
+
+def render_layout(layout, leave_out=(), actions=True):
+    """Render a title in ``layout`` with every argument but those left out."""
+    attributes = " ".join(
+        value for name, value in ARGUMENTS.items() if name not in leave_out
+    )
+    slot = OWN_ACTION if actions else ""
+    return render(
+        f'<c-mvp.page.title layout="{layout}" {attributes}>{slot}</c-mvp.page.title>'
+    )
+
+
+def empty_elements(soup):
+    """The block elements of ``soup`` that hold no text and no element."""
+    return [
+        element
+        for element in soup.find_all(["div", "p"])
+        if not element.get_text(strip=True) and not element.find(True)
+    ]
+
+
+@pytest.mark.parametrize("layout", LAYOUTS)
+class TestPageTitleLayouts:
+    def test_every_argument_given_is_drawn_once(self, layout):
+        soup = render_layout(layout)
+
+        assert soup.select_one(".mvp-page-eyebrow").get_text(strip=True) == (
+            "Unique eyebrow"
+        )
+        assert soup.select_one("h1").get_text(strip=True) == "Unique title"
+        assert soup.select_one(".mvp-page-lead").get_text(strip=True) == "Unique lead"
+        assert "Unique info" in soup.select_one("dialog").get_text()
+        assert len(soup.select("#own-action")) == 1
+        assert str(soup).count("Unique eyebrow") == 1
+        assert str(soup).count("Unique lead") == 1
+
+    @pytest.mark.parametrize(
+        ("left_out", "selector"),
+        [
+            ("eyebrow", ".mvp-page-eyebrow"),
+            ("lead", ".mvp-page-lead"),
+            ("info", "dialog, button"),
+            ("title", "h1"),
+        ],
+    )
+    def test_an_argument_not_given_leaves_no_element_behind(
+        self, layout, left_out, selector
+    ):
+        soup = render_layout(layout, leave_out=(left_out,))
+
+        assert soup.select(selector) == []
+        assert empty_elements(soup) == []
+
+    def test_no_actions_leaves_no_element_behind(self, layout):
+        soup = render_layout(layout, actions=False)
+
+        assert soup.select("#own-action") == []
+        assert empty_elements(soup) == []
+
+    def test_a_title_alone_draws_one_heading_and_nothing_else(self, layout):
+        soup = render_layout(layout, leave_out=("eyebrow", "lead", "info"), actions=False)
+
+        assert [h1.get_text(strip=True) for h1 in soup.find_all("h1")] == [
+            "Unique title"
+        ]
+        assert soup.find_all(["p", "button", "dialog", "a"]) == []
+        assert empty_elements(soup) == []
+
+    def test_the_page_has_exactly_one_heading_holding_only_the_title(self, layout):
+        soup = render_layout(layout)
+
+        headings = soup.find_all("h1")
+        assert len(headings) == 1
+        assert headings[0].get_text(strip=True) == "Unique title"
+        assert headings[0].find(["button", "a", "dialog", "input"]) is None
+
+    def test_the_info_trigger_is_a_sibling_of_the_heading(self, layout):
+        soup = render_layout(layout)
+
+        heading = soup.find("h1")
+        assert heading.find("button") is None
+        assert heading.parent.find("button", recursive=False) is not None
+
+    def test_an_empty_title_draws_no_heading_and_keeps_the_info_trigger(self, layout):
+        soup = render_layout(layout, leave_out=("title",))
+
+        assert soup.find("h1") is None
+        assert soup.find("button") is not None
+        assert "Unique info" in soup.select_one("dialog").get_text()
+
+    def test_an_empty_title_still_draws_the_other_arguments(self, layout):
+        soup = render_layout(layout, leave_out=("title",))
+
+        assert soup.select_one(".mvp-page-eyebrow") is not None
+        assert soup.select_one(".mvp-page-lead") is not None
+        assert len(soup.select("#own-action")) == 1
+        assert empty_elements(soup) == []
