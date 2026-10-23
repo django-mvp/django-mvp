@@ -106,7 +106,6 @@ class MVPFormBase(
     """Base class for form views: page layout, ``next`` handling and redirects."""
 
     base_template_name = "form_view.html"
-    page_type = "form"
     page_class = "mvp-form-page"
     page_width = PageWidth.NARROW
 
@@ -489,7 +488,6 @@ class MVPDeleteView(MVPModelFormBase, generic.DeleteView):
     """
 
     base_template_name = "delete_view.html"
-    page_type = "delete"
     page_class = "mvp-delete-page"
     page_title = _("Delete %(verbose_name)s")
     success_message = _("%(verbose_name)s successfully deleted.")

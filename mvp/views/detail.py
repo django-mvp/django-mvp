@@ -246,7 +246,6 @@ class MVPDetailView(BaseTemplateNameMixin, PageObjectMixin, generic.DetailView):
     """DetailView that renders one object inside the application shell."""
 
     base_template_name = "detail_view.html"
-    page_type = "detail"
     page_class = "mvp-detail-page"
 
     #: Actions offered in the page header, each still gated by its ``show_*`` flag.

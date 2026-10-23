@@ -165,10 +165,7 @@ class PageMixin:
 
     Attributes:
         page_title (str | Promise): Page heading. Defaults to ``""``.
-        page_eyebrow (str | Promise): Short line drawn above the title. Defaults to ``""``.
-        page_lead (str | Promise): A sentence or two drawn under the title. Defaults to ``""``.
-        page_actions (list): The page's own buttons, each a dict spread onto ``c-button``. Defaults to ``[]``.
-        page_title_layout (str | None): The title layout this page draws. ``None`` takes ``MVP_CONFIG["page_title"]["layout"]``.
+        page_subtitle (str | Promise): Secondary heading shown below the title. Defaults to ``""``.
         page_class (str): Extra CSS class(es) appended to the page container after the
             mandatory ``"mvp-page"`` prefix. Defaults to ``""``.
         page_width (PageWidth): How wide the page's content is. Defaults to
@@ -199,16 +196,12 @@ class PageMixin:
         class DashboardView(PageMixin, TemplateView):
             template_name = "dashboard.html"
             page_title = "Dashboard"
-            page_lead = "Welcome back"
+            page_subtitle = "Welcome back"
             breadcrumbs = [{"text": "Home", "href": "/"}, {"text": "Dashboard"}]
     """
 
     page_title: str | Promise = ""
-    page_eyebrow: str | Promise = ""
-    page_lead: str | Promise = ""
-    page_actions: list = []
-    page_title_layout: str | None = None
-    page_type: str = "page"
+    page_subtitle: str | Promise = ""
     page_class = ""
     page_width: PageWidth = PageWidth.WIDE
     breadcrumbs: list = []
@@ -231,7 +224,7 @@ class PageMixin:
             A dict with the following string keys:
 
                 - ``"title"`` — from ``get_page_title()``
-                - ``"eyebrow"``, ``"lead"``, ``"actions"`` and ``"title_layout"`` — from their ``get_*()`` methods
+                - ``"subtitle"`` — from ``get_page_subtitle()``
                 - ``"class"`` — from ``get_page_class()`` (always starts with ``"mvp-page"``)
                 - ``"breadcrumbs"`` — from ``get_breadcrumbs()``
                 - ``"info"`` — from ``get_page_info()``
@@ -240,10 +233,7 @@ class PageMixin:
         """
         return {
             "title": self.get_page_title(),
-            "eyebrow": self.get_page_eyebrow(),
-            "lead": self.get_page_lead(),
-            "actions": self.get_page_actions(),
-            "title_layout": self.get_page_title_layout(),
+            "subtitle": self.get_page_subtitle(),
             "class": self.get_page_class(),
             "breadcrumbs": self.get_breadcrumbs(),
             "info": self.get_page_info(),
@@ -274,32 +264,22 @@ class PageMixin:
         """
         return self.page_title
 
-    def get_page_eyebrow(self):
-        """Return the short line drawn above the page title, such as a category."""
-        return self.page_eyebrow
+    def get_page_subtitle(self):
+        """Return the page subtitle string.
 
-    def get_page_lead(self):
-        """Return the sentence or two drawn under the page title."""
-        return self.page_lead
+        This method is the override hook for dynamic values. To set a static subtitle,
+        assign ``page_subtitle`` as a class attribute instead.
 
-    def get_page_actions(self):
-        """Return the page's own buttons, each a dict spread onto daisy-cotton's ``c-button``."""
-        return self.page_actions
+        Returns:
+            str | Promise: The value of ``self.page_subtitle``.
 
-    def get_page_title_layout(self):
-        """Return the title layout this page draws.
+        Example::
 
-        The view's ``page_title_layout`` wins; otherwise the layout set in
-        ``MVP_CONFIG["page_title"]["layout"]`` for this view's ``page_type``.
+            class ProductDetailView(PageMixin, DetailView):
+                def get_page_subtitle(self):
+                    return self.object.category.name
         """
-        from mvp.config import MVP_CONFIG
-
-        if self.page_title_layout:
-            return self.page_title_layout
-        layout = MVP_CONFIG["page_title"]["layout"]
-        if isinstance(layout, dict):
-            return layout.get(self.page_type) or layout.get("page") or "default"
-        return layout
+        return self.page_subtitle
 
     def get_breadcrumbs(self):
         """Return the list of breadcrumb items for the page.

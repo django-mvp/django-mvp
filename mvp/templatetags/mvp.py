@@ -691,25 +691,3 @@ def any_multipart(formsets):
     multipart set, which browsers accept and the markup contract does not.
     """
     return any(formset.is_multipart() for formset in formsets or [])
-
-
-TITLE_LAYOUTS = ("default", "inline", "centred", "compact")
-
-
-@register.filter
-def title_layout_component(layout: str | None) -> str:
-    """Return the Cotton component that draws a page title layout.
-
-    A shipped layout's name maps to its component under ``mvp.page.title``;
-    anything else is taken as a component of the project's own.
-
-    Args:
-        layout: A shipped layout's name, a project component's name, or empty.
-
-    Returns:
-        The component name to pass to ``<c-component is>``.
-    """
-    layout = layout or "default"
-    if layout in TITLE_LAYOUTS:
-        return f"mvp.page.title.{layout}"
-    return layout
