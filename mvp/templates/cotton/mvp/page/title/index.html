@@ -1,0 +1,33 @@
+{# @description The page title: an eyebrow, the title, a lead, an info dialog trigger and the page's actions, drawn in one of the title layouts. #}
+{# @prop layout:text | description:"The title layout: default, inline, centred, compact, or a Cotton component of the project's own. Empty draws default, or inline with inline_actions." #}
+{# @prop title:text | description:"Page heading text." #}
+{# @prop eyebrow:text | description:"Short line above the heading, such as a category or the kind of record." #}
+{# @prop lead:text | description:"A sentence or two under the heading." #}
+{# @prop class:text | description:"Extra classes on the wrapper element." #}
+{# @prop info:text | description:"Text shown in the info dialog opened from the icon beside the heading." #}
+{# @prop info_actions:text | description:"Actions rendered in the info dialog's footer." #}
+{# @prop inline_actions:boolean | description:"Draw the inline layout when no layout is named." #}
+{# @slot:heading <content> — The heading's text, in place of title. #}
+{# @slot:info_trigger <content> — In place of the trigger drawn from info and info_actions. #}
+{# @slot:actions <content> — The page's actions. #}
+{% load mvp %}
+<c-vars layout title heading eyebrow lead class info info_actions info_trigger actions inline_actions />
+{% comment %}
+  The page templates fill heading and info_trigger from their blocks and pass
+  no title, so a block emptied by a project stays empty rather than falling
+  back. title and info are for a template calling this component directly.
+{% endcomment %}
+{% if layout %}
+  {% firstof layout as chosen %}
+{% elif inline_actions %}
+  {% firstof "inline" as chosen %}
+{% else %}
+  {% firstof "default" as chosen %}
+{% endif %}
+<c-component is="{{ chosen|title_layout_component }}" class="{{ class }}">
+  <c-slot name="eyebrow">{{ eyebrow|default:"" }}</c-slot>
+  <c-slot name="heading">{% if heading|slot_is_empty is False %}{{ heading }}{% else %}{{ title|default:"" }}{% endif %}</c-slot>
+  <c-slot name="lead">{{ lead|default:"" }}</c-slot>
+  <c-slot name="info">{% if info_trigger|slot_is_empty is False %}{{ info_trigger }}{% else %}<c-mvp.page.info :text="info" :title="title" :actions="info_actions" only />{% endif %}</c-slot>
+  <c-slot name="actions">{{ actions|default:"" }}</c-slot>
+</c-component>

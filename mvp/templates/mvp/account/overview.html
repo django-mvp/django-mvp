@@ -2,7 +2,7 @@
 {% load i18n %}
 {% block account.content %}
   <c-mvp.page only>
-    <c-mvp.page.title :title="page.title" :subtitle="page.subtitle" only />
+    <c-mvp.page.title :title="page.title" :lead="page.lead" only />
     {% comment %}
       No fallback menu listing here — it's already on the page beside this
       content (FR-019). Empty when no installed app contributes a card.

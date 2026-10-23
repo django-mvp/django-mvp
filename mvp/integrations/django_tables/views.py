@@ -42,6 +42,7 @@ class MVPTableViewMixin(MVPListViewMixin, SingleTableMixin):
     """
 
     base_template_name = "table_view.html"
+    page_type = "table"
 
     def get_table_pagination(self, table):
         """Let the view's own configuration decide, including against.

@@ -40,27 +40,35 @@
           {% block page.header %}
           {% endblock page.header %}
           {% block page.toolbar %}
-            <c-mvp.page.table.toolbar only>
+            <c-mvp.page.table.toolbar heading_above="{% if page.title_layout != 'compact' %}1{% endif %}" only>
               {% if refinements %}
                 <c-slot name="note">
                   {% blocktrans count counter=refinements|length %}{{ counter }} filter active{% plural %}{{ counter }} filters active{% endblocktrans %}
                 </c-slot>
               {% endif %}
-              <c-slot name="title">
+              {# Compact draws the title in the bar; any other layout draws it above the bar. #}
+              <c-slot name="heading">
                 {% block page.title %}
-                  <h1 class="text-xl font-semibold leading-tight truncate">{{ page.title }}</h1>
-                  <c-mvp.page.info :text="page.info" :title="page.title" :actions="page.info_actions" only />
-                  {% block page.summary %}
-                    <c-mvp.page.list.summary class="whitespace-nowrap"
-                                             :result_count="result_count"
-                                             :refinements="refinements"
-                                             :model_info="model_info"
-                                             only />
-                  {% endblock page.summary %}
-                  {% if page.subtitle %}
-                    <p class="hidden lg:block text-sm text-base-content/70 truncate min-w-0">{{ page.subtitle }}</p>
-                  {% endif %}
+                  <c-mvp.page.title :layout="page.title_layout" class="w-auto" only>
+                    <c-slot name="eyebrow">{% block page.eyebrow %}{{ page.eyebrow }}{% endblock page.eyebrow %}</c-slot>
+                    <c-slot name="heading">{% block page.heading %}{{ page.title }}{% endblock page.heading %}</c-slot>
+                    <c-slot name="lead">{% block page.lead %}{{ page.lead }}{% endblock page.lead %}</c-slot>
+                    <c-slot name="info_trigger">
+                      {% block page.info %}
+                        <c-mvp.page.info :text="page.info" :title="page.title" :actions="page.info_actions" only />
+                      {% endblock page.info %}
+                    </c-slot>
+                  </c-mvp.page.title>
                 {% endblock page.title %}
+              </c-slot>
+              <c-slot name="title">
+                {% block page.summary %}
+                  <c-mvp.page.list.summary class="whitespace-nowrap"
+                                           :result_count="result_count"
+                                           :refinements="refinements"
+                                           :model_info="model_info"
+                                           only />
+                {% endblock page.summary %}
               </c-slot>
               <c-slot name="controls">
                 {# The same controls as a list page, in its order. page.actions holds Add. #}
@@ -73,6 +81,7 @@
                                             :count="panel_applied_count" />
                   {% endif %}
                   {% block page.actions %}
+                    {% for action in page.actions %}<c-button size="sm" :attrs="action" only />{% endfor %}
                     <c-mvp.page.list.actions.create compact
                                                 :directory="directory"
                                                     :create_form="create_form"

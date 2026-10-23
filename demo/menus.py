@@ -49,6 +49,14 @@ AppMenu.extend(
                     },
                 ),
                 MenuItem(
+                    name="layout-title",
+                    view_name="layout-title",
+                    extra_context={
+                        "label": "Page Title",
+                        "icon": "navbar",
+                    },
+                ),
+                MenuItem(
                     name="layout-side",
                     view_name="layout-side",
                     extra_context={

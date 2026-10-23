@@ -1,0 +1,25 @@
+{# @description The inline title layout: the actions stay at the end of the heading's own row at every width, and the lead runs the full width below. #}
+{# @slot:eyebrow, heading, lead, info, actions — Drawn by c-mvp.page.title; an empty slot draws nothing. #}
+{% load mvp %}
+<c-vars eyebrow heading lead info actions class />
+<div class="page-title flex flex-col gap-1 w-full {{ class }}" {{ attrs }}>
+  {% if eyebrow|slot_is_empty is False %}
+    <p class="mvp-page-eyebrow text-sm font-semibold tracking-widest uppercase text-base-content/80">{{ eyebrow }}</p>
+  {% endif %}
+  {% if heading|slot_is_empty is False or actions|slot_is_empty is False %}
+    <div class="flex items-start justify-between gap-3">
+      <div class="flex items-center gap-2 min-w-0">
+        {% if heading|slot_is_empty is False %}
+          <h1 class="text-3xl font-bold leading-tight text-balance">{{ heading }}</h1>
+          {{ info }}
+        {% endif %}
+      </div>
+      {% if actions|slot_is_empty is False %}
+        <div class="flex shrink-0 items-center gap-2 pt-1">{{ actions }}</div>
+      {% endif %}
+    </div>
+  {% endif %}
+  {% if lead|slot_is_empty is False %}
+    <p class="mvp-page-lead text-lg leading-relaxed max-w-prose text-pretty text-base-content/80">{{ lead }}</p>
+  {% endif %}
+</div>

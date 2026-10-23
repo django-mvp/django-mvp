@@ -7,12 +7,17 @@
   {% endif %}
 {% endblock title %}
 {% block page.title %}
-  {# The title row holds the title, subtitle and info button. page.actions is in the toolbar below. #}
-  <c-mvp.page.title :title="page.title"
-                :subtitle="page.subtitle"
-                :info="page.info"
-                :info_actions="page.info_actions"
-                inline_actions only />
+  {# The page's actions are in the toolbar below, so the title has none, whatever its layout. #}
+  <c-mvp.page.title :layout="page.title_layout" only>
+    <c-slot name="eyebrow">{% block page.eyebrow %}{{ page.eyebrow }}{% endblock page.eyebrow %}</c-slot>
+    <c-slot name="heading">{% block page.heading %}{{ page.title }}{% endblock page.heading %}</c-slot>
+    <c-slot name="lead">{% block page.lead %}{{ page.lead }}{% endblock page.lead %}</c-slot>
+    <c-slot name="info_trigger">
+      {% block page.info %}
+        <c-mvp.page.info :text="page.info" :title="page.title" :actions="page.info_actions" only />
+      {% endblock page.info %}
+    </c-slot>
+  </c-mvp.page.title>
 {% endblock page.title %}
 {% block page.side %}
   {# The filterset fields the toolbar does not draw. They join the toolbar's form through the form #}
@@ -65,6 +70,7 @@
                                         :count="panel_applied_count" />
               {% endif %}
               {% block page.actions %}
+                {% for action in page.actions %}<c-button size="sm" :attrs="action" only />{% endfor %}
                 <c-mvp.page.list.actions.create compact
                                                 :directory="directory"
                                                 :create_form="create_form"

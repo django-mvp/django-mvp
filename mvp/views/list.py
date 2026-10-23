@@ -535,6 +535,7 @@ class MVPListViewMixin(
     """
 
     base_template_name = "list_view.html"
+    page_type = "list"
     directory = ["create"]
     list_item_template = None
     grid: dict = {}

@@ -1,0 +1,95 @@
+{% extends "page_view.html" %}
+{% comment %}
+  Every title layout; the form picks the layout and switches each argument on or off
+  through the query string.
+{% endcomment %}
+{% block page.lead %}
+  {% if options.lead_block %}
+    Filled from the <code>page.lead</code> block, so it can hold markup:
+    <a class="link" href="{% url 'layout-side' %}">the side panel</a> sits beside the content.
+    <span class="badge badge-sm badge-secondary align-middle">New</span>
+  {% else %}
+    {{ block.super }}
+  {% endif %}
+{% endblock page.lead %}
+{% block page.content %}
+  <form method="get" class="card card-border bg-base-100">
+    <input type="hidden" name="submitted" value="1" />
+    <div class="card-body gap-3 p-4">
+      <h2 class="text-sm font-semibold text-base-content/80">Try the layouts</h2>
+      <div class="flex flex-wrap items-end gap-3">
+        <label class="flex flex-col gap-1 text-sm">
+          <span>Layout</span>
+          <select name="title_layout" class="select select-sm w-36">
+            {% for layout in layouts %}
+              <option value="{{ layout }}" {% if layout == current_layout %}selected{% endif %}>{{ layout }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label class="label text-sm"><input type="checkbox" name="eyebrow" value="on" class="checkbox checkbox-sm" {% if options.eyebrow %}checked{% endif %} /> Eyebrow</label>
+        <label class="label text-sm"><input type="checkbox" name="lead" value="on" class="checkbox checkbox-sm" {% if options.lead %}checked{% endif %} /> Lead</label>
+        <label class="label text-sm"><input type="checkbox" name="actions" value="on" class="checkbox checkbox-sm" {% if options.actions %}checked{% endif %} /> Actions</label>
+        <label class="label text-sm"><input type="checkbox" name="info" value="on" class="checkbox checkbox-sm" {% if options.info %}checked{% endif %} /> Info</label>
+        <label class="label text-sm"><input type="checkbox" name="long" value="on" class="checkbox checkbox-sm" {% if options.long %}checked{% endif %} /> Long text</label>
+        <label class="label text-sm"><input type="checkbox" name="no_title" value="on" class="checkbox checkbox-sm" {% if options.no_title %}checked{% endif %} /> Empty title</label>
+        <label class="label text-sm"><input type="checkbox" name="lead_block" value="on" class="checkbox checkbox-sm" {% if options.lead_block %}checked{% endif %} /> Lead from a block</label>
+        <button type="submit" class="btn btn-sm btn-primary">Apply</button>
+      </div>
+      <p class="text-sm text-base-content/80">
+        The same layout on the other page types:
+        {% for label, url in pages %}
+          <a class="link" href="{{ url }}?title_layout={{ current_layout }}">{{ label }}</a>{% if not forloop.last %} · {% endif %}
+        {% endfor %}
+      </p>
+    </div>
+  </form>
+  <article class="prose max-w-none">
+    <h2>The arguments</h2>
+    <p>
+      Every page title takes the same arguments. Each one is set on the view, by attribute or by
+      method, or replaced by itself from a template block.
+    </p>
+    <table>
+      <thead>
+        <tr><th>Argument</th><th>View attribute</th><th>Method</th><th>Block</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Eyebrow</td><td><code>page_eyebrow</code></td><td><code>get_page_eyebrow()</code></td><td><code>page.eyebrow</code></td></tr>
+        <tr><td>Title</td><td><code>page_title</code></td><td><code>get_page_title()</code></td><td><code>page.heading</code></td></tr>
+        <tr><td>Lead</td><td><code>page_lead</code></td><td><code>get_page_lead()</code></td><td><code>page.lead</code></td></tr>
+        <tr><td>Actions</td><td><code>page_actions</code></td><td><code>get_page_actions()</code></td><td><code>page.actions</code></td></tr>
+        <tr><td>Info</td><td><code>page_info</code>, <code>page_info_actions</code></td><td><code>get_page_info()</code></td><td><code>page.info</code></td></tr>
+      </tbody>
+    </table>
+    <h2>The layouts</h2>
+    <dl>
+      <dt><code>default</code></dt>
+      <dd>Eyebrow, heading and lead in one column, with the actions beside them on a wide screen and under them on a narrow one. Page, form, detail and delete pages draw it unless told otherwise.</dd>
+      <dt><code>inline</code></dt>
+      <dd>The actions stay on the heading's own row at every width, and the lead runs the full width below. List pages draw it.</dd>
+      <dt><code>centred</code></dt>
+      <dd>Everything centred in one column, the actions under the lead. For overview pages and pages that open a section.</dd>
+      <dt><code>compact</code></dt>
+      <dd>One row: eyebrow, heading, info and, where there is room, the lead, with the actions at its end. Table pages draw it inside their toolbar.</dd>
+    </dl>
+    <h2>Choosing one</h2>
+    <p>For the whole site, or for each page type, in the settings:</p>
+    <pre><code>MVP_CONFIG = {
+    "page_title": {"layout": "centred"},
+}
+
+MVP_CONFIG = {
+    "page_title": {"layout": {"page": "centred", "list": "inline"}},
+}</code></pre>
+    <p>For one view, on the view:</p>
+    <pre><code>class OverviewView(MVPTemplateView):
+    page_title_layout = "centred"</code></pre>
+    <p>
+      A layout of the project's own is a Cotton component, named the same way:
+      <code>"page_title": {"layout": "myapp.page_title"}</code> draws
+      <code>templates/cotton/myapp/page_title.html</code>, which receives the
+      <code>eyebrow</code>, <code>heading</code>, <code>lead</code>, <code>info</code> and
+      <code>actions</code> slots.
+    </p>
+  </article>
+{% endblock page.content %}

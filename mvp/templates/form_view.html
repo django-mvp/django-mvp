@@ -14,12 +14,18 @@
   {% endcomment %}
   <c-mvp.page.content gap=8 class="w-full pt-4 md:pt-8 pb-4" only>
     {% block page.title %}
-      <c-mvp.page.title :title="page.title"
-                    :subtitle="page.subtitle"
-                    :info="page.info"
-                    :info_actions="page.info_actions" only>
+      <c-mvp.page.title :layout="page.title_layout" only>
+        <c-slot name="eyebrow">{% block page.eyebrow %}{{ page.eyebrow }}{% endblock page.eyebrow %}</c-slot>
+        <c-slot name="heading">{% block page.heading %}{{ page.title }}{% endblock page.heading %}</c-slot>
+        <c-slot name="lead">{% block page.lead %}{{ page.lead }}{% endblock page.lead %}</c-slot>
+        <c-slot name="info_trigger">
+          {% block page.info %}
+            <c-mvp.page.info :text="page.info" :title="page.title" :actions="page.info_actions" only />
+          {% endblock page.info %}
+        </c-slot>
         <c-slot name="actions">
           {% block page.actions %}
+            {% for action in page.actions %}<c-button size="sm" :attrs="action" only />{% endfor %}
           {% endblock page.actions %}
         </c-slot>
       </c-mvp.page.title>
