@@ -49,7 +49,7 @@
               {# Compact draws the title in the bar; any other layout draws it above the bar. #}
               <c-slot name="heading">
                 {% block page.title %}
-                  <c-mvp.page.title :layout="page.title_layout" class="w-auto" only>
+                  <c-mvp.page.title :layout="page.title_layout" class="w-auto!" only>
                     <c-slot name="eyebrow">{% block page.eyebrow %}{{ page.title_args.eyebrow }}{% endblock page.eyebrow %}</c-slot>
                     <c-slot name="heading">{% block page.heading %}{{ page.title_args.title }}{% endblock page.heading %}</c-slot>
                     <c-slot name="lead">{% block page.lead %}{{ page.title_args.lead }}{% endblock page.lead %}</c-slot>
