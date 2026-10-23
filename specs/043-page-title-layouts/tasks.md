@@ -174,3 +174,12 @@ unknown value. The demo strings the sketch added are wrapped for translation lik
 neighbours. Then `CONTEXT.md`'s entries (page title,
 title, eyebrow, lead, page actions, title layout) and the `c-mvp.page.title` line, and the skill's
 routing table pointing at the new `docs/layout.md` section.
+
+## Review fixes
+
+From the code review (all medium or low; fixed in the one fix cycle).
+
+- **T011** (US-2) — the table page's result count stays beside its title in the compact layout: the caller's `w-auto` now wins over the layout's `w-full`.
+- **T012** (US-4) — a direct call takes `actions` as a list of button dicts, the view's own shape, and draws what a page view draws.
+- **T013** (US-3) — the layout resolver adds Cotton's default-directory candidates whenever the path differs, so a hyphenated name finds its snake-cased file when `COTTON_SNAKE_CASED_NAMES` is off.
+- **T014** (US-1) — the CHANGELOG lists everything the feature adds; `title_layout` in the page context keys; the browser tab still reads `get_page_title()`; the "layout of your own" example declares `class`; the demo-views skill uses `page_lead`; docstring and comment length.
