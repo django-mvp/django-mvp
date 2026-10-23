@@ -90,8 +90,8 @@ found under `cotton/` as `<name>.html` or `<name>/index.html`. A name that is ne
 `ImproperlyConfigured` when the page is rendered, and the message names the value and the view
 class.
 
-`page_subtitle` is now `page_lead`. The old name is gone, not deprecated: a view that still
-sets `page_subtitle` draws no lead.
+The subtitle is now the lead: `page_lead` and `get_page_lead()` replace the old attribute and
+its method. The old name is gone, not deprecated, so a view that still sets it draws no lead.
 
 Where the actions are drawn depends on the page. A page, form or delete page draws them in
 the title area. A detail page draws them there too, in front of its Edit and Delete buttons.

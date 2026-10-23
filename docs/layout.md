@@ -963,6 +963,19 @@ setting.
 A table page draws the compact layout inside its toolbar's bar. In any other layout the
 title is drawn above the bar, and the bar keeps its controls and its result count.
 
+A template that picks a layout by name resolves it with `title_layout_component`, which is
+a function in `mvp.utils` and a filter in the `mvp` template library. A shipped name returns
+its component, `mvp.page.title.centred` for `centred`. Any other name must be a Cotton
+component of your own, and it is returned unchanged when it exists. A name that is neither
+raises `ImproperlyConfigured`. `mvp.utils.TITLE_LAYOUTS` lists the four shipped names.
+
+```django
+{% load mvp %}
+<c-component is="{{ 'centred'|title_layout_component }}" only>
+  <c-slot name="heading">Welcome</c-slot>
+</c-component>
+```
+
 ### Form pages sit in a narrower column
 
 A form stretched across the full container is hard to scan, so the form views set
