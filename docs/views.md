@@ -22,7 +22,7 @@ from mvp.views import (
 ## Page basics
 
 Every MVP view includes `PageMixin`, which injects a `page` context dict
-(`title`, `title_args`, `class`, `width`, `breadcrumbs`, `info`, `info_actions`) consumed by
+(`title`, `title_args`, `title_layout`, `class`, `width`, `breadcrumbs`, `info`, `info_actions`) consumed by
 the page templates. `breadcrumbs` is drawn by the app header rather than the page
 body — see [Breadcrumbs](layout.md#breadcrumbs), which also covers giving a page its
 trail from a template — and the rest by the page itself:
@@ -56,7 +56,8 @@ button's attributes, so never put user data in one.
 
 `get_page_title_args()` gathers the six into the dict the page templates read as
 `page.title_args`. Override it to set the whole title at once; what it returns is what the
-page draws:
+title area draws. The browser tab and the share menu still read `get_page_title()`, so
+override that to retitle the whole page:
 
 ```python
 class OrderDetailView(MVPDetailView):

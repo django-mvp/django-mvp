@@ -1038,8 +1038,8 @@ every page type and every block works with it unchanged.
    ```django
    {# templates/cotton/myapp/banner_title.html #}
    {% load mvp %}
-   <c-vars eyebrow heading lead info actions />
-   <header class="border-b border-base-300 pb-4" {{ attrs }}>
+   <c-vars eyebrow heading lead info actions class />
+   <header class="border-b border-base-300 pb-4 {{ class }}" {{ attrs }}>
      {% if eyebrow|slot_is_empty is False %}<p class="text-sm uppercase">{{ eyebrow }}</p>{% endif %}
      <div class="flex items-center gap-2">
        {% if heading|slot_is_empty is False %}<h1 class="text-2xl font-bold">{{ heading }}</h1>{% endif %}

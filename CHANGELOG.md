@@ -24,6 +24,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - A view sets a page's eyebrow, lead and actions with `page_eyebrow`, `page_lead` and
   `page_actions`, each with a `get_*()` method, and `get_page_title_args()` gathers them with
   the title and the info into the one group the page templates read as `page.title_args`.
+- Four title layouts, `default`, `inline`, `centred` and `compact`, chosen for the whole site
+  or for each page type with `MVP_CONFIG["page_title"]["layout"]`, and on a view with
+  `page_title_layout` or `get_page_title_layout()`. Each view has a `page_type` that picks its
+  layout from the setting. The defaults keep every page's current look. A layout can also be
+  a Cotton component of the project's own.
+- The `page.eyebrow`, `page.heading`, `page.lead` and `page.info` blocks, beside the existing
+  `page.actions`, each replace one part of the title.
+- System check `mvp.E003` reports a layout name in the setting that names no layout.
+- `<c-mvp.page.title>` takes `layout` and `eyebrow`, the `heading` and `info_trigger` slots,
+  and `actions` as a list of button dicts as well as a slot.
+- `<c-mvp.page.table.toolbar>` takes a `heading` slot and `heading_above`.
+- The `title_layout_component` template filter and `mvp.utils.title_layout_component()`.
 
 ## [v0.31.0] - 2026-10-22
 

@@ -402,6 +402,9 @@ class PageMixin:
     def _checked_page_title_layout(self):
         """Return the title layout's name, or raise naming it and this view.
 
+        Returns:
+            str: The name from :meth:`get_page_title_layout`, once it is known to resolve.
+
         Raises:
             ImproperlyConfigured: The layout is neither a shipped one nor a project
                 component that can be found.

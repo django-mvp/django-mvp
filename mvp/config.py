@@ -104,10 +104,9 @@ MVP_CONFIG = {
         },
     },
     "page_title": {
-        # The title layout every page draws: one name for every page, or a dict
-        # naming one per page type (page, form, detail, delete, list, table).
-        # A name is a shipped layout (default, inline, centred, compact) or a
-        # Cotton component of the project's own, such as "myapp.page_title".
+        # One title layout for every page, or one per page type (page, form, detail,
+        # delete, list, table): a shipped layout or a project's Cotton component.
+        # See docs/configuration.md.
         "layout": {
             "page": "default",
             "form": "default",
