@@ -25,6 +25,16 @@ a dropdown of exactly those names instead of a toggle between `default` and `dar
 goes unused once `choices` is set, and a theme left out of `choices` can no longer be reached
 through the switcher, whatever `dark` says.
 
+`<c-mvp.actions.theme-cycle />` is a second switcher: one button that steps from `default` to
+`dark`, then to automatic, then back to `default`. Automatic follows the device's light or dark
+setting, and keeps following it while the page is open. The button moves between `default` and
+`dark` whether or not `choices` is set, so it can sit beside the menu. List
+`"mvp.actions.theme-cycle"` in `layout.navbar.end` to put it in the navbar. The sidebar footer
+keeps the toggle unless you override `cotton/app/sidebar/footer.html`.
+
+A visitor who has never chosen still gets `default`, not automatic, so adding the button
+changes nothing for anyone until they use it.
+
 Both are DaisyUI's, not palettes this package drew. That is on purpose: a theme is the entire
 visible surface of your application, and the identity on it should be one you chose rather than
 one your dependency picked. The package's job is the mechanism and the components; the palette is
@@ -80,7 +90,10 @@ of your own is just writing CSS.
 `mvp/base.html` opens `<head>` with a small inline script, before the `head` block and
 before any stylesheet. It reads `localStorage.theme`, checks it against `choices` if
 `choices` is set, and falls back to `default` if there's no stored value or the stored one
-isn't offered. It then sets `data-theme` on `<html>`.
+isn't offered. A stored value that is empty is the automatic choice, and the script picks
+`dark` or `default` from the device's `prefers-color-scheme` instead. It then sets
+`data-theme` on `<html>`, and `data-theme-mode` to `dark` or `auto` when the visitor is on
+that step of the theme-cycle button, so the button shows the right icon from the first frame.
 
 The script is deliberately blocking and inline: an external or deferred script runs after
 first paint, so the page would render in `default` and visibly flip to the visitor's stored

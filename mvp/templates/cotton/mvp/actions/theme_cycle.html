@@ -1,0 +1,29 @@
+{# @description One button that steps through the light theme, the dark theme and automatic, which follows the visitor's device. Moves between theme.default and theme.dark, whatever theme.choices says. #}
+{# @prop size:select['sm','md','lg'] | default:"sm" | description:"Button size." #}
+{% load i18n %}
+<c-vars size="sm" />
+{% comment %}
+  One label per step, and the guard in mvp/base.html marks the step on <html>
+  before first paint, so the right one shows without waiting for a script.
+  data-theme-mode is "dark" or "auto", and absent on the light step.
+{% endcomment %}
+<c-button ghost
+          square
+          size="{{ size }}"
+          type="button"
+          data-theme-cycle="{{ mvp_config.theme.default }},{{ mvp_config.theme.dark }}"
+          title="{% trans "Change theme" %}"
+          only>
+  <span class="inline-flex in-data-[theme-mode]:hidden">
+    <c-icon name="theme.light" aria-hidden="true" only />
+    <span class="sr-only">{% trans "Theme: light" %}</span>
+  </span>
+  <span class="hidden in-data-[theme-mode=dark]:inline-flex">
+    <c-icon name="theme.dark" aria-hidden="true" only />
+    <span class="sr-only">{% trans "Theme: dark" %}</span>
+  </span>
+  <span class="hidden in-data-[theme-mode=auto]:inline-flex">
+    <c-icon name="theme.auto" aria-hidden="true" only />
+    <span class="sr-only">{% trans "Theme: automatic" %}</span>
+  </span>
+</c-button>

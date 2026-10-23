@@ -441,6 +441,7 @@ unmet.
 | Component | Notes |
 | --- | --- |
 | `c-mvp.actions.theme-controller` | light/dark theme toggle (`size`, `valign`, `halign`, `compact`). `compact` renders the two-theme switcher as one square icon button instead of the icon/checkbox/icon row, for narrow slots like the sidebar footer — it has no effect when `theme.choices` is configured, since that branch is already a square icon button |
+| `c-mvp.actions.theme-cycle` | one square icon button that steps through `theme.default`, `theme.dark` and automatic, which follows the device's setting (`size`). Moves between the same two themes whether or not `theme.choices` is set. See [Theming](theming.md) |
 | `c-mvp.actions.language-switcher` | i18n language dropdown (needs `set_language` URL); renders only when `LocaleMiddleware` is installed **and** `set_language` reverses |
 | `c-mvp.actions.language-switcher-modal` | the same switcher as a modal, better for narrow slots like the sidebar footer where a dropdown would be cramped — the variant the fixed sidebar footer uses (`id`, `size`); same preconditions as the dropdown switcher |
 | `c-mvp.actions.search` | navbar search input; renders an input that is not wired to a form or a view — it submits nothing on its own |
