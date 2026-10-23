@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Breaking:** `page_subtitle` and `get_page_subtitle()` are renamed `page_lead` and
+  `get_page_lead()`, and `page.subtitle` in the template context is gone. The old name is
+  not deprecated: a view that still sets `page_subtitle` draws no lead. The component's
+  `subtitle` attribute is renamed `lead` the same way.
+- **Breaking:** a project's override of `cotton/mvp/page/title.html` now receives the
+  `eyebrow`, `heading`, `lead`, `info_trigger` and `actions` slots and `layout`, in place of
+  `title`, `subtitle` and `info`.
+- **Breaking:** on a table page, `page.summary` is no longer inside `page.title`: the result
+  summary stays in the toolbar's bar and the title is drawn from the toolbar's `heading` slot.
+
+### Added
+
+- A view sets a page's eyebrow, lead and actions with `page_eyebrow`, `page_lead` and
+  `page_actions`, each with a `get_*()` method, and `get_page_title_args()` gathers them with
+  the title and the info into the one group the page templates read as `page.title_args`.
+
 ## [v0.31.0] - 2026-10-22
 
 ### Changed

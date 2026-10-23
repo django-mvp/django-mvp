@@ -22,7 +22,7 @@ from mvp.views import (
 ## Page basics
 
 Every MVP view includes `PageMixin`, which injects a `page` context dict
-(`title`, `subtitle`, `class`, `width`, `breadcrumbs`, `info`, `info_actions`) consumed by
+(`title`, `title_args`, `class`, `width`, `breadcrumbs`, `info`, `info_actions`) consumed by
 the page templates. `breadcrumbs` is drawn by the app header rather than the page
 body — see [Breadcrumbs](layout.md#breadcrumbs), which also covers giving a page its
 trail from a template — and the rest by the page itself:
@@ -31,8 +31,44 @@ trail from a template — and the rest by the page itself:
 class AboutView(MVPTemplateView):
     template_name = "about.html"
     page_title = "About us"
-    page_subtitle = "Who we are"
+    page_eyebrow = "Company"
+    page_lead = "Who we are"
 ```
+
+The page's title draws from six arguments. Each is a class attribute with a `get_*()` method
+that returns it, so a subclass changes one argument in one line, and a method serves a value
+that depends on the request or the object:
+
+| Attribute | Method | What it is |
+| --- | --- | --- |
+| `page_eyebrow` | `get_page_eyebrow()` | A short line above the title, such as a category |
+| `page_title` | `get_page_title()` | The heading's text |
+| `page_lead` | `get_page_lead()` | A sentence or two under the title |
+| `page_actions` | `get_page_actions()` | The page's own buttons, a list of dicts spread onto `c-button` |
+| `page_info` | `get_page_info()` | The text of the info dialog (see below) |
+| `page_info_actions` | `get_page_info_actions()` | The buttons at the foot of that dialog |
+
+All six are empty by default, and the title draws nothing for an empty one. A page whose
+view sets none of them but its title looks as it always did.
+
+`page_actions` takes the same keys as `page_info_actions`. Every key is written into the
+button's attributes, so never put user data in one.
+
+`get_page_title_args()` gathers the six into the dict the page templates read as
+`page.title_args`. Override it to set the whole title at once; what it returns is what the
+page draws:
+
+```python
+class OrderDetailView(MVPDetailView):
+    def get_page_title_args(self):
+        args = super().get_page_title_args()
+        args["eyebrow"] = self.object.customer.name
+        args["lead"] = f"Placed {self.object.placed_at:%d %B %Y}"
+        return args
+```
+
+`page_subtitle` is now `page_lead`. The old name is gone, not deprecated: a view that still
+sets `page_subtitle` draws no lead.
 
 `page_class` works the same way: `get_page_class()` always prefixes it with `mvp-page`, so
 `page_class = "products-list"` renders as `class="mvp-page products-list"`. There's no

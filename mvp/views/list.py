@@ -507,7 +507,7 @@ class MVPListViewMixin(
         empty_state (dict): ``{"heading": str | None, "message": str | None}``.
         grid_config (dict): Grid breakpoint configuration (may be empty).
         directory (dict): CRUD URLs; only ``create_url`` is injected (when permitted).
-        page (dict): PageMixin metadata — ``title``, ``subtitle``, ``icon``, ``class``,
+        page (dict): PageMixin metadata — ``title``, ``title_args``, ``icon``, ``class``,
             ``breadcrumbs``.
         create_form (Form): Unbound form instance for inline create modal (only when
             ``create_form_class`` is set and ``show_create_action`` is ``True``).

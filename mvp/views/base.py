@@ -145,27 +145,37 @@ class PageWidth(StrEnum):
 class PageMixin:
     """Mixin that injects a ``page`` context dict into every template rendered by the view.
 
-    Groups all page-level rendering metadata (title, subtitle, CSS class, breadcrumbs and the
-    page's explanatory text) under a single ``page`` key in the template context. This keeps
-    the main context namespace clean and makes it easy to identify where each variable
-    originates.
+    Groups all page-level rendering metadata (the title's arguments, CSS class, breadcrumbs
+    and the page's explanatory text) under a single ``page`` key in the template context.
+    This keeps the main context namespace clean and makes it easy to identify where each
+    variable originates.
 
     In templates, access page data as::
 
         {{ page.title }}
-        {{ page.subtitle }}
+        {{ page.title_args.lead }}
         {{ page.class }}
         {{ page.info }}
         {% for crumb in page.breadcrumbs %}...{% endfor %}
-        {% for action in page.info_actions %}...{% endfor %}
+        {% for action in page.title_args.actions %}...{% endfor %}
 
     Each attribute has a corresponding ``get_*()`` method. Use the class attribute for
     static values known at class-definition time; override the method for values that
     depend on the request, the resolved object, or other runtime state.
 
+    The page title draws from one group of arguments, ``page.title_args``: the eyebrow,
+    title, lead, actions, info and info actions. ``get_page_title_args()`` gathers it from
+    the attributes below, so a view can set one argument on its own or all of them at once
+    by overriding that method.
+
     Attributes:
         page_title (str | Promise): Page heading. Defaults to ``""``.
-        page_subtitle (str | Promise): Secondary heading shown below the title. Defaults to ``""``.
+        page_eyebrow (str | Promise): Short line drawn above the title, such as a category.
+            Defaults to ``""``.
+        page_lead (str | Promise): A sentence or two drawn under the title. Defaults to
+            ``""``.
+        page_actions (list): The page's own buttons. Each dict is passed straight to
+            daisy-cotton's ``c-button``, like ``page_info_actions``. Defaults to ``[]``.
         page_class (str): Extra CSS class(es) appended to the page container after the
             mandatory ``"mvp-page"`` prefix. Defaults to ``""``.
         page_width (PageWidth): How wide the page's content is. Defaults to
@@ -196,12 +206,14 @@ class PageMixin:
         class DashboardView(PageMixin, TemplateView):
             template_name = "dashboard.html"
             page_title = "Dashboard"
-            page_subtitle = "Welcome back"
+            page_lead = "Welcome back"
             breadcrumbs = [{"text": "Home", "href": "/"}, {"text": "Dashboard"}]
     """
 
     page_title: str | Promise = ""
-    page_subtitle: str | Promise = ""
+    page_eyebrow: str | Promise = ""
+    page_lead: str | Promise = ""
+    page_actions: list = []
     page_class = ""
     page_width: PageWidth = PageWidth.WIDE
     breadcrumbs: list = []
@@ -224,7 +236,7 @@ class PageMixin:
             A dict with the following string keys:
 
                 - ``"title"`` — from ``get_page_title()``
-                - ``"subtitle"`` — from ``get_page_subtitle()``
+                - ``"title_args"`` — from ``get_page_title_args()``
                 - ``"class"`` — from ``get_page_class()`` (always starts with ``"mvp-page"``)
                 - ``"breadcrumbs"`` — from ``get_breadcrumbs()``
                 - ``"info"`` — from ``get_page_info()``
@@ -233,7 +245,7 @@ class PageMixin:
         """
         return {
             "title": self.get_page_title(),
-            "subtitle": self.get_page_subtitle(),
+            "title_args": self.get_page_title_args(),
             "class": self.get_page_class(),
             "breadcrumbs": self.get_breadcrumbs(),
             "info": self.get_page_info(),
@@ -264,22 +276,89 @@ class PageMixin:
         """
         return self.page_title
 
-    def get_page_subtitle(self):
-        """Return the page subtitle string.
+    def get_page_eyebrow(self):
+        """Return the short line drawn above the page title, such as a category.
 
-        This method is the override hook for dynamic values. To set a static subtitle,
-        assign ``page_subtitle`` as a class attribute instead.
+        This method is the override hook for dynamic values. To set a static eyebrow,
+        assign ``page_eyebrow`` as a class attribute instead.
 
         Returns:
-            str | Promise: The value of ``self.page_subtitle``.
+            str | Promise: The value of ``self.page_eyebrow``.
 
         Example::
 
             class ProductDetailView(PageMixin, DetailView):
-                def get_page_subtitle(self):
+                def get_page_eyebrow(self):
                     return self.object.category.name
         """
-        return self.page_subtitle
+        return self.page_eyebrow
+
+    def get_page_lead(self):
+        """Return the sentence or two drawn under the page title.
+
+        This method is the override hook for dynamic values. To set a static lead,
+        assign ``page_lead`` as a class attribute instead.
+
+        Returns:
+            str | Promise: The value of ``self.page_lead``.
+
+        Example::
+
+            class ProductDetailView(PageMixin, DetailView):
+                def get_page_lead(self):
+                    return self.object.summary
+        """
+        return self.page_lead
+
+    def get_page_actions(self):
+        """Return the page's own buttons.
+
+        Each item is a dict passed straight to daisy-cotton's ``c-button``, so it takes any
+        attribute that component takes. Every key is written into the element's
+        attributes: never put user data in one.
+
+        This method is the override hook for dynamic values. To set static actions, assign
+        ``page_actions`` as a class attribute instead.
+
+        Returns:
+            The value of ``self.page_actions``.
+
+        Example::
+
+            class ReportView(PageMixin, TemplateView):
+                page_actions = [
+                    {"text": "Export", "href": "/report/export/", "icon": "download"}
+                ]
+        """
+        return self.page_actions
+
+    def get_page_title_args(self):
+        """Return the arguments the page title draws, as one group.
+
+        Override this to set the whole title at once. The page templates read each
+        argument from the group this method returns, so what it returns is what the page
+        draws.
+
+        Returns:
+            A dict with the keys ``"eyebrow"``, ``"title"``, ``"lead"``, ``"actions"``,
+            ``"info"`` and ``"info_actions"``, each from its own ``get_page_*()`` method.
+
+        Example::
+
+            class OrderDetailView(MVPDetailView):
+                def get_page_title_args(self):
+                    args = super().get_page_title_args()
+                    args["lead"] = f"Placed {self.object.placed_at:%d %B %Y}"
+                    return args
+        """
+        return {
+            "eyebrow": self.get_page_eyebrow(),
+            "title": self.get_page_title(),
+            "lead": self.get_page_lead(),
+            "actions": self.get_page_actions(),
+            "info": self.get_page_info(),
+            "info_actions": self.get_page_info_actions(),
+        }
 
     def get_breadcrumbs(self):
         """Return the list of breadcrumb items for the page.

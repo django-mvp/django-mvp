@@ -78,7 +78,7 @@ class TestPageMixinGetPageContext:
         ctx = view.get_page_context()
         assert set(ctx.keys()) == {
             "title",
-            "subtitle",
+            "title_args",
             "class",
             "breadcrumbs",
             "info",
@@ -89,13 +89,127 @@ class TestPageMixinGetPageContext:
     def test_get_page_context_delegates_to_getters(self):
         view = ConcretePage()
         view.page_title = "Test"
-        view.page_subtitle = "Sub"
+        view.page_lead = "Sub"
         view.page_class = "extra"
         view.breadcrumbs = [{"text": "Home"}]
         ctx = view.get_page_context()
         assert ctx["title"] == "Test"
-        assert ctx["subtitle"] == "Sub"
+        assert ctx["title_args"]["lead"] == "Sub"
         assert ctx["breadcrumbs"] == [{"text": "Home"}]
+
+
+class TestPageTitleArgs:
+    def test_the_group_names_every_argument(self):
+        args = ConcretePage().get_page_title_args()
+
+        assert set(args) == {
+            "eyebrow",
+            "title",
+            "lead",
+            "actions",
+            "info",
+            "info_actions",
+        }
+
+    @pytest.mark.parametrize("name", ["eyebrow", "lead", "actions"])
+    def test_an_argument_is_empty_until_the_view_sets_it(self, name):
+        args = ConcretePage().get_page_context()["title_args"]
+
+        assert not args[name]
+
+    @pytest.mark.parametrize(
+        ("name", "value"),
+        [
+            ("eyebrow", "Inventory"),
+            ("lead", "Everything in stock."),
+            ("actions", [{"text": "Export", "href": "/export/"}]),
+        ],
+    )
+    def test_an_attribute_reaches_the_group(self, name, value):
+        view = ConcretePage()
+        setattr(view, f"page_{name}", value)
+
+        assert view.get_page_context()["title_args"][name] == value
+
+    def test_an_eyebrow_method_wins_over_its_attribute(self):
+        class EyebrowPage(ConcretePage):
+            page_eyebrow = "From the attribute"
+
+            def get_page_eyebrow(self):
+                return "From the method"
+
+        assert EyebrowPage().get_page_context()["title_args"]["eyebrow"] == (
+            "From the method"
+        )
+
+    def test_a_lead_method_wins_over_its_attribute(self):
+        class LeadPage(ConcretePage):
+            page_lead = "From the attribute"
+
+            def get_page_lead(self):
+                return "From the method"
+
+        assert LeadPage().get_page_context()["title_args"]["lead"] == "From the method"
+
+    def test_an_actions_method_wins_over_its_attribute(self):
+        class ActionsPage(ConcretePage):
+            page_actions = [{"text": "From the attribute"}]
+
+            def get_page_actions(self):
+                return [{"text": "From the method"}]
+
+        assert ActionsPage().get_page_context()["title_args"]["actions"] == [
+            {"text": "From the method"}
+        ]
+
+    def test_a_subclass_changing_one_attribute_keeps_the_parents_others(self):
+        class Parent(ConcretePage):
+            page_title = "Parent title"
+            page_eyebrow = "Parent eyebrow"
+            page_lead = "Parent lead"
+            page_actions = [{"text": "Parent action"}]
+
+        class Child(Parent):
+            page_lead = "Child lead"
+
+        args = Child().get_page_context()["title_args"]
+
+        assert args["lead"] == "Child lead"
+        assert args["title"] == "Parent title"
+        assert args["eyebrow"] == "Parent eyebrow"
+        assert args["actions"] == [{"text": "Parent action"}]
+
+    def test_overriding_the_group_replaces_what_the_page_carries(self):
+        class GroupPage(ConcretePage):
+            page_lead = "Ignored"
+
+            def get_page_title_args(self):
+                return {"title": "Computed", "lead": "Computed lead"}
+
+        ctx = GroupPage().get_page_context()
+
+        assert ctx["title_args"] == {"title": "Computed", "lead": "Computed lead"}
+
+    def test_the_title_and_info_stay_in_the_page_context(self):
+        view = ConcretePage()
+        view.page_title = "Products"
+        view.page_info = "What this page is for."
+        view.page_info_actions = [{"text": "Docs"}]
+
+        ctx = view.get_page_context()
+
+        assert ctx["title"] == "Products"
+        assert ctx["info"] == "What this page is for."
+        assert ctx["info_actions"] == [{"text": "Docs"}]
+
+    def test_the_subtitle_is_gone_from_the_page_context(self):
+        assert "subtitle" not in ConcretePage().get_page_context()
+
+    def test_a_view_still_setting_the_subtitle_draws_no_lead(self):
+        class OldNamePage(ConcretePage):
+            page_subtitle = "Old name"
+
+        assert not OldNamePage().get_page_context()["title_args"]["lead"]
 
 
 class TestPageMixinPageWidth:
@@ -490,7 +604,7 @@ class TestMVPTemplateViewLayoutIntegration:
         view = MVPTemplateView(
             template_name="page_view.html",
             page_title="T",
-            page_subtitle="S",
+            page_lead="S",
             page_class="sidebar-collapse",
             breadcrumbs=[{"text": "Home", "href": "/"}],
         )
@@ -500,7 +614,7 @@ class TestMVPTemplateViewLayoutIntegration:
         context = view.get_context_data()
         page = context["page"]
         assert page["title"] == "T"
-        assert page["subtitle"] == "S"
+        assert page["title_args"]["lead"] == "S"
         assert "sidebar-collapse" in page["class"]
         assert page["breadcrumbs"] == [{"text": "Home", "href": "/"}]
 
