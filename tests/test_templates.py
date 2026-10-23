@@ -929,3 +929,233 @@ class TestPageTitleArgumentsOnEveryPage:
             if not element.get_text(strip=True) and not element.find(True)
         ]
         assert empty == []
+
+
+TITLE_BASES = {
+    "page": "page_view.html",
+    "form": "form_view.html",
+    "detail": "detail_view.html",
+    "delete": "delete_view.html",
+    "list": "list_view.html",
+    "table": "table_view.html",
+}
+TITLE_LAYOUT_NAMES = ["default", "inline", "centred", "compact"]
+# A table page's toolbar bar carries the class too, and is not the title.
+TITLE_WRAPPER = "main .page-title:not(.mvp-table-toolbar-bar)"
+OWN_TRIGGER = '<button id="own-trigger" type="button"></button>'
+OWN_ACTION = '<a id="own-action" href="/own-action/">Own action</a>'
+# What a template puts in a block, and where the element it draws is found.
+BLOCK_FILLS = {
+    "eyebrow": ("Block eyebrow", ".mvp-page-eyebrow"),
+    "heading": ("Block heading", "h1"),
+    "lead": ("Block lead", ".mvp-page-lead"),
+    "info": (OWN_TRIGGER, "#own-trigger"),
+    "actions": (OWN_ACTION, "#own-action"),
+}
+# What the view set for each block's argument, and the text the block replaces.
+VIEW_VALUES = {
+    "eyebrow": "Unique eyebrow",
+    "heading": "Unique title",
+    "lead": "Unique lead",
+    "info": "Unique info",
+    "actions": "Unique action",
+}
+BLOCK_SELECTORS = {
+    "eyebrow": ".mvp-page-eyebrow",
+    "heading": "h1",
+    "lead": ".mvp-page-lead",
+    "info": "dialog",
+}
+
+
+@pytest.fixture
+def render_filled_page(render_title_page, project_components):
+    """Render a page whose template fills the named title blocks.
+
+    ``fills`` maps a block (``eyebrow``, ``heading``, ``lead``, ``info``,
+    ``actions`` or ``title``) to what the template puts in it, and the view
+    sets every argument.
+    """
+
+    def render(kind, fills, **attrs):
+        return render_title_page(
+            kind,
+            template_name="title_blocks.html",
+            extra_context={"title_base": TITLE_BASES[kind], "title_fills": fills},
+            **{**UNIQUE_TITLE_ARGUMENTS, **attrs},
+        )
+
+    return render
+
+
+def title_area(soup):
+    """The title's wrapper: found by its class, so a page with no ``<h1>`` has one."""
+    return soup.select_one(TITLE_WRAPPER)
+
+
+def block_title_cases():
+    """Each block on every kind of page, then on a page in each layout.
+
+    A table page draws a layout above its toolbar or, compact, inside it, so
+    each layout is tried on it too, for the heading.
+    """
+    cases = (
+        [(kind, None, block) for kind in TITLE_PAGE_KINDS for block in BLOCK_FILLS]
+        + [("page", name, block) for name in TITLE_LAYOUT_NAMES for block in BLOCK_FILLS]
+        + [("table", name, "heading") for name in TITLE_LAYOUT_NAMES]
+    )
+    return [
+        pytest.param(kind, layout, block, id=f"{kind}-{layout or 'own'}-{block}")
+        for kind, layout, block in cases
+    ]
+
+
+def toolbar_actions(kind):
+    """Whether a page of this kind draws its actions in a toolbar, not in the title."""
+    return kind in ("list", "table")
+
+
+@pytest.mark.django_db
+class TestPageTitleBlocks:
+    @staticmethod
+    def attrs(layout):
+        return {"page_title_layout": layout} if layout else {}
+
+    @pytest.mark.parametrize(("kind", "layout", "block"), block_title_cases())
+    def test_a_block_replaces_its_argument_alone(
+        self, render_filled_page, kind, layout, block
+    ):
+        replacement, selector = BLOCK_FILLS[block]
+        soup = render_filled_page(kind, {block: replacement}, **self.attrs(layout))
+
+        page = soup.select_one("main")
+        title = title_area(soup)
+        # The actions of a list or table page are in its toolbar, not the title.
+        drawn_in = page if block == "actions" and toolbar_actions(kind) else title
+        drawn = drawn_in.select(selector)
+        assert len(drawn) == 1
+        if block in ("eyebrow", "heading", "lead"):
+            # The info dialog is titled from the view's title, so read the element.
+            assert drawn[0].get_text(strip=True) == replacement
+        else:
+            assert VIEW_VALUES[block] not in drawn_in.get_text()
+        for other in set(BLOCK_SELECTORS) - {block}:
+            assert VIEW_VALUES[other] in title.select_one(
+                BLOCK_SELECTORS[other]
+            ).get_text(), other
+        if block != "actions" and not toolbar_actions(kind):
+            assert len(page.select('a[href="/unique-action/"]')) == 1
+
+    @pytest.mark.parametrize("kind", TITLE_PAGE_KINDS)
+    @pytest.mark.parametrize("block", ["eyebrow", "heading", "lead", "info"])
+    def test_a_block_filled_with_nothing_removes_its_argument(
+        self, render_filled_page, kind, block
+    ):
+        soup = render_filled_page(kind, {block: ""})
+
+        title = title_area(soup)
+        assert title.select(BLOCK_SELECTORS[block]) == []
+        for other in set(BLOCK_SELECTORS) - {block, "heading"}:
+            assert title.select(BLOCK_SELECTORS[other]) != [], other
+        empty = [
+            element
+            for element in title.find_all(["div", "p"])
+            if not element.get_text(strip=True) and not element.find(True)
+        ]
+        assert empty == []
+
+    @pytest.mark.parametrize("kind", ["page", "form", "detail", "delete"])
+    def test_the_actions_block_filled_with_nothing_draws_no_actions_in_the_title(
+        self, render_filled_page, kind
+    ):
+        soup = render_filled_page(kind, {"actions": ""})
+
+        title = title_area(soup)
+        assert title.find("a") is None
+        assert title.select_one("h1") is not None
+
+    @pytest.mark.parametrize("kind", ["list", "table"])
+    def test_the_actions_block_filled_with_nothing_empties_the_toolbars_actions(
+        self, render_filled_page, kind
+    ):
+        soup = render_filled_page(kind, {"actions": ""})
+
+        links = [a["href"] for a in soup.select_one("main").find_all("a", href=True)]
+        assert "/unique-action/" not in links
+        assert "/products/create/" not in links
+        assert title_area(soup).select_one("h1") is not None
+
+    @pytest.mark.parametrize("kind", TITLE_PAGE_KINDS)
+    def test_an_emptied_heading_keeps_the_info_trigger(self, render_filled_page, kind):
+        soup = render_filled_page(kind, {"heading": ""})
+
+        title = title_area(soup)
+        assert title.find("h1") is None
+        assert "Unique info" in title.find("dialog").get_text()
+        assert title.find("button") is not None
+
+    @pytest.mark.parametrize("kind", TITLE_PAGE_KINDS)
+    def test_overriding_the_title_block_replaces_the_whole_area(
+        self, render_filled_page, kind
+    ):
+        own = '<div id="own-title">Own title</div>'
+        soup = render_filled_page(kind, {"title": own})
+
+        page = soup.select_one("main")
+        assert len(page.select("#own-title")) == 1
+        assert page.select(TITLE_WRAPPER.removeprefix("main ")) == []
+        assert page.find("h1") is None
+        for value in ("Unique eyebrow", "Unique lead", "Unique info", "Unique title"):
+            assert value not in page.get_text()
+
+
+def normalised(element):
+    """An element's markup with its whitespace collapsed."""
+    return re.sub(r"\s+", " ", str(element)).replace("> <", "><").strip()
+
+
+DIRECT_ARGUMENTS = (
+    'title="Unique title" eyebrow="Unique eyebrow" lead="Unique lead" '
+    'info="Unique info"'
+)
+DIRECT_ACTION = (
+    '<c-slot name="actions"><c-button size="sm" href="/unique-action/" '
+    'text="Unique action" only /></c-slot>'
+)
+
+
+@pytest.mark.django_db
+class TestPageTitleCalledDirectly:
+    @pytest.mark.parametrize("layout", TITLE_LAYOUT_NAMES)
+    def test_a_call_with_attributes_and_a_layout_draws_what_a_page_view_draws(
+        self, render_title_page, layout
+    ):
+        page = render_title_page(
+            "page", **UNIQUE_TITLE_ARGUMENTS, page_title_layout=layout
+        )
+
+        direct = render_component(
+            f'<c-mvp.page.title layout="{layout}" {DIRECT_ARGUMENTS}>'
+            f"{DIRECT_ACTION}</c-mvp.page.title>"
+        )
+
+        assert normalised(direct.select_one(".page-title")) == normalised(
+            title_area(page)
+        )
+
+    def test_a_call_with_inline_actions_and_no_layout_draws_the_inline_layout(self):
+        inline_actions = render_component(
+            f"<c-mvp.page.title inline_actions {DIRECT_ARGUMENTS}>"
+            f"{DIRECT_ACTION}</c-mvp.page.title>"
+        )
+        named = render_component(
+            f'<c-mvp.page.title layout="inline" {DIRECT_ARGUMENTS}>'
+            f"{DIRECT_ACTION}</c-mvp.page.title>"
+        )
+        default = render_component(
+            f"<c-mvp.page.title {DIRECT_ARGUMENTS}>"
+            f"{DIRECT_ACTION}</c-mvp.page.title>"
+        )
+
+        assert normalised(inline_actions) == normalised(named)
+        assert normalised(inline_actions) != normalised(default)

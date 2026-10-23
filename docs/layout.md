@@ -906,6 +906,7 @@ a bare region inside the shell. Override a `page.*` block instead.
 | `page.content-wrapper` | `page_view.html` | The content region, title bar included |
 | `page.side` | `page_view.html` | A [side panel](#side-panel) beside the title and content. Empty by default; left empty, the page is drawn as it always was |
 | `page.title` | `page_view.html` | The title area: eyebrow, heading, lead, info trigger and actions, drawn in the page's [title layout](#page-title) |
+| `page.eyebrow`, `page.heading`, `page.lead`, `page.info` | `page_view.html` | One argument of the title each, inside `page.title`. See [Replacing one part of a page's title](#replacing-one-part-of-a-pages-title) |
 | `page.actions` | `page_view.html` | The view's action buttons, in the title area. On list and table pages they are in the toolbar |
 | `page.content` | `page_view.html` | **The page body. This is the usual override.** |
 | `page.footer` | `page_view.html` | The toolbar below the content |
@@ -975,6 +976,46 @@ raises `ImproperlyConfigured`. `mvp.utils.TITLE_LAYOUTS` lists the four shipped 
   <c-slot name="heading">Welcome</c-slot>
 </c-component>
 ```
+
+### Replacing one part of a page's title
+
+Each argument of the title has a block in every page template, so a project template that
+extends one can replace that argument alone and leave the rest to the view:
+
+| Block | Replaces | Holds by default |
+| --- | --- | --- |
+| `page.eyebrow` | The eyebrow | The view's `page_eyebrow` |
+| `page.heading` | The heading's text | The view's `page_title` |
+| `page.lead` | The lead | The view's `page_lead` |
+| `page.info` | The whole info trigger | The trigger drawn from `page_info` and `page_info_actions` |
+| `page.actions` | The page's actions | The view's `page_actions`, drawn as buttons. A detail page adds Edit and Delete after them. On list and table pages they are in the toolbar, before the add button |
+| `page.title` | The whole title area | All of the above, in the page's layout |
+
+```django
+{% extends "detail_view.html" %}
+{% block page.lead %}
+  Placed by <a href="{{ object.customer.get_absolute_url }}">{{ object.customer }}</a>
+{% endblock page.lead %}
+```
+
+A block holds markup, so a lead can carry a link. Every layout draws what a block gives it.
+
+- A block filled with nothing removes that argument, though the view sets it, and the title
+  draws no empty element in its place.
+- Emptying `page.heading` removes the `<h1>` and keeps the info trigger. Emptying `page.info`
+  removes the trigger and keeps the heading.
+- A block you fill leaves the others alone: the lead you write sits under the heading the
+  view set.
+- A template that fills `page.actions` replaces everything the block held, Edit and Delete on a
+  detail page and the add button on a list or table page included. Write `{{ block.super }}`
+  in it to keep them.
+- `page.title` replaces the whole area, and its own blocks go with it, so a template that fills
+  it draws the title itself, with `<c-mvp.page.title>` or plain markup.
+
+A template that is not one of the page templates calls `<c-mvp.page.title>` itself, with the
+arguments as attributes and the actions in its `actions` slot. It draws what a page view draws
+for the same arguments, in the layout it names, and in `inline` when it sets `inline_actions`
+and names none. See [The page title](components.md#the-page-title).
 
 ### Form pages sit in a narrower column
 

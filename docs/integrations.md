@@ -105,6 +105,7 @@ Each part of the toolbar is a block in `table_view.html`:
 | `page.header` | Empty. Anything here is drawn above the toolbar |
 | `page.toolbar` | The whole toolbar |
 | `page.title` | The title area: the eyebrow, heading, lead and info icon. In the compact layout, the default, it is the start of the bar; in any other layout it is drawn above the bar |
+| `page.eyebrow`, `page.heading`, `page.lead`, `page.info` | One argument of the title each, inside `page.title`. See [Replacing one part of a page's title](layout.md#replacing-one-part-of-a-pages-title) |
 | `page.summary` | The count, in the bar beside the title |
 | `page.controls` | The end of the toolbar row: the Filters button, then `page.actions`. Shown with the panel closed |
 | `page.actions` | The view's `page_actions`, then the add button, inside `page.controls`. Write `{{ block.super }}` to keep both |

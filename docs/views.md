@@ -636,6 +636,7 @@ Every part of the list template is a block, so a project template that extends
 | Block | Holds |
 | --- | --- |
 | `page.title` | The title area: the eyebrow, title, lead and info icon |
+| `page.eyebrow`, `page.heading`, `page.lead`, `page.info` | One argument of the title each, inside `page.title`. Filled with nothing, one removes its argument alone. See [Replacing one part of a page's title](layout.md#replacing-one-part-of-a-pages-title) |
 | `page.side` | The filter panel, beside the results. Empty when every field is in the toolbar |
 | `page.toolbar` | The whole toolbar row: the filter form, then `page.controls` |
 | `page.filters` | The filter form with the toolbar's fields, inside `page.toolbar` |
