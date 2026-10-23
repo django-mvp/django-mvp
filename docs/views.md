@@ -70,6 +70,11 @@ class OrderDetailView(MVPDetailView):
 `page_subtitle` is now `page_lead`. The old name is gone, not deprecated: a view that still
 sets `page_subtitle` draws no lead.
 
+Where the actions are drawn depends on the page. A page, form or delete page draws them in
+the title area. A detail page draws them there too, in front of its Edit and Delete buttons.
+A list or table page draws them in the toolbar, before the Add button, whatever the title
+layout, and leaves the title area without actions.
+
 `page_class` works the same way: `get_page_class()` always prefixes it with `mvp-page`, so
 `page_class = "products-list"` renders as `class="mvp-page products-list"`. There's no
 `page_icon` — a couple of packaged templates read `page.icon`, but nothing sets it, so it
@@ -487,7 +492,7 @@ ignores a `SortFilter`.
 
 From top to bottom, the list template draws:
 
-1. **The title row.** The title, the subtitle and the info button.
+1. **The title row.** The eyebrow, the title, the lead and the info button.
 2. **The toolbar.** The filter form with the fields named in `toolbar_filters`, then the
    sort when it is named, the Filters button that opens the filter panel, and the add
    button last. The filter panel itself is a [side panel](layout.md#side-panel) beside the
@@ -607,12 +612,12 @@ Every part of the list template is a block, so a project template that extends
 
 | Block | Holds |
 | --- | --- |
-| `page.title` | The title, subtitle and info icon |
+| `page.title` | The title area: the eyebrow, title, lead and info icon |
 | `page.side` | The filter panel, beside the results. Empty when every field is in the toolbar |
 | `page.toolbar` | The whole toolbar row: the filter form, then `page.controls` |
 | `page.filters` | The filter form with the toolbar's fields, inside `page.toolbar` |
 | `page.controls` | The end of the toolbar row: sort, the Filters button, then `page.actions` |
-| `page.actions` | The add button, inside `page.controls`. Write `{{ block.super }}` to keep it |
+| `page.actions` | The view's `page_actions`, then the add button, inside `page.controls`. Write `{{ block.super }}` to keep both |
 | `page.refinements` | The count row: the count, the chosen sort and the applied search and filters |
 | `page.summary` | The count, inside `page.refinements` |
 | `page.results` | The grid of records |
@@ -627,8 +632,8 @@ Every part of the list template is a block, so a project template that extends
 {% endblock page.actions %}
 ```
 
-`{{ block.super }}` is the add button, so where you write it decides where it goes: before
-your own actions, after them, or nowhere if you leave it out. A table page has the same
+`{{ block.super }}` is the view's actions and the add button, so where you write it decides
+where they go: before your own actions, after them, or nowhere if you leave it out. A table page has the same
 three toolbar blocks, so an override written for one serves the other.
 
 The toolbar is drawn only when the list has records or something is applied, and

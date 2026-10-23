@@ -2,7 +2,17 @@
 {% load i18n %}
 {% block account.content %}
   <c-mvp.page only>
-    <c-mvp.page.title :title="page.title" :lead="page.lead" only />
+    <c-mvp.page.title :layout="page.title_layout" only>
+      <c-slot name="eyebrow">{{ page.title_args.eyebrow }}</c-slot>
+      <c-slot name="heading">{{ page.title_args.title }}</c-slot>
+      <c-slot name="lead">{{ page.title_args.lead }}</c-slot>
+      <c-slot name="info_trigger">
+        <c-mvp.page.info :text="page.title_args.info" :title="page.title_args.title" :actions="page.title_args.info_actions" only />
+      </c-slot>
+      <c-slot name="actions">
+        {% for action in page.title_args.actions %}<c-button size="sm" :attrs="action" only />{% endfor %}
+      </c-slot>
+    </c-mvp.page.title>
     {% comment %}
       No fallback menu listing here — it's already on the page beside this
       content (FR-019). Empty when no installed app contributes a card.

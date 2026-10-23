@@ -748,3 +748,184 @@ class TestPageViewSideBlock:
         assert layout.select_one(".mvp-page-header") is None
         assert layout.select_one(".mvp-page-main #body") is not None
         assert layout.select_one("#toc") is not None
+
+
+UNIQUE_TITLE_ARGUMENTS = {
+    "page_title": "Unique title",
+    "page_eyebrow": "Unique eyebrow",
+    "page_lead": "Unique lead",
+    "page_actions": [{"text": "Unique action", "href": "/unique-action/"}],
+    "page_info": "Unique info",
+}
+
+TITLE_PAGE_KINDS = ["page", "form", "detail", "delete", "list", "table"]
+
+
+@pytest.fixture
+def render_title_page(rf, superuser, product):
+    """Render one page of the given kind from a view with ``attrs`` set."""
+
+    def render(kind, **attrs):
+        from demo.forms import ProductForm
+        from demo.models import Product
+        from mvp.views import (
+            MVPCreateView,
+            MVPDeleteView,
+            MVPDetailView,
+            MVPListView,
+            MVPTemplateView,
+        )
+
+        url_kwargs = {}
+        if kind == "page":
+            base, setup = MVPTemplateView, {"template_name": "page_view.html"}
+        elif kind == "form":
+            base, setup = MVPCreateView, {"model": Product, "form_class": ProductForm}
+        elif kind == "detail":
+            base, setup = MVPDetailView, {
+                "model": Product,
+                "show_update_action": True,
+                "show_delete_action": True,
+            }
+            url_kwargs = {"pk": product.pk}
+        elif kind == "delete":
+            base, setup = MVPDeleteView, {"model": Product}
+            url_kwargs = {"pk": product.pk}
+        elif kind == "list":
+            base, setup = MVPListView, {
+                "model": Product,
+                "list_item_template": "cards/product_card.html",
+                "show_create_action": True,
+            }
+        else:
+            pytest.importorskip("django_tables2")
+            from demo.tables import ProductTable
+            from mvp.integrations.django_tables.views import MVPTableView
+
+            base, setup = MVPTableView, {
+                "model": Product,
+                "table_class": ProductTable,
+                "show_create_action": True,
+            }
+        if "page_title" in attrs:
+            # Detail and delete pages title themselves from their object.
+            attrs["get_page_title"] = lambda self: attrs["page_title"]
+        view_class = type("TitleTestView", (base,), {**setup, **attrs})
+        request = rf.get("/")
+        request.user = superuser
+        response = view_class.as_view()(request, **url_kwargs)
+        response.render()
+        return BeautifulSoup(response.content.decode(), "html.parser")
+
+    return render
+
+
+def _title_area(soup):
+    """The element a page draws its title in: the one holding the ``<h1>``."""
+    heading = soup.select_one("main h1")
+    return heading.find_parent(class_="page-title")
+
+
+@pytest.mark.django_db
+class TestPageTitleArgumentsOnEveryPage:
+    @pytest.mark.parametrize("kind", TITLE_PAGE_KINDS)
+    def test_the_title_draws_every_argument_the_view_sets(
+        self, render_title_page, kind
+    ):
+        soup = render_title_page(kind, **UNIQUE_TITLE_ARGUMENTS)
+
+        title = _title_area(soup)
+        assert [h1.get_text(strip=True) for h1 in title.find_all("h1")] == [
+            "Unique title"
+        ]
+        assert title.select_one(".mvp-page-eyebrow").get_text(strip=True) == (
+            "Unique eyebrow"
+        )
+        assert title.select_one(".mvp-page-lead").get_text(strip=True) == "Unique lead"
+        assert "Unique info" in title.find("dialog").get_text()
+
+    @pytest.mark.parametrize("kind", ["page", "form", "detail", "delete"])
+    def test_the_actions_are_drawn_in_the_title_on_pages_without_a_toolbar(
+        self, render_title_page, kind
+    ):
+        soup = render_title_page(kind, **UNIQUE_TITLE_ARGUMENTS)
+
+        actions = soup.select('a[href="/unique-action/"]')
+        assert len(actions) == 1
+        assert actions[0].find_parent(class_="page-title") is not None
+
+    @pytest.mark.parametrize("kind", ["list", "table"])
+    def test_the_actions_are_in_the_toolbar_before_add_and_not_in_the_title(
+        self, render_title_page, kind
+    ):
+        soup = render_title_page(kind, **UNIQUE_TITLE_ARGUMENTS)
+
+        toolbar = soup.select_one(".mvp-list-toolbar, .mvp-table-toolbar")
+        links = [a["href"] for a in toolbar.find_all("a", href=True)]
+        assert links.count("/unique-action/") == 1
+        assert links.index("/unique-action/") < links.index("/products/create/")
+        assert _title_area(soup).find("a", href="/unique-action/") is None
+
+    @pytest.mark.parametrize("kind", TITLE_PAGE_KINDS)
+    def test_overriding_the_group_changes_what_the_page_draws(
+        self, render_title_page, kind
+    ):
+        def get_page_title_args(self):
+            return {
+                "title": "Computed title",
+                "lead": "Computed lead",
+                "info": "Computed info",
+            }
+
+        soup = render_title_page(
+            kind,
+            page_title="Ignored title",
+            page_lead="Ignored lead",
+            page_info="Ignored info",
+            get_page_title_args=get_page_title_args,
+        )
+
+        title = _title_area(soup)
+        assert [h1.get_text(strip=True) for h1 in title.find_all("h1")] == [
+            "Computed title"
+        ]
+        assert title.select_one(".mvp-page-lead").get_text(strip=True) == (
+            "Computed lead"
+        )
+        assert "Computed info" in title.find("dialog").get_text()
+        assert "Ignored" not in title.get_text()
+
+    def test_a_detail_pages_actions_are_drawn_with_edit_and_delete(
+        self, render_title_page, product
+    ):
+        soup = render_title_page("detail", **UNIQUE_TITLE_ARGUMENTS)
+
+        links = [a["href"] for a in _title_area(soup).find_all("a", href=True)]
+        assert links == [
+            "/unique-action/",
+            f"/products/{product.pk}/edit/",
+            f"/products/{product.pk}/delete/",
+        ]
+
+    @pytest.mark.parametrize("kind", TITLE_PAGE_KINDS)
+    def test_a_view_setting_nothing_new_draws_one_heading_and_no_eyebrow_or_actions(
+        self, render_title_page, kind
+    ):
+        soup = render_title_page(kind, page_title="Unique title")
+
+        title = _title_area(soup)
+        assert len(title.find_all("h1")) == 1
+        assert title.select_one(".mvp-page-eyebrow") is None
+        assert title.select_one(".mvp-page-lead") is None
+        assert title.find("dialog") is None
+        links = [a["href"] for a in title.find_all("a", href=True)]
+        assert "/unique-action/" not in links
+        if kind != "detail":
+            assert links == []
+        assert title.find("button") is None
+        empty = [
+            element
+            for element in title.find_all(["div", "p"])
+            if not element.get_text(strip=True) and not element.find(True)
+        ]
+        assert empty == []
