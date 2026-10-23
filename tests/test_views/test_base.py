@@ -79,6 +79,7 @@ class TestPageMixinGetPageContext:
         assert set(ctx.keys()) == {
             "title",
             "title_args",
+            "title_layout",
             "class",
             "breadcrumbs",
             "info",
@@ -210,6 +211,123 @@ class TestPageTitleArgs:
             page_subtitle = "Old name"
 
         assert not OldNamePage().get_page_context()["title_args"]["lead"]
+
+
+class TestPageTitleLayoutSetting:
+    @staticmethod
+    def _view_classes():
+        from mvp.views import (
+            MVPCreateView,
+            MVPDeleteView,
+            MVPDetailView,
+            MVPFormView,
+            MVPListView,
+        )
+
+        return {
+            "page": ConcretePage,
+            "form": MVPFormView,
+            "create": MVPCreateView,
+            "detail": MVPDetailView,
+            "delete": MVPDeleteView,
+            "list": MVPListView,
+        }
+
+    @staticmethod
+    def _table_view_class():
+        pytest.importorskip("django_tables2")
+        from mvp.integrations.django_tables.views import MVPTableView
+
+        return MVPTableView
+
+    @staticmethod
+    def _setting(monkeypatch, layout):
+        """Leave ``MVP_CONFIG["page_title"]`` as a project's settings would.
+
+        ``mvp.config`` deep-merges the project's value over the package default at
+        import, so a dict naming one page type arrives with the others filled in.
+        """
+        import copy
+
+        from mergedeep import merge
+
+        from mvp.config import MVP_CONFIG
+
+        merged = merge(copy.deepcopy(MVP_CONFIG["page_title"]), {"layout": layout})
+        monkeypatch.setitem(MVP_CONFIG, "page_title", merged)
+
+    @pytest.mark.parametrize(
+        ("kind", "expected"),
+        [
+            ("page", "default"),
+            ("form", "default"),
+            ("create", "default"),
+            ("detail", "default"),
+            ("delete", "default"),
+            ("list", "inline"),
+        ],
+    )
+    def test_with_no_setting_each_page_type_draws_the_layout_it_always_has(
+        self, kind, expected
+    ):
+        view = self._view_classes()[kind]()
+
+        assert view.get_page_title_layout() == expected
+
+    def test_with_no_setting_a_table_page_draws_the_compact_layout(self):
+        assert self._table_view_class()().get_page_title_layout() == "compact"
+
+    def test_the_layout_reaches_the_page_context(self):
+        assert ConcretePage().get_page_context()["title_layout"] == "default"
+
+    def test_each_view_type_names_its_page_type(self):
+        views = self._view_classes()
+        assert {kind: cls.page_type for kind, cls in views.items()} == {
+            "page": "page",
+            "form": "form",
+            "create": "form",
+            "detail": "detail",
+            "delete": "delete",
+            "list": "list",
+        }
+        assert self._table_view_class().page_type == "table"
+
+    @pytest.mark.parametrize("kind", ["page", "form", "detail", "delete", "list"])
+    def test_a_string_applies_to_every_page_type(self, monkeypatch, kind):
+        self._setting(monkeypatch, "centred")
+
+        assert self._view_classes()[kind]().get_page_title_layout() == "centred"
+
+    def test_a_string_applies_to_a_table_page(self, monkeypatch):
+        self._setting(monkeypatch, "centred")
+
+        assert self._table_view_class()().get_page_title_layout() == "centred"
+
+    @pytest.mark.parametrize(
+        "named", ["page", "form", "detail", "delete", "list", "table"]
+    )
+    def test_a_dict_naming_one_type_changes_only_that_type(self, monkeypatch, named):
+        self._setting(monkeypatch, {named: "centred"})
+
+        defaults = {
+            "page": "default",
+            "form": "default",
+            "detail": "default",
+            "delete": "default",
+            "list": "inline",
+            "table": "compact",
+        }
+        views = {**self._view_classes(), "table": self._table_view_class()}
+        resolved = {
+            kind: views[kind]().get_page_title_layout() for kind in defaults
+        }
+        assert resolved == {**defaults, named: "centred"}
+
+    def test_a_dict_changing_the_table_leaves_the_list_inline(self, monkeypatch):
+        self._setting(monkeypatch, {"table": "default"})
+
+        assert self._table_view_class()().get_page_title_layout() == "default"
+        assert self._view_classes()["list"]().get_page_title_layout() == "inline"
 
 
 class TestPageMixinPageWidth:

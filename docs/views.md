@@ -67,6 +67,14 @@ class OrderDetailView(MVPDetailView):
         return args
 ```
 
+Each view type has a `page_type`: `page` on `MVPTemplateView` and any view that is none of
+the others, `form` on the create, update and form views, `detail`, `delete`, `list` and
+`table`. It is how [`MVP_CONFIG["page_title"]["layout"]`](configuration.md#page_titlelayout)
+picks the layout a view's title is drawn in, so a project can give list pages one layout and
+every other page another. A view of your own that matches none of them sets `page_type` to
+the one it is closest to, or to a name it adds to that setting. A page type the setting does
+not name draws `default`.
+
 `page_subtitle` is now `page_lead`. The old name is gone, not deprecated: a view that still
 sets `page_subtitle` draws no lead.
 

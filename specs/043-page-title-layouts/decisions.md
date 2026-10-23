@@ -131,3 +131,28 @@ one. Emptying `page.heading` therefore removes the heading alone, as FR-005 requ
 
 **Why:** it satisfies the edge case, FR-005 and FR-008 at once, and FR-013 still holds wherever
 there is a heading to sit beside.
+
+## D10 — The shipped-name resolver is written in T002, the probe and the error in T006
+
+**Decision:** `title_layout_component()` in `mvp/utils.py`, and the filter of the same name, come
+back in T002 as the shipped-name mapping alone. T006 adds the probe for a project's own
+component and the error, test-first.
+
+**Why:** restoring the sketch's Python removed the filter the component's dispatcher calls, and
+no component test can render a layout without it. The mapping is the smallest thing the
+dispatcher needs; the behaviour T006 specifies (the probe, the error) has no code until T006's
+tests are red.
+
+**Revisit if:** T006's mapping test passes on its first run for this reason and the reviewer
+wants it shown able to fail; the mutation is recorded in T006's evidence.
+
+## D11 — `title_layout` joins the page context in T004
+
+**Decision:** T001's page context carries `title_args` and not `title_layout`. T004 adds
+`page_type`, the setting, `get_page_title_layout()` and the context key together. Until then the
+page templates pass an empty layout and every page draws `default`.
+
+**Why:** the layout's value is the setting resolved for the view's page type, which is T004's
+behaviour. A key written earlier would have carried a stub value with no test that could fail.
+
+**Revisit if:** a story that ships before T004 needs a table page's title in its toolbar.

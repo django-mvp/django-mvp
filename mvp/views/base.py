@@ -25,6 +25,8 @@ from functools import cached_property
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.functional import Promise
 
+from ..config import MVP_CONFIG
+
 
 class BaseTemplateNameMixin:
     """Mixin that extends Django's template resolution to support a mandatory fallback base template.
@@ -176,6 +178,9 @@ class PageMixin:
             ``""``.
         page_actions (list): The page's own buttons. Each dict is passed straight to
             daisy-cotton's ``c-button``, like ``page_info_actions``. Defaults to ``[]``.
+        page_type (str): The kind of page this view draws, which picks its title layout from
+            ``MVP_CONFIG["page_title"]["layout"]``: ``"page"``, ``"form"``, ``"detail"``,
+            ``"delete"``, ``"list"`` or ``"table"``. Defaults to ``"page"``.
         page_class (str): Extra CSS class(es) appended to the page container after the
             mandatory ``"mvp-page"`` prefix. Defaults to ``""``.
         page_width (PageWidth): How wide the page's content is. Defaults to
@@ -214,6 +219,7 @@ class PageMixin:
     page_eyebrow: str | Promise = ""
     page_lead: str | Promise = ""
     page_actions: list = []
+    page_type: str = "page"
     page_class = ""
     page_width: PageWidth = PageWidth.WIDE
     breadcrumbs: list = []
@@ -237,6 +243,7 @@ class PageMixin:
 
                 - ``"title"`` — from ``get_page_title()``
                 - ``"title_args"`` — from ``get_page_title_args()``
+                - ``"title_layout"`` — from ``get_page_title_layout()``
                 - ``"class"`` — from ``get_page_class()`` (always starts with ``"mvp-page"``)
                 - ``"breadcrumbs"`` — from ``get_breadcrumbs()``
                 - ``"info"`` — from ``get_page_info()``
@@ -246,6 +253,7 @@ class PageMixin:
         return {
             "title": self.get_page_title(),
             "title_args": self.get_page_title_args(),
+            "title_layout": self.get_page_title_layout(),
             "class": self.get_page_class(),
             "breadcrumbs": self.get_breadcrumbs(),
             "info": self.get_page_info(),
@@ -359,6 +367,20 @@ class PageMixin:
             "info": self.get_page_info(),
             "info_actions": self.get_page_info_actions(),
         }
+
+    def get_page_title_layout(self):
+        """Return the name of the title layout this page draws.
+
+        The layout comes from ``MVP_CONFIG["page_title"]["layout"]``: one name for every
+        page, or a dict naming one for each ``page_type``.
+
+        Returns:
+            The layout's name, such as ``"compact"``.
+        """
+        layout = MVP_CONFIG["page_title"]["layout"]
+        if isinstance(layout, dict):
+            return layout.get(self.page_type, "default")
+        return layout
 
     def get_breadcrumbs(self):
         """Return the list of breadcrumb items for the page.
