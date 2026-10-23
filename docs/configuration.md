@@ -157,7 +157,9 @@ there is no flash of the wrong theme.
 choices set, the packaged control is a two-state toggle that moves between
 `default` and `dark`, and changing one usually means changing both. The
 moment `choices` is non-empty the same control becomes a dropdown listing
-exactly those names in order, and `dark` stops being read by it.
+exactly those names in order, and `dark` stops being read by it. The
+light, dark and automatic button, `mvp.actions.theme-cycle`, always moves
+between `default` and `dark`.
 
 `choices` also gates what a returning visitor may keep. A stored selection
 that is no longer offered is rewritten to `default` on the next load.
@@ -203,6 +205,7 @@ Bundled widgets:
 | Name | Renders |
 | --- | --- |
 | `mvp.actions.theme-controller` | Toggle, or a dropdown when `theme.choices` is set |
+| `mvp.actions.theme-cycle` | One button that steps through `theme.default`, `theme.dark` and automatic, which follows the device |
 | `mvp.actions.language-switcher` | Language dropdown; renders nothing without i18n and a `set_language` URL |
 | `mvp.actions.language-switcher-modal` | Same choices in a modal grid, better for touch and narrow slots |
 | `mvp.actions.login` | Log-in button; renders nothing for an authenticated visitor |

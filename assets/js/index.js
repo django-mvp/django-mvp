@@ -27,6 +27,7 @@ import { registerPageSide } from "./page_side.js";
 import { registerPageSideColumn } from "./page_side_column.js";
 import { startRail } from "./rail.js";
 import { startThemeColor } from "./theme_color.js";
+import { startThemeCycle } from "./theme_cycle.js";
 
 // htmx reads hx-* attributes off the DOM itself; the global is what its own
 // documentation, `hx-on:` handlers and browser-console debugging expect to find.
@@ -36,6 +37,9 @@ window.htmx = htmx;
 // The inline script in base.html applies the stored theme before first
 // paint; this call only wires the [data-*-theme] controls.
 themeChange();
+
+// The light, dark and automatic button. See assets/js/theme_cycle.js.
+startThemeCycle();
 
 // Moves each dropdown panel into the top layer so it opens where there is
 // room for it. See assets/js/dropdown.js for why this runs here rather

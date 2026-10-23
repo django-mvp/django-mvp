@@ -36,6 +36,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and `actions` as a list of button dicts as well as a slot.
 - `<c-mvp.page.table.toolbar>` takes a `heading` slot and `heading_above`.
 - The `title_layout_component` template filter and `mvp.utils.title_layout_component()`.
+- `<c-mvp.actions.theme-cycle>`, one button that steps through the light theme, the dark theme
+  and automatic, which follows the device's setting. List `"mvp.actions.theme-cycle"` in
+  `layout.navbar.end` to use it. A visitor who has never chosen still gets `theme.default`.
 
 ## [v0.31.0] - 2026-10-22
 
