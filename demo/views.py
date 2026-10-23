@@ -52,7 +52,19 @@ class DemoHomeView(MVPHomeView):
     dashboard_template_name = "demo/dashboard.html"
 
 
-class DemoTemplateView(MVPTemplateView):
+TITLE_LAYOUTS = ("default", "inline", "centred", "compact")
+
+
+class TitleLayoutFromQueryMixin:
+    """Let ``?title_layout=`` choose the page's title layout, so the demo can show each one."""
+
+    def get_page_title_layout(self):
+        """Return the layout named in the query string, or the page's own."""
+        chosen = self.request.GET.get("title_layout")
+        return chosen if chosen in TITLE_LAYOUTS else super().get_page_title_layout()
+
+
+class DemoTemplateView(TitleLayoutFromQueryMixin, MVPTemplateView):
     """Base for the demo's static pages, resolving templates under ``demo/``."""
 
     def get_template_names(self):
@@ -415,7 +427,7 @@ E404 = DemoTemplateView.as_view(template_name="404.html")
 E500 = DemoTemplateView.as_view(template_name="500.html")
 
 
-class ProductListView(MVPListView):
+class ProductListView(TitleLayoutFromQueryMixin, MVPListView):
     """Demo page showing a list view of Products.
 
     Its search, sort and filters all come from ProductFilter, and it has a
@@ -425,7 +437,8 @@ class ProductListView(MVPListView):
     model = Product
     create_form_class = ProductForm
     show_create_action = True
-    page_subtitle = "Check out our amazing products!"
+    page_eyebrow = _("Catalogue")
+    page_lead = "Check out our amazing products!"
     page_info = _(
         "Every product in the catalogue. Search by name or description, narrow the "
         "list with the filters, and sort it with the ordering control. Selecting a "
@@ -451,7 +464,7 @@ class ProductQuickListView(ProductListView):
 
     filterset_class = ProductQuickFilter
     toolbar_filters = ["q", "status", "is_featured", "o"]
-    page_subtitle = None
+    page_lead = None
     page_info = None
 
 
@@ -459,7 +472,7 @@ class ProductPanelOnlyListView(ProductListView):
     """No toolbar fields named, so every field of the filterset is in the filter panel."""
 
     toolbar_filters: list[str] = []
-    page_subtitle = None
+    page_lead = None
     page_info = None
 
 
@@ -467,14 +480,14 @@ class ProductManyPagesListView(ProductListView):
     """The product list at three to a page, so the pager has pages to skip."""
 
     paginate_by = 3
-    page_subtitle = None
+    page_lead = None
     page_info = None
 
 
 class ProductNoneListView(ProductListView):
     """The product list with no records in it, to show its empty state."""
 
-    page_subtitle = None
+    page_lead = None
     page_info = None
 
     def get_queryset(self):
@@ -491,12 +504,13 @@ class ProductPlainListView(MVPListView):
     paginate_by = 12
 
 
-class ProductCreateView(MVPCreateView):
+class ProductCreateView(TitleLayoutFromQueryMixin, MVPCreateView):
     """Demo product creation form, auto-detecting its form renderer and layout."""
 
     model = Product
     fields = ["name", "slug", "category", "description", "price", "stock", "status"]
-    page_subtitle = _(
+    page_eyebrow = _("Catalogue")
+    page_lead = _(
         "Add a product to the catalogue. It stays a draft until you publish it."
     )
     page_info = _(
@@ -509,7 +523,7 @@ class ProductCreateView(MVPCreateView):
     show_update_action = True
 
 
-class ProductDetailView(MVPDetailView):
+class ProductDetailView(TitleLayoutFromQueryMixin, MVPDetailView):
     """Demo product detail page that supplies its own body.
 
     The edit and delete buttons come from the packaged template and are gated on the
@@ -523,6 +537,15 @@ class ProductDetailView(MVPDetailView):
     model = Product
     show_list_action = True
     show_detail_action = True
+    page_actions = [{"text": _("Share"), "icon": "share", "href": "#", "ghost": True}]
+
+    def get_page_eyebrow(self):
+        """Name the product's category above its name."""
+        return self.object.category or _("Product")
+
+    def get_page_lead(self):
+        """Use the product's description as the lead."""
+        return self.object.description
 
     def show_update_action(self, user):
         """Show the edit action to staff only."""
@@ -650,7 +673,7 @@ class ComplexFormDemoView(MVPFormView):
     success_message = _("Form submitted successfully.")
 
 
-class ProductDeleteView(MVPDeleteView):
+class ProductDeleteView(TitleLayoutFromQueryMixin, MVPDeleteView):
     """Demo product delete confirmation, auto-detecting its form renderer and layout."""
 
     model = Product
@@ -695,7 +718,7 @@ class HtmxProductCreateView(HtmxFormMixin, MVPCreateView):
     htmx_success_component = "demo.htmx-product-created"
     success_url = "list"
     page_title = "HTMX Form Demo"
-    page_subtitle = "Partial form rendering with HtmxFormMixin"
+    page_lead = "Partial form rendering with HtmxFormMixin"
     breadcrumbs = [{"text": "Home", "href": "/"}, {"text": "HTMX Form Demo"}]
     show_list_action = True
 
@@ -756,13 +779,15 @@ class CategoryDeleteWithRelatedWarningView(CategoryDeleteWithRelatedView):
     related_objects_attrs = {"variant": "warning"}
 
 
-class DataTablesView(MVPTableView):
+class DataTablesView(TitleLayoutFromQueryMixin, MVPTableView):
     """Django Tables2 demo page showing Product table with sorting and pagination."""
 
     model = Product
     table_class = ProductTable
     paginate_by = 25
     show_create_action = True
+    page_eyebrow = _("Catalogue")
+    page_lead = _("Every product, sortable by any column.")
     # The product list's filterset; the table's column headers sort, so its sort is dropped.
     filterset_class = ProductFilter
     toolbar_filters = ["q", "status", "category", "o"]
@@ -775,7 +800,7 @@ class CustomToolbarTableView(MVPTableView):
     table_class = ProductTable
     template_name = "demo/table_custom_toolbar.html"
     page_title = "Stock"
-    page_subtitle = "Every product, with what is left of it."
+    page_lead = "Every product, with what is left of it."
     paginate_by = 25
     show_create_action = True
     filterset_class = ProductFilter
@@ -817,7 +842,7 @@ class PageSideDemoView(DemoTemplateView):
 
     template_name = "layout/side.html"
     page_title = "Side Panel"
-    page_subtitle = (
+    page_lead = (
         "A sticky column beside the page, for contents, filters or related links."
     )
 
@@ -859,3 +884,127 @@ class PageSideDemoView(DemoTemplateView):
 
 
 page_side_demo = PageSideDemoView.as_view()
+
+
+class PageTitleDemoView(DemoTemplateView):
+    """Every title layout, with each argument switched on or off from the form at the top.
+
+    The layout comes from ``?title_layout=`` (TitleLayoutFromQueryMixin); the
+    arguments from the other query parameters.
+    """
+
+    template_name = "layout/title.html"
+    page_title = "Page Title"
+
+    SHORT = {
+        "eyebrow": _("Layout"),
+        "title": _("Page Title"),
+        "lead": _(
+            "The block at the top of every page: an eyebrow, the title, a lead and the "
+            "page's actions, in the layout you choose."
+        ),
+    }
+    LONG = {
+        "eyebrow": _("Layout · Page furniture · Headings and their arrangement"),
+        "title": _(
+            "A page title long enough to wrap onto a second line on a laptop screen"
+        ),
+        "lead": _(
+            "A lead that goes on for longer than it should, to show where the line breaks and how far "
+            "the text runs before it wraps. Most pages need one sentence here; some write three, and "
+            "the layout has to hold up either way."
+        ),
+    }
+
+    def options(self):
+        """Read the switches from the query string; every argument is on by default."""
+        get = self.request.GET
+        submitted = "submitted" in get
+        return {
+            name: (get.get(name) == "on") if submitted else default
+            for name, default in (
+                ("eyebrow", True),
+                ("lead", True),
+                ("actions", True),
+                ("info", True),
+                ("long", False),
+                ("no_title", False),
+                ("lead_block", False),
+            )
+        }
+
+    def text(self, name):
+        """Return the short or long sample text for one argument."""
+        return (self.LONG if self.options()["long"] else self.SHORT)[name]
+
+    def get_page_eyebrow(self):
+        """The sample eyebrow, when switched on."""
+        return self.text("eyebrow") if self.options()["eyebrow"] else ""
+
+    def get_page_title(self):
+        """The sample title, unless the page is showing an empty one."""
+        return "" if self.options()["no_title"] else self.text("title")
+
+    def get_page_lead(self):
+        """The sample lead, when switched on."""
+        return self.text("lead") if self.options()["lead"] else ""
+
+    def get_page_actions(self):
+        """Two sample actions, when switched on."""
+        if not self.options()["actions"]:
+            return []
+        return [
+            {
+                "text": _("Bookmark"),
+                "icon": "bookmark",
+                "type": "button",
+                "ghost": True,
+            },
+            {
+                "text": _("Print"),
+                "icon": "print",
+                "type": "button",
+                "onclick": "window.print()",
+                "variant": "primary",
+            },
+        ]
+
+    def get_page_info(self):
+        """The info dialog's text, when switched on."""
+        if not self.options()["info"]:
+            return ""
+        return _(
+            "The info icon opens this dialog in every layout, always beside the "
+            "heading and never inside it."
+        )
+
+    def get_breadcrumbs(self):
+        """Add Home and Layout crumbs ahead of this page's own."""
+        return [
+            {"text": "Home", "href": "/"},
+            {"text": "Layout", "href": reverse("layout")},
+            {"text": "Page Title"},
+        ]
+
+    def get_context_data(self, **kwargs):
+        """Add the switches, the layouts and the pages to try each layout on."""
+        context = super().get_context_data(**kwargs)
+        context["options"] = self.options()
+        context["layouts"] = TITLE_LAYOUTS
+        context["current_layout"] = self.get_page_title_layout()
+        product = Product.objects.first()
+        pages = [
+            ("List page", reverse("product-list")),
+            ("Table page", reverse("djangotables2")),
+            ("Form page", reverse("product-create")),
+        ]
+        if product:
+            pages += [
+                ("Detail page", reverse("product-detail", args=[product.pk])),
+                ("Delete page", reverse("product-delete", args=[product.pk])),
+            ]
+        context["pages"] = pages
+        return context
+
+
+page_title_demo = PageTitleDemoView.as_view()

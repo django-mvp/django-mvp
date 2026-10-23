@@ -59,8 +59,8 @@ level a size and weight:
 | `<h4>` | `text-lg` | semibold |
 | `<h5>`, `<h6>` | `text-base` | semibold |
 
-`<h1>` is the size `<c-mvp.page.title>` renders, so a heading you write in a page
-matches the page's own title. The sizes are in `rem`, so they scale with the root
+`<h1>` is the size `<c-mvp.page.title>` renders in its default and inline layouts, so a
+heading you write in a page matches the page's own title. The sizes are in `rem`, so they scale with the root
 font size.
 
 The scale sits in Tailwind's base layer, which every utility class outranks. To

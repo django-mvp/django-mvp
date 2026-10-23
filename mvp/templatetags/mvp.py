@@ -691,3 +691,6 @@ def any_multipart(formsets):
     multipart set, which browsers accept and the markup contract does not.
     """
     return any(formset.is_multipart() for formset in formsets or [])
+
+
+register.filter(utils.title_layout_component)

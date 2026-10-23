@@ -83,10 +83,10 @@ class MyFilter(django_filters.FilterSet):
 class MyFilterDemo(MVPListView):
     model = MyModel
     filterset_class = MyFilter
-    page_subtitle = "Everything in the catalogue."
+    page_lead = "Everything in the catalogue."
 ```
 
-The page's title, subtitle and info text come from `page_title`, `page_subtitle` and `page_info` on the view.
+The page's title, lead and info text come from `page_title`, `page_lead` and `page_info` on the view.
 
 ### Adding Extra Context
 

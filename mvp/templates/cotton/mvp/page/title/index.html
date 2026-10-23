@@ -1,0 +1,31 @@
+{# @description The page title: an eyebrow, the title, a lead, an info dialog trigger and the page's actions, drawn in one of the title layouts. #}
+{# @prop layout:text | description:"The title layout: default, inline, centred, compact, or a Cotton component of the project's own. Empty draws default, or inline with inline_actions." #}
+{# @prop title:text | description:"Page heading text." #}
+{# @prop eyebrow:text | description:"Short line above the heading, such as a category or the kind of record." #}
+{# @prop lead:text | description:"A sentence or two under the heading." #}
+{# @prop class:text | description:"Extra classes on the wrapper element." #}
+{# @prop info:text | description:"Text shown in the info dialog opened from the icon beside the heading." #}
+{# @prop info_actions:text | description:"Actions rendered in the info dialog's footer." #}
+{# @prop inline_actions:boolean | description:"Draw the inline layout when no layout is named." #}
+{# @slot:heading <content> — The heading's text, in place of title. #}
+{# @slot:info_trigger <content> — In place of the trigger drawn from info and info_actions. #}
+{# @slot:actions <content> — The page's actions. As an attribute, a list of c-button attribute dicts, like page_actions. #}
+{% load mvp %}
+<c-vars layout="" title="" heading="" eyebrow="" lead="" class="" info="" info_actions="" info_trigger="" actions="" inline_actions="" />
+{# Every name has an empty default so a bare call never reads the page's own variables #}
+{# (docs/adr/0037-page-title-layouts-are-named-cotton-components.md). #}
+{% if layout %}
+  {% firstof layout as chosen %}
+{% elif inline_actions %}
+  {% firstof "inline" as chosen %}
+{% else %}
+  {% firstof "default" as chosen %}
+{% endif %}
+<c-component is="{{ chosen|title_layout_component }}" class="{{ class }}" :attrs="attrs" only>
+  <c-slot name="eyebrow">{{ eyebrow }}</c-slot>
+  <c-slot name="heading">{% if heading|slot_is_empty is False %}{{ heading }}{% else %}{{ title }}{% endif %}</c-slot>
+  <c-slot name="lead">{{ lead }}</c-slot>
+  <c-slot name="info">{% if info_trigger|slot_is_empty is False %}{{ info_trigger }}{% else %}<c-mvp.page.info :text="info" :title="title" :actions="info_actions" only />{% endif %}</c-slot>
+  {# A list of dicts, the view's own shape, is drawn as buttons; slot content is drawn as it is. #}
+  <c-slot name="actions">{% if actions|slot_is_empty is None %}{% for action in actions %}<c-button size="sm" :attrs="action" only />{% endfor %}{% else %}{{ actions }}{% endif %}</c-slot>
+</c-component>

@@ -78,7 +78,8 @@ class TestPageMixinGetPageContext:
         ctx = view.get_page_context()
         assert set(ctx.keys()) == {
             "title",
-            "subtitle",
+            "title_args",
+            "title_layout",
             "class",
             "breadcrumbs",
             "info",
@@ -89,13 +90,326 @@ class TestPageMixinGetPageContext:
     def test_get_page_context_delegates_to_getters(self):
         view = ConcretePage()
         view.page_title = "Test"
-        view.page_subtitle = "Sub"
+        view.page_lead = "Sub"
         view.page_class = "extra"
         view.breadcrumbs = [{"text": "Home"}]
         ctx = view.get_page_context()
         assert ctx["title"] == "Test"
-        assert ctx["subtitle"] == "Sub"
+        assert ctx["title_args"]["lead"] == "Sub"
         assert ctx["breadcrumbs"] == [{"text": "Home"}]
+
+
+class TestPageTitleArgs:
+    def test_the_group_names_every_argument(self):
+        args = ConcretePage().get_page_title_args()
+
+        assert set(args) == {
+            "eyebrow",
+            "title",
+            "lead",
+            "actions",
+            "info",
+            "info_actions",
+        }
+
+    @pytest.mark.parametrize("name", ["eyebrow", "lead", "actions"])
+    def test_an_argument_is_empty_until_the_view_sets_it(self, name):
+        args = ConcretePage().get_page_context()["title_args"]
+
+        assert not args[name]
+
+    @pytest.mark.parametrize(
+        ("name", "value"),
+        [
+            ("eyebrow", "Inventory"),
+            ("lead", "Everything in stock."),
+            ("actions", [{"text": "Export", "href": "/export/"}]),
+        ],
+    )
+    def test_an_attribute_reaches_the_group(self, name, value):
+        view = ConcretePage()
+        setattr(view, f"page_{name}", value)
+
+        assert view.get_page_context()["title_args"][name] == value
+
+    def test_an_eyebrow_method_wins_over_its_attribute(self):
+        class EyebrowPage(ConcretePage):
+            page_eyebrow = "From the attribute"
+
+            def get_page_eyebrow(self):
+                return "From the method"
+
+        assert EyebrowPage().get_page_context()["title_args"]["eyebrow"] == (
+            "From the method"
+        )
+
+    def test_a_lead_method_wins_over_its_attribute(self):
+        class LeadPage(ConcretePage):
+            page_lead = "From the attribute"
+
+            def get_page_lead(self):
+                return "From the method"
+
+        assert LeadPage().get_page_context()["title_args"]["lead"] == "From the method"
+
+    def test_an_actions_method_wins_over_its_attribute(self):
+        class ActionsPage(ConcretePage):
+            page_actions = [{"text": "From the attribute"}]
+
+            def get_page_actions(self):
+                return [{"text": "From the method"}]
+
+        assert ActionsPage().get_page_context()["title_args"]["actions"] == [
+            {"text": "From the method"}
+        ]
+
+    def test_a_subclass_changing_one_attribute_keeps_the_parents_others(self):
+        class Parent(ConcretePage):
+            page_title = "Parent title"
+            page_eyebrow = "Parent eyebrow"
+            page_lead = "Parent lead"
+            page_actions = [{"text": "Parent action"}]
+
+        class Child(Parent):
+            page_lead = "Child lead"
+
+        args = Child().get_page_context()["title_args"]
+
+        assert args["lead"] == "Child lead"
+        assert args["title"] == "Parent title"
+        assert args["eyebrow"] == "Parent eyebrow"
+        assert args["actions"] == [{"text": "Parent action"}]
+
+    def test_overriding_the_group_replaces_what_the_page_carries(self):
+        class GroupPage(ConcretePage):
+            page_lead = "Ignored"
+
+            def get_page_title_args(self):
+                return {"title": "Computed", "lead": "Computed lead"}
+
+        ctx = GroupPage().get_page_context()
+
+        assert ctx["title_args"] == {"title": "Computed", "lead": "Computed lead"}
+
+    def test_the_title_and_info_stay_in_the_page_context(self):
+        view = ConcretePage()
+        view.page_title = "Products"
+        view.page_info = "What this page is for."
+        view.page_info_actions = [{"text": "Docs"}]
+
+        ctx = view.get_page_context()
+
+        assert ctx["title"] == "Products"
+        assert ctx["info"] == "What this page is for."
+        assert ctx["info_actions"] == [{"text": "Docs"}]
+
+    def test_the_subtitle_is_gone_from_the_page_context(self):
+        assert "subtitle" not in ConcretePage().get_page_context()
+
+    def test_a_view_still_setting_the_subtitle_draws_no_lead(self):
+        class OldNamePage(ConcretePage):
+            page_subtitle = "Old name"
+
+        assert not OldNamePage().get_page_context()["title_args"]["lead"]
+
+
+class TestPageTitleLayoutSetting:
+    @staticmethod
+    def _view_classes():
+        from mvp.views import (
+            MVPCreateView,
+            MVPDeleteView,
+            MVPDetailView,
+            MVPFormView,
+            MVPListView,
+        )
+
+        return {
+            "page": ConcretePage,
+            "form": MVPFormView,
+            "create": MVPCreateView,
+            "detail": MVPDetailView,
+            "delete": MVPDeleteView,
+            "list": MVPListView,
+        }
+
+    @staticmethod
+    def _table_view_class():
+        pytest.importorskip("django_tables2")
+        from mvp.integrations.django_tables.views import MVPTableView
+
+        return MVPTableView
+
+    @staticmethod
+    def _setting(monkeypatch, layout):
+        """Leave ``MVP_CONFIG["page_title"]`` as a project's settings would.
+
+        ``mvp.config`` deep-merges the project's value over the package default at
+        import, so a dict naming one page type arrives with the others filled in.
+        """
+        import copy
+
+        from mergedeep import merge
+
+        from mvp.config import MVP_CONFIG
+
+        merged = merge(copy.deepcopy(MVP_CONFIG["page_title"]), {"layout": layout})
+        monkeypatch.setitem(MVP_CONFIG, "page_title", merged)
+
+    @pytest.mark.parametrize(
+        ("kind", "expected"),
+        [
+            ("page", "default"),
+            ("form", "default"),
+            ("create", "default"),
+            ("detail", "default"),
+            ("delete", "default"),
+            ("list", "inline"),
+        ],
+    )
+    def test_with_no_setting_each_page_type_draws_the_layout_it_always_has(
+        self, kind, expected
+    ):
+        view = self._view_classes()[kind]()
+
+        assert view.get_page_title_layout() == expected
+
+    def test_with_no_setting_a_table_page_draws_the_compact_layout(self):
+        assert self._table_view_class()().get_page_title_layout() == "compact"
+
+    def test_the_layout_reaches_the_page_context(self):
+        assert ConcretePage().get_page_context()["title_layout"] == "default"
+
+    def test_each_view_type_names_its_page_type(self):
+        views = self._view_classes()
+        assert {kind: cls.page_type for kind, cls in views.items()} == {
+            "page": "page",
+            "form": "form",
+            "create": "form",
+            "detail": "detail",
+            "delete": "delete",
+            "list": "list",
+        }
+        assert self._table_view_class().page_type == "table"
+
+    @pytest.mark.parametrize("kind", ["page", "form", "detail", "delete", "list"])
+    def test_a_string_applies_to_every_page_type(self, monkeypatch, kind):
+        self._setting(monkeypatch, "centred")
+
+        assert self._view_classes()[kind]().get_page_title_layout() == "centred"
+
+    def test_a_string_applies_to_a_table_page(self, monkeypatch):
+        self._setting(monkeypatch, "centred")
+
+        assert self._table_view_class()().get_page_title_layout() == "centred"
+
+    @pytest.mark.parametrize(
+        "named", ["page", "form", "detail", "delete", "list", "table"]
+    )
+    def test_a_dict_naming_one_type_changes_only_that_type(self, monkeypatch, named):
+        self._setting(monkeypatch, {named: "centred"})
+
+        defaults = {
+            "page": "default",
+            "form": "default",
+            "detail": "default",
+            "delete": "default",
+            "list": "inline",
+            "table": "compact",
+        }
+        views = {**self._view_classes(), "table": self._table_view_class()}
+        resolved = {
+            kind: views[kind]().get_page_title_layout() for kind in defaults
+        }
+        assert resolved == {**defaults, named: "centred"}
+
+    def test_a_dict_changing_the_table_leaves_the_list_inline(self, monkeypatch):
+        self._setting(monkeypatch, {"table": "default"})
+
+        assert self._table_view_class()().get_page_title_layout() == "default"
+        assert self._view_classes()["list"]().get_page_title_layout() == "inline"
+
+
+class TestPageTitleLayoutOnTheView:
+    @staticmethod
+    def _setting(monkeypatch, layout):
+        from mvp.config import MVP_CONFIG
+
+        monkeypatch.setitem(MVP_CONFIG["page_title"], "layout", layout)
+
+    def test_a_view_names_no_layout_by_default(self):
+        assert ConcretePage.page_title_layout is None
+
+    def test_the_attribute_wins_over_the_setting(self, monkeypatch):
+        self._setting(monkeypatch, "inline")
+
+        class CompactPage(ConcretePage):
+            page_title_layout = "compact"
+
+        assert CompactPage().get_page_title_layout() == "compact"
+        assert CompactPage().get_page_context()["title_layout"] == "compact"
+
+    def test_a_view_without_one_takes_the_setting(self, monkeypatch):
+        self._setting(monkeypatch, "inline")
+
+        assert ConcretePage().get_page_title_layout() == "inline"
+
+    def test_the_method_wins_over_the_attribute_and_the_setting(self, monkeypatch):
+        self._setting(monkeypatch, "inline")
+
+        class MethodPage(ConcretePage):
+            page_title_layout = "compact"
+
+            def get_page_title_layout(self):
+                return "centred"
+
+        assert MethodPage().get_page_context()["title_layout"] == "centred"
+
+    def test_an_unknown_name_raises_naming_the_value_and_the_view(self):
+        class MistypedPage(ConcretePage):
+            page_title_layout = "no_such_layout"
+
+        with pytest.raises(ImproperlyConfigured) as error:
+            MistypedPage().get_page_context()
+
+        assert "no_such_layout" in str(error.value)
+        assert "MistypedPage" in str(error.value)
+
+    @pytest.mark.django_db
+    def test_an_unknown_name_raises_when_the_page_is_rendered(self):
+        from django.contrib.auth.models import AnonymousUser
+
+        from mvp.views import MVPTemplateView
+
+        class MistypedPage(MVPTemplateView):
+            template_name = "page_view.html"
+            page_title_layout = "no_such_layout"
+
+        request = RequestFactory().get("/")
+        request.user = AnonymousUser()
+
+        with pytest.raises(ImproperlyConfigured, match="MistypedPage"):
+            MistypedPage.as_view()(request).render()
+
+    @pytest.mark.usefixtures("project_components")
+    def test_a_project_component_is_accepted(self):
+        class OwnLayoutPage(ConcretePage):
+            page_title_layout = "fixture_title_file"
+
+        assert OwnLayoutPage().get_page_context()["title_layout"] == (
+            "fixture_title_file"
+        )
+
+    def test_an_unknown_name_in_the_setting_raises_naming_the_value_and_the_view(
+        self, monkeypatch
+    ):
+        self._setting(monkeypatch, "no_such_layout")
+
+        with pytest.raises(ImproperlyConfigured) as error:
+            ConcretePage().get_page_context()
+
+        assert "no_such_layout" in str(error.value)
+        assert "ConcretePage" in str(error.value)
 
 
 class TestPageMixinPageWidth:
@@ -490,7 +804,7 @@ class TestMVPTemplateViewLayoutIntegration:
         view = MVPTemplateView(
             template_name="page_view.html",
             page_title="T",
-            page_subtitle="S",
+            page_lead="S",
             page_class="sidebar-collapse",
             breadcrumbs=[{"text": "Home", "href": "/"}],
         )
@@ -500,7 +814,7 @@ class TestMVPTemplateViewLayoutIntegration:
         context = view.get_context_data()
         page = context["page"]
         assert page["title"] == "T"
-        assert page["subtitle"] == "S"
+        assert page["title_args"]["lead"] == "S"
         assert "sidebar-collapse" in page["class"]
         assert page["breadcrumbs"] == [{"text": "Home", "href": "/"}]
 

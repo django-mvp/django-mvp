@@ -1,0 +1,19 @@
+{# @description The compact title layout: one row holding the eyebrow, the heading, the info trigger and, where there is room, the lead, with the actions at its end. A table page draws it inside its toolbar. #}
+{# @slot:eyebrow, heading, lead, info, actions — Drawn by c-mvp.page.title; an empty slot draws nothing. #}
+{% load mvp %}
+<c-vars eyebrow heading lead info actions class />
+<div class="page-title flex items-center gap-2 w-full min-w-0 {{ class }}" {{ attrs }}>
+  {% if eyebrow|slot_is_empty is False %}
+    <p class="mvp-page-eyebrow shrink-0 text-xs font-semibold tracking-widest uppercase text-base-content/80">{{ eyebrow }}</p>
+  {% endif %}
+  {% if heading|slot_is_empty is False %}
+    <h1 class="text-xl font-semibold leading-tight truncate min-w-0">{{ heading }}</h1>
+  {% endif %}
+  {{ info }}
+  {% if lead|slot_is_empty is False %}
+    <p class="mvp-page-lead hidden lg:block text-sm text-base-content/80 truncate min-w-0">{{ lead }}</p>
+  {% endif %}
+  {% if actions|slot_is_empty is False %}
+    <div class="ms-auto flex shrink-0 items-center gap-2">{{ actions }}</div>
+  {% endif %}
+</div>

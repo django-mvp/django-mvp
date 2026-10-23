@@ -35,7 +35,7 @@ class AccountCenterView(LoginRequiredMixin, MVPTemplateView):
 
     template_name = "mvp/account/overview.html"
     page_title = _("Account Center")
-    page_subtitle = _("Manage your account and see what's available to you here.")
+    page_lead = _("Manage your account and see what's available to you here.")
     breadcrumbs = [{"text": _("Account Center")}]
 
 

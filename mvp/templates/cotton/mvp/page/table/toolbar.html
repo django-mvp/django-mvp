@@ -1,5 +1,7 @@
 {# @description The band above a full-page table. A bar that is always shown holds the title. A panel under it holds search and filters, and the controls sit at the end of the panel's row. A toggle in the bar opens and closes the panel; closed, the controls move up into the bar. The choice is remembered in the browser. #}
 {# @prop title:text | description:"Start of the bar: the heading and anything beside it." #}
+{# @prop heading:text | description:"The page title. Drawn at the start of the bar, or above the bar with heading_above." #}
+{# @prop heading_above:boolean | description:"Draw the heading above the bar, for a title layout too tall for one row." #}
 {# @prop actions:text | description:"End of the bar, before the toggle. Always shown." #}
 {# @prop controls:text | description:"Buttons such as Filters and Add: at the end of the panel's row while it is open, in the bar while it is closed." #}
 {# @prop note:text | description:"Words shown in a badge beside the toggle, open or closed, for something in the panel the reader should know about, such as how many filters are applied." #}
@@ -7,10 +9,13 @@
 {# @prop class:text | description:"Extra classes on the toolbar's root element." #}
 {# @slot Search, filters, the applied filters — the panel's content. With none, there is no panel and no toggle. #}
 {% load i18n mvp %}
-<c-vars title actions controls note storage_key="mvp-table-toolbar" class />
+<c-vars heading heading_above title actions controls note storage_key="mvp-table-toolbar" class />
 <div class="mvp-table-toolbar shrink-0 border-b border-base-300 bg-base-100 {{ class }}"
      x-data="{ open: $persist(true).as('{{ storage_key }}') }"
      {{ attrs }}>
+  {% if heading_above and not heading|slot_is_empty %}
+    <div class="mvp-table-toolbar-heading px-4 pt-4 pb-1">{{ heading }}</div>
+  {% endif %}
   {% comment %}
     One wrapping row, placed by order: the title, the controls when closed,
     the toggle, then a break, the panel and the controls when open. Closing
@@ -19,7 +24,10 @@
   <div class="flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-2"
        :class="open && 'pb-3'">
     <div class="mvp-table-toolbar-bar page-title contents">
-      <div class="order-1 flex items-center gap-x-3 gap-y-1 min-w-0 grow">{{ title }}</div>
+      <div class="order-1 flex items-center gap-x-3 gap-y-1 min-w-0 grow">
+        {% if not heading_above %}{{ heading }}{% endif %}
+        {{ title }}
+      </div>
       <div class="order-3 flex shrink-0 items-center gap-2">
         {{ actions }}
         {% if not slot|slot_is_empty %}

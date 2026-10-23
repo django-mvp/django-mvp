@@ -61,6 +61,7 @@ site overrides the project setting for that one tag only.
 | `layout.navbar.class` | CSS classes | `"mvp-header-bg"` | The header's background, at every width; see [Header and dock background](layout.md#header-and-dock-background) |
 | `layout.dock.class` | CSS classes | `"mvp-dock-bg"` | The mobile dock's background |
 | `table.wrap` | bool | `False` | Project-wide default for whether table cell text wraps |
+| `page_title.layout` | layout name, or a dict of layout names by page type | `{"page": "default", "form": "default", "detail": "default", "delete": "default", "list": "inline", "table": "compact"}` | The layout every page's title is drawn in; see [`page_title.layout`](#page_titlelayout) |
 | `site_name` | string or `None` | `None` | The application's name, used for the page title suffix and the installed app's name; `None` takes the current site's name (the request host without the sites framework) |
 | `short_name` | string or `None` | `None` | The installed app's label under its icon; `None` takes the application's name |
 | `pwa` | dict or `False` | `False` | Make the project installable as an app. A dict with a `theme_color` turns it on, and the manifest and worker routes in `mvp.urls` exist only while it is set; needs `mvp.urls` mounted, as described in [Installable app](installable-app.md) |
@@ -311,3 +312,34 @@ Resolution order for any one column:
 
 Heading cells are always held to one line regardless of this setting, so a
 column is never widened by its own title.
+
+## `page_title.layout`
+
+The arrangement a page's title is drawn in. It takes a layout's name, which applies to every
+page, or a dict that names one for each page type:
+
+```python
+# settings.py
+MVP_CONFIG = {
+    # Every page draws its title centred:
+    "page_title": {"layout": "centred"},
+}
+
+MVP_CONFIG = {
+    # Only list pages change; every other page type keeps its layout:
+    "page_title": {"layout": {"list": "centred"}},
+}
+```
+
+A view has a `page_type`, and the setting is read for it. The page types are `page` (every
+view that is none of the others), `form` (create, update and plain form views), `detail`,
+`delete`, `list` and `table`. A dict names only the types it changes, because it is
+deep-merged over the default: pages draw `default`, list pages `inline` and table pages
+`compact` until you say otherwise, which is what each drew before the layout was a choice.
+
+A name is one of the four layouts the package ships, `default`, `inline`, `centred` and
+`compact`, or a Cotton component of your own, found under `cotton/` as `<name>.html` or
+`<name>/index.html`. A name that is neither stops the server at start-up with `mvp.E003`, which
+names the value, whether it is the string or one value of the dict. A view can choose a layout
+of its own with `page_title_layout`, which wins over this setting; see
+[Page basics](views.md#page-basics).

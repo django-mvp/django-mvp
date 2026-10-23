@@ -6,6 +6,7 @@
   fills it by overriding page.content in <app>/<model>_detail.html.
 {% endcomment %}
 {% block page.actions %}
+  {{ block.super }}
   {% if directory.update_url %}
     <c-button href="{{ directory.update_url }}"
               text="{% trans 'Edit' %}"

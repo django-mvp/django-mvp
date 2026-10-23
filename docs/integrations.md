@@ -44,7 +44,10 @@ The page fills the screen. Three bands stay put and one region scrolls between t
    names in `toolbar_filters`, then, at the end of the row, the Filters button that opens
    the filter panel with the rest and the add button. The search and filters that are
    applied are listed under the filter form. The filter panel itself sits beside the
-   table, at the start and level with the table, and scrolls on its own.
+   table, at the start and level with the table, and scrolls on its own. The bar holds the
+   title in the compact layout, the table page's default. In any other
+   [title layout](layout.md#page-title) the title is drawn above the bar, and the bar keeps
+   the count and the controls.
 2. **The table.** The rows scroll in a region of their own. The heading row stays at
    the top of it and the footer row, where the table declares one, at the bottom, so
    one scrollbar runs beside all three.
@@ -101,10 +104,11 @@ Each part of the toolbar is a block in `table_view.html`:
 | --- | --- |
 | `page.header` | Empty. Anything here is drawn above the toolbar |
 | `page.toolbar` | The whole toolbar |
-| `page.title` | The start of the bar: the heading, the info icon, the count and the subtitle |
-| `page.summary` | The count, inside `page.title` |
+| `page.title` | The title area: the eyebrow, heading, lead and info icon. In the compact layout, the default, it is the start of the bar; in any other layout it is drawn above the bar |
+| `page.eyebrow`, `page.heading`, `page.lead`, `page.info` | One argument of the title each, inside `page.title`. See [Replacing one part of a page's title](layout.md#replacing-one-part-of-a-pages-title) |
+| `page.summary` | The count, in the bar beside the title |
 | `page.controls` | The end of the toolbar row: the Filters button, then `page.actions`. Shown with the panel closed |
-| `page.actions` | The add button, inside `page.controls`. Write `{{ block.super }}` to keep it |
+| `page.actions` | The view's `page_actions`, then the add button, inside `page.controls`. Write `{{ block.super }}` to keep both |
 | `page.panel` | The part of the toolbar the button closes: the filter form and the applied search and filters |
 | `page.filters` | The filter form, inside `page.panel` |
 | `page.side` | The filter panel beside the table. Drawn from the view's `panel_fields`; empty when every field is in the toolbar |
@@ -120,8 +124,8 @@ Each part of the toolbar is a block in `table_view.html`:
 {% endblock page.actions %}
 ```
 
-`{{ block.super }}` is the add button, so where you write it decides where it goes: before
-your own actions, after them, or nowhere if you leave it out. `page.filters`,
+`{{ block.super }}` is the view's actions and the add button, so where you write it decides
+where they go: before your own actions, after them, or nowhere if you leave it out. `page.filters`,
 `page.controls` and `page.actions` are the same blocks, holding the same controls in the
 same order, as on a list page, so one override serves both.
 

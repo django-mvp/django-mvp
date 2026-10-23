@@ -273,3 +273,13 @@ requires_browser = pytest.mark.skipif(
     _should_skip_browser_tests(HAS_BROWSER, os.environ),
     reason="playwright browser not installed (run: playwright install chromium)",
 )
+
+
+@pytest.fixture
+def project_components(settings):
+    """Put the fixture project's template directory ahead of the apps'."""
+    templates = Path(__file__).resolve().parent / "fixtures" / "override_templates"
+    engine = settings.TEMPLATES[0]
+    settings.TEMPLATES = [
+        {**engine, "DIRS": [str(templates), *engine.get("DIRS", [])]}
+    ]

@@ -169,6 +169,44 @@ together. `page_view.html` calls it, and a template that does not extend the pag
 call it itself. It is not the app shell's **Layout** (`c-app`): that is the chrome around every
 page, and the page layout arranges what is inside one page.
 
+### Page title
+
+The title area at the top of a page: an **eyebrow**, the **title**, a **lead**, an info trigger
+and the **page actions**, drawn by `<c-mvp.page.title>` in a **title layout**. A view sets the
+arguments, the page templates read them from `page.title_args`, and a template block replaces
+one of them. It is not the browser tab's title, and it is not the **Title** alone. See
+[Page title](docs/layout.md#page-title).
+
+### Title
+
+The heading's text: the page's one `<h1>`. A view sets it with `page_title` or `get_page_title()`,
+and a template replaces it with the `page.heading` block. An empty title draws no `<h1>`, and the
+info trigger stays.
+
+### Eyebrow
+
+A short line above the title, such as a category or the kind of record. `page_eyebrow`, or the
+`page.eyebrow` block.
+
+### Lead
+
+A sentence or two under the title. `page_lead`, or the `page.lead` block. It replaces what the
+package called the subtitle.
+
+### Page actions
+
+The buttons a page offers, a list of dicts spread onto `c-button`: `page_actions` on a view, or the
+`page.actions` block. The title draws them, except on list and table pages, which draw them in the
+toolbar before the add button.
+
+### Title layout
+
+How the page title arranges its parts: `default`, `inline`, `centred` or `compact`, or a Cotton
+component of the project's own that receives the same five slots. The setting
+`MVP_CONFIG["page_title"]["layout"]` chooses one for each page type, and a view's
+`page_title_layout` chooses its own. See
+[A layout of your own](docs/layout.md#a-layout-of-your-own).
+
 ### Related row
 
 One record belonging to a parent — a line item, a question. Rows are created, edited and
@@ -230,7 +268,7 @@ Page components define the structure and content areas within a layout.
 ```
 c-mvp.page
   c-mvp.page.content        — page body content
-  c-mvp.page.title          — page title/subtitle block
+  c-mvp.page.title          — the page title: eyebrow, title, lead, info trigger and actions, in a title layout
   c-mvp.page.info           — info icon beside the title, opening a dialog about the page
   c-mvp.page.toolbar        — page-level toolbar
   c-mvp.page.list           — list view wrapper

@@ -3,10 +3,13 @@
 from typing import Any
 
 from django.apps import apps
+from django.conf import settings
 from django.contrib.sites.shortcuts import get_current_site
 from django.contrib.staticfiles import finders
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist
 from django.http import HttpRequest
+from django.template import TemplateDoesNotExist
+from django.template.loader import select_template
 from django.templatetags.static import static
 from django.urls import NoReverseMatch, reverse
 
@@ -228,3 +231,50 @@ def site_name(request):
     except ObjectDoesNotExist:
         name = ""
     return name or request.get_host()
+
+
+#: The title layouts the package ships, each a component under ``mvp.page.title``.
+TITLE_LAYOUTS = ("default", "inline", "centred", "compact")
+
+
+def title_layout_component(name: str) -> str:
+    """Return the Cotton component that draws a page title layout.
+
+    A shipped layout's name maps to its component under ``mvp.page.title``. Any
+    other name must be a Cotton component of the project's own, found where
+    django-cotton looks for it: under ``COTTON_DIR`` as ``<name>.html`` or
+    ``<name>/index.html``, then, when that path differs, under ``cotton``,
+    snake-cased, the same two ways. ``COTTON_SNAKE_CASED_NAMES`` is applied as
+    django-cotton applies it.
+
+    Args:
+        name: A shipped layout's name, or the name of a Cotton component of the
+            project's own.
+
+    Returns:
+        The component name to pass to ``<c-component is>``: the shipped
+        component's, or ``name`` unchanged when the project's component exists.
+
+    Raises:
+        ImproperlyConfigured: ``name`` is neither a shipped layout nor a
+            component that can be found.
+    """
+    if name in TITLE_LAYOUTS:
+        return f"mvp.page.title.{name}"
+    path = str(name).replace(".", "/")
+    default = path.replace("-", "_")
+    if getattr(settings, "COTTON_SNAKE_CASED_NAMES", True):
+        path = default
+    cotton_dir = getattr(settings, "COTTON_DIR", "cotton")
+    configured = f"{cotton_dir}/{path}"
+    candidates = [f"{configured}.html", f"{configured}/index.html"]
+    if f"cotton/{default}" != configured:
+        candidates += [f"cotton/{default}.html", f"cotton/{default}/index.html"]
+    try:
+        select_template(candidates)
+    except TemplateDoesNotExist:
+        raise ImproperlyConfigured(
+            f"The page title layout {name!r} is neither a shipped layout "
+            f"({', '.join(TITLE_LAYOUTS)}) nor a Cotton component of the project's own."
+        ) from None
+    return name

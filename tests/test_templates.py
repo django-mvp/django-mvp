@@ -748,3 +748,514 @@ class TestPageViewSideBlock:
         assert layout.select_one(".mvp-page-header") is None
         assert layout.select_one(".mvp-page-main #body") is not None
         assert layout.select_one("#toc") is not None
+
+
+UNIQUE_TITLE_ARGUMENTS = {
+    "page_title": "Unique title",
+    "page_eyebrow": "Unique eyebrow",
+    "page_lead": "Unique lead",
+    "page_actions": [{"text": "Unique action", "href": "/unique-action/"}],
+    "page_info": "Unique info",
+}
+
+TITLE_PAGE_KINDS = ["page", "form", "detail", "delete", "list", "table"]
+
+
+@pytest.fixture
+def render_title_page(rf, superuser, product):
+    """Render one page of the given kind from a view with ``attrs`` set."""
+
+    def render(kind, **attrs):
+        from demo.forms import ProductForm
+        from demo.models import Product
+        from mvp.views import (
+            MVPCreateView,
+            MVPDeleteView,
+            MVPDetailView,
+            MVPListView,
+            MVPTemplateView,
+        )
+
+        url_kwargs = {}
+        if kind == "page":
+            base, setup = MVPTemplateView, {"template_name": "page_view.html"}
+        elif kind == "form":
+            base, setup = MVPCreateView, {"model": Product, "form_class": ProductForm}
+        elif kind == "detail":
+            base, setup = MVPDetailView, {
+                "model": Product,
+                "show_update_action": True,
+                "show_delete_action": True,
+            }
+            url_kwargs = {"pk": product.pk}
+        elif kind == "delete":
+            base, setup = MVPDeleteView, {"model": Product}
+            url_kwargs = {"pk": product.pk}
+        elif kind == "list":
+            base, setup = MVPListView, {
+                "model": Product,
+                "list_item_template": "cards/product_card.html",
+                "show_create_action": True,
+            }
+        else:
+            pytest.importorskip("django_tables2")
+            from demo.tables import ProductTable
+            from mvp.integrations.django_tables.views import MVPTableView
+
+            base, setup = MVPTableView, {
+                "model": Product,
+                "table_class": ProductTable,
+                "show_create_action": True,
+            }
+        if "page_title" in attrs:
+            # Detail and delete pages title themselves from their object.
+            attrs["get_page_title"] = lambda self: attrs["page_title"]
+        view_class = type("TitleTestView", (base,), {**setup, **attrs})
+        request = rf.get("/")
+        request.user = superuser
+        response = view_class.as_view()(request, **url_kwargs)
+        response.render()
+        return BeautifulSoup(response.content.decode(), "html.parser")
+
+    return render
+
+
+def _title_area(soup):
+    """The element a page draws its title in: the one holding the ``<h1>``."""
+    heading = soup.select_one("main h1")
+    return heading.find_parent(class_="page-title")
+
+
+@pytest.mark.django_db
+class TestPageTitleArgumentsOnEveryPage:
+    @pytest.mark.parametrize("kind", TITLE_PAGE_KINDS)
+    def test_the_title_draws_every_argument_the_view_sets(
+        self, render_title_page, kind
+    ):
+        soup = render_title_page(kind, **UNIQUE_TITLE_ARGUMENTS)
+
+        title = _title_area(soup)
+        assert [h1.get_text(strip=True) for h1 in title.find_all("h1")] == [
+            "Unique title"
+        ]
+        assert title.select_one(".mvp-page-eyebrow").get_text(strip=True) == (
+            "Unique eyebrow"
+        )
+        assert title.select_one(".mvp-page-lead").get_text(strip=True) == "Unique lead"
+        assert "Unique info" in title.find("dialog").get_text()
+
+    @pytest.mark.parametrize("kind", ["page", "form", "detail", "delete"])
+    def test_the_actions_are_drawn_in_the_title_on_pages_without_a_toolbar(
+        self, render_title_page, kind
+    ):
+        soup = render_title_page(kind, **UNIQUE_TITLE_ARGUMENTS)
+
+        actions = soup.select('a[href="/unique-action/"]')
+        assert len(actions) == 1
+        assert actions[0].find_parent(class_="page-title") is not None
+
+    @pytest.mark.parametrize("kind", ["list", "table"])
+    def test_the_actions_are_in_the_toolbar_before_add_and_not_in_the_title(
+        self, render_title_page, kind
+    ):
+        soup = render_title_page(kind, **UNIQUE_TITLE_ARGUMENTS)
+
+        toolbar = soup.select_one(".mvp-list-toolbar, .mvp-table-toolbar")
+        links = [a["href"] for a in toolbar.find_all("a", href=True)]
+        assert links.count("/unique-action/") == 1
+        assert links.index("/unique-action/") < links.index("/products/create/")
+        assert _title_area(soup).find("a", href="/unique-action/") is None
+
+    @pytest.mark.parametrize("kind", TITLE_PAGE_KINDS)
+    def test_overriding_the_group_changes_what_the_page_draws(
+        self, render_title_page, kind
+    ):
+        def get_page_title_args(self):
+            return {
+                "title": "Computed title",
+                "lead": "Computed lead",
+                "info": "Computed info",
+            }
+
+        soup = render_title_page(
+            kind,
+            page_title="Ignored title",
+            page_lead="Ignored lead",
+            page_info="Ignored info",
+            get_page_title_args=get_page_title_args,
+        )
+
+        title = _title_area(soup)
+        assert [h1.get_text(strip=True) for h1 in title.find_all("h1")] == [
+            "Computed title"
+        ]
+        assert title.select_one(".mvp-page-lead").get_text(strip=True) == (
+            "Computed lead"
+        )
+        assert "Computed info" in title.find("dialog").get_text()
+        assert "Ignored" not in title.get_text()
+
+    def test_a_detail_pages_actions_are_drawn_with_edit_and_delete(
+        self, render_title_page, product
+    ):
+        soup = render_title_page("detail", **UNIQUE_TITLE_ARGUMENTS)
+
+        links = [a["href"] for a in _title_area(soup).find_all("a", href=True)]
+        assert links == [
+            "/unique-action/",
+            f"/products/{product.pk}/edit/",
+            f"/products/{product.pk}/delete/",
+        ]
+
+    @pytest.mark.parametrize("kind", TITLE_PAGE_KINDS)
+    def test_a_view_setting_nothing_new_draws_one_heading_and_no_eyebrow_or_actions(
+        self, render_title_page, kind
+    ):
+        soup = render_title_page(kind, page_title="Unique title")
+
+        title = _title_area(soup)
+        assert len(title.find_all("h1")) == 1
+        assert title.select_one(".mvp-page-eyebrow") is None
+        assert title.select_one(".mvp-page-lead") is None
+        assert title.find("dialog") is None
+        links = [a["href"] for a in title.find_all("a", href=True)]
+        assert "/unique-action/" not in links
+        if kind != "detail":
+            assert links == []
+        assert title.find("button") is None
+        empty = [
+            element
+            for element in title.find_all(["div", "p"])
+            if not element.get_text(strip=True) and not element.find(True)
+        ]
+        assert empty == []
+
+
+TITLE_BASES = {
+    "page": "page_view.html",
+    "form": "form_view.html",
+    "detail": "detail_view.html",
+    "delete": "delete_view.html",
+    "list": "list_view.html",
+    "table": "table_view.html",
+}
+TITLE_LAYOUT_NAMES = ["default", "inline", "centred", "compact"]
+# A table page's toolbar bar carries the class too, and is not the title.
+TITLE_WRAPPER = "main .page-title:not(.mvp-table-toolbar-bar)"
+OWN_TRIGGER = '<button id="own-trigger" type="button"></button>'
+OWN_ACTION = '<a id="own-action" href="/own-action/">Own action</a>'
+# What a template puts in a block, and where the element it draws is found.
+BLOCK_FILLS = {
+    "eyebrow": ("Block eyebrow", ".mvp-page-eyebrow"),
+    "heading": ("Block heading", "h1"),
+    "lead": ("Block lead", ".mvp-page-lead"),
+    "info": (OWN_TRIGGER, "#own-trigger"),
+    "actions": (OWN_ACTION, "#own-action"),
+}
+# What the view set for each block's argument, and the text the block replaces.
+VIEW_VALUES = {
+    "eyebrow": "Unique eyebrow",
+    "heading": "Unique title",
+    "lead": "Unique lead",
+    "info": "Unique info",
+    "actions": "Unique action",
+}
+BLOCK_SELECTORS = {
+    "eyebrow": ".mvp-page-eyebrow",
+    "heading": "h1",
+    "lead": ".mvp-page-lead",
+    "info": "dialog",
+}
+
+
+@pytest.fixture
+def render_filled_page(render_title_page, project_components):
+    """Render a page whose template fills the named title blocks.
+
+    ``fills`` maps a block (``eyebrow``, ``heading``, ``lead``, ``info``,
+    ``actions`` or ``title``) to what the template puts in it, and the view
+    sets every argument.
+    """
+
+    def render(kind, fills, **attrs):
+        return render_title_page(
+            kind,
+            template_name="title_blocks.html",
+            extra_context={"title_base": TITLE_BASES[kind], "title_fills": fills},
+            **{**UNIQUE_TITLE_ARGUMENTS, **attrs},
+        )
+
+    return render
+
+
+def title_area(soup):
+    """The title's wrapper: found by its class, so a page with no ``<h1>`` has one."""
+    return soup.select_one(TITLE_WRAPPER)
+
+
+def block_title_cases():
+    """Each block on every kind of page, then on a page in each layout.
+
+    A table page draws a layout above its toolbar or, compact, inside it, so
+    each layout is tried on it too, for the heading.
+    """
+    cases = (
+        [(kind, None, block) for kind in TITLE_PAGE_KINDS for block in BLOCK_FILLS]
+        + [("page", name, block) for name in TITLE_LAYOUT_NAMES for block in BLOCK_FILLS]
+        + [("table", name, "heading") for name in TITLE_LAYOUT_NAMES]
+    )
+    return [
+        pytest.param(kind, layout, block, id=f"{kind}-{layout or 'own'}-{block}")
+        for kind, layout, block in cases
+    ]
+
+
+def toolbar_actions(kind):
+    """Whether a page of this kind draws its actions in a toolbar, not in the title."""
+    return kind in ("list", "table")
+
+
+@pytest.mark.django_db
+class TestPageTitleBlocks:
+    @staticmethod
+    def attrs(layout):
+        return {"page_title_layout": layout} if layout else {}
+
+    @pytest.mark.parametrize(("kind", "layout", "block"), block_title_cases())
+    def test_a_block_replaces_its_argument_alone(
+        self, render_filled_page, kind, layout, block
+    ):
+        replacement, selector = BLOCK_FILLS[block]
+        soup = render_filled_page(kind, {block: replacement}, **self.attrs(layout))
+
+        page = soup.select_one("main")
+        title = title_area(soup)
+        # The actions of a list or table page are in its toolbar, not the title.
+        drawn_in = page if block == "actions" and toolbar_actions(kind) else title
+        drawn = drawn_in.select(selector)
+        assert len(drawn) == 1
+        if block in ("eyebrow", "heading", "lead"):
+            # The info dialog is titled from the view's title, so read the element.
+            assert drawn[0].get_text(strip=True) == replacement
+        else:
+            assert VIEW_VALUES[block] not in drawn_in.get_text()
+        for other in set(BLOCK_SELECTORS) - {block}:
+            assert VIEW_VALUES[other] in title.select_one(
+                BLOCK_SELECTORS[other]
+            ).get_text(), other
+        if block != "actions" and not toolbar_actions(kind):
+            assert len(page.select('a[href="/unique-action/"]')) == 1
+
+    @pytest.mark.parametrize("kind", TITLE_PAGE_KINDS)
+    @pytest.mark.parametrize("block", ["eyebrow", "heading", "lead", "info"])
+    def test_a_block_filled_with_nothing_removes_its_argument(
+        self, render_filled_page, kind, block
+    ):
+        soup = render_filled_page(kind, {block: ""})
+
+        title = title_area(soup)
+        assert title.select(BLOCK_SELECTORS[block]) == []
+        for other in set(BLOCK_SELECTORS) - {block, "heading"}:
+            assert title.select(BLOCK_SELECTORS[other]) != [], other
+        empty = [
+            element
+            for element in title.find_all(["div", "p"])
+            if not element.get_text(strip=True) and not element.find(True)
+        ]
+        assert empty == []
+
+    @pytest.mark.parametrize("kind", ["page", "form", "detail", "delete"])
+    def test_the_actions_block_filled_with_nothing_draws_no_actions_in_the_title(
+        self, render_filled_page, kind
+    ):
+        soup = render_filled_page(kind, {"actions": ""})
+
+        title = title_area(soup)
+        assert title.find("a") is None
+        assert title.select_one("h1") is not None
+
+    @pytest.mark.parametrize("kind", ["list", "table"])
+    def test_the_actions_block_filled_with_nothing_empties_the_toolbars_actions(
+        self, render_filled_page, kind
+    ):
+        soup = render_filled_page(kind, {"actions": ""})
+
+        links = [a["href"] for a in soup.select_one("main").find_all("a", href=True)]
+        assert "/unique-action/" not in links
+        assert "/products/create/" not in links
+        assert title_area(soup).select_one("h1") is not None
+
+    @pytest.mark.parametrize("kind", TITLE_PAGE_KINDS)
+    def test_an_emptied_heading_keeps_the_info_trigger(self, render_filled_page, kind):
+        soup = render_filled_page(kind, {"heading": ""})
+
+        title = title_area(soup)
+        assert title.find("h1") is None
+        assert "Unique info" in title.find("dialog").get_text()
+        assert title.find("button") is not None
+
+    @pytest.mark.parametrize("kind", TITLE_PAGE_KINDS)
+    def test_overriding_the_title_block_replaces_the_whole_area(
+        self, render_filled_page, kind
+    ):
+        own = '<div id="own-title">Own title</div>'
+        soup = render_filled_page(kind, {"title": own})
+
+        page = soup.select_one("main")
+        assert len(page.select("#own-title")) == 1
+        assert page.select(TITLE_WRAPPER.removeprefix("main ")) == []
+        assert page.find("h1") is None
+        for value in ("Unique eyebrow", "Unique lead", "Unique info", "Unique title"):
+            assert value not in page.get_text()
+
+
+def normalised(element):
+    """An element's markup with its whitespace collapsed."""
+    return re.sub(r"\s+", " ", str(element)).replace("> <", "><").strip()
+
+
+DIRECT_ARGUMENTS = (
+    'title="Unique title" eyebrow="Unique eyebrow" lead="Unique lead" '
+    'info="Unique info"'
+)
+DIRECT_ACTION = (
+    '<c-slot name="actions"><c-button size="sm" href="/unique-action/" '
+    'text="Unique action" only /></c-slot>'
+)
+
+
+@pytest.mark.django_db
+class TestPageTitleCalledDirectly:
+    @pytest.mark.parametrize("layout", TITLE_LAYOUT_NAMES)
+    def test_a_call_with_attributes_and_a_layout_draws_what_a_page_view_draws(
+        self, render_title_page, layout
+    ):
+        page = render_title_page(
+            "page", **UNIQUE_TITLE_ARGUMENTS, page_title_layout=layout
+        )
+
+        direct = render_component(
+            f'<c-mvp.page.title layout="{layout}" {DIRECT_ARGUMENTS}>'
+            f"{DIRECT_ACTION}</c-mvp.page.title>"
+        )
+
+        assert normalised(direct.select_one(".page-title")) == normalised(
+            title_area(page)
+        )
+
+    @pytest.mark.parametrize("layout", TITLE_LAYOUT_NAMES)
+    def test_actions_given_as_a_list_of_dicts_draw_what_a_page_view_draws(
+        self, render_title_page, layout
+    ):
+        page = render_title_page(
+            "page", **UNIQUE_TITLE_ARGUMENTS, page_title_layout=layout
+        )
+
+        direct = render_component(
+            f'<c-mvp.page.title layout="{layout}" {DIRECT_ARGUMENTS} '
+            ':actions="actions" />',
+            actions=UNIQUE_TITLE_ARGUMENTS["page_actions"],
+        )
+
+        assert normalised(direct.select_one(".page-title")) == normalised(
+            title_area(page)
+        )
+
+    def test_a_call_with_inline_actions_and_no_layout_draws_the_inline_layout(self):
+        inline_actions = render_component(
+            f"<c-mvp.page.title inline_actions {DIRECT_ARGUMENTS}>"
+            f"{DIRECT_ACTION}</c-mvp.page.title>"
+        )
+        named = render_component(
+            f'<c-mvp.page.title layout="inline" {DIRECT_ARGUMENTS}>'
+            f"{DIRECT_ACTION}</c-mvp.page.title>"
+        )
+        default = render_component(
+            f"<c-mvp.page.title {DIRECT_ARGUMENTS}>"
+            f"{DIRECT_ACTION}</c-mvp.page.title>"
+        )
+
+        assert normalised(inline_actions) == normalised(named)
+        assert normalised(inline_actions) != normalised(default)
+
+
+OWN_LAYOUT = "fixture_title_layout"
+OWN_LAYOUT_SLOTS = ["eyebrow", "heading", "lead", "info", "actions"]
+
+
+def own_layout_slot(soup, slot):
+    """The element a project's title layout draws one slot in."""
+    return soup.select_one(f'main [data-own-layout] [data-slot="{slot}"]')
+
+
+@pytest.mark.django_db
+@pytest.mark.usefixtures("project_components")
+class TestProjectTitleLayout:
+    @pytest.mark.parametrize("kind", TITLE_PAGE_KINDS)
+    def test_the_setting_draws_every_pages_title_with_the_project_layout(
+        self, render_title_page, monkeypatch, kind
+    ):
+        from mvp.config import MVP_CONFIG
+
+        monkeypatch.setitem(MVP_CONFIG["page_title"], "layout", OWN_LAYOUT)
+
+        soup = render_title_page(kind, **UNIQUE_TITLE_ARGUMENTS)
+
+        assert len(soup.select("main [data-own-layout]")) == 1
+        assert soup.select("main h1") == []
+        assert own_layout_slot(soup, "eyebrow").get_text(strip=True) == (
+            "Unique eyebrow"
+        )
+        assert own_layout_slot(soup, "heading").get_text(strip=True) == "Unique title"
+        assert own_layout_slot(soup, "lead").get_text(strip=True) == "Unique lead"
+        assert "Unique info" in own_layout_slot(soup, "info").find("dialog").get_text()
+
+    @pytest.mark.parametrize("kind", ["page", "form", "detail", "delete"])
+    def test_the_project_layout_receives_the_pages_actions(
+        self, render_title_page, kind
+    ):
+        soup = render_title_page(
+            kind, **UNIQUE_TITLE_ARGUMENTS, page_title_layout=OWN_LAYOUT
+        )
+
+        links = own_layout_slot(soup, "actions").select('a[href="/unique-action/"]')
+        assert len(links) == 1
+
+    def test_a_view_naming_the_layout_draws_its_own_title_with_it_and_no_other(
+        self, render_title_page
+    ):
+        named = render_title_page(
+            "page", **UNIQUE_TITLE_ARGUMENTS, page_title_layout=OWN_LAYOUT
+        )
+        unnamed = render_title_page("page", **UNIQUE_TITLE_ARGUMENTS)
+
+        assert len(named.select("main [data-own-layout]")) == 1
+        assert unnamed.select("main [data-own-layout]") == []
+        assert unnamed.select_one("main h1").get_text(strip=True) == "Unique title"
+
+    @pytest.mark.parametrize("block", BLOCK_FILLS)
+    def test_a_filled_block_reaches_the_project_layout_in_place_of_the_view_value(
+        self, render_filled_page, block
+    ):
+        replacement, selector = BLOCK_FILLS[block]
+
+        soup = render_filled_page(
+            "page", {block: replacement}, page_title_layout=OWN_LAYOUT
+        )
+
+        slot = own_layout_slot(soup, block)
+        if block in ("info", "actions"):
+            assert len(slot.select(selector)) == 1
+        else:
+            assert slot.get_text(strip=True) == replacement
+        assert VIEW_VALUES[block] not in slot.get_text()
+        for other in set(OWN_LAYOUT_SLOTS) - {block}:
+            assert VIEW_VALUES[other] in own_layout_slot(soup, other).get_text(), other
+
+    @pytest.mark.parametrize("block", ["eyebrow", "heading", "lead", "info", "actions"])
+    def test_a_block_filled_with_nothing_leaves_the_project_layouts_slot_empty(
+        self, render_filled_page, block
+    ):
+        soup = render_filled_page("page", {block: ""}, page_title_layout=OWN_LAYOUT)
+
+        assert own_layout_slot(soup, block).get_text(strip=True) == ""

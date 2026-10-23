@@ -1,0 +1,11 @@
+{% extends title_base %}
+{% comment %}
+  A project template over any page template: it fills each title block named in
+  `title_fills` with that value, and leaves the rest to the page it extends.
+{% endcomment %}
+{% block page.title %}{% if "title" in title_fills %}{{ title_fills.title|safe }}{% else %}{{ block.super }}{% endif %}{% endblock page.title %}
+{% block page.eyebrow %}{% if "eyebrow" in title_fills %}{{ title_fills.eyebrow|safe }}{% else %}{{ block.super }}{% endif %}{% endblock page.eyebrow %}
+{% block page.heading %}{% if "heading" in title_fills %}{{ title_fills.heading|safe }}{% else %}{{ block.super }}{% endif %}{% endblock page.heading %}
+{% block page.lead %}{% if "lead" in title_fills %}{{ title_fills.lead|safe }}{% else %}{{ block.super }}{% endif %}{% endblock page.lead %}
+{% block page.info %}{% if "info" in title_fills %}{{ title_fills.info|safe }}{% else %}{{ block.super }}{% endif %}{% endblock page.info %}
+{% block page.actions %}{% if "actions" in title_fills %}{{ title_fills.actions|safe }}{% else %}{{ block.super }}{% endif %}{% endblock page.actions %}
