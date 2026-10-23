@@ -45,7 +45,13 @@
 
 ## What was ruled by eye
 
-Nothing yet.
+Sam approved the first round as built (2026-10-23), including the three open questions it raised:
+
+- The eyebrow and the lead at 80% strength, which darkens every existing lead slightly.
+- The centred layout's heading one size larger, with extra space above and below.
+- The compact layout's eyebrow on the heading's row, before it.
+
+Every taste decision in the table below stands as built.
 
 ## Design decisions
 
