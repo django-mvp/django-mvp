@@ -76,63 +76,38 @@
    templatetag (mvp/templatetags/mvp.py), so the scanner never sees them in source. */
 @source inline("{sm,md,lg,xl,2xl}:drawer-open");
 
-/* Safelist: classes constructed at runtime from component attributes
-   (e.g. `btn-{{ variant }}`, `grid-cols-{{ cols }}`) — the scanner can never
-   see these in source. Some of these components are daisy-cotton's (button,
-   badge, link, alert, avatar group, divider, dock); keep the lists in sync with
-   the attributes those and this package's own components accept. */
-@source inline("btn-{neutral,primary,secondary,accent,info,success,warning,error,ghost,link}");
-@source inline("btn-{sm,md,lg}");
-
-/* daisy-cotton's button writes this one literally for its `outline` attribute.
-   The prebuilt stylesheet does not scan daisy-cotton's templates, and daisyUI
-   emits it only when it is seen in scanned content. */
-@source inline("btn-outline");
-
-@source inline("badge-{neutral,primary,secondary,accent,info,success,warning,error,ghost}");
-@source inline("link-{primary,secondary,accent,neutral,info,success,warning,error}");
-@source inline("alert-{info,success,warning,error}");
-/* The button writes this on a disabled link; no package template names it. */
-@source inline("btn-disabled");
+/* Safelist: classes this package's own components build at runtime from an
+   attribute (`grid-cols-{{ cols }}`, `bg-{{ variant }}`), which the scanner
+   can never see in source. Keep in sync with the values those attributes
+   accept. daisy-cotton's runtime classes are listed further down. */
 @source inline("avatar-{online,offline}");
-@source inline("-space-x-{2,4,6,8,10,12}");
 @source inline("bg-{primary,secondary,accent,neutral}");
 @source inline("text-{primary,secondary,accent,neutral}-content");
 @source inline("{,sm:,md:,lg:,xl:,2xl:}grid-cols-{1,2,3,4,5,6,12}");
 @source inline("gap-{0,1,2,3,4,5,6,8}");
-@source inline("divider-{neutral,primary,secondary,accent,info,success,warning,error,start,end}");
-@source inline("dock-{xs,sm,md,lg,xl}");
-@source inline("dropdown-{top,bottom,left,right,start,center,end}");
-@source inline("modal-{top,bottom,start,end}");
-@source inline("toggle-{xs,sm,md,lg,xl}");
-@source inline("{checkbox,radio,toggle}{,-error}");
 @source inline("justify-{start,center,end,between}");
 @source inline("text-{start,center,end}");
 @source inline("text-{sm,base,lg,xl}");
 
-/* Safelist: table heading/footer rows stay visible while the body scrolls
-   (issue #255). daisyUI only emits the sticky-row rules behind this class
-   because assets/tailwind.css blanket-scans the whole daisyUI source; a
-   consumer generating their own stylesheet from this preset would get the
-   packaged table markup without the rules it depends on. */
-@source inline("table-pin-rows");
+/* daisy-cotton's avatar group leaves its overlap to the caller, and daisyUI's
+   examples write it as one of these. */
+@source inline("-space-x-{2,4,6,8,10,12}");
+
+/* daisy-cotton's button and badge write these literally, for their `ghost`,
+   `link` and `outline` attributes and on a disabled link. The prebuilt
+   stylesheet does not scan daisy-cotton's templates, and daisyUI emits them
+   only when they are seen in scanned content. */
+@source inline("btn-{ghost,link,outline,disabled}");
+@source inline("badge-ghost");
 
 /* Safelist: row-header columns stay in view while the body scrolls sideways
    (issue #320). A project adds this class itself, so nothing in this package's
-   own templates mentions it and the scanner cannot see it — same reason as
-   table-pin-rows above, and same consequence without it. */
+   own templates writes it and the scanner cannot see it. */
 @source inline("table-pin-cols");
-
-/* Safelist: daisy-cotton's menu builds these from `horizontal="<breakpoint>"`. */
-@source inline("{md,lg,xl}:menu-horizontal");
 
 /* Safelist: cotton/mvp/entrance/index.html builds its card's width cap from the
    `size` attribute. Must cover every width that attribute accepts. */
 @source inline("md:max-w-{sm,md,lg,xl,2xl,3xl,4xl}");
-
-/* Safelist: daisy-cotton's divider builds these from
-   `horizontal="<breakpoint>"`. */
-@source inline("{sm,md,lg,xl,2xl}:divider-horizontal");
 
 /* Safelist: cotton/mvp/toolbar.html builds these three classes at render time
    from its `row` attribute. */
@@ -157,7 +132,6 @@
 @source inline("drawer-end");
 @source inline("{dropdown,tooltip}-{top,bottom,left,right,start,center,end}");
 @source inline("footer-center");
-@source inline("mask-{star,star-2,heart}");
 @source inline("indicator-{start,center,end,top,middle,bottom}");
 @source inline("mask-{circle,decagon,diamond,heart,hexagon,hexagon-2,pentagon,squircle,star,star-2,triangle,triangle-2,triangle-3,triangle-4}");
 @source inline("mask-half-{1,2}");
@@ -266,7 +240,6 @@
      placed beside their item by assets/js/rail.js. Without the script they
      sit where they would fall in the rail's flow. There is no scrollbar: a
      4rem column has no room for one beside centred icons. */
-  max-height: 100dvh;
   overflow-x: hidden;
   overflow-y: auto;
   scrollbar-width: none;
@@ -435,20 +408,22 @@
   }
 }
 
-/* Reserve the sidebar's scrollbar gutter while it is open, so a vertical
-   scrollbar appearing (enough menu items to overflow) never widens the
-   sidebar and reflows the main content (#179). */
-.drawer-toggle:checked ~ .drawer-side .mvp-sidebar {
+/* The sidebar is never taller than the window, in any state. Open it scrolls
+   (below), as a rail it scrolls on its own (above), and collapsed it is hidden
+   by width alone, where its menu would otherwise set the page's height (#562).
+   Collapsed, its overflow is hidden, so the limit clips nothing visible. */
+.mvp-sidebar {
   max-height: 100dvh;
-  overflow-y: auto;
-  scrollbar-gutter: stable;
 }
 
-/* Collapsed, the default sidebar is hidden by width alone and overflows the
-   drawer side, so with any width (a border) its menu set the page's height
-   (#562). Its overflow is hidden then, so the limit clips nothing visible. */
-.mvp-sidebar:not(.mvp-sidebar--icons) {
-  max-height: 100dvh;
+/* Open, it reserves its scrollbar gutter, so a vertical scrollbar appearing
+   (enough menu items to overflow) never widens the sidebar and reflows the
+   main content (#179). Unlayered on purpose: the width must beat the
+   `is-drawer-open:w-65` utility. */
+.drawer-toggle:checked ~ .drawer-side .mvp-sidebar {
+  width: var(--mvp-sidebar-width, 16.25rem);
+  overflow-y: auto;
+  scrollbar-gutter: stable;
 }
 
 /* DaisyUI gives the sidebar a translate, for the drawer's slide, and a box
@@ -543,12 +518,7 @@
   }
 }
 
-/* Unlayered on purpose: must beat the `is-drawer-open:w-65` utility and
-   DaisyUI's layered menu and button sizes. */
-.drawer-toggle:checked ~ .drawer-side .mvp-sidebar {
-  width: var(--mvp-sidebar-width, 16.25rem);
-}
-
+/* Unlayered on purpose: must beat DaisyUI's layered menu and button sizes. */
 .mvp-sidebar .menu :where(li:not(.menu-title) > :not(ul, menu, details, .menu-title, .btn)),
 .mvp-sidebar .menu :where(li:not(.menu-title) > details > summary:not(.menu-title)) {
   min-height: var(--mvp-sidebar-target, auto);
@@ -602,10 +572,7 @@
    keeps its default and stays visible at every width — the sidebar is an
    overlay at every width in that mode, and the dock is what a project in
    that mode has instead of a persistent one (#372). */
-.mvp-desktop-only {
-  display: flex;
-}
-
+.mvp-desktop-only,
 .mvp-mobile-only,
 .mvp-dock-only {
   display: flex;
@@ -897,10 +864,16 @@
 
 /* A full-page table's scroll region (<c-mvp.addons.django-table>). The pinned
    rows share the rows' ground. Their edges are cell shadows, since a border
-   on a stuck cell of a collapsed-border table scrolls away with its row. */
+   on a stuck cell of a collapsed-border table scrolls away with its row.
+
+   The hover tint, base-200, is the text colour laid thinly over the table's
+   ground, so it is the same step in every theme. The region is a container,
+   so the empty state below can be exactly as wide as it. */
 .mvp-table-region {
   --mvp-table-line: color-mix(in oklch, var(--color-base-content) 5%, #0000);
   --mvp-table-shade: rgb(0 0 0 / 0.05);
+  --color-base-200: color-mix(in oklab, var(--color-base-content) 6%, var(--color-base-100));
+  container-type: inline-size;
 }
 
 .mvp-table-region thead tr,
@@ -934,12 +907,6 @@
   --mvp-table-shade-y: 0 1px 2px 0 var(--mvp-table-shade);
 }
 
-/* The hover tint is the text colour laid thinly over the table's ground, so
-   it is the same step in every theme. */
-.mvp-table-region {
-  --color-base-200: color-mix(in oklab, var(--color-base-content) 6%, var(--color-base-100));
-}
-
 /* A table that fills the page is on the page's own ground, toolbar and pager
    included, and the lines between them are the weight of a row's. */
 .mvp-table-page .mvp-table-region {
@@ -963,10 +930,6 @@
    height to the rows with no height of their own. Every row is given a
    nominal one, which a row's content still overrides, except the last: the
    filler row takes the slack and is nothing at all when there is none. */
-.mvp-table-region {
-  container-type: inline-size;
-}
-
 .mvp-table-region > table {
   height: 100%;
 }
@@ -1000,10 +963,6 @@
   position: static;
 }
 
-:is(.mvp-table-region.table-pin-cols, .mvp-table-region .table-pin-cols) thead th {
-  background-color: var(--color-base-100);
-}
-
 :is(.mvp-table-region.table-pin-cols, .mvp-table-region .table-pin-cols) thead th[data-row-header] {
   z-index: 2;
 }
@@ -1016,12 +975,6 @@
 
 :is(.mvp-table-over-side.table-pin-cols, .mvp-table-over-side .table-pin-cols) :is(thead th[data-row-header], tbody th, tfoot th) {
   --mvp-table-shade-x: 1px 0 2px 0 var(--mvp-table-shade);
-}
-
-/* The footer row's cell under a pinned column stays with it, so the row's
-   label does not scroll away from the figures it names. */
-:is(.mvp-table-region.table-pin-cols, .mvp-table-region .table-pin-cols) tfoot th {
-  background-color: var(--color-base-100);
 }
 
 /* On a narrow screen a pinned column may not take the screen with it: it is
