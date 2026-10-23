@@ -272,3 +272,40 @@ class TestPageTitleLayoutName:
         soup = render('<c-mvp.page.title layout="fixture_title_file" title="Own" />')
 
         assert soup.select_one("[data-fixture-title]").get_text(strip=True) == "Own"
+
+
+@pytest.mark.usefixtures("project_components")
+class TestProjectTitleLayoutSlots:
+    def test_a_project_layout_receives_the_five_slots(self):
+        soup = render(
+            '<c-mvp.page.title layout="fixture_title_layout" title="Unique title"'
+            ' eyebrow="Unique eyebrow" lead="Unique lead" info="Unique info">'
+            '<c-slot name="actions"><a id="own-action" href="/go/">Go</a></c-slot>'
+            "</c-mvp.page.title>"
+        )
+
+        slot = {
+            name: soup.select_one(f'[data-slot="{name}"]')
+            for name in ("eyebrow", "heading", "lead", "info", "actions")
+        }
+        assert slot["eyebrow"].get_text(strip=True) == "Unique eyebrow"
+        assert slot["heading"].get_text(strip=True) == "Unique title"
+        assert slot["lead"].get_text(strip=True) == "Unique lead"
+        assert "Unique info" in slot["info"].find("dialog").get_text()
+        assert len(slot["actions"].select("#own-action")) == 1
+
+    def test_a_project_layout_draws_empty_slots_for_arguments_not_given(self):
+        soup = render('<c-mvp.page.title layout="fixture_title_layout" />')
+
+        slots = soup.select("[data-slot]")
+        assert len(slots) == 5
+        assert [slot.get_text(strip=True) for slot in slots] == [""] * 5
+
+    def test_an_undeclared_attribute_lands_on_the_project_layouts_root(self):
+        soup = render(
+            '<c-mvp.page.title layout="fixture_title_layout" title="T"'
+            ' id="product-heading" />'
+        )
+
+        assert soup.find(True).get("id") == "product-heading"
+        assert soup.find(True).has_attr("data-own-layout")

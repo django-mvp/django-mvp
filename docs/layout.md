@@ -957,7 +957,7 @@ A page draws the layout [`MVP_CONFIG["page_title"]["layout"]`](configuration.md#
 gives its page type: `default` on page, form, detail and delete pages, `inline` on list pages
 and `compact` on table pages. One setting changes the title of every page in a project, and a
 view chooses its own with [`page_title_layout`](views.md#page-basics), which wins over the
-setting. A name that is not a shipped layout or a Cotton component of your own raises
+setting. A name that is not a shipped layout or [a Cotton component of your own](#a-layout-of-your-own) raises
 `ImproperlyConfigured`: when the page renders, for a view's name, and at startup, for the
 setting.
 
@@ -1016,6 +1016,63 @@ A template that is not one of the page templates calls `<c-mvp.page.title>` itse
 arguments as attributes and the actions in its `actions` slot. It draws what a page view draws
 for the same arguments, in the layout it names, and in `inline` when it sets `inline_actions`
 and names none. See [The page title](components.md#the-page-title).
+
+### A layout of your own
+
+When none of the four layouts is the arrangement you want, write one as a Cotton component
+of your own and name it where you would name a shipped layout. It draws the same arguments, so
+every page type and every block works with it unchanged.
+
+1. Write the component in your project's `cotton/` directory, as `<name>.html` or
+   `<name>/index.html`. It declares the five slots it receives, and draws each only when it
+   has content:
+
+   | Slot | Holds |
+   | --- | --- |
+   | `eyebrow` | The eyebrow's text |
+   | `heading` | The heading's text. The layout draws the `<h1>` |
+   | `lead` | The lead's text |
+   | `info` | The info trigger and its dialog, ready to draw |
+   | `actions` | The page's buttons. Empty on list and table pages, which draw theirs in the toolbar |
+
+   ```django
+   {# templates/cotton/myapp/banner_title.html #}
+   {% load mvp %}
+   <c-vars eyebrow heading lead info actions />
+   <header class="border-b border-base-300 pb-4" {{ attrs }}>
+     {% if eyebrow|slot_is_empty is False %}<p class="text-sm uppercase">{{ eyebrow }}</p>{% endif %}
+     <div class="flex items-center gap-2">
+       {% if heading|slot_is_empty is False %}<h1 class="text-2xl font-bold">{{ heading }}</h1>{% endif %}
+       {{ info }}
+     </div>
+     {% if lead|slot_is_empty is False %}<p>{{ lead }}</p>{% endif %}
+     {% if actions|slot_is_empty is False %}<div class="flex gap-2">{{ actions }}</div>{% endif %}
+   </header>
+   ```
+
+2. Name it in the settings, for every page or for one page type, or on a view:
+
+   ```python
+   MVP_CONFIG = {
+       "page_title": {"layout": "myapp.banner_title"},
+   }
+
+   class OverviewView(MVPTemplateView):
+       page_title_layout = "myapp.banner_title"
+   ```
+
+   The name is the one you would write after `c-`: `myapp.banner_title` is
+   `templates/cotton/myapp/banner_title.html`.
+
+Your layout receives what a shipped one receives. A template block you fill reaches it in
+place of the view's value, and a block filled with nothing arrives as an empty slot. Draw
+`{{ attrs }}` on the root element so an attribute a caller adds, such as an `id`, lands there.
+Keep the info trigger beside the `<h1>` and not inside it, as the shipped layouts do: a control
+inside a heading becomes part of the heading's announced text.
+
+A table page draws a layout of your own above its toolbar's bar, as it does any layout but
+`compact`. A name that is not a component raises `ImproperlyConfigured` when the page renders,
+or at startup when it is in the setting.
 
 ### Form pages sit in a narrower column
 

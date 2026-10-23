@@ -1159,3 +1159,85 @@ class TestPageTitleCalledDirectly:
 
         assert normalised(inline_actions) == normalised(named)
         assert normalised(inline_actions) != normalised(default)
+
+
+OWN_LAYOUT = "fixture_title_layout"
+OWN_LAYOUT_SLOTS = ["eyebrow", "heading", "lead", "info", "actions"]
+
+
+def own_layout_slot(soup, slot):
+    """The element a project's title layout draws one slot in."""
+    return soup.select_one(f'main [data-own-layout] [data-slot="{slot}"]')
+
+
+@pytest.mark.django_db
+@pytest.mark.usefixtures("project_components")
+class TestProjectTitleLayout:
+    @pytest.mark.parametrize("kind", TITLE_PAGE_KINDS)
+    def test_the_setting_draws_every_pages_title_with_the_project_layout(
+        self, render_title_page, monkeypatch, kind
+    ):
+        from mvp.config import MVP_CONFIG
+
+        monkeypatch.setitem(MVP_CONFIG["page_title"], "layout", OWN_LAYOUT)
+
+        soup = render_title_page(kind, **UNIQUE_TITLE_ARGUMENTS)
+
+        assert len(soup.select("main [data-own-layout]")) == 1
+        assert soup.select("main h1") == []
+        assert own_layout_slot(soup, "eyebrow").get_text(strip=True) == (
+            "Unique eyebrow"
+        )
+        assert own_layout_slot(soup, "heading").get_text(strip=True) == "Unique title"
+        assert own_layout_slot(soup, "lead").get_text(strip=True) == "Unique lead"
+        assert "Unique info" in own_layout_slot(soup, "info").find("dialog").get_text()
+
+    @pytest.mark.parametrize("kind", ["page", "form", "detail", "delete"])
+    def test_the_project_layout_receives_the_pages_actions(
+        self, render_title_page, kind
+    ):
+        soup = render_title_page(
+            kind, **UNIQUE_TITLE_ARGUMENTS, page_title_layout=OWN_LAYOUT
+        )
+
+        links = own_layout_slot(soup, "actions").select('a[href="/unique-action/"]')
+        assert len(links) == 1
+
+    def test_a_view_naming_the_layout_draws_its_own_title_with_it_and_no_other(
+        self, render_title_page
+    ):
+        named = render_title_page(
+            "page", **UNIQUE_TITLE_ARGUMENTS, page_title_layout=OWN_LAYOUT
+        )
+        unnamed = render_title_page("page", **UNIQUE_TITLE_ARGUMENTS)
+
+        assert len(named.select("main [data-own-layout]")) == 1
+        assert unnamed.select("main [data-own-layout]") == []
+        assert unnamed.select_one("main h1").get_text(strip=True) == "Unique title"
+
+    @pytest.mark.parametrize("block", BLOCK_FILLS)
+    def test_a_filled_block_reaches_the_project_layout_in_place_of_the_view_value(
+        self, render_filled_page, block
+    ):
+        replacement, selector = BLOCK_FILLS[block]
+
+        soup = render_filled_page(
+            "page", {block: replacement}, page_title_layout=OWN_LAYOUT
+        )
+
+        slot = own_layout_slot(soup, block)
+        if block in ("info", "actions"):
+            assert len(slot.select(selector)) == 1
+        else:
+            assert slot.get_text(strip=True) == replacement
+        assert VIEW_VALUES[block] not in slot.get_text()
+        for other in set(OWN_LAYOUT_SLOTS) - {block}:
+            assert VIEW_VALUES[other] in own_layout_slot(soup, other).get_text(), other
+
+    @pytest.mark.parametrize("block", ["eyebrow", "heading", "lead", "info", "actions"])
+    def test_a_block_filled_with_nothing_leaves_the_project_layouts_slot_empty(
+        self, render_filled_page, block
+    ):
+        soup = render_filled_page("page", {block: ""}, page_title_layout=OWN_LAYOUT)
+
+        assert own_layout_slot(soup, block).get_text(strip=True) == ""

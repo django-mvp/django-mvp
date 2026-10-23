@@ -156,3 +156,29 @@ page templates pass an empty layout and every page draws `default`.
 behaviour. A key written earlier would have carried a stub value with no test that could fail.
 
 **Revisit if:** a story that ships before T004 needs a table page's title in its toolbar.
+
+## D12 — One fixture template fills the title blocks for every page type
+
+**Decision:** `tests/fixtures/override_templates/title_blocks.html` extends `title_base`, a
+template name the test passes in the view's context, and fills each title block named in
+`title_fills`, leaving the rest to `{{ block.super }}`. The block tests (T008) and the
+project-layout tests (T009) render real views with `template_name="title_blocks.html"`.
+
+**Why:** the six page templates each need the same fill. One file reached through the existing
+`project_components` fixture is one place to read, and a view renders it the way a project's own
+template renders, which a string compiled in the test would not.
+
+**Revisit if:** a page template gains a block the fixture does not fill.
+
+## D13 — The project-layout page tests sit in `tests/test_templates.py`
+
+**Decision:** T009's page-level tests (`TestProjectTitleLayout`) are in `tests/test_templates.py`,
+beside `render_title_page` and `render_filled_page`; the component-level tests
+(`TestProjectTitleLayoutSlots`) are in `tests/test_components/test_page_title.py`, as tasks.md
+names.
+
+**Why:** the view-rendering fixtures live in `test_templates.py`; moving them to `conftest.py`
+would edit a test module this story did not author.
+
+**Revisit if:** a later story needs the fixtures in a third module; they move to `conftest.py`
+then.
