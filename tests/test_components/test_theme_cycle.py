@@ -80,9 +80,7 @@ class TestPrePaintGuardAutomatic:
         assert '"midnight"' in script
 
     @pytest.mark.django_db
-    def test_configured_dark_cannot_break_out_of_the_script(
-        self, client, monkeypatch
-    ):
+    def test_configured_dark_cannot_break_out_of_the_script(self, client, monkeypatch):
         malicious = '"; alert(1); //</script><script>alert(2)</script>'
         monkeypatch.setitem(MVP_CONFIG["theme"], "dark", malicious)
 
