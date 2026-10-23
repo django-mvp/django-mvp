@@ -1143,6 +1143,24 @@ class TestPageTitleCalledDirectly:
             title_area(page)
         )
 
+    @pytest.mark.parametrize("layout", TITLE_LAYOUT_NAMES)
+    def test_actions_given_as_a_list_of_dicts_draw_what_a_page_view_draws(
+        self, render_title_page, layout
+    ):
+        page = render_title_page(
+            "page", **UNIQUE_TITLE_ARGUMENTS, page_title_layout=layout
+        )
+
+        direct = render_component(
+            f'<c-mvp.page.title layout="{layout}" {DIRECT_ARGUMENTS} '
+            ':actions="actions" />',
+            actions=UNIQUE_TITLE_ARGUMENTS["page_actions"],
+        )
+
+        assert normalised(direct.select_one(".page-title")) == normalised(
+            title_area(page)
+        )
+
     def test_a_call_with_inline_actions_and_no_layout_draws_the_inline_layout(self):
         inline_actions = render_component(
             f"<c-mvp.page.title inline_actions {DIRECT_ARGUMENTS}>"
