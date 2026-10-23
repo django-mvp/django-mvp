@@ -950,7 +950,13 @@ class PageTitleDemoView(DemoTemplateView):
             return []
         return [
             {"text": "Bookmark", "icon": "bookmark", "type": "button", "ghost": True},
-            {"text": "Print", "icon": "print", "type": "button", "onclick": "window.print()", "variant": "primary"},
+            {
+                "text": "Print",
+                "icon": "print",
+                "type": "button",
+                "onclick": "window.print()",
+                "variant": "primary",
+            },
         ]
 
     def get_page_info(self):
