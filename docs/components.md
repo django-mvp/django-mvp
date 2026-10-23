@@ -230,7 +230,7 @@ the whole screen. `fill` takes the full width and height and ignores `width`.
 | Component | Attributes / notes |
 | --- | --- |
 | `c-mvp.page` | `fill`, `gap` (`6`), `class` — page wrapper. Its width comes from the `c-mvp.container` inside it |
-| `c-mvp.page.title` | title/subtitle block (fed by `PageMixin` context); attrs `title`, `subtitle`, `info`, `info_actions`, `inline_actions`, `class` — any other attribute lands on the block's root element. `inline_actions` keeps the `actions` slot at the end of the heading's own row at every width, with the subtitle across the full width below |
+| `c-mvp.page.title` | `layout`, `title`, `eyebrow`, `lead`, `info`, `info_actions`, `inline_actions`, `class`; slots `heading`, `info_trigger`, `actions` — a page's title area, drawn in one of the title layouts; any other attribute lands on the layout's root element. See [The page title](#the-page-title) |
 | `c-mvp.page.info` | `text`, `title`, `actions` — info icon beside the title, opening a dialog that explains the page; drawn by `c-mvp.page.title` from `page_info`, and nothing renders without `text`. A plain `text` string is escaped; a safe string is written out as markup |
 | `c-mvp.page.content` | `gap` (`4`), `class` — flexible body region that absorbs leftover height |
 | `c-mvp.page.layout` | `class`; slots `header`, `side` and the default slot — lays a page's title, content and side panel out together. With an empty `side` slot it draws the header and content and nothing else. `page_view.html` calls it; call it yourself from a template that does not extend the page template. See [Side panel](layout.md#side-panel) |
@@ -256,6 +256,38 @@ the whole screen. `fill` takes the full width and height and ignores `width`.
 `<c-mvp.page fill>` marks a page that wants the shell's height instead of its
 content's. The shell keys off it. `<c-mvp.entrance>` still accepts a deprecated
 `small` attribute that predates `size` — pass one or the other, never both.
+
+### The page title
+
+The page templates draw their title with `<c-mvp.page.title>`, and a template that does not
+extend them can call it itself:
+
+```html
+<c-mvp.page.title layout="centred"
+                  eyebrow="Reports"
+                  title="Quarterly sales"
+                  lead="Every region, every product line."
+                  info="How the figures are counted." />
+```
+
+`title`, `eyebrow` and `lead` are plain text. `layout` names the arrangement: `default`,
+`inline`, `centred` or `compact`, or a Cotton component of your own. Left empty it draws
+`default`, or `inline` when `inline_actions` is set. An argument left out draws nothing, not
+an empty element, and a bare call never reads a `title` or `lead` from the page around it.
+
+Three slots hold what a plain attribute cannot. `heading` replaces `title` when it has
+content, and `actions` holds the page's buttons. The `info` attribute is the dialog's text,
+from which the trigger is drawn; the `info_trigger` slot replaces that whole trigger, so a
+page that draws its own leaves `info` unset.
+
+```html
+<c-mvp.page.title title="Quarterly sales" info="How the figures are counted.">
+  <c-slot name="actions"><c-button text="Export" size="sm" /></c-slot>
+</c-mvp.page.title>
+```
+
+An attribute the component does not declare, such as `id`, is written onto the layout's
+root element.
 
 ## Data display
 

@@ -163,10 +163,11 @@ the page. Drop the attribute and mark the page `fill` instead. See
 [Full-page content](layout.md#full-page-content).
 
 **A list of action names prints next to the breadcrumbs or above a table.** A view put a
-context key called `actions` there. `<c-mvp.toolbar>` and `<c-mvp.page.title>` both expose a slot of
-that name, and a Cotton slot falls through to the context variable of the same name when the
-caller fills no slot — so the list renders its own repr instead of nothing. Name the context
-key something else; nothing this package ships puts one there.
+context key called `actions` there. `<c-mvp.toolbar>` exposes a slot of that name, and a Cotton
+slot falls through to the context variable of the same name when the caller fills no slot —
+so the list renders its own repr instead of nothing. Name the context key something else;
+nothing this package ships puts one there. (`<c-mvp.page.title>` declares an empty default for
+every name it takes, so it never reads one from the page around it.)
 
 **A width class on a table column looks like it did nothing.** Tables lay out with the
 browser's default automatic algorithm, which negotiates a column's width across every cell,

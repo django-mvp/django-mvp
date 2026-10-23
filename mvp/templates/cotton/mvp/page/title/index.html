@@ -11,11 +11,14 @@
 {# @slot:info_trigger <content> — In place of the trigger drawn from info and info_actions. #}
 {# @slot:actions <content> — The page's actions. #}
 {% load mvp %}
-<c-vars layout title heading eyebrow lead class info info_actions info_trigger actions inline_actions />
+<c-vars layout="" title="" heading="" eyebrow="" lead="" class="" info="" info_actions="" info_trigger="" actions="" inline_actions="" />
 {% comment %}
   The page templates fill heading and info_trigger from their blocks and pass
   no title, so a block emptied by a project stays empty rather than falling
   back. title and info are for a template calling this component directly.
+  Every name has an empty default: Cotton reads an undeclared-default name
+  from the caller's context on a call without `only`, so a bare call would
+  draw whatever `lead` or `layout` the calling page happens to hold.
 {% endcomment %}
 {% if layout %}
   {% firstof layout as chosen %}
@@ -24,7 +27,7 @@
 {% else %}
   {% firstof "default" as chosen %}
 {% endif %}
-<c-component is="{{ chosen|title_layout_component }}" class="{{ class }}">
+<c-component is="{{ chosen|title_layout_component }}" class="{{ class }}" :attrs="attrs" only>
   <c-slot name="eyebrow">{{ eyebrow|default:"" }}</c-slot>
   <c-slot name="heading">{% if heading|slot_is_empty is False %}{{ heading }}{% else %}{{ title|default:"" }}{% endif %}</c-slot>
   <c-slot name="lead">{{ lead|default:"" }}</c-slot>

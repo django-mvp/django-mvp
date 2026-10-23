@@ -228,3 +228,22 @@ def site_name(request):
     except ObjectDoesNotExist:
         name = ""
     return name or request.get_host()
+
+
+#: The title layouts the package ships, each a component under ``mvp.page.title``.
+TITLE_LAYOUTS = ("default", "inline", "centred", "compact")
+
+
+def title_layout_component(name: str) -> str:
+    """Return the Cotton component that draws a page title layout.
+
+    Args:
+        name: A shipped layout's name, or the name of a Cotton component of the
+            project's own.
+
+    Returns:
+        The component name to pass to ``<c-component is>``.
+    """
+    if name in TITLE_LAYOUTS:
+        return f"mvp.page.title.{name}"
+    return name
