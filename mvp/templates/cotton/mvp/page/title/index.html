@@ -28,9 +28,9 @@
   {% firstof "default" as chosen %}
 {% endif %}
 <c-component is="{{ chosen|title_layout_component }}" class="{{ class }}" :attrs="attrs" only>
-  <c-slot name="eyebrow">{{ eyebrow|default:"" }}</c-slot>
-  <c-slot name="heading">{% if heading|slot_is_empty is False %}{{ heading }}{% else %}{{ title|default:"" }}{% endif %}</c-slot>
-  <c-slot name="lead">{{ lead|default:"" }}</c-slot>
+  <c-slot name="eyebrow">{{ eyebrow }}</c-slot>
+  <c-slot name="heading">{% if heading|slot_is_empty is False %}{{ heading }}{% else %}{{ title }}{% endif %}</c-slot>
+  <c-slot name="lead">{{ lead }}</c-slot>
   <c-slot name="info">{% if info_trigger|slot_is_empty is False %}{{ info_trigger }}{% else %}<c-mvp.page.info :text="info" :title="title" :actions="info_actions" only />{% endif %}</c-slot>
-  <c-slot name="actions">{{ actions|default:"" }}</c-slot>
+  <c-slot name="actions">{{ actions }}</c-slot>
 </c-component>
