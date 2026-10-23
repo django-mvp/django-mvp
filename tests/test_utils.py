@@ -233,6 +233,13 @@ class TestTitleLayoutComponent:
         assert title_layout_component("fixture_title_file") == "fixture_title_file"
         assert title_layout_component("fixture_title_dir") == "fixture_title_dir"
 
+    def test_a_hyphenated_name_is_found_as_its_snake_cased_file_when_cotton_keeps_names(
+        self, settings
+    ):
+        settings.COTTON_SNAKE_CASED_NAMES = False
+
+        assert title_layout_component("fixture-title-file") == "fixture-title-file"
+
     def test_a_component_in_the_configured_cotton_dir_is_found(self, settings):
         settings.COTTON_DIR = "components"
 

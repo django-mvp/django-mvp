@@ -243,8 +243,8 @@ def title_layout_component(name: str) -> str:
     A shipped layout's name maps to its component under ``mvp.page.title``. Any
     other name must be a Cotton component of the project's own, found where
     django-cotton looks for it: under ``COTTON_DIR`` as ``<name>.html`` or
-    ``<name>/index.html``, then, when that directory is not ``cotton``, under
-    ``cotton`` the same two ways. ``COTTON_SNAKE_CASED_NAMES`` is applied as
+    ``<name>/index.html``, then, when that path differs, under ``cotton``,
+    snake-cased, the same two ways. ``COTTON_SNAKE_CASED_NAMES`` is applied as
     django-cotton applies it.
 
     Args:
@@ -262,12 +262,13 @@ def title_layout_component(name: str) -> str:
     if name in TITLE_LAYOUTS:
         return f"mvp.page.title.{name}"
     path = str(name).replace(".", "/")
+    default = path.replace("-", "_")
     if getattr(settings, "COTTON_SNAKE_CASED_NAMES", True):
-        path = path.replace("-", "_")
+        path = default
     cotton_dir = getattr(settings, "COTTON_DIR", "cotton")
-    candidates = [f"{cotton_dir}/{path}.html", f"{cotton_dir}/{path}/index.html"]
-    if cotton_dir != "cotton":
-        default = str(name).replace(".", "/").replace("-", "_")
+    configured = f"{cotton_dir}/{path}"
+    candidates = [f"{configured}.html", f"{configured}/index.html"]
+    if f"cotton/{default}" != configured:
         candidates += [f"cotton/{default}.html", f"cotton/{default}/index.html"]
     try:
         select_template(candidates)
