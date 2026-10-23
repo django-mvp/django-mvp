@@ -63,8 +63,15 @@ the first copy of a template name it finds, and both packages ship components su
 `button` and `menu`. With `daisy_cotton` first, its versions replace the ones django-mvp
 ships and pages change. Move `"daisy_cotton"` to directly below `"mvp"`.
 
-To silence either one on purpose, list its identifier in `SILENCED_SYSTEM_CHECKS`, for
-example `SILENCED_SYSTEM_CHECKS = ["mvp.W001"]`.
+**`mvp.E003`: the page title layout is neither a shipped layout nor a Cotton component of the
+project's own.** `MVP_CONFIG["page_title"]["layout"]` names a layout that cannot be found, as
+the whole setting or as one value of its dict. Use `default`, `inline`, `centred` or `compact`,
+or the name of a component at `cotton/<name>.html` or `cotton/<name>/index.html`. See
+[`page_title.layout`](configuration.md#page_titlelayout).
+
+To silence any of these on purpose, list its identifier in `SILENCED_SYSTEM_CHECKS`, for
+example `SILENCED_SYSTEM_CHECKS = ["mvp.W001"]`. A layout that cannot be found would still fail
+when a page rendered it.
 
 ## Templates and styling
 

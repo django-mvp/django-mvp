@@ -338,4 +338,8 @@ deep-merged over the default: pages draw `default`, list pages `inline` and tabl
 `compact` until you say otherwise, which is what each drew before the layout was a choice.
 
 A name is one of the four layouts the package ships, `default`, `inline`, `centred` and
-`compact`.
+`compact`, or a Cotton component of your own, found under `cotton/` as `<name>.html` or
+`<name>/index.html`. A name that is neither stops the server at start-up with `mvp.E003`, which
+names the value, whether it is the string or one value of the dict. A view can choose a layout
+of its own with `page_title_layout`, which wins over this setting; see
+[Page basics](views.md#page-basics).
