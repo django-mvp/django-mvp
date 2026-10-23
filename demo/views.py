@@ -437,7 +437,7 @@ class ProductListView(TitleLayoutFromQueryMixin, MVPListView):
     model = Product
     create_form_class = ProductForm
     show_create_action = True
-    page_eyebrow = "Catalogue"
+    page_eyebrow = _("Catalogue")
     page_lead = "Check out our amazing products!"
     page_info = _(
         "Every product in the catalogue. Search by name or description, narrow the "
@@ -537,11 +537,11 @@ class ProductDetailView(TitleLayoutFromQueryMixin, MVPDetailView):
     model = Product
     show_list_action = True
     show_detail_action = True
-    page_actions = [{"text": "Share", "icon": "share", "href": "#", "ghost": True}]
+    page_actions = [{"text": _("Share"), "icon": "share", "href": "#", "ghost": True}]
 
     def get_page_eyebrow(self):
         """Name the product's category above its name."""
-        return self.object.category or "Product"
+        return self.object.category or _("Product")
 
     def get_page_lead(self):
         """Use the product's description as the lead."""
@@ -786,8 +786,8 @@ class DataTablesView(TitleLayoutFromQueryMixin, MVPTableView):
     table_class = ProductTable
     paginate_by = 25
     show_create_action = True
-    page_eyebrow = "Catalogue"
-    page_lead = "Every product, sortable by any column."
+    page_eyebrow = _("Catalogue")
+    page_lead = _("Every product, sortable by any column.")
     # The product list's filterset; the table's column headers sort, so its sort is dropped.
     filterset_class = ProductFilter
     toolbar_filters = ["q", "status", "category", "o"]
@@ -897,14 +897,19 @@ class PageTitleDemoView(DemoTemplateView):
     page_title = "Page Title"
 
     SHORT = {
-        "eyebrow": "Layout",
-        "title": "Page Title",
-        "lead": "The block at the top of every page: an eyebrow, the title, a lead and the page's actions, in the layout you choose.",
+        "eyebrow": _("Layout"),
+        "title": _("Page Title"),
+        "lead": _(
+            "The block at the top of every page: an eyebrow, the title, a lead and the "
+            "page's actions, in the layout you choose."
+        ),
     }
     LONG = {
-        "eyebrow": "Layout · Page furniture · Headings and their arrangement",
-        "title": "A page title long enough to wrap onto a second line on a laptop screen",
-        "lead": (
+        "eyebrow": _("Layout · Page furniture · Headings and their arrangement"),
+        "title": _(
+            "A page title long enough to wrap onto a second line on a laptop screen"
+        ),
+        "lead": _(
             "A lead that goes on for longer than it should, to show where the line breaks and how far "
             "the text runs before it wraps. Most pages need one sentence here; some write three, and "
             "the layout has to hold up either way."
@@ -949,9 +954,14 @@ class PageTitleDemoView(DemoTemplateView):
         if not self.options()["actions"]:
             return []
         return [
-            {"text": "Bookmark", "icon": "bookmark", "type": "button", "ghost": True},
             {
-                "text": "Print",
+                "text": _("Bookmark"),
+                "icon": "bookmark",
+                "type": "button",
+                "ghost": True,
+            },
+            {
+                "text": _("Print"),
                 "icon": "print",
                 "type": "button",
                 "onclick": "window.print()",
@@ -963,7 +973,10 @@ class PageTitleDemoView(DemoTemplateView):
         """The info dialog's text, when switched on."""
         if not self.options()["info"]:
             return ""
-        return "The info icon opens this dialog in every layout, always beside the heading and never inside it."
+        return _(
+            "The info icon opens this dialog in every layout, always beside the "
+            "heading and never inside it."
+        )
 
     def get_breadcrumbs(self):
         """Add Home and Layout crumbs ahead of this page's own."""

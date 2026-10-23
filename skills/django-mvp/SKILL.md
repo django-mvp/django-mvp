@@ -56,7 +56,7 @@ Get these right before writing anything. Each one is a mistake that looks like i
 |---|---|
 | [`../../docs/getting-started.md`](../../docs/getting-started.md) | Installing the package: apps, context processors, form settings, error handlers, first page |
 | [`../../docs/configuration.md`](../../docs/configuration.md) | Setting anything in `MVP_CONFIG` — view names, brand resolvers, theme, sidebar, navbar, tables |
-| [`../../docs/layout.md`](../../docs/layout.md) | Changing the shell: which block wraps what, per-page overrides, full-height pages, a side panel beside a page's content |
+| [`../../docs/layout.md`](../../docs/layout.md) | Changing the shell: which block wraps what, per-page overrides, full-height pages, a side panel beside a page's content, and the page title: its layouts, replacing one of its parts, a title layout of your own ([`Page title`](../../docs/layout.md#page-title)) |
 | [`../../docs/navigation.md`](../../docs/navigation.md) | Declaring the sidebar or dock menu, choosing renderers, or asking why an item is not highlighted |
 | [`../../docs/icons.md`](../../docs/icons.md) | Registering icon names, changing icon set, or an icon is not drawing |
 | [`../../docs/views.md`](../../docs/views.md) | Building template, home, list, detail, create, update or delete views — attributes, hooks, context keys |
