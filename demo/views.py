@@ -439,7 +439,6 @@ class ProductListView(TitleLayoutFromQueryMixin, MVPListView):
     show_create_action = True
     page_eyebrow = "Catalogue"
     page_lead = "Check out our amazing products!"
-    page_actions = [{"text": "Print", "icon": "print", "type": "button", "onclick": "window.print()"}]
     page_info = _(
         "Every product in the catalogue. Search by name or description, narrow the "
         "list with the filters, and sort it with the ordering control. Selecting a "
