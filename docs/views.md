@@ -75,6 +75,21 @@ every other page another. A view of your own that matches none of them sets `pag
 the one it is closest to, or to a name it adds to that setting. A page type the setting does
 not name draws `default`.
 
+To choose the layout for one view, set `page_title_layout`. It wins over the setting:
+
+```python
+class WelcomeView(MVPTemplateView):
+    page_title = "Welcome"
+    page_title_layout = "centred"
+```
+
+A layout that depends on the request or the object comes from `get_page_title_layout()`, which
+returns the attribute when it is set and the setting otherwise. A name is one of the shipped
+layouts, `default`, `inline`, `centred` and `compact`, or a Cotton component of your own,
+found under `cotton/` as `<name>.html` or `<name>/index.html`. A name that is neither raises
+`ImproperlyConfigured` when the page is rendered, and the message names the value and the view
+class.
+
 `page_subtitle` is now `page_lead`. The old name is gone, not deprecated: a view that still
 sets `page_subtitle` draws no lead.
 

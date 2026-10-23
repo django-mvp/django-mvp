@@ -37,6 +37,7 @@ from pathlib import Path
 import pytest
 from django.conf import settings
 from django.contrib.sites.models import Site
+from django.core.exceptions import ImproperlyConfigured
 from django.test import override_settings
 
 from mvp.utils import (
@@ -45,6 +46,7 @@ from mvp.utils import (
     avatar_url,
     reverse_or_none,
     site_name,
+    title_layout_component,
 )
 
 FIXTURES_DIR = Path(__file__).resolve().parent / "fixtures"
@@ -203,3 +205,67 @@ class TestSiteName:
         Site.objects.clear_cache()
 
         assert site_name(request_) == "shop.example.org"
+
+
+@pytest.mark.usefixtures("project_components")
+class TestTitleLayoutComponent:
+    @pytest.mark.parametrize("name", ["default", "inline", "centred", "compact"])
+    def test_a_shipped_name_maps_to_its_component(self, name):
+        assert title_layout_component(name) == f"mvp.page.title.{name}"
+
+    def test_a_project_component_in_a_file_is_returned_unchanged(self):
+        assert title_layout_component("fixture_title_file") == "fixture_title_file"
+
+    def test_a_project_component_in_an_index_file_is_returned_unchanged(self):
+        assert title_layout_component("fixture_title_dir") == "fixture_title_dir"
+
+    def test_a_dotted_project_component_is_returned_unchanged(self):
+        assert (
+            title_layout_component("fixturegroup.nested_title")
+            == "fixturegroup.nested_title"
+        )
+
+    def test_a_component_kept_in_the_default_directory_is_found_under_another_cotton_dir(
+        self, settings
+    ):
+        settings.COTTON_DIR = "components"
+
+        assert title_layout_component("fixture_title_file") == "fixture_title_file"
+        assert title_layout_component("fixture_title_dir") == "fixture_title_dir"
+
+    def test_a_component_in_the_configured_cotton_dir_is_found(self, settings):
+        settings.COTTON_DIR = "components"
+
+        assert (
+            title_layout_component("fixture_configured_dir")
+            == "fixture_configured_dir"
+        )
+
+    def test_a_component_in_another_directory_is_not_found(self):
+        with pytest.raises(ImproperlyConfigured, match="fixture_configured_dir"):
+            title_layout_component("fixture_configured_dir")
+
+    def test_a_hyphenated_name_finds_its_snake_cased_file(self):
+        assert title_layout_component("fixture-title-file") == "fixture-title-file"
+
+    def test_a_hyphenated_file_is_found_when_names_are_not_snake_cased(self, settings):
+        settings.COTTON_SNAKE_CASED_NAMES = False
+
+        assert title_layout_component("hyphen-title") == "hyphen-title"
+
+    def test_a_hyphenated_file_is_not_found_when_names_are_snake_cased(self, settings):
+        settings.COTTON_SNAKE_CASED_NAMES = True
+
+        with pytest.raises(ImproperlyConfigured, match="hyphen-title"):
+            title_layout_component("hyphen-title")
+
+    def test_an_unknown_name_raises_naming_the_value(self):
+        with pytest.raises(ImproperlyConfigured, match="no_such_layout"):
+            title_layout_component("no_such_layout")
+
+    def test_the_error_names_the_shipped_layouts(self):
+        with pytest.raises(ImproperlyConfigured) as error:
+            title_layout_component("no_such_layout")
+
+        for shipped in ("default", "inline", "centred", "compact"):
+            assert shipped in str(error.value)

@@ -330,6 +330,88 @@ class TestPageTitleLayoutSetting:
         assert self._view_classes()["list"]().get_page_title_layout() == "inline"
 
 
+class TestPageTitleLayoutOnTheView:
+    @staticmethod
+    def _setting(monkeypatch, layout):
+        from mvp.config import MVP_CONFIG
+
+        monkeypatch.setitem(MVP_CONFIG["page_title"], "layout", layout)
+
+    def test_a_view_names_no_layout_by_default(self):
+        assert ConcretePage.page_title_layout is None
+
+    def test_the_attribute_wins_over_the_setting(self, monkeypatch):
+        self._setting(monkeypatch, "inline")
+
+        class CompactPage(ConcretePage):
+            page_title_layout = "compact"
+
+        assert CompactPage().get_page_title_layout() == "compact"
+        assert CompactPage().get_page_context()["title_layout"] == "compact"
+
+    def test_a_view_without_one_takes_the_setting(self, monkeypatch):
+        self._setting(monkeypatch, "inline")
+
+        assert ConcretePage().get_page_title_layout() == "inline"
+
+    def test_the_method_wins_over_the_attribute_and_the_setting(self, monkeypatch):
+        self._setting(monkeypatch, "inline")
+
+        class MethodPage(ConcretePage):
+            page_title_layout = "compact"
+
+            def get_page_title_layout(self):
+                return "centred"
+
+        assert MethodPage().get_page_context()["title_layout"] == "centred"
+
+    def test_an_unknown_name_raises_naming_the_value_and_the_view(self):
+        class MistypedPage(ConcretePage):
+            page_title_layout = "no_such_layout"
+
+        with pytest.raises(ImproperlyConfigured) as error:
+            MistypedPage().get_page_context()
+
+        assert "no_such_layout" in str(error.value)
+        assert "MistypedPage" in str(error.value)
+
+    @pytest.mark.django_db
+    def test_an_unknown_name_raises_when_the_page_is_rendered(self):
+        from django.contrib.auth.models import AnonymousUser
+
+        from mvp.views import MVPTemplateView
+
+        class MistypedPage(MVPTemplateView):
+            template_name = "page_view.html"
+            page_title_layout = "no_such_layout"
+
+        request = RequestFactory().get("/")
+        request.user = AnonymousUser()
+
+        with pytest.raises(ImproperlyConfigured, match="MistypedPage"):
+            MistypedPage.as_view()(request).render()
+
+    @pytest.mark.usefixtures("project_components")
+    def test_a_project_component_is_accepted(self):
+        class OwnLayoutPage(ConcretePage):
+            page_title_layout = "fixture_title_file"
+
+        assert OwnLayoutPage().get_page_context()["title_layout"] == (
+            "fixture_title_file"
+        )
+
+    def test_an_unknown_name_in_the_setting_raises_naming_the_value_and_the_view(
+        self, monkeypatch
+    ):
+        self._setting(monkeypatch, "no_such_layout")
+
+        with pytest.raises(ImproperlyConfigured) as error:
+            ConcretePage().get_page_context()
+
+        assert "no_such_layout" in str(error.value)
+        assert "ConcretePage" in str(error.value)
+
+
 class TestPageMixinPageWidth:
     def test_a_page_is_wide_unless_it_says_otherwise(self):
         assert ConcretePage().get_page_width() is PageWidth.WIDE

@@ -26,6 +26,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.utils.functional import Promise
 
 from ..config import MVP_CONFIG
+from ..utils import title_layout_component
 
 
 class BaseTemplateNameMixin:
@@ -178,6 +179,10 @@ class PageMixin:
             ``""``.
         page_actions (list): The page's own buttons. Each dict is passed straight to
             daisy-cotton's ``c-button``, like ``page_info_actions``. Defaults to ``[]``.
+        page_title_layout (str | None): The title layout this page draws, one of the shipped
+            layouts or a Cotton component of the project's own. ``None`` takes
+            ``MVP_CONFIG["page_title"]["layout"]`` for the view's ``page_type``. Defaults to
+            ``None``.
         page_type (str): The kind of page this view draws, which picks its title layout from
             ``MVP_CONFIG["page_title"]["layout"]``: ``"page"``, ``"form"``, ``"detail"``,
             ``"delete"``, ``"list"`` or ``"table"``. Defaults to ``"page"``.
@@ -219,6 +224,7 @@ class PageMixin:
     page_eyebrow: str | Promise = ""
     page_lead: str | Promise = ""
     page_actions: list = []
+    page_title_layout: str | None = None
     page_type: str = "page"
     page_class = ""
     page_width: PageWidth = PageWidth.WIDE
@@ -253,7 +259,7 @@ class PageMixin:
         return {
             "title": self.get_page_title(),
             "title_args": self.get_page_title_args(),
-            "title_layout": self.get_page_title_layout(),
+            "title_layout": self._checked_page_title_layout(),
             "class": self.get_page_class(),
             "breadcrumbs": self.get_breadcrumbs(),
             "info": self.get_page_info(),
@@ -371,15 +377,40 @@ class PageMixin:
     def get_page_title_layout(self):
         """Return the name of the title layout this page draws.
 
-        The layout comes from ``MVP_CONFIG["page_title"]["layout"]``: one name for every
-        page, or a dict naming one for each ``page_type``.
+        The view's ``page_title_layout`` wins. Otherwise the layout comes from
+        ``MVP_CONFIG["page_title"]["layout"]``: one name for every page, or a dict naming
+        one for each ``page_type``. Override this method when the layout depends on the
+        request or the object.
 
         Returns:
-            The layout's name, such as ``"compact"``.
+            The layout's name, such as ``"compact"``, or the name of a Cotton component of
+            the project's own.
+
+        Example::
+
+            class ReportView(PageMixin, TemplateView):
+                def get_page_title_layout(self):
+                    return "centred" if not self.get_page_actions() else "default"
         """
+        if self.page_title_layout:
+            return self.page_title_layout
         layout = MVP_CONFIG["page_title"]["layout"]
         if isinstance(layout, dict):
             return layout.get(self.page_type, "default")
+        return layout
+
+    def _checked_page_title_layout(self):
+        """Return the title layout's name, or raise naming it and this view.
+
+        Raises:
+            ImproperlyConfigured: The layout is neither a shipped one nor a project
+                component that can be found.
+        """
+        layout = self.get_page_title_layout()
+        try:
+            title_layout_component(layout)
+        except ImproperlyConfigured as error:
+            raise ImproperlyConfigured(f"{type(self).__name__}: {error}") from error
         return layout
 
     def get_breadcrumbs(self):

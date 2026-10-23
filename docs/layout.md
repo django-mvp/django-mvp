@@ -954,7 +954,11 @@ title draws no `<h1>` and still draws the info trigger when there is info text.
 
 A page draws the layout [`MVP_CONFIG["page_title"]["layout"]`](configuration.md#page_titlelayout)
 gives its page type: `default` on page, form, detail and delete pages, `inline` on list pages
-and `compact` on table pages. One setting changes the title of every page in a project.
+and `compact` on table pages. One setting changes the title of every page in a project, and a
+view chooses its own with [`page_title_layout`](views.md#page-basics), which wins over the
+setting. A name that is not a shipped layout or a Cotton component of your own raises
+`ImproperlyConfigured`: when the page renders, for a view's name, and at startup, for the
+setting.
 
 A table page draws the compact layout inside its toolbar's bar. In any other layout the
 title is drawn above the bar, and the bar keeps its controls and its result count.

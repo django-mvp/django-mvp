@@ -258,3 +258,17 @@ class TestPageTitleLayouts:
         assert soup.select_one(".mvp-page-lead") is not None
         assert len(soup.select("#own-action")) == 1
         assert empty_elements(soup) == []
+
+
+class TestPageTitleLayoutName:
+    def test_a_layout_that_cannot_be_found_raises_naming_it(self):
+        from django.core.exceptions import ImproperlyConfigured
+
+        with pytest.raises(ImproperlyConfigured, match="no_such_layout"):
+            render('<c-mvp.page.title layout="no_such_layout" title="T" />')
+
+    @pytest.mark.usefixtures("project_components")
+    def test_a_project_component_draws_the_title(self):
+        soup = render('<c-mvp.page.title layout="fixture_title_file" title="Own" />')
+
+        assert soup.select_one("[data-fixture-title]").get_text(strip=True) == "Own"
