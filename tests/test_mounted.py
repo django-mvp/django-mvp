@@ -6,6 +6,7 @@ Source: mvp/mounted.py
 import asyncio
 import inspect
 import re
+from concurrent.futures import ThreadPoolExecutor
 
 import pytest
 from bs4 import BeautifulSoup
@@ -149,6 +150,17 @@ def ok_view(request):
 async def async_ok_view(request):
     """An asynchronous function view."""
     return HttpResponse("ok")
+
+
+def run_coroutine(coroutine):
+    """Run ``coroutine`` to completion on a thread of its own.
+
+    Not on this one: once a test on the same worker has used pytest-playwright,
+    its sync API keeps an event loop running here for the rest of the session,
+    and ``asyncio.run`` and ``async_to_sync`` both refuse to start under it.
+    """
+    with ThreadPoolExecutor(max_workers=1) as executor:
+        return executor.submit(asyncio.run, coroutine).result()
 
 
 exempt_view = csrf_exempt(ok_view)
@@ -1060,6 +1072,9 @@ class TestMountedAppCheckOnOtherPaths:
 
         assert for_path(client, "/layout/") is second
 
+    # Playwright's loop running on this thread, as on a worker that has already
+    # run a browser test: the view must still run here.
+    @pytest.mark.usefixtures("playwright")
     def test_async_view_behind_a_failing_check_is_refused(self):
         app = throwaway_app(path("x/", async_ok_view, name="x"))
         app.check = lambda request: False
@@ -1067,10 +1082,13 @@ class TestMountedAppCheckOnOtherPaths:
         request = AsyncRequestFactory().get("/m/x/")
         request.user = AnonymousUser()
 
-        response = asyncio.run(match.func(request))
+        response = run_coroutine(match.func(request))
 
         assert response.status_code == 302
 
+    # Playwright's loop running on this thread, as on a worker that has already
+    # run a browser test: the view must still run here.
+    @pytest.mark.usefixtures("playwright")
     def test_async_view_behind_a_passing_check_runs(self):
         app = throwaway_app(path("x/", async_ok_view, name="x"))
         app.check = lambda request: True
@@ -1078,6 +1096,6 @@ class TestMountedAppCheckOnOtherPaths:
         request = AsyncRequestFactory().get("/m/x/")
         request.user = AnonymousUser()
 
-        response = asyncio.run(match.func(request))
+        response = run_coroutine(match.func(request))
 
         assert response.content == b"ok"
