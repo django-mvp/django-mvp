@@ -1,0 +1,30 @@
+{# @description The default title layout: eyebrow, heading and lead in one column, the actions beside them from md and under them below it. #}
+{# @slot:eyebrow, heading, lead, info, actions — Drawn by c-mvp.page.title; an empty slot draws nothing. #}
+{% load mvp %}
+<c-vars eyebrow heading lead info actions class />
+<div class="page-title flex flex-col md:flex-row md:items-start md:justify-between gap-3 w-full {{ class }}" {{ attrs }}>
+  <div class="flex flex-col gap-1 min-w-0">
+    {% if eyebrow|slot_is_empty is False %}
+      <p class="mvp-page-eyebrow text-sm font-semibold tracking-widest uppercase text-base-content/80">{{ eyebrow }}</p>
+    {% endif %}
+    {% comment %}
+      The info trigger sits beside the heading, never inside it: an interactive
+      control within the heading element becomes part of the heading's announced
+      text.
+    {% endcomment %}
+    {% if heading|slot_is_empty is False or info|slot_is_empty is False %}
+      <div class="flex items-center gap-2">
+        {% if heading|slot_is_empty is False %}
+          <h1 class="text-3xl font-bold leading-tight text-balance">{{ heading }}</h1>
+        {% endif %}
+        {{ info }}
+      </div>
+    {% endif %}
+    {% if lead|slot_is_empty is False %}
+      <p class="mvp-page-lead text-lg leading-relaxed max-w-prose text-pretty text-base-content/80">{{ lead }}</p>
+    {% endif %}
+  </div>
+  {% if actions|slot_is_empty is False %}
+    <div class="flex flex-wrap md:flex-nowrap gap-2 md:justify-end md:items-center md:shrink-0">{{ actions }}</div>
+  {% endif %}
+</div>

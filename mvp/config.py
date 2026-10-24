@@ -103,6 +103,19 @@ MVP_CONFIG = {
             "class": "mvp-dock-bg",
         },
     },
+    "page_title": {
+        # One title layout for every page, or one per page type (page, form, detail,
+        # delete, list, table): a shipped layout or a project's Cotton component.
+        # See docs/configuration.md.
+        "layout": {
+            "page": "default",
+            "form": "default",
+            "detail": "default",
+            "delete": "default",
+            "list": "inline",
+            "table": "compact",
+        },
+    },
     "table": {
         # Whether a column's text wraps onto more than one line when the
         # column names neither the "mvp-col-wrap" nor "mvp-col-nowrap" class

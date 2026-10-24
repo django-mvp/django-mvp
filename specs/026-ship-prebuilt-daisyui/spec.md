@@ -146,6 +146,36 @@ no template overridden.
 
 ---
 
+### User Story 5 - Follow the device's light or dark setting (Priority: P3)
+
+A visitor wants the application light by day and dark at night, the way their phone already is. They
+press the theme button in the navbar: it goes from light to dark, then to automatic, then back to light,
+showing an icon for each. On automatic the application follows the device, and changes when the device
+does, without a reload.
+
+**Why this priority**: The two-theme toggle makes the visitor pick one and keep it. Following the device
+is what most applications offer next to light and dark. It ranks with US-3 and US-4 because a project can
+ship a themed application without it.
+
+**Independent Test**: List the button in the navbar, step it to automatic, then switch the device between
+light and dark and confirm the page follows. Reload and confirm it is still on automatic.
+
+**Acceptance Scenarios**:
+
+1. **Given** a visitor on the light theme, **When** they press the button three times, **Then** the
+   dark theme applies, then the theme the device asks for, then the light theme again, and the button
+   shows a different icon and name at each step.
+2. **Given** a visitor on automatic, **When** the device changes between light and dark, **Then** the
+   page follows while it is open.
+3. **Given** a visitor on automatic, **When** they reload the page, **Then** the theme the device asks
+   for is applied before the page is first painted.
+4. **Given** a visitor who has never chosen, **When** they load a page on a dark device, **Then** the
+   project's default theme applies, as it did before the button existed.
+5. **Given** a visitor on automatic, **When** they pick a theme from the menu or another control,
+   **Then** the button leaves automatic.
+
+---
+
 ### Edge Cases
 
 - A project names a theme that neither ships with the package nor is provided by the project itself. No
@@ -234,6 +264,14 @@ no template overridden.
 - **FR-026**: The documentation MUST name each region's class and the properties it paints from, and show
   how a theme recolours one.
 
+**Following the device**
+
+- **FR-027**: The package MUST offer one button that steps through the configured default theme, the
+  configured dark theme and automatic, whatever set the switcher offers.
+- **FR-028**: On automatic, the configured dark theme MUST apply while the device asks for a dark
+  appearance and the configured default otherwise, before first paint and while the page is open.
+- **FR-029**: A visitor who has never chosen MUST keep the configured default theme.
+
 ### Requirement to story mapping
 
 | Story | Requirements |
@@ -242,6 +280,7 @@ no template overridden.
 | US-2 — Let visitors choose from the themes a project offers | FR-007, FR-008, FR-009, FR-010 |
 | US-3 — Write and apply a theme of your own | FR-011, FR-012, FR-013, FR-015, FR-016, FR-017, FR-018, FR-021 |
 | US-4 — Colour the header, the dock and the sidebar from a theme | FR-022, FR-023, FR-024, FR-025, FR-026 |
+| US-5 — Follow the device's light or dark setting | FR-027, FR-028, FR-029 |
 
 ### Key Entities
 

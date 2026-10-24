@@ -7,6 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Breaking:** `page_subtitle` and `get_page_subtitle()` are renamed `page_lead` and
+  `get_page_lead()`, and `page.subtitle` in the template context is gone. The old name is
+  not deprecated: a view that still sets `page_subtitle` draws no lead. The component's
+  `subtitle` attribute is renamed `lead` the same way.
+- **Breaking:** a project's override of `cotton/mvp/page/title.html` now receives the
+  `eyebrow`, `heading`, `lead`, `info_trigger` and `actions` slots and `layout`, in place of
+  `title`, `subtitle` and `info`.
+- **Breaking:** on a table page, `page.summary` is no longer inside `page.title`: the result
+  summary stays in the toolbar's bar and the title is drawn from the toolbar's `heading` slot.
+
+### Added
+
+- A view sets a page's eyebrow, lead and actions with `page_eyebrow`, `page_lead` and
+  `page_actions`, each with a `get_*()` method, and `get_page_title_args()` gathers them with
+  the title and the info into the one group the page templates read as `page.title_args`.
+- Four title layouts, `default`, `inline`, `centred` and `compact`, chosen for the whole site
+  or for each page type with `MVP_CONFIG["page_title"]["layout"]`, and on a view with
+  `page_title_layout` or `get_page_title_layout()`. Each view has a `page_type` that picks its
+  layout from the setting. The defaults keep every page's current look. A layout can also be
+  a Cotton component of the project's own.
+- The `page.eyebrow`, `page.heading`, `page.lead` and `page.info` blocks, beside the existing
+  `page.actions`, each replace one part of the title.
+- System check `mvp.E003` reports a layout name in the setting that names no layout.
+- `<c-mvp.page.title>` takes `layout` and `eyebrow`, the `heading` and `info_trigger` slots,
+  and `actions` as a list of button dicts as well as a slot.
+- `<c-mvp.page.table.toolbar>` takes a `heading` slot and `heading_above`.
+- The `title_layout_component` template filter and `mvp.utils.title_layout_component()`.
+- `<c-mvp.actions.theme-cycle>`, one button that steps through the light theme, the dark theme
+  and automatic, which follows the device's setting. List `"mvp.actions.theme-cycle"` in
+  `layout.navbar.end` to use it. A visitor who has never chosen still gets `theme.default`.
+
 ## [v0.31.0] - 2026-10-22
 
 ### Changed

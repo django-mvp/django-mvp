@@ -6,6 +6,7 @@
       (function() {
         try {
           var configuredDefault = "{{ mvp_config.theme.default|escapejs }}";
+          var configuredDark = "{{ mvp_config.theme.dark|escapejs }}";
           var offeredThemes = [{% for choice in mvp_config.theme.choices %}"{{ choice|escapejs }}"{% if not forloop.last %}, {% endif %}{% endfor %}];
           var stored = localStorage.getItem('theme');
           var storedIsOffered = offeredThemes.length === 0 || offeredThemes.indexOf(stored) !== -1;
@@ -19,6 +20,17 @@
           // active state and is a visible change for an upgrading project.
           if (stored && !storedIsOffered) {
             localStorage.setItem('theme', configuredDefault);
+          }
+          // An empty stored theme is the automatic choice the theme-cycle
+          // button makes: follow the device. Nothing stored at all is a
+          // visitor who never chose, who keeps getting the default.
+          // data-theme-mode tells that button which step to show.
+          if (stored === '') {
+            var deviceIsDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            theme = deviceIsDark ? configuredDark : configuredDefault;
+            document.documentElement.setAttribute('data-theme-mode', 'auto');
+          } else if (theme === configuredDark) {
+            document.documentElement.setAttribute('data-theme-mode', 'dark');
           }
           document.documentElement.setAttribute('data-theme', theme);
         } catch (e) {}

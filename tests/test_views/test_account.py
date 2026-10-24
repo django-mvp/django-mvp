@@ -376,6 +376,62 @@ class TestAccountCenterView:
         assert len(breadcrumbs) == 1
         assert list(breadcrumbs[0]) == ["text"]
 
+    def _render_with(self, rf, user, **attrs):
+        from mvp.views.account import AccountCenterView
+
+        view_class = type("TitleTestAccountCenter", (AccountCenterView,), attrs)
+        request = rf.get("/")
+        request.user = user
+        response = view_class.as_view()(request)
+        response.render()
+        return BeautifulSoup(response.content, "html.parser")
+
+    def test_the_title_draws_every_argument_the_view_sets(self, rf, make_user):
+        user = make_user(username="accountcentertitle2", password="pass123!")
+
+        soup = self._render_with(
+            rf,
+            user,
+            page_title="Unique title",
+            page_eyebrow="Unique eyebrow",
+            page_lead="Unique lead",
+            page_actions=[{"text": "Unique action", "href": "/unique-action/"}],
+            page_info="Unique info",
+        )
+
+        title = soup.select_one("main h1").find_parent(class_="page-title")
+        assert title.select_one("h1").get_text(strip=True) == "Unique title"
+        assert title.select_one(".mvp-page-eyebrow").get_text(strip=True) == (
+            "Unique eyebrow"
+        )
+        assert title.select_one(".mvp-page-lead").get_text(strip=True) == "Unique lead"
+        assert len(title.select('a[href="/unique-action/"]')) == 1
+        assert "Unique info" in title.find("dialog").get_text()
+
+    def test_overriding_the_group_changes_what_the_page_draws(self, rf, make_user):
+        user = make_user(username="accountcentertitle3", password="pass123!")
+
+        def get_page_title_args(self):
+            return {"title": "Computed title", "lead": "Computed lead"}
+
+        soup = self._render_with(
+            rf, user, get_page_title_args=get_page_title_args
+        )
+
+        title = soup.select_one("main h1").find_parent(class_="page-title")
+        assert title.select_one("h1").get_text(strip=True) == "Computed title"
+        assert title.select_one(".mvp-page-lead").get_text(strip=True) == (
+            "Computed lead"
+        )
+
+    def test_the_landing_page_draws_its_lead(self, rf, make_user):
+        user = make_user(username="accountcentertitle4", password="pass123!")
+
+        soup = self._render_with(rf, user)
+
+        assert soup.select_one("main .mvp-page-lead").get_text(strip=True)
+        assert soup.select_one("main .mvp-page-eyebrow") is None
+
 
 def sidebar_hrefs(response):
     """The brand link's address, then every sidebar menu link's, by href."""

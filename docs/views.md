@@ -22,7 +22,7 @@ from mvp.views import (
 ## Page basics
 
 Every MVP view includes `PageMixin`, which injects a `page` context dict
-(`title`, `subtitle`, `class`, `width`, `breadcrumbs`, `info`, `info_actions`) consumed by
+(`title`, `title_args`, `title_layout`, `class`, `width`, `breadcrumbs`, `info`, `info_actions`) consumed by
 the page templates. `breadcrumbs` is drawn by the app header rather than the page
 body — see [Breadcrumbs](layout.md#breadcrumbs), which also covers giving a page its
 trail from a template — and the rest by the page itself:
@@ -31,8 +31,73 @@ trail from a template — and the rest by the page itself:
 class AboutView(MVPTemplateView):
     template_name = "about.html"
     page_title = "About us"
-    page_subtitle = "Who we are"
+    page_eyebrow = "Company"
+    page_lead = "Who we are"
 ```
+
+The page's title draws from six arguments. Each is a class attribute with a `get_*()` method
+that returns it, so a subclass changes one argument in one line, and a method serves a value
+that depends on the request or the object:
+
+| Attribute | Method | What it is |
+| --- | --- | --- |
+| `page_eyebrow` | `get_page_eyebrow()` | A short line above the title, such as a category |
+| `page_title` | `get_page_title()` | The heading's text |
+| `page_lead` | `get_page_lead()` | A sentence or two under the title |
+| `page_actions` | `get_page_actions()` | The page's own buttons, a list of dicts spread onto `c-button` |
+| `page_info` | `get_page_info()` | The text of the info dialog (see below) |
+| `page_info_actions` | `get_page_info_actions()` | The buttons at the foot of that dialog |
+
+All six are empty by default, and the title draws nothing for an empty one. A page whose
+view sets none of them but its title looks as it always did.
+
+`page_actions` takes the same keys as `page_info_actions`. Every key is written into the
+button's attributes, so never put user data in one.
+
+`get_page_title_args()` gathers the six into the dict the page templates read as
+`page.title_args`. Override it to set the whole title at once; what it returns is what the
+title area draws. The browser tab and the share menu still read `get_page_title()`, so
+override that to retitle the whole page:
+
+```python
+class OrderDetailView(MVPDetailView):
+    def get_page_title_args(self):
+        args = super().get_page_title_args()
+        args["eyebrow"] = self.object.customer.name
+        args["lead"] = f"Placed {self.object.placed_at:%d %B %Y}"
+        return args
+```
+
+Each view type has a `page_type`: `page` on `MVPTemplateView` and any view that is none of
+the others, `form` on the create, update and form views, `detail`, `delete`, `list` and
+`table`. It is how [`MVP_CONFIG["page_title"]["layout"]`](configuration.md#page_titlelayout)
+picks the layout a view's title is drawn in, so a project can give list pages one layout and
+every other page another. A view of your own that matches none of them sets `page_type` to
+the one it is closest to, or to a name it adds to that setting. A page type the setting does
+not name draws `default`.
+
+To choose the layout for one view, set `page_title_layout`. It wins over the setting:
+
+```python
+class WelcomeView(MVPTemplateView):
+    page_title = "Welcome"
+    page_title_layout = "centred"
+```
+
+A layout that depends on the request or the object comes from `get_page_title_layout()`, which
+returns the attribute when it is set and the setting otherwise. A name is one of the shipped
+layouts, `default`, `inline`, `centred` and `compact`, or a Cotton component of your own,
+found under `cotton/` as `<name>.html` or `<name>/index.html`. A name that is neither raises
+`ImproperlyConfigured` when the page is rendered, and the message names the value and the view
+class.
+
+The subtitle is now the lead: `page_lead` and `get_page_lead()` replace the old attribute and
+its method. The old name is gone, not deprecated, so a view that still sets it draws no lead.
+
+Where the actions are drawn depends on the page. A page, form or delete page draws them in
+the title area. A detail page draws them there too, in front of its Edit and Delete buttons.
+A list or table page draws them in the toolbar, before the Add button, whatever the title
+layout, and leaves the title area without actions.
 
 `page_class` works the same way: `get_page_class()` always prefixes it with `mvp-page`, so
 `page_class = "products-list"` renders as `class="mvp-page products-list"`. There's no
@@ -451,7 +516,7 @@ ignores a `SortFilter`.
 
 From top to bottom, the list template draws:
 
-1. **The title row.** The title, the subtitle and the info button.
+1. **The title row.** The eyebrow, the title, the lead and the info button.
 2. **The toolbar.** The filter form with the fields named in `toolbar_filters`, then the
    sort when it is named, the Filters button that opens the filter panel, and the add
    button last. The filter panel itself is a [side panel](layout.md#side-panel) beside the
@@ -571,12 +636,13 @@ Every part of the list template is a block, so a project template that extends
 
 | Block | Holds |
 | --- | --- |
-| `page.title` | The title, subtitle and info icon |
+| `page.title` | The title area: the eyebrow, title, lead and info icon |
+| `page.eyebrow`, `page.heading`, `page.lead`, `page.info` | One argument of the title each, inside `page.title`. Filled with nothing, one removes its argument alone. See [Replacing one part of a page's title](layout.md#replacing-one-part-of-a-pages-title) |
 | `page.side` | The filter panel, beside the results. Empty when every field is in the toolbar |
 | `page.toolbar` | The whole toolbar row: the filter form, then `page.controls` |
 | `page.filters` | The filter form with the toolbar's fields, inside `page.toolbar` |
 | `page.controls` | The end of the toolbar row: sort, the Filters button, then `page.actions` |
-| `page.actions` | The add button, inside `page.controls`. Write `{{ block.super }}` to keep it |
+| `page.actions` | The view's `page_actions`, then the add button, inside `page.controls`. Write `{{ block.super }}` to keep both |
 | `page.refinements` | The count row: the count, the chosen sort and the applied search and filters |
 | `page.summary` | The count, inside `page.refinements` |
 | `page.results` | The grid of records |
@@ -591,8 +657,8 @@ Every part of the list template is a block, so a project template that extends
 {% endblock page.actions %}
 ```
 
-`{{ block.super }}` is the add button, so where you write it decides where it goes: before
-your own actions, after them, or nowhere if you leave it out. A table page has the same
+`{{ block.super }}` is the view's actions and the add button, so where you write it decides
+where they go: before your own actions, after them, or nowhere if you leave it out. A table page has the same
 three toolbar blocks, so an override written for one serves the other.
 
 The toolbar is drawn only when the list has records or something is applied, and

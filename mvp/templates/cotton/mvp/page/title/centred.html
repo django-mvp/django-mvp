@@ -1,0 +1,23 @@
+{# @description The centred title layout: every part centred in one column, the actions under the lead. For overview and landing-style pages. #}
+{# @slot:eyebrow, heading, lead, info, actions — Drawn by c-mvp.page.title; an empty slot draws nothing. #}
+{% load mvp %}
+<c-vars eyebrow heading lead info actions class />
+<div class="page-title flex flex-col items-center gap-2 w-full text-center py-4 md:py-8 {{ class }}" {{ attrs }}>
+  {% if eyebrow|slot_is_empty is False %}
+    <p class="mvp-page-eyebrow text-sm font-semibold tracking-widest uppercase text-base-content/80">{{ eyebrow }}</p>
+  {% endif %}
+  {% if heading|slot_is_empty is False or info|slot_is_empty is False %}
+    <div class="flex items-center justify-center gap-2">
+      {% if heading|slot_is_empty is False %}
+        <h1 class="text-4xl font-bold leading-tight tracking-tight text-balance">{{ heading }}</h1>
+      {% endif %}
+      {{ info }}
+    </div>
+  {% endif %}
+  {% if lead|slot_is_empty is False %}
+    <p class="mvp-page-lead text-lg leading-relaxed max-w-prose text-pretty text-base-content/80">{{ lead }}</p>
+  {% endif %}
+  {% if actions|slot_is_empty is False %}
+    <div class="flex flex-wrap items-center justify-center gap-2 pt-3">{{ actions }}</div>
+  {% endif %}
+</div>

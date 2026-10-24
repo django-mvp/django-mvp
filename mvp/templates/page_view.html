@@ -26,14 +26,20 @@
             </c-slot>
             <c-slot name="header">
               {% block page.title %}
-                {# Named one at a time: the title block writes every attribute onto its root, and #}
-                {# `page` also carries the breadcrumb trail and page class, placed elsewhere. #}
-                <c-mvp.page.title :title="page.title"
-                              :subtitle="page.subtitle"
-                              :info="page.info"
-                              :info_actions="page.info_actions" only>
+                {# Each argument has its own block, filled by default from the view's value. A block a #}
+                {# template fills replaces that argument alone, including with nothing. #}
+                <c-mvp.page.title :layout="page.title_layout" only>
+                  <c-slot name="eyebrow">{% block page.eyebrow %}{{ page.title_args.eyebrow }}{% endblock page.eyebrow %}</c-slot>
+                  <c-slot name="heading">{% block page.heading %}{{ page.title_args.title }}{% endblock page.heading %}</c-slot>
+                  <c-slot name="lead">{% block page.lead %}{{ page.title_args.lead }}{% endblock page.lead %}</c-slot>
+                  <c-slot name="info_trigger">
+                    {% block page.info %}
+                      <c-mvp.page.info :text="page.title_args.info" :title="page.title_args.title" :actions="page.title_args.info_actions" only />
+                    {% endblock page.info %}
+                  </c-slot>
                   <c-slot name="actions">
                     {% block page.actions %}
+                      {% for action in page.title_args.actions %}<c-button size="sm" :attrs="action" only />{% endfor %}
                     {% endblock page.actions %}
                   </c-slot>
                 </c-mvp.page.title>

@@ -230,7 +230,7 @@ the whole screen. `fill` takes the full width and height and ignores `width`.
 | Component | Attributes / notes |
 | --- | --- |
 | `c-mvp.page` | `fill`, `gap` (`6`), `class` — page wrapper. Its width comes from the `c-mvp.container` inside it |
-| `c-mvp.page.title` | title/subtitle block (fed by `PageMixin` context); attrs `title`, `subtitle`, `info`, `info_actions`, `inline_actions`, `class` — any other attribute lands on the block's root element. `inline_actions` keeps the `actions` slot at the end of the heading's own row at every width, with the subtitle across the full width below |
+| `c-mvp.page.title` | `layout`, `title`, `eyebrow`, `lead`, `info`, `info_actions`, `inline_actions`, `class`; slots `heading`, `info_trigger`, `actions` — a page's title area, drawn in one of the title layouts; any other attribute lands on the layout's root element. See [The page title](#the-page-title) |
 | `c-mvp.page.info` | `text`, `title`, `actions` — info icon beside the title, opening a dialog that explains the page; drawn by `c-mvp.page.title` from `page_info`, and nothing renders without `text`. A plain `text` string is escaped; a safe string is written out as markup |
 | `c-mvp.page.content` | `gap` (`4`), `class` — flexible body region that absorbs leftover height |
 | `c-mvp.page.layout` | `class`; slots `header`, `side` and the default slot — lays a page's title, content and side panel out together. With an empty `side` slot it draws the header and content and nothing else. `page_view.html` calls it; call it yourself from a template that does not extend the page template. See [Side panel](layout.md#side-panel) |
@@ -245,7 +245,7 @@ the whole screen. `fill` takes the full width and height and ignores `width`.
 | `c-mvp.page.list.summary` | `class` — the count of what the list holds |
 | `c-mvp.page.list.refinements` | `class` — the applied search and filters, each as a control that removes it |
 | `c-mvp.page.list.footer` | `page_obj`, `size`, `class` — the foot of a list page: the range shown and the pager. Its spacing comes from `class`, and `size` sets the pager's button size |
-| `c-mvp.page.table.toolbar` | slots `title`, `actions`, `controls`, `note` and the default slot; `storage_key`, `class` — the band above a full-page table: a bar that always shows and a panel under it that a button opens and closes; the `controls` sit at the end of the panel's row, and in the bar while it is closed |
+| `c-mvp.page.table.toolbar` | slots `heading`, `title`, `actions`, `controls`, `note` and the default slot; `heading_above`, `storage_key`, `class` — the band above a full-page table: a bar that always shows and a panel under it that a button opens and closes; the `controls` sit at the end of the panel's row, and in the bar while it is closed. The `heading` slot holds the page title, drawn at the start of the bar, or above it with `heading_above`, for a title layout too tall for one row; the `title` slot holds what sits beside it, such as the result count |
 | `c-mvp.page.list.actions` | `actions` — renders the action components below, default `['create']` |
 | `c-mvp.page.list.actions.{create,share}` | individual list actions — see [below](#list-components-driven-by-view-context) for the context each one needs |
 | `c-mvp.section` | `title`, `icon`, `level` (heading level 1–4); slot `actions` |
@@ -256,6 +256,38 @@ the whole screen. `fill` takes the full width and height and ignores `width`.
 `<c-mvp.page fill>` marks a page that wants the shell's height instead of its
 content's. The shell keys off it. `<c-mvp.entrance>` still accepts a deprecated
 `small` attribute that predates `size` — pass one or the other, never both.
+
+### The page title
+
+The page templates draw their title with `<c-mvp.page.title>`, and a template that does not
+extend them can call it itself:
+
+```html
+<c-mvp.page.title layout="centred"
+                  eyebrow="Reports"
+                  title="Quarterly sales"
+                  lead="Every region, every product line."
+                  info="How the figures are counted." />
+```
+
+`title`, `eyebrow` and `lead` are plain text. `layout` names the arrangement: `default`,
+`inline`, `centred` or `compact`, or a Cotton component of your own. Left empty it draws
+`default`, or `inline` when `inline_actions` is set. An argument left out draws nothing, not
+an empty element, and a bare call never reads a `title` or `lead` from the page around it.
+
+Three slots hold what a plain attribute cannot. `heading` replaces `title` when it has
+content, and `actions` holds the page's buttons. The `info` attribute is the dialog's text,
+from which the trigger is drawn; the `info_trigger` slot replaces that whole trigger, so a
+page that draws its own leaves `info` unset.
+
+```html
+<c-mvp.page.title title="Quarterly sales" info="How the figures are counted.">
+  <c-slot name="actions"><c-button text="Export" size="sm" /></c-slot>
+</c-mvp.page.title>
+```
+
+An attribute the component does not declare, such as `id`, is written onto the layout's
+root element.
 
 ## Data display
 
@@ -409,6 +441,7 @@ unmet.
 | Component | Notes |
 | --- | --- |
 | `c-mvp.actions.theme-controller` | light/dark theme toggle (`size`, `valign`, `halign`, `compact`). `compact` renders the two-theme switcher as one square icon button instead of the icon/checkbox/icon row, for narrow slots like the sidebar footer — it has no effect when `theme.choices` is configured, since that branch is already a square icon button |
+| `c-mvp.actions.theme-cycle` | one square icon button that steps through `theme.default`, `theme.dark` and automatic, which follows the device's setting (`size`). Moves between the same two themes whether or not `theme.choices` is set. See [Theming](theming.md) |
 | `c-mvp.actions.language-switcher` | i18n language dropdown (needs `set_language` URL); renders only when `LocaleMiddleware` is installed **and** `set_language` reverses |
 | `c-mvp.actions.language-switcher-modal` | the same switcher as a modal, better for narrow slots like the sidebar footer where a dropdown would be cramped — the variant the fixed sidebar footer uses (`id`, `size`); same preconditions as the dropdown switcher |
 | `c-mvp.actions.search` | navbar search input; renders an input that is not wired to a form or a view — it submits nothing on its own |

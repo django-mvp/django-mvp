@@ -905,8 +905,9 @@ a bare region inside the shell. Override a `page.*` block instead.
 | `page.header` | `page_view.html` | Above the title. Empty by default — the breadcrumb trail moved to the app header |
 | `page.content-wrapper` | `page_view.html` | The content region, title bar included |
 | `page.side` | `page_view.html` | A [side panel](#side-panel) beside the title and content. Empty by default; left empty, the page is drawn as it always was |
-| `page.title` | `page_view.html` | The title bar: heading, subtitle and actions |
-| `page.actions` | `page_view.html` | The action buttons in the title bar |
+| `page.title` | `page_view.html` | The title area: eyebrow, heading, lead, info trigger and actions, drawn in the page's [title layout](#page-title) |
+| `page.eyebrow`, `page.heading`, `page.lead`, `page.info` | `page_view.html` | One argument of the title each, inside `page.title`. See [Replacing one part of a page's title](#replacing-one-part-of-a-pages-title) |
+| `page.actions` | `page_view.html` | The view's action buttons, in the title area. On list and table pages they are in the toolbar |
 | `page.content` | `page_view.html` | **The page body. This is the usual override.** |
 | `page.footer` | `page_view.html` | The toolbar below the content |
 | `page.hero` | `mvp/landing.html` | A full-width band above the content region |
@@ -920,9 +921,9 @@ What the shipped views already put in these:
 
 - `list_view.html` fills `page.content` with the toolbar (search, the result count,
   sort, filter and add, in that order), the list and the pagination. Its
-  `page.actions` holds the add button and sits at the end of the toolbar, not in the
-  title bar.
-- `detail_view.html` fills `page.actions` with edit and delete links and leaves
+  `page.actions` holds the view's actions, then the add button, and sits at the end of
+  the toolbar, not in the title area.
+- `detail_view.html` fills `page.actions` with the view's actions, then edit and delete links, and leaves
   `page.content` deliberately empty — that empty block is where your own
   detail template goes.
 - `form_view.html` fills `page.content` with the form, and extends `head` and
@@ -934,6 +935,144 @@ What the shipped views already put in these:
 - `mvp/error_base.html` replaces the `app` block with a centred card and
   exposes `error_code`, `heading`, `description` and `actions` instead of any
   `page.*` block.
+
+### Page title
+
+Every page draws its title area with `<c-mvp.page.title>` from six arguments: an eyebrow, the
+title, a lead, actions, and the info text and info actions. A view sets them (see
+[Page basics](views.md#page-basics)), and the title arranges them in one of four layouts:
+
+| Layout | Arrangement |
+| --- | --- |
+| `default` | The eyebrow, title and lead in one column, with the actions beside them from `md` up and under them below it |
+| `inline` | The actions at the end of the title's own row at every width, the lead across the full width below |
+| `centred` | Every argument centred in one column, the actions under the lead |
+| `compact` | One row holding the eyebrow, the title and the info trigger, with the lead shown only where there is room and the actions at the end |
+
+Every layout draws each argument it is given and nothing for one it is not. The title is the
+page's one `<h1>`, and the info trigger sits beside it, never inside it. A page with an empty
+title draws no `<h1>` and still draws the info trigger when there is info text.
+
+A page draws the layout [`MVP_CONFIG["page_title"]["layout"]`](configuration.md#page_titlelayout)
+gives its page type: `default` on page, form, detail and delete pages, `inline` on list pages
+and `compact` on table pages. One setting changes the title of every page in a project, and a
+view chooses its own with [`page_title_layout`](views.md#page-basics), which wins over the
+setting. A name that is not a shipped layout or [a Cotton component of your own](#a-layout-of-your-own) raises
+`ImproperlyConfigured`: when the page renders, for a view's name, and at startup, for the
+setting.
+
+A table page draws the compact layout inside its toolbar's bar. In any other layout the
+title is drawn above the bar, and the bar keeps its controls and its result count.
+
+A template that picks a layout by name resolves it with `title_layout_component`, which is
+a function in `mvp.utils` and a filter in the `mvp` template library. A shipped name returns
+its component, `mvp.page.title.centred` for `centred`. Any other name must be a Cotton
+component of your own, and it is returned unchanged when it exists. A name that is neither
+raises `ImproperlyConfigured`. `mvp.utils.TITLE_LAYOUTS` lists the four shipped names.
+
+```django
+{% load mvp %}
+<c-component is="{{ 'centred'|title_layout_component }}" only>
+  <c-slot name="heading">Welcome</c-slot>
+</c-component>
+```
+
+### Replacing one part of a page's title
+
+Each argument of the title has a block in every page template, so a project template that
+extends one can replace that argument alone and leave the rest to the view:
+
+| Block | Replaces | Holds by default |
+| --- | --- | --- |
+| `page.eyebrow` | The eyebrow | The view's `page_eyebrow` |
+| `page.heading` | The heading's text | The view's `page_title` |
+| `page.lead` | The lead | The view's `page_lead` |
+| `page.info` | The whole info trigger | The trigger drawn from `page_info` and `page_info_actions` |
+| `page.actions` | The page's actions | The view's `page_actions`, drawn as buttons. A detail page adds Edit and Delete after them. On list and table pages they are in the toolbar, before the add button |
+| `page.title` | The whole title area | All of the above, in the page's layout |
+
+```django
+{% extends "detail_view.html" %}
+{% block page.lead %}
+  Placed by <a href="{{ object.customer.get_absolute_url }}">{{ object.customer }}</a>
+{% endblock page.lead %}
+```
+
+A block holds markup, so a lead can carry a link. Every layout draws what a block gives it.
+
+- A block filled with nothing removes that argument, though the view sets it, and the title
+  draws no empty element in its place.
+- Emptying `page.heading` removes the `<h1>` and keeps the info trigger. Emptying `page.info`
+  removes the trigger and keeps the heading.
+- A block you fill leaves the others alone: the lead you write sits under the heading the
+  view set.
+- A template that fills `page.actions` replaces everything the block held, Edit and Delete on a
+  detail page and the add button on a list or table page included. Write `{{ block.super }}`
+  in it to keep them.
+- `page.title` replaces the whole area, and its own blocks go with it, so a template that fills
+  it draws the title itself, with `<c-mvp.page.title>` or plain markup.
+
+A template that is not one of the page templates calls `<c-mvp.page.title>` itself, with the
+arguments as attributes and the actions in its `actions` slot. It draws what a page view draws
+for the same arguments, in the layout it names, and in `inline` when it sets `inline_actions`
+and names none. See [The page title](components.md#the-page-title).
+
+### A layout of your own
+
+When none of the four layouts is the arrangement you want, write one as a Cotton component
+of your own and name it where you would name a shipped layout. It draws the same arguments, so
+every page type and every block works with it unchanged.
+
+1. Write the component in your project's `cotton/` directory, as `<name>.html` or
+   `<name>/index.html`. It declares the five slots it receives, and draws each only when it
+   has content:
+
+   | Slot | Holds |
+   | --- | --- |
+   | `eyebrow` | The eyebrow's text |
+   | `heading` | The heading's text. The layout draws the `<h1>` |
+   | `lead` | The lead's text |
+   | `info` | The info trigger and its dialog, ready to draw |
+   | `actions` | The page's buttons. Empty on list and table pages, which draw theirs in the toolbar |
+
+   ```django
+   {# templates/cotton/myapp/banner_title.html #}
+   {% load mvp %}
+   <c-vars eyebrow heading lead info actions class />
+   <header class="border-b border-base-300 pb-4 {{ class }}" {{ attrs }}>
+     {% if eyebrow|slot_is_empty is False %}<p class="text-sm uppercase">{{ eyebrow }}</p>{% endif %}
+     <div class="flex items-center gap-2">
+       {% if heading|slot_is_empty is False %}<h1 class="text-2xl font-bold">{{ heading }}</h1>{% endif %}
+       {{ info }}
+     </div>
+     {% if lead|slot_is_empty is False %}<p>{{ lead }}</p>{% endif %}
+     {% if actions|slot_is_empty is False %}<div class="flex gap-2">{{ actions }}</div>{% endif %}
+   </header>
+   ```
+
+2. Name it in the settings, for every page or for one page type, or on a view:
+
+   ```python
+   MVP_CONFIG = {
+       "page_title": {"layout": "myapp.banner_title"},
+   }
+
+   class OverviewView(MVPTemplateView):
+       page_title_layout = "myapp.banner_title"
+   ```
+
+   The name is the one you would write after `c-`: `myapp.banner_title` is
+   `templates/cotton/myapp/banner_title.html`.
+
+Your layout receives what a shipped one receives. A template block you fill reaches it in
+place of the view's value, and a block filled with nothing arrives as an empty slot. Draw
+`{{ attrs }}` on the root element so an attribute a caller adds, such as an `id`, lands there.
+Keep the info trigger beside the `<h1>` and not inside it, as the shipped layouts do: a control
+inside a heading becomes part of the heading's announced text.
+
+A table page draws a layout of your own above its toolbar's bar, as it does any layout but
+`compact`. A name that is not a component raises `ImproperlyConfigured` when the page renders,
+or at startup when it is in the setting.
 
 ### Form pages sit in a narrower column
 
@@ -970,11 +1109,13 @@ and the defaults around it are different:
 
 - `page.header` is empty, as it is on every other page. Anything you put in it is
   drawn above the toolbar. The breadcrumb trail is drawn by the app header.
-- `page.title` is the start of the toolbar's bar: a plain `<h1>`, the info icon, the
-  count and the subtitle, in one row.
-- `page.actions` holds the add button. It sits at the end of the toolbar row, as on
-  a list page, and stays when the toolbar's panel is closed. Write `{{ block.super }}`
-  in an override to keep the add button.
+- `page.title` is the title area. In the compact layout, the default for a table page,
+  it is the start of the toolbar's bar: a plain `<h1>` and the info icon in one row,
+  with the count beside it in its own `page.summary` block. In any other layout it is
+  drawn above the bar, and the bar keeps the count, the controls and the toggle.
+- `page.actions` holds the view's actions, then the add button. It sits at the end of the
+  toolbar row, as on a list page, and stays when the toolbar's panel is closed. Write
+  `{{ block.super }}` in an override to keep both.
 - `page.footer` holds the pager, in a bar pinned below the rows. It is not drawn for
   a single page.
 - The toolbar adds blocks of its own. See

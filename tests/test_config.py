@@ -13,6 +13,7 @@ import copy
 import warnings
 
 import pytest
+from mergedeep import merge  # type: ignore[import-untyped]
 
 from mvp.config import (
     MVP_CONFIG,
@@ -81,3 +82,32 @@ class TestRemovedNavbarWidthLists:
         with warnings.catch_warnings():
             warnings.simplefilter("error", MVPDeprecationWarning)
             _warn_on_removed_navbar_lists(config)
+
+
+class TestPageTitleSetting:
+    @staticmethod
+    def merged(override):
+        """``MVP_CONFIG["page_title"]`` as a project's settings leave it."""
+        config = copy.deepcopy(MVP_CONFIG)
+        merge(config, {"page_title": override})
+        return config["page_title"]["layout"]
+
+    def test_the_default_gives_each_page_type_the_layout_it_always_drew(self):
+        assert MVP_CONFIG["page_title"]["layout"] == {
+            "page": "default",
+            "form": "default",
+            "detail": "default",
+            "delete": "default",
+            "list": "inline",
+            "table": "compact",
+        }
+
+    def test_a_string_replaces_the_default_for_every_page_type(self):
+        assert self.merged({"layout": "centred"}) == "centred"
+
+    def test_a_dict_changes_the_types_it_names_and_keeps_the_rest(self):
+        layout = self.merged({"layout": {"list": "centred"}})
+
+        assert layout["list"] == "centred"
+        assert layout["table"] == "compact"
+        assert layout["page"] == "default"

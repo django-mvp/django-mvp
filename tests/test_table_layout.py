@@ -1152,3 +1152,54 @@ class TestTablePageUpdatesInPlace:
 
         thead = _beautiful_soup()(html, "html.parser").find("thead")
         assert thead.get("hx-boost") is None
+
+
+@pytest.mark.django_db
+class TestTableTitleLayout:
+    @staticmethod
+    def _soup(rf, monkeypatch, layout):
+        from mvp.config import MVP_CONFIG
+
+        if layout is not None:
+            monkeypatch.setitem(MVP_CONFIG["page_title"], "layout", layout)
+        return _beautiful_soup()(_render_table_view(rf), "html.parser")
+
+    def test_the_compact_layout_draws_the_heading_in_the_bar(
+        self, rf, monkeypatch, product
+    ):
+        soup = self._soup(rf, monkeypatch, None)
+
+        heading = soup.select_one(".mvp-table-toolbar h1")
+        assert heading.find_parent(class_="mvp-table-toolbar-bar") is not None
+        assert heading.find_parent(class_="mvp-table-toolbar-heading") is None
+
+    @pytest.mark.parametrize("layout", ["default", "inline", "centred"])
+    def test_any_other_layout_draws_the_heading_above_the_bar(
+        self, rf, monkeypatch, product, layout
+    ):
+        soup = self._soup(rf, monkeypatch, layout)
+
+        heading = soup.select_one(".mvp-table-toolbar h1")
+        above = heading.find_parent(class_="mvp-table-toolbar-heading")
+        assert above is not None
+        assert heading.find_parent(class_="mvp-table-toolbar-bar") is None
+        assert above.find_next(class_="mvp-table-toolbar-bar") is not None
+
+    @pytest.mark.parametrize("layout", [None, "default", "inline", "centred"])
+    def test_the_bar_keeps_the_result_summary_and_the_controls(
+        self, rf, monkeypatch, product, layout
+    ):
+        soup = self._soup(rf, monkeypatch, layout)
+
+        toolbar = soup.select_one(".mvp-table-toolbar")
+        bar = toolbar.select_one(".mvp-table-toolbar-bar")
+        assert bar.select_one(".mvp-list-summary") is not None
+        assert toolbar.select_one('.mvp-table-toolbar-controls a[href="/products/create/"]')
+
+    @pytest.mark.parametrize("layout", [None, "default", "inline", "centred"])
+    def test_the_page_has_one_heading_whatever_the_layout(
+        self, rf, monkeypatch, product, layout
+    ):
+        soup = self._soup(rf, monkeypatch, layout)
+
+        assert len(soup.find_all("h1")) == 1
