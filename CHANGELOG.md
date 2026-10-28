@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.32.0] - 2026-10-28
+
 ### Changed
 
 - **Breaking:** `page_subtitle` and `get_page_subtitle()` are renamed `page_lead` and
