@@ -221,7 +221,8 @@ addopts = ["--strict-markers", "--tb=short"]
 markers = ["e2e: End-to-end tests using Playwright"]
 # pytest-playwright's sync API keeps an event loop on the main thread, which
 # trips Django's async-safety guard as a false positive during pytest-django's
-# DB setup for a live_server test. No async views here, so it's safe to disable.
+# DB setup for a live_server test. The async views under test touch no database,
+# so it's safe to disable.
 env = ["DJANGO_ALLOW_ASYNC_UNSAFE=1"]
 
 
