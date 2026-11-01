@@ -19,7 +19,7 @@
             onclick="pageInfoModal.showModal()"
             only />
   <c-mvp.modal id="pageInfoModal" title="{{ title }}" icon="info" closable only>
-    <div class="max-w-prose">{{ text }}</div>
+    <div>{{ text }}</div>
     {% if actions %}
       <c-slot name="footer_end">
         {% for action in actions %}<c-button :attrs="action" only />{% endfor %}
