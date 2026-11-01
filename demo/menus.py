@@ -74,6 +74,14 @@ AppMenu.extend(
                 "icon": "gears",
             },
         ),
+        MenuItem(
+            name="theme-preview",
+            view_name="theme-preview",
+            extra_context={
+                "label": "Theme Preview",
+                "icon": "gears",
+            },
+        ),
         MenuCollapse(
             name="custom-components",
             extra_context={
