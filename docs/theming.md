@@ -58,6 +58,10 @@ were part of the package once and were the applied default — see
 [ADR 0016](adr/0016-branded-themes-belong-to-the-demo-site.md) for why they no longer are. If your
 project was rendering in them, copying that file across restores the appearance exactly.
 
+The demo's *Theme Preview* page, at `/theme/preview/`, draws every component a theme paints on one
+page. Run the demo, add your theme to `demo/static/css/themes.css` and to `choices`, and reload
+the page to see the whole theme at once. The stylesheet is plain CSS, so nothing needs building.
+
 Set `default` and `dark` together. The toggle switches between exactly those two names, so
 changing one alone leaves it moving between a theme you chose and one you did not.
 

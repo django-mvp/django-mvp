@@ -8,6 +8,7 @@ are plain ``DemoTemplateView`` instances that render a static demo page.
 
 from pathlib import Path
 
+from django.core.paginator import Paginator
 from django.forms import modelformset_factory
 from django.http import Http404
 from django.urls import reverse, reverse_lazy
@@ -390,6 +391,25 @@ theme_customization_demo = DemoTemplateView.as_view(
     template_name="theme_customization.html",
     page_title="Theme Customization",
     extra_context={"themes": DEMO_THEMES},
+)
+theme_preview_demo = DemoTemplateView.as_view(
+    template_name="theme_preview.html",
+    page_title="Theme Preview",
+    extra_context={
+        "surfaces": ["base-100", "base-200", "base-300"],
+        "colours": [
+            "neutral",
+            "primary",
+            "secondary",
+            "accent",
+            "info",
+            "success",
+            "warning",
+            "error",
+        ],
+        "sizes": ["xs", "sm", "md", "lg", "xl"],
+        "page_obj": Paginator(range(200), 10).page(7),
+    },
 )
 # The full-page case from issue #247. Its template extends base.html directly
 # rather than page_view.html: the point of the page is that the content owns

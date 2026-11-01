@@ -76,3 +76,26 @@ class TestThemeCustomizationDemoPage:
             "and mvp-dark are defined — without it the first two entries in "
             "the picker render as an unstyled fallback and nothing raises"
         )
+
+
+@pytest.mark.django_db
+class TestThemePreviewPage:
+    def test_renders_200(self, client):
+        response = client.get(reverse("theme-preview"))
+
+        assert response.status_code == 200
+
+    def test_draws_every_colour_slot_of_a_theme(self, client):
+        html = client.get(reverse("theme-preview")).content.decode()
+
+        for slot in (
+            "neutral",
+            "primary",
+            "secondary",
+            "accent",
+            "info",
+            "success",
+            "warning",
+            "error",
+        ):
+            assert f"bg-{slot} text-{slot}-content" in html

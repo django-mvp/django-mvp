@@ -1,0 +1,316 @@
+{% extends "page_view.html" %}
+{% block page.content %}
+  <c-mvp.text muted tight class="text-lg">
+    Everything a theme paints, on one page, drawn from the real components.
+    Pick a theme in the header, or edit one in demo/static/css/themes.css and
+    reload. The header, sidebar and dock around this page are part of the test.
+  </c-mvp.text>
+  <div class="mt-6 flex flex-col gap-8">
+    <c-mvp.section title="Colours" level="2">
+      <c-mvp.grid cols="2" md="3" xl="4" gap="2">
+        {% for slot in surfaces %}
+          <div class="bg-{{ slot }} text-base-content rounded-box border border-base-300 p-4">
+            <p class="font-medium mb-0">{{ slot }}</p>
+            <p class="text-sm mb-0">on base-content</p>
+          </div>
+        {% endfor %}
+        {% for slot in colours %}
+          <div class="bg-{{ slot }} text-{{ slot }}-content rounded-box p-4">
+            <p class="font-medium mb-0">{{ slot }}</p>
+            <p class="text-sm mb-0">{{ slot }}-content</p>
+          </div>
+        {% endfor %}
+      </c-mvp.grid>
+    </c-mvp.section>
+    <c-mvp.section title="Text" level="2">
+      <c-mvp.card>
+        <h1>Heading one</h1>
+        <h2>Heading two</h2>
+        <h3>Heading three</h3>
+        <h4>Heading four</h4>
+        <p>
+          Body text with a <c-link href="#" text="link" />,
+          a <c-link href="#" variant="primary" text="primary link" /> and
+          <c-kbd text="Ctrl" /> <c-kbd text="K" /> on the keyboard.
+        </p>
+        <c-mvp.text muted tight>Muted text, for what can be skipped.</c-mvp.text>
+        <div class="mt-4 flex flex-wrap gap-4">
+          {% for slot in colours %}<span class="text-{{ slot }}">text-{{ slot }}</span>{% endfor %}
+        </div>
+      </c-mvp.card>
+    </c-mvp.section>
+    <c-mvp.section title="Buttons" level="2">
+      <c-mvp.card>
+        <div class="flex flex-col gap-3">
+          <div class="flex flex-wrap gap-2">
+            <c-button text="Default" only />
+            {% for v in colours %}
+              <c-button text="{{ v|capfirst }}" variant="{{ v }}" only />
+            {% endfor %}
+          </div>
+          <div class="flex flex-wrap gap-2">
+            {% for v in colours %}
+              <c-button text="{{ v|capfirst }}" variant="{{ v }}" outline only />
+            {% endfor %}
+          </div>
+          <div class="flex flex-wrap gap-2">
+            {% for v in colours %}
+              <c-button text="{{ v|capfirst }}" variant="{{ v }}" soft only />
+            {% endfor %}
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <c-button text="Ghost" ghost only />
+            <c-button text="Link" link only />
+            <c-button text="With icon" icon="add" variant="primary" only />
+            <c-button text="Disabled" variant="primary" disabled only />
+            <c-button text="Pressed" variant="primary" active only />
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            {% for s in sizes %}
+              <c-button text="Size {{ s }}" size="{{ s }}" variant="primary" only />
+            {% endfor %}
+          </div>
+        </div>
+      </c-mvp.card>
+    </c-mvp.section>
+    <c-mvp.grid md="2" gap="8">
+      <c-mvp.section title="Badges" level="2">
+        <c-mvp.card>
+          <div class="flex flex-col gap-3">
+            <div class="flex flex-wrap gap-2">
+              {% for v in colours %}<c-badge text="{{ v }}" variant="{{ v }}" only />{% endfor %}
+            </div>
+            <div class="flex flex-wrap gap-2">
+              {% for v in colours %}<c-badge text="{{ v }}" variant="{{ v }}" soft only />{% endfor %}
+            </div>
+            <div class="flex flex-wrap gap-2">
+              {% for v in colours %}<c-badge text="{{ v }}" variant="{{ v }}" outline only />{% endfor %}
+            </div>
+          </div>
+        </c-mvp.card>
+      </c-mvp.section>
+      <c-mvp.section title="Alerts" level="2">
+        <div class="flex flex-col gap-2">
+          <c-alert variant="info" icon="info">Your export is being prepared.</c-alert>
+          <c-alert variant="success" icon="success" role="status">Your changes were saved.</c-alert>
+          <c-alert variant="warning" icon="warning">Your trial ends on Friday.</c-alert>
+          <c-alert variant="error" icon="error">That name is already taken.</c-alert>
+          <c-alert variant="info" soft role="status">A soft alert.</c-alert>
+        </div>
+      </c-mvp.section>
+    </c-mvp.grid>
+    <c-mvp.section title="Forms" level="2">
+      <c-mvp.card>
+        <c-mvp.grid md="2" gap="4">
+          <div>
+            <c-form.fieldset legend="Name" description="As it appears on your account.">
+              <c-form.input name="preview-name" value="Ada Lovelace" aria-label="Name" class="w-full" />
+            </c-form.fieldset>
+            <c-form.fieldset legend="Email" errors="Enter a valid email address." id="preview-email">
+              <c-form.input type="email" name="preview-email" value="not-an-email" variant="error" aria-label="Email" class="w-full" />
+            </c-form.fieldset>
+            <c-form.fieldset legend="Disabled">
+              <c-form.input name="preview-disabled" value="Can't change this" aria-label="Disabled" disabled class="w-full" />
+            </c-form.fieldset>
+            <c-form.fieldset legend="Country">
+              <c-form.select name="preview-country" aria-label="Country" class="w-full">
+                <option>Germany</option>
+                <option>Australia</option>
+                <option>Portugal</option>
+              </c-form.select>
+            </c-form.fieldset>
+            <c-form.fieldset legend="Notes">
+              <c-form.textarea name="preview-notes" aria-label="Notes" class="w-full">Some notes.</c-form.textarea>
+            </c-form.fieldset>
+            <c-form.fieldset legend="Attachment">
+              <c-form.file_input name="preview-file" aria-label="Attachment" class="w-full" />
+            </c-form.fieldset>
+          </div>
+          <div class="flex flex-col gap-4">
+            <c-form.fieldset legend="Checkboxes">
+              <div class="flex flex-wrap gap-3">
+                {% for v in colours %}
+                  <c-form.checkbox name="preview-check-{{ v }}" variant="{{ v }}" aria-label="{{ v }}" checked only />
+                {% endfor %}
+              </div>
+            </c-form.fieldset>
+            <c-form.fieldset legend="Radio buttons">
+              <div class="flex flex-wrap gap-3">
+                {% for v in colours %}
+                  <c-form.radio name="preview-radio-{{ v }}" variant="{{ v }}" aria-label="{{ v }}" checked only />
+                {% endfor %}
+              </div>
+            </c-form.fieldset>
+            <c-form.fieldset legend="Toggles">
+              <div class="flex flex-wrap gap-3">
+                {% for v in colours %}
+                  <c-form.toggle name="preview-toggle-{{ v }}" variant="{{ v }}" aria-label="{{ v }}" checked only />
+                {% endfor %}
+              </div>
+            </c-form.fieldset>
+            <c-form.fieldset legend="Range">
+              <div class="flex flex-col gap-2">
+                <c-form.range name="preview-range" value="40" aria-label="Range" only />
+                <c-form.range name="preview-range-primary" value="60" variant="primary" aria-label="Primary range" only />
+              </div>
+            </c-form.fieldset>
+            <c-form.fieldset legend="Rating">
+              <c-form.rating name="preview-rating" value="3" label="Rating" variant="warning" only />
+            </c-form.fieldset>
+          </div>
+        </c-mvp.grid>
+      </c-mvp.card>
+    </c-mvp.section>
+    <c-mvp.section title="Surfaces" level="2">
+      <c-mvp.grid md="2" xl="3" gap="4">
+        <c-mvp.card title="A card" icon="box-seam">
+          <c-slot name="badges">
+            <c-badge text="New" variant="accent" only />
+          </c-slot>
+          <c-slot name="actions">
+            <c-button icon="pencil" ghost size="sm" aria-label="Edit" only />
+          </c-slot>
+          Cards sit on base-100.
+          <c-slot name="footer_end">
+            <c-button text="Cancel" ghost size="sm" only />
+            <c-button text="Save" variant="primary" size="sm" only />
+          </c-slot>
+        </c-mvp.card>
+        <c-mvp.card title="Details">
+          <c-mvp.data_field label="Project" value="Harbour survey" />
+          <c-mvp.data_field label="Owner" value="Ada Lovelace" />
+          <c-mvp.data_field label="Reviewed" />
+        </c-mvp.card>
+        <c-mvp.card title="People">
+          <div class="flex flex-wrap items-center gap-3">
+            <c-mvp.avatar placeholder="AL" only />
+            <c-mvp.avatar placeholder="BM" variant="secondary" status="online" only />
+            <c-mvp.avatar placeholder="GH" variant="accent" status="offline" only />
+            <c-mvp.avatar placeholder="MC" variant="neutral" shape="rounded" only />
+          </div>
+        </c-mvp.card>
+        <div class="bg-base-200 rounded-box p-4">
+          On base-200, the surface one step down.
+        </div>
+        <div class="bg-base-300 rounded-box p-4">
+          On base-300, the surface two steps down.
+        </div>
+        <c-mvp.placeholder.card message="Nothing here yet" icon="box-seam" />
+      </c-mvp.grid>
+      <c-stat.group vertical horizontal="lg" class="mt-4 w-full bg-base-100">
+        <c-stat title="Downloads" value="31K" desc="Up 12% this month" />
+        <c-stat title="New users" value="4,200" desc="Down 3% this month" />
+        <c-stat title="Open issues" value="86" desc="12 need a reply" />
+      </c-stat.group>
+    </c-mvp.section>
+    <c-mvp.section title="Tables" level="2">
+      <c-mvp.card tight>
+        <c-table caption="Recent samples" zebra>
+          <thead>
+            <tr>
+              <th scope="col">Sample</th>
+              <th scope="col">Site</th>
+              <th scope="col" class="text-end">Depth</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row"><c-link href="#" text="GH-1042" /></th>
+              <td>Harbour north</td>
+              <td class="text-end">120 m</td>
+            </tr>
+            <tr>
+              <th scope="row"><c-link href="#" text="GH-1043" /></th>
+              <td>Harbour south</td>
+              <td class="text-end">84 m</td>
+            </tr>
+            <tr>
+              <th scope="row"><c-link href="#" text="GH-1044" /></th>
+              <td>Breakwater</td>
+              <td class="text-end">—</td>
+            </tr>
+          </tbody>
+        </c-table>
+      </c-mvp.card>
+      <div class="mt-4">
+        <c-mvp.pagination :page_obj="page_obj" page_window="1" use_icons size="sm" />
+      </div>
+    </c-mvp.section>
+    <c-mvp.grid md="2" gap="8">
+      <c-mvp.section title="Navigation" level="2">
+        <c-mvp.card>
+          <div class="flex flex-col gap-4">
+            <c-tabs border>
+              <c-tabs.tab text="Overview" active />
+              <c-tabs.tab text="Usage" />
+              <c-tabs.tab text="Archived" disabled />
+            </c-tabs>
+            <c-tabs box>
+              <c-tabs.tab text="Overview" active />
+              <c-tabs.tab text="Usage" />
+              <c-tabs.tab text="Archived" disabled />
+            </c-tabs>
+            <c-steps>
+              <c-steps.step text="Register" variant="primary" />
+              <c-steps.step text="Choose plan" variant="primary" current />
+              <c-steps.step text="Pay" />
+            </c-steps>
+            <c-breadcrumbs>
+              <c-breadcrumbs.item href="#" text="Home" />
+              <c-breadcrumbs.item href="#" text="Samples" />
+              <c-breadcrumbs.item text="GH-1042" />
+            </c-breadcrumbs>
+            <c-menu class="bg-base-200 rounded-box w-full">
+              <c-menu.title text="A menu" />
+              <c-menu.item href="#" text="Current page" icon="home" active />
+              <c-menu.item href="#" text="Another page" icon="book" />
+              <c-menu.item text="Unavailable" icon="tasks" disabled />
+            </c-menu>
+          </div>
+        </c-mvp.card>
+      </c-mvp.section>
+      <c-mvp.section title="Feedback" level="2">
+        <c-mvp.card>
+          <div class="flex flex-col gap-4">
+            {% for v in colours %}
+              <c-progress value="{{ forloop.counter }}0" variant="{{ v }}" label="{{ v }} progress" only />
+            {% endfor %}
+            <div class="flex flex-wrap items-center gap-4">
+              <c-loading spinner label="Loading" only />
+              <c-loading dots class="text-primary" label="Loading" only />
+              <c-tooltip tip="A tooltip" open>
+                <c-button text="Tooltip" size="sm" only />
+              </c-tooltip>
+              <c-mvp.dropdown text="Dropdown" size="sm" variant="neutral">
+                <c-menu>
+                  <c-menu.item text="Edit" icon="pencil" href="#" />
+                  <c-menu.item text="View" icon="eye" href="#" />
+                </c-menu>
+              </c-mvp.dropdown>
+              <c-button text="Modal" size="sm" variant="primary" onclick="theme_preview_modal.showModal()" only />
+            </div>
+            <div class="flex flex-col gap-2">
+              <c-skeleton class="h-4 w-full" />
+              <c-skeleton class="h-4 w-2/3" />
+            </div>
+            <div class="flex flex-col gap-2">
+              <c-accordion name="preview-accordion" title="What can a theme change?" arrow open class="bg-base-200">
+                Colour, corner radius, border width, base sizing, depth and noise.
+              </c-accordion>
+              <c-accordion name="preview-accordion" title="What can it not change?" arrow class="bg-base-200">
+                Spacing, type, and which components appear where.
+              </c-accordion>
+            </div>
+          </div>
+        </c-mvp.card>
+      </c-mvp.section>
+    </c-mvp.grid>
+  </div>
+  <c-mvp.modal id="theme_preview_modal" title="A modal" closable>
+    <c-mvp.text tight>Modals are drawn on base-100 above a dimmed page.</c-mvp.text>
+    <c-slot name="footer_end">
+      <c-button text="Cancel" ghost onclick="theme_preview_modal.close()" />
+      <c-button text="Confirm" variant="primary" onclick="theme_preview_modal.close()" />
+    </c-slot>
+  </c-mvp.modal>
+{% endblock page.content %}

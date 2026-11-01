@@ -44,6 +44,7 @@ urlpatterns = [
     path("layout/side/", views.page_side_demo, name="layout-side"),
     path("layout/title/", views.page_title_demo, name="layout-title"),
     path("theme/", views.theme_customization_demo, name="customization"),
+    path("theme/preview/", views.theme_preview_demo, name="theme-preview"),
     path("components/", views.components_demo, name="custom-components"),
     path(
         "components/<slug:slug>/",

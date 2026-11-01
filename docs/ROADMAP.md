@@ -111,7 +111,7 @@ Serves G4. Formsets rendered outside the packaged form components stay out of sc
 
 ### R9 — Components honour the attributes passed to them
 
-*feature · advances G7, G2*
+*delivered in [#485](https://github.com/django-mvp/django-mvp/issues/485) · advances G7, G2*
 
 A component hardcodes an attribute and also spreads the attributes it was given, so the browser silently drops the duplicate and the passed value disappears. A class passed to a text or breadcrumb component does nothing.
 
