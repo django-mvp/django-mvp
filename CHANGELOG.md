@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- The text in a page's info dialog now spans the dialog. It was held to a reading width that left a strip of empty space beside it.
+
 ## [v0.32.0] - 2026-10-28
 
 ### Changed
