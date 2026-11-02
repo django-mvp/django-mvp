@@ -7,7 +7,7 @@
 {# @prop class:text | description:"Extra classes on the box." #}
 {# @slot Regions nested inside this one. #}
 <c-vars name key="" focus="app" note="" href="" class />
-<div class="flex flex-col gap-2 rounded-box border p-3 {% if focus == 'app' or focus == key %}border-primary bg-base-100{% else %}border-base-300 text-base-content/40{% endif %} {{ class }}">
+<div class="flex flex-col gap-2 rounded-box border p-3 {% if focus == 'app' or focus == key %}border-primary bg-base-100{% else %}border-line text-base-content/40{% endif %} {{ class }}">
   <p class="text-sm">
     {% if href %}
       <a href="{{ href }}" class="link link-hover font-mono font-semibold">{{ name }}</a>

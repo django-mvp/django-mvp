@@ -440,7 +440,7 @@ you render it yourself, for example to change one page's header:
 
 ```html
 {% block app.header %}
-  <c-app.header class="bg-base-200" />
+  <c-app.header class="bg-base-100" />
 {% endblock %}
 ```
 
@@ -1039,7 +1039,7 @@ every page type and every block works with it unchanged.
    {# templates/cotton/myapp/banner_title.html #}
    {% load mvp %}
    <c-vars eyebrow heading lead info actions class />
-   <header class="border-b border-base-300 pb-4 {{ class }}" {{ attrs }}>
+   <header class="border-b border-line pb-4 {{ class }}" {{ attrs }}>
      {% if eyebrow|slot_is_empty is False %}<p class="text-sm uppercase">{{ eyebrow }}</p>{% endif %}
      <div class="flex items-center gap-2">
        {% if heading|slot_is_empty is False %}<h1 class="text-2xl font-bold">{{ heading }}</h1>{% endif %}

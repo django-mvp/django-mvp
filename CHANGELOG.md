@@ -7,13 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Breaking:** every project on a prebuilt theme changes appearance. The three base colours now have one meaning each: `base-100` is raised (cards, inputs, modals, dropdowns, tables), `base-200` is the page (with the header and the dock) and `base-300` is sunk (the sidebar, wells, stripes). The page moves from `base-100` to `base-200`, so cards now stand above it, and the sidebar moves from `base-200` to `base-300`.
+
+  To keep the old look, set the page and the sidebar back in the theme. `docs/theming.md` has this under "Keeping the page on another surface":
+
+  ```css
+  [data-theme="light"] {
+    --root-bg: var(--color-base-100);
+  }
+
+  [data-theme="light"] .mvp-sidebar {
+    --color-base-300: var(--color-base-200);
+  }
+  ```
+
+- **Breaking:** a theme or a region block that recolours the sidebar through `--color-base-200` must now set `--color-base-300`, which is what the sidebar reads.
+- The sidebar has an edge, the default button and the default alert show on all three surfaces, and borders drawn by the package use the line colour, where they used `border-base-300` and vanished on `base-300`. A filter panel's foot follows what it sits on, in the page's colour as a column or a stacked block and raised in a drawer. The placeholder card, the code areas of `<c-mvp.documentation>` and the hover on a filter option are sunk, the rail's fly-outs are raised, and a blank avatar draws its disc in the line colour.
+
+### Added
+
+- A theme can set `--color-line`, a colour that shows on all three surfaces. The default button and alert fill from it and `border-line` and `bg-line` draw it. Left unset, it is worked out from `base-300` and `base-content` where it is read, so a region with its own surfaces gets a line that suits them.
+
+### Removed
+
+- The demo's `mvp-raised` theme, since every theme now puts its page on `base-200`.
+
 ## [v0.32.3] - 2026-11-02
-
-### Fixed
-
-- The dark brand icon and logo now have their alternative text. They had an empty `alt`, so under a dark colour scheme the only image a screen reader could reach had no name, including the logo on the error pages.
-
-## [v0.32.2] - 2026-11-02
 
 ### Added
 
@@ -24,6 +45,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - A theme can set its fonts. `--font-sans`, `--font-serif` and `--font-mono` are documented as theme
   properties, and `--font-heading` sets the font of headings and component titles in one place,
   following the body font when unset. `docs/theming.md` covers serving the font files locally.
+
+### Fixed
+
+- The dark brand icon and logo now have their alternative text. They had an empty `alt`, so under a dark colour scheme the only image a screen reader could reach had no name, including the logo on the error pages.
+
+## [v0.32.2] - 2026-11-02
+
+### Added
+
 - The demo site has a Theme Preview page at `/theme/preview/`, drawing every component a theme paints on one page, so a theme can be judged as a whole while it is being written.
 
 ### Fixed

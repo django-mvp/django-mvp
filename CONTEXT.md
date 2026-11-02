@@ -94,8 +94,9 @@ sizing, and the depth/noise surface effects) applied to the whole document at on
 `[data-theme="<name>"]`. A theme carries no structure or layout, which is why changing one
 never requires a template change. Themes come from two sources: those shipped with the
 package (every prebuilt daisyUI theme) and those a project writes for itself as a plain CSS
-file. Selected through `MVP_CONFIG["theme"]`. See [Theming](docs/theming.md) for the full
-variable reference and how to write one.
+file. Selected through `MVP_CONFIG["theme"]`. Each of a theme's three base colours has one
+meaning: `base-100` is raised, `base-200` is the page and `base-300` is sunk. See
+[Theming](docs/theming.md) for the full variable reference and how to write one.
 
 ### Installable app
 

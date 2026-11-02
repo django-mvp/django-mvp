@@ -128,8 +128,9 @@ no template overridden.
 
 **Acceptance Scenarios**:
 
-1. **Given** a theme that sets nothing for the shell, **When** a page is loaded, **Then** the header and
-   the mobile dock are drawn in the page's background and the sidebar in the second base surface.
+1. **Given** a theme that sets nothing for the shell, **When** a page is loaded, **Then** the page, the
+   header and the mobile dock are drawn on `base-200`, the sidebar is sunk on `base-300`, and cards are
+   raised on `base-100`.
 2. **Given** a theme that puts the page on another surface, **When** a page is loaded, **Then** the header
    and the mobile dock follow the page without the theme naming them.
 3. **Given** a theme that sets a background under the header's, the dock's or the sidebar's class, **When**
@@ -143,6 +144,11 @@ no template overridden.
    **Then** that class replaces the packaged one and the region keeps the class a theme selects on.
 7. **Given** the documentation, **When** a developer reads the theming page, **Then** it names each
    region's class and the properties it paints from, with an example block for each.
+8. **Given** a theme that sets `--root-bg`, **When** a page is loaded, **Then** the page, the header, the
+   mobile dock and a filter panel beside the content are drawn in it, and every other surface keeps its
+   meaning.
+9. **Given** any theme, **When** a filter panel is a drawer, **Then** the panel and its foot are raised,
+   and **When** it is a column or a stacked block, **Then** its foot is drawn in the page's background.
 
 ---
 
@@ -231,6 +237,34 @@ computed font of body text, the page title, a card title and a sidebar title.
 
 ---
 
+### User Story 8 - Give a theme a line colour (Priority: P3)
+
+A developer wants the default buttons and the borders in their theme to be a colour they chose. They add
+one optional line colour beside the base colours. Every default button, border and rule the package draws
+takes it, on any of the three surfaces.
+
+**Why this priority**: Each base colour vanishes on its own surface, so the default button and the
+borders need a colour that shows on all three. A theme gets a working one without doing anything, so
+setting it refines a theme a project has already written, as with US-6.
+
+**Independent Test**: Set the line colour in a theme. Load a page and read the computed fill of a default
+button, and the border colour of the sidebar and of a rule.
+
+**Acceptance Scenarios**:
+
+1. **Given** a theme with a line colour, **When** a page draws a default button, a sidebar edge or a rule,
+   **Then** each renders in that colour, whichever surface it sits on.
+2. **Given** a theme with no line colour, **When** a page is loaded, **Then** those are drawn in a colour
+   worked out from `base-300` and the base text colour, distinct from all three surfaces.
+3. **Given** a region that sets its own surfaces and no line colour, **When** a default button is drawn
+   inside it, **Then** the colour is worked out from the region's surfaces.
+4. **Given** a theme with a line colour, **When** an element sits inside a part of the page with a
+   different theme, **Then** it uses that theme's colours and not the page theme's line colour.
+5. **Given** a button or an alert with a colour variant, **When** a theme sets a line colour, **Then** it
+   keeps its colour.
+
+---
+
 ### Edge Cases
 
 - A project names a theme that neither ships with the package nor is provided by the project itself. No
@@ -309,8 +343,8 @@ computed font of body text, the page title, a card title and a sidebar title.
 
 - **FR-022**: The header and the mobile dock MUST paint their background from the page's background
   property and their text from the theme's base text colour.
-- **FR-023**: The sidebar and its header and footer strips MUST paint their background from the second
-  base surface and their text from the theme's base text colour.
+- **FR-023**: The sidebar and its header and footer strips MUST paint their background from `base-300`
+  and their text from the theme's base text colour.
 - **FR-024**: The header, the mobile dock, the sidebar and the sidebar's header and footer strips MUST
   each carry a class of their own that a stylesheet can select on, kept when a project replaces the
   region's background class.
@@ -341,6 +375,22 @@ computed font of body text, the page title, a card title and a sidebar title.
 - **FR-035**: The packaged stylesheet MUST add no request to a third party for a theme's text values or
   fonts, and the documentation MUST explain how to serve a theme's font files locally.
 
+**Surfaces and the line colour**
+
+- **FR-036**: Each base colour MUST keep one meaning in every template the package ships: `base-100` is
+  raised, `base-200` is the page and `base-300` is sunk.
+- **FR-037**: The page's background property MUST default to `base-200`, and a theme MUST be able to
+  replace it with no other change.
+- **FR-038**: On any theme, a default button and a default alert MUST differ from all three base colours,
+  and a button or an alert with a colour variant MUST render unchanged.
+- **FR-039**: A theme MUST be able to set an optional line colour, read by the default button and by the
+  package's borders and rules.
+- **FR-040**: With no line colour set, the colour MUST be worked out from `base-300` and the base text
+  colour in force where it is read.
+- **FR-041**: A theme's line colour MUST NOT reach a part of the page that carries a different theme.
+- **FR-042**: The documentation MUST state each base colour's meaning, the line colour, and how a theme
+  moves the page.
+
 ### Requirement to story mapping
 
 | Story | Requirements |
@@ -348,10 +398,11 @@ computed font of body text, the page title, a card title and a sidebar title.
 | US-1 — Apply a prebuilt theme by configuration | FR-001, FR-002, FR-003, FR-004, FR-005, FR-006, FR-014, FR-019, FR-020 |
 | US-2 — Let visitors choose from the themes a project offers | FR-007, FR-008, FR-009, FR-010 |
 | US-3 — Write and apply a theme of your own | FR-011, FR-012, FR-013, FR-015, FR-016, FR-017, FR-018, FR-021 |
-| US-4 — Colour the header, the dock and the sidebar from a theme | FR-022, FR-023, FR-024, FR-025, FR-026 |
+| US-4 — Colour the header, the dock and the sidebar from a theme | FR-022, FR-023, FR-024, FR-025, FR-026, FR-036, FR-037 |
 | US-5 — Follow the device's light or dark setting | FR-027, FR-028, FR-029 |
 | US-6 — Give a brand colour a separate text value | FR-015, FR-030, FR-031, FR-032 |
 | US-7 — Set a theme's fonts | FR-015, FR-033, FR-034, FR-035 |
+| US-8 — Give a theme a line colour | FR-015, FR-038, FR-039, FR-040, FR-041, FR-042 |
 
 ### Key Entities
 
@@ -407,7 +458,7 @@ computed font of body text, the page title, a card title and a sidebar title.
 
 - **Q: When a project configures no theme, should the shipped themes change what applies?**
   A: No. The applied theme with no configuration is unchanged from the preceding release (FR-006,
-  SC-006). Existing projects must see no visual change on upgrade. Which theme *should* be the default,
+  SC-006). An upgrading project keeps the theme it had. Which theme *should* be the default,
   and whether it meets the contrast bar, is R11's question and is deliberately not reopened here.
 
 - **Q: Does the switcher offer all shipped themes by default, or stay at light and dark?**

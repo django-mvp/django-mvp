@@ -129,10 +129,11 @@ and every shipped theme sets it.
 | Property | Controls |
 | --- | --- |
 | `color-scheme` | Whether the browser renders its own UI (scrollbars, form controls, the built-in date picker) as `light` or `dark`, so native chrome doesn't clash with the theme. |
-| `--root-bg` | The page's own background. DaisyUI sets it to `base-100`, and a theme that wants the page on another surface says so here. The header and the mobile dock paint from it. |
-| `--color-base-100` | The page's primary background surface. |
-| `--color-base-200` | A background surface one step more contrasted than `base-100`, used for subtle separation (a card on the page, a table row). |
-| `--color-base-300` | A background surface two steps more contrasted than `base-100`, for stronger separation (a well, a disabled state). |
+| `--root-bg` | The page's own background, `base-200` unless a theme says otherwise. The header and the mobile dock paint from it. See [Keeping the page on another surface](#keeping-the-page-on-another-surface). |
+| `--color-base-100` | Raised: what sits above the page. Cards, inputs, modals, dropdowns and tables. |
+| `--color-base-200` | The page: the page background, the header and the mobile dock. |
+| `--color-base-300` | Sunk: what sits below the page. The sidebar, wells, stripes and placeholders. |
+| `--color-line` | Optional. A colour that shows on all three surfaces, for edges, rules and the default button. See [A line colour](#a-line-colour). |
 | `--color-base-content` | The default text and icon color on top of the base surfaces. |
 | `--color-primary` | The theme's brand color, used for primary buttons, links and focus states. |
 | `--color-primary-content` | Text and icon color for content placed on top of `primary`. |
@@ -212,23 +213,24 @@ everything else, and set their text color from them:
 | --- | --- | --- | --- |
 | Header | `.mvp-header` | `--root-bg`, the page's own background | `--color-base-content` |
 | Mobile dock | `.mvp-dock` | `--root-bg` | `--color-base-content` |
-| Sidebar, with its header and footer strips | `.mvp-sidebar` | `--color-base-200` | `--color-base-content` |
+| Sidebar, with its header and footer strips | `.mvp-sidebar` | `--color-base-300` | `--color-base-content` |
 
 A theme that says nothing about them keeps the header and dock on the page's background and
-the sidebar one surface down. Every prebuilt theme renders that way.
+the sidebar sunk below it. Every prebuilt theme renders that way.
 
 A theme recolors a region by giving those properties other values inside it. The selector is
 the theme's own, followed by the region's class:
 
 ```css
-/* A page one surface down, with the header and dock following it. */
-[data-theme="sunrise"] {
-  --root-bg: var(--color-base-200);
+/* The header and dock raised above the page. */
+[data-theme="sunrise"] .mvp-header,
+[data-theme="sunrise"] .mvp-dock {
+  --root-bg: var(--color-base-100);
 }
 
-/* The sidebar on the surface the page left. */
+/* The sidebar in a colour of its own. */
 [data-theme="sunrise"] .mvp-sidebar {
-  --color-base-200: var(--color-base-100);
+  --color-base-300: oklch(84% 0.05 80);
 }
 ```
 
@@ -252,9 +254,9 @@ properties on the region is what reaches them:
 
 /* A dark sidebar, with its current item drawn in a light color. */
 [data-theme="sunrise"] .mvp-sidebar {
-  --color-base-100: oklch(30% 0.02 80);
-  --color-base-200: oklch(25% 0.02 80);
-  --color-base-300: oklch(38% 0.02 80);
+  --color-base-100: oklch(38% 0.02 80);
+  --color-base-200: oklch(30% 0.02 80);
+  --color-base-300: oklch(25% 0.02 80);
   --color-base-content: oklch(95% 0.01 80);
   --color-neutral: oklch(95% 0.01 80);
   --color-neutral-content: oklch(25% 0.02 80);
@@ -267,7 +269,7 @@ Three things to know when writing one of these blocks:
   that opens out of a region is drawn on `base-100` in `base-content`, read from where it
   sits. A block that sets only the text color leaves light text on the theme's light panel.
 - **Write a value out when the same block changes the property you would read it from.**
-  `--color-base-200: var(--color-neutral)` beside a new `--color-neutral` takes the new
+  `--color-base-300: var(--color-neutral)` beside a new `--color-neutral` takes the new
   one, because both are resolved on the same element.
 - **A region can hold a whole theme.** Any theme written for `[data-theme="<name>"]`, from
   DaisyUI's theme generator or from a prebuilt theme's file, works with the region's class
@@ -278,7 +280,7 @@ A prebuilt theme can be added to by name in the same way, without redefining its
 
 ```css
 [data-theme="nord"] .mvp-sidebar {
-  --color-base-200: var(--color-base-300);
+  --color-base-300: var(--color-base-200);
 }
 ```
 
@@ -286,6 +288,44 @@ The classes are part of the package's interface, as are `.mvp-sidebar-header` an
 `.mvp-sidebar-footer` for the sidebar's two strips. They stay on the regions when a project
 passes [a background class of its own](layout.md#header-and-dock-background), which
 replaces the packaged one and so stops that region following the theme.
+
+## A line colour
+
+Most of a theme's surfaces are told apart by which base colour they use, so a few things need a
+colour that shows on all of them: the default button, the default alert, a border that identifies
+something, and a rule. That colour is `--color-line`. The default button and alert fill from it
+and `border-line` and `bg-line` draw it, so a theme can set it once:
+
+```css
+[data-theme="sunrise"] {
+  --color-line: oklch(78% 0.04 80);
+}
+```
+
+A theme that leaves it unset gets 85% of `base-300` mixed with 15% of `base-content`, worked
+out where the colour is read. A block that gives a region its own surfaces therefore gets a line
+that belongs to them, and only needs `--color-line` for a particular colour. A part of the page
+in another theme starts without the page's value.
+
+Coloured buttons and alerts set their own fill and never read it, so only the default ones change.
+
+## Keeping the page on another surface
+
+`--root-bg` moves the page. The header, the mobile dock and the filter panel's column follow
+it, and everything else keeps its meaning. To put a theme's page back on `base-100`, as it was
+before the colours had fixed meanings, and the sidebar on `base-200`:
+
+```css
+[data-theme="sunrise"] {
+  --root-bg: var(--color-base-100);
+}
+
+[data-theme="sunrise"] .mvp-sidebar {
+  --color-base-300: var(--color-base-200);
+}
+```
+
+Cards are then drawn on the same colour as the page, and stand off it by their shadow only.
 
 ## A text value for a brand colour
 
