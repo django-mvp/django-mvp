@@ -684,7 +684,8 @@ Print uses a white page and black text in every theme, including a dark one. Bra
 as `primary` keep their theme values. To print a page differently, add your own `@media print`
 rules marked `!important`, as the package's are.
 
-A [full-page](#full-page-content) view keeps its bounded height, so it prints as one page.
+A [full-page](#full-page-content) view keeps its bounded height, so it prints as one sheet. Table
+pages are full-page views, so rows below that height are cut off the printout.
 
 ## Overriding the layout per page
 

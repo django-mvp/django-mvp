@@ -133,6 +133,32 @@ class TestPrintingAPage:
         assert printed["mainLeft"] == 0
         assert printed["mainWidth"] == printed["pageWidth"]
 
+    def test_a_page_opened_wide_is_not_locked_when_it_reaches_paper_width(
+        self, page, live_server
+    ):
+        page.set_viewport_size({"width": 1440, "height": 900})
+        page.goto(f"{live_server.url}{PRINT_PAGE}")
+        page.emulate_media(media="print")
+        page.set_viewport_size({"width": 794, "height": 1123})
+
+        root = page.evaluate("""
+            () => {
+              const style = getComputedStyle(document.documentElement);
+              return {
+                toggled: document.querySelector('.drawer-toggle').checked,
+                overflow: style.overflow,
+                background: style.backgroundColor,
+                pageWidth: document.documentElement.clientWidth,
+                mainWidth: document.querySelector('main').getBoundingClientRect().width,
+              };
+            }
+        """)
+
+        assert root["toggled"]
+        assert root["overflow"] == "visible"
+        assert root["background"] == "rgb(255, 255, 255)"
+        assert root["mainWidth"] == root["pageWidth"] == 794
+
     def test_a_dark_theme_prints_dark_text_on_white(self, page, live_server):
         page.goto(f"{live_server.url}{PRINT_PAGE}")
         page.evaluate("document.documentElement.setAttribute('data-theme', 'dark')")
