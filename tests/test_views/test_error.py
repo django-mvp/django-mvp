@@ -52,10 +52,8 @@ class TestErrorPageRendering:
     def test_error_page_logo_img_has_alt_text(self, client, code):
         content = client.get(f"/errors/{code}/").content.decode()
         imgs = re.findall(r"<img\b[^>]*>", content, re.S)
-        # The dark variant of a brand image has an empty alt by design.
-        named = [img for img in imgs if "hide-on-light-theme" not in img]
-        assert named, f"/errors/{code}/ renders no <img> to check"
-        for img in named:
+        assert imgs, f"/errors/{code}/ renders no <img> to check"
+        for img in imgs:
             alt = re.search(r'\balt="([^"]*)"', img, re.S)
             assert alt and alt.group(1).strip(), (
                 f"<img> without alt text on /{code}/: {img}"

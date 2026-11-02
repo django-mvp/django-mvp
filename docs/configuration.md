@@ -113,7 +113,8 @@ The brand components and the favicon links ask for both variants. The server
 can't know the visitor's theme, so when the two URLs differ the component
 renders both images and the browser shows the one matching the applied theme's
 `color-scheme` (see [How the theme is applied](theming.md#how-the-theme-is-applied)).
-The second image has an empty `alt`, so a screen reader hears the name once.
+Both images carry the same `alt`. The hidden one leaves the accessibility tree,
+so a screen reader hears the name once under any theme.
 When the URLs match, or the `"dark"` call returns nothing, one image renders.
 A region given a theme of its own in CSS, such as a dark sidebar on a light
 theme, still shows the image for the page's theme.
