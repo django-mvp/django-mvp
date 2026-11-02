@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- A table page prints every row of the page being viewed, across as many sheets as it needs, instead of cutting the rows off at the height of the window. Any other full-page view, such as a map, still prints as one sheet (#630).
+
 ## [v0.33.0] - 2026-11-02
 
 ### Added
