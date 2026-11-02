@@ -9,7 +9,7 @@
   <c-mvp.grid cols="1" sm="2" lg="3" gap="4" class="mt-4">
     {% for c in components %}
       <a href="{% url 'component-doc' slug=c.slug %}" class="block h-full">
-        <c-mvp.card class="h-full transition border border-base-100 hover:border-primary">
+        <c-mvp.card class="h-full transition border border-line hover:border-primary">
           <div class="flex items-start gap-3">
             <span class="text-2xl text-primary shrink-0">
               <c-icon name="{{ c.icon }}" />

@@ -113,7 +113,7 @@
     <fieldset class="p-2 max-h-72 overflow-y-auto">
       <legend class="sr-only">{{ field.label }}</legend>
       {% for key, text, selected in field.choices %}
-        <label class="label w-full gap-3 px-2 py-1.5 rounded-field hover:bg-base-200 cursor-pointer text-base-content">
+        <label class="label w-full gap-3 px-2 py-1.5 rounded-field hover:bg-base-300 cursor-pointer text-base-content">
           {% if selected %}
             <c-form.checkbox size="sm" name="{{ field.name }}" value="{{ key }}" checked only />
           {% else %}

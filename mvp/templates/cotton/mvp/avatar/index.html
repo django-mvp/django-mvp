@@ -25,7 +25,7 @@
 {% endif %}
 <div class="avatar{% if not src %} avatar-placeholder{% endif %}{% if status %} avatar-{{ status }}{% endif %}{% if class %} {{ class }}{% endif %}"
      {{ attrs }}>
-  <div class="{% firstof size_options|get_item:size size %} {{ shape }}{% if src %}{% elif placeholder %} bg-{{ variant }} text-{{ variant }}-content{% else %} bg-base-300 text-base-content/40{% endif %}">
+  <div class="{% firstof size_options|get_item:size size %} {{ shape }}{% if src %}{% elif placeholder %} bg-{{ variant }} text-{{ variant }}-content{% else %} bg-line text-base-content/40{% endif %}">
     {% if src %}
       <img src="{{ src }}" alt="{{ alt }}" />
     {% elif placeholder %}

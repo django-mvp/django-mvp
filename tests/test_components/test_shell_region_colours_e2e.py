@@ -100,7 +100,7 @@ class TestAThemeColoursOneRegion:
             page,
             live_server,
             DESKTOP,
-            f"[data-theme] .mvp-sidebar {{ --color-base-200: {GROUND};"
+            f"[data-theme] .mvp-sidebar {{ --color-base-300: {GROUND};"
             f" --color-base-content: {INK}; }}",
         )
 

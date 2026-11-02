@@ -7,9 +7,10 @@
  *     python manage.py mvp_tailwind
  */
 
-/* The header and dock paint from the page's background and the sidebar from
-   base-200, so a theme recolours one by setting those properties under its
-   class. A project's own class replaces these. See docs/theming.md. */
+/* Each base colour has one meaning: base-100 is raised, base-200 is the page and
+   base-300 is sunk. The header and dock paint from the page's background and the
+   sidebar from base-300, so a theme recolours one by setting those properties
+   under its class. A project's own class replaces these. See docs/theming.md. */
 @utility mvp-header-bg {
   background-color: var(--root-bg);
   color: var(--color-base-content);
@@ -21,7 +22,7 @@
 }
 
 @utility mvp-sidebar-bg {
-  background-color: var(--color-base-200);
+  background-color: var(--color-base-300);
   color: var(--color-base-content);
 }
 
@@ -32,6 +33,17 @@
   --text-color-primary: var(--color-primary-text, var(--color-primary));
   --text-color-secondary: var(--color-secondary-text, var(--color-secondary));
   --text-color-accent: var(--color-accent-text, var(--color-accent));
+}
+
+/* A colour that shows on all three surfaces, for edges and the default button. A
+   theme may set it. Unset, it is worked out from the surfaces in force where it is
+   read, so a region that sets its own surfaces gets a line that belongs to them.
+   `reference` keeps the entry out of :root, where it would name itself. */
+@theme inline reference {
+  --color-line: var(
+    --color-line,
+    color-mix(in oklab, var(--color-base-300) 85%, var(--color-base-content))
+  );
 }
 
 /* daisyUI's rules read the fill directly, and re-pointing the fill on the element
@@ -111,12 +123,28 @@
     font-weight: var(--font-weight-semibold);
   }
 
+  /* The page is base-200. daisyUI's own default has no weight, so this one needs
+     a little. It sits ahead of every theme in this layer, so a theme's own value
+     still wins, as does one outside the layers. */
+  :root,
+  [data-theme] {
+    --root-bg: var(--color-base-200);
+  }
+
   /* A part of the page drawn in another theme starts without the page's text
-     values. No weight, so a theme's own block wins however it was built. */
+     values and line. No weight, so a theme's own block wins however it was built. */
   :where([data-theme]) {
     --color-primary-text: initial;
     --color-secondary-text: initial;
     --color-accent-text: initial;
+    --color-line: initial;
+  }
+
+  /* daisyUI fills a default button and a default alert from base-200, the page,
+     and reads the same value for the button's hover and the alert's edge. A
+     coloured one sets its own colour and never reads it. */
+  :where(.btn, .alert) {
+    --color-base-200: --theme(--color-line inline);
   }
 
   /* The one place --font-heading is applied. Unset, `inherit` rather than
@@ -332,13 +360,14 @@
       bottom: auto;
     }
 
-    /* DaisyUI's tooltip-right offsets, measured from the item's edge. */
+    /* DaisyUI's tooltip-right offsets, measured from the item's edge and clear
+       of the rail's 1px border. */
     &::before {
-      left: calc(var(--mvp-rail-item-right) + 0.5rem);
+      left: calc(var(--mvp-rail-item-right) + 0.5rem + 1px);
     }
 
     &::after {
-      left: calc(var(--mvp-rail-item-right) + 0.25rem + 2px);
+      left: calc(var(--mvp-rail-item-right) + 0.25rem + 3px);
     }
   }
 
@@ -393,7 +422,7 @@
     margin-inline-start: 0;
     padding: 0.5rem;
     border-radius: var(--radius-box, 0.5rem);
-    background-color: var(--color-base-200);
+    background-color: var(--color-base-100);
     box-shadow: 0 4px 12px oklch(0 0 0 / 0.15);
     z-index: 50;
   }
@@ -1145,7 +1174,7 @@ html {
     width: auto;
     min-height: 0;
     padding: 0;
-    background: none;
+    background: var(--root-bg);
     box-shadow: none;
   }
 
