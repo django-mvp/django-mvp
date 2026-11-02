@@ -44,7 +44,8 @@ Which means **the applied theme carries no contrast guarantee, including the def
 prebuilt themes are DaisyUI's files, and most of them put at least one brand colour below the WCAG
 AA text floor against their own page background — `light` renders `text-error` at 2.87:1, which is
 what a form validation message is drawn in. That matters because `text-*` and `border-*` render
-the raw fill value rather than a pairing someone checked.
+the raw fill value rather than a pairing someone checked. A theme of your own can
+[separate the two](#a-text-value-for-a-brand-colour) for `primary`, `secondary` and `accent`.
 
 If your project has a contrast obligation to meet, write a theme to it. That is what the mechanism
 below is for, and it is the only way to be sure, whatever theme you start from. It costs one CSS
@@ -119,7 +120,8 @@ no `color-scheme` counts as light.
 
 Every theme may set the following properties. A theme does not have to set all of them.
 A property left unset simply has no value for `var()` to resolve, so a theme that omits one
-loses whatever visual effect that property controls, not the whole theme.
+loses whatever visual effect that property controls, not the whole theme. The text values and
+the fonts are the exception: each has a default, so leaving one out changes nothing.
 
 `color-scheme` is a standard CSS property, not a custom one, but it lives in the same block
 and every shipped theme sets it.
@@ -138,6 +140,9 @@ and every shipped theme sets it.
 | `--color-secondary-content` | Text and icon color for content placed on top of `secondary`. |
 | `--color-accent` | A third, distinct color for drawing attention (badges, highlights). |
 | `--color-accent-content` | Text and icon color for content placed on top of `accent`. |
+| `--color-primary-text` | Optional. `primary` where it is drawn as text on the page, in place of the fill. See [A text value for a brand colour](#a-text-value-for-a-brand-colour). |
+| `--color-secondary-text` | Optional. The same for `secondary`. |
+| `--color-accent-text` | Optional. The same for `accent`. |
 | `--color-neutral` | A low-saturation color for elements that should recede, such as footers. |
 | `--color-neutral-content` | Text and icon color for content placed on top of `neutral`. |
 | `--color-info` | The color for informational messages and badges. |
@@ -156,10 +161,15 @@ and every shipped theme sets it.
 | `--border` | Default border width used across components. |
 | `--depth` | `0` or `1`. At `1`, flat elements get a subtle inset highlight and shadow that reads as raised. At `0`, they render flat. |
 | `--noise` | `0` or `1`. At `1`, components that support it render a faint grain texture over their background. At `0`, the background is a plain fill. |
+| `--font-sans` | Optional. The body font, which is everything without a font of its own. See [Fonts](#fonts). |
+| `--font-serif` | Optional. The font of the `font-serif` utility. |
+| `--font-mono` | Optional. The font of `code`, `kbd`, `samp`, `pre` and the `font-mono` utility. |
+| `--font-heading` | Optional. The font of headings and component titles. Follows the body font when unset. |
 
 This list was checked against a shipped theme definition rather than written from memory, and
 a test keeps it in step with the installed DaisyUI version: it extracts every custom property
-name from a shipped theme file and fails if one is missing from this table.
+name from a shipped theme file and fails if one is missing from this table. The text values and
+the fonts appear in no theme file, because a theme adds them.
 
 ## The theme plugin is a pass-through
 
@@ -277,6 +287,88 @@ The classes are part of the package's interface, as are `.mvp-sidebar-header` an
 passes [a background class of its own](layout.md#header-and-dock-background), which
 replaces the packaged one and so stops that region following the theme.
 
+## A text value for a brand colour
+
+A theme has one value per colour, and DaisyUI uses that value both as a fill and as text. Many
+brand colours are good fills and poor text: a mid amber with dark text on it looks right as a
+button and is unreadable as a link on a pale page.
+
+Each of `primary`, `secondary` and `accent` takes an optional second value for the places it is
+drawn as text:
+
+```css
+[data-theme="sunrise"] {
+  --color-primary: #d9922f;       /* 2.5:1 on a pale page, 6.1:1 under its dark content */
+  --color-primary-content: #2b2118;
+  --color-primary-text: #8a4b0c;  /* 6.5:1 on the same page */
+}
+```
+
+| Reads the text value | Keeps the fill |
+| --- | --- |
+| `text-primary`, including `hover:text-primary` and `text-primary/50` | `bg-primary`, `border-primary` |
+| `link-primary`, darkened on hover as before | `btn-primary`, `badge-primary` |
+| The text of an outline, dash, soft or ghost `btn-primary`, and of a `btn-link` | The border and the tint of those buttons, and the fill they take on hover |
+| The text of an outline, dash or soft `badge-primary`, and an outline badge's border, which follows its text | The tint of a soft badge |
+
+`--color-secondary-text` and `--color-accent-text` do the same for their colours. A theme that
+sets none of them renders as it did before they existed, since each falls back to the fill.
+
+The package checks nothing about the value. Work out its contrast against every surface you draw
+it on, as with any other colour in a theme.
+
+A text value belongs to the theme that set it. A region can set one of its own, in the block that
+[recolors the region](#coloring-the-header-the-dock-and-the-sidebar). Set the text value in any
+block that changes the fill, because a text value already in force keeps applying there. Part of a
+page drawn with a `data-theme` of its own starts without one, so it doesn't pick up the page's
+value.
+
+## Fonts
+
+A theme can set its type families. `--font-sans` is the page's body font, `--font-serif` and
+`--font-mono` are the fonts [the variable table](#the-full-variable-table) names them for, and
+`--font-heading` is the font of headings:
+
+```css
+[data-theme="sunrise"] {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-heading: "Source Serif", ui-serif, Georgia, serif;
+}
+```
+
+`--font-heading` applies to `h1` to `h6`, and to the elements that act as headings without being
+one: `card-title`, `collapse-title`, `fieldset-legend`, `footer-title`, `menu-title`, `stat-title`
+and the site name at the top of the sidebar. That covers the page title and every other heading
+the shell draws. Left unset, each of them inherits the font around it, so a theme that sets only
+`--font-sans` changes its headings too, and a theme that sets neither renders as before. A
+`font-*` utility on an element still wins.
+
+Set `--font-sans` and its siblings on the theme's own `[data-theme="<name>"]` block. The body
+font is resolved once on `<html>`, so setting `--font-sans` in a region's block doesn't change that
+region's text. `--font-heading` is read at each heading, so a region can set its own.
+
+**Serve the font files yourself.** A theme's `@font-face` rules go in the same stylesheet, with the
+files in your project's static directory, so that the browser fetches them from your own site and
+visitors' addresses go to no third party:
+
+```css
+@font-face {
+  font-family: "Source Serif";
+  src: url("../fonts/source-serif-4.woff2") format("woff2");
+  font-weight: 200 900;
+  font-display: swap;
+}
+```
+
+The address is relative to the stylesheet, so `static/css/theme-sunrise.css` finds
+`static/fonts/source-serif-4.woff2`, and Django's static file storage rewrites it if it hashes file
+names. WOFF2 is all a current browser needs. The file is only downloaded by a page that uses the
+font, so a font in a theme nobody has selected costs nothing. Avoid a stylesheet link to a font
+service, which sends every visitor's address to that service.
+
+Fonts are separate from the icons: the base template loads the Bootstrap Icons webfont from a CDN
+until you [serve it yourself](icons.md#the-webfont-comes-from-a-cdn).
+
 ## A worked example
 
 Starting from a project with nothing custom, here's every step to a rendering custom theme
@@ -384,13 +476,13 @@ the file is loading before you start debugging the properties inside it.
 
 ## Where theming stops
 
-A theme controls color, corner radius, border width, base sizing, and the depth/noise
-surface effects listed in the [variable table](#the-full-variable-table) above. That's the
-full extent of what it can change. It never adds, removes or rearranges markup, which is why
+A theme controls color, type families, corner radius, border width, base sizing, and the
+depth/noise surface effects listed in the [variable table](#the-full-variable-table) above.
+That's the full extent of what it can change. It never adds, removes or rearranges markup, which is why
 switching a theme never requires a template change (see the *Theme* entry in
 [CONTEXT.md](../CONTEXT.md)).
 
-Spacing, typography, which components appear where, and a one-off visual change to a single
+Spacing, the type scale, which components appear where, and a one-off visual change to a single
 component are none of a theme's business. Those go through a component attribute or a
 template override instead. See [Styling & Extending the CSS](styling.md) for the
 attribute-and-override model, and [Components](components.md) for what each component

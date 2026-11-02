@@ -127,6 +127,55 @@
   --noise: 0;
 }
 
+/* A brand amber that is a good button and a poor link, which is what the text
+   values are for. On the page the fills reach 2.5:1, 4.5:1 and 2.8:1 and the
+   text values 6.5:1, 7.0:1 and 6.5:1, and each content colour reaches at least
+   4.7:1 on its fill. The fonts are ones a device already has, so this file needs
+   no font files: docs/theming.md covers serving your own. */
+[data-theme="amber"] {
+  color-scheme: light;
+
+  --color-base-100: #fffaf2;
+  --color-base-200: #f6eddf;
+  --color-base-300: #e8dbc6;
+  --color-base-content: #2b2118;
+
+  --color-primary: #d9922f;
+  --color-primary-content: #2b2118;
+  --color-primary-text: #8a4b0c;
+
+  --color-secondary: #b0509a;
+  --color-secondary-content: #ffffff;
+  --color-secondary-text: #8c3577;
+
+  --color-accent: #2fa89a;
+  --color-accent-content: #0d2422;
+  --color-accent-text: #12675d;
+
+  --color-neutral: #33302c;
+  --color-neutral-content: #fffaf2;
+  --color-info: #1d6fa5;
+  --color-info-content: #ffffff;
+  --color-success: #1d6b3a;
+  --color-success-content: #ffffff;
+  --color-warning: #8f6200;
+  --color-warning-content: #ffffff;
+  --color-error: #b3261e;
+  --color-error-content: #ffffff;
+
+  --radius-selector: 0.5rem;
+  --radius-field: 0.5rem;
+  --radius-box: 0.75rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 0;
+  --noise: 0;
+
+  --font-sans: "Avenir Next", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+  --font-heading: Charter, "Bitstream Charter", Cambria, Georgia, ui-serif, serif;
+}
+
 /* Themes that colour the shell. Each shares a palette above and gives daisyUI's
    properties other values inside one region. docs/theming.md has the rules. */
 

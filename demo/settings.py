@@ -144,9 +144,10 @@ MVP_CONFIG = {
         "default": "mvp",
         "dark": "mvp-dark",
         # Site pair first so the demo opens in the brand. The next four are
-        # the same two palettes with the shell coloured, then three prebuilt
-        # themes the demo adds shell colours to, then prebuilt themes left
-        # exactly as daisyUI ships them. All in demo/static/css/themes.css.
+        # the same two palettes with the shell coloured, then a theme with
+        # text values and fonts of its own, then three prebuilt themes the demo
+        # adds shell colours to, then prebuilt themes left exactly as daisyUI
+        # ships them. All in demo/static/css/themes.css.
         "choices": [
             "mvp",
             "mvp-dark",
@@ -154,6 +155,7 @@ MVP_CONFIG = {
             "mvp-ink",
             "mvp-steel",
             "mvp-dark-deep",
+            "amber",
             "nord",
             "retro",
             "business",
