@@ -62,6 +62,7 @@ site overrides the project setting for that one tag only.
 | `layout.dock.class` | CSS classes | `"mvp-dock-bg"` | The mobile dock's background |
 | `table.wrap` | bool | `False` | Project-wide default for whether table cell text wraps |
 | `page_title.layout` | layout name, or a dict of layout names by page type | `{"page": "default", "form": "default", "detail": "default", "delete": "default", "list": "inline", "table": "compact"}` | The layout every page's title is drawn in; see [`page_title.layout`](#page_titlelayout) |
+| `icon_stylesheet` | URL, static file path or `None` | Bootstrap Icons 1.13.1 on jsDelivr | The stylesheet that draws the icon set; see [Where the icons come from](icons.md#where-the-icons-come-from) |
 | `site_name` | string or `None` | `None` | The application's name, used for the page title suffix and the installed app's name; `None` takes the current site's name (the request host without the sites framework) |
 | `short_name` | string or `None` | `None` | The installed app's label under its icon; `None` takes the application's name |
 | `pwa` | dict or `False` | `False` | Make the project installable as an app. A dict with a `theme_color` turns it on, and the manifest and worker routes in `mvp.urls` exist only while it is set; needs `mvp.urls` mounted, as described in [Installable app](installable-app.md) |

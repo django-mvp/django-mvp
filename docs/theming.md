@@ -367,7 +367,7 @@ font, so a font in a theme nobody has selected costs nothing. Avoid a stylesheet
 service, which sends every visitor's address to that service.
 
 Fonts are separate from the icons: the base template loads the Bootstrap Icons webfont from a CDN
-until you [serve it yourself](icons.md#the-webfont-comes-from-a-cdn).
+until you [point it elsewhere](icons.md#where-the-icons-come-from).
 
 ## A worked example
 

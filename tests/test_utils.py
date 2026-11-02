@@ -24,8 +24,8 @@ exemption for any *other* icon a companion package might one day be the
 only definer of.
 
 The class list a value is checked against is vendored at
-tests/fixtures/bootstrap-icons-1.13.1-names.txt, matching the release pinned
-in mvp/templates/mvp/base.html — a typo'd or renamed Bootstrap Icons class is
+tests/fixtures/bootstrap-icons-1.13.1-names.txt, matching the release in the
+"icon_stylesheet" default in mvp/config.py — a typo'd or renamed Bootstrap Icons class is
 exactly as silent as a missing alias (the demo/settings.py "sidebar-right"
 entry fixed alongside this had one: bi-layout-sidebar-right, which has never
 existed in any Bootstrap Icons release).

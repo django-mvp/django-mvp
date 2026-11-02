@@ -129,9 +129,8 @@ thing a feature notices and nobody owns.
   which owns default appearance.
 - **Curating which prebuilt themes exist.** The package ships what the pinned design system version
   publishes.
-- **The remaining third-party asset fetch.** `mvp/templates/mvp/base.html:25` loads bootstrap-icons
-  from a CDN, which G14 also forbids. It is unrelated to theming and belongs in its own change,
-  where the icon set's weight and the packaging question get the attention they need.
+- **The icon stylesheet.** It is unrelated to theming. A project chooses where it comes from through
+  `MVP_CONFIG["icon_stylesheet"]`, recorded in `docs/adr/0038-the-package-ships-no-icon-set.md`.
 
 ## D8 — Three remedies from the design-review gate (2026-08-13)
 

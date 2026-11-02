@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `MVP_CONFIG["icon_stylesheet"]` names the stylesheet that draws the icon set: a URL, a static file path, or `None` for a renderer that needs none. A project can host Bootstrap Icons itself or use another provider without overriding the `head` block. The default is still Bootstrap Icons 1.13.1 from jsDelivr.
+
+### Changed
+
+- The icon stylesheet's link no longer carries `crossorigin="anonymous"`, so a stylesheet on a host that sends no CORS headers still loads.
+
 ## [v0.32.3] - 2026-11-02
 
 ### Fixed

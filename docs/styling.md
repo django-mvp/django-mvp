@@ -210,7 +210,7 @@ keep it, or dropping `{{ block.super }}` to replace it outright:
 The `styles` block contains only the packaged stylesheet's `<link>`, which
 is what makes it safe to override on its own. Overriding `head` instead
 takes the charset, viewport and title tags, both favicon links, the
-Bootstrap Icons webfont link, and the JavaScript bundle's `<script>` tag
+icon stylesheet's link, and the JavaScript bundle's `<script>` tag
 down with it — the page renders unstyled, with no icons and no
 interactivity, unless you copy the packaged block's contents forward.
 

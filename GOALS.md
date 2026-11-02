@@ -29,6 +29,6 @@ Importance is a tag on each goal, not a ranking:
 | G11 | A recorded, predictable public surface that becomes safe to depend on across releases | Expected | | |
 | G12 | A hosted demo where the components can be browsed and copied without installing anything | Aspirational | | |
 | G13 | Integrations beyond the packages currently relied on, as projects or adopters need them | Aspirational | | |
-| G14 | Every asset the front end needs is shipped and versioned with the package, never fetched from a third party at page load | Essential | | |
+| G14 | Every asset the shipped components and shell need is shipped and versioned with the package, never fetched from a third party at page load. The icon set is the exception: it stays replaceable, so a project chooses where it comes from | Essential | | |
 
 _Written 2026-08-03. Revised 2026-08-13 to add G14. Revise as the goals change._

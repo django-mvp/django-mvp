@@ -23,9 +23,10 @@ and add your own names under `"icons"`. See [Configure icons](getting-started.md
 
 **Icons render as empty boxes, but devtools shows the correct icon class.** The name
 resolved fine; the webfont just isn't reachable. `mvp/base.html` links the Bootstrap Icons
-webfont from a CDN inside `{% block head %}`, so offline development, a restrictive
-content-security policy, or an air-gapped deployment leaves every glyph missing even though
-the class is right. Self-host the font and override the `head` block to point at your copy.
+webfont from a CDN by default, so offline development, a restrictive content-security policy,
+or an air-gapped deployment leaves every glyph missing even though the class is right. Host
+the font yourself and point [`icon_stylesheet`](icons.md#where-the-icons-come-from) at your
+copy.
 
 ## Layout and configuration
 

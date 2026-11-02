@@ -92,7 +92,7 @@ def app_is_installed(app_name: str) -> bool:
 
 # Comma-separated keys declare aliases for one icon (expanded by django-easy-icons).
 # Classes are checked in tests/test_utils.py against a vendored name list keyed to
-# the Bootstrap Icons version pinned in mvp/templates/mvp/base.html.
+# the Bootstrap Icons version in the "icon_stylesheet" default in mvp/config.py.
 BS5_ICONS = {
     # Actions
     "add, plus, create": "bi bi-plus",
