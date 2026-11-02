@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.32.3] - 2026-11-02
+
 ### Fixed
 
 - The dark brand icon and logo now have their alternative text. They had an empty `alt`, so under a dark colour scheme the only image a screen reader could reach had no name, including the logo on the error pages.
