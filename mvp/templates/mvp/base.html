@@ -70,13 +70,9 @@
       <script defer src="{% static 'js/django-mvp.js' %}"></script>
     {% endblock head %}
     {% comment %}
-      Whether a theme is light or dark is known only to its stylesheet, and
-      `choices` can offer any theme, so the applied `color-scheme` is read back
-      rather than the theme's name compared with the configured pair. Inline,
-      after every stylesheet in the head, so a page's first paint has the right
-      brand image, and outside the `head` block so overriding it keeps the pair
-      working. The two rules are each other's complement: exactly one image of
-      a pair shows, whatever the attribute says.
+      Only a theme's stylesheet knows its scheme, so it's read here, after every
+      head stylesheet and before first paint. Outside `head` so overriding that
+      block keeps it. The two rules are complements: one image of a pair shows.
     {% endcomment %}
     <style>
       html:not([data-color-scheme="dark"]) .hide-on-light-theme {
