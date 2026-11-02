@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - The demo site has a Theme Preview page at `/theme/preview/`, drawing every component a theme paints on one page, so a theme can be judged as a whole while it is being written.
 
+### Fixed
+
+- The brand icon and logo now follow the theme. When a dark asset exists both images are rendered and the applied theme's `color-scheme` decides which one shows, for the configured pair and for any other name in `choices`. `<html>` now carries `data-color-scheme`, and `.hide-on-dark-theme` and `.hide-on-light-theme` key off it rather than off the configured theme names.
+
 ## [v0.32.1] - 2026-11-01
 
 ### Fixed

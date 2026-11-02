@@ -302,7 +302,7 @@ root element.
 | `c-mvp.modal` | `id` (for `showModal()`/`close()`), `size` (`sm`/`md`/`lg`/`xl`/`full`, default `md`), `position` (`top`/`bottom`/`start`/`end`), `closable` (show a close button), `class` — a dialog laid out as a card, drawn inside daisy-cotton's `c-modal`; `title` is the card's heading and the dialog's accessible name; `icon` and the `actions`/`footer`/`footer_end` slots forward to the inner `c-mvp.card`. It holds no form of its own and its close controls are `type="button"`, so it can sit inside a form |
 | `c-mvp.dropdown` | `valign` (`top/bottom/left/right`), `halign` (`start/center/end`), `full` (panel matches the trigger's width), `hover` (open on hover), `class`, `content_class`; slot `button` = trigger — see the placement note below |
 | `c-mvp.avatar` | `for` (default `request.user`), `src`, `alt` (default `User avatar`), `size` (`xs`/`sm`/`md`/`lg`/`xl`/`xxl` or a Tailwind width class, default `md`), `shape` (default `rounded-full`), `variant` (initials background colour, default `primary`), `status` (`online`/`offline`), `placeholder` (initials shown when there's no image), `class` |
-| `c-mvp.brand.logo` / `c-mvp.brand.icon` | `max-height`, `class` — brand images via the configured resolvers |
+| `c-mvp.brand.logo` / `c-mvp.brand.icon` | `max-height`, `class` — brand images via the configured resolvers. Two `img` elements when a dark variant exists, one shown at a time |
 | `c-mvp.placeholder.card` | `message` (default `Coming soon...`), `icon`, `height`, `class` — a card-shaped stand-in for a region that isn't built yet |
 
 Without a `button` slot, `<c-mvp.dropdown>` forwards its undeclared attributes to an inner

@@ -1,9 +1,22 @@
-{# @description The brand icon image, via the configured icon resolver. #}
+{# @description The brand icon image, via the configured icon resolver. A second image follows when the resolver has a dark variant, and the theme's scheme decides which one shows. #}
 {# @prop max-height:text | description:"Max height passed to the icon resolver." #}
-{# @prop class:text | description:"Extra classes on the img element." #}
+{# @prop class:text | description:"Extra classes on the img elements." #}
 {% load i18n mvp %}
 <c-vars max-height class />
-<img src="{% icon_url max_height %}"
-     alt="{% trans "Icon" %}"
-     {% if class %}class="{{ class }}"{% endif %}
-     {{ attrs }} />
+{% icon_url max_height "light" as light %}
+{% icon_url max_height "dark" as dark %}
+{% if dark and dark != light %}
+  <img src="{{ light }}"
+       alt="{% trans "Icon" %}"
+       class="hide-on-dark-theme {{ class }}"
+       {{ attrs }} />
+  <img src="{{ dark }}"
+       alt=""
+       class="hide-on-light-theme {{ class }}"
+       {{ attrs }} />
+{% else %}
+  <img src="{{ light }}"
+       alt="{% trans "Icon" %}"
+       {% if class %}class="{{ class }}"{% endif %}
+       {{ attrs }} />
+{% endif %}

@@ -107,8 +107,16 @@ Each value is a dotted path to a callable. The signatures differ:
 `size` is the token the avatar was asked for, such as `"md"`. `height` is
 advisory and the packaged resolvers ignore it. `theme` is the literal string
 `"light"` or `"dark"` (not one of your configured theme names) and defaults to
-`"light"` when the caller passes none, which is what the in-page brand
-components do. Only the favicon links request both variants.
+`"light"` when the caller passes none.
+
+The brand components and the favicon links ask for both variants. The server
+can't know the visitor's theme, so when the two URLs differ the component
+renders both images and the browser shows the one matching the applied theme's
+`color-scheme` (see [How the theme is applied](theming.md#how-the-theme-is-applied)).
+The second image has an empty `alt`, so a screen reader hears the name once.
+When the URLs match, or the `"dark"` call returns nothing, one image renders.
+A region given a theme of its own in CSS, such as a dark sidebar on a light
+theme, still shows the image for the page's theme.
 
 Failure behavior differs between the three:
 

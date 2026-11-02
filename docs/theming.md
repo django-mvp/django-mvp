@@ -108,6 +108,13 @@ The bundled theme-change library binds the `data-set-theme` / `data-toggle-theme
 afterwards, once the deferred JavaScript bundle runs — it only wires the controls; the inline
 script above is what applies the theme before the page paints.
 
+A second inline script, the last thing in the `<head>`, reads the applied theme's
+`color-scheme` and sets `data-color-scheme` on `<html>` to `dark` or `light`. It runs again
+whenever `data-theme` changes. The attribute comes from the theme's stylesheet rather than from
+its name, so it's right for any theme, inside the configured pair or not. A brand image with a
+dark variant follows it, see [the `brand.*` resolvers](configuration.md#brand-resolvers). A theme that sets
+no `color-scheme` counts as light.
+
 ## The full variable table
 
 Every theme may set the following properties. A theme does not have to set all of them.
