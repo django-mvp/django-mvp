@@ -5,7 +5,10 @@ in its stylesheet, so rendered markup can't show which image stays visible.
 These apply a theme and read the visible images back.
 """
 
+import re
+
 import pytest
+from playwright.sync_api import expect
 
 from mvp.config import MVP_CONFIG
 from tests.conftest import requires_browser
@@ -98,3 +101,27 @@ class TestBrandImageFollowsTheScheme:
         open_home(page, live_server, "dark")
 
         assert visible_brand_images(page) == [LIGHT_IMAGE]
+
+
+class TestTheVisibleImageHasAName:
+    """The hidden image leaves the accessibility tree, so its name can't help."""
+
+    @pytest.mark.parametrize(("theme", "image"), THEMES)
+    def test_the_sidebar_icon(self, page, live_server, theme, image):
+        open_home(page, live_server, theme)
+
+        images = page.locator(".mvp-sidebar-brand").get_by_role("img")
+
+        expect(images).to_have_count(1)
+        expect(images).to_have_attribute("src", re.compile(re.escape(image)))
+        expect(images).to_have_accessible_name(re.compile(r"\S"))
+
+    @pytest.mark.parametrize("theme", ["light", "dark"])
+    def test_the_error_page_logo(self, page, live_server, theme):
+        page.add_init_script(f"localStorage.setItem('theme', '{theme}')")
+        page.goto(f"{live_server.url}/errors/404/")
+
+        images = page.get_by_role("img")
+
+        expect(images).to_have_count(1)
+        expect(images).to_have_accessible_name(re.compile(r"\S"))

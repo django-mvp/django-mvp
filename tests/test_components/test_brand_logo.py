@@ -45,7 +45,7 @@ class TestBrandImages:
         assert dark["src"] == "/dark.svg"
         assert "hide-on-light-theme" in dark["class"]
 
-    def test_only_the_first_image_is_announced(
+    def test_both_images_have_a_name(
         self, component, key, monkeypatch, cotton_render_string_soup
     ):
         use_resolver(monkeypatch, key, "two_assets")
@@ -53,8 +53,8 @@ class TestBrandImages:
         soup = cotton_render_string_soup(f"<c-mvp.brand.{component} />")
         light, dark = soup.find_all("img")
 
-        assert light["alt"]
-        assert dark["alt"] == ""
+        assert light["alt"].strip()
+        assert dark["alt"] == light["alt"]
 
     def test_both_images_take_the_callers_attributes(
         self, component, key, monkeypatch, cotton_render_string_soup
