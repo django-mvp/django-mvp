@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- A theme can give `primary`, `secondary` and `accent` a separate text value through
+  `--color-primary-text`, `--color-secondary-text` and `--color-accent-text`, read by `text-*`,
+  `link-*`, the text of outline, dash, soft, ghost and link buttons, and the text of outline, dash
+  and soft badges. Fills keep the brand colour, and a theme that sets none renders as before.
+- A theme can set its fonts. `--font-sans`, `--font-serif` and `--font-mono` are documented as theme
+  properties, and `--font-heading` sets the font of headings and component titles in one place,
+  following the body font when unset. `docs/theming.md` covers serving the font files locally.
 - The demo site has a Theme Preview page at `/theme/preview/`, drawing every component a theme paints on one page, so a theme can be judged as a whole while it is being written.
 
 ### Fixed

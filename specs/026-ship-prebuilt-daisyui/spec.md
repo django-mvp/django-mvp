@@ -176,6 +176,61 @@ light and dark and confirm the page follows. Reload and confirm it is still on a
 
 ---
 
+### User Story 6 - Give a brand colour a separate text value (Priority: P3)
+
+A developer has a brand colour that works as a button and not as a link on a pale page. They add an
+optional text value beside the colour in their theme. Text in that colour changes, and buttons and other
+fills keep the brand colour.
+
+**Why this priority**: Without it the developer has to dull every button to rescue the links, or copy a
+list of the design system's class names into each theme. It ranks with US-3 because it refines a theme a
+project has already written.
+
+**Independent Test**: Write a theme with a text value for `primary` beside a different fill. Load a page
+and read the computed colour of a link, an outline button and a solid button.
+
+**Acceptance Scenarios**:
+
+1. **Given** a theme with a text value for primary, secondary or accent, **When** a page draws text in
+   that colour through a text utility, a link, an outline, dash, soft, ghost or link button, or an outline,
+   dash or soft badge, **Then** the text renders in the text value.
+2. **Given** the same theme, **When** a page draws a fill, a border utility, a solid button or a solid
+   badge in that colour, **Then** it renders in the brand colour and its content colour.
+3. **Given** a theme that sets no text value, **When** any page is loaded, **Then** every element renders
+   as it did before text values existed.
+4. **Given** a theme with a text value, **When** an element in a region of a page sets its own value, or
+   sits inside a part of the page with a different theme, **Then** it uses its region's value, or that
+   theme's colours and not the page theme's text value.
+5. **Given** an element carrying a text utility of its own, **When** a theme sets a text value, **Then**
+   the utility still wins.
+
+---
+
+### User Story 7 - Set a theme's fonts (Priority: P3)
+
+A developer wants their theme to carry their brand's type. They set a body font and a heading font in the
+theme and serve the files from their own static directory, following the documentation. Every heading the
+shell draws changes with one property, and no page fetches a font from a third party.
+
+**Why this priority**: Type carries as much of a brand as colour does, and without it two themes can still
+look like the same product. It ranks with US-3 because a theme is complete without it.
+
+**Independent Test**: Write a theme that sets `--font-sans` and `--font-heading`. Load a page and read the
+computed font of body text, the page title, a card title and a sidebar title.
+
+**Acceptance Scenarios**:
+
+1. **Given** a theme that sets the body, serif or monospace font, **When** a page is loaded, **Then** the
+   text each one names renders in that font.
+2. **Given** a theme that sets a heading font, **When** a page is loaded, **Then** every heading and
+   component title renders in it, and body text does not.
+3. **Given** a theme that sets no heading font, **When** a page is loaded, **Then** each heading renders in
+   the font it inherits, as it did before the heading font existed.
+4. **Given** a heading carrying a font utility of its own, **When** a theme sets a heading font, **Then**
+   the utility still wins.
+
+---
+
 ### Edge Cases
 
 - A project names a theme that neither ships with the package nor is provided by the project itself. No
@@ -272,6 +327,20 @@ light and dark and confirm the page follows. Reload and confirm it is still on a
   appearance and the configured default otherwise, before first paint and while the page is open.
 - **FR-029**: A visitor who has never chosen MUST keep the configured default theme.
 
+**Text values and fonts**
+
+- **FR-030**: A theme MUST be able to set an optional text value for each of primary, secondary and
+  accent, read where the colour is drawn as text, with no theme-specific selector.
+- **FR-031**: Without a text value, every use of the colour MUST render the fill, unchanged from the
+  release preceding this feature.
+- **FR-032**: A theme's text value MUST NOT reach a part of the page that carries a different theme.
+- **FR-033**: A theme MUST be able to set the body, serif and monospace fonts through the properties the
+  documentation lists.
+- **FR-034**: A theme MUST be able to set a heading font, applied in one place to headings and component
+  titles, including every heading the shell draws. Without one, each heading MUST keep the font it inherits.
+- **FR-035**: The packaged stylesheet MUST add no request to a third party for a theme's text values or
+  fonts, and the documentation MUST explain how to serve a theme's font files locally.
+
 ### Requirement to story mapping
 
 | Story | Requirements |
@@ -281,10 +350,12 @@ light and dark and confirm the page follows. Reload and confirm it is still on a
 | US-3 — Write and apply a theme of your own | FR-011, FR-012, FR-013, FR-015, FR-016, FR-017, FR-018, FR-021 |
 | US-4 — Colour the header, the dock and the sidebar from a theme | FR-022, FR-023, FR-024, FR-025, FR-026 |
 | US-5 — Follow the device's light or dark setting | FR-027, FR-028, FR-029 |
+| US-6 — Give a brand colour a separate text value | FR-015, FR-030, FR-031, FR-032 |
+| US-7 — Set a theme's fonts | FR-015, FR-033, FR-034, FR-035 |
 
 ### Key Entities
 
-- **Theme**: A named set of colour, corner radius, border width and depth values that the packaged
+- **Theme**: A named set of colour, type family, corner radius, border width and depth values that the packaged
   components read at render time. Applied to the whole document at once. A theme carries no structure or
   layout, which is why changing one never requires a template change. Themes come from two places: those
   shipped with the package, and those a project writes for itself.
