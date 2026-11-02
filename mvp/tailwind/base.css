@@ -1317,7 +1317,12 @@ html {
    An open drawer also sets daisyUI's --page-scroll-lock on the root, for the
    overlay form it takes at paper width: hidden overflow, a reserved scrollbar
    gutter and a tinted backdrop. Printing has no overlay to lock the page behind,
-   so the lock is released. */
+   so the lock is released.
+
+   A filled page around a table gives up its bounded height, so the rows run on
+   across as many sheets as they need instead of being clipped at the height of
+   the window. Only that page: a filled page with nothing to flow, such as a map,
+   takes its height from the bound and would print at no height without it. */
 @media print {
   :root {
     --page-scroll-lock: initial !important;
@@ -1336,5 +1341,16 @@ html {
   [data-mvp-breakpoint] > .drawer-side,
   [data-mvp-breakpoint] .mvp-dock-only {
     display: none !important;
+  }
+
+  [data-mvp-breakpoint] > .drawer-content:has(.mvp-page-fill .mvp-table-region),
+  .mvp-page-fill:has(.mvp-table-region) {
+    display: block;
+    height: auto;
+    min-height: 0;
+  }
+
+  .mvp-page-fill .mvp-table-region {
+    overflow: visible;
   }
 }
