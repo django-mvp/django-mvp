@@ -446,3 +446,59 @@ class TestTheFilterPanelBesideTheTable:
         assert measured["headers"] == 0
         assert measured["toolbar"]["top"] == measured["main"]["top"]
         assert measured["main"]["top"] == measured["layout"]["top"]
+
+
+# What is left of a sheet inside the browser's default margins, as print sees
+# it. The portrait width is under the narrow-screen breakpoint, the landscape
+# width is over it.
+PAPER_WIDTHS = {"a4-portrait": 718, "a4-landscape": 1047}
+
+at_every_paper_width = pytest.mark.parametrize(
+    "width", PAPER_WIDTHS.values(), ids=list(PAPER_WIDTHS)
+)
+
+
+@pytest.mark.e2e
+@requires_browser
+@pytest.mark.django_db
+class TestPrintingAWideTable:
+    """Paper can't scroll, so a column past the sheet's edge is lost (#633)."""
+
+    @at_every_paper_width
+    @pytest.mark.parametrize(
+        "path", [TABLE_PAGE, "/django-tables2/bare/"], ids=["toolbar", "bare"]
+    )
+    def test_every_column_is_on_the_sheet(self, page, live_server, width, path):
+        ProductFactory.create_batch(5)
+        ProductFactory(barcode="1234567890" * 10, short_description="x" * 300)
+        page.set_viewport_size({"width": 1440, "height": 900})
+        page.goto(f"{live_server.url}{path}")
+        page.emulate_media(media="print")
+        page.set_viewport_size({"width": width, "height": 900})
+
+        printed = page.evaluate("""
+            () => {
+              const headings = [...document.querySelectorAll('.mvp-table-region thead th')];
+              return {
+                columns: headings.length,
+                rightmost: Math.max(...headings.map(th => th.getBoundingClientRect().right)),
+                sheet: document.documentElement.clientWidth,
+              };
+            }
+        """)
+
+        assert printed["columns"] == 16
+        assert printed["rightmost"] <= printed["sheet"]
+
+    @at_every_paper_width
+    def test_a_row_header_is_printed_in_full(self, page, live_server, width):
+        ProductFactory(name="A product with a name too long for one narrow column")
+        page.set_viewport_size({"width": 1440, "height": 900})
+        page.goto(f"{live_server.url}{TABLE_PAGE}")
+        page.emulate_media(media="print")
+        page.set_viewport_size({"width": width, "height": 900})
+
+        cell = page.locator(".mvp-table-region tbody th").first
+
+        assert cell.evaluate("el => el.scrollWidth <= el.clientWidth")
+        assert cell.evaluate("el => getComputedStyle(el).textOverflow") == "clip"

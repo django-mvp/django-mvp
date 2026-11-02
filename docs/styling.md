@@ -108,7 +108,7 @@ class ProductTable(tables.Table):
 | `mvp-col-grow` | Claims whatever width is left over once every other column has taken the width it needs. |
 | `mvp-col-shrink` | Takes no more width than the column's own content needs, so a short code or date column never stretches to match a longer neighbour. |
 | `mvp-col-wrap` | Lets a cell's text wrap onto more than one line instead of stretching the column to fit it on one. |
-| `mvp-col-nowrap` | Keeps a cell's text on a single line rather than wrapping the row taller. |
+| `mvp-col-nowrap` | Keeps a cell's text on a single line rather than wrapping the row taller. On paper the cell wraps anyway, so that the column [stays on the sheet](layout.md#printing). |
 | `mvp-col-max-xs` | Stops a column at a `8rem` maximum width once its text is allowed to wrap. |
 | `mvp-col-max-sm` | Stops a column at a `12rem` maximum width once its text is allowed to wrap. |
 | `mvp-col-max-md` | Stops a column at a `16rem` maximum width once its text is allowed to wrap. |
