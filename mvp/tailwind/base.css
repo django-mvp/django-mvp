@@ -1312,9 +1312,15 @@ html {
    by default, which would leave a dark theme's pale text on white paper, and a
    theme's page colour is not worth the ink when backgrounds are kept. !important
    because themes set these on their own [data-theme] selector, at any
-   specificity. */
+   specificity.
+
+   An open drawer also sets daisyUI's --page-scroll-lock on the root, for the
+   overlay form it takes at paper width: hidden overflow, a reserved scrollbar
+   gutter and a tinted backdrop. Printing has no overlay to lock the page behind,
+   so the lock is released. */
 @media print {
   :root {
+    --page-scroll-lock: initial !important;
     color-scheme: light !important;
     --root-bg: #fff !important;
     --color-base-100: #fff !important;
