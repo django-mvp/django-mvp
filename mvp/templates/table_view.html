@@ -141,7 +141,7 @@
           {% block page.footer %}
             {% if page_obj %}
               <c-mvp.page.list.footer :page_obj="page_obj"
-                                  class="mvp-table-pager shrink-0 px-4 py-2 border-t border-base-300"
+                                  class="mvp-table-pager shrink-0 px-4 py-2 border-t border-line"
                                   hx-boost="true"
                                   hx-target="#{{ list_region_id }}"
                                   hx-select="#{{ list_region_id }}"

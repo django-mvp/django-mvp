@@ -334,15 +334,6 @@ DEMO_THEMES = [
     {"name": "mvp", "palette": "The demo's own, light", "sets": []},
     {"name": "mvp-dark", "palette": "The demo's own, dark", "sets": []},
     {
-        "name": "mvp-raised",
-        "palette": "Same as mvp",
-        "sets": [
-            "Page: base-200",
-            "Sidebar: base-100",
-            "Header and dock follow the page",
-        ],
-    },
-    {
         "name": "mvp-ink",
         "palette": "Same as mvp",
         "sets": ["Sidebar: ink surfaces, paper text, paper current item"],
@@ -356,7 +347,7 @@ DEMO_THEMES = [
         "name": "mvp-dark-deep",
         "palette": "Same as mvp-dark",
         "sets": [
-            "Header and dock: base-200",
+            "Header and dock: base-100",
             "Sidebar: a colour darker than the page, light current item",
         ],
     },
@@ -368,15 +359,14 @@ DEMO_THEMES = [
     {
         "name": "retro",
         "palette": "daisyUI's retro",
-        "sets": ["Header and dock: primary", "Sidebar: base-300"],
+        "sets": ["Header and dock: primary"],
     },
     {
         "name": "business",
         "palette": "daisyUI's business",
         "sets": [
-            "Page: base-200",
             "Header and dock: base-100",
-            "Sidebar: base-300, light current item",
+            "Sidebar: light current item",
         ],
     },
     {"name": "light", "palette": "daisyUI's light", "sets": []},

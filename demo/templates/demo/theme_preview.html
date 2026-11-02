@@ -9,7 +9,7 @@
     <c-mvp.section title="Colours" level="2">
       <c-mvp.grid cols="2" md="3" xl="4" gap="2">
         {% for slot in surfaces %}
-          <div class="bg-{{ slot }} text-base-content rounded-box border border-base-300 p-4">
+          <div class="bg-{{ slot }} text-base-content rounded-box border border-line p-4">
             <p class="font-medium mb-0">{{ slot }}</p>
             <p class="text-sm mb-0">on base-content</p>
           </div>
@@ -170,7 +170,7 @@
           <c-slot name="actions">
             <c-button icon="pencil" ghost size="sm" aria-label="Edit" only />
           </c-slot>
-          Cards sit on base-100.
+          Cards are raised, on base-100.
           <c-slot name="footer_end">
             <c-button text="Cancel" ghost size="sm" only />
             <c-button text="Save" variant="primary" size="sm" only />
@@ -189,11 +189,11 @@
             <c-mvp.avatar placeholder="MC" variant="neutral" shape="rounded" only />
           </div>
         </c-mvp.card>
-        <div class="bg-base-200 rounded-box p-4">
-          On base-200, the surface one step down.
+        <div class="rounded-box border border-line p-4">
+          On base-200, the page.
         </div>
         <div class="bg-base-300 rounded-box p-4">
-          On base-300, the surface two steps down.
+          On base-300, sunk below the page.
         </div>
         <c-mvp.placeholder.card message="Nothing here yet" icon="box-seam" />
       </c-mvp.grid>
@@ -260,7 +260,7 @@
               <c-breadcrumbs.item href="#" text="Samples" />
               <c-breadcrumbs.item text="GH-1042" />
             </c-breadcrumbs>
-            <c-menu class="bg-base-200 rounded-box w-full">
+            <c-menu class="bg-base-300 rounded-box w-full">
               <c-menu.title text="A menu" />
               <c-menu.item href="#" text="Current page" icon="home" active />
               <c-menu.item href="#" text="Another page" icon="book" />
@@ -294,10 +294,10 @@
               <c-skeleton class="h-4 w-2/3" />
             </div>
             <div class="flex flex-col gap-2">
-              <c-accordion name="preview-accordion" title="What can a theme change?" arrow open class="bg-base-200">
+              <c-accordion name="preview-accordion" title="What can a theme change?" arrow open class="bg-base-300">
                 Colour, corner radius, border width, base sizing, depth and noise.
               </c-accordion>
-              <c-accordion name="preview-accordion" title="What can it not change?" arrow class="bg-base-200">
+              <c-accordion name="preview-accordion" title="What can it not change?" arrow class="bg-base-300">
                 Spacing, type, and which components appear where.
               </c-accordion>
             </div>

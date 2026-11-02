@@ -91,6 +91,10 @@ base-100, base-200, base-300, base-content
 So `bg-primary`, `text-error`, `border-base-300`, and so on for every name above, are all
 available on any element, not just inside a daisyUI component.
 
+`border-line` and `bg-line` draw [a theme's line colour](theming.md#a-line-colour), which shows
+on all three base colours. Use them for an edge in place of `border-base-300`, which vanishes on
+`base-300`.
+
 ## State utilities
 
 `hover:` and `focus-visible:` variants of the full colour palette above

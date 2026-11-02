@@ -151,7 +151,6 @@ MVP_CONFIG = {
         "choices": [
             "mvp",
             "mvp-dark",
-            "mvp-raised",
             "mvp-ink",
             "mvp-steel",
             "mvp-dark-deep",

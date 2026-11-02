@@ -10,7 +10,7 @@
 {# @slot Search, filters, the applied filters — the panel's content. With none, there is no panel and no toggle. #}
 {% load i18n mvp %}
 <c-vars heading heading_above title actions controls note storage_key="mvp-table-toolbar" class />
-<div class="mvp-table-toolbar shrink-0 border-b border-base-300 bg-base-100 {{ class }}"
+<div class="mvp-table-toolbar shrink-0 border-b border-line bg-base-100 {{ class }}"
      x-data="{ open: $persist(true).as('{{ storage_key }}') }"
      {{ attrs }}>
   {% if heading_above and not heading|slot_is_empty %}
