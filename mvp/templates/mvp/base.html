@@ -56,8 +56,8 @@
             media="(prefers-color-scheme: dark)"
             href="{% icon_url "16px" "dark" %}" />
       {% if mvp_config.pwa %}{% include "mvp/pwa/head.html" %}{% endif %}
-      {% if mvp_config.icon_stylesheet %}
-        <link rel="stylesheet" href="{% stylesheet_url mvp_config.icon_stylesheet %}" />
+      {% if icon_stylesheet_url %}
+        <link rel="stylesheet" href="{{ icon_stylesheet_url }}" />
       {% endif %}
       {% block styles %}
         <link rel="stylesheet" href="{% static 'css/django-mvp.css' %}" />

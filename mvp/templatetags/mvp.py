@@ -8,7 +8,7 @@ from crispy_forms.templatetags.crispy_forms_filters import as_crispy_field
 from django import template
 from django.core.exceptions import ImproperlyConfigured
 from django.db import models
-from django.forms import CheckboxInput, Media
+from django.forms import CheckboxInput
 from django.template.loader import render_to_string
 from django.utils.html import escape
 from django.utils.module_loading import import_string
@@ -331,16 +331,6 @@ def icon_url(context: template.Context, height: int, theme: str = "light"):
     except Exception:
         return ""
     return result if result is not None else ""
-
-
-@register.simple_tag
-def stylesheet_url(path: str):
-    """Return the address of a stylesheet given as a URL or a static file path.
-
-    Follows the rule form media uses: a full URL or a path starting with ``/``
-    is returned as written, and anything else goes through ``static()``.
-    """
-    return Media().absolute_path(path)
 
 
 @register.simple_tag(takes_context=True)

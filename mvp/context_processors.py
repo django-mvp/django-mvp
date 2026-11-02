@@ -1,5 +1,6 @@
 """Context processors for django-mvp."""
 
+from django.forms import Media
 from django.http import HttpRequest
 from django.utils.functional import SimpleLazyObject
 
@@ -22,14 +23,23 @@ def mvp_config(request: HttpRequest) -> dict:
 
         {% if mounted_app %}{{ mounted_app.name }}{% endif %}
 
+    ``icon_stylesheet_url`` is the address of ``MVP_CONFIG["icon_stylesheet"]``,
+    by the rule form media uses: a full URL or a path starting with ``/`` stays
+    as written, and anything else is a static file path.
+
     Args:
         request: The current request.
 
     Returns:
-        A dict with "mvp_config", "mounted_app" and "mounted_menu".
+        A dict with "mvp_config", "mounted_app", "mounted_menu" and
+        "icon_stylesheet_url".
     """
+    icon_stylesheet = MVP_CONFIG["icon_stylesheet"]
     return {
         "mvp_config": MVP_CONFIG,
         "mounted_app": SimpleLazyObject(lambda: MountedApp.shell(request).app),
         "mounted_menu": SimpleLazyObject(lambda: MountedApp.shell(request).menu),
+        "icon_stylesheet_url": SimpleLazyObject(
+            lambda: icon_stylesheet and Media().absolute_path(str(icon_stylesheet))
+        ),
     }
