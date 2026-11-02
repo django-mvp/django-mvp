@@ -25,6 +25,57 @@
   color: var(--color-base-content);
 }
 
+/* A theme's optional text value for a brand colour (docs/theming.md). With none
+   set, text reads the fill. @theme inline writes it into each text utility, so
+   hover:text-primary and text-primary/50 reach it too. */
+@theme inline {
+  --text-color-primary: var(--color-primary-text, var(--color-primary));
+  --text-color-secondary: var(--color-secondary-text, var(--color-secondary));
+  --text-color-accent: var(--color-accent-text, var(--color-accent));
+}
+
+/* daisyUI's rules read the fill directly, and re-pointing the fill on the element
+   would be a cycle, so each use reads --mvp-brand-text. Outside daisyUI's nested
+   layers to beat it, and in :where() so that a utility on the element still wins. */
+@layer utilities {
+  :where(.link-primary, .btn-primary, .btn-link, .badge-primary) {
+    --mvp-brand-text: var(--color-primary-text, var(--color-primary));
+  }
+
+  :where(.link-secondary, .btn-secondary, .badge-secondary) {
+    --mvp-brand-text: var(--color-secondary-text, var(--color-secondary));
+  }
+
+  :where(.link-accent, .btn-accent, .badge-accent) {
+    --mvp-brand-text: var(--color-accent-text, var(--color-accent));
+  }
+
+  :where(.link-primary, .link-secondary, .link-accent) {
+    color: var(--mvp-brand-text);
+
+    @media (hover: hover) {
+      &:hover {
+        color: color-mix(in oklab, var(--mvp-brand-text) 80%, #000);
+      }
+    }
+  }
+
+  /* daisyUI's outline, dash, soft and ghost buttons read this at rest. */
+  :where(.btn-primary, .btn-secondary, .btn-accent) {
+    --btn-rest-fg: var(--mvp-brand-text);
+  }
+
+  /* A link button with no colour of its own is primary. A disabled one keeps
+     daisyUI's muted text. */
+  :where(.btn-link:not(.btn-neutral, .btn-info, .btn-success, .btn-warning, .btn-error, .btn-disabled, :disabled)) {
+    color: var(--mvp-brand-text);
+  }
+
+  :where(.badge-outline, .badge-dash, .badge-soft):where(.badge-primary, .badge-secondary, .badge-accent) {
+    color: var(--mvp-brand-text);
+  }
+}
+
 /* Preflight renders h1–h6 at body size and .prose is never on the shell (#359).
    h1 matches <c-mvp.page.title> and each level steps down one size. In the base
    layer so a utility class on a heading still wins. */
@@ -58,6 +109,34 @@
 
   :is(h2, h3, h4, h5, h6) {
     font-weight: var(--font-weight-semibold);
+  }
+
+  /* A part of the page drawn in another theme starts without the page's text
+     values. No weight, so a theme's own block wins however it was built. */
+  :where([data-theme]) {
+    --color-primary-text: initial;
+    --color-secondary-text: initial;
+    --color-accent-text: initial;
+  }
+
+  /* The one place --font-heading is applied. Unset, `inherit` rather than
+     --font-sans leaves a heading inside a font-mono block in that block's font. */
+  :where(
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6,
+    .card-title,
+    .collapse-title,
+    .fieldset-legend,
+    .footer-title,
+    .menu-title,
+    .mvp-sidebar-title,
+    .stat-title
+  ) {
+    font-family: var(--font-heading, inherit);
   }
 }
 

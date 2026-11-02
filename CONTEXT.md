@@ -89,8 +89,8 @@ attribute (per-page override, e.g. ``<c-app breakpoint="xl">`` or
 
 ### Theme
 
-A named set of CSS custom properties (colors, corner radii, border width, base sizing, and
-the depth/noise surface effects) applied to the whole document at once through
+A named set of CSS custom properties (colors, type families, corner radii, border width, base
+sizing, and the depth/noise surface effects) applied to the whole document at once through
 `[data-theme="<name>"]`. A theme carries no structure or layout, which is why changing one
 never requires a template change. Themes come from two sources: those shipped with the
 package (every prebuilt daisyUI theme) and those a project writes for itself as a plain CSS
