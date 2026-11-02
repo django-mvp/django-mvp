@@ -675,6 +675,17 @@ panel's `position` from the markup the panel renders, so a replacement panel tem
 the `data-mvp-side-position` attribute on its root element. `class` reaches the layout's wrapper,
 which is drawn only when there is a panel.
 
+## Printing
+
+A printed page carries the content alone. The sidebar, the navbar and the dock are left off, and
+the content takes the full width of the paper, whatever the sidebar's state on screen.
+
+Print uses a white page and black text in every theme, including a dark one. Brand colours such
+as `primary` keep their theme values. To print a page differently, add your own `@media print`
+rules marked `!important`, as the package's are.
+
+A [full-page](#full-page-content) view keeps its bounded height, so it prints as one page.
+
 ## Overriding the layout per page
 
 `layout.sidebar.breakpoint` and `layout.sidebar.collapse` drive three regions that

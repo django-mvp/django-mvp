@@ -1302,3 +1302,33 @@ html {
     display: none;
   }
 }
+
+/* Printing leaves the application shell off the paper: only the content is
+   what the reader came to print. Paper is narrower than the sidebar breakpoint,
+   so without this the drawer falls back to its overlay form with the open state
+   restored on the wide window still applied, and lays it over the page (#621).
+
+   The base colours go neutral whatever the theme. A browser drops backgrounds
+   by default, which would leave a dark theme's pale text on white paper, and a
+   theme's page colour is not worth the ink when backgrounds are kept. !important
+   because themes set these on their own [data-theme] selector, at any
+   specificity. */
+@media print {
+  :root {
+    color-scheme: light !important;
+    --root-bg: #fff !important;
+    --color-base-100: #fff !important;
+    --color-base-200: #f5f5f5 !important;
+    --color-base-300: #e5e5e5 !important;
+    --color-base-content: #000 !important;
+  }
+
+  [data-mvp-breakpoint] {
+    display: block;
+  }
+
+  [data-mvp-breakpoint] > .drawer-side,
+  [data-mvp-breakpoint] .mvp-dock-only {
+    display: none !important;
+  }
+}

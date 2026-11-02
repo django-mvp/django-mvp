@@ -9,6 +9,7 @@ any template tag that reads it.
 import pytest
 
 from mvp.layout import LayoutConfig
+from tests.conftest import requires_browser
 
 
 class TestLayoutConfigBreakpoint:
@@ -79,3 +80,69 @@ class TestLayoutConfigAsDict:
                 "sticky": True,
             },
         }
+
+
+PRINT_PAGE = "/layout/store/"
+
+PRINT_WIDTHS = {"desktop": 1440, "a4": 794}
+
+at_every_print_width = pytest.mark.parametrize("width", PRINT_WIDTHS.values(), ids=list(PRINT_WIDTHS))
+
+
+def _printed(page, url, width):
+    """Load a page on screen, switch to print and report what was computed."""
+    page.set_viewport_size({"width": width, "height": 900})
+    page.goto(url)
+    page.emulate_media(media="print")
+    return page.evaluate("""
+        () => {
+          const shown = sel => {
+            const el = document.querySelector(sel);
+            return el ? el.checkVisibility() : false;
+          };
+          const main = document.querySelector('main').getBoundingClientRect();
+          return {
+            sidebar: shown('.mvp-sidebar'),
+            dock: shown('.dock'),
+            mainLeft: Math.round(main.left),
+            mainWidth: Math.round(main.width),
+            pageWidth: document.documentElement.clientWidth,
+          };
+        }
+    """)
+
+
+@pytest.mark.e2e
+@requires_browser
+class TestPrintingAPage:
+    """Paper is narrower than the sidebar breakpoint, and the open state restored
+    on a wide window outlives that change, so a desktop window and an A4 width are
+    both asserted, each loaded on screen first and only then switched to print."""
+
+    @at_every_print_width
+    def test_the_sidebar_and_dock_are_left_off(self, page, live_server, width):
+        printed = _printed(page, f"{live_server.url}{PRINT_PAGE}", width)
+
+        assert not printed["sidebar"]
+        assert not printed["dock"]
+
+    @at_every_print_width
+    def test_the_content_takes_the_whole_page_width(self, page, live_server, width):
+        printed = _printed(page, f"{live_server.url}{PRINT_PAGE}", width)
+
+        assert printed["mainLeft"] == 0
+        assert printed["mainWidth"] == printed["pageWidth"]
+
+    def test_a_dark_theme_prints_dark_text_on_white(self, page, live_server):
+        page.goto(f"{live_server.url}{PRINT_PAGE}")
+        page.evaluate("document.documentElement.setAttribute('data-theme', 'dark')")
+        page.emulate_media(media="print")
+
+        colours = page.evaluate("""
+            () => ({
+              page: getComputedStyle(document.documentElement).backgroundColor,
+              text: getComputedStyle(document.querySelector('main')).color,
+            })
+        """)
+
+        assert colours == {"page": "rgb(255, 255, 255)", "text": "rgb(0, 0, 0)"}

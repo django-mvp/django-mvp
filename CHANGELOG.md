@@ -36,6 +36,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - The demo's `mvp-raised` theme, since every theme now puts its page on `base-200`.
 
+### Fixed
+
+- Printing a page no longer lays the sidebar over the content. The sidebar and dock are left off, the content takes the full paper width, and the page prints in black on white in every theme (#621).
+
 ## [v0.32.3] - 2026-11-02
 
 ### Added
