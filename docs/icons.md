@@ -198,39 +198,38 @@ Three different causes produce three different symptoms:
 | --- | --- | --- |
 | Page crashes with `ImproperlyConfigured` on any icon | `EASY_ICONS` is unset, or has no `default` key | Add the `default` renderer block from [Settings](#settings) above |
 | Nothing renders in development; `IconNotFoundError` in production | The name isn't in the registry — check it against the [pack table](#what-the-pack-defines) and your own `icons` block | Register the name, or use one already defined |
-| The `<i>` tag is there (inspect the element) but shows an empty box | The webfont didn't load | See [The webfont comes from a CDN](#the-webfont-comes-from-a-cdn) below |
+| The `<i>` tag is there (inspect the element) but shows an empty box | The webfont didn't load | See [Where the icons come from](#where-the-icons-come-from) below |
 
-## The webfont comes from a CDN
+## Where the icons come from
 
-`mvp/base.html` links the Bootstrap Icons stylesheet from jsDelivr
-(`bootstrap-icons@1.13.1`). Offline, air-gapped, or behind a network that blocks the
-CDN, **every icon renders as an empty box** even when the name is registered
-correctly. The `<i>` element and its classes are correct; the font backing them
-never arrives.
+The package ships no icon set. `MVP_CONFIG["icon_stylesheet"]` names the stylesheet that
+draws one, and `mvp/base.html` links it on every page. The default is Bootstrap Icons
+1.13.1 from jsDelivr, the set `mvp.utils.BS5_ICONS` names.
 
-That `<link>` sits directly in `{% block head %}`, *outside* `{% block styles %}`.
-Two ways to serve the font yourself, with different trade-offs:
+With that default, every page sends its visitor's address to jsDelivr. Offline, air-gapped,
+or behind a network that blocks the CDN, **every icon renders as an empty box** even when
+the name is registered correctly. The `<i>` element and its classes are correct; the font
+backing them never arrives.
 
-```html
-<!-- your_app/templates/base.html — additive; the CDN link stays and simply fails offline -->
-{% extends "mvp/base.html" %}
-{% load static %}
+To host the set yourself, put its stylesheet and font files in your own static files and
+give the setting the path:
 
-{% block styles %}
-  {{ block.super }}
-  <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons.min.css' %}" />
-{% endblock styles %}
+```python
+# settings.py
+MVP_CONFIG = {
+    "icon_stylesheet": "vendor/bootstrap-icons/bootstrap-icons.min.css",
+}
 ```
 
-Your copy loads after the CDN link, so it wins whether or not the CDN answers. The
-cost is one failed request per page load. Keep `{{ block.super }}` — without it you
-also drop the packaged stylesheet and the whole shell loses its styling.
+The value takes three forms:
 
-To remove the CDN link outright, override `head` **without** `{{ block.super }}` and
-re-declare its contents. `block.super` re-emits the CDN link, so it cannot be used
-here, and overriding `head` blindly drops the `<title>`, the viewport and charset
-meta tags, the favicon links, `{% block styles %}` and the packaged stylesheet with
-it, and the JavaScript bundle. Copy them across from `mvp/base.html` first.
+| Value | Linked | Use it for |
+| --- | --- | --- |
+| A full URL, such as `"https://icons.example/set.css"` | As written | Another host or another provider |
+| A path starting with `/`, such as `"/assets/icons.css"` | As written | A file your server provides outside static files |
+| Anything else | Through `{% static %}` | A file in your static files |
+
+Set it to `None` to link nothing, for a renderer that needs no stylesheet.
 
 ## A different icon set
 
@@ -242,6 +241,9 @@ ship with easy-icons:
 | `easy_icons.renderers.ProviderRenderer` | `tag` (default `"i"`) | Full class strings, e.g. `"bi bi-plus"` |
 | `easy_icons.renderers.SvgRenderer` | `svg_dir` (default `"icons"`) | Template filenames under that directory |
 | `easy_icons.renderers.SpritesRenderer` | `sprite_url` (required) | Symbol ids in the sprite sheet |
+
+To change the set, change the renderer's `icons` and point
+[`icon_stylesheet`](#where-the-icons-come-from) at the stylesheet the new set needs.
 
 `mvp.utils.BS5_ICONS` holds Bootstrap Icons class strings, so it is only meaningful
 under `ProviderRenderer`. If you make something else your `default`, drop the pack

@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `MVP_CONFIG["icon_stylesheet"]` names the stylesheet that draws the icon set: a URL, a static file path, or `None` for a renderer that needs none. A project can host Bootstrap Icons itself or use another provider without overriding the `head` block. The default is still Bootstrap Icons 1.13.1 from jsDelivr.
+- A theme can set `--color-line`, a colour that shows on all three surfaces. The default button and alert fill from it and `border-line` and `bg-line` draw it. Left unset, it is worked out from `base-300` and `base-content` where it is read, so a region with its own surfaces gets a line that suits them.
+
 ### Changed
 
 - **Breaking:** every project on a prebuilt theme changes appearance. The three base colours now have one meaning each: `base-100` is raised (cards, inputs, modals, dropdowns, tables), `base-200` is the page (with the header and the dock) and `base-300` is sunk (the sidebar, wells, stripes). The page moves from `base-100` to `base-200`, so cards now stand above it, and the sidebar moves from `base-200` to `base-300`.
@@ -25,10 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Breaking:** a theme or a region block that recolours the sidebar through `--color-base-200` must now set `--color-base-300`, which is what the sidebar reads.
 - The sidebar has an edge, the default button and the default alert show on all three surfaces, and borders drawn by the package use the line colour, where they used `border-base-300` and vanished on `base-300`. A filter panel's foot follows what it sits on, in the page's colour as a column or a stacked block and raised in a drawer. The placeholder card, the code areas of `<c-mvp.documentation>` and the hover on a filter option are sunk, the rail's fly-outs are raised, and a blank avatar draws its disc in the line colour.
-
-### Added
-
-- A theme can set `--color-line`, a colour that shows on all three surfaces. The default button and alert fill from it and `border-line` and `bg-line` draw it. Left unset, it is worked out from `base-300` and `base-content` where it is read, so a region with its own surfaces gets a line that suits them.
+- The icon stylesheet's link no longer carries `crossorigin="anonymous"`, so a stylesheet on a host that sends no CORS headers still loads.
 
 ### Removed
 

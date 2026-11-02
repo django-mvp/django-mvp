@@ -125,8 +125,9 @@ comma-separated keys (whitespace is ignored):
 }
 ```
 
-`mvp/base.html` loads the Bootstrap Icons webfont from a CDN by default; override the
-`head` block to self-host it.
+`mvp/base.html` loads the Bootstrap Icons webfont from a CDN by default. Set
+[`icon_stylesheet`](icons.md#where-the-icons-come-from) to host it yourself or to use
+another provider.
 
 ## Configure menu renderers
 

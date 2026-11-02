@@ -56,9 +56,9 @@
             media="(prefers-color-scheme: dark)"
             href="{% icon_url "16px" "dark" %}" />
       {% if mvp_config.pwa %}{% include "mvp/pwa/head.html" %}{% endif %}
-      <link rel="stylesheet"
-            href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css"
-            crossorigin="anonymous" />
+      {% if icon_stylesheet_url %}
+        <link rel="stylesheet" href="{{ icon_stylesheet_url }}" />
+      {% endif %}
       {% block styles %}
         <link rel="stylesheet" href="{% static 'css/django-mvp.css' %}" />
       {% endblock styles %}

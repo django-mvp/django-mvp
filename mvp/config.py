@@ -125,6 +125,14 @@ MVP_CONFIG = {
         # then this setting, then the package default (no wrap).
         "wrap": False,
     },
+    # The stylesheet that draws the icon set. A full URL or a path starting with
+    # "/" is linked as written, and anything else is a static file path. None
+    # links nothing, for a renderer that needs no stylesheet. The package ships
+    # no icon set, so the default is the set BS5_ICONS names, from its CDN. See
+    # docs/adr/0038-the-package-ships-no-icon-set.md.
+    "icon_stylesheet": (
+        "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css"
+    ),
     # The application's name. None takes the current site's name (the request
     # host without the sites framework). Used for the page title suffix and
     # the installed app's name.

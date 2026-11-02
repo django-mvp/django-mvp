@@ -177,6 +177,34 @@ def head_soup():
 
 
 @pytest.mark.django_db
+class TestIconStylesheet:
+    def stylesheets(self):
+        return [link["href"] for link in head_soup().find_all("link", rel="stylesheet")]
+
+    @pytest.mark.parametrize(
+        ("value", "href"),
+        [
+            ("https://icons.example/set.css", "https://icons.example/set.css"),
+            ("/assets/set.css", "/assets/set.css"),
+            ("vendor/set.css", "/static/vendor/set.css"),
+        ],
+    )
+    def test_the_setting_replaces_the_default(self, monkeypatch, value, href):
+        from mvp.config import MVP_CONFIG
+
+        monkeypatch.setitem(MVP_CONFIG, "icon_stylesheet", value)
+
+        assert self.stylesheets() == [href, "/static/css/django-mvp.css"]
+
+    def test_none_links_no_icon_stylesheet(self, monkeypatch):
+        from mvp.config import MVP_CONFIG
+
+        monkeypatch.setitem(MVP_CONFIG, "icon_stylesheet", None)
+
+        assert self.stylesheets() == ["/static/css/django-mvp.css"]
+
+
+@pytest.mark.django_db
 @pytest.mark.usefixtures("pwa_enabled")
 class TestShellHeadWithPwaOn:
     @pytest.fixture(autouse=True)
