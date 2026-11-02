@@ -326,6 +326,9 @@ Resolution order for any one column:
 Heading cells are always held to one line regardless of this setting, so a
 column is never widened by its own title.
 
+None of this applies on paper, where every cell wraps so that a table
+[fits the sheet](layout.md#printing).
+
 ## `page_title.layout`
 
 The arrangement a page's title is drawn in. It takes a layout's name, which applies to every

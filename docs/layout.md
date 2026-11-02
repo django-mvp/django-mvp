@@ -687,6 +687,22 @@ rules marked `!important`, as the package's are.
 A [full-page](#full-page-content) view keeps its bounded height, so it prints as one sheet. Table
 pages are full-page views, so rows below that height are cut off the printout.
 
+A table fits the width of the paper with all of its columns. Its text and padding get smaller, and
+every cell wraps, inside a word if it has to, including a column that names `mvp-col-nowrap`. A
+table with many columns reads better printed in landscape. To leave a column off the printout, name
+`print:hidden` on each of its cells:
+
+```python
+class ProductTable(tables.Table):
+    barcode = tables.Column(
+        attrs={
+            "th": {"class": "print:hidden"},
+            "td": {"class": "print:hidden"},
+            "tf": {"class": "print:hidden"},
+        }
+    )
+```
+
 ## Overriding the layout per page
 
 `layout.sidebar.breakpoint` and `layout.sidebar.collapse` drive three regions that
