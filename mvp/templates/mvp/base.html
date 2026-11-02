@@ -68,21 +68,41 @@
         your own Alpine plugins or htmx extensions by extending `head`.
       {% endcomment %}
       <script defer src="{% static 'js/django-mvp.js' %}"></script>
-      {% comment %}
-        Conditional hide based on the applied theme. Keyed off the configured
-        pair rather than the literal names "light" and "dark", so a project
-        that sets its own two themes keeps these hooks working.
-      {% endcomment %}
-      <style>
-        [data-theme="{{ mvp_config.theme.default|escape }}"] .hide-on-light-theme {
-          display: none !important
-        }
-
-        [data-theme="{{ mvp_config.theme.dark|escape }}"] .hide-on-dark-theme {
-          display: none !important
-        }
-      </style>
     {% endblock head %}
+    {% comment %}
+      Whether a theme is light or dark is known only to its stylesheet, and
+      `choices` can offer any theme, so the applied `color-scheme` is read back
+      rather than the theme's name compared with the configured pair. Inline,
+      after every stylesheet in the head, so a page's first paint has the right
+      brand image, and outside the `head` block so overriding it keeps the pair
+      working. The two rules are each other's complement: exactly one image of
+      a pair shows, whatever the attribute says.
+    {% endcomment %}
+    <style>
+      html:not([data-color-scheme="dark"]) .hide-on-light-theme {
+        display: none !important
+      }
+
+      [data-color-scheme="dark"] .hide-on-dark-theme {
+        display: none !important
+      }
+    </style>
+    <script>
+      (function() {
+        var root = document.documentElement;
+        function syncColorScheme() {
+          var isDark = getComputedStyle(root).colorScheme.indexOf('dark') !== -1;
+          root.setAttribute('data-color-scheme', isDark ? 'dark' : 'light');
+        }
+        syncColorScheme();
+        // The attribute, not the theme controls: a theme applied by a project's
+        // own script changes the scheme just the same.
+        new MutationObserver(syncColorScheme).observe(root, {
+          attributes: true,
+          attributeFilter: ['data-theme']
+        });
+      })();
+    </script>
   </head>
   <body>
     {% comment %}

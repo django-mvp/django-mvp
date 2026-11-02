@@ -46,14 +46,31 @@
       
       <script defer src="/static/js/django-mvp.js"></script>
       
-      <style>
-        [data-theme="light"] .hide-on-light-theme {
-          display: none !important
-        }
-
-        [data-theme="dark"] .hide-on-dark-theme {
-          display: none !important
-        }
-      </style>
     
+    
+    <style>
+      html:not([data-color-scheme="dark"]) .hide-on-light-theme {
+        display: none !important
+      }
+
+      [data-color-scheme="dark"] .hide-on-dark-theme {
+        display: none !important
+      }
+    </style>
+    <script>
+      (function() {
+        var root = document.documentElement;
+        function syncColorScheme() {
+          var isDark = getComputedStyle(root).colorScheme.indexOf('dark') !== -1;
+          root.setAttribute('data-color-scheme', isDark ? 'dark' : 'light');
+        }
+        syncColorScheme();
+        // The attribute, not the theme controls: a theme applied by a project's
+        // own script changes the scheme just the same.
+        new MutationObserver(syncColorScheme).observe(root, {
+          attributes: true,
+          attributeFilter: ['data-theme']
+        });
+      })();
+    </script>
   </head>
