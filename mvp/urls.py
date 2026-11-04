@@ -24,8 +24,9 @@ development-only sign-in and sign-out, so a page guarded by
 account-management app. See docs/account-center.md.
 
 While ``MVP_CONFIG["pwa"]`` is set, mounting this also serves the
-installable-app files, ``manifest.webmanifest`` and ``sw.js``. With the setting
-off those two routes do not exist. See docs/installable-app.md.
+installable-app files, ``manifest.webmanifest`` and ``sw.js``, and the page that
+tells a visitor how to install the site, ``install/``. With the setting off
+those three routes do not exist. See docs/installable-app.md.
 
 Once allauth's account application is installed, this URLconf contributes
 neither name, so which view answers those two addresses never depends on the
@@ -37,7 +38,7 @@ from django.urls import URLPattern, URLResolver, path
 
 from .config import MVP_CONFIG
 from .mounted import mount
-from .pwa.views import manifest, service_worker
+from .pwa.views import InstallView, manifest, service_worker
 from .utils import app_is_installed
 from .views.account import SignInView, SignOutView, account_center
 
@@ -49,6 +50,7 @@ if MVP_CONFIG["pwa"]:
     urlpatterns += [
         path("manifest.webmanifest", manifest, name="mvp-pwa-manifest"),
         path("sw.js", service_worker, name="mvp-pwa-service-worker"),
+        path("install/", InstallView.as_view(), name="mvp-pwa-install"),
     ]
 
 if not app_is_installed("allauth.account"):

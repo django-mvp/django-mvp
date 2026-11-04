@@ -1,13 +1,16 @@
-"""The manifest and the service worker."""
+"""The manifest, the service worker and the install page."""
 
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.templatetags.static import static
 from django.urls import get_script_prefix
+from django.utils.translation import gettext as _
 
 from mvp.config import MVP_CONFIG
 from mvp.pwa import IMAGE_DIRECTORY, IMAGES
 from mvp.utils import site_name
+from mvp.views.base import PageWidth
+from mvp.views.extra import MVPTemplateView
 
 
 def manifest(request: HttpRequest) -> JsonResponse:
@@ -68,3 +71,41 @@ def service_worker(request: HttpRequest) -> HttpResponse:
     response["Cache-Control"] = "no-cache"
     response["Service-Worker-Allowed"] = get_script_prefix()
     return response
+
+
+class InstallView(MVPTemplateView):
+    """The page that tells a visitor how to install the site as an app.
+
+    The instructions for every platform are in the page. The bundled script
+    picks out the ones for the device it is open on, shows the browser's own
+    install button where the browser offers one, and replaces the page with a
+    short message when it is already open in the installed app.
+    """
+
+    template_name = "mvp/pwa/install.html"
+    page_width = PageWidth.NARROW
+
+    def get_app_name(self) -> str:
+        """Return the name the app installs under, as the home screen shows it."""
+        return (
+            MVP_CONFIG["short_name"]
+            or MVP_CONFIG["site_name"]
+            or site_name(self.request)
+        )
+
+    def get_page_title(self) -> str:
+        """Name the app in the title: "Install Open Language"."""
+        return _("Install %(name)s") % {"name": self.get_app_name()}
+
+    def get_page_lead(self) -> str:
+        """Say what installing gets the visitor."""
+        return _(
+            "Open it from your home screen or dock, in a window of its own, "
+            "like any other app."
+        )
+
+    def get_context_data(self, **kwargs):
+        """Add the app's name for the instructions."""
+        context = super().get_context_data(**kwargs)
+        context["app_name"] = self.get_app_name()
+        return context

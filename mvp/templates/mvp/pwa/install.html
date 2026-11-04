@@ -1,0 +1,63 @@
+{% extends "page_view.html" %}
+{% load i18n %}
+{% comment %}
+  Every platform's steps are in the page, so it reads in full without the
+  bundled script. The script (assets/js/install.js) adds the card for the
+  device the page is open on, and the browser's install button where the
+  browser offers one. Elements it may reveal start `hidden`.
+{% endcomment %}
+{% block page.content %}
+  <div data-mvp-install x-data="mvpInstall" class="space-y-8">
+    <c-alert variant="success" icon="success" role="status" hidden x-bind:hidden="!installed" only>
+      <span>{% blocktrans %}{{ app_name }} is installed, and you're using it now.{% endblocktrans %}</span>
+    </c-alert>
+    <div class="space-y-8" x-bind:hidden="installed">
+      <c-alert variant="success" icon="success" role="status" hidden x-bind:hidden="!justInstalled" only>
+        <span>{% blocktrans %}{{ app_name }} is installed. Open it from your home screen, dock or app list.{% endblocktrans %}</span>
+      </c-alert>
+      <section aria-labelledby="install-this-device" hidden x-bind:hidden="!device || justInstalled">
+        <c-mvp.card only>
+          <h2 id="install-this-device" class="card-title">{% trans "On this device" %}</h2>
+          <div hidden x-bind:hidden="!installable" class="flex flex-wrap items-center gap-4">
+            <c-mvp.brand.icon max-height="48" class="size-12 rounded-box" aria-hidden="true" only />
+            <div class="me-auto">
+              <p class="font-semibold">{{ app_name }}</p>
+              <p class="text-sm text-base-content/70">{{ request.get_host }}</p>
+            </div>
+            <c-button variant="primary" icon="install" text="{% trans "Install" %}" x-on:click="install()" only />
+          </div>
+          <div hidden x-bind:hidden="installable || device !== 'ios'">{% include "mvp/pwa/install/ios.html" %}</div>
+          <div hidden x-bind:hidden="installable || device !== 'android'">{% include "mvp/pwa/install/android.html" %}</div>
+          <div hidden x-bind:hidden="installable || device !== 'chromium'">{% include "mvp/pwa/install/chromium.html" %}</div>
+          <div hidden x-bind:hidden="installable || device !== 'safari'">{% include "mvp/pwa/install/safari.html" %}</div>
+          <div hidden x-bind:hidden="installable || device !== 'firefox'">{% include "mvp/pwa/install/firefox.html" %}</div>
+        </c-mvp.card>
+      </section>
+      <section aria-labelledby="install-other-devices" class="space-y-3">
+        <h2 id="install-other-devices" class="text-lg font-semibold">{% trans "Other devices" %}</h2>
+        <c-collapse arrow class="bg-base-100 border border-base-300" title="{% trans "iPhone and iPad" %}" only>
+          {% include "mvp/pwa/install/ios.html" %}
+        </c-collapse>
+        <c-collapse arrow class="bg-base-100 border border-base-300" title="{% trans "Android" %}" only>
+          {% include "mvp/pwa/install/android.html" %}
+        </c-collapse>
+        <c-collapse arrow class="bg-base-100 border border-base-300" title="{% trans "Computer" %}" only>
+          <div class="space-y-4">
+            <div>
+              <h3 class="font-semibold mb-2">{% trans "Chrome or Edge" %}</h3>
+              {% include "mvp/pwa/install/chromium.html" %}
+            </div>
+            <div>
+              <h3 class="font-semibold mb-2">{% trans "Safari on a Mac" %}</h3>
+              {% include "mvp/pwa/install/safari.html" %}
+            </div>
+            <div>
+              <h3 class="font-semibold mb-2">{% trans "Firefox" %}</h3>
+              {% include "mvp/pwa/install/firefox.html" %}
+            </div>
+          </div>
+        </c-collapse>
+      </section>
+    </div>
+  </div>
+{% endblock page.content %}
