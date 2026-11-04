@@ -87,7 +87,7 @@ class InstallView(MVPTemplateView):
 
     def get_app_name(self) -> str:
         """Return the name the app installs under, as the home screen shows it."""
-        return (
+        return str(
             MVP_CONFIG["short_name"]
             or MVP_CONFIG["site_name"]
             or site_name(self.request)
