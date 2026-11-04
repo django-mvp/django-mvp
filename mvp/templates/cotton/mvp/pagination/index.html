@@ -67,7 +67,7 @@
         {% elif show_first_and_last and num == page_obj.paginator.num_pages|add:"-1" and num == page_obj.number|add:page_window|add:"1" %}
           <c-mvp.pagination.link size="{{ size }}" param="{{ param }}" page="{{ num }}" text="{{ num }}" />
         {% elif num == page_obj.number|add:negative_window|add:"-1" or num == page_obj.number|add:page_window|add:"1" %}
-          <c-mvp.pagination.link size="{{ size }}" param="{{ param }}" text="..." disabled />
+          <c-mvp.pagination.link size="{{ size }}" text="..." disabled />
         {% endif %}
       {% endfor %}
     {% endwith %}
