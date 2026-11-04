@@ -26,11 +26,10 @@ window.addEventListener("appinstalled", () => {
   document.dispatchEvent(new CustomEvent("mvp:installed"));
 });
 
+// The same test the page's stylesheet uses to hide its title in the app
+// (mvp/templates/mvp/pwa/install.html), so the two always agree.
 function isStandalone() {
-  return (
-    window.matchMedia("(display-mode: standalone)").matches ||
-    window.navigator.standalone === true
-  );
+  return window.matchMedia("(display-mode: standalone)").matches;
 }
 
 // One of: "ios", "android", "safari", "firefox", "chromium".
@@ -63,22 +62,6 @@ export function registerInstallPage(Alpine) {
     installable: false,
 
     init() {
-      // SKETCH ONLY: ?device=<name> shows the page as that device sees it.
-      const preview = new URLSearchParams(window.location.search).get("device");
-      if (preview === "installed") {
-        this.installed = true;
-        return;
-      }
-      if (preview === "chromium-prompt") {
-        this.device = "chromium";
-        this.installable = true;
-        return;
-      }
-      if (preview) {
-        this.device = preview;
-        return;
-      }
-
       this.installed = isStandalone();
       this.device = detectDevice();
       this.installable = deferredPrompt !== null;
@@ -93,9 +76,6 @@ export function registerInstallPage(Alpine) {
 
     async install() {
       if (!deferredPrompt) {
-        // SKETCH ONLY: the previewed prompt has nothing behind it.
-        this.installable = false;
-        this.justInstalled = true;
         return;
       }
       const prompt = deferredPrompt;
