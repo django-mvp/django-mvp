@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.33.2] - 2026-11-04
+
 ### Fixed
 
 - Copy link in `c-mvp.addons.share-dropdown` copies the `url` the component was given, like every other choice in the menu, instead of the address of the page it is on. Without a `url` it still copies the current page's address (#638).
