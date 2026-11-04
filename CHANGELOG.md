@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.33.1] - 2026-11-04
+
 ### Added
 
 - `c-mvp.pagination`, `c-mvp.pagination.compact`, `c-mvp.pagination.link` and `c-mvp.page.list.footer` take `param`, the query parameter their links set, so a page with several paged tables can page each on its own. It defaults to `page`.
