@@ -35,24 +35,29 @@
       </section>
       <section aria-labelledby="install-other-devices" class="space-y-3">
         <h2 id="install-other-devices" class="text-lg font-semibold">{% trans "Other devices" %}</h2>
-        <c-collapse arrow class="bg-base-100 border border-base-300" title="{% trans "iPhone and iPad" %}" only>
-          {% include "mvp/pwa/install/ios.html" %}
-        </c-collapse>
-        <c-collapse arrow class="bg-base-100 border border-base-300" title="{% trans "Android" %}" only>
-          {% include "mvp/pwa/install/android.html" %}
-        </c-collapse>
+        {% comment %}The card above already shows this device's steps, so its own section is left out.{% endcomment %}
+        <div x-bind:hidden="device === 'ios'">
+          <c-collapse arrow class="bg-base-100 border border-base-300" title="{% trans "iPhone and iPad" %}" only>
+            <div class="text-sm">{% include "mvp/pwa/install/ios.html" %}</div>
+          </c-collapse>
+        </div>
+        <div x-bind:hidden="device === 'android'">
+          <c-collapse arrow class="bg-base-100 border border-base-300" title="{% trans "Android" %}" only>
+            <div class="text-sm">{% include "mvp/pwa/install/android.html" %}</div>
+          </c-collapse>
+        </div>
         <c-collapse arrow class="bg-base-100 border border-base-300" title="{% trans "Computer" %}" only>
-          <div class="space-y-4">
+          <div class="space-y-4 text-sm">
             <div>
-              <h3 class="font-semibold mb-2">{% trans "Chrome or Edge" %}</h3>
+              <h3 class="text-base font-semibold mb-2">{% trans "Chrome or Edge" %}</h3>
               {% include "mvp/pwa/install/chromium.html" %}
             </div>
             <div>
-              <h3 class="font-semibold mb-2">{% trans "Safari on a Mac" %}</h3>
+              <h3 class="text-base font-semibold mb-2">{% trans "Safari on a Mac" %}</h3>
               {% include "mvp/pwa/install/safari.html" %}
             </div>
             <div>
-              <h3 class="font-semibold mb-2">{% trans "Firefox" %}</h3>
+              <h3 class="text-base font-semibold mb-2">{% trans "Firefox" %}</h3>
               {% include "mvp/pwa/install/firefox.html" %}
             </div>
           </div>
