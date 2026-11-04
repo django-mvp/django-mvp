@@ -694,3 +694,24 @@ def any_multipart(formsets):
 
 
 register.filter(utils.title_layout_component)
+
+
+@register.simple_tag(takes_context=True)
+def page_querystring(context: template.Context, page, param: str = "page") -> str:
+    """Return the current query string with the page number set in ``param``.
+
+    Django's ``{% querystring %}`` takes the parameter's name literally, so a pager whose
+    parameter is chosen by its caller, such as a django-tables2 table's
+    ``prefixed_page_field``, cannot use it.
+
+    Args:
+        context: The template context, read for the request.
+        page: The page number to link to.
+        param: The query parameter that carries the page number.
+
+    Returns:
+        The query string, starting with ``?``.
+    """
+    query = context["request"].GET.copy()
+    query[param or "page"] = page
+    return f"?{query.urlencode()}"

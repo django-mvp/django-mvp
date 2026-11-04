@@ -244,7 +244,7 @@ the whole screen. `fill` takes the full width and height and ignores `width`.
 | `c-mvp.page.list.filters.field` | `field` — one filterset field in the toolbar, in its compact form, from a dict `get_toolbar_field()` returns; must sit inside the filter form. `size` sets the size of its buttons and inputs |
 | `c-mvp.page.list.summary` | `class` — the count of what the list holds |
 | `c-mvp.page.list.refinements` | `class` — the applied search and filters, each as a control that removes it |
-| `c-mvp.page.list.footer` | `page_obj`, `size`, `class` — the foot of a list page: the range shown and the pager. Its spacing comes from `class`, and `size` sets the pager's button size |
+| `c-mvp.page.list.footer` | `page_obj`, `param`, `size`, `class` — the foot of a list page: the range shown and the pager. Its spacing comes from `class`, `size` sets the pager's button size and `param` the query parameter its links set |
 | `c-mvp.page.table.toolbar` | slots `heading`, `title`, `actions`, `controls`, `note` and the default slot; `heading_above`, `storage_key`, `class` — the band above a full-page table: a bar that always shows and a panel under it that a button opens and closes; the `controls` sit at the end of the panel's row, and in the bar while it is closed. The `heading` slot holds the page title, drawn at the start of the bar, or above it with `heading_above`, for a title layout too tall for one row; the `title` slot holds what sits beside it, such as the result count |
 | `c-mvp.page.list.actions` | `actions` — renders the action components below, default `['create']` |
 | `c-mvp.page.list.actions.{create,share}` | individual list actions — see [below](#list-components-driven-by-view-context) for the context each one needs |
@@ -372,9 +372,9 @@ declared side whether or not it fits, exactly as it always used to.
 
 | Component | Notes |
 | --- | --- |
-| `c-mvp.pagination` | `page_obj`, `page_window` (default `5`), `use_icons`, `show_first_and_last`, `size`, `label` (the `<nav>`'s accessible name, default `Navigation page results`) — renders nothing when there's only one page; `show_first_and_last` swaps the First/Last text controls for the first and last page numbers, and then a gap of exactly one page shows that page's number where an ellipsis would be |
-| `c-mvp.pagination.compact` | `page_obj`, `size`, `label`, `class` — a pager for narrow screens: Previous, "Page 2 of 6", Next, spread across the full width. The page number is a select holding every page, so any page is one choice away; renders nothing when there's only one page |
-| `c-mvp.pagination.link` / `c-mvp.pagination.wrapper` | building blocks for a hand-built pager: `page`, `text`, `active`, `disabled`, `size`, `class` on the link; `label`, `class` on the labelled wrapper it sits in |
+| `c-mvp.pagination` | `page_obj`, `param` (the query parameter each link sets, default `page`), `page_window` (default `5`), `use_icons`, `show_first_and_last`, `size`, `label` (the `<nav>`'s accessible name, default `Navigation page results`) — renders nothing when there's only one page; `show_first_and_last` swaps the First/Last text controls for the first and last page numbers, and then a gap of exactly one page shows that page's number where an ellipsis would be |
+| `c-mvp.pagination.compact` | `page_obj`, `param`, `size`, `label`, `class` — a pager for narrow screens: Previous, "Page 2 of 6", Next, spread across the full width. The page number is a select holding every page, so any page is one choice away; renders nothing when there's only one page |
+| `c-mvp.pagination.link` / `c-mvp.pagination.wrapper` | building blocks for a hand-built pager: `page`, `param`, `text`, `active`, `disabled`, `size`, `class` on the link; `label`, `class` on the labelled wrapper it sits in |
 
 Menus are normally rendered from Python via django-flex-menus — see
 [Navigation](navigation.md). For a hand-built menu, write daisy-cotton's menu components
@@ -517,7 +517,7 @@ and `table_view.html` do: `<c-mvp.page.list.summary :result_count="result_count"
 | `c-mvp.page.list.filters.field` | — | `field`, one entry of `toolbar_fields` or `toolbar_sort`, drawn by its `kind`. A multi-select list and a developer's widget are drawn inside a `[data-mvp-toolbar-field]` wrapper whose value is the field's name. `size`, the size of its buttons and inputs; a developer's widget keeps its own. Below `sm` the sort is drawn as its icon alone |
 | `c-mvp.page.list.summary` | `result_count`, `refinements`, `model_info` | `class` |
 | `c-mvp.page.list.refinements` | `refinements`, `clear_refinements_url` | `class` |
-| `c-mvp.page.list.footer` | — | `page_obj`, `size`, `class` |
+| `c-mvp.page.list.footer` | — | `page_obj`, `param`, `size`, `class` |
 | `c-mvp.page.list.actions` | `directory`, `create_form`, `create_modal_title`, handed on to each action | `actions` (default `['create']`) |
 | `c-mvp.page.list.actions.create` | `directory` (its `create_url`), optionally `create_form` and `create_modal_title` | `label` (default `Add`, the button's text), `icon` (default `add`), `size`, and `compact`, which draws the icon alone below `sm` with the label still its name to a screen reader |
 | `c-mvp.page.list.actions.share` | — (always renders) | — |
