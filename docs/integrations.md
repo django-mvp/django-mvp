@@ -203,6 +203,18 @@ Two things follow for anything that reads the context:
   it. Nothing evaluates it unless a template asks, so it costs nothing, but render rows
   from the table and not from there.
 
+A page that shows several paged tables at once gives each pager the table's own
+parameter, so moving through one table leaves the others on their page. Build each table
+with a `prefix`, page it with `RequestConfig`, and pass `table.prefixed_page_field` as
+the pager's `param`:
+
+```html
+<c-mvp.page.list.footer :page_obj="table.page" param="{{ table.prefixed_page_field }}" />
+```
+
+Every pager component takes `param`, and each link it draws keeps the rest of the query
+string, the other tables' pages included.
+
 Leaving `paginate_by` unset means no pagination: the table renders every row, and the
 count and links go with it. `table_pagination = False` says the same thing explicitly,
 and wins where a view sets both.

@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `c-mvp.pagination`, `c-mvp.pagination.compact`, `c-mvp.pagination.link` and `c-mvp.page.list.footer` take `param`, the query parameter their links set, so a page with several paged tables can page each on its own. It defaults to `page`.
+
 ### Fixed
 
 - A table page prints every row of the page being viewed, across as many sheets as it needs, instead of cutting the rows off at the height of the window. Any other full-page view, such as a map, still prints as one sheet (#630).
