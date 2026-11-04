@@ -3,7 +3,7 @@
 A project built on django-mvp can be installed from the browser as an app: it gets its own
 window and an icon on the home screen or desktop, and stays out of the tab strip. One setting
 turns it on, and the Account Center's URLs, which your project already mounts, then serve the two
-files a browser needs.
+files a browser needs and a page telling visitors how to install it.
 
 With the setting off, nothing changes. Pages render exactly as they did before.
 
@@ -48,6 +48,57 @@ colour and registers a service worker. The manifest and the tags are built from 
 application name and short name are top-level settings, listed in [Configuration](configuration.md).
 Every other value is fixed: the app opens at the site root (the script prefix included) and
 uses the `standalone` display mode.
+
+## The install page
+
+Not every browser offers to install a site, and the ones that do put the option in different
+places. `mvp.urls` also serves a page that tells a visitor how to install yours, at `/install/`
+under the URL name `mvp-pwa-install`. Like the manifest and the worker, it exists only while
+`MVP_CONFIG["pwa"]` is set.
+
+The page's title names the app by its short name (`MVP_CONFIG["short_name"]`, falling back to
+the name as in the table above), the label the visitor will find under the icon. The page
+carries the steps for every platform: iPhone and iPad, Android, Chrome and Edge on a computer,
+Safari on a Mac, and a note that Firefox on a computer can't install apps. Without the bundled
+script the page shows all of them. With it:
+
+- An **On this device** card shows the steps for the device and browser the page is open on.
+  On a phone, that phone's section is left out of **Other devices** below the card.
+- In Chrome and Edge, when the browser offers to install the site, the card shows the app's icon,
+  name and host with an **Install** button that opens the browser's own install dialog. If the
+  visitor dismisses it, the card falls back to the written steps, because a browser offers the
+  dialog only once per page load.
+- Once the app is installed while the page is open, the card is replaced by a line saying so.
+- Opened inside the installed app, the page shows only a line saying the visitor is using it now.
+
+The page holds back the browser's own install offer only while it is open. On every other page
+the browser behaves as it would without django-mvp.
+
+### Linking to it
+
+django-mvp adds no menu entry for the page, so link to it wherever suits your project. A menu
+item, for example:
+
+```python
+from flex_menu import MenuItem
+
+from mvp.menus import AppMenu
+
+AppMenu.append(
+    MenuItem(
+        name="install-app",
+        view_name="mvp-pwa-install",
+        extra_context={"label": "Install this app", "icon": "install"},
+    )
+)
+```
+
+With `MVP_CONFIG["pwa"]` off the name doesn't reverse, and the menu leaves the item out. The
+`install` icon is in the packaged icon set (see [Icons](icons.md)).
+
+To change the page, add `mvp/pwa/install.html` to your own templates. Each platform's steps are a
+template of their own under `mvp/pwa/install/` (`ios.html`, `android.html`, `chromium.html`,
+`safari.html` and `firefox.html`), so one can be replaced without the rest.
 
 ## The toolbar colour follows the theme
 
@@ -153,6 +204,6 @@ You only need these if you build something of your own on the same values.
 
 - `mvp.utils.reverse_or_none(name)` reverses a URL name, and returns `None` instead of
   raising when the name isn't registered.
-- `mvp.pwa.views.manifest` and `mvp.pwa.views.service_worker` are the two views `mvp.urls`
-  serves, at `manifest.webmanifest` and `sw.js`.
+- `mvp.pwa.views.manifest`, `mvp.pwa.views.service_worker` and `mvp.pwa.views.InstallView` are
+  the three views `mvp.urls` serves, at `manifest.webmanifest`, `sw.js` and `install/`.
 - `mvp.utils.site_name(request)` returns the current site's name. When no `Site` matches, or the name is empty, it returns the request's host instead. This is the default application name.

@@ -142,6 +142,11 @@ BS5_ICONS = {
     "list-view": "bi bi-view-list",
     "more, options, kebab": "bi bi-three-dots-vertical",
     "external-link": "bi bi-box-arrow-up-right",
+    # The install page
+    "install": "bi bi-download",
+    "install.share": "bi bi-box-arrow-up",
+    "install.add": "bi bi-plus-square",
+    "install.menu": "bi bi-three-dots-vertical",
     # Sorting
     # A sort control that is not currently sorting anything uses "sort"; the
     # directional pair is for a header that is showing the direction it sorted

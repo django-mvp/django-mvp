@@ -38,8 +38,8 @@ them. The developer turns the feature on and sets the application's colour, and 
 offers to install the application. The addresses it needs come with the Account Center's URL
 configuration, which the project already mounts.
 
-**Why this priority**: It is the capability the feature exists for. The other two stories make
-it easier to reach and easier to adjust, and neither delivers anything without it.
+**Why this priority**: It is the capability the feature exists for. The other stories make
+it easier to reach and easier to adjust, and none delivers anything without it.
 
 **Independent Test**: In a project that mounts the Account Center's URL configuration, turn the
 feature on with a colour. Request a page and confirm the head carries the manifest and the
@@ -154,6 +154,59 @@ project's.
 7. **Given** a header that has no colour of its own, **When** the page has loaded, **Then** the
    colour tag carries the colour drawn behind the header.
 
+---
+
+### User Story 4 - A site visitor installs the app from the install page (Priority: P3)
+
+A visitor who uses a project's site every day would be better served by the installed app, but
+installing a site is not something most people know how to do. Chrome and Edge tuck the option
+into the address bar or a menu, an iPhone hides it in the share sheet, and Firefox on a computer
+has none at all. The visitor follows a link from the project's menu and wants to be told what to
+do on the device they are holding.
+
+This story gives them one page. It names the app as it will appear under the icon, shows the
+steps for the device and browser the page is open on, offers the browser's own install button
+where the browser has one, and keeps every other device's steps a tap away for a visitor reading
+on a laptop who will install on a phone. Opened in the installed app, it says so and nothing
+more.
+
+**Why this priority**: The feature is complete for visitors who already know how to install a
+site. This reaches the ones who do not.
+
+**Independent Test**: With the feature on, request the install page and confirm it carries the
+steps for every platform and names the app by its short name. Open it in a browser under the
+user agent of an iPhone, an Android phone, Chrome and Edge, Safari on a Mac and Firefox, and
+confirm each sees its own steps first. Offer an install prompt and confirm the page shows the
+install button, then accept and dismiss it. Open it as the installed app and confirm it shows
+only that the app is installed. Turn the feature off and confirm the page does not exist.
+
+**Acceptance Scenarios**:
+
+1. **Given** a project with the feature off, **When** the install page's name is reversed,
+   **Then** no such address exists.
+2. **Given** a project with the feature on, **When** the install page is requested, **Then** it
+   carries the installation steps for every supported platform in the page as served, so a
+   visitor without the script can read all of them.
+3. **Given** that project with a short name configured, **When** the install page renders,
+   **Then** its title names the application by the short name. Without one, it uses the
+   application's name.
+4. **Given** a visitor on an iPhone, an Android phone, Safari on a Mac, Firefox, or Chrome or Edge
+   on a computer, **When** the page has loaded, **Then** the steps for that device and browser
+   are shown first, and on a phone that phone's steps are not repeated among the other devices.
+5. **Given** a browser that offers to install the site, **When** the page has loaded, **Then**
+   the page offers an install button in place of that browser's written steps, and pressing it
+   opens the browser's own install dialog.
+6. **Given** that dialog, **When** the visitor accepts it, **Then** the page says the
+   application is installed. **When** the visitor dismisses it, **Then** the written steps come
+   back.
+7. **Given** the visitor installs the application from the browser's own menu while the page is
+   open, **When** the browser reports the installation, **Then** the page says the application
+   is installed.
+8. **Given** the page is opened inside the installed application, **When** it has loaded,
+   **Then** it shows only that the application is installed and in use.
+9. **Given** any other page of the shell, **When** a browser offers to install the site,
+   **Then** the browser's own offer is left as it is.
+
 ### Edge Cases
 
 - The feature is on but the Account Center's URL configuration is not mounted. The manifest link
@@ -169,6 +222,11 @@ project's.
   application still needs a name.
 - The configured name contains characters that are special in JSON or HTML.
 - The brand mark is not square. The images must keep its proportions rather than stretch it.
+- The visitor reads the install page on one device and installs on another. Every device's steps
+  stay on the page.
+- A browser offers its install dialog once per page load. Once dismissed, the install page can
+  only show the written steps.
+- The package adds no link to the install page. The project links it from wherever suits it.
 
 ## Requirements *(mandatory)*
 
@@ -226,11 +284,20 @@ project's.
   it is written into.
 - **FR-018**: Anything the feature serves MUST NOT be fetched from a third party.
 - **FR-019**: The package MUST document how to turn the feature on, where its addresses come
-  from, the image command, every configuration key it adds, and how to supply a service worker of
+  from, the install page and how to link to it, the image command, every configuration key it adds, and how to supply a service worker of
   the project's own. The domain glossary MUST define *installable app* and *service worker*.
 - **FR-020**: The demo application MUST turn the feature on with a colour and generate its
   images with the package's own command rather than committing them, so that what
   ships is what the package is shown to do.
+- **FR-021**: With the feature on, the package MUST serve an install page from the Account
+  Center's URL configuration under a fixed URL name. Its title MUST name the application by its
+  short name. It MUST carry every supported platform's installation steps in the page as served.
+- **FR-022**: In a browser, the install page MUST show the steps for the device and browser it is
+  open on first, offer the browser's own install dialog where the browser provides one, say when
+  the application has been installed, and show only that the application is in use when opened
+  inside it.
+- **FR-023**: The install page MUST hold back the browser's own install offer only while the page
+  is open. The package MUST NOT add a link to the page to any menu.
 
 ### Key Entities
 
@@ -252,6 +319,8 @@ Not applicable. This feature stores nothing and introduces no model.
 - **SC-005**: Every manifest value the package derives can be changed from the shell's
   configuration without overriding a template.
 - **SC-006**: An unmounted Account Center URL configuration leaves every page rendering.
+- **SC-007**: A visitor who has never installed a site can install the application by following
+  the install page on any supported device.
 
 ## Clarifications
 
@@ -303,8 +372,8 @@ default everywhere else. Recorded as an edge case.
 
 - The feature is off by default. A project that upgrades sees no change, which Article XVI
   requires of default behaviour.
-- The service worker does nothing yet. Offline support, response caching, push notifications
-  and an in-page install button are separate features.
+- The service worker does nothing yet. Offline support, response caching and push
+  notifications are separate features.
 - Removing the feature from a site where browsers have already installed it is out of scope.
 - Splash screens are out of scope. Android draws its own from the manifest, and Apple's need a
   set of device-specific images that is a feature of its own.

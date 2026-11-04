@@ -14,6 +14,7 @@ from django.urls import (
     reverse,
 )
 
+from mvp.pwa.views import InstallView
 from mvp.views.account import AccountCenterView, account_center
 
 
@@ -152,6 +153,17 @@ class TestPwaUrls:
     def test_the_routes_resolve_to_the_packaged_views(self):
         assert resolve("/manifest.webmanifest").func.__name__ == "manifest"
         assert resolve("/sw.js").func.__name__ == "service_worker"
+
+    @override_settings(ROOT_URLCONF="tests.urls_pwa")
+    def test_the_install_page_is_absent_when_the_feature_is_off(self):
+        with pytest.raises(NoReverseMatch):
+            reverse("mvp-pwa-install")
+
+    @override_settings(ROOT_URLCONF="tests.urls_pwa")
+    @pytest.mark.usefixtures("pwa_enabled")
+    def test_the_install_page_has_a_fixed_name_and_path(self):
+        assert reverse("mvp-pwa-install") == "/install/"
+        assert resolve("/install/").func.view_class is InstallView
 
 
 class TestAccountCenterMount:

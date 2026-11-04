@@ -173,6 +173,14 @@ AppMenu.extend(
                         "icon": "map",
                     },
                 ),
+                MenuItem(
+                    name="install-app",
+                    view_name="mvp-pwa-install",
+                    extra_context={
+                        "label": "Install this app",
+                        "icon": "install",
+                    },
+                ),
                 MenuCollapse(
                     name="errors",
                     extra_context={

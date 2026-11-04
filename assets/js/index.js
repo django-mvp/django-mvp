@@ -22,6 +22,7 @@ import { themeChange } from "theme-change";
 
 import { startDropdowns } from "./dropdown.js";
 import { startHeaderHeight } from "./header_height.js";
+import { registerInstallPage } from "./install.js";
 import { registerLayoutStore } from "./layout.js";
 import { registerPageSide } from "./page_side.js";
 import { registerPageSideColumn } from "./page_side_column.js";
@@ -91,6 +92,9 @@ registerPageSide(Alpine);
 
 // A tall sticky panel moving with the page. See assets/js/page_side_column.js.
 registerPageSideColumn(Alpine);
+
+// The install page's device detection and install button. See assets/js/install.js.
+registerInstallPage(Alpine);
 
 // mvp/static/js/formset.js reaches for the global, as does any x-data in a
 // consuming project's own templates.
