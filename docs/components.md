@@ -489,6 +489,9 @@ third-party package installed and its integration wired up before you use it.
 | `c-mvp.addons.share-dropdown` | `url` (default: current page URL), `title` (default: `page.title`), `size`, `class` — social share menu (social networks, email, copy link) | nothing |
 | `c-mvp.addons.django-table` | `table`, `class`, `label`, `role` (default `region`) — scrollable region around a django-tables2 table, with its heading and footer rows pinned. A table with no rows draws `c-mvp.page.list.empty` in its body, from `empty_state`, `refinements`, `clear_refinements_url`, `directory`, `create_form` and `model_info`, read from the page when not passed | django-tables2 |
 
+`c-mvp.addons.share-dropdown` shares `url` from every choice, Copy link included. Pass it
+when the page should be shared under another address, such as its canonical one.
+
 `c-mvp.addons.share-dropdown` is plain markup over hard-coded social URLs, so it renders
 anywhere — `c-mvp.page.list.actions.share` puts it on a list page unconditionally.
 
