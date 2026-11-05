@@ -1,0 +1,7 @@
+{# @description A paragraph of an email's message, with its spacing written inline so it holds in every mail client. #}
+{# @prop mb:select['none','xs','sm','md','lg','xl'] | default:"md" | description:"Space below the paragraph. An unknown value is the default." #}
+{# @prop size:select['sm','md','lg'] | default:"md" | description:"Size of the type. An unknown value is the default." #}
+{# @prop align:select['start','center'] | default:"start" | description:"Alignment of the text. An unknown value is the default." #}
+{# @slot The paragraph's words. — Inline markup such as a link is fine. #}
+<c-vars mb="md" size="md" align="start" />
+<p style="margin:0 0 {% if mb == 'none' %}0{% elif mb == 'xs' %}4{% elif mb == 'sm' %}8{% elif mb == 'lg' %}16{% elif mb == 'xl' %}24{% else %}12{% endif %}px 0;font-size:{% if size == 'sm' %}14{% elif size == 'lg' %}18{% else %}16{% endif %}px;text-align:{% if align == 'center' %}center{% else %}left{% endif %};">{{ slot }}</p>

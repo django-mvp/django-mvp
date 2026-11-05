@@ -120,7 +120,9 @@ class TestBaseTemplate:
     def test_a_filled_preheader_appears(self, site):
         assert "PREHEADER-MARKER" in render(CHILD)
 
-    def test_a_template_with_a_request_in_its_context_uses_the_requests_host(self, site, rf):
+    def test_a_template_with_a_request_in_its_context_uses_the_requests_host(
+        self, site, rf
+    ):
         request = rf.get("/", HTTP_HOST="request.example.org")
 
         logo = soup_of(CHILD, request=request).find("img")

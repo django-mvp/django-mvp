@@ -37,6 +37,35 @@ phone-width rules. The template needs nothing in its context: it finds the site'
 with the tags described below, so it renders the same for a sender that passes only its own
 variables. It never sets the subject or the plain-text part. Whatever sends the email keeps both.
 
+## Write the message with the pieces
+
+Five components cover what a message is usually made of. Each one is drawn in the site's colours
+and written so it holds in every mail client. Use them inside the `body` block:
+
+1. `<c-mvp.email.text>` writes a paragraph. Plain `<p>` works too and gets the same default
+   spacing. Use the component when a paragraph needs other spacing. `mb` sets the space below it
+   (`none`, `xs`, `sm`, `md` for the default, `lg`, `xl`), `size` the type (`sm`, `md`, `lg`) and
+   `align` the alignment (`start` or `center`). A value that isn't on its list is the default.
+2. `<c-mvp.email.button href="…" text="…" />` draws a link as a button.
+3. `<c-mvp.email.note>` writes secondary text, such as what to do if the email was not expected.
+4. `<c-mvp.email.divider />` draws a rule between parts of the message.
+5. `<c-mvp.email.code code="…" />` sets a one-time code apart so it can be read and copied.
+
+```django
+{% extends "mvp/email/base.html" %}
+{% block body %}
+  <h1>Reset your password</h1>
+  <c-mvp.email.text>Someone asked to reset the password for your account.</c-mvp.email.text>
+  <c-mvp.email.text mb="lg" align="center">Choose a new one with the button below.</c-mvp.email.text>
+  <c-mvp.email.button :href="reset_url" text="Choose a new password" />
+  <c-mvp.email.divider />
+  <c-mvp.email.note>If you didn't ask for this, you can ignore this email.</c-mvp.email.note>
+  <c-mvp.email.code code="482913" />
+{% endblock %}
+```
+
+The component reference lists them with the other components in [Components](components.md#email).
+
 ## Inline your own styles
 
 Gmail and Outlook drop or ignore most of a `<style>` element, so the base template writes its
