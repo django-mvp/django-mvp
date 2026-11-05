@@ -18,7 +18,7 @@ Notes for research and planning to answer by name. None of them is settled.
    (release date, downloads, licence) against css-inline and recommend one. Measured on
    2026-11-04: mjml-python 1.4.2 (September 2026, about 413k a month, MIT, a wrapper around the
    Rust `mrml`); the pure-Python `mjml` 1.0.0a1 (September 2026, about 306k a month, MIT).
-5. `html2text`, the usual converter for a plain-text part, is GPL-3.0, which FR-018 rules out.
+5. `html2text`, the usual converter for a plain-text part, is GPL-3.0, which FR-014 rules out.
 6. django-post-office is expected to be installed later as the email backend, so mail is queued
    and logged without changing the packages that send it. The design must not get in its way.
 7. When sending from a background worker there is no request. Research where the site's address

@@ -40,12 +40,14 @@ the project already has:
 
 ### 3. css-inline is a candidate for inlining CSS so mail clients render it. premailer is not.
 
-**Adopted.** css-inline (MIT, 0.23.1 released 2026-10-27, about 2.8M a month). The layout is
-written with a `<style>` block and classes. At send time `CSSInliner(keep_at_rules=True)` moves
-every rule onto its elements and keeps the `@media` rules, which carry the dark scheme and the
-phone width, in the head. Checked on 2026-11-05: with that option the dark-mode rule survives and
-the plain rules are inlined. The sample emails' hand-written margins go away. premailer is not
-used: nothing released since 2021.
+**Adopted.** css-inline (MIT, 0.23.1 released 2026-10-27, about 2.8M a month). django-mvp never
+sends an email (Sam, 2026-11-05), so the inlining cannot happen at send time. It happens while the
+template renders: the base template wraps itself in a block tag, `{% email_inline %}`, which
+renders its contents, the child template's blocks included, and passes the result through
+`CSSInliner(keep_at_rules=True, load_remote_stylesheets=False)`. The `@media` rules for the dark
+scheme and the phone width stay in the head. Checked on 2026-11-05: the dark rule survives, plain
+rules are inlined, and a 7 KB email takes 0.4 ms. Any sender that renders the template, allauth
+included, gets inlined HTML. premailer is not used: nothing released since 2021.
 
 ### 4. mjml-python against css-inline: measure and recommend one.
 
@@ -55,31 +57,28 @@ a second template language with Django tags inside it. The layout here is one co
 in this package, which is the part MJML's engine exists for. Packages that send mail write only a
 body, in ordinary Django templates. css-inline does the one job left, inlining.
 
-### 5. `html2text` is GPL-3.0, which FR-018 rules out.
+### 5. `html2text` is GPL-3.0, which FR-014 rules out.
 
-**Adopted: inscriptis** (Apache-2.0, 2.7.6 released 2026-10-23, about 1.6M a month, Python 3.11+,
-inside the package's 3.12 floor). It lays tables out as columns and lists as items. Its own link
-option writes Markdown (`[text](url)`) and repeats an address that is already the link's text, so
-a handler for `<a>`, through its `custom_html_tag_handler_mapping`, writes `text (address)` or
-the address alone. It brings lxml (capped below 6.2) and requests into every consumer's install.
-Weighed against a converter of our own over `html.parser`: the package stays, because a
-maintained converter beats custom code and its size is no reason against it. markdownify (MIT) was the alternative: it
-produces Markdown, so a plain-text reader sees `**` and `#`. html-text (MIT) drops link
-addresses.
+**Not needed.** The plain-text part belongs to whatever sends the email (Sam, 2026-11-05). allauth
+renders its own `_message.txt` and attaches the HTML beside it
+(`allauth/account/adapter.py`, `render_mail`), and django-mvp has no hook into that. No converter
+is added. inscriptis, chosen while the plan still had a sending helper, is dropped with it.
 
 ### 6. django-post-office will be the email backend later. The design must not get in its way.
 
-**Adopted.** The helper builds one `EmailMultiAlternatives` and calls `send()`, which goes through
-`EMAIL_BACKEND`. django-post-office's backend (3.12.0, MIT) accepts exactly that. No part of this
-feature stores, queues or logs mail.
+**Adopted, by doing nothing.** django-mvp does not send email, so a sender's mail keeps going
+through `EMAIL_BACKEND` as it does today, and django-post-office's backend (3.12.0, MIT) receives it
+unchanged. No part of this feature stores, queues or logs mail.
 
 ### 7. With no request, where does the site's address come from, without a setting?
 
 **Adopted: the sites framework.** With a request, `request.build_absolute_uri("/")`. Without one,
 `django.contrib.sites` `get_current_site(None)`, which reads `SITE_ID`. A `Site` holds a domain and
 no scheme, so the scheme is `https`, or `http` while `DEBUG` is on. Every project that sends
-account mail through allauth has the sites framework already, because allauth requires it. With
-neither, the helper raises `ImproperlyConfigured` saying how to fix it.
+account mail through allauth has the sites framework already, because allauth requires it, and
+allauth passes the request into its email templates' context. The template tags read the request
+from the context when it is there. With neither, they raise `ImproperlyConfigured` naming
+`django.contrib.sites` and `SITE_ID`.
 
 ## What the sketch needs and faked
 
@@ -88,30 +87,29 @@ neither, the helper raises `ImproperlyConfigured` saying how to fix it.
 | Light colours from the default theme, dark from the dark theme (page, card, border, text, button) | note 2, `mvp.email.brand` |
 | Muted text as a solid colour, 70% text over the card | coloraide's `mix` |
 | Absolute logo with a dark version | note 2 and note 7 |
-| Body markup carries no styling | the layout's `<style>` block, inlined by css-inline (note 3) |
-| Plain text keeps headings, items, rows and link addresses | inscriptis (note 5) |
-| Preview list with labels and groups, error per email | `mvp.email.previews`, discovered from each app's `emails.py` |
+| Body markup carries no styling | the base template's `<style>` block, inlined by `{% email_inline %}` (note 3) |
+| Plain text keeps headings, items, rows and link addresses | the sender's own plain-text template (note 5). The preview shows it when the email has one |
+| Preview list with labels and groups, error per email | `mvp.email.previews`, discovered from each app's `email_previews.py` |
 | Dark and images-blocked views | preview-only transforms of the rendered HTML, tested |
 | Faked: colour reading by regex and hand-written conversion | tinycss2 and coloraide |
 | Faked: SVG logo | PNGs and `mvp_email_logos` |
 | Faked: `logo_url` called directly | the email reads its own PNG paths. A configured `logo_resolver` returns SVG URLs a mail client cannot show, so the email does not call it |
-| Faked: inline styles by hand | css-inline |
-| Faked: plain-text converter | inscriptis |
+| Faked: inline styles by hand | `{% email_inline %}` and css-inline |
+| Faked: plain-text converter | dropped: the sender's own template (note 5) |
 | Faked: site address from the request only | note 7 |
-| Faked: no sending helper | `mvp.email.send_email` |
+| Faked: no sending helper | none is built: django-mvp does not send email (FR-016) |
 | Faked: dark view forces the media query on | kept as the preview's own transform, now tested |
 | Faked: images blocked empties every address | kept as the preview's own transform, now tested |
-| Faked: `preview()` called from `demo/emails.py` in `DemoConfig.ready` | `autodiscover_modules("emails")` in `MvpConfig.ready`, Django's own mechanism, the one the admin uses |
+| Faked: `preview()` called from `demo/emails.py` in `DemoConfig.ready` | `autodiscover_modules("email_previews")` in `MvpConfig.ready` while `DEBUG` is on, Django's own mechanism, the one the admin uses |
 | Faked: five sample emails in the demo | stay in the demo as the worked example, and become the preview fixtures in tests |
 | Faked: language follows the shell switcher | a Language choice on the preview page when `LANGUAGES` has more than one entry |
 
 ## Template names
 
-An email is a template prefix with three files: `<prefix>_subject.txt`, `<prefix>_message.html`
-and optionally `<prefix>_message.txt`. This is allauth's own convention
-(`DefaultAccountAdapter.render_mail`), so django-mvp-accounts adopts the layout by adding
-`_message.html` files and changes nothing about how allauth finds them. The sketch's
-`<name>/subject.txt` shape is dropped.
+Every sender names its own templates, so django-mvp imposes no naming. allauth's are
+`<prefix>_subject.txt`, `<prefix>_message.txt` and `<prefix>_message.html`, and django-mvp-accounts
+adopts the layout by overriding the `_message.html` files to extend the base template. A preview
+names its templates in full.
 
 ## What already exists
 
@@ -123,13 +121,12 @@ and optionally `<prefix>_message.txt`. This is allauth's own convention
 | Static file search | 4 | `django.contrib.staticfiles.finders.get_finders()` and each finder's `list()` |
 | Contrast and mixing | 6 | coloraide `contrast()` and `mix()` |
 | CSS inlining | 6 | css-inline |
-| Plain text | 6 | inscriptis |
 | Logo rendering | 2 and 6 | `mvp_pwa_icons`'s use of resvg-py. The new command shares its optional-import message |
 | Site address | 4 | `request.build_absolute_uri`, `django.contrib.sites.shortcuts.get_current_site` |
 | Site name | 2 | `mvp.utils.site_name` |
-| Making paths absolute | 7, new | a regex over `href="/` and `src="/` in the rendered HTML. css-inline's `base_url` resolves stylesheets only |
-| Sending | 4 | `EmailMultiAlternatives` |
-| Language | 4 | `translation.override` |
+| Absolute addresses in a body | 4 and 7 | `{% email_url %}`, a thin tag over Django's `reverse` and the site's address |
+| Sending, subject, plain text, language | 1 | not built: they are the sender's |
+| Inlining at render time | 7, new | `{% email_inline %}`, a block tag of a few lines over css-inline |
 | Preview discovery | 4 | `django.utils.module_loading.autodiscover_modules` |
 | Preview page | 2 | `MVPTemplateView`, `page_view.html`, `UserPassesTestMixin` |
 | Start-up warnings | 2 | the `mvp.checks` system checks |

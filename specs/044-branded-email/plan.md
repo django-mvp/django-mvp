@@ -5,76 +5,80 @@
 
 ## Summary
 
-`mvp.email` gives a package one class to render and send a branded email, a base layout with four
-email pieces, a colour reader that takes the email's colours from the project's light and dark
-themes, PNG logos with a command that renders them, and a staff-only preview page that exists
+django-mvp ships a base email template, four email pieces and a small template tag library.
+Whoever owns an HTML email template, a django-mvp package or a project overriding a third-party
+package's template, extends the base template and writes the message. Nothing in this feature
+renders or sends email: the package that sends an email today keeps sending it, with its own
+subject, plain text and language. The email's colours are read from the project's light and dark
+themes, its logo is a PNG rendered from the brand logo, and a staff-only preview page exists
 while `DEBUG` is on. The approved sketch's layout, pieces, sample emails and preview page are kept
-as Sam saw them. The code behind them is rewritten test-first, and everything the sketch faked is
-replaced (research, "What the sketch needs and faked").
+as Sam saw them. The code behind them is rewritten test-first.
 
 ## Technical context
 
 Python 3.12+, Django 5.2–6.1, django-cotton 2.8. New runtime dependencies, each justified in
-`research.md` (Article VII): css-inline, tinycss2, coloraide, inscriptis (which brings lxml and
-requests). resvg-py stays optional
-and is used only by the new management command, imported inside it the way `mvp_pwa_icons` does.
-Tests are pytest with Django's in-memory email backend and assertions on the rendered HTML and
-text. No browser test: nothing here needs a browser to observe (Article XIV).
+`research.md` (Article VII): css-inline, tinycss2, coloraide. resvg-py stays optional and is used
+only by the new management command, imported inside it the way `mvp_pwa_icons` does. Tests are
+pytest with rendered-template assertions, plus one test that sends a third-party-style email
+through Django's in-memory backend. No browser test (Article XIV).
 
 ## Constitution check
 
 | Article | How the plan meets it |
 |---|---|
 | I Testing | Every task writes its tests first. The sketch's Python is reset to origin/main before the first dispatch so those tests start red |
-| II Simplicity, III Anti-abstraction | One class for an email, one for the brand. No base class, no backend of our own, no setting |
+| II Simplicity, III Anti-abstraction | Templates, Cotton components and template tags. No class for sending, no setting |
+| IV Integration-first | The first acceptance test is a third-party-style sender, unchanged, whose overridden template extends the base template |
 | V Security | Every value reaches the email through Django's template layer. The preview page is absent with `DEBUG` off and staff-only with it on |
-| VI, XVII Documentation | `docs/email.md` is written in the story that introduces each name, and listed in the docs index |
-| VII Dependencies | Four runtime additions, each with its reason in `research.md`. `deptry` stays green |
-| VIII Internationalization | Every string in the layout, pieces and preview page is translatable. The email renders in the language it is given |
-| X Cohesion | `Email` holds rendering and sending, `EmailBrand` holds colours and logos. The preview registry is a module dict with one `register` function, the shape Django's own `autodiscover_modules` callers use |
+| VI, XVII Documentation | `docs/email.md` is written in the task that introduces each name, and listed in the docs index |
+| VII Dependencies | Three runtime additions, each with its reason in `research.md`. `deptry` stays green |
+| VIII Internationalization | Every string in the layout, pieces and preview page is translatable. The language is the sender's |
+| X Cohesion | `EmailBrand` holds the colours and logos. The template tags are thin readers of it |
 | XI Components are the public API | The pieces are Cotton components, `c-mvp.email.button`, `.note`, `.divider`, `.code` |
-| XIII Rendered markup is a contract | Each piece and the layout have rendered-markup tests |
-| XV Build artifacts | The preview page uses classes already in the built stylesheet. The task that adds it confirms that and rebuilds if any is missing |
-| XVI Compatibility | Additive only. No existing name changes |
+| XIII Rendered markup is a contract | Each piece and the base template have rendered-markup tests |
+| G10 | Third-party senders are not extended or replaced. Only their templates are overridden |
 
 ## Design
 
-### Sending: `mvp.email.Email`
+### The base template: `mvp/email/base.html`
 
-```python
-from mvp.email import Email
-
-Email("mvp_compliance/email/version_published", {"version": version}).send(
-    to=[user.email], language=user.language, request=request,
-)
+```django
+{# mvp_compliance/email/version_published_message.html #}
+{% extends "mvp/email/base.html" %}
+{% block preheader %}A new version is published.{% endblock %}
+{% block body %}
+  <h1>{{ version.title }}</h1>
+  <p>…</p>
+  <c-mvp.email.button href="{% email_url version.get_absolute_url %}" text="Read it" />
+{% endblock %}
 ```
 
-- `Email` lives in `mvp/email/message.py` and is re-exported from `mvp.email`.
-  `Email(prefix, context, *, language=None, request=None)`. `render()` returns a `RenderedEmail`
-  with `subject`, `html` and `text`. `send(to, *, from_email=None, cc=None, bcc=None,
-  reply_to=None, attachments=None, headers=None)` builds one `EmailMultiAlternatives` and calls
-  `send()`, returning what Django returns. An empty `to` sends nothing, logs a warning and returns
-  `0`.
-- Templates follow allauth's naming: `<prefix>_subject.txt`, `<prefix>_message.html`, and
-  optionally `<prefix>_message.txt`. The subject is joined to one line.
-- Rendering runs inside `translation.override(language or translation.get_language())`, so an
-  email sent without a language uses the active one, and the previous language is restored.
-  `override(None)` would switch translation off, so it is never called with `None`.
-- The context the templates see is the caller's, plus `email_brand` (light and dark colours, logo
-  URLs), `site_name` and `site_url`. `site_name` is `MVP_CONFIG["site_name"]` when set, otherwise
-  the request's or the current `Site`'s name, so the email names the site the way the shell does. The caller's keys win.
-- After rendering: paths in `href="/…"` and `src="/…"` become absolute against the site's address,
-  then css-inline inlines the `<style>` block with `keep_at_rules=True` and
-  `load_remote_stylesheets=False`. The plain-text part is the `_message.txt` template when it
-  exists, otherwise inscriptis over the final HTML, with a handler for `<a>` that writes
-  `text (address)`, or the address alone when the text already is the address.
-- The site's address: `request.build_absolute_uri("/")` (so it relies on `ALLOWED_HOSTS`, as every
-  request does), otherwise the current `Site` over `https` (`http` while `DEBUG`). The no-request
-  path raises `ImproperlyConfigured`, naming `django.contrib.sites` and `SITE_ID`, in every way it
-  can fail: the sites framework not installed, no `Site` matching `SITE_ID`, or a `Site` with an
-  empty domain.
+- The sketch's markup, with its styles moved into a `<style>` block as classes. Blocks:
+  `preheader`, `body`, `footer`. Plain `h1`, `h2`, `p`, `ul`, `li` and `a` in the body get their
+  spacing and colour from the block, so an author writes plain markup.
+- The whole template is wrapped in `{% email_inline %}…{% endemail_inline %}`, a block tag that
+  renders its contents, child blocks included, and passes the result through css-inline
+  (`keep_at_rules=True`, `load_remote_stylesheets=False`). The `@media` rules for the dark scheme
+  and the phone width stay in the head. This is how the styling becomes inline without the sender
+  doing anything: it happens while the template renders.
+- The template reads everything through `{% load mvp_email %}` tags, so it needs nothing in its
+  context that a third-party sender would not pass (FR-003).
 
-### Colours and logos: `mvp.email.brand.EmailBrand`
+### Template tags: `mvp/templatetags/mvp_email.py`
+
+- `{% email_brand as brand %}`: the light and dark palettes and the absolute logo URLs.
+- `{% email_url path %}`: an absolute address on the site for a path or a URL name with arguments,
+  the same way `{% url %}` takes them. Addresses already absolute are returned unchanged.
+- `{% email_site_name %}`: `MVP_CONFIG["site_name"]`, otherwise the request's or the current
+  `Site`'s name, as the shell names the site.
+- `{% email_inline %}`: above.
+- The site's address: `context["request"].build_absolute_uri("/")` when the context has a request
+  (allauth passes one), otherwise the current `Site` over `https`, `http` while `DEBUG`. With no
+  request, the no-request path raises `ImproperlyConfigured`, naming `django.contrib.sites` and
+  `SITE_ID`, when the sites framework is not installed, when no `Site` matches `SITE_ID`, and when
+  the `Site`'s domain is empty.
+
+### Colours and logos: `mvp/email/brand.py`, `EmailBrand`
 
 - `EmailBrand.current()` is cached for the process. It reads the themes named in
   `MVP_CONFIG["theme"]["default"]` and `["dark"]`.
@@ -83,66 +87,59 @@ Email("mvp_compliance/email/version_published", {"version": version}).send(
   contributes its `--color-*` declarations only when one of its comma-separated selectors is the
   theme on its own: `[data-theme=<name>]`, quoted or not, optionally with `:root` in the same
   compound. A selector naming the theme and then a descendant (`[data-theme=nord] .mvp-sidebar`)
-  never contributes. A `var()` value is skipped silently, as a reference and not a colour. The first value found for each property wins, so a project's own
-  stylesheet beats the package's, which is what the page sees. Missing properties fall back to the
+  never contributes. A `var()` value is skipped silently. The first value found for each property
+  wins, so a project's own stylesheet beats the package's. Missing properties fall back to the
   package's theme of the same name, then to the package's `light` or `dark`.
 - Each value is converted with coloraide to sRGB hex, fitted into gamut. A value coloraide cannot
   read takes the fallback and is recorded as a problem.
-- The palette the layout uses: `page` (`base-200`), `surface` (`base-100`), `border`
-  (`base-300`), `text` (`base-content`), `muted` (`base-content` mixed 70% over `base-100`),
-  `primary`, `primary_content`.
+- The palette: `page` (`base-200`), `surface` (`base-100`), `border` (`base-300`), `text`
+  (`base-content`), `muted` (`base-content` mixed 70% over `base-100`), `primary`,
+  `primary_content`.
 - Logos: `brand/email/logo.png` and, when present, `brand/email/logo_dark.png`, found with the
-  static file finders and served through `static()`. The package ships both, rendered from its own
-  SVGs.
-- `EmailBrand.problems()` lists what the system check reports: a theme no stylesheet defines, a
-  colour that could not be read, a project `brand/logo.svg` whose email PNG still comes from the
-  package.
+  static file finders. The package ships both, rendered from its own SVGs.
+- `EmailBrand.problems()` feeds a system check: a theme no stylesheet defines, a colour that could
+  not be read, a project `brand/logo.svg` whose email PNG still comes from the package.
 
-### The layout and pieces
+### Pieces
 
-- `mvp/email/base.html`: the approved sketch's markup with its inline styles moved into the
-  `<style>` block as classes, so css-inline puts them back. Blocks: `preheader`, `body`, `footer`.
-  The `@media (prefers-color-scheme: dark)` rules use the dark palette and swap the logo. The
-  `@media (max-width: 620px)` rule is kept. Headings, paragraphs and lists in the body get their
-  spacing from the block, so a sender writes plain markup.
-- Pieces as Cotton components under `cotton/mvp/email/`: `button` (`href`, `text`), `note`
-  (slot), `divider`, `code` (`code`). Their markup is the sketch's.
+Cotton components under `cotton/mvp/email/`: `button` (`href`, `text`), `note` (slot),
+`divider`, `code` (`code`). The sketch's markup, styled through the base template's classes so
+they inline. The button's colour sits on its table cell, which Outlook honours.
 
 ### Previews
 
-- `mvp.email.previews.register(prefix, label, context, *, group="")` adds an `EmailPreview` to a
-  module dict. While `DEBUG` is on, `MvpConfig.ready` calls `autodiscover_modules("email_previews")`,
-  so a package declares its previews in its own `email_previews.py`. The name avoids the
-  `emails.py` modules packages already have for sending.
-- `mvp.urls` adds `emails/` and `emails/frame/<path:prefix>` only while `DEBUG` is on, the way it
-  already adds the installable-app routes only while `pwa` is set.
-- `EmailPreviewView` and `EmailPreviewFrameView` refuse anyone but a signed-in staff member. The
-  page is the sketch's. One email failing to render shows its error in place of the email.
-- The preview's controls: Part, Colour scheme, Images and Width, as approved, plus Language when
-  `LANGUAGES` has more than one entry. Dark shows the email with its dark rules applied
-  unconditionally, and Images blocked removes every image address. Both are preview-only
+- `mvp.email.previews.register(template, label, context, *, subject=None, text=None, group="")`
+  records an `EmailPreview`: the HTML template, and the subject and plain-text templates when the
+  email has them. Template names are given in full, because each sender names its own.
+- While `DEBUG` is on, `MvpConfig.ready` calls `autodiscover_modules("email_previews")`, so a
+  package declares its previews in its own `email_previews.py`.
+- `mvp.urls` adds `emails/` and `emails/frame/<path:template>` only while `DEBUG` is on, the way
+  it already adds the installable-app routes only while `pwa` is set.
+- The page and frame views render the declared templates with `render_to_string`, refuse anyone
+  but a signed-in staff member, and show one email's render error in its place. Controls: Part
+  (HTML, or plain text when the email has it), Colour scheme, Images, Width, as approved, plus
+  Language when `LANGUAGES` has more than one entry. Dark and Images blocked are preview-only
   transforms of the rendered HTML.
 
 ### Management command: `mvp_email_logos`
 
 Renders `brand/logo.svg` and `brand/logo_dark.svg`, as the static finders find them, to PNG at
-64 px high (twice the 32 px the layout draws), into `brand/email/` under the first
-`STATICFILES_DIRS` entry or `--output-dir`. Without resvg-py it stops and names the package, with
-the same wording as `mvp_pwa_icons`.
+64 px high into `brand/email/` under the first `STATICFILES_DIRS` entry or `--output-dir`.
+Without resvg-py it stops and names the package, with the same wording as `mvp_pwa_icons`.
 
 ### Demo
 
-The five approved sample emails move to the allauth naming under `demo/templates/demo/email/`
-and are declared in `demo/emails.py`. The deliberately broken preview stays. The menu entry stays.
+The five approved sample emails stay under `demo/templates/demo/email/`, renamed to allauth's
+naming as an example of overriding a third party's templates, and are declared in
+`demo/email_previews.py`. The broken preview and the menu entry stay.
 
 ## Story order and dispatch
 
-US-1 → US-3 → US-2 → US-4, one feature worktree, six dispatches (one per group) (`tasks.md`). US-3 comes before
-US-2 because the dark colours US-2 checks come from the theme reader US-3 completes.
+US-1 → US-3 → US-2 → US-4, one feature worktree, five dispatches (`tasks.md`).
 
 ## Risks
 
-- The theme search reads every static `.css` file once per process: 22 files, about 800 KB, on
-  the demo. Files without `data-theme` are skipped before parsing.
-- Desktop Outlook is checked by eye at the walkthrough, by sending a real email. No test stands in
-  for it.
+- `{% email_inline %}` runs css-inline on every render. On a ten-kilobyte email it takes well under
+  a millisecond.
+- The theme search reads every static `.css` file containing `data-theme` once per process.
+- Desktop Outlook is checked by eye at the walkthrough, by sending a real email.
