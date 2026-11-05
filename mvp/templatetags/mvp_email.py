@@ -12,6 +12,7 @@ from css_inline import CSSInliner
 from django import template
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
+from django.http import HttpRequest
 from django.template import Context
 from django.urls import reverse
 
@@ -49,6 +50,19 @@ class EmailSite:
             "Add django.contrib.sites to INSTALLED_APPS, set SITE_ID, and give that Site "
             "the site's domain, or render the email with a request in its context."
         )
+
+    @staticmethod
+    def request_of(context: Context) -> HttpRequest | None:
+        """Find the request a template is rendered for.
+
+        Args:
+            context: The template context.
+
+        Returns:
+            The ``request`` variable, or else the request a ``RequestContext`` holds, which
+            it keeps when a component isolates its context; ``None`` outside a request.
+        """
+        return context.get("request") or getattr(context, "request", None)
 
     @classmethod
     def address(cls, request) -> str:
@@ -140,7 +154,9 @@ def email_url(context: Context, target: str, *args, **kwargs) -> str:
     Returns:
         The absolute address.
     """
-    return EmailSite.absolute(context.get("request"), str(target), *args, **kwargs)
+    return EmailSite.absolute(
+        EmailSite.request_of(context), str(target), *args, **kwargs
+    )
 
 
 @register.simple_tag(takes_context=True)
@@ -154,7 +170,7 @@ def email_site_name(context: Context) -> str:
         ``MVP_CONFIG["site_name"]`` when set, otherwise the request's or the current
         ``Site``'s name.
     """
-    return EmailSite.name(context.get("request"))
+    return EmailSite.name(EmailSite.request_of(context))
 
 
 @register.simple_tag(takes_context=True)
@@ -169,7 +185,7 @@ def email_brand(context: Context) -> EmailBrand:
     Returns:
         The brand, with ``logo`` and ``logo_dark`` made absolute.
     """
-    request = context.get("request")
+    request = EmailSite.request_of(context)
     brand = EmailBrand.current()
     return replace(
         brand,

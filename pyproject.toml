@@ -42,9 +42,9 @@ dependencies = [
     "django-mvp-forms>=0.8.0,<1.0",   # the daisyUI template pack forms render with
     "daisy-cotton (>=0.2,<0.3)",
     "django-filter (>=26.1,<27)",  # every list page's search, sort and filters (ADR 0033)
-    "css-inline>=0.23.1",
-    "tinycss2>=1.5.1",
-    "coloraide>=8.14",
+    "css-inline>=0.23.1,<0.24",
+    "tinycss2>=1.5.1,<2",
+    "coloraide>=8.14,<9",
 ]
 # Optional integrations (django-tables2, ...) are NOT extras:
 # they live in guarded modules under mvp.integrations, required only when

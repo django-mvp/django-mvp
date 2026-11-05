@@ -28,6 +28,17 @@ def render(source, request=None, **context):
     return Template("{% load mvp_email %}" + source).render(Context(context))
 
 
+def render_with_request_attribute(source, request):
+    """Render ``source`` with a context that holds the request only as ``.request``.
+
+    A ``RequestContext`` has it so when no context processor adds ``request`` to the dict,
+    and keeps it through ``context.new()``, which is how a Cotton component isolates its context.
+    """
+    context = Context()
+    context.request = request
+    return Template("{% load mvp_email %}" + source).render(context)
+
+
 @pytest.fixture(autouse=True)
 def fresh_brand():
     """Read the brand afresh for each test."""
@@ -152,6 +163,27 @@ class TestSiteAddressFailures:
         settings.SITE_ID = 99999
 
         assert render("{% email_url '/a/' %}", request_on_mail_host) == "http://mail.example.org/a/"
+
+
+class TestRequestHeldOnTheContext:
+    """A request a context holds as an attribute counts, so the Site is not needed."""
+
+    @pytest.fixture(autouse=True)
+    def without_sites(self, settings):
+        settings.INSTALLED_APPS = [app for app in settings.INSTALLED_APPS if app != "django.contrib.sites"]
+
+    def test_email_url_uses_it(self, request_on_mail_host):
+        assert render_with_request_attribute("{% email_url '/a/' %}", request_on_mail_host) == "http://mail.example.org/a/"
+
+    def test_email_brand_uses_it_for_the_logos(self, request_on_mail_host):
+        output = render_with_request_attribute("{% email_brand as brand %}{{ brand.logo }}", request_on_mail_host)
+
+        assert output.startswith("http://mail.example.org/")
+
+    def test_email_site_name_uses_it(self, request_on_mail_host, monkeypatch):
+        monkeypatch.setitem(MVP_CONFIG, "site_name", None)
+
+        assert render_with_request_attribute("{% email_site_name %}", request_on_mail_host)
 
 
 class TestEmailSiteName:
