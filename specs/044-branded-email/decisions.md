@@ -34,15 +34,33 @@ names and wording of every email a project sends, and a page that exists in prod
 someone has to remember to protect. Tying it to `DEBUG` makes it absent in production by
 construction. Staff-only covers a shared staging server run with `DEBUG` on.
 
-## Colours come from settings, not from the theme stylesheet
+## Colours come from the theme, with no setting of their own
 
-daisyUI themes are written in oklch custom properties, which mail clients cannot read. Reading
-them out of a project's CSS would mean parsing and converting colours at send time, from a file
-whose location the package does not own. A few hex colours in `MVP_CONFIG`, falling back to the
-installable app's `theme_color`, is one setting and no parser. Sam took this option at intake.
+Sam, 2026-11-05: no new `MVP_CONFIG` option unless there is no alternative. There is one. The
+names of a project's light and dark themes are already in `MVP_CONFIG["theme"]`, and every theme
+is a block of CSS custom properties in a static file: the package's prebuilt ones in
+`django-mvp.css`, a project's own in a plain stylesheet. The packaged values are plain `oklch()`
+colours, which convert to hex arithmetically, with no dependency.
+
+The package does not know which file holds a project's theme, because the project links it from
+its own base template. So the stylesheets the static files finders can see are searched for the
+theme's block, and a project's own file wins over the package's, matching the page, where a
+project's unlayered stylesheet beats the package's layered one. The search runs once per process
+and is cached. A value it cannot read or convert falls back to the package's and is reported by a
+start-up check, so the problem shows before an email goes out.
+
+The cost: a project that wants its email in different colours from its site has no setting for
+it and overrides the base layout. That is in keeping with the email looking like the site.
+
+## The site address comes from the request or the sites framework
+
+An email sent from a background worker has no request to take an address from, so the helper falls
+back to the current `Site`'s domain. Every project that sends account email already has the sites
+framework, because allauth requires it. A `Site` holds no scheme, so the address is HTTPS, and HTTP
+while `DEBUG` is on, which matches a dev server.
 
 ## Sending fails without a site address
 
-An email sent from a background worker has no request to take an address from. Sending one with
-relative links and a relative logo would deliver a broken email silently. Failing with the setting
-named is caught the first time a developer sends from a worker.
+With neither a request nor the sites framework, sending an email with relative links and a
+relative logo would deliver a broken email silently. Failing is caught the first time a developer
+sends from a worker.

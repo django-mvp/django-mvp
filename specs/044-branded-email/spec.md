@@ -48,9 +48,11 @@ Sam confirmed the stated reading and took the recommended option at every open p
   Recorded as FR-013 and FR-014.
 
 - **Q: Where do the email's colours come from?**
-  A: A small set of email colours in `MVP_CONFIG`. A project that sets none gets the installable
-  app's `theme_color` as its brand colour and neutral defaults for the rest. Recorded as FR-010
-  and FR-011.
+  A: From the project's theme, with no setting of their own. The email takes its light colours
+  from the theme named in `MVP_CONFIG["theme"]["default"]` and its dark colours from the one named
+  in `MVP_CONFIG["theme"]["dark"]`, reading them from whichever stylesheet defines that theme: the
+  project's own, otherwise the package's. Sam, 2026-11-05: no new `MVP_CONFIG` option unless there
+  is no alternative. Recorded as FR-010, FR-011 and FR-020.
 
 - **Q: Do the packages that send mail today move over in this feature?**
   A: No. Each moves over in its own repository once this is released. Recorded under
@@ -60,9 +62,10 @@ Sam confirmed the stated reading and took the recommended option at every open p
 
 - **Q: What base address do the logo and links use when an email is sent with no request, from a
   background worker?**
-  A: A site address the project sets once in `MVP_CONFIG`. When it is unset and a request is
-  available, the request's address is used. With neither, sending fails with an error naming the
-  setting, rather than sending an email whose logo and links are broken. Recorded as FR-007.
+  A: The request's address when the helper is given a request. Otherwise the current site's
+  domain from Django's sites framework, over HTTPS, or over HTTP while `DEBUG` is on. With neither
+  a request nor the sites framework, sending fails with an error saying so, rather than sending an
+  email whose logo and links are broken. No setting is added for it. Recorded as FR-007.
 
 - **Q: In which language is an email rendered?**
   A: The language the sender passes to the helper. With none passed, the active language. The
@@ -154,35 +157,39 @@ dark-scheme rules.
 
 ---
 
-### User Story 3 - A project developer gives its email the project's logo and colours (Priority: P1)
+### User Story 3 - A project developer's email takes on the project's theme and logo (Priority: P1)
 
-A developer running a project on django-mvp makes every email from every installed package carry
-the project's brand by setting it once in the settings, with no template overridden.
+A developer running a project on django-mvp gets every email from every installed package in the
+project's own colours and logo, from the theme and brand logo the site already uses. There is no
+email setting to fill in and no template to override.
 
 **Why this priority**: without it every project's mail looks the same, which defeats the feature.
 
-**Independent Test**: set the email colours, the site address and the logo in `MVP_CONFIG`, send
-an email, and check that the HTML carries them.
+**Independent Test**: give a project a theme stylesheet of its own and name it as the default
+theme, send an email, and check that the HTML carries that theme's colours.
 
 **Acceptance Scenarios**:
 
-1. **Given** email colours set in `MVP_CONFIG`, **When** any package sends an email, **Then** the
-   email uses those colours.
-2. **Given** no email colours set and an installable-app `theme_color` set, **When** an email is
-   sent, **Then** the `theme_color` is the email's brand colour and the rest are the package's
-   defaults.
-3. **Given** neither set, **When** an email is sent, **Then** it uses the package's default
-   colours and still meets the contrast in User Story 2.
-4. **Given** the developer runs the logo command, **When** it finishes, **Then** a light and,
+1. **Given** a project whose default theme is one of the package's prebuilt themes, **When** any
+   package sends an email, **Then** the email uses that theme's colours.
+2. **Given** a project whose default theme is defined in a stylesheet of its own, **When** an email
+   is sent, **Then** the email uses the colours from the project's stylesheet, not from a packaged
+   theme of the same name.
+3. **Given** a project that changes its default or dark theme in `MVP_CONFIG["theme"]`, **When**
+   an email is next sent, **Then** it uses the new theme's colours, with nothing else changed.
+4. **Given** a theme colour the email cannot convert to a colour mail clients understand, **When**
+   the project starts, **Then** it is warned naming the theme and the colour, and the email uses
+   the package's value for that colour.
+5. **Given** the developer runs the logo command, **When** it finishes, **Then** a light and,
    where the brand has one, a dark raster logo exist in the project's static files, rendered
    from the brand logo the shell already uses.
-5. **Given** the renderer the logo command needs is not installed, **When** the command runs,
+6. **Given** the renderer the logo command needs is not installed, **When** the command runs,
    **Then** it stops and names the package to install.
-6. **Given** a raster logo the project supplied itself at the documented path, **When** an email
+7. **Given** a raster logo the project supplied itself at the documented path, **When** an email
    is sent, **Then** the email uses that file.
-7. **Given** no raster logo at all, **When** an email is sent, **Then** the project's name is
+8. **Given** no raster logo at all, **When** an email is sent, **Then** the project's name is
    shown in its place and the email still sends.
-8. **Given** a project that overrides the base layout template, **When** any package sends an
+9. **Given** a project that overrides the base layout template, **When** any package sends an
    email, **Then** the project's layout is used.
 
 ---
@@ -223,9 +230,14 @@ as staff and open the preview page.
 - A body template that does not extend the base layout: it is sent as written, without the brand.
 - A subject template that renders more than one line: the subject is joined to one line, because
   Django refuses a line break in a subject header.
-- A project that sets only some of the email colours: the rest take their defaults.
-- A colour value that is not a valid colour: the project is told at start-up, rather than an email
-  going out with a broken colour.
+- A project theme that sets only some colours: the rest are read from the packaged theme of the
+  same name when there is one, otherwise from the package's default theme.
+- A theme name that no stylesheet defines: the email uses the package's default theme, and the
+  project is warned at start-up.
+- Two of a project's stylesheets that define the same theme: the one Django's static files lookup
+  finds first wins, the same precedence that decides which static file is served.
+- A theme colour in a form mail clients cannot read, such as a variable reference: it is
+  converted where possible, otherwise it takes the package's value with a warning.
 
 ## Requirements *(mandatory)*
 
@@ -234,7 +246,7 @@ as staff and open the preview page.
 - **FR-001**: The package MUST ship a base email layout template that an email body extends, with
   blocks for the body, the preheader text and the footer. (US-1)
 - **FR-002**: The package MUST provide a helper that takes a template name, the data, the
-  recipients, and optionally a language, the sender, reply-to, attachments and extra headers, and
+  recipients, and optionally a language, the request, the sender, reply-to, attachments and extra headers, and
   sends one message through Django's configured email backend. (US-1)
 - **FR-003**: Each email MUST take its subject from a subject template beside its body, rendered
   with the same data and joined to one line. (US-1)
@@ -244,26 +256,30 @@ as staff and open the preview page.
 - **FR-006**: The helper MUST render the subject and body in the language it is given, otherwise
   the active language, and MUST restore the previously active language afterwards. (US-1)
 - **FR-007**: Links written as URL paths, and the logo, MUST be absolute addresses, built from the
-  site address set in `MVP_CONFIG`, otherwise the request's address. With neither, sending MUST
-  fail with an error naming the setting. (US-1)
+  request's address when the helper is given one, otherwise from the current site's domain in
+  Django's sites framework (HTTPS, or HTTP while `DEBUG` is on). With neither, sending MUST fail
+  with an error saying so. (US-1)
 - **FR-008**: The email MUST show a raster logo from a documented static path, with a dark variant
   when one exists, and the project's name as its text alternative. With no logo file, the
   project's name MUST stand in its place. (US-2, US-3)
 - **FR-009**: The package MUST provide a management command that renders the light and dark
   raster logos from the brand logo the shell uses, and stops naming the missing package when its
   optional renderer is absent. (US-3)
-- **FR-010**: The email's colours MUST be configurable in `MVP_CONFIG` and MUST be validated when
-  the project starts. (US-3)
-- **FR-011**: With no email colours configured, the email's brand colour MUST be the installable
-  app's `theme_color` when set, and the package's default otherwise. Any colour not set MUST take
-  its default. (US-3)
+- **FR-010**: The email's light colours MUST come from the theme named in
+  `MVP_CONFIG["theme"]["default"]`, and its dark colours from the theme named in
+  `MVP_CONFIG["theme"]["dark"]`, read from the stylesheet that defines each theme and converted
+  to colours mail clients understand. (US-3)
+- **FR-011**: A theme defined in a project's own static files MUST win over a packaged theme of the
+  same name. A colour that cannot be read or converted MUST take the package's value, with a
+  warning at start-up naming the theme and the colour. (US-3)
 - **FR-012**: The sent HTML MUST carry its styling inline on the elements, so it does not depend on
   a client loading a stylesheet. (US-1, US-2)
 - **FR-013**: The email MUST follow a dark colour scheme in clients that honour one, with the dark
   logo and dark colours. (US-2)
-- **FR-014**: Text in the email MUST meet a contrast ratio of at least 4.5:1 against its
-  background with the package's default colours, in light, in dark, and when a client inverts
-  them. (US-2, US-3)
+- **FR-014**: The email MUST draw text only in the pairings a theme defines for reading (a content
+  colour on its own background), never a brand colour as text on the page. With the package's
+  default themes, text MUST meet a contrast ratio of at least 4.5:1 in light, in dark, and when a
+  client inverts the colours. (US-2, US-3)
 - **FR-015**: The base layout MUST provide reusable email pieces (a button, a muted note, a
   divider) that render in the project's colours in clients that ignore stylesheets. (US-1)
 - **FR-016**: A developer MUST be able to declare a preview for an email with example data, and
@@ -275,6 +291,8 @@ as staff and open the preview page.
   its template at the same path. (US-3)
 - **FR-019**: The feature MUST add no runtime dependency under a GPL or AGPL licence, and MUST NOT
   require a front-end build step. (US-1)
+- **FR-020**: The feature MUST add no new `MVP_CONFIG` option. Everything it needs comes from the
+  existing theme, brand and site name settings, Django's sites framework and the request. (US-3)
 
 ### Key Entities
 
@@ -284,8 +302,9 @@ as staff and open the preview page.
   colours, the project's name and the footer around the body.
 - **Email piece**: a reusable part of an email body, such as a button, that renders safely in mail
   clients.
-- **Email brand**: the colours, the site address and the raster logo the layout draws with, set
-  in `MVP_CONFIG`.
+- **Email brand**: the colours, the site address, the site name and the raster logo the layout
+  draws with. Every one of them comes from something the project already has: its themes, its
+  brand logo, its site name, and the sites framework or the request.
 - **Email preview**: an email's name paired with the example data it is previewed with.
 
 ### Out of scope
@@ -295,7 +314,8 @@ as staff and open the preview page.
 - Queuing, delivery logs, email templates stored in the database, unsubscribe links and digests.
   These belong to a separate package. This feature promises only that mail goes through Django's
   configured email backend.
-- Reading the email's colours out of the project's theme stylesheet.
+- Email colours set separately from the theme. A project that wants its email in other colours
+  overrides the base layout template.
 
 ## Success Criteria *(mandatory)*
 
@@ -303,11 +323,12 @@ as staff and open the preview page.
 
 - **SC-001**: A package sends a branded email by writing a body template and one helper call, with
   no layout or styling of its own.
-- **SC-002**: A project brands every installed package's email by changing settings only, with no
-  template override.
+- **SC-002**: A project's email takes on its theme and logo with no email setting and no template
+  override.
 - **SC-003**: Every sent email carries an HTML part with inline styling and a plain-text part.
-- **SC-004**: Text in an email with the default colours meets 4.5:1 contrast in light, dark and
-  inverted rendering.
+- **SC-004**: Text in an email in the package's default themes meets 4.5:1 contrast in light, dark
+  and inverted rendering.
 - **SC-005**: The feature adds no GPL or AGPL runtime dependency and keeps Django 5.2 supported.
 - **SC-006**: A developer opens any declared email rendered in the browser in one click from the
   preview list.
+- **SC-007**: The feature adds no `MVP_CONFIG` option.
