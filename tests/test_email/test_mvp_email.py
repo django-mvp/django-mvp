@@ -5,6 +5,9 @@ The tags' module cannot be mirrored as ``tests/test_templatetags/`` because
 the other email tests.
 """
 
+import threading
+from http.server import BaseHTTPRequestHandler, HTTPServer
+
 import pytest
 from django.contrib.sites.models import Site
 from django.core.exceptions import ImproperlyConfigured
@@ -52,6 +55,27 @@ def set_site(site, **fields):
     """Change the current Site and forget the cached copy."""
     Site.objects.filter(pk=site.pk).update(**fields)
     Site.objects.clear_cache()
+
+
+@pytest.fixture
+def stylesheet_server():
+    """The address of a local server that answers with ``p{margin:0}``."""
+
+    class Handler(BaseHTTPRequestHandler):
+        def do_GET(self):
+            self.send_response(200)
+            self.send_header("Content-Type", "text/css")
+            self.end_headers()
+            self.wfile.write(b"p{margin:0}")
+
+        def log_message(self, *args):
+            pass
+
+    server = HTTPServer(("127.0.0.1", 0), Handler)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    yield f"http://127.0.0.1:{server.server_port}/style.css"
+    server.shutdown()
+    server.server_close()
 
 
 class TestEmailUrl:
@@ -199,3 +223,37 @@ class TestEmailBrandTag:
         output = render("{% email_brand as brand %}{{ brand.logo_dark|default:'none' }}", request_on_mail_host)
 
         assert output == "none"
+
+
+class TestEmailInline:
+    def test_styles_are_inlined_onto_the_markup_they_match(self):
+        output = render("{% email_inline %}<style>p{margin:0}</style><p>x</p>{% endemail_inline %}")
+
+        assert "<p style=" in output
+        assert "margin" in output.split("<p style=")[1].split(">")[0]
+
+    def test_rules_in_the_style_block_are_taken_out_of_it(self):
+        output = render("{% email_inline %}<style>p{margin:0}</style><p>x</p>{% endemail_inline %}")
+
+        assert "p{margin:0}" not in output.replace(" ", "")
+
+    def test_at_rules_survive_in_the_style_block(self):
+        output = render(
+            "{% email_inline %}<style>p{margin:0} @media (prefers-color-scheme: dark){p{color:#fff !important}}</style><p>x</p>{% endemail_inline %}"
+        )
+
+        assert "@media (prefers-color-scheme: dark)" in output
+        assert "color:#fff!important" in output.replace(" ", "")
+
+    def test_a_linked_stylesheet_is_not_fetched(self, stylesheet_server):
+        output = render(f'{{% email_inline %}}<link rel="stylesheet" href="{stylesheet_server}"><p>x</p>{{% endemail_inline %}}')
+
+        assert "<p>x</p>" in output
+
+    def test_what_the_contents_render_is_inlined(self):
+        output = render(
+            "{% email_inline %}<style>p{margin:0}</style>{% for word in words %}<p>{{ word }}</p>{% endfor %}{% endemail_inline %}",
+            words=["a", "b"],
+        )
+
+        assert output.count("<p style=") == 2

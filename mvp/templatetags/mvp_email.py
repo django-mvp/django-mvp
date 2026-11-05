@@ -8,6 +8,7 @@ without the sender passing anything but, where it has one, a ``request``.
 from dataclasses import replace
 from urllib.parse import urljoin, urlsplit
 
+from css_inline import CSSInliner
 from django import template
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
@@ -177,3 +178,45 @@ def email_brand(context: Context) -> EmailBrand:
         if brand.logo_dark
         else None,
     )
+
+
+class EmailInlineNode(template.Node):
+    """Renders its contents, then moves the style block's rules onto the markup they match."""
+
+    #: Rules that can't be inlined, such as ``@media``, stay in the style block.
+    inliner = CSSInliner(keep_at_rules=True, load_remote_stylesheets=False)
+
+    def __init__(self, nodelist):
+        self.nodelist = nodelist
+
+    def render(self, context: Context) -> str:
+        """Render the contents and inline their styles.
+
+        Args:
+            context: The template context.
+
+        Returns:
+            The rendered HTML, with each rule in its ``<style>`` blocks written
+            into the ``style`` attribute of the elements it matches.
+        """
+        return self.inliner.inline(self.nodelist.render(context))
+
+
+@register.tag
+def email_inline(parser, token):
+    """Inline the styles of everything between ``{% email_inline %}`` and ``{% endemail_inline %}``.
+
+    The contents are rendered first, so blocks a child template fills are
+    included. Rules for ``@media`` and other at-rules stay in the style block.
+    Stylesheets the markup links to are not fetched.
+
+    Args:
+        parser: The template parser.
+        token: The tag's token.
+
+    Returns:
+        The node that renders and inlines the contents.
+    """
+    nodelist = parser.parse(("endemail_inline",))
+    parser.delete_first_token()
+    return EmailInlineNode(nodelist)

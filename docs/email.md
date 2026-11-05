@@ -5,8 +5,55 @@ pieces to write the message with and template tags for the parts that need the s
 It never renders or sends an email itself: whatever sends your email today keeps its own subject,
 plain text and language.
 
-This page covers the colours and the logo an email is drawn in. Nothing about them is set for
-email. They come from what the site already uses.
+This page covers the layout an email extends, the colours and the logo it is drawn in, and the
+template tags it is written with. Nothing about the colours and the logo is set for email. They
+come from what the site already uses.
+
+## Write an email on the base template
+
+Make your email template extend `mvp/email/base.html` and fill its blocks:
+
+1. Start the template with `{% extends "mvp/email/base.html" %}`.
+2. Write the message in `{% block body %}`, in plain `h1`, `h2`, `p`, `ul`, `li` and `a`. The
+   base template gives them their spacing and colours.
+3. Optionally write a one-line summary in `{% block preheader %}`. Mail clients show it after the
+   subject in the inbox list.
+4. Optionally replace the footer in `{% block footer %}`. Without it the footer reads "Sent by"
+   and your site's name, linked to the site.
+
+```django
+{% extends "mvp/email/base.html" %}
+{% load mvp_email %}
+{% block preheader %}A new version is published.{% endblock %}
+{% block body %}
+  <h1>{{ version.title }}</h1>
+  <p>Version {{ version.number }} is published.</p>
+  <p><a href="{% email_url version.get_absolute_url %}">Read it</a></p>
+{% endblock %}
+```
+
+The page around the message carries your site's logo, name and colours, and its dark-scheme and
+phone-width rules. The template needs nothing in its context: it finds the site's address and name
+with the tags described below, so it renders the same for a sender that passes only its own
+variables. It never sets the subject or the plain-text part. Whatever sends the email keeps both.
+
+## Inline your own styles
+
+Gmail and Outlook drop or ignore most of a `<style>` element, so the base template writes its
+rules onto the markup they match while it renders. `{% email_inline %}` does the same for markup
+of your own:
+
+```django
+{% load mvp_email %}
+{% email_inline %}
+  <style>.total { font-weight: 700; }</style>
+  <p class="total">{{ total }}</p>
+{% endemail_inline %}
+```
+
+Everything between the tags is rendered first, then each rule in a `<style>` block is written into
+the `style` attribute of the elements it matches, and the rule leaves the block. Rules that can't
+be written inline, such as `@media`, stay in the block. Linked stylesheets are never fetched.
 
 ## Give the email your theme's colours
 

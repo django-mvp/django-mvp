@@ -137,10 +137,7 @@ DEP002 = [
     "django-easy-icons",
     "django-crispy-forms",
     "django-mvp-forms",
-    "css-inline",
 ]
-# css-inline: imported by the email template tags (FS-044) once they inline
-#   the email's styles; this entry goes with that import.
 # django-crispy-forms, django-mvp-forms: reached through {% load %} and
 #   INSTALLED_APPS rather than a Python import.
 # invoke: dev task runner, only imported by tasks.py.
