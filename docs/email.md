@@ -2,12 +2,13 @@
 
 django-mvp gives an HTML email the look of your site. It ships a base template to extend, a few
 pieces to write the message with and template tags for the parts that need the site's address.
-It never renders or sends an email itself: whatever sends your email today keeps its own subject,
-plain text and language.
+It never sends an email: whatever sends your email today keeps its own subject, plain text and
+language.
 
-This page covers the layout an email extends, the colours and the logo it is drawn in, and the
-template tags it is written with. Nothing about the colours and the logo is set for email. They
-come from what the site already uses.
+This page covers the layout an email extends, the colours and the logo it is drawn in, the
+template tags it is written with, and a page for previewing emails in the browser while you
+develop. Nothing about the colours and the logo is set for email. They come from what the site
+already uses.
 
 ## Write an email on the base template
 
@@ -63,8 +64,6 @@ and written so it holds in every mail client. Use them inside the `body` block:
   <c-mvp.email.code code="482913" />
 {% endblock %}
 ```
-
-The component reference lists them with the other components in [Components](components.md#email).
 
 ## Override a third-party package's email
 
@@ -262,6 +261,75 @@ logo file is found.
 `mvp.email.brand.EmailBrand.current()` returns the brand: `light` and `dark` palettes, `logo` and
 `logo_dark` as static URLs. It is cached for the process. After changing `MVP_CONFIG["theme"]` or
 a stylesheet, call `EmailBrand.current.cache_clear()`.
+
+## Preview your emails in the browser
+
+While `DEBUG` is on, django-mvp serves a page that lists the emails your project and its packages
+declare and shows each one as a mail client would. It renders the templates you name and sends
+nothing. Declare an email in two steps:
+
+1. Create `email_previews.py` in any installed app. Django MVP imports that module at start-up,
+   only while `DEBUG` is on.
+2. Call `register` once for each email, naming its templates in full, because every sender names
+   its own:
+
+   ```python
+   # shop/email_previews.py
+   from mvp.email.previews import register
+
+   register(
+       "shop/email/receipt_message.html",
+       "Payment receipt",
+       {"total": "€14.28", "lines": []},
+       subject="shop/email/receipt_subject.txt",
+       text="shop/email/receipt_message.txt",
+       group="Payments",
+   )
+   ```
+
+   The first argument is the HTML template, the second what the list calls the email and the
+   third the context to render it with. `subject` and `text` are optional, and `group` lists the
+   email under a heading. Registering the same HTML template again replaces its preview.
+
+Then open the page:
+
+1. Mount `mvp.urls` at the site root, as the [Account Center](account-center.md) page shows. That adds
+   `emails/` (URL name `mvp-email-preview`) and `emails/frame/<template>` (URL name
+   `mvp-email-preview-frame`). With `DEBUG` off neither route exists.
+2. Sign in as a staff member. Anyone not signed in is sent to the sign-in page and a signed-in
+   user who isn't staff gets a 403.
+3. Open `/emails/`. The list is on the left, grouped by heading, and the first email is selected.
+
+The selected email shows its rendered subject and its HTML in a frame. The controls above it
+change how it is shown:
+
+- **Part** switches between the HTML and the plain text. Plain text is offered only for an email
+  registered with a `text` template.
+- **Colour scheme** shows the dark palette's rules at any width.
+- **Images** blocks every image by emptying its `src`, as a client does before the reader allows
+  them.
+- **Width** shows the email at a phone's width.
+- **Language** renders the email in another language. It appears only when `LANGUAGES` has more
+  than one entry.
+
+Dark and blocked images change only the preview. The email itself is exactly what the templates
+render. An email that fails to render shows its error where its preview would be, and the list and
+the other emails still load.
+
+To reach the page from your own menu, point an entry at its URL name and show it only while
+`DEBUG` is on, as the demo does:
+
+```python
+from django.conf import settings
+from flex_menu import MenuItem
+
+MenuItem(
+    name="emails",
+    view_name="mvp-email-preview",
+    check=lambda request: settings.DEBUG,
+    extra_context={"label": "Emails", "icon": "email"},
+)
+```
 
 ## Why the email holds in mail clients
 
