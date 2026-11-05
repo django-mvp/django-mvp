@@ -254,6 +254,10 @@ class TestFrame:
     def test_lang_renders_the_frame_in_that_language(self, staff_client):
         assert "Written in de" in frame(staff_client, LANGUAGE, lang="de").content.decode()
 
+    @override_settings(X_FRAME_OPTIONS="DENY")
+    def test_the_page_can_frame_it_under_the_default_clickjacking_setting(self, staff_client):
+        assert frame(staff_client)["X-Frame-Options"] == "SAMEORIGIN"
+
 
 @pytest.mark.django_db
 @pytest.mark.usefixtures("debug_on")

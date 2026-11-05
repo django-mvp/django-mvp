@@ -14,8 +14,10 @@ from django.http import Http404, HttpRequest, HttpResponse
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import translation
+from django.utils.decorators import method_decorator
 from django.utils.translation import gettext as _
 from django.views import View
+from django.views.decorators.clickjacking import xframe_options_sameorigin
 
 from mvp.views.extra import MVPTemplateView
 
@@ -221,8 +223,13 @@ class EmailPreviewView(EmailPreviewMixin, MVPTemplateView):
         return context
 
 
+@method_decorator(xframe_options_sameorigin, name="dispatch")
 class EmailPreviewFrameView(EmailPreviewMixin, View):
-    """One email's HTML, for the page to show in an iframe."""
+    """One email's HTML, for the page to show in an iframe.
+
+    Framing is allowed from the same origin whatever ``X_FRAME_OPTIONS`` says, because the page
+    that shows the email is on the same site.
+    """
 
     def get(self, request: HttpRequest, template: str) -> HttpResponse:
         """Render an email's HTML, as a mail client in the chosen scheme would show it.
