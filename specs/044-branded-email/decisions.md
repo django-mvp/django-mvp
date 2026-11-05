@@ -60,3 +60,27 @@ The scale is written in the component's template, with no Python behind it.
 
 The demo's email templates use plain text, per
 https://github.com/django-mvp/django-mvp/issues/648. The package's own templates stay translatable.
+
+## Each piece reads the brand itself
+
+**Decision**: `c-mvp.email.button` loads `mvp_email` and calls `{% email_brand as brand %}` for its colour, instead of using the `brand` the base template put in the context. The other pieces take their colours from classes in the base template's style block.
+
+**Why**: a project can turn on Cotton's context isolation, and then a component sees none of its parent template's variables. A button that depended on the base template's `brand` rendered with an empty `bgcolor` (test `test_the_colour_holds_where_cotton_hides_the_templates_variables_from_a_component`).
+
+**Revisit if**: the base template and the pieces stop being rendered in the same pass.
+
+## The sender's tests live with the other email tests
+
+**Decision**: the base template's tests and the third-party sender's tests are in `tests/test_email/test_base_template.py`, and the `{% email_inline %}` tests are a class in `tests/test_email/test_mvp_email.py`, next to the tag tests from the earlier group. `tests/test_demo/test_email_templates.py` covers the demo's naming.
+
+**Why**: `tests/test_templatetags.py` and `tests/test_templates.py` already exist as modules, so the `tests/test_templatetags/` and `tests/test_templates/` packages `tasks.md` names cannot be created.
+
+**Revisit if**: `tests/test_email/` is declared in `non-mirror-paths` or the older modules are moved into packages.
+
+## The test app is installed in the test settings
+
+**Decision**: `tests.testapp_email` is appended to `INSTALLED_APPS` in `tests/settings.py`, the way `testapp_account` and `testapp_mounted` are, and its project override directory is added to `TEMPLATES[0]["DIRS"]` by a fixture in the one test class that needs it.
+
+**Why**: the app's own templates are found through the app directories loader, as a third-party package's are. The override has to be found first, as a project's `DIRS` entry is, and only the tests that ask for it should see it.
+
+**Revisit if**: a second test needs the override.
