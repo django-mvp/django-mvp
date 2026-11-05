@@ -62,3 +62,8 @@
 - Links in body text are the text colour, underlined, never the brand colour.
 - The preview page puts the list of emails beside the email at wide widths, with Part, Colour
   scheme, Images and Width as button groups above it.
+
+## Review
+
+Sam approved the first round as built, with no changes asked for: the layout, the pieces, the
+five sample emails and the preview page.
