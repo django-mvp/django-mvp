@@ -212,13 +212,16 @@ class EmailPreviewView(EmailPreviewMixin, MVPTemplateView):
             "mvp-email-preview-frame", args=[selected.template]
         ) + self.link(email=selected.template)
         context["toggles"] = self.get_toggles(selected, options)
+        first_seen: dict[str, int] = {}
+        for preview in previews:
+            first_seen.setdefault(preview.group, len(first_seen))
         context["email_links"] = [
             {
                 "preview": preview,
                 "url": self.link(email=preview.template),
                 "active": preview == selected,
             }
-            for preview in previews
+            for preview in sorted(previews, key=lambda p: first_seen[p.group])
         ]
         return context
 

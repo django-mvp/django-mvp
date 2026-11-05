@@ -136,6 +136,14 @@ class TestPreviewPage:
             by_group.setdefault(link["preview"].group, []).append(link["preview"].template)
         assert by_group == {"Accounts": [CONFIRM, LANGUAGE], "Other": [BROKEN]}
 
+    def test_a_group_registered_in_two_places_gets_one_heading(self, staff_client):
+        register("testapp_email/email/later_message.html", "Later", {}, group="Accounts")
+
+        soup = BeautifulSoup(page(staff_client).content, "html.parser")
+
+        titles = [item.get_text(strip=True) for item in soup.select("li.menu-title")]
+        assert [title for title in titles if title in {"Accounts", "Other"}] == ["Accounts", "Other"]
+
     def test_the_first_email_is_selected_and_shows_its_rendered_subject(self, staff_client):
         response = page(staff_client)
 
