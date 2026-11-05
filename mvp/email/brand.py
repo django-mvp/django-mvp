@@ -7,7 +7,7 @@ writes its own theme gets an email in that theme without configuring anything.
 
 import re
 from collections.abc import Iterator
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from functools import cache
 from pathlib import Path
 
@@ -32,6 +32,12 @@ THEME_COLOURS = (
 LOGO = "brand/email/logo.png"
 LOGO_DARK = "brand/email/logo_dark.png"
 
+#: The project's logo the email PNGs are drawn from, relative to a static directory.
+LOGO_SOURCE = "brand/logo.svg"
+
+#: The package's own static directory.
+PACKAGE_STATIC = Path(__file__).resolve().parents[1] / "static"
+
 #: A selector that is a theme on its own, quoted or not, with ``:root`` optional.
 THEME_SELECTOR = re.compile(
     r"""^(?::root)?\[data-theme=(["']?)([\w-]+)\1\](?::root)?$"""
@@ -45,21 +51,26 @@ class ThemeReader:
     """Reads theme colours out of the static stylesheets that define them."""
 
     @classmethod
-    def read(cls, names: set[str]) -> dict[str, dict[str, str]]:
+    def read(
+        cls, names: set[str]
+    ) -> tuple[dict[str, dict[str, str]], set[tuple[str, str]]]:
         """Read the named themes from every stylesheet the static finders list.
 
         Stylesheets are read in finder order and the first value found for a
-        property wins, so a project's stylesheet beats the package's.
+        property wins, so a project's stylesheet beats the package's. The
+        package's own stylesheets are read last, whatever the finders list.
 
         Args:
             names: The theme names to read.
 
         Returns:
             For each theme name, its ``THEME_COLOURS`` as sRGB hex strings, keyed
-            without the ``--color-`` prefix. A property no stylesheet gives a
-            readable value for is absent.
+            without the ``--color-`` prefix, where a property no stylesheet gives
+            a readable value for is absent; and the ``(theme, property)`` pairs
+            some stylesheet gave a value that could not be read as a colour.
         """
         themes: dict[str, dict[str, str]] = {name: {} for name in names}
+        unreadable: set[tuple[str, str]] = set()
         for path in cls.stylesheets():
             text = Path(path).read_text(encoding="utf-8", errors="replace")
             if "data-theme" not in text:
@@ -70,21 +81,29 @@ class ThemeReader:
                 )
             ):
                 for name in cls.themes_named(rule.prelude) & names:
-                    for key, value in cls.colours(rule.content).items():
+                    found, failed = cls.colours(rule.content)
+                    for key, value in found.items():
                         themes[name].setdefault(key, value)
-        return themes
+                    unreadable |= {(name, key) for key in failed}
+        return themes, unreadable
 
     @staticmethod
     def stylesheets() -> Iterator[str]:
         """List the stylesheets the static finders know of.
 
         Returns:
-            The file path of each ``.css`` file, in finder order.
+            The file path of each ``.css`` file, in finder order, then the
+            package's own ``.css`` files the finders did not list.
         """
+        seen: set[Path] = set()
         for finder in finders.get_finders():
             for path, storage in finder.list([]):
                 if path.endswith(".css"):
+                    seen.add(Path(storage.path(path)).resolve())
                     yield storage.path(path)
+        for path in sorted((PACKAGE_STATIC / "css").glob("*.css")):
+            if path.resolve() not in seen:
+                yield str(path)
 
     @classmethod
     def rules(cls, nodes: list) -> Iterator[tinycss2.ast.QualifiedRule]:
@@ -136,19 +155,21 @@ class ThemeReader:
         return {match.group(2) for match in matches if match}
 
     @staticmethod
-    def colours(content: list) -> dict[str, str]:
+    def colours(content: list) -> tuple[dict[str, str], set[str]]:
         """Read the theme properties a rule's block sets to a colour that can be read.
 
-        A value that refers to another property, ``var()``, is skipped, as is one
-        that is not a colour.
+        A value that refers to another property, ``var()``, is skipped without
+        comment. One that is not a colour is skipped and named in the result.
 
         Args:
             content: The tokens inside a rule's block.
 
         Returns:
-            Each ``THEME_COLOURS`` property the block sets, as an sRGB hex string.
+            Each ``THEME_COLOURS`` property the block sets, as an sRGB hex string;
+            and the properties it sets to a value that could not be read.
         """
         found: dict[str, str] = {}
+        unreadable: set[str] = set()
         for declaration in tinycss2.parse_blocks_contents(
             content, skip_comments=True, skip_whitespace=True
         ):
@@ -165,8 +186,8 @@ class ThemeReader:
                     key, Color(value).convert("srgb").fit().to_string(hex=True)
                 )
             except ValueError:
-                continue
-        return found
+                unreadable.add(key)
+        return found, unreadable
 
 
 @dataclass(frozen=True)
@@ -212,6 +233,25 @@ class Palette:
 
 
 @dataclass(frozen=True)
+class BrandProblem:
+    """Something in the project's theme or logo that the email cannot use.
+
+    Attributes:
+        id: The system check id the problem is reported under.
+        message: What the email cannot use, and why.
+        hint: What to do about it.
+    """
+
+    id: str
+    message: str
+    hint: str
+
+    def __str__(self) -> str:
+        """Give the message."""
+        return self.message
+
+
+@dataclass(frozen=True)
 class EmailBrand:
     """The colours and logos of the project's email: both schemes and both logos.
 
@@ -226,6 +266,9 @@ class EmailBrand:
     dark: Palette
     logo: str
     logo_dark: str | None
+    found_problems: tuple[BrandProblem, ...] = field(
+        default=(), repr=False, compare=False
+    )
 
     @classmethod
     @cache
@@ -233,20 +276,50 @@ class EmailBrand:
         """Read the brand from the configured themes and the static files.
 
         Read once per process. Call ``EmailBrand.current.cache_clear()`` after
-        changing ``MVP_CONFIG["theme"]`` or the static files.
+        changing ``MVP_CONFIG["theme"]`` or the static files. A property the
+        configured theme lacks, or gives an unreadable value, comes from the
+        package's theme of the same name and then from its ``light`` or ``dark``.
 
         Returns:
             The brand.
-
-        Raises:
-            KeyError: If a configured theme lacks one of ``THEME_COLOURS``.
         """
         light_name = MVP_CONFIG["theme"]["default"]  # type: ignore[index]
         dark_name = MVP_CONFIG["theme"]["dark"]  # type: ignore[index]
-        themes = ThemeReader.read({light_name, dark_name})
+        themes, unreadable = ThemeReader.read({light_name, dark_name, "light", "dark"})
+        configured = dict.fromkeys((light_name, dark_name))
+        problems = [
+            BrandProblem(
+                "mvp.W002",
+                f'The theme "{name}" is not defined by any stylesheet, so the email uses the package\'s own colours.',
+                'Define the theme in a stylesheet your static files serve, or fix MVP_CONFIG["theme"].',
+            )
+            for name in configured
+            if not themes[name] and not any(theme == name for theme, _ in unreadable)
+        ]
+        problems += [
+            BrandProblem(
+                "mvp.W003",
+                f'The theme "{name}" sets --color-{key} to a value that is not a colour, '
+                "so the email uses the package's own colour.",
+                "Write the colour as hex, rgb(), hsl() or oklch().",
+            )
+            for name, key in sorted(unreadable)
+            if name in configured
+        ]
         return cls(
-            light=Palette.from_theme(themes[light_name]),
-            dark=Palette.from_theme(themes[dark_name]),
+            light=Palette.from_theme({**themes["light"], **themes[light_name]}),
+            dark=Palette.from_theme({**themes["dark"], **themes[dark_name]}),
             logo=static(LOGO),
             logo_dark=static(LOGO_DARK) if finders.find(LOGO_DARK) else None,
+            found_problems=tuple(problems),
         )
+
+    @classmethod
+    def problems(cls) -> list[BrandProblem]:
+        """List what the email cannot use of the project's theme and logo.
+
+        Returns:
+            One problem for each configured theme no stylesheet defines and for
+            each colour that could not be read, in the order found.
+        """
+        return list(cls.current().found_problems)

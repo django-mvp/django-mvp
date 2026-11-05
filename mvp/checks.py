@@ -1,4 +1,4 @@
-"""System checks for how a project lists django-mvp and daisy-cotton, and names its title layouts."""
+"""System checks for how a project lists django-mvp and daisy-cotton, names its title layouts and themes its email."""
 
 from collections.abc import Sequence
 from typing import Any
@@ -9,6 +9,7 @@ from django.core.checks import CheckMessage
 from django.core.exceptions import ImproperlyConfigured
 
 from .config import MVP_CONFIG
+from .email.brand import EmailBrand
 from .utils import title_layout_component
 
 HINT = 'List "daisy_cotton" in INSTALLED_APPS directly below "mvp".'
@@ -94,3 +95,30 @@ def check_page_title_layout(app_configs: Any, **kwargs: Any) -> list[CheckMessag
         The messages from :func:`page_title_layout_messages` for the merged setting.
     """
     return page_title_layout_messages(MVP_CONFIG["page_title"]["layout"])  # type: ignore[index]
+
+
+def check_email_brand(app_configs: Any, **kwargs: Any) -> list[CheckMessage]:
+    """Tell the project which theme colours and logos its email cannot use.
+
+    Nothing here stops an email rendering: each problem is a warning, and the
+    email takes the package's colour or logo in its place.
+
+    Args:
+        app_configs: The app configs Django asks the check about. Unused.
+        **kwargs: Anything else Django passes a check. Unused.
+
+    Returns:
+        One warning for each problem in :meth:`EmailBrand.problems`, or a single
+        warning when the brand cannot be read at all, as when a static file
+        manifest does not exist yet.
+    """
+    try:
+        problems = EmailBrand.problems()
+    except ValueError as error:
+        return [
+            checks.Warning(f"The email brand could not be read: {error}", id="mvp.W005")
+        ]
+    return [
+        checks.Warning(problem.message, hint=problem.hint, id=problem.id)
+        for problem in problems
+    ]

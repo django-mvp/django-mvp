@@ -142,6 +142,11 @@ The colours are read from the stylesheets your static file finders list, once pe
 4. Each colour is converted to a hex value with its out-of-range parts fitted into sRGB, so a
    theme written in `oklch()` works.
 
+5. A colour the stylesheets don't give comes from the package's theme of the same name, and
+   failing that from the package's `light` theme for the light scheme or `dark` theme for the dark
+   scheme. A project theme that sets only `--color-primary` gets every other colour from there.
+   A value that isn't a colour is treated the same way.
+
 These theme colours make up the palette:
 
 | Palette colour | Theme colour |
@@ -153,6 +158,21 @@ These theme colours make up the palette:
 | `muted` | `--color-base-content`, 70% of it over `--color-base-100` |
 | `primary` | `--color-primary` |
 | `primary_content` | `--color-primary-content` |
+
+## Find out which colours the email can't use
+
+An email always renders, whatever the theme. When a colour can't be used, the project's system
+checks say so when it starts, as warnings that never stop anything:
+
+- `mvp.W002` names a theme in `MVP_CONFIG["theme"]` that no stylesheet defines. The email uses the
+  package's own `light` or `dark` colours in its place.
+- `mvp.W003` names a theme and a property whose value isn't a colour. The email takes that colour
+  from the package.
+- `mvp.W005` says the brand couldn't be read at all, as when a static file manifest hasn't been
+  built yet.
+
+Run `python manage.py check` to see them. After fixing a stylesheet or `MVP_CONFIG["theme"]` in a
+running process, call `EmailBrand.current.cache_clear()`. A new process reads them afresh.
 
 ## Show your logo in the email
 

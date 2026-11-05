@@ -4,6 +4,8 @@ import math
 
 import pytest
 from coloraide import Color
+from django.template import Context, Template
+from django.test import RequestFactory
 
 from mvp.config import MVP_CONFIG
 from mvp.email.brand import EmailBrand
@@ -195,6 +197,104 @@ class TestEmailBrandLogos:
         brand = EmailBrand.current()
 
         assert (brand.logo, brand.logo_dark) == ("/static/brand/email/logo.png", None)
+
+
+class TestEmailBrandFallbacks:
+    def test_an_undefined_light_theme_gives_the_packaged_light_palette(self, monkeypatch):
+        monkeypatch.setitem(MVP_CONFIG["theme"], "default", "nosuchtheme")
+
+        brand = EmailBrand.current()
+
+        assert brand.light.surface == hex_of(LIGHT["base-100"])
+        assert brand.light.primary == hex_of(LIGHT["primary"])
+
+    def test_an_undefined_dark_theme_gives_the_packaged_dark_palette(self, monkeypatch):
+        monkeypatch.setitem(MVP_CONFIG["theme"], "dark", "nosuchtheme")
+
+        brand = EmailBrand.current()
+
+        assert brand.dark.surface == hex_of(DARK["base-100"])
+        assert brand.dark.primary == hex_of(DARK["primary"])
+
+    def test_an_undefined_theme_is_named_in_the_problems(self, monkeypatch):
+        monkeypatch.setitem(MVP_CONFIG["theme"], "default", "nosuchtheme")
+
+        problems = EmailBrand.problems()
+
+        assert [str(problem) for problem in problems if "nosuchtheme" in str(problem)] != []
+
+    def test_the_packaged_themes_report_no_problems(self):
+        assert EmailBrand.problems() == []
+
+    def test_a_theme_setting_only_some_colours_takes_the_rest_from_the_packaged_light(
+        self, project_css, brandx_theme
+    ):
+        project_css("[data-theme=brandx]{--color-primary:#ff8800}")
+
+        light = EmailBrand.current().light
+
+        assert light.primary == "#ff8800"
+        assert (light.surface, light.page) == (hex_of(LIGHT["base-100"]), hex_of(LIGHT["base-200"]))
+        assert EmailBrand.problems() == []
+
+    def test_a_dark_theme_setting_only_some_colours_takes_the_rest_from_the_packaged_dark(
+        self, project_css, monkeypatch
+    ):
+        monkeypatch.setitem(MVP_CONFIG["theme"], "dark", "brandx")
+        project_css("[data-theme=brandx]{--color-primary:#ff8800}")
+
+        dark = EmailBrand.current().dark
+
+        assert dark.primary == "#ff8800"
+        assert dark.surface == hex_of(DARK["base-100"])
+
+    def test_the_packaged_fallback_does_not_depend_on_the_static_finders(self, tmp_path, settings, monkeypatch):
+        settings.STATICFILES_DIRS = [tmp_path]
+        settings.STATICFILES_FINDERS = ["django.contrib.staticfiles.finders.FileSystemFinder"]
+        monkeypatch.setitem(MVP_CONFIG["theme"], "default", "nosuchtheme")
+
+        assert EmailBrand.current().light.surface == hex_of(LIGHT["base-100"])
+
+    def test_an_unreadable_value_falls_back_and_is_reported_by_theme_and_property(self, project_css, brandx_theme):
+        project_css("[data-theme=brandx]{--color-primary:not-a-colour;--color-base-100:#112233}")
+
+        brand = EmailBrand.current()
+        reported = [str(problem) for problem in EmailBrand.problems()]
+
+        assert brand.light.primary == hex_of(LIGHT["primary"])
+        assert brand.light.surface == "#112233"
+        assert len(reported) == 1
+        assert "brandx" in reported[0]
+        assert "primary" in reported[0]
+
+    def test_a_var_value_is_not_reported(self, project_css, brandx_theme):
+        project_css(f"[data-theme=brandx]{{{BRANDX}--color-primary:var(--elsewhere)}}")
+
+        assert EmailBrand.problems() == []
+
+    def test_changing_the_configured_theme_and_clearing_the_cache_uses_the_new_colours(
+        self, project_css, brandx_theme, monkeypatch
+    ):
+        project_css(f"[data-theme=brandx]{{{BRANDX}}}")
+        monkeypatch.setitem(MVP_CONFIG["theme"], "default", "light")
+        before = EmailBrand.current().light.surface
+
+        monkeypatch.setitem(MVP_CONFIG["theme"], "default", "brandx")
+        EmailBrand.current.cache_clear()
+
+        assert (before, EmailBrand.current().light.surface) == (hex_of(LIGHT["base-100"]), "#111111")
+
+
+class TestEmailBrandRendering:
+    def test_an_email_still_renders_when_the_theme_is_undefined(self, monkeypatch):
+        monkeypatch.setitem(MVP_CONFIG["theme"], "default", "nosuchtheme")
+        monkeypatch.setitem(MVP_CONFIG, "site_name", "Acme")
+        source = Template('{% extends "mvp/email/base.html" %}{% block body %}<p>Hello</p>{% endblock %}')
+
+        html = source.render(Context({"request": RequestFactory().get("/")}))
+
+        assert hex_of(LIGHT["base-100"]) in html
+        assert "Hello" in html
 
 
 class TestEmailBrandCache:

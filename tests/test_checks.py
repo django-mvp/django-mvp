@@ -13,6 +13,7 @@ from django.core.management.base import SystemCheckError
 
 from mvp.checks import (
     check_daisy_cotton_app,
+    check_email_brand,
     check_page_title_layout,
     daisy_cotton_app_messages,
     page_title_layout_messages,
@@ -121,3 +122,74 @@ class TestPageTitleLayoutCheck:
 
         with pytest.raises(SystemCheckError, match=r"mvp\.E003"):
             call_command("check", "mvp", stderr=StringIO())
+
+
+class TestEmailBrandCheck:
+    @pytest.fixture(autouse=True)
+    def fresh_brand(self):
+        from mvp.email.brand import EmailBrand
+
+        EmailBrand.current.cache_clear()
+        yield
+        EmailBrand.current.cache_clear()
+
+    @pytest.fixture
+    def project_css(self, tmp_path, settings):
+        settings.STATICFILES_DIRS = [tmp_path]
+
+        def write(text):
+            (tmp_path / "css").mkdir(exist_ok=True)
+            (tmp_path / "css" / "project.css").write_text(text)
+
+        return write
+
+    def test_the_repositorys_own_settings_report_nothing(self):
+        assert check_email_brand(None) == []
+
+    def test_the_check_is_registered(self):
+        assert check_email_brand in registry.registered_checks
+
+    def test_an_undefined_theme_is_a_warning_naming_it(self, monkeypatch):
+        from mvp.config import MVP_CONFIG
+
+        monkeypatch.setitem(MVP_CONFIG["theme"], "default", "nosuchtheme")
+
+        messages = check_email_brand(None)
+
+        assert [(message.level, message.id) for message in messages] == [(checks.WARNING, "mvp.W002")]
+        assert "nosuchtheme" in messages[0].msg
+
+    def test_an_unreadable_colour_is_a_warning_naming_the_theme_and_property(self, project_css, monkeypatch):
+        from mvp.config import MVP_CONFIG
+
+        monkeypatch.setitem(MVP_CONFIG["theme"], "default", "brandx")
+        project_css("[data-theme=brandx]{--color-primary:not-a-colour}")
+
+        messages = check_email_brand(None)
+
+        assert [(message.level, message.id) for message in messages] == [(checks.WARNING, "mvp.W003")]
+        assert "brandx" in messages[0].msg
+        assert "primary" in messages[0].msg
+
+    def test_a_problem_does_not_stop_the_check_command(self, monkeypatch):
+        from mvp.config import MVP_CONFIG
+
+        monkeypatch.setitem(MVP_CONFIG["theme"], "default", "nosuchtheme")
+        stderr = StringIO()
+
+        call_command("check", "mvp", stderr=stderr)
+
+        assert "mvp.W002" in stderr.getvalue()
+
+    def test_a_brand_that_cannot_be_read_is_a_warning_not_a_crash(self, monkeypatch):
+        class UnreadableBrand:
+            @staticmethod
+            def problems():
+                raise ValueError("Missing staticfiles manifest entry for 'brand/email/logo.png'")
+
+        monkeypatch.setattr("mvp.checks.EmailBrand", UnreadableBrand)
+
+        messages = check_email_brand(None)
+
+        assert [message.level for message in messages] == [checks.WARNING]
+        assert "manifest" in messages[0].msg
