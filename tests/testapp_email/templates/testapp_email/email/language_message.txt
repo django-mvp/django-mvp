@@ -1,0 +1,1 @@
+{% load i18n %}{% get_current_language as language %}Plain text in {{ language }}

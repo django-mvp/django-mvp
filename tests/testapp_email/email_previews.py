@@ -5,7 +5,7 @@ from mvp.email.previews import register
 register(
     "testapp_email/email/confirm_message.html",
     "Confirm your address",
-    {"link": "https://example.org/confirm/abc/"},
+    {"name": "Ada", "url": "https://example.org/confirm/abc/"},
     subject="testapp_email/email/confirm_subject.txt",
     text="testapp_email/email/confirm_message.txt",
     group="Accounts",

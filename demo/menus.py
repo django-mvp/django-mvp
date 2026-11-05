@@ -1,5 +1,6 @@
 """The demo site's sidebar and dock menus, built with the AppMenu system."""
 
+from django.conf import settings
 from django.urls import reverse_lazy
 from flex_menu import MenuItem
 
@@ -77,6 +78,7 @@ AppMenu.extend(
         MenuItem(
             name="emails",
             view_name="mvp-email-preview",
+            check=lambda request: settings.DEBUG,
             extra_context={
                 "label": "Emails",
                 "icon": "email",
