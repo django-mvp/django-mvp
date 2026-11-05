@@ -19,6 +19,5 @@ class DemoConfig(AppConfig):
 
         with contextlib.suppress(ImportError):
             from . import menus  # noqa: F401
-        from . import emails  # noqa: F401  (FS-044 sketch)
 
     verbose_name = "Demo"

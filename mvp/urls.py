@@ -34,7 +34,6 @@ order two URLconfs were mounted in. The reasoning is in
 docs/adr/0024-a-stand-in-page-withdraws-when-the-real-app-arrives.md.
 """
 
-from django.conf import settings
 from django.urls import URLPattern, URLResolver, path
 
 from .config import MVP_CONFIG
@@ -52,15 +51,6 @@ if MVP_CONFIG["pwa"]:
         path("manifest.webmanifest", manifest, name="mvp-pwa-manifest"),
         path("sw.js", service_worker, name="mvp-pwa-service-worker"),
         path("install/", InstallView.as_view(), name="mvp-pwa-install"),
-    ]
-
-if settings.DEBUG:
-    # SKETCH (FS-044): the email preview page exists only while DEBUG is on.
-    from .email.views import EmailPreviewFrameView, EmailPreviewView
-
-    urlpatterns += [
-        path("emails/", EmailPreviewView.as_view(), name="mvp-email-preview"),
-        path("emails/frame/<path:name>", EmailPreviewFrameView.as_view(), name="mvp-email-preview-frame"),
     ]
 
 if not app_is_installed("allauth.account"):
