@@ -197,6 +197,21 @@ Mail clients don't draw SVG, so the email shows PNG files: `brand/email/logo.png
 dark scheme, `brand/email/logo_dark.png`. The package ships both, rendered from its own logo at 64
 pixels high. The dark logo is used only when the file is found.
 
+To show your own logo instead, render your SVG logo to those two files:
+
+1. Put your logo at `brand/logo.svg` in a static directory of your project, and, for the dark
+   scheme, `brand/logo_dark.svg`.
+2. Install the renderer with `pip install resvg-py`. django-mvp doesn't depend on it, so the
+   command stops and names the package when it is missing.
+3. Run `python manage.py mvp_email_logos`. It writes `brand/email/logo.png` and, when a dark
+   logo is found, `brand/email/logo_dark.png`, each 64 pixels high, into the first
+   `STATICFILES_DIRS` entry that has no prefix. Pass `--output-dir` to write into another static
+   directory.
+4. Run it again whenever the logo changes, and before `collectstatic`.
+
+Your PNG files come before the package's in the static file finders, so the email shows yours. The
+command says so when a logo it drew from is the package's own.
+
 ## Give a link an absolute address
 
 A link or an image in an email is opened far from your site, so it needs a full address.
