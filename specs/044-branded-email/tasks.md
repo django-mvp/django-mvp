@@ -19,17 +19,16 @@ mirror the source tree: `tests/test_email/test_brand.py`, `tests/test_email/test
 - [ ] T002 [US1] `EmailBrand` reads the configured themes from the static stylesheets
 - [ ] T003 [US1] The site's address, name and `{% email_url %}`
 - [ ] T004 [US1] `{% email_inline %}` and the base template
-- [ ] T005 [US1] The email pieces
+- [ ] T005 [US1] The email pieces, text included
 - [ ] T006 [US1] A third-party sender, unchanged, carries the brand
 - [ ] T007 [US3] Fallbacks and the system check
 - [ ] T008 [US3] Overriding the base template and pieces
 - [ ] T009 [US3] PNG logos and their command
 - [ ] T010 [US3] The stale-logo warning
 - [ ] T011 [US2] Images, dark scheme and width
-- [ ] T012 [US2] Contrast in the default themes
-- [ ] T013 [US4] Preview registry and discovery
-- [ ] T014 [US4] The preview page
-- [ ] T015 [US4] Docs and changelog pass
+- [ ] T012 [US4] Preview registry and discovery
+- [ ] T013 [US4] The preview page
+- [ ] T014 [US4] Docs and changelog pass
 
 ## Order
 
@@ -39,7 +38,7 @@ US-1 (two groups) → US-3 → US-2 → US-4, in the feature worktree.
 
 ## Phase 1 — User Story 1: A developer gives an email the project's look (P1)
 
-Delivers FR-001–FR-004, FR-010, FR-014–FR-016, SC-001, SC-003, SC-005.
+Delivers FR-001–FR-004, FR-010, FR-014–FR-017, SC-001, SC-003–SC-005.
 
 ### Group 1
 
@@ -99,13 +98,17 @@ styles (AS 1.2); the `@media` rules survive; the logo, site name and default foo
 body; a filled `footer` replaces the default (AS 1.4); a filled `preheader` appears; rendering with
 an empty context and the sites framework works (FR-003).
 
-#### T005 — The email pieces
+#### T005 — The email pieces, text included
 
-**Files**: `mvp/templates/cotton/mvp/email/{button,note,divider,code}.html`,
+**Files**: `mvp/templates/cotton/mvp/email/{text,button,note,divider,code}.html`,
 `tests/test_components/test_email_pieces.py`, `docs/email.md`, `docs/components.md`
 
-The sketch's four pieces, styled through the base template's classes. Tests per piece: renders
-inside an email, colour from the palette, the button's colour on its table cell (AS 1.3).
+`c-mvp.email.text`: a `<p>` with `mb` (`none`, `xs`, `sm`, `md` default, `lg`, `xl`), `size`
+(`sm`, `md` default, `lg`) and `align` (`start` default, `center`) written into its inline `style`
+from a fixed scale in the template. The sketch's other four pieces, styled through the base
+template's classes. Tests: each piece renders inside an email; the text piece's default and a
+named `mb` give different inline margins, and an unknown value falls back to the default (AS 1.3,
+AS 1.7, FR-017); the button's colour is on its table cell. No test pins a pixel value.
 
 #### T006 — A third-party sender, unchanged, carries the brand
 
@@ -117,7 +120,10 @@ A test app that sends mail the way allauth's adapter does (`render_to_string` of
 template extending the base template. Through the in-memory backend: the HTML part carries the
 brand, the plain-text part is the app's own template, unchanged (AS 1.1, 1.6, SC-003, FR-015). The
 demo's sample emails are renamed to that naming and lose the hand-written margins the base template
-now supplies. Docs: a worked example of overriding a third-party template.
+now supplies, use `c-mvp.email.text` for their paragraphs, and carry no translation markup (no
+`{% load i18n %}`, `trans` or `blocktrans`, per
+https://github.com/django-mvp/django-mvp/issues/648). Docs: a worked example of overriding a
+third-party template.
 
 ---
 
@@ -162,7 +168,7 @@ Tests: AS 3.4 for a project's own logo; command output and the missing-renderer 
 
 ## Phase 3 — User Story 2: A person reads a project's email in their mail client (P1)
 
-Delivers FR-002, FR-006, FR-008, FR-009, SC-004.
+Delivers FR-002, FR-006, FR-008, FR-009.
 
 #### T011 — Images, dark scheme and width
 
@@ -172,21 +178,13 @@ Tests on the rendered HTML: the logo `img` has the site name as `alt` and nothin
 needs an image (AS 2.2); the dark rules use the dark palette and swap to the dark logo only when
 one exists (AS 2.3); the narrow-width rule is present (AS 2.5); colours sit on table cells (AS 2.1).
 
-#### T012 — Contrast in the default themes
-
-**Files**: `tests/test_email/test_brand.py`
-
-With the package's default `light` and `dark`: text on page, text on surface, muted on surface,
-muted on page and button text on button meet 4.5:1, measured with coloraide, and so does each pair
-with both colours inverted (each sRGB channel 1 − x) (AS 2.4, FR-009, SC-004).
-
 ---
 
 ## Phase 4 — User Story 4: A developer previews an email in the browser (P2)
 
 Delivers FR-012, FR-013, SC-006.
 
-#### T013 — Preview registry and discovery
+#### T012 — Preview registry and discovery
 
 **Files**: `mvp/email/previews.py`, `mvp/apps.py`, `demo/email_previews.py`,
 `tests/test_email/test_previews.py`, `docs/email.md`
@@ -195,7 +193,7 @@ Delivers FR-012, FR-013, SC-006.
 `autodiscover_modules("email_previews")` in `MvpConfig.ready` while `DEBUG` is on. Test with a test
 app's `email_previews.py` (AS 4.1).
 
-#### T014 — The preview page
+#### T013 — The preview page
 
 **Files**: `mvp/email/views.py`, `mvp/urls.py`, `mvp/templates/mvp/email/preview.html`,
 `demo/menus.py`, `tests/test_email/test_views.py`, `docs/email.md`
@@ -207,7 +205,7 @@ error. The frame view 404s for a template with no registered preview. Confirm ev
 built stylesheet, rebuild if not. Tests: AS 4.2–4.6 and the 404, through a URLconf loaded under
 `override_settings(DEBUG=True)` with `mvp.urls` reloaded and `clear_url_caches()`.
 
-#### T015 — Docs and changelog pass
+#### T014 — Docs and changelog pass
 
 **Files**: `docs/email.md`, `docs/index.md`, `README.md`, `CHANGELOG.md`
 

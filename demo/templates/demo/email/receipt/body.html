@@ -1,9 +1,8 @@
 {% extends "mvp/email/base.html" %}
-{% load i18n %}
-{% block preheader %}{% blocktrans %}Paid {{ total }} on {{ date }}.{% endblocktrans %}{% endblock %}
+{% block preheader %}Paid {{ total }} on {{ date }}.{% endblock %}
 {% block body %}
-  <h1 style="margin:0 0 16px 0;font-size:24px;line-height:1.25;font-weight:700;">{% trans "Thanks for your payment" %}</h1>
-  <p style="margin:0 0 16px 0;">{% blocktrans %}We received {{ total }} on {{ date }}. Your subscription renews on {{ renews }}.{% endblocktrans %}</p>
+  <h1 style="margin:0 0 16px 0;font-size:24px;line-height:1.25;font-weight:700;">Thanks for your payment</h1>
+  <p style="margin:0 0 16px 0;">We received {{ total }} on {{ date }}. Your subscription renews on {{ renews }}.</p>
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:24px 0;border-collapse:collapse;">
     {% for line in lines %}
       <tr>
@@ -12,10 +11,10 @@
       </tr>
     {% endfor %}
     <tr>
-      <td style="padding:12px 0;font-weight:700;">{% trans "Total" %}</td>
+      <td style="padding:12px 0;font-weight:700;">Total</td>
       <td align="right" style="padding:12px 0;font-weight:700;white-space:nowrap;">{{ total }}</td>
     </tr>
   </table>
-  <c-mvp.email.button :href="billing_url" text="{% trans 'View billing' %}" />
-  <c-mvp.email.note>{% blocktrans %}Receipt {{ number }}. Keep this email for your records.{% endblocktrans %}</c-mvp.email.note>
+  <c-mvp.email.button :href="billing_url" text="View billing" />
+  <c-mvp.email.note>Receipt {{ number }}. Keep this email for your records.</c-mvp.email.note>
 {% endblock %}

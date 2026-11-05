@@ -1,13 +1,13 @@
-{% load i18n %}{% trans "We're updating our privacy policy" %}
+We're updating our privacy policy
 
-{% blocktrans %}On {{ effective }} a new version of our privacy policy takes effect. The main changes:{% endblocktrans %}
+On {{ effective }} a new version of our privacy policy takes effect. The main changes:
 {% for change in changes %}
 - {{ change }}{% endfor %}
 
-{% trans "Read the new policy:" %} {{ policy_url }}
+Read the new policy: {{ policy_url }}
 
-{% trans "You don't need to do anything. Using the site after that date means you accept the new version." %}
+You don't need to do anything. Using the site after that date means you accept the new version.
 
 --
-{% blocktrans %}You're receiving this because you have an account with {{ site_name }}.{% endblocktrans %}
+You're receiving this because you have an account with {{ site_name }}.
 {{ postal_address }}

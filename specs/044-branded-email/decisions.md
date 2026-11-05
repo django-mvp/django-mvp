@@ -44,9 +44,19 @@ The plan was reviewed before any code was written. Changes kept from it after th
   modules for sending.
 - Remote stylesheets are never fetched while inlining.
 
-## Open: the dark button's contrast
+## No fixed contrast ratio
 
-In daisyUI's `dark` theme, the package's default dark theme, the button's text on the button
-measures 4.14:1 (`#edf1fe` on `#605dff`). FR-009 asks for 4.5:1 with the default themes, and
-FR-005 asks for the theme's own colours. No colour in that theme reaches 4.5:1 on its primary
-except pure black (4.51:1). This needs Sam's ruling before the build.
+Sam, 2026-11-05: "I don't like hard requirements that get in the way of nice design." In daisyUI's
+`dark` theme the button's text measures 4.14:1 on the button, and the email uses it as it is. The
+requirement is that text stays readable, with no ratio, and the contrast test was dropped.
+
+## A text piece for paragraphs
+
+Sam, 2026-11-05: `c-mvp.email.text` wraps a paragraph and turns a few named options into inline
+styles, so authors do not pick spacing numbers and every email spaces paragraphs the same way.
+The scale is written in the component's template, with no Python behind it.
+
+## The demo carries no translation markup
+
+The demo's email templates use plain text, per
+https://github.com/django-mvp/django-mvp/issues/648. The package's own templates stay translatable.

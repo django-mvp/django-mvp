@@ -1,1 +1,1 @@
-{% load i18n %}{% blocktrans %}Your sign-in code for {{ site_name }}{% endblocktrans %}
+Your sign-in code for {{ site_name }}

@@ -1,15 +1,14 @@
 {% extends "mvp/email/base.html" %}
-{% load i18n %}
-{% block preheader %}{% trans "Choose a new password. The link works for one hour." %}{% endblock %}
+{% block preheader %}Choose a new password. The link works for one hour.{% endblock %}
 {% block body %}
-  <h1 style="margin:0 0 16px 0;font-size:24px;line-height:1.25;font-weight:700;">{% trans "Reset your password" %}</h1>
-  <p style="margin:0 0 16px 0;">{% blocktrans %}Hi {{ name }}, someone asked to reset the password for your account. Choose a new one with the button below.{% endblocktrans %}</p>
-  <c-mvp.email.button :href="reset_url" text="{% trans 'Choose a new password' %}" />
-  <p style="margin:0 0 16px 0;">{% trans "The link works for one hour." %}</p>
+  <h1 style="margin:0 0 16px 0;font-size:24px;line-height:1.25;font-weight:700;">Reset your password</h1>
+  <p style="margin:0 0 16px 0;">Hi {{ name }}, someone asked to reset the password for your account. Choose a new one with the button below.</p>
+  <c-mvp.email.button :href="reset_url" text="Choose a new password" />
+  <p style="margin:0 0 16px 0;">The link works for one hour.</p>
   <c-mvp.email.divider />
   <c-mvp.email.note>
-    <p style="margin:0 0 8px 0;">{% trans "If the button doesn't work, paste this address into your browser:" %}</p>
+    <p style="margin:0 0 8px 0;">If the button doesn't work, paste this address into your browser:</p>
     <p style="margin:0;word-break:break-all;"><a href="{{ reset_url }}" style="color:inherit;">{{ reset_url }}</a></p>
   </c-mvp.email.note>
-  <c-mvp.email.note>{% trans "If you didn't ask for this, you can ignore this email. Your password stays the same." %}</c-mvp.email.note>
+  <c-mvp.email.note>If you didn't ask for this, you can ignore this email. Your password stays the same.</c-mvp.email.note>
 {% endblock %}

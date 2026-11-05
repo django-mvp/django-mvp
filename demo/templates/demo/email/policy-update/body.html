@@ -1,16 +1,15 @@
 {% extends "mvp/email/base.html" %}
-{% load i18n %}
-{% block preheader %}{% blocktrans %}The changes take effect on {{ effective }}.{% endblocktrans %}{% endblock %}
+{% block preheader %}The changes take effect on {{ effective }}.{% endblock %}
 {% block body %}
-  <h1 style="margin:0 0 16px 0;font-size:24px;line-height:1.25;font-weight:700;">{% trans "We're updating our privacy policy" %}</h1>
-  <p style="margin:0 0 16px 0;">{% blocktrans %}On {{ effective }} a new version of our privacy policy takes effect. The main changes:{% endblocktrans %}</p>
+  <h1 style="margin:0 0 16px 0;font-size:24px;line-height:1.25;font-weight:700;">We're updating our privacy policy</h1>
+  <p style="margin:0 0 16px 0;">On {{ effective }} a new version of our privacy policy takes effect. The main changes:</p>
   <ul style="margin:0 0 16px 0;padding-left:24px;">
     {% for change in changes %}<li style="margin:0 0 8px 0;">{{ change }}</li>{% endfor %}
   </ul>
-  <c-mvp.email.button :href="policy_url" text="{% trans 'Read the new policy' %}" />
-  <p style="margin:0 0 16px 0;">{% trans "You don't need to do anything. Using the site after that date means you accept the new version." %}</p>
+  <c-mvp.email.button :href="policy_url" text="Read the new policy" />
+  <p style="margin:0 0 16px 0;">You don't need to do anything. Using the site after that date means you accept the new version.</p>
 {% endblock %}
 {% block footer %}
-  <p style="margin:0 0 8px 0;">{% blocktrans %}You're receiving this because you have an account with {{ site_name }}. We send this email to every account holder when our policies change.{% endblocktrans %}</p>
+  <p style="margin:0 0 8px 0;">You're receiving this because you have an account with {{ site_name }}. We send this email to every account holder when our policies change.</p>
   <p style="margin:0;">{{ postal_address }}</p>
 {% endblock %}

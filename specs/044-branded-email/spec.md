@@ -59,6 +59,16 @@ is left to research and planning. Sam's notes for that are in `planning-notes.md
   replaces the earlier sending helper, its subject templates and its language handling, which all
   belonged to the sender. Recorded as FR-001, FR-003 and FR-016.
 
+- **Q: How strict is the contrast requirement?**
+  A: Text stays readable, with no fixed ratio (Sam, 2026-11-05: "I don't like hard requirements
+  that get in the way of nice design"). The email uses the theme's own colours as they are.
+  Recorded as FR-009 and SC-004.
+
+- **Q: How does an author write a paragraph with consistent spacing?**
+  A: With a text piece that wraps a paragraph and turns a few named options, such as the space
+  below it, into inline styles, so spacing comes from a small fixed scale rather than numbers each
+  author picks (Sam, 2026-11-05). Recorded as FR-017.
+
 ### Session 2026-11-04 (coverage scan)
 
 - **Q: Does an email rendered with no request, by a background worker, still have a working logo
@@ -100,8 +110,9 @@ the base template, trigger that package's email, and inspect the message in Djan
 2. **Given** an email template extending the base template, **When** it is rendered, **Then** its
    styling works in clients that ignore a style element, without the template's author writing
    any styling.
-3. **Given** the email pieces (a button, a muted note, a divider, a code), **When** a body uses
-   them, **Then** they render in the project's colours in every client User Story 2 covers.
+3. **Given** the email pieces (a text paragraph, a button, a muted note, a divider, a code),
+   **When** a body uses them, **Then** they render in the project's colours in every client User
+   Story 2 covers.
 4. **Given** a body that fills the footer (for example with a postal address or the reason the
    person is receiving the email), **When** it is rendered, **Then** that text replaces the
    default footer content.
@@ -110,6 +121,10 @@ the base template, trigger that package's email, and inspect the message in Djan
    project's site.
 6. **Given** an email whose sender also renders its own plain-text template, **When** it is sent,
    **Then** the plain-text part is that template, unchanged by the base template.
+7. **Given** two text paragraphs in a body, one with no options and one with a larger space below
+   it named from the scale, **When** the email is rendered, **Then** each is a paragraph whose
+   spacing is inline on it, the second's larger than the first's, and the same name gives the same
+   spacing in every email.
 
 ---
 
@@ -228,10 +243,10 @@ preview, so it comes after the three that make the look work.
   starts, and MUST NOT stop email rendering. (US-3)
 - **FR-008**: The email MUST follow a dark colour scheme in clients that honour one. (US-2)
 - **FR-009**: Text in the email MUST stay readable in light, in dark, and when a client inverts the
-  colours, meeting a contrast ratio of at least 4.5:1 with the package's shipped default themes.
+  colours, using the theme's own colours as they are. No fixed contrast ratio is required.
   (US-2, US-3)
-- **FR-010**: The package MUST provide reusable email pieces (a button, a muted note, a divider, a
-  code) that render in the project's colours. (US-1)
+- **FR-010**: The package MUST provide reusable email pieces (a text paragraph, a button, a muted
+  note, a divider, a code) that render in the project's colours. (US-1)
 - **FR-011**: A project MUST be able to replace the base template and each email piece by
   overriding its template at the same path. (US-3)
 - **FR-012**: A developer MUST be able to declare a preview for an email template with example
@@ -244,6 +259,8 @@ preview, so it comes after the three that make the look work.
 - **FR-015**: An email's plain-text part MUST be left to whatever sends it. The base template MUST
   NOT change it. (US-1)
 - **FR-016**: The feature MUST add no way of rendering or sending email. (US-1)
+- **FR-017**: The text piece MUST render a paragraph whose named options (at least the space below
+  it, from a small fixed scale with a default) become inline styles on the paragraph. (US-1)
 
 ### Key Entities
 
@@ -270,8 +287,8 @@ preview, so it comes after the three that make the look work.
   no template override beyond the email's own.
 - **SC-003**: A third-party package's email, sent by that package's own code, carries the brand
   once the project overrides its HTML template.
-- **SC-004**: Text in an email in the package's default themes meets 4.5:1 contrast in light, dark
-  and inverted rendering.
+- **SC-004**: Spacing between paragraphs comes from one named scale, the same in every email that
+  uses the text piece.
 - **SC-005**: The feature adds no GPL or AGPL runtime dependency and keeps Django 5.2 supported.
 - **SC-006**: A developer opens any declared email rendered in the browser in one click from the
   preview list.

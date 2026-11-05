@@ -34,7 +34,7 @@ through Django's in-memory backend. No browser test (Article XIV).
 | VII Dependencies | Three runtime additions, each with its reason in `research.md`. `deptry` stays green |
 | VIII Internationalization | Every string in the layout, pieces and preview page is translatable. The language is the sender's |
 | X Cohesion | `EmailBrand` holds the colours and logos. The template tags are thin readers of it |
-| XI Components are the public API | The pieces are Cotton components, `c-mvp.email.button`, `.note`, `.divider`, `.code` |
+| XI Components are the public API | The pieces are Cotton components, `c-mvp.email.text`, `.button`, `.note`, `.divider`, `.code` |
 | XIII Rendered markup is a contract | Each piece and the base template have rendered-markup tests |
 | G10 | Third-party senders are not extended or replaced. Only their templates are overridden |
 
@@ -48,7 +48,8 @@ through Django's in-memory backend. No browser test (Article XIV).
 {% block preheader %}A new version is published.{% endblock %}
 {% block body %}
   <h1>{{ version.title }}</h1>
-  <p>…</p>
+  <c-mvp.email.text>…</c-mvp.email.text>
+  <c-mvp.email.text mb="lg">…</c-mvp.email.text>
   <c-mvp.email.button href="{% email_url version.get_absolute_url %}" text="Read it" />
 {% endblock %}
 ```
@@ -102,8 +103,15 @@ through Django's in-memory backend. No browser test (Article XIV).
 
 ### Pieces
 
-Cotton components under `cotton/mvp/email/`: `button` (`href`, `text`), `note` (slot),
-`divider`, `code` (`code`). The sketch's markup, styled through the base template's classes so
+Cotton components under `cotton/mvp/email/`: `text` (slot, `mb`, `size`, `align`), `button`
+(`href`, `text`), `note` (slot), `divider`, `code` (`code`).
+
+`c-mvp.email.text` renders `<p>` with its options written straight into `style`, so the spacing
+holds even where nothing is inlined. `mb` takes `none`, `xs`, `sm`, `md` (the default), `lg` and
+`xl`, for 0, 4, 8, 12, 16 and 24 px below. `size` takes `sm`, `md` (the default) and `lg`, for 14,
+16 and 18 px type. `align` takes `start` (the default) and `center`. The scale lives in the
+component's `<c-vars>` and a `{% with %}` lookup, with no Python. Plain `<p>` in a body still gets
+the base template's default spacing. The sketch's markup, styled through the base template's classes so
 they inline. The button's colour sits on its table cell, which Outlook honours.
 
 ### Previews
@@ -129,8 +137,9 @@ Without resvg-py it stops and names the package, with the same wording as `mvp_p
 
 ### Demo
 
-The five approved sample emails stay under `demo/templates/demo/email/`, renamed to allauth's
-naming as an example of overriding a third party's templates, and are declared in
+The five approved sample emails stay under `demo/templates/demo/email/`, written with
+`c-mvp.email.text` and with no translation markup (django-mvp's demo carries none, per
+https://github.com/django-mvp/django-mvp/issues/648), renamed to allauth's naming as an example of overriding a third party's templates, and are declared in
 `demo/email_previews.py`. The broken preview and the menu entry stay.
 
 ## Story order and dispatch
