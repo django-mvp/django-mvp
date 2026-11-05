@@ -1,9 +1,11 @@
 {% extends "mvp/email/base.html" %}
+{% load mvp_email %}
 {% block preheader %}Paid {{ total }} on {{ date }}.{% endblock %}
 {% block body %}
-  <h1 style="margin:0 0 16px 0;font-size:24px;line-height:1.25;font-weight:700;">Thanks for your payment</h1>
-  <p style="margin:0 0 16px 0;">We received {{ total }} on {{ date }}. Your subscription renews on {{ renews }}.</p>
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:24px 0;border-collapse:collapse;">
+  {% email_brand as brand %}
+  <h1>Thanks for your payment</h1>
+  <c-mvp.email.text>We received {{ total }} on {{ date }}. Your subscription renews on {{ renews }}.</c-mvp.email.text>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="mvp-email-block" style="border-collapse:collapse;">
     {% for line in lines %}
       <tr>
         <td class="mvp-email-rule" style="padding:12px 0;border-bottom:1px solid {{ brand.light.border }};">{{ line.label }}</td>

@@ -66,6 +66,44 @@ and written so it holds in every mail client. Use them inside the `body` block:
 
 The component reference lists them with the other components in [Components](components.md#email).
 
+## Override a third-party package's email
+
+A package that sends HTML email from a template can be given your site's look without touching its
+code. The package renders its templates by name, so a template of yours with the same name is
+rendered instead. This works with any package that renders an HTML part from a template, such as
+django-allauth.
+
+1. Find the template names. A package usually has a prefix and three templates under it:
+   `<prefix>_subject.txt`, `<prefix>_message.txt` and `<prefix>_message.html`. For allauth's
+   confirmation email the prefix is `account/email/email_confirmation`.
+2. Create `<prefix>_message.html` in your project's template directory, at the same path.
+   Django searches `DIRS` before the packages' own template directories, so yours wins.
+3. Make it extend `mvp/email/base.html` and write the message in the `body` block. Use the
+   variables the package passes to its own template.
+4. Leave `<prefix>_subject.txt` and `<prefix>_message.txt` alone. The subject and the plain-text
+   part stay exactly as the package wrote them. Only the HTML part changes.
+
+```django
+{# templates/account/email/email_confirmation_message.html #}
+{% extends "mvp/email/base.html" %}
+{% load mvp_email %}
+{% block preheader %}Confirm your email address to finish signing up.{% endblock %}
+{% block body %}
+  <h1>Confirm your email address</h1>
+  <c-mvp.email.text>Confirm your address to finish signing up to {% email_site_name %}.</c-mvp.email.text>
+  <c-mvp.email.button :href="activate_url" text="Confirm your email address" />
+  <c-mvp.email.note>If you didn't sign up, you can ignore this email.</c-mvp.email.note>
+{% endblock %}
+```
+
+The logo and the site's name come from your site, and the styles are inlined while the template
+renders, so the package needs to do nothing more. When the package passes a `request` to its
+templates, as allauth does, links and the logo use that request's host. Otherwise they use the
+current `Site`.
+
+The demo's sample emails under `demo/templates/demo/email/` follow this naming, each with a
+`_subject.txt` and a `_message.html`.
+
 ## Inline your own styles
 
 Gmail and Outlook drop or ignore most of a `<style>` element, so the base template writes its

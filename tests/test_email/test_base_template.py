@@ -4,14 +4,18 @@ The base template is a template, not a Python module, so there is nothing for
 this module to mirror.
 """
 
+from pathlib import Path
+
 import pytest
 from bs4 import BeautifulSoup
 from django.contrib.sites.models import Site
+from django.core import mail
 from django.template import Context, Template
 from django_cotton.compiler_regex import CottonCompiler
 
 from mvp.config import MVP_CONFIG
 from mvp.email.brand import EmailBrand
+from tests.testapp_email.mailer import ConfirmationMailer
 
 compiler = CottonCompiler()
 
@@ -131,3 +135,69 @@ class TestBaseTemplate:
 
     def test_it_renders_with_nothing_in_the_context_but_the_sites_framework(self, site):
         assert "BODY-MARKER" in render(CHILD)
+
+
+@pytest.fixture
+def project_overrides(settings):
+    """A project directory that overrides the sender's HTML template, ahead of the app's own."""
+    overrides = Path(__file__).parent.parent / "testapp_email" / "project_templates"
+    settings.TEMPLATES = [{**settings.TEMPLATES[0], "DIRS": [overrides]}]
+
+
+class TestThirdPartySender:
+    """A sender written without django-mvp carries the brand once its HTML template is overridden."""
+
+    URL = "https://shop.example.com/confirm/abc/"
+
+    def send(self, request=None):
+        ConfirmationMailer(request).send_confirmation_mail(
+            "ada@example.org", "Ada", self.URL
+        )
+        return mail.outbox[0]
+
+    @staticmethod
+    def html_of(message):
+        ((html, mimetype),) = message.alternatives
+        assert mimetype == "text/html"
+        return BeautifulSoup(html, "html.parser")
+
+    def test_the_overridden_html_carries_the_logo_site_name_and_inline_styles(
+        self, site, project_overrides
+    ):
+        soup = self.html_of(self.send())
+        logo = soup.find("img")
+
+        assert logo["src"] == f"https://mail.example.com{EmailBrand.current().logo}"
+        assert logo["alt"] == "Acme Mail"
+        assert soup.find("h1").get("style")
+
+    def test_the_overridden_html_follows_the_request_when_the_sender_passes_one(
+        self, site, project_overrides, rf
+    ):
+        request = rf.get("/", HTTP_HOST="request.example.org")
+
+        logo = self.html_of(self.send(request)).find("img")
+
+        assert logo["src"].startswith("http://request.example.org/")
+
+    def test_the_text_body_is_the_apps_own_template(self, site, project_overrides):
+        message = self.send()
+
+        assert message.body == f"Hello Ada,\n\nConfirm your address here: {self.URL}"
+
+    def test_the_subject_is_the_apps_own_template(self, site, project_overrides):
+        assert self.send().subject == "Confirm your address, Ada"
+
+    def test_the_message_data_reaches_the_overriding_template(
+        self, site, project_overrides
+    ):
+        soup = self.html_of(self.send())
+
+        assert soup.find("a", href=self.URL)
+        assert "Hello Ada" in soup.get_text()
+
+    def test_without_the_override_the_apps_html_carries_no_brand(self, site):
+        soup = self.html_of(self.send())
+
+        assert soup.find("img") is None
+        assert soup.find("a", href=self.URL)

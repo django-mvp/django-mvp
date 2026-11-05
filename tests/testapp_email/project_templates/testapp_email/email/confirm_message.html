@@ -1,0 +1,7 @@
+{% extends "mvp/email/base.html" %}
+{% block preheader %}Confirm your address.{% endblock %}
+{% block body %}
+  <h1>Confirm your address</h1>
+  <c-mvp.email.text>Hello {{ name }},</c-mvp.email.text>
+  <c-mvp.email.button :href="url" text="Confirm your address" />
+{% endblock %}

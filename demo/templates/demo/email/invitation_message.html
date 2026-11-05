@@ -1,0 +1,10 @@
+{% extends "mvp/email/base.html" %}
+{% load mvp_email %}
+{% block preheader %}Join {{ project }} on {% email_site_name %}.{% endblock %}
+{% block body %}
+  <h1>You're invited to {{ project }}</h1>
+  <c-mvp.email.text>{{ inviter }} ({{ inviter_email }}) invited you to work on {{ project }} with them as an editor.</c-mvp.email.text>
+  <c-mvp.email.text><em>"{{ message }}"</em></c-mvp.email.text>
+  <c-mvp.email.button :href="accept_url" text="Accept the invitation" />
+  <c-mvp.email.note>The invitation expires on {{ expires }}. If you don't know {{ inviter }}, you can ignore it.</c-mvp.email.note>
+{% endblock %}
