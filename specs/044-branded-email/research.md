@@ -58,8 +58,12 @@ body, in ordinary Django templates. css-inline does the one job left, inlining.
 ### 5. `html2text` is GPL-3.0, which FR-018 rules out.
 
 **Adopted: inscriptis** (Apache-2.0, 2.7.6 released 2026-10-23, about 1.6M a month, Python 3.11+,
-inside the package's 3.12 floor). It lays tables out as columns and lists as items, and with
-`display_links=True` keeps every link's address. markdownify (MIT) was the alternative: it
+inside the package's 3.12 floor). It lays tables out as columns and lists as items. Its own link
+option writes Markdown (`[text](url)`) and repeats an address that is already the link's text, so
+a handler for `<a>`, through its `custom_html_tag_handler_mapping`, writes `text (address)` or
+the address alone. It brings lxml (capped below 6.2) and requests into every consumer's install.
+Weighed against a converter of our own over `html.parser`: the package stays, because a
+maintained converter beats custom code and its size is no reason against it. markdownify (MIT) was the alternative: it
 produces Markdown, so a plain-text reader sees `**` and `#`. html-text (MIT) drops link
 addresses.
 
