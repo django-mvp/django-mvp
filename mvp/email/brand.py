@@ -306,6 +306,7 @@ class EmailBrand:
             for name, key in sorted(unreadable)
             if name in configured
         ]
+        problems += cls.stale_logo_problems()
         return cls(
             light=Palette.from_theme({**themes["light"], **themes[light_name]}),
             dark=Palette.from_theme({**themes["dark"], **themes[dark_name]}),
@@ -314,12 +315,34 @@ class EmailBrand:
             found_problems=tuple(problems),
         )
 
+    @staticmethod
+    def stale_logo_problems() -> list[BrandProblem]:
+        """Find a project logo whose email PNG still comes from the package.
+
+        Returns:
+            One problem when ``brand/logo.svg`` is found outside the package and
+            ``brand/email/logo.png`` only inside it, and none otherwise.
+        """
+        source, png = finders.find(LOGO_SOURCE), finders.find(LOGO)
+        if not source or Path(source).resolve().is_relative_to(PACKAGE_STATIC):
+            return []
+        if png and not Path(png).resolve().is_relative_to(PACKAGE_STATIC):
+            return []
+        return [
+            BrandProblem(
+                "mvp.W004",
+                f"The project has its own {LOGO_SOURCE}, but the email still shows the package's {LOGO}.",
+                "Run: python manage.py mvp_email_logos",
+            )
+        ]
+
     @classmethod
     def problems(cls) -> list[BrandProblem]:
         """List what the email cannot use of the project's theme and logo.
 
         Returns:
-            One problem for each configured theme no stylesheet defines and for
-            each colour that could not be read, in the order found.
+            One problem for each configured theme no stylesheet defines, for
+            each colour that could not be read, and for a project logo whose
+            email PNG still comes from the package, in the order found.
         """
         return list(cls.current().found_problems)

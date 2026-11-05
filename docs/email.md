@@ -185,6 +185,9 @@ checks say so when it starts, as warnings that never stop anything:
   package's own `light` or `dark` colours in its place.
 - `mvp.W003` names a theme and a property whose value isn't a colour. The email takes that colour
   from the package.
+- `mvp.W004` says your project has its own `brand/logo.svg`, but the email's PNG logo is still the
+  package's. Run `python manage.py mvp_email_logos` (see below) to draw yours. It goes away once
+  your static files hold a `brand/email/logo.png` of their own.
 - `mvp.W005` says the brand couldn't be read at all, as when a static file manifest hasn't been
   built yet.
 

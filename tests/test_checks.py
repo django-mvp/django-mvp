@@ -193,3 +193,39 @@ class TestEmailBrandCheck:
 
         assert [message.level for message in messages] == [checks.WARNING]
         assert "manifest" in messages[0].msg
+
+
+class TestEmailLogoCheck:
+    LOGO_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"/>'
+
+    @pytest.fixture(autouse=True)
+    def fresh_brand(self):
+        from mvp.email.brand import EmailBrand
+
+        EmailBrand.current.cache_clear()
+        yield
+        EmailBrand.current.cache_clear()
+
+    @pytest.fixture
+    def project_static(self, tmp_path, settings):
+        settings.STATICFILES_DIRS = [tmp_path]
+        (tmp_path / "brand").mkdir()
+        return tmp_path / "brand"
+
+    def test_a_project_logo_with_the_packages_png_is_a_warning_naming_the_command(self, project_static):
+        (project_static / "logo.svg").write_text(self.LOGO_SVG)
+
+        messages = check_email_brand(None)
+
+        assert [(message.level, message.id) for message in messages] == [(checks.WARNING, "mvp.W004")]
+        assert "mvp_email_logos" in messages[0].hint
+
+    def test_a_project_png_means_no_warning(self, project_static):
+        (project_static / "logo.svg").write_text(self.LOGO_SVG)
+        (project_static / "email").mkdir()
+        (project_static / "email" / "logo.png").write_bytes(b"")
+
+        assert check_email_brand(None) == []
+
+    def test_no_project_logo_means_no_warning(self, project_static):
+        assert check_email_brand(None) == []
