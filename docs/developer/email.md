@@ -264,10 +264,11 @@ a stylesheet, call `EmailBrand.current.cache_clear()`.
 
 Each palette is a `mvp.email.brand.Palette`, a frozen dataclass with the seven colours above as
 hex strings. `mvp.email.brand.ThemeReader` is what reads a theme's colours out of the static
-stylesheets; `ThemeReader.read({"nord"})` returns each named theme's colours, keyed without the
-`--color-` prefix, and is useful for checking what the email will see. `EmailBrand.problems()`
-returns a list of `mvp.email.brand.BrandProblem`, each with the system check `id` it is reported
-under and a `message`; the start-up checks are built from it.
+stylesheets. `colours, unreadable = ThemeReader.read({"nord"})` is useful for checking what the
+email will see: `colours["nord"]` holds that theme's hex values, keyed without the `--color-`
+prefix, and `unreadable` holds the `(theme, property)` pairs whose value is not a colour.
+`EmailBrand.problems()` returns a list of `mvp.email.brand.BrandProblem`, each with the system
+check `id` it is reported under and a `message`; the start-up checks are built from it.
 
 ## Preview your emails in the browser
 
