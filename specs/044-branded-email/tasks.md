@@ -28,6 +28,14 @@ live under `tests/test_email/`, with the pieces in `tests/test_components/test_e
 - [ ] T013 [US4] The preview page
 - [ ] T014 [US4] Docs and changelog pass
 - [ ] T015 [US4] The email page in the developer guide, every public name documented
+- [ ] T016 [US4] The preview frame can be framed under Django's default clickjacking setting
+- [ ] T017 [US1] The divider's hairline has its own class, so table rows using the colour hook stay readable
+- [ ] T018 [US1] The docs give ThemeReader.read's real return value
+- [ ] T019 [US1] The text piece's spacing test checks the scale rises
+- [ ] T020 [US4] The dark preview test fails when the dark rules never apply
+- [ ] T021 [US3] The package's own stylesheets are read last, as documented
+- [ ] T022 [US4] The preview list draws each group once
+- [ ] T023 [US1] The tags find the request on the context, and the new dependencies have upper bounds
 
 ## Order
 
@@ -219,4 +227,24 @@ features list. CHANGELOG entry under Unreleased.
 The page moves to `docs/developer/`, where the documentation standard puts a package's guide
 pages, and documents `Palette`, `ThemeReader`, `BrandProblem`, `EmailPreview` and the preview
 views. Found at convergence by the documentation checks.
+
+## Phase 6 — Review fixes
+
+Found by the code review. Each is a test that fails first, then the fix.
+
+#### T016 — The preview frame can be framed under Django's default clickjacking setting
+
+#### T017 — The divider's hairline has its own class, so table rows using the colour hook stay readable
+
+#### T018 — The docs give ThemeReader.read's real return value
+
+#### T019 — The text piece's spacing test checks the scale rises
+
+#### T020 — The dark preview test fails when the dark rules never apply
+
+#### T021 — The package's own stylesheets are read last, as documented
+
+#### T022 — The preview list draws each group once
+
+#### T023 — The tags find the request on the context, and the new dependencies have upper bounds
 
