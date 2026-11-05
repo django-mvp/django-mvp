@@ -46,6 +46,12 @@ def margin_of(paragraph):
     return re.search(r"margin:\s*[^;]+", paragraph["style"]).group(0)
 
 
+def space_below(paragraph):
+    """The bottom margin, in pixels, in a paragraph's inline style."""
+    margin = re.search(r"margin:\s*([^;]+)", paragraph["style"]).group(1).split()
+    return int(margin[2].removesuffix("px"))
+
+
 class TestEmailText:
     def test_it_renders_a_paragraph_with_its_words(self, body):
         paragraph = body("<c-mvp.email.text>Hello there</c-mvp.email.text>").find(
@@ -85,6 +91,25 @@ class TestEmailText:
         margins = {margin_of(soup.find("p", string=name)) for name in names}
 
         assert len(margins) == len(names)
+
+    def test_the_space_below_grows_from_none_to_xl_and_lg_is_more_than_the_default(
+        self, body
+    ):
+        names = ["none", "xs", "sm", "md", "lg", "xl"]
+        soup = body(
+            "".join(
+                f'<c-mvp.email.text mb="{name}">{name}</c-mvp.email.text>'
+                for name in names
+            )
+            + "<c-mvp.email.text>default</c-mvp.email.text>"
+        )
+
+        spaces = [space_below(soup.find("p", string=name)) for name in names]
+
+        assert spaces == sorted(set(spaces))
+        assert space_below(soup.find("p", string="lg")) > space_below(
+            soup.find("p", string="default")
+        )
 
     @pytest.mark.parametrize(
         ("option", "named"),
