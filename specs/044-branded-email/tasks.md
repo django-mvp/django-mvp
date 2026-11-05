@@ -10,19 +10,39 @@ template that already passes is shown able to fail by a mutation recorded in the
 A task is done when its tests pass, the tree is green, and the work is committed. Documentation
 for a public name lands in the task that introduces it, in `docs/email.md`.
 
+## Checklist
+
+- [ ] T001 [US1] Reset the sketch's Python and add the dependencies
+- [ ] T002 [US1] `Email.render()`: subject, HTML and plain text from a template prefix
+- [ ] T003 [US1] Absolute addresses, with and without a request
+- [ ] T004 [US1] `Email.send()`
+- [ ] T005 [US1] `EmailBrand` reads the configured themes from the static stylesheets
+- [ ] T006 [US1] The base layout, inlined
+- [ ] T007 [US1] The email pieces
+- [ ] T008 [US1] The demo's sample emails
+- [ ] T009 [US3] Fallbacks and the system check
+- [ ] T010 [US3] Overriding the layout
+- [ ] T011 [US3] PNG logos and their command
+- [ ] T012 [US3] The stale-logo warning
+- [ ] T013 [US2] Images, dark scheme and width
+- [ ] T014 [US2] Contrast in the default themes
+- [ ] T015 [US4] Preview registry and discovery
+- [ ] T016 [US4] The preview page
+- [ ] T017 [US4] Docs and changelog pass
+
 ## Order
 
 US-1 (two groups) → US-3 (two groups) → US-2 → US-4, in the feature worktree.
 
 ---
 
-## Phase 1 — US-1: A package developer sends an email in the project's look (P1)
+## Phase 1 — User Story 1: A package developer sends an email in the project's look (P1)
 
 Delivers FR-001–FR-007, FR-014, FR-018, SC-001, SC-003, SC-005.
 
 ### Group 1
 
-#### T001 [US1] — Reset the sketch's Python and add the dependencies
+#### T001 — Reset the sketch's Python and add the dependencies
 
 **Files**: `mvp/email/__init__.py`, `mvp/email/brand.py`, `mvp/email/render.py`,
 `mvp/email/views.py`, `mvp/urls.py`, `demo/apps.py`, `pyproject.toml`, `uv.lock`
@@ -31,7 +51,7 @@ Remove the sketch's Python modules and its `mvp/urls.py` and `demo/apps.py` hunk
 css-inline, tinycss2, coloraide and inscriptis to the runtime dependencies with lower bounds at
 the measured versions. `deptry` green.
 
-#### T002 [US1] — `Email.render()`: subject, HTML and plain text from a template prefix
+#### T002 — `Email.render()`: subject, HTML and plain text from a template prefix
 
 **Files**: `mvp/email/message.py`, `mvp/email/__init__.py`, `tests/test_email/test_message.py`, `docs/email.md`,
 `docs/index.md`, `CHANGELOG.md`
@@ -44,7 +64,7 @@ get_language())`. Tests: own text template used; generated text keeps body text 
 address, in that format; multi-line subject joined; language passed is rendered and restored; with
 a non-default language active and none passed, the active language is used (AS 1.3–1.5).
 
-#### T003 [US1] — Absolute addresses, with and without a request
+#### T003 — Absolute addresses, with and without a request
 
 **Files**: `mvp/email/message.py`, `tests/test_email/test_message.py`, `docs/email.md`
 
@@ -57,7 +77,7 @@ request's or `Site`'s name. Docs say the request path relies on `ALLOWED_HOSTS`.
 each of the three failures, a configured `site_name` in the logo's alt text and the footer, the
 edge case for other sites.
 
-#### T004 [US1] — `Email.send()`
+#### T004 — `Email.send()`
 
 **Files**: `mvp/email/message.py`, `tests/test_email/test_message.py`, `docs/email.md`
 
@@ -70,7 +90,7 @@ message.
 
 ### Group 2
 
-#### T005 [US1] — `EmailBrand` reads the configured themes from the static stylesheets
+#### T005 — `EmailBrand` reads the configured themes from the static stylesheets
 
 **Files**: `mvp/email/brand.py`, `tests/test_email/test_brand.py`, `docs/email.md`
 
@@ -85,7 +105,7 @@ descendant rule such as `[data-theme=nord] .mvp-sidebar` placed before the theme
 The package's committed `brand/email/logo.png` and `logo_dark.png` land here, and `EmailBrand`
 gives their absolute URLs, the dark one only when the file exists.
 
-#### T006 [US1] — The base layout, inlined
+#### T006 — The base layout, inlined
 
 **Files**: `mvp/templates/mvp/email/base.html`, `mvp/email/__init__.py`,
 `tests/test_email/test_layout.py`, `docs/email.md`
@@ -98,7 +118,7 @@ elements carry inline styles; the `@media` rules survive; a filled `footer` bloc
 default (AS 1.8); a filled `preheader` appears in the HTML; a body not extending the layout is
 sent as written.
 
-#### T007 [US1] — The email pieces
+#### T007 — The email pieces
 
 **Files**: `mvp/templates/cotton/mvp/email/{button,note,divider,code}.html`,
 `tests/test_components/test_email_pieces.py`, `docs/email.md`, `docs/components.md`
@@ -107,7 +127,7 @@ The sketch's four pieces, styled through the layout's classes so they inline. Te
 renders inside an email, colour comes from the palette, the button's colour is on its table cell
 for clients that ignore `<a>` backgrounds (AS 1.7).
 
-#### T008 [US1] — The demo's sample emails
+#### T008 — The demo's sample emails
 
 **Files**: `demo/templates/demo/email/*`
 
@@ -117,13 +137,13 @@ plain text.
 
 ---
 
-## Phase 2 — US-3: A project developer's email takes on the project's theme and logo (P1)
+## Phase 2 — User Story 3: A project developer's email takes on the project's theme and logo (P1)
 
 Delivers FR-009–FR-011, FR-017, SC-002.
 
 ### Group 1
 
-#### T009 [US3] — Fallbacks and the system check
+#### T009 — Fallbacks and the system check
 
 **Files**: `mvp/email/brand.py`, `mvp/checks.py`, `mvp/apps.py`, `tests/test_email/test_brand.py`,
 `tests/test_checks.py`, `docs/email.md`
@@ -134,7 +154,7 @@ Missing properties fall back to the packaged theme of the same name, then the pa
 still renders. Tests: AS 3.3 (changing `MVP_CONFIG["theme"]` after clearing the cache), AS 3.5,
 the partial-theme and unknown-theme edge cases.
 
-#### T010 [US3] — Overriding the layout
+#### T010 — Overriding the layout
 
 **Files**: `tests/test_email/test_layout.py`, `docs/email.md`
 
@@ -143,7 +163,7 @@ FR-017). Documentation of the override paths.
 
 ### Group 2
 
-#### T011 [US3] — PNG logos and their command
+#### T011 — PNG logos and their command
 
 **Files**: `mvp/management/commands/mvp_email_logos.py`, `mvp/email/brand.py`,
 `tests/test_management/test_mvp_email_logos.py`, `tests/test_email/test_brand.py`,
@@ -154,7 +174,7 @@ The command renders `brand/logo.svg` and `brand/logo_dark.svg` to 64 px high PNG
 resvg-py when it is absent. Tests: AS 3.4 for a project's own logo; command output and the
 missing-renderer message.
 
-#### T012 [US3] — The stale-logo warning
+#### T012 — The stale-logo warning
 
 **Files**: `mvp/email/brand.py`, `tests/test_checks.py`, `docs/email.md`
 
@@ -163,11 +183,11 @@ missing-renderer message.
 
 ---
 
-## Phase 3 — US-2: A person reads a project's email in their mail client (P1)
+## Phase 3 — User Story 2: A person reads a project's email in their mail client (P1)
 
 Delivers FR-008, FR-010, FR-012, FR-013, SC-004.
 
-#### T013 [US2] — Images, dark scheme and width
+#### T013 — Images, dark scheme and width
 
 **Files**: `mvp/templates/mvp/email/base.html`, `tests/test_email/test_clients.py`
 
@@ -176,7 +196,7 @@ Tests on the sent HTML: the logo `img` has the site name as `alt` and nothing el
 (AS 2.4); the narrow-width rule is present (AS 2.6); colours sit on table
 cells (AS 2.1); the plain-text part carries the whole message (AS 2.2).
 
-#### T014 [US2] — Contrast in the default themes
+#### T014 — Contrast in the default themes
 
 **Files**: `tests/test_email/test_clients.py`
 
@@ -186,11 +206,11 @@ with both colours inverted (each sRGB channel 1 − x) (AS 2.5, FR-013, SC-004).
 
 ---
 
-## Phase 4 — US-4: A developer previews an email in the browser (P2)
+## Phase 4 — User Story 4: A developer previews an email in the browser (P2)
 
 Delivers FR-015, FR-016, SC-006.
 
-#### T015 [US4] — Preview registry and discovery
+#### T015 — Preview registry and discovery
 
 **Files**: `mvp/email/previews.py`, `mvp/apps.py`, `demo/email_previews.py`, `tests/test_email/test_previews.py`,
 `docs/email.md`
@@ -199,7 +219,7 @@ Delivers FR-015, FR-016, SC-006.
 `MvpConfig.ready` while `DEBUG` is on. `demo/emails.py` is renamed. Test with a test app's
 `email_previews.py` (AS 4.1).
 
-#### T016 [US4] — The preview page
+#### T016 — The preview page
 
 **Files**: `mvp/email/views.py`, `mvp/urls.py`, `mvp/templates/mvp/email/preview.html`,
 `demo/menus.py`, `tests/test_email/test_views.py`, `docs/email.md`
@@ -214,7 +234,7 @@ stylesheet, rebuild if not. Tests: AS 4.2–4.6 and the 404, through a URLconf l
 
 ## Phase 5 — Converge
 
-#### T017 [US4] — Docs and changelog pass
+#### T017 — Docs and changelog pass
 
 **Files**: `docs/email.md`, `docs/index.md`, `README.md`, `CHANGELOG.md`
 
