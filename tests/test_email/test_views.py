@@ -8,6 +8,7 @@ from django.conf import settings as django_settings
 from django.test import override_settings
 from django.urls import NoReverseMatch, reverse
 
+from mvp.email.brand import EmailBrand
 from mvp.email.previews import EmailPreview, register
 from tests.conftest import reload_pwa_urlconfs
 
@@ -240,6 +241,17 @@ class TestFrame:
 
         assert "@media (prefers-color-scheme: dark)" in light
         assert "@media (prefers-color-scheme: dark)" not in dark
+
+    def test_dark_scheme_applies_the_dark_colours_unconditionally(self, staff_client):
+        register("mvp/email/base.html", "Base", {}, group="Accounts")
+        EmailBrand.current.cache_clear()
+        surface = EmailBrand.current().dark.surface
+
+        dark = frame(staff_client, "mvp/email/base.html", scheme="dark").content.decode()
+
+        assert "@media all" in dark
+        start = dark.index("@media all")
+        assert surface in dark[start : dark.index("\n    }", start)]
 
     def test_blocked_images_have_an_empty_src(self, staff_client):
         register("mvp/email/base.html", "Base", {}, group="Accounts")
