@@ -8,7 +8,7 @@ from django.template import Context, Template
 from django.test import RequestFactory
 
 from mvp.config import MVP_CONFIG
-from mvp.email.brand import EmailBrand
+from mvp.email.brand import PACKAGE_STATIC, EmailBrand
 
 # The packaged daisyUI themes, as mvp/static/css/django-mvp.css writes them.
 LIGHT = {
@@ -254,6 +254,16 @@ class TestEmailBrandFallbacks:
         monkeypatch.setitem(MVP_CONFIG["theme"], "default", "nosuchtheme")
 
         assert EmailBrand.current().light.surface == hex_of(LIGHT["base-100"])
+
+    def test_the_packaged_stylesheet_is_read_last_even_when_the_finders_list_it_first(
+        self, tmp_path, settings
+    ):
+        (tmp_path / "css").mkdir()
+        (tmp_path / "css" / "brand.css").write_text("[data-theme=light]{--color-primary:#ff0000}")
+        settings.STATICFILES_FINDERS = ["django.contrib.staticfiles.finders.FileSystemFinder"]
+        settings.STATICFILES_DIRS = [PACKAGE_STATIC, tmp_path]
+
+        assert EmailBrand.current().light.primary == "#ff0000"
 
     def test_an_unreadable_value_falls_back_and_is_reported_by_theme_and_property(self, project_css, brandx_theme):
         project_css("[data-theme=brandx]{--color-primary:not-a-colour;--color-base-100:#112233}")

@@ -92,18 +92,20 @@ class ThemeReader:
         """List the stylesheets the static finders know of.
 
         Returns:
-            The file path of each ``.css`` file, in finder order, then the
-            package's own ``.css`` files the finders did not list.
+            The file path of each ``.css`` file the finders list, in finder order, then
+            the package's own ``.css`` files, wherever the finders list them.
         """
-        seen: set[Path] = set()
+        packaged = sorted((PACKAGE_STATIC / "css").glob("*.css"))
+        own = {path.resolve() for path in packaged}
         for finder in finders.get_finders():
             for path, storage in finder.list([]):
-                if path.endswith(".css"):
-                    seen.add(Path(storage.path(path)).resolve())
+                if (
+                    path.endswith(".css")
+                    and Path(storage.path(path)).resolve() not in own
+                ):
                     yield storage.path(path)
-        for path in sorted((PACKAGE_STATIC / "css").glob("*.css")):
-            if path.resolve() not in seen:
-                yield str(path)
+        for path in packaged:
+            yield str(path)
 
     @classmethod
     def rules(cls, nodes: list) -> Iterator[tinycss2.ast.QualifiedRule]:
