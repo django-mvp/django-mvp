@@ -1,0 +1,1 @@
+{% load i18n %}{% blocktrans %}Receipt for your {{ site_name }} subscription{% endblocktrans %}

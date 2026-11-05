@@ -1,0 +1,13 @@
+{# @description SKETCH. A link drawn as a button that holds in mail clients: a table cell carries the colour, so Outlook draws it too. #}
+{# @prop href:text | description:"Where the button goes." #}
+{# @prop text:text | description:"The button's words." #}
+<c-vars href text />
+{% with l=brand.light %}
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:24px 0;">
+  <tr>
+    <td class="mvp-email-button" bgcolor="{{ l.primary }}" style="background-color:{{ l.primary }};border-radius:4px;">
+      <a href="{{ href }}" style="display:inline-block;padding:12px 24px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:16px;font-weight:600;line-height:1.25;color:{{ l.primary_content }};text-decoration:none;border-radius:4px;">{{ text }}</a>
+    </td>
+  </tr>
+</table>
+{% endwith %}

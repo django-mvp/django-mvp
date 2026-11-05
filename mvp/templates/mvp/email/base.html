@@ -1,0 +1,64 @@
+{% load i18n %}{% get_current_language as LANG %}<!DOCTYPE html>
+<html lang="{{ LANG }}" xmlns="http://www.w3.org/1999/xhtml">
+{% comment %}SKETCH. The layout every branded email extends. Styles are inline because Gmail and Outlook drop or ignore most of a style element. The style element carries only the dark scheme and the phone width.{% endcomment %}
+{% with l=brand.light d=brand.dark %}
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="supported-color-schemes" content="light dark">
+  <title>{% block subject %}{% endblock %}</title>
+  <style>
+    @media (max-width: 620px) {
+      .mvp-email-card { width: 100% !important; border-radius: 0 !important; border-left: 0 !important; border-right: 0 !important; }
+      .mvp-email-pad { padding-left: 24px !important; padding-right: 24px !important; }
+    }
+    @media (prefers-color-scheme: dark) {
+      .mvp-email-page { background-color: {{ d.page }} !important; }
+      .mvp-email-card { background-color: {{ d.surface }} !important; border-color: {{ d.border }} !important; }
+      .mvp-email-text, .mvp-email-text p, .mvp-email-text td, .mvp-email-text h1, .mvp-email-text h2 { color: {{ d.text }} !important; }
+      .mvp-email-text a { color: {{ d.text }} !important; }
+      .mvp-email-muted, .mvp-email-muted p, .mvp-email-muted a { color: {{ d.muted }} !important; }
+      .mvp-email-rule { border-color: {{ d.border }} !important; }
+      .mvp-email-sunk { background-color: {{ d.page }} !important; }
+      .mvp-email-button { background-color: {{ d.primary }} !important; }
+      .mvp-email-button a { color: {{ d.primary_content }} !important; }
+      {% if logo_dark %}.mvp-email-logo-light { display: none !important; } .mvp-email-logo-dark { display: block !important; max-height: none !important; overflow: visible !important; }{% endif %}
+    }
+  </style>
+</head>
+<body class="mvp-email-page" style="margin:0;padding:0;background-color:{{ l.page }};-webkit-text-size-adjust:100%;">
+  <div style="display:none;max-height:0;overflow:hidden;mso-hide:all;">{% block preheader %}{% endblock %}&#8199;&#65279;&#847; &#8199;&#65279;&#847; &#8199;&#65279;&#847; &#8199;&#65279;&#847;</div>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="mvp-email-page" style="background-color:{{ l.page }};">
+    <tr>
+      <td align="center" style="padding:32px 0;">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" class="mvp-email-card" style="width:600px;max-width:600px;background-color:{{ l.surface }};border:1px solid {{ l.border }};border-radius:8px;">
+          <tr>
+            <td class="mvp-email-pad" style="padding:32px 40px 0 40px;">
+              <a href="{{ site_url }}" style="text-decoration:none;">
+                <img src="{{ logo_light }}" alt="{{ site_name }}" height="32" class="mvp-email-logo-light" style="display:block;height:32px;width:auto;border:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:20px;font-weight:600;color:{{ l.text }};">
+                {% if logo_dark %}<!--[if !mso]><!--><img src="{{ logo_dark }}" alt="{{ site_name }}" height="32" class="mvp-email-logo-dark" style="display:none;max-height:0;overflow:hidden;height:32px;width:auto;border:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:20px;font-weight:600;color:{{ d.text }};"><!--<![endif]-->{% endif %}
+              </a>
+            </td>
+          </tr>
+          <tr>
+            <td class="mvp-email-pad mvp-email-text" style="padding:24px 40px 40px 40px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:16px;line-height:1.5;color:{{ l.text }};">
+              {% block body %}{% endblock %}
+            </td>
+          </tr>
+        </table>
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" class="mvp-email-card-footer" style="width:600px;max-width:600px;">
+          <tr>
+            <td class="mvp-email-pad mvp-email-muted" style="padding:24px 40px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13px;line-height:1.5;color:{{ l.muted }};">
+              {% block footer %}
+                <p style="margin:0;">{% blocktrans %}Sent by <a href="{{ site_url }}" style="color:{{ l.muted }};">{{ site_name }}</a>.{% endblocktrans %}</p>
+              {% endblock %}
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+{% endwith %}
+</html>

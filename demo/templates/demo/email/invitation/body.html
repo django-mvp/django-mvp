@@ -1,0 +1,10 @@
+{% extends "mvp/email/base.html" %}
+{% load i18n %}
+{% block preheader %}{% blocktrans %}Join {{ project }} on {{ site_name }}.{% endblocktrans %}{% endblock %}
+{% block body %}
+  <h1 style="margin:0 0 16px 0;font-size:24px;line-height:1.25;font-weight:700;">{% blocktrans %}You're invited to {{ project }}{% endblocktrans %}</h1>
+  <p style="margin:0 0 16px 0;">{% blocktrans %}{{ inviter }} ({{ inviter_email }}) invited you to work on {{ project }} with them as an editor.{% endblocktrans %}</p>
+  <p style="margin:0 0 16px 0;"><em>"{{ message }}"</em></p>
+  <c-mvp.email.button :href="accept_url" text="{% trans 'Accept the invitation' %}" />
+  <c-mvp.email.note>{% blocktrans %}The invitation expires on {{ expires }}. If you don't know {{ inviter }}, you can ignore it.{% endblocktrans %}</c-mvp.email.note>
+{% endblock %}

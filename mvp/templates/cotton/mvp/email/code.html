@@ -1,0 +1,10 @@
+{# @description SKETCH. A one-time code, set apart so it can be read and copied. #}
+{# @prop code:text | description:"The code." #}
+<c-vars code />
+{% with l=brand.light %}
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:24px 0;">
+  <tr>
+    <td class="mvp-email-sunk mvp-email-text" style="background-color:{{ l.page }};border-radius:4px;padding:16px 24px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:28px;font-weight:600;letter-spacing:6px;color:{{ l.text }};">{{ code }}</td>
+  </tr>
+</table>
+{% endwith %}

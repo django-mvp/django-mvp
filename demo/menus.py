@@ -75,6 +75,14 @@ AppMenu.extend(
             },
         ),
         MenuItem(
+            name="emails",
+            view_name="mvp-email-preview",
+            extra_context={
+                "label": "Emails",
+                "icon": "email",
+            },
+        ),
+        MenuItem(
             name="theme-preview",
             view_name="theme-preview",
             extra_context={
