@@ -14,10 +14,11 @@ Styles are written once, as rules in the style element, and {% email_inline %} w
     .mvp-email-page { background-color: {{ brand.light.page }}; }
     .mvp-email-preheader { display: none; max-height: 0; overflow: hidden; mso-hide: all; }
     .mvp-email-gutter { padding: 32px 0; }
-    .mvp-email-card { width: 600px; max-width: 600px; background-color: {{ brand.light.surface }}; border: 1px solid {{ brand.light.border }}; border-radius: 8px; }
+    .mvp-email-card { width: 600px; max-width: 600px; border: 1px solid {{ brand.light.border }}; border-radius: 8px; }
+    .mvp-email-surface { background-color: {{ brand.light.surface }}; }
     .mvp-email-footer-card { width: 600px; max-width: 600px; }
-    .mvp-email-header { padding: 32px 40px 0 40px; }
-    .mvp-email-pad { padding: 24px 40px 40px 40px; }
+    .mvp-email-header { padding: 32px 40px 0 40px; border-radius: 8px 8px 0 0; }
+    .mvp-email-pad { padding: 24px 40px 40px 40px; border-radius: 0 0 8px 8px; }
     .mvp-email-footer { padding: 24px 40px; }
     .mvp-email-font { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.5; }
     .mvp-email-text { font-size: 16px; color: {{ brand.light.text }}; }
@@ -43,10 +44,12 @@ Styles are written once, as rules in the style element, and {% email_inline %} w
       .mvp-email-card { width: 100% !important; border-radius: 0 !important; border-left: 0 !important; border-right: 0 !important; }
       .mvp-email-footer-card { width: 100% !important; }
       .mvp-email-header, .mvp-email-pad, .mvp-email-footer { padding-left: 24px !important; padding-right: 24px !important; }
+      .mvp-email-header, .mvp-email-pad { border-radius: 0 !important; }
     }
     @media (prefers-color-scheme: dark) {
       body, .mvp-email-page { background-color: {{ brand.dark.page }} !important; }
-      .mvp-email-card { background-color: {{ brand.dark.surface }} !important; border-color: {{ brand.dark.border }} !important; }
+      .mvp-email-surface { background-color: {{ brand.dark.surface }} !important; }
+      .mvp-email-card { border-color: {{ brand.dark.border }} !important; }
       .mvp-email-text, .mvp-email-text p, .mvp-email-text td, .mvp-email-text h1, .mvp-email-text h2, .mvp-email-text a, .mvp-email-code { color: {{ brand.dark.text }} !important; }
       .mvp-email-muted, .mvp-email-muted p, .mvp-email-muted a, .mvp-email-note { color: {{ brand.dark.muted }} !important; }
       .mvp-email-rule { border-color: {{ brand.dark.border }} !important; }
@@ -62,10 +65,10 @@ Styles are written once, as rules in the style element, and {% email_inline %} w
   <div class="mvp-email-preheader">{% block preheader %}{% endblock %}&#8199;&#65279;&#847; &#8199;&#65279;&#847; &#8199;&#65279;&#847; &#8199;&#65279;&#847;</div>
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="mvp-email-page">
     <tr>
-      <td align="center" class="mvp-email-gutter">
+      <td align="center" class="mvp-email-gutter mvp-email-page">
         <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" class="mvp-email-card">
           <tr>
-            <td class="mvp-email-header">
+            <td class="mvp-email-header mvp-email-surface">
               <a href="{{ site_url }}" class="mvp-email-logo-link">
                 <img src="{{ brand.logo }}" alt="{{ site_name }}" height="32" class="mvp-email-logo mvp-email-logo-light mvp-email-font">
                 {% if brand.logo_dark %}<!--[if !mso]><!--><img src="{{ brand.logo_dark }}" alt="{{ site_name }}" height="32" class="mvp-email-logo mvp-email-logo-dark mvp-email-font"><!--<![endif]-->{% endif %}
@@ -73,7 +76,7 @@ Styles are written once, as rules in the style element, and {% email_inline %} w
             </td>
           </tr>
           <tr>
-            <td class="mvp-email-pad mvp-email-text mvp-email-font">
+            <td class="mvp-email-pad mvp-email-surface mvp-email-text mvp-email-font">
               {% block body %}{% endblock %}
             </td>
           </tr>

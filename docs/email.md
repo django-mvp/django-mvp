@@ -262,3 +262,22 @@ logo file is found.
 `mvp.email.brand.EmailBrand.current()` returns the brand: `light` and `dark` palettes, `logo` and
 `logo_dark` as static URLs. It is cached for the process. After changing `MVP_CONFIG["theme"]` or
 a stylesheet, call `EmailBrand.current.cache_clear()`.
+
+## Why the email holds in mail clients
+
+Mail clients differ in what they draw, so the base template relies on four things that hold in
+all of them:
+
+- **No image carries the layout.** The logo is an `img` whose `alt` is the site's name, so a
+  client that blocks images shows the name where the logo would be. The layout draws its colours
+  with table cells, never with background images, and the message reads with every image removed.
+- **Colours sit on table cells.** The page, the card and the button take their background from a
+  `td`, which Outlook honours where it ignores the same colour on a `div` or a `table`.
+- **The dark scheme is a media query.** A client that honours `prefers-color-scheme: dark` is
+  given the dark palette's colours. The dark logo is in the message only when a dark logo file is
+  found, and it is shown only in the dark scheme.
+- **A narrow screen gets a fluid card.** Below 620 pixels the card takes the full width and the
+  padding shrinks, so the message fits a phone without sideways scrolling.
+
+A client that inverts an email's colours on its own, as some do for dark mode, reads the colours
+the template declares in both schemes, so keep the palette of each theme readable on its own.
