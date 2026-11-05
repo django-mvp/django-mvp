@@ -27,6 +27,7 @@ live under `tests/test_email/`, with the pieces in `tests/test_components/test_e
 - [ ] T012 [US4] Preview registry and discovery
 - [ ] T013 [US4] The preview page
 - [ ] T014 [US4] Docs and changelog pass
+- [ ] T015 [US4] The email page in the developer guide, every public name documented
 
 ## Order
 
@@ -210,3 +211,12 @@ built stylesheet, rebuild if not. Tests: AS 4.2–4.6 and the 404, through a URL
 One page: extending the base template, overriding a third-party package's email template, the
 pieces, the tags, colours and logos, previews and the command. Listed in the docs index. README
 features list. CHANGELOG entry under Unreleased.
+
+#### T015 — The email page in the developer guide, every public name documented
+
+**Files**: `docs/developer/email.md`, `docs/index.md`, `docs/components.md`, `mvp/urls.py`, `CHANGELOG.md`
+
+The page moves to `docs/developer/`, where the documentation standard puts a package's guide
+pages, and documents `Palette`, `ThemeReader`, `BrandProblem`, `EmailPreview` and the preview
+views. Found at convergence by the documentation checks.
+
