@@ -9,9 +9,7 @@ origin/main, so those tests are written red. The approved templates stay on the 
 written against a template that already passes is shown able to fail by a mutation recorded in the
 task's evidence. A task is done when its tests pass, the tree is green, and the work is committed.
 Documentation for a public name lands in the task that introduces it, in `docs/email.md`. Tests
-mirror the source tree: `tests/test_email/test_brand.py`, `tests/test_email/test_previews.py`,
-`tests/test_email/test_views.py`, `tests/test_templatetags/test_mvp_email.py`,
-`tests/test_templates/test_email_base.py`, `tests/test_components/test_email_pieces.py`.
+live under `tests/test_email/`, with the pieces in `tests/test_components/test_email_pieces.py`.
 
 ## Checklist
 
@@ -68,7 +66,7 @@ ignored.
 
 #### T003 — The site's address, name and `{% email_url %}`
 
-**Files**: `mvp/templatetags/mvp_email.py`, `tests/test_templatetags/test_mvp_email.py`,
+**Files**: `mvp/templatetags/mvp_email.py`, `tests/test_email/test_mvp_email.py`,
 `docs/email.md`
 
 The site's address from `context["request"]` when present, otherwise the current `Site` over
@@ -86,7 +84,7 @@ configured `site_name`, an address on another site left as written.
 #### T004 — `{% email_inline %}` and the base template
 
 **Files**: `mvp/templatetags/mvp_email.py`, `mvp/templates/mvp/email/base.html`,
-`tests/test_templatetags/test_mvp_email.py`, `tests/test_templates/test_email_base.py`,
+`tests/test_email/test_mvp_email.py`, `tests/test_email/test_base_template.py`,
 `docs/email.md`
 
 `{% email_inline %}` renders its contents and inlines them with
@@ -112,7 +110,7 @@ AS 1.7, FR-017); the button's colour is on its table cell. No test pins a pixel 
 
 #### T006 — A third-party sender, unchanged, carries the brand
 
-**Files**: `tests/test_templates/test_email_base.py`, `tests/testapp_email/`, `demo/templates/demo/email/*`,
+**Files**: `tests/test_email/test_base_template.py`, `tests/testapp_email/`, `demo/templates/demo/email/*`,
 `docs/email.md`
 
 A test app that sends mail the way allauth's adapter does (`render_to_string` of `_subject.txt`,
@@ -143,14 +141,14 @@ still renders. Tests: AS 3.3 (changing `MVP_CONFIG["theme"]` after clearing the 
 
 #### T008 — Overriding the base template and pieces
 
-**Files**: `tests/test_templates/test_email_base.py`, `docs/email.md`
+**Files**: `tests/test_email/test_overrides.py`, `docs/email.md`
 
 A project template at `mvp/email/base.html` and at a piece's path replaces the package's (AS 3.6,
 FR-011).
 
 #### T009 — PNG logos and their command
 
-**Files**: `mvp/management/commands/mvp_email_logos.py`, `tests/test_management/test_mvp_email_logos.py`,
+**Files**: `mvp/management/commands/mvp_email_logos.py`, `tests/test_management/test_commands/test_mvp_email_logos.py`,
 `docs/email.md`
 
 Renders `brand/logo.svg` and `brand/logo_dark.svg` to 64 px high PNGs in `brand/email/`, into the
@@ -172,7 +170,7 @@ Delivers FR-002, FR-006, FR-008, FR-009.
 
 #### T011 — Images, dark scheme and width
 
-**Files**: `mvp/templates/mvp/email/base.html`, `tests/test_templates/test_email_base.py`
+**Files**: `mvp/templates/mvp/email/base.html`, `tests/test_email/test_mail_clients.py`
 
 Tests on the rendered HTML: the logo `img` has the site name as `alt` and nothing in the layout
 needs an image (AS 2.2); the dark rules use the dark palette and swap to the dark logo only when
