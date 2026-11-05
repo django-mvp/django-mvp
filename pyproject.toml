@@ -138,11 +138,9 @@ DEP002 = [
     "django-crispy-forms",
     "django-mvp-forms",
     "css-inline",
-    "tinycss2",
-    "coloraide",
 ]
-# css-inline, tinycss2, coloraide: imported by the email modules (FS-044) as
-#   they land; this entry goes once the last of them has an import.
+# css-inline: imported by the email template tags (FS-044) once they inline
+#   the email's styles; this entry goes with that import.
 # django-crispy-forms, django-mvp-forms: reached through {% load %} and
 #   INSTALLED_APPS rather than a Python import.
 # invoke: dev task runner, only imported by tasks.py.
@@ -216,6 +214,8 @@ module = [
     "django_cotton.*",
     "django_filters.*",
     "django_tables2.*",
+    "tinycss2",
+    "tinycss2.*",
 ]
 ignore_missing_imports = true
 
