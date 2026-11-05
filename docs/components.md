@@ -502,7 +502,7 @@ The default accessible name is shared.
 
 Pieces to write an email's message with, inside a template that extends `mvp/email/base.html`.
 They are plain markup that holds in Gmail, Outlook and Apple Mail, drawn in the project's theme
-colours. [Email](email.md) explains the base template and how to use the pieces.
+colours. [Email](developer/email.md) explains the base template and how to use the pieces.
 
 | Component | Attributes | Notes |
 | --- | --- | --- |

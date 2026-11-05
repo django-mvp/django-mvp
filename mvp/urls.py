@@ -30,7 +30,7 @@ those three routes do not exist. See docs/installable-app.md.
 
 While ``DEBUG`` is on, mounting this also serves the email preview page,
 ``emails/``, and the frame it shows an email in, ``emails/frame/<template>``.
-Outside ``DEBUG`` those two routes do not exist. See docs/email.md.
+Outside ``DEBUG`` those two routes do not exist. See docs/developer/email.md.
 
 Once allauth's account application is installed, this URLconf contributes
 neither name, so which view answers those two addresses never depends on the

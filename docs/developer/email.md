@@ -142,7 +142,7 @@ be written inline, such as `@media`, stay in the block. Linked stylesheets are n
 
 An email uses the two themes `MVP_CONFIG["theme"]` names: `default` for the light scheme and
 `dark` for the dark scheme. Change those two names, or write your own theme, as
-[Theming](theming.md) describes, and the email follows.
+[Theming](../theming.md) describes, and the email follows.
 
 The colours are read from the stylesheets your static file finders list, once per process:
 
@@ -262,6 +262,13 @@ logo file is found.
 `logo_dark` as static URLs. It is cached for the process. After changing `MVP_CONFIG["theme"]` or
 a stylesheet, call `EmailBrand.current.cache_clear()`.
 
+Each palette is a `mvp.email.brand.Palette`, a frozen dataclass with the seven colours above as
+hex strings. `mvp.email.brand.ThemeReader` is what reads a theme's colours out of the static
+stylesheets; `ThemeReader.read({"nord"})` returns each named theme's colours, keyed without the
+`--color-` prefix, and is useful for checking what the email will see. `EmailBrand.problems()`
+returns a list of `mvp.email.brand.BrandProblem`, each with the system check `id` it is reported
+under and a `message`; the start-up checks are built from it.
+
 ## Preview your emails in the browser
 
 While `DEBUG` is on, django-mvp serves a page that lists the emails your project and its packages
@@ -293,7 +300,7 @@ nothing. Declare an email in two steps:
 
 Then open the page:
 
-1. Mount `mvp.urls` at the site root, as the [Account Center](account-center.md) page shows. That adds
+1. Mount `mvp.urls` at the site root, as the [Account Center](../account-center.md) page shows. That adds
    `emails/` (URL name `mvp-email-preview`) and `emails/frame/<template>` (URL name
    `mvp-email-preview-frame`). With `DEBUG` off neither route exists.
 2. Sign in as a staff member. Anyone not signed in is sent to the sign-in page and a signed-in
@@ -330,6 +337,15 @@ MenuItem(
     extra_context={"label": "Emails", "icon": "email"},
 )
 ```
+
+## The preview views
+
+The page is `mvp.email.views.EmailPreviewView` and the frame it shows the email in is
+`mvp.email.views.EmailPreviewFrameView`. Both take their staff-only access and their controls from
+`mvp.email.views.EmailPreviewMixin`. `mvp.urls` routes them at `emails/` and
+`emails/frame/<template>` only while `DEBUG` is on, so a project never mounts them itself. Each
+declared preview is a `mvp.email.previews.EmailPreview`, with the `template`, `label`, `context`,
+`subject`, `text` and `group` given to `register()`.
 
 ## Why the email holds in mail clients
 
