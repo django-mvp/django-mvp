@@ -104,6 +104,23 @@ current `Site`.
 The demo's sample emails under `demo/templates/demo/email/` follow this naming, each with a
 `_subject.txt` and a `_message.html`.
 
+## Replace the base template or a piece
+
+The base template and each piece are ordinary templates, so a project replaces one by writing a
+template at the same path. Django searches your `DIRS` before the packages' template directories,
+so yours is rendered in its place, for every email built on it.
+
+1. Put a directory in the `DIRS` of your `TEMPLATES` setting, if you haven't one.
+2. To replace the base template, create `mvp/email/base.html` in it. Emails that extend
+   `mvp/email/base.html` now extend yours. Keep the `preheader`, `body` and `footer` blocks, or
+   the emails written for them lose their content.
+3. To replace a piece, create its file at the same path in your directory:
+   `cotton/mvp/email/text.html`, `button.html`, `note.html`, `divider.html` or `code.html`. Keep
+   the component's `<c-vars>` line so emails using it still pass the same attributes.
+
+Start from a copy of the package's file and change what you need. Emails you haven't replaced a
+piece for keep using the package's.
+
 ## Inline your own styles
 
 Gmail and Outlook drop or ignore most of a `<style>` element, so the base template writes its
