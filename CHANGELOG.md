@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.34.0] - 2026-11-06
+
 ### Added
 
 - With `MVP_CONFIG["pwa"]` set, `mvp.urls` serves a page at `/install/` (URL name `mvp-pwa-install`) that tells a visitor how to install the site as an app. It shows the steps for the device it is open on first, offers the browser's own install button in Chrome and Edge, and keeps every other device's steps on the page. The package adds no menu entry for it: `docs/installable-app.md` shows the menu item to add.
