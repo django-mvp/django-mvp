@@ -1,0 +1,1 @@
+{% load mvp_email %}Your sign-in code for {% email_site_name %}

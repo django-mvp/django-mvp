@@ -1,0 +1,13 @@
+{% load mvp_email %}We're updating our privacy policy
+
+On {{ effective }} a new version of our privacy policy takes effect. The main changes:
+{% for change in changes %}
+- {{ change }}{% endfor %}
+
+Read the new policy: {{ policy_url }}
+
+You don't need to do anything. Using the site after that date means you accept the new version.
+
+--
+You're receiving this because you have an account with {% email_site_name %}.
+{{ postal_address }}

@@ -1,0 +1,10 @@
+{% extends "mvp/email/base.html" %}
+{% load mvp_email %}
+{% block preheader %}Your code is {{ code }}. It expires in 15 minutes.{% endblock %}
+{% block body %}
+  <h1>Your sign-in code</h1>
+  <c-mvp.email.text>Enter this code on the sign-in page to finish signing in to {% email_site_name %}.</c-mvp.email.text>
+  <c-mvp.email.code :code="code" />
+  <c-mvp.email.text>The code expires in 15 minutes and works once.</c-mvp.email.text>
+  <c-mvp.email.note>If you didn't try to sign in, someone may have your email address. You can ignore this email: nobody can sign in without the code.</c-mvp.email.note>
+{% endblock %}

@@ -498,6 +498,25 @@ anywhere — `c-mvp.page.list.actions.share` puts it on a list page unconditiona
 Give `c-mvp.addons.django-table` a distinct `label` on any page with more than one table.
 The default accessible name is shared.
 
+## Email
+
+Pieces to write an email's message with, inside a template that extends `mvp/email/base.html`.
+They are plain markup that holds in Gmail, Outlook and Apple Mail, drawn in the project's theme
+colours. [Email](developer/email.md) explains the base template and how to use the pieces.
+
+| Component | Attributes | Notes |
+| --- | --- | --- |
+| `c-mvp.email.text` | `mb` (`none`, `xs`, `sm`, `md` default, `lg`, `xl`), `size` (`sm`, `md` default, `lg`), `align` (`start` default, `center`) | a paragraph with its spacing written inline. An unknown value is the default |
+| `c-mvp.email.button` | `href`, `text` | a link drawn as a button, its colour on the table cell so Outlook draws it |
+| `c-mvp.email.note` | nothing | secondary text in the muted colour |
+| `c-mvp.email.divider` | nothing | a rule between parts of the message |
+| `c-mvp.email.code` | `code` | a one-time code in a monospace box |
+
+```django
+<c-mvp.email.text mb="lg">Choose a new password with the button below.</c-mvp.email.text>
+<c-mvp.email.button :href="reset_url" text="Choose a new password" />
+```
+
 ## List components driven by view context
 
 These render from values a list view puts in its context. Each one is a no-op without its

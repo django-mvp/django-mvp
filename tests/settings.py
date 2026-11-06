@@ -27,6 +27,11 @@ INSTALLED_APPS = [*INSTALLED_APPS, "tests.testapp_account"]
 # of its own, mounted through test URLconfs the way a host project would.
 INSTALLED_APPS = [*INSTALLED_APPS, "tests.testapp_mounted"]
 
+# The stand-in for a third-party package that sends email (FS-044,
+# tests/testapp_email/): proves a project's override of its HTML template gives
+# its email the project's look with the package's code unchanged.
+INSTALLED_APPS = [*INSTALLED_APPS, "tests.testapp_email"]
+
 # django-mvp layout config the test suite asserts on. Defined here — NOT read
 # from demo/settings.py — so visual tweaks to the demo don't ripple into tests.
 # See tests/test_components/test_layout_config.py.
