@@ -15,10 +15,15 @@ specification assumes already works, and what running it here showed.
   for the signed-in person.** Holds as documented: `register(model, name=...)` takes any model
   carrying a `PreferencesField`, and `PreferencesView` is a `DetailView` whose `get_object()` can
   return `request.user` (its ADR 0003).
-- **An app can declare preferences for people in a project that has not turned them on.** Does
-  not hold today. django-object-preferences raises `ImproperlyConfigured` at registration when the
-  model has no `PreferencesField`. FR-011 makes this a requirement: django-mvp has to let such a
-  declaration stand down, or the upstream package has to. To be settled in research.
+- **A user model without a preferences field is caught at startup.** Holds already for any app
+  that declares a group for it: django-object-preferences raises `ImproperlyConfigured` at
+  registration when the model has no `PreferencesField`. FR-004 asks for a message that names the
+  mixin, which the plain error does not.
+- **The preferences field can have any name.** Holds. `registry.get_field(model)` finds the field
+  by its type, not its name. Reading a record's preferences, though, goes through the attribute,
+  so code outside the model has to look the field up itself to stay independent of the name.
+  FR-011 depends on https://github.com/django-mvp/django-object-preferences/issues/27 for a public
+  way to do that.
 - **The demo can show the feature.** Not yet. The demo project runs on Django's own user model
   (`auth.User`), so it needs a user model of its own with the mixin before the page can be seen
   there.

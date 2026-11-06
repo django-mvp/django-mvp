@@ -5,7 +5,7 @@ Ambiguities resolved while the specification was written, with what was chosen a
 ## The language switcher writes the preference
 
 The shell already has a language switcher, which posts to Django's `set_language` view and is
-remembered per browser. For a signed-in person with preferences turned on, a choice made there
+remembered per browser. For a signed-in person, a choice made there
 also becomes their stored language preference (FR-008). The alternative, leaving the switcher
 per-browser, makes the stored preference win on the next sign-in or in another browser, so the
 switcher would appear to undo itself. Treating both as one choice is what a person expects.

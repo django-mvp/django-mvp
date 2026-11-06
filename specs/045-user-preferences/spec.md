@@ -23,8 +23,12 @@ Account Center, and from then on sees every page in their own timezone and langu
 device they sign in from. The same page takes preferences from other installed apps, so a package
 built on django-mvp can let people choose how it behaves for them without a model of its own.
 Preferences are stored by django-object-preferences, which django-mvp integrates as it is and does
-not reimplement. A project turns preferences on by adding a mixin to its user model. The mixin is
-optional, and the documentation recommends it.
+not reimplement. Every project on django-mvp gives its user model the preferences field, by adding
+the mixin django-mvp provides or a preferences field of its own under any name, as one of the
+steps of installing django-mvp.
+
+**Depends on**: https://github.com/django-mvp/django-object-preferences/issues/27, so that an app
+can read a person's preferences without knowing what the project named the field (FR-011).
 
 How each of these is achieved is left to research and planning. Sam's notes for that are in
 `planning-notes.md`.
@@ -38,10 +42,19 @@ How each of these is achieved is left to research and planning. Sam's notes for 
   contributes to, the way the Account Center already is. django-mvp-accounts only links to the
   page from its account management, which is a change to that package once this is released.
 
-- **Q: Does every project have to add the mixin to its user model?**
-  A: No. The mixin is optional, and the documentation strongly recommends it (Sam, 2026-11-06).
-  A project on Django's own user model, or one that has not added the mixin, keeps working and
-  simply has no preferences page. Recorded as FR-003 and FR-004.
+- **Q: Does every project have to give its user model the preferences field?**
+  A: Yes (Sam, 2026-11-06: "The mixin (or at least the preferences field) becomes required").
+  Django itself recommends a custom user model for every new project, and every project on
+  django-mvp today has one. Requiring the field means every app can declare and read preferences
+  for people without checking whether the project has them. A project without it is stopped at
+  startup with a message saying what to add. This replaces an earlier reading in which the mixin
+  was optional. Recorded as FR-003 and FR-004.
+
+- **Q: What if a project's user model already has a `preferences` attribute for something else?**
+  A: The project gives its own preferences field another name instead of using the mixin.
+  django-object-preferences already finds the field by its type, whatever it is named (Sam,
+  2026-11-06). Apps reading a person's preferences therefore never assume the name. Recorded as
+  FR-003 and FR-011.
 
 - **Q: Is django-object-preferences rewritten inside django-mvp?**
   A: No. It is integrated as it is (Sam, 2026-11-06). django-mvp gives its page the shell's look
@@ -68,12 +81,6 @@ How each of these is achieved is left to research and planning. Sam's notes for 
   A: The person sees the project's default, and the page shows the choice as unset until they
   pick again. Nothing fails. Recorded as FR-009.
 
-- **Q: An installed app declares preferences for people, and the project has not added the mixin.
-  Does the project still start?**
-  A: Yes. The app's preferences are left out, as the preferences page is. Today
-  django-object-preferences stops startup in that case, so django-mvp has to account for it.
-  Recorded as FR-011.
-
 - **Q: Does the shell's theme choice become a stored preference?**
   A: Not in this feature. The theme stays a choice kept in the browser, as it is today. Recorded
   under Out of scope.
@@ -95,7 +102,7 @@ one signed in as the same person.
 
 **Acceptance Scenarios**:
 
-1. **Given** a signed-in person in a project with preferences turned on, **When** they open the
+1. **Given** a signed-in person, **When** they open the
    Account Center, **Then** it offers a preferences page, in its menu and on its landing page.
 2. **Given** the preferences page, **When** the person chooses a timezone and saves, **Then**
    every page they load afterwards shows dates and times in that timezone.
@@ -116,32 +123,35 @@ one signed in as the same person.
 
 ---
 
-### User Story 2 - A developer turns preferences on for their project (Priority: P1)
+### User Story 2 - A developer gives their user model preferences when installing django-mvp (Priority: P1)
 
-A developer adds the preferences mixin to their project's user model and runs the migration. The
-preferences page then appears in the Account Center with nothing further to configure. A developer
-who does not add it, or whose project uses Django's own user model, sees no preferences page and
-nothing breaks.
+As one of the steps of installing django-mvp, a developer adds the preferences mixin to their
+project's user model and runs the migration, or adds a preferences field of their own under
+another name when the model already uses the name `preferences`. The preferences page then
+appears in the Account Center with nothing further to configure. A project whose user model has
+no preferences field is stopped at startup, with a message saying what to add.
 
-**Why this priority**: no person can choose anything until a project has turned preferences on.
+**Why this priority**: no person can choose anything until the project's user model carries
+preferences, and every app relies on it doing so.
 
 **Independent Test**: add the mixin to a project's user model and check the page appears, then
-remove it and check the project starts and the page and its menu entry are absent.
+remove it and check the project refuses to start with a message naming the mixin.
 
 **Acceptance Scenarios**:
 
 1. **Given** a project whose user model uses the mixin, **When** it starts, **Then** the
    preferences page, its Account Center menu entry and its landing-page card are present.
-2. **Given** a project whose user model does not use the mixin, **When** it starts and a person
-   opens the Account Center, **Then** it has no preferences page, menu entry or card, and no
-   error.
-3. **Given** a project on Django's own user model, **When** it starts, **Then** it behaves as in
-   scenario 2.
+2. **Given** a project whose user model carries a preferences field of its own under another
+   name, **When** it starts, **Then** it behaves as in scenario 1, and the attribute already
+   called `preferences` is left as it was.
+3. **Given** a project whose user model has no preferences field, including a project on
+   Django's own user model, **When** it starts, **Then** startup stops with a message naming the
+   mixin and how to add it.
 4. **Given** a project that adds the mixin, **When** the developer runs `makemigrations`,
    **Then** it produces one migration for the user model, and no other model or table is added
    for preferences.
-5. **Given** the documentation for setting up a project, **When** a developer reads how to define
-   their user model, **Then** it recommends the mixin and shows how to add it.
+5. **Given** the installation guide, **When** a developer follows it, **Then** it includes giving
+   the user model preferences, shows the mixin, and shows the field under another name.
 
 ---
 
@@ -150,14 +160,14 @@ remove it and check the project starts and the page and its menu entry are absen
 A developer of an installed app built on django-mvp declares a group of preferences for people,
 for example how many rows their lists show. Without the project wiring anything, that group
 appears on the same preferences page, saved with the rest, and the app reads each person's
-values back in its own code. In a project that has not turned preferences on, the app still
-works and its group is left out.
+values back in its own code, the same way in every project, whatever the project named the
+field.
 
 **Why this priority**: it makes the page the one place for a person's preferences across every
 app, but the page is already useful with timezone and language alone.
 
 **Independent Test**: install an app that declares a preference group for people, check it
-appears on the page and saves, then run the same app in a project without the mixin.
+appears on the page and saves, then run the same app in a project whose field has another name.
 
 **Acceptance Scenarios**:
 
@@ -170,8 +180,9 @@ appears on the page and saves, then run the same app in a project without the mi
    **Then** nothing is saved and the invalid value is marked in its own group.
 4. **Given** an app that has declared a group, **When** its code reads a person's value, **Then**
    it gets their choice, or the group's default when they have not chosen.
-5. **Given** a project without the mixin, **When** it starts with that app installed, **Then** it
-   starts without error and the app's group is left out.
+5. **Given** a project whose preferences field has another name, **When** the app reads a
+   person's value, **Then** it gets the same result as in scenario 4, with no change to the
+   app's code.
 
 ---
 
@@ -193,10 +204,11 @@ appears on the page and saves, then run the same app in a project without the mi
   preferences. (US-1)
 - **FR-002**: The preferences page MUST be reachable only by a signed-in person, and MUST only
   ever show and change that person's own preferences. (US-1)
-- **FR-003**: The package MUST provide a mixin a project adds to its user model to turn
-  preferences on. Adding it MUST need one migration for the user model and nothing else. (US-2)
-- **FR-004**: In a project whose user model does not use the mixin, the preferences page, its
-  menu entry and its card MUST be absent, and the project MUST start and run without error. (US-2)
+- **FR-003**: The package MUST provide a mixin that gives a project's user model its preferences
+  field. Adding it MUST need one migration for the user model and nothing else. A project MAY
+  instead give its user model a preferences field of its own under any name. (US-2)
+- **FR-004**: A project whose user model has no preferences field MUST be stopped at startup,
+  with a message naming the mixin and how to add it. (US-2)
 - **FR-005**: The preferences page MUST let a person choose their timezone from the standard
   timezones. (US-1)
 - **FR-006**: The preferences page MUST let a person choose their language from the languages the
@@ -211,15 +223,15 @@ appears on the page and saves, then run the same app in a project without the mi
 - **FR-010**: An installed app MUST be able to declare a group of preferences for people that
   appears on the preferences page and is saved with the others, without the project configuring
   anything. (US-3)
-- **FR-011**: A project without the mixin MUST start without error when an installed app declares
-  a group of preferences for people, and that group MUST be left out. (US-3)
+- **FR-011**: An installed app, and django-mvp itself, MUST read a person's preferences without
+  depending on the name the project gave the preferences field. (US-2, US-3)
 - **FR-012**: Preferences MUST be stored, validated and read by django-object-preferences as it
   is. django-mvp MUST NOT reimplement its storage, its forms handling or its page. (US-1, US-3)
 - **FR-013**: The preferences page MUST carry the shell's look, the same as every other Account
   Center page. (US-1, US-3)
-- **FR-014**: The documentation MUST recommend the mixin where it describes setting up a project's
-  user model, show how to add it, and show an app's developer how to declare a group of
-  preferences for people. (US-2, US-3)
+- **FR-014**: The installation guide MUST include giving the user model preferences, with the mixin
+  and with a field under another name, and the documentation MUST show an app's developer how to
+  declare and read a group of preferences for people. (US-2, US-3)
 
 ### Key Entities
 
@@ -245,9 +257,9 @@ appears on the page and saves, then run the same app in a project without the mi
 
 - **SC-001**: A person who chooses a timezone and a language sees both on the next page they load,
   and in a second browser signed in as them, with nothing else to do.
-- **SC-002**: A project turns preferences on with one change to its user model and one migration,
-  and no new setting.
+- **SC-002**: A project gives its user model preferences with one change and one migration, and no
+  new setting.
 - **SC-003**: An installed app adds its own group to the page with one declaration in its own
   code, and no change to the project.
-- **SC-004**: Every project that worked before this feature still starts and runs unchanged, with
-  or without the mixin.
+- **SC-004**: A project that has not given its user model preferences learns what to add from the
+  first startup after upgrading, without reading anything else.
