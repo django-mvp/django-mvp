@@ -1,7 +1,5 @@
 """The library app's two pages."""
 
-from django.utils.translation import gettext_lazy as _
-
 from mvp.views.extra import MVPTemplateView
 
 
@@ -18,4 +16,4 @@ class ReadingListView(MVPTemplateView):
     """
 
     template_name = "library/reading_list.html"
-    page_title = _("Reading list")
+    page_title = "Reading list"

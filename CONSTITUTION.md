@@ -65,6 +65,13 @@ User-facing strings are translatable. In Python they are wrapped with `gettext_l
 Form `label`, `help_text` and `error_messages` use `gettext_lazy`. Pure acronyms are exempt. A
 hard-coded user-visible string in a pull request is a blocking comment.
 
+This article covers the package. The `demo/` application is never translated: its strings are
+plain text, with no `gettext_lazy`, `{% load i18n %}`, `{% trans %}` or `{% blocktrans %}`. Every
+string marked there would be one more for the package's translators to carry, for an app no one
+installs. Translation markup in `demo/` is a blocking comment. The demo still turns on
+`LocaleMiddleware` and the `set_language` view, so the package's own strings and its language
+switcher can be seen working.
+
 ### Article IX — Data-model conventions (Django)
 
 Every model field is a deliberate indexing decision, and `verbose_name` and `help_text` are
@@ -263,4 +270,4 @@ that need ignore rules first. Do not cite it as an enforced standard until it ru
 
 ---
 
-**Version**: 5.2.0 | **Ratified**: 2026-01-05 | **Last Amended**: 2026-10-12
+**Version**: 5.3.0 | **Ratified**: 2026-01-05 | **Last Amended**: 2026-11-06

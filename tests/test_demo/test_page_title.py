@@ -8,14 +8,7 @@ Source: demo/views.py, demo/urls.py
 
 import pytest
 from bs4 import BeautifulSoup
-from django.utils.functional import Promise
 
-from demo.views import (
-    DataTablesView,
-    PageTitleDemoView,
-    ProductDetailView,
-    ProductListView,
-)
 from mvp.utils import TITLE_LAYOUTS
 
 URL = "/layout/title/"
@@ -64,31 +57,3 @@ class TestPageTitleDemoPage:
         )
         assert [option["value"] for option in options] == list(TITLE_LAYOUTS)
         assert [o["value"] for o in options if o.has_attr("selected")] == ["centred"]
-
-
-class TestDemoStringsAreTranslatable:
-    """The strings the page title sketch added to the demo are translated like their neighbours."""
-
-    def test_the_demo_pages_eyebrows_and_leads_are_lazy_translations(self):
-        strings = [
-            ProductListView.page_eyebrow,
-            DataTablesView.page_eyebrow,
-            DataTablesView.page_lead,
-            *PageTitleDemoView.SHORT.values(),
-            *PageTitleDemoView.LONG.values(),
-        ]
-
-        assert all(isinstance(string, Promise) for string in strings)
-
-    def test_the_demo_detail_pages_share_action_is_a_lazy_translation(self):
-        (action,) = ProductDetailView.page_actions
-
-        assert isinstance(action["text"], Promise)
-
-    def test_the_title_demos_actions_and_info_are_lazy_translations(self, rf):
-        view = PageTitleDemoView()
-        view.setup(rf.get("/layout/title/"))
-
-        texts = [action["text"] for action in view.get_page_actions()]
-        assert all(isinstance(text, Promise) for text in texts)
-        assert isinstance(view.get_page_info(), Promise)
