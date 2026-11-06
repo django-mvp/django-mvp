@@ -5,6 +5,13 @@ pieces to write the message with and template tags for the parts that need the s
 It never sends an email: whatever sends your email today keeps its own subject, plain text and
 language.
 
+To queue every email your project sends, keep a log of each one and send it through a provider
+such as Mailgun or Postmark, install django-mvp-community with its `mail` extra. It sets
+django-post-office as your email backend and django-anymail as its provider, so nothing here or in
+the code that sends your email changes. Its
+[Mail](https://github.com/django-mvp/django-mvp-community/blob/main/docs/developer/mail.md) page
+covers the settings, and stored templates you edit in the admin that extend this layout.
+
 This page covers the layout an email extends, the colours and the logo it is drawn in, the
 template tags it is written with, and how to check your emails in Mailpit while you develop. Nothing about the colours and the logo is set for email. They come from what the site
 already uses.
