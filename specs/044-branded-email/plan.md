@@ -10,8 +10,7 @@ Whoever owns an HTML email template, a django-mvp package or a project overridin
 package's template, extends the base template and writes the message. Nothing in this feature
 renders or sends email: the package that sends an email today keeps sending it, with its own
 subject, plain text and language. The email's colours are read from the project's light and dark
-themes, its logo is a PNG rendered from the brand logo, and a staff-only preview page exists
-while `DEBUG` is on. The approved sketch's layout, pieces, sample emails and preview page are kept
+themes, its logo is a PNG rendered from the brand logo. The approved sketch's layout, pieces and sample emails are kept
 as Sam saw them. The code behind them is rewritten test-first.
 
 ## Technical context
@@ -29,10 +28,10 @@ through Django's in-memory backend. No browser test (Article XIV).
 | I Testing | Every task writes its tests first. The sketch's Python is reset to origin/main before the first dispatch so those tests start red |
 | II Simplicity, III Anti-abstraction | Templates, Cotton components and template tags. No class for sending, no setting |
 | IV Integration-first | The first acceptance test is a third-party-style sender, unchanged, whose overridden template extends the base template |
-| V Security | Every value reaches the email through Django's template layer. The preview page is absent with `DEBUG` off and staff-only with it on |
+| V Security | Every value reaches the email through Django's template layer. |
 | VI, XVII Documentation | `docs/email.md` is written in the task that introduces each name, and listed in the docs index |
 | VII Dependencies | Three runtime additions, each with its reason in `research.md`. `deptry` stays green |
-| VIII Internationalization | Every string in the layout, pieces and preview page is translatable. The language is the sender's |
+| VIII Internationalization | Every string in the layout and pieces is translatable. The language is the sender's |
 | X Cohesion | `EmailBrand` holds the colours and logos. The template tags are thin readers of it |
 | XI Components are the public API | The pieces are Cotton components, `c-mvp.email.text`, `.button`, `.note`, `.divider`, `.code` |
 | XIII Rendered markup is a contract | Each piece and the base template have rendered-markup tests |
@@ -114,21 +113,6 @@ component's `<c-vars>` and a `{% with %}` lookup, with no Python. Plain `<p>` in
 the base template's default spacing. The sketch's markup, styled through the base template's classes so
 they inline. The button's colour sits on its table cell, which Outlook honours.
 
-### Previews
-
-- `mvp.email.previews.register(template, label, context, *, subject=None, text=None, group="")`
-  records an `EmailPreview`: the HTML template, and the subject and plain-text templates when the
-  email has them. Template names are given in full, because each sender names its own.
-- While `DEBUG` is on, `MvpConfig.ready` calls `autodiscover_modules("email_previews")`, so a
-  package declares its previews in its own `email_previews.py`.
-- `mvp.urls` adds `emails/` and `emails/frame/<path:template>` only while `DEBUG` is on, the way
-  it already adds the installable-app routes only while `pwa` is set.
-- The page and frame views render the declared templates with `render_to_string`, refuse anyone
-  but a signed-in staff member, and show one email's render error in its place. Controls: Part
-  (HTML, or plain text when the email has it), Colour scheme, Images, Width, as approved, plus
-  Language when `LANGUAGES` has more than one entry. Dark and Images blocked are preview-only
-  transforms of the rendered HTML.
-
 ### Management command: `mvp_email_logos`
 
 Renders `brand/logo.svg` and `brand/logo_dark.svg`, as the static finders find them, to PNG at
@@ -139,12 +123,11 @@ Without resvg-py it stops and names the package, with the same wording as `mvp_p
 
 The five approved sample emails stay under `demo/templates/demo/email/`, written with
 `c-mvp.email.text` and with no translation markup (django-mvp's demo carries none, per
-https://github.com/django-mvp/django-mvp/issues/648), renamed to allauth's naming as an example of overriding a third party's templates, and are declared in
-`demo/email_previews.py`. The broken preview and the menu entry stay.
+https://github.com/django-mvp/django-mvp/issues/648), renamed to allauth's naming as an example of overriding a third party's templates, and are checked in Mailpit like any other email.
 
 ## Story order and dispatch
 
-US-1 → US-3 → US-2 → US-4, one feature worktree, five dispatches (`tasks.md`).
+US-1 → US-3 → US-2, one feature worktree, four dispatches (`tasks.md`).
 
 ## Risks
 

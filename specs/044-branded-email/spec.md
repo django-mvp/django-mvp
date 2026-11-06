@@ -20,8 +20,7 @@ own HTML, so a project's mail looks nothing like the project. django-mvp ships a
 template that carries the project's logo, colours and name. Whoever owns an email template,
 whether a django-mvp package or a project overriding a third-party package's template, extends
 it and writes only the message, so every email looks like it came from the same site. How an
-email is sent stays with whatever sends it today: django-mvp adds no way of sending email. A
-developer can see an email rendered in the browser while writing it. The person receiving it gets
+email is sent stays with whatever sends it today: django-mvp adds no way of sending email. The person receiving it gets
 a readable message in the common mail clients.
 
 How each of these is achieved (how the colours and logo reach the email, which packages are used)
@@ -69,6 +68,12 @@ is left to research and planning. Sam's notes for that are in `planning-notes.md
   below it, into inline styles, so spacing comes from a small fixed scale rather than numbers each
   author picks (Sam, 2026-11-05). Recorded as FR-017.
 
+- **Q: Does django-mvp give developers a page to preview their emails?**
+  A: No (Sam, 2026-11-06, at the merge gate). Mailpit, an open-source mail catcher, shows the email
+  a project actually sent, with a client-compatibility check, so the developer guide documents it
+  instead. The preview page, its registry and its routes were removed, with User Story 4 and the
+  requirements behind it.
+
 ### Session 2026-11-04 (coverage scan)
 
 - **Q: Does an email rendered with no request, by a background worker, still have a working logo
@@ -78,13 +83,7 @@ is left to research and planning. Sam's notes for that are in `planning-notes.md
   for any path. If the site's address cannot be found at all, rendering fails with an error saying
   so, rather than an email going out with a broken logo. Recorded as FR-004.
 
-- **Q: Who can open the email preview page?**
-  A: Only while `DEBUG` is on, and only a signed-in staff member. With `DEBUG` off the page does
-  not exist. Recorded as FR-013.
 
-- **Q: Where does a preview get the data its email is rendered with?**
-  A: From example data the developer declares with the preview. A preview never reads real
-  people's records. Recorded as FR-012.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -185,34 +184,6 @@ check that it carries them.
 
 ---
 
-### User Story 4 - A developer previews an email in the browser (Priority: P2)
-
-A developer writing or restyling an email opens a page on their dev server that lists every email
-with a declared preview, and opens any one of them rendered as it will be sent, with its subject
-and plain text where the email has them.
-
-**Why this priority**: emails are slow to check by sending them. The feature works without the
-preview, so it comes after the three that make the look work.
-
-**Independent Test**: declare a preview for one email template with example data, turn on
-`DEBUG`, sign in as staff and open the preview page.
-
-**Acceptance Scenarios**:
-
-1. **Given** a package that declares a preview for one of its email templates with example data,
-   **When** the developer opens the preview page, **Then** that email is listed.
-2. **Given** a listed email, **When** the developer opens it, **Then** they see its HTML exactly as
-   it renders, and its subject and plain-text templates rendered when they exist.
-3. **Given** a preview, **When** it is opened in another of the project's languages, **Then** the
-   email renders in that language.
-4. **Given** `DEBUG` off, **When** anyone requests the preview page, **Then** it does not exist.
-5. **Given** `DEBUG` on and a visitor who is not a signed-in staff member, **When** they request
-   the preview page, **Then** they are refused.
-6. **Given** a preview whose email fails to render, **When** the developer opens it, **Then** the
-   error is shown for that email and the list still loads.
-
----
-
 ### Edge Cases
 
 - A template that does not extend the base template: it renders as written, without the brand.
@@ -249,11 +220,7 @@ preview, so it comes after the three that make the look work.
   note, a divider, a code) that render in the project's colours. (US-1)
 - **FR-011**: A project MUST be able to replace the base template and each email piece by
   overriding its template at the same path. (US-3)
-- **FR-012**: A developer MUST be able to declare a preview for an email template with example
-  data, and the preview page MUST list every declared preview and render each one's HTML, and its
-  subject and plain text where they exist, in any of the project's languages. (US-4)
-- **FR-013**: The preview page MUST exist only while `DEBUG` is on, and MUST refuse anyone who is
-  not a signed-in staff member. (US-4)
+
 - **FR-014**: The feature MUST add no runtime dependency under a GPL or AGPL licence, and MUST NOT
   require a front-end build step. (US-1)
 - **FR-015**: An email's plain-text part MUST be left to whatever sends it. The base template MUST
@@ -267,9 +234,10 @@ preview, so it comes after the three that make the look work.
 - **Base email template**: the template an email's HTML template extends. It draws the logo, the
   project's colours, the project's name and the footer around the body.
 - **Email piece**: a reusable part of an email body, such as a button.
-- **Email preview**: an email template paired with the example data it is previewed with.
 
 ### Out of scope
+
+- A page for previewing emails in the browser. The developer guide points to Mailpit.
 
 - Moving the email that packages send today onto the layout. Each package moves over in its own
   repository, once this is released: django-mvp-accounts by overriding allauth's email templates.
@@ -290,5 +258,3 @@ preview, so it comes after the three that make the look work.
 - **SC-004**: Spacing between paragraphs comes from one named scale, the same in every email that
   uses the text piece.
 - **SC-005**: The feature adds no GPL or AGPL runtime dependency and keeps Django 5.2 supported.
-- **SC-006**: A developer opens any declared email rendered in the browser in one click from the
-  preview list.

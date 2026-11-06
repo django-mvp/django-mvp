@@ -48,20 +48,23 @@ class TestDemoEmailTemplates:
 
 class TestDemoReceipt:
     def test_a_line_item_is_not_collapsed_to_a_hairline(self, rf, db):
-        import importlib
-
-        import demo.email_previews
         from bs4 import BeautifulSoup
 
-        from mvp.email.previews import EmailPreview
-
-        importlib.reload(demo.email_previews)
-        preview = EmailPreview.get("demo/email/receipt_message.html")
         Site.objects.clear_cache()
         EmailBrand.current.cache_clear()
+        context = {
+            "total": "€14.28",
+            "date": "4 November 2026",
+            "renews": "4 December 2026",
+            "number": "R-2026-00412",
+            "billing_url": "https://example.com/account/billing/",
+            "lines": [{"label": "Standard plan, monthly", "amount": "€12.00"}],
+        }
 
         html = render_to_string(
-            preview.template, preview.context, rf.get("/", HTTP_HOST="mail.example.org")
+            "demo/email/receipt_message.html",
+            context,
+            rf.get("/", HTTP_HOST="mail.example.org"),
         )
 
         label = BeautifulSoup(html, "html.parser").find("td", string="Standard plan, monthly")

@@ -63,7 +63,7 @@ the box. **Things should just work.**
   icons and a service worker, so visitors can add the site to their home screen.
 - **Branded HTML email** — one base template and a few pieces give an email your site's logo,
   theme colours, dark scheme and phone-width layout, and a project's own template overrides
-  another package's email. A preview page lists every email while `DEBUG` is on.
+  another package's email.
 - **No build tooling required** — a prebuilt stylesheet ships with the package. When
   your own templates need their own Tailwind classes, one management command generates
   the build config.

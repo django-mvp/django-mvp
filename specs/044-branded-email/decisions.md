@@ -10,7 +10,7 @@ names and wording of every email a project sends, and a page that exists in prod
 someone has to remember to protect. Tying it to `DEBUG` makes it absent in production by
 construction. Staff-only covers a shared staging server run with `DEBUG` on.
 
-**ADR:** none — local to the preview page; the rule is stated in the docs and enforced by its tests
+**ADR:** none — the preview page was later removed (see the last decision)
 
 ## D2: Rendering fails when the site's address cannot be found
 
@@ -118,3 +118,13 @@ converted to hex for mail clients with coloraide. A project's stylesheet wins ov
 and only rules that select the theme itself count.
 
 **ADR:** docs/adr/0041-email-colours-are-read-from-the-theme-stylesheets.md
+
+## D13: Mailpit instead of a preview page
+
+Sam, 2026-11-06, at the merge gate. A preview page in django-mvp needed a registry, its
+autodiscovery, two views, two `DEBUG`-only routes and an `email_previews.py` in every package, and
+it re-rendered templates rather than showing what was sent. Mailpit (MIT, maintained) catches what
+the project actually sends and checks the HTML against what each mail client supports. The page
+was removed and the developer guide documents Mailpit.
+
+**ADR:** none — a documentation choice; no code depends on it

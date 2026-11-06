@@ -28,21 +28,15 @@ installable-app files, ``manifest.webmanifest`` and ``sw.js``, and the page that
 tells a visitor how to install the site, ``install/``. With the setting off
 those three routes do not exist. See docs/installable-app.md.
 
-While ``DEBUG`` is on, mounting this also serves the email preview page,
-``emails/``, and the frame it shows an email in, ``emails/frame/<template>``.
-Outside ``DEBUG`` those two routes do not exist. See docs/developer/email.md.
-
 Once allauth's account application is installed, this URLconf contributes
 neither name, so which view answers those two addresses never depends on the
 order two URLconfs were mounted in. The reasoning is in
 docs/adr/0024-a-stand-in-page-withdraws-when-the-real-app-arrives.md.
 """
 
-from django.conf import settings
 from django.urls import URLPattern, URLResolver, path
 
 from .config import MVP_CONFIG
-from .email.views import EmailPreviewFrameView, EmailPreviewView
 from .mounted import mount
 from .pwa.views import InstallView, manifest, service_worker
 from .utils import app_is_installed
@@ -57,16 +51,6 @@ if MVP_CONFIG["pwa"]:
         path("manifest.webmanifest", manifest, name="mvp-pwa-manifest"),
         path("sw.js", service_worker, name="mvp-pwa-service-worker"),
         path("install/", InstallView.as_view(), name="mvp-pwa-install"),
-    ]
-
-if settings.DEBUG:
-    urlpatterns += [
-        path("emails/", EmailPreviewView.as_view(), name="mvp-email-preview"),
-        path(
-            "emails/frame/<path:template>",
-            EmailPreviewFrameView.as_view(),
-            name="mvp-email-preview-frame",
-        ),
     ]
 
 if not app_is_installed("allauth.account"):

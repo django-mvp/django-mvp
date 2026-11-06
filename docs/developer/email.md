@@ -6,8 +6,7 @@ It never sends an email: whatever sends your email today keeps its own subject, 
 language.
 
 This page covers the layout an email extends, the colours and the logo it is drawn in, the
-template tags it is written with, and a page for previewing emails in the browser while you
-develop. Nothing about the colours and the logo is set for email. They come from what the site
+template tags it is written with, and how to check your emails in Mailpit while you develop. Nothing about the colours and the logo is set for email. They come from what the site
 already uses.
 
 ## Write an email on the base template
@@ -270,83 +269,32 @@ prefix, and `unreadable` holds the `(theme, property)` pairs whose value is not 
 `EmailBrand.problems()` returns a list of `mvp.email.brand.BrandProblem`, each with the system
 check `id` it is reported under and a `message`; the start-up checks are built from it.
 
-## Preview your emails in the browser
+## Check your emails in Mailpit
 
-While `DEBUG` is on, django-mvp serves a page that lists the emails your project and its packages
-declare and shows each one as a mail client would. It renders the templates you name and sends
-nothing. Declare an email in two steps:
+django-mvp has no preview page of its own. To see your emails while you build them, send them to
+[Mailpit](https://mailpit.axllent.org/), an open-source mail catcher that collects everything your
+project sends and shows it in a web inbox. It shows each email's HTML, plain text, source and
+headers, at phone and tablet widths, and checks the HTML against what each mail client supports,
+which is the check that matters for an email layout.
 
-1. Create `email_previews.py` in any installed app. Django MVP imports that module at start-up,
-   only while `DEBUG` is on.
-2. Call `register` once for each email, naming its templates in full, because every sender names
-   its own:
+Run it with Docker:
 
-   ```python
-   # shop/email_previews.py
-   from mvp.email.previews import register
-
-   register(
-       "shop/email/receipt_message.html",
-       "Payment receipt",
-       {"total": "€14.28", "lines": []},
-       subject="shop/email/receipt_subject.txt",
-       text="shop/email/receipt_message.txt",
-       group="Payments",
-   )
-   ```
-
-   The first argument is the HTML template, the second what the list calls the email and the
-   third the context to render it with. `subject` and `text` are optional, and `group` lists the
-   email under a heading. Registering the same HTML template again replaces its preview.
-
-Then open the page:
-
-1. Mount `mvp.urls` at the site root, as the [Account Center](../account-center.md) page shows. That adds
-   `emails/` (URL name `mvp-email-preview`) and `emails/frame/<template>` (URL name
-   `mvp-email-preview-frame`). With `DEBUG` off neither route exists.
-2. Sign in as a staff member. Anyone not signed in is sent to the sign-in page and a signed-in
-   user who isn't staff gets a 403.
-3. Open `/emails/`. The list is on the left, grouped by heading, and the first email is selected.
-
-The selected email shows its rendered subject and its HTML in a frame. The controls above it
-change how it is shown:
-
-- **Part** switches between the HTML and the plain text. Plain text is offered only for an email
-  registered with a `text` template.
-- **Colour scheme** shows the dark palette's rules at any width.
-- **Images** blocks every image by emptying its `src`, as a client does before the reader allows
-  them.
-- **Width** shows the email at a phone's width.
-- **Language** renders the email in another language. It appears only when `LANGUAGES` has more
-  than one entry.
-
-Dark and blocked images change only the preview. The email itself is exactly what the templates
-render. An email that fails to render shows its error where its preview would be, and the list and
-the other emails still load.
-
-To reach the page from your own menu, point an entry at its URL name and show it only while
-`DEBUG` is on, as the demo does:
-
-```python
-from django.conf import settings
-from flex_menu import MenuItem
-
-MenuItem(
-    name="emails",
-    view_name="mvp-email-preview",
-    check=lambda request: settings.DEBUG,
-    extra_context={"label": "Emails", "icon": "email"},
-)
+```bash
+docker run -d --name mailpit -p 8025:8025 -p 1025:1025 axllent/mailpit
 ```
 
-## The preview views
+Point your development settings at it:
 
-The page is `mvp.email.views.EmailPreviewView` and the frame it shows the email in is
-`mvp.email.views.EmailPreviewFrameView`. Both take their staff-only access and their controls from
-`mvp.email.views.EmailPreviewMixin`. `mvp.urls` routes them at `emails/` and
-`emails/frame/<template>` only while `DEBUG` is on, so a project never mounts them itself. Each
-declared preview is a `mvp.email.previews.EmailPreview`, with the `template`, `label`, `context`,
-`subject`, `text` and `group` given to `register()`.
+```python
+# settings.py, development only
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "localhost"
+EMAIL_PORT = 1025
+```
+
+Then trigger the email the way a person would, for example by asking for a password reset, and open
+`http://localhost:8025`. Because Mailpit receives what was actually sent, it shows a third-party
+package's email exactly as that package built it, with your template override in place.
 
 ## Why the email holds in mail clients
 

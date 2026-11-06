@@ -24,22 +24,18 @@ live under `tests/test_email/`, with the pieces in `tests/test_components/test_e
 - [ ] T009 [US3] PNG logos and their command
 - [ ] T010 [US3] The stale-logo warning
 - [ ] T011 [US2] Images, dark scheme and width
-- [ ] T012 [US4] Preview registry and discovery
-- [ ] T013 [US4] The preview page
-- [ ] T014 [US4] Docs and changelog pass
-- [ ] T015 [US4] The email page in the developer guide, every public name documented
-- [ ] T016 [US4] The preview frame can be framed under Django's default clickjacking setting
+- [ ] T014 [US1] Docs and changelog pass
+- [ ] T015 [US1] The email page in the developer guide, every public name documented
 - [ ] T017 [US1] The divider's hairline has its own class, so table rows using the colour hook stay readable
 - [ ] T018 [US1] The docs give ThemeReader.read's real return value
 - [ ] T019 [US1] The text piece's spacing test checks the scale rises
-- [ ] T020 [US4] The dark preview test fails when the dark rules never apply
 - [ ] T021 [US3] The package's own stylesheets are read last, as documented
-- [ ] T022 [US4] The preview list draws each group once
 - [ ] T023 [US1] The tags find the request on the context, and the new dependencies have upper bounds
+- [ ] T024 [US1] Remove the preview page and document Mailpit
 
 ## Order
 
-US-1 (two groups) → US-3 → US-2 → US-4, in the feature worktree.
+US-1 (two groups) → US-3 → US-2, then documentation, in the feature worktree.
 
 ---
 
@@ -187,37 +183,16 @@ one exists (AS 2.3); the narrow-width rule is present (AS 2.5); colours sit on t
 
 ---
 
-## Phase 4 — User Story 4: A developer previews an email in the browser (P2)
+## Phase 4 — Documentation
 
-Delivers FR-012, FR-013, SC-006.
-
-#### T012 — Preview registry and discovery
-
-**Files**: `mvp/email/previews.py`, `mvp/apps.py`, `demo/email_previews.py`,
-`tests/test_email/test_previews.py`, `docs/email.md`
-
-`register(template, label, context, *, subject=None, text=None, group="")`, and
-`autodiscover_modules("email_previews")` in `MvpConfig.ready` while `DEBUG` is on. Test with a test
-app's `email_previews.py` (AS 4.1).
-
-#### T013 — The preview page
-
-**Files**: `mvp/email/views.py`, `mvp/urls.py`, `mvp/templates/mvp/email/preview.html`,
-`demo/menus.py`, `tests/test_email/test_views.py`, `docs/email.md`
-
-The sketch's page and frame view, rendering the declared templates with `render_to_string`. Routes
-only while `DEBUG`. Staff only. Part (plain text only when the email has a text template), Colour
-scheme, Images, Width, and Language when `LANGUAGES` has more than one. One failing email shows its
-error. The frame view 404s for a template with no registered preview. Confirm every class is in the
-built stylesheet, rebuild if not. Tests: AS 4.2–4.6 and the 404, through a URLconf loaded under
-`override_settings(DEBUG=True)` with `mvp.urls` reloaded and `clear_url_caches()`.
+Delivers the documentation for every story.
 
 #### T014 — Docs and changelog pass
 
 **Files**: `docs/email.md`, `docs/index.md`, `README.md`, `CHANGELOG.md`
 
 One page: extending the base template, overriding a third-party package's email template, the
-pieces, the tags, colours and logos, previews and the command. Listed in the docs index. README
+pieces, the tags, colours and logos and the command. Listed in the docs index. README
 features list. CHANGELOG entry under Unreleased.
 
 #### T015 — The email page in the developer guide, every public name documented
@@ -225,14 +200,11 @@ features list. CHANGELOG entry under Unreleased.
 **Files**: `docs/developer/email.md`, `docs/index.md`, `docs/components.md`, `mvp/urls.py`, `CHANGELOG.md`
 
 The page moves to `docs/developer/`, where the documentation standard puts a package's guide
-pages, and documents `Palette`, `ThemeReader`, `BrandProblem`, `EmailPreview` and the preview
-views. Found at convergence by the documentation checks.
+pages, and documents `Palette`, `ThemeReader`, and `BrandProblem`. Found at convergence by the documentation checks.
 
 ## Phase 6 — Review fixes
 
 Found by the code review. Each is a test that fails first, then the fix.
-
-#### T016 — The preview frame can be framed under Django's default clickjacking setting
 
 #### T017 — The divider's hairline has its own class, so table rows using the colour hook stay readable
 
@@ -240,10 +212,14 @@ Found by the code review. Each is a test that fails first, then the fix.
 
 #### T019 — The text piece's spacing test checks the scale rises
 
-#### T020 — The dark preview test fails when the dark rules never apply
-
 #### T021 — The package's own stylesheets are read last, as documented
 
-#### T022 — The preview list draws each group once
-
 #### T023 — The tags find the request on the context, and the new dependencies have upper bounds
+
+#### T024 — Remove the preview page and document Mailpit
+
+**Files**: `mvp/email/views.py`, `mvp/email/previews.py`, `mvp/templates/mvp/email/preview.html`,
+`mvp/urls.py`, `mvp/apps.py`, `demo/email_previews.py`, `demo/menus.py`, `tests/`,
+`docs/developer/email.md`, `README.md`, `CHANGELOG.md`
+
+Sam, at the merge gate: the preview page goes, and the developer guide documents Mailpit instead.

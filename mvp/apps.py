@@ -1,9 +1,7 @@
 """Django app configuration for the mvp package."""
 
 from django.apps import AppConfig
-from django.conf import settings
 from django.core import checks
-from django.utils.module_loading import autodiscover_modules
 
 
 class MvpConfig(AppConfig):
@@ -14,7 +12,7 @@ class MvpConfig(AppConfig):
     verbose_name = "Django MVP"
 
     def ready(self):
-        """Register the system checks, and find the apps' email previews while ``DEBUG`` is on."""
+        """Register the system checks."""
         from .checks import (
             check_daisy_cotton_app,
             check_email_brand,
@@ -26,6 +24,3 @@ class MvpConfig(AppConfig):
         checks.register(check_daisy_cotton_app)
         checks.register(check_page_title_layout)
         checks.register(check_email_brand)
-
-        if settings.DEBUG:
-            autodiscover_modules("email_previews")
